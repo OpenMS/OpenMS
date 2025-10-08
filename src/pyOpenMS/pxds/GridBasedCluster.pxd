@@ -8,7 +8,7 @@ from DBoundingBox cimport *
 # typedef DPosition<2> Point;
 # typedef DBoundingBox<2> Rectangle;
 
-cdef extern from "<OpenMS/COMPARISON/CLUSTERING/GridBasedCluster.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/ML/CLUSTERING/GridBasedCluster.h>" namespace "OpenMS":
     
     cdef cppclass GridBasedCluster "OpenMS::GridBasedCluster":
 

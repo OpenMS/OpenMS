@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -60,7 +60,6 @@ namespace OpenMS
     TypeNameBinding(FileTypes::PEPXML, "pepXML", "pepXML file", {PROP::READABLE, PROP::WRITEABLE}), //Supported for loading and storing identifications but TODO integrate this into fileHandler
     TypeNameBinding(FileTypes::PROTXML, "protXML", "protXML file", {PROP::PROVIDES_IDENTIFICATIONS, PROP::READABLE}),
     TypeNameBinding(FileTypes::MZIDENTML, "mzid", "mzIdentML file", {PROP::PROVIDES_IDENTIFICATIONS, PROP::READABLE, PROP::WRITEABLE}),
-    TypeNameBinding(FileTypes::MZQUANTML, "mzq", "mzQuantML file", {PROP::PROVIDES_QUANTIFICATIONS, PROP::READABLE, PROP::WRITEABLE}),
     TypeNameBinding(FileTypes::QCML, "qcml", "quality control file", {PROP::PROVIDES_QC, PROP::WRITEABLE}), //TODO add load functions for QC
     TypeNameBinding(FileTypes::MZQC, "mzqc", "quality control file in json format", {PROP::PROVIDES_QC, PROP::WRITEABLE}),
     TypeNameBinding(FileTypes::GELML, "gelML", "gelML file", {}),
@@ -102,6 +101,7 @@ namespace OpenMS
     TypeNameBinding(FileTypes::EXE, "exe", "Windows executable", {}),
     TypeNameBinding(FileTypes::BZ2, "bz2", "bzip2 compressed file", {PROP::READABLE}),
     TypeNameBinding(FileTypes::GZ, "gz", "gzip compressed file", {PROP::READABLE}),
+    TypeNameBinding(FileTypes::PARQUET, "parquet", "Apache Parquet file", {PROP::READABLE, PROP::WRITEABLE}),
     TypeNameBinding(FileTypes::XML, "xml", "any XML file", {PROP::READABLE}),  // make sure this comes last, since the name is a suffix of other formats and should only be matched last
   };
 
@@ -216,6 +216,12 @@ namespace OpenMS
   FileTypes::Type FileTypes::nameToType(const String& name)
   {
     String name_upper = String(name).toUpper();
+
+    // Special case for multiple extensions for PARQUET
+    if (name_upper == "PQT")
+    {
+      return FileTypes::PARQUET;
+    }
 
     for (const auto& t_info : type_with_annotation__)
     {

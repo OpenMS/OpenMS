@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -12,6 +12,7 @@
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/MATH/STATISTICS/Histogram.h>
@@ -61,7 +62,7 @@ namespace OpenMS
      @param protein_id The ProteinIdentification from an XL-MS experiment
 
      */
-    ExitCodes run(std::vector<PeptideIdentification>& peptide_ids, ProteinIdentification& protein_id);
+    ExitCodes run(PeptideIdentificationList& peptide_ids, ProteinIdentification& protein_id);
 
     /**
     * @brief Checks whether the parameters of the object are valid
@@ -81,7 +82,7 @@ private:
    *  * Set the identifier of the Peptide Identification if there is only one protein identification
    *
    */
-    void initDataStructures_(std::vector<PeptideIdentification>& peptide_ids, ProteinIdentification& protein_id);
+    void initDataStructures_(PeptideIdentificationList& peptide_ids, ProteinIdentification& protein_id);
 
     /**
      * @brief Inspects a PeptideIdentification and assigns all cross-link types that this identification belongs to
@@ -112,7 +113,7 @@ private:
     */
     static void calc_qfdr_(const std::vector< double >& fdr, std::vector< double >& qfdr);
 
-    void findTopUniqueHits_(std::vector<PeptideIdentification>& peptide_ids);
+    void findTopUniqueHits_(PeptideIdentificationList& peptide_ids);
 
     void writeArgumentsLog_() const;
 

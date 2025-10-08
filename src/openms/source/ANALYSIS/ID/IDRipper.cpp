@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -112,7 +112,7 @@ namespace OpenMS
     return prot_idents;
   }
 
-  const std::vector<PeptideIdentification> & IDRipper::RipFileContent::getPeptideIdentifications()
+  const PeptideIdentificationList & IDRipper::RipFileContent::getPeptideIdentifications()
   {
     return pep_idents;
   }
@@ -135,7 +135,7 @@ namespace OpenMS
   void IDRipper::rip(
           RipFileMap& ripped,
           vector<ProteinIdentification>& proteins,
-          vector<PeptideIdentification>& peptides,
+          PeptideIdentificationList& peptides,
           bool numeric_filenames,
           bool split_ident_runs)
   {
@@ -247,7 +247,7 @@ namespace OpenMS
         protein_idents.push_back(std::move(p));
 
         //create new peptide identification
-        vector<PeptideIdentification> peptide_idents;
+        PeptideIdentificationList peptide_idents;
         peptide_idents.push_back(pep);
 
         //create and insert new map entry
@@ -308,7 +308,7 @@ namespace OpenMS
         }
 
         // add current peptide identification
-        vector<PeptideIdentification>& ripped_pep = it->second.pep_idents;
+        PeptideIdentificationList& ripped_pep = it->second.pep_idents;
         ripped_pep.push_back(pep);
       }
     }
@@ -342,7 +342,7 @@ namespace OpenMS
             std::vector<RipFileIdentifier> & rfis,
             std::vector<RipFileContent> & rfcs,
             std::vector<ProteinIdentification> & proteins,
-            std::vector<PeptideIdentification> & peptides,
+            PeptideIdentificationList & peptides,
             bool numeric_filenames,
             bool split_ident_runs)
   {
@@ -369,13 +369,13 @@ bool IDRipper::setOriginAnnotationMode_(short& mode, short const new_value)
   return true;
 }
 
-IDRipper::OriginAnnotationFormat IDRipper::detectOriginAnnotationFormat_(map<String, UInt>& file_origin_map, const std::vector<PeptideIdentification>& peptide_idents)
+IDRipper::OriginAnnotationFormat IDRipper::detectOriginAnnotationFormat_(map<String, UInt>& file_origin_map, const PeptideIdentificationList& peptide_idents)
   {
     // In case we observe 'file_origin' meta values, we assign an index to every unique meta value
     file_origin_map.clear();
 
     short mode = -1;
-    for (vector<PeptideIdentification>::const_iterator it = peptide_idents.begin(); it != peptide_idents.end(); ++it)
+    for (PeptideIdentificationList::const_iterator it = peptide_idents.begin(); it != peptide_idents.end(); ++it)
     {
       bool mode_identified = false;
       for (size_t i = 0; i < SIZE_OF_ORIGIN_ANNOTATION_FORMAT; ++i)

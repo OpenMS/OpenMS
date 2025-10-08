@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -11,7 +11,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
@@ -271,7 +271,7 @@ void MQEvidence::exportRowFromFeature_(
 
   file_ << f.getIntensity() << "\t"; // Intensity
 
-  ptr_best_hit->getMetaValue("target_decoy") == "decoy" ? file_ << "1\t" : file_ << "\t"; // reverse
+  ptr_best_hit->isDecoy() ? file_ << "1\t" : file_ << "\t"; // reverse
 
   String pot_containment = ptr_best_hit->getMetaValue("is_contaminant", "NA");
   if (pot_containment == "1")

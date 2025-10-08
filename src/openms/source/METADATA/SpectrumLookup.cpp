@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -7,7 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/METADATA/SpectrumLookup.h>
-#include <boost/regex/v4/regex_match.hpp>
+#include <boost/regex.hpp>
 
 using namespace std;
 
@@ -307,10 +307,10 @@ namespace OpenMS
     {
       regexp = std::string(R"((?<GROUP>\d+))");
     }
-    // else
-    // {
-    //   OPENMS_LOG_WARN << "native_id: " << native_id << " accession: " << native_id_type_accession << " Could not extract scan number - no valid native_id_type_accession was provided" << std::endl;
-    // }
+    else
+    {
+      OPENMS_LOG_WARN << "native_id: " << native_id << " accession: " << native_id_type_accession << " Could not extract scan number - no valid native_id_type_accession was provided" << std::endl;
+    }
 
     if (!regexp.empty()) 
     {

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -39,7 +39,7 @@ START_SECTION(virtual ~OpenPepXLLFAlgorithm())
 }
 END_SECTION
 
-START_SECTION(ExitCodes run(PeakMap& unprocessed_spectra, std::vector<FASTAFile::FASTAEntry>& fasta_db, std::vector<ProteinIdentification>& protein_ids, std::vector<PeptideIdentification>& peptide_ids, std::vector< std::vector< OPXLDataStructs::CrossLinkSpectrumMatch > >& all_top_csms, PeakMap& spectra))
+START_SECTION(ExitCodes run(PeakMap& unprocessed_spectra, std::vector<FASTAFile::FASTAEntry>& fasta_db, std::vector<ProteinIdentification>& protein_ids, PeptideIdentificationList& peptide_ids, std::vector< std::vector< OPXLDataStructs::CrossLinkSpectrumMatch > >& all_top_csms, PeakMap& spectra))
 
 std::vector<FASTAFile::FASTAEntry> fasta_db;
 FASTAFile file;
@@ -56,7 +56,7 @@ f.load(OPENMS_GET_TEST_DATA_PATH("OpenPepXLLF_input.mzML"), unprocessed_spectra)
 
 // initialize solution vectors
 vector<ProteinIdentification> protein_ids(1);
-vector<PeptideIdentification> peptide_ids;
+PeptideIdentificationList peptide_ids;
 
 vector< vector< OPXLDataStructs::CrossLinkSpectrumMatch > > all_top_csms;
 PeakMap spectra;

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -137,12 +137,7 @@ namespace OpenMS
     return s;
   }
 
-  ControlledVocabulary::ControlledVocabulary() :
-    terms_(),
-    name_("")
-  {
-
-  }
+  ControlledVocabulary::ControlledVocabulary() = default;
 
   ControlledVocabulary::~ControlledVocabulary() = default;
 
@@ -183,8 +178,22 @@ namespace OpenMS
       }
       if (line_wo_spaces.hasPrefix("remark:URL:"))
       {
-        // https://
-        url_ = line.substr(line.find_first_of('/') - 7).trim();
+        // Find the position of "http://" or "https://"
+        size_t httpPos = line.find("http://");
+        size_t httpsPos = line.find("https://");
+
+        // Determine the starting position of the URL
+        if (httpPos != std::string::npos) 
+        {
+          url_ = line.substr(httpPos).trim();
+        } else if (httpsPos != std::string::npos) 
+        {
+          url_ = line.substr(httpsPos).trim();
+        } else 
+        {
+          // No URL found
+          std::cerr << "No URL found in the line." << std::endl;
+        }
       }
 
       //********************************************************************************
@@ -316,7 +325,9 @@ namespace OpenMS
         {
           term.obsolete = true;
         }
-        else if (line_wo_spaces.hasPrefix("xref:value-type") || line_wo_spaces.hasPrefix("xref_analog:value-type"))
+        else if (line_wo_spaces.hasPrefix("xref:value-type") 
+          || line_wo_spaces.hasPrefix("xref_analog:value-type")
+        )
         {
           line_wo_spaces.remove('\\');
           if (line_wo_spaces.hasSubstring("value-type:xsd:string"))
@@ -373,6 +384,73 @@ namespace OpenMS
           }
           cerr << "ControlledVocabulary: OBOFile: unknown xsd type: " << line_wo_spaces << ", ignoring" << "\n";
         }
+        else if (line_wo_spaces.hasPrefix("relationship:has_value_type")) // since newer obo type in relationship instead of xref
+        {
+          if (line_wo_spaces.hasSubstring("xsd:string"))
+          {
+            term.xref_type = CVTerm::XSD_STRING;
+            continue;
+          }
+          if (line_wo_spaces.hasSubstring("xsd:integer") 
+          || line_wo_spaces.hasSubstring("xsd:int"))
+          {
+            term.xref_type = CVTerm::XSD_INTEGER;
+            continue;
+          }
+          if (line_wo_spaces.hasSubstring("xsd:decimal") ||
+              line_wo_spaces.hasSubstring("xsd:float") ||
+              line_wo_spaces.hasSubstring("xsd:double"))
+          {
+            term.xref_type = CVTerm::XSD_DECIMAL;
+            continue;
+          }
+          if (line_wo_spaces.hasSubstring("xsd:negativeInteger"))
+          {
+            term.xref_type = CVTerm::XSD_NEGATIVE_INTEGER;
+            continue;
+          }
+          if (line_wo_spaces.hasSubstring("xsd:positiveInteger"))
+          {
+            term.xref_type = CVTerm::XSD_POSITIVE_INTEGER;
+            continue;
+          }
+          if (line_wo_spaces.hasSubstring("xsd:nonNegativeInteger"))
+          {
+            term.xref_type = CVTerm::XSD_NON_NEGATIVE_INTEGER;
+            continue;
+          }
+          if (line_wo_spaces.hasSubstring("xsd:nonPositiveInteger"))
+          {
+            term.xref_type = CVTerm::XSD_NON_POSITIVE_INTEGER;
+            continue;
+          }
+          if (line_wo_spaces.hasSubstring("xsd:boolean") 
+          || line_wo_spaces.hasSubstring("xsd:bool"))
+          {
+            term.xref_type = CVTerm::XSD_BOOLEAN;
+            continue;
+          }
+          if (line_wo_spaces.hasSubstring("xsd:date"))
+          {
+            term.xref_type = CVTerm::XSD_DATE;
+            continue;
+          }
+          if (line_wo_spaces.hasSubstring("xsd:anyURI"))
+          {
+            term.xref_type = CVTerm::XSD_ANYURI;
+            continue;
+          }
+          if (
+            line_wo_spaces.hasSubstring("MS:1002711") ||
+            line_wo_spaces.hasSubstring("MS:1002712") ||
+            line_wo_spaces.hasSubstring("MS:1002713")
+          )
+          {
+            term.xref_type = CVTerm::XSD_STRING; // store list as string
+            continue;
+          }
+          cerr << "ControlledVocabulary: OBOFile: unknown xsd type: " << line_wo_spaces << ", ignoring" << "\n";
+        }       
         else if (line_wo_spaces.hasPrefix("xref:binary-data-type") || line_wo_spaces.hasPrefix("xref_analog:binary-data-type"))
         {
           line_wo_spaces.remove('\\');
@@ -401,16 +479,16 @@ namespace OpenMS
     }
 
     // now build all child terms
-    for (std::map<String, CVTerm>::iterator it = terms_.begin(); it != terms_.end(); ++it)
+    for (auto it = terms_.begin(); it != terms_.end(); ++it)
     {
       //cerr << it->first << "\n";
-      for (set<String>::const_iterator pit = it->second.parents.begin(); pit != it->second.parents.end(); ++pit)
+      for (auto pit = it->second.parents.begin(); pit != it->second.parents.end(); ++pit)
       {
         //cerr << "Parent: " << *pit << "\n";
         terms_[*pit].children.insert(it->first);
       }
 
-      std::map<String, String>::iterator mit = namesToIds_.find(it->second.name);
+      auto mit = namesToIds_.find(it->second.name);
       if (mit == namesToIds_.end())
       {
         namesToIds_.insert(pair<String, String>(it->second.name, it->first));
@@ -426,12 +504,14 @@ namespace OpenMS
 
   const ControlledVocabulary::CVTerm& ControlledVocabulary::getTerm(const String& id) const
   {
-    std::map<String, CVTerm>::const_iterator it = terms_.find(id);
-    if (it == terms_.end())
+    if (const auto it = terms_.find(id); it == terms_.end())
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid CV identifier!", id);
     }
-    return it->second;
+    else
+    {
+      return it->second;
+    }
   }
 
   const std::map<String, ControlledVocabulary::CVTerm>& ControlledVocabulary::getTerms() const
@@ -453,7 +533,7 @@ namespace OpenMS
   const ControlledVocabulary::CVTerm& ControlledVocabulary::getTermByName(const String& name, const String& desc) const
   {
     //slow, but Vocabulary is very finite and this method will be called only a few times during write of a ML file using a CV
-    std::map<String, String>::const_iterator it = namesToIds_.find(name);
+    auto it = namesToIds_.find(name);
     if (it == namesToIds_.end())
     {
       if (!desc.empty())
@@ -480,14 +560,14 @@ namespace OpenMS
 
   const ControlledVocabulary::CVTerm* ControlledVocabulary::checkAndGetTermByName(const OpenMS::String& name) const
   {
-    std::map<String, String>::const_iterator it = namesToIds_.find(name);
+    const auto it = namesToIds_.find(name);
     if (it == namesToIds_.end()) return nullptr;
     return &terms_.at(it->second);
   }
 
   bool ControlledVocabulary::hasTermWithName(const OpenMS::String& name) const
   {
-    std::map<String, String>::const_iterator it = namesToIds_.find(name);
+    const auto it = namesToIds_.find(name);
     return it != namesToIds_.end();
   }
 

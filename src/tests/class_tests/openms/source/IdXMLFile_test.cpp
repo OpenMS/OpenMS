@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -32,9 +32,9 @@ START_SECTION((IdXMLFile()))
   delete ptr;
 END_SECTION
 
-START_SECTION(void load(const String& filename, std::vector<ProteinIdentification>& protein_ids, std::vector<PeptideIdentification>& peptide_ids) )
+START_SECTION(void load(const String& filename, std::vector<ProteinIdentification>& protein_ids, PeptideIdentificationList& peptide_ids) )
   std::vector<ProteinIdentification> protein_ids;
-  std::vector<PeptideIdentification> peptide_ids;
+  PeptideIdentificationList peptide_ids;
   IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IdXMLFile_whole.idXML"), protein_ids, peptide_ids);
 
   TEST_EQUAL(protein_ids.size(),2)
@@ -42,9 +42,9 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
 END_SECTION
 
 
-START_SECTION(void load(const String& filename, std::vector<ProteinIdentification>& protein_ids, std::vector<PeptideIdentification>& peptide_ids, String& document_id) )
+START_SECTION(void load(const String& filename, std::vector<ProteinIdentification>& protein_ids, PeptideIdentificationList& peptide_ids, String& document_id) )
   std::vector<ProteinIdentification> protein_ids;
-  std::vector<PeptideIdentification> peptide_ids;
+  PeptideIdentificationList peptide_ids;
   String document_id;
   IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IdXMLFile_whole.idXML"), protein_ids, peptide_ids, document_id);
 
@@ -178,11 +178,11 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
   TEST_EQUAL(pes4[0].getAAAfter(), PeptideEvidence::UNKNOWN_AA)
 END_SECTION
 
-START_SECTION(void store(String filename, const std::vector<ProteinIdentification>& protein_ids, const std::vector<PeptideIdentification>& peptide_ids, const String& document_id="") )
+START_SECTION(void store(String filename, const std::vector<ProteinIdentification>& protein_ids, const PeptideIdentificationList& peptide_ids, const String& document_id="") )
 
   // load, store, and reload data
   std::vector<ProteinIdentification> protein_ids, protein_ids2;
-  std::vector<PeptideIdentification> peptide_ids, peptide_ids2;
+  PeptideIdentificationList peptide_ids, peptide_ids2;
   String document_id, document_id2;
   String target_file = OPENMS_GET_TEST_DATA_PATH("IdXMLFile_whole.idXML");
   IdXMLFile().load(target_file, protein_ids2, peptide_ids2, document_id2);
@@ -201,7 +201,7 @@ END_SECTION
 
 START_SECTION([EXTRA] static bool isValid(const String& filename))
   std::vector<ProteinIdentification> protein_ids, protein_ids2;
-  std::vector<PeptideIdentification> peptide_ids, peptide_ids2;
+  PeptideIdentificationList peptide_ids, peptide_ids2;
   String filename;
   IdXMLFile f;
 
@@ -227,7 +227,7 @@ END_SECTION
 START_SECTION(([EXTRA] No protein identification bug))
   IdXMLFile id_xmlfile;
   vector<ProteinIdentification> protein_ids;
-  vector<PeptideIdentification> peptide_ids;
+  PeptideIdentificationList peptide_ids;
   id_xmlfile.load(OPENMS_GET_TEST_DATA_PATH("IdXMLFile_no_proteinhits.idXML"), protein_ids, peptide_ids);
 
   TEST_EQUAL(protein_ids.size(), 1)
@@ -240,7 +240,7 @@ START_SECTION(([EXTRA] No protein identification bug))
   id_xmlfile.store(filename , protein_ids, peptide_ids);
 
   vector<ProteinIdentification> protein_ids2;
-  vector<PeptideIdentification> peptide_ids2;
+  PeptideIdentificationList peptide_ids2;
   id_xmlfile.load(filename, protein_ids2, peptide_ids2);
 
   // identifiers contain a random number when loaded to avoid ambiguities when merging ProtIDs; make them equal for our purposes here
@@ -257,7 +257,7 @@ END_SECTION
 
 START_SECTION(([EXTRA] XLMS data labeled cross-linker))
   vector<ProteinIdentification> protein_ids;
-  vector<PeptideIdentification> peptide_ids;
+  PeptideIdentificationList peptide_ids;
 
   String input_file= OPENMS_GET_TEST_DATA_PATH("IdXML_XLMS_labelled.idXML");
   IdXMLFile().load(input_file, protein_ids, peptide_ids);

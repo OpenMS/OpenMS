@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -8,13 +8,12 @@
 
 #include <OpenMS/ANALYSIS/TOPDOWN/DeconvolvedSpectrum.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
-#include <OpenMS/ANALYSIS/TOPDOWN/FLASHIda.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/MassFeatureTrace.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/Qvalue.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/TopDownIsobaricQuantification.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/SpectraMerger.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/ThresholdMower.h>
+#include <OpenMS/PROCESSING/SPECTRAMERGING/SpectraMerger.h>
+#include <OpenMS/PROCESSING/FILTERING/ThresholdMower.h>
 #include <OpenMS/METADATA/SpectrumLookup.h>
 #include <OpenMS/MATH/STATISTICS/GaussFitter.h>
 
@@ -334,11 +333,9 @@ void FLASHDeconvAlgorithm::runSpectralDeconvolution_(MSExperiment& map, std::vec
                                      + sd_noise_decoy_.getDeconvolvedSpectrum().size());
 
         for (const auto& pg : sd_signal_decoy_.getDeconvolvedSpectrum())
-          //if (pg.getQscore2D() >= qscore_low_threshold_for_decoy && pg.getQscore2D() <= qscore_high_threshold_for_decoy)
             deconvolved_spectrum.push_back(pg);
 
         for (const auto& pg : sd_noise_decoy_.getDeconvolvedSpectrum())
-          //if (pg.getQscore2D() >= qscore_low_threshold_for_decoy && pg.getQscore2D() <= qscore_high_threshold_for_decoy)
             deconvolved_spectrum.push_back(pg);
 
         deconvolved_spectrum.sort();
@@ -598,17 +595,6 @@ void FLASHDeconvAlgorithm::findPrecursorPeakGroupsForMSnSpectra_(const MSExperim
 
     String native_id = spec.getNativeID();
 
-    auto filter_str = spec.getMetaValue("filter string").toString();
-    Size pos = filter_str.find("cv=");
-    double cv = 1e5;
-
-    if (pos != String::npos)
-    {
-      Size end = filter_str.find(" ", pos);
-      if (end == String::npos) end = filter_str.length() - 1;
-      cv = std::stod(filter_str.substr(pos + 3, end - pos));
-    }
-
     // find all candidate scan numbers from ms_level - 1
     int num_precursor_window = ms_level == 2 ? precursor_MS1_window_ : 1;
     auto index_copy = index;
@@ -636,10 +622,9 @@ void FLASHDeconvAlgorithm::findPrecursorPeakGroupsForMSnSpectra_(const MSExperim
 
     std::vector<DeconvolvedSpectrum> survey_scans;
 
-    // cv mismatches
     while (diter < deconvolved_spectra.end() && diter <= aiter)
     {
-      if ((diter->getOriginalSpectrum().getMSLevel() == ms_level - 1) && (std::abs(diter->getCV() - cv) < 1e-5)) { survey_scans.push_back(*diter); }
+      if (diter->getOriginalSpectrum().getMSLevel() == ms_level - 1) { survey_scans.push_back(*diter); }
       diter++;
     }
     // register the best precursor, starting from the most recent one. Out of the masses in a single scan, use the max SNR one.
@@ -760,7 +745,6 @@ void FLASHDeconvAlgorithm::runFeatureFinding_(std::vector<DeconvolvedSpectrum>& 
   mf_param.setValue("chrom_peak_snr", .0);
 
   mass_tracer.setParameters(mf_param); // maybe go to set param
-  // decoy_mass_tracer.setParameters(mf_param);
   // Find features for MS1 or the minimum MS level in the dataset.
   deconvolved_features = mass_tracer.findFeaturesAndUpdateQscore2D(sd_.getAveragine(), deconvolved_spectra, (int)current_min_ms_level_, false);
 

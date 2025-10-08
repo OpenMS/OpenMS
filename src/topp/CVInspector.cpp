@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -135,7 +135,7 @@ protected:
     {
       cv.loadFromOBO(cv_names[i], cv_files[i]);
     }
-    std::map<String, ControlledVocabulary::CVTerm> terms = cv.getTerms();
+    auto terms = cv.getTerms();
 
     // load mappings from mapping file
     String mapping_file = getStringOption_("mapping_file");
@@ -388,23 +388,23 @@ protected:
 
     // find unused terms, which CANNOT be used in the XML due to the mapping file
     set<String> unused_terms;
-    for (std::map<String, ControlledVocabulary::CVTerm>::const_iterator it = terms.begin(); it != terms.end(); ++it)
+    for (const auto& [acc, _] : terms)
     {
-      if (used_terms.find(it->first) == used_terms.end())
+      if (used_terms.find(acc) == used_terms.end())
       {
-        unused_terms.insert(it->first);
+        unused_terms.insert(acc);
       }
     }
 
     cout << "\n\nCVTerms which are unused in the mapping file and therefore MUST NOT be used in an instance document" << endl;
-    for (set<String>::const_iterator it = unused_terms.begin(); it != unused_terms.end(); ++it)
+    for (const auto& acc : unused_terms)
     {
-      cout << *it << " " << terms[*it].name;
+      cout << acc << " " << terms[acc].name;
 
       // print also parent names
-      for (set<String>::const_iterator pit = terms[*it].parents.begin(); pit != terms[*it].parents.end(); ++pit)
+      for (const auto& parent : terms[acc].parents)
       {
-        cout << " " << terms[*pit].id << " " << terms[*pit].name;
+        cout << " " << terms[parent].id << " " << terms[parent].name;
       }
       cout << endl;
     }

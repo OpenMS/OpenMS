@@ -6,7 +6,7 @@ from Peak1D cimport *
 from ChromatogramPeak cimport *
 from DefaultParamHandler cimport *
 
-cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPicked.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/FEATUREFINDER/FeatureFinderAlgorithmPicked.h>" namespace "OpenMS":
 
     cdef cppclass FeatureFinderAlgorithmPicked(DefaultParamHandler):
 
@@ -16,11 +16,7 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPi
         # private
         FeatureFinderAlgorithmPicked(FeatureFinderAlgorithmPicked &) except + nogil  # wrap-ignore
 
-        void setData(MSExperiment & input, FeatureMap & output) except + nogil 
-        void run() except + nogil 
+        void run(MSExperiment & input_map, FeatureMap & output, Param & param, FeatureMap & seeds) except + nogil
 
 
-        void setSeeds(FeatureMap& seeds) except + nogil 
-
-        # static FeatureFinderAlgorithm* create()
 

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -95,7 +95,7 @@ END_SECTION
 InspectOutfile file;
 
 START_SECTION(std::vector< Size > load(const String& result_filename, std::vector< PeptideIdentification >& peptide_identifications, ProteinIdentification& protein_identification, const double p_value_threshold, const String& database_filename = ""))
-	vector< PeptideIdentification > peptide_identifications;
+	PeptideIdentificationList peptide_identifications;
 	ProteinIdentification protein_identification;
 
 	// test exceptions
@@ -122,7 +122,6 @@ START_SECTION(std::vector< Size > load(const String& result_filename, std::vecto
             vector<PeptideEvidence> pes = peptide_identifications[0].getHits()[0].getPeptideEvidences();
             TEST_EQUAL(pes[0].getAABefore(), 'E')
             TEST_EQUAL(pes[0].getAAAfter(), 'K')
-			TEST_EQUAL(peptide_identifications[0].getHits()[0].getRank(), 1)
 			TEST_EQUAL(peptide_identifications[0].getHits()[0].getCharge(), 1)
             TEST_EQUAL(pes.size(), 1)
             TEST_STRING_EQUAL(pes[0].getProteinAccession(), "P68509")
@@ -145,7 +144,6 @@ START_SECTION(std::vector< Size > load(const String& result_filename, std::vecto
             vector<PeptideEvidence> pes = peptide_identifications[0].getHits()[0].getPeptideEvidences();
             TEST_EQUAL(pes[0].getAABefore(), 'E')
             TEST_EQUAL(pes[0].getAAAfter(), 'K')
-			TEST_EQUAL(peptide_identifications[0].getHits()[0].getRank(), 1)
 			TEST_EQUAL(peptide_identifications[0].getHits()[0].getCharge(), 1)
             TEST_EQUAL(pes.size(), 1)
             TEST_STRING_EQUAL(pes[0].getProteinAccession(), "P68509")
@@ -154,7 +152,6 @@ START_SECTION(std::vector< Size > load(const String& result_filename, std::vecto
             vector<PeptideEvidence> pes1 = peptide_identifications[0].getHits()[1].getPeptideEvidences();
             TEST_EQUAL(pes1[0].getAABefore(), 'R')
             TEST_EQUAL(pes1[0].getAAAfter(), 'K')
-			TEST_EQUAL(peptide_identifications[0].getHits()[1].getRank(), 2)
 			TEST_EQUAL(peptide_identifications[0].getHits()[1].getCharge(), 1)
             TEST_EQUAL(pes1.size(), 1)
             TEST_STRING_EQUAL(pes1[0].getProteinAccession(), "P68509")
@@ -333,7 +330,7 @@ END_SECTION
 
 START_SECTION(void getPrecursorRTandMZ(const vector< pair< String, vector< pair < Size, Size > > > >& files_and_peptide_identification_with_scan_number, std::vector< PeptideIdentification >& ids))
 	vector< pair< String, vector< pair< Size, Size > > > > files_and_peptide_identification_with_scan_number;
-	vector< PeptideIdentification > ids, ids_found;
+	PeptideIdentificationList ids, ids_found;
 
 	// test exceptions
 	files_and_peptide_identification_with_scan_number.push_back(make_pair(spectrum_file1, vector< pair< Size, Size > >(1, make_pair(0, 10))));

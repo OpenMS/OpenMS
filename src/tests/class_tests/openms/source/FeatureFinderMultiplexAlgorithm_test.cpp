@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -14,7 +14,7 @@
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderMultiplexAlgorithm.h>
+#include <OpenMS/FEATUREFINDER/FeatureFinderMultiplexAlgorithm.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -44,7 +44,7 @@ START_SECTION((virtual void run()))
   
   mzml_file.getOptions().addMSLevel(1);
   mzml_file.load(OPENMS_GET_TEST_DATA_PATH("FeatureFinderMultiplex_1_input.mzML"), exp);
-  exp.updateRanges(1);
+  exp.updateRanges();
   
   Param param;
   ParamXMLFile paramFile;

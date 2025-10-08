@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -223,21 +223,7 @@ namespace OpenMS
 
   void DeconvolvedSpectrum::setOriginalSpectrum(const MSSpectrum& spec)
   {
-    auto filter_str = spec.getMetaValue("filter string").toString();
-    Size pos = filter_str.find("cv=");
-
-    if (pos != String::npos)
-    {
-      Size end = filter_str.find(" ", pos);
-      if (end == String::npos) end = filter_str.length() - 1;
-      cv_ = std::stod(filter_str.substr(pos + 3, end - pos));
-    }
     spec_ = spec;
-  }
-
-  double DeconvolvedSpectrum::getCV() const
-  {
-    return cv_;
   }
 
   void DeconvolvedSpectrum::setPrecursorScanNumber(const int scan_number)

@@ -23,7 +23,6 @@ ModifiedPeptideGenerator.h
 ModificationsDB.h
 NASequence.h
 NucleicAcidSpectrumGenerator.h
-		ProForma.h
 ProteaseDB.h
 ProteaseDigestion.h
 Residue.h

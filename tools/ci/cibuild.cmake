@@ -23,6 +23,7 @@ set(CTEST_CUSTOM_MAXIMUM_NUMBER_OF_WARNINGS 1000)
 set (CTEST_CUSTOM_WARNING_EXCEPTION
     # Suppress warnings imported from qt
     ".*qsharedpointer_impl.h:595:43.*"
+    ".*src/openms/extern/.*"
     )
 
 message(STATUS "CTEST_SOURCE_DIRECTORY: ${CTEST_SOURCE_DIRECTORY}")
@@ -72,6 +73,10 @@ endif()
 
 set(VARS_TO_LOAD
   "ADDRESS_SANITIZER"
+  "CC"
+  "CXX"
+  "CFLAGS"
+  "CXXFLAGS"
   "CMAKE_PREFIX_PATH"
   "CMAKE_BUILD_TYPE"
   "CMAKE_GENERATOR_PLATFORM"
@@ -82,10 +87,15 @@ set(VARS_TO_LOAD
   "ENABLE_GCC_WERROR"
   "ENABLE_STYLE_TESTING"
   "ENABLE_TOPP_TESTING"
+  "ENABLE_PIPELINE_TESTING"
+  "ENABLE_DOCS"
+  "ENABLE_CWL_GENERATION"
   "ENABLE_TUTORIALS"
   "ENABLE_UPDATE_CHECK"
   "MT_ENABLE_OPENMP"
+  "NO_DEPENDENCIES"
   "SEARCH_ENGINES_DIRECTORY"
+  "SIGNING_IDENTITY"
   "PACKAGE_TYPE"
   "PYOPENMS"
   "PY_MEMLEAK_DISABLE"
@@ -93,8 +103,13 @@ set(VARS_TO_LOAD
   "PY_NO_OUTPUT"
   "PY_NUM_MODULES"
   "PY_NUM_THREADS"
+  "Python_ROOT_DIR"
+  "Python_FIND_STRATEGY"
   "WITH_GUI"
+  "WITH_PARQUET"
   "WITH_THERMORAWFILEPARSER_TEST"
+  "COMPILE_PXDS"
+  "USE_EXTERNAL_JSON"
  )
 
 message("tools/ci/cibuild.cmake: Loading the following vars from ENV if available: ${VARS_TO_LOAD}")
@@ -119,6 +134,7 @@ SEARCH_ENGINES_DIRECTORY=$ENV{SEARCH_ENGINES_DIRECTORY}
 ENABLE_TUTORIALS=Off
 ENABLE_GCC_WERROR=Off
 PYOPENMS=$ENV{PYOPENMS}
+COMPILE_PXDS=$ENV{COMPILE_PXDS}
 MT_ENABLE_OPENMP=$ENV{OPENMP}
 PYTHON_EXECUTABLE:FILEPATH=$ENV{PYTHON_EXE}
 PY_NUM_THREADS=4
@@ -153,26 +169,57 @@ set(CTEST_UPDATE_COMMAND "${GIT_EXECUTABLE}")
 ctest_update()
 
 ctest_configure (BUILD "${CTEST_BINARY_DIRECTORY}" OPTIONS "${OWN_OPTIONS}" RETURN_VALUE _configure_ret)
-ctest_submit(PARTS Update Configure)
+ctest_submit(PARTS Update Configure CAPTURE_CMAKE_ERROR _submit_result)
+
+if(NOT _submit_result EQUAL 0)
+    execute_process(
+        COMMAND ${CMAKE_COMMAND} -E echo "::warning file=cibuild.cmake,line=168::CTest submission failed, CDASH server is not available. Continuing execution."
+    )
+    message(WARNING "CTest submission failed, no detailed logs will be available.")
+endif()
+
 
 # we only build when we do non-style testing and we may have special targets like pyopenms
 if("$ENV{ENABLE_STYLE_TESTING}" STREQUAL "OFF")
+  ctest_build(BUILD "${CTEST_BINARY_DIRECTORY}" NUMBER_ERRORS _build_errors)
+
   if("$ENV{PYOPENMS}" STREQUAL "ON")
-    ctest_build(BUILD "${CTEST_BINARY_DIRECTORY}" TARGET "pyopenms" NUMBER_ERRORS _build_errors)
-  else()
-    ctest_build(BUILD "${CTEST_BINARY_DIRECTORY}" NUMBER_ERRORS _build_errors)
-    ctest_submit(PARTS Build)
+    ctest_build(BUILD "${CTEST_BINARY_DIRECTORY}" TARGET "pyopenms" NUMBER_ERRORS _py_build_errors)
+    math(EXPR _build_errors "${_build_errors} + ${_py_build_errors}")
+  endif()
+
+  # Only build compile_pxds if PYOPENMS is not ON (since it's already a subtarget of pyopenms)
+  if("$ENV{COMPILE_PXDS}" STREQUAL "ON" AND "$ENV{PYOPENMS}" STREQUAL "OFF")
+    ctest_build(BUILD "${CTEST_BINARY_DIRECTORY}" TARGET "compile_pxds" NUMBER_ERRORS _pdxs_build_errors)
+    math(EXPR _build_errors "${_build_errors} + ${_pdxs_build_errors}")
+  endif()
+
+  # Generate and validate the CWL files if "ENABLE_CWL_GENERATION" is set
+  if("$ENV{ENABLE_CWL_GENERATION}" STREQUAL "ON")
+    ctest_build(BUILD "${CTEST_BINARY_DIRECTORY}" TARGET "generate_cwl_files" NUMBER_ERRORS _cwl_build_errors)
+    math(EXPR _build_errors "${_build_errors} + ${_cwl_build_errors}")
   endif()
 else()
   set(_build_errors 0)
 endif()
 
-string(REPLACE "+" "%2B" BUILD_NAME_SAFE ${CTEST_BUILD_NAME})
-string(REPLACE "." "%2E" BUILD_NAME_SAFE ${BUILD_NAME_SAFE})
-string(REPLACE "/" "%2F" BUILD_NAME_SAFE ${BUILD_NAME_SAFE})
+## send test results to CDash
+ctest_submit(PARTS Build CAPTURE_CMAKE_ERROR _submit_result)
 
-if (_build_errors)
-  message(FATAL_ERROR "There were errors: Please check the build results at: https://cdash.openms.de/index.php?project=OpenMS&begin=2023-01-01&end=2030-01-01&filtercount=1&field1=buildname&compare1=63&value1=${BUILD_NAME_SAFE}")
+if(NOT _submit_result EQUAL 0)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E echo "::warning file=cibuild.cmake,line=193::CTest submission failed, CDASH server is not available. Continuing execution.")
+  message(WARNING "CTest submission failed, no detailed logs will be available.")
+  if (_test_errors)
+    message(FATAL_ERROR "There were errors: aborting")
+  endif()
 else()
-  message("Build successful: Please check the build results at: https://cdash.openms.de/index.php?project=OpenMS&begin=2023-01-01&end=2030-01-01&filtercount=1&field1=buildname&compare1=63&value1=${BUILD_NAME_SAFE}")
+  string(REPLACE "+" "%2B" BUILD_NAME_SAFE ${CTEST_BUILD_NAME})
+  string(REPLACE "." "%2E" BUILD_NAME_SAFE ${BUILD_NAME_SAFE})
+  string(REPLACE "/" "%2F" BUILD_NAME_SAFE ${BUILD_NAME_SAFE})
+  
+  if (_build_errors)
+    message(FATAL_ERROR "There were errors: Please check the build results at: https://cdash.seqan.de/index.php?project=OpenMS&begin=2023-01-01&end=2030-01-01&filtercount=1&field1=buildname&compare1=63&value1=${BUILD_NAME_SAFE}")
+  else()
+    message("Build successful: Please check the build results at: https://cdash.seqan.de/index.php?project=OpenMS&begin=2023-01-01&end=2030-01-01&filtercount=1&field1=buildname&compare1=63&value1=${BUILD_NAME_SAFE}")
+  endif()
 endif()

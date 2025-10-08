@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -183,7 +183,7 @@ protected:
 
     // initialize solution vectors
     vector<ProteinIdentification> protein_ids(1);
-    vector<PeptideIdentification> peptide_ids;
+    PeptideIdentificationList peptide_ids;
 
     // these are mainly necessary for writing out xQuest type spectrum files
     vector< vector< OPXLDataStructs::CrossLinkSpectrumMatch > > all_top_csms;
@@ -206,7 +206,7 @@ protected:
     protein_ids[0].setDateTime(DateTime::now());
     protein_ids[0].setSearchEngine("OpenPepXL");
     protein_ids[0].setSearchEngineVersion(VersionInfo::getVersion());
-    protein_ids[0].setMetaValue("SpectrumIdentificationProtocol", DataValue("MS:1002494")); // cross-linking search = MS:1002494
+    protein_ids[0].setMetaValue("SpectrumIdentificationProtocol", DataValue("MS:1002494")); // crosslinking search = MS:1002494
 
     // run algorithm
     OpenPepXLLFAlgorithm::ExitCodes exit_code = search_algorithm.run(unprocessed_spectra, fasta_db, protein_ids, peptide_ids, all_top_csms, spectra);

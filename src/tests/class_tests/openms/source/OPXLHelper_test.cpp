@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -170,7 +170,7 @@ START_SECTION(static std::vector <OPXLDataStructs::ProteinProteinCrossLink> buil
 END_SECTION
 
 // prepare data for the next three tests
-std::vector< PeptideIdentification > peptide_ids;
+PeptideIdentificationList peptide_ids;
 std::vector< ProteinIdentification > protein_ids;
 IdXMLFile id_file;
 
@@ -191,7 +191,7 @@ for (auto& id : peptide_ids)  //OMS_CODING_TEST_EXCLUDE
   }
 }
 
-START_SECTION(static void addProteinPositionMetaValues(std::vector< PeptideIdentification > & peptide_ids))
+START_SECTION(static void addProteinPositionMetaValues(PeptideIdentificationList & peptide_ids))
 
   // test that the MetaValues were removed
   for (const auto& id : peptide_ids)
@@ -234,7 +234,7 @@ START_SECTION(static void addProteinPositionMetaValues(std::vector< PeptideIdent
 
 END_SECTION
 
-START_SECTION(static void addXLTargetDecoyMV(std::vector< PeptideIdentification > & peptide_ids))
+START_SECTION(static void addXLTargetDecoyMV(PeptideIdentificationList & peptide_ids))
 
   // add xl_target_decoy MetaValue
   OPXLHelper::addXLTargetDecoyMV(peptide_ids);
@@ -254,7 +254,7 @@ START_SECTION(static void addXLTargetDecoyMV(std::vector< PeptideIdentification 
 
 END_SECTION
 
-START_SECTION(static void addBetaAccessions(std::vector< PeptideIdentification > & peptide_ids))
+START_SECTION(static void addBetaAccessions(PeptideIdentificationList & peptide_ids))
 
   // add accessions_beta MV
   OPXLHelper::addBetaAccessions(peptide_ids);
@@ -273,9 +273,9 @@ START_SECTION(static void addBetaAccessions(std::vector< PeptideIdentification >
 
 END_SECTION
 
-START_SECTION(static std::vector< PeptideIdentification > combineTopRanksFromPairs(std::vector< PeptideIdentification > & peptide_ids, Size number_top_hits))
+START_SECTION(static PeptideIdentificationList combineTopRanksFromPairs(PeptideIdentificationList & peptide_ids, Size number_top_hits))
 
-  std::vector< PeptideIdentification > pep_ids = peptide_ids;
+  auto pep_ids = peptide_ids;
   // all hits are to separate spectra, so everything should be rank 1
   for (const auto& id : pep_ids)
   {
@@ -296,7 +296,7 @@ START_SECTION(static std::vector< PeptideIdentification > combineTopRanksFromPai
 
 END_SECTION
 
-START_SECTION(static void removeBetaPeptideHits(std::vector< PeptideIdentification > & peptide_ids))
+START_SECTION(static void removeBetaPeptideHits(PeptideIdentificationList & peptide_ids))
 
   OPXLHelper::removeBetaPeptideHits(peptide_ids);
 

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -833,7 +833,7 @@ namespace OpenMS
 
 
         ConsensusFeature cf(fm_out[f0_idx]);
-        cf.setPeptideIdentifications(vector<PeptideIdentification>()); // delete ID's as they are added later again
+        cf.setPeptideIdentifications(PeptideIdentificationList()); // delete ID's as they are added later again
         cf.setQuality(0.0);
         cf.setUniqueId();
         cf.insert((UInt64) fm_out[f0_idx].getMetaValue("map_idx"), fm_out[f0_idx]);

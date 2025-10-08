@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -34,7 +34,7 @@ namespace OpenMS
   void
   PepNovoOutfile::load(
     const std::string & result_filename,
-    vector<PeptideIdentification> & peptide_identifications,
+    PeptideIdentificationList & peptide_identifications,
     ProteinIdentification & protein_identification,
     const double & score_threshold,
     const IndexPosMappingType & index_to_precursor,

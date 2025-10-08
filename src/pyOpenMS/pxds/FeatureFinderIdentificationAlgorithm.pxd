@@ -8,7 +8,7 @@ from PeptideIdentification cimport *
 from ProteinIdentification cimport *
 from FeatureMap cimport * 
 
-cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderIdentificationAlgorithm.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/FEATUREFINDER/FeatureFinderIdentificationAlgorithm.h>" namespace "OpenMS":
 
     cdef cppclass FeatureFinderIdentificationAlgorithm(DefaultParamHandler) :
         # wrap-inherits:
@@ -68,9 +68,9 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderIdentificat
 
         FeatureFinderIdentificationAlgorithm(FeatureFinderIdentificationAlgorithm) except + nogil  #wrap-ignore
 
-        void run(libcpp_vector[ PeptideIdentification ] peptides,
+        void run(PeptideIdentificationList peptides,
                  libcpp_vector[ ProteinIdentification ] & proteins,
-                 libcpp_vector[ PeptideIdentification ] peptides_ext,
+                 PeptideIdentificationList peptides_ext,
                  libcpp_vector[ ProteinIdentification ] proteins_ext,
                  FeatureMap & features) except + nogil 
                  # wrap-doc:
@@ -83,9 +83,9 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderIdentificat
                  #  :param proteins_ext: Vector of external identified proteins, can be used to transfer ids from other runs
                  #  :param features: Feature detection results will be added here
 
-        void run(libcpp_vector[ PeptideIdentification ] peptides,
+        void run(PeptideIdentificationList peptides,
                  libcpp_vector[ ProteinIdentification ] & proteins,
-                 libcpp_vector[ PeptideIdentification ] peptides_ext,
+                 PeptideIdentificationList peptides_ext,
                  libcpp_vector[ ProteinIdentification ] proteins_ext,
                  FeatureMap & features, 
                  FeatureMap & seeds) except + nogil  
@@ -100,9 +100,9 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderIdentificat
                  #  :param features: Feature detection results will be added here
                  #  :param seeds: Optional seeds for feature detection from e.g. untargeted FeatureFinders
 
-        void run(libcpp_vector[ PeptideIdentification ] peptides,
+        void run(PeptideIdentificationList peptides,
                  libcpp_vector[ ProteinIdentification ] & proteins,
-                 libcpp_vector[ PeptideIdentification ] peptides_ext,
+                 PeptideIdentificationList peptides_ext,
                  libcpp_vector[ ProteinIdentification ] proteins_ext,
                  FeatureMap & features, 
                  FeatureMap & seeds,

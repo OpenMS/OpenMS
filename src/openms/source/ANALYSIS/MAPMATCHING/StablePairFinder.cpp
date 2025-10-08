@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -53,18 +53,29 @@ namespace OpenMS
   {
     // empty output destination:
     result_map.clear(false);
-
+    
     // sanity checks:
     if (input_maps.size() != 2)
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                        "exactly two input maps required");
     }
+
     checkIds_(input_maps);
 
     // set up the distance functor:
-    double max_intensity = max(input_maps[0].getMaxIntensity(),
-                               input_maps[1].getMaxIntensity());
+    double max_intensity = std::numeric_limits<double>::lowest();;
+    
+    if (!input_maps[0].RangeIntensity::isEmpty())
+    {
+      max_intensity = input_maps[0].getMaxIntensity();
+    }
+
+    if (!input_maps[1].RangeIntensity::isEmpty())
+    {
+      max_intensity = max(max_intensity, input_maps[1].getMaxIntensity());
+    }
+
     Param distance_params = param_.copy("");
     distance_params.remove("use_identifications");
     distance_params.remove("second_nearest_gap");
@@ -227,18 +238,18 @@ namespace OpenMS
     if (feat1.getPeptideIdentifications().empty() || feat2.getPeptideIdentifications().empty())
       return true;
 
-    const vector<PeptideIdentification>& pep1 = feat1.getPeptideIdentifications();
-    const vector<PeptideIdentification>& pep2 = feat2.getPeptideIdentifications();
+    const PeptideIdentificationList& pep1 = feat1.getPeptideIdentifications();
+    const PeptideIdentificationList& pep2 = feat2.getPeptideIdentifications();
 
     set<String> best1, best2;
-    for (vector<PeptideIdentification>::const_iterator pep_it = pep1.begin(); pep_it != pep1.end(); ++pep_it)
+    for (PeptideIdentificationList::const_iterator pep_it = pep1.begin(); pep_it != pep1.end(); ++pep_it)
     {
       if (pep_it->getHits().empty())
         continue; // shouldn't be the case
 
       best1.insert(getBestHitSequence_(*pep_it).toString());
     }
-    for (vector<PeptideIdentification>::const_iterator pep_it = pep2.begin(); pep_it != pep2.end(); ++pep_it)
+    for (PeptideIdentificationList::const_iterator pep_it = pep2.begin(); pep_it != pep2.end(); ++pep_it)
     {
       if (pep_it->getHits().empty())
         continue; // shouldn't be the case

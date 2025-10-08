@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -357,7 +357,12 @@ namespace OpenMS
     }
 
     /**
-        @brief Sets the filters applied to the data before drawing (for the current layer)
+      @brief Sets filters, but does not repaint (useful when setting up a new layer)
+    */
+    virtual void initFilters(const DataFilters& filters);
+
+    /**
+        @brief Sets the filters applied to the data; and redraws
     */
     virtual void setFilters(const DataFilters& filters);
 
@@ -397,11 +402,16 @@ namespace OpenMS
       @param map Shared pointer to input map. It can be performed in constant time and does not double the required memory.
       @param od_map Shared pointer to on disk data which potentially caches some data to save memory (the map can be empty, but do not pass nullptr).
       @param filename This @em absolute filename is used to monitor changes in the file and reload the data
+      @param caption The caption of the layer (shown in the layer window)
       @param use_noise_cutoff Add a noise filter which removes low-intensity peaks
 
       @return If a new layer was created
     */
-    bool addPeakLayer(const ExperimentSharedPtrType& map, ODExperimentSharedPtrType od_map, const String& filename = "", const bool use_noise_cutoff = false);
+    bool addPeakLayer(const ExperimentSharedPtrType& map,
+                      ODExperimentSharedPtrType od_map,
+                      const String& filename = "",
+                      const String& caption = "",
+                      const bool use_noise_cutoff = false);
 
     /**
       @brief Add a chrom data layer
@@ -409,10 +419,11 @@ namespace OpenMS
       @param map Shared pointer to input map. It can be performed in constant time and does not double the required memory.
       @param od_map Shared pointer to on disk data which potentially caches some data to save memory (the map can be empty, but do not pass nullptr).
       @param filename This @em absolute filename is used to monitor changes in the file and reload the data
+      @param caption The caption of the layer (shown in the layer window)
 
       @return If a new layer was created
     */
-    bool addChromLayer(const ExperimentSharedPtrType& map, ODExperimentSharedPtrType od_map, const String& filename = "");
+    bool addChromLayer(const ExperimentSharedPtrType& map, ODExperimentSharedPtrType od_map, const String& filename = "", const String& caption = "");
 
 
     /**
@@ -420,32 +431,36 @@ namespace OpenMS
 
         @param map Shared Pointer to input map. It can be performed in constant time and does not double the required memory.
         @param filename This @em absolute filename is used to monitor changes in the file and reload the data
+        @param caption The caption of the layer (shown in the layer window)
 
         @return If a new layer was created
     */
-    bool addLayer(FeatureMapSharedPtrType map, const String& filename = "");
+    bool addLayer(FeatureMapSharedPtrType map, const String& filename = "", const String& caption = "");
 
     /**
         @brief Add a consensus feature data layer
 
         @param map Shared Pointer to input map. It can be performed in constant time and does not double the required memory.
         @param filename This @em absolute filename is used to monitor changes in the file and reload the data
+        @param caption The caption of the layer (shown in the layer window)
 
         @return If a new layer was created
     */
-    bool addLayer(ConsensusMapSharedPtrType map, const String& filename = "");
+    bool addLayer(ConsensusMapSharedPtrType map, const String& filename = "", const String& caption = "");
     //@}
 
     /**
         @brief Add an identification data layer
 
-        @param peptides Input list of peptides, which has to be mutable and will be empty after adding. Swapping is used to insert the data. It can be performed in constant time and does not double
-       the required memory.
+        @param peptides Input list of peptides, which has to be mutable and will be empty after adding. 
+               Swapping is used to insert the data. It can be performed in constant time and does not double
+               the required memory.
         @param filename This @em absolute filename is used to monitor changes in the file and reload the data
+        @param caption The caption of the layer (shown in the layer window)
 
         @return If a new layer was created
     */
-    bool addLayer(std::vector<PeptideIdentification>& peptides, const String& filename = "");
+    bool addLayer(PeptideIdentificationList& peptides, const String& filename = "", const String& caption = "");
 
     /// Returns the minimum intensity of the active layer
     inline float getCurrentMinIntensity() const
@@ -489,7 +504,7 @@ namespace OpenMS
 
         @see overall_data_range_
     */
-    const RangeType& getDataRange() const;
+    virtual const RangeType& getDataRange() const;
 
     /**
         @brief Returns the first intensity scaling factor for 'snap to maximum intensity mode' (for the currently visible data range).
@@ -708,7 +723,7 @@ protected:
     void keyReleaseEvent(QKeyEvent * e) override;
     void focusOutEvent(QFocusEvent * e) override;
     void leaveEvent(QEvent * e) override;
-    void enterEvent(QEvent * e) override;
+    void enterEvent(QEnterEvent * e) override;
     //@}
 
     /// This method is called whenever the intensity mode changes. Reimplement if you need to react on such changes.

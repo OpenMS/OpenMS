@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -153,6 +153,41 @@ namespace OpenMS
   void ProteinHit::setModifications(std::set<std::pair<Size, ResidueModification>>& mods)
   {
     modifications_ = mods;
+  }
+
+  bool ProteinHit::isDecoy() const
+  {
+    return getTargetDecoyType() == TargetDecoyType::DECOY;
+  }
+
+  void ProteinHit::setTargetDecoyType(TargetDecoyType type)
+  {
+    switch(type)
+    {
+      case TargetDecoyType::TARGET:
+        setMetaValue("target_decoy", "target");
+        break;
+      case TargetDecoyType::DECOY:
+        setMetaValue("target_decoy", "decoy");
+        break;
+      case TargetDecoyType::UNKNOWN:
+        removeMetaValue("target_decoy");
+        break;
+    }
+  }
+
+  ProteinHit::TargetDecoyType ProteinHit::getTargetDecoyType() const
+  {
+    if (!metaValueExists("target_decoy"))
+    {
+      return TargetDecoyType::UNKNOWN;
+    }
+    
+    String td = getMetaValue("target_decoy").toString().toLower();
+    if (td == "decoy") return TargetDecoyType::DECOY;
+    if (td == "target") return TargetDecoyType::TARGET;
+    
+    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unknown value of meta value 'target_decoy'", td);
   }
 
   std::ostream& operator<< (std::ostream& stream, const ProteinHit& hit)

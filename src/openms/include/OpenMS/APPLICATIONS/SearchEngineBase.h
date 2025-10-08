@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -10,6 +10,7 @@
 
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 
 
 namespace OpenMS
@@ -91,7 +92,7 @@ namespace OpenMS
     */
     virtual SearchEngineBase::ExitCodes reindex_(
       std::vector<ProteinIdentification>& protein_identifications, 
-      std::vector<PeptideIdentification>& peptide_identifications) const;
+      PeptideIdentificationList& peptide_identifications) const;
   }; // end SearchEngineBase
 
 }   // end NS OpenMS

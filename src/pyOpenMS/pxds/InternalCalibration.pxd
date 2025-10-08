@@ -9,7 +9,7 @@ from ProgressLogger cimport *
 from Types cimport *
 from Precursor cimport *
 
-cdef extern from "<OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/PROCESSING/CALIBRATION/InternalCalibration.h>" namespace "OpenMS":
 
     cdef cppclass InternalCalibration(ProgressLogger):
         # wrap-inherits:
@@ -70,7 +70,7 @@ cdef extern from "<OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>" namespac
                 #  :param tol_ppm: Only accept ID's whose theoretical mass deviates at most this much from annotated
                 #  :return: Number of calibration masses found
 
-        Size fillCalibrants(libcpp_vector[PeptideIdentification], double) except + nogil 
+        Size fillCalibrants(PeptideIdentificationList, double) except + nogil 
             # wrap-doc:
                 #  Extract calibrants from identifications\n
                 #  
@@ -137,7 +137,7 @@ cdef extern from "<OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>" namespac
 
 
 ## wrap static methods
-cdef extern from "<OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>" namespace "OpenMS::InternalCalibration":
+cdef extern from "<OpenMS/PROCESSING/CALIBRATION/InternalCalibration.h>" namespace "OpenMS::InternalCalibration":
 
     void applyTransformation(libcpp_vector[Precursor]& pcs,
                              MZTrafoModel& trafo) except + nogil  # wrap-attach:InternalCalibration
@@ -146,7 +146,7 @@ cdef extern from "<OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>" namespac
     void applyTransformation(MSExperiment & exp,
                              IntList& target_mslvl, MZTrafoModel& trafo) except + nogil  # wrap-attach:InternalCalibration
 
-cdef extern from "<OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>" namespace "OpenMS::InternalCalibration":
+cdef extern from "<OpenMS/PROCESSING/CALIBRATION/InternalCalibration.h>" namespace "OpenMS::InternalCalibration":
 
     cdef cppclass InternalCalibration_LockMass "OpenMS::InternalCalibration::LockMass":
         InternalCalibration_LockMass(double mz_, int lvl_, int charge_) except + nogil 

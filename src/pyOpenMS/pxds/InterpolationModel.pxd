@@ -7,7 +7,7 @@ ctypedef DPosition1 PositionType
 ctypedef double CoordinateType
 # ctypedef Math::LinearInterpolation<double> LinearInterpolation
 
-cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/InterpolationModel.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/FEATUREFINDER/InterpolationModel.h>" namespace "OpenMS":
     
     cdef cppclass InterpolationModel "OpenMS::InterpolationModel":
       

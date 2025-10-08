@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -162,14 +162,8 @@ public:
         spec.setNativeID(String("index=") + (spectrum_number++));
         exp.addSpectrum(spec);
       }
+      exp.updateRanges();
     }
-
-    /*
-    template <typename MapType> void store(const String& filename, MapType& map)
-    {
-
-    }
-    */
 
 protected:
 

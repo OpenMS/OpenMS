@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -15,6 +15,7 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/METADATA/CVTermList.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinHit.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 
@@ -72,10 +73,10 @@ public:
       /**@name Constructors and destructor */
       //@{
       /// Constructor for a write-only handler for internal identification structures
-      MzIdentMLDOMHandler(const std::vector<ProteinIdentification>& pro_id, const std::vector<PeptideIdentification>& pep_id, const String& version, const ProgressLogger& logger);
+      MzIdentMLDOMHandler(const std::vector<ProteinIdentification>& pro_id, const PeptideIdentificationList& pep_id, const String& version, const ProgressLogger& logger);
 
       /// Constructor for a read-only handler for internal identification structures
-      MzIdentMLDOMHandler(std::vector<ProteinIdentification>& pro_id, std::vector<PeptideIdentification>& pep_id, const String& version, const ProgressLogger& logger);
+      MzIdentMLDOMHandler(std::vector<ProteinIdentification>& pro_id, PeptideIdentificationList& pep_id, const String& version, const ProgressLogger& logger);
 
       /// Destructor
       virtual ~MzIdentMLDOMHandler();
@@ -98,12 +99,12 @@ protected:
       ///Internal +w Identification Item for proteins
       std::vector<ProteinIdentification>* pro_id_ = nullptr;
       ///Internal +w Identification Item for peptides
-      std::vector<PeptideIdentification>* pep_id_ = nullptr;
+      PeptideIdentificationList* pep_id_ = nullptr;
 
       ///Internal -w Identification Item for proteins
       const std::vector<ProteinIdentification>* cpro_id_ = nullptr;
       ///Internal -w Identification Item for peptides
-      const std::vector<PeptideIdentification>* cpep_id_ = nullptr;
+      const PeptideIdentificationList* cpep_id_ = nullptr;
 
       ///Internal version keeping
       const String schema_version_;
@@ -252,9 +253,9 @@ private:
       std::list<std::list<String> > hit_pev_; ///< writing help only
 
       bool xl_ms_search_; ///< is true when reading a file containing Cross-Linking MS search results
-      std::map<String, String> xl_id_donor_map_; ///< mapping Peptide id -> cross-link donor value
-      //std::map<String, String> xl_id_acceptor_map_; ///< mapping Peptide id -> cross-link acceptor value
-      std::map<String, String> xl_id_acceptor_map_; ///< mapping  peptide id of acceptor peptide -> cross-link acceptor value
+      std::map<String, String> xl_id_donor_map_; ///< mapping Peptide id -> crosslink donor value
+      //std::map<String, String> xl_id_acceptor_map_; ///< mapping Peptide id -> crosslink acceptor value
+      std::map<String, String> xl_id_acceptor_map_; ///< mapping  peptide id of acceptor peptide -> crosslink acceptor value
       std::map<String, SignedSize> xl_donor_pos_map_; ///< mapping donor value -> cross-link modification location
       std::map<String, SignedSize> xl_acceptor_pos_map_; ///< mapping acceptor value -> cross-link modification location
       std::map<String, double> xl_mass_map_; ///< mapping Peptide id -> cross-link mass

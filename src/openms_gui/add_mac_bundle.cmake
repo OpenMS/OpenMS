@@ -1,36 +1,11 @@
-# --------------------------------------------------------------------------
-#                   OpenMS -- Open-Source Mass Spectrometry
-# --------------------------------------------------------------------------
-# Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2023.
-#
-# This software is released under a three-clause BSD license:
-#  * Redistributions of source code must retain the above copyright
-#    notice, this list of conditions and the following disclaimer.
-#  * Redistributions in binary form must reproduce the above copyright
-#    notice, this list of conditions and the following disclaimer in the
-#    documentation and/or other materials provided with the distribution.
-#  * Neither the name of any author or any participating institution
-#    may be used to endorse or promote products derived from this software
-#    without specific prior written permission.
-# For a full list of authors, refer to the file AUTHORS.
-# --------------------------------------------------------------------------
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-# ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-# INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-# EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-# PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-# OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-# WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-# OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-# ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#
+# Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+# SPDX-License-Identifier: BSD-3-Clause
+# 
 # --------------------------------------------------------------------------
 # $Maintainer: Julianus Pfeuffer $
 # $Authors: Stephan Aiche, Julianus Pfeuffer $
 # --------------------------------------------------------------------------
+
 
 # custom code to add a mac bundle application
 
@@ -86,14 +61,14 @@ macro(add_mac_app_bundle _name)
 		#  libs, install them into the bundle and only fix their loading
 		if("${PACKAGE_TYPE}" STREQUAL "dmg")
 			set (APP_FOLDER "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${_name}.app")
-			## Install qt5 plugins needed on mac and save them in a var for fixing their dependencies later
+			## Install Qt6 plugins needed on mac and save them in a var for fixing their dependencies later
 			set (PLUGIN_VAR_NAME QT_PLUGINS_APPS_${_name})
-			install_qt5_plugin_builddir("Qt5::QCocoaIntegrationPlugin" ${PLUGIN_VAR_NAME} "${APP_FOLDER}/Contents/PlugIns" Applications)
-			install_qt5_plugin_builddir("Qt5::QMacStylePlugin" ${PLUGIN_VAR_NAME} "${APP_FOLDER}/Contents/PlugIns" Applications)
+			install_qt6_plugin_builddir("Qt6::QCocoaIntegrationPlugin" ${PLUGIN_VAR_NAME} "${APP_FOLDER}/Contents/PlugIns" Applications)
+			install_qt6_plugin_builddir("Qt6::QMacStylePlugin" ${PLUGIN_VAR_NAME} "${APP_FOLDER}/Contents/PlugIns" Applications)
 			
 			set (QT_PLUGINS_TO_FIX ${${PLUGIN_VAR_NAME}})
 			## Find Qt library folder
-			get_target_property(QT_LIBRARY_DIR Qt5::Core LOCATION)
+			get_target_property(QT_LIBRARY_DIR Qt6::Core LOCATION)
 			get_filename_component(QT_LIBRARY_DIR ${QT_LIBRARY_DIR} PATH)
 			get_filename_component(QT_LIBRARY_DIR "${QT_LIBRARY_DIR}/.." ABSOLUTE)
 			## Fix up the dependencies in the bundle and make them rel. to their location in the bundle
@@ -120,11 +95,11 @@ macro(add_mac_app_bundle _name)
 							DESTINATION "${_name}.app/Contents/Resources/"
 							RENAME "qt.conf"
 							COMPONENT Applications)
-      install(IMPORTED_RUNTIME_ARTIFACTS "Qt5::QCocoaIntegrationPlugin"
+      install(IMPORTED_RUNTIME_ARTIFACTS "Qt6::QCocoaIntegrationPlugin"
               DESTINATION "${INSTALL_PLUGIN_DIR}/platforms"
               RUNTIME_DEPENDENCY_SET OPENMS_DEPS
               COMPONENT Dependencies)
-			install(IMPORTED_RUNTIME_ARTIFACTS "Qt5::QMacStylePlugin"
+			install(IMPORTED_RUNTIME_ARTIFACTS "Qt6::QMacStylePlugin"
 							DESTINATION "${INSTALL_PLUGIN_DIR}/styles"
 							RUNTIME_DEPENDENCY_SET OPENMS_DEPS
 							COMPONENT Dependencies)

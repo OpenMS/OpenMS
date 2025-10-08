@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -101,7 +101,6 @@ namespace OpenMS
       {
         double v = score_dist_target.getValue(r, 0);
         v -= score_dist_signal_decoy.getValue(r, 0);
-        //v = std::max(v, .0);
         score_dist_target.setValue(r, 0, v);
         left.setValue(r, 0, score_dist_noise_decoy.getValue(r, 0));
       }

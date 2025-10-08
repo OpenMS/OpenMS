@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -79,7 +79,7 @@ vector<FASTAFile::FASTAEntry> contaminantsFile;
 }
 
 // set the unassigned peptideidentifications
-std::vector<PeptideIdentification> ids2(3);
+PeptideIdentificationList ids2(3);
 PeptideHit hit2;
 hit2.setSequence(AASequence::fromString("AAAAAAAAAAK"));
 ids2[0].setHits({hit2});

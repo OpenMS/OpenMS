@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -13,9 +13,29 @@
 #include <QtCore/QTextStream>
 #include <nlohmann/json.hpp>
 
-
+// This is the only place wherein Nlohmann/json is used. It is updating its requirements to work with explicit 
+// conversions only.
 using namespace std;
+/// @brief Specialize nlohmann::adl_serializer for OpenMS::EmpiricalFormula so that nlohmann::json
+// knows how to (de)serialize it: from_json constructs an EmpiricalFormula from a JSON string,to_json 
+// converts it back to its string form, all explicitly.
+namespace nlohmann {
+//   
+    template <>
+    struct adl_serializer<OpenMS::EmpiricalFormula>
+    {
+        static void from_json(const json& j, OpenMS::EmpiricalFormula& ef)
+        {
+            std::string formula_string = j.get<std::string>();
+            ef = OpenMS::EmpiricalFormula(formula_string);
+        }
 
+        static void to_json(json& j, const OpenMS::EmpiricalFormula& ef)
+        {
+            j = ef.toString();
+        }
+    };
+}
 namespace OpenMS
 {
   // A structure for storing a pointer to a ribo in the database, as well as the possible alternatives if it is ambiguous (eg a methyl group that for which we can't determine the localization)
@@ -49,11 +69,7 @@ namespace OpenMS
 
   RibonucleotideDB* RibonucleotideDB::getInstance()
   {
-    static RibonucleotideDB* db_ = nullptr;
-    if (db_ == nullptr)
-    {
-      db_ = new RibonucleotideDB;
-    }
+    static RibonucleotideDB* db_ = new RibonucleotideDB(); // Meyers' singleton -> thread safe
     return db_;
   }
 
@@ -94,7 +110,7 @@ namespace OpenMS
     // If we have an explicitly defined baseloss_formula
     if (auto e = entry.find("baseloss_formula"); e != entry.cend() && !e->is_null())
     {
-      return EmpiricalFormula(*e);
+      return EmpiricalFormula(e->get<std::string>());
     }
     //TODO: Calculate base loss formula from SMILES
     else // If we don't have a defined baseloss_formula calculate it from our shortCode
@@ -126,9 +142,9 @@ namespace OpenMS
   ParsedEntry_ parseEntry_(const nlohmann::json::value_type& entry)
   {
     ParsedEntry_ parsed;
-    unique_ptr<Ribonucleotide> ribo (new Ribonucleotide());
-    ribo->setName(entry.at("name"));
-    String code = entry.at("short_name");
+    auto ribo = std::make_unique<Ribonucleotide>();
+    ribo->setName(entry.at("name").template get<std::string>());
+    String code = entry.at("short_name").get<std::string>();
     ribo->setCode(code);
     // NewCode doesn't exist any more, we use the same shortname for compatibility
     ribo->setNewCode(code);
@@ -166,10 +182,11 @@ namespace OpenMS
     {
       ribo->setHTMLCode(entry.at("abbrev")); //This is the single letter unicode representation that only SOME mods have
     }
-    ribo->setFormula(EmpiricalFormula(entry.at("formula")));
-    if ( !(entry.find("mass_avg") == entry.cend()) && !(entry.at("mass_avg").is_null()))
+    ribo->setFormula(entry.at("formula").get<OpenMS::EmpiricalFormula>());
+
+    if (auto e = entry.find("mass_avg"); e != entry.cend() && !e->is_null())
     {
-      ribo->setAvgMass(entry.at("mass_avg"));
+      ribo->setAvgMass(e->get<double>());
     }
     if (std::abs(ribo->getAvgMass() - ribo->getFormula().getAverageWeight()) >= 0.01)
     {
@@ -223,7 +240,7 @@ namespace OpenMS
     }
 
     QTextStream source(&file);
-    source.setCodec("UTF-8");
+    source.setAutoDetectUnicode(true);
     Size line_count = 0;
     json mod_obj;
     try
@@ -280,7 +297,7 @@ namespace OpenMS
     }
 
     QTextStream source(&file);
-    source.setCodec("UTF-8");
+    source.setAutoDetectUnicode(true);
     Size line_count = 1;
     String line = source.readLine();
     while (line[0] == '#') // skip leading comments

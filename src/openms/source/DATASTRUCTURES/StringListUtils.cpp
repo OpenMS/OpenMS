@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -20,9 +20,9 @@ namespace OpenMS
     StringList sl;
     sl.reserve(rhs.size());
 
-    for (QStringList::const_iterator it = rhs.begin(); it != rhs.end(); ++it)
+    for (const auto& item : rhs)
     {
-      sl.push_back(it->toStdString());
+      sl.push_back(item.toStdString());
     }
 
     return sl;

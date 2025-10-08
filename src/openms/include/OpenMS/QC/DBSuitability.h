@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -12,6 +12,7 @@
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 
 #include <cfloat>
 #include <vector>
@@ -200,7 +201,7 @@ namespace OpenMS
     *                           this happens when another adapter than CometAdapter was used
     * @throws                   Precondition if a q-value is found in @p pep_ids
     */
-    void compute(std::vector<PeptideIdentification>&& pep_ids, const MSExperiment& exp, const std::vector<FASTAFile::FASTAEntry>& original_fasta, const std::vector<FASTAFile::FASTAEntry>& novo_fasta, const ProteinIdentification::SearchParameters& search_params);
+    void compute(PeptideIdentificationList&& pep_ids, const MSExperiment& exp, const std::vector<FASTAFile::FASTAEntry>& original_fasta, const std::vector<FASTAFile::FASTAEntry>& novo_fasta, const ProteinIdentification::SearchParameters& search_params);
 
     /**
     * @brief Returns results calculated by this metric
@@ -250,7 +251,7 @@ namespace OpenMS
     * @throws                             IllegalArgument if reranking_cutoff_percentile is too low for a decoy cut-off to be calculated
     * @throws                             MissingInformation if no more than 20 % of the peptide IDs have two decoys in their top ten peptide hits
     */
-    double getDecoyCutOff_(const std::vector<PeptideIdentification>& pep_ids, double reranking_cutoff_percentile) const;
+    double getDecoyCutOff_(const PeptideIdentificationList& pep_ids, double reranking_cutoff_percentile) const;
 
     /**
     * @brief Tests if a PeptideHit is considered a deNovo hit
@@ -281,7 +282,7 @@ namespace OpenMS
     * @brief Looks through meta values of SearchParameters to find out which search adapter was used
     *
     * Checks for the following adapters:
-    * CometAdapter, MSGFPlusAdapter, MSFraggerAdapter, MyriMatchAdapter, OMSSAAdapter and XTandemAdapter
+    * CometAdapter, MSGFPlusAdapter, MSFraggerAdapter
     *
     * @param meta_values   SearchParameters object, since the adapters write their parameters here
     * @returns             A pair containing the name of the adapter and the parameters used to run it
@@ -320,7 +321,7 @@ namespace OpenMS
     * @throws               InternalToolError if any error occures while running PeptideIndexer functionalities
     * @throws               InvalidParameter if the needed FDR parameters are not found
     */
-    std::vector<PeptideIdentification> runIdentificationSearch_(const MSExperiment& exp, const std::vector<FASTAFile::FASTAEntry>& fasta_data, const String& adapter_name, Param& parameters) const;
+    PeptideIdentificationList runIdentificationSearch_(const MSExperiment& exp, const std::vector<FASTAFile::FASTAEntry>& fasta_data, const String& adapter_name, Param& parameters) const;
 
     /**
     * @brief Creates a subsampled fasta with the given subsampling rate
@@ -350,7 +351,7 @@ namespace OpenMS
     * @throws           MissingInformation if no xcorr is found,
     *                   this happens when another adapter than CometAdapter was used
     */
-    void calculateSuitability_(const std::vector<PeptideIdentification>& pep_ids, SuitabilityData& data) const;
+    void calculateSuitability_(const PeptideIdentificationList& pep_ids, SuitabilityData& data) const;
 
     /**
     * @brief Calculates and appends decoys to a given vector of FASTAEntry
@@ -395,7 +396,7 @@ namespace OpenMS
     * @returns                  number of unique protein accessions
     * @throws                   MissingInformation if no target/decoy annotation is found on @p peps
     */
-    UInt numberOfUniqueProteins_(const std::vector<PeptideIdentification>& peps, UInt number_of_hits = 1) const;
+    UInt numberOfUniqueProteins_(const PeptideIdentificationList& peps, UInt number_of_hits = 1) const;
 
     /**
     * @brief Finds the SuitabilityData object with the median number of de novo hits
@@ -423,7 +424,7 @@ namespace OpenMS
     * @throws                     IllegalArgument if @p score_name isn't found in the metavalues
     * @throws                     Precondition if main score of @p pep_ids isn't 'q-value'
     */
-    double getScoreMatchingFDR_(const std::vector<PeptideIdentification>& pep_ids, double FDR, const String& score_name, bool higher_score_better) const;
+    double getScoreMatchingFDR_(const PeptideIdentificationList& pep_ids, double FDR, const String& score_name, bool higher_score_better) const;
   };
 
   // friend class to test private member functions
@@ -449,7 +450,7 @@ namespace OpenMS
       return suit_.calculateCorrectionFactor_(data, data_sampled, sampling_rate);
     }
 
-    UInt numberOfUniqueProteins(const std::vector<PeptideIdentification>& peps, UInt number_of_hits = 1)
+    UInt numberOfUniqueProteins(const PeptideIdentificationList& peps, UInt number_of_hits = 1)
     {
       return suit_.numberOfUniqueProteins_(peps, number_of_hits);
     }
@@ -459,7 +460,7 @@ namespace OpenMS
       return suit_.getIndexWithMedianNovoHits_(data);
     }
 
-    double getScoreMatchingFDR(const std::vector<PeptideIdentification>& pep_ids, double FDR, String score_name, bool higher_score_better)
+    double getScoreMatchingFDR(const PeptideIdentificationList& pep_ids, double FDR, String score_name, bool higher_score_better)
     {
       return suit_.getScoreMatchingFDR_(pep_ids, FDR, score_name, higher_score_better);
     }

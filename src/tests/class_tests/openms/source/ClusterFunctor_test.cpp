@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 // 
 // --------------------------------------------------------------------------
@@ -8,10 +8,10 @@
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
-#include <OpenMS/COMPARISON/CLUSTERING/ClusterFunctor.h>
-#include <OpenMS/COMPARISON/CLUSTERING/SingleLinkage.h>
-#include <OpenMS/COMPARISON/CLUSTERING/CompleteLinkage.h>
-#include <OpenMS/COMPARISON/CLUSTERING/AverageLinkage.h>
+#include <OpenMS/ML/CLUSTERING/ClusterFunctor.h>
+#include <OpenMS/ML/CLUSTERING/SingleLinkage.h>
+#include <OpenMS/ML/CLUSTERING/CompleteLinkage.h>
+#include <OpenMS/ML/CLUSTERING/AverageLinkage.h>
 ///////////////////////////
 
 using namespace OpenMS;

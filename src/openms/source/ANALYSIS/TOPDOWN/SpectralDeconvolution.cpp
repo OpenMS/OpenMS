@@ -43,7 +43,6 @@ namespace OpenMS
                        "provided within the input mzML file or is specified using precursor_mz option, "
                        "precursor mass is calculated accordingly.");
     defaults_.setMinInt("precursor_charge", 0);
-    // defaults_.addTag("precursor_charge", "advanced");
 
     defaults_.setValue(
       "precursor_mz", 0.0,
@@ -65,15 +64,6 @@ namespace OpenMS
                        "specify 1.0 and 0.6 for MS1 and MS2, respectively.");
     defaults_.addTag("min_snr", "advanced");
     defaults_.setMinFloat("min_snr", 0.25);
-
-  //
-  //  defaults_.setValue("min_qscore", DoubleList {.25, .25},
-  //                     "Minimum PeakGroupScoring thresholds for MS1, 2, ...: e.g., -min_qscore 0.3 0.1 to "
-  //                     "specify 0.3 and 0.1 for MS1 and MS2, respectively.");
-  //  defaults_.addTag("min_qscore", "advanced");
-  //  defaults_.setMinFloat("min_qscore", 0.0);
-  //  defaults_.setMaxFloat("min_qscore", 1.0);
-  //  defaults_.addTag("min_qscore", "advanced");
 
     defaults_.setValue("allowed_isotope_error", 0,
                        "Tolerance for isotope index errors when calculating FDR. For instance, setting a value of 2 permits the inclusion of up to 2 "
@@ -251,13 +241,11 @@ namespace OpenMS
     for (double& j : tolerance_)
     {
       j *= 1e-6;
-      // j /= tol_div_factor; // finder bins are far better.
       bin_mul_factors_.push_back(1.0 / j * tol_div_factor);
     }
 
     min_isotope_cosine_ = param_.getValue("min_cos");
     min_snr_ = param_.getValue("min_snr");
-    //min_qscore_ = param_.getValue("min_qscore");
 
     target_precursor_mz_ = param_.getValue("precursor_mz");
     target_precursor_charge_ = param_.getValue("precursor_charge");
@@ -483,7 +471,6 @@ namespace OpenMS
                 {
                   harmonic_cntr++;
                   sub_max_h_intensity[k] += mz_intensities[next_harmonic_iso_bin];
-                  // sub_max_h_intensity[k] = std::max(sub_max_h_intensity[k] , mz_intensities[next_harmonic_iso_bin]);
                 }
 
                 if (harmonic_cntr > 0) { pass_first_check = false; }
@@ -492,7 +479,6 @@ namespace OpenMS
             if (pass_first_check)
             {
               support_peak_intensity += mz_intensities[next_iso_bin];
-              // support_peak_intensity = std::max(support_peak_intensity, mz_intensities[next_iso_bin]);
             }
           }
           pass_first_check &= *std::max_element(sub_max_h_intensity.begin(), sub_max_h_intensity.end()) <= 0;
@@ -813,7 +799,7 @@ namespace OpenMS
         }
       }
 
-      if (! pg.empty()) // total_signal_intensity > 0)// *std::max_element(total_harmonic_intensity.begin(), total_harmonic_intensity.end())) //
+      if (! pg.empty())
       {
         double max_intensity = -1.0;
         double t_mass = .0;
@@ -1281,48 +1267,6 @@ namespace OpenMS
       max_cos = c;
       break;
     }
-  //  if (!excluded_masses.empty())
-    //    {
-    //      bool exclude = false;
-    //      for (auto em : excluded_masses)
-    //      {
-    //        if ( std::abs(mono_mass + o * Constants::ISOTOPE_MASSDIFF_55K_U - em) < .1)
-    //        {
-    //          exclude = true;
-    //          break;
-    //        }
-    //      }
-    //      if (exclude) continue;
-    //    }
-
-  //  if (!excluded_masses.empty())
-  //  {
-  //    //int original_offset = offset;
-  //    max_cos = -1000;
-  //    for (const auto& [o, c] : offset_cos)
-  //    {
-  //      bool exclude = false;
-  //      for (auto em : excluded_masses)
-  //      {
-  //        if ( std::abs(mono_mass + (o - iso_int_shift) * Constants::ISOTOPE_MASSDIFF_55K_U - em) < mono_mass * 1e-5) // tmp
-  //        {
-  //          exclude = true;
-  //          break;
-  //        }
-  //      }
-  //      if (exclude) continue;
-  //
-  //
-  //     // if (std::abs(mono_mass + o * Constants::ISOTOPE_MASSDIFF_55K_U - em) < .1)
-  //        // if (abs(original_offset - o) <= allowed_isotope_error) //
-  //        //continue;
-  //
-  //      offset = o;
-  //      max_cos = c;
-  //      break;
-  //    }
-  //    if (max_cos <= 0) return 0;
-  //  }
 
     max_cos = std::max(max_cos, .0f);
     offset -= iso_int_shift;
@@ -1346,11 +1290,6 @@ namespace OpenMS
       a_norm += a[j] * a[j];
 
       if (max_intensity < a[j]) { max_intensity = a[j]; }
-      //
-      if (i < 0 && a[j] > 0)
-      {
-        // n -= a[j] * b[0].getIntensity();
-      }
       else if (i >= (int)b.size() || i < 0 || b[i].getIntensity() <= 0) { continue; }
       else { n += a[j] * b[i].getIntensity(); }
     }

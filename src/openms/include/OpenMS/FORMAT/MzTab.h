@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -15,11 +15,14 @@
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/METADATA/PeptideEvidence.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 
 #include <optional>
 
+#ifdef __clang__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wnon-virtual-dtor"
+#endif
 
 namespace OpenMS
 {
@@ -475,6 +478,10 @@ public:
 
     const MzTabPSMSectionRows& getPSMSectionRows() const;
 
+    /// Returns the number of PSMs in the PSM section (which is not necessarily the number of rows in the section, due to duplication of rows for each protein)
+    /// @note Relies on the PSM_ID to be set correctly for each PSM row
+    size_t getNumberOfPSMs() const;
+
     void setPSMSectionRows(const MzTabPSMSectionRows& psd);
 
     const MzTabSmallMoleculeSectionRows& getSmallMoleculeSectionRows() const;
@@ -548,7 +555,7 @@ public:
     */
     static MzTab exportIdentificationsToMzTab(
         const std::vector<ProteinIdentification>& prot_ids,
-        const std::vector<PeptideIdentification>& peptide_ids,
+        const PeptideIdentificationList& peptide_ids,
         const String& filename,
         bool first_run_inference_only,
         bool export_empty_pep_ids = false,
@@ -855,7 +862,7 @@ public:
     // otherwise as CHEMMOD (see MzTab specification for details)
     static MzTabString getModificationIdentifier_(const ResidueModification& r);
 
-    static void checkSequenceUniqueness_(const std::vector<PeptideIdentification>& curr_pep_ids);
+    static void checkSequenceUniqueness_(const PeptideIdentificationList& curr_pep_ids);
 
     MzTabMetaData meta_data_;
     MzTabProteinSectionRows protein_data_;
@@ -870,5 +877,6 @@ public:
   };
 
 } // namespace OpenMS
-
-#pragma clang diagnostic pop
+#ifdef __clang__
+  #pragma clang diagnostic pop
+#endif

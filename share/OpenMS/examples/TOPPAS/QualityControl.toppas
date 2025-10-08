@@ -1,59 +1,55 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <PARAMETERS version="1.7.0" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/Param_1_7_0.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <NODE name="info" description="">
-    <ITEM name="version" value="3.1.0-pre-disabled-20231216" type="string" description="" required="false" advanced="false" />
-    <ITEM name="num_vertices" value="24" type="int" description="" required="false" advanced="false" />
-    <ITEM name="num_edges" value="30" type="int" description="" required="false" advanced="false" />
-    <ITEM name="description" value="&lt;![CDATA[&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
-&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
-p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:&apos;Arial&apos;; font-size:12pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;br /&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;]]&gt;" type="string" description="" required="false" advanced="false" />
+    <ITEM name="version" value="3.1.0-pre-disabled-20240603" type="string" description="" required="false" advanced="false" />
+    <ITEM name="num_vertices" value="26" type="int" description="" required="false" advanced="false" />
+    <ITEM name="num_edges" value="32" type="int" description="" required="false" advanced="false" />
+    <ITEM name="description" value="&lt;![CDATA[&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt; &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt; p, li { white-space: pre-wrap; } &lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:&apos;Arial&apos;; font-size:12pt; font-weight:400; font-style:normal;&quot;&gt; &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;A quality control pipeline for DDA data, which also performs identification (using MSGF+), mass calibration (using InternalCalbration) and quantitation (using FeatureFinderIdentification).&lt;/p&gt; &lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;br /&gt;&lt;/p&gt; &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Since we analyse more than one raw file (run), we can also employ MapAlignment and FeatureLinking, to transfer identifications and enable a quantitative comparison across samples.&lt;/p&gt; &lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;br /&gt;&lt;/p&gt; &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Finally, the QualityControl node receives all intermediate and final output data to extract and compute quality metrics.&lt;/p&gt; &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;These are exported in the form several output files which can be inspected. &lt;/p&gt; &lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;br /&gt;&lt;/p&gt; &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Most important is probably the output folder (node #25), which contains MaxQuant compatible output (evidence.txt and msms.txt). These .txt files can be used as input to external tools, such as PTX-QC to automatically obtain a comprehensive QC report.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;]]&gt;" type="string" description="" required="false" advanced="false" />
   </NODE>
   <NODE name="vertices" description="">
     <NODE name="0" description="">
-      <ITEM name="recycle_output" value="false" type="string" description="" required="false" advanced="false" />
       <ITEM name="toppas_type" value="input file list" type="string" description="" required="false" advanced="false" />
+      <ITEM name="x_pos" value="-600.0" type="double" description="" required="false" advanced="false" />
+      <ITEM name="y_pos" value="20.0" type="double" description="" required="false" advanced="false" />
+      <ITEM name="recycle_output" value="false" type="string" description="" required="false" advanced="false" />
       <ITEMLIST name="file_names" type="string" description="" required="false" advanced="false">
         <LISTITEM value="../BSA/BSA1.mzML"/>
         <LISTITEM value="../BSA/BSA2.mzML"/>
         <LISTITEM value="../BSA/BSA3.mzML"/>
       </ITEMLIST>
-      <ITEM name="x_pos" value="-600.0" type="double" description="" required="false" advanced="false" />
-      <ITEM name="y_pos" value="40.0" type="double" description="" required="false" advanced="false" />
     </NODE>
     <NODE name="1" description="">
-      <ITEM name="recycle_output" value="false" type="string" description="" required="false" advanced="false" />
       <ITEM name="toppas_type" value="input file list" type="string" description="" required="false" advanced="false" />
+      <ITEM name="x_pos" value="-600.0" type="double" description="" required="false" advanced="false" />
+      <ITEM name="y_pos" value="-540.0" type="double" description="" required="false" advanced="false" />
+      <ITEM name="recycle_output" value="false" type="string" description="" required="false" advanced="false" />
       <ITEMLIST name="file_names" type="string" description="" required="false" advanced="false">
         <LISTITEM value="data/BSA_Identification/18Protein_SoCe_Tr_detergents_trace.fasta"/>
       </ITEMLIST>
-      <ITEM name="x_pos" value="-600.0" type="double" description="" required="false" advanced="false" />
-      <ITEM name="y_pos" value="-540.0" type="double" description="" required="false" advanced="false" />
     </NODE>
     <NODE name="2" description="">
-      <ITEM name="recycle_output" value="false" type="string" description="" required="false" advanced="false" />
       <ITEM name="toppas_type" value="input file list" type="string" description="" required="false" advanced="false" />
+      <ITEM name="x_pos" value="-600.0" type="double" description="" required="false" advanced="false" />
+      <ITEM name="y_pos" value="220.0" type="double" description="" required="false" advanced="false" />
+      <ITEM name="recycle_output" value="false" type="string" description="" required="false" advanced="false" />
       <ITEMLIST name="file_names" type="string" description="" required="false" advanced="false">
         <LISTITEM value="data/Identification/crap.fasta"/>
       </ITEMLIST>
-      <ITEM name="x_pos" value="-600.0" type="double" description="" required="false" advanced="false" />
-      <ITEM name="y_pos" value="220.0" type="double" description="" required="false" advanced="false" />
     </NODE>
     <NODE name="3" description="">
-      <ITEM name="recycle_output" value="false" type="string" description="" required="false" advanced="false" />
       <ITEM name="toppas_type" value="merger" type="string" description="" required="false" advanced="false" />
-      <ITEM name="x_pos" value="-340.0" type="double" description="" required="false" advanced="false" />
+      <ITEM name="x_pos" value="-360.0" type="double" description="" required="false" advanced="false" />
       <ITEM name="y_pos" value="-540.0" type="double" description="" required="false" advanced="false" />
+      <ITEM name="recycle_output" value="false" type="string" description="" required="false" advanced="false" />
       <ITEM name="round_based" value="false" type="string" description="" required="false" advanced="false" />
     </NODE>
     <NODE name="4" description="">
-      <ITEM name="recycle_output" value="true" type="string" description="" required="false" advanced="false" />
       <ITEM name="toppas_type" value="tool" type="string" description="" required="false" advanced="false" />
+      <ITEM name="x_pos" value="-200.0" type="double" description="" required="false" advanced="false" />
+      <ITEM name="y_pos" value="-540.0" type="double" description="" required="false" advanced="false" />
+      <ITEM name="recycle_output" value="true" type="string" description="" required="false" advanced="false" />
       <ITEM name="tool_name" value="DecoyDatabase" type="string" description="" required="false" advanced="false" />
       <ITEM name="tool_type" value="" type="string" description="" required="false" advanced="false" />
-      <ITEM name="x_pos" value="-160.0" type="double" description="" required="false" advanced="false" />
-      <ITEM name="y_pos" value="-540.0" type="double" description="" required="false" advanced="false" />
       <NODE name="parameters" description="">
         <ITEMLIST name="in" type="input-file" description="Input FASTA file(s), each containing a database. It is recommended to include a contaminant database as well." required="true" advanced="false" supported_formats="*.fasta">
         </ITEMLIST>
@@ -66,7 +62,7 @@ p, li { white-space: pre-wrap; }
         <ITEM name="shuffle_max_attempts" value="30" type="int" description="shuffle: maximum attempts to lower the amino acid sequence identity between target and decoy for the shuffle algorithm" required="false" advanced="true" />
         <ITEM name="shuffle_sequence_identity_threshold" value="0.5" type="double" description="shuffle: target-decoy amino acid sequence identity threshold for the shuffle algorithm. If the sequence identity is above this threshold, shuffling is repeated. In case of repeated failure, individual amino acids are &apos;mutated&apos; to produce a different amino acid sequence." required="false" advanced="true" />
         <ITEM name="seed" value="1" type="string" description="Random number seed (use &apos;time&apos; for system time)" required="false" advanced="true" />
-        <ITEM name="enzyme" value="Trypsin" type="string" description="Enzyme used for the digestion of the sample. Only applicable if parameter &apos;type&apos; is &apos;protein&apos;." required="false" advanced="false" restrictions="Lys-C,Lys-N,Lys-C/P,PepsinA,Asp-N/B,Asp-N_ambic,Arg-C,Trypsin,TrypChymo,Arg-C/P,Asp-N,V8-E,staphylococcal protease/D,leukocyte elastase,proline endopeptidase,V8-DE,Alpha-lytic protease,iodosobenzoate,Trypsin/P,glutamyl endopeptidase,2-iodobenzoate,cyanogen-bromide,elastase-trypsin-chymotrypsin,PepsinA + P,Clostripain/P,Glu-C+P,unspecific cleavage,no cleavage,proline-endopeptidase/HKR,Chymotrypsin,Chymotrypsin/P,CNBr,Formic_acid" />
+        <ITEM name="enzyme" value="Trypsin" type="string" description="Enzyme used for the digestion of the sample. Only applicable if parameter &apos;type&apos; is &apos;protein&apos;." required="false" advanced="false" restrictions="Asp-N,Chymotrypsin/P,CNBr,Formic_acid,Lys-C,Lys-N,Lys-C/P,PepsinA,TrypChymo,Trypsin/P,Asp-N/B,Asp-N_ambic,Chymotrypsin,Trypsin,V8-DE,Arg-C,2-iodobenzoate,proline-endopeptidase/HKR,V8-E,Glu-C+P,leukocyte elastase,proline endopeptidase,glutamyl endopeptidase,Alpha-lytic protease,iodosobenzoate,staphylococcal protease/D,unspecific cleavage,no cleavage,PepsinA + P,elastase-trypsin-chymotrypsin,cyanogen-bromide,Clostripain/P,Arg-C/P" />
         <ITEM name="log" value="" type="string" description="Name of log file (created only when specified)" required="false" advanced="true" />
         <ITEM name="debug" value="0" type="int" description="Sets the debug level" required="false" advanced="true" />
         <ITEM name="threads" value="1" type="int" description="Sets the number of threads allowed to be used by the TOPP tool" required="false" advanced="false" />
@@ -81,12 +77,12 @@ p, li { white-space: pre-wrap; }
       </NODE>
     </NODE>
     <NODE name="5" description="">
-      <ITEM name="recycle_output" value="false" type="string" description="" required="false" advanced="false" />
       <ITEM name="toppas_type" value="tool" type="string" description="" required="false" advanced="false" />
+      <ITEM name="x_pos" value="-200.0" type="double" description="" required="false" advanced="false" />
+      <ITEM name="y_pos" value="20.0" type="double" description="" required="false" advanced="false" />
+      <ITEM name="recycle_output" value="false" type="string" description="" required="false" advanced="false" />
       <ITEM name="tool_name" value="FileInfo" type="string" description="" required="false" advanced="false" />
       <ITEM name="tool_type" value="" type="string" description="" required="false" advanced="false" />
-      <ITEM name="x_pos" value="-260.0" type="double" description="" required="false" advanced="false" />
-      <ITEM name="y_pos" value="40.0" type="double" description="" required="false" advanced="false" />
       <NODE name="parameters" description="">
         <ITEM name="in" value="" type="input-file" description="input file" required="true" advanced="false" supported_formats="*.mzData,*.mzXML,*.mzML,*.sqMass,*.dta,*.dta2d,*.mgf,*.featureXML,*.consensusXML,*.idXML,*.pepXML,*.fid,*.mzid,*.trafoXML,*.fasta,*.pqp" />
         <ITEM name="in_type" value="" type="string" description="input file type -- default: determined from file extension or content" required="false" advanced="false" restrictions="mzData,mzXML,mzML,sqMass,dta,dta2d,mgf,featureXML,consensusXML,idXML,pepXML,fid,mzid,trafoXML,fasta,pqp" />
@@ -108,12 +104,12 @@ p, li { white-space: pre-wrap; }
       </NODE>
     </NODE>
     <NODE name="6" description="">
-      <ITEM name="recycle_output" value="false" type="string" description="" required="false" advanced="false" />
       <ITEM name="toppas_type" value="tool" type="string" description="" required="false" advanced="false" />
+      <ITEM name="x_pos" value="-400.0" type="double" description="" required="false" advanced="false" />
+      <ITEM name="y_pos" value="-180.0" type="double" description="" required="false" advanced="false" />
+      <ITEM name="recycle_output" value="false" type="string" description="" required="false" advanced="false" />
       <ITEM name="tool_name" value="MSGFPlusAdapter" type="string" description="" required="false" advanced="false" />
       <ITEM name="tool_type" value="" type="string" description="" required="false" advanced="false" />
-      <ITEM name="x_pos" value="-380.0" type="double" description="" required="false" advanced="false" />
-      <ITEM name="y_pos" value="-380.0" type="double" description="" required="false" advanced="false" />
       <NODE name="parameters" description="">
         <ITEM name="in" value="" type="input-file" description="Input file (MS-GF+ parameter &apos;-s&apos;)" required="true" advanced="false" supported_formats="*.mzML,*.mzXML,*.mgf,*.ms2" />
         <ITEM name="out" value="" type="output-file" description="Output file" required="false" advanced="false" supported_formats="*.idXML" />
@@ -133,6 +129,7 @@ p, li { white-space: pre-wrap; }
         <ITEM name="min_peptide_length" value="6" type="int" description="Minimum peptide length to consider (MS-GF+ parameter &apos;-minLength&apos;)" required="false" advanced="false" restrictions="1:" />
         <ITEM name="max_peptide_length" value="40" type="int" description="Maximum peptide length to consider (MS-GF+ parameter &apos;-maxLength&apos;)" required="false" advanced="false" restrictions="1:" />
         <ITEM name="matches_per_spec" value="1" type="int" description="Number of matches per spectrum to be reported (MS-GF+ parameter &apos;-n&apos;)" required="false" advanced="false" restrictions="1:" />
+        <ITEM name="min_peaks" value="10" type="int" description="Minimum number of ions a spectrum must have to be examined" required="false" advanced="false" restrictions="10:" />
         <ITEM name="add_features" value="true" type="string" description="Output additional features (MS-GF+ parameter &apos;-addFeatures&apos;). This is required by Percolator and hence by default enabled." required="false" advanced="false" restrictions="true,false" />
         <ITEM name="max_mods" value="2" type="int" description="Maximum number of modifications per peptide. If this value is large, the search may take very long." required="false" advanced="false" restrictions="0:" />
         <ITEM name="max_missed_cleavages" value="-1" type="int" description="Maximum number of missed cleavages allowed for a peptide to be considered for scoring. (default: -1 meaning unlimited)" required="false" advanced="false" restrictions="-1:" />
@@ -168,19 +165,19 @@ p, li { white-space: pre-wrap; }
           <ITEM name="IL_equivalent" value="false" type="bool" description="Treat the isobaric amino acids isoleucine (&apos;I&apos;) and leucine (&apos;L&apos;) as equivalent (indistinguishable). Also occurrences of &apos;J&apos; will be treated as &apos;I&apos; thus avoiding ambiguous matching." required="false" advanced="true" />
           <ITEM name="allow_nterm_protein_cleavage" value="true" type="string" description="Allow the protein N-terminus amino acid to clip." required="false" advanced="false" restrictions="true,false" />
           <NODE name="enzyme" description="">
-            <ITEM name="name" value="auto" type="string" description="Enzyme which determines valid cleavage sites - e.g. trypsin cleaves after lysine (K) or arginine (R), but not before proline (P). Default: deduce from input" required="false" advanced="true" restrictions="auto,PepsinA,TrypChymo,Trypsin,Asp-N,Asp-N/B,no cleavage,proline-endopeptidase/HKR,Glu-C+P,PepsinA + P,unspecific cleavage,Clostripain/P,elastase-trypsin-chymotrypsin,cyanogen-bromide,Arg-C,Arg-C/P,Formic_acid,Lys-C,Lys-N,Lys-C/P,Asp-N_ambic,Chymotrypsin,Chymotrypsin/P,CNBr,Trypsin/P,leukocyte elastase,2-iodobenzoate,iodosobenzoate,Alpha-lytic protease,glutamyl endopeptidase,staphylococcal protease/D,V8-DE,V8-E,proline endopeptidase" />
+            <ITEM name="name" value="auto" type="string" description="Enzyme which determines valid cleavage sites - e.g. trypsin cleaves after lysine (K) or arginine (R), but not before proline (P). Default: deduce from input" required="false" advanced="true" restrictions="auto,Lys-N,Lys-C/P,PepsinA,TrypChymo,Trypsin/P,Arg-C,Trypsin,V8-DE,Asp-N,Asp-N/B,Asp-N_ambic,2-iodobenzoate,iodosobenzoate,staphylococcal protease/D,Alpha-lytic protease,proline-endopeptidase/HKR,Glu-C+P,V8-E,leukocyte elastase,proline endopeptidase,glutamyl endopeptidase,Clostripain/P,no cleavage,unspecific cleavage,PepsinA + P,cyanogen-bromide,elastase-trypsin-chymotrypsin,Arg-C/P,Chymotrypsin,Chymotrypsin/P,CNBr,Formic_acid,Lys-C" />
             <ITEM name="specificity" value="auto" type="string" description="Specificity of the enzyme. Default: deduce from input.#br#  &apos;full&apos;: both internal cleavage sites must match.#br#  &apos;semi&apos;: one of two internal cleavage sites must match.#br#  &apos;none&apos;: allow all peptide hits no matter their context (enzyme is irrelevant)." required="false" advanced="true" restrictions="auto,full,semi,none" />
           </NODE>
         </NODE>
       </NODE>
     </NODE>
     <NODE name="7" description="">
-      <ITEM name="recycle_output" value="false" type="string" description="" required="false" advanced="false" />
       <ITEM name="toppas_type" value="tool" type="string" description="" required="false" advanced="false" />
+      <ITEM name="x_pos" value="-180.0" type="double" description="" required="false" advanced="false" />
+      <ITEM name="y_pos" value="-180.0" type="double" description="" required="false" advanced="false" />
+      <ITEM name="recycle_output" value="false" type="string" description="" required="false" advanced="false" />
       <ITEM name="tool_name" value="FalseDiscoveryRate" type="string" description="" required="false" advanced="false" />
       <ITEM name="tool_type" value="" type="string" description="" required="false" advanced="false" />
-      <ITEM name="x_pos" value="-200.0" type="double" description="" required="false" advanced="false" />
-      <ITEM name="y_pos" value="-180.0" type="double" description="" required="false" advanced="false" />
       <NODE name="parameters" description="">
         <ITEM name="in" value="" type="input-file" description="Identifications from searching a target-decoy database." required="true" advanced="false" supported_formats="*.idXML" />
         <ITEM name="out" value="" type="output-file" description="Identifications with annotated FDR" required="true" advanced="false" supported_formats="*.idXML" />
@@ -214,12 +211,12 @@ p, li { white-space: pre-wrap; }
       </NODE>
     </NODE>
     <NODE name="8" description="">
-      <ITEM name="recycle_output" value="false" type="string" description="" required="false" advanced="false" />
       <ITEM name="toppas_type" value="tool" type="string" description="" required="false" advanced="false" />
-      <ITEM name="tool_name" value="InternalCalibration" type="string" description="" required="false" advanced="false" />
-      <ITEM name="tool_type" value="" type="string" description="" required="false" advanced="false" />
       <ITEM name="x_pos" value="40.0" type="double" description="" required="false" advanced="false" />
       <ITEM name="y_pos" value="-180.0" type="double" description="" required="false" advanced="false" />
+      <ITEM name="recycle_output" value="false" type="string" description="" required="false" advanced="false" />
+      <ITEM name="tool_name" value="InternalCalibration" type="string" description="" required="false" advanced="false" />
+      <ITEM name="tool_type" value="" type="string" description="" required="false" advanced="false" />
       <NODE name="parameters" description="">
         <ITEM name="in" value="" type="input-file" description="Input peak file" required="true" advanced="false" supported_formats="*.mzML" />
         <ITEM name="out" value="" type="output-file" description="Output file " required="true" advanced="false" supported_formats="*.mzML" />
@@ -265,26 +262,26 @@ p, li { white-space: pre-wrap; }
       </NODE>
     </NODE>
     <NODE name="9" description="">
-      <ITEM name="recycle_output" value="false" type="string" description="" required="false" advanced="false" />
       <ITEM name="toppas_type" value="output file list" type="string" description="" required="false" advanced="false" />
-      <ITEM name="x_pos" value="-20.0" type="double" description="" required="false" advanced="false" />
-      <ITEM name="y_pos" value="20.0" type="double" description="" required="false" advanced="false" />
+      <ITEM name="x_pos" value="40.0" type="double" description="" required="false" advanced="false" />
+      <ITEM name="y_pos" value="160.0" type="double" description="" required="false" advanced="false" />
+      <ITEM name="recycle_output" value="false" type="string" description="" required="false" advanced="false" />
       <ITEM name="output_folder_name" value="inraw" type="string" description="" required="false" advanced="false" />
     </NODE>
     <NODE name="10" description="">
-      <ITEM name="recycle_output" value="false" type="string" description="" required="false" advanced="false" />
       <ITEM name="toppas_type" value="merger" type="string" description="" required="false" advanced="false" />
-      <ITEM name="x_pos" value="120.0" type="double" description="" required="false" advanced="false" />
+      <ITEM name="x_pos" value="220.0" type="double" description="" required="false" advanced="false" />
       <ITEM name="y_pos" value="20.0" type="double" description="" required="false" advanced="false" />
+      <ITEM name="recycle_output" value="false" type="string" description="" required="false" advanced="false" />
       <ITEM name="round_based" value="false" type="string" description="" required="false" advanced="false" />
     </NODE>
     <NODE name="11" description="">
-      <ITEM name="recycle_output" value="false" type="string" description="" required="false" advanced="false" />
       <ITEM name="toppas_type" value="tool" type="string" description="" required="false" advanced="false" />
-      <ITEM name="tool_name" value="MSGFPlusAdapter" type="string" description="" required="false" advanced="false" />
-      <ITEM name="tool_type" value="" type="string" description="" required="false" advanced="false" />
       <ITEM name="x_pos" value="40.0" type="double" description="" required="false" advanced="false" />
       <ITEM name="y_pos" value="-380.0" type="double" description="" required="false" advanced="false" />
+      <ITEM name="recycle_output" value="false" type="string" description="" required="false" advanced="false" />
+      <ITEM name="tool_name" value="MSGFPlusAdapter" type="string" description="" required="false" advanced="false" />
+      <ITEM name="tool_type" value="" type="string" description="" required="false" advanced="false" />
       <NODE name="parameters" description="">
         <ITEM name="in" value="" type="input-file" description="Input file (MS-GF+ parameter &apos;-s&apos;)" required="true" advanced="false" supported_formats="*.mzML,*.mzXML,*.mgf,*.ms2" />
         <ITEM name="out" value="" type="output-file" description="Output file" required="false" advanced="false" supported_formats="*.idXML" />
@@ -304,6 +301,7 @@ p, li { white-space: pre-wrap; }
         <ITEM name="min_peptide_length" value="6" type="int" description="Minimum peptide length to consider (MS-GF+ parameter &apos;-minLength&apos;)" required="false" advanced="false" restrictions="1:" />
         <ITEM name="max_peptide_length" value="40" type="int" description="Maximum peptide length to consider (MS-GF+ parameter &apos;-maxLength&apos;)" required="false" advanced="false" restrictions="1:" />
         <ITEM name="matches_per_spec" value="1" type="int" description="Number of matches per spectrum to be reported (MS-GF+ parameter &apos;-n&apos;)" required="false" advanced="false" restrictions="1:" />
+        <ITEM name="min_peaks" value="10" type="int" description="Minimum number of ions a spectrum must have to be examined" required="false" advanced="false" restrictions="10:" />
         <ITEM name="add_features" value="true" type="string" description="Output additional features (MS-GF+ parameter &apos;-addFeatures&apos;). This is required by Percolator and hence by default enabled." required="false" advanced="false" restrictions="true,false" />
         <ITEM name="max_mods" value="2" type="int" description="Maximum number of modifications per peptide. If this value is large, the search may take very long." required="false" advanced="false" restrictions="0:" />
         <ITEM name="max_missed_cleavages" value="-1" type="int" description="Maximum number of missed cleavages allowed for a peptide to be considered for scoring. (default: -1 meaning unlimited)" required="false" advanced="false" restrictions="-1:" />
@@ -339,19 +337,19 @@ p, li { white-space: pre-wrap; }
           <ITEM name="IL_equivalent" value="false" type="bool" description="Treat the isobaric amino acids isoleucine (&apos;I&apos;) and leucine (&apos;L&apos;) as equivalent (indistinguishable). Also occurrences of &apos;J&apos; will be treated as &apos;I&apos; thus avoiding ambiguous matching." required="false" advanced="true" />
           <ITEM name="allow_nterm_protein_cleavage" value="true" type="string" description="Allow the protein N-terminus amino acid to clip." required="false" advanced="false" restrictions="true,false" />
           <NODE name="enzyme" description="">
-            <ITEM name="name" value="auto" type="string" description="Enzyme which determines valid cleavage sites - e.g. trypsin cleaves after lysine (K) or arginine (R), but not before proline (P). Default: deduce from input" required="false" advanced="true" restrictions="auto,PepsinA,TrypChymo,Trypsin,Asp-N,Asp-N/B,cyanogen-bromide,proline-endopeptidase/HKR,elastase-trypsin-chymotrypsin,no cleavage,Glu-C+P,Clostripain/P,PepsinA + P,unspecific cleavage,Arg-C,Arg-C/P,Formic_acid,Lys-C,Lys-N,Lys-C/P,Asp-N_ambic,Chymotrypsin,Chymotrypsin/P,CNBr,2-iodobenzoate,V8-E,iodosobenzoate,staphylococcal protease/D,Trypsin/P,leukocyte elastase,V8-DE,proline endopeptidase,glutamyl endopeptidase,Alpha-lytic protease" />
+            <ITEM name="name" value="auto" type="string" description="Enzyme which determines valid cleavage sites - e.g. trypsin cleaves after lysine (K) or arginine (R), but not before proline (P). Default: deduce from input" required="false" advanced="true" restrictions="auto,Lys-N,Lys-C/P,PepsinA,TrypChymo,Trypsin/P,Arg-C,Trypsin,V8-DE,Asp-N,Asp-N/B,Asp-N_ambic,Alpha-lytic protease,leukocyte elastase,iodosobenzoate,proline-endopeptidase/HKR,Glu-C+P,staphylococcal protease/D,proline endopeptidase,2-iodobenzoate,V8-E,glutamyl endopeptidase,no cleavage,elastase-trypsin-chymotrypsin,PepsinA + P,cyanogen-bromide,unspecific cleavage,Clostripain/P,Arg-C/P,Chymotrypsin,Chymotrypsin/P,CNBr,Formic_acid,Lys-C" />
             <ITEM name="specificity" value="auto" type="string" description="Specificity of the enzyme. Default: deduce from input.#br#  &apos;full&apos;: both internal cleavage sites must match.#br#  &apos;semi&apos;: one of two internal cleavage sites must match.#br#  &apos;none&apos;: allow all peptide hits no matter their context (enzyme is irrelevant)." required="false" advanced="true" restrictions="auto,full,semi,none" />
           </NODE>
         </NODE>
       </NODE>
     </NODE>
     <NODE name="12" description="">
-      <ITEM name="recycle_output" value="false" type="string" description="" required="false" advanced="false" />
       <ITEM name="toppas_type" value="tool" type="string" description="" required="false" advanced="false" />
-      <ITEM name="tool_name" value="FalseDiscoveryRate" type="string" description="" required="false" advanced="false" />
-      <ITEM name="tool_type" value="" type="string" description="" required="false" advanced="false" />
       <ITEM name="x_pos" value="220.0" type="double" description="" required="false" advanced="false" />
       <ITEM name="y_pos" value="-380.0" type="double" description="" required="false" advanced="false" />
+      <ITEM name="recycle_output" value="false" type="string" description="" required="false" advanced="false" />
+      <ITEM name="tool_name" value="FalseDiscoveryRate" type="string" description="" required="false" advanced="false" />
+      <ITEM name="tool_type" value="" type="string" description="" required="false" advanced="false" />
       <NODE name="parameters" description="">
         <ITEM name="in" value="" type="input-file" description="Identifications from searching a target-decoy database." required="true" advanced="false" supported_formats="*.idXML" />
         <ITEM name="out" value="" type="output-file" description="Identifications with annotated FDR" required="true" advanced="false" supported_formats="*.idXML" />
@@ -385,19 +383,19 @@ p, li { white-space: pre-wrap; }
       </NODE>
     </NODE>
     <NODE name="13" description="">
-      <ITEM name="recycle_output" value="false" type="string" description="" required="false" advanced="false" />
       <ITEM name="toppas_type" value="output file list" type="string" description="" required="false" advanced="false" />
-      <ITEM name="x_pos" value="460.0" type="double" description="" required="false" advanced="false" />
+      <ITEM name="x_pos" value="440.0" type="double" description="" required="false" advanced="false" />
       <ITEM name="y_pos" value="-380.0" type="double" description="" required="false" advanced="false" />
+      <ITEM name="recycle_output" value="false" type="string" description="" required="false" advanced="false" />
       <ITEM name="output_folder_name" value="" type="string" description="" required="false" advanced="false" />
     </NODE>
     <NODE name="14" description="">
-      <ITEM name="recycle_output" value="false" type="string" description="" required="false" advanced="false" />
       <ITEM name="toppas_type" value="tool" type="string" description="" required="false" advanced="false" />
-      <ITEM name="tool_name" value="FeatureFinderIdentification" type="string" description="" required="false" advanced="false" />
-      <ITEM name="tool_type" value="" type="string" description="" required="false" advanced="false" />
       <ITEM name="x_pos" value="220.0" type="double" description="" required="false" advanced="false" />
       <ITEM name="y_pos" value="-180.0" type="double" description="" required="false" advanced="false" />
+      <ITEM name="recycle_output" value="false" type="string" description="" required="false" advanced="false" />
+      <ITEM name="tool_name" value="FeatureFinderIdentification" type="string" description="" required="false" advanced="false" />
+      <ITEM name="tool_type" value="" type="string" description="" required="false" advanced="false" />
       <NODE name="parameters" description="">
         <ITEM name="in" value="" type="input-file" description="Input file: LC-MS raw data" required="true" advanced="false" supported_formats="*.mzML" />
         <ITEM name="id" value="" type="input-file" description="Input file: Peptide identifications derived directly from &apos;in&apos;" required="true" advanced="false" supported_formats="*.idXML" />
@@ -407,7 +405,7 @@ p, li { white-space: pre-wrap; }
         <ITEM name="chrom_out" value="" type="output-file" description="Output file: Chromatograms" required="false" advanced="false" supported_formats="*.mzML" />
         <ITEM name="candidates_out" value="" type="output-file" description="Output file: Feature candidates (before filtering and model fitting)" required="false" advanced="false" supported_formats="*.featureXML" />
         <ITEM name="candidates_in" value="" type="input-file" description="Input file: Feature candidates from a previous run. If set, only feature classification and elution model fitting are carried out, if enabled. Many parameters are ignored." required="false" advanced="true" supported_formats="*.featureXML" />
-        <ITEM name="debug" value="0" type="int" description="Sets the debug level" required="false" advanced="true" restrictions="0:" />
+        <ITEM name="debug" value="0" type="int" description="Sets the debug level" required="false" advanced="true" />
         <ITEM name="quantify_decoys" value="false" type="bool" description="Whether decoy peptides should be quantified (true) or skipped (false)." required="false" advanced="false" />
         <ITEM name="min_psm_cutoff" value="none" type="string" description="Minimum score for the best PSM of a spectrum to be used as seed. Use &apos;none&apos; for no cutoff." required="false" advanced="false" />
         <ITEM name="add_mass_offset_peptides" value="0.0" type="double" description="If for every peptide (or seed) also an offset peptide is extracted (true). Can be used to downstream to determine MBR false transfer rates. (0.0 = disabled)" required="false" advanced="false" restrictions="0.0:" />
@@ -500,26 +498,26 @@ p, li { white-space: pre-wrap; }
       </NODE>
     </NODE>
     <NODE name="15" description="">
-      <ITEM name="recycle_output" value="false" type="string" description="" required="false" advanced="false" />
       <ITEM name="toppas_type" value="merger" type="string" description="" required="false" advanced="false" />
-      <ITEM name="x_pos" value="520.0" type="double" description="" required="false" advanced="false" />
+      <ITEM name="x_pos" value="380.0" type="double" description="" required="false" advanced="false" />
       <ITEM name="y_pos" value="-180.0" type="double" description="" required="false" advanced="false" />
+      <ITEM name="recycle_output" value="false" type="string" description="" required="false" advanced="false" />
       <ITEM name="round_based" value="false" type="string" description="" required="false" advanced="false" />
     </NODE>
     <NODE name="16" description="">
-      <ITEM name="recycle_output" value="false" type="string" description="" required="false" advanced="false" />
       <ITEM name="toppas_type" value="merger" type="string" description="" required="false" advanced="false" />
-      <ITEM name="x_pos" value="520.0" type="double" description="" required="false" advanced="false" />
+      <ITEM name="x_pos" value="420.0" type="double" description="" required="false" advanced="false" />
       <ITEM name="y_pos" value="20.0" type="double" description="" required="false" advanced="false" />
+      <ITEM name="recycle_output" value="false" type="string" description="" required="false" advanced="false" />
       <ITEM name="round_based" value="false" type="string" description="" required="false" advanced="false" />
     </NODE>
     <NODE name="17" description="">
-      <ITEM name="recycle_output" value="false" type="string" description="" required="false" advanced="false" />
       <ITEM name="toppas_type" value="tool" type="string" description="" required="false" advanced="false" />
+      <ITEM name="x_pos" value="520.0" type="double" description="" required="false" advanced="false" />
+      <ITEM name="y_pos" value="-180.0" type="double" description="" required="false" advanced="false" />
+      <ITEM name="recycle_output" value="false" type="string" description="" required="false" advanced="false" />
       <ITEM name="tool_name" value="MapAlignerIdentification" type="string" description="" required="false" advanced="false" />
       <ITEM name="tool_type" value="" type="string" description="" required="false" advanced="false" />
-      <ITEM name="x_pos" value="660.0" type="double" description="" required="false" advanced="false" />
-      <ITEM name="y_pos" value="-40.0" type="double" description="" required="false" advanced="false" />
       <NODE name="parameters" description="">
         <ITEMLIST name="in" type="input-file" description="Input files to align (all must have the same file type)" required="true" advanced="false" supported_formats="*.featureXML,*.consensusXML,*.idXML,*.oms">
         </ITEMLIST>
@@ -581,12 +579,12 @@ p, li { white-space: pre-wrap; }
       </NODE>
     </NODE>
     <NODE name="18" description="">
-      <ITEM name="recycle_output" value="false" type="string" description="" required="false" advanced="false" />
       <ITEM name="toppas_type" value="tool" type="string" description="" required="false" advanced="false" />
+      <ITEM name="x_pos" value="700.0" type="double" description="" required="false" advanced="false" />
+      <ITEM name="y_pos" value="-180.0" type="double" description="" required="false" advanced="false" />
+      <ITEM name="recycle_output" value="false" type="string" description="" required="false" advanced="false" />
       <ITEM name="tool_name" value="FeatureLinkerUnlabeledQT" type="string" description="" required="false" advanced="false" />
       <ITEM name="tool_type" value="" type="string" description="" required="false" advanced="false" />
-      <ITEM name="x_pos" value="840.0" type="double" description="" required="false" advanced="false" />
-      <ITEM name="y_pos" value="-240.0" type="double" description="" required="false" advanced="false" />
       <NODE name="parameters" description="">
         <ITEMLIST name="in" type="input-file" description="input files separated by blanks" required="true" advanced="false" supported_formats="*.featureXML,*.consensusXML">
         </ITEMLIST>
@@ -627,12 +625,12 @@ p, li { white-space: pre-wrap; }
       </NODE>
     </NODE>
     <NODE name="19" description="">
-      <ITEM name="recycle_output" value="false" type="string" description="" required="false" advanced="false" />
       <ITEM name="toppas_type" value="tool" type="string" description="" required="false" advanced="false" />
+      <ITEM name="x_pos" value="700.0" type="double" description="" required="false" advanced="false" />
+      <ITEM name="y_pos" value="20.0" type="double" description="" required="false" advanced="false" />
+      <ITEM name="recycle_output" value="false" type="string" description="" required="false" advanced="false" />
       <ITEM name="tool_name" value="ConsensusMapNormalizer" type="string" description="" required="false" advanced="false" />
       <ITEM name="tool_type" value="" type="string" description="" required="false" advanced="false" />
-      <ITEM name="x_pos" value="840.0" type="double" description="" required="false" advanced="false" />
-      <ITEM name="y_pos" value="-40.0" type="double" description="" required="false" advanced="false" />
       <NODE name="parameters" description="">
         <ITEM name="in" value="" type="input-file" description="input file" required="true" advanced="false" supported_formats="*.consensusXML" />
         <ITEM name="out" value="" type="output-file" description="output file" required="true" advanced="false" supported_formats="*.consensusXML" />
@@ -649,19 +647,19 @@ p, li { white-space: pre-wrap; }
       </NODE>
     </NODE>
     <NODE name="20" description="">
-      <ITEM name="recycle_output" value="false" type="string" description="" required="false" advanced="false" />
       <ITEM name="toppas_type" value="output file list" type="string" description="" required="false" advanced="false" />
-      <ITEM name="x_pos" value="840.0" type="double" description="" required="false" advanced="false" />
+      <ITEM name="x_pos" value="700.0" type="double" description="" required="false" advanced="false" />
       <ITEM name="y_pos" value="200.0" type="double" description="" required="false" advanced="false" />
+      <ITEM name="recycle_output" value="false" type="string" description="" required="false" advanced="false" />
       <ITEM name="output_folder_name" value="incm" type="string" description="" required="false" advanced="false" />
     </NODE>
     <NODE name="21" description="">
-      <ITEM name="recycle_output" value="false" type="string" description="" required="false" advanced="false" />
       <ITEM name="toppas_type" value="tool" type="string" description="" required="false" advanced="false" />
+      <ITEM name="x_pos" value="520.0" type="double" description="" required="false" advanced="false" />
+      <ITEM name="y_pos" value="220.0" type="double" description="" required="false" advanced="false" />
+      <ITEM name="recycle_output" value="false" type="string" description="" required="false" advanced="false" />
       <ITEM name="tool_name" value="QualityControl" type="string" description="" required="false" advanced="false" />
       <ITEM name="tool_type" value="" type="string" description="" required="false" advanced="false" />
-      <ITEM name="x_pos" value="660.0" type="double" description="" required="false" advanced="false" />
-      <ITEM name="y_pos" value="220.0" type="double" description="" required="false" advanced="false" />
       <NODE name="parameters" description="">
         <ITEM name="in_cm" value="" type="input-file" description="ConsensusXML input, generated by FeatureLinker." required="true" advanced="false" supported_formats="*.consensusXML" />
         <ITEMLIST name="in_raw" type="input-file" description="MzML input (after InternalCalibration, if available)" required="false" advanced="false" supported_formats="*.mzML">
@@ -676,8 +674,6 @@ p, li { white-space: pre-wrap; }
         <ITEM name="in_fasta" value="" type="input-file" description="FASTA file used during MS/MS identification (including decoys). If the protein description contains &apos;GN=...&apos; then gene names will be extracted" required="false" advanced="false" supported_formats="*.fasta" />
         <ITEMLIST name="in_trafo" type="input-file" description="trafoXMLs from MapAligners" required="false" advanced="false" supported_formats="*.trafoXML">
         </ITEMLIST>
-        <ITEM name="out_evd" value="" type="string" description="If a Path is given, a MQEvidence txt-file will be created in this directory. If the directory does not exist, it will be created as well." required="false" advanced="false" />
-        <ITEM name="out_msms" value="" type="string" description="If a Path is given, a MQMsms txt-file will be created in this directory. If the directory does not exist, it will be created as well." required="false" advanced="false" />
         <ITEM name="log" value="" type="string" description="Name of log file (created only when specified)" required="false" advanced="true" />
         <ITEM name="debug" value="0" type="int" description="Sets the debug level" required="false" advanced="true" />
         <ITEM name="threads" value="1" type="int" description="Sets the number of threads allowed to be used by the TOPP tool" required="false" advanced="false" />
@@ -691,21 +687,40 @@ p, li { white-space: pre-wrap; }
         <NODE name="MS2_id_rate" description="MS2 ID Rate settings">
           <ITEM name="assume_all_target" value="false" type="bool" description="Forces the metric to run even if target/decoy annotation is missing (accepts all pep_ids as target hits)." required="false" advanced="false" />
         </NODE>
+        <NODE name="out_txt" description="Write MaxQuant-compatible .txt files">
+          <ITEM name="directory" value="" type="string" description="If a Path is given, &apos;.txt&apos; files compatible with MaxQuant will be created in this directory. If the directory does not exist, it will be created." required="false" advanced="false" tags="output dir" />
+          <ITEM name="omit_mq_evidence" value="false" type="bool" description="Do NOT write the evidence.txt into &apos;out_txt_dir&apos;?" required="false" advanced="false" />
+          <ITEM name="omit_mq_msms" value="false" type="bool" description="Do NOT write the msms.txt into &apos;out_txt_dir&apos;?" required="false" advanced="false" />
+        </NODE>
       </NODE>
     </NODE>
     <NODE name="22" description="">
-      <ITEM name="recycle_output" value="false" type="string" description="" required="false" advanced="false" />
       <ITEM name="toppas_type" value="output file list" type="string" description="" required="false" advanced="false" />
-      <ITEM name="x_pos" value="840.0" type="double" description="" required="false" advanced="false" />
-      <ITEM name="y_pos" value="360.0" type="double" description="" required="false" advanced="false" />
+      <ITEM name="x_pos" value="520.0" type="double" description="" required="false" advanced="false" />
+      <ITEM name="y_pos" value="340.0" type="double" description="" required="false" advanced="false" />
+      <ITEM name="recycle_output" value="false" type="string" description="" required="false" advanced="false" />
       <ITEM name="output_folder_name" value="outmztab" type="string" description="" required="false" advanced="false" />
     </NODE>
     <NODE name="23" description="">
-      <ITEM name="recycle_output" value="false" type="string" description="" required="false" advanced="false" />
       <ITEM name="toppas_type" value="output file list" type="string" description="" required="false" advanced="false" />
-      <ITEM name="x_pos" value="660.0" type="double" description="" required="false" advanced="false" />
-      <ITEM name="y_pos" value="360.0" type="double" description="" required="false" advanced="false" />
+      <ITEM name="x_pos" value="320.0" type="double" description="" required="false" advanced="false" />
+      <ITEM name="y_pos" value="340.0" type="double" description="" required="false" advanced="false" />
+      <ITEM name="recycle_output" value="false" type="string" description="" required="false" advanced="false" />
       <ITEM name="output_folder_name" value="outcm" type="string" description="" required="false" advanced="false" />
+    </NODE>
+    <NODE name="24" description="">
+      <ITEM name="toppas_type" value="output folder" type="string" description="" required="false" advanced="false" />
+      <ITEM name="x_pos" value="760.0" type="double" description="" required="false" advanced="false" />
+      <ITEM name="y_pos" value="340.0" type="double" description="" required="false" advanced="false" />
+      <ITEM name="recycle_output" value="false" type="string" description="" required="false" advanced="false" />
+      <ITEM name="output_folder_name" value="" type="string" description="" required="false" advanced="false" />
+    </NODE>
+    <NODE name="25" description="">
+      <ITEM name="toppas_type" value="output file list" type="string" description="" required="false" advanced="false" />
+      <ITEM name="x_pos" value="-200.0" type="double" description="" required="false" advanced="false" />
+      <ITEM name="y_pos" value="160.0" type="double" description="" required="false" advanced="false" />
+      <ITEM name="recycle_output" value="false" type="string" description="" required="false" advanced="false" />
+      <ITEM name="output_folder_name" value="" type="string" description="" required="false" advanced="false" />
     </NODE>
   </NODE>
   <NODE name="edges" description="">
@@ -1037,6 +1052,28 @@ p, li { white-space: pre-wrap; }
       </NODE>
       <NODE name="target_in_param" description="">
         <ITEM name="" value="in_fasta" type="string" description="" required="false" advanced="false" />
+      </NODE>
+    </NODE>
+    <NODE name="30" description="">
+      <NODE name="source/target" description="">
+        <ITEM name="" value="21/24" type="string" description="" required="false" advanced="false" />
+      </NODE>
+      <NODE name="source_out_param" description="">
+        <ITEM name="" value="out_txt:directory" type="string" description="" required="false" advanced="false" />
+      </NODE>
+      <NODE name="target_in_param" description="">
+        <ITEM name="" value="__no_name__" type="string" description="" required="false" advanced="false" />
+      </NODE>
+    </NODE>
+    <NODE name="31" description="">
+      <NODE name="source/target" description="">
+        <ITEM name="" value="5/25" type="string" description="" required="false" advanced="false" />
+      </NODE>
+      <NODE name="source_out_param" description="">
+        <ITEM name="" value="out" type="string" description="" required="false" advanced="false" />
+      </NODE>
+      <NODE name="target_in_param" description="">
+        <ITEM name="" value="__no_name__" type="string" description="" required="false" advanced="false" />
       </NODE>
     </NODE>
   </NODE>

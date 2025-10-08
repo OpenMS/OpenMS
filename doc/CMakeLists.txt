@@ -1,36 +1,11 @@
-# --------------------------------------------------------------------------
-#                   OpenMS -- Open-Source Mass Spectrometry
-# --------------------------------------------------------------------------
-# Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2023.
-#
-# This software is released under a three-clause BSD license:
-#  * Redistributions of source code must retain the above copyright
-#    notice, this list of conditions and the following disclaimer.
-#  * Redistributions in binary form must reproduce the above copyright
-#    notice, this list of conditions and the following disclaimer in the
-#    documentation and/or other materials provided with the distribution.
-#  * Neither the name of any author or any participating institution
-#    may be used to endorse or promote products derived from this software
-#    without specific prior written permission.
-# For a full list of authors, refer to the file AUTHORS.
-# --------------------------------------------------------------------------
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-# ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-# INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-# EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-# PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-# OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-# WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-# OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-# ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#
+# Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+# SPDX-License-Identifier: BSD-3-Clause
+# 
 # --------------------------------------------------------------------------
 # $Maintainer: Stephan Aiche, Chris Bielow $
 # $Authors: Andreas Bertsch, Chris Bielow, Stephan Aiche $
 # --------------------------------------------------------------------------
+
 
 project("OpenMS_doc")
 cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
@@ -122,7 +97,7 @@ if(ENABLE_DOCS)
     set(DOXYGEN_MIN_REQUIRED "1.8.13")
 
     if (DOXYGEN_VERSION VERSION_LESS DOXYGEN_MIN_REQUIRED )
-      message(STATUS "Warning: Doxygen ( vers. installed = ${DOXYGEN_VERSION} < ${DOXYGEN_MIN_REQUIRED}) does not correctly process \\includedoc commands in developer's installation instructions. This will make them incomplete. Upgrade Doxygen to fix.")
+      message(STATUS "Warning: Doxygen ( vers. installed = ${DOXYGEN_VERSION} < ${DOXYGEN_MIN_REQUIRED}) does not correctly process \\include commands in developer's installation instructions. This will make them incomplete. Upgrade Doxygen to fix.")
     endif()
     
     ## if not found, use empty string to avoid `warning: the dot tool could not be found as 'DOXYGEN_DOT_EXECUTABLE-NOTFOUND/dot.exe'` in doxygen-error.log
@@ -227,6 +202,14 @@ if(ENABLE_DOCS)
     endif()
 
     add_dependencies(doc_param_internal doc_progs)
+
+    if(NOT WITH_PARQUET)
+      add_custom_command(TARGET doc_param_internal POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E echo "Creating placeholder documentation for tools disabled due to missing dependencies..."
+      COMMAND ${CMAKE_COMMAND} -E echo "<html><body><h2>Tool not available</h2><p>QuantmsIOConverter requires Parquet support which was disabled during compilation (WITH_PARQUET=OFF).</p></body></html>" > ${CMAKE_CURRENT_BINARY_DIR}/doxygen/parameters/output/TOPP_QuantmsIOConverter.html
+      COMMENT "Generate placeholder HTML for disabled tools"
+      VERBATIM)
+    endif()
 
     #------------------------------------------------------------------------------
     # doc(_html) generation code reused in two independent targets

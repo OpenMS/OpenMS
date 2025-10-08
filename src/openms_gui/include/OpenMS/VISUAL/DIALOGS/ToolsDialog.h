@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -67,6 +67,9 @@ public:
     String getInput();
     /// to get the currently selected tool-name
     String getTool();
+    /// get the default extension for the output file
+    String getExtension();
+
 
 private:
     /// ParamEditor for reading ini-files

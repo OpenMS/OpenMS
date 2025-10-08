@@ -66,7 +66,7 @@ function parseDirectoryListing(stringOfHtml) {
 
     docs = docs.map((x) => '<a class="verslink" href="'
         + urlrootdir
-        + '/release/' + x + '/' + patharr[patharr.length - 1] + '">'
+        + '/release/' + x + '/html/' + patharr[patharr.length - 1] + '">'
         + x
         + '</a>');
         
@@ -76,7 +76,7 @@ function parseDirectoryListing(stringOfHtml) {
     // TODO Style nightly differently to make sure users see it?
     docs.unshift('<a class="verslink" href="'
         + urlrootdir
-        + '/nightly/' + patharr[patharr.length - 1] + '">'
+        + '/nightly/' + 'html/' + patharr[patharr.length - 1] + '">'
         + 'nightly'
         + '</a>');
         

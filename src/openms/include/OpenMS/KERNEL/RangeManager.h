@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -123,15 +123,25 @@ public:
     if (min_ > max) min_ = max;
   }
 
-  /// only useful if isEmpty() returns false
+  /// Get the minimum value of the range
+  /// @throws Exception::InvalidRange if the range is empty
   double getMin() const
   {
+    if (isEmpty())
+    {
+      throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Empty or uninitalized range object. Did you forget to call updateRanges()?");
+    }
     return min_;
   }
 
-  /// only useful if isEmpty() returns false
+  /// Get the maximum value of the range
+  /// @throws Exception::InvalidRange if the range is empty
   double getMax() const
   {
+    if (isEmpty())
+    {
+      throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Empty or uninitialized range object. Did you forget to call updateRanges()?");
+    }
     return max_;
   }
   ///@}
@@ -288,6 +298,7 @@ struct OPENMS_DLLAPI RangeRT : public RangeBase
 
   // Rule of 0!
   using RangeBase::RangeBase; // inherit C'tors from base
+  using RangeBase::operator=; // inherit assignment operator from base
 
   /** @name Accessors for min and max
 
@@ -307,16 +318,18 @@ struct OPENMS_DLLAPI RangeRT : public RangeBase
     setMax(max);
   }
 
-  /// only useful if isEmpty() returns false
+  /// Get the minimum RT value of the range
+  /// @throws Exception::InvalidRange if the range is empty
   double getMinRT() const
   {
-    return min_;
+    return getMin();
   }
 
-  /// only useful if isEmpty() returns false
+  /// Get the maximum RT value of the range
+  /// @throws Exception::InvalidRange if the range is empty
   double getMaxRT() const
   {
-    return max_;
+    return getMax();
   }
   ///@}
 
@@ -348,6 +361,7 @@ struct OPENMS_DLLAPI RangeMZ : public RangeBase
 
   // Rule of 0!
   using RangeBase::RangeBase; // inherit C'tors from base
+  using RangeBase::operator=; // inherit assignment operator
 
   /** @name Accessors for min and max
 
@@ -367,16 +381,18 @@ struct OPENMS_DLLAPI RangeMZ : public RangeBase
     setMax(max);
   }
 
-  /// only useful if isEmpty() returns false
+  /// Get the minimum MZ value of the range
+  /// @throws Exception::InvalidRange if the range is empty
   double getMinMZ() const
   {
-    return min_;
+    return getMin();
   }
 
-  /// only useful if isEmpty() returns false
+  /// Get the maximum MZ value of the range
+  /// @throws Exception::InvalidRange if the range is empty
   double getMaxMZ() const
   {
-    return max_;
+    return getMax();
   }
   ///@}
 
@@ -407,6 +423,7 @@ struct OPENMS_DLLAPI RangeIntensity : public RangeBase
 
   // Rule of 0!
   using RangeBase::RangeBase; // inherit C'tors from base
+  using RangeBase::operator=; // inherit assignment operator
 
   /** @name Accessors for min and max
 
@@ -426,16 +443,18 @@ struct OPENMS_DLLAPI RangeIntensity : public RangeBase
     setMax(max);
   }
 
-  /// only useful if isEmpty() returns false
+  /// Get the minimum intensity value of the range
+  /// @throws Exception::InvalidRange if the range is empty
   double getMinIntensity() const
   {
-    return min_;
+    return getMin();
   }
 
-  /// only useful if isEmpty() returns false
+  /// Get the maximum intensity value of the range
+  /// @throws Exception::InvalidRange if the range is empty
   double getMaxIntensity() const
   {
-    return max_;
+    return getMax();
   }
   ///@}
 
@@ -465,6 +484,7 @@ struct OPENMS_DLLAPI RangeMobility : public RangeBase
 
   // Rule of 0!
   using RangeBase::RangeBase; // inherit C'tors from base
+  using RangeBase::operator=; // inherit assignment operator
 
   /** @name Accessors for min and max
 
@@ -484,16 +504,18 @@ struct OPENMS_DLLAPI RangeMobility : public RangeBase
     setMax(max);
   }
 
-  /// only useful if isEmpty() returns false
+  /// Get the minimum mobility value of the range
+  /// @throws Exception::InvalidRange if the range is empty
   double getMinMobility() const
   {
-    return min_;
+    return getMin();
   }
 
-  /// only useful if isEmpty() returns false
+  /// Get the maximum mobility value of the range
+  /// @throws Exception::InvalidRange if the range is empty
   double getMaxMobility() const
   {
-    return max_;
+    return getMax();
   }
   ///@}
 
@@ -796,7 +818,7 @@ public:
     for_each_base_([&](auto* base) { base->clear(); });
   }
 
-  /// Resets the dimension of the given @p range. Any type of ion mobility in @p range will clear the RTMobility dimension.
+  /// Resets the dimension of the given @p range. Any type of ion mobility in @p range will clear the Mobility dimension.
   /// If the @p range is not contained in this class, then nothing happens.
   ThisRangeType& clear(const DIM_UNIT range)
   {

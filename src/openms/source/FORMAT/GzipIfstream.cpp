@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -44,7 +44,9 @@ namespace OpenMS
       if (n_buffer_ < 0)
       {
         close();
-        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "gzip file seems to be corrupted");
+        const char* err_string = gzerror(gzfile_, &gzerror_);
+        std::string error_message = err_string ? err_string : "unknown error (code: " + std::to_string(gzerror_) + ")";
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "error reading from gzip file", error_message);
       }
       return n_buffer_;
     }
@@ -61,6 +63,7 @@ namespace OpenMS
       close();
     }
     gzfile_ = gzopen(filename, "rb"); // read binary: always open in binary mode because windows and mac open in text mode
+    gzbuffer(gzfile_, 524288);        // set buffer size to 512kb to improve read performance (about 7% for mzML files incl. parsing)
 
     //aborting, ahhh!
     if (gzfile_ == nullptr)

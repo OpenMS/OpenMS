@@ -62,10 +62,13 @@ cdef extern from "<OpenMS/METADATA/SpectrumMetaDataLookup.h>" namespace "OpenMS:
     void getSpectrumMetaData(MSSpectrum spectrum,
                              SpectrumMetaData& meta) except + nogil  # wrap-attach:SpectrumMetaDataLookup
 
-    bool addMissingRTsToPeptideIDs(libcpp_vector[PeptideIdentification], 
-                                   String filename, bool stop_on_error) except + nogil  # wrap-attach:SpectrumMetaDataLookup
+    bool addMissingRTsToPeptideIDs(PeptideIdentificationList, 
+								  MSExperiment exp) except + nogil  # wrap-attach:SpectrumMetaDataLookup
 
-    bool addMissingSpectrumReferences(libcpp_vector[PeptideIdentification], 
+    bool addMissingIMToPeptideIDs(PeptideIdentificationList, 
+								  MSExperiment exp) except + nogil  # wrap-attach:SpectrumMetaDataLookup
+
+    bool addMissingSpectrumReferences(PeptideIdentificationList, 
                                    String filename, bool stop_on_error, 
                                    bool override_spectra_data, 
                                    bool override_spectra_references,

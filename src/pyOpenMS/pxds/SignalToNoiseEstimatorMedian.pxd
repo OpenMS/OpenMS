@@ -6,7 +6,7 @@ from Peak1D cimport *
 from ChromatogramPeak cimport *
 from MSChromatogram cimport *
 
-cdef extern from "<OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>" namespace "OpenMS":
 
     cdef cppclass SignalToNoiseEstimatorMedian[SpectrumT]:
         # wrap-instances:
@@ -26,7 +26,7 @@ cdef extern from "<OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedian
         # see addons/SignalToNoiseEstimatorMedianChrom.pyx for the implementation
         void init(MSChromatogram & spectrum) except + nogil  #wrap-ignore
 
-cdef extern from "<OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>" namespace "OpenMS::SignalToNoiseEstimatorMedian":
+cdef extern from "<OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>" namespace "OpenMS::SignalToNoiseEstimatorMedian":
 
     cdef enum IntensityThresholdCalculation "OpenMS::SignalToNoiseEstimatorMedianChrom::IntensityThresholdCalculation":
         # wrap-attach:

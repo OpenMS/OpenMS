@@ -3,7 +3,6 @@ from String cimport *
 from Peak1D cimport *
 from InstrumentSettings cimport *
 from SourceFile cimport *
-from PeptideIdentification cimport *
 from Precursor cimport *
 from DataProcessing cimport *
 from Product cimport *
@@ -41,9 +40,6 @@ cdef extern from "<OpenMS/METADATA/SpectrumSettings.h>" namespace "OpenMS":
 
         libcpp_vector[Product] getProducts() except + nogil  # wrap-doc:Returns a const reference to the products
         void setProducts(libcpp_vector[Product]) except + nogil  # wrap-doc:Sets the products
-
-        libcpp_vector[PeptideIdentification] getPeptideIdentifications() except + nogil  # wrap-doc:Returns a const reference to the PeptideIdentification vector
-        void setPeptideIdentifications(libcpp_vector[PeptideIdentification]) except + nogil  # wrap-doc:Sets the PeptideIdentification vector
 
         libcpp_vector[ shared_ptr[DataProcessing] ] getDataProcessing() except + nogil 
         void setDataProcessing(libcpp_vector[ shared_ptr[DataProcessing] ]) except + nogil 

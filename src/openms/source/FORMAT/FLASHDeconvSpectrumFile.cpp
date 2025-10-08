@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -544,8 +544,6 @@ namespace OpenMS
        << "FILE_NAME=" << filename << "\n"
        << "SPECTRUM_ID=" << dspec.getScanNumber() - 1 << "\n"
        << "TITLE=" << (dspec.isDecoy()? "DScan_" : "Scan_") << dspec.getScanNumber() << "\n"
-       //<< "NATIVE_ID=" << dspec.getOriginalSpectrum().getNativeID() << "\n"
-       //<< "FRACTION_ID=" << 0 << "\n"
        << "SCANS=" << dspec.getScanNumber() << "\n"
        << "RETENTION_TIME=" << dspec.getOriginalSpectrum().getRT() << "\n"
        << "LEVEL=" << dspec.getOriginalSpectrum().getMSLevel() << "\n";

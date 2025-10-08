@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 // 
 // --------------------------------------------------------------------------
@@ -10,14 +10,14 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
-#include <OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>
+#include <OpenMS/PROCESSING/CALIBRATION/InternalCalibration.h>
 ///////////////////////////
 
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/SYSTEM/File.h>
 
 using namespace OpenMS;
@@ -61,7 +61,7 @@ START_SECTION(Size fillCalibrants(const PeakMap exp, const std::vector<InternalC
 
 END_SECTION
 
-std::vector<PeptideIdentification> peps;
+PeptideIdentificationList peps;
 std::vector<ProteinIdentification> prots;
 IdXMLFile().load(File::find("./examples/BSA/BSA1_OMSSA.idXML"), prots, peps);
 
@@ -78,7 +78,7 @@ START_SECTION(Size fillCalibrants(const FeatureMap& fm, double tol_ppm))
 
 END_SECTION
 
-START_SECTION(Size fillCalibrants(const std::vector<PeptideIdentification>& pep_ids, double tol_ppm))
+START_SECTION(Size fillCalibrants(const PeptideIdentificationList& pep_ids, double tol_ppm))
   InternalCalibration ic;
   Size cal_count = ic.fillCalibrants(peps, 100.0);
   TEST_EQUAL(cal_count, 44);

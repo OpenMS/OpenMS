@@ -23,7 +23,6 @@ ModifiedNASequenceGenerator.cpp
 ModifiedPeptideGenerator.cpp
 NASequence.cpp
 NucleicAcidSpectrumGenerator.cpp
-		ProForma.cpp
 ProteaseDB.cpp
 ProteaseDigestion.cpp
 Residue.cpp

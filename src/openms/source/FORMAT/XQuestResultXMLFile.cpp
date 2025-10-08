@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -9,7 +9,7 @@
 #include <OpenMS/FORMAT/XQuestResultXMLFile.h>
 #include <OpenMS/FORMAT/HANDLERS/XQuestResultXMLHandler.h>
 #include <OpenMS/FORMAT/Base64.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/MATH/MathFunctions.h>
 #include <fstream>
 #include <OpenMS/ANALYSIS/XLMS/OPXLHelper.h>
 
@@ -23,7 +23,7 @@ namespace OpenMS
   XQuestResultXMLFile::~XQuestResultXMLFile() = default;
 
   void XQuestResultXMLFile::load(const String & filename,
-                                 std::vector < PeptideIdentification > & pep_ids,
+                                 PeptideIdentificationList & pep_ids,
                                  std::vector< ProteinIdentification > & prot_ids
                                 )
   {
@@ -62,7 +62,7 @@ namespace OpenMS
     return this->max_score_;
   }
 
-  void XQuestResultXMLFile::store(const String& filename, const std::vector<ProteinIdentification>& poid, const std::vector<PeptideIdentification>& peid) const
+  void XQuestResultXMLFile::store(const String& filename, const std::vector<ProteinIdentification>& poid, const PeptideIdentificationList& peid) const
   {
     if (!FileHandler::hasValidExtension(filename, FileTypes::XQUESTXML))
     {
