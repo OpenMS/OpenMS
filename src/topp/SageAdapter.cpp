@@ -444,7 +444,7 @@ protected:
     registerStringOption_("precursor_tol_unit", "<unit>", "ppm", "Unit of precursor tolerance (ppm or Da)", false, false);
     setValidStrings_("precursor_tol_unit", ListUtils::create<String>("ppm,Da"));
 
-    registerDoubleOption_("fragment_tol_left", "<double>", -20.0, "Start (left side) of the fragment tolerance window w.r.t. fragment location. This value is SUBTRACTED from the experimental fragment mass to define the lower bound of the search window. Usually negative (e.g., -20 ppm means 20 ppm below the observed mass). Using positive values here is likely incorrect.", false, false);
+    registerDoubleOption_("fragment_tol_left", "<double>", -20.0, "Start (left side) of the fragment tolerance window w.r.t. fragment location. This value reduces the experimental fragment mass to define the lower bound of the search window. Must be negative (e.g., -20 ppm means 20 ppm below the observed mass).", false, false);
     registerDoubleOption_("fragment_tol_right", "<double>", 20.0, "End (right side) of the fragment tolerance window w.r.t. fragment location. This value is ADDED to the experimental fragment mass to define the upper bound of the search window. Usually positive (e.g., 20 ppm means 20 ppm above the observed mass). Using negative values here is likely incorrect.", false, false);
     registerStringOption_("fragment_tol_unit", "<unit>", "ppm", "Unit of fragment tolerance (ppm or Da)", false, false);
     setValidStrings_("fragment_tol_unit", ListUtils::create<String>("ppm,Da"));
