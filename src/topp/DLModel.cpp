@@ -1,9 +1,12 @@
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <iostream>
 #include <fstream>
 #include <sstream>
 #include <vector>
 #include <string>
 #include <onnxruntime_cxx_api.h>
+
+using namespace OpenMS;
 
 class DLModel
 {
@@ -117,16 +120,40 @@ public:
   }
 };
 
-// ========== Main entry ==========
-int main(int argc, char* argv[])
+class TOPPDLModel : public TOPPBase
 {
-  if (argc != 4)
+public:
+  TOPPDLModel() :
+    TOPPBase("DLModel", "Deep learning model inference using ONNX runtime")
   {
-    std::cerr << "Usage: " << argv[0]
-              << " <model.onnx> <input.csv> <output.csv>\n";
-    return 1;
   }
 
-  DLModel model;
-  return model.run(argv[1], argv[2], argv[3]);
+protected:
+  void registerOptionsAndFlags_() override
+  {
+    registerInputFile_("model", "<file>", "", "ONNX model file");
+    setValidFormats_("model", {"onnx"}, false);
+    registerInputFile_("in", "<file>", "", "Input CSV file");
+    setValidFormats_("in", {"csv"});
+    registerOutputFile_("out", "<file>", "", "Output CSV file");
+    setValidFormats_("out", {"csv"});
+  }
+
+  ExitCodes main_(int, const char**) override
+  {
+    String model_path = getStringOption_("model");
+    String input_path = getStringOption_("in");
+    String output_path = getStringOption_("out");
+
+    DLModel model;
+    int result = model.run(model_path, input_path, output_path);
+    
+    return result == 0 ? EXECUTION_OK : INTERNAL_ERROR;
+  }
+};
+
+int main(int argc, const char** argv)
+{
+  TOPPDLModel tool;
+  return tool.main(argc, argv);
 }
