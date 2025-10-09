@@ -18,7 +18,8 @@ public:
     Ort::Env env(ORT_LOGGING_LEVEL_WARNING, "DLModel");
     Ort::SessionOptions session_options;
     session_options.SetIntraOpNumThreads(1);
-    Ort::Session session(env, model_path.c_str(), session_options);
+    std::basic_string<ORTCHAR_T> model_path_converted(model_path.begin(), model_path.end());
+    Ort::Session session(env, model_path_converted.c_str(), session_options);
 
     // ========= 1. Parse CSV =========
     std::ifstream file(csv_path);
