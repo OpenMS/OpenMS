@@ -946,7 +946,7 @@ namespace OpenMS
       peptide_id.setHits(phs);
       peptide_id.setScoreType(Constants::UserParam::OPENPEPXL_SCORE);
 
-// This critical section is called this way, because access to all_top_csms also happens in OpenPepXLAlgorithm and OpenPepXLLFAlgorithm.
+// This critical section is called this way, because access to all_top_csms also happens in OpenPepXLAlgorithm.
 // Access to peptide_ids is also critical, but it is only accessed here during parallel processing.
 #pragma omp critical (all_top_csms_access)
       {
