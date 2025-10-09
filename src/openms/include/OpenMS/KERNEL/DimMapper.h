@@ -658,7 +658,7 @@ namespace OpenMS
       @ingroup Visual
   */
   template<int N_DIM>
-  class DimMapper
+  class OPENMS_DLLAPI DimMapper
   {
   public:
     using Point = DPosition<N_DIM, DimBase::ValueType>;
@@ -841,7 +841,7 @@ namespace OpenMS
   /// The data is stored in two members, one axis-related (X and Y; unit does not matter), and one unit-related (units; no mapping to axis)
   /// You can set either, and the other will be updated accordingly as long as you provide a DimMapper which translates between the two representations.
   template <int N_DIM>
-  class Area
+  class OPENMS_DLLAPI Area
   {
   public:
     /// The Area in X,Y,(Z)... dimension (number of dimensions depends on N_DIM)

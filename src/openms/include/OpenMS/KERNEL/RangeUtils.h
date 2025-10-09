@@ -67,7 +67,7 @@ namespace OpenMS
     @ingroup RangeUtils
   */
   template <class MetaContainer>
-  class HasMetaValue
+  class OPENMS_DLLAPI HasMetaValue
   {
 public:
     /**
@@ -102,7 +102,7 @@ protected:
     @ingroup RangeUtils
   */
   template <class SpectrumType>
-  class InRTRange
+  class OPENMS_DLLAPI InRTRange
   {
 public:
     /**
@@ -139,7 +139,7 @@ protected:
     @ingroup RangeUtils
   */
   template <class SpectrumType>
-  class InMSLevelRange
+  class OPENMS_DLLAPI InMSLevelRange
   {
 public:
     /**
@@ -174,7 +174,7 @@ protected:
     @ingroup RangeUtils
   */
   template <class SpectrumType>
-  class HasScanMode
+  class OPENMS_DLLAPI HasScanMode
   {
 public:
     /**
@@ -208,7 +208,7 @@ protected:
     @ingroup RangeUtils
   */
   template <class SpectrumType>
-  class HasScanPolarity
+  class OPENMS_DLLAPI HasScanPolarity
   {
 public:
     /**
@@ -243,7 +243,7 @@ protected:
     @ingroup RangeUtils
   */
   template <class SpectrumType>
-  class IsEmptySpectrum
+  class OPENMS_DLLAPI IsEmptySpectrum
   {
 public:
     /**
@@ -273,7 +273,7 @@ protected:
     @ingroup RangeUtils
   */
   template <class SpectrumType>
-  class IsZoomSpectrum
+  class OPENMS_DLLAPI IsZoomSpectrum
   {
 public:
     /**
@@ -306,7 +306,7 @@ protected:
     @ingroup RangeUtils
   */
   template <class SpectrumType>
-  class HasActivationMethod
+  class OPENMS_DLLAPI HasActivationMethod
   {
 public:
     /**
@@ -354,7 +354,7 @@ protected:
     @ingroup RangeUtils
   */
   template <class SpectrumType>
-  class InPrecursorMZRange
+  class OPENMS_DLLAPI InPrecursorMZRange
   {
 public:
     /**
@@ -402,7 +402,7 @@ protected:
     @ingroup RangeUtils
   */
   template <class SpectrumType>
-  class HasPrecursorCharge
+  class OPENMS_DLLAPI HasPrecursorCharge
   {
 public:
     /**
@@ -446,7 +446,7 @@ protected:
     @ingroup RangeUtils
   */
   template <class PeakType>
-  class InMzRange
+  class OPENMS_DLLAPI InMzRange
   {
 public:
     /**
@@ -483,7 +483,7 @@ protected:
     @ingroup RangeUtils
   */
   template <class PeakType>
-  class InIntensityRange
+  class OPENMS_DLLAPI InIntensityRange
   {
 public:
     /**
@@ -519,7 +519,7 @@ protected:
     @ingroup RangeUtils
   */
   template <class SpectrumType>
-  class IsInCollisionEnergyRange
+  class OPENMS_DLLAPI IsInCollisionEnergyRange
   {
 public:
     /**
@@ -571,7 +571,7 @@ private:
     @ingroup RangeUtils
   */
   template <class SpectrumType>
-  class IsInIsolationWindowSizeRange
+  class OPENMS_DLLAPI IsInIsolationWindowSizeRange
   {
 
 public:
@@ -616,7 +616,7 @@ private:
     @ingroup RangeUtils
   */
   template <class SpectrumType>
-  class IsInIsolationWindow
+  class OPENMS_DLLAPI IsInIsolationWindow
   {
 
 public:

@@ -26,7 +26,7 @@ namespace OpenMS
 
     @ingroup Kernel
   */
-  class ChromatogramTools
+  class OPENMS_DLLAPI ChromatogramTools
   {
 public:
     /// @name Constructors and destructors

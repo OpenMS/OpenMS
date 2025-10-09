@@ -38,7 +38,7 @@ namespace OpenMS
 
   */
   template <typename ChromatogramType, typename TransitionType>
-  class MRMTransitionGroup
+  class OPENMS_DLLAPI MRMTransitionGroup
   {
 
 public:

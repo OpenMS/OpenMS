@@ -564,7 +564,7 @@ enum class HasRangeType
 
 */
 template<typename... RangeBases>
-class RangeManager : public RangeBases...
+class OPENMS_DLLAPI RangeManager : public RangeBases...
 {
 public:
   using ThisRangeType = RangeManager<RangeBases...>;
@@ -885,7 +885,7 @@ std::ostream& operator<<(std::ostream& out, const RangeManager<Range...>& me)
 /// use this class as a base class for containers, e.g. MSSpectrum. It forces them to implement 'updateRanges()' as a common interface
 /// and provides a 'getRange()' member which saves casting to a range type manually
 template<typename... RangeBases>
-class RangeManagerContainer : public RangeManager<RangeBases...>
+class OPENMS_DLLAPI RangeManagerContainer : public RangeManager<RangeBases...>
 {
 public:
   using ThisRangeType = typename RangeManager<RangeBases...>::ThisRangeType;

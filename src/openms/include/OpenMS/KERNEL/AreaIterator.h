@@ -32,7 +32,7 @@ namespace OpenMS
         @note This iterator iterates over spectra with same MS level as the MS level of the begin() spectrum in Param! You can explicitly set another MS level as well.
     */
     template<class ValueT, class ReferenceT, class PointerT, class SpectrumIteratorT, class PeakIteratorT>
-    class AreaIterator
+    class OPENMS_NO_EXPORT AreaIterator
     {
     public:
       typedef double CoordinateType;
