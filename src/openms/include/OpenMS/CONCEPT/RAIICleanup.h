@@ -19,7 +19,7 @@ namespace OpenMS
              
   */
 
-  class RAIICleanup
+  class OPENMS_DLLAPI RAIICleanup
   {
   public:
     /// no default CTor; we need a lambda

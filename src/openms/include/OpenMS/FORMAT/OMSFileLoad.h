@@ -31,7 +31,7 @@ namespace OpenMS
 
       This class encapsulates the SQLite database stored in a .oms file and allows to load data from it.
     */
-    class OMSFileLoad: public ProgressLogger
+    class OPENMS_NO_EXPORT OMSFileLoad: public ProgressLogger
     {
     public:
       using Key = OMSFileStore::Key; ///< Type used for database keys

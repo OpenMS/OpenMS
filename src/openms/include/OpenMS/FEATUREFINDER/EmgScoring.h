@@ -31,7 +31,7 @@ namespace OpenMS
     construct an interface that allows scoring of chromatographic peaks.
 
   */
-  class EmgScoring
+  class OPENMS_DLLAPI EmgScoring
   {
 
   public :

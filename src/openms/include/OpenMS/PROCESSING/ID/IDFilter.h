@@ -409,7 +409,7 @@ namespace OpenMS
 
     */
 
-    class PeptideDigestionFilter
+    class OPENMS_DLLAPI PeptideDigestionFilter
     {
     private:
       EnzymaticDigestion& digestion_;

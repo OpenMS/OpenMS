@@ -428,7 +428,7 @@ namespace OpenMS
   };
 
   // friend class to test private member functions
-  class DBSuitability_friend
+  class OPENMS_NO_EXPORT DBSuitability_friend
   {
   public:
     DBSuitability_friend() = default;

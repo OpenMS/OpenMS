@@ -413,7 +413,7 @@ private:
     bool compute_additional_points_;
   };
 
-  class EmgGradientDescent_friend
+  class OPENMS_NO_EXPORT EmgGradientDescent_friend
   {
 public:
     EmgGradientDescent_friend() = default;

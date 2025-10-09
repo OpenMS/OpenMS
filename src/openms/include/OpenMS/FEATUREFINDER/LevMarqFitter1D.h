@@ -34,7 +34,7 @@ namespace OpenMS
 
     /** Generic functor for LM-Optimization */
     // TODO: This is copy and paste from TraceFitter.h. Make a generic wrapper for LM optimization
-    class GenericFunctor
+    class OPENMS_NO_EXPORT GenericFunctor
     {
     public:
       int inputs() const

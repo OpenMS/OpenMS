@@ -37,7 +37,7 @@ namespace OpenMS
  * The RandomAccessContainer returned by .getData() must support operator[], at(), and size().
  */
   template<typename T>
-  class UniqueIdIndexer
+  class OPENMS_DLLAPI UniqueIdIndexer
   {
 public:
     typedef std::unordered_map<UInt64, Size> UniqueIdMap;

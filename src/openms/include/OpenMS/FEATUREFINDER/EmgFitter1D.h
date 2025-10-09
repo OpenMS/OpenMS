@@ -49,7 +49,7 @@ protected:
       RawDataArrayType set;
     };
 
-    class EgmFitterFunctor :
+    class OPENMS_NO_EXPORT EgmFitterFunctor :
       public LevMarqFitter1D::GenericFunctor
     {
 public:

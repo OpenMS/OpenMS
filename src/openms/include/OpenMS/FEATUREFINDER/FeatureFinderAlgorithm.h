@@ -45,7 +45,7 @@ namespace OpenMS
       @brief Abstract base class for FeatureFinder algorithms
 
   */
-  class FeatureFinderAlgorithm :
+  class OPENMS_DLLAPI FeatureFinderAlgorithm :
     public DefaultParamHandler,
     public ProgressLogger
   {

@@ -40,7 +40,7 @@ namespace OpenMS
 public:
     /** Generic functor for LM-Optimization */
     //TODO: This is copy and paste from LevMarqFitter1d.h. Make a generic wrapper for LM optimization
-    class GenericFunctor
+    class OPENMS_NO_EXPORT GenericFunctor
     {
 public:
       int inputs() const;

@@ -30,7 +30,7 @@ namespace OpenMS
   {
 public:
     /** Functor for LM Optimization */
-    class EGHTraceFunctor :
+    class OPENMS_NO_EXPORT EGHTraceFunctor :
       public TraceFitter::GenericFunctor
     {
 public:

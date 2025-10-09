@@ -54,7 +54,7 @@ protected:
         (d_rt/rt_max_ + d_mz/mz_max_) / 2
 
     */
-    class SpectraDistance_ :
+    class OPENMS_NO_EXPORT SpectraDistance_ :
       public DefaultParamHandler
     {
 public:

@@ -55,7 +55,7 @@ namespace OpenMS
 
       This class encapsulates the SQLite database in a .oms file and allows to write data to it.
     */
-    class OMSFileStore: public ProgressLogger
+    class OPENMS_NO_EXPORT OMSFileStore: public ProgressLogger
     {
     public:
        ///< Type used for database keys

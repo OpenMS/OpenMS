@@ -105,7 +105,7 @@ namespace OpenMS
         return sumIntensity_(intensities) / intensities.size();
       }
 
-      class TriqlerLine_
+      class OPENMS_NO_EXPORT TriqlerLine_
       {
       public :
         TriqlerLine_(

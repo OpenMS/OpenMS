@@ -70,7 +70,7 @@ protected:
 
     void getOptimizedParameters_(const Eigen::VectorXd& s) override;
 
-    class GaussTraceFunctor :
+    class OPENMS_NO_EXPORT GaussTraceFunctor :
       public TraceFitter::GenericFunctor
     {
 public:

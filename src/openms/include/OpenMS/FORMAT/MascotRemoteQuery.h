@@ -27,7 +27,7 @@ namespace OpenMS
       @htmlinclude OpenMS_MascotRemoteQuery.parameters
 
   */
-  class MascotRemoteQuery :
+  class OPENMS_DLLAPI MascotRemoteQuery :
     public QObject,
     public DefaultParamHandler
   {

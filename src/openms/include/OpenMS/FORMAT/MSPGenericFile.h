@@ -115,7 +115,7 @@ public:
     String synonyms_separator_;
   };
 
-  class MSPGenericFile_friend
+  class OPENMS_NO_EXPORT MSPGenericFile_friend
   {
 public:
     MSPGenericFile_friend() = default;

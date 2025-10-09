@@ -18,7 +18,7 @@ namespace OpenMS
     @brief Abstract base class for 1-dimensional models.
 
   */
-  class BaseModel : public DefaultParamHandler
+  class OPENMS_DLLAPI BaseModel : public DefaultParamHandler
   {
   public:
     typedef double IntensityType;

@@ -124,7 +124,7 @@ namespace OpenMS
         return sumIntensity_(intensities) / intensities.size();
       }
 
-      class MSstatsLine_
+      class OPENMS_NO_EXPORT MSstatsLine_
       {
       public :
         MSstatsLine_(
@@ -193,7 +193,7 @@ namespace OpenMS
         String fraction_;
       };
 
-      class MSstatsTMTLine_
+      class OPENMS_NO_EXPORT MSstatsTMTLine_
       {
       public :
         MSstatsTMTLine_(
