@@ -440,7 +440,7 @@ protected:
     registerIntOption_("batch_size", "<int>", 0, "Number of files to load and search in parallel. Setting this to 0 (default) uses an automatic value (typically number of CPUs/2). Default: 0", false, false);
     
     registerDoubleOption_("precursor_tol_left", "<double>", -6.0, "Start (left side) of the precursor tolerance window w.r.t. precursor location. This value is relative to the experimental precursor mass and used to define the lower bound of the search window. Must be negative (e.g., -6 ppm means 6 ppm below the observed mass).", false, false);
-    registerDoubleOption_("precursor_tol_right", "<double>", 6.0, "End (right side) of the precursor tolerance window w.r.t. precursor location. This value is ADDED to the experimental precursor mass to define the upper bound of the search window. Usually positive (e.g., 6 ppm means 6 ppm above the observed mass). Using negative values here is likely incorrect.", false, false);
+    registerDoubleOption_("precursor_tol_right", "<double>", 6.0, "End (right side) of the precursor tolerance window w.r.t. precursor location. This value is added to the experimental precursor mass to define the upper bound of the search window. Must be positive (e.g., 6 ppm means 6 ppm above the observed mass).", false, false);
     registerStringOption_("precursor_tol_unit", "<unit>", "ppm", "Unit of precursor tolerance (ppm or Da)", false, false);
     setValidStrings_("precursor_tol_unit", ListUtils::create<String>("ppm,Da"));
 
