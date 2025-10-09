@@ -515,7 +515,7 @@ protected:
     if (precursor_tol_left > 0)
     {
       OPENMS_LOG_WARN << "WARNING: precursor_tol_left is positive (" << precursor_tol_left << "). "
-                      << "This parameter is SUBTRACTED from the experimental mass, so it should typically be negative. "
+                      << "This parameter is used to reduce the experimental mass, so it should typically be negative. "
                       << "A positive value will likely produce an incorrect search window." << std::endl;
     }
     if (precursor_tol_right < 0)
