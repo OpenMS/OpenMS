@@ -150,20 +150,15 @@ protected:
 
     registerStringOption_("instrument", "<choice>", "high_res", "Comets theoretical_fragment_ions parameter: theoretical fragment ion peak representation, high-res: sum of intensities plus flanking bins, ion trap (low-res) ms/ms: sum of intensities of central M bin only", false);
     setValidStrings_("instrument", ListUtils::create<String>("low_res,high_res"));
-    registerStringOption_("use_A_ions", "<num>", "false", "use A ions for PSM", false, true);
-    setValidStrings_("use_A_ions", ListUtils::create<String>("true,false"));
-    registerStringOption_("use_B_ions", "<num>", "true", "use B ions for PSM", false, true);
-    setValidStrings_("use_B_ions", ListUtils::create<String>("true,false"));
-    registerStringOption_("use_C_ions", "<num>", "false", "use C ions for PSM", false, true);
-    setValidStrings_("use_C_ions", ListUtils::create<String>("true,false"));
-    registerStringOption_("use_X_ions", "<num>", "false", "use X ions for PSM", false, true);
-    setValidStrings_("use_X_ions", ListUtils::create<String>("true,false"));
-    registerStringOption_("use_Y_ions", "<num>", "true", "use Y ions for PSM", false, true);
-    setValidStrings_("use_Y_ions", ListUtils::create<String>("true,false"));
-    registerStringOption_("use_Z_ions", "<num>", "false", "use Z ions for PSM", false, true);
-    setValidStrings_("use_Z_ions", ListUtils::create<String>("true,false"));
-    registerStringOption_("use_NL_ions", "<num>", "false", "use neutral loss (NH3, H2O) ions from b/y for PSM", false, true);
-    setValidStrings_("use_NL_ions", ListUtils::create<String>("true,false"));
+    
+    // Ion type parameters - convert to flags where default is false, negated flags where default is true
+    registerFlag_("use_A_ions", "Use A ions for PSM scoring", false);
+    registerFlag_("disable_B_ions", "Do not use B ions for PSM scoring (B ions are used by default)", false);
+    registerFlag_("use_C_ions", "Use C ions for PSM scoring", false);
+    registerFlag_("use_X_ions", "Use X ions for PSM scoring", false);
+    registerFlag_("disable_Y_ions", "Do not use Y ions for PSM scoring (Y ions are used by default)", false);
+    registerFlag_("use_Z_ions", "Use Z ions for PSM scoring", false);
+    registerFlag_("use_NL_ions", "Use neutral loss (NH3, H2O) ions from b/y for PSM scoring", false);
 
     //Search Enzyme
     vector<String> all_enzymes;
@@ -475,13 +470,14 @@ protected:
     os << "fragment_bin_tol = " << bin_tol << "\n";               // binning to use on fragment ions
     os << "fragment_bin_offset = " << bin_offset  << "\n";              // offset position to start the binning (0.0 to 1.0)
     os << "theoretical_fragment_ions = " << (int)(instrument == "low_res") << "\n";           // 0=use flanking bins as well; 1=use M bin only
-    os << "use_A_ions = " << (int)(getStringOption_("use_A_ions")=="true") << "\n";
-    os << "use_B_ions = " << (int)(getStringOption_("use_B_ions")=="true") << "\n";
-    os << "use_C_ions = " << (int)(getStringOption_("use_C_ions")=="true") << "\n";
-    os << "use_X_ions = " << (int)(getStringOption_("use_X_ions")=="true") << "\n";
-    os << "use_Y_ions = " << (int)(getStringOption_("use_Y_ions")=="true") << "\n";
-    os << "use_Z_ions = " << (int)(getStringOption_("use_Z_ions")=="true") << "\n";
-    os << "use_NL_ions = " << (int)(getStringOption_("use_NL_ions")=="true") << "\n";                         // 0=no, 1=yes to consider NH3/H2O neutral loss peaks
+    // Handle ion type parameters with new flags
+    os << "use_A_ions = " << (int)(getFlag_("use_A_ions")) << "\n";
+    os << "use_B_ions = " << (int)(!getFlag_("disable_B_ions")) << "\n";  // Default is true, negated by disable flag
+    os << "use_C_ions = " << (int)(getFlag_("use_C_ions")) << "\n";
+    os << "use_X_ions = " << (int)(getFlag_("use_X_ions")) << "\n";
+    os << "use_Y_ions = " << (int)(!getFlag_("disable_Y_ions")) << "\n";  // Default is true, negated by disable flag
+    os << "use_Z_ions = " << (int)(getFlag_("use_Z_ions")) << "\n";
+    os << "use_NL_ions = " << (int)(getFlag_("use_NL_ions")) << "\n";                         // 0=no, 1=yes to consider NH3/H2O neutral loss peaks
 
     // output
     os << "output_sqtstream = " << 0 << "\n";                    // 0=no, 1=yes  write sqt to standard output

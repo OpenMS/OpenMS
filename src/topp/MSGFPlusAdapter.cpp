@@ -179,7 +179,8 @@ protected:
     registerIntOption_("min_peaks", "<num>", 10, "Minimum number of ions a spectrum must have to be examined", false); 
     setMinInt_("min_peaks", 10); 
 
-    registerStringOption_("add_features", "<true/false>", "true", "Output additional features (MS-GF+ parameter '-addFeatures'). This is required by Percolator and hence by default enabled.", false, false);
+    registerFlag_("no_add_features", "Do not output additional features (MS-GF+ parameter '-addFeatures'). Note: Additional features are required by Percolator and are enabled by default.", false);
+    registerStringOption_("add_features", "<true/false>", "true", "(DEPRECATED: Use -no_add_features flag instead) Output additional features (MS-GF+ parameter '-addFeatures'). This is required by Percolator and hence by default enabled.", false, true);
     setValidStrings_("add_features", ListUtils::create<String>("true,false"));
     
     registerIntOption_("max_mods", "<num>", 2, "Maximum number of modifications per peptide. If this value is large, the search may take very long.", false);
@@ -585,7 +586,7 @@ protected:
                    << "-maxCharge" << QString::number(max_precursor_charge)
                    << "-maxMissedCleavages" << QString::number(getIntOption_("max_missed_cleavages"))
                    << "-n" << QString::number(getIntOption_("matches_per_spec"))
-                   << "-addFeatures" << QString::number(int((getParam_().getValue("add_features") == "true")))
+                   << "-addFeatures" << QString::number(int(!getFlag_("no_add_features")))  // Default is true, negated by no_add_features flag
                    << "-tasks" << QString::number(getIntOption_("tasks"))
                    << "-thread" << QString::number(getIntOption_("threads"));
     String conf = getStringOption_("conf");
