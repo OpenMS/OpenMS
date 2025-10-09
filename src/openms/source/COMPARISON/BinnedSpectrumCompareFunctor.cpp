@@ -33,4 +33,9 @@ namespace OpenMS
     return *this;
   }
 
+  void BinnedSpectrumCompareFunctor::updateMembers_()
+  {
+    // BinnedSpectrumCompareFunctor has no member variables that need to be synchronized with param_
+  }
+
 }

@@ -81,6 +81,7 @@ public:
     void store(const String & filename, const AnnotatedMSRun & exp) const;
 
 protected:
+    void updateMembers_() override;
 
     /// reads the header information and stores it as metainfo in the spectrum
     void parseHeader_(const String & header, PeakSpectrum & spec);

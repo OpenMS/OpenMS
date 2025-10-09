@@ -48,7 +48,8 @@ public:
     */
     virtual void run(const ConsensusMap& map_model, const ConsensusMap& map_scene, TransformationDescription& transformation) = 0;
 
-
+protected:
+    void updateMembers_() override;
 
 private:
 

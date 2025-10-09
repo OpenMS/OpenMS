@@ -19,4 +19,9 @@ namespace OpenMS
 
   BaseSuperimposer::~BaseSuperimposer() = default;
 
+  void BaseSuperimposer::updateMembers_()
+  {
+    // BaseSuperimposer has no member variables that need to be synchronized with param_
+  }
+
 }

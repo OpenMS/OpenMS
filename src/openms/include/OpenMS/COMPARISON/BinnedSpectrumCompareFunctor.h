@@ -52,6 +52,8 @@ public:
     /// function call operator, calculates self similarity
     virtual double operator()(const BinnedSpectrum& spec) const = 0;
 
+  protected:
+    void updateMembers_() override;
   };
 
 }

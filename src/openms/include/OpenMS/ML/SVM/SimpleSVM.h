@@ -133,6 +133,8 @@ namespace OpenMS
     const ScaleMap& getScaling() const;
 
   protected:
+    void updateMembers_() override;
+
     // Forward declaration of implementation class
     class Impl;
     

@@ -37,4 +37,9 @@ namespace OpenMS
     return *this;
   }
 
+  void PeakSpectrumCompareFunctor::updateMembers_()
+  {
+    // PeakSpectrumCompareFunctor has no member variables that need to be synchronized with param_
+  }
+
 }

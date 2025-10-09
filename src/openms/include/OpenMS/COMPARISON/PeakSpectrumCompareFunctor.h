@@ -47,6 +47,8 @@ public:
     /// calculates self similarity
     virtual double operator()(const PeakSpectrum & a) const = 0;
 
+  protected:
+    void updateMembers_() override;
   };
 
 }
