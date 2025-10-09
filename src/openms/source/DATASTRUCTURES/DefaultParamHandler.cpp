@@ -92,10 +92,7 @@ namespace OpenMS
     updateMembers_();
   }
 
-  void DefaultParamHandler::updateMembers_()
-  {
 
-  }
 
   const Param& DefaultParamHandler::getParameters() const
   {

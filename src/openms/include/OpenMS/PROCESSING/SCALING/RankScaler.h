@@ -71,9 +71,10 @@ public:
 
     void filterPeakMap(PeakMap & exp);
 
-    //TODO reimplement DefaultParamHandler::updateMembers_() when introducing member variables
-
     // @}
+
+  protected:
+    void updateMembers_() override;
 
   };
 

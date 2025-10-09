@@ -187,7 +187,8 @@ public:
       return;
     }
 
-    //TODO reimplement DefaultParamHandler::updateMembers_()
+protected:
+    void updateMembers_() override;
 
 private:
     double windowsize_;

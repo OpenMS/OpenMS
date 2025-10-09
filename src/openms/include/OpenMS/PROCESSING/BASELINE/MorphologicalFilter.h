@@ -313,6 +313,11 @@ namespace OpenMS
     }
 
   protected:
+    void updateMembers_() override
+    {
+      // MorphologicalFilter parameters are read directly from param_ in the filtering methods
+    }
+
     /// Member for struct size in data points
     UInt struct_size_in_datapoints_;
 

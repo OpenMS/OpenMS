@@ -43,4 +43,9 @@ namespace OpenMS
     }
   }
 
+  void SqrtScaler::updateMembers_()
+  {
+    // SqrtScaler has no member variables that need to be synchronized with param_
+  }
+
 }

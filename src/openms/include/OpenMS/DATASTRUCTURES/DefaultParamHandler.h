@@ -124,9 +124,9 @@ namespace OpenMS
 
         Also call it at the end of the derived classes' copy constructor and assignment operator.
 
-        The default implementation is empty.
+        All derived classes must implement this method.
     */
-    virtual void updateMembers_();
+    virtual void updateMembers_() = 0;
 
     /**
        @brief Updates the parameters after the defaults have been set in the constructor

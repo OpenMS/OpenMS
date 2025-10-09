@@ -42,4 +42,9 @@ namespace OpenMS
     }
   }
 
+  void RankScaler::updateMembers_()
+  {
+    // RankScaler has no member variables that need to be synchronized with param_
+  }
+
 }

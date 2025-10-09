@@ -373,4 +373,9 @@ namespace OpenMS
 
     output_file.close();
   }
+
+  void GNPSMGFFile::updateMembers_()
+  {
+    // GNPSMGFFile has no member variables that need to be synchronized with param_
+  }
 }

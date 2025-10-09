@@ -64,7 +64,8 @@ public:
 
     void filterPeakMap(PeakMap & exp);
 
-    //TODO reimplement DefaultParamHandler::updateMembers_()
+protected:
+    void updateMembers_() override;
 
 private:
     double threshold_;

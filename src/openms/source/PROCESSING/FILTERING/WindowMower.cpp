@@ -69,4 +69,10 @@ namespace OpenMS
     }
   }
 
+  void WindowMower::updateMembers_()
+  {
+    windowsize_ = static_cast<double>(param_.getValue("windowsize"));
+    peakcount_ = static_cast<UInt>(param_.getValue("peakcount"));
+  }
+
 }

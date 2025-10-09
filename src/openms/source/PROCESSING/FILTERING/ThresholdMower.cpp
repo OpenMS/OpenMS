@@ -45,4 +45,9 @@ namespace OpenMS
     for (auto& s : exp) filterSpectrum(s);
   }
 
+  void ThresholdMower::updateMembers_()
+  {
+    threshold_ = static_cast<double>(param_.getValue("threshold"));
+  }
+
 }

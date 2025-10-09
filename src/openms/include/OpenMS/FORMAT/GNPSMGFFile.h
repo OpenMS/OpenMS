@@ -31,6 +31,9 @@ namespace OpenMS
       */
       void store(const String& consensus_file_path, const StringList& mzml_file_paths, const String& out) const;
 
+    protected:
+      void updateMembers_() override;
+
     private:
       static constexpr double DEF_COSINE_SIMILARITY = 0.9;
       static constexpr double DEF_MERGE_BIN_SIZE = static_cast<double>(BinnedSpectrum::DEFAULT_BIN_WIDTH_HIRES);
