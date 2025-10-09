@@ -1290,7 +1290,8 @@ namespace OpenMS
       a_norm += a[j] * a[j];
 
       if (max_intensity < a[j]) { max_intensity = a[j]; }
-      else if (i >= (int)b.size() || i < 0 || b[i].getIntensity() <= 0) { continue; }
+
+      if (i >= (int)b.size() || i < 0 || b[i].getIntensity() <= 0) { continue; }
       else { n += a[j] * b[i].getIntensity(); }
     }
 
