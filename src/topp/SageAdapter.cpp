@@ -558,6 +558,7 @@ protected:
     String output_folder = File::path(output_file);
     String fasta_file = getStringOption_("database");
     int batch = getIntOption_("batch_size");
+    int threads = getIntOption_("threads");
     String decoy_prefix = getStringOption_("decoy_prefix");
 
     // create config
@@ -609,8 +610,14 @@ protected:
     //std::chrono lines for testing/writing purposes only! 
 
     std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+    
+    // Set RAYON_NUM_THREADS environment variable to control Sage's thread usage
+    std::map<QString, QString> sage_env;
+    sage_env["RAYON_NUM_THREADS"] = String(threads).toQString();
+    
     // Sage execution with the executable and the arguments StringList
-    exit_code = runExternalProcess_(sage_executable.toQString(), arguments);
+    exit_code = runExternalProcess_(sage_executable.toQString(), arguments, "", sage_env);
+    
     std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
     #ifdef CHRONOSET
     std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::seconds>(end - begin).count() << "[s]" << std::endl;
