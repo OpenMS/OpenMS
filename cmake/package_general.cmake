@@ -77,6 +77,30 @@ else()
   set(POST_EXCLUDE ".*/ld-linux-.*" ".*/linux-vdso.*" ".*/libm\\..*" ".*/libc\\..*" ".*/libpthread\\..*" ".*/libdl\\..*" ".*/libstdc\\+\\+\\..*" ".*/libgcc_s.*" ".*/libgomp\\..*" ".*/libQt6.*")
 endif()
 
+# Build list of directories to search for runtime dependencies
+set(RUNTIME_DEP_DIRECTORIES "$<TARGET_FILE_DIR:OpenMS>")
+
+# Add Arrow/Parquet DLL directory for Windows packaging when WITH_PARQUET is enabled
+# This ensures all Arrow/Parquet and transitive dependencies are found during packaging
+# Related to PR #8244 and fixes for missing abseil, aws-cpp-sdk, brotli, crc32c DLLs
+if(WITH_PARQUET AND WIN32)
+  if(TARGET Arrow::arrow_shared)
+    # Try to get the Arrow DLL directory
+    get_target_property(ARROW_IMPORTED_LOCATION Arrow::arrow_shared IMPORTED_LOCATION_RELEASE)
+    if(NOT ARROW_IMPORTED_LOCATION)
+      get_target_property(ARROW_IMPORTED_LOCATION Arrow::arrow_shared IMPORTED_LOCATION_DEBUG)
+    endif()
+    if(NOT ARROW_IMPORTED_LOCATION)
+      get_target_property(ARROW_IMPORTED_LOCATION Arrow::arrow_shared IMPORTED_LOCATION)
+    endif()
+    
+    if(ARROW_IMPORTED_LOCATION)
+      get_filename_component(ARROW_DLL_DIR "${ARROW_IMPORTED_LOCATION}" DIRECTORY)
+      list(APPEND RUNTIME_DEP_DIRECTORIES "${ARROW_DLL_DIR}")
+    endif()
+  endif()
+endif()
+
 # TODO check if we can reduce the permissions
 install(RUNTIME_DEPENDENCY_SET OPENMS_DEPS
         DESTINATION ${INSTALL_LIB_DIR}
@@ -87,7 +111,7 @@ install(RUNTIME_DEPENDENCY_SET OPENMS_DEPS
         COMPONENT Dependencies
         PRE_EXCLUDE_REGEXES ${PRE_EXCLUDE}
         POST_EXCLUDE_REGEXES ${POST_EXCLUDE}
-        DIRECTORIES $<TARGET_FILE_DIR:OpenMS>)
+        DIRECTORIES ${RUNTIME_DEP_DIRECTORIES})
 
 #install(RUNTIME_DEPENDENCY_SET TOPPView_DEPS) # I think without giving DESTINATION and COMPONENT it will be inferred
 #install(RUNTIME_DEPENDENCY_SET TOPPAS_DEPS)
