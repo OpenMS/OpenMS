@@ -94,7 +94,7 @@ class TOPPHiResPrecursorMassCorrector :
       registerStringOption_("feature:mz_tolerance_unit", "<choice>", "ppm", "Unit of precursor mass tolerance", false);
       setValidStrings_("feature:mz_tolerance_unit", ListUtils::create<String>("Da,ppm"));
       registerDoubleOption_("feature:rt_tolerance", "<num>", 0.0, "Additional retention time tolerance added to feature boundaries.", false);
-      registerIntOption_("feature:max_trace", "<num>", 2, "Maximum isotopic trace considered in matching a precursor to a feature.", false, true);
+      registerIntOption_("feature:max_trace", "<num>", 2, "Maximum isotopic peak offset from the monoisotopic peak to consider for correction. For example, with max_trace=2, the tool can reassign a precursor to the monoisotopic peak (M+0) even if it was originally assigned to M+1 or M+2 (corrections of approximately -1 or -2 Da). To allow larger corrections (e.g., -3 Da), increase this value accordingly.", false, true);
       registerFlag_("feature:believe_charge", "Assume precursor charge to be correct.");
       registerFlag_("feature:keep_original", "Make a copy of the precursor and MS2 (true) or discard the original (false).");
       registerFlag_("feature:assign_all_matching", "Correct a precursor using all matching features (true) or only the nearest (false). Only evaluated if copies are created (feature:keep_original).");

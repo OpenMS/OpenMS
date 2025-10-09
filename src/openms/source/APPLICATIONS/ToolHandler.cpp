@@ -134,7 +134,6 @@ namespace OpenMS
     tools_map["OpenMSInfo"] = Internal::ToolDescription("OpenMSInfo", cat_misc);
     tools_map["OpenNuXL"] = Internal::ToolDescription("OpenNuXL", cat_crosslinking);
     tools_map["OpenPepXL"] = Internal::ToolDescription("OpenPepXL", cat_crosslinking);
-    tools_map["OpenPepXLLF"] = Internal::ToolDescription("OpenPepXLLF", cat_crosslinking);
     tools_map["OpenSwathAnalyzer"] = Internal::ToolDescription("OpenSwathAnalyzer", cat_targeted);
     tools_map["OpenSwathAssayGenerator"] = Internal::ToolDescription("OpenSwathAssayGenerator", cat_targeted);
     tools_map["OpenSwathChromatogramExtractor"] = Internal::ToolDescription("OpenSwathChromatogramExtractor", cat_targeted);
@@ -202,9 +201,9 @@ namespace OpenMS
       "INIUpdater",
       "Resampler",
     };
-    std::for_each(GUI_tools.begin(), GUI_tools.end(), [&tools_map](const String& del) {
-      tools_map.erase(del);
-    });
+    for (const auto& tool : GUI_tools) {
+      tools_map.erase(tool);
+    }
 #endif
 
     // INTERNAL tools

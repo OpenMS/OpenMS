@@ -43,9 +43,9 @@ namespace OpenMS
 
   void Normalizer::filterPeakMap(PeakMap& exp) const
   {
-    for (PeakMap::Iterator it = exp.begin(); it != exp.end(); ++it)
+    for (auto& spectrum : exp)
     {
-      filterSpectrum(*it);
+      filterSpectrum(spectrum);
     }
   }
 

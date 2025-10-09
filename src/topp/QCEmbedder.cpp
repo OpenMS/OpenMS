@@ -165,7 +165,7 @@ protected:
     {
       QByteArray ba = f.readAll();
       f.close();
-      plot_b64 = String(QString(ba.toBase64()));
+      plot_b64 = String(ba.toBase64().toStdString());
     }
 
     QcMLFile::Attachment at;

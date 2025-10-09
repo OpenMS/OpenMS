@@ -19,23 +19,37 @@ namespace OpenMS
   {
     std::set<double> CVs;
 
-    // is this FAIMS data?
-    if ((exp.getSpectra().empty()) ||
-        (exp.getSpectra()[0].getDriftTimeUnit() != DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE))
+    if (exp.getSpectra().empty())
     {
       return CVs;
     }
-  
-    for (auto it = exp.begin(); it != exp.end(); ++it)
+
+    // Determine if this dataset actually contains FAIMS spectra (scan all; do not rely on the first spectrum)
+    const bool has_faims = std::any_of(exp.begin(), exp.end(), [](const MSSpectrum& s)
     {
-      CVs.insert(it->getDriftTime());
+      return s.getDriftTimeUnit() == DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE;
+    });
+
+    if (!has_faims)
+    {
+      return CVs;
     }
 
-    if (CVs.find(IMTypes::DRIFTTIME_NOT_SET) != CVs.end())
+    // Collect compensation voltages from spectra that actually carry FAIMS CVs
+    for (const auto& spec : exp)
+    {
+      if (spec.getDriftTimeUnit() == DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE)
+      {
+        CVs.insert(spec.getDriftTime());
+      }
+    }
+
+    // Remove placeholder/sentinel values while warning the user
+    if (CVs.erase(IMTypes::DRIFTTIME_NOT_SET) > 0)
     {
       OPENMS_LOG_WARN << "Warning: FAIMS compensation voltage is missing for at least one spectrum!" << std::endl;
     }
-  
+
     return CVs;
   }
 
