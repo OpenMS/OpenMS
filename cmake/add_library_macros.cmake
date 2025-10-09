@@ -278,6 +278,88 @@ function(openms_add_library)
               )
     endif()
 
+    # Additional DLL copying for Arrow/Parquet and transitive dependencies on MSVC
+    # Fixes missing DLLs: abseil_dll.dll, aws-cpp-sdk-core.dll, aws-cpp-sdk-s3.dll, 
+    # brotlidec.dll, brotlienc.dll, crc32c.dll, etc.
+    # Related to PR #8244 which simplified DLL copying for other dependencies
+    if(WITH_PARQUET AND MSVC)
+      # Get the directory where Arrow/Parquet DLLs are located
+      # Try to get the imported location from Arrow target
+      if(TARGET Arrow::arrow_shared)
+        get_target_property(ARROW_IMPORTED_LOCATION Arrow::arrow_shared IMPORTED_LOCATION_RELEASE)
+        if(NOT ARROW_IMPORTED_LOCATION)
+          get_target_property(ARROW_IMPORTED_LOCATION Arrow::arrow_shared IMPORTED_LOCATION_DEBUG)
+        endif()
+        if(NOT ARROW_IMPORTED_LOCATION)
+          get_target_property(ARROW_IMPORTED_LOCATION Arrow::arrow_shared IMPORTED_LOCATION)
+        endif()
+        
+        if(ARROW_IMPORTED_LOCATION)
+          get_filename_component(ARROW_DLL_DIR "${ARROW_IMPORTED_LOCATION}" DIRECTORY)
+          
+          # List of DLL patterns to copy for Arrow/Parquet and their dependencies
+          # Using patterns to be robust to version changes
+          set(PARQUET_DLL_PATTERNS
+            "arrow*.dll"
+            "parquet*.dll"
+            "abseil*.dll"
+            "aws-cpp-sdk-*.dll"
+            "brotli*.dll"
+            "crc32c*.dll"
+            "thrift*.dll"
+            "snappy*.dll"
+            "lz4*.dll"
+            "zstd*.dll"
+            "utf8proc*.dll"
+            "re2*.dll"
+          )
+          
+          # Collect all matching DLLs
+          set(PARQUET_DLLS_TO_COPY "")
+          foreach(pattern ${PARQUET_DLL_PATTERNS})
+            file(GLOB pattern_dlls "${ARROW_DLL_DIR}/${pattern}")
+            if(pattern_dlls)
+              list(APPEND PARQUET_DLLS_TO_COPY ${pattern_dlls})
+            endif()
+          endforeach()
+          
+          # Copy to output folder (where OpenMS dll is built)
+          if(PARQUET_DLLS_TO_COPY)
+            foreach(dll_file ${PARQUET_DLLS_TO_COPY})
+              add_custom_command(TARGET ${openms_add_library_TARGET_NAME} POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                  "${dll_file}"
+                  "$<TARGET_FILE_DIR:${openms_add_library_TARGET_NAME}>"
+                COMMENT "Copying Arrow/Parquet DLL: ${dll_file}"
+              )
+            endforeach()
+            
+            # Copy to test folder
+            foreach(dll_file ${PARQUET_DLLS_TO_COPY})
+              add_custom_command(TARGET ${openms_add_library_TARGET_NAME} POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                  "${dll_file}"
+                  "${DLL_TEST_TARGET_PATH}"
+                COMMENT "Copying Arrow/Parquet DLL to tests: ${dll_file}"
+              )
+            endforeach()
+            
+            # Copy to doc folder if docs are enabled
+            if(ENABLE_DOCS)
+              foreach(dll_file ${PARQUET_DLLS_TO_COPY})
+                add_custom_command(TARGET ${openms_add_library_TARGET_NAME} POST_BUILD
+                  COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                    "${dll_file}"
+                    "${DLL_DOC_TARGET_PATH}"
+                  COMMENT "Copying Arrow/Parquet DLL to docs: ${dll_file}"
+                )
+              endforeach()
+            endif()
+          endif()
+        endif()
+      endif()
+    endif()
+
     ## another fix for APPLE, see https://github.com/OpenMS/OpenMS/pull/7525
     if(APPLECLANG)
       if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "15.0.0")
