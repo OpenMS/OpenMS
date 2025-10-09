@@ -2027,7 +2027,7 @@ namespace OpenMS
     subsections_TOPP_[name] = description;
   }
 
-  bool TOPPBase::parseRange_(const String& text, double& low, double& high) const
+  bool TOPPBase::parseRange_(const String& text, double& low, double& high, const String& param_name) const
   {
     bool any_set = false;
     try
@@ -2046,16 +2046,32 @@ namespace OpenMS
         any_set = true;
       }
     }
+    catch (Exception::ElementNotFound&)
+    {
+      String error_msg = "Error parsing range";
+      if (!param_name.empty())
+      {
+        error_msg += " for parameter '" + param_name + "'";
+      }
+      error_msg += ": '" + text + "' is not a valid range. ";
+      error_msg += "Please use the format 'low:high' with ':' as delimiter (e.g., '600.0:5000.0').";
+      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, error_msg);
+    }
     catch (Exception::ConversionError&)
     {
-      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                       "Could not convert string '" + text +
-                                       "' to a range of floating point values");
+      String error_msg = "Error parsing range";
+      if (!param_name.empty())
+      {
+        error_msg += " for parameter '" + param_name + "'";
+      }
+      error_msg += ": Could not convert string '" + text + "' to a range of floating point values. ";
+      error_msg += "Please use the format 'low:high' with ':' as delimiter (e.g., '600.0:5000.0').";
+      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, error_msg);
     }
     return any_set;
   }
 
-  bool TOPPBase::parseRange_(const String& text, Int& low, Int& high) const
+  bool TOPPBase::parseRange_(const String& text, Int& low, Int& high, const String& param_name) const
   {
     bool any_set = false;
     try
@@ -2074,11 +2090,27 @@ namespace OpenMS
         any_set = true;
       }
     }
+    catch (Exception::ElementNotFound&)
+    {
+      String error_msg = "Error parsing range";
+      if (!param_name.empty())
+      {
+        error_msg += " for parameter '" + param_name + "'";
+      }
+      error_msg += ": '" + text + "' is not a valid range. ";
+      error_msg += "Please use the format 'low:high' with ':' as delimiter (e.g., '1:10').";
+      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, error_msg);
+    }
     catch (Exception::ConversionError&)
     {
-      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                       "Could not convert string '" + text +
-                                       "' to a range of integer values");
+      String error_msg = "Error parsing range";
+      if (!param_name.empty())
+      {
+        error_msg += " for parameter '" + param_name + "'";
+      }
+      error_msg += ": Could not convert string '" + text + "' to a range of integer values. ";
+      error_msg += "Please use the format 'low:high' with ':' as delimiter (e.g., '1:10').";
+      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, error_msg);
     }
     return any_set;
   }

@@ -161,6 +161,11 @@ class TOPPBaseTest
       return parseRange_(text, low, high);
     }
 
+    bool parseRange(const String& text, double& low, double& high, const String& param_name) const
+    {
+      return parseRange_(text, low, high, param_name);
+    }
+
     TOPPBase::ExitCodes runExternalProcess(const QString& executable, const QStringList& arguments, const QString& workdir) const
     {
       return runExternalProcess_(executable, arguments, workdir);
@@ -704,6 +709,22 @@ START_SECTION(([EXTRA]void parseRange_(const String& text, double& low, double& 
 	TEST_REAL_SIMILAR(a, 6.5);
 	TEST_REAL_SIMILAR(b, 7.5);
   TEST_EQUAL(result, true);
+
+	// Test error case with wrong delimiter (using '-' instead of ':')
+	s = "600.0-5000.0";
+	TEST_EXCEPTION(Exception::ConversionError, topp.parseRange(s, a, b));
+}
+END_SECTION
+
+START_SECTION(([EXTRA]void parseRange_(const String& text, double& low, double& high, const String& param_name) const))
+{
+	TOPPBaseTest topp;
+	double a = -1.0;
+	double b = -1.0;
+
+	// Test error case with wrong delimiter and parameter name
+	String s = "600.0-5000.0";
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::ConversionError, topp.parseRange(s, a, b, "digest_mass_range"), "digest_mass_range");
 }
 END_SECTION
 

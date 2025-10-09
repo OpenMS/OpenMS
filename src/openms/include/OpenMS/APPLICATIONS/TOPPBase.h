@@ -932,18 +932,28 @@ protected:
 
        The variables are only overwritten if a value is set for the respective boundary.
 
+       @param text The range string to parse
+       @param low The lower boundary (will be set if present in text)
+       @param high The upper boundary (will be set if present in text)
+       @param param_name Optional parameter name for better error messages
+
        @return True if a value was set for either of the two boundaries
     */
-    bool parseRange_(const String& text, double& low, double& high) const;
+    bool parseRange_(const String& text, double& low, double& high, const String& param_name = "") const;
 
     /**
        @brief Parses a range string ([a]:[b]) into two variables (integers)
 
        The variables are only overwritten if a value is set for the respective boundary.
 
+       @param text The range string to parse
+       @param low The lower boundary (will be set if present in text)
+       @param high The upper boundary (will be set if present in text)
+       @param param_name Optional parameter name for better error messages
+
        @return True if a value was set for either of the two boundaries
     */
-    bool parseRange_(const String& text, Int& low, Int& high) const;
+    bool parseRange_(const String& text, Int& low, Int& high, const String& param_name = "") const;
 
     ///Type of progress logging
     ProgressLogger::LogType log_type_;

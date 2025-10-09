@@ -504,7 +504,7 @@ protected:
     override_charge["keep known search unknown"] = 3;
 
     int precursor_charge_min(0), precursor_charge_max(0);
-    if (!parseRange_(getStringOption_("precursor_charge"), precursor_charge_min, precursor_charge_max))
+    if (!parseRange_(getStringOption_("precursor_charge"), precursor_charge_min, precursor_charge_max, "precursor_charge"))
     {
       OPENMS_LOG_INFO << "precursor_charge range not set. Defaulting to 0:0 (disable charge filtering)." << endl;
     }
@@ -517,7 +517,7 @@ protected:
 
     // misc parameters
     double digest_mass_range_min(600.0), digest_mass_range_max(5000.0);
-    if (!parseRange_(getStringOption_("digest_mass_range"), digest_mass_range_min, digest_mass_range_max))
+    if (!parseRange_(getStringOption_("digest_mass_range"), digest_mass_range_min, digest_mass_range_max, "digest_mass_range"))
     {
       OPENMS_LOG_INFO << "digest_mass_range not set. Defaulting to 600.0 5000.0." << endl;
     }
@@ -545,7 +545,7 @@ protected:
     remove_precursor_peak["phosphate_loss"] = 3;
 
     double clear_mz_range_min(0.0), clear_mz_range_max(0.0);
-    if (!parseRange_(getStringOption_("clear_mz_range"), clear_mz_range_min, clear_mz_range_max))
+    if (!parseRange_(getStringOption_("clear_mz_range"), clear_mz_range_min, clear_mz_range_max, "clear_mz_range"))
     {
       OPENMS_LOG_INFO << "clear_mz_range not set. Defaulting to 0:0 (disable m/z filter)." << endl;
     }
