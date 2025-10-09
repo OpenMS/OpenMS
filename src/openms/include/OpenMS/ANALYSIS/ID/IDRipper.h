@@ -151,6 +151,9 @@ public:
             bool numeric_filenames,
             bool split_ident_runs);
 
+protected:
+    void updateMembers_() override;
+
 private:
     // Not implemented
     /// Copy constructor

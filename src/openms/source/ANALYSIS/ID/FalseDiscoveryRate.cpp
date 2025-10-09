@@ -1896,4 +1896,9 @@ namespace OpenMS
     return {false, "?", true};
   }
 
+  void FalseDiscoveryRate::updateMembers_()
+  {
+    // FalseDiscoveryRate has no member variables that need to be synchronized with param_
+  }
+
 } // namespace OpenMS

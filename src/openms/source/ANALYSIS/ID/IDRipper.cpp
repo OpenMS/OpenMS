@@ -453,4 +453,9 @@ IDRipper::OriginAnnotationFormat IDRipper::detectOriginAnnotationFormat_(map<Str
     return -1;
   }
 
+  void IDRipper::updateMembers_()
+  {
+    // IDRipper has no member variables that need to be synchronized with param_
+  }
+
 } // namespace OpenMS

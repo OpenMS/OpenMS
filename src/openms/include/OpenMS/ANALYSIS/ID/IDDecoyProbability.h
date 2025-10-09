@@ -59,6 +59,7 @@ public:
     void apply(PeptideIdentificationList & ids);
 
 protected:
+    void updateMembers_() override;
 
     /** @brief struct to be used to store a transformation (used for fitting)
 

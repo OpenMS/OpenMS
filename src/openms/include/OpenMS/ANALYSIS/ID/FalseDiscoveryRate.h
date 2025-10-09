@@ -212,6 +212,10 @@ public:
        */
       static Result findDecoyString(const ProteinIdentification& proteins);
     };
+
+protected:
+    void updateMembers_() override;
+
 private:
 
     /// Not implemented

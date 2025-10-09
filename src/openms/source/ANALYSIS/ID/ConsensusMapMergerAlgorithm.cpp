@@ -406,4 +406,9 @@ namespace OpenMS
     }
     return ok;
   }
+
+  void ConsensusMapMergerAlgorithm::updateMembers_()
+  {
+    // ConsensusMapMergerAlgorithm has no member variables that need to be synchronized with param_
+  }
 } // namespace OpenMS

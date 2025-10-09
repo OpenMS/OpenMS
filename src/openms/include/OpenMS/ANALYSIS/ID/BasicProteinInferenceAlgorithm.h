@@ -77,6 +77,9 @@ namespace OpenMS
      */
     void run(ConsensusMap& cmap, ProteinIdentification& prot_id, bool include_unassigned) const;
 
+protected:
+    void updateMembers_() override;
+
   private:
 
     /**

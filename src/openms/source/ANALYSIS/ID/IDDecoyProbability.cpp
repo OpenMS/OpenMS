@@ -538,4 +538,9 @@ namespace OpenMS
     return;
   }
 
+  void IDDecoyProbability::updateMembers_()
+  {
+    // IDDecoyProbability has no member variables that need to be synchronized with param_
+  }
+
 } // namespace OpenMS

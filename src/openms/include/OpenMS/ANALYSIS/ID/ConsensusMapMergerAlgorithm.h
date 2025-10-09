@@ -64,6 +64,9 @@ namespace OpenMS
     void mergeProteinIDRuns(ConsensusMap &cmap,
                             const std::map<unsigned, unsigned>& mapIdx_to_new_protIDRun) const;
 
+protected:
+    void updateMembers_() override;
+
   private:
 
     /// Checks consistency of search engines and settings across runs before merging.

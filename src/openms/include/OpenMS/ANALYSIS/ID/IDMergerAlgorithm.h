@@ -58,6 +58,9 @@ namespace OpenMS
     void returnResultsAndClear(ProteinIdentification& prots,
                    PeptideIdentificationList& peps);
 
+protected:
+    void updateMembers_() override;
+
   private:
 
     /// Returns the new identifier. The initial identifier plus a timestamp.

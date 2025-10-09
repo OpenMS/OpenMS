@@ -400,4 +400,9 @@ namespace OpenMS
     }
     return ok;
   }
+
+  void IDMergerAlgorithm::updateMembers_()
+  {
+    // IDMergerAlgorithm has no member variables that need to be synchronized with param_
+  }
 } // namespace OpenMS
