@@ -33,6 +33,7 @@ on:
       - nightly
       - release/*
       - FVdeploy
+      - FDdevelop
   pull_request:
     branches:
       - develop
