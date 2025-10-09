@@ -67,7 +67,9 @@ endif()
 target_link_libraries(FileMerger Boost::regex)
 target_link_libraries(DecoyDatabase Boost::regex)
 target_link_libraries(NucleicAcidSearchEngine Boost::regex)
-target_link_libraries(DLModel onnxruntime::onnxruntime)
+if(ENABLE_ONNX)
+  target_link_libraries(DLModel onnxruntime::onnxruntime)
+endif()
 
 # collection target
 add_custom_target(TOPP)
