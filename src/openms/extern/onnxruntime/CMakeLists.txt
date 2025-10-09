@@ -89,4 +89,21 @@ target_include_directories(onnxruntime::onnxruntime
     SYSTEM INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/include"
 )
 
+
+# Install ONNX Runtime shared library
+if(WIN32)
+    # On Windows, DLLs go to bin directory
+    install(FILES "${ONNXRUNTIME_LIBRARY}"
+            DESTINATION ${INSTALL_BIN_DIR}
+            COMPONENT library)
+    # Also install the import library
+    install(FILES "${ONNXRUNTIME_LIB_DIR}/onnxruntime.lib"
+            DESTINATION ${INSTALL_LIB_DIR}
+            COMPONENT library)
+else()
+    # On Unix (Linux/macOS), shared libraries go to lib directory
+    install(FILES "${ONNXRUNTIME_LIBRARY}"
+            DESTINATION ${INSTALL_LIB_DIR}
+            COMPONENT library)
+endif()
 message(STATUS "Created imported target: onnxruntime::onnxruntime")
