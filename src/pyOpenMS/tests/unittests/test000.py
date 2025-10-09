@@ -4097,6 +4097,12 @@ def testMatrixDouble():
     assert m.getValue(1, 2) == 8.0
     assert m.getValue(3, 6) == 9.0
 
+    # Create a test matrix with known values
+    test_matrix = pyopenms.MatrixDouble(3, 4, 0.0)
+    test_matrix.setValue(2, 3, 120.7)
+
+    # Test getValue retrieves correct values
+    assert test_matrix.getValue(2, 3) == 120.7
 
 @report
 def testMapAlignmentIdentification():
