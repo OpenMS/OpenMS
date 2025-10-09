@@ -131,13 +131,10 @@ protected:
 
     addEmptyLine_();
     registerTOPPSubsection_("feature", "Additional options for featureXML input");
-    registerStringOption_("feature:use_centroid_rt", "<choice>", "false", "Use the RT coordinates of the feature centroids for matching, instead of the RT ranges of the features/mass traces.", false);
-    setValidStrings_("feature:use_centroid_rt", ListUtils::create<String>("true,false"));
-    registerStringOption_("feature:use_centroid_mz", "<choice>", "true",
-                          "Use the m/z coordinates of the feature centroids for matching, instead of the m/z ranges of the features/mass traces.\n(If you choose 'peptide' as 'mz_reference', you "
-                          "should usually set this flag to avoid false-positive matches.)",
-                          false);
-    setValidStrings_("feature:use_centroid_mz", ListUtils::create<String>("true,false"));
+    registerFlag_("feature:use_centroid_rt", "Use the RT coordinates of the feature centroids for matching, instead of the RT ranges of the features/mass traces.", false);
+    registerFlag_("feature:use_centroid_mz", "Use the m/z coordinates of the feature centroids for matching, instead of the m/z ranges of the features/mass traces.\n(If you choose 'peptide' as 'mz_reference', you should usually set this flag to avoid false-positive matches.)", false);
+    registerFlag_("feature:use_range_mz", "Do not use the m/z coordinates of the feature centroids for matching; instead use the m/z ranges of the features/mass traces.", false);
+    // Note: use_centroid_mz defaults to true, so we need a negation flag
 
     addEmptyLine_();
     registerTOPPSubsection_("consensus", "Additional options for consensusXML input");
@@ -227,7 +224,11 @@ protected:
         FileHandler().loadExperiment(spectra, exp, {FileTypes::MZML}, log_type_);
       }
 
-      mapper.annotate(map, peptide_ids, protein_ids, (getStringOption_("feature:use_centroid_rt") == "true"), (getStringOption_("feature:use_centroid_mz") == "true"), exp);
+      // Handle centroid parameters - use_centroid_rt defaults to false, use_centroid_mz defaults to true
+      bool use_centroid_rt = getFlag_("feature:use_centroid_rt");
+      bool use_centroid_mz = !getFlag_("feature:use_range_mz"); // Default is true (use centroids)
+      
+      mapper.annotate(map, peptide_ids, protein_ids, use_centroid_rt, use_centroid_mz, exp);
 
       // annotate output with data processing info
       addDataProcessing_(map, getProcessingInfo_(DataProcessing::IDENTIFICATION_MAPPING));

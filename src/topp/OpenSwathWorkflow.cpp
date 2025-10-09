@@ -406,17 +406,20 @@ protected:
     setValidStrings_("tr_type", ListUtils::create<String>("traML,tsv,pqp"));
 
     // iRT calibration
+    registerFlag_("disable_auto_irt", "Disable automatic iRT sampling on-the-fly from the input targeted transition file. If this flag is set, and no additional iRT files are provided via `-tr_irt` / `-tr_irt_nonlinear`, and no transformation is provided via `-rt_norm`, then no calibration is performed.", false);
     registerStringOption_("auto_irt", "<true|false>", "true",
-                          "Whether to sample iRTs on‐the‐fly (true) from the input targeted transition file (instead of passing specific iRT files). This may be useful if standard iRTs (Biognosys iRT kit) were not spiked-in. If set to false, and no additional iRT files are provided via `-tr_irt` / `-tr_irt_nonlinear`, and no transformation is provided via `-rt_norm`, then no calibration is performed.", false, true);
+                          "(DEPRECATED: Use -disable_auto_irt flag instead) Whether to sample iRTs on‐the‐fly (true) from the input targeted transition file (instead of passing specific iRT files). This may be useful if standard iRTs (Biognosys iRT kit) were not spiked-in. If set to false, and no additional iRT files are provided via `-tr_irt` / `-tr_irt_nonlinear`, and no transformation is provided via `-rt_norm`, then no calibration is performed.", false, true);
     setValidStrings_("auto_irt", ListUtils::create<String>("true,false"));
 
     registerInputFile_("swath_windows_file", "<file>", "", "Optional, tab-separated file containing the SWATH windows for extraction: lower_offset upper_offset. Note that the first line is a header and will be skipped.", false);
     registerFlag_("sort_swath_maps", "Sort input SWATH files when matching to SWATH windows from swath_windows_file", true);
 
-    registerStringOption_("enable_ms1", "<true|false>", "true", "Extract the precursor ion trace(s) and use for scoring if present", false, true);
+    registerFlag_("disable_ms1", "Do not extract the precursor ion trace(s) for scoring", false);
+    registerStringOption_("enable_ms1", "<true|false>", "true", "(DEPRECATED: Use -disable_ms1 flag instead) Extract the precursor ion trace(s) and use for scoring if present", false, true);
     setValidStrings_("enable_ms1", ListUtils::create<String>("true,false"));
 
-    registerStringOption_("enable_ipf", "<true|false>", "true", "Enable additional scoring of identification assays using IPF (see online documentation)", false, true);
+    registerFlag_("disable_ipf", "Disable additional scoring of identification assays using IPF", false);
+    registerStringOption_("enable_ipf", "<true|false>", "true", "(DEPRECATED: Use -disable_ipf flag instead) Enable additional scoring of identification assays using IPF (see online documentation)", false, true);
     setValidStrings_("enable_ipf", ListUtils::create<String>("true,false"));
 
     registerOutputFile_("out_features", "<file>", "", "feature output file, either .osw (PyProphet-compatible SQLite file) or .featureXML", false);
@@ -454,11 +457,12 @@ protected:
     setValidStrings_("mz_extraction_window_ms1_unit", ListUtils::create<String>("ppm,Th"));
     registerDoubleOption_("im_extraction_window_ms1", "<double>", -1, "Extraction window in ion mobility dimension for MS1 (in 1/k0 or milliseconds depending on library). -1 means this is not ion mobility data.", false);
 
-    registerStringOption_("use_ms1_ion_mobility", "<name>", "true", "Also perform precursor extraction using the same ion mobility window as for fragment ion extraction", false, true);
+    registerFlag_("disable_ms1_ion_mobility", "Do not perform precursor extraction using the same ion mobility window as for fragment ion extraction", false);
+    registerStringOption_("use_ms1_ion_mobility", "<name>", "true", "(DEPRECATED: Use -disable_ms1_ion_mobility flag instead) Also perform precursor extraction using the same ion mobility window as for fragment ion extraction", false, true);
     setValidStrings_("use_ms1_ion_mobility", ListUtils::create<String>("true,false"));
 
-    registerStringOption_("matching_window_only", "<name>", "false", "Assume the input data is targeted / PRM-like data with potentially overlapping DIA windows. Will only attempt to extract each assay from the *best* matching DIA window (instead of all matching windows).", false, true);
-    setValidStrings_("matching_window_only", ListUtils::create<String>("true,false"));
+    registerFlag_("matching_window_only", "Assume the input data is targeted / PRM-like data with potentially overlapping DIA windows. Will only attempt to extract each assay from the *best* matching DIA window (instead of all matching windows).", false);
+    // Note: matching_window_only defaults to false, so it already works as a flag
 
     // iRT mz and IM windows
     registerDoubleOption_("irt_mz_extraction_window", "<double>", 50, "Extraction window used for iRT and m/z correction in Thomson or ppm (see irt_mz_extraction_window_unit)", false, true);
@@ -670,7 +674,17 @@ protected:
 
     String out_qc = getStringOption_("out_qc");
 
-    bool auto_irt = (getStringOption_("auto_irt") == "true");
+    // Handle auto_irt with new flag and deprecated string option
+    bool auto_irt = true; // default
+    if (getFlag_("disable_auto_irt"))
+    {
+      auto_irt = false;
+    }
+    else if (!getParam_("auto_irt").isEmpty())
+    {
+      auto_irt = (getStringOption_("auto_irt") == "true");
+      writeLogWarn_("Warning: Parameter 'auto_irt' is deprecated. Use flag '-disable_auto_irt' to disable automatic iRT sampling.");
+    }
 
     Param irt_calibration_params = getParam_().copy("Calibration:", true);
     UInt irt_seed  = irt_calibration_params.getValue("irt_seed");
@@ -690,8 +704,29 @@ protected:
     bool force = getFlag_("force");
     bool pasef = getFlag_("pasef");
     bool sort_swath_maps = getFlag_("sort_swath_maps");
-    bool use_ms1_traces = getStringOption_("enable_ms1") == "true";
-    bool enable_uis_scoring = getStringOption_("enable_ipf") == "true";
+    // Handle enable_ms1 with new flag and deprecated string option
+    bool use_ms1_traces = true; // default
+    if (getFlag_("disable_ms1"))
+    {
+      use_ms1_traces = false;
+    }
+    else if (!getParam_("enable_ms1").isEmpty())
+    {
+      use_ms1_traces = getStringOption_("enable_ms1") == "true";
+      writeLogWarn_("Warning: Parameter 'enable_ms1' is deprecated. Use flag '-disable_ms1' to disable MS1 extraction.");
+    }
+    
+    // Handle enable_ipf with new flag and deprecated string option
+    bool enable_uis_scoring = true; // default
+    if (getFlag_("disable_ipf"))
+    {
+      enable_uis_scoring = false;
+    }
+    else if (!getParam_("enable_ipf").isEmpty())
+    {
+      enable_uis_scoring = getStringOption_("enable_ipf") == "true";
+      writeLogWarn_("Warning: Parameter 'enable_ipf' is deprecated. Use flag '-disable_ipf' to disable IPF scoring.");
+    }
     int batchSize = (int)getIntOption_("batchSize");
     int outer_loop_threads = (int)getIntOption_("outer_loop_threads");
     int ms1_isotopes = (int)getIntOption_("ms1_isotopes");
@@ -770,8 +805,20 @@ protected:
     }
 
     double min_upper_edge_dist = getDoubleOption_("min_upper_edge_dist");
-    bool use_ms1_im = getStringOption_("use_ms1_ion_mobility") == "true";
-    bool prm = getStringOption_("matching_window_only") == "true";
+    // Handle use_ms1_ion_mobility with new flag and deprecated string option
+    bool use_ms1_im = true; // default
+    if (getFlag_("disable_ms1_ion_mobility"))
+    {
+      use_ms1_im = false;
+    }
+    else if (!getParam_("use_ms1_ion_mobility").isEmpty())
+    {
+      use_ms1_im = getStringOption_("use_ms1_ion_mobility") == "true";
+      writeLogWarn_("Warning: Parameter 'use_ms1_ion_mobility' is deprecated. Use flag '-disable_ms1_ion_mobility' to disable MS1 ion mobility extraction.");
+    }
+    
+    // Handle matching_window_only - now using flag (default was already false, so flag form works)
+    bool prm = getFlag_("matching_window_only");
 
     ChromExtractParams cp;
     cp.min_upper_edge_dist   = min_upper_edge_dist;
@@ -800,7 +847,7 @@ protected:
     cp_ms1.im_extraction_window  = (use_ms1_im) ? getDoubleOption_("im_extraction_window_ms1") : -1;
 
     Param feature_finder_param = getParam_().copy("Scoring:", true);
-    feature_finder_param.setValue("use_ms1_ion_mobility", getStringOption_("use_ms1_ion_mobility"));
+    feature_finder_param.setValue("use_ms1_ion_mobility", use_ms1_im ? "true" : "false");
 
     Param tsv_reader_param = getParam_().copy("Library:", true);
     if (use_emg_score)
