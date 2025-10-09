@@ -2517,8 +2517,27 @@ namespace OpenMS
             case ParameterInformation::OUTPUT_DIR:
               if (queue.empty())
                 value = std::string();
-              else
+              {
                 value = queue.front();
+                // Check if this is a boolean-like string parameter being used with explicit true/false
+                if (pos->second->type == ParameterInformation::STRING && 
+                    (value == "true" || value == "false") &&
+                    !pos->second->valid_strings.empty())
+                {
+                  // Check if valid_strings contains exactly true and false
+                  bool has_true = false, has_false = false;
+                  for (const auto& vs : pos->second->valid_strings)
+                  {
+                    if (vs == "true") has_true = true;
+                    if (vs == "false") has_false = true;
+                  }
+                  if (has_true && has_false && pos->second->valid_strings.size() == 2)
+                  {
+                    writeLogWarn_("Warning: Parameter '" + arg.substr(1) + "' with explicit 'true'/'false' argument is deprecated. "
+                                  "Please refer to the tool documentation for the updated boolean flag syntax.");
+                  }
+                }
+              }
               break;
 
             case ParameterInformation::INT:

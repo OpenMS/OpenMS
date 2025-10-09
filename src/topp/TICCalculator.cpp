@@ -149,7 +149,9 @@ protected:
     String method("regular,indexed,indexed_parallel,streaming,cached,cached_parallel");
     setValidStrings_("read_method", ListUtils::create<String>(method));
 
-    registerStringOption_("loadData", "<method>", "true", "Whether to actually load and decode the binary data (or whether to skip decoding the binary data)", false);
+    registerFlag_("skip_data", "Do not load and decode the binary data (skip decoding for faster processing)", false);
+    
+    registerStringOption_("loadData", "<method>", "true", "(DEPRECATED: Use -skip_data flag instead) Whether to actually load and decode the binary data (or whether to skip decoding the binary data)", false, true);
     String loadData("true,false");
     setValidStrings_("loadData", ListUtils::create<String>(loadData));
   }
@@ -163,7 +165,19 @@ protected:
     //input file names
     String in = getStringOption_("in");
     String read_method = getStringOption_("read_method");
-    bool load_data = getStringOption_("loadData") == "true";
+    
+    // Handle both new flag and deprecated string option
+    bool load_data = true; // default
+    if (getFlag_("skip_data"))
+    {
+      load_data = false;
+    }
+    else if (getParam_("loadData").isEmpty() == false)
+    {
+      // Old parameter was specified
+      load_data = getStringOption_("loadData") == "true";
+      writeLogWarn_("Warning: Parameter 'loadData' is deprecated. Use flag '-skip_data' instead to skip loading data.");
+    }
 
     if (read_method == "streaming")
     {

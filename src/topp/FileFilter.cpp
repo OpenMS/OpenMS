@@ -416,11 +416,13 @@ protected:
     setValidStrings_("peak_options:mz_precision", ListUtils::create<String>("32,64"));
     registerStringOption_("peak_options:int_precision", "32 or 64", 32, "Store base64 encoded intensity data using 32 or 64 bit precision", false);
     setValidStrings_("peak_options:int_precision", ListUtils::create<String>("32,64"));
-    registerStringOption_("peak_options:indexed_file", "true or false", "true", "Whether to add an index to the file when writing", false);
+    registerFlag_("peak_options:no_index", "Do not add an index to the file when writing", false);
+    registerStringOption_("peak_options:indexed_file", "true or false", "true", "(DEPRECATED: Use -peak_options:no_index flag instead) Whether to add an index to the file when writing", false, true);
     setValidStrings_("peak_options:indexed_file", ListUtils::create<String>("true,false"));
 
-    registerStringOption_("peak_options:zlib_compression", "true or false", "false", "Whether to store data with zlib compression (lossless compression)", false);
-    setValidStrings_("peak_options:zlib_compression", ListUtils::create<String>("true,false"));
+    registerFlag_("peak_options:zlib_compression", "Store data with zlib compression (lossless compression)", false);
+    // Keep deprecated string option for backward compatibility
+    // Note: zlib_compression with default="false" already works as a flag, but we keep the string option for INI file compatibility
 
     registerTOPPSubsection_("peak_options:numpress", "Numpress compression for peak data");
     registerStringOption_("peak_options:numpress:masstime", "<compression_scheme>", "none", "Apply MS Numpress compression algorithms in m/z or rt dimension (recommended: linear)", false);
@@ -664,8 +666,21 @@ protected:
 
     int mz32 = getStringOption_("peak_options:mz_precision").toInt();
     int int32 = getStringOption_("peak_options:int_precision").toInt();
-    bool indexed_file = getStringOption_("peak_options:indexed_file") == "true";
-    bool zlib_compression = getStringOption_("peak_options:zlib_compression") == "true";
+    
+    // Handle indexed_file with new flag and deprecated string option
+    bool indexed_file = true; // default
+    if (getFlag_("peak_options:no_index"))
+    {
+      indexed_file = false;
+    }
+    else if (!getParam_("peak_options:indexed_file").isEmpty())
+    {
+      indexed_file = getStringOption_("peak_options:indexed_file") == "true";
+      writeLogWarn_("Warning: Parameter 'peak_options:indexed_file' is deprecated. Use flag '-peak_options:no_index' to disable indexing.");
+    }
+    
+    // Handle zlib_compression - now using flag
+    bool zlib_compression = getFlag_("peak_options:zlib_compression");
 
     //-----------------------------------
     // MS Numpress options
