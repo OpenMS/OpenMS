@@ -134,7 +134,6 @@ namespace OpenMS
     tools_map["OpenMSInfo"] = Internal::ToolDescription("OpenMSInfo", cat_misc);
     tools_map["OpenNuXL"] = Internal::ToolDescription("OpenNuXL", cat_crosslinking);
     tools_map["OpenPepXL"] = Internal::ToolDescription("OpenPepXL", cat_crosslinking);
-    tools_map["OpenPepXLLF"] = Internal::ToolDescription("OpenPepXLLF", cat_crosslinking);
     tools_map["OpenSwathAnalyzer"] = Internal::ToolDescription("OpenSwathAnalyzer", cat_targeted);
     tools_map["OpenSwathAssayGenerator"] = Internal::ToolDescription("OpenSwathAssayGenerator", cat_targeted);
     tools_map["OpenSwathChromatogramExtractor"] = Internal::ToolDescription("OpenSwathChromatogramExtractor", cat_targeted);
