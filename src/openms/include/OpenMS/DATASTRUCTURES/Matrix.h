@@ -75,7 +75,7 @@ namespace OpenMS
     */
     const Value& getValue(size_t const i, size_t const j) const
     {
-      return *this(i, j);
+      return this->operator()(i, j);
     }
 
     /*
