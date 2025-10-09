@@ -323,17 +323,11 @@ function(openms_add_library)
             endif()
           endforeach()
           
-          # Copy to output folder (where OpenMS dll is built)
+          # Copy DLLs to test and doc folders for build-time executables
+          # Note: We do NOT copy to the output folder (where OpenMS.dll is built) to avoid
+          # conflicts during packaging when install(RUNTIME_DEPENDENCY_SET) finds the same
+          # DLLs in multiple locations (original + copied).
           if(PARQUET_DLLS_TO_COPY)
-            foreach(dll_file ${PARQUET_DLLS_TO_COPY})
-              add_custom_command(TARGET ${openms_add_library_TARGET_NAME} POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                  "${dll_file}"
-                  "$<TARGET_FILE_DIR:${openms_add_library_TARGET_NAME}>"
-                COMMENT "Copying Arrow/Parquet DLL: ${dll_file}"
-              )
-            endforeach()
-            
             # Copy to test folder
             foreach(dll_file ${PARQUET_DLLS_TO_COPY})
               add_custom_command(TARGET ${openms_add_library_TARGET_NAME} POST_BUILD
