@@ -85,17 +85,21 @@ protected:
     setValidFormats_("in", ListUtils::create<String>("idXML"));
     registerOutputFile_("out", "<file>", "", "Identifications with annotated FDR");
     setValidFormats_("out", ListUtils::create<String>("idXML"));
-    registerStringOption_("PSM", "<FDR level>", "true", "Perform FDR calculation on PSM level", false);
+    registerFlag_("skip_PSM", "Do not perform FDR calculation on PSM level (PSM FDR is calculated by default)", false);
+    registerStringOption_("PSM", "<FDR level>", "true", "(DEPRECATED: Use -skip_PSM flag instead) Perform FDR calculation on PSM level", false, true);
     setValidStrings_("PSM", ListUtils::create<String>("true,false"));
-    registerStringOption_("peptide", "<FDR level>", "false", "Perform FDR calculation on peptide level and annotates it as meta value\n(Note: if set, also calculates FDR/q-value on PSM level.)", false);
-    setValidStrings_("peptide", ListUtils::create<String>("true,false"));
+    
+    registerFlag_("peptide", "Perform FDR calculation on peptide level and annotate it as meta value\n(Note: if set, also calculates FDR/q-value on PSM level.)", false);
+    // Note: peptide defaults to false, so it already works as a flag
     registerStringOption_("PSM_peptide_base_score", "<score name or type>", "", "Set if you want to choose a different score than the last calculated main score for PSM or peptide level.", false);
     registerStringOption_("PSM_peptide_base_score_orientation", "<higher/lower>", "", "In case the score orientation cannot be inferred.", false, true);
     setValidStrings_("PSM_peptide_base_score_orientation", ListUtils::create<String>("higher_better, lower_better"));
-    registerStringOption_("protein", "<FDR level>", "true", "Perform FDR calculation on protein level", false);
+    registerFlag_("skip_protein", "Do not perform FDR calculation on protein level (protein FDR is calculated by default)", false);
+    registerStringOption_("protein", "<FDR level>", "true", "(DEPRECATED: Use -skip_protein flag instead) Perform FDR calculation on protein level", false, true);
     setValidStrings_("protein", ListUtils::create<String>("true,false"));
-    registerStringOption_("proteingroup", "<FDR level>", "false", "Perform FDR calculation on (indist.) protein group level, too. Currently, this will enable protein FDR automatically (since internals need to be in-sync) but will affect the level at which it filters (if enabled).", false);
-    setValidStrings_("proteingroup", ListUtils::create<String>("true,false"));
+    
+    registerFlag_("proteingroup", "Perform FDR calculation on (indist.) protein group level, too. Currently, this will enable protein FDR automatically (since internals need to be in-sync) but will affect the level at which it filters (if enabled).", false);
+    // Note: proteingroup defaults to false, so it already works as a flag
 
     registerStringOption_("protein_score", "<type>", "", "The protein score used to calculate the protein FDR. If empty, the main score is used.", false, true);
     auto ids = IDScoreSwitcherAlgorithm();
@@ -115,14 +119,19 @@ protected:
     setMaxFloat_("FDR:protein", 1);
 
     registerTOPPSubsection_("FDR:cleanup", "Cleanup references after FDR control");
+    registerFlag_("FDR:cleanup:keep_proteins_without_psms", "Do not remove proteins without PSMs (by default, proteins without PSMs are removed due to being decoy or below PSM FDR threshold).", false);
     registerStringOption_("FDR:cleanup:remove_proteins_without_psms","<choice>", "true",
-        "Remove proteins without PSMs (due to being decoy or below PSM FDR threshold).", false, true);
+        "(DEPRECATED: Use -FDR:cleanup:keep_proteins_without_psms flag instead) Remove proteins without PSMs (due to being decoy or below PSM FDR threshold).", false, true);
     setValidStrings_("FDR:cleanup:remove_proteins_without_psms", {"true","false"});
+    
+    registerFlag_("FDR:cleanup:keep_psms_without_proteins", "Do not remove PSMs without proteins (by default, PSMs without proteins are removed due to being decoy or below protein FDR threshold).", false);
     registerStringOption_("FDR:cleanup:remove_psms_without_proteins","<choice>", "true",
-        "Remove PSMs without proteins (due to being decoy or below protein FDR threshold).", false, true);
+        "(DEPRECATED: Use -FDR:cleanup:keep_psms_without_proteins flag instead) Remove PSMs without proteins (due to being decoy or below protein FDR threshold).", false, true);
     setValidStrings_("FDR:cleanup:remove_psms_without_proteins", {"true","false"});
+    
+    registerFlag_("FDR:cleanup:keep_spectra_without_psms", "Do not remove spectra without PSMs (by default, spectra without PSMs are removed due to being decoy or below protein FDR threshold). Caution: if keep_psms_without_proteins is set, protein level filtering does not propagate.", false);
     registerStringOption_("FDR:cleanup:remove_spectra_without_psms","<choice>", "true",
-        "Remove spectra without PSMs (due to being decoy or below protein FDR threshold)."
+        "(DEPRECATED: Use -FDR:cleanup:keep_spectra_without_psms flag instead) Remove spectra without PSMs (due to being decoy or below protein FDR threshold)."
         " Caution: if remove_psms_without_proteins is false, protein level filtering does not propagate.", false, true);
     setValidStrings_("FDR:cleanup:remove_spectra_without_psms", {"true","false"});
 
@@ -166,7 +175,15 @@ protected:
     try
     {
       bool groups = getStringOption_("proteingroup") == "true";
-      if (getStringOption_("protein") == "true" || groups)
+      // Handle protein FDR calculation
+      bool protein_fdr = !getFlag_("skip_protein");  // Default is true
+      if (!getParam_("protein").isEmpty())
+      {
+        protein_fdr = getStringOption_("protein") == "true";
+        writeLogWarn_("Warning: Parameter 'protein' is deprecated. Use flag '-skip_protein' to disable protein FDR calculation.");
+      }
+      
+      if (protein_fdr || groups)
       {
         String protein_score = getStringOption_("protein_score");
         if (!protein_score.empty())
@@ -228,8 +245,16 @@ protected:
         }
       }
 
-      bool peptide_level_fdr = getStringOption_("peptide") == "true";
-      bool psm_level_fdr = getStringOption_("PSM") == "true";
+      // Handle peptide FDR - uses flag directly (default is false)
+      bool peptide_level_fdr = getFlag_("peptide");
+      
+      // Handle PSM FDR calculation  
+      bool psm_level_fdr = !getFlag_("skip_PSM");  // Default is true
+      if (!getParam_("PSM").isEmpty())
+      {
+        psm_level_fdr = getStringOption_("PSM") == "true";
+        writeLogWarn_("Warning: Parameter 'PSM' is deprecated. Use flag '-skip_PSM' to disable PSM FDR calculation.");
+      }
 
       if (psm_level_fdr || peptide_level_fdr)
       {
@@ -259,17 +284,39 @@ protected:
 
     if (filter_applied)
     {
+      // Handle cleanup flags
+      bool remove_proteins_without_psms = !getFlag_("FDR:cleanup:keep_proteins_without_psms");  // Default is true
+      if (!getParam_("FDR:cleanup:remove_proteins_without_psms").isEmpty())
+      {
+        remove_proteins_without_psms = getStringOption_("FDR:cleanup:remove_proteins_without_psms") == "true";
+        writeLogWarn_("Warning: Parameter 'FDR:cleanup:remove_proteins_without_psms' is deprecated. Use flag '-FDR:cleanup:keep_proteins_without_psms' to keep proteins without PSMs.");
+      }
+      
+      bool remove_psms_without_proteins = !getFlag_("FDR:cleanup:keep_psms_without_proteins");  // Default is true
+      if (!getParam_("FDR:cleanup:remove_psms_without_proteins").isEmpty())
+      {
+        remove_psms_without_proteins = getStringOption_("FDR:cleanup:remove_psms_without_proteins") == "true";
+        writeLogWarn_("Warning: Parameter 'FDR:cleanup:remove_psms_without_proteins' is deprecated. Use flag '-FDR:cleanup:keep_psms_without_proteins' to keep PSMs without proteins.");
+      }
+      
+      bool remove_spectra_without_psms = !getFlag_("FDR:cleanup:keep_spectra_without_psms");  // Default is true
+      if (!getParam_("FDR:cleanup:remove_spectra_without_psms").isEmpty())
+      {
+        remove_spectra_without_psms = getStringOption_("FDR:cleanup:remove_spectra_without_psms") == "true";
+        writeLogWarn_("Warning: Parameter 'FDR:cleanup:remove_spectra_without_psms' is deprecated. Use flag '-FDR:cleanup:keep_spectra_without_psms' to keep spectra without PSMs.");
+      }
+      
       //remove_proteins_without_psms
-      if (getStringOption_("FDR:cleanup:remove_proteins_without_psms") == "true")
+      if (remove_proteins_without_psms)
       {
         IDFilter::removeUnreferencedProteins(prot_ids, pep_ids);
       }
       //remove_psms_without_proteins
       IDFilter::updateProteinReferences(pep_ids,
                                         prot_ids,
-                                        getStringOption_("FDR:cleanup:remove_psms_without_proteins") == "true");
+                                        remove_psms_without_proteins);
       //remove_spectra_without_psms
-      if (getStringOption_("FDR:cleanup:remove_spectra_without_psms") == "true")
+      if (remove_spectra_without_psms)
       {
         IDFilter::removeEmptyIdentifications(pep_ids);
       }
