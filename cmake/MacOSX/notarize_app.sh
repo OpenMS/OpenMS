@@ -19,8 +19,10 @@ touch $NOTARIZE_APP_LOG
 REMOVE_PKG=false
 
 ## Checks if it is a zip, then the unzipped bundle should be in the same folder for stapling
-## if it is e.g. a dmg already, nothing needs to be done
+## if it is e.g. a dmg or pkg already, nothing needs to be done
 if [[ $BUNDLE_PKG == *dmg ]] ; then
+  BUNDLE_FILE=$BUNDLE_PKG
+elif [[ $BUNDLE_PKG == *pkg ]] ; then
   BUNDLE_FILE=$BUNDLE_PKG
 elif [[ $BUNDLE_PKG == *zip ]] ; then
   ## assume file is in same folder

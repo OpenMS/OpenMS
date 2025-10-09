@@ -519,6 +519,21 @@ jobs:
           SIGNING_EMAIL: "apple@openms.de"
           CPACK_PRODUCTBUILD_IDENTITY_NAME: "Developer ID Installer: OpenMS Inc. (C64UCGJ5PL)"
 
+    - name: Notarize macOS package
+      if: steps.set-vars.outputs.pkg_type != 'none' && startsWith(matrix.os, 'macos')
+      shell: bash
+      env:
+        CODESIGNPW: ${{ secrets.APPLE_NOTARIZATION_PASSWORD }}
+      run: |
+        # Find the generated .pkg file
+        PKG_FILE=$(find $GITHUB_WORKSPACE/OpenMS/bld/ -name "*.pkg" -type f | head -1)
+        if [ -z "$PKG_FILE" ]; then
+          echo "No .pkg file found to notarize"
+          exit 1
+        fi
+        echo "Notarizing package: $PKG_FILE"
+        $GITHUB_WORKSPACE/OpenMS/cmake/MacOSX/notarize_app.sh "$PKG_FILE" "de.openms" "apple@openms.de" CODESIGNPW "$GITHUB_WORKSPACE/OpenMS/bld"
+
     # WARNING: Here you have to make sure that only one matrix configuration per OS produces packages. See set-vars steps.
     - name: Upload packages as artifacts
       if: steps.set-vars.outputs.pkg_type != 'none'
