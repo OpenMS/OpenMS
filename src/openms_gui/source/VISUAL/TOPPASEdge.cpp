@@ -426,7 +426,7 @@ namespace OpenMS
     }
 
     // check file type compatibility
-    foreach(const QString& q_file_name, file_names)
+    for (const QString& q_file_name : file_names)
     {
       bool type_mismatch = true;
       const String& file_name = String(q_file_name);

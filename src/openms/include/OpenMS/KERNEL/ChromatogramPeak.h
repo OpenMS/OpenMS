@@ -52,10 +52,7 @@ public:
     {}
 
     /// Copy constructor
-    inline ChromatogramPeak(const ChromatogramPeak & p) :
-      position_(p.position_),
-      intensity_(p.intensity_)
-    {}
+    ChromatogramPeak(const ChromatogramPeak & p) = default;
 
     /// Constructor with position and intensity
     inline ChromatogramPeak(const PositionType retention_time, const IntensityType intensity) :
@@ -130,15 +127,7 @@ public:
     //@}
 
     /// Assignment operator
-    inline ChromatogramPeak & operator=(const ChromatogramPeak & rhs)
-    {
-      if (this == &rhs) return *this;
-
-      intensity_ = rhs.intensity_;
-      position_ = rhs.position_;
-
-      return *this;
-    }
+    ChromatogramPeak & operator=(const ChromatogramPeak & rhs) = default;
 
     /// Equality operator
     inline bool operator==(const ChromatogramPeak& rhs) const = default;

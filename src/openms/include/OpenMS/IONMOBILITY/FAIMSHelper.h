@@ -27,11 +27,15 @@ namespace OpenMS
       virtual ~FAIMSHelper() {}
 
       /**
-        @brief Get all FAIMS compensation voltages that occur in a PeakMap
+        @brief Get all unique FAIMS compensation voltages (CVs) that occur in a PeakMap
 
-        If the data is not FAIMS, an empty set will be returned.
+        - Scans all spectra in the experiment and collects CVs from spectra whose drift time
+          unit is DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE.
+        - If the data does not contain any FAIMS spectra, an empty set will be returned.
+        - The sentinel IMTypes::DRIFTTIME_NOT_SET is ignored; a warning is logged if encountered.
 
-        @param exp The PeakMap with FAIMS data
+        @param exp The input experiment
+        @return Unique FAIMS compensation voltages (in volts)
       */
       static std::set<double> getCompensationVoltages(const PeakMap& exp);
     };

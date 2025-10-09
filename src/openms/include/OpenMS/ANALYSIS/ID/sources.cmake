@@ -37,6 +37,7 @@ MetaboliteSpectralMatching.h
 PeptideSearchEngineFIAlgorithm.h
 MorpheusScore.h
 NeighborSeq.h
+OpenSearchModificationAnalysis.h
 PeptideIndexing.h
 PeptideProteinResolution.h
 PercolatorFeatureSetHelper.h

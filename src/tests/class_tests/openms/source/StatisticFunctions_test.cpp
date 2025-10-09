@@ -557,7 +557,24 @@ START_SECTION([EXTRA](template <typename IteratorType1, typename IteratorType2> 
 }
 END_SECTION
 
+START_SECTION((template<typename IteratorType1, typename IteratorType2> static void checkIteratorsAreValid))
+{
+  std::vector<int> v1 = {1, 2, 3};
+  std::vector<int> v2 = {10, 20, 30};
 
+  // Case 1: Both iterators at begin (not at end) --> OK
+  checkIteratorsAreValid(v1.begin(), v1.end(), v2.begin(), v2.end());
+
+  // Case 2: Both iterators at end --> OK
+  checkIteratorsAreValid(v1.end(), v1.end(), v2.end(), v2.end());
+
+  // Case 3: One iterator at end, other not --> should throw
+  TEST_EXCEPTION(Exception::InvalidRange, checkIteratorsAreValid(v1.begin(), v1.end(), v2.end(), v2.end()));
+
+  // Case 4: Reverse mismatch (other one at end) --> should throw
+  TEST_EXCEPTION(Exception::InvalidRange, checkIteratorsAreValid(v1.end(), v1.end(), v2.begin(), v2.end()));
+}
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
