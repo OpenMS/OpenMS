@@ -527,7 +527,7 @@ protected:
     if (fragment_tol_left > 0)
     {
       OPENMS_LOG_WARN << "WARNING: fragment_tol_left is positive (" << fragment_tol_left << "). "
-                      << "This parameter is SUBTRACTED from the experimental mass, so it should typically be negative. "
+                      << "This parameter is used to reduce the experimental mass, so it should typically be negative. "
                       << "A positive value will likely produce an incorrect search window." << std::endl;
     }
     if (fragment_tol_right < 0)
