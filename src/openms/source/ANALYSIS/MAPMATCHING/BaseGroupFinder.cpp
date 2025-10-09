@@ -38,4 +38,9 @@ namespace OpenMS
     }
   }
 
+  void BaseGroupFinder::updateMembers_()
+  {
+    // BaseGroupFinder has no member variables that need to be synchronized with param_
+  }
+
 }

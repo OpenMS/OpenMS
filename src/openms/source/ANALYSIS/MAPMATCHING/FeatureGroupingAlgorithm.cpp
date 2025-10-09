@@ -136,4 +136,9 @@ namespace OpenMS
 
   FeatureGroupingAlgorithm::~FeatureGroupingAlgorithm() = default;
 
+  void FeatureGroupingAlgorithm::updateMembers_()
+  {
+    // FeatureGroupingAlgorithm has no member variables that need to be synchronized with param_
+  }
+
 } //namespace OpenMS

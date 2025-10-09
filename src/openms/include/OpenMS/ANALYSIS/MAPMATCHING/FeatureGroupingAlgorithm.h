@@ -85,6 +85,9 @@ protected:
       out.sortByMaps();
       out.sortBySize();
     }
+
+    void updateMembers_() override;
+
 private:
     ///Copy constructor is not implemented -> private
     FeatureGroupingAlgorithm(const FeatureGroupingAlgorithm &);

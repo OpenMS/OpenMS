@@ -53,6 +53,7 @@ public:
 
 
 protected:
+    void updateMembers_() override;
 
     /**
       @brief Checks if all file descriptions have disjoint map identifiers

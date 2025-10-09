@@ -35,4 +35,9 @@ namespace OpenMS
     return *this;
   }
 
+  void SpectrumAlignment::updateMembers_()
+  {
+    // SpectrumAlignment has no member variables that need to be synchronized with param_
+  }
+
 }

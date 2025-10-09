@@ -287,5 +287,8 @@ public:
         for (; it != it.end(); ++it) alignment.emplace_back(it.refIdx(), it.tgtIdx());
       }
     }
+
+  protected:
+    void updateMembers_() override;
   };
 }
