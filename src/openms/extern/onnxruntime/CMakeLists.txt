@@ -90,7 +90,7 @@ target_include_directories(onnxruntime::onnxruntime
 )
 
 
-# Install ONNX Runtime shared library
+# Install ONNX Runtime shared library with all symlinks and versioned files
 if(WIN32)
     # On Windows, DLLs go to bin directory
     install(FILES "${ONNXRUNTIME_LIBRARY}"
@@ -101,9 +101,13 @@ if(WIN32)
             DESTINATION ${INSTALL_LIB_DIR}
             COMPONENT library)
 else()
-    # On Unix (Linux/macOS), shared libraries go to lib directory
-    install(FILES "${ONNXRUNTIME_LIBRARY}"
+    # On Unix (Linux/macOS), install all library files including symlinks and versioned files
+    # Use DIRECTORY with FILES_MATCHING to get all .so* or .dylib* files
+    install(DIRECTORY "${ONNXRUNTIME_LIB_DIR}/"
             DESTINATION ${INSTALL_LIB_DIR}
-            COMPONENT library)
+            COMPONENT library
+            FILES_MATCHING
+            PATTERN "libonnxruntime.so*"
+            PATTERN "libonnxruntime.*.dylib*")
 endif()
 message(STATUS "Created imported target: onnxruntime::onnxruntime")
