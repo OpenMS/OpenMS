@@ -433,6 +433,7 @@ jobs:
           SEARCH_ENGINES_DIRECTORY: ${{ github.workspace }}/_thirdparty
           WITH_GUI: "ON"
           WITH_PARQUET: "ON" # Conda on windows, Apt on Ubuntu, Brew on MacOS
+          ENABLE_ONNX: "ON"
           SIGNING_IDENTITY: "-"
           ADDRESS_SANITIZER: "Off"
           BUILD_TYPE: "Release"
