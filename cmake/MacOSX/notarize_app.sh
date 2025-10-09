@@ -55,7 +55,6 @@ echo "Submitting $BUNDLE_PKG for notarization..."
 if xcrun notarytool submit "$BUNDLE_PKG" \
   --apple-id "$APPLE_ID" \
   --password "$APP_PASSWORD" \
-  --team-id "C64UCGJ5PL" \
   --wait \
   --timeout 30m \
   2>&1 | tee "$NOTARIZE_LOG"; then
