@@ -931,29 +931,29 @@ protected:
        @brief Parses a range string ([a]:[b]) into two variables (doubles)
 
        The variables are only overwritten if a value is set for the respective boundary.
+       The range string is retrieved from the parameter with the given name.
 
-       @param text The range string to parse
-       @param low The lower boundary (will be set if present in text)
-       @param high The upper boundary (will be set if present in text)
-       @param param_name Parameter name for better error messages
+       @param param_name Parameter name to retrieve and parse
+       @param low The lower boundary (will be set if present in parameter value)
+       @param high The upper boundary (will be set if present in parameter value)
 
        @return True if a value was set for either of the two boundaries
     */
-    bool parseRange_(const String& text, double& low, double& high, const String& param_name) const;
+    bool parseRange_(const String& param_name, double& low, double& high) const;
 
     /**
        @brief Parses a range string ([a]:[b]) into two variables (integers)
 
        The variables are only overwritten if a value is set for the respective boundary.
+       The range string is retrieved from the parameter with the given name.
 
-       @param text The range string to parse
-       @param low The lower boundary (will be set if present in text)
-       @param high The upper boundary (will be set if present in text)
-       @param param_name Parameter name for better error messages
+       @param param_name Parameter name to retrieve and parse
+       @param low The lower boundary (will be set if present in parameter value)
+       @param high The upper boundary (will be set if present in parameter value)
 
        @return True if a value was set for either of the two boundaries
     */
-    bool parseRange_(const String& text, Int& low, Int& high, const String& param_name) const;
+    bool parseRange_(const String& param_name, Int& low, Int& high) const;
 
     ///Type of progress logging
     ProgressLogger::LogType log_type_;

@@ -80,6 +80,9 @@ class TOPPBaseTest
       registerDoubleList_("doublelist2","<double>", ListUtils::create<double>("1.2,2.33"),"doublelist with restrictions",false);
       setMinFloat_("doublelist2",0.2);
       setMaxFloat_("doublelist2",5.4);
+
+      // For testing parseRange_
+      registerStringOption_("test_range","<range>","","range for testing parseRange_",false);
     }
 
     String getStringOption(const String& name) const
@@ -158,7 +161,9 @@ class TOPPBaseTest
 
     bool parseRange(const String& text, double& low, double& high, const String& param_name) const
     {
-      return parseRange_(text, low, high, param_name);
+      // For testing: set the parameter value temporarily
+      const_cast<TOPPBaseTest*>(this)->param_.setValue(param_name, text);
+      return parseRange_(param_name, low, high);
     }
 
     TOPPBase::ExitCodes runExternalProcess(const QString& executable, const QStringList& arguments, const QString& workdir) const
@@ -675,39 +680,39 @@ START_SECTION(([EXTRA]void outputFileWritable_(const String& filename, const Str
 	dummy.store(filename);
 END_SECTION
 
-START_SECTION(([EXTRA]void parseRange_(const String& text, double& low, double& high, const String& param_name) const))
+START_SECTION(([EXTRA]void parseRange_(const String& param_name, double& low, double& high) const))
 {
 	TOPPBaseTest topp;
 	double a = -1.0;
 	double b = -1.0;
 
 	String s = ":";
-	bool result = topp.parseRange(s, a, b, "test_param");
+	bool result = topp.parseRange(s, a, b, "test_range");
 	TEST_REAL_SIMILAR(a, -1.0);
 	TEST_REAL_SIMILAR(b, -1.0);
   TEST_EQUAL(result, false);
 
 	s = "4.5:";
-	result = topp.parseRange(s, a, b, "test_param");
+	result = topp.parseRange(s, a, b, "test_range");
 	TEST_REAL_SIMILAR(a, 4.5);
 	TEST_REAL_SIMILAR(b, -1.0);
   TEST_EQUAL(result, true);
 
 	s = ":5.5";
-	result = topp.parseRange(s, a, b, "test_param");
+	result = topp.parseRange(s, a, b, "test_range");
 	TEST_REAL_SIMILAR(a, 4.5);
 	TEST_REAL_SIMILAR(b, 5.5);
   TEST_EQUAL(result, true);
 
 	s = "6.5:7.5";
-	result = topp.parseRange(s, a, b, "test_param");
+	result = topp.parseRange(s, a, b, "test_range");
 	TEST_REAL_SIMILAR(a, 6.5);
 	TEST_REAL_SIMILAR(b, 7.5);
   TEST_EQUAL(result, true);
 
 	// Test error case with wrong delimiter (using '-' instead of ':')
 	s = "600.0-5000.0";
-	TEST_EXCEPTION(Exception::ConversionError, topp.parseRange(s, a, b, "test_param"));
+	TEST_EXCEPTION(Exception::ConversionError, topp.parseRange(s, a, b, "test_range"));
 }
 END_SECTION
 
@@ -719,7 +724,7 @@ START_SECTION(([EXTRA]void parseRange_ with parameter name in error message))
 
 	// Test error case with wrong delimiter and parameter name
 	String s = "600.0-5000.0";
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::ConversionError, topp.parseRange(s, a, b, "digest_mass_range"), "digest_mass_range");
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::ConversionError, topp.parseRange(s, a, b, "test_range"), "test_range");
 }
 END_SECTION
 

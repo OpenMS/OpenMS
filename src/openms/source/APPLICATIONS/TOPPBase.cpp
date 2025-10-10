@@ -2027,8 +2027,9 @@ namespace OpenMS
     subsections_TOPP_[name] = description;
   }
 
-  bool TOPPBase::parseRange_(const String& text, double& low, double& high, const String& param_name) const
+  bool TOPPBase::parseRange_(const String& param_name, double& low, double& high) const
   {
+    String text = getStringOption_(param_name);
     bool any_set = false;
     try
     {
@@ -2061,8 +2062,9 @@ namespace OpenMS
     return any_set;
   }
 
-  bool TOPPBase::parseRange_(const String& text, Int& low, Int& high, const String& param_name) const
+  bool TOPPBase::parseRange_(const String& param_name, Int& low, Int& high) const
   {
+    String text = getStringOption_(param_name);
     bool any_set = false;
     try
     {

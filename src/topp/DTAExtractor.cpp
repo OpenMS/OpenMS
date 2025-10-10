@@ -81,26 +81,24 @@ protected:
     String out = getStringOption_("out");
 
     //ranges
-    String mz, rt, tmp;
+    String tmp;
     double mz_l, mz_u, rt_l, rt_u;
     vector<UInt> levels;
     //initialize ranges
     mz_l = rt_l = -numeric_limits<double>::max();
     mz_u = rt_u = numeric_limits<double>::max();
 
-    rt = getStringOption_("rt");
-    mz = getStringOption_("mz");
     String level = getStringOption_("level");
 
     //convert bounds to numbers
     try
     {
       //rt
-      parseRange_(rt, rt_l, rt_u, "rt");
+      parseRange_("rt", rt_l, rt_u);
       writeDebug_("rt lower/upper bound: " + String(rt_l) + " / " + String(rt_u), 1);
 
       //mz
-      parseRange_(mz, mz_l, mz_u, "mz");
+      parseRange_("mz", mz_l, mz_u);
       writeDebug_("mz lower/upper bound: " + String(mz_l) + " / " + String(mz_u), 1);
 
       //levels

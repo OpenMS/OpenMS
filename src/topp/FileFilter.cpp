@@ -645,22 +645,10 @@ protected:
     mz_l = rt_l = it_l = charge_l = size_l = q_l = pc_left = select_collision_l = remove_collision_l = select_isolation_width_l = remove_isolation_width_l = replace_pc_charge_in = -1 * numeric_limits<double>::max();
     mz_u = rt_u = it_u = charge_u = size_u = q_u = pc_right = select_collision_u = remove_collision_u = select_isolation_width_u = remove_isolation_width_u = replace_pc_charge_out = numeric_limits<double>::max();
 
-    String rt = getStringOption_("rt");
     RTBlockMode rt_block_mode = (RTBlockMode)Helpers::indexOf(RT_BLOCK_MODE_NAMES, getStringOption_("rt_block_mode"));
-    String mz = getStringOption_("mz");
-    String pc_mz_range = getStringOption_("peak_options:pc_mz_range");
-    String it = getStringOption_("int");
     IntList levels = getIntList_("peak_options:level");
     IntList maps = getIntList_("consensus:map");
     double sn = getDoubleOption_("peak_options:sn");
-    String charge = getStringOption_("f_and_c:charge");
-    String size = getStringOption_("f_and_c:size");
-    String q = getStringOption_("feature:q");
-    String remove_collision_energy = getStringOption_("spectra:remove_collision_energy");
-    String select_collision_energy = getStringOption_("spectra:select_collision_energy");
-    String remove_isolation_width = getStringOption_("spectra:remove_isolation_window_width");
-    String select_isolation_width = getStringOption_("spectra:select_isolation_window_width");
-    String replace_pc_charge = getStringOption_("spectra:replace_pc_charge");
 
     int mz32 = getStringOption_("peak_options:mz_precision").toInt();
     int int32 = getStringOption_("peak_options:int_precision").toInt();
@@ -701,29 +689,29 @@ protected:
     try
     {
       //rt
-      parseRange_(rt, rt_l, rt_u, "rt");
+      parseRange_("rt", rt_l, rt_u);
       //mz
-      parseRange_(mz, mz_l, mz_u, "mz");
+      parseRange_("mz", mz_l, mz_u);
       //mz precursor
-      parseRange_(pc_mz_range, pc_left, pc_right, "peak_options:pc_mz_range");
+      parseRange_("peak_options:pc_mz_range", pc_left, pc_right);
       //int
-      parseRange_(it, it_l, it_u, "int");
+      parseRange_("int", it_l, it_u);
       //charge (features only)
-      parseRange_(charge, charge_l, charge_u, "f_and_c:charge");
+      parseRange_("f_and_c:charge", charge_l, charge_u);
       //size (features and consensus features only)
-      parseRange_(size, size_l, size_u, "f_and_c:size");
+      parseRange_("f_and_c:size", size_l, size_u);
       //overall quality (features only)
-      parseRange_(q, q_l, q_u, "feature:q");
+      parseRange_("feature:q", q_l, q_u);
       //remove collision energy
-      parseRange_(remove_collision_energy, remove_collision_l, remove_collision_u, "spectra:remove_collision_energy");
+      parseRange_("spectra:remove_collision_energy", remove_collision_l, remove_collision_u);
       //select collision energy
-      parseRange_(select_collision_energy, select_collision_l, select_collision_u, "spectra:select_collision_energy");
+      parseRange_("spectra:select_collision_energy", select_collision_l, select_collision_u);
       //remove isolation window width
-      parseRange_(remove_isolation_width, remove_isolation_width_l, remove_isolation_width_u, "spectra:remove_isolation_window_width");
+      parseRange_("spectra:remove_isolation_window_width", remove_isolation_width_l, remove_isolation_width_u);
       //select isolation window width
-      parseRange_(select_isolation_width, select_isolation_width_l, select_isolation_width_u, "spectra:select_isolation_window_width");
+      parseRange_("spectra:select_isolation_window_width", select_isolation_width_l, select_isolation_width_u);
       //parse precursor charge from in to out
-      parseRange_(replace_pc_charge, replace_pc_charge_in, replace_pc_charge_out, "spectra:replace_pc_charge");
+      parseRange_("spectra:replace_pc_charge", replace_pc_charge_in, replace_pc_charge_out);
     }
     catch (Exception::ConversionError& ce)
     {

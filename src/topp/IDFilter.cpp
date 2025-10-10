@@ -291,14 +291,14 @@ protected:
     // Filtering peptide identification according to set criteria
 
     double rt_high = numeric_limits<double>::infinity(), rt_low = -rt_high;
-    if (parseRange_(getStringOption_("precursor:rt"), rt_low, rt_high, "precursor:rt"))
+    if (parseRange_("precursor:rt", rt_low, rt_high))
     {
       OPENMS_LOG_INFO << "Filtering peptide IDs by precursor RT..." << endl;
       IDFilter::filterPeptidesByRT(peptides, rt_low, rt_high);
     }
 
     double mz_high = numeric_limits<double>::infinity(), mz_low = -mz_high;
-    if (parseRange_(getStringOption_("precursor:mz"), mz_low, mz_high, "precursor:mz"))
+    if (parseRange_("precursor:mz", mz_low, mz_high))
     {
       OPENMS_LOG_INFO << "Filtering peptide IDs by precursor m/z...";
       IDFilter::filterPeptidesByMZ(peptides, mz_low, mz_high);
@@ -450,7 +450,7 @@ protected:
 
 
     Int min_length = 0, max_length = 0;
-    if (parseRange_(getStringOption_("precursor:length"), min_length, max_length, "precursor:length"))
+    if (parseRange_("precursor:length", min_length, max_length))
     {
       OPENMS_LOG_INFO << "Filtering by peptide length..." << endl;
       if ((min_length < 0) || (max_length < 0))
@@ -518,7 +518,7 @@ protected:
     Int min_cleavages, max_cleavages;
     min_cleavages = max_cleavages = IDFilter::PeptideDigestionFilter::disabledValue();
 
-    if (parseRange_(getStringOption_("missed_cleavages:number_of_missed_cleavages"), min_cleavages, max_cleavages, "missed_cleavages:number_of_missed_cleavages"))
+    if (parseRange_("missed_cleavages:number_of_missed_cleavages", min_cleavages, max_cleavages))
     {
       // Configure Enzymatic digestion
       ProteaseDigestion digestion;
@@ -595,7 +595,7 @@ protected:
 
     Int min_charge = numeric_limits<Int>::min(), max_charge =
       numeric_limits<Int>::max();
-    if (parseRange_(getStringOption_("precursor:charge"), min_charge, max_charge, "precursor:charge"))
+    if (parseRange_("precursor:charge", min_charge, max_charge))
     {
       OPENMS_LOG_INFO << "Filtering by peptide charge..." << endl;
       IDFilter::filterPeptidesByCharge(peptides, min_charge, max_charge);
@@ -635,8 +635,7 @@ protected:
     }
 
     Int min_rank = 0, max_rank = 0;
-    if (parseRange_(getStringOption_("best:n_to_m_peptide_hits"), min_rank,
-                    max_rank, "best:n_to_m_peptide_hits"))
+    if (parseRange_("best:n_to_m_peptide_hits", min_rank, max_rank))
     {
       OPENMS_LOG_INFO << "Filtering by peptide hit ranks..." << endl;
       if ((min_rank < 0) || (max_rank < 0))
