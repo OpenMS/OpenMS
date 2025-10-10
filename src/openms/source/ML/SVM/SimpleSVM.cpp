@@ -669,9 +669,9 @@ void SimpleSVM::writeXvalResults(const String& path) const
       }
     }
   }
+}
 
-  void SimpleSVM::updateMembers_()
-  {
-    // SimpleSVM has no member variables that need to be synchronized with param_
-  }
+void SimpleSVM::updateMembers_()
+{
+  // SimpleSVM has no member variables that need to be synchronized with param_
 }
