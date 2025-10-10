@@ -32,8 +32,8 @@ namespace OpenMS
     static_assert(++AA('Z') == AA('X'));  // make sure the table is ordered as we expect
     static_assert(++AA('X') == AA('$'));  // make sure the table is ordered as we expect
     
-    // jump table:                    start of Scouts 
-    //                                         end of Scouts (including)
+    // jump table:                    start of scouts 
+    //                                         end of scouts (including)
     constexpr const AA jump[5][2] = {{AA('D'), AA('N')},  // B = D,N
                                      {AA('I'), AA('L')},  // J = I,L
                                      {AA('E'), AA('Q')},  // Z = E,Q
@@ -222,8 +222,8 @@ namespace OpenMS
     for (AA aa = state.nextValidAA(); aa.isValid(); aa = state.nextValidAA())
     {
       state.tree_pos = stepPrimary_(state.tree_pos, aa, state);
-      // deal with Scouts in queue: doing it now (instead of after the Primary ends) benefits from hot caches
-      // and a lot less memory (since only hits from current Scouts are found)
+      // deal with scouts in queue: doing it now (instead of after the primary ends) benefits from hot caches
+      // and a lot less memory (since only hits from current scouts are found)
       while (!state.scouts.empty())
       {
         ACScout& sp = state.scouts.front();
