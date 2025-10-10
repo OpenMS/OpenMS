@@ -146,6 +146,9 @@ namespace OpenMS
      */
     MultiplexDeltaMasses::LabelSet extractLabelSet(const AASequence& sequence);
     
+protected:
+    void updateMembers_() override;
+
     private:
    
     /**

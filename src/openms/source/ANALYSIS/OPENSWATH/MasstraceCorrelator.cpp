@@ -315,6 +315,10 @@ namespace OpenMS
 
   }
 
+  void MasstraceCorrelator::updateMembers_()
+  {
+    // MasstraceCorrelator has no member variables that need to be synchronized with param_
+  }
 
 }
 

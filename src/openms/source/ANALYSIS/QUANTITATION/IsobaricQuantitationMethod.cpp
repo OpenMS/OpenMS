@@ -87,4 +87,9 @@ namespace OpenMS
     return channel_frequency;
   }
 
+  void IsobaricQuantitationMethod::updateMembers_()
+  {
+    // IsobaricQuantitationMethod has no member variables that need to be synchronized with param_
+  }
+
 } // namespace

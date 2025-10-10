@@ -104,6 +104,7 @@ namespace OpenMS
                                  std::vector<double>& rt_cache);
 
   protected:
+    void updateMembers_() override;
 
     /** @brief Match up two mass traces with potentially missing values
      *

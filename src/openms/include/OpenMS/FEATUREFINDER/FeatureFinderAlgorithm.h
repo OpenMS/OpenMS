@@ -107,6 +107,7 @@ public:
     }
 
 protected:
+    void updateMembers_() override;
 
     /// Input data pointer
     const MapType* map_;
@@ -123,5 +124,11 @@ private:
     FeatureFinderAlgorithm(const FeatureFinderAlgorithm&);
 
   };
+
+  template <class MapType>
+  void FeatureFinderAlgorithm<MapType>::updateMembers_()
+  {
+    // FeatureFinderAlgorithm has no member variables that need to be synchronized with param_
+  }
 }
 

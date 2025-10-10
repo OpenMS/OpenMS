@@ -604,4 +604,9 @@ namespace OpenMS
     label_master_list_.emplace_back("ICPL6", "ICPL:13C(6)", "ICPL:13C(6)  |  H(3) 13C(6) N O  |  unimod #364", 111.041593);
     label_master_list_.emplace_back("ICPL10", "ICPL:13C(6)2H(4)", "ICPL:13C(6)2H(4)  |  H(-1) 2H(4) 13C(6) N O  |  unimod #866", 115.066700);
   }
+
+  void MultiplexDeltaMassesGenerator::updateMembers_()
+  {
+    // MultiplexDeltaMassesGenerator has no member variables that need to be synchronized with param_
+  }
 }

@@ -747,4 +747,9 @@ namespace OpenMS
     simulated_data.num_top_novo = num_top_novo + num_re_ranked;
     return simulated_data;
   }
+
+  void DBSuitability::updateMembers_()
+  {
+    // DBSuitability has no member variables that need to be synchronized with param_
+  }
 }// namespace OpenMS

@@ -87,6 +87,7 @@ public:
     }
 
 protected:
+    void updateMembers_() override;
 
     /**
          * @brief computes the S/N values when init() is called

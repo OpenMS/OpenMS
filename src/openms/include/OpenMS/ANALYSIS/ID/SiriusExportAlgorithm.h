@@ -75,5 +75,7 @@ namespace OpenMS
                const String& out_ms,
                const String& out_compoundinfo) const;
 
+protected:
+    void updateMembers_() override;
     };
 } // namespace OpenMS

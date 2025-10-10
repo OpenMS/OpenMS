@@ -52,4 +52,9 @@ namespace OpenMS
     return noise / n_scans;
   }
 
+  void SignalToNoiseEstimator::updateMembers_()
+  {
+    // SignalToNoiseEstimator has no member variables that need to be synchronized with param_
+  }
+
 }

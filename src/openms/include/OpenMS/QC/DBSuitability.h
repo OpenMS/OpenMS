@@ -108,6 +108,9 @@ namespace OpenMS
       */
       SuitabilityData simulateNoReRanking() const;
 
+protected:
+    void updateMembers_() override;
+
     private:
       /// \#IDs with only deNovo search / \#IDs with only database search
       /// used for correcting the number of deNovo hits

@@ -234,6 +234,9 @@ public:
       /// try to invoke 'gnuplot' on the file to create PDF automatically
       void tryGnuplot(const String& gp_file);
 
+protected:
+    void updateMembers_() override;
+
 private:
       /// transform different score types to a range and score orientation that the model can handle (engine string is assumed in upper-case)
       void processOutliers_(std::vector<double>& x_scores, const String& outlier_handling) const;

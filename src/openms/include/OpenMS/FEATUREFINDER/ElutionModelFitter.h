@@ -45,6 +45,7 @@ namespace OpenMS
     void fitElutionModels(FeatureMap& features);
 
   protected:
+    void updateMembers_() override;
     typedef FeatureFinderAlgorithmPickedHelperStructs::MassTrace MassTrace;
     typedef FeatureFinderAlgorithmPickedHelperStructs::MassTraces MassTraces;
 

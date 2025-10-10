@@ -1151,4 +1151,9 @@ namespace OpenMS::Math
         }
       }
     }
+
+  void PosteriorErrorProbabilityModel::updateMembers_()
+  {
+    // PosteriorErrorProbabilityModel has no member variables that need to be synchronized with param_
+  }
 } // namespace OpenMS // namespace Math

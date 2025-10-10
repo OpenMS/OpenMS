@@ -103,6 +103,8 @@ public:
     virtual Size getReferenceChannel() const = 0;
 
 protected:
+    void updateMembers_() override;
+
     /**
       @brief Helper function to convert a string list containing an isotope correction matrix into a Matrix<double>.
 

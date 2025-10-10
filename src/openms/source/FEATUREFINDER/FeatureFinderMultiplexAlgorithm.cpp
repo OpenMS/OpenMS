@@ -1149,4 +1149,9 @@ namespace OpenMS
   {
     return exp_blacklist_;
   }
+
+  void FeatureFinderMultiplexAlgorithm::updateMembers_()
+  {
+    // FeatureFinderMultiplexAlgorithm has no member variables that need to be synchronized with param_
+  }
 }

@@ -357,4 +357,9 @@ namespace OpenMS
     return best_hit;
   }
 
+  void MapAlignmentAlgorithmIdentification::updateMembers_()
+  {
+    // MapAlignmentAlgorithmIdentification has no member variables that need to be synchronized with param_
+  }
+
 } //namespace

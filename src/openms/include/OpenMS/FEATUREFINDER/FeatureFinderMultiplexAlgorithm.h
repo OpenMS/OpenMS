@@ -72,6 +72,7 @@ public:
   MSExperiment& getBlacklist();
 
 protected:
+  void updateMembers_() override;
 
   // experimental data
   MSExperiment exp_profile_;

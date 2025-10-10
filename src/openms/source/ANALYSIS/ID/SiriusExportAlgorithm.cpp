@@ -173,6 +173,11 @@ namespace OpenMS
       SiriusMSFile::saveFeatureCompoundInfoAsTSV(v_cmpinfo, out_compoundinfo);
     }
   }
+  void SiriusExportAlgorithm::updateMembers_()
+  {
+    // SiriusExportAlgorithm has no member variables that need to be synchronized with param_
+  }
+
 } // namespace OpenMS
 
 /// @endcond

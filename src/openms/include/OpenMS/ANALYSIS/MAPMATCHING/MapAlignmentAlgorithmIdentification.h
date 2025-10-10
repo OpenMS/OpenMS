@@ -132,6 +132,7 @@ public:
     }
 
 protected:
+    void updateMembers_() override;
 
     /// Type to store retention times given for individual peptide sequences
     typedef std::map<String, DoubleList> SeqToList;

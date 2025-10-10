@@ -446,4 +446,9 @@ void ElutionModelFitter::fitElutionModels(FeatureMap& features)
       (*it)->setIntensity(area);
     }
   }
+
+  void ElutionModelFitter::updateMembers_()
+  {
+    // ElutionModelFitter has no member variables that need to be synchronized with param_
+  }
 }
