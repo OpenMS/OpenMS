@@ -82,7 +82,6 @@ namespace OpenMS
       @param official If this is an official TOPP tool contained in the OpenMS/TOPP release.
              If @em true the tool name is checked against the list of TOPP tools and a warning printed if missing.
       @param citations Add one or more citations if they are associated specifically to this TOPP tool; they will be printed during `--help`
-      @param toolhandler_test Check if this tool is registered with the ToolHandler (disable for unit tests only)
     */
     TOPPOpenSwathBase(String name, String description, bool official = true, const std::vector<Citation>& citations = {});
 
