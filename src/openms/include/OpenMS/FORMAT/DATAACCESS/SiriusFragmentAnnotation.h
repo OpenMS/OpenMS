@@ -20,7 +20,7 @@ namespace OpenMS
           /**
           @brief SiriusTargetDecoySpectra holds the target and/or decoy information for one entry (subdirectory from SIRIUS)
           */
-          class OPENMS_DLLAPI SiriusTargetDecoySpectra
+          class SiriusTargetDecoySpectra
           {
           public:
 

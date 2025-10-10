@@ -595,7 +595,7 @@ public:
       const bool export_all_psms = false,
       const String& title = "ConsensusMap export from OpenMS");
 
-    class OPENMS_DLLAPI IDMzTabStream
+    class IDMzTabStream
     {
        public:
         IDMzTabStream(
@@ -661,7 +661,7 @@ public:
          MzTabMetaData meta_data_;
     };
 
-    class OPENMS_DLLAPI CMMzTabStream
+    class CMMzTabStream
     {
        public:
         CMMzTabStream(
