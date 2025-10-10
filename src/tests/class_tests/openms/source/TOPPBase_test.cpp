@@ -156,11 +156,6 @@ class TOPPBaseTest
       addDataProcessing_(c_map, dp);
     }
 
-    bool parseRange(const String& text, double& low, double& high) const
-    {
-      return parseRange_(text, low, high);
-    }
-
     bool parseRange(const String& text, double& low, double& high, const String& param_name) const
     {
       return parseRange_(text, low, high, param_name);
@@ -680,43 +675,43 @@ START_SECTION(([EXTRA]void outputFileWritable_(const String& filename, const Str
 	dummy.store(filename);
 END_SECTION
 
-START_SECTION(([EXTRA]void parseRange_(const String& text, double& low, double& high) const))
+START_SECTION(([EXTRA]void parseRange_(const String& text, double& low, double& high, const String& param_name) const))
 {
 	TOPPBaseTest topp;
 	double a = -1.0;
 	double b = -1.0;
 
 	String s = ":";
-	bool result = topp.parseRange(s, a, b);
+	bool result = topp.parseRange(s, a, b, "test_param");
 	TEST_REAL_SIMILAR(a, -1.0);
 	TEST_REAL_SIMILAR(b, -1.0);
   TEST_EQUAL(result, false);
 
 	s = "4.5:";
-	result = topp.parseRange(s, a, b);
+	result = topp.parseRange(s, a, b, "test_param");
 	TEST_REAL_SIMILAR(a, 4.5);
 	TEST_REAL_SIMILAR(b, -1.0);
   TEST_EQUAL(result, true);
 
 	s = ":5.5";
-	result = topp.parseRange(s, a, b);
+	result = topp.parseRange(s, a, b, "test_param");
 	TEST_REAL_SIMILAR(a, 4.5);
 	TEST_REAL_SIMILAR(b, 5.5);
   TEST_EQUAL(result, true);
 
 	s = "6.5:7.5";
-	result = topp.parseRange(s, a, b);
+	result = topp.parseRange(s, a, b, "test_param");
 	TEST_REAL_SIMILAR(a, 6.5);
 	TEST_REAL_SIMILAR(b, 7.5);
   TEST_EQUAL(result, true);
 
 	// Test error case with wrong delimiter (using '-' instead of ':')
 	s = "600.0-5000.0";
-	TEST_EXCEPTION(Exception::ConversionError, topp.parseRange(s, a, b));
+	TEST_EXCEPTION(Exception::ConversionError, topp.parseRange(s, a, b, "test_param"));
 }
 END_SECTION
 
-START_SECTION(([EXTRA]void parseRange_(const String& text, double& low, double& high, const String& param_name) const))
+START_SECTION(([EXTRA]void parseRange_ with parameter name in error message))
 {
 	TOPPBaseTest topp;
 	double a = -1.0;

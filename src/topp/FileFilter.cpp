@@ -701,29 +701,29 @@ protected:
     try
     {
       //rt
-      parseRange_(rt, rt_l, rt_u);
+      parseRange_(rt, rt_l, rt_u, "rt");
       //mz
-      parseRange_(mz, mz_l, mz_u);
+      parseRange_(mz, mz_l, mz_u, "mz");
       //mz precursor
-      parseRange_(pc_mz_range, pc_left, pc_right);
+      parseRange_(pc_mz_range, pc_left, pc_right, "peak_options:pc_mz_range");
       //int
-      parseRange_(it, it_l, it_u);
+      parseRange_(it, it_l, it_u, "int");
       //charge (features only)
-      parseRange_(charge, charge_l, charge_u);
+      parseRange_(charge, charge_l, charge_u, "f_and_c:charge");
       //size (features and consensus features only)
-      parseRange_(size, size_l, size_u);
+      parseRange_(size, size_l, size_u, "f_and_c:size");
       //overall quality (features only)
-      parseRange_(q, q_l, q_u);
+      parseRange_(q, q_l, q_u, "feature:q");
       //remove collision energy
-      parseRange_(remove_collision_energy, remove_collision_l, remove_collision_u);
+      parseRange_(remove_collision_energy, remove_collision_l, remove_collision_u, "spectra:remove_collision_energy");
       //select collision energy
-      parseRange_(select_collision_energy, select_collision_l, select_collision_u);
+      parseRange_(select_collision_energy, select_collision_l, select_collision_u, "spectra:select_collision_energy");
       //remove isolation window width
-      parseRange_(remove_isolation_width, remove_isolation_width_l, remove_isolation_width_u);
+      parseRange_(remove_isolation_width, remove_isolation_width_l, remove_isolation_width_u, "spectra:remove_isolation_window_width");
       //select isolation window width
-      parseRange_(select_isolation_width, select_isolation_width_l, select_isolation_width_u);
+      parseRange_(select_isolation_width, select_isolation_width_l, select_isolation_width_u, "spectra:select_isolation_window_width");
       //parse precursor charge from in to out
-      parseRange_(replace_pc_charge, replace_pc_charge_in, replace_pc_charge_out);
+      parseRange_(replace_pc_charge, replace_pc_charge_in, replace_pc_charge_out, "spectra:replace_pc_charge");
     }
     catch (Exception::ConversionError& ce)
     {

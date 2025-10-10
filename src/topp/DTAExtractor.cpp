@@ -96,11 +96,11 @@ protected:
     try
     {
       //rt
-      parseRange_(rt, rt_l, rt_u);
+      parseRange_(rt, rt_l, rt_u, "rt");
       writeDebug_("rt lower/upper bound: " + String(rt_l) + " / " + String(rt_u), 1);
 
       //mz
-      parseRange_(mz, mz_l, mz_u);
+      parseRange_(mz, mz_l, mz_u, "mz");
       writeDebug_("mz lower/upper bound: " + String(mz_l) + " / " + String(mz_u), 1);
 
       //levels

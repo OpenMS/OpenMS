@@ -2048,23 +2048,13 @@ namespace OpenMS
     }
     catch (Exception::ElementNotFound&)
     {
-      String error_msg = "Error parsing range";
-      if (!param_name.empty())
-      {
-        error_msg += " for parameter '" + param_name + "'";
-      }
-      error_msg += ": '" + text + "' is not a valid range. ";
+      String error_msg = "Error parsing range for parameter '" + param_name + "': '" + text + "' is not a valid range. ";
       error_msg += "Please use the format 'low:high' with ':' as delimiter (e.g., '600.0:5000.0').";
       throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, error_msg);
     }
     catch (Exception::ConversionError&)
     {
-      String error_msg = "Error parsing range";
-      if (!param_name.empty())
-      {
-        error_msg += " for parameter '" + param_name + "'";
-      }
-      error_msg += ": Could not convert string '" + text + "' to a range of floating point values. ";
+      String error_msg = "Error parsing range for parameter '" + param_name + "': Could not convert string '" + text + "' to a range of floating point values. ";
       error_msg += "Please use the format 'low:high' with ':' as delimiter (e.g., '600.0:5000.0').";
       throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, error_msg);
     }
@@ -2092,23 +2082,13 @@ namespace OpenMS
     }
     catch (Exception::ElementNotFound&)
     {
-      String error_msg = "Error parsing range";
-      if (!param_name.empty())
-      {
-        error_msg += " for parameter '" + param_name + "'";
-      }
-      error_msg += ": '" + text + "' is not a valid range. ";
+      String error_msg = "Error parsing range for parameter '" + param_name + "': '" + text + "' is not a valid range. ";
       error_msg += "Please use the format 'low:high' with ':' as delimiter (e.g., '1:10').";
       throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, error_msg);
     }
     catch (Exception::ConversionError&)
     {
-      String error_msg = "Error parsing range";
-      if (!param_name.empty())
-      {
-        error_msg += " for parameter '" + param_name + "'";
-      }
-      error_msg += ": Could not convert string '" + text + "' to a range of integer values. ";
+      String error_msg = "Error parsing range for parameter '" + param_name + "': Could not convert string '" + text + "' to a range of integer values. ";
       error_msg += "Please use the format 'low:high' with ':' as delimiter (e.g., '1:10').";
       throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, error_msg);
     }
