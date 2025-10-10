@@ -14,6 +14,7 @@
 #include <QtCore/QObject>
 
 #include <functional> // for std::function
+#include <map> // for std::map
 
 class QProcess; // forward declare to avoid header include
 class QString;
@@ -78,14 +79,15 @@ namespace OpenMS
       @param verbose Report the call command and errors via the callbacks (default: false)
       @param[out] error_msg Message to display to the user if something went wrong (if return != SUCCESS)
       @param io_mode Open mode for the process (read access, write access, ...)
+      @param env Additional environment variables to pass to the process (key-value pairs). These will be added to the system environment.
       @return Did the external program succeed (SUCCESS) or did something go wrong?
     */
-    RETURNSTATE run(const QString& exe, const QStringList& args, const QString& working_dir, const bool verbose, String& error_msg, IO_MODE io_mode = IO_MODE::READ_WRITE);
+    RETURNSTATE run(const QString& exe, const QStringList& args, const QString& working_dir, const bool verbose, String& error_msg, IO_MODE io_mode = IO_MODE::READ_WRITE, const std::map<QString, QString>& env = std::map<QString, QString>());
     
     /**
       @brief Same as other overload, just without a returned error message
      */
-    ExternalProcess::RETURNSTATE run(const QString& exe, const QStringList& args, const QString& working_dir, const bool verbose, IO_MODE io_mode = IO_MODE::READ_WRITE);
+    ExternalProcess::RETURNSTATE run(const QString& exe, const QStringList& args, const QString& working_dir, const bool verbose, IO_MODE io_mode = IO_MODE::READ_WRITE, const std::map<QString, QString>& env = std::map<QString, QString>());
 
   private slots:
     void processStdOut_();
