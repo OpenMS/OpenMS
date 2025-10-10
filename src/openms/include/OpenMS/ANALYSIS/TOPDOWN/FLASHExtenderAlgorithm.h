@@ -230,7 +230,8 @@ private:
   std::vector<ProteinHit> proteoform_hits_;
   double tol_;
 
-  int max_mod_cntr_ = 0;
+  int max_blind_mod_cntr_ = 0;
+  int max_var_mod_cntr_ = 3;
   int allowed_isotope_error_ = 1;
   const int max_path_score_ = 1200;
   const int min_path_score_ = -20;

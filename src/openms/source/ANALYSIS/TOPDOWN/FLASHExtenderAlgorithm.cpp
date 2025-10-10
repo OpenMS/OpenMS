@@ -42,24 +42,24 @@ void FLASHExtenderAlgorithm::setDefaultParams_()
 
 void FLASHExtenderAlgorithm::updateMembers_()
 {
-  max_mod_cntr_ = param_.getValue("max_mod_count");
+  max_blind_mod_cntr_ = param_.getValue("max_mod_count");
   max_mod_mass_ = param_.getValue("max_mod_mass");
 }
 
 inline Size FLASHExtenderAlgorithm::getVertex_(int node_index, int pro_index, int score, int num_mod, Size pro_mass_size) const
 {
-  return ((node_index * pro_mass_size + pro_index) * (max_mod_cntr_ + 1) + num_mod) * (max_path_score_ - min_path_score_ + 1)
+  return ((node_index * pro_mass_size + pro_index) * (max_blind_mod_cntr_ + 1) + num_mod) * (max_path_score_ - min_path_score_ + 1)
          + (std::min(max_path_score_, std::max(min_path_score_, score)) - min_path_score_);
 }
 
 inline int FLASHExtenderAlgorithm::getNodeIndex_(Size vertex, Size pro_mass_size) const
 {
-  return (vertex / (max_path_score_ - min_path_score_ + 1) / ((Size)max_mod_cntr_ + 1)) / pro_mass_size;
+  return (vertex / (max_path_score_ - min_path_score_ + 1) / ((Size)max_blind_mod_cntr_ + 1)) / pro_mass_size;
 }
 
 inline int FLASHExtenderAlgorithm::getProIndex_(Size vertex, Size pro_mass_size) const
 {
-  return ((vertex / (max_path_score_ - min_path_score_ + 1) / (max_mod_cntr_ + 1))) % pro_mass_size;
+  return ((vertex / (max_path_score_ - min_path_score_ + 1) / (max_blind_mod_cntr_ + 1))) % pro_mass_size;
 }
 
 inline int FLASHExtenderAlgorithm::getScore_(Size vertex) const
@@ -69,7 +69,7 @@ inline int FLASHExtenderAlgorithm::getScore_(Size vertex) const
 
 inline int FLASHExtenderAlgorithm::getModNumber_(Size vertex) const
 {
-  return (vertex / (max_path_score_ - min_path_score_ + 1)) % (max_mod_cntr_ + 1);
+  return (vertex / (max_path_score_ - min_path_score_ + 1)) % (max_blind_mod_cntr_ + 1);
 }
 
 // take the hits. Just calculate the mass of truncated protein. Then add modification masses if they are disjoint. If they overlap and the same mass,
@@ -329,7 +329,7 @@ void FLASHExtenderAlgorithm::run_(const ProteinHit& hit,
   }
   const auto& node_spec = hi.node_spec_map_[hi.mode_];
   const auto& pro_masses = hi.pro_mass_map_[hi.mode_];
-  hi.dag_ = FLASHHelperClasses::DAG((1 + node_spec.size()) * (1 + pro_masses.size()) * (1 + max_mod_cntr_) * (1 + max_path_score_ - min_path_score_));
+  hi.dag_ = FLASHHelperClasses::DAG((1 + node_spec.size()) * (1 + pro_masses.size()) * (1 + max_blind_mod_cntr_) * (1 + max_path_score_ - min_path_score_));
 
   bool tag_found = false;
   auto seq = hit.getSequence();
@@ -450,7 +450,7 @@ void FLASHExtenderAlgorithm::run_(const ProteinHit& hit,
 
   constructDAG_(sinks, hi, tag_edges, max_mod_cntr_for_last_mode, tag_found);
   Size src = getVertex_(0, 0, 0, 0, pro_masses.size());
-  std::vector<int> max_scores(max_mod_cntr_ + 1, 0);
+  std::vector<int> max_scores(max_blind_mod_cntr_ + 1, 0);
   for (Size sink : sinks)
   {
     int num_mod = getModNumber_(sink);
@@ -458,7 +458,7 @@ void FLASHExtenderAlgorithm::run_(const ProteinHit& hit,
     if (hi.calculated_precursor_mass_ > 0 && getNodeIndex_(sink, pro_masses.size()) < (int)node_spec.size() - 1) continue;
     max_scores[num_mod] = getScore_(sink);
   }
-  std::vector<std::vector<std::vector<Size>>> paths(max_mod_cntr_ + 1, std::vector<std::vector<Size>>());
+  std::vector<std::vector<std::vector<Size>>> paths(max_blind_mod_cntr_ + 1, std::vector<std::vector<Size>>());
   for (Size sink : sinks)
   {
     int num_mod = getModNumber_(sink);
@@ -467,7 +467,7 @@ void FLASHExtenderAlgorithm::run_(const ProteinHit& hit,
     //std::vector<std::vector<Size>> sub_paths;
     hi.dag_.findAllPaths(sink, src, paths[num_mod], 0);
   }
-  for (int num_mod = 0; num_mod <= max_mod_cntr_; num_mod++)
+  for (int num_mod = 0; num_mod <= max_blind_mod_cntr_; num_mod++)
   {
     for (const auto& path : paths[num_mod])
     {
@@ -577,7 +577,7 @@ void FLASHExtenderAlgorithm::run(std::vector<ProteinHit>& hits,
       if (hi.mode_ == 2 && hi.calculated_precursor_mass_ <= 0)
       {//const ProteinHit& hit,
         if (max_nterm_index + max_cterm_rindex >= (int)hit.getSequence().size()) calculatePrecursorMass_(hit, best_path_map, hi);
-        max_mod_cntr_for_last_mode = std::min(max_mod_cntr_, (int)mod_starts.size() + 1);
+        max_mod_cntr_for_last_mode = std::min(max_blind_mod_cntr_, (int)mod_starts.size() + 1);
 
         if (hi.calculated_precursor_mass_ <= 0) hi.calculated_precursor_mass_ = given_precursor_mass_;
         else precursor_by_fragment = true;
@@ -592,7 +592,7 @@ void FLASHExtenderAlgorithm::run(std::vector<ProteinHit>& hits,
       updateHitInformation_(dspec, hi, pro_masses.back());
 
       if (hi.visited_.empty())
-        hi.visited_ = boost::dynamic_bitset<>((3 + dspec.size() * ion_types_str_.size()) * (1 + pro_masses.size()) * (1 + max_mod_cntr_)
+        hi.visited_ = boost::dynamic_bitset<>((3 + dspec.size() * ion_types_str_.size()) * (1 + pro_masses.size()) * (1 + max_blind_mod_cntr_)
                                               * (1 + max_path_score_ - min_path_score_));
 
       run_(hit, hi, matched_tags, all_path_map[hi.mode_], max_mod_cntr_for_last_mode);
@@ -644,11 +644,11 @@ void FLASHExtenderAlgorithm::run(std::vector<ProteinHit>& hits,
         }
         else // both terms
         {
-          for (int mc = 0; mc <= max_mod_cntr_; mc++)
+          for (int mc = 0; mc <= max_blind_mod_cntr_; mc++)
           {
             if (cscores.find(mc) == cscores.end()) continue;
             const auto& cpath = paths_c->second[mc];
-            for (int mn = 0; mc + mn <= max_mod_cntr_; mn++)
+            for (int mn = 0; mc + mn <= max_blind_mod_cntr_; mn++)
             {
               if (nscores.find(mn) == nscores.end()) continue;
               int sum_score = nscores[mn] + cscores[mc];
@@ -909,7 +909,7 @@ void FLASHExtenderAlgorithm::run(std::vector<ProteinHit>& hits,
             if (hi.protein_end_position_ >= 0) seq = seq.substr(0, hi.protein_end_position_);
             if (hi.protein_start_position_ >= 0) seq = seq.substr(hi.protein_start_position_);
 
-            FLASHTaggerAlgorithm::fillMatchedPositionsAndFlankingMassDiffs(positions, masses, max_mod_mass_ * max_mod_cntr_ + 1, seq, tag);
+            FLASHTaggerAlgorithm::fillMatchedPositionsAndFlankingMassDiffs(positions, masses, max_mod_mass_ * max_blind_mod_cntr_ + 1, seq, tag);
             tag_matched = ! positions.empty();
             break;
           }
@@ -1168,7 +1168,7 @@ void FLASHExtenderAlgorithm::findPathsAlongTagEndPoints(std::set<Size>& visited_
       {
         for (int j = 0; j < pro_masses.size(); j++)
         {
-          if (std::abs(hi.calculated_precursor_mass_ + truncation_mass - pro_masses[j]) > max_mod_mass_ * (max_mod_cntr_ - getModNumber_(vertex)))
+          if (std::abs(hi.calculated_precursor_mass_ + truncation_mass - pro_masses[j]) > max_mod_mass_ * (max_blind_mod_cntr_ - getModNumber_(vertex)))
             continue;
 
           findSubPathsBetweenTagEndPoints(sinks, hi, vertex, hi.node_spec_map_[2].size() - 1, j, 0, truncation_mass, cumulative_shift,
@@ -1194,7 +1194,7 @@ void FLASHExtenderAlgorithm::findSubPathsBetweenTagEndPoints(std::map<Size, std:
   if (! hi.visited_[start_vertex]) return;
   const auto& pro_masses = hi.pro_mass_map_[hi.mode_];
   const auto pro_mass_size = pro_masses.size();
-  int max_mod_cntr = max_mod_cntr_for_last_mode >= 0 ? max_mod_cntr_for_last_mode : max_mod_cntr_;
+  int max_mod_cntr = max_mod_cntr_for_last_mode >= 0 ? max_mod_cntr_for_last_mode : max_blind_mod_cntr_;
   int start_node_index = getNodeIndex_(start_vertex, pro_mass_size);
   int start_pro_index = getProIndex_(start_vertex, pro_mass_size);
   int start_score = getScore_(start_vertex);
@@ -1329,6 +1329,10 @@ void FLASHExtenderAlgorithm::findSubPathsBetweenTagEndPoints(std::map<Size, std:
         if (std::abs(delta_delta) > 0.036386 + t_margin && std::abs(delta_delta) < 0.947630 - t_margin) continue;
         num_mod++;
         if (num_mod > max_mod_cntr) continue;
+
+        // for N term, or C term, consider terminal modifications
+        //start_node_index == 0?
+
         if (diagonal_counter > 0) continue; //
 
         next_cumulative_mod_mass = t_delta_mass + truncation_mass;
