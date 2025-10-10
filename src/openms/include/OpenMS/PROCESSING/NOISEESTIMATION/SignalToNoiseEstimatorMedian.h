@@ -52,7 +52,7 @@ namespace OpenMS
   */
 
   template <typename Container = MSSpectrum>
-  class OPENMS_DLLAPI SignalToNoiseEstimatorMedian :
+  class SignalToNoiseEstimatorMedian :
     public SignalToNoiseEstimator<Container>
   {
 

@@ -28,7 +28,7 @@ namespace OpenMS
   */
 
   template <typename Container = MSSpectrum>
-  class OPENMS_DLLAPI SignalToNoiseEstimator :
+  class SignalToNoiseEstimator :
     public DefaultParamHandler, public ProgressLogger
   {
 public:
