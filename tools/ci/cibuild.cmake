@@ -5,6 +5,10 @@
 # define build name&co for easier identification on CDash
 set(CTEST_BUILD_NAME "$ENV{BUILD_NAME}")
 
+string(REPLACE "+" "%2B" BUILD_NAME_SAFE ${CTEST_BUILD_NAME})
+string(REPLACE "." "%2E" BUILD_NAME_SAFE ${BUILD_NAME_SAFE})
+string(REPLACE "/" "%2F" BUILD_NAME_SAFE ${BUILD_NAME_SAFE})
+
 set(CTEST_SITE "$ENV{CI_PROVIDER}")
 set(CTEST_SOURCE_DIRECTORY "$ENV{SOURCE_DIRECTORY}")
 set(CTEST_BINARY_DIRECTORY "${CTEST_SOURCE_DIRECTORY}/bld")
@@ -179,45 +183,53 @@ if(NOT _submit_result EQUAL 0)
     message(WARNING "CTest submission failed, no detailed logs will be available.")
 endif()
 
-
 # we only build when we do non-style testing and we may have special targets like pyopenms
+set(final_result 0)
+
 if("$ENV{ENABLE_STYLE_TESTING}" STREQUAL "OFF")
   ctest_build(BUILD "${CTEST_BINARY_DIRECTORY}" NUMBER_ERRORS _build_errors)
+  ctest_submit(PARTS Build)
+  math(EXPR final_result "${final_result} | ${_submit_result}")
 
   if("$ENV{PYOPENMS}" STREQUAL "ON")
+    set(CTEST_BUILD_NAME "$ENV{BUILD_NAME}-pyopenms")
     ctest_build(BUILD "${CTEST_BINARY_DIRECTORY}" TARGET "pyopenms" NUMBER_ERRORS _py_build_errors)
     math(EXPR _build_errors "${_build_errors} + ${_py_build_errors}")
+    ctest_submit(PARTS Build)
+    math(EXPR final_result "${final_result} | ${_submit_result}")
   endif()
 
   # Only build compile_pxds if PYOPENMS is not ON (since it's already a subtarget of pyopenms)
   if("$ENV{COMPILE_PXDS}" STREQUAL "ON" AND "$ENV{PYOPENMS}" STREQUAL "OFF")
+    set(CTEST_BUILD_NAME "$ENV{BUILD_NAME}-compile_pxds")
     ctest_build(BUILD "${CTEST_BINARY_DIRECTORY}" TARGET "compile_pxds" NUMBER_ERRORS _pdxs_build_errors)
     math(EXPR _build_errors "${_build_errors} + ${_pdxs_build_errors}")
+    ctest_submit(PARTS Build)
+    math(EXPR final_result "${final_result} | ${_submit_result}")
+
   endif()
 
   # Generate and validate the CWL files if "ENABLE_CWL_GENERATION" is set
   if("$ENV{ENABLE_CWL_GENERATION}" STREQUAL "ON")
+    set(CTEST_BUILD_NAME "$ENV{BUILD_NAME}-generate_cwl")
     ctest_build(BUILD "${CTEST_BINARY_DIRECTORY}" TARGET "generate_cwl_files" NUMBER_ERRORS _cwl_build_errors)
     math(EXPR _build_errors "${_build_errors} + ${_cwl_build_errors}")
+    ctest_submit(PARTS Build)
+    math(EXPR final_result "${final_result} | ${_submit_result}")
+
+    
   endif()
 else()
   set(_build_errors 0)
 endif()
 
-## send test results to CDash
-ctest_submit(PARTS Build CAPTURE_CMAKE_ERROR _submit_result)
-
-if(NOT _submit_result EQUAL 0)
+if(NOT final_result EQUAL 0)
   execute_process(COMMAND ${CMAKE_COMMAND} -E echo "::warning file=cibuild.cmake,line=193::CTest submission failed, CDASH server is not available. Continuing execution.")
   message(WARNING "CTest submission failed, no detailed logs will be available.")
   if (_test_errors)
     message(FATAL_ERROR "There were errors: aborting")
   endif()
 else()
-  string(REPLACE "+" "%2B" BUILD_NAME_SAFE ${CTEST_BUILD_NAME})
-  string(REPLACE "." "%2E" BUILD_NAME_SAFE ${BUILD_NAME_SAFE})
-  string(REPLACE "/" "%2F" BUILD_NAME_SAFE ${BUILD_NAME_SAFE})
-  
   if (_build_errors)
     message(FATAL_ERROR "There were errors: Please check the build results at: https://cdash.seqan.de/index.php?project=OpenMS&begin=2023-01-01&end=2030-01-01&filtercount=1&field1=buildname&compare1=63&value1=${BUILD_NAME_SAFE}")
   else()
