@@ -1207,6 +1207,8 @@ protected:
         load_into_memory,
         irt_trafo_out,
         irt_mzml_out);
+      // We need to set trafo_rtnorm to the calibration result
+      trafo_rtnorm = calibration_result.rt_trafo;
       // Use the 0.99 quantile so the window covers ~99% of residuals, ignoring rare extremes (those that are potential outliers).
       estimated_rt_extraction_window = calibration_result.rt_trafo.estimateWindow(0.99, true, true, rt_estimation_padding_factor);
       // RT (seconds)
