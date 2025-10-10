@@ -645,7 +645,9 @@ protected:
     mz_l = rt_l = it_l = charge_l = size_l = q_l = pc_left = select_collision_l = remove_collision_l = select_isolation_width_l = remove_isolation_width_l = replace_pc_charge_in = -1 * numeric_limits<double>::max();
     mz_u = rt_u = it_u = charge_u = size_u = q_u = pc_right = select_collision_u = remove_collision_u = select_isolation_width_u = remove_isolation_width_u = replace_pc_charge_out = numeric_limits<double>::max();
 
+    String rt = getStringOption_("rt");
     RTBlockMode rt_block_mode = (RTBlockMode)Helpers::indexOf(RT_BLOCK_MODE_NAMES, getStringOption_("rt_block_mode"));
+    String pc_mz_range = getStringOption_("peak_options:pc_mz_range");
     IntList levels = getIntList_("peak_options:level");
     IntList maps = getIntList_("consensus:map");
     double sn = getDoubleOption_("peak_options:sn");
