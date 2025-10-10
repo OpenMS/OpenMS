@@ -779,7 +779,7 @@ protected:
     {
       if (!applicable)
       {
-        OPENMS_LOG_INFO << "[Auto-calibration] " << label
+        OPENMS_LOG_INFO << "[Estimated] " << label
                         << " window: not applicable; keeping user value "
                         << user_value << std::endl;
         return;
@@ -787,7 +787,7 @@ protected:
 
       if (!is_valid_win(estimate))
       {
-        OPENMS_LOG_WARN << "[Auto-calibration] " << label
+        OPENMS_LOG_WARN << "[Estimated] " << label
                         << " window estimate invalid (estimated=" << estimate
                         << "); keeping user value " << user_value << std::endl;
         return;
@@ -795,14 +795,14 @@ protected:
 
       if (commit)
       {
-        OPENMS_LOG_INFO << "[Auto-calibration] " << label
+        OPENMS_LOG_INFO << "[Estimated] " << label
                         << " window applied: " << estimate
                         << " (was " << user_value << ")" << std::endl;
         dst_param = estimate;
       }
       else
       {
-        OPENMS_LOG_INFO << "[Auto-calibration] " << label
+        OPENMS_LOG_INFO << "[Estimated] " << label
                         << " window estimated: " << estimate
                         << "; keeping user value " << user_value << std::endl;
         // leave dst_param unchanged
