@@ -159,10 +159,22 @@ class TOPPBaseTest
       addDataProcessing_(c_map, dp);
     }
 
+    // For testing parseRange_: store test value temporarily
+    mutable String test_range_value_;
+
+    String getStringOption_(const String& name) const override
+    {
+      if (name == "test_range")
+      {
+        return test_range_value_;
+      }
+      return TOPPBase::getStringOption_(name);
+    }
+
     bool parseRange(const String& text, double& low, double& high, const String& param_name) const
     {
-      // For testing: set the parameter value temporarily
-      const_cast<TOPPBaseTest*>(this)->param_.setValue(param_name, text);
+      // For testing: set the test parameter value temporarily
+      test_range_value_ = text;
       return parseRange_(param_name, low, high);
     }
 
