@@ -22,8 +22,7 @@ using namespace OpenMS;
 Size MQExporterHelper::proteinGroupID_(std::map<OpenMS::String, OpenMS::Size>& database,
                                        const String& protein_accession)
 {
-  auto it = database.find(protein_accession);
-  if (it == database.end())
+  if (auto it = database.find(protein_accession); it == database.end())
   {
     database.emplace(protein_accession, database.size() + 1);
     return database.size();
@@ -181,18 +180,20 @@ MQExporterHelper::MQCommonOutputs::MQCommonOutputs(
   std::vector<String> protein_names_temp;
   for(const auto& prot_access : accessions)
   {
-    const auto& prot_mapper_it = prot_mapper.find(prot_access);
-    if(prot_mapper_it == prot_mapper.end())
+    if (const auto& prot_mapper_it = prot_mapper.find(prot_access); prot_mapper_it == prot_mapper.end())
     {
       continue;
     }
-    auto protein_description = prot_mapper_it->second;
-    auto gn = extractGeneName(protein_description);
-    if(!gn.empty())
+    else
     {
-      gene_names_temp.push_back(std::move(gn));
+      auto protein_description = prot_mapper_it->second;
+      auto gn = extractGeneName(protein_description);
+      if(!gn.empty())
+      {
+        gene_names_temp.push_back(std::move(gn));
+      }
+      protein_names_temp.push_back(std::move(protein_description));
     }
-    protein_names_temp.push_back(std::move(protein_description));
   }
   gene_names.str(ListUtils::concatenate(gene_names_temp, ';'));     //Gene Names
   protein_names.str(ListUtils::concatenate(protein_names_temp, ';'));  //Protein Names

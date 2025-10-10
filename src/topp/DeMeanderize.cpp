@@ -20,9 +20,77 @@ using namespace std;
 /**
 @page TOPP_DeMeanderize DeMeanderize
 
-@brief Repairs MALDI experiments which were spotted line by line.
+@brief Repairs MALDI experiments which were spotted line by line in a meandering pattern.
 
+<CENTER>
+<table>
+  <tr>
+    <th ALIGN = "center"> pot pot pot </th>
+  </tr>
+  <tr>
+    <td VALIGN="middle" ALIGN = "center" ROWSPAN=1>
+    @image html DeMeanderize.png
+    </td>
+  </tr>
+</table>
+</CENTER>
 
+<B>Problem Description:</B>
+
+MALDI (Matrix-Assisted Laser Desorption/Ionization) spotting robots often apply samples to
+target plates in a "meandering" or "snake-like" pattern to optimize spotting efficiency. This means:
+- Row 1 is spotted from left to right: spots 1, 2, 3, ..., N
+- Row 2 is spotted from right to left: spots N+1, N+2, ..., 2N (but in reverse physical order!)
+- Row 3 is spotted from left to right again: spots 2N+1, 2N+2, ..., 3N
+- And so on...
+
+When the mass spectrometer reads these spots in physical order (left to right for all rows),
+the spectra from alternating rows have incorrect retention time assignments, appearing in 
+reverse chronological order compared to when they were spotted.
+
+<B>Solution:</B>
+
+DeMeanderize corrects this by:
+1. Identifying MS1 spectra that belong to reversed rows
+2. Recalculating their pseudo-retention times (RT) to reflect the actual spotting order
+3. Sorting all spectra by their corrected RT values
+
+<B>Algorithm Details:</B>
+
+The tool processes spectra sequentially and assigns pseudo-RT values:
+- For normal rows (first, third, fifth, etc.):
+  @code
+  RT = spectrum_number * RT_distance
+  @endcode
+
+- For reversed rows (second, fourth, sixth, etc.):
+  @code
+  RT = (row_start_number + (num_spots_per_row - position_in_row)) * RT_distance
+  @endcode
+
+The algorithm maintains:
+- A counter tracking total MS1 spectra processed
+- The position within the current row (0 to num_spots_per_row-1)
+- A flag indicating whether the current row should be reversed
+
+After processing @p num_spots_per_row MS1 spectra, the algorithm switches to the next row
+and toggles the reversal flag.
+
+<B>Parameters:</B>
+- @p num_spots_per_row: Number of spots in each row of the plate (default: 48)
+- @p RT_distance: The pseudo-RT spacing between adjacent spots (default: 1.0)
+
+<B>Example:</B>
+
+For a plate with 4 spots per row and RT_distance=1.0:
+@code
+Original physical order:  1  2  3  4  8  7  6  5  9 10 11 12
+Spotting order:           1  2  3  4  5  6  7  8  9 10 11 12
+Original RTs:             1  2  3  4  5  6  7  8  9 10 11 12
+Corrected RTs:            1  2  3  4  8  7  6  5  9 10 11 12
+@endcode
+
+After correction and sorting, spectra are ordered by actual spotting sequence.
 
 <B>The command line parameters of this tool are:</B>
 @verbinclude TOPP_DeMeanderize.cli

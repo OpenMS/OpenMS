@@ -9,7 +9,7 @@
 	<mapList count="2">
 		<map id="0" name="Decharger_input.featureXML" label="decharged features" size="2317">
 		</map>
-		<map id="1" name="" label="heavy" size="2317">
+		<map id="1" name="Decharger_input.featureXML" label="heavy" size="2317">
 		</map>
 	</mapList>
 	<consensusElementList>

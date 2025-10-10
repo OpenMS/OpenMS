@@ -90,7 +90,6 @@ OpenMSDatabasesInfo
 OpenMSInfo
 OpenNuXL
 OpenPepXL
-OpenPepXLLF
 OpenSwathAnalyzer
 OpenSwathAssayGenerator
 OpenSwathChromatogramExtractor

@@ -127,7 +127,7 @@ namespace OpenMS
     //param_->remove("debug");
 
     //remove parameters already explained by edges and the "type" parameter
-    foreach(const String &name, hidden_entries_)
+    for (const String &name : hidden_entries_)
     {
       param_->remove(name);
     }

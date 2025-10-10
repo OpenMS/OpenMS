@@ -59,9 +59,9 @@ namespace OpenMS
 
   void NLargest::filterPeakMap(PeakMap & exp)
   {
-    for (PeakMap::Iterator it = exp.begin(); it != exp.end(); ++it)
+    for (auto& spectrum : exp)
     {
-      filterSpectrum(*it);
+      filterSpectrum(spectrum);
     }
   }
 

@@ -145,8 +145,15 @@ protected:
 
     writeDebug_("Saving output files", 1);
 
-    cm.getColumnHeaders()[0].filename = infile;
-    cm2.getColumnHeaders()[0].filename = infile;
+    // Set filename for all column headers
+    for (auto& header : cm.getColumnHeaders())
+    {
+      header.second.filename = infile;
+    }
+    for (auto& header : cm2.getColumnHeaders())
+    {
+      header.second.filename = infile;
+    }
 
     //annotate output with data processing info
     addDataProcessing_(map_out, getProcessingInfo_(DataProcessing::CHARGE_DECONVOLUTION));
