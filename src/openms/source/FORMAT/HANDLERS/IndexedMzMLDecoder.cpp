@@ -8,6 +8,8 @@
 
 #include <OpenMS/FORMAT/HANDLERS/IndexedMzMLDecoder.h>
 
+#include <OpenMS/SYSTEM/File.h>
+
 #include <boost/regex.hpp>
 #include <boost/lexical_cast.hpp>
 
@@ -71,7 +73,18 @@ namespace OpenMS
     std::ifstream f(filename.c_str());
     if (!f.is_open())
     {
-      throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+      if (!File::exists(filename))
+      {
+        throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+      }
+      else if (!File::readable(filename))
+      {
+        throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+      }
+      else
+      {
+        throw Exception::IOException(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+      }
     }
 
     // get length of file:
@@ -133,7 +146,18 @@ namespace OpenMS
 
     if (!f.is_open())
     {
-      throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+      if (!File::exists(filename))
+      {
+        throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+      }
+      else if (!File::readable(filename))
+      {
+        throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+      }
+      else
+      {
+        throw Exception::IOException(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+      }
     }
 
     // Read the last few bytes and hope our offset is there to be found
