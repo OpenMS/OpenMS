@@ -46,10 +46,11 @@ set(OPENMS_LOGOSMALL ${PROJECT_SOURCE_DIR}/cmake/MacOSX/${OPENMS_LOGOSMALL_NAME}
 
 # Normalize CMAKE_PREFIX_PATH entries to avoid mixed path separators (/ and \)
 # This is especially important on Windows where paths might come from different sources
+# Use string(REPLACE) instead of file(TO_CMAKE_PATH) to avoid issues with ':' in Windows paths
 set(NORMALIZED_CMAKE_PREFIX_PATH "")
 foreach(prefix_path ${CMAKE_PREFIX_PATH})
   if(prefix_path)
-    file(TO_CMAKE_PATH "${prefix_path}" normalized_path)
+    string(REPLACE "\\" "/" normalized_path "${prefix_path}")
     list(APPEND NORMALIZED_CMAKE_PREFIX_PATH "${normalized_path}")
   endif()
 endforeach()

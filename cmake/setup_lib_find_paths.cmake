@@ -22,13 +22,14 @@ if(NOT OPENMS_CONTRIB_LIBS)
 -DOPENMS_CONTRIB_LIBS")
 else()
   # Normalize path to use forward slashes consistently (CMake convention)
-  file(TO_CMAKE_PATH "${OPENMS_CONTRIB_LIBS}" OPENMS_CONTRIB_LIBS_NORMALIZED)
+  # Use string(REPLACE) instead of file(TO_CMAKE_PATH) to avoid issues with ':' in Windows paths
+  string(REPLACE "\\" "/" OPENMS_CONTRIB_LIBS_NORMALIZED "${OPENMS_CONTRIB_LIBS}")
   
   # Normalize all existing CMAKE_PREFIX_PATH entries to avoid mixed separators
   set(NORMALIZED_PREFIX_PATHS "")
   foreach(prefix_path ${CMAKE_PREFIX_PATH})
     if(prefix_path)
-      file(TO_CMAKE_PATH "${prefix_path}" normalized_path)
+      string(REPLACE "\\" "/" normalized_path "${prefix_path}")
       list(APPEND NORMALIZED_PREFIX_PATHS "${normalized_path}")
     endif()
   endforeach()
