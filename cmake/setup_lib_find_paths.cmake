@@ -21,9 +21,26 @@ if(NOT OPENMS_CONTRIB_LIBS)
   message("Note: OPENMS_CONTRIB_LIBS not set. Unless you are certain that you have all contributing libraries in system paths, please specify an explicit path to the built contrib libraries via
 -DOPENMS_CONTRIB_LIBS")
 else()
-  list(INSERT CMAKE_PREFIX_PATH 0 ${OPENMS_CONTRIB_LIBS})
+  # Normalize path to use forward slashes consistently (CMake convention)
+  file(TO_CMAKE_PATH "${OPENMS_CONTRIB_LIBS}" OPENMS_CONTRIB_LIBS_NORMALIZED)
+  
+  # Normalize all existing CMAKE_PREFIX_PATH entries to avoid mixed separators
+  set(NORMALIZED_PREFIX_PATHS "")
+  foreach(prefix_path ${CMAKE_PREFIX_PATH})
+    if(prefix_path)
+      file(TO_CMAKE_PATH "${prefix_path}" normalized_path)
+      list(APPEND NORMALIZED_PREFIX_PATHS "${normalized_path}")
+    endif()
+  endforeach()
+  set(CMAKE_PREFIX_PATH ${NORMALIZED_PREFIX_PATHS})
+  
+  list(INSERT CMAKE_PREFIX_PATH 0 ${OPENMS_CONTRIB_LIBS_NORMALIZED})
   list(REMOVE_DUPLICATES CMAKE_PREFIX_PATH)
   list(REMOVE_ITEM CMAKE_PREFIX_PATH "") # Remove empty entries
+  
+  # Print the normalized paths for debugging
+  message(STATUS "OPENMS_CONTRIB_LIBS (normalized): ${OPENMS_CONTRIB_LIBS_NORMALIZED}")
+  message(STATUS "CMAKE_PREFIX_PATH: ${CMAKE_PREFIX_PATH}")
 endif()
 
 #------------------------------------------------------------------------------

@@ -43,8 +43,24 @@ set(OPENMS_LOGOSMALL ${PROJECT_SOURCE_DIR}/cmake/MacOSX/${OPENMS_LOGOSMALL_NAME}
 # - Manual find_library() results without imported targets
 # By adding these paths, we ensure all dependencies are found during installation even if
 # they were missed during the build-time copy step.
-list(TRANSFORM CMAKE_PREFIX_PATH APPEND "/bin" OUTPUT_VARIABLE DEP_BIN_DIRS)
-list(TRANSFORM CMAKE_PREFIX_PATH APPEND "/lib" OUTPUT_VARIABLE DEP_LIB_DIRS)
+
+# Normalize CMAKE_PREFIX_PATH entries to avoid mixed path separators (/ and \)
+# This is especially important on Windows where paths might come from different sources
+set(NORMALIZED_CMAKE_PREFIX_PATH "")
+foreach(prefix_path ${CMAKE_PREFIX_PATH})
+  if(prefix_path)
+    file(TO_CMAKE_PATH "${prefix_path}" normalized_path)
+    list(APPEND NORMALIZED_CMAKE_PREFIX_PATH "${normalized_path}")
+  endif()
+endforeach()
+
+# Use normalized paths and append /bin and /lib subdirectories
+list(TRANSFORM NORMALIZED_CMAKE_PREFIX_PATH APPEND "/bin" OUTPUT_VARIABLE DEP_BIN_DIRS)
+list(TRANSFORM NORMALIZED_CMAKE_PREFIX_PATH APPEND "/lib" OUTPUT_VARIABLE DEP_LIB_DIRS)
+
+# Print the paths for debugging
+message(STATUS "Dependency search paths (bin): ${DEP_BIN_DIRS}")
+message(STATUS "Dependency search paths (lib): ${DEP_LIB_DIRS}")
 
 # Also include our own runtime directory where dependencies were copied during build.
 # This serves as the primary source, with CMAKE_PREFIX_PATH directories as fallback.
