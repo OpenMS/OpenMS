@@ -40,8 +40,8 @@ else()
   list(REMOVE_ITEM CMAKE_PREFIX_PATH "") # Remove empty entries
   
   # Print the normalized paths for debugging
-  message(STATUS "OPENMS_CONTRIB_LIBS (normalized): ${OPENMS_CONTRIB_LIBS_NORMALIZED}")
-  message(STATUS "CMAKE_PREFIX_PATH: ${CMAKE_PREFIX_PATH}")
+  message(STATUS "OPENMS_CONTRIB_LIBS (normalized): \"${OPENMS_CONTRIB_LIBS_NORMALIZED}\"")
+  message(STATUS "CMAKE_PREFIX_PATH: \"${CMAKE_PREFIX_PATH}\"")
 endif()
 
 #------------------------------------------------------------------------------

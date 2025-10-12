@@ -60,8 +60,8 @@ list(TRANSFORM NORMALIZED_CMAKE_PREFIX_PATH APPEND "/bin" OUTPUT_VARIABLE DEP_BI
 list(TRANSFORM NORMALIZED_CMAKE_PREFIX_PATH APPEND "/lib" OUTPUT_VARIABLE DEP_LIB_DIRS)
 
 # Print the paths for debugging
-message(STATUS "Dependency search paths (bin): ${DEP_BIN_DIRS}")
-message(STATUS "Dependency search paths (lib): ${DEP_LIB_DIRS}")
+message(STATUS "Dependency search paths (bin): \"${DEP_BIN_DIRS}\"")
+message(STATUS "Dependency search paths (lib): \"${DEP_LIB_DIRS}\"")
 
 # Also include our own runtime directory where dependencies were copied during build.
 # This serves as the primary source, with CMAKE_PREFIX_PATH directories as fallback.
