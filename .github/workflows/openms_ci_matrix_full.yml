@@ -219,7 +219,7 @@ jobs:
 
     - name: Emulate a Visual Studio shell (Windows)
       if: startsWith(matrix.os, 'windows')
-      uses: egor-tensin/vs-shell@v2
+      uses: egor-tensin/vs-shell@v2z
       with:
         # NOTE: x64 is hardcoded. No support for 32bit
         arch: x64
@@ -237,14 +237,14 @@ jobs:
       if: startsWith(matrix.os, 'windows')
       shell: bash -el {0}
       run: |
-        conda activate openms-parquet
+        mamba activate openms-parquet
         # None of the other arrow sublibraries seemed necessary, but it's an easy addition.
-        conda install -c conda-forge libarrow libparquet -y
+        mamba install -c conda-forge libarrow libparquet -y
         # Get the conda environment path for later use
-        echo "CONDA_ENV_PATH=$(conda info --base)/envs/openms-parquet" >> $GITHUB_ENV
-        # Add conda environment to PATH for cmake to find the libraries
-        echo "$(conda info --base)/envs/openms-parquet/bin" >> $GITHUB_PATH
-        echo "$(conda info --base)/envs/openms-parquet/Library/bin" >> $GITHUB_PATH
+        echo "CONDA_ENV_PATH=$(mamba info --base)/envs/openms-parquet" >> $GITHUB_ENV
+        # Add mamba environment to PATH for cmake to find the libraries
+        echo "$(mamba info --base)/envs/openms-parquet/bin" >> $GITHUB_PATH
+        echo "$(mamba info --base)/envs/openms-parquet/Library/bin" >> $GITHUB_PATH
 
     - name: Install Qt (Windows)
       if: startsWith(matrix.os, 'windows')
