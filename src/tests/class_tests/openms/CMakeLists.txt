@@ -77,10 +77,6 @@ if (WITH_PARQUET)
   Arrow::arrow_shared
   Parquet::parquet_shared
   )
-  target_link_libraries(QuantmsIO_test 
-  Arrow::arrow_shared
-  Parquet::parquet_shared
-  )
 endif()
 
 

@@ -101,7 +101,6 @@ namespace OpenMS
     TypeNameBinding(FileTypes::EXE, "exe", "Windows executable", {}),
     TypeNameBinding(FileTypes::BZ2, "bz2", "bzip2 compressed file", {PROP::READABLE}),
     TypeNameBinding(FileTypes::GZ, "gz", "gzip compressed file", {PROP::READABLE}),
-    TypeNameBinding(FileTypes::PARQUET, "parquet", "Apache Parquet file", {PROP::READABLE, PROP::WRITEABLE}),
     TypeNameBinding(FileTypes::XML, "xml", "any XML file", {PROP::READABLE}),  // make sure this comes last, since the name is a suffix of other formats and should only be matched last
   };
 
@@ -216,12 +215,6 @@ namespace OpenMS
   FileTypes::Type FileTypes::nameToType(const String& name)
   {
     String name_upper = String(name).toUpper();
-
-    // Special case for multiple extensions for PARQUET
-    if (name_upper == "PQT")
-    {
-      return FileTypes::PARQUET;
-    }
 
     for (const auto& t_info : type_with_annotation__)
     {

@@ -103,10 +103,6 @@ if (WITH_HDF5)
   list(APPEND sources_list HDF5Connector.cpp)  
 endif()
 
-if (WITH_PARQUET)
-  list(APPEND sources_list QuantmsIO.cpp)  
-endif()
-
 ### add path to the filenames
 set(sources)
 foreach(i ${sources_list})

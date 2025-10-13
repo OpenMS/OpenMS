@@ -28,7 +28,6 @@
   - @subpage TOPP_IDFileConverter - Converts between different identification file formats.
   - @subpage TOPP_MSstatsConverter - Convert to MSstats input file format.
   - @subpage TOPP_MzTabExporter - Exports various XML formats to an mzTab file.
-  - @subpage TOPP_QuantmsIOConverter - Converts IdXML files to parquet format following quantms.io PSM specification.
   - @subpage TOPP_TargetedFileConverter - Converts targeted files (such as tsv or TraML files).
   - @subpage TOPP_TextExporter - Exports various XML formats to a text file.
   - @subpage TOPP_TriqlerConverter - Convert to Triqler input file format.
