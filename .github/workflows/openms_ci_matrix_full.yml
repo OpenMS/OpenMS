@@ -219,7 +219,7 @@ jobs:
 
     - name: Emulate a Visual Studio shell (Windows)
       if: startsWith(matrix.os, 'windows')
-      uses: egor-tensin/vs-shell@v2z
+      uses: egor-tensin/vs-shell@v2
       with:
         # NOTE: x64 is hardcoded. No support for 32bit
         arch: x64
