@@ -231,7 +231,7 @@ namespace OpenMS
     }
 
     // remove entries explained by edges
-    foreach(const String &name, hidden_entries)
+    for (const String &name : hidden_entries)
     {
       edit_param.remove(name);
     }
@@ -1213,7 +1213,7 @@ namespace OpenMS
 
     // subsdirectories named after the output parameter name
     QStringList files = this->getFileNames();
-    foreach(const QString &file, files)
+    for (const QString &file : files)
     {
       QString sdir = File::path(file).toQString();
       if (!File::exists(sdir))

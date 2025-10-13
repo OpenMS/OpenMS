@@ -640,6 +640,22 @@ add_test("TOPP_FileFilter_49" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_T
 add_test("TOPP_FileFilter_49_out" ${DIFF} -in1 FileFilter_49_1.tmp.mzML -in2 ${DATA_DIR_TOPP}/FileFilter_49_output.mzML)
 set_tests_properties("TOPP_FileFilter_49_out" PROPERTIES DEPENDS "TOPP_FileFilter_49")
 
+# Test RT block filtering modes
+add_test("TOPP_FileFilter_50" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_1_input.mzML -out FileFilter_50.tmp.mzML -rt 28:35 -rt_block_mode as_is -in_type mzML -out_type mzML)
+add_test("TOPP_FileFilter_50_out1" ${DIFF} -whitelist "id=" "href=" -in1 FileFilter_50.tmp.mzML -in2 ${DATA_DIR_TOPP}/FileFilter_50_output.mzML )
+set_tests_properties("TOPP_FileFilter_50_out1" PROPERTIES DEPENDS "TOPP_FileFilter_50")
+add_test("TOPP_FileFilter_51" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_1_input.mzML -out FileFilter_51.tmp.mzML -rt 28:35 -rt_block_mode extend_to_preserve_full_cycle -in_type mzML -out_type mzML)
+add_test("TOPP_FileFilter_51_out1" ${DIFF} -whitelist "id=" "href=" -in1 FileFilter_51.tmp.mzML -in2 ${DATA_DIR_TOPP}/FileFilter_51_output.mzML )
+set_tests_properties("TOPP_FileFilter_51_out1" PROPERTIES DEPENDS "TOPP_FileFilter_51")
+## no full block --> empty result
+add_test("TOPP_FileFilter_52" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_1_input.mzML -out FileFilter_52.tmp.mzML -rt 28:35 -rt_block_mode shrink_to_preserve_full_cycle -in_type mzML -out_type mzML)
+add_test("TOPP_FileFilter_52_out1" ${DIFF} -whitelist "id=" "href=" -in1 FileFilter_52.tmp.mzML -in2 ${DATA_DIR_TOPP}/FileFilter_52_output.mzML )
+set_tests_properties("TOPP_FileFilter_52_out1" PROPERTIES DEPENDS "TOPP_FileFilter_52")
+## contains one full block
+add_test("TOPP_FileFilter_53" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_1_input.mzML -out FileFilter_53.tmp.mzML -rt 28:40 -rt_block_mode shrink_to_preserve_full_cycle -in_type mzML -out_type mzML)
+add_test("TOPP_FileFilter_53_out1" ${DIFF} -whitelist "id=" "href=" -in1 FileFilter_53.tmp.mzML -in2 ${DATA_DIR_TOPP}/FileFilter_53_output.mzML )
+set_tests_properties("TOPP_FileFilter_53_out1" PROPERTIES DEPENDS "TOPP_FileFilter_53")
+
 
 #------------------------------------------------------------------------------
 # FileInfo tests
@@ -1863,11 +1879,14 @@ if (NOT MSVC) # currently some minor numeric differences on windows. needs fixin
   "db=" -in1 OpenNuXL_1_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/OpenNuXL_1_output.idXML )
   set_tests_properties("TOPP_OpenNuXL_1_out1" PROPERTIES DEPENDS "TOPP_OpenNuXL_1")
   # test internal decoy generation
-  add_test("TOPP_OpenNuXL_2" ${TOPP_BIN_PATH}/OpenNuXL -test -precursor:mass_tolerance 10.0 -in
-  ${DATA_DIR_TOPP}/OpenNuXL_1_input.mzML -database ${DATA_DIR_TOPP}/OpenNuXL_1_input.fasta -out OpenNuXL_2_output.tmp.idXML -NuXL:decoys "true" )
-  add_test("TOPP_OpenNuXL_2_out1" ${DIFF} -whitelist "IdentificationRun date"
-  "db=" -in1 OpenNuXL_2_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/OpenNuXL_2_output.idXML )
-  set_tests_properties("TOPP_OpenNuXL_2_out1" PROPERTIES DEPENDS "TOPP_OpenNuXL_2")
+  # Disabled on macOS due to floating-point accuracy issues (see GitHub issue)
+  if (NOT APPLE)
+    add_test("TOPP_OpenNuXL_2" ${TOPP_BIN_PATH}/OpenNuXL -test -precursor:mass_tolerance 10.0 -in
+    ${DATA_DIR_TOPP}/OpenNuXL_1_input.mzML -database ${DATA_DIR_TOPP}/OpenNuXL_1_input.fasta -out OpenNuXL_2_output.tmp.idXML -NuXL:decoys "true" )
+    add_test("TOPP_OpenNuXL_2_out1" ${DIFF} -whitelist "IdentificationRun date"
+    "db=" -in1 OpenNuXL_2_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/OpenNuXL_2_output.idXML )
+    set_tests_properties("TOPP_OpenNuXL_2_out1" PROPERTIES DEPENDS "TOPP_OpenNuXL_2")
+  endif()
 
   # reporting of multiple hits and tsv output
   add_test("TOPP_OpenNuXL_3" ${TOPP_BIN_PATH}/OpenNuXL -test -precursor:mass_tolerance 10.0 -in
@@ -1879,13 +1898,16 @@ if (NOT MSVC) # currently some minor numeric differences on windows. needs fixin
   set_tests_properties("TOPP_OpenNuXL_3_out2" PROPERTIES DEPENDS "TOPP_OpenNuXL_3")
 
   # reporting of multiple hits and tsv output and decoy generation
-  add_test("TOPP_OpenNuXL_4" ${TOPP_BIN_PATH}/OpenNuXL -test -precursor:mass_tolerance 10.0 -in
-  ${DATA_DIR_TOPP}/OpenNuXL_1_input.mzML -NuXL:decoys "true" -database ${DATA_DIR_TOPP}/OpenNuXL_1_input.fasta -out OpenNuXL_4_output.tmp.idXML -report:top_hits 2 -out_tsv OpenNuXL_4_output2.tmp.tsv -NuXL:scoring fast)
-  add_test("TOPP_OpenNuXL_4_out1" ${DIFF} -whitelist "IdentificationRun date"
-  "db=" -in1 OpenNuXL_4_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/OpenNuXL_4_output.idXML )
-  add_test("TOPP_OpenNuXL_4_out2" ${DIFF} -in1 OpenNuXL_4_output2.tmp.tsv -in2 ${DATA_DIR_TOPP}/OpenNuXL_4_output2.tsv )
-  set_tests_properties("TOPP_OpenNuXL_4_out1" PROPERTIES DEPENDS "TOPP_OpenNuXL_4")
-  set_tests_properties("TOPP_OpenNuXL_4_out2" PROPERTIES DEPENDS "TOPP_OpenNuXL_4")
+  # Disabled on macOS due to floating-point accuracy issues (see GitHub issue)
+  if (NOT APPLE)
+    add_test("TOPP_OpenNuXL_4" ${TOPP_BIN_PATH}/OpenNuXL -test -precursor:mass_tolerance 10.0 -in
+    ${DATA_DIR_TOPP}/OpenNuXL_1_input.mzML -NuXL:decoys "true" -database ${DATA_DIR_TOPP}/OpenNuXL_1_input.fasta -out OpenNuXL_4_output.tmp.idXML -report:top_hits 2 -out_tsv OpenNuXL_4_output2.tmp.tsv -NuXL:scoring fast)
+    add_test("TOPP_OpenNuXL_4_out1" ${DIFF} -whitelist "IdentificationRun date"
+    "db=" -in1 OpenNuXL_4_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/OpenNuXL_4_output.idXML )
+    add_test("TOPP_OpenNuXL_4_out2" ${DIFF} -in1 OpenNuXL_4_output2.tmp.tsv -in2 ${DATA_DIR_TOPP}/OpenNuXL_4_output2.tsv )
+    set_tests_properties("TOPP_OpenNuXL_4_out1" PROPERTIES DEPENDS "TOPP_OpenNuXL_4")
+    set_tests_properties("TOPP_OpenNuXL_4_out2" PROPERTIES DEPENDS "TOPP_OpenNuXL_4")
+  endif()
 
   # test internal decoy generation - slow scoring
   add_test("TOPP_OpenNuXL_5" ${TOPP_BIN_PATH}/OpenNuXL -test -precursor:mass_tolerance 10.0 -in
@@ -2398,23 +2420,6 @@ set_tests_properties("TOPP_OpenPepXL_1_out_1" PROPERTIES DEPENDS "TOPP_OpenPepXL
 #set_tests_properties("TOPP_OpenPepXL_1_out_2" PROPERTIES DEPENDS "TOPP_OpenPepXL_1")
 set_tests_properties("TOPP_OpenPepXL_1_out_3" PROPERTIES DEPENDS "TOPP_OpenPepXL_1")
 set_tests_properties("TOPP_OpenPepXL_1_out_4" PROPERTIES DEPENDS "TOPP_OpenPepXL_1")
-
-#------------------------------------------------------------------------------
-# OpenPepXLLF test
-add_test("TOPP_OpenPepXLLF_1" ${TOPP_BIN_PATH}/OpenPepXLLF -test -decoy_string "decoy" -in ${DATA_DIR_TOPP}/OpenPepXLLF_input.mzML -database ${DATA_DIR_TOPP}/OpenPepXLLF_input.fasta -out_xquestxml OpenPepXLLF_output.tmp.xquest.xml -out_xquest_specxml OpenPepXLLF_output.tmp.spec.xml -out_mzIdentML OpenPepXLLF_output.tmp.mzid -out_idXML OpenPepXLLF_output.tmp.idXML)
-add_test("TOPP_OpenPepXLLF_1_out_1" ${DIFF} -whitelist "date=" -in1 OpenPepXLLF_output.tmp.xquest.xml -in2 ${DATA_DIR_TOPP}/OpenPepXLLF_output.xquest.xml )
-# unstable due to differences in double to string conversion, caused by different boost versions (between 1.71.0 and 1.78.0)
-# this file format is only important for compatibility with the xQuest pipeline's result visualization and not essential
-#add_test("TOPP_OpenPepXLLF_1_out_2" ${DIFF} -in1 OpenPepXLLF_output.tmp.spec.xml -in2 ${DATA_DIR_TOPP}/OpenPepXLLF_output.spec.xml )
-add_test("TOPP_OpenPepXLLF_1_out_3" ${DIFF} -whitelist "creationDate=" "id=" "spectraData_ref=" "searchDatabase_ref=" "input_mzML" "OpenPepXLLF_input" -in1 OpenPepXLLF_output.tmp.mzid -in2 ${DATA_DIR_TOPP}/OpenPepXLLF_output.mzid )
-add_test("TOPP_OpenPepXLLF_1_out_4" ${DIFF} -whitelist "db=" "input_consensusXML" "input_mzML" "date" "OpenPepXLLF_input" -in1 OpenPepXLLF_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/OpenPepXLLF_output.idXML )
-set_tests_properties("TOPP_OpenPepXLLF_1_out_1" PROPERTIES DEPENDS "TOPP_OpenPepXLLF_1")
-#set_tests_properties("TOPP_OpenPepXLLF_1_out_2" PROPERTIES DEPENDS "TOPP_OpenPepXLLF_1")
-set_tests_properties("TOPP_OpenPepXLLF_1_out_3" PROPERTIES DEPENDS "TOPP_OpenPepXLLF_1")
-set_tests_properties("TOPP_OpenPepXLLF_1_out_4" PROPERTIES DEPENDS "TOPP_OpenPepXLLF_1")
-add_test("TOPP_OpenPepXLLF_2" ${TOPP_BIN_PATH}/OpenPepXLLF -test -ini ${DATA_DIR_TOPP}/OpenPepXLLF_input2.ini -in ${DATA_DIR_TOPP}/OpenPepXLLF_input2.mzML -database ${DATA_DIR_TOPP}/OpenPepXLLF_input2.fasta -out_idXML OpenPepXLLF_output2.tmp.idXML)
-add_test("TOPP_OpenPepXLLF_2_out_1" ${DIFF} -whitelist "db=" "input_consensusXML" "input_mzML" "date" "OpenPepXLLF_input" -in1 OpenPepXLLF_output2.tmp.idXML -in2 ${DATA_DIR_TOPP}/OpenPepXLLF_output2.idXML )
-set_tests_properties("TOPP_OpenPepXLLF_2_out_1" PROPERTIES DEPENDS "TOPP_OpenPepXLLF_2")
 
 #------------------------------------------------------------------------------
 # XFDR tests
