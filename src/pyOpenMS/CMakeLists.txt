@@ -443,11 +443,10 @@ else()
 endif()
 
 if(LINUX OR APPLE)
+  set(EXTRA_WARNINGS "-Wno-builtin-macro-redefined" "-Wno-unused" "-Wno-zero-as-null-pointer-constant")
   # no-unused-member-function is specific to clang
   if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
-    set(EXTRA_WARNINGS "-Wno-unused-member-function" "-Wno-builtin-macro-redefined" "-Wno-unused" "-Wno-zero-as-null-pointer-constant")
-  else()
-    set(EXTRA_WARNINGS "-Wno-builtin-macro-redefined" "-Wno-unused" "-Wno-zero-as-null-pointer-constant")
+    list(APPEND EXTRA_WARNINGS "-Wno-unused-member-function")
   endif()
   if(${Python_VERSION} VERSION_GREATER_EQUAL "3.8" AND ${Python_VERSION} VERSION_LESS "3.9")
     list(APPEND EXTRA_WARNINGS "-Wno-deprecated-declarations") # https://github.com/cython/cython/issues/3474
