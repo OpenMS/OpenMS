@@ -71,7 +71,7 @@ PEP scores are automatically detected from metavalues using known PEP score name
 @verbinclude TOPP_QuantmsIOConverter.cli
 <B>INI file documentation of this tool:</B>
 @htmlinclude TOPP_QuantmsIOConverter.html
-
+/// @endcond
 */
 
 // We do not want this class to show up in the docu:
