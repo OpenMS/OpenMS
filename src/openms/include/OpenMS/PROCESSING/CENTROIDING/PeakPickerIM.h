@@ -35,8 +35,6 @@ namespace OpenMS
     using DefaultParamHandler::setParameters;
     using DefaultParamHandler::getParameters;
 
-    /// Gets the current parameters.
-    //Param getParameters() const;
 
         /**
      * @brief Converts an ion mobility frame to a single spectrum with averaged IM values
