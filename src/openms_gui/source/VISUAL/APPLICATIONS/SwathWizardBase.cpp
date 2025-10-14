@@ -80,6 +80,11 @@ namespace OpenMS
     }
   }
 
+  void SwathWizardBase::updateMembers_()
+  {
+    // SwathWizardBase has no member variables that need to be synchronized with param_
+  }
+
 } //namespace OpenMS
 
 

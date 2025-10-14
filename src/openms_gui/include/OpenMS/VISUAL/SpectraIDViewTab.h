@@ -67,6 +67,9 @@ namespace OpenMS
     /// request to zoom into a 1D spec
     void requestVisibleArea1D(double lower_mz, double upper_mz);
 
+  protected:
+    void updateMembers_() override;
+
   private:
     /// partially fill the bottom-most row  
     void fillRow_(const MSSpectrum& spectrum, const int spec_index, const QColor& background_color);

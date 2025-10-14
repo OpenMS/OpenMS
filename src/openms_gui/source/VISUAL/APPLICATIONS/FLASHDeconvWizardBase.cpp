@@ -76,4 +76,9 @@ namespace OpenMS
     }
   }
 
+  void FLASHDeconvWizardBase::updateMembers_()
+  {
+    // FLASHDeconvWizardBase has no member variables that need to be synchronized with param_
+  }
+
 } // namespace OpenMS

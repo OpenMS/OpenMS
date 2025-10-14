@@ -57,6 +57,8 @@ namespace OpenMS
     void showAboutDialog();
 
   protected:
+    void updateMembers_() override;
+
     /// The current path (used for loading and storing).
     /// Depending on the preferences this is static or changes with the current window/layer.
     String current_path_;

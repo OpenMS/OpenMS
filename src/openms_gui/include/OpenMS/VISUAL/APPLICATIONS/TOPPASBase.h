@@ -180,6 +180,7 @@ protected slots:
     void descriptionUpdated_();
 
 protected:
+    void updateMembers_() override;
 
     /// Log output window
     LogWindow* log_;

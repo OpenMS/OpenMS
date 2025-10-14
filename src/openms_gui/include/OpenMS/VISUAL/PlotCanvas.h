@@ -700,6 +700,7 @@ protected slots:
     void updateCursor_();
 
 protected:
+    void updateMembers_() override;
 
     /// Draws several lines of text to the upper right corner of the widget
     void drawText_(QPainter & painter, const QStringList& text);

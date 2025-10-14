@@ -946,4 +946,9 @@ namespace OpenMS
     removeLayer(current_layer_);
   }
 
+  void PlotCanvas::updateMembers_()
+  {
+    // PlotCanvas has no member variables that need to be synchronized with param_
+  }
+
 } // namespace OpenMS

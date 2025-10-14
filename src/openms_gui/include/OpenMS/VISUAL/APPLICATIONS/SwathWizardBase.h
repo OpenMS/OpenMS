@@ -62,6 +62,8 @@ protected slots:
 
 
 protected:
+    void updateMembers_() override;
+
     /// Log output window
     //TOPPASLogWindow* log_;
 

@@ -2634,4 +2634,9 @@ namespace OpenMS
     abortTOPPTool();
   }
 
+  void TOPPViewBase::updateMembers_()
+  {
+    // TOPPViewBase has no member variables that need to be synchronized with param_
+  }
+
 } // namespace OpenMS

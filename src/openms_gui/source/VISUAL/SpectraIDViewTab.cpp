@@ -1076,4 +1076,9 @@ namespace OpenMS
   {
 
   }
+
+  void SpectraIDViewTab::updateMembers_()
+  {
+    // SpectraIDViewTab has no member variables that need to be synchronized with param_
+  }
 }

@@ -384,6 +384,8 @@ protected slots:
     /// Called if a data file has been externally changed
     void fileChanged_(const String&);
 protected:
+    void updateMembers_() override;
+
     /// Initializes the default parameters on TOPPView construction.
     void initializeDefaultParameters_();
 
