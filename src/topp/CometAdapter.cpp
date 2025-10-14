@@ -27,8 +27,6 @@
 #include <OpenMS/SYSTEM/File.h>
 
 #include <fstream>
-#include <iomanip>
-#include <algorithm>
 
 #include <QStringList>
 #include <QRegularExpression>
@@ -263,151 +261,6 @@ protected:
     }
 
     return modifications;
-  }
-
-  /**
-   * @brief Converts an enzyme's regex pattern to Comet enzyme format and writes it to the output stream
-   * 
-   * @param os Output stream
-   * @param enzyme The enzyme to convert
-   * @param comet_id The Comet ID to assign
-   */
-  void writeCometEnzymeEntry_(ostream& os, const DigestionEnzymeProtein* enzyme, Int comet_id)
-  {
-    String name = enzyme->getName();
-    String regex = enzyme->getRegEx();
-    
-    // Parse the regex to extract sense, cut residues, and no-cut residues
-    int sense = -1;
-    String cut_residues = "";
-    String nocut_residues = "";
-    
-    // Special cases first
-    if (regex == "()")  // no cleavage
-    {
-      sense = 1;
-      cut_residues = "@";
-      nocut_residues = "@";
-    }
-    else if (regex == "(?<=[A-Z])")  // unspecific cleavage (actually this is the pattern)
-    {
-      sense = 0;
-      cut_residues = "-";
-      nocut_residues = "-";
-    }
-    else if (regex.hasSubstring("(?<=W)") && !regex.hasSubstring("["))  // iodosobenzoate special case
-    {
-      sense = 1;
-      cut_residues = "W";
-      nocut_residues = "-";
-    }
-    else
-    {
-      // Check for C-terminal cleavage (lookbehind pattern: (?<=[RESIDUES]))
-      size_t lookbehind_start = regex.find("(?<=[");
-      if (lookbehind_start != String::npos)
-      {
-        sense = 1;  // C-terminal
-        size_t lookbehind_end = regex.find("]", lookbehind_start);
-        if (lookbehind_end != String::npos)
-        {
-          String residues = regex.substr(lookbehind_start + 5, lookbehind_end - lookbehind_start - 5);
-          // Remove 'X' which represents any amino acid in regex
-          residues.substitute("X", "");
-          cut_residues = residues;
-        }
-        
-        // Check for negative lookahead (what NOT to cut before: (?!RESIDUE) or (?![RESIDUES]))
-        size_t neg_lookahead = regex.find("(?!");
-        if (neg_lookahead != String::npos)
-        {
-          size_t bracket_pos = regex.find("[", neg_lookahead);
-          if (bracket_pos != String::npos && bracket_pos < neg_lookahead + 10)
-          {
-            // Pattern like (?![RESIDUES])
-            size_t end_bracket = regex.find("]", bracket_pos);
-            if (end_bracket != String::npos)
-            {
-              String residues = regex.substr(bracket_pos + 1, end_bracket - bracket_pos - 1);
-              residues.substitute("X", "");
-              nocut_residues = residues;
-            }
-          }
-          else
-          {
-            // Pattern like (?!P)
-            size_t paren_end = regex.find(")", neg_lookahead);
-            if (paren_end != String::npos)
-            {
-              String residue = regex.substr(neg_lookahead + 3, paren_end - neg_lookahead - 3);
-              residue.substitute("X", "");
-              nocut_residues = residue;
-            }
-          }
-        }
-        else
-        {
-          nocut_residues = "-";
-        }
-      }
-      // Check for N-terminal cleavage (lookahead pattern: (?=[RESIDUES]))
-      else
-      {
-        size_t lookahead_start = regex.find("(?=[");
-        if (lookahead_start != String::npos)
-        {
-          sense = 0;  // N-terminal
-          size_t lookahead_end = regex.find("]", lookahead_start);
-          if (lookahead_end != String::npos)
-          {
-            String residues = regex.substr(lookahead_start + 4, lookahead_end - lookahead_start - 4);
-            residues.substitute("X", "");
-            cut_residues = residues;
-          }
-          
-          // Check for negative lookbehind (what NOT to cut after: (?<![RESIDUES]))
-          size_t neg_lookbehind = regex.find("(?<![");
-          if (neg_lookbehind != String::npos)
-          {
-            size_t end_bracket = regex.find("]", neg_lookbehind);
-            if (end_bracket != String::npos)
-            {
-              String residues = regex.substr(neg_lookbehind + 5, end_bracket - neg_lookbehind - 5);
-              residues.substitute("X", "");
-              nocut_residues = residues;
-            }
-          }
-          else
-          {
-            nocut_residues = "-";
-          }
-        }
-      }
-    }
-    
-    // Format enzyme name for Comet (replace spaces with underscores, handle special characters)
-    String comet_name = name;
-    comet_name.substitute(" ", "_");
-    comet_name.substitute("+", "");
-    
-    // Handle ambiguous amino acids for Comet
-    // B=D or N, Z=E or Q, J=I or L - Comet may not support these, so we expand
-    // For cut_residues: if it contains B, it likely means D (based on Enzymes.xml patterns)
-    // Similarly for Z (means E), J (means L or I)
-    cut_residues.substitute("B", "D");    // B in enzymes typically represents D in context
-    cut_residues.substitute("Z", "E");    // Z typically represents E
-    cut_residues.substitute("J", "L");    // J typically represents L or I, use L
-    
-    // Write the enzyme entry in Comet format
-    // Format: <id>. <name> <sense> <cut_residues> <nocut_residues>
-    // Add padding to match Comet's format
-    String name_padded = comet_name;
-    while (name_padded.size() < 20) name_padded += " ";
-    
-    String cut_padded = cut_residues;
-    while (cut_padded.size() < 10) cut_padded += " ";
-    
-    os << comet_id << ".  " << name_padded << " " << sense << "      " << cut_padded << "  " << nocut_residues << "\n";
   }
 
   ExitCodes createParamFile_(ostream& os, const String& comet_version)
@@ -746,44 +599,39 @@ protected:
 
     // COMET_ENZYME_INFO _must_ be at the end of this parameters file
     os << "[COMET_ENZYME_INFO]" << "\n";
-    
-    // Generate enzyme list dynamically from ProteaseDB
-    // Collect all enzymes and sort by CometID (enzymes with CometID first, then others)
-    const ProteaseDB* db = ProteaseDB::getInstance();
-    std::vector<const DigestionEnzymeProtein*> enzymes_with_id;
-    std::vector<const DigestionEnzymeProtein*> enzymes_without_id;
-    
-    for (auto it = db->beginEnzyme(); it != db->endEnzyme(); ++it)
-    {
-      const DigestionEnzymeProtein* enzyme = *it;
-      if (enzyme->getCometID() != -1)
-      {
-        enzymes_with_id.push_back(enzyme);
-      }
-      else
-      {
-        enzymes_without_id.push_back(enzyme);
-      }
-    }
-    
-    // Sort enzymes with ID by their CometID
-    std::sort(enzymes_with_id.begin(), enzymes_with_id.end(),
-              [](const DigestionEnzymeProtein* a, const DigestionEnzymeProtein* b) {
-                return a->getCometID() < b->getCometID();
-              });
-    
-    // Write enzymes with existing CometID
-    for (const auto* enzyme : enzymes_with_id)
-    {
-      writeCometEnzymeEntry_(os, enzyme, enzyme->getCometID());
-    }
-    
-    // Assign new IDs to enzymes without CometID, starting from 16
-    Int next_id = 16;
-    for (const auto* enzyme : enzymes_without_id)
-    {
-      writeCometEnzymeEntry_(os, enzyme, next_id++);
-    }
+    os << "0.  No_enzyme              0      -           -" << "\n";
+    os << "1.  Trypsin                1      KR          P" << "\n";
+    os << "2.  Trypsin/P              1      KR          -" << "\n";
+    os << "3.  Lys_C                  1      K           P" << "\n";
+    os << "4.  Lys_N                  0      K           -" << "\n";
+    os << "5.  Arg_C                  1      R           P" << "\n";
+    os << "6.  Asp_N                  0      D           -" << "\n";
+    os << "7.  CNBr                   1      M           -" << "\n";
+    os << "8.  Glu_C                  1      DE          P" << "\n";
+    os << "9.  PepsinA                1      FL          P" << "\n";
+    os << "10. Chymotrypsin           1      FWYL        P" << "\n";
+    os << "11. No_cut                 1      @           @" << "\n";
+    os << "12. Arg-C/P                1.     R           _" << "\n";
+    os << "13. Lys-C/P                1      K           -" << "\n";
+    os << "14. Leukocyte_elastase     1      ALIV        -" << "\n";
+    os << "15. Chymotrypsin/P         1      FWYL        -" << "\n";
+    os << "16. Asp-N/B                0      D           -" << "\n";
+    os << "17. Asp-N_ambic            0      DE          -" << "\n";
+    os << "18. Formic_acid            1      D           -" << "\n";
+    os << "19. TrypChymo              1      FYWLKR      P" << "\n";
+    os << "20. V8-DE                  1      DE          P" << "\n";
+    os << "21. V8-E                   1      E           P" << "\n";
+    os << "22. proline_endopeptidase  1      P           -" << "\n";
+    os << "23. Alpha-lytic_protease   1      TASV        -" << "\n";
+    os << "24. 2-iodobenzoate         1      W           -" << "\n";
+    os << "25. iodosobenzoate         1      W           -" << "\n";
+    os << "26. staphylococcal_protease/D 1   E           -" << "\n";
+    os << "27. proline-endopeptidase/HKR 1   P           -" << "\n";
+    os << "28. Glu-CP                 1      DE          P" << "\n";
+    os << "29. PepsinA__P             1      FL          P" << "\n";
+    os << "30. cyanogen-bromide       1      M           -" << "\n";
+    os << "31. Clostripain/P          1      R           -" << "\n";
+    os << "32. elastase-trypsin-chymotrypsin 1 ALIVKRWFY P" << "\n";
 
     return ExitCodes::EXECUTION_OK;
   }
