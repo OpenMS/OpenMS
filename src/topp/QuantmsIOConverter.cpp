@@ -20,6 +20,7 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
+/// @cond WITH_PARQUET
 @page TOPP_QuantmsIOConverter QuantmsIOConverter
 
 @brief Converts IdXML files to parquet format following quantms.io PSM specification.
