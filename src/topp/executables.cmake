@@ -87,6 +87,7 @@ NovorAdapter
 NucleicAcidSearchEngine
 OpenMSDatabasesInfo
 OpenMSInfo
+OpenNuXL
 OpenPepXL
 OpenSwathAnalyzer
 OpenSwathAssayGenerator
