@@ -66,10 +66,10 @@ class TestHandler
     String string_var;
 };
 
-DefaultParamHandler* ptr = nullptr;
-DefaultParamHandler* nullPointer = nullptr;
+TestHandler* ptr = nullptr;
+TestHandler* nullPointer = nullptr;
 START_SECTION((DefaultParamHandler(const String& name)))
-  ptr = new DefaultParamHandler("dummy");
+  ptr = new TestHandler("dummy");
   TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
@@ -78,24 +78,24 @@ START_SECTION((~DefaultParamHandler()))
 END_SECTION
 
 START_SECTION((const String& getName() const))
-  DefaultParamHandler s("dummy2");
+  TestHandler s("dummy2");
   TEST_EQUAL(s.getName(), "dummy2")
 END_SECTION
 
 START_SECTION((void setName(const String& name)))
-  DefaultParamHandler s("dummy2");
+  TestHandler s("dummy2");
   s.setName("SetName");
   TEST_EQUAL(s.getName(), "SetName")
 END_SECTION
 
 START_SECTION((const std::vector<String>& getSubsections() const))
-  DefaultParamHandler s("dummy2");
-  TEST_EQUAL(s.getSubsections().size(),0)
+  TestHandler s("dummy2");
+  TEST_EQUAL(s.getSubsections().size(),1)  // TestHandler has one subsection "ignore"
 END_SECTION
 
 START_SECTION((const Param& getDefaults() const))
-  DefaultParamHandler s("dummy2");
-  TEST_EQUAL(s.getDefaults().size(),0)
+  TestHandler s("dummy2");
+  TEST_EQUAL(s.getDefaults().size(),2)
   TestHandler t("dummy2");
   TEST_EQUAL(t.getDefaults().size(),2)
 END_SECTION
