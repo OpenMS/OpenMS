@@ -159,23 +159,15 @@ class TOPPBaseTest
       addDataProcessing_(c_map, dp);
     }
 
-    // For testing parseRange_: store test value temporarily
-    mutable String test_range_value_;
-
-    String getStringOption_(const String& name) const override
+    // Expose parseRange_ for testing
+    bool parseRange_(const String& param_name, double& low, double& high) const
     {
-      if (name == "test_range")
-      {
-        return test_range_value_;
-      }
-      return TOPPBase::getStringOption_(name);
+      return TOPPBase::parseRange_(param_name, low, high);
     }
 
-    bool parseRange(const String& text, double& low, double& high, const String& param_name) const
+    bool parseRange_(const String& param_name, Int& low, Int& high) const
     {
-      // For testing: set the test parameter value temporarily
-      test_range_value_ = text;
-      return parseRange_(param_name, low, high);
+      return TOPPBase::parseRange_(param_name, low, high);
     }
 
     TOPPBase::ExitCodes runExternalProcess(const QString& executable, const QStringList& arguments, const QString& workdir) const
@@ -694,49 +686,67 @@ END_SECTION
 
 START_SECTION(([EXTRA]void parseRange_(const String& param_name, double& low, double& high) const))
 {
-	TOPPBaseTest topp;
 	double a = -1.0;
 	double b = -1.0;
 
-	String s = ":";
-	bool result = topp.parseRange(s, a, b, "test_range");
-	TEST_REAL_SIMILAR(a, -1.0);
-	TEST_REAL_SIMILAR(b, -1.0);
-  TEST_EQUAL(result, false);
+	// Test with ":"
+	{
+		const char* argv[] = {"TOPPBaseTest", "-test_range", ":"};
+		TOPPBaseTest topp(3, argv);
+		bool result = topp.parseRange_("test_range", a, b);
+		TEST_REAL_SIMILAR(a, -1.0);
+		TEST_REAL_SIMILAR(b, -1.0);
+		TEST_EQUAL(result, false);
+	}
 
-	s = "4.5:";
-	result = topp.parseRange(s, a, b, "test_range");
-	TEST_REAL_SIMILAR(a, 4.5);
-	TEST_REAL_SIMILAR(b, -1.0);
-  TEST_EQUAL(result, true);
+	// Test with "4.5:"
+	{
+		const char* argv[] = {"TOPPBaseTest", "-test_range", "4.5:"};
+		TOPPBaseTest topp(3, argv);
+		bool result = topp.parseRange_("test_range", a, b);
+		TEST_REAL_SIMILAR(a, 4.5);
+		TEST_REAL_SIMILAR(b, -1.0);
+		TEST_EQUAL(result, true);
+	}
 
-	s = ":5.5";
-	result = topp.parseRange(s, a, b, "test_range");
-	TEST_REAL_SIMILAR(a, 4.5);
-	TEST_REAL_SIMILAR(b, 5.5);
-  TEST_EQUAL(result, true);
+	// Test with ":5.5"
+	{
+		const char* argv[] = {"TOPPBaseTest", "-test_range", ":5.5"};
+		TOPPBaseTest topp(3, argv);
+		bool result = topp.parseRange_("test_range", a, b);
+		TEST_REAL_SIMILAR(a, 4.5);
+		TEST_REAL_SIMILAR(b, 5.5);
+		TEST_EQUAL(result, true);
+	}
 
-	s = "6.5:7.5";
-	result = topp.parseRange(s, a, b, "test_range");
-	TEST_REAL_SIMILAR(a, 6.5);
-	TEST_REAL_SIMILAR(b, 7.5);
-  TEST_EQUAL(result, true);
+	// Test with "6.5:7.5"
+	{
+		const char* argv[] = {"TOPPBaseTest", "-test_range", "6.5:7.5"};
+		TOPPBaseTest topp(3, argv);
+		bool result = topp.parseRange_("test_range", a, b);
+		TEST_REAL_SIMILAR(a, 6.5);
+		TEST_REAL_SIMILAR(b, 7.5);
+		TEST_EQUAL(result, true);
+	}
 
 	// Test error case with wrong delimiter (using '-' instead of ':')
-	s = "600.0-5000.0";
-	TEST_EXCEPTION(Exception::ConversionError, topp.parseRange(s, a, b, "test_range"));
+	{
+		const char* argv[] = {"TOPPBaseTest", "-test_range", "600.0-5000.0"};
+		TOPPBaseTest topp(3, argv);
+		TEST_EXCEPTION(Exception::ConversionError, topp.parseRange_("test_range", a, b));
+	}
 }
 END_SECTION
 
 START_SECTION(([EXTRA]void parseRange_ with parameter name in error message))
 {
-	TOPPBaseTest topp;
 	double a = -1.0;
 	double b = -1.0;
 
-	// Test error case with wrong delimiter and parameter name
-	String s = "600.0-5000.0";
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::ConversionError, topp.parseRange(s, a, b, "test_range"), "test_range");
+	// Test error case with wrong delimiter and parameter name in error message
+	const char* argv[] = {"TOPPBaseTest", "-test_range", "600.0-5000.0"};
+	TOPPBaseTest topp(3, argv);
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::ConversionError, topp.parseRange_("test_range", a, b), "test_range");
 }
 END_SECTION
 
