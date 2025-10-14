@@ -36,10 +36,22 @@ set(OPENMS_LOGOSMALL ${PROJECT_SOURCE_DIR}/cmake/MacOSX/${OPENMS_LOGOSMALL_NAME}
 ##  the app bundles need to have a different RUNTIME_DEPENDENCY_SET (TOPPView_DEPS, ...) due
 ##  to CMake assuming you want standalone bundles. But we want to share libs between them.
 
-# This would be to look in the Contrib and other cmake_prefix_paths for dependencies.
-#list(TRANSFORM CMAKE_PREFIX_PATH APPEND "/bin" OUTPUT_VARIABLE DEP_BIN_DIRS)
-#list(TRANSFORM CMAKE_PREFIX_PATH APPEND "/lib" OUTPUT_VARIABLE DEP_LIB_DIRS)
-# But since we copy them in the build stage to our runtime directory (bin), we can add this one.
+# Add CMAKE_PREFIX_PATH directories to search for runtime dependencies.
+# We need this because TARGET_RUNTIME_DLLS (used during build stage copy) has limitations:
+# - Incomplete CMake configs from third-party libraries that don't properly export targets
+# - Private shared library dependencies not tracked in the dependency graph  
+# - Manual find_library() results without imported targets
+# By adding these paths, we ensure all dependencies are found during installation even if
+# they were missed during the build-time copy step.
+list(TRANSFORM CMAKE_PREFIX_PATH APPEND "/bin" OUTPUT_VARIABLE DEP_BIN_DIRS)
+list(TRANSFORM CMAKE_PREFIX_PATH APPEND "/lib" OUTPUT_VARIABLE DEP_LIB_DIRS)
+
+# Also include our own runtime directory where dependencies were copied during build.
+# This serves as the primary source, with CMAKE_PREFIX_PATH directories as fallback.
+list(APPEND DEP_BIN_DIRS $<TARGET_FILE_DIR:OpenMS>)
+
+# Combine all search directories for comprehensive dependency resolution
+set(RUNTIME_DEP_SEARCH_DIRS ${DEP_BIN_DIRS} ${DEP_LIB_DIRS})
 
 
 ## Info on excluding dependencies:
@@ -61,7 +73,7 @@ if(WIN32)
                   "api-ms" "ext-ms" 
                   ## "HvsiFileTrust" "PdmUtilities" are detected as a dependency by CMake which cannot be resolved (and would lead to errors), so ignore it
                   "hvsi" "pdmutilities"  ## make all lower case, since this is what CMake extracts from the targets and the regex is case sensitive
-                  )
+                  ) ## TODO I have found that sometimes vcruntime140_1.dll cannot be resolved (but vcruntime140.dll is found). Maybe add it here too?
   ## exclude every Dll from c:\Windows\System32
   ## Note: CMake extracts Dll names and will have a list like
   ##-- Resolved runtime dependencies:
@@ -87,7 +99,7 @@ install(RUNTIME_DEPENDENCY_SET OPENMS_DEPS
         COMPONENT Dependencies
         PRE_EXCLUDE_REGEXES ${PRE_EXCLUDE}
         POST_EXCLUDE_REGEXES ${POST_EXCLUDE}
-        DIRECTORIES $<TARGET_FILE_DIR:OpenMS>)
+        DIRECTORIES ${RUNTIME_DEP_SEARCH_DIRS})
 
 #install(RUNTIME_DEPENDENCY_SET TOPPView_DEPS) # I think without giving DESTINATION and COMPONENT it will be inferred
 #install(RUNTIME_DEPENDENCY_SET TOPPAS_DEPS)
