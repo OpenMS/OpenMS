@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include <OpenMS/config.h>
 #include <OpenMS/FEATUREFINDER/EmgFitter1D.h>
 #include <OpenMS/FEATUREFINDER/EmgModel.h>
 #include <OpenMS/PROCESSING/SMOOTHING/GaussFilter.h>

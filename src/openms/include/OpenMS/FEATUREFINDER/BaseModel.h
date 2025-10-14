@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include <OpenMS/config.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/KERNEL/DPeak.h>
 

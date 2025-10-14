@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include <OpenMS/config.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/KERNEL/MSExperiment.h>

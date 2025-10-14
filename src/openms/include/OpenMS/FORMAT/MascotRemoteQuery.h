@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include <OpenMS/config.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <QtCore/QObject>
 #include <QtCore/QString>
