@@ -478,6 +478,12 @@ namespace OpenMS
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "MassTrace was not smoothed before! Aborting...", String(smoothed_intensities_.size()));
       }
+      // Handle single-peak traces: set centroid RT directly from the only peak
+      if (trace_peaks_.size() == 1)
+      {
+        centroid_rt_ = (*(trace_peaks_.begin())).getRT();
+        return;
+      }
 
       double tmp_max(-1.0);
       Size max_idx(0);
