@@ -78,14 +78,7 @@ namespace OpenMS
     static void pickIMElutionProfiles(MSSpectrum& input, double ppm_tolerance_elution = 50.0);
 
   protected:
-    /// Updates internal member variables when parameters are changed.
     void updateMembers_() override;
-
-    /// Returns the default parameters.
-    Param getDefaultParameters() const;
-
-    /// Stores the parameters for peak picking.
-    Param parameters_;
 
   private:
     /// determine sampling rate for linear resampler
@@ -128,5 +121,4 @@ namespace OpenMS
 
     double    ppm_tolerance_elution_{50.0};
   };
-
 } // namespace OpenMS
