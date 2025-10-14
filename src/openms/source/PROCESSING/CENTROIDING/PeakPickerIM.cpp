@@ -674,22 +674,6 @@ namespace OpenMS
       float_arrays.erase(new_end, float_arrays.end());
     }
 
-    /*
-    Param PeakPickerIM::getDefaultParameters() const
-    {
-      Param p;
-      // internal PickIMTraces parameters that users should not change.
-
-      p.setValue("signal_to_noise", 0.0, "Signal to noise threshold for peak picking");
-      p.setValue("spacing_difference_gap", 0.0, "The extension of a peak is stopped if the spacing between two subsequent data points exceeds 'spacing_difference_gap * min_spacing'. 'min_spacing' is the smaller of the two spacings from the peak apex to its two neighboring points. '0' to disable the constraint. Not applicable to chromatograms.");
-      p.setValue("spacing_difference", 0.0, "Maximum allowed difference between points during peak extension, in multiples of the minimal difference between the peak apex and its two neighboring points. If this difference is exceeded a missing point is assumed (see parameter 'missing'). A higher value implies a less stringent peak definition, since individual signals within the peak are allowed to be further apart. '0' to disable the constraint. Not applicable to chromatograms.");
-      p.setValue("missing", 0, "Maximum number of missing points allowed when extending a peak to the left or to the right. A missing data point occurs if the spacing between two subsequent data points exceeds 'spacing_difference * min_spacing'. 'min_spacing' is the smaller of the two spacings from the peak apex to its two neighboring points. Not applicable to chromatograms.");
-      p.setValue("report_FWHM", "true");
-      p.setValue("report_FWHM_unit", "absolute");
-
-      return p;
-    }
-     */
     PeakPickerIM::PeakPickerIM()
         : DefaultParamHandler("PeakPickerIM")
     {

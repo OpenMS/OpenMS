@@ -109,8 +109,6 @@ namespace OpenMS
     MSSpectrum computeCentroids_(const std::vector<MSSpectrum>& mobilogram_traces,
                               const std::vector<MSSpectrum>& picked_traces);
 
-    // PickIMTraces parameters
-    // cached values (no Param lookups inside hot loops)
     double sum_tolerance_mz_{1.0};
     double gauss_ppm_tolerance_{5.0};
     double sum_tolerance_im_{0.0006};
