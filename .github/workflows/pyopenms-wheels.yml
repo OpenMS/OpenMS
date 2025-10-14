@@ -353,7 +353,7 @@ jobs:
         path: pyopenms_whls
         
   build-macos:
-    runs-on: macos-13
+    runs-on: macos-15-intel
     env:
       SYSTEM_VERSION_COMPAT: 0 # workaround for mac see https://github.com/actions/setup-python/issues/469 for details.
     steps:
