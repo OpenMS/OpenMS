@@ -1,0 +1,42 @@
+{
+  "version": 6,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 21,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "user-example",
+      "description": "Example user preset - customize this for your local setup",
+      "inherits": "release",
+      "cacheVariables": {
+        "OPENMS_CONTRIB_LIBS": "/path/to/contrib",
+        "CMAKE_PREFIX_PATH": "/path/to/qt;/path/to/other/libs",
+        "SEARCH_ENGINES_DIRECTORY": "/path/to/search/engines"
+      }
+    },
+    {
+      "name": "user-pyopenms",
+      "description": "Example user preset for pyOpenMS development",
+      "inherits": "pyopenms-linux",
+      "cacheVariables": {
+        "OPENMS_CONTRIB_LIBS": "/path/to/contrib",
+        "CMAKE_PREFIX_PATH": "/path/to/qt",
+        "Python_EXECUTABLE": "/path/to/python"
+      }
+    },
+    {
+      "name": "user-debug-gui",
+      "description": "Example debug build with GUI for development",
+      "inherits": "debug",
+      "cacheVariables": {
+        "OPENMS_CONTRIB_LIBS": "/path/to/contrib",
+        "CMAKE_PREFIX_PATH": "/path/to/qt",
+        "WITH_GUI": "ON",
+        "ENABLE_DOCS": "OFF",
+        "MT_ENABLE_OPENMP": "ON"
+      }
+    }
+  ]
+}

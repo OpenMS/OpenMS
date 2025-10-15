@@ -38,3 +38,5 @@ src/openms_gui/OpenMS_GUI_autogen
 src/openms/OpenMS_autogen
 OpenMS-build/*
 vcpkg_installed
+# User-specific CMake presets
+CMakeUserPresets.json

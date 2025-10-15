@@ -1,0 +1,467 @@
+{
+  "version": 6,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 21,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "base",
+      "hidden": true,
+      "description": "Base configuration with common settings",
+      "binaryDir": "${sourceDir}/bld",
+      "cacheVariables": {
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+      }
+    },
+    {
+      "name": "ci-base",
+      "hidden": true,
+      "description": "Base configuration for CI builds",
+      "inherits": "base",
+      "cacheVariables": {
+        "GIT_TRACKING": "OFF",
+        "ENABLE_UPDATE_CHECK": "OFF",
+        "ENABLE_TUTORIALS": "OFF",
+        "ENABLE_GCC_WERROR": "OFF"
+      }
+    },
+    {
+      "name": "ci-linux",
+      "description": "CI build configuration for Linux with GCC",
+      "inherits": "ci-base",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "BOOST_USE_STATIC": "OFF",
+        "WITH_GUI": "ON",
+        "ENABLE_DOCS": "ON"
+      }
+    },
+    {
+      "name": "ci-linux-clang",
+      "description": "CI build configuration for Linux with Clang",
+      "inherits": "ci-linux",
+      "cacheVariables": {
+        "CMAKE_CXX_COMPILER": "clang++",
+        "CMAKE_C_COMPILER": "clang"
+      }
+    },
+    {
+      "name": "ci-macos",
+      "description": "CI build configuration for macOS",
+      "inherits": "ci-base",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Darwin"
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "BOOST_USE_STATIC": "ON",
+        "WITH_GUI": "ON",
+        "ENABLE_DOCS": "OFF"
+      }
+    },
+    {
+      "name": "ci-windows",
+      "description": "CI build configuration for Windows",
+      "inherits": "ci-base",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      },
+      "generator": "Visual Studio 17 2022",
+      "architecture": "x64",
+      "cacheVariables": {
+        "BOOST_USE_STATIC": "ON",
+        "WITH_GUI": "ON",
+        "ENABLE_DOCS": "ON"
+      }
+    },
+    {
+      "name": "pyopenms-base",
+      "hidden": true,
+      "description": "Base configuration for pyOpenMS builds",
+      "inherits": "base",
+      "cacheVariables": {
+        "PYOPENMS": "ON",
+        "WITH_GUI": "OFF",
+        "ENABLE_DOCS": "OFF",
+        "ENABLE_TUTORIALS": "OFF"
+      }
+    },
+    {
+      "name": "pyopenms-linux",
+      "description": "pyOpenMS build configuration for Linux",
+      "inherits": "pyopenms-base",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "BOOST_USE_STATIC": "OFF"
+      }
+    },
+    {
+      "name": "pyopenms-macos",
+      "description": "pyOpenMS build configuration for macOS",
+      "inherits": "pyopenms-base",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Darwin"
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "BOOST_USE_STATIC": "ON"
+      }
+    },
+    {
+      "name": "pyopenms-windows",
+      "description": "pyOpenMS build configuration for Windows",
+      "inherits": "pyopenms-base",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      },
+      "generator": "Visual Studio 17 2022",
+      "architecture": "x64",
+      "cacheVariables": {
+        "BOOST_USE_STATIC": "ON"
+      }
+    },
+    {
+      "name": "package-base",
+      "hidden": true,
+      "description": "Base configuration for package builds",
+      "inherits": "base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "WITH_GUI": "ON",
+        "ENABLE_DOCS": "ON",
+        "ENABLE_TUTORIALS": "OFF"
+      }
+    },
+    {
+      "name": "package-deb",
+      "description": "Build configuration for Debian/Ubuntu packages",
+      "inherits": "package-base",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      },
+      "cacheVariables": {
+        "PACKAGE_TYPE": "deb",
+        "BOOST_USE_STATIC": "OFF"
+      }
+    },
+    {
+      "name": "package-rpm",
+      "description": "Build configuration for RPM packages",
+      "inherits": "package-base",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      },
+      "cacheVariables": {
+        "PACKAGE_TYPE": "rpm",
+        "BOOST_USE_STATIC": "OFF"
+      }
+    },
+    {
+      "name": "package-dmg",
+      "description": "Build configuration for macOS DMG packages",
+      "inherits": "package-base",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Darwin"
+      },
+      "cacheVariables": {
+        "PACKAGE_TYPE": "dmg",
+        "BOOST_USE_STATIC": "ON"
+      }
+    },
+    {
+      "name": "package-pkg",
+      "description": "Build configuration for macOS PKG installer",
+      "inherits": "package-base",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Darwin"
+      },
+      "cacheVariables": {
+        "PACKAGE_TYPE": "pkg",
+        "BOOST_USE_STATIC": "ON"
+      }
+    },
+    {
+      "name": "package-nsis",
+      "description": "Build configuration for Windows NSIS installer",
+      "inherits": "package-base",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      },
+      "generator": "Visual Studio 17 2022",
+      "architecture": "x64",
+      "cacheVariables": {
+        "PACKAGE_TYPE": "nsis",
+        "BOOST_USE_STATIC": "ON"
+      }
+    },
+    {
+      "name": "package-zip",
+      "description": "Build configuration for ZIP archive packages",
+      "inherits": "package-base",
+      "cacheVariables": {
+        "PACKAGE_TYPE": "zip"
+      }
+    },
+    {
+      "name": "knime-base",
+      "hidden": true,
+      "description": "Base configuration for KNIME package builds",
+      "inherits": "base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "ENABLE_PREPARE_KNIME_PACKAGE": "ON",
+        "WITH_GUI": "OFF",
+        "ENABLE_DOCS": "OFF",
+        "ENABLE_TUTORIALS": "OFF"
+      }
+    },
+    {
+      "name": "knime-linux",
+      "description": "KNIME package build configuration for Linux",
+      "inherits": "knime-base",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      },
+      "cacheVariables": {
+        "BOOST_USE_STATIC": "OFF"
+      }
+    },
+    {
+      "name": "knime-macos",
+      "description": "KNIME package build configuration for macOS",
+      "inherits": "knime-base",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Darwin"
+      },
+      "cacheVariables": {
+        "BOOST_USE_STATIC": "ON"
+      }
+    },
+    {
+      "name": "knime-windows",
+      "description": "KNIME package build configuration for Windows",
+      "inherits": "knime-base",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      },
+      "generator": "Visual Studio 17 2022",
+      "architecture": "x64",
+      "cacheVariables": {
+        "BOOST_USE_STATIC": "ON"
+      }
+    },
+    {
+      "name": "system-libs",
+      "description": "Build using system libraries instead of contrib",
+      "inherits": "base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "WITH_GUI": "ON"
+      }
+    },
+    {
+      "name": "contrib-libs",
+      "description": "Build using contrib libraries (requires OPENMS_CONTRIB_LIBS)",
+      "inherits": "base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "WITH_GUI": "ON"
+      }
+    },
+    {
+      "name": "debug",
+      "description": "Debug build configuration",
+      "inherits": "base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "WITH_GUI": "ON"
+      }
+    },
+    {
+      "name": "release",
+      "description": "Release build configuration",
+      "inherits": "base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "WITH_GUI": "ON"
+      }
+    },
+    {
+      "name": "relwithdebinfo",
+      "description": "Release with debug info build configuration",
+      "inherits": "base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        "WITH_GUI": "ON"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "ci-linux",
+      "configurePreset": "ci-linux",
+      "description": "Build preset for Linux CI"
+    },
+    {
+      "name": "ci-linux-clang",
+      "configurePreset": "ci-linux-clang",
+      "description": "Build preset for Linux CI with Clang"
+    },
+    {
+      "name": "ci-macos",
+      "configurePreset": "ci-macos",
+      "description": "Build preset for macOS CI"
+    },
+    {
+      "name": "ci-windows",
+      "configurePreset": "ci-windows",
+      "description": "Build preset for Windows CI",
+      "configuration": "Release"
+    },
+    {
+      "name": "pyopenms-linux",
+      "configurePreset": "pyopenms-linux",
+      "description": "Build preset for pyOpenMS on Linux",
+      "targets": ["OpenMS", "pyopenms"]
+    },
+    {
+      "name": "pyopenms-macos",
+      "configurePreset": "pyopenms-macos",
+      "description": "Build preset for pyOpenMS on macOS",
+      "targets": ["OpenMS", "pyopenms"]
+    },
+    {
+      "name": "pyopenms-windows",
+      "configurePreset": "pyopenms-windows",
+      "description": "Build preset for pyOpenMS on Windows",
+      "configuration": "Release",
+      "targets": ["OpenMS", "pyopenms"]
+    },
+    {
+      "name": "package-deb",
+      "configurePreset": "package-deb",
+      "description": "Build preset for Debian packages"
+    },
+    {
+      "name": "package-rpm",
+      "configurePreset": "package-rpm",
+      "description": "Build preset for RPM packages"
+    },
+    {
+      "name": "package-dmg",
+      "configurePreset": "package-dmg",
+      "description": "Build preset for macOS DMG"
+    },
+    {
+      "name": "package-pkg",
+      "configurePreset": "package-pkg",
+      "description": "Build preset for macOS PKG"
+    },
+    {
+      "name": "package-nsis",
+      "configurePreset": "package-nsis",
+      "description": "Build preset for Windows NSIS installer",
+      "configuration": "Release"
+    },
+    {
+      "name": "knime-linux",
+      "configurePreset": "knime-linux",
+      "description": "Build preset for KNIME on Linux",
+      "targets": ["prepare_knime_package"]
+    },
+    {
+      "name": "knime-macos",
+      "configurePreset": "knime-macos",
+      "description": "Build preset for KNIME on macOS",
+      "targets": ["prepare_knime_package"]
+    },
+    {
+      "name": "knime-windows",
+      "configurePreset": "knime-windows",
+      "description": "Build preset for KNIME on Windows",
+      "configuration": "Release",
+      "targets": ["prepare_knime_package"]
+    },
+    {
+      "name": "debug",
+      "configurePreset": "debug",
+      "description": "Debug build"
+    },
+    {
+      "name": "release",
+      "configurePreset": "release",
+      "description": "Release build"
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "ci-linux",
+      "configurePreset": "ci-linux",
+      "description": "Test preset for Linux CI",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "ci-linux-clang",
+      "configurePreset": "ci-linux-clang",
+      "description": "Test preset for Linux CI with Clang",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "ci-macos",
+      "configurePreset": "ci-macos",
+      "description": "Test preset for macOS CI",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "ci-windows",
+      "configurePreset": "ci-windows",
+      "description": "Test preset for Windows CI",
+      "configuration": "Release",
+      "output": {
+        "outputOnFailure": true
+      }
+    }
+  ]
+}
