@@ -166,14 +166,19 @@ namespace Internal
   bool FFIDAlgoExternalIDHandler::fillExternalRTMap_(const AASequence& sequence, Int charge,
                          std::multimap<double, PeptideIdentification*>& rt_map)
   {
-    auto seq_it = external_peptide_map_.find(sequence);
-    if (seq_it == external_peptide_map_.end()) return false;
-    
-    auto charge_it = seq_it->second.find(charge);
-    if (charge_it == seq_it->second.end()) return false;
-    
-    rt_map.insert(charge_it->second.begin(), charge_it->second.end());
-    return true;
+    if (auto seq_it = external_peptide_map_.find(sequence); seq_it == external_peptide_map_.end()) 
+    {
+      return false;
+    }
+    else if (auto charge_it = seq_it->second.find(charge); charge_it == seq_it->second.end()) 
+    {
+      return false;
+    }
+    else
+    {
+      rt_map.insert(charge_it->second.begin(), charge_it->second.end());
+      return true;
+    }
   }
   
   void FFIDAlgoExternalIDHandler::annotateFeatureWithExternalIDs_(Feature& feature)

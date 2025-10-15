@@ -89,7 +89,6 @@ OpenMSDatabasesInfo
 OpenMSInfo
 OpenNuXL
 OpenPepXL
-OpenPepXLLF
 OpenSwathAnalyzer
 OpenSwathAssayGenerator
 OpenSwathChromatogramExtractor
@@ -100,6 +99,7 @@ OpenSwathRTNormalizer
 PeakPickerHiRes
 PeakPickerIterative
 PeptideIndexer
+PeptideDataBaseSearchFI
 PercolatorAdapter
 PhosphoScoring
 ProteinInference
@@ -149,6 +149,13 @@ if(NOT DISABLE_OPENSWATH)
     MRMTransitionGroupPicker
   )
 endif(NOT DISABLE_OPENSWATH)
+
+if(WITH_PARQUET)
+  set(TOPP_executables
+    ${TOPP_executables}
+    QuantmsIOConverter
+  )
+endif(WITH_PARQUET)
 
 ## all targets requiring OpenMS_GUI
 set(TOPP_executables_with_GUIlib

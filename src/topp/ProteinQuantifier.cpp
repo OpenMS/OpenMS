@@ -985,7 +985,6 @@ protected:
     String mztab = getStringOption_("mztab");
     String design_file = getStringOption_("design");
     bool greedy_group_resolution = getStringOption_("greedy_group_resolution") == "true";
-    bool file_and_channel_level_output = getStringOption_("file_and_channel_level_output") == "true";
 
     if (out.empty() && peptide_out.empty())
     {

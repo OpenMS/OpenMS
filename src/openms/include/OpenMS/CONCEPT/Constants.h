@@ -618,6 +618,11 @@ namespace OpenMS
               String
       */
       inline const std::string   RANK = "rank";
+
+      /** User parameter name for the number of peaks in a spectrum
+              String
+      */
+      inline const std::string   NUM_PEAKS = "num_peaks";
     }
 
     //@}

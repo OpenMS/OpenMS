@@ -409,6 +409,75 @@ START_SECTION([EXTRA](template <typename IteratorType> static double quantile(It
 }
 END_SECTION
 
+START_SECTION([EXTRA](template <typename IteratorType> static double quantile(IteratorType begin, IteratorType end, double q)))
+{
+  std::vector<int> v{1,2,3,4}; // already sorted
+  TEST_REAL_SIMILAR(Math::quantile(v.begin(), v.end(), 0.0), 1.0);
+  TEST_REAL_SIMILAR(Math::quantile(v.begin(), v.end(), 1.0), 4.0);
+  // Type-7 median (even length): pos = 0.5*(n-1) = 1.5 -> 2.5
+  TEST_REAL_SIMILAR(Math::quantile(v.begin(), v.end(), 0.5), 2.5);
+  TEST_REAL_SIMILAR(Math::quantile(v.begin(), v.end(), 0.25), 1.75);
+  TEST_REAL_SIMILAR(Math::quantile(v.begin(), v.end(), 0.75), 3.25);
+
+  std::vector<double> empty;
+  TEST_EXCEPTION(Exception::InvalidRange, Math::quantile(empty.begin(), empty.end(), 0.5));
+  TEST_EXCEPTION(Exception::InvalidValue, Math::quantile(v.begin(), v.end(), -0.1));
+  TEST_EXCEPTION(Exception::InvalidValue, Math::quantile(v.begin(), v.end(),  1.1));
+}
+END_SECTION
+
+START_SECTION([EXTRA](template <typename IteratorType1, typename IteratorType2> static double rootMeanSquareError(IteratorType1 begin_a, IteratorType1 end_a, IteratorType2 begin_b, IteratorType2 end_b)))
+{
+  using OpenMS::Math::meanSquareError;
+  using OpenMS::Math::rootMeanSquareError;
+
+  // Simple hand-checkable case: constant offset of -0.5
+  std::vector<double> a{1.0, 2.0, 3.0};
+  std::vector<double> b{1.5, 2.5, 3.5};
+
+  const double mse  = meanSquareError(a.begin(), a.end(), b.begin(), b.end());
+  const double rmse = rootMeanSquareError(a.begin(), a.end(), b.begin(), b.end());
+
+  TEST_REAL_SIMILAR(mse, 0.25);
+  TEST_REAL_SIMILAR(rmse, std::sqrt(0.25));
+
+  // Residuals vs zero baseline equals sqrt(mean of squares)
+  std::vector<double> errs{-2.0, 0.0, 2.0};
+  std::vector<double> zeros(errs.size(), 0.0);
+  TEST_REAL_SIMILAR(
+    rootMeanSquareError(errs.begin(), errs.end(), zeros.begin(), zeros.end()),
+    std::sqrt((4.0 + 0.0 + 4.0) / 3.0)
+  );
+
+  // Exceptions: mismatched length and empty ranges
+  std::vector<double> shortv{1.0, 2.0};
+  TEST_EXCEPTION(Exception::InvalidRange,
+                 rootMeanSquareError(errs.begin(), errs.end(), shortv.begin(), shortv.end()));
+  std::vector<double> empty;
+  TEST_EXCEPTION(Exception::InvalidRange,
+                 rootMeanSquareError(empty.begin(), empty.end(), empty.begin(), empty.end()));
+}
+END_SECTION
+
+START_SECTION((template<typename IteratorType1, typename IteratorType2> static void checkIteratorsAreValid))
+{
+  std::vector<int> v1 = {1, 2, 3};
+  std::vector<int> v2 = {10, 20, 30};
+
+  // Case 1: Both iterators at begin (not at end) --> OK
+  checkIteratorsAreValid(v1.begin(), v1.end(), v2.begin(), v2.end());
+
+  // Case 2: Both iterators at end --> OK
+  checkIteratorsAreValid(v1.end(), v1.end(), v2.end(), v2.end());
+
+  // Case 3: One iterator at end, other not --> should throw
+  TEST_EXCEPTION(Exception::InvalidRange, checkIteratorsAreValid(v1.begin(), v1.end(), v2.end(), v2.end()));
+
+  // Case 4: Reverse mismatch (other one at end) --> should throw
+  TEST_EXCEPTION(Exception::InvalidRange, checkIteratorsAreValid(v1.end(), v1.end(), v2.begin(), v2.end()));
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 

@@ -20,7 +20,7 @@
 namespace OpenMS
 {
   /**
-   * @brief The OPXLHelper class contains functions needed by OpenPepXL and OpenPepXLLF to reduce duplicated code
+   * @brief The OPXLHelper class contains functions needed by OpenPepXL to reduce duplicated code
    */
   class OPENMS_DLLAPI OPXLHelper
   {
