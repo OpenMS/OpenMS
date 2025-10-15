@@ -84,6 +84,23 @@ For developers who want to build OpenMS from source:
 
 For more detailed instructions, see the [Developer Tutorial](https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/developer_tutorial.html).
 
+### CMake Presets
+
+OpenMS now supports CMake presets for common build configurations. To see available presets:
+
+```bash
+cmake --list-presets
+```
+
+To configure with a preset:
+
+```bash
+cmake --preset=<preset-name>
+cmake --build --preset=<preset-name>
+```
+
+See [doc/cmake-presets.md](doc/cmake-presets.md) for detailed documentation on available presets and how to create custom ones.
+
 Citation
 --------
 Please cite:

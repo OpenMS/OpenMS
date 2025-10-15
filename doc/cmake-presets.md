@@ -225,6 +225,32 @@ You can use:
 cmake --preset=pyopenms-linux
 ```
 
+### Examples of CI Simplification
+
+**Before (using cibuild.cmake with environment variables):**
+```bash
+export BUILD_TYPE=Release
+export PYOPENMS=ON
+export WITH_GUI=OFF
+export BOOST_USE_STATIC=OFF
+ctest -S cibuild.cmake
+```
+
+**After (using presets):**
+```bash
+cmake --preset=pyopenms-linux
+cmake --build --preset=pyopenms-linux
+ctest --preset=pyopenms-linux
+```
+
+This approach:
+- Reduces the number of environment variables needed
+- Makes the configuration more explicit and discoverable
+- Ensures consistency across different build environments
+- Simplifies CI workflow files
+
+**Note:** The existing `cibuild.cmake` script can continue to be used alongside presets. Presets provide an alternative, more standardized approach that can gradually replace custom CI scripts. The presets system is complementary and doesn't require immediate migration of existing CI infrastructure.
+
 ## Benefits of Using Presets
 
 1. **Consistency**: Same configuration across different developers and CI systems
