@@ -289,6 +289,11 @@ protected:
               String tmp = line.substr(5);
               spectrum.setMetaValue(Constants::UserParam::MSM_METABOLITE_NAME, tmp);
             }
+            else if (line.hasPrefix("COMPOUND_NAME"))
+            {
+              String tmp = line.substr(14);
+              spectrum.setMetaValue(Constants::UserParam::MSM_METABOLITE_NAME, tmp);
+            }
             else if (line.hasPrefix("INCHI="))
             {
               String tmp = line.substr(6);
