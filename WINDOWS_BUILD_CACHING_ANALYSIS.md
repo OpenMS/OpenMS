@@ -19,8 +19,8 @@ The Windows builds in GitHub Actions have been significantly slower than expecte
 - **Previous setting**: `CCACHE_MAXSIZE: 400M`
 - **Problem**: Too small for a codebase with 3,765 source files and 685MB source
 - **Impact**: Low cache hit rate, frequent recompilation of unchanged files
-- **Fix**: Increased to `CCACHE_MAXSIZE: 2G`
-- **Rationale**: Rule of thumb is 5-10x source code size for object files in ccache
+- **Fix**: Increased to `CCACHE_MAXSIZE: 1G`
+- **Rationale**: Balances cache effectiveness with GitHub Actions 10GB total cache limit
 
 #### 2. Excessive Compression Level (MODERATE)
 **Symptom**: Slow cache save/restore operations
@@ -72,7 +72,7 @@ restore-keys: |
 
 ### Files Modified
 1. `.github/workflows/openms_ci_matrix_full.yml`
-   - Updated CCACHE_MAXSIZE: 400M → 2G
+   - Updated CCACHE_MAXSIZE: 400M → 1G
    - Updated CCACHE_COMPRESSLEVEL: 12 → 6
    - Added ccache statistics logging
 
@@ -86,20 +86,20 @@ Based on typical ccache effectiveness for C++ projects:
 - **First build** (cold cache): No change
 - **Incremental builds** (warm cache): 
   - With old 400M limit: 30-50% time savings (estimated)
-  - With new 2G limit: 60-80% time savings (expected)
+  - With new 1G limit: 60-80% time savings (expected)
 - **Rebuild with dependencies**: 40-70% time savings (expected)
 
 #### Cache Storage
 - GitHub Actions cache limit: 10GB per repository
 - Old ccache size: ~400MB compressed
-- New ccache size: ~2GB compressed (well within limits)
+- New ccache size: ~1GB compressed (well within limits)
 - Contrib cache: ~varies but cached separately
 
 ## Recommendations
 
 ### Short-term (Already Implemented)
 - ✅ Monitor cache hit rates via new statistics logging
-- ✅ Verify 2G is sufficient (can adjust if needed)
+- ✅ Verify 1G is sufficient (can adjust if needed)
 
 ### Medium-term (Future Improvements)
 1. **Consider precompiled headers (PCH)**
@@ -133,7 +133,7 @@ After these changes, monitor in GitHub Actions logs:
    - Target: >60% for PR builds
 
 2. **Cache size**: Check "cache size" vs "max cache size" 
-   - Should stay well below 2G
+   - Should stay well below 1G
    - If approaching limit, may need adjustment
 
 3. **Build time trends**:
@@ -148,12 +148,12 @@ cache hit (direct)     : 2500
 cache hit (preprocessed): 300
 cache miss             : 200
 files in cache         : 3000
-cache size             : 1.8 GB / 2.0 GB
+cache size             : 0.9 GB / 1.0 GB
 ```
 
 This shows:
 - Hit rate: (2500+300)/(2500+300+200) = 93% ✅ Excellent
-- Cache utilization: 1.8/2.0 = 90% ✅ Good, not full
+- Cache utilization: 0.9/1.0 = 90% ✅ Good, not full
 
 Example problematic output:
 ```
@@ -161,12 +161,12 @@ cache hit (direct)     : 500
 cache hit (preprocessed): 100  
 cache miss             : 2500
 files in cache         : 1500
-cache size             : 2.0 GB / 2.0 GB (full!)
+cache size             : 1.0 GB / 1.0 GB (full!)
 ```
 
 This shows:
 - Hit rate: (500+100)/(500+100+2500) = 19% ❌ Poor
-- Cache full: 2.0/2.0 = 100% ❌ Need larger cache
+- Cache full: 1.0/1.0 = 100% ❌ Need larger cache
 
 ## References
 
