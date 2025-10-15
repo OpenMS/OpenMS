@@ -19,6 +19,7 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 #include <boost/regex.hpp>
+#include <map>
 
 using namespace OpenMS;
 using namespace std;
@@ -397,6 +398,9 @@ protected:
           writeLogWarn_(String("Warning: More than one scan in file '") + filename + "'! All scans will have the same retention time!");
         }
 
+        // Build mapping from old native IDs to new native IDs for updating precursor references
+        std::map<String, String> native_id_map;
+
         // handle special raw data options:
         for (MSSpectrum& spec : in)
         {
@@ -431,12 +435,44 @@ protected:
           }
 
           spec.setRT(rt_final);
-          spec.setNativeID("spectrum=" + String(native_id));
+          
+          // Store old native ID before updating it
+          String old_native_id = spec.getNativeID();
+          String new_native_id = "spectrum=" + String(native_id);
+          
+          spec.setNativeID(new_native_id);
+          
+          // Map old native ID to new native ID
+          if (!old_native_id.empty())
+          {
+            native_id_map[old_native_id] = new_native_id;
+          }
+          
           if (ms_level > 0)
           {
             spec.setMSLevel(ms_level);
           }
           ++native_id;
+        }
+
+        // Update precursor spectrum references
+        for (MSSpectrum& spec : in)
+        {
+          if (!spec.getPrecursors().empty())
+          {
+            for (auto& precursor : spec.getPrecursors())
+            {
+              if (precursor.metaValueExists("spectrum_ref"))
+              {
+                String old_ref = precursor.getMetaValue("spectrum_ref");
+                auto it = native_id_map.find(old_ref);
+                if (it != native_id_map.end())
+                {
+                  precursor.setMetaValue("spectrum_ref", it->second);
+                }
+              }
+            }
+          }
         }
 
         // if we have only one spectrum, we can annotate it directly, for more spectra, we just name the source file leaving the spectra unannotated (to avoid a long and redundant list of sourceFiles)

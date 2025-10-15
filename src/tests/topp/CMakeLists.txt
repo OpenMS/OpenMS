@@ -753,6 +753,10 @@ set_tests_properties("TOPP_FileMerger_10_out3" PROPERTIES DEPENDS "TOPP_FileMerg
 add_test("TOPP_FileMerger_11" ${TOPP_BIN_PATH}/FileMerger -test -in ${DATA_DIR_TOPP}/FileMerger_8_input1.consensusXML ${DATA_DIR_TOPP}/FileMerger_8_input2.consensusXML -append_method append_cols -out FileMerger_11.tmp.consensusXML)
 add_test("TOPP_FileMerger_11_out1" ${DIFF} -whitelist ${INDEX_WHITELIST} "id=" "location=" "href=" -in1 FileMerger_11.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/FileMerger_11_output.consensusXML )
 set_tests_properties("TOPP_FileMerger_11_out1" PROPERTIES DEPENDS "TOPP_FileMerger_11")
+# test precursor spectrum_ref update
+add_test("TOPP_FileMerger_12" ${TOPP_BIN_PATH}/FileMerger -test -in ${DATA_DIR_TOPP}/FileMerger_12_input1.mzML ${DATA_DIR_TOPP}/FileMerger_12_input2.mzML -out FileMerger_12.tmp.mzML)
+add_test("TOPP_FileMerger_12_out1" ${DIFF} -whitelist ${INDEX_WHITELIST} "id=" "location=" "href=" "version=" "offset" "indexListOffset" -in1 FileMerger_12.tmp.mzML -in2 ${DATA_DIR_TOPP}/FileMerger_12_output.mzML )
+set_tests_properties("TOPP_FileMerger_12_out1" PROPERTIES DEPENDS "TOPP_FileMerger_12")
 
 #------------------------------------------------------------------------------
 # FLASHDeconv tests
