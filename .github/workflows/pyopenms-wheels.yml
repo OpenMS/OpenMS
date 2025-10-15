@@ -512,7 +512,7 @@ jobs:
 
   build-lnx:
     runs-on: [ubuntu-latest]
-    container: ghcr.io/openms/contrib_manylinux_2_34:bumpzlib
+    container: ghcr.io/openms/contrib_manylinux_2_34:latest
 
     steps:
     # Cancels older builds if still running
