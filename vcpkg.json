@@ -42,6 +42,7 @@
     "coin-or-cbc",
     "coinutils",
     "eigen3",
-    "bzip2"
+    "bzip2",
+    "arrow"
   ]
 }
