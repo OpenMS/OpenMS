@@ -9,6 +9,7 @@
 #include <iostream>
 #include <OpenMS/FORMAT/Bzip2Ifstream.h>
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/SYSTEM/File.h>
 #include <cstdlib>
 
 using namespace std;
@@ -23,7 +24,18 @@ namespace OpenMS
     //aborting, ahhh!
     if (!file_)
     {
-      throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+      if (!File::exists(filename))
+      {
+        throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+      }
+      else if (!File::readable(filename))
+      {
+        throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+      }
+      else
+      {
+        throw Exception::IOException(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+      }
     }
 
     bzip2file_ = BZ2_bzReadOpen(&bzerror_, file_, 0, 0, nullptr, 0);
@@ -79,7 +91,18 @@ namespace OpenMS
     //aborting, ahhh!
     if (!file_)
     {
-      throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+      if (!File::exists(filename))
+      {
+        throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+      }
+      else if (!File::readable(filename))
+      {
+        throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+      }
+      else
+      {
+        throw Exception::IOException(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+      }
     }
 
     bzip2file_ = BZ2_bzReadOpen(&bzerror_, file_, 0, 0, nullptr, 0);
