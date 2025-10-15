@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathWorkflow.h>
+#include <cmath>
 
 // OpenSwathCalibrationWorkflow
 namespace OpenMS
@@ -259,6 +260,12 @@ namespace OpenMS
     mc.correctMZ(trgrmap_final, targeted_exp, swath_maps, pasef);
     mc.correctIM(trgrmap_final, targeted_exp, swath_maps, pasef, im_trafo);
 
+    // Get estimated extraction windows
+    setEstimatedMzWindow(mc.getFragmentMzWindow());
+    setEstimatedImWindow(mc.getFragmentImWindow());
+    setEstimatedMs1MzWindow(mc.getPrecursorMzWindow());
+    setEstimatedMs1ImWindow(mc.getPrecursorImWindow());
+
     // 9. store RT transformation, using the selected model
     TransformationDescription trafo_out;
     trafo_out.setDataPoints(pairs_corrected);
@@ -274,6 +281,7 @@ namespace OpenMS
     {
       OPENMS_LOG_DEBUG << pairs_corrected[i].first << " " <<  pairs_corrected[i].second << std::endl;
     }
+
     OPENMS_LOG_DEBUG << "End of doDataNormalization_ method" << std::endl;
 
     this->endProgress();
@@ -437,7 +445,47 @@ namespace OpenMS
     ls.raster(newchrom.begin(), newchrom.end(), base_chrom.begin(), base_chrom.end());
   }
 
-}
+  double OpenSwathCalibrationWorkflow::getEstimatedMzWindow() const
+  {
+    return estimated_mz_window_;
+  }
+
+  void OpenSwathCalibrationWorkflow::setEstimatedMzWindow(double estimatedMzWindow)
+  {
+    estimated_mz_window_ = estimatedMzWindow;
+  }
+
+  double OpenSwathCalibrationWorkflow::getEstimatedImWindow() const
+  {
+    return estimated_im_window_;
+  }
+
+  void OpenSwathCalibrationWorkflow::setEstimatedImWindow(double estimatedImWindow)
+  {
+    estimated_im_window_ = estimatedImWindow;
+  }
+  
+  double OpenSwathCalibrationWorkflow::getEstimatedMs1MzWindow() const
+  {
+    return estimated_ms1_mz_window_;
+  }
+
+  void OpenSwathCalibrationWorkflow::setEstimatedMs1MzWindow(double estimatedMs1MzWindow)
+  {
+    estimated_ms1_mz_window_ = estimatedMs1MzWindow;
+  }
+
+  double OpenSwathCalibrationWorkflow::getEstimatedMs1ImWindow() const
+  {
+    return estimated_ms1_im_window_;
+  }
+
+  void OpenSwathCalibrationWorkflow::setEstimatedMs1ImWindow(double estimatedMs1ImWindow)
+  {
+    estimated_ms1_im_window_ = estimatedMs1ImWindow;
+  }
+
+  }
 
 // OpenSwathWorkflow
 namespace OpenMS
