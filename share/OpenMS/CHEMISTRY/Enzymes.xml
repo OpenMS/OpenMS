@@ -269,6 +269,7 @@
     <NODE name="iodosobenzoate">
       <ITEM name="Name" value="iodosobenzoate" type="string" />
       <ITEM name="RegEx" value="(?&lt;=W)" type="string" />
+      <ITEM name="RegExDescription" value="iodosobenzoate cuts after W." type="string" />
       <ITEM name="CometID" value="25" type="int" />
     </NODE>
     <NODE name="staphylococcal protease/D">
