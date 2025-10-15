@@ -403,9 +403,16 @@ protected:
 
       p.setValue("alignmentMethod", "linear", "How to perform the alignment to the normalized RT space using anchor points. 'linear': perform linear regression (for few anchor points). 'interpolated': Interpolate between anchor points (for few, noise-free anchor points). 'lowess' Use local regression (for many, noisy anchor points). 'b_spline' use b splines for smoothing.");
       p.setValidStrings("alignmentMethod", {"linear","interpolated","lowess","b_spline"});
+      p.setValue("lowess:auto_span", "true", "If true, or if 'span' is 0, automatically select LOWESS span by cross-validation.");
+      p.setValidStrings("lowess:auto_span", {"true","false"});
       p.setValue("lowess:span", 0.05, "Span parameter for lowess");
       p.setMinFloat("lowess:span", 0.0);
       p.setMaxFloat("lowess:span", 1.0);
+      p.setValue("lowess:auto_span_min", 0.15,"Lower bound for auto-selected span.");
+      p.setMinFloat("lowess:auto_span_min", 0.001);
+      p.setValue("lowess:auto_span_max", 0.80,"Upper bound for auto-selected span.");
+      p.setMaxFloat("lowess:auto_span_max", 0.99);
+      p.setValue("lowess:auto_span_grid", "0.005,0.01,0.05,0.15,0.25,0.30,0.50,0.70,0.90", "Optional explicit grid of span candidates in (0,1]. Comma-separated list, e.g. '0.2,0.3,0.5'.  If empty, a default grid is used.");
       p.setValue("b_spline:num_nodes", 5, "Number of nodes for b spline");
       p.setMinInt("b_spline:num_nodes", 0);
 
@@ -910,7 +917,7 @@ protected:
     String irt_trafo_out = debug_params.getValue("irt_trafo").toString();
     String irt_mzml_out = debug_params.getValue("irt_mzml").toString();
     Param irt_detection_param = getParam_().copy("Calibration:RTNormalization:", true);
-    Param calibration_param = getParam_().copy("Calibration:MassIMCorrection", true);
+    Param calibration_param = getParam_().copy("Calibration:MassIMCorrection:", true);
     calibration_param.setValue("mz_extraction_window", cp_irt.mz_extraction_window);
     calibration_param.setValue("mz_extraction_window_ppm", cp_irt.ppm ? "true" : "false");
     calibration_param.setValue("im_extraction_window", cp_irt.im_extraction_window);
