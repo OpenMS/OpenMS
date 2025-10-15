@@ -403,9 +403,20 @@ jobs:
             python -m pip install -r $GITHUB_WORKSPACE/OpenMS/src/pyOpenMS/requirements_bld.txt
           fi
 
+          # Display ccache statistics before build
+          echo "::group::ccache statistics before build"
+          ccache -s || true
+          echo "::endgroup::"
+
           mkdir $GITHUB_WORKSPACE/OpenMS/bld/
           ${{ steps.set-vars.outputs.xvfb }} ctest --output-on-failure -V -S ../OpenMS/OpenMS/tools/ci/cibuild.cmake
           retVal=$?
+          
+          # Display ccache statistics after build
+          echo "::group::ccache statistics after build"
+          ccache -s || true
+          echo "::endgroup::"
+          
           if [ $retVal -ne 0 ]; then
               echo -e "\033[0;31m Errors in build:"
               # TODO upload logs as artifact?
@@ -444,8 +455,8 @@ jobs:
           CCACHE_BASEDIR: ${{ github.workspace }}
           CCACHE_DIR: ${{ github.workspace }}/.ccache
           CCACHE_COMPRESS: true
-          CCACHE_COMPRESSLEVEL: 12
-          CCACHE_MAXSIZE: 400M
+          CCACHE_COMPRESSLEVEL: 6
+          CCACHE_MAXSIZE: 2G
           # TODO evaluate those options (we had them only on Linux before)
           CCACHE_SLOPPINESS: time_macros,include_file_ctime,include_file_mtime
           CCACHE_COMPILERCHECK: content
