@@ -182,6 +182,19 @@ jobs:
           BUILD_TYPE: "Release"
           # The rest of the vars should be saved in the CMakeCache
 
+    - name: Display CDash Test URL
+      if: always()
+      shell: bash
+      run: |
+          BUILD_NAME="${{ steps.extract_branch.outputs.RUN_NAME }}-${{ runner.os }}-${{ runner.arch }}-class-pyopenms-${{ github.run_number }}"
+          # URL encode the build name
+          BUILD_NAME_SAFE="${BUILD_NAME//+/%2B}"
+          BUILD_NAME_SAFE="${BUILD_NAME_SAFE//./%2E}"
+          BUILD_NAME_SAFE="${BUILD_NAME_SAFE//\//%2F}"
+          CDASH_URL="https://cdash.seqan.de/index.php?project=OpenMS&begin=2023-01-01&end=2030-01-01&filtercount=1&field1=buildname&compare1=63&value1=${BUILD_NAME_SAFE}"
+          echo "::notice title=CDash Test Results::View test results at: ${CDASH_URL}"
+          echo "CDash Test URL: ${CDASH_URL}"
+
     - uses: actions/upload-artifact@v4
       name: Upload artifacts
       with:
@@ -336,6 +349,19 @@ jobs:
           CI_PROVIDER: "GitHub-Actions"
           BUILD_NAME: "${{ steps.extract_branch.outputs.RUN_NAME }}-${{ runner.os }}-${{ runner.arch }}-class-pyopenms-${{ github.run_number }}"
           # The rest of the vars should be saved in the CMakeCache
+
+    - name: Display CDash Test URL
+      if: always()
+      shell: bash
+      run: |
+          BUILD_NAME="${{ steps.extract_branch.outputs.RUN_NAME }}-${{ runner.os }}-${{ runner.arch }}-class-pyopenms-${{ github.run_number }}"
+          # URL encode the build name
+          BUILD_NAME_SAFE="${BUILD_NAME//+/%2B}"
+          BUILD_NAME_SAFE="${BUILD_NAME_SAFE//./%2E}"
+          BUILD_NAME_SAFE="${BUILD_NAME_SAFE//\//%2F}"
+          CDASH_URL="https://cdash.seqan.de/index.php?project=OpenMS&begin=2023-01-01&end=2030-01-01&filtercount=1&field1=buildname&compare1=63&value1=${BUILD_NAME_SAFE}"
+          echo "::notice title=CDash Test Results::View test results at: ${CDASH_URL}"
+          echo "CDash Test URL: ${CDASH_URL}"
 
     - uses: actions/upload-artifact@v4
       name: Upload artifacts
@@ -502,6 +528,19 @@ jobs:
           BUILD_NAME: "${{ steps.extract_branch.outputs.RUN_NAME }}-${{ runner.os }}-${{ runner.arch }}-class-pyopenms-${{ github.run_number }}"
           # The rest of the vars should be saved in the CMakeCache
         
+    - name: Display CDash Test URL
+      if: always()
+      shell: bash
+      run: |
+          BUILD_NAME="${{ steps.extract_branch.outputs.RUN_NAME }}-${{ runner.os }}-${{ runner.arch }}-class-pyopenms-${{ github.run_number }}"
+          # URL encode the build name
+          BUILD_NAME_SAFE="${BUILD_NAME//+/%2B}"
+          BUILD_NAME_SAFE="${BUILD_NAME_SAFE//./%2E}"
+          BUILD_NAME_SAFE="${BUILD_NAME_SAFE//\//%2F}"
+          CDASH_URL="https://cdash.seqan.de/index.php?project=OpenMS&begin=2023-01-01&end=2030-01-01&filtercount=1&field1=buildname&compare1=63&value1=${BUILD_NAME_SAFE}"
+          echo "::notice title=CDash Test Results::View test results at: ${CDASH_URL}"
+          echo "CDash Test URL: ${CDASH_URL}"
+
     - uses: actions/upload-artifact@v4
       name: Upload wheels
       with:
@@ -631,6 +670,19 @@ jobs:
           CI_PROVIDER: "GitHub-Actions"
           BUILD_NAME: "${{ steps.extract_branch.outputs.RUN_NAME }}-${{ runner.os }}-${{ runner.arch }}-class-pyopenms-${{ github.run_number }}"
           # The rest of the vars should be saved in the CMakeCache
+
+    - name: Display CDash Test URL
+      if: always()
+      shell: bash
+      run: |
+          BUILD_NAME="${{ steps.extract_branch.outputs.RUN_NAME }}-${{ runner.os }}-${{ runner.arch }}-class-pyopenms-${{ github.run_number }}"
+          # URL encode the build name
+          BUILD_NAME_SAFE="${BUILD_NAME//+/%2B}"
+          BUILD_NAME_SAFE="${BUILD_NAME_SAFE//./%2E}"
+          BUILD_NAME_SAFE="${BUILD_NAME_SAFE//\//%2F}"
+          CDASH_URL="https://cdash.seqan.de/index.php?project=OpenMS&begin=2023-01-01&end=2030-01-01&filtercount=1&field1=buildname&compare1=63&value1=${BUILD_NAME_SAFE}"
+          echo "::notice title=CDash Test Results::View test results at: ${CDASH_URL}"
+          echo "CDash Test URL: ${CDASH_URL}"
 
     - uses: actions/upload-artifact@v4
       name: Upload artifacts
