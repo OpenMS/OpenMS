@@ -648,7 +648,7 @@ jobs:
       SYSTEM_VERSION_COMPAT: 0 #courtesy of https://github.com/actions/setup-python/issues/469 in lieu of an actual solution.
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-13, windows-latest, macos-latest]
+        os: [ubuntu-latest, macos-15-intel, windows-latest, macos-latest]
     steps:
     - uses: actions/checkout@v4
       name: Checkout sources
