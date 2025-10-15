@@ -466,8 +466,14 @@ jobs:
           BUILD_NAME_SAFE="${BUILD_NAME_SAFE//./%2E}"
           BUILD_NAME_SAFE="${BUILD_NAME_SAFE//\//%2F}"
           CDASH_URL="https://cdash.seqan.de/index.php?project=OpenMS&begin=2023-01-01&end=2030-01-01&filtercount=1&field1=buildname&compare1=63&value1=${BUILD_NAME_SAFE}"
-          echo "::notice title=CDash Build Results::View build results at: ${CDASH_URL}"
-          echo "CDash Build URL: ${CDASH_URL}"
+          
+          # Add to job summary
+          echo "## CDash Build Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Build Name:** \`${BUILD_NAME}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "🔗 [View detailed build results on CDash](${CDASH_URL})" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
 
     - name: Test
       shell: bash
@@ -494,8 +500,14 @@ jobs:
           BUILD_NAME_SAFE="${BUILD_NAME_SAFE//./%2E}"
           BUILD_NAME_SAFE="${BUILD_NAME_SAFE//\//%2F}"
           CDASH_URL="https://cdash.seqan.de/index.php?project=OpenMS&begin=2023-01-01&end=2030-01-01&filtercount=1&field1=buildname&compare1=63&value1=${BUILD_NAME_SAFE}"
-          echo "::notice title=CDash Test Results::View test results at: ${CDASH_URL}"
-          echo "CDash Test URL: ${CDASH_URL}"
+          
+          # Add to job summary
+          echo "## CDash Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Build Name:** \`${BUILD_NAME}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "🔗 [View detailed test results on CDash](${CDASH_URL})" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
 
     # Load the code signing certificate and the package signing certificate TODO: Change which cert to use for non-nightly
     - name: Import Apple Developer Certificates
