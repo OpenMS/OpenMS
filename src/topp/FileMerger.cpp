@@ -460,7 +460,8 @@ protected:
         {
           if (!spec.getPrecursors().empty())
           {
-            for (auto& precursor : spec.getPrecursors())
+            auto& precursors = spec.getPrecursors();
+            for (auto& precursor : precursors)
             {
               if (precursor.metaValueExists("spectrum_ref"))
               {
