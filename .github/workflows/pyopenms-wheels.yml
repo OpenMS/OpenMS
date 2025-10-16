@@ -159,8 +159,8 @@ jobs:
           CCACHE_BASEDIR: ${{ github.workspace }}
           CCACHE_DIR: ${{ github.workspace }}/.ccache
           CCACHE_COMPRESS: true
-          CCACHE_COMPRESSLEVEL: 12
-          CCACHE_MAXSIZE: 400M
+          CCACHE_COMPRESSLEVEL: 6
+          CCACHE_MAXSIZE: 1G
           PYOPENMS: "ON"
           PY_NUM_THREADS: ${{ steps.cpu-cores.outputs.count }}
           ENABLE_TUTORIALS: "OFF"
@@ -315,8 +315,8 @@ jobs:
           CCACHE_BASEDIR: ${{ github.workspace }}
           CCACHE_DIR: ${{ github.workspace }}/.ccache
           CCACHE_COMPRESS: true
-          CCACHE_COMPRESSLEVEL: 12
-          CCACHE_MAXSIZE: 400M
+          CCACHE_COMPRESSLEVEL: 6
+          CCACHE_MAXSIZE: 1G
           MT_ENABLE_OPENMP: "ON"
           PYOPENMS: "ON"
           PY_NUM_THREADS: ${{ steps.cpu-cores.outputs.count }}
@@ -483,8 +483,8 @@ jobs:
         CCACHE_BASEDIR: ${{ github.workspace }}
         CCACHE_DIR: ${{ github.workspace }}/.ccache
         CCACHE_COMPRESS: true
-        CCACHE_COMPRESSLEVEL: 12
-        CCACHE_MAXSIZE: 400M
+        CCACHE_COMPRESSLEVEL: 6
+        CCACHE_MAXSIZE: 1G
         MT_ENABLE_OPENMP: "ON"
         PYOPENMS: "ON"
         PY_NUM_THREADS: ${{ steps.cpu-cores.outputs.count }}
