@@ -131,7 +131,8 @@ jobs:
             ccache \
             doxygen \
             ghostscript \
-            graphviz
+            graphviz \
+            python3-jinja2
           echo "Testing doxygen" && doxygen --version
           # vcpkg will provide dependencies, so no custom prefix path needed
           echo "cmake_prefix=" >>$GITHUB_OUTPUT
