@@ -98,9 +98,10 @@ namespace OpenMS
     IMFormat current_format = spec.getIMFormat();
     if (current_format != IMFormat::UNKNOWN)
     {
+     // note: if we picked the spectrum already, the IMType should be already correctly set to CENTROIDED
       return current_format;
     }
-
+    
     // If format is UNKNOWN, determine it
     bool has_float_data = spec.containsIMData(); // cache value; query is 'expensive'
     bool has_drift_time = spec.getDriftTime() != DRIFTTIME_NOT_SET;
@@ -111,7 +112,7 @@ namespace OpenMS
       {
         OPENMS_LOG_DEBUG << "both drift time and IM data array found in spectrum " << spec.getNativeID() << "\n. Support for both is experimental." << std::endl;
       }
-      return IMFormat::CONCATENATED; // TODO: or CENTROIDED. for now assume that no picking was done (otherwise we would have annotated it)
+      return IMFormat::CONCATENATED;
     }
     else if (has_drift_time)
     {
