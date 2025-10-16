@@ -194,7 +194,7 @@ jobs:
           ${{ github.workspace }}/vcpkg/buildtrees
         key: ${{ runner.os }}-${{ runner.arch }}-vcpkg-${{ hashFiles('**/vcpkg.json') }}
         restore-keys: |
-          ${{ runner.os }}-${{ runner.arch }}-vcpkg-${{ hashFiles('**/vcpkg.json') }}
+          ${{ runner.os }}-${{ runner.arch }}-vcpkg-
 
     - name: Install dependencies via vcpkg
       shell: bash
