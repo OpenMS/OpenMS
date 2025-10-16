@@ -683,7 +683,6 @@ jobs:
         echo "$HOME/miniconda3/bin" >> $GITHUB_PATH
         echo "$HOME/miniconda3/Scripts" >> $GITHUB_PATH
 
-
     - name: Download artifacts
       uses: actions/download-artifact@v4
       with:
