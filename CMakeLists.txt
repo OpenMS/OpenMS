@@ -17,6 +17,23 @@ endif()
 
 project("OpenMS_host" LANGUAGES CXX)
 
+#------------------------------------------------------------------------------
+# vcpkg integration
+#------------------------------------------------------------------------------
+# Check if vcpkg toolchain is being used
+if(DEFINED CMAKE_TOOLCHAIN_FILE)
+  message(STATUS "Using vcpkg toolchain: ${CMAKE_TOOLCHAIN_FILE}")
+  # Set vcpkg overlay ports for custom Qt packages
+  if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/vcpkg-overlays/ports")
+    list(APPEND VCPKG_OVERLAY_PORTS "${CMAKE_CURRENT_SOURCE_DIR}/vcpkg-overlays/ports")
+    message(STATUS "Using vcpkg overlay ports: ${CMAKE_CURRENT_SOURCE_DIR}/vcpkg-overlays/ports")
+  endif()
+elseif(DEFINED ENV{VCPKG_ROOT})
+  # If VCPKG_ROOT is set but CMAKE_TOOLCHAIN_FILE is not, suggest using the toolchain
+  message(STATUS "VCPKG_ROOT is set to $ENV{VCPKG_ROOT}")
+  message(STATUS "Hint: To use vcpkg, pass -DCMAKE_TOOLCHAIN_FILE=$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake to CMake")
+endif()
+
 # required for cmake < 3.13 if ccache is used
 set(CMAKE_AUTOMOC_COMPILER_PREDEFINES OFF)
 
