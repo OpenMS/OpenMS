@@ -1,0 +1,161 @@
+/**
+
+  @page install_vcpkg Building %OpenMS with vcpkg
+
+  This document describes how to build %OpenMS using vcpkg for dependency management.
+  This is the recommended approach for building %OpenMS from source as it provides
+  a consistent, cross-platform way to manage dependencies.
+
+  @section install_vcpkg_overview Overview
+
+  vcpkg is a C++ package manager that works on Windows, macOS, and Linux. %OpenMS
+  includes a `vcpkg.json` manifest file that lists all required dependencies. When
+  building %OpenMS with vcpkg, all dependencies will be automatically installed
+  in a consistent way across all platforms.
+
+  @section install_vcpkg_prerequisites Prerequisites
+
+  Before building %OpenMS with vcpkg, you'll need:
+  - Git
+  - CMake (>= 3.21)
+  - A C++ compiler (GCC >= 11, Clang >= 15, or MSVC >= 14.36)
+  - Ninja (recommended build system)
+
+  @section install_vcpkg_setup Setting up vcpkg
+
+  1. Clone the vcpkg repository:
+  
+  \code{.sh}
+  git clone https://github.com/microsoft/vcpkg.git
+  cd vcpkg
+  \endcode
+
+  2. Bootstrap vcpkg:
+
+  On Linux/macOS:
+  \code{.sh}
+  ./bootstrap-vcpkg.sh
+  \endcode
+
+  On Windows:
+  \code{.bat}
+  .\bootstrap-vcpkg.bat
+  \endcode
+
+  3. Set the VCPKG_ROOT environment variable (optional but recommended):
+
+  On Linux/macOS:
+  \code{.sh}
+  export VCPKG_ROOT=/path/to/vcpkg
+  \endcode
+
+  On Windows (PowerShell):
+  \code{.ps1}
+  $env:VCPKG_ROOT = "C:\path\to\vcpkg"
+  \endcode
+
+  @section install_vcpkg_build Building OpenMS
+
+  1. Clone the %OpenMS repository:
+
+  \code{.sh}
+  git clone https://github.com/OpenMS/OpenMS.git
+  cd OpenMS
+  git submodule update --init THIRDPARTY
+  \endcode
+
+  2. Configure the build with vcpkg toolchain:
+
+  \code{.sh}
+  mkdir build
+  cd build
+  cmake .. \
+    -DCMAKE_TOOLCHAIN_FILE=/path/to/vcpkg/scripts/buildsystems/vcpkg.cmake \
+    -DCMAKE_BUILD_TYPE=Release \
+    -G Ninja
+  \endcode
+
+  On Windows with Visual Studio:
+  \code{.bat}
+  cmake .. ^
+    -DCMAKE_TOOLCHAIN_FILE=C:\path\to\vcpkg\scripts\buildsystems\vcpkg.cmake ^
+    -DCMAKE_BUILD_TYPE=Release ^
+    -G "Visual Studio 17 2022" ^
+    -A x64
+  \endcode
+
+  3. Build %OpenMS:
+
+  \code{.sh}
+  cmake --build . --config Release
+  \endcode
+
+  @section install_vcpkg_dependencies Dependencies
+
+  The `vcpkg.json` file in the %OpenMS root directory declares all required
+  dependencies. vcpkg will automatically install these when you configure
+  the build. The main dependencies include:
+
+  - Boost (multiple components)
+  - Qt6 (qtbase, qtsvg)
+  - Eigen3
+  - Xerces-C
+  - COIN-OR (CBC, CGL, CLP)
+  - libsvm
+  - Apache Arrow (for Parquet support)
+  - zlib, bzip2
+
+  @section install_vcpkg_custom Custom Qt Packages
+
+  %OpenMS includes custom vcpkg overlay ports for Qt packages in the
+  `vcpkg-overlays/ports` directory. These are automatically used when
+  building with the vcpkg toolchain. The overlays ensure specific Qt
+  versions are used that are compatible with %OpenMS.
+
+  @section install_vcpkg_cache Caching Dependencies
+
+  To speed up subsequent builds, you can cache the vcpkg installed packages:
+
+  - The installed packages are located in `{vcpkg-root}/installed`
+  - Build artifacts are in `{vcpkg-root}/buildtrees` and `{vcpkg-root}/packages`
+
+  In CI environments, these directories can be cached to avoid reinstalling
+  dependencies on every build.
+
+  @section install_vcpkg_advantages Advantages of vcpkg
+
+  - **Cross-platform**: Same build process on Windows, macOS, and Linux
+  - **Consistent versions**: All developers and CI systems use the same library versions
+  - **Reproducible builds**: The `vcpkg.json` manifest ensures consistent dependencies
+  - **No manual dependency hunting**: vcpkg handles all dependency resolution
+  - **Automatic updates**: Updating dependencies is as simple as updating vcpkg
+
+  @section install_vcpkg_troubleshooting Troubleshooting
+
+  @subsection install_vcpkg_troubleshooting_clean Clean Build
+
+  If you encounter issues, try cleaning the vcpkg cache:
+
+  \code{.sh}
+  /path/to/vcpkg/vcpkg remove --outdated --recurse
+  \endcode
+
+  @subsection install_vcpkg_troubleshooting_overlay Overlay Ports
+
+  If you encounter issues with Qt packages, ensure the overlay ports are being used:
+
+  \code{.sh}
+  export VCPKG_OVERLAY_PORTS=/path/to/OpenMS/vcpkg-overlays/ports
+  \endcode
+
+  This is automatically set when using the CMake toolchain file, but may need
+  to be set manually in some cases.
+
+  @subsection install_vcpkg_troubleshooting_logs Build Logs
+
+  vcpkg provides detailed build logs in `{vcpkg-root}/buildtrees/{package}/`.
+  Check these logs if a package fails to build.
+
+  [issues]: https://github.com/OpenMS/OpenMS/issues
+
+*/

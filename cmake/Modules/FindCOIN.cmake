@@ -132,7 +132,8 @@ endmacro()
 
 if(NOT TARGET CoinOR::CoinOR)
   add_library(CoinOR::CoinOR INTERFACE IMPORTED)
-  if (VCPKG_TOOLCHAIN)
+  # Check if using vcpkg toolchain by checking if CMAKE_TOOLCHAIN_FILE contains vcpkg
+  if (VCPKG_TOOLCHAIN OR (DEFINED CMAKE_TOOLCHAIN_FILE AND CMAKE_TOOLCHAIN_FILE MATCHES "vcpkg"))
     # Currently coin-or from vcpkg requires BLAS and LAPACK
     # TODO: Find a better way to do this. Ideal would be if Coin exports a CMake config
     #  Maybe we can parse a header file? Or try_compile?

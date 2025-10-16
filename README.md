@@ -78,6 +78,7 @@ Building OpenMS
 
 For developers who want to build OpenMS from source:
 
+- [Build with vcpkg](https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/install_vcpkg.html) - **Recommended**: Cross-platform build using vcpkg for dependency management.
 - [Build on Linux](https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/install_linux.html) - Build instructions for Linux.
 - [Build on Windows](https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/install_win.html) - Build instructions for Windows.
 - [Build on macOS](https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/install_mac.html) - Build instructions for macOS.
