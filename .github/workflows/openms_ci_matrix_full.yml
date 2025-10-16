@@ -207,6 +207,17 @@ jobs:
         else
           VCPKG_EXEC="${VCPKG_DIR}/vcpkg"
         fi
+        # Check if vcpkg executable exists, bootstrap if not (cache might have restored incomplete state)
+        if [ ! -f "${VCPKG_EXEC}" ]; then
+          echo "vcpkg executable not found, bootstrapping..."
+          cd "${VCPKG_DIR}"
+          if [[ "${{ matrix.os }}" == windows-* ]]; then
+            cmd.exe /c "bootstrap-vcpkg.bat -disableMetrics"
+          else
+            ./bootstrap-vcpkg.sh -disableMetrics
+          fi
+          cd "${GITHUB_WORKSPACE}/OpenMS"
+        fi
         # Install dependencies from vcpkg.json with overlay ports
         "${VCPKG_EXEC}" install \
           --overlay-ports="${GITHUB_WORKSPACE}/OpenMS/vcpkg-overlays/ports" \
