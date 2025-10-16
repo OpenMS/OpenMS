@@ -331,9 +331,12 @@ jobs:
             ccache \
             ninja \
             libomp \
+            bison \
             doxygen \
             ghostscript \
             graphviz
+          # Add bison to PATH (needed for thrift build in vcpkg)
+          echo "$(brew --prefix bison)/bin" >> $GITHUB_PATH
           # libomp needs to be in prefix path as it's not managed by vcpkg
           echo "cmake_prefix=$(brew --prefix libomp)" >>$GITHUB_OUTPUT
         fi
