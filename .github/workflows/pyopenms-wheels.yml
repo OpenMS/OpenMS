@@ -353,7 +353,7 @@ jobs:
         path: pyopenms_whls
         
   build-macos:
-    runs-on: macos-13
+    runs-on: macos-15-intel
     env:
       SYSTEM_VERSION_COMPAT: 0 # workaround for mac see https://github.com/actions/setup-python/issues/469 for details.
     steps:
@@ -402,12 +402,14 @@ jobs:
 
     - name: Install contrib packages from brew
       run: |
+        ## The latest pipx "requires" python 3.14 which breaks things when installed on here
+        brew pin pipx
         ## Update the package lists for Brew
         ## Needed for Qt. Install before to overwrite the default softlinks on the GH runners
         brew install --force --overwrite --quiet ccache autoconf automake libtool ninja && brew link --overwrite ccache
         brew install --force --overwrite libsvm xerces-c boost eigen sqlite coinutils cbc cgl clp qt@6 libomp
         echo "cmake_prefix=$(brew --prefix qt@6)/lib/cmake;$(brew --prefix qt@6);$(brew --prefix libomp)" >> $GITHUB_OUTPUT
-        brew link --force libomp 
+        brew link --force --overwrite libomp 
         echo "Qt6_DIR=$(brew --prefix qt@6)/lib/cmake/Qt6" >> $GITHUB_ENV
         if [[ "${{ steps.set-vars.outputs.pkg_type }}" != "none" ]]; then
           brew install --force --overwrite --quiet doxygen ghostscript graphviz
@@ -418,6 +420,7 @@ jobs:
         PYTHON_VERSIONS=$(cat OpenMS/.github/workflows/python_versions.json)
         # Unfortunately, on macOS due to the inofficial way of enabling OpenMP on AppleClang, passing the following
         # options to setup.py extra_compile_args does not work. See also https://gist.github.com/andyfaff/084005bee32aee83d6b59e843278ab3e
+        conda config --add channels conda-forge
         export CFLAGS="-Xpreprocessor -fopenmp $CFLAGS"
         export CXXFLAGS="-Xpreprocessor -fopenmp $CXXFLAGS"
         export CMAKE_PREFIX_PATH="$(brew --prefix libomp);$(echo $Qt6_Dir)/lib/cmake;${Qt6_Dir}"
@@ -646,7 +649,7 @@ jobs:
       SYSTEM_VERSION_COMPAT: 0 #courtesy of https://github.com/actions/setup-python/issues/469 in lieu of an actual solution.
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-13, windows-latest, macos-latest]
+        os: [ubuntu-latest, macos-15-intel, windows-latest, macos-latest]
     steps:
     - uses: actions/checkout@v4
       name: Checkout sources
@@ -664,6 +667,7 @@ jobs:
             MINICONDA_FILENAME=Miniconda3-latest-MacOSX-x86_64.sh
             curl -o $MINICONDA_FILENAME "https://repo.anaconda.com/miniconda/$MINICONDA_FILENAME"
             bash ${MINICONDA_FILENAME} -b -f -p $HOME/miniconda3
+            conda config --add channels conda-forge
           elif [[ "${{ runner.os }}" == "macOS" && "${{ runner.arch }}" == "ARM64"  ]]; then
             MINICONDA_FILENAME=Miniconda3-latest-MacOSX-arm64.sh
             curl -o $MINICONDA_FILENAME "https://repo.anaconda.com/miniconda/$MINICONDA_FILENAME"
