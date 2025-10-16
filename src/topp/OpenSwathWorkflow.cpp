@@ -147,7 +147,7 @@ or a @ref OpenMS::OSWFile "OpenSWATH SQLite file" (use @p -out_features) while t
 friendly and can be directly used as input to other tools such as pyProphet (a Python
 re-implementation of mProphet) software tool, see Reiter et al (2011, Nature
 Methods).
-If you analyze large datasets, it is recommended to only use use the @ref OpenMS::OSWFile "OSWFile format".
+If you analyze large datasets, it is recommended to only use the @ref OpenMS::OSWFile "OSWFile format".
 For downstream analysis (e.g. using pyProphet) the @ref OpenMS::OSWFile "OSWFile format" is recommended.
 
 In addition, the extracted chromatograms can be written out using the
