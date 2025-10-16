@@ -333,6 +333,16 @@ jobs:
           ${{ runner.os }}-${{ runner.arch }}-${{ matrix.compiler }}-${{ matrix.compiler_ver }}-ccache-develop
           ${{ runner.os }}-${{ runner.arch }}-${{ matrix.compiler }}-${{ matrix.compiler_ver }}-ccache-
 
+    - name: Show ccache configuration and initial stats
+      shell: bash
+      run: |
+        ccache --version
+        ccache --show-config || true
+        ccache --zero-stats || true
+        ccache --show-stats || true
+      env:
+        CCACHE_DIR: ${{ github.workspace }}/.ccache
+
     - name: Add THIRDPARTY
       shell: bash
       run: |
@@ -455,6 +465,14 @@ jobs:
           # It's literally only Ubuntu's package manager that forcibly bundles nlohmann_json w/ arrow. The rest we can control via a cmake option in contrib +
           # Note that apache arrow's brew/apt packages are DIFFERENT. I believe Ubuntu's packages have Nlohmann_JSON bundled with them, while 
           # brew doesn't. As such, this results in compatibility issues between OpenMS' Nlohmann_JSON and Ubuntu's system packages. 
+    
+    - name: Show ccache statistics after build
+      shell: bash
+      run: |
+        ccache --show-stats || true
+      env:
+        CCACHE_DIR: ${{ github.workspace }}/.ccache
+
     - name: Test
       shell: bash
       run: |
