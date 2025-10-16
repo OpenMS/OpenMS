@@ -454,6 +454,9 @@ jobs:
           CMAKE_CXX_COMPILER: ${{ steps.set-vars.outputs.cxx_compiler }}
           CMAKE_PREFIX_PATH: ${{ steps.tools-prefix.outputs.cmake_prefix }}
           # CMAKE_TOOLCHAIN_FILE is set in "Setup vcpkg" step
+          # Skip vcpkg automatic manifest install since we already did it manually
+          VCPKG_INSTALLED_DIR: ${{ github.workspace }}/vcpkg/installed
+          VCPKG_MANIFEST_MODE: "OFF"
           CI_PROVIDER: "GitHub-Actions"
           CMAKE_GENERATOR: "Ninja"
           SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
