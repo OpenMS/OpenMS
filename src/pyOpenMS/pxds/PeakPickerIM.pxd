@@ -11,4 +11,4 @@ cdef extern from "<OpenMS/PROCESSING/CENTROIDING/PeakPickerIM.h>" namespace "Ope
 
         PeakPickerIM() except + nogil
         PeakPickerIM(PeakPickerIM &) except + nogil
-        void pickIMTraces(MSSpectrum& s) except + nogil   # wrap-doc: Use trace detection for IM peak picking.
+        void pickIMTraces(MSSpectrum& s) except + nogil  # wrap-doc:Use trace detection for IM peak picking.

@@ -305,6 +305,7 @@ namespace OpenMS
 
   void ElutionPeakDetection::detectPeaks(MassTrace& mt, std::vector<MassTrace>& single_mtraces)
   {
+    // make sure that single_mtraces is empty
     single_mtraces.clear();
     detectElutionPeaks_(mt, single_mtraces);
     return;
@@ -312,6 +313,7 @@ namespace OpenMS
 
   void ElutionPeakDetection::detectPeaks(std::vector<MassTrace>& mt_vec, std::vector<MassTrace>& single_mtraces)
   {
+    // make sure that single_mtraces is empty
     single_mtraces.clear();
 
     this->startProgress(0, mt_vec.size(), "elution peak detection");

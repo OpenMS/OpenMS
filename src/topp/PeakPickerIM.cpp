@@ -75,17 +75,20 @@ protected:
       if (method_ == "mobilogram")
       {
         pp_.pickIMTraces(spectrum);
+        spectrum.setIMFormat(IMFormat::CENTROIDED);
       }
       else if (method_ == "cluster")
       {
         const double ppm_tol = (double)par.getValue("pickIMCluster:ppm_tolerance_cluster");
         const double im_tol  = (double)par.getValue("pickIMCluster:im_tolerance_cluster");
         PeakPickerIM::pickIMCluster(spectrum, ppm_tol, im_tol);
+        spectrum.setIMFormat(IMFormat::CENTROIDED);
       }
       else if (method_ == "traces")
       {
         const double ppm_tol = (double)par.getValue("pickIMElutionProfiles:ppm_tolerance_elution");
         PeakPickerIM::pickIMElutionProfiles(spectrum, ppm_tol);
+        spectrum.setIMFormat(IMFormat::CENTROIDED);
       }
     }
 
@@ -133,13 +136,14 @@ protected:
       mzml.load(input_file, exp);
 
 #pragma omp parallel for
-      for (SignedSize i = 0; i < (SignedSize)exp.size(); ++i)
+      for (Size i = 0; i < exp.size(); ++i)
       {
-        MSSpectrum& spectrum = exp[static_cast<Size>(i)];
+        MSSpectrum& spectrum = exp[i];
 
         if (method == "mobilogram")
         {
           picker.pickIMTraces(spectrum);
+          spectrum.setIMFormat(IMFormat::CENTROIDED);
         }
         else if (method == "cluster")
         {
@@ -147,12 +151,14 @@ protected:
           const double ppm_tol = (double)par.getValue("pickIMCluster:ppm_tolerance_cluster");
           const double im_tol  = (double)par.getValue("pickIMCluster:im_tolerance_cluster");
           PeakPickerIM::pickIMCluster(spectrum, ppm_tol, im_tol);
+          spectrum.setIMFormat(IMFormat::CENTROIDED);
         }
         else if (method == "traces")
         {
           const Param& par = picker.getParameters();
           const double ppm_tol = (double)par.getValue("pickIMElutionProfiles:ppm_tolerance_elution");
           PeakPickerIM::pickIMElutionProfiles(spectrum, ppm_tol);
+          spectrum.setIMFormat(IMFormat::CENTROIDED);
         }
       }
 

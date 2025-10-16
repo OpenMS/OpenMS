@@ -16,6 +16,21 @@ namespace OpenMS
 {
   /**
     @brief Peak picking algorithm for ion mobility data
+    
+    This class provides three specialized methods for peak picking in ion mobility (IM) data:
+    
+    1. **pickIMTraces**: Mobilogram-based peak picking that extracts ion mobility traces
+       from raw IM data and performs centroiding on the extracted mobilograms. This method
+       processes IM data by analyzing intensity profiles along the ion mobility dimension.
+    
+    2. **pickIMCluster**: Clustering-based peak picking that groups peaks close in both
+       m/z and ion mobility space. Peaks within specified m/z (ppm) and IM tolerances are
+       averaged together using intensity-weighted averaging, reducing an IM frame to a
+       single spectrum with representative peak positions.
+    
+    3. **pickIMElutionProfiles**: Elution profile-based peak picking that extracts peaks
+       based on their elution characteristics across the ion mobility dimension. This method
+       uses m/z tolerance (ppm) to identify and pick peaks from IM elution profiles.
 
   @ingroup PeakPicking
       */
