@@ -112,6 +112,8 @@ set(VARS_TO_LOAD
   "WITH_THERMORAWFILEPARSER_TEST"
   "COMPILE_PXDS"
   "USE_EXTERNAL_JSON"
+  "VCPKG_MANIFEST_MODE"
+  "VCPKG_INSTALLED_DIR"
  )
 
 message("tools/ci/cibuild.cmake: Loading the following vars from ENV if available: ${VARS_TO_LOAD}")
