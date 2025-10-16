@@ -420,6 +420,7 @@ jobs:
         PYTHON_VERSIONS=$(cat OpenMS/.github/workflows/python_versions.json)
         # Unfortunately, on macOS due to the inofficial way of enabling OpenMP on AppleClang, passing the following
         # options to setup.py extra_compile_args does not work. See also https://gist.github.com/andyfaff/084005bee32aee83d6b59e843278ab3e
+        conda config --add channels conda-forge
         export CFLAGS="-Xpreprocessor -fopenmp $CFLAGS"
         export CXXFLAGS="-Xpreprocessor -fopenmp $CXXFLAGS"
         export CMAKE_PREFIX_PATH="$(brew --prefix libomp);$(echo $Qt6_Dir)/lib/cmake;${Qt6_Dir}"
@@ -666,6 +667,7 @@ jobs:
             MINICONDA_FILENAME=Miniconda3-latest-MacOSX-x86_64.sh
             curl -o $MINICONDA_FILENAME "https://repo.anaconda.com/miniconda/$MINICONDA_FILENAME"
             bash ${MINICONDA_FILENAME} -b -f -p $HOME/miniconda3
+            conda config --add channels conda-forge
           elif [[ "${{ runner.os }}" == "macOS" && "${{ runner.arch }}" == "ARM64"  ]]; then
             MINICONDA_FILENAME=Miniconda3-latest-MacOSX-arm64.sh
             curl -o $MINICONDA_FILENAME "https://repo.anaconda.com/miniconda/$MINICONDA_FILENAME"
