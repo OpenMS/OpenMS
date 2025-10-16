@@ -106,6 +106,66 @@ jobs:
       uses: SimenB/github-actions-cpu-cores@v2
       id: cpu-cores
 
+    - name: Setup build tools
+      id: tools-prefix
+      shell: bash
+      env: 
+        # We need to add this, otherwise brew "helpfully" updates all of the GitHub preinstalled packages, which can cause issues
+        HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK: 1
+      run: |
+        if [[ "${{ matrix.os }}" == ubuntu-* ]]; then
+          # Install build tools and documentation tools (not managed by vcpkg)
+          sudo add-apt-repository universe
+          sudo apt update
+          sudo apt-get -qq install -y \
+            build-essential \
+            cmake \
+            autoconf \
+            patch \
+            libtool \
+            git \
+            automake \
+            ninja-build \
+            xvfb \
+            ccache \
+            doxygen \
+            ghostscript \
+            graphviz
+          echo "Testing doxygen" && doxygen --version
+          # vcpkg will provide dependencies, so no custom prefix path needed
+          echo "cmake_prefix=" >>$GITHUB_OUTPUT
+        fi
+        
+        if [[ "${{ matrix.os }}" == windows-* ]]; then
+          # Install build tools (not managed by vcpkg)
+          choco install ccache ninja -y --no-progress
+          choco install cmake -y --no-progress
+          ## GH CLI "SHOULD BE" installed. Sometimes I had to manually install nonetheless. Super weird.
+          # https://github.com/actions/runner-images/blob/main/images/win/scripts/Installers/Install-GitHub-CLI.ps1
+          echo "C:\Program Files (x86)\GitHub CLI" >> $GITHUB_PATH
+          choco install doxygen.portable ghostscript graphviz -y --no-progress
+          
+          # vcpkg will provide dependencies, so no custom prefix path needed
+          echo "cmake_prefix=" >> $GITHUB_OUTPUT
+        fi
+
+        if [[ "${{ matrix.os }}" == macos-* ]]; then
+          # Install build tools and libomp (not managed by vcpkg)
+          brew install \
+            python \
+            ccache \
+            ninja \
+            libomp \
+            bison \
+            doxygen \
+            ghostscript \
+            graphviz
+          # Add bison to PATH (needed for thrift build in vcpkg)
+          echo "$(brew --prefix bison)/bin" >> $GITHUB_PATH
+          # libomp needs to be in prefix path as it's not managed by vcpkg
+          echo "cmake_prefix=$(brew --prefix libomp)" >>$GITHUB_OUTPUT
+        fi
+
     - name: Setup vcpkg
       shell: bash
       run: |
@@ -274,72 +334,14 @@ jobs:
     # Note: Parquet/Arrow and Qt dependencies are now installed via vcpkg
     # See "Install dependencies via vcpkg" step
 
-    - name: Setup build tools
-      id: tools-prefix
+    - name: Install NSIS for packaging (Windows)
+      if: startsWith(matrix.os, 'windows') && steps.set-vars.outputs.pkg_type != 'none'
       shell: bash
-      env: 
-        # We need to add this, otherwise brew "helpfully" updates all of the GitHub preinstalled packages, which can cause issues
-        HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK: 1
       run: |
-        if [[ "${{ matrix.os }}" == ubuntu-* ]]; then
-          # Install build tools and documentation tools (not managed by vcpkg)
-          sudo add-apt-repository universe
-          sudo apt update
-          sudo apt-get -qq install -y \
-            build-essential \
-            cmake \
-            autoconf \
-            patch \
-            libtool \
-            git \
-            automake \
-            ninja-build \
-            xvfb \
-            ccache \
-            doxygen \
-            ghostscript \
-            graphviz
-          echo "Testing doxygen" && doxygen --version
-          # vcpkg will provide dependencies, so no custom prefix path needed
-          echo "cmake_prefix=" >>$GITHUB_OUTPUT
-        fi
-        
-        if [[ "${{ matrix.os }}" == windows-* ]]; then
-          # Install build tools (not managed by vcpkg)
-          choco install ccache ninja -y --no-progress
-          choco install cmake -y --no-progress
-          ## GH CLI "SHOULD BE" installed. Sometimes I had to manually install nonetheless. Super weird.
-          # https://github.com/actions/runner-images/blob/main/images/win/scripts/Installers/Install-GitHub-CLI.ps1
-          echo "C:\Program Files (x86)\GitHub CLI" >> $GITHUB_PATH
-          choco install doxygen.portable ghostscript graphviz -y --no-progress
-          
-          if [[ "${{ steps.set-vars.outputs.pkg_type }}" != "none" ]]; then
-            # uses a custom NSIS, which provides 8-k string support and has UltraModernUI integrated already
-            curl --no-progress-meter -L -o NSIS.tar.gz https://github.com/OpenMS/NSIS/raw/main/NSIS.tar.gz
-            ## overwrite existing NSIS (which has only 1k-string support)
-            7z x -so NSIS.tar.gz | 7z x -si -ttar -aoa -o"C:/Program Files (x86)/NSIS/"
-          fi
-          
-          # vcpkg will provide dependencies, so no custom prefix path needed
-          echo "cmake_prefix=" >> $GITHUB_OUTPUT
-        fi
-
-        if [[ "${{ matrix.os }}" == macos-* ]]; then
-          # Install build tools and libomp (not managed by vcpkg)
-          brew install \
-            python \
-            ccache \
-            ninja \
-            libomp \
-            bison \
-            doxygen \
-            ghostscript \
-            graphviz
-          # Add bison to PATH (needed for thrift build in vcpkg)
-          echo "$(brew --prefix bison)/bin" >> $GITHUB_PATH
-          # libomp needs to be in prefix path as it's not managed by vcpkg
-          echo "cmake_prefix=$(brew --prefix libomp)" >>$GITHUB_OUTPUT
-        fi
+        # uses a custom NSIS, which provides 8-k string support and has UltraModernUI integrated already
+        curl --no-progress-meter -L -o NSIS.tar.gz https://github.com/OpenMS/NSIS/raw/main/NSIS.tar.gz
+        ## overwrite existing NSIS (which has only 1k-string support)
+        7z x -so NSIS.tar.gz | 7z x -si -ttar -aoa -o"C:/Program Files (x86)/NSIS/"
 
     # Note: Dependencies are now managed via vcpkg instead of contrib archives
 
