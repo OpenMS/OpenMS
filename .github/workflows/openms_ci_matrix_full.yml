@@ -326,12 +326,12 @@ jobs:
       uses: actions/cache@v4
       with:
         path: .ccache
-        key: ${{ runner.os }}-${{ runner.arch }}-ccache-${{ steps.extract_branch.outputs.RUN_NAME }}-${{ github.run_number }}
+        key: ${{ runner.os }}-${{ runner.arch }}-${{ matrix.compiler }}-${{ matrix.compiler_ver }}-ccache-${{ steps.extract_branch.outputs.RUN_NAME }}-${{ github.run_number }}
         # Restoring: From current branch/PR, otherwise from nightly, otherwise from any branch.
         restore-keys: |
-          ${{ runner.os }}-${{ runner.arch }}-ccache-${{ steps.extract_branch.outputs.RUN_NAME }}
-          ${{ runner.os }}-${{ runner.arch }}-ccache-develop
-          ${{ runner.os }}-${{ runner.arch }}-ccache-
+          ${{ runner.os }}-${{ runner.arch }}-${{ matrix.compiler }}-${{ matrix.compiler_ver }}-ccache-${{ steps.extract_branch.outputs.RUN_NAME }}
+          ${{ runner.os }}-${{ runner.arch }}-${{ matrix.compiler }}-${{ matrix.compiler_ver }}-ccache-develop
+          ${{ runner.os }}-${{ runner.arch }}-${{ matrix.compiler }}-${{ matrix.compiler_ver }}-ccache-
 
     - name: Add THIRDPARTY
       shell: bash
@@ -403,9 +403,20 @@ jobs:
             python -m pip install -r $GITHUB_WORKSPACE/OpenMS/src/pyOpenMS/requirements_bld.txt
           fi
 
+          # Display ccache statistics before build
+          echo "::group::ccache statistics before build"
+          ccache -s || true
+          echo "::endgroup::"
+
           mkdir $GITHUB_WORKSPACE/OpenMS/bld/
           ${{ steps.set-vars.outputs.xvfb }} ctest --output-on-failure -V -S ../OpenMS/OpenMS/tools/ci/cibuild.cmake
           retVal=$?
+          
+          # Display ccache statistics after build
+          echo "::group::ccache statistics after build"
+          ccache -s || true
+          echo "::endgroup::"
+          
           if [ $retVal -ne 0 ]; then
               echo -e "\033[0;31m Errors in build:"
               # TODO upload logs as artifact?
@@ -431,7 +442,7 @@ jobs:
           ENABLE_GCC_WERROR: "OFF" # TODO think about that
           SEARCH_ENGINES_DIRECTORY: ${{ github.workspace }}/_thirdparty
           WITH_GUI: "ON"
-          WITH_PARQUET: "ON" # Conda on windows, Apt on Ubuntu, Brew on MacOS
+          WITH_PARQUET: "OFF" # Conda on windows, Apt on Ubuntu, Brew on MacOS
           SIGNING_IDENTITY: "-"
           ADDRESS_SANITIZER: "Off"
           BUILD_TYPE: "Release"
@@ -444,8 +455,8 @@ jobs:
           CCACHE_BASEDIR: ${{ github.workspace }}
           CCACHE_DIR: ${{ github.workspace }}/.ccache
           CCACHE_COMPRESS: true
-          CCACHE_COMPRESSLEVEL: 12
-          CCACHE_MAXSIZE: 400M
+          CCACHE_COMPRESSLEVEL: 6
+          CCACHE_MAXSIZE: 1G
           # TODO evaluate those options (we had them only on Linux before)
           CCACHE_SLOPPINESS: time_macros,include_file_ctime,include_file_mtime
           CCACHE_COMPILERCHECK: content

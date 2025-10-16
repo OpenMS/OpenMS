@@ -15,7 +15,6 @@
 #include <queue>
 #include <tuple>
 
-
 namespace OpenMS
 {
   /**
@@ -166,8 +165,6 @@ namespace OpenMS
     // .. and hit flag
     trie_[0].suffix = 0; // must point to itself
 
-    size_t path_compression_count = 0;
-
     /** 
     auto printTrie = [&]() {
       int prev_depth = 0;
@@ -196,6 +193,7 @@ namespace OpenMS
 
     // second pass over trie, do path compression of suffix links where possible
     // start at depth = 2, since setting suffix links and has_hit for depth 1 is not needed (lvl 1 already points to root)
+    size_t path_compression_count = 0;
     for (size_t i = 1 + (size_t)trie_[0].nr_children; i < trie_.size(); ++i)
     {
       const bool suffix_is_hit = trie_[trie_[i].suffix()].depth_and_hits.has_hit;
@@ -213,6 +211,7 @@ namespace OpenMS
     OPENMS_LOG_INFO << "ACTrie::compressTrie(): created BFS trie with " << trie_.size() << " nodes (path compression skipped " << path_compression_count
                     << " suffix nodes)\n";
     //printTrie();
+
     vec_index2children_naive_.clear(); // not needed anymore
   }
 
