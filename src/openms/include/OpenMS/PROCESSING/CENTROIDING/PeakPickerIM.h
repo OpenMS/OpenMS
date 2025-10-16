@@ -127,11 +127,11 @@ namespace OpenMS
     double sum_tolerance_mz_{1.0};
     double gauss_ppm_tolerance_{5.0};
     double sum_tolerance_im_{0.0006};
-    int    sgolay_frame_length_{5};
-    int    sgolay_polynomial_order_{3};
-    double    ppm_tolerance_cluster_{50.0};
-    double    im_tolerance_cluster_{0.1};
+    int sgolay_frame_length_{5};
+    int sgolay_polynomial_order_{3};
+    double ppm_tolerance_cluster_{50.0};
+    double im_tolerance_cluster_{0.1};
 
-    double    ppm_tolerance_elution_{50.0};
+    double ppm_tolerance_elution_{50.0};
   };
 } // namespace OpenMS

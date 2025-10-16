@@ -31,7 +31,7 @@
 
 using namespace std;
 
-// #define DEBUG_PICKER
+#define DEBUG_PICKER
 #ifdef DEBUG_PICKER
 #include <OpenMS/FORMAT/MzMLFile.h>
 #endif 
@@ -148,7 +148,7 @@ namespace OpenMS
       return std::make_pair(low, high);
     }
 
-    // PRECONDITION: input_spectrum is sorted by position (m/z peak or ion mobility)
+    // PRECONDITION: input_spectrum is sorted by m/z
     // This function sums peaks if they are nearly identical
     // OpenMS represents TimsTOF data in MSSpectrum() objects as one-array.
     // Example: There could be multiple 500.0 m/z peaks with different ion mobility values.
@@ -160,9 +160,9 @@ namespace OpenMS
                                  double tolerance,
                                  bool use_ppm)
     {
-      if (input_spectrum.empty()) return;
-
       OPENMS_PRECONDITION(input_spectrum.isSorted(), "Spectrum must be sorted by m/z before summing peaks.");
+      
+      if (input_spectrum.empty()) return;
 
       double current_mz = input_spectrum[0].getMZ();
       double current_intensity = input_spectrum[0].getIntensity();
@@ -181,7 +181,7 @@ namespace OpenMS
         {
           current_intensity += next_intensity;
         }
-        else
+        else // new peak is outside of tolerance window
         {
           output_spectrum.emplace_back(current_mz, current_intensity);
           current_mz = next_mz;
@@ -749,6 +749,10 @@ namespace OpenMS
         return;
       }
       
+      
+      // Spectrum is in CONCATENATED IM format. Now sort by m/z to prepare for m/z peak picking
+      spectrum.sortByPosition();
+
       // ************************************************* PART I *****************************************************
       // ------------------------------------------ mass-to-charge peak picking -------------------------------------
       // ------------------------------------------ Step a1: Sum m/z peaks ------------------------------------------
@@ -759,6 +763,7 @@ namespace OpenMS
 #ifdef DEBUG_PICKER
       std::cout << "Spectrum after sumFrame_ has " << summed_spectrum.size() << " peaks." << std::endl;
 #endif
+
       // ------------------------------------------ step 2a: smooth ------------------------------------------
       // Apply gaussian smoothing to the peaks projected into the m/z axis. This facilitates peak picking
       // in the m/z dimension and subseqent mobilogram extraction for each picked m/z peak.
@@ -766,9 +771,8 @@ namespace OpenMS
       std::cout << "Applying Gaussian smoothing..." << std::endl;
 #endif
       GaussFilter gauss_filter;
-      double gauss_tol = gauss_ppm_tolerance_;
       Param gauss_params;
-      gauss_params.setValue("ppm_tolerance", gauss_tol);
+      gauss_params.setValue("ppm_tolerance", gauss_ppm_tolerance_);
       gauss_params.setValue("use_ppm_tolerance", "true");
       gauss_filter.setParameters(gauss_params);
       gauss_filter.filter(summed_spectrum);
@@ -794,6 +798,12 @@ namespace OpenMS
 #ifdef DEBUG_PICKER
       std::cout << "Size of picked spectrum: " << picked_spectrum.size() << std::endl;
 #endif
+      if (picked_spectrum.empty())
+      {
+        OPENMS_LOG_WARN << "No m/z peaks picked. Returning empty spectrum." << std::endl;
+        spectrum.clear(true);
+        return;
+      }
 
       // ------------------------------------------ step 4a: Extraction mobilograms ------------------------------------------
       // Using m/z peaks FWHM, we iteratively extract ion mobility traces (mobilograms) from the raw spectrum.
@@ -805,7 +815,7 @@ namespace OpenMS
       auto mobilogram_traces = extractIonMobilityTraces(picked_spectrum, spectrum);
 
       // TODO: Should we add a multipler to the linear sampling rate? We may boost algorithm speed and/or result if we try >1 multiplier
-      double sampling_rate = computeOptimalSamplingRate(mobilogram_traces) * 1;
+      double sampling_rate = computeOptimalSamplingRate(mobilogram_traces);
       Param resampler_param;
       resampler_param.setValue("spacing", sampling_rate);
       resampler_param.setValue("ppm", "false");
