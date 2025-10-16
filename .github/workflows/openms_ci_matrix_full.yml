@@ -139,10 +139,11 @@ jobs:
       shell: bash
       run: |
         cd ${{ github.workspace }}/OpenMS
-        # Set overlay ports
-        export VCPKG_OVERLAY_PORTS="${{ github.workspace }}/OpenMS/vcpkg-overlays/ports"
-        # Install dependencies from vcpkg.json
-        ${{ github.workspace }}/vcpkg/vcpkg install --x-manifest-root=. --x-install-root=${{ github.workspace }}/vcpkg/installed
+        # Install dependencies from vcpkg.json with overlay ports
+        ${{ github.workspace }}/vcpkg/vcpkg install \
+          --overlay-ports=${{ github.workspace }}/OpenMS/vcpkg-overlays/ports \
+          --x-manifest-root=. \
+          --x-install-root=${{ github.workspace }}/vcpkg/installed
 
     - id: set-vars
       name: Set extra variables
