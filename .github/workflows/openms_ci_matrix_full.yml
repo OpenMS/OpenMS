@@ -182,9 +182,10 @@ jobs:
         else
           ./bootstrap-vcpkg.sh -disableMetrics
         fi
-        # Set VCPKG_ROOT for later steps
+        # Set VCPKG_ROOT and VCPKG_INSTALLED_DIR for later steps
         echo "VCPKG_ROOT=${VCPKG_DIR}" >> $GITHUB_ENV
         echo "CMAKE_TOOLCHAIN_FILE=${VCPKG_DIR}/scripts/buildsystems/vcpkg.cmake" >> $GITHUB_ENV
+        echo "VCPKG_INSTALLED_DIR=${VCPKG_DIR}/installed" >> $GITHUB_ENV
 
     - name: Cache vcpkg packages
       uses: actions/cache@v4
