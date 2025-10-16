@@ -121,6 +121,7 @@ jobs:
             build-essential \
             cmake \
             autoconf \
+            autoconf-archive \
             patch \
             libtool \
             git \
