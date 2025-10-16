@@ -707,26 +707,48 @@ namespace OpenMS
 
     }
 
-
+    namespace
+    {
+      /**
+       * @brief Helper function to validate that a spectrum contains IM data in the correct format for peak picking
+       *
+       * @param spectrum The spectrum to validate
+       * @return true if the spectrum should be processed (has concatenated IM data)
+       * @return false if the spectrum should be skipped (no IM data or already centroided)
+       * @throws Exception::InvalidValue if the IMFormat is UNKNOWN or unhandled
+       */
+      bool validateIMFormatForPicking(const MSSpectrum& spectrum)
+      {
+        IMFormat format = IMTypes::determineIMFormat(spectrum);
+        switch (format)
+        {
+            case IMFormat::NONE:
+                return false; // no IM data
+            case IMFormat::CENTROIDED:
+                return false; // already centroided
+            case IMFormat::UNKNOWN:
+                throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                    "IMFormat set to UNKNOWN after determineIMFormat. This should never happen.",
+                    String(NamesOfIMFormat[(size_t)format]));
+            case IMFormat::CONCATENATED:
+                OPENMS_LOG_DEBUG << "Processing concatenated IM data." << std::endl;
+                return true; // continue processing
+            default:
+                throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                    "Unhandled IMFormat after determineIMFormat. This should never happen.",
+                    String(NamesOfIMFormat[(size_t)format]));
+        }
+      }
+    }
 
     void PeakPickerIM::pickIMTraces(MSSpectrum& spectrum)
     {
-      /*
-      // IM format determination (Temporarily commented out)
-      IMFormat format = IMTypes::determineIMFormat(spectrum);
-      switch (format)
+      // Validate IM format - returns false if we should skip processing
+      if (!validateIMFormatForPicking(spectrum))
       {
-          case IMFormat::NONE:
-              return; // no IM data
-          case IMFormat::CENTROIDED:
-              return; // already centroided
-          case IMFormat::UNKNOWN:
-              throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                  "IMFormat set to UNKNOWN after determineIMFormat. This should never happen.",
-                  String(NamesOfIMFormat[(size_t)format]));
+        return;
       }
-      */
-
+      
       // ************************************************* PART I *****************************************************
       // ------------------------------------------ mass-to-charge peak picking -------------------------------------
       // ------------------------------------------ Step a1: Sum m/z peaks ------------------------------------------
@@ -923,7 +945,6 @@ namespace OpenMS
       centroided_frame.setIMFormat(IMFormat::CENTROIDED);
       spectrum = std::move(centroided_frame);
       
-
 #ifdef DEBUG_PICKER
       // Print peaks for debugging
       std::cout << "--- Spectrum final output object has ..  " << spectrum.size() << " --- peaks.\n";
@@ -937,6 +958,12 @@ namespace OpenMS
     void PeakPickerIM::pickIMCluster(OpenMS::MSSpectrum& spectrum, double ppm_tolerance_cluster_, double im_tolerance_cluster_)
     {
       if (spectrum.empty()) return;
+
+      // Validate IM format - returns false if we should skip processing
+      if (!validateIMFormatForPicking(spectrum))
+      {
+        return;
+      }
 
       // Get IM data array
       if (!spectrum.containsIMData())
@@ -1150,10 +1177,19 @@ namespace OpenMS
 
       spectrum.sortByPosition();
       spectrum.updateRanges();
+      spectrum.setIMFormat(IMFormat::CENTROIDED);
     } // End of pickIMCluster function
+
     void PeakPickerIM::pickIMElutionProfiles(MSSpectrum& input, double ppm_tolerance_elution_)
     {
       if (input.empty()) return;
+
+      // Validate IM format - returns false if we should skip processing
+      if (!validateIMFormatForPicking(input))
+      {
+        return;
+      }
+
       // Get IM data array
       if (!input.containsIMData())
       {
@@ -1226,6 +1262,7 @@ namespace OpenMS
       }
       input.sortByPosition(); // TODO: maybe needed
       input.updateRanges(); // TODO: maybe needed
+      input.setIMFormat(IMFormat::CENTROIDED);
     }
 
 } // namespace OpenMS

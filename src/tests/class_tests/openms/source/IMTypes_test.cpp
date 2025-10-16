@@ -150,7 +150,7 @@ START_SECTION(static IMFormat determineIMFormat(const MSSpectrum& spec))
    // set both ... is valid (typically concatenated + some average value)
    auto IMwithFDA2 = IMwithFDA;
    IMwithFDA2.setDriftTime(123.4);
-   TEST_EQUAL(IMTypes::determineIMFormat(IMwithFDA2) == IMFormat::MIXED, true)
+   TEST_EQUAL(IMTypes::determineIMFormat(IMwithFDA2) == IMFormat::CONCATENATED, true)
 END_SECTION
 
 /////////////////////////////////////////////////////////////
