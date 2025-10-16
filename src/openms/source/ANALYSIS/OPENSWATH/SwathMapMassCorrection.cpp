@@ -288,7 +288,8 @@ namespace OpenMS
       }
 
       // Always collect a few MS1 IM points for window estimation (independent of ms1_im_)
-      if (!transition_group->getTransitions().empty())
+      // However, if there are no MS1 Maps, then we have to skip window estimation for MS1
+      if (!transition_group->getTransitions().empty() && !ms1_maps.empty())
       {
         const auto& tr0 = transition_group->getTransitions()[0];
         const auto pepref0 = tr0.getPeptideRef();
