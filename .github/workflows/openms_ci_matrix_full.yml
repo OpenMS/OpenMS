@@ -110,19 +110,20 @@ jobs:
       shell: bash
       run: |
         # Clone vcpkg if not already present
-        if [ ! -d "${{ github.workspace }}/vcpkg" ]; then
-          git clone https://github.com/microsoft/vcpkg.git ${{ github.workspace }}/vcpkg
+        VCPKG_DIR="${GITHUB_WORKSPACE}/vcpkg"
+        if [ ! -d "${VCPKG_DIR}" ]; then
+          git clone https://github.com/microsoft/vcpkg.git "${VCPKG_DIR}"
         fi
-        cd ${{ github.workspace }}/vcpkg
+        cd "${VCPKG_DIR}"
         # Bootstrap vcpkg
         if [[ "${{ matrix.os }}" == windows-* ]]; then
-          ./bootstrap-vcpkg.bat -disableMetrics
+          cmd.exe /c "bootstrap-vcpkg.bat -disableMetrics"
         else
           ./bootstrap-vcpkg.sh -disableMetrics
         fi
         # Set VCPKG_ROOT for later steps
-        echo "VCPKG_ROOT=${{ github.workspace }}/vcpkg" >> $GITHUB_ENV
-        echo "CMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake" >> $GITHUB_ENV
+        echo "VCPKG_ROOT=${VCPKG_DIR}" >> $GITHUB_ENV
+        echo "CMAKE_TOOLCHAIN_FILE=${VCPKG_DIR}/scripts/buildsystems/vcpkg.cmake" >> $GITHUB_ENV
 
     - name: Cache vcpkg packages
       uses: actions/cache@v4
@@ -138,12 +139,19 @@ jobs:
     - name: Install dependencies via vcpkg
       shell: bash
       run: |
-        cd ${{ github.workspace }}/OpenMS
+        cd "${GITHUB_WORKSPACE}/OpenMS"
+        VCPKG_DIR="${GITHUB_WORKSPACE}/vcpkg"
+        # Determine vcpkg executable name based on OS
+        if [[ "${{ matrix.os }}" == windows-* ]]; then
+          VCPKG_EXEC="${VCPKG_DIR}/vcpkg.exe"
+        else
+          VCPKG_EXEC="${VCPKG_DIR}/vcpkg"
+        fi
         # Install dependencies from vcpkg.json with overlay ports
-        ${{ github.workspace }}/vcpkg/vcpkg install \
-          --overlay-ports=${{ github.workspace }}/OpenMS/vcpkg-overlays/ports \
+        "${VCPKG_EXEC}" install \
+          --overlay-ports="${GITHUB_WORKSPACE}/OpenMS/vcpkg-overlays/ports" \
           --x-manifest-root=. \
-          --x-install-root=${{ github.workspace }}/vcpkg/installed
+          --x-install-root="${VCPKG_DIR}/installed"
 
     - id: set-vars
       name: Set extra variables
