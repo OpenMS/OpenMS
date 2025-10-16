@@ -140,6 +140,50 @@ public:
     /// Print summary statistics for the transformation
     void printSummary(std::ostream& os) const;
 
+    /**
+      @brief Estimate a coordinate-transformation, residual-based extraction window.
+
+      Given stored data points (x_i, y_i) and a fitted transform T relating them,
+      this computes absolute residuals between experimental and theoretical
+      coordinates and returns an extraction window derived from a chosen quantile. \n
+
+      Residual definition: \n
+      - If invert == false:  r_i = | T(x_i) - y_i |   (in transformed y units) \n
+      - If invert == true :  r_i = | x_i - T^{-1}(y_i) | (in original x units) \n
+
+      The window is computed using an adaptive quantile that is robust to sparse outliers
+      but permissive when tails are genuinely dense: \n
+      1) Let |r| be the absolute residuals. Compute the Tukey upper fence
+      UF = Q3 + k*IQR (with k = 1.5). \n
+      2) Compute: \n
+      - h_raw = quantile(|r|, q) \n
+      - h_rob = quantile(winsorize(|r|, UF), q), where values above UF are capped at UF
+       (lower cap is 0 for absolute residuals). \n
+      3) Let tail = fraction(|r| > UF). Blend h = (1 - w)*h_rob + w*h_raw with a weight w
+      that increases linearly from 0 at tail <= 1% (favor robust) to 1 at tail >= 10% (favor raw).
+      If UF is undefined (too few points or IQR <= 0), the method falls back to the raw quantile. \n
+
+      The chosen quantile q (e.g. 0.99) is interpreted as a half-width h such that
+      approximately q*100% of residuals satisfy |r| <= h. If full_window is true, the function
+      returns 2*h (full width), otherwise h (half-width). The padding_factor multiplies the final result. \n
+
+      Typical usage: \n
+      - RT: set invert = true to obtain residuals in seconds (original x units). \n
+      - IM: same pattern; units are the instrument’s native mobility units (e.g., 1/k0). \n
+
+      @param quantile     Quantile of |residual| to use (0 < quantile ≤ 1), e.g. 0.99.
+      @param invert       If true, compute residuals in original x-units via T^{-1};
+                          otherwise compute in transformed y-units via T.
+      @param full_window  If true, return full width (2·half-width); else return half-width.
+      @param padding_factor A padding factor to add to the estimated window.
+      @return             Estimated window (in the units implied by @p invert).
+                          If no data points are available, returns 0.0.
+    */
+    double estimateWindow(double quantile = 0.99,
+                          bool invert = true,
+                          bool full_window = true,
+                          double padding_factor = 1.0) const;
+
 protected:
     /// Data points
     DataPoints data_;
