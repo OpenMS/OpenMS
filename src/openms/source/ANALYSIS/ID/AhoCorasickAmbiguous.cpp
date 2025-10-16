@@ -9,12 +9,12 @@
 #include <OpenMS/ANALYSIS/ID/AhoCorasickAmbiguous.h>
 
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <algorithm>
-#include <array>
 #include <cassert>
 #include <queue>
-
 #include <tuple>
+
 
 namespace OpenMS
 {
@@ -161,11 +161,31 @@ namespace OpenMS
     trie_ = std::move(bfs_tree);
     vec_index2needles_.swap(bfs_index2_needles);
 
+    /////////////////////////////////////////////////////////////
     // compute suffix links (could also be done while creating the trie, but it would make the code more complex)
     // .. and hit flag
     trie_[0].suffix = 0; // must point to itself
 
-    Index old_parent {0};
+    size_t path_compression_count = 0;
+
+    /** 
+    auto printTrie = [&]() {
+      int prev_depth = 0;
+      for (size_t i = 0; i < trie_.size(); ++i)
+      {
+        if (prev_depth != (int)trie_[i].depth_and_hits.depth)
+        {
+          prev_depth = (int)trie_[i].depth_and_hits.depth;
+          std::cout << " ***\n";
+        }
+        std::cout << "node " << i << " (edge " << trie_[i].edge.toChar() << ", depth " << (int)trie_[i].depth_and_hits.depth << ", hit "
+                  << (int)trie_[i].depth_and_hits.has_hit << ", suffix " << trie_[i].suffix() << ", first child " << (int)trie_[i].first_child()
+                  << '\n';
+      }
+    };
+    */
+
+    /// first, build suffix links as usual (without path compression)
     // start at depth = 2, since setting suffix links and has_hit for depth 1 is not needed (lvl 1 already points to root)
     for (size_t i = 1 + (size_t)trie_[0].nr_children; i < trie_.size(); ++i)
     {
@@ -173,6 +193,26 @@ namespace OpenMS
       trie_[i].suffix = follow_(trie_[parent()].suffix(), trie_[i].edge);
       trie_[i].depth_and_hits.has_hit |= trie_[trie_[i].suffix()].depth_and_hits.has_hit;
     }
+
+    // second pass over trie, do path compression of suffix links where possible
+    // start at depth = 2, since setting suffix links and has_hit for depth 1 is not needed (lvl 1 already points to root)
+    for (size_t i = 1 + (size_t)trie_[0].nr_children; i < trie_.size(); ++i)
+    {
+      const bool suffix_is_hit = trie_[trie_[i].suffix()].depth_and_hits.has_hit;
+      if (suffix_is_hit) continue; // don't touch suffices which have hits (since we do not have separate output links)
+
+      const auto children_node = trie_[i].children_bitset.bits;
+      const auto childen_suffix = trie_[trie_[i].suffix()].children_bitset.bits;
+      if ((children_node | childen_suffix) == children_node) // suffix' node has no extra children compared to this node `i`
+      { 
+        // point to suffix's suffix (path compression)
+        trie_[i].suffix = trie_[trie_[i].suffix()].suffix;
+        path_compression_count++;
+      }
+    }
+    OPENMS_LOG_INFO << "ACTrie::compressTrie(): created BFS trie with " << trie_.size() << " nodes (path compression skipped " << path_compression_count
+                    << " suffix nodes)\n";
+    //printTrie();
     vec_index2children_naive_.clear(); // not needed anymore
   }
 
