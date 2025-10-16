@@ -177,7 +177,7 @@ jobs:
         cd "${VCPKG_DIR}"
         # Bootstrap vcpkg
         if [[ "${{ matrix.os }}" == windows-* ]]; then
-          cmd.exe /c "bootstrap-vcpkg.bat -disableMetrics"
+          cmd.exe //c "bootstrap-vcpkg.bat -disableMetrics"
         else
           ./bootstrap-vcpkg.sh -disableMetrics
         fi
@@ -212,7 +212,7 @@ jobs:
           echo "vcpkg executable not found, bootstrapping..."
           cd "${VCPKG_DIR}"
           if [[ "${{ matrix.os }}" == windows-* ]]; then
-            cmd.exe /c "bootstrap-vcpkg.bat -disableMetrics"
+            cmd.exe //c "bootstrap-vcpkg.bat -disableMetrics"
           else
             ./bootstrap-vcpkg.sh -disableMetrics
           fi
