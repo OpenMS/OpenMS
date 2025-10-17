@@ -118,7 +118,9 @@ public:
     void clearStats();
 
     /**
-     * @brief Clears channel statistics, e.g. after a new experiment has been loaded.
+     * @brief Returns a reference to the channel statistics.
+     * 
+     * @return Reference to the internal ChannelQCSet containing accumulated QC metrics
      */
     ChannelQCSet& getStats();
 
