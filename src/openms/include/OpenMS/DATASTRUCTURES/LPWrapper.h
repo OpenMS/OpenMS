@@ -16,13 +16,14 @@
 
 #include <limits>
 
-// do NOT include glpk and CoinOr headers here, as they define bad stuff, which ripples through OpenMS then...
+// do NOT include glpk, CoinOr, and HIGHS headers here, as they define bad stuff, which ripples through OpenMS then...
 // include them in LPWrapper.cpp where they do not harm
 // only declare them here
 class CoinModel;
+class Highs;
 
 // if GLPK was found:
-#ifndef OPENMS_HAS_COINOR
+#if !defined(OPENMS_HAS_COINOR) && !defined(OPENMS_HAS_HIGHS)
   #ifndef GLP_PROB_DEFINED
     #define GLP_PROB_DEFINED
     // depending on the glpk version
@@ -164,6 +165,9 @@ public:
       SOLVER_GLPK = 0     ///< GNU Linear Programming Kit solver
 #ifdef OPENMS_HAS_COINOR
       , SOLVER_COINOR     ///< COIN-OR solver (if available)
+#endif
+#ifdef OPENMS_HAS_HIGHS
+      , SOLVER_HIGHS      ///< HIGHS solver (if available)
 #endif
     };
 
@@ -512,6 +516,8 @@ protected:
 #ifdef OPENMS_HAS_COINOR
     CoinModel * model_ = nullptr;      ///< COIN-OR model object for the LP problem
     std::vector<double> solution_;     ///< Solution vector when using COIN-OR
+#elif defined(OPENMS_HAS_HIGHS)
+    Highs * highs_model_ = nullptr;    ///< HIGHS model object for the LP problem
 #else
     glp_prob * lp_problem_ = nullptr;  ///< GLPK problem object for the LP problem
 #endif

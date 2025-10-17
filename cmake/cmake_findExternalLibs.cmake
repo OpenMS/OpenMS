@@ -96,16 +96,29 @@ if (COIN_FOUND)
   set(LPTARGET "CoinOR::CoinOR")
 else()
   #------------------------------------------------------------------------------
-  # GLPK
-  # creates GLPK::GLPK target
-  find_package(GLPK)
-  if (GLPK_FOUND)
-    set(CF_OPENMS_GLPK_VERSION_MAJOR ${GLPK_VERSION_MAJOR})
-    set(CF_OPENMS_GLPK_VERSION_MINOR ${GLPK_VERSION_MINOR})
-    set(CF_OPENMS_GLPK_VERSION ${GLPK_VERSION_STRING})
-    set(LPTARGET "GLPK::GLPK")
+  # HIGHS
+  # creates HIGHS::HIGHS target
+  find_package(HIGHS)
+  if (HIGHS_FOUND)
+    set(OPENMS_HAS_HIGHS 1)
+    set(CF_OPENMS_HIGHS_VERSION_MAJOR ${HIGHS_VERSION_MAJOR})
+    set(CF_OPENMS_HIGHS_VERSION_MINOR ${HIGHS_VERSION_MINOR})
+    set(CF_OPENMS_HIGHS_VERSION_PATCH ${HIGHS_VERSION_PATCH})
+    set(CF_OPENMS_HIGHS_VERSION ${HIGHS_VERSION_STRING})
+    set(LPTARGET "HIGHS::HIGHS")
   else()
-    message(FATAL_ERROR "Either COIN-OR or GLPK has to be available (COIN-OR takes precedence).")
+    #------------------------------------------------------------------------------
+    # GLPK
+    # creates GLPK::GLPK target
+    find_package(GLPK)
+    if (GLPK_FOUND)
+      set(CF_OPENMS_GLPK_VERSION_MAJOR ${GLPK_VERSION_MAJOR})
+      set(CF_OPENMS_GLPK_VERSION_MINOR ${GLPK_VERSION_MINOR})
+      set(CF_OPENMS_GLPK_VERSION ${GLPK_VERSION_STRING})
+      set(LPTARGET "GLPK::GLPK")
+    else()
+      message(FATAL_ERROR "Either COIN-OR, HIGHS, or GLPK has to be available (COIN-OR takes precedence, then HIGHS, then GLPK).")
+    endif()
   endif()
 endif()
 

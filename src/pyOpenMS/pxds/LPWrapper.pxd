@@ -136,6 +136,7 @@ cdef extern from "<OpenMS/DATASTRUCTURES/LPWrapper.h>" namespace "OpenMS::LPWrap
         #wrap-attach:
         #   LPWrapper
         SOLVER_GLPK
+        SOLVER_HIGHS
 
 cdef extern from "<OpenMS/DATASTRUCTURES/LPWrapper.h>" namespace "OpenMS::LPWrapper":
     cdef enum SolverStatus "OpenMS::LPWrapper::SolverStatus":
