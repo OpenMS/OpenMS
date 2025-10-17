@@ -9,15 +9,17 @@
 #pragma once
 
 #include <OpenMS/CONCEPT/Macros.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
-
+#include <bitset>
 #include <cassert>
+#include <cstring>
 #include <functional> // for std::hash
 #include <limits>
 #include <queue>
 #include <string>
+#include <cstdint>
 #include <unordered_map>
 #include <vector>
+#include <bit> // for std::popcount
 
 namespace OpenMS
 {
@@ -93,7 +95,7 @@ namespace OpenMS
     }
   };
 
-  /// An AminoAcid, with supports construction from char and has convenience functions such as
+  /// An AminoAcid, which supports construction from char and has convenience functions such as
   /// isAmbiguous() or isValid()
   struct OPENMS_DLLAPI AA
   {
@@ -206,28 +208,46 @@ namespace OpenMS
   public:
     using T = uint32_t;
     /// default C'tor; creates an invalid index
-    Index() = default;
+    constexpr Index() = default;
     
     /// C'tor from T
-    Index(T val) : i_(val) {};
+    constexpr Index(T val) : i_(val) {};
 
     /// is this Index invalid, i.e. should not be dereferenced
-    bool isInvalid() const;
+    constexpr bool isInvalid() const
+    {
+      return i_ == std::numeric_limits<T>::max();
+    }
 
     /// is this Index valid, i.e. an actual index into a vector?
-    bool isValid() const;
+    constexpr bool isValid() const
+    {
+      return i_ != std::numeric_limits<T>::max();
+    }
 
     /// convert to a number (might be invalid, check with .isValid() first)
-    T operator()() const;
+    constexpr T operator()() const
+    {
+      return i_;
+    }
 
     /// equality operator
-    bool operator==(const Index other) const;
+    constexpr bool operator==(const Index other) const
+    {
+      return i_ == other.i_;
+    }
 
     /// allows to set the index, using `index.pos() = 3;` or simply read its value
-    T& pos();
+    constexpr T& pos()
+    {
+      return i_;
+    }
 
     /// allows to read the index, using `index.pos()` 
-    T pos() const;
+    constexpr T pos() const
+    {
+      return i_;
+    }
   private:
     T i_ = std::numeric_limits<T>::max(); ///< internal number representation; invalid state by default
   };
@@ -244,6 +264,51 @@ template<> struct std::hash<OpenMS::Index>
 
 namespace OpenMS
 {
+  /// Custom bitset which uses a 32-bit integer to store bits (instead of 8 bytes for std::bitset<32> on Clang/GCC).
+  struct Bitset {
+    uint32_t bits = 0;
+
+    // Set bit at position `pos` (0-based)
+    void set(int pos) {
+      bits |= (1u << pos);
+    }
+
+    // Clear bit at position `pos`
+    void clear(int pos) {
+      bits &= ~(1u << pos);
+    }
+
+    // Check if bit at position `pos` is set
+    bool test(int pos) const {
+      return (bits >> pos) & 1u;
+    }
+
+    // Left shift the bitset by `n` positions
+    Bitset operator<<(int n) const {
+      Bitset o = *this;
+      return o <<= n;
+    }
+
+    // Left shift the bitset by `n` positions
+    Bitset& operator<<=(int n) {
+      if (n > 31)
+      { // if we shift more than 31 bits, behaviour is undefined (e.g. GCC/Clang/MSVC will not modify 'bits' if n==32)
+        bits = 0; // shift out all bits
+      }
+      else
+      {
+        bits <<= n;
+      }
+      return *this;
+    }
+
+    // Count number of set bits (population count)
+    int pop_count() const {
+      return std::popcount(bits);
+    }
+  }; // end Bitset
+
+
   /// A node in the AhoCorasick trie.
   /// Internally manages the suffix link and an index where its children start (this relies on the trie being stored in BFS order)
   struct OPENMS_DLLAPI ACNode
@@ -263,18 +328,20 @@ namespace OpenMS
       {
         memset(this, 0, sizeof *this); // make sure bitfields are 0; C++20 allows {} initialization ...
       };
-      uint8_t has_hit : 1; ///< does a pattern end here (or when following suffix links)?
+      uint8_t has_hit: 1; ///< does a pattern end here (or when following suffix links)?
       // we could add another bit here to distinguish between a local hit and suffix hit, but on Windows, this slows it down
       uint8_t depth : 7; ///< depth of node in the trie
     };
 
     using ChildCountType = uint8_t; 
 
+    // do not use std::bitset, since GCC/clang wastes 8 bytes here.
+    //std::bitset<26> children_bitset; ///< bitfield of children (if tree is in BFS order); 26 bits are enough to cover all AA incl. (B,J,X,Z)
+    Bitset children_bitset;  ///< bitfield of children (if tree is in BFS order); 26 bits are enough to cover all AA incl. (B,J,X,Z)
     Index suffix {0};        ///< which node is our suffix?
     Index first_child {0};   ///< which node contains our first child node (if tree is in BFS order)
-    // there is room for optimization here, by pulling edge labels into a separate vector (allows for SSE-enabled search of children)
     AA edge {0};             ///< what is the edge label (from parent to this node)
-    ChildCountType nr_children = 0; ///< number of children (if tree is in BFS order); // we could also go with a bitfield of size 22, but that would cost extra 3 bytes per node
+    ChildCountType nr_children = 0; ///< number of children (if tree is in BFS order); (popcount on children_bitset will do the same but we have the space due to padding)
     DepthHits depth_and_hits; ///< depth of node in the tree and one bit if a needle ends in this node or any of its suffices
   };
   
@@ -282,37 +349,37 @@ namespace OpenMS
   struct ACTrieState;
 
   /// a spin-off search path through the trie, which can deal with ambiguous AAs and mismatches
-  struct OPENMS_DLLAPI ACSpawn
+  struct OPENMS_DLLAPI ACScout
   {
     /// No default C'tor
-    ACSpawn() = delete;
+    ACScout() = delete;
 
     /// C'tor with arguments
-    ACSpawn(std::string::const_iterator query_pos, Index tree_pos, uint8_t max_aa, uint8_t max_mm, uint8_t max_prefix_loss);
+    ACScout(const char* query_pos, Index tree_pos, uint8_t max_aa, uint8_t max_mm, uint8_t max_prefix_loss);
 
     /// Where in the text are we currently?
     size_t textPos(const ACTrieState& state) const;
 
     /// Return the next valid AA in the query. If the query was fully traversed, an invalid AA is returned.
     /// This moves the internal iterator for the query forwards.
-    AA nextValidAA(const ACTrieState& state);
+    AA nextValidAA();
 
-    std::string::const_iterator it_query; ///< position in query
+    const char* it_query = 0; ///< position in query
     Index tree_pos;                       ///< position in trie
-    uint8_t max_aaa_leftover {0};         ///< number of ambiguous AAs the spawn can yet tolerate before exceeding the limit
-    uint8_t max_mm_leftover {0};          ///< number of mismatches the spawn can yet tolerate before exceeding the limit
-    uint8_t max_prefix_loss_leftover {0}; ///< number of AA's which can get lost by following suffix links, before the spawn must retire; reaching 0 means retire
+    uint8_t max_aaa_leftover {0};         ///< number of ambiguous AAs the scout can yet tolerate before exceeding the limit
+    uint8_t max_mm_leftover {0};          ///< number of mismatches the scout can yet tolerate before exceeding the limit
+    uint8_t max_prefix_loss_leftover {0}; ///< number of AA's which can get lost by following suffix links, before the scout must retire; reaching 0 means retire
   };
 
   /// Return the first valid AA from current position of @p it_q in the string, or (if the string ends) an invalid AA
   /// On return, @p it_q points to AA after the returned AA.
-  OPENMS_DLLAPI AA nextValidAA(const std::string::const_iterator end, std::string::const_iterator& it_q);
+  AA nextValidAA(const char*& it_q);
 
   /// A state object for an ACTrie, i.e. dynamic information when traversing the trie (which is 'const' after construction)
   /// Useful when using multi-threading; each thread can walk the trie and keep track of its state using an instance of this class
   struct OPENMS_DLLAPI ACTrieState
   {
-    friend ACSpawn;
+    friend ACScout;
     /// Set a haystack (query) where the needles (patterns) are to be searched
     /// This also resets the current trie-node to ROOT, and voids the hits
     void setQuery(const std::string& haystack);
@@ -321,7 +388,7 @@ namespace OpenMS
     size_t textPos() const;
 
     /// Where in the text are we currently?
-    std::string::const_iterator textPosIt() const;
+    const char* textPosIt() const;
 
     /// The current query
     const std::string& getQuery() const;
@@ -331,12 +398,11 @@ namespace OpenMS
     AA nextValidAA();
 
     std::vector<Hit> hits;             ///< current hits found
-    Index tree_pos;                    ///< position in trie (for the master)
-    std::queue<ACSpawn> spawns;        ///< initial spawn points which are currently active and need processing
-
+    std::queue<ACScout> scouts;        ///< initial scout points which are currently active and need processing
+    Index tree_pos;                    ///< position in trie (for the Primary)
   private:
+    const char* it_q_;                 ///< position in query
     std::string query_;                ///< current query ( = haystack = text)
-    std::string::const_iterator it_q_; ///< position in query
   };
 
   /// An Aho Corasick trie (a set of nodes with suffix links mainly)
@@ -367,6 +433,11 @@ namespace OpenMS
     /// Convenience function which adds needles and immediately compresses the trie (i.e. no more needles can be added)
     /// @throw Exception::InvalidValue if @p needles contains an invalid amino acid (such as '*'); you can use getNeedleCount() to trace which needle did cause the exception
     void addNeedlesAndCompress(const std::vector<std::string>& needles);
+
+    size_t size() const
+    {
+      return trie_.size();
+    }
 
     /**
        @brief Traverses the trie in BFS order and makes it more compact and efficient to traverse
@@ -406,7 +477,7 @@ namespace OpenMS
   private:
     /// Resume search at the last position in the query and node in the trie.
     /// If a node (or any suffices) are a hit, then @p state.hits is NOT cleared, but filled and true is returned.
-    /// If the query ends and all spawns are processed, false is returned (but hits might still have changed)
+    /// If the query ends and all scouts are processed, false is returned (but hits might still have changed)
     bool nextHitsNoClear_(ACTrieState& state) const;
 
     /// Insert a new child node into the trie (unless already present) when starting at parent node @p from and following the edge labeled @p edge.
@@ -424,38 +495,39 @@ namespace OpenMS
     **/
     bool addHits_(Index i, const size_t text_pos, std::vector<Hit>& hits) const;
 
-    /// same as addHits_, but only follows the suffix chain until the spawn loses its prefix
-    bool addHitsSpawn_(Index i, const ACSpawn& spawn, const size_t text_pos, std::vector<Hit>& hits, const int current_spawn_depths) const;
+    /// same as addHits_, but only follows the suffix chain until the scout loses its prefix
+    bool addHitsScout_(Index i, const ACScout& scout, const size_t text_pos, std::vector<Hit>& hits, const int current_scout_depths) const;
 
     /// Starting at node @p i, find the child with label @p edge
+    /// This requires an exact match, e.g. if @p edge is an 'X' it will only match to 'X' in the trie (=needles)
     /// If no child exists, follow the suffix link and try again (until root is reached)
     /// Note: This operates on the BFS trie (after compressTrie()), not the naive one.
     Index follow_(const Index i, const AA edge) const;
 
-    /// Advances @p spawn by consuming @p edge; same as follow_(), just for a spawn
-    /// Returns true if spawn is still alive, false otherwise
-    bool followSpawn_(ACSpawn& spawn, const AA edge, ACTrieState& state) const;
+    /// Advances @p scout by consuming @p edge; same as follow_(), just for a scout
+    /// Returns true if scout is still alive, false otherwise
+    bool followScout_(ACScout& scout, const AA edge, ACTrieState& state) const;
 
-    /// Same as follow_, but considers trying mismatches and AAA's if possible (by adding spawns to @p state)
-    /// @return The new tree node, where Master is at after consuming @p edge
-    Index stepMaster_(const Index i, const AA edge, ACTrieState& state) const;
+    /// Same as follow_, but considers trying mismatches and AAA's if possible (by adding scouts to @p state)
+    /// @return The new tree node, where Primary is at after consuming @p edge
+    Index stepPrimary_(const Index i, const AA edge, ACTrieState& state) const;
 
-    /// Same as follow_, but considers trying mismatches and AAA's if possible (by adding spawns to @p state)
-    /// @return true if spawn is still alive, false otherwise (i.e. did loose its prefix)
-    bool stepSpawn_(ACSpawn& spawn, ACTrieState& state) const;
+    /// Same as follow_, but considers trying mismatches and AAA's if possible (by adding scouts to @p state)
+    /// @return true if scout is still alive, false otherwise (i.e. did loose its prefix)
+    bool stepScout_(ACScout& scout, ACTrieState& state) const;
 
-    /// Create spawns from an AAA or MM, starting at trie node @p i, following edges in range @p fromAA to @p toAA
-    /// The number of AAA's/MM's left for the spawn must be passed (these numbers already reflect the original edge label)
-    void createSpawns_(const Index i, const AA fromAA, const AA toAA, ACTrieState& state, const uint32_t aaa_left, const uint32_t mm_left) const;
+    /// Create scouts from an AAA or MM, starting at trie node @p i, following edges in range @p fromAA to @p toAA
+    /// The number of AAA's/MM's left for the scout must be passed (these numbers already reflect the original edge label)
+    void createScouts_(const Index i, const AA fromAA, const AA toAA, ACTrieState& state, const uint32_t aaa_left, const uint32_t mm_left) const;
 
-    /// Create spawns from a spawn with an AAA or MM, using @p prototype as template, following edges in range @p fromAA to @p toAA
-    void createSubSpawns_(const ACSpawn& prototype, const AA fromAA, const AA toAA, ACTrieState& state) const;
+    /// Create scouts from a scout with an AAA or MM, using @p prototype as template, following edges in range @p fromAA to @p toAA
+    void createSubScouts_(const ACScout& prototype, const AA fromAA, const AA toAA, ACTrieState& state) const;
 
-    /// Same as createSpawns_, but instantiate all possible AA's except for those in the range from @p except_fromAA to @p except_toAA and the @p except_edge itself.
-    void createMMSpawns_(const Index i, const AA except_fromAA, const AA except_toAA, const AA except_edge, ACTrieState& state, const uint32_t aaa_left, const uint32_t mm_left) const;
+    /// Same as createScouts_, but instantiate all possible AA's except for those in the range from @p except_fromAA to @p except_toAA and the @p except_edge itself.
+    void createMMScouts_(const Index i, const AA except_fromAA, const AA except_toAA, const AA except_edge, ACTrieState& state, const uint32_t aaa_left, const uint32_t mm_left) const;
 
-    /// Same as createSubSpawns_, but instantiate all possible AA's except for those in the range from @p except_fromAA to @p except_toAA and the @p except_edge itself.
-    void createMMSubSpawns_(const ACSpawn& prototype, const AA except_fromAA, const AA except_toAA, const AA except_edge, ACTrieState& state) const;
+    /// Same as createSubScouts_, but instantiate all possible AA's except for those in the range from @p except_fromAA to @p except_toAA and the @p except_edge itself.
+    void createMMSubScouts_(const ACScout& prototype, const AA except_fromAA, const AA except_toAA, const AA except_edge, ACTrieState& state) const;
 
     /// During needle addition (naive trie), obtain the child with edge @p child_label from @p parent; if it does not exist, an invalid Index is returned
     Index findChildNaive_(Index parent, AA child_label);
@@ -469,9 +541,9 @@ namespace OpenMS
     uint32_t max_mm_ {0};       ///< maximum number of mismatches allowed
 
     /// maps a node to which needles end there (valid for both naive and BFS tree)
-    std::unordered_map<Index, std::vector<uint32_t>> umap_index2needles_;
+    std::vector<std::vector<uint32_t>> vec_index2needles_ = { {} }; // one empty element to allow capacity doubling; note: sparse vector but still much faster and less memory than unordered_map
     /// maps the child nodes of a node for the naive tree; only needed during naive trie construction; storing children in the BFS trie modeled in the ACNodes directly
-    std::unordered_map<Index, std::vector<Index>> umap_index2children_naive_;
+    std::vector<std::vector<Index>> vec_index2children_naive_ = { {} }; // one empty element to allow capacity doubling
   };
 
 } // namespace OpenMS

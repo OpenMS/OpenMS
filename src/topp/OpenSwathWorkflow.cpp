@@ -389,7 +389,21 @@ class TOPPOpenSwathWorkflow
 public:
 
   TOPPOpenSwathWorkflow()
-    : TOPPOpenSwathBase("OpenSwathWorkflow", "Complete workflow to run OpenSWATH", true)
+    : TOPPOpenSwathBase("OpenSwathWorkflow", "Complete workflow to run OpenSWATH", true,
+                        {
+                          {"Roest, H.L. et al.",
+                           "OpenSWATH enables automated, targeted analysis of data-independent acquisition MS data",
+                           "Nature Biotechnology volume 32, pages 219–223 (2014)",
+                           "https://doi.org/10.1038/nbt.2841"},
+                          {"Rosenberger, G. et al.",
+                           "Inference and quantification of peptidoforms in large sample cohorts by SWATH-MS",
+                           "Nature Biotechnology volume 35, pages 781–788 (2017)",
+                           "https://doi.org/10.1038/nbt.3908"},
+                          {"Meier, F. et al.",
+                           "diaPASEF: parallel accumulation–serial fragmentation combined with data-independent acquisition",
+                           "Nature Methods volume 17, pages 1229–1236 (2020)",
+                           "https://doi.org/10.1038/s41592-020-00998-0"}
+                        })
   {
   }
 
@@ -438,6 +452,14 @@ protected:
     registerFlag_("pasef", "data is PASEF data");
 
     // RT, mz and IM windows
+    registerStringOption_("estimate_extraction_windows", "<all|none|rt[,mz][,im]>", "all", "Choose which extraction windows to estimate during iRT calibration. 'all' = estimate RT, m/z, and IM windows; 'none' = use user-set windows; or a comma-separated list from {rt,mz,im}.", false);
+    registerDoubleOption_("rt_estimation_padding_factor", "<double>", 1.3, "A padding factor to multiply the estimated RT window by. For example, a factor of 1.3 will add a 30% padding to the estimated RT window, so if the estimated RT window is 144, then 43 will be added for a total estimated RT window of 187 seconds. A factor of 1.0 will not add any padding to the estimated window.", false);
+    setMinFloat_("rt_estimation_padding_factor", 1.0);
+    registerDoubleOption_("im_estimation_padding_factor", "<double>", 1.0, "A padding factor to multiply the estimated ion_mobility window by. For example, a factor of 1.3 will add a 30% padding to the estimated ion_mobility window, so if the estimated ion_mobility window is 0.03, then 0.009 will be added for a total estimated ion_mobility window of 0.039. A factor of 1.0 will not add any padding to the estimated window.", false);
+    setMinFloat_("im_estimation_padding_factor", 1.0);
+    registerDoubleOption_("mz_estimation_padding_factor", "<double>", 1.0, "A padding factor to multiply the estimated m/z window by. For example, a factor of 1.3 will add a 30% padding to the estimated m/z window, so if the estimated m/z window is 18, then 5.4 will be added for a total estimated m/z window of 23.4. A factor of 1.0 will not add any padding to the estimated window.", false);
+    setMinFloat_("mz_estimation_padding_factor", 1.0);
+
     registerDoubleOption_("rt_extraction_window", "<double>", 600.0, "Only extract RT around this value (-1 means extract over the whole range, a value of 600 means to extract around +/- 300 s of the expected elution).", false);
     registerDoubleOption_("extra_rt_extraction_window", "<double>", 0.0, "Output an XIC with a RT-window by this much larger (e.g. to visually inspect a larger area of the chromatogram)", false, true);
     setMinFloat_("extra_rt_extraction_window", 0.0);
@@ -631,6 +653,162 @@ protected:
     }
   }
 
+  /**
+    @brief Selection flags for using auto-estimated extraction windows.
+
+    This POD struct indicates for which coordinates (RT, m/z, ion mobility)
+    the automatically estimated extraction windows should be applied.
+  */
+  struct EstimateWindowsChoice
+  {
+    bool rt{false};
+    bool mz{false};
+    bool im{false};
+  };
+
+  /**
+    @brief Parse the user option for selecting estimated extraction windows.
+
+    Interprets the option value as one of: \n
+     - @c "all"  → enable all: RT, m/z, and ion mobility \n
+     - @c "none" → enable none (default; keeps user-specified fixed windows) \n
+     - a comma-separated list drawn from @c {"rt","mz","im"}, e.g. @c "rt,mz" \n
+
+    Parsing is case-insensitive and tolerant of surrounding whitespace.
+    Unknown tokens or an empty/malformed value raise an exception.
+
+    @param estimate_windows_option_str  The option string (e.g. "all", "none", "rt,mz").
+    @return An @c EstimateWindowsChoice with the requested flags set.
+    @throws Exception::InvalidParameter
+            If the string is empty/malformed or contains unknown tokens.
+  */
+  EstimateWindowsChoice parseEstimateExtractionWindows_(String estimate_windows_option_str)
+  {
+    EstimateWindowsChoice out;
+    const String s = estimate_windows_option_str.trim().toLower();
+
+    if (s == "all")
+    {
+      out.rt = out.mz = out.im = true;
+      return out;
+    }
+    if (s == "none")
+    {
+      return out; // all false, don't use estimated extraction windows
+    }
+
+    StringList toks;
+    s.split(',', toks);
+    if (toks.empty())
+    {
+      throw OpenMS::Exception::InvalidParameter(
+        __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "estimate_extraction_windows: value is empty or malformed (expected all|none|rt[,mz][,im])");
+    }
+
+    for (String t : toks)
+    {
+      t.trim();
+      t.toLower();
+      if (t == "rt")       { out.rt = true; }
+      else if (t == "mz")  { out.mz = true; }
+      else if (t == "im")  { out.im = true; }
+      else if (!t.empty())
+      {
+        throw OpenMS::Exception::InvalidParameter(
+          __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "estimate_extraction_windows: unknown token '" + t +
+            "'. Allowed: all, none, or a comma-separated value from {rt,mz,im}.");
+      }
+    }
+    return out;
+  }
+
+  /**
+    @brief Validate an auto-estimated extraction window.
+
+    A window is considered valid if it is finite and strictly greater than a
+     small positive threshold. This guards against denormals (e.g., ~1e-310),
+     zeros, negative values, and NaNs/Inf.
+
+    Typical units:
+      - RT window: seconds
+      - m/z window: ppm
+      - IM window: native instrument units
+
+    @param v            The candidate window value.
+    @param min_positive Minimum strictly-positive threshold (default: 1e-9).
+                         Estimates <= this threshold are deemed invalid.
+    @return True if the window is usable; false otherwise.
+  */
+  inline bool is_valid_win(double v, double min_positive = 1e-9) noexcept
+  {
+    return std::isfinite(v) && (v > min_positive);
+  }
+
+  /**
+    @brief Validate, log, and optionally apply an auto-estimated extraction window.
+
+    Behavior:
+      - If @p applicable is false (e.g., no IM data), logs an INFO and leaves @p dst_param unchanged.
+      - If the estimate is invalid, logs a WARN and leaves @p dst_param unchanged.
+      - If the estimate is valid and @p commit is true, logs an INFO and assigns @p dst_param = @p estimate.
+      - If the estimate is valid and @p commit is false, logs an INFO that reports the estimate and that the user value is kept.
+
+    Typical usage:
+      - RT window (seconds)
+      - MS2 m/z window (ppm)
+      - MS1 m/z window (ppm)
+      - IM window (1/k0), only when applicable (e.g., PASEF/IM data)
+
+    @param label       Human-readable label used in logs (e.g., "RT", "MS2 m/z (ppm)", "MS1 ion mobility (1/k0)").
+    @param estimate    Auto-estimated window value to consider.
+    @param dst_param   Destination parameter to update on success (by reference).
+    @param user_value  The current/user-specified value (reported in logs).
+    @param applicable  Whether this window is applicable for the current run/config.
+                       If false, the value is not applied and a note is logged.
+    @param commit      Whether to apply the estimate. If false, only logs the estimate vs. user value.
+                       Default: true (backwards compatible).
+  */
+  void apply_window(const char* label,
+                           double estimate,
+                           double& dst_param,
+                           const double user_value,
+                           bool applicable = true,
+                           bool commit = true)
+    {
+      if (!applicable)
+      {
+        OPENMS_LOG_INFO << "[Estimated] " << label
+                        << " window: not applicable; keeping user value "
+                        << user_value << std::endl;
+        return;
+      }
+
+      if (!is_valid_win(estimate))
+      {
+        OPENMS_LOG_WARN << "[Estimated] " << label
+                        << " window estimate invalid (estimated=" << estimate
+                        << "); keeping user value " << user_value << std::endl;
+        return;
+      }
+
+      if (commit)
+      {
+        OPENMS_LOG_INFO << "[Estimated] " << label
+                        << " window applied: " << estimate
+                        << " (was " << user_value << ")" << std::endl;
+        dst_param = estimate;
+      }
+      else
+      {
+        OPENMS_LOG_INFO << "[Estimated] " << label
+                        << " window estimated: " << estimate
+                        << "; keeping user value " << user_value << std::endl;
+        // leave dst_param unchanged
+      }
+    }
+
   ExitCodes main_(int, const char **) override
   {
     ///////////////////////////////////
@@ -773,6 +951,7 @@ protected:
     bool use_ms1_im = getStringOption_("use_ms1_ion_mobility") == "true";
     bool prm = getStringOption_("matching_window_only") == "true";
 
+    EstimateWindowsChoice use_est_window_choices = parseEstimateExtractionWindows_(getStringOption_("estimate_extraction_windows"));
     ChromExtractParams cp;
     cp.min_upper_edge_dist   = min_upper_edge_dist;
     cp.mz_extraction_window  = getDoubleOption_("mz_extraction_window");
@@ -948,6 +1127,8 @@ protected:
     calibration_param.setValue("mz_extraction_window", cp_irt.mz_extraction_window);
     calibration_param.setValue("mz_extraction_window_ppm", cp_irt.ppm ? "true" : "false");
     calibration_param.setValue("im_extraction_window", cp_irt.im_extraction_window);
+    calibration_param.setValue("im_estimation_padding_factor", getDoubleOption_("im_estimation_padding_factor"));
+    calibration_param.setValue("mz_estimation_padding_factor", getDoubleOption_("mz_estimation_padding_factor"));
     calibration_param.setValue("mz_correction_function", mz_correction_function);
 
     // 1) Prepare in‐memory iRT experiments for linear + nonlinear
@@ -1006,11 +1187,12 @@ protected:
     }
 
     // 2) Launch either just linear or linear+nonlinear
-    TransformationDescription trafo_rtnorm;
+    TransformationDescription trafo_rtnorm; double estimated_rt_extraction_window;
+    double rt_estimation_padding_factor = getDoubleOption_("rt_estimation_padding_factor");
     if (nl_irt_exp.getTransitions().empty())
     {
       // --- single, linear calibration ---
-      trafo_rtnorm = performCalibration(
+      auto calibration_result = performCalibration(
         trafo_in,
         lin_irt_exp,
         swath_maps,
@@ -1025,36 +1207,87 @@ protected:
         load_into_memory,
         irt_trafo_out,
         irt_mzml_out);
+      // We need to set trafo_rtnorm to the calibration result
+      trafo_rtnorm = calibration_result.rt_trafo;
+      // Use the 0.99 quantile so the window covers ~99% of residuals, ignoring rare extremes (those that are potential outliers).
+      estimated_rt_extraction_window = calibration_result.rt_trafo.estimateWindow(0.99, true, true, rt_estimation_padding_factor);
+      // RT (seconds)
+      apply_window("RT",
+                   estimated_rt_extraction_window,
+                   /*dst*/  cp.rt_extraction_window,
+                   /*user*/ cp.rt_extraction_window,
+                   /*applicable=*/true,
+                   /*commit=*/use_est_window_choices.rt);
+
+      // MS2 m/z (ppm)
+      apply_window("MS2 m/z (ppm)",
+                   calibration_result.ms2_mz_window_ppm,
+                   cp.mz_extraction_window, cp.mz_extraction_window,
+                   /*applicable=*/true,
+                   /*commit=*/use_est_window_choices.mz && cp.ppm);
+      if (use_est_window_choices.mz && !cp.ppm)
+      {
+        OPENMS_LOG_WARN
+          << "[Auto-calibration] MS2 m/z window not applied: user selected Thomson (Th) as unit, "
+          << "but the estimated window is " << calibration_result.ms2_mz_window_ppm << " ppm. "
+          << "Keeping the user-set value " << cp.mz_extraction_window << " Th. "
+          << std::endl;
+      }
+
+      // MS2 ion mobility (1/k0)
+      apply_window("MS2 ion mobility (1/k0)",
+                   calibration_result.ms2_im_window,
+                   cp.im_extraction_window, cp.im_extraction_window,
+                   /*applicable=*/pasef,
+                   /*commit=*/use_est_window_choices.im);
+
+      // MS1 m/z (ppm)
+      apply_window("MS1 m/z (ppm)",
+                   calibration_result.ms1_mz_window_ppm,
+                   cp_ms1.mz_extraction_window, cp_ms1.mz_extraction_window,
+                   /*applicable=*/true,
+                   /*commit=*/use_est_window_choices.mz && cp_ms1.ppm);
+      if (use_est_window_choices.mz && !cp_ms1.ppm)
+      {
+        OPENMS_LOG_WARN
+          << "[Auto-calibration] MS1 m/z window not applied: user selected Thomson (Th) as unit, "
+          << "but the estimated window is " << calibration_result.ms1_mz_window_ppm << " ppm. "
+          << "Keeping the user-set value " << cp_ms1.mz_extraction_window << " Th. "
+          << std::endl;
+      }
+
+      // MS1 ion mobility (1/k0)
+      apply_window("MS1 ion mobility (1/k0)",
+                   calibration_result.ms1_im_window,
+                   cp_ms1.im_extraction_window, cp_ms1.im_extraction_window,
+                   /*applicable=*/pasef && use_ms1_im,
+                   /*commit=*/use_est_window_choices.im);
     }
     else
     {
-      // --- 1) linear pass ---
-      Param lin_param = irt_detection_param;
-      lin_param.setValue("alignmentMethod", "linear");
-      Param no_cal   = calibration_param;
-      no_cal.setValue("mz_correction_function", "none");
+      ///////////////////////////////////
+      // First perform a simple linear transform, then do a second, nonlinear one
+      ///////////////////////////////////
+      OPENMS_LOG_INFO << "Performing iRT linear transform..." << std::endl;
 
-      trafo_rtnorm = performCalibration(
-        trafo_in,
-        lin_irt_exp,
-        swath_maps,
-        min_rsq,
-        min_coverage,
-        feature_finder_param,
-        cp_irt,
-        lin_param,
-        no_cal,
-        debug_level,
-        pasef,
-        load_into_memory,
-        irt_trafo_out,
-        irt_mzml_out);
+      Param linear_irt = irt_detection_param;
+      linear_irt.setValue("alignmentMethod", "linear");
+      Param no_calibration = calibration_param;
+      no_calibration.setValue("mz_correction_function", "none");
+      auto calibration_result = performCalibration(trafo_in, lin_irt_exp, swath_maps,
+                                        min_rsq, min_coverage, feature_finder_param,
+                                        cp_irt, linear_irt, no_calibration,
+                                        debug_level, pasef, load_into_memory,
+                                        irt_trafo_out, irt_mzml_out);
+      trafo_rtnorm = calibration_result.rt_trafo;
 
-      // adjust extraction window for non-linear step
-      cp_irt.rt_extraction_window =
-        getDoubleOption_("irt_nonlinear_rt_extraction_window");
+      cp_irt.rt_extraction_window = getDoubleOption_("irt_nonlinear_rt_extraction_window"); // extract some substantial part of the RT range (should be covered by linear correction)
 
-      // --- 2) nonlinear pass ---
+      ///////////////////////////////////
+      // Get the secondary transformation (nonlinear)
+      ///////////////////////////////////
+      OPENMS_LOG_INFO << "Performing additional iRT nonlinear transform..." << std::endl;
+
       OpenSwathCalibrationWorkflow wf;
       wf.setLogType(log_type_);
       std::vector<OpenMS::MSChromatogram> chroms;
@@ -1084,12 +1317,82 @@ protected:
         pasef);
 
       // apply IM‐correction back to the library
+      if (!irt_trafo_out.empty())
+      {
+        String nonlinear_path = irt_trafo_out;
+
+        const String ext = ".trafoXML";
+        nonlinear_path = nonlinear_path.substr(0, nonlinear_path.size() - ext.size());
+        nonlinear_path += "_nonlinear.trafoXML";
+
+        FileHandler().storeTransformations(nonlinear_path, trafo_rtnorm, { FileTypes::TRANSFORMATIONXML });
+      }
+
+      // Use the 0.99 quantile so the window covers ~99% of residuals, ignoring rare extremes (those that are potential outliers).
+      estimated_rt_extraction_window = trafo_rtnorm.estimateWindow(0.99, true, true, rt_estimation_padding_factor);
+
       TransformationDescription im_trafo_inv = im_trafo;
       im_trafo_inv.invert();
       for (auto & cmp : transition_exp.getCompounds())
       {
         cmp.drift_time = im_trafo_inv.apply(cmp.drift_time);
       }
+      double estimated_mz_extraction_window = wf.getEstimatedMzWindow();
+      double estimated_im_extraction_window = wf.getEstimatedImWindow();
+      double estimated_ms1_mz_extraction_window = wf.getEstimatedMs1MzWindow();
+      double estimated_ms1_im_extraction_window = wf.getEstimatedMs1ImWindow();
+
+      // RT (seconds)
+      apply_window("RT",
+                   estimated_rt_extraction_window,
+                   /*dst*/  cp.rt_extraction_window,
+                   /*user*/ cp.rt_extraction_window,
+                   /*applicable=*/true,
+                   /*commit=*/use_est_window_choices.rt);
+
+      // MS2 m/z (ppm)
+      apply_window("MS2 m/z (ppm)",
+                   estimated_mz_extraction_window,
+                   cp.mz_extraction_window, cp.mz_extraction_window,
+                   /*applicable=*/true,
+                   /*commit=*/use_est_window_choices.mz && cp.ppm);
+      if (use_est_window_choices.mz && !cp.ppm)
+      {
+        OPENMS_LOG_WARN
+          << "[Auto-calibration] MS2 m/z window not applied: user selected Thomson (Th) as unit, "
+          << "but the estimated window is " << calibration_result.ms2_mz_window_ppm << " ppm. "
+          << "Keeping the user-set value " << cp.mz_extraction_window << " Th. "
+          << std::endl;
+      }
+
+      // MS2 ion mobility (1/k0)
+      apply_window("MS2 ion mobility (1/k0)",
+                   estimated_im_extraction_window,
+                   cp.im_extraction_window, cp.im_extraction_window,
+                   /*applicable=*/pasef,
+                   /*commit=*/use_est_window_choices.im);
+
+      // MS1 m/z (ppm)
+      apply_window("MS1 m/z (ppm)",
+                   estimated_ms1_mz_extraction_window,
+                   cp_ms1.mz_extraction_window, cp_ms1.mz_extraction_window,
+                   /*applicable=*/true,
+                   /*commit=*/use_est_window_choices.mz && cp_ms1.ppm);
+      if (use_est_window_choices.mz && !cp_ms1.ppm)
+      {
+        OPENMS_LOG_WARN
+          << "[Auto-calibration] MS1 m/z window not applied: user selected Thomson (Th) as unit, "
+          << "but the estimated window is " << calibration_result.ms1_mz_window_ppm << " ppm. "
+          << "Keeping the user-set value " << cp_ms1.mz_extraction_window << " Th. "
+          << std::endl;
+      }
+
+      // MS1 ion mobility (1/k0)
+      apply_window("MS1 ion mobility (1/k0)",
+                   estimated_ms1_im_extraction_window,
+                   cp_ms1.im_extraction_window, cp_ms1.im_extraction_window,
+                   /*applicable=*/pasef && use_ms1_im,
+                   /*commit=*/use_est_window_choices.im);
     }
 
     ///////////////////////////////////
