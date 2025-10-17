@@ -87,14 +87,19 @@ public:
      */
     std::vector<double> extractSingleSpec(Size spec_idx, const MSExperiment& exp, std::vector<std::pair<double, unsigned>>& channel_qc);
 
-    /// add channel information to a ConsensusMap (usually done before or after filling it).
-    /// only needed when using extractSingleSpec() instead of extractChannels()
+    /**  
+    * @brief Registers channel information in a ConsensusMap.  
+    * 
+    * Adds column headers with channel metadata to the consensus map.  
+    * Only needed when using extractSingleSpec() instead of extractChannels().  
+    * 
+    * @param consensus_map ConsensusMap to register channels in  
+    * @param filename Optional filename to associate with channels  
+    */  
     void registerChannelsInOutputMap(ConsensusMap& consensus_map, const String& filename = "");
 
     /**
      * @brief Prints statistics about the channel errors with OPENMS_LOG_INFO.
-     * 
-     * @param stats ChannelQCSet containing the statistics. NOTE: Will be sorted for median
      */
     void printStats();
     void printStats(ChannelQCSet& stats) const;
