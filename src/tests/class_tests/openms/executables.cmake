@@ -516,7 +516,6 @@ set(analysis_executables_list
   HyperScore_test
   MorpheusScore_test
   OpenPepXLAlgorithm_test
-  OpenPepXLLFAlgorithm_test
   OPXLHelper_test
   OPXLSpectrumProcessingAlgorithms_test
   PoseClusteringAffineSuperimposer_test

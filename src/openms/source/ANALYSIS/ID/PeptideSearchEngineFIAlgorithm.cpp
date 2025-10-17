@@ -546,8 +546,11 @@ if (!pi.getHits().empty())
     
     // Compute open search mode once before parallel region
     bool open_search_mode = open_search;
+    
+    // Create local copy of constant for OpenMP shared access
+    const double proton_mass_u = Constants::PROTON_MASS_U;
 
-#pragma omp parallel for schedule(static) default(none) shared(annotated_hits, count_spectra, fragment_index_, spectrum_generator, fasta_db, precursor_mass_tolerance_unit_ppm, fragment_mass_tolerance_unit_ppm, spectra, open_search_mode)
+#pragma omp parallel for schedule(static) default(none) shared(annotated_hits, count_spectra, fragment_index_, spectrum_generator, fasta_db, precursor_mass_tolerance_unit_ppm, fragment_mass_tolerance_unit_ppm, spectra, open_search_mode, proton_mass_u)
     for (SignedSize scan_index = 0; scan_index < (SignedSize)spectra.size(); ++scan_index)
     {
 
@@ -622,7 +625,7 @@ if (!pi.getHits().empty())
         {
           double theo_mh_plus = ah.sequence.getMZ(1);
           double exp_mz = exp_spectrum.getPrecursors()[0].getMZ();
-          double exp_mh_plus = exp_mz * sms.precursor_charge_ - ((sms.precursor_charge_ - 1) * Constants::PROTON_MASS_U);
+          double exp_mh_plus = exp_mz * sms.precursor_charge_ - ((sms.precursor_charge_ - 1) * proton_mass_u);
           ah.delta_mass = exp_mh_plus - theo_mh_plus;
         }
 

@@ -703,11 +703,11 @@ protected:
                 {
                         peptide_id_meta_keys = MetaInfoInterfaceUtils::findCommonMetaKeys<PeptideIdentificationList, StringList>(pids.begin(), pids.end(), add_id_metavalues);
                         // currently there is some hardcoded logic to create extra columns for these meta values so remove them to prevent duplication
-                        peptide_id_meta_keys.erase(std::remove(peptide_id_meta_keys.begin(), peptide_id_meta_keys.end(), "predicted_RT"), peptide_id_meta_keys.end());
-                        peptide_id_meta_keys.erase(std::remove(peptide_id_meta_keys.begin(), peptide_id_meta_keys.end(), "predicted_RT_first_dim"), peptide_id_meta_keys.end());
-                        peptide_id_meta_keys.erase(std::remove(peptide_id_meta_keys.begin(), peptide_id_meta_keys.end(), "first_dim_rt"), peptide_id_meta_keys.end());
-                        peptide_id_meta_keys.erase(std::remove(peptide_id_meta_keys.begin(), peptide_id_meta_keys.end(), "predicted_PT"), peptide_id_meta_keys.end());
-                        peptide_id_meta_keys.erase(std::remove(peptide_id_meta_keys.begin(), peptide_id_meta_keys.end(), Constants::UserParam::SIGNIFICANCE_THRESHOLD), peptide_id_meta_keys.end());
+                        std::erase(peptide_id_meta_keys, "predicted_RT");
+                        std::erase(peptide_id_meta_keys, "predicted_RT_first_dim");
+                        std::erase(peptide_id_meta_keys, "first_dim_rt");
+                        std::erase(peptide_id_meta_keys, "predicted_PT");
+                        std::erase(peptide_id_meta_keys, Constants::UserParam::SIGNIFICANCE_THRESHOLD);
                 }
                 if (add_hit_metavalues >= 0)
                 {
@@ -880,11 +880,11 @@ protected:
           {
               peptide_id_meta_keys = MetaInfoInterfaceUtils::findCommonMetaKeys<PeptideIdentificationList, StringList>(pids.begin(), pids.end(), add_id_metavalues);
               // currently there is some hardcoded logic to create extra columns for these meta values so remove them to prevent duplication
-              peptide_id_meta_keys.erase(std::remove(peptide_id_meta_keys.begin(), peptide_id_meta_keys.end(), "predicted_RT"), peptide_id_meta_keys.end());
-              peptide_id_meta_keys.erase(std::remove(peptide_id_meta_keys.begin(), peptide_id_meta_keys.end(), "predicted_RT_first_dim"), peptide_id_meta_keys.end());
-              peptide_id_meta_keys.erase(std::remove(peptide_id_meta_keys.begin(), peptide_id_meta_keys.end(), "first_dim_rt"), peptide_id_meta_keys.end());
-              peptide_id_meta_keys.erase(std::remove(peptide_id_meta_keys.begin(), peptide_id_meta_keys.end(), "predicted_PT"), peptide_id_meta_keys.end());
-              peptide_id_meta_keys.erase(std::remove(peptide_id_meta_keys.begin(), peptide_id_meta_keys.end(), Constants::UserParam::SIGNIFICANCE_THRESHOLD), peptide_id_meta_keys.end());
+              std::erase(peptide_id_meta_keys, "predicted_RT");
+              std::erase(peptide_id_meta_keys, "predicted_RT_first_dim");
+              std::erase(peptide_id_meta_keys, "first_dim_rt");
+              std::erase(peptide_id_meta_keys, "predicted_PT");
+              std::erase(peptide_id_meta_keys, Constants::UserParam::SIGNIFICANCE_THRESHOLD);
           }
           if (add_hit_metavalues >= 0)
           {
@@ -1360,11 +1360,11 @@ protected:
         {
           peptide_id_meta_keys = MetaInfoInterfaceUtils::findCommonMetaKeys<PeptideIdentificationList, StringList>(pep_ids.begin(), pep_ids.end(), add_id_metavalues);
           // currently there is some hardcoded logic to create extra columns for these meta values so remove them to prevent duplication
-          peptide_id_meta_keys.erase(std::remove(peptide_id_meta_keys.begin(), peptide_id_meta_keys.end(), "predicted_RT"), peptide_id_meta_keys.end());
-          peptide_id_meta_keys.erase(std::remove(peptide_id_meta_keys.begin(), peptide_id_meta_keys.end(), "predicted_RT_first_dim"), peptide_id_meta_keys.end());
-          peptide_id_meta_keys.erase(std::remove(peptide_id_meta_keys.begin(), peptide_id_meta_keys.end(), "first_dim_rt"), peptide_id_meta_keys.end());
-          peptide_id_meta_keys.erase(std::remove(peptide_id_meta_keys.begin(), peptide_id_meta_keys.end(), "predicted_PT"), peptide_id_meta_keys.end());
-          peptide_id_meta_keys.erase(std::remove(peptide_id_meta_keys.begin(), peptide_id_meta_keys.end(), Constants::UserParam::SIGNIFICANCE_THRESHOLD), peptide_id_meta_keys.end());
+          std::erase(peptide_id_meta_keys, "predicted_RT");
+          std::erase(peptide_id_meta_keys, "predicted_RT_first_dim");
+          std::erase(peptide_id_meta_keys, "first_dim_rt");
+          std::erase(peptide_id_meta_keys, "predicted_PT");
+          std::erase(peptide_id_meta_keys, Constants::UserParam::SIGNIFICANCE_THRESHOLD);
         }
 
         if (add_hit_metavalues >= 0)

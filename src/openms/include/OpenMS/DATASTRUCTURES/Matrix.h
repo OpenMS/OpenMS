@@ -75,7 +75,7 @@ namespace OpenMS
     */
     const Value& getValue(size_t const i, size_t const j) const
     {
-      return *this(i, j);
+      return this->operator()(i, j);
     }
 
     /*
@@ -147,8 +147,11 @@ namespace OpenMS
      * 
      * @param rhs The matrix to be compared.
      * @return True if matrices are equal, false otherwise.
+     * 
+     * @throw Exception::Precondition if matrices have different dimensions (Debug mode only)
      */
     bool operator==(const Matrix& rhs) const { 
+      OPENMS_PRECONDITION(this->rows() == rhs.rows() && this->cols() == rhs.cols(), "Matrices must have the same dimensions for comparison.");
       return EigenMatrixType::operator==(rhs);
     }
 
