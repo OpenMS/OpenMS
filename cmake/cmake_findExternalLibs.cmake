@@ -88,38 +88,75 @@ if (LIBSVM_FOUND)
 endif()
 
 #------------------------------------------------------------------------------
+# LP Solver detection (COIN-OR, HIGHS, or GLPK)
+# User can set USE_COINOR=OFF, USE_HIGHS=OFF, or USE_GLPK=OFF to disable specific solvers
+# By default, the priority is: COIN-OR > HIGHS > GLPK
+
+# Allow users to disable specific LP solvers
+if(NOT DEFINED USE_COINOR)
+  set(USE_COINOR ON)
+endif()
+if(NOT DEFINED USE_HIGHS)
+  set(USE_HIGHS ON)
+endif()
+if(NOT DEFINED USE_GLPK)
+  set(USE_GLPK ON)
+endif()
+
+set(LP_SOLVER_FOUND FALSE)
+
+#------------------------------------------------------------------------------
 # COIN-OR
 # Our find module creates an imported CoinOR::CoinOR target
-find_package(COIN)
-if (COIN_FOUND)
-  set(OPENMS_HAS_COINOR 1)
-  set(LPTARGET "CoinOR::CoinOR")
-else()
+if(USE_COINOR)
+  find_package(COIN)
+  if (COIN_FOUND)
+    set(OPENMS_HAS_COINOR 1)
+    set(LPTARGET "CoinOR::CoinOR")
+    set(LP_SOLVER_FOUND TRUE)
+    message(STATUS "Using LP solver: COIN-OR")
+  endif()
+endif()
+
+if(NOT LP_SOLVER_FOUND)
   #------------------------------------------------------------------------------
   # HIGHS
   # creates HIGHS::HIGHS target
-  find_package(HIGHS)
-  if (HIGHS_FOUND)
-    set(OPENMS_HAS_HIGHS 1)
-    set(CF_OPENMS_HIGHS_VERSION_MAJOR ${HIGHS_VERSION_MAJOR})
-    set(CF_OPENMS_HIGHS_VERSION_MINOR ${HIGHS_VERSION_MINOR})
-    set(CF_OPENMS_HIGHS_VERSION_PATCH ${HIGHS_VERSION_PATCH})
-    set(CF_OPENMS_HIGHS_VERSION ${HIGHS_VERSION_STRING})
-    set(LPTARGET "HIGHS::HIGHS")
-  else()
-    #------------------------------------------------------------------------------
-    # GLPK
-    # creates GLPK::GLPK target
+  if(USE_HIGHS)
+    find_package(HIGHS)
+    if (HIGHS_FOUND)
+      set(OPENMS_HAS_HIGHS 1)
+      set(CF_OPENMS_HIGHS_VERSION_MAJOR ${HIGHS_VERSION_MAJOR})
+      set(CF_OPENMS_HIGHS_VERSION_MINOR ${HIGHS_VERSION_MINOR})
+      set(CF_OPENMS_HIGHS_VERSION_PATCH ${HIGHS_VERSION_PATCH})
+      set(CF_OPENMS_HIGHS_VERSION ${HIGHS_VERSION_STRING})
+      set(LPTARGET "HIGHS::HIGHS")
+      set(LP_SOLVER_FOUND TRUE)
+      message(STATUS "Using LP solver: HIGHS")
+    endif()
+  endif()
+endif()
+
+if(NOT LP_SOLVER_FOUND)
+  #------------------------------------------------------------------------------
+  # GLPK
+  # creates GLPK::GLPK target
+  if(USE_GLPK)
     find_package(GLPK)
     if (GLPK_FOUND)
       set(CF_OPENMS_GLPK_VERSION_MAJOR ${GLPK_VERSION_MAJOR})
       set(CF_OPENMS_GLPK_VERSION_MINOR ${GLPK_VERSION_MINOR})
       set(CF_OPENMS_GLPK_VERSION ${GLPK_VERSION_STRING})
       set(LPTARGET "GLPK::GLPK")
-    else()
-      message(FATAL_ERROR "Either COIN-OR, HIGHS, or GLPK has to be available (COIN-OR takes precedence, then HIGHS, then GLPK).")
+      set(LP_SOLVER_FOUND TRUE)
+      message(STATUS "Using LP solver: GLPK")
     endif()
   endif()
+endif()
+
+if(NOT LP_SOLVER_FOUND)
+  message(FATAL_ERROR "No LP solver found. At least one of COIN-OR, HIGHS, or GLPK must be available. "
+                      "You can enable/disable specific solvers with -DUSE_COINOR=ON/OFF, -DUSE_HIGHS=ON/OFF, or -DUSE_GLPK=ON/OFF")
 endif()
 
 #------------------------------------------------------------------------------
