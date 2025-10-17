@@ -510,7 +510,7 @@ jobs:
 
   build-lnx:
     runs-on: [ubuntu-latest]
-    container: ghcr.io/openms/contrib_manylinux_2_34-amd64:latest
+    container: ghcr.io/openms/contrib_manylinux_2_34:latest-amd64
 
     steps:
     # Cancels older builds if still running
@@ -640,7 +640,7 @@ jobs:
 
   build-lnx-arm:
     runs-on: [ubuntu-22.04-arm]
-    container: ghcr.io/openms/contrib_manylinux_2_34-arm64:latest
+    container: ghcr.io/openms/contrib_manylinux_2_34:latest-arm64
 
     steps:
     # Cancels older builds if still running
