@@ -783,7 +783,7 @@ jobs:
       shell: bash
       run: |
           if [[ "${{ runner.os }}" == "Linux" && "${{ runner.arch }}" == "ARM64" ]]; then
-            MINICONDA_FILENAME=Miniconda3-latest-Linux-arm64.sh
+            MINICONDA_FILENAME=Miniconda3-latest-Linux-aarch64.sh
             curl -o $MINICONDA_FILENAME "https://repo.anaconda.com/miniconda/$MINICONDA_FILENAME"
             bash ${MINICONDA_FILENAME} -b -f -p $HOME/miniconda3
           elif [[ "${{ runner.os }}" == "Linux" && "${{ runner.arch }}" == "X64" ]]; then
