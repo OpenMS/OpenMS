@@ -76,7 +76,7 @@ It executes the following steps in order, which is implemented in @ref OpenMS::O
 
 <ul>
   <li>Reading of input files, which can be provided as one single mzML or multiple "split" mzMLs (one per SWATH)</li>
-  <li>Computing the retention time transformation, mass-to-charge and ion mobility correction using iRT calibrant peptides</li>
+  <li>Computing the retention time transformation, mass-to-charge and ion mobility correction using calibrant peptides</li>
   <li>Reading of the transition list</li>
   <li>Extracting the specified transitions</li>
   <li>Scoring the peak groups in the extracted ion chromatograms (XIC)</li>
