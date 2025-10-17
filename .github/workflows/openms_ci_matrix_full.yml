@@ -77,9 +77,9 @@ jobs:
           # Make sure the compilers are available in that version on the GH runners
           # We are not installing anything.
           
-          #- os: ubuntu-22.04-arm
-          #  compiler: g++
-          #  compiler_ver: 11
+          - os: ubuntu-22.04-arm
+            compiler: g++
+            compiler_ver: 11
 
 
           - os: ubuntu-22.04
