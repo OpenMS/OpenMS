@@ -534,17 +534,13 @@ jobs:
       uses: SimenB/github-actions-cpu-cores@v2
       id: cpu-cores
 
-    - name: Setup cmake
-      uses: jwlawson/actions-setup-cmake@v2
-      with:
-        cmake-version: '3.25.x'
-
     - name: Build on manylinux for broad compatibility
       shell: bash
       run: |
         PYTHON_VERSIONS=$(cat OpenMS/.github/workflows/python_versions.json)
         yum install -y jq
         yum install -y ninja-build # Install Ninja for build files
+        yum install -y cmake # Install CMake
         cmake --version
 
         mkdir -p $GITHUB_WORKSPACE/data/wheelhouse/
@@ -664,17 +660,13 @@ jobs:
       uses: SimenB/github-actions-cpu-cores@v2
       id: cpu-cores
 
-    - name: Setup cmake
-      uses: jwlawson/actions-setup-cmake@v2
-      with:
-        cmake-version: '3.25.x'
-
     - name: Build on manylinux for broad compatibility
       shell: bash
       run: |
         PYTHON_VERSIONS=$(cat OpenMS/.github/workflows/python_versions.json)
         yum install -y jq
         yum install -y ninja-build # Install Ninja for build files
+        yum install -y cmake # Install CMake
         cmake --version
 
         mkdir -p $GITHUB_WORKSPACE/data/wheelhouse/
