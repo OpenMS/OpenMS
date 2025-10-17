@@ -328,7 +328,13 @@ protected:
         do
         {
           next_ms1_spec++;
-          if (exp[next_ms1_spec].getMSLevel() == 1)
+          if (next_ms1_spec >= exp.size())
+          {
+            // No more MS1 spectra found, use the original MS1 spectrum
+            next_ms1_spec = ms1_spec_idx;
+            break;
+          }
+          else if (exp[next_ms1_spec].getMSLevel() == 1)          
           {
             break;
           }
