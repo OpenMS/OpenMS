@@ -85,11 +85,14 @@ namespace OpenMS
     /**
      * @brief Computes a simple purity score aggregate for all Precursors (and their windows) of spectrum at @p ms2_spec_idx interpolated between
      *  precursor spectrum at @p precursor_spec_idx and the next parent type spectrum at @p next_ms1_spec_idx
-     * 
+     *
      * Interpolates by RT distances of ms2_spec_idx to the precursor_spec_idx and next_ms1_spec_idx.
      * Extracts with fuzzy boundaries around expected isotopes where it only considers 50% of the intensity of the peak as belonging to the target.
      * Warning: Does neither check if the relationship between those spectra make sense nor that all precursors windows in @p ms2_spec_idx even come from the same spectrum.
-     * 
+     *
+     * @note If @p next_ms1_spec_idx is out of range, does not refer to an MS1 spectrum, or the RT denominator is zero/invalid,
+     *       the function will fall back to returning the early scan purity (from @p precursor_spec_idx) without interpolation.
+     *
      * @param ms2_spec_idx index for the spectrum holding the precursor information
      * @param precursor_spec_idx index for the precursor spectrum to extract the intensities from
      * @param next_ms1_spec_idx index for the next parent type spectrum to extract the intensities from

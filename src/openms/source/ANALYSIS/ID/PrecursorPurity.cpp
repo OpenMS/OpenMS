@@ -199,10 +199,35 @@ namespace OpenMS
   {
     const auto& ms2_spec = exp[ms2_spec_idx];
     const auto& precursor_spec = exp[precursor_spec_idx];
-    const auto& next_ms1_spec = exp[next_ms1_spec_idx];
+    
     // compute purity of preceding ms1 scan
     std::vector<double> early_scan_purity = computeSingleScanPrecursorPurities(ms2_spec_idx, precursor_spec_idx, exp, max_precursor_isotope_deviation);
-    std::vector<double> late_scan_purity  = computeSingleScanPrecursorPurities(ms2_spec_idx, next_ms1_spec_idx, exp, max_precursor_isotope_deviation);
+    
+    // Validate next_ms1_spec_idx before dereferencing
+    if (next_ms1_spec_idx < 0 || next_ms1_spec_idx >= static_cast<int>(exp.size()))
+    {
+      // Index out of range - fall back to early scan purity
+      return early_scan_purity;
+    }
+    
+    const auto& next_ms1_spec = exp[next_ms1_spec_idx];
+    
+    // Validate that the next spectrum is actually MS1
+    if (next_ms1_spec.getMSLevel() != 1)
+    {
+      // Not an MS1 spectrum - fall back to early scan purity
+      return early_scan_purity;
+    }
+    
+    // Calculate RT denominator and check for edge cases
+    double rt_denominator = std::fabs(next_ms1_spec.getRT() - precursor_spec.getRT());
+    if (rt_denominator <= 0.0 || !std::isfinite(rt_denominator))
+    {
+      // Invalid RT denominator - fall back to early scan purity
+      return early_scan_purity;
+    }
+    
+    std::vector<double> late_scan_purity = computeSingleScanPrecursorPurities(ms2_spec_idx, next_ms1_spec_idx, exp, max_precursor_isotope_deviation);
     std::vector<double> interpolated_purity;
     interpolated_purity.reserve(early_scan_purity.size());
     for (Size i = 0; i < early_scan_purity.size(); ++i)
@@ -213,7 +238,7 @@ namespace OpenMS
       // std::fabs is applied to compensate for potentially negative RTs
       interpolated_purity.push_back(
         std::fabs(ms2_spec.getRT() - precursor_spec.getRT()) *
-            ((late_scan_purity[i] - early_scan_purity[i]) / std::fabs(next_ms1_spec.getRT() - precursor_spec.getRT()))
+            ((late_scan_purity[i] - early_scan_purity[i]) / rt_denominator)
             + early_scan_purity[i]);
     }
     return interpolated_purity;
