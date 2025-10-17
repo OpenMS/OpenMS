@@ -56,7 +56,7 @@
   #pragma GCC diagnostic warning "-Wunused-parameter"
   #endif
 #elif defined(OPENMS_HAS_HIGHS)  // use HIGHS
-  #include "Highs.h"
+  #include <Highs.h>
 #else   // no COINOR, no HIGHS -> use GLPK
   #include <glpk.h>
 #endif
@@ -331,17 +331,13 @@ namespace OpenMS
 #ifdef OPENMS_HAS_COINOR
     return model_->getElement(row_index, column_index);
 #elif defined(OPENMS_HAS_HIGHS)
-    // Get the row from HIGHS
-    HighsInt num_nz;
-    HighsInt matrix_start;
-    std::vector<HighsInt> matrix_index;
-    std::vector<double> matrix_value;
-    highs_model_->getRow(row_index, num_nz, matrix_start, matrix_index, matrix_value);
-    // Find the column_index in the row
-    for (HighsInt i = 0; i < num_nz; ++i)
+    // Get the row from HIGHS LP
+    const HighsLp& lp = highs_model_->getLp();
+    // Search through the sparse matrix for the element
+    for (HighsInt i = lp.a_matrix_.start_[row_index]; i < lp.a_matrix_.start_[row_index + 1]; ++i)
     {
-      if (matrix_index[i] == column_index)
-        return matrix_value[i];
+      if (lp.a_matrix_.index_[i] == column_index)
+        return lp.a_matrix_.value_[i];
     }
     return 0.;
 #else
@@ -506,9 +502,8 @@ namespace OpenMS
     else
       return CONTINUOUS;
 #elif defined(OPENMS_HAS_HIGHS)
-    HighsInt integrality;
-    highs_model_->getColIntegrality(index, integrality);
-    if (integrality == (HighsInt)HighsVarType::kInteger)
+    const HighsLp& lp = highs_model_->getLp();
+    if (lp.integrality_[index] == HighsVarType::kInteger)
       return INTEGER;
     else
       return CONTINUOUS;
@@ -931,9 +926,8 @@ namespace OpenMS
 #ifdef OPENMS_HAS_COINOR
     return model_->getColumnUpper(index);
 #elif defined(OPENMS_HAS_HIGHS)
-    double lower, upper;
-    highs_model_->getColBounds(index, lower, upper);
-    return upper;
+    const HighsLp& lp = highs_model_->getLp();
+    return lp.col_upper_[index];
 #else
     return glp_get_col_ub(lp_problem_, index + 1);
 #endif
@@ -944,9 +938,8 @@ namespace OpenMS
 #ifdef OPENMS_HAS_COINOR
     return model_->getColumnLower(index);
 #elif defined(OPENMS_HAS_HIGHS)
-    double lower, upper;
-    highs_model_->getColBounds(index, lower, upper);
-    return lower;
+    const HighsLp& lp = highs_model_->getLp();
+    return lp.col_lower_[index];
 #else
     return glp_get_col_lb(lp_problem_, index + 1);
 #endif
@@ -957,9 +950,8 @@ namespace OpenMS
 #ifdef OPENMS_HAS_COINOR
     return model_->getRowUpper(index);
 #elif defined(OPENMS_HAS_HIGHS)
-    double lower, upper;
-    highs_model_->getRowBounds(index, lower, upper);
-    return upper;
+    const HighsLp& lp = highs_model_->getLp();
+    return lp.row_upper_[index];
 #else
     return glp_get_row_ub(lp_problem_, index + 1);
 #endif
@@ -970,9 +962,8 @@ namespace OpenMS
 #ifdef OPENMS_HAS_COINOR
     return model_->getRowLower(index);
 #elif defined(OPENMS_HAS_HIGHS)
-    double lower, upper;
-    highs_model_->getRowBounds(index, lower, upper);
-    return lower;
+    const HighsLp& lp = highs_model_->getLp();
+    return lp.row_lower_[index];
 #else
     return glp_get_row_lb(lp_problem_, index + 1);
 #endif
@@ -983,9 +974,8 @@ namespace OpenMS
 #ifdef OPENMS_HAS_COINOR
     return model_->objective(index);
 #elif defined(OPENMS_HAS_HIGHS)
-    double cost;
-    highs_model_->getColCost(index, cost);
-    return cost;
+    const HighsLp& lp = highs_model_->getLp();
+    return lp.col_cost_[index];
 #else
     return glp_get_obj_coef(lp_problem_, index + 1);
 #endif
@@ -1030,12 +1020,8 @@ namespace OpenMS
     }
     return nonzeroentries;
 #elif defined(OPENMS_HAS_HIGHS)
-    HighsInt num_nz;
-    HighsInt matrix_start;
-    std::vector<HighsInt> matrix_index;
-    std::vector<double> matrix_value;
-    highs_model_->getRow(idx, num_nz, matrix_start, matrix_index, matrix_value);
-    return num_nz;
+    const HighsLp& lp = highs_model_->getLp();
+    return lp.a_matrix_.start_[idx + 1] - lp.a_matrix_.start_[idx];
 #else
     /* Non-zero coefficient count in the row. */
     // glpk uses arrays beginning at pos 1, so we need to shift
@@ -1058,14 +1044,10 @@ namespace OpenMS
     }
 #elif defined(OPENMS_HAS_HIGHS)
     indexes.clear();
-    HighsInt num_nz;
-    HighsInt matrix_start;
-    std::vector<HighsInt> matrix_index;
-    std::vector<double> matrix_value;
-    highs_model_->getRow(idx, num_nz, matrix_start, matrix_index, matrix_value);
-    for (HighsInt i = 0; i < num_nz; ++i)
+    const HighsLp& lp = highs_model_->getLp();
+    for (HighsInt i = lp.a_matrix_.start_[idx]; i < lp.a_matrix_.start_[idx + 1]; ++i)
     {
-      indexes.push_back(matrix_index[i]);
+      indexes.push_back(lp.a_matrix_.index_[i]);
     }
 #else
     Int size = getNumberOfNonZeroEntriesInRow(idx);
