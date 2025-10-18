@@ -585,7 +585,7 @@ jobs:
     - name: Generate KNIME descriptors and payloads
     # We never want to build the KNIME update site on our second Ubuntu + Clang matrix entry even if inputs.knime is true, so we check for that specific os + compiler combo
     # we also don't want it from both the arm and x86_64 builds
-      if: steps.set-vars.outputs.pkg_type != 'none' || ( inputs.knime && !(startsWith(matrix.os, 'ubuntu') && (startsWith(matrix.compiler, 'clang++') || runner.arch == 'arm64') ) )
+      if: steps.set-vars.outputs.pkg_type != 'none' || ( inputs.knime && !(startsWith(matrix.os, 'ubuntu') && (startsWith(matrix.compiler, 'clang++') || runner.arch != 'arm64') ) )
       shell: bash
       run: |
         cd $GITHUB_WORKSPACE/OpenMS/bld/
@@ -596,7 +596,7 @@ jobs:
     - name: Upload KNIME payload and descriptors as artifacts
     # We never want to build the KNIME update site on our second Ubuntu + Clang matrix entry even if inputs.knime is true, so we check for that specific os + compiler combo
     # we also don't want it from both the arm and x86_64 builds
-      if: steps.set-vars.outputs.pkg_type != 'none' ||  ( inputs.knime && !(startsWith(matrix.os, 'ubuntu') && (startsWith(matrix.compiler, 'clang++') || runner.arch == 'arm64') ) )
+      if: steps.set-vars.outputs.pkg_type != 'none' ||  ( inputs.knime && !(startsWith(matrix.os, 'ubuntu') && (startsWith(matrix.compiler, 'clang++') || runner.arch != 'arm64') ) )
       uses: actions/upload-artifact@v4
       with:
         name: ${{ format('knime-{0}{1}', steps.set-vars.outputs.tp_folder, runner.arch == 'arm64' && '-arm64' || '') }}
