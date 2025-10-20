@@ -128,7 +128,7 @@ namespace OpenMS
       for (Size k = 0; k < picked_chroms[i].size(); ++k)
       {
         // Skip peaks already "consumed" by previous iterations
-        if (picked_chroms[i][k].getIntensity() <= 1e-11) {continue; }
+        if (picked_chroms[i][k].getIntensity() == 0.0) {continue; }
 
         const double left_rt = picked_chroms[i].getFloatDataArrays()[PeakPickerChromatogram::IDX_LEFTBORDER][k];
         const double right_rt = picked_chroms[i].getFloatDataArrays()[PeakPickerChromatogram::IDX_RIGHTBORDER][k];
