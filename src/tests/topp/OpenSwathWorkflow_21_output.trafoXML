@@ -3,20 +3,24 @@
 	<Transformation name="linear">
 		<Param  type="string" name="symmetric_regression" value="false"/>
 		<Param  type="float" name="span" value="0.666666666666667"/>
+		<Param  type="string" name="auto_span" value="false"/>
+		<Param  type="float" name="auto_span_min" value="0.15"/>
+		<Param  type="float" name="auto_span_max" value="0.8"/>
+		<Param  type="string" name="auto_span_grid" value="0.005,0.01,0.05,0.15,0.25,0.30,0.50,0.70,0.90"/>
 		<Param  type="int" name="num_nodes" value="5"/>
 		<Param  type="string" name="x_weight" value="x"/>
 		<Param  type="string" name="y_weight" value="y"/>
-		<Param  type="float" name="x_datum_min" value="1e-15"/>
-		<Param  type="float" name="x_datum_max" value="1e+15"/>
-		<Param  type="float" name="y_datum_min" value="1e-15"/>
-		<Param  type="float" name="y_datum_max" value="1e+15"/>
-		<Param  type="float" name="slope" value="1.00420902693575"/>
-		<Param  type="float" name="intercept" value="-11.4372062523721"/>
+		<Param  type="float" name="x_datum_min" value="1.0e-15"/>
+		<Param  type="float" name="x_datum_max" value="1.0e15"/>
+		<Param  type="float" name="y_datum_min" value="1.0e-15"/>
+		<Param  type="float" name="y_datum_max" value="1.0e15"/>
+		<Param  type="float" name="slope" value="1.004209000652954"/>
+		<Param  type="float" name="intercept" value="-11.437200562330617"/>
 		<Pairs count="4">
 			<Pair from="9.99999952316284" to="0"/>
-			<Pair from="32.404443581899" to="25"/>
-			<Pair from="209" to="200"/>
-			<Pair from="68" to="50"/>
+			<Pair from="32.4044302304585" to="25"/>
+			<Pair from="208.999999523163" to="200"/>
+			<Pair from="67.9999995231628" to="50"/>
 		</Pairs>
 	</Transformation>
 </TrafoXML>
