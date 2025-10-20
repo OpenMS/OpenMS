@@ -159,8 +159,8 @@ jobs:
           CCACHE_BASEDIR: ${{ github.workspace }}
           CCACHE_DIR: ${{ github.workspace }}/.ccache
           CCACHE_COMPRESS: true
-          CCACHE_COMPRESSLEVEL: 12
-          CCACHE_MAXSIZE: 400M
+          CCACHE_COMPRESSLEVEL: 6
+          CCACHE_MAXSIZE: 1G
           PYOPENMS: "ON"
           PY_NUM_THREADS: ${{ steps.cpu-cores.outputs.count }}
           ENABLE_TUTORIALS: "OFF"
@@ -315,8 +315,8 @@ jobs:
           CCACHE_BASEDIR: ${{ github.workspace }}
           CCACHE_DIR: ${{ github.workspace }}/.ccache
           CCACHE_COMPRESS: true
-          CCACHE_COMPRESSLEVEL: 12
-          CCACHE_MAXSIZE: 400M
+          CCACHE_COMPRESSLEVEL: 6
+          CCACHE_MAXSIZE: 1G
           MT_ENABLE_OPENMP: "ON"
           PYOPENMS: "ON"
           PY_NUM_THREADS: ${{ steps.cpu-cores.outputs.count }}
@@ -420,6 +420,7 @@ jobs:
         PYTHON_VERSIONS=$(cat OpenMS/.github/workflows/python_versions.json)
         # Unfortunately, on macOS due to the inofficial way of enabling OpenMP on AppleClang, passing the following
         # options to setup.py extra_compile_args does not work. See also https://gist.github.com/andyfaff/084005bee32aee83d6b59e843278ab3e
+        conda config --add channels conda-forge
         export CFLAGS="-Xpreprocessor -fopenmp $CFLAGS"
         export CXXFLAGS="-Xpreprocessor -fopenmp $CXXFLAGS"
         export CMAKE_PREFIX_PATH="$(brew --prefix libomp);$(echo $Qt6_Dir)/lib/cmake;${Qt6_Dir}"
@@ -482,8 +483,8 @@ jobs:
         CCACHE_BASEDIR: ${{ github.workspace }}
         CCACHE_DIR: ${{ github.workspace }}/.ccache
         CCACHE_COMPRESS: true
-        CCACHE_COMPRESSLEVEL: 12
-        CCACHE_MAXSIZE: 400M
+        CCACHE_COMPRESSLEVEL: 6
+        CCACHE_MAXSIZE: 1G
         MT_ENABLE_OPENMP: "ON"
         PYOPENMS: "ON"
         PY_NUM_THREADS: ${{ steps.cpu-cores.outputs.count }}
@@ -512,7 +513,7 @@ jobs:
 
   build-lnx:
     runs-on: [ubuntu-latest]
-    container: ghcr.io/openms/contrib_manylinux_2_34:latest
+    container: ghcr.io/openms/contrib_manylinux_2_34:latest-x86_64
 
     steps:
     # Cancels older builds if still running
@@ -536,17 +537,13 @@ jobs:
       uses: SimenB/github-actions-cpu-cores@v2
       id: cpu-cores
 
-    - name: Setup cmake
-      uses: jwlawson/actions-setup-cmake@v2
-      with:
-        cmake-version: '3.25.x'
-
     - name: Build on manylinux for broad compatibility
       shell: bash
       run: |
         PYTHON_VERSIONS=$(cat OpenMS/.github/workflows/python_versions.json)
         yum install -y jq
         yum install -y ninja-build # Install Ninja for build files
+        yum install -y cmake # Install CMake
         cmake --version
 
         mkdir -p $GITHUB_WORKSPACE/data/wheelhouse/
@@ -640,15 +637,142 @@ jobs:
         name: ${{ runner.os }}-${{ runner.arch }}-wheels
         path: data/wheelhouse/
 
+  build-lnx-arm:
+    runs-on: [ubuntu-22.04-arm]
+    container: ghcr.io/openms/contrib_manylinux_2_34:latest-arm64
+
+    steps:
+    # Cancels older builds if still running
+    - uses: rokroskar/workflow-run-cleanup-action@master
+      env:
+        GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+      # Disable warning for this line
+      if: "!startsWith(github.ref, 'refs/tags/') && github.ref != 'refs/heads/master' && github.ref != 'refs/heads/develop'" # noqa
+
+    - uses: actions/checkout@v4
+      name: Checkout sources
+      with:
+        path: OpenMS
+
+    - id: extract_branch
+      name: Extract branch/PR infos
+      shell: bash
+      run: echo "RUN_NAME=${{ github.event.pull_request && github.event.pull_request.number || github.ref_name }}" >> $GITHUB_OUTPUT
+
+    - name: Get number of CPU cores
+      uses: SimenB/github-actions-cpu-cores@v2
+      id: cpu-cores
+
+    - name: Build on manylinux for broad compatibility
+      shell: bash
+      run: |
+        PYTHON_VERSIONS=$(cat OpenMS/.github/workflows/python_versions.json)
+        yum install -y jq
+        yum install -y ninja-build # Install Ninja for build files
+        yum install -y cmake # Install CMake
+        cmake --version
+
+        mkdir -p $GITHUB_WORKSPACE/data/wheelhouse/
+        mkdir -p $GITHUB_WORKSPACE/data/wheelhouse/before_fix/
+
+        LD_OLD_LIBRARY_PATH=$LD_LIBRARY_PATH
+
+        # compile and configure OpenMS
+        for py in $(echo "${PYTHON_VERSIONS}" | jq -r '.[]'); do
+
+          # Check if there is already and existing build,
+          # if so: clean previous pyopenms libs,
+          # do at the top of the python version loop so that we leave the final libraries for testing
+
+          if [ -d "OpenMS/bld/pyOpenMS/pyopenms" ]; then
+            rm OpenMS/bld/pyOpenMS/pyopenms/_pyopenms*.so
+          fi
+        
+          py=$(echo "$py" | tr -d " \n")
+          pynodot=$(echo "$py" | tr -d ".")
+          PYBIN=$(echo /opt/python/cp*${pynodot})
+          
+          # Create a venv for this python version
+          "$PYBIN/bin/python" -m venv $pynodot
+          source $pynodot/bin/activate
+          
+          "$PYBIN/bin/pip" install --upgrade pip
+          # pip install all the stuff
+          "$PYBIN/bin/pip" install -r $GITHUB_WORKSPACE/OpenMS/src/pyOpenMS/requirements_bld.txt
+
+          # configure (don't copy deps since we use auditwheel)
+
+          export Python_ROOT_DIR=$PYBIN
+          export BUILD_NAME="pyopenms-wheels-${{ steps.extract_branch.outputs.RUN_NAME }}-${{ runner.os }}-${{ runner.arch }}-class-pyopenms-$py-${{ github.run_number }}" #TODO make this more expressive
+
+          ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/ci/cibuild.cmake
+          
+          # ensure auditwheel can find the libraries
+          export LD_LIBRARY_PATH=$LD_OLD_LIBRARY_PATH:`pwd`/OpenMS/bld/lib
+
+          # strip the libraries before repairing
+          strip --strip-all OpenMS/bld/lib/libOpenMS.so
+          strip --strip-all OpenMS/bld/lib/libOpenSwathAlgo.so
+
+          pushd OpenMS/bld/pyOpenMS
+            # Bundle stripped plus external shared libraries into the wheels
+            for whl in dist/pyopenms*.whl; do
+              auditwheel repair "$whl" -w wheelhouse/
+            done
+
+            mv wheelhouse/* $GITHUB_WORKSPACE/data/wheelhouse/
+          popd
+          export LD_LIBRARY_PATH=$LD_OLD_LIBRARY_PATH
+          
+          # deactivate the venv
+          deactivate
+        done
+      env: 
+          SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
+          CMAKE_GENERATOR: "Ninja"
+          OPENMS_CONTRIB_LIBS: "/contrib-build/"
+          BUILD_TYPE: "Release"
+          BUILD_FLAGS: "-j${{ steps.cpu-cores.outputs.count }}"
+          NO_DEPENDENCIES: "ON"
+          Python_FIND_STRATEGY: "LOCATION"
+          PYOPENMS: "ON"
+          PY_NUM_THREADS: ${{ steps.cpu-cores.outputs.count }}
+          CI_PROVIDER: "GitHub-Actions"
+          CMAKE_CXX_COMPILER: "g++"
+          CMAKE_PREFIX_PATH: "/contrib-build/"
+          ENABLE_TUTORIALS: "OFF"
+          ENABLE_DOCS: "OFF"
+          ENABLE_STYLE_TESTING: "OFF"
+          ENABLE_PIPELINE_TESTING: "OFF"
+          ENABLE_TOPP_TESTING: "OFF"
+          ENABLE_CLASS_TESTING: "OFF"
+
+    - name: Test
+      shell: bash
+      run: |
+            ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/ci/citest.cmake
+      env:
+          SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
+          CI_PROVIDER: "GitHub-Actions"
+          BUILD_NAME: "${{ steps.extract_branch.outputs.RUN_NAME }}-${{ runner.os }}-${{ runner.arch }}-class-pyopenms-${{ github.run_number }}"
+          # The rest of the vars should be saved in the CMakeCache
+
+    - uses: actions/upload-artifact@v4
+      name: Upload artifacts
+      with:
+        name: ${{ runner.os }}-${{ runner.arch }}-wheels
+        path: data/wheelhouse/
+
+
 # Tests the build workflows
   test:
-    needs: [build-win, build-macos, build-lnx, build-macos-arm]
+    needs: [build-win, build-macos, build-lnx, build-macos-arm, build-lnx-arm]
     runs-on: ${{ matrix.os }}
     env:
       SYSTEM_VERSION_COMPAT: 0 #courtesy of https://github.com/actions/setup-python/issues/469 in lieu of an actual solution.
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-15-intel, windows-latest, macos-latest]
+        os: [ubuntu-latest, macos-15-intel, windows-latest, macos-latest, ubuntu-22.04-arm]
     steps:
     - uses: actions/checkout@v4
       name: Checkout sources
@@ -658,7 +782,11 @@ jobs:
     - name: Install Miniconda
       shell: bash
       run: |
-          if [[ "${{ runner.os }}" == "Linux" ]]; then
+          if [[ "${{ runner.os }}" == "Linux" && "${{ runner.arch }}" == "ARM64" ]]; then
+            MINICONDA_FILENAME=Miniconda3-latest-Linux-aarch64.sh
+            curl -o $MINICONDA_FILENAME "https://repo.anaconda.com/miniconda/$MINICONDA_FILENAME"
+            bash ${MINICONDA_FILENAME} -b -f -p $HOME/miniconda3
+          elif [[ "${{ runner.os }}" == "Linux" && "${{ runner.arch }}" == "X64" ]]; then
             MINICONDA_FILENAME=Miniconda3-latest-Linux-x86_64.sh
             curl -o $MINICONDA_FILENAME "https://repo.anaconda.com/miniconda/$MINICONDA_FILENAME"
             bash ${MINICONDA_FILENAME} -b -f -p $HOME/miniconda3
@@ -692,6 +820,9 @@ jobs:
       run: |
         PYTHON_VERSIONS=$(cat OpenMS/.github/workflows/python_versions.json)
         echo $PYTHON_VERSIONS
+        if [[ "${{ runner.os }}" == "macOS" && "${{ runner.arch }}" == "X64" ]]; then
+          conda config --add channels conda-forge
+        fi
 
         for py in $(echo "${PYTHON_VERSIONS}" | jq -r '.[]'); do
           py=$(echo "$py" | tr -d " \r\n")
@@ -737,6 +868,11 @@ jobs:
       with:
           name: Linux-X64-wheels
           path: /home/runner/work/OpenMS/OpenMS/Linux-X64-wheels
+    - name: Download artifacts
+      uses: actions/download-artifact@v4
+      with:
+          name: Linux-ARM64-wheels
+          path: /home/runner/work/OpenMS/OpenMS/Linux-ARM64-wheels
     - name: Download artifacts
       uses: actions/download-artifact@v4
       with:

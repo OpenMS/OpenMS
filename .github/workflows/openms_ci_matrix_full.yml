@@ -77,10 +77,9 @@ jobs:
           # Make sure the compilers are available in that version on the GH runners
           # We are not installing anything.
           
-          #- os: ubuntu-22.04-arm
-          #  compiler: g++
-          #  compiler_ver: 11
-
+          - os: ubuntu-22.04-arm
+            compiler: g++
+            compiler_ver: 11
 
           - os: ubuntu-22.04
             compiler: clang++
@@ -171,7 +170,7 @@ jobs:
 
     # Create the changelog for the release from our overall changelog
     - id: create_changelog
-      if: matrix.compiler != 'clang++' && startsWith(steps.extract_branch.outputs.RUN_NAME,'release') && startsWith(matrix.os, 'ubuntu')
+      if: matrix.compiler != 'clang++' && startsWith(steps.extract_branch.outputs.RUN_NAME,'release') && startsWith(matrix.os, 'ubuntu') && runner.arch == 'arm64'
       shell: bash
       name: Create changelog for release on Ubuntu + GCC
       run: |
@@ -371,7 +370,7 @@ jobs:
 
    # Upload the changelog to the same artifact that we will add the installers to.
     - name: Upload changelog as artifact
-      if: steps.set-vars.outputs.pkg_type != 'none' && startsWith(steps.extract_branch.outputs.RUN_NAME,'release') && startsWith(matrix.os, 'ubuntu')
+      if: steps.set-vars.outputs.pkg_type != 'none' && startsWith(steps.extract_branch.outputs.RUN_NAME,'release') && startsWith(matrix.os, 'ubuntu') && runner.arch == 'arm64'
       uses: actions/upload-artifact@v4
       with:
         name: changelog.txt
@@ -403,9 +402,20 @@ jobs:
             python -m pip install -r $GITHUB_WORKSPACE/OpenMS/src/pyOpenMS/requirements_bld.txt
           fi
 
+          # Display ccache statistics before build
+          echo "::group::ccache statistics before build"
+          ccache -s || true
+          echo "::endgroup::"
+
           mkdir $GITHUB_WORKSPACE/OpenMS/bld/
           ${{ steps.set-vars.outputs.xvfb }} ctest --output-on-failure -V -S ../OpenMS/OpenMS/tools/ci/cibuild.cmake
           retVal=$?
+          
+          # Display ccache statistics after build
+          echo "::group::ccache statistics after build"
+          ccache -s || true
+          echo "::endgroup::"
+          
           if [ $retVal -ne 0 ]; then
               echo -e "\033[0;31m Errors in build:"
               # TODO upload logs as artifact?
@@ -437,15 +447,15 @@ jobs:
           BUILD_TYPE: "Release"
           OPENMP: "ON"
           BOOST_USE_STATIC: ${{ steps.set-vars.outputs.static_boost }}
-          COMPILE_PXDS: ${{ startsWith(matrix.os, 'ubuntu') && github.event_name == 'pull_request' && github.event.pull_request.base.ref == 'develop' && 'ON' || 'OFF' }} # test generation of pxds
+          COMPILE_PXDS: ${{ (startsWith(matrix.os, 'ubuntu') && github.event_name == 'pull_request' && github.event.pull_request.base.ref == 'develop' && runner.arch == 'arm64') && 'ON' || 'OFF' }}
           #  BUILD_FLAGS: "-p:CL_MPCount=2" # For VS Generator and MSBuild
           BUILD_FLAGS: "-j${{ steps.cpu-cores.outputs.count }}" # Ninja will otherwise use all cores (doesn't go well in GHA).
           CMAKE_CCACHE_EXE: "ccache"
           CCACHE_BASEDIR: ${{ github.workspace }}
           CCACHE_DIR: ${{ github.workspace }}/.ccache
           CCACHE_COMPRESS: true
-          CCACHE_COMPRESSLEVEL: 12
-          CCACHE_MAXSIZE: 400M
+          CCACHE_COMPRESSLEVEL: 6
+          CCACHE_MAXSIZE: 1G
           # TODO evaluate those options (we had them only on Linux before)
           CCACHE_SLOPPINESS: time_macros,include_file_ctime,include_file_mtime
           CCACHE_COMPILERCHECK: content
@@ -532,7 +542,7 @@ jobs:
 
     #Zip the documentation first, since there are :: which make the upload action choke.
     - name: Zip Documentation
-      if: steps.set-vars.outputs.pkg_type != 'none' && startsWith(matrix.os, 'ubuntu')
+      if: steps.set-vars.outputs.pkg_type != 'none' && startsWith(matrix.os, 'ubuntu') && runner.arch == 'arm64'
       uses: thedoctor0/zip-release@0.7.6
       with:
         type: 'zip'
@@ -542,7 +552,7 @@ jobs:
     
    # Compress the source
     - name: Create tarball
-      if: steps.set-vars.outputs.pkg_type != 'none' && startsWith(matrix.os, 'ubuntu')
+      if: steps.set-vars.outputs.pkg_type != 'none' && startsWith(matrix.os, 'ubuntu') && runner.arch == 'arm64'
       run: |
         tar --exclude='bld/*' \
             --exclude='OpenMS-${{ steps.create_changelog.outputs.version_number }}.tar.gz' \
@@ -554,7 +564,7 @@ jobs:
         
    # Upload the source tar
     - name: Upload source tar as artifact
-      if: steps.set-vars.outputs.pkg_type != 'none' && startsWith(matrix.os, 'ubuntu')
+      if: steps.set-vars.outputs.pkg_type != 'none' && startsWith(matrix.os, 'ubuntu') && runner.arch == 'arm64'
       uses: actions/upload-artifact@v4
       with:
         name: OpenMS-${{ steps.create_changelog.outputs.version_number }}.tar.gz
@@ -565,7 +575,7 @@ jobs:
     # Only upload docs when we are building the package, use the ubuntu build simply 'cause its fast
 
     - name: Upload Documentation as artifacts
-      if: steps.set-vars.outputs.pkg_type != 'none' && startsWith(matrix.os, 'ubuntu')
+      if: steps.set-vars.outputs.pkg_type != 'none' && startsWith(matrix.os, 'ubuntu') && runner.arch == 'arm64'
       uses: actions/upload-artifact@v4
       with:
         name: documentation
@@ -574,7 +584,8 @@ jobs:
 
     - name: Generate KNIME descriptors and payloads
     # We never want to build the KNIME update site on our second Ubuntu + Clang matrix entry even if inputs.knime is true, so we check for that specific os + compiler combo
-      if: steps.set-vars.outputs.pkg_type != 'none' || ( inputs.knime && !(startsWith(matrix.os, 'ubuntu') && startsWith(matrix.compiler, 'clang++') ) )
+    # we also don't want it from both the arm and x86_64 builds
+      if: (steps.set-vars.outputs.pkg_type != 'none' && !(startsWith(matrix.os, 'ubuntu') && runner.arch == 'arm64')) || ( inputs.knime && !(startsWith(matrix.os, 'ubuntu') && (startsWith(matrix.compiler, 'clang++') || runner.arch == 'arm64') ) )
       shell: bash
       run: |
         cd $GITHUB_WORKSPACE/OpenMS/bld/
@@ -584,7 +595,8 @@ jobs:
         
     - name: Upload KNIME payload and descriptors as artifacts
     # We never want to build the KNIME update site on our second Ubuntu + Clang matrix entry even if inputs.knime is true, so we check for that specific os + compiler combo
-      if: steps.set-vars.outputs.pkg_type != 'none' ||  ( inputs.knime && !(startsWith(matrix.os, 'ubuntu') && startsWith(matrix.compiler, 'clang++') ) )
+    # we also don't want it from both the arm and x86_64 builds
+      if: (steps.set-vars.outputs.pkg_type != 'none' && !(startsWith(matrix.os, 'ubuntu') && runner.arch == 'arm64')) ||  ( inputs.knime && !(startsWith(matrix.os, 'ubuntu') && (startsWith(matrix.compiler, 'clang++') || runner.arch == 'arm64') ) )
       uses: actions/upload-artifact@v4
       with:
         name: ${{ format('knime-{0}{1}', steps.set-vars.outputs.tp_folder, runner.arch == 'arm64' && '-arm64' || '') }}
