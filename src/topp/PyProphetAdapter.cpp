@@ -23,26 +23,53 @@
 
 /**
 @page TOPP_PyProphetAdapter PyProphetAdapter
-@brief Adapter to run PyProphet scoring, optional, peptide, protein, and peptidoform inference (IPF), and exports on OSW files.
+@brief Adapter to run PyProphet scoring, optional, peptide, protein, peptidoform inference (IPF), and exports on OSW files.
 
 PyProphetAdapter orchestrates:\n
   1. (optional) @em merge of multiple OSW inputs (`pyprophet merge osw`)\n
   2. @em score (`pyprophet score`)\n
+  3. (optional) @em infer peptide/protein/gene (`pyprophet infer peptide`)\n
   3. (optional) @em infer peptidoform (`pyprophet infer peptidoform`)\n
-  4. (optional) @em export reports/plots/TSV/matrix (`pyprophet export ...`)
+  4. (optional) @em export reports/plots/Proteomics TSV/Proteomics matrix/Small-molecule TSV (`pyprophet export ...`)\n
 
 It requires PyProphet standalone executables or a `pyprophet` on the PATH.
 
 Multithreading: the global `-threads` parameter is passed through to PyProphet.
 
-Note: When using –classifier HistGradientBoosting for scoring, the OMP_NUM_THREADS environment variable controls OpenMP thread usage to avoid CPU oversubscription. The CLI will automatically set it if not already specified, but for best control and performance, set it explicitly before launching pyprophet:
-For example, if your machine has 20 CPU threads and you want to use 3 threads for semi-supervised learning, set OMP_NUM_THREADS to 7 (ceil(20/3)):
+@par Merging behavior
+If multiple `-in` OSW files are provided, a merge step is executed first via `pyprophet merge osw`.\n
+Inputs are passed positionally as `[INFILES]...`, with the first input used as the `--template` OSW.\n
+If a single input is provided and `-out` is omitted, scoring is performed in place (the input file is updated).
+
+@par Scoring (semi-supervised)
+Supports multiple levels (`ms1`, `ms2`, `ms1ms2`, `transition`, `alignment`) and classifiers (`LDA`, `SVM`, `XGBoost`, `HistGradientBoosting`).\n
+Additional options include subsampling, cross-validation/semi-supervised iterations, initial/iteration FDRs, optional main score override, feature scaling, and an `--autotune` switch for supported classifiers.\n
+Pre-trained weights can be applied via `score:apply_weights` to skip training.
+
+@par Exports
+- Reports (single-file PDF) and score plots (PDF) do not require an explicit output path.\n
+- Proteomics TSV: enabled via `export:tsv`; the output path is derived as `<out>.tsv`.\n
+- Proteomics matrix: enabled via `export:matrix`; the output path is derived as `<out>.matrix.tsv`.\n
+- Small molecules TSV: enabled via `export:compound`; the output path is derived as `<out>.compound.tsv`.\n
+  - Format selection: `export:compound:format` = `matrix` or `legacy_merged`.\n
+  - Filtering: `export:compound:max_rs_peakgroup_qvalue` limits by run-specific peak group-level q-value.\n
+- Mutual exclusion: `export:compound` cannot be combined with `export:tsv` or `export:matrix`.
+
+@par Logging and dry runs
+The adapter captures and echoes PyProphet's stdout/stderr so loguru messages are visible at default verbosity.\n
+With `-dry_run`, the constructed PyProphet command(s) are printed but not executed.
+
+@par Note on HistGradientBoosting threading
+When using `--classifier HistGradientBoosting` for scoring, the `OMP_NUM_THREADS` environment variable controls OpenMP thread usage to avoid CPU oversubscription.
+PyProphet will try to set a default if not specified, but for best control/performance you can set it explicitly before launching PyProphet.
+For example, on a machine with 20 CPU threads and `-threads 3` for semi-supervised learning, set `OMP_NUM_THREADS=6` (floor(20/3)).
 
 <B>The command line parameters of this tool are:</B>
 @verbinclude TOPP_PyProphetAdapter.cli
 <B>INI file documentation of this tool:</B>
 @htmlinclude TOPP_PyProphetAdapter.html
 */
+
 
 /// @cond TOPPCLASSES
 using namespace OpenMS;
@@ -384,6 +411,8 @@ protected:
 
     // Scoring
     registerTOPPSubsection_("score", "Scoring module of PyProphet for semi-supervised learning");
+    registerStringOption_("score", "<true|false>", "true","Run semi-supervised scoring.", false, false);
+    setValidStrings_("score", ListUtils::create<String>("true,false"));
     registerStringOption_("score:level", "<level[,level,...]>", "ms1ms2",
                           "OSW data level(s) for scoring. Accepts a single level (e.g., 'ms2') or a comma-separated list (e.g., 'ms1,ms2,transition'). "
                           "Allowed values: ms1, ms2, ms1ms2, transition, alignment.", false);
@@ -593,6 +622,8 @@ protected:
     }
 
     const String exe = getStringOption_("pyprophet_executable");
+
+    const bool do_score        = is_true_(getStringOption_("score"));
     const String level_csv = getStringOption_("score:level");
 
     // parse classifier option into enum
@@ -670,6 +701,7 @@ protected:
 
     //  score  -----------------------------------------------------------------
     //  run once per requested level, first pass reads merged/input; subsequent passes read 'out'
+    if (do_score)
     {
       String current_in = merged_or_input;
       for (const Level lvl : levels)
