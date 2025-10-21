@@ -965,5 +965,45 @@ void File::download(const std::string& url, const std::string& download_folder)
   event_loop.quit();
 }
 
+// helper: find position of final extension dot (returns String::npos if none)
+// treats ".dotfile" as NO extension
+static Size extDotPos_(const String& path)
+{
+  const Size slash = path.find_last_of("/\\");
+  const Size dot   = path.find_last_of('.');
+  if (dot == String::npos) return String::npos;
+  if (slash != String::npos && dot < slash) return String::npos; // dot in directory part
+  if (dot == (slash == String::npos ? 0 : slash + 1)) return String::npos; // ".dotfile"
+  return dot;
+}
+
+String File::replaceExtension(const String& path, const String& new_ext)
+{
+  const Size dot = extDotPos_(path);
+
+  // normalize new_ext: allow "tsv" or ".tsv"
+  String ext = new_ext;
+  if (!ext.empty() && ext[0] != '.') ext = "." + ext;
+
+  if (ext.empty()) // remove
+  {
+    return (dot == String::npos) ? path : path.substr(0, dot);
+  }
+  // replace or append
+  return (dot == String::npos) ? (path + ext) : (path.substr(0, dot) + ext);
+}
+
+String File::appendSuffix(const String& path, const String& suffix)
+{
+  const Size dot = extDotPos_(path);
+  if (dot == String::npos) return path + suffix; // no extension -> append
+  return path.substr(0, dot) + suffix + path.substr(dot);
+}
+
+String File::stripExtension(const String& path)
+{
+  const Size dot = extDotPos_(path);
+  return (dot == String::npos) ? path : path.substr(0, dot);
+}
 
 } // namespace OpenMS

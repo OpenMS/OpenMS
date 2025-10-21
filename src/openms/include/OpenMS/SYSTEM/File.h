@@ -320,6 +320,51 @@ public:
     */
     static void download(const std::string& url, const std::string& download_folder);
 
+    /**
+      @brief Replace (or append/remove) the final filename extension.
+
+      Only the last '.' after the last path separator is considered an extension.
+      If @p new_ext is empty, the extension is removed.
+      If @p new_ext does not start with '.', one is inserted (".tsv" vs "tsv").
+
+      Examples:
+        replaceExtension("a/b/c.osw", ".tsv")  => "a/b/c.tsv"
+        replaceExtension("a/b/c", ".tsv")      => "a/b/c.tsv"
+        replaceExtension("a/b/.bashrc", ".txt")=> "a/b/.bashrc.txt"  (dotfile; no ext)
+        replaceExtension("a/b/c.osw", "")      => "a/b/c"
+
+      @param path Input path
+      @param new_ext New extension (with or without leading dot); empty to remove
+      @return Modified path
+    */
+    static String replaceExtension(const String& path, const String& new_ext);
+
+    /**
+      @brief Append a suffix before the final extension (or at the end if none).
+
+      Examples:
+        appendSuffix("a/b/c.osw", "_matrix")     => "a/b/c_matrix.osw"
+        appendSuffix("a/b/c", "_nonlinear")      => "a/b/c_nonlinear"
+        appendSuffix("a/b/.env", "_bak")         => "a/b/.env_bak"
+
+      @param path Input path
+      @param suffix Suffix to insert (verbatim)
+      @return Modified path
+    */
+    static String appendSuffix(const String& path, const String& suffix);
+
+    /**
+      @brief Strip the final filename extension (if any).
+
+      Only the last '.' after the last path separator is considered.
+      Dotfiles like ".bashrc" are treated as having no extension.
+
+      @param path Input path
+      @return Path without the final extension (or unchanged if none)
+    */
+    static String stripExtension(const String& path);
+
+
 private:
 
     /// get defaults for the system's Temp-path, user home directory etc.
