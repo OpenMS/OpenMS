@@ -306,6 +306,42 @@ protected:
     return s == "true";
   }
 
+  // Parse a shell-like argument string into tokens (supports quotes and backslash escapes)
+  static QStringList tokenize_args_(const String& extra)
+  {
+    QStringList out;
+    const std::string s = extra; // OpenMS::String -> std::string
+    std::string cur;
+    bool in_single = false, in_double = false, escaping = false;
+
+    for (char ch : s)
+    {
+      if (escaping)
+      {
+        cur += ch; escaping = false; continue;
+      }
+      if (ch == '\\')
+      {
+        escaping = true; continue;
+      }
+      if (!in_double && ch == '\'')
+      {
+        in_single = !in_single; continue;
+      }
+      if (!in_single && ch == '\"')
+      {
+        in_double = !in_double; continue;
+      }
+      if (!in_single && !in_double && std::isspace(static_cast<unsigned char>(ch)))
+      {
+        if (!cur.empty()) { out << QString::fromStdString(cur); cur.clear(); }
+        continue;
+      }
+      cur += ch;
+    }
+    if (!cur.empty()) out << QString::fromStdString(cur);
+    return out;
+  }
 
   void registerOptionsAndFlags_() override
   {
@@ -331,15 +367,32 @@ protected:
 
     registerInputFile_("score:apply_weights", "<file>", "", "Apply a pre-trained weights file (skip training). The same file will be applied to all requested levels.", true);
 
+    registerStringOption_("score:extra", "<args>", "",
+                          "Advanced: extra args passed verbatim to 'pyprophet score' (e.g. \"--xgboost-eta 0.2 --xgboost-max_depth 6\").",
+                          true,  // optional
+                          true); // advanced
+
     // Peptide /Protein/ Gene Inference
     registerStringOption_("infer:peptide", "<true|false>", "true","Run peptide inference before IPF.", false, true);
     setValidStrings_("infer:peptide", ListUtils::create<String>("true,false"));
 
+    registerStringOption_("infer:peptide:extra", "<args>", "",
+                          "Advanced: extra args passed verbatim to 'pyprophet infer peptide'.",
+                          true, true);
+
     registerStringOption_("infer:protein", "<true|false>", "true","Run protein inference before IPF.", false, true);
     setValidStrings_("infer:protein", ListUtils::create<String>("true,false"));
 
+    registerStringOption_("infer:protein:extra", "<args>", "",
+                          "Advanced: extra args passed verbatim to 'pyprophet infer protein'.",
+                          true, true);
+
     registerStringOption_("infer:gene", "<true|false>", "false","Run gene inference before IPF.", false, true);
     setValidStrings_("infer:gene", ListUtils::create<String>("true,false"));
+
+    registerStringOption_("infer:gene:extra", "<args>", "",
+                          "Advanced: extra args passed verbatim to 'pyprophet infer gene'.",
+                          true, true);
 
     // Inference context (already added previously)
     registerStringOption_("infer:context", "<context[,context,...]>", "run-specific",
@@ -373,6 +426,10 @@ protected:
     setValidFormats_("export:score_plots", ListUtils::create<String>("pdf"));
     registerOutputFile_("export:tsv", "<tsv>", "", "Export TSV results.", true);
     setValidFormats_("export:tsv", ListUtils::create<String>("tsv"));
+    registerStringOption_("export:tsv:extra", "<args>", "",
+                          "Advanced: extra args passed verbatim to 'pyprophet export tsv'.",
+                          true, true);
+
     registerOutputFile_("export:matrix", "<tsv>", "", "Export TSV quantification matrix.", true);
     setValidFormats_("export:matrix", ListUtils::create<String>("tsv"));
 
@@ -508,6 +565,12 @@ protected:
 
         if (!weights.empty()) args << "--apply_weights" << weights.toQString();
 
+        // Append advanced passthrough args for 'score'
+        {
+          const QStringList extra = tokenize_args_(getStringOption_("score:extra"));
+          for (const auto& e : extra) args << e;
+        }
+
         writeLogInfo_("Scoring level: " + lvl_cli);
         if (dry_run) writeLogInfo_("DRY-RUN: " + exe + " " + String(args.join(' ').toStdString()));
         else
@@ -536,10 +599,28 @@ protected:
         if (!enabled) return EXECUTION_OK;
 
         QStringList args;
-        args << "--log-level" << log_level.toQString() << "--no-log-colorize" << "infer" << subject.toQString()
+        args << "--log-level" << log_level.toQString() << "--no-log-colorize"
+             << "infer" << subject.toQString()
              << "--in"  << out.toQString()
              << "--out" << out.toQString()
              << "--context" << ctx.toQString();
+
+        // Append advanced passthrough args for this infer subcommand
+        if (subject == "peptide")
+        {
+          const QStringList extra = tokenize_args_(getStringOption_("infer:peptide:extra"));
+          for (const auto& e : extra) args << e;
+        }
+        else if (subject == "protein")
+        {
+          const QStringList extra = tokenize_args_(getStringOption_("infer:protein:extra"));
+          for (const auto& e : extra) args << e;
+        }
+        else if (subject == "gene")
+        {
+          const QStringList extra = tokenize_args_(getStringOption_("infer:gene:extra"));
+          for (const auto& e : extra) args << e;
+        }
 
         if (dry_run)
         {
@@ -602,6 +683,14 @@ protected:
            << "export" << sub.toQString()
            << "--in" << out.toQString()
            << "--out" << dest.toQString();
+
+      // Append advanced passthrough for 'export tsv'
+      if (sub == "tsv")
+      {
+        const QStringList extra = tokenize_args_(getStringOption_("export:tsv:extra"));
+        for (const auto& e : extra) args << e;
+      }
+      
       if (dry_run) { writeLogInfo_("DRY-RUN: " + exe + " " + String(args.join(' ').toStdString())); return EXECUTION_OK; }
       return run_pyprophet_(exe, args);
     };
