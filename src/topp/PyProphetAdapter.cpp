@@ -35,6 +35,9 @@ It requires PyProphet standalone executables or a `pyprophet` on the PATH.
 
 Multithreading: the global `-threads` parameter is passed through to PyProphet.
 
+Note: When using –classifier HistGradientBoosting for scoring, the OMP_NUM_THREADS environment variable controls OpenMP thread usage to avoid CPU oversubscription. The CLI will automatically set it if not already specified, but for best control and performance, set it explicitly before launching pyprophet:
+For example, if your machine has 20 CPU threads and you want to use 3 threads for semi-supervised learning, set OMP_NUM_THREADS to 7 (ceil(20/3)):
+
 <B>The command line parameters of this tool are:</B>
 @verbinclude TOPP_PyProphetAdapter.cli
 <B>INI file documentation of this tool:</B>
@@ -488,10 +491,20 @@ protected:
     registerStringOption_("export:tsv", "<true|false>", "true",
                           "Export Proteomics TSV results (long format).", false, false);
     setValidStrings_("export:tsv", ListUtils::create<String>("true,false"));
-    registerTOPPSubsection_("export:tsv", "Export long-format TSV.");
     registerStringOption_("export:tsv:extra", "<args>", "",
                           "Advanced: extra args passed verbatim to 'pyprophet export tsv'.",
                           false, true);
+
+    registerTOPPSubsection_("export:compound", "Export Small Molecules long-format TSV.");
+    registerStringOption_("export:compound", "<true|false>", "true",
+                          "Export  Small Molecules TSV results.", false, false);
+    setValidStrings_("export:compound", ListUtils::create<String>("true,false"));
+    registerStringOption_("export:compound:format", "<matrix|legacy_merged>", "legacy_merged",
+                          "Export format, either matrix, legacy_merged (PyProphet) ", false, true);
+    setValidStrings_("export:compound:format", ListUtils::create<String>("matrix,legacy_merged"));
+    registerDoubleOption_("export:compound:max_rs_peakgroup_qvalue", "<double>", 0.05,
+                          "Filter results to maximum run-specific peak group-level q-value.", false, true);
+
 
     registerTOPPSubsection_("export:matrix", "Export matrix TSV.");
     registerStringOption_("export:matrix", "<true|false>", "true",
@@ -637,7 +650,10 @@ protected:
       args.emplace_back("--out"); args.emplace_back(merged);
       args.emplace_back("--template"); args.emplace_back(template_osw);
 
-      for (const auto& f : in_list) { args.emplace_back("--in"); args.emplace_back(f); }
+      for (const auto& f : in_list)
+      {
+        args.emplace_back(f);
+      }
 
       writeLogInfo_("====== Merging Input OSWs ===========================================");
       if (dry_run)
@@ -808,6 +824,15 @@ protected:
       const bool do_score_plots  = is_true_(getStringOption_("export:score_plots"));
       const bool do_tsv          = is_true_(getStringOption_("export:tsv"));
       const bool do_matrix       = is_true_(getStringOption_("export:matrix"));
+      const bool do_compound     = is_true_(getStringOption_("export:compound"));
+
+      // exclusivity: compound vs proteomics tsv/matrix
+      if (do_compound && (do_tsv || do_matrix))
+      {
+        writeLogError_("Options 'export:compound' and ('export:tsv'/'export:matrix') are mutually exclusive. "
+                       "Please enable either small-molecule export or proteomics export, not both.");
+        return ILLEGAL_PARAMETERS;
+      }
 
       auto run_export_flag = [&](const String& sub, bool enabled) -> ExitCodes
       {
@@ -826,7 +851,29 @@ protected:
       if (run_export_flag("score-report", do_score_report) != EXECUTION_OK) return EXTERNAL_PROGRAM_ERROR;
       if (run_export_flag("score-plots",  do_score_plots)  != EXECUTION_OK) return EXTERNAL_PROGRAM_ERROR;
 
-      // tsv (derive "<out>.tsv")
+      // Small molecules TSV (exclusive with proteomics TSV/matrix)
+      if (do_compound)
+      {
+        const String fmt   = getStringOption_("export:compound:format"); // "matrix" or "legacy_merged"
+        const double max_q = getDoubleOption_("export:compound:max_rs_peakgroup_qvalue");
+        const String out_path = File::replaceExtension(File::appendSuffix(out, ".compound"), ".tsv");
+
+        vector<String> args;
+        args.emplace_back("--log-level"); args.emplace_back(log_level);
+        args.emplace_back("--no-log-colorize");
+        args.emplace_back("export");
+        args.emplace_back("compound");
+        args.emplace_back("--format"); args.emplace_back(fmt);
+        args.emplace_back("--in");  args.emplace_back(out);
+        args.emplace_back("--out"); args.emplace_back(out_path);
+        args.emplace_back("--max_rs_peakgroup_qvalue"); args.emplace_back(String(max_q));
+
+        writeLogInfo_("====== Exporting Small Molecules TSV (" + fmt + ") ===========================================");
+        if (dry_run) writeLogInfo_("DRY-RUN: " + exe + " " + join_cmd_(exe, args));
+        else { if (run_pyprophet_(exe, args) != EXECUTION_OK) return EXTERNAL_PROGRAM_ERROR; }
+      }
+
+      // Proteomics TSV (derive "<out>.tsv")
       if (do_tsv)
       {
         const String tsv_path = File::replaceExtension(out, ".tsv");
@@ -849,7 +896,7 @@ protected:
         else { if (run_pyprophet_(exe, args) != EXECUTION_OK) return EXTERNAL_PROGRAM_ERROR; }
       }
 
-      // matrix (derive "<out>.matrix.tsv")
+      // Proteomics matrix (derive "<out>.matrix.tsv")
       if (do_matrix)
       {
         const String matrix_path = File::replaceExtension(File::appendSuffix(out, ".matrix"), ".tsv");
