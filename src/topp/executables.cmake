@@ -106,6 +106,7 @@ ProteinInference
 ProteinQuantifier
 ProteomicsLFQ
 PSMFeatureExtractor
+PyProphetAdapter
 QCCalculator
 QCEmbedder
 QCExporter
