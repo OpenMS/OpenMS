@@ -156,6 +156,7 @@ namespace OpenMS
     tools_map["ProteinQuantifier"] = Internal::ToolDescription("ProteinQuantifier", cat_quant);
     tools_map["ProteomicsLFQ"] = Internal::ToolDescription("ProteomicsLFQ", cat_quant);
     tools_map["PSMFeatureExtractor"] = Internal::ToolDescription("PSMFeatureExtractor", cat_ID_proc);
+    tools_map["PyProphetAdapter"] = Internal::ToolDescription("PyProphetAdapter", cat_ID_proc);
 #ifdef WITH_PARQUET
     tools_map["QuantmsIOConverter"] = Internal::ToolDescription("QuantmsIOConverter", cat_file_converter);
 #endif
