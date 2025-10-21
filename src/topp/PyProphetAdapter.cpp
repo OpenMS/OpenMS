@@ -1,4 +1,4 @@
-// Copyright ...
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -13,12 +13,12 @@
 #include <OpenMS/FORMAT/OSWFile.h>
 #include <OpenMS/SYSTEM/File.h>
 
-#include <QtCore/QStringList>
-#include <QtCore/QFileInfo>
-#include <QtCore/QDir>
+#include <QtCore/QStringList> // for runExternalProcess_
 
-
+// std helpers
 #include <array>
+#include <cctype>
+#include <cstdlib>
 #include <unordered_set>
 
 /**
@@ -160,7 +160,7 @@ protected:
    *  - 'ms1ms2' cannot be combined with 'ms2' in the same run.
    *  - 'transition' require at least one base level ('ms1'|'ms2'|'ms1ms2').
    *  - Duplicates are removed; final order is canonical: ms1, ms2, ms1ms2, transition, alignment.
-  */
+   */
   static std::vector<Level> normalize_and_validate_levels_(const String& csv, String& error)
   {
     // parse tokens (CSV, whitespace-insensitive)
@@ -306,11 +306,13 @@ protected:
     return s == "true";
   }
 
+  // ---- helpers for argument handling and dry-run printing ----
+
   // Parse a shell-like argument string into tokens (supports quotes and backslash escapes)
-  static QStringList tokenize_args_(const String& extra)
+  static vector<String> tokenize_args_(const String& extra)
   {
-    QStringList out;
-    const std::string s = extra; // OpenMS::String -> std::string
+    vector<String> out;
+    const std::string s = extra;
     std::string cur;
     bool in_single = false, in_double = false, escaping = false;
 
@@ -334,13 +336,35 @@ protected:
       }
       if (!in_single && !in_double && std::isspace(static_cast<unsigned char>(ch)))
       {
-        if (!cur.empty()) { out << QString::fromStdString(cur); cur.clear(); }
+        if (!cur.empty()) { out.emplace_back(cur); cur.clear(); }
         continue;
       }
       cur += ch;
     }
-    if (!cur.empty()) out << QString::fromStdString(cur);
+    if (!cur.empty()) out.emplace_back(cur);
     return out;
+  }
+
+  static String shell_quote_(const String& s)
+  {
+#ifdef OPENMS_WINDOWSPLATFORM
+    bool need = s.find_first_of(" \t\"") != String::npos;
+    if (!need) return s;
+    String r = s; r.substitute("\"", "\\\"");
+    return "\"" + r + "\"";
+#else
+    bool need = s.find_first_of(" \t\"'\\$`") != String::npos;
+    if (!need) return s;
+    String r = s; r.substitute("'", "'\"'\"'");
+    return "'" + r + "'";
+#endif
+  }
+
+  static String join_cmd_(const String& exe, const vector<String>& args)
+  {
+    String cmd = shell_quote_(exe);
+    for (const auto& a : args) { cmd += " "; cmd += shell_quote_(a); }
+    return cmd;
   }
 
   void registerOptionsAndFlags_() override
@@ -372,7 +396,7 @@ protected:
 
     registerInputFile_("score:apply_weights", "<file>", "",
                        "Apply a pre-trained weights file (skip training). The same file will be applied to all requested levels.", false);
-    registerFlag_("score:autotune", "Autotune hyperparameters for XGBoost/SVM/HistGradientBoosting.");
+    registerFlag_("score:autotune", "Autotune hyperparameters for XGBoost/SVM/HistGradientBoosting.", false);
 
     registerIntOption_("score:xeval_num_iter", "<number>", 10, "Number of iterations for cross-validation of semi-supervised learning step.", false, true);
     setMinInt_("score:xeval_num_iter", 1);
@@ -392,7 +416,7 @@ protected:
                           "main score for each learning iteration, you can set a specifc score, i.e. \"var_xcorr_shape\"",
                           false,
                           true);
-    registerFlag_("score:ss_scale_features", "Scale / standardize features to unit variance before semi-supervised learning.");
+    registerFlag_("score:ss_scale_features", "Scale / standardize features to unit variance before semi-supervised learning.", false);
 
     registerStringOption_("score:extra", "<args>", "",
                           "Advanced: extra args passed verbatim to 'pyprophet score' (e.g. \"--parametric --pi0_lambda 0.4 0 0\").",
@@ -402,7 +426,7 @@ protected:
     // Peptide /Protein/ Gene Inference
     registerTOPPSubsection_("infer", "Inference module of PyProphet for error-rate control for Peptide/Protein/Gene levels");
     registerTOPPSubsection_("infer:peptide", "Error-rate control for peptide-level");
-    registerStringOption_("infer:peptide", "<true|false>", "true","Run peptide inference before IPF.", false, true);
+    registerStringOption_("infer:peptide", "<true|false>", "true","Run peptide inference before IPF.", false, false);
     setValidStrings_("infer:peptide", ListUtils::create<String>("true,false"));
 
     registerStringOption_("infer:peptide:extra", "<args>", "",
@@ -410,7 +434,7 @@ protected:
                           false, true);
 
     registerTOPPSubsection_("infer:protein", "Error-rate control for protein-level");
-    registerStringOption_("infer:protein", "<true|false>", "true","Run protein inference before IPF.", false, true);
+    registerStringOption_("infer:protein", "<true|false>", "true","Run protein inference before IPF.", false, false);
     setValidStrings_("infer:protein", ListUtils::create<String>("true,false"));
 
     registerStringOption_("infer:protein:extra", "<args>", "",
@@ -426,13 +450,13 @@ protected:
                           false, true);
 
     // Inference context
-    registerStringOption_("infer:context", "<context[,context,...]>", "run-specific",
+    registerStringOption_("infer:context", "<context[,context,...]>", "global",
                           "Context(s) for peptide/protein/gene inference. Accepts a single value or a comma-separated list. "
-                          "Allowed values: run-specific, experiment-wide, global.", false);
+                          "Allowed values: run-specific, experiment-wide, global.", false, false);
 
     // IPF
     registerTOPPSubsection_("ipf", "Inference of Peptidoforms module of PyProphet for PTMs");
-    registerStringOption_("ipf", "<true|false>", "false","Run peptidoform inference after scoring.", false, true);
+    registerStringOption_("ipf", "<true|false>", "false","Run peptidoform inference after scoring.", false, false);
     setValidStrings_("ipf", ListUtils::create<String>("true,false"));
     registerStringOption_("ipf:ms1_scoring", "<true|false>", "false","Use MS1 precursor information in IPF scoring.", false, true);
     setValidStrings_("ipf:ms1_scoring", ListUtils::create<String>("true,false"));
@@ -454,7 +478,7 @@ protected:
     // Optional exports
     registerTOPPSubsection_("export", "Export module of PyProphet for various exports");
     registerStringOption_("export:score_report", "<true|false>", "true",
-                          "Export a single-file PDF score report.", false, true);
+                          "Generate a report that summarizes the results of your analysis, including scores and identifications, and other relevant information.", false, false);
     setValidStrings_("export:score_report", ListUtils::create<String>("true,false"));
     registerStringOption_("export:score_plots", "<true|false>", "false",
                           "Export score plots (PDF).", false, true);
@@ -462,7 +486,7 @@ protected:
 
     registerTOPPSubsection_("export:tsv", "Export long-format TSV.");
     registerStringOption_("export:tsv", "<true|false>", "true",
-                          "Export Proteomics TSV results (long format).", false, true);
+                          "Export Proteomics TSV results (long format).", false, false);
     setValidStrings_("export:tsv", ListUtils::create<String>("true,false"));
     registerTOPPSubsection_("export:tsv", "Export long-format TSV.");
     registerStringOption_("export:tsv:extra", "<args>", "",
@@ -471,7 +495,7 @@ protected:
 
     registerTOPPSubsection_("export:matrix", "Export matrix TSV.");
     registerStringOption_("export:matrix", "<true|false>", "true",
-                          "Export TSV quantification matrix.", false, true);
+                          "Export TSV quantification matrix.", false, false);
     setValidStrings_("export:matrix", ListUtils::create<String>("true,false"));
     registerStringOption_("export:matrix:extra", "<args>", "",
                           "Advanced: extra args passed verbatim to 'pyprophet export matrix'.",
@@ -492,12 +516,38 @@ protected:
                           "PyProphet log level (TRACE, DEBUG, INFO, SUCCESS, WARNING, ERROR, CRITICAL).", false);
     setValidStrings_("log_level", ListUtils::create<String>("TRACE,DEBUG,INFO,SUCCESS,WARNING,ERROR,CRITICAL"));
 
-    registerFlag_("dry_run", "Print commands without executing.", true);
+    registerFlag_("dry_run", "Print commands without executing.", false);
   }
 
-  ExitCodes run_pyprophet_(const String& exe, const QStringList& args)
+  // ---- process runner (TOPPBase; capture & echo pyprophet logs) -------------
+  ExitCodes run_pyprophet_(const String& exe, const std::vector<String>& args)
   {
-    return runExternalProcess_(exe.toQString(), args);
+    // Build Qt arg list for TOPPBase runner
+    QStringList qargs;
+    qargs.reserve(static_cast<int>(args.size()));
+    for (const auto& a : args) qargs << a.toQString();
+
+    // Capture process output
+    String proc_out, proc_err;
+    ExitCodes ec = runExternalProcess_(exe.toQString(), qargs, proc_out, proc_err);
+
+    // Echo stdout (PyProphet/loguru often logs here)
+    if (!proc_out.empty())
+    {
+      // print as INFO so users see it at default verbosity
+      writeLogInfo_(proc_out);
+    }
+
+    // Echo stderr:
+    // - if success, show as INFO (so users still see warnings/progress)
+    // - if failure, show as ERROR
+    if (!proc_err.empty())
+    {
+      if (ec == EXECUTION_OK) writeLogInfo_(proc_err);
+      else                    writeLogError_(proc_err);
+    }
+
+    return ec;
   }
 
   ExitCodes main_(int, const char**) override
@@ -579,18 +629,20 @@ protected:
       const String template_osw = in_list.front();
 
       String merged = File::absolutePath(File::getTempDirectory()) + "/" + File::getUniqueName() + "_merged.osw";
-      QStringList args;
+      vector<String> args;
 
-      args << "--log-level" << log_level.toQString() << "--no-log-colorize"
-           << "merge" << "osw"
-           << "--out" << merged.toQString()
-           << "--template" << template_osw.toQString();
+      args.emplace_back("--log-level"); args.emplace_back(log_level);
+      args.emplace_back("--no-log-colorize");
+      args.emplace_back("merge"); args.emplace_back("osw");
+      args.emplace_back("--out"); args.emplace_back(merged);
+      args.emplace_back("--template"); args.emplace_back(template_osw);
 
-      for (const auto& f : in_list) args << "--in" << f.toQString();
+      for (const auto& f : in_list) { args.emplace_back("--in"); args.emplace_back(f); }
 
+      writeLogInfo_("====== Merging Input OSWs ===========================================");
       if (dry_run)
       {
-        writeLogInfo_("DRY-RUN: " + exe + " " + String(args.join(' ').toStdString()));
+        writeLogInfo_("DRY-RUN: " + exe + " " + join_cmd_(exe, args));
       }
       else
       {
@@ -608,38 +660,43 @@ protected:
       {
         const String lvl_cli = level_to_string_(lvl);
 
-        QStringList args;
-        args << "--log-level" << log_level.toQString() << "--no-log-colorize"
-             << "score"
-             << "--in" << current_in.toQString()
-             << "--out" << out.toQString()
-             << "--level" << lvl_cli.toQString()
-             << "--classifier" << classifier_cli.toQString()
-             << "--subsample_ratio" << QString::number(subsample)
-             << "--threads" << QString::number(threads);
+        vector<String> args;
+        args.emplace_back("--log-level"); args.emplace_back(log_level);
+        args.emplace_back("--no-log-colorize");
+        args.emplace_back("score");
+        args.emplace_back("--in"); args.emplace_back(current_in);
+        args.emplace_back("--out"); args.emplace_back(out);
+        args.emplace_back("--level"); args.emplace_back(lvl_cli);
+        args.emplace_back("--classifier"); args.emplace_back(classifier_cli);
+        args.emplace_back("--subsample_ratio"); args.emplace_back(String(subsample));
+        args.emplace_back("--threads"); args.emplace_back(String(threads));
 
-        if (!weights.empty()) args << "--apply_weights" << weights.toQString();
+        if (!weights.empty()) { args.emplace_back("--apply_weights"); args.emplace_back(weights); }
 
-        if (score_autotune) args << "--autotune";
-        args << "--xeval_num_iter"   << QString::number(score_xeval_num_iter)
-             << "--ss_num_iter"      << QString::number(score_ss_num_iter)
-             << "--ss_initial_fdr"   << QString::number(score_ss_initial_fdr)
-             << "--ss_iteration_fdr" << QString::number(score_ss_iteration_fdr);
+        if (score_autotune) args.emplace_back("--autotune");
+        args.emplace_back("--xeval_num_iter");   args.emplace_back(String(score_xeval_num_iter));
+        args.emplace_back("--ss_num_iter");      args.emplace_back(String(score_ss_num_iter));
+        args.emplace_back("--ss_initial_fdr");   args.emplace_back(String(score_ss_initial_fdr));
+        args.emplace_back("--ss_iteration_fdr"); args.emplace_back(String(score_ss_iteration_fdr));
 
         if (!score_ss_main_score.empty())
-          args << "--ss_main_score" << score_ss_main_score.toQString();
+        {
+          args.emplace_back("--ss_main_score"); args.emplace_back(score_ss_main_score);
+        }
 
         if (score_ss_scale_features)
-          args << "--ss_scale_features";
+        {
+          args.emplace_back("--ss_scale_features");
+        }
 
         // Existing passthrough
         {
-          const QStringList extra = tokenize_args_(getStringOption_("score:extra"));
-          for (const auto& e : extra) args << e;
+          const vector<String> extra = tokenize_args_(getStringOption_("score:extra"));
+          for (const auto& e : extra) args.emplace_back(e);
         }
 
-        writeLogInfo_("Scoring level: " + lvl_cli);
-        if (dry_run) writeLogInfo_("DRY-RUN: " + exe + " " + String(args.join(' ').toStdString()));
+        writeLogInfo_("====== Scoring level: " + lvl_cli + " ===========================================");
+        if (dry_run) writeLogInfo_("DRY-RUN: " + exe + " " + join_cmd_(exe, args));
         else
         {
           ExitCodes ec = run_pyprophet_(exe, args);
@@ -665,33 +722,35 @@ protected:
       {
         if (!enabled) return EXECUTION_OK;
 
-        QStringList args;
-        args << "--log-level" << log_level.toQString() << "--no-log-colorize"
-             << "infer" << subject.toQString()
-             << "--in"  << out.toQString()
-             << "--out" << out.toQString()
-             << "--context" << ctx.toQString();
+        vector<String> args;
+        args.emplace_back("--log-level"); args.emplace_back(log_level);
+        args.emplace_back("--no-log-colorize");
+        args.emplace_back("infer"); args.emplace_back(subject);
+        args.emplace_back("--in");  args.emplace_back(out);
+        args.emplace_back("--out"); args.emplace_back(out);
+        args.emplace_back("--context"); args.emplace_back(ctx);
 
         // Append advanced passthrough args for this infer subcommand
         if (subject == "peptide")
         {
-          const QStringList extra = tokenize_args_(getStringOption_("infer:peptide:extra"));
-          for (const auto& e : extra) args << e;
+          const vector<String> extra = tokenize_args_(getStringOption_("infer:peptide:extra"));
+          for (const auto& e : extra) args.emplace_back(e);
         }
         else if (subject == "protein")
         {
-          const QStringList extra = tokenize_args_(getStringOption_("infer:protein:extra"));
-          for (const auto& e : extra) args << e;
+          const vector<String> extra = tokenize_args_(getStringOption_("infer:protein:extra"));
+          for (const auto& e : extra) args.emplace_back(e);
         }
         else if (subject == "gene")
         {
-          const QStringList extra = tokenize_args_(getStringOption_("infer:gene:extra"));
-          for (const auto& e : extra) args << e;
+          const vector<String> extra = tokenize_args_(getStringOption_("infer:gene:extra"));
+          for (const auto& e : extra) args.emplace_back(e);
         }
 
+        writeLogInfo_("====== " + subject + " Inference: " + ctx + " ===========================================");
         if (dry_run)
         {
-          writeLogInfo_("DRY-RUN: " + exe + " " + String(args.join(' ').toStdString()));
+          writeLogInfo_("DRY-RUN: " + exe + " " + join_cmd_(exe, args));
           return EXECUTION_OK;
         }
         return run_pyprophet_(exe, args);
@@ -719,21 +778,23 @@ protected:
       const double p3 = getDoubleOption_("ipf_max_precursor_peakgroup_pep");
       const double p4 = getDoubleOption_("ipf_max_transition_pep");
 
-      QStringList args;
-      args << "--log-level" << log_level.toQString() << "--no-log-colorize"
-           << "infer" << "peptidoform"
-           << "--in" << out.toQString()
-           << "--out" << out.toQString()
-           << (ipf_ms1 ? "--ipf_ms1_scoring" : "--no-ipf_ms1_scoring")
-           << (ipf_ms2 ? "--ipf_ms2_scoring" : "--no-ipf_ms2_scoring")
-           << (ipf_h0  ? "--ipf_h0"          : "--no-ipf_h0")
-           << (ipf_grouped ? "--ipf_grouped_fdr" : "--no-ipf_grouped_fdr")
-           << "--ipf_max_precursor_pep" << QString::number(p1)
-           << "--ipf_max_peakgroup_pep" << QString::number(p2)
-           << "--ipf_max_precursor_peakgroup_pep" << QString::number(p3)
-           << "--ipf_max_transition_pep" << QString::number(p4);
+      vector<String> args;
+      args.emplace_back("--log-level"); args.emplace_back(log_level);
+      args.emplace_back("--no-log-colorize");
+      args.emplace_back("infer"); args.emplace_back("peptidoform");
+      args.emplace_back("--in");  args.emplace_back(out);
+      args.emplace_back("--out"); args.emplace_back(out);
+      args.emplace_back(ipf_ms1 ? "--ipf_ms1_scoring" : "--no-ipf_ms1_scoring");
+      args.emplace_back(ipf_ms2 ? "--ipf_ms2_scoring" : "--no-ipf_ms2_scoring");
+      args.emplace_back(ipf_h0  ? "--ipf_h0"          : "--no-ipf_h0");
+      args.emplace_back(ipf_grouped ? "--ipf_grouped_fdr" : "--no-ipf_grouped_fdr");
+      args.emplace_back("--ipf_max_precursor_pep");           args.emplace_back(String(p1));
+      args.emplace_back("--ipf_max_peakgroup_pep");           args.emplace_back(String(p2));
+      args.emplace_back("--ipf_max_precursor_peakgroup_pep"); args.emplace_back(String(p3));
+      args.emplace_back("--ipf_max_transition_pep");          args.emplace_back(String(p4));
 
-      if (dry_run) writeLogInfo_("DRY-RUN: " + exe + " " + String(args.join(' ').toStdString()));
+      writeLogInfo_("====== Peptidoform Inference ===========================================");
+      if (dry_run) writeLogInfo_("DRY-RUN: " + exe + " " + join_cmd_(exe, args));
       else
       {
         ExitCodes ec = run_pyprophet_(exe, args);
@@ -751,11 +812,13 @@ protected:
       auto run_export_flag = [&](const String& sub, bool enabled) -> ExitCodes
       {
         if (!enabled) return EXECUTION_OK;
-        QStringList args;
-        args << "--log-level" << log_level.toQString() << "--no-log-colorize"
-             << "export" << sub.toQString()
-             << "--in" << out.toQString();
-        if (dry_run) { writeLogInfo_("DRY-RUN: " + exe + " " + String(args.join(' ').toStdString())); return EXECUTION_OK; }
+        vector<String> args;
+        args.emplace_back("--log-level"); args.emplace_back(log_level);
+        args.emplace_back("--no-log-colorize");
+        args.emplace_back("export"); args.emplace_back(sub);
+        args.emplace_back("--in"); args.emplace_back(out);
+        writeLogInfo_("====== Exporting " + sub + " ===========================================");
+        if (dry_run) { writeLogInfo_("DRY-RUN: " + exe + " " + join_cmd_(exe, args)); return EXECUTION_OK; }
         return run_pyprophet_(exe, args);
       };
 
@@ -767,20 +830,22 @@ protected:
       if (do_tsv)
       {
         const String tsv_path = File::replaceExtension(out, ".tsv");
-        QStringList args;
-        args << "--log-level" << log_level.toQString() << "--no-log-colorize"
-             << "export" << "tsv"
-             << "--in"  << out.toQString()
-             << "--out" << tsv_path.toQString();
+        vector<String> args;
+        args.emplace_back("--log-level"); args.emplace_back(log_level);
+        args.emplace_back("--no-log-colorize");
+        args.emplace_back("export"); args.emplace_back("tsv");
+        args.emplace_back("--in");  args.emplace_back(out);
+        args.emplace_back("--out"); args.emplace_back(tsv_path);
 
         // optional passthrough args
         if (!getStringOption_("export:tsv:extra").empty())
         {
-          const QStringList extra = tokenize_args_(getStringOption_("export:tsv:extra"));
-          for (const auto& e : extra) args << e;
+          const vector<String> extra = tokenize_args_(getStringOption_("export:tsv:extra"));
+          for (const auto& e : extra) args.emplace_back(e);
         }
 
-        if (dry_run) writeLogInfo_("DRY-RUN: " + exe + " " + String(args.join(' ').toStdString()));
+        writeLogInfo_("====== Exporting Proteomics TSV ===========================================");
+        if (dry_run) writeLogInfo_("DRY-RUN: " + exe + " " + join_cmd_(exe, args));
         else { if (run_pyprophet_(exe, args) != EXECUTION_OK) return EXTERNAL_PROGRAM_ERROR; }
       }
 
@@ -788,19 +853,21 @@ protected:
       if (do_matrix)
       {
         const String matrix_path = File::replaceExtension(File::appendSuffix(out, ".matrix"), ".tsv");
-        QStringList args;
-        args << "--log-level" << log_level.toQString() << "--no-log-colorize"
-             << "export" << "matrix"
-             << "--in"  << out.toQString()
-             << "--out" << matrix_path.toQString();
+        vector<String> args;
+        args.emplace_back("--log-level"); args.emplace_back(log_level);
+        args.emplace_back("--no-log-colorize");
+        args.emplace_back("export"); args.emplace_back("matrix");
+        args.emplace_back("--in");  args.emplace_back(out);
+        args.emplace_back("--out"); args.emplace_back(matrix_path);
 
         if (!getStringOption_("export:matrix:extra").empty())
         {
-          const QStringList extra = tokenize_args_(getStringOption_("export:matrix:extra"));
-          for (const auto& e : extra) args << e;
+          const vector<String> extra = tokenize_args_(getStringOption_("export:matrix:extra"));
+          for (const auto& e : extra) args.emplace_back(e);
         }
 
-        if (dry_run) writeLogInfo_("DRY-RUN: " + exe + " " + String(args.join(' ').toStdString()));
+        writeLogInfo_("====== Exporting Matrix TSV ===========================================");
+        if (dry_run) writeLogInfo_("DRY-RUN: " + exe + " " + join_cmd_(exe, args));
         else { if (run_pyprophet_(exe, args) != EXECUTION_OK) return EXTERNAL_PROGRAM_ERROR; }
       }
     }
