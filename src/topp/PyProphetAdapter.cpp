@@ -139,7 +139,7 @@ protected:
       case Level::ALIGNMENT:  return n[4];
     }
     // Fallback to ms2
-    return n[1]; 
+    return n[1];
   }
 
   static bool parse_level_token_(const String& tok, Level& out)
@@ -346,60 +346,92 @@ protected:
   void registerOptionsAndFlags_() override
   {
     // Inputs: support one or more OSW (if >1, we'll merge first)
-    registerInputFileList_("in", "<files>", StringList(), "Input OSW file(s). If multiple are provided, a merge step is executed first.", false);
+    registerInputFileList_("in", "<files>", StringList(),
+                           "Input OSW file(s). If multiple are provided, a merge step is executed first.", true);
     setValidFormats_("in", ListUtils::create<String>("OSW"));
 
     // Output OSW
-    registerOutputFile_("out", "<file>", "", "Output OSW file. If empty and only one input is provided, scoring is done in place.", false);
+    registerOutputFile_("out", "<file>", "",
+                        "Output OSW file. If empty and only one input is provided, scoring is done in place.", false);
     setValidFormats_("out", ListUtils::create<String>("OSW"));
 
     // Scoring
-    registerStringOption_("score:level", "<level[,level,...]>", "ms2",
+    registerTOPPSubsection_("score", "Scoring module of PyProphet for semi-supervised learning");
+    registerStringOption_("score:level", "<level[,level,...]>", "ms1ms2",
                           "OSW data level(s) for scoring. Accepts a single level (e.g., 'ms2') or a comma-separated list (e.g., 'ms1,ms2,transition'). "
                           "Allowed values: ms1, ms2, ms1ms2, transition, alignment.", false);
 
-    registerStringOption_("score:classifier", "<name>", "LDA",
+    registerStringOption_("score:classifier", "<name>", "SVM",
                           "Classifier for semi-supervised scoring.", false);
     setValidStrings_("score:classifier", classifier_names_());
 
-    registerDoubleOption_("score:subsample_ratio", "<0..1>", 1.0, "Subsample ratio for training on large datasets; weights are applied to the full set.", false, true);
+    registerDoubleOption_("score:subsample_ratio", "<0..1>", 1.0,
+                          "Subsample ratio for training on large datasets; weights are applied to the full set.", false, true);
     setMinFloat_("score:subsample_ratio", 0.0);
+    setMaxFloat_("score:subsample_ratio", 1.0);
 
-    registerInputFile_("score:apply_weights", "<file>", "", "Apply a pre-trained weights file (skip training). The same file will be applied to all requested levels.", true);
+    registerInputFile_("score:apply_weights", "<file>", "",
+                       "Apply a pre-trained weights file (skip training). The same file will be applied to all requested levels.", false);
+    registerFlag_("score:autotune", "Autotune hyperparameters for XGBoost/SVM/HistGradientBoosting.");
+
+    registerIntOption_("score:xeval_num_iter", "<number>", 10, "Number of iterations for cross-validation of semi-supervised learning step.", false, true);
+    setMinInt_("score:xeval_num_iter", 1);
+    registerIntOption_("score:ss_num_iter", "<number>", 10, "Number of iterations for semi-supervised learning step.", false, true);
+    setMinInt_("score:ss_num_iter", 1);
+    registerDoubleOption_("score:ss_initial_fdr", "<0..1>", 0.15,
+                          "Initial FDR cutoff for best scoring targets.", false, true);
+    setMinFloat_("score:ss_initial_fdr", 0.0);
+    setMaxFloat_("score:ss_initial_fdr", 1.0);
+    registerDoubleOption_("score:ss_iteration_fdr", "<0..1>", 0.05,
+                          "Iteration FDR cutoff for best scoring targets.", false, true);
+    setMinFloat_("score:ss_iteration_fdr", 0.0);
+    setMaxFloat_("score:ss_iteration_fdr", 1.0);
+    registerStringOption_("score:ss_main_score", "<var>", "auto",
+                          "Main score to start semi-supervised-learning. Default is set to auto, meaning each iteration of\n"
+                          "learning a dynamic main score selection process will occur. If you want to have a set starting\n"
+                          "main score for each learning iteration, you can set a specifc score, i.e. \"var_xcorr_shape\"",
+                          false,
+                          true);
+    registerFlag_("score:ss_scale_features", "Scale / standardize features to unit variance before semi-supervised learning.");
 
     registerStringOption_("score:extra", "<args>", "",
-                          "Advanced: extra args passed verbatim to 'pyprophet score' (e.g. \"--xgboost-eta 0.2 --xgboost-max_depth 6\").",
-                          true,  // optional
-                          true); // advanced
+                          "Advanced: extra args passed verbatim to 'pyprophet score' (e.g. \"--parametric --pi0_lambda 0.4 0 0\").",
+                          false,
+                          true);
 
     // Peptide /Protein/ Gene Inference
+    registerTOPPSubsection_("infer", "Inference module of PyProphet for error-rate control for Peptide/Protein/Gene levels");
+    registerTOPPSubsection_("infer:peptide", "Error-rate control for peptide-level");
     registerStringOption_("infer:peptide", "<true|false>", "true","Run peptide inference before IPF.", false, true);
     setValidStrings_("infer:peptide", ListUtils::create<String>("true,false"));
 
     registerStringOption_("infer:peptide:extra", "<args>", "",
                           "Advanced: extra args passed verbatim to 'pyprophet infer peptide'.",
-                          true, true);
+                          false, true);
 
+    registerTOPPSubsection_("infer:protein", "Error-rate control for protein-level");
     registerStringOption_("infer:protein", "<true|false>", "true","Run protein inference before IPF.", false, true);
     setValidStrings_("infer:protein", ListUtils::create<String>("true,false"));
 
     registerStringOption_("infer:protein:extra", "<args>", "",
                           "Advanced: extra args passed verbatim to 'pyprophet infer protein'.",
-                          true, true);
+                          false, true);
 
+    registerTOPPSubsection_("infer:gene", "Error-rate control for gene-level");
     registerStringOption_("infer:gene", "<true|false>", "false","Run gene inference before IPF.", false, true);
     setValidStrings_("infer:gene", ListUtils::create<String>("true,false"));
 
     registerStringOption_("infer:gene:extra", "<args>", "",
                           "Advanced: extra args passed verbatim to 'pyprophet infer gene'.",
-                          true, true);
+                          false, true);
 
-    // Inference context (already added previously)
+    // Inference context
     registerStringOption_("infer:context", "<context[,context,...]>", "run-specific",
                           "Context(s) for peptide/protein/gene inference. Accepts a single value or a comma-separated list. "
                           "Allowed values: run-specific, experiment-wide, global.", false);
 
-    // IPF (optional)
+    // IPF
+    registerTOPPSubsection_("ipf", "Inference of Peptidoforms module of PyProphet for PTMs");
     registerStringOption_("ipf", "<true|false>", "false","Run peptidoform inference after scoring.", false, true);
     setValidStrings_("ipf", ListUtils::create<String>("true,false"));
     registerStringOption_("ipf:ms1_scoring", "<true|false>", "false","Use MS1 precursor information in IPF scoring.", false, true);
@@ -414,24 +446,37 @@ protected:
     registerStringOption_("ipf:grouped_fdr", "<true|false>", "false","Compute grouped FDR instead of pooled FDR.", false, true);
     setValidStrings_("ipf:grouped_fdr", ListUtils::create<String>("true,false"));
 
-    registerDoubleOption_("ipf:max_precursor_pep", "<val>", 0.7, "Max PEP for scored precursors considered in IPF.", true);
-    registerDoubleOption_("ipf:max_peakgroup_pep", "<val>", 0.7, "Max PEP for scored peak-groups considered in IPF.", true);
-    registerDoubleOption_("ipf:max_precursor_peakgroup_pep", "<val>", 0.4, "Max integrated precursor-peakgroup PEP.", true);
-    registerDoubleOption_("ipf:max_transition_pep", "<val>", 0.6, "Max PEP for scored transitions considered in IPF.", true);
+    registerDoubleOption_("ipf:max_precursor_pep", "<double>", 0.7, "Max PEP for scored precursors considered in IPF.", false, true);
+    registerDoubleOption_("ipf:max_peakgroup_pep", "<double>", 0.7, "Max PEP for scored peak-groups considered in IPF.", false, true);
+    registerDoubleOption_("ipf:max_precursor_peakgroup_pep", "<double>", 0.4, "Max integrated precursor-peakgroup PEP.", false, true);
+    registerDoubleOption_("ipf:max_transition_pep", "<double>", 0.6, "Max PEP for scored transitions considered in IPF.", false, true);
 
     // Optional exports
-    registerOutputFile_("export:score_report", "<pdf>", "", "Export a single-file PDF score report.", true);
-    setValidFormats_("export:score_report", ListUtils::create<String>("pdf"));
-    registerOutputFile_("export:score_plots", "<pdf>", "", "Export score plots (PDF).", true);
-    setValidFormats_("export:score_plots", ListUtils::create<String>("pdf"));
-    registerOutputFile_("export:tsv", "<tsv>", "", "Export TSV results.", true);
-    setValidFormats_("export:tsv", ListUtils::create<String>("tsv"));
+    registerTOPPSubsection_("export", "Export module of PyProphet for various exports");
+    registerStringOption_("export:score_report", "<true|false>", "true",
+                          "Export a single-file PDF score report.", false, true);
+    setValidStrings_("export:score_report", ListUtils::create<String>("true,false"));
+    registerStringOption_("export:score_plots", "<true|false>", "false",
+                          "Export score plots (PDF).", false, true);
+    setValidStrings_("export:score_plots", ListUtils::create<String>("true,false"));
+
+    registerTOPPSubsection_("export:tsv", "Export long-format TSV.");
+    registerStringOption_("export:tsv", "<true|false>", "true",
+                          "Export Proteomics TSV results (long format).", false, true);
+    setValidStrings_("export:tsv", ListUtils::create<String>("true,false"));
+    registerTOPPSubsection_("export:tsv", "Export long-format TSV.");
     registerStringOption_("export:tsv:extra", "<args>", "",
                           "Advanced: extra args passed verbatim to 'pyprophet export tsv'.",
-                          true, true);
+                          false, true);
 
-    registerOutputFile_("export:matrix", "<tsv>", "", "Export TSV quantification matrix.", true);
-    setValidFormats_("export:matrix", ListUtils::create<String>("tsv"));
+    registerTOPPSubsection_("export:matrix", "Export matrix TSV.");
+    registerStringOption_("export:matrix", "<true|false>", "true",
+                          "Export TSV quantification matrix.", false, true);
+    setValidStrings_("export:matrix", ListUtils::create<String>("true,false"));
+    registerStringOption_("export:matrix:extra", "<args>", "",
+                          "Advanced: extra args passed verbatim to 'pyprophet export matrix'.",
+                          false, true);
+
 
     // Executable
     registerInputFile_("pyprophet_executable", "<executable>",
@@ -487,7 +532,7 @@ protected:
     const String exe = getStringOption_("pyprophet_executable");
     const String level_csv = getStringOption_("score:level");
 
-    // NEW: parse classifier option into enum
+    // parse classifier option into enum
     const String classifier_str = getStringOption_("score:classifier");
     Classifier classifier_enum{};
     if (!parse_classifier_(classifier_str, classifier_enum))
@@ -500,12 +545,20 @@ protected:
 
     const double subsample = getDoubleOption_("score:subsample_ratio");
     const String weights = getStringOption_("score:apply_weights");
-    const String log_level = getStringOption_("log_level");
+    const bool   score_autotune         = getFlag_("score:autotune");
+    const int    score_xeval_num_iter   = getIntOption_("score:xeval_num_iter");
+    const int    score_ss_num_iter      = getIntOption_("score:ss_num_iter");
+    const double score_ss_initial_fdr   = getDoubleOption_("score:ss_initial_fdr");
+    const double score_ss_iteration_fdr = getDoubleOption_("score:ss_iteration_fdr");
+    const String score_ss_main_score    = getStringOption_("score:ss_main_score");
+    const bool   score_ss_scale_features= getFlag_("score:ss_scale_features");
+
     const bool do_ipf        = is_true_(getStringOption_("ipf"));
     const bool do_infer_pep  = is_true_(getStringOption_("infer:peptide"));
     const bool do_infer_pro  = is_true_(getStringOption_("infer:protein"));
     const bool do_infer_gene = is_true_(getStringOption_("infer:gene"));
 
+    const String log_level = getStringOption_("log_level");
     const bool dry_run = getFlag_("dry_run");
     const int threads = getIntOption_("threads"); // provided by TOPPBase common option
 
@@ -518,7 +571,7 @@ protected:
       return ILLEGAL_PARAMETERS;
     }
 
-    // 0) (optional) merge when multiple inputs
+    // (optional) merge when multiple inputs  ----------------------------------
     String merged_or_input = in_list.front();
     if (in_list.size() > 1)
     {
@@ -547,7 +600,8 @@ protected:
       merged_or_input = merged;
     }
 
-    //  score — run once per requested level, first pass reads merged/input; subsequent passes read 'out'
+    //  score  -----------------------------------------------------------------
+    //  run once per requested level, first pass reads merged/input; subsequent passes read 'out'
     {
       String current_in = merged_or_input;
       for (const Level lvl : levels)
@@ -555,17 +609,30 @@ protected:
         const String lvl_cli = level_to_string_(lvl);
 
         QStringList args;
-        args << "--log-level" << log_level.toQString() << "--no-log-colorize" << "score"
+        args << "--log-level" << log_level.toQString() << "--no-log-colorize"
+             << "score"
              << "--in" << current_in.toQString()
              << "--out" << out.toQString()
              << "--level" << lvl_cli.toQString()
-             << "--classifier" << classifier_cli.toQString()  // from your classifier enum logic
+             << "--classifier" << classifier_cli.toQString()
              << "--subsample_ratio" << QString::number(subsample)
              << "--threads" << QString::number(threads);
 
         if (!weights.empty()) args << "--apply_weights" << weights.toQString();
 
-        // Append advanced passthrough args for 'score'
+        if (score_autotune) args << "--autotune";
+        args << "--xeval_num_iter"   << QString::number(score_xeval_num_iter)
+             << "--ss_num_iter"      << QString::number(score_ss_num_iter)
+             << "--ss_initial_fdr"   << QString::number(score_ss_initial_fdr)
+             << "--ss_iteration_fdr" << QString::number(score_ss_iteration_fdr);
+
+        if (!score_ss_main_score.empty())
+          args << "--ss_main_score" << score_ss_main_score.toQString();
+
+        if (score_ss_scale_features)
+          args << "--ss_scale_features";
+
+        // Existing passthrough
         {
           const QStringList extra = tokenize_args_(getStringOption_("score:extra"));
           for (const auto& e : extra) args << e;
@@ -583,7 +650,7 @@ protected:
       }
     }
 
-    // Peptide / Protein / Gene inference ---------------------
+    // Peptide / Protein / Gene inference --------------------------------------
     if (do_infer_pep || do_infer_pro || do_infer_gene)
     {
       String ctx_err;
@@ -674,31 +741,69 @@ protected:
       }
     }
 
-    // exporters
-    auto run_export = [&](const String& sub, const String& dest) -> ExitCodes
+    // exporters --------------------------------------------------------------
     {
-      if (dest.empty()) return EXECUTION_OK;
-      QStringList args;
-      args << "--log-level" << log_level.toQString() << "--no-log-colorize"
-           << "export" << sub.toQString()
-           << "--in" << out.toQString()
-           << "--out" << dest.toQString();
+      const bool do_score_report = is_true_(getStringOption_("export:score_report"));
+      const bool do_score_plots  = is_true_(getStringOption_("export:score_plots"));
+      const bool do_tsv          = is_true_(getStringOption_("export:tsv"));
+      const bool do_matrix       = is_true_(getStringOption_("export:matrix"));
 
-      // Append advanced passthrough for 'export tsv'
-      if (sub == "tsv")
+      auto run_export_flag = [&](const String& sub, bool enabled) -> ExitCodes
       {
-        const QStringList extra = tokenize_args_(getStringOption_("export:tsv:extra"));
-        for (const auto& e : extra) args << e;
-      }
-      
-      if (dry_run) { writeLogInfo_("DRY-RUN: " + exe + " " + String(args.join(' ').toStdString())); return EXECUTION_OK; }
-      return run_pyprophet_(exe, args);
-    };
+        if (!enabled) return EXECUTION_OK;
+        QStringList args;
+        args << "--log-level" << log_level.toQString() << "--no-log-colorize"
+             << "export" << sub.toQString()
+             << "--in" << out.toQString();
+        if (dry_run) { writeLogInfo_("DRY-RUN: " + exe + " " + String(args.join(' ').toStdString())); return EXECUTION_OK; }
+        return run_pyprophet_(exe, args);
+      };
 
-    if (run_export("score-report", getStringOption_("export:score_report")) != EXECUTION_OK) return EXTERNAL_PROGRAM_ERROR;
-    if (run_export("score-plots",  getStringOption_("export:score_plots"))  != EXECUTION_OK) return EXTERNAL_PROGRAM_ERROR;
-    if (run_export("tsv",          getStringOption_("export:tsv"))          != EXECUTION_OK) return EXTERNAL_PROGRAM_ERROR;
-    if (run_export("matrix",       getStringOption_("export:matrix"))       != EXECUTION_OK) return EXTERNAL_PROGRAM_ERROR;
+      // score-report / score-plots (no --out)
+      if (run_export_flag("score-report", do_score_report) != EXECUTION_OK) return EXTERNAL_PROGRAM_ERROR;
+      if (run_export_flag("score-plots",  do_score_plots)  != EXECUTION_OK) return EXTERNAL_PROGRAM_ERROR;
+
+      // tsv (derive "<out>.tsv")
+      if (do_tsv)
+      {
+        const String tsv_path = File::replaceExtension(out, ".tsv");
+        QStringList args;
+        args << "--log-level" << log_level.toQString() << "--no-log-colorize"
+             << "export" << "tsv"
+             << "--in"  << out.toQString()
+             << "--out" << tsv_path.toQString();
+
+        // optional passthrough args
+        if (!getStringOption_("export:tsv:extra").empty())
+        {
+          const QStringList extra = tokenize_args_(getStringOption_("export:tsv:extra"));
+          for (const auto& e : extra) args << e;
+        }
+
+        if (dry_run) writeLogInfo_("DRY-RUN: " + exe + " " + String(args.join(' ').toStdString()));
+        else { if (run_pyprophet_(exe, args) != EXECUTION_OK) return EXTERNAL_PROGRAM_ERROR; }
+      }
+
+      // matrix (derive "<out>.matrix.tsv")
+      if (do_matrix)
+      {
+        const String matrix_path = File::replaceExtension(File::appendSuffix(out, ".matrix"), ".tsv");
+        QStringList args;
+        args << "--log-level" << log_level.toQString() << "--no-log-colorize"
+             << "export" << "matrix"
+             << "--in"  << out.toQString()
+             << "--out" << matrix_path.toQString();
+
+        if (!getStringOption_("export:matrix:extra").empty())
+        {
+          const QStringList extra = tokenize_args_(getStringOption_("export:matrix:extra"));
+          for (const auto& e : extra) args << e;
+        }
+
+        if (dry_run) writeLogInfo_("DRY-RUN: " + exe + " " + String(args.join(' ').toStdString()));
+        else { if (run_pyprophet_(exe, args) != EXECUTION_OK) return EXTERNAL_PROGRAM_ERROR; }
+      }
+    }
 
     writeLogInfo_("PyProphetAdapter finished successfully.");
     return EXECUTION_OK;
