@@ -19,56 +19,57 @@
 
 /**
 @page TOPP_PyProphetAdapter PyProphetAdapter
-@brief Adapter to run PyProphet scoring, optional, peptide, protein, peptidoform inference (IPF), and exports on OSW files.
-See http://openswath.org/ for additional documentation.
+@brief Adapter to run PyProphet scoring, optional peptide/protein/gene inference, peptidoform inference (IPF), and exports on OSW files.
+\see http://openswath.org/
 
 PyProphetAdapter orchestrates:\n
-  1. (optional) @em merge of multiple OSW inputs (`pyprophet merge osw`)\n
-  2. @em score (`pyprophet score`)\n
-  3. (optional) @em infer peptide/protein/gene (`pyprophet infer peptide`)\n
-  3. (optional) @em infer peptidoform (`pyprophet infer peptidoform`)\n
-  4. (optional) @em export reports/plots/Proteomics TSV/Proteomics matrix/Small-molecule TSV (`pyprophet export ...`)\n
+ - (optional) \em merge of multiple OSW inputs (\c pyprophet merge osw)\n
+ - \em score (\c pyprophet score)\n
+ - (optional) \em infer peptide/protein/gene (\c pyprophet infer peptide|protein|gene)\n
+ - (optional) \em infer peptidoform (\c pyprophet infer peptidoform)\n
+ - (optional) \em export reports/plots/Proteomics TSV/Proteomics matrix/Small-molecule TSV (\c pyprophet export ...)\n
 
-It requires PyProphet standalone executables or a `pyprophet` on the PATH.
+It requires PyProphet standalone executables or a \c pyprophet on the PATH.
 
-Multithreading: the global `-threads` parameter is passed through to PyProphet.
+Multithreading: the global \c -threads parameter is passed through to PyProphet.
 
-@par Merging behavior
-If multiple `-in` OSW files are provided, a merge step is executed first via `pyprophet merge osw`.\n
-Inputs are passed positionally as `[INFILES]...`, with the first input used as the `--template` OSW.\n
-If a single input is provided and `-out` is omitted, scoring is performed in place (the input file is updated).
+\par Merging behavior
+If multiple \c -in OSW files are provided, a merge step is executed first via \c pyprophet merge osw.\n
+Inputs are passed positionally as \c [INFILES]..., with the first input used as the \c --template OSW.\n
+If a single input is provided and \c -out is omitted, scoring is performed in place (the input file is updated).
 
-@par Scoring (semi-supervised)
-Supports multiple levels (`ms1`, `ms2`, `ms1ms2`, `transition`, `alignment`) and classifiers (`LDA`, `SVM`, `XGBoost`, `HistGradientBoosting`).\n
-Additional options include subsampling, cross-validation/semi-supervised iterations, initial/iteration FDRs, optional main score override, feature scaling, and an `--autotune` switch for supported classifiers.\n
-Pre-trained weights can be applied via `scoring:apply_weights` to skip training.
+\par Scoring (semi-supervised)
+Supports multiple levels (\c ms1, \c ms2, \c ms1ms2, \c transition, \c alignment) and classifiers (\c LDA, \c SVM, \c XGBoost, \c HistGradientBoosting).\n
+Additional options include subsampling, cross-validation/semi-supervised iterations, initial/iteration FDRs, optional main score override, feature scaling, and an \c --autotune switch for supported classifiers.\n
+Pre-trained weights can be applied via \c scoring:apply_weights to skip training.
 
-@par Exports
-- Reports (single-file PDF) and score plots (PDF) do not require an explicit output path.\n
-- Proteomics TSV: enabled via `export:run_tsv`; the output path is derived as `<out>.tsv`.\n
-- Proteomics matrix: enabled via `export:run_matrix`; the output path is derived as `<out>.matrix.tsv`.\n
-- Small molecules TSV: enabled via `export:run_compound`; the output path is derived as `<out>.compound.tsv`.\n
-  - Format selection: `export:compound:format` = `matrix` or `legacy_merged`.\n
-  - Filtering: `export:compound:max_rs_peakgroup_qvalue` limits by run-specific peak group-level q-value.\n
-- Mutual exclusion: `export:run_compound` cannot be combined with `export:run_tsv` or `export:run_matrix`.
+\par Exports
+\li Reports (single-file PDF) and score plots (PDF) do not require an explicit output path.\n
+\li Proteomics TSV: enable with \c export:run_tsv; the output path is \c <out>.tsv.\n
+\li Proteomics matrix: enable with \c export:run_matrix; the output path is \c <out>.matrix.tsv.\n
+\li Small molecules TSV: enable with \c export:run_compound; the output path is \c <out>.compound.tsv.\n
+    Format selection: \c export:compound:format = \c matrix or \c legacy_merged.\n
+    Filtering: \c export:compound:max_rs_peakgroup_qvalue limits by run-specific peak group-level q-value.\n
+\li Mutual exclusion: \c export:run_compound cannot be combined with \c export:run_tsv or \c export:run_matrix.
 
-@par Logging and dry runs
-The adapter captures and echoes PyProphet's stdout/stderr so loguru messages are visible at default verbosity.\n
-With `-dry_run`, the constructed PyProphet command(s) are printed but not executed.
+\par Logging and dry runs
+The adapter captures and echoes PyProphet stdout/stderr so loguru messages are visible at default verbosity.\n
+With \c -dry_run, the constructed PyProphet command(s) are printed but not executed.
 
-@par Note on HistGradientBoosting threading
-When using `--classifier HistGradientBoosting` for scoring, the `OMP_NUM_THREADS` environment variable controls OpenMP thread usage to avoid CPU oversubscription.
-PyProphet will try to set a default if not specified, but for best control/performance you can set it explicitly before launching PyProphet.
-For example, on a machine with 20 CPU threads and `-threads 3` for semi-supervised learning, set `OMP_NUM_THREADS=6` (floor(20/3)).
+\par Note on HistGradientBoosting threading
+When using \c --classifier \c HistGradientBoosting for scoring, the \c OMP_NUM_THREADS environment variable controls OpenMP thread usage to avoid CPU oversubscription.\n
+PyProphet may set a default if not specified, but for best control/performance set it explicitly before launching PyProphet.\n
+Example: on a machine with 20 CPU threads and \c -threads \c 3 for semi-supervised learning, set \c OMP_NUM_THREADS=6 (floor(20/3)).
 
- @par Note on Parquet support
- PyProphet natively supports parquet support as input and output, however, this adapter currently only supports sqlite-based OSW files.
+\par Note on Parquet support
+PyProphet can read/write Parquet; this adapter currently supports only SQLite-based OSW files.
 
 <B>The command line parameters of this tool are:</B>
 @verbinclude TOPP_PyProphetAdapter.cli
 <B>INI file documentation of this tool:</B>
 @htmlinclude TOPP_PyProphetAdapter.html
 */
+
 
 
 /// @cond TOPPCLASSES
