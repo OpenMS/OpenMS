@@ -76,7 +76,14 @@ namespace OpenMS
           */
       void setMaxCharge(size_t max_charge);
 
-      /// Call this so that the absolute m/z value is used to determine mass tolerance instead of m/z difference value.
+      /**
+            @brief Enable absolute m/z-based tolerance calculation
+
+            When enabled, the tagger uses the absolute m/z value of the node
+            to determine the mass tolerance window instead of the m/z difference value.
+            This is particularly useful for top-down proteomics where fragment masses
+            are relatively large and amino acid mass differences are small.
+          */
       void setUseAbsoluteMzForTol();
 
     private:
