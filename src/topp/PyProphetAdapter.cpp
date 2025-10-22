@@ -45,9 +45,9 @@ Pre-trained weights can be applied via \c scoring:apply_weights to skip training
 
 \par Exports
 \li Reports (single-file PDF) and score plots (PDF) do not require an explicit output path.\n
-\li Proteomics TSV: enable with \c export:run_tsv; the output path is \c <out>.tsv.\n
-\li Proteomics matrix: enable with \c export:run_matrix; the output path is \c <out>.matrix.tsv.\n
-\li Small molecules TSV: enable with \c export:run_compound; the output path is \c <out>.compound.tsv.\n
+\li Proteomics TSV: enable with \c export:run_tsv; the output path is &lt;out&gt;.tsv.\n
+\li Proteomics matrix: enable with \c export:run_matrix; the output path is &lt;out&gt;.matrix.tsv.\n
+\li Small molecules TSV: enable with \c export:run_compound; the output path is &lt;out&gt;.compound.tsv.\n
     Format selection: \c export:compound:format = \c matrix or \c legacy_merged.\n
     Filtering: \c export:compound:max_rs_peakgroup_qvalue limits by run-specific peak group-level q-value.\n
 \li Mutual exclusion: \c export:run_compound cannot be combined with \c export:run_tsv or \c export:run_matrix.
