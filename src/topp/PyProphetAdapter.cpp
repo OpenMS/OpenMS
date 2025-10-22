@@ -20,6 +20,7 @@
 /**
 @page TOPP_PyProphetAdapter PyProphetAdapter
 @brief Adapter to run PyProphet scoring, optional, peptide, protein, peptidoform inference (IPF), and exports on OSW files.
+See http://openswath.org/ for additional documentation.
 
 PyProphetAdapter orchestrates:\n
   1. (optional) @em merge of multiple OSW inputs (`pyprophet merge osw`)\n
