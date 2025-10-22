@@ -34,6 +34,7 @@ namespace OpenMS
     while (fabs(left->first - m) < delta)
     {
       left++;
+      if (left == mass2aa_.end()) break;
       if (min_delta >  fabs(left->first - m))
       {
         best_aa = left;
