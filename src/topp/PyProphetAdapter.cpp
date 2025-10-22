@@ -454,7 +454,8 @@ protected:
     registerFlag_("scoring:ss_scale_features", "Scale / standardize features to unit variance before semi-supervised learning.", false);
 
     registerStringOption_("scoring:extra", "<args>", "",
-                          "Advanced: extra args passed verbatim to 'pyprophet score' (e.g. \"--parametric --pi0_lambda 0.4 0 0\").",
+                          "Advanced: extra args passed verbatim to 'pyprophet score' (e.g. \"+--parametric +--pi0_lambda 0.4 0 0\"), note the `+` is needed infront of the `--` to avoid it being interpreted as an OpenMS TOPP tool parameter."
+                          "Examples: -scoring:extra \"+--parametric +--pi0_lambda 0.4 0 0\"",
                           false,
                           true);
 
