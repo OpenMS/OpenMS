@@ -10,15 +10,11 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/FORMAT/OSWFile.h>
 #include <OpenMS/SYSTEM/File.h>
 
-#include <QtCore/QStringList> // for runExternalProcess_
+#include <QtCore/QStringList>
 
-// std helpers
-#include <array>
 #include <cctype>
-#include <cstdlib>
 #include <unordered_set>
 
 /**
@@ -63,6 +59,9 @@ With `-dry_run`, the constructed PyProphet command(s) are printed but not execut
 When using `--classifier HistGradientBoosting` for scoring, the `OMP_NUM_THREADS` environment variable controls OpenMP thread usage to avoid CPU oversubscription.
 PyProphet will try to set a default if not specified, but for best control/performance you can set it explicitly before launching PyProphet.
 For example, on a machine with 20 CPU threads and `-threads 3` for semi-supervised learning, set `OMP_NUM_THREADS=6` (floor(20/3)).
+
+ @par Note on Parquet support
+ PyProphet natively supports parquet support as input and output, however, this adapter currently only supports sqlite-based OSW files.
 
 <B>The command line parameters of this tool are:</B>
 @verbinclude TOPP_PyProphetAdapter.cli
@@ -257,7 +256,7 @@ protected:
     return out;
   }
 
-  // --- Inference Contenxt --------------------------------------
+  // --- Inference Context --------------------------------------
 
   // Context to estimate peptide-level FDR control.
   enum class Context
@@ -605,14 +604,13 @@ protected:
 
     // Output
     String out = getStringOption_("out");
-    if (out.empty() && in_list.size() == 1) out = in_list.front(); // in-place scoring by default
+    if (out.empty() && in_list.size() == 1) out = in_list.front(); // in-place scoring by default, non-destructive
     if (out.empty())
     {
       writeLogError_("Multiple inputs provided but no -out given.");
       return ILLEGAL_PARAMETERS;
     }
 
-    // Enforce OSW -> OSW
     FileTypes::Type out_type = FileHandler::getTypeByFileName(out);
     if (out_type == FileTypes::UNKNOWN) out_type = FileTypes::OSW;
     if (out_type != FileTypes::OSW)
@@ -654,7 +652,7 @@ protected:
 
     const String log_level = getStringOption_("log_level");
     const bool dry_run = getFlag_("dry_run");
-    const int threads = getIntOption_("threads"); // provided by TOPPBase common option
+    const int threads = getIntOption_("threads");
 
     // Parse & validate levels (CSV -> enum vector)
     String error_msg;
@@ -737,7 +735,6 @@ protected:
           args.emplace_back("--ss_scale_features");
         }
 
-        // Existing passthrough
         {
           const vector<String> extra = tokenize_args_(getStringOption_("score:extra"));
           for (const auto& e : extra) args.emplace_back(e);
@@ -898,7 +895,7 @@ protected:
         args.emplace_back("--format"); args.emplace_back(fmt);
         args.emplace_back("--in");  args.emplace_back(out);
         args.emplace_back("--out"); args.emplace_back(out_path);
-        args.emplace_back("--max_rs_peakgroup_qvalue"); args.emplace_back(String(max_q));
+        args.emplace_back("--max_rs_peakgroup_qvalue"); args.emplace_back(max_q);
 
         writeLogInfo_("====== Exporting Small Molecules TSV (" + fmt + ") ===========================================");
         if (dry_run) writeLogInfo_("DRY-RUN: " + exe + " " + join_cmd_(exe, args));
