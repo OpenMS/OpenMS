@@ -89,6 +89,10 @@ OPENMS_FINDBINARY(LUCIPHOR_BINARY "luciphor2.jar" "LuciPHOr2")
 OPENMS_FINDBINARY(COMET_ADAPTER_BINARY "CometAdapter" "CometAdapter")
 
 #------------------------------------------------------------------------------
+# PyProphet
+OPENMS_FINDBINARY(PYPROPHET_BINARY "pyprophet;pyprophet.exe" "PyProphet")
+
+#------------------------------------------------------------------------------
 ## optional tests
 #------------------------------------------------------------------------------
 
@@ -286,3 +290,13 @@ if (NOT (${LUCIPHOR_BINARY} STREQUAL "LUCIPHOR_BINARY-NOTFOUND"))
   set_tests_properties("TOPP_LuciphorAdapter_1_out1" PROPERTIES DEPENDS "TOPP_LuciphorAdapter_1")
 endif()
 
+#------------------------------------------------------------------------------
+if (NOT (${PYPROPHET_BINARY} STREQUAL "PYPROPHET_BINARY-NOTFOUND"))
+  ### NOT needs to be added after the binarys have been included
+  add_test("TOPP_PyProphetAdapter_1" ${TOPP_BIN_PATH}/PyProphetAdapter -in ${DATA_DIR_TOPP}/THIRDPARTY/PyProphetAdapter.osw -out PyProphetAdapter_out1.tmp.osw -scoring:run_score true -scoring:classifier SVM -scoring:extra "+--test +--pi0_lambda=0 0 0" -infer:run_peptide true -infer:run_protein false -infer:context global -export:score_report false -export:run_tsv true -export:run_matrix true -pyprophet_executable "${PYPROPHET_BINARY}")
+  add_test("TOPP_PyProphetAdapter_1_out1" ${DIFF} -in1 PyProphetAdapter_out1.tmp.tsv -in2 ${DATA_DIR_TOPP}/THIRDPARTY/PyProphetAdapter_out1.tsv)
+  set_tests_properties("TOPP_PyProphetAdapter_1_out1" PROPERTIES DEPENDS "TOPP_PyProphetAdapter_1")
+endif()
+## test returncode when PyProphet not found:
+add_test("TOPP_PyProphetAdapter_missing" ${TOPP_BIN_PATH}/PyProphetAdapter -in ${DATA_DIR_TOPP}/THIRDPARTY/PyProphetAdapter.osw -out PyProphetAdapter_out1.tmp.osw -pyprophet_executable "/does/not/exists/path.exe")
+set_tests_properties("TOPP_PyProphetAdapter_missing" PROPERTIES SKIP_RETURN_CODE 14) ## EXTERNAL_PROGRAM_NOTFOUND
