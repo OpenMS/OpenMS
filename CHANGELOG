@@ -51,6 +51,7 @@ TOPP tools:
   Added Tools:
     - OpenNuXL - A peptide-RNA/DNA cross-linking search engine
     - PeptideDataBaseSearchFI - Experimental peptide database search engine using a fragment index (FI) and the new PeptideSearchEngineFIAlgorithm
+    - PyProphetAdapter - Adapter tool to run PyProphet on OpenSwathWorkflow feature extraction results (idXML/osw) (#8320)
   Removed Tools:
     - OpenPepXLLF - Experimental search for cross-linked peptide pairs in tandem MS spectra (showed inferior performance in benchmarks)
 
