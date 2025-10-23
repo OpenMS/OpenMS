@@ -169,7 +169,7 @@
 
 
   @subsection example_class_files Example class files
-  In %OpenMS, every <code>.h</code> file must be accompanied by a <code>.cpp</code> file, even if is just a ''dummy''. This way a global <code>make</code> will stumble across errors.
+  In %OpenMS, every <code>.h</code> file must be accompanied by a <code>.cpp</code> file, even if is just a "dummy". This way a global <code>make</code> will stumble across errors.
 
   Here is an example of a correctly structured <code>.h</code> file:
 
@@ -512,6 +512,6 @@
   @section revision_control Revision control
   %OpenMS uses <a href="https://git-scm.com/">git</a> to manage different versions of the source files. For easier identification of the responsible person each %OpenMS file contains the <code>$Maintainer:$</code> string in the preamble.
 
-  Examples of <code>.h</code> and <code>.cpp</code> files have been given above. In non-C++ files (<code>CMake</code> files, (La)TeX-Files, etc.) the C++ comments are replaced by the respective comment characters (e.g. ``#'' for <code>CMake</code> files, % for (La)TeX).
+  Examples of <code>.h</code> and <code>.cpp</code> files have been given above. In non-C++ files (<code>CMake</code> files, (La)TeX-Files, etc.) the C++ comments are replaced by the respective comment characters (e.g. `#` for <code>CMake</code> files, % for (La)TeX).
 
 */
