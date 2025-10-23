@@ -8,8 +8,37 @@
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <clocale>
+#include <cstring>
 
 namespace OpenMS::Internal
 {
-  const char * OpenMS_locale = setlocale(LC_ALL, "C");  
+  // Helper function to initialize OpenMS locale while preserving the environment locale
+  // This is important for Python bindings to not affect Python's locale settings
+  const char* initializeOpenMSLocale()
+  {
+    // Save the current locale
+    const char* current_locale = setlocale(LC_ALL, nullptr);
+    char* saved_locale = nullptr;
+    if (current_locale != nullptr)
+    {
+      // Make a copy of the current locale string since setlocale may overwrite it
+      saved_locale = new char[strlen(current_locale) + 1];
+      strcpy(saved_locale, current_locale);
+    }
+    
+    // Set locale to "C" for OpenMS operations and store the result
+    const char* c_locale = setlocale(LC_ALL, "C");
+    
+    // Restore the original locale to avoid affecting the calling environment
+    if (saved_locale != nullptr)
+    {
+      setlocale(LC_ALL, saved_locale);
+      delete[] saved_locale;
+    }
+    
+    // Return "C" which OpenMS will use internally
+    return c_locale;
+  }
+  
+  const char * OpenMS_locale = initializeOpenMSLocale();  
 } // OpenMS // Internal
