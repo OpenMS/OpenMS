@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <memory>
+#include <random>
 #include <set>
 
 #include "OpenMS/CONCEPT/Exception.h"
@@ -78,15 +79,32 @@ namespace OpenMS {
    * Donor.
    */
   struct Acceptor : Peak {
-    std::vector<Donor> donors;
+    /// Type used when searching for a matching Acceptor.
+    using match_t = std::optional<std::pair<double, Acceptor*>>;
 
+    /// Type used for tracking targets and decoys.
+    using scored_t = std::optional<std::pair<double, const Donor*>>;
+
+    /// Possible target Donor.
+    scored_t target;
+
+    /// Constructor.
     Acceptor(const Peak& peak)
     : Peak(peak.file_name,
            peak.map_index,
            peak.feature)
     {};
 
-    bool maybe_add_donor(const Donor& donor, const Window& window);
+    /// Check if a Donor matches this Acceptor.
+    bool is_donor_compatible(const Donor&, const Window&) const;
+
+    /// Update a target or decoy slot.
+    template <typename Member>
+    void update_donor(Member, const scored_t&);
+
+    /// Update a target or decoy slot.
+    template <typename Member>
+    void update_donor(Member, const match_t&, const Donor&);
   };
 
   /****************************************************************************/
@@ -144,28 +162,22 @@ namespace OpenMS {
    */
   class PipEchoImpl {
   public:
-
     /// Construct a new implementation object.
     PipEchoImpl(const Param& params);
 
     /// Separate donors from acceptors.
-    void partition_features(const std::vector<FeatureMap>& maps,
-                            DonorMap& donors,
-                            AcceptorMap& acceptors);
+    void partition_features(const std::vector<FeatureMap>&,
+                            DonorMap&, AcceptorMap&);
 
     /// Match identified features with unidentified features.
-    void link_donors_and_acceptors(const DonorMap& donors,
-                                   AcceptorMap& acceptors);
+    void link_donors_and_acceptors(const DonorMap&, AcceptorMap&);
 
     /// Search for a matching acceptor.
-    std::size_t find_acceptors_for(const AcceptorMap& acceptors,
-                                   const Donor& donor,
-                                   const Window& window);
+    Acceptor::match_t
+    find_acceptor_for(const AcceptorMap&, const Donor&, const Window&);
 
     /// Fill in the final ConsensusMap.
-    void generate_consensus_map(DonorMap& donors,
-                                AcceptorMap& acceptor,
-                                ConsensusMap& consensus_map);
+    void generate_consensus_map(DonorMap&, AcceptorMap&, ConsensusMap&);
   public:
     /// Max allowed m/z difference between donor and acceptor.
     double mz_dal_max_diff;
@@ -174,11 +186,11 @@ namespace OpenMS {
     double rt_sec_max_window;
 
   private:
-    std::string path_from_feature_map(const FeatureMap& map);
-    bool is_donor_feature(const Feature& feature);
+    std::string path_from_feature_map(const FeatureMap&);
+    bool is_donor_feature(const Feature&);
 
     std::optional<Window> initial_window();
-    std::optional<Window> next_window(const std::optional<Window>& prev);
+    std::optional<Window> next_window(const std::optional<Window>&);
   };
 
   /****************************************************************************/
@@ -334,9 +346,12 @@ namespace OpenMS {
       for (auto window=initial_window(); window.has_value();
            window = next_window(window))
         {
-          auto targets = find_acceptors_for(acceptors, donor, *window);
+          auto target = find_acceptor_for(acceptors, donor, *window);
+          if (target.has_value()) {
+            target->second->update_donor(&Acceptor::target, target, donor);
+          }
 
-          if (targets > 0) {
+          if (target) {
             // FIXME: create decoys and open window only when there
             // are no decoys and no targets.
             break;
@@ -346,18 +361,27 @@ namespace OpenMS {
   }
 
   /****************************************************************************/
-  /// Find an acceptor for the given donor, and then link the donor
-  /// and acceptor together.
-  std::size_t PipEchoImpl::find_acceptors_for(const AcceptorMap& acceptors,
-                                              const Donor& donor,
-                                              const Window& window)
+  /// Find an acceptor for the given donor.
+  Acceptor::match_t
+  PipEchoImpl::find_acceptor_for(const AcceptorMap& acceptors,
+                                 const Donor& donor,
+                                 const Window& window)
   {
-    std::size_t acceptors_added{};
+    Acceptor::match_t best_match;
+
+    // FIXME: Remove these later.
+    std::random_device randev;
+    std::mt19937 randgen(randev());
 
     auto check_bucket = [&](AcceptorMap::grid_t::const_grid_iterator bucket) {
       for (auto& acceptor : bucket->second) {
-        if (acceptor.second->maybe_add_donor(donor, window)) {
-          ++acceptors_added;
+        if (acceptor.second->is_donor_compatible(donor, window)) {
+          // FIXME: Fake score given here!
+          double score = std::generate_canonical<double, 10>(randgen);
+
+          if (!best_match.has_value() || best_match->first < score) {
+            best_match = {score, acceptor.second};
+          }
         }
       }
     };
@@ -389,7 +413,7 @@ namespace OpenMS {
       }
     }
 
-    return acceptors_added;
+    return best_match;
   }
 
   /****************************************************************************/
@@ -416,11 +440,10 @@ namespace OpenMS {
     std::size_t acceptors_added{};
 
     // Now place the acceptors in there too.
-    for (auto& acceptor : acceptors.grid) {
-      if (!acceptor.second->donors.empty()) {
-        // FIXME: Only taking the first donor for now.
+    for (auto& acceptor : acceptors.storage) {
+      if (acceptor->target.has_value()) {
         ++acceptors_added;
-        insert(acceptor.second->donors[0], *acceptor.second);
+        insert(*acceptor->target->second, *acceptor);
       }
     }
 
@@ -450,18 +473,35 @@ namespace OpenMS {
   }
 
   /****************************************************************************/
-  /// Link a donor and acceptor if they match one another.
-  bool Acceptor::maybe_add_donor(const Donor& donor, const Window& window) {
-    if (donor.file_name != this->file_name &&
-        donor.feature.getCharge() == this->feature.getCharge() &&
-        std::fabs(donor.feature.getRT() - this->feature.getRT()) <= window.rt_tol &&
-        std::fabs(donor.feature.getMZ() - this->feature.getMZ()) <= window.mz_tol)
-      {
-        this->donors.push_back(donor);
-        return true;
-      }
+  /// Return `true` if the given Donor is compatible with this Acceptor.
+  bool Acceptor::is_donor_compatible(const Donor& donor, const Window& window) const {
+    return donor.file_name != this->file_name &&
+           donor.feature.getCharge() == this->feature.getCharge() &&
+           std::fabs(donor.feature.getRT() - this->feature.getRT()) <= window.rt_tol &&
+           std::fabs(donor.feature.getMZ() - this->feature.getMZ()) <= window.mz_tol;
+  }
 
-    return false;
+  /****************************************************************************/
+  /// Update the `target` or `decoy` members if the given Donor has a
+  /// higher score.
+  template <typename Member>
+  void Acceptor::update_donor(Member slot, const Acceptor::scored_t& donor) {
+    if (!donor.has_value()) return;
+
+    if (!(this->*slot).has_value() || (this->*slot)->first < donor->first) {
+      this->*slot = donor;
+    }
+  }
+
+  /****************************************************************************/
+  /// Helper to convert from a found Acceptor to a scored Donor.
+  template <typename Member>
+  void Acceptor::update_donor(Member slot,
+                              const Acceptor::match_t& match,
+                              const Donor& donor)
+  {
+    if (!match.has_value()) return;
+    this->update_donor(slot, std::make_pair(match->first, &donor));
   }
 
   /****************************************************************************/
