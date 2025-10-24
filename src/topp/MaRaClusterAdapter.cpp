@@ -464,12 +464,50 @@ protected:
         return exit_code;
       }
 
-      // sort mzML
+      // Load and merge all part files (MaRaCluster can create multiple part files)
       FileHandler fh;
       FileTypes::Type in_type = fh.getType(consensus_out);
-      OPENMS_LOG_DEBUG << "Input type" << FileTypes::typeToName(in_type) << ". " << std::endl;
+      OPENMS_LOG_DEBUG << "Input type: " << FileTypes::typeToName(in_type) << std::endl;
+      
       PeakMap exp;
-      fh.loadExperiment(FileHandler::stripExtension(consensus_out) + ".part1." + FileTypes::typeToName(in_type), exp, {in_type}, log_type_, true, true);
+      String base_name = FileHandler::stripExtension(consensus_out);
+      String extension = FileTypes::typeToName(in_type);
+      
+      // Find all part files (part1, part2, part3, ...)
+      Int part_idx = 1;
+      bool found_parts = false;
+      while (true)
+      {
+        String part_file = base_name + ".part" + String(part_idx) + "." + extension;
+        if (File::exists(part_file))
+        {
+          OPENMS_LOG_INFO << "Loading consensus spectra from " << part_file << std::endl;
+          PeakMap part_exp;
+          fh.loadExperiment(part_file, part_exp, {in_type}, log_type_, true, true);
+          
+          // Merge spectra from this part into the main experiment
+          for (const auto& spectrum : part_exp)
+          {
+            exp.addSpectrum(spectrum);
+          }
+          found_parts = true;
+          ++part_idx;
+        }
+        else
+        {
+          break;
+        }
+      }
+      
+      if (!found_parts)
+      {
+        throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          base_name + ".part1." + extension);
+      }
+      
+      OPENMS_LOG_INFO << "Merged " << (part_idx - 1) << " part file(s) with a total of " 
+                      << exp.size() << " consensus spectra" << std::endl;
+      
       exp.sortSpectra();
       fh.storeExperiment(consensus_out, exp, {FileTypes::MZML}, log_type_);
     }
