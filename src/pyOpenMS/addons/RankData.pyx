@@ -62,20 +62,20 @@ cdef int _parse_method(object m):
     if isinstance(m, (int, np.integer)):
         return int(m)
     s = str(m).lower()
-    if s == "average": return RANKDATA_AVERAGE
-    if s == "min":     return RANKDATA_MIN
-    if s == "max":     return RANKDATA_MAX
-    if s == "dense":   return RANKDATA_DENSE
-    if s == "ordinal": return RANKDATA_ORDINAL
+    if s == "average": return <int> RANKDATA_AVERAGE
+    if s == "min":     return <int> RANKDATA_MIN
+    if s == "max":     return <int> RANKDATA_MAX
+    if s == "dense":   return <int> RANKDATA_DENSE
+    if s == "ordinal": return <int> RANKDATA_ORDINAL
     raise ValueError(f"Unknown method: {m!r}")
 
 cdef int _parse_policy(object p):
     if isinstance(p, (int, np.integer)):
         return int(p)
     s = str(p).lower()
-    if s == "propagate": return RANKDATA_PROPAGATE
-    if s == "omit":      return RANKDATA_OMIT
-    if s == "raise":     return RANKDATA_RAISE
+    if s == "propagate": return <int> RANKDATA_PROPAGATE
+    if s == "omit":      return <int> RANKDATA_OMIT
+    if s == "raise":     return <int> RANKDATA_RAISE
     raise ValueError(f"Unknown nan_policy: {p!r}")
 
 @cython.boundscheck(False)
