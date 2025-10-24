@@ -588,7 +588,7 @@ protected:
 
     for (auto it = map.begin(); it != map.end(); ++it)
     {
-      int scan_number = map.getSourceFiles().empty() ? -1 : SpectrumLookup::extractScanNumber(it->getNativeID(), map.getSourceFiles()[0].getNativeIDTypeAccession());
+      int scan_number = map.extractScanNumber(std::distance(map.begin(), it));
 
       if (scan_number < 0)
       {
