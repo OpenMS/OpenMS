@@ -25,14 +25,15 @@ const char* initializeOpenMSLocale()
     saved_locale = current_locale;
   }
 
-  // Set locale to "C" for OpenMS operations and store the result
-  const char* c_locale = setlocale(LC_ALL, "C");
+  // Set locale to "C" for OpenMS operations
+  setlocale(LC_ALL, "C");
 
   // Restore the original locale to avoid affecting the calling environment
   if (! saved_locale.empty()) { setlocale(LC_ALL, saved_locale.c_str()); }
 
   // Return "C" which OpenMS will use internally
-  return c_locale;
+  // Note: We return a string literal, not the pointer from setlocale() which may be invalidated
+  return "C";
 }
 
 const char* OpenMS_locale = initializeOpenMSLocale();
