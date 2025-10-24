@@ -209,5 +209,33 @@ namespace Math {
                                             NaNPolicy p = NaNPolicy::Propagate)
     { return rankdata<int>(a, m, p); }
   };
+
+  /// Free function overloads (by-value) for double input
+  inline std::vector<double>
+  rankdata_double(std::vector<double> a,
+                  RankData::Method m = RankData::Method::Average,
+                  RankData::NaNPolicy p = RankData::NaNPolicy::Propagate)
+  {
+    return RankData::rankdata<double>(a, m, p);
+  }
+
+  /// Free function overloads (by-value) for float input
+  inline std::vector<double>
+  rankdata_float(std::vector<float> a,
+                 RankData::Method m = RankData::Method::Average,
+                 RankData::NaNPolicy p = RankData::NaNPolicy::Propagate)
+  {
+    return RankData::rankdata<float>(a, m, p);
+  }
+
+  /// Free function overloads (by-value) for int input
+  inline std::vector<double>
+  rankdata_int(std::vector<int> a,
+               RankData::Method m = RankData::Method::Average,
+               RankData::NaNPolicy p = RankData::NaNPolicy::Propagate)
+  {
+    return RankData::rankdata<int>(a, m, p);
+  }
+
 } // namespace Math
 } // namespace OpenMS
