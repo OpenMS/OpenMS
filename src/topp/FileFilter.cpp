@@ -27,6 +27,7 @@
 #include <OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
 
 #include <algorithm>
+#include <iterator>
 #include <memory>
 
 using namespace OpenMS;
@@ -357,13 +358,13 @@ private:
 
     // RT filtering uses a half-open interval [min, max), we thus need to move last_spec a tad to the right
     double rt_u_new = last_spec->getRT();
-    if (last_spec == --exp.end())
+    if (std::next(last_spec) == exp.end())
     {// last_spec was the last spectrum in exp; we need to extend the upper RT boundary a bit to include it
       rt_u_new += 1.0;
     }
     else
     {
-      rt_u_new = (rt_u_new + (last_spec + 1)->getRT()) / 2; // take midpoint to next spectrum
+      rt_u_new = (rt_u_new + std::next(last_spec)->getRT()) / 2; // take midpoint to next spectrum
     }
 
     // reload with data and corrected rt range
