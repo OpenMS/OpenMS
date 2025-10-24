@@ -13,6 +13,7 @@
 #include "OpenMS/CONCEPT/Exception.h"
 #include "OpenMS/config.h"
 #include <OpenMS/ANALYSIS/MAPMATCHING/PipEcho.h>
+#include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/ML/CLUSTERING/HashGrid.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
@@ -88,6 +89,9 @@ namespace OpenMS {
     /// Possible target Donor.
     scored_t target;
 
+    /// Possible decoy Donor.
+    scored_t decoy;
+
     /// Constructor.
     Acceptor(const Peak& peak)
     : Peak(peak.file_name,
@@ -144,6 +148,10 @@ namespace OpenMS {
       grid.insert(std::make_pair(center, storage.back().get()));
     }
 
+    /// Explore cells near a starting point.
+    template <typename Result, typename BinaryOp>
+    Result nearby(const grid_index_t&, std::size_t, Result, BinaryOp) const;
+
     /// Remove all objects from the storage and grid.
     void clear() {
       grid.clear();
@@ -153,7 +161,7 @@ namespace OpenMS {
 
   /****************************************************************************/
   // Handy aliases.
-  using DonorMap = std::vector<Donor>;
+  using DonorMap = GridWithStorage<Donor>;
   using AcceptorMap = GridWithStorage<Acceptor>;
 
   /****************************************************************************/
@@ -174,7 +182,14 @@ namespace OpenMS {
 
     /// Search for a matching acceptor.
     Acceptor::match_t
-    find_acceptor_for(const AcceptorMap&, const Donor&, const Window&);
+    find_acceptor_for(const AcceptorMap&,
+                      const Donor&,
+                      const Window&,
+                      const std::optional<double> = {});
+
+    /// Find a random Donor that is dissimilar to a given Donor.
+    std::optional<const Donor*>
+    find_random_donor(const DonorMap&, const Donor&, const Window&) const;
 
     /// Fill in the final ConsensusMap.
     void generate_consensus_map(DonorMap&, AcceptorMap&, ConsensusMap&);
@@ -245,6 +260,44 @@ namespace OpenMS {
   }
 
   /****************************************************************************/
+  template <typename T>
+  template <typename Result, typename BinaryOp>
+  Result GridWithStorage<T>::nearby(const grid_index_t& index,
+                                    std::size_t neighbors,
+                                    Result init,
+                                    BinaryOp op) const
+  {
+    // Check the cell where we expect to find the starting peak.
+    if (auto cell = this->grid.grid_find(index); cell != this->grid.grid_end()) {
+      for (auto& peak : cell->second) {
+        init = op(std::move(init), *peak.second);
+      }
+    }
+
+    if (neighbors < 1) {
+      return init;
+    }
+
+    // Check nearby cells.
+    const auto index_x = index.getX();
+    const auto index_y = index.getY();
+
+    for (auto i = index_x - neighbors; i <= index_x + neighbors; ++i) {
+      for (auto j = index_y - neighbors; j <= index_y + neighbors; ++j) {
+        const auto addr = grid_index_t(i, j);
+
+        if (auto cell = this->grid.grid_find(addr); cell != this->grid.grid_end()) {
+          for (auto& peak : cell->second) {
+            init = op(std::move(init), *peak.second);
+          }
+        }
+      }
+    }
+
+    return init;
+  }
+
+  /****************************************************************************/
   PipEcho::PipEcho()
   : FeatureGroupingAlgorithm()
   {
@@ -272,7 +325,6 @@ namespace OpenMS {
   PipEcho::~PipEcho() = default;
 
   /****************************************************************************/
-  /// Execute the PIP-ECHO algorithm.
   void PipEcho::group(
     const std::vector<FeatureMap>& feature_maps,
     ConsensusMap& consensus_map
@@ -280,7 +332,7 @@ namespace OpenMS {
   {
     PipEchoImpl impl(param_);
     AcceptorMap acceptors({impl.rt_sec_max_window, impl.mz_dal_max_diff});
-    DonorMap donors;
+    DonorMap donors({impl.rt_sec_max_window, impl.mz_dal_max_diff});
 
     impl.partition_features(feature_maps, donors, acceptors);
     impl.link_donors_and_acceptors(donors, acceptors);
@@ -308,14 +360,19 @@ namespace OpenMS {
   }
 
   /****************************************************************************/
-  /// Separate donors and acceptors.
   void PipEchoImpl::partition_features(const std::vector<FeatureMap>& maps,
                                        DonorMap& donors,
                                        AcceptorMap& acceptors)
   {
     std::size_t num_maps = maps.size();
 
+    auto logger = ProgressLogger();
+    logger.setLogType(ProgressLogger::CMD);
+    logger.startProgress(0, num_maps, "building maps");
+
     for (std::size_t i=0; i<num_maps; ++i) {
+      logger.setProgress(i);
+
       const FeatureMap& map = maps[i];
       std::string file_name = path_from_feature_map(map);
 
@@ -329,95 +386,170 @@ namespace OpenMS {
         Peak peak(file_name, i, feature);
 
         if (is_donor_feature(feature)) {
-          donors.push_back(Donor(peak));
+          donors.insert(Donor(peak));
         } else {
           acceptors.insert(peak);
         }
       }
     }
+
+    logger.endProgress();
   }
 
   /****************************************************************************/
-  /// Link matching donors and acceptors.
   void PipEchoImpl::link_donors_and_acceptors(const DonorMap& donors,
                                               AcceptorMap& acceptors)
   {
-    for (auto& donor : donors) {
+    std::size_t progress{};
+    auto logger = ProgressLogger();
+
+    logger.setLogType(ProgressLogger::CMD);
+    logger.startProgress(0, donors.storage.size(),
+                         "matching donors and acceptors");
+
+    for (auto& donor : donors.storage) {
+      logger.setProgress(++progress);
+
       for (auto window=initial_window(); window.has_value();
            window = next_window(window))
         {
-          auto target = find_acceptor_for(acceptors, donor, *window);
+          const auto target = find_acceptor_for(acceptors, *donor, *window);
           if (target.has_value()) {
-            target->second->update_donor(&Acceptor::target, target, donor);
+            target->second->update_donor(&Acceptor::target, target, *donor);
           }
 
-          if (target) {
-            // FIXME: create decoys and open window only when there
-            // are no decoys and no targets.
-            break;
+          const auto random_donor = find_random_donor(donors, *donor, *window);
+          Acceptor::match_t decoy = {}; // No std::optional::and_then in C++ 20 :(
+
+          if (random_donor.has_value()) {
+            decoy = find_acceptor_for(acceptors,
+                                      *donor,
+                                      *window,
+                                      (*random_donor)->feature.getRT());
+
+            if (decoy.has_value()) {
+              decoy->second->update_donor(&Acceptor::decoy, decoy, *donor);
+            }
+          }
+
+          if (target.has_value() || decoy.has_value()) {
+            break; // We can stop searching.
           }
         }
     }
+
+    logger.endProgress();
   }
 
   /****************************************************************************/
-  /// Find an acceptor for the given donor.
   Acceptor::match_t
   PipEchoImpl::find_acceptor_for(const AcceptorMap& acceptors,
                                  const Donor& donor,
-                                 const Window& window)
+                                 const Window& window,
+                                 const std::optional<double> rt_override)
   {
-    Acceptor::match_t best_match;
-
     // FIXME: Remove these later.
     std::random_device randev;
     std::mt19937 randgen(randev());
 
-    auto check_bucket = [&](AcceptorMap::grid_t::const_grid_iterator bucket) {
-      for (auto& acceptor : bucket->second) {
-        if (acceptor.second->is_donor_compatible(donor, window)) {
+    // FIXME: What does the paper say about finding acceptor peaks?
+    // In FlashLFQ they do some weird envelope cutting and don't use
+    // the actual found peak (FindIndividualAcceptorPeak).
+    const double rt = rt_override.value_or(donor.feature.getRT());
+    const AcceptorMap::grid_center_t center(rt, donor.feature.getMZ());
+    const AcceptorMap::grid_index_t index = acceptors.grid.cellIndexAtClusterCenter(center);
+
+    return acceptors.nearby(
+      index, window.grid_neighbors, Acceptor::match_t{},
+      [&](Acceptor::match_t best_match, Acceptor& acceptor) -> Acceptor::match_t {
+        if (acceptor.is_donor_compatible(donor, window)) {
           // FIXME: Fake score given here!
           double score = std::generate_canonical<double, 10>(randgen);
 
           if (!best_match.has_value() || best_match->first < score) {
-            best_match = {score, acceptor.second};
+            return std::make_pair(score, &acceptor);
           }
         }
-      }
-    };
 
-    AcceptorMap::grid_center_t center(donor.feature.getRT(), donor.feature.getMZ());
-    const AcceptorMap::grid_index_t index = acceptors.grid.cellIndexAtClusterCenter(center);
-
-    // Check the cell where we expect to find the acceptor.
-    if (auto cell = acceptors.grid.grid_find(index);
-        cell != acceptors.grid.grid_end())
-      {
-        check_bucket(cell);
-      }
-
-    // Check nearby cells.
-    const auto index_x = index.getX();
-    const auto index_y = index.getY();
-    const auto offset = window.grid_neighbors;
-
-    for (auto i = index_x - offset; i <= index_x + offset; ++i) {
-      for (auto j = index_y - offset; j <= index_y + offset; ++j) {
-        const auto addr = AcceptorMap::grid_index_t(i, j);
-
-        if (auto cell = acceptors.grid.grid_find(addr);
-            cell != acceptors.grid.grid_end())
-          {
-            check_bucket(cell);
-          }
-      }
-    }
-
-    return best_match;
+        return best_match;
+      });
   }
 
   /****************************************************************************/
-  /// Turn our internal data structures into a ConsensusMap.
+  std::optional<const Donor*>
+  PipEchoImpl::find_random_donor(const DonorMap& donors,
+                                 const Donor& start,
+                                 const Window& window) const
+  {
+    /// FIXME: Is this mass calculation good enough?
+    const auto mass = [](const Donor& donor) -> double {
+      return (donor.feature.getMZ() - Constants::PROTON_MASS_U) *
+             donor.feature.getCharge();
+    };
+
+    /// FIXME: Is this sequence calculation good enough?
+    /// FIXME: What is a "Base Sequence"?
+    const auto base_seq = [](const Donor& donor) -> std::string {
+      const auto hit(feature_hit(donor.feature));
+      assert(hit.has_value());
+      return hit->getSequence().toUnmodifiedString();
+    };
+
+    const double mass_min_diff = 5.0 * Constants::PROTON_MASS_U;
+    const double mass_max_diff = 11.0 * Constants::PROTON_MASS_U;
+    const double rt_min_diff = window.rt_tol * 2.0;  // FIXME: Is this okay?
+
+    const double start_mass = mass(start);
+    const double start_rt = start.feature.getRT();
+    const std::string start_seq = base_seq(start);
+
+    std::vector<const Donor*> matching_donors;
+
+    auto explore = [&](double distance, Donor& donor) -> double {
+      const double mass_diff = std::fabs(start_mass - mass(donor));
+      const double rt_diff = std::fabs(start_rt - donor.feature.getRT());
+
+      if (rt_diff > rt_min_diff &&
+          mass_diff > mass_min_diff &&
+          mass_diff < mass_max_diff &&
+          start_seq != base_seq(donor))
+        {
+          matching_donors.push_back(&donor);
+        }
+
+      return std::max(distance, mass_diff);
+    };
+
+    double cur_max_mass_diff = mass_max_diff;
+    std::size_t neighbors = window.grid_neighbors;
+
+    const DonorMap::grid_center_t center(start.feature.getRT(), start.feature.getMZ());
+    const DonorMap::grid_index_t index = donors.grid.cellIndexAtClusterCenter(center);
+
+    do {
+      const double distance = donors.nearby(index, neighbors, 0, explore);
+
+      // Adjust search params for next round.
+      if (distance < cur_max_mass_diff) {
+        // We're not exploring far enough.
+        ++neighbors;
+      } else {
+        // We need to increase our tolerance.
+        cur_max_mass_diff *= 10;
+      }
+    } while (matching_donors.empty() &&
+             cur_max_mass_diff < 1e5 &&
+             neighbors < 5);
+
+    if (!matching_donors.empty()) {
+      std::srand(std::time(nullptr));
+      return matching_donors[std::rand() % matching_donors.size()];
+    }
+
+    return {};
+  }
+
+  /****************************************************************************/
   void PipEchoImpl::generate_consensus_map(DonorMap& donors,
                                            AcceptorMap& acceptors,
                                            ConsensusMap& consensus_map)
@@ -433,11 +565,11 @@ namespace OpenMS {
     };
 
     // Place each donor into the identity map.
-    for (auto& donor : donors) {
-      insert(donor, donor);
+    for (auto& donor : donors.storage) {
+      insert(*donor, *donor);
     }
 
-    std::size_t acceptors_added{};
+    std::size_t acceptors_added{}, decoys_seen{};
 
     // Now place the acceptors in there too.
     for (auto& acceptor : acceptors.storage) {
@@ -445,11 +577,13 @@ namespace OpenMS {
         ++acceptors_added;
         insert(*acceptor->target->second, *acceptor);
       }
+      if (acceptor->decoy.has_value()) ++decoys_seen;
     }
 
     OPENMS_LOG_INFO
       << "PIP-ECHO: added "
-      << acceptors_added << " acceptors to the consensus_map"
+      << acceptors_added << " acceptors to the consensus_map with "
+      << decoys_seen << " decoys seen"
       << std::endl;
 
     // Don't need this anymore.
@@ -473,7 +607,6 @@ namespace OpenMS {
   }
 
   /****************************************************************************/
-  /// Return `true` if the given Donor is compatible with this Acceptor.
   bool Acceptor::is_donor_compatible(const Donor& donor, const Window& window) const {
     return donor.file_name != this->file_name &&
            donor.feature.getCharge() == this->feature.getCharge() &&
@@ -482,8 +615,6 @@ namespace OpenMS {
   }
 
   /****************************************************************************/
-  /// Update the `target` or `decoy` members if the given Donor has a
-  /// higher score.
   template <typename Member>
   void Acceptor::update_donor(Member slot, const Acceptor::scored_t& donor) {
     if (!donor.has_value()) return;
@@ -494,7 +625,6 @@ namespace OpenMS {
   }
 
   /****************************************************************************/
-  /// Helper to convert from a found Acceptor to a scored Donor.
   template <typename Member>
   void Acceptor::update_donor(Member slot,
                               const Acceptor::match_t& match,
@@ -505,7 +635,6 @@ namespace OpenMS {
   }
 
   /****************************************************************************/
-  /// Extract a single file path from a FeatureMap.
   std::string PipEchoImpl::path_from_feature_map(const FeatureMap& map) {
     StringList paths;
     map.getPrimaryMSRunPath(paths);
@@ -524,13 +653,11 @@ namespace OpenMS {
   }
 
   /****************************************************************************/
-  /// Return `true` if the given Feature is a donor.
   bool PipEchoImpl::is_donor_feature(const Feature& feature) {
     return feature_hit(feature).has_value();
   }
 
   /****************************************************************************/
-  /// Return a starting window for feature searching.
   std::optional<Window> PipEchoImpl::initial_window() {
     return Window{
       rt_sec_max_window,
@@ -539,7 +666,6 @@ namespace OpenMS {
   }
 
   /****************************************************************************/
-  /// Increment the given window.
   std::optional<Window> PipEchoImpl::next_window(const std::optional<Window>& prev) {
     if (prev && prev->rt_tol <= rt_sec_max_window && prev->grid_neighbors < 3) {
       Window next(*prev);
