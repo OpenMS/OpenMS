@@ -4,14 +4,19 @@ from libcpp.vector cimport vector as libcpp_vector
 import numpy as np
 cimport cython
 
-# Prefer cimport to share a single declaration source:
-from pyopenms.rankdata cimport (  # adjust module path to your pxd
-    RANKDATA_AVERAGE, RANKDATA_MIN, RANKDATA_MAX,
-    RANKDATA_DENSE, RANKDATA_ORDINAL,
-    RANKDATA_PROPAGATE, RANKDATA_OMIT, RANKDATA_RAISE
-)
+# Pull the scoped-enum constants straight from the header
+cdef extern from "<OpenMS/MATH/STATISTICS/RankData.h>" namespace "OpenMS::Math":
+    cdef const int RANKDATA_AVERAGE   "OpenMS::Math::RankData::Method::Average"
+    cdef const int RANKDATA_MIN       "OpenMS::Math::RankData::Method::Min"
+    cdef const int RANKDATA_MAX       "OpenMS::Math::RankData::Method::Max"
+    cdef const int RANKDATA_DENSE     "OpenMS::Math::RankData::Method::Dense"
+    cdef const int RANKDATA_ORDINAL   "OpenMS::Math::RankData::Method::Ordinal"
 
-# Inline C++ shims: take ints, cast to enum class
+    cdef const int RANKDATA_PROPAGATE "OpenMS::Math::RankData::NaNPolicy::Propagate"
+    cdef const int RANKDATA_OMIT      "OpenMS::Math::RankData::NaNPolicy::Omit"
+    cdef const int RANKDATA_RAISE     "OpenMS::Math::RankData::NaNPolicy::Raise"
+
+# Inline shims that take ints (so we don’t expose enum classes to Python)
 cdef extern from * namespace "OpenMS::Math":
     """
     #include <OpenMS/MATH/STATISTICS/RankData.h>
