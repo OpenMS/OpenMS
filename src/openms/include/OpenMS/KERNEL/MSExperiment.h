@@ -1194,6 +1194,23 @@ std::vector<MSChromatogram> extractXICs(
     const MSChromatogram calculateTIC(float rt_bin_size = 0, UInt ms_level = 1) const;
 
     /**
+      @brief Extract scan number from spectrum native ID
+      
+      This is a convenience method that extracts the scan number from a spectrum's native ID
+      using the native ID type accession from the first source file. This simplifies the common
+      pattern of: SpectrumLookup::extractScanNumber(spectrum.getNativeID(), 
+      experiment.getSourceFiles()[0].getNativeIDTypeAccession())
+      
+      @param spectrum_index Index of the spectrum in the experiment
+      
+      @return Scan number extracted from the native ID, or -1 if extraction failed or no source files available
+      
+      @note If the experiment has no source files, or the native ID type accession is not set,
+      this method will return -1. The method uses the first source file's native ID type accession.
+    */
+    Int extractScanNumber(Size spectrum_index) const;
+
+    /**
       @brief Clears all data and meta data
 
       @param clear_meta_data If @em true, all meta data is cleared in addition to the data.

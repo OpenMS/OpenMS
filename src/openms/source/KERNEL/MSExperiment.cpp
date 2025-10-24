@@ -16,6 +16,7 @@
 #include <OpenMS/KERNEL/ChromatogramPeak.h>
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/METADATA/SpectrumLookup.h>
 
 #include <algorithm>
 #include <limits>
@@ -1055,6 +1056,34 @@ namespace OpenMS
       last_drift = s.getDriftTime();
     }
     return true; // RT stable, IM changing
+  }
+
+  Int MSExperiment::extractScanNumber(Size spectrum_index) const
+  {
+    // Check if spectrum_index is valid
+    if (spectrum_index >= spectra_.size())
+    {
+      OPENMS_LOG_WARN << "Warning: Invalid spectrum index " << spectrum_index 
+                      << " in MSExperiment with " << spectra_.size() << " spectra." << std::endl;
+      return -1;
+    }
+
+    // Check if source files are available
+    if (getSourceFiles().empty())
+    {
+      OPENMS_LOG_WARN << "Warning: No source files available in MSExperiment. "
+                      << "Cannot extract scan number from native ID." << std::endl;
+      return -1;
+    }
+
+    // Get the native ID from the spectrum
+    const String& native_id = spectra_[spectrum_index].getNativeID();
+    
+    // Get the native ID type accession from the first source file
+    const String& native_id_type_accession = getSourceFiles()[0].getNativeIDTypeAccession();
+
+    // Extract and return the scan number
+    return SpectrumLookup::extractScanNumber(native_id, native_id_type_accession);
   }
 
   MSExperiment::SpectrumType* MSExperiment::createSpec_(PeakType::CoordinateType rt)

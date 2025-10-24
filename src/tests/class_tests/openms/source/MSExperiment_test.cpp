@@ -2955,6 +2955,65 @@ START_SECTION((Backward compatibility tests))
 }
 END_SECTION
 
+START_SECTION((Int extractScanNumber(Size spectrum_index) const))
+{
+  MSExperiment exp;
+  
+  // Test with no source files - should return -1
+  MSSpectrum spec;
+  spec.setNativeID("scan=42");
+  exp.addSpectrum(spec);
+  TEST_EQUAL(exp.extractScanNumber(0), -1);
+  
+  // Test with source file and valid native ID
+  exp.clear(true);
+  SourceFile sf;
+  sf.setNativeIDTypeAccession("MS:1000768"); // Thermo nativeID format
+  std::vector<SourceFile> source_files;
+  source_files.push_back(sf);
+  exp.setSourceFiles(source_files);
+  
+  spec.setNativeID("scan=42");
+  exp.addSpectrum(spec);
+  TEST_EQUAL(exp.extractScanNumber(0), 42);
+  
+  // Test with different scan number
+  MSSpectrum spec2;
+  spec2.setNativeID("scan=100");
+  exp.addSpectrum(spec2);
+  TEST_EQUAL(exp.extractScanNumber(1), 100);
+  
+  // Test with invalid spectrum index
+  TEST_EQUAL(exp.extractScanNumber(10), -1);
+  
+  // Test with WIFF nativeID format
+  exp.clear(true);
+  SourceFile sf2;
+  sf2.setNativeIDTypeAccession("MS:1000770"); // WIFF nativeID format
+  std::vector<SourceFile> source_files2;
+  source_files2.push_back(sf2);
+  exp.setSourceFiles(source_files2);
+  
+  MSSpectrum spec3;
+  spec3.setNativeID("sample=1 period=1 cycle=42 experiment=1");
+  exp.addSpectrum(spec3);
+  TEST_EQUAL(exp.extractScanNumber(0), 42001); // cycle * 1000 + experiment
+  
+  // Test with index-based native ID format
+  exp.clear(true);
+  SourceFile sf3;
+  sf3.setNativeIDTypeAccession("MS:1000774"); // no nativeID format
+  std::vector<SourceFile> source_files3;
+  source_files3.push_back(sf3);
+  exp.setSourceFiles(source_files3);
+  
+  MSSpectrum spec4;
+  spec4.setNativeID("index=41");
+  exp.addSpectrum(spec4);
+  TEST_EQUAL(exp.extractScanNumber(0), 42); // index + 1
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
