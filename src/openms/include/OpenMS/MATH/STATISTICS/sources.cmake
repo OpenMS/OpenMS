@@ -10,6 +10,7 @@ GumbelDistributionFitter.h
 GumbelMaxLikelihoodFitter.h
 Histogram.h
 PosteriorErrorProbabilityModel.h
+RankData.h
 )
 
 ### add path to the filenames

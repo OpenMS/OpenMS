@@ -298,6 +298,7 @@ set(math_executables_list
   NonNegativeLeastSquaresSolver_test
   PosteriorErrorProbabilityModel_test
   QuadraticRegression_test
+  RankData_test
   RANSAC_test
   RANSACModel_test
   RANSACModelLinear_test
