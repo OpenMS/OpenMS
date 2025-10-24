@@ -1,5 +1,8 @@
 
 
+# -*- coding: utf-8 -*-
+# cython: language_level=3
+
 from libcpp.vector cimport vector as libcpp_vector
 import numpy as np
 cimport cython
@@ -16,7 +19,7 @@ cdef extern from "<OpenMS/MATH/STATISTICS/RankData.h>" namespace "OpenMS::Math":
     cdef const int RANKDATA_OMIT      "OpenMS::Math::RankData::NaNPolicy::Omit"
     cdef const int RANKDATA_RAISE     "OpenMS::Math::RankData::NaNPolicy::Raise"
 
-# Inline shims that take ints (so we don’t expose enum classes to Python)
+# Inline shims that take ints (so we don't expose enum classes to Python)
 cdef extern from * namespace "OpenMS::Math":
     """
     #include <OpenMS/MATH/STATISTICS/RankData.h>
