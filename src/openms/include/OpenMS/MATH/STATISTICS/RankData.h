@@ -197,23 +197,17 @@ namespace Math {
     static std::vector<double> rankdata_double(const std::vector<double>& a,
                                                Method m = Method::Average,
                                                NaNPolicy p = NaNPolicy::Propagate)
-    {
-      return rankdata<double>(a, m, p);
-    }
+    { return rankdata<double>(a, m, p); }
 
     static std::vector<double> rankdata_float(const std::vector<float>& a,
                                               Method m = Method::Average,
                                               NaNPolicy p = NaNPolicy::Propagate)
-    {
-      return rankdata<float>(a, m, p);
-    }
+    { return rankdata<float>(a, m, p); }
 
     static std::vector<double> rankdata_int(const std::vector<int>& a,
                                             Method m = Method::Average,
                                             NaNPolicy p = NaNPolicy::Propagate)
-    {
-      return rankdata<int>(a, m, p);
-    }
+    { return rankdata<int>(a, m, p); }
   };
 } // namespace Math
 } // namespace OpenMS
