@@ -126,8 +126,7 @@ namespace OpenMS
         const MSSpectrum& current_ms2 = spectra[ind];
         const double& current_rt = current_ms2.getRT();
 
-        const String& native_id = current_ms2.getNativeID();
-        const int& scan_number = SpectrumLookup::extractScanNumber(native_id, ainfo.native_id_accession);
+        const int& scan_number = spectra.extractScanNumber(ind);
 
         const std::vector<Precursor> &precursor = current_ms2.getPrecursors();
 
