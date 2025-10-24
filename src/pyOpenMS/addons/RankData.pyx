@@ -4,51 +4,75 @@ from libcpp.vector cimport vector as libcpp_vector
 import numpy as np
 cimport cython
 
-# Directly declare the C++ API we need. No cimport from pyopenms.pyopenms.
+# We still want the constant values (correctly qualified)
 cdef extern from "<OpenMS/MATH/STATISTICS/RankData.h>" namespace "OpenMS::Math":
-    ctypedef int RankData_Method    "OpenMS::Math::RankData::Method"
-    ctypedef int RankData_NaNPolicy "OpenMS::Math::RankData::NaNPolicy"
+    cdef const int RANKDATA_AVERAGE   "OpenMS::Math::RankData::Method::Average"
+    cdef const int RANKDATA_MIN       "OpenMS::Math::RankData::Method::Min"
+    cdef const int RANKDATA_MAX       "OpenMS::Math::RankData::Method::Max"
+    cdef const int RANKDATA_DENSE     "OpenMS::Math::RankData::Method::Dense"
+    cdef const int RANKDATA_ORDINAL   "OpenMS::Math::RankData::Method::Ordinal"
 
-    # Scoped-enum constants (as ints)
-    cdef const int RANKDATA_AVERAGE   "OpenMS::Math::RankData::Average"
-    cdef const int RANKDATA_MIN       "OpenMS::Math::RankData::Min"
-    cdef const int RANKDATA_MAX       "OpenMS::Math::RankData::Max"
-    cdef const int RANKDATA_DENSE     "OpenMS::Math::RankData::Dense"
-    cdef const int RANKDATA_ORDINAL   "OpenMS::Math::RankData::Ordinal"
+    cdef const int RANKDATA_PROPAGATE "OpenMS::Math::RankData::NaNPolicy::Propagate"
+    cdef const int RANKDATA_OMIT      "OpenMS::Math::RankData::NaNPolicy::Omit"
+    cdef const int RANKDATA_RAISE     "OpenMS::Math::RankData::NaNPolicy::Raise"
 
-    cdef const int RANKDATA_PROPAGATE "OpenMS::Math::RankData::Propagate"
-    cdef const int RANKDATA_OMIT      "OpenMS::Math::RankData::Omit"
-    cdef const int RANKDATA_RAISE     "OpenMS::Math::RankData::Raise"
+# Inline wrappers that take ints and cast to enum class on the C++ side
+cdef extern from * namespace "OpenMS::Math":
+    """
+    #include <OpenMS/MATH/STATISTICS/RankData.h>
+    namespace OpenMS { namespace Math {
 
-    # Free functions taking/returning libcpp_vector (BY VALUE)
-    libcpp_vector[double] rankdata_double(libcpp_vector[double] a,
-                                          RankData_Method method,
-                                          RankData_NaNPolicy policy) except +
-    libcpp_vector[double] rankdata_float (libcpp_vector[float]  a,
-                                          RankData_Method method,
-                                          RankData_NaNPolicy policy) except +
-    libcpp_vector[double] rankdata_int   (libcpp_vector[int]    a,
-                                          RankData_Method method,
-                                          RankData_NaNPolicy policy) except +
+      inline std::vector<double>
+      rankdata_double_i(std::vector<double> a, int m, int p) {
+        return rankdata_double(
+          a,
+          static_cast<RankData::Method>(m),
+          static_cast<RankData::NaNPolicy>(p)
+        );
+      }
 
-cdef RankData_Method _parse_method(object m):
+      inline std::vector<double>
+      rankdata_float_i(std::vector<float> a, int m, int p) {
+        return rankdata_float(
+          a,
+          static_cast<RankData::Method>(m),
+          static_cast<RankData::NaNPolicy>(p)
+        );
+      }
+
+      inline std::vector<double>
+      rankdata_int_i(std::vector<int> a, int m, int p) {
+        return rankdata_int(
+          a,
+          static_cast<RankData::Method>(m),
+          static_cast<RankData::NaNPolicy>(p)
+        );
+      }
+
+    }} // namespace OpenMS::Math
+    """
+    libcpp_vector[double] rankdata_double_i(libcpp_vector[double] a, int method, int policy) except +
+    libcpp_vector[double] rankdata_float_i (libcpp_vector[float]  a, int method, int policy) except +
+    libcpp_vector[double] rankdata_int_i   (libcpp_vector[int]    a, int method, int policy) except +
+
+cdef int _parse_method(object m):
     if isinstance(m, (int, np.integer)):
-        return <RankData_Method> int(m)
+        return int(m)
     s = str(m).lower()
-    if s == "average": return <RankData_Method> RANKDATA_AVERAGE
-    if s == "min":     return <RankData_Method> RANKDATA_MIN
-    if s == "max":     return <RankData_Method> RANKDATA_MAX
-    if s == "dense":   return <RankData_Method> RANKDATA_DENSE
-    if s == "ordinal": return <RankData_Method> RANKDATA_ORDINAL
+    if s == "average": return RANKDATA_AVERAGE
+    if s == "min":     return RANKDATA_MIN
+    if s == "max":     return RANKDATA_MAX
+    if s == "dense":   return RANKDATA_DENSE
+    if s == "ordinal": return RANKDATA_ORDINAL
     raise ValueError(f"Unknown method: {m!r}")
 
-cdef RankData_NaNPolicy _parse_policy(object p):
+cdef int _parse_policy(object p):
     if isinstance(p, (int, np.integer)):
-        return <RankData_NaNPolicy> int(p)
+        return int(p)
     s = str(p).lower()
-    if s == "propagate": return <RankData_NaNPolicy> RANKDATA_PROPAGATE
-    if s == "omit":      return <RankData_NaNPolicy> RANKDATA_OMIT
-    if s == "raise":     return <RankData_NaNPolicy> RANKDATA_RAISE
+    if s == "propagate": return RANKDATA_PROPAGATE
+    if s == "omit":      return RANKDATA_OMIT
+    if s == "raise":     return RANKDATA_RAISE
     raise ValueError(f"Unknown nan_policy: {p!r}")
 
 @cython.boundscheck(False)
@@ -85,15 +109,15 @@ def _to_vec_int(arr):
     return v
 
 def rankdata(values, method="average", nan_policy="propagate", dtype="float64"):
-    cdef RankData_Method m = _parse_method(method)
-    cdef RankData_NaNPolicy p = _parse_policy(nan_policy)
+    cdef int m = _parse_method(method)
+    cdef int p = _parse_policy(nan_policy)
 
     if dtype == "float64":
-        out = rankdata_double(_to_vec_double(values), m, p)
+        out = rankdata_double_i(_to_vec_double(values), m, p)
     elif dtype == "float32":
-        out = rankdata_float(_to_vec_float(values), m, p)
+        out = rankdata_float_i(_to_vec_float(values), m, p)
     elif dtype == "int32":
-        out = rankdata_int(_to_vec_int(values), m, p)
+        out = rankdata_int_i(_to_vec_int(values), m, p)
     else:
         raise ValueError(f"Unsupported dtype: {dtype!r}")
 
