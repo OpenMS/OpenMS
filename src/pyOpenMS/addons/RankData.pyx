@@ -1,6 +1,6 @@
 
 
-from libcpp.vector cimport vector
+from libcpp.vector cimport vector as libcpp_vector
 import numpy as np
 cimport cython
 
@@ -35,7 +35,7 @@ cdef RankData_NaNPolicy _parse_policy(object p):
 @cython.boundscheck(False)
 @cython.wraparound(False)
 def _to_vec_double(arr):
-    cdef vector[double] v
+    cdef libcpp_vector[double] v
     a = np.asarray(arr, dtype=float)
     cdef double[:] mv = a.ravel()
     v.reserve(mv.shape[0])
@@ -46,7 +46,7 @@ def _to_vec_double(arr):
 @cython.boundscheck(False)
 @cython.wraparound(False)
 def _to_vec_float(arr):
-    cdef vector[float] v
+    cdef libcpp_vector[float] v
     a = np.asarray(arr, dtype=float)
     cdef double[:] mv = a.ravel()
     v.reserve(mv.shape[0])
@@ -57,7 +57,7 @@ def _to_vec_float(arr):
 @cython.boundscheck(False)
 @cython.wraparound(False)
 def _to_vec_int(arr):
-    cdef vector[int] v
+    cdef libcpp_vector[int] v
     a = np.asarray(arr, dtype=int)
     cdef long[:] mv = a.ravel()
     v.reserve(mv.shape[0])
