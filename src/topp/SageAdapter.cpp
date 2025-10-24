@@ -747,13 +747,21 @@ protected:
       //opts.setMetadataOnly(true);
       m.setOptions(opts);
       m.load(mzml, exp);
-
-      for (Size idx = 0; idx < exp.size(); ++idx)
+      String nIDType = "";
+      if (!exp.getSourceFiles().empty())
       {
-        int nr = exp.extractScanNumber(idx);
+        // TODO we could also guess the regex from the first nativeID if it is not stored here
+        //  but I refuse to link to Boost::regex just for this
+        //  Someone has to rework the API first!
+        nIDType = exp.getSourceFiles()[0].getNativeIDTypeAccession();
+      }
+
+      for (const auto& spec : exp)
+      {
+        const String& nID = spec.getNativeID();
+        int nr = SpectrumLookup::extractScanNumber(nID, nIDType);
         if (nr >= 0)
         {
-          const String& nID = exp[idx].getNativeID();
           auto [it, inserted] = file2specnr2nativeid.emplace(File::basename(mzml), unordered_map<int,String>({{nr,nID}}));
           if (!inserted)
           {
