@@ -291,5 +291,9 @@ setup(
     author_email="webmaster@openms.de",
 
     ext_modules=ext,
-    include_package_data=True  # see MANIFEST.in
+    include_package_data=True,  # see MANIFEST.in
+    
+    extras_require = {
+        "pytopp": ["pyopenms-pytopp>=0.1.0"],
+    }
 )
