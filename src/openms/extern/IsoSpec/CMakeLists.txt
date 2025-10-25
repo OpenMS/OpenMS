@@ -21,13 +21,7 @@ set(_ISOSPEC_SOURCES
   operators.cpp
   element_tables.cpp
   misc.cpp
-)
-
-# export include directory
-set(ISOSPEC_INCLUDE_DIRECTORY
-  ${PROJECT_SOURCE_DIR}
-  CACHE
-  INTERNAL "isospec include directories" FORCE
+  fasta.cpp
 )
 
 set(ISOSPEC_SOURCES )
@@ -40,11 +34,30 @@ foreach(_file ${_ISOSPEC_SOURCES})
   )
 endforeach()
 
-# TODO Instead of including including the complete sources, make a library,
-#  link, install and export
-# Commented out until used
-#add_library(IsoSpec ${ISOSPEC_SOURCES})
-#target_include_directories(IsoSpec SYSTEM INTERFACE ${ISOSPEC_INCLUDE_DIRECTORY})
+# Create IsoSpec as a proper library target
+add_library(IsoSpec STATIC ${ISOSPEC_SOURCES})
+
+# Set include directories for the library
+target_include_directories(IsoSpec SYSTEM PUBLIC 
+                          "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/IsoSpec>"
+                          "$<INSTALL_INTERFACE:${INSTALL_INCLUDE_DIR}/OpenMS/thirdparty/IsoSpec>")
+
+# Apply compiler flags
+if (NOT WIN32)
+  target_compile_options(IsoSpec PRIVATE -fPIC)
+endif()
+
+# Install the library
+install_library(IsoSpec)
+openms_register_export_target(IsoSpec)
+
+# Install headers
+install(DIRECTORY ${PROJECT_SOURCE_DIR}/IsoSpec/
+  DESTINATION ${INSTALL_INCLUDE_DIR}/OpenMS/thirdparty/IsoSpec
+  COMPONENT thirdparty_headers
+  FILES_MATCHING PATTERN "*.h"
+  PATTERN "*.cpp" EXCLUDE
+)
 
 get_filename_component(ISOSPEC_FOLDER "${CMAKE_CURRENT_LIST_FILE}" PATH)
 file(APPEND ${TPLICENSEFILE} "\nIsoSpec:\n")

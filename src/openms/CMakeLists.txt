@@ -73,6 +73,8 @@ set(OPENMS_DEP_PRIVATE_LIBRARIES
   SQLiteCpp
   ZLIB::ZLIB
   nlohmann_json::nlohmann_json
+  IsoSpec
+  eol-bspline
   )
 if (ENABLE_TDL)
 set(OPENMS_DEP_PRIVATE_LIBRARIES
@@ -105,8 +107,7 @@ openms_add_library(TARGET_NAME  OpenMS
                                  ${OpenMS_configured_headers}
                    INTERNAL_INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/include
                                      ${CMAKE_CURRENT_BINARY_DIR}/include
-                   PRIVATE_INCLUDES ${EOL_BSPLINE_INCLUDE_DIRECTORY}
-                                    ${ISOSPEC_INCLUDE_DIRECTORY}
+                   PRIVATE_INCLUDES
                    EXTERNAL_INCLUDES
                    LINK_LIBRARIES OpenSwathAlgo
                                   ${OPENMS_DEP_LIBRARIES}

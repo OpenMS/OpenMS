@@ -26,8 +26,6 @@ file(WRITE ${TPLICENSEFILE} "The OpenMS library links statically to the followin
 ## internal packages (not checked if they exist externally)
 ##
 add_subdirectory(evergreen/src) # evergreen Bayesian inference library (0.9)
-add_subdirectory(eol-bspline)
-add_subdirectory(IsoSpec)
 add_subdirectory(GTE)
 add_subdirectory(Quadtree)
 
@@ -66,4 +64,22 @@ if(USE_EXTERNAL_SIMDE)
     message(STATUS "External 'SIMDe' at: '${SIMDe_INCLUDE_DIR}'")
 else()
     add_subdirectory(simde)
+endif()
+
+option(USE_EXTERNAL_ISOSPEC "Use an external IsoSpec library" OFF)
+message(STATUS "Option USE_EXTERNAL_ISOSPEC: ${USE_EXTERNAL_ISOSPEC}")
+if(USE_EXTERNAL_ISOSPEC)
+    find_package(IsoSpec REQUIRED GLOBAL)  ## global propagates the target up to the parent project
+    message(STATUS "External 'IsoSpec' at: '${IsoSpec_DIR}'")
+else()
+    add_subdirectory(IsoSpec)
+endif()
+
+option(USE_EXTERNAL_EOLBSPLINE "Use an external eol-bspline library" OFF)
+message(STATUS "Option USE_EXTERNAL_EOLBSPLINE: ${USE_EXTERNAL_EOLBSPLINE}")
+if(USE_EXTERNAL_EOLBSPLINE)
+    find_package(eol-bspline REQUIRED GLOBAL)  ## global propagates the target up to the parent project
+    message(STATUS "External 'eol-bspline' at: '${eol-bspline_DIR}'")
+else()
+    add_subdirectory(eol-bspline)
 endif()

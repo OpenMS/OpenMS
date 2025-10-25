@@ -8,8 +8,9 @@
 
 #include <OpenMS/MATH/MISC/BSpline2d.h>
 
-#include <BSpline/BSplineBase.cpp>
-#include <BSpline/BSpline.cpp>
+// Include BSpline headers (library is now linked via CMake)
+#include <BSpline/BSplineBase.h>
+#include <BSpline/BSpline.h>
 
 namespace OpenMS
 {
