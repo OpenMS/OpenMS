@@ -37,15 +37,37 @@ def _as_bool(v) -> bool:
     s = str(v).strip().lower()
     return s in ("true", "1", "yes", "on")
 
+def _is_nullish(v) -> bool:
+    # CTDopts uses a private sentinel class named "_Null" for “no value”
+    return v is None or type(v).__name__ in {"_Null", "Null"} or v == ""
 
-def _tok_extra(s: str) -> List[str]:
-    """Split shell-like string into tokens; undo legacy '+--' or '\\-' prefixes."""
-    if not s:
+def _first_value_for_flag(argv: list[str], name: str) -> str | None:
+    """
+    Return the raw token following -<name>, or a value from -<name>=VALUE if used.
+    Does NOT interpret the value; it’s exactly what the shell passed.
+    """
+    flag = f"-{name}"
+    for i, t in enumerate(argv):
+        if t == flag:
+            if i + 1 < len(argv):
+                return argv[i + 1]
+            return ""
+        if t.startswith(flag + "="):
+            return t.split("=", 1)[1]
+    return None
+
+def _tok_extra(s: str) -> list[str]:
+    """Split shell-like string into tokens; undo '+--', '+-' and '\\-' escapes."""
+    if _is_nullish(s) or not isinstance(s, str) or not s.strip():
         return []
+    # allow an explicit '-- ' sentinel inside the value (optional nicety)
+    s = s.strip()
+    if s.startswith("-- "):
+        s = s[3:]
     toks = shlex.split(s)
-    out: List[str] = []
+    out: list[str] = []
     for t in toks:
-        if t.startswith("+--") or t.startswith("+-") or t.startswith(r"\-"):
+        if t.startswith("+--") or t.startswith("+-") or t.startswith("\\-"):
             out.append(t[1:])
         else:
             out.append(t)
@@ -91,7 +113,7 @@ def _parse_contexts(csv: str) -> List[str]:
 
 def _call_pyprophet(exe: str, args: Iterable[str], env=None) -> None:
     # Prefer module mode so we use the current (uv) environment
-    cmd = [sys.executable, "-m", "pyprophet", *args] if exe == "pyprophet" else [exe, *args]
+    cmd = ["pyprophet", *args] if exe == "pyprophet" else [exe, *args]
     p = subprocess.run(cmd, env=env)
     if p.returncode != 0:
         raise RuntimeError(f"PyProphet failed with exit code {p.returncode}")
@@ -147,65 +169,63 @@ def build_model() -> CTDModel:
     model.add(
         "threads",
         required=False,
-        type="int",
+        type=int,
         description="Worker threads used by PyProphet scoring.",
-        default_value="1"
+        default=1,
     )
     model.add(
         "log_level",
         required=False,
-        type="string",
+        type=str,
         description="PyProphet log level.",
-        default_value="INFO",
-        restrictions=["TRACE","DEBUG","INFO","SUCCESS","WARNING","ERROR","CRITICAL"]
+        default="INFO",
+        choices=["TRACE", "DEBUG", "INFO", "SUCCESS", "WARNING", "ERROR", "CRITICAL"],
     )
     model.add(
         "pyprophet_executable",
         required=False,
-        type="string",
+        type=str,
         description="PyProphet executable path or 'pyprophet' to run as a Python module.",
-        default_value="pyprophet"
+        default="pyprophet",
     )
     model.add(
         "dry_run",
         required=False,
-        type="bool",
+        type=bool,
         description="Print commands without executing.",
-        default_value="false",
-        restrictions=["true","false"]
+        default=False,
     )
 
     # scoring
     model.add(
         "scoring:run_score",
         required=False,
-        type="bool",
+        type=bool,
         description="Run semi-supervised scoring.",
-        default_value="true",
-        restrictions=["true","false"]
+        default=True,
     )
     model.add(
         "scoring:level",
         required=False,
-        type="string",
+        type=str,
         description="OSW data level(s) for scoring (CSV).",
-        default_value="ms1ms2",
-        restrictions=["ms1","ms2","ms1ms2","transition","alignment"]
+        default="ms1ms2",
+        choices=["ms1", "ms2", "ms1ms2", "transition", "alignment"],
     )
     model.add(
         "scoring:classifier",
         required=False,
-        type="string",
+        type=str,
         description="Classifier for semi-supervised scoring.",
-        default_value="SVM",
-        restrictions=["LDA","SVM","XGBoost","HistGradientBoosting"]
+        default="SVM",
+        choices=["LDA", "SVM", "XGBoost", "HistGradientBoosting"],
     )
     model.add(
         "scoring:subsample_ratio",
         required=False,
-        type="float",
+        type=float,
         description="Subsample ratio for training; weights applied to full set.",
-        default_value="1.0"
+        default=1.0,
     )
     model.add(
         "scoring:apply_weights",
@@ -213,265 +233,251 @@ def build_model() -> CTDModel:
         type="input-file",
         is_list=False,
         description="Pre-trained weights file to apply (skip training)."
-        # file_formats can be omitted; pyprophet accepts various formats
+        # file_formats intentionally omitted; pyprophet accepts several formats
     )
     model.add(
         "scoring:autotune",
         required=False,
-        type="bool",
+        type=bool,
         description="Autotune classifier hyperparameters.",
-        default_value="false",
-        restrictions=["true","false"]
+        default=False,
     )
     model.add(
         "scoring:xeval_num_iter",
         required=False,
-        type="int",
+        type=int,
         description="Cross-validation iterations for semi-supervised learning.",
-        default_value="10"
+        default=10,
     )
     model.add(
         "scoring:ss_num_iter",
         required=False,
-        type="int",
+        type=int,
         description="Semi-supervised iterations.",
-        default_value="10"
+        default=10,
     )
     model.add(
         "scoring:ss_initial_fdr",
         required=False,
-        type="float",
+        type=float,
         description="Initial FDR cutoff for best scoring targets.",
-        default_value="0.15"
+        default=0.15,
     )
     model.add(
         "scoring:ss_iteration_fdr",
         required=False,
-        type="float",
+        type=float,
         description="Iteration FDR cutoff for best scoring targets.",
-        default_value="0.05"
+        default=0.05,
     )
     model.add(
         "scoring:ss_main_score",
         required=False,
-        type="string",
+        type=str,
         description='Main score to start SSL (e.g., "var_xcorr_shape" or "auto").',
-        default_value="auto"
+        default="auto",
     )
     model.add(
         "scoring:ss_scale_features",
         required=False,
-        type="bool",
+        type=bool,
         description="Scale / standardize features to unit variance.",
-        default_value="false",
-        restrictions=["true","false"]
+        default=False,
     )
     model.add(
         "scoring:extra",
         required=False,
-        type="string",
+        type=str,
         description='Extra args passed verbatim to "pyprophet score" '
                     '(e.g. "--parametric --pi0_lambda 0.4 0 0").',
-        default_value=""
+        default="",
     )
 
     # infer
     model.add(
         "infer:context",
         required=False,
-        type="string",
+        type=str,
         description="Context(s) for peptide/protein/gene inference (CSV).",
-        default_value="global",
-        restrictions=["run-specific","experiment-wide","global"]
+        default="global",
+        choices=["run-specific", "experiment-wide", "global"],
     )
     model.add(
         "infer:run_peptide",
         required=False,
-        type="bool",
+        type=bool,
         description="Run peptide inference.",
-        default_value="true",
-        restrictions=["true","false"]
+        default=True,
     )
     model.add(
         "infer:run_protein",
         required=False,
-        type="bool",
+        type=bool,
         description="Run protein inference.",
-        default_value="true",
-        restrictions=["true","false"]
+        default=True,
     )
     model.add(
         "infer:run_gene",
         required=False,
-        type="bool",
+        type=bool,
         description="Run gene inference.",
-        default_value="false",
-        restrictions=["true","false"]
+        default=False,
     )
     model.add(
         "infer:peptide:extra",
         required=False,
-        type="string",
+        type=str,
         description='Extra args for "pyprophet infer peptide".',
-        default_value=""
+        default="",
     )
     model.add(
         "infer:protein:extra",
         required=False,
-        type="string",
+        type=str,
         description='Extra args for "pyprophet infer protein".',
-        default_value=""
+        default="",
     )
     model.add(
         "infer:gene:extra",
         required=False,
-        type="string",
+        type=str,
         description='Extra args for "pyprophet infer gene".',
-        default_value=""
+        default="",
     )
 
     # IPF
     model.add(
         "infer:run_ipf",
         required=False,
-        type="bool",
+        type=bool,
         description="Run peptidoform inference (IPF).",
-        default_value="false",
-        restrictions=["true","false"]
+        default=False,
     )
     model.add(
         "infer:ipf_ms1_scoring",
         required=False,
-        type="bool",
+        type=bool,
         description="Use MS1 precursor information in IPF scoring.",
-        default_value="false",
-        restrictions=["true","false"]
+        default=False,
     )
     model.add(
         "infer:ipf_ms2_scoring",
         required=False,
-        type="bool",
+        type=bool,
         description="Use MS2 precursor information in IPF scoring.",
-        default_value="false",
-        restrictions=["true","false"]
+        default=False,
     )
     model.add(
         "infer:ipf_h0",
         required=False,
-        type="bool",
+        type=bool,
         description="Include possibility that peak groups are not covered by peptidoform space.",
-        default_value="false",
-        restrictions=["true","false"]
+        default=False,
     )
     model.add(
         "infer:ipf_grouped_fdr",
         required=False,
-        type="bool",
+        type=bool,
         description="Compute grouped FDR instead of pooled FDR.",
-        default_value="false",
-        restrictions=["true","false"]
+        default=False,
     )
     model.add(
         "infer:ipf_max_precursor_pep",
         required=False,
-        type="float",
+        type=float,
         description="Max PEP for precursors considered in IPF.",
-        default_value="0.7"
+        default=0.7,
     )
     model.add(
         "infer:ipf_max_peakgroup_pep",
         required=False,
-        type="float",
+        type=float,
         description="Max PEP for peak-groups considered in IPF.",
-        default_value="0.7"
+        default=0.7,
     )
     model.add(
         "infer:ipf_max_precursor_peakgroup_pep",
         required=False,
-        type="float",
+        type=float,
         description="Max integrated precursor-peakgroup PEP.",
-        default_value="0.4"
+        default=0.4,
     )
     model.add(
         "infer:ipf_max_transition_pep",
         required=False,
-        type="float",
+        type=float,
         description="Max PEP for transitions considered in IPF.",
-        default_value="0.6"
+        default=0.6,
     )
 
     # export
     model.add(
         "export:score_report",
         required=False,
-        type="bool",
+        type=bool,
         description="Generate a summary score report (PDF).",
-        default_value="true",
-        restrictions=["true","false"]
+        default=True,
     )
     model.add(
         "export:score_plots",
         required=False,
-        type="bool",
+        type=bool,
         description="Export score plots (PDF).",
-        default_value="false",
-        restrictions=["true","false"]
+        default=False,
     )
     model.add(
         "export:run_tsv",
         required=False,
-        type="bool",
+        type=bool,
         description="Export Proteomics TSV (long format).",
-        default_value="true",
-        restrictions=["true","false"]
+        default=True,
     )
     model.add(
         "export:tsv:extra",
         required=False,
-        type="string",
+        type=str,
         description='Extra args for "pyprophet export tsv".',
-        default_value=""
+        default="",
     )
     model.add(
         "export:run_matrix",
         required=False,
-        type="bool",
+        type=bool,
         description="Export Proteomics matrix TSV.",
-        default_value="true",
-        restrictions=["true","false"]
+        default=True,
     )
     model.add(
         "export:matrix:extra",
         required=False,
-        type="string",
+        type=str,
         description='Extra args for "pyprophet export matrix".',
-        default_value=""
+        default="",
     )
     model.add(
         "export:run_compound",
         required=False,
-        type="bool",
+        type=bool,
         description="Export Small Molecules TSV.",
-        default_value="false",
-        restrictions=["true","false"]
+        default=False,
     )
     model.add(
         "export:compound:format",
         required=False,
-        type="string",
+        type=str,
         description="Small-molecule export format.",
-        default_value="legacy_merged",
-        restrictions=["matrix","legacy_merged"]
+        default="legacy_merged",
+        choices=["matrix", "legacy_merged"],
     )
     model.add(
         "export:compound:max_rs_peakgroup_qvalue",
         required=False,
-        type="float",
+        type=float,
         description="Filter by max run-specific peakgroup q-value.",
-        default_value="0.05"
+        default=0.05,
     )
 
     return model
+
 
 # -------------------------- main logic ------------------------------------
 def main() -> int:
@@ -507,7 +513,23 @@ def main() -> int:
     addParamToCTDopts(defaults, model)
 
     # parse command line / handle -write_ini/-ini
-    arg_dict, _ = parseCTDCommandLinePure(sys.argv, model)
+    arg_dict = parseCTDCommandLinePure(sys.argv[1:], model)
+    
+    # ---- Fallback for ":extra" flags: if CTDopts dropped them, recover from argv
+    extra_keys = [
+        "scoring:extra",
+        "infer:peptide:extra",
+        "infer:protein:extra",
+        "infer:gene:extra",
+        "export:tsv:extra",
+        "export:matrix:extra",
+    ]
+    for k in extra_keys:
+        if _is_nullish(arg_dict.get(k, None)):
+            raw = _first_value_for_flag(sys.argv[1:], k)
+            if raw is not None:  # may be "" if user wrote just "-scoring:extra"
+                arg_dict[k] = raw
+    # ---- end fallback
 
     in_list = arg_dict.get("in", [])
     if isinstance(in_list, str):
@@ -568,12 +590,14 @@ def main() -> int:
                 "--ss_initial_fdr", str(arg_dict.get("scoring:ss_initial_fdr", 0.15)),
                 "--ss_iteration_fdr", str(arg_dict.get("scoring:ss_iteration_fdr", 0.05)),
             ]
-            if arg_dict.get("scoring:apply_weights"):
-                score_cmd += ["--apply_weights", arg_dict["scoring:apply_weights"]]
+            w = arg_dict.get("scoring:apply_weights", None)
+            if not _is_nullish(w):
+                score_cmd += ["--apply_weights", str(w)]
             if _as_bool(arg_dict.get("scoring:autotune", False)):
                 score_cmd += ["--autotune"]
-            if arg_dict.get("scoring:ss_main_score", "auto"):
-                score_cmd += ["--ss_main_score", arg_dict.get("scoring:ss_main_score", "auto")]
+            ms = arg_dict.get("scoring:ss_main_score", "auto")
+            if not _is_nullish(ms):
+                score_cmd += ["--ss_main_score", str(ms)]
             if _as_bool(arg_dict.get("scoring:ss_scale_features", False)):
                 score_cmd += ["--ss_scale_features"]
             score_cmd += _tok_extra(arg_dict.get("scoring:extra", ""))
@@ -583,7 +607,7 @@ def main() -> int:
                 env.setdefault("OMP_NUM_THREADS", str(max(1, (os.cpu_count() or 1) // max(1, threads))))
 
             print(f"====== Scoring level: {lvl} ======")
-            print("CMD:", sys.executable, "-m", "pyprophet", *score_cmd)
+            print("CMD:", "pyprophet", *score_cmd)
             if not dry:
                 _call_pyprophet(pyexe, score_cmd, env=env)
             current_in = out_osw

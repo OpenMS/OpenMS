@@ -371,7 +371,7 @@ def print_model_help(model, *, advanced: bool, cfg: HelpConfig | None = None) ->
     print(f"{tool_name}")
     if cfg.show_description:
         desc = (model.opt_attribs.get("description", None)).strip()
-        if desc:
+        if desc and isinstance(desc, str):
             print(textwrap.fill(desc, width=width))
             print()
 
@@ -622,27 +622,53 @@ def parseCTDCommandLine(argv, model, openms_param):
         os.remove(tmp_name)
         return model.parse_cl_args(argv), openms_param
 
+def _split_openms_directives(argv):
+    """
+    Exact-match extraction of OpenMS-style directives from argv (no script name).
+    Recognizes:
+      -ini [FILE]
+      -write_ini [FILE]
+      -write_param_ctd [FILE]
+    Returns: (directives_dict, remaining_argv)
+    """
+    directives = {"input_ctd": None, "write_tool_ctd": None, "write_param_ctd": None}
+    rest = []
+    i = 0
+    while i < len(argv):
+        t = argv[i]
+        # match EXACTLY these flags; don't confuse -in with -ini
+        if t in ("-ini", "--ini"):
+            val = True
+            if i + 1 < len(argv) and not argv[i + 1].startswith("-"):
+                val = argv[i + 1]
+                i += 1
+            directives["input_ctd"] = val
+        elif t in ("-write_ini", "--write_ini"):
+            val = True
+            if i + 1 < len(argv) and not argv[i + 1].startswith("-"):
+                val = argv[i + 1]
+                i += 1
+            directives["write_tool_ctd"] = val
+        elif t in ("-write_param_ctd", "--write_param_ctd"):
+            val = True
+            if i + 1 < len(argv) and not argv[i + 1].startswith("-"):
+                val = argv[i + 1]
+                i += 1
+            directives["write_param_ctd"] = val
+        else:
+            rest.append(t)
+        i += 1
+    return directives, rest
+
 def parseCTDCommandLinePure(argv, model):
-    """
-    Parse OpenMS-style command line and CTD files using CTDopts only.
-    Supports:
-      - '-ini <file>'            -> load parameter values from CTD and cast/validate
-      - '-write_ini [<file>]'    -> write tool CTD (schema/defaults) and exit(0)
-      - '-write_param_ctd [<file>]' -> write CTD with current values and exit(0)
+    # ensure we don't pass the script name
+    if argv and argv[0] == sys.argv[0]:
+        argv = argv[1:]
 
-    Returns:
-      dict: validated, type-casted argument dictionary
-    """
-    directives = parse_cl_directives(
-        argv,
-        input_ctd="ini",
-        write_tool_ctd="write_ini",
-        write_param_ctd="write_param_ctd",
-        prefix="-",
-    )
+    directives, remaining = _split_openms_directives(argv)
 
-    # Write tool CTD (schema) and exit
-    if directives.get("write_tool_ctd") is not None:
+    # Write tool CTD (schema/defaults) and exit
+    if directives["write_tool_ctd"] is not None:
         out = directives["write_tool_ctd"]
         if out is True:
             out = f"{getattr(model, 'name', 'tool')}.ctd"
@@ -650,20 +676,21 @@ def parseCTDCommandLinePure(argv, model):
         print(f"Wrote tool CTD: {out}")
         sys.exit(0)
 
-    # Seed args from -ini, if any
+    # Load args from -ini (CTD) if provided
     base_args = {}
-    if directives.get("input_ctd"):
+    if directives["input_ctd"] not in (None, True):
         base_args = args_from_file(directives["input_ctd"])
 
-    # Parse CLI args with '-' prefix (grouped as 'group:sub:param')
-    cli_args = model.parse_cl_args(argv, prefix="-")
+    # Parse remaining CLI with CTDopts (prefix '-')
+    cli_args = model.parse_cl_args(remaining, prefix="-")
 
-    # Merge and validate (CLI overrides file)
-    merged = override_args(base_args, cli_args)
+    # <<< KEY CHANGE: seed with model defaults to avoid _Null >>>
+    merged = override_args(model.get_defaults(), base_args, cli_args)
+
     validated = model.validate_args(merged)
 
-    # Write parameter CTD (values) and exit
-    if directives.get("write_param_ctd") is not None:
+    # Write CTD with current values if requested
+    if directives["write_param_ctd"] is not None:
         out = directives["write_param_ctd"]
         if out is True:
             out = f"{getattr(model, 'name', 'tool')}_params.ctd"
@@ -672,3 +699,4 @@ def parseCTDCommandLinePure(argv, model):
         sys.exit(0)
 
     return validated
+
