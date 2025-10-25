@@ -26,7 +26,7 @@ Please cite:
 from pkgutil import extend_path
 __path__ = extend_path(__path__, __name__)
 
-from __future__ import print_function
+# from __future__ import print_function
 
 import warnings
 
