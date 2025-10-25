@@ -31,8 +31,8 @@ add_library(eol-bspline STATIC ${EOL_BSPLINE_SOURCES})
 
 # Set include directories for the library
 target_include_directories(eol-bspline SYSTEM PUBLIC 
-                          "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/BSpline>"
-                          "$<INSTALL_INTERFACE:${INSTALL_INCLUDE_DIR}/OpenMS/thirdparty/BSpline>")
+                          "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>"
+                          "$<INSTALL_INTERFACE:${INSTALL_INCLUDE_DIR}/OpenMS/thirdparty>")
 
 # Apply compiler flags
 if (NOT WIN32)

@@ -39,8 +39,8 @@ add_library(IsoSpec STATIC ${ISOSPEC_SOURCES})
 
 # Set include directories for the library
 target_include_directories(IsoSpec SYSTEM PUBLIC 
-                          "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/IsoSpec>"
-                          "$<INSTALL_INTERFACE:${INSTALL_INCLUDE_DIR}/OpenMS/thirdparty/IsoSpec>")
+                          "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>"
+                          "$<INSTALL_INTERFACE:${INSTALL_INCLUDE_DIR}/OpenMS/thirdparty>")
 
 # Apply compiler flags
 if (NOT WIN32)
