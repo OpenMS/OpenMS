@@ -29,6 +29,9 @@ from CTDopts.CTDopts import flatten_dict
 
 
 # -------------------------- small helpers ---------------------------------
+_TRUE_TOKENS  = {"true", "1", "yes", "on"}
+_FALSE_TOKENS = {"false", "0", "no", "off"}
+
 def _as_bool(v) -> bool:
     if isinstance(v, bool):
         return v
@@ -36,6 +39,41 @@ def _as_bool(v) -> bool:
         return False
     s = str(v).strip().lower()
     return s in ("true", "1", "yes", "on")
+
+def _is_bool_param(p) -> bool:
+    t = getattr(p, "type", None)
+    return (t is bool) or (isinstance(t, str) and t.lower() == "bool")
+
+
+def _coerce_bool_from_argv(argv: list[str], name: str, current: bool) -> bool:
+    """
+    If the user explicitly set -<name> true/false (or =true/=false), or used
+    -no-<name>, override the current boolean. Otherwise keep current.
+    """
+    flag    = f"-{name}"
+    noflag  = f"-no-{name}"
+
+    it = enumerate(argv)
+    for i, tok in it:
+        if tok == noflag:
+            return False
+
+        if tok == flag:
+            # Value in next token?
+            if i + 1 < len(argv) and not argv[i + 1].startswith("-"):
+                v = argv[i + 1].strip().lower()
+                if v in _TRUE_TOKENS:  return True
+                if v in _FALSE_TOKENS: return False
+            # No explicit value -> treat as “set True” and continue scanning
+            continue
+
+        if tok.startswith(flag + "="):
+            v = tok.split("=", 1)[1].strip().lower()
+            if v in _TRUE_TOKENS:  return True
+            if v in _FALSE_TOKENS: return False
+
+    return current
+
 
 def _is_nullish(v) -> bool:
     # CTDopts uses a private sentinel class named "_Null" for “no value”
@@ -515,21 +553,20 @@ def main() -> int:
     # parse command line / handle -write_ini/-ini
     arg_dict = parseCTDCommandLinePure(sys.argv[1:], model)
     
-    # ---- Fallback for ":extra" flags: if CTDopts dropped them, recover from argv
-    extra_keys = [
-        "scoring:extra",
-        "infer:peptide:extra",
-        "infer:protein:extra",
-        "infer:gene:extra",
-        "export:tsv:extra",
-        "export:matrix:extra",
-    ]
+    # Recover any :extra raw strings 
+    extra_keys = ["scoring:extra", "infer:peptide:extra", "infer:protein:extra",
+                "infer:gene:extra", "export:tsv:extra", "export:matrix:extra"]
     for k in extra_keys:
         if _is_nullish(arg_dict.get(k, None)):
             raw = _first_value_for_flag(sys.argv[1:], k)
-            if raw is not None:  # may be "" if user wrote just "-scoring:extra"
+            if raw is not None:
                 arg_dict[k] = raw
-    # ---- end fallback
+
+    # **Boolean overrides from argv** (`-infer:run_protein false`, etc.)
+    for p in model.list_parameters():
+        if _is_bool_param(p):
+            cur = _as_bool(arg_dict.get(p.name, getattr(p, "default", False)))
+            arg_dict[p.name] = _coerce_bool_from_argv(sys.argv[1:], p.name, cur)
 
     in_list = arg_dict.get("in", [])
     if isinstance(in_list, str):
