@@ -11,8 +11,6 @@ project("OpenMS-eol-bsplines")
 cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 
 set(_EOL_BSPLINE_SOURCES
-BSpline.cpp
-BSplineBase.cpp
 BSplineLib.cpp
 )
 
