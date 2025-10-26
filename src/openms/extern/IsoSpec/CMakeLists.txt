@@ -37,10 +37,28 @@ endforeach()
 # Create IsoSpec as a proper library target
 add_library(IsoSpec STATIC ${ISOSPEC_SOURCES})
 
+# Require C++11 for IsoSpec
+target_compile_features(IsoSpec PUBLIC cxx_std_11)
+
 # Set include directories for the library
 target_include_directories(IsoSpec SYSTEM PUBLIC 
                           "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>"
                           "$<INSTALL_INTERFACE:${INSTALL_INCLUDE_DIR}/OpenMS/thirdparty>")
+
+# Generate export header for Windows DLL symbols
+include(GenerateExportHeader)
+generate_export_header(IsoSpec
+                      BASE_NAME OPENMS
+                      EXPORT_FILE_NAME ${CMAKE_CURRENT_BINARY_DIR}/IsoSpec/IsoSpecExport.h)
+
+# Add the binary directory to include path so the generated header can be found
+target_include_directories(IsoSpec PUBLIC
+                          "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>")
+
+# Install the generated export header
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/IsoSpec/IsoSpecExport.h
+        DESTINATION ${INSTALL_INCLUDE_DIR}/OpenMS/thirdparty/IsoSpec
+        COMPONENT thirdparty_headers)
 
 # Apply compiler flags
 if (NOT WIN32)

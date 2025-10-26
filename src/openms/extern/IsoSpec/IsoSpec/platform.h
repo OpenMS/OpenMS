@@ -111,6 +111,11 @@
 #endif
 
 
+// Include generated export header when building as part of OpenMS
+#if ISOSPEC_BUILDING_OPENMS
+#include "IsoSpec/IsoSpecExport.h"
+#endif
+
 #if defined(OPENMS_DLLAPI) /* IsoSpec is being built as a part of OpenMS: use their visibility macros */
 #define ISOSPEC_EXPORT_SYMBOL OPENMS_DLLAPI
 #else /* it's a can of worms we don't yet want to open ourselves though... */
