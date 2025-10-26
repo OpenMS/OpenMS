@@ -592,6 +592,48 @@ def _split_openms_directives(argv):
     return directives, rest
 
 def parseCTDCommandLinePure(argv, model):
+    """
+    Parse OpenMS-style CLI for a CTDopts model for non-pyOpenMS tools (i.e. the tool does not internally use the OpenMS Param object).
+
+    This implements the canonical merge semantics used by pyTOPP tools:
+
+        defaults  <-  values from -ini CTD  <-  explicit CLI flags
+
+    It returns a single **validated** dictionary of effective parameters.
+
+    Supported directives (all single-dash, OpenMS style):
+      - `-ini <FILE>`:
+          Read a CTD/INI file and treat its values as the base.
+      - `-write_ini [<FILE>]`:
+          Write the tool’s schema/default CTD and exit.
+          If `<FILE>` is omitted, `<model.name>.ctd` is used.
+      - `-write_param_ctd [<FILE>]`:
+          Write a CTD containing the **current effective values** (after merging
+          CLI and `-ini`) and exit. If `<FILE>` is omitted,
+          `<model.name>_params.ctd` is used.
+
+    Notes:
+      * If `argv` includes the script name as `argv[0]`, it is removed.
+      * Only OpenMS-style options (single-dash, e.g. `-in`, `-out`, `-threads`)
+        are parsed; GNU-style long options are not recognized here.
+      * This function may call `sys.exit(0)` when a write directive is used.
+
+    Args:
+        argv (list[str]): Raw command-line tokens (typically `sys.argv` or
+            `sys.argv[1:]`).
+        model (CTDModel): A CTDopts model that provides:
+            - `get_defaults() -> dict`
+            - `parse_cl_args(tokens, prefix='-') -> dict`
+            - `validate_args(mapping) -> dict`
+            - `write_ctd(path, values: dict | None = None) -> None`
+
+    Returns:
+        dict[str, Any]: The **validated** mapping of parameter names to values.
+
+    Side effects:
+        May write CTD files and terminate the process with `sys.exit(0)` when
+        `-write_ini` or `-write_param_ctd` is supplied.
+    """
     # ensure we don't pass the script name
     if argv and argv[0] == sys.argv[0]:
         argv = argv[1:]
@@ -615,7 +657,6 @@ def parseCTDCommandLinePure(argv, model):
     # Parse remaining CLI with CTDopts (prefix '-')
     cli_args = model.parse_cl_args(remaining, prefix="-")
 
-    # <<< KEY CHANGE: seed with model defaults to avoid _Null >>>
     merged = override_args(model.get_defaults(), base_args, cli_args)
 
     validated = model.validate_args(merged)
