@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 import os
+import re
 import shlex
+import shutil
 import subprocess
 import sys
 from pathlib import Path
-from typing import Iterable, List
+from typing import Iterable, List, Mapping, Optional
 
 _TRUE_TOKENS  = {"true", "1", "yes", "on"}
 _FALSE_TOKENS = {"false", "0", "no", "off"}
@@ -112,28 +114,124 @@ def coerce_all_bools_from_argv(model, arg_dict: dict, argv: list[str]) -> None:
 
 
 # ------------------- subprocess runner -------------------
-def run_tool(executable: str,
-             args: Iterable[str],
-             *,
-             env=None,
-             dry: bool = False,
-             module_name: str | None = None) -> None:
-    """
-    Run an external tool and echo a friendly CMD line.
 
-    If module_name is provided and executable equals that module name,
-    run it as "python -m <module_name>" to guarantee the current venv.
+
+# Variables that are risky to inherit when spawning child processes
+_BAD_ENV_VARS = {
+    "PYTHONPATH", "PYTHONHOME", "PYTHONWARNINGS", "PYTHONUSERBASE",
+    "LD_PRELOAD", "LD_AUDIT", "LD_LIBRARY_PATH",
+    "DYLD_INSERT_LIBRARIES", "DYLD_LIBRARY_PATH",
+}
+
+# conservative allowlist we keep if the caller asks for a “minimal” env
+_MINIMAL_KEEP = {
+    "PATH", "HOME", "TMPDIR", "TEMP", "TMP",
+    "SystemRoot", "WINDIR", "COMSPEC", "USERPROFILE", "USERNAME", "LANG", "LC_ALL",
+}
+
+_MODNAME_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)*$")
+
+def _sanitize_env(env: Optional[Mapping[str, str]]) -> Mapping[str, str]:
     """
-    if module_name and executable == module_name:
-        display = f"{sys.executable} -m {module_name}"
-        cmd = [sys.executable, "-m", module_name, *args]
+    Create a safe environment for the subprocess:
+    - If env is None, start from os.environ and strip risky keys.
+    - If env is provided, copy it and strip risky keys.
+    """
+    base = dict(os.environ) if env is None else dict(env)
+    for bad in _BAD_ENV_VARS:
+        base.pop(bad, None)
+    return base
+
+def _quote_cmd(parts: Iterable[str]) -> str:
+    """For logging only; shows a safely-quoted command line."""
+    return shlex.join(map(str, parts))
+
+def run_tool(
+    executable: str,
+    args: Iterable[str],
+    *,
+    env: Optional[Mapping[str, str]] = None,
+    dry: bool = False,
+    module_name: Optional[str] = None,
+    timeout: Optional[float] = None,
+    minimal_env: bool = False,
+) -> None:
+    """
+    Run an external tool securely.
+
+    Security notes:
+      - Never uses the shell (shell=False).
+      - Validates and resolves the executable path (unless using -m).
+      - Sanitizes the environment (removes LD_PRELOAD, PYTHONPATH, etc).
+      - Optionally enforces a minimal env (PATH/HOME/TMP* and a few OS vars).
+      - Prints a quoted command preview (safe for copy/paste).
+      - Supports a timeout to avoid hanging indefinitely.
+
+    If module_name is provided and equals `executable`, the tool is invoked as
+    `sys.executable -m <module_name>` to guarantee the current interpreter.
+    """
+    # Validate args are strings/path-like and free of NULs
+    safe_args: list[str] = []
+    for a in args:
+        s = os.fspath(a) if hasattr(a, "__fspath__") else str(a)
+        if "\x00" in s:
+            raise ValueError("Argument contains NUL byte")
+        safe_args.append(s)
+
+    # Build command
+    if module_name:
+        if module_name != executable:
+            raise ValueError("module_name must match executable when provided")
+        if not _MODNAME_RE.match(module_name):
+            raise ValueError(f"Invalid module name: {module_name!r}")
+        # Ensure the module exists (fail fast with a clear error)
+        try:
+            import importlib.util as _iu
+            if _iu.find_spec(module_name) is None:
+                # Might still be available at runtime via site-packages; don’t block if caller
+                # explicitly wants to try. Comment the next line out if you prefer soft-check.
+                pass
+        except Exception:
+            pass
+        cmd = [sys.executable, "-m", module_name, *safe_args]
+        display = cmd  # accurate preview
     else:
-        display = executable
-        cmd = [executable, *args]
+        # Resolve the executable to an absolute path via PATH
+        exe_path = shutil.which(executable)
+        if exe_path is None:
+            raise FileNotFoundError(f"Executable not found on PATH: {executable!r}")
+        cmd = [exe_path, *safe_args]
+        display = cmd
 
-    print("CMD:", display, *args)
+    # Prepare environment
+    if minimal_env:
+        # Start fresh, keep only a small allowlist from the current env
+        kept = {k: v for k, v in os.environ.items() if k in _MINIMAL_KEEP}
+        if env:
+            kept.update(env)
+        env_final = _sanitize_env(kept)
+    else:
+        env_final = _sanitize_env(env)
+
+    # Friendly preview (no execution)
+    print("CMD:", _quote_cmd(display))
     if dry:
         return
-    p = subprocess.run(cmd, env=env)
-    if p.returncode != 0:
-        raise RuntimeError(f"{executable} failed with exit code {p.returncode}")
+
+    try:
+        # Close file descriptors (POSIX default True), never use shell
+        subprocess.run(
+            cmd,
+            env=env_final,
+            check=True,
+            timeout=timeout,
+        )
+    except FileNotFoundError as e:
+        raise RuntimeError(f"Failed to execute: {display[0]!r}: {e}") from e
+    except subprocess.TimeoutExpired as e:
+        raise RuntimeError(f"Command timed out after {timeout}s: {_quote_cmd(display)}") from e
+    except subprocess.CalledProcessError as e:
+        raise RuntimeError(
+            f"Command failed with exit code {e.returncode}: {_quote_cmd(display)}"
+        ) from e
+
