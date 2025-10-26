@@ -9,6 +9,7 @@
 # ///
 from __future__ import print_function
 
+
 # --- make sure our vendored pyopenms/pytopp is on the pyopenms namespace -----
 def _ensure_pyopenms_namespace():
     import importlib
@@ -76,19 +77,19 @@ from typing import Iterable, List, Optional
 import CTDopts  # noqa: F401
 import pyopenms as poms
 from CTDopts.CTDopts import CTDModel
-from pyopenms.pytopp.core import (
+from pyopenms.pytopp.util import (
     as_bool,
     coerce_all_bools_from_argv,
+    is_not_nullish,
     is_nullish,
     recover_missing_extras,
     run_tool,
     tok_extra,
 )
 from pyopenms.pytopp.CTDsupport import (
-    HelpConfig,
-    addParamToCTDopts,
-    parseCTDCommandLinePure,
-    print_model_help,
+    CTDHelpConfig,
+    CTDHelpPrinter,
+    PyTOPPArgParser,
 )
 
 PYPROPHET_VERSION = version("pyprophet")
@@ -174,7 +175,7 @@ def build_model() -> CTDModel:
     # scoring
     model.add("scoring:run_score",       required=False, type=bool,  default=True,  description="Run semi-supervised scoring.")
     model.add("scoring:level",           required=False, type=str,   default="ms1ms2",
-              description="OSW data level(s) for scoring (CSV).") # choices=["ms1", "ms2", "ms1ms2", "transition", "alignment"], 
+              description="Either 'ms1', 'ms2', 'ms1ms2', 'transition', or 'alignment'; the data level selected for scoring. 'ms1ms2 integrates both MS1- and MS2-level scores and can be used instead of 'ms2'-level results. Can be comma-separated to perform scoring per level, i.e., ms1ms2,transition") # We do not use choices here to allow for comma-separated multi-values. We use a custom parser and validator instead.
     model.add("scoring:classifier",      required=False, type=str,   default="SVM",
               choices=["LDA", "SVM", "XGBoost", "HistGradientBoosting"], description="Classifier for semi-supervised scoring.")
     model.add("scoring:subsample_ratio", required=False, type=float, default=1.0,
@@ -200,7 +201,7 @@ def build_model() -> CTDModel:
 
     # infer
     model.add("infer:context",        required=False, type=str, default="global",
-              description="Context(s) for peptide/protein/gene inference (CSV).") # choices=["run-specific", "experiment-wide", "global"],
+              description="Context(s) for peptide/protein/gene inference ('run-specific', 'experiment-wide', 'global'). Can be comma-separated to perform scoring per level, i.e., global,run-specific") # We do not use choices here to allow for comma-separated multi-values. We use a custom parser and validator instead.
     model.add("infer:run_peptide",    required=False, type=bool, default=True,  description="Run peptide inference.")
     model.add("infer:run_protein",    required=False, type=bool, default=True,  description="Run protein inference.")
     model.add("infer:run_gene",       required=False, type=bool, default=False, description="Run gene inference.")
@@ -239,9 +240,9 @@ def build_model() -> CTDModel:
 def main() -> int:
     model = build_model()
 
-    cfg = HelpConfig(
+    cfg = CTDHelpConfig(
         tool_name=f"{model.name} v{model.version} (pyTOPP)",
-        binary_name="PyProphet.py",
+        binary_name="pyprophet",
         show_description=True,
         advanced_by_name={
             "scoring:extra", "scoring:subsample_ratio", "scoring:apply_weights",
@@ -256,19 +257,17 @@ def main() -> int:
             "export:compound:format", "export:compound:max_rs_peakgroup_qvalue",
         },
     )
+    cli_opt_printer = CTDHelpPrinter(model, cfg=cfg)
 
     argv = sys.argv[1:]
     if "-h" in argv or "--help" in argv:
-        print_model_help(model, advanced=False, cfg=cfg); return 0
+        cli_opt_printer.print(advanced=False); return 0
     if "--help-advanced" in argv or "--helphelp" in argv:
-        print_model_help(model, advanced=True,  cfg=cfg); return 0
-
-    # # Seed OpenMS defaults (no algorithm defaults here) to satisfy CTD plumbing
-    # defaults = poms.Param()
-    # addParamToCTDopts(defaults, model)
+        cli_opt_printer.print(advanced=True); return 0
     
     # Parse CTD/CLI; this returns validated & type-cast values
-    arg_dict = parseCTDCommandLinePure(argv, model)
+    parser = PyTOPPArgParser(model)
+    arg_dict = parser.parse(sys.argv[1:], mode="pure")
     
     # Repair dropped :extra strings & coerce booleans based on raw argv
     recover_missing_extras(arg_dict, argv, [
@@ -286,7 +285,7 @@ def main() -> int:
         print("No input (-in) given.", file=sys.stderr); return 2
 
     out_osw = arg_dict.get("out", "")
-    out_osw = Path(out_osw) if out_osw else (in_list[0] if len(in_list) == 1 else None)
+    out_osw = Path(out_osw) if is_not_nullish(out_osw) else (in_list[0] if len(in_list) == 1 else None)
     if out_osw is None:
         print("Multiple inputs provided but no -out given.", file=sys.stderr); return 2
 
@@ -438,7 +437,7 @@ def main() -> int:
     if do_tsv:     run_export("tsv",    _derive_tsv(out_osw),    "export:tsv:extra")
     if do_matrix:  run_export("matrix", _derive_matrix(out_osw), "export:matrix:extra")
 
-    print("PyProphetAdapter (pyTOPP) finished successfully.")
+    print("PyProphet (pyTOPP) finished successfully.")
     return 0
 
 

@@ -26,6 +26,9 @@ def is_nullish(v) -> bool:
     # CTDopts uses a private sentinel class named "_Null" for “no value”
     return v is None or type(v).__name__ in {"_Null", "Null"} or v == ""
 
+def is_not_nullish(v) -> bool:
+    return not is_nullish(v)
+
 
 def first_value_for_flag(argv: list[str], name: str) -> str | None:
     """
