@@ -17,8 +17,8 @@ from pathlib import Path
 from typing import Iterable, List, Optional
 
 import CTDopts  # noqa: F401
-import pyopenms as poms
 from CTDopts.CTDopts import CTDModel
+
 from pyopenms.pytopp.util import (
     as_bool,
     coerce_all_bools_from_argv,
