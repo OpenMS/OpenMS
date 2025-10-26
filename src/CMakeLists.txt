@@ -35,118 +35,141 @@ if(WITH_GUI)
   add_subdirectory(openms_gui)
 endif()
 
-# --- pyTOPP: ship the script and create an OS-appropriate wrapper -------------
+# --- pyTOPP: ship the whole package + an OS-appropriate wrapper ---------------
 option(PYTOPP "Install pyTOPP CLI wrappers (Python tools via uv)" ON)
 
 if(PYTOPP)
-  # Source tool (your uv-run script)
-  set(_pytopp_tool_src
-      "${CMAKE_SOURCE_DIR}/src/pyTOPP/src/pyopenms/pytopp/tools/pytopp_pyprophet_cli.py")
+  # Source layout (your repo)
+  # We copy ONLY the 'pytopp' subpackage to keep 'pyopenms' as a namespace.
+  set(_pytopp_pkg_src "${CMAKE_SOURCE_DIR}/src/pyTOPP/src/pyopenms/pytopp")
 
-  # Where we ship it inside the build/install layout
-  set(_pytopp_rel_tool "share/pytopp/tools/pytopp_pyprophet_cli.py")
-  set(_pytopp_tool_dst "${CMAKE_BINARY_DIR}/${_pytopp_rel_tool}")
+  # Where we stage things in the build/install trees
+  set(_pytopp_site_dir "${CMAKE_BINARY_DIR}/share/pytopp/site")
+  set(_pytopp_pkg_dst_root "${_pytopp_site_dir}/pyopenms")
+  file(MAKE_DIRECTORY "${_pytopp_pkg_dst_root}")
 
-  # Ensure dir and copy tool
-  file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/share/pytopp/tools")
-  file(COPY "${_pytopp_tool_src}" DESTINATION "${CMAKE_BINARY_DIR}/share/pytopp/tools")
+  # Copy the whole package: share/pytopp/site/pyopenms/pytopp/...
+  file(COPY "${_pytopp_pkg_src}" DESTINATION "${_pytopp_pkg_dst_root}")
 
-  # Executable bit for the shipped tool on Unix
+  # Path to the shipped CLI inside the vendored site
+  set(_pytopp_cli_rel "pyopenms/pytopp/tools/pytopp_pyprophet_cli.py")
+  set(_pytopp_cli_build "${_pytopp_site_dir}/${_pytopp_cli_rel}")
+
+  # Make the CLI executable on Unix (so the uv shebang works)
   if(UNIX)
-    file(CHMOD "${_pytopp_tool_dst}"
+    file(CHMOD "${_pytopp_cli_build}"
       PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE
                   GROUP_READ GROUP_EXECUTE
                   WORLD_READ WORLD_EXECUTE)
   endif()
 
-  # Wrapper per host OS
+  # ---------------------- Wrapper in bin/ (adds PYTHONPATH) -------------------
   if(WIN32)
-    # -------- Windows wrapper (.cmd) ------------------------------------------
-    set(_win_wrapper "${CMAKE_BINARY_DIR}/bin/pyTOPP-PyProphet.cmd")
-    file(WRITE "${_win_wrapper}" [=[
+    set(_wrapper "${CMAKE_BINARY_DIR}/bin/pyTOPP-PyProphet.cmd")
+    file(WRITE "${_wrapper}" [=[
 @echo off
 REM Resolve wrapper dir
 set "WRAPDIR=%~dp0"
 if "%WRAPDIR:~-1%"=="\" set "WRAPDIR=%WRAPDIR:~0,-1%"
 
-REM Tool path relative to bin\ -> ..\share\pytopp\tools\...
-set "TOOL=%WRAPDIR%\..\share\pytopp\tools\pytopp_pyprophet_cli.py"
+REM Vendored site root (..\\share\\pytopp\\site)
+set "SITE=%WRAPDIR%\..\share\pytopp\site"
+set "PYTHONPATH=%SITE%;%PYTHONPATH%"
 
-REM Friendly check for uv (script’s shebang uses `uv run`)
+REM CLI inside vendored package
+set "TOOL=%SITE%\pyopenms\pytopp\tools\pytopp_pyprophet_cli.py"
+
+REM Prefer uv (script's shebang uses `uv run --script`)
 where uv >NUL 2>&1
+if %ERRORLEVEL% EQU 0 (
+  "%TOOL%" %*
+  exit /b %ERRORLEVEL%
+)
+
+REM Fallback to python with a helpful message
+where python >NUL 2>&1
 if %ERRORLEVEL% NEQ 0 (
-  echo ERROR: "uv" is not installed, but this tool uses uv to auto-manage Python ^& dependencies.
+  echo ERROR: Neither "uv" nor "python" found on PATH.
   echo.
-  echo Install one of the following and re-run this command:
-  echo   Windows (PowerShell):  iwr https://astral.sh/uv/install.ps1 -UseB ^| iex
-  echo   Windows (winget):      winget install --id AstralSoftware.UV
+  echo Install uv (recommended) and re-run:
+  echo   PowerShell:  iwr https://astral.sh/uv/install.ps1 -UseB ^| iex
+  echo   winget:      winget install --id AstralSoftware.UV
   echo.
-  echo Advanced/offline: run with an existing Python instead:
+  echo Or install Python and run:
   echo   python "%TOOL%" --help
   exit /b 127
 )
 
-REM Hand off to the shipped script (its shebang invokes `uv run`)
-"%TOOL%" %*
+python "%TOOL%" %*
 ]=])
-
-    # Install Windows wrapper
-    install(PROGRAMS "${_win_wrapper}" DESTINATION bin)
-
+    install(PROGRAMS "${_wrapper}" DESTINATION bin)
   else()
-    # -------- POSIX wrapper (macOS/Linux) -------------------------------------
-    set(_posix_wrapper "${CMAKE_BINARY_DIR}/bin/pyTOPP-PyProphet")
-    file(WRITE "${_posix_wrapper}" [=[
+    set(_wrapper "${CMAKE_BINARY_DIR}/bin/pyTOPP-PyProphet")
+    file(WRITE "${_wrapper}" [=[
 #!/usr/bin/env sh
-# Resolve path to this wrapper (works with symlinks)
+# Resolve wrapper dir
 get_script_dir() {
   TARGET_FILE="$0"
   while [ -L "$TARGET_FILE" ]; do
     DIR=$(dirname -- "$TARGET_FILE")
     TARGET_FILE=$(readlink -- "$TARGET_FILE")
     case "$TARGET_FILE" in
-      /*) ;; # absolute
-      *) TARGET_FILE="$DIR/$TARGET_FILE" ;;
+      /*) ;;  *) TARGET_FILE="$DIR/$TARGET_FILE" ;;
     esac
   done
   DIR=$(dirname -- "$TARGET_FILE")
   (CDPATH= cd -- "$DIR" && pwd)
 }
 SCRIPT_DIR="$(get_script_dir)"
-TOOL="$SCRIPT_DIR/../share/pytopp/tools/pytopp_pyprophet_cli.py"
 
-# Friendly check for uv (script’s shebang uses `uv run`)
-if ! command -v uv >/dev/null 2>&1; then
+SITE="$SCRIPT_DIR/../share/pytopp/site"
+export PYTHONPATH="${SITE}${PYTHONPATH:+:${PYTHONPATH}}"
+
+TOOL="$SITE/pyopenms/pytopp/tools/pytopp_pyprophet_cli.py"
+
+# Prefer uv (the CLI has: #!/usr/bin/env -S uv run --script)
+if command -v uv >/dev/null 2>&1; then
+  exec "$TOOL" "$@"
+fi
+
+# Fallback to python with a helpful message
+if ! command -v python >/dev/null 2>&1; then
   cat <<'MSG'
-ERROR: `uv` is not installed, but this tool uses uv to auto-manage Python & dependencies.
+ERROR: Neither `uv` nor `python` found on PATH.
 
-Install one of the following and re-run this command:
+Install uv (recommended) and re-run:
   macOS/Linux (curl):   curl -LsSf https://astral.sh/uv/install.sh | sh
   macOS (Homebrew):     brew install uv
   Linux (pipx):         pipx install uv
 
-Advanced/offline: you can also run the script with your own Python:
+Or install Python and run:
   python "$TOOL" --help
 MSG
   exit 127
 fi
 
-# Hand off to the shipped script (has: #!/usr/bin/env -S uv run --script)
-exec "$TOOL" "$@"
+exec python "$TOOL" "$@"
 ]=])
-
-    # Exec bit + install POSIX wrapper
-    file(CHMOD "${_posix_wrapper}"
+    file(CHMOD "${_wrapper}"
       PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE
                   GROUP_READ GROUP_EXECUTE
                   WORLD_READ WORLD_EXECUTE)
-    install(PROGRAMS "${_posix_wrapper}" DESTINATION bin)
+    install(PROGRAMS "${_wrapper}" DESTINATION bin)
   endif()
 
-  # Install the shipped tool itself
-  install(PROGRAMS "${_pytopp_tool_dst}" DESTINATION share/pytopp/tools)
-endif()
+  # --------------------------- Install payload -------------------------------
+  # 1) Install all package .py files (except the CLI; we install it as PROGRAM)
+  install(DIRECTORY "${_pytopp_site_dir}/"
+          DESTINATION "share/pytopp/site"
+          FILES_MATCHING
+            PATTERN "*.py"
+            PATTERN "__pycache__" EXCLUDE
+            PATTERN "*/${_pytopp_cli_rel}" EXCLUDE)
 
+  # 2) Install the CLI with exec perms preserved
+  install(PROGRAMS "${_pytopp_cli_build}"
+          DESTINATION "share/pytopp/site/pyopenms/pytopp/tools")
+endif()
 
 #------------------------------------------------------------------------------
 # TOPP tools
