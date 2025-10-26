@@ -21,12 +21,12 @@ Please cite:
     Proteomics. 2014 Jan;14(1):74-7. doi: 10.1002/pmic.201300246.
 
 """
+from __future__ import print_function
 
 # Enable namespace-style package so other distributions can provide subpackages (pyTOPP)
 from pkgutil import extend_path
 __path__ = extend_path(__path__, __name__)
 
-# from __future__ import print_function
 
 import warnings
 
