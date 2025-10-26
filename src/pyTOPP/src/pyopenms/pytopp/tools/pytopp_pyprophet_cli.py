@@ -7,32 +7,91 @@
 #   "CTDopts @ git+https://github.com/WorkflowConversion/CTDopts.git",
 # ]
 # ///
+from __future__ import print_function
+
+# --- make sure our vendored pyopenms/pytopp is on the pyopenms namespace -----
+def _ensure_pyopenms_namespace():
+    import importlib
+    import importlib.machinery
+    import os
+    import sys
+    import types
+
+    # find the "site" root that contains pyopenms/
+    here = os.path.abspath(__file__)
+    d = os.path.dirname(here)
+    site = None
+    for _ in range(10):
+        if os.path.isdir(os.path.join(d, "pyopenms")):
+            site = d
+            break
+        nd = os.path.dirname(d)
+        if nd == d:
+            break
+        d = nd
+    if not site:
+        return
+
+    if site not in sys.path:
+        sys.path.insert(0, site)
+
+    pyo_dir = os.path.join(site, "pyopenms")
+
+    # Prefer a real installed pyopenms if available
+    try:
+        m = importlib.import_module("pyopenms")
+    except Exception:
+        m = None
+
+    if m is not None:
+        # extend its namespace to also search our vendored path
+        try:
+            path_list = list(m.__path__)
+        except Exception:
+            path_list = []
+        if pyo_dir not in path_list:
+            try:
+                m.__path__.append(pyo_dir)
+            except Exception:
+                m.__path__ = path_list + [pyo_dir]
+        return
+
+    # otherwise create a namespace stub pointing at our vendored path
+    m = types.ModuleType("pyopenms")
+    m.__package__ = "pyopenms"
+    m.__path__ = [pyo_dir]
+    m.__spec__ = importlib.machinery.ModuleSpec("pyopenms", loader=None, is_package=True)
+    sys.modules["pyopenms"] = m
+
+_ensure_pyopenms_namespace()
+# -----------------------------------------------------------------------------
 
 import os
 import sys
 import tempfile
+from importlib.metadata import version
 from pathlib import Path
-from typing import Iterable, List
+from typing import Iterable, List, Optional
 
-import pyopenms as poms
 import CTDopts  # noqa: F401
+import pyopenms as poms
 from CTDopts.CTDopts import CTDModel
-
-from ..CTDsupport import (
+from pyopenms.pytopp.core import (
+    as_bool,
+    coerce_all_bools_from_argv,
+    is_nullish,
+    recover_missing_extras,
+    run_tool,
+    tok_extra,
+)
+from pyopenms.pytopp.CTDsupport import (
     HelpConfig,
-    print_model_help,
     addParamToCTDopts,
     parseCTDCommandLinePure,
+    print_model_help,
 )
 
-from ..core import (
-    as_bool,
-    is_nullish,
-    tok_extra,
-    run_tool,
-    recover_missing_extras,
-    coerce_all_bools_from_argv,
-)
+PYPROPHET_VERSION = version("pyprophet")
 
 # -------------------------- PyProphet-specific helpers ---------------------
 def _canonical_levels(csv: str) -> List[str]:
@@ -83,7 +142,7 @@ def _derive_compound(out_osw: Path) -> Path:
 def build_model() -> CTDModel:
     model = CTDModel(
         name="PyProphet",
-        version="1.0",
+        version=PYPROPHET_VERSION,
         description=(
             "pyTOPP tool to run PyProphet scoring, optional peptide/protein/gene inference, "
             "peptidoform inference (IPF), and exports on OSW files."
@@ -96,10 +155,10 @@ def build_model() -> CTDModel:
     )
 
     # I/O
-    model.add("in",  required=True,  type="input-file", is_list=True,  file_formats=["OSW"],
-              description="Input OSW file(s). If >1, a merge step is executed first.")
-    model.add("out", required=False, type="output-file", is_list=False, file_formats=["OSW"],
-              description="Output OSW file. If omitted and a single input is given, scoring is in-place.")
+    model.add("in",  required=True,  type="input-file", is_list=True,  file_formats=["osw", "oswpq", "oswpqd", "parquet"],
+              description="Input OSW file(s). If input is sqlite-based OSW and more than 1 file is passed, a merge step is executed first.")
+    model.add("out", required=False, type="output-file", is_list=False, file_formats=["osw", "oswpq", "oswpqd", "parquet"],
+              description="Output OSW file. If omitted and a single input is given, scoring is done in-place.")
 
     # logging / threading / exe
     model.add("threads",             required=False, type=int,  default=1,
@@ -115,7 +174,7 @@ def build_model() -> CTDModel:
     # scoring
     model.add("scoring:run_score",       required=False, type=bool,  default=True,  description="Run semi-supervised scoring.")
     model.add("scoring:level",           required=False, type=str,   default="ms1ms2",
-              choices=["ms1", "ms2", "ms1ms2", "transition", "alignment"], description="OSW data level(s) for scoring (CSV).")
+              description="OSW data level(s) for scoring (CSV).") # choices=["ms1", "ms2", "ms1ms2", "transition", "alignment"], 
     model.add("scoring:classifier",      required=False, type=str,   default="SVM",
               choices=["LDA", "SVM", "XGBoost", "HistGradientBoosting"], description="Classifier for semi-supervised scoring.")
     model.add("scoring:subsample_ratio", required=False, type=float, default=1.0,
@@ -137,12 +196,11 @@ def build_model() -> CTDModel:
     model.add("scoring:ss_scale_features",required=False, type=bool, default=False,
               description="Scale / standardize features to unit variance.")
     model.add("scoring:extra",           required=False, type=str,   default="",
-              description='Extra args passed verbatim to "pyprophet score" (e.g. "--parametric --pi0_lambda 0.4 0 0").')
+              description='Extra args passed verbatim to "pyprophet score" (e.g. "+--parametric +--pi0_lambda 0.4 0 0").')
 
     # infer
     model.add("infer:context",        required=False, type=str, default="global",
-              choices=["run-specific", "experiment-wide", "global"],
-              description="Context(s) for peptide/protein/gene inference (CSV).")
+              description="Context(s) for peptide/protein/gene inference (CSV).") # choices=["run-specific", "experiment-wide", "global"],
     model.add("infer:run_peptide",    required=False, type=bool, default=True,  description="Run peptide inference.")
     model.add("infer:run_protein",    required=False, type=bool, default=True,  description="Run protein inference.")
     model.add("infer:run_gene",       required=False, type=bool, default=False, description="Run gene inference.")
@@ -182,7 +240,7 @@ def main() -> int:
     model = build_model()
 
     cfg = HelpConfig(
-        tool_name=f"{model.name} (pyTOPP)",
+        tool_name=f"{model.name} v{model.version} (pyTOPP)",
         binary_name="PyProphet.py",
         show_description=True,
         advanced_by_name={
@@ -195,6 +253,7 @@ def main() -> int:
             "infer:ipf_grouped_fdr", "infer:ipf_max_precursor_pep", "infer:ipf_max_peakgroup_pep",
             "infer:ipf_max_precursor_peakgroup_pep", "infer:ipf_max_transition_pep",
             "export:tsv:extra", "export:matrix:extra",
+            "export:compound:format", "export:compound:max_rs_peakgroup_qvalue",
         },
     )
 
@@ -354,7 +413,7 @@ def main() -> int:
         print("Options export:run_compound and (export:run_tsv/export:run_matrix) are mutually exclusive.", file=sys.stderr)
         return 2
 
-    def run_export(sub: str, out_path: Path | None = None, extra_key: str | None = None):
+    def run_export(sub: str, out_path: Optional[Path] = None, extra_key: Optional[str] = None):
         cmd = ["--log-level", loglevel, "--no-log-colorize", "export", sub, "--in", str(out_osw)]
         if out_path:
             cmd += ["--out", str(out_path)]
