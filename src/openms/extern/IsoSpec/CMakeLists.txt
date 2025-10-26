@@ -24,6 +24,11 @@ set(_ISOSPEC_SOURCES
   fasta.cpp
 )
 
+# Add mman.cpp on Windows for memory mapping support
+if(WIN32)
+  list(APPEND _ISOSPEC_SOURCES mman.cpp)
+endif()
+
 set(ISOSPEC_SOURCES )
 foreach(_file ${_ISOSPEC_SOURCES})
   # append source files
