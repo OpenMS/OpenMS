@@ -1,29 +1,40 @@
-# Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+# Copyright (c) 2002-present, OpenMS Inc.
 # SPDX-License-Identifier: BSD-3-Clause
 #
 # --------------------------------------------------------------------------
 # $Maintainer: Justin Sing $
 # $Authors: Justin Sing $
 # --------------------------------------------------------------------------
-## 3.15 to enable new find policies for FindPython (note the discussion in https://gitlab.kitware.com/cmake/cmake/-/issues/21186)
+# 3.15 to enable new find policies for FindPython
 cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 project("pyTOPP" LANGUAGES C CXX)
 
-# Source layout: we copy ONLY the 'pytopp' subpackage to keep 'pyopenms' as a namespace.
-set(_pytopp_pkg_src "${CMAKE_CURRENT_SOURCE_DIR}/src/pyopenms/pytopp")
+# Put generated pyTOPP wrappers next to TOPP binaries in the top-level bin/
+set(_PYTOPP_WRAPPER_BIN "${CMAKE_BINARY_DIR}/bin")
+file(MAKE_DIRECTORY "${_PYTOPP_WRAPPER_BIN}")
 
-# Where we stage things in the build/install trees
-set(_pytopp_site_dir "${CMAKE_CURRENT_BINARY_DIR}/share/pytopp/site")
+# ─────────────────────────────────────────────────────────────────────────────
+# Package layout
+# We copy ONLY the 'pytopp' subpackage so that 'pyopenms' stays a namespace.
+# Runtime bootstrapping happens via sitecustomize.py we generate below.
+# ─────────────────────────────────────────────────────────────────────────────
+set(_pytopp_pkg_src      "${CMAKE_CURRENT_SOURCE_DIR}/src/pyopenms/pytopp")
+set(_pytopp_site_dir     "${CMAKE_CURRENT_BINARY_DIR}/share/pytopp/site")
 set(_pytopp_pkg_dst_root "${_pytopp_site_dir}/pyopenms")
 file(MAKE_DIRECTORY "${_pytopp_pkg_dst_root}")
 
 # Copy the whole package: share/pytopp/site/pyopenms/pytopp/...
 file(COPY "${_pytopp_pkg_src}" DESTINATION "${_pytopp_pkg_dst_root}")
 
-# Write sitecustomize.py so Python auto-imports our bootstrap on startup
+# ─────────────────────────────────────────────────────────────────────────────
+# sitecustomize.py
+# Ensures our vendored 'pyopenms/pytopp' is discoverable even if a system
+# pyopenms is installed. Python auto-loads this module when its directory
+# is on sys.path.
+# ─────────────────────────────────────────────────────────────────────────────
 file(WRITE "${_pytopp_site_dir}/sitecustomize.py" [=[
-# Auto-imported by Python's 'site' module if on sys.path.
-# Extends/creates the 'pyopenms' namespace to include the vendored 'pytopp' subtree.
+# Auto-imported by Python's 'site' module if this directory is on sys.path.
+# Extends/creates the 'pyopenms' namespace to include the vendored 'pytopp'.
 
 import importlib
 import importlib.machinery
@@ -32,18 +43,15 @@ import sys
 import types
 
 def _ensure_pyopenms_namespace():
-    # site root = this file's directory
     site = os.path.dirname(os.path.abspath(__file__))
     pyo_dir = os.path.join(site, "pyopenms")
 
-    # Try to import an installed pyopenms; fall back to creating a stub package.
     try:
         m = importlib.import_module("pyopenms")
     except Exception:
         m = None
 
     if m is not None:
-        # Extend its search path to also include our vendored folder
         try:
             path_list = list(m.__path__)  # may raise if not a pkg
         except Exception:
@@ -55,7 +63,6 @@ def _ensure_pyopenms_namespace():
                 m.__path__ = path_list + [pyo_dir]
         return
 
-    # No real pyopenms installed: create a minimal namespace package
     m = types.ModuleType("pyopenms")
     m.__package__ = "pyopenms"
     m.__path__ = [pyo_dir]
@@ -65,123 +72,177 @@ def _ensure_pyopenms_namespace():
 _ensure_pyopenms_namespace()
 ]=])
 
-# Path to the shipped CLI inside the vendored site
-set(_pytopp_cli_rel "pyopenms/pytopp/tools/pytopp_pyprophet_cli.py")
-set(_pytopp_cli_build "${_pytopp_site_dir}/${_pytopp_cli_rel}")
+# ─────────────────────────────────────────────────────────────────────────────
+# Helper: add_pytopp_tool
+#
+# Usage (one line per tool):
+#   add_pytopp_tool(
+#       NAME         PyProphet
+#       CLI_REL      pyopenms/pytopp/tools/pytopp_pyprophet_cli.py
+#   )
+#
+# What this does:
+#   • Marks the CLI script in the build-tree as executable on UNIX
+#   • Generates a wrapper in bin/:   bin/<NAME>
+#   • Wrapper sets PYTHONPATH to include our vendored site tree
+#   • Prefers running via `uv run --script`, falls back to `python`
+#   • Installs the CLI script (with exec perms preserved) under share/pytopp/site
+#   • Installs the wrapper into bin/
+#
+# Developer notes:
+#   • To add a new tool, drop a new CLI under:
+#       src/pyTOPP/src/pyopenms/pytopp/tools/<your_cli>.py
+#     Give it a shebang like: `#!/usr/bin/env -S uv run --script`
+#   • Then add ONE call to add_pytopp_tool(NAME <NiceName> CLI_REL <relative_path>)
+#     below in the "Register tools" section.
+#   • No other changes are needed.
+# ─────────────────────────────────────────────────────────────────────────────
+function(add_pytopp_tool)
+  set(options)
+  set(oneValueArgs NAME CLI_REL)
+  set(multiValueArgs)
+  cmake_parse_arguments(PYT "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
-# Make the CLI executable on Unix (so the uv shebang works)
-if(UNIX)
-  file(CHMOD "${_pytopp_cli_build}"
-    PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE
-                GROUP_READ GROUP_EXECUTE
-                WORLD_READ WORLD_EXECUTE)
-endif()
+  if(NOT PYT_NAME)
+    message(FATAL_ERROR "add_pytopp_tool(): NAME is required")
+  endif()
+  if(NOT PYT_CLI_REL)
+    message(FATAL_ERROR "add_pytopp_tool(): CLI_REL is required")
+  endif()
 
-# ---------------------- Wrapper in bin/ (adds PYTHONPATH) -------------------
-if(WIN32)
-  set(_wrapper "${CMAKE_CURRENT_BINARY_DIR}/bin/pyTOPP-PyProphet.cmd")
-  file(WRITE "${_wrapper}" [=[
-@echo off
-setlocal
+  # Paths to the CLI inside the staged vendored site
+  set(_cli_rel   "${PYT_CLI_REL}")
+  set(_cli_build "${_pytopp_site_dir}/${_cli_rel}")
 
-REM Resolve wrapper dir
-set "WRAPDIR=%~dp0"
-if "%WRAPDIR:~-1%"=="\" set "WRAPDIR=%WRAPDIR:~0,-1%"
+  # Make the CLI executable on Unix (so a `uv` shebang works)
+  if(UNIX)
+    file(CHMOD "${_cli_build}"
+      PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE
+                  GROUP_READ  GROUP_EXECUTE
+                  WORLD_READ  WORLD_EXECUTE)
+  endif()
 
-REM Vendored site root (..\\share\\pytopp\\site)
-set "SITE=%WRAPDIR%\..\share\pytopp\site"
-set "PYTHONPATH=%SITE%;%PYTHONPATH%"
+  # Wrapper filename in bin/
+  if(WIN32)
+    set(_wrapper "${_PYTOPP_WRAPPER_BIN}/${PYT_NAME}.cmd")
+    file(WRITE "${_wrapper}" "@echo off\n")
+    file(APPEND "${_wrapper}" "setlocal\n\n")
+    file(APPEND "${_wrapper}" "REM Resolve wrapper dir\n")
+    file(APPEND "${_wrapper}" "set \"WRAPDIR=%~dp0\"\n")
+    file(APPEND "${_wrapper}" "if \"%WRAPDIR:~-1%\"==\"\\\" set \"WRAPDIR=%WRAPDIR:~0,-1%\"\n\n")
+    file(APPEND "${_wrapper}" "REM Vendored site root (..\\share\\pytopp\\site)\n")
+    file(APPEND "${_wrapper}" "set \"SITE=%WRAPDIR%\\..\\share\\pytopp\\site\"\n")
+    file(APPEND "${_wrapper}" "set \"PYTHONPATH=%SITE%;%PYTHONPATH%\"\n\n")
+    file(APPEND "${_wrapper}" "REM CLI inside vendored package\n")
+    file(APPEND "${_wrapper}" "set \"TOOL=%SITE%\\${_cli_rel}\"\n\n")
+    file(APPEND "${_wrapper}" "REM Prefer uv explicitly (Windows doesn't honor shebang)\n")
+    file(APPEND "${_wrapper}" "where uv >NUL 2>&1\n")
+    file(APPEND "${_wrapper}" "if %ERRORLEVEL% EQU 0 (\n")
+    file(APPEND "${_wrapper}" "  uv run --script \"%TOOL%\" %*\n")
+    file(APPEND "${_wrapper}" "  exit /b %ERRORLEVEL%\n")
+    file(APPEND "${_wrapper}" ")\n\n")
+    file(APPEND "${_wrapper}" "REM Fallback to python with a helpful message\n")
+    file(APPEND "${_wrapper}" "where python >NUL 2>&1\n")
+    file(APPEND "${_wrapper}" "if %ERRORLEVEL% NEQ 0 (\n")
+    file(APPEND "${_wrapper}" "  echo ERROR: Neither \"uv\" nor \"python\" found on PATH.\n")
+    file(APPEND "${_wrapper}" "  echo.\n")
+    file(APPEND "${_wrapper}" "  echo Install uv (recommended) and re-run:\n")
+    file(APPEND "${_wrapper}" "  echo   PowerShell:  iwr https://astral.sh/uv/install.ps1 -UseB ^| iex\n")
+    file(APPEND "${_wrapper}" "  echo   winget:      winget install --id AstralSoftware.UV\n")
+    file(APPEND "${_wrapper}" "  echo.\n")
+    file(APPEND "${_wrapper}" "  echo Or install Python and run:\n")
+    file(APPEND "${_wrapper}" "  echo   python \"%TOOL%\" --help\n")
+    file(APPEND "${_wrapper}" "  exit /b 127\n")
+    file(APPEND "${_wrapper}" ")\n\n")
+    file(APPEND "${_wrapper}" "python \"%TOOL%\" %*\n")
 
-REM CLI inside vendored package
-set "TOOL=%SITE%\pyopenms\pytopp\tools\pytopp_pyprophet_cli.py"
+    # Install the wrapper
+    install(PROGRAMS "${_wrapper}" DESTINATION bin)
+  else()
+    set(_wrapper "${_PYTOPP_WRAPPER_BIN}/${PYT_NAME}")
+    file(WRITE "${_wrapper}" "#!/usr/bin/env sh\n")
+    file(APPEND "${_wrapper}" "set -eu\n")
+    file(APPEND "${_wrapper}" "get_script_dir() {\n")
+    file(APPEND "${_wrapper}" "  TARGET_FILE=\"$0\"\n")
+    file(APPEND "${_wrapper}" "  while [ -L \"$TARGET_FILE\" ]; do\n")
+    file(APPEND "${_wrapper}" "    DIR=$(dirname -- \"$TARGET_FILE\")\n")
+    file(APPEND "${_wrapper}" "    TARGET_FILE=$(readlink -- \"$TARGET_FILE\")\n")
+    file(APPEND "${_wrapper}" "    case \"$TARGET_FILE\" in\n")
+    file(APPEND "${_wrapper}" "      /*) ;;  *) TARGET_FILE=\"$DIR/$TARGET_FILE\" ;;\n")
+    file(APPEND "${_wrapper}" "    esac\n")
+    file(APPEND "${_wrapper}" "  done\n")
+    file(APPEND "${_wrapper}" "  DIR=$(dirname -- \"$TARGET_FILE\")\n")
+    file(APPEND "${_wrapper}" "  (CDPATH= cd -- \"$DIR\" && pwd)\n")
+    file(APPEND "${_wrapper}" "}\n")
+    file(APPEND "${_wrapper}" "SCRIPT_DIR=\"$(get_script_dir)\"\n\n")
+    file(APPEND "${_wrapper}" "SITE=\"$SCRIPT_DIR/../share/pytopp/site\"\n")
+    file(APPEND "${_wrapper}" "export PYTHONPATH=\"${SITE}\${PYTHONPATH:+:${PYTHONPATH}}\"\n\n")
+    file(APPEND "${_wrapper}" "TOOL=\"$SITE/${_cli_rel}\"\n\n")
+    file(APPEND "${_wrapper}" "# Prefer uv (the CLI may have: #!/usr/bin/env -S uv run --script)\n")
+    file(APPEND "${_wrapper}" "if command -v uv >/dev/null 2>&1; then\n")
+    file(APPEND "${_wrapper}" "  exec \"$TOOL\" \"$@\"\n")
+    file(APPEND "${_wrapper}" "fi\n\n")
+    file(APPEND "${_wrapper}" "# Fallback to python with a helpful message\n")
+    file(APPEND "${_wrapper}" "if ! command -v python >/dev/null 2>&1; then\n")
+    file(APPEND "${_wrapper}" "  cat <<'MSG'\n")
+    file(APPEND "${_wrapper}" "ERROR: Neither \`uv\` nor \`python\` found on PATH.\n\n")
+    file(APPEND "${_wrapper}" "Install uv (recommended) and re-run:\n")
+    file(APPEND "${_wrapper}" "  macOS/Linux (curl):   curl -LsSf https://astral.sh/uv/install.sh | sh\n")
+    file(APPEND "${_wrapper}" "  macOS (Homebrew):     brew install uv\n")
+    file(APPEND "${_wrapper}" "  Linux (pipx):         pipx install uv\n\n")
+    file(APPEND "${_wrapper}" "Or install Python and run:\n")
+    file(APPEND "${_wrapper}" "  python \"$TOOL\" --help\n")
+    file(APPEND "${_wrapper}" "MSG\n")
+    file(APPEND "${_wrapper}" "  exit 127\n")
+    file(APPEND "${_wrapper}" "fi\n\n")
+    file(APPEND "${_wrapper}" "exec python \"$TOOL\" \"$@\"\n")
 
-REM Prefer uv explicitly (Windows doesn't honor shebang)
-where uv >NUL 2>&1
-if %ERRORLEVEL% EQU 0 (
-  uv run --script "%TOOL%" %*
-  exit /b %ERRORLEVEL%
+    file(CHMOD "${_wrapper}"
+      PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE
+                  GROUP_READ  GROUP_EXECUTE
+                  WORLD_READ  WORLD_EXECUTE)
+
+    # Install the wrapper
+    install(PROGRAMS "${_wrapper}" DESTINATION bin)
+  endif()
+
+  # Install the CLI itself (preserve exec perms on UNIX)
+  install(PROGRAMS "${_cli_build}"
+          DESTINATION "share/pytopp/site/pyopenms/pytopp/tools")
+endfunction()
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Register tools here
+#
+# HOW TO ADD A NEW pyTOPP TOOL:
+#   1) Create your CLI script under:
+#        src/pyTOPP/src/pyopenms/pytopp/tools/<your_cli>.py
+#      Suggested name pattern: "pytopp_<name>_cli.py"
+#   2) Add ONE line below, e.g.:
+#        add_pytopp_tool(NAME MyNewTool
+#                        CLI_REL pyopenms/pytopp/tools/pytopp_mynewtool_cli.py)
+#   3) Reconfigure & build. You'll get a wrapper:
+#        build/.../bin/MyNewTool
+#      and the CLI is installed under:
+#        share/pytopp/site/pyopenms/pytopp/tools/<your_cli>.py
+#   4) Dev tip: you can still run your CLI directly during development if you
+#      export PYTHONPATH=src/pyTOPP/src (or add the tiny bootstrap shim).
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Example: existing PyProphet tool
+add_pytopp_tool(
+  NAME    OpenSwathProphet
+  CLI_REL pyopenms/pytopp/tools/pytopp_pyprophet_cli.py
 )
 
-REM Fallback to python with a helpful message
-where python >NUL 2>&1
-if %ERRORLEVEL% NEQ 0 (
-  echo ERROR: Neither "uv" nor "python" found on PATH.
-  echo.
-  echo Install uv (recommended) and re-run:
-  echo   PowerShell:  iwr https://astral.sh/uv/install.ps1 -UseB ^| iex
-  echo   winget:      winget install --id AstralSoftware.UV
-  echo.
-  echo Or install Python and run:
-  echo   python "%TOOL%" --help
-  exit /b 127
-)
-
-python "%TOOL%" %*
-]=])
-  install(PROGRAMS "${_wrapper}" DESTINATION bin)
-else()
-  set(_wrapper "${CMAKE_CURRENT_BINARY_DIR}/bin/pyTOPP-PyProphet")
-  file(WRITE "${_wrapper}" [=[
-#!/usr/bin/env sh
-# Resolve wrapper dir
-get_script_dir() {
-  TARGET_FILE="$0"
-  while [ -L "$TARGET_FILE" ]; do
-    DIR=$(dirname -- "$TARGET_FILE")
-    TARGET_FILE=$(readlink -- "$TARGET_FILE")
-    case "$TARGET_FILE" in
-      /*) ;;  *) TARGET_FILE="$DIR/$TARGET_FILE" ;;
-    esac
-  done
-  DIR=$(dirname -- "$TARGET_FILE")
-  (CDPATH= cd -- "$DIR" && pwd)
-}
-SCRIPT_DIR="$(get_script_dir)"
-
-SITE="$SCRIPT_DIR/../share/pytopp/site"
-export PYTHONPATH="${SITE}${PYTHONPATH:+:${PYTHONPATH}}"
-
-TOOL="$SITE/pyopenms/pytopp/tools/pytopp_pyprophet_cli.py"
-
-# Prefer uv (the CLI has: #!/usr/bin/env -S uv run --script)
-if command -v uv >/dev/null 2>&1; then
-  exec "$TOOL" "$@"
-fi
-
-# Fallback to python with a helpful message
-if ! command -v python >/dev/null 2>&1; then
-  cat <<'MSG'
-ERROR: Neither `uv` nor `python` found on PATH.
-
-Install uv (recommended) and re-run:
-  macOS/Linux (curl):   curl -LsSf https://astral.sh/uv/install.sh | sh
-  macOS (Homebrew):     brew install uv
-  Linux (pipx):         pipx install uv
-
-Or install Python and run:
-  python "$TOOL" --help
-MSG
-  exit 127
-fi
-
-exec python "$TOOL" "$@"
-]=])
-  file(CHMOD "${_wrapper}"
-    PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE
-                GROUP_READ GROUP_EXECUTE
-                WORLD_READ WORLD_EXECUTE)
-  install(PROGRAMS "${_wrapper}" DESTINATION bin)
-endif()
-
-# --------------------------- Install payload -------------------------------
-# 1) Install all package .py files (including sitecustomize.py; exclude CLI itself)
+# ─────────────────────────────────────────────────────────────────────────────
+# Install the rest of the package payload (excluding tool scripts, which we
+# install as PROGRAMS above to preserve executable bits).
+# ─────────────────────────────────────────────────────────────────────────────
 install(DIRECTORY "${_pytopp_site_dir}/"
         DESTINATION "share/pytopp/site"
         FILES_MATCHING
           PATTERN "*.py"
           PATTERN "__pycache__" EXCLUDE
-          PATTERN "*/${_pytopp_cli_rel}" EXCLUDE)
-
-# 2) Install the CLI with exec perms preserved
-install(PROGRAMS "${_pytopp_cli_build}"
-        DESTINATION "share/pytopp/site/pyopenms/pytopp/tools")
+          # Exclude ALL tool .py files; they are installed via add_pytopp_tool()
+          PATTERN "pyopenms/pytopp/tools/*.py" EXCLUDE)
