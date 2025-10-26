@@ -38,7 +38,7 @@ endif()
 #------------------------------------------------------------------------------
 # pyTOPP
 #------------------------------------------------------------------------------
-option(PYTOPP "Install pyTOPP CLI wrappers (Python tools via uv)" ON)
+option(PYTOPP "Install pyTOPP CLI wrappers (Python tools via uv)" OFF)
 if(PYTOPP)
   add_subdirectory(pyTOPP)
 endif()
