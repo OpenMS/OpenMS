@@ -629,7 +629,7 @@ class PyTOPPArgParser:
                     file=sys.stderr,
                 )
 
-        return validated
+        return validated, openms_param
 
     # ---------- helpers: directives, flags, merging ------------------------
 
