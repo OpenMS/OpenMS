@@ -1,10 +1,19 @@
+#!/usr/bin/env -S uv run --script
+# /// script
+# requires-python = ">=3.9"
+# dependencies = [
+#   "pyopenms>=3",
+#   "CTDopts @ git+https://github.com/WorkflowConversion/CTDopts.git",
+# ]
+# ///
+
 import CTDopts
 import sys
 from CTDopts.CTDopts import CTDModel, parse_cl_directives
 import pyopenms as pms
 import logging
-from common import addDataProcessing
-from CTDsupport import *
+from pyopenms.pytopp.common import addDataProcessing
+from pyopenms.pytopp.CTDsupport import *
 
 
 def main():
@@ -48,7 +57,8 @@ def main():
     # parse command line
     # if -write_ini is provided, store model in CTD file, exit with error code 0
     # if -ini is provided, load CTD file into defaults Param object and return new model with paraneters set as defaults
-    arg_dict, openms_params = parseCTDCommandLine(sys.argv, model, defaults);
+    parser = PyTOPPArgParser(model)
+    arg_dict, openms_params = parser.parse(sys.argv[1:], mode="pyopenms", openms_param=defaults)
 
     # data processing
     fh = pms.MzMLFile()

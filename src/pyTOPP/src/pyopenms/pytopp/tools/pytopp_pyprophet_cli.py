@@ -9,64 +9,6 @@
 # ///
 from __future__ import print_function
 
-
-# --- make sure our vendored pyopenms/pytopp is on the pyopenms namespace -----
-def _ensure_pyopenms_namespace():
-    import importlib
-    import importlib.machinery
-    import os
-    import sys
-    import types
-
-    # find the "site" root that contains pyopenms/
-    here = os.path.abspath(__file__)
-    d = os.path.dirname(here)
-    site = None
-    for _ in range(10):
-        if os.path.isdir(os.path.join(d, "pyopenms")):
-            site = d
-            break
-        nd = os.path.dirname(d)
-        if nd == d:
-            break
-        d = nd
-    if not site:
-        return
-
-    if site not in sys.path:
-        sys.path.insert(0, site)
-
-    pyo_dir = os.path.join(site, "pyopenms")
-
-    # Prefer a real installed pyopenms if available
-    try:
-        m = importlib.import_module("pyopenms")
-    except Exception:
-        m = None
-
-    if m is not None:
-        # extend its namespace to also search our vendored path
-        try:
-            path_list = list(m.__path__)
-        except Exception:
-            path_list = []
-        if pyo_dir not in path_list:
-            try:
-                m.__path__.append(pyo_dir)
-            except Exception:
-                m.__path__ = path_list + [pyo_dir]
-        return
-
-    # otherwise create a namespace stub pointing at our vendored path
-    m = types.ModuleType("pyopenms")
-    m.__package__ = "pyopenms"
-    m.__path__ = [pyo_dir]
-    m.__spec__ = importlib.machinery.ModuleSpec("pyopenms", loader=None, is_package=True)
-    sys.modules["pyopenms"] = m
-
-_ensure_pyopenms_namespace()
-# -----------------------------------------------------------------------------
-
 import os
 import sys
 import tempfile
