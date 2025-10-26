@@ -263,13 +263,13 @@ def main() -> int:
     if "--help-advanced" in argv or "--helphelp" in argv:
         print_model_help(model, advanced=True,  cfg=cfg); return 0
 
-    # Seed OpenMS defaults (no algorithm defaults here) to satisfy CTD plumbing
-    defaults = poms.Param()
-    addParamToCTDopts(defaults, model)
-
+    # # Seed OpenMS defaults (no algorithm defaults here) to satisfy CTD plumbing
+    # defaults = poms.Param()
+    # addParamToCTDopts(defaults, model)
+    
     # Parse CTD/CLI; this returns validated & type-cast values
     arg_dict = parseCTDCommandLinePure(argv, model)
-
+    
     # Repair dropped :extra strings & coerce booleans based on raw argv
     recover_missing_extras(arg_dict, argv, [
         "scoring:extra", "infer:peptide:extra", "infer:protein:extra",
