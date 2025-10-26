@@ -7,14 +7,33 @@ name = "pyopenms-pytopp"
 version = "0.1.0"
 description = "pyTOPP command-line tools integrated with pyOpenMS"
 readme = "README.md"
+classifiers = [
+    "Development Status :: 0 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: BSD License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+    "Topic :: Scientific/Engineering :: Chemistry"
+]
+keywords = ["bioinformatics", "OpenMS", "mass spectrometry"]
 requires-python = ">=3.9"
 license = { text = "BSD-3-Clause" }
 authors = [{ name = "OpenMS team", email = "webmaster@openms.de" }]
 dependencies = [
   "pyopenms>=3",
-  "pyprophet>=3",
   "CTDopts @ git+https://github.com/WorkflowConversion/CTDopts.git",
 ]
+
+[project.optional-dependencies]
+testing = ["pytest", "pytest-regtest", "pytest-xdist"]
+dev = ["pyprophet[testing]", "ruff"]
 
 # expose CLI entry points for your tools
 [project.scripts]
@@ -23,3 +42,9 @@ pyTOPP-PyProphet = "pyopenms.pytopp.tools.pytopp_pyprophet_cli:main"
 [tool.setuptools.packages.find]
 where = ["src"]
 
+[tool.pytest.ini_options]
+minversion = "7.0"
+addopts = "-q"
+testpaths = ["src/pyTOPP/tests"]
+python_files = ["test_*.py"]
+python_functions = ["test_*"]
