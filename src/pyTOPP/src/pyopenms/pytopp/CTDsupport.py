@@ -7,6 +7,8 @@ import tempfile
 import textwrap
 from dataclasses import dataclass, field
 from typing import Iterable, Mapping, Sequence
+from collections.abc import Mapping
+
 
 import CTDopts
 import pyopenms as pms
@@ -15,6 +17,7 @@ import pyopenms as pms
 from CTDopts.CTDopts import (
     CTDModel,
     args_from_file,
+    set_nested_key,
     flatten_dict,
     override_args,
     parse_cl_directives,
@@ -591,6 +594,62 @@ def _split_openms_directives(argv):
         i += 1
     return directives, rest
 
+
+def _as_nested(d: dict) -> dict:
+    """Convert a dict to a nested form, splitting colon-joined keys."""
+    if not isinstance(d, Mapping):
+        return {}
+    out: dict = {}
+    for k, v in d.items():
+        if isinstance(v, Mapping):
+            v = _as_nested(v)
+        if isinstance(k, str) and ":" in k:
+            set_nested_key(out, k.split(":"), v)
+        else:
+            # merge if both sides are mappings
+            if k in out and isinstance(out[k], Mapping) and isinstance(v, Mapping):
+                out[k] = _deep_merge(out[k], v)
+            else:
+                out[k] = v
+    return out
+
+def _deep_merge(a: dict, b: dict) -> dict:
+    """Deep merge where values in b override a."""
+    res = dict(a)
+    for k, v in b.items():
+        if k in res and isinstance(res[k], Mapping) and isinstance(v, Mapping):
+            res[k] = _deep_merge(res[k], v)
+        else:
+            res[k] = v
+    return res
+
+def override_args_nested(*arg_dicts):
+    """Normalize all dicts to nested, deep-merge (later wins), then flatten to colon keys."""
+    nested = {}
+    for d in arg_dicts:
+        nested = _deep_merge(nested, _as_nested(d or {}))
+    # return a flat mapping with colon-joined keys so CTDopts validators are happy
+    return flatten_dict(nested, as_string=True)
+
+def _find_unknown_flags(argv, model):
+    known = {f"-{p.name}" for p in model.list_parameters()}
+    known.update({"-ini", "-write_ini", "-write_param_ctd"})
+    seen, out = set(), []
+    for tok in argv:
+        if not tok.startswith("-"):
+            continue
+        if tok.startswith("+--"):                   # forwarded to pyprophet
+            continue
+        if len(tok) > 1 and tok[1].isdigit():      # negatives like -0.1
+            continue
+        flag = tok.split("=", 1)[0]
+        if flag in known or flag in seen:
+            continue
+        seen.add(flag)
+        out.append(flag)
+    return out
+
+
 def parseCTDCommandLinePure(argv, model):
     """
     Parse OpenMS-style CLI for a CTDopts model for non-pyOpenMS tools (i.e. the tool does not internally use the OpenMS Param object).
@@ -639,6 +698,18 @@ def parseCTDCommandLinePure(argv, model):
         argv = argv[1:]
 
     directives, remaining = _split_openms_directives(argv)
+    
+    # fail early on unknown flags (prevents silent fallback to defaults)
+    _unknown = _find_unknown_flags(argv, model)
+    if _unknown:
+        names = [p.name for p in model.list_parameters()]
+        lines = []
+        for u in _unknown:
+            cand = get_close_matches(u.lstrip("-"), names, n=1)
+            hint = f"  (did you mean '-{cand[0]}'?)" if cand else ""
+            lines.append(f"  {u}{hint}")
+        print("Unrecognized option(s):\n" + "\n".join(lines), file=sys.stderr)
+        return 2
 
     # Write tool CTD (schema/defaults) and exit
     if directives["write_tool_ctd"] is not None:
@@ -657,7 +728,7 @@ def parseCTDCommandLinePure(argv, model):
     # Parse remaining CLI with CTDopts (prefix '-')
     cli_args = model.parse_cl_args(remaining, prefix="-")
 
-    merged = override_args(model.get_defaults(), base_args, cli_args)
+    merged = override_args_nested(model.get_defaults(), base_args, cli_args)
 
     validated = model.validate_args(merged)
 
