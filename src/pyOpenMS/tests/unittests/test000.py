@@ -4507,6 +4507,38 @@ def testPeptideHit():
     assert ph == ph
     assert not ph != ph
 
+    # Test __repr__ and __str__ methods
+    ph_repr = pyopenms.PeptideHit()
+    ph_repr.setScore(18.1)
+    ph_repr.setRank(1)
+    ph_repr.setCharge(2)
+    ph_repr.setSequence(pyopenms.AASequence.fromString("PEPTIDER"))
+    
+    # Basic repr test
+    repr_str = repr(ph_repr)
+    assert "PeptideHit(" in repr_str
+    assert "score=" in repr_str
+    assert "sequence=" in repr_str
+    assert "charge=" in repr_str
+    assert "rank=" in repr_str
+    
+    # Test with protein evidences
+    pe1 = pyopenms.PeptideEvidence()
+    pe1.setProteinAccession('PH_6057')
+    pe1.setStart(71)
+    pe1.setEnd(80)
+    pe1.setAABefore(ord('R'))
+    pe1.setAAAfter(ord('N'))
+    
+    ph_repr.addPeptideEvidence(pe1)
+    repr_str = repr(ph_repr)
+    assert "protein_refs=" in repr_str
+    assert "PH_6057" in repr_str
+    
+    # Test str method
+    str_str = str(ph_repr)
+    assert str_str == repr_str
+
 @report
 def testPeptideEvidence():
     """
