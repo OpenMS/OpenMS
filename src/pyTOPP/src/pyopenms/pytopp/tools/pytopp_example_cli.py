@@ -10,7 +10,7 @@
 import CTDopts
 import sys
 from CTDopts.CTDopts import CTDModel, parse_cl_directives
-import pyopenms as pms
+import pyopenms as poms
 import logging
 from pyopenms.pytopp.common import addDataProcessing
 from pyopenms.pytopp.ctdsupport import *
@@ -49,7 +49,7 @@ def main():
         description='Output file'
     )
 
-    defaults = pms.PeakPickerHiRes().getDefaults()
+    defaults = poms.PeakPickerHiRes().getDefaults()
 
     # expose algorithm parameters in command line options
     addParamToCTDopts(defaults, model)
@@ -61,19 +61,19 @@ def main():
     arg_dict, openms_params = parser.parse(sys.argv[1:], mode="pyopenms", openms_param=defaults)
 
     # data processing
-    fh = pms.MzMLFile()
-    fh.setLogType(pms.LogType.CMD)
-    input_map = pms.MSExperiment()
+    fh = poms.MzMLFile()
+    fh.setLogType(poms.LogType.CMD)
+    input_map = poms.MSExperiment()
 
     fh.load(arg_dict["input"], input_map)
 
-    pp = pms.PeakPickerHiRes()
+    pp = poms.PeakPickerHiRes()
     pp.setParameters(openms_params)
-    out_map = pms.MSExperiment()
-    pp.pickExperiment(input_map, out_map)
+    out_map = poms.MSExperiment()
+    pp.pickExperiment(input_map, out_map, True)
 
-    out_map = addDataProcessing(out_map, openms_params, pms.DataProcessing.ProcessingAction.PEAK_PICKING)
-    fh = pms.FileHandler()
+    out_map = addDataProcessing(out_map, openms_params, poms.DataProcessing.ProcessingAction.PEAK_PICKING)
+    fh = poms.FileHandler()
     fh.storeExperiment(arg_dict["output"], out_map)
 
 if __name__ == "__main__":
