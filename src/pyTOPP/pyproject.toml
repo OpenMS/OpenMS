@@ -11,7 +11,6 @@ classifiers = [
     "Development Status :: 0 - Alpha",
     "Environment :: Console",
     "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: BSD License",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.9",
@@ -38,6 +37,8 @@ dev = ["pyprophet[testing]", "ruff"]
 # expose CLI entry points for your tools
 [project.scripts]
 pyTOPP-PyProphet = "pyopenms.pytopp.tools.pytopp_pyprophet_cli:main"
+pyTOPP-OpenSwathChromatogramExtractor = "pyopenms.pytopp.tools.pytopp_openswath_chromatogram_extractor_cli.py:main" # We probably do not need to wrap this with OpenMS's build, as there already exists a OpenSWATHChromatogramExtractor tool in TOPP, but this would be an example pyTOPP tool that would be available via pyTOPP if the user doesn't have the full OpenMS installation.
+pyTOPP-PeakPickerHiRes = "pyopenms.pytopp.tools.pytopp_peakpicker_hires_cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
