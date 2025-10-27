@@ -1,0 +1,6 @@
+CMD: /home/singjc/anaconda3/envs/pyprophet/bin/pyprophet --log-level INFO --no-log-colorize score --in /home/singjc/Documents/github/openms/OpenMS/src/pyTOPP/tests/data/pyprophet/test_data.osw --out <pytest_tempdir>/test_cli_pyprophet_dry_run_cmd0/scored.osw --level ms1 --classifier SVM --subsample_ratio 1.0 --threads 1 --xeval_num_iter 10 --ss_num_iter 10 --ss_initial_fdr 0.15 --ss_iteration_fdr 0.05 --ss_main_score auto
+CMD: /home/singjc/anaconda3/envs/pyprophet/bin/pyprophet --log-level INFO --no-log-colorize infer peptide --in <pytest_tempdir>/test_cli_pyprophet_dry_run_cmd0/scored.osw --context global
+CMD: /home/singjc/anaconda3/envs/pyprophet/bin/pyprophet --log-level INFO --no-log-colorize infer protein --in <pytest_tempdir>/test_cli_pyprophet_dry_run_cmd0/scored.osw --context global
+CMD: /home/singjc/anaconda3/envs/pyprophet/bin/pyprophet --log-level INFO --no-log-colorize export score-report --in <pytest_tempdir>/test_cli_pyprophet_dry_run_cmd0/scored.osw
+CMD: /home/singjc/anaconda3/envs/pyprophet/bin/pyprophet --log-level INFO --no-log-colorize export tsv --in <pytest_tempdir>/test_cli_pyprophet_dry_run_cmd0/scored.tsv
+CMD: /home/singjc/anaconda3/envs/pyprophet/bin/pyprophet --log-level INFO --no-log-colorize export matrix --in <pytest_tempdir>/test_cli_pyprophet_dry_run_cmd0/scored.matrix.tsv
