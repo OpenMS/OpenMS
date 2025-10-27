@@ -19,7 +19,7 @@ src/pyTOPP/
    │  ├─ pytopp_pyprophet_cli.py  # example tool
    │  └─ ...                      # add your tools here
    ├─ common.py
-   ├─ CTDsupport.py
+   ├─ ctdsupport.py
    ├─ util.py
    └─ __init__.py
 ```
@@ -116,7 +116,7 @@ from __future__ import annotations
 import sys
 
 from CTDopts.CTDopts import CTDModel
-from pyopenms.pytopp.CTDsupport import (
+from pyopenms.pytopp.ctdsupport import (
     CTDHelpConfig,
     CTDHelpPrinter,
     PyTOPPArgParser,
