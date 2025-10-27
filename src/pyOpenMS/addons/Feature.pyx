@@ -27,9 +27,8 @@
         parts.append(f"intensity={intensity:.1f}")
         if charge != 0:
             parts.append(f"charge={charge}")
-        # Quality is typically in range 0-1, only show if explicitly set (non-zero)
-        if quality != 0:
-            parts.append(f"quality={quality:.3f}")
+        # Quality is a core property, always show it (typically in range 0-1)
+        parts.append(f"quality={quality:.3f}")
         
         # Add number of subordinates if present
         cdef libcpp_vector[Feature] subordinates = self.getSubordinates()
