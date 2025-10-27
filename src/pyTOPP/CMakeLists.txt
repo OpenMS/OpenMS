@@ -17,9 +17,11 @@ file(MAKE_DIRECTORY "${_PYTOPP_WRAPPER_BIN}")
 # Package layout
 # We copy ONLY the 'pytopp' subpackage so that 'pyopenms' stays a namespace.
 # Runtime bootstrapping happens via sitecustomize.py we generate below.
+# NOTE: Stage the vendored site in the TOP-LEVEL build tree so the wrapper's
+#       ../share/pytopp/site resolution works regardless of subdir builds.
 # ─────────────────────────────────────────────────────────────────────────────
 set(_pytopp_pkg_src      "${CMAKE_CURRENT_SOURCE_DIR}/src/pyopenms/pytopp")
-set(_pytopp_site_dir     "${CMAKE_CURRENT_BINARY_DIR}/share/pytopp/site")
+set(_pytopp_site_dir     "${CMAKE_BINARY_DIR}/share/pytopp/site")   # <— top-level!
 set(_pytopp_pkg_dst_root "${_pytopp_site_dir}/pyopenms")
 file(MAKE_DIRECTORY "${_pytopp_pkg_dst_root}")
 
@@ -71,6 +73,28 @@ def _ensure_pyopenms_namespace():
 
 _ensure_pyopenms_namespace()
 ]=])
+
+set(_pytopp_pyproject_src "${CMAKE_CURRENT_SOURCE_DIR}/pyproject.toml")
+file(COPY "${_pytopp_pyproject_src}" DESTINATION "${_pytopp_site_dir}")
+
+set(_pytopp_readme_src "${CMAKE_CURRENT_SOURCE_DIR}/README.md")
+file(COPY "${_pytopp_readme_src}" DESTINATION "${_pytopp_site_dir}")
+
+
+# Patch package layout: the staged site has `pyopenms/pytopp` at the root,
+# not inside `src/`, so replace `where = ["src"]` -> `where = ["."]`.
+set(_pytopp_pyproject_staged "${_pytopp_site_dir}/pyproject.toml")
+if(EXISTS "${_pytopp_pyproject_staged}")
+  file(READ "${_pytopp_pyproject_staged}" _PP_TXT)
+  string(REGEX REPLACE "where *= *\\[\"src\"\\]" "where = [\".\"]" _PP_TXT "${_PP_TXT}")
+  file(WRITE "${_pytopp_pyproject_staged}" "${_PP_TXT}")
+endif()
+
+if(EXISTS "${_pytopp_site_dir}/pyproject.toml")
+  install(FILES "${_pytopp_site_dir}/pyproject.toml"
+          DESTINATION "share/pytopp/site")
+endif()
+
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Helper: add_pytopp_tool
@@ -138,10 +162,10 @@ function(add_pytopp_tool)
     file(APPEND "${_wrapper}" "REM Prefer uv explicitly (Windows doesn't honor shebang)\n")
     file(APPEND "${_wrapper}" "where uv >NUL 2>&1\n")
     file(APPEND "${_wrapper}" "if %ERRORLEVEL% EQU 0 (\n")
-    file(APPEND "${_wrapper}" "  uv run --script \"%TOOL%\" %*\n")
+    file(APPEND "${_wrapper}" "  uv run --with \"%SITE%\" --script \"%TOOL%\" %*\n")
     file(APPEND "${_wrapper}" "  exit /b %ERRORLEVEL%\n")
     file(APPEND "${_wrapper}" ")\n\n")
-    file(APPEND "${_wrapper}" "REM Fallback to python with a helpful message\n")
+    file(APPEND("${_wrapper}") "REM Fallback to python with a helpful message\n")
     file(APPEND "${_wrapper}" "where python >NUL 2>&1\n")
     file(APPEND "${_wrapper}" "if %ERRORLEVEL% NEQ 0 (\n")
     file(APPEND "${_wrapper}" "  echo ERROR: Neither \"uv\" nor \"python\" found on PATH.\n")
@@ -154,9 +178,8 @@ function(add_pytopp_tool)
     file(APPEND "${_wrapper}" "  echo   python \"%TOOL%\" --help\n")
     file(APPEND "${_wrapper}" "  exit /b 127\n")
     file(APPEND "${_wrapper}" ")\n\n")
-    file(APPEND "${_wrapper}" "python \"%TOOL%\" %*\n")
+    file(APPEND "${_wrapper}" "python \"%TOOL\" %*\n")
 
-    # Install the wrapper
     install(PROGRAMS "${_wrapper}" DESTINATION bin)
   else()
     set(_wrapper "${_PYTOPP_WRAPPER_BIN}/${PYT_NAME}")
@@ -180,7 +203,7 @@ function(add_pytopp_tool)
     file(APPEND "${_wrapper}" "TOOL=\"$SITE/${_cli_rel}\"\n\n")
     file(APPEND "${_wrapper}" "# Prefer uv (the CLI may have: #!/usr/bin/env -S uv run --script)\n")
     file(APPEND "${_wrapper}" "if command -v uv >/dev/null 2>&1; then\n")
-    file(APPEND "${_wrapper}" "  exec \"$TOOL\" \"$@\"\n")
+    file(APPEND "${_wrapper}" "  exec uv run --with \"$SITE\" --script \"$TOOL\" \"$@\"\n")
     file(APPEND "${_wrapper}" "fi\n\n")
     file(APPEND "${_wrapper}" "# Fallback to python with a helpful message\n")
     file(APPEND "${_wrapper}" "if ! command -v python >/dev/null 2>&1; then\n")
@@ -202,7 +225,6 @@ function(add_pytopp_tool)
                   GROUP_READ  GROUP_EXECUTE
                   WORLD_READ  WORLD_EXECUTE)
 
-    # Install the wrapper
     install(PROGRAMS "${_wrapper}" DESTINATION bin)
   endif()
 
@@ -247,9 +269,14 @@ install(DIRECTORY "${_pytopp_site_dir}/"
           # Exclude ALL tool .py files; they are installed via add_pytopp_tool()
           PATTERN "pyopenms/pytopp/tools/*.py" EXCLUDE)
 
+# Ensure pyproject.toml is installed so `uv --with <installed site>` works too
+if(EXISTS "${_pytopp_site_dir}/pyproject.toml")
+  install(FILES "${_pytopp_site_dir}/pyproject.toml"
+          DESTINATION "share/pytopp/site")
+endif()
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Testin pyTOPP
+# Testing pyTOPP
 # ─────────────────────────────────────────────────────────────────────────────
 
 # Toggle tests for this subproject
@@ -269,9 +296,9 @@ if(PYTOPP_ENABLE_TESTS)
 
   # Environment so tests can import:
   #  - source tree (live dev code)
-  #  - build vendored site (sitecustomize.py + staged package)
+  #  - build vendored site (sitecustomize.py + staged package; TOP-LEVEL)
   set(_PYTOPP_TEST_ENV
-      "PYTHONPATH=${CMAKE_CURRENT_SOURCE_DIR}/src;${CMAKE_CURRENT_BINARY_DIR}/share/pytopp/site;$ENV{PYTHONPATH}"
+      "PYTHONPATH=${CMAKE_CURRENT_SOURCE_DIR}/src;${CMAKE_BINARY_DIR}/share/pytopp/site;$ENV{PYTHONPATH}"
   )
   if(NOT WIN32)
     list(APPEND _PYTOPP_TEST_ENV "LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}/lib")
@@ -320,12 +347,12 @@ if(PYTOPP_ENABLE_TESTS)
     set_tests_properties("pytopp_integrationtest_${t}" PROPERTIES ENVIRONMENT "${_PYTOPP_TEST_ENV}")
   endforeach()
 
-  # Optional: smoke the built wrapper in bin/ (prints --help). Safe to remove if you prefer.
-  if(EXISTS "${CMAKE_CURRENT_BINARY_DIR}/bin/OpenSwathProphet")
+  # Optional: smoke the built wrapper in top-level bin/ (prints --help).
+  if(EXISTS "${_PYTOPP_WRAPPER_BIN}/OpenSwathProphet")
     add_test(
       NAME pytopp_wrapper_OpenSwathProphet_help
-      COMMAND "${CMAKE_CURRENT_BINARY_DIR}/bin/OpenSwathProphet" --help
-      WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
+      COMMAND "${_PYTOPP_WRAPPER_BIN}/OpenSwathProphet" --help
+      WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"
     )
     set_tests_properties(pytopp_wrapper_OpenSwathProphet_help
       PROPERTIES ENVIRONMENT "${_PYTOPP_TEST_ENV}")
