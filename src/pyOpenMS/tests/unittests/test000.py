@@ -1241,6 +1241,26 @@ def testFeature():
     p = f.getPeptideIdentifications()
     f.setPeptideIdentifications(p)
 
+    # Test __repr__ and __str__ methods
+    f_repr = pyopenms.Feature()
+    f_repr.setRT(1234.5)
+    f_repr.setMZ(445.678)
+    f_repr.setIntensity(100000.0)
+    f_repr.setCharge(2)
+    f_repr.setOverallQuality(0.95)
+    
+    repr_str = repr(f_repr)
+    assert "Feature(" in repr_str
+    assert "rt=" in repr_str
+    assert "mz=" in repr_str
+    assert "intensity=" in repr_str
+    assert "charge=" in repr_str
+    assert "quality=" in repr_str
+    
+    # Test str method
+    str_str = str(f_repr)
+    assert str_str == repr_str
+
 
 @report
 def testFeatureFileOptions():
