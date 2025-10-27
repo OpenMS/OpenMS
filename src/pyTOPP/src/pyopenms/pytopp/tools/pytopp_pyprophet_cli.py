@@ -28,7 +28,7 @@ from pyopenms.pytopp.util import (
     run_tool,
     tok_extra,
 )
-from pyopenms.pytopp.CTDsupport import (
+from pyopenms.pytopp.ctdsupport import (
     CTDHelpConfig,
     CTDHelpPrinter,
     PyTOPPArgParser,

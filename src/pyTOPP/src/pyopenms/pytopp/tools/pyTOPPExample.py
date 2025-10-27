@@ -13,7 +13,7 @@ from CTDopts.CTDopts import CTDModel, parse_cl_directives
 import pyopenms as pms
 import logging
 from pyopenms.pytopp.common import addDataProcessing
-from pyopenms.pytopp.CTDsupport import *
+from pyopenms.pytopp.ctdsupport import *
 
 
 def main():
