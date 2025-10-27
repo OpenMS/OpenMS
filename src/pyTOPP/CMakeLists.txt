@@ -246,3 +246,89 @@ install(DIRECTORY "${_pytopp_site_dir}/"
           PATTERN "__pycache__" EXCLUDE
           # Exclude ALL tool .py files; they are installed via add_pytopp_tool()
           PATTERN "pyopenms/pytopp/tools/*.py" EXCLUDE)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Testin pyTOPP
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Toggle tests for this subproject
+option(PYTOPP_ENABLE_TESTS "Enable pytest-based tests for pyTOPP" ON)
+
+if(PYTOPP_ENABLE_TESTS)
+  enable_testing()
+
+  # Python interpreter (mirror pyOpenMS style variable if needed)
+  find_package(Python3 COMPONENTS Interpreter REQUIRED)
+  if(NOT Python_EXECUTABLE)
+    set(Python_EXECUTABLE ${Python3_EXECUTABLE})
+  endif()
+
+  # Where tests live and where they should run from
+  set(_PYTOPP_TEST_WORKDIR "${CMAKE_CURRENT_SOURCE_DIR}")
+
+  # Environment so tests can import:
+  #  - source tree (live dev code)
+  #  - build vendored site (sitecustomize.py + staged package)
+  set(_PYTOPP_TEST_ENV
+      "PYTHONPATH=${CMAKE_CURRENT_SOURCE_DIR}/src;${CMAKE_CURRENT_BINARY_DIR}/share/pytopp/site;$ENV{PYTHONPATH}"
+  )
+  if(NOT WIN32)
+    list(APPEND _PYTOPP_TEST_ENV "LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}/lib")
+  endif()
+
+  # Run all pytest tests in one go (fast feedback, but less granular on CDash)
+  add_test(
+    NAME pytopp_pytest_all
+    COMMAND ${Python_EXECUTABLE} -m pytest -q tests
+    WORKING_DIRECTORY ${_PYTOPP_TEST_WORKDIR}
+  )
+  set_tests_properties(pytopp_pytest_all PROPERTIES ENVIRONMENT "${_PYTOPP_TEST_ENV}")
+
+  # -----------------------------------------------------------------------
+  # Please add your unit test filenames here (under src/pyTOPP/tests/)
+  # -----------------------------------------------------------------------
+  set(pytopp_unittest_testfiles
+    test_util.py
+    test_ctd_support.py
+  )
+
+  # -----------------------------------------------------------------------
+  # Please add your integration test filenames here (under src/pyTOPP/tests/)
+  # -----------------------------------------------------------------------
+  set(pytopp_integrationtest_testfiles
+    test_integration_pytopp_pyprophet.py
+  )
+
+  # Create one CTest entry per unit test file
+  foreach(t ${pytopp_unittest_testfiles})
+    add_test(
+      NAME "pytopp_unittest_${t}"
+      COMMAND ${Python_EXECUTABLE} -m pytest ${CMAKE_CURRENT_SOURCE_DIR}/tests/${t}
+      WORKING_DIRECTORY ${_PYTOPP_TEST_WORKDIR}
+    )
+    set_tests_properties("pytopp_unittest_${t}" PROPERTIES ENVIRONMENT "${_PYTOPP_TEST_ENV}")
+  endforeach()
+
+  # Create one CTest entry per integration test file
+  foreach(t ${pytopp_integrationtest_testfiles})
+    add_test(
+      NAME "pytopp_integrationtest_${t}"
+      COMMAND ${Python_EXECUTABLE} -m pytest ${CMAKE_CURRENT_SOURCE_DIR}/tests/${t}
+      WORKING_DIRECTORY ${_PYTOPP_TEST_WORKDIR}
+    )
+    set_tests_properties("pytopp_integrationtest_${t}" PROPERTIES ENVIRONMENT "${_PYTOPP_TEST_ENV}")
+  endforeach()
+
+  # Optional: smoke the built wrapper in bin/ (prints --help). Safe to remove if you prefer.
+  if(EXISTS "${CMAKE_CURRENT_BINARY_DIR}/bin/OpenSwathProphet")
+    add_test(
+      NAME pytopp_wrapper_OpenSwathProphet_help
+      COMMAND "${CMAKE_CURRENT_BINARY_DIR}/bin/OpenSwathProphet" --help
+      WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
+    )
+    set_tests_properties(pytopp_wrapper_OpenSwathProphet_help
+      PROPERTIES ENVIRONMENT "${_PYTOPP_TEST_ENV}")
+  endif()
+
+endif()
