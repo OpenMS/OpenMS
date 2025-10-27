@@ -27,7 +27,8 @@
         parts.append(f"intensity={intensity:.1f}")
         if charge != 0:
             parts.append(f"charge={charge}")
-        if quality >= 0:  # Only include if quality is meaningful
+        # Quality is typically in range 0-1, only show if it appears to be set
+        if quality > 0:  # Only include if quality is meaningful (> 0)
             parts.append(f"quality={quality:.3f}")
         
         # Add number of subordinates if present
