@@ -4634,6 +4634,32 @@ def testPeptideIdentification():
 
     pi.setSignificanceThreshold(6.0)
 
+    # Test __repr__ and __str__ methods
+    pi_repr = pyopenms.PeptideIdentification()
+    pi_repr.setRT(1234.5)
+    pi_repr.setMZ(445.678)
+    pi_repr.setScoreType("XTandem")
+    
+    hit = pyopenms.PeptideHit()
+    hit.setScore(50.5)
+    hit.setRank(1)
+    hit.setSequence(pyopenms.AASequence.fromString("PEPTIDE"))
+    hit.setCharge(2)
+    pi_repr.insertHit(hit)
+    
+    repr_str = repr(pi_repr)
+    assert "PeptideIdentification(" in repr_str
+    assert "rt=" in repr_str
+    assert "mz=" in repr_str
+    assert "score_type=" in repr_str
+    assert "num_hits=" in repr_str
+    assert "top_hit=" in repr_str
+    assert "PEPTIDE" in repr_str
+    
+    # Test str method
+    str_str = str(pi_repr)
+    assert str_str == repr_str
+
 
 @report
 def testPeptideIdentificationList():
@@ -4940,6 +4966,26 @@ def testProteinHit():
     assert ph.getRank() == (2)
     assert ph.getScore() == (1.5)
     assert ph.getSequence() == ("ABA")
+
+    # Test __repr__ and __str__ methods
+    ph_repr = pyopenms.ProteinHit()
+    ph_repr.setAccession("P12345")
+    ph_repr.setScore(150.5)
+    ph_repr.setRank(1)
+    ph_repr.setCoverage(45.2)
+    ph_repr.setDescription("Example protein")
+    
+    repr_str = repr(ph_repr)
+    assert "ProteinHit(" in repr_str
+    assert "accession=" in repr_str
+    assert "P12345" in repr_str
+    assert "score=" in repr_str
+    assert "rank=" in repr_str
+    assert "coverage=" in repr_str
+    
+    # Test str method
+    str_str = str(ph_repr)
+    assert str_str == repr_str
 
 @report
 def testProteinIdentification():
