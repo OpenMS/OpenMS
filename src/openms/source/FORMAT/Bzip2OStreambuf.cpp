@@ -19,7 +19,16 @@ namespace OpenMS
 
   Bzip2OStreambuf::~Bzip2OStreambuf()
   {
-    sync(); // Flush any remaining data
+    // Flush any remaining data
+    // Catch and suppress exceptions since destructors should not throw
+    try
+    {
+      sync();
+    }
+    catch (...)
+    {
+      // Suppress exceptions in destructor
+    }
   }
 
   bool Bzip2OStreambuf::isOpen() const
@@ -51,7 +60,11 @@ namespace OpenMS
     std::ptrdiff_t num = pptr() - pbase();
     if (num > 0)
     {
-      bz2file_.write(pbase(), static_cast<size_t>(num));
+      // Check if file is still open before attempting to write
+      if (bz2file_.isOpen())
+      {
+        bz2file_.write(pbase(), static_cast<size_t>(num));
+      }
       setp(buffer_, buffer_ + buffer_size_); // Reset buffer pointers
     }
   }
