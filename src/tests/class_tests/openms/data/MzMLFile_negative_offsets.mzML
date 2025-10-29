@@ -9,6 +9,11 @@
       <cvParam cvRef="MS" accession="MS:1000580" name="MSn spectrum" value=""/>
     </fileContent>
   </fileDescription>
+  <softwareList count="1">
+    <software id="TOPP" version="1.0">
+      <cvParam cvRef="MS" accession="MS:1000757" name="FileFilter"/>
+    </software>
+  </softwareList>
   <instrumentConfigurationList count="1">
     <instrumentConfiguration id="IC1">
       <cvParam cvRef="MS" accession="MS:1000031" name="instrument model"/>
