@@ -15,7 +15,7 @@ namespace OpenMS
     gzfile_(filename)
   {
     // Set the buffer for the streambuf
-    setp(buffer_, buffer_ + buffer_size_ - 1);
+    setp(buffer_, buffer_ + buffer_size_);
   }
 
   GzipOStreambuf::~GzipOStreambuf()
@@ -49,11 +49,11 @@ namespace OpenMS
 
   void GzipOStreambuf::flushBuffer_()
   {
-    int num = static_cast<int>(pptr() - pbase());
+    std::ptrdiff_t num = pptr() - pbase();
     if (num > 0)
     {
-      gzfile_.write(pbase(), num);
-      pbump(-num); // Reset put pointer
+      gzfile_.write(pbase(), static_cast<size_t>(num));
+      setp(buffer_, buffer_ + buffer_size_); // Reset buffer pointers
     }
   }
 

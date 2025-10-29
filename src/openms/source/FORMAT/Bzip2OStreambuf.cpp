@@ -15,7 +15,7 @@ namespace OpenMS
     bz2file_(filename)
   {
     // Set the buffer for the streambuf
-    setp(buffer_, buffer_ + buffer_size_ - 1);
+    setp(buffer_, buffer_ + buffer_size_);
   }
 
   Bzip2OStreambuf::~Bzip2OStreambuf()
@@ -49,11 +49,11 @@ namespace OpenMS
 
   void Bzip2OStreambuf::flushBuffer_()
   {
-    int num = static_cast<int>(pptr() - pbase());
+    std::ptrdiff_t num = pptr() - pbase();
     if (num > 0)
     {
-      bz2file_.write(pbase(), num);
-      pbump(-num); // Reset put pointer
+      bz2file_.write(pbase(), static_cast<size_t>(num));
+      setp(buffer_, buffer_ + buffer_size_); // Reset buffer pointers
     }
   }
 
