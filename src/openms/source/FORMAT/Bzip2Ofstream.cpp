@@ -78,6 +78,9 @@ namespace OpenMS
       throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
     }
     
+    // Set buffer to unbuffered to avoid issues with bzlib on some platforms
+    setvbuf(file_, nullptr, _IONBF, 0);
+    
     // blockSize100k: 9 gives the best compression (1-9 are valid)
     // verbosity: 0 is silent
     // workFactor: 0 is default (30)
