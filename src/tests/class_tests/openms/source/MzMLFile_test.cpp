@@ -1246,7 +1246,7 @@ START_SECTION((test negative isolation window offsets are skipped))
   PeakMap exp;
   
   // This should not throw an exception even though the file contains negative offsets
-  TEST_NOT_EXCEPTION(Exception::InvalidValue, file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_negative_offsets.mzML"), exp))
+  file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_negative_offsets.mzML"), exp);
   
   // Verify the file was loaded
   TEST_EQUAL(exp.size(), 2)
