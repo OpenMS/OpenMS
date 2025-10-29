@@ -7,7 +7,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/GzipOStreambuf.h>
-#include <cstring>
 
 namespace OpenMS
 {
