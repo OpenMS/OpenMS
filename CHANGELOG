@@ -23,6 +23,9 @@ General:
     - loading .gz files is about 7% faster (#8069)
     - loading of mzML files with more than than m/z+intensity (e.g. ion mobility) is 20-40% faster (#8074)
     - loading of mzML files is 7-25% faster in general (SIMD ASCII conversion) (#8105)
+ - compression support:
+    - Added support for writing compressed idXML and consensusXML files (.gz and .bz2 formats)
+    - All XML-based file formats can now be written in compressed form by using .gz or .bz2 file extensions
  - linux arm64 support:
 	- OpenMS releases now include a .deb for arm64 machines
 	- PyOpenMS now has wheels for arm64 linux machines
