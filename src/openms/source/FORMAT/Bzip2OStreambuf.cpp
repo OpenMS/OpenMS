@@ -36,20 +36,14 @@ namespace OpenMS
       pbump(1);
     }
     
-    if (flushBuffer_() == -1)
-    {
-      return traits_type::eof();
-    }
+    flushBuffer_();
     
     return c;
   }
 
   int Bzip2OStreambuf::sync()
   {
-    if (flushBuffer_() == -1)
-    {
-      return -1;
-    }
+    flushBuffer_();
     return 0;
   }
 

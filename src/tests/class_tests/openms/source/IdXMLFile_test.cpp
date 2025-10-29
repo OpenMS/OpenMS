@@ -271,6 +271,69 @@ START_SECTION(([EXTRA] XLMS data labeled cross-linker))
   TEST_EQUAL(peptide_ids[0].getHits()[0].getPeakAnnotations()[25].annotation, "[alpha|xi$y8]")
 
 END_SECTION
+
+START_SECTION([EXTRA] Compressed file writing - gzip)
+  // Test writing and reading gzip compressed IdXML files
+  std::vector<ProteinIdentification> protein_ids_orig, protein_ids_loaded;
+  PeptideIdentificationList peptide_ids_orig, peptide_ids_loaded;
+  String document_id_orig, document_id_loaded;
+  
+  // Load original data
+  String target_file = OPENMS_GET_TEST_DATA_PATH("IdXMLFile_whole.idXML");
+  IdXMLFile().load(target_file, protein_ids_orig, peptide_ids_orig, document_id_orig);
+  
+  // Store as gzip compressed
+  String gzip_file;
+  NEW_TMP_FILE(gzip_file)
+  gzip_file += ".gz";
+  IdXMLFile().store(gzip_file, protein_ids_orig, peptide_ids_orig, document_id_orig);
+  
+  // Load the compressed file
+  IdXMLFile().load(gzip_file, protein_ids_loaded, peptide_ids_loaded, document_id_loaded);
+  
+  // Verify the data matches
+  TEST_EQUAL(document_id_orig, document_id_loaded)
+  TEST_EQUAL(protein_ids_orig.size(), protein_ids_loaded.size())
+  TEST_EQUAL(peptide_ids_orig.size(), peptide_ids_loaded.size())
+  
+  if (protein_ids_orig.size() > 0 && protein_ids_loaded.size() > 0)
+  {
+    TEST_EQUAL(protein_ids_orig[0].getSearchEngine(), protein_ids_loaded[0].getSearchEngine())
+    TEST_EQUAL(protein_ids_orig[0].getHits().size(), protein_ids_loaded[0].getHits().size())
+  }
+END_SECTION
+
+START_SECTION([EXTRA] Compressed file writing - bzip2)
+  // Test writing and reading bzip2 compressed IdXML files
+  std::vector<ProteinIdentification> protein_ids_orig2, protein_ids_loaded2;
+  PeptideIdentificationList peptide_ids_orig2, peptide_ids_loaded2;
+  String document_id_orig2, document_id_loaded2;
+  
+  // Load original data
+  String target_file2 = OPENMS_GET_TEST_DATA_PATH("IdXMLFile_whole.idXML");
+  IdXMLFile().load(target_file2, protein_ids_orig2, peptide_ids_orig2, document_id_orig2);
+  
+  // Store as bzip2 compressed
+  String bzip2_file;
+  NEW_TMP_FILE(bzip2_file)
+  bzip2_file += ".bz2";
+  IdXMLFile().store(bzip2_file, protein_ids_orig2, peptide_ids_orig2, document_id_orig2);
+  
+  // Load the compressed file
+  IdXMLFile().load(bzip2_file, protein_ids_loaded2, peptide_ids_loaded2, document_id_loaded2);
+  
+  // Verify the data matches
+  TEST_EQUAL(document_id_orig2, document_id_loaded2)
+  TEST_EQUAL(protein_ids_orig2.size(), protein_ids_loaded2.size())
+  TEST_EQUAL(peptide_ids_orig2.size(), peptide_ids_loaded2.size())
+  
+  if (protein_ids_orig2.size() > 0 && protein_ids_loaded2.size() > 0)
+  {
+    TEST_EQUAL(protein_ids_orig2[0].getSearchEngine(), protein_ids_loaded2[0].getSearchEngine())
+    TEST_EQUAL(protein_ids_orig2[0].getHits().size(), protein_ids_loaded2[0].getHits().size())
+  }
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

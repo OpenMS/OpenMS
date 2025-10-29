@@ -220,6 +220,54 @@ START_SECTION([EXTRA](bool isValid(const String &filename)))
   TEST_EQUAL(f.isValid(tmp_filename, std::cerr), true);
 END_SECTION
 
+START_SECTION([EXTRA] Compressed file writing - gzip)
+  // Test writing and reading gzip compressed ConsensusXML files
+  ConsensusXMLFile f;
+  ConsensusMap map_orig, map_loaded;
+  
+  // Load original data
+  String target_file = OPENMS_GET_TEST_DATA_PATH("ConsensusXMLFile_1.consensusXML");
+  f.load(target_file, map_orig);
+  
+  // Store as gzip compressed
+  String gzip_file;
+  NEW_TMP_FILE(gzip_file)
+  gzip_file += ".gz";
+  f.store(gzip_file, map_orig);
+  
+  // Load the compressed file
+  f.load(gzip_file, map_loaded);
+  
+  // Verify the data matches
+  TEST_EQUAL(map_orig.size(), map_loaded.size())
+  TEST_EQUAL(map_orig.getProteinIdentifications().size(), map_loaded.getProteinIdentifications().size())
+  TEST_EQUAL(map_orig.getDataProcessing().size(), map_loaded.getDataProcessing().size())
+END_SECTION
+
+START_SECTION([EXTRA] Compressed file writing - bzip2)
+  // Test writing and reading bzip2 compressed ConsensusXML files
+  ConsensusXMLFile f2;
+  ConsensusMap map_orig2, map_loaded2;
+  
+  // Load original data
+  String target_file2 = OPENMS_GET_TEST_DATA_PATH("ConsensusXMLFile_1.consensusXML");
+  f2.load(target_file2, map_orig2);
+  
+  // Store as bzip2 compressed
+  String bzip2_file;
+  NEW_TMP_FILE(bzip2_file)
+  bzip2_file += ".bz2";
+  f2.store(bzip2_file, map_orig2);
+  
+  // Load the compressed file
+  f2.load(bzip2_file, map_loaded2);
+  
+  // Verify the data matches
+  TEST_EQUAL(map_orig2.size(), map_loaded2.size())
+  TEST_EQUAL(map_orig2.getProteinIdentifications().size(), map_loaded2.getProteinIdentifications().size())
+  TEST_EQUAL(map_orig2.getDataProcessing().size(), map_loaded2.getDataProcessing().size())
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
