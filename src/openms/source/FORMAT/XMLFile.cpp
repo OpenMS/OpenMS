@@ -250,6 +250,9 @@ private:
         // write data
         handler->writeTo(os);
         os.flush();
+        
+        // Disconnect ostream from streambuf before destruction to avoid platform-specific issues
+        os.rdbuf(nullptr);
       }
       else if (use_bzip2)
       {
@@ -268,6 +271,9 @@ private:
         // write data
         handler->writeTo(os);
         os.flush();
+        
+        // Disconnect ostream from streambuf before destruction to avoid platform-specific issues
+        os.rdbuf(nullptr);
       }
       else
       {
