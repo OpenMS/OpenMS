@@ -15,6 +15,8 @@
 #include <OpenMS/FORMAT/VALIDATORS/XMLValidator.h>
 
 #include <OpenMS/FORMAT/CompressedInputSource.h>
+#include <OpenMS/FORMAT/GzipOStreambuf.h>
+#include <OpenMS/FORMAT/Bzip2OStreambuf.h>
 
 #include <xercesc/framework/LocalFileInputSource.hpp>
 #include <xercesc/framework/MemBufInputSource.hpp>
@@ -207,20 +209,83 @@ private:
 
     void XMLFile::save_(const String & filename, XMLHandler * handler) const
     {
-      // open file in binary mode to avoid any line ending conversions
-      std::ofstream os(filename.c_str(), std::ios::out | std::ios::binary);
-
-      //set high precision for writing of floating point numbers
-      os.precision(writtenDigits(double()));
-
-      if (!os)
+      // Determine if we should use compression based on file extension
+      String basename = File::basename(filename);
+      String tmp;
+      bool use_gzip = false;
+      bool use_bzip2 = false;
+      
+      try
       {
-        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+        tmp = basename.suffix('.');
+        tmp.toUpper();
+        if (tmp == "GZ")
+        {
+          use_gzip = true;
+        }
+        else if (tmp == "BZ2")
+        {
+          use_bzip2 = true;
+        }
       }
-
-      // write data and close stream
-      handler->writeTo(os);
-      os.close();
+      catch (Exception::ElementNotFound&)
+      {
+        // no extension, use uncompressed
+      }
+      
+      if (use_gzip)
+      {
+        // Use gzip compression
+        GzipOStreambuf gzip_streambuf(filename.c_str());
+        std::ostream os(&gzip_streambuf);
+        
+        if (!gzip_streambuf.isOpen())
+        {
+          throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+        }
+        
+        // set high precision for writing of floating point numbers
+        os.precision(writtenDigits(double()));
+        
+        // write data
+        handler->writeTo(os);
+        os.flush();
+      }
+      else if (use_bzip2)
+      {
+        // Use bzip2 compression
+        Bzip2OStreambuf bzip2_streambuf(filename.c_str());
+        std::ostream os(&bzip2_streambuf);
+        
+        if (!bzip2_streambuf.isOpen())
+        {
+          throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+        }
+        
+        // set high precision for writing of floating point numbers
+        os.precision(writtenDigits(double()));
+        
+        // write data
+        handler->writeTo(os);
+        os.flush();
+      }
+      else
+      {
+        // Uncompressed output - original code
+        std::ofstream os(filename.c_str(), std::ios::out | std::ios::binary);
+        
+        //set high precision for writing of floating point numbers
+        os.precision(writtenDigits(double()));
+        
+        if (!os)
+        {
+          throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+        }
+        
+        // write data and close stream
+        handler->writeTo(os);
+        os.close();
+      }
     }
 
     String encodeTab(const String& to_encode)

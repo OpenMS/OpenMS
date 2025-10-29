@@ -22,6 +22,8 @@ AbsoluteQuantitationStandardsFile.h
 Base64.h
 Bzip2Ifstream.h
 Bzip2InputStream.h
+Bzip2Ofstream.h
+Bzip2OStreambuf.h
 CachedMzML.h
 ChromeleonFile.h
 CompressedInputSource.h
@@ -43,6 +45,8 @@ GNPSMGFFile.h
 GNPSQuantificationFile.h
 GzipIfstream.h
 GzipInputStream.h
+GzipOfstream.h
+GzipOStreambuf.h
 IBSpectraFile.h
 IdXMLFile.h
 IndentedStream.h

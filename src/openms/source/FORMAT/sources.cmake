@@ -8,6 +8,8 @@ AbsoluteQuantitationStandardsFile.cpp
 Base64.cpp
 Bzip2Ifstream.cpp
 Bzip2InputStream.cpp
+Bzip2Ofstream.cpp
+Bzip2OStreambuf.cpp
 CachedMzML.cpp
 ChromeleonFile.cpp
 CompressedInputSource.cpp
@@ -30,6 +32,8 @@ GNPSMGFFile.cpp
 GNPSQuantificationFile.cpp
 GzipIfstream.cpp
 GzipInputStream.cpp
+GzipOfstream.cpp
+GzipOStreambuf.cpp
 IBSpectraFile.cpp
 IdXMLFile.cpp
 IndentedStream.cpp
