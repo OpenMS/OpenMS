@@ -11,10 +11,14 @@
 namespace OpenMS
 {
   GzipOStreambuf::GzipOStreambuf(const char* filename) :
-    gzfile_(filename)
+    gzfile_()  // Default construct, don't open in initializer list
   {
     // Set the buffer for the streambuf
     setp(buffer_, buffer_ + buffer_size_);
+    
+    // Open the file after base class and members are fully constructed
+    // This avoids exceptions during member initialization
+    gzfile_.open(filename);
   }
 
   GzipOStreambuf::~GzipOStreambuf()

@@ -11,10 +11,14 @@
 namespace OpenMS
 {
   Bzip2OStreambuf::Bzip2OStreambuf(const char* filename) :
-    bz2file_(filename)
+    bz2file_()  // Default construct, don't open in initializer list
   {
     // Set the buffer for the streambuf
     setp(buffer_, buffer_ + buffer_size_);
+    
+    // Open the file after base class and members are fully constructed
+    // This avoids exceptions during member initialization
+    bz2file_.open(filename);
   }
 
   Bzip2OStreambuf::~Bzip2OStreambuf()
