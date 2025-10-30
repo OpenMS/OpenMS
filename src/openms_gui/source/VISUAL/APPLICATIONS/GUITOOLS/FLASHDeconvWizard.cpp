@@ -11,8 +11,10 @@
 
   @brief An assistant for FLASHDeconv execution.
 
+  /// @cond BUILD_TOPP_TOOLS
   The implementation of FLASHDeconvWizard is heavily inspired by the @ref TOPP_SwathWizard .
   The Wizard helps the user to run @ref TOPP_FLASHDeconv for Top-down proteomics analysis.
+  /// @endcond
 
   Users can enter the required input data (mzML MS/MS data) in dedicated fields, usually by drag'n'droping files from the
   operating systems' file explorer (Explorer, Nautilus, Finder...).

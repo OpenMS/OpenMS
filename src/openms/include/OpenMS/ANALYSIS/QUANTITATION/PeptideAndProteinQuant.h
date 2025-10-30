@@ -22,7 +22,9 @@ namespace OpenMS
   /**
       @brief Helper class for peptide and protein quantification based on feature data annotated with IDs.
 
+      /// @cond BUILD_TOPP_TOOLS
       This class is used by @ref TOPP_ProteinQuantifier. See there for further documentation.
+      /// @endcond
 
       @htmlinclude OpenMS_PeptideAndProteinQuant.parameters
   */

@@ -19,7 +19,9 @@ namespace OpenMS
   /**
     @brief Ripping protein/peptide identification according their file origin.
 
+    /// @cond BUILD_TOPP_TOOLS
     Helper class, which is used by @ref TOPP_ProteinQuantifier. See there for further documentation.
+    /// @endcond
 
     @htmlinclude OpenMS_IDRipper.parameters
 

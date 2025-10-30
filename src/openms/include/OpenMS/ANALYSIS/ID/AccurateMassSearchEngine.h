@@ -172,7 +172,9 @@ private:
     In particular, typing H20 (twenty H) is different from H2O (water).
 
     Ionization mode of the observed m/z values can be determined automatically if the input map (either FeatureMap or ConsensusMap) is annotated
+    /// @cond BUILD_TOPP_TOOLS
     with a meta value, as done by @ref TOPP_FeatureFinderMetabo.
+    /// @endcond
 
 
     @ingroup Analysis_ID

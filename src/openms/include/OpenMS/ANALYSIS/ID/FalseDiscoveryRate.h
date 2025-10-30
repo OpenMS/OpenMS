@@ -41,7 +41,9 @@ namespace OpenMS
 
     For peptide hits, a hit is considered target also if it maps to both
     a target and a decoy protein (i.e. "target+decoy") as value in the
+    /// @cond BUILD_TOPP_TOOLS
     "target_decoy" metavalue e.g. annotated by @ref TOPP_PeptideIndexer
+    /// @endcond
 
     @note The parameter add_decoy_proteins currently does not affect groups
 

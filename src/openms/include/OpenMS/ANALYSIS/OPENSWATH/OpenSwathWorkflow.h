@@ -385,7 +385,9 @@ protected:
   };
 
   /**
+   /// @cond BUILD_TOPP_TOOLS
    * @brief Execute all steps in an \ref TOPP_OpenSwathWorkflow "OpenSwath" analysis
+   /// @endcond
    *
    * The workflow will perform a complete OpenSWATH analysis. Optionally,
    * a calibration of m/z and retention time (mapping peptides to normalized

@@ -41,7 +41,9 @@ namespace OpenMS
   * Allows for multiple usage of the compute function. The result of each call is stored internally in a vector.
   * Therefore old results will not be overridden by a new call. This vector then can be returned using getResults().
   *
+  /// @cond BUILD_TOPP_TOOLS
   * This class serves as the library representation of @ref TOPP_DatabaseSuitability
+  /// @endcond
   */
   class OPENMS_DLLAPI DBSuitability:
     public DefaultParamHandler

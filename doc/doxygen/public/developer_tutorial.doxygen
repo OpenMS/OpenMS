@@ -63,9 +63,11 @@ The %OpenMS software framework consists of three main layers:
 <br>
 - <b>Scripting:</b> a well-defined Python API offers scripting for rapid software prototyping and interactive data exploration by researchers with advanced scripting skills. The pyOpenMS interactive Python interface, providing easy integration of the %OpenMS library with other scientific Python libraries.
 <br>
+/// @cond BUILD_TOPP_TOOLS
 - <b>TOPP tools:</b> The @ref TOPP_documentation["The %OpenMS PiPeline (TOPP)"] is a set of executables covering most core tasks in computational mass spectrometry and has grown beyond proteomics applications and now includes Metabolomics and others. These tools are created using algorithms from the %OpenMS library. These tools form the building blocks of complex workflows. 
 <br>
 - <b>Workflow:</b> a set of over 185 different tools for common mass spectrometric tasks can be accessed by routine users through workflow systems, such as KNIME or Galaxy, the OpenMS-specific @ref TOPPAS_tutorial["TOPPAS"], or even custom bash scripts. 
+/// @endcond
 <br>
 
 Each level of increasing abstraction provides better usability, but limits the extensibility as the Python and workflow levels only have access to the exposed Python API or the available set of TOPP tools respectively. Increasing abstraction, however, makes it easier to design and execute complex analyses, even across multiple omics types. By following a layered design the different needs of bioinformaticians and life scientists are addressed. <br>

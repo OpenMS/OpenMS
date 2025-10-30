@@ -27,8 +27,11 @@ namespace OpenMS
       Mol Cell Proteomics. 2012 Apr;11(4):R111.015040. doi: 10.1074/mcp.R111.015040. 
 
       In OpenMS, TraML files can be generated from TSV or CSV files using the
-      @ref OpenMS::TransitionTSVFile "TransitionTSVFile class" or the @ref
+      @ref OpenMS::TransitionTSVFile "TransitionTSVFile class"
+      /// @cond BUILD_TOPP_TOOLS
+      or the @ref
       TOPP_TargetedFileConverter "TargetedFileConverter TOPP Tool". For more information on the TSV format required by the TOPP tool, see
+      /// @endcond
       see also the documentation of @ref
       OpenMS::TransitionTSVFile "TransitionTSVFile".
 

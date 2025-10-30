@@ -28,10 +28,12 @@ namespace OpenMS
   All peptide and protein hits are annotated with target/decoy information, using the meta value "target_decoy". For proteins the possible values are "target" and "decoy", 
   depending on whether the protein accession contains the decoy pattern (parameter @p decoy_string) as a suffix or prefix, respectively (see parameter @p prefix).
   For peptides, the possible values are "target", "decoy" and "target+decoy", depending on whether the peptide sequence is found only in target proteins,
+  /// @cond BUILD_TOPP_TOOLS
   only in decoy proteins, or in both. The target/decoy information is crucial for the @ref TOPP_FalseDiscoveryRate tool.
   (For FDR calculations, "target+decoy" peptide hits count as target hits.)
 
   @note Make sure that your protein names in the database contain a correctly formatted decoy string. This can be ensured by using @ref TOPP_DecoyDatabase.
+  /// @endcond
         If the decoy identifier is not recognized successfully, all proteins will be assumed to stem from the target-part of the query.<br>
         E.g., "sw|P33354_DECOY|YEHR_ECOLI Uncharacterized lipop..." is <b>invalid</b>, since the tool has no knowledge of how SwissProt entries are build up.
         A correct identifier could be "DECOY_sw|P33354|YEHR_ECOLI Uncharacterized li ..." or "sw|P33354|YEHR_ECOLI_DECOY Uncharacterized li", depending on whether you are
@@ -137,7 +139,9 @@ public:
     If the data is still in a FASTA file and its not needed afterwards for additional processing, use TFI_File and pass the filename.
 
     PeptideIndexer refreshes target/decoy information and mapping of peptides to proteins.
+    /// @cond BUILD_TOPP_TOOLS
     The target/decoy information is crucial for the @ref TOPP_FalseDiscoveryRate tool. (For FDR calculations, "target+decoy" peptide hits count as target hits.)
+    /// @endcond
 
     PeptideIndexer allows for ambiguous amino acids (B|J|Z|X) in the protein database, but not in the peptide sequences. 
     For the latter only I/L can be treated as equivalent (see 'IL_equivalent' flag), but 'J' is not allowed.

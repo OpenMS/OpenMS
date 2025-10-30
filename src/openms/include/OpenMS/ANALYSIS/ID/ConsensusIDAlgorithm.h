@@ -25,7 +25,9 @@ namespace OpenMS
     Currently there are two derived classes, OpenMS::ConsensusIDAlgorithmIdentity and OpenMS::ConsensusIDAlgorithmSimilarity. They serve as abstract base classes for algorithms that score only
     identical peptide sequences together and algorithms that take similarities between peptides into account, respectively.
 
+    /// @cond BUILD_TOPP_TOOLS
     See also the documentation of the TOPP tool, @ref TOPP_ConsensusID, for more information (e.g. on the @p filter: parameters).
+    /// @endcond
 
     @htmlinclude OpenMS_ConsensusIDAlgorithm.parameters
 

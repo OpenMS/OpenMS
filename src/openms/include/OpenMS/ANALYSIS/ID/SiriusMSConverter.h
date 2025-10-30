@@ -60,8 +60,10 @@ public:
   };
 
   /**
+    /// @cond BUILD_TOPP_TOOLS
     @brief Internal structure used in @ref TOPP_SiriusExport that is used
     for the conversion of a MzMlFile to an internal format.
+    /// @endcond
 
     @ingroup Analysis_ID
 

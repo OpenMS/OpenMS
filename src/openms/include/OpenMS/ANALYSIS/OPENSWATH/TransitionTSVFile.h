@@ -81,8 +81,10 @@ namespace OpenMS
 
   Fields indicated with * are strictly required to create a TraML file. Fields
   indicated with ** are recommended, but only required for a specific
+  /// @cond BUILD_TOPP_TOOLS
   application (such as using the transition list for an analysis tool such as
   \ref TOPP_OpenSwathWorkflow) or in a specific context (proteomics or metabolomics).
+  /// @endcond
 
 <p>
 Remarks:
