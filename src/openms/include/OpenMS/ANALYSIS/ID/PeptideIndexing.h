@@ -139,9 +139,7 @@ public:
     If the data is still in a FASTA file and its not needed afterwards for additional processing, use TFI_File and pass the filename.
 
     PeptideIndexer refreshes target/decoy information and mapping of peptides to proteins.
-    /// @cond BUILD_TOPP_TOOLS
-    The target/decoy information is crucial for the @ref TOPP_FalseDiscoveryRate tool. (For FDR calculations, "target+decoy" peptide hits count as target hits.)
-    /// @endcond
+    The target/decoy information is crucial for FDR calculations. (For FDR calculations, "target+decoy" peptide hits count as target hits.)
 
     PeptideIndexer allows for ambiguous amino acids (B|J|Z|X) in the protein database, but not in the peptide sequences. 
     For the latter only I/L can be treated as equivalent (see 'IL_equivalent' flag), but 'J' is not allowed.

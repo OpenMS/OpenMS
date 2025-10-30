@@ -50,10 +50,10 @@ If an XML input file is used, please check if the file is valid.
 /// @cond BUILD_TOPP_TOOLS
 For most XML data formats, this can be done using the @ref TOPP_FileInfo tool.
 Here is how to invoke it on the commandline:
-/// @endcond
 @code{.sh}
  FileInfo -v -in <file>
 @endcode
+/// @endcond
 
 You can also check for corrupt data in peak files:
 @code{.sh}
