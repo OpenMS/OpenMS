@@ -463,7 +463,12 @@ namespace OpenMS
       return cells_.end();
     }
 
-        // XXX: Replace with proper operator
+    /**
+     * @brief Computes the cell index for a given cluster center coordinate.
+     * @param key Cluster center coordinate
+     * @return Cell index corresponding to the coordinate
+     * @throws Exception::OutOfRange if computed cell index exceeds Int64 limits
+     */
     CellIndex cellIndexAtClusterCenter(const ClusterCenter& key) const
     {
       CellIndex ret;
