@@ -56,6 +56,7 @@ option(HAS_XSERVER "Indicates if an X server is available. If set to Off it will
 option(ENABLE_DOCS "Indicates whether documentation should be built." ON)
 option(WITH_GUI "Build GUI parts of OpenMS (TOPPView&Co). This requires QtGui." ON)
 option(NO_WEBENGINE_WIDGETS "Do not use QtWebengineWidgets. Disables Javascript views in TOPPView." OFF)
+option(BUILD_TOPP_TOOLS "Build TOPP tools (command-line applications)." ON)
 option(WITH_HDF5 "Build HDF5 parts of OpenMS." OFF)
 option(WITH_PARQUET "Build Parquet parts of OpenMS." OFF)
 option(ENABLE_TDL "Load dependency and compile against TDL (required for CWL file support)." ON)
@@ -63,6 +64,10 @@ option(ENABLE_CWL_GENERATION "Build and validate the CWL description files for a
 
 if(ENABLE_CWL_GENERATION AND NOT ENABLE_TDL)
     message(FATAL_ERROR "ENABLE_CWL_GENERATION requires ENABLE_TDL to be ON.")
+endif()
+
+if(ENABLE_CWL_GENERATION AND NOT BUILD_TOPP_TOOLS)
+    message(FATAL_ERROR "ENABLE_CWL_GENERATION requires BUILD_TOPP_TOOLS to be ON.")
 endif()
 
 if(MSVC)
@@ -456,6 +461,11 @@ set(SEARCH_ENGINES_DIRECTORY "" CACHE PATH "The location where thirdparty search
 
 set(ENABLE_PREPARE_KNIME_PACKAGE OFF CACHE BOOL "If enabled, targets to prepare KNIME packages will be generated. Main target will be 'prepare_knime_package'.
  Note, this will build all binaries with install RPATHs already in the build folder, so they may not be relocatable anymore. Only enable if needed.")
+
+if(ENABLE_PREPARE_KNIME_PACKAGE AND NOT BUILD_TOPP_TOOLS)
+    message(FATAL_ERROR "ENABLE_PREPARE_KNIME_PACKAGE requires BUILD_TOPP_TOOLS to be ON.")
+endif()
+
 if (ENABLE_PREPARE_KNIME_PACKAGE)
 	include(${OPENMS_HOST_DIRECTORY}/cmake/knime_package_support.cmake)
 endif()

@@ -26,7 +26,7 @@ if("${PACKAGE_TYPE}" STREQUAL "none")
       add_subdirectory(class_tests)
     endif()  
     # TOPP Test project ..
-    if(ENABLE_TOPP_TESTING)
+    if(ENABLE_TOPP_TESTING AND BUILD_TOPP_TOOLS)
       add_subdirectory(topp)
     endif()
     # and if requested also TOPPAS pipeline tests
