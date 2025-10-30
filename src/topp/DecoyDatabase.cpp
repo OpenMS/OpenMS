@@ -403,6 +403,8 @@ protected:
         for (int num_repeat = 0; num_repeat < shuffle_ratio; num_repeat++)
         {
           FASTAFile::FASTAEntry decoy_entry = entry;
+          // Derive a per-repeat seed so each repeat yields a distinct decoy sequence
+          auto repeat_seed = seed + num_repeat;
           // add iteration suffix if shuffle_ratio > 1
           String suffix_string = shuffle_ratio == 1 ? "" : String("_") + std::to_string(num_repeat + 1);
           decoy_entry.identifier = getDecoyIdentifier_(decoy_entry.identifier, decoy_string, suffix_string, decoy_string_position_prefix);
@@ -429,7 +431,11 @@ protected:
               quick_seq = m.suffix();
             }
 
-            if (shuffle) { shuffler.portable_random_shuffle(tokenized.begin(), tokenized.end()); }
+            if (shuffle)
+            {
+              shuffler.seed(repeat_seed);
+              shuffler.portable_random_shuffle(tokenized.begin(), tokenized.end());
+            }
             else // reverse
             {
               reverse(tokenized.begin(), tokenized.end()); // reverse the tokens
@@ -457,7 +463,7 @@ protected:
                 p.sequence = peptide.toString();
                 // TODO why are the functions from TargetedExperiment and MRMDecoy not anywhere more general?
                 //  No soul would look there.
-                auto decoy_p = shuffle ? m.shufflePeptide(p, identity_threshold, seed, max_attempts) 
+                auto decoy_p = shuffle ? m.shufflePeptide(p, identity_threshold, repeat_seed, max_attempts)
                                       : MRMDecoy::reversePeptide(p, keepN, keepC, keep_const_pattern);
                 new_sequence += decoy_p.sequence;
               }
@@ -468,7 +474,7 @@ protected:
               // sequence
               if (shuffle)
               {
-                shuffler.seed(seed); // identical proteins are shuffled the same way -> re-seed
+                shuffler.seed(repeat_seed); // use per-repeat seed for distinct decoys
                 shuffler.portable_random_shuffle(decoy_entry.sequence.begin(), decoy_entry.sequence.end());
               }
               else // reverse
