@@ -2706,6 +2706,13 @@ add_test("TOPP_DecoyDatabase_7_out3" ${DIFF} -in1 DecoyDatabase_7_relevant.tmp.f
 set_tests_properties("TOPP_DecoyDatabase_7_out1" PROPERTIES DEPENDS "TOPP_DecoyDatabase_7")
 set_tests_properties("TOPP_DecoyDatabase_7_out2" PROPERTIES DEPENDS "TOPP_DecoyDatabase_7")
 set_tests_properties("TOPP_DecoyDatabase_7_out3" PROPERTIES DEPENDS "TOPP_DecoyDatabase_7")
+# ... test shuffle_decoy_ratio parameter (multiple decoys per target from original sequence)
+add_test("TOPP_DecoyDatabase_8" ${TOPP_BIN_PATH}/DecoyDatabase -test -in ${DATA_DIR_TOPP}/DecoyDatabase_1.fasta -out DecoyDatabase_8.tmp.fasta -method shuffle -shuffle_decoy_ratio 2 -seed 42)
+add_test("TOPP_DecoyDatabase_8_out" ${DIFF} -in1 DecoyDatabase_8.tmp.fasta -in2 ${DATA_DIR_TOPP}/DecoyDatabase_8_out.fasta )
+set_tests_properties("TOPP_DecoyDatabase_8_out" PROPERTIES DEPENDS "TOPP_DecoyDatabase_8")
+# ... test that shuffle_decoy_ratio with reverse method fails
+add_test("TOPP_DecoyDatabase_9" ${TOPP_BIN_PATH}/DecoyDatabase -test -in ${DATA_DIR_TOPP}/DecoyDatabase_1.fasta -out DecoyDatabase_9.tmp.fasta -method reverse -shuffle_decoy_ratio 2)
+set_tests_properties("TOPP_DecoyDatabase_9" PROPERTIES WILL_FAIL 1)
 
 
 # SimpleSearchEngine:
