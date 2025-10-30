@@ -442,6 +442,7 @@ jobs:
           SEARCH_ENGINES_DIRECTORY: ${{ github.workspace }}/_thirdparty
           WITH_GUI: "ON"
           WITH_PARQUET: "OFF" # Conda on windows, Apt on Ubuntu, Brew on MacOS
+          BUILD_TOPP_TOOLS: "OFF" # Testing the new BUILD_TOPP_TOOLS option
           SIGNING_IDENTITY: "-"
           ADDRESS_SANITIZER: "Off"
           BUILD_TYPE: "Release"
