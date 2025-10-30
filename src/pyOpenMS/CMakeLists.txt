@@ -588,6 +588,7 @@ set(pyopenms_unittest_testfiles
   test_FileIO.py
   test_Isobaric_Quantitation.py
   testLightTargetedExperiment.py
+  testLocale.py
   test_MRMFeatureFinderScoring.py
   test_MSNumpressCoder.py
   test_MSSpectrumAndRichSpectrum.py
