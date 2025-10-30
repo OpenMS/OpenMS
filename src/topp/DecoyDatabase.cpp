@@ -389,7 +389,8 @@ protected:
         for (int num_repeat = 0; num_repeat < shuffle_ratio; num_repeat++)
         {
           FASTAFile::FASTAEntry decoy_entry = entry;
-          String suffix_string = shuffle_ratio == 1? "" : std::to_string(num_repeat + 1) + "_";
+          // add iteration suffix if shuffle_ratio > 1
+          String suffix_string = shuffle_ratio == 1 ? "" : std::to_string(num_repeat + 1) + "_";
           decoy_entry.identifier = getDecoyIdentifier_(decoy_entry.identifier, decoy_string, suffix_string, decoy_string_position_prefix);
           // new decoy sequence
           if (input_type == SeqType::RNA)
