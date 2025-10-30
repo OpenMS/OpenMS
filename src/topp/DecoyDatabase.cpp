@@ -386,10 +386,12 @@ protected:
         }
 
         // new decoy identifier
-        for (int num_repeat = 0; num_repeat < shuffle_ratio; num_repeat++)
+        const FASTAFile::FASTAEntry target_entry = entry;
+        for (int num_repeat = 0; num_repeat < shuffle_ratio; ++num_repeat)
         {
-          String suffix_string = shuffle_ratio == 1? "" : std::to_string(num_repeat + 1) + "_";
-          entry.identifier = getDecoyIdentifier_(entry.identifier, decoy_string, suffix_string, decoy_string_position_prefix);
+          FASTAFile::FASTAEntry decoy_entry = target_entry;
+          String suffix_string = shuffle_ratio == 1 ? "" : std::to_string(num_repeat + 1) + "_";
+          decoy_entry.identifier = getDecoyIdentifier_(target_entry.identifier, decoy_string, suffix_string, decoy_string_position_prefix);
           // new decoy sequence
           if (input_type == SeqType::RNA)
           {
@@ -465,11 +467,12 @@ protected:
           //-------------------------------------------------------------
           // writing output
           //-------------------------------------------------------------
-          f.writeNext(entry);
+          // build decoy_entry.sequence from target_entry.sequence (RNA / protein branches)
+          f.writeNext(decoy_entry);
           // optional: if in neighbor mode: T+D of relevant peptides (if requested)
           if (write_relevant)
           {
-            fasta_out_relevant.writeNext(entry);
+            fasta_out_relevant.writeNext(decoy_entry);
           }
         }
 
