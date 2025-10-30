@@ -8,6 +8,7 @@
 
 // If you add a new (or update an existing) tool below, make sure to update 'openms/source/APPLICATIONS/Toolhandler.cpp' as well!
 
+/// @cond BUILD_TOPP_TOOLS
 /**
   @page TOPP_documentation TOPP documentation
 
@@ -212,3 +213,4 @@
   - @subpage TOPP_XMLValidator - Validates XML files against an XSD schema.
 
 */
+/// @endcond

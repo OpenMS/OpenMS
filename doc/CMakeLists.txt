@@ -111,11 +111,11 @@ if(ENABLE_DOCS)
       set(CF_DOXYGEN_DOT_EXECUTABLE "")
     endif()
     
-    # Conditionally exclude TOPP documentation files when BUILD_TOPP_TOOLS is OFF
-    if(NOT BUILD_TOPP_TOOLS)
-      set(CF_DOXYGEN_EXCLUDE_TOPP "@CF_OPENMS_SRC_PATH@/doc/doxygen/public/TOPP.doxygen @CF_OPENMS_SRC_PATH@/doc/doxygen/public/TOPPAS.doxygen")
+    # Configure ENABLED_SECTIONS for conditional documentation
+    if(BUILD_TOPP_TOOLS)
+      set(CF_DOXYGEN_ENABLED_SECTIONS "BUILD_TOPP_TOOLS")
     else()
-      set(CF_DOXYGEN_EXCLUDE_TOPP "")
+      set(CF_DOXYGEN_ENABLED_SECTIONS "")
     endif()
       
     

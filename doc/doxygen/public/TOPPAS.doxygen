@@ -15,6 +15,7 @@
 // - When talking about OpenMS in general, prefix it with a '%'. Otherwise a
 //   link to the OpenMS namespace is generated automatically
 
+/// @cond BUILD_TOPP_TOOLS
 /**
 	@page TOPPAS_tutorial TOPPAS tutorial
 	
@@ -526,3 +527,4 @@
 		been merged together.
 		
 */
+/// @endcond

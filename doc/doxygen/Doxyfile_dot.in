@@ -47,7 +47,7 @@ FILE_PATTERNS          = *.cpp \
 
 RECURSIVE              = YES
 
-EXCLUDE                = @CF_OPENMS_SRC_PATH@/source/TEST/ @CF_DOXYGEN_EXCLUDE_TOPP@
+EXCLUDE                = @CF_OPENMS_SRC_PATH@/source/TEST/
 
 EXCLUDE_SYMLINKS       = NO
 
