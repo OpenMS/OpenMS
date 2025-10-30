@@ -388,14 +388,15 @@ protected:
         // new decoy identifier
         for (int num_repeat = 0; num_repeat < shuffle_ratio; num_repeat++)
         {
+          FASTAFile::FASTAEntry decoy_entry = entry;
           String suffix_string = shuffle_ratio == 1? "" : std::to_string(num_repeat + 1) + "_";
-          entry.identifier = getDecoyIdentifier_(entry.identifier, decoy_string, suffix_string, decoy_string_position_prefix);
+          decoy_entry.identifier = getDecoyIdentifier_(decoy_entry.identifier, decoy_string, suffix_string, decoy_string_position_prefix);
           // new decoy sequence
           if (input_type == SeqType::RNA)
           {
-            string quick_seq = entry.sequence;
-            bool five_p = (entry.sequence.front() == 'p');
-            bool three_p = (entry.sequence.back() == 'p');
+            string quick_seq = decoy_entry.sequence;
+            bool five_p = (decoy_entry.sequence.front() == 'p');
+            bool three_p = (decoy_entry.sequence.back() == 'p');
             if (five_p) // we don't want to reverse terminal phosphates
             {
               quick_seq.erase(0, 1);
@@ -426,7 +427,7 @@ protected:
             {
               tokenized.emplace_back("p");
             }
-            entry.sequence = ListUtils::concatenate(tokenized, "");
+            decoy_entry.sequence = ListUtils::concatenate(tokenized, "");
           }
           else // protein input
           {
@@ -434,7 +435,7 @@ protected:
             if (enzyme != "no cleavage" && (keepN || keepC))
             {
               std::vector<AASequence> peptides;
-              digestion.digest(AASequence::fromString(entry.sequence), peptides);
+              digestion.digest(AASequence::fromString(decoy_entry.sequence), peptides);
               String new_sequence = "";
               for (auto const& peptide : peptides)
               {
@@ -445,7 +446,7 @@ protected:
                                       : MRMDecoy::reversePeptide(p, keepN, keepC, keep_const_pattern);
                 new_sequence += decoy_p.sequence;
               }
-              entry.sequence = new_sequence;
+              decoy_entry.sequence = new_sequence;
             }
             else // no cleavage
             {
@@ -453,11 +454,11 @@ protected:
               if (shuffle)
               {
                 shuffler.seed(seed); // identical proteins are shuffled the same way -> re-seed
-                shuffler.portable_random_shuffle(entry.sequence.begin(), entry.sequence.end());
+                shuffler.portable_random_shuffle(decoy_entry.sequence.begin(), decoy_entry.sequence.end());
               }
               else // reverse
               {
-                entry.sequence.reverse();
+                decoy_entry.sequence.reverse();
               }
             }
           } // protein entry
@@ -465,11 +466,11 @@ protected:
           //-------------------------------------------------------------
           // writing output
           //-------------------------------------------------------------
-          f.writeNext(entry);
+          f.writeNext(decoy_entry);
           // optional: if in neighbor mode: T+D of relevant peptides (if requested)
           if (write_relevant)
           {
-            fasta_out_relevant.writeNext(entry);
+            fasta_out_relevant.writeNext(decoy_entry);
           }
         }
 
