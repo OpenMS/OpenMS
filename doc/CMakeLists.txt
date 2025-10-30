@@ -68,7 +68,11 @@ if(ENABLE_DOCS)
 
   # collection target
   add_custom_target(doc_progs)
-  add_dependencies(doc_progs ${OpenMS_doc_executables} TOPP)
+  add_dependencies(doc_progs ${OpenMS_doc_executables})
+  
+  if(BUILD_TOPP_TOOLS)
+    add_dependencies(doc_progs TOPP)
+  endif()
 
   if(WITH_GUI)
     add_dependencies(doc_progs GUI)
@@ -307,7 +311,9 @@ if(ENABLE_DOCS)
     # add virtual dependency of doc_minimal on TOPP
     # this is not necessary but defers the generation of doc_minimal to a later
     # stage to avoid confusion if doc_minimal is built first
-    add_dependencies(doc_minimal TOPP)
+    if(BUILD_TOPP_TOOLS)
+      add_dependencies(doc_minimal TOPP)
+    endif()
 
     if (DOXYGEN_DOT_FOUND OR DOXYGEN_DOT_EXECUTABLE)
       #------------------------------------------------------------------------------
