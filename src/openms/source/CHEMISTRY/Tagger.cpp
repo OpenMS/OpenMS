@@ -26,6 +26,7 @@ namespace OpenMS
 
     const double delta = tol_is_ppm_ ? Math::ppmToMass(tolerance_, m) : tolerance_;
     auto left = mass2aa_.lower_bound(m - delta);
+    if (left == mass2aa_.end()) return ' ';
     if (fabs(left->first - m) >= delta) return ' ';
     // return the most exact one.
     auto best_aa = left;
