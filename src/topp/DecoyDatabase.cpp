@@ -406,7 +406,7 @@ protected:
           // Derive a per-repeat seed so each repeat yields a distinct decoy sequence
           auto repeat_seed = seed + num_repeat;
           // add iteration suffix if shuffle_ratio > 1
-          String suffix_string = shuffle_ratio == 1 ? "" : String("_") + std::to_string(num_repeat + 1);
+          String suffix_string = shuffle_ratio == 1 ? "" : "_" + std::to_string(num_repeat + 1);
           decoy_entry.identifier = getDecoyIdentifier_(decoy_entry.identifier, decoy_string, suffix_string, decoy_string_position_prefix);
           // new decoy sequence
           if (input_type == SeqType::RNA)
