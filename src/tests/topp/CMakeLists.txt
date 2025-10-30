@@ -1740,7 +1740,7 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
   set_tests_properties("TOPP_OpenSwathWorkflow_20_out1" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_20")
 
   # Test iRT alignment, full workflow
-  add_test("TOPP_OpenSwathWorkflow_21" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_21_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_21_input.tsv -Calibration:tr_irt ${DATA_DIR_TOPP}/OpenSwathWorkflow_21_input.irt.TraML -out_features OpenSwathWorkflow_21.tmp.featureXML -Debugging:irt_trafo OpenSwathWorkflow_21.tmp.trafoXML -out_chrom OpenSwathWorkflow_21.tmp.mzML -auto_irt "false" -estimate_extraction_windows none -Calibration:RTNormalization:lowess:span 0.666666666666666666666666666
+  add_test("TOPP_OpenSwathWorkflow_21" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_21_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_21_input.tsv -Calibration:tr_irt ${DATA_DIR_TOPP}/OpenSwathWorkflow_21_input.irt.TraML -out_features OpenSwathWorkflow_21.tmp.featureXML -Debugging:irt_trafo OpenSwathWorkflow_21.tmp.trafoXML -out_chrom OpenSwathWorkflow_21.tmp.mzML -auto_irt "false" -estimate_extraction_windows none -Calibration:RTNormalization:lowess:auto_span false -Calibration:RTNormalization:lowess:span 0.666666666666666666666666666
     "-test" "-mz_extraction_window" "0.05" "-mz_extraction_window_unit" "Th" "-ms1_isotopes" "0"
     "-Scoring:Scores:use_total_mi_score"
     "-Scoring:Scores:use_ms1_mi" "false"
@@ -2706,6 +2706,13 @@ add_test("TOPP_DecoyDatabase_7_out3" ${DIFF} -in1 DecoyDatabase_7_relevant.tmp.f
 set_tests_properties("TOPP_DecoyDatabase_7_out1" PROPERTIES DEPENDS "TOPP_DecoyDatabase_7")
 set_tests_properties("TOPP_DecoyDatabase_7_out2" PROPERTIES DEPENDS "TOPP_DecoyDatabase_7")
 set_tests_properties("TOPP_DecoyDatabase_7_out3" PROPERTIES DEPENDS "TOPP_DecoyDatabase_7")
+# ... test shuffle_decoy_ratio parameter (multiple decoys per target from original sequence)
+add_test("TOPP_DecoyDatabase_8" ${TOPP_BIN_PATH}/DecoyDatabase -test -in ${DATA_DIR_TOPP}/DecoyDatabase_1.fasta -out DecoyDatabase_8.tmp.fasta -method shuffle -shuffle_decoy_ratio 2 -seed 42)
+add_test("TOPP_DecoyDatabase_8_out" ${DIFF} -in1 DecoyDatabase_8.tmp.fasta -in2 ${DATA_DIR_TOPP}/DecoyDatabase_8_out.fasta )
+set_tests_properties("TOPP_DecoyDatabase_8_out" PROPERTIES DEPENDS "TOPP_DecoyDatabase_8")
+# ... test that shuffle_decoy_ratio with reverse method fails
+add_test("TOPP_DecoyDatabase_9" ${TOPP_BIN_PATH}/DecoyDatabase -test -in ${DATA_DIR_TOPP}/DecoyDatabase_1.fasta -out DecoyDatabase_9.tmp.fasta -method reverse -shuffle_decoy_ratio 2)
+set_tests_properties("TOPP_DecoyDatabase_9" PROPERTIES WILL_FAIL 1)
 
 
 # SimpleSearchEngine:

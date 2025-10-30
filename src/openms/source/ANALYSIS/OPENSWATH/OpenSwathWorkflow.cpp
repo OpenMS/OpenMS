@@ -272,6 +272,10 @@ namespace OpenMS
     Param model_params;
     model_params.setValue("symmetric_regression", "false");
     model_params.setValue("span", irt_detection_param.getValue("lowess:span"));
+    model_params.setValue("auto_span", irt_detection_param.getValue("lowess:auto_span"));
+    model_params.setValue("auto_span_min", irt_detection_param.getValue("lowess:auto_span_min"));
+    model_params.setValue("auto_span_max", irt_detection_param.getValue("lowess:auto_span_max"));
+    model_params.setValue("auto_span_grid", irt_detection_param.getValue("lowess:auto_span_grid"));
     model_params.setValue("num_nodes", irt_detection_param.getValue("b_spline:num_nodes"));
     String model_type = irt_detection_param.getValue("alignmentMethod").toString();
     trafo_out.fitModel(model_type, model_params);
