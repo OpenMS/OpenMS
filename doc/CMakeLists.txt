@@ -157,6 +157,32 @@ if(ENABLE_DOCS)
 
     #------------------------------------------------------------------------------
     # doc_param_internal targets
+    
+    # Build TOPP documentation commands (conditional on BUILD_TOPP_TOOLS)
+    if(BUILD_TOPP_TOOLS)
+      set(_TOPP_DOC_COMMANDS
+        COMMAND ${CMAKE_COMMAND} -E echo "Building TOPP docu:"
+        COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~"
+      )
+      if (CMAKE_GENERATOR MATCHES "Visual Studio")
+        list(APPEND _TOPP_DOC_COMMANDS
+          COMMAND ${CMAKE_COMMAND} -E chdir doxygen/parameters/ ${TOPPDOCUMENTER_EXECUTABLE} ${BINARY_PATH}
+        )
+      else()
+        list(APPEND _TOPP_DOC_COMMANDS
+          COMMAND ${CMAKE_COMMAND} -E chdir doxygen/parameters/ ${CMAKE_COMMAND} -E env "PATH=${DEP_BIN_DIRS}${pathsep}${DEP_LIB_DIRS}${pathsep}$ENV{PATH}" ${TOPPDOCUMENTER_EXECUTABLE} ${BINARY_PATH}
+        )
+      endif()
+      list(APPEND _TOPP_DOC_COMMANDS
+        COMMAND ${CMAKE_COMMAND} -E echo ""
+      )
+    else()
+      set(_TOPP_DOC_COMMANDS
+        COMMAND ${CMAKE_COMMAND} -E echo "Skipping TOPP documentation (BUILD_TOPP_TOOLS is OFF)"
+        COMMAND ${CMAKE_COMMAND} -E echo ""
+      )
+    endif()
+    
     if (CMAKE_GENERATOR MATCHES "Visual Studio")
       add_custom_target(doc_param_internal
                       COMMAND ${CMAKE_COMMAND} -E echo ""
@@ -174,10 +200,7 @@ if(ENABLE_DOCS)
                       COMMAND ${CMAKE_COMMAND} -E make_directory doxygen/parameters/output/
                       COMMAND ${CMAKE_COMMAND} -E chdir doxygen/parameters/ ${DEFAULTPARAMHANDLERDOCUMENTER_EXECUTABLE}
                       COMMAND ${CMAKE_COMMAND} -E echo ""
-                      COMMAND ${CMAKE_COMMAND} -E echo "Building TOPP docu:"
-                      COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~"
-                      COMMAND ${CMAKE_COMMAND} -E chdir doxygen/parameters/ ${TOPPDOCUMENTER_EXECUTABLE} ${BINARY_PATH}
-                      COMMAND ${CMAKE_COMMAND} -E echo ""
+                      ${_TOPP_DOC_COMMANDS}
                       COMMENT "Build the parameters documentation"
                       VERBATIM)      
     else()
@@ -197,10 +220,7 @@ if(ENABLE_DOCS)
                       COMMAND ${CMAKE_COMMAND} -E make_directory doxygen/parameters/output/
                       COMMAND ${CMAKE_COMMAND} -E chdir doxygen/parameters/ ${CMAKE_COMMAND} -E env "PATH=${DEP_BIN_DIRS}${pathsep}${DEP_LIB_DIRS}${pathsep}$ENV{PATH}" ${DEFAULTPARAMHANDLERDOCUMENTER_EXECUTABLE}
                       COMMAND ${CMAKE_COMMAND} -E echo ""
-                      COMMAND ${CMAKE_COMMAND} -E echo "Building TOPP docu:"
-                      COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~"
-                      COMMAND ${CMAKE_COMMAND} -E chdir doxygen/parameters/ ${CMAKE_COMMAND} -E env "PATH=${DEP_BIN_DIRS}${pathsep}${DEP_LIB_DIRS}${pathsep}$ENV{PATH}" ${TOPPDOCUMENTER_EXECUTABLE} ${BINARY_PATH}
-                      COMMAND ${CMAKE_COMMAND} -E echo ""
+                      ${_TOPP_DOC_COMMANDS}
                       COMMENT "Build the parameters documentation"
                       VERBATIM)
     endif()
