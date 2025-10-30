@@ -137,8 +137,14 @@ protected:
 
   String getDecoyIdentifier_(const String& identifier, const String& decoy_string, const String& suffix_string, const bool as_prefix)
   {
-    if (as_prefix) return decoy_string + identifier + suffix_string;
-    else return identifier + decoy_string + suffix_string;
+    if (as_prefix) 
+    {
+      return decoy_string + identifier + suffix_string;
+    }
+    else 
+    {
+      return identifier + decoy_string + suffix_string;
+    }
   }
   
 
@@ -154,6 +160,14 @@ protected:
     bool append = !getFlag_("only_decoy");
     bool shuffle = (getStringOption_("method") == "shuffle");
     int shuffle_ratio = shuffle ? getIntOption_("shuffle_decoy_ratio") : 1;
+    
+    // Validate that shuffle_decoy_ratio is only used with shuffle method
+    if (!shuffle && getIntOption_("shuffle_decoy_ratio") != 1)
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "Parameter 'shuffle_decoy_ratio' can only be used with method 'shuffle', not with method 'reverse'.");
+    }
+    
     String decoy_string = getStringOption_("decoy_string");
     bool decoy_string_position_prefix =
       (getStringOption_("decoy_string_position") == "prefix");
@@ -390,7 +404,7 @@ protected:
         {
           FASTAFile::FASTAEntry decoy_entry = entry;
           // add iteration suffix if shuffle_ratio > 1
-          String suffix_string = shuffle_ratio == 1 ? "" : std::to_string(num_repeat + 1) + "_";
+          String suffix_string = shuffle_ratio == 1 ? "" : String("_") + std::to_string(num_repeat + 1);
           decoy_entry.identifier = getDecoyIdentifier_(decoy_entry.identifier, decoy_string, suffix_string, decoy_string_position_prefix);
           // new decoy sequence
           if (input_type == SeqType::RNA)
