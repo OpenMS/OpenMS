@@ -24,13 +24,20 @@ set(CTEST_CUSTOM_TESTS_IGNORE
 set(CTEST_CUSTOM_MAXIMUM_NUMBER_OF_ERRORS 1000)
 set(CTEST_CUSTOM_MAXIMUM_NUMBER_OF_WARNINGS 1000)
 
-# Define patterns that should be classified as errors
+# Define patterns that should NOT be classified as warnings
+set(CTEST_CUSTOM_WARNING_EXCEPTION
+    # Ignore the generic "non-zero return value" warnings - let the actual errors be classified properly
+    ".*WARNING.*non-zero return value.*cmake.*"
+    )
+
+# Define patterns that should be classified as errors (these override warning classification)
 set(CTEST_CUSTOM_ERROR_MATCH
     "subprocess-exited-with-error"
-    "FAILED:"
-    "error:"
-    "Error:"
-    "ERROR:"
+    "FAILED:.*pyopenms"
+    "× Getting requirements to build wheel did not run successfully"
+    "error: subprocess-exited-with-error"
+    ".*FAILED:.*pyOpenMS.*"
+    ".*pip wheel.*"
     )
 
 ctest_start(APPEND)

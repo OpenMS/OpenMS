@@ -20,19 +20,22 @@ set (CTEST_CURL_OPTIONS       CURLOPT_SSL_VERIFYHOST_OFF CURLOPT_SSL_VERIFYPEER_
 set(CTEST_CUSTOM_MAXIMUM_NUMBER_OF_ERRORS 1000)
 set(CTEST_CUSTOM_MAXIMUM_NUMBER_OF_WARNINGS 1000)
 
-# Define patterns that should be classified as errors
-set(CTEST_CUSTOM_ERROR_MATCH
-    "subprocess-exited-with-error"
-    "FAILED:"
-    "error:"
-    "Error:"
-    "ERROR:"
-    )
-
 set (CTEST_CUSTOM_WARNING_EXCEPTION
     # Suppress warnings imported from qt
     ".*qsharedpointer_impl.h:595:43.*"
     ".*src/openms/extern/.*"
+    # Ignore the generic "non-zero return value" warnings - let the actual errors be classified properly
+    ".*WARNING.*non-zero return value.*cmake.*"
+    )
+
+# Define patterns that should be classified as errors (these override warning classification)
+set(CTEST_CUSTOM_ERROR_MATCH
+    "subprocess-exited-with-error"
+    "FAILED:.*pyopenms"
+    "× Getting requirements to build wheel did not run successfully"
+    "error: subprocess-exited-with-error"
+    ".*FAILED:.*pyOpenMS.*"
+    ".*pip wheel.*"
     )
 
 message(STATUS "CTEST_SOURCE_DIRECTORY: ${CTEST_SOURCE_DIRECTORY}")
