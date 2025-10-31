@@ -250,7 +250,7 @@ def main(argv: list[str] | None = None) -> int:
             extraction_coordinates,
             mz_win,
             ppm,
-            -1, # Assumes no IonMobility dimensionq
+            -1, # Assumes no IonMobility dimension
             func,
         )
         _append_chroms(output, output_chromatograms)
