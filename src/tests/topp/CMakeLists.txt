@@ -843,6 +843,13 @@ add_test("TOPP_IsobaricAnalyzer_MS3TMT10Plex_1_out1" ${DIFF} -whitelist "id=" "<
 set_tests_properties("TOPP_IsobaricAnalyzer_MS3TMT10Plex_1_out1" PROPERTIES DEPENDS "TOPP_IsobaricAnalyzer_MS3TMT10Plex_1")
 
 #------------------------------------------------------------------------------
+# IsobaricWorkflow tests
+# TODO
+#add_test("TOPP_IsobaricAnalyzer_1" ${TOPP_BIN_PATH}/IsobaricAnalyzer -test -in ${DATA_DIR_TOPP}/IsobaricAnalyzer_input_1.mzML ${DATA_DIR_TOPP}/IsobaricAnalyzer_input_1.mzML -ini ${DATA_DIR_TOPP}/IsobaricAnalyzer.ini -out IsobaricAnalyzer_output_1.tmp.consensusXML)
+#add_test("TOPP_IsobaricAnalyzer_1_out1" ${DIFF} -whitelist "id=" "<map" "?xml-stylesheet" -in1 IsobaricAnalyzer_output_1.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/IsobaricAnalyzer_output_1.consensusXML )
+#set_tests_properties("TOPP_IsobaricAnalyzer_1_out1" PROPERTIES DEPENDS "TOPP_IsobaricAnalyzer_1")
+
+#------------------------------------------------------------------------------
 # IDConflictResolver tests
 add_test("TOPP_IDConflictResolver_1" ${TOPP_BIN_PATH}/IDConflictResolver -test -in ${DATA_DIR_TOPP}/IDConflictResolver_1_input.featureXML -out IDConflictResolver_1_output.tmp.featureXML)
 add_test("TOPP_IDConflictResolver_1_out1" ${DIFF} -in1 IDConflictResolver_1_output.tmp.featureXML -in2 ${DATA_DIR_TOPP}/IDConflictResolver_1_output.featureXML )
@@ -2706,6 +2713,13 @@ add_test("TOPP_DecoyDatabase_7_out3" ${DIFF} -in1 DecoyDatabase_7_relevant.tmp.f
 set_tests_properties("TOPP_DecoyDatabase_7_out1" PROPERTIES DEPENDS "TOPP_DecoyDatabase_7")
 set_tests_properties("TOPP_DecoyDatabase_7_out2" PROPERTIES DEPENDS "TOPP_DecoyDatabase_7")
 set_tests_properties("TOPP_DecoyDatabase_7_out3" PROPERTIES DEPENDS "TOPP_DecoyDatabase_7")
+# ... test shuffle_decoy_ratio parameter (multiple decoys per target from original sequence)
+add_test("TOPP_DecoyDatabase_8" ${TOPP_BIN_PATH}/DecoyDatabase -test -in ${DATA_DIR_TOPP}/DecoyDatabase_1.fasta -out DecoyDatabase_8.tmp.fasta -method shuffle -shuffle_decoy_ratio 2 -seed 42)
+add_test("TOPP_DecoyDatabase_8_out" ${DIFF} -in1 DecoyDatabase_8.tmp.fasta -in2 ${DATA_DIR_TOPP}/DecoyDatabase_8_out.fasta )
+set_tests_properties("TOPP_DecoyDatabase_8_out" PROPERTIES DEPENDS "TOPP_DecoyDatabase_8")
+# ... test that shuffle_decoy_ratio with reverse method fails
+add_test("TOPP_DecoyDatabase_9" ${TOPP_BIN_PATH}/DecoyDatabase -test -in ${DATA_DIR_TOPP}/DecoyDatabase_1.fasta -out DecoyDatabase_9.tmp.fasta -method reverse -shuffle_decoy_ratio 2)
+set_tests_properties("TOPP_DecoyDatabase_9" PROPERTIES WILL_FAIL 1)
 
 
 # SimpleSearchEngine:

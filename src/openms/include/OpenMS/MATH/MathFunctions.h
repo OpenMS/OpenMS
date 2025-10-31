@@ -16,6 +16,12 @@
 #include <boost/random/mersenne_twister.hpp> // for mt19937_64
 #include <boost/random/uniform_int.hpp>
 #include <cmath>
+#include <boost/math/special_functions/binomial.hpp>
+#include <boost/math/special_functions/gamma.hpp>
+#include <boost/math/special_functions/log1p.hpp>
+#include <boost/math/distributions/binomial.hpp>
+#include <boost/math/distributions/complement.hpp>
+#include <limits>
 #include <utility> // for std::pair
 #include <vector>
 
@@ -497,5 +503,84 @@ namespace Math
       rng_.seed(val);
     }
   };
+
+  /**
+   * @brief Calculate logarithm of binomial coefficient C(n,k) using log-gamma function
+   * 
+   * @param n Total number of items
+   * @param k Number of items to choose
+   * @return Natural logarithm of binomial coefficient C(n,k)
+   * @throws std::invalid_argument if k > n
+   */
+  inline double log_binomial_coef(unsigned n, unsigned k) 
+  {
+    // Handle edge cases for improved numerical stability
+    if (k > n) 
+    {
+      throw std::invalid_argument("k cannot be greater than n in binomial coefficient");
+    }
+    
+    if (k == 0 || k == n) 
+    {
+      return 0.0;  // log(1) = 0
+    }
+    
+    // Use symmetry to minimize computation for large k
+    if (k > n / 2) 
+    {
+      k = n - k;
+    }
+    
+    return boost::math::lgamma(n + 1.0) - boost::math::lgamma(k + 1.0) - boost::math::lgamma(n - k + 1.0);
+  }
+
+  /**
+   * @brief Log-sum-exp operation for numerical stability
+   * 
+   * @param x First logarithmic value
+   * @param y Second logarithmic value
+   * @return Natural logarithm of (exp(x) + exp(y))
+   */
+  inline double log_sum_exp(double x, double y) 
+  {
+    // Handle infinite cases
+    if (std::isinf(x) && x < 0) return y;
+    if (std::isinf(y) && y < 0) return x;
+    
+    // Use the maximum value for numerical stability
+    double max_val = std::max(x, y);
+    return max_val + std::log(std::exp(x - max_val) + std::exp(y - max_val));
+  }
+
+  /**
+   * @brief Calculate binomial cumulative distribution function P(X ≥ n)
+   * 
+   * Calculates P(X ≥ n) for a binomial distribution with parameters N and p,
+   * using numerically stable algorithms in the log domain to handle large values.
+   * 
+   * @param N Total number of trials
+   * @param n Minimum number of successes
+   * @param p Probability of success in each trial
+   * @return Probability P(X ≥ n) for binomial distribution B(N,p)
+   * @throws std::invalid_argument if parameters are invalid
+   */
+  inline double binomial_cdf_complement(unsigned N, unsigned n, double p)
+  {
+    if (p < 0.0 || p > 1.0)
+    {
+      throw std::invalid_argument("Probability p must be between 0 and 1");
+    }
+    if (n > N)
+    {
+      throw std::invalid_argument("n cannot be greater than N");
+    }
+
+    if (n == 0)   return 1.0;                // P(X ≥ 0) = 1
+    if (p == 0.0) return (n == 0) ? 1.0 : 0.0;
+    if (p == 1.0) return 1.0;               // all mass at N
+
+    const boost::math::binomial_distribution<double> dist(N, p);
+    return boost::math::cdf(boost::math::complement(dist, n - 1));
+  }
 } // namespace Math
 } // namespace OpenMS
