@@ -444,6 +444,7 @@ jobs:
           WITH_PARQUET: "OFF" # Conda on windows, Apt on Ubuntu, Brew on MacOS
           SIGNING_IDENTITY: "-"
           ADDRESS_SANITIZER: "Off"
+          USE_MOLD_LINKER: ${{ startsWith(matrix.os, 'ubuntu') && 'ON' || 'OFF' }}
           BUILD_TYPE: "Release"
           OPENMP: "ON"
           BOOST_USE_STATIC: ${{ steps.set-vars.outputs.static_boost }}

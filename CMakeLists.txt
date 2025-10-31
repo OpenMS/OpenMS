@@ -258,6 +258,11 @@ option(ADDRESS_SANITIZER "Enable AddressSanitizer mode (quite slow)." OFF)
 include(${PROJECT_SOURCE_DIR}/cmake/AddressSanitizer.cmake)
 
 #------------------------------------------------------------------------------
+# Enable mold linker
+#------------------------------------------------------------------------------
+include(${PROJECT_SOURCE_DIR}/cmake/mold_linker.cmake)
+
+#------------------------------------------------------------------------------
 # we build shared libraries
 set(BUILD_SHARED_LIBS true)
 

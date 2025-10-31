@@ -55,5 +55,6 @@ sudo apt-get -qq install -y \
 sudo apt-get -qq install -y \
   doxygen \
   ghostscript \
-  graphviz
+  graphviz \
+  mold
 # [installation_documentation]
