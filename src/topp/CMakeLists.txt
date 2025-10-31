@@ -70,6 +70,8 @@ target_link_libraries(NucleicAcidSearchEngine Boost::regex)
 if(ENABLE_ONNX)
   target_link_libraries(DLModel onnxruntime::onnxruntime)
 endif()
+target_link_libraries(IsobaricWorkflow Eigen3::Eigen)
+target_link_libraries(MetaProSIP Eigen3::Eigen)
 
 # collection target
 add_custom_target(TOPP)

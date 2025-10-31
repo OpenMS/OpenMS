@@ -60,6 +60,7 @@ IDSplitter
 InternalCalibration
 IonMobilityBinning
 IsobaricAnalyzer
+IsobaricWorkflow
 JSONExporter
 LuciphorAdapter
 MapAlignerIdentification
@@ -91,7 +92,6 @@ OpenMSDatabasesInfo
 OpenMSInfo
 OpenNuXL
 OpenPepXL
-OpenPepXLLF
 OpenSwathAnalyzer
 OpenSwathAssayGenerator
 OpenSwathChromatogramExtractor

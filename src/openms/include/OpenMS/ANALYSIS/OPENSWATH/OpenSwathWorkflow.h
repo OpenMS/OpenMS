@@ -352,6 +352,36 @@ protected:
     */
     static void addChromatograms(MSChromatogram& base_chrom, const MSChromatogram& newchrom);
 
+    /// Retrieve the estimated fragment m/z window (ppm)
+    double getEstimatedMzWindow() const;
+
+    /// Set the estimated fragment m/z window (ppm)
+    void setEstimatedMzWindow(double estimatedMzWindow);
+
+    /// Retrieve the estimated fragment ion mobility
+    double getEstimatedImWindow() const;
+
+    /// Set the estimated fragment ion mobility
+    void setEstimatedImWindow(double estimatedImWindow);
+
+    /// Retrieve the estimated MS1 m/z window (ppm)
+    double getEstimatedMs1MzWindow() const;
+
+    /// Set the estimated MS1 m/z window (ppm)
+    void setEstimatedMs1MzWindow(double estimatedMs1MzWindow);
+
+    /// Retrieve the estimated MS1 ion mobility window
+    double getEstimatedMs1ImWindow() const;
+
+    /// Set the estimated MS1 ion mobility window
+    void setEstimatedMs1ImWindow(double estimatedMs1ImWindow);
+
+  protected:
+    /// estimated extraction windows
+    double estimated_mz_window_ = -1;
+    double estimated_im_window_ = -1;
+    double estimated_ms1_mz_window_ = -1;
+    double estimated_ms1_im_window_ = -1;
   };
 
   /**

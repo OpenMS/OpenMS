@@ -104,6 +104,7 @@ namespace OpenMS
     tools_map["InternalCalibration"] = Internal::ToolDescription("InternalCalibration", cat_calibration);
     tools_map["IonMobilityBinning"] = Internal::ToolDescription("IonMobilityBinning", cat_file_filter_extract_merge);
     tools_map["IsobaricAnalyzer"] = Internal::ToolDescription("IsobaricAnalyzer", cat_quant);
+    tools_map["IsobaricWorkflow"] = Internal::ToolDescription("IsobaricWorkflow", cat_quant);
     tools_map["JSONExporter"] = Internal::ToolDescription("JSONExporter", cat_dev);
     tools_map["LuciphorAdapter"] = Internal::ToolDescription("LuciphorAdapter", cat_ID_search);
     tools_map["MapAlignerIdentification"] = Internal::ToolDescription("MapAlignerIdentification", cat_map_align);
@@ -136,7 +137,6 @@ namespace OpenMS
     tools_map["OpenMSInfo"] = Internal::ToolDescription("OpenMSInfo", cat_misc);
     tools_map["OpenNuXL"] = Internal::ToolDescription("OpenNuXL", cat_crosslinking);
     tools_map["OpenPepXL"] = Internal::ToolDescription("OpenPepXL", cat_crosslinking);
-    tools_map["OpenPepXLLF"] = Internal::ToolDescription("OpenPepXLLF", cat_crosslinking);
     tools_map["OpenSwathAnalyzer"] = Internal::ToolDescription("OpenSwathAnalyzer", cat_targeted);
     tools_map["OpenSwathAssayGenerator"] = Internal::ToolDescription("OpenSwathAssayGenerator", cat_targeted);
     tools_map["OpenSwathChromatogramExtractor"] = Internal::ToolDescription("OpenSwathChromatogramExtractor", cat_targeted);

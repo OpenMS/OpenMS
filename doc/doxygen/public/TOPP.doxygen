@@ -28,7 +28,9 @@
   - @subpage TOPP_IDFileConverter - Converts between different identification file formats.
   - @subpage TOPP_MSstatsConverter - Convert to MSstats input file format.
   - @subpage TOPP_MzTabExporter - Exports various XML formats to an mzTab file.
+/// @cond WITH_PARQUET
   - @subpage TOPP_QuantmsIOConverter - Converts IdXML files to parquet format following quantms.io PSM specification.
+/// @endcond
   - @subpage TOPP_TargetedFileConverter - Converts targeted files (such as tsv or TraML files).
   - @subpage TOPP_TextExporter - Exports various XML formats to a text file.
   - @subpage TOPP_TriqlerConverter - Convert to Triqler input file format.
@@ -87,6 +89,7 @@
   - @subpage TOPP_FeatureFinderMetaboIdent - Detects features in MS1 data corresponding to small molecule identifications.
   - @subpage TOPP_FeatureFinderMultiplex - Identifies peptide multiplets (pairs, triplets etc., e.g. for SILAC or Dimethyl labeling) and determines their relative abundance.
   - @subpage TOPP_IsobaricAnalyzer - Extracts and normalizes TMT and iTRAQ information from an MS experiment.
+  - @subpage TOPP_IsobaricWorkflow - Complete workflow for quantification with isobaric labeling (TMT, iTRAQ) combining several OpenMS tools.
   - @subpage TOPP_MassTraceExtractor - Annotates mass traces in centroided LC-MS maps.
   - @subpage TOPP_MetaboliteAdductDecharger - Decharges and merges different feature charge variants of the same small molecule.
   - @subpage TOPP_MetaProSIP - Detect labeled peptides from protein-SIP experiments.
@@ -162,7 +165,6 @@
 
   <b>Cross-linking</b>
   - @subpage TOPP_OpenPepXL - Search for peptide pairs linked with a labeled cross-linker.
-  - @subpage TOPP_OpenPepXLLF - Search for cross-linked peptide pairs in tandem MS spectra.
   - @subpage TOPP_RNPxlXICFilter - Removes MS2 spectra from treatment based on the fold change between control and treatment for RNA-to-peptide cross-linking experiments.
   - @subpage TOPP_XFDR - Calculates false discovery rate estimates on cross-link identifications.
 

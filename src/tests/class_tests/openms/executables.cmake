@@ -5,6 +5,7 @@ set(concept_executables_list
   FuzzyStringComparator_test
   #GlobalExceptionHandler_test
   StreamHandler_test
+  Types_test
   VersionInfo_test
   LogConfigHandler_test
   LogStream_test
@@ -515,7 +516,6 @@ set(analysis_executables_list
   HyperScore_test
   MorpheusScore_test
   OpenPepXLAlgorithm_test
-  OpenPepXLLFAlgorithm_test
   OPXLHelper_test
   OPXLSpectrumProcessingAlgorithms_test
   PoseClusteringAffineSuperimposer_test

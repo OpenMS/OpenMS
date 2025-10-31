@@ -791,6 +791,7 @@ namespace OpenMS
     {
       return -1;
     }
+    
     auto spec = spectra_.cbegin();
     spec += zero_based_index;
     auto pc_spec = getFirstProductSpectrum(spec);
