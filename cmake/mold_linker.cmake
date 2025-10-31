@@ -22,6 +22,9 @@ option(USE_MOLD_LINKER "Use mold linker if available (Linux only)" OFF)
 if(USE_MOLD_LINKER)
   # mold is primarily a Linux linker
   if(UNIX AND NOT APPLE)
+    # Define the linker flag as a constant
+    set(_MOLD_LINKER_FLAG "-fuse-ld=mold")
+    
     # Check if mold is available
     find_program(MOLD_EXECUTABLE NAMES mold)
     
@@ -34,31 +37,29 @@ if(USE_MOLD_LINKER)
       
       # Save original CMAKE_REQUIRED_FLAGS and restore it after the check
       set(_ORIGINAL_CMAKE_REQUIRED_FLAGS "${CMAKE_REQUIRED_FLAGS}")
-      set(CMAKE_REQUIRED_FLAGS "-fuse-ld=mold")
-      check_cxx_compiler_flag("-fuse-ld=mold" COMPILER_SUPPORTS_MOLD)
+      set(CMAKE_REQUIRED_FLAGS "${_MOLD_LINKER_FLAG}")
+      check_cxx_compiler_flag("${_MOLD_LINKER_FLAG}" COMPILER_SUPPORTS_MOLD)
       set(CMAKE_REQUIRED_FLAGS "${_ORIGINAL_CMAKE_REQUIRED_FLAGS}")
       unset(_ORIGINAL_CMAKE_REQUIRED_FLAGS)
       
       if(COMPILER_SUPPORTS_MOLD)
         message(STATUS "Enabling mold linker")
         set(MOLD_FOUND TRUE)
-        set(MOLD_LINKER_FLAGS "-fuse-ld=mold")
+        set(MOLD_LINKER_FLAGS "${_MOLD_LINKER_FLAG}")
         
-        # Apply to all linker types
+        # Apply to all linker types using add_link_options()
+        # This is the modern CMake way (CMake 3.13+) and avoids duplication
         add_link_options("${MOLD_LINKER_FLAGS}")
-        
-        # Also set the linker flags variables for older CMake compatibility
-        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${MOLD_LINKER_FLAGS}")
-        set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${MOLD_LINKER_FLAGS}")
-        set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} ${MOLD_LINKER_FLAGS}")
       else()
-        message(WARNING "Compiler does not support -fuse-ld=mold flag")
+        message(WARNING "Compiler does not support ${_MOLD_LINKER_FLAG} flag")
         set(MOLD_FOUND FALSE)
       endif()
     else()
       message(WARNING "mold linker requested but not found in PATH")
       set(MOLD_FOUND FALSE)
     endif()
+    
+    unset(_MOLD_LINKER_FLAG)
   else()
     message(STATUS "mold linker is only supported on Linux, skipping")
     set(MOLD_FOUND FALSE)
