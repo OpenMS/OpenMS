@@ -111,7 +111,6 @@ set(VARS_TO_LOAD
   "WITH_THERMORAWFILEPARSER_TEST"
   "COMPILE_PXDS"
   "USE_EXTERNAL_JSON"
-  "USE_MOLD_LINKER"
  )
 
 message("tools/ci/cibuild.cmake: Loading the following vars from ENV if available: ${VARS_TO_LOAD}")
