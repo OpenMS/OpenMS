@@ -24,6 +24,15 @@ set(CTEST_CUSTOM_TESTS_IGNORE
 set(CTEST_CUSTOM_MAXIMUM_NUMBER_OF_ERRORS 1000)
 set(CTEST_CUSTOM_MAXIMUM_NUMBER_OF_WARNINGS 1000)
 
+# Define patterns that should be classified as errors
+set(CTEST_CUSTOM_ERROR_MATCH
+    "subprocess-exited-with-error"
+    "FAILED:"
+    "error:"
+    "Error:"
+    "ERROR:"
+    )
+
 ctest_start(APPEND)
 
 ## run tests

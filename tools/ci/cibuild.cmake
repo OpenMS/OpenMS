@@ -20,6 +20,15 @@ set (CTEST_CURL_OPTIONS       CURLOPT_SSL_VERIFYHOST_OFF CURLOPT_SSL_VERIFYPEER_
 set(CTEST_CUSTOM_MAXIMUM_NUMBER_OF_ERRORS 1000)
 set(CTEST_CUSTOM_MAXIMUM_NUMBER_OF_WARNINGS 1000)
 
+# Define patterns that should be classified as errors
+set(CTEST_CUSTOM_ERROR_MATCH
+    "subprocess-exited-with-error"
+    "FAILED:"
+    "error:"
+    "Error:"
+    "ERROR:"
+    )
+
 set (CTEST_CUSTOM_WARNING_EXCEPTION
     # Suppress warnings imported from qt
     ".*qsharedpointer_impl.h:595:43.*"
