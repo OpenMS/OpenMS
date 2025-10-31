@@ -2,8 +2,8 @@
 # SPDX-License-Identifier: BSD-3-Clause
 # 
 # --------------------------------------------------------------------------
-# $Maintainer: $
-# $Authors: $
+# $Maintainer: OpenMS Development Team $
+# $Authors: OpenMS Development Team $
 # --------------------------------------------------------------------------
 
 # This module detects and enables the mold linker if available and requested.
@@ -32,9 +32,12 @@ if(USE_MOLD_LINKER)
       # We use -fuse-ld=mold which is supported by GCC 12.1+ and Clang 12+
       include(CheckCXXCompilerFlag)
       
+      # Save original CMAKE_REQUIRED_FLAGS and restore it after the check
+      set(_ORIGINAL_CMAKE_REQUIRED_FLAGS "${CMAKE_REQUIRED_FLAGS}")
       set(CMAKE_REQUIRED_FLAGS "-fuse-ld=mold")
       check_cxx_compiler_flag("-fuse-ld=mold" COMPILER_SUPPORTS_MOLD)
-      set(CMAKE_REQUIRED_FLAGS)
+      set(CMAKE_REQUIRED_FLAGS "${_ORIGINAL_CMAKE_REQUIRED_FLAGS}")
+      unset(_ORIGINAL_CMAKE_REQUIRED_FLAGS)
       
       if(COMPILER_SUPPORTS_MOLD)
         message(STATUS "Enabling mold linker")
@@ -42,12 +45,12 @@ if(USE_MOLD_LINKER)
         set(MOLD_LINKER_FLAGS "-fuse-ld=mold")
         
         # Apply to all linker types
-        add_link_options("-fuse-ld=mold")
+        add_link_options("${MOLD_LINKER_FLAGS}")
         
         # Also set the linker flags variables for older CMake compatibility
-        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fuse-ld=mold")
-        set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -fuse-ld=mold")
-        set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} -fuse-ld=mold")
+        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${MOLD_LINKER_FLAGS}")
+        set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${MOLD_LINKER_FLAGS}")
+        set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} ${MOLD_LINKER_FLAGS}")
       else()
         message(WARNING "Compiler does not support -fuse-ld=mold flag")
         set(MOLD_FOUND FALSE)
