@@ -1101,6 +1101,7 @@ std::vector<MSChromatogram> extractXICs(
       and comes before the next scan that is of a level that is lower than
       the current one.
 \verbatim
+
       Example:
       MS1 - ix: 0
         MS2 - ix: 1, prec: 0
@@ -1112,6 +1113,7 @@ std::vector<MSChromatogram> extractXICs(
       MS1 - ix: 7
         ...  <-- Not searched anymore. Returns end of experiment iterator if not found until here.
 \endverbatim
+
       Uses the native spectrum ID from the @em first precursor entry of the potential product scans
       for comparisons -> Works for multiple precursor ranges from the same precursor scan
       but not for multiple precursor ranges from different precursor scans.
