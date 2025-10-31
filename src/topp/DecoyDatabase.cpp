@@ -137,8 +137,14 @@ protected:
 
   String getDecoyIdentifier_(const String& identifier, const String& decoy_string, const String& suffix_string, const bool as_prefix)
   {
-    if (as_prefix) return decoy_string + identifier + suffix_string;
-    else return identifier + decoy_string + suffix_string;
+    if (as_prefix) 
+    {
+      return decoy_string + identifier + suffix_string;
+    }
+    else 
+    {
+      return identifier + decoy_string + suffix_string;
+    }
   }
   
 
@@ -154,6 +160,14 @@ protected:
     bool append = !getFlag_("only_decoy");
     bool shuffle = (getStringOption_("method") == "shuffle");
     int shuffle_ratio = shuffle ? getIntOption_("shuffle_decoy_ratio") : 1;
+    
+    // Validate that shuffle_decoy_ratio is only used with shuffle method
+    if (!shuffle && getIntOption_("shuffle_decoy_ratio") != 1)
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "Parameter 'shuffle_decoy_ratio' can only be used with method 'shuffle', not with method 'reverse'.");
+    }
+    
     String decoy_string = getStringOption_("decoy_string");
     bool decoy_string_position_prefix =
       (getStringOption_("decoy_string_position") == "prefix");
@@ -388,14 +402,18 @@ protected:
         // new decoy identifier
         for (int num_repeat = 0; num_repeat < shuffle_ratio; num_repeat++)
         {
-          String suffix_string = shuffle_ratio == 1? "" : std::to_string(num_repeat + 1) + "_";
-          entry.identifier = getDecoyIdentifier_(entry.identifier, decoy_string, suffix_string, decoy_string_position_prefix);
+          FASTAFile::FASTAEntry decoy_entry = entry;
+          // Derive a per-repeat seed so each repeat yields a distinct decoy sequence
+          auto repeat_seed = seed + num_repeat;
+          // add iteration suffix if shuffle_ratio > 1
+          String suffix_string = shuffle_ratio == 1 ? "" : std::string("_") + std::to_string(num_repeat + 1);
+          decoy_entry.identifier = getDecoyIdentifier_(decoy_entry.identifier, decoy_string, suffix_string, decoy_string_position_prefix);
           // new decoy sequence
           if (input_type == SeqType::RNA)
           {
-            string quick_seq = entry.sequence;
-            bool five_p = (entry.sequence.front() == 'p');
-            bool three_p = (entry.sequence.back() == 'p');
+            string quick_seq = decoy_entry.sequence;
+            bool five_p = (decoy_entry.sequence.front() == 'p');
+            bool three_p = (decoy_entry.sequence.back() == 'p');
             if (five_p) // we don't want to reverse terminal phosphates
             {
               quick_seq.erase(0, 1);
@@ -413,7 +431,11 @@ protected:
               quick_seq = m.suffix();
             }
 
-            if (shuffle) { shuffler.portable_random_shuffle(tokenized.begin(), tokenized.end()); }
+            if (shuffle)
+            {
+              shuffler.seed(repeat_seed);
+              shuffler.portable_random_shuffle(tokenized.begin(), tokenized.end());
+            }
             else // reverse
             {
               reverse(tokenized.begin(), tokenized.end()); // reverse the tokens
@@ -426,7 +448,7 @@ protected:
             {
               tokenized.emplace_back("p");
             }
-            entry.sequence = ListUtils::concatenate(tokenized, "");
+            decoy_entry.sequence = ListUtils::concatenate(tokenized, "");
           }
           else // protein input
           {
@@ -434,30 +456,30 @@ protected:
             if (enzyme != "no cleavage" && (keepN || keepC))
             {
               std::vector<AASequence> peptides;
-              digestion.digest(AASequence::fromString(entry.sequence), peptides);
+              digestion.digest(AASequence::fromString(decoy_entry.sequence), peptides);
               String new_sequence = "";
               for (auto const& peptide : peptides)
               {
                 p.sequence = peptide.toString();
                 // TODO why are the functions from TargetedExperiment and MRMDecoy not anywhere more general?
                 //  No soul would look there.
-                auto decoy_p = shuffle ? m.shufflePeptide(p, identity_threshold, seed, max_attempts) 
+                auto decoy_p = shuffle ? m.shufflePeptide(p, identity_threshold, repeat_seed, max_attempts)
                                       : MRMDecoy::reversePeptide(p, keepN, keepC, keep_const_pattern);
                 new_sequence += decoy_p.sequence;
               }
-              entry.sequence = new_sequence;
+              decoy_entry.sequence = new_sequence;
             }
             else // no cleavage
             {
               // sequence
               if (shuffle)
               {
-                shuffler.seed(seed); // identical proteins are shuffled the same way -> re-seed
-                shuffler.portable_random_shuffle(entry.sequence.begin(), entry.sequence.end());
+                shuffler.seed(repeat_seed); // use per-repeat seed for distinct decoys
+                shuffler.portable_random_shuffle(decoy_entry.sequence.begin(), decoy_entry.sequence.end());
               }
               else // reverse
               {
-                entry.sequence.reverse();
+                decoy_entry.sequence.reverse();
               }
             }
           } // protein entry
@@ -465,11 +487,11 @@ protected:
           //-------------------------------------------------------------
           // writing output
           //-------------------------------------------------------------
-          f.writeNext(entry);
+          f.writeNext(decoy_entry);
           // optional: if in neighbor mode: T+D of relevant peptides (if requested)
           if (write_relevant)
           {
-            fasta_out_relevant.writeNext(entry);
+            fasta_out_relevant.writeNext(decoy_entry);
           }
         }
 

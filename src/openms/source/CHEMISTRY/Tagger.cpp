@@ -19,21 +19,22 @@
 
 namespace OpenMS
 {
-  char Tagger::getAAByMass_(double m, double abs_mass) const
+  char Tagger::getAAByMass_(double m) const
   {
     // fast check for border cases
     if (m < min_gap_ || m > max_gap_) return ' ';
 
-    const double delta = Math::ppmToMass(ppm_, (abs_mass > 0 ? abs_mass : m));
+    const double delta = tol_is_ppm_ ? Math::ppmToMass(tolerance_, m) : tolerance_;
     auto left = mass2aa_.lower_bound(m - delta);
-    //if (left == mass2aa_.end()) return ' '; // cannot happen, since we checked boundaries above
+    if (left == mass2aa_.end()) return ' ';
     if (fabs(left->first - m) >= delta) return ' ';
     // return the most exact one.
     auto best_aa = left;
-    double min_delta = delta;
+    double min_delta = fabs(left->first - m);
     while (fabs(left->first - m) < delta)
     {
       left++;
+      if (left == mass2aa_.end()) break;
       if (min_delta >  fabs(left->first - m))
       {
         best_aa = left;
@@ -60,7 +61,7 @@ namespace OpenMS
         return; // already too far away - continue with next parent 
       } 
 
-      const char aa = use_absolute_mz_tol_? getAAByMass_(gap * charge, mzs[j]) : getAAByMass_(gap * charge);
+      const char aa = getAAByMass_(gap * charge);
       if (aa == ' ') { ++j; continue; } // can't extend tag
 
       tag += aa;
@@ -90,8 +91,8 @@ namespace OpenMS
     }
   }
 
-  Tagger::Tagger(size_t min_tag_length, double ppm, size_t max_tag_length, size_t min_charge, size_t max_charge, const StringList& fixed_mods, const StringList& var_mods)
-    : ppm_{fabs(ppm)}, min_tag_length_{min_tag_length}, max_tag_length_{max_tag_length}, min_charge_{min_charge}, max_charge_{max_charge}
+  Tagger::Tagger(size_t min_tag_length, double tolerance, size_t max_tag_length, size_t min_charge, size_t max_charge, const StringList& fixed_mods, const StringList& var_mods, bool tol_is_ppm)
+    : tolerance_{fabs(tolerance)}, min_tag_length_{min_tag_length}, max_tag_length_{max_tag_length}, min_charge_{min_charge}, max_charge_{max_charge}, tol_is_ppm_{tol_is_ppm}
   {
     const std::set<const Residue*> aas = ResidueDB::getInstance()->getResidues("Natural19WithoutI");
 
@@ -134,9 +135,16 @@ namespace OpenMS
       const double mass = r.getMonoWeight(Residue::Internal);
       mass2aa_[mass] = name;
     }
-
-    min_gap_ = mass2aa_.begin()->first - Math::ppmToMass(ppm, mass2aa_.begin()->first);
-    max_gap_ = mass2aa_.rbegin()->first + Math::ppmToMass(ppm, mass2aa_.rbegin()->first);
+    if (tol_is_ppm_)
+    {
+      min_gap_ = mass2aa_.begin()->first - Math::ppmToMass(tolerance_, mass2aa_.begin()->first);
+      max_gap_ = mass2aa_.rbegin()->first + Math::ppmToMass(tolerance_, mass2aa_.rbegin()->first);
+    }
+    else
+    {
+      min_gap_ = mass2aa_.begin()->first - tolerance_;
+      max_gap_ = mass2aa_.rbegin()->first + tolerance_;
+    }
   }
 
   void Tagger::getTag(const std::vector<double>& mzs, std::vector<std::string>& tags) const
@@ -182,11 +190,6 @@ namespace OpenMS
   void Tagger::setMaxCharge(size_t max_charge)
   {
     max_charge_ = max_charge;
-  }
-
-  void Tagger::setUseAbsoluteMzForTol()
-  {
-    use_absolute_mz_tol_ = true;
   }
 }
 
