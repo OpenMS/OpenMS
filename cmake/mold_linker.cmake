@@ -32,15 +32,21 @@ if(USE_MOLD_LINKER)
       message(STATUS "Found mold linker: ${MOLD_EXECUTABLE}")
       
       # Check if the compiler supports using mold
-      # We use -fuse-ld=mold which is supported by GCC 12.1+ and Clang 12+
-      include(CheckCXXCompilerFlag)
+      # -fuse-ld=mold is supported by GCC 9+ and Clang 9+
+      include(CheckLinkerFlag)
       
-      # Save original CMAKE_REQUIRED_FLAGS and restore it after the check
-      set(_ORIGINAL_CMAKE_REQUIRED_FLAGS "${CMAKE_REQUIRED_FLAGS}")
-      set(CMAKE_REQUIRED_FLAGS "${_MOLD_LINKER_FLAG}")
-      check_cxx_compiler_flag("${_MOLD_LINKER_FLAG}" COMPILER_SUPPORTS_MOLD)
-      set(CMAKE_REQUIRED_FLAGS "${_ORIGINAL_CMAKE_REQUIRED_FLAGS}")
-      unset(_ORIGINAL_CMAKE_REQUIRED_FLAGS)
+      # Use CMAKE_REQUIRED_LINK_OPTIONS for linker flags (CMake 3.18+)
+      # Fall back to check_cxx_compiler_flag for older CMake versions
+      if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.18")
+        check_linker_flag(CXX "${_MOLD_LINKER_FLAG}" COMPILER_SUPPORTS_MOLD)
+      else()
+        include(CheckCXXCompilerFlag)
+        set(_ORIGINAL_CMAKE_REQUIRED_FLAGS "${CMAKE_REQUIRED_FLAGS}")
+        set(CMAKE_REQUIRED_FLAGS "${_MOLD_LINKER_FLAG}")
+        check_cxx_compiler_flag("${_MOLD_LINKER_FLAG}" COMPILER_SUPPORTS_MOLD)
+        set(CMAKE_REQUIRED_FLAGS "${_ORIGINAL_CMAKE_REQUIRED_FLAGS}")
+        unset(_ORIGINAL_CMAKE_REQUIRED_FLAGS)
+      endif()
       
       if(COMPILER_SUPPORTS_MOLD)
         message(STATUS "Enabling mold linker")
