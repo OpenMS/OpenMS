@@ -258,9 +258,29 @@ option(ADDRESS_SANITIZER "Enable AddressSanitizer mode (quite slow)." OFF)
 include(${PROJECT_SOURCE_DIR}/cmake/AddressSanitizer.cmake)
 
 #------------------------------------------------------------------------------
-# Enable mold linker
+# Use mold linker if available (Linux only)
+# mold is a modern, high-performance linker that can significantly speed up link times
 #------------------------------------------------------------------------------
-include(${PROJECT_SOURCE_DIR}/cmake/mold_linker.cmake)
+if(UNIX AND NOT APPLE AND NOT DEFINED CMAKE_LINKER_TYPE)
+  find_program(MOLD_EXECUTABLE NAMES mold)
+  if(MOLD_EXECUTABLE)
+    # Check if compiler supports -fuse-ld=mold (GCC 9+, Clang 9+)
+    include(CheckLinkerFlag)
+    if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.18")
+      check_linker_flag(CXX "-fuse-ld=mold" MOLD_SUPPORTED)
+    else()
+      include(CheckCXXCompilerFlag)
+      set(_CMAKE_REQUIRED_FLAGS_SAVE "${CMAKE_REQUIRED_FLAGS}")
+      set(CMAKE_REQUIRED_FLAGS "-fuse-ld=mold")
+      check_cxx_compiler_flag("-fuse-ld=mold" MOLD_SUPPORTED)
+      set(CMAKE_REQUIRED_FLAGS "${_CMAKE_REQUIRED_FLAGS_SAVE}")
+    endif()
+    if(MOLD_SUPPORTED)
+      message(STATUS "Using mold linker: ${MOLD_EXECUTABLE}")
+      add_link_options("-fuse-ld=mold")
+    endif()
+  endif()
+endif()
 
 #------------------------------------------------------------------------------
 # we build shared libraries
