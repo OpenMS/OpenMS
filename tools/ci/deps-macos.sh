@@ -48,8 +48,7 @@ brew install \
   cbc \
   cgl \
   clp \
-  qt \
-  apache-arrow
+  qt
 
 # Optional dependencies:
 brew install \

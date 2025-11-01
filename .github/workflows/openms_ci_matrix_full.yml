@@ -245,6 +245,27 @@ jobs:
         echo "$(conda info --base)/envs/openms-parquet/bin" >> $GITHUB_PATH
         echo "$(conda info --base)/envs/openms-parquet/Library/bin" >> $GITHUB_PATH
 
+    - name: Setup conda environment for Parquet (macOS only)
+      if: startsWith(matrix.os, 'macos')
+      uses: conda-incubator/setup-miniconda@v3
+      with:
+        auto-update-conda: true
+        python-version: 3.9
+        activate-environment: openms-parquet
+        use-mamba: true
+
+    - name: Install Parquet dependencies (macOS only)
+      if: startsWith(matrix.os, 'macos')
+      shell: bash -el {0}
+      run: |
+        conda activate openms-parquet
+        # Install minimal arrow/parquet libraries without the full LLVM dependency
+        conda install -c conda-forge libarrow libparquet -y
+        # Get the conda environment path for later use
+        echo "CONDA_ENV_PATH=$(conda info --base)/envs/openms-parquet" >> $GITHUB_ENV
+        # Add conda environment to PATH for cmake to find the libraries
+        echo "$(conda info --base)/envs/openms-parquet/bin" >> $GITHUB_PATH
+
     - name: Install Qt (Windows)
       if: startsWith(matrix.os, 'windows')
       uses: jurplel/install-qt-action@v4
@@ -296,7 +317,9 @@ jobs:
           # WARNING: Don't add any brew install commands here, edit
           # the following script instead:
           bash OpenMS/tools/ci/deps-macos.sh
-          echo "cmake_prefix=$(brew --prefix qt)/lib/cmake;$(brew --prefix qt);$(brew --prefix libomp)" >>$GITHUB_OUTPUT
+          # Add conda environment paths to CMAKE_PREFIX_PATH for finding Arrow/Parquet
+          CONDA_CMAKE_PREFIX="$CONDA_ENV_PATH;$CONDA_ENV_PATH/lib/cmake"
+          echo "cmake_prefix=$(brew --prefix qt)/lib/cmake;$(brew --prefix qt);$(brew --prefix libomp);$CONDA_CMAKE_PREFIX" >>$GITHUB_OUTPUT
         fi
 
     - name: Cache contrib (Windows)
@@ -441,7 +464,7 @@ jobs:
           ENABLE_GCC_WERROR: "OFF" # TODO think about that
           SEARCH_ENGINES_DIRECTORY: ${{ github.workspace }}/_thirdparty
           WITH_GUI: "ON"
-          WITH_PARQUET: "OFF" # Conda on windows, Apt on Ubuntu, Brew on MacOS
+          WITH_PARQUET: "ON" # Using conda for minimal arrow/parquet on macOS and Windows, Apt on Ubuntu
           SIGNING_IDENTITY: "-"
           ADDRESS_SANITIZER: "Off"
           BUILD_TYPE: "Release"
