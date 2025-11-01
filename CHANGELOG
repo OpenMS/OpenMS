@@ -30,6 +30,7 @@ General:
 Dependencies:
     - PyOpenMS now depends on Autowrap 0.23.0
     - PyOpenMS now supports Cython 3.1
+    - macOS CI now uses minimal Apache Arrow/Parquet libraries via conda instead of brew to avoid bundling 2GB LLVM dependency (#8236)
 
 PyOpenMS:
 	- PyOpenMS wheels are now available for Python 3.14 on all supported operating systems
