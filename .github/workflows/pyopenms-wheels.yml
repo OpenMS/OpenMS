@@ -94,7 +94,15 @@ jobs:
       run: |
         PYTHON_VERSIONS=$(cat OpenMS/.github/workflows/python_versions.json)
         CMAKE_PREFIX_PATH="$(echo $Qt6_Dir)/lib/cmake;${Qt6_Dir}"
+        #mkdir bld
+        #pushd bld
         # TODO: set generator via variable, then we can share this step
+        # cmake --version
+        # cmake -G "Visual Studio 17 2022" -A x64 -DOPENMS_CONTRIB_LIBS="$GITHUB_WORKSPACE/OpenMS/contrib" -DCMAKE_PREFIX_PATH="$(echo $Qt6_Dir)/lib/cmake;${Qt6_Dir}" ../OpenMS
+        # Note: multiple --targets only supported by CMake 3.15+
+        # cmake --build . --config Release --target OpenMS
+        
+        #ctest --progress --output-on-failure -VV -S $GITHUB_WORKSPACE/OpenMS/tools/ci/cibuild.cmake
         export CXXFLAGS="-D_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR $CXXFLAGS"
       
         mkdir pyopenms_whls
@@ -120,8 +128,6 @@ jobs:
           CURRENT_PYTHON_EXECUTABLE=$(which python)
 
           ${CURRENT_PYTHON_EXECUTABLE} -m pip install --upgrade pip
-          # setuptools needs numpy
-          ${CURRENT_PYTHON_EXECUTABLE} -m pip install "numpy>=2.0"
           # pip install all the stuff
           ${CURRENT_PYTHON_EXECUTABLE} -m pip install -r $GITHUB_WORKSPACE/OpenMS/src/pyOpenMS/requirements_bld.txt
           
@@ -269,7 +275,7 @@ jobs:
           conda create -n pyoms-bld-"${pynodot}" python="${py}"
           source activate pyoms-bld-"${pynodot}"
           python -m pip install --upgrade pip
-          python -m pip install "numpy>=2.0"
+
           # pip install all the stuff
           python -m pip install -r $GITHUB_WORKSPACE/OpenMS/src/pyOpenMS/requirements_bld.txt
 
@@ -437,7 +443,7 @@ jobs:
           conda create -n pyoms-bld-"${pynodot}" python="${py}"
           source activate pyoms-bld-"${pynodot}"
           python -m pip install --upgrade pip
-          python -m pip install "numpy>=2.0"
+
           # pip install all the stuff
           python -m pip install -r $GITHUB_WORKSPACE/OpenMS/src/pyOpenMS/requirements_bld.txt
 
@@ -568,7 +574,6 @@ jobs:
           source $pynodot/bin/activate
           
           "$PYBIN/bin/pip" install --upgrade pip
-          "$PYBIN/bin/pip" -m pip install "numpy>=2.0"
           # pip install all the stuff
           "$PYBIN/bin/pip" install -r $GITHUB_WORKSPACE/OpenMS/src/pyOpenMS/requirements_bld.txt
 
@@ -695,7 +700,6 @@ jobs:
           source $pynodot/bin/activate
           
           "$PYBIN/bin/pip" install --upgrade pip
-          "$PYBIN/bin/pip" -m pip install "numpy>=2.0"
           # pip install all the stuff
           "$PYBIN/bin/pip" install -r $GITHUB_WORKSPACE/OpenMS/src/pyOpenMS/requirements_bld.txt
 
@@ -842,7 +846,6 @@ jobs:
 
           # pip install all the stuff
           python -m pip install --upgrade pip
-          python -m pip install "numpy>=2.0"
           python -m pip install $CURRENT_WHL
 
           # check if package was installed
