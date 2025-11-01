@@ -568,7 +568,7 @@ jobs:
           source $pynodot/bin/activate
           
           "$PYBIN/bin/pip" install --upgrade pip
-          "$PYBIN/bin/pip" install "numpy>=2.0"
+          "$PYBIN/bin/pip" -m pip install "numpy>=2.0"
           # pip install all the stuff
           "$PYBIN/bin/pip" install -r $GITHUB_WORKSPACE/OpenMS/src/pyOpenMS/requirements_bld.txt
 
@@ -695,7 +695,7 @@ jobs:
           source $pynodot/bin/activate
           
           "$PYBIN/bin/pip" install --upgrade pip
-          "$PYBIN/bin/pip" install "numpy>=2.0"
+          "$PYBIN/bin/pip" -m pip install "numpy>=2.0"
           # pip install all the stuff
           "$PYBIN/bin/pip" install -r $GITHUB_WORKSPACE/OpenMS/src/pyOpenMS/requirements_bld.txt
 
