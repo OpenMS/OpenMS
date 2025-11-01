@@ -318,8 +318,8 @@ jobs:
           # the following script instead:
           bash OpenMS/tools/ci/deps-macos.sh
           # Add conda environment paths to CMAKE_PREFIX_PATH for finding Arrow/Parquet
-          CONDA_CMAKE_PREFIX="$CONDA_ENV_PATH;$CONDA_ENV_PATH/lib/cmake"
-          echo "cmake_prefix=$(brew --prefix qt)/lib/cmake;$(brew --prefix qt);$(brew --prefix libomp);$CONDA_CMAKE_PREFIX" >>$GITHUB_OUTPUT
+          CONDA_CMAKE_PREFIX="$CONDA_ENV_PATH:$CONDA_ENV_PATH/lib/cmake"
+          echo "cmake_prefix=$(brew --prefix qt)/lib/cmake:$(brew --prefix qt):$(brew --prefix libomp):$CONDA_CMAKE_PREFIX" >>$GITHUB_OUTPUT
         fi
 
     - name: Cache contrib (Windows)
