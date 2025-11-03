@@ -4552,8 +4552,9 @@ def testPeptideHit():
     
     ph_repr.addPeptideEvidence(pe1)
     repr_str = repr(ph_repr)
-    assert "protein_refs=" in repr_str
+    assert "evidences=" in repr_str
     assert "PH_6057" in repr_str
+    assert "PeptideEvidence(" in repr_str
     
     # Test str method
     str_str = str(ph_repr)
@@ -4584,6 +4585,27 @@ def testPeptideEvidence():
 
     assert pe == pe
     assert not pe != pe
+
+    # Test __repr__ and __str__ methods
+    pe_repr = pyopenms.PeptideEvidence()
+    pe_repr.setProteinAccession('PH_6057')
+    pe_repr.setStart(71)
+    pe_repr.setEnd(80)
+    pe_repr.setAABefore(ord('R'))
+    pe_repr.setAAAfter(ord('N'))
+    
+    repr_str = repr(pe_repr)
+    assert "PeptideEvidence(" in repr_str
+    assert "protein=" in repr_str
+    assert "PH_6057" in repr_str
+    assert "start=" in repr_str
+    assert "end=" in repr_str
+    assert "aa_before=" in repr_str
+    assert "aa_after=" in repr_str
+    
+    # Test str method
+    str_str = str(pe_repr)
+    assert str_str == repr_str
 
 
 @report
