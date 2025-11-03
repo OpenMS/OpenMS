@@ -234,16 +234,10 @@ if(ENABLE_DOCS)
 
     add_dependencies(doc_param_internal doc_progs)
 
-    set(_TOPP_DOC_PLACEHOLDER_SEARCH_ROOTS
-        "${OPENMS_HOST_DIRECTORY}/src/topp"
-        "${OPENMS_HOST_DIRECTORY}/src/openms_gui/source/VISUAL/APPLICATIONS"
-    )
-    list(JOIN _TOPP_DOC_PLACEHOLDER_SEARCH_ROOTS ";" _TOPP_DOC_PLACEHOLDER_SEARCH_ROOTS_JOINED)
-
     add_custom_command(TARGET doc_param_internal POST_BUILD
       COMMAND ${CMAKE_COMMAND}
               -DOUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}/doxygen/parameters/output
-              -DSEARCH_ROOTS=${_TOPP_DOC_PLACEHOLDER_SEARCH_ROOTS_JOINED}
+              -DTOPP_EXECUTABLES_CMAKE=${OPENMS_HOST_DIRECTORY}/src/topp/executables.cmake
               -P ${PROJECT_SOURCE_DIR}/doxygen/create_topp_doc_placeholders.cmake
       COMMENT "Ensure placeholder CLI/HTML documentation exists for TOPP documentation pages"
       VERBATIM)

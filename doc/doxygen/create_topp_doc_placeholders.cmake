@@ -6,35 +6,15 @@ if(NOT DEFINED OUTPUT_DIR)
   message(FATAL_ERROR "OUTPUT_DIR must be defined")
 endif()
 
-if(NOT DEFINED SEARCH_ROOTS)
-  message(FATAL_ERROR "SEARCH_ROOTS must be defined")
+if(NOT DEFINED TOPP_EXECUTABLES_CMAKE)
+  message(FATAL_ERROR "TOPP_EXECUTABLES_CMAKE must be defined")
 endif()
 
-set(_tool_names)
+# Load the existing list of TOPP tools from executables.cmake
+include("${TOPP_EXECUTABLES_CMAKE}")
 
-foreach(_root ${SEARCH_ROOTS})
-  if(NOT EXISTS "${_root}")
-    message(WARNING "TOPP documentation placeholder search path '${_root}' does not exist.")
-    continue()
-  endif()
-
-  file(GLOB_RECURSE _candidates LIST_DIRECTORIES FALSE
-    "${_root}/*.cpp"
-    "${_root}/*.h"
-    "${_root}/*.hpp"
-  )
-
-  foreach(_candidate ${_candidates})
-    file(STRINGS "${_candidate}" _doc_lines REGEX "@page[ \t]+TOPP_[A-Za-z0-9_]+")
-    foreach(_line ${_doc_lines})
-      string(REGEX MATCH "@page[ \t]+TOPP_[A-Za-z0-9_]+" _match "${_line}")
-      if(_match)
-        string(REGEX REPLACE "^@page[ \t]+TOPP_" "" _tool "${_match}")
-        list(APPEND _tool_names "${_tool}")
-      endif()
-    endforeach()
-  endforeach()
-endforeach()
+# Combine all TOPP executables (regular and GUI-based)
+set(_tool_names ${TOPP_executables} ${TOPP_executables_with_GUIlib})
 
 if(_tool_names)
   list(REMOVE_DUPLICATES _tool_names)
