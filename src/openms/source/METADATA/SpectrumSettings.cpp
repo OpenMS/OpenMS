@@ -208,4 +208,15 @@ namespace OpenMS
     return OpenMS::Helpers::constifyPointerVector(data_processing_);
   }
 
+  StringList SpectrumSettings::getAllNamesOfSpectrumType()
+  {
+    StringList names;
+    names.reserve(SIZE_OF_SPECTRUMTYPE);
+    for (size_t i = 0; i < SIZE_OF_SPECTRUMTYPE; ++i)
+    {
+      names.push_back(NamesOfSpectrumType[i]);
+    }
+    return names;
+  }
+
 }

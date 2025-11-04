@@ -16,6 +16,7 @@
 #include <OpenMS/METADATA/Product.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/DataProcessing.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <map>
 #include <vector>
@@ -50,6 +51,9 @@ public:
     };
     /// Names of spectrum types
     static const std::string NamesOfSpectrumType[SIZE_OF_SPECTRUMTYPE];
+
+    /// returns all spectrum type names known to OpenMS
+    static StringList getAllNamesOfSpectrumType();
 
     /// Constructor
     SpectrumSettings();
