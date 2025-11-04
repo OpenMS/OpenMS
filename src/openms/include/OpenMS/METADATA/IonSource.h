@@ -9,6 +9,7 @@
 #pragma once
 
 #include <OpenMS/METADATA/MetaInfoInterface.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 namespace OpenMS
 {
@@ -120,6 +121,13 @@ public:
     };
     /// Names of polarity of the ion source
     static const std::string NamesOfPolarity[SIZE_OF_POLARITY];
+
+    /// returns all inlet type names known to OpenMS
+    static StringList getAllNamesOfInletType();
+    /// returns all ionization method names known to OpenMS
+    static StringList getAllNamesOfIonizationMethod();
+    /// returns all polarity names known to OpenMS
+    static StringList getAllNamesOfPolarity();
 
     /// Constructor
     IonSource();
