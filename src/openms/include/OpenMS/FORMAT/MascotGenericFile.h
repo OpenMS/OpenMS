@@ -131,16 +131,25 @@
       void writeMSExperiment_(std::ostream& os, const String& filename, const PeakMap& experiment);
 
       /// reads a spectrum block, the section between 'BEGIN IONS' and 'END IONS' of a MGF file
-      template <typename SpectrumType>
-      bool getNextSpectrum_(std::ifstream& is, SpectrumType& spectrum, Size& line_number, const Size& spectrum_number)
-      {
-        spectrum.resize(0);
-        spectrum.setNativeID(String("index=") + (spectrum_number));
+     template <typename SpectrumType>
+bool getNextSpectrum_(std::ifstream& is, SpectrumType& spectrum, Size& line_number, const Size& spectrum_number)
+{
+    spectrum.resize(0);
 
-        if (spectrum.metaValueExists("TITLE"))
-        {
-          spectrum.removeMetaValue("TITLE");
-        }
+    // 🧹 Reset spectrum metadata to avoid carry-over from previous iteration
+    spectrum.setMSLevel(2); // Default MS level if not explicitly specified
+    if (spectrum.metaValueExists("MSLEVEL"))
+    {
+        spectrum.removeMetaValue("MSLEVEL");
+    }
+
+    spectrum.setNativeID(String("index=") + (spectrum_number));
+
+    if (spectrum.metaValueExists("TITLE"))
+    {
+        spectrum.removeMetaValue("TITLE");
+    }
+
         typename SpectrumType::PeakType p;
 
         String line;
