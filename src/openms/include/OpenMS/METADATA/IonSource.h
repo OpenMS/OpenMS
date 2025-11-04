@@ -122,11 +122,26 @@ public:
     /// Names of polarity of the ion source
     static const std::string NamesOfPolarity[SIZE_OF_POLARITY];
 
-    /// returns all inlet type names known to OpenMS
+    /**
+     @brief Returns all inlet type names known to OpenMS
+     
+     @note For performance-critical code that repeatedly accesses these names,
+     cache the returned list to avoid repeated allocations.
+    */
     static StringList getAllNamesOfInletType();
-    /// returns all ionization method names known to OpenMS
+    /**
+     @brief Returns all ionization method names known to OpenMS
+     
+     @note For performance-critical code that repeatedly accesses these names,
+     cache the returned list to avoid repeated allocations.
+    */
     static StringList getAllNamesOfIonizationMethod();
-    /// returns all polarity names known to OpenMS
+    /**
+     @brief Returns all polarity names known to OpenMS
+     
+     @note For performance-critical code that repeatedly accesses these names,
+     cache the returned list to avoid repeated allocations.
+    */
     static StringList getAllNamesOfPolarity();
 
     /// Constructor
