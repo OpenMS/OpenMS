@@ -119,6 +119,17 @@ START_SECTION((void setType(AnalyzerType type)))
   TEST_EQUAL(tmp.getType(),MassAnalyzer::QUADRUPOLE);
 END_SECTION
 
+START_SECTION((String getTypeAsString() const))
+  MassAnalyzer tmp;
+  TEST_EQUAL(tmp.getTypeAsString(),"Unknown");
+  tmp.setType(MassAnalyzer::QUADRUPOLE);
+  TEST_EQUAL(tmp.getTypeAsString(),"Quadrupole");
+  tmp.setType(MassAnalyzer::TOF);
+  TEST_EQUAL(tmp.getTypeAsString(),"Time-of-flight");
+  tmp.setType(MassAnalyzer::ORBITRAP);
+  TEST_EQUAL(tmp.getTypeAsString(),"Orbitrap");
+END_SECTION
+
 START_SECTION((void setAccuracy(double accuracy)))
   MassAnalyzer tmp;
   tmp.setAccuracy(47.11);

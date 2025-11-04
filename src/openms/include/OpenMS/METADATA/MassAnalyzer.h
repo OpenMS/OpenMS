@@ -9,6 +9,7 @@
 #pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 
 namespace OpenMS
@@ -128,6 +129,8 @@ public:
 
     /// returns the analyzer type
     AnalyzerType getType() const;
+    /// returns the analyzer type as string
+    String getTypeAsString() const;
     /// sets the analyzer type
     void setType(AnalyzerType type);
 

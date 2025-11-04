@@ -78,6 +78,11 @@ namespace OpenMS
     return type_;
   }
 
+  String MassAnalyzer::getTypeAsString() const
+  {
+    return NamesOfAnalyzerType[type_];
+  }
+
   void MassAnalyzer::setType(MassAnalyzer::AnalyzerType type)
   {
     type_ = type;

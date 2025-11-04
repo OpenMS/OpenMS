@@ -12,6 +12,7 @@ cdef extern from "<OpenMS/METADATA/MassAnalyzer.h>" namespace "OpenMS":
         MassAnalyzer(MassAnalyzer &) except + nogil 
 
         AnalyzerType getType() except + nogil  # wrap-doc:Returns the analyzer type
+        String getTypeAsString() except + nogil  # wrap-doc:Returns the analyzer type as string
         void setType(AnalyzerType type) except + nogil  # wrap-doc:Sets the analyzer type
 
         ResolutionMethod getResolutionMethod() except + nogil  # wrap-doc:Returns the method used for determination of the resolution
