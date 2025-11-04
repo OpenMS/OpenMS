@@ -21,6 +21,9 @@ cdef extern from "<OpenMS/METADATA/InstrumentSettings.h>" namespace "OpenMS":
         libcpp_vector[ ScanWindow ]  getScanWindows() except + nogil  # wrap-doc:Returns the m/z scan windows
         void setScanWindows(libcpp_vector[ ScanWindow ] scan_windows) except + nogil  # wrap-doc:Sets the m/z scan windows
 
+        @staticmethod
+        libcpp_vector[String] getAllNamesOfScanMode() except + nogil  # wrap-doc:Returns all scan mode names known to OpenMS
+
 cdef extern from "<OpenMS/METADATA/InstrumentSettings.h>" namespace "OpenMS::InstrumentSettings":
 
     # scan mode

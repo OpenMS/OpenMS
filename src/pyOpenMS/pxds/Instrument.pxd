@@ -44,6 +44,9 @@ cdef extern from "<OpenMS/METADATA/Instrument.h>" namespace "OpenMS":
         IonOpticsType getIonOptics() except + nogil  # wrap-doc:Returns the ion optics type
         void setIonOptics(IonOpticsType ion_optics) except + nogil  # wrap-doc:Sets the ion optics type
 
+        @staticmethod
+        libcpp_vector[String] getAllNamesOfIonOpticsType() except + nogil  # wrap-doc:Returns all ion optics type names known to OpenMS
+
 cdef extern from "<OpenMS/METADATA/Instrument.h>" namespace "OpenMS::Instrument":
 
     cdef enum IonOpticsType:

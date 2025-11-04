@@ -4,6 +4,7 @@ from String cimport *
 from Software cimport *
 from DateTime cimport *
 from MetaInfoInterface cimport *
+from libcpp.vector cimport vector as libcpp_vector
 
 cdef extern from "<OpenMS/METADATA/DataProcessing.h>" namespace "OpenMS":
 
@@ -22,6 +23,9 @@ cdef extern from "<OpenMS/METADATA/DataProcessing.h>" namespace "OpenMS":
 
         DateTime getCompletionTime()  except + nogil 
         void setCompletionTime(DateTime t) except + nogil 
+
+        @staticmethod
+        libcpp_vector[String] getAllNamesOfProcessingAction() except + nogil  # wrap-doc:Returns all processing action names known to OpenMS
 
     ctypedef shared_ptr[DataProcessing] DataProcessingPtr
 
