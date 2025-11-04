@@ -58,6 +58,7 @@ IDSplitter
 InternalCalibration
 IonMobilityBinning
 IsobaricAnalyzer
+IsobaricWorkflow
 JSONExporter
 LuciphorAdapter
 MapAlignerIdentification

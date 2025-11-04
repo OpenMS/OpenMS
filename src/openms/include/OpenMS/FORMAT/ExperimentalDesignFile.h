@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <map>
