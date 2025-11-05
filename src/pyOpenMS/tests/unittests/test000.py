@@ -2240,7 +2240,7 @@ def testInstrumentSettings():
     # Test getAllNamesOf method
     scan_mode_names = pyopenms.InstrumentSettings.getAllNamesOfScanMode()
     assert len(scan_mode_names) == pyopenms.InstrumentSettings.ScanMode.SIZE_OF_SCANMODE
-    assert scan_mode_names[pyopenms.InstrumentSettings.ScanMode.MS1SPECTRUM].decode() == "full scan mass spectrum"
+    assert scan_mode_names[pyopenms.InstrumentSettings.ScanMode.MS1SPECTRUM].decode() == "MS1Spectrum"
 
 @report
 def testContactPerson():

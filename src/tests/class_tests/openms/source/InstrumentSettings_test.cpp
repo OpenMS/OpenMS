@@ -176,7 +176,7 @@ END_SECTION
 START_SECTION((static StringList getAllNamesOfScanMode()))
   StringList names = InstrumentSettings::getAllNamesOfScanMode();
   TEST_EQUAL(names.size(), InstrumentSettings::SIZE_OF_SCANMODE);
-  TEST_EQUAL(names[InstrumentSettings::MS1SPECTRUM], "full scan mass spectrum");
+  TEST_EQUAL(names[InstrumentSettings::MS1SPECTRUM], "MS1Spectrum");
 END_SECTION
 
 
