@@ -173,5 +173,17 @@ namespace OpenMS
   {
     subsamples_ = subsamples;
   }
+
+  StringList Sample::getAllNamesOfSampleState()
+  {
+    StringList names;
+    names.reserve(SIZE_OF_SAMPLESTATE);
+    for (size_t i = 0; i < SIZE_OF_SAMPLESTATE; ++i)
+    {
+      names.push_back(NamesOfSampleState[i]);
+    }
+    return names;
+  }
+
 }
 
