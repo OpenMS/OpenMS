@@ -68,17 +68,34 @@
       void load(const String& filename, MapType& exp)
       {
         if (!File::exists(filename))
-        {
-          throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
-        }
+{
+  throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+}
 
-        exp.reset();
+// ensure file is readable (permissions, locked file, etc.)
+if (!File::readable(filename))
+{
+  throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+}
 
-        std::ifstream is(filename.c_str());
-        // get size of file
-        is.seekg(0, std::ios::end);
-        startProgress(0, is.tellg(), "loading MGF");
-        is.seekg(0, std::ios::beg);
+exp.reset();
+
+std::ifstream is(filename.c_str());
+if (!is)
+{
+  throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+}
+
+// get size of file (guard against tellg failures)
+is.seekg(0, std::ios::end);
+std::streamoff file_size = is.tellg();
+if (file_size < 0)
+{
+  throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+}
+startProgress(0, file_size, "loading MGF");
+is.seekg(0, std::ios::beg);
+
 
         UInt spectrum_number(0);
         Size line_number(0); // carry line number for error messages within getNextSpectrum()
@@ -132,31 +149,26 @@
 
       /// reads a spectrum block, the section between 'BEGIN IONS' and 'END IONS' of a MGF file
      template <typename SpectrumType>
+template <typename SpectrumType>
 bool getNextSpectrum_(std::ifstream& is, SpectrumType& spectrum, Size& line_number, const Size& spectrum_number)
-+      {
-+        // clear peaks
-+        spectrum.resize(0);
-+
-+        // ----- RESET SPECTRUM METADATA/ PRECURSOR TO A CLEAN STATE -----
-+        // Clear all meta info & user params so values (e.g. SMILES, IONMODE, GNPS_Spectrum_ID)
-+        // do not leak from a previous spectrum.
-+        spectrum.clearMetaInfo();
-+
-+        // Reset precursor container and make sure one placeholder precursor exists
-+        spectrum.getPrecursors().clear();
-+        spectrum.getPrecursors().resize(1);
-+
-+        // Default MS level (MGF commonly uses MS2 if not provided)
-+        spectrum.setMSLevel(2);
-+
-+        // Assign native id for uniqueness
-+        spectrum.setNativeID(String("index=") + (spectrum_number));
-+
-+        typename SpectrumType::PeakType p;
-+
-+        String line;
-+        // seek to next peak list block
-+        while (getline(is, line, '\n'))
+{
+  // clear peaks
+  spectrum.resize(0);
+
+  // Reset all metadata and per-spectrum state so nothing leaks from previous spectrum
+  spectrum.clearMetaInfo();
+  spectrum.getPrecursors().clear();
+  spectrum.getPrecursors().resize(1);
+  spectrum.setRT(0.0);
+  spectrum.setMSLevel(2);
+
+  spectrum.setNativeID(String("index=") + (spectrum_number));
+
+  typename SpectrumType::PeakType p;
+
+  String line;
+  // seek to next peak list block
+  while (getline(is, line, '\n'))
         {
           ++line_number;
 
