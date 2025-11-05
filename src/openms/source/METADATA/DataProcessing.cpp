@@ -101,4 +101,15 @@ namespace OpenMS
     processing_actions_ = processing_actions;
   }
 
+  StringList DataProcessing::getAllNamesOfProcessingAction()
+  {
+    StringList names;
+    names.reserve(SIZE_OF_PROCESSINGACTION);
+    for (size_t i = 0; i < SIZE_OF_PROCESSINGACTION; ++i)
+    {
+      names.push_back(NamesOfProcessingAction[i]);
+    }
+    return names;
+  }
+
 }
