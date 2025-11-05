@@ -98,6 +98,9 @@ cdef extern from "<OpenMS/METADATA/ProteinIdentification.h>" namespace "OpenMS":
         # TODO: use addons if we really need this
         # void setPrimaryMSRunPath(StringList& s, MSExperiment& e) except + nogil 
 
+        @staticmethod
+        libcpp_vector[String] getAllNamesOfPeakMassType() except + nogil  # wrap-doc:Returns all peak mass type names known to OpenMS
+
 cdef extern from "<OpenMS/METADATA/ProteinIdentification.h>" namespace "OpenMS::ProteinIdentification":
 
     cdef enum PeakMassType:

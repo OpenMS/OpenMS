@@ -9,6 +9,7 @@
 #pragma once
 
 #include <OpenMS/METADATA/CVTermList.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 namespace OpenMS
 {
@@ -32,6 +33,9 @@ public:
 
     /// Names of checksum types
     static const std::string NamesOfChecksumType[SIZE_OF_CHECKSUMTYPE];
+
+    /// returns all checksum type names known to OpenMS
+    static StringList getAllNamesOfChecksumType();
 
     /// Constructor
     SourceFile();

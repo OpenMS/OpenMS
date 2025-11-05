@@ -2010,24 +2010,32 @@ namespace OpenMS::Internal
           }
           else if (accession == "MS:1000828") //isolation window lower offset
           {
-            if (in_spectrum_list_)
+            double offset_value = value.toDouble();
+            if (offset_value >= 0) // Skip negative values (indicate null/invalid)
             {
-              spec_.getPrecursors().back().setIsolationWindowLowerOffset(value.toDouble());
-            }
-            else
-            {
-              chromatogram_.getPrecursor().setIsolationWindowLowerOffset(value.toDouble());
+              if (in_spectrum_list_)
+              {
+                spec_.getPrecursors().back().setIsolationWindowLowerOffset(offset_value);
+              }
+              else
+              {
+                chromatogram_.getPrecursor().setIsolationWindowLowerOffset(offset_value);
+              }
             }
           }
           else if (accession == "MS:1000829") //isolation window upper offset
           {
-            if (in_spectrum_list_)
+            double offset_value = value.toDouble();
+            if (offset_value >= 0) // Skip negative values (indicate null/invalid)
             {
-              spec_.getPrecursors().back().setIsolationWindowUpperOffset(value.toDouble());
-            }
-            else
-            {
-              chromatogram_.getPrecursor().setIsolationWindowUpperOffset(value.toDouble());
+              if (in_spectrum_list_)
+              {
+                spec_.getPrecursors().back().setIsolationWindowUpperOffset(offset_value);
+              }
+              else
+              {
+                chromatogram_.getPrecursor().setIsolationWindowUpperOffset(offset_value);
+              }
             }
           }
           else
@@ -2048,24 +2056,32 @@ namespace OpenMS::Internal
           }
           else if (accession == "MS:1000829") //isolation window upper offset
           {
-            if (in_spectrum_list_)
+            double offset_value = value.toDouble();
+            if (offset_value >= 0) // Skip negative values (indicate null/invalid)
             {
-              spec_.getProducts().back().setIsolationWindowUpperOffset(value.toDouble());
-            }
-            else
-            {
-              chromatogram_.getProduct().setIsolationWindowUpperOffset(value.toDouble());
+              if (in_spectrum_list_)
+              {
+                spec_.getProducts().back().setIsolationWindowUpperOffset(offset_value);
+              }
+              else
+              {
+                chromatogram_.getProduct().setIsolationWindowUpperOffset(offset_value);
+              }
             }
           }
           else if (accession == "MS:1000828") //isolation window lower offset
           {
-            if (in_spectrum_list_)
+            double offset_value = value.toDouble();
+            if (offset_value >= 0) // Skip negative values (indicate null/invalid)
             {
-              spec_.getProducts().back().setIsolationWindowLowerOffset(value.toDouble());
-            }
-            else
-            {
-              chromatogram_.getProduct().setIsolationWindowLowerOffset(value.toDouble());
+              if (in_spectrum_list_)
+              {
+                spec_.getProducts().back().setIsolationWindowLowerOffset(offset_value);
+              }
+              else
+              {
+                chromatogram_.getProduct().setIsolationWindowLowerOffset(offset_value);
+              }
             }
           }
           else

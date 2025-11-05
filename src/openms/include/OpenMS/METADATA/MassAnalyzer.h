@@ -10,6 +10,7 @@
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 namespace OpenMS
 {
@@ -106,6 +107,19 @@ public:
     };
     /// Names of reflectron states
     static const std::string NamesOfReflectronState[SIZE_OF_REFLECTRONSTATE];
+
+    /// returns all analyzer type names known to OpenMS
+    static StringList getAllNamesOfAnalyzerType();
+    /// returns all resolution method names known to OpenMS
+    static StringList getAllNamesOfResolutionMethod();
+    /// returns all resolution type names known to OpenMS
+    static StringList getAllNamesOfResolutionType();
+    /// returns all scan direction names known to OpenMS
+    static StringList getAllNamesOfScanDirection();
+    /// returns all scan law names known to OpenMS
+    static StringList getAllNamesOfScanLaw();
+    /// returns all reflectron state names known to OpenMS
+    static StringList getAllNamesOfReflectronState();
 
     /// Constructor
     MassAnalyzer();
