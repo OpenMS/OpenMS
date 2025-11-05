@@ -50,7 +50,8 @@ cdef extern from "<OpenMS/METADATA/Instrument.h>" namespace "OpenMS":
 cdef extern from "<OpenMS/METADATA/Instrument.h>" namespace "OpenMS::Instrument":
 
     cdef enum IonOpticsType:
-    
+        # wrap-attach:
+        #    Instrument
         UNKNOWN,                          #< unknown
         MAGNETIC_DEFLECTION,              #< magnetic deflection
         DELAYED_EXTRACTION,               #< delayed extraction

@@ -5216,8 +5216,8 @@ def testSpectrumSetting(s=pyopenms.SpectrumSettings()):
     # Test getAllNamesOf method
     spectrum_type_names = pyopenms.SpectrumSettings.getAllNamesOfSpectrumType()
     assert len(spectrum_type_names) == pyopenms.SpectrumSettings.SpectrumType.SIZE_OF_SPECTRUMTYPE
-    assert spectrum_type_names[pyopenms.SpectrumSettings.SpectrumType.CENTROID].decode() == "centroid spectrum"
-    assert spectrum_type_names[pyopenms.SpectrumSettings.SpectrumType.PROFILE].decode() == "profile spectrum"
+    assert spectrum_type_names[pyopenms.SpectrumSettings.SpectrumType.CENTROID].decode() == "Centroid"
+    assert spectrum_type_names[pyopenms.SpectrumSettings.SpectrumType.PROFILE].decode() == "Profile"
 
 
 @report

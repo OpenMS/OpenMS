@@ -426,8 +426,8 @@ END_SECTION
 START_SECTION((static StringList getAllNamesOfSpectrumType()))
   StringList names = SpectrumSettings::getAllNamesOfSpectrumType();
   TEST_EQUAL(names.size(), SpectrumSettings::SIZE_OF_SPECTRUMTYPE);
-  TEST_EQUAL(names[SpectrumSettings::CENTROID], "centroid spectrum");
-  TEST_EQUAL(names[SpectrumSettings::PROFILE], "profile spectrum");
+  TEST_EQUAL(names[SpectrumSettings::CENTROID], "Centroid");
+  TEST_EQUAL(names[SpectrumSettings::PROFILE], "Profile");
 END_SECTION
 
 /////////////////////////////////////////////////////////////

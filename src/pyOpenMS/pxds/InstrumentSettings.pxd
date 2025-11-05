@@ -28,6 +28,8 @@ cdef extern from "<OpenMS/METADATA/InstrumentSettings.h>" namespace "OpenMS::Ins
 
     # scan mode
     cdef enum ScanMode:
+      # wrap-attach:
+      #    InstrumentSettings
       UNKNOWN,                #< Unknown scan method
       MASSSPECTRUM,           #< general spectrum type
       MS1SPECTRUM,            #< full scan mass spectrum, is a "mass spectrum" @n Synonyms: 'full spectrum', 'Q1 spectrum', 'Q3 spectrum', 'Single-Stage Mass Spectrometry'
