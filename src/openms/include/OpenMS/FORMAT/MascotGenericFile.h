@@ -133,28 +133,30 @@
       /// reads a spectrum block, the section between 'BEGIN IONS' and 'END IONS' of a MGF file
      template <typename SpectrumType>
 bool getNextSpectrum_(std::ifstream& is, SpectrumType& spectrum, Size& line_number, const Size& spectrum_number)
-{
-    spectrum.resize(0);
-
-    // 🧹 Reset spectrum metadata to avoid carry-over from previous iteration
-    spectrum.setMSLevel(2); // Default MS level if not explicitly specified
-    if (spectrum.metaValueExists("MSLEVEL"))
-    {
-        spectrum.removeMetaValue("MSLEVEL");
-    }
-
-    spectrum.setNativeID(String("index=") + (spectrum_number));
-
-    if (spectrum.metaValueExists("TITLE"))
-    {
-        spectrum.removeMetaValue("TITLE");
-    }
-
-        typename SpectrumType::PeakType p;
-
-        String line;
-        // seek to next peak list block
-        while (getline(is, line, '\n'))
++      {
++        // clear peaks
++        spectrum.resize(0);
++
++        // ----- RESET SPECTRUM METADATA/ PRECURSOR TO A CLEAN STATE -----
++        // Clear all meta info & user params so values (e.g. SMILES, IONMODE, GNPS_Spectrum_ID)
++        // do not leak from a previous spectrum.
++        spectrum.clearMetaInfo();
++
++        // Reset precursor container and make sure one placeholder precursor exists
++        spectrum.getPrecursors().clear();
++        spectrum.getPrecursors().resize(1);
++
++        // Default MS level (MGF commonly uses MS2 if not provided)
++        spectrum.setMSLevel(2);
++
++        // Assign native id for uniqueness
++        spectrum.setNativeID(String("index=") + (spectrum_number));
++
++        typename SpectrumType::PeakType p;
++
++        String line;
++        // seek to next peak list block
++        while (getline(is, line, '\n'))
         {
           ++line_number;
 
@@ -291,6 +293,60 @@ bool getNextSpectrum_(std::ifstream& is, SpectrumType& spectrum, Size& line_numb
                     }
                   }
                 }
+                else if (line.hasPrefix("TITLE"))
++            {
++              // test if we have a line like "TITLE= Cmpd 1, +MSn(595.3), 10.9 min"
++              if (line.hasSubstring("min"))
++              {
++                try
++                {
++                  std::vector<String> split;
++                  line.split(',', split);
++                  if (!split.empty())
++                  {
++                    for (Size i = 0; i != split.size(); ++i)
++                    {
++                      if (split[i].hasSubstring("min"))
++                      {
++                        std::vector<String> split2;
++                        split[i].trim().split(' ', split2);
++                        if (!split2.empty())
++                        {
++                          spectrum.setRT(split2[0].trim().toDouble() * 60.0);
++                        }
++                      }
++                    }
++                  }
++                }
++                catch (Exception::BaseException& /*e*/)
++                {
++                  // fallback: write the whole title to spec if parsing fails
++                  std::vector<String> split;
++                  if (line.split('=', split) && split.size() >= 2)
++                  {
++                    if (!split[1].empty()) spectrum.setMetaValue("TITLE", split[1]);
++                  }
++                }
++              }
++              else
++              {
++                // fallback handling when no 'min' substring is present
++                Size firstEqual = line.find('=', 4);
++                if (firstEqual != std::string::npos)
++                {
++                  String title = line.substr(firstEqual + 1);
++                  if (String(spectrum.getMetaValue("TITLE")).hasSubstring(spectrum.getNativeID()))
++                  {
++                    spectrum.setMetaValue("TITLE", title);
++                  }
++                  else
++                  {
++                    spectrum.setMetaValue("TITLE", title + "_" + spectrum.getNativeID());
++                  }
++                }
++              }
++            }
+
               }
               else if (line.hasPrefix("NAME"))
               {
