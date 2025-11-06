@@ -24,7 +24,8 @@ endif()
 #TODO somehow add the same/compatible versions that were found by OpenMS? And what about static vs dynamic? E.g. if we link to static zlib in OpenMS(.dll) what (if at all) can/should the consumer link against?
 find_dependency(Qt6 @QT_MIN_VERSION@ COMPONENTS @OpenMS_QT_COMPONENTS@)
 find_dependency(XercesC)
-find_dependency(Eigen3 3.3.4)
+# Accepts Eigen 3.4.0 or higher, including Eigen 5.x
+find_dependency(Eigen3 3.4.0)
 find_dependency(LIBSVM 2.91)
 
 # Rest are private linked libraries
