@@ -122,12 +122,9 @@ find_package(BZip2 REQUIRED)
 # Find eigen3
 # creates Eigen3::Eigen3 package
 # Accepts Eigen 3.4.0 or higher, including Eigen 5.x
-find_package(Eigen3 3.4.0 REQUIRED)
+find_package(Eigen3 3.4.0...<6 REQUIRED)
 if(TARGET Eigen3::Eigen)
     message(STATUS "Eigen version found: ${Eigen3_VERSION}")
-    if(Eigen3_VERSION VERSION_GREATER_EQUAL "5.0.0")
-        message(STATUS "Using Eigen 5 (version ${Eigen3_VERSION})")
-    endif()
 endif(TARGET Eigen3::Eigen)
 
 #------------------------------------------------------------------------------
