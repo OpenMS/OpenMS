@@ -387,10 +387,7 @@ namespace OpenMS
         String db_location_uri = ListUtils::concatenate(db_loc, '|');
         meta_db.uri = MzTabString(db_location_uri);
       }
-      else
-      {
-        meta_db.uri.setNull(true);
-      }
+      // else: keep the default URI (https://hmdb.ca/) set at initialization
       m_meta_data.database[m_meta_data.database.size() + 1] = meta_db; // starts at 1
     }
 
