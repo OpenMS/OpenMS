@@ -507,10 +507,24 @@ namespace OpenMS
       ControlledVocabulary::CVTerm cvterm_level = cv.getTermByName("ms level");
       ms_level.fromCellString("[MS, " + cvterm_level.id + ", " + cvterm_level.name + ", " + String(id_mslevel) + "]");
     }
-    if (identification_method.isNull())
+    // Set default values if not set by the loop above
+    if (ms_level.isNull())
     {
-      OPENMS_LOG_WARN << "The identification method of your computational analysis can not be assessed'.\n"
+      // Default to MS level 1 if not specified
+      ControlledVocabulary::CVTerm cvterm_level = cv.getTermByName("ms level");
+      ms_level.fromCellString("[MS, " + cvterm_level.id + ", " + cvterm_level.name + ", 1]");
+    }
+    
+    // Check if identification_method has a valid CV term (not the placeholder with empty CV label/accession)
+    // The placeholder is "[, , OpenMS TOPP, ]" which has empty CV_label_ and accession_
+    if (identification_method.getCVLabel().empty() && identification_method.getAccession().empty())
+    {
+      OPENMS_LOG_WARN << "The identification method of your computational analysis cannot be assessed.\n"
+                      << "Using 'data processing action' as default identification method.\n"
                       << "Please check if the ProcessingActions are set correctly!" << std::endl;
+      // Use a generic CV term for data processing
+      ControlledVocabulary::CVTerm cvterm = cv.getTermByName("data processing action");
+      identification_method.fromCellString("[MS, " + cvterm.id + ", " + cvterm.name + ", ]");
     }
 
     // ####################################################
