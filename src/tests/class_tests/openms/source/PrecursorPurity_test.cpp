@@ -139,6 +139,49 @@ START_SECTION(static computePrecursorPurities(const PeakMap& spectra, double pre
   purityscores = PrecursorPurity::computePrecursorPurities(spectra, 0.1, false);
   TEST_EQUAL(purityscores.size(), 0)
 
+START_SECTION(static computeInterpolatedPrecursorPurity edge cases with fallback to early scan purity)
+
+  // Test case 1: next_ms1_spec_idx is out of range (too large)
+  std::vector<double> early_purity = PrecursorPurity::computeSingleScanPrecursorPurities(1, 0, spectra, 20.0);
+  std::vector<double> interpolated_invalid_idx = PrecursorPurity::computeInterpolatedPrecursorPurity(1, 0, 999, spectra, 20.0);
+  
+  TEST_EQUAL(early_purity.size(), interpolated_invalid_idx.size())
+  for (Size i = 0; i < early_purity.size(); ++i)
+  {
+    TEST_REAL_SIMILAR(early_purity[i], interpolated_invalid_idx[i])
+  }
+
+  // Test case 2: next_ms1_spec_idx is negative
+  std::vector<double> interpolated_negative_idx = PrecursorPurity::computeInterpolatedPrecursorPurity(1, 0, -1, spectra, 20.0);
+  
+  TEST_EQUAL(early_purity.size(), interpolated_negative_idx.size())
+  for (Size i = 0; i < early_purity.size(); ++i)
+  {
+    TEST_REAL_SIMILAR(early_purity[i], interpolated_negative_idx[i])
+  }
+
+  // Test case 3: next_ms1_spec_idx points to an MS2 spectrum (not MS1)
+  std::vector<double> interpolated_ms2_idx = PrecursorPurity::computeInterpolatedPrecursorPurity(1, 0, 2, spectra, 20.0);
+  
+  TEST_EQUAL(early_purity.size(), interpolated_ms2_idx.size())
+  for (Size i = 0; i < early_purity.size(); ++i)
+  {
+    TEST_REAL_SIMILAR(early_purity[i], interpolated_ms2_idx[i])
+  }
+
+  // Test case 4: Valid interpolation case for comparison
+  std::vector<double> interpolated_valid = PrecursorPurity::computeInterpolatedPrecursorPurity(1, 0, 6, spectra, 20.0);
+  
+  // The valid interpolation should differ from early_purity (unless by coincidence)
+  // We just ensure it executes without error and returns reasonable values
+  TEST_EQUAL(early_purity.size(), interpolated_valid.size())
+  for (Size i = 0; i < interpolated_valid.size(); ++i)
+  {
+    TEST_EQUAL(interpolated_valid[i] >= 0.0 && interpolated_valid[i] <= 1.0, true)
+  }
+
+END_SECTION
+
 END_SECTION
 
 

@@ -89,6 +89,7 @@
   - @subpage TOPP_FeatureFinderMetaboIdent - Detects features in MS1 data corresponding to small molecule identifications.
   - @subpage TOPP_FeatureFinderMultiplex - Identifies peptide multiplets (pairs, triplets etc., e.g. for SILAC or Dimethyl labeling) and determines their relative abundance.
   - @subpage TOPP_IsobaricAnalyzer - Extracts and normalizes TMT and iTRAQ information from an MS experiment.
+  - @subpage TOPP_IsobaricWorkflow - Complete workflow for quantification with isobaric labeling (TMT, iTRAQ) combining several OpenMS tools.
   - @subpage TOPP_MassTraceExtractor - Annotates mass traces in centroided LC-MS maps.
   - @subpage TOPP_MetaboliteAdductDecharger - Decharges and merges different feature charge variants of the same small molecule.
   - @subpage TOPP_MetaProSIP - Detect labeled peptides from protein-SIP experiments.
