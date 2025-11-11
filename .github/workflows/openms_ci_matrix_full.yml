@@ -300,8 +300,8 @@ jobs:
           # WARNING: Don't add any brew install commands here, edit
           # the following script instead:
           bash OpenMS/tools/ci/deps-macos.sh
-          # Use general Homebrew prefix instead of individual package paths
-          echo "cmake_prefix=$(brew --prefix)" >>$GITHUB_OUTPUT
+          # Use general Homebrew prefix plus libomp (which is keg-only)
+          echo "cmake_prefix=$(brew --prefix):$(brew --prefix libomp)" >>$GITHUB_OUTPUT
         fi
 
     - name: Cache contrib (Windows)
