@@ -90,7 +90,7 @@ set(VARS_TO_LOAD
   "CMAKE_CXX_COMPILER"
   "CFLAGS"
   "CXXFLAGS"
-  "CMAKE_PREFIX_PATH"
+  # CMAKE_PREFIX_PATH is read directly from the environment by CMake, not loaded here
   "CMAKE_BUILD_TYPE"
   "CMAKE_GENERATOR_PLATFORM"
   "Boost_DEBUG"
