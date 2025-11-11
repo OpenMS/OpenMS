@@ -244,7 +244,8 @@ jobs:
       run: |
         # Use the same script as the main CI
         bash OpenMS/tools/ci/deps-macos.sh
-        echo "cmake_prefix=$(brew --prefix qtbase)/lib/cmake:$(brew --prefix qtbase):$(brew --prefix qtsvg):$(brew --prefix libomp)" >> $GITHUB_OUTPUT
+        # Use general Homebrew prefix instead of individual package paths
+        echo "cmake_prefix=$(brew --prefix)" >> $GITHUB_OUTPUT
 
     - name: Build on macos arm
       run: |
@@ -405,7 +406,8 @@ jobs:
         brew pin pipx
         # Use the same script as the main CI
         bash OpenMS/tools/ci/deps-macos.sh
-        echo "cmake_prefix=$(brew --prefix qtbase)/lib/cmake:$(brew --prefix qtbase):$(brew --prefix qtsvg):$(brew --prefix libomp)" >> $GITHUB_OUTPUT
+        # Use general Homebrew prefix instead of individual package paths
+        echo "cmake_prefix=$(brew --prefix)" >> $GITHUB_OUTPUT
 
     - name: Build on macos intel
       run: |
