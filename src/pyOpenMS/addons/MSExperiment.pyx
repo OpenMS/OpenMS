@@ -180,7 +180,491 @@ import numpy as np
         
         return np.asarray(ms_levels)
 
-    def __getitem__(self, key):        
+    @property
+    def rt(self):
+        """
+        Extract retention times from all spectra in the experiment.
+
+        Returns a NumPy array containing the retention time (RT) for each spectrum
+        in the MSExperiment. The array indices correspond to spectrum indices.
+
+        Returns
+        -------
+        numpy.ndarray
+            A 1D numpy array of doubles containing the retention time (in seconds)
+            of each spectrum. The length of the array equals the number of spectra
+            in the experiment.
+
+        Examples
+        --------
+        >>> exp = MSExperiment()
+        >>> # ... load or populate experiment with spectra ...
+        >>> rts = exp.rt
+        >>> print(rts)
+        [0.5 1.2 1.9 2.6 ...]
+        >>> # Find spectra within RT range
+        >>> mask = (rts >= 1.0) & (rts <= 2.0)
+        >>> filtered_exp = exp[mask]
+
+        Notes
+        -----
+        - Returns an empty array if the experiment contains no spectra
+        - Retention times are in seconds
+        - The returned array is a standard NumPy array suitable for vectorized operations
+        - This method is more efficient than calling `getSpectrum(i).getRT()`
+          repeatedly for large datasets
+
+        See Also
+        --------
+        getSpectrum : Retrieve individual spectrum by index
+        """
+        cdef size_t n_spectra = self.inst.get().getNrSpectra()
+        cdef libcpp_vector[double] rts
+        rts.reserve(n_spectra)
+        
+        cdef size_t i
+        for i in range(n_spectra):
+            rts.push_back(self.inst.get().getSpectrum(i).getRT())
+        
+        return np.asarray(rts)
+
+    @property
+    def tic(self):
+        """
+        Extract total ion current (TIC) from all spectra in the experiment.
+
+        Calculates and returns a NumPy array containing the total ion current
+        (sum of all peak intensities) for each spectrum in the MSExperiment.
+
+        Returns
+        -------
+        numpy.ndarray
+            A 1D numpy array of doubles containing the TIC of each spectrum.
+            The length of the array equals the number of spectra in the experiment.
+
+        Examples
+        --------
+        >>> exp = MSExperiment()
+        >>> # ... load or populate experiment with spectra ...
+        >>> tics = exp.tic
+        >>> print(tics)
+        [1234.5 2345.6 3456.7 ...]
+        >>> # Find spectra with high TIC
+        >>> high_tic_mask = tics > np.percentile(tics, 75)
+        >>> high_tic_spectra = exp[high_tic_mask]
+
+        Notes
+        -----
+        - Returns an empty array if the experiment contains no spectra
+        - TIC is calculated as the sum of all peak intensities in a spectrum
+        - Useful for quality control and identifying high-signal spectra
+        - The returned array is a standard NumPy array suitable for vectorized operations
+
+        See Also
+        --------
+        max_intensity : Get maximum intensity values
+        n_peaks : Get number of peaks per spectrum
+        """
+        cdef size_t n_spectra = self.inst.get().getNrSpectra()
+        cdef libcpp_vector[double] tics
+        tics.reserve(n_spectra)
+        
+        cdef size_t i
+        for i in range(n_spectra):
+            tics.push_back(self.inst.get().getSpectrum(i).calculateTIC())
+        
+        return np.asarray(tics)
+
+    @property
+    def n_peaks(self):
+        """
+        Extract number of peaks from all spectra in the experiment.
+
+        Returns a NumPy array containing the peak count for each spectrum
+        in the MSExperiment.
+
+        Returns
+        -------
+        numpy.ndarray
+            A 1D numpy array of unsigned integers containing the number of peaks
+            in each spectrum. The length of the array equals the number of spectra
+            in the experiment.
+
+        Examples
+        --------
+        >>> exp = MSExperiment()
+        >>> # ... load or populate experiment with spectra ...
+        >>> peak_counts = exp.n_peaks
+        >>> print(peak_counts)
+        [123 234 345 ...]
+        >>> # Find spectra with at least 100 peaks
+        >>> rich_spectra = exp[peak_counts >= 100]
+        >>> # Get average peaks per spectrum
+        >>> avg_peaks = np.mean(peak_counts)
+
+        Notes
+        -----
+        - Returns an empty array if the experiment contains no spectra
+        - Peak count includes all peaks in a spectrum, regardless of intensity
+        - Empty spectra will have a count of 0
+        - Useful for quality control and filtering
+
+        See Also
+        --------
+        tic : Get total ion current values
+        max_intensity : Get maximum intensity values
+        """
+        cdef size_t n_spectra = self.inst.get().getNrSpectra()
+        cdef libcpp_vector[size_t] peak_counts
+        peak_counts.reserve(n_spectra)
+        
+        cdef size_t i
+        for i in range(n_spectra):
+            peak_counts.push_back(self.inst.get().getSpectrum(i).size())
+        
+        return np.asarray(peak_counts)
+
+    @property
+    def max_intensity(self):
+        """
+        Extract maximum intensity from all spectra in the experiment.
+
+        Returns a NumPy array containing the maximum peak intensity for each
+        spectrum in the MSExperiment. For empty spectra, returns 0.0.
+
+        Returns
+        -------
+        numpy.ndarray
+            A 1D numpy array of doubles containing the maximum intensity
+            of each spectrum. The length of the array equals the number of spectra
+            in the experiment.
+
+        Examples
+        --------
+        >>> exp = MSExperiment()
+        >>> # ... load or populate experiment with spectra ...
+        >>> max_ints = exp.max_intensity
+        >>> print(max_ints)
+        [9876.5 8765.4 7654.3 ...]
+        >>> # Find spectra with high max intensity
+        >>> intense_spectra = exp[max_ints > 5000]
+        >>> # Normalize by max intensity
+        >>> normalized = max_ints / np.max(max_ints)
+
+        Notes
+        -----
+        - Returns an empty array if the experiment contains no spectra
+        - Empty spectra return 0.0 as maximum intensity
+        - This is computed by finding the peak with highest intensity in each spectrum
+        - The returned array is a standard NumPy array suitable for vectorized operations
+
+        See Also
+        --------
+        min_intensity : Get minimum intensity values
+        tic : Get total ion current values
+        """
+        cdef size_t n_spectra = self.inst.get().getNrSpectra()
+        cdef libcpp_vector[double] max_intensities
+        max_intensities.reserve(n_spectra)
+        
+        cdef size_t i, j
+        cdef double max_int
+        cdef size_t spec_size
+        for i in range(n_spectra):
+            spec_size = self.inst.get().getSpectrum(i).size()
+            if spec_size == 0:
+                max_intensities.push_back(0.0)
+            else:
+                max_int = self.inst.get().getSpectrum(i)[0].getIntensity()
+                for j in range(1, spec_size):
+                    if self.inst.get().getSpectrum(i)[j].getIntensity() > max_int:
+                        max_int = self.inst.get().getSpectrum(i)[j].getIntensity()
+                max_intensities.push_back(max_int)
+        
+        return np.asarray(max_intensities)
+
+    @property
+    def min_intensity(self):
+        """
+        Extract minimum intensity from all spectra in the experiment.
+
+        Returns a NumPy array containing the minimum peak intensity for each
+        spectrum in the MSExperiment. For empty spectra, returns 0.0.
+
+        Returns
+        -------
+        numpy.ndarray
+            A 1D numpy array of doubles containing the minimum intensity
+            of each spectrum. The length of the array equals the number of spectra
+            in the experiment.
+
+        Examples
+        --------
+        >>> exp = MSExperiment()
+        >>> # ... load or populate experiment with spectra ...
+        >>> min_ints = exp.min_intensity
+        >>> print(min_ints)
+        [10.5 12.3 8.7 ...]
+        >>> # Find spectra with noise floor above threshold
+        >>> clean_spectra = exp[min_ints > 50]
+        >>> # Get intensity range per spectrum
+        >>> intensity_range = exp.max_intensity - exp.min_intensity
+
+        Notes
+        -----
+        - Returns an empty array if the experiment contains no spectra
+        - Empty spectra return 0.0 as minimum intensity
+        - This is computed by finding the peak with lowest intensity in each spectrum
+        - The returned array is a standard NumPy array suitable for vectorized operations
+
+        See Also
+        --------
+        max_intensity : Get maximum intensity values
+        tic : Get total ion current values
+        """
+        cdef size_t n_spectra = self.inst.get().getNrSpectra()
+        cdef libcpp_vector[double] min_intensities
+        min_intensities.reserve(n_spectra)
+        
+        cdef size_t i, j
+        cdef double min_int
+        cdef size_t spec_size
+        for i in range(n_spectra):
+            spec_size = self.inst.get().getSpectrum(i).size()
+            if spec_size == 0:
+                min_intensities.push_back(0.0)
+            else:
+                min_int = self.inst.get().getSpectrum(i)[0].getIntensity()
+                for j in range(1, spec_size):
+                    if self.inst.get().getSpectrum(i)[j].getIntensity() < min_int:
+                        min_int = self.inst.get().getSpectrum(i)[j].getIntensity()
+                min_intensities.push_back(min_int)
+        
+        return np.asarray(min_intensities)
+
+    @property
+    def mz_min(self):
+        """
+        Extract minimum m/z value from all spectra in the experiment.
+
+        Returns a NumPy array containing the minimum m/z value for each
+        spectrum in the MSExperiment. For empty spectra, returns 0.0.
+
+        Returns
+        -------
+        numpy.ndarray
+            A 1D numpy array of doubles containing the minimum m/z value
+            of each spectrum. The length of the array equals the number of spectra
+            in the experiment.
+
+        Examples
+        --------
+        >>> exp = MSExperiment()
+        >>> # ... load or populate experiment with spectra ...
+        >>> min_mzs = exp.mz_min
+        >>> print(min_mzs)
+        [100.5 150.2 200.8 ...]
+        >>> # Find spectra covering low m/z range
+        >>> low_mz_spectra = exp[min_mzs < 200]
+        >>> # Get m/z range per spectrum
+        >>> mz_range = exp.mz_max - exp.mz_min
+
+        Notes
+        -----
+        - Returns an empty array if the experiment contains no spectra
+        - Empty spectra return 0.0 as minimum m/z
+        - This is computed by finding the peak with lowest m/z in each spectrum
+        - Assumes spectrum is sorted by m/z (which is typical)
+        - The returned array is a standard NumPy array suitable for vectorized operations
+
+        See Also
+        --------
+        mz_max : Get maximum m/z values
+        rt : Get retention time values
+        """
+        cdef size_t n_spectra = self.inst.get().getNrSpectra()
+        cdef libcpp_vector[double] min_mzs
+        min_mzs.reserve(n_spectra)
+        
+        cdef size_t i
+        for i in range(n_spectra):
+            if self.inst.get().getSpectrum(i).size() == 0:
+                min_mzs.push_back(0.0)
+            else:
+                min_mzs.push_back(self.inst.get().getSpectrum(i)[0].getMZ())
+        
+        return np.asarray(min_mzs)
+
+    @property
+    def mz_max(self):
+        """
+        Extract maximum m/z value from all spectra in the experiment.
+
+        Returns a NumPy array containing the maximum m/z value for each
+        spectrum in the MSExperiment. For empty spectra, returns 0.0.
+
+        Returns
+        -------
+        numpy.ndarray
+            A 1D numpy array of doubles containing the maximum m/z value
+            of each spectrum. The length of the array equals the number of spectra
+            in the experiment.
+
+        Examples
+        --------
+        >>> exp = MSExperiment()
+        >>> # ... load or populate experiment with spectra ...
+        >>> max_mzs = exp.mz_max
+        >>> print(max_mzs)
+        [1999.5 1850.2 2000.8 ...]
+        >>> # Find spectra covering high m/z range
+        >>> high_mz_spectra = exp[max_mzs > 1500]
+        >>> # Get m/z range per spectrum
+        >>> mz_range = exp.mz_max - exp.mz_min
+
+        Notes
+        -----
+        - Returns an empty array if the experiment contains no spectra
+        - Empty spectra return 0.0 as maximum m/z
+        - This is computed by finding the peak with highest m/z in each spectrum
+        - Assumes spectrum is sorted by m/z (which is typical)
+        - The returned array is a standard NumPy array suitable for vectorized operations
+
+        See Also
+        --------
+        mz_min : Get minimum m/z values
+        rt : Get retention time values
+        """
+        cdef size_t n_spectra = self.inst.get().getNrSpectra()
+        cdef libcpp_vector[double] max_mzs
+        max_mzs.reserve(n_spectra)
+        
+        cdef size_t i
+        cdef size_t spec_size
+        for i in range(n_spectra):
+            spec_size = self.inst.get().getSpectrum(i).size()
+            if spec_size == 0:
+                max_mzs.push_back(0.0)
+            else:
+                max_mzs.push_back(self.inst.get().getSpectrum(i)[spec_size - 1].getMZ())
+        
+        return np.asarray(max_mzs)
+
+    @property
+    def drift_time(self):
+        """
+        Extract drift time from all spectra in the experiment.
+
+        Returns a NumPy array containing the ion mobility drift time for each
+        spectrum in the MSExperiment. For spectra without drift time information,
+        returns NaN.
+
+        Returns
+        -------
+        numpy.ndarray
+            A 1D numpy array of doubles containing the drift time of each spectrum.
+            The length of the array equals the number of spectra in the experiment.
+            NaN values indicate missing drift time information.
+
+        Examples
+        --------
+        >>> exp = MSExperiment()
+        >>> # ... load or populate experiment with IM spectra ...
+        >>> drift_times = exp.drift_time
+        >>> print(drift_times)
+        [10.5 11.2 nan 12.3 ...]
+        >>> # Find spectra with drift time data
+        >>> has_dt = ~np.isnan(drift_times)
+        >>> im_spectra = exp[has_dt]
+        >>> # Filter by drift time range
+        >>> dt_mask = (drift_times >= 10) & (drift_times <= 15)
+        >>> filtered = exp[dt_mask]
+
+        Notes
+        -----
+        - Returns an empty array if the experiment contains no spectra
+        - NaN indicates that drift time is not set for a spectrum
+        - Drift time units can vary; check `drift_time_unit` property
+        - Drift times may be stored directly as a spectrum attribute
+        - The returned array is a standard NumPy array suitable for vectorized operations
+
+        See Also
+        --------
+        drift_time_unit : Get drift time units
+        rt : Get retention time values
+        """
+        cdef size_t n_spectra = self.inst.get().getNrSpectra()
+        cdef libcpp_vector[double] drift_times
+        drift_times.reserve(n_spectra)
+        
+        cdef size_t i
+        cdef double dt
+        for i in range(n_spectra):
+            dt = self.inst.get().getSpectrum(i).getDriftTime()
+            # IMTypes::DRIFTTIME_NOT_SET is -1
+            if dt < 0:
+                drift_times.push_back(float('nan'))
+            else:
+                drift_times.push_back(dt)
+        
+        return np.asarray(drift_times)
+
+    @property
+    def drift_time_unit(self):
+        """
+        Extract drift time units from all spectra in the experiment.
+
+        Returns a NumPy array containing the drift time unit as a string for each
+        spectrum in the MSExperiment. Common units include 'millisecond',
+        'inverse_reduced_ion_mobility', 'volt-second_per_square_centimeter', etc.
+
+        Returns
+        -------
+        numpy.ndarray
+            A 1D numpy array of strings (dtype=object) containing the drift time unit
+            of each spectrum. The length of the array equals the number of spectra
+            in the experiment. Empty strings indicate no drift time unit is set.
+
+        Examples
+        --------
+        >>> exp = MSExperiment()
+        >>> # ... load or populate experiment with IM spectra ...
+        >>> dt_units = exp.drift_time_unit
+        >>> print(dt_units)
+        ['millisecond' 'millisecond' '' 'millisecond' ...]
+        >>> # Check consistency of units
+        >>> unique_units = np.unique(dt_units[dt_units != ''])
+        >>> print(unique_units)
+        ['millisecond']
+
+        Notes
+        -----
+        - Returns an empty array if the experiment contains no spectra
+        - Empty string indicates no drift time unit is set (DriftTimeUnit::NONE)
+        - Common units in ion mobility MS include:
+          * 'millisecond' - time-based drift time
+          * 'inverse_reduced_ion_mobility' - 1/K0 values
+          * 'volt-second_per_square_centimeter' - collision cross section related
+        - The returned array is a standard NumPy object array
+
+        See Also
+        --------
+        drift_time : Get drift time values
+        """
+        cdef size_t n_spectra = self.inst.get().getNrSpectra()
+        cdef np.ndarray dt_units = np.empty(n_spectra, dtype=object)
+        
+        cdef size_t i
+        cdef _String dt_unit_str
+        for i in range(n_spectra):
+            dt_unit_str = self.inst.get().getSpectrum(i).getDriftTimeUnitAsString()
+            dt_units[i] = <bytes>dt_unit_str.c_str()
+            if isinstance(dt_units[i], bytes):
+                dt_units[i] = dt_units[i].decode('utf-8')
+        
+        return dt_units
+
+    def __getitem__(self, key):
         cdef size_t n_spectra = self.inst.get().getNrSpectra()
         cdef libcpp_vector[size_t] indices
         cdef size_t i
