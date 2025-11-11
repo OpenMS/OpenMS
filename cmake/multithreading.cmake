@@ -13,6 +13,11 @@ message(STATUS "OpenMP support requested: ${MT_ENABLE_OPENMP}")
 
 if (MT_ENABLE_OPENMP)
   find_package(OpenMP COMPONENTS CXX)
+  
+  if (NOT OPENMP_FOUND)
+    message(FATAL_ERROR "OpenMP was requested (MT_ENABLE_OPENMP=ON) but not found. "
+                        "Please install OpenMP support or disable it with -DMT_ENABLE_OPENMP=OFF")
+  endif()
 endif()
 
 if (OPENMP_FOUND)
