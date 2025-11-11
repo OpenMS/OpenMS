@@ -245,7 +245,6 @@ jobs:
         # Use the same script as the main CI
         bash OpenMS/tools/ci/deps-macos.sh
         echo "cmake_prefix=$(brew --prefix qtbase)/lib/cmake;$(brew --prefix qtbase);$(brew --prefix qtsvg);$(brew --prefix libomp)" >> $GITHUB_OUTPUT
-        echo "Qt6_DIR=$(brew --prefix qtbase)/lib/cmake/Qt6" >> $GITHUB_ENV
 
     - name: Build on macos arm
       run: |
@@ -254,7 +253,7 @@ jobs:
         # options to setup.py extra_compile_args does not work. See also https://gist.github.com/andyfaff/084005bee32aee83d6b59e843278ab3e
         export CFLAGS="-Xpreprocessor -fopenmp $CFLAGS"
         export CXXFLAGS="-Xpreprocessor -fopenmp $CXXFLAGS"
-        export CMAKE_PREFIX_PATH="$(brew --prefix libomp);$(brew --prefix qtbase);$(brew --prefix qtsvg);$(echo $Qt6_Dir)/lib/cmake;${Qt6_Dir}"
+        export CMAKE_PREFIX_PATH="${{ steps.brew-setup.outputs.cmake_prefix }}"
 
         # Stores the built wheels
         mkdir pyopenms_whls
@@ -407,7 +406,6 @@ jobs:
         # Use the same script as the main CI
         bash OpenMS/tools/ci/deps-macos.sh
         echo "cmake_prefix=$(brew --prefix qtbase)/lib/cmake;$(brew --prefix qtbase);$(brew --prefix qtsvg);$(brew --prefix libomp)" >> $GITHUB_OUTPUT
-        echo "Qt6_DIR=$(brew --prefix qtbase)/lib/cmake/Qt6" >> $GITHUB_ENV
 
     - name: Build on macos intel
       run: |
@@ -417,7 +415,7 @@ jobs:
         conda config --add channels conda-forge
         export CFLAGS="-Xpreprocessor -fopenmp $CFLAGS"
         export CXXFLAGS="-Xpreprocessor -fopenmp $CXXFLAGS"
-        export CMAKE_PREFIX_PATH="$(brew --prefix libomp);$(brew --prefix qtbase);$(brew --prefix qtsvg);$(echo $Qt6_Dir)/lib/cmake;${Qt6_Dir}"
+        export CMAKE_PREFIX_PATH="${{ steps.brew-setup.outputs.cmake_prefix }}"
 
         # Stores the built wheels
         mkdir pyopenms_whls
