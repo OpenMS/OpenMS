@@ -296,7 +296,7 @@ jobs:
           # WARNING: Don't add any brew install commands here, edit
           # the following script instead:
           bash OpenMS/tools/ci/deps-macos.sh
-          echo "cmake_prefix=$(brew --prefix qtbase)/lib/cmake;$(brew --prefix qtbase);$(brew --prefix qtsvg);$(brew --prefix libomp)" >>$GITHUB_OUTPUT
+          echo "cmake_prefix=$(brew --prefix qtbase)/lib/cmake:$(brew --prefix qtbase):$(brew --prefix qtsvg):$(brew --prefix libomp)" >>$GITHUB_OUTPUT
         fi
 
     - name: Cache contrib (Windows)
