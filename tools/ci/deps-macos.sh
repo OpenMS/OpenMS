@@ -48,8 +48,8 @@ brew install \
   cbc \
   cgl \
   clp \
-  qt-base \
-  qt-svg \
+  qtbase \
+  qtsvg \
   apache-arrow
 
 # Optional dependencies:
