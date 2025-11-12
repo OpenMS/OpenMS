@@ -265,6 +265,11 @@ jobs:
           # WARNING: Don't add any dependency install commands here.
           # Instead edit the following script:
           bash OpenMS/tools/ci/deps-ubuntu.sh
+          # Install libomp for clang compiler (needed for OpenMP support)
+          # Use version-specific package matching the clang version
+          if [[ "${{ matrix.compiler }}" == clang* ]]; then
+            sudo apt-get -qq install -y libomp-${{ matrix.compiler_ver }}-dev
+          fi
           echo "Testing doxygen" && doxygen --version
           echo "cmake_prefix=" >>$GITHUB_OUTPUT
         fi
@@ -296,7 +301,8 @@ jobs:
           # WARNING: Don't add any brew install commands here, edit
           # the following script instead:
           bash OpenMS/tools/ci/deps-macos.sh
-          echo "cmake_prefix=$(brew --prefix qt)/lib/cmake;$(brew --prefix qt);$(brew --prefix libomp)" >>$GITHUB_OUTPUT
+          # Use general Homebrew prefix plus libomp (which is keg-only)
+          echo "cmake_prefix=$(brew --prefix):$(brew --prefix libomp)" >>$GITHUB_OUTPUT
         fi
 
     - name: Cache contrib (Windows)
