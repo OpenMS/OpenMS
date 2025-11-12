@@ -266,8 +266,9 @@ jobs:
           # Instead edit the following script:
           bash OpenMS/tools/ci/deps-ubuntu.sh
           # Install libomp for clang compiler (needed for OpenMP support)
+          # Use version-specific package matching the clang version
           if [[ "${{ matrix.compiler }}" == clang* ]]; then
-            sudo apt-get -qq install -y libomp-dev
+            sudo apt-get -qq install -y libomp-${{ matrix.compiler_ver }}-dev
           fi
           echo "Testing doxygen" && doxygen --version
           echo "cmake_prefix=" >>$GITHUB_OUTPUT

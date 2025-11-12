@@ -83,12 +83,6 @@ CMAKE_C_COMPILER_LAUNCHER=$ENV{CMAKE_CCACHE_EXE}"
   )
 endif()
 
-# Enable debug mode for find_package to help diagnose dependency issues
-set(INITIAL_CACHE
-"${INITIAL_CACHE}
-CMAKE_FIND_DEBUG_MODE=TRUE"
-)
-
 set(VARS_TO_LOAD
   "ADDRESS_SANITIZER"
   "CC"
