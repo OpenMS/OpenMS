@@ -453,10 +453,10 @@ struct SumIntensityReduction {
  *   (`MSSpectrum::ConstIterator`) and returns a `CoordinateType`. The function defines how to reduce or aggregate
  *   the peaks within the specified m/z range (e.g., summing intensities, computing the mean m/z, etc.).
  *
- * @param[in,out] mz_rt_ranges
+ * @param[in] mz_rt_ranges
  *   A vector of pairs of `RangeMZ` and `RangeRT` specifying the m/z and RT ranges over which to aggregate data.
- *   Each pair defines a rectangular region in the m/z-RT plane. The vector will be sorted in-place by ascending
- *   minimum m/z and descending maximum m/z within the function.
+ *   Each pair defines a rectangular region in the m/z-RT plane. The ranges are processed in the order supplied and
+ *   are not modified by this function.
  *
  * @param[in] ms_level
  *   The MS level of the spectra to be processed. Only spectra matching this MS level will be considered in the aggregation.
@@ -474,14 +474,13 @@ struct SumIntensityReduction {
  *
  * @note
  * - If `mz_rt_ranges` is empty or there are no spectra at the specified MS level, the function returns an empty vector.
- * - The `mz_rt_ranges` vector will be sorted within the function by ascending minimum m/z and descending maximum m/z.
  * - The function uses OpenMP for parallelization over spectra. Ensure that your reduction function is thread-safe.
  * - The aggregation is performed only on the peaks that fall within both the specified m/z and RT ranges.
  * - This methods works best with larger number of m/z and RT ranges and a large number of spectra.
  *
  * @warning
- * - The function modifies `mz_rt_ranges` by sorting it. If the original order is important, make a copy before calling.
  * - The provided `func_mz_reduction` must be able to handle empty ranges (i.e., when `begin_it == end_it`).
+ * - The function does not reorder or otherwise mutate `mz_rt_ranges`; pass a pre-sorted range if a particular order is required.
  *
  * @exception None
  */
@@ -1101,6 +1100,7 @@ std::vector<MSChromatogram> extractXICs(
       and comes before the next scan that is of a level that is lower than
       the current one.
 \verbatim
+
       Example:
       MS1 - ix: 0
         MS2 - ix: 1, prec: 0
@@ -1112,6 +1112,7 @@ std::vector<MSChromatogram> extractXICs(
       MS1 - ix: 7
         ...  <-- Not searched anymore. Returns end of experiment iterator if not found until here.
 \endverbatim
+
       Uses the native spectrum ID from the @em first precursor entry of the potential product scans
       for comparisons -> Works for multiple precursor ranges from the same precursor scan
       but not for multiple precursor ranges from different precursor scans.

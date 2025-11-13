@@ -17,6 +17,7 @@
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 #include <OpenMS/METADATA/DataArrays.h>
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <set>
 
@@ -241,6 +242,9 @@ public:
 
     /// Names corresponding to peak mass types
     static const std::string NamesOfPeakMassType[SIZE_OF_PEAKMASSTYPE];
+
+    /// returns all peak mass type names known to OpenMS
+    static StringList getAllNamesOfPeakMassType();
 
     /// Search parameters of the DB search
     struct OPENMS_DLLAPI SearchParameters :

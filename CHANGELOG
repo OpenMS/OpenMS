@@ -15,16 +15,24 @@ PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 3.5.0     (under development)              ----
 ------------------------------------------------------------------------------------------
+NOTICE: 3.5.0 is going to be the last official release for MacOS on Intel processors.
+If you need support for OpenMS on that platform moving forward, please contact us.
 
 General:
  - speed improvements:
     - loading .gz files is about 7% faster (#8069)
     - loading of mzML files with more than than m/z+intensity (e.g. ion mobility) is 20-40% faster (#8074)
     - loading of mzML files is 7-25% faster in general (SIMD ASCII conversion) (#8105)
+ - linux arm64 support:
+	- OpenMS releases now include a .deb for arm64 machines
+	- PyOpenMS now has wheels for arm64 linux machines
     
 Dependencies:
     - PyOpenMS now depends on Autowrap 0.23.0
     - PyOpenMS now supports Cython 3.1
+
+PyOpenMS:
+	- PyOpenMS wheels are now available for Python 3.14 on all supported operating systems
 
 TOPP tools:
   Changes:
@@ -72,6 +80,8 @@ OpenMS Library:
     - TransformationModelLowess: Add option to automate span selection via cross-validation (#8166)
     - OpenSwath:
       - Added automated iRT calibration using input transition list (#8146)
+      - Added automated RT, m/z, and IM extraction window estimation based on iRT calibration (#8188)
+      - Added lowess span grid search params and updated documentation for OpenSwathWorkflow TOPP tool (#8297)
 
 
 

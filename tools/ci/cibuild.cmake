@@ -24,6 +24,18 @@ set (CTEST_CUSTOM_WARNING_EXCEPTION
     # Suppress warnings imported from qt
     ".*qsharedpointer_impl.h:595:43.*"
     ".*src/openms/extern/.*"
+    # Ignore the generic "non-zero return value" warnings - let the actual errors be classified properly
+    ".*WARNING.*non-zero return value.*cmake.*"
+    )
+
+# Define patterns that should be classified as errors (these override warning classification)
+set(CTEST_CUSTOM_ERROR_MATCH
+    "subprocess-exited-with-error"
+    "FAILED:.*pyopenms"
+    "× Getting requirements to build wheel did not run successfully"
+    "error: subprocess-exited-with-error"
+    ".*FAILED:.*pyOpenMS.*"
+    ".*pip wheel.*"
     )
 
 message(STATUS "CTEST_SOURCE_DIRECTORY: ${CTEST_SOURCE_DIRECTORY}")
@@ -78,7 +90,7 @@ set(VARS_TO_LOAD
   "CMAKE_CXX_COMPILER"
   "CFLAGS"
   "CXXFLAGS"
-  "CMAKE_PREFIX_PATH"
+  # CMAKE_PREFIX_PATH is read directly from the environment by CMake, not loaded here
   "CMAKE_BUILD_TYPE"
   "CMAKE_GENERATOR_PLATFORM"
   "Boost_DEBUG"
@@ -126,7 +138,6 @@ OPENMS_GIT_SHORT_REFSPEC=$ENV{RUN_NAME}
 OPENMS_GIT_LC_DATE=1970-01-01
 ENABLE_UPDATE_CHECK:BOOL=OFF
 Boost_DEBUG=OFF
-CMAKE_PREFIX_PATH=$ENV{OS_PREFIX_PATH}
 OPENMS_CONTRIB_LIBS=$ENV{CONTRIB_BUILD_DIRECTORY}
 BOOST_USE_STATIC=$ENV{USE_STATIC_BOOST}
 CMAKE_BUILD_TYPE=$ENV{BUILD_TYPE}
