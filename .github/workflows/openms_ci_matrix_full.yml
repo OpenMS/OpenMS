@@ -270,11 +270,12 @@ jobs:
         cache: 'false'
         archives: 'qtsvg qtimageformats qtbase'
 
-    - name: Setup build tools (and system contrib on Linux and Mac)
+    - name: Set Up Build Tools
       id: tools-prefix
       shell: bash
-      env: 
-        # We need to add this, otherwise brew "helpfully" updates all of the GitHub preinstalled packages, which can cause issues
+      env:
+        # We need to add this, otherwise brew "helpfully" updates all
+        # of the GitHub preinstalled packages, which can cause issues:
         HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK: 1
       run: |
         if [[ "${{ matrix.os }}" == ubuntu-* ]]; then
@@ -289,28 +290,30 @@ jobs:
           echo "Testing doxygen" && doxygen --version
           echo "cmake_prefix=" >>$GITHUB_OUTPUT
         fi
-        
+
         if [[ "${{ matrix.os }}" == windows-* ]]; then
-          # QT_ROOT_DIR set by Install Qt step
-          # Add conda environment paths to CMAKE_PREFIX_PATH for finding Arrow/Parquet
-          CONDA_CMAKE_PREFIX="$CONDA_ENV_PATH/Library;$CONDA_ENV_PATH/Library/cmake"
-          echo "cmake_prefix=$QT_ROOT_DIR/lib/cmake;$QT_ROOT_DIR;$CONDA_CMAKE_PREFIX" >> $GITHUB_OUTPUT
-          choco install ccache ninja -y --no-progress
-          choco install cmake -y --no-progress
-          ## GH CLI "SHOULD BE" installed. Sometimes I had to manually install nonetheless. Super weird.
-          # https://github.com/actions/runner-images/blob/main/images/win/scripts/Installers/Install-GitHub-CLI.ps1
-          echo "C:\Program Files (x86)\GitHub CLI" >> $GITHUB_PATH
-          # Install eigen from choco
-          choco install eigen -y --no-progress
-          echo "eigen_choco=C:\ProgramData\chocolatey\lib\eigen\share\cmake" >> $GITHUB_OUTPUT
-          choco install doxygen.portable ghostscript graphviz -y --no-progress
-          
+          choco install  -y --no-progress \
+                ccache \
+                cmake \
+                doxygen.portable \
+                eigen \
+                ghostscript \
+                graphviz \
+                ninja
+
           if [[ "${{ steps.set-vars.outputs.pkg_type }}" != "none" ]]; then
             # uses a custom NSIS, which provides 8-k string support and has UltraModernUI integrated already
             curl --no-progress-meter -L -o NSIS.tar.gz https://github.com/OpenMS/NSIS/raw/main/NSIS.tar.gz
             ## overwrite existing NSIS (which has only 1k-string support)
             7z x -so NSIS.tar.gz | 7z x -si -ttar -aoa -o"C:/Program Files (x86)/NSIS/"
           fi
+
+          echo "cmake_prefix=" >>"$GITHUB_OUTPUT"
+          echo "eigen_choco=C:\ProgramData\chocolatey\lib\eigen\share\cmake" >> $GITHUB_OUTPUT
+
+          ## GH CLI "SHOULD BE" installed. Sometimes I had to manually install nonetheless. Super weird.
+          # https://github.com/actions/runner-images/blob/main/images/win/scripts/Installers/Install-GitHub-CLI.ps1
+          echo "C:\Program Files (x86)\GitHub CLI" >> $GITHUB_PATH
         fi
 
         if [[ "${{ matrix.os }}" == macos-* ]]; then
