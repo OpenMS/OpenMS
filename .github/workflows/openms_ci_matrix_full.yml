@@ -322,7 +322,7 @@ jobs:
           bash OpenMS/tools/ci/deps-macos.sh
 
           echo "$(brew --prefix)/bin" >>"$GITHUB_PATH"
-          echo "cmake_prefix=$(brew --prefix):$(brew --prefix libomp)" >>$GITHUB_OUTPUT
+          echo "cmake_prefix=$(brew --prefix);$(brew --prefix libomp)" >>"$GITHUB_OUTPUT"
         fi
 
     - name: Cache contrib (Windows)
