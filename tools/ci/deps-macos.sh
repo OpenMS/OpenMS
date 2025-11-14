@@ -13,7 +13,7 @@ function brew() {
 
   # Bash on macOS doesn't allow using empty arrays.  Therefore we put
   # the action name in the flags array so it always has at least one
-  # element.
+  # element.  This is also why we install bash below.
   local -a flags=("$action")
 
   if [ "$action" = "install" ]; then
@@ -50,7 +50,8 @@ brew install \
   clp \
   qtbase \
   qtsvg \
-  apache-arrow
+  apache-arrow \
+  bash
 
 # Optional dependencies:
 brew install \
