@@ -301,7 +301,8 @@ jobs:
           # WARNING: Don't add any brew install commands here, edit
           # the following script instead:
           bash OpenMS/tools/ci/deps-macos.sh
-          # Use general Homebrew prefix plus libomp (which is keg-only)
+
+          echo "$(brew --prefix)/bin" >>"$GITHUB_PATH"
           echo "cmake_prefix=$(brew --prefix):$(brew --prefix libomp)" >>$GITHUB_OUTPUT
         fi
 
@@ -414,7 +415,8 @@ jobs:
           echo "::endgroup::"
 
           mkdir $GITHUB_WORKSPACE/OpenMS/bld/
-          ${{ steps.set-vars.outputs.xvfb }} ctest --output-on-failure -V -S ../OpenMS/OpenMS/tools/ci/cibuild.cmake
+          bash OpenMS/tools/ci/capture-env.sh -v $GITHUB_WORKSPACE/OpenMS/bld/CMakeCache.txt
+          ${{ steps.set-vars.outputs.xvfb }} ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/ci/cibuild.cmake
           retVal=$?
           
           # Display ccache statistics after build
