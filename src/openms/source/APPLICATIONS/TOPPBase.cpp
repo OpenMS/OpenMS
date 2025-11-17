@@ -2047,6 +2047,12 @@ namespace OpenMS
         any_set = true;
       }
     }
+    catch (Exception::ElementNotFound&)
+    {
+      String error_msg = "Error parsing range for parameter '" + param_name + "': '" + text + "' is not a valid range. ";
+      error_msg += "Please use the format 'low:high' with ':' as delimiter (e.g., '600.0:5000.0').";
+      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, error_msg);
+    }
     catch (Exception::ConversionError&)
     {
       String error_msg = "Error parsing range for parameter '" + param_name + "': Could not convert string '" + text + "' to a range of floating point values. ";
@@ -2075,6 +2081,12 @@ namespace OpenMS
         high = tmp.toInt();
         any_set = true;
       }
+    }
+    catch (Exception::ElementNotFound&)
+    {
+      String error_msg = "Error parsing range for parameter '" + param_name + "': '" + text + "' is not a valid range. ";
+      error_msg += "Please use the format 'low:high' with ':' as delimiter (e.g., '1:10').";
+      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, error_msg);
     }
     catch (Exception::ConversionError&)
     {
