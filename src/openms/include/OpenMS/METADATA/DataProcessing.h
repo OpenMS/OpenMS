@@ -11,6 +11,7 @@
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/METADATA/Software.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <set>
 #include <boost/shared_ptr.hpp>
@@ -57,6 +58,9 @@ public:
     };
     /// Names of inlet types
     static const std::string NamesOfProcessingAction[SIZE_OF_PROCESSINGACTION];
+
+    /// returns all processing action names known to OpenMS
+    static StringList getAllNamesOfProcessingAction();
 
     /// Constructor
     DataProcessing() = default;

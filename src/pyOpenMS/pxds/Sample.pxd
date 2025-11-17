@@ -58,6 +58,9 @@ cdef extern from "<OpenMS/METADATA/Sample.h>" namespace "OpenMS":
         
         void setSubsamples(libcpp_vector[Sample] subsamples) except + nogil  # wrap-doc:Sets the vector of subsamples that were combined to create this sample
 
+        @staticmethod
+        libcpp_vector[String] getAllNamesOfSampleState() except + nogil  # wrap-doc:Returns all sample state names known to OpenMS
+
 cdef extern from "<OpenMS/METADATA/Sample.h>" namespace "OpenMS::Sample":
 
     cdef enum SampleState:
