@@ -1,6 +1,7 @@
 from String cimport *
 from Software cimport *
 from MetaInfoInterface cimport *
+from libcpp.vector cimport vector as libcpp_vector
 
 cdef extern from "<OpenMS/METADATA/IonDetector.h>" namespace "OpenMS":
 
@@ -25,6 +26,12 @@ cdef extern from "<OpenMS/METADATA/IonDetector.h>" namespace "OpenMS":
 
         Int getOrder() except + nogil  # wrap-doc:Returns the order
         void setOrder(Int order) except + nogil  # wrap-doc:Sets the order
+
+        @staticmethod
+        libcpp_vector[String] getAllNamesOfType() except + nogil  # wrap-doc:Returns all detector type names known to OpenMS
+
+        @staticmethod
+        libcpp_vector[String] getAllNamesOfAcquisitionMode() except + nogil  # wrap-doc:Returns all acquisition mode names known to OpenMS
 
 cdef extern from "<OpenMS/METADATA/IonDetector.h>" namespace "OpenMS::IonDetector":
 
