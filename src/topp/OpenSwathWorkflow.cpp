@@ -393,6 +393,9 @@ protected:
       // one of the following two needs to be set
       p.setValue("tr_irt_nonlinear", "", "additional nonlinear transition file ('TraML'). Takes precedent even when `auto_rt` is set to 'true'");
 
+      // priority peptides for sampling
+      p.setValue("tr_irt_priority_sampling", "", "Optional custom transition file (TSV format only) containing additional priority peptides for iRT sampling. These peptides will be prioritized alongside the built-in irtkit and cirtkit peptides when `auto_irt` is enabled. Useful for including project-specific or custom iRT peptides.");
+
       p.setValue("rt_norm", "", "RT normalization file (how to map the RTs of this run to the ones stored in the library). If set, tr_irt may be omitted.");
 
       return p;
@@ -707,6 +710,7 @@ protected:
 
     String irt_tr_file = irt_calibration_params.getValue("tr_irt").toString();
     String nonlinear_irt_tr_file = irt_calibration_params.getValue("tr_irt_nonlinear").toString();
+    String priority_sampling_irt_tr_file = irt_calibration_params.getValue("tr_irt_priority_sampling").toString();
     String trafo_in = irt_calibration_params.getValue("rt_norm").toString();
     String swath_windows_file = getStringOption_("swath_windows_file");
 
@@ -774,6 +778,30 @@ protected:
         writeLogError_("Parameter error: --irt_bins must be > 0 when auto_irt is enabled.");
         return PARSE_ERROR;
       }
+      if (irt_pep_lin == 0)
+      {
+        writeLogError_("Parameter error: --irt_peptides_per_bin must be > 0 when auto_irt is enabled.");
+        return PARSE_ERROR;
+      }
+    }
+    
+    // Validate priority iRT sampling file format if provided
+    if (!priority_sampling_irt_tr_file.empty())
+    {
+      if (!File::exists(priority_sampling_irt_tr_file))
+      {
+        writeLogError_("Parameter error: Priority iRT file does not exist: " + priority_sampling_irt_tr_file);
+        return PARSE_ERROR;
+      }
+      
+      FileTypes::Type priority_file_type = FileHandler::getType(priority_sampling_irt_tr_file);
+      if (priority_file_type != FileTypes::TSV)
+      {
+        writeLogError_("Parameter error: Priority iRT file must be in TSV format. Provided: " + 
+                       FileTypes::typeToName(priority_file_type));
+        return PARSE_ERROR;
+      }
+    }
       if (irt_pep_lin == 0)
       {
         writeLogError_("Parameter error: --irt_peptides_per_bin must be > 0 when auto_irt is enabled.");
@@ -1005,6 +1033,16 @@ protected:
       else
       {
         OPENMS_LOG_WARN << "cirtkit.tsv not found at: " << cirtkit_path << std::endl;
+      }
+      
+      // Add custom priority iRT file if provided
+      if (!priority_sampling_irt_tr_file.empty())
+      {
+        if (File::exists(priority_sampling_irt_tr_file))
+        {
+          priority_files.push_back(priority_sampling_irt_tr_file);
+          OPENMS_LOG_DEBUG << "Including custom priority iRT file: " << priority_sampling_irt_tr_file << std::endl;
+        }
       }
       
       if (!priority_files.empty())
