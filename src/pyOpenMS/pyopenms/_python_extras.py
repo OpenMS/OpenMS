@@ -20,3 +20,37 @@ class SimpleOpenMSSpectraFactory:
         return SpectrumAccessOpenMS( exp )
 
 
+
+def read_mzML(filepath):
+    """
+    Convenience function to read mzML files and return an MSExperiment.
+    
+    This is a simple wrapper around MzMLFile().load() that creates and returns
+    an MSExperiment object in a single call. For more advanced options like
+    filtering by MS level, RT range, or m/z range, use MzMLFile directly
+    with PeakFileOptions.
+    
+    Parameters
+    ----------
+    filepath : str
+        Path to the mzML file to load
+    
+    Returns
+    -------
+    MSExperiment
+        The loaded experiment containing spectra and chromatograms
+        
+    Examples
+    --------
+    >>> import pyopenms as oms
+    >>> exp = oms.read_mzML("data/example.mzML")
+    >>> print(f"Loaded {len(exp.getSpectra())} spectra")
+    
+    See Also
+    --------
+    MzMLFile : For advanced loading options with filtering
+    MSExperiment : The returned data structure
+    """
+    exp = MSExperiment()
+    MzMLFile().load(filepath, exp)
+    return exp
