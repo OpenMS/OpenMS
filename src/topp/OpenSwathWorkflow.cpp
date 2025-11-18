@@ -802,12 +802,6 @@ protected:
         return PARSE_ERROR;
       }
     }
-      if (irt_pep_lin == 0)
-      {
-        writeLogError_("Parameter error: --irt_peptides_per_bin must be > 0 when auto_irt is enabled.");
-        return PARSE_ERROR;
-      }
-    }
 
     // Check swath window input
     if (!swath_windows_file.empty())
