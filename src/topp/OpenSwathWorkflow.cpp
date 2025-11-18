@@ -603,6 +603,60 @@ protected:
       }
     }
 
+  /**
+    @brief Load priority peptide sequences from TSV files (irtkit and cirtkit)
+    
+    Loads peptide sequences from the specified TSV files and returns them as a
+    set for quick lookup. Used to prioritize common iRT peptides during sampling.
+    
+    @param[in] tsv_files Vector of file paths to TSV files to load
+    @param[in] tsv_reader_param Parameters for the TSV reader
+    
+    @return Set of unique peptide sequences from the loaded files
+  */
+  std::unordered_set<std::string> loadPriorityPeptideSequences(
+    const std::vector<String>& tsv_files,
+    const Param& tsv_reader_param)
+  {
+    std::unordered_set<std::string> priority_sequences;
+    
+    for (const auto& tsv_file : tsv_files)
+    {
+      if (tsv_file.empty() || !File::exists(tsv_file))
+      {
+        OPENMS_LOG_WARN << "Priority peptide file not found: " << tsv_file << std::endl;
+        continue;
+      }
+      
+      try
+      {
+        FileTypes::Type file_type = FileHandler::getType(tsv_file);
+        OpenSwath::LightTargetedExperiment priority_exp = loadTransitionList(file_type, tsv_file, tsv_reader_param);
+        
+        for (const auto& compound : priority_exp.getCompounds())
+        {
+          if (!compound.sequence.empty())
+          {
+            priority_sequences.insert(compound.sequence);
+          }
+        }
+        
+        OPENMS_LOG_INFO << "Loaded " << priority_exp.getCompounds().size() 
+                        << " compounds from priority file: " << tsv_file << std::endl;
+      }
+      catch (const Exception::BaseException& e)
+      {
+        OPENMS_LOG_WARN << "Failed to load priority peptide file " << tsv_file 
+                        << ": " << e.what() << std::endl;
+      }
+    }
+    
+    OPENMS_LOG_INFO << "Total unique priority peptide sequences: " 
+                    << priority_sequences.size() << std::endl;
+    
+    return priority_sequences;
+  }
+
   ExitCodes main_(int, const char **) override
   {
     ///////////////////////////////////
@@ -925,6 +979,45 @@ protected:
     calibration_param.setValue("mz_estimation_padding_factor", getDoubleOption_("mz_estimation_padding_factor"));
     calibration_param.setValue("mz_correction_function", mz_correction_function);
 
+    // Load priority peptide sequences from irtkit and cirtkit if auto_irt is enabled
+    std::unordered_set<std::string> priority_peptides;
+    if (auto_irt)
+    {
+      String data_path = File::getOpenMSDataPath();
+      std::vector<String> priority_files;
+      
+      String irtkit_path = data_path + "/CHEMISTRY/irtkit.tsv";
+      String cirtkit_path = data_path + "/CHEMISTRY/cirtkit.tsv";
+      
+      if (File::exists(irtkit_path))
+      {
+        priority_files.push_back(irtkit_path);
+      }
+      else
+      {
+        OPENMS_LOG_WARN << "irtkit.tsv not found at: " << irtkit_path << std::endl;
+      }
+      
+      if (File::exists(cirtkit_path))
+      {
+        priority_files.push_back(cirtkit_path);
+      }
+      else
+      {
+        OPENMS_LOG_WARN << "cirtkit.tsv not found at: " << cirtkit_path << std::endl;
+      }
+      
+      if (!priority_files.empty())
+      {
+        Param priority_tsv_param = TransitionTSVFile().getDefaults();
+        priority_peptides = loadPriorityPeptideSequences(priority_files, priority_tsv_param);
+      }
+      else
+      {
+        OPENMS_LOG_WARN << "No priority peptide files found. Continuing without priority sampling." << std::endl;
+      }
+    }
+
     // 1) Prepare in‐memory iRT experiments for linear + nonlinear
     OpenSwath::LightTargetedExperiment lin_irt_exp;
     if (!irt_tr_file.empty())
@@ -949,7 +1042,8 @@ protected:
         irt_pep_lin,
         irt_seed,
         true,
-        0.4
+        0.4,
+        priority_peptides
       );
     }
 
@@ -976,7 +1070,8 @@ protected:
         irt_pep_nl,
         irt_seed,
         true,
-        0.7
+        0.7,
+        priority_peptides
       );
     }
 
