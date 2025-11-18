@@ -1188,7 +1188,10 @@ namespace OpenMS
 
       spectrum.sortByPosition();
       spectrum.updateRanges();
+      // ensure the output IM array is updated
+      spectrum.getFloatDataArrays()[im_data_index].setName("Ion Mobility");
       spectrum.setIMFormat(IMFormat::CENTROIDED);
+      removeAllFloatDataArraysExcept(spectrum, "Ion Mobility");
     } // End of pickIMCluster function
 
     void PeakPickerIM::pickIMElutionProfiles(MSSpectrum& input, double ppm_tolerance_elution_)
@@ -1273,7 +1276,10 @@ namespace OpenMS
       }
       input.sortByPosition(); // TODO: maybe needed
       input.updateRanges(); // TODO: maybe needed
+      // ensure the output im name is updated
+      input.getFloatDataArrays()[im_data_index].setName("Ion Mobility");
       input.setIMFormat(IMFormat::CENTROIDED);
+      removeAllFloatDataArraysExcept(input, "Ion Mobility");
     }
 
 } // namespace OpenMS
