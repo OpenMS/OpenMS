@@ -136,9 +136,9 @@ protected:
       mzml.load(input_file, exp);
 
 #pragma omp parallel for
-      for (Size i = 0; i < exp.size(); ++i)
+      for (SignedSize i = 0; i < static_cast<SignedSize>(exp.size()); ++i)
       {
-        MSSpectrum& spectrum = exp[i];
+        MSSpectrum& spectrum = exp[static_cast<Size>(i)];
 
         if (method == "mobilogram")
         {
