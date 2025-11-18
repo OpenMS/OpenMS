@@ -82,6 +82,7 @@ OpenMS Library:
       - Added automated iRT calibration using input transition list (#8146)
       - Added automated RT, m/z, and IM extraction window estimation based on iRT calibration (#8188)
       - Added lowess span grid search params and updated documentation for OpenSwathWorkflow TOPP tool (#8297)
+      - Added priority inclusion list for iRT sampling from PQP when using automated iRT calibration (#8373)
 
 
 
