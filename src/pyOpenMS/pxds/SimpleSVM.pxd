@@ -25,9 +25,9 @@ cdef extern from "<OpenMS/ML/SVM/SimpleSVM.h>" namespace "OpenMS":
                    const libcpp_map[Size, double]& outcomes,
                    bool classification) except + nogil
         void predict(libcpp_vector[SimpleSVM_Prediction]& predictions,
-                     libcpp_vector[Size] indexes) const except + nogil
+                     libcpp_vector[Size] indexes) except + nogil
         void predict(SimpleSVM_PredictorMap& predictors,
-                     libcpp_vector[SimpleSVM_Prediction]& predictions) const except + nogil
-        void getFeatureWeights(libcpp_map[String, double]& feature_weights) const except + nogil
-        void writeXvalResults(const String& path) const except + nogil
-        SimpleSVM_ScaleMap getScaling() const except + nogil
+                     libcpp_vector[SimpleSVM_Prediction]& predictions) except + nogil
+        void getFeatureWeights(libcpp_map[String, double]& feature_weights) except + nogil
+        void writeXvalResults(const String& path) except + nogil
+        SimpleSVM_ScaleMap getScaling() except + nogil
