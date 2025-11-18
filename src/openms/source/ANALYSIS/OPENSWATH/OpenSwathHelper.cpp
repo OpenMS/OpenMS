@@ -197,8 +197,7 @@ namespace OpenMS
     {
       if (good_ids.count(cmp.id))
       {
-        // Check if this peptide sequence is in the priority list
-        if (!priority_peptides.empty() && priority_peptides.count(cmp.sequence))
+        if (priority_peptides.count(cmp.sequence))
         {
           priority_candidates.push_back(cmp);
         }
