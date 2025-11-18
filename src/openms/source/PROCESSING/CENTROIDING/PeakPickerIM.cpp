@@ -842,6 +842,7 @@ namespace OpenMS
       // prepare picked ion mobility objects (we are internally using MSSpectrum object for downstram peak picking inputs).
       vector<MSSpectrum> picked_traces;
       // TODO: check why there are so many mobilogram_traces that are empty. leads to segfault later
+      // --- THIS IS ADDRESSED by Linear Resampling of mobilograms.
       mobilogram_traces.erase(
         std::remove_if(mobilogram_traces.begin(), mobilogram_traces.end(),
                    [](const auto& trace) { return trace.empty(); }),
