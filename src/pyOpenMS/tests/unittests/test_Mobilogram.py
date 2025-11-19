@@ -1,12 +1,8 @@
 import unittest
-import os
 
 import pyopenms
 
 class TestMobilogram(unittest.TestCase):
-
-    def setUp(self):
-        dirname = os.path.dirname(os.path.abspath(__file__))
 
     def testMobilogram(self):
         mobilogram = pyopenms.Mobilogram()
