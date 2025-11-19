@@ -98,7 +98,7 @@ class TestMobilogram(unittest.TestCase):
         mobilogram.setFloatDataArrays([fda])
         fdas = mobilogram.getFloatDataArrays()
         assert len(fdas) == 1
-        assert fdas[0].getName() == b"Signal to Noise Array"
+        assert fdas[0].getName() == "Signal to Noise Array"
 
     def testMobilogramCalculateTIC(self):
         mobilogram = pyopenms.Mobilogram()
