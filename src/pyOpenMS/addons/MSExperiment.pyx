@@ -232,37 +232,37 @@ import numpy as np
         """
         return RTAccessor(self)
 
-    # @rt.setter
-    # def rt(self, values):
-    #     """
-    #     Set retention times for all spectra.
+    @rt.setter
+    def rt(self, values):
+        """
+        Set retention times for all spectra.
         
-    #     Parameters
-    #     ----------
-    #     values : array-like
-    #         Array of retention times (in seconds) with length equal to number of spectra
+        Parameters
+        ----------
+        values : array-like
+            Array of retention times (in seconds) with length equal to number of spectra
             
-    #     Raises
-    #     ------
-    #     ValueError
-    #         If length of values doesn't match number of spectra
-    #     """
-    #     values_np = np.asarray(values, dtype=np.float64)
-    #     cdef size_t n_spectra = self.inst.get().getNrSpectra()
+        Raises
+        ------
+        ValueError
+            If length of values doesn't match number of spectra
+        """
+        values_np = np.asarray(values, dtype=np.float64)
+        cdef size_t n_spectra = self.inst.get().getNrSpectra()
         
-    #     if len(values_np) != n_spectra:
-    #         raise ValueError(f"Length of values ({len(values_np)}) must match number of spectra ({n_spectra})")
+        if len(values_np) != n_spectra:
+            raise ValueError(f"Length of values ({len(values_np)}) must match number of spectra ({n_spectra})")
         
-    #     # Get copy of all spectra
-    #     cdef libcpp_vector[_MSSpectrum] spectra = self.inst.get().getSpectra()
+        # Get copy of all spectra
+        cdef libcpp_vector[_MSSpectrum] spectra = self.inst.get().getSpectra()
         
-    #     # Modify the copy
-    #     cdef size_t i
-    #     for i in range(n_spectra):
-    #         spectra[i].setRT(values_np[i])
+        # Modify the copy
+        cdef size_t i
+        for i in range(n_spectra):
+            spectra[i].setRT(values_np[i])
         
-    #     # Set modified spectra back
-    #     self.inst.get().setSpectra(spectra)
+        # Set modified spectra back
+        self.inst.get().setSpectra(spectra)
 
     @property
     def tic(self):
