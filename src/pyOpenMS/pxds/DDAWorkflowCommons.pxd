@@ -1,4 +1,5 @@
 from libcpp.map cimport map as libcpp_map
+from libcpp.string cimport string as libcpp_string
 from String cimport *
 from StringList cimport *
 from MSExperiment cimport *
@@ -12,8 +13,8 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/DDAWorkflowCommons.h>" namespace
         DDAWorkflowCommons() except + nogil
         DDAWorkflowCommons(DDAWorkflowCommons&) except + nogil
 
-        libcpp_map[String, String] mapMzML2Ids(StringList& in_files, StringList& in_id_files) except + nogil
-        libcpp_map[String, String] mapId2MzMLs(const libcpp_map[String, String]& mz_to_id) except + nogil
+        libcpp_map[libcpp_string, libcpp_string] mapMzML2Ids(StringList& in_files, StringList& in_id_files) except + nogil
+        libcpp_map[libcpp_string, libcpp_string] mapId2MzMLs(const libcpp_map[libcpp_string, libcpp_string]& mz_to_id) except + nogil
         double estimateMedianChromatographicFWHM(MSExperiment& ms_centroided) except + nogil
         void recalibrateMS1(MSExperiment& ms_centroided,
                            PeptideIdentificationList& peptide_ids,
