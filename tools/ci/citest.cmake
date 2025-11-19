@@ -38,6 +38,7 @@ set(CTEST_CUSTOM_ERROR_MATCH
     "error: subprocess-exited-with-error"
     ".*FAILED:.*pyOpenMS.*"
     ".*pip wheel.*"
+	"Exception:*"
     )
 
 ctest_start(APPEND)
