@@ -1153,6 +1153,12 @@ add_test("TOPP_MapAlignerPoseClustering_4_out1" ${DIFF} -in1 MapAlignerPoseClust
 set_tests_properties("TOPP_MapAlignerPoseClustering_4_out1" PROPERTIES DEPENDS "TOPP_MapAlignerPoseClustering_4")
 add_test("TOPP_MapAlignerPoseClustering_4_out2" ${DIFF} -in1 MapAlignerPoseClustering_4_trafo2.tmp.trafoXML -in2 ${DATA_DIR_TOPP}/MapAlignerPoseClustering_1_trafo1.trafoXML )
 set_tests_properties("TOPP_MapAlignerPoseClustering_4_out2" PROPERTIES DEPENDS "TOPP_MapAlignerPoseClustering_4")
+# Test exception handling with blank mzML file (insufficient data for alignment):
+add_test("TOPP_MapAlignerPoseClustering_5" ${TOPP_BIN_PATH}/MapAlignerPoseClustering -test -ini ${DATA_DIR_TOPP}/MapAlignerPoseClustering_3_parameters.ini -in ${DATA_DIR_TOPP}/MapAlignerPoseClustering_2_input1.mzML ${DATA_DIR_TOPP}/MapAlignerPoseClustering_3_blank.mzML -out MapAlignerPoseClustering_5_output1.tmp.mzML MapAlignerPoseClustering_5_output2.tmp.mzML -trafo_out MapAlignerPoseClustering_5_trafo1.tmp.trafoXML MapAlignerPoseClustering_5_trafo2.tmp.trafoXML -reference:index 1)
+add_test("TOPP_MapAlignerPoseClustering_5_out1" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 MapAlignerPoseClustering_5_output2.tmp.mzML -in2 ${DATA_DIR_TOPP}/MapAlignerPoseClustering_3_blank_output.mzML )
+set_tests_properties("TOPP_MapAlignerPoseClustering_5_out1" PROPERTIES DEPENDS "TOPP_MapAlignerPoseClustering_5")
+add_test("TOPP_MapAlignerPoseClustering_5_out2" ${DIFF} -in1 MapAlignerPoseClustering_5_trafo2.tmp.trafoXML -in2 ${DATA_DIR_TOPP}/MapAlignerPoseClustering_3_blank_trafo.trafoXML )
+set_tests_properties("TOPP_MapAlignerPoseClustering_5_out2" PROPERTIES DEPENDS "TOPP_MapAlignerPoseClustering_5")
 
 #------------------------------------------------------------------------------
 # MapAlignerIdentification tests:
