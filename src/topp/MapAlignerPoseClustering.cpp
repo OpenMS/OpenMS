@@ -233,6 +233,13 @@ protected:
             writeLogError_("Illegal argument (" + String(e.getName()) + "): " + String(e.what()) + ".");
             trafo.fitModel("identity");
           }
+          catch (Exception::UnableToFit& e)
+          {
+            OPENMS_LOG_ERROR << "Aligning " << in_files[i] << " to reference " << in_files[reference_index]
+                             << " failed. No transformation will be applied (RT not changed for this file)." << endl;
+            writeLogError_("Unable to fit transformation (" + String(e.getName()) + "): " + String(e.what()) + ".");
+            trafo.fitModel("identity");
+          }
         }
 
         if (!out_files.empty())
@@ -253,7 +260,24 @@ protected:
         }
         else
         {
-          algorithm.align(map, trafo);
+          try
+          {
+            algorithm.align(map, trafo);
+          }
+          catch (Exception::IllegalArgument& e)
+          {
+            OPENMS_LOG_ERROR << "Aligning " << in_files[i] << " to reference " << in_files[reference_index]
+                             << " failed. No transformation will be applied (RT not changed for this file)." << endl;
+            writeLogError_("Illegal argument (" + String(e.getName()) + "): " + String(e.what()) + ".");
+            trafo.fitModel("identity");
+          }
+          catch (Exception::UnableToFit& e)
+          {
+            OPENMS_LOG_ERROR << "Aligning " << in_files[i] << " to reference " << in_files[reference_index]
+                             << " failed. No transformation will be applied (RT not changed for this file)." << endl;
+            writeLogError_("Unable to fit transformation (" + String(e.getName()) + "): " + String(e.what()) + ".");
+            trafo.fitModel("identity");
+          }
         }
         if (!out_files.empty())
         {
