@@ -92,3 +92,5 @@ cdef extern from "<OpenMS/KERNEL/Mobilogram.h>" namespace "OpenMS":
         void setFloatDataArrays(libcpp_vector[FloatDataArray] fda) except + nogil  # wrap-doc:Sets the float meta data arrays
         void setIntegerDataArrays(libcpp_vector[IntegerDataArray] ida) except + nogil  # wrap-doc:Sets the integer meta data arrays
         void setStringDataArrays(libcpp_vector[StringDataArray] sda) except + nogil  # wrap-doc:Sets the string meta data arrays
+
+        float calculateTIC() except + nogil  # wrap-doc:Compute the total ion count (sum of all peak intensities)

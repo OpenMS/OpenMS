@@ -100,5 +100,20 @@ class TestMobilogram(unittest.TestCase):
         assert len(fdas) == 1
         assert fdas[0].getName() == b"Signal to Noise Array"
 
+    def testMobilogramCalculateTIC(self):
+        mobilogram = pyopenms.Mobilogram()
+        p1 = pyopenms.MobilityPeak1D()
+        p1.setMobility(10.0)
+        p1.setIntensity(100.0)
+        mobilogram.push_back(p1)
+        
+        p2 = pyopenms.MobilityPeak1D()
+        p2.setMobility(20.0)
+        p2.setIntensity(200.0)
+        mobilogram.push_back(p2)
+        
+        tic = mobilogram.calculateTIC()
+        assert tic == 300.0
+
 if __name__ == '__main__':
     unittest.main()
