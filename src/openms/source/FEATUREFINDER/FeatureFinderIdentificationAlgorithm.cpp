@@ -32,6 +32,7 @@
 #include <numeric>
 #include <fstream>
 #include <algorithm>
+#include <string>
 #include <random>
 
 #ifdef _OPENMP
@@ -126,7 +127,7 @@ namespace OpenMS
     // exclude some redundant/uninformative scores:
     // @TODO: intensity bias introduced by "peak_apices_sum"?
     // names of scores to use as SVM features
-    String score_metavalues = "peak_apices_sum,var_xcorr_coelution,var_xcorr_shape,var_library_sangle,var_intensity_score,sn_ratio,var_log_sn_score,var_elution_model_fit_score,xx_lda_prelim_score,var_ms1_isotope_correlation_score,var_ms1_isotope_overlap_score,var_massdev_score,main_var_xx_swath_prelim_score";
+    std::string score_metavalues = "peak_apices_sum,var_xcorr_coelution,var_xcorr_shape,var_library_sangle,var_intensity_score,sn_ratio,var_log_sn_score,var_elution_model_fit_score,xx_lda_prelim_score,var_ms1_isotope_correlation_score,var_ms1_isotope_overlap_score,var_massdev_score,main_var_xx_swath_prelim_score";
 
     defaults_.setValue(
       "svm:predictors", 
@@ -284,8 +285,8 @@ namespace OpenMS
         offset_peptides.back().setRT(p.getRT());
         offset_peptides.back().setMZ(p.getMZ() + offset);
         offset_peptides.back().setMetaValue("FFId_category", "internal");
-        offset_peptides.back().setMetaValue("OffsetPeptide", "true");  // mark as offset peptide 
-        offset_peptides.back().setMetaValue("SeedFeatureID", String(UniqueIdGenerator::getUniqueId())); // also mark as seed so we can indicate that we have a mass without sequence
+        offset_peptides.back().setMetaValue("OffsetPeptide", "true");  // mark as offset peptide
+        offset_peptides.back().setMetaValue("SeedFeatureID", UniqueIdGenerator::getUniqueId()); // also mark as seed so we can indicate that we have a mass without sequence
       //}
     }
 
@@ -332,14 +333,14 @@ namespace OpenMS
             )
         {
           peptide_already_exists = true;
-          String seq = "empty";
+          std::string seq = "empty";
           int chg = 0;
           if (!peptide.getHits().empty())
           {
             seq = peptide.getHits()[0].getSequence().toString();
             chg = peptide.getHits()[0].getCharge();
           }
-          OPENMS_LOG_DEBUG_NOFILE << "Skipping seed from FeatureID " << String(feat.getUniqueId()) << " with CHG: " << seed_charge << "; RT: " << seed_RT << "; MZ: " << seed_MZ <<
+          OPENMS_LOG_DEBUG_NOFILE << "Skipping seed from FeatureID " << std::to_string(feat.getUniqueId()) << " with CHG: " << seed_charge << "; RT: " << seed_RT << "; MZ: " << seed_MZ <<
           " due to overlap with " << seq << "/" << chg << " at MZ: " << peptide_MZ << "; RT: " << peptide_RT << endl;
 
           break;
@@ -359,7 +360,7 @@ namespace OpenMS
         peptides.back().setRT(feat.getRT());
         peptides.back().setMZ(feat.getMZ());
         peptides.back().setMetaValue("FFId_category", "internal");
-        peptides.back().setMetaValue("SeedFeatureID", String(feat.getUniqueId()));
+        peptides.back().setMetaValue("SeedFeatureID", feat.getUniqueId());
         addPeptideToMap_(peptides.back(), peptide_map_);
         ++seeds_added;
       }
@@ -380,8 +381,8 @@ namespace OpenMS
   {
     if ((svm_n_samples_ > 0) && (svm_n_samples_ < 2 * svm_n_parts_))
     {
-      String msg = "Sample size of " + String(svm_n_samples_) +
-        " (parameter 'svm:samples') is not enough for " + String(svm_n_parts_) +
+      const std::string msg = "Sample size of " + std::to_string(svm_n_samples_) +
+        " (parameter 'svm:samples') is not enough for " + std::to_string(svm_n_parts_) +
         "-fold cross-validation (parameter 'svm:xval').";
       throw Exception::InvalidParameter(__FILE__, __LINE__,
                                         OPENMS_PRETTY_FUNCTION, msg);
@@ -735,8 +736,8 @@ namespace OpenMS
   {
     if ((svm_n_samples_ > 0) && (svm_n_samples_ < 2 * svm_n_parts_))
     {
-      String msg = "Sample size of " + String(svm_n_samples_) +
-        " (parameter 'svm:samples') is not enough for " + String(svm_n_parts_) +
+      const std::string msg = "Sample size of " + std::to_string(svm_n_samples_) +
+        " (parameter 'svm:samples') is not enough for " + std::to_string(svm_n_parts_) +
         "-fold cross-validation (parameter 'svm:xval').";
       throw Exception::InvalidParameter(__FILE__, __LINE__,
                                         OPENMS_PRETTY_FUNCTION, msg);
@@ -869,10 +870,10 @@ namespace OpenMS
 
             double mz = rt_pep.second->getMZ();
             double rt = rt_pep.second->getRT();
-            String uid = rt_pep.second->getMetaValue("SeedFeatureID");
+            const std::string uid = rt_pep.second->getMetaValue("SeedFeatureID").toString();
 
             // UID should be enough, but let's add the seed count to be sure.
-            String peptide_id = peptide.sequence + "[" + uid + "][" + String(seedcount) + "]/" + String(charge);
+            std::string peptide_id = peptide.sequence + "[" + uid + "][" + std::to_string(seedcount) + "]/" + std::to_string(charge);
             peptide.setChargeState(charge);
             peptide.id = peptide_id;
             peptide.protein_refs = {"not_available"};
@@ -953,7 +954,7 @@ namespace OpenMS
           double mz = seq.getMZ(charge);
           OPENMS_LOG_DEBUG << "\nPeptide " << peptide.sequence << "/" << charge << " (m/z: " << mz << "):" << endl;
           peptide.setChargeState(charge);
-          String peptide_id = peptide.sequence + "/" + String(charge);
+          std::string peptide_id = peptide.sequence + "/" + std::to_string(charge);
 
           // we want to detect one feature per peptide and charge state - if there
           // are multiple RT regions, group them together:
@@ -974,7 +975,7 @@ namespace OpenMS
 
               peptide.id = peptide_id;
               if (rt_regions.size() > 1)
-                peptide.id += ":" + String(++counter);
+                peptide.id += ":" + std::to_string(++counter);
 
               // store beginning and end of RT region:
               peptide.rts.clear();
@@ -1090,8 +1091,8 @@ namespace OpenMS
     for (const Peak1D& iso : iso_dist)
     {
       ReactionMonitoringTransition transition;
-      String annotation = "i" + String(counter + 1);
-      String transition_name = peptide_id + "_" + annotation;
+      std::string annotation = "i" + std::to_string(counter + 1);
+      std::string transition_name = peptide_id + "_" + annotation;
 
       transition.setNativeID(transition_name);
       transition.setPrecursorMZ(mz);
@@ -1164,7 +1165,7 @@ namespace OpenMS
   /// annotate identified features with m/z, isotope probabilities, etc.
   void FeatureFinderIdentificationAlgorithm::annotateFeatures_(FeatureMap& features, PeptideRefRTMap& ref_rt_map)
   {
-    String previous_ref, peptide_ref;
+    std::string previous_ref, peptide_ref;
     RTMap transformed_internal;
     Size i = 0;
     map<Size, vector<PeptideIdentification*> > feat_ids;
@@ -1181,11 +1182,11 @@ namespace OpenMS
       // annotate subordinates with theoretical isotope intensities:
       for (Feature& sub : feat.getSubordinates())
       {
-        String native_id = sub.getMetaValue("native_id");
+        std::string native_id = sub.getMetaValue("native_id").toString();
         sub.setMetaValue("isotope_probability", isotope_probs_[native_id]);
       }
 
-      peptide_ref = feat.getMetaValue("PeptideRef");
+      peptide_ref = feat.getMetaValue("PeptideRef").toString();
       // remove region number, if present:
       Size pos_slash = peptide_ref.rfind('/');
       Size pos_colon = peptide_ref.find(':', pos_slash + 2);
@@ -1212,7 +1213,7 @@ namespace OpenMS
           OPENMS_LOG_DEBUG << rtm.first << endl;
         }
 
-        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "RT internal and external are both empty for peptide '" + String(peptide_ref) + "' stored as '" + String(feat.getMetaValue("PeptideRef")) + "'.");
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "RT internal and external are both empty for peptide '" + peptide_ref + "' stored as '" + feat.getMetaValue("PeptideRef").toString() + "'.");
       }
 
       if (!rt_internal.empty()) // validate based on internal IDs
