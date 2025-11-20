@@ -11,6 +11,7 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/DATASTRUCTURES/StringConversions.h>
 
 #include <algorithm>
 #include <cmath>
@@ -702,62 +703,25 @@ namespace OpenMS
                            if false, use low precision (3 fractional digits)
       
       These functions replace the OpenMS::String(float/double, bool) constructors.
-      Note: For now using std::to_string. Can be enhanced to use boost::spirit::karma
-      for exact compatibility with String class behavior.
+      Implemented via StringConversions helpers to mirror the formatting used by
+      OpenMS::String (full- vs. low-precision).
     */
     static inline std::string fromNumber(float f, bool full_precision = true)
     {
-      if (full_precision)
-      {
-        // Use stringstream for precision control
-        std::ostringstream oss;
-        oss.precision(6); // 6 fractional digits for float
-        oss << f;
-        return oss.str();
-      }
-      else
-      {
-        std::ostringstream oss;
-        oss.precision(3); // 3 fractional digits (low precision)
-        oss << f;
-        return oss.str();
-      }
+      return full_precision ? StringConversions::toStdString(f)
+                            : StringConversions::toStdStringLowP(f);
     }
-    
+
     static inline std::string fromNumber(double d, bool full_precision = true)
     {
-      if (full_precision)
-      {
-        std::ostringstream oss;
-        oss.precision(15); // 15 fractional digits for double
-        oss << d;
-        return oss.str();
-      }
-      else
-      {
-        std::ostringstream oss;
-        oss.precision(3); // 3 fractional digits (low precision)
-        oss << d;
-        return oss.str();
-      }
+      return full_precision ? StringConversions::toStdString(d)
+                            : StringConversions::toStdStringLowP(d);
     }
-    
+
     static inline std::string fromNumber(long double ld, bool full_precision = true)
     {
-      if (full_precision)
-      {
-        std::ostringstream oss;
-        oss.precision(15); // 15 fractional digits for long double
-        oss << ld;
-        return oss.str();
-      }
-      else
-      {
-        std::ostringstream oss;
-        oss.precision(3); // 3 fractional digits (low precision)
-        oss << ld;
-        return oss.str();
-      }
+      return full_precision ? StringConversions::toStdString(ld)
+                            : StringConversions::toStdStringLowP(ld);
     }
 
     /**
