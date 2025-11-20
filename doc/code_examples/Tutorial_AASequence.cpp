@@ -14,8 +14,8 @@ using namespace std;
 
 int main()
 {
-  // generate AASequence object from String
-  const String s = "DEFIANGER";
+  // generate AASequence object from std::string
+  const std::string s = "DEFIANGER";
   AASequence peptide1 = AASequence::fromString(s);
 
   // ... or generate AASequence object from string literal
@@ -46,7 +46,7 @@ int main()
   cout << "Mass-to-charge of the doubly positively charged peptide: " << peptide_meth_ox.getMZ(2) << endl;
 
   // count AA's to get a frequency table
-  std::map<String, Size> aa_freq;
+  std::map<std::string, Size> aa_freq;
   peptide_meth_ox.getAAFrequencies(aa_freq);
   cout << "Number of Proline (P) residues in '" << peptide_meth_ox.toString() << "' is " << aa_freq['P'] << endl;
 

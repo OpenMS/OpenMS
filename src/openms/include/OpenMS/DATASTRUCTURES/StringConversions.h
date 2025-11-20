@@ -275,6 +275,64 @@ namespace OpenMS
       return String();
     }
 
+    // ============================================================================
+    // std::string conversion functions (for migration from OpenMS::String)
+    // ============================================================================
+    
+    /// Convert float to std::string with full precision (6 fractional digits)
+    inline std::string toStdString(float f)
+    {
+      std::string str;
+      std::back_insert_iterator<std::string> sink(str);
+      boost::spirit::karma::generate(sink, Detail::BK_PrecPolicyFloatFull, f);
+      return str;
+    }
+
+    /// Convert float to std::string with low precision (3 fractional digits)
+    inline std::string toStdStringLowP(float f)
+    {
+      std::string str;
+      std::back_insert_iterator<std::string> sink(str);
+      boost::spirit::karma::generate(sink, Detail::BK_PrecPolicyFloatShort, f);
+      return str;
+    }
+
+    /// Convert double to std::string with full precision (15 fractional digits)
+    inline std::string toStdString(double d)
+    {
+      std::string str;
+      std::back_insert_iterator<std::string> sink(str);
+      boost::spirit::karma::generate(sink, Detail::BK_PrecPolicyDoubleFull, d);
+      return str;
+    }
+
+    /// Convert double to std::string with low precision (3 fractional digits)
+    inline std::string toStdStringLowP(double d)
+    {
+      std::string str;
+      std::back_insert_iterator<std::string> sink(str);
+      boost::spirit::karma::generate(sink, Detail::BK_PrecPolicyDoubleShort, d);
+      return str;
+    }
+
+    /// Convert long double to std::string with full precision
+    inline std::string toStdString(long double ld)
+    {
+      std::string str;
+      std::back_insert_iterator<std::string> sink(str);
+      boost::spirit::karma::generate(sink, Detail::BK_PrecPolicyLongDoubleFull, ld);
+      return str;
+    }
+
+    /// Convert long double to std::string with low precision (3 fractional digits)
+    inline std::string toStdStringLowP(long double ld)
+    {
+      std::string str;
+      std::back_insert_iterator<std::string> sink(str);
+      boost::spirit::karma::generate(sink, Detail::BK_PrecPolicyLongDoubleShort, ld);
+      return str;
+    }
+
   }
 
 } // namespace OPENMS

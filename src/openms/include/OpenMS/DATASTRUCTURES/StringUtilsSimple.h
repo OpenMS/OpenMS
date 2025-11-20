@@ -645,6 +645,142 @@ namespace OpenMS
   
       return this_s;
     }
+
+    // ============================================================================
+    // String construction helper functions (for migration from OpenMS::String)
+    // ============================================================================
+    
+    /**
+      @brief Create std::string from integer types
+      These functions replace the OpenMS::String(int) constructors
+    */
+    static inline std::string fromNumber(int i)
+    {
+      return std::to_string(i);
+    }
+
+    static inline std::string fromNumber(unsigned int i)
+    {
+      return std::to_string(i);
+    }
+
+    static inline std::string fromNumber(short int i)
+    {
+      return std::to_string(i);
+    }
+
+    static inline std::string fromNumber(short unsigned int i)
+    {
+      return std::to_string(i);
+    }
+
+    static inline std::string fromNumber(long int i)
+    {
+      return std::to_string(i);
+    }
+
+    static inline std::string fromNumber(long unsigned int i)
+    {
+      return std::to_string(i);
+    }
+
+    static inline std::string fromNumber(long long unsigned int i)
+    {
+      return std::to_string(i);
+    }
+
+    static inline std::string fromNumber(long long signed int i)
+    {
+      return std::to_string(i);
+    }
+
+    /**
+      @brief Create std::string from floating point types with precision control
+      
+      @param value The number to convert
+      @param full_precision If true, use high precision (6 for float, 15 for double),
+                           if false, use low precision (3 fractional digits)
+      
+      These functions replace the OpenMS::String(float/double, bool) constructors.
+      Note: For now using std::to_string. Can be enhanced to use boost::spirit::karma
+      for exact compatibility with String class behavior.
+    */
+    static inline std::string fromNumber(float f, bool full_precision = true)
+    {
+      if (full_precision)
+      {
+        // Use stringstream for precision control
+        std::ostringstream oss;
+        oss.precision(6); // 6 fractional digits for float
+        oss << f;
+        return oss.str();
+      }
+      else
+      {
+        std::ostringstream oss;
+        oss.precision(3); // 3 fractional digits (low precision)
+        oss << f;
+        return oss.str();
+      }
+    }
+    
+    static inline std::string fromNumber(double d, bool full_precision = true)
+    {
+      if (full_precision)
+      {
+        std::ostringstream oss;
+        oss.precision(15); // 15 fractional digits for double
+        oss << d;
+        return oss.str();
+      }
+      else
+      {
+        std::ostringstream oss;
+        oss.precision(3); // 3 fractional digits (low precision)
+        oss << d;
+        return oss.str();
+      }
+    }
+    
+    static inline std::string fromNumber(long double ld, bool full_precision = true)
+    {
+      if (full_precision)
+      {
+        std::ostringstream oss;
+        oss.precision(15); // 15 fractional digits for long double
+        oss << ld;
+        return oss.str();
+      }
+      else
+      {
+        std::ostringstream oss;
+        oss.precision(3); // 3 fractional digits (low precision)
+        oss << ld;
+        return oss.str();
+      }
+    }
+
+    /**
+      @brief Create std::string from char
+      Replaces OpenMS::String(char) constructor
+    */
+    static inline std::string fromChar(char c)
+    {
+      return std::string(1, c);
+    }
+
+    /**
+      @brief Create std::string with repeated character
+      
+      @param len Number of repetitions
+      @param c Character to repeat
+      
+      Replaces OpenMS::String(size_t len, char c) constructor
+    */
+    static inline std::string fromRepeatedChar(size_t len, char c)
+    {
+      return std::string(len, c);
+    }
   
   }
 
