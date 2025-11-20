@@ -46,7 +46,8 @@
         if not isinstance(other, String):
             return False
         # Use the C++ operator== for comparison
-        return self.inst.get()[0] == (other.inst.get()[0])
+        # Dereference both shared_ptrs to get the String objects
+        return self.inst.get()[0] == other.inst.get()[0]
 
     def __hash__(self):
         """Return hash of the String using the underlying c_str()"""
