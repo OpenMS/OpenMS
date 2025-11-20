@@ -6054,6 +6054,58 @@ def testString():
     # assert( isinstance(r, bytes) )
     assert(r.decode("iso8859_15") == u"bläh")
 
+    # Test __eq__ functionality
+    str1 = pyopenms.String("test")
+    str2 = pyopenms.String("test")
+    str3 = pyopenms.String("different")
+    
+    # Test equality between same strings
+    assert str1 == str2
+    # Test inequality between different strings
+    assert str1 != str3
+    # Test equality with unicode strings
+    ustr1 = pyopenms.String(u"tëst")
+    ustr2 = pyopenms.String(u"tëst")
+    assert ustr1 == ustr2
+    # Test inequality with different types
+    assert str1 != "test"  # String vs str
+    assert str1 != 42      # String vs int
+    
+    # Test __hash__ functionality
+    str1 = pyopenms.String("hashable")
+    str2 = pyopenms.String("hashable")
+    str3 = pyopenms.String("different")
+    
+    # Test that equal strings have equal hashes
+    assert hash(str1) == hash(str2)
+    # Test that different strings likely have different hashes
+    # (hash collisions are possible but unlikely for simple strings)
+    assert hash(str1) != hash(str3)
+    
+    # Test String can be used in a set
+    string_set = set()
+    string_set.add(pyopenms.String("one"))
+    string_set.add(pyopenms.String("two"))
+    string_set.add(pyopenms.String("one"))  # duplicate
+    assert len(string_set) == 2
+    assert pyopenms.String("one") in string_set
+    assert pyopenms.String("three") not in string_set
+    
+    # Test String can be used as dictionary keys
+    string_dict = {}
+    key1 = pyopenms.String("key1")
+    key2 = pyopenms.String("key2")
+    string_dict[key1] = "value1"
+    string_dict[key2] = "value2"
+    assert len(string_dict) == 2
+    assert string_dict[pyopenms.String("key1")] == "value1"
+    assert string_dict[pyopenms.String("key2")] == "value2"
+    
+    # Test with unicode strings
+    ukey1 = pyopenms.String(u"ünïcödë")
+    string_dict[ukey1] = "unicode_value"
+    assert string_dict[pyopenms.String(u"ünïcödë")] == "unicode_value"
+
 @report
 def testGNPSExport():
     cm = pyopenms.ConsensusMap()

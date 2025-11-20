@@ -41,6 +41,17 @@
     def __repr__(self):
         return f"String('{self.toString()}')"
 
+    def __eq__(self, other):
+        """Compare two String objects for equality"""
+        if not isinstance(other, String):
+            return False
+        # Use the C++ operator== for comparison
+        return self.inst.get()[0] == (other.inst.get()[0])
+
+    def __hash__(self):
+        """Return hash of the String using the underlying c_str()"""
+        return hash(self.c_str())
+
     # TODO does this really need to be callable from python? How about cdef?
     def c_str(self):
         """Cython signature: const_char * c_str()"""
