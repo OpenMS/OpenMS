@@ -117,11 +117,11 @@ protected:
     //-------------------------------------------------------------
     // parsing parameters
     //-------------------------------------------------------------
-    String in(getStringOption_("in"));
-    String ids(getStringOption_("id"));
-    String method(getStringOption_("method"));
+    std::string in(getStringOption_("in"));
+    std::string ids(getStringOption_("id"));
+    std::string method(getStringOption_("method"));
     bool whitelist = (method == "whitelist");
-    String out(getStringOption_("out"));
+    std::string out(getStringOption_("out"));
 
     //! [doxygen_snippet_InputParam]
 
