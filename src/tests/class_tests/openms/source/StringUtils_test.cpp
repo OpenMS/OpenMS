@@ -504,6 +504,92 @@ START_SECTION((static String& removeWhitespaces(String &this_s)))
 }
 END_SECTION
 
+/////////////////////////////////////////////////////////////
+// Tests for new std::string construction helper functions
+/////////////////////////////////////////////////////////////
+
+START_SECTION((static std::string fromNumber(int)))
+{
+  TEST_EQUAL(StringUtils::fromNumber(0), "0")
+  TEST_EQUAL(StringUtils::fromNumber(123), "123")
+  TEST_EQUAL(StringUtils::fromNumber(-456), "-456")
+  TEST_EQUAL(StringUtils::fromNumber(2147483647), "2147483647")  // INT_MAX
+}
+END_SECTION
+
+START_SECTION((static std::string fromNumber(unsigned int)))
+{
+  TEST_EQUAL(StringUtils::fromNumber(0u), "0")
+  TEST_EQUAL(StringUtils::fromNumber(123u), "123")
+  TEST_EQUAL(StringUtils::fromNumber(4294967295u), "4294967295")  // UINT_MAX
+}
+END_SECTION
+
+START_SECTION((static std::string fromNumber(long long)))
+{
+  TEST_EQUAL(StringUtils::fromNumber(0LL), "0")
+  TEST_EQUAL(StringUtils::fromNumber(9223372036854775807LL), "9223372036854775807")  // LLONG_MAX
+  TEST_EQUAL(StringUtils::fromNumber(-9223372036854775807LL - 1), "-9223372036854775808")  // LLONG_MIN
+}
+END_SECTION
+
+START_SECTION((static std::string fromNumber(float, bool)))
+{
+  // Test full precision (default)
+  std::string s1 = StringUtils::fromNumber(3.14159f, true);
+  TEST_EQUAL(s1.find("3.14"), 0)  // Should start with 3.14
+  
+  // Test low precision
+  std::string s2 = StringUtils::fromNumber(3.14159f, false);
+  TEST_EQUAL(s2.find("3.14"), 0)  // Should start with 3.14
+  
+  // Test zero
+  TEST_EQUAL(StringUtils::fromNumber(0.0f, true), "0")
+  
+  // Test negative
+  std::string s3 = StringUtils::fromNumber(-2.718f, true);
+  TEST_EQUAL(s3.find("-2.718"), 0)
+}
+END_SECTION
+
+START_SECTION((static std::string fromNumber(double, bool)))
+{
+  // Test full precision (default)
+  std::string s1 = StringUtils::fromNumber(3.14159265358979, true);
+  TEST_EQUAL(s1.find("3.14159"), 0)  // Should contain precision
+  
+  // Test low precision
+  std::string s2 = StringUtils::fromNumber(3.14159265358979, false);
+  TEST_EQUAL(s2.find("3.14"), 0)  // Lower precision
+  
+  // Test zero
+  TEST_EQUAL(StringUtils::fromNumber(0.0, true), "0")
+  
+  // Test negative
+  std::string s3 = StringUtils::fromNumber(-2.718281828, true);
+  TEST_EQUAL(s3.find("-2.718"), 0)
+}
+END_SECTION
+
+START_SECTION((static std::string fromChar(char)))
+{
+  TEST_EQUAL(StringUtils::fromChar('A'), "A")
+  TEST_EQUAL(StringUtils::fromChar('z'), "z")
+  TEST_EQUAL(StringUtils::fromChar('0'), "0")
+  TEST_EQUAL(StringUtils::fromChar(' '), " ")
+  TEST_EQUAL(StringUtils::fromChar('\n'), "\n")
+}
+END_SECTION
+
+START_SECTION((static std::string fromRepeatedChar(size_t, char)))
+{
+  TEST_EQUAL(StringUtils::fromRepeatedChar(0, 'x'), "")
+  TEST_EQUAL(StringUtils::fromRepeatedChar(1, 'A'), "A")
+  TEST_EQUAL(StringUtils::fromRepeatedChar(5, '-'), "-----")
+  TEST_EQUAL(StringUtils::fromRepeatedChar(10, '='), "==========")
+}
+END_SECTION
+
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
