@@ -22,6 +22,7 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
+#include <OpenMS/DATASTRUCTURES/StringUtilsSimple.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/MATH/MathFunctions.h>
@@ -233,7 +234,7 @@ namespace OpenMS
   {
     // WARNING: Superhack! Use unique ID to distinguish seeds from real IDs. Use a mod that will never occur to
     // make them truly unique and not be converted to an actual modification.
-    const String pseudo_mod_name = String(10000);
+    const std::string pseudo_mod_name = StringUtils::fromNumber(10000);
     AASequence some_seq = AASequence::fromString("XXX[" + pseudo_mod_name + "]");
 
     PeptideIdentificationList offset_peptides;
@@ -303,7 +304,7 @@ namespace OpenMS
     size_t seeds_added{};
     // WARNING: Superhack! Use unique ID to distinguish seeds from real IDs. Use a mod that will never occur to
     // make them truly unique and not be converted to an actual modification.
-    const String pseudo_mod_name = String(10000);
+    const std::string pseudo_mod_name = StringUtils::fromNumber(10000);
     AASequence some_seq = AASequence::fromString("XXX[" + pseudo_mod_name + "]");
     for (const Feature& feat : seeds)
     {
