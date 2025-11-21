@@ -358,7 +358,7 @@ START_SECTION(countLabelsAndTransitionTypes(const Feature & component_group, con
   transition.setQuantifyingTransition(true);
   transitions.addTransition(transition);
 
-  std::map<String,int> test1 = mrmff.countLabelsAndTransitionTypes(component_1, transitions);
+  auto test1 = mrmff.countLabelsAndTransitionTypes(component_1, transitions);
   TEST_EQUAL(test1["n_heavy"], 1);
   TEST_EQUAL(test1["n_light"], 2);
   TEST_EQUAL(test1["n_quantifying"], 2);

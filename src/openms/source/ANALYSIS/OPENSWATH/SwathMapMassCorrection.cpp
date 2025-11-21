@@ -130,7 +130,7 @@ namespace OpenMS
   }
 
   void SwathMapMassCorrection::correctIM(
-    const std::map<String, OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType *> & transition_group_map,
+    const std::map<std::string, OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType *> & transition_group_map,
     const OpenSwath::LightTargetedExperiment& targeted_exp,
     const std::vector< OpenSwath::SwathMap > & swath_maps,
     const bool pasef,
@@ -436,7 +436,7 @@ namespace OpenMS
   }
 
   void SwathMapMassCorrection::correctMZ(
-    const std::map<String, OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType *> & transition_group_map,
+    const std::map<std::string, OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType *> & transition_group_map,
     const OpenSwath::LightTargetedExperiment& targeted_exp,
     std::vector< OpenSwath::SwathMap > & swath_maps,
     const bool pasef)

@@ -252,7 +252,7 @@ public:
 
       @return Map of labels/transition types and their corresponding number.
     */
-    std::map<String,int> countLabelsAndTransitionTypes(const Feature& component_group,
+    std::map<std::string,int> countLabelsAndTransitionTypes(const Feature& component_group,
       const TargetedExperiment& transitions) const;
 
     /**

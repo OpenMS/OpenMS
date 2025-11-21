@@ -103,7 +103,7 @@ protected:
     const String& key,
     const String& value,
     const String& boundary,
-    std::map<String, std::pair<double,double>>& meta_values_qc
+    std::map<std::string, std::pair<double,double>>& meta_values_qc
   ) const;
 
   /**

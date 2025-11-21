@@ -60,7 +60,7 @@ public:
         Int ssl,
         MRMFeatureSelector::VariableType vt,
         double ot,
-        std::map<String, MRMFeatureSelector::LambdaScore>& sw
+        std::map<std::string, MRMFeatureSelector::LambdaScore>& sw
       ) :
         nn_threshold(nn),
         locality_weight(lw),
@@ -78,7 +78,7 @@ public:
       Int    segment_step_length     = 4; ///< Number of of components or component groups to shift the `segment_window_length` at each loop
       MRMFeatureSelector::VariableType variable_type = MRMFeatureSelector::VariableType::CONTINUOUS; ///< INTEGER or CONTINUOUS
       double optimal_threshold       = 0.5; ///< Value above which the transition group or transition is considered optimal (0 < x < 1)
-      std::map<String, MRMFeatureSelector::LambdaScore> score_weights; ///< Weights for the scores
+      std::map<std::string, MRMFeatureSelector::LambdaScore> score_weights; ///< Weights for the scores
     };
 
     /**
@@ -93,7 +93,7 @@ public:
     */
     virtual void optimize(
       const std::vector<std::pair<double, String>>& time_to_name,
-      const std::map<String, std::vector<Feature>>& feature_name_map,
+      const std::map<std::string, std::vector<Feature>>& feature_name_map,
       std::vector<String>& result,
       const SelectorParameters& parameters
     ) const = 0;
@@ -144,7 +144,7 @@ protected:
 
       @return Computed score
     */
-    double computeScore_(const Feature& feature, const std::map<String, LambdaScore>& score_weights) const;
+    double computeScore_(const Feature& feature, const std::map<std::string, LambdaScore>& score_weights) const;
 
     /**
       Add constraint to the LP problem instantiated in `optimize()`
@@ -181,7 +181,7 @@ private:
     void constructTargTransList_(
       const FeatureMap& features,
       std::vector<std::pair<double, String>>& time_to_name,
-      std::map<String, std::vector<Feature>>& feature_name_map,
+      std::map<std::string, std::vector<Feature>>& feature_name_map,
       const bool select_transition_group
     ) const;
 
@@ -226,7 +226,7 @@ public:
     */
     void optimize(
       const std::vector<std::pair<double, String>>& time_to_name,
-      const std::map<String, std::vector<Feature>>& feature_name_map,
+      const std::map<std::string, std::vector<Feature>>& feature_name_map,
       std::vector<String>& result,
       const SelectorParameters& parameters
     ) const override;
@@ -250,7 +250,7 @@ public:
     */
     void optimize(
       const std::vector<std::pair<double, String>>& time_to_name,
-      const std::map<String, std::vector<Feature>>& feature_name_map,
+      const std::map<std::string, std::vector<Feature>>& feature_name_map,
       std::vector<String>& result,
       const SelectorParameters& parameters
     ) const override;
@@ -265,7 +265,7 @@ public:
     void constructTargTransList_(
       const FeatureMap& features,
       std::vector<std::pair<double, String>>& time_to_name,
-      std::map<String, std::vector<Feature>>& feature_name_map,
+      std::map<std::string, std::vector<Feature>>& feature_name_map,
       const bool select_transition_group
     ) const
     {
@@ -277,7 +277,7 @@ public:
       return selector_.weightScore_(score, lambda_score);
     }
 
-    double computeScore_(const Feature& feature, const std::map<String, LambdaScore>& score_weights) const
+    double computeScore_(const Feature& feature, const std::map<std::string, LambdaScore>& score_weights) const
     {
       return selector_.computeScore_(feature, score_weights);
     }

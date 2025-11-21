@@ -54,10 +54,10 @@ namespace OpenMS
 
   public:
     /// Mapping from predictor name to vector of predictor values
-    typedef std::map<String, std::vector<double> > PredictorMap;
+    typedef std::map<std::string, std::vector<double> > PredictorMap;
 
     /// Mapping from predictor name to predictor min and max
-    typedef std::map<String, std::pair<double, double> > ScaleMap;
+    typedef std::map<std::string, std::pair<double, double> > ScaleMap;
 
     /// SVM/SVR prediction result
     struct Prediction
@@ -124,7 +124,7 @@ namespace OpenMS
 
        @throw Exception::Precondition if no model has been trained, or if the classification involves more than two classes
     */
-    void getFeatureWeights(std::map<String, double>& feature_weights) const;
+    void getFeatureWeights(std::map<std::string, double>& feature_weights) const;
 
     /// Write cross-validation (parameter optimization) results to a CSV file
     void writeXvalResults(const String& path) const;

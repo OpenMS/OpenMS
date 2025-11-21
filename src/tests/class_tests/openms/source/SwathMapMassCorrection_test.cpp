@@ -23,7 +23,7 @@ using namespace OpenMS;
 
 typedef OpenSwath::LightTransition TransitionType;
 
-typedef std::map<String, OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType *> TransitionGroupMapPtrType;
+typedef std::map<std::string, OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType *> TransitionGroupMapPtrType;
 
 OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType getData()
 {
@@ -157,7 +157,7 @@ START_SECTION( void correctMZ(OpenMS::MRMFeatureFinderScoring::TransitionGroupMa
   OpenSwath::LightTargetedExperiment targ_exp = addTransitions(transition_group);
 
   // Add one group to the map
-  std::map<String, OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType *> transition_group_map;
+  std::map<std::string, OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType *> transition_group_map;
   transition_group_map["group1"] = &transition_group;
   transition_group_map["group2"] = &transition_group;
   transition_group_map["group3"] = &transition_group;
@@ -408,7 +408,7 @@ START_SECTION( void correctMZ(OpenMS::MRMFeatureFinderScoring::TransitionGroupMa
 }
 END_SECTION
 
-START_SECTION( void correctIM(const std::map<String, OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType *> & transition_group_map, const std::vector< OpenSwath::SwathMap > & swath_maps, const bool pasef, TransformationDescription& im_trafo))
+START_SECTION( void correctIM(const std::map<std::string, OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType *> & transition_group_map, const std::vector< OpenSwath::SwathMap > & swath_maps, const bool pasef, TransformationDescription& im_trafo))
 {
 
   // m/z targets for correction are : 500.00, 600.00, 700.00, 800.00, 900.00, 950.00
@@ -428,7 +428,7 @@ START_SECTION( void correctIM(const std::map<String, OpenMS::MRMFeatureFinderSco
   bool pasef = false;
 
   // Add one group to the map
-  std::map<String, OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType *> transition_group_map;
+  std::map<std::string, OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType *> transition_group_map;
   transition_group_map["group1"] = &gr1;
   transition_group_map["group2"] = &gr2;
   transition_group_map["group3"] = &gr3;

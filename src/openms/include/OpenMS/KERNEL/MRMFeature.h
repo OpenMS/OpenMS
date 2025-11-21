@@ -112,10 +112,10 @@ protected:
     OpenSwath_Scores pg_scores_;
 
     /// map native ids to the features
-    std::map<String, int> feature_map_;
+    std::map<std::string, int> feature_map_;
 
     /// map native ids to the precursor features
-    std::map<String, int> precursor_feature_map_;
+    std::map<std::string, int> precursor_feature_map_;
 
   };
 }

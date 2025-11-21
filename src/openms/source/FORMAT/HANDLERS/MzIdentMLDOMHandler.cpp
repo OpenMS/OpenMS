@@ -621,7 +621,7 @@ namespace OpenMS::Internal
               {
                 set<String> software_terms;
                 cv_.getAllChildTerms(software_terms, "MS:1000531");
-                for (map<String, vector<CVTerm> >::const_iterator it = swn.first.getCVTerms().begin(); it != swn.first.getCVTerms().end(); ++it)
+                for (map<std::string, vector<CVTerm> >::const_iterator it = swn.first.getCVTerms().begin(); it != swn.first.getCVTerms().end(); ++it)
                 {
                   if (software_terms.find(it->first) != software_terms.end())
                   {
@@ -965,7 +965,7 @@ namespace OpenMS::Internal
 
                   if (!specificity_rules.empty())
                   {
-                    for (map<String, vector<CVTerm> >::const_iterator spci = specificity_rules.getCVTerms().begin(); spci != specificity_rules.getCVTerms().end(); ++spci)
+                    for (map<std::string, vector<CVTerm> >::const_iterator spci = specificity_rules.getCVTerms().begin(); spci != specificity_rules.getCVTerms().end(); ++spci)
                     {
                       if (spci->second.front().getAccession() == "MS:1001189")  // nterm
                       {
@@ -1052,7 +1052,7 @@ namespace OpenMS::Internal
                     set<String> enzymes_terms;
                     cv_.getAllChildTerms(enzymes_terms, "MS:1001045"); // cleavage agent name
                     pair<CVTermList, map<String, DataValue> > params = parseParamGroup_(sub->getChildNodes());
-                    for (map<String, vector<CVTerm> >::const_iterator it = params.first.getCVTerms().begin(); it != params.first.getCVTerms().end(); ++it)
+                    for (map<std::string, vector<CVTerm> >::const_iterator it = params.first.getCVTerms().begin(); it != params.first.getCVTerms().end(); ++it)
                     {
                       if (enzymes_terms.find(it->first) != enzymes_terms.end())
                       {
@@ -1077,7 +1077,7 @@ namespace OpenMS::Internal
             {
               pair<CVTermList, map<String, DataValue> > params = parseParamGroup_(child->getChildNodes());
               //+- take the numerically greater
-              for (map<String, vector<CVTerm> >::const_iterator it = params.first.getCVTerms().begin(); it != params.first.getCVTerms().end(); ++it)
+              for (map<std::string, vector<CVTerm> >::const_iterator it = params.first.getCVTerms().begin(); it != params.first.getCVTerms().end(); ++it)
               {
                 f_tol = max(f_tol, it->second.front().getValue().toString().toDouble());
                 sp.fragment_mass_tolerance = f_tol;
@@ -1091,7 +1091,7 @@ namespace OpenMS::Internal
             {
               pair<CVTermList, map<String, DataValue> > params = parseParamGroup_(child->getChildNodes());
               //+- take the numerically greater
-              for (map<String, vector<CVTerm> >::const_iterator it = params.first.getCVTerms().begin(); it != params.first.getCVTerms().end(); ++it)
+              for (map<std::string, vector<CVTerm> >::const_iterator it = params.first.getCVTerms().begin(); it != params.first.getCVTerms().end(); ++it)
               {
                 p_tol = max(p_tol, it->second.front().getValue().toString().toDouble());
                 sp.precursor_mass_tolerance = p_tol;
@@ -1120,7 +1120,7 @@ namespace OpenMS::Internal
           bool use_thresh = false;
           set<String> threshold_terms;
           cv_.getAllChildTerms(threshold_terms, "MS:1002482"); //statistical threshold
-          for (map<String, vector<OpenMS::CVTerm> >::const_iterator thit = tcv.getCVTerms().begin(); thit != tcv.getCVTerms().end(); ++thit)
+          for (map<std::string, vector<OpenMS::CVTerm> >::const_iterator thit = tcv.getCVTerms().begin(); thit != tcv.getCVTerms().end(); ++thit)
           {
             if (threshold_terms.find(thit->first) != threshold_terms.end())
             {
@@ -1325,7 +1325,7 @@ namespace OpenMS::Internal
               pep_id_->back().sort();
 
               //adopt cv s
-              for (map<String, vector<CVTerm> >::const_iterator cvit =  params.first.getCVTerms().begin(); cvit != params.first.getCVTerms().end(); ++cvit)
+              for (map<std::string, vector<CVTerm> >::const_iterator cvit =  params.first.getCVTerms().begin(); cvit != params.first.getCVTerms().end(); ++cvit)
               {
                 // check for retention time or scan time entry
                 /* N.B.: MzIdentML does not impose the requirement to store
@@ -2008,7 +2008,7 @@ namespace OpenMS::Internal
       e_score_terms.insert(e_score_tmp.begin(),e_score_tmp.end()); //E-value for peptides
       cv_.getAllChildTerms(specific_score_terms, "MS:1001143"); //search engine specific score for PSMs
       bool scoretype = false;
-      for (map<String, vector<OpenMS::CVTerm>>::const_iterator scoreit = param_cv.getCVTerms().begin(); scoreit != param_cv.getCVTerms().end(); ++scoreit)
+      for (map<std::string, vector<OpenMS::CVTerm>>::const_iterator scoreit = param_cv.getCVTerms().begin(); scoreit != param_cv.getCVTerms().end(); ++scoreit)
       {
         if (q_score_terms.find(scoreit->first) != q_score_terms.end() || scoreit->first == "MS:1002354")
         {
@@ -2975,7 +2975,7 @@ namespace OpenMS::Internal
     ProteinIdentification::SearchParameters MzIdentMLDOMHandler::findSearchParameters_(pair<CVTermList, map<String, DataValue> > as_params)
     {
       ProteinIdentification::SearchParameters sp = ProteinIdentification::SearchParameters();
-      for (std::map<String, vector<CVTerm> >::const_iterator cvs = as_params.first.getCVTerms().begin(); cvs != as_params.first.getCVTerms().end(); ++cvs)
+      for (std::map<std::string, vector<CVTerm> >::const_iterator cvs = as_params.first.getCVTerms().begin(); cvs != as_params.first.getCVTerms().end(); ++cvs)
       {
         for (vector<CVTerm>::const_iterator cvit = cvs->second.begin(); cvit != cvs->second.end(); ++cvit)
         {

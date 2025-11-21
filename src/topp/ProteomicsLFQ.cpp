@@ -819,7 +819,7 @@ protected:
 
   ExitCodes quantifyFraction_(
     const pair<unsigned int, std::vector<String> > & ms_files, 
-    const map<String, String>& mzfile2idfile,
+    const map<std::string, String>& mzfile2idfile,
     const String& in_db,
     double median_fwhm,
     ConsensusMap & consensus_fraction,
@@ -1003,7 +1003,7 @@ protected:
           vector<SimpleSVM::Prediction> predictions;
           OPENMS_LOG_INFO << "Predicting class probabilities:" << endl;
           svm.predict(predictions);
-          std::map<String, double> feature_weights;
+          std::map<std::string, double> feature_weights;
           svm.getFeatureWeights(feature_weights);
   
           // assign quant probabilities to feature
@@ -1517,8 +1517,8 @@ protected:
 
     // Map between mzML file and corresponding id file
     // We assume that these are provided in the exact same order.
-    map<String, String> mzfile2idfile = DDAWorkflowCommons::mapMzML2Ids(in, in_ids);
-    map<String, String> idfile2mzfile = DDAWorkflowCommons::mapId2MzMLs(mzfile2idfile);
+    map<std::string, String> mzfile2idfile = DDAWorkflowCommons::mapMzML2Ids(in, in_ids);
+    map<std::string, String> idfile2mzfile = DDAWorkflowCommons::mapId2MzMLs(mzfile2idfile);
 
     // TODO maybe check if mzMLs in experimental design match to mzMLs passed as in parameter
     //  IF both are present

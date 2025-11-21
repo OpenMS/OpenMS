@@ -75,7 +75,7 @@ public:
     // a transition group holds the chromatographic data and peaks across
     // multiple chromatograms from the same compound
     typedef MRMTransitionGroup< MSChromatogram, TransitionType> MRMTransitionGroupType;
-    typedef std::map<String, MRMTransitionGroupType> TransitionGroupMapType;
+    typedef std::map<std::string, MRMTransitionGroupType> TransitionGroupMapType;
 
     //@}
 

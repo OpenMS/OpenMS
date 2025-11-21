@@ -299,14 +299,14 @@ public:
     /// Ensure that chromatogram native ids match their keys in the map
     inline bool chromatogramIdsMatch() const
     {
-      for (std::map<String, int>::const_iterator it = chromatogram_map_.begin(); it != chromatogram_map_.end(); it++)
+      for (std::map<std::string, int>::const_iterator it = chromatogram_map_.begin(); it != chromatogram_map_.end(); it++)
       {
         if (getChromatogram(it->first).getNativeID() != it->first)
         {
           return false;
         }
       }
-      for (std::map<String, int>::const_iterator it = precursor_chromatogram_map_.begin(); it != precursor_chromatogram_map_.end(); it++)
+      for (std::map<std::string, int>::const_iterator it = precursor_chromatogram_map_.begin(); it != precursor_chromatogram_map_.end(); it++)
       {
         if (getPrecursorChromatogram(it->first).getNativeID() != it->first)
         {
@@ -441,7 +441,7 @@ protected:
       {
         return false;
       }
-      for (std::map<String, int>::const_iterator it = chromatogram_map_.begin(); it != chromatogram_map_.end(); it++)
+      for (std::map<std::string, int>::const_iterator it = chromatogram_map_.begin(); it != chromatogram_map_.end(); it++)
       {
         if (!hasTransition(it->first)) 
         {
@@ -466,9 +466,9 @@ protected:
     /// feature list
     MRMFeatureListType mrm_features_;
 
-    std::map<String, int> chromatogram_map_;
-    std::map<String, int> precursor_chromatogram_map_;
-    std::map<String, int> transition_map_;
+    std::map<std::string, int> chromatogram_map_;
+    std::map<std::string, int> precursor_chromatogram_map_;
+    std::map<std::string, int> transition_map_;
 
   };
 }

@@ -1105,7 +1105,7 @@ namespace OpenMS
     }
   }
 
-  void TargetedSpectraExtractor::BinnedSpectrumComparator::init(const std::vector<MSSpectrum>& library, const std::map<String,DataValue>& options)
+  void TargetedSpectraExtractor::BinnedSpectrumComparator::init(const std::vector<MSSpectrum>& library, const std::map<std::string,DataValue>& options)
   {
     if (options.count("bin_size"))
     {

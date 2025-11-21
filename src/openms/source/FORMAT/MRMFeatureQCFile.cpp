@@ -128,10 +128,10 @@ namespace OpenMS
     const String& key,
     const String& value,
     const String& boundary,
-    std::map<String, std::pair<double,double>>& meta_values_qc
+    std::map<std::string, std::pair<double,double>>& meta_values_qc
   ) const
   {
-    std::map<String, std::pair<double,double>>::iterator it = meta_values_qc.find(key);
+    std::map<std::string, std::pair<double,double>>::iterator it = meta_values_qc.find(key);
     const double cast_value = value.empty() ? (boundary == "l" ? 0.0 : 1e12) : std::stod(value);
     if (it != meta_values_qc.end())
     {

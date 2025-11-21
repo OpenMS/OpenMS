@@ -98,7 +98,7 @@ public:
       double overall_quality_u { 1e12 };
 
       /// Feature MetaValues
-      std::map<String,std::pair<double,double>> meta_value_qc;
+      std::map<std::string,std::pair<double,double>> meta_value_qc;
 
     };
 
@@ -209,7 +209,7 @@ public:
       double ion_ratio_l { 0.0 };
       double ion_ratio_u { 1e12 };
       String ion_ratio_feature_name;
-      std::map<String,std::pair<double,double>> meta_value_qc;
+      std::map<std::string,std::pair<double,double>> meta_value_qc;
 
     };
 

@@ -469,10 +469,10 @@ void FFIDAlgoExternalIDHandler::getUnbiasedSample_(const std::multimap<double, s
     }
     if ((debug_level_ > 0) && svm_params.getValue("kernel") == "linear")
     {
-      std::map<String, double> feature_weights;
+      std::map<std::string, double> feature_weights;
       svm.getFeatureWeights(feature_weights);
       OPENMS_LOG_DEBUG << "SVM feature weights:" << std::endl;
-      for (std::map<String, double>::iterator it = feature_weights.begin();
+      for (auto it = feature_weights.begin();
            it != feature_weights.end(); ++it)
       {
         OPENMS_LOG_DEBUG << "- " << it->first << ": " << it->second << std::endl;

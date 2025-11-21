@@ -542,7 +542,7 @@ void SimpleSVM::predict(vector<Prediction>& predictions, vector<Size> indexes) c
   }
 }
 
-void scaleDataUsingTrainingRanges(SimpleSVM::PredictorMap& predictors, const map<String, pair<double, double>>& scaling)
+void scaleDataUsingTrainingRanges(SimpleSVM::PredictorMap& predictors, const map<std::string, pair<double, double>>& scaling)
 {
   // scale each feature dimension to the min-max-range
   for (auto pred_it = predictors.begin();
@@ -615,7 +615,7 @@ void SimpleSVM::predict(PredictorMap& predictors, vector<Prediction>& prediction
 }
 
 // only works in classification mode
-void SimpleSVM::getFeatureWeights(map<String, double>& feature_weights) const
+void SimpleSVM::getFeatureWeights(map<std::string, double>& feature_weights) const
 {
   if (pimpl_->model_ == nullptr)
   {

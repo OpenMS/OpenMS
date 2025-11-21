@@ -68,7 +68,7 @@ namespace OpenMS
 
       Size n_decoys_; ///< number of decoys to use (per feature/true assay)
 
-      std::map<String, IntList> transition_map_; ///< assay (ID) -> transitions (indexes)
+      std::map<std::string, IntList> transition_map_; ///< assay (ID) -> transitions (indexes)
 
       Size n_transitions_; ///< number of transitions to consider
 

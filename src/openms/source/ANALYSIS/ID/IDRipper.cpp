@@ -56,7 +56,7 @@ namespace OpenMS
   }
 
   // Identify the output file name features associated via spectra_data or file_origin
-  IDRipper::RipFileIdentifier::RipFileIdentifier(const IDRipper::IdentificationRuns& id_runs, const PeptideIdentification& pep_id, const map<String, UInt>& file_origin_map, const IDRipper::OriginAnnotationFormat origin_annotation_fmt, bool split_ident_runs)
+  IDRipper::RipFileIdentifier::RipFileIdentifier(const IDRipper::IdentificationRuns& id_runs, const PeptideIdentification& pep_id, const map<std::string, UInt>& file_origin_map, const IDRipper::OriginAnnotationFormat origin_annotation_fmt, bool split_ident_runs)
   {
       try
       {
@@ -140,7 +140,7 @@ namespace OpenMS
           bool split_ident_runs)
   {
     // Detect file format w.r.t. origin annotation
-    map<String, UInt> file_origin_map;
+    map<std::string, UInt> file_origin_map;
     IDRipper::OriginAnnotationFormat origin_annotation_fmt = detectOriginAnnotationFormat_(file_origin_map, peptides);
 
     if (origin_annotation_fmt == UNKNOWN_OAF)
@@ -369,7 +369,7 @@ bool IDRipper::setOriginAnnotationMode_(short& mode, short const new_value)
   return true;
 }
 
-IDRipper::OriginAnnotationFormat IDRipper::detectOriginAnnotationFormat_(map<String, UInt>& file_origin_map, const PeptideIdentificationList& peptide_idents)
+IDRipper::OriginAnnotationFormat IDRipper::detectOriginAnnotationFormat_(map<std::string, UInt>& file_origin_map, const PeptideIdentificationList& peptide_idents)
   {
     // In case we observe 'file_origin' meta values, we assign an index to every unique meta value
     file_origin_map.clear();

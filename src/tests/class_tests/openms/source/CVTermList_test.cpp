@@ -181,7 +181,7 @@ START_SECTION((void replaceCVTerms(const Map<String, vector<CVTerm> >& cv_term_m
   tmp.push_back(cv_term);
   std::vector<CVTerm> tmp2;
   tmp2.push_back(cv_term2);
-  std::map<String, std::vector<CVTerm> >new_terms;
+  std::map<std::string, std::vector<CVTerm> >new_terms;
   new_terms["my_accession2"] = tmp2;
   TEST_EQUAL(new_terms.find("my_accession2") != new_terms.end(), true);
 

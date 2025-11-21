@@ -175,7 +175,7 @@ public:
                                     bool ms1,
                                     double im_extraction_width = 0.0)
     {
-      typedef std::map<String, const typename TransitionExpT::Transition* > TransitionMapType;
+      typedef std::map<std::string, const typename TransitionExpT::Transition* > TransitionMapType;
       TransitionMapType trans_map;
       for (Size i = 0; i < transition_exp_used.getTransitions().size(); i++)
       {

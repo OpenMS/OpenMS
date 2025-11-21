@@ -50,20 +50,20 @@ namespace OpenMS
     cv_terms_[accession] = cv_terms;
   }
 
-  void CVTermList::replaceCVTerms(const std::map<String, vector<CVTerm> >& cv_term_map)
+  void CVTermList::replaceCVTerms(const std::map<std::string, vector<CVTerm> >& cv_term_map)
   {
     cv_terms_ = cv_term_map;
   }
 
-  void CVTermList::consumeCVTerms(const std::map<String, vector<CVTerm> >& cv_term_map)
+  void CVTermList::consumeCVTerms(const std::map<std::string, vector<CVTerm> >& cv_term_map)
   {
-    for (std::map<String, std::vector<CVTerm> >::const_iterator it = cv_term_map.begin(); it != cv_term_map.end(); ++it)
+    for (std::map<std::string, std::vector<CVTerm> >::const_iterator it = cv_term_map.begin(); it != cv_term_map.end(); ++it)
     {
       cv_terms_[it->first].insert(cv_terms_[it->first].end(), it->second.begin(), it->second.end());
     }
   }
 
-  const std::map<String, vector<CVTerm> >& CVTermList::getCVTerms() const
+  const std::map<std::string, vector<CVTerm> >& CVTermList::getCVTerms() const
   {
     return cv_terms_;
   }
@@ -89,4 +89,3 @@ namespace OpenMS
   }
 
 } // namespace OpenMS
-

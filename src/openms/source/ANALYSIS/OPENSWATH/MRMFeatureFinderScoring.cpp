@@ -1096,7 +1096,7 @@ namespace OpenMS
     double rt_min, rt_max, expected_rt;
     trafo.invert();
 
-    std::map<String, int> chromatogram_map;
+    std::map<std::string, int> chromatogram_map;
     Size nr_chromatograms = input->getNrChromatograms();
     for (Size i = 0; i < input->getNrChromatograms(); i++)
     {

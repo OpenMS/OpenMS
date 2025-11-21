@@ -757,7 +757,7 @@ namespace OpenMS
             if (!ar_it.sub_scores.empty())
             {
               f << "\t\t\t\t\t<search_score_summary>" << "\n";
-              for (std::map<String, double>::const_iterator subscore_it = ar_it.sub_scores.begin();
+              for (auto subscore_it = ar_it.sub_scores.begin();
                   subscore_it != ar_it.sub_scores.end(); ++subscore_it)
               {
                 f << "\t\t\t\t\t\t<parameter name=\""<< subscore_it->first << "\" value=\"" << subscore_it->second << "\"/>\n";

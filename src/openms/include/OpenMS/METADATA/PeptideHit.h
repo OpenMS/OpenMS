@@ -157,7 +157,7 @@ public:
       String score_type; /// e.g. peptideprophet / interprophet
       bool higher_is_better{}; /// is higher score better ?
       double main_score{}; /// posterior probability for example
-      std::map<String, double> sub_scores; /// additional scores attached to the original, aggregated score
+      std::map<std::string, double> sub_scores; /// additional scores attached to the original, aggregated score
 
       bool operator==(const PepXMLAnalysisResult& rhs) const
       {

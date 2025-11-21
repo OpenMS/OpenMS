@@ -152,10 +152,10 @@ START_SECTION((void predict(vector<Prediction>& predictions,
 }
 END_SECTION
 
-START_SECTION((void getFeatureWeights(map<String, double> feature_weights)
+START_SECTION((void getFeatureWeights(map<std::string, double> feature_weights)
                const))
 {
-  map<String, double> feat_weights;
+  map<std::string, double> feat_weights;
   TEST_EXCEPTION(Exception::Precondition,
                  untrained_svm.getFeatureWeights(feat_weights));
 
@@ -164,7 +164,7 @@ START_SECTION((void getFeatureWeights(map<String, double> feature_weights)
 }
 END_SECTION
 
-START_SECTION((map<String, pair<double, double>> void getScaling()
+START_SECTION((map<std::string, pair<double, double>> void getScaling()
                const))
 {
   auto scaling = svm.getScaling();

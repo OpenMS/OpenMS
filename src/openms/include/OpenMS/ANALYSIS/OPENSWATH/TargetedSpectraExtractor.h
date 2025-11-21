@@ -71,7 +71,7 @@ public:
 
       virtual void init(
         const std::vector<MSSpectrum>& library,
-        const std::map<String,DataValue>& options
+        const std::map<std::string,DataValue>& options
       ) = 0;
 
       const std::vector<MSSpectrum>& getLibrary() const
@@ -105,7 +105,7 @@ public:
         }
       }
 
-      void init(const std::vector<MSSpectrum>& library, const std::map<String,DataValue>& options) override;
+      void init(const std::vector<MSSpectrum>& library, const std::map<std::string,DataValue>& options) override;
 
     private:
       BinnedSpectralContrastAngle cmp_bs_;

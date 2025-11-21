@@ -69,7 +69,7 @@ namespace OpenMS
 
   void MRMFeatureSelectorScore::optimize(
     const std::vector<std::pair<double, String>>& time_to_name,
-    const std::map<String, std::vector<Feature>>& feature_name_map,
+    const std::map<std::string, std::vector<Feature>>& feature_name_map,
     std::vector<String>& result,
     const SelectorParameters& parameters
   ) const
@@ -115,7 +115,7 @@ namespace OpenMS
 
   void MRMFeatureSelectorQMIP::optimize(
     const std::vector<std::pair<double, String>>& time_to_name,
-    const std::map<String, std::vector<Feature>>& feature_name_map,
+    const std::map<std::string, std::vector<Feature>>& feature_name_map,
     std::vector<String>& result,
     const SelectorParameters& parameters
   ) const
@@ -221,7 +221,7 @@ namespace OpenMS
   void MRMFeatureSelector::constructTargTransList_(
     const FeatureMap& features,
     std::vector<std::pair<double, String>>& time_to_name,
-    std::map<String, std::vector<Feature>>& feature_name_map,
+    std::map<std::string, std::vector<Feature>>& feature_name_map,
     const bool select_transition_group
   ) const
   {
@@ -277,7 +277,7 @@ namespace OpenMS
     }
 
     std::vector<std::pair<double, String>> time_to_name;
-    std::map<String, std::vector<Feature>> feature_name_map;
+    std::map<std::string, std::vector<Feature>> feature_name_map;
     constructTargTransList_(features, time_to_name, feature_name_map, parameters.select_transition_group);
 
     sort(time_to_name.begin(), time_to_name.end());
@@ -327,7 +327,7 @@ namespace OpenMS
     }
   }
 
-  double MRMFeatureSelector::computeScore_(const Feature& feature, const std::map<String, MRMFeatureSelector::LambdaScore>& score_weights) const
+  double MRMFeatureSelector::computeScore_(const Feature& feature, const std::map<std::string, MRMFeatureSelector::LambdaScore>& score_weights) const
   {
     double score_1 = 1.0;
     for (const std::pair<const String, LambdaScore>& score_weight : score_weights)

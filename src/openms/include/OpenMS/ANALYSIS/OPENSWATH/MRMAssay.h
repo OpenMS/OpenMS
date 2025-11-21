@@ -67,7 +67,7 @@ public:
     typedef std::vector<std::pair<std::string, double> > IonSeries; ///< Describes an ion series: "ion_type" -> "fragment m/z"
     typedef std::map<String, IonSeries > PeptideMapT; ///< Maps a peptide sequence to an ion series: "ion_type" -> "fragment m/z"
 
-    typedef std::map<String, TargetedExperiment::Peptide> TargetDecoyMapT; ///< Maps the peptide id (same for target and decoy) to the decoy peptide object
+    typedef std::map<std::string, TargetedExperiment::Peptide> TargetDecoyMapT; ///< Maps the peptide id (same for target and decoy) to the decoy peptide object
 
     /**
       @brief Annotates and filters transitions in a TargetedExperiment
@@ -323,7 +323,7 @@ protected:
 
     */
     void generateDecoySequences_(const SequenceMapT& TargetSequenceMap,
-                                 std::map<String, String>& DecoySequenceMap,
+                                 std::map<std::string, String>& DecoySequenceMap,
                                  int shuffle_seed);
 
     /**
@@ -347,7 +347,7 @@ protected:
                                    int round_decPow,
                                    TargetDecoyMapT& TargetDecoyMap,
                                    PeptideMapT& TargetPeptideMap,
-                                   std::map<String, String>& DecoySequenceMap,
+                                   std::map<std::string, String>& DecoySequenceMap,
                                    IonMapT& DecoyIonMap,
                                    PeptideMapT& DecoyPeptideMap);
 

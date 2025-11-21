@@ -1720,9 +1720,9 @@ namespace OpenMS::Internal
       writeCVList_(os, cv_terms.getCVTerms(), indent);
     }
 
-    void TraMLHandler::writeCVList_(std::ostream & os, const std::map<String, std::vector<CVTerm>> & cv_terms, UInt indent) const
+    void TraMLHandler::writeCVList_(std::ostream & os, const std::map<std::string, std::vector<CVTerm>> & cv_terms, UInt indent) const
     {
-      for (std::map<String, std::vector<CVTerm> >::const_iterator it = cv_terms.begin();
+      for (auto it = cv_terms.begin();
            it != cv_terms.end(); ++it)
       {
         for (const CVTerm& cit : it->second)

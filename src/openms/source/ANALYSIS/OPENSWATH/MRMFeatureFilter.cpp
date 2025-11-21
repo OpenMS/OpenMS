@@ -58,7 +58,7 @@ namespace OpenMS
     {
       String component_group_name = (String)features.at(feature_it).getMetaValue("PeptideRef");
 
-      std::map<String, int> labels_and_transition_types = countLabelsAndTransitionTypes(features.at(feature_it), transitions);
+      std::map<std::string, int> labels_and_transition_types = countLabelsAndTransitionTypes(features.at(feature_it), transitions);
 
       // initialize the new feature and subordinates
       std::vector<Feature> subordinates_filtered;
@@ -625,7 +625,7 @@ namespace OpenMS
       for (size_t feature_it = 0; feature_it < samples.at(sample_it).size(); ++feature_it)
       {
         String component_group_name = (String)samples.at(sample_it).at(feature_it).getMetaValue("PeptideRef");
-        std::map<String, int> labels_and_transition_types = countLabelsAndTransitionTypes(samples.at(sample_it).at(feature_it), transitions);
+        std::map<std::string, int> labels_and_transition_types = countLabelsAndTransitionTypes(samples.at(sample_it).at(feature_it), transitions);
 
         // iterate through each component/sub-feature
         for (size_t sub_it = 0; sub_it < samples.at(sample_it).at(feature_it).getSubordinates().size(); ++sub_it)
@@ -851,12 +851,12 @@ namespace OpenMS
     calculateFilterValuesMean(filter_template, filter_values, filter_template);
   }
 
-  std::map<String, int> MRMFeatureFilter::countLabelsAndTransitionTypes(
+  std::map<std::string, int> MRMFeatureFilter::countLabelsAndTransitionTypes(
     const Feature& component_group,
     const TargetedExperiment& transitions) const
   {
     int n_heavy(0), n_light(0), n_quant(0), n_detect(0), n_ident(0), n_trans(0);
-    std::map<String, int> output;
+    std::map<std::string, int> output;
 
     for (size_t cg_it = 0; cg_it < component_group.getSubordinates().size(); ++cg_it)
     {
@@ -1034,7 +1034,7 @@ namespace OpenMS
       for (size_t feature_it = 0; feature_it < samples.at(sample_it).size(); ++feature_it)
       {
         String component_group_name = (String)samples.at(sample_it).at(feature_it).getMetaValue("PeptideRef");
-        std::map<String, int> labels_and_transition_types = countLabelsAndTransitionTypes(samples.at(sample_it).at(feature_it), transitions);
+        std::map<std::string, int> labels_and_transition_types = countLabelsAndTransitionTypes(samples.at(sample_it).at(feature_it), transitions);
 
         // iterate through each component/sub-feature
         for (size_t sub_it = 0; sub_it < samples.at(sample_it).at(feature_it).getSubordinates().size(); ++sub_it)

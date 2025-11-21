@@ -40,7 +40,7 @@ class MRMFeatureQCFile_facade : MRMFeatureQCFile
       const String& key,
       const String& value,
       const String& boundary,
-      std::map<String, std::pair<double,double>>& meta_values_qc
+      std::map<std::string, std::pair<double,double>>& meta_values_qc
     ) const
     {
       MRMFeatureQCFile::setPairValue_(key, value, boundary, meta_values_qc);
@@ -516,10 +516,10 @@ START_SECTION(void setPairValue_(
   const String& key,
   const String& value,
   const String& boundary,
-  std::map<String, std::pair<double,double>>& meta_values_qc
+  std::map<std::string, std::pair<double,double>>& meta_values_qc
 ) const)
 {
-  std::map<String, std::pair<double,double>> metavalues;
+  std::map<std::string, std::pair<double,double>> metavalues;
   MRMFeatureQCFile_facade mrmfqcfile_f;
   mrmfqcfile_f.setPairValue_("meta1", "0.123", "u", metavalues); // first pair (initializing the upper bound)
   TEST_EQUAL(metavalues.size(), 1);

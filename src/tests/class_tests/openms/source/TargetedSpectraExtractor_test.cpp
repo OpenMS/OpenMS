@@ -832,11 +832,13 @@ START_SECTION(void matchSpectrum(
   vector<TargetedSpectraExtractor::Match> matches;
 
   TargetedSpectraExtractor::BinnedSpectrumComparator cmp;
-  std::map<String,DataValue> options = {
-    {"bin_size", 1.0},
-    {"peak_spread", 0},
-    {"bin_offset", 0.4}
+  std::map<std::string, DataValue> options = {
+    {std::string("bin_size"), DataValue(1.0)},
+    {std::string("peak_spread"), DataValue(0)},
+    {std::string("bin_offset"), DataValue(0.4)}
   };
+  // OLD:
+  // OLD:
   cmp.init(library.getSpectra(), options);
 
   tse.matchSpectrum(extracted_spectra[0], cmp, matches);
@@ -913,7 +915,7 @@ START_SECTION(void targetedMatching(
   TEST_EQUAL(library.getSpectra().size(), 21)
 
   TargetedSpectraExtractor::BinnedSpectrumComparator cmp;
-  std::map<String,DataValue> options = {
+  std::map<std::string,DataValue> options = {
     {"bin_size", 1.0},
     {"peak_spread", 0},
     {"bin_offset", 0.4}
@@ -971,7 +973,7 @@ START_SECTION(void untargetedMatching(
   TEST_EQUAL(library.getSpectra().size(), 21)
 
   TargetedSpectraExtractor::BinnedSpectrumComparator cmp;
-  std::map<String,DataValue> options = {
+  std::map<std::string,DataValue> options = {
     {"bin_size", 1.0},
     {"peak_spread", 0},
     {"bin_offset", 0.4}

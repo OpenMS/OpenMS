@@ -56,7 +56,7 @@ public:
      * @param swath_maps The raw swath maps from the current run, will be modified (replaced with a corrected version)
      * @param pasef Whether the data is PASEF data with possible overlapping m/z windows (with different ion mobility). In this case, the "best" SWATH window (with precursor cetntered around IM) is chosen.
      */
-    void correctMZ(const std::map<String, OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType *>& transition_group_map,
+    void correctMZ(const std::map<std::string, OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType *>& transition_group_map,
                    const OpenSwath::LightTargetedExperiment & targeted_exp,
                    std::vector< OpenSwath::SwathMap > & swath_maps, const bool pasef);
 
@@ -75,7 +75,7 @@ public:
      * @param pasef whether the data is PASEF data with possible overlapping m/z windows (with different ion mobility). In this case, the "best" SWATH window (with precursor cetntered around IM) is chosen.
      * @param im_trafo The resulting map containing the transformation
      */
-    void correctIM(const std::map<String, OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType *> & transition_group_map,
+    void correctIM(const std::map<std::string, OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType *> & transition_group_map,
                    const OpenSwath::LightTargetedExperiment & targeted_exp,
                    const std::vector< OpenSwath::SwathMap > & swath_maps,
                    const bool pasef,

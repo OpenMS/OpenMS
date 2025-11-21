@@ -39,7 +39,7 @@ public:
     struct OPENMS_DLLAPI IdentificationRuns
     {
         /// Maps a unique index to every IdentificationRun string representation (getIdentifier()).
-        std::map<String, UInt> index_map;
+        std::map<std::string, UInt> index_map;
         /// Maps the list of spectra data elements to every IdentificationRun index.
         std::vector<StringList> spectra_data;
 
@@ -62,7 +62,7 @@ public:
         /// Constructs a new RipFileIdentifier object
         RipFileIdentifier(const IDRipper::IdentificationRuns& id_runs, 
           const PeptideIdentification& pep_id, 
-          const std::map<String, UInt>& file_origin_map, 
+          const std::map<std::string, UInt>& file_origin_map, 
           const IDRipper::OriginAnnotationFormat origin_annotation_fmt, 
           bool split_ident_runs);
 
@@ -161,7 +161,7 @@ private:
     IDRipper & operator=(const IDRipper & rhs);
 
     /// helper function, detects file origin annotation standard from collections of protein and peptide hits
-    OriginAnnotationFormat detectOriginAnnotationFormat_(std::map<String, UInt> & file_origin_map, const PeptideIdentificationList & peptide_idents);
+    OriginAnnotationFormat detectOriginAnnotationFormat_(std::map<std::string, UInt> & file_origin_map, const PeptideIdentificationList & peptide_idents);
     /// helper function, extracts all protein hits that match the protein accession
     void getProteinHits_(std::vector<ProteinHit> & result, const std::unordered_map<String, const ProteinHit*> & acc2protein_hits, const std::set<String> & protein_accessions);
     /// helper function, returns the string representation of the peptide hit accession

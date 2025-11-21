@@ -12,6 +12,7 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <vector>
+#include <string>
 
 
 namespace OpenMS
@@ -54,7 +55,7 @@ namespace OpenMS
      * @param precursor_mass_tolerance_unit_ppm The unit of the precursor tolerance
      * @param ignore_missing_precursor_spectra Allow MS2 spectra without a MS1 precursor spectrum (PurityScores for these spectra will be 0).
     */
-    static std::map<String, PurityScores> computePrecursorPurities(const PeakMap& spectra, double precursor_mass_tolerance, bool precursor_mass_tolerance_unit_ppm, bool ignore_missing_precursor_spectra = false);
+    static std::map<std::string, PurityScores> computePrecursorPurities(const PeakMap& spectra, double precursor_mass_tolerance, bool precursor_mass_tolerance_unit_ppm, bool ignore_missing_precursor_spectra = false);
 
     /** @brief compute precursor purity metrics for one MS2 precursor
 

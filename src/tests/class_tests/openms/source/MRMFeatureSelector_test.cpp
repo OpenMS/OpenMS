@@ -98,7 +98,7 @@ START_SECTION(constructTargTransList_())
   feature_file.load(features_path, feature_map);
 
   vector<pair<double, String>> time_to_name;
-  map<String, vector<Feature>> feature_name_map;
+  map<std::string, vector<Feature>> feature_name_map;
 
   const bool select_transition_group = true;
 

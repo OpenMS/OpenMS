@@ -27,9 +27,9 @@
 using namespace std;
 namespace OpenMS
 {
-    std::map<String, String> DDAWorkflowCommons::mapId2MzMLs(const std::map<String, String>& m2i)
+    std::map<std::string, String> DDAWorkflowCommons::mapId2MzMLs(const std::map<std::string, String>& m2i)
     {
-        std::map<String, String> idfile2mzfile;
+        std::map<std::string, String> idfile2mzfile;
         for (const auto& m : m2i)
         {
             idfile2mzfile[m.second] = m.first;
@@ -38,7 +38,7 @@ namespace OpenMS
     }
 
 
-    std::map<String, String> DDAWorkflowCommons::mapMzML2Ids(StringList & in, StringList & in_ids)
+    std::map<std::string, String> DDAWorkflowCommons::mapMzML2Ids(StringList & in, StringList & in_ids)
     {
         // validate file lists (use only basename and ignore extension)
         auto validation_result = File::validateMatchingFileNames(in, in_ids, true, true);
@@ -93,7 +93,7 @@ namespace OpenMS
             break;      
         }
 
-        map<String, String> mzfile2idfile;
+        map<std::string, String> mzfile2idfile;
         for (Size i = 0; i != in.size(); ++i)
         {
             const String& in_abs_path = File::absolutePath(in[i]);

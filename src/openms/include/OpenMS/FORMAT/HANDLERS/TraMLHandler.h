@@ -127,7 +127,7 @@ protected:
       void writeCVParams_(std::ostream & os, const CVTermList & cv_terms, UInt indent) const;
       void writeCVParams_(std::ostream & os, const CVTermListInterface & cv_terms, UInt indent) const;
 
-      void writeCVList_(std::ostream & os, const std::map<String, std::vector<CVTerm>> & cv_terms, UInt indent) const;
+      void writeCVList_(std::ostream & os, const std::map<std::string, std::vector<CVTerm>> & cv_terms, UInt indent) const;
 
       // subfunctions of write
       void writeTarget_(std::ostream & os, const std::vector<IncludeExcludeTarget>::const_iterator & it) const;

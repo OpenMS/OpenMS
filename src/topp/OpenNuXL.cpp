@@ -239,7 +239,7 @@ struct NuXLLinearRescore
       vector<SimpleSVM::Prediction> predictions;
       OPENMS_LOG_INFO << "Predicting class probabilities:" << endl;
       svm.predict(predictions);
-      std::map<String, double> feature_weights;
+      std::map<std::string, double> feature_weights;
       svm.getFeatureWeights(feature_weights);
 
       OPENMS_LOG_DEBUG << "Feature weights:" << endl;
@@ -1063,9 +1063,9 @@ protected:
     return (plss_Morph < MIN_SHIFTED_IONS && plss_im_MIC < 0.03);
   }
 
-  map<String, PrecursorPurity::PurityScores> calculatePrecursorPurities_(const String& in_mzml, double precursor_mass_tolerance, bool precursor_mass_tolerance_unit_ppm) const
+  map<std::string, PrecursorPurity::PurityScores> calculatePrecursorPurities_(const String& in_mzml, double precursor_mass_tolerance, bool precursor_mass_tolerance_unit_ppm) const
   {
-    map<String, PrecursorPurity::PurityScores> purities;
+    map<std::string, PrecursorPurity::PurityScores> purities;
     PeakMap tmp_spectra;
     // Important: load both MS1 and MS2 for precursor purity annotation
     MzMLFile().load(in_mzml, tmp_spectra);
@@ -3057,7 +3057,7 @@ static void scoreXLIons_(
     bool annotate_charge,
     double window_size,
     size_t peakcount,
-    const std::map<String, PrecursorPurity::PurityScores>& purities)
+    const std::map<std::string, PrecursorPurity::PurityScores>& purities)
   {
     // filter MS2 map
     // remove 0 intensities
@@ -3496,7 +3496,7 @@ static void scoreXLIons_(
     const Size max_variable_mods_per_peptide,
     const Size scan_index, 
     const MSSpectrum& spec,
-    const map<String, PrecursorPurity::PurityScores>& purities,
+    const map<std::string, PrecursorPurity::PurityScores>& purities,
     const vector<size_t>& nr_candidates,
     const vector<size_t>& matched_peaks
     /*,
@@ -3723,7 +3723,7 @@ static void scoreXLIons_(
     const ModifiedPeptideGenerator::MapToResidueType& fixed_modifications, 
     const ModifiedPeptideGenerator::MapToResidueType& variable_modifications, 
     Size max_variable_mods_per_peptide,
-    const map<String, PrecursorPurity::PurityScores>& purities,
+    const map<std::string, PrecursorPurity::PurityScores>& purities,
     const vector<size_t>& nr_candidates,
     const vector<size_t>& matched_peaks
     /*,
@@ -4597,7 +4597,7 @@ static void scoreXLIons_(
     }
   }
 
-  void filterPeakInterference_(PeakMap& spectra, const map<String, PrecursorPurity::PurityScores>& purities, double fragment_mass_tolerance = 20.0, bool fragment_mass_tolerance_unit_ppm = true)
+  void filterPeakInterference_(PeakMap& spectra, const map<std::string, PrecursorPurity::PurityScores>& purities, double fragment_mass_tolerance = 20.0, bool fragment_mass_tolerance_unit_ppm = true)
   {
     double filtered_peaks_count{0};
     size_t filtered_spectra{0};
@@ -5162,7 +5162,7 @@ static void scoreXLIons_(
     MzMLFile f;
     f.setLogType(log_type_);
 
-    map<String, PrecursorPurity::PurityScores> purities = calculatePrecursorPurities_(in_mzml, precursor_mass_tolerance, precursor_mass_tolerance_unit_ppm);
+    map<std::string, PrecursorPurity::PurityScores> purities = calculatePrecursorPurities_(in_mzml, precursor_mass_tolerance, precursor_mass_tolerance_unit_ppm);
 
     // define percolator feature set
     StringList data_dependent_features; // percolator features that only exist e.g., if MS1 spectra were present

@@ -167,13 +167,13 @@ namespace OpenMS
     OPENMS_LOG_DEBUG << "Extracted best features: " << best_features.size() << std::endl;
 
     // Create pairs vector and store peaks
-    std::map<String, OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType *> trgrmap_allpeaks; // store all peaks above cutoff
+    std::map<std::string, OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType *> trgrmap_allpeaks; // store all peaks above cutoff
     for (std::map<std::string, double>::iterator it = best_features.begin(); it != best_features.end(); ++it)
     {
       pairs.emplace_back(it->second, PeptideRTMap[it->first]); // pair<exp_rt, theor_rt>
       if (transition_group_map.find(it->first) != transition_group_map.end())
       {
-        trgrmap_allpeaks[ it->first ] = &transition_group_map[ it->first];
+        trgrmap_allpeaks[it->first] = &transition_group_map[it->first];
       }
     }
 
@@ -232,7 +232,7 @@ namespace OpenMS
 
     // 7. Select the "correct" peaks for m/z (and IM) correction (e.g. remove those not
     // part of the linear regression)
-    std::map<String, OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType *> trgrmap_final; // store all peaks above cutoff
+    std::map<std::string, OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType *> trgrmap_final; // store all peaks above cutoff
     for (const auto& it : trgrmap_allpeaks)
     {
       if (it.second->getFeatures().empty() ) {continue;}
