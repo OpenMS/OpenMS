@@ -61,6 +61,7 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/SYSTEM/File.h>
 #include <vector>
 
 using namespace OpenMS;
@@ -124,7 +125,9 @@ protected:
     vector<Biosaur2Algorithm::Hill> hills;
     vector<Biosaur2Algorithm::PeptideFeature> peptide_features;
     algorithm.run(exp, feature_map, hills, peptide_features);
-    addDataProcessing_(feature_map, getProcessingInfo_(DataProcessing::DATA_PROCESSING));
+    String primary_path = getFlag_("test") ? ("file://" + File::basename(in)) : in;
+    feature_map.setPrimaryMSRunPath({primary_path}, exp);
+    addDataProcessing_(feature_map, getProcessingInfo_(DataProcessing::QUANTITATION));
 
     FeatureXMLFile feature_file;
     feature_file.store(out, feature_map);
