@@ -10,6 +10,7 @@
 #include <OpenMS/IONMOBILITY/FAIMSHelper.h>
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/KERNEL/SpectrumHelper.h>
+#include <OpenMS/MATH/StatisticFunctions.h>
 #include <OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h>
 
 #include <algorithm>
@@ -230,14 +231,7 @@ double Biosaur2Algorithm::calculateMedian(const vector<double>& values) const
   }
 
   vector<double> sorted = values;
-  sort(sorted.begin(), sorted.end());
-  size_t n = sorted.size();
-
-  if (n % 2 == 0)
-  {
-    return (sorted[n / 2 - 1] + sorted[n / 2]) / 2.0;
-  }
-  return sorted[n / 2];
+  return Math::median(sorted.begin(), sorted.end(), false);
 }
 
 vector<double> Biosaur2Algorithm::meanFilter(const vector<double>& data, Size window) const
