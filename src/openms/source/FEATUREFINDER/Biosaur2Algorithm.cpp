@@ -20,6 +20,10 @@
 #include <numeric>
 #include <set>
 
+#ifdef _OPENMP
+#  include <omp.h>
+#endif
+
 using namespace std;
 
 namespace OpenMS
@@ -335,10 +339,19 @@ void Biosaur2Algorithm::processTOF(MSExperiment& exp) const
     for (Size j = 0; j < exp[i].size(); ++j)
     {
       double mz = exp[i][j].getMZ();
+      double intensity = exp[i][j].getIntensity();
       if (mz >= minmz_ && mz <= maxmz_)
       {
         int bin = static_cast<int>(mz / mz_bin_size);
-        double log_intensity = log10(exp[i][j].getIntensity());
+        if (intensity <= 0.0)
+        {
+          continue;
+        }
+        double log_intensity = log10(intensity);
+        if (!std::isfinite(log_intensity))
+        {
+          continue;
+        }
         intensity_bins[bin].push_back(log_intensity);
       }
     }
@@ -347,18 +360,32 @@ void Biosaur2Algorithm::processTOF(MSExperiment& exp) const
   map<int, double> bin_thresholds;
   for (auto& bin_pair : intensity_bins)
   {
-    if (bin_pair.second.size() >= 150)
+    vector<double> finite_intensities;
+    finite_intensities.reserve(bin_pair.second.size());
+    for (double value : bin_pair.second)
     {
-      vector<double>& intensities = bin_pair.second;
-      double sum = accumulate(intensities.begin(), intensities.end(), 0.0);
-      double mean = sum / intensities.size();
+      if (std::isfinite(value))
+      {
+        finite_intensities.push_back(value);
+      }
+    }
+
+    if (finite_intensities.size() >= 150)
+    {
+      double sum = accumulate(finite_intensities.begin(), finite_intensities.end(), 0.0);
+      double mean = sum / finite_intensities.size();
 
       double sq_sum = 0.0;
-      for (double val : intensities)
+      for (double val : finite_intensities)
       {
         sq_sum += (val - mean) * (val - mean);
       }
-      double std_dev = sqrt(sq_sum / intensities.size());
+      double std_dev = sqrt(sq_sum / finite_intensities.size());
+
+      if (!std::isfinite(mean) || !std::isfinite(std_dev))
+      {
+        continue;
+      }
 
       bin_thresholds[bin_pair.first] = pow(10.0, mean + 2.0 * std_dev);
     }

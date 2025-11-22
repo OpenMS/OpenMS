@@ -44,6 +44,9 @@
  * 3. Detecting isotope patterns
  * 4. Calculating feature properties (m/z, RT, intensity, charge)
  *
+ * The tool mirrors the Python reference implementation described in the Biosaur2 publication and exposes all core parameters through the INI file.
+ * Besides the mandatory featureXML output, optional TSV exports for both the peptide features and raw hills can be enabled for downstream inspection.
+ *
  * Reference:
  * Abdrakhimov, et al. Biosaur: An open-source Python software for liquid
  * chromatography-mass spectrometry peptide feature detection with ion mobility support.
@@ -70,6 +73,13 @@ using namespace std;
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
 
+/**
+ * @brief TOPP wrapper that exposes the Biosaur2 feature detection pipeline on the command line.
+ *
+ * The tool handles mzML I/O, forwards the full set of @ref OpenMS::Biosaur2Algorithm parameters and optionally writes TSV exports for
+ * features and hills. All algorithmic heavy lifting is performed by the reusable Biosaur2Algorithm class so the TOPP wrapper remains
+ * focused on parameter handling and reporting.
+ */
 class TOPPBiosaur2 final :
   public TOPPBase
 {
@@ -80,6 +90,7 @@ public:
   }
 
 protected:
+  /// Declare command-line options and forward the algorithm defaults into the INI namespace.
   void registerOptionsAndFlags_() override
   {
     Biosaur2Algorithm algo_defaults;
@@ -102,6 +113,12 @@ protected:
     registerFullParam_(defaults);
   }
 
+  /**
+   * @brief Execute the Biosaur2 workflow for the configured inputs/outputs.
+   *
+   * The function loads the requested mzML file, instantiates Biosaur2Algorithm with the user-defined parameters and takes care of
+   * exporting featureXML, TSV and hill diagnostics. Meta information such as primary MS run paths and DataProcessing entries are annotated.
+   */
   ExitCodes main_(int, const char**) override
   {
     //-------------------------------------------------------------
