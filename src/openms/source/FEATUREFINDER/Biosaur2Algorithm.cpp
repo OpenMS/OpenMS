@@ -121,7 +121,6 @@ void Biosaur2Algorithm::run(const MSExperiment& input,
                             vector<Hill>& hills,
                             vector<PeptideFeature>& peptide_features)
 {
-  MSExperiment exp = input;
   feature_map.clear(true);
   hills.clear();
   peptide_features.clear();
@@ -138,10 +137,46 @@ void Biosaur2Algorithm::run(const MSExperiment& input,
   (void)threads_;
 #endif
 
-  exp.getSpectra().erase(
-    remove_if(exp.begin(), exp.end(),
-              [](const MSSpectrum& s) { return s.getMSLevel() != 1; }),
-    exp.end());
+  // Determine if we need to modify the experiment
+  bool needs_ms_level_filtering = false;
+  for (const auto& spec : input)
+  {
+    if (spec.getMSLevel() != 1)
+    {
+      needs_ms_level_filtering = true;
+      break;
+    }
+  }
+
+  // Only copy if modifications are needed
+  const MSExperiment* exp_ptr = &input;
+  MSExperiment exp_modified;
+  
+  if (needs_ms_level_filtering || profile_mode_ || tof_mode_)
+  {
+    exp_modified = input;
+    exp_ptr = &exp_modified;
+    
+    if (needs_ms_level_filtering)
+    {
+      exp_modified.getSpectra().erase(
+        remove_if(exp_modified.begin(), exp_modified.end(),
+                  [](const MSSpectrum& s) { return s.getMSLevel() != 1; }),
+        exp_modified.end());
+    }
+    
+    if (profile_mode_)
+    {
+      centroidProfileSpectra(exp_modified);
+    }
+    
+    if (tof_mode_)
+    {
+      processTOF(exp_modified);
+    }
+  }
+
+  const MSExperiment& exp = *exp_ptr;
 
   OPENMS_LOG_INFO << "Loaded " << exp.size() << " MS1 spectra" << endl;
 
@@ -172,16 +207,6 @@ void Biosaur2Algorithm::run(const MSExperiment& input,
     }
   }
   (void)has_ion_mobility;
-
-  if (profile_mode_)
-  {
-    centroidProfileSpectra(exp);
-  }
-
-  if (tof_mode_)
-  {
-    processTOF(exp);
-  }
 
   double calibrated_htol = htol_;
   if (use_hill_calib_)
