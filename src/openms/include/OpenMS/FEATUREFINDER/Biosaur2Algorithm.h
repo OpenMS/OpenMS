@@ -153,6 +153,8 @@ private:
   /// Utility to compute cosine correlation between two intensity traces (shared scan indices).
   double cosineCorrelation(const std::vector<double>& intensities1, const std::vector<Size>& scans1,
                            const std::vector<double>& intensities2, const std::vector<Size>& scans2) const;
+  /// Check if missing ion mobility array should be treated as an error for the given spectrum.
+  bool shouldThrowForMissingIM(const MSSpectrum& spectrum) const;
 
   double mini_;
   double minmz_;
