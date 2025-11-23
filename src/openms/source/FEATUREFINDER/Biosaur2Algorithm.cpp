@@ -5,6 +5,7 @@
 
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/ConvexHull2D.h>
 #include <OpenMS/IONMOBILITY/FAIMSHelper.h>
@@ -1021,7 +1022,7 @@ vector<Biosaur2Algorithm::PeptideFeature> Biosaur2Algorithm::detectIsotopePatter
           feature.drift_time = mono_hill.drift_time_median;
           feature.ion_mobility = mono_hill.ion_mobility_median;
 
-          double proton_mass = 1.007276;
+          double proton_mass = Constants::PROTON_MASS_U;
           if (negative_mode)
           {
             feature.mass_calib = mono_mz * charge + proton_mass * charge;
@@ -1137,6 +1138,10 @@ double Biosaur2Algorithm::cosineCorrelation(const vector<double>& intensities1,
 void Biosaur2Algorithm::writeTSV(const vector<PeptideFeature>& features, const String& filename) const
 {
   ofstream out(filename);
+  if (!out)
+  {
+    throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+  }
   out << "massCalib\trtApex\tintensityApex\tintensitySum\tcharge\t"
       << "nIsotopes\tnScans\tmz\trtStart\trtEnd\tFAIMS\tIM" << endl;
 
@@ -1162,6 +1167,10 @@ void Biosaur2Algorithm::writeTSV(const vector<PeptideFeature>& features, const S
 void Biosaur2Algorithm::writeHills(const vector<Hill>& hills, const String& filename) const
 {
   ofstream out(filename);
+  if (!out)
+  {
+    throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+  }
   out << "hill_idx\tmz\trtStart\trtEnd\trtApex\tintensityApex\tintensitySum\tnScans" << endl;
 
   for (const auto& hill : hills)
