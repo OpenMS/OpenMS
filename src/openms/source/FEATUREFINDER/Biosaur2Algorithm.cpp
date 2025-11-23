@@ -8,6 +8,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/ConvexHull2D.h>
 #include <OpenMS/IONMOBILITY/FAIMSHelper.h>
+#include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/KERNEL/SpectrumHelper.h>
 #include <OpenMS/MATH/StatisticFunctions.h>
@@ -236,6 +237,14 @@ double Biosaur2Algorithm::calculateMedian(const vector<double>& values) const
 
   vector<double> sorted = values;
   return Math::median(sorted.begin(), sorted.end(), false);
+}
+
+bool Biosaur2Algorithm::shouldThrowForMissingIM(const MSSpectrum& spectrum) const
+{
+  // Only throw if this is true ion mobility (TIMS/PASEF), not FAIMS
+  // FAIMS uses spectrum-level CV, not per-peak ion mobility arrays
+  DriftTimeUnit dt_unit = spectrum.getDriftTimeUnit();
+  return (dt_unit != DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE && dt_unit != DriftTimeUnit::NONE);
 }
 
 vector<double> Biosaur2Algorithm::meanFilter(const vector<double>& data, Size window) const
@@ -532,8 +541,11 @@ vector<Biosaur2Algorithm::Hill> Biosaur2Algorithm::detectHills(const MSExperimen
             }
             else if (drift_time >= 0)
             {
-              throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                                  "Ion mobility array missing although drift times are present.");
+              if (shouldThrowForMissingIM(spectrum))
+              {
+                throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                                    "Ion mobility array missing although drift times are present.");
+              }
             }
             hill.ion_mobilities.push_back(ion_mobility);
 
@@ -588,8 +600,11 @@ vector<Biosaur2Algorithm::Hill> Biosaur2Algorithm::detectHills(const MSExperimen
         }
         else if (drift_time >= 0)
         {
-          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                              "Ion mobility array missing although drift times are present.");
+          if (shouldThrowForMissingIM(spectrum))
+          {
+            throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                                "Ion mobility array missing although drift times are present.");
+          }
         }
         hill.ion_mobilities.push_back(ion_mobility);
 
