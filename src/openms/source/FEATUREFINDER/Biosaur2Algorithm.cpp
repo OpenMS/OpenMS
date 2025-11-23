@@ -109,15 +109,34 @@ void Biosaur2Algorithm::updateMembers_()
   ignore_iso_calib_ = param_.getValue("ignore_iso_calib").toBool();
 }
 
-void Biosaur2Algorithm::run(const MSExperiment& input, FeatureMap& feature_map)
+void Biosaur2Algorithm::setMSData(const MSExperiment& ms_data)
+{
+  ms_data_ = ms_data;
+}
+
+void Biosaur2Algorithm::setMSData(MSExperiment&& ms_data)
+{
+  ms_data_ = std::move(ms_data);
+}
+
+MSExperiment& Biosaur2Algorithm::getMSData()
+{
+  return ms_data_;
+}
+
+const MSExperiment& Biosaur2Algorithm::getMSData() const
+{
+  return ms_data_;
+}
+
+void Biosaur2Algorithm::run(FeatureMap& feature_map)
 {
   vector<Hill> tmp_hills;
   vector<PeptideFeature> tmp_features;
-  run(input, feature_map, tmp_hills, tmp_features);
+  run(feature_map, tmp_hills, tmp_features);
 }
 
-void Biosaur2Algorithm::run(const MSExperiment& input,
-                            FeatureMap& feature_map,
+void Biosaur2Algorithm::run(FeatureMap& feature_map,
                             vector<Hill>& hills,
                             vector<PeptideFeature>& peptide_features)
 {
@@ -137,55 +156,30 @@ void Biosaur2Algorithm::run(const MSExperiment& input,
   (void)threads_;
 #endif
 
-  // Determine if we need to modify the experiment
-  bool needs_ms_level_filtering = false;
-  for (const auto& spec : input)
-  {
-    if (spec.getMSLevel() != 1)
-    {
-      needs_ms_level_filtering = true;
-      break;
-    }
-  }
-
-  // Only copy if modifications are needed
-  const MSExperiment* exp_ptr = &input;
-  MSExperiment exp_modified;
+  // Filter to keep only MS1 spectra
+  ms_data_.getSpectra().erase(
+    remove_if(ms_data_.begin(), ms_data_.end(),
+              [](const MSSpectrum& s) { return s.getMSLevel() != 1; }),
+    ms_data_.end());
   
-  if (needs_ms_level_filtering || profile_mode_ || tof_mode_)
+  if (profile_mode_)
   {
-    exp_modified = input;
-    exp_ptr = &exp_modified;
-    
-    if (needs_ms_level_filtering)
-    {
-      exp_modified.getSpectra().erase(
-        remove_if(exp_modified.begin(), exp_modified.end(),
-                  [](const MSSpectrum& s) { return s.getMSLevel() != 1; }),
-        exp_modified.end());
-    }
-    
-    if (profile_mode_)
-    {
-      centroidProfileSpectra(exp_modified);
-    }
-    
-    if (tof_mode_)
-    {
-      processTOF(exp_modified);
-    }
+    centroidProfileSpectra(ms_data_);
+  }
+  
+  if (tof_mode_)
+  {
+    processTOF(ms_data_);
   }
 
-  const MSExperiment& exp = *exp_ptr;
+  OPENMS_LOG_INFO << "Loaded " << ms_data_.size() << " MS1 spectra" << endl;
 
-  OPENMS_LOG_INFO << "Loaded " << exp.size() << " MS1 spectra" << endl;
-
-  if (exp.empty())
+  if (ms_data_.empty())
   {
     throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No MS1 spectra found in input experiment!", "");
   }
 
-  auto cvs = FAIMSHelper::getCompensationVoltages(exp);
+  auto cvs = FAIMSHelper::getCompensationVoltages(ms_data_);
   if (!cvs.empty())
   {
     OPENMS_LOG_INFO << "Detected FAIMS data with " << cvs.size() << " compensation voltage(s)" << endl;
@@ -196,9 +190,9 @@ void Biosaur2Algorithm::run(const MSExperiment& input,
   }
 
   bool has_ion_mobility = false;
-  if (!exp.empty())
+  if (!ms_data_.empty())
   {
-    const auto& fda = exp[0].getFloatDataArrays();
+    const auto& fda = ms_data_[0].getFloatDataArrays();
     auto it_im = getDataArrayByName(fda, Constants::UserParam::ION_MOBILITY);
     if (it_im != fda.end())
     {
@@ -213,13 +207,13 @@ void Biosaur2Algorithm::run(const MSExperiment& input,
   {
     OPENMS_LOG_INFO << "Performing hill mass tolerance calibration..." << endl;
     vector<double> mass_diffs;
-    Size sample_size = min(exp.size(), Size(1000));
-    Size start_idx = (exp.size() > 1000) ? (exp.size() / 2 - 500) : 0;
+    Size sample_size = min(ms_data_.size(), Size(1000));
+    Size start_idx = (ms_data_.size() > 1000) ? (ms_data_.size() / 2 - 500) : 0;
 
     MSExperiment calib_exp;
-    for (Size i = start_idx; i < start_idx + sample_size && i < exp.size(); ++i)
+    for (Size i = start_idx; i < start_idx + sample_size && i < ms_data_.size(); ++i)
     {
-      calib_exp.addSpectrum(exp[i]);
+      calib_exp.addSpectrum(ms_data_[i]);
     }
 
     vector<Hill> calib_hills = detectHills(calib_exp, htol_, mini_, minmz_, maxmz_, &mass_diffs);
@@ -234,7 +228,7 @@ void Biosaur2Algorithm::run(const MSExperiment& input,
     }
   }
 
-  hills = detectHills(exp, calibrated_htol, mini_, minmz_, maxmz_);
+  hills = detectHills(ms_data_, calibrated_htol, mini_, minmz_, maxmz_);
   hills = processHills(hills, minlh_);
   hills = splitHills(hills, hvf_, minlh_);
 

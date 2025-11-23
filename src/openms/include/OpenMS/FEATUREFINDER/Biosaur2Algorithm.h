@@ -90,19 +90,29 @@ public:
 
   Biosaur2Algorithm();
 
+  /// @brief Set the MS data used for feature detection (copy version)
+  void setMSData(const MSExperiment& ms_data);
+  
+  /// @brief Set the MS data used for feature detection (move version)
+  void setMSData(MSExperiment&& ms_data);
+  
+  /// @brief Get non-const reference to MS data
+  MSExperiment& getMSData();
+  
+  /// @brief Get const reference to MS data
+  const MSExperiment& getMSData() const;
+
   /// Convenience overload discarding the intermediate hills/peptide-feature vectors.
-  void run(const MSExperiment& input, FeatureMap& feature_map);
+  void run(FeatureMap& feature_map);
 
   /**
-    @brief Execute the Biosaur2 workflow on a centroided MS1 experiment.
+    @brief Execute the Biosaur2 workflow on the stored MS1 experiment.
 
-    @param input         MS experiment containing MS1 spectra (profile data will be centroided if requested).
     @param feature_map   Resulting FeatureMap that receives the detected features and meta information.
     @param hills         Container for all temporary hills that survived the filtering steps.
     @param peptide_features  Container storing the intermediate peptide feature representations before they are converted into FeatureMap entries.
   */
-  void run(const MSExperiment& input,
-           FeatureMap& feature_map,
+  void run(FeatureMap& feature_map,
            std::vector<Hill>& hills,
            std::vector<PeptideFeature>& peptide_features);
 
@@ -156,6 +166,8 @@ private:
   /// Check if missing ion mobility array should be treated as an error for the given spectrum.
   bool shouldThrowForMissingIM(const MSSpectrum& spectrum) const;
 
+  MSExperiment ms_data_; ///< input LC-MS data
+  
   double mini_;
   double minmz_;
   double maxmz_;
