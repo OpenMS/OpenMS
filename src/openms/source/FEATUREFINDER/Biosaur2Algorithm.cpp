@@ -1002,7 +1002,7 @@ vector<Biosaur2Algorithm::PeptideFeature> Biosaur2Algorithm::detectIsotopePatter
           feature.drift_time = mono_hill.drift_time_median;
           feature.ion_mobility = mono_hill.ion_mobility_median;
 
-          double proton_mass = 1.007276;
+          double proton_mass = Constants::PROTON_MASS_U;
           if (negative_mode)
           {
             feature.mass_calib = mono_mz * charge + proton_mass * charge;
