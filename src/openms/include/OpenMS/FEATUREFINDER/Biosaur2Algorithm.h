@@ -158,8 +158,10 @@ private:
   Size checkIsotopeValleySplit(const std::vector<IsotopeCandidate>& isotopes, const std::vector<Hill>& hills, double ivf) const;
   /// Detect isotope patterns and build peptide features from the available hills.
   std::vector<PeptideFeature> detectIsotopePatterns(std::vector<Hill>& hills, double itol_ppm, int min_charge, int max_charge, bool negative_mode, double ivf, int iuse, bool enable_isotope_calib) const;
-  /// Transfer peptide feature structures into an OpenMS FeatureMap instance.
-  FeatureMap convertToFeatureMap(const std::vector<PeptideFeature>& features) const;
+  /// Transfer peptide feature structures into an OpenMS FeatureMap instance and attach convex hulls
+  /// derived from the contributing hills (monoisotopic trace plus associated isotope hills).
+  FeatureMap convertToFeatureMap(const std::vector<PeptideFeature>& features,
+                                 const std::vector<Hill>& hills) const;
   /// Utility to compute cosine correlation between two intensity traces (shared scan indices).
   double cosineCorrelation(const std::vector<double>& intensities1, const std::vector<Size>& scans1,
                            const std::vector<double>& intensities2, const std::vector<Size>& scans2) const;
@@ -186,6 +188,7 @@ private:
   bool use_hill_calib_;
   bool ignore_iso_calib_;
   double paseftol_;
+  double hrttol_;
 };
 
 } // namespace OpenMS

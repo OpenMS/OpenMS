@@ -90,6 +90,9 @@ Biosaur2Algorithm::Biosaur2Algorithm() :
   defaults_.setValue("ignore_iso_calib", "false", "Disable automatic isotope mass error calibration");
   defaults_.setValidStrings("ignore_iso_calib", {"true", "false"});
 
+  defaults_.setValue("hrttol", 10.0, "Maximum allowed RT difference (in seconds) between monoisotopic hill apex and isotope hill apex when assembling isotope patterns (0 disables RT gating).");
+  defaults_.setMinFloat("hrttol", 0.0);
+
   defaultsToParam_();
   updateMembers_();
 }
@@ -114,6 +117,7 @@ void Biosaur2Algorithm::updateMembers_()
   use_hill_calib_ = param_.getValue("use_hill_calib").toBool();
   ignore_iso_calib_ = param_.getValue("ignore_iso_calib").toBool();
   paseftol_ = param_.getValue("paseftol");
+  hrttol_ = param_.getValue("hrttol");
 }
 
 void Biosaur2Algorithm::setMSData(const MSExperiment& ms_data)
@@ -242,7 +246,7 @@ void Biosaur2Algorithm::run(FeatureMap& feature_map,
   bool enable_isotope_calib = !ignore_iso_calib_;
   peptide_features = detectIsotopePatterns(hills, itol_, cmin_, cmax_, negative_mode_, ivf_, iuse_, enable_isotope_calib);
 
-  feature_map = convertToFeatureMap(peptide_features);
+  feature_map = convertToFeatureMap(peptide_features, hills);
 }
 
 double Biosaur2Algorithm::calculatePPM(double mz1, double mz2) const
@@ -1418,47 +1422,90 @@ vector<Biosaur2Algorithm::PeptideFeature> Biosaur2Algorithm::detectIsotopePatter
     return make_pair(best_cor, best_pos);
   };
 
-  // Averagine-based theoretical isotope intensities (C-only binomial model).
-  auto computeAveragine = [](double neutral_mass, double apex_intensity) -> pair<vector<double>, Size>
+  // Averagine-based theoretical isotope intensities (C-only binomial model),
+  // using the same neutral-mass binning (100 Da bins over neutral mass) and
+  // binomial parameters as the reference Cython/SciPy implementation. The
+  // C++ code precomputes a lookup table over 0,100,...,19900 Da using the
+  // Boost binomial distribution and then rescales by the mono apex intensity.
+  constexpr int averagine_mass_bin_step = 100;
+  constexpr int averagine_max_mass_bin_index = 199; // 0..199 => 0..19900 Da
+
+  static vector<vector<double>> averagine_table;
+  static vector<Size> averagine_max_pos;
+  static bool averagine_initialized = false;
+
+  if (!averagine_initialized)
   {
     const double averagine_mass = 111.1254;
     const double averagine_C = 4.9384;
     const double p = 0.0107;
-    vector<double> theor(10, 0.0);
 
-    int n_C = static_cast<int>(round(neutral_mass / averagine_mass * averagine_C));
-    n_C = max(n_C, 1);
+    averagine_table.assign(averagine_max_mass_bin_index + 1, vector<double>(10, 0.0));
+    averagine_max_pos.assign(averagine_max_mass_bin_index + 1, 0);
 
-    // Compute binomial probabilities for k=0..9.
-    double one_minus_p = 1.0 - p;
-    double log_one_minus_p = log(one_minus_p);
-    double log_p = log(p);
-
-    for (Size k = 0; k < theor.size(); ++k)
+    for (int bin_idx = 0; bin_idx <= averagine_max_mass_bin_index; ++bin_idx)
     {
-      if (static_cast<int>(k) > n_C) break;
-      // log C(n_C, k)
-      double log_comb = 0.0;
-      for (int i = 1; i <= static_cast<int>(k); ++i)
+      double neutral_mass_bin = static_cast<double>(bin_idx * averagine_mass_bin_step);
+      int n_C = static_cast<int>(round(neutral_mass_bin / averagine_mass * averagine_C));
+      n_C = max(n_C, 1);
+
+      boost::math::binomial_distribution<double> dist(n_C, p);
+
+      double sum_prob = 0.0;
+      for (Size k = 0; k < 10; ++k)
       {
-        log_comb += log(static_cast<double>(n_C - i + 1)) - log(static_cast<double>(i));
+        double prob = (static_cast<int>(k) <= n_C) ?
+                      boost::math::pdf(dist, static_cast<unsigned>(k)) : 0.0;
+        averagine_table[bin_idx][k] = prob;
+        sum_prob += prob;
       }
-      double log_prob = log_comb + k * log_p + (n_C - static_cast<int>(k)) * log_one_minus_p;
-      theor[k] = exp(log_prob);
+
+      if (sum_prob <= 0.0) sum_prob = 1.0;
+      for (Size k = 0; k < 10; ++k)
+      {
+        averagine_table[bin_idx][k] /= sum_prob;
+      }
+
+      Size max_pos = distance(averagine_table[bin_idx].begin(),
+                              max_element(averagine_table[bin_idx].begin(),
+                                          averagine_table[bin_idx].end()));
+      if (max_pos < 4) max_pos = 4;
+      averagine_max_pos[bin_idx] = max_pos;
     }
 
-    double sum_prob = accumulate(theor.begin(), theor.end(), 0.0);
-    if (sum_prob <= 0.0) sum_prob = 1.0;
-    for (double& v : theor) v /= sum_prob;
+    averagine_initialized = true;
+  }
 
-    Size max_pos = distance(theor.begin(), max_element(theor.begin(), theor.end()));
-    if (max_pos < 4) max_pos = 4;
-
-    for (Size k = 0; k < theor.size(); ++k)
+  auto computeAveragine = [](double neutral_mass, double apex_intensity) -> pair<vector<double>, Size>
+  {
+    // Map neutral mass onto the same 100 Da grid as the Python
+    // implementation (0,100,...,19900 Da).
+    int bin_idx = static_cast<int>(floor(neutral_mass / static_cast<double>(averagine_mass_bin_step)));
+    if (bin_idx < 0)
     {
-      theor[k] = apex_intensity * theor[k] / theor[0];
+      bin_idx = 0;
+    }
+    if (bin_idx > averagine_max_mass_bin_index)
+    {
+      bin_idx = averagine_max_mass_bin_index;
     }
 
+    vector<double> theor(10, 0.0);
+    const vector<double>& probs = averagine_table[bin_idx];
+
+    // Scale normalized probabilities to the mono apex intensity,
+    // preserving the same relative shape as in the Python code.
+    double mono_prob = probs[0];
+    if (mono_prob <= 0.0)
+    {
+      mono_prob = 1.0;
+    }
+    for (Size k = 0; k < 10; ++k)
+    {
+      theor[k] = apex_intensity * probs[k] / mono_prob;
+    }
+
+    Size max_pos = averagine_max_pos[bin_idx];
     return make_pair(theor, max_pos);
   };
 
@@ -1713,6 +1760,57 @@ vector<Biosaur2Algorithm::PeptideFeature> Biosaur2Algorithm::detectIsotopePatter
   map<int, vector<double>> isotope_errors_ready;
   for (int ic = 1; ic <= 9; ++ic) isotope_errors_ready[ic] = vector<double>();
 
+  // Optional RT-apex gating before isotope mass calibration:
+  // discard isotope hills whose apex RT is farther than hrttol_ seconds
+  // from the monoisotopic hill apex.
+  if (hrttol_ > 0.0 && !ready.empty())
+  {
+    map<Size, Size> hill_idx_to_index;
+    for (Size idx = 0; idx < hills.size(); ++idx)
+    {
+      hill_idx_to_index[hills[idx].hill_idx] = idx;
+    }
+
+    vector<PatternCandidate> rt_filtered;
+    rt_filtered.reserve(ready.size());
+
+    for (auto pc : ready)
+    {
+      const Hill& mono_hill = hills[pc.mono_index];
+      double mono_rt_apex = mono_hill.rt_apex;
+
+      vector<IsotopeCandidate> kept;
+      kept.reserve(pc.isotopes.size());
+
+      for (const auto& iso_cand : pc.isotopes)
+      {
+        auto it_h = hill_idx_to_index.find(iso_cand.hill_idx);
+        if (it_h == hill_idx_to_index.end())
+        {
+          continue;
+        }
+        const Hill& iso_hill = hills[it_h->second];
+        double iso_rt_apex = iso_hill.rt_apex;
+        if (fabs(iso_rt_apex - mono_rt_apex) <= hrttol_)
+        {
+          kept.push_back(iso_cand);
+        }
+      }
+
+      if (!kept.empty())
+      {
+        pc.isotopes.swap(kept);
+        rt_filtered.push_back(pc);
+      }
+    }
+
+    OPENMS_LOG_INFO << "After RT apex filter (hrttol=" << hrttol_
+                    << " s), " << rt_filtered.size()
+                    << " potential isotope patterns remain." << endl;
+
+    ready.swap(rt_filtered);
+  }
+
   for (const auto& pc : ready)
   {
     if (pc.n_scans < 3) continue;
@@ -1848,24 +1946,40 @@ vector<Biosaur2Algorithm::PeptideFeature> Biosaur2Algorithm::detectIsotopePatter
          return a.cos_cor_isotopes > b.cos_cor_isotopes;
        });
 
-  set<Size> occupied_hills;
-  for (const auto& pc : filtered_ready)
+  // Build a lookup from hill_idx to Hill pointer for fast access to
+  // apex intensities during the truncation / re-correlation step.
+  map<Size, const Hill*> hill_lookup_for_iso;
+  for (const auto& h : hills)
   {
+    hill_lookup_for_iso[h.hill_idx] = &h;
+  }
+
+  set<Size> occupied_hills;
+  for (const auto& pc_in : filtered_ready)
+  {
+    PatternCandidate pc = pc_in; // local copy that we may truncate
     const Hill& mono_hill = hills[pc.mono_index];
 
-    bool conflict = (occupied_hills.find(mono_hill.hill_idx) != occupied_hills.end());
+    // Skip patterns whose monoisotopic hill is already used.
+    if (occupied_hills.find(mono_hill.hill_idx) != occupied_hills.end())
+    {
+      continue;
+    }
+
+    bool iso_conflict = false;
     for (const auto& iso : pc.isotopes)
     {
       if (occupied_hills.find(iso.hill_idx) != occupied_hills.end())
       {
-        conflict = true;
+        iso_conflict = true;
         break;
       }
     }
 
-    if (conflict)
+    if (iso_conflict)
     {
-      // Try to keep only isotopes whose hills are not yet used.
+      // Try to keep only leading isotopes whose hills are not yet used,
+      // mirroring the Python ready_final truncation behavior.
       vector<IsotopeCandidate> tmp_iso;
       for (const auto& iso : pc.isotopes)
       {
@@ -1880,109 +1994,111 @@ vector<Biosaur2Algorithm::PeptideFeature> Biosaur2Algorithm::detectIsotopePatter
       }
       if (tmp_iso.empty()) continue;
 
-      PeptideFeature feature;
-      feature.mz = pc.mono_mz;
-      feature.rt_start = mono_hill.rt_start;
-      feature.rt_end = mono_hill.rt_end;
-      feature.rt_apex = mono_hill.rt_apex;
-      feature.intensity_apex = mono_hill.intensity_apex;
-      feature.intensity_sum = mono_hill.intensity_sum;
+      // Recompute cosine correlation in isotope-intensity space for the
+      // truncated pattern and potentially truncate further based on the
+      // averagine-explained / correlation criterion, analogous to
+      // checking_cos_correlation_for_carbon in the Python code.
+      double mono_mz = mono_hill.mz_median;
+      double hill_intensity_apex_1 = mono_hill.intensity_apex;
 
-      if (iuse != 0)
+      auto averagine = computeAveragine(mono_mz * pc.charge, hill_intensity_apex_1);
+      const vector<double>& theor_full = averagine.first;
+
+      Size len = min(static_cast<Size>(tmp_iso.size()) + 1, theor_full.size());
+      if (len <= 1) continue;
+
+      vector<double> theor(len);
+      vector<double> exp(len);
+
+      for (Size k = 0; k < len; ++k)
       {
-        int isotopes_to_add = (iuse == -1) ? static_cast<int>(tmp_iso.size())
-                                           : min(static_cast<int>(tmp_iso.size()), iuse);
-        for (int iso_idx = 0; iso_idx < isotopes_to_add; ++iso_idx)
+        theor[k] = theor_full[k];
+      }
+
+      exp[0] = hill_intensity_apex_1;
+      for (Size k = 1; k < len; ++k)
+      {
+        Size iso_index = k - 1;
+        auto it_h = hill_lookup_for_iso.find(tmp_iso[iso_index].hill_idx);
+        if (it_h != hill_lookup_for_iso.end())
         {
-          for (const auto& hill : hills)
-          {
-            if (hill.hill_idx == tmp_iso[iso_idx].hill_idx)
-            {
-              feature.intensity_apex += hill.intensity_apex;
-              feature.intensity_sum += hill.intensity_sum;
-              break;
-            }
-          }
+          exp[k] = it_h->second->intensity_apex;
+        }
+        else
+        {
+          exp[k] = 0.0;
         }
       }
 
-      feature.charge = pc.charge;
-      feature.n_isotopes = tmp_iso.size() + 1;
-      feature.n_scans = mono_hill.length;
-      feature.isotopes = tmp_iso;
-      feature.mono_hill_idx = mono_hill.hill_idx;
-      feature.drift_time = mono_hill.drift_time_median;
-      feature.ion_mobility = mono_hill.ion_mobility_median;
+      auto cc = checkingCosCorrelationForCarbon(theor, exp, 0.6);
+      double cos_corr_iso = cc.first;
+      Size best_pos = cc.second;
 
-      double proton_mass = Constants::PROTON_MASS_U;
-      if (negative_mode)
+      if (cos_corr_iso <= 0.0 || best_pos <= 1)
       {
-        feature.mass_calib = pc.mono_mz * pc.charge + proton_mass * pc.charge;
-      }
-      else
-      {
-        feature.mass_calib = pc.mono_mz * pc.charge - proton_mass * pc.charge;
+        continue;
       }
 
-      features.push_back(feature);
-      occupied_hills.insert(mono_hill.hill_idx);
-      for (const auto& iso : tmp_iso)
+      Size n_iso_used = min(best_pos - 1, tmp_iso.size());
+      tmp_iso.resize(n_iso_used);
+      pc.isotopes = tmp_iso;
+      pc.cos_cor_isotopes = cos_corr_iso;
+    }
+
+    if (pc.isotopes.empty())
+    {
+      continue;
+    }
+
+    // At this point, either there was no conflict or we have a
+    // truncated pattern that still passes the cosine check.
+    PeptideFeature feature;
+    feature.mz = pc.mono_mz;
+    feature.rt_start = mono_hill.rt_start;
+    feature.rt_end = mono_hill.rt_end;
+    feature.rt_apex = mono_hill.rt_apex;
+    feature.intensity_apex = mono_hill.intensity_apex;
+    feature.intensity_sum = mono_hill.intensity_sum;
+
+    if (iuse != 0)
+    {
+      int isotopes_to_add = (iuse == -1) ? static_cast<int>(pc.isotopes.size())
+                                         : min(static_cast<int>(pc.isotopes.size()), iuse);
+      for (int iso_idx = 0; iso_idx < isotopes_to_add; ++iso_idx)
       {
-        occupied_hills.insert(iso.hill_idx);
+        auto it_h = hill_lookup_for_iso.find(pc.isotopes[static_cast<Size>(iso_idx)].hill_idx);
+        if (it_h != hill_lookup_for_iso.end())
+        {
+          const Hill* h = it_h->second;
+          feature.intensity_apex += h->intensity_apex;
+          feature.intensity_sum += h->intensity_sum;
+        }
       }
+    }
+
+    feature.charge = pc.charge;
+    feature.n_isotopes = pc.isotopes.size() + 1;
+    feature.n_scans = mono_hill.length;
+    feature.isotopes = pc.isotopes;
+    feature.mono_hill_idx = mono_hill.hill_idx;
+    feature.drift_time = mono_hill.drift_time_median;
+    feature.ion_mobility = mono_hill.ion_mobility_median;
+
+    double proton_mass = Constants::PROTON_MASS_U;
+    if (negative_mode)
+    {
+      feature.mass_calib = pc.mono_mz * pc.charge + proton_mass * pc.charge;
     }
     else
     {
-      PeptideFeature feature;
-      feature.mz = pc.mono_mz;
-      feature.rt_start = mono_hill.rt_start;
-      feature.rt_end = mono_hill.rt_end;
-      feature.rt_apex = mono_hill.rt_apex;
-      feature.intensity_apex = mono_hill.intensity_apex;
-      feature.intensity_sum = mono_hill.intensity_sum;
+      feature.mass_calib = pc.mono_mz * pc.charge - proton_mass * pc.charge;
+    }
 
-      if (iuse != 0)
-      {
-        int isotopes_to_add = (iuse == -1) ? static_cast<int>(pc.isotopes.size())
-                                           : min(static_cast<int>(pc.isotopes.size()), iuse);
-        for (int iso_idx = 0; iso_idx < isotopes_to_add; ++iso_idx)
-        {
-          for (const auto& hill : hills)
-          {
-            if (hill.hill_idx == pc.isotopes[iso_idx].hill_idx)
-            {
-              feature.intensity_apex += hill.intensity_apex;
-              feature.intensity_sum += hill.intensity_sum;
-              break;
-            }
-          }
-        }
-      }
-
-      feature.charge = pc.charge;
-      feature.n_isotopes = pc.isotopes.size() + 1;
-      feature.n_scans = mono_hill.length;
-      feature.isotopes = pc.isotopes;
-      feature.mono_hill_idx = mono_hill.hill_idx;
-      feature.drift_time = mono_hill.drift_time_median;
-      feature.ion_mobility = mono_hill.ion_mobility_median;
-
-      double proton_mass = Constants::PROTON_MASS_U;
-      if (negative_mode)
-      {
-        feature.mass_calib = pc.mono_mz * pc.charge + proton_mass * pc.charge;
-      }
-      else
-      {
-        feature.mass_calib = pc.mono_mz * pc.charge - proton_mass * pc.charge;
-      }
-
-      features.push_back(feature);
-      occupied_hills.insert(mono_hill.hill_idx);
-      for (const auto& iso : pc.isotopes)
-      {
-        occupied_hills.insert(iso.hill_idx);
-      }
+    features.push_back(feature);
+    occupied_hills.insert(mono_hill.hill_idx);
+    for (const auto& iso : pc.isotopes)
+    {
+      occupied_hills.insert(iso.hill_idx);
     }
   }
 
@@ -1990,9 +2106,18 @@ vector<Biosaur2Algorithm::PeptideFeature> Biosaur2Algorithm::detectIsotopePatter
   return features;
 }
 
-FeatureMap Biosaur2Algorithm::convertToFeatureMap(const vector<PeptideFeature>& features) const
+FeatureMap Biosaur2Algorithm::convertToFeatureMap(const vector<PeptideFeature>& features,
+                                                  const vector<Hill>& hills) const
 {
   FeatureMap feature_map;
+
+  // Build a lookup from hill index to Hill pointer so we can reconstruct
+  // per-isotope convex hulls for each peptide feature.
+  map<Size, const Hill*> hill_lookup;
+  for (const auto& h : hills)
+  {
+    hill_lookup[h.hill_idx] = &h;
+  }
 
   for (const auto& f : features)
   {
@@ -2003,12 +2128,61 @@ FeatureMap Biosaur2Algorithm::convertToFeatureMap(const vector<PeptideFeature>& 
     feature.setCharge(f.charge);
     feature.setOverallQuality(f.n_isotopes);
 
-    ConvexHull2D hull;
-    vector<DPosition<2>> hull_points;
-    hull_points.emplace_back(f.rt_start, f.mz);
-    hull_points.emplace_back(f.rt_end, f.mz);
-    hull.setHullPoints(hull_points);
-    feature.getConvexHulls().push_back(hull);
+    // Collect the monoisotopic hill and all isotope hills contributing to
+    // this feature and build one convex hull per hill, analogous to how
+    // FeatureFinderCentroided uses mass-trace hulls.
+    set<Size> pattern_hill_ids;
+    pattern_hill_ids.insert(f.mono_hill_idx);
+    for (const auto& iso : f.isotopes)
+    {
+      pattern_hill_ids.insert(iso.hill_idx);
+    }
+
+    for (Size hill_id : pattern_hill_ids)
+    {
+      auto it = hill_lookup.find(hill_id);
+      if (it == hill_lookup.end())
+      {
+        continue;
+      }
+      const Hill& hill = *(it->second);
+      if (hill.rt_values.empty() || hill.mz_values.empty())
+      {
+        continue;
+      }
+
+      const Size n_pts = min(hill.rt_values.size(), hill.mz_values.size());
+      if (n_pts == 0)
+      {
+        continue;
+      }
+
+      ConvexHull2D::PointArrayType hull_points(n_pts);
+      for (Size i = 0; i < n_pts; ++i)
+      {
+        hull_points[i][0] = hill.rt_values[i];
+        hull_points[i][1] = hill.mz_values[i];
+      }
+
+      ConvexHull2D hull;
+      hull.addPoints(hull_points);
+      feature.getConvexHulls().push_back(hull);
+    }
+
+    // Fallback: if something went wrong while resolving hills, keep the
+    // previous simple two-point hull to avoid features without any hull.
+    if (feature.getConvexHulls().empty())
+    {
+      ConvexHull2D::PointArrayType hull_points(2);
+      hull_points[0][0] = f.rt_start;
+      hull_points[0][1] = f.mz;
+      hull_points[1][0] = f.rt_end;
+      hull_points[1][1] = f.mz;
+
+      ConvexHull2D hull;
+      hull.addPoints(hull_points);
+      feature.getConvexHulls().push_back(hull);
+    }
 
     feature.setMetaValue("mass_calib", f.mass_calib);
     feature.setMetaValue("n_isotopes", f.n_isotopes);
