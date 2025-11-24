@@ -183,12 +183,12 @@ void Biosaur2Algorithm::run(FeatureMap& feature_map,
   
   if (profile_mode_)
   {
-    centroidProfileSpectra(ms_data_);
+    centroidProfileSpectra_(ms_data_);
   }
   
   if (tof_mode_)
   {
-    processTOF(ms_data_);
+    processTOF_(ms_data_);
   }
 
   OPENMS_LOG_INFO << "Loaded " << ms_data_.size() << " MS1 spectra" << endl;
@@ -198,77 +198,8 @@ void Biosaur2Algorithm::run(FeatureMap& feature_map,
     throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No MS1 spectra found in input experiment!", "");
   }
 
-  // Detect FAIMS compensation voltages (if any) to mirror Python's CV-aware
-  // processing. If no FAIMS data are present, we process the experiment in
-  // a single pass.
-  auto cvs = FAIMSHelper::getCompensationVoltages(ms_data_);
-  if (!cvs.empty())
-  {
-    OPENMS_LOG_INFO << "Detected FAIMS data with " << cvs.size() << " compensation voltage(s)" << endl;
-    for (const auto& cv : cvs)
-    {
-      OPENMS_LOG_INFO << "  CV: " << cv << " V" << endl;
-    }
-  }
-
-  // Build per-FAIMS-group experiments:
-  //  - if no FAIMS CVs are present, we have a single group containing all MS1.
-  //  - if FAIMS CVs exist, we create:
-  //      * one group with MS1 spectra that are not FAIMS (CV == 0),
-  //      * one group per FAIMS CV value, containing spectra with that CV.
-  struct Group
-  {
-    double faims_cv;
-    MSExperiment exp;
-  };
-  vector<Group> groups;
-
-  if (cvs.empty())
-  {
-    Group g;
-    g.faims_cv = std::numeric_limits<double>::quiet_NaN();
-    g.exp = ms_data_;
-    groups.push_back(std::move(g));
-  }
-  else
-  {
-    // Non-FAIMS MS1 spectra (if any) go into a CV=0 group.
-    Group base_group;
-    base_group.faims_cv = 0.0;
-    bool has_non_faims = false;
-
-    for (const auto& spec : ms_data_)
-    {
-      if (spec.getDriftTimeUnit() != DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE)
-      {
-        base_group.exp.addSpectrum(spec);
-        has_non_faims = true;
-      }
-    }
-    if (has_non_faims)
-    {
-      groups.push_back(std::move(base_group));
-    }
-
-    // One group per FAIMS CV.
-    for (double cv : cvs)
-    {
-      Group g;
-      g.faims_cv = cv;
-      for (const auto& spec : ms_data_)
-      {
-        if (spec.getDriftTimeUnit() == DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE &&
-            fabs(spec.getDriftTime() - cv) <= 1e-6)
-        {
-          g.exp.addSpectrum(spec);
-        }
-      }
-      if (!g.exp.empty())
-      {
-        groups.push_back(std::move(g));
-      }
-    }
-  }
+  // Build FAIMS-aware processing groups (one per CV plus optional non-FAIMS group).
+  vector<pair<double, MSExperiment>> groups = buildFAIMSGroups_();
 
   vector<Hill> all_hills;
   vector<PeptideFeature> all_features;
@@ -276,125 +207,9 @@ void Biosaur2Algorithm::run(FeatureMap& feature_map,
 
   const double original_paseftol = paseftol_;
 
-  for (auto& group : groups)
+  for (auto& g : groups)
   {
-    if (group.exp.empty())
-    {
-      continue;
-    }
-
-    // Determine ion-mobility array availability for this group.
-    bool any_im_array = false;
-    bool any_missing_im = false;
-    for (const auto& spec : group.exp)
-    {
-      const auto& fda = spec.getFloatDataArrays();
-      auto it_im = getDataArrayByName(fda, Constants::UserParam::ION_MOBILITY);
-      if (it_im != fda.end() && !it_im->empty())
-      {
-        any_im_array = true;
-      }
-      else
-      {
-        any_missing_im = true;
-      }
-    }
-
-    // Compute mz_step for PASEF centroiding, mirroring Python's use of
-    // hill mass accuracy and the maximum m/z in the group.
-    double mz_step = 0.0;
-    double max_mz_value = 0.0;
-    for (const auto& spectrum : group.exp)
-    {
-      for (Size peak_idx = 0; peak_idx < spectrum.size(); ++peak_idx)
-      {
-        const Peak1D& peak = spectrum[peak_idx];
-        double mz = peak.getMZ();
-        double intensity = peak.getIntensity();
-        if (intensity < mini_ || mz < minmz_ || mz > maxmz_)
-        {
-          continue;
-        }
-        if (mz > max_mz_value)
-        {
-          max_mz_value = mz;
-        }
-      }
-    }
-    if (max_mz_value > 0.0 && htol_ > 0.0)
-    {
-      mz_step = htol_ * 1e-6 * max_mz_value;
-    }
-
-    // Decide whether to use IM-based centroiding and gating for this group.
-    paseftol_ = original_paseftol;
-    if (any_im_array && !any_missing_im && paseftol_ > 0.0 && mz_step > 0.0)
-    {
-      OPENMS_LOG_INFO << "Applying PASEF/TIMS centroiding for group (FAIMS CV="
-                      << group.faims_cv << ") with paseftol=" << paseftol_ << endl;
-      centroidPASEFData(group.exp, mz_step);
-    }
-    else
-    {
-      // Mirror Python behavior: if ion mobility is not consistently available
-      // (or absent entirely), disable IM-based gating.
-      if (paseftol_ > 0.0 && any_im_array)
-      {
-        OPENMS_LOG_WARN << "Disabling ion-mobility gating for group (FAIMS CV="
-                        << group.faims_cv
-                        << ") due to missing/partial IM arrays; proceeding in 1D m/z space."
-                        << endl;
-      }
-      paseftol_ = 0.0;
-    }
-
-    // Hill mass calibration per group, analogous to Python's per-FAIMS pass.
-    double calibrated_htol = htol_;
-    if (use_hill_calib_)
-    {
-      OPENMS_LOG_INFO << "Performing hill mass tolerance calibration for group (FAIMS CV="
-                      << group.faims_cv << ")..." << endl;
-      vector<double> mass_diffs;
-      Size sample_size = min(group.exp.size(), Size(1000));
-      Size start_idx = (group.exp.size() > 1000) ? (group.exp.size() / 2 - 500) : 0;
-
-      MSExperiment calib_exp;
-      for (Size i = start_idx; i < start_idx + sample_size && i < group.exp.size(); ++i)
-      {
-        calib_exp.addSpectrum(group.exp[i]);
-      }
-
-      vector<Hill> calib_hills = detectHills(calib_exp, htol_, mini_, minmz_, maxmz_, &mass_diffs);
-      (void)calib_hills;
-      if (!mass_diffs.empty())
-      {
-        auto calib = calibrateMass(mass_diffs);
-        double calibrated_sigma = calib.second;
-        calibrated_htol = min(htol_, 5.0 * calibrated_sigma);
-        OPENMS_LOG_INFO << "Automatically optimized htol parameter for group (FAIMS CV="
-                        << group.faims_cv << "): " << calibrated_htol
-                        << " ppm (was " << htol_ << " ppm)" << endl;
-      }
-    }
-
-    // Hill detection and processing for this group.
-    vector<Hill> group_hills = detectHills(group.exp, calibrated_htol, mini_, minmz_, maxmz_);
-    group_hills = processHills(group_hills, minlh_);
-    group_hills = splitHills(group_hills, hvf_, minlh_);
-
-    // Offset hill indices so that they are unique across all groups.
-    for (auto& h : group_hills)
-    {
-      h.hill_idx += hill_idx_offset;
-    }
-
-    bool enable_isotope_calib = !ignore_iso_calib_;
-    vector<PeptideFeature> group_features =
-      detectIsotopePatterns(group_hills, itol_, cmin_, cmax_, negative_mode_, ivf_, iuse_, enable_isotope_calib);
-
-    all_hills.insert(all_hills.end(), group_hills.begin(), group_hills.end());
-    all_features.insert(all_features.end(), group_features.begin(), group_features.end());
-    hill_idx_offset += group_hills.size();
+    processFAIMSGroup_(g.first, g.second, original_paseftol, all_hills, all_features, hill_idx_offset);
   }
 
   // Restore original paseftol_ value for subsequent calls.
@@ -403,23 +218,23 @@ void Biosaur2Algorithm::run(FeatureMap& feature_map,
   hills = std::move(all_hills);
   peptide_features = std::move(all_features);
 
-  feature_map = convertToFeatureMap(peptide_features, hills);
+  feature_map = convertToFeatureMap_(peptide_features, hills);
 }
 
-double Biosaur2Algorithm::calculatePPM(double mz1, double mz2) const
+double Biosaur2Algorithm::calculatePPM_(double mz1, double mz2) const
 {
   if (fabs(mz2) < 1e-10) return 0.0;
   return Math::getPPM(mz1, mz2);
 }
 
-double Biosaur2Algorithm::calculateMedian(const vector<double>& values) const
+double Biosaur2Algorithm::calculateMedian_(const vector<double>& values) const
 {
   if (values.empty()) return 0.0;
   vector<double> sorted = values;
   return Math::median(sorted.begin(), sorted.end(), false);
 }
 
-bool Biosaur2Algorithm::shouldThrowForMissingIM(const MSSpectrum& spectrum) const
+bool Biosaur2Algorithm::shouldThrowForMissingIM_(const MSSpectrum& spectrum) const
 {
   // The Python reference implementation degrades gracefully when ion-mobility
   // arrays are missing by simply disabling IM-based gating. To mirror this
@@ -428,7 +243,7 @@ bool Biosaur2Algorithm::shouldThrowForMissingIM(const MSSpectrum& spectrum) cons
   return false;
 }
 
-vector<double> Biosaur2Algorithm::meanFilter(const vector<double>& data, Size window) const
+vector<double> Biosaur2Algorithm::meanFilter_(const vector<double>& data, Size window) const
 {
   vector<double> result(data.size());
   if (data.empty()) return result;
@@ -460,7 +275,7 @@ vector<double> Biosaur2Algorithm::meanFilter(const vector<double>& data, Size wi
   return result;
 }
 
-pair<double, double> Biosaur2Algorithm::calibrateMass(const vector<double>& mass_errors, double bin_width) const
+pair<double, double> Biosaur2Algorithm::calibrateMass_(const vector<double>& mass_errors, double bin_width) const
 {
   if (mass_errors.empty())
   {
@@ -516,7 +331,7 @@ pair<double, double> Biosaur2Algorithm::calibrateMass(const vector<double>& mass
 
   if (fabs(mean) >= max(mass_left, mass_right))
   {
-    return calibrateMass(mass_errors, 0.25);
+    return calibrateMass_(mass_errors, 0.25);
   }
 
   if (isinf(sigma) || isnan(sigma))
@@ -527,7 +342,7 @@ pair<double, double> Biosaur2Algorithm::calibrateMass(const vector<double>& mass
   return make_pair(mean, sigma);
 }
 
-void Biosaur2Algorithm::processTOF(MSExperiment& exp) const
+void Biosaur2Algorithm::processTOF_(MSExperiment& exp) const
 {
   OPENMS_LOG_INFO << "Applying TOF-specific intensity filtering..." << endl;
 
@@ -632,7 +447,7 @@ void Biosaur2Algorithm::processTOF(MSExperiment& exp) const
                   << " peaks -> " << total_peaks_after << " peaks" << endl;
 }
 
-void Biosaur2Algorithm::centroidProfileSpectra(MSExperiment& exp) const
+void Biosaur2Algorithm::centroidProfileSpectra_(MSExperiment& exp) const
 {
   OPENMS_LOG_INFO << "Centroiding profile spectra using PeakPickerHiRes..." << endl;
 
@@ -675,7 +490,7 @@ void Biosaur2Algorithm::centroidProfileSpectra(MSExperiment& exp) const
                   << " profile points -> " << total_peaks_after << " centroided peaks" << endl;
 }
 
-void Biosaur2Algorithm::centroidPASEFData(MSExperiment& exp, double mz_step) const
+void Biosaur2Algorithm::centroidPASEFData_(MSExperiment& exp, double mz_step) const
 {
   if (mz_step <= 0.0 || paseftol_ <= 0.0)
   {
@@ -688,13 +503,8 @@ void Biosaur2Algorithm::centroidPASEFData(MSExperiment& exp, double mz_step) con
   Size total_peaks_before = 0;
   Size total_peaks_after = 0;
 
-  for (auto& spectrum : exp)
+  auto centroid_one_spectrum = [&](MSSpectrum& spectrum)
   {
-    if (spectrum.getMSLevel() != 1)
-    {
-      continue;
-    }
-
     total_peaks_before += spectrum.size();
 
     const auto& fda = spectrum.getFloatDataArrays();
@@ -702,13 +512,13 @@ void Biosaur2Algorithm::centroidPASEFData(MSExperiment& exp, double mz_step) con
     if (it_im == fda.end() || it_im->size() != spectrum.size())
     {
       // No usable per-peak ion-mobility data for this spectrum; leave it as-is.
-      continue;
+      return;
     }
 
     const Size n_peaks = spectrum.size();
     if (n_peaks == 0)
     {
-      continue;
+      return;
     }
 
     vector<double> mz_ar;
@@ -735,19 +545,19 @@ void Biosaur2Algorithm::centroidPASEFData(MSExperiment& exp, double mz_step) con
     if (mz_ar.empty())
     {
       spectrum.clear(false);
-      continue;
+      return;
     }
 
     auto it_max_im = max_element(im_ar.begin(), im_ar.end());
     if (it_max_im == im_ar.end() || *it_max_im <= 0.0)
     {
-      continue;
+      return;
     }
 
     const double ion_mobility_step = (*it_max_im) * ion_mobility_accuracy;
     if (ion_mobility_step <= 0.0)
     {
-      continue;
+      return;
     }
 
     const Size n = mz_ar.size();
@@ -903,18 +713,216 @@ void Biosaur2Algorithm::centroidPASEFData(MSExperiment& exp, double mz_step) con
     spectrum.setFloatDataArrays(new_fda);
 
     total_peaks_after += spectrum.size();
+  };
+
+  for (auto& spectrum : exp)
+  {
+    if (spectrum.getMSLevel() != 1)
+    {
+      continue;
+    }
+    centroid_one_spectrum(spectrum);
   }
 
   OPENMS_LOG_INFO << "PASEF centroiding: " << total_peaks_before
                   << " peaks -> " << total_peaks_after << " centroided clusters" << endl;
 }
 
-vector<Biosaur2Algorithm::Hill> Biosaur2Algorithm::detectHills(const MSExperiment& exp,
-                                                               double htol_ppm,
-                                                               double min_intensity,
-                                                               double min_mz,
-                                                               double max_mz,
-                                                               vector<double>* hill_mass_diffs) const
+vector<pair<double, MSExperiment>> Biosaur2Algorithm::buildFAIMSGroups_() const
+{
+  vector<pair<double, MSExperiment>> groups;
+
+  // Detect FAIMS compensation voltages (if any) to mirror Python's CV-aware
+  // processing. If no FAIMS data are present, we process the experiment in
+  // a single pass.
+  auto cvs = FAIMSHelper::getCompensationVoltages(ms_data_);
+  if (!cvs.empty())
+  {
+    OPENMS_LOG_INFO << "Detected FAIMS data with " << cvs.size() << " compensation voltage(s)" << endl;
+    for (const auto& cv : cvs)
+    {
+      OPENMS_LOG_INFO << "  CV: " << cv << " V" << endl;
+    }
+  }
+
+  if (cvs.empty())
+  {
+    // Single group containing all MS1 spectra.
+    MSExperiment exp = ms_data_;
+    groups.emplace_back(std::numeric_limits<double>::quiet_NaN(), std::move(exp));
+  }
+  else
+  {
+    // Non-FAIMS MS1 spectra (if any) go into a CV=0 group.
+    MSExperiment base_exp;
+    bool has_non_faims = false;
+    for (const auto& spec : ms_data_)
+    {
+      if (spec.getDriftTimeUnit() != DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE)
+      {
+        base_exp.addSpectrum(spec);
+        has_non_faims = true;
+      }
+    }
+    if (has_non_faims)
+    {
+      groups.emplace_back(0.0, std::move(base_exp));
+    }
+
+    // One group per FAIMS CV.
+    for (double cv : cvs)
+    {
+      MSExperiment exp_cv;
+      for (const auto& spec : ms_data_)
+      {
+        if (spec.getDriftTimeUnit() == DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE &&
+            fabs(spec.getDriftTime() - cv) <= 1e-6)
+        {
+          exp_cv.addSpectrum(spec);
+        }
+      }
+      if (!exp_cv.empty())
+      {
+        groups.emplace_back(cv, std::move(exp_cv));
+      }
+    }
+  }
+
+  return groups;
+}
+
+void Biosaur2Algorithm::processFAIMSGroup_(double faims_cv,
+                                           MSExperiment& group_exp,
+                                           double original_paseftol,
+                                           vector<Hill>& all_hills,
+                                           vector<PeptideFeature>& all_features,
+                                           Size& hill_idx_offset)
+{
+  if (group_exp.empty())
+  {
+    return;
+  }
+
+  // Determine ion-mobility array availability for this group.
+  bool any_im_array = false;
+  bool any_missing_im = false;
+  for (const auto& spec : group_exp)
+  {
+    const auto& fda = spec.getFloatDataArrays();
+    auto it_im = getDataArrayByName(fda, Constants::UserParam::ION_MOBILITY);
+    if (it_im != fda.end() && !it_im->empty())
+    {
+      any_im_array = true;
+    }
+    else
+    {
+      any_missing_im = true;
+    }
+  }
+
+  // Compute mz_step for PASEF centroiding, mirroring Python's use of
+  // hill mass accuracy and the maximum m/z in the group.
+  double mz_step = 0.0;
+  double max_mz_value = 0.0;
+  for (const auto& spectrum : group_exp)
+  {
+    for (Size peak_idx = 0; peak_idx < spectrum.size(); ++peak_idx)
+    {
+      const Peak1D& peak = spectrum[peak_idx];
+      double mz = peak.getMZ();
+      double intensity = peak.getIntensity();
+      if (intensity < mini_ || mz < minmz_ || mz > maxmz_)
+      {
+        continue;
+      }
+      if (mz > max_mz_value)
+      {
+        max_mz_value = mz;
+      }
+    }
+  }
+  if (max_mz_value > 0.0 && htol_ > 0.0)
+  {
+    mz_step = htol_ * 1e-6 * max_mz_value;
+  }
+
+  // Decide whether to use IM-based centroiding and gating for this group.
+  paseftol_ = original_paseftol;
+  if (any_im_array && !any_missing_im && paseftol_ > 0.0 && mz_step > 0.0)
+  {
+    OPENMS_LOG_INFO << "Applying PASEF/TIMS centroiding for group (FAIMS CV="
+                    << faims_cv << ") with paseftol=" << paseftol_ << endl;
+    centroidPASEFData_(group_exp, mz_step);
+  }
+  else
+  {
+    // Mirror Python behavior: if ion mobility is not consistently available
+    // (or absent entirely), disable IM-based gating.
+    if (paseftol_ > 0.0 && any_im_array)
+    {
+      OPENMS_LOG_WARN << "Disabling ion-mobility gating for group (FAIMS CV="
+                      << faims_cv
+                      << ") due to missing/partial IM arrays; proceeding in 1D m/z space."
+                      << endl;
+    }
+    paseftol_ = 0.0;
+  }
+
+  // Hill mass calibration per group, analogous to Python's per-FAIMS pass.
+  double calibrated_htol = htol_;
+  if (use_hill_calib_)
+  {
+    OPENMS_LOG_INFO << "Performing hill mass tolerance calibration for group (FAIMS CV="
+                    << faims_cv << ")..." << endl;
+    vector<double> mass_diffs;
+    Size sample_size = min(group_exp.size(), Size(1000));
+    Size start_idx = (group_exp.size() > 1000) ? (group_exp.size() / 2 - 500) : 0;
+
+    MSExperiment calib_exp;
+    for (Size i = start_idx; i < start_idx + sample_size && i < group_exp.size(); ++i)
+    {
+      calib_exp.addSpectrum(group_exp[i]);
+    }
+
+    vector<Hill> calib_hills = detectHills_(calib_exp, htol_, mini_, minmz_, maxmz_, &mass_diffs);
+    (void)calib_hills;
+    if (!mass_diffs.empty())
+    {
+      auto calib = calibrateMass_(mass_diffs);
+      double calibrated_sigma = calib.second;
+      calibrated_htol = min(htol_, 5.0 * calibrated_sigma);
+      OPENMS_LOG_INFO << "Automatically optimized htol parameter for group (FAIMS CV="
+                      << faims_cv << "): " << calibrated_htol
+                      << " ppm (was " << htol_ << " ppm)" << endl;
+    }
+  }
+
+  // Hill detection and processing for this group.
+  vector<Hill> group_hills = detectHills_(group_exp, calibrated_htol, mini_, minmz_, maxmz_);
+  group_hills = processHills_(group_hills, minlh_);
+  group_hills = splitHills_(group_hills, hvf_, minlh_);
+
+  // Offset hill indices so that they are unique across all groups.
+  for (auto& h : group_hills)
+  {
+    h.hill_idx += hill_idx_offset;
+  }
+
+  bool enable_isotope_calib = !ignore_iso_calib_;
+  vector<PeptideFeature> group_features =
+    detectIsotopePatterns_(group_hills, itol_, cmin_, cmax_, negative_mode_, ivf_, iuse_, enable_isotope_calib);
+
+  all_hills.insert(all_hills.end(), group_hills.begin(), group_hills.end());
+  all_features.insert(all_features.end(), group_features.begin(), group_features.end());
+  hill_idx_offset += group_hills.size();
+}
+
+vector<Biosaur2Algorithm::Hill> Biosaur2Algorithm::detectHills_(const MSExperiment& exp,
+                                                                double htol_ppm,
+                                                                double min_intensity,
+                                                                double min_mz,
+                                                                double max_mz,
+                                                                vector<double>* hill_mass_diffs) const
 {
   vector<Hill> hills;
   Size hill_idx_counter = 0;
@@ -1083,14 +1091,14 @@ vector<Biosaur2Algorithm::Hill> Biosaur2Algorithm::detectHills(const MSExperimen
         }
         ion_mobility = (*it_im)[p_idx];
       }
-      else if (drift_time >= 0)
-      {
-        if (shouldThrowForMissingIM(spectrum))
-        {
-          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                              "Ion mobility array missing although drift times are present.");
-        }
-      }
+          else if (drift_time >= 0)
+          {
+            if (shouldThrowForMissingIM_(spectrum))
+            {
+              throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                                  "Ion mobility array missing although drift times are present.");
+            }
+          }
       hill.ion_mobilities.push_back(ion_mobility);
 
       hill.length = hill.scan_indices.size();
@@ -1262,7 +1270,7 @@ vector<Biosaur2Algorithm::Hill> Biosaur2Algorithm::detectHills(const MSExperimen
   return hills;
 }
 
-vector<Biosaur2Algorithm::Hill> Biosaur2Algorithm::processHills(const vector<Hill>& hills, Size min_length) const
+vector<Biosaur2Algorithm::Hill> Biosaur2Algorithm::processHills_(const vector<Hill>& hills, Size min_length) const
 {
   vector<Hill> processed;
   for (const auto& hill : hills)
@@ -1270,7 +1278,7 @@ vector<Biosaur2Algorithm::Hill> Biosaur2Algorithm::processHills(const vector<Hil
     if (hill.length >= min_length)
     {
       Hill processed_hill = hill;
-      processed_hill.drift_time_median = calculateMedian(hill.drift_times);
+      processed_hill.drift_time_median = calculateMedian_(hill.drift_times);
 
       // Recompute hill center m/z and ion mobility using intensity-weighted
       // averages to mirror the reference Biosaur2 implementation.
@@ -1306,12 +1314,12 @@ vector<Biosaur2Algorithm::Hill> Biosaur2Algorithm::processHills(const vector<Hil
         }
         else
         {
-          processed_hill.ion_mobility_median = calculateMedian(hill.ion_mobilities);
+          processed_hill.ion_mobility_median = calculateMedian_(hill.ion_mobilities);
         }
       }
       else
       {
-        processed_hill.ion_mobility_median = calculateMedian(hill.ion_mobilities);
+        processed_hill.ion_mobility_median = calculateMedian_(hill.ion_mobilities);
       }
       processed.push_back(processed_hill);
     }
@@ -1319,7 +1327,7 @@ vector<Biosaur2Algorithm::Hill> Biosaur2Algorithm::processHills(const vector<Hil
   return processed;
 }
 
-vector<Biosaur2Algorithm::Hill> Biosaur2Algorithm::splitHills(const vector<Hill>& hills, double hvf, Size min_length) const
+vector<Biosaur2Algorithm::Hill> Biosaur2Algorithm::splitHills_(const vector<Hill>& hills, double hvf, Size min_length) const
 {
   vector<Hill> split_hills;
 
@@ -1343,7 +1351,7 @@ vector<Biosaur2Algorithm::Hill> Biosaur2Algorithm::splitHills(const vector<Hill>
     }
 
     const Size hill_len = hill.length;
-    vector<double> smoothed = meanFilter(hill.intensities, 3);
+    vector<double> smoothed = meanFilter_(hill.intensities, 3);
 
     // First pass: identify candidate valley indices (min_idx_list) and
     // corresponding recheck positions, closely following split_peaks.
@@ -1517,7 +1525,7 @@ vector<Biosaur2Algorithm::Hill> Biosaur2Algorithm::splitHills(const vector<Hill>
       new_hill.length = new_hill.scan_indices.size();
       new_hill.rt_start = new_hill.rt_values.front();
       new_hill.rt_end = new_hill.rt_values.back();
-      new_hill.mz_median = calculateMedian(new_hill.mz_values);
+      new_hill.mz_median = calculateMedian_(new_hill.mz_values);
       new_hill.intensity_sum =
         accumulate(new_hill.intensities.begin(), new_hill.intensities.end(), 0.0);
       auto max_it = max_element(new_hill.intensities.begin(), new_hill.intensities.end());
@@ -1544,9 +1552,9 @@ vector<Biosaur2Algorithm::Hill> Biosaur2Algorithm::splitHills(const vector<Hill>
   return split_hills;
 }
 
-Size Biosaur2Algorithm::checkIsotopeValleySplit(const vector<IsotopeCandidate>& isotopes,
-                                                const vector<Hill>& hills,
-                                                double ivf) const
+Size Biosaur2Algorithm::checkIsotopeValleySplit_(const vector<IsotopeCandidate>& isotopes,
+                                                 const vector<Hill>& hills,
+                                                 double ivf) const
 {
   if (isotopes.size() <= 1)
   {
@@ -1562,7 +1570,7 @@ Size Biosaur2Algorithm::checkIsotopeValleySplit(const vector<IsotopeCandidate>& 
     isotope_intensities.push_back(hill.intensity_apex);
   }
 
-  vector<double> smoothed = meanFilter(isotope_intensities, 3);
+  vector<double> smoothed = meanFilter_(isotope_intensities, 3);
   Size max_pos = distance(smoothed.begin(), max_element(smoothed.begin(), smoothed.end()));
   Size min_check_pos = max(Size(4), max_pos + 1);
 
@@ -1579,14 +1587,14 @@ Size Biosaur2Algorithm::checkIsotopeValleySplit(const vector<IsotopeCandidate>& 
   return smoothed.size();
 }
 
-vector<Biosaur2Algorithm::PeptideFeature> Biosaur2Algorithm::detectIsotopePatterns(vector<Hill>& hills,
-                                                                                   double itol_ppm,
-                                                                                   int min_charge,
-                                                                                   int max_charge,
-                                                                                   bool negative_mode,
-                                                                                   double ivf,
-                                                                                   int iuse,
-                                                                                   bool enable_isotope_calib) const
+vector<Biosaur2Algorithm::PeptideFeature> Biosaur2Algorithm::detectIsotopePatterns_(vector<Hill>& hills,
+                                                                                    double itol_ppm,
+                                                                                    int min_charge,
+                                                                                    int max_charge,
+                                                                                    bool negative_mode,
+                                                                                    double ivf,
+                                                                                    int iuse,
+                                                                                    bool enable_isotope_calib) const
 {
   vector<PeptideFeature> features;
   set<Size> used_hills;
@@ -1639,7 +1647,7 @@ vector<Biosaur2Algorithm::PeptideFeature> Biosaur2Algorithm::detectIsotopePatter
             {
               if (mono_hill.length >= 3)
               {
-                double mass_diff_ppm = calculatePPM(hills[j].mz_median, expected_mz);
+                double mass_diff_ppm = calculatePPM_(hills[j].mz_median, expected_mz);
                 isotope_errors[iso_num].push_back(mass_diff_ppm);
                 if (iso_num == 1)
                 {
@@ -1662,7 +1670,7 @@ vector<Biosaur2Algorithm::PeptideFeature> Biosaur2Algorithm::detectIsotopePatter
     {
       if (isotope_errors[ic].size() >= 1000)
       {
-        auto calib = calibrateMass(isotope_errors[ic]);
+        auto calib = calibrateMass_(isotope_errors[ic]);
         isotope_calib_map[ic] = calib;
         OPENMS_LOG_INFO << "Isotope " << ic << " calibration: shift="
                         << calib.first << " ppm, sigma=" << calib.second << " ppm" << endl;
@@ -1673,7 +1681,7 @@ vector<Biosaur2Algorithm::PeptideFeature> Biosaur2Algorithm::detectIsotopePatter
     {
       if (isotope_errors[ic].size() >= 1000)
       {
-        isotope_calib_map[ic] = calibrateMass(isotope_errors[ic]);
+        isotope_calib_map[ic] = calibrateMass_(isotope_errors[ic]);
       }
       else if (ic > 1 && isotope_calib_map.find(ic - 1) != isotope_calib_map.end())
       {
@@ -1996,8 +2004,8 @@ vector<Biosaur2Algorithm::PeptideFeature> Biosaur2Algorithm::detectIsotopePatter
 	              continue;
 	            }
 
-	            double cos_cor_RT = cosineCorrelation(mono_hill.intensities, mono_hill.scan_indices,
-	                                                  hill2.intensities, hill2.scan_indices);
+	            double cos_cor_RT = cosineCorrelation_(mono_hill.intensities, mono_hill.scan_indices,
+	                                                   hill2.intensities, hill2.scan_indices);
 	            if (cos_cor_RT < 0.6)
 	            {
 	              continue;
@@ -2228,7 +2236,7 @@ vector<Biosaur2Algorithm::PeptideFeature> Biosaur2Algorithm::detectIsotopePatter
     {
       if (isotope_errors_ready[ic].size() >= 1000)
       {
-        auto calib = calibrateMass(isotope_errors_ready[ic]);
+        auto calib = calibrateMass_(isotope_errors_ready[ic]);
         isotope_calib_map_ready[ic] = calib;
       }
     }
@@ -2237,7 +2245,7 @@ vector<Biosaur2Algorithm::PeptideFeature> Biosaur2Algorithm::detectIsotopePatter
     {
       if (isotope_errors_ready[ic].size() >= 1000)
       {
-        isotope_calib_map_ready[ic] = calibrateMass(isotope_errors_ready[ic]);
+        isotope_calib_map_ready[ic] = calibrateMass_(isotope_errors_ready[ic]);
       }
       else if (ic > 1)
       {
@@ -2498,8 +2506,8 @@ vector<Biosaur2Algorithm::PeptideFeature> Biosaur2Algorithm::detectIsotopePatter
   return features;
 }
 
-FeatureMap Biosaur2Algorithm::convertToFeatureMap(const vector<PeptideFeature>& features,
-                                                  const vector<Hill>& hills) const
+FeatureMap Biosaur2Algorithm::convertToFeatureMap_(const vector<PeptideFeature>& features,
+                                                   const vector<Hill>& hills) const
 {
   FeatureMap feature_map;
 
@@ -2599,10 +2607,10 @@ FeatureMap Biosaur2Algorithm::convertToFeatureMap(const vector<PeptideFeature>& 
   return feature_map;
 }
 
-double Biosaur2Algorithm::cosineCorrelation(const vector<double>& intensities1,
-                                            const vector<Size>& scans1,
-                                            const vector<double>& intensities2,
-                                            const vector<Size>& scans2) const
+double Biosaur2Algorithm::cosineCorrelation_(const vector<double>& intensities1,
+                                             const vector<Size>& scans1,
+                                             const vector<double>& intensities2,
+                                             const vector<Size>& scans2) const
 {
   map<Size, double> map1, map2;
   for (Size i = 0; i < scans1.size(); ++i)

@@ -137,38 +137,49 @@ protected:
 
 private:
   /// Calculate the ppm difference between two m/z values.
-  double calculatePPM(double mz1, double mz2) const;
+  double calculatePPM_(double mz1, double mz2) const;
   /// Utility median helper used for hill meta calculations.
-  double calculateMedian(const std::vector<double>& values) const;
+  double calculateMedian_(const std::vector<double>& values) const;
   /// Apply a simple mean filter with the specified window size.
-  std::vector<double> meanFilter(const std::vector<double>& data, Size window) const;
+  std::vector<double> meanFilter_(const std::vector<double>& data, Size window) const;
   /// Estimate shift/sigma from a collection of mass errors (used for hill/isotope calibration).
-  std::pair<double, double> calibrateMass(const std::vector<double>& mass_errors, double bin_width = 0.05) const;
+  std::pair<double, double> calibrateMass_(const std::vector<double>& mass_errors, double bin_width = 0.05) const;
   /// Perform TOF-specific intensity thresholding prior to hill detection.
-  void processTOF(MSExperiment& exp) const;
+  void processTOF_(MSExperiment& exp) const;
   /// Centroid profile spectra using PeakPickerHiRes if requested via parameters.
-  void centroidProfileSpectra(MSExperiment& exp) const;
+  void centroidProfileSpectra_(MSExperiment& exp) const;
   /// Centroid PASEF/TIMS spectra in joint m/z–ion-mobility space (2D clustering).
-  void centroidPASEFData(MSExperiment& exp, double mz_step) const;
+  void centroidPASEFData_(MSExperiment& exp, double mz_step) const;
   /// Detect hills in the input experiment and optionally collect mass differences for calibration.
-  std::vector<Hill> detectHills(const MSExperiment& exp, double htol_ppm, double min_intensity, double min_mz, double max_mz, std::vector<double>* hill_mass_diffs = nullptr) const;
+  std::vector<Hill> detectHills_(const MSExperiment& exp, double htol_ppm, double min_intensity, double min_mz, double max_mz, std::vector<double>* hill_mass_diffs = nullptr) const;
   /// Filter/process hills (length checks, summary statistics).
-  std::vector<Hill> processHills(const std::vector<Hill>& hills, Size min_length) const;
+  std::vector<Hill> processHills_(const std::vector<Hill>& hills, Size min_length) const;
   /// Split hills at valley positions based on the configured hvf parameter.
-  std::vector<Hill> splitHills(const std::vector<Hill>& hills, double hvf, Size min_length) const;
+  std::vector<Hill> splitHills_(const std::vector<Hill>& hills, double hvf, Size min_length) const;
   /// Evaluate whether isotope traces should be truncated at valleys.
-  Size checkIsotopeValleySplit(const std::vector<IsotopeCandidate>& isotopes, const std::vector<Hill>& hills, double ivf) const;
+  Size checkIsotopeValleySplit_(const std::vector<IsotopeCandidate>& isotopes, const std::vector<Hill>& hills, double ivf) const;
   /// Detect isotope patterns and build peptide features from the available hills.
-  std::vector<PeptideFeature> detectIsotopePatterns(std::vector<Hill>& hills, double itol_ppm, int min_charge, int max_charge, bool negative_mode, double ivf, int iuse, bool enable_isotope_calib) const;
+  std::vector<PeptideFeature> detectIsotopePatterns_(std::vector<Hill>& hills, double itol_ppm, int min_charge, int max_charge, bool negative_mode, double ivf, int iuse, bool enable_isotope_calib) const;
   /// Transfer peptide feature structures into an OpenMS FeatureMap instance and attach convex hulls
   /// derived from the contributing hills (monoisotopic trace plus associated isotope hills).
-  FeatureMap convertToFeatureMap(const std::vector<PeptideFeature>& features,
-                                 const std::vector<Hill>& hills) const;
+  FeatureMap convertToFeatureMap_(const std::vector<PeptideFeature>& features,
+                                  const std::vector<Hill>& hills) const;
   /// Utility to compute cosine correlation between two intensity traces (shared scan indices).
-  double cosineCorrelation(const std::vector<double>& intensities1, const std::vector<Size>& scans1,
-                           const std::vector<double>& intensities2, const std::vector<Size>& scans2) const;
+  double cosineCorrelation_(const std::vector<double>& intensities1, const std::vector<Size>& scans1,
+                            const std::vector<double>& intensities2, const std::vector<Size>& scans2) const;
   /// Check if missing ion mobility array should be treated as an error for the given spectrum.
-  bool shouldThrowForMissingIM(const MSSpectrum& spectrum) const;
+  bool shouldThrowForMissingIM_(const MSSpectrum& spectrum) const;
+
+  /// Build FAIMS-aware processing groups (one per CV plus optional non-FAIMS group).
+  std::vector<std::pair<double, MSExperiment>> buildFAIMSGroups_() const;
+
+  /// Process a single FAIMS group: optional PASEF centroiding, hill and isotope detection.
+  void processFAIMSGroup_(double faims_cv,
+                          MSExperiment& group_exp,
+                          double original_paseftol,
+                          std::vector<Hill>& all_hills,
+                          std::vector<PeptideFeature>& all_features,
+                          Size& hill_idx_offset);
 
   MSExperiment ms_data_; ///< input LC-MS data
   
