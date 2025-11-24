@@ -14,6 +14,7 @@
 #include <OpenMS/KERNEL/SpectrumHelper.h>
 #include <OpenMS/MATH/StatisticFunctions.h>
 #include <OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h>
+#include <OpenMS/MATH/MathFunctions.h>
 
 #include <algorithm>
 #include <cmath>
@@ -21,6 +22,7 @@
 #include <map>
 #include <numeric>
 #include <set>
+#include <limits>
 
 #ifdef _OPENMP
 #  include <omp.h>
@@ -241,20 +243,13 @@ void Biosaur2Algorithm::run(FeatureMap& feature_map,
 
 double Biosaur2Algorithm::calculatePPM(double mz1, double mz2) const
 {
-  if (fabs(mz2) < 1e-10)
-  {
-    return 0.0;
-  }
-  return (mz1 - mz2) / mz2 * 1e6;
+  if (fabs(mz2) < 1e-10) return 0.0;
+  return Math::getPPM(mz1, mz2);
 }
 
 double Biosaur2Algorithm::calculateMedian(const vector<double>& values) const
 {
-  if (values.empty())
-  {
-    return 0.0;
-  }
-
+  if (values.empty()) return 0.0;
   vector<double> sorted = values;
   return Math::median(sorted.begin(), sorted.end(), false);
 }
@@ -513,140 +508,301 @@ vector<Biosaur2Algorithm::Hill> Biosaur2Algorithm::detectHills(const MSExperimen
   vector<Hill> hills;
   Size hill_idx_counter = 0;
 
+  // Pre-scan to determine the maximum m/z value after basic filtering.
+  double max_mz_value = 0.0;
   for (Size scan_idx = 0; scan_idx < exp.size(); ++scan_idx)
   {
     const MSSpectrum& spectrum = exp[scan_idx];
-    double rt = spectrum.getRT();
-
     for (Size peak_idx = 0; peak_idx < spectrum.size(); ++peak_idx)
     {
       const Peak1D& peak = spectrum[peak_idx];
       double mz = peak.getMZ();
       double intensity = peak.getIntensity();
-
       if (intensity < min_intensity || mz < min_mz || mz > max_mz)
       {
         continue;
       }
-
-      bool added_to_existing = false;
-      for (auto& hill : hills)
+      if (mz > max_mz_value)
       {
-        if (!hill.scan_indices.empty() && hill.scan_indices.back() == scan_idx - 1)
-        {
-          double ppm = fabs(calculatePPM(mz, hill.mz_median));
-          if (ppm <= htol_ppm)
-          {
-            hill.scan_indices.push_back(scan_idx);
-            hill.peak_indices.push_back(peak_idx);
-            hill.mz_values.push_back(mz);
-            hill.intensities.push_back(intensity);
-            hill.rt_values.push_back(rt);
-
-            double drift_time = spectrum.getDriftTime();
-            hill.drift_times.push_back(drift_time);
-
-            double ion_mobility = -1.0;
-            const auto& fda = spectrum.getFloatDataArrays();
-            auto it_im = getDataArrayByName(fda, Constants::UserParam::ION_MOBILITY);
-            if (it_im != fda.end())
-            {
-              if (peak_idx >= it_im->size())
-              {
-                throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                              "Ion mobility array shorter than peak list.",
-                                              String(peak_idx));
-              }
-              ion_mobility = (*it_im)[peak_idx];
-            }
-            else if (drift_time >= 0)
-            {
-              if (shouldThrowForMissingIM(spectrum))
-              {
-                throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                                    "Ion mobility array missing although drift times are present.");
-              }
-            }
-            hill.ion_mobilities.push_back(ion_mobility);
-
-            hill.mz_median = calculateMedian(hill.mz_values);
-            hill.rt_end = rt;
-            hill.length = hill.scan_indices.size();
-            hill.intensity_sum += intensity;
-            if (intensity > hill.intensity_apex)
-            {
-              hill.intensity_apex = intensity;
-              hill.rt_apex = rt;
-            }
-
-            added_to_existing = true;
-            break;
-          }
-        }
-      }
-
-      if (!added_to_existing)
-      {
-        Hill hill;
-        hill.scan_indices.push_back(scan_idx);
-        hill.peak_indices.push_back(peak_idx);
-        hill.mz_values.push_back(mz);
-        hill.intensities.push_back(intensity);
-        hill.rt_values.push_back(rt);
-        hill.mz_median = mz;
-        hill.rt_start = rt;
-        hill.rt_end = rt;
-        hill.rt_apex = rt;
-        hill.intensity_apex = intensity;
-        hill.intensity_sum = intensity;
-        hill.length = 1;
-        hill.hill_idx = hill_idx_counter++;
-
-        double drift_time = spectrum.getDriftTime();
-        hill.drift_times.push_back(drift_time);
-
-        double ion_mobility = -1.0;
-        const auto& fda = spectrum.getFloatDataArrays();
-        auto it_im = getDataArrayByName(fda, Constants::UserParam::ION_MOBILITY);
-        if (it_im != fda.end())
-        {
-          if (peak_idx >= it_im->size())
-          {
-            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                          "Ion mobility array shorter than peak list.",
-                                          String(peak_idx));
-          }
-          ion_mobility = (*it_im)[peak_idx];
-        }
-        else if (drift_time >= 0)
-        {
-          if (shouldThrowForMissingIM(spectrum))
-          {
-            throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                                "Ion mobility array missing although drift times are present.");
-          }
-        }
-        hill.ion_mobilities.push_back(ion_mobility);
-
-        hills.push_back(hill);
+        max_mz_value = mz;
       }
     }
   }
 
+  // Bin width in m/z space, mirroring the Python reference implementation.
+  double mz_step = 0.0;
+  if (max_mz_value > 0.0 && htol_ppm > 0.0)
+  {
+    mz_step = htol_ppm * 1e-6 * max_mz_value;
+  }
+
   if (hill_mass_diffs != nullptr)
   {
-    for (const auto& hill : hills)
+    hill_mass_diffs->clear();
+  }
+
+  // Mapping from previous-scan peak index to hill index.
+  vector<Size> prev_peak_to_hill;
+  const MSSpectrum* prev_spectrum_ptr = nullptr;
+  map<int, vector<int>> prev_fast_dict;
+
+  for (Size scan_idx = 0; scan_idx < exp.size(); ++scan_idx)
+  {
+    const MSSpectrum& spectrum = exp[scan_idx];
+    double rt = spectrum.getRT();
+
+    // Collect indices of peaks passing basic filters.
+    vector<int> valid_indices;
+    valid_indices.reserve(spectrum.size());
+    for (Size peak_idx = 0; peak_idx < spectrum.size(); ++peak_idx)
     {
-      if (hill.length >= 2)
+      const Peak1D& peak = spectrum[peak_idx];
+      double mz = peak.getMZ();
+      double intensity = peak.getIntensity();
+      if (intensity < min_intensity || mz < min_mz || mz > max_mz)
       {
-        for (Size i = 1; i < hill.length; ++i)
+        continue;
+      }
+      valid_indices.push_back(static_cast<int>(peak_idx));
+    }
+
+    const Size len_mz = valid_indices.size();
+    if (len_mz == 0)
+    {
+      // Reset linking if the current scan has no usable peaks.
+      prev_fast_dict.clear();
+      prev_peak_to_hill.clear();
+      prev_spectrum_ptr = nullptr;
+      continue;
+    }
+
+    // Build intensity and m/z arrays for valid peaks.
+    vector<double> intensities(len_mz);
+    vector<double> mzs(len_mz);
+    for (Size i = 0; i < len_mz; ++i)
+    {
+      const Size peak_idx = static_cast<Size>(valid_indices[i]);
+      intensities[i] = spectrum[peak_idx].getIntensity();
+      mzs[i] = spectrum[peak_idx].getMZ();
+    }
+
+    // Sort peaks in descending intensity (reference implementation behavior).
+    vector<int> order(len_mz);
+    iota(order.begin(), order.end(), 0);
+    sort(order.begin(), order.end(),
+         [&](int a, int b) { return intensities[a] > intensities[b]; });
+
+    vector<int> basic_id_sorted(len_mz);
+    vector<int> fast_array(len_mz);
+
+    for (Size pos = 0; pos < len_mz; ++pos)
+    {
+      const int local_idx = order[pos];
+      const int orig_idx = valid_indices[static_cast<Size>(local_idx)];
+      basic_id_sorted[pos] = orig_idx;
+      int fm = 0;
+      if (mz_step > 0.0)
+      {
+        fm = static_cast<int>(mzs[static_cast<Size>(local_idx)] / mz_step);
+      }
+      fast_array[pos] = fm;
+    }
+
+    // Build fast lookup structure in m/z space for the current scan.
+    map<int, vector<int>> fast_dict;
+    for (Size pos = 0; pos < len_mz; ++pos)
+    {
+      fast_dict[fast_array[pos]].push_back(basic_id_sorted[pos]);
+    }
+
+    // Hill assignments for peaks in the current scan (indexed by peak index).
+    vector<Size> curr_peak_to_hill(spectrum.size(),
+                                   numeric_limits<Size>::max());
+    set<int> banned_prev_idx_set;
+
+    auto append_peak_to_hill = [&](Size hill_id, int peak_idx)
+    {
+      Hill& hill = hills[hill_id];
+      const Size p_idx = static_cast<Size>(peak_idx);
+
+      hill.scan_indices.push_back(scan_idx);
+      hill.peak_indices.push_back(p_idx);
+
+      const Peak1D& peak = spectrum[p_idx];
+      const double mz = peak.getMZ();
+      const double intensity = peak.getIntensity();
+
+      hill.mz_values.push_back(mz);
+      hill.intensities.push_back(intensity);
+      hill.rt_values.push_back(rt);
+
+      const double drift_time = spectrum.getDriftTime();
+      hill.drift_times.push_back(drift_time);
+
+      double ion_mobility = -1.0;
+      const auto& fda = spectrum.getFloatDataArrays();
+      auto it_im = getDataArrayByName(fda, Constants::UserParam::ION_MOBILITY);
+      if (it_im != fda.end())
+      {
+        if (p_idx >= it_im->size())
         {
-          double mz_prev = hill.mz_values[i - 1];
-          double mz_curr = hill.mz_values[i];
-          hill_mass_diffs->push_back(calculatePPM(mz_curr, mz_prev));
+          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                        "Ion mobility array shorter than peak list.",
+                                        String(p_idx));
+        }
+        ion_mobility = (*it_im)[p_idx];
+      }
+      else if (drift_time >= 0)
+      {
+        if (shouldThrowForMissingIM(spectrum))
+        {
+          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                              "Ion mobility array missing although drift times are present.");
         }
       }
+      hill.ion_mobilities.push_back(ion_mobility);
+
+      hill.length = hill.scan_indices.size();
+      hill.rt_end = rt;
+      if (hill.length == 1)
+      {
+        hill.rt_start = rt;
+        hill.rt_apex = rt;
+        hill.intensity_apex = intensity;
+      }
+      else if (intensity > hill.intensity_apex)
+      {
+        hill.intensity_apex = intensity;
+        hill.rt_apex = rt;
+      }
+      hill.intensity_sum += intensity;
+
+      curr_peak_to_hill[p_idx] = hill_id;
+    };
+
+    for (Size pos = 0; pos < len_mz; ++pos)
+    {
+      const int idx = basic_id_sorted[pos];
+      const int fm = fast_array[pos];
+
+      // Collect candidate previous-scan peaks from neighboring m/z bins.
+      bool flag1 = prev_fast_dict.find(fm) != prev_fast_dict.end();
+      bool flag2 = prev_fast_dict.find(fm - 1) != prev_fast_dict.end();
+      bool flag3 = prev_fast_dict.find(fm + 1) != prev_fast_dict.end();
+
+      Size assigned_hill = numeric_limits<Size>::max();
+
+      if (flag1 || flag2 || flag3)
+      {
+        vector<int> all_idx;
+        if (flag1)
+        {
+          const auto& v = prev_fast_dict[fm];
+          all_idx.insert(all_idx.end(), v.begin(), v.end());
+          if (flag2)
+          {
+            const auto& v2 = prev_fast_dict[fm - 1];
+            all_idx.insert(all_idx.end(), v2.begin(), v2.end());
+          }
+          if (flag3)
+          {
+            const auto& v3 = prev_fast_dict[fm + 1];
+            all_idx.insert(all_idx.end(), v3.begin(), v3.end());
+          }
+        }
+        else if (flag2)
+        {
+          const auto& v = prev_fast_dict[fm - 1];
+          all_idx.insert(all_idx.end(), v.begin(), v.end());
+          if (flag3)
+          {
+            const auto& v3 = prev_fast_dict[fm + 1];
+            all_idx.insert(all_idx.end(), v3.begin(), v3.end());
+          }
+        }
+        else if (flag3)
+        {
+          const auto& v = prev_fast_dict[fm + 1];
+          all_idx.insert(all_idx.end(), v.begin(), v.end());
+        }
+
+        double best_intensity = 0.0;
+        int best_idx_prev = -1;
+        double best_mass_diff_with_sign = 0.0;
+
+        const double mz_cur = spectrum[static_cast<Size>(idx)].getMZ();
+
+        if (prev_spectrum_ptr != nullptr)
+        {
+          const MSSpectrum& prev_spectrum = *prev_spectrum_ptr;
+          for (int idx_prev : all_idx)
+          {
+            if (idx_prev < 0 || static_cast<Size>(idx_prev) >= prev_spectrum.size())
+            {
+              continue;
+            }
+            if (banned_prev_idx_set.find(idx_prev) != banned_prev_idx_set.end())
+            {
+              continue;
+            }
+
+            const Peak1D& prev_peak = prev_spectrum[static_cast<Size>(idx_prev)];
+            const double cur_intensity = prev_peak.getIntensity();
+            const double mz_prev = prev_peak.getMZ();
+
+            const double cur_mass_diff_with_sign =
+              (mz_cur - mz_prev) / mz_cur * 1e6;
+            const double cur_mass_diff = fabs(cur_mass_diff_with_sign);
+
+            if (cur_mass_diff <= htol_ppm && cur_intensity >= best_intensity)
+            {
+              best_intensity = cur_intensity;
+              best_idx_prev = idx_prev;
+              best_mass_diff_with_sign = cur_mass_diff_with_sign;
+            }
+          }
+        }
+
+        if (best_idx_prev >= 0)
+        {
+          banned_prev_idx_set.insert(best_idx_prev);
+          if (hill_mass_diffs != nullptr)
+          {
+            hill_mass_diffs->push_back(best_mass_diff_with_sign);
+          }
+
+          if (!prev_peak_to_hill.empty() &&
+              static_cast<Size>(best_idx_prev) < prev_peak_to_hill.size())
+          {
+            assigned_hill = prev_peak_to_hill[static_cast<Size>(best_idx_prev)];
+          }
+        }
+      }
+
+      // Attach to existing hill if a suitable previous peak was found.
+      if (assigned_hill != numeric_limits<Size>::max() &&
+          assigned_hill < hills.size())
+      {
+        append_peak_to_hill(assigned_hill, idx);
+      }
+      else
+      {
+        // Start a new hill for this peak.
+        Hill hill;
+        hill.hill_idx = hill_idx_counter++;
+        hills.push_back(hill);
+        append_peak_to_hill(hill.hill_idx, idx);
+      }
     }
+
+    // Prepare state for linking from this scan to the next.
+    prev_fast_dict = std::move(fast_dict);
+    prev_peak_to_hill.assign(spectrum.size(), numeric_limits<Size>::max());
+    for (Size i = 0; i < spectrum.size(); ++i)
+    {
+      prev_peak_to_hill[i] = curr_peak_to_hill[i];
+    }
+    prev_spectrum_ptr = &spectrum;
   }
 
   return hills;
@@ -661,7 +817,48 @@ vector<Biosaur2Algorithm::Hill> Biosaur2Algorithm::processHills(const vector<Hil
     {
       Hill processed_hill = hill;
       processed_hill.drift_time_median = calculateMedian(hill.drift_times);
-      processed_hill.ion_mobility_median = calculateMedian(hill.ion_mobilities);
+
+      // Recompute hill center m/z and ion mobility using intensity-weighted
+      // averages to mirror the reference Biosaur2 implementation.
+      if (!hill.mz_values.empty() && hill.mz_values.size() == hill.intensities.size())
+      {
+        double weighted_mz_sum = 0.0;
+        double intensity_sum = 0.0;
+        for (Size i = 0; i < hill.mz_values.size(); ++i)
+        {
+          const double intensity = hill.intensities[i];
+          weighted_mz_sum += hill.mz_values[i] * intensity;
+          intensity_sum += intensity;
+        }
+        if (intensity_sum > 0.0)
+        {
+          processed_hill.mz_median = weighted_mz_sum / intensity_sum;
+        }
+      }
+
+      if (!hill.ion_mobilities.empty() && hill.ion_mobilities.size() == hill.intensities.size())
+      {
+        double weighted_im_sum = 0.0;
+        double intensity_sum_im = 0.0;
+        for (Size i = 0; i < hill.ion_mobilities.size(); ++i)
+        {
+          const double intensity = hill.intensities[i];
+          weighted_im_sum += hill.ion_mobilities[i] * intensity;
+          intensity_sum_im += intensity;
+        }
+        if (intensity_sum_im > 0.0)
+        {
+          processed_hill.ion_mobility_median = weighted_im_sum / intensity_sum_im;
+        }
+        else
+        {
+          processed_hill.ion_mobility_median = calculateMedian(hill.ion_mobilities);
+        }
+      }
+      else
+      {
+        processed_hill.ion_mobility_median = calculateMedian(hill.ion_mobilities);
+      }
       processed.push_back(processed_hill);
     }
   }
@@ -740,7 +937,59 @@ vector<Biosaur2Algorithm::Hill> Biosaur2Algorithm::splitHills(const vector<Hill>
 
     if (!splitting)
     {
+      // No valleys detected: keep original hill unchanged.
       split_hills.push_back(hill);
+    }
+    else
+    {
+      // Emit the tail segment after the last detected valley, if it is long enough.
+      if (hill.length > start_idx + 1 && hill.length - start_idx >= min_length)
+      {
+        Hill new_hill = hill;
+        new_hill.scan_indices.clear();
+        new_hill.peak_indices.clear();
+        new_hill.mz_values.clear();
+        new_hill.intensities.clear();
+        new_hill.rt_values.clear();
+        new_hill.drift_times.clear();
+        new_hill.ion_mobilities.clear();
+
+        for (Size k = start_idx; k < hill.length; ++k)
+        {
+          new_hill.scan_indices.push_back(hill.scan_indices.at(k));
+          new_hill.peak_indices.push_back(hill.peak_indices.at(k));
+          new_hill.mz_values.push_back(hill.mz_values.at(k));
+          new_hill.intensities.push_back(hill.intensities.at(k));
+          new_hill.rt_values.push_back(hill.rt_values.at(k));
+          if (k < hill.drift_times.size())
+          {
+            new_hill.drift_times.push_back(hill.drift_times.at(k));
+          }
+          if (k < hill.ion_mobilities.size())
+          {
+            new_hill.ion_mobilities.push_back(hill.ion_mobilities.at(k));
+          }
+        }
+
+        if (new_hill.drift_times.size() != new_hill.scan_indices.size() ||
+            new_hill.ion_mobilities.size() != new_hill.scan_indices.size())
+        {
+          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                        "Split hill meta data arrays are inconsistent.",
+                                        String(new_hill.scan_indices.size()));
+        }
+
+        new_hill.length = new_hill.scan_indices.size();
+        new_hill.rt_start = new_hill.rt_values.front();
+        new_hill.rt_end = new_hill.rt_values.back();
+        new_hill.mz_median = calculateMedian(new_hill.mz_values);
+        new_hill.intensity_sum = accumulate(new_hill.intensities.begin(), new_hill.intensities.end(), 0.0);
+        auto max_it = max_element(new_hill.intensities.begin(), new_hill.intensities.end());
+        Size apex_idx = distance(new_hill.intensities.begin(), max_it);
+        new_hill.intensity_apex = *max_it;
+        new_hill.rt_apex = new_hill.rt_values[apex_idx];
+        split_hills.push_back(new_hill);
+      }
     }
   }
 
@@ -894,153 +1143,567 @@ vector<Biosaur2Algorithm::PeptideFeature> Biosaur2Algorithm::detectIsotopePatter
                     << " ppm, sigma=" << isotope_calib_map[1].second << " ppm" << endl;
   }
 
-  for (Size i = 0; i < hills.size(); ++i)
+  // Build fast m/z lookup for hills (analogous to hills_mz_median_fast_dict).
+  double max_mz_value = 0.0;
+  for (const auto& h : hills)
   {
-    if (used_hills.find(hills[i].hill_idx) != used_hills.end())
+    max_mz_value = max(max_mz_value, h.mz_median);
+  }
+  double mz_step = (max_mz_value > 0.0) ? (htol_ * 1e-6 * max_mz_value) : 0.0;
+
+  struct FastHillEntry
+  {
+    Size hill_index;
+    Size first_scan;
+    Size last_scan;
+  };
+
+  map<int, vector<FastHillEntry>> hills_mz_fast;
+  for (Size idx = 0; idx < hills.size(); ++idx)
+  {
+    const Hill& h = hills[idx];
+    if (h.scan_indices.empty()) continue;
+    int mz_bin = (mz_step > 0.0) ? static_cast<int>(h.mz_median / mz_step) : 0;
+    Size first_scan = h.scan_indices.front();
+    Size last_scan = h.scan_indices.back();
+    hills_mz_fast[mz_bin].push_back({idx, first_scan, last_scan});
+  }
+
+  // Helper to check if two scan index lists share at least one scan.
+  auto hasScanOverlap = [](const vector<Size>& a, const vector<Size>& b) -> bool
+  {
+    Size i = 0, j = 0;
+    while (i < a.size() && j < b.size())
     {
-      continue;
+      if (a[i] == b[j]) return true;
+      if (a[i] < b[j]) ++i;
+      else ++j;
+    }
+    return false;
+  };
+
+  // Helper to compute cosine correlation between two simple intensity vectors.
+  auto cosineCorrelation1D = [](const vector<double>& v1, const vector<double>& v2) -> double
+  {
+    Size n = min(v1.size(), v2.size());
+    if (n == 0) return 0.0;
+    double dot = 0.0, n1 = 0.0, n2 = 0.0;
+    for (Size i = 0; i < n; ++i)
+    {
+      dot += v1[i] * v2[i];
+      n1 += v1[i] * v1[i];
+      n2 += v2[i] * v2[i];
+    }
+    if (n1 == 0.0 || n2 == 0.0) return 0.0;
+    return dot / (sqrt(n1) * sqrt(n2));
+  };
+
+  // Averagine-based theoretical isotope intensities (C-only binomial model).
+  auto computeAveragine = [](double neutral_mass, double apex_intensity) -> pair<vector<double>, Size>
+  {
+    const double averagine_mass = 111.1254;
+    const double averagine_C = 4.9384;
+    const double p = 0.0107;
+    vector<double> theor(10, 0.0);
+
+    int n_C = static_cast<int>(round(neutral_mass / averagine_mass * averagine_C));
+    n_C = max(n_C, 1);
+
+    // Compute binomial probabilities for k=0..9.
+    double one_minus_p = 1.0 - p;
+    double log_one_minus_p = log(one_minus_p);
+    double log_p = log(p);
+
+    for (Size k = 0; k < theor.size(); ++k)
+    {
+      if (static_cast<int>(k) > n_C) break;
+      // log C(n_C, k)
+      double log_comb = 0.0;
+      for (int i = 1; i <= static_cast<int>(k); ++i)
+      {
+        log_comb += log(static_cast<double>(n_C - i + 1)) - log(static_cast<double>(i));
+      }
+      double log_prob = log_comb + k * log_p + (n_C - static_cast<int>(k)) * log_one_minus_p;
+      theor[k] = exp(log_prob);
     }
 
-    const Hill& mono_hill = hills[i];
-    double mono_mz = mono_hill.mz_median;
+    double sum_prob = accumulate(theor.begin(), theor.end(), 0.0);
+    if (sum_prob <= 0.0) sum_prob = 1.0;
+    for (double& v : theor) v /= sum_prob;
 
-    for (int charge = max_charge; charge >= min_charge; --charge)
+    Size max_pos = distance(theor.begin(), max_element(theor.begin(), theor.end()));
+    if (max_pos < 4) max_pos = 4;
+
+    for (Size k = 0; k < theor.size(); ++k)
     {
-      double mz_spacing = ISOTOPE_MASSDIFF / charge;
-      vector<IsotopeCandidate> isotopes;
-      bool pattern_valid = true;
+      theor[k] = apex_intensity * theor[k] / theor[0];
+    }
+
+    return make_pair(theor, max_pos);
+  };
+
+  // Local pattern candidate structure mirroring the Python dictionaries.
+  struct PatternCandidate
+  {
+    Size mono_index;                 // index into hills
+    double mono_mz = 0.0;
+    int charge = 0;
+    double cos_cor_isotopes = 0.0;   // cosine in isotope-intensity space
+    vector<IsotopeCandidate> isotopes;
+    Size n_scans = 0;
+  };
+
+  vector<PatternCandidate> ready;
+
+  // Charge ordering: high to low.
+  vector<int> charges;
+  for (int c = min_charge; c <= max_charge; ++c) charges.push_back(c);
+  reverse(charges.begin(), charges.end());
+
+  // Charge ban map as in the Python reference.
+  map<int, vector<int>> charge_ban_map = {
+    {8, {1, 2, 4}},
+    {7, {1}},
+    {6, {1, 2, 3}},
+    {5, {1}},
+    {4, {1, 2}},
+    {3, {1}},
+    {2, {1}},
+    {1, {1}}
+  };
+
+  // Initial isotope candidate generation (analogous to get_initial_isotopes).
+  for (Size i = 0; i < hills.size(); ++i)
+  {
+    const Hill& mono_hill = hills[i];
+    if (mono_hill.scan_indices.empty()) continue;
+
+    double mono_mz = mono_hill.mz_median;
+    double mz_tol = itol_ppm * 1e-6 * mono_mz;
+
+    Size hill_scans_1_number = mono_hill.length;
+    const vector<Size>& scans1 = mono_hill.scan_indices;
+    Size hill_scans_1_list_first = scans1.front();
+    Size hill_scans_1_list_last = scans1.back();
+
+    map<int, Size> banned_charges;
+
+    for (int charge : charges)
+    {
+      vector<vector<IsotopeCandidate>> candidates;
 
       for (int iso_num = 1; iso_num <= 9; ++iso_num)
       {
-        double expected_mz = mono_mz + iso_num * mz_spacing;
-        double mz_tolerance = expected_mz * itol_ppm * 1e-6;
-        bool found = false;
+        vector<IsotopeCandidate> tmp_candidates;
+        double expected_mz = mono_mz + ISOTOPE_MASSDIFF * iso_num / static_cast<double>(charge);
+        int m_to_check_fast = (mz_step > 0.0) ? static_cast<int>(expected_mz / mz_step) : 0;
 
-        for (Size j = i + 1; j < hills.size(); ++j)
+        auto it_bin = hills_mz_fast.find(m_to_check_fast);
+        if (it_bin != hills_mz_fast.end())
         {
-          if (hills[j].mz_median > expected_mz + mz_tolerance)
+          for (const auto& entry : it_bin->second)
           {
-            break;
-          }
-          if (used_hills.find(hills[j].hill_idx) != used_hills.end())
-          {
-            continue;
-          }
+            Size idx2 = entry.hill_index;
+            if (idx2 == i) continue;
+            const Hill& hill2 = hills[idx2];
+            if (hill2.scan_indices.empty()) continue;
 
-          double diff = fabs(hills[j].mz_median - expected_mz);
-          if (diff <= mz_tolerance)
-          {
-            double cos_corr = cosineCorrelation(mono_hill.intensities, mono_hill.scan_indices,
-                                                hills[j].intensities, hills[j].scan_indices);
-            if (cos_corr >= 0.6)
+            Size hill_scans_2_list_first = entry.first_scan;
+            Size hill_scans_2_list_last = entry.last_scan;
+
+            if (hill_scans_1_list_last < hill_scans_2_list_first ||
+                hill_scans_2_list_last < hill_scans_1_list_first)
             {
-              IsotopeCandidate cand;
-              cand.hill_idx = hills[j].hill_idx;
-              cand.isotope_number = iso_num;
-              cand.mass_diff_ppm = calculatePPM(hills[j].mz_median, expected_mz);
-              cand.cos_corr = cos_corr;
-              isotopes.push_back(cand);
-              found = true;
-              break;
+              continue;
             }
+
+            double mass_diff_abs = hill2.mz_median - expected_mz;
+            if (fabs(mass_diff_abs) > mz_tol)
+            {
+              continue;
+            }
+
+            if (!hasScanOverlap(scans1, hill2.scan_indices))
+            {
+              continue;
+            }
+
+            double cos_cor_RT = cosineCorrelation(mono_hill.intensities, mono_hill.scan_indices,
+                                                  hill2.intensities, hill2.scan_indices);
+            if (cos_cor_RT < 0.6)
+            {
+              continue;
+            }
+
+            IsotopeCandidate cand;
+            cand.hill_idx = hill2.hill_idx;
+            cand.isotope_number = iso_num;
+            cand.mass_diff_ppm = mass_diff_abs * 1e6 / expected_mz;
+            cand.cos_corr = cos_cor_RT;
+            tmp_candidates.push_back(cand);
           }
         }
 
-        if (!found && iso_num == 1)
+        if (!tmp_candidates.empty())
         {
-          pattern_valid = false;
-          break;
+          candidates.push_back(tmp_candidates);
         }
-        else if (!found)
+
+        if (candidates.size() < static_cast<Size>(iso_num))
         {
           break;
         }
       }
 
-      if (pattern_valid && !isotopes.empty())
+      Size min_required = 1;
+      auto it_ban = banned_charges.find(charge);
+      if (it_ban != banned_charges.end())
       {
-        if (enable_isotope_calib)
+        min_required = it_ban->second;
+      }
+
+      if (candidates.size() >= min_required)
+      {
+        double hill_intensity_apex_1 = mono_hill.intensity_apex;
+        auto averagine = computeAveragine(mono_mz * charge, hill_intensity_apex_1);
+        vector<double> all_theoretical_int = averagine.first;
+        Size max_pos = averagine.second;
+
+        // Enumerate all combinations of isotope candidates across orders.
+        if (!candidates.empty())
         {
-          vector<IsotopeCandidate> filtered;
-          for (const auto& cand : isotopes)
+          vector<Size> indices(candidates.size(), 0);
+          bool done = false;
+
+          while (!done)
           {
-            auto calib = isotope_calib_map[cand.isotope_number];
-            if (fabs(cand.mass_diff_ppm - calib.first) <= 5.0 * calib.second)
+            vector<IsotopeCandidate> picked_isotopes;
+            picked_isotopes.reserve(candidates.size());
+            for (Size k = 0; k < candidates.size(); ++k)
             {
-              filtered.push_back(cand);
+              picked_isotopes.push_back(candidates[k][indices[k]]);
             }
-            else
+
+            vector<double> all_exp_intensity;
+            all_exp_intensity.reserve(picked_isotopes.size() + 1);
+            all_exp_intensity.push_back(hill_intensity_apex_1);
+
+            double local_minimum = 0.0;
+            Size local_minimum_pos = 0;
+            bool truncated = false;
+
+            Size i_local_isotope = 1;
+            for (const auto& iso_cand : picked_isotopes)
             {
-              break;
-            }
-          }
-          isotopes = filtered;
-        }
-
-        if (!isotopes.empty())
-        {
-          Size keep = checkIsotopeValleySplit(isotopes, hills, ivf);
-          if (keep < isotopes.size())
-          {
-            isotopes.resize(keep);
-          }
-        }
-
-        if (!isotopes.empty())
-        {
-          PeptideFeature feature;
-          feature.mz = mono_mz;
-          feature.rt_start = mono_hill.rt_start;
-          feature.rt_end = mono_hill.rt_end;
-          feature.rt_apex = mono_hill.rt_apex;
-          feature.intensity_apex = mono_hill.intensity_apex;
-          feature.intensity_sum = mono_hill.intensity_sum;
-
-          if (iuse != 0)
-          {
-            int isotopes_to_add = (iuse == -1) ? static_cast<int>(isotopes.size())
-                                               : min(static_cast<int>(isotopes.size()), iuse);
-            for (int iso_idx = 0; iso_idx < isotopes_to_add; ++iso_idx)
-            {
-              for (const auto& hill : hills)
+              // Find apex intensity of isotope hill.
+              double hill_intensity_apex_2 = 0.0;
+              for (const auto& h : hills)
               {
-                if (hill.hill_idx == isotopes[iso_idx].hill_idx)
+                if (h.hill_idx == iso_cand.hill_idx)
                 {
-                  feature.intensity_apex += hill.intensity_apex;
-                  feature.intensity_sum += hill.intensity_sum;
+                  hill_intensity_apex_2 = h.intensity_apex;
                   break;
                 }
               }
+
+              if (i_local_isotope > max_pos)
+              {
+                if (i_local_isotope == max_pos + 1 || hill_intensity_apex_2 < local_minimum)
+                {
+                  local_minimum = hill_intensity_apex_2;
+                  local_minimum_pos = i_local_isotope;
+                }
+                if (hill_intensity_apex_2 >= ivf * local_minimum)
+                {
+                  if (local_minimum_pos + 1 < all_exp_intensity.size())
+                  {
+                    all_exp_intensity.resize(local_minimum_pos + 1);
+                  }
+                  truncated = true;
+                  break;
+                }
+              }
+
+              all_exp_intensity.push_back(hill_intensity_apex_2);
+              ++i_local_isotope;
+            }
+
+            // Compute cosine correlation in isotope-intensity space.
+            double cos_corr_iso = cosineCorrelation1D(all_theoretical_int, all_exp_intensity);
+            if (cos_corr_iso >= 0.6)
+            {
+              PatternCandidate pc;
+              pc.mono_index = i;
+              pc.mono_mz = mono_mz;
+              pc.charge = charge;
+              pc.cos_cor_isotopes = cos_corr_iso;
+              pc.n_scans = hill_scans_1_number;
+
+              // Keep as many isotopes as we have experimental intensities beyond mono.
+              Size n_iso_kept = (all_exp_intensity.size() > 1) ? (all_exp_intensity.size() - 1) : 0;
+              n_iso_kept = min(n_iso_kept, picked_isotopes.size());
+              pc.isotopes.assign(picked_isotopes.begin(), picked_isotopes.begin() + n_iso_kept);
+
+              if (!pc.isotopes.empty())
+              {
+                ready.push_back(pc);
+
+                for (int ch_v : charge_ban_map[charge])
+                {
+                  auto& ref = banned_charges[ch_v];
+                  ref = max(ref, n_iso_kept);
+                }
+              }
+            }
+
+            // Next combination.
+            Size pos = 0;
+            while (pos < indices.size())
+            {
+              ++indices[pos];
+              if (indices[pos] < candidates[pos].size())
+              {
+                break;
+              }
+              indices[pos] = 0;
+              ++pos;
+            }
+            if (pos == indices.size())
+            {
+              done = true;
             }
           }
+        }
+      }
+    }
+  }
 
-          feature.charge = charge;
-          feature.n_isotopes = isotopes.size() + 1;
-          feature.n_scans = mono_hill.length;
-          feature.isotopes = isotopes;
-          feature.mono_hill_idx = mono_hill.hill_idx;
-          feature.drift_time = mono_hill.drift_time_median;
-          feature.ion_mobility = mono_hill.ion_mobility_median;
+  // Isotope mass error calibration based on the initial candidates.
+  map<int, vector<double>> isotope_errors_ready;
+  for (int ic = 1; ic <= 9; ++ic) isotope_errors_ready[ic] = vector<double>();
 
-          double proton_mass = Constants::PROTON_MASS_U;
-          if (negative_mode)
-          {
-            feature.mass_calib = mono_mz * charge + proton_mass * charge;
-          }
-          else
-          {
-            feature.mass_calib = mono_mz * charge - proton_mass * charge;
-          }
+  for (const auto& pc : ready)
+  {
+    if (pc.n_scans < 3) continue;
+    for (Size idx = 0; idx < pc.isotopes.size(); ++idx)
+    {
+      int iso_num = static_cast<int>(pc.isotopes[idx].isotope_number);
+      if (iso_num >= 1 && iso_num <= 9)
+      {
+        isotope_errors_ready[iso_num].push_back(pc.isotopes[idx].mass_diff_ppm);
+      }
+    }
+  }
 
-          features.push_back(feature);
-          used_hills.insert(mono_hill.hill_idx);
-          for (const auto& iso : isotopes)
-          {
-            used_hills.insert(iso.hill_idx);
-          }
+  map<int, pair<double, double>> isotope_calib_map_ready;
+  for (int ic = 1; ic <= 9; ++ic)
+  {
+    isotope_calib_map_ready[ic] = make_pair(0.0, itol_ppm);
+  }
 
+  if (enable_isotope_calib)
+  {
+    for (int ic = 1; ic <= 3; ++ic)
+    {
+      if (isotope_errors_ready[ic].size() >= 1000)
+      {
+        auto calib = calibrateMass(isotope_errors_ready[ic]);
+        isotope_calib_map_ready[ic] = calib;
+      }
+    }
+
+    for (int ic = 4; ic <= 9; ++ic)
+    {
+      if (isotope_errors_ready[ic].size() >= 1000)
+      {
+        isotope_calib_map_ready[ic] = calibrateMass(isotope_errors_ready[ic]);
+      }
+      else if (ic > 1)
+      {
+        auto prev = isotope_calib_map_ready[ic - 1];
+        auto prev2 = (ic > 2) ? isotope_calib_map_ready[ic - 2] : make_pair(0.0, itol_ppm);
+        double shift_delta = prev.first - prev2.first;
+        double sigma_ratio = prev.second / max(prev2.second, 0.1);
+        isotope_calib_map_ready[ic] = make_pair(prev.first + shift_delta, prev.second * sigma_ratio);
+      }
+    }
+  }
+
+  // Apply calibrated isotope mass filters.
+  vector<PatternCandidate> filtered_ready;
+  filtered_ready.reserve(ready.size());
+  for (auto pc : ready)
+  {
+    if (enable_isotope_calib)
+    {
+      vector<IsotopeCandidate> tmp;
+      for (const auto& cand : pc.isotopes)
+      {
+        int iso_num = static_cast<int>(cand.isotope_number);
+        auto calib = isotope_calib_map_ready[iso_num];
+        if (fabs(cand.mass_diff_ppm - calib.first) <= 5.0 * calib.second)
+        {
+          tmp.push_back(cand);
+        }
+        else
+        {
           break;
         }
+      }
+      pc.isotopes.swap(tmp);
+    }
+
+    if (!pc.isotopes.empty())
+    {
+      filtered_ready.push_back(pc);
+    }
+  }
+
+  // Final greedy selection of non-overlapping patterns (analogous to ready_final).
+  sort(filtered_ready.begin(), filtered_ready.end(),
+       [](const PatternCandidate& a, const PatternCandidate& b)
+       {
+         if (a.isotopes.size() != b.isotopes.size())
+         {
+           return a.isotopes.size() > b.isotopes.size();
+         }
+         return a.cos_cor_isotopes > b.cos_cor_isotopes;
+       });
+
+  set<Size> occupied_hills;
+  for (const auto& pc : filtered_ready)
+  {
+    const Hill& mono_hill = hills[pc.mono_index];
+
+    bool conflict = (occupied_hills.find(mono_hill.hill_idx) != occupied_hills.end());
+    for (const auto& iso : pc.isotopes)
+    {
+      if (occupied_hills.find(iso.hill_idx) != occupied_hills.end())
+      {
+        conflict = true;
+        break;
+      }
+    }
+
+    if (conflict)
+    {
+      // Try to keep only isotopes whose hills are not yet used.
+      vector<IsotopeCandidate> tmp_iso;
+      for (const auto& iso : pc.isotopes)
+      {
+        if (occupied_hills.find(iso.hill_idx) == occupied_hills.end())
+        {
+          tmp_iso.push_back(iso);
+        }
+        else
+        {
+          break;
+        }
+      }
+      if (tmp_iso.empty()) continue;
+
+      PeptideFeature feature;
+      feature.mz = pc.mono_mz;
+      feature.rt_start = mono_hill.rt_start;
+      feature.rt_end = mono_hill.rt_end;
+      feature.rt_apex = mono_hill.rt_apex;
+      feature.intensity_apex = mono_hill.intensity_apex;
+      feature.intensity_sum = mono_hill.intensity_sum;
+
+      if (iuse != 0)
+      {
+        int isotopes_to_add = (iuse == -1) ? static_cast<int>(tmp_iso.size())
+                                           : min(static_cast<int>(tmp_iso.size()), iuse);
+        for (int iso_idx = 0; iso_idx < isotopes_to_add; ++iso_idx)
+        {
+          for (const auto& hill : hills)
+          {
+            if (hill.hill_idx == tmp_iso[iso_idx].hill_idx)
+            {
+              feature.intensity_apex += hill.intensity_apex;
+              feature.intensity_sum += hill.intensity_sum;
+              break;
+            }
+          }
+        }
+      }
+
+      feature.charge = pc.charge;
+      feature.n_isotopes = tmp_iso.size() + 1;
+      feature.n_scans = mono_hill.length;
+      feature.isotopes = tmp_iso;
+      feature.mono_hill_idx = mono_hill.hill_idx;
+      feature.drift_time = mono_hill.drift_time_median;
+      feature.ion_mobility = mono_hill.ion_mobility_median;
+
+      double proton_mass = Constants::PROTON_MASS_U;
+      if (negative_mode)
+      {
+        feature.mass_calib = pc.mono_mz * pc.charge + proton_mass * pc.charge;
+      }
+      else
+      {
+        feature.mass_calib = pc.mono_mz * pc.charge - proton_mass * pc.charge;
+      }
+
+      features.push_back(feature);
+      occupied_hills.insert(mono_hill.hill_idx);
+      for (const auto& iso : tmp_iso)
+      {
+        occupied_hills.insert(iso.hill_idx);
+      }
+    }
+    else
+    {
+      PeptideFeature feature;
+      feature.mz = pc.mono_mz;
+      feature.rt_start = mono_hill.rt_start;
+      feature.rt_end = mono_hill.rt_end;
+      feature.rt_apex = mono_hill.rt_apex;
+      feature.intensity_apex = mono_hill.intensity_apex;
+      feature.intensity_sum = mono_hill.intensity_sum;
+
+      if (iuse != 0)
+      {
+        int isotopes_to_add = (iuse == -1) ? static_cast<int>(pc.isotopes.size())
+                                           : min(static_cast<int>(pc.isotopes.size()), iuse);
+        for (int iso_idx = 0; iso_idx < isotopes_to_add; ++iso_idx)
+        {
+          for (const auto& hill : hills)
+          {
+            if (hill.hill_idx == pc.isotopes[iso_idx].hill_idx)
+            {
+              feature.intensity_apex += hill.intensity_apex;
+              feature.intensity_sum += hill.intensity_sum;
+              break;
+            }
+          }
+        }
+      }
+
+      feature.charge = pc.charge;
+      feature.n_isotopes = pc.isotopes.size() + 1;
+      feature.n_scans = mono_hill.length;
+      feature.isotopes = pc.isotopes;
+      feature.mono_hill_idx = mono_hill.hill_idx;
+      feature.drift_time = mono_hill.drift_time_median;
+      feature.ion_mobility = mono_hill.ion_mobility_median;
+
+      double proton_mass = Constants::PROTON_MASS_U;
+      if (negative_mode)
+      {
+        feature.mass_calib = pc.mono_mz * pc.charge + proton_mass * pc.charge;
+      }
+      else
+      {
+        feature.mass_calib = pc.mono_mz * pc.charge - proton_mass * pc.charge;
+      }
+
+      features.push_back(feature);
+      occupied_hills.insert(mono_hill.hill_idx);
+      for (const auto& iso : pc.isotopes)
+      {
+        occupied_hills.insert(iso.hill_idx);
       }
     }
   }
