@@ -23,13 +23,3 @@ cdef extern from "<OpenMS/FEATUREFINDER/Biosaur2Algorithm.h>" namespace "OpenMS"
 
         void run(FeatureMap& feature_map) except + nogil  # wrap-doc:Run the algorithm storing only the resulting features
 
-        void run(FeatureMap& feature_map,
-                 libcpp_vector[Hill]& hills,
-                 libcpp_vector[PeptideFeature]& features) except + nogil  # wrap-doc:Run the algorithm and capture intermediate hills as well as peptide feature records
-
-        void writeTSV(const libcpp_vector[PeptideFeature]& features,
-                      const String& filename) except + nogil  # wrap-doc:Write detected peptide features to a Biosaur2-compatible TSV file
-
-        void writeHills(const libcpp_vector[Hill]& hills,
-                        const String& filename) except + nogil  # wrap-doc:Export the detected hills into a TSV diagnostic table
-
