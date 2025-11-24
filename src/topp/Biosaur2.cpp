@@ -130,20 +130,19 @@ protected:
     String out_hills = getStringOption_("out_hills");
     bool write_hills_flag = getFlag_("write_hills");
 
-    MSExperiment exp;
-    MzMLFile mzml_file;
-    mzml_file.load(in, exp);
-
     Biosaur2Algorithm algorithm;
     Param algo_param = getParam_().copySubset(Biosaur2Algorithm().getDefaults());
     algorithm.setParameters(algo_param);
 
+    MzMLFile mzml_file;
+    mzml_file.load(in, algorithm.getMSData());
+
     FeatureMap feature_map;
     vector<Biosaur2Algorithm::Hill> hills;
     vector<Biosaur2Algorithm::PeptideFeature> peptide_features;
-    algorithm.run(exp, feature_map, hills, peptide_features);
+    algorithm.run(feature_map, hills, peptide_features);
     String primary_path = getFlag_("test") ? ("file://" + File::basename(in)) : in;
-    feature_map.setPrimaryMSRunPath({primary_path}, exp);
+    feature_map.setPrimaryMSRunPath({primary_path}, algorithm.getMSData());
     addDataProcessing_(feature_map, getProcessingInfo_(DataProcessing::QUANTITATION));
 
     FeatureXMLFile feature_file;

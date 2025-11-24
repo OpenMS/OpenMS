@@ -5,6 +5,7 @@
 
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/ConvexHull2D.h>
 #include <OpenMS/IONMOBILITY/FAIMSHelper.h>
@@ -109,19 +110,37 @@ void Biosaur2Algorithm::updateMembers_()
   ignore_iso_calib_ = param_.getValue("ignore_iso_calib").toBool();
 }
 
-void Biosaur2Algorithm::run(const MSExperiment& input, FeatureMap& feature_map)
+void Biosaur2Algorithm::setMSData(const MSExperiment& ms_data)
+{
+  ms_data_ = ms_data;
+}
+
+void Biosaur2Algorithm::setMSData(MSExperiment&& ms_data)
+{
+  ms_data_ = std::move(ms_data);
+}
+
+MSExperiment& Biosaur2Algorithm::getMSData()
+{
+  return ms_data_;
+}
+
+const MSExperiment& Biosaur2Algorithm::getMSData() const
+{
+  return ms_data_;
+}
+
+void Biosaur2Algorithm::run(FeatureMap& feature_map)
 {
   vector<Hill> tmp_hills;
   vector<PeptideFeature> tmp_features;
-  run(input, feature_map, tmp_hills, tmp_features);
+  run(feature_map, tmp_hills, tmp_features);
 }
 
-void Biosaur2Algorithm::run(const MSExperiment& input,
-                            FeatureMap& feature_map,
+void Biosaur2Algorithm::run(FeatureMap& feature_map,
                             vector<Hill>& hills,
                             vector<PeptideFeature>& peptide_features)
 {
-  MSExperiment exp = input;
   feature_map.clear(true);
   hills.clear();
   peptide_features.clear();
@@ -138,19 +157,30 @@ void Biosaur2Algorithm::run(const MSExperiment& input,
   (void)threads_;
 #endif
 
-  exp.getSpectra().erase(
-    remove_if(exp.begin(), exp.end(),
+  // Filter to keep only MS1 spectra
+  ms_data_.getSpectra().erase(
+    remove_if(ms_data_.begin(), ms_data_.end(),
               [](const MSSpectrum& s) { return s.getMSLevel() != 1; }),
-    exp.end());
+    ms_data_.end());
+  
+  if (profile_mode_)
+  {
+    centroidProfileSpectra(ms_data_);
+  }
+  
+  if (tof_mode_)
+  {
+    processTOF(ms_data_);
+  }
 
-  OPENMS_LOG_INFO << "Loaded " << exp.size() << " MS1 spectra" << endl;
+  OPENMS_LOG_INFO << "Loaded " << ms_data_.size() << " MS1 spectra" << endl;
 
-  if (exp.empty())
+  if (ms_data_.empty())
   {
     throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No MS1 spectra found in input experiment!", "");
   }
 
-  auto cvs = FAIMSHelper::getCompensationVoltages(exp);
+  auto cvs = FAIMSHelper::getCompensationVoltages(ms_data_);
   if (!cvs.empty())
   {
     OPENMS_LOG_INFO << "Detected FAIMS data with " << cvs.size() << " compensation voltage(s)" << endl;
@@ -161,9 +191,9 @@ void Biosaur2Algorithm::run(const MSExperiment& input,
   }
 
   bool has_ion_mobility = false;
-  if (!exp.empty())
+  if (!ms_data_.empty())
   {
-    const auto& fda = exp[0].getFloatDataArrays();
+    const auto& fda = ms_data_[0].getFloatDataArrays();
     auto it_im = getDataArrayByName(fda, Constants::UserParam::ION_MOBILITY);
     if (it_im != fda.end())
     {
@@ -173,28 +203,18 @@ void Biosaur2Algorithm::run(const MSExperiment& input,
   }
   (void)has_ion_mobility;
 
-  if (profile_mode_)
-  {
-    centroidProfileSpectra(exp);
-  }
-
-  if (tof_mode_)
-  {
-    processTOF(exp);
-  }
-
   double calibrated_htol = htol_;
   if (use_hill_calib_)
   {
     OPENMS_LOG_INFO << "Performing hill mass tolerance calibration..." << endl;
     vector<double> mass_diffs;
-    Size sample_size = min(exp.size(), Size(1000));
-    Size start_idx = (exp.size() > 1000) ? (exp.size() / 2 - 500) : 0;
+    Size sample_size = min(ms_data_.size(), Size(1000));
+    Size start_idx = (ms_data_.size() > 1000) ? (ms_data_.size() / 2 - 500) : 0;
 
     MSExperiment calib_exp;
-    for (Size i = start_idx; i < start_idx + sample_size && i < exp.size(); ++i)
+    for (Size i = start_idx; i < start_idx + sample_size && i < ms_data_.size(); ++i)
     {
-      calib_exp.addSpectrum(exp[i]);
+      calib_exp.addSpectrum(ms_data_[i]);
     }
 
     vector<Hill> calib_hills = detectHills(calib_exp, htol_, mini_, minmz_, maxmz_, &mass_diffs);
@@ -209,7 +229,7 @@ void Biosaur2Algorithm::run(const MSExperiment& input,
     }
   }
 
-  hills = detectHills(exp, calibrated_htol, mini_, minmz_, maxmz_);
+  hills = detectHills(ms_data_, calibrated_htol, mini_, minmz_, maxmz_);
   hills = processHills(hills, minlh_);
   hills = splitHills(hills, hvf_, minlh_);
 
@@ -1002,7 +1022,7 @@ vector<Biosaur2Algorithm::PeptideFeature> Biosaur2Algorithm::detectIsotopePatter
           feature.drift_time = mono_hill.drift_time_median;
           feature.ion_mobility = mono_hill.ion_mobility_median;
 
-          double proton_mass = 1.007276;
+          double proton_mass = Constants::PROTON_MASS_U;
           if (negative_mode)
           {
             feature.mass_calib = mono_mz * charge + proton_mass * charge;
@@ -1118,6 +1138,10 @@ double Biosaur2Algorithm::cosineCorrelation(const vector<double>& intensities1,
 void Biosaur2Algorithm::writeTSV(const vector<PeptideFeature>& features, const String& filename) const
 {
   ofstream out(filename);
+  if (!out)
+  {
+    throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+  }
   out << "massCalib\trtApex\tintensityApex\tintensitySum\tcharge\t"
       << "nIsotopes\tnScans\tmz\trtStart\trtEnd\tFAIMS\tIM" << endl;
 
@@ -1143,6 +1167,10 @@ void Biosaur2Algorithm::writeTSV(const vector<PeptideFeature>& features, const S
 void Biosaur2Algorithm::writeHills(const vector<Hill>& hills, const String& filename) const
 {
   ofstream out(filename);
+  if (!out)
+  {
+    throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+  }
   out << "hill_idx\tmz\trtStart\trtEnd\trtApex\tintensityApex\tintensitySum\tnScans" << endl;
 
   for (const auto& hill : hills)
