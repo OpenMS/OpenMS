@@ -185,6 +185,7 @@ private:
   bool profile_mode_;
   bool use_hill_calib_;
   bool ignore_iso_calib_;
+  double paseftol_;
 };
 
 } // namespace OpenMS

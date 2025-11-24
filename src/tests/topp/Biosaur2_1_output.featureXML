@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<featureMap version="1.9" id="fm_3023658190814908261" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/FeatureXML_1_9.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<featureMap version="1.9" id="fm_1755235105885170967" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/FeatureXML_1_9.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<UserParam type="stringList" name="spectra_data" value="[file://FeatureFinderCentroided_1_input.mzML]"/>
 	<dataProcessing completion_time="1999-12-31T23:59:59">
 		<software name="Biosaur2" version="version_string" />
@@ -12,380 +12,295 @@
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0">
 		</ProteinIdentification>
 	</IdentificationRun>
-	<featureList count="22">
+	<featureList count="17">
 		<feature id="f_5233264595117471314">
-			<position dim="0">4408.109999999999673</position>
-			<position dim="1">646.738798285726489</position>
-			<intensity>658.846375</intensity>
+			<position dim="0">4185.760000000000218</position>
+			<position dim="1">654.772674560546875</position>
+			<intensity>157.273651</intensity>
 			<quality dim="0">0.0</quality>
 			<quality dim="1">0.0</quality>
-			<overallquality>2.0</overallquality>
-			<charge>1</charge>
+			<overallquality>6.0</overallquality>
+			<charge>2</charge>
 			<convexhull nr="0">
-				<pt x="4408.109999999999673" y="646.738798285726489" />
-				<pt x="4411.319999999999709" y="646.738798285726489" />
+				<pt x="4114.529999999999745" y="654.772674560546875" />
+				<pt x="4231.720000000000255" y="654.772674560546875" />
 			</convexhull>
-			<UserParam type="float" name="mass_calib" value="645.731521818955457"/>
-			<UserParam type="int" name="n_isotopes" value="2"/>
-			<UserParam type="int" name="n_scans" value="2"/>
-			<UserParam type="float" name="intensity_sum" value="1310.8082275390625"/>
+			<UserParam type="float" name="mass_calib" value="1307.530796187551687"/>
+			<UserParam type="int" name="n_isotopes" value="6"/>
+			<UserParam type="int" name="n_scans" value="36"/>
+			<UserParam type="float" name="intensity_sum" value="2062.273967742919922"/>
 		</feature>
 		<feature id="f_4835329514588776807">
-			<position dim="0">4401.479999999999563</position>
-			<position dim="1">648.750562586952128</position>
-			<intensity>409.254272</intensity>
+			<position dim="0">4404.890000000000327</position>
+			<position dim="1">646.24383544921875</position>
+			<intensity>934.528442</intensity>
 			<quality dim="0">0.0</quality>
 			<quality dim="1">0.0</quality>
-			<overallquality>2.0</overallquality>
-			<charge>1</charge>
+			<overallquality>6.0</overallquality>
+			<charge>2</charge>
 			<convexhull nr="0">
-				<pt x="4401.479999999999563" y="648.750562586952128" />
-				<pt x="4408.109999999999673" y="648.750562586952128" />
+				<pt x="4270.25" y="646.24383544921875" />
+				<pt x="4481.960000000000036" y="646.24383544921875" />
 			</convexhull>
-			<UserParam type="float" name="mass_calib" value="647.743286120181097"/>
-			<UserParam type="int" name="n_isotopes" value="2"/>
-			<UserParam type="int" name="n_scans" value="3"/>
-			<UserParam type="float" name="intensity_sum" value="976.765609741210938"/>
+			<UserParam type="float" name="mass_calib" value="1290.473117964895437"/>
+			<UserParam type="int" name="n_isotopes" value="6"/>
+			<UserParam type="int" name="n_scans" value="65"/>
+			<UserParam type="float" name="intensity_sum" value="1.191160575866699e04"/>
 		</feature>
 		<feature id="f_17749660155506638460">
-			<position dim="0">4401.479999999999563</position>
-			<position dim="1">646.738569957181767</position>
-			<intensity>653.730225</intensity>
+			<position dim="0">4279.880000000000109</position>
+			<position dim="1">653.76336669921875</position>
+			<intensity>429.826294</intensity>
 			<quality dim="0">0.0</quality>
 			<quality dim="1">0.0</quality>
 			<overallquality>2.0</overallquality>
-			<charge>1</charge>
+			<charge>2</charge>
 			<convexhull nr="0">
-				<pt x="4387.840000000000146" y="646.738569957181767" />
-				<pt x="4401.479999999999563" y="646.738569957181767" />
+				<pt x="4238.140000000000327" y="653.76336669921875" />
+				<pt x="4353.920000000000073" y="653.76336669921875" />
 			</convexhull>
-			<UserParam type="float" name="mass_calib" value="645.731293490410735"/>
+			<UserParam type="float" name="mass_calib" value="1305.512180464895437"/>
 			<UserParam type="int" name="n_isotopes" value="2"/>
-			<UserParam type="int" name="n_scans" value="5"/>
-			<UserParam type="float" name="intensity_sum" value="2437.859039306640625"/>
+			<UserParam type="int" name="n_scans" value="36"/>
+			<UserParam type="float" name="intensity_sum" value="4902.011114120483398"/>
 		</feature>
 		<feature id="f_7804704400743266335">
-			<position dim="0">4440.210000000000036</position>
-			<position dim="1">646.739589593821052</position>
-			<intensity>85.553848</intensity>
+			<position dim="0">4199.409999999999855</position>
+			<position dim="1">649.262359619140625</position>
+			<intensity>84.791016</intensity>
 			<quality dim="0">0.0</quality>
 			<quality dim="1">0.0</quality>
-			<overallquality>2.0</overallquality>
-			<charge>1</charge>
+			<overallquality>5.0</overallquality>
+			<charge>2</charge>
 			<convexhull nr="0">
-				<pt x="4440.210000000000036" y="646.739589593821052" />
-				<pt x="4443.420000000000073" y="646.739589593821052" />
+				<pt x="4114.529999999999745" y="649.262359619140625" />
+				<pt x="4250.979999999999564" y="649.262359619140625" />
 			</convexhull>
-			<UserParam type="float" name="mass_calib" value="645.73231312705002"/>
-			<UserParam type="int" name="n_isotopes" value="2"/>
-			<UserParam type="int" name="n_scans" value="2"/>
-			<UserParam type="float" name="intensity_sum" value="151.665718078613281"/>
+			<UserParam type="float" name="mass_calib" value="1296.510166304739187"/>
+			<UserParam type="int" name="n_isotopes" value="5"/>
+			<UserParam type="int" name="n_scans" value="42"/>
+			<UserParam type="float" name="intensity_sum" value="1478.771938323974609"/>
 		</feature>
 		<feature id="f_15004869347769368353">
-			<position dim="0">4430.579999999999927</position>
-			<position dim="1">646.243605613738168</position>
-			<intensity>272.262054</intensity>
+			<position dim="0">4469.109999999999673</position>
+			<position dim="1">654.25714111328125</position>
+			<intensity>30.770824</intensity>
 			<quality dim="0">0.0</quality>
 			<quality dim="1">0.0</quality>
-			<overallquality>2.0</overallquality>
-			<charge>1</charge>
+			<overallquality>4.0</overallquality>
+			<charge>2</charge>
 			<convexhull nr="0">
-				<pt x="4430.579999999999927" y="646.243605613738168" />
-				<pt x="4440.210000000000036" y="646.243605613738168" />
+				<pt x="4437.0" y="654.25714111328125" />
+				<pt x="4481.960000000000036" y="654.25714111328125" />
 			</convexhull>
-			<UserParam type="float" name="mass_calib" value="645.236329146967137"/>
-			<UserParam type="int" name="n_isotopes" value="2"/>
-			<UserParam type="int" name="n_scans" value="4"/>
-			<UserParam type="float" name="intensity_sum" value="770.454551696777344"/>
+			<UserParam type="float" name="mass_calib" value="1306.499729293020437"/>
+			<UserParam type="int" name="n_isotopes" value="4"/>
+			<UserParam type="int" name="n_scans" value="15"/>
+			<UserParam type="float" name="intensity_sum" value="372.622201919555664"/>
 		</feature>
 		<feature id="f_3332699010107892018">
-			<position dim="0">4218.890000000000327</position>
-			<position dim="1">646.767923480037894</position>
-			<intensity>170.266174</intensity>
+			<position dim="0">4394.659999999999855</position>
+			<position dim="1">644.255761458512893</position>
+			<intensity>61.705254</intensity>
 			<quality dim="0">0.0</quality>
 			<quality dim="1">0.0</quality>
-			<overallquality>2.0</overallquality>
-			<charge>1</charge>
+			<overallquality>4.0</overallquality>
+			<charge>2</charge>
 			<convexhull nr="0">
-				<pt x="4215.670000000000073" y="646.767923480037894" />
-				<pt x="4228.510000000000218" y="646.767923480037894" />
+				<pt x="4295.930000000000291" y="644.255761458512893" />
+				<pt x="4481.960000000000036" y="644.255761458512893" />
 			</convexhull>
-			<UserParam type="float" name="mass_calib" value="645.760647013266862"/>
-			<UserParam type="int" name="n_isotopes" value="2"/>
-			<UserParam type="int" name="n_scans" value="5"/>
-			<UserParam type="float" name="intensity_sum" value="810.398284912109375"/>
+			<UserParam type="float" name="mass_calib" value="1286.496969983483723"/>
+			<UserParam type="int" name="n_isotopes" value="4"/>
+			<UserParam type="int" name="n_scans" value="57"/>
+			<UserParam type="float" name="intensity_sum" value="1843.637480735778809"/>
 		</feature>
 		<feature id="f_13440783915218733453">
-			<position dim="0">4279.880000000000109</position>
-			<position dim="1">654.27386918469881</position>
-			<intensity>335.751556</intensity>
+			<position dim="0">4384.430000000000291</position>
+			<position dim="1">649.260650634765625</position>
+			<intensity>309.045471</intensity>
 			<quality dim="0">0.0</quality>
 			<quality dim="1">0.0</quality>
-			<overallquality>2.0</overallquality>
+			<overallquality>3.0</overallquality>
 			<charge>2</charge>
 			<convexhull nr="0">
-				<pt x="4273.460000000000036" y="654.27386918469881" />
-				<pt x="4279.880000000000109" y="654.27386918469881" />
+				<pt x="4254.199999999999818" y="649.260650634765625" />
+				<pt x="4481.960000000000036" y="649.260650634765625" />
 			</convexhull>
-			<UserParam type="float" name="mass_calib" value="1306.533185435855557"/>
-			<UserParam type="int" name="n_isotopes" value="2"/>
-			<UserParam type="int" name="n_scans" value="3"/>
-			<UserParam type="float" name="intensity_sum" value="976.740692138671875"/>
+			<UserParam type="float" name="mass_calib" value="1296.506748335989187"/>
+			<UserParam type="int" name="n_isotopes" value="3"/>
+			<UserParam type="int" name="n_scans" value="70"/>
+			<UserParam type="float" name="intensity_sum" value="4349.549516677856445"/>
 		</feature>
 		<feature id="f_15916652588957785155">
-			<position dim="0">4178.949999999999818</position>
-			<position dim="1">655.270231190478057</position>
-			<intensity>113.000801</intensity>
+			<position dim="0">4299.340000000000146</position>
+			<position dim="1">652.26800537109375</position>
+			<intensity>515.717102</intensity>
 			<quality dim="0">0.0</quality>
 			<quality dim="1">0.0</quality>
-			<overallquality>2.0</overallquality>
+			<overallquality>3.0</overallquality>
 			<charge>2</charge>
 			<convexhull nr="0">
-				<pt x="4175.729999999999564" y="655.270231190478057" />
-				<pt x="4178.949999999999818" y="655.270231190478057" />
+				<pt x="4231.720000000000255" y="652.26800537109375" />
+				<pt x="4481.960000000000036" y="652.26800537109375" />
 			</convexhull>
-			<UserParam type="float" name="mass_calib" value="1308.525909447414051"/>
-			<UserParam type="int" name="n_isotopes" value="2"/>
-			<UserParam type="int" name="n_scans" value="2"/>
-			<UserParam type="float" name="intensity_sum" value="225.421363830566406"/>
+			<UserParam type="float" name="mass_calib" value="1302.521457808645437"/>
+			<UserParam type="int" name="n_isotopes" value="3"/>
+			<UserParam type="int" name="n_scans" value="77"/>
+			<UserParam type="float" name="intensity_sum" value="6826.811057090759277"/>
 		</feature>
 		<feature id="f_15157403601844400700">
-			<position dim="0">4199.409999999999855</position>
-			<position dim="1">655.285008147070698</position>
-			<intensity>69.510666</intensity>
+			<position dim="0">4408.109999999999673</position>
+			<position dim="1">657.24835205078125</position>
+			<intensity>56.12859</intensity>
 			<quality dim="0">0.0</quality>
 			<quality dim="1">0.0</quality>
-			<overallquality>2.0</overallquality>
+			<overallquality>3.0</overallquality>
 			<charge>2</charge>
 			<convexhull nr="0">
-				<pt x="4199.409999999999855" y="655.285008147070698" />
-				<pt x="4202.819999999999709" y="655.285008147070698" />
+				<pt x="4367.369999999999891" y="657.24835205078125" />
+				<pt x="4481.960000000000036" y="657.24835205078125" />
 			</convexhull>
-			<UserParam type="float" name="mass_calib" value="1308.555463360599333"/>
-			<UserParam type="int" name="n_isotopes" value="2"/>
-			<UserParam type="int" name="n_scans" value="2"/>
-			<UserParam type="float" name="intensity_sum" value="121.208187103271484"/>
+			<UserParam type="float" name="mass_calib" value="1312.482151168020437"/>
+			<UserParam type="int" name="n_isotopes" value="3"/>
+			<UserParam type="int" name="n_scans" value="36"/>
+			<UserParam type="float" name="intensity_sum" value="1016.822311401367188"/>
 		</feature>
 		<feature id="f_6408859317243173796">
-			<position dim="0">4289.520000000000437</position>
-			<position dim="1">651.757551830454304</position>
-			<intensity>491.557678</intensity>
+			<position dim="0">4225.300000000000182</position>
+			<position dim="1">643.262420654296875</position>
+			<intensity>54.610664</intensity>
 			<quality dim="0">0.0</quality>
 			<quality dim="1">0.0</quality>
-			<overallquality>2.0</overallquality>
+			<overallquality>3.0</overallquality>
 			<charge>2</charge>
 			<convexhull nr="0">
-				<pt x="4276.670000000000073" y="651.757551830454304" />
-				<pt x="4289.520000000000437" y="651.757551830454304" />
+				<pt x="4114.529999999999745" y="643.262420654296875" />
+				<pt x="4384.430000000000291" y="643.262420654296875" />
 			</convexhull>
-			<UserParam type="float" name="mass_calib" value="1301.500550727366544"/>
-			<UserParam type="int" name="n_isotopes" value="2"/>
-			<UserParam type="int" name="n_scans" value="5"/>
-			<UserParam type="float" name="intensity_sum" value="1579.784896850585938"/>
+			<UserParam type="float" name="mass_calib" value="1284.510288375051687"/>
+			<UserParam type="int" name="n_isotopes" value="3"/>
+			<UserParam type="int" name="n_scans" value="82"/>
+			<UserParam type="float" name="intensity_sum" value="2295.972747802734375"/>
 		</feature>
 		<feature id="f_474525871221756682">
-			<position dim="0">4162.090000000000146</position>
-			<position dim="1">650.251485049632151</position>
-			<intensity>22.311729</intensity>
+			<position dim="0">4326.630000000000109</position>
+			<position dim="1">656.25335693359375</position>
+			<intensity>65.031197</intensity>
 			<quality dim="0">0.0</quality>
 			<quality dim="1">0.0</quality>
 			<overallquality>2.0</overallquality>
 			<charge>2</charge>
 			<convexhull nr="0">
-				<pt x="4162.090000000000146" y="650.251485049632151" />
-				<pt x="4165.489999999999782" y="650.251485049632151" />
+				<pt x="4270.25" y="656.25335693359375" />
+				<pt x="4481.960000000000036" y="656.25335693359375" />
 			</convexhull>
-			<UserParam type="float" name="mass_calib" value="1298.48841716572224"/>
+			<UserParam type="float" name="mass_calib" value="1310.492160933645437"/>
 			<UserParam type="int" name="n_isotopes" value="2"/>
-			<UserParam type="int" name="n_scans" value="2"/>
-			<UserParam type="float" name="intensity_sum" value="37.821683883666992"/>
+			<UserParam type="int" name="n_scans" value="65"/>
+			<UserParam type="float" name="intensity_sum" value="2058.97539234161377"/>
 		</feature>
 		<feature id="f_12999979801269632061">
-			<position dim="0">4196.0</position>
-			<position dim="1">646.755135708212947</position>
-			<intensity>36.078339</intensity>
+			<position dim="0">4323.220000000000255</position>
+			<position dim="1">657.2642822265625</position>
+			<intensity>52.187195</intensity>
 			<quality dim="0">0.0</quality>
 			<quality dim="1">0.0</quality>
 			<overallquality>2.0</overallquality>
-			<charge>1</charge>
+			<charge>2</charge>
 			<convexhull nr="0">
-				<pt x="4192.579999999999927" y="646.755135708212947" />
-				<pt x="4196.0" y="646.755135708212947" />
+				<pt x="4206.039999999999964" y="657.2642822265625" />
+				<pt x="4363.949999999999818" y="657.2642822265625" />
 			</convexhull>
-			<UserParam type="float" name="mass_calib" value="645.747859241441915"/>
+			<UserParam type="float" name="mass_calib" value="1312.514011519582937"/>
 			<UserParam type="int" name="n_isotopes" value="2"/>
-			<UserParam type="int" name="n_scans" value="2"/>
-			<UserParam type="float" name="intensity_sum" value="60.341224670410156"/>
+			<UserParam type="int" name="n_scans" value="49"/>
+			<UserParam type="float" name="intensity_sum" value="1285.58165454864502"/>
 		</feature>
 		<feature id="f_17413765565443951891">
-			<position dim="0">4417.75</position>
-			<position dim="1">653.263716786534474</position>
-			<intensity>30.44968</intensity>
+			<position dim="0">4225.300000000000182</position>
+			<position dim="1">647.263671875</position>
+			<intensity>132.457947</intensity>
 			<quality dim="0">0.0</quality>
 			<quality dim="1">0.0</quality>
 			<overallquality>2.0</overallquality>
 			<charge>2</charge>
 			<convexhull nr="0">
-				<pt x="4417.75" y="653.263716786534474" />
-				<pt x="4420.949999999999818" y="653.263716786534474" />
+				<pt x="4141.609999999999673" y="647.263671875" />
+				<pt x="4292.720000000000255" y="647.263671875" />
 			</convexhull>
-			<UserParam type="float" name="mass_calib" value="1304.512880639526884"/>
+			<UserParam type="float" name="mass_calib" value="1292.512790816457937"/>
 			<UserParam type="int" name="n_isotopes" value="2"/>
-			<UserParam type="int" name="n_scans" value="2"/>
-			<UserParam type="float" name="intensity_sum" value="59.924734115600586"/>
+			<UserParam type="int" name="n_scans" value="47"/>
+			<UserParam type="float" name="intensity_sum" value="2118.251768112182617"/>
 		</feature>
 		<feature id="f_2927519776102075938">
-			<position dim="0">4117.9399999999996</position>
-			<position dim="1">654.259624914548567</position>
-			<intensity>31.277185</intensity>
+			<position dim="0">4408.109999999999673</position>
+			<position dim="1">643.25018310546875</position>
+			<intensity>45.720493</intensity>
 			<quality dim="0">0.0</quality>
 			<quality dim="1">0.0</quality>
 			<overallquality>2.0</overallquality>
 			<charge>2</charge>
 			<convexhull nr="0">
-				<pt x="4114.529999999999745" y="654.259624914548567" />
-				<pt x="4117.9399999999996" y="654.259624914548567" />
+				<pt x="4387.840000000000146" y="643.25018310546875" />
+				<pt x="4481.960000000000036" y="643.25018310546875" />
 			</convexhull>
-			<UserParam type="float" name="mass_calib" value="1306.504696895555071"/>
+			<UserParam type="float" name="mass_calib" value="1284.485813277395437"/>
 			<UserParam type="int" name="n_isotopes" value="2"/>
-			<UserParam type="int" name="n_scans" value="2"/>
-			<UserParam type="float" name="intensity_sum" value="60.189651489257813"/>
+			<UserParam type="int" name="n_scans" value="30"/>
+			<UserParam type="float" name="intensity_sum" value="933.870742797851563"/>
 		</feature>
 		<feature id="f_16907355690727166316">
-			<position dim="0">4299.340000000000146</position>
-			<position dim="1">653.264043684384774</position>
-			<intensity>97.064262</intensity>
+			<position dim="0">4295.930000000000291</position>
+			<position dim="1">650.740761212414782</position>
+			<intensity>50.396172</intensity>
 			<quality dim="0">0.0</quality>
 			<quality dim="1">0.0</quality>
 			<overallquality>2.0</overallquality>
 			<charge>2</charge>
 			<convexhull nr="0">
-				<pt x="4299.340000000000146" y="653.264043684384774" />
-				<pt x="4316.390000000000327" y="653.264043684384774" />
+				<pt x="4257.409999999999855" y="650.740761212414782" />
+				<pt x="4323.220000000000255" y="650.740761212414782" />
 			</convexhull>
-			<UserParam type="float" name="mass_calib" value="1304.513534435227484"/>
+			<UserParam type="float" name="mass_calib" value="1299.4669694912875"/>
 			<UserParam type="int" name="n_isotopes" value="2"/>
-			<UserParam type="int" name="n_scans" value="6"/>
-			<UserParam type="float" name="intensity_sum" value="492.362869262695313"/>
+			<UserParam type="int" name="n_scans" value="21"/>
+			<UserParam type="float" name="intensity_sum" value="646.737793922424316"/>
 		</feature>
 		<feature id="f_10306100746905639127">
-			<position dim="0">4212.460000000000036</position>
-			<position dim="1">654.273730041557315</position>
-			<intensity>41.83231</intensity>
+			<position dim="0">4222.090000000000146</position>
+			<position dim="1">644.258129724511832</position>
+			<intensity>34.859097</intensity>
 			<quality dim="0">0.0</quality>
 			<quality dim="1">0.0</quality>
 			<overallquality>2.0</overallquality>
 			<charge>2</charge>
 			<convexhull nr="0">
-				<pt x="4209.239999999999782" y="654.273730041557315" />
-				<pt x="4215.670000000000073" y="654.273730041557315" />
+				<pt x="4162.090000000000146" y="644.258129724511832" />
+				<pt x="4289.520000000000437" y="644.258129724511832" />
 			</convexhull>
-			<UserParam type="float" name="mass_calib" value="1306.532907149572566"/>
+			<UserParam type="float" name="mass_calib" value="1286.501706515481601"/>
 			<UserParam type="int" name="n_isotopes" value="2"/>
-			<UserParam type="int" name="n_scans" value="3"/>
-			<UserParam type="float" name="intensity_sum" value="118.393795013427734"/>
+			<UserParam type="int" name="n_scans" value="40"/>
+			<UserParam type="float" name="intensity_sum" value="946.645939826965332"/>
 		</feature>
 		<feature id="f_12524258085768770586">
-			<position dim="0">4273.460000000000036</position>
-			<position dim="1">646.244098484779101</position>
-			<intensity>21.47719</intensity>
-			<quality dim="0">0.0</quality>
-			<quality dim="1">0.0</quality>
-			<overallquality>2.0</overallquality>
-			<charge>1</charge>
-			<convexhull nr="0">
-				<pt x="4270.25" y="646.244098484779101" />
-				<pt x="4276.670000000000073" y="646.244098484779101" />
-			</convexhull>
-			<UserParam type="float" name="mass_calib" value="645.23682201800807"/>
-			<UserParam type="int" name="n_isotopes" value="2"/>
-			<UserParam type="int" name="n_scans" value="3"/>
-			<UserParam type="float" name="intensity_sum" value="61.629995346069336"/>
-		</feature>
-		<feature id="f_1755235105885170967">
-			<position dim="0">4292.720000000000255</position>
-			<position dim="1">646.769112886586527</position>
-			<intensity>18.221035</intensity>
-			<quality dim="0">0.0</quality>
-			<quality dim="1">0.0</quality>
-			<overallquality>2.0</overallquality>
-			<charge>1</charge>
-			<convexhull nr="0">
-				<pt x="4289.520000000000437" y="646.769112886586527" />
-				<pt x="4292.720000000000255" y="646.769112886586527" />
-			</convexhull>
-			<UserParam type="float" name="mass_calib" value="645.761836419815495"/>
-			<UserParam type="int" name="n_isotopes" value="2"/>
-			<UserParam type="int" name="n_scans" value="2"/>
-			<UserParam type="float" name="intensity_sum" value="35.579076766967774"/>
-		</feature>
-		<feature id="f_14811341817612382122">
-			<position dim="0">4196.0</position>
-			<position dim="1">644.267014132355257</position>
-			<intensity>22.774269</intensity>
-			<quality dim="0">0.0</quality>
-			<quality dim="1">0.0</quality>
-			<overallquality>2.0</overallquality>
-			<charge>1</charge>
-			<convexhull nr="0">
-				<pt x="4185.760000000000218" y="644.267014132355257" />
-				<pt x="4196.0" y="644.267014132355257" />
-			</convexhull>
-			<UserParam type="float" name="mass_calib" value="643.259737665584225"/>
-			<UserParam type="int" name="n_isotopes" value="2"/>
-			<UserParam type="int" name="n_scans" value="4"/>
-			<UserParam type="float" name="intensity_sum" value="86.450511932373047"/>
-		</feature>
-		<feature id="f_2684106197423007927">
-			<position dim="0">4185.760000000000218</position>
-			<position dim="1">644.758923172321829</position>
-			<intensity>16.805578</intensity>
-			<quality dim="0">0.0</quality>
-			<quality dim="1">0.0</quality>
-			<overallquality>2.0</overallquality>
-			<charge>1</charge>
-			<convexhull nr="0">
-				<pt x="4182.350000000000364" y="644.758923172321829" />
-				<pt x="4185.760000000000218" y="644.758923172321829" />
-			</convexhull>
-			<UserParam type="float" name="mass_calib" value="643.751646705550797"/>
-			<UserParam type="int" name="n_isotopes" value="2"/>
-			<UserParam type="int" name="n_scans" value="2"/>
-			<UserParam type="float" name="intensity_sum" value="30.191049575805664"/>
-		</feature>
-		<feature id="f_8119044117483804262">
-			<position dim="0">4244.5600000000004</position>
-			<position dim="1">646.258540276914459</position>
-			<intensity>43.022484</intensity>
-			<quality dim="0">0.0</quality>
-			<quality dim="1">0.0</quality>
-			<overallquality>2.0</overallquality>
-			<charge>1</charge>
-			<convexhull nr="0">
-				<pt x="4238.140000000000327" y="646.258540276914459" />
-				<pt x="4247.770000000000437" y="646.258540276914459" />
-			</convexhull>
-			<UserParam type="float" name="mass_calib" value="645.251263810143428"/>
-			<UserParam type="int" name="n_isotopes" value="2"/>
-			<UserParam type="int" name="n_scans" value="4"/>
-			<UserParam type="float" name="intensity_sum" value="162.156017303466797"/>
-		</feature>
-		<feature id="f_17314619952666245179">
-			<position dim="0">4117.9399999999996</position>
-			<position dim="1">657.747920500606256</position>
-			<intensity>18.853395</intensity>
+			<position dim="0">4241.350000000000364</position>
+			<position dim="1">645.255126953125</position>
+			<intensity>43.204067</intensity>
 			<quality dim="0">0.0</quality>
 			<quality dim="1">0.0</quality>
 			<overallquality>2.0</overallquality>
 			<charge>2</charge>
 			<convexhull nr="0">
-				<pt x="4117.9399999999996" y="657.747920500606256" />
-				<pt x="4121.359999999999673" y="657.747920500606256" />
+				<pt x="4114.529999999999745" y="645.255126953125" />
+				<pt x="4292.720000000000255" y="645.255126953125" />
 			</convexhull>
-			<UserParam type="float" name="mass_calib" value="1313.481288067670448"/>
+			<UserParam type="float" name="mass_calib" value="1288.495700972707937"/>
 			<UserParam type="int" name="n_isotopes" value="2"/>
-			<UserParam type="int" name="n_scans" value="2"/>
-			<UserParam type="float" name="intensity_sum" value="35.131420135498047"/>
+			<UserParam type="int" name="n_scans" value="55"/>
+			<UserParam type="float" name="intensity_sum" value="1425.034975051879883"/>
 		</feature>
 	</featureList>
 </featureMap>
