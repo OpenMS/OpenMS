@@ -60,6 +60,12 @@ Biosaur2Algorithm::Biosaur2Algorithm() :
   defaults_.setValue("minlh", 2, "Minimum number of scans for a hill");
   defaults_.setMinInt("minlh", 1);
 
+  defaults_.setValue("pasefmini", 100.0, "Minimum combined intensity for PASEF/TIMS clusters after m/z–ion-mobility centroiding.");
+  defaults_.setMinFloat("pasefmini", 0.0);
+
+  defaults_.setValue("pasefminlh", 1, "Minimum number of raw points per PASEF/TIMS cluster during centroiding.");
+  defaults_.setMinInt("pasefminlh", 1);
+
   defaults_.setValue("cmin", 1, "Minimum charge state");
   defaults_.setMinInt("cmin", 1);
 
@@ -109,6 +115,8 @@ void Biosaur2Algorithm::updateMembers_()
   minlh_ = static_cast<Size>(param_.getValue("minlh"));
   cmin_ = param_.getValue("cmin");
   cmax_ = param_.getValue("cmax");
+  pasefmini_ = param_.getValue("pasefmini");
+  pasefminlh_ = static_cast<Size>(param_.getValue("pasefminlh"));
   threads_ = param_.getValue("threads");
   iuse_ = param_.getValue("iuse");
   negative_mode_ = param_.getValue("nm").toBool();
@@ -190,6 +198,9 @@ void Biosaur2Algorithm::run(FeatureMap& feature_map,
     throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No MS1 spectra found in input experiment!", "");
   }
 
+  // Detect FAIMS compensation voltages (if any) to mirror Python's CV-aware
+  // processing. If no FAIMS data are present, we process the experiment in
+  // a single pass.
   auto cvs = FAIMSHelper::getCompensationVoltages(ms_data_);
   if (!cvs.empty())
   {
@@ -200,51 +211,197 @@ void Biosaur2Algorithm::run(FeatureMap& feature_map,
     }
   }
 
-  bool has_ion_mobility = false;
-  if (!ms_data_.empty())
+  // Build per-FAIMS-group experiments:
+  //  - if no FAIMS CVs are present, we have a single group containing all MS1.
+  //  - if FAIMS CVs exist, we create:
+  //      * one group with MS1 spectra that are not FAIMS (CV == 0),
+  //      * one group per FAIMS CV value, containing spectra with that CV.
+  struct Group
   {
-    const auto& fda = ms_data_[0].getFloatDataArrays();
-    auto it_im = getDataArrayByName(fda, Constants::UserParam::ION_MOBILITY);
-    if (it_im != fda.end())
+    double faims_cv;
+    MSExperiment exp;
+  };
+  vector<Group> groups;
+
+  if (cvs.empty())
+  {
+    Group g;
+    g.faims_cv = std::numeric_limits<double>::quiet_NaN();
+    g.exp = ms_data_;
+    groups.push_back(std::move(g));
+  }
+  else
+  {
+    // Non-FAIMS MS1 spectra (if any) go into a CV=0 group.
+    Group base_group;
+    base_group.faims_cv = 0.0;
+    bool has_non_faims = false;
+
+    for (const auto& spec : ms_data_)
     {
-      has_ion_mobility = true;
-      OPENMS_LOG_INFO << "Detected ion mobility (PASEF/IM) data" << endl;
+      if (spec.getDriftTimeUnit() != DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE)
+      {
+        base_group.exp.addSpectrum(spec);
+        has_non_faims = true;
+      }
+    }
+    if (has_non_faims)
+    {
+      groups.push_back(std::move(base_group));
+    }
+
+    // One group per FAIMS CV.
+    for (double cv : cvs)
+    {
+      Group g;
+      g.faims_cv = cv;
+      for (const auto& spec : ms_data_)
+      {
+        if (spec.getDriftTimeUnit() == DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE &&
+            fabs(spec.getDriftTime() - cv) <= 1e-6)
+        {
+          g.exp.addSpectrum(spec);
+        }
+      }
+      if (!g.exp.empty())
+      {
+        groups.push_back(std::move(g));
+      }
     }
   }
-  (void)has_ion_mobility;
 
-  double calibrated_htol = htol_;
-  if (use_hill_calib_)
+  vector<Hill> all_hills;
+  vector<PeptideFeature> all_features;
+  Size hill_idx_offset = 0;
+
+  const double original_paseftol = paseftol_;
+
+  for (auto& group : groups)
   {
-    OPENMS_LOG_INFO << "Performing hill mass tolerance calibration..." << endl;
-    vector<double> mass_diffs;
-    Size sample_size = min(ms_data_.size(), Size(1000));
-    Size start_idx = (ms_data_.size() > 1000) ? (ms_data_.size() / 2 - 500) : 0;
-
-    MSExperiment calib_exp;
-    for (Size i = start_idx; i < start_idx + sample_size && i < ms_data_.size(); ++i)
+    if (group.exp.empty())
     {
-      calib_exp.addSpectrum(ms_data_[i]);
+      continue;
     }
 
-    vector<Hill> calib_hills = detectHills(calib_exp, htol_, mini_, minmz_, maxmz_, &mass_diffs);
-    (void)calib_hills;
-    if (!mass_diffs.empty())
+    // Determine ion-mobility array availability for this group.
+    bool any_im_array = false;
+    bool any_missing_im = false;
+    for (const auto& spec : group.exp)
     {
-      auto calib = calibrateMass(mass_diffs);
-      double calibrated_sigma = calib.second;
-      calibrated_htol = min(htol_, 5.0 * calibrated_sigma);
-      OPENMS_LOG_INFO << "Automatically optimized htol parameter: "
-                      << calibrated_htol << " ppm (was " << htol_ << " ppm)" << endl;
+      const auto& fda = spec.getFloatDataArrays();
+      auto it_im = getDataArrayByName(fda, Constants::UserParam::ION_MOBILITY);
+      if (it_im != fda.end() && !it_im->empty())
+      {
+        any_im_array = true;
+      }
+      else
+      {
+        any_missing_im = true;
+      }
     }
+
+    // Compute mz_step for PASEF centroiding, mirroring Python's use of
+    // hill mass accuracy and the maximum m/z in the group.
+    double mz_step = 0.0;
+    double max_mz_value = 0.0;
+    for (const auto& spectrum : group.exp)
+    {
+      for (Size peak_idx = 0; peak_idx < spectrum.size(); ++peak_idx)
+      {
+        const Peak1D& peak = spectrum[peak_idx];
+        double mz = peak.getMZ();
+        double intensity = peak.getIntensity();
+        if (intensity < mini_ || mz < minmz_ || mz > maxmz_)
+        {
+          continue;
+        }
+        if (mz > max_mz_value)
+        {
+          max_mz_value = mz;
+        }
+      }
+    }
+    if (max_mz_value > 0.0 && htol_ > 0.0)
+    {
+      mz_step = htol_ * 1e-6 * max_mz_value;
+    }
+
+    // Decide whether to use IM-based centroiding and gating for this group.
+    paseftol_ = original_paseftol;
+    if (any_im_array && !any_missing_im && paseftol_ > 0.0 && mz_step > 0.0)
+    {
+      OPENMS_LOG_INFO << "Applying PASEF/TIMS centroiding for group (FAIMS CV="
+                      << group.faims_cv << ") with paseftol=" << paseftol_ << endl;
+      centroidPASEFData(group.exp, mz_step);
+    }
+    else
+    {
+      // Mirror Python behavior: if ion mobility is not consistently available
+      // (or absent entirely), disable IM-based gating.
+      if (paseftol_ > 0.0 && any_im_array)
+      {
+        OPENMS_LOG_WARN << "Disabling ion-mobility gating for group (FAIMS CV="
+                        << group.faims_cv
+                        << ") due to missing/partial IM arrays; proceeding in 1D m/z space."
+                        << endl;
+      }
+      paseftol_ = 0.0;
+    }
+
+    // Hill mass calibration per group, analogous to Python's per-FAIMS pass.
+    double calibrated_htol = htol_;
+    if (use_hill_calib_)
+    {
+      OPENMS_LOG_INFO << "Performing hill mass tolerance calibration for group (FAIMS CV="
+                      << group.faims_cv << ")..." << endl;
+      vector<double> mass_diffs;
+      Size sample_size = min(group.exp.size(), Size(1000));
+      Size start_idx = (group.exp.size() > 1000) ? (group.exp.size() / 2 - 500) : 0;
+
+      MSExperiment calib_exp;
+      for (Size i = start_idx; i < start_idx + sample_size && i < group.exp.size(); ++i)
+      {
+        calib_exp.addSpectrum(group.exp[i]);
+      }
+
+      vector<Hill> calib_hills = detectHills(calib_exp, htol_, mini_, minmz_, maxmz_, &mass_diffs);
+      (void)calib_hills;
+      if (!mass_diffs.empty())
+      {
+        auto calib = calibrateMass(mass_diffs);
+        double calibrated_sigma = calib.second;
+        calibrated_htol = min(htol_, 5.0 * calibrated_sigma);
+        OPENMS_LOG_INFO << "Automatically optimized htol parameter for group (FAIMS CV="
+                        << group.faims_cv << "): " << calibrated_htol
+                        << " ppm (was " << htol_ << " ppm)" << endl;
+      }
+    }
+
+    // Hill detection and processing for this group.
+    vector<Hill> group_hills = detectHills(group.exp, calibrated_htol, mini_, minmz_, maxmz_);
+    group_hills = processHills(group_hills, minlh_);
+    group_hills = splitHills(group_hills, hvf_, minlh_);
+
+    // Offset hill indices so that they are unique across all groups.
+    for (auto& h : group_hills)
+    {
+      h.hill_idx += hill_idx_offset;
+    }
+
+    bool enable_isotope_calib = !ignore_iso_calib_;
+    vector<PeptideFeature> group_features =
+      detectIsotopePatterns(group_hills, itol_, cmin_, cmax_, negative_mode_, ivf_, iuse_, enable_isotope_calib);
+
+    all_hills.insert(all_hills.end(), group_hills.begin(), group_hills.end());
+    all_features.insert(all_features.end(), group_features.begin(), group_features.end());
+    hill_idx_offset += group_hills.size();
   }
 
-  hills = detectHills(ms_data_, calibrated_htol, mini_, minmz_, maxmz_);
-  hills = processHills(hills, minlh_);
-  hills = splitHills(hills, hvf_, minlh_);
+  // Restore original paseftol_ value for subsequent calls.
+  paseftol_ = original_paseftol;
 
-  bool enable_isotope_calib = !ignore_iso_calib_;
-  peptide_features = detectIsotopePatterns(hills, itol_, cmin_, cmax_, negative_mode_, ivf_, iuse_, enable_isotope_calib);
+  hills = std::move(all_hills);
+  peptide_features = std::move(all_features);
 
   feature_map = convertToFeatureMap(peptide_features, hills);
 }
@@ -264,10 +421,11 @@ double Biosaur2Algorithm::calculateMedian(const vector<double>& values) const
 
 bool Biosaur2Algorithm::shouldThrowForMissingIM(const MSSpectrum& spectrum) const
 {
-  // Only throw if this is true ion mobility (TIMS/PASEF), not FAIMS
-  // FAIMS uses spectrum-level CV, not per-peak ion mobility arrays
-  DriftTimeUnit dt_unit = spectrum.getDriftTimeUnit();
-  return (dt_unit != DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE && dt_unit != DriftTimeUnit::NONE);
+  // The Python reference implementation degrades gracefully when ion-mobility
+  // arrays are missing by simply disabling IM-based gating. To mirror this
+  // behavior, we never treat missing per-peak IM arrays as a hard error here.
+  (void)spectrum;
+  return false;
 }
 
 vector<double> Biosaur2Algorithm::meanFilter(const vector<double>& data, Size window) const
@@ -515,6 +673,240 @@ void Biosaur2Algorithm::centroidProfileSpectra(MSExperiment& exp) const
   exp = centroided_exp;
   OPENMS_LOG_INFO << "Centroiding: " << total_peaks_before
                   << " profile points -> " << total_peaks_after << " centroided peaks" << endl;
+}
+
+void Biosaur2Algorithm::centroidPASEFData(MSExperiment& exp, double mz_step) const
+{
+  if (mz_step <= 0.0 || paseftol_ <= 0.0)
+  {
+    return;
+  }
+
+  const double hill_mz_accuracy = htol_;
+  const double ion_mobility_accuracy = paseftol_;
+
+  Size total_peaks_before = 0;
+  Size total_peaks_after = 0;
+
+  for (auto& spectrum : exp)
+  {
+    if (spectrum.getMSLevel() != 1)
+    {
+      continue;
+    }
+
+    total_peaks_before += spectrum.size();
+
+    const auto& fda = spectrum.getFloatDataArrays();
+    auto it_im = getDataArrayByName(fda, Constants::UserParam::ION_MOBILITY);
+    if (it_im == fda.end() || it_im->size() != spectrum.size())
+    {
+      // No usable per-peak ion-mobility data for this spectrum; leave it as-is.
+      continue;
+    }
+
+    const Size n_peaks = spectrum.size();
+    if (n_peaks == 0)
+    {
+      continue;
+    }
+
+    vector<double> mz_ar;
+    vector<double> intensity_ar;
+    vector<double> im_ar;
+    mz_ar.reserve(n_peaks);
+    intensity_ar.reserve(n_peaks);
+    im_ar.reserve(n_peaks);
+
+    for (Size i = 0; i < n_peaks; ++i)
+    {
+      double mz = spectrum[i].getMZ();
+      double intensity = spectrum[i].getIntensity();
+      if (intensity < mini_ || mz < minmz_ || mz > maxmz_)
+      {
+        continue;
+      }
+      double im = (*it_im)[i];
+      mz_ar.push_back(mz);
+      intensity_ar.push_back(intensity);
+      im_ar.push_back(im);
+    }
+
+    if (mz_ar.empty())
+    {
+      spectrum.clear(false);
+      continue;
+    }
+
+    auto it_max_im = max_element(im_ar.begin(), im_ar.end());
+    if (it_max_im == im_ar.end() || *it_max_im <= 0.0)
+    {
+      continue;
+    }
+
+    const double ion_mobility_step = (*it_max_im) * ion_mobility_accuracy;
+    if (ion_mobility_step <= 0.0)
+    {
+      continue;
+    }
+
+    const Size n = mz_ar.size();
+    vector<int> mz_fast(n);
+    vector<int> im_fast(n);
+    for (Size i = 0; i < n; ++i)
+    {
+      mz_fast[i] = static_cast<int>(mz_ar[i] / mz_step);
+      im_fast[i] = static_cast<int>(im_ar[i] / ion_mobility_step);
+    }
+
+    // Sort by coarse m/z bin index, mirroring centroid_pasef_scan.
+    vector<Size> order(n);
+    iota(order.begin(), order.end(), 0);
+    sort(order.begin(), order.end(),
+         [&](Size a, Size b) { return mz_fast[a] < mz_fast[b]; });
+
+    vector<double> mz_sorted(n);
+    vector<double> intensity_sorted(n);
+    vector<double> im_sorted(n);
+    vector<int> mz_fast_sorted(n);
+    vector<int> im_fast_sorted(n);
+    for (Size pos = 0; pos < n; ++pos)
+    {
+      Size idx = order[pos];
+      mz_sorted[pos] = mz_ar[idx];
+      intensity_sorted[pos] = intensity_ar[idx];
+      im_sorted[pos] = im_ar[idx];
+      mz_fast_sorted[pos] = mz_fast[idx];
+      im_fast_sorted[pos] = im_fast[idx];
+    }
+
+    vector<bool> banned(n, false);
+    vector<double> mz_new;
+    vector<double> intensity_new;
+    vector<double> im_new;
+
+    Size peak_idx = 0;
+    const Size max_peak_idx = n;
+
+    while (peak_idx < max_peak_idx)
+    {
+      vector<Size> tmp;
+
+      if (!banned[peak_idx])
+      {
+        const double mass_accuracy_cur = mz_sorted[peak_idx] * 1e-6 * hill_mz_accuracy;
+        const int mz_val_int = mz_fast_sorted[peak_idx];
+        const int im_val_int = im_fast_sorted[peak_idx];
+
+        tmp.push_back(peak_idx);
+
+        Size peak_idx_2 = peak_idx + 1;
+        while (peak_idx_2 < max_peak_idx)
+        {
+          if (!banned[peak_idx_2])
+          {
+            const int mz_val_int_2 = mz_fast_sorted[peak_idx_2];
+            if (mz_val_int_2 - mz_val_int > 1)
+            {
+              break;
+            }
+
+            if (fabs(mz_sorted[peak_idx] - mz_sorted[peak_idx_2]) <= mass_accuracy_cur)
+            {
+              const int im_val_int_2 = im_fast_sorted[peak_idx_2];
+              if (abs(im_val_int - im_val_int_2) <= 1)
+              {
+                if (fabs(im_sorted[peak_idx] - im_sorted[peak_idx_2]) <= ion_mobility_accuracy)
+                {
+                  tmp.push_back(peak_idx_2);
+                  peak_idx = peak_idx_2;
+                }
+              }
+            }
+          }
+          ++peak_idx_2;
+        }
+      }
+
+      const Size l_new = tmp.size();
+      if (l_new >= pasefminlh_)
+      {
+        if (l_new == 1)
+        {
+          const double i_val_new = intensity_sorted[peak_idx];
+          if (i_val_new >= pasefmini_)
+          {
+            mz_new.push_back(mz_sorted[peak_idx]);
+            intensity_new.push_back(i_val_new);
+            im_new.push_back(im_sorted[peak_idx]);
+            banned[peak_idx] = true;
+          }
+        }
+        else
+        {
+          double i_val_new = 0.0;
+          vector<double> all_mz;
+          vector<double> all_im;
+          all_mz.reserve(l_new);
+          all_im.reserve(l_new);
+
+          for (Size idx : tmp)
+          {
+            const double intensity = intensity_sorted[idx];
+            i_val_new += intensity;
+            all_mz.push_back(mz_sorted[idx]);
+            all_im.push_back(im_sorted[idx]);
+          }
+
+          if (i_val_new >= pasefmini_)
+          {
+            double mz_weighted_sum = 0.0;
+            double im_weighted_sum = 0.0;
+            for (Size k = 0; k < l_new; ++k)
+            {
+              mz_weighted_sum += all_mz[k] * intensity_sorted[tmp[k]];
+              im_weighted_sum += all_im[k] * intensity_sorted[tmp[k]];
+            }
+            const double mz_val_new = mz_weighted_sum / i_val_new;
+            const double im_val_new = im_weighted_sum / i_val_new;
+
+            mz_new.push_back(mz_val_new);
+            intensity_new.push_back(i_val_new);
+            im_new.push_back(im_val_new);
+
+            for (Size idx : tmp)
+            {
+              banned[idx] = true;
+            }
+          }
+        }
+      }
+
+      ++peak_idx;
+    }
+
+    // Replace spectrum peaks and ion-mobility array with centroided values.
+    spectrum.clear(false);
+    for (Size i = 0; i < mz_new.size(); ++i)
+    {
+      Peak1D peak;
+      peak.setMZ(mz_new[i]);
+      peak.setIntensity(intensity_new[i]);
+      spectrum.push_back(peak);
+    }
+
+    MSSpectrum::FloatDataArrays new_fda;
+    MSSpectrum::FloatDataArray im_array;
+    im_array.setName(Constants::UserParam::ION_MOBILITY);
+    im_array.assign(im_new.begin(), im_new.end());
+    new_fda.push_back(im_array);
+    spectrum.setFloatDataArrays(new_fda);
+
+    total_peaks_after += spectrum.size();
+  }
+
+  OPENMS_LOG_INFO << "PASEF centroiding: " << total_peaks_before
+                  << " peaks -> " << total_peaks_after << " centroided clusters" << endl;
 }
 
 vector<Biosaur2Algorithm::Hill> Biosaur2Algorithm::detectHills(const MSExperiment& exp,

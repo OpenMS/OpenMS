@@ -148,6 +148,8 @@ private:
   void processTOF(MSExperiment& exp) const;
   /// Centroid profile spectra using PeakPickerHiRes if requested via parameters.
   void centroidProfileSpectra(MSExperiment& exp) const;
+  /// Centroid PASEF/TIMS spectra in joint m/z–ion-mobility space (2D clustering).
+  void centroidPASEFData(MSExperiment& exp, double mz_step) const;
   /// Detect hills in the input experiment and optionally collect mass differences for calibration.
   std::vector<Hill> detectHills(const MSExperiment& exp, double htol_ppm, double min_intensity, double min_mz, double max_mz, std::vector<double>* hill_mass_diffs = nullptr) const;
   /// Filter/process hills (length checks, summary statistics).
@@ -180,6 +182,8 @@ private:
   Size minlh_;
   int cmin_;
   int cmax_;
+  double pasefmini_;
+  Size pasefminlh_;
   int threads_;
   int iuse_;
   bool negative_mode_;
