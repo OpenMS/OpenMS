@@ -258,7 +258,7 @@ set_tests_properties("TOPP_FeatureFinderMetabo_5_out" PROPERTIES DEPENDS "TOPP_F
 add_test("TOPP_FeatureFinderCentroided_1" ${TOPP_BIN_PATH}/FeatureFinderCentroided -test -ini ${DATA_DIR_TOPP}/FeatureFinderCentroided_1_parameters.ini -in ${DATA_DIR_TOPP}/FeatureFinderCentroided_1_input.mzML -out FeatureFinderCentroided_1.tmp.featureXML)
 add_test("TOPP_FeatureFinderCentroided_1_out1" ${DIFF} -whitelist "id=" -in1 FeatureFinderCentroided_1.tmp.featureXML -in2 ${DATA_DIR_TOPP}/FeatureFinderCentroided_1_1_output.featureXML )
 set_tests_properties("TOPP_FeatureFinderCentroided_1_out1" PROPERTIES DEPENDS "TOPP_FeatureFinderCentroided_1")
-add_test("TOPP_Biosaur2_1" ${TOPP_BIN_PATH}/Biosaur2 -test -in ${DATA_DIR_TOPP}/FeatureFinderCentroided_1_input.mzML -out Biosaur2_1.tmp.featureXML -mini 1 -htol 150 -itol 150 -minlh 7 -cmin 2 -cmax 2)
+add_test("TOPP_Biosaur2_1" ${TOPP_BIN_PATH}/Biosaur2 -test -in ${DATA_DIR_TOPP}/FeatureFinderCentroided_1_input.mzML -out Biosaur2_1.tmp.featureXML -mini 1 -htol 100 -itol 50 -minlh 7 -cmin 2 -cmax 2)
 add_test("TOPP_Biosaur2_1_out1" ${DIFF} -whitelist "id=" -in1 Biosaur2_1.tmp.featureXML -in2 ${DATA_DIR_TOPP}/Biosaur2_1_output.featureXML )
 set_tests_properties("TOPP_Biosaur2_1_out1" PROPERTIES DEPENDS "TOPP_Biosaur2_1")
 add_test("TOPP_Biosaur2_2" ${TOPP_BIN_PATH}/Biosaur2 -test -in ${DATA_DIR_TOPP}/FeatureFinderMultiplex_1_input.mzML -out Biosaur2_2.tmp.featureXML)

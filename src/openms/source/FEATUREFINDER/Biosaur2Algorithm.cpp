@@ -1319,10 +1319,17 @@ vector<Biosaur2Algorithm::PeptideFeature> Biosaur2Algorithm::detectIsotopePatter
   {
     const Hill& h = hills[idx];
     if (h.scan_indices.empty()) continue;
+
     int mz_bin = (mz_step > 0.0) ? static_cast<int>(h.mz_median / mz_step) : 0;
     Size first_scan = h.scan_indices.front();
     Size last_scan = h.scan_indices.back();
+
+    // Register each hill in the central bin and its two neighbors
+    // (mz_bin-1, mz_bin, mz_bin+1), analogous to the Python
+    // hills_mz_median_fast_dict population.
+    hills_mz_fast[mz_bin - 1].push_back({idx, first_scan, last_scan});
     hills_mz_fast[mz_bin].push_back({idx, first_scan, last_scan});
+    hills_mz_fast[mz_bin + 1].push_back({idx, first_scan, last_scan});
 
     if (use_im && h.ion_mobility_median >= 0.0)
     {
