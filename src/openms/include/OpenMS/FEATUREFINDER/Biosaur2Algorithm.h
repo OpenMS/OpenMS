@@ -489,16 +489,14 @@ private:
     @param faims_cv FAIMS compensation voltage for this group (NaN for non-FAIMS)
     @param group_exp MS experiment for this group (modified in place)
     @param original_paseftol Original PASEF tolerance setting
-    @param all_hills Accumulator for all detected hills
-    @param all_features Accumulator for all detected features
-    @param hill_idx_offset Current hill index offset for unique indexing
+    @param hills_out Output container for hills detected in this group
+    @param features_out Output container for peptide features detected in this group
   */
   void processFAIMSGroup_(double faims_cv,
                           MSExperiment& group_exp,
                           double original_paseftol,
-                          std::vector<Hill>& all_hills,
-                          std::vector<PeptideFeature>& all_features,
-                          Size& hill_idx_offset);
+                          std::vector<Hill>& hills_out,
+                          std::vector<PeptideFeature>& features_out);
   //@}
 
   /// @name Member variables

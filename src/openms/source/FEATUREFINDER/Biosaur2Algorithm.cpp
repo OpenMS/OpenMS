@@ -218,13 +218,25 @@ void Biosaur2Algorithm::run(FeatureMap& feature_map,
 
   vector<Hill> all_hills;
   vector<PeptideFeature> all_features;
-  Size hill_idx_offset = 0;
+  FeatureMap combined_feature_map;
 
   const double original_paseftol = paseftol_;
 
   for (auto& g : groups)
   {
-    processFAIMSGroup_(g.first, g.second, original_paseftol, all_hills, all_features, hill_idx_offset);
+    vector<Hill> group_hills;
+    vector<PeptideFeature> group_features;
+
+    processFAIMSGroup_(g.first, g.second, original_paseftol, group_hills, group_features);
+
+    if (!group_hills.empty() && !group_features.empty())
+    {
+      FeatureMap group_map = convertToFeatureMap_(group_features, group_hills);
+      combined_feature_map.insert(combined_feature_map.end(), group_map.begin(), group_map.end());
+    }
+
+    all_hills.insert(all_hills.end(), group_hills.begin(), group_hills.end());
+    all_features.insert(all_features.end(), group_features.begin(), group_features.end());
   }
 
   // Restore original paseftol_ value for subsequent calls.
@@ -233,7 +245,10 @@ void Biosaur2Algorithm::run(FeatureMap& feature_map,
   hills = std::move(all_hills);
   peptide_features = std::move(all_features);
 
-  feature_map = convertToFeatureMap_(peptide_features, hills);
+  feature_map = std::move(combined_feature_map);
+  feature_map.applyMemberFunction(&UniqueIdInterface::ensureUniqueId);
+  feature_map.ensureUniqueId();
+  feature_map.getProteinIdentifications().resize(1);
 }
 
 double Biosaur2Algorithm::calculatePPM_(double mz1, double mz2) const
@@ -995,9 +1010,8 @@ vector<pair<double, MSExperiment>> Biosaur2Algorithm::buildFAIMSGroups_() const
 void Biosaur2Algorithm::processFAIMSGroup_(double faims_cv,
                                            MSExperiment& group_exp,
                                            double original_paseftol,
-                                           vector<Hill>& all_hills,
-                                           vector<PeptideFeature>& all_features,
-                                           Size& hill_idx_offset)
+                                           vector<Hill>& hills_out,
+                                           vector<PeptideFeature>& features_out)
 {
   if (group_exp.empty())
   {
@@ -1131,12 +1145,6 @@ void Biosaur2Algorithm::processFAIMSGroup_(double faims_cv,
                   << ") produced " << group_hills.size()
                   << " hills in " << stage_timer.toString() << endl;
 
-  // Offset hill indices so that they are unique across all groups.
-  for (auto& h : group_hills)
-  {
-    h.hill_idx += hill_idx_offset;
-  }
-
   bool enable_isotope_calib = !ignore_iso_calib_;
   stage_timer.reset();
   stage_timer.start();
@@ -1147,22 +1155,8 @@ void Biosaur2Algorithm::processFAIMSGroup_(double faims_cv,
                   << ") produced " << group_features.size()
                   << " features in " << stage_timer.toString() << endl;
 
-  all_hills.insert(all_hills.end(), group_hills.begin(), group_hills.end());
-  all_features.insert(all_features.end(), group_features.begin(), group_features.end());
-
-  // Advance the global hill index offset based on the maximum hill index
-  // used in this group (after offsetting), not just the number of hills.
-  // This avoids collisions when splitHills_ creates new hills with indices
-  // beyond the simple 0..N-1 range that detectHills_ originally produced.
-  Size max_hill_idx_in_group = hill_idx_offset;
-  for (const auto& h : group_hills)
-  {
-    if (h.hill_idx > max_hill_idx_in_group)
-    {
-      max_hill_idx_in_group = h.hill_idx;
-    }
-  }
-  hill_idx_offset = max_hill_idx_in_group + 1;
+  hills_out = std::move(group_hills);
+  features_out = std::move(group_features);
 }
 
 void Biosaur2Algorithm::linkScanToHills_(const MSSpectrum& spectrum,
