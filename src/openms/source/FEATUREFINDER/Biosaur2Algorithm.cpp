@@ -986,19 +986,32 @@ vector<pair<double, MSExperiment>> Biosaur2Algorithm::buildFAIMSGroups_() const
       groups.emplace_back(0.0, std::move(base_exp));
     }
 
+    // Build a filtered experiment containing only FAIMS spectra to minimize
+    // memory overhead before calling splitByFAIMSCV().
+    MSExperiment faims_exp;
+    faims_exp.getExperimentalSettings() = ms_data_.getExperimentalSettings();
+    for (const auto& spec : ms_data_)
+    {
+      if (spec.getDriftTimeUnit() == DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE)
+      {
+        faims_exp.addSpectrum(spec);
+      }
+    }
+
     // Use IMDataConverter::splitByFAIMSCV() to efficiently split FAIMS spectra
     // by compensation voltage with move semantics.
-    MSExperiment temp_exp = ms_data_;
-    auto split_maps = IMDataConverter::splitByFAIMSCV(std::move(temp_exp));
+    auto split_maps = IMDataConverter::splitByFAIMSCV(std::move(faims_exp));
 
+    // splitByFAIMSCV() returns PeakMaps in the same order as the sorted CV set.
+    // Iterate both in parallel to get the CV value for each split map.
+    auto cv_it = cvs.begin();
     for (auto& split_map : split_maps)
     {
-      if (!split_map.empty())
+      if (!split_map.empty() && cv_it != cvs.end())
       {
-        // Extract CV from first spectrum of each group
-        double cv = split_map[0].getDriftTime();
-        groups.emplace_back(cv, std::move(split_map));
+        groups.emplace_back(*cv_it, std::move(split_map));
       }
+      ++cv_it;
     }
   }
 
