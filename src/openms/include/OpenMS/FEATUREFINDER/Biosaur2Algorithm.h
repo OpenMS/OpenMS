@@ -445,6 +445,31 @@ private:
                                   const std::vector<Hill>& hills) const;
 
   /**
+    @brief Debug helper to log obviously inconsistent isotope assignments
+
+    Emits warnings when an isotope hill is far away in RT or m/z from the
+    corresponding monoisotopic hill. Intended for diagnosing pathological
+    isotope linking behaviour in complex data (e.g. FAIMS).
+
+    @param stage_label Text label indicating the call site (e.g. \"detectIsotopePatterns_\" or \"convertToFeatureMap_\")
+    @param mono_mz_center Intensity-weighted mean m/z of the monoisotopic hill
+    @param mono_rt_apex RT apex of the monoisotopic hill
+    @param mono_hill_idx Hill index of the monoisotopic hill
+    @param charge Charge state of the feature
+    @param itol_ppm Isotope mass tolerance used at the call site (ppm)
+    @param iso_hill Isotope hill to check
+    @param isotope_number Ordinal isotope index (1=first isotope, ...)
+  */
+  void debugCheckIsotopeConsistency_(const char* stage_label,
+                                     double mono_mz_center,
+                                     double mono_rt_apex,
+                                     Size mono_hill_idx,
+                                     int charge,
+                                     double itol_ppm,
+                                     const Hill& iso_hill,
+                                     Size isotope_number) const;
+
+  /**
     @brief Compute cosine correlation between two intensity traces
 
     Evaluates similarity of intensity profiles between two hills by computing the cosine of the

@@ -2555,68 +2555,23 @@ vector<Biosaur2Algorithm::PeptideFeature> Biosaur2Algorithm::detectIsotopePatter
       continue;
     }
 
-    // Debug sanity checks: verify that all isotope hills in this final pattern
-    // are reasonably close in RT and m/z to the monoisotopic hill. This is
-    // intended to surface pathological assignments where far-away hills would
-    // never be expected to belong to the same isotope pattern.
-    if (!pc.isotopes.empty())
+    // Debug sanity checks for the final isotope pattern (optional).
+    for (const auto& iso_cand : pc.isotopes)
     {
-      for (const auto& iso_cand : pc.isotopes)
+      auto it_h = hill_lookup_for_iso.find(iso_cand.hill_idx);
+      if (it_h == hill_lookup_for_iso.end())
       {
-        auto it_h = hill_lookup_for_iso.find(iso_cand.hill_idx);
-        if (it_h == hill_lookup_for_iso.end())
-        {
-          continue;
-        }
-        const Hill* iso_hill_ptr = it_h->second;
-
-        // RT-apex sanity check.
-        if (hrttol_ > 0.0)
-        {
-          const double rt_delta = fabs(iso_hill_ptr->rt_apex - mono_hill.rt_apex);
-          if (rt_delta > hrttol_ + 1e-6)
-          {
-            OPENMS_LOG_WARN << "Biosaur2 isotope debug (detectIsotopePatterns_): "
-                            << "mono m/z " << mono_mz_center
-                            << " (charge " << pc.charge
-                            << ", mono hill_idx=" << mono_hill.hill_idx
-                            << ") uses isotope hill_idx=" << iso_cand.hill_idx
-                            << " with RT apex delta " << rt_delta
-                            << " s > hrttol=" << hrttol_
-                            << ". This indicates an inconsistent isotope assignment."
-                            << endl;
-          }
-        }
-
-        // m/z sanity check.
-        if (pc.charge > 0)
-        {
-          const double ISOTOPE_MASSDIFF = Constants::C13C12_MASSDIFF_U;
-          const double expected_mz = mono_mz_center +
-                                     static_cast<double>(iso_cand.isotope_number) *
-                                       ISOTOPE_MASSDIFF /
-                                       static_cast<double>(pc.charge);
-          const double observed_mz = iso_hill_ptr->mz_weighted_mean;
-          const double diff_ppm = Math::getPPM(observed_mz, expected_mz);
-          const double mz_ppm_threshold = std::max(80.0, 10.0 * itol_ppm);
-
-          if (fabs(diff_ppm) > mz_ppm_threshold)
-          {
-            OPENMS_LOG_WARN << "Biosaur2 isotope debug (detectIsotopePatterns_): "
-                            << "mono m/z " << mono_mz_center
-                            << " (charge " << pc.charge
-                            << ", mono hill_idx=" << mono_hill.hill_idx
-                            << ") uses isotope #"
-                            << iso_cand.isotope_number
-                            << " (hill_idx=" << iso_cand.hill_idx
-                            << ") at m/z=" << observed_mz
-                            << " which is " << diff_ppm
-                            << " ppm away from expected " << expected_mz
-                            << " (itol=" << itol_ppm << " ppm)."
-                            << endl;
-          }
-        }
+        continue;
       }
+      const Hill* iso_hill_ptr = it_h->second;
+      debugCheckIsotopeConsistency_("detectIsotopePatterns_",
+                                    mono_mz_center,
+                                    mono_hill.rt_apex,
+                                    mono_hill.hill_idx,
+                                    pc.charge,
+                                    itol_ppm,
+                                    *iso_hill_ptr,
+                                    iso_cand.isotope_number);
     }
 
     // At this point, either there was no conflict or we have a
@@ -2692,10 +2647,6 @@ FeatureMap Biosaur2Algorithm::convertToFeatureMap_(const vector<PeptideFeature>&
 
   for (const auto& f : features)
   {
-    // Debug sanity checks: verify that all isotope hills in this final feature
-    // are reasonably close in RT and m/z to the monoisotopic hill. This mirrors
-    // the checks in detectIsotopePatterns_ and helps diagnose inconsistencies
-    // between the internal representation and the final FeatureMap.
     const Hill* mono_hill_ptr = nullptr;
     auto mono_it = hill_lookup.find(f.mono_hill_idx);
     if (mono_it != hill_lookup.end())
@@ -2704,9 +2655,6 @@ FeatureMap Biosaur2Algorithm::convertToFeatureMap_(const vector<PeptideFeature>&
     }
     if (mono_hill_ptr != nullptr && !f.isotopes.empty())
     {
-      const double mono_mz_center = mono_hill_ptr->mz_weighted_mean;
-      const double mono_rt_apex = mono_hill_ptr->rt_apex;
-
       for (const auto& iso : f.isotopes)
       {
         auto iso_it = hill_lookup.find(iso.hill_idx);
@@ -2715,51 +2663,14 @@ FeatureMap Biosaur2Algorithm::convertToFeatureMap_(const vector<PeptideFeature>&
           continue;
         }
         const Hill* iso_hill_ptr = iso_it->second;
-
-        if (hrttol_ > 0.0)
-        {
-          const double rt_delta = fabs(iso_hill_ptr->rt_apex - mono_rt_apex);
-          if (rt_delta > hrttol_ + 1e-6)
-          {
-            OPENMS_LOG_WARN << "Biosaur2 isotope debug (convertToFeatureMap_): "
-                            << "mono m/z " << f.mz
-                            << " (charge " << f.charge
-                            << ", mono hill_idx=" << f.mono_hill_idx
-                            << ") uses isotope hill_idx=" << iso.hill_idx
-                            << " with RT apex delta " << rt_delta
-                            << " s > hrttol=" << hrttol_
-                            << ". This indicates an inconsistent isotope assignment."
-                            << endl;
-          }
-        }
-
-        if (f.charge > 0)
-        {
-          const double ISOTOPE_MASSDIFF = Constants::C13C12_MASSDIFF_U;
-          const double expected_mz = mono_mz_center +
-                                     static_cast<double>(iso.isotope_number) *
-                                       ISOTOPE_MASSDIFF /
-                                       static_cast<double>(f.charge);
-          const double observed_mz = iso_hill_ptr->mz_weighted_mean;
-          const double diff_ppm = Math::getPPM(observed_mz, expected_mz);
-          const double mz_ppm_threshold = std::max(80.0, 10.0 * itol_);
-
-          if (fabs(diff_ppm) > mz_ppm_threshold)
-          {
-            OPENMS_LOG_WARN << "Biosaur2 isotope debug (convertToFeatureMap_): "
-                            << "mono m/z " << f.mz
-                            << " (charge " << f.charge
-                            << ", mono hill_idx=" << f.mono_hill_idx
-                            << ") uses isotope #"
-                            << iso.isotope_number
-                            << " (hill_idx=" << iso.hill_idx
-                            << ") at m/z=" << observed_mz
-                            << " which is " << diff_ppm
-                            << " ppm away from expected " << expected_mz
-                            << " (itol=" << itol_ << " ppm)."
-                            << endl;
-          }
-        }
+        debugCheckIsotopeConsistency_("convertToFeatureMap_",
+                                      mono_hill_ptr->mz_weighted_mean,
+                                      mono_hill_ptr->rt_apex,
+                                      mono_hill_ptr->hill_idx,
+                                      f.charge,
+                                      itol_,
+                                      *iso_hill_ptr,
+                                      iso.isotope_number);
       }
     }
 
@@ -2888,6 +2799,62 @@ FeatureMap Biosaur2Algorithm::convertToFeatureMap_(const vector<PeptideFeature>&
   feature_map.ensureUniqueId();
   feature_map.getProteinIdentifications().resize(1);
   return feature_map;
+}
+
+void Biosaur2Algorithm::debugCheckIsotopeConsistency_(const char* stage_label,
+                                                      double mono_mz_center,
+                                                      double mono_rt_apex,
+                                                      Size mono_hill_idx,
+                                                      int charge,
+                                                      double itol_ppm,
+                                                      const Hill& iso_hill,
+                                                      Size isotope_number) const
+{
+  // RT-apex sanity check.
+  if (hrttol_ > 0.0)
+  {
+    const double rt_delta = fabs(iso_hill.rt_apex - mono_rt_apex);
+    if (rt_delta > hrttol_ + 1e-6)
+    {
+      OPENMS_LOG_WARN << "Biosaur2 isotope debug (" << stage_label << "): "
+                      << "mono m/z " << mono_mz_center
+                      << " (charge " << charge
+                      << ", mono hill_idx=" << mono_hill_idx
+                      << ") uses isotope hill_idx=" << iso_hill.hill_idx
+                      << " with RT apex delta " << rt_delta
+                      << " s > hrttol=" << hrttol_
+                      << ". This indicates an inconsistent isotope assignment."
+                      << endl;
+    }
+  }
+
+  // m/z sanity check.
+  if (charge > 0)
+  {
+    const double ISOTOPE_MASSDIFF = Constants::C13C12_MASSDIFF_U;
+    const double expected_mz = mono_mz_center +
+                               static_cast<double>(isotope_number) *
+                                 ISOTOPE_MASSDIFF /
+                                 static_cast<double>(charge);
+    const double observed_mz = iso_hill.mz_weighted_mean;
+    const double diff_ppm = Math::getPPM(observed_mz, expected_mz);
+    const double mz_ppm_threshold = std::max(80.0, 10.0 * itol_ppm);
+
+    if (fabs(diff_ppm) > mz_ppm_threshold)
+    {
+      OPENMS_LOG_WARN << "Biosaur2 isotope debug (" << stage_label << "): "
+                      << "mono m/z " << mono_mz_center
+                      << " (charge " << charge
+                      << ", mono hill_idx=" << mono_hill_idx
+                      << ") uses isotope #" << isotope_number
+                      << " (hill_idx=" << iso_hill.hill_idx
+                      << ") at m/z=" << observed_mz
+                      << " which is " << diff_ppm
+                      << " ppm away from expected " << expected_mz
+                      << " (itol=" << itol_ppm << " ppm)."
+                      << endl;
+    }
+  }
 }
 
 double Biosaur2Algorithm::cosineCorrelation_(const vector<double>& intensities1,
