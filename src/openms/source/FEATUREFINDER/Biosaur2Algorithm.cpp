@@ -258,6 +258,73 @@ bool Biosaur2Algorithm::shouldThrowForMissingIM_(const MSSpectrum& spectrum) con
   return false;
 }
 
+double Biosaur2Algorithm::cosineCorrelation1D_(const vector<double>& v1,
+                                               const vector<double>& v2) const
+{
+  Size n = min(v1.size(), v2.size());
+  if (n == 0) return 0.0;
+
+  double dot = 0.0;
+  double n1 = 0.0;
+  double n2 = 0.0;
+  for (Size i = 0; i < n; ++i)
+  {
+    dot += v1[i] * v2[i];
+    n1 += v1[i] * v1[i];
+    n2 += v2[i] * v2[i];
+  }
+  if (n1 == 0.0 || n2 == 0.0) return 0.0;
+  return dot / (sqrt(n1) * sqrt(n2));
+}
+
+pair<double, Size> Biosaur2Algorithm::checkingCosCorrelationForCarbon_(
+  const vector<double>& theor_full,
+  const vector<double>& exp_full,
+  double thresh) const
+{
+  if (exp_full.size() <= 1 || theor_full.empty())
+  {
+    return make_pair(0.0, Size(1));
+  }
+
+  double theor_total_sum = accumulate(theor_full.begin(), theor_full.end(), 0.0);
+  if (theor_total_sum <= 0.0)
+  {
+    return make_pair(0.0, Size(1));
+  }
+
+  double best_cor = 0.0;
+  Size best_pos = 1;
+
+  int pos = static_cast<int>(exp_full.size());
+  while (pos != 1)
+  {
+    Size suit_len = min(static_cast<Size>(pos), theor_full.size());
+    vector<double> theor(theor_full.begin(), theor_full.begin() + suit_len);
+    vector<double> exp(exp_full.begin(), exp_full.begin() + pos);
+
+    double theor_partial_sum = accumulate(theor.begin(), theor.end(), 0.0);
+    double averagine_explained =
+      (theor_total_sum > 0.0) ? (theor_partial_sum / theor_total_sum) : 0.0;
+
+    double cor = cosineCorrelation1D_(theor, exp);
+
+    if (averagine_explained >= 0.5 && cor >= thresh)
+    {
+      if (cor > best_cor)
+      {
+        best_cor = cor;
+        best_pos = static_cast<Size>(pos);
+      }
+      break;
+    }
+
+    --pos;
+  }
+
+  return make_pair(best_cor, best_pos);
+}
+
 vector<double> Biosaur2Algorithm::meanFilter_(const vector<double>& data, Size window) const
 {
   vector<double> result(data.size());
@@ -355,6 +422,125 @@ pair<double, double> Biosaur2Algorithm::calibrateMass_(const vector<double>& mas
   }
 
   return make_pair(mean, sigma);
+}
+
+pair<vector<double>, Size> Biosaur2Algorithm::computeAveragine_(double neutral_mass,
+                                                                double apex_intensity) const
+{
+  // Averagine-based theoretical isotope intensities (C-only binomial model),
+  // using the same neutral-mass binning (100 Da bins) and binomial
+  // parameters as the reference Cython/SciPy implementation.
+  constexpr int averagine_mass_bin_step = 100;
+  constexpr int averagine_max_mass_bin_index = 199; // 0..199 => 0..19900 Da
+
+  static vector<vector<double>> averagine_table;
+  static vector<Size> averagine_max_pos;
+  static bool averagine_initialized = false;
+
+  if (!averagine_initialized)
+  {
+    const double averagine_mass = 111.1254;
+    const double averagine_C = 4.9384;
+    const double p = 0.0107;
+
+    averagine_table.assign(averagine_max_mass_bin_index + 1, vector<double>(10, 0.0));
+    averagine_max_pos.assign(averagine_max_mass_bin_index + 1, 0);
+
+    for (int bin_idx = 0; bin_idx <= averagine_max_mass_bin_index; ++bin_idx)
+    {
+      double neutral_mass_bin = static_cast<double>(bin_idx * averagine_mass_bin_step);
+      int n_C = static_cast<int>(round(neutral_mass_bin / averagine_mass * averagine_C));
+      n_C = max(n_C, 1);
+
+      boost::math::binomial_distribution<double> dist(n_C, p);
+
+      double sum_prob = 0.0;
+      for (Size k = 0; k < 10; ++k)
+      {
+        double prob = (static_cast<int>(k) <= n_C) ?
+                      boost::math::pdf(dist, static_cast<unsigned>(k)) : 0.0;
+        averagine_table[bin_idx][k] = prob;
+        sum_prob += prob;
+      }
+
+      if (sum_prob <= 0.0) sum_prob = 1.0;
+      for (Size k = 0; k < 10; ++k)
+      {
+        averagine_table[bin_idx][k] /= sum_prob;
+      }
+
+      Size max_pos = distance(averagine_table[bin_idx].begin(),
+                              max_element(averagine_table[bin_idx].begin(),
+                                          averagine_table[bin_idx].end()));
+      if (max_pos < 4) max_pos = 4;
+      averagine_max_pos[bin_idx] = max_pos;
+    }
+
+    averagine_initialized = true;
+  }
+
+  // Map neutral mass onto the same 100 Da grid as the Python implementation.
+  int bin_idx = static_cast<int>(floor(neutral_mass / static_cast<double>(averagine_mass_bin_step)));
+  if (bin_idx < 0)
+  {
+    bin_idx = 0;
+  }
+  if (bin_idx > averagine_max_mass_bin_index)
+  {
+    bin_idx = averagine_max_mass_bin_index;
+  }
+
+  vector<double> theor(10, 0.0);
+  const vector<double>& probs = averagine_table[bin_idx];
+
+  // Scale normalized probabilities to the mono apex intensity,
+  // preserving the same relative shape as in the Python code.
+  double mono_prob = probs[0];
+  if (mono_prob <= 0.0)
+  {
+    mono_prob = 1.0;
+  }
+  for (Size k = 0; k < 10; ++k)
+  {
+    theor[k] = apex_intensity * probs[k] / mono_prob;
+  }
+
+  Size max_pos = averagine_max_pos[bin_idx];
+  return make_pair(theor, max_pos);
+}
+
+double Biosaur2Algorithm::computeHillMzStep_(const MSExperiment& exp,
+                                             double htol_ppm,
+                                             double min_intensity,
+                                             double min_mz,
+                                             double max_mz) const
+{
+  double max_mz_value = 0.0;
+  for (Size scan_idx = 0; scan_idx < exp.size(); ++scan_idx)
+  {
+    const MSSpectrum& spectrum = exp[scan_idx];
+    for (Size peak_idx = 0; peak_idx < spectrum.size(); ++peak_idx)
+    {
+      const Peak1D& peak = spectrum[peak_idx];
+      double mz = peak.getMZ();
+      double intensity = peak.getIntensity();
+      if (intensity < min_intensity || mz < min_mz || mz > max_mz)
+      {
+        continue;
+      }
+      if (mz > max_mz_value)
+      {
+        max_mz_value = mz;
+      }
+    }
+  }
+
+  if (max_mz_value <= 0.0 || htol_ppm <= 0.0)
+  {
+    return 0.0;
+  }
+
+  return htol_ppm * 1e-6 * max_mz_value;
 }
 
 void Biosaur2Algorithm::processTOF_(MSExperiment& exp) const
@@ -966,6 +1152,319 @@ void Biosaur2Algorithm::processFAIMSGroup_(double faims_cv,
   hill_idx_offset += group_hills.size();
 }
 
+void Biosaur2Algorithm::linkScanToHills_(const MSSpectrum& spectrum,
+                                         Size scan_idx,
+                                         double htol_ppm,
+                                         double min_intensity,
+                                         double min_mz,
+                                         double max_mz,
+                                         double mz_step,
+                                         bool use_im_global,
+                                         vector<Hill>& hills,
+                                         Size& hill_idx_counter,
+                                         vector<Size>& prev_peak_to_hill,
+                                         const MSSpectrum*& prev_spectrum_ptr,
+                                         map<int, vector<int>>& prev_fast_dict,
+                                         vector<int>& prev_im_bins,
+                                         vector<double>* hill_mass_diffs) const
+{
+  double rt = spectrum.getRT();
+
+  // Collect indices of peaks passing basic filters.
+  vector<int> valid_indices;
+  valid_indices.reserve(spectrum.size());
+  for (Size peak_idx = 0; peak_idx < spectrum.size(); ++peak_idx)
+  {
+    const Peak1D& peak = spectrum[peak_idx];
+    double mz = peak.getMZ();
+    double intensity = peak.getIntensity();
+    if (intensity < min_intensity || mz < min_mz || mz > max_mz)
+    {
+      continue;
+    }
+    valid_indices.push_back(static_cast<int>(peak_idx));
+  }
+
+  const Size len_mz = valid_indices.size();
+  if (len_mz == 0)
+  {
+    // Reset linking if the current scan has no usable peaks.
+    prev_fast_dict.clear();
+    prev_peak_to_hill.clear();
+    prev_spectrum_ptr = nullptr;
+    return;
+  }
+
+  // Build intensity, m/z and optional ion-mobility-bin arrays for valid peaks.
+  vector<double> intensities(len_mz);
+  vector<double> mzs(len_mz);
+  vector<int> im_bin_per_peak(spectrum.size(), 0);
+
+  const auto& fda = spectrum.getFloatDataArrays();
+  auto it_im = getDataArrayByName(fda, Constants::UserParam::ION_MOBILITY);
+  const bool use_im_current = use_im_global && (it_im != fda.end());
+
+  for (Size i = 0; i < len_mz; ++i)
+  {
+    const Size peak_idx = static_cast<Size>(valid_indices[i]);
+    intensities[i] = spectrum[peak_idx].getIntensity();
+    mzs[i] = spectrum[peak_idx].getMZ();
+    if (use_im_current)
+    {
+      if (peak_idx >= it_im->size())
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                      "Ion mobility array shorter than peak list.",
+                                      String(peak_idx));
+      }
+      const double im = (*it_im)[peak_idx];
+      int im_bin = (paseftol_ > 0.0) ? static_cast<int>(im / paseftol_) : 0;
+      im_bin_per_peak[peak_idx] = im_bin;
+    }
+  }
+
+  // Sort peaks in descending intensity (reference implementation behavior).
+  vector<int> order(len_mz);
+  iota(order.begin(), order.end(), 0);
+  sort(order.begin(), order.end(),
+       [&](int a, int b) { return intensities[a] > intensities[b]; });
+
+  vector<int> basic_id_sorted(len_mz);
+  vector<int> fast_array(len_mz);
+
+  for (Size pos = 0; pos < len_mz; ++pos)
+  {
+    const int local_idx = order[pos];
+    const int orig_idx = valid_indices[static_cast<Size>(local_idx)];
+    basic_id_sorted[pos] = orig_idx;
+    int fm = 0;
+    if (mz_step > 0.0)
+    {
+      fm = static_cast<int>(mzs[static_cast<Size>(local_idx)] / mz_step);
+    }
+    fast_array[pos] = fm;
+  }
+
+  // Build fast lookup structure in m/z space for the current scan.
+  map<int, vector<int>> fast_dict;
+  for (Size pos = 0; pos < len_mz; ++pos)
+  {
+    fast_dict[fast_array[pos]].push_back(basic_id_sorted[pos]);
+  }
+
+  // Hill assignments for peaks in the current scan (indexed by peak index).
+  vector<Size> curr_peak_to_hill(spectrum.size(),
+                                 numeric_limits<Size>::max());
+  set<int> banned_prev_idx_set;
+
+  auto append_peak_to_hill = [&](Size hill_id, int peak_idx)
+  {
+    Hill& hill = hills[hill_id];
+    const Size p_idx = static_cast<Size>(peak_idx);
+
+    hill.scan_indices.push_back(scan_idx);
+    hill.peak_indices.push_back(p_idx);
+
+    const Peak1D& peak = spectrum[p_idx];
+    const double mz = peak.getMZ();
+    const double intensity = peak.getIntensity();
+
+    hill.mz_values.push_back(mz);
+    hill.intensities.push_back(intensity);
+    hill.rt_values.push_back(rt);
+
+    const double drift_time = spectrum.getDriftTime();
+    hill.drift_times.push_back(drift_time);
+
+    double ion_mobility = -1.0;
+    const auto& fda_local = spectrum.getFloatDataArrays();
+    auto it_im_local = getDataArrayByName(fda_local, Constants::UserParam::ION_MOBILITY);
+    if (it_im_local != fda_local.end())
+    {
+      if (p_idx >= it_im_local->size())
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                      "Ion mobility array shorter than peak list.",
+                                      String(p_idx));
+      }
+      ion_mobility = (*it_im_local)[p_idx];
+    }
+    else if (drift_time >= 0)
+    {
+      if (shouldThrowForMissingIM_(spectrum))
+      {
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                            "Ion mobility array missing although drift times are present.");
+      }
+    }
+    hill.ion_mobilities.push_back(ion_mobility);
+
+    hill.length = hill.scan_indices.size();
+    hill.rt_end = rt;
+    if (hill.length == 1)
+    {
+      hill.rt_start = rt;
+      hill.rt_apex = rt;
+      hill.intensity_apex = intensity;
+    }
+    else if (intensity > hill.intensity_apex)
+    {
+      hill.intensity_apex = intensity;
+      hill.rt_apex = rt;
+    }
+    hill.intensity_sum += intensity;
+
+    curr_peak_to_hill[p_idx] = hill_id;
+  };
+
+  for (Size pos = 0; pos < len_mz; ++pos)
+  {
+    const int idx = basic_id_sorted[pos];
+    const int fm = fast_array[pos];
+    const int fi = use_im_current ? im_bin_per_peak[static_cast<Size>(idx)] : 0;
+
+    // Collect candidate previous-scan peaks from neighboring m/z bins.
+    bool flag1 = prev_fast_dict.find(fm) != prev_fast_dict.end();
+    bool flag2 = prev_fast_dict.find(fm - 1) != prev_fast_dict.end();
+    bool flag3 = prev_fast_dict.find(fm + 1) != prev_fast_dict.end();
+
+    Size assigned_hill = numeric_limits<Size>::max();
+
+    if (flag1 || flag2 || flag3)
+    {
+      vector<int> all_idx;
+      if (flag1)
+      {
+        const auto& v = prev_fast_dict[fm];
+        all_idx.insert(all_idx.end(), v.begin(), v.end());
+        if (flag2)
+        {
+          const auto& v2 = prev_fast_dict[fm - 1];
+          all_idx.insert(all_idx.end(), v2.begin(), v2.end());
+        }
+        if (flag3)
+        {
+          const auto& v3 = prev_fast_dict[fm + 1];
+          all_idx.insert(all_idx.end(), v3.begin(), v3.end());
+        }
+      }
+      else if (flag2)
+      {
+        const auto& v = prev_fast_dict[fm - 1];
+        all_idx.insert(all_idx.end(), v.begin(), v.end());
+        if (flag3)
+        {
+          const auto& v3 = prev_fast_dict[fm + 1];
+          all_idx.insert(all_idx.end(), v3.begin(), v3.end());
+        }
+      }
+      else if (flag3)
+      {
+        const auto& v = prev_fast_dict[fm + 1];
+        all_idx.insert(all_idx.end(), v.begin(), v.end());
+      }
+
+      // Optional ion-mobility gating for previous-scan candidates.
+      if (use_im_current && !prev_im_bins.empty())
+      {
+        vector<int> filtered;
+        filtered.reserve(all_idx.size());
+        for (int idx_prev : all_idx)
+        {
+          if (idx_prev < 0 || static_cast<Size>(idx_prev) >= prev_im_bins.size())
+          {
+            continue;
+          }
+          int prev_bin = prev_im_bins[static_cast<Size>(idx_prev)];
+          if (abs(prev_bin - fi) <= 1)
+          {
+            filtered.push_back(idx_prev);
+          }
+        }
+        all_idx.swap(filtered);
+      }
+
+      double best_intensity = 0.0;
+      int best_idx_prev = -1;
+      double best_mass_diff_with_sign = 0.0;
+
+      const double mz_cur = spectrum[static_cast<Size>(idx)].getMZ();
+
+      if (prev_spectrum_ptr != nullptr)
+      {
+        const MSSpectrum& prev_spectrum = *prev_spectrum_ptr;
+        for (int idx_prev : all_idx)
+        {
+          if (idx_prev < 0 || static_cast<Size>(idx_prev) >= prev_spectrum.size())
+          {
+            continue;
+          }
+          if (banned_prev_idx_set.find(idx_prev) != banned_prev_idx_set.end())
+          {
+            continue;
+          }
+
+          const Peak1D& prev_peak = prev_spectrum[static_cast<Size>(idx_prev)];
+          const double cur_intensity = prev_peak.getIntensity();
+          const double mz_prev = prev_peak.getMZ();
+
+          const double cur_mass_diff_with_sign =
+            (mz_cur - mz_prev) / mz_cur * 1e6;
+          const double cur_mass_diff = fabs(cur_mass_diff_with_sign);
+
+          if (cur_mass_diff <= htol_ppm && cur_intensity >= best_intensity)
+          {
+            best_intensity = cur_intensity;
+            best_idx_prev = idx_prev;
+            best_mass_diff_with_sign = cur_mass_diff_with_sign;
+          }
+        }
+      }
+
+      if (best_idx_prev >= 0)
+      {
+        banned_prev_idx_set.insert(best_idx_prev);
+        if (hill_mass_diffs != nullptr)
+        {
+          hill_mass_diffs->push_back(best_mass_diff_with_sign);
+        }
+
+        if (!prev_peak_to_hill.empty() &&
+            static_cast<Size>(best_idx_prev) < prev_peak_to_hill.size())
+        {
+          assigned_hill = prev_peak_to_hill[static_cast<Size>(best_idx_prev)];
+        }
+      }
+    }
+
+    // Attach to existing hill if a suitable previous peak was found.
+    if (assigned_hill != numeric_limits<Size>::max() &&
+        assigned_hill < hills.size())
+    {
+      append_peak_to_hill(assigned_hill, idx);
+    }
+    else
+    {
+      // Start a new hill for this peak.
+      Hill hill;
+      hill.hill_idx = hill_idx_counter++;
+      hills.push_back(hill);
+      append_peak_to_hill(hill.hill_idx, idx);
+    }
+  }
+
+  // Prepare state for linking from this scan to the next.
+  prev_fast_dict = std::move(fast_dict);
+  prev_peak_to_hill.assign(spectrum.size(), numeric_limits<Size>::max());
+  prev_im_bins.assign(spectrum.size(), 0);
+  for (Size i = 0; i < spectrum.size(); ++i)
+  {
+    prev_peak_to_hill[i] = curr_peak_to_hill[i];
+    prev_im_bins[i] = im_bin_per_peak[i];
+  }
+  prev_spectrum_ptr = &spectrum;
+}
+
 vector<Biosaur2Algorithm::Hill> Biosaur2Algorithm::detectHills_(const MSExperiment& exp,
                                                                 double htol_ppm,
                                                                 double min_intensity,
@@ -976,33 +1475,8 @@ vector<Biosaur2Algorithm::Hill> Biosaur2Algorithm::detectHills_(const MSExperime
   vector<Hill> hills;
   Size hill_idx_counter = 0;
 
-  // Pre-scan to determine the maximum m/z value after basic filtering.
-  double max_mz_value = 0.0;
-  for (Size scan_idx = 0; scan_idx < exp.size(); ++scan_idx)
-  {
-    const MSSpectrum& spectrum = exp[scan_idx];
-    for (Size peak_idx = 0; peak_idx < spectrum.size(); ++peak_idx)
-    {
-      const Peak1D& peak = spectrum[peak_idx];
-      double mz = peak.getMZ();
-      double intensity = peak.getIntensity();
-      if (intensity < min_intensity || mz < min_mz || mz > max_mz)
-      {
-        continue;
-      }
-      if (mz > max_mz_value)
-      {
-        max_mz_value = mz;
-      }
-    }
-  }
-
   // Bin width in m/z space, mirroring the Python reference implementation.
-  double mz_step = 0.0;
-  if (max_mz_value > 0.0 && htol_ppm > 0.0)
-  {
-    mz_step = htol_ppm * 1e-6 * max_mz_value;
-  }
+  const double mz_step = computeHillMzStep_(exp, htol_ppm, min_intensity, min_mz, max_mz);
 
   if (hill_mass_diffs != nullptr)
   {
@@ -1019,301 +1493,21 @@ vector<Biosaur2Algorithm::Hill> Biosaur2Algorithm::detectHills_(const MSExperime
   for (Size scan_idx = 0; scan_idx < exp.size(); ++scan_idx)
   {
     const MSSpectrum& spectrum = exp[scan_idx];
-    double rt = spectrum.getRT();
-
-    // Collect indices of peaks passing basic filters.
-    vector<int> valid_indices;
-    valid_indices.reserve(spectrum.size());
-    for (Size peak_idx = 0; peak_idx < spectrum.size(); ++peak_idx)
-    {
-      const Peak1D& peak = spectrum[peak_idx];
-      double mz = peak.getMZ();
-      double intensity = peak.getIntensity();
-      if (intensity < min_intensity || mz < min_mz || mz > max_mz)
-      {
-        continue;
-      }
-      valid_indices.push_back(static_cast<int>(peak_idx));
-    }
-
-    const Size len_mz = valid_indices.size();
-    if (len_mz == 0)
-    {
-      // Reset linking if the current scan has no usable peaks.
-      prev_fast_dict.clear();
-      prev_peak_to_hill.clear();
-      prev_spectrum_ptr = nullptr;
-      continue;
-    }
-
-    // Build intensity, m/z and optional ion-mobility-bin arrays for valid peaks.
-    vector<double> intensities(len_mz);
-    vector<double> mzs(len_mz);
-    vector<int> im_bin_per_peak(spectrum.size(), 0);
-
-    const auto& fda = spectrum.getFloatDataArrays();
-    auto it_im = getDataArrayByName(fda, Constants::UserParam::ION_MOBILITY);
-    const bool use_im_current = use_im_global && (it_im != fda.end());
-
-    for (Size i = 0; i < len_mz; ++i)
-    {
-      const Size peak_idx = static_cast<Size>(valid_indices[i]);
-      intensities[i] = spectrum[peak_idx].getIntensity();
-      mzs[i] = spectrum[peak_idx].getMZ();
-      if (use_im_current)
-      {
-        if (peak_idx >= it_im->size())
-        {
-          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                        "Ion mobility array shorter than peak list.",
-                                        String(peak_idx));
-        }
-        const double im = (*it_im)[peak_idx];
-        int im_bin = (paseftol_ > 0.0) ? static_cast<int>(im / paseftol_) : 0;
-        im_bin_per_peak[peak_idx] = im_bin;
-      }
-    }
-
-    // Sort peaks in descending intensity (reference implementation behavior).
-    vector<int> order(len_mz);
-    iota(order.begin(), order.end(), 0);
-    sort(order.begin(), order.end(),
-         [&](int a, int b) { return intensities[a] > intensities[b]; });
-
-    vector<int> basic_id_sorted(len_mz);
-    vector<int> fast_array(len_mz);
-
-    for (Size pos = 0; pos < len_mz; ++pos)
-    {
-      const int local_idx = order[pos];
-      const int orig_idx = valid_indices[static_cast<Size>(local_idx)];
-      basic_id_sorted[pos] = orig_idx;
-      int fm = 0;
-      if (mz_step > 0.0)
-      {
-        fm = static_cast<int>(mzs[static_cast<Size>(local_idx)] / mz_step);
-      }
-      fast_array[pos] = fm;
-    }
-
-    // Build fast lookup structure in m/z space for the current scan.
-    map<int, vector<int>> fast_dict;
-    for (Size pos = 0; pos < len_mz; ++pos)
-    {
-      fast_dict[fast_array[pos]].push_back(basic_id_sorted[pos]);
-    }
-
-    // Hill assignments for peaks in the current scan (indexed by peak index).
-    vector<Size> curr_peak_to_hill(spectrum.size(),
-                                   numeric_limits<Size>::max());
-    set<int> banned_prev_idx_set;
-
-    auto append_peak_to_hill = [&](Size hill_id, int peak_idx)
-    {
-      Hill& hill = hills[hill_id];
-      const Size p_idx = static_cast<Size>(peak_idx);
-
-      hill.scan_indices.push_back(scan_idx);
-      hill.peak_indices.push_back(p_idx);
-
-      const Peak1D& peak = spectrum[p_idx];
-      const double mz = peak.getMZ();
-      const double intensity = peak.getIntensity();
-
-      hill.mz_values.push_back(mz);
-      hill.intensities.push_back(intensity);
-      hill.rt_values.push_back(rt);
-
-      const double drift_time = spectrum.getDriftTime();
-      hill.drift_times.push_back(drift_time);
-
-      double ion_mobility = -1.0;
-      const auto& fda = spectrum.getFloatDataArrays();
-      auto it_im = getDataArrayByName(fda, Constants::UserParam::ION_MOBILITY);
-      if (it_im != fda.end())
-      {
-        if (p_idx >= it_im->size())
-        {
-          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                        "Ion mobility array shorter than peak list.",
-                                        String(p_idx));
-        }
-        ion_mobility = (*it_im)[p_idx];
-      }
-          else if (drift_time >= 0)
-          {
-            if (shouldThrowForMissingIM_(spectrum))
-            {
-              throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                                  "Ion mobility array missing although drift times are present.");
-            }
-          }
-      hill.ion_mobilities.push_back(ion_mobility);
-
-      hill.length = hill.scan_indices.size();
-      hill.rt_end = rt;
-      if (hill.length == 1)
-      {
-        hill.rt_start = rt;
-        hill.rt_apex = rt;
-        hill.intensity_apex = intensity;
-      }
-      else if (intensity > hill.intensity_apex)
-      {
-        hill.intensity_apex = intensity;
-        hill.rt_apex = rt;
-      }
-      hill.intensity_sum += intensity;
-
-      curr_peak_to_hill[p_idx] = hill_id;
-    };
-
-    for (Size pos = 0; pos < len_mz; ++pos)
-    {
-      const int idx = basic_id_sorted[pos];
-      const int fm = fast_array[pos];
-      const int fi = use_im_current ? im_bin_per_peak[static_cast<Size>(idx)] : 0;
-
-      // Collect candidate previous-scan peaks from neighboring m/z bins.
-      bool flag1 = prev_fast_dict.find(fm) != prev_fast_dict.end();
-      bool flag2 = prev_fast_dict.find(fm - 1) != prev_fast_dict.end();
-      bool flag3 = prev_fast_dict.find(fm + 1) != prev_fast_dict.end();
-
-      Size assigned_hill = numeric_limits<Size>::max();
-
-      if (flag1 || flag2 || flag3)
-      {
-        vector<int> all_idx;
-        if (flag1)
-        {
-          const auto& v = prev_fast_dict[fm];
-          all_idx.insert(all_idx.end(), v.begin(), v.end());
-          if (flag2)
-          {
-            const auto& v2 = prev_fast_dict[fm - 1];
-            all_idx.insert(all_idx.end(), v2.begin(), v2.end());
-          }
-          if (flag3)
-          {
-            const auto& v3 = prev_fast_dict[fm + 1];
-            all_idx.insert(all_idx.end(), v3.begin(), v3.end());
-          }
-        }
-        else if (flag2)
-        {
-          const auto& v = prev_fast_dict[fm - 1];
-          all_idx.insert(all_idx.end(), v.begin(), v.end());
-          if (flag3)
-          {
-            const auto& v3 = prev_fast_dict[fm + 1];
-            all_idx.insert(all_idx.end(), v3.begin(), v3.end());
-          }
-        }
-        else if (flag3)
-        {
-          const auto& v = prev_fast_dict[fm + 1];
-          all_idx.insert(all_idx.end(), v.begin(), v.end());
-        }
-
-        // Optional ion-mobility gating for previous-scan candidates.
-        if (use_im_current && !prev_im_bins.empty())
-        {
-          vector<int> filtered;
-          filtered.reserve(all_idx.size());
-          for (int idx_prev : all_idx)
-          {
-            if (idx_prev < 0 || static_cast<Size>(idx_prev) >= prev_im_bins.size())
-            {
-              continue;
-            }
-            int prev_bin = prev_im_bins[static_cast<Size>(idx_prev)];
-            if (abs(prev_bin - fi) <= 1)
-            {
-              filtered.push_back(idx_prev);
-            }
-          }
-          all_idx.swap(filtered);
-        }
-
-        double best_intensity = 0.0;
-        int best_idx_prev = -1;
-        double best_mass_diff_with_sign = 0.0;
-
-        const double mz_cur = spectrum[static_cast<Size>(idx)].getMZ();
-
-        if (prev_spectrum_ptr != nullptr)
-        {
-          const MSSpectrum& prev_spectrum = *prev_spectrum_ptr;
-          for (int idx_prev : all_idx)
-          {
-            if (idx_prev < 0 || static_cast<Size>(idx_prev) >= prev_spectrum.size())
-            {
-              continue;
-            }
-            if (banned_prev_idx_set.find(idx_prev) != banned_prev_idx_set.end())
-            {
-              continue;
-            }
-
-            const Peak1D& prev_peak = prev_spectrum[static_cast<Size>(idx_prev)];
-            const double cur_intensity = prev_peak.getIntensity();
-            const double mz_prev = prev_peak.getMZ();
-
-            const double cur_mass_diff_with_sign =
-              (mz_cur - mz_prev) / mz_cur * 1e6;
-            const double cur_mass_diff = fabs(cur_mass_diff_with_sign);
-
-            if (cur_mass_diff <= htol_ppm && cur_intensity >= best_intensity)
-            {
-              best_intensity = cur_intensity;
-              best_idx_prev = idx_prev;
-              best_mass_diff_with_sign = cur_mass_diff_with_sign;
-            }
-          }
-        }
-
-        if (best_idx_prev >= 0)
-        {
-          banned_prev_idx_set.insert(best_idx_prev);
-          if (hill_mass_diffs != nullptr)
-          {
-            hill_mass_diffs->push_back(best_mass_diff_with_sign);
-          }
-
-          if (!prev_peak_to_hill.empty() &&
-              static_cast<Size>(best_idx_prev) < prev_peak_to_hill.size())
-          {
-            assigned_hill = prev_peak_to_hill[static_cast<Size>(best_idx_prev)];
-          }
-        }
-      }
-
-      // Attach to existing hill if a suitable previous peak was found.
-      if (assigned_hill != numeric_limits<Size>::max() &&
-          assigned_hill < hills.size())
-      {
-        append_peak_to_hill(assigned_hill, idx);
-      }
-      else
-      {
-        // Start a new hill for this peak.
-        Hill hill;
-        hill.hill_idx = hill_idx_counter++;
-        hills.push_back(hill);
-        append_peak_to_hill(hill.hill_idx, idx);
-      }
-    }
-
-    // Prepare state for linking from this scan to the next.
-    prev_fast_dict = std::move(fast_dict);
-    prev_peak_to_hill.assign(spectrum.size(), numeric_limits<Size>::max());
-    prev_im_bins.assign(spectrum.size(), 0);
-    for (Size i = 0; i < spectrum.size(); ++i)
-    {
-      prev_peak_to_hill[i] = curr_peak_to_hill[i];
-      prev_im_bins[i] = im_bin_per_peak[i];
-    }
-    prev_spectrum_ptr = &spectrum;
+    linkScanToHills_(spectrum,
+                     scan_idx,
+                     htol_ppm,
+                     min_intensity,
+                     min_mz,
+                     max_mz,
+                     mz_step,
+                     use_im_global,
+                     hills,
+                     hill_idx_counter,
+                     prev_peak_to_hill,
+                     prev_spectrum_ptr,
+                     prev_fast_dict,
+                     prev_im_bins,
+                     hill_mass_diffs);
   }
 
   return hills;
@@ -1816,161 +2010,6 @@ vector<Biosaur2Algorithm::PeptideFeature> Biosaur2Algorithm::detectIsotopePatter
     return false;
   };
 
-  // Helper to compute cosine correlation between two simple intensity vectors.
-  auto cosineCorrelation1D = [](const vector<double>& v1, const vector<double>& v2) -> double
-  {
-    Size n = min(v1.size(), v2.size());
-    if (n == 0) return 0.0;
-    double dot = 0.0, n1 = 0.0, n2 = 0.0;
-    for (Size i = 0; i < n; ++i)
-    {
-      dot += v1[i] * v2[i];
-      n1 += v1[i] * v1[i];
-      n2 += v2[i] * v2[i];
-    }
-    if (n1 == 0.0 || n2 == 0.0) return 0.0;
-    return dot / (sqrt(n1) * sqrt(n2));
-  };
-
-  // Checking cosine correlation and explained averagine intensity,
-  // analogous to checking_cos_correlation_for_carbon in cutils.pyx.
-  auto checkingCosCorrelationForCarbon =
-    [&](const vector<double>& theor_full,
-        const vector<double>& exp_full,
-        double thresh) -> pair<double, Size>
-  {
-    if (exp_full.size() <= 1 || theor_full.empty())
-    {
-      return make_pair(0.0, Size(1));
-    }
-
-    double theor_total_sum =
-      accumulate(theor_full.begin(), theor_full.end(), 0.0);
-    if (theor_total_sum <= 0.0)
-    {
-      return make_pair(0.0, Size(1));
-    }
-
-    double best_cor = 0.0;
-    Size best_pos = 1;
-
-    int pos = static_cast<int>(exp_full.size());
-    while (pos != 1)
-    {
-      Size suit_len = min(static_cast<Size>(pos), theor_full.size());
-      vector<double> theor(theor_full.begin(), theor_full.begin() + suit_len);
-      vector<double> exp(exp_full.begin(), exp_full.begin() + pos);
-
-      double theor_partial_sum =
-        accumulate(theor.begin(), theor.end(), 0.0);
-      double averagine_explained =
-        (theor_total_sum > 0.0) ? (theor_partial_sum / theor_total_sum) : 0.0;
-
-      double cor = cosineCorrelation1D(theor, exp);
-
-      if (averagine_explained >= 0.5 && cor >= thresh)
-      {
-        if (cor > best_cor)
-        {
-          best_cor = cor;
-          best_pos = static_cast<Size>(pos);
-        }
-        break;
-      }
-
-      --pos;
-    }
-
-    return make_pair(best_cor, best_pos);
-  };
-
-  // Averagine-based theoretical isotope intensities (C-only binomial model),
-  // using the same neutral-mass binning (100 Da bins over neutral mass) and
-  // binomial parameters as the reference Cython/SciPy implementation. The
-  // C++ code precomputes a lookup table over 0,100,...,19900 Da using the
-  // Boost binomial distribution and then rescales by the mono apex intensity.
-  constexpr int averagine_mass_bin_step = 100;
-  constexpr int averagine_max_mass_bin_index = 199; // 0..199 => 0..19900 Da
-
-  static vector<vector<double>> averagine_table;
-  static vector<Size> averagine_max_pos;
-  static bool averagine_initialized = false;
-
-  if (!averagine_initialized)
-  {
-    const double averagine_mass = 111.1254;
-    const double averagine_C = 4.9384;
-    const double p = 0.0107;
-
-    averagine_table.assign(averagine_max_mass_bin_index + 1, vector<double>(10, 0.0));
-    averagine_max_pos.assign(averagine_max_mass_bin_index + 1, 0);
-
-    for (int bin_idx = 0; bin_idx <= averagine_max_mass_bin_index; ++bin_idx)
-    {
-      double neutral_mass_bin = static_cast<double>(bin_idx * averagine_mass_bin_step);
-      int n_C = static_cast<int>(round(neutral_mass_bin / averagine_mass * averagine_C));
-      n_C = max(n_C, 1);
-
-      boost::math::binomial_distribution<double> dist(n_C, p);
-
-      double sum_prob = 0.0;
-      for (Size k = 0; k < 10; ++k)
-      {
-        double prob = (static_cast<int>(k) <= n_C) ?
-                      boost::math::pdf(dist, static_cast<unsigned>(k)) : 0.0;
-        averagine_table[bin_idx][k] = prob;
-        sum_prob += prob;
-      }
-
-      if (sum_prob <= 0.0) sum_prob = 1.0;
-      for (Size k = 0; k < 10; ++k)
-      {
-        averagine_table[bin_idx][k] /= sum_prob;
-      }
-
-      Size max_pos = distance(averagine_table[bin_idx].begin(),
-                              max_element(averagine_table[bin_idx].begin(),
-                                          averagine_table[bin_idx].end()));
-      if (max_pos < 4) max_pos = 4;
-      averagine_max_pos[bin_idx] = max_pos;
-    }
-
-    averagine_initialized = true;
-  }
-
-  auto computeAveragine = [](double neutral_mass, double apex_intensity) -> pair<vector<double>, Size>
-  {
-    // Map neutral mass onto the same 100 Da grid as the Python
-    // implementation (0,100,...,19900 Da).
-    int bin_idx = static_cast<int>(floor(neutral_mass / static_cast<double>(averagine_mass_bin_step)));
-    if (bin_idx < 0)
-    {
-      bin_idx = 0;
-    }
-    if (bin_idx > averagine_max_mass_bin_index)
-    {
-      bin_idx = averagine_max_mass_bin_index;
-    }
-
-    vector<double> theor(10, 0.0);
-    const vector<double>& probs = averagine_table[bin_idx];
-
-    // Scale normalized probabilities to the mono apex intensity,
-    // preserving the same relative shape as in the Python code.
-    double mono_prob = probs[0];
-    if (mono_prob <= 0.0)
-    {
-      mono_prob = 1.0;
-    }
-    for (Size k = 0; k < 10; ++k)
-    {
-      theor[k] = apex_intensity * probs[k] / mono_prob;
-    }
-
-    Size max_pos = averagine_max_pos[bin_idx];
-    return make_pair(theor, max_pos);
-  };
-
   // Local pattern candidate structure mirroring the Python dictionaries.
   struct PatternCandidate
   {
@@ -2111,7 +2150,7 @@ vector<Biosaur2Algorithm::PeptideFeature> Biosaur2Algorithm::detectIsotopePatter
         if (candidates.size() >= min_required)
         {
           double hill_intensity_apex_1 = mono_hill.intensity_apex;
-          auto averagine = computeAveragine(mono_mz * charge, hill_intensity_apex_1);
+          auto averagine = computeAveragine_(mono_mz * charge, hill_intensity_apex_1);
           vector<double> all_theoretical_int = averagine.first;
           Size max_pos = averagine.second;
 
@@ -2170,7 +2209,7 @@ vector<Biosaur2Algorithm::PeptideFeature> Biosaur2Algorithm::detectIsotopePatter
               }
 
               // Compute cosine correlation and optimal truncation in isotope-intensity space.
-              auto cc = checkingCosCorrelationForCarbon(all_theoretical_int, all_exp_intensity, 0.6);
+              auto cc = checkingCosCorrelationForCarbon_(all_theoretical_int, all_exp_intensity, 0.6);
               double cos_corr_iso = cc.first;
               Size best_pos = cc.second;
 
@@ -2355,7 +2394,7 @@ vector<Biosaur2Algorithm::PeptideFeature> Biosaur2Algorithm::detectIsotopePatter
     double mono_mz = mono_hill.mz_weighted_mean;
     double hill_intensity_apex_1 = mono_hill.intensity_apex;
 
-    auto averagine = computeAveragine(mono_mz * pc.charge, hill_intensity_apex_1);
+    auto averagine = computeAveragine_(mono_mz * pc.charge, hill_intensity_apex_1);
     vector<double> all_theoretical_int = averagine.first;
 
     vector<double> all_exp_intensity;
@@ -2373,7 +2412,7 @@ vector<Biosaur2Algorithm::PeptideFeature> Biosaur2Algorithm::detectIsotopePatter
       all_exp_intensity.push_back(hill_intensity_apex_2);
     }
 
-    auto cc = checkingCosCorrelationForCarbon(all_theoretical_int, all_exp_intensity, 0.6);
+    auto cc = checkingCosCorrelationForCarbon_(all_theoretical_int, all_exp_intensity, 0.6);
     double cos_corr_iso = cc.first;
     Size best_pos = cc.second;
 
@@ -2459,7 +2498,7 @@ vector<Biosaur2Algorithm::PeptideFeature> Biosaur2Algorithm::detectIsotopePatter
       double mono_mz = mono_hill.mz_weighted_mean;
       double hill_intensity_apex_1 = mono_hill.intensity_apex;
 
-      auto averagine = computeAveragine(mono_mz * pc.charge, hill_intensity_apex_1);
+      auto averagine = computeAveragine_(mono_mz * pc.charge, hill_intensity_apex_1);
       const vector<double>& theor_full = averagine.first;
 
       Size len = min(static_cast<Size>(tmp_iso.size()) + 1, theor_full.size());
@@ -2488,7 +2527,7 @@ vector<Biosaur2Algorithm::PeptideFeature> Biosaur2Algorithm::detectIsotopePatter
         }
       }
 
-      auto cc = checkingCosCorrelationForCarbon(theor, exp, 0.6);
+      auto cc = checkingCosCorrelationForCarbon_(theor, exp, 0.6);
       double cos_corr_iso = cc.first;
       Size best_pos = cc.second;
 

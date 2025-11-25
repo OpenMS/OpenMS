@@ -12,6 +12,7 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
+#include <map>
 #include <vector>
 
 namespace OpenMS
@@ -242,6 +243,36 @@ private:
   double calculateMedian_(const std::vector<double>& values) const;
 
   /**
+    @brief Compute a cosine correlation between two 1D intensity vectors.
+
+    Used internally for comparing theoretical and experimental isotope intensities.
+  */
+  double cosineCorrelation1D_(const std::vector<double>& v1,
+                             const std::vector<double>& v2) const;
+
+  /**
+    @brief Check cosine correlation for averagine-based isotope intensities.
+
+    Returns the best correlation and the optimal truncation position in the
+    experimental vector given a minimum explained averagine fraction and
+    correlation threshold.
+  */
+  std::pair<double, Size> checkingCosCorrelationForCarbon_(const std::vector<double>& theor_full,
+                                                           const std::vector<double>& exp_full,
+                                                           double thresh) const;
+
+  /**
+    @brief Compute averagine-based theoretical isotope intensities.
+
+    Uses a C-only binomial model on a 100 Da neutral-mass grid and rescales
+    the resulting probabilities to the provided monoisotopic apex intensity.
+    Returns the theoretical intensities and the index of the expected
+    maximum-intensity isotope.
+  */
+  std::pair<std::vector<double>, Size> computeAveragine_(double neutral_mass,
+                                                         double apex_intensity) const;
+
+  /**
     @brief Apply a mean filter (moving average) to smooth data
 
     Uses zero-padding at boundaries to match NumPy's 'same' convolution mode.
@@ -262,6 +293,19 @@ private:
     @return Pair of (shift, sigma) where shift is the systematic error and sigma is the spread
   */
   std::pair<double, double> calibrateMass_(const std::vector<double>& mass_errors, double bin_width = 0.05) const;
+
+  /**
+    @brief Determine m/z binning step for hill detection.
+
+    Performs a pre-scan over the experiment to find the maximum m/z value
+    after basic filtering and derives the m/z bin width used for fast
+    hill linking.
+  */
+  double computeHillMzStep_(const MSExperiment& exp,
+                            double htol_ppm,
+                            double min_intensity,
+                            double min_mz,
+                            double max_mz) const;
 
   /**
     @brief Apply TOF-specific intensity filtering
@@ -306,6 +350,30 @@ private:
     @return Vector of detected hills
   */
   std::vector<Hill> detectHills_(const MSExperiment& exp, double htol_ppm, double min_intensity, double min_mz, double max_mz, std::vector<double>* hill_mass_diffs = nullptr) const;
+
+  /**
+    @brief Link peaks in a single scan to existing hills or start new hills.
+
+    This method implements the core hill-linking logic for one spectrum,
+    updating the running hill list and the state that is carried across
+    scans (previous fast m/z dictionary, ion-mobility bins, and peak-to-hill
+    assignments).
+  */
+  void linkScanToHills_(const MSSpectrum& spectrum,
+                        Size scan_idx,
+                        double htol_ppm,
+                        double min_intensity,
+                        double min_mz,
+                        double max_mz,
+                        double mz_step,
+                        bool use_im_global,
+                        std::vector<Hill>& hills,
+                        Size& hill_idx_counter,
+                        std::vector<Size>& prev_peak_to_hill,
+                        const MSSpectrum*& prev_spectrum_ptr,
+                        std::map<int, std::vector<int>>& prev_fast_dict,
+                        std::vector<int>& prev_im_bins,
+                        std::vector<double>* hill_mass_diffs) const;
 
   /**
     @brief Filter and process hills by applying length constraints and computing summary statistics
