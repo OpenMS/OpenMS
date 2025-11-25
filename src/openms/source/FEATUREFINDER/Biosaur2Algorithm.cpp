@@ -2341,13 +2341,10 @@ vector<Biosaur2Algorithm::PeptideFeature> Biosaur2Algorithm::detectIsotopePatter
     for (const auto& iso_cand : pc.isotopes)
     {
       double hill_intensity_apex_2 = 0.0;
-      for (const auto& h : hills)
+      auto it_idx = hill_idx_to_index.find(iso_cand.hill_idx);
+      if (it_idx != hill_idx_to_index.end())
       {
-        if (h.hill_idx == iso_cand.hill_idx)
-        {
-          hill_intensity_apex_2 = h.intensity_apex;
-          break;
-        }
+        hill_intensity_apex_2 = hills[it_idx->second].intensity_apex;
       }
       all_exp_intensity.push_back(hill_intensity_apex_2);
     }
