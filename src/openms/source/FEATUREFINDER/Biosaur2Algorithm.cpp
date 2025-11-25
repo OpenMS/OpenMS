@@ -1343,7 +1343,7 @@ vector<Biosaur2Algorithm::Hill> Biosaur2Algorithm::processHills_(const vector<Hi
         }
         if (intensity_sum > 0.0)
         {
-          processed_hill.mz_median = weighted_mz_sum / intensity_sum;
+          processed_hill.mz_weighted_mean = weighted_mz_sum / intensity_sum;
         }
       }
 
@@ -1571,28 +1571,41 @@ vector<Biosaur2Algorithm::Hill> Biosaur2Algorithm::splitHills_(const vector<Hill
                                       String(new_hill.scan_indices.size()));
       }
 
-      new_hill.length = new_hill.scan_indices.size();
-      new_hill.rt_start = new_hill.rt_values.front();
-      new_hill.rt_end = new_hill.rt_values.back();
-      new_hill.mz_median = calculateMedian_(new_hill.mz_values);
-      new_hill.intensity_sum =
-        accumulate(new_hill.intensities.begin(), new_hill.intensities.end(), 0.0);
-      auto max_it = max_element(new_hill.intensities.begin(), new_hill.intensities.end());
-      Size apex_idx = distance(new_hill.intensities.begin(), max_it);
-      new_hill.intensity_apex = *max_it;
-      new_hill.rt_apex = new_hill.rt_values[apex_idx];
+	      new_hill.length = new_hill.scan_indices.size();
+	      new_hill.rt_start = new_hill.rt_values.front();
+	      new_hill.rt_end = new_hill.rt_values.back();
+	      // Recompute hill center m/z for the split segment using
+	      // an intensity-weighted mean to mirror processHills_ and
+	      // the reference Biosaur2 implementation.
+	      double weighted_mz_sum = 0.0;
+	      double intensity_sum = 0.0;
+	      for (Size idx = 0; idx < new_hill.mz_values.size(); ++idx)
+	      {
+	        const double intensity = new_hill.intensities[idx];
+	        weighted_mz_sum += new_hill.mz_values[idx] * intensity;
+	        intensity_sum += intensity;
+	      }
+	      if (intensity_sum > 0.0)
+	      {
+	        new_hill.mz_weighted_mean = weighted_mz_sum / intensity_sum;
+	      }
+	      new_hill.intensity_sum = intensity_sum;
+	      auto max_it = max_element(new_hill.intensities.begin(), new_hill.intensities.end());
+	      Size apex_idx = distance(new_hill.intensities.begin(), max_it);
+	      new_hill.intensity_apex = *max_it;
+	      new_hill.rt_apex = new_hill.rt_values[apex_idx];
 
-      // Assign hill indices: keep the original ID for the first
-      // segment and assign fresh IDs to subsequent segments,
-      // mirroring the Python split_peaks behavior.
-      if (s == 0)
-      {
-        new_hill.hill_idx = hill.hill_idx;
-      }
-      else
-      {
-        new_hill.hill_idx = next_hill_idx++;
-      }
+	      // Assign hill indices: keep the original ID for the first
+	      // segment and assign fresh IDs to subsequent segments,
+	      // mirroring the Python split_peaks behavior.
+	      if (s == 0)
+	      {
+	        new_hill.hill_idx = hill.hill_idx;
+	      }
+	      else
+	      {
+	        new_hill.hill_idx = next_hill_idx++;
+	      }
 
       split_hills.push_back(new_hill);
     }
@@ -1651,7 +1664,7 @@ vector<Biosaur2Algorithm::PeptideFeature> Biosaur2Algorithm::detectIsotopePatter
   OPENMS_LOG_INFO << "Detecting isotope patterns..." << endl;
 
   sort(hills.begin(), hills.end(),
-       [](const Hill& a, const Hill& b) { return a.mz_median < b.mz_median; });
+       [](const Hill& a, const Hill& b) { return a.mz_weighted_mean < b.mz_weighted_mean; });
   const double ISOTOPE_MASSDIFF = Constants::C13C12_MASSDIFF_U;
 
   map<int, pair<double, double>> isotope_calib_map;
@@ -1672,7 +1685,7 @@ vector<Biosaur2Algorithm::PeptideFeature> Biosaur2Algorithm::detectIsotopePatter
     for (Size i = 0; i < hills.size(); ++i)
     {
       const Hill& mono_hill = hills[i];
-      double mono_mz = mono_hill.mz_median;
+      double mono_mz = mono_hill.mz_weighted_mean;
 
       for (int charge = max_charge; charge >= min_charge; --charge)
       {
@@ -1686,17 +1699,17 @@ vector<Biosaur2Algorithm::PeptideFeature> Biosaur2Algorithm::detectIsotopePatter
 
           for (Size j = i + 1; j < hills.size(); ++j)
           {
-            if (hills[j].mz_median > expected_mz + mz_tolerance)
+            if (hills[j].mz_weighted_mean > expected_mz + mz_tolerance)
             {
               break;
             }
 
-            double diff = fabs(hills[j].mz_median - expected_mz);
+            double diff = fabs(hills[j].mz_weighted_mean - expected_mz);
             if (diff <= mz_tolerance)
             {
               if (mono_hill.length >= 3)
               {
-                double mass_diff_ppm = calculatePPM_(hills[j].mz_median, expected_mz);
+                double mass_diff_ppm = calculatePPM_(hills[j].mz_weighted_mean, expected_mz);
                 isotope_errors[iso_num].push_back(mass_diff_ppm);
                 if (iso_num == 1)
                 {
@@ -1752,7 +1765,7 @@ vector<Biosaur2Algorithm::PeptideFeature> Biosaur2Algorithm::detectIsotopePatter
   double max_mz_value = 0.0;
   for (const auto& h : hills)
   {
-    max_mz_value = max(max_mz_value, h.mz_median);
+    max_mz_value = max(max_mz_value, h.mz_weighted_mean);
   }
   double mz_step = (max_mz_value > 0.0) ? (htol_ * 1e-6 * max_mz_value) : 0.0;
 
@@ -1773,7 +1786,7 @@ vector<Biosaur2Algorithm::PeptideFeature> Biosaur2Algorithm::detectIsotopePatter
     const Hill& h = hills[idx];
     if (h.scan_indices.empty()) continue;
 
-    int mz_bin = (mz_step > 0.0) ? static_cast<int>(h.mz_median / mz_step) : 0;
+    int mz_bin = (mz_step > 0.0) ? static_cast<int>(h.mz_weighted_mean / mz_step) : 0;
     Size first_scan = h.scan_indices.front();
     Size last_scan = h.scan_indices.back();
 
@@ -2002,7 +2015,7 @@ vector<Biosaur2Algorithm::PeptideFeature> Biosaur2Algorithm::detectIsotopePatter
     const Hill& mono_hill = hills[i];
     if (mono_hill.scan_indices.empty()) continue;
 
-    double mono_mz = mono_hill.mz_median;
+    double mono_mz = mono_hill.mz_weighted_mean;
     double mz_tol = itol_ppm * 1e-6 * mono_mz;
 
     Size hill_scans_1_number = mono_hill.length;
@@ -2050,7 +2063,7 @@ vector<Biosaur2Algorithm::PeptideFeature> Biosaur2Algorithm::detectIsotopePatter
 	              }
 	            }
 
-	            double mass_diff_abs = hill2.mz_median - expected_mz;
+	            double mass_diff_abs = hill2.mz_weighted_mean - expected_mz;
 	            if (fabs(mass_diff_abs) > mz_tol)
 	            {
 	              continue;
@@ -2339,7 +2352,7 @@ vector<Biosaur2Algorithm::PeptideFeature> Biosaur2Algorithm::detectIsotopePatter
     // potentially truncate the series, analogous to the second pass
     // in process_features_iteration.
     const Hill& mono_hill = hills[pc.mono_index];
-    double mono_mz = mono_hill.mz_median;
+    double mono_mz = mono_hill.mz_weighted_mean;
     double hill_intensity_apex_1 = mono_hill.intensity_apex;
 
     auto averagine = computeAveragine(mono_mz * pc.charge, hill_intensity_apex_1);
@@ -2443,7 +2456,7 @@ vector<Biosaur2Algorithm::PeptideFeature> Biosaur2Algorithm::detectIsotopePatter
       // truncated pattern and potentially truncate further based on the
       // averagine-explained / correlation criterion, analogous to
       // checking_cos_correlation_for_carbon in the Python code.
-      double mono_mz = mono_hill.mz_median;
+      double mono_mz = mono_hill.mz_weighted_mean;
       double hill_intensity_apex_1 = mono_hill.intensity_apex;
 
       auto averagine = computeAveragine(mono_mz * pc.charge, hill_intensity_apex_1);
@@ -2779,7 +2792,7 @@ void Biosaur2Algorithm::writeHills(const vector<Hill>& hills, const String& file
   for (const auto& hill : hills)
   {
     out << hill.hill_idx << "\t"
-        << hill.mz_median << "\t"
+        << hill.mz_weighted_mean << "\t"
         << hill.rt_start << "\t"
         << hill.rt_end << "\t"
         << hill.rt_apex << "\t"

@@ -58,7 +58,7 @@ public:
     A hill represents a contiguous series of peaks at similar m/z values across multiple consecutive scans.
     Hills are the fundamental building blocks for feature detection. Each hill stores the raw peak data
     (indices, m/z, intensity, RT) along with optional ion mobility information for PASEF/TIMS data.
-    Summary statistics (median m/z, apex RT/intensity, etc.) are precomputed for efficient downstream processing.
+    Summary statistics (intensity-weighted mean m/z, apex RT/intensity, etc.) are precomputed for efficient downstream processing.
   */
   struct Hill
   {
@@ -69,15 +69,15 @@ public:
     std::vector<double> rt_values;         ///< Retention time values corresponding to each peak
     std::vector<double> drift_times;       ///< Drift time values (TIMS data), empty if not available
     std::vector<double> ion_mobilities;    ///< Ion mobility values, empty if not available
-    double mz_median = 0.0;                ///< Median m/z across all peaks in the hill
+    double mz_weighted_mean = 0.0;         ///< Intensity-weighted mean m/z (hill center)
     double rt_start = 0.0;                 ///< Retention time of first peak
     double rt_end = 0.0;                   ///< Retention time of last peak
     double rt_apex = 0.0;                  ///< Retention time at maximum intensity
     double intensity_apex = 0.0;           ///< Maximum intensity value in the hill
     double intensity_sum = 0.0;            ///< Sum of all intensities in the hill
     double drift_time_median = -1.0;       ///< Median drift time (-1 if not available)
-    double ion_mobility_median = -1.0;     ///< Median ion mobility (-1 if not available)
-    Size length = 0;                       ///< Number of peaks/scans in this hill
+    double ion_mobility_median = -1.0;     ///< Intensity-weighted mean ion mobility (median fallback; -1 if not available)
+    Size length = 0;                       ///< Number of points/peaks in this hill
     Size hill_idx = 0;                     ///< Unique identifier for this hill
   };
 
@@ -114,10 +114,10 @@ public:
     double intensity_sum = 0.0;                   ///< Sum of intensities (based on iuse parameter)
     int charge = 0;                               ///< Detected charge state
     Size n_isotopes = 0;                          ///< Number of detected isotope peaks
-    Size n_scans = 0;                             ///< Number of scans spanning this feature
+    Size n_scans = 0;                             ///< Number of scans contributing to the monoisotopic hill
     double mass_calib = 0.0;                      ///< Mass calibration offset applied to this feature
     double drift_time = -1.0;                     ///< Median drift time (-1 if not available)
-    double ion_mobility = -1.0;                   ///< Median ion mobility (-1 if not available)
+    double ion_mobility = -1.0;                   ///< Intensity-weighted mean ion mobility (median fallback; -1 if not available)
     std::vector<IsotopeCandidate> isotopes;       ///< List of associated isotope peaks
     Size mono_hill_idx = 0;                       ///< Index of the monoisotopic hill
   };
