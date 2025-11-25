@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -35,22 +9,32 @@
 /**
  * @page TOPP_Biosaur2 Biosaur2
  *
- * @brief Feature detection for LC-MS1 data
+ * @brief Feature detection for LC-MS1 data with ion mobility support
  *
  * This TOPP tool is a C++ reimplementation of the Biosaur2 feature detection algorithm.
- * It detects peptide features in centroided LC-MS1 data by:
- * 1. Grouping peaks across scans into "hills"
- * 2. Splitting hills at valley points
- * 3. Detecting isotope patterns
- * 4. Calculating feature properties (m/z, RT, intensity, charge)
+ * It detects peptide features in centroided LC-MS1 data (with optional profile mode support) through:
+ * 1. Grouping peaks across scans into "hills" (continuous m/z traces)
+ * 2. Splitting hills at valley points to separate co-eluting species
+ * 3. Detecting isotope patterns based on expected mass differences and intensity correlations
+ * 4. Calculating comprehensive feature properties (m/z, RT, intensity, charge state)
  *
- * The tool mirrors the Python reference implementation described in the Biosaur2 publication and exposes all core parameters through the INI file.
- * Besides the mandatory featureXML output, optional TSV exports for both the peptide features and raw hills can be enabled for downstream inspection.
+ * <B>Key Features:</B>
+ * - FAIMS compensation voltage grouping for FAIMS-enabled instruments
+ * - Ion mobility-aware processing for PASEF/TIMS data (2D centroiding in m/z and ion mobility space)
+ * - TOF-specific intensity filtering for time-of-flight instruments
+ * - Automatic mass calibration to improve detection accuracy
+ * - Profile mode support via PeakPickerHiRes centroiding
+ * - Export to featureXML and Biosaur2-compatible TSV formats
  *
- * Reference:
- * Abdrakhimov, et al. Biosaur: An open-source Python software for liquid
- * chromatography-mass spectrometry peptide feature detection with ion mobility support.
- * https://doi.org/10.1002/rcm.9045
+ * The tool closely mirrors the Python reference implementation to ensure reproducible results
+ * and exposes all core parameters through the INI file for fine-tuning. Besides the mandatory
+ * featureXML output, optional TSV exports for both the peptide features and raw hills can be
+ * enabled for quality control and downstream analysis.
+ *
+ * <B>Reference:</B>
+ * Abdrakhimov, et al. Biosaur: An open-source Python software for liquid chromatography-mass
+ * spectrometry peptide feature detection with ion mobility support.
+ * Rapid Communications in Mass Spectrometry, 2022. https://doi.org/10.1002/rcm.9045
  *
  * <B>The command line parameters of this tool are:</B>
  * @verbinclude TOPP_Biosaur2.cli
