@@ -3,7 +3,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Mark Ivanov, Timo Sachsenberg $
+// $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
 #pragma once
@@ -115,7 +115,7 @@ public:
     int charge = 0;                               ///< Detected charge state
     Size n_isotopes = 0;                          ///< Number of detected isotope peaks
     Size n_scans = 0;                             ///< Number of scans contributing to the monoisotopic hill
-    double mass_calib = 0.0;                      ///< Mass calibration offset applied to this feature
+    double mass_calib = 0.0;                      ///< Calibrated neutral mass of the feature in Da (neutral_mass = mz * charge ± charge * proton_mass; + for negative mode, − for positive mode)
     double drift_time = -1.0;                     ///< Median drift time (-1 if not available)
     double ion_mobility = -1.0;                   ///< Intensity-weighted mean ion mobility (median fallback; -1 if not available)
     std::vector<IsotopeCandidate> isotopes;       ///< List of associated isotope peaks
