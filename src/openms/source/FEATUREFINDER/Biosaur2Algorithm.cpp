@@ -1007,7 +1007,11 @@ vector<pair<double, MSExperiment>> Biosaur2Algorithm::buildFAIMSGroups_() const
     auto cv_it = cvs.begin();
     for (auto& split_map : split_maps)
     {
-      if (!split_map.empty() && cv_it != cvs.end())
+      if (cv_it == cvs.end())
+      {
+        break;  // Safety check: should not happen if sizes match
+      }
+      if (!split_map.empty())
       {
         groups.emplace_back(*cv_it, std::move(split_map));
       }
