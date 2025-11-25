@@ -119,6 +119,29 @@ void Biosaur2Algorithm::updateMembers_()
   ignore_iso_calib_ = param_.getValue("ignore_iso_calib").toBool();
   paseftol_ = param_.getValue("paseftol");
   hrttol_ = param_.getValue("hrttol");
+
+  OPENMS_LOG_DEBUG << "Biosaur2Algorithm parameters after updateMembers_: "
+                   << "mini=" << mini_
+                   << ", minmz=" << minmz_
+                   << ", maxmz=" << maxmz_
+                   << ", htol=" << htol_
+                   << ", itol=" << itol_
+                   << ", hvf=" << hvf_
+                   << ", ivf=" << ivf_
+                   << ", minlh=" << minlh_
+                   << ", cmin=" << cmin_
+                   << ", cmax=" << cmax_
+                   << ", pasefmini=" << pasefmini_
+                   << ", pasefminlh=" << pasefminlh_
+                   << ", iuse=" << iuse_
+                   << ", negative_mode=" << negative_mode_
+                   << ", tof_mode=" << tof_mode_
+                   << ", profile_mode=" << profile_mode_
+                   << ", use_hill_calib=" << use_hill_calib_
+                   << ", ignore_iso_calib=" << ignore_iso_calib_
+                   << ", paseftol=" << paseftol_
+                   << ", hrttol=" << hrttol_
+                   << endl;
 }
 
 void Biosaur2Algorithm::setMSData(const MSExperiment& ms_data)

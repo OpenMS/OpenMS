@@ -94,8 +94,7 @@ protected:
   /// Declare command-line options and forward the algorithm defaults into the INI namespace.
   void registerOptionsAndFlags_() override
   {
-    Biosaur2Algorithm algo_defaults;
-    const Param& defaults = algo_defaults.getDefaults();
+    const Param& defaults = algorithm_.getDefaults();
 
     registerInputFile_("in", "<file>", "", "Input mzML file (centroided data)");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
@@ -131,9 +130,8 @@ protected:
     String out_hills = getStringOption_("out_hills");
     bool write_hills_flag = getFlag_("write_hills");
 
-    Biosaur2Algorithm algorithm;
-    Param algo_param = getParam_().copySubset(Biosaur2Algorithm().getDefaults());
-    algorithm.setParameters(algo_param);
+    Param algo_param = getParam_().copySubset(algorithm_.getDefaults());
+    algorithm_.setParameters(algo_param);
 
     ProgressLogger progresslogger;
     progresslogger.setLogType(log_type_);
@@ -142,7 +140,7 @@ protected:
     progresslogger.startProgress(0, 1, "Loading input mzML");
     stopwatch.start();
     MzMLFile mzml_file;
-    mzml_file.load(in, algorithm.getMSData());
+    mzml_file.load(in, algorithm_.getMSData());
     progresslogger.setProgress(1);
     progresslogger.endProgress();
     stopwatch.stop();
@@ -154,12 +152,12 @@ protected:
     stopwatch.reset();
     progresslogger.startProgress(0, 1, "Preprocessing and feature finding");
     stopwatch.start();
-    algorithm.run(feature_map, hills, peptide_features);
+    algorithm_.run(feature_map, hills, peptide_features);
     progresslogger.setProgress(1);
     progresslogger.endProgress();
     stopwatch.stop();
     String primary_path = getFlag_("test") ? ("file://" + File::basename(in)) : in;
-    feature_map.setPrimaryMSRunPath({primary_path}, algorithm.getMSData());
+    feature_map.setPrimaryMSRunPath({primary_path}, algorithm_.getMSData());
     addDataProcessing_(feature_map, getProcessingInfo_(DataProcessing::QUANTITATION));
     OPENMS_LOG_INFO << "Preprocessing and feature finding took " << stopwatch.toString() << endl;
 
@@ -190,7 +188,7 @@ protected:
       }
       progresslogger.startProgress(0, 1, "Writing hills TSV");
       stopwatch.start();
-      algorithm.writeHills(hills, hills_file);
+      algorithm_.writeHills(hills, hills_file);
       progresslogger.setProgress(1);
       progresslogger.endProgress();
       stopwatch.stop();
@@ -202,7 +200,7 @@ protected:
       stopwatch.reset();
       progresslogger.startProgress(0, 1, "Writing feature TSV");
       stopwatch.start();
-      algorithm.writeTSV(peptide_features, out_tsv);
+      algorithm_.writeTSV(peptide_features, out_tsv);
       progresslogger.setProgress(1);
       progresslogger.endProgress();
       stopwatch.stop();
@@ -211,6 +209,9 @@ protected:
 
     return EXECUTION_OK;
   }
+
+private:
+  Biosaur2Algorithm algorithm_;
 };
 
 int main(int argc, const char** argv)
