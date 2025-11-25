@@ -15,6 +15,7 @@
 #include <OpenMS/MATH/StatisticFunctions.h>
 #include <OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h>
 #include <OpenMS/MATH/MathFunctions.h>
+#include <OpenMS/SYSTEM/StopWatch.h>
 
 #include <algorithm>
 #include <cmath>
@@ -832,7 +833,12 @@ void Biosaur2Algorithm::processFAIMSGroup_(double faims_cv,
   {
     OPENMS_LOG_INFO << "Applying PASEF/TIMS centroiding for group (FAIMS CV="
                     << faims_cv << ") with paseftol=" << paseftol_ << endl;
+    StopWatch stage_timer;
+    stage_timer.start();
     centroidPASEFData_(group_exp, mz_step);
+    stage_timer.stop();
+    OPENMS_LOG_INFO << "PASEF centroiding for group (FAIMS CV=" << faims_cv
+                    << ") took " << stage_timer.toString() << endl;
   }
   else
   {
@@ -854,6 +860,8 @@ void Biosaur2Algorithm::processFAIMSGroup_(double faims_cv,
   {
     OPENMS_LOG_INFO << "Performing hill mass tolerance calibration for group (FAIMS CV="
                     << faims_cv << ")..." << endl;
+    StopWatch stage_timer;
+    stage_timer.start();
     vector<double> mass_diffs;
     Size sample_size = min(group_exp.size(), Size(1000));
     Size start_idx = (group_exp.size() > 1000) ? (group_exp.size() / 2 - 500) : 0;
@@ -875,12 +883,33 @@ void Biosaur2Algorithm::processFAIMSGroup_(double faims_cv,
                       << faims_cv << "): " << calibrated_htol
                       << " ppm (was " << htol_ << " ppm)" << endl;
     }
+    stage_timer.stop();
+    OPENMS_LOG_INFO << "Hill calibration for group (FAIMS CV=" << faims_cv
+                    << ") took " << stage_timer.toString() << endl;
   }
 
   // Hill detection and processing for this group.
+  StopWatch stage_timer;
+  stage_timer.start();
   vector<Hill> group_hills = detectHills_(group_exp, calibrated_htol, mini_, minmz_, maxmz_);
+  stage_timer.stop();
+  OPENMS_LOG_INFO << "Hill detection for group (FAIMS CV=" << faims_cv
+                  << ") found " << group_hills.size()
+                  << " hills in " << stage_timer.toString() << endl;
+  stage_timer.reset();
+  stage_timer.start();
   group_hills = processHills_(group_hills, minlh_);
+  stage_timer.stop();
+  OPENMS_LOG_INFO << "Hill preprocessing for group (FAIMS CV=" << faims_cv
+                  << ") kept " << group_hills.size()
+                  << " hills in " << stage_timer.toString() << endl;
+  stage_timer.reset();
+  stage_timer.start();
   group_hills = splitHills_(group_hills, hvf_, minlh_);
+  stage_timer.stop();
+  OPENMS_LOG_INFO << "Hill splitting for group (FAIMS CV=" << faims_cv
+                  << ") produced " << group_hills.size()
+                  << " hills in " << stage_timer.toString() << endl;
 
   // Offset hill indices so that they are unique across all groups.
   for (auto& h : group_hills)
@@ -889,8 +918,14 @@ void Biosaur2Algorithm::processFAIMSGroup_(double faims_cv,
   }
 
   bool enable_isotope_calib = !ignore_iso_calib_;
+  stage_timer.reset();
+  stage_timer.start();
   vector<PeptideFeature> group_features =
     detectIsotopePatterns_(group_hills, itol_, cmin_, cmax_, negative_mode_, ivf_, iuse_, enable_isotope_calib);
+  stage_timer.stop();
+  OPENMS_LOG_INFO << "Isotope pattern detection for group (FAIMS CV=" << faims_cv
+                  << ") produced " << group_features.size()
+                  << " features in " << stage_timer.toString() << endl;
 
   all_hills.insert(all_hills.end(), group_hills.begin(), group_hills.end());
   all_features.insert(all_features.end(), group_features.begin(), group_features.end());
