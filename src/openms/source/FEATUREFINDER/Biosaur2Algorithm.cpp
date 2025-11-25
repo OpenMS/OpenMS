@@ -10,6 +10,7 @@
 #include <OpenMS/DATASTRUCTURES/ConvexHull2D.h>
 #include <OpenMS/DATASTRUCTURES/DBoundingBox.h>
 #include <OpenMS/IONMOBILITY/FAIMSHelper.h>
+#include <OpenMS/IONMOBILITY/IMDataConverter.h>
 #include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/KERNEL/SpectrumHelper.h>
@@ -969,7 +970,7 @@ vector<pair<double, MSExperiment>> Biosaur2Algorithm::buildFAIMSGroups_() const
   }
   else
   {
-    // Non-FAIMS MS1 spectra (if any) go into a CV=0 group.
+    // Collect non-FAIMS MS1 spectra (if any) into a CV=0 group first.
     MSExperiment base_exp;
     bool has_non_faims = false;
     for (const auto& spec : ms_data_)
@@ -985,21 +986,18 @@ vector<pair<double, MSExperiment>> Biosaur2Algorithm::buildFAIMSGroups_() const
       groups.emplace_back(0.0, std::move(base_exp));
     }
 
-    // One group per FAIMS CV.
-    for (double cv : cvs)
+    // Use IMDataConverter::splitByFAIMSCV() to efficiently split FAIMS spectra
+    // by compensation voltage with move semantics.
+    MSExperiment temp_exp = ms_data_;
+    auto split_maps = IMDataConverter::splitByFAIMSCV(std::move(temp_exp));
+
+    for (auto& split_map : split_maps)
     {
-      MSExperiment exp_cv;
-      for (const auto& spec : ms_data_)
+      if (!split_map.empty())
       {
-        if (spec.getDriftTimeUnit() == DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE &&
-            fabs(spec.getDriftTime() - cv) <= 1e-6)
-        {
-          exp_cv.addSpectrum(spec);
-        }
-      }
-      if (!exp_cv.empty())
-      {
-        groups.emplace_back(cv, std::move(exp_cv));
+        // Extract CV from first spectrum of each group
+        double cv = split_map[0].getDriftTime();
+        groups.emplace_back(cv, std::move(split_map));
       }
     }
   }
