@@ -8,6 +8,7 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/ConvexHull2D.h>
+#include <OpenMS/DATASTRUCTURES/DBoundingBox.h>
 #include <OpenMS/IONMOBILITY/FAIMSHelper.h>
 #include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/KERNEL/Feature.h>
@@ -93,6 +94,14 @@ Biosaur2Algorithm::Biosaur2Algorithm() :
   defaults_.setValue("hrttol", 10.0, "Maximum allowed RT difference (in seconds) between monoisotopic hill apex and isotope hill apex when assembling isotope patterns (0 disables RT gating).");
   defaults_.setMinFloat("hrttol", 0.0);
 
+  defaults_.setValue("convex_hulls", "bounding_box",
+                     "Representation of feature convex hulls in the output FeatureMap. "
+                     "'bounding_box' stores a single RT–m/z bounding box per feature "
+                     "(smaller featureXML, no per-trace detail), "
+                     "whereas 'mass_traces' stores one convex hull per contributing hill using all mass-trace points "
+                     "(larger featureXML, preserves detailed trace shape).");
+  defaults_.setValidStrings("convex_hulls", {"mass_traces", "bounding_box"});
+
   defaultsToParam_();
   updateMembers_();
 }
@@ -119,6 +128,7 @@ void Biosaur2Algorithm::updateMembers_()
   ignore_iso_calib_ = param_.getValue("ignore_iso_calib").toBool();
   paseftol_ = param_.getValue("paseftol");
   hrttol_ = param_.getValue("hrttol");
+  convex_hull_mode_ = param_.getValue("convex_hulls").toString();
 
   OPENMS_LOG_DEBUG << "Biosaur2Algorithm parameters after updateMembers_: "
                    << "mini=" << mini_
@@ -141,6 +151,7 @@ void Biosaur2Algorithm::updateMembers_()
                    << ", ignore_iso_calib=" << ignore_iso_calib_
                    << ", paseftol=" << paseftol_
                    << ", hrttol=" << hrttol_
+                   << ", convex_hulls=" << convex_hull_mode_
                    << endl;
 }
 
@@ -2545,6 +2556,8 @@ FeatureMap Biosaur2Algorithm::convertToFeatureMap_(const vector<PeptideFeature>&
 {
   FeatureMap feature_map;
 
+   const bool use_mass_trace_hulls = (convex_hull_mode_ == "mass_traces");
+
   // Build a lookup from hill index to Hill pointer so we can reconstruct
   // per-isotope convex hulls for each peptide feature.
   map<Size, const Hill*> hill_lookup;
@@ -2572,6 +2585,9 @@ FeatureMap Biosaur2Algorithm::convertToFeatureMap_(const vector<PeptideFeature>&
       pattern_hill_ids.insert(iso.hill_idx);
     }
 
+    DBoundingBox<2> feature_box;
+    bool have_box_points = false;
+
     for (Size hill_id : pattern_hill_ids)
     {
       auto it = hill_lookup.find(hill_id);
@@ -2591,12 +2607,50 @@ FeatureMap Biosaur2Algorithm::convertToFeatureMap_(const vector<PeptideFeature>&
         continue;
       }
 
-      ConvexHull2D::PointArrayType hull_points(n_pts);
-      for (Size i = 0; i < n_pts; ++i)
+      if (use_mass_trace_hulls)
       {
-        hull_points[i][0] = hill.rt_values[i];
-        hull_points[i][1] = hill.mz_values[i];
+        ConvexHull2D::PointArrayType hull_points(n_pts);
+        for (Size i = 0; i < n_pts; ++i)
+        {
+          hull_points[i][0] = hill.rt_values[i];
+          hull_points[i][1] = hill.mz_values[i];
+        }
+
+        ConvexHull2D hull;
+        hull.addPoints(hull_points);
+        feature.getConvexHulls().push_back(hull);
       }
+      else
+      {
+        for (Size i = 0; i < n_pts; ++i)
+        {
+          const double rt = hill.rt_values[i];
+          const double mz = hill.mz_values[i];
+          if (!have_box_points)
+          {
+            DBoundingBox<2>::PositionType p(rt, mz);
+            feature_box = DBoundingBox<2>(p, p);
+            have_box_points = true;
+          }
+          else
+          {
+            feature_box.enlarge(rt, mz);
+          }
+        }
+      }
+    }
+
+    if (!use_mass_trace_hulls && have_box_points)
+    {
+      ConvexHull2D::PointArrayType hull_points(4);
+      hull_points[0][0] = feature_box.minX();
+      hull_points[0][1] = feature_box.minY();
+      hull_points[1][0] = feature_box.maxX();
+      hull_points[1][1] = feature_box.minY();
+      hull_points[2][0] = feature_box.minX();
+      hull_points[2][1] = feature_box.maxY();
+      hull_points[3][0] = feature_box.maxX();
+      hull_points[3][1] = feature_box.maxY();
 
       ConvexHull2D hull;
       hull.addPoints(hull_points);

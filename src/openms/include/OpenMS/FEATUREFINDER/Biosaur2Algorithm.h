@@ -366,6 +366,8 @@ private:
 
     Transfers all feature properties (m/z, RT, intensity, charge, etc.) to OpenMS Feature objects
     and constructs convex hulls from the contributing hills.
+    The representation of convex hulls (full mass-trace hulls vs. a single RT–m/z bounding box)
+    is controlled via the @em convex_hulls parameter.
 
     @param features Input peptide features
     @param hills All hills (needed to construct convex hulls)
@@ -456,6 +458,7 @@ private:
   bool ignore_iso_calib_;     ///< Whether to disable automatic isotope mass calibration
   double paseftol_;           ///< Ion mobility tolerance for PASEF/TIMS data (0=disable)
   double hrttol_;             ///< Maximum RT difference between monoisotopic and isotope apex (0=disable)
+  String convex_hull_mode_;   ///< Representation of feature convex hulls ("mass_traces" vs. "bounding_box")
   //@}
 };
 
