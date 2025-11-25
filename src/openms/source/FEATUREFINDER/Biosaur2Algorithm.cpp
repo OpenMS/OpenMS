@@ -1977,6 +1977,14 @@ vector<Biosaur2Algorithm::PeptideFeature> Biosaur2Algorithm::detectIsotopePatter
     {1, {1}}
   };
 
+  // Fast lookup from hill_idx to index into the hills vector
+  // to avoid repeated linear scans when accessing apex intensities.
+  map<Size, Size> hill_idx_to_index;
+  for (Size idx = 0; idx < hills.size(); ++idx)
+  {
+    hill_idx_to_index[hills[idx].hill_idx] = idx;
+  }
+
   // Initial isotope candidate generation (analogous to get_initial_isotopes).
   for (Size i = 0; i < hills.size(); ++i)
   {
@@ -2108,15 +2116,12 @@ vector<Biosaur2Algorithm::PeptideFeature> Biosaur2Algorithm::detectIsotopePatter
               Size i_local_isotope = 1;
               for (const auto& iso_cand : picked_isotopes)
               {
-                // Find apex intensity of isotope hill.
+                // Find apex intensity of isotope hill (fast lookup by hill_idx).
                 double hill_intensity_apex_2 = 0.0;
-                for (const auto& h : hills)
+                auto it_idx = hill_idx_to_index.find(iso_cand.hill_idx);
+                if (it_idx != hill_idx_to_index.end())
                 {
-                  if (h.hill_idx == iso_cand.hill_idx)
-                  {
-                    hill_intensity_apex_2 = h.intensity_apex;
-                    break;
-                  }
+                  hill_intensity_apex_2 = hills[it_idx->second].intensity_apex;
                 }
 
                 if (i_local_isotope > max_pos)
@@ -2203,12 +2208,6 @@ vector<Biosaur2Algorithm::PeptideFeature> Biosaur2Algorithm::detectIsotopePatter
   // from the monoisotopic hill apex.
   if (hrttol_ > 0.0 && !ready.empty())
   {
-    map<Size, Size> hill_idx_to_index;
-    for (Size idx = 0; idx < hills.size(); ++idx)
-    {
-      hill_idx_to_index[hills[idx].hill_idx] = idx;
-    }
-
     vector<PatternCandidate> rt_filtered;
     rt_filtered.reserve(ready.size());
 
