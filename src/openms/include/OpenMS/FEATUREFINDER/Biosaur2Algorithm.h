@@ -195,7 +195,6 @@ private:
   int cmax_;
   double pasefmini_;
   Size pasefminlh_;
-  int threads_;
   int iuse_;
   bool negative_mode_;
   bool tof_mode_;

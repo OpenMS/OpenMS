@@ -64,6 +64,7 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/SYSTEM/StopWatch.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <vector>
 
@@ -134,23 +135,48 @@ protected:
     Param algo_param = getParam_().copySubset(Biosaur2Algorithm().getDefaults());
     algorithm.setParameters(algo_param);
 
+    ProgressLogger progresslogger;
+    progresslogger.setLogType(log_type_);
+    StopWatch stopwatch;
+
+    progresslogger.startProgress(0, 1, "Loading input mzML");
+    stopwatch.start();
     MzMLFile mzml_file;
     mzml_file.load(in, algorithm.getMSData());
+    progresslogger.setProgress(1);
+    progresslogger.endProgress();
+    stopwatch.stop();
+    OPENMS_LOG_INFO << "Loaded input file in " << stopwatch.toString() << endl;
 
     FeatureMap feature_map;
     vector<Biosaur2Algorithm::Hill> hills;
     vector<Biosaur2Algorithm::PeptideFeature> peptide_features;
+    stopwatch.reset();
+    progresslogger.startProgress(0, 1, "Preprocessing and feature finding");
+    stopwatch.start();
     algorithm.run(feature_map, hills, peptide_features);
+    progresslogger.setProgress(1);
+    progresslogger.endProgress();
+    stopwatch.stop();
     String primary_path = getFlag_("test") ? ("file://" + File::basename(in)) : in;
     feature_map.setPrimaryMSRunPath({primary_path}, algorithm.getMSData());
     addDataProcessing_(feature_map, getProcessingInfo_(DataProcessing::QUANTITATION));
+    OPENMS_LOG_INFO << "Preprocessing and feature finding took " << stopwatch.toString() << endl;
 
+    stopwatch.reset();
+    progresslogger.startProgress(0, 1, "Writing featureXML output");
+    stopwatch.start();
     FeatureXMLFile feature_file;
     feature_file.store(out, feature_map);
+    progresslogger.setProgress(1);
+    progresslogger.endProgress();
+    stopwatch.stop();
     OPENMS_LOG_INFO << "Wrote " << peptide_features.size() << " features to: " << out << endl;
+    OPENMS_LOG_INFO << "Writing featureXML took " << stopwatch.toString() << endl;
 
     if (write_hills_flag || !out_hills.empty())
     {
+      stopwatch.reset();
       String hills_file = out_hills;
       if (hills_file.empty())
       {
@@ -162,12 +188,25 @@ protected:
         }
         hills_file = base + ".hills.tsv";
       }
+      progresslogger.startProgress(0, 1, "Writing hills TSV");
+      stopwatch.start();
       algorithm.writeHills(hills, hills_file);
+      progresslogger.setProgress(1);
+      progresslogger.endProgress();
+      stopwatch.stop();
+      OPENMS_LOG_INFO << "Writing hills TSV took " << stopwatch.toString() << endl;
     }
 
     if (!out_tsv.empty())
     {
+      stopwatch.reset();
+      progresslogger.startProgress(0, 1, "Writing feature TSV");
+      stopwatch.start();
       algorithm.writeTSV(peptide_features, out_tsv);
+      progresslogger.setProgress(1);
+      progresslogger.endProgress();
+      stopwatch.stop();
+      OPENMS_LOG_INFO << "Writing feature TSV took " << stopwatch.toString() << endl;
     }
 
     return EXECUTION_OK;
