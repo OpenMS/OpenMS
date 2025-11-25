@@ -24,10 +24,6 @@
 #include <set>
 #include <limits>
 
-#ifdef _OPENMP
-#  include <omp.h>
-#endif
-
 using namespace std;
 
 namespace OpenMS
@@ -72,9 +68,6 @@ Biosaur2Algorithm::Biosaur2Algorithm() :
   defaults_.setValue("cmax", 6, "Maximum charge state");
   defaults_.setMinInt("cmax", 1);
 
-  defaults_.setValue("threads", 1, "Number of threads for parallel processing (0 = auto-detect)");
-  defaults_.setMinInt("threads", 0);
-
   defaults_.setValue("iuse", 0, "Number of isotopes for intensity calculation (0=mono only, -1=all, 1=mono+first, etc.)");
   defaults_.setMinInt("iuse", -1);
 
@@ -117,7 +110,6 @@ void Biosaur2Algorithm::updateMembers_()
   cmax_ = param_.getValue("cmax");
   pasefmini_ = param_.getValue("pasefmini");
   pasefminlh_ = static_cast<Size>(param_.getValue("pasefminlh"));
-  threads_ = param_.getValue("threads");
   iuse_ = param_.getValue("iuse");
   negative_mode_ = param_.getValue("nm").toBool();
   tof_mode_ = param_.getValue("tof").toBool();
@@ -162,18 +154,6 @@ void Biosaur2Algorithm::run(FeatureMap& feature_map,
   feature_map.clear(true);
   hills.clear();
   peptide_features.clear();
-
-#ifdef _OPENMP
-  int threads_to_use = threads_;
-  if (threads_to_use == 0)
-  {
-    threads_to_use = omp_get_max_threads();
-  }
-  omp_set_num_threads(threads_to_use);
-  OPENMS_LOG_INFO << "Using " << threads_to_use << " threads for parallel processing" << endl;
-#else
-  (void)threads_;
-#endif
 
   // Filter to keep only MS1 spectra
   ms_data_.getSpectra().erase(
