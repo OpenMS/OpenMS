@@ -2074,7 +2074,10 @@ double Biosaur2Algorithm::buildFastMzLookup_(const vector<Hill>& hills,
                                              vector<int>& hill_im_bins) const
 {
   hills_mz_fast.clear();
-  hill_im_bins.assign(hills.size(), 0);
+  // Initialize IM bins to -1 to indicate "no valid ion-mobility bin".
+  // This allows bin 0 to be treated as a valid IM bin (very low IM),
+  // matching the Python implementation where bin 0 is not special.
+  hill_im_bins.assign(hills.size(), -1);
 
   double max_mz_value = 0.0;
   for (const auto& h : hills)
@@ -2204,8 +2207,12 @@ vector<Biosaur2Algorithm::PatternCandidate> Biosaur2Algorithm::generateIsotopeCa
             }
 
             // Optional ion mobility gating for isotope hills.
+            // Apply IM-bin gating whenever both hills have a valid bin
+            // (>= 0). This treats bin 0 as a normal bin and only skips
+            // gating when no IM was available (bin = -1), mirroring the
+            // Python reference behaviour.
             if (use_im && hill_im_bins.size() > i && hill_im_bins.size() > idx2 &&
-                hill_im_bins[i] != 0 && hill_im_bins[idx2] != 0)
+                hill_im_bins[i] >= 0 && hill_im_bins[idx2] >= 0)
             {
               if (abs(hill_im_bins[i] - hill_im_bins[idx2]) > 1)
               {
