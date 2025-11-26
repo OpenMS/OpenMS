@@ -43,7 +43,16 @@ namespace OpenMS
     /// Destructor.
     ~PeakPickerIM() override = default;
 
-    /// Picks ion mobility traces from the given spectrum.
+    /**
+   * @brief Centroids ion mobility data by iteratively extracting mobilograms for each m/z peak centroid
+   *
+   * This function processes an MS spectrum containing ion mobility data (geared towards TimsTOF data)
+   * Peaks in a given MS spectrum are projected to the m/z axis and centroided.
+   * Then, the mobilogram of each m/z peak centroid is retrieved using the m/z peak FWHM.
+   * Peak picking algorithm is applied to the mobilogram to resolve isobaric species with different ion mobility measurement.
+   *
+   * @param spectrum Spectrum containing ion mobility data in its FloatDataArrays
+   */
     void pickIMTraces(MSSpectrum& spectrum);
 
     /// Sets the parameters for peak picking.
@@ -63,7 +72,7 @@ namespace OpenMS
      * 1. m/z tolerance: peaks must be within specified ppm of each other
      * 2. ion mobility tolerance: the range of IM values must not exceed the specified tolerance
      *
-     * @param input Spectrum containing ion mobility data in its FloatDataArrays
+     * @param spec Spectrum containing ion mobility data in its FloatDataArrays
      * @param ppm_tolerance_cluster Mass tolerance in parts per million (default: 50.0 ppm)
      * @param im_tolerance_cluster Ion mobility tolerance (default: 0.1 units)
      *
@@ -104,7 +113,7 @@ namespace OpenMS
      *
      * By default, this function assumes the tolerance provided is in parts per million.
      * But it can be adjusted to use absolute value tolerance.
-     * @param input Sorted raw spectrum with duplicate peaks due to scan merging or presence of ion mobility data.
+     * @param input_spectrum Sorted raw spectrum with duplicate peaks due to scan merging or presence of ion mobility data.
      * @param tolerance Mass tolerance between peaks
      * * @param use_ppm Whether to use parts per million tolerance. If set to False, absolute tolerance will be used.
      */
