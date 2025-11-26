@@ -22,33 +22,79 @@
 
 namespace OpenMS
 {
-  std::vector<PeakMap> IMDataConverter::splitByFAIMSCV(PeakMap&& exp)
+  std::vector<double> IMDataConverter::getFAIMSCVs(const PeakMap& exp, bool include_non_faims_cv0)
+  {
+    std::vector<double> result;
+    
+    // Check for non-FAIMS spectra
+    bool has_non_faims = false;
+    if (include_non_faims_cv0)
+    {
+      for (const MSSpectrum& spec : exp)
+      {
+        if (spec.getDriftTimeUnit() != DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE)
+        {
+          has_non_faims = true;
+          break;
+        }
+      }
+      if (has_non_faims)
+      {
+        result.push_back(0.0);  // CV=0 for non-FAIMS spectra
+      }
+    }
+    
+    // Get FAIMS CVs in sorted order
+    std::set<double> CVs = FAIMSHelper::getCompensationVoltages(exp);
+    for (double cv : CVs)
+    {
+      result.push_back(cv);
+    }
+    
+    return result;
+  }
+
+  std::vector<PeakMap> IMDataConverter::splitByFAIMSCV(PeakMap&& exp, bool include_non_faims_cv0)
   {
     std::vector<PeakMap> split_peakmap;
 
-    // TODO test with any random PeakMap without FAIMS data.
-    // What breaks, how should it break?
     std::set<double> CVs = FAIMSHelper::getCompensationVoltages(exp);
 
-    if (CVs.empty())
+    if (CVs.empty() && !include_non_faims_cv0)
     {
       throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Not FAIMS data!");
     }
 
+    // Check for non-FAIMS spectra when include_non_faims_cv0 is true
+    bool has_non_faims = false;
+    if (include_non_faims_cv0)
+    {
+      for (const MSSpectrum& spec : exp)
+      {
+        if (spec.getDriftTimeUnit() != DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE)
+        {
+          has_non_faims = true;
+          break;
+        }
+      }
+    }
+
     // create map to easily turn a CV value into a PeakMap index
+    // If include_non_faims_cv0 is true and we have non-FAIMS spectra, reserve index 0 for CV=0
     std::map<double, size_t> cv2index;
-    size_t counter(0);
+    size_t counter = (include_non_faims_cv0 && has_non_faims) ? 1 : 0;
     for (double cv : CVs)
     {
       cv2index[cv] = counter;
       counter++;
     }
 
-    // make as many PeakMaps as there are different CVs and fill their Meta Data
-    split_peakmap.resize(CVs.size());
-    for (auto& spec : split_peakmap)
+    // make as many PeakMaps as there are different CVs (plus one for non-FAIMS if applicable)
+    size_t total_maps = CVs.size() + ((include_non_faims_cv0 && has_non_faims) ? 1 : 0);
+    split_peakmap.resize(total_maps);
+    for (auto& pm : split_peakmap)
     {
-      spec.getExperimentalSettings() = exp.getExperimentalSettings();
+      pm.getExperimentalSettings() = exp.getExperimentalSettings();
     }
 
     // fill up the PeakMaps by moving spectra from the input PeakMap
@@ -79,6 +125,13 @@ namespace OpenMS
           split_peakmap[idx_it->second].addSpectrum(std::move(spec));
           continue;
         }
+      }
+
+      // If include_non_faims_cv0 is true, put non-FAIMS spectra in the CV=0 group (index 0)
+      if (include_non_faims_cv0 && has_non_faims)
+      {
+        split_peakmap[0].addSpectrum(std::move(spec));
+        continue;
       }
 
       // Otherwise skip with a warning

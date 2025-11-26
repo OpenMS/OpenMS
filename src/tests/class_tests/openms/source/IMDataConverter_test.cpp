@@ -249,6 +249,104 @@ START_SECTION((std::vector<PeakMap> splitByFAIMSCV throws for non-FAIMS dataset)
 }
 END_SECTION
 
+START_SECTION((std::vector<PeakMap> splitByFAIMSCV with include_non_faims_cv0=true includes non-FAIMS spectra))
+{
+  PeakMap exp_mixed;
+
+  // Non-FAIMS spectrum
+  MSSpectrum non_faims;
+  non_faims.setMSLevel(1);
+  non_faims.setDriftTimeUnit(DriftTimeUnit::MILLISECOND);
+  non_faims.setDriftTime(10.0);
+
+  // FAIMS spectrum with CV=-55
+  MSSpectrum faims1;
+  faims1.setMSLevel(1);
+  faims1.setDriftTimeUnit(DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE);
+  faims1.setDriftTime(-55.0);
+
+  // FAIMS spectrum with CV=-45
+  MSSpectrum faims2;
+  faims2.setMSLevel(1);
+  faims2.setDriftTimeUnit(DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE);
+  faims2.setDriftTime(-45.0);
+
+  exp_mixed.addSpectrum(non_faims);
+  exp_mixed.addSpectrum(faims1);
+  exp_mixed.addSpectrum(faims2);
+
+  std::vector<PeakMap> bins = IMDataConverter::splitByFAIMSCV(std::move(exp_mixed), true);
+  TEST_EQUAL(bins.size(), 3) // CV=0 for non-FAIMS, CV=-55, CV=-45
+
+  // First bin should be the non-FAIMS spectra (CV=0)
+  TEST_EQUAL(bins[0].size(), 1)
+  TEST_EQUAL(bins[0][0].getDriftTimeUnit(), DriftTimeUnit::MILLISECOND)
+  
+  // Second bin should be CV=-55
+  TEST_EQUAL(bins[1].size(), 1)
+  TEST_EQUAL(bins[1][0].getDriftTime(), -55.0)
+  
+  // Third bin should be CV=-45
+  TEST_EQUAL(bins[2].size(), 1)
+  TEST_EQUAL(bins[2][0].getDriftTime(), -45.0)
+}
+END_SECTION
+
+START_SECTION((std::vector<PeakMap> splitByFAIMSCV with include_non_faims_cv0=true handles only non-FAIMS data))
+{
+  PeakMap exp_nonfaims;
+  MSSpectrum s;
+  s.setMSLevel(1);
+  s.setDriftTimeUnit(DriftTimeUnit::MILLISECOND);
+  s.setDriftTime(10.0);
+  exp_nonfaims.addSpectrum(s);
+
+  // Should NOT throw when include_non_faims_cv0=true
+  std::vector<PeakMap> bins = IMDataConverter::splitByFAIMSCV(std::move(exp_nonfaims), true);
+  TEST_EQUAL(bins.size(), 1) // Just CV=0 group
+  TEST_EQUAL(bins[0].size(), 1)
+}
+END_SECTION
+
+START_SECTION((std::vector<double> getFAIMSCVs returns correct CV values))
+{
+  PeakMap exp_mixed;
+
+  // Non-FAIMS spectrum
+  MSSpectrum non_faims;
+  non_faims.setMSLevel(1);
+  non_faims.setDriftTimeUnit(DriftTimeUnit::MILLISECOND);
+
+  // FAIMS spectra
+  MSSpectrum faims1;
+  faims1.setMSLevel(1);
+  faims1.setDriftTimeUnit(DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE);
+  faims1.setDriftTime(-55.0);
+
+  MSSpectrum faims2;
+  faims2.setMSLevel(1);
+  faims2.setDriftTimeUnit(DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE);
+  faims2.setDriftTime(-45.0);
+
+  exp_mixed.addSpectrum(non_faims);
+  exp_mixed.addSpectrum(faims1);
+  exp_mixed.addSpectrum(faims2);
+
+  // Without non-FAIMS CV=0
+  std::vector<double> cvs = IMDataConverter::getFAIMSCVs(exp_mixed, false);
+  TEST_EQUAL(cvs.size(), 2)
+  TEST_REAL_SIMILAR(cvs[0], -55.0)
+  TEST_REAL_SIMILAR(cvs[1], -45.0)
+
+  // With non-FAIMS CV=0
+  std::vector<double> cvs_with_zero = IMDataConverter::getFAIMSCVs(exp_mixed, true);
+  TEST_EQUAL(cvs_with_zero.size(), 3)
+  TEST_REAL_SIMILAR(cvs_with_zero[0], 0.0)
+  TEST_REAL_SIMILAR(cvs_with_zero[1], -55.0)
+  TEST_REAL_SIMILAR(cvs_with_zero[2], -45.0)
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

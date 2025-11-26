@@ -952,70 +952,38 @@ vector<pair<double, MSExperiment>> Biosaur2Algorithm::buildFAIMSGroups_() const
   // Detect FAIMS compensation voltages (if any) to mirror Python's CV-aware
   // processing. If no FAIMS data are present, we process the experiment in
   // a single pass.
-  auto cvs = FAIMSHelper::getCompensationVoltages(ms_data_);
-  if (!cvs.empty())
+  auto faims_cvs = FAIMSHelper::getCompensationVoltages(ms_data_);
+  if (!faims_cvs.empty())
   {
-    OPENMS_LOG_INFO << "Detected FAIMS data with " << cvs.size() << " compensation voltage(s)" << endl;
-    for (const auto& cv : cvs)
+    OPENMS_LOG_INFO << "Detected FAIMS data with " << faims_cvs.size() << " compensation voltage(s)" << endl;
+    for (const auto& cv : faims_cvs)
     {
       OPENMS_LOG_INFO << "  CV: " << cv << " V" << endl;
     }
   }
 
-  if (cvs.empty())
+  if (faims_cvs.empty())
   {
-    // Single group containing all MS1 spectra.
+    // No FAIMS data: single group containing all spectra.
     MSExperiment exp = ms_data_;
     groups.emplace_back(std::numeric_limits<double>::quiet_NaN(), std::move(exp));
   }
   else
   {
-    // Collect non-FAIMS MS1 spectra (if any) into a CV=0 group first.
-    MSExperiment base_exp;
-    bool has_non_faims = false;
-    for (const auto& spec : ms_data_)
-    {
-      if (spec.getDriftTimeUnit() != DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE)
-      {
-        base_exp.addSpectrum(spec);
-        has_non_faims = true;
-      }
-    }
-    if (has_non_faims)
-    {
-      groups.emplace_back(0.0, std::move(base_exp));
-    }
+    // Use IMDataConverter::splitByFAIMSCV() to efficiently split spectra
+    // by compensation voltage with move semantics. The include_non_faims_cv0=true
+    // option collects non-FAIMS spectra into a CV=0 group.
+    MSExperiment exp_copy = ms_data_;
+    auto split_maps = IMDataConverter::splitByFAIMSCV(std::move(exp_copy), true);
+    auto cvs = IMDataConverter::getFAIMSCVs(ms_data_, true);
 
-    // Build a filtered experiment containing only FAIMS spectra to minimize
-    // memory overhead before calling splitByFAIMSCV().
-    MSExperiment faims_exp;
-    faims_exp.getExperimentalSettings() = ms_data_.getExperimentalSettings();
-    for (const auto& spec : ms_data_)
+    // Pair each split map with its corresponding CV value
+    for (size_t i = 0; i < split_maps.size() && i < cvs.size(); ++i)
     {
-      if (spec.getDriftTimeUnit() == DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE)
+      if (!split_maps[i].empty())
       {
-        faims_exp.addSpectrum(spec);
+        groups.emplace_back(cvs[i], std::move(split_maps[i]));
       }
-    }
-
-    // Use IMDataConverter::splitByFAIMSCV() to efficiently split FAIMS spectra
-    // by compensation voltage with move semantics.
-    auto split_maps = IMDataConverter::splitByFAIMSCV(std::move(faims_exp));
-
-    // splitByFAIMSCV() returns PeakMaps in the same order as the sorted CV set.
-    // Iterate both in parallel to get the CV value for each split map.
-    auto cv_it = cvs.begin();
-    for (auto& split_map : split_maps)
-    {
-      if (cv_it == cvs.end())
-      {
-        break;  // Safety check: should not happen if sizes match
-      }
-      if (!split_map.empty())
-      {
-        groups.emplace_back(*cv_it, std::move(split_map));
-      }
-      ++cv_it;
     }
   }
 

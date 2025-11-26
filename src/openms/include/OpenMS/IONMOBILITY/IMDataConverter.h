@@ -39,16 +39,36 @@ namespace OpenMS
         PeakMap is unusable afterwards.
 
         Behavior:
-        - Requires that the dataset contains FAIMS spectra (MS1 with DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE).
         - MS2+ spectra without an explicit FAIMS CV are assigned to the last seen FAIMS CV (based on run order).
-          Spectra without a prior FAIMS CV context are skipped with a warning.
-        - If the dataset contains no FAIMS spectra at all, an exception is thrown.
+          Spectra without a prior FAIMS CV context are handled based on @p include_non_faims_cv0.
+        - When @p include_non_faims_cv0 is false (default):
+          - Requires that the dataset contains FAIMS spectra (MS1 with DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE).
+          - If the dataset contains no FAIMS spectra at all, an exception is thrown.
+          - Non-FAIMS spectra without prior FAIMS CV context are skipped with a warning.
+        - When @p include_non_faims_cv0 is true:
+          - Non-FAIMS spectra are collected in a separate PeakMap with CV=0.0 (first in the returned vector).
+          - Does not throw if the dataset contains no FAIMS spectra (returns only the CV=0 group).
 
         @param exp The PeakMap (will be moved-from)
-        @return Several PeakMaps, one per unique FAIMS CV
-        @throws Exception::MissingInformation if @p exp contains no FAIMS data
+        @param include_non_faims_cv0 If true, non-FAIMS spectra are included in a CV=0 group (first element).
+                                     If false (default), non-FAIMS spectra without context are skipped.
+        @return Several PeakMaps, one per unique FAIMS CV. If @p include_non_faims_cv0 is true and non-FAIMS
+                spectra exist, the first element has CV=0.0 for those spectra.
+        @throws Exception::MissingInformation if @p exp contains no FAIMS data and @p include_non_faims_cv0 is false
       */
-      static std::vector<PeakMap> splitByFAIMSCV(PeakMap&& exp);
+      static std::vector<PeakMap> splitByFAIMSCV(PeakMap&& exp, bool include_non_faims_cv0 = false);
+
+      /**
+        @brief Get the CV values corresponding to each PeakMap returned by splitByFAIMSCV()
+
+        When splitByFAIMSCV() is called with include_non_faims_cv0=true, the first element may have CV=0.0
+        for non-FAIMS spectra. This helper returns the CV values in the same order as the returned PeakMaps.
+
+        @param exp The PeakMap to analyze (not modified)
+        @param include_non_faims_cv0 Whether non-FAIMS spectra will be included (matches splitByFAIMSCV parameter)
+        @return Vector of CV values in the same order as splitByFAIMSCV() output
+      */
+      static std::vector<double> getFAIMSCVs(const PeakMap& exp, bool include_non_faims_cv0 = false);
 
       
       /**
