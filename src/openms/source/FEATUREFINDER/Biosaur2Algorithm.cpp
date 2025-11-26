@@ -83,7 +83,7 @@ Biosaur2Algorithm::Biosaur2Algorithm() :
   defaults_.setValue("profile", "false", "Enable profile mode processing (centroid spectra using PeakPickerHiRes)");
   defaults_.setValidStrings("profile", {"true", "false"});
 
-  defaults_.setValue("paseftol", 0.0, "Ion mobility accuracy (in the same units as the ion-mobility array) for linking peaks into hills and grouping isotopes (0 = disable IM-based gating).");
+  defaults_.setValue("paseftol", 0.05, "Ion mobility accuracy (in the same units as the ion-mobility array) for linking peaks into hills and grouping isotopes (0 = disable IM-based gating).");
   defaults_.setMinFloat("paseftol", 0.0);
 
   defaults_.setValue("use_hill_calib", "false", "Enable automatic hill mass tolerance calibration");
@@ -601,9 +601,30 @@ void Biosaur2Algorithm::processTOF_(MSExperiment& exp) const
 {
   OPENMS_LOG_INFO << "Applying TOF-specific intensity filtering..." << endl;
 
+  StopWatch stage_timer;
+  stage_timer.start();
+
+  // Report if the input data contains ion-mobility information, similar to
+  // other stages that branch on IM availability.
+  bool any_im_array = false;
+  for (const auto& spec : exp)
+  {
+    const IMFormat im_format = IMTypes::determineIMFormat(spec);
+    if (im_format != IMFormat::NONE)
+    {
+      any_im_array = true;
+      break;
+    }
+  }
+  if (any_im_array)
+  {
+    OPENMS_LOG_INFO << "TOF filtering: input data contains ion-mobility arrays." << endl;
+  }
+
   const double mz_bin_size = 50.0;
   map<int, vector<double>> intensity_bins;
 
+  // Phase 1: learn initial per-bin thresholds (similar to Python process_tof first pass, using +2 sigma)
   Size sample_size = min(Size(25), exp.size());
   for (Size i = 0; i < sample_size; ++i)
   {
@@ -611,20 +632,20 @@ void Biosaur2Algorithm::processTOF_(MSExperiment& exp) const
     {
       double mz = exp[i][j].getMZ();
       double intensity = exp[i][j].getIntensity();
-      if (mz >= minmz_ && mz <= maxmz_)
+
+      // Note: unlike the original C++ code, we do not restrict the training range
+      // to [minmz_, maxmz_] in order to match the Python implementation more closely.
+      int bin = static_cast<int>(mz / mz_bin_size);
+      if (intensity <= 0.0)
       {
-        int bin = static_cast<int>(mz / mz_bin_size);
-        if (intensity <= 0.0)
-        {
-          continue;
-        }
-        double log_intensity = log10(intensity);
-        if (!std::isfinite(log_intensity))
-        {
-          continue;
-        }
-        intensity_bins[bin].push_back(log_intensity);
+        continue;
       }
+      double log_intensity = log10(intensity);
+      if (!std::isfinite(log_intensity))
+      {
+        continue;
+      }
+      intensity_bins[bin].push_back(log_intensity);
     }
   }
 
@@ -658,7 +679,58 @@ void Biosaur2Algorithm::processTOF_(MSExperiment& exp) const
         continue;
       }
 
+      // Initial thresholds use mean + 2 * std in log space, mirroring the first Python pass
       bin_thresholds[bin_pair.first] = pow(10.0, mean + 2.0 * std_dev);
+    }
+  }
+
+  // Phase 2: optional refinement of thresholds using a stricter +3 sigma criterion,
+  // conceptually similar to the Python while-cnt<=50 refinement.
+  Size refine_limit = min(Size(50), exp.size());
+  for (Size i = 0; i < refine_limit; ++i)
+  {
+    // collect log10 intensities per bin for this spectrum
+    map<int, vector<double>> spectrum_bins;
+    for (Size j = 0; j < exp[i].size(); ++j)
+    {
+      double mz = exp[i][j].getMZ();
+      double intensity = exp[i][j].getIntensity();
+      int bin = static_cast<int>(mz / mz_bin_size);
+      if (intensity <= 0.0)
+      {
+        continue;
+      }
+      double log_intensity = log10(intensity);
+      if (!std::isfinite(log_intensity))
+      {
+        continue;
+      }
+      spectrum_bins[bin].push_back(log_intensity);
+    }
+
+    // For bins with enough points in this spectrum, refine thresholds with mean + 3 * std
+    for (auto& bin_pair : spectrum_bins)
+    {
+      const vector<double>& values = bin_pair.second;
+      if (values.size() >= 150)
+      {
+        double sum = accumulate(values.begin(), values.end(), 0.0);
+        double mean = sum / values.size();
+
+        double sq_sum = 0.0;
+        for (double val : values)
+        {
+          sq_sum += (val - mean) * (val - mean);
+        }
+        double std_dev = sqrt(sq_sum / values.size());
+
+        if (!std::isfinite(mean) || !std::isfinite(std_dev))
+        {
+          continue;
+        }
+
+        bin_thresholds[bin_pair.first] = pow(10.0, mean + 3.0 * std_dev);
+      }
     }
   }
 
@@ -669,9 +741,11 @@ void Biosaur2Algorithm::processTOF_(MSExperiment& exp) const
   {
     total_peaks_before += spectrum.size();
 
-    MSSpectrum filtered_spectrum;
-    filtered_spectrum.setRT(spectrum.getRT());
-    filtered_spectrum.setMSLevel(spectrum.getMSLevel());
+    // Collect indices of peaks to keep, then use MSSpectrum::select()
+    // so that peaks and all associated data arrays are filtered
+    // consistently.
+    vector<Size> keep_indices;
+    keep_indices.reserve(spectrum.size());
 
     for (Size i = 0; i < spectrum.size(); ++i)
     {
@@ -680,26 +754,27 @@ void Biosaur2Algorithm::processTOF_(MSExperiment& exp) const
       int bin = static_cast<int>(mz / mz_bin_size);
 
       double threshold = 150.0;
-      if (bin_thresholds.find(bin) != bin_thresholds.end())
+      auto it = bin_thresholds.find(bin);
+      if (it != bin_thresholds.end())
       {
-        threshold = bin_thresholds[bin];
+        threshold = it->second;
       }
 
-      if (intensity >= threshold)
+      // Use strict '>' comparison (Python keeps intensities > threshold, not >=)
+      if (intensity > threshold)
       {
-        filtered_spectrum.push_back(spectrum[i]);
+        keep_indices.push_back(i);
       }
     }
 
-    filtered_spectrum.getFloatDataArrays() = spectrum.getFloatDataArrays();
-    filtered_spectrum.getIntegerDataArrays() = spectrum.getIntegerDataArrays();
-    filtered_spectrum.getStringDataArrays() = spectrum.getStringDataArrays();
-    spectrum = filtered_spectrum;
+    spectrum.select(keep_indices);
     total_peaks_after += spectrum.size();
   }
 
+  stage_timer.stop();
   OPENMS_LOG_INFO << "TOF filtering: " << total_peaks_before
-                  << " peaks -> " << total_peaks_after << " peaks" << endl;
+                  << " peaks -> " << total_peaks_after
+                  << " peaks in " << stage_timer.toString() << endl;
 }
 
 void Biosaur2Algorithm::centroidProfileSpectra_(MSExperiment& exp) const
@@ -762,9 +837,25 @@ void Biosaur2Algorithm::centroidPASEFData_(MSExperiment& exp, double mz_step, do
   {
     total_peaks_before += spectrum.size();
 
+    // Determine ion-mobility format and use the concatenated IM array if available,
+    // mirroring the logic in processFAIMSGroup_ and IMTypes::determineIMFormat().
+    const IMFormat im_format = IMTypes::determineIMFormat(spectrum);
+    if (im_format != IMFormat::CONCATENATED)
+    {
+      // Either no IM data or only per-spectrum drift time; leave spectrum unchanged.
+      return;
+    }
+
     const auto& fda = spectrum.getFloatDataArrays();
-    auto it_im = getDataArrayByName(fda, Constants::UserParam::ION_MOBILITY);
-    if (it_im == fda.end() || it_im->size() != spectrum.size())
+    const auto im_data = spectrum.getIMData();
+    const Size im_index = im_data.first;
+    if (im_index >= fda.size())
+    {
+      // Inconsistent IM data; leave spectrum unchanged.
+      return;
+    }
+    const auto& im_array = fda[im_index];
+    if (im_array.size() != spectrum.size())
     {
       // No usable per-peak ion-mobility data for this spectrum; leave it as-is.
       return;
@@ -791,7 +882,7 @@ void Biosaur2Algorithm::centroidPASEFData_(MSExperiment& exp, double mz_step, do
       {
         continue;
       }
-      double im = (*it_im)[i];
+      double im = im_array[i];
       mz_ar.push_back(mz);
       intensity_ar.push_back(intensity);
       im_ar.push_back(im);
@@ -961,10 +1052,10 @@ void Biosaur2Algorithm::centroidPASEFData_(MSExperiment& exp, double mz_step, do
     }
 
     MSSpectrum::FloatDataArrays new_fda;
-    MSSpectrum::FloatDataArray im_array;
-    im_array.setName(Constants::UserParam::ION_MOBILITY);
-    im_array.assign(im_new.begin(), im_new.end());
-    new_fda.push_back(im_array);
+    MSSpectrum::FloatDataArray im_array_out;
+    im_array_out.setName(Constants::UserParam::ION_MOBILITY);
+    im_array_out.assign(im_new.begin(), im_new.end());
+    new_fda.push_back(im_array_out);
     spectrum.setFloatDataArrays(new_fda);
 
     total_peaks_after += spectrum.size();
@@ -994,21 +1085,28 @@ void Biosaur2Algorithm::processFAIMSGroup_(double faims_cv,
     return;
   }
 
-  // Determine ion-mobility array availability for this group.
+  // Determine ion-mobility array availability for this group using IMTypes::determineIMFormat.
   bool any_im_array = false;
   bool any_missing_im = false;
+  Size im_spectra_with_data = 0;
   for (const auto& spec : group_exp)
   {
-    const auto& fda = spec.getFloatDataArrays();
-    auto it_im = getDataArrayByName(fda, Constants::UserParam::ION_MOBILITY);
-    if (it_im != fda.end() && !it_im->empty())
+    const auto im_format = IMTypes::determineIMFormat(spec);
+    if (im_format != IMFormat::NONE)
     {
       any_im_array = true;
+      ++im_spectra_with_data;
     }
     else
     {
       any_missing_im = true;
     }
+  }
+  if (any_im_array)
+  {
+    OPENMS_LOG_INFO << "Group (FAIMS CV=" << faims_cv << ") has "
+                    << im_spectra_with_data << " / " << group_exp.size()
+                    << " spectra with ion-mobility data." << endl;
   }
 
   // Compute mz_step for PASEF centroiding, mirroring Python's use of
@@ -1194,9 +1292,25 @@ void Biosaur2Algorithm::linkScanToHills_(const MSSpectrum& spectrum,
   vector<double> mzs(len_mz);
   vector<int> im_bin_per_peak(spectrum.size(), 0);
 
-  const auto& fda = spectrum.getFloatDataArrays();
-  auto it_im = getDataArrayByName(fda, Constants::UserParam::ION_MOBILITY);
-  const bool use_im_current = use_im_global && (it_im != fda.end());
+  // Use the standardized IM format/helper logic: only build per-peak IM bins
+  // when we have concatenated ion-mobility data.
+  const IMFormat im_format = IMTypes::determineIMFormat(spectrum);
+  const bool use_im_current = use_im_global && (im_format == IMFormat::CONCATENATED);
+
+  const MSSpectrum::FloatDataArray* im_array_ptr = nullptr;
+  if (use_im_current)
+  {
+    // getIMData() may throw if IM metadata is inconsistent; let that propagate.
+    auto [im_index, im_unit] = spectrum.getIMData();
+    const auto& fda = spectrum.getFloatDataArrays();
+    if (im_index >= fda.size())
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                    "Ion mobility array index out of range.",
+                                    String(im_index));
+    }
+    im_array_ptr = &fda[im_index];
+  }
 
   for (Size i = 0; i < len_mz; ++i)
   {
@@ -1205,13 +1319,13 @@ void Biosaur2Algorithm::linkScanToHills_(const MSSpectrum& spectrum,
     mzs[i] = spectrum[peak_idx].getMZ();
     if (use_im_current)
     {
-      if (peak_idx >= it_im->size())
+      if (peak_idx >= im_array_ptr->size())
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                       "Ion mobility array shorter than peak list.",
                                       String(peak_idx));
       }
-      const double im = (*it_im)[peak_idx];
+      const double im = (*im_array_ptr)[peak_idx];
       int im_bin = (paseftol_ > 0.0) ? static_cast<int>(im / paseftol_) : 0;
       im_bin_per_peak[peak_idx] = im_bin;
     }
@@ -1271,17 +1385,25 @@ void Biosaur2Algorithm::linkScanToHills_(const MSSpectrum& spectrum,
     hill.drift_times.push_back(drift_time);
 
     double ion_mobility = -1.0;
-    const auto& fda_local = spectrum.getFloatDataArrays();
-    auto it_im_local = getDataArrayByName(fda_local, Constants::UserParam::ION_MOBILITY);
-    if (it_im_local != fda_local.end())
+    const IMFormat im_format_local = IMTypes::determineIMFormat(spectrum);
+    if (im_format_local == IMFormat::CONCATENATED)
     {
-      if (p_idx >= it_im_local->size())
+      auto [im_index_local, im_unit_local] = spectrum.getIMData(); // may throw
+      const auto& fda_local = spectrum.getFloatDataArrays();
+      if (im_index_local >= fda_local.size())
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                      "Ion mobility array index out of range.",
+                                      String(im_index_local));
+      }
+      const auto& im_array_local = fda_local[im_index_local];
+      if (p_idx >= im_array_local.size())
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                       "Ion mobility array shorter than peak list.",
                                       String(p_idx));
       }
-      ion_mobility = (*it_im_local)[p_idx];
+      ion_mobility = im_array_local[p_idx];
     }
     else if (drift_time >= 0)
     {
@@ -2785,6 +2907,9 @@ FeatureMap Biosaur2Algorithm::convertToFeatureMap_(const vector<PeptideFeature>&
 
     DBoundingBox<2> feature_box;
     bool have_box_points = false;
+    double im_min = numeric_limits<double>::max();
+    double im_max = numeric_limits<double>::lowest();
+    bool have_im_values = false;
 
     for (Size hill_id : pattern_hill_ids)
     {
@@ -2797,6 +2922,18 @@ FeatureMap Biosaur2Algorithm::convertToFeatureMap_(const vector<PeptideFeature>&
       if (hill.rt_values.empty() || hill.mz_values.empty())
       {
         continue;
+      }
+
+      // Update ion mobility range for this feature based on contributing hills
+      if (!hill.ion_mobilities.empty())
+      {
+        for (double im_value : hill.ion_mobilities)
+        {
+          if (im_value < 0.0) continue;
+          have_im_values = true;
+          im_min = std::min(im_min, im_value);
+          im_max = std::max(im_max, im_value);
+        }
       }
 
       const Size n_pts = min(hill.rt_values.size(), hill.mz_values.size());
@@ -2878,9 +3015,12 @@ FeatureMap Biosaur2Algorithm::convertToFeatureMap_(const vector<PeptideFeature>&
     {
       feature.setMetaValue("FAIMS_CV", f.drift_time);
     }
-    if (f.ion_mobility >= 0)
+    // Annotate real ion-mobility data with median and range
+    if (f.ion_mobility >= 0.0 && have_im_values)
     {
-    feature.setMetaValue("ion_mobility", f.ion_mobility);
+      feature.setMetaValue(Constants::UserParam::IM, f.ion_mobility);
+      feature.setMetaValue("IM_min", im_min);
+      feature.setMetaValue("IM_max", im_max);
     }
 
     feature.ensureUniqueId();
@@ -3028,10 +3168,31 @@ void Biosaur2Algorithm::writeHills(const vector<Hill>& hills, const String& file
   {
     throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
   }
-  out << "hill_idx\tmz\trtStart\trtEnd\trtApex\tintensityApex\tintensitySum\tnScans" << endl;
+  out << "hill_idx\tmz\trtStart\trtEnd\trtApex\tintensityApex\tintensitySum\tnScans\tIM_min\tIM_max" << endl;
 
   for (const auto& hill : hills)
   {
+    double im_min = numeric_limits<double>::max();
+    double im_max = numeric_limits<double>::lowest();
+    bool have_im = false;
+
+    if (!hill.ion_mobilities.empty())
+    {
+      for (double im_value : hill.ion_mobilities)
+      {
+        if (im_value < 0.0) continue;
+        have_im = true;
+        im_min = std::min(im_min, im_value);
+        im_max = std::max(im_max, im_value);
+      }
+    }
+
+    if (!have_im)
+    {
+      im_min = -1.0;
+      im_max = -1.0;
+    }
+
     out << hill.hill_idx << "\t"
         << hill.mz_weighted_mean << "\t"
         << hill.rt_start << "\t"
@@ -3039,7 +3200,9 @@ void Biosaur2Algorithm::writeHills(const vector<Hill>& hills, const String& file
         << hill.rt_apex << "\t"
         << hill.intensity_apex << "\t"
         << hill.intensity_sum << "\t"
-        << hill.length << endl;
+        << hill.length << "\t"
+        << im_min << "\t"
+        << im_max << endl;
   }
 
   OPENMS_LOG_INFO << "Wrote " << hills.size() << " hills to: " << filename << endl;

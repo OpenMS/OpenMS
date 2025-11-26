@@ -126,6 +126,10 @@ protected:
     progresslogger.startProgress(0, 1, "Loading input mzML");
     stopwatch.start();
     MzMLFile mzml_file;
+    PeakFileOptions options;
+    options.clearMSLevels();
+    options.addMSLevel(1); // only load MS1 level for feature finding
+    mzml_file.setOptions(options);
     mzml_file.load(in, algorithm_.getMSData());
     progresslogger.setProgress(1);
     progresslogger.endProgress();
