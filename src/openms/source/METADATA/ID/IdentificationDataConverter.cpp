@@ -687,16 +687,39 @@ namespace OpenMS
 
     MzTabPSMSectionRows psms;
     MzTabOSMSectionRows osms;
+    const auto& db_search_steps = id_data.getDBSearchSteps();
     for (const auto& obs_match : id_data.getObservationMatches())
     {
       const ID::IdentifiedMolecule& molecule_var =
         obs_match.identified_molecule_var;
       // @TODO: what about small molecules?
       ID::MoleculeType molecule_type = molecule_var.getMoleculeType();
+
+      // Determine the mass type from the search parameters associated with
+      // processing steps of this observation match:
+      bool use_avg_mass = false;
+      for (const auto& applied : obs_match.steps_and_scores)
+      {
+        if (applied.processing_step_opt)
+        {
+          auto step_it = db_search_steps.find(*applied.processing_step_opt);
+          if (step_it != db_search_steps.end())
+          {
+            if (step_it->second->mass_type == ID::MassType::AVERAGE)
+            {
+              use_avg_mass = true;
+              break;
+            }
+          }
+        }
+      }
+
       if (molecule_type == ID::MoleculeType::PROTEIN)
       {
         const AASequence& seq = molecule_var.getIdentifiedPeptideRef()->sequence;
-        double calc_mass = seq.getMonoWeight(Residue::Full, obs_match.charge);
+        double calc_mass = use_avg_mass ?
+          seq.getAverageWeight(Residue::Full, obs_match.charge) :
+          seq.getMonoWeight(Residue::Full, obs_match.charge);
         exportObservationMatchToMzTab_(seq.toString(), obs_match, calc_mass,
                                        psms, psm_scores, file_map);
         // "PSM_ID" field is set at the end, after sorting
@@ -704,8 +727,9 @@ namespace OpenMS
       else if (molecule_type == ID::MoleculeType::RNA)
       {
         const NASequence& seq = molecule_var.getIdentifiedOligoRef()->sequence;
-        double calc_mass = seq.getMonoWeight(NASequence::Full,
-                                             obs_match.charge);
+        double calc_mass = use_avg_mass ?
+          seq.getAverageWeight(NASequence::Full, obs_match.charge) :
+          seq.getMonoWeight(NASequence::Full, obs_match.charge);
         exportObservationMatchToMzTab_(seq.toString(), obs_match, calc_mass,
                                        osms, osm_scores, file_map);
       }
