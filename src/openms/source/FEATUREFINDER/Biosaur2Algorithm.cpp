@@ -227,9 +227,7 @@ void Biosaur2Algorithm::run(FeatureMap& feature_map,
 
   // Parallelize processing across FAIMS groups. Each group is handled
   // independently using its own local hills/features containers.
-  #ifdef _OPENMP
   #pragma omp parallel for schedule(dynamic)
-  #endif
   for (int i = 0; i < static_cast<int>(n_groups); ++i)
   {
     auto& group_pair = groups[static_cast<Size>(i)];
@@ -313,6 +311,7 @@ double Biosaur2Algorithm::cosineCorrelation1D_(const vector<double>& v1,
   double dot = 0.0;
   double n1 = 0.0;
   double n2 = 0.0;
+  #pragma omp simd reduction(+:dot,n1,n2)
   for (Size i = 0; i < n; ++i)
   {
     dot += v1[i] * v2[i];
@@ -1830,137 +1829,128 @@ Size Biosaur2Algorithm::checkIsotopeValleySplit_(const vector<IsotopeCandidate>&
   return smoothed.size();
 }
 
-vector<Biosaur2Algorithm::PeptideFeature> Biosaur2Algorithm::detectIsotopePatterns_(vector<Hill>& hills,
+map<int, pair<double, double>> Biosaur2Algorithm::performInitialIsotopeCalibration_(const vector<Hill>& hills,
                                                                                     double itol_ppm,
                                                                                     int min_charge,
                                                                                     int max_charge,
-                                                                                    bool negative_mode,
-                                                                                    double ivf,
-                                                                                    int iuse,
-                                                                                    bool enable_isotope_calib,
-                                                                                    bool use_im) const
+                                                                                    bool enable_isotope_calib) const
 {
-  vector<PeptideFeature> features;
-  set<Size> used_hills;
-
-  OPENMS_LOG_INFO << "Detecting isotope patterns..." << endl;
-
-  sort(hills.begin(), hills.end(),
-       [](const Hill& a, const Hill& b) { return a.mz_weighted_mean < b.mz_weighted_mean; });
-  const double ISOTOPE_MASSDIFF = Constants::C13C12_MASSDIFF_U;
-
   map<int, pair<double, double>> isotope_calib_map;
   for (int ic = 1; ic <= 9; ++ic)
   {
     isotope_calib_map[ic] = make_pair(0.0, itol_ppm);
   }
 
-  if (enable_isotope_calib)
+  if (!enable_isotope_calib || hills.empty())
   {
-    OPENMS_LOG_INFO << "Performing isotope calibration..." << endl;
-    map<int, vector<double>> isotope_errors;
-    for (int ic = 1; ic <= 9; ++ic)
-    {
-      isotope_errors[ic] = vector<double>();
-    }
-
-    for (Size i = 0; i < hills.size(); ++i)
-    {
-      const Hill& mono_hill = hills[i];
-      double mono_mz = mono_hill.mz_weighted_mean;
-
-      for (int charge = max_charge; charge >= min_charge; --charge)
-      {
-        double mz_spacing = ISOTOPE_MASSDIFF / charge;
-        bool found_first = false;
-
-        for (int iso_num = 1; iso_num <= 9; ++iso_num)
-        {
-          double expected_mz = mono_mz + iso_num * mz_spacing;
-          double mz_tolerance = expected_mz * itol_ppm * 1e-6;
-
-          for (Size j = i + 1; j < hills.size(); ++j)
-          {
-            if (hills[j].mz_weighted_mean > expected_mz + mz_tolerance)
-            {
-              break;
-            }
-
-            double diff = fabs(hills[j].mz_weighted_mean - expected_mz);
-            if (diff <= mz_tolerance)
-            {
-              if (mono_hill.length >= 3)
-              {
-                double mass_diff_ppm = calculatePPM_(hills[j].mz_weighted_mean, expected_mz);
-                isotope_errors[iso_num].push_back(mass_diff_ppm);
-                if (iso_num == 1)
-                {
-                  found_first = true;
-                }
-              }
-              break;
-            }
-          }
-        }
-
-        if (found_first)
-        {
-          break;
-        }
-      }
-    }
-
-    for (int ic = 1; ic <= 3; ++ic)
-    {
-      if (isotope_errors[ic].size() >= 1000)
-      {
-        auto calib = calibrateMass_(isotope_errors[ic]);
-        isotope_calib_map[ic] = calib;
-        OPENMS_LOG_INFO << "Isotope " << ic << " calibration: shift="
-                        << calib.first << " ppm, sigma=" << calib.second << " ppm" << endl;
-      }
-    }
-
-    for (int ic = 4; ic <= 9; ++ic)
-    {
-      if (isotope_errors[ic].size() >= 1000)
-      {
-        isotope_calib_map[ic] = calibrateMass_(isotope_errors[ic]);
-      }
-      else if (ic > 1 && isotope_calib_map.find(ic - 1) != isotope_calib_map.end())
-      {
-        auto prev = isotope_calib_map[ic - 1];
-        auto prev2 = isotope_calib_map.find(ic - 2) != isotope_calib_map.end() ?
-                     isotope_calib_map[ic - 2] : make_pair(0.0, itol_ppm);
-
-        double shift_delta = prev.first - prev2.first;
-        double sigma_ratio = prev.second / max(prev2.second, 0.1);
-        isotope_calib_map[ic] = make_pair(prev.first + shift_delta, prev.second * sigma_ratio);
-      }
-    }
-
-    OPENMS_LOG_INFO << "Isotope 1 calibration: shift=" << isotope_calib_map[1].first
-                    << " ppm, sigma=" << isotope_calib_map[1].second << " ppm" << endl;
+    return isotope_calib_map;
   }
 
-  // Build fast m/z lookup for hills (analogous to hills_mz_median_fast_dict).
+  OPENMS_LOG_INFO << "Performing isotope calibration..." << endl;
+
+  const double ISOTOPE_MASSDIFF = Constants::C13C12_MASSDIFF_U;
+
+  map<int, vector<double>> isotope_errors;
+  for (int ic = 1; ic <= 9; ++ic)
+  {
+    isotope_errors[ic] = vector<double>();
+  }
+
+  for (Size i = 0; i < hills.size(); ++i)
+  {
+    const Hill& mono_hill = hills[i];
+    double mono_mz = mono_hill.mz_weighted_mean;
+
+    for (int charge = max_charge; charge >= min_charge; --charge)
+    {
+      double mz_spacing = ISOTOPE_MASSDIFF / static_cast<double>(charge);
+      bool found_first = false;
+
+      for (int iso_num = 1; iso_num <= 9; ++iso_num)
+      {
+        double expected_mz = mono_mz + iso_num * mz_spacing;
+        double mz_tolerance = expected_mz * itol_ppm * 1e-6;
+
+        for (Size j = i + 1; j < hills.size(); ++j)
+        {
+          if (hills[j].mz_weighted_mean > expected_mz + mz_tolerance)
+          {
+            break;
+          }
+
+          double diff = fabs(hills[j].mz_weighted_mean - expected_mz);
+          if (diff <= mz_tolerance)
+          {
+            if (mono_hill.length >= 3)
+            {
+              double mass_diff_ppm = calculatePPM_(hills[j].mz_weighted_mean, expected_mz);
+              isotope_errors[iso_num].push_back(mass_diff_ppm);
+              if (iso_num == 1)
+              {
+                found_first = true;
+              }
+            }
+            break;
+          }
+        }
+      }
+
+      if (found_first)
+      {
+        break;
+      }
+    }
+  }
+
+  for (int ic = 1; ic <= 3; ++ic)
+  {
+    if (isotope_errors[ic].size() >= 1000)
+    {
+      auto calib = calibrateMass_(isotope_errors[ic]);
+      isotope_calib_map[ic] = calib;
+      OPENMS_LOG_INFO << "Isotope " << ic << " calibration: shift="
+                      << calib.first << " ppm, sigma=" << calib.second << " ppm" << endl;
+    }
+  }
+
+  for (int ic = 4; ic <= 9; ++ic)
+  {
+    if (isotope_errors[ic].size() >= 1000)
+    {
+      isotope_calib_map[ic] = calibrateMass_(isotope_errors[ic]);
+    }
+    else if (ic > 1 && isotope_calib_map.find(ic - 1) != isotope_calib_map.end())
+    {
+      auto prev = isotope_calib_map[ic - 1];
+      auto prev2 = isotope_calib_map.find(ic - 2) != isotope_calib_map.end() ?
+                   isotope_calib_map[ic - 2] : make_pair(0.0, itol_ppm);
+
+      double shift_delta = prev.first - prev2.first;
+      double sigma_ratio = prev.second / max(prev2.second, 0.1);
+      isotope_calib_map[ic] = make_pair(prev.first + shift_delta, prev.second * sigma_ratio);
+    }
+  }
+
+  OPENMS_LOG_INFO << "Isotope 1 calibration: shift=" << isotope_calib_map[1].first
+                  << " ppm, sigma=" << isotope_calib_map[1].second << " ppm" << endl;
+
+  return isotope_calib_map;
+}
+
+double Biosaur2Algorithm::buildFastMzLookup_(const vector<Hill>& hills,
+                                             bool use_im,
+                                             map<int, vector<FastHillEntry>>& hills_mz_fast,
+                                             vector<int>& hill_im_bins) const
+{
+  hills_mz_fast.clear();
+  hill_im_bins.assign(hills.size(), 0);
+
   double max_mz_value = 0.0;
   for (const auto& h : hills)
   {
     max_mz_value = max(max_mz_value, h.mz_weighted_mean);
   }
   double mz_step = (max_mz_value > 0.0) ? (htol_ * 1e-6 * max_mz_value) : 0.0;
-
-  struct FastHillEntry
-  {
-    Size hill_index;
-    Size first_scan;
-    Size last_scan;
-  };
-
-  map<int, vector<FastHillEntry>> hills_mz_fast;
-  // Optional ion-mobility bins for hills (analogous to hills_im_median_fast_dict).
-  vector<int> hill_im_bins(hills.size(), 0);
 
   for (Size idx = 0; idx < hills.size(); ++idx)
   {
@@ -1974,15 +1964,38 @@ vector<Biosaur2Algorithm::PeptideFeature> Biosaur2Algorithm::detectIsotopePatter
     // Register each hill in the central bin and its two neighbors
     // (mz_bin-1, mz_bin, mz_bin+1), analogous to the Python
     // hills_mz_median_fast_dict population.
-    hills_mz_fast[mz_bin - 1].push_back({idx, first_scan, last_scan});
-    hills_mz_fast[mz_bin].push_back({idx, first_scan, last_scan});
-    hills_mz_fast[mz_bin + 1].push_back({idx, first_scan, last_scan});
+    hills_mz_fast[mz_bin - 1].push_back(FastHillEntry{idx, first_scan, last_scan});
+    hills_mz_fast[mz_bin].push_back(FastHillEntry{idx, first_scan, last_scan});
+    hills_mz_fast[mz_bin + 1].push_back(FastHillEntry{idx, first_scan, last_scan});
 
     if (use_im && h.ion_mobility_median >= 0.0)
     {
       hill_im_bins[idx] = static_cast<int>(h.ion_mobility_median / paseftol_);
     }
   }
+
+  return mz_step;
+}
+
+vector<Biosaur2Algorithm::PatternCandidate> Biosaur2Algorithm::generateIsotopeCandidates_(
+  const vector<Hill>& hills,
+  double itol_ppm,
+  int min_charge,
+  int max_charge,
+  double ivf,
+  double mz_step,
+  const map<int, vector<FastHillEntry>>& hills_mz_fast,
+  const map<Size, Size>& hill_idx_to_index,
+  const vector<int>& hill_im_bins,
+  bool use_im) const
+{
+  vector<PatternCandidate> ready;
+  if (hills.empty())
+  {
+    return ready;
+  }
+
+  const double ISOTOPE_MASSDIFF = Constants::C13C12_MASSDIFF_U;
 
   // Helper to check if two scan index lists share at least one scan.
   auto hasScanOverlap = [](const vector<Size>& a, const vector<Size>& b) -> bool
@@ -1996,19 +2009,6 @@ vector<Biosaur2Algorithm::PeptideFeature> Biosaur2Algorithm::detectIsotopePatter
     }
     return false;
   };
-
-  // Local pattern candidate structure mirroring the Python dictionaries.
-  struct PatternCandidate
-  {
-    Size mono_index;                 // index into hills
-    double mono_mz = 0.0;
-    int charge = 0;
-    double cos_cor_isotopes = 0.0;   // cosine in isotope-intensity space
-    vector<IsotopeCandidate> isotopes;
-    Size n_scans = 0;
-  };
-
-  vector<PatternCandidate> ready;
 
   // Charge ordering: high to low.
   vector<int> charges;
@@ -2026,14 +2026,6 @@ vector<Biosaur2Algorithm::PeptideFeature> Biosaur2Algorithm::detectIsotopePatter
     {2, {1}},
     {1, {1}}
   };
-
-  // Fast lookup from hill_idx to index into the hills vector
-  // to avoid repeated linear scans when accessing apex intensities.
-  map<Size, Size> hill_idx_to_index;
-  for (Size idx = 0; idx < hills.size(); ++idx)
-  {
-    hill_idx_to_index[hills[idx].hill_idx] = idx;
-  }
 
   // Initial isotope candidate generation (analogous to get_initial_isotopes).
   for (Size i = 0; i < hills.size(); ++i)
@@ -2061,60 +2053,61 @@ vector<Biosaur2Algorithm::PeptideFeature> Biosaur2Algorithm::detectIsotopePatter
         double expected_mz = mono_mz + ISOTOPE_MASSDIFF * iso_num / static_cast<double>(charge);
         int m_to_check_fast = (mz_step > 0.0) ? static_cast<int>(expected_mz / mz_step) : 0;
 
-	        auto it_bin = hills_mz_fast.find(m_to_check_fast);
-	        if (it_bin != hills_mz_fast.end())
-	        {
-	          for (const auto& entry : it_bin->second)
-	          {
-	            Size idx2 = entry.hill_index;
-	            if (idx2 == i) continue;
-	            const Hill& hill2 = hills[idx2];
-	            if (hill2.scan_indices.empty()) continue;
+        auto it_bin = hills_mz_fast.find(m_to_check_fast);
+        if (it_bin != hills_mz_fast.end())
+        {
+          for (const auto& entry : it_bin->second)
+          {
+            Size idx2 = entry.hill_index;
+            if (idx2 == i) continue;
+            const Hill& hill2 = hills[idx2];
+            if (hill2.scan_indices.empty()) continue;
 
-	            Size hill_scans_2_list_first = entry.first_scan;
-	            Size hill_scans_2_list_last = entry.last_scan;
+            Size hill_scans_2_list_first = entry.first_scan;
+            Size hill_scans_2_list_last = entry.last_scan;
 
-	            if (hill_scans_1_list_last < hill_scans_2_list_first ||
-	                hill_scans_2_list_last < hill_scans_1_list_first)
-	            {
-	              continue;
-	            }
+            if (hill_scans_1_list_last < hill_scans_2_list_first ||
+                hill_scans_2_list_last < hill_scans_1_list_first)
+            {
+              continue;
+            }
 
-	            // Optional ion mobility gating for isotope hills.
-	            if (use_im && hill_im_bins[i] != 0 && hill_im_bins[idx2] != 0)
-	            {
-	              if (abs(hill_im_bins[i] - hill_im_bins[idx2]) > 1)
-	              {
-	                continue;
-	              }
-	            }
+            // Optional ion mobility gating for isotope hills.
+            if (use_im && hill_im_bins.size() > i && hill_im_bins.size() > idx2 &&
+                hill_im_bins[i] != 0 && hill_im_bins[idx2] != 0)
+            {
+              if (abs(hill_im_bins[i] - hill_im_bins[idx2]) > 1)
+              {
+                continue;
+              }
+            }
 
-	            double mass_diff_abs = hill2.mz_weighted_mean - expected_mz;
-	            if (fabs(mass_diff_abs) > mz_tol)
-	            {
-	              continue;
-	            }
+            double mass_diff_abs = hill2.mz_weighted_mean - expected_mz;
+            if (fabs(mass_diff_abs) > mz_tol)
+            {
+              continue;
+            }
 
-	            if (!hasScanOverlap(scans1, hill2.scan_indices))
-	            {
-	              continue;
-	            }
+            if (!hasScanOverlap(scans1, hill2.scan_indices))
+            {
+              continue;
+            }
 
-	            double cos_cor_RT = cosineCorrelation_(mono_hill.intensities, mono_hill.scan_indices,
-	                                                   hill2.intensities, hill2.scan_indices);
-	            if (cos_cor_RT < 0.6)
-	            {
-	              continue;
-	            }
+            double cos_cor_RT = cosineCorrelation_(mono_hill.intensities, mono_hill.scan_indices,
+                                                   hill2.intensities, hill2.scan_indices);
+            if (cos_cor_RT < 0.6)
+            {
+              continue;
+            }
 
-	            IsotopeCandidate cand;
-	            cand.hill_idx = hill2.hill_idx;
-	            cand.isotope_number = iso_num;
-	            cand.mass_diff_ppm = mass_diff_abs * 1e6 / expected_mz;
-	            cand.cos_corr = cos_cor_RT;
-	            tmp_candidates.push_back(cand);
-	          }
-	        }
+            IsotopeCandidate cand;
+            cand.hill_idx = hill2.hill_idx;
+            cand.isotope_number = iso_num;
+            cand.mass_diff_ppm = mass_diff_abs * 1e6 / expected_mz;
+            cand.cos_corr = cos_cor_RT;
+            tmp_candidates.push_back(cand);
+          }
+        }
 
         if (!tmp_candidates.empty())
         {
@@ -2134,171 +2127,183 @@ vector<Biosaur2Algorithm::PeptideFeature> Biosaur2Algorithm::detectIsotopePatter
         min_required = it_ban->second;
       }
 
-        if (candidates.size() >= min_required)
+      if (candidates.size() >= min_required)
+      {
+        double hill_intensity_apex_1 = mono_hill.intensity_apex;
+        auto averagine = computeAveragine_(mono_mz * charge, hill_intensity_apex_1);
+        vector<double> all_theoretical_int = averagine.first;
+        Size max_pos = averagine.second;
+
+        // Enumerate all combinations of isotope candidates across orders.
+        if (!candidates.empty())
         {
-          double hill_intensity_apex_1 = mono_hill.intensity_apex;
-          auto averagine = computeAveragine_(mono_mz * charge, hill_intensity_apex_1);
-          vector<double> all_theoretical_int = averagine.first;
-          Size max_pos = averagine.second;
+          vector<Size> indices(candidates.size(), 0);
+          bool done = false;
 
-          // Enumerate all combinations of isotope candidates across orders.
-          if (!candidates.empty())
+          while (!done)
           {
-            vector<Size> indices(candidates.size(), 0);
-            bool done = false;
-
-            while (!done)
+            vector<IsotopeCandidate> picked_isotopes;
+            picked_isotopes.reserve(candidates.size());
+            for (Size k = 0; k < candidates.size(); ++k)
             {
-              vector<IsotopeCandidate> picked_isotopes;
-              picked_isotopes.reserve(candidates.size());
-              for (Size k = 0; k < candidates.size(); ++k)
+              picked_isotopes.push_back(candidates[k][indices[k]]);
+            }
+
+            vector<double> all_exp_intensity;
+            all_exp_intensity.reserve(picked_isotopes.size() + 1);
+            all_exp_intensity.push_back(hill_intensity_apex_1);
+
+            double local_minimum = 0.0;
+            Size local_minimum_pos = 0;
+
+            Size i_local_isotope = 1;
+            for (const auto& iso_cand : picked_isotopes)
+            {
+              // Find apex intensity of isotope hill (fast lookup by hill_idx).
+              double hill_intensity_apex_2 = 0.0;
+              auto it_idx = hill_idx_to_index.find(iso_cand.hill_idx);
+              if (it_idx != hill_idx_to_index.end())
               {
-                picked_isotopes.push_back(candidates[k][indices[k]]);
+                hill_intensity_apex_2 = hills[it_idx->second].intensity_apex;
               }
 
-              vector<double> all_exp_intensity;
-              all_exp_intensity.reserve(picked_isotopes.size() + 1);
-              all_exp_intensity.push_back(hill_intensity_apex_1);
-
-              double local_minimum = 0.0;
-              Size local_minimum_pos = 0;
-
-              Size i_local_isotope = 1;
-              for (const auto& iso_cand : picked_isotopes)
+              if (i_local_isotope > max_pos)
               {
-                // Find apex intensity of isotope hill (fast lookup by hill_idx).
-                double hill_intensity_apex_2 = 0.0;
-                auto it_idx = hill_idx_to_index.find(iso_cand.hill_idx);
-                if (it_idx != hill_idx_to_index.end())
+                if (i_local_isotope == max_pos + 1 || hill_intensity_apex_2 < local_minimum)
                 {
-                  hill_intensity_apex_2 = hills[it_idx->second].intensity_apex;
+                  local_minimum = hill_intensity_apex_2;
+                  local_minimum_pos = i_local_isotope;
                 }
-
-                if (i_local_isotope > max_pos)
+                if (hill_intensity_apex_2 >= ivf * local_minimum)
                 {
-                  if (i_local_isotope == max_pos + 1 || hill_intensity_apex_2 < local_minimum)
+                  if (local_minimum_pos + 1 < all_exp_intensity.size())
                   {
-                    local_minimum = hill_intensity_apex_2;
-                    local_minimum_pos = i_local_isotope;
+                    all_exp_intensity.resize(local_minimum_pos + 1);
                   }
-                  if (hill_intensity_apex_2 >= ivf * local_minimum)
-                  {
-                    if (local_minimum_pos + 1 < all_exp_intensity.size())
-                    {
-                      all_exp_intensity.resize(local_minimum_pos + 1);
-                    }
-                    break;
-                  }
-                }
-
-                all_exp_intensity.push_back(hill_intensity_apex_2);
-                ++i_local_isotope;
-              }
-
-              // Compute cosine correlation and optimal truncation in isotope-intensity space.
-              auto cc = checkingCosCorrelationForCarbon_(all_theoretical_int, all_exp_intensity, 0.6);
-              double cos_corr_iso = cc.first;
-              Size best_pos = cc.second;
-
-              if (cos_corr_iso > 0.0 && best_pos > 1)
-              {
-                Size n_iso_used = best_pos - 1;
-                n_iso_used = min(n_iso_used, picked_isotopes.size());
-
-                PatternCandidate pc;
-                pc.mono_index = i;
-                pc.mono_mz = mono_mz;
-                pc.charge = charge;
-                pc.cos_cor_isotopes = cos_corr_iso;
-                pc.n_scans = hill_scans_1_number;
-
-                pc.isotopes.assign(picked_isotopes.begin(),
-                                   picked_isotopes.begin() + n_iso_used);
-
-                if (!pc.isotopes.empty())
-                {
-                  ready.push_back(pc);
-
-                  for (int ch_v : charge_ban_map[charge])
-                  {
-                    auto& ref = banned_charges[ch_v];
-                    ref = max(ref, n_iso_used);
-                  }
-                }
-              }
-
-              // Next combination.
-              Size pos_idx = 0;
-              while (pos_idx < indices.size())
-              {
-                ++indices[pos_idx];
-                if (indices[pos_idx] < candidates[pos_idx].size())
-                {
                   break;
                 }
-                indices[pos_idx] = 0;
-                ++pos_idx;
               }
-              if (pos_idx == indices.size())
+
+              all_exp_intensity.push_back(hill_intensity_apex_2);
+              ++i_local_isotope;
+            }
+
+            // Compute cosine correlation and optimal truncation in isotope-intensity space.
+            auto cc = checkingCosCorrelationForCarbon_(all_theoretical_int, all_exp_intensity, 0.6);
+            double cos_corr_iso = cc.first;
+            Size best_pos = cc.second;
+
+            if (cos_corr_iso > 0.0 && best_pos > 1)
+            {
+              Size n_iso_used = best_pos - 1;
+              n_iso_used = min(n_iso_used, picked_isotopes.size());
+
+              PatternCandidate pc;
+              pc.mono_index = i;
+              pc.mono_mz = mono_mz;
+              pc.charge = charge;
+              pc.cos_cor_isotopes = cos_corr_iso;
+              pc.n_scans = hill_scans_1_number;
+
+              pc.isotopes.assign(picked_isotopes.begin(),
+                                 picked_isotopes.begin() + n_iso_used);
+
+              if (!pc.isotopes.empty())
               {
-                done = true;
+                ready.push_back(pc);
+
+                for (int ch_v : charge_ban_map[charge])
+                {
+                  auto& ref = banned_charges[ch_v];
+                  ref = max(ref, n_iso_used);
+                }
               }
+            }
+
+            // Next combination.
+            Size pos_idx = 0;
+            while (pos_idx < indices.size())
+            {
+              ++indices[pos_idx];
+              if (indices[pos_idx] < candidates[pos_idx].size())
+              {
+                break;
+              }
+              indices[pos_idx] = 0;
+              ++pos_idx;
+            }
+            if (pos_idx == indices.size())
+            {
+              done = true;
             }
           }
         }
+      }
     }
   }
 
-  // Isotope mass error calibration based on the initial candidates.
+  return ready;
+}
+
+vector<Biosaur2Algorithm::PatternCandidate> Biosaur2Algorithm::applyRtFiltering_(
+  const vector<PatternCandidate>& candidates,
+  const vector<Hill>& hills,
+  const map<Size, Size>& hill_idx_to_index) const
+{
+  if (hrttol_ <= 0.0 || candidates.empty())
+  {
+    return candidates;
+  }
+
+  vector<PatternCandidate> rt_filtered;
+  rt_filtered.reserve(candidates.size());
+
+  for (auto pc : candidates)
+  {
+    const Hill& mono_hill = hills[pc.mono_index];
+    double mono_rt_apex = mono_hill.rt_apex;
+
+    vector<IsotopeCandidate> kept;
+    kept.reserve(pc.isotopes.size());
+
+    for (const auto& iso_cand : pc.isotopes)
+    {
+      auto it_h = hill_idx_to_index.find(iso_cand.hill_idx);
+      if (it_h == hill_idx_to_index.end())
+      {
+        continue;
+      }
+      const Hill& iso_hill = hills[it_h->second];
+      double iso_rt_apex = iso_hill.rt_apex;
+      if (fabs(iso_rt_apex - mono_rt_apex) <= hrttol_)
+      {
+        kept.push_back(iso_cand);
+      }
+    }
+
+    if (!kept.empty())
+    {
+      pc.isotopes.swap(kept);
+      rt_filtered.push_back(pc);
+    }
+  }
+
+  OPENMS_LOG_INFO << "After RT apex filter (hrttol=" << hrttol_
+                  << " s), " << rt_filtered.size()
+                  << " potential isotope patterns remain." << endl;
+
+  return rt_filtered;
+}
+
+map<int, pair<double, double>> Biosaur2Algorithm::refineIsotopeCalibration_(
+  const vector<PatternCandidate>& candidates,
+  double itol_ppm,
+  bool enable_isotope_calib) const
+{
   map<int, vector<double>> isotope_errors_ready;
   for (int ic = 1; ic <= 9; ++ic) isotope_errors_ready[ic] = vector<double>();
 
-  // Optional RT-apex gating before isotope mass calibration:
-  // discard isotope hills whose apex RT is farther than hrttol_ seconds
-  // from the monoisotopic hill apex.
-  if (hrttol_ > 0.0 && !ready.empty())
-  {
-    vector<PatternCandidate> rt_filtered;
-    rt_filtered.reserve(ready.size());
-
-    for (auto pc : ready)
-    {
-      const Hill& mono_hill = hills[pc.mono_index];
-      double mono_rt_apex = mono_hill.rt_apex;
-
-      vector<IsotopeCandidate> kept;
-      kept.reserve(pc.isotopes.size());
-
-      for (const auto& iso_cand : pc.isotopes)
-      {
-        auto it_h = hill_idx_to_index.find(iso_cand.hill_idx);
-        if (it_h == hill_idx_to_index.end())
-        {
-          continue;
-        }
-        const Hill& iso_hill = hills[it_h->second];
-        double iso_rt_apex = iso_hill.rt_apex;
-        if (fabs(iso_rt_apex - mono_rt_apex) <= hrttol_)
-        {
-          kept.push_back(iso_cand);
-        }
-      }
-
-      if (!kept.empty())
-      {
-        pc.isotopes.swap(kept);
-        rt_filtered.push_back(pc);
-      }
-    }
-
-    OPENMS_LOG_INFO << "After RT apex filter (hrttol=" << hrttol_
-                    << " s), " << rt_filtered.size()
-                    << " potential isotope patterns remain." << endl;
-
-    ready.swap(rt_filtered);
-  }
-
-  for (const auto& pc : ready)
+  for (const auto& pc : candidates)
   {
     if (pc.n_scans < 3) continue;
     for (Size idx = 0; idx < pc.isotopes.size(); ++idx)
@@ -2317,38 +2322,50 @@ vector<Biosaur2Algorithm::PeptideFeature> Biosaur2Algorithm::detectIsotopePatter
     isotope_calib_map_ready[ic] = make_pair(0.0, itol_ppm);
   }
 
-  if (enable_isotope_calib)
+  if (!enable_isotope_calib)
   {
-    for (int ic = 1; ic <= 3; ++ic)
-    {
-      if (isotope_errors_ready[ic].size() >= 1000)
-      {
-        auto calib = calibrateMass_(isotope_errors_ready[ic]);
-        isotope_calib_map_ready[ic] = calib;
-      }
-    }
+    return isotope_calib_map_ready;
+  }
 
-    for (int ic = 4; ic <= 9; ++ic)
+  for (int ic = 1; ic <= 3; ++ic)
+  {
+    if (isotope_errors_ready[ic].size() >= 1000)
     {
-      if (isotope_errors_ready[ic].size() >= 1000)
-      {
-        isotope_calib_map_ready[ic] = calibrateMass_(isotope_errors_ready[ic]);
-      }
-      else if (ic > 1)
-      {
-        auto prev = isotope_calib_map_ready[ic - 1];
-        auto prev2 = (ic > 2) ? isotope_calib_map_ready[ic - 2] : make_pair(0.0, itol_ppm);
-        double shift_delta = prev.first - prev2.first;
-        double sigma_ratio = prev.second / max(prev2.second, 0.1);
-        isotope_calib_map_ready[ic] = make_pair(prev.first + shift_delta, prev.second * sigma_ratio);
-      }
+      auto calib = calibrateMass_(isotope_errors_ready[ic]);
+      isotope_calib_map_ready[ic] = calib;
     }
   }
 
-  // Apply calibrated isotope mass filters and re-check isotope-intensity cosine.
+  for (int ic = 4; ic <= 9; ++ic)
+  {
+    if (isotope_errors_ready[ic].size() >= 1000)
+    {
+      isotope_calib_map_ready[ic] = calibrateMass_(isotope_errors_ready[ic]);
+    }
+    else if (ic > 1)
+    {
+      auto prev = isotope_calib_map_ready[ic - 1];
+      auto prev2 = (ic > 2) ? isotope_calib_map_ready[ic - 2] : make_pair(0.0, itol_ppm);
+      double shift_delta = prev.first - prev2.first;
+      double sigma_ratio = prev.second / max(prev2.second, 0.1);
+      isotope_calib_map_ready[ic] = make_pair(prev.first + shift_delta, prev.second * sigma_ratio);
+    }
+  }
+
+  return isotope_calib_map_ready;
+}
+
+vector<Biosaur2Algorithm::PatternCandidate> Biosaur2Algorithm::filterByCalibration_(
+  const vector<PatternCandidate>& candidates,
+  const vector<Hill>& hills,
+  const map<Size, Size>& hill_idx_to_index,
+  const map<int, pair<double, double>>& isotope_calib_map_ready,
+  bool enable_isotope_calib) const
+{
   vector<PatternCandidate> filtered_ready;
-  filtered_ready.reserve(ready.size());
-  for (auto pc : ready)
+  filtered_ready.reserve(candidates.size());
+
+  for (auto pc : candidates)
   {
     if (enable_isotope_calib)
     {
@@ -2356,7 +2373,12 @@ vector<Biosaur2Algorithm::PeptideFeature> Biosaur2Algorithm::detectIsotopePatter
       for (const auto& cand : pc.isotopes)
       {
         int iso_num = static_cast<int>(cand.isotope_number);
-        auto calib = isotope_calib_map_ready[iso_num];
+        auto calib_it = isotope_calib_map_ready.find(iso_num);
+        if (calib_it == isotope_calib_map_ready.end())
+        {
+          continue;
+        }
+        const pair<double, double>& calib = calib_it->second;
         if (fabs(cand.mass_diff_ppm - calib.first) <= 5.0 * calib.second)
         {
           tmp.push_back(cand);
@@ -2419,8 +2441,25 @@ vector<Biosaur2Algorithm::PeptideFeature> Biosaur2Algorithm::detectIsotopePatter
     }
   }
 
+  return filtered_ready;
+}
+
+vector<Biosaur2Algorithm::PeptideFeature> Biosaur2Algorithm::selectNonOverlappingPatterns_(
+  const vector<PatternCandidate>& filtered_ready,
+  const vector<Hill>& hills,
+  bool negative_mode,
+  int iuse,
+  double itol_ppm) const
+{
+  vector<PeptideFeature> features;
+  if (filtered_ready.empty())
+  {
+    return features;
+  }
+
   // Final greedy selection of non-overlapping patterns (analogous to ready_final).
-  sort(filtered_ready.begin(), filtered_ready.end(),
+  vector<PatternCandidate> sorted = filtered_ready;
+  sort(sorted.begin(), sorted.end(),
        [](const PatternCandidate& a, const PatternCandidate& b)
        {
          if (a.isotopes.size() != b.isotopes.size())
@@ -2439,7 +2478,7 @@ vector<Biosaur2Algorithm::PeptideFeature> Biosaur2Algorithm::detectIsotopePatter
   }
 
   set<Size> occupied_hills;
-  for (const auto& pc_in : filtered_ready)
+  for (const auto& pc_in : sorted)
   {
     PatternCandidate pc = pc_in; // local copy that we may truncate
     const Hill& mono_hill = hills[pc.mono_index];
@@ -2605,6 +2644,70 @@ vector<Biosaur2Algorithm::PeptideFeature> Biosaur2Algorithm::detectIsotopePatter
       occupied_hills.insert(iso.hill_idx);
     }
   }
+
+  return features;
+}
+
+vector<Biosaur2Algorithm::PeptideFeature> Biosaur2Algorithm::detectIsotopePatterns_(vector<Hill>& hills,
+                                                                                    double itol_ppm,
+                                                                                    int min_charge,
+                                                                                    int max_charge,
+                                                                                    bool negative_mode,
+                                                                                    double ivf,
+                                                                                    int iuse,
+                                                                                    bool enable_isotope_calib,
+                                                                                    bool use_im) const
+{
+  vector<PeptideFeature> features;
+  set<Size> used_hills;
+
+  OPENMS_LOG_INFO << "Detecting isotope patterns..." << endl;
+
+  sort(hills.begin(), hills.end(),
+       [](const Hill& a, const Hill& b) { return a.mz_weighted_mean < b.mz_weighted_mean; });
+  map<Size, Size> hill_idx_to_index;
+  for (Size idx = 0; idx < hills.size(); ++idx)
+  {
+    hill_idx_to_index[hills[idx].hill_idx] = idx;
+  }
+
+  // Initial isotope calibration (diagnostic only, mimics original behaviour).
+  performInitialIsotopeCalibration_(hills,
+                                    itol_ppm,
+                                    min_charge,
+                                    max_charge,
+                                    enable_isotope_calib);
+
+  // Build fast m/z lookup and optional ion-mobility bins.
+  map<int, vector<FastHillEntry>> hills_mz_fast;
+  vector<int> hill_im_bins;
+  double mz_step = buildFastMzLookup_(hills, use_im, hills_mz_fast, hill_im_bins);
+
+  // Initial isotope candidate generation.
+  vector<PatternCandidate> ready = generateIsotopeCandidates_(hills,
+                                                              itol_ppm,
+                                                              min_charge,
+                                                              max_charge,
+                                                              ivf,
+                                                              mz_step,
+                                                              hills_mz_fast,
+                                                              hill_idx_to_index,
+                                                              hill_im_bins,
+                                                              use_im);
+
+  // Optional RT-apex gating before isotope mass calibration.
+  vector<PatternCandidate> rt_ready = applyRtFiltering_(ready, hills, hill_idx_to_index);
+
+  // Isotope mass error calibration based on the (optionally RT-filtered) candidates.
+  map<int, pair<double, double>> isotope_calib_map_ready =
+    refineIsotopeCalibration_(rt_ready, itol_ppm, enable_isotope_calib);
+
+  // Apply calibrated isotope mass filters and re-check isotope-intensity cosine.
+  vector<PatternCandidate> filtered_ready =
+    filterByCalibration_(rt_ready, hills, hill_idx_to_index, isotope_calib_map_ready, enable_isotope_calib);
+
+  // Final greedy selection of non-overlapping patterns and feature assembly.
+  features = selectNonOverlappingPatterns_(filtered_ready, hills, negative_mode, iuse, itol_ppm);
 
   OPENMS_LOG_INFO << "Detected " << features.size() << " features with isotope patterns" << endl;
   return features;

@@ -220,6 +220,40 @@ protected:
   void updateMembers_() override;
 
 private:
+  /// @name Internal helper structs
+  //@{
+
+  /**
+    @brief Lightweight index entry for fast m/z-based hill lookup.
+
+    Stores the hill index in the main @ref Hill vector together with the first
+    and last scan index for quick RT overlap checks when assembling isotope patterns.
+  */
+  struct FastHillEntry
+  {
+    Size hill_index = 0;
+    Size first_scan = 0;
+    Size last_scan = 0;
+  };
+
+  /**
+    @brief Internal representation of a candidate isotope pattern.
+
+    Encapsulates a monoisotopic hill together with a set of isotope candidates,
+    the associated charge state and quality metrics used during pattern refinement.
+  */
+  struct PatternCandidate
+  {
+    Size mono_index = 0;                          ///< Index of the monoisotopic hill in the hills vector
+    double mono_mz = 0.0;                         ///< Monoisotopic m/z
+    int charge = 0;                               ///< Charge state of the pattern
+    double cos_cor_isotopes = 0.0;                ///< Cosine correlation in isotope-intensity space
+    std::vector<IsotopeCandidate> isotopes;       ///< Associated isotope candidates
+    Size n_scans = 0;                             ///< Number of scans contributing to the monoisotopic hill
+  };
+
+  //@}
+
   /// @name Internal helper methods
   //@{
 
@@ -409,6 +443,142 @@ private:
     @return Recommended number of isotopes to retain (may be shorter than input)
   */
   Size checkIsotopeValleySplit_(const std::vector<IsotopeCandidate>& isotopes, const std::vector<Hill>& hills, double ivf) const;
+
+  /**
+    @brief Perform an initial mass calibration for isotope spacings based on raw hills.
+
+    Scans all hills for regularly spaced C13 isotope peaks across a range of charge
+    states and derives per-isotope shift/sigma estimates (in ppm). The results are
+    primarily diagnostic and mirror the behaviour of the reference Biosaur2 code.
+
+    @param hills Input hills sorted by m/z
+    @param itol_ppm Isotope mass tolerance in ppm
+    @param min_charge Minimum charge state to consider
+    @param max_charge Maximum charge state to consider
+    @param enable_isotope_calib Whether isotope calibration is enabled
+    @return Map from isotope index (1..9) to (shift, sigma) in ppm
+  */
+  std::map<int, std::pair<double, double>> performInitialIsotopeCalibration_(const std::vector<Hill>& hills,
+                                                                             double itol_ppm,
+                                                                             int min_charge,
+                                                                             int max_charge,
+                                                                             bool enable_isotope_calib) const;
+
+  /**
+    @brief Build fast m/z and optional ion-mobility lookup structures for hills.
+
+    Populates a binned m/z lookup and per-hill ion-mobility bins that accelerate
+    subsequent isotope candidate searches.
+
+    @param hills Input hills
+    @param use_im Whether ion mobility is used for gating
+    @param hills_mz_fast Output map from m/z bin to hills overlapping that bin
+    @param hill_im_bins Output ion-mobility bin per hill (0 if IM is not used or not available)
+    @return m/z step size used for binning (0 if no binning is possible)
+  */
+  double buildFastMzLookup_(const std::vector<Hill>& hills,
+                            bool use_im,
+                            std::map<int, std::vector<FastHillEntry>>& hills_mz_fast,
+                            std::vector<int>& hill_im_bins) const;
+
+  /**
+    @brief Generate initial isotope pattern candidates for all monoisotopic hills.
+
+    For each potential monoisotopic hill and charge state, searches the fast m/z lookup
+    for matching isotope hills, evaluates RT profile correlation and averagine agreement,
+    and returns all viable pattern candidates.
+
+    @param hills Input hills
+    @param itol_ppm Isotope mass tolerance in ppm
+    @param min_charge Minimum charge state to consider
+    @param max_charge Maximum charge state to consider
+    @param ivf Isotope valley factor controlling truncation at valleys
+    @param mz_step m/z step size returned by @ref buildFastMzLookup_
+    @param hills_mz_fast Fast m/z lookup map
+    @param hill_idx_to_index Lookup from hill index to position in @p hills
+    @param hill_im_bins Ion-mobility bins per hill
+    @param use_im Whether to use ion-mobility gating
+    @return Vector of initial isotope pattern candidates
+  */
+  std::vector<PatternCandidate> generateIsotopeCandidates_(const std::vector<Hill>& hills,
+                                                           double itol_ppm,
+                                                           int min_charge,
+                                                           int max_charge,
+                                                           double ivf,
+                                                           double mz_step,
+                                                           const std::map<int, std::vector<FastHillEntry>>& hills_mz_fast,
+                                                           const std::map<Size, Size>& hill_idx_to_index,
+                                                           const std::vector<int>& hill_im_bins,
+                                                           bool use_im) const;
+
+  /**
+    @brief Apply RT-apex based filtering to isotope pattern candidates.
+
+    Discards isotope hills whose apex RT deviates by more than @ref hrttol_ seconds
+    from the monoisotopic hill apex.
+
+    @param candidates Input candidates (unchanged)
+    @param hills All hills
+    @param hill_idx_to_index Lookup from hill index to position in @p hills
+    @return RT-filtered candidates (identical to input if RT gating is disabled)
+  */
+  std::vector<PatternCandidate> applyRtFiltering_(const std::vector<PatternCandidate>& candidates,
+                                                  const std::vector<Hill>& hills,
+                                                  const std::map<Size, Size>& hill_idx_to_index) const;
+
+  /**
+    @brief Refine isotope mass calibration based on initial pattern candidates.
+
+    Aggregates mass errors from all candidates and derives per-isotope shift/sigma
+    estimates to be used for subsequent filtering.
+
+    @param candidates Initial (optionally RT-filtered) pattern candidates
+    @param itol_ppm Isotope mass tolerance in ppm
+    @param enable_isotope_calib Whether isotope calibration is enabled
+    @return Map from isotope index (1..9) to (shift, sigma) in ppm
+  */
+  std::map<int, std::pair<double, double>> refineIsotopeCalibration_(const std::vector<PatternCandidate>& candidates,
+                                                                      double itol_ppm,
+                                                                      bool enable_isotope_calib) const;
+
+  /**
+    @brief Filter isotope pattern candidates using refined calibration and cosine checks.
+
+    Applies mass error windows based on the refined calibration and recomputes the
+    isotope-intensity cosine correlation, truncating patterns as necessary.
+
+    @param candidates Input pattern candidates
+    @param hills All hills
+    @param hill_idx_to_index Lookup from hill index to position in @p hills
+    @param isotope_calib_map_ready Per-isotope calibration parameters
+    @param enable_isotope_calib Whether isotope calibration is enabled
+    @return Filtered pattern candidates suitable for final greedy selection
+  */
+  std::vector<PatternCandidate> filterByCalibration_(const std::vector<PatternCandidate>& candidates,
+                                                     const std::vector<Hill>& hills,
+                                                     const std::map<Size, Size>& hill_idx_to_index,
+                                                     const std::map<int, std::pair<double, double>>& isotope_calib_map_ready,
+                                                     bool enable_isotope_calib) const;
+
+  /**
+    @brief Greedily select non-overlapping isotope patterns and assemble peptide features.
+
+    Sorts candidates by pattern length and quality, resolves conflicts between overlapping
+    hills, performs final averagine/cosine checks and converts surviving patterns into
+    @ref PeptideFeature entries.
+
+    @param filtered_ready Pattern candidates after calibration-based filtering
+    @param hills All hills
+    @param negative_mode Whether negative ion mode is enabled
+    @param iuse Number of isotopes to use for intensity calculation
+    @param itol_ppm Isotope mass tolerance in ppm (for debug sanity checks)
+    @return Final list of peptide features with non-overlapping isotope patterns
+  */
+  std::vector<PeptideFeature> selectNonOverlappingPatterns_(const std::vector<PatternCandidate>& filtered_ready,
+                                                            const std::vector<Hill>& hills,
+                                                            bool negative_mode,
+                                                            int iuse,
+                                                            double itol_ppm) const;
 
   /**
     @brief Detect isotope patterns and assemble peptide features
