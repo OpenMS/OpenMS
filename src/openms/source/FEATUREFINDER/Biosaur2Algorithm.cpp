@@ -1118,6 +1118,18 @@ void Biosaur2Algorithm::processFAIMSGroup_(double faims_cv,
   vector<PeptideFeature> group_features =
     detectIsotopePatterns_(group_hills, itol_, cmin_, cmax_, negative_mode_, ivf_, iuse_, enable_isotope_calib, use_im_group);
   stage_timer.stop();
+
+  // For non-FAIMS data (no compensation voltages detected), clear the
+  // per-feature drift time so downstream exports do not annotate
+  // features with a FAIMS CV meta value.
+  if (std::isnan(faims_cv))
+  {
+    for (auto& pf : group_features)
+    {
+      pf.drift_time = IMTypes::DRIFTTIME_NOT_SET;
+    }
+  }
+
   OPENMS_LOG_INFO << "Isotope pattern detection for group (FAIMS CV=" << faims_cv
                   << ") produced " << group_features.size()
                   << " features in " << stage_timer.toString() << endl;
@@ -2750,9 +2762,9 @@ FeatureMap Biosaur2Algorithm::convertToFeatureMap_(const vector<PeptideFeature>&
     feature.setMetaValue("n_isotopes", f.n_isotopes);
     feature.setMetaValue("n_scans", f.n_scans);
     feature.setMetaValue("intensity_sum", f.intensity_sum);
-    if (f.drift_time >= 0)
+    if (f.drift_time != IMTypes::DRIFTTIME_NOT_SET)
     {
-      feature.setMetaValue("FAIMS_compensation_voltage", f.drift_time);
+      feature.setMetaValue("FAIMS_CV", f.drift_time);
     }
     if (f.ion_mobility >= 0)
     {
