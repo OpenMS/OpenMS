@@ -38,7 +38,7 @@ namespace OpenMS
 
   The implementation closely mirrors the reference Python implementation to ensure reproducible results.
   All core parameters are exposed through the parameter system and can be configured via INI files
-  or programmatically. For detailed parameter descriptions and usage examples, see @ref TOPP_Biosaur2.
+  or programmatically. For detailed parameter descriptions and usage examples, see @ref TOPP_FeatureFinderLFQ.
 
   Reference:
   Abdrakhimov, et al. Biosaur: An open-source Python software for liquid chromatography-mass
