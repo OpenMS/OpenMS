@@ -478,18 +478,23 @@ pair<vector<double>, Size> Biosaur2Algorithm::computeAveragine_(double neutral_m
   constexpr int averagine_mass_bin_step = 100;
   constexpr int averagine_max_mass_bin_index = 199; // 0..199 => 0..19900 Da
 
-  static vector<vector<double>> averagine_table;
-  static vector<Size> averagine_max_pos;
-  static bool averagine_initialized = false;
-
-  if (!averagine_initialized)
+  struct AveragineData
   {
+    vector<vector<double>> table;
+    vector<Size> max_pos;
+  };
+
+  // Thread-safe (since C++11) initialization of the averagine lookup data:
+  static const AveragineData data = []()
+  {
+    AveragineData d;
+
     const double averagine_mass = 111.1254;
     const double averagine_C = 4.9384;
     const double p = 0.0107;
 
-    averagine_table.assign(averagine_max_mass_bin_index + 1, vector<double>(10, 0.0));
-    averagine_max_pos.assign(averagine_max_mass_bin_index + 1, 0);
+    d.table.assign(averagine_max_mass_bin_index + 1, vector<double>(10, 0.0));
+    d.max_pos.assign(averagine_max_mass_bin_index + 1, 0);
 
     for (int bin_idx = 0; bin_idx <= averagine_max_mass_bin_index; ++bin_idx)
     {
@@ -504,25 +509,29 @@ pair<vector<double>, Size> Biosaur2Algorithm::computeAveragine_(double neutral_m
       {
         double prob = (static_cast<int>(k) <= n_C) ?
                       boost::math::pdf(dist, static_cast<unsigned>(k)) : 0.0;
-        averagine_table[bin_idx][k] = prob;
+        d.table[bin_idx][k] = prob;
         sum_prob += prob;
       }
 
       if (sum_prob <= 0.0) sum_prob = 1.0;
       for (Size k = 0; k < 10; ++k)
       {
-        averagine_table[bin_idx][k] /= sum_prob;
+        d.table[bin_idx][k] /= sum_prob;
       }
 
-      Size max_pos = distance(averagine_table[bin_idx].begin(),
-                              max_element(averagine_table[bin_idx].begin(),
-                                          averagine_table[bin_idx].end()));
+      Size max_pos = distance(d.table[bin_idx].begin(),
+                              max_element(d.table[bin_idx].begin(),
+                                          d.table[bin_idx].end()));
       if (max_pos < 4) max_pos = 4;
-      averagine_max_pos[bin_idx] = max_pos;
+      d.max_pos[bin_idx] = max_pos;
     }
 
-    averagine_initialized = true;
-  }
+    return d;
+  }();
+
+  // Convenience references
+  const vector<vector<double>>& averagine_table = data.table;
+  const vector<Size>& averagine_max_pos = data.max_pos;
 
   // Map neutral mass onto the same 100 Da grid as the Python implementation.
   int bin_idx = static_cast<int>(floor(neutral_mass / static_cast<double>(averagine_mass_bin_step)));
