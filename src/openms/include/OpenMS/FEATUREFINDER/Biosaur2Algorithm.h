@@ -333,7 +333,7 @@ private:
     @param exp MS experiment to be centroided (modified in place)
     @param mz_step m/z binning width for clustering
   */
-  void centroidPASEFData_(MSExperiment& exp, double mz_step) const;
+  void centroidPASEFData_(MSExperiment& exp, double mz_step, double pasef_tolerance) const;
 
   /**
     @brief Detect hills (continuous m/z traces) in the MS experiment
@@ -349,7 +349,7 @@ private:
     @param hill_mass_diffs Optional output container for mass differences (for calibration)
     @return Vector of detected hills
   */
-  std::vector<Hill> detectHills_(const MSExperiment& exp, double htol_ppm, double min_intensity, double min_mz, double max_mz, std::vector<double>* hill_mass_diffs = nullptr) const;
+  std::vector<Hill> detectHills_(const MSExperiment& exp, double htol_ppm, double min_intensity, double min_mz, double max_mz, bool use_im, std::vector<double>* hill_mass_diffs = nullptr) const;
 
   /**
     @brief Link peaks in a single scan to existing hills or start new hills.
@@ -427,7 +427,7 @@ private:
     @param enable_isotope_calib Whether to apply automatic mass calibration for isotopes
     @return Vector of detected peptide features
   */
-  std::vector<PeptideFeature> detectIsotopePatterns_(std::vector<Hill>& hills, double itol_ppm, int min_charge, int max_charge, bool negative_mode, double ivf, int iuse, bool enable_isotope_calib) const;
+  std::vector<PeptideFeature> detectIsotopePatterns_(std::vector<Hill>& hills, double itol_ppm, int min_charge, int max_charge, bool negative_mode, double ivf, int iuse, bool enable_isotope_calib, bool use_im) const;
 
   /**
     @brief Convert peptide features to OpenMS FeatureMap format
