@@ -297,14 +297,14 @@ START_SECTION((MzTab exportMzTab(const IdentificationData& id_data)))
   TEST_EQUAL(osm_rows.size(), 1);
   if (!osm_rows.empty())
   {
-    // The calculated mass should be the average weight, not monoisotopic
-    double expected_avg_mass = oligo_seq.getAverageWeight(NASequence::Full, 2) / 2; // charge 2
-    double expected_mono_mass = oligo_seq.getMonoWeight(NASequence::Full, 2) / 2; // charge 2
-    double actual_mass = osm_rows[0].calc_mass_to_charge.get();
-    // Check that actual mass is closer to average mass than monoisotopic mass
-    TEST_REAL_SIMILAR(actual_mass, expected_avg_mass);
-    // Verify it's different from monoisotopic (sanity check)
-    TEST_NOT_EQUAL(fabs(expected_avg_mass - expected_mono_mass) < 0.001, true);
+    // The calculated mass-to-charge should be the average weight divided by charge
+    double expected_avg_mz = oligo_seq.getAverageWeight(NASequence::Full, 2) / 2; // mass/charge
+    double expected_mono_mz = oligo_seq.getMonoWeight(NASequence::Full, 2) / 2; // mass/charge
+    double actual_mz = osm_rows[0].calc_mass_to_charge.get();
+    // Check that actual m/z is close to expected average m/z
+    TEST_REAL_SIMILAR(actual_mz, expected_avg_mz);
+    // Verify average and monoisotopic are different (sanity check)
+    TEST_TRUE(fabs(expected_avg_mz - expected_mono_mz) > 0.001);
   }
 
   // Also test with MONOISOTOPIC mass type for comparison
@@ -338,10 +338,10 @@ START_SECTION((MzTab exportMzTab(const IdentificationData& id_data)))
   TEST_EQUAL(mono_osm_rows.size(), 1);
   if (!mono_osm_rows.empty())
   {
-    // The calculated mass should be the monoisotopic weight
-    double expected_mono_mass = oligo_seq.getMonoWeight(NASequence::Full, 2) / 2; // charge 2
-    double actual_mass = mono_osm_rows[0].calc_mass_to_charge.get();
-    TEST_REAL_SIMILAR(actual_mass, expected_mono_mass);
+    // The calculated mass-to-charge should be the monoisotopic weight divided by charge
+    double expected_mono_mz = oligo_seq.getMonoWeight(NASequence::Full, 2) / 2; // mass/charge
+    double actual_mz = mono_osm_rows[0].calc_mass_to_charge.get();
+    TEST_REAL_SIMILAR(actual_mz, expected_mono_mz);
   }
 }
 END_SECTION
