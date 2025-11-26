@@ -276,7 +276,8 @@ START_SECTION((std::vector<PeakMap> splitByFAIMSCV with include_non_faims_cv0=tr
   exp_mixed.addSpectrum(faims2);
 
   std::vector<PeakMap> bins = IMDataConverter::splitByFAIMSCV(std::move(exp_mixed), true);
-  TEST_EQUAL(bins.size(), 3) // CV=0 for non-FAIMS, CV=-55, CV=-45
+  // Expect 3 bins: CV=0 for non-FAIMS, CV=-55, CV=-45
+  TEST_EQUAL(bins.size(), 3)
 
   // First bin should be the non-FAIMS spectra (CV=0)
   TEST_EQUAL(bins[0].size(), 1)
