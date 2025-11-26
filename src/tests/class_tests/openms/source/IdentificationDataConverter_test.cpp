@@ -245,6 +245,104 @@ START_SECTION((MzTab exportMzTab(const IdentificationData& id_data)))
   MzTabFile().store(filename, mztab);
 
   TEST_FILE_SIMILAR(filename, OPENMS_GET_TEST_DATA_PATH("IdentificationDataConverter_out2.mzTab"));
+
+  // Test average mass export for RNA OSMs:
+  // Create RNA identification data with observation match and average mass search param
+  IdentificationData rna_avg_ids;
+
+  // Register input file
+  IdentificationData::InputFile input("test_input.mzML");
+  IdentificationData::InputFileRef input_ref = rna_avg_ids.registerInputFile(input);
+
+  // Register processing software
+  IdentificationData::ProcessingSoftware sw("TestEngine", "1.0");
+  IdentificationData::ProcessingSoftwareRef sw_ref = rna_avg_ids.registerProcessingSoftware(sw);
+
+  // Register search parameters with AVERAGE mass type
+  IdentificationData::DBSearchParam search_param;
+  search_param.molecule_type = IdentificationData::MoleculeType::RNA;
+  search_param.mass_type = IdentificationData::MassType::AVERAGE;
+  IdentificationData::SearchParamRef search_ref = rna_avg_ids.registerDBSearchParam(search_param);
+
+  // Register processing step linked to search parameters
+  IdentificationData::ProcessingStep step(sw_ref);
+  step.input_file_refs.push_back(input_ref);
+  IdentificationData::ProcessingStepRef step_ref = rna_avg_ids.registerProcessingStep(step, search_ref);
+
+  // Register parent sequence (RNA)
+  IdentificationData::ParentSequence rna_parent("test_rna", IdentificationData::MoleculeType::RNA, "AUCGAUCG");
+  IdentificationData::ParentSequenceRef rna_ref = rna_avg_ids.registerParentSequence(rna_parent);
+
+  // Register identified oligonucleotide
+  NASequence oligo_seq = NASequence::fromString("AUCG");
+  IdentificationData::IdentifiedOligo oligo_id(oligo_seq);
+  IdentificationData::ParentMatch pmatch(0, 3);
+  oligo_id.parent_matches[rna_ref].insert(pmatch);
+  IdentificationData::IdentifiedOligoRef oligo_ref = rna_avg_ids.registerIdentifiedOligo(oligo_id);
+
+  // Register observation
+  IdentificationData::Observation obs("scan_1", input_ref, 100.0, 500.0);
+  IdentificationData::ObservationRef obs_ref = rna_avg_ids.registerObservation(obs);
+
+  // Register observation match with the processing step
+  IdentificationData::ObservationMatch obs_match(oligo_ref, obs_ref, 2);
+  IdentificationData::AppliedProcessingStep applied_step(step_ref);
+  obs_match.addProcessingStep(applied_step);
+  rna_avg_ids.registerObservationMatch(obs_match);
+
+  // Export to MzTab and check OSM section
+  mztab = IdentificationDataConverter::exportMzTab(rna_avg_ids);
+  const MzTabOSMSectionRows& osm_rows = mztab.getOSMSectionRows();
+
+  TEST_EQUAL(osm_rows.size(), 1);
+  if (!osm_rows.empty())
+  {
+    // The calculated mass should be the average weight, not monoisotopic
+    double expected_avg_mass = oligo_seq.getAverageWeight(NASequence::Full, 2) / 2; // charge 2
+    double expected_mono_mass = oligo_seq.getMonoWeight(NASequence::Full, 2) / 2; // charge 2
+    double actual_mass = osm_rows[0].calc_mass_to_charge.get();
+    // Check that actual mass is closer to average mass than monoisotopic mass
+    TEST_REAL_SIMILAR(actual_mass, expected_avg_mass);
+    // Verify it's different from monoisotopic (sanity check)
+    TEST_NOT_EQUAL(fabs(expected_avg_mass - expected_mono_mass) < 0.001, true);
+  }
+
+  // Also test with MONOISOTOPIC mass type for comparison
+  IdentificationData rna_mono_ids;
+  input_ref = rna_mono_ids.registerInputFile(input);
+  sw_ref = rna_mono_ids.registerProcessingSoftware(sw);
+
+  // Register search parameters with MONOISOTOPIC mass type
+  IdentificationData::DBSearchParam mono_search_param;
+  mono_search_param.molecule_type = IdentificationData::MoleculeType::RNA;
+  mono_search_param.mass_type = IdentificationData::MassType::MONOISOTOPIC;
+  search_ref = rna_mono_ids.registerDBSearchParam(mono_search_param);
+
+  step = IdentificationData::ProcessingStep(sw_ref);
+  step.input_file_refs.push_back(input_ref);
+  step_ref = rna_mono_ids.registerProcessingStep(step, search_ref);
+
+  rna_ref = rna_mono_ids.registerParentSequence(rna_parent);
+  oligo_id = IdentificationData::IdentifiedOligo(oligo_seq);
+  oligo_id.parent_matches[rna_ref].insert(pmatch);
+  oligo_ref = rna_mono_ids.registerIdentifiedOligo(oligo_id);
+  obs_ref = rna_mono_ids.registerObservation(obs);
+  obs_match = IdentificationData::ObservationMatch(oligo_ref, obs_ref, 2);
+  applied_step = IdentificationData::AppliedProcessingStep(step_ref);
+  obs_match.addProcessingStep(applied_step);
+  rna_mono_ids.registerObservationMatch(obs_match);
+
+  mztab = IdentificationDataConverter::exportMzTab(rna_mono_ids);
+  const MzTabOSMSectionRows& mono_osm_rows = mztab.getOSMSectionRows();
+
+  TEST_EQUAL(mono_osm_rows.size(), 1);
+  if (!mono_osm_rows.empty())
+  {
+    // The calculated mass should be the monoisotopic weight
+    double expected_mono_mass = oligo_seq.getMonoWeight(NASequence::Full, 2) / 2; // charge 2
+    double actual_mass = mono_osm_rows[0].calc_mass_to_charge.get();
+    TEST_REAL_SIMILAR(actual_mass, expected_mono_mass);
+  }
 }
 END_SECTION
 
