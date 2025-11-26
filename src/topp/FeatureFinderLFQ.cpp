@@ -7,9 +7,11 @@
 // --------------------------------------------------------------------------
 
 /**
- * @page TOPP_Biosaur2 Biosaur2
+ * @page TOPP_FeatureFinderLFQ FeatureFinderLFQ
  *
- * @brief Feature detection for LC-MS1 data with ion mobility support
+ * @brief Feature detection for LC-MS1 data with ion mobility support (EXPERIMENTAL)
+ *
+ * <B>Note: This tool is experimental and under active development. The interface and behavior may change.</B>
  *
  * This TOPP tool is a C++ reimplementation of the Biosaur2 feature detection algorithm.
  * It detects peptide features in centroided LC-MS1 data (with optional profile mode support) through:
@@ -37,9 +39,9 @@
  * Rapid Communications in Mass Spectrometry, 2022. https://doi.org/10.1002/rcm.9045
  *
  * <B>The command line parameters of this tool are:</B>
- * @verbinclude TOPP_Biosaur2.cli
+ * @verbinclude TOPP_FeatureFinderLFQ.cli
  * <B>INI file documentation of this tool:</B>
- * @htmlinclude TOPP_Biosaur2.html
+ * @htmlinclude TOPP_FeatureFinderLFQ.html
  */
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
@@ -65,12 +67,12 @@ using namespace std;
  * features and hills. All algorithmic heavy lifting is performed by the reusable Biosaur2Algorithm class so the TOPP wrapper remains
  * focused on parameter handling and reporting.
  */
-class TOPPBiosaur2 final :
+class TOPPFeatureFinderLFQ final :
   public TOPPBase
 {
 public:
-  TOPPBiosaur2() :
-    TOPPBase("Biosaur2", "Feature detection for LC-MS1 data", false)
+  TOPPFeatureFinderLFQ() :
+    TOPPBase("FeatureFinderLFQ", "Feature detection for LC-MS1 data (EXPERIMENTAL)", false)
   {
   }
 
@@ -200,7 +202,7 @@ private:
 
 int main(int argc, const char** argv)
 {
-  TOPPBiosaur2 tool;
+  TOPPFeatureFinderLFQ tool;
   return tool.main(argc, argv);
 }
 

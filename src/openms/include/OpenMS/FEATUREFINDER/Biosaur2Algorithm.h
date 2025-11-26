@@ -45,8 +45,6 @@ namespace OpenMS
   spectrometry peptide feature detection with ion mobility support.
   Rapid Communications in Mass Spectrometry, 2022. https://doi.org/10.1002/rcm.9045
 
-  @htmlinclude OpenMS_Biosaur2Algorithm.parameters
-
   @ingroup FeatureFinder
 */
 class OPENMS_DLLAPI Biosaur2Algorithm :
@@ -326,26 +324,28 @@ private:
 
   /**
     @brief Centroid PASEF/TIMS spectra in joint m/z-ion mobility space
-
+ 
     Performs 2D clustering of peaks in the m/z and ion mobility dimensions to reduce data complexity
     for ion mobility-enabled instruments.
-
+ 
     @param exp MS experiment to be centroided (modified in place)
     @param mz_step m/z binning width for clustering
+    @param pasef_tolerance Ion mobility accuracy (in IM units) used to cluster peaks in the IM dimension
   */
   void centroidPASEFData_(MSExperiment& exp, double mz_step, double pasef_tolerance) const;
 
   /**
     @brief Detect hills (continuous m/z traces) in the MS experiment
-
+ 
     Scans through the experiment and groups peaks with similar m/z values across consecutive scans
     into hills. Optionally collects mass differences for subsequent calibration.
-
+ 
     @param exp Input MS experiment
     @param htol_ppm Mass tolerance in ppm for linking peaks into hills
     @param min_intensity Minimum intensity threshold for peaks
     @param min_mz Minimum m/z value to consider
     @param max_mz Maximum m/z value to consider
+    @param use_im Whether to use ion-mobility information during hill linking (2D m/z–IM hills)
     @param hill_mass_diffs Optional output container for mass differences (for calibration)
     @return Vector of detected hills
   */
@@ -412,11 +412,11 @@ private:
 
   /**
     @brief Detect isotope patterns and assemble peptide features
-
+ 
     For each candidate monoisotopic hill, searches for matching isotope peaks based on expected
     mass differences and charge states. Evaluates isotope candidates using cosine correlation
     and mass accuracy, then assembles complete peptide features.
-
+ 
     @param hills Input hills (will be modified to mark used hills)
     @param itol_ppm Mass tolerance in ppm for isotope matching
     @param min_charge Minimum charge state to consider
@@ -425,6 +425,7 @@ private:
     @param ivf Isotope valley factor for splitting patterns
     @param iuse Number of isotopes to use for intensity calculation (0=mono only, -1=all, etc.)
     @param enable_isotope_calib Whether to apply automatic mass calibration for isotopes
+    @param use_im Whether to use ion-mobility information when scoring and grouping isotope patterns
     @return Vector of detected peptide features
   */
   std::vector<PeptideFeature> detectIsotopePatterns_(std::vector<Hill>& hills, double itol_ppm, int min_charge, int max_charge, bool negative_mode, double ivf, int iuse, bool enable_isotope_calib, bool use_im) const;
