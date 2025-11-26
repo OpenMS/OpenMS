@@ -486,25 +486,15 @@ private:
 
   /**
     @brief Check if missing ion mobility data should be treated as an error
-
+ 
     The Python reference implementation gracefully degrades when ion mobility arrays are missing.
     This method implements the same behavior by returning false to allow processing without IM data.
-
+ 
     @param spectrum Spectrum to check
     @return Currently always returns false (missing IM is not an error)
   */
   bool shouldThrowForMissingIM_(const MSSpectrum& spectrum) const;
-
-  /**
-    @brief Build FAIMS-aware processing groups
-
-    Separates spectra by FAIMS compensation voltage (CV) to ensure features are detected
-    within each CV group independently. Non-FAIMS spectra are placed in a separate group.
-
-    @return Vector of (CV value, MS experiment) pairs
-  */
-  std::vector<std::pair<double, MSExperiment>> buildFAIMSGroups_() const;
-
+ 
   /**
     @brief Process a single FAIMS compensation voltage group
 

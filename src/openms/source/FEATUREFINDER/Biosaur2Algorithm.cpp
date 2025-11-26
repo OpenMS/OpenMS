@@ -10,6 +10,7 @@
 #include <OpenMS/DATASTRUCTURES/ConvexHull2D.h>
 #include <OpenMS/DATASTRUCTURES/DBoundingBox.h>
 #include <OpenMS/IONMOBILITY/FAIMSHelper.h>
+#include <OpenMS/IONMOBILITY/IMDataConverter.h>
 #include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/KERNEL/SpectrumHelper.h>
@@ -213,8 +214,9 @@ void Biosaur2Algorithm::run(FeatureMap& feature_map,
     throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No MS1 spectra found in input experiment!", "");
   }
 
-  // Build FAIMS-aware processing groups (one per CV plus optional non-FAIMS group).
-  vector<pair<double, MSExperiment>> groups = buildFAIMSGroups_();
+  // Build FAIMS-aware processing groups (one per CV or a single non-FAIMS group).
+  std::vector<std::pair<double, MSExperiment>> groups =
+    IMDataConverter::splitByFAIMSCV(std::move(ms_data_));
 
   const Size n_groups = groups.size();
   vector<vector<Hill>> hills_per_group(n_groups);
@@ -971,69 +973,6 @@ void Biosaur2Algorithm::centroidPASEFData_(MSExperiment& exp, double mz_step, do
 
   OPENMS_LOG_INFO << "PASEF centroiding: " << total_peaks_before
                   << " peaks -> " << total_peaks_after << " centroided clusters" << endl;
-}
-
-vector<pair<double, MSExperiment>> Biosaur2Algorithm::buildFAIMSGroups_() const
-{
-  vector<pair<double, MSExperiment>> groups;
-
-  // Detect FAIMS compensation voltages (if any) to mirror Python's CV-aware
-  // processing. If no FAIMS data are present, we process the experiment in
-  // a single pass.
-  auto cvs = FAIMSHelper::getCompensationVoltages(ms_data_);
-  if (!cvs.empty())
-  {
-    OPENMS_LOG_INFO << "Detected FAIMS data with " << cvs.size() << " compensation voltage(s)" << endl;
-    for (const auto& cv : cvs)
-    {
-      OPENMS_LOG_INFO << "  CV: " << cv << " V" << endl;
-    }
-  }
-
-  if (cvs.empty())
-  {
-    // Single group containing all MS1 spectra.
-    MSExperiment exp = ms_data_;
-    groups.emplace_back(std::numeric_limits<double>::quiet_NaN(), std::move(exp));
-  }
-  else
-  {
-    // Non-FAIMS MS1 spectra (if any) go into a CV=0 group.
-    MSExperiment base_exp;
-    bool has_non_faims = false;
-    for (const auto& spec : ms_data_)
-    {
-      if (spec.getDriftTimeUnit() != DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE)
-      {
-        base_exp.addSpectrum(spec);
-        has_non_faims = true;
-      }
-    }
-    if (has_non_faims)
-    {
-      groups.emplace_back(0.0, std::move(base_exp));
-    }
-
-    // One group per FAIMS CV.
-    for (double cv : cvs)
-    {
-      MSExperiment exp_cv;
-      for (const auto& spec : ms_data_)
-      {
-        if (spec.getDriftTimeUnit() == DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE &&
-            fabs(spec.getDriftTime() - cv) <= 1e-6)
-        {
-          exp_cv.addSpectrum(spec);
-        }
-      }
-      if (!exp_cv.empty())
-      {
-        groups.emplace_back(cv, std::move(exp_cv));
-      }
-    }
-  }
-
-  return groups;
 }
 
 void Biosaur2Algorithm::processFAIMSGroup_(double faims_cv,
