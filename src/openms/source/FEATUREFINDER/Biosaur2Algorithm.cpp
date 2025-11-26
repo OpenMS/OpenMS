@@ -2002,6 +2002,9 @@ map<int, pair<double, double>> Biosaur2Algorithm::performInitialIsotopeCalibrati
         double expected_mz = mono_mz + iso_num * mz_spacing;
         double mz_tolerance = expected_mz * itol_ppm * 1e-6;
 
+        Size best_j = numeric_limits<Size>::max();
+        double best_intensity = -1.0;
+
         for (Size j = i + 1; j < hills.size(); ++j)
         {
           if (hills[j].mz_weighted_mean > expected_mz + mz_tolerance)
@@ -2009,19 +2012,32 @@ map<int, pair<double, double>> Biosaur2Algorithm::performInitialIsotopeCalibrati
             break;
           }
 
+          if (hills[j].mz_weighted_mean < expected_mz - mz_tolerance)
+          {
+            continue;
+          }
+
           double diff = fabs(hills[j].mz_weighted_mean - expected_mz);
           if (diff <= mz_tolerance)
           {
-            if (mono_hill.length >= 3)
+            if (hills[j].intensity_apex > best_intensity)
             {
-              double mass_diff_ppm = calculatePPM_(hills[j].mz_weighted_mean, expected_mz);
-              isotope_errors[iso_num].push_back(mass_diff_ppm);
-              if (iso_num == 1)
-              {
-                found_first = true;
-              }
+              best_intensity = hills[j].intensity_apex;
+              best_j = j;
             }
-            break;
+          }
+        }
+
+        if (best_j != numeric_limits<Size>::max())
+        {
+          if (mono_hill.length >= 3)
+          {
+            double mass_diff_ppm = calculatePPM_(hills[best_j].mz_weighted_mean, expected_mz);
+            isotope_errors[iso_num].push_back(mass_diff_ppm);
+            if (iso_num == 1)
+            {
+              found_first = true;
+            }
           }
         }
       }

@@ -308,6 +308,7 @@ set(math_executables_list
 )
 
 set(filtering_executables_list
+  Biosaur2Algorithm_test
   DataFilters_test
   Deisotoper_test
   ElutionPeakDetection_test
