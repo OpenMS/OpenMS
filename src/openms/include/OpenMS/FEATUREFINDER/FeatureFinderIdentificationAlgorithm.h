@@ -302,6 +302,18 @@ protected:
 
   void postProcess_(FeatureMap& features, bool with_external_ids);
 
+  /// Helper functions for run()
+  void validateSVMParameters_() const;
+  void initializeFeatureFinder_();
+  double calculateRTWindow_(double rt_uncertainty) const;
+  void removeSeedPseudoIDs_(FeatureMap& features);
+
+  /// Helper function to check if a peptide hit is a seed pseudo-ID
+  static bool isSeedPseudoHit_(const PeptideHit& hit);
+
+  /// Calculate RT bounds with optional tolerance expansion
+  std::pair<double, double> calculateRTBounds_(double rt_min, double rt_max) const;
+
   /// some statistics on detected features
   void statistics_(const FeatureMap& features) const;
 

@@ -387,15 +387,9 @@ namespace OpenMS
     return seeds_added;
   }
 
-  void FeatureFinderIdentificationAlgorithm::run(
-    PeptideIdentificationList peptides,
-    const vector<ProteinIdentification>& proteins,
-    PeptideIdentificationList peptides_ext,
-    vector<ProteinIdentification> proteins_ext,
-    FeatureMap& features,
-    const FeatureMap& seeds,
-    const String& spectra_file
-    )
+  // ===== Helper functions for run() =====
+
+  void FeatureFinderIdentificationAlgorithm::validateSVMParameters_() const
   {
     if ((svm_n_samples_ > 0) && (svm_n_samples_ < 2 * svm_n_parts_))
     {
@@ -405,11 +399,10 @@ namespace OpenMS
       throw Exception::InvalidParameter(__FILE__, __LINE__,
                                         OPENMS_PRETTY_FUNCTION, msg);
     }
+  }
 
-    // annotate mzML file
-    features.setPrimaryMSRunPath({spectra_file}, ms_data_);
-
-    // initialize algorithm classes needed later:
+  void FeatureFinderIdentificationAlgorithm::initializeFeatureFinder_()
+  {
     Param params = feat_finder_.getParameters();
     params.setValue("stop_report_after_feature", -1); // return all features
     params.setValue("EMGScoring:max_iteration", param_.getValue("EMGScoring:max_iteration"));
@@ -423,17 +416,6 @@ namespace OpenMS
     //TODO for MS1 level scoring there is an additional parameter add_up_spectra with which we can add up spectra
     // around the apex, to complete isotopic envelopes (and therefore make this score more robust).
 
-    double IM_window = param_.getValue("extract:IM_window");
-    IMFormat im_format = IMTypes::determineIMFormat(ms_data_);
-    bool has_IM = false;
-    if (im_format == IMFormat::CONCATENATED)
-    {
-      has_IM = true;
-    } else if (im_format != IMFormat::NONE) // has IM but wrong format
-    {
-      OPENMS_LOG_ERROR << "Wrong IM format detected. Expecting in concatenated format (float data arrays)" << std::endl;
-    }
-    
     if ((elution_model_ != "none") || (!candidates_out_.empty()))
     {
       params.setValue("write_convex_hull", "true");
@@ -452,14 +434,131 @@ namespace OpenMS
     params.setValue("TransitionGroupPicker:recalculate_peaks", "true");
     params.setValue("TransitionGroupPicker:PeakPickerChromatogram:peak_width", -1.0);
     params.setValue("TransitionGroupPicker:PeakPickerChromatogram:method",
-                    "corrected");    
+                    "corrected");
     params.setValue("TransitionGroupPicker:PeakPickerChromatogram:write_sn_log_messages", "false"); // disabled in OpenSWATH
-    
+
     feat_finder_.setParameters(params);
     feat_finder_.setLogType(ProgressLogger::NONE);
     feat_finder_.setStrictFlag(false);
     // to use MS1 Swath scores:
     feat_finder_.setMS1Map(SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(boost::make_shared<MSExperiment>(ms_data_)));
+  }
+
+  double FeatureFinderIdentificationAlgorithm::calculateRTWindow_(double rt_uncertainty) const
+  {
+    if (rt_window_ != 0.0)
+    {
+      return rt_window_; // Already set, return it
+    }
+
+    // Calculate RT window based on other parameters and alignment quality:
+    double map_tol = mapping_tolerance_;
+    if (map_tol < 1.0)
+    {
+      map_tol *= (2 * peak_width_); // relative tolerance
+    }
+    double calculated_window = (rt_uncertainty + 2 * peak_width_ + map_tol) * 2;
+    OPENMS_LOG_INFO << "RT window size calculated as " << calculated_window << " seconds." << endl;
+    return calculated_window;
+  }
+
+  bool FeatureFinderIdentificationAlgorithm::isSeedPseudoHit_(const PeptideHit& hit)
+  {
+    return hit.getSequence().toUnmodifiedString().hasPrefix("XXX");
+  }
+
+  void FeatureFinderIdentificationAlgorithm::removeSeedPseudoIDs_(FeatureMap& features)
+  {
+    // Remove all hits with pseudo ids (seeds) from features
+    for (Feature& f : features)
+    {
+      PeptideIdentificationList& ids = f.getPeptideIdentifications();
+
+      // if we have peptide identifications assigned and all are annotated as OffsetPeptide,
+      // we mark the feature as also an OffsetPeptide
+      if (!ids.empty() && std::all_of(ids.begin(), ids.end(),
+          [](const PeptideIdentification& pid) { return pid.metaValueExists("OffsetPeptide"); }))
+      {
+        f.setMetaValue("OffsetPeptide", "true");
+      }
+
+      // remove all seed pseudo hits (PSM details)
+      for (auto& pid : ids)
+      {
+        std::vector<PeptideHit>& hits = pid.getHits();
+        auto it = remove_if(hits.begin(), hits.end(), isSeedPseudoHit_);
+        hits.erase(it, hits.end());
+      }
+
+      // remove empty PeptideIdentifications
+      auto it = remove_if(ids.begin(), ids.end(),
+        [](const PeptideIdentification& pid) { return pid.empty(); });
+      ids.erase(it, ids.end());
+    }
+
+    // clean up unassigned PeptideIdentifications
+    PeptideIdentificationList& ids = features.getUnassignedPeptideIdentifications();
+    for (auto& pid : ids)
+    {
+      std::vector<PeptideHit>& hits = pid.getHits();
+      auto it = remove_if(hits.begin(), hits.end(), isSeedPseudoHit_);
+      hits.erase(it, hits.end());
+    }
+
+    // remove empty PeptideIdentifications
+    auto it = remove_if(ids.begin(), ids.end(),
+      [](const PeptideIdentification& pid) { return pid.empty(); });
+    ids.erase(it, ids.end());
+  }
+
+  std::pair<double, double> FeatureFinderIdentificationAlgorithm::calculateRTBounds_(
+    double rt_min, double rt_max) const
+  {
+    if (mapping_tolerance_ > 0.0)
+    {
+      double abs_tol = mapping_tolerance_;
+      if (abs_tol < 1.0)
+      {
+        abs_tol *= (rt_max - rt_min);
+      }
+      return {rt_min - abs_tol, rt_max + abs_tol};
+    }
+    return {rt_min, rt_max};
+  }
+
+  // ===== End of helper functions =====
+
+  void FeatureFinderIdentificationAlgorithm::run(
+    PeptideIdentificationList peptides,
+    const vector<ProteinIdentification>& proteins,
+    PeptideIdentificationList peptides_ext,
+    vector<ProteinIdentification> proteins_ext,
+    FeatureMap& features,
+    const FeatureMap& seeds,
+    const String& spectra_file
+    )
+  {
+    // Validate parameters
+    validateSVMParameters_();
+
+    // annotate mzML file
+    features.setPrimaryMSRunPath({spectra_file}, ms_data_);
+
+    // Check IM format
+    double IM_window = param_.getValue("extract:IM_window");
+    IMFormat im_format = IMTypes::determineIMFormat(ms_data_);
+    bool has_IM = false;
+    if (im_format == IMFormat::CONCATENATED)
+    {
+      has_IM = true;
+    }
+    else if (im_format != IMFormat::NONE) // has IM but wrong format
+    {
+      OPENMS_LOG_ERROR << "Wrong IM format detected. Expecting in concatenated format (float data arrays)" << std::endl;
+    }
+
+    // Initialize feature finder with appropriate parameters
+    initializeFeatureFinder_();
 
     bool with_external_ids = !peptides_ext.empty();
 
@@ -479,18 +578,8 @@ namespace OpenMS
       rt_uncertainty = external_id_handler_.alignInternalAndExternalIDs(peptides, peptides_ext, rt_quantile_);
     }
 
-    if (rt_window_ == 0.0)
-    {
-      // calculate RT window based on other parameters and alignment quality:
-      double map_tol = mapping_tolerance_;
-      if (map_tol < 1.0)
-      {
-        map_tol *= (2 * peak_width_); // relative tolerance
-      }
-      rt_window_ = (rt_uncertainty + 2 * peak_width_ + map_tol) * 2;
-      OPENMS_LOG_INFO << "RT window size calculated as " << rt_window_ << " seconds."
-               << endl;
-    }
+    // Calculate RT window if not already set
+    rt_window_ = calculateRTWindow_(rt_uncertainty);
 
     //-------------------------------------------------------------
     // prepare peptide map
@@ -652,56 +741,7 @@ namespace OpenMS
       peptides_ext.begin(), peptides_ext.end());
 
     // remove all hits with pseudo ids (seeds)
-    for (Feature& f : features)
-    {
-      PeptideIdentificationList& ids = f.getPeptideIdentifications();
-
-      // if we have peptide identifications assigned and all are annotated as OffsetPeptide, we mark the feature is also an OffsetPeptide
-      if (!ids.empty() && std::all_of(ids.begin(), ids.end(), [](const PeptideIdentification & pid) { return pid.metaValueExists("OffsetPeptide"); }))
-      {
-        f.setMetaValue("OffsetPeptide", "true");
-      }
-
-      // remove all hits (PSM details)
-      for (auto & pid : ids)
-      {
-        std::vector<PeptideHit>& hits = pid.getHits();
-        auto it = remove_if(hits.begin(), hits.end(),
-          [](const PeptideHit & ph)
-          {
-            return (ph.getSequence().toUnmodifiedString().hasPrefix("XXX"));
-          });
-        hits.erase(it, hits.end()); // remove / erase idiom
-      }
-
-      // remove empty PeptideIdentifications
-      auto it = remove_if(ids.begin(), ids.end(),
-        [](const PeptideIdentification & pid)
-        {
-          return pid.empty();
-        });
-      ids.erase(it, ids.end()); // remove / erase idiom
-    }
-
-    // clean up unassigned PeptideIdentifications
-    PeptideIdentificationList& ids = features.getUnassignedPeptideIdentifications();
-    for (auto & pid : ids)
-    {
-      std::vector<PeptideHit>& hits = pid.getHits();
-      auto it = remove_if(hits.begin(), hits.end(), [](const PeptideHit & ph)
-      {
-        return (ph.getSequence().toUnmodifiedString().hasPrefix("XXX"));
-      });
-      hits.erase(it, hits.end());
-    }
-
-    // remove empty PeptideIdentifications
-    auto it = remove_if(ids.begin(), ids.end(),
-      [](const PeptideIdentification & pid)
-      {
-        return pid.empty();
-      });
-    ids.erase(it, ids.end()); // remove / erase idiom
+    removeSeedPseudoIDs_(features);
 
     // add back ignored PSMs
     features.getUnassignedPeptideIdentifications().insert(features.getUnassignedPeptideIdentifications().end(),
@@ -1474,16 +1514,8 @@ namespace OpenMS
         // map IDs to features (based on RT):
         double rt_min = features[i].getMetaValue("leftWidth");
         double rt_max = features[i].getMetaValue("rightWidth");
-        if (mapping_tolerance_ > 0.0)
-        {
-          double abs_tol = mapping_tolerance_;
-          if (abs_tol < 1.0)
-          {
-            abs_tol *= (rt_max - rt_min);
-          }
-          rt_min -= abs_tol;
-          rt_max += abs_tol;
-        }
+        std::tie(rt_min, rt_max) = calculateRTBounds_(rt_min, rt_max);
+
         RTMap::const_iterator lower = rt_internal.lower_bound(rt_min);
         RTMap::const_iterator upper = rt_internal.upper_bound(rt_max);
         int id_count = 0;
@@ -1549,16 +1581,8 @@ namespace OpenMS
 
         double rt_min = feat.getMetaValue("leftWidth");
         double rt_max = feat.getMetaValue("rightWidth");
-        if (mapping_tolerance_ > 0.0)
-        {
-          double abs_tol = mapping_tolerance_;
-          if (abs_tol < 1.0)
-          {
-            abs_tol *= (rt_max - rt_min);
-          }
-          rt_min -= abs_tol;
-          rt_max += abs_tol;
-        }
+        std::tie(rt_min, rt_max) = calculateRTBounds_(rt_min, rt_max);
+
         RTMap::const_iterator lower = rt_ref.lower_bound(rt_min);
         RTMap::const_iterator upper = rt_ref.upper_bound(rt_max);
         if (lower != upper) // there's at least one ID within the feature
