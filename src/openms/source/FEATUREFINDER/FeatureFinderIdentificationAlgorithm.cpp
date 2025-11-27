@@ -64,6 +64,7 @@ namespace OpenMS
       "extract:IM_window",
       0.06,
       "Ion mobility (IM) window for chromatogram extraction in the IM dimension. "
+      "Set to 0.0 to disable IM filtering (even if data contains IM information). "
       "The window is applied as +/- IM_window/2 around the median IM value of identified peptides. "
       "This parameter is automatically ignored if the input data does not contain IM information "
       "(determined via IMTypes::determineIMFormat). "
@@ -235,12 +236,12 @@ namespace OpenMS
 
   TargetedExperiment& FeatureFinderIdentificationAlgorithm::getLibrary()
   {
-    return library_;
+    return output_library_;
   }
 
   const TargetedExperiment& FeatureFinderIdentificationAlgorithm::getLibrary() const
   {
-    return library_;
+    return output_library_;
   }
 
 
@@ -538,6 +539,9 @@ namespace OpenMS
     const String& spectra_file
     )
   {
+    // Clear output library from any previous run
+    output_library_.clear(true);
+
     // Validate parameters
     validateSVMParameters_();
 
@@ -674,7 +678,7 @@ namespace OpenMS
         extractor.prepare_coordinates(chrom_temp, coords, library_,
                                       numeric_limits<double>::quiet_NaN(), false);
 
-        if (has_IM)
+        if (has_IM && IM_window > 0.0)
         {
           extractor.extractChromatograms(spec_temp, chrom_temp, coords, mz_window_,
                                         mz_window_ppm_, IM_window, "tophat");
@@ -705,6 +709,19 @@ namespace OpenMS
         OpenMS_Log_info.insert(cout); // revert logging change
       }
       chrom_data_.clear(true);
+      // Accumulate library entries for output before clearing
+      for (const auto& pep : library_.getPeptides())
+      {
+        output_library_.addPeptide(pep);
+      }
+      for (const auto& prot : library_.getProteins())
+      {
+        output_library_.addProtein(prot);
+      }
+      for (const auto& trans : library_.getTransitions())
+      {
+        output_library_.addTransition(trans);
+      }
       library_.clear(true);
       // since chrom_data_ here is just a container for the chromatograms and identifications will be empty,
       // pickExperiment above will only add empty ProteinIdentification runs with colliding identifiers.

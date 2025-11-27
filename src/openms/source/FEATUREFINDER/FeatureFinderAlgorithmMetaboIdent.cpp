@@ -437,7 +437,7 @@ namespace OpenMS
     }
     iso_dist.renormalize();
 
-    // Prepare IM values: recycle to one value per RT entry if needed
+    // Prepare IM values: either empty (no filtering), one value (for all), or one per RT
     vector<double> ims = ion_mobilities;
     if (ims.empty())
     {
@@ -449,14 +449,13 @@ namespace OpenMS
     }
     else if (ims.size() != rts.size())
     {
-      OPENMS_LOG_WARN << "Warning: Number of IonMobility values (" << ims.size()
-                      << ") does not match number of RT values (" << rts.size()
-                      << ") for target '" << name << "' - using first IM value for all." << endl;
-      double first_im = ims[0];
-      ims.resize(rts.size(), first_im);
+      OPENMS_LOG_ERROR << "Error: Number of IonMobility values (" << ims.size()
+                       << ") does not match number of RT values (" << rts.size()
+                       << ") for target '" << name << "' - skipping this target." << endl;
+      return;
     }
 
-    // Prepare IM ranges: recycle to one range entry per RT
+    // Prepare IM ranges: either empty (use default), one value (for all), or one per RT
     if (im_ranges.empty())
     {
       im_ranges.resize(rts.size(), 0.0);
@@ -464,6 +463,30 @@ namespace OpenMS
     else if (im_ranges.size() == 1)
     {
       im_ranges.resize(rts.size(), im_ranges[0]);
+    }
+    else if (im_ranges.size() != rts.size())
+    {
+      OPENMS_LOG_ERROR << "Error: Number of IonMobilityRange values (" << im_ranges.size()
+                       << ") does not match number of RT values (" << rts.size()
+                       << ") for target '" << name << "' - skipping this target." << endl;
+      return;
+    }
+
+    // Prepare RT ranges: either empty (use default), one value (for all), or one per RT
+    if (rt_ranges.empty())
+    {
+      rt_ranges.resize(rts.size(), 0.0);
+    }
+    else if (rt_ranges.size() == 1)
+    {
+      rt_ranges.resize(rts.size(), rt_ranges[0]);
+    }
+    else if (rt_ranges.size() != rts.size())
+    {
+      OPENMS_LOG_ERROR << "Error: Number of RetentionTimeRange values (" << rt_ranges.size()
+                       << ") does not match number of RT values (" << rts.size()
+                       << ") for target '" << name << "' - skipping this target." << endl;
+      return;
     }
 
     // go through different charge states:
@@ -487,16 +510,6 @@ namespace OpenMS
       else
       {
         mz = calculateMZ_(mass, *z_it);
-      }
-
-      // recycle to one range entry per RT:
-      if (rt_ranges.empty())
-      {
-        rt_ranges.resize(rts.size(), 0.0);
-      }
-      else if (rt_ranges.size() == 1)
-      {
-        rt_ranges.resize(rts.size(), rt_ranges[0]);
       }
 
       for (Size i = 0; i < rts.size(); ++i)

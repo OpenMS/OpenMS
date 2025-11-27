@@ -204,7 +204,8 @@ protected:
 
   PeakMap ms_data_; ///< input LC-MS data
   PeakMap chrom_data_; ///< accumulated chromatograms (XICs)
-  TargetedExperiment library_; ///< accumulated assays for peptides
+  TargetedExperiment library_; ///< assays for peptides (cleared per chunk during processing)
+  TargetedExperiment output_library_; ///< accumulated assays for output (populated from library_ before clearing)
 
   bool quantify_decoys_;
   double add_mass_offset_peptides_{0.0}; ///< non-zero if for every feature an additional offset features should be extracted

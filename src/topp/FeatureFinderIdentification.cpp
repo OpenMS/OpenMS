@@ -239,6 +239,12 @@ protected:
       // For auxiliary outputs with FAIMS data
       bool keep_chromatograms = !chrom_out.empty();
       bool keep_library = !lib_out.empty();
+      if (keep_library && has_faims)
+      {
+        OPENMS_LOG_WARN << "Warning: Library output (-lib_out) is not supported for multi-FAIMS data. "
+                        << "Each FAIMS CV group has its own assay library. Skipping library output." << endl;
+        keep_library = false;
+      }
       TargetedExperiment combined_library;
       PeakMap combined_chromatograms;
       bool first_group = true;
@@ -339,23 +345,10 @@ protected:
           first_group = false;
         }
 
-        // Collect auxiliary outputs if requested
+        // For non-FAIMS data, get the library (FAIMS library output is skipped with warning above)
         if (keep_library)
         {
-          const auto& lib = ffid_algo_cv.getLibrary();
-          // Merge peptides, proteins, and transitions
-          for (const auto& pep : lib.getPeptides())
-          {
-            combined_library.addPeptide(pep);
-          }
-          for (const auto& prot : lib.getProteins())
-          {
-            combined_library.addProtein(prot);
-          }
-          for (const auto& trans : lib.getTransitions())
-          {
-            combined_library.addTransition(trans);
-          }
+          combined_library = ffid_algo_cv.getLibrary();
         }
 
         if (keep_chromatograms)
