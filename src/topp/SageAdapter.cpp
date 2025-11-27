@@ -784,17 +784,70 @@ protected:
     for (auto& id : peptide_identifications)
     {
       Int64 scanNrAsInt = 0;
-      
+
       try
-      { // check if spectrum reference is a string that just contains a number        
+      { // check if spectrum reference is a string that just contains a number
         scanNrAsInt = id.getSpectrumReference().toInt64();
         // no exception -> conversion to int was successful. Now lookup full native ID in corresponding file for given spectrum number.
-        id.setSpectrumReference( file2specnr2nativeid[idxToFile[id.getMetaValue(Constants::UserParam::ID_MERGE_INDEX)]].at(scanNrAsInt) );                              
+        id.setSpectrumReference( file2specnr2nativeid[idxToFile[id.getMetaValue(Constants::UserParam::ID_MERGE_INDEX)]].at(scanNrAsInt) );
       }
       catch (...)
       {
       }
     }
+
+    // Annotate FAIMS compensation voltage if present in any input file
+    // Requires loading with all MS levels to capture MS1 FAIMS metadata
+    for (const auto& mzml : input_files)
+    {
+      MzMLFile m;
+      MSExperiment exp_full;
+      auto opts = m.getOptions();
+      opts.setFillData(false); // only need metadata
+      m.setOptions(opts);
+      m.load(mzml, exp_full);
+
+      // Get peptide IDs belonging to this file
+      Size file_idx = 0;
+      for (const auto& [idx, fname] : idxToFile)
+      {
+        if (File::basename(fname) == File::basename(mzml))
+        {
+          file_idx = idx;
+          break;
+        }
+      }
+
+      // Filter peptide IDs for this file and annotate FAIMS
+      PeptideIdentificationList file_peptides;
+      std::vector<Size> file_peptide_indices;
+      for (Size i = 0; i < peptide_identifications.size(); ++i)
+      {
+        auto& pep = peptide_identifications[i];
+        if (pep.metaValueExists(Constants::UserParam::ID_MERGE_INDEX) &&
+            static_cast<Size>(pep.getMetaValue(Constants::UserParam::ID_MERGE_INDEX)) == file_idx)
+        {
+          file_peptides.push_back(pep);
+          file_peptide_indices.push_back(i);
+        }
+      }
+
+      if (!file_peptides.empty())
+      {
+        SpectrumMetaDataLookup::addMissingFAIMSToPeptideIDs(file_peptides, exp_full);
+        // Copy back annotated FAIMS values
+        for (Size i = 0; i < file_peptides.size(); ++i)
+        {
+          if (file_peptides[i].metaValueExists(Constants::UserParam::FAIMS_CV))
+          {
+            peptide_identifications[file_peptide_indices[i]].setMetaValue(
+              Constants::UserParam::FAIMS_CV,
+              file_peptides[i].getMetaValue(Constants::UserParam::FAIMS_CV));
+          }
+        }
+      }
+    }
+
     IdXMLFile().store(output_file, protein_identifications, peptide_identifications);
     return EXECUTION_OK;
   }

@@ -239,6 +239,11 @@ namespace OpenMS
       */
       inline const std::string IM = "IM";
 
+      /** User parameter name for FAIMS compensation voltage values
+              Double (in volts)
+      */
+      inline const std::string FAIMS_CV = "FAIMS_CV";
+
       /** MetaValue key for raw TimsTOF ion mobility array (from MSConvert)
        * PeakPickerIM expects to find 'Ion Mobility' array and will treat it as raw timsTOF data
        * TODO --- PeakPickerIM should output a different name than simply writing back centroided im data as 'Ion Mobility'

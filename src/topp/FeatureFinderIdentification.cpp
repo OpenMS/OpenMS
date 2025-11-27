@@ -8,15 +8,22 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModel.h>
+#include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/IONMOBILITY/FAIMSHelper.h>
+#include <OpenMS/IONMOBILITY/IMDataConverter.h>
+#include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/FEATUREFINDER/FeatureFinderIdentificationAlgorithm.h>
 #include <cstdlib>  // for "rand"
 #include <ctime>    // for "time" (seeding of random number generator)
 #include <iterator> // for "inserter", "back_inserter"
+#include <limits>
+#include <set>
 
 using namespace OpenMS;
 using namespace std;
@@ -201,9 +208,10 @@ protected:
       // load input
       //-------------------------------------------------------------
       OPENMS_LOG_INFO << "Loading input data..." << endl;
+      PeakMap ms_data_full;
       FileHandler mzml;
       mzml.getOptions().addMSLevel(1);
-      mzml.loadExperiment(in, ffid_algo.getMSData(), {FileTypes::MZML}, log_type_);
+      mzml.loadExperiment(in, ms_data_full, {FileTypes::MZML}, log_type_);
 
       PeptideIdentificationList peptides, peptides_ext;
       vector<ProteinIdentification> proteins, proteins_ext;
@@ -218,27 +226,167 @@ protected:
       }
 
       //-------------------------------------------------------------
-      // run feature detection
+      // Split by FAIMS CV (returns single NaN-keyed element for non-FAIMS data)
       //-------------------------------------------------------------
-      ffid_algo.run(peptides, proteins, peptides_ext, proteins_ext, features, FeatureMap(), in);
+      auto faims_groups = IMDataConverter::splitByFAIMSCV(std::move(ms_data_full));
 
-      // write auxiliary output:
+      const bool has_faims = faims_groups.size() > 1 || !std::isnan(faims_groups[0].first);
+      if (has_faims)
+      {
+        OPENMS_LOG_INFO << "FAIMS data detected with " << faims_groups.size() << " compensation voltage(s)." << endl;
+      }
+
+      // For auxiliary outputs with FAIMS data
       bool keep_chromatograms = !chrom_out.empty();
       bool keep_library = !lib_out.empty();
+      TargetedExperiment combined_library;
+      PeakMap combined_chromatograms;
+      bool first_group = true;
 
-      // keep assay data for output?
+      // Process each FAIMS CV group (or single group for non-FAIMS data)
+      for (auto& [group_cv, faims_group] : faims_groups)
+      {
+        // Filter peptide IDs for this FAIMS CV (if FAIMS data)
+        PeptideIdentificationList peptides_cv, peptides_ext_cv;
+
+        if (has_faims)
+        {
+          OPENMS_LOG_INFO << "Processing FAIMS CV group: " << group_cv << " V" << endl;
+
+          for (const auto& pep : peptides)
+          {
+            if (pep.metaValueExists(Constants::UserParam::FAIMS_CV))
+            {
+              double pep_cv = pep.getMetaValue(Constants::UserParam::FAIMS_CV);
+              if (std::abs(pep_cv - group_cv) < 0.01) // tolerance for floating point comparison
+              {
+                peptides_cv.push_back(pep);
+              }
+            }
+            else
+            {
+              // IDs without FAIMS_CV annotation - include in all groups (backward compatibility)
+              peptides_cv.push_back(pep);
+            }
+          }
+
+          for (const auto& pep : peptides_ext)
+          {
+            if (pep.metaValueExists(Constants::UserParam::FAIMS_CV))
+            {
+              double pep_cv = pep.getMetaValue(Constants::UserParam::FAIMS_CV);
+              if (std::abs(pep_cv - group_cv) < 0.01)
+              {
+                peptides_ext_cv.push_back(pep);
+              }
+            }
+            else
+            {
+              peptides_ext_cv.push_back(pep);
+            }
+          }
+
+          if (peptides_cv.empty() && peptides_ext_cv.empty())
+          {
+            OPENMS_LOG_INFO << "No peptide IDs for FAIMS CV " << group_cv << " V. Skipping." << endl;
+            continue;
+          }
+
+          OPENMS_LOG_INFO << "  " << peptides_cv.size() << " internal IDs, "
+                          << peptides_ext_cv.size() << " external IDs" << endl;
+        }
+        else
+        {
+          // Non-FAIMS: use all peptides
+          peptides_cv = peptides;
+          peptides_ext_cv = peptides_ext;
+        }
+
+        // Create algorithm instance for this group
+        FeatureFinderIdentificationAlgorithm ffid_algo_cv;
+        ffid_algo_cv.getProgressLogger().setLogType(log_type_);
+        ffid_algo_cv.setParameters(getParam_().copySubset(FeatureFinderIdentificationAlgorithm().getDefaults()));
+        ffid_algo_cv.setMSData(std::move(faims_group));
+
+        // Run feature detection
+        FeatureMap features_cv;
+        ffid_algo_cv.run(peptides_cv, proteins, peptides_ext_cv, proteins_ext, features_cv, FeatureMap(), in);
+
+        // Annotate features with FAIMS CV (if FAIMS data) and add to results
+        for (auto& feat : features_cv)
+        {
+          if (has_faims)
+          {
+            feat.setMetaValue(Constants::UserParam::FAIMS_CV, group_cv);
+          }
+          features.push_back(feat);
+        }
+
+        // Copy UnassignedPeptideIdentifications (annotate with FAIMS CV if applicable)
+        for (auto& pep_id : features_cv.getUnassignedPeptideIdentifications())
+        {
+          if (has_faims)
+          {
+            pep_id.setMetaValue(Constants::UserParam::FAIMS_CV, group_cv);
+          }
+          features.getUnassignedPeptideIdentifications().push_back(std::move(pep_id));
+        }
+
+        // Copy ProteinIdentifications only from the first group (they're the same across groups)
+        if (first_group)
+        {
+          features.setProteinIdentifications(features_cv.getProteinIdentifications());
+          first_group = false;
+        }
+
+        // Collect auxiliary outputs if requested
+        if (keep_library)
+        {
+          const auto& lib = ffid_algo_cv.getLibrary();
+          // Merge peptides, proteins, and transitions
+          for (const auto& pep : lib.getPeptides())
+          {
+            combined_library.addPeptide(pep);
+          }
+          for (const auto& prot : lib.getProteins())
+          {
+            combined_library.addProtein(prot);
+          }
+          for (const auto& trans : lib.getTransitions())
+          {
+            combined_library.addTransition(trans);
+          }
+        }
+
+        if (keep_chromatograms)
+        {
+          for (const auto& chrom : ffid_algo_cv.getChromatograms().getChromatograms())
+          {
+            combined_chromatograms.addChromatogram(chrom);
+          }
+        }
+      }
+
+      if (has_faims)
+      {
+        OPENMS_LOG_INFO << "Combined " << features.size() << " features from all FAIMS CV groups." << endl;
+      }
+
+      // write auxiliary output:
       if (keep_library)
       {
-        FileHandler().storeTransitions(lib_out, ffid_algo.getLibrary(), {FileTypes::TRAML});
+        FileHandler().storeTransitions(lib_out, combined_library, {FileTypes::TRAML});
       }
 
-      // keep chromatogram data for output?
       if (keep_chromatograms)
       {
-        addDataProcessing_(ffid_algo.getChromatograms(), getProcessingInfo_(DataProcessing::FILTERING));
-        FileHandler().storeExperiment(chrom_out, ffid_algo.getChromatograms(), {FileTypes::MZML});
-        ffid_algo.getChromatograms().clear(true);
+        addDataProcessing_(combined_chromatograms, getProcessingInfo_(DataProcessing::FILTERING));
+        FileHandler().storeExperiment(chrom_out, combined_chromatograms, {FileTypes::MZML});
       }
+
+      // Set primary MS run path and ensure unique IDs for combined map
+      features.setPrimaryMSRunPath({in});
+      features.ensureUniqueId();
 
       addDataProcessing_(features, getProcessingInfo_(DataProcessing::QUANTITATION));
     }

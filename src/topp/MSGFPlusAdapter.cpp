@@ -840,8 +840,10 @@ protected:
         MSExperiment exp;
         MzMLFile mzml_file{};
         mzml_file.getOptions().setMetadataOnly(true);
-    		mzml_file.load(in, exp); 
+        mzml_file.load(in, exp);
         SpectrumMetaDataLookup::addMissingRTsToPeptideIDs(peptide_ids, exp);
+        // Annotate FAIMS compensation voltage if present
+        SpectrumMetaDataLookup::addMissingFAIMSToPeptideIDs(peptide_ids, exp);
       }
 
       // use OpenMS meta value key
