@@ -63,7 +63,7 @@ namespace OpenMS
     defaults_.setValue(
       "extract:im_window",
       0.0,
-      "Ion mobility window size for extraction. If set to 0, no IM filtering is performed. This is the default window used when IonMobilityRange is not specified per target.",
+      "Ion mobility window size for extraction. If set to 0, no IM filtering is performed.",
       vector<string>{"advanced"});
     defaults_.setMinFloat("extract:im_window", 0.0);
 
@@ -258,7 +258,7 @@ namespace OpenMS
     for (const auto& c : metaboIdentTable)
     {
       addTargetToLibrary_(c.getName(), c.getFormula(), c.getMass(), c.getCharges(), c.getRTs(), c.getRTRanges(),
-                      c.getIsotopeDistribution(), c.getIonMobilities(), c.getIonMobilityRanges());
+                      c.getIsotopeDistribution(), c.getIonMobilities());
     }
 
     // initialize algorithm classes needed later:
@@ -483,8 +483,7 @@ namespace OpenMS
                            const vector<double>& rts,
                            vector<double> rt_ranges,
                            const vector<double>& iso_distrib,
-                           const vector<double>& ion_mobilities,
-                           vector<double> im_ranges)
+                           const vector<double>& ion_mobilities)
   {
     if ((mass <= 0) && formula.empty())
     {
@@ -565,23 +564,6 @@ namespace OpenMS
       return;
     }
 
-    // Prepare IM ranges: either empty (use default), one value (for all), or one per RT
-    if (im_ranges.empty())
-    {
-      im_ranges.resize(rts.size(), 0.0);
-    }
-    else if (im_ranges.size() == 1)
-    {
-      im_ranges.resize(rts.size(), im_ranges[0]);
-    }
-    else if (im_ranges.size() != rts.size())
-    {
-      OPENMS_LOG_ERROR << "Error: Number of IonMobilityRange values (" << im_ranges.size()
-                       << ") does not match number of RT values (" << rts.size()
-                       << ") for target '" << name << "' - skipping this target." << endl;
-      return;
-    }
-
     // Prepare RT ranges: either empty (use default), one value (for all), or one per RT
     if (rt_ranges.empty())
     {
@@ -635,16 +617,6 @@ namespace OpenMS
         {
           target.setDriftTime(ims[i]); // Required for IM-aware chromatogram extraction
           target.setMetaValue("expected_im", ims[i]);
-          double im_tol = im_ranges[i] / 2.0;
-          if (im_tol == 0.0)
-          {
-            im_tol = im_window_ / 2.0;
-          }
-          if (im_tol > 0.0)
-          {
-            target.setMetaValue("im_lower", ims[i] - im_tol);
-            target.setMetaValue("im_upper", ims[i] + im_tol);
-          }
         }
         else
         {

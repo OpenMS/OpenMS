@@ -38,8 +38,7 @@ public:
         const std::vector<double>& _rts,
         const std::vector<double>& _rt_ranges,
         const std::vector<double>& _iso_distrib,
-        const std::vector<double>& _ion_mobilities = {},
-        const std::vector<double>& _im_ranges = {}):
+        const std::vector<double>& _ion_mobilities = {}):
       name_(_name),
       formula_(_formula),
       mass_(_mass),
@@ -47,8 +46,7 @@ public:
       rts_(_rts),
       rt_ranges_(_rt_ranges),
       iso_distrib_(_iso_distrib),
-      ion_mobilities_(_ion_mobilities),
-      im_ranges_(_im_ranges)
+      ion_mobilities_(_ion_mobilities)
       {
       }
 
@@ -61,7 +59,6 @@ public:
       std::vector<double> rt_ranges_;
       std::vector<double> iso_distrib_;
       std::vector<double> ion_mobilities_; ///< Expected ion mobility values (optional)
-      std::vector<double> im_ranges_; ///< Ion mobility extraction window sizes (optional)
 
     public:
       const String& getName() const {
@@ -94,10 +91,6 @@ public:
 
       const std::vector<double>& getIonMobilities() const {
         return ion_mobilities_;
-      }
-
-      const std::vector<double>& getIonMobilityRanges() const {
-        return im_ranges_;
       }
   };
 
@@ -188,8 +181,7 @@ protected:
                            const std::vector<double>& rts,
                            std::vector<double> rt_ranges,
                            const std::vector<double>& iso_distrib,
-                           const std::vector<double>& ion_mobilities = {},
-                           std::vector<double> im_ranges = {});
+                           const std::vector<double>& ion_mobilities = {});
 
   /// Add "peptide" identifications with information about targets to features
   Size addTargetAnnotations_(FeatureMap& features);
