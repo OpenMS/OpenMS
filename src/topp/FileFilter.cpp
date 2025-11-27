@@ -317,7 +317,6 @@ private:
 
     // Identify spectrum blocks
     std::vector<std::pair<Size, Size>> blocks; // start_idx, end_idx pairs
-    Size block_start = 0;
 
     auto first_spec = exp.RTBegin(rt_l);
     auto last_spec = exp.RTBegin(rt_u);
