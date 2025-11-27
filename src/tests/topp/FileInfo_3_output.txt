@@ -21,6 +21,7 @@ Distribution of peptide identifications (IDs) per feature:
   1 IDs: 2
   8 IDs: 1
 
+Assigned peptide identifications: 10
 Unassigned peptide identifications: 2
 
 -- Meta information --
