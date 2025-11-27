@@ -376,9 +376,12 @@ namespace OpenMS
         peptides.back().setMetaValue("FFId_category", "internal");
         peptides.back().setMetaValue("SeedFeatureID", String(feat.getUniqueId()));
 
-        // NOTE: We intentionally do NOT set the IM meta value on seeds.
-        // This allows them to be extracted across the full IM range
-        // (ChromatogramExtractor disables IM filtering when ion_mobility < 0)
+        // Copy IM meta value from feature if present (some feature finders annotate IM)
+        // If not present, the seed will be extracted across the full IM range
+        if (feat.metaValueExists(Constants::UserParam::IM))
+        {
+          peptides.back().setMetaValue(Constants::UserParam::IM, feat.getMetaValue(Constants::UserParam::IM));
+        }
 
         addPeptideToMap_(peptides.back(), peptide_map_);
         ++seeds_added;
@@ -1017,9 +1020,10 @@ namespace OpenMS
    * - Computes min/max to characterize the IM distribution spread
    * - Returns empty stats only if NO valid IM values are available
    *
-   * Note: Seeds from untargeted feature finders do NOT have an IM meta value set,
-   * which causes them to be extracted across the full IM range (ChromatogramExtractor
-   * disables IM filtering when ion_mobility < 0).
+   * Note: Seeds from untargeted feature finders may or may not have IM annotation,
+   * depending on the feature finder. If IM is annotated, it is used; otherwise the
+   * seed is extracted across the full IM range (ChromatogramExtractor disables IM
+   * filtering when ion_mobility < 0).
    *
    * Note: RT region boundaries are determined from ALL IDs (including those without IM),
    * so skipping individual IDs for IM statistics does not affect RT extraction.
@@ -1173,6 +1177,17 @@ namespace OpenMS
             peptide.rts.clear();
             addPeptideRT_(peptide, rt - rt_tolerance);
             addPeptideRT_(peptide, rt + rt_tolerance);
+
+            // Use IM from seed if annotated (some feature finders provide IM)
+            // If not annotated, drift time stays at default (0) -> full IM range extraction
+            const double seed_im = rt_pep.second->getMetaValue(Constants::UserParam::IM, 0.0);
+            if (seed_im > 0.0)
+            {
+              peptide.setDriftTime(seed_im);
+              // Store IM stats for annotation (use seed IM as median, with some tolerance for min/max)
+              im_stats_[peptide.id] = {seed_im, seed_im, seed_im};
+            }
+
             library_.addPeptide(peptide);
             generateTransitions_(peptide.id, mz, charge, iso_dist);
             internal_ids.emplace(rt_pep);

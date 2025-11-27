@@ -797,17 +797,20 @@ protected:
     }
 
     // Annotate FAIMS compensation voltage if present in any input file
-    // Requires loading with all MS levels to capture MS1 FAIMS metadata
+    // Pre-group peptide indices by file for efficient lookup (avoids O(files * peptides))
+    std::map<Size, std::vector<Size>> file_to_peptide_indices;
+    for (Size i = 0; i < peptide_identifications.size(); ++i)
+    {
+      const auto& pep = peptide_identifications[i];
+      if (pep.metaValueExists(Constants::UserParam::ID_MERGE_INDEX))
+      {
+        file_to_peptide_indices[pep.getMetaValue(Constants::UserParam::ID_MERGE_INDEX)].push_back(i);
+      }
+    }
+
     for (const auto& mzml : input_files)
     {
-      MzMLFile m;
-      MSExperiment exp_full;
-      auto opts = m.getOptions();
-      opts.setFillData(false); // only need metadata
-      m.setOptions(opts);
-      m.load(mzml, exp_full);
-
-      // Get peptide IDs belonging to this file
+      // Find file index for this mzML
       Size file_idx = 0;
       for (const auto& [idx, fname] : idxToFile)
       {
@@ -818,32 +821,38 @@ protected:
         }
       }
 
-      // Filter peptide IDs for this file and annotate FAIMS
-      PeptideIdentificationList file_peptides;
-      std::vector<Size> file_peptide_indices;
-      for (Size i = 0; i < peptide_identifications.size(); ++i)
+      // Skip if no peptides for this file
+      auto it = file_to_peptide_indices.find(file_idx);
+      if (it == file_to_peptide_indices.end() || it->second.empty())
       {
-        auto& pep = peptide_identifications[i];
-        if (pep.metaValueExists(Constants::UserParam::ID_MERGE_INDEX) &&
-            static_cast<Size>(pep.getMetaValue(Constants::UserParam::ID_MERGE_INDEX)) == file_idx)
-        {
-          file_peptides.push_back(pep);
-          file_peptide_indices.push_back(i);
-        }
+        continue;
       }
 
-      if (!file_peptides.empty())
+      // Load mzML metadata (no peak data needed)
+      MzMLFile m;
+      MSExperiment exp_full;
+      auto opts = m.getOptions();
+      opts.setFillData(false);
+      m.setOptions(opts);
+      m.load(mzml, exp_full);
+
+      // Collect peptide IDs for this file
+      PeptideIdentificationList file_peptides;
+      file_peptides.reserve(it->second.size());
+      for (Size idx : it->second)
       {
-        SpectrumMetaDataLookup::addMissingFAIMSToPeptideIDs(file_peptides, exp_full);
-        // Copy back annotated FAIMS values
-        for (Size i = 0; i < file_peptides.size(); ++i)
+        file_peptides.push_back(peptide_identifications[idx]);
+      }
+
+      // Annotate FAIMS and copy back
+      SpectrumMetaDataLookup::addMissingFAIMSToPeptideIDs(file_peptides, exp_full);
+      for (Size i = 0; i < file_peptides.size(); ++i)
+      {
+        if (file_peptides[i].metaValueExists(Constants::UserParam::FAIMS_CV))
         {
-          if (file_peptides[i].metaValueExists(Constants::UserParam::FAIMS_CV))
-          {
-            peptide_identifications[file_peptide_indices[i]].setMetaValue(
-              Constants::UserParam::FAIMS_CV,
-              file_peptides[i].getMetaValue(Constants::UserParam::FAIMS_CV));
-          }
+          peptide_identifications[it->second[i]].setMetaValue(
+            Constants::UserParam::FAIMS_CV,
+            file_peptides[i].getMetaValue(Constants::UserParam::FAIMS_CV));
         }
       }
     }

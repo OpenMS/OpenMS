@@ -236,8 +236,8 @@ protected:
    * @brief Global ion mobility statistics from all peptide identifications
    *
    * Calculated from peptide identifications BEFORE seeds are added (ensuring we only
-   * learn from real IDs with IM annotation). Used as fallback for seeds that lack
-   * IM information, allowing them to be extracted across the typical IM range.
+   * learn from real IDs with IM annotation). Provides context for the typical IM range
+   * in the dataset.
    */
   IMStats global_im_stats_;
 
@@ -264,9 +264,10 @@ protected:
    * remaining IDs with valid IM data. The median is used for robust central tendency
    * estimation and is more resistant to outliers than the mean.
    *
-   * Seeds from untargeted feature finders do NOT have an IM meta value set, which
-   * causes them to be extracted across the full IM range (ChromatogramExtractor
-   * disables IM filtering when ion_mobility < 0).
+   * Seeds from untargeted feature finders may or may not have an IM meta value set,
+   * depending on the feature finder. If IM is annotated on the seed, it is used for
+   * targeted extraction. If not, the seed is extracted across the full IM range
+   * (ChromatogramExtractor disables IM filtering when ion_mobility < 0).
    *
    * Note: RT region boundaries are determined from ALL IDs (including those without IM),
    * so this only affects IM statistics calculation, not RT extraction.
@@ -283,10 +284,11 @@ protected:
    *
    * Uses MSExperiment::getMinMobility()/getMaxMobility() to get the full IM range
    * from raw data (min/max), and calculates median from peptide identifications
-   * for robust central tendency. Must be called BEFORE addSeeds_() to avoid
-   * including seeds without IM annotation in median calculation.
+   * for robust central tendency. Must be called BEFORE addSeeds_() to ensure
+   * global statistics are based only on identified peptides.
    *
-   * Used as fallback for seeds that lack IM annotation, allowing them to be
+   * Seeds may or may not have IM annotation depending on the feature finder.
+   * Seeds with IM annotation use their own IM value; seeds without IM are
    * extracted across the full IM range of the dataset.
    */
   void calculateGlobalIMStats_();
