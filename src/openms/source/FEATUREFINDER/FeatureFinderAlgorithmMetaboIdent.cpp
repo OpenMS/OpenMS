@@ -228,12 +228,6 @@ namespace OpenMS
       }
       trafo_.setDataPoints(points);
 
-      // For non-FAIMS data, take the library; for FAIMS data, library will be empty
-      if (!has_faims && first_group)
-      {
-        library_ = ff_group.getLibrary();
-      }
-
       n_shared_ += ff_group.getNShared();
       first_group = false;
     }
@@ -927,4 +921,3 @@ namespace OpenMS
   }
 
 }
-
