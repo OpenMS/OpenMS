@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -151,6 +151,17 @@ namespace OpenMS
   void Instrument::setIonOptics(Instrument::IonOpticsType ion_optics)
   {
     ion_optics_ = ion_optics;
+  }
+
+  StringList Instrument::getAllNamesOfIonOpticsType()
+  {
+    StringList names;
+    names.reserve(SIZE_OF_IONOPTICSTYPE);
+    for (size_t i = 0; i < SIZE_OF_IONOPTICSTYPE; ++i)
+    {
+      names.push_back(NamesOfIonOpticsType[i]);
+    }
+    return names;
   }
 
 }

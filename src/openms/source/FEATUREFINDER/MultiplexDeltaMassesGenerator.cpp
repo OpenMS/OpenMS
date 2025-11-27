@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -503,13 +503,15 @@ namespace OpenMS
         MultiplexDeltaMasses::LabelSet label_set = delta_masses_list_[i].getDeltaMasses()[j].label_set;
 
         stream << mass_shift << " (";
-        for (std::multiset<String>::iterator it = label_set.begin(); it != label_set.end(); ++it)
+        bool first = true;
+        for (const auto& label : label_set)
         {
-          if (it != label_set.begin())
+          if (!first)
           {
             stream << ",";
           }
-          stream << *it;
+          stream << label;
+          first = false;
         }
         stream << ")    ";
       }

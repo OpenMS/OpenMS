@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -33,16 +33,20 @@ namespace OpenMS
     {
     public:
       /**
-        @brief Splits a PeakMap into one PeakMap per FAIMS compensation voltage
+        @brief Splits a PeakMap into one PeakMap per FAIMS compensation voltage (CV)
 
-        This only works with a PeakMap that has a FAIMS compensation voltage 
-        (obtained via 'spec.getDriftTime()') associated with each spectrum.
-        The spectra from the original PeakMap are moved to new PeakMaps,
-        so the original PeakMap is unusable afterwards.
+        The spectra from the original PeakMap are moved to new PeakMaps, so the original
+        PeakMap is unusable afterwards.
 
-        @param exp The PeakMap
-        @return Several maps, one for each CV
-        @throws Exception::MissingInformation if @p exp is not FAIMS data
+        Behavior:
+        - Requires that the dataset contains FAIMS spectra (MS1 with DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE).
+        - MS2+ spectra without an explicit FAIMS CV are assigned to the last seen FAIMS CV (based on run order).
+          Spectra without a prior FAIMS CV context are skipped with a warning.
+        - If the dataset contains no FAIMS spectra at all, an exception is thrown.
+
+        @param exp The PeakMap (will be moved-from)
+        @return Several PeakMaps, one per unique FAIMS CV
+        @throws Exception::MissingInformation if @p exp contains no FAIMS data
       */
       static std::vector<PeakMap> splitByFAIMSCV(PeakMap&& exp);
 

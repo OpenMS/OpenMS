@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -10,6 +10,7 @@
 
 #include <OpenMS/METADATA/ScanWindow.h>
 #include <OpenMS/METADATA/IonSource.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 namespace OpenMS
 {
@@ -45,6 +46,9 @@ public:
 
     /// Names of scan modes
     static const std::string NamesOfScanMode[SIZE_OF_SCANMODE];
+
+    /// returns all scan mode names known to OpenMS
+    static StringList getAllNamesOfScanMode();
 
     /// Constructor
     InstrumentSettings();

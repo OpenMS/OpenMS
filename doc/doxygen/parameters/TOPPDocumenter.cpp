@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -13,8 +13,6 @@
 #include <OpenMS/FORMAT/XMLFile.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/SYSTEM/ExternalProcess.h>
-
-#include <QtCore/QProcess>
 
 #include <iostream>
 #include <fstream>
@@ -185,16 +183,15 @@ void convertINI2HTML(const Param& p, ostream& os)
 
 bool generate(const ToolListType& tools, const String& prefix, const String& binary_directory)
 {
+  // Add an environment variable (used by each TOPP tool to determine width of help text (see TOPPBase))
+  qputenv("COLUMNS", "110"); 
+  // Add Global environment variable to suppress stty errors
+  qputenv("TERM", "dumb");
+  qputenv("STTY", "/bin/true"); 
+  
   bool errors_occured = false;
   for (ToolListType::const_iterator it = tools.begin(); it != tools.end(); ++it)
   {
-    //start process
-    QProcess process;
-    process.setProcessChannelMode(QProcess::MergedChannels);
-    QStringList env = QProcess::systemEnvironment();
-    env << String("COLUMNS=110").toQString(); // Add an environment variable (used by each TOPP tool to determine width of help text (see TOPPBase))
-    process.setEnvironment(env);
-
     String command = binary_directory + it->first;
 #if defined(__APPLE__)
     if (it->first == "TOPPView" || it->first == "TOPPAS")

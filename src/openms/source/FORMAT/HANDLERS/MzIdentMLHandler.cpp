@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -186,7 +186,7 @@ namespace OpenMS::Internal
     return spectrum_identifications_;
   }
 
-    MzIdentMLHandler::MzIdentMLHandler(const std::vector<ProteinIdentification>& pro_id, const std::vector<PeptideIdentification>& pep_id, const String& filename, const String& version, const ProgressLogger& logger) :
+    MzIdentMLHandler::MzIdentMLHandler(const std::vector<ProteinIdentification>& pro_id, const PeptideIdentificationList& pep_id, const String& filename, const String& version, const ProgressLogger& logger) :
       XMLHandler(filename, version),
       logger_(logger),
       //~ ms_exp_(0),
@@ -199,7 +199,7 @@ namespace OpenMS::Internal
       unimod_.loadFromOBO("PSI-MS", File::find("/CV/unimod.obo"));
     }
 
-    MzIdentMLHandler::MzIdentMLHandler(std::vector<ProteinIdentification>& pro_id, std::vector<PeptideIdentification>& pep_id, const String& filename, const String& version, const ProgressLogger& logger) :
+    MzIdentMLHandler::MzIdentMLHandler(std::vector<ProteinIdentification>& pro_id, PeptideIdentificationList& pep_id, const String& filename, const String& version, const ProgressLogger& logger) :
       XMLHandler(filename, version),
       logger_(logger),
       //~ ms_exp_(0),
@@ -336,7 +336,8 @@ namespace OpenMS::Internal
         // required attributes
         current_id_hit_.setId((attributeAsString_(attributes, "id")));
         current_id_hit_.setPassThreshold(asBool_(attributeAsString_(attributes, "passThreshold")));
-        current_id_hit_.setRank(attributeAsInt_(attributes, "rank"));
+        int rank = attributeAsInt_(attributes, "rank");
+        current_id_hit_.setRank(rank - 1); // rank starts at 1 in mzid,OpenMS 0-based
 
         // optional attributes
         double double_value(0);
@@ -809,7 +810,7 @@ namespace OpenMS::Internal
       //          top5 ids -> 5 PeptideIdentification for one (pair) spectra. SIR with 5 entries and ranks
       std::map<String, String> ppxl_specref_2_element; //where the SII will get added for one spectrum reference
       std::map<String, std::vector<String> > pep_evis; //maps the sequence to the corresponding evidence elements for the next scope
-      for (std::vector<PeptideIdentification>::const_iterator it = cpep_id_->begin(); it != cpep_id_->end(); ++it)
+      for (PeptideIdentificationList::const_iterator it = cpep_id_->begin(); it != cpep_id_->end(); ++it)
       {
         String emz(it->getMZ());
         const double rt = it->getRT();
@@ -1310,7 +1311,7 @@ namespace OpenMS::Internal
     }
 
     void MzIdentMLHandler::writePeptideHit(const PeptideHit& hit,
-                                                std::vector<PeptideIdentification>::const_iterator& it,
+                                                PeptideIdentificationList::const_iterator& it,
                                                 std::map<String, String>& pep_ids,
                                                 const String& cv_ns, std::set<String>& sen_set,
                                                 std::map<String, String>& sen_ids,
@@ -1482,7 +1483,7 @@ namespace OpenMS::Internal
         }
 
         String cmz(hit.getSequence().getMZ(hit.getCharge())); //calculatedMassToCharge
-        String r(hit.getRank()); //rank
+        String r(hit.getRank() + 1); //rank
         String sc(hit.getScore());
 
         if (sc.empty())
@@ -1608,7 +1609,7 @@ namespace OpenMS::Internal
     }
 
     void MzIdentMLHandler::writeXLMSPeptideHit(const PeptideHit& hit,
-                                                std::vector<PeptideIdentification>::const_iterator& it,
+                                                PeptideIdentificationList::const_iterator& it,
                                                 const String& ppxl_linkid, std::map<String, String>& pep_ids,
                                                 const String& cv_ns, std::set<String>& sen_set,
                                                 std::map<String, String>& sen_ids,
@@ -2095,7 +2096,7 @@ namespace OpenMS::Internal
         pevid_ids =  pep_evis[pepi];
       }
 
-      String r(hit.getRank()); //rank
+      String r(hit.getRank() + 1); //rank
       String sc(hit.getScore());
       if (hit.metaValueExists(Constants::UserParam::OPENPEPXL_XL_RANK))
       {

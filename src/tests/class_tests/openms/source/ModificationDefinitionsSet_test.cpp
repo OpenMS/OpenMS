@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -423,9 +423,9 @@ START_SECTION((void findMatches(multimap<double, ModificationDefinition>& matche
 }
 END_SECTION
 
-START_SECTION(void inferFromPeptides(const vector<PeptideIdentification>& peptides))
+START_SECTION(void inferFromPeptides(const PeptideIdentificationList& peptides))
 {
-  vector<PeptideIdentification> peptides(2);
+  PeptideIdentificationList peptides(2);
   PeptideHit hit;
   hit.setSequence(AASequence::fromString("AC(Carbamidomethyl)M"));
   peptides[0].insertHit(hit);

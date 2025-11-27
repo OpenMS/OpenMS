@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -18,6 +18,7 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/SYSTEM/JavaInfo.h>
+#include <OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h>
 
 #include <QProcessEnvironment>
 
@@ -475,7 +476,7 @@ protected:
     FileHandler fh;
     FileTypes::Type in_type = fh.getType(id);
 
-    vector<PeptideIdentification> pep_ids;
+    PeptideIdentificationList pep_ids;
     vector<ProteinIdentification> prot_ids;
 
     PeakMap exp;
@@ -493,6 +494,18 @@ protected:
       if (!pep_ids.empty())
       {
         IDFilter::keepNBestHits(pep_ids, 1); // LuciPHOR2 only calculates the best hit
+        
+        // Switch to PEP score type similar to BayesianProteinInferenceAlgorithm
+        IDScoreSwitcherAlgorithm switcher;
+        Size counter(0);
+        try
+        {
+          switcher.switchToGeneralScoreType(pep_ids, IDScoreSwitcherAlgorithm::ScoreType::PEP, counter);
+        }
+        catch (OpenMS::Exception::MissingInformation& /*e*/)
+        {
+          OPENMS_LOG_WARN << "Warning: Could not switch to PEP score type. Continuing with current score type." << std::endl;
+        }
       }
       else
       {
@@ -573,7 +586,7 @@ protected:
     //-------------------------------------------------------------
     // writing output - merge LuciPHOr2 result to idXML
     //-------------------------------------------------------------
-    vector<PeptideIdentification> pep_out;
+    PeptideIdentificationList pep_out;
     map<String, String> target_mods_conv;
     ret = convertTargetModification_(target_mods, target_mods_conv);
     if (ret != EXECUTION_OK)
@@ -637,7 +650,7 @@ protected:
       new_pep_id.setScoreType("Luciphor_delta_score");
       new_pep_id.setHigherScoreBetter(true);
       new_pep_id.setHits(scored_peptides);
-      new_pep_id.assignRanks();
+      new_pep_id.sort();
       pep_out.push_back(new_pep_id);
     }
 

@@ -1,4 +1,4 @@
-# Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+# Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 # SPDX-License-Identifier: BSD-3-Clause
 #
 # --------------------------------------------------------------------------
@@ -10,13 +10,6 @@
 include(CMakeParseArguments)
 include(GenerateExportHeader)
 include(CheckLibArchitecture)
-
-
-#------------------------------------------------------------------------------
-# Enable AddressSanitizer and include some helper function to add compiler and linker flags
-#------------------------------------------------------------------------------  
-option(ADDRESS_SANITIZER "[Clang/GCC only] Enable AddressSanitizer mode (quite slow)." OFF)
-include(${PROJECT_SOURCE_DIR}/cmake/AddressSanitizer.cmake)
 
 #------------------------------------------------------------------------------
 ## export a single option indicating if libraries should be build as unity
@@ -159,20 +152,10 @@ function(openms_add_library)
   #TODO cxx_std_17 only requires a c++17 flag for the compiler. Not full standard support.
   # If we want full support, we need our own try_compiles (e.g. for structured bindings first available in GCC7)
   # or specify a min version of each compiler.
-  target_compile_features(${openms_add_library_TARGET_NAME} PUBLIC cxx_std_17)
+  target_compile_features(${openms_add_library_TARGET_NAME} PUBLIC cxx_std_20)
 
-  if (CMAKE_COMPILER_IS_GNUCXX)
-    target_compile_options(${openms_add_library_TARGET_NAME} PRIVATE 
-    -Wall
-    -Wextra
-    #-fvisibility=hidden # This is now added as a target property for each library.     
-    -Wno-non-virtual-dtor
-    -Wno-unknown-pragmas
-    -Wno-long-long 
-    -Wno-unknown-pragmas
-    -Wno-unused-function
-    -Wno-variadic-macros)
-  endif()
+  # Add compiler flags using the new helper function
+  openms_add_library_compiler_flags(${openms_add_library_TARGET_NAME})
 
   if(ADDRESS_SANITIZER)
     add_asan_to_target(${openms_add_library_TARGET_NAME})
@@ -204,8 +187,15 @@ function(openms_add_library)
   if(openms_add_library_LINK_LIBRARIES)
     ## check for consistent lib arch (e.g. all 64bit)?
     check_lib_architecture(openms_add_library_LINK_LIBRARIES)
-    target_link_libraries(${openms_add_library_TARGET_NAME} PUBLIC ${openms_add_library_LINK_LIBRARIES} PRIVATE ${openms_add_library_PRIVATE_LINK_LIBRARIES})
+    target_link_libraries(${openms_add_library_TARGET_NAME} PUBLIC ${openms_add_library_LINK_LIBRARIES})
     list(LENGTH openms_add_library_LINK_LIBRARIES _library_count)
+  endif()
+
+  if (openms_add_library_PRIVATE_LINK_LIBRARIES)
+    ## check for consistent lib arch (e.g. all 64bit)?
+    check_lib_architecture(openms_add_library_PRIVATE_LINK_LIBRARIES)
+    target_link_libraries(${openms_add_library_TARGET_NAME} PRIVATE ${openms_add_library_PRIVATE_LINK_LIBRARIES})
+    list(LENGTH openms_add_library_PRIVATE_LINK_LIBRARIES _private_library_count)
   endif()
 
   #------------------------------------------------------------------------------
@@ -226,10 +216,13 @@ function(openms_add_library)
   openms_register_export_target(${openms_add_library_TARGET_NAME})
 
   #------------------------------------------------------------------------------
-  # copy dll to test/doc bin folder on MSVC systems
+  # On Windows copy DLLs and dependencies of them to other locations of executables that need them (tests, documenter)
+  # TODO Find something that does not copy 100s of MB three times.
+  # TODO I think this should ideally go to the tests and docs CMakeLists separately.
+  # Copy target DLLs themselves
   copy_dll_to_extern_bin(${openms_add_library_TARGET_NAME})
-
-  if(${CMAKE_VERSION} VERSION_GREATER "3.20" AND WIN32)
+  # Copy dependencies
+  if(WIN32)
     # with newer CMakes we can also easily copy dependencies like Qt
     # This stores the command as a list
     set(has_dll_dep
@@ -259,13 +252,7 @@ function(openms_add_library)
             ${DLL_TEST_TARGET_PATH}
             )
 
-    set(copy_dlls_to_doc_folder
-            ${CMAKE_COMMAND} -E copy_if_different
-            $<TARGET_RUNTIME_DLLS:${openms_add_library_TARGET_NAME}>
-            ${DLL_DOC_TARGET_PATH}
-            )
-
-    foreach(command IN ITEMS "${copy_dlls_to_output_folder}" "${copy_dlls_to_test_folder}")# "${copy_dlls_to_doc_folder}")
+    foreach(command IN ITEMS "${copy_dlls_to_output_folder}" "${copy_dlls_to_test_folder}")
       set(if_runtime_dlls_copy
               $<IF:${has_dll_dep},${command},${none_command}>
               )
@@ -274,6 +261,22 @@ function(openms_add_library)
               COMMAND_EXPAND_LISTS
               )
     endforeach()
+
+    if(ENABLE_DOCS)
+        set(copy_dlls_to_doc_folder
+         ${CMAKE_COMMAND} -E copy_if_different
+         $<TARGET_RUNTIME_DLLS:${openms_add_library_TARGET_NAME}>
+         ${DLL_DOC_TARGET_PATH}
+         )
+        set(if_runtime_dlls_copy
+              $<IF:${has_dll_dep},${copy_dlls_to_doc_folder},${none_command}>
+              )
+        add_custom_command(TARGET ${openms_add_library_TARGET_NAME} POST_BUILD
+              COMMAND ${CMAKE_COMMAND} -E make_directory "${DLL_DOC_TARGET_PATH}"
+              COMMAND "${if_runtime_dlls_copy}"
+              COMMAND_EXPAND_LISTS
+              )
+    endif()
 
     ## another fix for APPLE, see https://github.com/OpenMS/OpenMS/pull/7525
     if(APPLECLANG)

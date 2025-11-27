@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -103,19 +103,19 @@ namespace OpenMS
     charge_ = charge;
   }
 
-  const vector<PeptideIdentification>& BaseFeature::getPeptideIdentifications()
+  const PeptideIdentificationList& BaseFeature::getPeptideIdentifications()
   const
   {
     return peptides_;
   }
 
-  vector<PeptideIdentification>& BaseFeature::getPeptideIdentifications()
+  PeptideIdentificationList& BaseFeature::getPeptideIdentifications()
   {
     return peptides_;
   }
 
   void BaseFeature::setPeptideIdentifications(
-    const vector<PeptideIdentification>& peptides)
+    const PeptideIdentificationList& peptides)
   {
     peptides_ = peptides;
   }

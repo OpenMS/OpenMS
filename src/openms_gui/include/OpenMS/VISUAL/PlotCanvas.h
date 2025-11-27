@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -357,7 +357,12 @@ namespace OpenMS
     }
 
     /**
-        @brief Sets the filters applied to the data before drawing (for the current layer)
+      @brief Sets filters, but does not repaint (useful when setting up a new layer)
+    */
+    virtual void initFilters(const DataFilters& filters);
+
+    /**
+        @brief Sets the filters applied to the data; and redraws
     */
     virtual void setFilters(const DataFilters& filters);
 
@@ -455,7 +460,7 @@ namespace OpenMS
 
         @return If a new layer was created
     */
-    bool addLayer(std::vector<PeptideIdentification>& peptides, const String& filename = "", const String& caption = "");
+    bool addLayer(PeptideIdentificationList& peptides, const String& filename = "", const String& caption = "");
 
     /// Returns the minimum intensity of the active layer
     inline float getCurrentMinIntensity() const

@@ -11,7 +11,7 @@
 // Use appropriate options to configure instead of changing config.h.
 // Changes made in config.h will be lost as soon as you call CMAKE again.
 //
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
@@ -136,6 +136,9 @@ static constexpr cstr past_last_slash(cstr str)
 #define OPENMS_GLPK_VERSION @CF_OPENMS_GLPK_VERSION@
 #define OPENMS_GLPK_VERSION_MAJOR @CF_OPENMS_GLPK_VERSION_MAJOR@
 #define OPENMS_GLPK_VERSION_MINOR @CF_OPENMS_GLPK_VERSION_MINOR@
+
+// custom compile flags
+#define OPENMS_MORECXX_FLAGS "@CF_MYCXXFLAGS@"
 
 // class & TOPP tests
 

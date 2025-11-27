@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 // 
 // --------------------------------------------------------------------------
@@ -192,6 +192,18 @@ END_SECTION
 
 
 
+
+START_SECTION((static StringList getAllNamesOfType()))
+  StringList names = IonDetector::getAllNamesOfType();
+  TEST_EQUAL(names.size(), IonDetector::SIZE_OF_TYPE);
+  TEST_EQUAL(names[IonDetector::ELECTRONMULTIPLIER], "Electron multiplier");
+END_SECTION
+
+START_SECTION((static StringList getAllNamesOfAcquisitionMode()))
+  StringList names = IonDetector::getAllNamesOfAcquisitionMode();
+  TEST_EQUAL(names.size(), IonDetector::SIZE_OF_ACQUISITIONMODE);
+  TEST_EQUAL(names[IonDetector::PULSECOUNTING], "Pulse counting");
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

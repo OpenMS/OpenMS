@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -14,6 +14,7 @@
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 
 #include <limits> // for "quiet_NaN"
 
@@ -264,7 +265,7 @@ namespace OpenMS
 	   @return True if all peptide IDs could be annotated successfully (including if all already had RT values), false otherwise.
 
 	*/
-	static bool addMissingRTsToPeptideIDs(std::vector<PeptideIdentification>& peptides, const MSExperiment& exp);
+	static bool addMissingRTsToPeptideIDs(PeptideIdentificationList& peptides, const MSExperiment& exp);
 
     /**
      * @brief Adds missing ion mobility information to peptide identifications.
@@ -277,7 +278,7 @@ namespace OpenMS
      * 
      * @return True if all missing IM information was successfully added to the peptide identifications, false otherwise.
     */
-    static bool addMissingIMToPeptideIDs(std::vector<PeptideIdentification>& peptides,
+    static bool addMissingIMToPeptideIDs(PeptideIdentificationList& peptides,
     									const MSExperiment& exp);
 
     /**
@@ -294,7 +295,7 @@ namespace OpenMS
      *
      * Look-up works by matching RT of a peptide identification with the given spectra. Matched spectra 'native ID' will be annotated to the identification. All spectrum_references are updated/added.
      */
-    static bool addMissingSpectrumReferences(std::vector<PeptideIdentification>& peptides, 
+    static bool addMissingSpectrumReferences(PeptideIdentificationList& peptides, 
       const String& filename,
       bool stop_on_error = false, 
       bool override_spectra_data = false, 

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -16,6 +16,7 @@
 #include <OpenMS/METADATA/Product.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/DataProcessing.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <map>
 #include <vector>
@@ -50,6 +51,9 @@ public:
     };
     /// Names of spectrum types
     static const std::string NamesOfSpectrumType[SIZE_OF_SPECTRUMTYPE];
+
+    /// returns all spectrum type names known to OpenMS
+    static StringList getAllNamesOfSpectrumType();
 
     /// Constructor
     SpectrumSettings();
@@ -123,13 +127,6 @@ public:
     /// sets the products
     void setProducts(const std::vector<Product> & products);
 
-    /// returns a const reference to the PeptideIdentification vector
-    const std::vector<PeptideIdentification> & getPeptideIdentifications() const;
-    /// returns a mutable reference to the PeptideIdentification vector
-    std::vector<PeptideIdentification> & getPeptideIdentifications();
-    /// sets the PeptideIdentification vector
-    void setPeptideIdentifications(const std::vector<PeptideIdentification> & identifications);
-
     /// sets the description of the applied processing
     void setDataProcessing(const std::vector< DataProcessingPtr > & data_processing);
 
@@ -149,7 +146,6 @@ protected:
     AcquisitionInfo acquisition_info_;
     std::vector<Precursor> precursors_;
     std::vector<Product> products_;
-    std::vector<PeptideIdentification> identification_;
     std::vector< DataProcessingPtr > data_processing_;
   };
 

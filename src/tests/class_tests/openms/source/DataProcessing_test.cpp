@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 // 
 // --------------------------------------------------------------------------
@@ -156,6 +156,13 @@ START_SECTION(bool operator!= (const DataProcessing& rhs) const)
   edit = empty;
   edit.setMetaValue("label",String("label"));
 	TEST_FALSE(edit == empty);
+END_SECTION
+
+START_SECTION((static StringList getAllNamesOfProcessingAction()))
+  StringList names = DataProcessing::getAllNamesOfProcessingAction();
+  TEST_EQUAL(names.size(), DataProcessing::SIZE_OF_PROCESSINGACTION);
+  TEST_EQUAL(names[DataProcessing::PEAK_PICKING], "Peak picking");
+  TEST_EQUAL(names[DataProcessing::SMOOTHING], "Smoothing");
 END_SECTION
 
 

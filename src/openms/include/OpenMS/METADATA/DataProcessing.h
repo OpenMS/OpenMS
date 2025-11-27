@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -11,6 +11,7 @@
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/METADATA/Software.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <set>
 #include <boost/shared_ptr.hpp>
@@ -57,6 +58,9 @@ public:
     };
     /// Names of inlet types
     static const std::string NamesOfProcessingAction[SIZE_OF_PROCESSINGACTION];
+
+    /// returns all processing action names known to OpenMS
+    static StringList getAllNamesOfProcessingAction();
 
     /// Constructor
     DataProcessing() = default;

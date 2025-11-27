@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -74,6 +74,8 @@ public:
     float getIntensity() const override;
 
     double getRT() const override;
+
+    double getMetaValue(std::string name) const;
 
     size_t size() const override;
 

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -13,6 +13,7 @@
 #include <OpenMS/METADATA/ExperimentalDesign.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/ML/GRIDSEARCH/GridSearch.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 
 #include <vector>
 #include <functional>
@@ -89,7 +90,7 @@ namespace OpenMS
      */
     void inferPosteriorProbabilities(
         std::vector<ProteinIdentification>& proteinIDs,
-        std::vector<PeptideIdentification>& peptideIDs,
+        PeptideIdentificationList& peptideIDs,
         bool greedy_group_resolution,
         std::optional<const ExperimentalDesign> exp_des = std::optional<const ExperimentalDesign>());
 

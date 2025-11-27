@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -862,7 +862,7 @@ protected:
 
     // convert from pepXML to idXML
     String pepxmlfile = FileHandler::swapExtension(input_file, FileTypes::PEPXML);
-    std::vector<PeptideIdentification> peptide_identifications;
+    PeptideIdentificationList peptide_identifications;
     std::vector<ProteinIdentification> protein_identifications;
     PepXMLFile().load(pepxmlfile, protein_identifications, peptide_identifications);
     for (auto it = protein_identifications.begin(); it != protein_identifications.end(); it++)

@@ -20,7 +20,7 @@ cdef extern from "<OpenMS/METADATA/CVTermList.h>" namespace "OpenMS":
         CVTermList() except + nogil 
         CVTermList(CVTermList &) except + nogil 
 
-        void setCVTerms(libcpp_vector[CVTerm] & terms)  except + nogil  # wrap-doc:Sets the CV terms
+        void setCVTerms(const libcpp_vector[CVTerm] & terms)  except + nogil  # wrap-doc:Sets the CV terms
         void replaceCVTerm(CVTerm & term)               except + nogil  # wrap-doc:Replaces the specified CV term
 
         # will not wrap due to Cython inheritance issue

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -83,9 +83,9 @@ namespace OpenMS
     }
     
     // spline interpolate the profile data
-    for (MSExperiment::Iterator it = exp_profile.begin(); it < exp_profile.end(); ++it)
+    for (const auto& spectrum : exp_profile)
     {
-      exp_spline_profile_.emplace_back(*it);
+      exp_spline_profile_.emplace_back(spectrum);
     }
     
     // TODO: Constructing the navigators here instead in the beginning of the filter() method results in segmentation faults. Why?

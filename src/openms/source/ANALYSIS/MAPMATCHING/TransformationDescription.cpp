@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -12,7 +12,9 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelBSpline.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelInterpolated.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLowess.h>
+#include <OpenMS/MATH/StatisticFunctions.h>
 
+#include <cmath>
 #include <iomanip>
 #include <iostream>
 
@@ -274,5 +276,61 @@ namespace OpenMS
     }
     os << endl;
   }
+
+
+  double TransformationDescription::estimateWindow(double quantile,
+                                                   bool invert,
+                                                   bool full_window,
+                                                   double padding_factor) const
+  {
+    // Work on a copy so we don't mutate the original
+    TransformationDescription tmp(*this);
+    if (invert)
+    {
+      // Map iRT→RT and refit the inverse model so residuals are measured in RT space
+      tmp.invert();
+    }
+
+    // Compute absolute residuals | y - f(x) | in the (possibly inverted) space
+    std::vector<double> diffs;
+    tmp.getDeviations(diffs, /*do_apply=*/true, /*do_sort=*/false);
+
+    // Drop non-finite values defensively
+    diffs.erase(std::remove_if(diffs.begin(), diffs.end(),
+                               [](double v){ return !std::isfinite(v); }),
+                diffs.end());
+
+    if (diffs.empty())
+    {
+      OPENMS_LOG_DEBUG << "[estimateWindow] no residuals; returning 0" << std::endl;
+      return 0.0;
+    }
+
+    // Compute adaptive quantile (Tukey k=1.5, r_sparse=1%, r_dense=10%)
+    // k=1.5 uses the standard Tukey upper fence (Q3 + 1.5·IQR) to cap sparse extremes proposed in Exploratory Data Analysis by John W. Tukey (1977)
+    // r_sparse=0.01 means if ≤1% of |residuals| exceed the fence, treat them as outliers (favor robust quantile);
+    // r_dense=0.10 means if ≥10% exceed the fence, tails are genuinely broad (favor raw quantile).
+    // These values are conservative, widely used in stats.
+    OpenMS::Math::AdaptiveQuantileResult adaptive_quantile_res = OpenMS::Math::adaptiveQuantile(
+      diffs.begin(), diffs.end(), quantile,
+      /*k=*/1.5, /*r_sparse=*/0.01, /*r_dense=*/0.10);
+
+    const double full = (full_window ? (2.0 * adaptive_quantile_res.blended) : adaptive_quantile_res.blended) * padding_factor;
+
+    OPENMS_LOG_DEBUG
+      << "[estimateWindow] n=" << diffs.size()
+      << " q=" << quantile
+      << " half_raw=" << adaptive_quantile_res.half_raw
+      << " half_rob=" << adaptive_quantile_res.half_rob
+      << " UF=" << adaptive_quantile_res.upper_fence
+      << " tail_frac=" << adaptive_quantile_res.tail_fraction
+      << " => half_adapt=" << adaptive_quantile_res.blended
+      << " full=" << full
+      << " invert=" << (invert ? "true" : "false")
+      << std::endl;
+
+    return full;
+  }
+
 
 } // end of namespace OpenMS

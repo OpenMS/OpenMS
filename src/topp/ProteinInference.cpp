@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -213,7 +213,7 @@ protected:
     else //----------- IdXML --------------------------
     {
       vector<ProteinIdentification> inferred_protein_ids{1};
-      vector<PeptideIdentification> inferred_peptide_ids;
+      PeptideIdentificationList inferred_peptide_ids;
 
       FileHandler f;
       if (merge_runs)
@@ -228,7 +228,7 @@ protected:
         for (const auto &idfile : in)
         {
           vector<ProteinIdentification> protein_ids;
-          vector<PeptideIdentification> peptide_ids;
+          PeptideIdentificationList peptide_ids;
           f.loadIdentifications(idfile, protein_ids, peptide_ids, {FileTypes::IDXML});
           merger.insertRuns(std::move(protein_ids), std::move(peptide_ids));
         }

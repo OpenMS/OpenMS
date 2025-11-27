@@ -49,7 +49,12 @@ RUN apt-get update \
     libqt6opengl6-dev \
     libqt6svg6-dev \   
   && rm -rf /var/lib/apt/lists/* \
-  && update-ca-certificates
+  && update-ca-certificates \
+  && apt-get update && apt-get install -y --no-install-recommends wget \
+  && wget https://repo1.maven.org/maven2/org/apache/arrow/ubuntu/apache-arrow-apt-source-latest-jammy.deb \
+  && apt-get install -y --no-install-recommends ./apache-arrow-apt-source-latest-jammy.deb \
+  && apt-get update && apt-get install -y --no-install-recommends --no-install-suggests libparquet-dev \
+  && rm apache-arrow-apt-source-latest-jammy.deb
 
 # installing cmake
 WORKDIR /tmp
@@ -85,17 +90,20 @@ WORKDIR ${SOURCE_DIR}
 RUN mkdir -p ${THIRDPARTY_DIR}
 RUN <<-EOF
     set -eux
-    git submodule update --depth=1 --init THIRDPARTY
+
+    ALL_DIR=THIRDPARTY/All
+    LINUX_DIR=THIRDPARTY/Linux/x86_64
+    if [ ! -d "$ALL_DIR" ] || [ ! -d "$LINUX_DIR" ]; then
+      git submodule update --depth=1 --init THIRDPARTY
+    fi
 
     # copying only the binaries that are relevant to Linux
-    cp -r THIRDPARTY/All/* ${THIRDPARTY_DIR}
-    cp -r THIRDPARTY/Linux/64bit/* ${THIRDPARTY_DIR}
-
+    cp -vr "$ALL_DIR"/* "$LINUX_DIR"/* ${THIRDPARTY_DIR}
     rm -rf THIRDPARTY
 EOF
 
 # adding thirdparty binaries to the PATH so they will be picked up by the build system
-ENV PATH="${THIRDPARTY_DIR}/LuciPHOr2:${THIRDPARTY_DIR}/MSGFPlus:${THIRDPARTY_DIR}/ThermoRawFileParser:${THIRDPARTY_DIR}/Comet:${THIRDPARTY_DIR}/Fido:${THIRDPARTY_DIR}/MaRaCluster:${THIRDPARTY_DIR}/Percolator:${THIRDPARTY_DIR}/SpectraST:${THIRDPARTY_DIR}/XTandem:${THIRDPARTY_DIR}/Sage:${PATH}"
+ENV PATH="${THIRDPARTY_DIR}/LuciPHOr2:${THIRDPARTY_DIR}/MSGFPlus:${THIRDPARTY_DIR}/ThermoRawFileParser:${THIRDPARTY_DIR}/Comet:${THIRDPARTY_DIR}/Fido:${THIRDPARTY_DIR}/MaRaCluster:${THIRDPARTY_DIR}/Percolator:${THIRDPARTY_DIR}/SpectraST:${THIRDPARTY_DIR}/Sage:${PATH}"
 RUN cmake \
     -DQt6_DIR="/usr/lib/x86_64-linux-gnu/cmake/Qt6" \
     -DCMAKE_BUILD_TYPE='Release' \
@@ -171,7 +179,7 @@ RUN apt-get update \
 
 COPY --from=build ${THIRDPARTY_DIR} ${THIRDPARTY_DIR}
 
-ENV PATH="${THIRDPARTY_DIR}/LuciPHOr2:${THIRDPARTY_DIR}/MSGFPlus:${THIRDPARTY_DIR}/ThermoRawFileParser:${THIRDPARTY_DIR}/Comet:${THIRDPARTY_DIR}/Fido:${THIRDPARTY_DIR}/MaRaCluster:${THIRDPARTY_DIR}/Percolator:${THIRDPARTY_DIR}/SpectraST:${THIRDPARTY_DIR}/XTandem:${THIRDPARTY_DIR}/Sage:${PATH}"
+ENV PATH="${THIRDPARTY_DIR}/LuciPHOr2:${THIRDPARTY_DIR}/MSGFPlus:${THIRDPARTY_DIR}/ThermoRawFileParser:${THIRDPARTY_DIR}/Comet:${THIRDPARTY_DIR}/Fido:${THIRDPARTY_DIR}/MaRaCluster:${THIRDPARTY_DIR}/Percolator:${THIRDPARTY_DIR}/SpectraST:${THIRDPARTY_DIR}/Sage:${PATH}"
 
 LABEL software="OpenMS (tools + thirdparty)"
 

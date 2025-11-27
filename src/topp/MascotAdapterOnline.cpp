@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -136,7 +136,7 @@ protected:
     return Param();
   }
 
-  void parseMascotResponse_(const PeakMap& exp, bool decoy, MascotRemoteQuery* mascot_query, ProteinIdentification& prot_id, vector<PeptideIdentification>& pep_ids)
+  void parseMascotResponse_(const PeakMap& exp, bool decoy, MascotRemoteQuery* mascot_query, ProteinIdentification& prot_id, PeptideIdentificationList& pep_ids)
   {   
     String mascot_tmp_file_name = decoy ? (File::getTempDirectory() + "/" + File::getUniqueName() + "_Mascot_decoy_response") : (File::getTempDirectory() + "/" + File::getUniqueName() + "_Mascot_response");
     QFile mascot_tmp_file(mascot_tmp_file_name.c_str());
@@ -173,7 +173,7 @@ protected:
   }
 
   // merge b into a
-  void mergeIDs_(ProteinIdentification& p_a, const ProteinIdentification& p_b, vector<PeptideIdentification>& pep_a, const vector<PeptideIdentification>& pep_b)
+  void mergeIDs_(ProteinIdentification& p_a, const ProteinIdentification& p_b, PeptideIdentificationList& pep_a, const PeptideIdentificationList& pep_b)
   {
     // if p_a is empty use all meta values and hits from p_b to initialize p_a
     if (p_a.getHits().empty())
@@ -219,7 +219,7 @@ protected:
         {
           pep_a[it->second].insertHit(h);
         }
-        pep_a[it->second].assignRanks();
+        pep_a[it->second].sort();
       }
     }
   }
@@ -269,7 +269,7 @@ protected:
 
     vector<ProteinIdentification> all_prot_ids;
     ProteinIdentification all_prot_id;
-    vector<PeptideIdentification> all_pep_ids;
+    PeptideIdentificationList all_pep_ids;
 
     MSExperiment current_batch;
     for (size_t k = 0; k < chunks; ++k)
@@ -335,7 +335,7 @@ protected:
         return EXTERNAL_PROGRAM_ERROR;
       }
 
-      vector<PeptideIdentification> pep_ids;
+      PeptideIdentificationList pep_ids;
       ProteinIdentification prot_id;
 
       if (!mascot_query_param.exists("skip_export") ||
@@ -367,7 +367,7 @@ protected:
 
         if (internal_decoys)
         {
-          vector<PeptideIdentification> decoy_pep_ids;
+          PeptideIdentificationList decoy_pep_ids;
           ProteinIdentification decoy_prot_id;
           parseMascotResponse_(current_batch, true, mascot_query, decoy_prot_id, decoy_pep_ids);  // decoys
 

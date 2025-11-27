@@ -1,10 +1,13 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
+
+#include <OpenMS/config.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
 #include <OpenMS/KERNEL/MSSpectrum.h>
 
@@ -471,11 +474,10 @@ namespace OpenMS
 
   bool MSSpectrum::operator==(const MSSpectrum &rhs) const
   {
-    //name_ can differ => it is not checked
+    //name_ can differ => it is not checked, range is not checked
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wfloat-equal"
     return std::operator==(*this, rhs) &&
-           RangeManagerType::operator==(rhs) &&
            SpectrumSettings::operator==(rhs) &&
            retention_time_ == rhs.retention_time_ &&
            drift_time_ == rhs.drift_time_ &&
@@ -495,8 +497,8 @@ namespace OpenMS
       return *this;
     }
     ContainerType::operator=(source);
-    RangeManagerType::operator=(source);
     SpectrumSettings::operator=(source);
+    RangeManagerType::operator=(source);
 
     retention_time_ = source.retention_time_;
     drift_time_ = source.drift_time_;
@@ -527,6 +529,15 @@ namespace OpenMS
 
   void MSSpectrum::updateRanges()
   {
+    #ifdef OPENMS_ASSERTIONS
+      double im_min = RangeMobility::isEmpty() ? 0 : getMinMobility();
+      double im_max = RangeMobility::isEmpty() ? 0 : getMaxMobility();
+      double mz_min = RangeMZ::isEmpty() ? 0 : getMinMZ();
+      double mz_max = RangeMZ::isEmpty() ? 0 : getMaxMZ();
+      double int_min = RangeIntensity::isEmpty() ? 0 : getMinIntensity();
+      double int_max = RangeIntensity::isEmpty() ? 0 : getMaxIntensity();
+    #endif
+
     clearRanges();
     for (const auto& peak : (ContainerType&)*this)
     {
@@ -548,6 +559,22 @@ namespace OpenMS
     { 
       this->extendMobility(getDriftTime());
     }
+    #ifdef OPENMS_ASSERTIONS
+      double im_min_new = RangeMobility::isEmpty() ? 0 : getMinMobility();
+      double im_max_new = RangeMobility::isEmpty() ? 0 : getMaxMobility();
+      double mz_min_new = RangeMZ::isEmpty() ? 0 : getMinMZ();
+      double mz_max_new = RangeMZ::isEmpty() ? 0 : getMaxMZ();
+      double int_min_new = RangeIntensity::isEmpty() ? 0 : getMinIntensity();
+      double int_max_new = RangeIntensity::isEmpty() ? 0 : getMaxIntensity();
+
+      // check if all are equal and no update range was necessary
+      if (im_min_new == im_min && im_max_new == im_max
+        && int_min_new == int_min && int_max_new == int_max
+        && mz_min_new == mz_min && mz_max_new == mz_max)
+      {
+        OPENMS_LOG_WARN << "Update ranges was called but ranges were already up-to-date" << std::endl;
+      }      
+    #endif
   }
 
   double MSSpectrum::getRT() const

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -52,10 +52,7 @@ public:
     {}
 
     /// Copy constructor
-    inline ChromatogramPeak(const ChromatogramPeak & p) :
-      position_(p.position_),
-      intensity_(p.intensity_)
-    {}
+    ChromatogramPeak(const ChromatogramPeak & p) = default;
 
     /// Constructor with position and intensity
     inline ChromatogramPeak(const PositionType retention_time, const IntensityType intensity) :
@@ -130,24 +127,10 @@ public:
     //@}
 
     /// Assignment operator
-    inline ChromatogramPeak & operator=(const ChromatogramPeak & rhs)
-    {
-      if (this == &rhs) return *this;
-
-      intensity_ = rhs.intensity_;
-      position_ = rhs.position_;
-
-      return *this;
-    }
+    ChromatogramPeak & operator=(const ChromatogramPeak & rhs) = default;
 
     /// Equality operator
-    inline bool operator==(const ChromatogramPeak & rhs) const
-    {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wfloat-equal"
-      return intensity_ == rhs.intensity_ && position_ == rhs.position_;
-#pragma clang diagnostic pop
-    }
+    inline bool operator==(const ChromatogramPeak& rhs) const = default;
 
     /// Equality operator
     inline bool operator!=(const ChromatogramPeak & rhs) const

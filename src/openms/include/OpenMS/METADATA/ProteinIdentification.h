@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -9,6 +9,7 @@
 #pragma once
 
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinHit.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
@@ -16,6 +17,7 @@
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 #include <OpenMS/METADATA/DataArrays.h>
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <set>
 
@@ -241,6 +243,9 @@ public:
     /// Names corresponding to peak mass types
     static const std::string NamesOfPeakMassType[SIZE_OF_PEAKMASSTYPE];
 
+    /// returns all peak mass type names known to OpenMS
+    static StringList getAllNamesOfPeakMassType();
+
     /// Search parameters of the DB search
     struct OPENMS_DLLAPI SearchParameters :
       public MetaInfoInterface
@@ -363,8 +368,7 @@ public:
     void setHigherScoreBetter(bool higher_is_better);
     /// Sorts the protein hits according to their score
     void sort();
-    /// Sorts the protein hits by score and assigns ranks (best score has rank 1)
-    void assignRanks();
+
     /**
        @brief Compute the coverage (in percent) of all ProteinHits given PeptideHits
 
@@ -372,7 +376,7 @@ public:
 
        Does not return anything but stores the coverage inside the ProteinHit objects
     */
-    void computeCoverage(const std::vector<PeptideIdentification>& pep_ids);
+    void computeCoverage(const PeptideIdentificationList& pep_ids);
     void computeCoverage(const ConsensusMap& cmap, bool use_unassigned_ids);
     //@}
 
@@ -383,7 +387,7 @@ public:
       Because fixed modifications might not be of interest, a list can be provided to skip those.
     */
     void computeModifications(
-      const std::vector<PeptideIdentification>& pep_ids,
+      const PeptideIdentificationList& pep_ids,
       const StringList& skip_modifications);
     void computeModifications(
       const ConsensusMap& cmap,
@@ -495,9 +499,9 @@ protected:
   private:
     void computeCoverageFromEvidenceMapping_(const std::unordered_map<String, std::set<PeptideEvidence>>& map);
     void fillEvidenceMapping_(std::unordered_map<String, std::set<PeptideEvidence> >& map_acc_2_evidence,
-                              const std::vector<PeptideIdentification>& pep_ids) const;
+                              const PeptideIdentificationList& pep_ids) const;
 
-    void fillModMapping_(const std::vector<PeptideIdentification>& pep_ids, const StringList& skip_modifications,
+    void fillModMapping_(const PeptideIdentificationList& pep_ids, const StringList& skip_modifications,
                          std::unordered_map<String, std::set<std::pair<Size, ResidueModification>>>& prot2mod) const;
   };
 

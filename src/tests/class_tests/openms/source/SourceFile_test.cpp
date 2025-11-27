@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 // 
 // --------------------------------------------------------------------------
@@ -197,6 +197,13 @@ START_SECTION((bool operator!= (const SourceFile& rhs) const))
 	tmp2 = tmp;	
 	tmp.setPathToFile("/misc/sturm/mp3/");
 	TEST_FALSE(tmp == tmp2);
+END_SECTION
+
+START_SECTION((static StringList getAllNamesOfChecksumType()))
+  StringList names = SourceFile::getAllNamesOfChecksumType();
+  TEST_EQUAL(names.size(), SourceFile::SIZE_OF_CHECKSUMTYPE);
+  TEST_EQUAL(names[SourceFile::SHA1], "SHA-1");
+  TEST_EQUAL(names[SourceFile::MD5], "MD5");
 END_SECTION
 
 /////////////////////////////////////////////////////////////

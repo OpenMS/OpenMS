@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -99,6 +99,17 @@ namespace OpenMS
   void DataProcessing::setProcessingActions(const set<DataProcessing::ProcessingAction>& processing_actions)
   {
     processing_actions_ = processing_actions;
+  }
+
+  StringList DataProcessing::getAllNamesOfProcessingAction()
+  {
+    StringList names;
+    names.reserve(SIZE_OF_PROCESSINGACTION);
+    for (size_t i = 0; i < SIZE_OF_PROCESSINGACTION; ++i)
+    {
+      names.push_back(NamesOfProcessingAction[i]);
+    }
+    return names;
   }
 
 }

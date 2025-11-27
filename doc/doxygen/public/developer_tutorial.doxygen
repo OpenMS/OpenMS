@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 // --------------------------------------------------------------------------
 // $Maintainer: Oliver Alka  $
@@ -160,8 +160,6 @@ The extensible %OpenMS library implements common mass spectrometric data process
         - Database search:
             - Peptides (Tool %SimpleSearchEngine and its classes - started simple but is, by now, rather complete peptide identification engine)
             - Protein-Protein cross-links (Tool OpenPepXL)
-        - Spectral library search:
-            - Tool SpecLibSearcher and its classes
         - DeNovo:
             - Tool CompNovoCID and its classes
     - Quantification:
@@ -272,7 +270,7 @@ Within the ANALYSIS folder, you can find several important tools
 For the sake of completeness you will find a short list of the THIRDPARTY tools, which are integrated via wrappers into the %OpenMS framework (usually called -Adapter e.g. CometAdapter)
 
 Wrapper to third-party tools:
-    - Search Engines (MSGFPLUS, XTandem, Comet)
+    - Search Engines (MSGFPLUS, Comet, ...)
     - Protein Inference (Fido)
     - Spectral Library Search (SpectraST)
     - Metabolite Identification (Sirius)
@@ -546,7 +544,7 @@ Registration of tool parameters
 
 \snippet Tutorial_TOPP.cpp doxygen_snippet_Register
 
-Functions, classes and references can be checked in the %OpenMS / TOPP documentation (ftp://ftp.mi.fu-berlin.de/pub/OpenMS/release-documentation/html/index.html)
+Functions, classes and references can be checked in the %OpenMS / TOPP documentation (http://www.openms.de/current_doxygen/html/)
 
 @subsection tutorial_param_read Read tool parameters
 After a tool is executed, the registered parameters are available in the main_ function of the TOPP tool and can be read using the getStringOption_ method. Special methods for integers, lists and floating point parameters exist and are in the TOPPBase documentation but are not needed for this example.

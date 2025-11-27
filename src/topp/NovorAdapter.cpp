@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -286,7 +286,7 @@ protected:
     }
     CsvFile csv(tmp_out, ',');
         
-    vector<PeptideIdentification> peptide_ids;
+    PeptideIdentificationList peptide_ids;
     for (Size i = 0; i != csv.rowCount(); ++i)
     {
       StringList sl;

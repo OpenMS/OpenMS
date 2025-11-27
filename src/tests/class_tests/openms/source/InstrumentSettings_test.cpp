@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 // 
 // --------------------------------------------------------------------------
@@ -171,6 +171,12 @@ START_SECTION((bool operator!= (const InstrumentSettings& rhs) const))
 	edit = empty;
 	edit.setZoomScan(true);
 	TEST_EQUAL(edit!=empty,true);
+END_SECTION
+
+START_SECTION((static StringList getAllNamesOfScanMode()))
+  StringList names = InstrumentSettings::getAllNamesOfScanMode();
+  TEST_EQUAL(names.size(), InstrumentSettings::SIZE_OF_SCANMODE);
+  TEST_EQUAL(names[InstrumentSettings::MS1SPECTRUM], "MS1Spectrum");
 END_SECTION
 
 

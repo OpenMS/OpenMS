@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -53,7 +53,7 @@ namespace OpenMS
     struct OPENMS_DLLAPI MassTrace
     {
       ///Maximum peak pointer
-      const Peak1D* max_peak;
+      const Peak1D* max_peak = nullptr;
       ///RT of maximum peak
       double max_rt;
 

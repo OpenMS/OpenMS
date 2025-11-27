@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -84,6 +84,17 @@ namespace OpenMS
   void InstrumentSettings::setZoomScan(bool zoom_scan)
   {
     zoom_scan_ = zoom_scan;
+  }
+
+  StringList InstrumentSettings::getAllNamesOfScanMode()
+  {
+    StringList names;
+    names.reserve(SIZE_OF_SCANMODE);
+    for (size_t i = 0; i < SIZE_OF_SCANMODE; ++i)
+    {
+      names.push_back(NamesOfScanMode[i]);
+    }
+    return names;
   }
 
 }

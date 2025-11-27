@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -104,7 +104,7 @@ protected:
     //-------------------------------------------------------------
 
     vector<ProteinIdentification> proteins;
-    vector<PeptideIdentification> peptides;
+    PeptideIdentificationList peptides;
     FileHandler().loadIdentifications(file_name, proteins, peptides, {FileTypes::IDXML});
 
     // ensure protein and peptide identifications are presented, otherwise we don't have to rip anything anyhow

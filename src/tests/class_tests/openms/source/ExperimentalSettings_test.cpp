@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 // 
 // --------------------------------------------------------------------------
@@ -197,7 +197,7 @@ START_SECTION((ExperimentalSettings(const ExperimentalSettings& source)))
   tmp.getSample().setName("bla2");
   tmp.getSourceFiles().resize(1);
   tmp.getContacts().resize(1);
-  tmp.getProteinIdentifications().push_back(id);
+
   tmp.setMetaValue("label",String("label"));
   
   ExperimentalSettings tmp2(tmp);
@@ -209,7 +209,7 @@ START_SECTION((ExperimentalSettings(const ExperimentalSettings& source)))
   TEST_EQUAL(tmp2.getSample().getName(),"bla2");
   TEST_EQUAL(tmp2.getSourceFiles().size(),1);
   TEST_EQUAL(tmp2.getContacts().size(),1);
-  TEST_EQUAL(id == tmp2.getProteinIdentifications()[0], true);
+
   TEST_EQUAL((String)(tmp2.getMetaValue("label")), "label");  
 END_SECTION
 
@@ -231,7 +231,7 @@ START_SECTION((ExperimentalSettings& operator= (const ExperimentalSettings& sour
   tmp.getSample().setName("bla2");
   tmp.getSourceFiles().resize(1);
   tmp.getContacts().resize(1);
-	tmp.getProteinIdentifications().push_back(id);
+
   tmp.setMetaValue("label",String("label"));
   
   ExperimentalSettings tmp2;
@@ -244,8 +244,6 @@ START_SECTION((ExperimentalSettings& operator= (const ExperimentalSettings& sour
   TEST_EQUAL(tmp2.getSample().getName(),"bla2");
   TEST_EQUAL(tmp2.getSourceFiles().size(),1);
   TEST_EQUAL(tmp2.getContacts().size(),1);
-  TEST_EQUAL(tmp2.getProteinIdentifications().size(), 1);
-  TEST_EQUAL(id == tmp2.getProteinIdentifications()[0], true);
   TEST_EQUAL((String)(tmp2.getMetaValue("label")), "label");  
 
   tmp2 = ExperimentalSettings();
@@ -257,7 +255,6 @@ START_SECTION((ExperimentalSettings& operator= (const ExperimentalSettings& sour
   TEST_EQUAL(tmp2.getSample().getName(),"");
   TEST_EQUAL(tmp2.getSourceFiles().size(),0);
   TEST_EQUAL(tmp2.getContacts().size(),0);
-  TEST_EQUAL(tmp2.getProteinIdentifications().size(), 0);
   TEST_EQUAL(tmp2.getMetaValue("label").isEmpty(), true);
 END_SECTION
 
@@ -291,10 +288,6 @@ START_SECTION((bool operator== (const ExperimentalSettings& rhs) const))
   edit = empty;
   edit.getContacts().resize(1);
   TEST_EQUAL(edit==empty,false);
-
-  edit = empty;
-	edit.getProteinIdentifications().push_back(id);
-  TEST_EQUAL(edit==empty, false);
 
   edit = empty;
 	edit.setComment("bla");
@@ -352,62 +345,10 @@ START_SECTION((bool operator!= (const ExperimentalSettings& rhs) const))
   edit.getContacts().resize(1);
   TEST_EQUAL(edit!=empty,true);
 
-  edit = empty;
-	edit.getProteinIdentifications().push_back(id);
-  TEST_FALSE(edit == empty);
-
 	edit = empty;
 	edit.setMetaValue("label",String("label"));
 	TEST_EQUAL(edit!=empty,true);
 END_SECTION
-
-START_SECTION((const std::vector<ProteinIdentification>& getProteinIdentifications() const))
-  ExperimentalSettings settings;
-  ProteinIdentification id;
-	ProteinHit protein_hit;
-	float protein_significance_threshold = 63.2f;
-
-	id.setDateTime(DateTime::now());
-	id.setSignificanceThreshold(protein_significance_threshold);
-	id.insertHit(protein_hit);
-	
-	settings.getProteinIdentifications().push_back(id);
-	const ProteinIdentification& test_id = settings.getProteinIdentifications()[0];
-	TEST_TRUE(id == test_id)
-END_SECTION
-
-START_SECTION((std::vector<ProteinIdentification>& getProteinIdentifications()))
-  ExperimentalSettings settings;
-  ProteinIdentification id;
-	ProteinHit protein_hit;
-	float protein_significance_threshold = 63.2f;
-
-	id.setDateTime(DateTime::now());
-	id.setSignificanceThreshold(protein_significance_threshold);
-	id.insertHit(protein_hit);
-	
-	settings.getProteinIdentifications().push_back(id);
-	ProteinIdentification& test_id = settings.getProteinIdentifications()[0];
-	TEST_TRUE(id == test_id)
-END_SECTION
-
-START_SECTION((void setProteinIdentifications(const std::vector<ProteinIdentification>& protein_identifications)))
-  ExperimentalSettings settings;
-  ProteinIdentification id;
-	ProteinHit protein_hit;
-	float protein_significance_threshold = 63.2f;
-	vector<ProteinIdentification> ids;
-
-	id.setDateTime(DateTime::now());
-	id.setSignificanceThreshold(protein_significance_threshold);
-	id.insertHit(protein_hit);
-	ids.push_back(id);
-	id.setSignificanceThreshold(21.f);
-	ids.push_back(id);
-	settings.setProteinIdentifications(ids);
-	TEST_EQUAL(ids == settings.getProteinIdentifications(), true)
-END_SECTION
-
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

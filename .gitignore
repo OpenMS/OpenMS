@@ -36,3 +36,8 @@ _deps
 Modules
 src/openms_gui/OpenMS_GUI_autogen
 src/openms/OpenMS_autogen
+OpenMS-build/*
+vcpkg_installed
+build-release/*
+build-debug/*
+doc/*

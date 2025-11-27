@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -456,7 +456,7 @@ namespace OpenMS
 
     for (Size spec_idx = 0; spec_idx < msexp.size(); ++spec_idx)
     {
-      // cout << "merged spectrum no. " << spec_idx << " with #fragment ions: " << msexp[spec_idx].size() << endl;
+      OPENMS_LOG_DEBUG << "merged spectrum no. " << spec_idx << " with #fragment ions: " << msexp[spec_idx].size() << endl;
 
       // iterate over all precursor masses
       for (Size prec_idx = 0; prec_idx < msexp[spec_idx].getPrecursors().size(); ++prec_idx)
@@ -464,7 +464,7 @@ namespace OpenMS
         // get precursor m/z
         double precursor_mz(msexp[spec_idx].getPrecursors()[prec_idx].getMZ());
 
-        // cout << "precursor no. " << prec_idx << ": mz " << precursor_mz << " ";
+        OPENMS_LOG_DEBUG << "precursor no. " << prec_idx << ": mz " << precursor_mz << " ";
 
         double prec_mz_lowerbound, prec_mz_upperbound;
 
@@ -480,8 +480,8 @@ namespace OpenMS
           prec_mz_upperbound = precursor_mz + ppm_offset;
         }
 
-        // cout << "lower mz: " << prec_mz_lowerbound << " ";
-        // cout << "upper mz: " << prec_mz_upperbound << endl;
+        OPENMS_LOG_DEBUG << "lower mz: " << prec_mz_lowerbound << " ";
+        OPENMS_LOG_DEBUG << "upper mz: " << prec_mz_upperbound << endl;
 
         vector<double>::const_iterator lower_it = lower_bound(mz_keys.begin(), mz_keys.end(), prec_mz_lowerbound);
         vector<double>::const_iterator upper_it = upper_bound(mz_keys.begin(), mz_keys.end(), prec_mz_upperbound);
@@ -489,14 +489,31 @@ namespace OpenMS
         Size start_idx(lower_it - mz_keys.begin());
         Size end_idx(upper_it - mz_keys.begin());
 
-        //cout << "identifying " << msexp[spec_idx].getMetaValue("Massbank_Accession_ID") << endl;
+        OPENMS_LOG_DEBUG << "identifying " << msexp[spec_idx].getMetaValue("GNPS_Spectrum_ID") << endl;
 
         vector<SpectralMatch> partial_results;
 
         for (Size search_idx = start_idx; search_idx < end_idx; ++search_idx)
         {
           // do spectral matching
-          // cout << "scanning " << spec_db[search_idx].getPrecursors()[0].getMZ() << " " << spec_db[search_idx].getMetaValue("Metabolite_Name") << endl;
+          // Debug: list all available metadata keys
+          OPENMS_LOG_DEBUG << "Available metadata keys for spectrum " << search_idx << ":";
+          std::vector<String> keys;
+          spec_db[search_idx].getKeys(keys);
+          for (const auto& key : keys)
+          {
+            OPENMS_LOG_DEBUG << " " << key;
+          }
+          OPENMS_LOG_DEBUG << endl;
+          
+          String metabolite_name = "";
+          if (spec_db[search_idx].metaValueExists("Metabolite_Name")) {
+            metabolite_name = spec_db[search_idx].getMetaValue("Metabolite_Name").toString();
+          } else if (spec_db[search_idx].metaValueExists("GNPS_Spectrum_ID")) {
+            metabolite_name = spec_db[search_idx].getMetaValue("GNPS_Spectrum_ID").toString();
+          }
+          
+          OPENMS_LOG_DEBUG << "scanning " << spec_db[search_idx].getPrecursors()[0].getMZ() << " " << metabolite_name << endl;
 
           // check for charge state of precursor ions: do they match?
           if ( (ion_mode_ == "positive" && spec_db[search_idx].getPrecursors()[0].getCharge() < 0) || (ion_mode_ == "negative" && spec_db[search_idx].getPrecursors()[0].getCharge() > 0))
@@ -506,10 +523,22 @@ namespace OpenMS
 
           double hyperscore(computeHyperScore(fragment_mz_error_, fragment_error_unit_ppm, msexp[spec_idx], spec_db[search_idx], 0.0));
 
-          // cout << " scored with " << hyperScore << endl;
+          OPENMS_LOG_DEBUG << " scored with " << hyperscore << endl;
           if (hyperscore > 0)
           {
-            // cout << "  ** detected " << spec_db[search_idx].getMetaValue("Massbank_Accession_ID") << " " << spec_db[search_idx].getMetaValue("Metabolite_Name") << " scored with " << hyperscore << endl;
+            String massbank_id = "";
+            String metabolite_name = "";
+            
+            if (spec_db[search_idx].metaValueExists("GNPS_Spectrum_ID")) {
+              massbank_id = spec_db[search_idx].getMetaValue("GNPS_Spectrum_ID").toString();
+            }
+            if (spec_db[search_idx].metaValueExists("Metabolite_Name")) {
+              metabolite_name = spec_db[search_idx].getMetaValue("Metabolite_Name").toString();
+            } else if (spec_db[search_idx].metaValueExists("GNPS_Spectrum_ID")) {
+              metabolite_name = massbank_id; // Use GNPS_Spectrum_ID as name if no Metabolite_Name
+            }
+            
+            OPENMS_LOG_DEBUG << "  ** detected " << massbank_id << " " << metabolite_name << " scored with " << hyperscore << endl;
 
             // score result temporarily
             SpectralMatch tmp_match;
@@ -523,10 +552,19 @@ namespace OpenMS
             tmp_match.setMatchingSpectrumIndex(search_idx);
             tmp_match.setObservedSpectrumNativeID(msexp[spec_idx].getNativeID());
 
-            tmp_match.setPrimaryIdentifier(spec_db[search_idx].getMetaValue("Massbank_Accession_ID"));
+            tmp_match.setPrimaryIdentifier(spec_db[search_idx].getMetaValue("GNPS_Spectrum_ID"));
             tmp_match.setSecondaryIdentifier(spec_db[search_idx].getMetaValue("HMDB_ID"));
             tmp_match.setSumFormula(spec_db[search_idx].getMetaValue(Constants::UserParam::MSM_SUM_FORMULA));
-            tmp_match.setCommonName(spec_db[search_idx].getMetaValue(Constants::UserParam::MSM_METABOLITE_NAME));
+            
+            // Use the same fallback logic that's already working for logging
+            String common_name_value = "";
+            if (spec_db[search_idx].metaValueExists("Metabolite_Name")) {
+              common_name_value = spec_db[search_idx].getMetaValue("Metabolite_Name").toString();
+            } else if (spec_db[search_idx].metaValueExists("GNPS_Spectrum_ID")) {
+              common_name_value = spec_db[search_idx].getMetaValue("GNPS_Spectrum_ID").toString();
+            }
+            tmp_match.setCommonName(common_name_value);
+            
             tmp_match.setInchiString(spec_db[search_idx].getMetaValue(Constants::UserParam::MSM_INCHI_STRING));
             tmp_match.setSMILESString(spec_db[search_idx].getMetaValue(Constants::UserParam::MSM_SMILES_STRING));
             tmp_match.setPrecursorAdduct(spec_db[search_idx].getMetaValue(Constants::UserParam::MSM_PRECURSOR_ADDUCT));
@@ -547,7 +585,7 @@ namespace OpenMS
 
           for (Size result_idx = 0; result_idx < last_result_idx; ++result_idx)
           {
-            // cout << "score: " << partial_results[result_idx].getMatchingScore() << " " << partial_results[result_idx].getMatchingSpectrumIndex() << endl;
+            OPENMS_LOG_DEBUG << "score: " << partial_results[result_idx].getMatchingScore() << " " << partial_results[result_idx].getMatchingSpectrumIndex() << endl;
             matching_results.push_back(partial_results[result_idx]);
           }
         }

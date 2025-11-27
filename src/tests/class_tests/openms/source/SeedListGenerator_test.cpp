@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 // 
 // --------------------------------------------------------------------------
@@ -61,9 +61,9 @@ START_SECTION((void generateSeedList(const PeakMap& experiment, SeedList& seeds)
 END_SECTION
 
 
-START_SECTION((void generateSeedList(vector<PeptideIdentification>& peptides, SeedList& seeds, bool use_peptide_mass = false)))
+START_SECTION((void generateSeedList(PeptideIdentificationList& peptides, SeedList& seeds, bool use_peptide_mass = false)))
 {
-	vector<PeptideIdentification> peptides(3);
+	PeptideIdentificationList peptides(3);
 	peptides[0].setRT(1.1);
 	peptides[0].setMZ(111.111);
 	peptides[1].setRT(2.2);

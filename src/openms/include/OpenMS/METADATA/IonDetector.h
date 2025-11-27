@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -9,6 +9,7 @@
 #pragma once
 
 #include <OpenMS/METADATA/MetaInfoInterface.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 namespace OpenMS
 {
@@ -63,6 +64,11 @@ public:
     };
     /// Names of acquisition modes
     static const std::string NamesOfAcquisitionMode[SIZE_OF_ACQUISITIONMODE];
+
+    /// returns all detector type names known to OpenMS
+    static StringList getAllNamesOfType();
+    /// returns all acquisition mode names known to OpenMS
+    static StringList getAllNamesOfAcquisitionMode();
 
     /// Constructor
     IonDetector();

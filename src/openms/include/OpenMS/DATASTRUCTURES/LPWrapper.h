@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -41,14 +41,44 @@ class CoinModel;
 namespace OpenMS
 {
 
+  /**
+    @brief A wrapper class for linear programming (LP) solvers
+
+    This class provides a unified interface to different linear programming solvers,
+    including GLPK (GNU Linear Programming Kit) and COIN-OR (if available).
+    
+    Linear programming is a method to find the best outcome in a mathematical model
+    whose requirements are represented by linear relationships. It is used for
+    optimization problems where the objective function and constraints are linear.
+    
+    LPWrapper allows you to:
+    - Create and manipulate LP problems (add rows, columns, set bounds)
+    - Set objective functions and constraints
+    - Solve the LP problem using different solvers
+    - Access the solution and status information
+    
+    The class supports both continuous and integer variables, allowing for
+    mixed-integer linear programming (MILP) problems.
+    
+    @ingroup Datastructures
+  */
   class OPENMS_DLLAPI LPWrapper
   {
 public:
     /**
        @brief Struct that holds the parameters of the LP solver
+       
+       This structure contains various parameters that control the behavior of the LP solver,
+       including algorithm selection, cut generation, heuristics, and output control.
+       
+       Most parameters have reasonable defaults and don't need to be modified for basic use cases.
+       Advanced users can tune these parameters to improve performance for specific problem types.
     */
     struct SolverParam
     {
+      /**
+        @brief Default constructor that initializes all parameters with reasonable defaults
+      */
       SolverParam() :
         message_level(3), branching_tech(4), backtrack_tech(3),
         preprocessing_tech(2), enable_feas_pump_heuristic(true), enable_gmi_cuts(true),
@@ -58,77 +88,138 @@ public:
       {
       }
 
-      Int message_level;
-      Int branching_tech;
-      Int backtrack_tech;
-      Int preprocessing_tech;
-      bool enable_feas_pump_heuristic;
-      bool enable_gmi_cuts;
-      bool enable_mir_cuts;
-      bool enable_cov_cuts;
-      bool enable_clq_cuts;
-      double mip_gap;
-      Int time_limit;
-      Int output_freq;
-      Int output_delay;
-      bool enable_presolve;
-      bool enable_binarization; ///< only with presolve
+      Int message_level;                ///< Controls verbosity of solver output (0-3)
+      Int branching_tech;               ///< Branching technique for MIP problems
+      Int backtrack_tech;               ///< Backtracking technique for MIP problems
+      Int preprocessing_tech;           ///< Preprocessing technique
+      bool enable_feas_pump_heuristic;  ///< Enable feasibility pump heuristic
+      bool enable_gmi_cuts;             ///< Enable Gomory mixed-integer cuts
+      bool enable_mir_cuts;             ///< Enable mixed-integer rounding cuts
+      bool enable_cov_cuts;             ///< Enable cover cuts
+      bool enable_clq_cuts;             ///< Enable clique cuts
+      double mip_gap;                   ///< Relative gap tolerance for MIP problems
+      Int time_limit;                   ///< Time limit in milliseconds
+      Int output_freq;                  ///< Output frequency in milliseconds
+      Int output_delay;                 ///< Output delay in milliseconds
+      bool enable_presolve;             ///< Enable presolve techniques
+      bool enable_binarization;         ///< Enable binarization (only with presolve)
     };
 
+    /**
+      @brief Enumeration for variable/constraint bound types
+      
+      Defines the type of bounds applied to variables or constraints in the LP problem.
+    */
     enum Type
     {
-      UNBOUNDED = 1,
-      LOWER_BOUND_ONLY,
-      UPPER_BOUND_ONLY,
-      DOUBLE_BOUNDED,
-      FIXED
+      UNBOUNDED = 1,      ///< No bounds (free variable)
+      LOWER_BOUND_ONLY,   ///< Only lower bound is specified
+      UPPER_BOUND_ONLY,   ///< Only upper bound is specified
+      DOUBLE_BOUNDED,     ///< Both lower and upper bounds are specified
+      FIXED               ///< Lower bound equals upper bound (fixed value)
     };
 
+    /**
+      @brief Enumeration for variable types in the LP problem
+      
+      Defines whether variables are continuous or discrete (integer/binary).
+    */
     enum VariableType
     {
-      CONTINUOUS = 1,
-      INTEGER,
-      BINARY
+      CONTINUOUS = 1,     ///< Continuous variable (can take any real value within bounds)
+      INTEGER,            ///< Integer variable (can only take integer values within bounds)
+      BINARY              ///< Binary variable (can only take values 0 or 1)
     };
 
+    /**
+      @brief Enumeration for optimization direction
+      
+      Defines whether the objective function should be minimized or maximized.
+    */
     enum Sense
     {
-      MIN = 1,
-      MAX
+      MIN = 1,            ///< Minimize the objective function
+      MAX                 ///< Maximize the objective function
     };
 
+    /**
+      @brief Enumeration for LP problem file formats
+      
+      Defines the file format used when writing LP problems to disk.
+    */
     enum WriteFormat
     {
-      FORMAT_LP = 0,
-      FORMAT_MPS,
-      FORMAT_GLPK
+      FORMAT_LP = 0,      ///< LP format (human-readable)
+      FORMAT_MPS,         ///< MPS format (industry standard)
+      FORMAT_GLPK         ///< GLPK's native format
     };
 
+    /**
+      @brief Enumeration for available LP solvers
+      
+      Defines which solver backend to use for solving LP problems.
+    */
     enum SOLVER
     {
-      SOLVER_GLPK = 0
+      SOLVER_GLPK = 0     ///< GNU Linear Programming Kit solver
 #ifdef OPENMS_HAS_COINOR
-      , SOLVER_COINOR
+      , SOLVER_COINOR     ///< COIN-OR solver (if available)
 #endif
     };
 
+    /**
+      @brief Enumeration for solver status after solving an LP problem
+      
+      Defines the possible outcomes after attempting to solve an LP problem.
+    */
     enum SolverStatus
     {
-      UNDEFINED = 1,
-      OPTIMAL = 5,
-      FEASIBLE = 2,
-      NO_FEASIBLE_SOL = 4
+      UNDEFINED = 1,      ///< Status is undefined (e.g., solver not run yet)
+      OPTIMAL = 5,        ///< Optimal solution found
+      FEASIBLE = 2,       ///< Feasible solution found (but not necessarily optimal)
+      NO_FEASIBLE_SOL = 4 ///< No feasible solution exists for the problem
     };
 
+    /**
+      @brief Default constructor
+      
+      Initializes a new LP problem with the default solver (GLPK or COIN-OR if available).
+    */
     LPWrapper();
+    
+    /**
+      @brief Virtual destructor
+      
+      Frees all resources associated with the LP problem.
+    */
     virtual ~LPWrapper();
 
     // problem creation/manipulation
-    /// adds a row to the LP matrix, returns index
+    /**
+      @brief Adds a row to the LP matrix
+      
+      @param row_indices Indices of the columns that have non-zero coefficients in this row
+      @param row_values Values of the non-zero coefficients in this row
+      @param name Name of the row (for identification purposes)
+      @return Index of the newly added row
+    */
     Int addRow(const std::vector<Int>& row_indices, const std::vector<double>& row_values, const String& name);
-    /// adds an empty column to the LP matrix, returns index
+    
+    /**
+      @brief Adds an empty column to the LP matrix
+      
+      @return Index of the newly added column
+    */
     Int addColumn();
-    /// adds a column to the LP matrix, returns index
+    
+    /**
+      @brief Adds a column to the LP matrix
+      
+      @param column_indices Indices of the rows that have non-zero coefficients in this column
+      @param column_values Values of the non-zero coefficients in this column
+      @param name Name of the column (for identification purposes)
+      @return Index of the newly added column
+    */
     Int addColumn(const std::vector<Int>& column_indices, const std::vector<double>& column_values, const String& name);
 
     /**
@@ -158,27 +249,91 @@ public:
     */
     Int addColumn(const std::vector<Int>& column_indices, const std::vector<double>& column_values, const String& name, double lower_bound, double upper_bound, Type type);
 
-    /// delete index-th row
+    /**
+      @brief Delete the row at the specified index
+      
+      @param index Index of the row to delete
+    */
     void deleteRow(Int index);
-    /// sets name of the index-th column
+    
+    /**
+      @brief Set the name of a column
+      
+      @param index Index of the column to rename
+      @param name New name for the column
+    */
     void setColumnName(Int index, const String& name);
-    /// gets name of the index-th column
+    
+    /**
+      @brief Get the name of a column
+      
+      @param index Index of the column
+      @return Name of the column
+    */
     String getColumnName(Int index);
-    /// sets name of the index-th row
+    
+    /**
+      @brief Get the name of a row
+      
+      @param index Index of the row
+      @return Name of the row
+    */
     String getRowName(Int index);
-    /// gets index of the row with name
+    
+    /**
+      @brief Find the index of a row by its name
+      
+      @param name Name of the row to find
+      @return Index of the row with the given name
+    */
     Int getRowIndex(const String& name);
-    /// gets index of the column with name
+    
+    /**
+      @brief Find the index of a column by its name
+      
+      @param name Name of the column to find
+      @return Index of the column with the given name
+    */
     Int getColumnIndex(const String& name);
-    /// gets column's upper bound
+    
+    /**
+      @brief Get the upper bound of a column
+      
+      @param index Index of the column
+      @return Upper bound value of the column
+    */
     double getColumnUpperBound(Int index);
-    /// gets column's lower bound
+    
+    /**
+      @brief Get the lower bound of a column
+      
+      @param index Index of the column
+      @return Lower bound value of the column
+    */
     double getColumnLowerBound(Int index);
-    /// gets row's upper bound
+    
+    /**
+      @brief Get the upper bound of a row
+      
+      @param index Index of the row
+      @return Upper bound value of the row
+    */
     double getRowUpperBound(Int index);
-    /// gets row's lower bound
+    
+    /**
+      @brief Get the lower bound of a row
+      
+      @param index Index of the row
+      @return Lower bound value of the row
+    */
     double getRowLowerBound(Int index);
-    /// sets name of the index-th row
+    
+    /**
+      @brief Set the name of a row
+      
+      @param index Index of the row to rename
+      @param name New name for the row
+    */
     void setRowName(Int index, const String& name);
 
     /**
@@ -217,9 +372,20 @@ public:
      */
     VariableType getColumnType(Int index);
 
-    /// set objective value for column with index
+    /**
+      @brief Set the objective coefficient for a column/variable
+      
+      @param index Index of the column/variable
+      @param obj_value Coefficient value in the objective function
+    */
     void setObjective(Int index, double obj_value);
-    /// get objective value for column with index
+    
+    /**
+      @brief Get the objective coefficient for a column/variable
+      
+      @param index Index of the column/variable
+      @return Coefficient value in the objective function
+    */
     double getObjective(Int index);
 
     /**
@@ -228,14 +394,43 @@ public:
       @param sense 1- minimize, 2- maximize
      */
     void setObjectiveSense(Sense sense);
+    /**
+      @brief Get the current objective direction
+      
+      @return Current optimization direction (MIN or MAX)
+    */
     Sense getObjectiveSense();
 
-    /// get number of columns
+    /**
+      @brief Get the number of columns/variables in the LP problem
+      
+      @return Number of columns in the LP matrix
+    */
     Int getNumberOfColumns();
-    /// get number of rows
+    
+    /**
+      @brief Get the number of rows/constraints in the LP problem
+      
+      @return Number of rows in the LP matrix
+    */
     Int getNumberOfRows();
 
+    /**
+      @brief Set the value of a matrix element at the specified position
+      
+      @param row_index Index of the row
+      @param column_index Index of the column
+      @param value Value to set at the specified position
+    */
     void setElement(Int row_index, Int column_index, double value);
+    
+    /**
+      @brief Get the value of a matrix element at the specified position
+      
+      @param row_index Index of the row
+      @param column_index Index of the column
+      @return Value at the specified position
+    */
     double getElement(Int row_index, Int column_index);
 
     // problem reading/writing
@@ -275,24 +470,53 @@ public:
     SolverStatus getStatus();
 
     // solution access
+    /**
+      @brief Get the objective function value of the solution
+      
+      @return Value of the objective function at the optimal solution
+    */
     double getObjectiveValue();
+    
+    /**
+      @brief Get the value of a variable in the solution
+      
+      @param index Index of the column/variable
+      @return Value of the variable in the optimal solution
+    */
     double getColumnValue(Int index);
 
+    /**
+      @brief Get the number of non-zero entries in a specific row
+      
+      @param idx Index of the row
+      @return Number of non-zero coefficients in the row
+    */
     Int getNumberOfNonZeroEntriesInRow(Int idx);
+    
+    /**
+      @brief Get the indices of non-zero entries in a specific row
+      
+      @param idx Index of the row
+      @param indexes Vector to store the column indices of non-zero entries
+    */
     void getMatrixRow(Int idx, std::vector<Int>& indexes);
 
-    /// get currently active solver
+    /**
+      @brief Get the currently active solver backend
+      
+      @return Currently active solver (GLPK or COIN-OR)
+    */
     SOLVER getSolver() const;
 
 protected:
 #ifdef OPENMS_HAS_COINOR
-    CoinModel * model_ = nullptr;
-    std::vector<double> solution_;
+    CoinModel * model_ = nullptr;      ///< COIN-OR model object for the LP problem
+    std::vector<double> solution_;     ///< Solution vector when using COIN-OR
 #else
-    glp_prob * lp_problem_ = nullptr;
+    glp_prob * lp_problem_ = nullptr;  ///< GLPK problem object for the LP problem
 #endif
 
-    SOLVER solver_;
+    SOLVER solver_;                    ///< Currently active solver backend
 
 
   }; // class

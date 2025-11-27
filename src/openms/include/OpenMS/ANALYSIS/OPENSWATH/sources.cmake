@@ -26,11 +26,11 @@ set(sources_list_h
   OpenSwathHelper.h
   OpenSwathScores.h
   OpenSwathScoring.h
-  OpenSwathTSVWriter.h
   OpenSwathOSWWriter.h
   OpenSwathWorkflow.h
   PeakIntegrator.h
   PeakPickerChromatogram.h
+  PeakPickerMobilogram.h
   SwathMapMassCorrection.h
   SwathWindowLoader.h
   SwathQC.h

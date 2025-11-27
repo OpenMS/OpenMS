@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 // 
 // --------------------------------------------------------------------------
@@ -423,6 +423,43 @@ START_SECTION((bool operator!= (const MassAnalyzer& rhs) const))
   edit = empty;
   edit.setOrder(45);
 	TEST_EQUAL(edit!=empty,true);
+END_SECTION
+
+START_SECTION((static StringList getAllNamesOfAnalyzerType()))
+  StringList names = MassAnalyzer::getAllNamesOfAnalyzerType();
+  TEST_EQUAL(names.size(), MassAnalyzer::SIZE_OF_ANALYZERTYPE);
+  TEST_EQUAL(names[MassAnalyzer::QUADRUPOLE], "Quadrupole");
+  TEST_EQUAL(names[MassAnalyzer::ORBITRAP], "Orbitrap");
+END_SECTION
+
+START_SECTION((static StringList getAllNamesOfResolutionMethod()))
+  StringList names = MassAnalyzer::getAllNamesOfResolutionMethod();
+  TEST_EQUAL(names.size(), MassAnalyzer::SIZE_OF_RESOLUTIONMETHOD);
+  TEST_EQUAL(names[MassAnalyzer::FWHM], "Full width at half max");
+END_SECTION
+
+START_SECTION((static StringList getAllNamesOfResolutionType()))
+  StringList names = MassAnalyzer::getAllNamesOfResolutionType();
+  TEST_EQUAL(names.size(), MassAnalyzer::SIZE_OF_RESOLUTIONTYPE);
+  TEST_EQUAL(names[MassAnalyzer::CONSTANT], "Constant");
+END_SECTION
+
+START_SECTION((static StringList getAllNamesOfScanDirection()))
+  StringList names = MassAnalyzer::getAllNamesOfScanDirection();
+  TEST_EQUAL(names.size(), MassAnalyzer::SIZE_OF_SCANDIRECTION);
+  TEST_EQUAL(names[MassAnalyzer::UP], "Up");
+END_SECTION
+
+START_SECTION((static StringList getAllNamesOfScanLaw()))
+  StringList names = MassAnalyzer::getAllNamesOfScanLaw();
+  TEST_EQUAL(names.size(), MassAnalyzer::SIZE_OF_SCANLAW);
+  TEST_EQUAL(names[MassAnalyzer::LINEAR], "Linar");
+END_SECTION
+
+START_SECTION((static StringList getAllNamesOfReflectronState()))
+  StringList names = MassAnalyzer::getAllNamesOfReflectronState();
+  TEST_EQUAL(names.size(), MassAnalyzer::SIZE_OF_REFLECTRONSTATE);
+  TEST_EQUAL(names[MassAnalyzer::ON], "On");
 END_SECTION
 
 

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -227,7 +227,7 @@ void MQMsms::exportRowFromFeature_(
   file_ << "NA" << "\t"; // Neutral loss level
   file_ << "NA" << "\t"; // ETD identification type
 
-  ptr_best_hit->getMetaValue("target_decoy") == "decoy" ? file_ << "1\t" : file_ << "\t"; // reverse
+  ptr_best_hit->isDecoy() ? file_ << "1\t" : file_ << "\t"; // reverse
 
   file_ << "NA" << "\t"; // All scores
   file_ << "NA" << "\t"; // All sequences

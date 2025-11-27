@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 // 
 // --------------------------------------------------------------------------
@@ -317,6 +317,12 @@ START_SECTION(bool operator!= (const Instrument& rhs) const)
   edit = empty;
   edit.setMetaValue("label",String("label"));
 	TEST_EQUAL(edit!=empty,true);
+END_SECTION
+
+START_SECTION((static StringList getAllNamesOfIonOpticsType()))
+  StringList names = Instrument::getAllNamesOfIonOpticsType();
+  TEST_EQUAL(names.size(), Instrument::SIZE_OF_IONOPTICSTYPE);
+  TEST_EQUAL(names[Instrument::REFLECTRON], "reflectron");
 END_SECTION
 
 

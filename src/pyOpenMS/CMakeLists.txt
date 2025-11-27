@@ -1,4 +1,4 @@
-# Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+# Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 # SPDX-License-Identifier: BSD-3-Clause
 #
 # --------------------------------------------------------------------------
@@ -385,23 +385,37 @@ configure_file(${_env_py_in} ${_env_py} @ONLY)
 #------------------------------------------------------------------------------
 # create targets in makefile
 
+# Fix race condition: Use a single sentinel file as OUTPUT instead of multiple files
+# This ensures the custom command runs only once even with parallel make
+set(PYGEN_SENTINEL "${CMAKE_BINARY_DIR}/pyOpenMS/.cpp_extension_generated")
+
 IF(LINUX AND PY_NO_OUTPUT)
   add_custom_command(
-    OUTPUT ${PYCPPFILES} ${PYPYXFILES}
+    OUTPUT ${PYGEN_SENTINEL}
     DEPENDS OpenMS # fake dependency to see if a header file has changed (TODO should probably depend on pxds)
     COMMAND ${Python_EXECUTABLE} create_cpp_extension.py 2> /dev/null
+    COMMAND ${CMAKE_COMMAND} -E touch ${PYGEN_SENTINEL}
     COMMENT "Creating C++ extension with autowrap and Cython"
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
 ELSE()
   add_custom_command(
-    OUTPUT ${PYCPPFILES} ${PYPYXFILES}
+    OUTPUT ${PYGEN_SENTINEL}
     DEPENDS OpenMS # fake dependency to see if a header file has changed (TODO should probably depend on pxds)
     COMMAND ${Python_EXECUTABLE} create_cpp_extension.py
+    COMMAND ${CMAKE_COMMAND} -E touch ${PYGEN_SENTINEL}
     COMMENT "Creating C++ extension with autowrap and Cython"
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
 ENDIF()
 
+# Ensure all generated files depend on the sentinel
+add_custom_command(
+  OUTPUT ${PYCPPFILES} ${PYPYXFILES}
+  DEPENDS ${PYGEN_SENTINEL}
+  COMMENT "Generated files depend on successful code generation"
+)
+
 # this acts as a mutex in make, to not have race conditions on the above command in the next parallel targets
+# USES_TERMINAL ensures the command runs in a single terminal session, preventing parallel execution
 add_custom_target(compile_pxds DEPENDS ${PYCPPFILES} ${PYPYXFILES})
 
 set(PY_EXTRA_ARGS "")
@@ -429,7 +443,11 @@ else()
 endif()
 
 if(LINUX OR APPLE)
-  set(EXTRA_WARNINGS "-Wno-unused-member-function" "-Wno-builtin-macro-redefined" "-Wno-unused" "-Wno-zero-as-null-pointer-constant")
+  set(EXTRA_WARNINGS "-Wno-builtin-macro-redefined" "-Wno-unused" "-Wno-zero-as-null-pointer-constant")
+  # no-unused-member-function is specific to clang
+  if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
+    list(APPEND EXTRA_WARNINGS "-Wno-unused-member-function")
+  endif()
   if(${Python_VERSION} VERSION_GREATER_EQUAL "3.8" AND ${Python_VERSION} VERSION_LESS "3.9")
     list(APPEND EXTRA_WARNINGS "-Wno-deprecated-declarations") # https://github.com/cython/cython/issues/3474
   endif()
@@ -507,7 +525,7 @@ endif()
 IF(LINUX AND PY_NO_OUTPUT)
     add_custom_target(pyopenms
             #COMMAND ${Python_EXECUTABLE} setup.py bdist_egg 2> /dev/null
-            COMMAND ${Python_EXECUTABLE} -m pip wheel -w dist --no-deps --no-binary=pyopenms .
+            COMMAND ${Python_EXECUTABLE} -m pip wheel -w dist --no-deps --no-binary=pyopenms --no-build-isolation .
             #COMMAND ${Python_EXECUTABLE} setup.py bdist --format=zip 2> /dev/null
             #COMMAND ${Python_EXECUTABLE} setup.py build_ext --inplace 2> /dev/null
             COMMENT "Packaging pyopenms wheel."
@@ -522,7 +540,7 @@ ELSE()
             COMMAND codesign --force --sign "-" ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/Qt*
             COMMAND codesign --force --sign "-" ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/*.dylib
             #COMMAND ${Python_EXECUTABLE} setup.py bdist_egg
-            COMMAND ${Python_EXECUTABLE} -m pip wheel -w dist --no-deps --no-binary=pyopenms .
+            COMMAND ${Python_EXECUTABLE} -m pip wheel -w dist --no-deps --no-binary=pyopenms --no-build-isolation .
             #COMMAND ${Python_EXECUTABLE} setup.py bdist --format=zip
             #COMMAND ${Python_EXECUTABLE} setup.py build_ext --inplace
             COMMENT "Packaging pyopenms wheel."
@@ -531,7 +549,7 @@ ELSE()
     ELSE()
         add_custom_target(pyopenms
             #COMMAND ${Python_EXECUTABLE} setup.py bdist_egg
-            COMMAND ${Python_EXECUTABLE} -m pip wheel -w dist --no-deps --no-binary=pyopenms .
+            COMMAND ${Python_EXECUTABLE} -m pip wheel -w dist --no-deps --no-binary=pyopenms --no-build-isolation .
             #COMMAND ${Python_EXECUTABLE} setup.py bdist --format=zip
             #COMMAND ${Python_EXECUTABLE} setup.py build_ext --inplace
             COMMENT "Packaging pyopenms wheel."
@@ -558,6 +576,7 @@ endif()
 
 # Please add your test here when you decide to write a new testfile in the tests/unittests folder
 set(pyopenms_unittest_testfiles
+  test_ProteaseDigestion.py
   test000.py
   test_tutorial.py
   test_BaselineFiltering.py
@@ -569,6 +588,7 @@ set(pyopenms_unittest_testfiles
   test_FileIO.py
   test_Isobaric_Quantitation.py
   testLightTargetedExperiment.py
+  testLocale.py
   test_MRMFeatureFinderScoring.py
   test_MSNumpressCoder.py
   test_MSSpectrumAndRichSpectrum.py

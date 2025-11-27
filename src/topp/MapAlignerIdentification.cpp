@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -35,7 +35,7 @@ using namespace std;
             <th ALIGN = "center"> potential successor tools </td>
         </tr>
         <tr>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_XTandemAdapter @n (or another search engine adapter) </td>
+            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_CometAdapter @n (or another search engine adapter) </td>
             <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDMerger </td>
         </tr>
         <tr>
@@ -210,32 +210,25 @@ private:
       FileTypes::Type filetype = FileHandler::getType(reference_file);
       switch (filetype)
       {
-      case FileTypes::MZML:
-      {
-        PeakMap experiment;
-        FileHandler().loadExperiment(reference_file, experiment, {FileTypes::MZML});
-        algorithm.setReference(experiment);
-      }
-      break;
       case FileTypes::FEATUREXML:
       {
         FeatureMap features;
-        FileHandler().loadFeatures(reference_file, features);
+        FileHandler().loadFeatures(reference_file, features, {}, log_type_);
         algorithm.setReference(features);
       }
       break;
       case FileTypes::CONSENSUSXML:
       {
         ConsensusMap consensus;
-        FileHandler().loadConsensusFeatures(reference_file, consensus);
+        FileHandler().loadConsensusFeatures(reference_file, consensus, {}, log_type_);
         algorithm.setReference(consensus);
       }
       break;
       case FileTypes::IDXML:
       {
         vector<ProteinIdentification> proteins;
-        vector<PeptideIdentification> peptides;
-        FileHandler().loadIdentifications(reference_file, proteins, peptides);
+        PeptideIdentificationList peptides;
+        FileHandler().loadIdentifications(reference_file, proteins, peptides, {}, log_type_);
         algorithm.setReference(peptides);
       }
       break;
@@ -438,7 +431,7 @@ private:
     case FileTypes::IDXML:
     {
       vector<vector<ProteinIdentification>> protein_ids(input_files.size());
-      vector<vector<PeptideIdentification>> peptide_ids(input_files.size());
+      vector<PeptideIdentificationList> peptide_ids(input_files.size());
       FileHandler idxml_file;
       ProgressLogger progresslogger;
       progresslogger.setLogType(log_type_);
@@ -447,7 +440,7 @@ private:
       for (Size i = 0; i < input_files.size(); ++i)
       {
         progresslogger.setProgress(i);
-        idxml_file.loadIdentifications(input_files[i], protein_ids[i], peptide_ids[i], {FileTypes::IDXML});
+        idxml_file.loadIdentifications(input_files[i], protein_ids[i], peptide_ids[i], {FileTypes::IDXML}, log_type_);
       }
       progresslogger.endProgress();
 
@@ -462,7 +455,7 @@ private:
         for (Size i = 0; i < output_files.size(); ++i)
         {
           progresslogger.setProgress(i);
-          idxml_file.storeIdentifications(output_files[i], protein_ids[i], peptide_ids[i], {FileTypes::IDXML});
+          idxml_file.storeIdentifications(output_files[i], protein_ids[i], peptide_ids[i], {FileTypes::IDXML}, log_type_);
         }
         progresslogger.endProgress();
       }

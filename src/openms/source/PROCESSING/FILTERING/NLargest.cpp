@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -59,9 +59,9 @@ namespace OpenMS
 
   void NLargest::filterPeakMap(PeakMap & exp)
   {
-    for (PeakMap::Iterator it = exp.begin(); it != exp.end(); ++it)
+    for (auto& spectrum : exp)
     {
-      filterSpectrum(*it);
+      filterSpectrum(spectrum);
     }
   }
 

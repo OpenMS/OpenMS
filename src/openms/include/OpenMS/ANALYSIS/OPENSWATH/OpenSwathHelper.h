@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -180,6 +180,36 @@ public:
 
     */
     static std::pair<double,double> estimateRTRange(const OpenSwath::LightTargetedExperiment & exp);
+
+    /**
+     * @brief Sample a subset of peptides uniformly across the RT range.
+     *
+     * Splits the RT span (min→max) into @p bins and randomly picks up to
+     * @p peptides_per_bin compounds from each bin. Useful for on-the-fly
+     * iRT calibration without external .irt files.
+     *
+     * @param[in] exp               Full LightTargetedExperiment (the input peptide query parameter assay list for targeted extraction)
+     * @param[in] bins              Number of retention‐time bins (i.e. 10 bins across the RT range for linear iRT, 500-1000 bins across the RT for nonlinear iRT)
+     * @param[in] peptides_per_bin  How many peptides to draw per bin (i.e. 5 peptides for linear iRT, 25 - 50 for non-linear iRT)
+     * @param[in] seed              If non‐zero, used to seed the RNG (deterministic).
+     *                              If zero, will use std::random_device for non-deterministic.
+     * @param[in] sort_by_intensity     Whether to sort the assays by the highest cumulative intense transitions. This is useful for sampling the most intense peptides for iRTs.
+     * @param[in] top_fraction     Only sample from the top N fraction of sorted assays to narrow down on only really intense peptides. This is useful for selecting a few "high quality" peptides to use for linear iRTs.
+     * @param[in] priority_peptides Optional set of peptide sequences to prioritize during sampling. If provided, these peptides
+     *                              will be sampled first if found in @p exp, before the remaining quota is filled with regular sampling.
+     *                              Useful for ensuring common iRT peptides (e.g., from irtkit or cirtkit) are included when present.
+     *
+     * @return A new LightTargetedExperiment containing only the sampled
+     *         compounds, their transitions, and associated proteins.
+     */
+    static OpenSwath::LightTargetedExperiment sampleExperiment(
+      const OpenSwath::LightTargetedExperiment & exp,
+      Size bins,
+      Size peptides_per_bin,
+      unsigned int seed = 0,
+      bool sort_by_intensity = false,
+      double top_fraction = 1.0,
+      const std::unordered_set<std::string> & priority_peptides = std::unordered_set<std::string>());
 
     /**
       @brief Returns the feature with the highest score for each transition group.

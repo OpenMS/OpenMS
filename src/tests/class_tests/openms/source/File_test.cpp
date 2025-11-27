@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -339,7 +339,7 @@ END_SECTION
 
 START_SECTION(File::download(std::string url, std::string filename))
 {
-  std::string url = R"(https://raw.githubusercontent.com/OpenMS/OpenMS/refs/heads/develop/README.md)";
+  std::string url = R"(http://raw.githubusercontent.com/OpenMS/OpenMS/refs/heads/develop/README.md)";
   std::string folder = File::getTempDirectory();
   File::download(url, folder);
   std::string output_file_path = folder + "/README.md";

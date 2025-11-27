@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -426,7 +426,7 @@ namespace OpenMS
     }
 
     // check file type compatibility
-    foreach(const QString& q_file_name, file_names)
+    for (const QString& q_file_name : file_names)
     {
       bool type_mismatch = true;
       const String& file_name = String(q_file_name);

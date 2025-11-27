@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -64,6 +64,16 @@ public:
       }
     };
 
+    /**
+     * @brief Container for organizing and managing multiple chunks in a spectrum.
+     *
+     * This structure is used to track multiple chunks (segments) within a spectrum.
+     * Each chunk represents a portion of the spectrum that may or may not be sorted.
+     * This information is used to optimize sorting operations on spectra, particularly
+     * when only parts of the spectrum need to be sorted or have been modified.
+     *
+     * @see Chunk
+     */
     struct Chunks {
       public:
         Chunks(const MSSpectrum& s) : spec_(s) {}

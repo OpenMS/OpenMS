@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -100,13 +100,6 @@ public:
     /// sets the free-text comment
     void setComment(const String & comment);
 
-    /// returns a const reference to the protein ProteinIdentification vector
-    const std::vector<ProteinIdentification> & getProteinIdentifications() const;
-    /// returns a mutable reference to the protein ProteinIdentification vector
-    std::vector<ProteinIdentification> & getProteinIdentifications();
-    /// sets the protein ProteinIdentification vector
-    void setProteinIdentifications(const std::vector<ProteinIdentification> & protein_identifications);
-
     /// returns fraction identifier
     const String & getFractionIdentifier() const;
     /// sets the fraction identifier
@@ -120,7 +113,6 @@ protected:
     HPLC hplc_;
     DateTime datetime_;
     String comment_;
-    std::vector<ProteinIdentification> protein_identifications_;
     String fraction_identifier_;
   };
 

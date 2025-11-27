@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -10,6 +10,7 @@
 #include <OpenMS/FORMAT/XMLFile.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/ANALYSIS/XLMS/OPXLDataStructs.h>
 
@@ -41,7 +42,7 @@ public:
       @param prot_ids Where the protein identification of the input file will be loaded to.
      */
     void load(const String & filename,
-              std::vector< PeptideIdentification > & pep_ids,
+              PeptideIdentificationList & pep_ids,
               std::vector< ProteinIdentification > & prot_ids
             );
 
@@ -52,7 +53,7 @@ public:
     */
     void store(const String& filename,
                const std::vector<ProteinIdentification>& poid,
-               const std::vector<PeptideIdentification>& peid) const;
+               const PeptideIdentificationList& peid) const;
 
     /**
      * @brief Returns the total number of hits in the file

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -101,7 +101,7 @@ protected:
     //-------------------------------------------------------------
     // general variables and data to perform PSMFeatureExtractor
     //-------------------------------------------------------------
-    vector<PeptideIdentification> all_peptide_ids;
+    PeptideIdentificationList all_peptide_ids;
     vector<ProteinIdentification> all_protein_ids;
     
     //-------------------------------------------------------------
@@ -127,7 +127,7 @@ protected:
     StringList search_engines_used;
     for (StringList::const_iterator fit = in_list.begin(); fit != in_list.end(); ++fit)
     {
-      vector<PeptideIdentification> peptide_ids;
+      PeptideIdentificationList peptide_ids;
       vector<ProteinIdentification> protein_ids;
       String in = *fit;
       FileHandler fh;
@@ -251,7 +251,7 @@ protected:
     }
 
     String run_identifier = all_protein_ids.front().getIdentifier();
-    for (vector<PeptideIdentification>::iterator it = all_peptide_ids.begin(); it != all_peptide_ids.end(); ++it)
+    for (PeptideIdentificationList::iterator it = all_peptide_ids.begin(); it != all_peptide_ids.end(); ++it)
     {
       it->setIdentifier(run_identifier);
       PercolatorFeatureSetHelper::checkExtraFeatures(it->getHits(), extra_features);  // will remove inconsistently available features

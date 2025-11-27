@@ -1,10 +1,12 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg$
 // $Authors: Marc Sturm, Tom Waschischeck $
 // --------------------------------------------------------------------------
+
+#include <OpenMS/config.h> // for OPENMS_ASSERTIONS
 
 #include <OpenMS/KERNEL/MSExperiment.h>
 
@@ -23,8 +25,10 @@ namespace OpenMS
 {
   /// Constructor
   MSExperiment::MSExperiment() :
-    RangeManagerContainerType(),
-    ExperimentalSettings()
+    ExperimentalSettings(),
+    spectrum_ranges_(),
+    chromatogram_ranges_(),
+    combined_ranges_()
   {}
 
   /// Copy constructor
@@ -37,14 +41,15 @@ namespace OpenMS
     {
       return *this;
     }
-    RangeManagerContainerType::operator=(source);
     ExperimentalSettings::operator=(source);
 
     chromatograms_ = source.chromatograms_;
     spectra_ = source.spectra_;
-
-    //no need to copy the alloc?!
-    //alloc_
+    
+    // Copy the range managers
+    spectrum_ranges_ = source.spectrum_ranges_;
+    chromatogram_ranges_ = source.chromatogram_ranges_;
+    combined_ranges_ = source.combined_ranges_;
 
     return *this;
   }
@@ -71,6 +76,185 @@ namespace OpenMS
   {
     return !(operator==(rhs));
   }
+
+  Size MSExperiment::size() const noexcept
+  {
+    return spectra_.size();
+  }
+
+  void MSExperiment::resize(Size n)
+  {
+    spectra_.resize(n);
+  }
+
+  bool MSExperiment::empty() const noexcept
+  {
+    return spectra_.empty();
+  }
+
+  void MSExperiment::reserve(Size n)
+  {
+    spectra_.reserve(n);
+  }
+
+  MSExperiment::SpectrumType& MSExperiment::operator[](Size n)
+  {
+    return spectra_[n];
+  }
+
+  const MSExperiment::SpectrumType& MSExperiment::operator[](Size n) const
+  {
+    return spectra_[n];
+  }
+
+  MSExperiment::Iterator MSExperiment::begin() noexcept
+  {
+    return spectra_.begin();
+  }
+
+  MSExperiment::ConstIterator MSExperiment::begin() const noexcept
+  {
+    return spectra_.cbegin();
+  }
+
+  MSExperiment::ConstIterator MSExperiment::cbegin() const noexcept
+  {
+    return spectra_.cbegin();
+  }
+
+  MSExperiment::Iterator MSExperiment::end()
+  {
+    return spectra_.end();
+  }
+
+  MSExperiment::ConstIterator MSExperiment::end() const noexcept
+  {
+    return spectra_.cend();
+  }
+
+  MSExperiment::ConstIterator MSExperiment::cend() const noexcept
+  {
+    return spectra_.cend();
+  }
+
+  void MSExperiment::get2DPeakDataPerSpectrum(
+    CoordinateType min_rt,
+    CoordinateType max_rt,
+    CoordinateType min_mz,
+    CoordinateType max_mz,
+    Size ms_level,
+    std::vector<float>& rt,
+    std::vector<std::vector<float>>& mz,
+    std::vector<std::vector<float>>& intensity) const
+  {
+    float t = -1.0;
+    for (auto it = areaBeginConst(min_rt, max_rt, min_mz, max_mz, ms_level); it != areaEndConst(); ++it)
+    {
+      if (it.getRT() != t)
+      {
+        t = (float)it.getRT();
+        rt.push_back(t);
+        mz.push_back(std::vector<float>());
+        intensity.push_back(std::vector<float>());
+      }
+      mz.back().push_back((float)it->getMZ());
+      intensity.back().push_back(it->getIntensity());
+    }
+  }
+
+  void MSExperiment::get2DPeakDataIMPerSpectrum(
+    CoordinateType min_rt,
+    CoordinateType max_rt,
+    CoordinateType min_mz,
+    CoordinateType max_mz,
+    Size ms_level,
+    std::vector<float>& rt,
+    std::vector<std::vector<float>>& mz,
+    std::vector<std::vector<float>>& intensity,
+    std::vector<std::vector<float>>& ion_mobility) const
+  {
+    DriftTimeUnit unit = DriftTimeUnit::NONE;
+    std::vector<float> im;
+    float t = -1.0;
+    for (auto it = areaBeginConst(min_rt, max_rt, min_mz, max_mz, ms_level); it != areaEndConst(); ++it)
+    {
+      if (it.getRT() != t)
+      {
+        t = (float)it.getRT();
+        rt.push_back(t);
+        std::tie(unit, im) = it.getSpectrum().maybeGetIMData();
+        mz.push_back(std::vector<float>());
+        intensity.push_back(std::vector<float>());
+        ion_mobility.push_back(std::vector<float>());
+      }
+
+      if (unit != DriftTimeUnit::NONE)
+      {
+        const Size peak_index = it.getPeakIndex().peak;
+        ion_mobility.back().push_back(im[peak_index]);
+      }
+      else
+      {
+        ion_mobility.back().push_back(-1.0);
+      }
+      mz.back().push_back((float)it->getMZ());
+      intensity.back().push_back(it->getIntensity());
+    }
+  }
+
+  void MSExperiment::get2DPeakData(
+      CoordinateType min_rt,
+      CoordinateType max_rt,
+      CoordinateType min_mz,
+      CoordinateType max_mz,
+      Size ms_level,
+      std::vector<float>& rt,
+      std::vector<float>& mz,
+      std::vector<float>& intensity) const
+    {
+      for (auto it = areaBeginConst(min_rt, max_rt, min_mz, max_mz, ms_level); it != areaEndConst(); ++it)
+      {
+        rt.push_back((float)it.getRT());
+        mz.push_back((float)it->getMZ());
+        intensity.push_back(it->getIntensity());
+      }
+    }
+
+  void MSExperiment::get2DPeakDataIM(
+      CoordinateType min_rt,
+      CoordinateType max_rt,
+      CoordinateType min_mz,
+      CoordinateType max_mz,
+      Size ms_level,
+      std::vector<float>& rt,
+      std::vector<float>& mz,
+      std::vector<float>& intensity,
+      std::vector<float>& ion_mobility) const
+    {
+      for (auto it = areaBeginConst(min_rt, max_rt, min_mz, max_mz, ms_level); it != areaEndConst(); ++it)
+      {
+        DriftTimeUnit unit = DriftTimeUnit::NONE;
+        std::vector<float> im;
+        float t = -1.0;
+        if (it.getRT() != t)
+        {
+          t = (float)it.getRT();
+          std::tie(unit, im) = it.getSpectrum().maybeGetIMData();
+        }
+        rt.push_back((float)it.getRT());
+        mz.push_back((float)it->getMZ());
+        intensity.push_back(it->getIntensity());
+        if (unit != DriftTimeUnit::NONE)
+        {
+          const Size peak_index = it.getPeakIndex().peak;
+          ion_mobility.push_back(im[peak_index]);
+        }
+        else
+        {
+          ion_mobility.push_back(-1.0);
+        }
+      }
+    }
 
   void MSExperiment::reserveSpaceSpectra(Size s)
   {
@@ -212,76 +396,87 @@ namespace OpenMS
 
   /**
   @name Range methods
-
-  @note The range values (min, max, etc.) are not updated automatically. Call updateRanges() to update the values!
   */
-  ///@{
-  // Docu in base class
-  void MSExperiment::updateRanges()
-  {
-    updateRanges(-1);
-  }
 
   /**
-  @brief Updates the m/z, intensity, retention time, ion mobility and MS level ranges of all spectra with a certain ms level
-
-  @param ms_level MS level to consider for m/z range, RT range, intensity range and ion mobility (if negative, all MS levels are used)
+  @brief Updates the m/z, intensity, retention time, ion mobility ranges for all spectra and chromatograms
   */
-  void MSExperiment::updateRanges(Int ms_level)
+  void MSExperiment::updateRanges()
   {
-    // reset mz/rt/int range
-    this->clearRanges();
+    #ifdef OPENMS_ASSERTIONS
+      double rt_min = combined_ranges_.RangeRT::isEmpty() ? 0 : combined_ranges_.getMinRT();
+      double rt_max = combined_ranges_.RangeRT::isEmpty() ? 0 : combined_ranges_.getMaxRT();
+      double mz_min = combined_ranges_.RangeMZ::isEmpty() ? 0 : combined_ranges_.getMinMZ();
+      double mz_max = combined_ranges_.RangeMZ::isEmpty() ? 0 : combined_ranges_.getMaxMZ();
+      double int_min = combined_ranges_.RangeIntensity::isEmpty() ? 0 : combined_ranges_.getMinIntensity();
+      double int_max = combined_ranges_.RangeIntensity::isEmpty() ? 0 : combined_ranges_.getMaxIntensity();
+      double im_min = combined_ranges_.RangeMobility::isEmpty() ? 0 : combined_ranges_.getMinMobility();
+      double im_max = combined_ranges_.RangeMobility::isEmpty() ? 0 : combined_ranges_.getMaxMobility();
+    #endif
 
-    // empty
+    // Reset all range managers
+    clearRanges();
+
+    // Empty experiment
     if (spectra_.empty() && chromatograms_.empty())
     {
       return;
     }
 
-    // update
+    // Update spectrum ranges
     for (Base::iterator it = spectra_.begin(); it != spectra_.end(); ++it)
+    {      
+      // Update ranges for the spectrum itself
+      it->updateRanges();
+      
+      // Update spectrum range manager with this spectrum's ranges
+      // Add to both general ranges and MS level-specific ranges
+      spectrum_ranges_.extendUnsafe(*it);
+      spectrum_ranges_.extendRT(it->getRT()); // RT is not part of the range of an individual spectrum
+      
+      spectrum_ranges_.extendUnsafe(*it, it->getMSLevel());
+      spectrum_ranges_.extendRT(it->getRT(), it->getMSLevel()); // RT is not part of the range of an individual spectrum
+      
+    }
+
+    // Update chromatogram ranges
+    if (!chromatograms_.empty())
     {
-      if (ms_level < Int(0) || Int(it->getMSLevel()) == ms_level)
+      for (ChromatogramType& cp : chromatograms_)
       {
-        // ranges
-        this->extendRT(it->getRT()); // RT
-        // m/z, intensity and ion mobility from spectrum's range
-        it->updateRanges();
-        this->extend(*it);
-      }
-      // for MS level = 1 we extend the range for all the MS2 precursors
-      if (ms_level == 1 && it->getMSLevel() == 2)
-      {
-        if (!it->getPrecursors().empty())
-        {
-          this->extendRT(it->getRT());
-          this->extendMZ(it->getPrecursors()[0].getMZ());
-        }
+        // Update range of EACH chromatogram
+        cp.updateRanges();
+        
+        // Add RT and intensity ranges to the chromatogram manager
+        chromatogram_ranges_.extend(cp.getRange());
+        chromatogram_ranges_.extendMZ(cp.getMZ()); // MZ is not part of the range of an individual chromatogram
       }
     }
 
-    if (this->chromatograms_.empty())
-    {
-      return;
-    }
+    // Update the combined range manager with both spectrum and chromatogram ranges
+    combined_ranges_.extendUnsafe(spectrum_ranges_);
+    combined_ranges_.extendUnsafe(chromatogram_ranges_);
 
-    // update intensity, m/z and RT according to chromatograms as well:
-    for (ChromatogramType& cp : chromatograms_)
-    {
-      // update range of EACH chrom, if we need them individually later
-      cp.updateRanges();
+    #ifdef OPENMS_ASSERTIONS
+      // check if updateRanges() was necessary to find places where it was not
+      double im_min_new = combined_ranges_.RangeMobility::isEmpty() ? 0 : combined_ranges_.getMinMobility();
+      double im_max_new = combined_ranges_.RangeMobility::isEmpty() ? 0 : combined_ranges_.getMaxMobility();
+      double int_min_new = combined_ranges_.RangeIntensity::isEmpty() ? 0 : combined_ranges_.getMinIntensity();
+      double int_max_new = combined_ranges_.RangeIntensity::isEmpty() ? 0 : combined_ranges_.getMaxIntensity();
+      double rt_min_new = combined_ranges_.RangeRT::isEmpty() ? 0 : combined_ranges_.getMinRT();
+      double rt_max_new = combined_ranges_.RangeRT::isEmpty() ? 0 : combined_ranges_.getMaxRT();
+      double mz_min_new = combined_ranges_.RangeMZ::isEmpty() ? 0 : combined_ranges_.getMinMZ();
+      double mz_max_new = combined_ranges_.RangeMZ::isEmpty() ? 0 : combined_ranges_.getMaxMZ();
 
-      // ignore TICs and ECs for the whole experiments range (as these are usually positioned at 0 and therefor lead to a large white margin in plots if included)
-      if (cp.getChromatogramType() == ChromatogramSettings::TOTAL_ION_CURRENT_CHROMATOGRAM ||
-        cp.getChromatogramType() == ChromatogramSettings::EMISSION_CHROMATOGRAM)
+      if (im_min_new == im_min && im_max_new == im_max
+        && int_min_new == int_min && int_max_new == int_max
+        && mz_min_new == mz_min && mz_max_new == mz_max
+        && rt_min_new == rt_min && rt_max_new == rt_max
+      )
       {
-        continue;
+        OPENMS_LOG_WARN << "Update ranges was called but ranges were already up-to-date" << std::endl;
       }
-
-      // ranges
-      this->extendMZ(cp.getMZ());// MZ
-      this->extend(cp);// RT and intensity from chroms's range
-    }
+    #endif
   }
 
   /// returns the total number of peaks
@@ -401,7 +596,7 @@ namespace OpenMS
   void MSExperiment::reset()
   {
     spectra_.clear();           //remove data
-    RangeManagerType::clearRanges();           //reset range manager
+    clearRanges(); // reset all ranges
     ExperimentalSettings::operator=(ExperimentalSettings());           //reset meta info
   }
 
@@ -537,44 +732,53 @@ namespace OpenMS
     return pc_spec - spectra_.cbegin(); 
   }
 
-  MSExperiment::ConstIterator MSExperiment::getFirstProductSpectrum(ConstIterator iterator) const
+  MSExperiment::ConstIterator MSExperiment::getFirstProductSpectrum(ConstIterator parent_iterator) const
   {
-    // if we are after the end we can't go "down"
-    if (iterator == spectra_.end())
+    // if we are already at or after the end -> there can be no product after it
+    if (parent_iterator == spectra_.end() 
+      || parent_iterator == spectra_.end() - 1)
     {
       return spectra_.end();
     }
-    UInt ms_level = iterator->getMSLevel();
 
-    auto tmp_spec_iter = iterator; // such that we can reiterate later
-    do
-    {
-      ++tmp_spec_iter;
-      if ((tmp_spec_iter->getMSLevel() - ms_level) == 1)
-      {
-        if (!tmp_spec_iter->getPrecursors().empty())
+    UInt parent_ms_level = parent_iterator->getMSLevel();
+    const auto& parent_native_id = parent_iterator->getNativeID();
+
+    auto it = parent_iterator; // such that we can reiterate later
+    it++; // start at the next spectrum
+
+    while (it != spectra_.end())
+    { 
+      if (it->getMSLevel() < parent_ms_level) return spectra_.end();
+
+      if ((it->getMSLevel() - parent_ms_level) == 1) 
+      { // it is a potential product spectrum (one level higher than parent)
+
+        // does it have precursors referencing the parents?
+        if (it->getPrecursors().empty()) 
         {
-          // Warn if there are multiple precursors
-          if (tmp_spec_iter->getPrecursors().size() > 1)
-          {
-              OPENMS_LOG_WARN << "Spectrum at index " << std::distance(spectra_.begin(), tmp_spec_iter)
-                        << " has multiple precursors. Only the first precursor will be considered."
-                        << std::endl;
-          }
+          ++it; // no precursors, so we can't check if it is a product of the parent
+          continue;
+        }      
 
-          const auto precursor = tmp_spec_iter->getPrecursors()[0];
-          String ref = precursor.getMetaValue("spectrum_ref", "");  
-          if (!ref.empty() && ref == iterator->getNativeID())
-          {
-            return tmp_spec_iter;
-          }
+        // warn if there are multiple precursors (should not happen)
+        if (it->getPrecursors().size() > 1)
+        {
+            OPENMS_LOG_WARN << "Spectrum at index " << std::distance(spectra_.begin(), it)
+                      << " has multiple precursors. Only the first precursor will be considered."
+                      << std::endl;
         }
+
+        // check if it has the parent a precursor
+        const auto precursor = it->getPrecursors()[0];
+        String ref = precursor.getMetaValue("spectrum_ref", "");  
+        if (!ref.empty() && ref == parent_native_id)
+        {
+          return it;
+        }     
       }
-      else if (tmp_spec_iter->getMSLevel() < ms_level)
-      {
-        return spectra_.end();
-      }
-    } while (tmp_spec_iter != spectra_.end());
+      ++it; 
+    } 
 
     return spectra_.end();
   }
@@ -582,6 +786,12 @@ namespace OpenMS
   // same as above but easier to wrap in python
   int MSExperiment::getFirstProductSpectrum(int zero_based_index) const
   {
+    if (zero_based_index < 0 
+      || zero_based_index >= static_cast<int>(spectra_.size()))
+    {
+      return -1;
+    }
+    
     auto spec = spectra_.cbegin();
     spec += zero_based_index;
     auto pc_spec = getFirstProductSpectrum(spec);
@@ -592,24 +802,22 @@ namespace OpenMS
   /// Swaps the content of this map with the content of @p from
   void MSExperiment::swap(MSExperiment & from)
   {
-    MSExperiment tmp;
+    // Swap range managers
+    std::swap(spectrum_ranges_, from.spectrum_ranges_);
+    std::swap(chromatogram_ranges_, from.chromatogram_ranges_);
+    std::swap(combined_ranges_, from.combined_ranges_);
 
-    //swap range information
-    tmp.RangeManagerType::operator=(*this);
-    this->RangeManagerType::operator=(from);
-    from.RangeManagerType::operator=(tmp);
-
-    //swap experimental settings
+    // Swap experimental settings
+    ExperimentalSettings tmp;
     tmp.ExperimentalSettings::operator=(*this);
     this->ExperimentalSettings::operator=(from);
     from.ExperimentalSettings::operator=(tmp);
 
-    // swap chromatograms
+    // Swap chromatograms
     std::swap(chromatograms_, from.chromatograms_);
 
-    //swap peaks
+    // Swap spectra
     spectra_.swap(from.getSpectra());
-
   }
 
   /// sets the spectrum list
@@ -793,48 +1001,37 @@ namespace OpenMS
   void MSExperiment::clear(bool clear_meta_data)
   {
     spectra_.clear();
+    chromatograms_.clear();
 
     if (clear_meta_data)
     {
-      clearRanges();
+      clearRanges(); // reset all ranges
       this->ExperimentalSettings::operator=(ExperimentalSettings());             // no "clear" method
-      chromatograms_.clear();
     }
   }
 
   // static
   bool MSExperiment::containsScanOfLevel(size_t ms_level) const
   {
-    //test if no scans with MS-level 1 exist
-    for (const auto& spec : getSpectra())
-    {
-      if (spec.getMSLevel() == ms_level)
-      {
-        return true;
-      }
-    }
-    return false;
+    // Check if any spectrum with the specified MS level exists
+    return std::any_of(getSpectra().begin(), getSpectra().end(),
+                      [ms_level](const auto& spec) { return spec.getMSLevel() == ms_level; });
   }
 
   bool MSExperiment::hasZeroIntensities(size_t ms_level) const
   {
-    for (const auto& spec : getSpectra())
-    {
-      if (spec.getMSLevel() != ms_level)
-      {
-        continue;
-      }
-      for (const auto& p : spec)
-      {
-        if (p.getIntensity() == 0.0)
-        {
-          return true;
-        }
-      }
-    }
-    return false;
+    // Check if any spectrum of the specified MS level contains peaks with zero intensity
+    return std::any_of(getSpectra().begin(), getSpectra().end(),
+                      [ms_level](const auto& spec) {                        
+                        if (spec.getMSLevel() != ms_level) return false; // Skip spectra that don't match the requested MS level
+                        
+                        // Check if this spectrum has any zero intensity peaks
+                        return std::any_of(spec.begin(), spec.end(),
+                                          [](const auto& peak) { return peak.getIntensity() == 0.0; });
+                      });
   }
 
+  /*
   bool MSExperiment::hasPeptideIdentifications() const
   {
     for (const auto& spec : getSpectra())
@@ -846,6 +1043,7 @@ namespace OpenMS
     }
     return false;
   }
+   */
 
   bool MSExperiment::isIMFrame() const
   {

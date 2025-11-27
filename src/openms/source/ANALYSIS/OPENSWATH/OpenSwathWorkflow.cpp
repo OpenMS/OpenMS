@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathWorkflow.h>
+#include <cmath>
 
 // OpenSwathCalibrationWorkflow
 namespace OpenMS
@@ -259,12 +260,22 @@ namespace OpenMS
     mc.correctMZ(trgrmap_final, targeted_exp, swath_maps, pasef);
     mc.correctIM(trgrmap_final, targeted_exp, swath_maps, pasef, im_trafo);
 
+    // Get estimated extraction windows
+    setEstimatedMzWindow(mc.getFragmentMzWindow());
+    setEstimatedImWindow(mc.getFragmentImWindow());
+    setEstimatedMs1MzWindow(mc.getPrecursorMzWindow());
+    setEstimatedMs1ImWindow(mc.getPrecursorImWindow());
+
     // 9. store RT transformation, using the selected model
     TransformationDescription trafo_out;
     trafo_out.setDataPoints(pairs_corrected);
     Param model_params;
     model_params.setValue("symmetric_regression", "false");
     model_params.setValue("span", irt_detection_param.getValue("lowess:span"));
+    model_params.setValue("auto_span", irt_detection_param.getValue("lowess:auto_span"));
+    model_params.setValue("auto_span_min", irt_detection_param.getValue("lowess:auto_span_min"));
+    model_params.setValue("auto_span_max", irt_detection_param.getValue("lowess:auto_span_max"));
+    model_params.setValue("auto_span_grid", irt_detection_param.getValue("lowess:auto_span_grid"));
     model_params.setValue("num_nodes", irt_detection_param.getValue("b_spline:num_nodes"));
     String model_type = irt_detection_param.getValue("alignmentMethod").toString();
     trafo_out.fitModel(model_type, model_params);
@@ -274,6 +285,7 @@ namespace OpenMS
     {
       OPENMS_LOG_DEBUG << pairs_corrected[i].first << " " <<  pairs_corrected[i].second << std::endl;
     }
+
     OPENMS_LOG_DEBUG << "End of doDataNormalization_ method" << std::endl;
 
     this->endProgress();
@@ -437,7 +449,47 @@ namespace OpenMS
     ls.raster(newchrom.begin(), newchrom.end(), base_chrom.begin(), base_chrom.end());
   }
 
-}
+  double OpenSwathCalibrationWorkflow::getEstimatedMzWindow() const
+  {
+    return estimated_mz_window_;
+  }
+
+  void OpenSwathCalibrationWorkflow::setEstimatedMzWindow(double estimatedMzWindow)
+  {
+    estimated_mz_window_ = estimatedMzWindow;
+  }
+
+  double OpenSwathCalibrationWorkflow::getEstimatedImWindow() const
+  {
+    return estimated_im_window_;
+  }
+
+  void OpenSwathCalibrationWorkflow::setEstimatedImWindow(double estimatedImWindow)
+  {
+    estimated_im_window_ = estimatedImWindow;
+  }
+  
+  double OpenSwathCalibrationWorkflow::getEstimatedMs1MzWindow() const
+  {
+    return estimated_ms1_mz_window_;
+  }
+
+  void OpenSwathCalibrationWorkflow::setEstimatedMs1MzWindow(double estimatedMs1MzWindow)
+  {
+    estimated_ms1_mz_window_ = estimatedMs1MzWindow;
+  }
+
+  double OpenSwathCalibrationWorkflow::getEstimatedMs1ImWindow() const
+  {
+    return estimated_ms1_im_window_;
+  }
+
+  void OpenSwathCalibrationWorkflow::setEstimatedMs1ImWindow(double estimatedMs1ImWindow)
+  {
+    estimated_ms1_im_window_ = estimatedMs1ImWindow;
+  }
+
+  }
 
 // OpenSwathWorkflow
 namespace OpenMS
@@ -452,14 +504,12 @@ namespace OpenMS
     const OpenSwath::LightTargetedExperiment& transition_exp,
     FeatureMap& out_featureFile,
     bool store_features,
-    OpenSwathTSVWriter & tsv_writer,
     OpenSwathOSWWriter & osw_writer,
     Interfaces::IMSDataConsumer * chromConsumer,
     int batchSize,
     int ms1_isotopes,
     bool load_into_memory)
   {
-    tsv_writer.writeHeader();
     osw_writer.writeHeader();
 
     bool ms1_only = (swath_maps.size() == 1 && swath_maps[0].ms1);
@@ -496,7 +546,7 @@ namespace OpenMS
       const OpenSwath::LightTargetedExperiment& transition_exp_used = transition_exp;
       scoreAllChromatograms_(std::vector<MSChromatogram>(), ms1_chromatograms, swath_maps, transition_exp_used,
                             feature_finder_param, trafo,
-                            cp.rt_extraction_window, featureFile, tsv_writer, osw_writer, ms1_isotopes, true);
+                            cp.rt_extraction_window, featureFile, osw_writer, ms1_isotopes, true);
 
       // write features to output if so desired
       std::vector< OpenMS::MSChromatogram > chromatograms;
@@ -760,7 +810,7 @@ namespace OpenMS
             std::vector< OpenSwath::SwathMap > tmp = {swath_maps[i]};
             tmp.back().sptr = current_swath_map_inner;
             scoreAllChromatograms_(chrom_exp.getChromatograms(), ms1_chromatograms, tmp, transition_exp_used,
-                feature_finder_param, trafo, cp.rt_extraction_window, featureFile, tsv_writer, osw_writer, ms1_isotopes);
+                feature_finder_param, trafo, cp.rt_extraction_window, featureFile, osw_writer, ms1_isotopes);
 
             // Step 4: write all chromatograms and features out into an output object / file
             // (this needs to be done in a critical section since we only have one
@@ -865,7 +915,6 @@ namespace OpenMS
     const TransformationDescription& trafo,
     const double rt_extraction_window,
     FeatureMap& output,
-    OpenSwathTSVWriter & tsv_writer,
     OpenSwathOSWWriter & osw_writer,
     int nr_ms1_isotopes,
     bool ms1only) const
@@ -934,7 +983,7 @@ namespace OpenMS
       assay_map[transition_exp.getTransitions()[i].getPeptideRef()].push_back(&transition_exp.getTransitions()[i]);
     }
 
-    std::vector<String> to_tsv_output, to_osw_output;
+    std::vector<String> to_osw_output;
     ///////////////////////////////////
     // Start of main function
     // Iterating over all the assays
@@ -986,8 +1035,8 @@ namespace OpenMS
         transition_group.addChromatogram(chromatogram, chromatogram.getNativeID());
       }
 
-      // currently .tsv, .osw and .featureXML are mutually exclusive
-      if (tsv_writer.isActive() || osw_writer.isActive()) { output.clear(); }
+      // currently  .osw and .featureXML are mutually exclusive
+      if (osw_writer.isActive()) { output.clear(); }
 
       // 2. Set the MS1 chromatograms for the different isotopes, if available
       // (note that for 3 isotopes, we include the monoisotopic peak plus three
@@ -1013,14 +1062,7 @@ namespace OpenMS
               "Error, did not find any detection transition for feature " + id );
       }
 
-      // 5. Add to the output tsv if given
-      if (tsv_writer.isActive() && !output.empty()) // implies that detection_assay_it was set
-      {
-        const OpenSwath::LightCompound pep = transition_exp.getCompounds()[ assay_peptide_map[id] ];
-        to_tsv_output.push_back(tsv_writer.prepareLine(pep, detection_assay_it, output, id));
-      }
-
-      // 6. Add to the output osw if given
+      // 5. Add to the output osw if given
       if (osw_writer.isActive() && !output.empty()) // implies that detection_assay_it was set
       {
         const OpenSwath::LightCompound pep;
@@ -1028,17 +1070,6 @@ namespace OpenMS
                                                        nullptr, // not used currently: detection_assay_it,
                                                        output,
                                                        id));
-      }
-    }
-
-    // Only write at the very end since this is a step that needs a barrier
-    if (tsv_writer.isActive())
-    {
-#ifdef _OPENMP
-#pragma omp critical (osw_write_tsv)
-#endif
-      {
-        tsv_writer.writeLines(to_tsv_output);
       }
     }
 

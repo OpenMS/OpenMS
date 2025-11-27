@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -133,7 +133,7 @@ class OPENMS_DLLAPI PrecursorCorrection
      @param believe_charge: bool only add features that match the precursor charge.
      @param keep_original: bool this will create a copy of the precursor and tandem spectrum for the new mono-isotopic trace and retain the original one.
      @param all_matching_features: bool correction is performed for all features in question not only the closest one.
-     @param max_trace: integer maximal number of traces used.
+     @param max_trace: integer maximum isotopic peak offset from the monoisotopic peak to consider (e.g., 2 allows corrections from M+0, M+1, M+2).
      @param debug_level: integer debug level.
      @return set of Size with corrected precursor information.
 
@@ -176,7 +176,7 @@ class OPENMS_DLLAPI PrecursorCorrection
       @param feature: constant Feature.
       @param pc_mz: double precursor mass to charge.
       @param mz_tolerance: double mass to charge tolerance.
-      @param max_trace_number: Size maximum number of mass traces.
+      @param max_trace_number: Size maximum isotopic peak offset from the monoisotopic peak to consider.
       @param debug_level: integer debug level.
       @return static boolean if the precursor mass to charge is in one of the features masstraces.
       */

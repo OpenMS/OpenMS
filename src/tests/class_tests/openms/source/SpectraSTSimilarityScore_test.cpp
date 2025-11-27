@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 // 
 // --------------------------------------------------------------------------
@@ -65,7 +65,7 @@ START_SECTION(double operator () (const PeakSpectrum& spec) const)
   PeakMap exp;
   PeakSpectrum s1;
   MSPFile msp;
-  std::vector< PeptideIdentification > ids;
+  PeptideIdentificationList ids;
   const String filename(OPENMS_GET_TEST_DATA_PATH("SpectraSTSimilarityScore_1.msp"));
   msp.load(filename, ids, exp);
   for(Size k = 0; k < exp[0].size(); ++k)
@@ -84,7 +84,7 @@ START_SECTION(double operator () (const PeakSpectrum& spec1, const PeakSpectrum&
   PeakSpectrum s1, s2, s3;
   PeakMap exp;
   MSPFile msp;
-  std::vector< PeptideIdentification > ids;
+  PeptideIdentificationList ids;
   const String filename(OPENMS_GET_TEST_DATA_PATH("SpectraSTSimilarityScore_1.msp"));
   msp.load(filename, ids, exp);
   for(Size k = 0; k < exp[0].size(); ++k)
@@ -124,7 +124,7 @@ START_SECTION((double operator()(const BinnedSpectrum &bin1, const BinnedSpectru
   PeakSpectrum s1, s2, s3;
   PeakMap exp;
   MSPFile msp;
-  std::vector< PeptideIdentification > ids;
+  PeptideIdentificationList ids;
   const String filename(OPENMS_GET_TEST_DATA_PATH("SpectraSTSimilarityScore_1.msp"));
   msp.load(filename, ids, exp);
   for(Size k = 0; k < exp[0].size(); ++k)
@@ -164,7 +164,7 @@ START_SECTION(bool preprocess(PeakSpectrum &spec, float remove_peak_intensity_th
   PeakSpectrum s1, s2, s3;
   PeakMap exp;
   MSPFile msp;
-  std::vector< PeptideIdentification > ids;
+  PeptideIdentificationList ids;
   const String filename(OPENMS_GET_TEST_DATA_PATH("SpectraSTSimilarityScore_1.msp"));
   msp.load(filename, ids, exp);
   for(Size k = 0; k < exp[0].size(); ++k)

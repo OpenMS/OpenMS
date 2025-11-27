@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -76,7 +76,7 @@ namespace OpenMS
     void removeGraphicalPeakAnnotations_(int spectrum_index);
 
     /// Adds annotation (compound name, adducts, ppm error) to a peak in 1D spectra
-    void addPeakAnnotations_(const std::vector<PeptideIdentification>& ph);
+    void addPeakAnnotations_(const PeptideIdentificationList& ph);
 
     /// Helper function for text formatting
     String n_times(Size n, const String& input);

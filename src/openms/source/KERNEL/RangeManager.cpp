@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -14,7 +14,15 @@ namespace OpenMS
 {
   std::ostream& operator<<(std::ostream& out, const RangeBase& b)
   {
-    out << "[" << b.getMin() << ", " << b.getMax() << "]";
+    if (!b.isEmpty())
+    {
+      out << "[" << b.getMin() << ", " << b.getMax() << "]";
+    }
+    else // empty range
+    {
+      out << "[, ]";
+    }
+    
     return out;
   }
   

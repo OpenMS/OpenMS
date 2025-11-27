@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -107,8 +107,7 @@ namespace OpenMS
 
     void FilterableList::updateVisibleList_()
     {
-      QRegularExpression regex(QRegularExpression::wildcardToRegularExpression(ui_->filter_text->text()),
-                               QRegularExpression::CaseInsensitiveOption);
+      QRegularExpression regex(ui_->filter_text->text(), QRegularExpression::CaseInsensitiveOption);
       ui_->list_items->clear();
       ui_->list_items->addItems(items_wo_bl_.filter(regex));
     }

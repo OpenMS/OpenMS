@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -597,7 +597,6 @@ protected:
       os << mod.first << " = " << mod.second << "\n";
     }
 
-    //TODO register cut_before and cut_after in Enzymes.xml plus datastructures to add all our Enzymes with our names instead.
     // COMET_ENZYME_INFO _must_ be at the end of this parameters file
     os << "[COMET_ENZYME_INFO]" << "\n";
     os << "0.  No_enzyme              0      -           -" << "\n";
@@ -616,6 +615,23 @@ protected:
     os << "13. Lys-C/P                1      K           -" << "\n";
     os << "14. Leukocyte_elastase     1      ALIV        -" << "\n";
     os << "15. Chymotrypsin/P         1      FWYL        -" << "\n";
+    os << "16. Asp-N/B                0      D           -" << "\n";
+    os << "17. Asp-N_ambic            0      DE          -" << "\n";
+    os << "18. Formic_acid            1      D           -" << "\n";
+    os << "19. TrypChymo              1      FYWLKR      P" << "\n";
+    os << "20. V8-DE                  1      DE          P" << "\n";
+    os << "21. V8-E                   1      E           P" << "\n";
+    os << "22. proline_endopeptidase  1      P           -" << "\n";
+    os << "23. Alpha-lytic_protease   1      TASV        -" << "\n";
+    os << "24. 2-iodobenzoate         1      W           -" << "\n";
+    os << "25. iodosobenzoate         1      W           -" << "\n";
+    os << "26. staphylococcal_protease/D 1   E           -" << "\n";
+    os << "27. proline-endopeptidase/HKR 1   P           -" << "\n";
+    os << "28. Glu-CP                 1      DE          P" << "\n";
+    os << "29. PepsinA__P             1      FL          P" << "\n";
+    os << "30. cyanogen-bromide       1      M           -" << "\n";
+    os << "31. Clostripain/P          1      R           -" << "\n";
+    os << "32. elastase-trypsin-chymotrypsin 1 ALIVKRWFY P" << "\n";
 
     return ExitCodes::EXECUTION_OK;
   }
@@ -730,7 +746,7 @@ protected:
     vector<String> fixed_modifications_names = getStringList_("fixed_modifications");
     vector<String> variable_modifications_names = getStringList_("variable_modifications");
 
-    vector<PeptideIdentification> peptide_identifications;
+    PeptideIdentificationList peptide_identifications;
     vector<ProteinIdentification> protein_identifications;
 
     writeDebug_("load PepXMLFile", 1);
@@ -760,11 +776,18 @@ protected:
     // if "reindex" parameter is set to true will perform reindexing
     if (auto ret = reindex_(protein_identifications, peptide_identifications); ret != EXECUTION_OK) return ret;
 
-	// Parse ion mobility information if present
-	bool all_ids_have_im = SpectrumMetaDataLookup::addMissingIMToPeptideIDs(peptide_identifications, exp);
-	if (all_ids_have_im) {
-		protein_identifications[0].setMetaValue(Constants::UserParam::IM, exp.getSpectrum(0).getDriftTimeUnitAsString());
-	}
+    // Parse ion mobility information if present
+    bool all_ids_have_im = SpectrumMetaDataLookup::addMissingIMToPeptideIDs(peptide_identifications, exp);
+    if (all_ids_have_im) 
+    {
+      protein_identifications[0].setMetaValue(Constants::UserParam::IM, exp.getSpectrum(0).getDriftTimeUnitAsString());
+    }
+
+    // remove base_name meta value from peptide identifications
+    for (auto& peptide_identification : peptide_identifications)
+    {      
+      peptide_identification.removeMetaValue("base_name");
+    }
 
     // add percolator features
     StringList feature_set;

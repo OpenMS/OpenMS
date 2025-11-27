@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -13,6 +13,7 @@
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 
 namespace OpenMS
 {
@@ -58,14 +59,14 @@ namespace OpenMS
      * Sorts and filters psms in @p pep_ids. Annotates results in @p prot_ids.
      * Associations (via getIdentifier) for peptides to protein runs need to be correct.
      */
-    void run(std::vector<PeptideIdentification>& pep_ids, std::vector<ProteinIdentification>& prot_ids) const;
+    void run(PeptideIdentificationList& pep_ids, std::vector<ProteinIdentification>& prot_ids) const;
 
     /**
      * Performs the actual inference based on best psm per peptide in @p pep_ids per run in @p prot_id.
      * Sorts and filters psms in @p pep_ids. Annotates results in @p prot_id.
      * Associations (via getIdentifier) for peptides to protein runs need to be correct.
      */
-    void run(std::vector<PeptideIdentification>& pep_ids, ProteinIdentification& prot_id) const;
+    void run(PeptideIdentificationList& pep_ids, ProteinIdentification& prot_id) const;
 
     /**
      * Performs the actual inference based on best psm per peptide in @p cmap for proteins from @p prot_id.
@@ -91,7 +92,7 @@ namespace OpenMS
       std::unordered_map<std::string, std::pair<ProteinHit*, Size>>& acc_to_protein_hitP_and_count,
       SequenceToChargeToPSM& best_pep,
       ProteinIdentification& prot_run,
-      std::vector<PeptideIdentification>& pep_ids) const;
+      PeptideIdentificationList& pep_ids) const;
 
     /**
      * @brief fills and updates the map of best peptide scores @p best_pep (by sequence or modified sequence, depending on algorithm settings)
@@ -103,7 +104,7 @@ namespace OpenMS
      */
     void aggregatePeptideScores_(
         SequenceToChargeToPSM& best_pep,
-        std::vector<PeptideIdentification>& pep_ids,
+        PeptideIdentificationList& pep_ids,
         const String& overall_score_type,
         bool higher_better,
         const std::string& run_id) const;

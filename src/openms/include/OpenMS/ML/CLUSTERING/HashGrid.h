@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -297,7 +297,7 @@ namespace OpenMS
      */
     cell_iterator insert(const value_type& v)
     {
-      const CellIndex cellkey = cellindexAtClustercenter_(v.first);
+      const CellIndex cellkey = cellIndexAtClusterCenter(v.first);
       CellContent& cell = cells_[cellkey];
       updateGridDimension_(cellkey);
       return cell.insert(v);
@@ -319,7 +319,7 @@ namespace OpenMS
      */
     size_type erase(const key_type& key)
     {
-      const CellIndex cellkey = cellindexAtClustercenter_(key);
+      const CellIndex cellkey = cellIndexAtClusterCenter(key);
       auto cell = cells_.find(cellkey);
       if (cell == cells_.end())
         return 0;
@@ -463,23 +463,28 @@ namespace OpenMS
       return cells_.end();
     }
 
-  private:
-    // XXX: Replace with proper operator
-    CellIndex cellindexAtClustercenter_(const ClusterCenter& key)
+    /**
+     * @brief Computes the cell index for a given cluster center coordinate.
+     * @param key Cluster center coordinate
+     * @return Cell index corresponding to the coordinate
+     * @throws Exception::OutOfRange if computed cell index exceeds Int64 limits
+     */
+    CellIndex cellIndexAtClusterCenter(const ClusterCenter& key) const
     {
       CellIndex ret;
       typename CellIndex::iterator it = ret.begin();
       typename ClusterCenter::const_iterator lit = key.begin(), rit = cell_dimension.begin();
       for (; it != ret.end(); ++it, ++lit, ++rit)
-      {
-        double t = std::floor(*lit / *rit);
-        if (t < std::numeric_limits<Int64>::min() || t > std::numeric_limits<Int64>::max())
-          throw Exception::OutOfRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
-        *it = static_cast<Int64>(t);
-      }
+        {
+          double t = std::floor(*lit / *rit);
+          if (t < std::numeric_limits<Int64>::min() || t > std::numeric_limits<Int64>::max())
+            throw Exception::OutOfRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+          *it = static_cast<Int64>(t);
+        }
       return ret;
     }
 
+  private:
     void updateGridDimension_(const CellIndex& d)
     {
       typename CellIndex::const_iterator it_new = d.begin();

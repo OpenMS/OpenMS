@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -250,7 +250,7 @@ protected:
       else if (ftype == FileTypes::IDXML)
       {
         std::vector<ProteinIdentification> prot_ids;
-        std::vector<PeptideIdentification> pep_ids; 
+        PeptideIdentificationList pep_ids; 
         FileHandler().loadIdentifications(cal_id, prot_ids, pep_ids, {FileTypes::IDXML});
         ic.fillCalibrants(pep_ids, tol_ppm);
       }

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -15,6 +15,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 
 #include <QSvgRenderer>
 #include <QtCore/QFileInfo>
@@ -77,20 +78,26 @@ namespace OpenMS
   QStringList TOPPASVertex::TOPPASFilenames::getSuffixCounts() const
   {
     // display file type(s)
-    std::map<QString, Size> suffices;
-    for (const QString& fn : filenames_)
+    std::map<String, Size> suffices;
+    try 
     {
-      QStringList l = QFileInfo(fn).completeSuffix().split('.');
-      QString suf = ((l.size() > 1 && l[l.size() - 2].size() <= 4) ? l[l.size() - 2] + "." : QString()) + l.back(); // take up to two dots as suffix (the first only if its <=4 chars, e.g. we want ".prot.xml" or ".tar.gz", but not "stupid.filename.with.longdots.mzML")
-      ++suffices[suf];
+      for (const auto& fn : filenames_)
+      {
+        auto type = FileHandler::getType(fn.toStdString());
+        ++suffices[FileTypes::typeToName(type)];
+      }
+    }
+    catch (...)
+    { // in a dry-run, the file might not exist, so we cannot determine the type
+      ++suffices[FileTypes::typeToName(FileTypes::UNKNOWN)];
     }
     QStringList text_l;
-    for (std::map<QString, Size>::const_iterator sit = suffices.begin(); sit != suffices.end(); ++sit)
+    for (const auto& [suffix, count] : suffices)
     {
       if (suffices.size() > 1)
-        text_l.push_back("." + sit->first + "(" + String(sit->second).toQString() + ")");
+        text_l.push_back(String("." + suffix + "(" + String(count) + ")").toQString());
       else
-        text_l.push_back("." + sit->first);
+        text_l.push_back("." + suffix.toQString());
     }
     return text_l;
   }

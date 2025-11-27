@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -221,6 +221,72 @@ namespace OpenMS
   void MassAnalyzer::setOrder(Int order)
   {
     order_ = order;
+  }
+
+  StringList MassAnalyzer::getAllNamesOfAnalyzerType()
+  {
+    StringList names;
+    names.reserve(SIZE_OF_ANALYZERTYPE);
+    for (size_t i = 0; i < SIZE_OF_ANALYZERTYPE; ++i)
+    {
+      names.push_back(NamesOfAnalyzerType[i]);
+    }
+    return names;
+  }
+
+  StringList MassAnalyzer::getAllNamesOfResolutionMethod()
+  {
+    StringList names;
+    names.reserve(SIZE_OF_RESOLUTIONMETHOD);
+    for (size_t i = 0; i < SIZE_OF_RESOLUTIONMETHOD; ++i)
+    {
+      names.push_back(NamesOfResolutionMethod[i]);
+    }
+    return names;
+  }
+
+  StringList MassAnalyzer::getAllNamesOfResolutionType()
+  {
+    StringList names;
+    names.reserve(SIZE_OF_RESOLUTIONTYPE);
+    for (size_t i = 0; i < SIZE_OF_RESOLUTIONTYPE; ++i)
+    {
+      names.push_back(NamesOfResolutionType[i]);
+    }
+    return names;
+  }
+
+  StringList MassAnalyzer::getAllNamesOfScanDirection()
+  {
+    StringList names;
+    names.reserve(SIZE_OF_SCANDIRECTION);
+    for (size_t i = 0; i < SIZE_OF_SCANDIRECTION; ++i)
+    {
+      names.push_back(NamesOfScanDirection[i]);
+    }
+    return names;
+  }
+
+  StringList MassAnalyzer::getAllNamesOfScanLaw()
+  {
+    StringList names;
+    names.reserve(SIZE_OF_SCANLAW);
+    for (size_t i = 0; i < SIZE_OF_SCANLAW; ++i)
+    {
+      names.push_back(NamesOfScanLaw[i]);
+    }
+    return names;
+  }
+
+  StringList MassAnalyzer::getAllNamesOfReflectronState()
+  {
+    StringList names;
+    names.reserve(SIZE_OF_REFLECTRONSTATE);
+    for (size_t i = 0; i < SIZE_OF_REFLECTRONSTATE; ++i)
+    {
+      names.push_back(NamesOfReflectronState[i]);
+    }
+    return names;
   }
 
 }
