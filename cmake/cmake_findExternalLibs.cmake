@@ -119,12 +119,23 @@ find_package(ZLIB REQUIRED)
 find_package(BZip2 REQUIRED)
 
 #------------------------------------------------------------------------------
-# Find eigen3
+# Find Eigen
 # creates Eigen3::Eigen3 package
-find_package(Eigen3 3.4.0 REQUIRED)
+# CMake is garbage https://gitlab.kitware.com/cmake/cmake/-/issues/24581
+# We also have to check for 3.4.0 because the configversion file in 3.4.0 tells CMake that 5 is incompatible
+# Try to find any Eigen3 in the range [3.4.0, 6), quietly
+# The package is still called Eigen3.. don't ask!
+find_package(Eigen3 3.4.0...<6 QUIET)
+
 if(TARGET Eigen3::Eigen)
-    message(STATUS "Eigen version found: ${Eigen3_VERSION}")
-endif(TARGET Eigen3::Eigen)
+    message(STATUS "Found Eigen3 version in range 3.4.0...<6: ${Eigen3_VERSION}")
+else()
+    # Fall back to the usual version compatibility check (for old/broken configversion files)
+    find_package(Eigen3 3.4.0 REQUIRED) # fail if not found now
+    if(TARGET Eigen3::Eigen)
+        message(STATUS "Found Eigen3 version compatible to 3.4.0: ${Eigen3_VERSION}")
+    endif()
+endif()
 
 #------------------------------------------------------------------------------
 # Find Crawdad libraries if requested

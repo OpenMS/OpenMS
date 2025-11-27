@@ -11,6 +11,7 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 namespace OpenMS
 {
@@ -32,6 +33,9 @@ public:
     enum SampleState {SAMPLENULL, SOLID, LIQUID, GAS, SOLUTION, EMULSION, SUSPENSION, SIZE_OF_SAMPLESTATE};
     /// Names of sample states
     static const std::string NamesOfSampleState[SIZE_OF_SAMPLESTATE];
+
+    /// returns all sample state names known to OpenMS
+    static StringList getAllNamesOfSampleState();
 
     /// Default constructor
     Sample();
