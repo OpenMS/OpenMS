@@ -995,7 +995,7 @@ namespace OpenMS
    *
    * Implementation Strategy:
    * - Collects IM values from internal peptide identifications in the RT region
-   * - Skips individual IDs that lack IM annotation (with warning)
+   * - Skips individual IDs that lack IM annotation (logged as debug, summary as info)
    * - Uses MEDIAN instead of mean for robustness against outliers
    * - Computes min/max to characterize the IM distribution spread
    * - Returns empty stats only if NO valid IM values are available
@@ -1036,8 +1036,8 @@ namespace OpenMS
         {
           // ID without IM - skip this ID but continue with others
           n_ids_without_im++;
-          OPENMS_LOG_WARN << "Identification at RT " << pep_id.getRT()
-                          << " lacks IM annotation - skipping for IM statistics" << endl;
+          OPENMS_LOG_DEBUG << "Identification at RT " << pep_id.getRT()
+                           << " lacks IM annotation - skipping for IM statistics" << endl;
         }
         else
         {
