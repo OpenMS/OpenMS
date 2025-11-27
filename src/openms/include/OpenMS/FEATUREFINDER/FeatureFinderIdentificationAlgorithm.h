@@ -129,6 +129,24 @@ protected:
     ChargeMap ids; ///< internal/external peptide IDs (per charge) in this region
   };
 
+  /**
+   * @brief Ion mobility statistics for a peptide in a specific RT region and charge state
+   *
+   * This structure stores statistical measures of ion mobility values collected from
+   * peptide identifications within a single RT region. These statistics are used for:
+   * - Chromatogram extraction with appropriate IM windows (using median)
+   * - Feature annotation for quality control (all three values)
+   * - Detecting potential mis-identifications (large min-max spread may indicate issues)
+   *
+   * All values default to -1.0 to indicate missing/unavailable IM data.
+   */
+  struct IMStats
+  {
+    double median = -1.0; ///< Median IM value (robust central tendency, used for extraction)
+    double min = -1.0;    ///< Minimum IM value (lower bound of IM distribution)
+    double max = -1.0;    ///< Maximum IM value (upper bound of IM distribution)
+  };
+
   /// predicate for filtering features by overall quality:
   struct FeatureFilterQuality
   {
@@ -204,6 +222,24 @@ protected:
   Size n_external_features_; ///< external feature counter (for FDR calculation)
   /// TransformationDescription trafo_; // RT transformation (to range 0-1)
   std::map<String, double> isotope_probs_; ///< isotope probabilities of transitions
+  /**
+   * @brief Ion mobility statistics per peptide reference (peptide sequence/charge:region)
+   *
+   * Maps from full peptide reference (e.g., "PEPTIDE/2:1") to IM statistics.
+   * Populated during createAssayLibrary_() and used during annotateFeatures_()
+   * to add IM_median, IM_min, and IM_max meta-values to features.
+   */
+  std::map<String, IMStats> im_stats_;
+
+  /**
+   * @brief Global ion mobility statistics from all peptide identifications
+   *
+   * Calculated from peptide identifications BEFORE seeds are added (ensuring we only
+   * learn from real IDs with IM annotation). Used as fallback for seeds that lack
+   * IM information, allowing them to be extracted across the typical IM range.
+   */
+  IMStats global_im_stats_;
+
   MRMFeatureFinderScoring feat_finder_; ///< OpenSWATH feature finder
   Internal::FFIDAlgoExternalIDHandler external_id_handler_; ///< Handler for external peptide IDs
 
@@ -218,8 +254,41 @@ protected:
   /// get regions in which peptide eludes (ideally only one) by clustering RT elution times
   void getRTRegions_(ChargeMap& peptide_data, std::vector<RTRegion>& rt_regions, bool clear_IDs = true) const;
 
-  /// get mean IM of a single RT region
-  double getRTRegionMeanIM_(const RTRegion& r);
+  /**
+   * @brief Calculate ion mobility statistics for peptide identifications in an RT region
+   *
+   * Computes median, min, and max IM values from peptide identifications within
+   * the given RT region (across all charge states). Individual IDs lacking IM
+   * annotation are skipped (with warning), and statistics are calculated from the
+   * remaining IDs with valid IM data. The median is used for robust central tendency
+   * estimation and is more resistant to outliers than the mean.
+   *
+   * Seeds from untargeted feature finders do NOT have an IM meta value set, which
+   * causes them to be extracted across the full IM range (ChromatogramExtractor
+   * disables IM filtering when ion_mobility < 0).
+   *
+   * Note: RT region boundaries are determined from ALL IDs (including those without IM),
+   * so this only affects IM statistics calculation, not RT extraction.
+   *
+   * @param r RT region containing peptide identifications grouped by charge state
+   * @return IMStats structure with median/min/max, or {-1, -1, -1} if no valid IM data
+   *
+   * @see IMStats for details on the returned structure
+   */
+  IMStats getRTRegionIMStats_(const RTRegion& r);
+
+  /**
+   * @brief Calculate global IM statistics from MS data and peptide identifications
+   *
+   * Uses MSExperiment::getMinMobility()/getMaxMobility() to get the full IM range
+   * from raw data (min/max), and calculates median from peptide identifications
+   * for robust central tendency. Must be called BEFORE addSeeds_() to avoid
+   * including seeds without IM annotation in median calculation.
+   *
+   * Used as fallback for seeds that lack IM annotation, allowing them to be
+   * extracted across the full IM range of the dataset.
+   */
+  void calculateGlobalIMStats_();
 
   void annotateFeaturesFinalizeAssay_(
     FeatureMap& features,

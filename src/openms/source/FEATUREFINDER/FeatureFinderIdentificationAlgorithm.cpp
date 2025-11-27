@@ -61,9 +61,17 @@ namespace OpenMS
     defaults_.setValue("extract:mz_window", 10.0, "m/z window size for chromatogram extraction (unit: ppm if 1 or greater, else Da/Th)");
     defaults_.setMinFloat("extract:mz_window", 0.0);
     defaults_.setValue(
-      "extract:IM_window", 
-      0.06, 
-      "Ion mobility window for chromatogram extraction (ignored if data does not contain IM information).");
+      "extract:IM_window",
+      0.06,
+      "Ion mobility (IM) window for chromatogram extraction in the IM dimension. "
+      "The window is applied as +/- IM_window/2 around the median IM value of identified peptides. "
+      "This parameter is automatically ignored if the input data does not contain IM information "
+      "(determined via IMTypes::determineIMFormat). "
+      "Currently only concatenated IM format is supported. "
+      "Typical values: 0.05-0.10 for TIMS data (1/K0 units), 3-5 for FAIMS data (compensation voltage). "
+      "Note: IM values are calculated per peptide/charge/RT-region, using the median of all identifications "
+      "in that region for robustness. The median, min, and max IM values are propagated to output features "
+      "as meta-values (IM_median, IM_min, IM_max) for quality control.");
     defaults_.setMinFloat("extract:IM_window", 0.0);
 
     defaults_.setValue("extract:n_isotopes", 2, "Number of isotopes to include in each peptide assay.");
@@ -366,6 +374,11 @@ namespace OpenMS
         peptides.back().setMZ(feat.getMZ());
         peptides.back().setMetaValue("FFId_category", "internal");
         peptides.back().setMetaValue("SeedFeatureID", String(feat.getUniqueId()));
+
+        // NOTE: We intentionally do NOT set the IM meta value on seeds.
+        // This allows them to be extracted across the full IM range
+        // (ChromatogramExtractor disables IM filtering when ion_mobility < 0)
+
         addPeptideToMap_(peptides.back(), peptide_map_);
         ++seeds_added;
       }
@@ -501,6 +514,11 @@ namespace OpenMS
       pep.setMetaValue("FFId_category", "internal");
     }
 
+    // Calculate global IM statistics BEFORE adding seeds
+    // This ensures we only learn from real peptide identifications with IM data
+    // and don't need to check/skip seeds during calculation
+    calculateGlobalIMStats_();
+
     // TODO make sure that only assembled traces (more than one trace -> has a charge) if FFMetabo is used
     // see FeatureFindingMetabo: defaults_.setValue("remove_single_traces", "false", "Remove unassembled traces (single traces).");
     Size seeds_added = addSeeds_(peptides, seeds);
@@ -513,7 +531,7 @@ namespace OpenMS
     }
 
     n_internal_peps_ = peptide_map_.size();
-    
+
     if (with_external_ids)
     {
       // Process and add external peptides
@@ -852,25 +870,171 @@ namespace OpenMS
 
   }
 
-  double FeatureFinderIdentificationAlgorithm::getRTRegionMeanIM_(const RTRegion& r)
+  void FeatureFinderIdentificationAlgorithm::calculateGlobalIMStats_()
   {
+    // Update ranges from MS data to get IM range from raw data
+    ms_data_.updateRanges();
+
+    // Try to get IM range from MS data (will throw if no IM data available)
+    try
+    {
+      global_im_stats_.min = ms_data_.getMinMobility();
+      global_im_stats_.max = ms_data_.getMaxMobility();
+    }
+    catch (const Exception::InvalidRange&)
+    {
+      OPENMS_LOG_DEBUG << "No IM data found in MS data." << endl;
+      global_im_stats_ = IMStats(); // Empty stats
+      return;
+    }
+
+    // Calculate median from peptide identifications for robust central tendency
+    // (more representative of where peptides actually elute than data range center)
+    std::vector<double> im_values_from_ids;
+
+    // Collect IM values from all peptide identifications
+    // Note: This is called BEFORE adding seeds, so we only see real identifications
+    for (const auto& pep_entry : peptide_map_)
+    {
+      const ChargeMap& charge_map = pep_entry.second;
+      for (const auto& charge_entry : charge_map)
+      {
+        const RTMap& internal_ids = charge_entry.second.first;
+        for (const auto& rt_pepid : internal_ids)
+        {
+          const PeptideIdentification& pep_id = *rt_pepid.second;
+          const double im = pep_id.getMetaValue(Constants::UserParam::IM, 0.0);
+          if (im > 0.0)  // Only collect valid IM values
+          {
+            im_values_from_ids.push_back(im);
+          }
+        }
+      }
+    }
+
+    // If we have ID-based IM values, use them for median calculation
+    // Otherwise, use center of data range as fallback
+    if (!im_values_from_ids.empty())
+    {
+      std::sort(im_values_from_ids.begin(), im_values_from_ids.end());
+      Size n = im_values_from_ids.size();
+      if (n % 2 == 0)
+      {
+        global_im_stats_.median = (im_values_from_ids[n/2 - 1] + im_values_from_ids[n/2]) / 2.0;
+      }
+      else
+      {
+        global_im_stats_.median = im_values_from_ids[n/2];
+      }
+
+      OPENMS_LOG_INFO << "Global IM statistics: median=" << global_im_stats_.median
+                      << " (from " << n << " identifications), "
+                      << "min=" << global_im_stats_.min << ", "
+                      << "max=" << global_im_stats_.max << " (from MS data range)" << endl;
+    }
+    else
+    {
+      // No IDs with IM annotation - use center of data range
+      global_im_stats_.median = (global_im_stats_.min + global_im_stats_.max) / 2.0;
+
+      OPENMS_LOG_INFO << "Global IM statistics: median=" << global_im_stats_.median
+                      << " (center of data range), "
+                      << "min=" << global_im_stats_.min << ", "
+                      << "max=" << global_im_stats_.max << " (from MS data range)" << endl;
+    }
+  }
+
+  /**
+   * @brief Calculate ion mobility statistics (median, min, max) for a given RT region
+   *
+   * This function computes robust statistics for ion mobility values from peptide
+   * identifications within a single RT region. The statistics are used for:
+   * 1. Setting the drift time on peptide assays (using median)
+   * 2. Extracting chromatograms with appropriate IM windows
+   * 3. Annotating features with IM QC metrics
+   *
+   * Implementation Strategy:
+   * - Collects IM values from internal peptide identifications in the RT region
+   * - Skips individual IDs that lack IM annotation (with warning)
+   * - Uses MEDIAN instead of mean for robustness against outliers
+   * - Computes min/max to characterize the IM distribution spread
+   * - Returns empty stats only if NO valid IM values are available
+   *
+   * Note: Seeds from untargeted feature finders do NOT have an IM meta value set,
+   * which causes them to be extracted across the full IM range (ChromatogramExtractor
+   * disables IM filtering when ion_mobility < 0).
+   *
+   * Note: RT region boundaries are determined from ALL IDs (including those without IM),
+   * so skipping individual IDs for IM statistics does not affect RT extraction.
+   *
+   * @param r RT region containing peptide identifications (per charge state)
+   * @return IMStats structure with median, min, and max IM values
+   *         Returns {-1.0, -1.0, -1.0} only if no valid IM data is available
+   *
+   * @note The median is calculated using the standard definition:
+   *       - For odd n: middle element of sorted array
+   *       - For even n: average of two middle elements
+   */
+  FeatureFinderIdentificationAlgorithm::IMStats
+  FeatureFinderIdentificationAlgorithm::getRTRegionIMStats_(const RTRegion& r)
+  {
+    IMStats stats;
     const ChargeMap& cm = r.ids;
-    double mean = 0.0;
-    Size count = 0;
+    std::vector<double> im_values;
+    Size n_ids_without_im = 0;
+
+    // Collect all IM values from internal IDs
     for (const auto& e : cm)
     {
-      //const int charge = e.first;
       const RTMap& internal_ids = e.second.first; // internal
       for (const auto& rt_pepidptr : internal_ids)
       {
         const PeptideIdentification& pep_id = *rt_pepidptr.second;
         const double im = pep_id.getMetaValue(Constants::UserParam::IM, 0.0);
-        if (im <= 0.0) { return -1.0; } // missing IM annotation? assume no IM present at all
-        mean += im;
-        ++count;
+
+        if (im <= 0.0)
+        {
+          // ID without IM - skip this ID but continue with others
+          n_ids_without_im++;
+          OPENMS_LOG_WARN << "Identification at RT " << pep_id.getRT()
+                          << " lacks IM annotation - skipping for IM statistics" << endl;
+        }
+        else
+        {
+          im_values.push_back(im);
+        }
       }
     }
-    return mean / (double)count;
+
+    if (im_values.empty())
+    {
+      return stats; // Return empty stats
+    }
+
+    // Calculate statistics
+    std::sort(im_values.begin(), im_values.end());
+
+    stats.min = im_values.front();
+    stats.max = im_values.back();
+
+    // Calculate median
+    Size n = im_values.size();
+    if (n % 2 == 0)
+    {
+      stats.median = (im_values[n/2 - 1] + im_values[n/2]) / 2.0;
+    }
+    else
+    {
+      stats.median = im_values[n/2];
+    }
+
+    if (n_ids_without_im > 0)
+    {
+      OPENMS_LOG_INFO << "Calculated IM statistics from " << n << " IDs with IM data "
+                      << "(skipped " << n_ids_without_im << " IDs without IM annotation)" << endl;
+    }
+
+    return stats;
   }
 
   void FeatureFinderIdentificationAlgorithm::createAssayLibrary_(
@@ -1038,13 +1202,14 @@ namespace OpenMS
               addPeptideRT_(peptide, reg.start);
               addPeptideRT_(peptide, reg.end);
 
-              // determine e.g. one IM value  
+              // determine IM statistics (median, min, max)
               // for the peptide and current charge state in the region
               // (Note: because it is the same peptide and charge state the IM should not differ that much)
-              double im_value = getRTRegionMeanIM_(reg);
-              if (im_value > 0.0)
+              IMStats im_stats = getRTRegionIMStats_(reg);
+              if (im_stats.median > 0.0)
               {
-                peptide.setDriftTime(im_value);
+                peptide.setDriftTime(im_stats.median); // use median (more robust than mean)
+                im_stats_[peptide.id] = im_stats; // store for later annotation
               }
 
               library_.addPeptide(peptide);
@@ -1260,6 +1425,21 @@ namespace OpenMS
       }
 
       peptide_ref = feat.getMetaValue("PeptideRef");
+
+      // Annotate feature with ion mobility statistics (if available)
+      // This provides QC metrics for IM-enabled experiments:
+      // - IM_median: robust central IM value used for chromatogram extraction
+      // - IM_min/max: spread of IM distribution (large spread may indicate issues)
+      // Note: Uses full peptide ref (with region number) as this is the key in im_stats_
+      String full_peptide_ref = peptide_ref; // keep full ref with region number
+      if (im_stats_.count(full_peptide_ref))
+      {
+        const IMStats& stats = im_stats_.at(full_peptide_ref);
+        feat.setMetaValue("IM_median", stats.median);
+        feat.setMetaValue("IM_min", stats.min);
+        feat.setMetaValue("IM_max", stats.max);
+      }
+
       // remove region number, if present:
       Size pos_slash = peptide_ref.rfind('/');
       Size pos_colon = peptide_ref.find(':', pos_slash + 2);
