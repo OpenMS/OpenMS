@@ -107,7 +107,12 @@ public:
   /// @brief perform targeted feature extraction of compounds from @p metaboIdentTable and stores them in @p features.
   /// If @p spectra_file is provided it will be used as a fall-back to setPrimaryMSRunPath
   /// in the feature map in case a proper primaryMSRunPath is not annotated in the MSExperiment.
-  /// If there are no MS1 scans in the MSData return @p features unchanged
+  /// If there are no MS1 scans in the MSData return @p features unchanged.
+  ///
+  /// FAIMS data is handled automatically: if the MS data contains multiple FAIMS compensation
+  /// voltages, each CV group is processed independently and results are combined with
+  /// FAIMS_CV annotation on features. For multi-FAIMS data, getLibrary() returns an empty
+  /// library since each FAIMS group has its own assay library.
   void run(const std::vector<FeatureFinderMetaboIdentCompound>& metaboIdentTable, FeatureMap& features, const String& spectra_file = "");
 
   /// @brief Retrieve chromatograms (empty if run was not executed)
@@ -132,7 +137,7 @@ public:
   /// @brief Retrieve number of features with shared identifications
   size_t getNShared() const  { return n_shared_; }
 
-  String prettyPrintCompound(const TargetedExperiment::Compound& compound);
+  static String prettyPrintCompound(const TargetedExperiment::Compound& compound);
 protected:
 
   /// Boundaries for a mass trace in a feature
@@ -202,6 +207,12 @@ protected:
   void ensureConvexHulls_(Feature& feature) const;
 
   void selectFeaturesFromCandidates_(FeatureMap& features);
+
+  /// Core processing logic for a single (non-FAIMS or single FAIMS group) dataset
+  /// Called by run() either directly or for each FAIMS CV group
+  void runSingleGroup_(const std::vector<FeatureFinderMetaboIdentCompound>& metaboIdentTable,
+                       FeatureMap& features,
+                       const String& spectra_file);
 
   double rt_window_; ///< RT window width
   double mz_window_; ///< m/z window width

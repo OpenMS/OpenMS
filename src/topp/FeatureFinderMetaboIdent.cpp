@@ -19,7 +19,6 @@
 #include <OpenMS/FEATUREFINDER/ElutionModelFitter.h>
 #include <OpenMS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>
 #include <OpenMS/FEATUREFINDER/FeatureFinderAlgorithmMetaboIdent.h>
-#include <OpenMS/IONMOBILITY/IMDataConverter.h>
 #include <OpenMS/SYSTEM/File.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
@@ -264,105 +263,14 @@ protected:
     }
 
     //-------------------------------------------------------------
-    // Split by FAIMS CV (returns single NaN-keyed element for non-FAIMS data)
+    // Run feature detection (FAIMS handling is done internally)
     //-------------------------------------------------------------
-    auto faims_groups = IMDataConverter::splitByFAIMSCV(std::move(exp));
+    FeatureFinderAlgorithmMetaboIdent ff_mident;
+    ff_mident.setParameters(tool_parameter);
+    ff_mident.setMSData(std::move(exp));
 
-    const bool has_faims = faims_groups.size() > 1 || !std::isnan(faims_groups[0].first);
-    if (has_faims)
-    {
-      OPENMS_LOG_INFO << "FAIMS data detected with " << faims_groups.size() << " compensation voltage(s)." << endl;
-    }
-
-    // Combined results from all FAIMS CV groups
     FeatureMap features;
-    PeakMap combined_chrom_data;
-    TargetedExperiment combined_library;
-    TransformationDescription combined_trafo;
-    size_t total_n_shared = 0;
-    bool first_group = true;
-
-    // Process each FAIMS CV group (or single group for non-FAIMS data)
-    for (auto& [group_cv, faims_group] : faims_groups)
-    {
-      if (has_faims)
-      {
-        OPENMS_LOG_INFO << "Processing FAIMS CV group: " << group_cv << " V (" << faims_group.size() << " spectra)" << endl;
-      }
-
-      // Create algorithm instance for this group
-      FeatureFinderAlgorithmMetaboIdent ff_mident;
-      ff_mident.setParameters(tool_parameter);
-      ff_mident.setMSData(std::move(faims_group));
-
-      FeatureMap features_cv;
-      ff_mident.run(table, features_cv, in);
-
-      // Annotate features with FAIMS CV (if FAIMS data) and add to combined results
-      for (auto& feat : features_cv)
-      {
-        if (has_faims)
-        {
-          feat.setMetaValue(Constants::UserParam::FAIMS_CV, group_cv);
-        }
-        features.push_back(feat);
-      }
-
-      // Copy ProteinIdentifications from first group
-      if (first_group)
-      {
-        features.setProteinIdentifications(features_cv.getProteinIdentifications());
-      }
-
-      // Copy UnassignedPeptideIdentifications with FAIMS annotation
-      for (auto& pep_id : features_cv.getUnassignedPeptideIdentifications())
-      {
-        if (has_faims)
-        {
-          pep_id.setMetaValue(Constants::UserParam::FAIMS_CV, group_cv);
-        }
-        features.getUnassignedPeptideIdentifications().push_back(std::move(pep_id));
-      }
-
-      // Combine chromatograms
-      if (!chrom_out.empty())
-      {
-        for (auto& chrom : ff_mident.getChromatograms().getChromatograms())
-        {
-          if (has_faims)
-          {
-            chrom.setMetaValue(Constants::UserParam::FAIMS_CV, group_cv);
-          }
-          combined_chrom_data.addChromatogram(std::move(chrom));
-        }
-      }
-
-      // Combine library (only from first group - targets are the same)
-      if (first_group && !lib_out.empty())
-      {
-        combined_library = ff_mident.getLibrary();
-      }
-
-      // Combine transformations
-      if (!trafo_out.empty())
-      {
-        const TransformationDescription& trafo_cv = ff_mident.getTransformations();
-        TransformationDescription::DataPoints points = combined_trafo.getDataPoints();
-        for (const auto& point : trafo_cv.getDataPoints())
-        {
-          points.push_back(point);
-        }
-        combined_trafo.setDataPoints(points);
-      }
-
-      total_n_shared += ff_mident.getNShared();
-      first_group = false;
-    }
-
-    if (has_faims)
-    {
-      OPENMS_LOG_INFO << "Combined " << features.size() << " features from all FAIMS CV groups." << endl;
-    }
+    ff_mident.run(table, features, in);
 
     // annotate "spectra_data" metavalue and ensure unique IDs
     if (getFlag_("test"))
@@ -370,19 +278,15 @@ protected:
       // if test mode set, add file without path so we can compare it
       features.setPrimaryMSRunPath({"file://" + File::basename(in)});
     }
-    else
-    {
-      features.setPrimaryMSRunPath({in});
-    }
     features.ensureUniqueId();
 
     addDataProcessing_(features, getProcessingInfo_(DataProcessing::QUANTITATION));
 
     if (!chrom_out.empty())
     {
-      addDataProcessing_(combined_chrom_data,
-                         getProcessingInfo_(DataProcessing::FILTERING));
-      FileHandler().storeExperiment(chrom_out, combined_chrom_data, {FileTypes::MZML});
+      PeakMap chrom_data = ff_mident.getChromatograms();
+      addDataProcessing_(chrom_data, getProcessingInfo_(DataProcessing::FILTERING));
+      FileHandler().storeExperiment(chrom_out, chrom_data, {FileTypes::MZML});
     }
 
     //-------------------------------------------------------------
@@ -392,16 +296,16 @@ protected:
     OPENMS_LOG_INFO << "Writing final results..." << endl;
     FileHandler().storeFeatures(out, features, {FileTypes::FEATUREXML});
 
-    // write transition library in TraML format
+    // write transition library in TraML format (empty for multi-FAIMS data)
     if (!lib_out.empty())
     {
-      FileHandler().storeTransitions(lib_out, combined_library, {FileTypes::TRAML});
+      FileHandler().storeTransitions(lib_out, ff_mident.getLibrary(), {FileTypes::TRAML});
     }
 
     // write expected vs. observed retention times
     if (!trafo_out.empty())
     {
-      FileHandler().storeTransformations(trafo_out, combined_trafo, {FileTypes::TRANSFORMATIONXML});
+      FileHandler().storeTransformations(trafo_out, ff_mident.getTransformations(), {FileTypes::TRANSFORMATIONXML});
     }
 
     //-------------------------------------------------------------
@@ -412,10 +316,11 @@ protected:
     OPENMS_LOG_INFO << "\nSummary statistics:\n"
              << table.size() << " targets specified\n"
              << features.size() << " features found\n"
-             << total_n_shared << " features with multiple target annotations\n"
+             << ff_mident.getNShared() << " features with multiple target annotations\n"
              << n_missing << " targets without features";
     const Size n_examples = 5;
-    if (n_missing && !combined_library.getCompounds().empty())
+    const TargetedExperiment& library = ff_mident.getLibrary();
+    if (n_missing && !library.getCompounds().empty())
     {
       OPENMS_LOG_INFO << ":";
       for (Size i = 0;
@@ -427,8 +332,8 @@ protected:
         if (pep_id.metaValueExists("PeptideRef"))
         {
           const TargetedExperiment::Compound& compound =
-            combined_library.getCompoundByRef(pep_id.getMetaValue("PeptideRef"));
-          OPENMS_LOG_INFO << "\n- " << FeatureFinderAlgorithmMetaboIdent().prettyPrintCompound(compound);
+            library.getCompoundByRef(pep_id.getMetaValue("PeptideRef"));
+          OPENMS_LOG_INFO << "\n- " << FeatureFinderAlgorithmMetaboIdent::prettyPrintCompound(compound);
         }
       }
       if (n_missing > n_examples)

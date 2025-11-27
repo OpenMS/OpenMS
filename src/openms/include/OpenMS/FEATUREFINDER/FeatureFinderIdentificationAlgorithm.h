@@ -31,17 +31,24 @@ public:
   FeatureFinderIdentificationAlgorithm();
 
   /// Main method for actual FeatureFinder
-  /// External IDs (@p peptides_ext, @p proteins_ext) may be empty, 
+  /// External IDs (@p peptides_ext, @p proteins_ext) may be empty,
   /// in which case no machine learning or FDR estimation will be performed.
   /// Optional seeds from e.g. untargeted FeatureFinders can be added with
   /// @p seeds.
-  /// Results will be written to @p features. 
-  /// Note: The primaryMSRunPath of features will be updated to the primaryMSRunPath 
+  /// Results will be written to @p features.
+  /// Note: The primaryMSRunPath of features will be updated to the primaryMSRunPath
   /// stored in the MSExperiment.
-  /// If that path is not a valid and readable mzML @p spectra_file 
+  /// If that path is not a valid and readable mzML @p spectra_file
   /// will be annotated as a fall-back.
   /// Caution: peptide IDs will be shrunk to best hit, FFid metavalues added
   /// and potential seed IDs added.
+  ///
+  /// FAIMS data is handled automatically: if the MS data contains multiple FAIMS
+  /// compensation voltages, each CV group is processed independently (with peptide IDs
+  /// filtered by FAIMS_CV) and results are combined with FAIMS_CV annotation on features.
+  /// IDs without FAIMS_CV annotation are included in all groups for backward compatibility.
+  /// For multi-FAIMS data, getLibrary() returns an empty library since each FAIMS group
+  /// has its own assay library.
   void run(
     PeptideIdentificationList peptides,
     const std::vector<ProteinIdentification>& proteins,
@@ -333,6 +340,17 @@ protected:
     bool external = false);
 
   void filterFeatures_(FeatureMap& features, bool classified);
+
+  /// Core processing logic for a single (non-FAIMS or single FAIMS group) dataset
+  /// Called by run() either directly or for each FAIMS CV group
+  void runSingleGroup_(
+    PeptideIdentificationList peptides,
+    const std::vector<ProteinIdentification>& proteins,
+    PeptideIdentificationList peptides_ext,
+    std::vector<ProteinIdentification> proteins_ext,
+    FeatureMap& features,
+    const FeatureMap& seeds,
+    const String& spectra_file);
 
   // seeds for untargeted extraction
   Size addSeeds_(PeptideIdentificationList& peptides, const FeatureMap& seeds);

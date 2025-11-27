@@ -789,7 +789,13 @@ protected:
       { // check if spectrum reference is a string that just contains a number
         scanNrAsInt = id.getSpectrumReference().toInt64();
         // no exception -> conversion to int was successful. Now lookup full native ID in corresponding file for given spectrum number.
-        id.setSpectrumReference( file2specnr2nativeid[idxToFile[id.getMetaValue(Constants::UserParam::ID_MERGE_INDEX)]].at(scanNrAsInt) );
+        // idxToFile values can be full paths but file2specnr2nativeid keys are basenames, so normalize first
+        String file_basename = File::basename(idxToFile[id.getMetaValue(Constants::UserParam::ID_MERGE_INDEX)]);
+        auto file_it = file2specnr2nativeid.find(file_basename);
+        if (file_it != file2specnr2nativeid.end())
+        {
+          id.setSpectrumReference(file_it->second.at(scanNrAsInt));
+        }
       }
       catch (...)
       {

@@ -17,6 +17,8 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <OpenMS/IONMOBILITY/IMTypes.h>
+#include <OpenMS/IONMOBILITY/IMDataConverter.h>
+#include <OpenMS/IONMOBILITY/FAIMSHelper.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractor.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h>
 #include <OpenMS/ML/SVM/SimpleSVM.h>
@@ -533,6 +535,105 @@ namespace OpenMS
   // ===== End of helper functions =====
 
   void FeatureFinderIdentificationAlgorithm::run(
+    PeptideIdentificationList peptides,
+    const vector<ProteinIdentification>& proteins,
+    PeptideIdentificationList peptides_ext,
+    vector<ProteinIdentification> proteins_ext,
+    FeatureMap& features,
+    const FeatureMap& seeds,
+    const String& spectra_file
+    )
+  {
+    // Check for FAIMS data
+    auto faims_groups = IMDataConverter::splitByFAIMSCV(std::move(ms_data_));
+    const bool has_faims = faims_groups.size() > 1 || !std::isnan(faims_groups[0].first);
+
+    if (!has_faims)
+    {
+      // Non-FAIMS data: restore ms_data_ and run directly
+      ms_data_ = std::move(faims_groups[0].second);
+      runSingleGroup_(peptides, proteins, peptides_ext, proteins_ext, features, seeds, spectra_file);
+      return;
+    }
+
+    // FAIMS data: process each CV group separately
+    OPENMS_LOG_INFO << "FAIMS data detected with " << faims_groups.size() << " compensation voltage(s)." << endl;
+
+    // Clear combined outputs
+    features.clear(true);
+    chrom_data_.clear(true);
+    output_library_.clear(true);
+    bool first_group = true;
+
+    for (auto& [group_cv, faims_group] : faims_groups)
+    {
+      OPENMS_LOG_INFO << "Processing FAIMS CV group: " << group_cv << " V" << endl;
+
+      // Filter peptide IDs for this FAIMS CV
+      PeptideIdentificationList peptides_cv = FAIMSHelper::filterPeptidesByFAIMSCV(peptides, group_cv);
+      PeptideIdentificationList peptides_ext_cv = FAIMSHelper::filterPeptidesByFAIMSCV(peptides_ext, group_cv);
+
+      if (peptides_cv.empty() && peptides_ext_cv.empty())
+      {
+        OPENMS_LOG_INFO << "No peptide IDs for FAIMS CV " << group_cv << " V. Skipping." << endl;
+        continue;
+      }
+
+      OPENMS_LOG_INFO << "  " << peptides_cv.size() << " internal IDs, "
+                      << peptides_ext_cv.size() << " external IDs" << endl;
+
+      // Create algorithm instance for this group (use same parameters)
+      FeatureFinderIdentificationAlgorithm ffid_group;
+      ffid_group.getProgressLogger().setLogType(prog_log_.getLogType());
+      ffid_group.setParameters(this->getParameters());
+      ffid_group.setMSData(std::move(faims_group));
+
+      // Run feature detection
+      FeatureMap features_cv;
+      ffid_group.runSingleGroup_(peptides_cv, proteins, peptides_ext_cv, proteins_ext, features_cv, seeds, spectra_file);
+
+      // Annotate features with FAIMS CV and add to results
+      for (auto& feat : features_cv)
+      {
+        feat.setMetaValue(Constants::UserParam::FAIMS_CV, group_cv);
+        features.push_back(feat);
+      }
+
+      // Copy UnassignedPeptideIdentifications with FAIMS CV annotation
+      for (auto& pep_id : features_cv.getUnassignedPeptideIdentifications())
+      {
+        pep_id.setMetaValue(Constants::UserParam::FAIMS_CV, group_cv);
+        features.getUnassignedPeptideIdentifications().push_back(std::move(pep_id));
+      }
+
+      // Copy ProteinIdentifications only from the first group
+      if (first_group)
+      {
+        features.setProteinIdentifications(features_cv.getProteinIdentifications());
+      }
+
+      // Combine chromatograms
+      for (const auto& chrom : ffid_group.getChromatograms().getChromatograms())
+      {
+        MSChromatogram chrom_copy = chrom;
+        chrom_copy.setMetaValue(Constants::UserParam::FAIMS_CV, group_cv);
+        chrom_data_.addChromatogram(std::move(chrom_copy));
+      }
+
+      first_group = false;
+    }
+
+    // Warn about library output for FAIMS data
+    OPENMS_LOG_WARN << "Warning: Library output is not available for multi-FAIMS data. "
+                    << "Each FAIMS CV group has its own assay library." << endl;
+    OPENMS_LOG_INFO << "Combined " << features.size() << " features from all FAIMS CV groups." << endl;
+
+    // Set primary MS run path
+    features.setPrimaryMSRunPath({spectra_file});
+    features.ensureUniqueId();
+  }
+
+  void FeatureFinderIdentificationAlgorithm::runSingleGroup_(
     PeptideIdentificationList peptides,
     const vector<ProteinIdentification>& proteins,
     PeptideIdentificationList peptides_ext,

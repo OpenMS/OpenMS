@@ -27,6 +27,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 
 #include <OpenMS/IONMOBILITY/IMTypes.h>
+#include <OpenMS/IONMOBILITY/IMDataConverter.h>
 
 #include <OpenMS/PROCESSING/FEATURE/FeatureOverlapFilter.h>
 
@@ -152,16 +153,111 @@ namespace OpenMS
     candidates_out_ = (string)param_.getValue("candidates_out");
   }
 
-  void FeatureFinderAlgorithmMetaboIdent::run(const vector<FeatureFinderAlgorithmMetaboIdent::FeatureFinderMetaboIdentCompound>& metaboIdentTable, 
-    FeatureMap& features, 
+  void FeatureFinderAlgorithmMetaboIdent::run(const vector<FeatureFinderAlgorithmMetaboIdent::FeatureFinderMetaboIdentCompound>& metaboIdentTable,
+    FeatureMap& features,
+    const String& spectra_file)
+  {
+    // Check for FAIMS data
+    auto faims_groups = IMDataConverter::splitByFAIMSCV(std::move(ms_data_));
+    const bool has_faims = faims_groups.size() > 1 || !std::isnan(faims_groups[0].first);
+
+    if (!has_faims)
+    {
+      // Non-FAIMS data: restore ms_data_ and run directly
+      ms_data_ = std::move(faims_groups[0].second);
+      runSingleGroup_(metaboIdentTable, features, spectra_file);
+      return;
+    }
+
+    // FAIMS data: process each CV group separately
+    OPENMS_LOG_INFO << "FAIMS data detected with " << faims_groups.size() << " compensation voltage(s)." << endl;
+
+    // Clear combined outputs
+    features.clear(true);
+    chrom_data_.clear(true);
+    library_.clear(true);
+    trafo_ = TransformationDescription();
+    n_shared_ = 0;
+    bool first_group = true;
+
+    for (auto& [group_cv, faims_group] : faims_groups)
+    {
+      OPENMS_LOG_INFO << "Processing FAIMS CV group: " << group_cv << " V ("
+                      << faims_group.size() << " spectra)" << endl;
+
+      // Create algorithm instance for this group (use same parameters)
+      FeatureFinderAlgorithmMetaboIdent ff_group;
+      ff_group.setParameters(this->getParameters());
+      ff_group.setMSData(std::move(faims_group));
+
+      FeatureMap features_cv;
+      ff_group.runSingleGroup_(metaboIdentTable, features_cv, spectra_file);
+
+      // Annotate features with FAIMS CV and add to combined results
+      for (auto& feat : features_cv)
+      {
+        feat.setMetaValue(Constants::UserParam::FAIMS_CV, group_cv);
+        features.push_back(feat);
+      }
+
+      // Copy ProteinIdentifications from first group
+      if (first_group)
+      {
+        features.setProteinIdentifications(features_cv.getProteinIdentifications());
+      }
+
+      // Copy UnassignedPeptideIdentifications with FAIMS annotation
+      for (auto& pep_id : features_cv.getUnassignedPeptideIdentifications())
+      {
+        pep_id.setMetaValue(Constants::UserParam::FAIMS_CV, group_cv);
+        features.getUnassignedPeptideIdentifications().push_back(std::move(pep_id));
+      }
+
+      // Combine chromatograms
+      for (auto& chrom : ff_group.getChromatograms().getChromatograms())
+      {
+        chrom.setMetaValue(Constants::UserParam::FAIMS_CV, group_cv);
+        chrom_data_.addChromatogram(std::move(chrom));
+      }
+
+      // Combine transformations
+      TransformationDescription::DataPoints points = trafo_.getDataPoints();
+      for (const auto& point : ff_group.getTransformations().getDataPoints())
+      {
+        points.push_back(point);
+      }
+      trafo_.setDataPoints(points);
+
+      // For non-FAIMS data, take the library; for FAIMS data, library will be empty
+      if (!has_faims && first_group)
+      {
+        library_ = ff_group.getLibrary();
+      }
+
+      n_shared_ += ff_group.getNShared();
+      first_group = false;
+    }
+
+    // Warn about library output for FAIMS data
+    OPENMS_LOG_WARN << "Warning: Library output is not available for multi-FAIMS data. "
+                    << "Each FAIMS CV group has its own assay library." << endl;
+    OPENMS_LOG_INFO << "Combined " << features.size() << " features from all FAIMS CV groups." << endl;
+
+    // Set primary MS run path
+    features.setPrimaryMSRunPath({spectra_file});
+    features.ensureUniqueId();
+  }
+
+  void FeatureFinderAlgorithmMetaboIdent::runSingleGroup_(const vector<FeatureFinderAlgorithmMetaboIdent::FeatureFinderMetaboIdentCompound>& metaboIdentTable,
+    FeatureMap& features,
     const String& spectra_file)
   {
     // if proper mzML is annotated in MS data use this as reference. Otherwise, overwrite with spectra_file information.
-    features.setPrimaryMSRunPath({spectra_file}, ms_data_); 
-  
+    features.setPrimaryMSRunPath({spectra_file}, ms_data_);
+
     if (ms_data_.empty())
     {
-      OPENMS_LOG_WARN << "Warning: No MS1 scans in:"<< spectra_file << endl;      
+      OPENMS_LOG_WARN << "Warning: No MS1 scans in:" << spectra_file << endl;
       return;
     }
 
@@ -818,9 +914,9 @@ namespace OpenMS
   }
 
   void FeatureFinderAlgorithmMetaboIdent::setMSData(PeakMap&& m)
-  { 
-    ms_data_ = std::move(m); 
-    
+  {
+    ms_data_ = std::move(m);
+
     vector<MSSpectrum>& specs = ms_data_.getSpectra();
 
     // keep only MS1
