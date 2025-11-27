@@ -26,6 +26,8 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
+#include <OpenMS/IONMOBILITY/IMTypes.h>
+
 #include <OpenMS/PROCESSING/FEATURE/FeatureOverlapFilter.h>
 
 #include <vector>
@@ -219,6 +221,14 @@ namespace OpenMS
     //-------------------------------------------------------------
     // run feature detection
     //-------------------------------------------------------------
+    // Check if data has ion mobility information
+    IMFormat im_format = IMTypes::determineIMFormat(ms_data_);
+    bool has_IM = (im_format == IMFormat::CONCATENATED || im_format == IMFormat::MULTIPLE_SPECTRA);
+    if (has_IM && im_window_ > 0.0)
+    {
+      OPENMS_LOG_INFO << "Ion mobility data detected. Using IM window: " << im_window_ << endl;
+    }
+
     OPENMS_LOG_INFO << "Extracting chromatograms..." << endl;
     ChromatogramExtractor extractor;
     // extractor.setLogType(ProgressLogger::NONE);
@@ -230,8 +240,17 @@ namespace OpenMS
     boost::shared_ptr<PeakMap> shared = boost::make_shared<PeakMap>(ms_data_);
     OpenSwath::SpectrumAccessPtr spec_temp =
       SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(shared);
-    extractor.extractChromatograms(spec_temp, chrom_temp, coords, mz_window_,
-                                   mz_window_ppm_, "tophat");
+
+    if (has_IM && im_window_ > 0.0)
+    {
+      extractor.extractChromatograms(spec_temp, chrom_temp, coords, mz_window_,
+                                     mz_window_ppm_, im_window_, "tophat");
+    }
+    else
+    {
+      extractor.extractChromatograms(spec_temp, chrom_temp, coords, mz_window_,
+                                     mz_window_ppm_, "tophat");
+    }
     extractor.return_chromatogram(chrom_temp, coords, library_, (*shared)[0],
                                   chrom_data_.getChromatograms(), false);
 
@@ -438,10 +457,11 @@ namespace OpenMS
     iso_dist.renormalize();
 
     // Prepare IM values: either empty (no filtering), one value (for all), or one per RT
+    // Use -1.0 as sentinel to match default drift_time_ and ChromatogramExtractor's check (>= 0.0)
     vector<double> ims = ion_mobilities;
     if (ims.empty())
     {
-      ims.resize(rts.size(), 0.0); // no IM filtering
+      ims.resize(rts.size(), -1.0); // -1 means no IM filtering (matches default drift_time_)
     }
     else if (ims.size() == 1)
     {
@@ -519,9 +539,11 @@ namespace OpenMS
         target.setMetaValue("expected_rt", rts[i]);
         target_rts_[target.id] = rts[i];
 
-        // Store IM information as meta values if provided
-        if (ims[i] != 0.0)
+        // Store IM information if provided - set drift time for ChromatogramExtractor
+        // Check >= 0.0 to match ChromatogramExtractor's IM filtering logic
+        if (ims[i] >= 0.0)
         {
+          target.setDriftTime(ims[i]); // Required for IM-aware chromatogram extraction
           target.setMetaValue("expected_im", ims[i]);
           double im_tol = im_ranges[i] / 2.0;
           if (im_tol == 0.0)
@@ -533,6 +555,11 @@ namespace OpenMS
             target.setMetaValue("im_lower", ims[i] - im_tol);
             target.setMetaValue("im_upper", ims[i] + im_tol);
           }
+        }
+        else
+        {
+          // Reset drift time to -1 (no IM filtering) - target is reused across iterations
+          target.setDriftTime(-1.0);
         }
 
         double rt_tol = rt_ranges[i] / 2.0;

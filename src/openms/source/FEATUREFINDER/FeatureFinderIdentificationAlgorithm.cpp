@@ -963,8 +963,8 @@ namespace OpenMS
         for (const auto& rt_pepid : internal_ids)
         {
           const PeptideIdentification& pep_id = *rt_pepid.second;
-          const double im = pep_id.getMetaValue(Constants::UserParam::IM, 0.0);
-          if (im > 0.0)  // Only collect valid IM values
+          const double im = pep_id.getMetaValue(Constants::UserParam::IM, -1.0);
+          if (im >= 0.0)  // Only collect valid IM values (>= 0.0 matches ChromatogramExtractor)
           {
             im_values_from_ids.push_back(im);
           }
@@ -1051,18 +1051,18 @@ namespace OpenMS
       for (const auto& rt_pepidptr : internal_ids)
       {
         const PeptideIdentification& pep_id = *rt_pepidptr.second;
-        const double im = pep_id.getMetaValue(Constants::UserParam::IM, 0.0);
+        const double im = pep_id.getMetaValue(Constants::UserParam::IM, -1.0);
 
-        if (im <= 0.0)
+        if (im < 0.0)
         {
-          // ID without IM - skip this ID but continue with others
+          // ID without IM (negative value) - skip this ID but continue with others
           n_ids_without_im++;
           OPENMS_LOG_DEBUG << "Identification at RT " << pep_id.getRT()
                            << " lacks IM annotation - skipping for IM statistics" << endl;
         }
         else
         {
-          im_values.push_back(im);
+          im_values.push_back(im); // includes 0.0 as valid IM value
         }
       }
     }
@@ -1179,13 +1179,19 @@ namespace OpenMS
             addPeptideRT_(peptide, rt + rt_tolerance);
 
             // Use IM from seed if annotated (some feature finders provide IM)
-            // If not annotated, drift time stays at default (0) -> full IM range extraction
-            const double seed_im = rt_pep.second->getMetaValue(Constants::UserParam::IM, 0.0);
-            if (seed_im > 0.0)
+            // If not annotated, drift time stays at default (-1) -> full IM range extraction
+            // Check >= 0.0 to match ChromatogramExtractor's IM filtering logic
+            const double seed_im = rt_pep.second->getMetaValue(Constants::UserParam::IM, -1.0);
+            if (seed_im >= 0.0)
             {
               peptide.setDriftTime(seed_im);
               // Store IM stats for annotation (use seed IM as median, with some tolerance for min/max)
               im_stats_[peptide.id] = {seed_im, seed_im, seed_im};
+            }
+            else
+            {
+              // Reset drift time to -1 (no IM filtering) - peptide object is reused
+              peptide.setDriftTime(-1.0);
             }
 
             library_.addPeptide(peptide);
@@ -1277,11 +1283,17 @@ namespace OpenMS
               // determine IM statistics (median, min, max)
               // for the peptide and current charge state in the region
               // (Note: because it is the same peptide and charge state the IM should not differ that much)
+              // Check >= 0.0 to match ChromatogramExtractor's IM filtering logic
               IMStats im_stats = getRTRegionIMStats_(reg);
-              if (im_stats.median > 0.0)
+              if (im_stats.median >= 0.0)
               {
                 peptide.setDriftTime(im_stats.median); // use median (more robust than mean)
                 im_stats_[peptide.id] = im_stats; // store for later annotation
+              }
+              else
+              {
+                // Reset drift time to -1 (no IM filtering) - peptide object is reused
+                peptide.setDriftTime(-1.0);
               }
 
               library_.addPeptide(peptide);
