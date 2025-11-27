@@ -11,8 +11,11 @@
 #include <OpenMS/KERNEL/RangeUtils.h>
 #include <OpenMS/FEATUREFINDER/FeatureFinderAlgorithmPicked.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/IONMOBILITY/IMDataConverter.h>
 #include <OpenMS/SYSTEM/File.h>
 
+#include <cmath>
 #include <limits>
 
 using namespace OpenMS;
@@ -178,7 +181,7 @@ protected:
     }
 
     // determine type of spectral data (profile or centroided)
-    SpectrumSettings::SpectrumType  spectrum_type = exp[0].getType();
+    SpectrumSettings::SpectrumType spectrum_type = exp[0].getType();
 
     if (spectrum_type == SpectrumSettings::PROFILE)
     {
@@ -195,29 +198,95 @@ protected:
       FileHandler().loadFeatures(getStringOption_("seeds"), seeds, {FileTypes::FEATUREXML});
     }
 
-    //setup of FeatureFinder
-    FeatureFinderAlgorithmPicked ff;
-    //ff.setLogType(log_type_); TODO
-
-    // A map for the resulting features
-    FeatureMap features;
-
-    if (getFlag_("test"))
-    {
-      // if test mode set, add file without path so we can compare it
-      features.setPrimaryMSRunPath({"file://" + File::basename(in)}, exp);
-    }
-    else
-    {
-      features.setPrimaryMSRunPath({in}, exp);
-    }    
-    
     // get parameters specific for the feature finder
     Param feafi_param = getParam_().copy("algorithm:", true);
     writeDebug_("Parameters passed to FeatureFinder", feafi_param, 3);
 
-    // Apply the feature finder
-    ff.run(exp, features, feafi_param, seeds);
+    //-------------------------------------------------------------
+    // Split by FAIMS CV (returns single NaN-keyed element for non-FAIMS data)
+    //-------------------------------------------------------------
+    auto faims_groups = IMDataConverter::splitByFAIMSCV(std::move(exp));
+
+    const bool has_faims = faims_groups.size() > 1 || !std::isnan(faims_groups[0].first);
+    if (has_faims)
+    {
+      OPENMS_LOG_INFO << "FAIMS data detected with " << faims_groups.size() << " compensation voltage(s)." << endl;
+    }
+
+    // A map for the resulting features
+    FeatureMap features;
+
+    // Process each FAIMS CV group (or single group for non-FAIMS data)
+    for (auto& [group_cv, faims_group] : faims_groups)
+    {
+      if (has_faims)
+      {
+        OPENMS_LOG_INFO << "Processing FAIMS CV group: " << group_cv << " V (" << faims_group.size() << " spectra)" << endl;
+      }
+
+      // Filter seeds for this FAIMS CV group (if FAIMS data and seeds provided)
+      FeatureMap seeds_cv;
+      if (has_faims && !seeds.empty())
+      {
+        for (const auto& seed : seeds)
+        {
+          if (seed.metaValueExists(Constants::UserParam::FAIMS_CV))
+          {
+            double seed_cv = seed.getMetaValue(Constants::UserParam::FAIMS_CV);
+            if (std::abs(seed_cv - group_cv) < 0.01)
+            {
+              seeds_cv.push_back(seed);
+            }
+          }
+          else
+          {
+            // Seeds without FAIMS_CV annotation - include in all groups (backward compatibility)
+            seeds_cv.push_back(seed);
+          }
+        }
+      }
+      else
+      {
+        seeds_cv = seeds;
+      }
+
+      // Setup FeatureFinder for this group
+      FeatureFinderAlgorithmPicked ff;
+      //ff.setLogType(log_type_); TODO
+
+      // A map for features from this group
+      FeatureMap features_cv;
+
+      // Apply the feature finder
+      ff.run(faims_group, features_cv, feafi_param, seeds_cv);
+
+      // Annotate features with FAIMS CV (if FAIMS data) and add to results
+      for (auto& feat : features_cv)
+      {
+        if (has_faims)
+        {
+          feat.setMetaValue(Constants::UserParam::FAIMS_CV, group_cv);
+        }
+        features.push_back(feat);
+      }
+    }
+
+    if (has_faims)
+    {
+      OPENMS_LOG_INFO << "Combined " << features.size() << " features from all FAIMS CV groups." << endl;
+    }
+
+    // Set primary MS run path and ensure unique IDs
+    if (getFlag_("test"))
+    {
+      // if test mode set, add file without path so we can compare it
+      features.setPrimaryMSRunPath({"file://" + File::basename(in)});
+    }
+    else
+    {
+      features.setPrimaryMSRunPath({in});
+    }
+    features.ensureUniqueId();
     features.applyMemberFunction(&UniqueIdInterface::setUniqueId);
 
     // DEBUG
