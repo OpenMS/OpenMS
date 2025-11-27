@@ -13,15 +13,19 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h>
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/FEATUREFINDER/ElutionModelFitter.h>
 #include <OpenMS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>
 #include <OpenMS/FEATUREFINDER/FeatureFinderAlgorithmMetaboIdent.h>
+#include <OpenMS/IONMOBILITY/IMDataConverter.h>
 #include <OpenMS/SYSTEM/File.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/OMSFileLoad.h>
+
+#include <cmath>
 
 using namespace OpenMS;
 using namespace std;
@@ -241,28 +245,126 @@ protected:
     OPENMS_LOG_INFO << "Loading targets and creating assay library..." << endl;
     auto table = readTargets_(id);
 
-    FeatureFinderAlgorithmMetaboIdent ff_mident;
-    // copy (command line) tool parameters that match the algorithm parameters back to the algorithm
+    // Prepare algorithm parameters
     auto tool_parameter = getParam_().copySubset(FeatureFinderAlgorithmMetaboIdent().getDefaults());
     tool_parameter.setValue("EMGScoring:init_mom", "true"); // overwrite defaults
     tool_parameter.setValue("EMGScoring:max_iteration", 100); // overwrite defaults
     tool_parameter.setValue("debug", debug_level_); // pass down debug level
-    ff_mident.setParameters(tool_parameter);
 
     OPENMS_LOG_INFO << "Loading input LC-MS data..." << endl;
+    PeakMap exp;
     FileHandler mzml;
     mzml.getOptions().addMSLevel(1);
-    mzml.loadExperiment(in, ff_mident.getMSData(), {FileTypes::MZML});
-    if (ff_mident.getMSData().empty() && !force)
+    mzml.loadExperiment(in, exp, {FileTypes::MZML});
+    if (exp.empty() && !force)
     {
       OPENMS_LOG_ERROR << "Error: No MS1 scans in '"
                        << in << "' - aborting." << endl;
       return INCOMPATIBLE_INPUT_DATA;
     }
-    FeatureMap features;
-    ff_mident.run(table, features, in);
 
-    // annotate "spectra_data" metavalue
+    //-------------------------------------------------------------
+    // Split by FAIMS CV (returns single NaN-keyed element for non-FAIMS data)
+    //-------------------------------------------------------------
+    auto faims_groups = IMDataConverter::splitByFAIMSCV(std::move(exp));
+
+    const bool has_faims = faims_groups.size() > 1 || !std::isnan(faims_groups[0].first);
+    if (has_faims)
+    {
+      OPENMS_LOG_INFO << "FAIMS data detected with " << faims_groups.size() << " compensation voltage(s)." << endl;
+    }
+
+    // Combined results from all FAIMS CV groups
+    FeatureMap features;
+    PeakMap combined_chrom_data;
+    TargetedExperiment combined_library;
+    TransformationDescription combined_trafo;
+    size_t total_n_shared = 0;
+    bool first_group = true;
+
+    // Process each FAIMS CV group (or single group for non-FAIMS data)
+    for (auto& [group_cv, faims_group] : faims_groups)
+    {
+      if (has_faims)
+      {
+        OPENMS_LOG_INFO << "Processing FAIMS CV group: " << group_cv << " V (" << faims_group.size() << " spectra)" << endl;
+      }
+
+      // Create algorithm instance for this group
+      FeatureFinderAlgorithmMetaboIdent ff_mident;
+      ff_mident.setParameters(tool_parameter);
+      ff_mident.setMSData(std::move(faims_group));
+
+      FeatureMap features_cv;
+      ff_mident.run(table, features_cv, in);
+
+      // Annotate features with FAIMS CV (if FAIMS data) and add to combined results
+      for (auto& feat : features_cv)
+      {
+        if (has_faims)
+        {
+          feat.setMetaValue(Constants::UserParam::FAIMS_CV, group_cv);
+        }
+        features.push_back(feat);
+      }
+
+      // Copy ProteinIdentifications from first group
+      if (first_group)
+      {
+        features.setProteinIdentifications(features_cv.getProteinIdentifications());
+      }
+
+      // Copy UnassignedPeptideIdentifications with FAIMS annotation
+      for (auto& pep_id : features_cv.getUnassignedPeptideIdentifications())
+      {
+        if (has_faims)
+        {
+          pep_id.setMetaValue(Constants::UserParam::FAIMS_CV, group_cv);
+        }
+        features.getUnassignedPeptideIdentifications().push_back(std::move(pep_id));
+      }
+
+      // Combine chromatograms
+      if (!chrom_out.empty())
+      {
+        for (auto& chrom : ff_mident.getChromatograms().getChromatograms())
+        {
+          if (has_faims)
+          {
+            chrom.setMetaValue(Constants::UserParam::FAIMS_CV, group_cv);
+          }
+          combined_chrom_data.addChromatogram(std::move(chrom));
+        }
+      }
+
+      // Combine library (only from first group - targets are the same)
+      if (first_group && !lib_out.empty())
+      {
+        combined_library = ff_mident.getLibrary();
+      }
+
+      // Combine transformations
+      if (!trafo_out.empty())
+      {
+        const TransformationDescription& trafo_cv = ff_mident.getTransformations();
+        TransformationDescription::DataPoints points = combined_trafo.getDataPoints();
+        for (const auto& point : trafo_cv.getDataPoints())
+        {
+          points.push_back(point);
+        }
+        combined_trafo.setDataPoints(points);
+      }
+
+      total_n_shared += ff_mident.getNShared();
+      first_group = false;
+    }
+
+    if (has_faims)
+    {
+      OPENMS_LOG_INFO << "Combined " << features.size() << " features from all FAIMS CV groups." << endl;
+    }
+
+    // annotate "spectra_data" metavalue and ensure unique IDs
     if (getFlag_("test"))
     {
       // if test mode set, add file without path so we can compare it
@@ -270,19 +372,18 @@ protected:
     }
     else
     {
-      features.setPrimaryMSRunPath({in}, ff_mident.getMSData());
+      features.setPrimaryMSRunPath({in});
     }
+    features.ensureUniqueId();
 
     addDataProcessing_(features, getProcessingInfo_(DataProcessing::QUANTITATION));
 
     if (!chrom_out.empty())
     {
-      PeakMap& chrom_data = ff_mident.getChromatograms();
-      addDataProcessing_(chrom_data,
+      addDataProcessing_(combined_chrom_data,
                          getProcessingInfo_(DataProcessing::FILTERING));
-      FileHandler().storeExperiment(chrom_out, ff_mident.getChromatograms(), {FileTypes::MZML});
+      FileHandler().storeExperiment(chrom_out, combined_chrom_data, {FileTypes::MZML});
     }
-    ff_mident.getChromatograms().clear(true);
 
     //-------------------------------------------------------------
     // write output
@@ -294,14 +395,13 @@ protected:
     // write transition library in TraML format
     if (!lib_out.empty())
     {
-      FileHandler().storeTransitions(lib_out, ff_mident.getLibrary(), {FileTypes::TRAML});
+      FileHandler().storeTransitions(lib_out, combined_library, {FileTypes::TRAML});
     }
 
     // write expected vs. observed retention times
     if (!trafo_out.empty())
     {
-      const TransformationDescription& trafo = ff_mident.getTransformations();
-      FileHandler().storeTransformations(trafo_out, trafo, {FileTypes::TRANSFORMATIONXML});
+      FileHandler().storeTransformations(trafo_out, combined_trafo, {FileTypes::TRANSFORMATIONXML});
     }
 
     //-------------------------------------------------------------
@@ -310,23 +410,26 @@ protected:
 
     Size n_missing = features.getUnassignedPeptideIdentifications().size();
     OPENMS_LOG_INFO << "\nSummary statistics:\n"
-             << ff_mident.getLibrary().getCompounds().size() << " targets specified\n"
+             << table.size() << " targets specified\n"
              << features.size() << " features found\n"
-             << ff_mident.getNShared() << " features with multiple target annotations\n"
+             << total_n_shared << " features with multiple target annotations\n"
              << n_missing << " targets without features";
     const Size n_examples = 5;
-    if (n_missing)
+    if (n_missing && !combined_library.getCompounds().empty())
     {
       OPENMS_LOG_INFO << ":";
       for (Size i = 0;
            ((i < features.getUnassignedPeptideIdentifications().size()) &&
             (i < n_examples)); ++i)
       {
-        const PeptideIdentification& id =
+        const PeptideIdentification& pep_id =
           features.getUnassignedPeptideIdentifications()[i];
-        const TargetedExperiment::Compound& compound =
-          ff_mident.getLibrary().getCompoundByRef(id.getMetaValue("PeptideRef"));
-        OPENMS_LOG_INFO << "\n- " << ff_mident.prettyPrintCompound(compound);
+        if (pep_id.metaValueExists("PeptideRef"))
+        {
+          const TargetedExperiment::Compound& compound =
+            combined_library.getCompoundByRef(pep_id.getMetaValue("PeptideRef"));
+          OPENMS_LOG_INFO << "\n- " << FeatureFinderAlgorithmMetaboIdent().prettyPrintCompound(compound);
+        }
       }
       if (n_missing > n_examples)
       {
