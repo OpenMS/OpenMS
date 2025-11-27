@@ -63,7 +63,7 @@ Spectra are expected in centroided or profile mode. Only MS1 level spectra are c
 The targets to quantify have to be specified in a tab-separated text file that is passed via the @p id parameter.
 This file has to start with the following header line, defining its columns:
 <pre>
-<TT>CompoundName    SumFormula    Mass    Charge    RetentionTime    RetentionTimeRange    IsoDistribution</TT>
+<TT>CompoundName    SumFormula    Mass    Charge    RetentionTime    RetentionTimeRange    IsoDistribution    [IonMobility]    [IonMobilityRange]</TT>
 </pre>
 
 Every subsequent line defines a target.
@@ -76,9 +76,12 @@ The following requirements apply:
 - @p RetentionTime: retention time (RT), or comma-separated list of multiple RTs
 - @p RetentionTimeRange: RT window around @p RetentionTime for chromatogram extraction, either one value or one per @p RT entry; if zero parameter @p extract:rt_window is used
 - @p IsoDistribution: comma-separated list of relative abundances of isotopologues (see @ref OpenMS::IsotopeDistribution); if zero calculated from @p Formula
+- @p IonMobility (optional): ion mobility value, or comma-separated list of multiple values (one per RT entry); if not provided or zero, no IM filtering is performed
+- @p IonMobilityRange (optional): IM window around @p IonMobility for extraction, either one value or one per IM entry; if zero parameter @p extract:im_window is used
 
 In the simplest case, only @p CompoundName, @p SumFormula, @p Charge and @p RetentionTime need to be given, all other values may be zero.
 Every combination of compound (mass), RT and charge defines one target for feature detection.
+For ion mobility data, optional @p IonMobility and @p IonMobilityRange columns can be added to filter extraction by ion mobility.
 
 <B>Output format</B>
 
@@ -140,6 +143,7 @@ protected:
   {
     vector<FeatureFinderAlgorithmMetaboIdent::FeatureFinderMetaboIdentCompound> metaboIdentTable;
 
+    // Base required header (optional columns IonMobility and IonMobilityRange may follow)
     const string header =
       "CompoundName\tSumFormula\tMass\tCharge\tRetentionTime\tRetentionTimeRange\tIsoDistribution";
     ifstream source(in_path.c_str());
@@ -156,6 +160,10 @@ protected:
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                   line, msg);
     }
+
+    // Check for optional IM columns in header
+    bool has_im_columns = String(line).hasSubstring("IonMobility");
+
     Size line_count = 1;
     set<String> names;
     while (getline(source, line))
@@ -166,7 +174,7 @@ protected:
       if (parts.size() < 7)
       {
         OPENMS_LOG_ERROR
-          << "Error: Expected 7 tab-separated fields, found only "
+          << "Error: Expected at least 7 tab-separated fields, found only "
           << parts.size() << " in line " << line_count
           << " - skipping this line." << endl;
         continue;
@@ -185,13 +193,28 @@ protected:
                          << " - skipping this line." << endl;
         continue;
       }
+
+      // Parse optional IM columns (columns 8 and 9, 0-indexed 7 and 8)
+      vector<double> ion_mobilities;
+      vector<double> im_ranges;
+      if (has_im_columns && parts.size() > 7)
+      {
+        ion_mobilities = ListUtils::create<double>(parts[7]);
+        if (parts.size() > 8)
+        {
+          im_ranges = ListUtils::create<double>(parts[8]);
+        }
+      }
+
       metaboIdentTable.push_back(FeatureFinderAlgorithmMetaboIdent::FeatureFinderMetaboIdentCompound(name,
                                  parts[1],
                                  parts[2].toDouble(),
                                  ListUtils::create<Int>(parts[3]),
                                  ListUtils::create<double>(parts[4]),
                                  ListUtils::create<double>(parts[5]),
-                                 ListUtils::create<double>(parts[6])));
+                                 ListUtils::create<double>(parts[6]),
+                                 ion_mobilities,
+                                 im_ranges));
     }
     return metaboIdentTable;
   }

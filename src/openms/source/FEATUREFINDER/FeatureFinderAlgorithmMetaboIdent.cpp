@@ -51,11 +51,18 @@ namespace OpenMS
     defaults_.setMinFloat("extract:mz_window", 0.0);
 
     defaults_.setValue(
-      "extract:rt_window", 
-      0.0, 
+      "extract:rt_window",
+      0.0,
       "RT window size (in sec.) for chromatogram extraction. If set, this parameter takes precedence over 'extract:rt_quantile'.",
       vector<string>{"advanced"});
     defaults_.setMinFloat("extract:rt_window", 0.0);
+
+    defaults_.setValue(
+      "extract:im_window",
+      0.0,
+      "Ion mobility window size for extraction. If set to 0, no IM filtering is performed. This is the default window used when IonMobilityRange is not specified per target.",
+      vector<string>{"advanced"});
+    defaults_.setMinFloat("extract:im_window", 0.0);
 
     defaults_.setValue("extract:n_isotopes", 2, "Number of isotopes to include in each peptide assay.");
     defaults_.setMinInt("extract:n_isotopes", 2);
@@ -126,6 +133,8 @@ namespace OpenMS
     mz_window_ = param_.getValue("extract:mz_window");
     mz_window_ppm_ = mz_window_ >= 1;
 
+    im_window_ = param_.getValue("extract:im_window");
+
     isotope_pmin_ = param_.getValue("extract:isotope_pmin");
 
     // extract up to 10 isotopes if minimum probability is larger than 0
@@ -157,7 +166,7 @@ namespace OpenMS
     for (const auto& c : metaboIdentTable)
     {
       addTargetToLibrary_(c.getName(), c.getFormula(), c.getMass(), c.getCharges(), c.getRTs(), c.getRTRanges(),
-                      c.getIsotopeDistribution());
+                      c.getIsotopeDistribution(), c.getIonMobilities(), c.getIonMobilityRanges());
     }
 
     // initialize algorithm classes needed later:
@@ -364,7 +373,9 @@ namespace OpenMS
                            double mass, const vector<Int>& charges,
                            const vector<double>& rts,
                            vector<double> rt_ranges,
-                           const vector<double>& iso_distrib)
+                           const vector<double>& iso_distrib,
+                           const vector<double>& ion_mobilities,
+                           vector<double> im_ranges)
   {
     if ((mass <= 0) && formula.empty())
     {
@@ -426,6 +437,35 @@ namespace OpenMS
     }
     iso_dist.renormalize();
 
+    // Prepare IM values: recycle to one value per RT entry if needed
+    vector<double> ims = ion_mobilities;
+    if (ims.empty())
+    {
+      ims.resize(rts.size(), 0.0); // no IM filtering
+    }
+    else if (ims.size() == 1)
+    {
+      ims.resize(rts.size(), ims[0]);
+    }
+    else if (ims.size() != rts.size())
+    {
+      OPENMS_LOG_WARN << "Warning: Number of IonMobility values (" << ims.size()
+                      << ") does not match number of RT values (" << rts.size()
+                      << ") for target '" << name << "' - using first IM value for all." << endl;
+      double first_im = ims[0];
+      ims.resize(rts.size(), first_im);
+    }
+
+    // Prepare IM ranges: recycle to one range entry per RT
+    if (im_ranges.empty())
+    {
+      im_ranges.resize(rts.size(), 0.0);
+    }
+    else if (im_ranges.size() == 1)
+    {
+      im_ranges.resize(rts.size(), im_ranges[0]);
+    }
+
     // go through different charge states:
     for (vector<Int>::const_iterator z_it = charges.begin();
          z_it != charges.end(); ++z_it)
@@ -465,6 +505,22 @@ namespace OpenMS
           String(float(rts[i]));
         target.setMetaValue("expected_rt", rts[i]);
         target_rts_[target.id] = rts[i];
+
+        // Store IM information as meta values if provided
+        if (ims[i] != 0.0)
+        {
+          target.setMetaValue("expected_im", ims[i]);
+          double im_tol = im_ranges[i] / 2.0;
+          if (im_tol == 0.0)
+          {
+            im_tol = im_window_ / 2.0;
+          }
+          if (im_tol > 0.0)
+          {
+            target.setMetaValue("im_lower", ims[i] - im_tol);
+            target.setMetaValue("im_upper", ims[i] + im_tol);
+          }
+        }
 
         double rt_tol = rt_ranges[i] / 2.0;
         if (rt_tol == 0)
@@ -537,6 +593,11 @@ namespace OpenMS
       feat.setMetaValue("sum_formula", compound.molecular_formula);
       feat.setMetaValue("expected_rt",
                             compound.getMetaValue("expected_rt"));
+      // Add IM annotations if available
+      if (compound.metaValueExists("expected_im"))
+      {
+        feat.setMetaValue("expected_im", compound.getMetaValue("expected_im"));
+      }
       // annotate subordinates with theoretical isotope intensities:
       for (Feature& sub : feat.getSubordinates())
       {
@@ -669,6 +730,11 @@ namespace OpenMS
         peptide.setMetaValue("PeptideRef", it->id);
         peptide.setRT(it->getMetaValue("expected_rt"));
         peptide.setMZ(calculateMZ_(it->theoretical_mass, it->getChargeState()));
+        // Add IM annotation if available
+        if (it->metaValueExists("expected_im"))
+        {
+          peptide.setMetaValue("expected_im", it->getMetaValue("expected_im"));
+        }
         features.getUnassignedPeptideIdentifications().push_back(peptide);
       }
       if (features.getUnassignedPeptideIdentifications().size() >= n_missing)

@@ -29,25 +29,29 @@ class OPENMS_DLLAPI FeatureFinderAlgorithmMetaboIdent :
 {
 public:
   /// @brief represents a compound in the assay library
-  struct OPENMS_DLLAPI FeatureFinderMetaboIdentCompound 
-  {    
-    FeatureFinderMetaboIdentCompound(const String& _name, 
-        const String& _formula, 
-        double _mass, 
-        const std::vector<int>& _charges, 
-        const std::vector<double>& _rts, 
-        const std::vector<double>& _rt_ranges, 
-        const std::vector<double>& _iso_distrib):
+  struct OPENMS_DLLAPI FeatureFinderMetaboIdentCompound
+  {
+    FeatureFinderMetaboIdentCompound(const String& _name,
+        const String& _formula,
+        double _mass,
+        const std::vector<int>& _charges,
+        const std::vector<double>& _rts,
+        const std::vector<double>& _rt_ranges,
+        const std::vector<double>& _iso_distrib,
+        const std::vector<double>& _ion_mobilities = {},
+        const std::vector<double>& _im_ranges = {}):
       name_(_name),
       formula_(_formula),
       mass_(_mass),
       charges_(_charges),
       rts_(_rts),
       rt_ranges_(_rt_ranges),
-      iso_distrib_(_iso_distrib)
-      {        
+      iso_distrib_(_iso_distrib),
+      ion_mobilities_(_ion_mobilities),
+      im_ranges_(_im_ranges)
+      {
       }
-    
+
     private:
       String name_;
       String formula_;
@@ -56,6 +60,8 @@ public:
       std::vector<double> rts_;
       std::vector<double> rt_ranges_;
       std::vector<double> iso_distrib_;
+      std::vector<double> ion_mobilities_; ///< Expected ion mobility values (optional)
+      std::vector<double> im_ranges_; ///< Ion mobility extraction window sizes (optional)
 
     public:
       const String& getName() const {
@@ -84,6 +90,14 @@ public:
 
       const std::vector<double>& getIsotopeDistribution() const {
         return iso_distrib_;
+      }
+
+      const std::vector<double>& getIonMobilities() const {
+        return ion_mobilities_;
+      }
+
+      const std::vector<double>& getIonMobilityRanges() const {
+        return im_ranges_;
       }
   };
 
@@ -168,7 +182,9 @@ protected:
                            double mass, const std::vector<Int>& charges,
                            const std::vector<double>& rts,
                            std::vector<double> rt_ranges,
-                           const std::vector<double>& iso_distrib);
+                           const std::vector<double>& iso_distrib,
+                           const std::vector<double>& ion_mobilities = {},
+                           std::vector<double> im_ranges = {});
 
   /// Add "peptide" identifications with information about targets to features
   Size addTargetAnnotations_(FeatureMap& features);
@@ -190,6 +206,7 @@ protected:
   double rt_window_; ///< RT window width
   double mz_window_; ///< m/z window width
   bool mz_window_ppm_; ///< m/z window width is given in PPM (not Da)?
+  double im_window_; ///< Ion mobility window width (0 = disabled)
 
   double isotope_pmin_; ///< min. isotope probability for peptide assay
   Size n_isotopes_; ///< number of isotopes for peptide assay
