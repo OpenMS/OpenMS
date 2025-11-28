@@ -258,6 +258,9 @@ set_tests_properties("TOPP_FeatureFinderMetabo_5_out" PROPERTIES DEPENDS "TOPP_F
 add_test("TOPP_FeatureFinderCentroided_1" ${TOPP_BIN_PATH}/FeatureFinderCentroided -test -ini ${DATA_DIR_TOPP}/FeatureFinderCentroided_1_parameters.ini -in ${DATA_DIR_TOPP}/FeatureFinderCentroided_1_input.mzML -out FeatureFinderCentroided_1.tmp.featureXML)
 add_test("TOPP_FeatureFinderCentroided_1_out1" ${DIFF} -whitelist "id=" -in1 FeatureFinderCentroided_1.tmp.featureXML -in2 ${DATA_DIR_TOPP}/FeatureFinderCentroided_1_1_output.featureXML )
 set_tests_properties("TOPP_FeatureFinderCentroided_1_out1" PROPERTIES DEPENDS "TOPP_FeatureFinderCentroided_1")
+add_test("TOPP_FeatureFinderLFQ_1" ${TOPP_BIN_PATH}/FeatureFinderLFQ -test -in ${DATA_DIR_TOPP}/FeatureFinderCentroided_1_input.mzML -out FeatureFinderLFQ_1.tmp.featureXML -mini 20 -htol 100 -itol 100 -minlh 2 -cmin 2 -cmax 2)
+add_test("TOPP_FeatureFinderLFQ_1_out1" ${DIFF} -whitelist "id=" -in1 FeatureFinderLFQ_1.tmp.featureXML -in2 ${DATA_DIR_TOPP}/FeatureFinderLFQ_1_output.featureXML )
+set_tests_properties("TOPP_FeatureFinderLFQ_1_out1" PROPERTIES DEPENDS "TOPP_FeatureFinderLFQ_1")
 
 #------------------------------------------------------------------------------
 # FeatureFinderIdentification test
