@@ -503,13 +503,13 @@ namespace OpenMS
     consumer->setExperimentalSettings(exp);
     
     // Feed spectra to consumer
-    for (const auto& spec : exp)
+    for (auto& spec : exp)
     {
       consumer->consumeSpectrum(spec);
     }
     
     // Feed chromatograms to consumer
-    for (const auto& chrom : exp.getChromatograms())
+    for (auto& chrom : exp.getChromatograms())
     {
       consumer->consumeChromatogram(chrom);
     }
@@ -531,8 +531,8 @@ namespace OpenMS
         
         // Open Parquet file
         std::unique_ptr<parquet::arrow::FileReader> arrow_reader;
-        PARQUET_THROW_NOT_OK(
-          parquet::arrow::OpenFile(buffer_reader, arrow::default_memory_pool(), &arrow_reader)
+        PARQUET_ASSIGN_OR_THROW(arrow_reader,
+          parquet::arrow::OpenFile(buffer_reader, arrow::default_memory_pool())
         );
         
         // Read entire table
@@ -608,8 +608,8 @@ namespace OpenMS
         
         // Open Parquet file
         std::unique_ptr<parquet::arrow::FileReader> arrow_reader;
-        PARQUET_THROW_NOT_OK(
-          parquet::arrow::OpenFile(buffer_reader, arrow::default_memory_pool(), &arrow_reader)
+        PARQUET_ASSIGN_OR_THROW(arrow_reader,
+          parquet::arrow::OpenFile(buffer_reader, arrow::default_memory_pool())
         );
         
         // Read entire table
