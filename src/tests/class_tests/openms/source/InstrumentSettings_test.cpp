@@ -173,6 +173,12 @@ START_SECTION((bool operator!= (const InstrumentSettings& rhs) const))
 	TEST_EQUAL(edit!=empty,true);
 END_SECTION
 
+START_SECTION((static StringList getAllNamesOfScanMode()))
+  StringList names = InstrumentSettings::getAllNamesOfScanMode();
+  TEST_EQUAL(names.size(), InstrumentSettings::SIZE_OF_SCANMODE);
+  TEST_EQUAL(names[InstrumentSettings::MS1SPECTRUM], "MS1Spectrum");
+END_SECTION
+
 
 
 /////////////////////////////////////////////////////////////

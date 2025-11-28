@@ -84,7 +84,7 @@ namespace OpenMS
       {
         QStringList strings;
         QList<QListWidgetItem*> selected_items = ui_->input_file_list->selectedItems();
-        foreach(QListWidgetItem * item, selected_items)
+        for (QListWidgetItem * item : selected_items)
         {
           strings << item->text();
         }

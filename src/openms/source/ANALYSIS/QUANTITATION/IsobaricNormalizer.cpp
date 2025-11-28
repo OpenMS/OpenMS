@@ -66,6 +66,8 @@ namespace OpenMS
          file_it != consensus_map.getColumnHeaders().end();
          ++file_it)
     {
+      // TODO I think this does not work if you are normalizing a consensus map including multiple files
+      //  which all have that reference channel name.
       if (file_it->second.getMetaValue("channel_name") == reference_channel_name_)
       {
         ref_map_id_ = file_it->first;

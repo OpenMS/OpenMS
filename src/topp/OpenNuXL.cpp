@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -287,7 +287,7 @@ struct NuXLLinearRescore
       {
          if (peptide_ids[index].getHits().empty()) continue;
          const PeptideHit& ph = peptide_ids[index].getHits()[0]; // get best match to current spectrum
-         bool is_target = ph.getMetaValue("target_decoy") == "target";
+         bool is_target = !ph.isDecoy();
          bool is_XL = !(static_cast<int>(ph.getMetaValue("NuXL:isXL")) == 0);
          double score = ph.getScore();
          if (is_target)
@@ -346,7 +346,7 @@ struct NuXLLinearRescore
            for (size_t psm_rank = 0; psm_rank != phits.size(); ++psm_rank)
            {
              const PeptideHit& ph = phits[psm_rank];
-             bool is_target = ph.getMetaValue("target_decoy") == "target";
+             bool is_target = !ph.isDecoy();
              double score = ph.getScore();
              // predictors["score"].push_back(score);
              predictors["length"].push_back(ph.getSequence().size());
@@ -2176,6 +2176,7 @@ static void scoreXLIons_(
                          size_t &n_theoretical_peaks,
                          const PeakSpectrum &all_possible_marker_ion_sub_score_spectrum_z1)
   {
+    (void)marker_ions_sub_score_spectrum_z1;  // unused parameter
     OPENMS_PRECONDITION(!partial_loss_template_z1_b_ions.empty(), "Empty partial loss spectrum provided.");
     OPENMS_PRECONDITION(intensity_sum.size() == partial_loss_template_z1_b_ions.size(), "Sum array needs to be of same size as b-ion array");
     OPENMS_PRECONDITION(intensity_sum.size() == partial_loss_template_z1_y_ions.size(), "Sum array needs to be of same size as y-ion array");
@@ -2822,7 +2823,6 @@ static void scoreXLIons_(
 
       // count how often a shift matches a residue + adduct mass (including mass 0 for unmodified residue)
       size_t aa_plus_adduct_in_mass_range(0);
-      size_t aa_plus_adduct_match(0);
       
       for (Size i = 0; i != mzs.size(); ++i)
       {
@@ -4675,7 +4675,7 @@ static void scoreXLIons_(
     double precursor_mass_tolerance = getDoubleOption_("precursor:mass_tolerance");
     double fragment_mass_tolerance = getDoubleOption_("fragment:mass_tolerance");
     bool generate_decoys = getStringOption_("NuXL:decoys") == "true";
-    int decoy_factor = getIntOption_("NuXL:decoy_factor");
+    Size decoy_factor = static_cast<Size>(getIntOption_("NuXL:decoy_factor"));
 
     StringList filter = getStringList_("filter");
     bool filter_pc_mass_error = find(filter.begin(), filter.end(), "filter_pc_mass_error") != filter.end();
@@ -6071,7 +6071,7 @@ static void scoreXLIons_(
       for (size_t index = 0; index != peptide_ids.size(); ++index)
       {
          if (peptide_ids[index].getHits().empty()) continue;
-         if (peptide_ids[index].getHits()[0].getMetaValue("target_decoy") == "target")
+         if (!peptide_ids[index].getHits()[0].isDecoy())
          {
            double ppm_error = peptide_ids[index].getHits()[0].getMetaValue(OpenMS::Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM);
            map_score2ppm[peptide_ids[index].getHits()[0].getScore()] = ppm_error; 
@@ -6164,7 +6164,7 @@ static void scoreXLIons_(
             {
               const bool is_XL = !(static_cast<int>(ph.getMetaValue("NuXL:isXL")) == 0);
               if (!is_XL) continue; // skip linear peptides as these don't have the XL values set
-              if (ph.getMetaValue("target_decoy") != "decoy") continue;
+              if (!ph.isDecoy()) continue;
               double score = ph.getMetaValue(name);
               decoy_XL_scores.push_back(score); 
             }
@@ -6184,7 +6184,7 @@ static void scoreXLIons_(
             {
               const bool is_XL = !(static_cast<int>(ph.getMetaValue("NuXL:isXL")) == 0);
               if (!is_XL) continue; // skip linear peptides as these don't have the XL values set
-              if (ph.getMetaValue("target_decoy") != "decoy") continue;
+              if (!ph.isDecoy()) continue;
               double score = ph.getMetaValue(name);
               decoy_XL_scores.push_back(score); 
             }

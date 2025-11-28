@@ -195,12 +195,14 @@ protected:
     }
     else
     {
-      const auto it = quant_methods_.find(section);
-      if (it == quant_methods_.end())
+      if (const auto it = quant_methods_.find(section); it == quant_methods_.end())
       { // should not happen
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid subsection " + section);
       }
-      return it->second->getParameters();
+      else
+      {
+        return it->second->getParameters();
+      }
     }
   }
 

@@ -976,12 +976,14 @@ protected:
       std::map<Int, UInt> charges;
       std::map<size_t, UInt> numberofids;
       double tic = 0.0;
+      Size assigned_ids = 0;
       for (Size i = 0; i < feat.size(); ++i)
       {
         ++charges[feat[i].getCharge()];
         tic += feat[i].getIntensity();
         const PeptideIdentificationList &peptide_ids = feat[i].getPeptideIdentifications();
         ++numberofids[peptide_ids.size()];
+        assigned_ids += peptide_ids.size();
       }
 
       os << "Total ion current in features: " << tic << '\n';
@@ -1001,7 +1003,10 @@ protected:
       }
 
       os << '\n'
-         << "Unassigned peptide identifications: " << feat.getUnassignedPeptideIdentifications().size() << '\n';
+         << "Assigned peptide identifications: " << assigned_ids << '\n';
+      os_tsv << "general: assigned peptide identifications" << '\t'
+             << assigned_ids << '\n';
+      os << "Unassigned peptide identifications: " << feat.getUnassignedPeptideIdentifications().size() << '\n';
       os_tsv << "general: unassigned peptide identifications" << '\t'
              << feat.getUnassignedPeptideIdentifications().size() << '\n';
     }
@@ -1017,12 +1022,14 @@ protected:
 
       map<Size, UInt> num_consfeat_of_size;
       map<Size, UInt> num_consfeat_of_size_with_id;
+      Size assigned_ids = 0;
 
       map<pair<String, UInt>, vector<int> > seq_charge2map_occurence;
       for (const ConsensusFeature& cm : cons)
       {
         ++num_consfeat_of_size[cm.size()];
         const auto& pids = cm.getPeptideIdentifications();
+        assigned_ids += pids.size();
         if (!pids.empty())
         {
           ++num_consfeat_of_size_with_id[cm.size()];
@@ -1145,6 +1152,13 @@ protected:
         }
         os << '\n';
       }
+
+      os << "Assigned peptide identifications: " << assigned_ids << '\n';
+      os_tsv << "general: assigned peptide identifications" << '\t'
+             << assigned_ids << '\n';
+      os << "Unassigned peptide identifications: " << cons.getUnassignedPeptideIdentifications().size() << '\n';
+      os_tsv << "general: unassigned peptide identifications" << '\t'
+             << cons.getUnassignedPeptideIdentifications().size() << '\n';
     }
     else if (in_type == FileTypes::IDXML || in_type == FileTypes::MZIDENTML) //identifications
     {

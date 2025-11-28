@@ -28,21 +28,8 @@ namespace OpenMS
   // Also used for TMT_11PLEX
   double TMT_10AND11PLEX_CHANNEL_TOLERANCE = 0.003;
 
-  /// small quality control class, holding temporary data for reporting
-  struct ChannelQC
-  {
-    // C'tor
-    ChannelQC() :
-      mz_deltas()
-      
-    {}
 
-    std::vector<double> mz_deltas; ///< m/z distance between expected and observed reporter ion closest to expected position
-    int signal_not_unique{0};  ///< counts if more than one peak was found within the search window of each reporter position
-  };
-
-
-  IsobaricChannelExtractor::PuritySate_::PuritySate_(const PeakMap& targetExp) :
+  IsobaricChannelExtractor::PurityState_::PurityState_(const PeakMap& targetExp) :
     baseExperiment(targetExp)
   {
     // initialize precursorScan with end(), it will be updated later on
@@ -61,7 +48,7 @@ namespace OpenMS
   }
 
 
-  void IsobaricChannelExtractor::PuritySate_::advanceFollowUp(const double rt)
+  void IsobaricChannelExtractor::PurityState_::advanceFollowUp(const double rt)
   {
     // advance follow up scan until we found a ms1 scan with a bigger RT
     if (followUpScan != baseExperiment.end()) ++followUpScan;
@@ -78,7 +65,7 @@ namespace OpenMS
     hasFollowUpScan = followUpScan != baseExperiment.end();
   }
 
-  bool IsobaricChannelExtractor::PuritySate_::followUpValid(const double rt) const
+  bool IsobaricChannelExtractor::PurityState_::followUpValid(const double rt) const
   {
     return hasFollowUpScan ? rt < followUpScan->getRT() : true;
   }
@@ -94,7 +81,8 @@ namespace OpenMS
     remove_low_intensity_quantifications_(false),
     min_precursor_purity_(0.0),
     max_precursor_isotope_deviation_(10),
-    interpolate_precursor_purity_(false)
+    interpolate_precursor_purity_(false),
+    channel_mz_delta()
   {
     setDefaultParams_();
   }
@@ -117,6 +105,7 @@ namespace OpenMS
     min_precursor_purity_ = rhs.min_precursor_purity_;
     max_precursor_isotope_deviation_ = rhs.max_precursor_isotope_deviation_;
     interpolate_precursor_purity_ = rhs.interpolate_precursor_purity_;
+    channel_mz_delta = rhs.channel_mz_delta;
 
     return *this;
   }
@@ -378,7 +367,7 @@ namespace OpenMS
     return precursor_intensity / total_intensity;
   }
 
-  double IsobaricChannelExtractor::computePrecursorPurity_(const PeakMap::ConstIterator& ms2_spec, const PuritySate_& pState) const
+  double IsobaricChannelExtractor::computePrecursorPurity_(const PeakMap::ConstIterator& ms2_spec, const PurityState_& pState) const
   {
     // we cannot analyze precursors without a charge
     if (ms2_spec->getPrecursors()[0].getCharge() == 0)
@@ -480,13 +469,7 @@ namespace OpenMS
     UInt64 element_index(0);
 
     // remember the current precursor spectrum
-    PuritySate_ pState(ms_exp_data);
-
-    typedef std::map<String, ChannelQC > ChannelQCSet;
-    ChannelQCSet channel_mz_delta;
-    const double qc_dist_mz = 0.5; // fixed! Do not change!
-
-    Size number_of_channels = quant_method_->getNumberOfChannels();
+    PurityState_ pState(ms_exp_data);
 
     PeakMap::ConstIterator it_last_MS2 = ms_exp_data.end(); // remember last MS2 spec, to get precursor in MS1 (also if quant is in MS3)
     bool ms3 = false;
@@ -661,58 +644,30 @@ namespace OpenMS
       ++element_index;
     } // ! Experiment iterator
 
-    // print stats about m/z calibration / presence of signal
-    OPENMS_LOG_INFO << "Calibration stats: Median distance of observed reporter ions m/z to expected position (up to " << qc_dist_mz << " Th):\n";
-    bool impurities_found(false);
-    for (IsobaricQuantitationMethod::IsobaricChannelList::const_iterator cl_it = quant_method_->getChannelInformation().begin();
-      cl_it != quant_method_->getChannelInformation().end();
-      ++cl_it)
-    {
-      OPENMS_LOG_INFO << "  ch " << String(cl_it->name).fillRight(' ', 4) << " (~" << String(cl_it->center).substr(0, 7).fillRight(' ', 7) << "): ";
-      if (channel_mz_delta.find(cl_it->name) != channel_mz_delta.end())
-      {
-        // sort
-        double median = Math::median(channel_mz_delta[cl_it->name].mz_deltas.begin(), channel_mz_delta[cl_it->name].mz_deltas.end(), false);
-        if (((number_of_channels == 10) || (number_of_channels == 11)) &&
-            (fabs(median) > TMT_10AND11PLEX_CHANNEL_TOLERANCE) &&
-            (int(cl_it->center) != 126 && int(cl_it->center) != 131)) // these two channels have ~1 Th spacing.. so they do not suffer from the tolerance problem
-        { // the channel was most likely empty, and we picked up the neighbouring channel's data (~0.006 Th apart). So reporting median here is misleading.
-          OPENMS_LOG_INFO << "<invalid data (>" << TMT_10AND11PLEX_CHANNEL_TOLERANCE << " Th channel tolerance)>\n";
-        }
-        else
-        {
-          OPENMS_LOG_INFO << median << " Th";
-          if (channel_mz_delta[cl_it->name].signal_not_unique > 0) 
-          {
-            OPENMS_LOG_INFO << " [MSn impurity (within " << reporter_mass_shift_ << " Th): " << channel_mz_delta[cl_it->name].signal_not_unique << " windows|spectra]";
-            impurities_found = true;
-          }
-          OPENMS_LOG_INFO << "\n";
-        }
-      }
-      else
-      {
-        OPENMS_LOG_INFO << "<no data>\n";
-      }
-    }
-    if (impurities_found) OPENMS_LOG_INFO << "\nImpurities within the allowed reporter mass shift " << reporter_mass_shift_ << " Th have been found." 
-                                   << "They can be ignored if the spectra are m/z calibrated (see above), since only the peak closest to the theoretical position is used for quantification!";
-    OPENMS_LOG_INFO << std::endl;
-
-
+    printStats();
     /// add meta information to the map
-    registerChannelsInOutputMap_(consensus_map);
+    registerChannelsInOutputMap(consensus_map);
   }
 
-  void IsobaricChannelExtractor::registerChannelsInOutputMap_(ConsensusMap& consensus_map)
+  void IsobaricChannelExtractor::registerChannelsInOutputMap(ConsensusMap& consensus_map, const String& filename)
   {
     // register the individual channels in the output consensus map
     Int index = 0;
+    // if there are already column headers, we need to append to the end
+    if (!consensus_map.getColumnHeaders().empty())
+    {
+      index = (--consensus_map.getColumnHeaders().cend())->first + 1;
+    }
+
     for (IsobaricQuantitationMethod::IsobaricChannelList::const_iterator cl_it = quant_method_->getChannelInformation().begin();
          cl_it != quant_method_->getChannelInformation().end();
          ++cl_it)
     {
       ConsensusMap::ColumnHeader channel_as_map;
+      if (!filename.empty())
+      {
+        channel_as_map.filename = filename;
+      }
       // label is the channel + description provided in the Params
       channel_as_map.label = quant_method_->getMethodName() + "_" + cl_it->name;
 
@@ -727,6 +682,200 @@ namespace OpenMS
       consensus_map.getColumnHeaders()[index] = channel_as_map;
       ++index;
     }
+  }
+
+  std::vector<double> IsobaricChannelExtractor::extractSingleSpec(Size spec_idx, const MSExperiment& exp, std::vector<std::pair<double, unsigned>>& channel_qc)
+  {
+      // for each channel
+      unsigned map_index = 0;
+      const auto& quant_spec = exp[spec_idx];
+      std::vector<double> result (quant_method_->getNumberOfChannels(), 0.0);
+
+      if (quant_spec.empty())
+      {
+        OPENMS_LOG_WARN << "Quant. spectrum " << quant_spec.getNativeID() << " is empty. Skipping extraction." << std::endl;
+        return result;
+      }
+
+      // TODO try the following again to make it a bit faster
+      // assumes sortedness of channel info. Should be given. TODO Add precondition to quant_method constructor?
+      /*const auto& reporter_region_end = ++quant_spec.MZEnd(quant_method_->getChannelInformation().back().center + qc_dist_mz);
+
+      const auto& reporter_region_start = quant_spec.MZBegin(quant_spec.begin(), quant_method_->getChannelInformation().front().center - qc_dist_mz, reporter_region_end);
+      std::cout << "reporter_region_start: " << reporter_region_start->getMZ() << std::endl;
+
+      if (reporter_region_end != quant_spec.end())
+      {
+        std::cout << "reporter_region_end: " << reporter_region_end->getMZ() << std::endl;
+      } else {
+        std::cout << "reporter_region_end: " << "end" << std::endl;
+        return result;
+      }*/
+
+      // TODO I wonder if full linear search inside the reporter region is faster since it can be better optimized by the compiler
+      for (IsobaricQuantitationMethod::IsobaricChannelList::const_iterator cl_it = quant_method_->getChannelInformation().begin();
+            cl_it != quant_method_->getChannelInformation().end();
+            ++cl_it)
+      {
+        // set mz-position of channel
+        auto reporter_mz = cl_it->center;
+        
+        
+        // if (reporter_mz < reporter_region_start->getMZ() || reporter_mz > reporter_region_end->getMZ()) continue;
+        
+        
+        // as every evaluation requires time, we cache the MZEnd iterator
+        const PeakMap::SpectrumType::ConstIterator mz_end = quant_spec.MZEnd(/*reporter_region_start,*/ reporter_mz + qc_dist_mz/*, reporter_region_end*/);
+
+        // search for the non-zero signal closest to theoretical position
+        // & check for closest signal within reasonable distance (0.5 Da) -- might find neighbouring TMT channel, but that should not confuse anyone
+        int peak_count(0); // count peaks in user window -- should be only one, otherwise Window is too large
+        PeakMap::SpectrumType::ConstIterator idx_nearest(mz_end);
+        for (PeakMap::SpectrumType::ConstIterator mz_it = quant_spec.MZBegin(/*reporter_region_start,*/ reporter_mz - qc_dist_mz/*, reporter_region_end*/);
+              mz_it != mz_end;
+              ++mz_it)
+        {
+          if (mz_it->getIntensity() == 0) continue; // ignore 0-intensity shoulder peaks -- could be detrimental when de-calibrated
+          double dist_mz = fabs(mz_it->getMZ() - reporter_mz);
+          if (dist_mz < reporter_mass_shift_) ++peak_count;
+          if (idx_nearest == mz_end // first peak
+              || ((dist_mz < fabs(idx_nearest->getMZ() - reporter_mz)))) // closer to best candidate
+          {
+            idx_nearest = mz_it;
+          }
+        }
+        channel_qc[map_index].second = peak_count;
+        if (idx_nearest != mz_end)
+        {
+          double mz_delta = reporter_mz - idx_nearest->getMZ();
+          // stats: we don't care what shift the user specified
+          channel_qc[map_index].first = mz_delta;
+          // pass user threshold
+          if (fabs(mz_delta) < reporter_mass_shift_)
+          {
+            //std::cout << "reporter_mz: " << reporter_mz << std::endl;
+            result[map_index] = idx_nearest->getIntensity();
+          }
+        }
+
+        ++map_index;
+      } // ! channel_iterator
+
+      return result;
+  }
+
+  void IsobaricChannelExtractor::printStats()
+  {
+    printStats(channel_mz_delta);
+  }
+
+  void IsobaricChannelExtractor::printStats(ChannelQCSet& stats) const
+  {
+    const auto number_of_channels = quant_method_->getNumberOfChannels();
+    // print stats about m/z calibration / presence of signal
+    OPENMS_LOG_INFO << "Calibration stats: Median distance of observed reporter ions m/z to expected position (up to " << qc_dist_mz << " Th):\n";
+    bool impurities_found(false);
+    for (IsobaricQuantitationMethod::IsobaricChannelList::const_iterator cl_it = quant_method_->getChannelInformation().begin();
+      cl_it != quant_method_->getChannelInformation().end();
+      ++cl_it)
+    {
+      OPENMS_LOG_INFO << "  ch " << String(cl_it->name).fillRight(' ', 4) << " (~" << String(cl_it->center).substr(0, 7).fillRight(' ', 7) << "): ";
+      if (stats.find(cl_it->name) != stats.end())
+      {
+        // sort
+        double median = Math::median(stats[cl_it->name].mz_deltas.begin(), stats[cl_it->name].mz_deltas.end(), false);
+        if (((number_of_channels == 10) || (number_of_channels == 11)) &&
+            (fabs(median) > TMT_10AND11PLEX_CHANNEL_TOLERANCE) &&
+            (int(cl_it->center) != 126 && int(cl_it->center) != 131)) // these two channels have ~1 Th spacing.. so they do not suffer from the tolerance problem
+        { // the channel was most likely empty, and we picked up the neighbouring channel's data (~0.006 Th apart). So reporting median here is misleading.
+          OPENMS_LOG_INFO << "<invalid data (>" << TMT_10AND11PLEX_CHANNEL_TOLERANCE << " Th channel tolerance)>\n";
+        }
+        else
+        {
+          OPENMS_LOG_INFO << median << " Th";
+          if (stats[cl_it->name].signal_not_unique > 0) 
+          {
+            OPENMS_LOG_INFO << " [MSn impurity (within " << reporter_mass_shift_ << " Th): " << stats[cl_it->name].signal_not_unique << " windows|spectra]";
+            impurities_found = true;
+          }
+          OPENMS_LOG_INFO << "\n";
+        }
+      }
+      else
+      {
+        OPENMS_LOG_INFO << "<no data>\n";
+      }
+    }
+    if (impurities_found) OPENMS_LOG_INFO << "\nImpurities within the allowed reporter mass shift " << reporter_mass_shift_ << " Th have been found." 
+                                   << "They can be ignored if the spectra are m/z calibrated (see above), since only the peak closest to the theoretical position is used for quantification!";
+    OPENMS_LOG_INFO << std::endl;
+  }
+
+  void IsobaricChannelExtractor::printStatsWithMissing(std::vector<ChannelQC>& stats) const
+  {
+    Size number_of_channels = quant_method_->getNumberOfChannels();
+    // print stats about m/z calibration / presence of signal
+    OPENMS_LOG_INFO << "Calibration stats (up to " << qc_dist_mz << " m/z), Impurities up to " << reporter_mass_shift_ << " m/z):\n";
+    bool impurities_found(false);
+    Size channel_nr = 0;
+    for (IsobaricQuantitationMethod::IsobaricChannelList::const_iterator cl_it = quant_method_->getChannelInformation().begin();
+      cl_it != quant_method_->getChannelInformation().end();
+      ++cl_it)
+    {
+      OPENMS_LOG_INFO << "  ch " << String(cl_it->name).fillRight(' ', 4) << " (~" << String(cl_it->center).substr(0, 7).fillRight(' ', 7) << "): ";
+      auto& cur_deltas = stats[channel_nr].mz_deltas;
+      Size old_size = cur_deltas.size();
+      // filter out NaN in mz_deltas
+      cur_deltas.erase(std::remove_if(cur_deltas.begin(), cur_deltas.end(), [](double value) {
+        return std::isnan(value);
+      }), cur_deltas.end());
+
+      Size missing = old_size - cur_deltas.size();
+
+      // sort
+      double median = Math::median(cur_deltas.begin(), cur_deltas.end(), false);
+      // transform to absolute value
+      std::transform(cur_deltas.begin(), cur_deltas.end(), cur_deltas.begin(), [](const auto& v){return std::abs(v);});
+      double abs_median = Math::median(cur_deltas.begin(), cur_deltas.end(), false);
+
+      if (((number_of_channels == 10) || (number_of_channels == 11)) &&
+          (abs_median > TMT_10AND11PLEX_CHANNEL_TOLERANCE) &&
+          (int(cl_it->center) != 126 && int(cl_it->center) != 131)) // these two channels have ~1 Th spacing.. so they do not suffer from the tolerance problem
+      { // the channel was most likely empty, and we picked up the neighbouring channel's data (~0.006 Th apart). So reporting median here is misleading.
+        OPENMS_LOG_INFO << "<invalid data (>" << TMT_10AND11PLEX_CHANNEL_TOLERANCE << " Th channel tolerance)>\n";
+      }
+      else
+      {
+        OPENMS_LOG_INFO << "Median error: " << median << " m/z |";
+        OPENMS_LOG_INFO << " MAD: " << abs_median << " m/z |";
+        OPENMS_LOG_INFO << " #impurity peaks: " << stats[channel_nr].signal_not_unique << "|";
+        if (stats[channel_nr].signal_not_unique > 0)
+        {
+          impurities_found = true;
+        }
+        OPENMS_LOG_INFO << " #missing: " << missing << "\n";
+      }
+      ++channel_nr;
+    }
+    if (impurities_found) OPENMS_LOG_INFO << "\nImpurities within the allowed reporter mass shift " << reporter_mass_shift_ << " m/z have been found." 
+                                   << "They can be ignored if the spectra are m/z calibrated (see above), since only the peak closest to the theoretical position is used for quantification!";
+    OPENMS_LOG_INFO << std::endl;
+  }
+
+  /**
+   * @brief Clears channel statistics, e.g., after a new experiment has been loaded.
+   */
+  void IsobaricChannelExtractor::clearStats()
+  {
+    channel_mz_delta.clear();
+  }
+
+  /**
+   * @brief Clears channel statistics, e.g., after a new experiment has been loaded.
+   */
+  ChannelQCSet& IsobaricChannelExtractor::getStats()
+  {
+    return channel_mz_delta;
   }
 
 } // namespace

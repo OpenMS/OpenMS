@@ -624,11 +624,19 @@ namespace OpenMS::Internal
         }
         if (sqlite3_column_type(stmt, 5) != SQLITE_NULL) 
         {
-          precursor.setIsolationWindowLowerOffset(sqlite3_column_double(stmt, 5));
+          double offset_value = sqlite3_column_double(stmt, 5);
+          if (offset_value >= 0) // Skip negative values (indicate null/invalid)
+          {
+            precursor.setIsolationWindowLowerOffset(offset_value);
+          }
         }
         if (sqlite3_column_type(stmt, 6) != SQLITE_NULL)
         {
-          precursor.setIsolationWindowUpperOffset(sqlite3_column_double(stmt, 6));
+          double offset_value = sqlite3_column_double(stmt, 6);
+          if (offset_value >= 0) // Skip negative values (indicate null/invalid)
+          {
+            precursor.setIsolationWindowUpperOffset(offset_value);
+          }
         }
         if (Sql::extractValue(&tmp, stmt, 7)) precursor.setMetaValue("peptide_sequence", tmp);
         // if (sqlite3_column_type(stmt, 8) != SQLITE_NULL) product.setCharge(sqlite3_column_int(stmt, 8));
@@ -638,11 +646,19 @@ namespace OpenMS::Internal
         }
         if (sqlite3_column_type(stmt, 10) != SQLITE_NULL)
         {
-          product.setIsolationWindowLowerOffset(sqlite3_column_double(stmt, 10));
+          double offset_value = sqlite3_column_double(stmt, 10);
+          if (offset_value >= 0) // Skip negative values (indicate null/invalid)
+          {
+            product.setIsolationWindowLowerOffset(offset_value);
+          }
         }
         if (sqlite3_column_type(stmt, 11) != SQLITE_NULL)
         {
-          product.setIsolationWindowUpperOffset(sqlite3_column_double(stmt, 11));
+          double offset_value = sqlite3_column_double(stmt, 11);
+          if (offset_value >= 0) // Skip negative values (indicate null/invalid)
+          {
+            product.setIsolationWindowUpperOffset(offset_value);
+          }
         }
         if (sqlite3_column_type(stmt, 12) != SQLITE_NULL && sqlite3_column_int(stmt, 12) != -1
             && sqlite3_column_int(stmt, 12) < static_cast<int>(OpenMS::Precursor::ActivationMethod::SIZE_OF_ACTIVATIONMETHOD))
@@ -736,11 +752,19 @@ namespace OpenMS::Internal
         }
         if (sqlite3_column_type(stmt, 7) != SQLITE_NULL)
         {
-          precursor.setIsolationWindowLowerOffset(sqlite3_column_double(stmt, 7));
+          double offset_value = sqlite3_column_double(stmt, 7);
+          if (offset_value >= 0) // Skip negative values (indicate null/invalid)
+          {
+            precursor.setIsolationWindowLowerOffset(offset_value);
+          }
         }
         if (sqlite3_column_type(stmt, 8) != SQLITE_NULL)
         {
-          precursor.setIsolationWindowUpperOffset(sqlite3_column_double(stmt, 8));
+          double offset_value = sqlite3_column_double(stmt, 8);
+          if (offset_value >= 0) // Skip negative values (indicate null/invalid)
+          {
+            precursor.setIsolationWindowUpperOffset(offset_value);
+          }
         }
         if (Sql::extractValue(&tmp, stmt, 9))
         {
@@ -753,11 +777,19 @@ namespace OpenMS::Internal
         }
         if (sqlite3_column_type(stmt, 12) != SQLITE_NULL)
         {
-          product.setIsolationWindowLowerOffset(sqlite3_column_double(stmt, 12));
+          double offset_value = sqlite3_column_double(stmt, 12);
+          if (offset_value >= 0) // Skip negative values (indicate null/invalid)
+          {
+            product.setIsolationWindowLowerOffset(offset_value);
+          }
         }
         if (sqlite3_column_type(stmt, 13) != SQLITE_NULL)
         {
-          product.setIsolationWindowUpperOffset(sqlite3_column_double(stmt, 13));
+          double offset_value = sqlite3_column_double(stmt, 13);
+          if (offset_value >= 0) // Skip negative values (indicate null/invalid)
+          {
+            product.setIsolationWindowUpperOffset(offset_value);
+          }
         }
         if (sqlite3_column_type(stmt, 14) != SQLITE_NULL) 
         {

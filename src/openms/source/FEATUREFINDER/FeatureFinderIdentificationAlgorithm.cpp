@@ -1384,7 +1384,7 @@ namespace OpenMS
     // if we don't quantify decoys we don't add them to the peptide list
     if (!quantify_decoys_)
     {
-      if (hit.metaValueExists("target_decoy") && hit.getMetaValue("target_decoy") == "decoy")
+      if (hit.isDecoy())
       {
         unassignedIDs_.push_back(peptide);
         return;

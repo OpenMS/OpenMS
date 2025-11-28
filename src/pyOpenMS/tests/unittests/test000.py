@@ -994,6 +994,12 @@ def testDataProcessing(dp=pyopenms.DataProcessing()):
 
     assert dp.getSoftware().getName() == "pyopenms"
 
+    # Test getAllNamesOf method
+    action_names = pyopenms.DataProcessing.getAllNamesOfProcessingAction()
+    assert len(action_names) == pyopenms.DataProcessing.ProcessingAction.SIZE_OF_PROCESSINGACTION
+    assert action_names[pyopenms.DataProcessing.ProcessingAction.PEAK_PICKING].decode() == "Peak picking"
+    assert action_names[pyopenms.DataProcessing.ProcessingAction.SMOOTHING].decode() == "Smoothing"
+
 
 @report
 def testDataType():
@@ -2231,6 +2237,11 @@ def testInstrumentSettings():
     assert ins == ins
     assert not ins != ins
 
+    # Test getAllNamesOf method
+    scan_mode_names = pyopenms.InstrumentSettings.getAllNamesOfScanMode()
+    assert len(scan_mode_names) == pyopenms.InstrumentSettings.ScanMode.SIZE_OF_SCANMODE
+    assert scan_mode_names[pyopenms.InstrumentSettings.ScanMode.MS1SPECTRUM].decode() == "MS1Spectrum"
+
 @report
 def testContactPerson():
     """
@@ -2411,6 +2422,11 @@ def testInstrument():
     ins.setSoftware(s)
     ins.getSoftware()
 
+    # Test getAllNamesOf method
+    ion_optics_names = pyopenms.Instrument.getAllNamesOfIonOpticsType()
+    assert len(ion_optics_names) == pyopenms.Instrument.IonOpticsType.SIZE_OF_IONOPTICSTYPE
+    assert ion_optics_names[pyopenms.Instrument.IonOpticsType.REFLECTRON].decode() == "reflectron"
+
 @report
 def testIonDetector():
     """
@@ -2424,6 +2440,8 @@ def testIonDetector():
      IonDetector.getADCSamplingFrequency
      IonDetector.setOrder
      IonDetector.getOrder
+     IonDetector.getAllNamesOfType
+     IonDetector.getAllNamesOfAcquisitionMode
      """
     ins = pyopenms.IonDetector()
 
@@ -2440,6 +2458,15 @@ def testIonDetector():
     ins.setOrder(8)
     ins.getOrder()
 
+    # Test getAllNamesOf methods
+    type_names = pyopenms.IonDetector.getAllNamesOfType()
+    assert len(type_names) == pyopenms.IonDetector.Type_IonDetector.SIZE_OF_TYPE
+    assert type_names[pyopenms.IonDetector.Type_IonDetector.ELECTRONMULTIPLIER].decode() == "Electron multiplier"
+
+    acq_mode_names = pyopenms.IonDetector.getAllNamesOfAcquisitionMode()
+    assert len(acq_mode_names) == pyopenms.IonDetector.AcquisitionMode.SIZE_OF_ACQUISITIONMODE
+    assert acq_mode_names[pyopenms.IonDetector.AcquisitionMode.PULSECOUNTING].decode() == "Pulse counting"
+
 @report
 def testIonSource():
     """
@@ -2453,6 +2480,9 @@ def testIonSource():
      IonSource.getIonizationMethod
      IonSource.setOrder
      IonSource.getOrder
+     IonSource.getAllNamesOfInletType
+     IonSource.getAllNamesOfIonizationMethod
+     IonSource.getAllNamesOfPolarity
      """
     ins = pyopenms.IonSource()
 
@@ -2470,6 +2500,25 @@ def testIonSource():
 
     ins.setOrder(5)
     ins.getOrder()
+
+    # Test getAllNamesOf methods
+    inlet_names = pyopenms.IonSource.getAllNamesOfInletType()
+    assert len(inlet_names) == pyopenms.IonSource.InletType.SIZE_OF_INLETTYPE
+    assert inlet_names[pyopenms.IonSource.InletType.INLETNULL].decode() == "Unknown"
+    assert inlet_names[pyopenms.IonSource.InletType.DIRECT].decode() == "Direct"
+    assert inlet_names[pyopenms.IonSource.InletType.NANOSPRAY].decode() == "Nanospray inlet"
+
+    ionization_names = pyopenms.IonSource.getAllNamesOfIonizationMethod()
+    assert len(ionization_names) == pyopenms.IonSource.IonizationMethod.SIZE_OF_IONIZATIONMETHOD
+    assert ionization_names[pyopenms.IonSource.IonizationMethod.IONMETHODNULL].decode() == "Unknown"
+    assert ionization_names[pyopenms.IonSource.IonizationMethod.ESI].decode() == "Electrospray ionisation"
+    assert ionization_names[pyopenms.IonSource.IonizationMethod.MALDI].decode() == "Matrix-assisted laser desorption ionization"
+
+    polarity_names = pyopenms.IonSource.getAllNamesOfPolarity()
+    assert len(polarity_names) == pyopenms.IonSource.Polarity.SIZE_OF_POLARITY
+    assert polarity_names[pyopenms.IonSource.Polarity.POLNULL].decode() == "unknown"
+    assert polarity_names[pyopenms.IonSource.Polarity.POSITIVE].decode() == "positive"
+    assert polarity_names[pyopenms.IonSource.Polarity.NEGATIVE].decode() == "negative"
 
 @report
 def testMassAnalyzer():
@@ -2506,6 +2555,12 @@ def testMassAnalyzer():
      MassAnalyzer.getMagneticFieldStrength
      MassAnalyzer.setOrder
      MassAnalyzer.getOrder
+     MassAnalyzer.getAllNamesOfAnalyzerType
+     MassAnalyzer.getAllNamesOfResolutionMethod
+     MassAnalyzer.getAllNamesOfResolutionType
+     MassAnalyzer.getAllNamesOfScanDirection
+     MassAnalyzer.getAllNamesOfScanLaw
+     MassAnalyzer.getAllNamesOfReflectronState
      """
     ins = pyopenms.MassAnalyzer()
 
@@ -2551,6 +2606,32 @@ def testMassAnalyzer():
     ins.getMagneticFieldStrength()
     ins.setOrder(5)
     ins.getOrder()
+
+    # Test getAllNamesOf methods
+    analyzer_names = pyopenms.MassAnalyzer.getAllNamesOfAnalyzerType()
+    assert len(analyzer_names) == pyopenms.MassAnalyzer.AnalyzerType.SIZE_OF_ANALYZERTYPE
+    assert analyzer_names[pyopenms.MassAnalyzer.AnalyzerType.QUADRUPOLE].decode() == "Quadrupole"
+    assert analyzer_names[pyopenms.MassAnalyzer.AnalyzerType.ORBITRAP].decode() == "Orbitrap"
+
+    res_method_names = pyopenms.MassAnalyzer.getAllNamesOfResolutionMethod()
+    assert len(res_method_names) == pyopenms.MassAnalyzer.ResolutionMethod.SIZE_OF_RESOLUTIONMETHOD
+    assert res_method_names[pyopenms.MassAnalyzer.ResolutionMethod.FWHM].decode() == "Full width at half max"
+
+    res_type_names = pyopenms.MassAnalyzer.getAllNamesOfResolutionType()
+    assert len(res_type_names) == pyopenms.MassAnalyzer.ResolutionType.SIZE_OF_RESOLUTIONTYPE
+    assert res_type_names[pyopenms.MassAnalyzer.ResolutionType.CONSTANT].decode() == "Constant"
+
+    scan_dir_names = pyopenms.MassAnalyzer.getAllNamesOfScanDirection()
+    assert len(scan_dir_names) == pyopenms.MassAnalyzer.ScanDirection.SIZE_OF_SCANDIRECTION
+    assert scan_dir_names[pyopenms.MassAnalyzer.ScanDirection.UP].decode() == "Up"
+
+    scan_law_names = pyopenms.MassAnalyzer.getAllNamesOfScanLaw()
+    assert len(scan_law_names) == pyopenms.MassAnalyzer.ScanLaw.SIZE_OF_SCANLAW
+    assert scan_law_names[pyopenms.MassAnalyzer.ScanLaw.LINEAR].decode() == "Linar"  # Note: typo in source
+
+    reflectron_names = pyopenms.MassAnalyzer.getAllNamesOfReflectronState()
+    assert len(reflectron_names) == pyopenms.MassAnalyzer.ReflectronState.SIZE_OF_REFLECTRONSTATE
+    assert reflectron_names[pyopenms.MassAnalyzer.ReflectronState.ON].decode() == "On"
 
 @report
 def testSample():
@@ -2606,6 +2687,12 @@ def testSample():
     except Exception:
         has_exception = True
     assert has_exception
+
+    # Test getAllNamesOf method
+    state_names = pyopenms.Sample.getAllNamesOfSampleState()
+    assert len(state_names) == pyopenms.Sample.SampleState.SIZE_OF_SAMPLESTATE
+    assert state_names[pyopenms.Sample.SampleState.LIQUID].decode() == "liquid"
+    assert state_names[pyopenms.Sample.SampleState.SOLID].decode() == "solid"
 
 @report
 def testLogType():
@@ -4097,6 +4184,12 @@ def testMatrixDouble():
     assert m.getValue(1, 2) == 8.0
     assert m.getValue(3, 6) == 9.0
 
+    # Create a test matrix with known values
+    test_matrix = pyopenms.MatrixDouble(3, 4, 0.0)
+    test_matrix.setValue(2, 3, 120.7)
+
+    # Test getValue retrieves correct values
+    assert test_matrix.getValue(2, 3) == 120.7
 
 @report
 def testMapAlignmentIdentification():
@@ -4944,6 +5037,12 @@ def testProteinIdentification():
     assert isinstance(pyopenms.ProteinIdentification.PeakMassType.MONOISOTOPIC, int)
     assert isinstance(pyopenms.ProteinIdentification.PeakMassType.AVERAGE, int)
 
+    # Test getAllNamesOf method
+    peak_mass_names = pyopenms.ProteinIdentification.getAllNamesOfPeakMassType()
+    assert len(peak_mass_names) == pyopenms.ProteinIdentification.PeakMassType.SIZE_OF_PEAKMASSTYPE
+    assert peak_mass_names[pyopenms.ProteinIdentification.PeakMassType.MONOISOTOPIC].decode() == "Monoisotopic"
+    assert peak_mass_names[pyopenms.ProteinIdentification.PeakMassType.AVERAGE].decode() == "Average"
+
 @report
 def testRichPeak():
     """
@@ -5059,6 +5158,12 @@ def testSourceFile():
                                     pyopenms.ChecksumType.SHA1,
                                     pyopenms.ChecksumType.MD5)
 
+    # Test getAllNamesOf method
+    checksum_names = pyopenms.SourceFile.getAllNamesOfChecksumType()
+    assert len(checksum_names) == pyopenms.ChecksumType.SIZE_OF_CHECKSUMTYPE
+    assert checksum_names[pyopenms.ChecksumType.SHA1].decode() == "SHA-1"
+    assert checksum_names[pyopenms.ChecksumType.MD5].decode() == "MD5"
+
 @report
 def testSpectrumSetting(s=pyopenms.SpectrumSettings()):
     """
@@ -5107,6 +5212,12 @@ def testSpectrumSetting(s=pyopenms.SpectrumSettings()):
     s.setType(s.getType())
     if isinstance(s, pyopenms.SpectrumSettings):
         s.unify(s)
+
+    # Test getAllNamesOf method
+    spectrum_type_names = pyopenms.SpectrumSettings.getAllNamesOfSpectrumType()
+    assert len(spectrum_type_names) == pyopenms.SpectrumSettings.SpectrumType.SIZE_OF_SPECTRUMTYPE
+    assert spectrum_type_names[pyopenms.SpectrumSettings.SpectrumType.CENTROID].decode() == "Centroid"
+    assert spectrum_type_names[pyopenms.SpectrumSettings.SpectrumType.PROFILE].decode() == "Profile"
 
 
 @report

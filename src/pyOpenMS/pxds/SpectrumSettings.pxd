@@ -44,6 +44,9 @@ cdef extern from "<OpenMS/METADATA/SpectrumSettings.h>" namespace "OpenMS":
         libcpp_vector[ shared_ptr[DataProcessing] ] getDataProcessing() except + nogil 
         void setDataProcessing(libcpp_vector[ shared_ptr[DataProcessing] ]) except + nogil 
 
+        @staticmethod
+        libcpp_vector[String] getAllNamesOfSpectrumType() except + nogil  # wrap-doc:Returns all spectrum type names known to OpenMS
+
 cdef extern from "<OpenMS/METADATA/SpectrumSettings.h>" namespace "OpenMS::SpectrumSettings":
 
     cdef enum SpectrumType:

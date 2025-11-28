@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -282,7 +282,7 @@ namespace OpenMS
       auto& hits = pep.getHits();
       if (hits.empty()) continue;
       const PeptideHit& ph = hits[0]; // only consider top hit
-      if (ph.getMetaValue("target_decoy") == "decoy" || ph.getMetaValue("NuXL:isXL") == "false") continue;
+      if (ph.isDecoy() || ph.getMetaValue("NuXL:isXL") == "false") continue;
       const int best_localization = ph.getMetaValue("NuXL:best_localization_position");
 
       if (best_localization >= 0)
@@ -664,7 +664,7 @@ Output format:
     std::vector<ProteinHit>& proteins = prot_id.getHits();
     for (ProteinHit& protein : proteins)
     {
-      if (protein.getMetaValue("target_decoy").toString().hasPrefix("target"))
+      if (!protein.isDecoy())
       {
         acc2protein_targets[protein.getAccession()] = &protein;
       }
