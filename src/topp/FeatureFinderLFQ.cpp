@@ -50,6 +50,7 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/PROCESSING/FEATURE/FeatureOverlapFilter.h>
 #include <OpenMS/SYSTEM/StopWatch.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <vector>
@@ -95,6 +96,13 @@ protected:
     setValidFormats_("out_hills", ListUtils::create<String>("tsv"));
 
     registerFlag_("write_hills", "Force writing of hills file even if no output path was provided", false);
+
+    addEmptyLine_();
+    registerStringOption_("faims_merge_features", "<true/false>", "true",
+      "For FAIMS data with multiple compensation voltages: Merge features representing the same analyte "
+      "detected at different CV values into a single feature. Only features with DIFFERENT FAIMS CV values "
+      "are merged (same CV = different analytes). Has no effect on non-FAIMS data.", false);
+    setValidStrings_("faims_merge_features", {"true", "false"});
 
     registerFullParam_(defaults);
   }
@@ -151,6 +159,28 @@ protected:
     addDataProcessing_(feature_map, getProcessingInfo_(DataProcessing::QUANTITATION));
     OPENMS_LOG_INFO << "Preprocessing and feature finding took " << stopwatch.toString() << endl;
 
+    //-------------------------------------------------------------
+    // Optional FAIMS feature merging
+    //-------------------------------------------------------------
+    // Check if FAIMS data by looking for features with FAIMS_CV meta value
+    bool has_faims = false;
+    for (const auto& feat : feature_map)
+    {
+      if (feat.metaValueExists("FAIMS_CV"))
+      {
+        has_faims = true;
+        break;
+      }
+    }
+
+    if (has_faims && getStringOption_("faims_merge_features") == "true")
+    {
+      Size before_merge = feature_map.size();
+      FeatureOverlapFilter::mergeFAIMSFeatures(feature_map, 5.0, 0.05);
+      OPENMS_LOG_INFO << "FAIMS feature merge: " << before_merge << " -> " << feature_map.size()
+                      << " features (merged " << (before_merge - feature_map.size()) << ")" << endl;
+    }
+
     stopwatch.reset();
     progresslogger.startProgress(0, 1, "Writing featureXML output");
     stopwatch.start();
@@ -159,7 +189,7 @@ protected:
     progresslogger.setProgress(1);
     progresslogger.endProgress();
     stopwatch.stop();
-    OPENMS_LOG_INFO << "Wrote " << peptide_features.size() << " features to: " << out << endl;
+    OPENMS_LOG_INFO << "Wrote " << feature_map.size() << " features to: " << out << endl;
     OPENMS_LOG_INFO << "Writing featureXML took " << stopwatch.toString() << endl;
 
     if (write_hills_flag || !out_hills.empty())
