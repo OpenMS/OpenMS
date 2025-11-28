@@ -246,7 +246,7 @@ private:
     {
       for (std::vector<Precursor>::const_iterator it = s.getPrecursors().begin(); it != s.getPrecursors().end(); ++it)
       {
-        if (!it->getActivationMethods().empty()) return Precursor::NamesOfActivationMethod[static_cast<size_t>(*(it->getActivationMethods().begin())];
+        if (!it->getActivationMethods().empty()) return Precursor::NamesOfActivationMethod[static_cast<size_t>(*(it->getActivationMethods().begin()))];
       }
       return "";
     }
