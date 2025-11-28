@@ -222,7 +222,7 @@ public:
         return (z * exp(-1 * z)) / params.sigma;
       }
 
-      ///computes the gumbel complementary cumulative distribution probability (probability of observing ascore greater than @p x given parameters @p params )
+      ///computes the gumbel complementary cumulative distribution probability (probability of observing a score greater than @p x given parameters @p params )
       static double getGumbelCCDF_(double x, const GaussFitter::GaussFitResult & params)
       {
         double z = (x - params.x0) / params.sigma;
