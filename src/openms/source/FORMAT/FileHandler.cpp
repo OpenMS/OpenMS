@@ -35,6 +35,10 @@
 #include <OpenMS/METADATA/ID/IdentificationData.h>
 #include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 
+#ifdef WITH_PARQUET
+#include <OpenMS/FORMAT/MzPeakFile.h>
+#endif
+
 #include <OpenMS/FORMAT/MsInspectFile.h>
 #include <OpenMS/FORMAT/SpecArrayFile.h>
 #include <OpenMS/FORMAT/KroenikFile.h>
@@ -750,6 +754,17 @@ namespace OpenMS
       }
       break;
 
+#ifdef WITH_PARQUET
+      case FileTypes::MZPEAK: 
+      {
+        MzPeakFile f;
+        f.getOptions() = options_;
+        f.setLogType(log);
+        f.load(filename, exp);
+      }
+      break;
+#endif
+
       case FileTypes::XMASS: 
       {
         exp.reset();
@@ -881,6 +896,17 @@ namespace OpenMS
         f.store(filename, exp);
       }
       break;
+
+#ifdef WITH_PARQUET
+      case FileTypes::MZPEAK: 
+      {
+        MzPeakFile f;
+        f.getOptions() = options_;
+        f.setLogType(log);
+        f.store(filename, exp);
+      }
+      break;
+#endif
 
       case FileTypes::MZDATA: 
       {

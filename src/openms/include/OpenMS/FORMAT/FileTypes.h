@@ -90,6 +90,7 @@ namespace OpenMS
       BZ2,                ///< any BZ2 compressed file
       GZ,                 ///< any Gzipped file
       PARQUET,            ///< Apache Parquet file format (.parquet, .pqt)
+      MZPEAK,             ///< mzPeak file format (.mzpeak) - Parquet files in ZIP archive
       SIZE_OF_TYPE        ///< No file type. Simply stores the number of types
     };
 

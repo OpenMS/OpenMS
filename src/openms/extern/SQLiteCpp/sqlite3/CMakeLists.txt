@@ -60,6 +60,9 @@ if (UNIX AND CMAKE_COMPILER_IS_GNUCXX)
     if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 8.0)
         target_compile_options(sqlite3 PRIVATE "-Wno-cast-function-type")
     endif()
+    if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 11.0)
+        target_compile_options(sqlite3 PRIVATE "-Wno-stringop-overread")
+    endif()
 endif()
 
 # Allow the library to be installed via "make install" and found with "find_package"

@@ -115,6 +115,10 @@ if (WITH_HDF5)
   list(APPEND sources_list_h HDF5Connector.h)  
 endif()
 
+if (WITH_PARQUET)
+  list(APPEND sources_list_h QuantmsIO.h MzPeakFile.h)  
+endif()
+
 ### add path to the filenames
 set(sources_h)
 foreach(i ${sources_list_h})

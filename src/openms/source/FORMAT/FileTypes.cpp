@@ -102,6 +102,7 @@ namespace OpenMS
     TypeNameBinding(FileTypes::BZ2, "bz2", "bzip2 compressed file", {PROP::READABLE}),
     TypeNameBinding(FileTypes::GZ, "gz", "gzip compressed file", {PROP::READABLE}),
     TypeNameBinding(FileTypes::PARQUET, "parquet", "Apache Parquet file", {PROP::READABLE, PROP::WRITEABLE}),
+    TypeNameBinding(FileTypes::MZPEAK, "mzpeak", "mzPeak raw data file", {PROP::PROVIDES_EXPERIMENT, PROP::READABLE, PROP::WRITEABLE}),
     TypeNameBinding(FileTypes::XML, "xml", "any XML file", {PROP::READABLE}),  // make sure this comes last, since the name is a suffix of other formats and should only be matched last
   };
 
