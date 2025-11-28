@@ -1558,9 +1558,9 @@ namespace OpenMS
       for (auto& activation_method : precursor.getActivationMethods())
       {
         deconvolved_spectrum_.setActivationMethod(activation_method);
-        if (deconvolved_spectrum_.getActivationMethod() == Precursor::HCID)
+        if (deconvolved_spectrum_.getActivationMethod() == Precursor::ActivationMethod::HCID)
         {
-          deconvolved_spectrum_.setActivationMethod(Precursor::HCD);
+          deconvolved_spectrum_.setActivationMethod(Precursor::ActivationMethod::HCD);
         }
         break;
       }
