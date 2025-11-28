@@ -22,4 +22,13 @@ endif()
 
 if (OPENMP_FOUND)
   set(CMAKE_INSTALL_OPENMP_LIBRARIES TRUE) # will install the MSVC OpenMP runtime libraries
+  
+  # MSVC requires /openmp:experimental to support #pragma omp simd
+  if (MSVC)
+    set(OpenMP_CXX_FLAGS "/openmp:experimental")
+    # Update the imported target to use the experimental flag
+    if (TARGET OpenMP::OpenMP_CXX)
+      set_property(TARGET OpenMP::OpenMP_CXX PROPERTY INTERFACE_COMPILE_OPTIONS "/openmp:experimental")
+    endif()
+  endif()
 endif()
