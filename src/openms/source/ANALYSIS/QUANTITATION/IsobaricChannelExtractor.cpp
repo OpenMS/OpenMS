@@ -115,7 +115,7 @@ namespace OpenMS
     defaults_.setValue("select_activation", "auto", "Operate only on MSn scans where any of its precursors features a certain activation method. Setting to \"auto\" uses HCD and HCID spectra. Set to empty string if you want to disable filtering.");
     std::vector<std::string> activation_list;
     activation_list.emplace_back("auto");
-    activation_list.insert(activation_list.end(), Precursor::NamesOfActivationMethod, Precursor::NamesOfActivationMethod + Precursor::ActivationMethod::SIZE_OF_ACTIVATIONMETHOD - 1);
+    activation_list.insert(activation_list.end(), Precursor::NamesOfActivationMethod, Precursor::NamesOfActivationMethod + static_cast<size_t>(Precursor::ActivationMethod::SIZE_OF_ACTIVATIONMETHOD) - 1);
     activation_list.emplace_back("any"); // allow disabling this
 
     defaults_.setValidStrings("select_activation", activation_list);
