@@ -130,7 +130,7 @@ msconvert input.d --mzML --combineIonMobilitySpectra -o output_dir
 @endcode
 The resulting mzML file contains one spectrum per frame with ion mobility values stored per peak.
 Ion mobility values from peptide identifications (if present in the idXML) are used for IM-aware feature detection.
-The extraction window is controlled by @p extract:im_window.
+The extraction window is controlled by @p extract:IM_window.
 
 @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
