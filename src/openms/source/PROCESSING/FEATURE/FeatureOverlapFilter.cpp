@@ -381,4 +381,138 @@ namespace OpenMS
            tolerances);
   }
 
+  void FeatureOverlapFilter::mergeFAIMSFeatures(FeatureMap& feature_map,
+                                                double max_rt_diff,
+                                                double max_mz_diff)
+  {
+    // Check if any features have FAIMS_CV - if not, nothing to do
+    bool has_faims_features = false;
+    for (const auto& f : feature_map)
+    {
+      if (f.metaValueExists(Constants::UserParam::FAIMS_CV))
+      {
+        has_faims_features = true;
+        break;
+      }
+    }
+
+    if (!has_faims_features)
+    {
+      return; // No FAIMS features, nothing to merge
+    }
+
+    // Separate features into FAIMS and non-FAIMS groups
+    FeatureMap faims_features;
+    FeatureMap non_faims_features;
+
+    for (auto& f : feature_map)
+    {
+      if (f.metaValueExists(Constants::UserParam::FAIMS_CV))
+      {
+        faims_features.push_back(std::move(f));
+      }
+      else
+      {
+        non_faims_features.push_back(std::move(f));
+      }
+    }
+
+    // Only merge the FAIMS features if we have more than one
+    if (faims_features.size() > 1)
+    {
+      CentroidTolerances tolerances;
+      tolerances.rt_tolerance = max_rt_diff;
+      tolerances.mz_tolerance = max_mz_diff;
+      tolerances.require_same_charge = true;
+      tolerances.require_same_im = false; // We handle IM check in callback
+
+      // Custom callback that only merges features with DIFFERENT FAIMS CV values
+      auto merge_callback = [](Feature& best_in_cluster, Feature& f) -> bool
+      {
+        // Only merge if FAIMS CVs are DIFFERENT
+        // (same CV features should not be merged - they are different analytes)
+        double best_cv = best_in_cluster.getMetaValue(Constants::UserParam::FAIMS_CV);
+        double f_cv = f.getMetaValue(Constants::UserParam::FAIMS_CV);
+
+        if (best_cv == f_cv)
+        {
+          return false; // Don't merge features with same CV
+        }
+
+        // Merge features with different CVs - sum intensities
+        double best_intensity = best_in_cluster.getIntensity();
+        double f_intensity = f.getIntensity();
+
+        // Collect centroid RT positions
+        std::vector<double> merged_rts;
+        if (best_in_cluster.metaValueExists("merged_centroid_rts"))
+        {
+          merged_rts = best_in_cluster.getMetaValue("merged_centroid_rts");
+        }
+        else
+        {
+          merged_rts.push_back(best_in_cluster.getRT());
+        }
+        merged_rts.push_back(f.getRT());
+        best_in_cluster.setMetaValue("merged_centroid_rts", merged_rts);
+
+        // Collect centroid m/z positions
+        std::vector<double> merged_mzs;
+        if (best_in_cluster.metaValueExists("merged_centroid_mzs"))
+        {
+          merged_mzs = best_in_cluster.getMetaValue("merged_centroid_mzs");
+        }
+        else
+        {
+          merged_mzs.push_back(best_in_cluster.getMZ());
+        }
+        merged_mzs.push_back(f.getMZ());
+        best_in_cluster.setMetaValue("merged_centroid_mzs", merged_mzs);
+
+        // Collect FAIMS CV values
+        std::vector<double> merged_ims;
+        if (best_in_cluster.metaValueExists("merged_centroid_IMs"))
+        {
+          merged_ims = best_in_cluster.getMetaValue("merged_centroid_IMs");
+        }
+        else
+        {
+          merged_ims.push_back(best_cv);
+          best_in_cluster.removeMetaValue(Constants::UserParam::FAIMS_CV);
+        }
+        merged_ims.push_back(f_cv);
+        best_in_cluster.setMetaValue("merged_centroid_IMs", merged_ims);
+        best_in_cluster.setMetaValue("FAIMS_merge_count", static_cast<int>(merged_ims.size()));
+
+        // Sum intensities
+        best_in_cluster.setIntensity(best_intensity + f_intensity);
+
+        return true; // Remove the merged feature
+      };
+
+      // Use intensity-based comparator
+      auto intensity_comparator = [](const Feature& left, const Feature& right)
+      {
+        return left.getIntensity() > right.getIntensity();
+      };
+
+      filter(faims_features,
+             intensity_comparator,
+             merge_callback,
+             FeatureOverlapMode::CENTROID_BASED,
+             tolerances);
+    }
+
+    // Combine back: merged FAIMS features + untouched non-FAIMS features
+    feature_map.clear();
+    for (auto& f : faims_features)
+    {
+      feature_map.push_back(std::move(f));
+    }
+    for (auto& f : non_faims_features)
+    {
+      feature_map.push_back(std::move(f));
+    }
+  }
+
 }

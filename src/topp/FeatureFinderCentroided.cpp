@@ -14,6 +14,7 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/IONMOBILITY/IMDataConverter.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/PROCESSING/FEATURE/FeatureOverlapFilter.h>
 
 #include <cmath>
 #include <limits>
@@ -140,6 +141,13 @@ protected:
     setValidFormats_("out", ListUtils::create<String>("featureXML"));
     registerInputFile_("seeds", "<file>", "", "User specified seed list", false);
     setValidFormats_("seeds", ListUtils::create<String>("featureXML"));
+
+    addEmptyLine_();
+    registerStringOption_("faims_merge_features", "<true/false>", "true",
+      "For FAIMS data with multiple compensation voltages: Merge features representing the same analyte "
+      "detected at different CV values into a single feature. Only features with DIFFERENT FAIMS CV values "
+      "are merged (same CV = different analytes). Has no effect on non-FAIMS data.", false);
+    setValidStrings_("faims_merge_features", {"true", "false"});
 
     addEmptyLine_();
 
@@ -274,6 +282,15 @@ protected:
     if (has_faims)
     {
       OPENMS_LOG_INFO << "Combined " << features.size() << " features from all FAIMS CV groups." << endl;
+
+      // Optionally merge features representing the same analyte at different CV values
+      if (getStringOption_("faims_merge_features") == "true")
+      {
+        Size before_merge = features.size();
+        FeatureOverlapFilter::mergeFAIMSFeatures(features, 5.0, 0.05);
+        OPENMS_LOG_INFO << "FAIMS feature merge: " << before_merge << " -> " << features.size()
+                        << " features (merged " << (before_merge - features.size()) << ")" << endl;
+      }
     }
 
     // Set primary MS run path and ensure unique IDs

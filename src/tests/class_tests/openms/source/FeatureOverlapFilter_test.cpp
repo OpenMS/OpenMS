@@ -426,4 +426,104 @@ START_SECTION(mergeOverlappingFeatures - multiple features merging)
 }
 END_SECTION
 
+START_SECTION(mergeFAIMSFeatures - only merges features with different FAIMS_CV)
+{
+  FeatureMap fmap;
+
+  // Two FAIMS features with DIFFERENT CVs - should merge
+  Feature f1 = createTestFeature(100.0, 500.0, 1000.0, 2);
+  f1.setMetaValue(Constants::UserParam::FAIMS_CV, -45.0);
+  Feature f2 = createTestFeature(101.0, 500.01, 500.0, 2);
+  f2.setMetaValue(Constants::UserParam::FAIMS_CV, -60.0);  // Different CV
+
+  // Two non-FAIMS features at same location - should NOT merge
+  Feature f3 = createTestFeature(100.5, 500.005, 800.0, 2);
+  Feature f4 = createTestFeature(101.5, 500.015, 400.0, 2);
+
+  fmap.push_back(f1);
+  fmap.push_back(f2);
+  fmap.push_back(f3);
+  fmap.push_back(f4);
+
+  for (auto& f : fmap) f.ensureUniqueId();
+
+  FeatureOverlapFilter::mergeFAIMSFeatures(fmap, 5.0, 0.05);
+
+  // Should have 3 features: 1 merged FAIMS + 2 separate non-FAIMS
+  TEST_EQUAL(fmap.size(), 3)
+
+  // Check that FAIMS features were merged
+  int faims_count = 0;
+  int non_faims_count = 0;
+  for (const auto& f : fmap)
+  {
+    if (f.metaValueExists("merged_centroid_IMs") || f.metaValueExists(Constants::UserParam::FAIMS_CV))
+    {
+      faims_count++;
+      if (f.metaValueExists("merged_centroid_IMs"))
+      {
+        // This is the merged feature
+        TEST_REAL_SIMILAR(f.getIntensity(), 1500.0)
+      }
+    }
+    else
+    {
+      non_faims_count++;
+    }
+  }
+  TEST_EQUAL(faims_count, 1)  // One merged FAIMS feature
+  TEST_EQUAL(non_faims_count, 2)  // Two untouched non-FAIMS features
+}
+END_SECTION
+
+START_SECTION(mergeFAIMSFeatures - does NOT merge features with same FAIMS_CV)
+{
+  FeatureMap fmap;
+
+  // Two FAIMS features with SAME CV - should NOT merge (different analytes)
+  Feature f1 = createTestFeature(100.0, 500.0, 1000.0, 2);
+  f1.setMetaValue(Constants::UserParam::FAIMS_CV, -45.0);
+  Feature f2 = createTestFeature(101.0, 500.01, 500.0, 2);
+  f2.setMetaValue(Constants::UserParam::FAIMS_CV, -45.0);  // Same CV
+
+  fmap.push_back(f1);
+  fmap.push_back(f2);
+
+  for (auto& f : fmap) f.ensureUniqueId();
+
+  FeatureOverlapFilter::mergeFAIMSFeatures(fmap, 5.0, 0.05);
+
+  // Should still have 2 features - same CV features are not merged
+  TEST_EQUAL(fmap.size(), 2)
+  TEST_REAL_SIMILAR(fmap[0].getIntensity(), 1000.0)
+  TEST_REAL_SIMILAR(fmap[1].getIntensity(), 500.0)
+
+  // Neither should have merge meta values
+  TEST_EQUAL(fmap[0].metaValueExists("merged_centroid_IMs"), false)
+  TEST_EQUAL(fmap[1].metaValueExists("merged_centroid_IMs"), false)
+}
+END_SECTION
+
+START_SECTION(mergeFAIMSFeatures - no-op on non-FAIMS data)
+{
+  FeatureMap fmap;
+
+  // Two non-FAIMS features at same location
+  Feature f1 = createTestFeature(100.0, 500.0, 1000.0, 2);
+  Feature f2 = createTestFeature(101.0, 500.01, 500.0, 2);
+
+  fmap.push_back(f1);
+  fmap.push_back(f2);
+
+  for (auto& f : fmap) f.ensureUniqueId();
+
+  FeatureOverlapFilter::mergeFAIMSFeatures(fmap, 5.0, 0.05);
+
+  // Should still have 2 features - no merging on non-FAIMS data
+  TEST_EQUAL(fmap.size(), 2)
+  TEST_REAL_SIMILAR(fmap[0].getIntensity(), 1000.0)
+  TEST_REAL_SIMILAR(fmap[1].getIntensity(), 500.0)
+}
+END_SECTION
+
 END_TEST

@@ -36,6 +36,7 @@
 #include <OpenMS/FEATUREFINDER/MultiplexSatelliteCentroided.h>
 #include <OpenMS/FEATUREFINDER/FeatureFinderMultiplexAlgorithm.h>
 #include <OpenMS/ML/CLUSTERING/GridBasedCluster.h>
+#include <OpenMS/PROCESSING/FEATURE/FeatureOverlapFilter.h>
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
 #include <OpenMS/DATASTRUCTURES/DBoundingBox.h>
 
@@ -147,6 +148,13 @@ public:
     setValidFormats_("out_multiplets", ListUtils::create<String>("consensusXML"));
     registerOutputFile_("out_blacklist", "<file>", "", "Optional output file containing all peaks which have been associated with a peptide feature (and subsequently blacklisted).", false, true);
     setValidFormats_("out_blacklist", ListUtils::create<String>("mzML"));
+
+    addEmptyLine_();
+    registerStringOption_("faims_merge_features", "<true/false>", "true",
+      "For FAIMS data with multiple compensation voltages: Merge features representing the same analyte "
+      "detected at different CV values into a single feature. Only features with DIFFERENT FAIMS CV values "
+      "are merged (same CV = different analytes). Has no effect on non-FAIMS data.", false);
+    setValidStrings_("faims_merge_features", {"true", "false"});
 
     registerFullParam_(FeatureFinderMultiplexAlgorithm().getDefaults());
   }
@@ -334,6 +342,15 @@ public:
     if (has_faims)
     {
       OPENMS_LOG_INFO << "Combined " << combined_feature_map.size() << " features from all FAIMS CV groups." << endl;
+
+      // Optionally merge features representing the same analyte at different CV values
+      if (getStringOption_("faims_merge_features") == "true")
+      {
+        Size before_merge = combined_feature_map.size();
+        FeatureOverlapFilter::mergeFAIMSFeatures(combined_feature_map, 5.0, 0.05);
+        OPENMS_LOG_INFO << "FAIMS feature merge: " << before_merge << " -> " << combined_feature_map.size()
+                        << " features (merged " << (before_merge - combined_feature_map.size()) << ")" << endl;
+      }
     }
 
     // ensure unique IDs for the combined maps

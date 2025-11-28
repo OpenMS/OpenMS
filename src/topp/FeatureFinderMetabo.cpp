@@ -18,6 +18,7 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/PROCESSING/FEATURE/FeatureOverlapFilter.h>
 
 #include <limits>
 #include <set>
@@ -216,6 +217,13 @@ protected:
     setValidFormats_("out_chrom", ListUtils::create<String>("mzML"));
 
     addEmptyLine_();
+    registerStringOption_("faims_merge_features", "<true/false>", "true",
+      "For FAIMS data with multiple compensation voltages: Merge features representing the same analyte "
+      "detected at different CV values into a single feature. Only features with DIFFERENT FAIMS CV values "
+      "are merged (same CV = different analytes). Has no effect on non-FAIMS data.", false);
+    setValidStrings_("faims_merge_features", {"true", "false"});
+
+    addEmptyLine_();
     registerSubsection_("algorithm", "Algorithm parameters section");
   }
 
@@ -376,6 +384,15 @@ protected:
     if (has_faims)
     {
       OPENMS_LOG_INFO << "Combined " << feat_map.size() << " features from all FAIMS CV groups." << endl;
+
+      // Optionally merge features representing the same analyte at different CV values
+      if (getStringOption_("faims_merge_features") == "true")
+      {
+        Size before_merge = feat_map.size();
+        FeatureOverlapFilter::mergeFAIMSFeatures(feat_map, 5.0, 0.05);
+        OPENMS_LOG_INFO << "FAIMS feature merge: " << before_merge << " -> " << feat_map.size()
+                        << " features (merged " << (before_merge - feat_map.size()) << ")" << endl;
+      }
     }
 
     // filter features with zero intensity (this can happen if the FWHM is zero (bc of overly skewed shape) and no peaks end up being summed up)

@@ -117,10 +117,8 @@ namespace OpenMS
         @brief Merge overlapping features based on centroid distances.
 
         Identifies features whose centroids are within the specified RT and m/z tolerances
-        and merges them into a single representative feature. This is useful for:
-        - Combining features detected at the same location across different FAIMS CV values
-        - Deduplicating features from different detection methods
-        - Consolidating split features
+        and merges them into a single representative feature. This is primarily designed for
+        FAIMS data where the same analyte is detected at multiple compensation voltages.
 
         The feature with the highest intensity is kept as the representative. Depending on
         intensity_mode, intensities are either summed or the maximum is kept.
@@ -154,6 +152,35 @@ namespace OpenMS
                                          bool require_same_im = false,
                                          MergeIntensityMode intensity_mode = MergeIntensityMode::SUM,
                                          bool write_meta_values = true);
+
+    /**
+        @brief Merge FAIMS features that represent the same analyte detected at different CV values.
+
+        This is a convenience function specifically designed for FAIMS data. It only merges
+        features that have the FAIMS_CV meta value annotation AND have DIFFERENT CV values.
+        Features without FAIMS_CV are left unchanged, and features with the same CV are
+        never merged (they are considered different analytes).
+
+        This makes it safe to call on any data:
+        - Non-FAIMS data: no merging occurs
+        - Single-CV FAIMS data: no merging occurs (all features have same CV)
+        - Multi-CV FAIMS data: only features at different CVs are merged
+
+        Features are considered the same analyte if they:
+        - Have DIFFERENT FAIMS_CV values (same CV = different analytes)
+        - Are within max_rt_diff seconds in RT
+        - Are within max_mz_diff Da in m/z
+        - Have the same charge state
+
+        The feature with highest intensity is kept, and intensities are summed.
+
+        @param feature_map The feature map to process (modified in place)
+        @param max_rt_diff Maximum RT difference in seconds (default: 5.0)
+        @param max_mz_diff Maximum m/z difference in Da (default: 0.05)
+    */
+    static void mergeFAIMSFeatures(FeatureMap& feature_map,
+                                   double max_rt_diff = 5.0,
+                                   double max_mz_diff = 0.05);
   };
 
 }

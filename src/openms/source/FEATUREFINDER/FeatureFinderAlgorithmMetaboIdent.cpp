@@ -115,6 +115,14 @@ namespace OpenMS
     defaults_.setValue("debug", 0, "Debug level for feature detection.", vector<string>{"advanced"});
     defaults_.setMinInt("debug", 0);
 
+    defaults_.setValue("faims:merge_features", "true",
+      "For FAIMS data with multiple compensation voltages: Merge features that represent "
+      "the same analyte detected at different CVs. Features are merged if they have the same "
+      "charge and are within 5 seconds RT and 0.05 Da m/z. Intensities are summed.");
+    defaults_.setValidStrings("faims:merge_features", {"true", "false"});
+
+    defaults_.setSectionDescription("faims", "Parameters for FAIMS data processing");
+
     defaultsToParam_();
   }
 
@@ -236,6 +244,18 @@ namespace OpenMS
     OPENMS_LOG_WARN << "Warning: Library output is not available for multi-FAIMS data. "
                     << "Each FAIMS CV group has its own assay library." << endl;
     OPENMS_LOG_INFO << "Combined " << features.size() << " features from all FAIMS CV groups." << endl;
+
+    // Optionally merge features from different FAIMS CV groups that represent the same analyte
+    if (param_.getValue("faims:merge_features").toBool())
+    {
+      Size before_merge = features.size();
+      FeatureOverlapFilter::mergeFAIMSFeatures(features, 5.0, 0.05);
+      if (features.size() < before_merge)
+      {
+        OPENMS_LOG_INFO << "Merged FAIMS features: " << before_merge << " -> " << features.size()
+                        << " (" << (before_merge - features.size()) << " features merged)" << endl;
+      }
+    }
 
     // Set primary MS run path
     features.setPrimaryMSRunPath({spectra_file});
