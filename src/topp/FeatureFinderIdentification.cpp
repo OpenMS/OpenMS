@@ -112,6 +112,26 @@ The fitted models are checked for plausibility before they are accepted.
 
 Finally the results (feature maps, parameter @p out) are returned.
 
+<B>Ion Mobility Support (experimental)</B>
+
+This tool supports two types of ion mobility data:
+
+@b FAIMS (Field Asymmetric Ion Mobility Spectrometry):
+FAIMS data is automatically detected based on compensation voltage (CV) annotations in the mzML file.
+The data is split by CV and processed separately for each voltage group.
+Features representing the same analyte detected at different CV values are merged by default (controlled by @p faims:merge_features).
+No special preparation of the input mzML file is required.
+
+@b Bruker @b TimsTOF (trapped ion mobility):
+TimsTOF data requires special preparation of the mzML file. The ion mobility spectra must be concatenated into
+single spectra per frame using msconvert with the @p --combineIonMobilitySpectra option:
+@code
+msconvert input.d --mzML --combineIonMobilitySpectra -o output_dir
+@endcode
+The resulting mzML file contains one spectrum per frame with ion mobility values stored per peak.
+Ion mobility values from peptide identifications (if present in the idXML) are used for IM-aware feature detection.
+The extraction window is controlled by @p extract:im_window.
+
 @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
 <B>The command line parameters of this tool are:</B>

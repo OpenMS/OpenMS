@@ -85,6 +85,26 @@ In the simplest case, only @p CompoundName, @p SumFormula, @p Charge and @p Rete
 Every combination of compound (mass), RT and charge defines one target for feature detection.
 For ion mobility data, an optional @p IonMobility column can be added to filter extraction by ion mobility.
 
+<B>Ion Mobility Support (experimental)</B>
+
+This tool supports two types of ion mobility data:
+
+@b FAIMS (Field Asymmetric Ion Mobility Spectrometry):
+FAIMS data is automatically detected based on compensation voltage (CV) annotations in the mzML file.
+The data is split by CV and processed separately for each voltage group.
+Features representing the same analyte detected at different CV values are merged by default (controlled by @p faims:merge_features).
+No special preparation of the input mzML file is required.
+
+@b Bruker @b TimsTOF (trapped ion mobility):
+TimsTOF data requires special preparation of the mzML file. The ion mobility spectra must be concatenated into
+single spectra per frame using msconvert with the @p --combineIonMobilitySpectra option:
+@code
+msconvert input.d --mzML --combineIonMobilitySpectra -o output_dir
+@endcode
+The resulting mzML file contains one spectrum per frame with ion mobility values stored per peak.
+Ion mobility values for targets can be specified in the @p IonMobility column of the input TSV file.
+The extraction window is controlled by @p extract:im_window.
+
 <B>Output format</B>
 
 The main output (parameter @p out) is a featureXML file containing the detected features, with annotations in meta data entries.

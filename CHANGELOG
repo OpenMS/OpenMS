@@ -40,6 +40,14 @@ TOPP tools:
       - Filter RT by blocks of MS levels (#8239)
     MassTraceExtractor:
       - support for Bruker Ion Mobility (experimental). Note: requires IM peak picked data.
+    FeatureFinderCentroided, FeatureFinderMetabo, FeatureFinderMultiplex:
+      - FAIMS support (experimental): Automatic detection and separate processing of FAIMS compensation voltage (CV) groups.
+        Features from different CVs representing the same analyte are merged by default.
+    FeatureFinderMetaboIdent, FeatureFinderIdentification:
+      - FAIMS support (experimental): Automatic detection and separate processing of FAIMS compensation voltage (CV) groups.
+        Features from different CVs representing the same analyte are merged by default.
+      - Bruker TimsTOF ion mobility support (experimental): Requires concatenated IM spectra in mzML format
+        (use msconvert with --combineIonMobilitySpectra option). IM values can be specified in the input TSV/idXML.
     NucleicAcidSearchEngine:
       - add support for global fixed modifications as a search parameter
     Digestor:
