@@ -156,7 +156,7 @@ struct CometModification
     // Add residues from other (avoiding duplicates)
     for (char c : other.residues)
     {
-      if (residues.find(c) == std::string::npos)
+      if (residues.find(c) == String::npos)
       {
         residues += c;
       }
