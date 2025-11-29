@@ -16,6 +16,9 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
+#include <OpenMS/IONMOBILITY/IMTypes.h>
+#include <OpenMS/IONMOBILITY/IMDataConverter.h>
+#include <OpenMS/IONMOBILITY/FAIMSHelper.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractor.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h>
 #include <OpenMS/ML/SVM/SimpleSVM.h>
@@ -25,6 +28,7 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/MATH/MathFunctions.h>
+#include <OpenMS/PROCESSING/FEATURE/FeatureOverlapFilter.h>
 
 
 #include <vector>
@@ -59,6 +63,21 @@ namespace OpenMS
     defaults_.setMinInt("extract:batch_size", 1);
     defaults_.setValue("extract:mz_window", 10.0, "m/z window size for chromatogram extraction (unit: ppm if 1 or greater, else Da/Th)");
     defaults_.setMinFloat("extract:mz_window", 0.0);
+    defaults_.setValue(
+      "extract:IM_window",
+      0.06,
+      "Ion mobility (IM) window for chromatogram extraction in the IM dimension. "
+      "Set to 0.0 to disable IM filtering (even if data contains IM information). "
+      "The window is applied as +/- IM_window/2 around the median IM value of identified peptides. "
+      "This parameter is automatically ignored if the input data does not contain IM information "
+      "(determined via IMTypes::determineIMFormat). "
+      "Currently only concatenated IM format is supported. "
+      "Typical values: 0.05-0.10 for TIMS data (1/K0 units), 3-5 for FAIMS data (compensation voltage). "
+      "Note: IM values are calculated per peptide/charge/RT-region, using the median of all identifications "
+      "in that region for robustness. The median, min, and max IM values are propagated to output features "
+      "as meta-values (IM_median, IM_min, IM_max) for quality control.");
+    defaults_.setMinFloat("extract:IM_window", 0.0);
+
     defaults_.setValue("extract:n_isotopes", 2, "Number of isotopes to include in each peptide assay.");
     defaults_.setMinInt("extract:n_isotopes", 2);
     defaults_.setValue(
@@ -159,6 +178,14 @@ namespace OpenMS
 
     defaults_.setSectionDescription("EMGScoring", "Parameters for fitting exp. mod. Gaussians to mass traces.");
 
+    defaults_.setValue("faims:merge_features", "true",
+      "For FAIMS data with multiple compensation voltages: Merge features that represent "
+      "the same analyte detected at different CVs. Features are merged if they have the same "
+      "charge and are within 5 seconds RT and 0.05 Da m/z. Intensities are summed.");
+    defaults_.setValidStrings("faims:merge_features", {"true", "false"});
+
+    defaults_.setSectionDescription("faims", "Parameters for FAIMS data processing");
+
     defaultsToParam_();
   }
 
@@ -220,12 +247,12 @@ namespace OpenMS
 
   TargetedExperiment& FeatureFinderIdentificationAlgorithm::getLibrary()
   {
-    return library_;
+    return output_library_;
   }
 
   const TargetedExperiment& FeatureFinderIdentificationAlgorithm::getLibrary() const
   {
-    return library_;
+    return output_library_;
   }
 
 
@@ -359,6 +386,14 @@ namespace OpenMS
         peptides.back().setMZ(feat.getMZ());
         peptides.back().setMetaValue("FFId_category", "internal");
         peptides.back().setMetaValue("SeedFeatureID", String(feat.getUniqueId()));
+
+        // Copy IM meta value from feature if present (some feature finders annotate IM)
+        // If not present, the seed will be extracted across the full IM range
+        if (feat.metaValueExists(Constants::UserParam::IM))
+        {
+          peptides.back().setMetaValue(Constants::UserParam::IM, feat.getMetaValue(Constants::UserParam::IM));
+        }
+
         addPeptideToMap_(peptides.back(), peptide_map_);
         ++seeds_added;
       }
@@ -367,15 +402,9 @@ namespace OpenMS
     return seeds_added;
   }
 
-  void FeatureFinderIdentificationAlgorithm::run(
-    PeptideIdentificationList peptides,
-    const vector<ProteinIdentification>& proteins,
-    PeptideIdentificationList peptides_ext,
-    vector<ProteinIdentification> proteins_ext,
-    FeatureMap& features,
-    const FeatureMap& seeds,
-    const String& spectra_file
-    )
+  // ===== Helper functions for run() =====
+
+  void FeatureFinderIdentificationAlgorithm::validateSVMParameters_() const
   {
     if ((svm_n_samples_ > 0) && (svm_n_samples_ < 2 * svm_n_parts_))
     {
@@ -385,11 +414,10 @@ namespace OpenMS
       throw Exception::InvalidParameter(__FILE__, __LINE__,
                                         OPENMS_PRETTY_FUNCTION, msg);
     }
+  }
 
-    // annotate mzML file
-    features.setPrimaryMSRunPath({spectra_file}, ms_data_);
-
-    // initialize algorithm classes needed later:
+  void FeatureFinderIdentificationAlgorithm::initializeFeatureFinder_()
+  {
     Param params = feat_finder_.getParameters();
     params.setValue("stop_report_after_feature", -1); // return all features
     params.setValue("EMGScoring:max_iteration", param_.getValue("EMGScoring:max_iteration"));
@@ -421,14 +449,245 @@ namespace OpenMS
     params.setValue("TransitionGroupPicker:recalculate_peaks", "true");
     params.setValue("TransitionGroupPicker:PeakPickerChromatogram:peak_width", -1.0);
     params.setValue("TransitionGroupPicker:PeakPickerChromatogram:method",
-                    "corrected");    
+                    "corrected");
     params.setValue("TransitionGroupPicker:PeakPickerChromatogram:write_sn_log_messages", "false"); // disabled in OpenSWATH
-    
+
     feat_finder_.setParameters(params);
     feat_finder_.setLogType(ProgressLogger::NONE);
     feat_finder_.setStrictFlag(false);
     // to use MS1 Swath scores:
     feat_finder_.setMS1Map(SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(boost::make_shared<MSExperiment>(ms_data_)));
+  }
+
+  double FeatureFinderIdentificationAlgorithm::calculateRTWindow_(double rt_uncertainty) const
+  {
+    if (rt_window_ != 0.0)
+    {
+      return rt_window_; // Already set, return it
+    }
+
+    // Calculate RT window based on other parameters and alignment quality:
+    double map_tol = mapping_tolerance_;
+    if (map_tol < 1.0)
+    {
+      map_tol *= (2 * peak_width_); // relative tolerance
+    }
+    double calculated_window = (rt_uncertainty + 2 * peak_width_ + map_tol) * 2;
+    OPENMS_LOG_INFO << "RT window size calculated as " << calculated_window << " seconds." << endl;
+    return calculated_window;
+  }
+
+  bool FeatureFinderIdentificationAlgorithm::isSeedPseudoHit_(const PeptideHit& hit)
+  {
+    return hit.getSequence().toUnmodifiedString().hasPrefix("XXX");
+  }
+
+  void FeatureFinderIdentificationAlgorithm::removeSeedPseudoIDs_(FeatureMap& features)
+  {
+    // Remove all hits with pseudo ids (seeds) from features
+    for (Feature& f : features)
+    {
+      PeptideIdentificationList& ids = f.getPeptideIdentifications();
+
+      // if we have peptide identifications assigned and all are annotated as OffsetPeptide,
+      // we mark the feature as also an OffsetPeptide
+      if (!ids.empty() && std::all_of(ids.begin(), ids.end(),
+          [](const PeptideIdentification& pid) { return pid.metaValueExists("OffsetPeptide"); }))
+      {
+        f.setMetaValue("OffsetPeptide", "true");
+      }
+
+      // remove all seed pseudo hits (PSM details)
+      for (auto& pid : ids)
+      {
+        std::vector<PeptideHit>& hits = pid.getHits();
+        auto it = remove_if(hits.begin(), hits.end(), isSeedPseudoHit_);
+        hits.erase(it, hits.end());
+      }
+
+      // remove empty PeptideIdentifications
+      auto it = remove_if(ids.begin(), ids.end(),
+        [](const PeptideIdentification& pid) { return pid.empty(); });
+      ids.erase(it, ids.end());
+    }
+
+    // clean up unassigned PeptideIdentifications
+    PeptideIdentificationList& ids = features.getUnassignedPeptideIdentifications();
+    for (auto& pid : ids)
+    {
+      std::vector<PeptideHit>& hits = pid.getHits();
+      auto it = remove_if(hits.begin(), hits.end(), isSeedPseudoHit_);
+      hits.erase(it, hits.end());
+    }
+
+    // remove empty PeptideIdentifications
+    auto it = remove_if(ids.begin(), ids.end(),
+      [](const PeptideIdentification& pid) { return pid.empty(); });
+    ids.erase(it, ids.end());
+  }
+
+  std::pair<double, double> FeatureFinderIdentificationAlgorithm::calculateRTBounds_(
+    double rt_min, double rt_max) const
+  {
+    if (mapping_tolerance_ > 0.0)
+    {
+      double abs_tol = mapping_tolerance_;
+      if (abs_tol < 1.0)
+      {
+        abs_tol *= (rt_max - rt_min);
+      }
+      return {rt_min - abs_tol, rt_max + abs_tol};
+    }
+    return {rt_min, rt_max};
+  }
+
+  // ===== End of helper functions =====
+
+  void FeatureFinderIdentificationAlgorithm::run(
+    PeptideIdentificationList peptides,
+    const vector<ProteinIdentification>& proteins,
+    PeptideIdentificationList peptides_ext,
+    vector<ProteinIdentification> proteins_ext,
+    FeatureMap& features,
+    const FeatureMap& seeds,
+    const String& spectra_file
+    )
+  {
+    // Check for FAIMS data
+    auto faims_groups = IMDataConverter::splitByFAIMSCV(std::move(ms_data_));
+    const bool has_faims = faims_groups.size() > 1 || !std::isnan(faims_groups[0].first);
+
+    if (!has_faims)
+    {
+      // Non-FAIMS data: restore ms_data_ and run directly
+      ms_data_ = std::move(faims_groups[0].second);
+      runSingleGroup_(peptides, proteins, peptides_ext, proteins_ext, features, seeds, spectra_file);
+      return;
+    }
+
+    // FAIMS data: process each CV group separately
+    OPENMS_LOG_INFO << "FAIMS data detected with " << faims_groups.size() << " compensation voltage(s)." << endl;
+
+    // Clear combined outputs
+    features.clear(true);
+    chrom_data_.clear(true);
+    output_library_.clear(true);
+    bool first_group = true;
+
+    for (auto& [group_cv, faims_group] : faims_groups)
+    {
+      OPENMS_LOG_INFO << "Processing FAIMS CV group: " << group_cv << " V" << endl;
+
+      // Filter peptide IDs for this FAIMS CV
+      PeptideIdentificationList peptides_cv = FAIMSHelper::filterPeptidesByFAIMSCV(peptides, group_cv);
+      PeptideIdentificationList peptides_ext_cv = FAIMSHelper::filterPeptidesByFAIMSCV(peptides_ext, group_cv);
+
+      if (peptides_cv.empty() && peptides_ext_cv.empty())
+      {
+        OPENMS_LOG_INFO << "No peptide IDs for FAIMS CV " << group_cv << " V. Skipping." << endl;
+        continue;
+      }
+
+      OPENMS_LOG_INFO << "  " << peptides_cv.size() << " internal IDs, "
+                      << peptides_ext_cv.size() << " external IDs" << endl;
+
+      // Create algorithm instance for this group (use same parameters)
+      FeatureFinderIdentificationAlgorithm ffid_group;
+      ffid_group.getProgressLogger().setLogType(prog_log_.getLogType());
+      ffid_group.setParameters(this->getParameters());
+      ffid_group.setMSData(std::move(faims_group));
+
+      // Run feature detection
+      FeatureMap features_cv;
+      ffid_group.runSingleGroup_(peptides_cv, proteins, peptides_ext_cv, proteins_ext, features_cv, seeds, spectra_file);
+
+      // Annotate features with FAIMS CV and add to results
+      for (auto& feat : features_cv)
+      {
+        feat.setMetaValue(Constants::UserParam::FAIMS_CV, group_cv);
+        features.push_back(feat);
+      }
+
+      // Copy UnassignedPeptideIdentifications with FAIMS CV annotation
+      for (auto& pep_id : features_cv.getUnassignedPeptideIdentifications())
+      {
+        pep_id.setMetaValue(Constants::UserParam::FAIMS_CV, group_cv);
+        features.getUnassignedPeptideIdentifications().push_back(std::move(pep_id));
+      }
+
+      // Copy ProteinIdentifications only from the first group
+      if (first_group)
+      {
+        features.setProteinIdentifications(features_cv.getProteinIdentifications());
+      }
+
+      // Combine chromatograms
+      for (const auto& chrom : ffid_group.getChromatograms().getChromatograms())
+      {
+        MSChromatogram chrom_copy = chrom;
+        chrom_copy.setMetaValue(Constants::UserParam::FAIMS_CV, group_cv);
+        chrom_data_.addChromatogram(std::move(chrom_copy));
+      }
+
+      first_group = false;
+    }
+
+    // Warn about library output for FAIMS data
+    OPENMS_LOG_WARN << "Warning: Library output is not available for multi-FAIMS data. "
+                    << "Each FAIMS CV group has its own assay library." << endl;
+    OPENMS_LOG_INFO << "Combined " << features.size() << " features from all FAIMS CV groups." << endl;
+
+    // Optionally merge features from different FAIMS CV groups that represent the same analyte
+    if (param_.getValue("faims:merge_features").toBool())
+    {
+      Size before_merge = features.size();
+      FeatureOverlapFilter::mergeFAIMSFeatures(features, 5.0, 0.05);
+      if (features.size() < before_merge)
+      {
+        OPENMS_LOG_INFO << "Merged FAIMS features: " << before_merge << " -> " << features.size()
+                        << " (" << (before_merge - features.size()) << " features merged)" << endl;
+      }
+    }
+
+    // Set primary MS run path
+    features.setPrimaryMSRunPath({spectra_file});
+    features.ensureUniqueId();
+  }
+
+  void FeatureFinderIdentificationAlgorithm::runSingleGroup_(
+    PeptideIdentificationList peptides,
+    const vector<ProteinIdentification>& proteins,
+    PeptideIdentificationList peptides_ext,
+    vector<ProteinIdentification> proteins_ext,
+    FeatureMap& features,
+    const FeatureMap& seeds,
+    const String& spectra_file
+    )
+  {
+    // Clear output library from any previous run
+    output_library_.clear(true);
+
+    // Validate parameters
+    validateSVMParameters_();
+
+    // annotate mzML file
+    features.setPrimaryMSRunPath({spectra_file}, ms_data_);
+
+    // Check IM format
+    double IM_window = param_.getValue("extract:IM_window");
+    IMFormat im_format = IMTypes::determineIMFormat(ms_data_);
+    bool has_IM = false;
+    if (im_format == IMFormat::CONCATENATED)
+    {
+      has_IM = true;
+    }
+    else if (im_format != IMFormat::NONE) // has IM but wrong format
+    {
+      OPENMS_LOG_ERROR << "Wrong IM format detected. Expecting in concatenated format (float data arrays)" << std::endl;
+    }
+
+    // Initialize feature finder with appropriate parameters
+    initializeFeatureFinder_();
 
     bool with_external_ids = !peptides_ext.empty();
 
@@ -448,18 +707,8 @@ namespace OpenMS
       rt_uncertainty = external_id_handler_.alignInternalAndExternalIDs(peptides, peptides_ext, rt_quantile_);
     }
 
-    if (rt_window_ == 0.0)
-    {
-      // calculate RT window based on other parameters and alignment quality:
-      double map_tol = mapping_tolerance_;
-      if (map_tol < 1.0)
-      {
-        map_tol *= (2 * peak_width_); // relative tolerance
-      }
-      rt_window_ = (rt_uncertainty + 2 * peak_width_ + map_tol) * 2;
-      OPENMS_LOG_INFO << "RT window size calculated as " << rt_window_ << " seconds."
-               << endl;
-    }
+    // Calculate RT window if not already set
+    rt_window_ = calculateRTWindow_(rt_uncertainty);
 
     //-------------------------------------------------------------
     // prepare peptide map
@@ -483,6 +732,11 @@ namespace OpenMS
       pep.setMetaValue("FFId_category", "internal");
     }
 
+    // Calculate global IM statistics BEFORE adding seeds
+    // This ensures we only learn from real peptide identifications with IM data
+    // and don't need to check/skip seeds during calculation
+    calculateGlobalIMStats_();
+
     // TODO make sure that only assembled traces (more than one trace -> has a charge) if FFMetabo is used
     // see FeatureFindingMetabo: defaults_.setValue("remove_single_traces", "false", "Remove unassembled traces (single traces).");
     Size seeds_added = addSeeds_(peptides, seeds);
@@ -495,7 +749,7 @@ namespace OpenMS
     }
 
     n_internal_peps_ = peptide_map_.size();
-    
+
     if (with_external_ids)
     {
       // Process and add external peptides
@@ -513,6 +767,7 @@ namespace OpenMS
     auto chunks = chunk_(peptide_map_.begin(), peptide_map_.end(), batch_size_);
 
     PeptideRefRTMap ref_rt_map;
+
     if (debug_level_ >= 668)
     {
       OPENMS_LOG_INFO << "Creating full assay library for debugging." << endl;
@@ -535,6 +790,7 @@ namespace OpenMS
     {
       //TODO since ref_rt_map is only used after chunking, we could create
       // maps per chunk and merge them in the end. Would help in parallelizing as well.
+      // fills library_ (TargetedExperiment)
       createAssayLibrary_(chunk.first, chunk.second, ref_rt_map);
       OPENMS_LOG_DEBUG << "#Transitions: " << library_.getTransitions().size() << endl;
 
@@ -547,9 +803,17 @@ namespace OpenMS
         extractor.prepare_coordinates(chrom_temp, coords, library_,
                                       numeric_limits<double>::quiet_NaN(), false);
 
+        if (has_IM && IM_window > 0.0)
+        {
+          extractor.extractChromatograms(spec_temp, chrom_temp, coords, mz_window_,
+                                        mz_window_ppm_, IM_window, "tophat");
+        }
+        else
+        {
+          extractor.extractChromatograms(spec_temp, chrom_temp, coords, mz_window_,
+                                        mz_window_ppm_, "tophat");
+        }
 
-        extractor.extractChromatograms(spec_temp, chrom_temp, coords, mz_window_,
-                                       mz_window_ppm_, "tophat");
         extractor.return_chromatogram(chrom_temp, coords, library_, (*shared)[0],
                                       chrom_data_.getChromatograms(), false);
       }
@@ -570,6 +834,19 @@ namespace OpenMS
         OpenMS_Log_info.insert(cout); // revert logging change
       }
       chrom_data_.clear(true);
+      // Accumulate library entries for output before clearing
+      for (const auto& pep : library_.getPeptides())
+      {
+        output_library_.addPeptide(pep);
+      }
+      for (const auto& prot : library_.getProteins())
+      {
+        output_library_.addProtein(prot);
+      }
+      for (const auto& trans : library_.getTransitions())
+      {
+        output_library_.addTransition(trans);
+      }
       library_.clear(true);
       // since chrom_data_ here is just a container for the chromatograms and identifications will be empty,
       // pickExperiment above will only add empty ProteinIdentification runs with colliding identifiers.
@@ -606,56 +883,7 @@ namespace OpenMS
       peptides_ext.begin(), peptides_ext.end());
 
     // remove all hits with pseudo ids (seeds)
-    for (Feature& f : features)
-    {
-      PeptideIdentificationList& ids = f.getPeptideIdentifications();
-
-      // if we have peptide identifications assigned and all are annotated as OffsetPeptide, we mark the feature is also an OffsetPeptide
-      if (!ids.empty() && std::all_of(ids.begin(), ids.end(), [](const PeptideIdentification & pid) { return pid.metaValueExists("OffsetPeptide"); }))
-      {
-        f.setMetaValue("OffsetPeptide", "true");
-      }
-
-      // remove all hits (PSM details)
-      for (auto & pid : ids)
-      {
-        std::vector<PeptideHit>& hits = pid.getHits();
-        auto it = remove_if(hits.begin(), hits.end(),
-          [](const PeptideHit & ph)
-          {
-            return (ph.getSequence().toUnmodifiedString().hasPrefix("XXX"));
-          });
-        hits.erase(it, hits.end()); // remove / erase idiom
-      }
-
-      // remove empty PeptideIdentifications
-      auto it = remove_if(ids.begin(), ids.end(),
-        [](const PeptideIdentification & pid)
-        {
-          return pid.empty();
-        });
-      ids.erase(it, ids.end()); // remove / erase idiom
-    }
-
-    // clean up unassigned PeptideIdentifications
-    PeptideIdentificationList& ids = features.getUnassignedPeptideIdentifications();
-    for (auto & pid : ids)
-    {
-      std::vector<PeptideHit>& hits = pid.getHits();
-      auto it = remove_if(hits.begin(), hits.end(), [](const PeptideHit & ph)
-      {
-        return (ph.getSequence().toUnmodifiedString().hasPrefix("XXX"));
-      });
-      hits.erase(it, hits.end());
-    }
-
-    // remove empty PeptideIdentifications
-    auto it = remove_if(ids.begin(), ids.end(),
-      [](const PeptideIdentification & pid)
-      {
-        return pid.empty();
-      });
-    ids.erase(it, ids.end()); // remove / erase idiom
+    removeSeedPseudoIDs_(features);
 
     // add back ignored PSMs
     features.getUnassignedPeptideIdentifications().insert(features.getUnassignedPeptideIdentifications().end(),
@@ -824,7 +1052,179 @@ namespace OpenMS
 
   }
 
-  void FeatureFinderIdentificationAlgorithm::createAssayLibrary_(const PeptideMap::iterator& begin, const PeptideMap::iterator& end, PeptideRefRTMap& ref_rt_map, bool clear_IDs)
+  void FeatureFinderIdentificationAlgorithm::calculateGlobalIMStats_()
+  {
+    // Update ranges from MS data to get IM range from raw data
+    ms_data_.updateRanges();
+
+    // Try to get IM range from MS data (will throw if no IM data available)
+    try
+    {
+      global_im_stats_.min = ms_data_.getMinMobility();
+      global_im_stats_.max = ms_data_.getMaxMobility();
+    }
+    catch (const Exception::InvalidRange&)
+    {
+      OPENMS_LOG_DEBUG << "No IM data found in MS data." << endl;
+      global_im_stats_ = IMStats(); // Empty stats
+      return;
+    }
+
+    // Calculate median from peptide identifications for robust central tendency
+    // (more representative of where peptides actually elute than data range center)
+    std::vector<double> im_values_from_ids;
+
+    // Collect IM values from all peptide identifications
+    // Note: This is called BEFORE adding seeds, so we only see real identifications
+    for (const auto& pep_entry : peptide_map_)
+    {
+      const ChargeMap& charge_map = pep_entry.second;
+      for (const auto& charge_entry : charge_map)
+      {
+        const RTMap& internal_ids = charge_entry.second.first;
+        for (const auto& rt_pepid : internal_ids)
+        {
+          const PeptideIdentification& pep_id = *rt_pepid.second;
+          const double im = pep_id.getMetaValue(Constants::UserParam::IM, -1.0);
+          if (im >= 0.0)  // Only collect valid IM values (>= 0.0 matches ChromatogramExtractor)
+          {
+            im_values_from_ids.push_back(im);
+          }
+        }
+      }
+    }
+
+    // If we have ID-based IM values, use them for median calculation
+    // Otherwise, use center of data range as fallback
+    if (!im_values_from_ids.empty())
+    {
+      std::sort(im_values_from_ids.begin(), im_values_from_ids.end());
+      Size n = im_values_from_ids.size();
+      if (n % 2 == 0)
+      {
+        global_im_stats_.median = (im_values_from_ids[n/2 - 1] + im_values_from_ids[n/2]) / 2.0;
+      }
+      else
+      {
+        global_im_stats_.median = im_values_from_ids[n/2];
+      }
+
+      OPENMS_LOG_INFO << "Global IM statistics: median=" << global_im_stats_.median
+                      << " (from " << n << " identifications), "
+                      << "min=" << global_im_stats_.min << ", "
+                      << "max=" << global_im_stats_.max << " (from MS data range)" << endl;
+    }
+    else
+    {
+      // No IDs with IM annotation - use center of data range
+      global_im_stats_.median = (global_im_stats_.min + global_im_stats_.max) / 2.0;
+
+      OPENMS_LOG_INFO << "Global IM statistics: median=" << global_im_stats_.median
+                      << " (center of data range), "
+                      << "min=" << global_im_stats_.min << ", "
+                      << "max=" << global_im_stats_.max << " (from MS data range)" << endl;
+    }
+  }
+
+  /**
+   * @brief Calculate ion mobility statistics (median, min, max) for a given RT region
+   *
+   * This function computes robust statistics for ion mobility values from peptide
+   * identifications within a single RT region. The statistics are used for:
+   * 1. Setting the drift time on peptide assays (using median)
+   * 2. Extracting chromatograms with appropriate IM windows
+   * 3. Annotating features with IM QC metrics
+   *
+   * Implementation Strategy:
+   * - Collects IM values from internal peptide identifications in the RT region
+   * - Skips individual IDs that lack IM annotation (logged as debug, summary as info)
+   * - Uses MEDIAN instead of mean for robustness against outliers
+   * - Computes min/max to characterize the IM distribution spread
+   * - Returns empty stats only if NO valid IM values are available
+   *
+   * Note: Seeds from untargeted feature finders may or may not have IM annotation,
+   * depending on the feature finder. If IM is annotated, it is used; otherwise the
+   * seed is extracted across the full IM range (ChromatogramExtractor disables IM
+   * filtering when ion_mobility < 0).
+   *
+   * Note: RT region boundaries are determined from ALL IDs (including those without IM),
+   * so skipping individual IDs for IM statistics does not affect RT extraction.
+   *
+   * @param r RT region containing peptide identifications (per charge state)
+   * @return IMStats structure with median, min, and max IM values
+   *         Returns {-1.0, -1.0, -1.0} only if no valid IM data is available
+   *
+   * @note The median is calculated using the standard definition:
+   *       - For odd n: middle element of sorted array
+   *       - For even n: average of two middle elements
+   */
+  FeatureFinderIdentificationAlgorithm::IMStats
+  FeatureFinderIdentificationAlgorithm::getRTRegionIMStats_(const RTRegion& r)
+  {
+    IMStats stats;
+    const ChargeMap& cm = r.ids;
+    std::vector<double> im_values;
+    Size n_ids_without_im = 0;
+
+    // Collect all IM values from internal IDs
+    for (const auto& e : cm)
+    {
+      const RTMap& internal_ids = e.second.first; // internal
+      for (const auto& rt_pepidptr : internal_ids)
+      {
+        const PeptideIdentification& pep_id = *rt_pepidptr.second;
+        const double im = pep_id.getMetaValue(Constants::UserParam::IM, -1.0);
+
+        if (im < 0.0)
+        {
+          // ID without IM (negative value) - skip this ID but continue with others
+          n_ids_without_im++;
+          OPENMS_LOG_DEBUG << "Identification at RT " << pep_id.getRT()
+                           << " lacks IM annotation - skipping for IM statistics" << endl;
+        }
+        else
+        {
+          im_values.push_back(im); // includes 0.0 as valid IM value
+        }
+      }
+    }
+
+    if (im_values.empty())
+    {
+      return stats; // Return empty stats
+    }
+
+    // Calculate statistics
+    std::sort(im_values.begin(), im_values.end());
+
+    stats.min = im_values.front();
+    stats.max = im_values.back();
+
+    // Calculate median
+    Size n = im_values.size();
+    if (n % 2 == 0)
+    {
+      stats.median = (im_values[n/2 - 1] + im_values[n/2]) / 2.0;
+    }
+    else
+    {
+      stats.median = im_values[n/2];
+    }
+
+    if (n_ids_without_im > 0)
+    {
+      OPENMS_LOG_INFO << "Calculated IM statistics from " << n << " IDs with IM data "
+                      << "(skipped " << n_ids_without_im << " IDs without IM annotation)" << endl;
+    }
+
+    return stats;
+  }
+
+  void FeatureFinderIdentificationAlgorithm::createAssayLibrary_(
+    const PeptideMap::iterator& begin, 
+    const PeptideMap::iterator& end, 
+    PeptideRefRTMap& ref_rt_map, 
+    bool clear_IDs)
   {
     std::set<String> protein_accessions;
 
@@ -899,6 +1299,23 @@ namespace OpenMS
             peptide.rts.clear();
             addPeptideRT_(peptide, rt - rt_tolerance);
             addPeptideRT_(peptide, rt + rt_tolerance);
+
+            // Use IM from seed if annotated (some feature finders provide IM)
+            // If not annotated, drift time stays at default (-1) -> full IM range extraction
+            // Check >= 0.0 to match ChromatogramExtractor's IM filtering logic
+            const double seed_im = rt_pep.second->getMetaValue(Constants::UserParam::IM, -1.0);
+            if (seed_im >= 0.0)
+            {
+              peptide.setDriftTime(seed_im);
+              // Store IM stats for annotation (use seed IM as median, with some tolerance for min/max)
+              im_stats_[peptide.id] = {seed_im, seed_im, seed_im};
+            }
+            else
+            {
+              // Reset drift time to -1 (no IM filtering) - peptide object is reused
+              peptide.setDriftTime(-1.0);
+            }
+
             library_.addPeptide(peptide);
             generateTransitions_(peptide.id, mz, charge, iso_dist);
             internal_ids.emplace(rt_pep);
@@ -910,13 +1327,15 @@ namespace OpenMS
         peptide.sequence = seq.toString();
         // keep track of protein accessions:
         set<String> current_accessions;
-        // internal/external pair
-        const pair<RTMap, RTMap> &pair = pm_it->second.begin()->second;
+        
+        const pair<RTMap, RTMap> &pair = pm_it->second.begin()->second; // internal/external pair
+        const RTMap& internal_ids = pair.first;
+        const RTMap& external_ids = pair.second;
 
         // WARNING: This assumes that at least one hit is present.
-        const PeptideHit &hit = (pair.first.empty() ?
-                                 pair.second.begin()->second->getHits()[0] :
-                                 pair.first.begin()->second->getHits()[0]);
+        const PeptideHit &hit = (internal_ids.empty() ?
+                                 external_ids.begin()->second->getHits()[0] :
+                                 internal_ids.begin()->second->getHits()[0]);
         current_accessions = hit.extractProteinAccessionsSet();
         protein_accessions.insert(current_accessions.begin(),
                                   current_accessions.end());
@@ -928,9 +1347,12 @@ namespace OpenMS
 
         peptide.protein_refs = vector<String>(current_accessions.begin(),
                                               current_accessions.end());
-        // get regions in which peptide eludes (ideally only one):
+        // get regions in RT which peptide eludes (ideally only one):
         std::vector<RTRegion> rt_regions;
         getRTRegions_(pm_it->second, rt_regions, clear_IDs);
+
+        // note: IM values are stored in the PeptideIdentifications* for the different
+        // peptides, charges, and regions
 
         // get isotope distribution for peptide:
         Size n_isotopes = (isotope_pmin_ > 0.0) ? 10 : n_isotopes_;
@@ -979,6 +1401,23 @@ namespace OpenMS
               peptide.rts.clear();
               addPeptideRT_(peptide, reg.start);
               addPeptideRT_(peptide, reg.end);
+
+              // determine IM statistics (median, min, max)
+              // for the peptide and current charge state in the region
+              // (Note: because it is the same peptide and charge state the IM should not differ that much)
+              // Check >= 0.0 to match ChromatogramExtractor's IM filtering logic
+              IMStats im_stats = getRTRegionIMStats_(reg);
+              if (im_stats.median >= 0.0)
+              {
+                peptide.setDriftTime(im_stats.median); // use median (more robust than mean)
+                im_stats_[peptide.id] = im_stats; // store for later annotation
+              }
+              else
+              {
+                // Reset drift time to -1 (no IM filtering) - peptide object is reused
+                peptide.setDriftTime(-1.0);
+              }
+
               library_.addPeptide(peptide);
               generateTransitions_(peptide.id, mz, charge, iso_dist);
             }
@@ -999,12 +1438,13 @@ namespace OpenMS
     }
   }
 
+  // extract RT regions of identified peptides (from charge map)
   void FeatureFinderIdentificationAlgorithm::getRTRegions_(
     ChargeMap& peptide_data,
     std::vector<RTRegion>& rt_regions,
     bool clear_IDs) const
   {
-    // use RTs from all charge states here to get a more complete picture:
+    // use RTs from all charge states of a single peptide to get a more complete picture:
     std::vector<double> rts;
     for (auto& cm : peptide_data)
     {
@@ -1024,7 +1464,7 @@ namespace OpenMS
 
     for (auto& rt : rts)
     {
-      // create a new region?
+      // large gap between last RT of last region and current RT? then create a new region?
       if (rt_regions.empty() || (rt_regions.back().end < rt - rt_tolerance))
       {
         RTRegion region;
@@ -1040,15 +1480,20 @@ namespace OpenMS
     for (auto& cm : peptide_data)
     {
       // regions are sorted by RT, as are IDs, so just iterate linearly:
-      auto reg_it = rt_regions.begin();
+      std::vector<RTRegion>::iterator reg_it = rt_regions.begin();
+      int charge = cm.first;
+
       // "internal" IDs:
       for (auto& rt : cm.second.first)
       {
-        while (rt.first > reg_it->end)
+        // while RT larger than current region end: skip to next region (or end)
+        while (rt.first > reg_it->end) 
         {
           ++reg_it;
         }
-        reg_it->ids[cm.first].first.insert(rt);
+        RTMap& internal_ids = reg_it->ids[charge].first;
+         // insert RT and peptide id object into multimap (for current charge of the peptide)
+        internal_ids.insert(rt);
       }
       reg_it = rt_regions.begin(); // reset to start
       // "external" IDs:
@@ -1058,7 +1503,8 @@ namespace OpenMS
         {
           ++reg_it;
         }
-        reg_it->ids[cm.first].second.insert(rt);
+        RTMap& external_ids = reg_it->ids[charge].second;
+        external_ids.insert(rt);
       }
       if (clear_IDs)
       {
@@ -1185,6 +1631,21 @@ namespace OpenMS
       }
 
       peptide_ref = feat.getMetaValue("PeptideRef");
+
+      // Annotate feature with ion mobility statistics (if available)
+      // This provides QC metrics for IM-enabled experiments:
+      // - IM_median: robust central IM value used for chromatogram extraction
+      // - IM_min/max: spread of IM distribution (large spread may indicate issues)
+      // Note: Uses full peptide ref (with region number) as this is the key in im_stats_
+      String full_peptide_ref = peptide_ref; // keep full ref with region number
+      if (im_stats_.count(full_peptide_ref))
+      {
+        const IMStats& stats = im_stats_.at(full_peptide_ref);
+        feat.setMetaValue("IM_median", stats.median);
+        feat.setMetaValue("IM_min", stats.min);
+        feat.setMetaValue("IM_max", stats.max);
+      }
+
       // remove region number, if present:
       Size pos_slash = peptide_ref.rfind('/');
       Size pos_colon = peptide_ref.find(':', pos_slash + 2);
@@ -1219,16 +1680,8 @@ namespace OpenMS
         // map IDs to features (based on RT):
         double rt_min = features[i].getMetaValue("leftWidth");
         double rt_max = features[i].getMetaValue("rightWidth");
-        if (mapping_tolerance_ > 0.0)
-        {
-          double abs_tol = mapping_tolerance_;
-          if (abs_tol < 1.0)
-          {
-            abs_tol *= (rt_max - rt_min);
-          }
-          rt_min -= abs_tol;
-          rt_max += abs_tol;
-        }
+        std::tie(rt_min, rt_max) = calculateRTBounds_(rt_min, rt_max);
+
         RTMap::const_iterator lower = rt_internal.lower_bound(rt_min);
         RTMap::const_iterator upper = rt_internal.upper_bound(rt_max);
         int id_count = 0;
@@ -1294,16 +1747,8 @@ namespace OpenMS
 
         double rt_min = feat.getMetaValue("leftWidth");
         double rt_max = feat.getMetaValue("rightWidth");
-        if (mapping_tolerance_ > 0.0)
-        {
-          double abs_tol = mapping_tolerance_;
-          if (abs_tol < 1.0)
-          {
-            abs_tol *= (rt_max - rt_min);
-          }
-          rt_min -= abs_tol;
-          rt_max += abs_tol;
-        }
+        std::tie(rt_min, rt_max) = calculateRTBounds_(rt_min, rt_max);
+
         RTMap::const_iterator lower = rt_ref.lower_bound(rt_min);
         RTMap::const_iterator upper = rt_ref.upper_bound(rt_max);
         if (lower != upper) // there's at least one ID within the feature

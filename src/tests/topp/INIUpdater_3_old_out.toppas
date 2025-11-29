@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<PARAMETERS version="1.7.0" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/Param_1_7_0.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<PARAMETERS version="1.8.0" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/Param_1_8_0.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <NODE name="info" description="">
     <ITEM name="num_vertices" value="7" type="int" description="" required="false" advanced="false" />
     <ITEM name="num_edges" value="6" type="int" description="" required="false" advanced="false" />
@@ -27,6 +27,7 @@
         <ITEM name="in" value="" type="input-file" description="input file" required="true" advanced="false" supported_formats="*.mzML" />
         <ITEM name="out" value="" type="output-file" description="output file" required="true" advanced="false" supported_formats="*.featureXML" />
         <ITEM name="seeds" value="" type="input-file" description="User specified seed list" required="false" advanced="false" supported_formats="*.featureXML" />
+        <ITEM name="faims_merge_features" value="true" type="string" description="For FAIMS data with multiple compensation voltages: Merge features representing the same analyte detected at different CV values into a single feature. Only features with DIFFERENT FAIMS CV values are merged (same CV = different analytes). Has no effect on non-FAIMS data." required="false" advanced="false" restrictions="true,false" />
         <ITEM name="log" value="TOPP.log" type="string" description="Name of log file (created only when specified)" required="false" advanced="true" />
         <ITEM name="debug" value="0" type="int" description="Sets the debug level" required="false" advanced="true" />
         <ITEM name="threads" value="1" type="int" description="Sets the number of threads allowed to be used by the TOPP tool" required="false" advanced="false" />

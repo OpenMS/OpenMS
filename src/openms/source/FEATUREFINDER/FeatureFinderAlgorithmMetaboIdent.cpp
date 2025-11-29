@@ -26,6 +26,9 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
+#include <OpenMS/IONMOBILITY/IMTypes.h>
+#include <OpenMS/IONMOBILITY/IMDataConverter.h>
+
 #include <OpenMS/PROCESSING/FEATURE/FeatureOverlapFilter.h>
 
 #include <vector>
@@ -51,11 +54,18 @@ namespace OpenMS
     defaults_.setMinFloat("extract:mz_window", 0.0);
 
     defaults_.setValue(
-      "extract:rt_window", 
-      0.0, 
+      "extract:rt_window",
+      0.0,
       "RT window size (in sec.) for chromatogram extraction. If set, this parameter takes precedence over 'extract:rt_quantile'.",
       vector<string>{"advanced"});
     defaults_.setMinFloat("extract:rt_window", 0.0);
+
+    defaults_.setValue(
+      "extract:im_window",
+      0.0,
+      "Ion mobility window size for extraction. If set to 0, no IM filtering is performed.",
+      vector<string>{"advanced"});
+    defaults_.setMinFloat("extract:im_window", 0.0);
 
     defaults_.setValue("extract:n_isotopes", 2, "Number of isotopes to include in each peptide assay.");
     defaults_.setMinInt("extract:n_isotopes", 2);
@@ -105,6 +115,14 @@ namespace OpenMS
     defaults_.setValue("debug", 0, "Debug level for feature detection.", vector<string>{"advanced"});
     defaults_.setMinInt("debug", 0);
 
+    defaults_.setValue("faims:merge_features", "true",
+      "For FAIMS data with multiple compensation voltages: Merge features that represent "
+      "the same analyte detected at different CVs. Features are merged if they have the same "
+      "charge and are within 5 seconds RT and 0.05 Da m/z. Intensities are summed.");
+    defaults_.setValidStrings("faims:merge_features", {"true", "false"});
+
+    defaults_.setSectionDescription("faims", "Parameters for FAIMS data processing");
+
     defaultsToParam_();
   }
 
@@ -126,6 +144,8 @@ namespace OpenMS
     mz_window_ = param_.getValue("extract:mz_window");
     mz_window_ppm_ = mz_window_ >= 1;
 
+    im_window_ = param_.getValue("extract:im_window");
+
     isotope_pmin_ = param_.getValue("extract:isotope_pmin");
 
     // extract up to 10 isotopes if minimum probability is larger than 0
@@ -141,23 +161,124 @@ namespace OpenMS
     candidates_out_ = (string)param_.getValue("candidates_out");
   }
 
-  void FeatureFinderAlgorithmMetaboIdent::run(const vector<FeatureFinderAlgorithmMetaboIdent::FeatureFinderMetaboIdentCompound>& metaboIdentTable, 
-    FeatureMap& features, 
+  void FeatureFinderAlgorithmMetaboIdent::run(const vector<FeatureFinderAlgorithmMetaboIdent::FeatureFinderMetaboIdentCompound>& metaboIdentTable,
+    FeatureMap& features,
+    const String& spectra_file)
+  {
+    // Check for FAIMS data
+    auto faims_groups = IMDataConverter::splitByFAIMSCV(std::move(ms_data_));
+    const bool has_faims = faims_groups.size() > 1 || !std::isnan(faims_groups[0].first);
+
+    if (!has_faims)
+    {
+      // Non-FAIMS data: restore ms_data_ and run directly
+      ms_data_ = std::move(faims_groups[0].second);
+      runSingleGroup_(metaboIdentTable, features, spectra_file);
+      return;
+    }
+
+    // FAIMS data: process each CV group separately
+    OPENMS_LOG_INFO << "FAIMS data detected with " << faims_groups.size() << " compensation voltage(s)." << endl;
+
+    // Clear combined outputs
+    features.clear(true);
+    chrom_data_.clear(true);
+    library_.clear(true);
+    trafo_ = TransformationDescription();
+    n_shared_ = 0;
+    bool first_group = true;
+
+    for (auto& [group_cv, faims_group] : faims_groups)
+    {
+      OPENMS_LOG_INFO << "Processing FAIMS CV group: " << group_cv << " V ("
+                      << faims_group.size() << " spectra)" << endl;
+
+      // Create algorithm instance for this group (use same parameters)
+      FeatureFinderAlgorithmMetaboIdent ff_group;
+      ff_group.setParameters(this->getParameters());
+      ff_group.setMSData(std::move(faims_group));
+
+      FeatureMap features_cv;
+      ff_group.runSingleGroup_(metaboIdentTable, features_cv, spectra_file);
+
+      // Annotate features with FAIMS CV and add to combined results
+      for (auto& feat : features_cv)
+      {
+        feat.setMetaValue(Constants::UserParam::FAIMS_CV, group_cv);
+        features.push_back(feat);
+      }
+
+      // Copy ProteinIdentifications from first group
+      if (first_group)
+      {
+        features.setProteinIdentifications(features_cv.getProteinIdentifications());
+      }
+
+      // Copy UnassignedPeptideIdentifications with FAIMS annotation
+      for (auto& pep_id : features_cv.getUnassignedPeptideIdentifications())
+      {
+        pep_id.setMetaValue(Constants::UserParam::FAIMS_CV, group_cv);
+        features.getUnassignedPeptideIdentifications().push_back(std::move(pep_id));
+      }
+
+      // Combine chromatograms
+      for (auto& chrom : ff_group.getChromatograms().getChromatograms())
+      {
+        chrom.setMetaValue(Constants::UserParam::FAIMS_CV, group_cv);
+        chrom_data_.addChromatogram(std::move(chrom));
+      }
+
+      // Combine transformations
+      TransformationDescription::DataPoints points = trafo_.getDataPoints();
+      for (const auto& point : ff_group.getTransformations().getDataPoints())
+      {
+        points.push_back(point);
+      }
+      trafo_.setDataPoints(points);
+
+      n_shared_ += ff_group.getNShared();
+      first_group = false;
+    }
+
+    // Warn about library output for FAIMS data
+    OPENMS_LOG_WARN << "Warning: Library output is not available for multi-FAIMS data. "
+                    << "Each FAIMS CV group has its own assay library." << endl;
+    OPENMS_LOG_INFO << "Combined " << features.size() << " features from all FAIMS CV groups." << endl;
+
+    // Optionally merge features from different FAIMS CV groups that represent the same analyte
+    if (param_.getValue("faims:merge_features").toBool())
+    {
+      Size before_merge = features.size();
+      FeatureOverlapFilter::mergeFAIMSFeatures(features, 5.0, 0.05);
+      if (features.size() < before_merge)
+      {
+        OPENMS_LOG_INFO << "Merged FAIMS features: " << before_merge << " -> " << features.size()
+                        << " (" << (before_merge - features.size()) << " features merged)" << endl;
+      }
+    }
+
+    // Set primary MS run path
+    features.setPrimaryMSRunPath({spectra_file});
+    features.ensureUniqueId();
+  }
+
+  void FeatureFinderAlgorithmMetaboIdent::runSingleGroup_(const vector<FeatureFinderAlgorithmMetaboIdent::FeatureFinderMetaboIdentCompound>& metaboIdentTable,
+    FeatureMap& features,
     const String& spectra_file)
   {
     // if proper mzML is annotated in MS data use this as reference. Otherwise, overwrite with spectra_file information.
-    features.setPrimaryMSRunPath({spectra_file}, ms_data_); 
-  
+    features.setPrimaryMSRunPath({spectra_file}, ms_data_);
+
     if (ms_data_.empty())
     {
-      OPENMS_LOG_WARN << "Warning: No MS1 scans in:"<< spectra_file << endl;      
+      OPENMS_LOG_WARN << "Warning: No MS1 scans in:" << spectra_file << endl;
       return;
     }
 
     for (const auto& c : metaboIdentTable)
     {
       addTargetToLibrary_(c.getName(), c.getFormula(), c.getMass(), c.getCharges(), c.getRTs(), c.getRTRanges(),
-                      c.getIsotopeDistribution());
+                      c.getIsotopeDistribution(), c.getIonMobilities());
     }
 
     // initialize algorithm classes needed later:
@@ -210,6 +331,14 @@ namespace OpenMS
     //-------------------------------------------------------------
     // run feature detection
     //-------------------------------------------------------------
+    // Check if data has ion mobility information
+    IMFormat im_format = IMTypes::determineIMFormat(ms_data_);
+    bool has_IM = (im_format == IMFormat::CONCATENATED || im_format == IMFormat::MULTIPLE_SPECTRA);
+    if (has_IM && im_window_ > 0.0)
+    {
+      OPENMS_LOG_INFO << "Ion mobility data detected. Using IM window: " << im_window_ << endl;
+    }
+
     OPENMS_LOG_INFO << "Extracting chromatograms..." << endl;
     ChromatogramExtractor extractor;
     // extractor.setLogType(ProgressLogger::NONE);
@@ -221,8 +350,17 @@ namespace OpenMS
     boost::shared_ptr<PeakMap> shared = boost::make_shared<PeakMap>(ms_data_);
     OpenSwath::SpectrumAccessPtr spec_temp =
       SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(shared);
-    extractor.extractChromatograms(spec_temp, chrom_temp, coords, mz_window_,
-                                   mz_window_ppm_, "tophat");
+
+    if (has_IM && im_window_ > 0.0)
+    {
+      extractor.extractChromatograms(spec_temp, chrom_temp, coords, mz_window_,
+                                     mz_window_ppm_, im_window_, "tophat");
+    }
+    else
+    {
+      extractor.extractChromatograms(spec_temp, chrom_temp, coords, mz_window_,
+                                     mz_window_ppm_, "tophat");
+    }
     extractor.return_chromatogram(chrom_temp, coords, library_, (*shared)[0],
                                   chrom_data_.getChromatograms(), false);
 
@@ -364,7 +502,8 @@ namespace OpenMS
                            double mass, const vector<Int>& charges,
                            const vector<double>& rts,
                            vector<double> rt_ranges,
-                           const vector<double>& iso_distrib)
+                           const vector<double>& iso_distrib,
+                           const vector<double>& ion_mobilities)
   {
     if ((mass <= 0) && formula.empty())
     {
@@ -426,6 +565,42 @@ namespace OpenMS
     }
     iso_dist.renormalize();
 
+    // Prepare IM values: either empty (no filtering), one value (for all), or one per RT
+    // Use -1.0 as sentinel to match default drift_time_ and ChromatogramExtractor's check (>= 0.0)
+    vector<double> ims = ion_mobilities;
+    if (ims.empty())
+    {
+      ims.resize(rts.size(), -1.0); // -1 means no IM filtering (matches default drift_time_)
+    }
+    else if (ims.size() == 1)
+    {
+      ims.resize(rts.size(), ims[0]);
+    }
+    else if (ims.size() != rts.size())
+    {
+      OPENMS_LOG_ERROR << "Error: Number of IonMobility values (" << ims.size()
+                       << ") does not match number of RT values (" << rts.size()
+                       << ") for target '" << name << "' - skipping this target." << endl;
+      return;
+    }
+
+    // Prepare RT ranges: either empty (use default), one value (for all), or one per RT
+    if (rt_ranges.empty())
+    {
+      rt_ranges.resize(rts.size(), 0.0);
+    }
+    else if (rt_ranges.size() == 1)
+    {
+      rt_ranges.resize(rts.size(), rt_ranges[0]);
+    }
+    else if (rt_ranges.size() != rts.size())
+    {
+      OPENMS_LOG_ERROR << "Error: Number of RetentionTimeRange values (" << rt_ranges.size()
+                       << ") does not match number of RT values (" << rts.size()
+                       << ") for target '" << name << "' - skipping this target." << endl;
+      return;
+    }
+
     // go through different charge states:
     for (vector<Int>::const_iterator z_it = charges.begin();
          z_it != charges.end(); ++z_it)
@@ -449,22 +624,25 @@ namespace OpenMS
         mz = calculateMZ_(mass, *z_it);
       }
 
-      // recycle to one range entry per RT:
-      if (rt_ranges.empty())
-      {
-        rt_ranges.resize(rts.size(), 0.0);
-      }
-      else if (rt_ranges.size() == 1)
-      {
-        rt_ranges.resize(rts.size(), rt_ranges[0]);
-      }
-
       for (Size i = 0; i < rts.size(); ++i)
       {
         target.id = target_id + "_z" + String(*z_it) + "_rt" +
           String(float(rts[i]));
         target.setMetaValue("expected_rt", rts[i]);
         target_rts_[target.id] = rts[i];
+
+        // Store IM information if provided - set drift time for ChromatogramExtractor
+        // Check >= 0.0 to match ChromatogramExtractor's IM filtering logic
+        if (ims[i] >= 0.0)
+        {
+          target.setDriftTime(ims[i]); // Required for IM-aware chromatogram extraction
+          target.setMetaValue("expected_im", ims[i]);
+        }
+        else
+        {
+          // Reset drift time to -1 (no IM filtering) - target is reused across iterations
+          target.setDriftTime(-1.0);
+        }
 
         double rt_tol = rt_ranges[i] / 2.0;
         if (rt_tol == 0)
@@ -537,6 +715,11 @@ namespace OpenMS
       feat.setMetaValue("sum_formula", compound.molecular_formula);
       feat.setMetaValue("expected_rt",
                             compound.getMetaValue("expected_rt"));
+      // Add IM annotations if available
+      if (compound.metaValueExists("expected_im"))
+      {
+        feat.setMetaValue("expected_im", compound.getMetaValue("expected_im"));
+      }
       // annotate subordinates with theoretical isotope intensities:
       for (Feature& sub : feat.getSubordinates())
       {
@@ -669,6 +852,11 @@ namespace OpenMS
         peptide.setMetaValue("PeptideRef", it->id);
         peptide.setRT(it->getMetaValue("expected_rt"));
         peptide.setMZ(calculateMZ_(it->theoretical_mass, it->getChargeState()));
+        // Add IM annotation if available
+        if (it->metaValueExists("expected_im"))
+        {
+          peptide.setMetaValue("expected_im", it->getMetaValue("expected_im"));
+        }
         features.getUnassignedPeptideIdentifications().push_back(peptide);
       }
       if (features.getUnassignedPeptideIdentifications().size() >= n_missing)
@@ -712,9 +900,9 @@ namespace OpenMS
   }
 
   void FeatureFinderAlgorithmMetaboIdent::setMSData(PeakMap&& m)
-  { 
-    ms_data_ = std::move(m); 
-    
+  {
+    ms_data_ = std::move(m);
+
     vector<MSSpectrum>& specs = ms_data_.getSpectra();
 
     // keep only MS1
@@ -725,4 +913,3 @@ namespace OpenMS
   }
 
 }
-

@@ -13,6 +13,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h>
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/FEATUREFINDER/ElutionModelFitter.h>
@@ -22,6 +23,8 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/OMSFileLoad.h>
+
+#include <cmath>
 
 using namespace OpenMS;
 using namespace std;
@@ -63,7 +66,7 @@ Spectra are expected in centroided or profile mode. Only MS1 level spectra are c
 The targets to quantify have to be specified in a tab-separated text file that is passed via the @p id parameter.
 This file has to start with the following header line, defining its columns:
 <pre>
-<TT>CompoundName    SumFormula    Mass    Charge    RetentionTime    RetentionTimeRange    IsoDistribution</TT>
+<TT>CompoundName    SumFormula    Mass    Charge    RetentionTime    RetentionTimeRange    IsoDistribution    [IonMobility]</TT>
 </pre>
 
 Every subsequent line defines a target.
@@ -76,9 +79,31 @@ The following requirements apply:
 - @p RetentionTime: retention time (RT), or comma-separated list of multiple RTs
 - @p RetentionTimeRange: RT window around @p RetentionTime for chromatogram extraction, either one value or one per @p RT entry; if zero parameter @p extract:rt_window is used
 - @p IsoDistribution: comma-separated list of relative abundances of isotopologues (see @ref OpenMS::IsotopeDistribution); if zero calculated from @p Formula
+- @p IonMobility (optional): ion mobility value, or comma-separated list of multiple values (one per RT entry); if not provided or zero, no IM filtering is performed. The extraction window is controlled by parameter @p extract:im_window.
 
 In the simplest case, only @p CompoundName, @p SumFormula, @p Charge and @p RetentionTime need to be given, all other values may be zero.
 Every combination of compound (mass), RT and charge defines one target for feature detection.
+For ion mobility data, an optional @p IonMobility column can be added to filter extraction by ion mobility.
+
+<B>Ion Mobility Support (experimental)</B>
+
+This tool supports two types of ion mobility data:
+
+@b FAIMS (Field Asymmetric Ion Mobility Spectrometry):
+FAIMS data is automatically detected based on compensation voltage (CV) annotations in the mzML file.
+The data is split by CV and processed separately for each voltage group.
+Features representing the same analyte detected at different CV values are merged by default (controlled by @p faims:merge_features).
+No special preparation of the input mzML file is required.
+
+@b Bruker @b TimsTOF (trapped ion mobility):
+TimsTOF data requires special preparation of the mzML file. The ion mobility spectra must be concatenated into
+single spectra per frame using msconvert with the @p --combineIonMobilitySpectra option:
+@code
+msconvert input.d --mzML --combineIonMobilitySpectra -o output_dir
+@endcode
+The resulting mzML file contains one spectrum per frame with ion mobility values stored per peak.
+Ion mobility values for targets can be specified in the @p IonMobility column of the input TSV file.
+The extraction window is controlled by @p extract:im_window.
 
 <B>Output format</B>
 
@@ -140,6 +165,7 @@ protected:
   {
     vector<FeatureFinderAlgorithmMetaboIdent::FeatureFinderMetaboIdentCompound> metaboIdentTable;
 
+    // Base required header (optional column IonMobility may follow)
     const string header =
       "CompoundName\tSumFormula\tMass\tCharge\tRetentionTime\tRetentionTimeRange\tIsoDistribution";
     ifstream source(in_path.c_str());
@@ -156,6 +182,10 @@ protected:
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                   line, msg);
     }
+
+    // Check for optional IM columns in header
+    bool has_im_columns = String(line).hasSubstring("IonMobility");
+
     Size line_count = 1;
     set<String> names;
     while (getline(source, line))
@@ -166,7 +196,7 @@ protected:
       if (parts.size() < 7)
       {
         OPENMS_LOG_ERROR
-          << "Error: Expected 7 tab-separated fields, found only "
+          << "Error: Expected at least 7 tab-separated fields, found only "
           << parts.size() << " in line " << line_count
           << " - skipping this line." << endl;
         continue;
@@ -185,13 +215,22 @@ protected:
                          << " - skipping this line." << endl;
         continue;
       }
+
+      // Parse optional IM column (column 8, 0-indexed 7)
+      vector<double> ion_mobilities;
+      if (has_im_columns && parts.size() > 7)
+      {
+        ion_mobilities = ListUtils::create<double>(parts[7]);
+      }
+
       metaboIdentTable.push_back(FeatureFinderAlgorithmMetaboIdent::FeatureFinderMetaboIdentCompound(name,
                                  parts[1],
                                  parts[2].toDouble(),
                                  ListUtils::create<Int>(parts[3]),
                                  ListUtils::create<double>(parts[4]),
                                  ListUtils::create<double>(parts[5]),
-                                 ListUtils::create<double>(parts[6])));
+                                 ListUtils::create<double>(parts[6]),
+                                 ion_mobilities));
     }
     return metaboIdentTable;
   }
@@ -218,48 +257,50 @@ protected:
     OPENMS_LOG_INFO << "Loading targets and creating assay library..." << endl;
     auto table = readTargets_(id);
 
-    FeatureFinderAlgorithmMetaboIdent ff_mident;
-    // copy (command line) tool parameters that match the algorithm parameters back to the algorithm
+    // Prepare algorithm parameters
     auto tool_parameter = getParam_().copySubset(FeatureFinderAlgorithmMetaboIdent().getDefaults());
     tool_parameter.setValue("EMGScoring:init_mom", "true"); // overwrite defaults
     tool_parameter.setValue("EMGScoring:max_iteration", 100); // overwrite defaults
     tool_parameter.setValue("debug", debug_level_); // pass down debug level
-    ff_mident.setParameters(tool_parameter);
 
     OPENMS_LOG_INFO << "Loading input LC-MS data..." << endl;
+    PeakMap exp;
     FileHandler mzml;
     mzml.getOptions().addMSLevel(1);
-    mzml.loadExperiment(in, ff_mident.getMSData(), {FileTypes::MZML});
-    if (ff_mident.getMSData().empty() && !force)
+    mzml.loadExperiment(in, exp, {FileTypes::MZML});
+    if (exp.empty() && !force)
     {
       OPENMS_LOG_ERROR << "Error: No MS1 scans in '"
                        << in << "' - aborting." << endl;
       return INCOMPATIBLE_INPUT_DATA;
     }
+
+    //-------------------------------------------------------------
+    // Run feature detection (FAIMS handling is done internally)
+    //-------------------------------------------------------------
+    FeatureFinderAlgorithmMetaboIdent ff_mident;
+    ff_mident.setParameters(tool_parameter);
+    ff_mident.setMSData(std::move(exp));
+
     FeatureMap features;
     ff_mident.run(table, features, in);
 
-    // annotate "spectra_data" metavalue
+    // annotate "spectra_data" metavalue and ensure unique IDs
     if (getFlag_("test"))
     {
       // if test mode set, add file without path so we can compare it
       features.setPrimaryMSRunPath({"file://" + File::basename(in)});
     }
-    else
-    {
-      features.setPrimaryMSRunPath({in}, ff_mident.getMSData());
-    }
+    features.ensureUniqueId();
 
     addDataProcessing_(features, getProcessingInfo_(DataProcessing::QUANTITATION));
 
     if (!chrom_out.empty())
     {
-      PeakMap& chrom_data = ff_mident.getChromatograms();
-      addDataProcessing_(chrom_data,
-                         getProcessingInfo_(DataProcessing::FILTERING));
-      FileHandler().storeExperiment(chrom_out, ff_mident.getChromatograms(), {FileTypes::MZML});
+      PeakMap chrom_data = ff_mident.getChromatograms();
+      addDataProcessing_(chrom_data, getProcessingInfo_(DataProcessing::FILTERING));
+      FileHandler().storeExperiment(chrom_out, chrom_data, {FileTypes::MZML});
     }
-    ff_mident.getChromatograms().clear(true);
 
     //-------------------------------------------------------------
     // write output
@@ -268,7 +309,7 @@ protected:
     OPENMS_LOG_INFO << "Writing final results..." << endl;
     FileHandler().storeFeatures(out, features, {FileTypes::FEATUREXML});
 
-    // write transition library in TraML format
+    // write transition library in TraML format (empty for multi-FAIMS data)
     if (!lib_out.empty())
     {
       FileHandler().storeTransitions(lib_out, ff_mident.getLibrary(), {FileTypes::TRAML});
@@ -277,8 +318,7 @@ protected:
     // write expected vs. observed retention times
     if (!trafo_out.empty())
     {
-      const TransformationDescription& trafo = ff_mident.getTransformations();
-      FileHandler().storeTransformations(trafo_out, trafo, {FileTypes::TRANSFORMATIONXML});
+      FileHandler().storeTransformations(trafo_out, ff_mident.getTransformations(), {FileTypes::TRANSFORMATIONXML});
     }
 
     //-------------------------------------------------------------
@@ -287,23 +327,27 @@ protected:
 
     Size n_missing = features.getUnassignedPeptideIdentifications().size();
     OPENMS_LOG_INFO << "\nSummary statistics:\n"
-             << ff_mident.getLibrary().getCompounds().size() << " targets specified\n"
+             << table.size() << " targets specified\n"
              << features.size() << " features found\n"
              << ff_mident.getNShared() << " features with multiple target annotations\n"
              << n_missing << " targets without features";
     const Size n_examples = 5;
-    if (n_missing)
+    const TargetedExperiment& library = ff_mident.getLibrary();
+    if (n_missing && !library.getCompounds().empty())
     {
       OPENMS_LOG_INFO << ":";
       for (Size i = 0;
            ((i < features.getUnassignedPeptideIdentifications().size()) &&
             (i < n_examples)); ++i)
       {
-        const PeptideIdentification& id =
+        const PeptideIdentification& pep_id =
           features.getUnassignedPeptideIdentifications()[i];
-        const TargetedExperiment::Compound& compound =
-          ff_mident.getLibrary().getCompoundByRef(id.getMetaValue("PeptideRef"));
-        OPENMS_LOG_INFO << "\n- " << ff_mident.prettyPrintCompound(compound);
+        if (pep_id.metaValueExists("PeptideRef"))
+        {
+          const TargetedExperiment::Compound& compound =
+            library.getCompoundByRef(pep_id.getMetaValue("PeptideRef"));
+          OPENMS_LOG_INFO << "\n- " << FeatureFinderAlgorithmMetaboIdent::prettyPrintCompound(compound);
+        }
       }
       if (n_missing > n_examples)
       {
