@@ -50,6 +50,9 @@ using namespace std;
  */
 struct CometModification
 {
+  /// Mass tolerance for comparing modification masses
+  static constexpr double MASS_TOLERANCE = 1e-6;
+  
   double mass{0.0};              ///< Modification mass difference
   String residues;               ///< Residue(s) this modification applies to (e.g., "K", "KR", "n", "nKR")
   int binary_group{0};           ///< Binary modification group (for SILAC etc.)
@@ -107,7 +110,7 @@ struct CometModification
   bool isMergeableWith(const CometModification& other) const
   {
     // Must have same mass (within floating point tolerance)
-    if (std::abs(mass - other.mass) > 1e-6) return false;
+    if (std::abs(mass - other.mass) > MASS_TOLERANCE) return false;
     
     // Must have same binary group
     if (binary_group != other.binary_group) return false;
