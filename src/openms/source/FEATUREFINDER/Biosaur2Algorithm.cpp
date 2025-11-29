@@ -16,6 +16,7 @@
 #include <OpenMS/KERNEL/SpectrumHelper.h>
 #include <OpenMS/MATH/StatisticFunctions.h>
 #include <OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h>
+#include <OpenMS/PROCESSING/FEATURE/FeatureOverlapFilter.h>
 #include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/SYSTEM/StopWatch.h>
 
@@ -103,6 +104,12 @@ Biosaur2Algorithm::Biosaur2Algorithm() :
                      "(larger featureXML, preserves detailed trace shape).");
   defaults_.setValidStrings("convex_hulls", {"mass_traces", "bounding_box"});
 
+  defaults_.setValue("faims_merge_features", "true",
+                     "For FAIMS data with multiple compensation voltages: Merge features representing the same analyte "
+                     "detected at different CV values into a single feature. Only features with DIFFERENT FAIMS CV values "
+                     "are merged (same CV = different analytes). Has no effect on non-FAIMS data.");
+  defaults_.setValidStrings("faims_merge_features", {"true", "false"});
+
   defaultsToParam_();
   updateMembers_();
 }
@@ -130,6 +137,7 @@ void Biosaur2Algorithm::updateMembers_()
   paseftol_ = param_.getValue("paseftol");
   hrttol_ = param_.getValue("hrttol");
   convex_hull_mode_ = param_.getValue("convex_hulls").toString();
+  faims_merge_features_ = param_.getValue("faims_merge_features").toBool();
 
   OPENMS_LOG_DEBUG << "Biosaur2Algorithm parameters after updateMembers_: "
                    << "mini=" << mini_
@@ -153,6 +161,7 @@ void Biosaur2Algorithm::updateMembers_()
                    << ", paseftol=" << paseftol_
                    << ", hrttol=" << hrttol_
                    << ", convex_hulls=" << convex_hull_mode_
+                   << ", faims_merge_features=" << faims_merge_features_
                    << endl;
 }
 
@@ -268,6 +277,21 @@ void Biosaur2Algorithm::run(FeatureMap& feature_map,
     if (!gm.empty())
     {
       combined_feature_map.insert(combined_feature_map.end(), gm.begin(), gm.end());
+    }
+  }
+
+  // Check if we have FAIMS data (multiple CV groups)
+  const bool has_faims = n_groups > 1 || !std::isnan(groups[0].first);
+  
+  // Optionally merge features representing the same analyte at different FAIMS CV values
+  if (has_faims && faims_merge_features_)
+  {
+    Size before_merge = combined_feature_map.size();
+    FeatureOverlapFilter::mergeFAIMSFeatures(combined_feature_map, 5.0, 0.05);
+    if (combined_feature_map.size() < before_merge)
+    {
+      OPENMS_LOG_INFO << "FAIMS feature merge: " << before_merge << " -> " << combined_feature_map.size()
+                      << " features (merged " << (before_merge - combined_feature_map.size()) << ")" << endl;
     }
   }
 
