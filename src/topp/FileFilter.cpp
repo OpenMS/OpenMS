@@ -913,9 +913,9 @@ protected:
       if (!remove_activation.empty())
       {
         writeDebug_("Removing scans with activation mode: " + remove_activation, 3);
-        for (Size i = 0; i < Precursor::ActivationMethod::SIZE_OF_ACTIVATIONMETHOD; ++i)
+        for (Size i = 0; i < static_cast<Size>(Precursor::ActivationMethod::SIZE_OF_ACTIVATIONMETHOD); ++i)
         {
-          if (Precursor::NamesOfActivationMethod[static_cast<size_t>(i)] == remove_activation)
+          if (Precursor::NamesOfActivationMethod[i] == remove_activation)
           {
             exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), HasActivationMethod<MapType::SpectrumType>(ListUtils::create<String>(remove_activation))), exp.end());
           }
@@ -927,9 +927,9 @@ protected:
       if (!select_activation.empty())
       {
         writeDebug_("Selecting scans with activation mode: " + select_activation, 3);
-        for (Size i = 0; i < Precursor::ActivationMethod::SIZE_OF_ACTIVATIONMETHOD; ++i)
+        for (Size i = 0; i < static_cast<Size>(Precursor::ActivationMethod::SIZE_OF_ACTIVATIONMETHOD); ++i)
         {
-          if (Precursor::NamesOfActivationMethod[static_cast<size_t>(i)] == select_activation)
+          if (Precursor::NamesOfActivationMethod[i] == select_activation)
           {
             exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), HasActivationMethod<MapType::SpectrumType>(ListUtils::create<String>(select_activation), true)), exp.end());
           }

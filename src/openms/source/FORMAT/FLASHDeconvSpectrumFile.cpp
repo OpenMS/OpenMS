@@ -327,7 +327,7 @@ namespace OpenMS
     if (ms_level > 1)
     {
       double precursor_mass = dspec.getPrecursorPeakGroup().getMonoMass();
-      if (dspec.getActivationMethod() < Precursor::ActivationMethod::SIZE_OF_ACTIVATIONMETHOD)
+      if (static_cast<size_t>(dspec.getActivationMethod()) < static_cast<size_t>(Precursor::ActivationMethod::SIZE_OF_ACTIVATIONMETHOD))
       {
         fs << "ACTIVATION=" << Precursor::NamesOfActivationMethodShort[static_cast<size_t>(dspec.getActivationMethod())] << "\n";
       }

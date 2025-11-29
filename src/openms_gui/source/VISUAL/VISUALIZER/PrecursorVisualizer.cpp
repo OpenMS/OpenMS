@@ -53,10 +53,10 @@ namespace OpenMS
 
     //actions
     activation_methods_->clear();
-    for (Size i = 0; i < Precursor::ActivationMethod::SIZE_OF_ACTIVATIONMETHOD; ++i)
+    for (Size i = 0; i < static_cast<Size>(Precursor::ActivationMethod::SIZE_OF_ACTIVATIONMETHOD); ++i)
     {
       QListWidgetItem * item = new QListWidgetItem(activation_methods_);
-      item->setText(QString::fromStdString(Precursor::NamesOfActivationMethod[static_cast<size_t>(i)]));
+      item->setText(QString::fromStdString(Precursor::NamesOfActivationMethod[i]));
       if (temp_.getActivationMethods().count(Precursor::ActivationMethod(i)) == 1)
       {
         item->setCheckState(Qt::Checked);
@@ -89,7 +89,7 @@ namespace OpenMS
     ptr_->setIsolationWindowUpperOffset(window_up_->text().toFloat());
 
     ptr_->getActivationMethods().clear();
-    for (UInt i = 0; i < Precursor::ActivationMethod::SIZE_OF_ACTIVATIONMETHOD; ++i)
+    for (UInt i = 0; i < static_cast<UInt>(Precursor::ActivationMethod::SIZE_OF_ACTIVATIONMETHOD); ++i)
     {
       if (activation_methods_->item(i)->checkState() == Qt::Checked)
       {
