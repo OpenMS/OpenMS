@@ -59,6 +59,7 @@ TOPP tools:
   Added Tools:
     - OpenNuXL - A peptide-RNA/DNA cross-linking search engine
     - PeptideDataBaseSearchFI - Experimental peptide database search engine using a fragment index (FI) and the new PeptideSearchEngineFIAlgorithm
+    - FeatureFinderLFQ (experimental) - Feature detection for label-free proteomics DDA-LFQ based on the Biosaur2 algorithm with support for FAIMS and TimsTOF ion mobility
   Removed Tools:
     - OpenPepXLLF - Experimental search for cross-linked peptide pairs in tandem MS spectra (showed inferior performance in benchmarks)
 
@@ -68,6 +69,7 @@ GUI tools:
 
 OpenMS Library:
   Added:
+    - FeatureFinderAlgorithmBiosaur2 (experimental): Feature detection algorithm for label-free proteomics DDA-LFQ based on the Biosaur2 algorithm with support for FAIMS and TimsTOF ion mobility.
     - PeptideHit: Added TargetDecoyType (TARGET, DECOY, TARGET_DECOY, UNKNOWN) and setTargetDecoyType()/getTargetDecoyType(); supports target+decoy peptide hits.
     - IDScoreSwitcherAlgorithm: Added findScoreType() method for generic score type detection. Checks if main score matches requested ScoreType (PEP, QVAL, FDR, etc.) or finds it in meta values..
     - ProteinHit: Added TargetDecoyType (TARGET, DECOY, UNKNOWN) and setTargetDecoyType()/getTargetDecoyType().
