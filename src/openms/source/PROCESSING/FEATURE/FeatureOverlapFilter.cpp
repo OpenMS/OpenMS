@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/PROCESSING/FEATURE/FeatureOverlapFilter.h>
+#include <OpenMS/CONCEPT/Constants.h>
 
 #include <Quadtree.h>
 #include <Box.h>
@@ -123,32 +124,75 @@ namespace OpenMS
     std::function<bool(Feature&, Feature&)> FeatureOverlapCallback,
     bool check_overlap_at_trace_level)
   {
+    // Delegate to the new overload with appropriate mode
+    FeatureOverlapMode mode = check_overlap_at_trace_level ? FeatureOverlapMode::TRACE_LEVEL : FeatureOverlapMode::CONVEX_HULL;
+    CentroidTolerances tolerances; // Use default values
+    filter(fmap, FeatureComparator, FeatureOverlapCallback, mode, tolerances);
+  }
+  
+  void FeatureOverlapFilter::filter(FeatureMap& fmap,
+    std::function<bool(const Feature&, const Feature&)> FeatureComparator,
+    std::function<bool(Feature&, Feature&)> FeatureOverlapCallback,
+    FeatureOverlapMode mode,
+    const CentroidTolerances& tolerances)
+  {
     fmap.updateRanges();
     // Sort all features according to the comparator. After the sort, the "smallest" == best feature will be the first entry we will start processing with...
     std::stable_sort(fmap.begin(), fmap.end(), FeatureComparator);
 
-    const auto getBox = [](const Feature* f)
+    // Define getBox function based on mode
+    std::function<quadtree::Box<float>(const Feature*)> getBox;
+    
+    if (mode == FeatureOverlapMode::CENTROID_BASED)
     {
+      // For centroid-based mode, create tolerance boxes around centroids
+      getBox = [&tolerances](const Feature* f)
+      {
+        float rt = f->getRT();
+        float mz = f->getMZ();
+        return quadtree::Box<float>(
+          mz - tolerances.mz_tolerance, 
+          rt - tolerances.rt_tolerance, 
+          2 * tolerances.mz_tolerance, 
+          2 * tolerances.rt_tolerance
+        );
+      };
+    }
+    else
+    {
+      // For convex hull/trace modes, use full convex hull bounding boxes
+      getBox = [](const Feature* f)
+      {
         const auto& bb = f->getConvexHull().getBoundingBox();
         return quadtree::Box<float>(bb.minY(), bb.minX(), bb.maxY()-bb.minY(), bb.maxX()-bb.minX());
-    };
+      };
+    }
 
     float minMZ = fmap.getMinMZ();
     float maxMZ = fmap.getMaxMZ();
     float minRT = fmap.getMinRT();
     float maxRT = fmap.getMaxRT();
 
-    // build quadtree with all features
+    // Expand boundaries for centroid mode to accommodate tolerance boxes
+    if (mode == FeatureOverlapMode::CENTROID_BASED)
+    {
+      minMZ -= tolerances.mz_tolerance;
+      maxMZ += tolerances.mz_tolerance;
+      minRT -= tolerances.rt_tolerance;
+      maxRT += tolerances.rt_tolerance;
+    }
+
+    // Build quadtree with all features
     quadtree::Box<float> fullExp(minMZ-1, minRT-1, maxMZ-minMZ+2, maxRT-minRT+2);
     auto quadtree = quadtree::Quadtree<Feature*, decltype(getBox)>(fullExp, getBox);
     for (auto& f : fmap)
     {
-        quadtree.add(&f);
+      quadtree.add(&f);
     }        
 
-    // if we check for overlapping traces we need a faster lookup structure
+    // If we check for overlapping traces we need a faster lookup structure
     FeatureBoundsMap fbm;
-    if (check_overlap_at_trace_level)
+    if (mode == FeatureOverlapMode::TRACE_LEVEL)
     {
       fbm = getFeatureBounds(fmap);
     }
@@ -162,12 +206,59 @@ namespace OpenMS
         {
           if ((overlap != &f))
           {
-            // Because feature boundaries might be large and lead to many overlapps, we (optionally) also can check if the boundaries of traces overlap
             bool is_true_overlap = true;
-            if (check_overlap_at_trace_level)
+            
+            if (mode == FeatureOverlapMode::CENTROID_BASED)
+            {
+              // Check charge requirement
+              if (tolerances.require_same_charge && f.getCharge() != overlap->getCharge())
+              {
+                is_true_overlap = false;
+              }
+              // Check FAIMS CV requirement
+              else if (tolerances.require_same_im)
+              {
+                bool f_has_im = f.metaValueExists(Constants::UserParam::FAIMS_CV);
+                bool overlap_has_im = overlap->metaValueExists(Constants::UserParam::FAIMS_CV);
+
+                if (f_has_im != overlap_has_im)
+                {
+                  // One has FAIMS CV, the other doesn't - not same group
+                  is_true_overlap = false;
+                }
+                else if (f_has_im && overlap_has_im)
+                {
+                  // Both have FAIMS CV - must match
+                  double f_cv = f.getMetaValue(Constants::UserParam::FAIMS_CV);
+                  double overlap_cv = overlap->getMetaValue(Constants::UserParam::FAIMS_CV);
+                  if (f_cv != overlap_cv)
+                  {
+                    is_true_overlap = false;
+                  }
+                }
+                // else: both don't have FAIMS CV - same group, continue to distance check
+
+                if (is_true_overlap)
+                {
+                  // Check exact centroid distances within tolerance
+                  double rt_diff = std::abs(f.getRT() - overlap->getRT());
+                  double mz_diff = std::abs(f.getMZ() - overlap->getMZ());
+                  is_true_overlap = (rt_diff <= tolerances.rt_tolerance && mz_diff <= tolerances.mz_tolerance);
+                }
+              }
+              else
+              {
+                // Check exact centroid distances within tolerance
+                double rt_diff = std::abs(f.getRT() - overlap->getRT());
+                double mz_diff = std::abs(f.getMZ() - overlap->getMZ());
+                is_true_overlap = (rt_diff <= tolerances.rt_tolerance && mz_diff <= tolerances.mz_tolerance);
+              }
+            }
+            else if (mode == FeatureOverlapMode::TRACE_LEVEL)
             {            
               is_true_overlap = tracesOverlap(f, *overlap, fbm);
             }
+            // For CONVEX_HULL mode, is_true_overlap remains true (quadtree query already handles overlap)
 
             if (is_true_overlap)
             {
@@ -185,9 +276,243 @@ namespace OpenMS
 
     const auto filtered = [&removed_uids](const Feature& f)
     {
-        return removed_uids.count(f.getUniqueId()) == 1;
+      return removed_uids.count(f.getUniqueId()) == 1;
     };
     fmap.erase(std::remove_if(fmap.begin(), fmap.end(), filtered), fmap.end());
+  }
+
+  std::function<bool(Feature&, Feature&)> FeatureOverlapFilter::createFAIMSMergeCallback(
+    MergeIntensityMode intensity_mode,
+    bool write_meta_values)
+  {
+    return [intensity_mode, write_meta_values](Feature& best_in_cluster, Feature& f) -> bool
+    {
+      double best_intensity = best_in_cluster.getIntensity();
+      double f_intensity = f.getIntensity();
+
+      if (write_meta_values)
+      {
+        // Collect centroid RT positions
+        std::vector<double> merged_rts;
+        if (best_in_cluster.metaValueExists("merged_centroid_rts"))
+        {
+          merged_rts = best_in_cluster.getMetaValue("merged_centroid_rts");
+        }
+        else
+        {
+          merged_rts.push_back(best_in_cluster.getRT());
+        }
+        merged_rts.push_back(f.getRT());
+        best_in_cluster.setMetaValue("merged_centroid_rts", merged_rts);
+
+        // Collect centroid m/z positions
+        std::vector<double> merged_mzs;
+        if (best_in_cluster.metaValueExists("merged_centroid_mzs"))
+        {
+          merged_mzs = best_in_cluster.getMetaValue("merged_centroid_mzs");
+        }
+        else
+        {
+          merged_mzs.push_back(best_in_cluster.getMZ());
+        }
+        merged_mzs.push_back(f.getMZ());
+        best_in_cluster.setMetaValue("merged_centroid_mzs", merged_mzs);
+
+        // Collect FAIMS CV values (only if present on features)
+        std::vector<double> merged_ims;
+        if (best_in_cluster.metaValueExists("merged_centroid_IMs"))
+        {
+          merged_ims = best_in_cluster.getMetaValue("merged_centroid_IMs");
+        }
+        else if (best_in_cluster.metaValueExists(Constants::UserParam::FAIMS_CV))
+        {
+          merged_ims.push_back(best_in_cluster.getMetaValue(Constants::UserParam::FAIMS_CV));
+          best_in_cluster.removeMetaValue(Constants::UserParam::FAIMS_CV);
+        }
+
+        if (f.metaValueExists(Constants::UserParam::FAIMS_CV))
+        {
+          merged_ims.push_back(f.getMetaValue(Constants::UserParam::FAIMS_CV));
+        }
+
+        if (!merged_ims.empty())
+        {
+          best_in_cluster.setMetaValue("merged_centroid_IMs", merged_ims);
+          best_in_cluster.setMetaValue("FAIMS_merge_count", static_cast<int>(merged_ims.size()));
+        }
+      }
+
+      // Combine intensities according to mode
+      double new_intensity = best_intensity + f_intensity; // default: SUM
+      if (intensity_mode == MergeIntensityMode::MAX)
+      {
+        new_intensity = std::max(best_intensity, f_intensity);
+      }
+      best_in_cluster.setIntensity(new_intensity);
+
+      return true; // Remove the overlapping feature
+    };
+  }
+
+  void FeatureOverlapFilter::mergeOverlappingFeatures(FeatureMap& feature_map,
+                                                      double max_rt_diff,
+                                                      double max_mz_diff,
+                                                      bool require_same_charge,
+                                                      bool require_same_im,
+                                                      MergeIntensityMode intensity_mode,
+                                                      bool write_meta_values)
+  {
+    CentroidTolerances tolerances;
+    tolerances.rt_tolerance = max_rt_diff;
+    tolerances.mz_tolerance = max_mz_diff;
+    tolerances.require_same_charge = require_same_charge;
+    tolerances.require_same_im = require_same_im;
+
+    // Use intensity-based comparator (higher intensity = better = "smaller" in sort order)
+    auto intensity_comparator = [](const Feature& left, const Feature& right)
+    {
+      return left.getIntensity() > right.getIntensity();
+    };
+
+    filter(feature_map,
+           intensity_comparator,
+           createFAIMSMergeCallback(intensity_mode, write_meta_values),
+           FeatureOverlapMode::CENTROID_BASED,
+           tolerances);
+  }
+
+  void FeatureOverlapFilter::mergeFAIMSFeatures(FeatureMap& feature_map,
+                                                double max_rt_diff,
+                                                double max_mz_diff)
+  {
+    // Check if any features have FAIMS_CV - if not, nothing to do
+    bool has_faims_features = false;
+    for (const auto& f : feature_map)
+    {
+      if (f.metaValueExists(Constants::UserParam::FAIMS_CV))
+      {
+        has_faims_features = true;
+        break;
+      }
+    }
+
+    if (!has_faims_features)
+    {
+      return; // No FAIMS features, nothing to merge
+    }
+
+    // Separate features into FAIMS and non-FAIMS groups
+    FeatureMap faims_features;
+    FeatureMap non_faims_features;
+
+    for (auto& f : feature_map)
+    {
+      if (f.metaValueExists(Constants::UserParam::FAIMS_CV))
+      {
+        faims_features.push_back(std::move(f));
+      }
+      else
+      {
+        non_faims_features.push_back(std::move(f));
+      }
+    }
+
+    // Only merge the FAIMS features if we have more than one
+    if (faims_features.size() > 1)
+    {
+      CentroidTolerances tolerances;
+      tolerances.rt_tolerance = max_rt_diff;
+      tolerances.mz_tolerance = max_mz_diff;
+      tolerances.require_same_charge = true;
+      tolerances.require_same_im = false; // We handle IM check in callback
+
+      // Custom callback that only merges features with DIFFERENT FAIMS CV values
+      auto merge_callback = [](Feature& best_in_cluster, Feature& f) -> bool
+      {
+        // Only merge if FAIMS CVs are DIFFERENT
+        // (same CV features should not be merged - they are different analytes)
+        double best_cv = best_in_cluster.getMetaValue(Constants::UserParam::FAIMS_CV);
+        double f_cv = f.getMetaValue(Constants::UserParam::FAIMS_CV);
+
+        if (best_cv == f_cv)
+        {
+          return false; // Don't merge features with same CV
+        }
+
+        // Merge features with different CVs - sum intensities
+        double best_intensity = best_in_cluster.getIntensity();
+        double f_intensity = f.getIntensity();
+
+        // Collect centroid RT positions
+        std::vector<double> merged_rts;
+        if (best_in_cluster.metaValueExists("merged_centroid_rts"))
+        {
+          merged_rts = best_in_cluster.getMetaValue("merged_centroid_rts");
+        }
+        else
+        {
+          merged_rts.push_back(best_in_cluster.getRT());
+        }
+        merged_rts.push_back(f.getRT());
+        best_in_cluster.setMetaValue("merged_centroid_rts", merged_rts);
+
+        // Collect centroid m/z positions
+        std::vector<double> merged_mzs;
+        if (best_in_cluster.metaValueExists("merged_centroid_mzs"))
+        {
+          merged_mzs = best_in_cluster.getMetaValue("merged_centroid_mzs");
+        }
+        else
+        {
+          merged_mzs.push_back(best_in_cluster.getMZ());
+        }
+        merged_mzs.push_back(f.getMZ());
+        best_in_cluster.setMetaValue("merged_centroid_mzs", merged_mzs);
+
+        // Collect FAIMS CV values
+        std::vector<double> merged_ims;
+        if (best_in_cluster.metaValueExists("merged_centroid_IMs"))
+        {
+          merged_ims = best_in_cluster.getMetaValue("merged_centroid_IMs");
+        }
+        else
+        {
+          merged_ims.push_back(best_cv);
+          best_in_cluster.removeMetaValue(Constants::UserParam::FAIMS_CV);
+        }
+        merged_ims.push_back(f_cv);
+        best_in_cluster.setMetaValue("merged_centroid_IMs", merged_ims);
+        best_in_cluster.setMetaValue("FAIMS_merge_count", static_cast<int>(merged_ims.size()));
+
+        // Sum intensities
+        best_in_cluster.setIntensity(best_intensity + f_intensity);
+
+        return true; // Remove the merged feature
+      };
+
+      // Use intensity-based comparator
+      auto intensity_comparator = [](const Feature& left, const Feature& right)
+      {
+        return left.getIntensity() > right.getIntensity();
+      };
+
+      filter(faims_features,
+             intensity_comparator,
+             merge_callback,
+             FeatureOverlapMode::CENTROID_BASED,
+             tolerances);
+    }
+
+    // Combine back: merged FAIMS features + untouched non-FAIMS features
+    feature_map.clear();
+    for (auto& f : faims_features)
+    {
+      feature_map.push_back(std::move(f));
+    }
+    for (auto& f : non_faims_features)
+    {
+      feature_map.push_back(std::move(f));
+    }
   }
 
 }
