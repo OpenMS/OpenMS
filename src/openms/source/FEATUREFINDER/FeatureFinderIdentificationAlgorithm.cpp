@@ -428,7 +428,7 @@ namespace OpenMS
     feat_finder_.setLogType(ProgressLogger::NONE);
     feat_finder_.setStrictFlag(false);
     // to use MS1 Swath scores:
-    feat_finder_.setMS1Map(SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(boost::make_shared<MSExperiment>(ms_data_)));
+    feat_finder_.setMS1Map(SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(std::make_shared<MSExperiment>(ms_data_)));
 
     bool with_external_ids = !peptides_ext.empty();
 
@@ -507,7 +507,7 @@ namespace OpenMS
       n_external_peps_ = peptide_map_.size() - n_internal_peps_;
     }
 
-    boost::shared_ptr<PeakMap> shared = boost::make_shared<PeakMap>(ms_data_);
+    std::shared_ptr<PeakMap> shared = std::make_shared<PeakMap>(ms_data_);
     OpenSwath::SpectrumAccessPtr spec_temp =
         SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(shared);
     auto chunks = chunk_(peptide_map_.begin(), peptide_map_.end(), batch_size_);
