@@ -562,11 +562,10 @@ jobs:
           "$PYBIN/bin/python" -m venv $pynodot
           source $pynodot/bin/activate
 
-          # Install uv for faster dependency installation (into base Python)
-          "$PYBIN/bin/pip" install --upgrade pip uv
-          # Use uv for fast dependency installation (target the base Python used by CMake)
-          # Use full path to uv since it was installed in base Python, not the venv
-          "$PYBIN/bin/uv" pip install --python "$PYBIN/bin/python" -r $GITHUB_WORKSPACE/OpenMS/src/pyOpenMS/requirements_bld.txt
+          # Install uv into the venv for faster dependency installation
+          pip install --upgrade pip uv
+          # Use uv to install dependencies into the base Python (used by CMake)
+          uv pip install --python "$PYBIN/bin/python" -r $GITHUB_WORKSPACE/OpenMS/src/pyOpenMS/requirements_bld.txt
 
           # configure (don't copy deps since we use auditwheel)
 
@@ -691,11 +690,10 @@ jobs:
           "$PYBIN/bin/python" -m venv $pynodot
           source $pynodot/bin/activate
 
-          # Install uv for faster dependency installation (into base Python)
-          "$PYBIN/bin/pip" install --upgrade pip uv
-          # Use uv for fast dependency installation (target the base Python used by CMake)
-          # Use full path to uv since it was installed in base Python, not the venv
-          "$PYBIN/bin/uv" pip install --python "$PYBIN/bin/python" -r $GITHUB_WORKSPACE/OpenMS/src/pyOpenMS/requirements_bld.txt
+          # Install uv into the venv for faster dependency installation
+          pip install --upgrade pip uv
+          # Use uv to install dependencies into the base Python (used by CMake)
+          uv pip install --python "$PYBIN/bin/python" -r $GITHUB_WORKSPACE/OpenMS/src/pyOpenMS/requirements_bld.txt
 
           # configure (don't copy deps since we use auditwheel)
 
