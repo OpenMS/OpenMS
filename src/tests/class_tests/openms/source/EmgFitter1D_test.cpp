@@ -138,14 +138,12 @@ START_SECTION((QualityType fit1d(const  RawDataArrayType &range, InterpolationMo
 
 END_SECTION
 
-// Test that demonstrates the RT-outside-range bug when bounds are disabled
-// This reproduces issue #6239 where FeatureFinderMRM reported RT outside range
-START_SECTION([EXTRA] fit1d_rt_without_bounds_can_exceed_range)
+// Test that the fitter constrains RT to be within the data range (fixes issue #6239)
+// This reproduces the scenario where FeatureFinderMRM reported RT outside range
+START_SECTION([EXTRA] fit1d_rt_upper_bound)
 {
   // Create a peak near the upper edge of the data range
   // The data is truncated after RT=200, simulating a chromatogram that ends abruptly
-  // Without the boundary constraint, the optimizer can shift RT beyond 200
-
   EmgModel em;
   em.setInterpolationStep(1.0);
   Param tmp;
@@ -172,77 +170,22 @@ START_SECTION([EXTRA] fit1d_rt_without_bounds_can_exceed_range)
     }
   }
 
-  // Test WITHOUT boundary constraints (old behavior) - RT can go outside range
-  EmgFitter1D ef_no_bounds;
-  Param p_no_bounds;
-  p_no_bounds.setValue("fit_bounds:enabled", "false");
-  ef_no_bounds.setParameters(p_no_bounds);
+  // Fit - boundary constraints are automatically applied based on data range
+  EmgFitter1D ef;
+  std::unique_ptr<InterpolationModel> em_fitted;
+  EmgFitter1D::QualityType correlation = ef.fit1d(truncated_samples, em_fitted);
 
-  std::unique_ptr<InterpolationModel> em_fitted_no_bounds;
-  EmgFitter1D::QualityType correlation_no_bounds = ef_no_bounds.fit1d(truncated_samples, em_fitted_no_bounds);
+  double fitted_rt = (double)em_fitted->getParameters().getValue("emg:retention");
 
-  double fitted_rt_no_bounds = (double)em_fitted_no_bounds->getParameters().getValue("emg:retention");
-
-  std::cout << "WITHOUT bounds: fitted RT = " << fitted_rt_no_bounds
+  std::cout << "Upper bound test: fitted RT = " << fitted_rt
             << " (data range: 100-200, true peak: 195)" << std::endl;
 
-  // Without bounds, the optimizer may report RT outside the data range
-  // We don't assert a specific value here since the unbounded behavior is data-dependent
-  // but we document that it CAN exceed the range
-  TEST_EQUAL(correlation_no_bounds > 0.5, true)  // Should still produce some fit
-}
-END_SECTION
-
-// Test that the fitter constrains RT to be within the data range when bounds are enabled
-START_SECTION([EXTRA] fit1d_rt_with_bounds_stays_in_range)
-{
-  // Same setup as above but with bounds enabled (default)
-  EmgModel em;
-  em.setInterpolationStep(1.0);
-  Param tmp;
-  tmp.setValue("bounding_box:min", 100.0);
-  tmp.setValue("bounding_box:max", 300.0);
-  tmp.setValue("statistics:mean", 190.0);
-  tmp.setValue("statistics:variance", 2.0);
-  tmp.setValue("emg:height", 50000.0);
-  tmp.setValue("emg:width", 5.0);
-  tmp.setValue("emg:symmetry", 5.0);
-  tmp.setValue("emg:retention", 195.0);
-  em.setParameters(tmp);
-
-  EmgModel::SamplesType full_samples;
-  em.getSamples(full_samples);
-
-  EmgModel::SamplesType truncated_samples;
-  for (const auto& p : full_samples)
-  {
-    if (p.getPos() <= 200.0)
-    {
-      truncated_samples.push_back(p);
-    }
-  }
-
-  // Test WITH boundary constraints (new default behavior) - RT stays in range
-  EmgFitter1D ef_with_bounds;
-  // fit_bounds:enabled defaults to true, but let's be explicit
-  Param p_with_bounds;
-  p_with_bounds.setValue("fit_bounds:enabled", "true");
-  ef_with_bounds.setParameters(p_with_bounds);
-
-  std::unique_ptr<InterpolationModel> em_fitted_with_bounds;
-  EmgFitter1D::QualityType correlation_with_bounds = ef_with_bounds.fit1d(truncated_samples, em_fitted_with_bounds);
-
-  double fitted_rt_with_bounds = (double)em_fitted_with_bounds->getParameters().getValue("emg:retention");
-
-  std::cout << "WITH bounds: fitted RT = " << fitted_rt_with_bounds
-            << " (data range: 100-200, true peak: 195)" << std::endl;
-
-  // With bounds, the fitted RT MUST be within the data range [100, 200]
-  TEST_EQUAL(fitted_rt_with_bounds >= 100.0, true)
-  TEST_EQUAL(fitted_rt_with_bounds <= 200.0, true)
+  // The fitted RT MUST be within the data range [100, 200]
+  TEST_EQUAL(fitted_rt >= 100.0, true)
+  TEST_EQUAL(fitted_rt <= 200.0, true)
 
   // The fit should still be reasonable
-  TEST_EQUAL(correlation_with_bounds > 0.9, true)
+  TEST_EQUAL(correlation > 0.9, true)
 }
 END_SECTION
 
@@ -276,65 +219,20 @@ START_SECTION([EXTRA] fit1d_rt_lower_bound)
     }
   }
 
-  // With bounds enabled (default)
   EmgFitter1D ef;
   std::unique_ptr<InterpolationModel> em_fitted;
   EmgFitter1D::QualityType correlation = ef.fit1d(truncated_samples, em_fitted);
 
   double fitted_rt = (double)em_fitted->getParameters().getValue("emg:retention");
 
+  std::cout << "Lower bound test: fitted RT = " << fitted_rt
+            << " (data range: 5-200, true peak: 10)" << std::endl;
+
   // The fitted RT must be within the truncated data range [5, 200]
   TEST_EQUAL(fitted_rt >= 5.0, true)
   TEST_EQUAL(fitted_rt <= 200.0, true)
 
   TEST_EQUAL(correlation > 0.9, true)
-
-  std::cout << "Lower bound test: fitted RT = " << fitted_rt
-            << " (data range: 5-200, true peak: 10)" << std::endl;
-}
-END_SECTION
-
-// Test that default behavior (no explicit parameter set) uses bounds
-START_SECTION([EXTRA] fit1d_default_uses_bounds)
-{
-  EmgModel em;
-  em.setInterpolationStep(1.0);
-  Param tmp;
-  tmp.setValue("bounding_box:min", 100.0);
-  tmp.setValue("bounding_box:max", 300.0);
-  tmp.setValue("statistics:mean", 190.0);
-  tmp.setValue("statistics:variance", 2.0);
-  tmp.setValue("emg:height", 50000.0);
-  tmp.setValue("emg:width", 5.0);
-  tmp.setValue("emg:symmetry", 5.0);
-  tmp.setValue("emg:retention", 195.0);
-  em.setParameters(tmp);
-
-  EmgModel::SamplesType full_samples;
-  em.getSamples(full_samples);
-
-  EmgModel::SamplesType truncated_samples;
-  for (const auto& p : full_samples)
-  {
-    if (p.getPos() <= 200.0)
-    {
-      truncated_samples.push_back(p);
-    }
-  }
-
-  // Default constructor - should use bounds by default
-  EmgFitter1D ef_default;
-  std::unique_ptr<InterpolationModel> em_fitted;
-  ef_default.fit1d(truncated_samples, em_fitted);
-
-  double fitted_rt = (double)em_fitted->getParameters().getValue("emg:retention");
-
-  // Default should constrain RT to data range
-  TEST_EQUAL(fitted_rt >= 100.0, true)
-  TEST_EQUAL(fitted_rt <= 200.0, true)
-
-  std::cout << "Default behavior test: fitted RT = " << fitted_rt
-            << " (expected within 100-200)" << std::endl;
 }
 END_SECTION
 

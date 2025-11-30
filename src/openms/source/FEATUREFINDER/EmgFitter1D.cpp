@@ -161,8 +161,6 @@ namespace OpenMS
     defaults_.setValue("init_mom", "false", "Initialize parameters using method of moments estimators.", {"advanced"});
     defaults_.setValidStrings("init_mom", {"true","false"});
     defaults_.setValue("statistics:variance", 1.0, "Variance of the model.", {"advanced"});
-    defaults_.setValue("fit_bounds:enabled", "true", "If true, constrains the retention time parameter to stay within the data range during fitting. This prevents the optimizer from reporting RT values outside the observed data.", {"advanced"});
-    defaults_.setValidStrings("fit_bounds:enabled", {"true","false"});
     defaultsToParam_();
   }
 
@@ -233,29 +231,20 @@ namespace OpenMS
 
     if (!symmetric_)
     {
-        if (use_fit_bounds_)
-        {
-          // Pass original data range bounds to functor for virtual boundary constraints
-          // This prevents the optimizer from reporting RT outside the observed data range
-          EgmFitterFunctor functor(4, &d, rt_min, rt_max);
-          optimize_(x_init, functor);
+        // Pass data range bounds to functor for virtual boundary constraints
+        // This prevents the optimizer from reporting RT outside the observed data range
+        EgmFitterFunctor functor(4, &d, rt_min, rt_max);
+        optimize_(x_init, functor);
 
-          // Hard clamp: ensure RT stays within bounds even if optimizer slightly exceeds
-          // The penalty guides optimization, but clamping guarantees the constraint
-          if (x_init(3) < rt_min)
-          {
-            x_init(3) = rt_min;
-          }
-          else if (x_init(3) > rt_max)
-          {
-            x_init(3) = rt_max;
-          }
-        }
-        else
+        // Hard clamp: ensure RT stays within bounds even if optimizer slightly exceeds
+        // The penalty guides optimization, but clamping guarantees the constraint
+        if (x_init(3) < rt_min)
         {
-          // No boundary constraints (original behavior)
-          EgmFitterFunctor functor(4, &d);
-          optimize_(x_init, functor);
+          x_init(3) = rt_min;
+        }
+        else if (x_init(3) > rt_max)
+        {
+          x_init(3) = rt_max;
         }
     }
 
@@ -444,7 +433,6 @@ namespace OpenMS
   {
     LevMarqFitter1D::updateMembers_();
     statistics_.setVariance(param_.getValue("statistics:variance"));
-    use_fit_bounds_ = param_.getValue("fit_bounds:enabled").toBool();
   }
 
 }

@@ -97,8 +97,6 @@ protected:
     CoordinateType symmetry_;
     /// Parameter of emg - peak retention time
     CoordinateType retention_;
-    /// Whether to constrain RT to data bounds during fitting
-    bool use_fit_bounds_;
 
     void updateMembers_() override;
   };
