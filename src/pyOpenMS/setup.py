@@ -19,12 +19,12 @@ if "--no-optimization" in sys.argv:
     sys.argv.remove("--no-optimization")
 
 # import config
-from env import  (OPEN_MS_COMPILER, PYOPENMS_SRC_DIR, OPEN_MS_GIT_BRANCH, OPEN_MS_BUILD_DIR, OPEN_MS_CONTRIB_BUILD_DIRS,
-                  QT_INSTALL_LIBS, QT_INSTALL_BINS, MSVS_RTLIBS,
-                  OPEN_MS_BUILD_TYPE, OPEN_MS_VERSION, INCLUDE_DIRS_EXTEND, LIBRARIES_EXTEND,
-                  LIBRARY_DIRS_EXTEND, OPEN_MS_LIB, OPEN_SWATH_ALGO_LIB, PYOPENMS_INCLUDE_DIRS,
-                  PY_NUM_MODULES, PY_NUM_THREADS, SYSROOT_OSX_PATH, LIBRARIES_TO_BE_PARSED_EXTEND,
-                  OPENMS_GIT_LC_DATE_FORMAT, OPENMP_FOUND, OPENMP_CXX_FLAGS)
+from env import (OPEN_MS_COMPILER, PYOPENMS_SRC_DIR, OPEN_MS_GIT_BRANCH, OPEN_MS_BUILD_DIR, OPEN_MS_CONTRIB_BUILD_DIRS,
+                 QT_INSTALL_LIBS, QT_INSTALL_BINS,
+                 OPEN_MS_BUILD_TYPE, OPEN_MS_VERSION, INCLUDE_DIRS_EXTEND, LIBRARIES_EXTEND,
+                 LIBRARY_DIRS_EXTEND, PYOPENMS_INCLUDE_DIRS,
+                 PY_NUM_MODULES, SYSROOT_OSX_PATH, LIBRARIES_TO_BE_PARSED_EXTEND,
+                 OPENMS_GIT_LC_DATE_FORMAT, OPENMP_FOUND, OPENMP_CXX_FLAGS)
 
 IS_DEBUG = OPEN_MS_BUILD_TYPE.upper() == "DEBUG"
 OMP = (OPENMP_FOUND.upper() == "ON" or OPENMP_FOUND.upper() == "TRUE" or OPENMP_FOUND == "1")
@@ -61,7 +61,8 @@ for include in extra_includes:
 
 
 persisted_data_path = "include_dir.bin"
-autowrap_include_dirs = pickle.load(open(persisted_data_path, "rb"))
+with open(persisted_data_path, "rb") as f:
+    autowrap_include_dirs = pickle.load(f)
 
 from setuptools import setup, Extension
 
@@ -223,9 +224,6 @@ if not iswin:
 mnames = ["_pyopenms_%s" % (k+1) for k in range(int(PY_NUM_MODULES))]
 ext = []
 
-##WARNING debug
-libraries.extend("boost_regex-mt-x64")
-
 for module in mnames:
 
     ext.append(Extension(
@@ -246,6 +244,9 @@ for module in mnames:
 # enforce 64bit-only build as OpenMS is not available in 32bit on osx
 if sys.platform == "darwin":
     os.environ['ARCHFLAGS'] = "-arch x86_64"
+
+with open("README.rst") as readme_file:
+    long_description_text = readme_file.read()
 
 setup(
 
@@ -275,7 +276,7 @@ setup(
         "Topic :: Scientific/Engineering :: Bio-Informatics",
         "Topic :: Scientific/Engineering :: Chemistry",
     ],
-    long_description=open("README.rst").read(),
+    long_description=long_description_text,
     long_description_content_type="text/x-rst",
     zip_safe=False,
 

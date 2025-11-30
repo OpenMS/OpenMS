@@ -10,7 +10,6 @@ import glob
 import pickle
 import os.path
 import os
-import shutil
 import sys
 
 # windows ?
@@ -48,9 +47,7 @@ if __name__ == '__main__':
 
   # import config
   from env import (QT_QMAKE_VERSION_INFO, OPEN_MS_BUILD_TYPE, PYOPENMS_SRC_DIR,
-                   OPEN_MS_CONTRIB_BUILD_DIRS, OPEN_MS_LIB, OPEN_SWATH_ALGO_LIB,
-                   OPEN_MS_BUILD_DIR, MSVS_RTLIBS, OPEN_MS_VERSION,
-                   Boost_MAJOR_VERSION, Boost_MINOR_VERSION, PY_NUM_THREADS, PY_NUM_MODULES)
+                   OPEN_MS_VERSION, PY_NUM_THREADS, PY_NUM_MODULES)
 
   IS_DEBUG = OPEN_MS_BUILD_TYPE.upper() == "DEBUG"
 
@@ -200,7 +197,8 @@ if __name__ == '__main__':
 
   for modname in mnames:
       autowrap_include_dirs = doCythonCodeGeneration(modname, allDecl_mapping, instance_map, converters)
-      pickle.dump(autowrap_include_dirs, open(persisted_data_path, "wb"))
+      with open(persisted_data_path, "wb") as f:
+          pickle.dump(autowrap_include_dirs, f)
 
   argzip = [ (modname, allDecl_mapping[modname]["inc_dirs"]) for modname in mnames]
 
@@ -225,5 +223,7 @@ if __name__ == '__main__':
   # create version information
   version = OPEN_MS_VERSION
 
-  print("version=%r\n" % version, file=open("pyopenms/_version.py", "w"))
-  print("info=%r\n" % QT_QMAKE_VERSION_INFO, file=open("pyopenms/_qt_version_info.py", "w"))
+  with open("pyopenms/_version.py", "w") as fp:
+      print("version=%r\n" % version, file=fp)
+  with open("pyopenms/_qt_version_info.py", "w") as fp:
+      print("info=%r\n" % QT_QMAKE_VERSION_INFO, file=fp)
