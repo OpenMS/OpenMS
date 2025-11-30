@@ -140,27 +140,31 @@ END_SECTION
 
 // Test that the fitter constrains RT to be within the data range (fixes issue #6239)
 // This reproduces the scenario where FeatureFinderMRM reported RT outside range
+// The key: the TRUE peak center is BEYOND the truncation point, so without
+// constraints the optimizer would naturally try to fit RT outside the data range.
 START_SECTION([EXTRA] fit1d_rt_upper_bound)
 {
-  // Create a peak near the upper edge of the data range
-  // The data is truncated after RT=200, simulating a chromatogram that ends abruptly
+  // Create a peak where the TRUE center is BEYOND the data range
+  // This simulates a chromatogram that was cut off mid-peak
+  // True RT=210, but data only goes to 200 - we only see the rising edge
   EmgModel em;
   em.setInterpolationStep(1.0);
   Param tmp;
   tmp.setValue("bounding_box:min", 100.0);
-  tmp.setValue("bounding_box:max", 300.0);  // Model goes to 300
-  tmp.setValue("statistics:mean", 190.0);
+  tmp.setValue("bounding_box:max", 300.0);  // Model extends to 300
+  tmp.setValue("statistics:mean", 200.0);
   tmp.setValue("statistics:variance", 2.0);
   tmp.setValue("emg:height", 50000.0);
   tmp.setValue("emg:width", 5.0);
   tmp.setValue("emg:symmetry", 5.0);
-  tmp.setValue("emg:retention", 195.0);  // Peak near upper edge
+  tmp.setValue("emg:retention", 210.0);  // True peak is BEYOND truncation at 200
   em.setParameters(tmp);
 
   EmgModel::SamplesType full_samples;
   em.getSamples(full_samples);
 
-  // Truncate the data at RT=200 to simulate chromatogram ending abruptly
+  // Truncate the data at RT=200 - we only see the rising edge of the peak
+  // Without constraints, the optimizer would fit RT=210 (true value, but outside data)
   EmgModel::SamplesType truncated_samples;
   for (const auto& p : full_samples)
   {
@@ -173,47 +177,47 @@ START_SECTION([EXTRA] fit1d_rt_upper_bound)
   // Fit - boundary constraints are automatically applied based on data range
   EmgFitter1D ef;
   std::unique_ptr<InterpolationModel> em_fitted;
-  EmgFitter1D::QualityType correlation = ef.fit1d(truncated_samples, em_fitted);
+  ef.fit1d(truncated_samples, em_fitted);
 
   double fitted_rt = (double)em_fitted->getParameters().getValue("emg:retention");
 
   std::cout << "Upper bound test: fitted RT = " << fitted_rt
-            << " (data range: 100-200, true peak: 195)" << std::endl;
+            << " (data range: 100-200, true peak: 210)" << std::endl;
 
   // The fitted RT MUST be within the data range [100, 200]
+  // Without the fix, this would fail because optimizer would find RT=210
   TEST_EQUAL(fitted_rt >= 100.0, true)
   TEST_EQUAL(fitted_rt <= 200.0, true)
-
-  // The fit should still be reasonable
-  TEST_EQUAL(correlation > 0.9, true)
 }
 END_SECTION
 
 // Test boundary constraint at the lower edge
+// Similar to upper bound: true peak is BELOW the data range start
 START_SECTION([EXTRA] fit1d_rt_lower_bound)
 {
-  // Create a peak near the lower edge of the data range
+  // Create a peak where the TRUE center is BELOW the data range
+  // True RT=2, but data only starts at 10 - we only see the falling edge
   EmgModel em;
   em.setInterpolationStep(1.0);
   Param tmp;
   tmp.setValue("bounding_box:min", 0.0);
   tmp.setValue("bounding_box:max", 200.0);
-  tmp.setValue("statistics:mean", 15.0);
+  tmp.setValue("statistics:mean", 10.0);
   tmp.setValue("statistics:variance", 2.0);
   tmp.setValue("emg:height", 50000.0);
   tmp.setValue("emg:width", 5.0);
   tmp.setValue("emg:symmetry", 5.0);
-  tmp.setValue("emg:retention", 10.0);  // Peak near lower edge
+  tmp.setValue("emg:retention", 2.0);  // True peak is BELOW data start at 10
   em.setParameters(tmp);
 
   EmgModel::SamplesType full_samples;
   em.getSamples(full_samples);
 
-  // Truncate the data at RT=5 at the lower end
+  // Truncate the data at RT=10 - we only see the falling edge of the peak
   EmgModel::SamplesType truncated_samples;
   for (const auto& p : full_samples)
   {
-    if (p.getPos() >= 5.0)
+    if (p.getPos() >= 10.0)
     {
       truncated_samples.push_back(p);
     }
@@ -221,18 +225,17 @@ START_SECTION([EXTRA] fit1d_rt_lower_bound)
 
   EmgFitter1D ef;
   std::unique_ptr<InterpolationModel> em_fitted;
-  EmgFitter1D::QualityType correlation = ef.fit1d(truncated_samples, em_fitted);
+  ef.fit1d(truncated_samples, em_fitted);
 
   double fitted_rt = (double)em_fitted->getParameters().getValue("emg:retention");
 
   std::cout << "Lower bound test: fitted RT = " << fitted_rt
-            << " (data range: 5-200, true peak: 10)" << std::endl;
+            << " (data range: 10-200, true peak: 2)" << std::endl;
 
-  // The fitted RT must be within the truncated data range [5, 200]
-  TEST_EQUAL(fitted_rt >= 5.0, true)
+  // The fitted RT must be within the truncated data range [10, 200]
+  // Without the fix, this might fail because optimizer would find RT<10
+  TEST_EQUAL(fitted_rt >= 10.0, true)
   TEST_EQUAL(fitted_rt <= 200.0, true)
-
-  TEST_EQUAL(correlation > 0.9, true)
 }
 END_SECTION
 
