@@ -163,7 +163,7 @@ START_SECTION( void correctMZ(OpenMS::MRMFeatureFinderScoring::TransitionGroupMa
   transition_group_map["group3"] = &transition_group;
 
   // Create a mock spectrum fitting to the transition group
-  boost::shared_ptr<PeakMap > exp(new PeakMap);
+  std::shared_ptr<PeakMap > exp(new PeakMap);
   {
     MSSpectrum spec;
     Peak1D p;
@@ -186,7 +186,7 @@ START_SECTION( void correctMZ(OpenMS::MRMFeatureFinderScoring::TransitionGroupMa
 
   // Create secondary mock spectrum for testing PASEF flag, this spectrum should never be used
 
-  boost::shared_ptr<PeakMap > exp2(new PeakMap);
+  std::shared_ptr<PeakMap > exp2(new PeakMap);
   {
     MSSpectrum spec;
     Peak1D p;
@@ -434,7 +434,7 @@ START_SECTION( void correctIM(const std::map<String, OpenMS::MRMFeatureFinderSco
   transition_group_map["group3"] = &gr3;
 
   // Create a mock spectrum fitting to the transition group
-  boost::shared_ptr<PeakMap > exp(new PeakMap);
+  std::shared_ptr<PeakMap > exp(new PeakMap);
   {
     MSSpectrum spec;
     Peak1D p;
@@ -475,7 +475,7 @@ START_SECTION( void correctIM(const std::map<String, OpenMS::MRMFeatureFinderSco
   }
 
   // Create a mock pasef spectrum, should not be used
-  boost::shared_ptr<PeakMap > exp2(new PeakMap);
+  std::shared_ptr<PeakMap > exp2(new PeakMap);
   {
     MSSpectrum spec;
     Peak1D p;
@@ -515,7 +515,7 @@ START_SECTION( void correctIM(const std::map<String, OpenMS::MRMFeatureFinderSco
     exp->addSpectrum(spec);
   }
 
-  boost::shared_ptr<PeakMap > exp_ms1(new PeakMap);
+  std::shared_ptr<PeakMap > exp_ms1(new PeakMap);
   {
     MSSpectrum spec;
     Peak1D p;
