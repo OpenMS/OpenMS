@@ -1,0 +1,77 @@
+# pyOpenMS - Python bindings for OpenMS
+# Build system configuration using PEP 517/518/621
+
+[build-system]
+requires = [
+    "setuptools>=61.0",
+    "wheel",
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pyopenms"
+dynamic = ["version"]  # Version is set dynamically based on git branch (nightly vs release)
+description = "Python wrapper for C++ LC-MS library OpenMS"
+readme = "README.rst"
+license = {text = "BSD-3-Clause"}
+requires-python = ">=3.9"
+authors = [
+    {name = "OpenMS team", email = "webmaster@openms.de"},
+]
+maintainers = [
+    {name = "The OpenMS team", email = "open-ms-general@lists.sourceforge.net"},
+]
+keywords = [
+    "mass spectrometry",
+    "proteomics",
+    "metabolomics",
+    "LC-MS",
+    "bioinformatics",
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: BSD License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+    "Topic :: Scientific/Engineering :: Chemistry",
+]
+dependencies = [
+    "numpy>=1.25.0",
+    "pandas",
+    "matplotlib>=3.5",
+]
+
+[project.urls]
+Homepage = "https://openms.de"
+Documentation = "https://pyopenms.readthedocs.io"
+"Source Code" = "https://github.com/OpenMS/OpenMS/tree/develop/src/pyOpenMS"
+"Bug Tracker" = "https://github.com/OpenMS/OpenMS/issues"
+"Documentation Source" = "https://github.com/OpenMS/pyopenms-docs"
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "autowrap>=0.24.0",
+    "Cython>=3.1.0",
+]
+
+[tool.setuptools]
+zip-safe = false
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["pyopenms*"]
+
+[tool.setuptools.package-data]
+pyopenms = ["py.typed", "*.pyi", "*.so", "*.pyd", "*.dylib", "*.dll"]
+
+[tool.setuptools.dynamic]
+version = {attr = "pyopenms.version.version"}
