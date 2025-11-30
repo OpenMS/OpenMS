@@ -203,6 +203,7 @@ endif()
 set(_pyopenms_files
   MANIFEST.in
   README.rst
+  pyproject.toml
   setup.py
   create_cpp_extension.py
   mac_fix_dependencies.rb
