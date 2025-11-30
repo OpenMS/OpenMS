@@ -480,6 +480,7 @@ set(analysis_executables_list
   FIAMSDataProcessor_test
   FLASHDeconvAlgorithm_test
   FLASHDeconvHelperStructs_test
+  OpenSearchModificationAnalysis_test
   IDBoostGraph_test
   IDMapper_test
   IDMergerAlgorithm_test

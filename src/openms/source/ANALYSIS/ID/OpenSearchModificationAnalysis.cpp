@@ -519,4 +519,475 @@ namespace OpenMS
     output_stream.close();
   }
 
+  // New methods for structured statistics tables
+
+  OpenSearchModificationAnalysis::OpenSearchAnalysisResult
+  OpenSearchModificationAnalysis::analyzeModificationsWithStatistics(PeptideIdentificationList& peptide_ids,
+                                                                     double precursor_mass_tolerance,
+                                                                     bool precursor_mass_tolerance_unit_ppm,
+                                                                     bool use_smoothing,
+                                                                     const String& output_file) const
+  {
+    OpenSearchAnalysisResult result;
+
+    // Analyze delta mass patterns
+    auto [histogram, charge_counts] = analyzeDeltaMassPatterns(peptide_ids, use_smoothing, false);
+
+    // Map to modifications and annotate peptides (also fills legacy summaries)
+    result.summaries = mapDeltaMassesToModifications(histogram, charge_counts, peptide_ids,
+                                                     precursor_mass_tolerance, precursor_mass_tolerance_unit_ppm,
+                                                     output_file);
+
+    // Generate structured statistics tables
+    result.delta_mass_stats = generateDeltaMassStatistics(histogram, charge_counts, peptide_ids,
+                                                          precursor_mass_tolerance, precursor_mass_tolerance_unit_ppm);
+
+    result.ptm_stats = generatePTMStatistics(peptide_ids, precursor_mass_tolerance, precursor_mass_tolerance_unit_ppm);
+
+    // Write statistics tables if output file is specified
+    if (!output_file.empty())
+    {
+      String base_name = output_file;
+      if (base_name.hasSuffix(".idXML") || base_name.hasSuffix(".idxml"))
+      {
+        base_name = base_name.substr(0, base_name.size() - 6);
+      }
+      writeDeltaMassStatistics(result.delta_mass_stats, base_name + "_DeltaMassStats.tsv");
+      writePTMStatistics(result.ptm_stats, base_name + "_PTMStats.tsv");
+    }
+
+    return result;
+  }
+
+  OpenSearchModificationAnalysis::DeltaMassStatistics
+  OpenSearchModificationAnalysis::generateDeltaMassStatistics(const DeltaMassHistogram& histogram,
+                                                              const DeltaMassToChargeCount& charge_histogram,
+                                                              const PeptideIdentificationList& peptide_ids,
+                                                              double precursor_mass_tolerance,
+                                                              bool /*precursor_mass_tolerance_unit_ppm*/) const
+  {
+    DeltaMassStatistics stats;
+    constexpr double delta_mass_zero_threshold = 0.05;
+
+    // Build modification lookup
+    auto mod_lookup = buildModificationMassLookup_();
+
+    // Count total PSMs
+    for (const auto& peptide_id : peptide_ids)
+    {
+      for (const auto& hit : peptide_id.getHits())
+      {
+        stats.total_psms++;
+        if (hit.metaValueExists("DeltaMass"))
+        {
+          double delta_mass = hit.getMetaValue("DeltaMass");
+          if (std::abs(delta_mass) <= delta_mass_zero_threshold)
+          {
+            stats.unmodified_psms++;
+          }
+          else
+          {
+            stats.modified_psms++;
+          }
+        }
+      }
+    }
+
+    // Collect delta masses for median calculation
+    std::vector<double> all_delta_masses;
+    double sum_delta_mass = 0.0;
+
+    // Convert histogram to entries
+    for (const auto& [delta_mass, count] : histogram)
+    {
+      DeltaMassEntry entry;
+      entry.delta_mass = delta_mass;
+      entry.count = static_cast<int>(count);
+
+      // Get charge state count
+      auto charge_it = charge_histogram.find(delta_mass);
+      if (charge_it != charge_histogram.end())
+      {
+        entry.num_charge_states = charge_it->second;
+      }
+
+      // Calculate percentage
+      if (stats.modified_psms > 0)
+      {
+        entry.percentage = (static_cast<double>(entry.count) / stats.modified_psms) * 100.0;
+      }
+
+      // Count unique peptides
+      entry.unique_peptides = countUniquePeptides_(peptide_ids, delta_mass, precursor_mass_tolerance);
+
+      // Try to map to known modification
+      for (const auto& [mod_mass, mod_name] : mod_lookup)
+      {
+        if (std::abs(mod_mass - delta_mass) <= precursor_mass_tolerance)
+        {
+          entry.mapped_modification = mod_name;
+          entry.is_known_modification = true;
+          break;
+        }
+      }
+
+      // Collect for statistics
+      for (int i = 0; i < entry.count; ++i)
+      {
+        all_delta_masses.push_back(delta_mass);
+        sum_delta_mass += delta_mass;
+      }
+
+      stats.entries.push_back(entry);
+    }
+
+    // Sort entries by count (descending)
+    std::sort(stats.entries.begin(), stats.entries.end(),
+              [](const DeltaMassEntry& a, const DeltaMassEntry& b) {
+                return a.count > b.count;
+              });
+
+    // Calculate mean and median
+    if (!all_delta_masses.empty())
+    {
+      stats.mean_delta_mass = sum_delta_mass / all_delta_masses.size();
+
+      std::nth_element(all_delta_masses.begin(),
+                       all_delta_masses.begin() + all_delta_masses.size() / 2,
+                       all_delta_masses.end());
+      stats.median_delta_mass = all_delta_masses[all_delta_masses.size() / 2];
+    }
+
+    return stats;
+  }
+
+  OpenSearchModificationAnalysis::PTMStatistics
+  OpenSearchModificationAnalysis::generatePTMStatistics(const PeptideIdentificationList& peptide_ids,
+                                                        double precursor_mass_tolerance,
+                                                        bool /*precursor_mass_tolerance_unit_ppm*/) const
+  {
+    PTMStatistics stats;
+
+    // Map to collect PTM data
+    std::map<String, PTMEntry> ptm_map;
+    std::map<String, std::unordered_set<std::string>> ptm_unique_peptides;
+
+    // Build modification lookup for theoretical masses
+    auto mod_lookup = buildModificationMassLookup_();
+    std::map<String, double> name_to_mass;
+    for (const auto& [mass, name] : mod_lookup)
+    {
+      name_to_mass[name] = mass;
+    }
+
+    // Process all peptide identifications
+    for (const auto& peptide_id : peptide_ids)
+    {
+      for (const auto& hit : peptide_id.getHits())
+      {
+        if (!hit.metaValueExists("PTM"))
+          continue;
+
+        String ptm_name = hit.getMetaValue("PTM");
+        if (ptm_name.empty())
+        {
+          continue;
+        }
+
+        // Check if unknown modification
+        if (ptm_name.hasPrefix("Unknown"))
+        {
+          stats.unknown_modification_psms++;
+          continue;
+        }
+
+        stats.total_modified_psms++;
+
+        // Get or create PTM entry
+        if (ptm_map.find(ptm_name) == ptm_map.end())
+        {
+          PTMEntry entry;
+          entry.name = ptm_name;
+
+          // Get theoretical mass
+          if (name_to_mass.find(ptm_name) != name_to_mass.end())
+          {
+            entry.theoretical_mass = name_to_mass[ptm_name];
+          }
+
+          // Get target residues
+          entry.target_residues = getTargetResidues_(ptm_name);
+
+          ptm_map[ptm_name] = entry;
+        }
+
+        PTMEntry& entry = ptm_map[ptm_name];
+        entry.count++;
+
+        // Track unique peptides
+        std::string seq_str = hit.getSequence().toString();
+        if (ptm_unique_peptides[ptm_name].insert(seq_str).second)
+        {
+          entry.unique_peptides++;
+        }
+
+        // Track charge states (simplified - just count hits with different charges)
+        // Note: This is approximate since we don't track unique charges per PTM in this version
+
+        // Analyze observed mass if available
+        if (hit.metaValueExists("DeltaMass"))
+        {
+          double obs_mass = hit.getMetaValue("DeltaMass");
+          // Running average for observed mass
+          entry.observed_mass = ((entry.observed_mass * (entry.count - 1)) + obs_mass) / entry.count;
+        }
+
+        // Analyze residue frequency
+        if (hit.metaValueExists("DeltaMass"))
+        {
+          double delta_mass = hit.getMetaValue("DeltaMass");
+          const AASequence& seq = hit.getSequence();
+
+          // Count all residues in this peptide
+          for (Size i = 0; i < seq.size(); ++i)
+          {
+            char residue = seq[i].getOneLetterCode()[0];
+            entry.residue_counts[residue]++;
+          }
+        }
+      }
+    }
+
+    // Convert map to vector and calculate derived statistics
+    for (auto& [name, entry] : ptm_map)
+    {
+      // Calculate mass deviation
+      if (entry.theoretical_mass != 0.0)
+      {
+        entry.mass_deviation = entry.observed_mass - entry.theoretical_mass;
+      }
+
+      // Calculate percentage
+      if (stats.total_modified_psms > 0)
+      {
+        entry.percentage = (static_cast<double>(entry.count) / stats.total_modified_psms) * 100.0;
+      }
+
+      stats.entries.push_back(entry);
+    }
+
+    // Sort by count (descending)
+    std::sort(stats.entries.begin(), stats.entries.end(),
+              [](const PTMEntry& a, const PTMEntry& b) {
+                return a.count > b.count;
+              });
+
+    stats.num_unique_modifications = static_cast<int>(stats.entries.size());
+
+    return stats;
+  }
+
+  std::map<char, int>
+  OpenSearchModificationAnalysis::analyzeResidueFrequency(const PeptideIdentificationList& peptide_ids,
+                                                          double delta_mass,
+                                                          double tolerance) const
+  {
+    std::map<char, int> residue_counts;
+
+    for (const auto& peptide_id : peptide_ids)
+    {
+      for (const auto& hit : peptide_id.getHits())
+      {
+        if (!hit.metaValueExists("DeltaMass"))
+          continue;
+
+        double hit_delta_mass = hit.getMetaValue("DeltaMass");
+        if (std::abs(hit_delta_mass - delta_mass) > tolerance)
+          continue;
+
+        const AASequence& seq = hit.getSequence();
+        for (Size i = 0; i < seq.size(); ++i)
+        {
+          char residue = seq[i].getOneLetterCode()[0];
+          residue_counts[residue]++;
+        }
+      }
+    }
+
+    return residue_counts;
+  }
+
+  void OpenSearchModificationAnalysis::writeDeltaMassStatistics(const DeltaMassStatistics& stats,
+                                                                const String& output_file) const
+  {
+    std::ofstream output_stream(output_file);
+    if (!output_stream.is_open())
+    {
+      OPENMS_LOG_ERROR << "Error opening file: " << output_file << std::endl;
+      return;
+    }
+
+    // Write header
+    output_stream << "# Delta Mass Statistics Table\n";
+    output_stream << "# Total PSMs: " << stats.total_psms << "\n";
+    output_stream << "# Modified PSMs: " << stats.modified_psms << "\n";
+    output_stream << "# Unmodified PSMs: " << stats.unmodified_psms << "\n";
+    output_stream << "# Mean Delta Mass: " << stats.mean_delta_mass << "\n";
+    output_stream << "# Median Delta Mass: " << stats.median_delta_mass << "\n";
+    output_stream << "#\n";
+    output_stream << "DeltaMass\tCount\tUniquePeptides\tChargeStates\tPercentage\tMappedModification\tIsKnown\n";
+
+    for (const auto& entry : stats.entries)
+    {
+      output_stream << entry.delta_mass << '\t'
+                    << entry.count << '\t'
+                    << entry.unique_peptides << '\t'
+                    << entry.num_charge_states << '\t'
+                    << entry.percentage << '\t'
+                    << entry.mapped_modification << '\t'
+                    << (entry.is_known_modification ? "true" : "false") << '\n';
+    }
+
+    output_stream.close();
+    OPENMS_LOG_INFO << "Delta mass statistics written to: " << output_file << std::endl;
+  }
+
+  void OpenSearchModificationAnalysis::writePTMStatistics(const PTMStatistics& stats,
+                                                          const String& output_file) const
+  {
+    std::ofstream output_stream(output_file);
+    if (!output_stream.is_open())
+    {
+      OPENMS_LOG_ERROR << "Error opening file: " << output_file << std::endl;
+      return;
+    }
+
+    // Write header
+    output_stream << "# PTM Statistics Table\n";
+    output_stream << "# Total Modified PSMs: " << stats.total_modified_psms << "\n";
+    output_stream << "# Unknown Modification PSMs: " << stats.unknown_modification_psms << "\n";
+    output_stream << "# Unique Modifications: " << stats.num_unique_modifications << "\n";
+    output_stream << "#\n";
+    output_stream << "Name\tTheoreticalMass\tObservedMass\tMassDeviation\tCount\tUniquePeptides\tPercentage\tTargetResidues\tResidueFrequency\n";
+
+    for (const auto& entry : stats.entries)
+    {
+      output_stream << entry.name << '\t'
+                    << entry.theoretical_mass << '\t'
+                    << entry.observed_mass << '\t'
+                    << entry.mass_deviation << '\t'
+                    << entry.count << '\t'
+                    << entry.unique_peptides << '\t'
+                    << entry.percentage << '\t'
+                    << entry.target_residues << '\t';
+
+      // Format residue frequency as "A:10,C:5,..."
+      bool first = true;
+      for (const auto& [residue, count] : entry.residue_counts)
+      {
+        if (!first) output_stream << ',';
+        output_stream << residue << ':' << count;
+        first = false;
+      }
+      output_stream << '\n';
+    }
+
+    output_stream.close();
+    OPENMS_LOG_INFO << "PTM statistics written to: " << output_file << std::endl;
+  }
+
+  std::map<double, String, OpenSearchModificationAnalysis::FuzzyDoubleComparator>
+  OpenSearchModificationAnalysis::buildModificationMassLookup_() const
+  {
+    std::map<double, String, FuzzyDoubleComparator> mass_to_mod(FuzzyDoubleComparator(1e-6));
+
+    std::vector<String> modification_names;
+    ModificationsDB* mod_db = ModificationsDB::getInstance();
+    mod_db->getAllSearchModifications(modification_names);
+
+    for (const String& mod_name : modification_names)
+    {
+      const ResidueModification* residue = mod_db->getModification(mod_name);
+      String full_name = residue->getFullName();
+      double diff_mono_mass = residue->getDiffMonoMass();
+
+      // Skip substitutions
+      if (full_name.find("substitution") == std::string::npos)
+      {
+        mass_to_mod[diff_mono_mass] = full_name;
+      }
+    }
+
+    return mass_to_mod;
+  }
+
+  String OpenSearchModificationAnalysis::getTargetResidues_(const String& mod_name) const
+  {
+    String result;
+
+    try
+    {
+      ModificationsDB* mod_db = ModificationsDB::getInstance();
+      const ResidueModification* mod = mod_db->getModification(mod_name);
+
+      if (mod != nullptr)
+      {
+        String origin = mod->getOrigin();
+        if (!origin.empty() && origin != "X")
+        {
+          result = origin;
+        }
+
+        // Also check term specificity
+        auto term_spec = mod->getTermSpecificity();
+        if (term_spec == ResidueModification::N_TERM)
+        {
+          result = "N-term" + (result.empty() ? "" : "(" + result + ")");
+        }
+        else if (term_spec == ResidueModification::C_TERM)
+        {
+          result = "C-term" + (result.empty() ? "" : "(" + result + ")");
+        }
+        else if (term_spec == ResidueModification::PROTEIN_N_TERM)
+        {
+          result = "Protein N-term" + (result.empty() ? "" : "(" + result + ")");
+        }
+        else if (term_spec == ResidueModification::PROTEIN_C_TERM)
+        {
+          result = "Protein C-term" + (result.empty() ? "" : "(" + result + ")");
+        }
+      }
+    }
+    catch (...)
+    {
+      // Modification not found in database
+    }
+
+    return result;
+  }
+
+  int OpenSearchModificationAnalysis::countUniquePeptides_(const PeptideIdentificationList& peptide_ids,
+                                                           double delta_mass,
+                                                           double tolerance) const
+  {
+    std::unordered_set<std::string> unique_sequences;
+
+    for (const auto& peptide_id : peptide_ids)
+    {
+      for (const auto& hit : peptide_id.getHits())
+      {
+        if (!hit.metaValueExists("DeltaMass"))
+          continue;
+
+        double hit_delta_mass = hit.getMetaValue("DeltaMass");
+        if (std::abs(hit_delta_mass - delta_mass) <= tolerance)
+        {
+          unique_sequences.insert(hit.getSequence().toString());
+        }
+      }
+    }
+
+    return static_cast<int>(unique_sequences.size());
+  }
+
 } // namespace OpenMS

@@ -15,6 +15,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/DATASTRUCTURES/StringView.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/ANALYSIS/ID/OpenSearchModificationAnalysis.h>
 
 #include <vector>
 
@@ -67,6 +68,23 @@ class OPENMS_DLLAPI PeptideSearchEngineFIAlgorithm :
     };
 
     /**
+     * @brief Comprehensive search result including modification analysis
+     *
+     * This structure contains all outputs from an open search including:
+     * - Standard protein and peptide identifications
+     * - Delta mass statistics table (histogram of mass shifts)
+     * - PTM statistics table (mapped modifications with residue analysis)
+     */
+    struct SearchResult
+    {
+      ExitCodes exit_code = ExitCodes::EXECUTION_OK;
+      std::vector<ProteinIdentification> protein_ids;
+      PeptideIdentificationList peptide_ids;
+      OpenSearchModificationAnalysis::OpenSearchAnalysisResult modification_analysis;
+      bool is_open_search = false;
+    };
+
+    /**
      * @brief Search spectra in an mzML file against a protein database using an FI-backed workflow.
      *
      * Populates protein and peptide identifications, including search meta data, PSM hits,
@@ -91,6 +109,55 @@ class OPENMS_DLLAPI PeptideSearchEngineFIAlgorithm :
       const String& in_db,
       std::vector<ProteinIdentification>& prot_ids,
       PeptideIdentificationList& pep_ids) const;
+
+    /**
+     * @brief Search with comprehensive results including modification analysis tables
+     *
+     * This method performs a peptide database search and additionally returns
+     * structured modification analysis results for open search mode. This is the
+     * recommended method for modification discovery workflows.
+     *
+     * The method automatically:
+     * - Detects open search mode based on precursor tolerance
+     * - Computes delta mass statistics
+     * - Maps delta masses to known modifications
+     * - Generates PTM statistics with residue localization
+     * - Writes TSV output files if output_base_name is provided
+     *
+     * @param in_mzML Input path to the mzML file containing MS/MS spectra
+     * @param in_db Input path to the protein sequence database in FASTA format
+     * @param output_base_name Optional base name for output files (TSV tables)
+     * @return SearchResult containing identifications and modification analysis
+     *
+     * Example usage:
+     * @code
+     * PeptideSearchEngineFIAlgorithm algo;
+     * Param p = algo.getParameters();
+     * p.setValue("precursor:mass_tolerance", 500.0);  // Open search
+     * p.setValue("precursor:mass_tolerance_unit", "Da");
+     * algo.setParameters(p);
+     *
+     * auto result = algo.searchWithModificationAnalysis("spectra.mzML", "database.fasta", "output");
+     * if (result.exit_code == ExitCodes::EXECUTION_OK && result.is_open_search)
+     * {
+     *   // Access PTM statistics
+     *   for (const auto& ptm : result.modification_analysis.ptm_stats.entries)
+     *   {
+     *     std::cout << ptm.name << ": " << ptm.count << " PSMs" << std::endl;
+     *   }
+     *
+     *   // Access delta mass statistics
+     *   for (const auto& dm : result.modification_analysis.delta_mass_stats.entries)
+     *   {
+     *     std::cout << dm.delta_mass << " Da: " << dm.count << " PSMs" << std::endl;
+     *   }
+     * }
+     * @endcode
+     */
+    SearchResult searchWithModificationAnalysis(const String& in_mzML,
+                                                const String& in_db,
+                                                const String& output_base_name = "") const;
+
   protected:
     void updateMembers_() override;
 

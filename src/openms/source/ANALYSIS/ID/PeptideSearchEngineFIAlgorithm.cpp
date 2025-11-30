@@ -39,6 +39,7 @@
 #include <OpenMS/PROCESSING/SCALING/Normalizer.h>
 
 #include <algorithm>
+#include <iomanip>
 #include <map>
 
 #ifdef _OPENMP
@@ -666,9 +667,9 @@ if (!pi.getHits().empty())
     {
       OPENMS_LOG_INFO << "[PDBS-FI] Performing open search modification analysis..." << std::endl;
       startProgress(0, 1, "Analyzing modification patterns...");
-      
+
       OpenSearchModificationAnalysis mod_analyzer;
-      
+
       // Generate output table filename based on input database
       String mod_output_file = "";
       if (!in_db.empty())
@@ -683,18 +684,43 @@ if (!pi.getHits().empty())
           mod_output_file = in_db + "_ModificationAnalysis.idXML";
         }
       }
-      
-      auto modification_summaries = mod_analyzer.analyzeModifications(
+
+      // Use the new method with statistics for enhanced output
+      auto analysis_result = mod_analyzer.analyzeModificationsWithStatistics(
         peptide_ids,
         precursor_mass_tolerance_,
         precursor_mass_tolerance_unit_ == "ppm",
         false, // no smoothing for now
         mod_output_file
       );
-      
-      OPENMS_LOG_INFO << "[PDBS-FI] Found " << modification_summaries.size()
+
+      OPENMS_LOG_INFO << "[PDBS-FI] Found " << analysis_result.summaries.size()
                       << " modification patterns in open search results." << std::endl;
-      
+
+      // Log summary statistics
+      OPENMS_LOG_INFO << "[PDBS-FI] Delta Mass Statistics:" << std::endl;
+      OPENMS_LOG_INFO << "  - Total PSMs: " << analysis_result.delta_mass_stats.total_psms << std::endl;
+      OPENMS_LOG_INFO << "  - Modified PSMs: " << analysis_result.delta_mass_stats.modified_psms << std::endl;
+      OPENMS_LOG_INFO << "  - Unmodified PSMs: " << analysis_result.delta_mass_stats.unmodified_psms << std::endl;
+
+      OPENMS_LOG_INFO << "[PDBS-FI] PTM Statistics:" << std::endl;
+      OPENMS_LOG_INFO << "  - Total Modified PSMs: " << analysis_result.ptm_stats.total_modified_psms << std::endl;
+      OPENMS_LOG_INFO << "  - Unknown Modifications: " << analysis_result.ptm_stats.unknown_modification_psms << std::endl;
+      OPENMS_LOG_INFO << "  - Unique PTMs found: " << analysis_result.ptm_stats.num_unique_modifications << std::endl;
+
+      // Log top PTMs
+      if (!analysis_result.ptm_stats.entries.empty())
+      {
+        OPENMS_LOG_INFO << "[PDBS-FI] Top PTMs discovered:" << std::endl;
+        size_t count = 0;
+        for (const auto& ptm : analysis_result.ptm_stats.entries)
+        {
+          if (count++ >= 10) break; // Show top 10
+          OPENMS_LOG_INFO << "  - " << ptm.name << ": " << ptm.count << " PSMs ("
+                          << ptm.percentage << "%), mass=" << ptm.theoretical_mass << " Da" << std::endl;
+        }
+      }
+
       endProgress();
     }
 
@@ -731,6 +757,140 @@ if (!pi.getHits().empty())
     }
 
     return ExitCodes::EXECUTION_OK;
+  }
+
+  PeptideSearchEngineFIAlgorithm::SearchResult
+  PeptideSearchEngineFIAlgorithm::searchWithModificationAnalysis(const String& in_mzML,
+                                                                  const String& in_db,
+                                                                  const String& output_base_name) const
+  {
+    SearchResult result;
+    result.is_open_search = isOpenSearchMode_();
+
+    // Perform the basic search
+    result.exit_code = search(in_mzML, in_db, result.protein_ids, result.peptide_ids);
+
+    if (result.exit_code != ExitCodes::EXECUTION_OK)
+    {
+      return result;
+    }
+
+    // If open search mode, perform detailed modification analysis
+    if (result.is_open_search)
+    {
+      OPENMS_LOG_INFO << "[PDBS-FI] Running detailed modification analysis for open search results..." << std::endl;
+
+      OpenSearchModificationAnalysis mod_analyzer;
+
+      // Generate output file path if base name provided
+      String output_file = "";
+      if (!output_base_name.empty())
+      {
+        output_file = output_base_name + "_ModificationAnalysis.idXML";
+      }
+
+      // Run comprehensive analysis
+      result.modification_analysis = mod_analyzer.analyzeModificationsWithStatistics(
+        result.peptide_ids,
+        precursor_mass_tolerance_,
+        precursor_mass_tolerance_unit_ == "ppm",
+        false, // no smoothing
+        output_file
+      );
+
+      // Log comprehensive summary
+      OPENMS_LOG_INFO << "[PDBS-FI] ============================================" << std::endl;
+      OPENMS_LOG_INFO << "[PDBS-FI] MODIFICATION DISCOVERY SUMMARY" << std::endl;
+      OPENMS_LOG_INFO << "[PDBS-FI] ============================================" << std::endl;
+
+      const auto& dm_stats = result.modification_analysis.delta_mass_stats;
+      OPENMS_LOG_INFO << "[PDBS-FI] Delta Mass Analysis:" << std::endl;
+      OPENMS_LOG_INFO << "  Total PSMs analyzed: " << dm_stats.total_psms << std::endl;
+      OPENMS_LOG_INFO << "  Modified PSMs: " << dm_stats.modified_psms
+                      << " (" << (dm_stats.total_psms > 0 ? (100.0 * dm_stats.modified_psms / dm_stats.total_psms) : 0.0)
+                      << "%)" << std::endl;
+      OPENMS_LOG_INFO << "  Unmodified PSMs: " << dm_stats.unmodified_psms << std::endl;
+      OPENMS_LOG_INFO << "  Mean delta mass: " << dm_stats.mean_delta_mass << " Da" << std::endl;
+      OPENMS_LOG_INFO << "  Median delta mass: " << dm_stats.median_delta_mass << " Da" << std::endl;
+      OPENMS_LOG_INFO << "  Unique delta mass bins: " << dm_stats.entries.size() << std::endl;
+
+      const auto& ptm_stats = result.modification_analysis.ptm_stats;
+      OPENMS_LOG_INFO << "[PDBS-FI] PTM Analysis:" << std::endl;
+      OPENMS_LOG_INFO << "  PSMs with known PTMs: " << ptm_stats.total_modified_psms << std::endl;
+      OPENMS_LOG_INFO << "  PSMs with unknown modifications: " << ptm_stats.unknown_modification_psms << std::endl;
+      OPENMS_LOG_INFO << "  Unique PTMs identified: " << ptm_stats.num_unique_modifications << std::endl;
+
+      // Print top 15 PTMs table
+      if (!ptm_stats.entries.empty())
+      {
+        OPENMS_LOG_INFO << "[PDBS-FI] Top PTMs Discovered:" << std::endl;
+        OPENMS_LOG_INFO << "  ----------------------------------------------------------------" << std::endl;
+        OPENMS_LOG_INFO << "  Rank | Name                            | Count | %     | Mass (Da)" << std::endl;
+        OPENMS_LOG_INFO << "  ----------------------------------------------------------------" << std::endl;
+
+        size_t rank = 1;
+        for (const auto& ptm : ptm_stats.entries)
+        {
+          if (rank > 15) break;
+          // Format name to fixed width
+          String name = ptm.name;
+          if (name.size() > 30) name = name.substr(0, 27) + "...";
+
+          OPENMS_LOG_INFO << "  " << std::setw(4) << rank++ << " | "
+                          << std::setw(31) << std::left << name << " | "
+                          << std::setw(5) << std::right << ptm.count << " | "
+                          << std::setw(5) << std::fixed << std::setprecision(1) << ptm.percentage << " | "
+                          << std::setw(9) << std::fixed << std::setprecision(4) << ptm.theoretical_mass
+                          << std::endl;
+        }
+        OPENMS_LOG_INFO << "  ----------------------------------------------------------------" << std::endl;
+      }
+
+      // Print top delta masses not mapped to known modifications
+      std::vector<OpenSearchModificationAnalysis::DeltaMassEntry> unknown_dm;
+      for (const auto& entry : dm_stats.entries)
+      {
+        if (!entry.is_known_modification && entry.count >= 5)
+        {
+          unknown_dm.push_back(entry);
+        }
+      }
+
+      if (!unknown_dm.empty())
+      {
+        OPENMS_LOG_INFO << "[PDBS-FI] Top Unknown Delta Masses (potential novel PTMs):" << std::endl;
+        OPENMS_LOG_INFO << "  ----------------------------------------------------------------" << std::endl;
+        OPENMS_LOG_INFO << "  Rank | Delta Mass (Da) | Count | Unique Peptides" << std::endl;
+        OPENMS_LOG_INFO << "  ----------------------------------------------------------------" << std::endl;
+
+        size_t rank = 1;
+        for (const auto& dm : unknown_dm)
+        {
+          if (rank > 10) break;
+          OPENMS_LOG_INFO << "  " << std::setw(4) << rank++ << " | "
+                          << std::setw(15) << std::fixed << std::setprecision(4) << dm.delta_mass << " | "
+                          << std::setw(5) << dm.count << " | "
+                          << std::setw(15) << dm.unique_peptides
+                          << std::endl;
+        }
+        OPENMS_LOG_INFO << "  ----------------------------------------------------------------" << std::endl;
+      }
+
+      OPENMS_LOG_INFO << "[PDBS-FI] ============================================" << std::endl;
+
+      if (!output_base_name.empty())
+      {
+        OPENMS_LOG_INFO << "[PDBS-FI] Statistics tables written to:" << std::endl;
+        OPENMS_LOG_INFO << "  - " << output_base_name << "_DeltaMassStats.tsv" << std::endl;
+        OPENMS_LOG_INFO << "  - " << output_base_name << "_PTMStats.tsv" << std::endl;
+      }
+    }
+    else
+    {
+      OPENMS_LOG_INFO << "[PDBS-FI] Closed search mode - modification analysis skipped" << std::endl;
+    }
+
+    return result;
   }
 
 } // namespace OpenMS
