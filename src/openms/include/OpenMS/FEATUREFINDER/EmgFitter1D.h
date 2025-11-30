@@ -10,6 +10,7 @@
 
 #include <OpenMS/FEATUREFINDER/LevMarqFitter1D.h>
 #include <OpenMS/CONCEPT/Constants.h>
+#include <limits>
 
 namespace OpenMS
 {
@@ -53,13 +54,14 @@ protected:
       public LevMarqFitter1D::GenericFunctor
     {
 public:
-      /// Constructor with boundary constraints for retention time
+      /// Constructor with optional boundary constraints for retention time
       /// @param dimensions Number of parameters to optimize
       /// @param data Pointer to the data structure
-      /// @param rt_min Minimum retention time bound (data range start)
-      /// @param rt_max Maximum retention time bound (data range end)
+      /// @param rt_min Minimum retention time bound (default: -infinity, no constraint)
+      /// @param rt_max Maximum retention time bound (default: +infinity, no constraint)
       EgmFitterFunctor(int dimensions, const EmgFitter1D::Data* data,
-                       CoordinateType rt_min, CoordinateType rt_max) :
+                       CoordinateType rt_min = -std::numeric_limits<CoordinateType>::infinity(),
+                       CoordinateType rt_max = std::numeric_limits<CoordinateType>::infinity()) :
         LevMarqFitter1D::GenericFunctor(dimensions,
                                         static_cast<int>(data->n) + 1), // +1 for boundary penalty residual
         m_data(data),
@@ -73,8 +75,8 @@ public:
 
 protected:
       const EmgFitter1D::Data* m_data;
-      CoordinateType rt_min_;  ///< Minimum RT bound from data range
-      CoordinateType rt_max_;  ///< Maximum RT bound from data range
+      CoordinateType rt_min_;  ///< Minimum RT bound (default -inf = no constraint)
+      CoordinateType rt_max_;  ///< Maximum RT bound (default +inf = no constraint)
       static const EmgFitter1D::CoordinateType c;
       static const EmgFitter1D::CoordinateType sqrt2pi;
       static const EmgFitter1D::CoordinateType emg_const;
@@ -95,6 +97,8 @@ protected:
     CoordinateType symmetry_;
     /// Parameter of emg - peak retention time
     CoordinateType retention_;
+    /// Whether to constrain RT to data bounds during fitting
+    bool use_fit_bounds_;
 
     void updateMembers_() override;
   };
