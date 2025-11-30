@@ -21,7 +21,8 @@ namespace OpenMS
 
     @brief Database for enzymes that digest proteins (proteases)
 
-    The enzymes stored in this DB are defined in an XML file under share/CHEMISTRY/Enzymes.xml.
+    The enzymes stored in this DB are defined as built-in defaults. Additional 
+    user-defined enzymes can be loaded from share/CHEMISTRY/Enzymes.xml if present.
   */
   class OPENMS_DLLAPI ProteaseDB: public DigestionEnzymeDB<DigestionEnzymeProtein, ProteaseDB>
   {
@@ -31,6 +32,9 @@ namespace OpenMS
   protected:
     /// constructor
     ProteaseDB();
+
+    /// adds built-in enzymes
+    void addBuiltInEnzymes_();
 
   public:
     /// returns all the enzyme names available for XTandem
@@ -49,5 +53,3 @@ namespace OpenMS
     void writeTSV(const String& filename);
   };
 }
-
-

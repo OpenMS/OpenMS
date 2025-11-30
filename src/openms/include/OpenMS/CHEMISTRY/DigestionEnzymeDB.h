@@ -9,6 +9,7 @@
 #pragma once
 
 #include <OpenMS/CHEMISTRY/DigestionEnzyme.h>
+#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
@@ -151,6 +152,21 @@ namespace OpenMS
     /// assignment operator
     DigestionEnzymeDB& operator=(const DigestionEnzymeDB& enzymes_db) = delete;
     //@}
+
+    /// reads enzymes from the given file if it exists, returns true if file was found and loaded
+    bool readEnzymesFromFileIfPresent_(const String& filename)
+    {
+      try
+      {
+        readEnzymesFromFile_(filename);
+        return true;
+      }
+      catch (Exception::FileNotFound&)
+      {
+        // file not found - that's OK, we will use built-in enzymes
+        return false;
+      }
+    }
 
     /// reads enzymes from the given file
     void readEnzymesFromFile_(const String& filename)
