@@ -311,6 +311,8 @@ namespace OpenMS
     ));
 
     // proline endopeptidase
+    // Note: complex regex pattern that matches after H, K, or R followed by P, unless next residue is P
+    // XTandemID is intentionally empty as this enzyme is not supported by X!Tandem
     addEnzyme_(new DigestionEnzymeProtein(
       "proline endopeptidase",
       "(?<=[HKRX][PX])(?!P)",
@@ -319,7 +321,7 @@ namespace OpenMS
       EmpiricalFormula("H"),
       EmpiricalFormula("OH"),
       "MS:1001916",
-      "",
+      "",  // No XTandemID available
       22,  // CometID
       -1,  // MSGFID
       -1   // OMSSAID

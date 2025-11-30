@@ -153,7 +153,13 @@ namespace OpenMS
     DigestionEnzymeDB& operator=(const DigestionEnzymeDB& enzymes_db) = delete;
     //@}
 
-    /// reads enzymes from the given file if it exists, returns true if file was found and loaded
+    /**
+     * @brief Reads enzymes from the given file if it exists
+     * 
+     * @return true if file was found and loaded successfully, false if file was not found
+     * @note Only FileNotFound exceptions are caught. ParseError exceptions are intentionally
+     *       re-thrown to indicate XML parsing issues with an existing file.
+     */
     bool readEnzymesFromFileIfPresent_(const String& filename)
     {
       try
