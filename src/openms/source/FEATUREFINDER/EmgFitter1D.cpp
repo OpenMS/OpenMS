@@ -239,6 +239,17 @@ namespace OpenMS
           // This prevents the optimizer from reporting RT outside the observed data range
           EgmFitterFunctor functor(4, &d, rt_min, rt_max);
           optimize_(x_init, functor);
+
+          // Hard clamp: ensure RT stays within bounds even if optimizer slightly exceeds
+          // The penalty guides optimization, but clamping guarantees the constraint
+          if (x_init(3) < rt_min)
+          {
+            x_init(3) = rt_min;
+          }
+          else if (x_init(3) > rt_max)
+          {
+            x_init(3) = rt_max;
+          }
         }
         else
         {
