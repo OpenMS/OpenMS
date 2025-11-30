@@ -62,9 +62,9 @@ cdef extern from "<OpenMS/ANALYSIS/ID/PeptideSearchEngineFIAlgorithm.h>" namespa
         #   :returns: ExitCodes indicating success (EXECUTION_OK) or the encountered error condition
 
         PeptideSearchEngineFIAlgorithm_SearchResult searchWithModificationAnalysis(
-          const String& in_mzML,
-          const String& in_db,
-          const String& output_base_name) except + nogil
+          String in_mzML,
+          String in_db,
+          String output_base_name) except + nogil
         # wrap-doc:
         #   Search with comprehensive results including modification analysis tables.
         #

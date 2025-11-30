@@ -2,7 +2,6 @@ from Types cimport *
 from libcpp cimport bool
 from libcpp.vector cimport vector as libcpp_vector
 from libcpp.map cimport map as libcpp_map
-from libcpp.pair cimport pair as libcpp_pair
 from String cimport *
 from PeptideIdentification cimport *
 
@@ -50,42 +49,18 @@ cdef extern from "<OpenMS/ANALYSIS/ID/OpenSearchModificationAnalysis.h>" namespa
         OpenSearchModificationAnalysis() except + nogil
         OpenSearchModificationAnalysis(OpenSearchModificationAnalysis&) except + nogil
 
-        libcpp_pair[OpenSearchModificationAnalysis_DeltaMassHistogram, OpenSearchModificationAnalysis_DeltaMassToChargeCount] analyzeDeltaMassPatterns(
-            PeptideIdentificationList& peptide_ids,
-            bool use_smoothing,
-            bool use_peaks) except + nogil
-        # wrap-doc:
-        #  Analyze delta mass patterns in peptide identifications.
-        #
-        #  :param peptide_ids: List of peptide identifications with DeltaMass meta values
-        #  :param use_smoothing: Apply Gaussian smoothing to histogram
-        #  :param use_peaks: Find peaks in smoothed histogram
-        #  :returns: Pair of (delta mass histogram, charge count histogram)
+        # wrap-ignore (complex return type with custom comparator not supported by autowrap)
+        # libcpp_pair[...] analyzeDeltaMassPatterns(...)
 
-        libcpp_vector[OpenSearchModificationAnalysis_ModificationSummary] mapDeltaMassesToModifications(
-            OpenSearchModificationAnalysis_DeltaMassHistogram& histogram,
-            OpenSearchModificationAnalysis_DeltaMassToChargeCount& charge_histogram,
-            PeptideIdentificationList& peptide_ids,
-            double precursor_mass_tolerance,
-            bool precursor_mass_tolerance_unit_ppm,
-            const String& output_file) except + nogil
-        # wrap-doc:
-        #  Map delta masses to known modifications from ModificationsDB.
-        #
-        #  :param histogram: Delta mass histogram from analyzeDeltaMassPatterns()
-        #  :param charge_histogram: Charge count histogram
-        #  :param peptide_ids: Peptide identifications (modified in-place with PTM annotations)
-        #  :param precursor_mass_tolerance: Mass tolerance for mapping
-        #  :param precursor_mass_tolerance_unit_ppm: Whether tolerance is in ppm
-        #  :param output_file: Optional output file for modification summary table
-        #  :returns: List of modification summaries
+        # wrap-ignore (takes histogram types with custom comparator)
+        # libcpp_vector[OpenSearchModificationAnalysis_ModificationSummary] mapDeltaMassesToModifications(...)
 
         libcpp_vector[OpenSearchModificationAnalysis_ModificationSummary] analyzeModifications(
             PeptideIdentificationList& peptide_ids,
             double precursor_mass_tolerance,
             bool precursor_mass_tolerance_unit_ppm,
             bool use_smoothing,
-            const String& output_file) except + nogil
+            String output_file) except + nogil
         # wrap-doc:
         #  Complete analysis workflow: analyze patterns and map to modifications.
         #
@@ -101,7 +76,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/OpenSearchModificationAnalysis.h>" namespa
             double precursor_mass_tolerance,
             bool precursor_mass_tolerance_unit_ppm,
             bool use_smoothing,
-            const String& output_file) except + nogil
+            String output_file) except + nogil
         # wrap-doc:
         #  Complete analysis returning structured statistics tables.
         #
@@ -115,33 +90,11 @@ cdef extern from "<OpenMS/ANALYSIS/ID/OpenSearchModificationAnalysis.h>" namespa
         #  :param output_file: Optional output file path for TSV tables
         #  :returns: OpenSearchAnalysisResult with delta mass and PTM statistics
 
-        OpenSearchModificationAnalysis_DeltaMassStatistics generateDeltaMassStatistics(
-            OpenSearchModificationAnalysis_DeltaMassHistogram& histogram,
-            OpenSearchModificationAnalysis_DeltaMassToChargeCount& charge_histogram,
-            PeptideIdentificationList& peptide_ids,
-            double precursor_mass_tolerance,
-            bool precursor_mass_tolerance_unit_ppm) except + nogil
-        # wrap-doc:
-        #  Generate delta mass statistics table from histogram data.
-        #
-        #  :param histogram: Delta mass histogram
-        #  :param charge_histogram: Charge state counts
-        #  :param peptide_ids: Peptide identifications
-        #  :param precursor_mass_tolerance: Mass tolerance
-        #  :param precursor_mass_tolerance_unit_ppm: Whether tolerance is in ppm
-        #  :returns: DeltaMassStatistics table
+        # wrap-ignore (takes histogram types with custom comparator)
+        # OpenSearchModificationAnalysis_DeltaMassStatistics generateDeltaMassStatistics(...)
 
-        OpenSearchModificationAnalysis_PTMStatistics generatePTMStatistics(
-            PeptideIdentificationList& peptide_ids,
-            double precursor_mass_tolerance,
-            bool precursor_mass_tolerance_unit_ppm) except + nogil
-        # wrap-doc:
-        #  Generate PTM statistics table with residue localization.
-        #
-        #  :param peptide_ids: Peptide identifications with PTM annotations
-        #  :param precursor_mass_tolerance: Mass tolerance
-        #  :param precursor_mass_tolerance_unit_ppm: Whether tolerance is in ppm
-        #  :returns: PTMStatistics table
+        # wrap-ignore (takes histogram types with custom comparator)
+        # OpenSearchModificationAnalysis_PTMStatistics generatePTMStatistics(...)
 
         libcpp_map[char, int] analyzeResidueFrequency(
             PeptideIdentificationList& peptide_ids,
@@ -157,7 +110,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/OpenSearchModificationAnalysis.h>" namespa
 
         void writeDeltaMassStatistics(
             OpenSearchModificationAnalysis_DeltaMassStatistics& stats,
-            const String& output_file) except + nogil
+            String output_file) except + nogil
         # wrap-doc:
         #  Write delta mass statistics to a TSV file.
         #
@@ -166,7 +119,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/OpenSearchModificationAnalysis.h>" namespa
 
         void writePTMStatistics(
             OpenSearchModificationAnalysis_PTMStatistics& stats,
-            const String& output_file) except + nogil
+            String output_file) except + nogil
         # wrap-doc:
         #  Write PTM statistics to a TSV file.
         #
@@ -271,8 +224,3 @@ cdef extern from "<OpenMS/ANALYSIS/ID/OpenSearchModificationAnalysis.h>" namespa
 
         OpenSearchModificationAnalysis_OpenSearchAnalysisResult() except + nogil
         OpenSearchModificationAnalysis_OpenSearchAnalysisResult(OpenSearchModificationAnalysis_OpenSearchAnalysisResult&) except + nogil
-
-
-# Type aliases for the histogram types (using map with fuzzy comparator)
-ctypedef libcpp_map[double, double] OpenSearchModificationAnalysis_DeltaMassHistogram "OpenMS::OpenSearchModificationAnalysis::DeltaMassHistogram"
-ctypedef libcpp_map[double, int] OpenSearchModificationAnalysis_DeltaMassToChargeCount "OpenMS::OpenSearchModificationAnalysis::DeltaMassToChargeCount"
