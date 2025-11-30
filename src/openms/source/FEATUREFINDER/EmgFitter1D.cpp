@@ -34,7 +34,7 @@ namespace OpenMS
     EmgFitter1D::CoordinateType h = x_map(0);
     EmgFitter1D::CoordinateType w = x_map(1);
     EmgFitter1D::CoordinateType s = x_map(2);
-    EmgFitter1D::CoordinateType z = x_map(3);
+    EmgFitter1D::CoordinateType z = x_map(3);  // retention time parameter
 
     EmgFitter1D::CoordinateType Yi = 0.0;
     double prefix = (h * w / s) * sqrt2pi;
@@ -52,6 +52,23 @@ namespace OpenMS
 
       fvec_map(i) = Yi - set[i].getIntensity();
     }
+
+    // Virtual boundary penalty: adds a residual that penalizes RT outside data range
+    // This prevents the optimizer from shifting the peak center outside the observed data
+    // The penalty is scaled by peak height to be comparable to the data residuals
+    double boundary_penalty = 0.0;
+    if (z < rt_min_)
+    {
+      // Penalty proportional to distance below minimum, scaled by height
+      boundary_penalty = h * (rt_min_ - z);
+    }
+    else if (z > rt_max_)
+    {
+      // Penalty proportional to distance above maximum, scaled by height
+      boundary_penalty = h * (z - rt_max_);
+    }
+    fvec(n) = boundary_penalty;
+
     return 0;
   }
 
@@ -71,7 +88,7 @@ namespace OpenMS
     EmgFitter1D::CoordinateType s = x_map(2);
     EmgFitter1D::CoordinateType s2 = s*s;
     EmgFitter1D::CoordinateType s3 = s2 * s;
-    EmgFitter1D::CoordinateType z = x_map(3);
+    EmgFitter1D::CoordinateType z = x_map(3);  // retention time parameter
 
     EmgFitter1D::CoordinateType diff, exp1, exp2, exp3 = 0.0;
     EmgFitter1D::CoordinateType derivative_height, derivative_width, derivative_symmetry, derivative_retention = 0.0;
@@ -104,6 +121,36 @@ namespace OpenMS
       J_map(i, 2) = derivative_symmetry;
       J_map(i, 3) = derivative_retention;
     }
+
+    // Jacobian for boundary penalty residual
+    // penalty = h * |z - boundary| when outside range, 0 otherwise
+    // d(penalty)/dh = |z - boundary| (sign depends on which boundary)
+    // d(penalty)/dw = 0
+    // d(penalty)/ds = 0
+    // d(penalty)/dz = h or -h (depending on which boundary violated)
+    if (z < rt_min_)
+    {
+      J(n, 0) = rt_min_ - z;   // d/dh
+      J(n, 1) = 0.0;           // d/dw
+      J(n, 2) = 0.0;           // d/ds
+      J(n, 3) = -h;            // d/dz (penalty = h*(rt_min_ - z), so d/dz = -h)
+    }
+    else if (z > rt_max_)
+    {
+      J(n, 0) = z - rt_max_;   // d/dh
+      J(n, 1) = 0.0;           // d/dw
+      J(n, 2) = 0.0;           // d/ds
+      J(n, 3) = h;             // d/dz (penalty = h*(z - rt_max_), so d/dz = h)
+    }
+    else
+    {
+      // No boundary violation, zero Jacobian for penalty term
+      J(n, 0) = 0.0;
+      J(n, 1) = 0.0;
+      J(n, 2) = 0.0;
+      J(n, 3) = 0.0;
+    }
+
     return 0;
   }
 
@@ -141,7 +188,7 @@ namespace OpenMS
 
   EmgFitter1D::QualityType EmgFitter1D::fit1d(const RawDataArrayType& set, std::unique_ptr<InterpolationModel>& model)
   {
-    // Calculate bounding box
+    // Calculate bounding box from data range
     CoordinateType min_bb = set[0].getPos(), max_bb = set[0].getPos();
     for (Size pos = 1; pos < set.size(); ++pos)
     {
@@ -155,6 +202,11 @@ namespace OpenMS
         max_bb = tmp;
       }
     }
+
+    // Store the original data range for RT constraints in the optimizer
+    // This prevents the optimizer from shifting the peak center outside the data range
+    const CoordinateType rt_min = min_bb;
+    const CoordinateType rt_max = max_bb;
 
     // Enlarge the bounding box by a few multiples of the standard deviation
     const CoordinateType stdev = sqrt(statistics_.variance()) * tolerance_stdev_box_;
@@ -179,7 +231,8 @@ namespace OpenMS
 
     if (!symmetric_)
     {
-        EgmFitterFunctor functor(4, &d);
+        // Pass original data range bounds to functor for virtual boundary constraints
+        EgmFitterFunctor functor(4, &d, rt_min, rt_max);
         optimize_(x_init, functor);
     }
 

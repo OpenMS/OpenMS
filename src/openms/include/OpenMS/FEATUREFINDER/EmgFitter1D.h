@@ -53,10 +53,18 @@ protected:
       public LevMarqFitter1D::GenericFunctor
     {
 public:
-      EgmFitterFunctor(int dimensions, const EmgFitter1D::Data* data) :
+      /// Constructor with boundary constraints for retention time
+      /// @param dimensions Number of parameters to optimize
+      /// @param data Pointer to the data structure
+      /// @param rt_min Minimum retention time bound (data range start)
+      /// @param rt_max Maximum retention time bound (data range end)
+      EgmFitterFunctor(int dimensions, const EmgFitter1D::Data* data,
+                       CoordinateType rt_min, CoordinateType rt_max) :
         LevMarqFitter1D::GenericFunctor(dimensions,
-                                        static_cast<int>(data->n)),
-        m_data(data)
+                                        static_cast<int>(data->n) + 1), // +1 for boundary penalty residual
+        m_data(data),
+        rt_min_(rt_min),
+        rt_max_(rt_max)
       {}
 
       int operator()(const double* x, double* fvec) const override;
@@ -65,6 +73,8 @@ public:
 
 protected:
       const EmgFitter1D::Data* m_data;
+      CoordinateType rt_min_;  ///< Minimum RT bound from data range
+      CoordinateType rt_max_;  ///< Maximum RT bound from data range
       static const EmgFitter1D::CoordinateType c;
       static const EmgFitter1D::CoordinateType sqrt2pi;
       static const EmgFitter1D::CoordinateType emg_const;
