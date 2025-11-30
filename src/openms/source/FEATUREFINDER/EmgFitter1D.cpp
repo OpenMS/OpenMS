@@ -14,6 +14,7 @@
 #include <OpenMS/CONCEPT/Constants.h>
 
 #include <Eigen/Core>
+#include <algorithm>
 
 namespace OpenMS
 {
@@ -227,7 +228,8 @@ namespace OpenMS
     x_init[0] = height_;
     x_init[1] = width_;
     x_init[2] = symmetry_;
-    x_init[3] = retention_;
+    // Clamp initial RT guess to data range to start optimization within valid bounds
+    x_init[3] = std::clamp(retention_, rt_min, rt_max);
 
     if (!symmetric_)
     {
@@ -238,14 +240,7 @@ namespace OpenMS
 
         // Hard clamp: ensure RT stays within bounds even if optimizer slightly exceeds
         // The penalty guides optimization, but clamping guarantees the constraint
-        if (x_init(3) < rt_min)
-        {
-          x_init(3) = rt_min;
-        }
-        else if (x_init(3) > rt_max)
-        {
-          x_init(3) = rt_max;
-        }
+        x_init[3] = std::clamp(x_init[3], rt_min, rt_max);
     }
 
     // Set optimized parameters
