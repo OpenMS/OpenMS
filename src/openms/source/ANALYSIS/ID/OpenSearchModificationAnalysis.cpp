@@ -564,10 +564,11 @@ namespace OpenMS
                                                               const DeltaMassToChargeCount& charge_histogram,
                                                               const PeptideIdentificationList& peptide_ids,
                                                               double precursor_mass_tolerance,
-                                                              bool /*precursor_mass_tolerance_unit_ppm*/) const
+                                                              bool precursor_mass_tolerance_unit_ppm) const
   {
     DeltaMassStatistics stats;
     constexpr double delta_mass_zero_threshold = 0.05;
+    constexpr double min_mass_for_ppm = 0.1; // Minimum mass to avoid division issues with ppm
 
     // Build modification lookup
     auto mod_lookup = buildModificationMassLookup_();
@@ -617,13 +618,32 @@ namespace OpenMS
         entry.percentage = (static_cast<double>(entry.count) / stats.modified_psms) * 100.0;
       }
 
+      // Compute tolerance in Da based on unit
+      double tolerance_da = precursor_mass_tolerance;
+      if (precursor_mass_tolerance_unit_ppm)
+      {
+        // For ppm, tolerance depends on the mass being compared
+        // Use the delta_mass as reference, with a minimum to avoid issues near zero
+        double reference_mass = std::max(min_mass_for_ppm, std::abs(delta_mass));
+        tolerance_da = reference_mass * precursor_mass_tolerance * 1e-6;
+      }
+
       // Count unique peptides
-      entry.unique_peptides = countUniquePeptides_(peptide_ids, delta_mass, precursor_mass_tolerance);
+      entry.unique_peptides = countUniquePeptides_(peptide_ids, delta_mass, tolerance_da);
 
       // Try to map to known modification
       for (const auto& [mod_mass, mod_name] : mod_lookup)
       {
-        if (std::abs(mod_mass - delta_mass) <= precursor_mass_tolerance)
+        // Compute per-comparison tolerance for ppm mode
+        double comparison_tolerance = precursor_mass_tolerance;
+        if (precursor_mass_tolerance_unit_ppm)
+        {
+          // Use the modification mass as reference for ppm calculation
+          double reference_mass = std::max(min_mass_for_ppm, std::abs(mod_mass));
+          comparison_tolerance = reference_mass * precursor_mass_tolerance * 1e-6;
+        }
+
+        if (std::abs(mod_mass - delta_mass) <= comparison_tolerance)
         {
           entry.mapped_modification = mod_name;
           entry.is_known_modification = true;
@@ -663,9 +683,13 @@ namespace OpenMS
 
   OpenSearchModificationAnalysis::PTMStatistics
   OpenSearchModificationAnalysis::generatePTMStatistics(const PeptideIdentificationList& peptide_ids,
-                                                        double precursor_mass_tolerance,
-                                                        bool /*precursor_mass_tolerance_unit_ppm*/) const
+                                                        double /* precursor_mass_tolerance */,
+                                                        bool /* precursor_mass_tolerance_unit_ppm */) const
   {
+    // Note: tolerance parameters are part of the API for consistency but not used here.
+    // PTM annotations are already assigned by mapDeltaMassesToModifications() which applies the tolerance.
+    // This function only aggregates statistics from existing PTM meta values.
+
     PTMStatistics stats;
 
     // Map to collect PTM data
