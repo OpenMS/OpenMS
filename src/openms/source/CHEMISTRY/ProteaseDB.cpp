@@ -25,6 +25,10 @@ namespace OpenMS
 
   void ProteaseDB::addBuiltInEnzymes_()
   {
+    // Built-in enzyme definitions from share/OpenMS/CHEMISTRY/Enzymes.xml
+    // Empty EmpiricalFormula and empty string parameters match the original XML
+    // where certain values were not specified for some enzymes.
+
     // Trypsin
     addEnzyme_(new DigestionEnzymeProtein(
       "Trypsin",
