@@ -564,8 +564,8 @@ jobs:
 
           # Install uv for faster dependency installation
           "$PYBIN/bin/pip" install --upgrade pip uv
-          # Use uv for fast dependency installation
-          uv pip install -r $GITHUB_WORKSPACE/OpenMS/src/pyOpenMS/requirements_bld.txt
+          # Use uv for fast dependency installation (target the base Python used by CMake)
+          uv pip install --python "$PYBIN/bin/python" -r $GITHUB_WORKSPACE/OpenMS/src/pyOpenMS/requirements_bld.txt
 
           # configure (don't copy deps since we use auditwheel)
 
@@ -692,8 +692,8 @@ jobs:
 
           # Install uv for faster dependency installation
           "$PYBIN/bin/pip" install --upgrade pip uv
-          # Use uv for fast dependency installation
-          uv pip install -r $GITHUB_WORKSPACE/OpenMS/src/pyOpenMS/requirements_bld.txt
+          # Use uv for fast dependency installation (target the base Python used by CMake)
+          uv pip install --python "$PYBIN/bin/python" -r $GITHUB_WORKSPACE/OpenMS/src/pyOpenMS/requirements_bld.txt
 
           # configure (don't copy deps since we use auditwheel)
 
