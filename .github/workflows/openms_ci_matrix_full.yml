@@ -425,7 +425,8 @@ jobs:
           fi
 
           if [[ "${PYOPENMS:-}" == "ON" ]]; then
-            python -m pip install -r $GITHUB_WORKSPACE/OpenMS/src/pyOpenMS/requirements_bld.txt
+            python -m pip install --upgrade pip uv
+            uv pip install "setuptools>=61.0" wheel "autowrap>=0.24.0" "Cython>=3.1.0" "numpy>=2.0" "tomli>=2.0"
           fi
 
           # Display ccache statistics before build
