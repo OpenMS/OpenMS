@@ -74,6 +74,7 @@ build = [
     "autowrap>=0.24.0",
     "Cython>=3.1.0",
     "numpy>=2.0",
+    "tomli>=2.0; python_version < '3.11'",  # for requirements_check.py
 ]
 # Full development environment
 dev = [

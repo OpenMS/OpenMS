@@ -1,55 +1,88 @@
-import pip
-from pip._internal.req.req_file import parse_requirements
-from importlib.metadata import version, PackageNotFoundError
-from packaging.requirements import Requirement
-from packaging.specifiers import SpecifierSet
-from packaging.version import Version
+"""
+Check if all Python modules required for pyOpenMS build are installed.
+
+Reads build dependencies from pyproject.toml [dependency-groups].build section.
+"""
+
 import argparse
 import sys
+from importlib.metadata import version, PackageNotFoundError
+from pathlib import Path
 
-def check_dependencies(requirement_file_name):
+try:
+    import tomllib
+except ImportError:
+    import tomli as tomllib
+
+from packaging.requirements import Requirement
+from packaging.specifiers import SpecifierSet
+
+
+def check_dependencies(pyproject_path: str) -> int:
     """
-    Checks to see if the python dependencies are fulfilled.
-    If check passes return 0. Otherwise print error and return 1.
+    Checks if the Python build dependencies are fulfilled.
+
+    Args:
+        pyproject_path: Path to pyproject.toml file
+
+    Returns:
+        0 if all dependencies satisfied, 1 otherwise
     """
-    requirements = list(parse_requirements(requirement_file_name, session=False))
-    print("Found {} requirements".format(len(requirements)))
+    pyproject_file = Path(pyproject_path)
 
-    for req in requirements:
-        requirement_str = str(req.requirement)
+    if not pyproject_file.exists():
+        print(f"Error: {pyproject_path} not found")
+        return 1
 
+    with open(pyproject_file, "rb") as f:
+        pyproject = tomllib.load(f)
+
+    # Get build dependencies from [dependency-groups].build
+    dependency_groups = pyproject.get("dependency-groups", {})
+    build_deps = dependency_groups.get("build", [])
+
+    if not build_deps:
+        print("Warning: No build dependencies found in [dependency-groups].build")
+        return 0
+
+    print(f"Found {len(build_deps)} build requirements")
+
+    for dep_str in build_deps:
         try:
-            parsed_req = Requirement(requirement_str)
-            installed_version = version(parsed_req.name)
+            parsed_req = Requirement(dep_str)
+            installed_ver = version(parsed_req.name)
             specifier_set = SpecifierSet(str(parsed_req.specifier))
 
-            if installed_version in specifier_set:
-                print(f" + {parsed_req.name}=={installed_version} is installed (required: {parsed_req})")
+            if not parsed_req.specifier or installed_ver in specifier_set:
+                print(f" + {parsed_req.name}=={installed_ver} is installed (required: {parsed_req})")
             else:
-                print(f" - {parsed_req.name}=={installed_version} is installed but does not match the requirement {parsed_req}.")
+                print(f" - {parsed_req.name}=={installed_ver} is installed but does not match {parsed_req}")
                 return 1
         except PackageNotFoundError:
-            print(f"{parsed_req.name} is not installed.")
+            print(f" - {parsed_req.name} is not installed (required: {parsed_req})")
             return 1
         except Exception as e:
-            print(f"An error occurred: {e}")
+            print(f"Error checking {dep_str}: {e}")
             return 1
 
     return 0
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Check if all modules (with correct version) required for pyOpenMS are installed.")
-    parser.add_argument('filename', help="The path where to find `requirements.txt`")
-    
+    parser = argparse.ArgumentParser(
+        description="Check if all modules required for pyOpenMS build are installed."
+    )
+    parser.add_argument(
+        'pyproject_path',
+        nargs='?',
+        default='pyproject.toml',
+        help="Path to pyproject.toml (default: pyproject.toml)"
+    )
+
     args = parser.parse_args()
-    
-    if not args.filename:
-        print("Error: Filename providing a `requirements.txt` is required.")
-        sys.exit(1)
-    
-    ret = check_dependencies(args.filename)
+    ret = check_dependencies(args.pyproject_path)
     sys.exit(ret)
+
 
 if __name__ == "__main__":
     main()
