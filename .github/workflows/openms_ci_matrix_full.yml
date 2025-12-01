@@ -426,7 +426,7 @@ jobs:
 
           if [[ "${PYOPENMS:-}" == "ON" ]]; then
             python -m pip install --upgrade pip uv
-            uv pip install "setuptools>=61.0" wheel "autowrap>=0.24.0" "Cython>=3.1.0" "numpy>=2.0" "tomli>=2.0"
+            uv pip install "setuptools>=61.0" wheel "autowrap>=0.24.0" "Cython>=3.1.0" "numpy>=2.0" "tomli>=2.0" pytest
           fi
 
           # Display ccache statistics before build
