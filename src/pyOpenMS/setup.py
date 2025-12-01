@@ -19,7 +19,12 @@ import os
 import sys
 
 from setuptools import setup, Distribution
-from setuptools.command.bdist_wheel import bdist_wheel
+
+# bdist_wheel location varies between setuptools/wheel versions
+try:
+    from wheel.bdist_wheel import bdist_wheel
+except ImportError:
+    from setuptools.command.bdist_wheel import bdist_wheel
 
 
 class BinaryDistribution(Distribution):
