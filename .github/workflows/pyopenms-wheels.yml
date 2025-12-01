@@ -129,8 +129,8 @@ jobs:
 
           # Install uv for faster dependency installation
           ${CURRENT_PYTHON_EXECUTABLE} -m pip install --upgrade pip uv
-          # Use uv for fast dependency installation
-          uv pip install -r $GITHUB_WORKSPACE/OpenMS/src/pyOpenMS/requirements_bld.txt
+          # Install build dependencies (from pyproject.toml [dependency-groups].build)
+          uv pip install "setuptools>=61.0" wheel "autowrap>=0.24.0" "Cython>=3.1.0" "numpy>=2.0"
           
           # Get the Python root directory
           export Python_ROOT_DIR=$(conda info --json | jq -r '.sys.prefix')
@@ -271,8 +271,8 @@ jobs:
 
           # Install uv for faster dependency installation
           python -m pip install --upgrade pip uv
-          # Use uv for fast dependency installation
-          uv pip install -r $GITHUB_WORKSPACE/OpenMS/src/pyOpenMS/requirements_bld.txt
+          # Install build dependencies (from pyproject.toml [dependency-groups].build)
+          uv pip install "setuptools>=61.0" wheel "autowrap>=0.24.0" "Cython>=3.1.0" "numpy>=2.0"
 
           # Get the Python root directory
           export Python_ROOT_DIR=$(conda info --json | jq -r '.sys.prefix')
@@ -432,8 +432,8 @@ jobs:
 
           # Install uv for faster dependency installation
           python -m pip install --upgrade pip uv
-          # Use uv for fast dependency installation
-          uv pip install -r $GITHUB_WORKSPACE/OpenMS/src/pyOpenMS/requirements_bld.txt
+          # Install build dependencies (from pyproject.toml [dependency-groups].build)
+          uv pip install "setuptools>=61.0" wheel "autowrap>=0.24.0" "Cython>=3.1.0" "numpy>=2.0"
 
           # Get the Python root directory
           export Python_ROOT_DIR=$(conda info --json | jq -r '.sys.prefix')
@@ -564,8 +564,8 @@ jobs:
 
           # Install uv into the venv for faster dependency installation
           pip install --upgrade pip uv
-          # Use uv to install dependencies into the base Python (used by CMake)
-          uv pip install --python "$PYBIN/bin/python" -r $GITHUB_WORKSPACE/OpenMS/src/pyOpenMS/requirements_bld.txt
+          # Install build dependencies into the base Python (from pyproject.toml [dependency-groups].build)
+          uv pip install --python "$PYBIN/bin/python" "setuptools>=61.0" wheel "autowrap>=0.24.0" "Cython>=3.1.0" "numpy>=2.0"
 
           # configure (don't copy deps since we use auditwheel)
 
@@ -692,8 +692,8 @@ jobs:
 
           # Install uv into the venv for faster dependency installation
           pip install --upgrade pip uv
-          # Use uv to install dependencies into the base Python (used by CMake)
-          uv pip install --python "$PYBIN/bin/python" -r $GITHUB_WORKSPACE/OpenMS/src/pyOpenMS/requirements_bld.txt
+          # Install build dependencies into the base Python (from pyproject.toml [dependency-groups].build)
+          uv pip install --python "$PYBIN/bin/python" "setuptools>=61.0" wheel "autowrap>=0.24.0" "Cython>=3.1.0" "numpy>=2.0"
 
           # configure (don't copy deps since we use auditwheel)
 

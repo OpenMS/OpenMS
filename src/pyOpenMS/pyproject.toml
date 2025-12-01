@@ -58,10 +58,35 @@ Documentation = "https://pyopenms.readthedocs.io"
 "Documentation Source" = "https://github.com/OpenMS/pyopenms-docs"
 
 [project.optional-dependencies]
+# Development dependencies (testing, linting, etc.)
 dev = [
     "pytest",
+    "pytest-cov",
+]
+
+# Dependency groups (PEP 735) - installable with: uv pip install --group <name>
+# These are NOT included when installing the package, only when explicitly requested
+[dependency-groups]
+# Dependencies needed for CMake code generation phase (autowrap/Cython)
+build = [
+    "setuptools>=61.0",
+    "wheel",
     "autowrap>=0.24.0",
     "Cython>=3.1.0",
+    "numpy>=2.0",
+]
+# Full development environment
+dev = [
+    "pytest",
+    "pytest-cov",
+    "autowrap>=0.24.0",
+    "Cython>=3.1.0",
+    "numpy>=2.0",
+]
+# Testing only
+test = [
+    "pytest",
+    "pytest-cov",
 ]
 
 [tool.setuptools]
