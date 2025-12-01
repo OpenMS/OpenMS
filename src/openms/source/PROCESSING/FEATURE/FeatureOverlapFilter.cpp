@@ -429,6 +429,14 @@ namespace OpenMS
       // Custom callback that only merges features with DIFFERENT FAIMS CV values
       auto merge_callback = [](Feature& best_in_cluster, Feature& f) -> bool
       {
+        // After a merge, FAIMS_CV is removed and replaced with merged_centroid_IMs.
+        // If the best feature was already merged, skip (can't merge again without CV).
+        if (!best_in_cluster.metaValueExists(Constants::UserParam::FAIMS_CV) ||
+            !f.metaValueExists(Constants::UserParam::FAIMS_CV))
+        {
+          return false;
+        }
+
         // Only merge if FAIMS CVs are DIFFERENT
         // (same CV features should not be merged - they are different analytes)
         double best_cv = best_in_cluster.getMetaValue(Constants::UserParam::FAIMS_CV);

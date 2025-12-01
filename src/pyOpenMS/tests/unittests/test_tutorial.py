@@ -111,6 +111,40 @@ def testAASequenceLen():
     print("All len() tests passed!")
 
 @report
+def testMSExperimentLen():
+    """Test the __len__() method implementation for MSExperiment"""
+    
+    # Test with empty experiment
+    exp = MSExperiment()
+    assert len(exp) == 0
+    assert len(exp) == exp.size()
+    
+    # Test with spectra added
+    spectrum1 = MSSpectrum()
+    spectrum1.setRT(1.0)
+    exp.addSpectrum(spectrum1)
+    assert len(exp) == 1
+    assert len(exp) == exp.size()
+    
+    spectrum2 = MSSpectrum()
+    spectrum2.setRT(2.0)
+    exp.addSpectrum(spectrum2)
+    assert len(exp) == 2
+    assert len(exp) == exp.size()
+    
+    # Test with multiple spectra
+    exp2 = MSExperiment()
+    for i in range(5):
+        spectrum = MSSpectrum()
+        spectrum.setRT(float(i))
+        exp2.addSpectrum(spectrum)
+    assert len(exp2) == 5
+    assert len(exp2) == exp2.size()
+    assert len(exp2) == exp2.getNrSpectra()
+    
+    print("All MSExperiment len() tests passed!")
+
+@report
 def testAASequenceTutorial():
 
     seq = AASequence.fromString("DFPIANGER")
