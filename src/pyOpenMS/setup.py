@@ -57,10 +57,13 @@ try:
         package_version = OPEN_MS_VERSION + ".dev" + OPENMS_GIT_LC_DATE_FORMAT
     else:
         package_version = OPEN_MS_VERSION
-except ImportError:
+except ImportError as e:
     # Fallback for when env.py doesn't exist (e.g., during sdist)
     package_version = "0.0.0.dev0"
-    print("Warning: env.py not found. Using placeholder version.", file=sys.stderr)
+    print(f"Warning: Could not import from env.py: {e}", file=sys.stderr)
+    print(f"  Current directory: {os.getcwd()}", file=sys.stderr)
+    print(f"  env.py exists: {os.path.exists('env.py')}", file=sys.stderr)
+    print("  Using placeholder version 0.0.0.dev0", file=sys.stderr)
 
 # Write version file for runtime access
 version_file = os.path.join(os.path.dirname(__file__), "pyopenms", "version.py")
