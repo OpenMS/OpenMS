@@ -16,20 +16,29 @@ Build instructions
 ------------------
 
 0. (optional) Create a virtual python environment:
-    
+
     ```bash
     python -m venv /path/to/myenv
-    
+
     # ... and activate it, e.g.
     # Linux:
     source <venv>/bin/activate
     # Windows:
     c:\path\to\myenv\Scripts\activate.bat
     ```
-    
-1. Get Python 3.7+ and the following Python libraries:
-   
-   pip install -r requirements_bld.txt
+
+1. Get Python 3.9+ and install the build dependencies:
+
+   ```bash
+   # Using uv (recommended, faster):
+   pip install uv
+   uv pip install setuptools wheel autowrap Cython numpy
+
+   # Or using pip directly:
+   pip install setuptools wheel "autowrap>=0.24.0" "Cython>=3.1.0" "numpy>=2.0"
+   ```
+
+   Build dependencies are defined in `pyproject.toml` under `[dependency-groups].build`.
 
 2. If running from an OpenMS build tree (recommended), just reconfigure with
 
