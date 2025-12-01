@@ -109,7 +109,8 @@ protected:
     PeptideHit * pep_hit_;
     /// protein group
     ProteinGroup protein_group_;
-
+    /// flag indicating whether we have seen a lead protein (probability > 0) in the current protein_group
+    bool has_leader_;
 
     //@}
   };

@@ -20,7 +20,8 @@ namespace OpenMS
 
   ProtXMLFile::ProtXMLFile() :
     XMLHandler("", "1.2"),
-    XMLFile("/SCHEMAS/protXML_v6.xsd", "6.0")
+    XMLFile("/SCHEMAS/protXML_v6.xsd", "6.0"),
+    has_leader_(false)
   {
   }
 
@@ -55,6 +56,7 @@ namespace OpenMS
     pep_id_ = nullptr;
     pep_hit_ = nullptr;
     protein_group_ = ProteinGroup();
+    has_leader_ = false;
   }
 
   void ProtXMLFile::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
@@ -104,17 +106,31 @@ namespace OpenMS
       // internal group structure
       protein_group_ = ProteinGroup();
       protein_group_.probability = attributeAsDouble_(attributes, "probability");
+      has_leader_ = false;  // reset for new protein_group
     }
     else if (tag == "protein")
     {
-      // usually there will be just one <protein> per <protein_group>, but more
-      // are possible; each <protein> is distinguishable from the other, we
-      // nevertheless group them
+      // Usually there will be just one <protein> per <protein_group>, but more
+      // are possible.
+      // ProteinProphet assigns probability=0 to "unneeded" proteins that are
+      // fully explained by other proteins in the same protein_group. These
+      // should be merged into the indistinguishable group of the leader protein
+      // to ensure their shared peptides are used for quantification.
 
       String protein_name = attributeAsString_(attributes, "protein_name");
-      // open new "indistinguishable" group:
-      prot_id_->insertIndistinguishableProteins(ProteinGroup());
-      registerProtein_(protein_name); // create new protein
+      double probability = attributeAsDouble_(attributes, "probability");
+      
+      if (!has_leader_ || probability > 0)
+      {
+        // This is a leader protein (first with non-zero probability, or first in group)
+        // Create a new indistinguishable group
+        prot_id_->insertIndistinguishableProteins(ProteinGroup());
+        has_leader_ = true;
+      }
+      // else: probability == 0 and we already have a leader
+      // Add to existing indistinguishable group instead of creating new one
+      
+      registerProtein_(protein_name); // create new protein and add to current group
 
       // fill protein with life
       double pc_coverage;
@@ -126,7 +142,7 @@ namespace OpenMS
       {
         OPENMS_LOG_WARN << "Required attribute 'percent_coverage' missing\n";
       }
-      prot_id_->getHits().back().setScore(attributeAsDouble_(attributes, "probability"));
+      prot_id_->getHits().back().setScore(probability);
 
     }
     else if (tag == "indistinguishable_protein")

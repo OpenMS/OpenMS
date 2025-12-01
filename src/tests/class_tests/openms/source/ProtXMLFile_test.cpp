@@ -112,6 +112,77 @@ START_SECTION(void store(const String &filename, const ProteinIdentification &pr
 }
 END_SECTION
 
+// Test that probability=0 proteins in a protein_group are merged into the leader's indistinguishable group
+START_SECTION([EXTRA] probability zero protein merging)
+{
+  ProtXMLFile f;
+  ProteinIdentification proteins;
+  PeptideIdentification peptides;
+  String prot_file = OPENMS_GET_TEST_DATA_PATH("ProtXMLFile_input_3.protXML");
+  f.load(prot_file, proteins, peptides);
+
+  // Check protein groups - there should be 3 groups
+  TEST_EQUAL(proteins.getProteinGroups().size(), 3);
+  
+  // First protein group contains 2 proteins (leader + unneeded one)
+  // Both should be in the same indistinguishable group now
+  TEST_EQUAL(proteins.getProteinGroups()[0].accessions.size(), 2);
+  TEST_EQUAL(proteins.getProteinGroups()[0].accessions[0], "ENSP00000308897.7");
+  TEST_EQUAL(proteins.getProteinGroups()[0].accessions[1], "ENSP00000329630.4");
+  
+  // Second protein group contains 2 indistinguishable proteins (marked with indistinguishable_protein)
+  TEST_EQUAL(proteins.getProteinGroups()[1].accessions.size(), 2);
+  TEST_EQUAL(proteins.getProteinGroups()[1].accessions[0], "P12345|PROT1_HUMAN");
+  TEST_EQUAL(proteins.getProteinGroups()[1].accessions[1], "P12346|PROT2_HUMAN");
+  
+  // Third protein group contains 1 protein
+  TEST_EQUAL(proteins.getProteinGroups()[2].accessions.size(), 1);
+  TEST_EQUAL(proteins.getProteinGroups()[2].accessions[0], "P99999|SINGLE_HUMAN");
+
+  // Check indistinguishable proteins
+  // The key fix: there should now be 3 indistinguishable groups (not 4)
+  // because the probability=0 protein was merged into the leader's group
+  TEST_EQUAL(proteins.getIndistinguishableProteins().size(), 3);
+  
+  // First indistinguishable group should contain BOTH proteins from group 1
+  // (the leader and the probability=0 protein)
+  TEST_EQUAL(proteins.getIndistinguishableProteins()[0].accessions.size(), 2);
+  TEST_EQUAL(proteins.getIndistinguishableProteins()[0].accessions[0], "ENSP00000308897.7");
+  TEST_EQUAL(proteins.getIndistinguishableProteins()[0].accessions[1], "ENSP00000329630.4");
+  
+  // Second indistinguishable group contains the properly marked indistinguishable proteins
+  TEST_EQUAL(proteins.getIndistinguishableProteins()[1].accessions.size(), 2);
+  TEST_EQUAL(proteins.getIndistinguishableProteins()[1].accessions[0], "P12345|PROT1_HUMAN");
+  TEST_EQUAL(proteins.getIndistinguishableProteins()[1].accessions[1], "P12346|PROT2_HUMAN");
+  
+  // Third indistinguishable group contains single protein
+  TEST_EQUAL(proteins.getIndistinguishableProteins()[2].accessions.size(), 1);
+  TEST_EQUAL(proteins.getIndistinguishableProteins()[2].accessions[0], "P99999|SINGLE_HUMAN");
+
+  // Check protein hits - there should be 5 proteins total
+  TEST_EQUAL(proteins.getHits().size(), 5);
+  
+  // Verify scores: the probability=0 protein should have score 0
+  bool found_leader = false;
+  bool found_unneeded = false;
+  for (const auto& hit : proteins.getHits())
+  {
+    if (hit.getAccession() == "ENSP00000308897.7")
+    {
+      TEST_REAL_SIMILAR(hit.getScore(), 0.9998);
+      found_leader = true;
+    }
+    if (hit.getAccession() == "ENSP00000329630.4")
+    {
+      TEST_REAL_SIMILAR(hit.getScore(), 0.0);
+      found_unneeded = true;
+    }
+  }
+  TEST_EQUAL(found_leader, true);
+  TEST_EQUAL(found_unneeded, true);
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

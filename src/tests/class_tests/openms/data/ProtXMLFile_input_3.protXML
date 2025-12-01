@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<protein_summary xmlns="http://regis-web.systemsbiology.net/protXML" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://sashimi.sourceforge.net/schema_revision/protXML/protXML_v3.xsd" summary_xml="test.protXML">
+<protein_summary_header reference_database="test.fasta" residue_substitution_list="I -> L" source_files="test.pepXML" source_files_alt="test.pepXML" min_peptide_probability="0.20" min_peptide_weight="0.50" num_predicted_correct_prots="3.0" num_input_1_spectra="10" num_input_2_spectra="20" num_input_3_spectra="15" num_input_4_spectra="0" num_input_5_spectra="0" initial_min_peptide_prob="0.05" total_no_spectrum_ids="30.0" sample_enzyme="trypsin">
+<program_details analysis="proteinprophet" time="2024-01-01T12:00:00" version="Test">
+<proteinprophet_details occam_flag="Y" groups_flag="Y" degen_flag="Y" nsp_flag="Y" initial_peptide_wt_iters="2" nsp_distribution_iters="2" final_peptide_wt_iters="1" run_options="NOPLOT">
+      <nsp_information neighboring_bin_smoothing="Y">
+         <nsp_distribution bin_no="0" nsp_lower_bound_incl="0.00" nsp_upper_bound_excl="0.10" pos_freq="0.5" neg_freq="0.6" pos_to_neg_ratio="0.83"/>
+      </nsp_information>
+      <ni_information>
+      </ni_information>
+      <protein_summary_data_filter min_probability="0.00" sensitivity="1.000" false_positive_error_rate="0.500" predicted_num_correct="2" predicted_num_incorrect="2" />
+</proteinprophet_details>
+</program_details>
+</protein_summary_header>
+<dataset_derivation generation_no="0">
+</dataset_derivation>
+<!-- Test case: protein_group with multiple proteins where some have probability=0 -->
+<!-- This tests that probability=0 proteins are merged into the leader's indistinguishable group -->
+<protein_group group_number="1" probability="0.9998">
+      <protein protein_name="ENSP00000308897.7" n_indistinguishable_proteins="1" probability="0.9998" percent_coverage="15.0" unique_stripped_peptides="AAAPEPTIDE+BBPEPTIDE" group_sibling_id="a" total_number_peptides="3" pct_spectrum_ids="10.0">
+         <annotation protein_description="Leader protein with high probability"/>
+         <peptide peptide_sequence="AAAPEPTIDE" charge="2" initial_probability="0.9990" nsp_adjusted_probability="0.9997" weight="1.00" is_nondegenerate_evidence="Y" n_enzymatic_termini="2" n_sibling_peptides="1.00" n_sibling_peptides_bin="3" n_instances="2" exp_tot_instances="2.00" is_contributing_evidence="Y" calc_neutral_pep_mass="1000.0000">
+         </peptide>
+         <peptide peptide_sequence="BBPEPTIDE" charge="2" initial_probability="0.8000" nsp_adjusted_probability="0.9000" weight="1.00" is_nondegenerate_evidence="Y" n_enzymatic_termini="2" n_sibling_peptides="1.00" n_sibling_peptides_bin="3" n_instances="1" exp_tot_instances="1.00" is_contributing_evidence="Y" calc_neutral_pep_mass="900.0000">
+         </peptide>
+      </protein>
+      <!-- This protein has probability=0, indicating it's "unneeded" and should be merged with the leader -->
+      <protein protein_name="ENSP00000329630.4" n_indistinguishable_proteins="1" probability="0.0000" percent_coverage="15.0" unique_stripped_peptides="AAAPEPTIDE+BBPEPTIDE" group_sibling_id="b" total_number_peptides="3" pct_spectrum_ids="10.0">
+         <annotation protein_description="Unneeded protein with probability 0 - should be merged with leader"/>
+         <peptide peptide_sequence="AAAPEPTIDE" charge="2" initial_probability="0.9990" nsp_adjusted_probability="0.9997" weight="0.00" is_nondegenerate_evidence="N" n_enzymatic_termini="2" n_sibling_peptides="1.00" n_sibling_peptides_bin="3" n_instances="2" exp_tot_instances="2.00" is_contributing_evidence="N" calc_neutral_pep_mass="1000.0000">
+         </peptide>
+         <peptide peptide_sequence="BBPEPTIDE" charge="2" initial_probability="0.8000" nsp_adjusted_probability="0.9000" weight="0.00" is_nondegenerate_evidence="N" n_enzymatic_termini="2" n_sibling_peptides="1.00" n_sibling_peptides_bin="3" n_instances="1" exp_tot_instances="1.00" is_contributing_evidence="N" calc_neutral_pep_mass="900.0000">
+         </peptide>
+      </protein>
+</protein_group>
+<!-- Test case: protein_group with proper indistinguishable_protein elements - should still work -->
+<protein_group group_number="2" probability="0.9000">
+      <protein protein_name="P12345|PROT1_HUMAN" n_indistinguishable_proteins="2" probability="0.9000" percent_coverage="10.0" unique_stripped_peptides="SHAREDPEPTIDE" group_sibling_id="a" total_number_peptides="1" pct_spectrum_ids="5.0">
+         <annotation protein_description="Protein with indistinguishable sibling"/>
+         <indistinguishable_protein protein_name="P12346|PROT2_HUMAN">
+            <annotation protein_description="Indistinguishable protein sibling"/>
+         </indistinguishable_protein>
+         <peptide peptide_sequence="SHAREDPEPTIDE" charge="2" initial_probability="0.9000" nsp_adjusted_probability="0.9000" weight="1.00" is_nondegenerate_evidence="Y" n_enzymatic_termini="2" n_sibling_peptides="0.00" n_sibling_peptides_bin="0" n_instances="1" exp_tot_instances="1.00" is_contributing_evidence="Y" calc_neutral_pep_mass="1200.0000">
+         </peptide>
+      </protein>
+</protein_group>
+<!-- Test case: regular protein_group with single protein - should still work -->
+<protein_group group_number="3" probability="0.8000">
+      <protein protein_name="P99999|SINGLE_HUMAN" n_indistinguishable_proteins="1" probability="0.8000" percent_coverage="20.0" unique_stripped_peptides="UNIQUEPEPTIDE" group_sibling_id="a" total_number_peptides="1" pct_spectrum_ids="3.0">
+         <annotation protein_description="Single protein group"/>
+         <peptide peptide_sequence="UNIQUEPEPTIDE" charge="2" initial_probability="0.8000" nsp_adjusted_probability="0.8000" weight="1.00" is_nondegenerate_evidence="Y" n_enzymatic_termini="2" n_sibling_peptides="0.00" n_sibling_peptides_bin="0" n_instances="1" exp_tot_instances="1.00" is_contributing_evidence="Y" calc_neutral_pep_mass="1100.0000">
+         </peptide>
+      </protein>
+</protein_group>
+</protein_summary>
