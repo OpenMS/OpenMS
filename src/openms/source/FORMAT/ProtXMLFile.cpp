@@ -116,13 +116,21 @@ namespace OpenMS
       // fully explained by other proteins in the same protein_group. These
       // should be merged into the indistinguishable group of the leader protein
       // to ensure their shared peptides are used for quantification.
+      //
+      // Logic:
+      // - The first protein in a protein_group always becomes the leader and
+      //   starts a new indistinguishable group (regardless of probability)
+      // - Subsequent proteins with probability > 0 are distinct and get their
+      //   own indistinguishable group
+      // - Subsequent proteins with probability = 0 are "unneeded" and are
+      //   merged into the existing indistinguishable group
 
       String protein_name = attributeAsString_(attributes, "protein_name");
       double probability = attributeAsDouble_(attributes, "probability");
       
       if (!has_leader_ || probability > 0)
       {
-        // This is a leader protein (first with non-zero probability, or first in group)
+        // First protein OR protein with non-zero probability:
         // Create a new indistinguishable group
         prot_id_->insertIndistinguishableProteins(ProteinGroup());
         has_leader_ = true;
