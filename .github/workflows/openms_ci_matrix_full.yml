@@ -425,7 +425,13 @@ jobs:
           fi
 
           if [[ "${PYOPENMS:-}" == "ON" ]]; then
-            python -m pip install -r $GITHUB_WORKSPACE/OpenMS/src/pyOpenMS/requirements_bld.txt
+            python -m pip install --upgrade pip uv
+            # Install build dependencies (tomli only needed for Python < 3.11)
+            PYOPENMS_BUILD_DEPS=("setuptools>=61.0" wheel "autowrap>=0.24.0" "Cython>=3.1.0" "numpy>=2.0" pytest)
+            if python -c "import sys; sys.exit(0 if sys.version_info < (3, 11) else 1)"; then
+              PYOPENMS_BUILD_DEPS+=("tomli>=2.0")
+            fi
+            uv pip install "${PYOPENMS_BUILD_DEPS[@]}"
           fi
 
           # Display ccache statistics before build

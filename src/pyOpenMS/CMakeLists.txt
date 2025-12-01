@@ -88,14 +88,13 @@ endif(WIN32)
 
 #------------------------------------------------------------------------------
 # Check if all python packages are correctly installed
-set(PY_REQUIREMENTS_TXT "requirements_bld.txt")
 execute_process(
   COMMAND
-  ${Python_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/requirements_check.py" "${CMAKE_CURRENT_SOURCE_DIR}/${PY_REQUIREMENTS_TXT}"
+  ${Python_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/requirements_check.py" "${CMAKE_CURRENT_SOURCE_DIR}/pyproject.toml"
   RESULT_VARIABLE CHECK_PY_PACKAGES
 )
 if (CHECK_PY_PACKAGES)
-  message(FATAL_ERROR "Some Python modules (using ${Python_EXECUTABLE}) are missing or have the wrong version. See ${PY_REQUIREMENTS_TXT} and Readme.md for details.")
+  message(FATAL_ERROR "Some Python modules (using ${Python_EXECUTABLE}) are missing or have the wrong version. See pyproject.toml [dependency-groups].build and Readme.md for details.")
 endif()
 
 #------------------------------------------------------------------------------
@@ -203,6 +202,7 @@ endif()
 set(_pyopenms_files
   MANIFEST.in
   README.rst
+  pyproject.toml
   setup.py
   create_cpp_extension.py
   mac_fix_dependencies.rb

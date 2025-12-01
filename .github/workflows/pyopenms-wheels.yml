@@ -127,9 +127,10 @@ jobs:
           # set current python executable
           CURRENT_PYTHON_EXECUTABLE=$(which python)
 
-          ${CURRENT_PYTHON_EXECUTABLE} -m pip install --upgrade pip
-          # pip install all the stuff
-          ${CURRENT_PYTHON_EXECUTABLE} -m pip install -r $GITHUB_WORKSPACE/OpenMS/src/pyOpenMS/requirements_bld.txt
+          # Install uv for faster dependency installation
+          ${CURRENT_PYTHON_EXECUTABLE} -m pip install --upgrade pip uv
+          # Install build dependencies (from pyproject.toml [dependency-groups].build)
+          uv pip install "setuptools>=61.0" wheel "autowrap>=0.24.0" "Cython>=3.1.0" "numpy>=2.0" "tomli>=2.0"
           
           # Get the Python root directory
           export Python_ROOT_DIR=$(conda info --json | jq -r '.sys.prefix')
@@ -267,15 +268,16 @@ jobs:
           pynodot=$(echo "$py" | tr -d ".")
           conda create -n pyoms-bld-"${pynodot}" python="${py}"
           source activate pyoms-bld-"${pynodot}"
-          python -m pip install --upgrade pip
 
-          # pip install all the stuff
-          python -m pip install -r $GITHUB_WORKSPACE/OpenMS/src/pyOpenMS/requirements_bld.txt
+          # Install uv for faster dependency installation
+          python -m pip install --upgrade pip uv
+          # Install build dependencies (from pyproject.toml [dependency-groups].build)
+          uv pip install "setuptools>=61.0" wheel "autowrap>=0.24.0" "Cython>=3.1.0" "numpy>=2.0" "tomli>=2.0"
 
           # Get the Python root directory
           export Python_ROOT_DIR=$(conda info --json | jq -r '.sys.prefix')
           echo "Python root directory: $Python_ROOT_DIR"
-          
+
           # Set rpath for linked libraries
           export CMAKE_ARGS="-DCMAKE_MACOSX_RPATH=ON -DCMAKE_INSTALL_RPATH=@loader_path/../lib/python${py}/site-packages/pyopenms"
 
@@ -288,8 +290,8 @@ jobs:
           # copy to directory
           cp OpenMS/bld/pyOpenMS/dist/*.whl pyopenms_whls/
 
-          # Install wheel
-          pip install "$(ls OpenMS/bld/pyOpenMS/dist/*.whl | head -n 1)"
+          # Install wheel for testing
+          uv pip install "$(ls OpenMS/bld/pyOpenMS/dist/*.whl | head -n 1)"
         done
 
         # Clean up
@@ -427,15 +429,16 @@ jobs:
           pynodot=$(echo "$py" | tr -d ".")
           conda create -n pyoms-bld-"${pynodot}" python="${py}"
           source activate pyoms-bld-"${pynodot}"
-          python -m pip install --upgrade pip
 
-          # pip install all the stuff
-          python -m pip install -r $GITHUB_WORKSPACE/OpenMS/src/pyOpenMS/requirements_bld.txt
+          # Install uv for faster dependency installation
+          python -m pip install --upgrade pip uv
+          # Install build dependencies (from pyproject.toml [dependency-groups].build)
+          uv pip install "setuptools>=61.0" wheel "autowrap>=0.24.0" "Cython>=3.1.0" "numpy>=2.0" "tomli>=2.0"
 
           # Get the Python root directory
           export Python_ROOT_DIR=$(conda info --json | jq -r '.sys.prefix')
           echo "Python root directory: $Python_ROOT_DIR"
-          
+
           # Set rpath for linked libraries
           export CMAKE_ARGS="-DCMAKE_MACOSX_RPATH=ON -DCMAKE_INSTALL_RPATH=@loader_path/../lib/python${py}/site-packages/pyopenms"
 
@@ -448,8 +451,8 @@ jobs:
           # copy to directory
           cp OpenMS/bld/pyOpenMS/dist/*.whl pyopenms_whls/
 
-          # Install wheel
-          pip install "$(ls OpenMS/bld/pyOpenMS/dist/*.whl | head -n 1)"
+          # Install wheel for testing
+          uv pip install "$(ls OpenMS/bld/pyOpenMS/dist/*.whl | head -n 1)"
         done
 
         # Clean up libs
@@ -558,10 +561,11 @@ jobs:
           # Create a venv for this python version
           "$PYBIN/bin/python" -m venv $pynodot
           source $pynodot/bin/activate
-          
-          "$PYBIN/bin/pip" install --upgrade pip
-          # pip install all the stuff
-          "$PYBIN/bin/pip" install -r $GITHUB_WORKSPACE/OpenMS/src/pyOpenMS/requirements_bld.txt
+
+          # Install uv into the venv for faster dependency installation
+          pip install --upgrade pip uv
+          # Install build dependencies into the base Python (from pyproject.toml [dependency-groups].build)
+          "$PYBIN/bin/uv" pip install --python "$PYBIN/bin/python" "setuptools>=61.0" wheel "autowrap>=0.24.0" "Cython>=3.1.0" "numpy>=2.0" "tomli>=2.0"
 
           # configure (don't copy deps since we use auditwheel)
 
@@ -570,7 +574,7 @@ jobs:
 
           bash OpenMS/tools/ci/capture-env.sh -v $GITHUB_WORKSPACE/OpenMS/bld/CMakeCache.txt
           ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/ci/cibuild.cmake
-          
+
           # ensure auditwheel can find the libraries
           export LD_LIBRARY_PATH=$LD_OLD_LIBRARY_PATH:`pwd`/OpenMS/bld/lib
 
@@ -587,11 +591,11 @@ jobs:
             mv wheelhouse/* $GITHUB_WORKSPACE/data/wheelhouse/
           popd
           export LD_LIBRARY_PATH=$LD_OLD_LIBRARY_PATH
-          
+
           # deactivate the venv
           deactivate
         done
-      env: 
+      env:
           SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
           CMAKE_GENERATOR: "Ninja"
           OPENMS_CONTRIB_LIBS: "/contrib-build/"
@@ -685,10 +689,11 @@ jobs:
           # Create a venv for this python version
           "$PYBIN/bin/python" -m venv $pynodot
           source $pynodot/bin/activate
-          
-          "$PYBIN/bin/pip" install --upgrade pip
-          # pip install all the stuff
-          "$PYBIN/bin/pip" install -r $GITHUB_WORKSPACE/OpenMS/src/pyOpenMS/requirements_bld.txt
+
+          # Install uv into the venv for faster dependency installation
+          pip install --upgrade pip uv
+          # Install build dependencies into the base Python (from pyproject.toml [dependency-groups].build)
+          "$PYBIN/bin/uv" pip install --python "$PYBIN/bin/python" "setuptools>=61.0" wheel "autowrap>=0.24.0" "Cython>=3.1.0" "numpy>=2.0" "tomli>=2.0"
 
           # configure (don't copy deps since we use auditwheel)
 
@@ -697,7 +702,7 @@ jobs:
 
           bash OpenMS/tools/ci/capture-env.sh -v $GITHUB_WORKSPACE/OpenMS/bld/CMakeCache.txt
           ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/ci/cibuild.cmake
-          
+
           # ensure auditwheel can find the libraries
           export LD_LIBRARY_PATH=$LD_OLD_LIBRARY_PATH:`pwd`/OpenMS/bld/lib
 
@@ -714,11 +719,11 @@ jobs:
             mv wheelhouse/* $GITHUB_WORKSPACE/data/wheelhouse/
           popd
           export LD_LIBRARY_PATH=$LD_OLD_LIBRARY_PATH
-          
+
           # deactivate the venv
           deactivate
         done
-      env: 
+      env:
           SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
           CMAKE_GENERATOR: "Ninja"
           OPENMS_CONTRIB_LIBS: "/contrib-build/"
@@ -832,9 +837,9 @@ jobs:
           fi
           echo "Found wheel $CURRENT_WHL : Testing.."
 
-          # pip install all the stuff
-          python -m pip install --upgrade pip
-          python -m pip install $CURRENT_WHL
+          # Install uv for faster wheel installation
+          python -m pip install --upgrade pip uv
+          uv pip install $CURRENT_WHL
 
           # check if package was installed
           python -c "import importlib.util; p_name = 'pyopenms'; package = importlib.util.find_spec(p_name); print(p_name + ' was sucessfully installed! Nice one!') if package is not None else print('Something seems to be wrong!')"

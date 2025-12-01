@@ -1,0 +1,14 @@
+# Generated files (created by setup.py during wheel packaging)
+version.py
+_version.py
+_qt_version_info.py
+_all_modules.py
+_all_modules.pyi
+
+# Compiled extensions (created by CMake)
+*.so
+*.pyd
+*.dylib
+_pyopenms_*.cpp
+_pyopenms_*.pyx
+_pyopenms_*.pyi
