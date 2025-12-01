@@ -129,8 +129,12 @@ jobs:
 
           # Install uv for faster dependency installation
           ${CURRENT_PYTHON_EXECUTABLE} -m pip install --upgrade pip uv
-          # Install build dependencies (from pyproject.toml [dependency-groups].build)
-          uv pip install "setuptools>=61.0" wheel "autowrap>=0.24.0" "Cython>=3.1.0" "numpy>=2.0" "tomli>=2.0"
+          # Install build dependencies (tomli only for Python < 3.11)
+          PYOPENMS_BUILD_DEPS=("setuptools>=61.0" wheel "autowrap>=0.24.0" "Cython>=3.1.0" "numpy>=2.0")
+          if python -c "import sys; sys.exit(0 if sys.version_info < (3, 11) else 1)"; then
+            PYOPENMS_BUILD_DEPS+=("tomli>=2.0")
+          fi
+          uv pip install "${PYOPENMS_BUILD_DEPS[@]}"
           
           # Get the Python root directory
           export Python_ROOT_DIR=$(conda info --json | jq -r '.sys.prefix')
@@ -271,8 +275,12 @@ jobs:
 
           # Install uv for faster dependency installation
           python -m pip install --upgrade pip uv
-          # Install build dependencies (from pyproject.toml [dependency-groups].build)
-          uv pip install "setuptools>=61.0" wheel "autowrap>=0.24.0" "Cython>=3.1.0" "numpy>=2.0" "tomli>=2.0"
+          # Install build dependencies (tomli only for Python < 3.11)
+          PYOPENMS_BUILD_DEPS=("setuptools>=61.0" wheel "autowrap>=0.24.0" "Cython>=3.1.0" "numpy>=2.0")
+          if python -c "import sys; sys.exit(0 if sys.version_info < (3, 11) else 1)"; then
+            PYOPENMS_BUILD_DEPS+=("tomli>=2.0")
+          fi
+          uv pip install "${PYOPENMS_BUILD_DEPS[@]}"
 
           # Get the Python root directory
           export Python_ROOT_DIR=$(conda info --json | jq -r '.sys.prefix')
@@ -432,8 +440,12 @@ jobs:
 
           # Install uv for faster dependency installation
           python -m pip install --upgrade pip uv
-          # Install build dependencies (from pyproject.toml [dependency-groups].build)
-          uv pip install "setuptools>=61.0" wheel "autowrap>=0.24.0" "Cython>=3.1.0" "numpy>=2.0" "tomli>=2.0"
+          # Install build dependencies (tomli only for Python < 3.11)
+          PYOPENMS_BUILD_DEPS=("setuptools>=61.0" wheel "autowrap>=0.24.0" "Cython>=3.1.0" "numpy>=2.0")
+          if python -c "import sys; sys.exit(0 if sys.version_info < (3, 11) else 1)"; then
+            PYOPENMS_BUILD_DEPS+=("tomli>=2.0")
+          fi
+          uv pip install "${PYOPENMS_BUILD_DEPS[@]}"
 
           # Get the Python root directory
           export Python_ROOT_DIR=$(conda info --json | jq -r '.sys.prefix')
@@ -565,7 +577,12 @@ jobs:
           # Install uv into the venv for faster dependency installation
           pip install --upgrade pip uv
           # Install build dependencies into the base Python (from pyproject.toml [dependency-groups].build)
-          "$PYBIN/bin/uv" pip install --python "$PYBIN/bin/python" "setuptools>=61.0" wheel "autowrap>=0.24.0" "Cython>=3.1.0" "numpy>=2.0" "tomli>=2.0"
+          # Install build dependencies (tomli only for Python < 3.11)
+          PYOPENMS_BUILD_DEPS=("setuptools>=61.0" wheel "autowrap>=0.24.0" "Cython>=3.1.0" "numpy>=2.0")
+          if "$PYBIN/bin/python" -c "import sys; sys.exit(0 if sys.version_info < (3, 11) else 1)"; then
+            PYOPENMS_BUILD_DEPS+=("tomli>=2.0")
+          fi
+          "$PYBIN/bin/uv" pip install --python "$PYBIN/bin/python" "${PYOPENMS_BUILD_DEPS[@]}"
 
           # configure (don't copy deps since we use auditwheel)
 
@@ -693,7 +710,12 @@ jobs:
           # Install uv into the venv for faster dependency installation
           pip install --upgrade pip uv
           # Install build dependencies into the base Python (from pyproject.toml [dependency-groups].build)
-          "$PYBIN/bin/uv" pip install --python "$PYBIN/bin/python" "setuptools>=61.0" wheel "autowrap>=0.24.0" "Cython>=3.1.0" "numpy>=2.0" "tomli>=2.0"
+          # Install build dependencies (tomli only for Python < 3.11)
+          PYOPENMS_BUILD_DEPS=("setuptools>=61.0" wheel "autowrap>=0.24.0" "Cython>=3.1.0" "numpy>=2.0")
+          if "$PYBIN/bin/python" -c "import sys; sys.exit(0 if sys.version_info < (3, 11) else 1)"; then
+            PYOPENMS_BUILD_DEPS+=("tomli>=2.0")
+          fi
+          "$PYBIN/bin/uv" pip install --python "$PYBIN/bin/python" "${PYOPENMS_BUILD_DEPS[@]}"
 
           # configure (don't copy deps since we use auditwheel)
 
