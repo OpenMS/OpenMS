@@ -297,8 +297,8 @@ protected:
     if (keep_empty_out || ! deconvolved_features.empty())
     {
       OPENMS_LOG_INFO << "writing feature tsv ..." << endl;
-      fstream out_stream;
-      out_stream.open(out_file, fstream::out);
+      ofstream out_stream;
+      out_stream.open(out_file);
       if (!out_stream)
       {
         OPENMS_LOG_FATAL_ERROR << "Error: Could not open output file '" << out_file << "'" << endl;
@@ -318,14 +318,14 @@ protected:
 
     if (has_any_output(out_spec_file))
     {
-      std::vector<fstream> out_spec_streams = std::vector<fstream>(out_spec_file.size());
+      std::vector<ofstream> out_spec_streams = std::vector<ofstream>(out_spec_file.size());
       for (Size i = 0; i < out_spec_file.size(); i++)
       {
         if (out_spec_file[i].empty() || (! keep_empty_out && per_ms_level_deconv_spec_count.find(i + 1) == per_ms_level_deconv_spec_count.end()))
           continue;
         OPENMS_LOG_INFO << "writing spectrum tsv for MS level " << (i + 1) << " ..." << endl;
 
-        out_spec_streams[i].open(out_spec_file[i], fstream::out);
+        out_spec_streams[i].open(out_spec_file[i]);
         if (!out_spec_streams[i])
         {
           OPENMS_LOG_FATAL_ERROR << "Error: Could not open output file '" << out_spec_file[i] << "'" << endl;
@@ -361,8 +361,8 @@ protected:
     if (! out_quant_file.empty())
     {
       OPENMS_LOG_INFO << "writing quantification tsv ..." << endl;
-      fstream out_quant_stream;
-      out_quant_stream.open(out_quant_file, fstream::out);
+      ofstream out_quant_stream;
+      out_quant_stream.open(out_quant_file);
       if (!out_quant_stream)
       {
         OPENMS_LOG_FATAL_ERROR << "Error: Could not open output file '" << out_quant_file << "'" << endl;
@@ -375,8 +375,8 @@ protected:
     // topFD feature output - it should be at the end since zero feature IDs are redefined for TopPIC feature indices.
     if (has_any_output(out_topfd_feature_file))
     {
-      std::vector<fstream> out_topfd_feature_streams;
-      out_topfd_feature_streams = std::vector<fstream>(out_topfd_feature_file.size());
+      std::vector<ofstream> out_topfd_feature_streams;
+      out_topfd_feature_streams = std::vector<ofstream>(out_topfd_feature_file.size());
       for (Size i = 0; i < out_topfd_feature_file.size(); i++)
       {
         if (out_topfd_feature_file[i].empty()
@@ -384,7 +384,7 @@ protected:
           continue;
         OPENMS_LOG_INFO << "writing topfd *.feature for MS level " << (i + 1) << " ..." << endl;
 
-        out_topfd_feature_streams[i].open(out_topfd_feature_file[i], fstream::out);
+        out_topfd_feature_streams[i].open(out_topfd_feature_file[i]);
         if (!out_topfd_feature_streams[i])
         {
           OPENMS_LOG_FATAL_ERROR << "Error: Could not open output file '" << out_topfd_feature_file[i] << "'" << endl;
@@ -399,7 +399,7 @@ protected:
     // topFD msalign output
     if (has_any_output(out_topfd_file))
     {
-      auto out_topfd_streams = std::vector<fstream>(out_topfd_file.size());
+      auto out_topfd_streams = std::vector<ofstream>(out_topfd_file.size());
 
       for (Size i = 0; i < out_topfd_file.size(); i++)
       {
@@ -407,7 +407,7 @@ protected:
           continue;
         OPENMS_LOG_INFO << "writing topfd *.msalign for MS level " << (i + 1) << " ..." << endl;
 
-        out_topfd_streams[i].open(out_topfd_file[i], fstream::out);
+        out_topfd_streams[i].open(out_topfd_file[i]);
         if (!out_topfd_streams[i])
         {
           OPENMS_LOG_FATAL_ERROR << "Error: Could not open output file '" << out_topfd_file[i] << "'" << endl;
