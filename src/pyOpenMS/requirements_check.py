@@ -1,7 +1,7 @@
 """
 Check if all Python modules required for pyOpenMS build are installed.
 
-Reads build dependencies from pyproject.toml [dependency-groups].build section.
+Reads build dependencies from pyproject.toml [build-system].requires section.
 """
 
 import argparse
@@ -37,12 +37,12 @@ def check_dependencies(pyproject_path: str) -> int:
     with open(pyproject_file, "rb") as f:
         pyproject = tomllib.load(f)
 
-    # Get build dependencies from [dependency-groups].build
-    dependency_groups = pyproject.get("dependency-groups", {})
-    build_deps = dependency_groups.get("build", [])
+    # Get build dependencies from [build-system].requires (PEP 517 standard)
+    build_system = pyproject.get("build-system", {})
+    build_deps = build_system.get("requires", [])
 
     if not build_deps:
-        print("Warning: No build dependencies found in [dependency-groups].build")
+        print("Warning: No build dependencies found in [build-system].requires")
         return 0
 
     print(f"Found {len(build_deps)} build requirements")

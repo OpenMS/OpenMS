@@ -38,7 +38,7 @@ Build instructions
    pip install setuptools wheel "autowrap>=0.24.0" "Cython>=3.1.0" "numpy>=2.0"
    ```
 
-   Build dependencies are defined in `pyproject.toml` under `[dependency-groups].build`.
+   Build dependencies are defined in `pyproject.toml` under `[build-system].requires`.
 
 2. If running from an OpenMS build tree (recommended), just reconfigure with
 
