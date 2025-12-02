@@ -557,9 +557,9 @@ namespace OpenMS
         << "PRECURSOR_WINDOW_BEGIN=" << -dspec.getPrecursor().getIsolationWindowLowerOffset() + dspec.getPrecursor().getMZ() << "\n"
          << "PRECURSOR_WINDOW_END=" << dspec.getPrecursor().getIsolationWindowUpperOffset() + dspec.getPrecursor().getMZ() << "\n";
 
-        if (dspec.getActivationMethod() < Precursor::ActivationMethod::SIZE_OF_ACTIVATIONMETHOD)
+        if (static_cast<size_t>(dspec.getActivationMethod()) < static_cast<size_t>(Precursor::ActivationMethod::SIZE_OF_ACTIVATIONMETHOD))
       {
-        ss << "ACTIVATION=" << Precursor::NamesOfActivationMethodShort[dspec.getActivationMethod()] << "\n";
+        ss << "ACTIVATION=" << Precursor::NamesOfActivationMethodShort[static_cast<size_t>(dspec.getActivationMethod())] << "\n";
       }
        ss << "PRECURSOR_MZ=" << std::to_string(dspec.getPrecursor().getMZ()) << "\n"
          << "PRECURSOR_CHARGE=" << (int)(dspec.getPrecursorCharge()) << "\n"

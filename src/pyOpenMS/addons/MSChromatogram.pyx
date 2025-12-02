@@ -114,3 +114,7 @@ import numpy as np
 
         chrom_.updateRanges()
 
+    def __len__(self):
+        """Return the number of peaks in the chromatogram."""
+        return self.inst.get().size()
+
