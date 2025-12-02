@@ -107,7 +107,7 @@ START_SECTION((void SpectrumAnnotator::addIonMatchStatistics(PeptideIdentificati
   }
 END_SECTION
 
-START_SECTION((void SpectrumAnnotator::addPeakAnnotationsToPeptideHit(PeptideHit& ph, const PeakSpectrum& spec, const TheoreticalSpectrumGenerator& tg, const SpectrumAlignment& sa) const))
+START_SECTION((void SpectrumAnnotator::addPeakAnnotationsToPeptideHit(PeptideHit& ph, const PeakSpectrum& spec, const TheoreticalSpectrumGenerator& tg, const SpectrumAlignment& sa, bool include_unmatched_peaks) const))
   // Create a fresh PeptideHit for testing
   PeptideHit test_hit;
   test_hit.setSequence(peptide);
@@ -124,8 +124,8 @@ START_SECTION((void SpectrumAnnotator::addPeakAnnotationsToPeptideHit(PeptideHit
     test_spec.push_back(test_p);
   }
 
-  // Call the new method
-  annot.addPeakAnnotationsToPeptideHit(test_hit, test_spec, tg, sa);
+  // Test with include_unmatched_peaks = false (default behavior)
+  annot.addPeakAnnotationsToPeptideHit(test_hit, test_spec, tg, sa, false);
 
   // Verify the PeakAnnotations were set correctly
   const std::vector<PeptideHit::PeakAnnotation>& pas = test_hit.getPeakAnnotations();
@@ -152,6 +152,56 @@ START_SECTION((void SpectrumAnnotator::addPeakAnnotationsToPeptideHit(PeptideHit
   {
     TEST_STRING_EQUAL(found_ions[i], expected_ions[i])
   }
+
+  // Test with include_unmatched_peaks = true
+  // Add some unmatched peaks to the spectrum
+  PeakSpectrum test_spec_with_unmatched;
+  test_spec_with_unmatched.setMSLevel(2);
+  // Add some peaks that will NOT match
+  Peak1D unmatched_p;
+  unmatched_p.setIntensity(0.5f);
+  unmatched_p.setMZ(100.0); // This m/z won't match any theoretical ion
+  test_spec_with_unmatched.push_back(unmatched_p);
+  unmatched_p.setMZ(1000.0); // This m/z also won't match
+  test_spec_with_unmatched.push_back(unmatched_p);
+  // Add the original matched peaks
+  for (Size i = 0; i != pls; ++i)
+  {
+    test_p.setIntensity(1.1f);
+    test_p.setMZ(peaklist[i]);
+    test_spec_with_unmatched.push_back(test_p);
+  }
+
+  PeptideHit test_hit2;
+  test_hit2.setSequence(peptide);
+  test_hit2.setCharge(2);
+  
+  annot.addPeakAnnotationsToPeptideHit(test_hit2, test_spec_with_unmatched, tg, sa, true);
+  
+  const std::vector<PeptideHit::PeakAnnotation>& pas2 = test_hit2.getPeakAnnotations();
+  
+  // We expect 13 annotations (11 matched + 2 unmatched)
+  TEST_EQUAL(pas2.size(), 13)
+  
+  // Count annotated and unannotated peaks
+  size_t annotated_count = 0;
+  size_t unannotated_count = 0;
+  for (const auto& pa : pas2)
+  {
+    if (pa.annotation.empty())
+    {
+      unannotated_count++;
+    }
+    else
+    {
+      annotated_count++;
+    }
+    // All peaks should have mz and intensity set
+    TEST_NOT_EQUAL(pa.mz, -1.0)
+  }
+  
+  TEST_EQUAL(annotated_count, 11)  // 11 matched peaks
+  TEST_EQUAL(unannotated_count, 2) // 2 unmatched peaks
 END_SECTION
 
 /////////////////////////////////////////////////////////////

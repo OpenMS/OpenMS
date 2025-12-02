@@ -381,7 +381,7 @@ namespace OpenMS
     }  
   }
 
-  void SpectrumAnnotator::addPeakAnnotationsToPeptideHit(PeptideHit& ph, const PeakSpectrum& spec, const TheoreticalSpectrumGenerator& tg, const SpectrumAlignment& sa) const
+  void SpectrumAnnotator::addPeakAnnotationsToPeptideHit(PeptideHit& ph, const PeakSpectrum& spec, const TheoreticalSpectrumGenerator& tg, const SpectrumAlignment& sa, bool include_unmatched_peaks) const
   {
     PeakSpectrum theoretical_spec;
     vector<pair<Size, Size>> al;
@@ -415,25 +415,64 @@ namespace OpenMS
       }
     }
 
-    // Build the PeakAnnotation vector
-    std::vector<PeptideHit::PeakAnnotation> peak_annotations;
-    peak_annotations.reserve(al.size());
-
+    // Build a map from spectrum index to alignment match (if any)
+    std::map<Size, Size> spec_idx_to_theo_idx;
     for (const auto& match : al)
     {
-      PeptideHit::PeakAnnotation pa;
-      pa.mz = spec_copy[match.second].getMZ();
-      pa.intensity = spec_copy[match.second].getIntensity();
+      spec_idx_to_theo_idx[match.second] = match.first;
+    }
 
-      if (ion_names != nullptr && match.first < ion_names->size())
+    // Build the PeakAnnotation vector
+    std::vector<PeptideHit::PeakAnnotation> peak_annotations;
+
+    if (include_unmatched_peaks)
+    {
+      // Include all spectrum peaks
+      peak_annotations.reserve(spec_copy.size());
+      for (Size i = 0; i < spec_copy.size(); ++i)
       {
-        pa.annotation = (*ion_names)[match.first];
+        PeptideHit::PeakAnnotation pa;
+        pa.mz = spec_copy[i].getMZ();
+        pa.intensity = spec_copy[i].getIntensity();
+
+        // Check if this peak was matched
+        auto it = spec_idx_to_theo_idx.find(i);
+        if (it != spec_idx_to_theo_idx.end())
+        {
+          Size theo_idx = it->second;
+          if (ion_names != nullptr && theo_idx < ion_names->size())
+          {
+            pa.annotation = (*ion_names)[theo_idx];
+          }
+          if (ion_charges != nullptr && theo_idx < ion_charges->size())
+          {
+            pa.charge = (*ion_charges)[theo_idx];
+          }
+        }
+        // Unmatched peaks will have default empty annotation and charge=0
+        peak_annotations.push_back(std::move(pa));
       }
-      if (ion_charges != nullptr && match.first < ion_charges->size())
+    }
+    else
+    {
+      // Only include matched peaks (original behavior)
+      peak_annotations.reserve(al.size());
+      for (const auto& match : al)
       {
-        pa.charge = (*ion_charges)[match.first];
+        PeptideHit::PeakAnnotation pa;
+        pa.mz = spec_copy[match.second].getMZ();
+        pa.intensity = spec_copy[match.second].getIntensity();
+
+        if (ion_names != nullptr && match.first < ion_names->size())
+        {
+          pa.annotation = (*ion_names)[match.first];
+        }
+        if (ion_charges != nullptr && match.first < ion_charges->size())
+        {
+          pa.charge = (*ion_charges)[match.first];
+        }
+        peak_annotations.push_back(std::move(pa));
       }
-      peak_annotations.push_back(std::move(pa));
     }
 
     ph.setPeakAnnotations(std::move(peak_annotations));
