@@ -426,12 +426,19 @@ jobs:
 
           if [[ "${PYOPENMS:-}" == "ON" ]]; then
             python -m pip install --upgrade pip uv
-            # Install build dependencies (tomli only needed for Python < 3.11)
-            PYOPENMS_BUILD_DEPS=("setuptools>=61.0" wheel "autowrap>=0.24.0" "Cython>=3.1.0" "numpy>=2.0" pytest)
+            # Install tomli for Python < 3.11 (needed to parse pyproject.toml)
             if python -c "import sys; sys.exit(0 if sys.version_info < (3, 11) else 1)"; then
-              PYOPENMS_BUILD_DEPS+=("tomli>=2.0")
+              uv pip install "tomli>=2.0"
             fi
-            uv pip install "${PYOPENMS_BUILD_DEPS[@]}"
+            # Install build dependencies from pyproject.toml [build-system].requires + pytest
+            uv pip install $(python -c "
+try:
+    import tomllib
+except ImportError:
+    import tomli as tomllib
+with open('$GITHUB_WORKSPACE/OpenMS/src/pyOpenMS/pyproject.toml', 'rb') as f:
+    print(' '.join(repr(d) for d in tomllib.load(f)['build-system']['requires']))
+") pytest
           fi
 
           # Display ccache statistics before build
