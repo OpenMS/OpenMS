@@ -179,8 +179,11 @@ namespace OpenMS
     float getIsotopeCosine() const;
 
     /// get the density of the peaks within charge and isotope range
+    /**
+     * @brief Get the density of peaks within charge and isotope range.
+     * @return Peak occupancy value (0-1) representing the fraction of expected peaks that are present
+     */
     float getPeakOccupancy() const;
-
     /// get representative charge
     int getRepAbsCharge() const;
 
