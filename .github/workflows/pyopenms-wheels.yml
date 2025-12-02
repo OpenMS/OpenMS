@@ -129,8 +129,19 @@ jobs:
 
           # Install uv for faster dependency installation
           ${CURRENT_PYTHON_EXECUTABLE} -m pip install --upgrade pip uv
-          # Install build dependencies (from pyproject.toml [dependency-groups].build)
-          uv pip install "setuptools>=61.0" wheel "autowrap>=0.24.0" "Cython>=3.1.0" "numpy>=2.0" "tomli>=2.0"
+          # Install tomli for Python < 3.11 (needed to parse pyproject.toml)
+          if python -c "import sys; sys.exit(0 if sys.version_info < (3, 11) else 1)"; then
+            uv pip install "tomli>=2.0"
+          fi
+          # Install build dependencies from pyproject.toml [build-system].requires
+          uv pip install $(python -c "
+try:
+    import tomllib
+except ImportError:
+    import tomli as tomllib
+with open('$GITHUB_WORKSPACE/OpenMS/src/pyOpenMS/pyproject.toml', 'rb') as f:
+    print(' '.join(repr(d) for d in tomllib.load(f)['build-system']['requires']))
+")
           
           # Get the Python root directory
           export Python_ROOT_DIR=$(conda info --json | jq -r '.sys.prefix')
@@ -271,8 +282,19 @@ jobs:
 
           # Install uv for faster dependency installation
           python -m pip install --upgrade pip uv
-          # Install build dependencies (from pyproject.toml [dependency-groups].build)
-          uv pip install "setuptools>=61.0" wheel "autowrap>=0.24.0" "Cython>=3.1.0" "numpy>=2.0" "tomli>=2.0"
+          # Install tomli for Python < 3.11 (needed to parse pyproject.toml)
+          if python -c "import sys; sys.exit(0 if sys.version_info < (3, 11) else 1)"; then
+            uv pip install "tomli>=2.0"
+          fi
+          # Install build dependencies from pyproject.toml [build-system].requires
+          uv pip install $(python -c "
+try:
+    import tomllib
+except ImportError:
+    import tomli as tomllib
+with open('$GITHUB_WORKSPACE/OpenMS/src/pyOpenMS/pyproject.toml', 'rb') as f:
+    print(' '.join(repr(d) for d in tomllib.load(f)['build-system']['requires']))
+")
 
           # Get the Python root directory
           export Python_ROOT_DIR=$(conda info --json | jq -r '.sys.prefix')
@@ -432,8 +454,19 @@ jobs:
 
           # Install uv for faster dependency installation
           python -m pip install --upgrade pip uv
-          # Install build dependencies (from pyproject.toml [dependency-groups].build)
-          uv pip install "setuptools>=61.0" wheel "autowrap>=0.24.0" "Cython>=3.1.0" "numpy>=2.0" "tomli>=2.0"
+          # Install tomli for Python < 3.11 (needed to parse pyproject.toml)
+          if python -c "import sys; sys.exit(0 if sys.version_info < (3, 11) else 1)"; then
+            uv pip install "tomli>=2.0"
+          fi
+          # Install build dependencies from pyproject.toml [build-system].requires
+          uv pip install $(python -c "
+try:
+    import tomllib
+except ImportError:
+    import tomli as tomllib
+with open('$GITHUB_WORKSPACE/OpenMS/src/pyOpenMS/pyproject.toml', 'rb') as f:
+    print(' '.join(repr(d) for d in tomllib.load(f)['build-system']['requires']))
+")
 
           # Get the Python root directory
           export Python_ROOT_DIR=$(conda info --json | jq -r '.sys.prefix')
@@ -564,8 +597,19 @@ jobs:
 
           # Install uv into the venv for faster dependency installation
           pip install --upgrade pip uv
-          # Install build dependencies into the base Python (from pyproject.toml [dependency-groups].build)
-          uv pip install --python "$PYBIN/bin/python" "setuptools>=61.0" wheel "autowrap>=0.24.0" "Cython>=3.1.0" "numpy>=2.0" "tomli>=2.0"
+          # Install tomli for Python < 3.11 (needed to parse pyproject.toml)
+          if "$PYBIN/bin/python" -c "import sys; sys.exit(0 if sys.version_info < (3, 11) else 1)"; then
+            uv pip install --python "$PYBIN/bin/python" "tomli>=2.0"
+          fi
+          # Install build dependencies from pyproject.toml [build-system].requires
+          uv pip install --python "$PYBIN/bin/python" $(python -c "
+try:
+    import tomllib
+except ImportError:
+    import tomli as tomllib
+with open('$GITHUB_WORKSPACE/OpenMS/src/pyOpenMS/pyproject.toml', 'rb') as f:
+    print(' '.join(repr(d) for d in tomllib.load(f)['build-system']['requires']))
+")
 
           # configure (don't copy deps since we use auditwheel)
 
@@ -692,8 +736,19 @@ jobs:
 
           # Install uv into the venv for faster dependency installation
           pip install --upgrade pip uv
-          # Install build dependencies into the base Python (from pyproject.toml [dependency-groups].build)
-          uv pip install --python "$PYBIN/bin/python" "setuptools>=61.0" wheel "autowrap>=0.24.0" "Cython>=3.1.0" "numpy>=2.0" "tomli>=2.0"
+          # Install tomli for Python < 3.11 (needed to parse pyproject.toml)
+          if "$PYBIN/bin/python" -c "import sys; sys.exit(0 if sys.version_info < (3, 11) else 1)"; then
+            uv pip install --python "$PYBIN/bin/python" "tomli>=2.0"
+          fi
+          # Install build dependencies from pyproject.toml [build-system].requires
+          uv pip install --python "$PYBIN/bin/python" $(python -c "
+try:
+    import tomllib
+except ImportError:
+    import tomli as tomllib
+with open('$GITHUB_WORKSPACE/OpenMS/src/pyOpenMS/pyproject.toml', 'rb') as f:
+    print(' '.join(repr(d) for d in tomllib.load(f)['build-system']['requires']))
+")
 
           # configure (don't copy deps since we use auditwheel)
 

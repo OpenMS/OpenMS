@@ -8,6 +8,7 @@ requires = [
     "autowrap>=0.24.0",
     "Cython>=3.1.0",
     "numpy>=2.0",
+    "pytest",  # for running tests after build
 ]
 build-backend = "setuptools.build_meta"
 
