@@ -335,7 +335,7 @@ protected:
         FLASHDeconvSpectrumFile::writeDeconvolvedMassesHeader(out_spec_streams[i], i + 1, write_detail, report_decoy);
       }
 
-      for (const auto& deconvolved_spectrum : deconvolved_spectra)
+      for (auto& deconvolved_spectrum : deconvolved_spectra)
       {
         uint ms_level = deconvolved_spectrum.getOriginalSpectrum().getMSLevel();
         if (ms_level > out_spec_file.size() || out_spec_file[ms_level - 1].empty()) continue;
@@ -416,7 +416,7 @@ protected:
         FLASHDeconvSpectrumFile::writeTopFDHeader(out_topfd_streams[i], getParam_().copy("SD:", true));
       }
 
-      for (const auto& deconvolved_spectrum : deconvolved_spectra)
+      for (auto& deconvolved_spectrum : deconvolved_spectra)
       {
         uint ms_level = deconvolved_spectrum.getOriginalSpectrum().getMSLevel();
         if (ms_level > out_topfd_file.size() || out_topfd_file[ms_level - 1].empty()) continue;

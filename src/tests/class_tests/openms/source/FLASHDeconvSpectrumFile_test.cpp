@@ -20,11 +20,6 @@
 
 ///////////////////////////
 
-START_TEST(FLASHDeconvSpectrumFile, "$Id$")
-
-/////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////
-
 using namespace OpenMS;
 using namespace std;
 
@@ -88,9 +83,10 @@ DeconvolvedSpectrum createTestDeconvolvedSpectrum(int scan_number, uint ms_level
 
   dspec.setOriginalSpectrum(spec);
 
-  // Add some peak groups
+  // Add at least 3 peak groups (required by topFD_min_peak_count_ = 3)
   dspec.push_back(createTestPeakGroup(10000.0, 5, 15));
   dspec.push_back(createTestPeakGroup(15000.0, 8, 20));
+  dspec.push_back(createTestPeakGroup(20000.0, 10, 25));
 
   // For MS2, set precursor information
   if (ms_level > 1)
@@ -111,6 +107,11 @@ DeconvolvedSpectrum createTestDeconvolvedSpectrum(int scan_number, uint ms_level
 
   return dspec;
 }
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+
+START_TEST(FLASHDeconvSpectrumFile, "$Id$")
 
 /////////////////////////////////////////////////////////////
 // Test writeDeconvolvedMassesHeader
@@ -220,7 +221,7 @@ END_SECTION
 
 START_SECTION(static void writeIsobaricQuantification(std::ostream& os, std::vector<DeconvolvedSpectrum>& deconvolved_spectra))
 {
-  // Test with empty spectra
+  // Test with empty spectra - should produce no output (channel_count == 0)
   {
     ostringstream oss;
     std::vector<DeconvolvedSpectrum> empty_spectra;
@@ -228,13 +229,11 @@ START_SECTION(static void writeIsobaricQuantification(std::ostream& os, std::vec
     FLASHDeconvSpectrumFile::writeIsobaricQuantification(oss, empty_spectra);
     String output = oss.str();
 
-    // Header should still be written
-    TEST_EQUAL(output.hasSubstring("Scan"), true)
-    TEST_EQUAL(output.hasSubstring("PrecursorScan"), true)
-    TEST_EQUAL(output.hasSubstring("RetentionTime"), true)
+    // Returns early when no spectra have isobaric quantities
+    TEST_EQUAL(output.empty(), true)
   }
 
-  // Test with MS2 spectra
+  // Test with MS2 spectra without isobaric quantities - should produce no output
   {
     ostringstream oss;
     std::vector<DeconvolvedSpectrum> spectra;
@@ -244,10 +243,8 @@ START_SECTION(static void writeIsobaricQuantification(std::ostream& os, std::vec
     FLASHDeconvSpectrumFile::writeIsobaricQuantification(oss, spectra);
     String output = oss.str();
 
-    // Header should be present
-    TEST_EQUAL(output.hasSubstring("Scan"), true)
-    TEST_EQUAL(output.hasSubstring("PrecursorMZ"), true)
-    TEST_EQUAL(output.hasSubstring("Activation"), true)
+    // Returns early when channel_count == 0 (no isobaric quantities present)
+    TEST_EQUAL(output.empty(), true)
   }
 }
 END_SECTION
