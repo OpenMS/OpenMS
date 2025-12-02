@@ -15,18 +15,18 @@ namespace OpenMS
      @ingroup FileIO
 **/
 
-  void FLASHDeconvFeatureFile::writeHeader(std::fstream& fs, bool report_decoy)
+  void FLASHDeconvFeatureFile::writeHeader(std::ostream& os, bool report_decoy)
   {
-    fs << "FeatureIndex\tFileName\tMSLevel";
-    if (report_decoy) fs << "\tIsDecoy";
+    os << "FeatureIndex\tFileName\tMSLevel";
+    if (report_decoy) os << "\tIsDecoy";
 
-    fs << "\tMonoisotopicMass\tAverageMass\tMassCount\tStartRetentionTime"
+    os << "\tMonoisotopicMass\tAverageMass\tMassCount\tStartRetentionTime"
           "\tEndRetentionTime\tRetentionTimeDuration\tApexRetentionTime"
           "\tSumIntensity\tMaxIntensity\tFeatureQuantity\tMinCharge\tMaxCharge\tChargeCount\tIsotopeCosineScore\tQscore2D\tPerChargeIntensity\tPerIsotopeIntensity"
           "\n";
   }
 
-  void FLASHDeconvFeatureFile::writeTopFDFeatureHeader(std::fstream& fs, uint ms_level)
+  void FLASHDeconvFeatureFile::writeTopFDFeatureHeader(std::ostream& os, uint ms_level)
   {
     //  //File_name	Fraction_ID	Spectrum_ID	Scans	MS_one_ID	MS_one_scans	Fraction_feature_ID	Fraction_feature_intensity
     // Fraction_feature_score	Fraction_feature_min_time	Fraction_feature_max_time
@@ -34,16 +34,16 @@ namespace OpenMS
 
     if (ms_level == 1)
     {
-      fs << "File_name\tFraction_ID\tFeature_ID\tMass\tIntensity\tMin_time\tMax_time\tMin_scan\tMax_scan\tMin_charge\tMax_charge\tApex_time\tApex_scan\tApex_intensity\tRep_charge\tRep_average_mz\tEnvelope_num\tEC_score\n";
+      os << "File_name\tFraction_ID\tFeature_ID\tMass\tIntensity\tMin_time\tMax_time\tMin_scan\tMax_scan\tMin_charge\tMax_charge\tApex_time\tApex_scan\tApex_intensity\tRep_charge\tRep_average_mz\tEnvelope_num\tEC_score\n";
     }
     else
     {
-      fs << "File_name\tFraction_ID\tSpectrum_ID\tScans\tMS_one_ID\tMS_one_scans\tFraction_feature_ID\tFraction_feature_intensity\tFraction_feature_score\tFraction_feature_min_time\tFraction_feature_max_time\tFraction_feature_apex_time\tPrecursor_monoisotopic_mz\tPrecursor_average_mz\tPrecursor_charge\tPrecursor_intensity\n";
+      os << "File_name\tFraction_ID\tSpectrum_ID\tScans\tMS_one_ID\tMS_one_scans\tFraction_feature_ID\tFraction_feature_intensity\tFraction_feature_score\tFraction_feature_min_time\tFraction_feature_max_time\tFraction_feature_apex_time\tPrecursor_monoisotopic_mz\tPrecursor_average_mz\tPrecursor_charge\tPrecursor_intensity\n";
     }
-    fs.flush();
+    os.flush();
   }
 
-  void FLASHDeconvFeatureFile::writeFeatures(const std::vector<FLASHHelperClasses::MassFeature>& mass_features, const String& file_name, std::fstream& fs, bool report_decoy)
+  void FLASHDeconvFeatureFile::writeFeatures(const std::vector<FLASHHelperClasses::MassFeature>& mass_features, const String& file_name, std::ostream& os, bool report_decoy)
   {
     std::stringstream ss;
     for (auto& mass_feature : mass_features)
@@ -98,14 +98,13 @@ namespace OpenMS
       }
       ss << "\n";
     }
-    fs << ss.str();
+    os << ss.str();
   }
 
   void FLASHDeconvFeatureFile::writeTopFDFeatures(std::vector<DeconvolvedSpectrum>& deconvolved_spectra, const std::vector<FLASHHelperClasses::MassFeature>& mass_features,
-                                                  const std::map<int, double>& scan_rt_map, const String& file_name, std::fstream& fs, uint ms_level)
+                                                  const std::map<int, double>& scan_rt_map, const String& file_name, std::ostream& os, uint ms_level)
   {
     std::stringstream ss;
-    static std::map<int, uint> msNscan_to_feature_index;
 
     if (ms_level == 1)
     {
@@ -200,6 +199,6 @@ namespace OpenMS
         }
       }
     }
-    fs << ss.str();
+    os << ss.str();
   }
 } // namespace OpenMS

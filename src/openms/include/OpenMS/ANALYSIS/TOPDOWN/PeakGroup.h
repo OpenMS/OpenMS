@@ -99,6 +99,16 @@ namespace OpenMS
      */
     std::vector<LogMzPeak> recruitAllPeaksInSpectrum(const MSSpectrum& spec, double tol, const FLASHHelperClasses::PrecalculatedAveragine& avg, double mono_mass, bool renew_signal_peaks = true);
 
+    /**
+     * @brief Get noisy peaks for this PeakGroup without modifying any state (const-safe).
+     * This is a const alternative to recruitAllPeaksInSpectrum(..., false) for use in output/write functions.
+     * @param spec raw spectrum
+     * @param tol ppm tolerance
+     * @param avg precalculated averagine
+     * @return returns the noisy peaks - raw peaks within range that don't match the isotope pattern
+     */
+    std::vector<LogMzPeak> getNoisyPeaks(const MSSpectrum& spec, double tol, const FLASHHelperClasses::PrecalculatedAveragine& avg) const;
+
     /// set scan number
     void setScanNumber(int scan_number);
 
@@ -169,8 +179,11 @@ namespace OpenMS
     float getIsotopeCosine() const;
 
     /// get the density of the peaks within charge and isotope range
+    /**
+     * @brief Get the density of peaks within charge and isotope range.
+     * @return Peak occupancy value (0-1) representing the fraction of expected peaks that are present
+     */
     float getPeakOccupancy() const;
-
     /// get representative charge
     int getRepAbsCharge() const;
 

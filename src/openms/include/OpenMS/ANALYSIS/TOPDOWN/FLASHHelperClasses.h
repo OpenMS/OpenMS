@@ -178,6 +178,7 @@ namespace OpenMS
       double precursor_mass;
       std::vector<double> quantities;
       std::vector<double> merged_quantities;
+      /// return true if no isobaric quantities have been stored
       bool empty() const;
     };
 

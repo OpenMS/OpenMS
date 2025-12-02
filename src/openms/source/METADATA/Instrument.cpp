@@ -153,5 +153,16 @@ namespace OpenMS
     ion_optics_ = ion_optics;
   }
 
+  StringList Instrument::getAllNamesOfIonOpticsType()
+  {
+    StringList names;
+    names.reserve(SIZE_OF_IONOPTICSTYPE);
+    for (size_t i = 0; i < SIZE_OF_IONOPTICSTYPE; ++i)
+    {
+      names.push_back(NamesOfIonOpticsType[i]);
+    }
+    return names;
+  }
+
 }
 

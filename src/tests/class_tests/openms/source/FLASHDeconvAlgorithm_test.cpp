@@ -81,7 +81,7 @@ END_SECTION
 // load test data
 // TODO: minimize
 PeakMap input;
-MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("thermo.mzML"), input);
+MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("FLASHDeconv_1_input.mzML"), input);
 
 // Store FD outputs
 std::vector<DeconvolvedSpectrum> deconvolved_spectra;

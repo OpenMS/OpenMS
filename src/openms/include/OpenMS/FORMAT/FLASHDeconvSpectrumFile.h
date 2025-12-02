@@ -29,7 +29,7 @@ namespace OpenMS
             @param detail if set true, detailed information of the mass (e.g., peak list for the mass) is written
             @param report_decoy if set true, decoy and qvalue information will be written.
        */
-    static void writeDeconvolvedMassesHeader(std::fstream& fs,
+    static void writeDeconvolvedMassesHeader(std::ostream& os,
                                              uint ms_level,
                                              bool detail,
                                              bool report_decoy);
@@ -55,8 +55,8 @@ namespace OpenMS
       Detailed MS1 and MS2 headers include all corresponding headers above plus:
         PeakMZs, PeakIntensities, PeakCharges, PeakMasses, PeakIsotopeIndices, PeakPPMErrors
     */
-    static void writeDeconvolvedMasses(DeconvolvedSpectrum& dspec,
-                                       std::fstream& fs,
+    static void writeDeconvolvedMasses(const DeconvolvedSpectrum& dspec,
+                                       std::ostream& os,
                                        const String& file_name,
                                        const FLASHHelperClasses::PrecalculatedAveragine& avg,
                                        const FLASHHelperClasses::PrecalculatedAveragine& decoy_avg,
@@ -84,10 +84,10 @@ namespace OpenMS
      * @param fs
      * @param deconvolved_spectra
      */
-    static void writeIsobaricQuantification(std::fstream& fs, std::vector<DeconvolvedSpectrum>& deconvolved_spectra);
+    static void writeIsobaricQuantification(std::ostream& os, std::vector<DeconvolvedSpectrum>& deconvolved_spectra);
 
     /// write topFD header
-    static void writeTopFDHeader(std::fstream& fs, const Param& param);
+    static void writeTopFDHeader(std::ostream& os, const Param& param);
 
     /**
       @brief write the deconvolved masses TopFD output (*.msalign)
@@ -99,9 +99,9 @@ namespace OpenMS
       @param randomize_precursor_mass if set, a random number between -100 to 100 is added to precursor mass
       @param randomize_fragment_mass if set, a random number between -100 to 100 is added to fragment mass
     */
-    static void writeTopFD(DeconvolvedSpectrum& dspec, std::fstream& fs, const String& filename,
-                           const double qval_threshold = 1.0,
-                           const uint min_ms_level = 1,
+    static void writeTopFD(const DeconvolvedSpectrum& dspec, std::ostream& os, const String& filename,
+                           double qval_threshold = 1.0,
+                           uint min_ms_level = 1,
                            bool randomize_precursor_mass = false,
                            bool randomize_fragment_mass = false);
 

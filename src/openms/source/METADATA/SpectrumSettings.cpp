@@ -203,9 +203,20 @@ namespace OpenMS
     return data_processing_;
   }
 
-  const std::vector< boost::shared_ptr<const DataProcessing > > SpectrumSettings::getDataProcessing() const
+  const std::vector< std::shared_ptr<const DataProcessing > > SpectrumSettings::getDataProcessing() const
   {
     return OpenMS::Helpers::constifyPointerVector(data_processing_);
+  }
+
+  StringList SpectrumSettings::getAllNamesOfSpectrumType()
+  {
+    StringList names;
+    names.reserve(SIZE_OF_SPECTRUMTYPE);
+    for (size_t i = 0; i < SIZE_OF_SPECTRUMTYPE; ++i)
+    {
+      names.push_back(NamesOfSpectrumType[i]);
+    }
+    return names;
   }
 
 }

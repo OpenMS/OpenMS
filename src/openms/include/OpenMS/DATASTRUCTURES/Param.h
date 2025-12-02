@@ -11,6 +11,8 @@
 #include <OpenMS/DATASTRUCTURES/ParamValue.h>
 #include <OpenMS/OpenMSConfig.h>
 
+#include <cstddef>
+#include <iterator>
 #include <set>
 #include <string>
 #include <map>
@@ -167,6 +169,13 @@ public:
     class OPENMS_DLLAPI ParamIterator
     {
 public:
+      // Iterator type definitions for C++ standard library compatibility
+      using iterator_category = std::forward_iterator_tag;
+      using value_type = Param::ParamEntry;
+      using difference_type = std::ptrdiff_t;
+      using pointer = const Param::ParamEntry*;
+      using reference = const Param::ParamEntry&;
+
       /// Struct that captures information on entered / left nodes for ParamIterator
       struct OPENMS_DLLAPI TraceInfo
       {

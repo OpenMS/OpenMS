@@ -23,6 +23,8 @@ File descriptions:
     label:      heavy
     size:       16
 
+Assigned peptide identifications: 0
+Unassigned peptide identifications: 0
 
 -- Meta information --
 

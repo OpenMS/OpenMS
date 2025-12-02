@@ -16,6 +16,9 @@ on:
     tags:
       - 'Release*'
     branches: [ nightly, py_nightly_test ]
+  pull_request:
+    branches:
+      - develop
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -135,6 +138,7 @@ jobs:
           export BUILD_NAME="pyopenms-wheels-${{ steps.extract_branch.outputs.RUN_NAME }}-${{ runner.os }}-${{ runner.arch }}-class-pyopenms-$py-${{ github.run_number }}" #TODO make this more expressive
 
           # build pyopenms distribution
+          bash OpenMS/tools/ci/capture-env.sh -v $GITHUB_WORKSPACE/OpenMS/bld/CMakeCache.txt
           ctest --output-on-failure -VV -S $GITHUB_WORKSPACE/OpenMS/tools/ci/cibuild.cmake --config Release
 
           echo "Current dir is `pwd`"
@@ -237,25 +241,17 @@ jobs:
       run: brew install --force --overwrite autoconf automake libtool
 
     - name: Install contrib packages from brew
+      id: brew-setup
       run: |
-        ## Needed for Qt. Install before to overwrite the default softlinks on the GH runners
-        brew install --force --overwrite --quiet ccache autoconf automake libtool ninja && brew link --overwrite ccache
-        brew install --force --overwrite libsvm xerces-c boost eigen sqlite coinutils cbc cgl clp qt@6 libomp
-        brew link --force libomp        
-        echo "cmake_prefix=$(brew --prefix qt@6)/lib/cmake;$(brew --prefix libomp)" >> $GITHUB_OUTPUT
-        echo "Qt6_DIR=$(brew --prefix qt@6)/lib/cmake/Qt6" >> $GITHUB_ENV
-        if [[ "${{ steps.set-vars.outputs.pkg_type }}" != "none" ]]; then
-          brew install --force --overwrite --quiet doxygen ghostscript graphviz
-        fi
+        # Use the same script as the main CI
+        bash OpenMS/tools/ci/deps-macos.sh
+        # Use general Homebrew prefix plus libomp (which is keg-only)
+        echo "cmake_prefix=$(brew --prefix):$(brew --prefix libomp)" >> $GITHUB_OUTPUT
 
     - name: Build on macos arm
       run: |
         PYTHON_VERSIONS=$(cat OpenMS/.github/workflows/python_versions.json)
-        # Unfortunately, on macOS due to the inofficial way of enabling OpenMP on AppleClang, passing the following
-        # options to setup.py extra_compile_args does not work. See also https://gist.github.com/andyfaff/084005bee32aee83d6b59e843278ab3e
-        export CFLAGS="-Xpreprocessor -fopenmp $CFLAGS"
-        export CXXFLAGS="-Xpreprocessor -fopenmp $CXXFLAGS"
-        export CMAKE_PREFIX_PATH="$(brew --prefix libomp);$(echo $Qt6_Dir)/lib/cmake;${Qt6_Dir}"
+        export CMAKE_PREFIX_PATH="${{ steps.brew-setup.outputs.cmake_prefix }}"
 
         # Stores the built wheels
         mkdir pyopenms_whls
@@ -286,6 +282,7 @@ jobs:
           export BUILD_NAME="pyopenms-wheels-${{ steps.extract_branch.outputs.RUN_NAME }}-${{ runner.os }}-${{ runner.arch }}-class-pyopenms-$py-${{ github.run_number }}" #TODO make this more expressive
 
           # build pyopenms distribution (macOS)
+          bash OpenMS/tools/ci/capture-env.sh -v $GITHUB_WORKSPACE/OpenMS/bld/CMakeCache.txt
           ctest --output-on-failure -VV -S $GITHUB_WORKSPACE/OpenMS/tools/ci/cibuild.cmake
 
           # copy to directory
@@ -401,29 +398,20 @@ jobs:
       run: brew install --force --overwrite autoconf automake libtool
 
     - name: Install contrib packages from brew
+      id: brew-setup
       run: |
         ## The latest pipx "requires" python 3.14 which breaks things when installed on here
         brew pin pipx
-        ## Update the package lists for Brew
-        ## Needed for Qt. Install before to overwrite the default softlinks on the GH runners
-        brew install --force --overwrite --quiet ccache autoconf automake libtool ninja && brew link --overwrite ccache
-        brew install --force --overwrite libsvm xerces-c boost eigen sqlite coinutils cbc cgl clp qt@6 libomp
-        echo "cmake_prefix=$(brew --prefix qt@6)/lib/cmake;$(brew --prefix qt@6);$(brew --prefix libomp)" >> $GITHUB_OUTPUT
-        brew link --force --overwrite libomp 
-        echo "Qt6_DIR=$(brew --prefix qt@6)/lib/cmake/Qt6" >> $GITHUB_ENV
-        if [[ "${{ steps.set-vars.outputs.pkg_type }}" != "none" ]]; then
-          brew install --force --overwrite --quiet doxygen ghostscript graphviz
-        fi
+        # Use the same script as the main CI
+        bash OpenMS/tools/ci/deps-macos.sh
+        # Use general Homebrew prefix plus libomp (which is keg-only)
+        echo "cmake_prefix=$(brew --prefix):$(brew --prefix libomp)" >> $GITHUB_OUTPUT
 
     - name: Build on macos intel
       run: |
         PYTHON_VERSIONS=$(cat OpenMS/.github/workflows/python_versions.json)
-        # Unfortunately, on macOS due to the inofficial way of enabling OpenMP on AppleClang, passing the following
-        # options to setup.py extra_compile_args does not work. See also https://gist.github.com/andyfaff/084005bee32aee83d6b59e843278ab3e
         conda config --add channels conda-forge
-        export CFLAGS="-Xpreprocessor -fopenmp $CFLAGS"
-        export CXXFLAGS="-Xpreprocessor -fopenmp $CXXFLAGS"
-        export CMAKE_PREFIX_PATH="$(brew --prefix libomp);$(echo $Qt6_Dir)/lib/cmake;${Qt6_Dir}"
+        export CMAKE_PREFIX_PATH="${{ steps.brew-setup.outputs.cmake_prefix }}"
 
         # Stores the built wheels
         mkdir pyopenms_whls
@@ -454,6 +442,7 @@ jobs:
           export BUILD_NAME="pyopenms-wheels-${{ steps.extract_branch.outputs.RUN_NAME }}-${{ runner.os }}-${{ runner.arch }}-class-pyopenms-$py-${{ github.run_number }}" #TODO make this more expressive
 
           # build pyopenms distribution (macOS)
+          bash OpenMS/tools/ci/capture-env.sh -v $GITHUB_WORKSPACE/OpenMS/bld/CMakeCache.txt
           ctest --output-on-failure -VV -S $GITHUB_WORKSPACE/OpenMS/tools/ci/cibuild.cmake
 
           # copy to directory
@@ -513,7 +502,7 @@ jobs:
 
   build-lnx:
     runs-on: [ubuntu-latest]
-    container: ghcr.io/openms/contrib_manylinux_2_34:latest-x86_64
+    container: ghcr.io/openms/contrib_manylinux_2_34:latest-amd64
 
     steps:
     # Cancels older builds if still running
@@ -579,6 +568,7 @@ jobs:
           export Python_ROOT_DIR=$PYBIN
           export BUILD_NAME="pyopenms-wheels-${{ steps.extract_branch.outputs.RUN_NAME }}-${{ runner.os }}-${{ runner.arch }}-class-pyopenms-$py-${{ github.run_number }}" #TODO make this more expressive
 
+          bash OpenMS/tools/ci/capture-env.sh -v $GITHUB_WORKSPACE/OpenMS/bld/CMakeCache.txt
           ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/ci/cibuild.cmake
           
           # ensure auditwheel can find the libraries
@@ -705,6 +695,7 @@ jobs:
           export Python_ROOT_DIR=$PYBIN
           export BUILD_NAME="pyopenms-wheels-${{ steps.extract_branch.outputs.RUN_NAME }}-${{ runner.os }}-${{ runner.arch }}-class-pyopenms-$py-${{ github.run_number }}" #TODO make this more expressive
 
+          bash OpenMS/tools/ci/capture-env.sh -v $GITHUB_WORKSPACE/OpenMS/bld/CMakeCache.txt
           ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/ci/cibuild.cmake
           
           # ensure auditwheel can find the libraries
