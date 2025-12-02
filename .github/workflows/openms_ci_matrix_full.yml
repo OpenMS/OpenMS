@@ -430,15 +430,8 @@ jobs:
             if python -c "import sys; sys.exit(0 if sys.version_info < (3, 11) else 1)"; then
               uv pip install "tomli>=2.0"
             fi
-            # Install build dependencies from pyproject.toml [build-system].requires + pytest
-            uv pip install $(python -c "
-try:
-    import tomllib
-except ImportError:
-    import tomli as tomllib
-with open('$GITHUB_WORKSPACE/OpenMS/src/pyOpenMS/pyproject.toml', 'rb') as f:
-    print(' '.join(repr(d) for d in tomllib.load(f)['build-system']['requires']))
-") pytest
+            # Install build dependencies from pyproject.toml [build-system].requires
+            uv pip install $(python $GITHUB_WORKSPACE/OpenMS/src/pyOpenMS/scripts/get_build_requires.py)
           fi
 
           # Display ccache statistics before build
