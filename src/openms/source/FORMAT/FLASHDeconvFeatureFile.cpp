@@ -105,7 +105,6 @@ namespace OpenMS
                                                   const std::map<int, double>& scan_rt_map, const String& file_name, std::ostream& os, uint ms_level)
   {
     std::stringstream ss;
-    static std::map<int, uint> msNscan_to_feature_index;
 
     if (ms_level == 1)
     {
