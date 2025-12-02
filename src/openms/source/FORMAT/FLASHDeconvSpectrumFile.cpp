@@ -358,7 +358,11 @@ namespace OpenMS
         break;
       }
     }
-    if (channel_count == 0) return;
+    if (channel_count == 0)
+    {
+      os << ss.str();
+      return;
+    }
 
     for (auto& dspec : deconvolved_spectra)
     {
@@ -374,7 +378,7 @@ namespace OpenMS
       ss << scan << "\t" << dspec.getPrecursorScanNumber() << "\t" << dspec.getPrecursor().getMZ() << "\t" << dspec.getOriginalSpectrum().getRT()
          << "\t" << dspec.size() << "\t" << ch_count << "\t" << (precursor_found ? std::to_string(dspec.getPrecursorPeakGroup().getQscore2D()) : "NaN") << "\t"
          << (dspec.getActivationMethod() < Precursor::ActivationMethod::SIZE_OF_ACTIVATIONMETHOD
-               ? Precursor::NamesOfActivationMethodShort[dspec.getActivationMethod()]
+               ? Precursor::NamesOfActivationMethodShort[static_cast<Size>(dspec.getActivationMethod())]
                : "N/A")
          << "\t" << dspec.getPrecursor().getActivationEnergy() << "\t" << dspec.getPrecursor().getCharge() << "\t"
          << dspec.getPrecursor().getMZ() - dspec.getPrecursor().getIsolationWindowLowerOffset() << "\t"
@@ -453,6 +457,7 @@ namespace OpenMS
       {
         auto anno_spec = MSSpectrum(deconvolved_spectrum.getOriginalSpectrum());
         anno_spec.sortByPosition();
+        if (anno_spec.empty()) continue;
         std::stringstream val {};
 
         for (auto& pg : deconvolved_spectrum)
@@ -490,7 +495,6 @@ namespace OpenMS
           }
           val << ";";
         }
-        if (anno_spec.empty()) continue;
         anno_spec.setMetaValue("DeconvMassPeakIndices", val.str());
         annotated_map.addSpectrum(anno_spec);
       }

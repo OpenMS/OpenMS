@@ -729,6 +729,10 @@ namespace OpenMS
                                             int min_negative_isotope_index,
                                             double tol)
   {
+    // Compute Da tolerance from ppm tolerance using the first peak's uncharged mass.
+    // Assumption: all peaks in this group share similar mass, so the first peak is a
+    // representative for tolerance calculation. Division by 2.0 converts from full-width
+    // tolerance to half-width (radius) for the smoothing window.
     int da_tol = (int)(tol * logMzpeaks_[0].getUnchargedMass() / 2.0);
 
     min_isotope_index = 1e5;
@@ -742,6 +746,15 @@ namespace OpenMS
     intensities = std::vector<float>(max_isotope_index + 1 + da_tol - min_negative_isotope_index_, .0f);
     std::fill(intensities.begin(), intensities.end(), .0f);
 
+    // Gaussian smoothing denominator derivation:
+    // - Standard Gaussian: exp(-x²/(2σ²)), where FWHM = 2.355σ, so σ = FWHM/2.355
+    // - Here da_tol is treated as FWHM, giving σ = da_tol/2.355
+    // - The formula: denom = 2σ² / iso_da_distance_ = 2*(da_tol/2.355)² / iso_da_distance_
+    // - This scales the Gaussian width by isotope spacing, producing broader smoothing
+    //   that allows adjacent isotope peaks to blend together. This is intentional to
+    //   handle mass calibration errors and improve isotope pattern matching robustness.
+    // NOTE: This nonstandard scaling factor lacks formal validation. Consider adding
+    // unit tests demonstrating its impact on isotope deconvolution accuracy.
     double denom = 2.0 * std::pow(da_tol / 2.355, 2.0) / iso_da_distance_;
 
     for (const auto& peak : logMzpeaks_)
@@ -756,6 +769,10 @@ namespace OpenMS
       {
         int index = peak.isotopeIndex + margin - min_negative_isotope_index;
         if (index < 0 || index >= (int)intensities.size()) continue;
+        // Fallback when denom <= 0: can occur if da_tol is 0 (very small mass or tight tolerance)
+        // or iso_da_distance_ is 0/negative (degenerate isotope spacing). In such edge cases,
+        // skip Gaussian weighting and add raw intensity directly - safe because the smoothing
+        // window collapses to a single bin anyway.
         intensities[index] += denom > 0 ? float(peak.intensity * exp(-margin * margin / denom)) : peak.intensity;
       }
     }
@@ -774,6 +791,7 @@ namespace OpenMS
         {
           int index = peak.isotopeIndex + margin - min_negative_isotope_index;
           if (index < 0 || index >= (int)intensities.size()) continue;
+          // Same denom > 0 fallback as above for negative isotope peaks
           intensities[index] += denom > 0 ? float(peak.intensity * exp(-margin * margin / denom)) : peak.intensity;
         }
       }

@@ -221,7 +221,7 @@ END_SECTION
 
 START_SECTION(static void writeIsobaricQuantification(std::ostream& os, std::vector<DeconvolvedSpectrum>& deconvolved_spectra))
 {
-  // Test with empty spectra - should produce no output (channel_count == 0)
+  // Test with empty spectra - should produce header only (channel_count == 0)
   {
     ostringstream oss;
     std::vector<DeconvolvedSpectrum> empty_spectra;
@@ -229,11 +229,11 @@ START_SECTION(static void writeIsobaricQuantification(std::ostream& os, std::vec
     FLASHDeconvSpectrumFile::writeIsobaricQuantification(oss, empty_spectra);
     String output = oss.str();
 
-    // Returns early when no spectra have isobaric quantities
-    TEST_EQUAL(output.empty(), true)
+    // Header is always written, even when no spectra have isobaric quantities
+    TEST_EQUAL(output.hasPrefix("Scan\tPrecursorScan\tPrecursorMZ\t"), true)
   }
 
-  // Test with MS2 spectra without isobaric quantities - should produce no output
+  // Test with MS2 spectra without isobaric quantities - should produce header only
   {
     ostringstream oss;
     std::vector<DeconvolvedSpectrum> spectra;
@@ -243,8 +243,8 @@ START_SECTION(static void writeIsobaricQuantification(std::ostream& os, std::vec
     FLASHDeconvSpectrumFile::writeIsobaricQuantification(oss, spectra);
     String output = oss.str();
 
-    // Returns early when channel_count == 0 (no isobaric quantities present)
-    TEST_EQUAL(output.empty(), true)
+    // Header is always written, even when channel_count == 0 (no isobaric quantities present)
+    TEST_EQUAL(output.hasPrefix("Scan\tPrecursorScan\tPrecursorMZ\t"), true)
   }
 }
 END_SECTION

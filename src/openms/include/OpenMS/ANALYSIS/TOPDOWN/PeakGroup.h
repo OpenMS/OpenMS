@@ -187,10 +187,28 @@ namespace OpenMS
     /// get representative charge
     int getRepAbsCharge() const;
 
-    /// get Q score
+    /**
+     * @brief Get the one-dimensional quality score for this peak group.
+     *
+     * The Q-score represents the confidence/quality of the peak group based on
+     * isotope pattern matching, charge state consistency, and signal-to-noise ratio.
+     *
+     * @return Quality score in range [0, 1], where higher values indicate better quality.
+     *         Returns 0.0 if the score has not been calculated (default initialization).
+     */
     double getQscore() const;
 
-    /// get feature Q score
+    /**
+     * @brief Get the two-dimensional quality score incorporating feature-level information.
+     *
+     * The 2D Q-score extends the 1D score by incorporating additional dimensions such as
+     * retention time consistency, ion mobility correlation, or MS1-MS2 relationship.
+     * This score is typically set after feature tracing/grouping across scans.
+     *
+     * @return The maximum of the 1D Q-score and the 2D Q-score, in range [0, 1].
+     *         If the 2D score has not been set (initialized to -1.0), effectively returns
+     *         the 1D Q-score.
+     */
     double getQscore2D() const;
 
     /// get total SNR
@@ -239,15 +257,36 @@ namespace OpenMS
     /// set index of this peak group
     void setIndex(uint i);
 
-    /// set Q score 2D
+    /**
+     * @brief Set the two-dimensional quality score for this peak group.
+     *
+     * The 2D Q-score incorporates feature-level information such as retention time
+     * consistency or ion mobility correlation across multiple scans.
+     *
+     * @param fqscore The 2D quality score to set, typically in range [0, 1].
+     */
     void setQscore2D(double fqscore);
 
-    /// set feature index
+    /**
+     * @brief Set the feature index for this peak group.
+     *
+     * Associates this peak group with a feature (traced isotope pattern across scans).
+     *
+     * @param findex The feature index to assign to this peak group.
+     */
     void setFeatureIndex(uint findex);
 
     /// get index of this peak group
     uint getIndex() const;
-    /// get feature index of this peak group
+    /**
+     * @brief Get the feature index associated with this peak group.
+     *
+     * The feature index identifies which traced feature (isotope pattern across
+     * multiple scans) this peak group belongs to.
+     *
+     * @return The feature index. Returns 0 if no feature has been assigned
+     *         (default initialization).
+     */
     uint getFeatureIndex() const;
 
     /// iterators for the signal LogMz peaks in this PeakGroup
@@ -259,6 +298,17 @@ namespace OpenMS
 
     const FLASHHelperClasses::LogMzPeak& operator[](Size i) const;
 
+    /**
+     * @brief Get mass errors for each isotope index in this peak group.
+     *
+     * Calculates the average mass error for peaks at each isotope index,
+     * comparing observed masses to theoretical masses from the averagine model.
+     *
+     * @param ppm If true (default), returns errors in parts-per-million (ppm).
+     *            If false, returns errors in Daltons (Da).
+     * @return Vector of average mass errors, one per unique isotope index present
+     *         in the peak group. Returns an empty vector if no peaks are present.
+     */
     std::vector<float> getMassErrors(bool ppm = true) const;
 
     /// vector operators for the LogMzPeaks in this PeakGroup
@@ -271,6 +321,16 @@ namespace OpenMS
     void swap(std::vector<FLASHHelperClasses::LogMzPeak>& x);
     void sort();
 
+    /**
+     * @brief Get deep learning feature vectors (signal and noise).
+     *
+     * @param spec Raw spectrum to extract features from.
+     * @param charge_count Number of charges to include in the feature vector.
+     * @param isotope_count Number of isotopes to include in the feature vector.
+     * @param avg Precalculated averagine model for theoretical isotope patterns.
+     * @param tol Tolerance in ppm for peak matching.
+     * @return Tuple of (signal_vector, noise_vector) for ML model input.
+     */
     std::tuple<std::vector<double>, std::vector<double>> getDLVector(const MSSpectrum& spec, const Size charge_count, const Size isotope_count,
                                                                      const FLASHHelperClasses::PrecalculatedAveragine& avg, double tol);
 
