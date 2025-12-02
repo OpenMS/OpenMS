@@ -132,11 +132,20 @@ protected:
     registerSubsection_("iq", "Isobaric quantification parameters");
   }
 
+  /// Returns default parameters for each subsection.
+  /// FLASHDeconvAlgorithm stores all parameters in a single Param object with prefixes (SD:, ft:, iq:).
+  /// This function splits them into separate subsections for a cleaner CLI interface:
+  ///   -FD:*  -> top-level algorithm parameters (after removing SD:, ft:, iq: prefixed params)
+  ///   -SD:*  -> spectral deconvolution parameters
+  ///   -ft:*  -> feature tracing parameters
+  ///   -iq:*  -> isobaric quantification parameters
   Param getSubsectionDefaults_(const String& prefix) const override
   {
+    auto fd_param = FLASHDeconvAlgorithm().getDefaults();
+
     if (prefix == "FD")
     {
-      auto fd_param = FLASHDeconvAlgorithm().getDefaults();
+      // Remove nested subsection params to get only top-level algorithm parameters
       fd_param.removeAll("SD:");
       fd_param.removeAll("ft:");
       fd_param.removeAll("iq:");
@@ -144,18 +153,15 @@ protected:
     }
     else if (prefix == "SD")
     {
-      auto fd_param = FLASHDeconvAlgorithm().getDefaults();
-      return fd_param.copy("SD:", true);
+      return fd_param.copy("SD:", true);  // Extract SD:* params, strip prefix
     }
     else if (prefix == "ft")
     {
-      auto fd_param = FLASHDeconvAlgorithm().getDefaults();
-      return fd_param.copy("ft:", true);
+      return fd_param.copy("ft:", true);  // Extract ft:* params, strip prefix
     }
     else if (prefix == "iq")
     {
-      auto fd_param = FLASHDeconvAlgorithm().getDefaults();
-      return fd_param.copy("iq:", true);
+      return fd_param.copy("iq:", true);  // Extract iq:* params, strip prefix
     }
     else { throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unknown subsection", prefix); }
   }
@@ -193,19 +199,24 @@ protected:
     std::map<uint, int> per_ms_level_deconv_spec_count;
     std::map<uint, int> per_ms_level_mass_count;
     FLASHDeconvAlgorithm fd;
-    Param tmp_fd_param = getParam_().copy("FD:", true);
+
+    // Reassemble parameters from CLI subsections back into format expected by FLASHDeconvAlgorithm.
+    // getSubsectionDefaults_() split the params for CLI display; here we merge them back:
+    //   FD:* params -> inserted without prefix (top-level algorithm params)
+    //   SD:*, ft:*, iq:* params -> inserted with prefix preserved (nested params)
     Param fd_param;
+    Param tmp_fd_param = getParam_().copy("FD:", true);  // copy FD:* params, strip "FD:" prefix
     fd_param.insert("", tmp_fd_param);
     bool report_decoy = tmp_fd_param.getValue("report_FDR") != "false";
 
-    tmp_fd_param = getParam_().copy("SD:", false);
+    tmp_fd_param = getParam_().copy("SD:", false);  // copy SD:* params, keep "SD:" prefix
     fd_param.insert("", tmp_fd_param);
     DoubleList tols = tmp_fd_param.getValue("SD:tol");
 
-    tmp_fd_param = getParam_().copy("ft:", false);
+    tmp_fd_param = getParam_().copy("ft:", false);  // copy ft:* params, keep "ft:" prefix
     fd_param.insert("", tmp_fd_param);
 
-    tmp_fd_param = getParam_().copy("iq:", false);
+    tmp_fd_param = getParam_().copy("iq:", false);  // copy iq:* params, keep "iq:" prefix
     fd_param.insert("", tmp_fd_param);
     fd.setParameters(fd_param);
 
