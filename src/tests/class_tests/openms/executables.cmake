@@ -461,7 +461,7 @@ set(analysis_executables_list
   FeatureGroupingAlgorithm_test
   FeatureHandle_test
   FIAMSDataProcessor_test
-  # FLASHDeconvAlgorithm_test
+  FLASHDeconvAlgorithm_test
   # FLASHDeconvHelperStructs_test
   IDBoostGraph_test
   IDMapper_test
