@@ -427,3 +427,71 @@ def testDatastructuresTutorial():
     exp.addChromatogram(chromatogram)
     MzMLFile().store("testfile3.mzML", exp)
 
+@report
+def testMSSpectrumLen():
+    """Test the __len__() method implementation for MSSpectrum"""
+    
+    # Test with empty spectrum
+    spectrum = MSSpectrum()
+    assert len(spectrum) == 0
+    assert len(spectrum) == spectrum.size()
+    
+    # Test with peaks added
+    p1 = Peak1D()
+    p1.setMZ(500.0)
+    p1.setIntensity(1e5)
+    spectrum.push_back(p1)
+    assert len(spectrum) == 1
+    assert len(spectrum) == spectrum.size()
+    
+    p2 = Peak1D()
+    p2.setMZ(600.0)
+    p2.setIntensity(2e5)
+    spectrum.push_back(p2)
+    assert len(spectrum) == 2
+    assert len(spectrum) == spectrum.size()
+    
+    # Test with multiple peaks using set_peaks
+    spectrum2 = MSSpectrum()
+    mz_values = [100.0, 200.0, 300.0, 400.0, 500.0]
+    intensity_values = [1.0, 2.0, 3.0, 4.0, 5.0]
+    spectrum2.set_peaks([mz_values, intensity_values])
+    assert len(spectrum2) == 5
+    assert len(spectrum2) == spectrum2.size()
+    
+    print("All MSSpectrum len() tests passed!")
+
+@report
+def testMSChromatogramLen():
+    """Test the __len__() method implementation for MSChromatogram"""
+    
+    # Test with empty chromatogram
+    chromatogram = MSChromatogram()
+    assert len(chromatogram) == 0
+    assert len(chromatogram) == chromatogram.size()
+    
+    # Test with peaks added
+    p1 = ChromatogramPeak()
+    p1.setRT(1.0)
+    p1.setIntensity(100.0)
+    chromatogram.push_back(p1)
+    assert len(chromatogram) == 1
+    assert len(chromatogram) == chromatogram.size()
+    
+    p2 = ChromatogramPeak()
+    p2.setRT(2.0)
+    p2.setIntensity(200.0)
+    chromatogram.push_back(p2)
+    assert len(chromatogram) == 2
+    assert len(chromatogram) == chromatogram.size()
+    
+    # Test with multiple peaks using set_peaks
+    chromatogram2 = MSChromatogram()
+    rt_values = [1.0, 2.0, 3.0, 4.0, 5.0]
+    intensity_values = [10.0, 20.0, 30.0, 40.0, 50.0]
+    chromatogram2.set_peaks([rt_values, intensity_values])
+    assert len(chromatogram2) == 5
+    assert len(chromatogram2) == chromatogram2.size()
+    
+    print("All MSChromatogram len() tests passed!")
+
