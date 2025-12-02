@@ -27,8 +27,9 @@ def main():
         data = tomllib.load(f)
 
     requires = data.get("build-system", {}).get("requires", [])
-    # Output space-separated quoted strings for shell consumption
-    print(" ".join(repr(dep) for dep in requires))
+    # Output space-separated double-quoted strings for shell/uv consumption
+    # Using double quotes because uv doesn't accept single quotes
+    print(" ".join(f'"{dep}"' for dep in requires))
 
 
 if __name__ == "__main__":
