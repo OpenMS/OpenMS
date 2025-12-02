@@ -51,7 +51,7 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Chemistry",
 ]
 dependencies = [
-    "numpy>=1.25.0",
+    "numpy>=2.0",
     "pandas",
     "matplotlib>=3.5",
 ]
