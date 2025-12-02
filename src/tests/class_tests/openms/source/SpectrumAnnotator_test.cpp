@@ -10,6 +10,8 @@
 
 ///////////////////////////
 #include <OpenMS/CHEMISTRY/SpectrumAnnotator.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <algorithm>
 ///////////////////////////
 
 using namespace OpenMS;
@@ -102,6 +104,53 @@ START_SECTION((void SpectrumAnnotator::addIonMatchStatistics(PeptideIdentificati
     TEST_REAL_SIMILAR(pi.getHits()[i].getMetaValue("IQR_fragment_error"),0.000486)
     TEST_REAL_SIMILAR(pi.getHits()[i].getMetaValue("NTermIonCurrentRatio"),0.454545)
     TEST_REAL_SIMILAR(pi.getHits()[i].getMetaValue("CTermIonCurrentRatio"),0.545454)
+  }
+END_SECTION
+
+START_SECTION((void SpectrumAnnotator::addPeakAnnotationsToPeptideHit(PeptideHit& ph, const PeakSpectrum& spec, const TheoreticalSpectrumGenerator& tg, const SpectrumAlignment& sa) const))
+  // Create a fresh PeptideHit for testing
+  PeptideHit test_hit;
+  test_hit.setSequence(peptide);
+  test_hit.setCharge(2);
+
+  // Create a fresh spectrum (copy of the test data)
+  PeakSpectrum test_spec;
+  test_spec.setMSLevel(2);
+  Peak1D test_p;
+  for (Size i = 0; i != pls; ++i)
+  {
+    test_p.setIntensity(1.1f);
+    test_p.setMZ(peaklist[i]);
+    test_spec.push_back(test_p);
+  }
+
+  // Call the new method
+  annot.addPeakAnnotationsToPeptideHit(test_hit, test_spec, tg, sa);
+
+  // Verify the PeakAnnotations were set correctly
+  const std::vector<PeptideHit::PeakAnnotation>& pas = test_hit.getPeakAnnotations();
+  
+  // We expect 11 annotations (same as the number of matched peaks)
+  TEST_EQUAL(pas.size(), 11)
+  
+  // Verify the annotations contain the expected ion names
+  StringList expected_ions = ListUtils::create<String>("y1+,y2+,b2+,y3+,b3+,y4+,b4+,y5+,b5+,b6+,y6+");
+  StringList found_ions;
+  for (const auto& pa : pas)
+  {
+    found_ions.push_back(pa.annotation);
+    // Verify that mz and intensity are set
+    TEST_NOT_EQUAL(pa.mz, -1.0)
+    TEST_REAL_SIMILAR(pa.intensity, 1.1f)
+  }
+  
+  // Sort both lists for comparison (since order may vary based on spectrum alignment)
+  std::sort(expected_ions.begin(), expected_ions.end());
+  std::sort(found_ions.begin(), found_ions.end());
+  TEST_EQUAL(found_ions.size(), expected_ions.size())
+  for (size_t i = 0; i < found_ions.size(); ++i)
+  {
+    TEST_STRING_EQUAL(found_ions[i], expected_ions[i])
   }
 END_SECTION
 

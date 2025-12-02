@@ -381,6 +381,64 @@ namespace OpenMS
     }  
   }
 
+  void SpectrumAnnotator::addPeakAnnotationsToPeptideHit(PeptideHit& ph, const PeakSpectrum& spec, const TheoreticalSpectrumGenerator& tg, const SpectrumAlignment& sa) const
+  {
+    PeakSpectrum theoretical_spec;
+    vector<pair<Size, Size>> al;
+    const Int zmin = 1;
+    const Int zmax = 2;
+    tg.getSpectrum(theoretical_spec, ph.getSequence(), zmin, min(ph.getCharge(), zmax));
+    OPENMS_PRECONDITION(theoretical_spec.isSorted(), "TheoreticalSpectrumGenerator::getSpectrum did not yield a sorted spectrum!")
+
+    PeakSpectrum spec_copy = spec;
+    if (!spec_copy.isSorted()) { spec_copy.sortByPosition(); }
+    sa.getSpectrumAlignment(al, theoretical_spec, spec_copy);
+
+    // Get the ion name and charge data arrays from the theoretical spectrum
+    const PeakSpectrum::StringDataArray* ion_names = nullptr;
+    const PeakSpectrum::IntegerDataArray* ion_charges = nullptr;
+
+    for (const auto& sda : theoretical_spec.getStringDataArrays())
+    {
+      if (sda.getName() == "IonNames")
+      {
+        ion_names = &sda;
+        break;
+      }
+    }
+    for (const auto& ida : theoretical_spec.getIntegerDataArrays())
+    {
+      if (ida.getName() == "Charges")
+      {
+        ion_charges = &ida;
+        break;
+      }
+    }
+
+    // Build the PeakAnnotation vector
+    std::vector<PeptideHit::PeakAnnotation> peak_annotations;
+    peak_annotations.reserve(al.size());
+
+    for (const auto& match : al)
+    {
+      PeptideHit::PeakAnnotation pa;
+      pa.mz = spec_copy[match.second].getMZ();
+      pa.intensity = spec_copy[match.second].getIntensity();
+
+      if (ion_names != nullptr && match.first < ion_names->size())
+      {
+        pa.annotation = (*ion_names)[match.first];
+      }
+      if (ion_charges != nullptr && match.first < ion_charges->size())
+      {
+        pa.charge = (*ion_charges)[match.first];
+      }
+      peak_annotations.push_back(std::move(pa));
+    }
+
+    ph.setPeakAnnotations(std::move(peak_annotations));
+  }
+
   void SpectrumAnnotator::updateMembers_()
   {
     basic_statistics_ = param_.getValue("basic_statistics").toBool();
