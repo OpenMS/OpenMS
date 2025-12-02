@@ -426,10 +426,6 @@ jobs:
 
           if [[ "${PYOPENMS:-}" == "ON" ]]; then
             python -m pip install --upgrade pip uv
-            # Install tomli for Python < 3.11 (needed to parse pyproject.toml)
-            if python -c "import sys; sys.exit(0 if sys.version_info < (3, 11) else 1)"; then
-              uv pip install "tomli>=2.0"
-            fi
             # Install build dependencies from pyproject.toml [build-system].requires
             uv pip install $(python $GITHUB_WORKSPACE/OpenMS/src/pyOpenMS/scripts/get_build_requires.py)
           fi

@@ -73,7 +73,6 @@ build = [
     "autowrap>=0.24.0",
     "Cython>=3.1.0",
     "numpy>=2.0",
-    "tomli>=2.0; python_version < '3.11'",  # for TOML parsing on Python < 3.11
 ]
 # Full development environment (build + test)
 dev = [
@@ -82,7 +81,6 @@ dev = [
     "autowrap>=0.24.0",
     "Cython>=3.1.0",
     "numpy>=2.0",
-    "tomli>=2.0; python_version < '3.11'",
 ]
 # Testing only
 test = [

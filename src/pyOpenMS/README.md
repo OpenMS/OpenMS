@@ -33,9 +33,6 @@ Build instructions
    # Install uv (recommended, faster):
    pip install uv
 
-   # For Python < 3.11, install tomli first (needed to parse pyproject.toml):
-   uv pip install tomli
-
    # Install build dependencies using the helper script:
    uv pip install $(python scripts/get_build_requires.py)
    ```
