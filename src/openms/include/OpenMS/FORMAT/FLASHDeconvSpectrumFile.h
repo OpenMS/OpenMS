@@ -55,7 +55,7 @@ namespace OpenMS
       Detailed MS1 and MS2 headers include all corresponding headers above plus:
         PeakMZs, PeakIntensities, PeakCharges, PeakMasses, PeakIsotopeIndices, PeakPPMErrors
     */
-    static void writeDeconvolvedMasses(DeconvolvedSpectrum& dspec,
+    static void writeDeconvolvedMasses(const DeconvolvedSpectrum& dspec,
                                        std::ostream& os,
                                        const String& file_name,
                                        const FLASHHelperClasses::PrecalculatedAveragine& avg,
@@ -99,9 +99,9 @@ namespace OpenMS
       @param randomize_precursor_mass if set, a random number between -100 to 100 is added to precursor mass
       @param randomize_fragment_mass if set, a random number between -100 to 100 is added to fragment mass
     */
-    static void writeTopFD(DeconvolvedSpectrum& dspec, std::ostream& os, const String& filename,
-                           const double qval_threshold = 1.0,
-                           const uint min_ms_level = 1,
+    static void writeTopFD(const DeconvolvedSpectrum& dspec, std::ostream& os, const String& filename,
+                           double qval_threshold = 1.0,
+                           uint min_ms_level = 1,
                            bool randomize_precursor_mass = false,
                            bool randomize_fragment_mass = false);
 

@@ -99,6 +99,16 @@ namespace OpenMS
      */
     std::vector<LogMzPeak> recruitAllPeaksInSpectrum(const MSSpectrum& spec, double tol, const FLASHHelperClasses::PrecalculatedAveragine& avg, double mono_mass, bool renew_signal_peaks = true);
 
+    /**
+     * @brief Get noisy peaks for this PeakGroup without modifying any state (const-safe).
+     * This is a const alternative to recruitAllPeaksInSpectrum(..., false) for use in output/write functions.
+     * @param spec raw spectrum
+     * @param tol ppm tolerance
+     * @param avg precalculated averagine
+     * @return returns the noisy peaks - raw peaks within range that don't match the isotope pattern
+     */
+    std::vector<LogMzPeak> getNoisyPeaks(const MSSpectrum& spec, double tol, const FLASHHelperClasses::PrecalculatedAveragine& avg) const;
+
     /// set scan number
     void setScanNumber(int scan_number);
 
