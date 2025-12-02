@@ -581,7 +581,7 @@ jobs:
             uv pip install --python "$PYBIN/bin/python" "tomli>=2.0"
           fi
           # Install build dependencies from pyproject.toml [build-system].requires
-          uv pip install --python "$PYBIN/bin/python" $(python $GITHUB_WORKSPACE/OpenMS/src/pyOpenMS/scripts/get_build_requires.py)
+          uv pip install --python "$PYBIN/bin/python" $("$PYBIN/bin/python" $GITHUB_WORKSPACE/OpenMS/src/pyOpenMS/scripts/get_build_requires.py)
 
           # configure (don't copy deps since we use auditwheel)
 
@@ -713,7 +713,7 @@ jobs:
             uv pip install --python "$PYBIN/bin/python" "tomli>=2.0"
           fi
           # Install build dependencies from pyproject.toml [build-system].requires
-          uv pip install --python "$PYBIN/bin/python" $(python $GITHUB_WORKSPACE/OpenMS/src/pyOpenMS/scripts/get_build_requires.py)
+          uv pip install --python "$PYBIN/bin/python" $("$PYBIN/bin/python" $GITHUB_WORKSPACE/OpenMS/src/pyOpenMS/scripts/get_build_requires.py)
 
           # configure (don't copy deps since we use auditwheel)
 
