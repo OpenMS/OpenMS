@@ -27,15 +27,17 @@ Build instructions
     c:\path\to\myenv\Scripts\activate.bat
     ```
 
-1. Get Python 3.9+ and install the build dependencies:
+1. Get Python 3.9+ and install the build dependencies from `pyproject.toml`:
 
    ```bash
-   # Using uv (recommended, faster):
+   # Install uv (recommended, faster):
    pip install uv
-   uv pip install setuptools wheel autowrap Cython numpy
 
-   # Or using pip directly:
-   pip install setuptools wheel "autowrap>=0.24.0" "Cython>=3.1.0" "numpy>=2.0"
+   # For Python < 3.11, install tomli first (needed to parse pyproject.toml):
+   uv pip install tomli
+
+   # Install build dependencies using the helper script:
+   uv pip install $(python scripts/get_build_requires.py)
    ```
 
    Build dependencies are defined in `pyproject.toml` under `[build-system].requires`.
