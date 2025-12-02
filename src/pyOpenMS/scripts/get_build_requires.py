@@ -1,13 +1,34 @@
 #!/usr/bin/env python
-"""Output build dependencies from pyproject.toml for CI workflows."""
+"""Output build dependencies from pyproject.toml for CI workflows.
 
+Uses a simple regex parser - no external dependencies (tomli/tomllib) needed.
+This works on any Python 3.9+ without requiring conditional package installs.
+"""
+
+import re
 import sys
 from pathlib import Path
 
-try:
-    import tomllib
-except ImportError:
-    import tomli as tomllib
+
+def parse_build_requires(content: str) -> list:
+    """Extract [build-system].requires from TOML content using regex.
+
+    This is intentionally simple - it only handles the specific TOML structure
+    we use in pyproject.toml, not arbitrary TOML files.
+    """
+    # Find [build-system] section and its requires array
+    # Match: [build-system] ... requires = [ ... ]
+    match = re.search(
+        r'\[build-system\].*?requires\s*=\s*\[(.*?)\]',
+        content,
+        re.DOTALL
+    )
+    if not match:
+        return []
+
+    # Extract all double-quoted strings from the array
+    array_content = match.group(1)
+    return re.findall(r'"([^"]*)"', array_content)
 
 
 def main():
@@ -23,10 +44,9 @@ def main():
         print(f"Error: {pyproject_path} not found", file=sys.stderr)
         sys.exit(1)
 
-    with open(pyproject_path, "rb") as f:
-        data = tomllib.load(f)
+    content = pyproject_path.read_text()
+    requires = parse_build_requires(content)
 
-    requires = data.get("build-system", {}).get("requires", [])
     # Output space-separated unquoted strings for uv consumption
     print(" ".join(requires))
 
