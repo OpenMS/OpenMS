@@ -88,13 +88,54 @@ endif(WIN32)
 
 #------------------------------------------------------------------------------
 # Check if all python packages are correctly installed
+# Uses inline Python to parse pyproject.toml [dependency-groups].build and verify versions
 execute_process(
-  COMMAND
-  ${Python_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/requirements_check.py" "${CMAKE_CURRENT_SOURCE_DIR}/pyproject.toml"
+  COMMAND ${Python_EXECUTABLE} -c "
+import sys
+from importlib.metadata import version, PackageNotFoundError
+from packaging.requirements import Requirement
+from packaging.specifiers import SpecifierSet
+
+# Parse pyproject.toml using tomllib (3.11+) or tomli
+try:
+    import tomllib
+except ImportError:
+    import tomli as tomllib
+
+pyproject_path = '${CMAKE_CURRENT_SOURCE_DIR}/pyproject.toml'
+with open(pyproject_path, 'rb') as f:
+    config = tomllib.load(f)
+
+build_deps = config.get('dependency-groups', {}).get('build', [])
+if not build_deps:
+    print('Warning: No build dependencies found in [dependency-groups].build')
+    sys.exit(0)
+
+print(f'Checking {len(build_deps)} build dependencies...')
+failed = False
+for dep_str in build_deps:
+    try:
+        req = Requirement(dep_str)
+        installed_ver = version(req.name)
+        spec = SpecifierSet(str(req.specifier))
+        if not req.specifier or installed_ver in spec:
+            print(f' + {req.name}=={installed_ver} OK')
+        else:
+            print(f' - {req.name}=={installed_ver} does not match {req}')
+            failed = True
+    except PackageNotFoundError:
+        print(f' - {req.name} is NOT installed (required: {req})')
+        failed = True
+    except Exception as e:
+        print(f' - Error checking {dep_str}: {e}')
+        failed = True
+
+sys.exit(1 if failed else 0)
+"
   RESULT_VARIABLE CHECK_PY_PACKAGES
 )
 if (CHECK_PY_PACKAGES)
-  message(FATAL_ERROR "Some Python modules (using ${Python_EXECUTABLE}) are missing or have the wrong version. See pyproject.toml [dependency-groups].build and Readme.md for details.")
+  message(FATAL_ERROR "Some Python modules (using ${Python_EXECUTABLE}) are missing or have the wrong version. Install with: pip install tomli && uv pip install $(python -c \"import tomli; print(' '.join(tomli.load(open('src/pyOpenMS/pyproject.toml','rb'))['dependency-groups']['build']))\")")
 endif()
 
 #------------------------------------------------------------------------------

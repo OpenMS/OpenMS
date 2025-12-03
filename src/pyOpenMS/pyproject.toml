@@ -66,21 +66,29 @@ Documentation = "https://pyopenms.readthedocs.io"
 # Dependency groups (PEP 735) - installable with: uv sync --group <name>
 # These are NOT included when installing the package, only when explicitly requested
 [dependency-groups]
-# Dependencies needed for CMake code generation phase (autowrap/Cython)
+# Dependencies needed for pyOpenMS build (matches [build-system].requires)
+# Install with: cd src/pyOpenMS && uv sync --group build --no-install-project
 build = [
     "setuptools>=61.0",
     "wheel",
     "autowrap>=0.24.0",
     "Cython>=3.1.0",
     "numpy>=2.0",
+    "pytest",  # for running tests after build
+    "pandas",  # runtime dep needed for tests
+    "matplotlib>=3.5",  # runtime dep needed for tests
 ]
-# Full development environment (build + test)
+# Full development environment (build + test + coverage)
 dev = [
-    "pytest",
-    "pytest-cov",
+    "setuptools>=61.0",
+    "wheel",
     "autowrap>=0.24.0",
     "Cython>=3.1.0",
     "numpy>=2.0",
+    "pytest",
+    "pytest-cov",
+    "pandas",
+    "matplotlib>=3.5",
 ]
 # Testing only
 test = [

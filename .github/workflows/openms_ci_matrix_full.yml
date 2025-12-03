@@ -425,9 +425,16 @@ jobs:
           fi
 
           if [[ "${PYOPENMS:-}" == "ON" ]]; then
-            python -m pip install --upgrade pip uv
-            # Install build dependencies from pyproject.toml [build-system].requires
-            uv pip install $(python $GITHUB_WORKSPACE/OpenMS/src/pyOpenMS/scripts/get_build_requires.py)
+            python -m pip install --upgrade pip uv tomli
+            # Install build dependencies from pyproject.toml [dependency-groups].build
+            uv pip install $(python -c "
+try:
+    import tomllib
+except ImportError:
+    import tomli as tomllib
+with open('$GITHUB_WORKSPACE/OpenMS/src/pyOpenMS/pyproject.toml', 'rb') as f:
+    print(' '.join(tomllib.load(f)['dependency-groups']['build']))
+")
           fi
 
           # Display ccache statistics before build

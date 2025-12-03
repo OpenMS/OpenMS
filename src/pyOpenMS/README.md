@@ -30,14 +30,21 @@ Build instructions
 1. Get Python 3.9+ and install the build dependencies from `pyproject.toml`:
 
    ```bash
-   # Install uv (recommended, faster):
-   pip install uv
+   # Install uv and tomli (for TOML parsing on Python < 3.11):
+   pip install uv tomli
 
-   # Install build dependencies using the helper script:
-   uv pip install $(python scripts/get_build_requires.py)
+   # Install build dependencies from pyproject.toml [dependency-groups].build:
+   uv pip install $(python -c "
+   try:
+       import tomllib
+   except ImportError:
+       import tomli as tomllib
+   with open('pyproject.toml', 'rb') as f:
+       print(' '.join(tomllib.load(f)['dependency-groups']['build']))
+   ")
    ```
 
-   Build dependencies are defined in `pyproject.toml` under `[build-system].requires`.
+   Build dependencies are defined in `pyproject.toml` under `[dependency-groups].build`.
 
 2. If running from an OpenMS build tree (recommended), just reconfigure with
 

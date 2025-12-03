@@ -127,10 +127,17 @@ jobs:
           # set current python executable
           CURRENT_PYTHON_EXECUTABLE=$(which python)
 
-          # Install uv for faster dependency installation
-          ${CURRENT_PYTHON_EXECUTABLE} -m pip install --upgrade pip uv
-          # Install build dependencies from pyproject.toml [build-system].requires
-          uv pip install $(python $GITHUB_WORKSPACE/OpenMS/src/pyOpenMS/scripts/get_build_requires.py)
+          # Install uv and tomli for faster dependency installation
+          ${CURRENT_PYTHON_EXECUTABLE} -m pip install --upgrade pip uv tomli
+          # Install build dependencies from pyproject.toml [dependency-groups].build
+          uv pip install $(python -c "
+try:
+    import tomllib
+except ImportError:
+    import tomli as tomllib
+with open('$GITHUB_WORKSPACE/OpenMS/src/pyOpenMS/pyproject.toml', 'rb') as f:
+    print(' '.join(tomllib.load(f)['dependency-groups']['build']))
+")
           
           # Get the Python root directory
           export Python_ROOT_DIR=$(conda info --json | jq -r '.sys.prefix')
@@ -269,10 +276,17 @@ jobs:
           conda create -n pyoms-bld-"${pynodot}" python="${py}"
           source activate pyoms-bld-"${pynodot}"
 
-          # Install uv for faster dependency installation
-          python -m pip install --upgrade pip uv
-          # Install build dependencies from pyproject.toml [build-system].requires
-          uv pip install $(python $GITHUB_WORKSPACE/OpenMS/src/pyOpenMS/scripts/get_build_requires.py)
+          # Install uv and tomli for faster dependency installation
+          python -m pip install --upgrade pip uv tomli
+          # Install build dependencies from pyproject.toml [dependency-groups].build
+          uv pip install $(python -c "
+try:
+    import tomllib
+except ImportError:
+    import tomli as tomllib
+with open('$GITHUB_WORKSPACE/OpenMS/src/pyOpenMS/pyproject.toml', 'rb') as f:
+    print(' '.join(tomllib.load(f)['dependency-groups']['build']))
+")
 
           # Get the Python root directory
           export Python_ROOT_DIR=$(conda info --json | jq -r '.sys.prefix')
@@ -430,10 +444,17 @@ jobs:
           conda create -n pyoms-bld-"${pynodot}" python="${py}"
           source activate pyoms-bld-"${pynodot}"
 
-          # Install uv for faster dependency installation
-          python -m pip install --upgrade pip uv
-          # Install build dependencies from pyproject.toml [build-system].requires
-          uv pip install $(python $GITHUB_WORKSPACE/OpenMS/src/pyOpenMS/scripts/get_build_requires.py)
+          # Install uv and tomli for faster dependency installation
+          python -m pip install --upgrade pip uv tomli
+          # Install build dependencies from pyproject.toml [dependency-groups].build
+          uv pip install $(python -c "
+try:
+    import tomllib
+except ImportError:
+    import tomli as tomllib
+with open('$GITHUB_WORKSPACE/OpenMS/src/pyOpenMS/pyproject.toml', 'rb') as f:
+    print(' '.join(tomllib.load(f)['dependency-groups']['build']))
+")
 
           # Get the Python root directory
           export Python_ROOT_DIR=$(conda info --json | jq -r '.sys.prefix')
@@ -562,10 +583,17 @@ jobs:
           "$PYBIN/bin/python" -m venv $pynodot
           source $pynodot/bin/activate
 
-          # Install uv into the venv for faster dependency installation
-          pip install --upgrade pip uv
-          # Install build dependencies from pyproject.toml [build-system].requires
-          uv pip install --python "$PYBIN/bin/python" $("$PYBIN/bin/python" $GITHUB_WORKSPACE/OpenMS/src/pyOpenMS/scripts/get_build_requires.py)
+          # Install uv and tomli for faster dependency installation
+          pip install --upgrade pip uv tomli
+          # Install build dependencies from pyproject.toml [dependency-groups].build
+          uv pip install --python "$PYBIN/bin/python" $("$PYBIN/bin/python" -c "
+try:
+    import tomllib
+except ImportError:
+    import tomli as tomllib
+with open('$GITHUB_WORKSPACE/OpenMS/src/pyOpenMS/pyproject.toml', 'rb') as f:
+    print(' '.join(tomllib.load(f)['dependency-groups']['build']))
+")
 
           # configure (don't copy deps since we use auditwheel)
 
@@ -690,10 +718,17 @@ jobs:
           "$PYBIN/bin/python" -m venv $pynodot
           source $pynodot/bin/activate
 
-          # Install uv into the venv for faster dependency installation
-          pip install --upgrade pip uv
-          # Install build dependencies from pyproject.toml [build-system].requires
-          uv pip install --python "$PYBIN/bin/python" $("$PYBIN/bin/python" $GITHUB_WORKSPACE/OpenMS/src/pyOpenMS/scripts/get_build_requires.py)
+          # Install uv and tomli for faster dependency installation
+          pip install --upgrade pip uv tomli
+          # Install build dependencies from pyproject.toml [dependency-groups].build
+          uv pip install --python "$PYBIN/bin/python" $("$PYBIN/bin/python" -c "
+try:
+    import tomllib
+except ImportError:
+    import tomli as tomllib
+with open('$GITHUB_WORKSPACE/OpenMS/src/pyOpenMS/pyproject.toml', 'rb') as f:
+    print(' '.join(tomllib.load(f)['dependency-groups']['build']))
+")
 
           # configure (don't copy deps since we use auditwheel)
 
