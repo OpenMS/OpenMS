@@ -165,6 +165,7 @@ jobs:
           CCACHE_COMPRESS: true
           CCACHE_COMPRESSLEVEL: 6
           CCACHE_MAXSIZE: 1G
+          WITH_PARQUET: "ON"
           PYOPENMS: "ON"
           PY_NUM_THREADS: ${{ steps.cpu-cores.outputs.count }}
           ENABLE_TUTORIALS: "OFF"
