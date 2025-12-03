@@ -10,7 +10,36 @@ cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 project("pyOpenMS" LANGUAGES C CXX)
 
 if(NOT TARGET OpenMS)
+  # For standalone builds (e.g., via py-build-cmake), we need to pre-find
+  # OpenMS's dependencies before calling find_package(OpenMS). This is because
+  # OpenMSConfig.cmake calls find_dependency() which may fail if the dependencies
+  # aren't already findable in the current environment.
+  #
+  # Pre-find dependencies and cache their locations so find_dependency() inside
+  # OpenMSConfig.cmake can find them.
+  find_package(Eigen3 3.4.0 QUIET)
+  if(Eigen3_FOUND AND Eigen3_DIR)
+    set(Eigen3_DIR "${Eigen3_DIR}" CACHE PATH "Path to Eigen3Config.cmake" FORCE)
+  endif()
+
+  find_package(LIBSVM 2.91 QUIET)
+  if(LIBSVM_FOUND AND LIBSVM_DIR)
+    set(LIBSVM_DIR "${LIBSVM_DIR}" CACHE PATH "Path to LIBSVMConfig.cmake" FORCE)
+  endif()
+
+  find_package(Qt6 6.1.0 COMPONENTS Core Network QUIET)
+  find_package(OpenMP COMPONENTS CXX QUIET)
+
   find_package(OpenMS)
+
+  if(NOT OpenMS_FOUND)
+    message(FATAL_ERROR
+      "OpenMS not found. For standalone builds:\n"
+      "  1. Set OpenMS_ROOT to the OpenMS install or build directory\n"
+      "  2. Ensure OpenMS dependencies are findable (Eigen3, Qt6, LIBSVM)\n"
+      "  Example: cmake -DOpenMS_ROOT=/path/to/openms -DEigen3_DIR=/usr/share/eigen3/cmake ...")
+  endif()
+
   #TODO when separating pyopenms from OpenMS, specify a pyopenms version and the compatible OpenMS version to be searched above.
   # For now we just hope that the right OpenMS version from this same git repo is installed and found and
   # therefore give pyopenms here the same version. CF_OPENMS_PACKAGE_VERSION is used in env.py for setup.py

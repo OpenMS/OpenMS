@@ -141,9 +141,12 @@ PY_NUM_MODULES = "8"
 PY_NUM_THREADS = "1"
 
 # Environment variables for CMake
+# These can be overridden via shell environment or --config-settings
 [tool.py-build-cmake.cmake.env]
-# OpenMS_ROOT can be set here or via environment
-# OpenMS_ROOT = "${OpenMS_ROOT}"
+# CMAKE_PREFIX_PATH should include paths to OpenMS dependencies (Eigen3, Qt6, etc.)
+# Example: CMAKE_PREFIX_PATH = "/path/to/contrib;/path/to/qt6"
+# If building against a build directory, also set OpenMS_ROOT:
+# Example: OpenMS_ROOT = "/path/to/OpenMS-build"
 
 [tool.py-build-cmake.stubgen]
 # Generate .pyi stub files for type hints (if supported by autowrap output)
