@@ -30,18 +30,8 @@ Build instructions
 1. Get Python 3.9+ and install the build dependencies from `pyproject.toml`:
 
    ```bash
-   # Install uv and tomli (for TOML parsing on Python < 3.11):
-   pip install uv tomli
-
-   # Install build dependencies from pyproject.toml [dependency-groups].build:
-   uv pip install $(python -c "
-   try:
-       import tomllib
-   except ImportError:
-       import tomli as tomllib
-   with open('pyproject.toml', 'rb') as f:
-       print(' '.join(tomllib.load(f)['dependency-groups']['build']))
-   ")
+   pip install uv
+   uv sync --only-group build --no-install-project --active
    ```
 
    Build dependencies are defined in `pyproject.toml` under `[dependency-groups].build`.

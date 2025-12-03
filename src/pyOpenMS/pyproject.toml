@@ -63,11 +63,11 @@ Documentation = "https://pyopenms.readthedocs.io"
 "Bug Tracker" = "https://github.com/OpenMS/OpenMS/issues"
 "Documentation Source" = "https://github.com/OpenMS/pyopenms-docs"
 
-# Dependency groups (PEP 735) - installable with: uv sync --group <name>
+# Dependency groups (PEP 735) - installable with: uv sync --only-group <name>
 # These are NOT included when installing the package, only when explicitly requested
 [dependency-groups]
 # Dependencies needed for pyOpenMS build (matches [build-system].requires)
-# Install with: cd src/pyOpenMS && uv sync --group build --no-install-project
+# Install with: uv sync --only-group build --no-install-project --active
 build = [
     "setuptools>=61.0",
     "wheel",
