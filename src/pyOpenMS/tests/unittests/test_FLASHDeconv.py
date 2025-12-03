@@ -1180,5 +1180,225 @@ class TestTargetDecoyTypeEnum(unittest.TestCase):
         self.assertEqual(pg.getTargetDecoyType(), pyopenms.PeakGroup.TargetDecoyType.signal_decoy)
 
 
+class TestFLASHDeconvIntegration(unittest.TestCase):
+    """Integration tests for FLASHDeconv using real mzML data."""
+
+    @classmethod
+    def setUpClass(cls):
+        """Load test data once for all integration tests."""
+        # Find the test data file - it's in the OpenMS test data directory
+        # The path is relative to the source tree
+        cls.test_data_path = None
+
+        # Try different possible locations for the test data
+        possible_paths = [
+            # When running from build directory
+            os.path.join(os.path.dirname(__file__), "..", "..", "..", "..",
+                        "src", "tests", "class_tests", "openms", "data",
+                        "FLASHDeconv_1_input.mzML"),
+            # When running from source directory
+            os.path.join(os.path.dirname(__file__), "..", "..", "..", "..",
+                        "..", "tests", "class_tests", "openms", "data",
+                        "FLASHDeconv_1_input.mzML"),
+            # Absolute path in source tree
+            "/home/tom-mueller/kohlbacherlab/openms/OpenMS/src/tests/class_tests/openms/data/FLASHDeconv_1_input.mzML",
+        ]
+
+        for path in possible_paths:
+            normalized = os.path.normpath(path)
+            if os.path.exists(normalized):
+                cls.test_data_path = normalized
+                break
+
+        if cls.test_data_path is None:
+            # Try to find it using environment variable if set
+            openms_data = os.environ.get('OPENMS_DATA_PATH', '')
+            if openms_data:
+                test_path = os.path.join(openms_data, "FLASHDeconv_1_input.mzML")
+                if os.path.exists(test_path):
+                    cls.test_data_path = test_path
+
+    def test_flashdeconv_algorithm_run(self):
+        """Test FLASHDeconvAlgorithm.run() with real mzML data."""
+        if self.test_data_path is None:
+            self.skipTest("Test data file FLASHDeconv_1_input.mzML not found")
+
+        # Load input mzML
+        exp = pyopenms.MSExperiment()
+        pyopenms.MzMLFile().load(self.test_data_path, exp)
+
+        self.assertGreater(exp.size(), 0, "Input experiment should have spectra")
+
+        # Create and configure algorithm
+        algo = pyopenms.FLASHDeconvAlgorithm()
+
+        # Prepare output containers
+        deconvolved_spectra = []
+        deconvolved_features = []
+
+        # Run deconvolution
+        algo.run(exp, deconvolved_spectra, deconvolved_features)
+
+        # Validate output
+        self.assertEqual(len(deconvolved_spectra), exp.size(),
+                        "Should have one deconvolved spectrum per input spectrum")
+        self.assertGreater(len(deconvolved_features), 0,
+                          "Should detect at least one mass feature")
+
+        # Check that averagine was initialized
+        avg = algo.getAveragine()
+        self.assertGreater(avg.getMaxIsotopeIndex(), 0)
+        self.assertGreater(avg.get(500.0).size(), 0)
+
+    def test_flashdeconv_algorithm_with_fdr(self):
+        """Test FLASHDeconvAlgorithm with FDR reporting enabled."""
+        if self.test_data_path is None:
+            self.skipTest("Test data file FLASHDeconv_1_input.mzML not found")
+
+        # Load input mzML
+        exp = pyopenms.MSExperiment()
+        pyopenms.MzMLFile().load(self.test_data_path, exp)
+
+        # Create and configure algorithm with FDR
+        algo = pyopenms.FLASHDeconvAlgorithm()
+        params = algo.getParameters()
+        params.setValue("FD:report_FD", "true")
+        algo.setParameters(params)
+
+        # Prepare output containers
+        deconvolved_spectra = []
+        deconvolved_features = []
+
+        # Run deconvolution
+        algo.run(exp, deconvolved_spectra, deconvolved_features)
+
+        # Validate output
+        self.assertEqual(len(deconvolved_spectra), exp.size())
+
+        # Check decoy averagine was initialized
+        decoy_avg = algo.getDecoyAveragine()
+        self.assertGreater(decoy_avg.getMaxIsotopeIndex(), 0)
+        self.assertGreater(decoy_avg.get(500.0).size(), 0)
+
+        # Check noise decoy weight
+        noise_weight = algo.getNoiseDecoyWeight()
+        self.assertGreater(noise_weight, 0)
+        self.assertLessEqual(noise_weight, 1.0)
+
+    def test_spectral_deconvolution_single_spectrum(self):
+        """Test SpectralDeconvolution.performSpectrumDeconvolution() on single spectrum."""
+        if self.test_data_path is None:
+            self.skipTest("Test data file FLASHDeconv_1_input.mzML not found")
+
+        # Load input mzML
+        exp = pyopenms.MSExperiment()
+        pyopenms.MzMLFile().load(self.test_data_path, exp)
+
+        self.assertGreater(exp.size(), 0)
+
+        # Create and configure SpectralDeconvolution
+        sd = pyopenms.SpectralDeconvolution()
+        params = pyopenms.Param()
+        params.setValue("min_charge", 1)
+        params.setValue("max_charge", 20)
+        params.setValue("max_mass", 50000.0)
+        sd.setParameters(params)
+
+        # Calculate averagine
+        sd.calculateAveragine(False)  # False = use peptide averagine
+
+        # Get first MS1 spectrum
+        spec = exp.getSpectrum(0)
+
+        # Create empty precursor peak group for MS1
+        precursor_pg = pyopenms.PeakGroup()
+
+        # Perform deconvolution
+        sd.performSpectrumDeconvolution(spec, 1, precursor_pg)
+
+        # Get result
+        deconv_spec = sd.getDeconvolvedSpectrum()
+
+        # Validate
+        self.assertEqual(deconv_spec.getScanNumber(), 1)
+        # The spectrum should have the original spectrum set
+        orig_spec = deconv_spec.getOriginalSpectrum()
+        self.assertIsNotNone(orig_spec)
+
+    def test_deconvolved_spectrum_iteration(self):
+        """Test iterating over PeakGroups in DeconvolvedSpectrum from real data."""
+        if self.test_data_path is None:
+            self.skipTest("Test data file FLASHDeconv_1_input.mzML not found")
+
+        # Load and deconvolve
+        exp = pyopenms.MSExperiment()
+        pyopenms.MzMLFile().load(self.test_data_path, exp)
+
+        algo = pyopenms.FLASHDeconvAlgorithm()
+        deconvolved_spectra = []
+        deconvolved_features = []
+        algo.run(exp, deconvolved_spectra, deconvolved_features)
+
+        # Find a spectrum with peak groups
+        found_peaks = False
+        for dspec in deconvolved_spectra:
+            if dspec.size() > 0:
+                found_peaks = True
+                # Iterate over peak groups
+                for pg in dspec:
+                    # Check that peak group has valid properties
+                    mono_mass = pg.getMonoMass()
+                    self.assertGreater(mono_mass, 0,
+                                      "Monoisotopic mass should be positive")
+
+                    intensity = pg.getIntensity()
+                    self.assertGreaterEqual(intensity, 0,
+                                           "Intensity should be non-negative")
+
+                    qscore = pg.getQscore()
+                    self.assertGreaterEqual(qscore, 0,
+                                           "Qscore should be non-negative")
+                    self.assertLessEqual(qscore, 1,
+                                        "Qscore should be at most 1")
+                break  # Only check first non-empty spectrum
+
+        self.assertTrue(found_peaks,
+                       "Should find at least one spectrum with peak groups")
+
+    def test_mass_feature_properties(self):
+        """Test MassFeature properties from real deconvolution."""
+        if self.test_data_path is None:
+            self.skipTest("Test data file FLASHDeconv_1_input.mzML not found")
+
+        # Load and deconvolve
+        exp = pyopenms.MSExperiment()
+        pyopenms.MzMLFile().load(self.test_data_path, exp)
+
+        algo = pyopenms.FLASHDeconvAlgorithm()
+        deconvolved_spectra = []
+        deconvolved_features = []
+        algo.run(exp, deconvolved_spectra, deconvolved_features)
+
+        self.assertGreater(len(deconvolved_features), 0,
+                          "Should detect mass features")
+
+        # Check first feature properties
+        feature = deconvolved_features[0]
+
+        # Mass should be positive
+        self.assertGreater(feature.avg_mass, 0)
+
+        # Charge range should be valid
+        self.assertGreater(feature.max_charge, 0)
+        self.assertGreaterEqual(feature.max_charge, feature.min_charge)
+
+        # Scan numbers should be valid
+        self.assertGreaterEqual(feature.max_scan_number, feature.min_scan_number)
+
+        # Scores should be in valid range
+        self.assertGreaterEqual(feature.qscore, 0)
+        self.assertLessEqual(feature.qscore, 1)
+
+
 if __name__ == '__main__':
     unittest.main()
