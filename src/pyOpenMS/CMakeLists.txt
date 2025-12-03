@@ -372,42 +372,81 @@ list(REMOVE_DUPLICATES PYOPENMS_INCLUDE_DIRS)
 file(TO_CMAKE_PATH "${CMAKE_PREFIX_PATH}" CONTRIB_DIR)
 set(OPEN_MS_BUILD_TYPE ${CMAKE_BUILD_TYPE})
 
-add_custom_target(
-  prepare_pyopenms_libs
-  DEPENDS OpenMS
-)
+# Check if OpenMS is an imported target (standalone build) or a regular target (in-tree build)
+get_target_property(_openms_imported OpenMS IMPORTED)
+if(_openms_imported)
+    # Standalone build: OpenMS found via find_package
+    # Get the library locations from target properties
+    get_target_property(OPENMS_LIBRARY OpenMS IMPORTED_LOCATION)
+    if(NOT OPENMS_LIBRARY)
+        get_target_property(OPENMS_LIBRARY OpenMS IMPORTED_LOCATION_RELEASE)
+    endif()
+    if(NOT OPENMS_LIBRARY)
+        get_target_property(OPENMS_LIBRARY OpenMS IMPORTED_LOCATION_NOCONFIG)
+    endif()
 
-if(NOT NO_DEPENDENCIES)
-    # assemble the libraries
+    if(TARGET OpenSwathAlgo)
+        get_target_property(OPENSWATHALGO_LIBRARY OpenSwathAlgo IMPORTED_LOCATION)
+        if(NOT OPENSWATHALGO_LIBRARY)
+            get_target_property(OPENSWATHALGO_LIBRARY OpenSwathAlgo IMPORTED_LOCATION_RELEASE)
+        endif()
+    endif()
 
-    # copy the direct dependencies
-    set(PYOPENMS_DEPENDENCIES OpenMS OpenSwathAlgo)
+    message(STATUS "Standalone build - OpenMS library: ${OPENMS_LIBRARY}")
 
-    foreach (PYOPENMS_DEPENDENCY ${PYOPENMS_DEPENDENCIES})
-    	add_custom_command(
-    		TARGET prepare_pyopenms_libs POST_BUILD
-    		COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${PYOPENMS_DEPENDENCY}> ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms
-    	)
-    endforeach()
-    	
-    # fixup these dependencies (i.e. get other dynamic dependencies recursively)
-    if (APPLE) ## On APPLE use our script because in the libraries the "install_names" and "rpaths" need to be renamed
-    ## this is done after "setup.py build_ext" but before setup.py bdist_wheel so that we fixup the resulting pyopenms.so's too
-    else()
-        ## Assemble common required non-system libraries
-        ## Note that we do not need the QT plugins or QTGui libraries since we do not include GUI tools here.
+    add_custom_target(prepare_pyopenms_libs)
+
+    if(NOT NO_DEPENDENCIES AND OPENMS_LIBRARY)
+        add_custom_command(
+            TARGET prepare_pyopenms_libs POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy "${OPENMS_LIBRARY}" ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms
+        )
+        if(OPENSWATHALGO_LIBRARY)
+            add_custom_command(
+                TARGET prepare_pyopenms_libs POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E copy "${OPENSWATHALGO_LIBRARY}" ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms
+            )
+        endif()
+    endif()
+else()
+    # In-tree build: OpenMS built as part of this project
+    add_custom_target(
+      prepare_pyopenms_libs
+      DEPENDS OpenMS
+    )
+
+    if(NOT NO_DEPENDENCIES)
+        # assemble the libraries
+
+        # copy the direct dependencies
+        set(PYOPENMS_DEPENDENCIES OpenMS OpenSwathAlgo)
+
         foreach (PYOPENMS_DEPENDENCY ${PYOPENMS_DEPENDENCIES})
             add_custom_command(
                 TARGET prepare_pyopenms_libs POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -DDEPS="$<TARGET_FILE:${PYOPENMS_DEPENDENCY}>" -DTARGET="${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/" -DLOOKUP_DIRS="${OPENMS_CONTRIB_LIBS}/lib\;${QT_INSTALL_BINS}\;${QT_INSTALL_LIBS}" -P ${PROJECT_SOURCE_DIR}/pyopenms_copy_deps.cmake
+                COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${PYOPENMS_DEPENDENCY}> ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms
             )
         endforeach()
 
-        if(WIN32)
-            # copy all runtime files (do not preserve permissions, due to issues when deleting them from tmp folders)
-            foreach (_runtime ${MSVS_RTLIBS})
-                file(COPY ${_runtime} DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms NO_SOURCE_PERMISSIONS)
+        # fixup these dependencies (i.e. get other dynamic dependencies recursively)
+        if (APPLE) ## On APPLE use our script because in the libraries the "install_names" and "rpaths" need to be renamed
+        ## this is done after "setup.py build_ext" but before setup.py bdist_wheel so that we fixup the resulting pyopenms.so's too
+        else()
+            ## Assemble common required non-system libraries
+            ## Note that we do not need the QT plugins or QTGui libraries since we do not include GUI tools here.
+            foreach (PYOPENMS_DEPENDENCY ${PYOPENMS_DEPENDENCIES})
+                add_custom_command(
+                    TARGET prepare_pyopenms_libs POST_BUILD
+                    COMMAND ${CMAKE_COMMAND} -DDEPS="$<TARGET_FILE:${PYOPENMS_DEPENDENCY}>" -DTARGET="${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/" -DLOOKUP_DIRS="${OPENMS_CONTRIB_LIBS}/lib\;${QT_INSTALL_BINS}\;${QT_INSTALL_LIBS}" -P ${PROJECT_SOURCE_DIR}/pyopenms_copy_deps.cmake
+                )
             endforeach()
+
+            if(WIN32)
+                # copy all runtime files (do not preserve permissions, due to issues when deleting them from tmp folders)
+                foreach (_runtime ${MSVS_RTLIBS})
+                    file(COPY ${_runtime} DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms NO_SOURCE_PERMISSIONS)
+                endforeach()
+            endif()
         endif()
     endif()
 endif()
@@ -423,10 +462,17 @@ configure_file(${_env_py_in} ${_env_py} @ONLY)
 # This ensures the custom command runs only once even with parallel make
 set(PYGEN_SENTINEL "${CMAKE_BINARY_DIR}/pyOpenMS/.cpp_extension_generated")
 
+# For in-tree builds, depend on OpenMS target; for standalone builds, no dependency needed
+if(_openms_imported)
+    set(PYGEN_DEPENDS "")
+else()
+    set(PYGEN_DEPENDS OpenMS)
+endif()
+
 IF(LINUX AND PY_NO_OUTPUT)
   add_custom_command(
     OUTPUT ${PYGEN_SENTINEL}
-    DEPENDS OpenMS # fake dependency to see if a header file has changed (TODO should probably depend on pxds)
+    DEPENDS ${PYGEN_DEPENDS}
     COMMAND ${Python_EXECUTABLE} create_cpp_extension.py 2> /dev/null
     COMMAND ${CMAKE_COMMAND} -E touch ${PYGEN_SENTINEL}
     COMMENT "Creating C++ extension with autowrap and Cython"
@@ -434,7 +480,7 @@ IF(LINUX AND PY_NO_OUTPUT)
 ELSE()
   add_custom_command(
     OUTPUT ${PYGEN_SENTINEL}
-    DEPENDS OpenMS # fake dependency to see if a header file has changed (TODO should probably depend on pxds)
+    DEPENDS ${PYGEN_DEPENDS}
     COMMAND ${Python_EXECUTABLE} create_cpp_extension.py
     COMMAND ${CMAKE_COMMAND} -E touch ${PYGEN_SENTINEL}
     COMMENT "Creating C++ extension with autowrap and Cython"
@@ -591,6 +637,74 @@ ELSE()
             WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
     ENDIF()
 ENDIF()
+
+###########################################################################
+#####                   Install for py-build-cmake                     #####
+###########################################################################
+# When built via py-build-cmake, these install() commands package the extensions.
+# The python_modules component is specified in pyproject.toml.
+
+# Install the compiled extension modules
+if ("${PY_NUM_MODULES}" GREATER "1")
+    foreach(nr RANGE 1 ${PY_NUM_MODULES})
+        install(TARGETS pyopenms_${nr}
+            LIBRARY DESTINATION pyopenms
+            RUNTIME DESTINATION pyopenms
+            COMPONENT python_modules)
+    endforeach()
+else()
+    install(TARGETS pyopenms_compile
+        LIBRARY DESTINATION pyopenms
+        RUNTIME DESTINATION pyopenms
+        COMPONENT python_modules)
+endif()
+
+# Install Python source files
+install(DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/
+    DESTINATION pyopenms
+    COMPONENT python_modules
+    FILES_MATCHING
+    PATTERN "*.py"
+    PATTERN "*.pyi"
+    PATTERN "py.typed"
+    PATTERN "__pycache__" EXCLUDE
+    PATTERN "*.so" EXCLUDE
+    PATTERN "*.pyd" EXCLUDE
+    PATTERN "*.dylib" EXCLUDE
+    PATTERN "*.dll" EXCLUDE
+)
+
+# Install OpenMS shared library and dependencies (if not NO_DEPENDENCIES)
+if(NOT NO_DEPENDENCIES)
+    if(_openms_imported)
+        # Standalone build: use the library paths we extracted earlier
+        if(OPENMS_LIBRARY)
+            install(FILES "${OPENMS_LIBRARY}"
+                DESTINATION pyopenms
+                COMPONENT python_modules)
+        endif()
+        if(OPENSWATHALGO_LIBRARY)
+            install(FILES "${OPENSWATHALGO_LIBRARY}"
+                DESTINATION pyopenms
+                COMPONENT python_modules)
+        endif()
+    else()
+        # In-tree build: use target generator expressions
+        install(FILES $<TARGET_FILE:OpenMS>
+            DESTINATION pyopenms
+            COMPONENT python_modules)
+        install(FILES $<TARGET_FILE:OpenSwathAlgo>
+            DESTINATION pyopenms
+            COMPONENT python_modules)
+    endif()
+endif()
+
+# Install share directory (if not NO_SHARE)
+if(NOT NO_SHARE AND EXISTS ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/share)
+    install(DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/share
+        DESTINATION pyopenms
+        COMPONENT python_modules)
+endif()
 
 ###########################################################################
 #####                      Testing pyOpenMS                           #####
