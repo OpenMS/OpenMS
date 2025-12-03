@@ -1,21 +1,34 @@
 """
 Check if all Python modules required for pyOpenMS build are installed.
 
-Reads build dependencies from pyproject.toml [build-system].requires section.
+Reads build dependencies from pyproject.toml [build-system].requires section
+using a simple regex parser (no external TOML library needed).
 """
 
 import argparse
+import re
 import sys
 from importlib.metadata import version, PackageNotFoundError
 from pathlib import Path
 
-try:
-    import tomllib
-except ImportError:
-    import tomli as tomllib
-
 from packaging.requirements import Requirement
 from packaging.specifiers import SpecifierSet
+
+
+def parse_build_requires(content: str) -> list:
+    """Extract [build-system].requires from TOML content using regex.
+
+    This is intentionally simple - it only handles the specific TOML structure
+    used in pyproject.toml, not arbitrary TOML files.
+    """
+    match = re.search(
+        r'\[build-system\].*?requires\s*=\s*\[(.*?)\]',
+        content,
+        re.DOTALL
+    )
+    if not match:
+        return []
+    return re.findall(r'"([^"]*)"', match.group(1))
 
 
 def check_dependencies(pyproject_path: str) -> int:
@@ -34,12 +47,8 @@ def check_dependencies(pyproject_path: str) -> int:
         print(f"Error: {pyproject_path} not found")
         return 1
 
-    with open(pyproject_file, "rb") as f:
-        pyproject = tomllib.load(f)
-
-    # Get build dependencies from [build-system].requires (PEP 517 standard)
-    build_system = pyproject.get("build-system", {})
-    build_deps = build_system.get("requires", [])
+    content = pyproject_file.read_text()
+    build_deps = parse_build_requires(content)
 
     if not build_deps:
         print("Warning: No build dependencies found in [build-system].requires")
