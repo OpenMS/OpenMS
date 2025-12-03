@@ -350,13 +350,13 @@ namespace OpenMS
         }
         else { break; }
 
-        for (Size k = edges[index]; k < edges.size(); k = edges[j])
+        for (; j < edges.size(); j = edges[j])
         {
-          if (k == 0) { break; }
-          if (unused[k])
+          if (j == 0) { break; }
+          if (unused[j])
           {
-            sum_intensity += all_peaks[k].first.getIntensity();
-            unused[k] = false;
+            sum_intensity += all_peaks[j].first.getIntensity();
+            unused[j] = false;
           }
           else
             break;
