@@ -49,8 +49,9 @@ jobs:
     - name: Install Qt
       uses: jurplel/install-qt-action@v4
       with:
-        version: '6.*'
-        host: 'windows' # default: win64_msvc2017_64
+        version: '6.8.3'
+        host: 'windows'
+        arch: 'win64_msvc2022_64'
         target: 'desktop'
         install-deps: 'true'
         archives: 'qtsvg qtbase'
