@@ -144,6 +144,18 @@ namespace OpenMS
     /// register the precursor peak group (or mass) if possible for MSn (n>1) spectrum.
     void findPrecursorPeakGroupsForMSnSpectra_(const MSExperiment& map, const std::vector<DeconvolvedSpectrum>& deconvolved_spectra, uint ms_level);
 
+    /// find scan number bounds for precursor search
+    std::pair<int, int> findScanNumberBounds_(const MSExperiment& map, Size index, uint ms_level) const;
+
+    /// collect survey scans within the given scan number bounds
+    std::vector<DeconvolvedSpectrum> collectSurveyScans_(const std::vector<DeconvolvedSpectrum>& deconvolved_spectra, int b_scan_number, int a_scan_number, uint ms_level) const;
+
+    /// get isolation window m/z range from precursors
+    std::pair<double, double> getIsolationWindowMzRange_(const MSSpectrum& spec) const;
+
+    /// find the best precursor peak group from survey scans within the isolation window
+    PeakGroup findBestPrecursorPeakGroup_(const std::vector<DeconvolvedSpectrum>& survey_scans, double start_mz, double end_mz) const;
+
     /// determine tolerance
     void determineTolerance_(const MSExperiment& map, const Param& sd_param, const FLASHHelperClasses::PrecalculatedAveragine& avg, uint ms_level);
 

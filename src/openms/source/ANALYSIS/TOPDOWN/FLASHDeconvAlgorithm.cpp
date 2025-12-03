@@ -505,100 +505,133 @@ void FLASHDeconvAlgorithm::run(MSExperiment& map,
   quantifier.quantify(map, deconvolved_spectra, deconvolved_features);
 }
 
+std::pair<int, int> FLASHDeconvAlgorithm::findScanNumberBounds_(const MSExperiment& map, Size index, uint ms_level) const
+{
+  // find beginning scan number
+  int num_precursor_window = ms_level == 2 ? precursor_MS1_window_ : 1;
+  auto index_copy = index;
+  while (index_copy > 0 && num_precursor_window > 0)
+  {
+    index_copy--;
+    if (map[index_copy].getMSLevel() == ms_level - 1) { num_precursor_window--; }
+  }
+  int b_scan_number = getScanNumber(map, index_copy);
+
+  // find ending scan number
+  index_copy = index;
+  num_precursor_window = ms_level == 2 ? precursor_MS1_window_ : 0;
+  while (index_copy < map.size() - 1 && num_precursor_window > 0)
+  {
+    index_copy++;
+    if (map[index_copy].getMSLevel() == ms_level - 1) { num_precursor_window--; }
+  }
+  int a_scan_number = getScanNumber(map, index_copy);
+
+  return {b_scan_number, a_scan_number};
+}
+
+std::vector<DeconvolvedSpectrum> FLASHDeconvAlgorithm::collectSurveyScans_(const std::vector<DeconvolvedSpectrum>& deconvolved_spectra,
+                                                                            int b_scan_number,
+                                                                            int a_scan_number,
+                                                                            uint ms_level) const
+{
+  std::vector<DeconvolvedSpectrum> survey_scans;
+
+  auto diter = std::lower_bound(deconvolved_spectra.begin(), deconvolved_spectra.end(), DeconvolvedSpectrum(b_scan_number));
+  auto aiter = std::lower_bound(deconvolved_spectra.begin(), deconvolved_spectra.end(), DeconvolvedSpectrum(a_scan_number));
+
+  if (diter == deconvolved_spectra.end()) { return survey_scans; }
+
+  while (diter < deconvolved_spectra.end() && diter <= aiter)
+  {
+    if (diter->getOriginalSpectrum().getMSLevel() == ms_level - 1) { survey_scans.push_back(*diter); }
+    diter++;
+  }
+
+  return survey_scans;
+}
+
+std::pair<double, double> FLASHDeconvAlgorithm::getIsolationWindowMzRange_(const MSSpectrum& spec) const
+{
+  double start_mz = 0;
+  double end_mz = 0;
+
+  for (const auto& precursor : spec.getPrecursors())
+  {
+    double loffset = precursor.getIsolationWindowLowerOffset();
+    double uoffset = precursor.getIsolationWindowUpperOffset();
+    loffset = loffset <= 0 ? isolation_window_size_ / 2.0 : loffset;
+    uoffset = uoffset <= 0 ? isolation_window_size_ / 2.0 : uoffset;
+
+    start_mz = loffset > 100.0 ? loffset : -loffset + precursor.getMZ();
+    end_mz = uoffset > 100.0 ? uoffset : uoffset + precursor.getMZ();
+  }
+
+  return {start_mz, end_mz};
+}
+
+PeakGroup FLASHDeconvAlgorithm::findBestPrecursorPeakGroup_(const std::vector<DeconvolvedSpectrum>& survey_scans,
+                                                            double start_mz,
+                                                            double end_mz) const
+{
+  PeakGroup best_pg;
+  double max_score = -1.0;
+
+  for (int i = (int)survey_scans.size() - 1; i >= 0; i--)
+  {
+    const auto& precursor_spectrum = survey_scans[i];
+    if (precursor_spectrum.empty()) { continue; }
+
+    for (const auto& pg : precursor_spectrum)
+    {
+      if (pg[0].mz > end_mz || pg.back().mz < start_mz) { continue; }
+
+      double max_intensity = 0.0;
+      const FLASHHelperClasses::LogMzPeak* tmp_precursor = nullptr;
+
+      int c = int(round(pg.getMonoMass() / start_mz));
+      for (const auto& tmp_peak : pg)
+      {
+        if (tmp_peak.abs_charge != c) { continue; }
+        if (tmp_peak.mz < start_mz || tmp_peak.mz > end_mz) { continue; }
+        if (tmp_peak.intensity < max_intensity) { continue; }
+        max_intensity = tmp_peak.intensity;
+        tmp_precursor = &tmp_peak;
+      }
+
+      if (tmp_precursor == nullptr) { continue; }
+
+      auto score = pg.getChargeSNR(tmp_precursor->abs_charge);
+      if (score < max_score) { continue; }
+      max_score = score;
+      best_pg = pg;
+    }
+
+    if (!best_pg.empty()) { break; }
+  }
+
+  return best_pg;
+}
+
 void FLASHDeconvAlgorithm::findPrecursorPeakGroupsForMSnSpectra_(const MSExperiment& map,
                                                                  const std::vector<DeconvolvedSpectrum>& deconvolved_spectra,
                                                                  uint ms_level)
 {
   for (Size index = 0; index < map.size(); index++)
   {
-    auto spec = map[index]; // MS2 index
+    const auto& spec = map[index];
     if (spec.getMSLevel() != ms_level) { continue; }
 
     String native_id = spec.getNativeID();
 
-    // find all candidate scan numbers from ms_level - 1
-    int num_precursor_window = ms_level == 2 ? precursor_MS1_window_ : 1;
-    auto index_copy = index;
-    while (index_copy > 0 && num_precursor_window > 0)
-    {
-      index_copy--;
-      if (map[index_copy].getMSLevel() == ms_level - 1) { num_precursor_window--; }
-    }
+    auto [b_scan_number, a_scan_number] = findScanNumberBounds_(map, index, ms_level);
+    auto survey_scans = collectSurveyScans_(deconvolved_spectra, b_scan_number, a_scan_number, ms_level);
+    if (survey_scans.empty()) { continue; }
 
-    int b_scan_number = getScanNumber(map, index_copy);
-    index_copy = index;
-    num_precursor_window = ms_level == 2 ? precursor_MS1_window_ : 0;
-    while (index_copy < map.size() - 1 && num_precursor_window > 0)
-    {
-      index_copy++;
-      if (map[index_copy].getMSLevel() == ms_level - 1) { num_precursor_window--; }
-    }
+    auto [start_mz, end_mz] = getIsolationWindowMzRange_(spec);
+    PeakGroup best_pg = findBestPrecursorPeakGroup_(survey_scans, start_mz, end_mz);
 
-    int a_scan_number = getScanNumber(map, index_copy);
-    // then find deconvolved spectra within the scan numbers.
-    auto diter = std::lower_bound(deconvolved_spectra.begin(), deconvolved_spectra.end(), DeconvolvedSpectrum(b_scan_number));
-    auto aiter = std::lower_bound(deconvolved_spectra.begin(), deconvolved_spectra.end(), DeconvolvedSpectrum(a_scan_number));
-
-    if (diter == deconvolved_spectra.end()) continue;
-
-    std::vector<DeconvolvedSpectrum> survey_scans;
-
-    while (diter < deconvolved_spectra.end() && diter <= aiter)
-    {
-      if (diter->getOriginalSpectrum().getMSLevel() == ms_level - 1) { survey_scans.push_back(*diter); }
-      diter++;
-    }
-    // register the best precursor, starting from the most recent one. Out of the masses in a single scan, use the max SNR one.
-
-    double start_mz = 0;
-    double end_mz = 0;
-    for (auto& precursor : spec.getPrecursors())
-    {
-      double loffset = precursor.getIsolationWindowLowerOffset();
-      double uoffest = precursor.getIsolationWindowUpperOffset();
-      loffset = loffset <= 0 ? isolation_window_size_ / 2.0 : loffset;
-      uoffest = uoffest <= 0 ? isolation_window_size_ / 2.0 : uoffest;
-
-      start_mz = loffset > 100.0 ? loffset : -loffset + precursor.getMZ();
-      end_mz = uoffest > 100.0 ? uoffest : uoffest + precursor.getMZ();
-    }
-    double max_score = -1.0;
-
-    for (int i = (int)survey_scans.size() - 1; i >= 0; i--)
-    {
-      auto precursor_spectrum = survey_scans[i];
-
-      if (precursor_spectrum.empty()) { continue; }
-      auto o_spec = precursor_spectrum.getOriginalSpectrum();
-
-      for (auto& pg : precursor_spectrum)
-      {
-        if (pg[0].mz > end_mz || pg.back().mz < start_mz) { continue; }
-
-        double max_intensity = .0;
-        const FLASHHelperClasses::LogMzPeak* tmp_precursor = nullptr;
-
-        int c = int(round(pg.getMonoMass() / start_mz));
-        for (auto& tmp_peak : pg)
-        {
-          if (tmp_peak.abs_charge != c) { continue; }
-
-          if (tmp_peak.mz < start_mz || tmp_peak.mz > end_mz) { continue; }
-
-          if (tmp_peak.intensity < max_intensity) { continue; }
-          max_intensity = tmp_peak.intensity;
-          tmp_precursor = &tmp_peak;
-        }
-
-        if (tmp_precursor == nullptr) { continue; }
-
-        auto score = pg.getChargeSNR(tmp_precursor->abs_charge); // most intense one should determine the mass
-        if (score < max_score) { continue; }
-        max_score = score;
-        native_id_precursor_peak_group_map_[native_id] = pg;
-      }
-      if (native_id_precursor_peak_group_map_.find(native_id) != native_id_precursor_peak_group_map_.end()) { break; }
-    }
+    if (!best_pg.empty()) { native_id_precursor_peak_group_map_[native_id] = best_pg; }
   }
 }
 
