@@ -88,27 +88,29 @@ endif(WIN32)
 
 #------------------------------------------------------------------------------
 # Check if all python packages are correctly installed
-# Uses inline Python to parse pyproject.toml [dependency-groups].build and verify versions
+# Uses regex to parse pyproject.toml [dependency-groups].build (no external deps needed)
 execute_process(
   COMMAND ${Python_EXECUTABLE} -c "
 import sys
+import re
 from importlib.metadata import version, PackageNotFoundError
 from packaging.requirements import Requirement
 from packaging.specifiers import SpecifierSet
 
-# Parse pyproject.toml using tomllib (3.11+) or tomli
-try:
-    import tomllib
-except ImportError:
-    import tomli as tomllib
-
+# Parse [dependency-groups].build using regex (no tomli needed)
 pyproject_path = '${CMAKE_CURRENT_SOURCE_DIR}/pyproject.toml'
-with open(pyproject_path, 'rb') as f:
-    config = tomllib.load(f)
+content = open(pyproject_path).read()
 
-build_deps = config.get('dependency-groups', {}).get('build', [])
+# Find the build array in [dependency-groups] section
+match = re.search(r'\\[dependency-groups\\].*?^build\\s*=\\s*\\[(.*?)\\]', content, re.MULTILINE | re.DOTALL)
+if not match:
+    print('Warning: No [dependency-groups].build found')
+    sys.exit(0)
+
+# Extract quoted strings from the array
+build_deps = re.findall(r'\"([^\"]+)\"', match.group(1))
 if not build_deps:
-    print('Warning: No build dependencies found in [dependency-groups].build')
+    print('Warning: No build dependencies found')
     sys.exit(0)
 
 print(f'Checking {len(build_deps)} build dependencies...')
@@ -135,7 +137,7 @@ sys.exit(1 if failed else 0)
   RESULT_VARIABLE CHECK_PY_PACKAGES
 )
 if (CHECK_PY_PACKAGES)
-  message(FATAL_ERROR "Some Python modules (using ${Python_EXECUTABLE}) are missing or have the wrong version. Install with: pip install tomli && uv pip install $(python -c \"import tomli; print(' '.join(tomli.load(open('src/pyOpenMS/pyproject.toml','rb'))['dependency-groups']['build']))\")")
+  message(FATAL_ERROR "Some Python modules (using ${Python_EXECUTABLE}) are missing or have the wrong version. Install with: pip install uv && uv sync --only-group build --no-install-project --active --directory src/pyOpenMS")
 endif()
 
 #------------------------------------------------------------------------------
