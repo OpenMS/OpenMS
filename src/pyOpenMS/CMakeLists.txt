@@ -87,58 +87,23 @@ if(WIN32)
 endif(WIN32)
 
 #------------------------------------------------------------------------------
-# Check if all python packages are correctly installed
-# Uses regex to parse pyproject.toml [dependency-groups].build (no external deps needed)
-execute_process(
-  COMMAND ${Python_EXECUTABLE} -c "
-import sys
-import re
-from importlib.metadata import version, PackageNotFoundError
-from packaging.requirements import Requirement
-from packaging.specifiers import SpecifierSet
-
-# Parse [dependency-groups].build using regex (no tomli needed)
-pyproject_path = '${CMAKE_CURRENT_SOURCE_DIR}/pyproject.toml'
-content = open(pyproject_path).read()
-
-# Find the build array in [dependency-groups] section
-match = re.search(r'\\[dependency-groups\\].*?^build\\s*=\\s*\\[(.*?)\\]', content, re.MULTILINE | re.DOTALL)
-if not match:
-    print('Warning: No [dependency-groups].build found')
-    sys.exit(0)
-
-# Extract quoted strings from the array
-build_deps = re.findall(r'\"([^\"]+)\"', match.group(1))
-if not build_deps:
-    print('Warning: No build dependencies found')
-    sys.exit(0)
-
-print(f'Checking {len(build_deps)} build dependencies...')
-failed = False
-for dep_str in build_deps:
-    try:
-        req = Requirement(dep_str)
-        installed_ver = version(req.name)
-        spec = SpecifierSet(str(req.specifier))
-        if not req.specifier or installed_ver in spec:
-            print(f' + {req.name}=={installed_ver} OK')
-        else:
-            print(f' - {req.name}=={installed_ver} does not match {req}')
-            failed = True
-    except PackageNotFoundError:
-        print(f' - {req.name} is NOT installed (required: {req})')
-        failed = True
-    except Exception as e:
-        print(f' - Error checking {dep_str}: {e}')
-        failed = True
-
-sys.exit(1 if failed else 0)
-"
-  RESULT_VARIABLE CHECK_PY_PACKAGES
-)
-if (CHECK_PY_PACKAGES)
-  message(FATAL_ERROR "Some Python modules (using ${Python_EXECUTABLE}) are missing or have the wrong version. Install with: pip install uv && uv sync --only-group build --no-install-project --active --directory src/pyOpenMS")
-endif()
+# Python Build Dependencies
+#------------------------------------------------------------------------------
+# pyOpenMS requires the following Python packages to be installed BEFORE
+# running CMake configuration:
+#
+#   numpy>=2.0      - For NumPy C API headers
+#   autowrap>=0.24  - For generating Cython bindings from .pxd files
+#   Cython>=3.1     - For compiling .pyx to C++
+#
+# Install all build dependencies with:
+#   pip install uv && uv sync --only-group build --no-install-project --active --directory src/pyOpenMS
+#
+# Or manually:
+#   pip install numpy>=2.0 autowrap>=0.24 Cython>=3.1
+#
+# The checks below will fail with helpful error messages if packages are missing.
+#------------------------------------------------------------------------------
 
 #------------------------------------------------------------------------------
 # Find NumPy headers
@@ -151,13 +116,18 @@ execute_process(
 )
 
 if (NUMPY_INCLUDE_DIR_NOT_FOUND)
-    message(FATAL_ERROR "Failed to find numpy include directory: ${NUMPY_ERROR}")
+    message(FATAL_ERROR
+        "NumPy is not installed or cannot be imported.\n"
+        "  Python: ${Python_EXECUTABLE}\n"
+        "  Error: ${NUMPY_ERROR}\n"
+        "Install with: pip install numpy>=2.0\n"
+        "Or install all build deps: uv sync --only-group build --no-install-project --active --directory src/pyOpenMS")
 endif()
 
 #------------------------------------------------------------------------------
 # Find Autowrap headers
 execute_process(
-    COMMAND ${Python_EXECUTABLE} -c "from __future__ import print_function; import autowrap; print (''.join([autowrap.__path__[0],'/data_files/autowrap/']))"
+    COMMAND ${Python_EXECUTABLE} -c "import autowrap; print(autowrap.__path__[0] + '/data_files/autowrap/')"
     OUTPUT_VARIABLE AUTOWRAP_INCLUDE_DIR
     ERROR_VARIABLE AUTOWRAP_ERROR
     RESULT_VARIABLE AUTOWRAP_INCLUDE_DIR_NOT_FOUND
@@ -165,7 +135,12 @@ execute_process(
 )
 
 if (AUTOWRAP_INCLUDE_DIR_NOT_FOUND)
-    message(FATAL_ERROR "Failed to find numpy include directory: ${AUTOWRAP_ERROR}")
+    message(FATAL_ERROR
+        "Autowrap is not installed or cannot be imported.\n"
+        "  Python: ${Python_EXECUTABLE}\n"
+        "  Error: ${AUTOWRAP_ERROR}\n"
+        "Install with: pip install autowrap>=0.24\n"
+        "Or install all build deps: uv sync --only-group build --no-install-project --active --directory src/pyOpenMS")
 endif()
 
 #------------------------------------------------------------------------------
@@ -179,11 +154,16 @@ execute_process(
 )
 
 if (PYTHON_INCLUDE_DIRS_NOT_FOUND)
-    message(FATAL_ERROR "Python headers not found: ${PYTHON_INCLUDE_DIRS_ERROR}")
+    message(FATAL_ERROR
+        "Python development headers not found.\n"
+        "  Python: ${Python_EXECUTABLE}\n"
+        "  Error: ${PYTHON_INCLUDE_DIRS_ERROR}\n"
+        "On Debian/Ubuntu: apt install python3-dev\n"
+        "On Fedora/RHEL: dnf install python3-devel")
 endif()
 
-
-# Get suffix for python C(++) extensions
+#------------------------------------------------------------------------------
+# Get suffix for Python C(++) extensions
 execute_process(
     COMMAND ${Python_EXECUTABLE} -c "import sysconfig; print(sysconfig.get_config_var('EXT_SUFFIX'))"
     OUTPUT_VARIABLE PYTHON_EXT_SUFFIX
@@ -193,9 +173,20 @@ execute_process(
 )
 
 if(PYTHON_EXT_SUFFIX_NOT_FOUND)
-    message(FATAL_ERROR "Could not determine suffix for Python C extensions: ${PYTHON_EXT_SUFFIX_ERROR}")
+    message(FATAL_ERROR
+        "Could not determine Python extension suffix.\n"
+        "  Python: ${Python_EXECUTABLE}\n"
+        "  Error: ${PYTHON_EXT_SUFFIX_ERROR}\n"
+        "This usually indicates a broken Python installation.")
 endif()
 
+#------------------------------------------------------------------------------
+# Report detected Python configuration
+message(STATUS "pyOpenMS build configuration:")
+message(STATUS "  NumPy include: ${NUMPY_INCLUDE_DIR}")
+message(STATUS "  Autowrap include: ${AUTOWRAP_INCLUDE_DIR}")
+message(STATUS "  Python include: ${PYTHON_INCLUDE_DIRS}")
+message(STATUS "  Extension suffix: ${PYTHON_EXT_SUFFIX}")
 
 #------------------------------------------------------------------------------
 # clean python build directory from former cmake run (if exists)
