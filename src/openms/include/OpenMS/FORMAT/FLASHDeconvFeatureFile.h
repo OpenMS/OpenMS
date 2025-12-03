@@ -48,6 +48,5 @@ namespace OpenMS
 
     static void writeTopFDFeatures(std::vector<DeconvolvedSpectrum>& deconvolved_spectra, const std::vector<FLASHHelperClasses::MassFeature>& mass_features,
                                    const std::map<int, double>& scan_rt_map, const String& file_name, std::ostream& os, uint ms_level);
-
   };
 } // namespace OpenMS

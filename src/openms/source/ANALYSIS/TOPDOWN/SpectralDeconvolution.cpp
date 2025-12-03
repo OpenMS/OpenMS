@@ -208,7 +208,6 @@ namespace OpenMS
     // set universal pattern filter and harmonic pattern filters
     setFilters_();
     // LogMzPeaks are generated from raw peaks
-
     updateLogMzPeaks_();
     if (log_mz_peaks_.empty()) { return; }
 

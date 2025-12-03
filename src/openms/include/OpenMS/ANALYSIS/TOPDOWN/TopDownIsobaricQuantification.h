@@ -27,7 +27,6 @@ namespace OpenMS
   class OPENMS_DLLAPI TopDownIsobaricQuantification : public DefaultParamHandler
   {
   public:
-
     /// constructor
     TopDownIsobaricQuantification();
 

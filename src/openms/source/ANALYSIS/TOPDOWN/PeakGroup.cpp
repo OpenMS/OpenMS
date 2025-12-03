@@ -53,7 +53,6 @@ namespace OpenMS
         i = p.isotopeIndex;
         i_cntr = 0;
         i_error = 0;
-
       }
       i_cntr ++;
       i_error += ppm ? getPPMError_(p) : getDaError_(p);

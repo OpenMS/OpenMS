@@ -281,7 +281,6 @@ protected:
 
       per_ms_level_deconv_spec_count[ms_level]++;
       per_ms_level_mass_count[ms_level] += (int)deconvolved_spectrum.size();
-
     }
     for (const auto& val : per_ms_level_deconv_spec_count)
     {
