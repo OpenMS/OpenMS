@@ -71,22 +71,17 @@ protected:
 
     void processSpectrum_(MapType::SpectrumType& spectrum) override
     {
-      const Param& par = pp_.getParameters();
-
       if (method_ == "mobilogram")
       {
         pp_.pickIMTraces(spectrum);
       }
       else if (method_ == "cluster")
       {
-        const double ppm_tol = (double)par.getValue("pickIMCluster:ppm_tolerance_cluster");
-        const double im_tol  = (double)par.getValue("pickIMCluster:im_tolerance_cluster");
-        PeakPickerIM::pickIMCluster(spectrum, ppm_tol, im_tol);
+        pp_.pickIMCluster(spectrum);
       }
       else if (method_ == "traces")
       {
-        const double ppm_tol = (double)par.getValue("pickIMElutionProfiles:ppm_tolerance_elution");
-        PeakPickerIM::pickIMElutionProfiles(spectrum, ppm_tol);
+        pp_.pickIMElutionProfiles(spectrum);
       }
     }
 
@@ -101,12 +96,34 @@ protected:
   ExitCodes doLowMemAlgorithm(const String& method, const PeakPickerIM& pp,
                               const String& input_file, const String& output_file)
   {
+    // Validate IMFormat before streaming (requires loading file for format detection)
+    MzMLFile mzml;
+    mzml.setLogType(log_type_);
+    {
+      PeakMap exp;
+      mzml.load(input_file, exp);
+
+      IMFormat im_format = IMTypes::determineIMFormat(exp);
+      if (im_format == IMFormat::CENTROIDED)
+      {
+        OPENMS_LOG_ERROR << "Error: Input file contains ion mobility data that is already centroided. "
+                         << "PeakPickerIM expects raw (concatenated) IM data. "
+                         << "Re-picking already centroided data is not supported." << std::endl;
+        return ILLEGAL_PARAMETERS;
+      }
+      if (im_format == IMFormat::NONE)
+      {
+        OPENMS_LOG_WARN << "Warning: Input file does not contain ion mobility data. "
+                        << "No peak picking will be performed." << std::endl;
+        mzml.store(output_file, exp);
+        return EXECUTION_OK;
+      }
+    } // exp goes out of scope, freeing memory before streaming
+
+    // Proceed with streaming processing
     Consumer pp_consumer(output_file, method, pp);
     pp_consumer.addDataProcessing(getProcessingInfo_(DataProcessing::PEAK_PICKING));
-
-    MzMLFile mz_data_file;
-    mz_data_file.setLogType(log_type_);
-    mz_data_file.transform(input_file, &pp_consumer);
+    mzml.transform(input_file, &pp_consumer);
     return EXECUTION_OK;
   }
 
@@ -158,24 +175,19 @@ protected:
         if (method == "mobilogram")
         {
           picker.pickIMTraces(spectrum);
-          spectrum.setIMFormat(IMFormat::CENTROIDED);
         }
         else if (method == "cluster")
         {
-          const Param& par = picker.getParameters();
-          const double ppm_tol = (double)par.getValue("pickIMCluster:ppm_tolerance_cluster");
-          const double im_tol  = (double)par.getValue("pickIMCluster:im_tolerance_cluster");
-          PeakPickerIM::pickIMCluster(spectrum, ppm_tol, im_tol);
-          spectrum.setIMFormat(IMFormat::CENTROIDED);
+          picker.pickIMCluster(spectrum);
         }
         else if (method == "traces")
         {
-          const Param& par = picker.getParameters();
-          const double ppm_tol = (double)par.getValue("pickIMElutionProfiles:ppm_tolerance_elution");
-          PeakPickerIM::pickIMElutionProfiles(spectrum, ppm_tol);
-          spectrum.setIMFormat(IMFormat::CENTROIDED);
+          picker.pickIMElutionProfiles(spectrum);
         }
       }
+
+      // Annotate processing info (same as low-memory path)
+      exp.addDataProcessing(getProcessingInfo_(DataProcessing::PEAK_PICKING));
 
       mzml.store(output_file, exp);
       return EXECUTION_OK;

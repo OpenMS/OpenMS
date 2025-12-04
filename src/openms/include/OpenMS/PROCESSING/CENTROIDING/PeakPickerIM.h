@@ -60,7 +60,7 @@ namespace OpenMS
     using DefaultParamHandler::getParameters;
 
 
-        /**
+    /**
      * @brief Converts an ion mobility frame to a single spectrum with averaged IM values
      *
      * This function takes an MS spectrum containing ion mobility data and reduces it to
@@ -69,12 +69,12 @@ namespace OpenMS
      * mobility values.
      *
      * The algorithm processes peaks sequentially and groups them based on two criteria:
-     * 1. m/z tolerance: peaks must be within specified ppm of each other
-     * 2. ion mobility tolerance: the range of IM values must not exceed the specified tolerance
+     * 1. m/z tolerance: peaks must be within the configured ppm tolerance of each other
+     * 2. ion mobility tolerance: the range of IM values must not exceed the configured tolerance
+     *
+     * Uses parameters pickIMCluster:ppm_tolerance_cluster and pickIMCluster:im_tolerance_cluster.
      *
      * @param spec Spectrum containing ion mobility data in its FloatDataArrays
-     * @param ppm_tolerance_cluster Mass tolerance in parts per million (default: 50.0 ppm)
-     * @param im_tolerance_cluster Ion mobility tolerance (default: 0.1 units)
      *
      * @throws Exception::MissingInformation if input spectrum lacks ion mobility data
      *
@@ -85,21 +85,21 @@ namespace OpenMS
      * Example:
      * @code
      * MSSpectrum spectrum;  // spectrum with IM FloatDataArrays
-     * PeakPickerIM::pickIMCluster(spectrum, 50.0, 0.1);  // 50 ppm, 0.1 IM tolerance
+     * PeakPickerIM picker;
+     * picker.pickIMCluster(spectrum);
      * @endcode
      */
-    static void pickIMCluster(MSSpectrum& spec, double ppm_tolerance_cluster = 50.0, double im_tolerance_cluster = 0.1);
+    void pickIMCluster(MSSpectrum& spec) const;
 
     /**
      * @brief Picks ion mobility elution profiles from the given spectrum using eluting profiles.
      *
      * This function processes an MS spectrum containing ion mobility data and
-     * extracts IM elution profiles based on the specified ppm tolerance.
+     * extracts IM elution profiles based on the configured ppm tolerance.
      *
      * @param input Spectrum containing ion mobility data in its FloatDataArrays
-     * @param ppm_tolerance_elution Mass tolerance in parts per million (default: 50.0 ppm)
      */
-    static void pickIMElutionProfiles(MSSpectrum& input, double ppm_tolerance_elution = 50.0);
+    void pickIMElutionProfiles(MSSpectrum& input) const;
 
   protected:
     void updateMembers_() override;

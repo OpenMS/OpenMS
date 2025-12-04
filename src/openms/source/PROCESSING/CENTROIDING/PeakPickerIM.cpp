@@ -969,7 +969,7 @@ namespace OpenMS
 #endif
     }
 
-    void PeakPickerIM::pickIMCluster(OpenMS::MSSpectrum& spectrum, double ppm_tolerance_cluster_, double im_tolerance_cluster_)
+    void PeakPickerIM::pickIMCluster(OpenMS::MSSpectrum& spectrum) const
     {
       if (spectrum.empty()) return;
 
@@ -1197,7 +1197,7 @@ namespace OpenMS
       removeAllFloatDataArraysExcept(spectrum, Constants::UserParam::ION_MOBILITY_CENTROID);
     } // End of pickIMCluster function
 
-    void PeakPickerIM::pickIMElutionProfiles(MSSpectrum& input, double ppm_tolerance_elution_)
+    void PeakPickerIM::pickIMElutionProfiles(MSSpectrum& input) const
     {
       if (input.empty()) return;
 
