@@ -78,19 +78,25 @@ protected:
 
   std::pair<std::vector<PeakMap>, Math::BinContainer> processFAIMSData_(PeakMap&& experiment)
   {
-    set<double> faims_cvs = FAIMSHelper::getCompensationVoltages(experiment);
-    auto mzML_bins = IMDataConverter::splitByFAIMSCV(std::move(experiment));
-    Size n_bins = mzML_bins.size();
+    // IMDataConverter::splitByFAIMSCV() returns a vector of (FAIMS CV, experiment) pairs
+    // (with ascending CV order). We convert this to a vector of PeakMaps and a
+    // BinContainer that encodes the CV values as [min,max] = [CV,CV].
+    auto bins_by_cv = IMDataConverter::splitByFAIMSCV(std::move(experiment));
+    Size n_bins = bins_by_cv.size();
 
-    // The order of bins produced by IMDataConverter::splitByFAIMSCV() is defined
-    // by the ascending order of the unique FAIMS CVs (std::set iteration order).
-    // We therefore map i-th bin to i-th element of 'faims_cvs'.
+    std::vector<PeakMap> mzML_bins;
+    mzML_bins.reserve(n_bins);
+
     Math::BinContainer im_ranges;
     for (Size i = 0; i < n_bins; ++i)
     {
-      const double faims_cv = *std::next(faims_cvs.begin(), i);
+      const double faims_cv = bins_by_cv[i].first;
+      PeakMap& pm = bins_by_cv[i].second;
+
       im_ranges[i].setMax(faims_cv);
       im_ranges[i].setMin(faims_cv);
+
+      mzML_bins.push_back(std::move(pm));
     }
 
     return {std::move(mzML_bins), std::move(im_ranges)};
