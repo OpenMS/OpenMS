@@ -13,6 +13,7 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
 #include <OpenMS/PROCESSING/CENTROIDING/PeakPickerIM.h>
+#include <OpenMS/IONMOBILITY/IMTypes.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -134,6 +135,23 @@ protected:
       PeakMap exp;
       MzMLFile mzml;
       mzml.load(input_file, exp);
+
+      // Check if input contains centroided IM data (error) or no IM data (warning)
+      IMFormat im_format = IMTypes::determineIMFormat(exp);
+      if (im_format == IMFormat::CENTROIDED)
+      {
+        OPENMS_LOG_ERROR << "Error: Input file contains ion mobility data that is already centroided. "
+                         << "PeakPickerIM expects raw (concatenated) IM data. "
+                         << "Re-picking already centroided data is not supported." << std::endl;
+        return ILLEGAL_PARAMETERS;
+      }
+      if (im_format == IMFormat::NONE)
+      {
+        OPENMS_LOG_WARN << "Warning: Input file does not contain ion mobility data. "
+                        << "No peak picking will be performed." << std::endl;
+        mzml.store(output_file, exp);
+        return EXECUTION_OK;
+      }
 
 #pragma omp parallel for
       for (SignedSize i = 0; i < static_cast<SignedSize>(exp.size()); ++i)

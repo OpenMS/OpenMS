@@ -60,6 +60,8 @@ TOPP tools:
     - OpenNuXL - A peptide-RNA/DNA cross-linking search engine
     - PeptideDataBaseSearchFI - Experimental peptide database search engine using a fragment index (FI) and the new PeptideSearchEngineFIAlgorithm
     - FeatureFinderLFQ (experimental) - Feature detection for label-free proteomics DDA-LFQ based on the Biosaur2 algorithm with support for FAIMS and TimsTOF ion mobility
+    - PeakPickerIM - Ion mobility peak picker for TimsTOF and other IM data. Supports three methods: mobilogram-based,
+      clustering, and elution profile-based picking. Supports both in-memory and low-memory streaming modes. (#8177)
   Removed Tools:
     - OpenPepXLLF - Experimental search for cross-linked peptide pairs in tandem MS spectra (showed inferior performance in benchmarks)
 
@@ -69,6 +71,9 @@ GUI tools:
 
 OpenMS Library:
   Added:
+    - PeakPickerIM: New algorithm for ion mobility peak picking with three methods (mobilogram, cluster, elution profiles). (#8177)
+    - IMFormat: Added CENTROIDED and UNKNOWN format types for ion mobility data. (#8177)
+    - MSSpectrum/SpectrumSettings: Added setIMFormat()/getIMFormat() API for per-spectrum ion mobility format tracking. (#8177)
     - FeatureFinderAlgorithmBiosaur2 (experimental): Feature detection algorithm for label-free proteomics DDA-LFQ based on the Biosaur2 algorithm with support for FAIMS and TimsTOF ion mobility.
     - PeptideHit: Added TargetDecoyType (TARGET, DECOY, TARGET_DECOY, UNKNOWN) and setTargetDecoyType()/getTargetDecoyType(); supports target+decoy peptide hits.
     - IDScoreSwitcherAlgorithm: Added findScoreType() method for generic score type detection. Checks if main score matches requested ScoreType (PEP, QVAL, FDR, etc.) or finds it in meta values..

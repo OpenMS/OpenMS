@@ -112,14 +112,20 @@ namespace OpenMS
           "MassTrace was not smoothed before! Aborting...", String(smoothed_ints_vec.size()));
     }
 
-        // first make sure that everything is cleared
+    // first make sure that everything is cleared
     chrom_maxes.clear();
     chrom_mins.clear();
+
+    // Handle empty traces to avoid crash
+    if (mt_length == 0)
+    {
+      return;
+    }
 
     if (mt_length < 3)
     {
       // determine the index of maximum intensity
-      Size max_idx(tr.findMaxByIntPeak(true));
+      Size max_idx = tr.findMaxByIntPeak(true);
       chrom_maxes.push_back(max_idx);
       return;
     }
@@ -553,9 +559,16 @@ namespace OpenMS
     // looking at the unit test, this method gives better fits than lowess smoothing
     // reference paper uses lowess smoothing
 
-    if (mt.getSize() == 1)
+    // Handle traces with fewer than 3 points - Savitzky-Golay requires minimum frame length of 3
+    if (mt.getSize() < 3)
     {
-      mt.setSmoothedIntensities(std::vector<double>(1, mt[0].getIntensity()));
+      std::vector<double> smoothed;
+      smoothed.reserve(mt.getSize());
+      for (Size i = 0; i < mt.getSize(); ++i)
+      {
+        smoothed.push_back(mt[i].getIntensity());
+      }
+      mt.setSmoothedIntensities(smoothed);
       return;
     }
 

@@ -9,6 +9,7 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <cmath>
 
 ///////////////////////////
@@ -87,7 +88,7 @@ for (size_t i = 0; i < mzs.size(); ++i)
     input.emplace_back(mzs[i], Intensities[i]);
 }
 input.getFloatDataArrays().resize(1);
-input.getFloatDataArrays()[0].setName("Ion Mobility");
+input.getFloatDataArrays()[0].setName(Constants::UserParam::ION_MOBILITY);
 for (size_t i = 0; i < IMs.size(); ++i)
 {
     input.getFloatDataArrays()[0].push_back(IMs[i]);
@@ -117,7 +118,7 @@ input.setIMFormat(IMFormat::CONCATENATED);
 
     // Set up the ion mobility array
     input.getFloatDataArrays().resize(1);
-    input.getFloatDataArrays()[0].setName("Ion Mobility");
+    input.getFloatDataArrays()[0].setName(Constants::UserParam::ION_MOBILITY);
 
     // Add ion mobility values (each repeated 10 times)
     for (double im = 1.0; im <= 10.0; im += 1.0)
@@ -142,7 +143,7 @@ START_SECTION(void pickIMTraces(MSSpectrum& spectrum))
     TEST_REAL_SIMILAR(input[0].getMZ(), 300.0)
 
     TEST_EQUAL(input.getFloatDataArrays().size(), 1)
-    TEST_EQUAL(input.getFloatDataArrays()[0].getName(), "Ion Mobility")
+    TEST_EQUAL(input.getFloatDataArrays()[0].getName(), Constants::UserParam::ION_MOBILITY_CENTROID)
     TEST_REAL_SIMILAR(input.getFloatDataArrays()[0][0], 0.8)
 }
 END_SECTION

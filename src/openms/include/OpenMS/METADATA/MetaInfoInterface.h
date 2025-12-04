@@ -84,7 +84,8 @@ public:
     /// Removes the DataValue corresponding to @p index if it exists
     void removeMetaValue(UInt index);
 
-    /// function to copy all meta values from one object to this one
+    /// Copy all meta values from @p from to this object (both named String and indexed UInt keys).
+    /// Existing entries with the same key are overwritten; others are preserved.
     void addMetaValues(const MetaInfoInterface& from);
 
     /// Returns a reference to the MetaInfoRegistry

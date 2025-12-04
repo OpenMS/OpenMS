@@ -11,6 +11,7 @@
 #include <OpenMS/PROCESSING/SMOOTHING/GaussFilter.h>
 #include <OpenMS/PROCESSING/SMOOTHING/SavitzkyGolayFilter.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/PROCESSING/RESAMPLING/LinearResamplerAlign.h>
@@ -306,7 +307,7 @@ namespace OpenMS
 
       // Create float data arrays to house ion mobility data and peaks FWHM
       MSSpectrum::FloatDataArray ion_mobility_array;
-      ion_mobility_array.setName("Ion Mobility");
+      ion_mobility_array.setName(Constants::UserParam::ION_MOBILITY_CENTROID);
 
       MSSpectrum::FloatDataArray ion_mobility_fwhm;
       ion_mobility_fwhm.setName("IM FWHM");
@@ -714,8 +715,8 @@ namespace OpenMS
        *
        * @param spectrum The spectrum to validate
        * @return true if the spectrum should be processed (has concatenated IM data)
-       * @return false if the spectrum should be skipped (no IM data or already centroided)
-       * @throws Exception::InvalidValue if the IMFormat is UNKNOWN or unhandled
+       * @return false if the spectrum should be skipped (no IM data)
+       * @throws Exception::InvalidValue if the data is already centroided, UNKNOWN, or unhandled format
        */
       bool validateIMFormatForPicking(const MSSpectrum& spectrum)
       {
@@ -723,9 +724,12 @@ namespace OpenMS
         switch (format)
         {
             case IMFormat::NONE:
-                return false; // no IM data
+                return false; // no IM data - skip silently
             case IMFormat::CENTROIDED:
-                return false; // already centroided
+                throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                    "Ion mobility data is already centroided. PeakPickerIM expects raw (concatenated) IM data. "
+                    "Re-picking already centroided data is not supported.",
+                    String(NamesOfIMFormat[(size_t)format]));
             case IMFormat::UNKNOWN:
                 throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                     "IMFormat set to UNKNOWN after determineIMFormat. This should never happen.",
@@ -952,7 +956,7 @@ namespace OpenMS
       centroided_frame.setMSLevel(spectrum.getMSLevel());
       centroided_frame.setName(spectrum.getName());
       centroided_frame.setRT(spectrum.getRT());
-      removeAllFloatDataArraysExcept(centroided_frame, "Ion Mobility");
+      removeAllFloatDataArraysExcept(centroided_frame, Constants::UserParam::ION_MOBILITY_CENTROID);
       centroided_frame.setIMFormat(IMFormat::CENTROIDED);
       spectrum = std::move(centroided_frame);
       
@@ -1189,9 +1193,9 @@ namespace OpenMS
       spectrum.sortByPosition();
       spectrum.updateRanges();
       // ensure the output IM array is updated
-      spectrum.getFloatDataArrays()[im_data_index].setName("Ion Mobility");
+      spectrum.getFloatDataArrays()[im_data_index].setName(Constants::UserParam::ION_MOBILITY_CENTROID);
       spectrum.setIMFormat(IMFormat::CENTROIDED);
-      removeAllFloatDataArraysExcept(spectrum, "Ion Mobility");
+      removeAllFloatDataArraysExcept(spectrum, Constants::UserParam::ION_MOBILITY_CENTROID);
     } // End of pickIMCluster function
 
     void PeakPickerIM::pickIMElutionProfiles(MSSpectrum& input, double ppm_tolerance_elution_)
@@ -1277,9 +1281,9 @@ namespace OpenMS
       input.sortByPosition(); // TODO: maybe needed
       input.updateRanges(); // TODO: maybe needed
       // ensure the output im name is updated
-      input.getFloatDataArrays()[im_data_index].setName("Ion Mobility");
+      input.getFloatDataArrays()[im_data_index].setName(Constants::UserParam::ION_MOBILITY_CENTROID);
       input.setIMFormat(IMFormat::CENTROIDED);
-      removeAllFloatDataArraysExcept(input, "Ion Mobility");
+      removeAllFloatDataArraysExcept(input, Constants::UserParam::ION_MOBILITY_CENTROID);
     }
 
 } // namespace OpenMS
