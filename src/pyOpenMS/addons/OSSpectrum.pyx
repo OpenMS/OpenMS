@@ -1,16 +1,16 @@
 
 
-    def getMZArray(self):
+    def get_mz_array(self):
         """
-        Get the m/z array of the spectrum as a numpy array.
+        Get the m/z array of the spectrum as a numpy array (copy).
 
         Returns:
-            np.ndarray: A 1D numpy array containing the mass-to-charge ratio values
+            np.ndarray: A 1D numpy array (float64) containing the mass-to-charge ratio values
                        for each peak in the spectrum.
 
         Example:
             >>> spectrum = OSSpectrum()
-            >>> mz_values = spectrum.getMZArray()
+            >>> mz_values = spectrum.get_mz_array()
             >>> print(f"m/z range: {min(mz_values)} - {max(mz_values)}")
             >>> # Safe to modify the returned array
             >>> mz_values += 0.001  # This won't affect the original data
@@ -22,9 +22,9 @@
         cdef double[::1] arr = <double [:n]>_r.get().data.data()
         return np.asarray(arr.copy())
 
-    def getMZArray_mv(self):
+    def get_mz_array_mv(self):
         """
-        Get the m/z array of the spectrum as a memory view.
+        Get the m/z array of the spectrum as a memory view (no copy).
 
         This method provides direct access to the underlying data without copying,
         which is more memory efficient for large datasets.
@@ -40,12 +40,12 @@
 
         Example:
             >>> spectrum = OSSpectrum()
-            >>> mz_mv = spectrum.getMZArray_mv()
+            >>> mz_mv = spectrum.get_mz_array_mv()
             >>> # CORRECT: Use immediately
             >>> min_mz = min(mz_mv)
             >>>
             >>> # WRONG: Don't do this!
-            >>> # stored_mv = spectrum.getMZArray_mv()
+            >>> # stored_mv = spectrum.get_mz_array_mv()
             >>> # del spectrum  # Memory view now points to invalid memory!
             >>> # print(stored_mv[0])  # Undefined behavior/crash
         """
@@ -56,17 +56,17 @@
         cdef double[::1] arr = <double [:n]>_r.get().data.data()
         return arr
 
-    def getIntensityArray(self):
+    def get_intensity_array(self):
         """
-        Get the intensity array of the spectrum as a numpy array.
+        Get the intensity array of the spectrum as a numpy array (copy).
 
         Returns:
-            np.ndarray: A 1D numpy array containing the intensity values
+            np.ndarray: A 1D numpy array (float64) containing the intensity values
                        for each peak in the spectrum.
 
         Example:
             >>> spectrum = OSSpectrum()
-            >>> intensities = spectrum.getIntensityArray()
+            >>> intensities = spectrum.get_intensity_array()
             >>> print(f"Base peak intensity: {max(intensities)}")
             >>> # Safe to modify the returned array
             >>> normalized = intensities / max(intensities)  # This won't affect the original data
@@ -78,9 +78,9 @@
         cdef double[::1] arr = <double [:n]>_r.get().data.data()
         return np.asarray(arr.copy())
 
-    def getIntensityArray_mv(self):
+    def get_intensity_array_mv(self):
         """
-        Get the intensity array of the spectrum as a memory view.
+        Get the intensity array of the spectrum as a memory view (no copy).
 
         This method provides direct access to the underlying data without copying,
         which is more memory efficient for large datasets.
@@ -96,12 +96,12 @@
 
         Example:
             >>> spectrum = OSSpectrum()
-            >>> intensities_mv = spectrum.getIntensityArray_mv()
+            >>> intensities_mv = spectrum.get_intensity_array_mv()
             >>> # CORRECT: Use immediately for calculations
             >>> total_intensity = sum(intensities_mv)
             >>>
             >>> # WRONG: Don't do this!
-            >>> # stored_mv = spectrum.getIntensityArray_mv()
+            >>> # stored_mv = spectrum.get_intensity_array_mv()
             >>> # del spectrum  # Memory view now points to invalid memory!
             >>> # print(sum(stored_mv))  # Undefined behavior/crash
         """
@@ -112,21 +112,21 @@
         cdef double[::1] arr = <double [:n]>_r.get().data.data()
         return arr
 
-    def getDriftTimeArray(self):
+    def get_drift_time_array(self):
         """
-        Get the drift time array of the spectrum as a numpy array.
+        Get the drift time array of the spectrum as a numpy array (copy).
 
         This method is used for ion mobility spectrometry data where each peak
         has an associated drift time value.
 
         Returns:
-            np.ndarray or None: A 1D numpy array containing the drift time values
+            np.ndarray or None: A 1D numpy array (float64) containing the drift time values
                                for each peak in the spectrum, or None if no drift
                                time data is available.
 
         Example:
             >>> spectrum = OSSpectrum()
-            >>> drift_times = spectrum.getDriftTimeArray()
+            >>> drift_times = spectrum.get_drift_time_array()
             >>> if drift_times is not None:
             ...     print(f"Drift time range: {min(drift_times)} - {max(drift_times)} ms")
             ... else:
@@ -141,9 +141,9 @@
         cdef double[::1] arr = <double [:n]>_r.get().data.data()
         return np.asarray(arr.copy())
 
-    def getDriftTimeArray_mv(self):
+    def get_drift_time_array_mv(self):
         """
-        Get the drift time array of the spectrum as a memory view.
+        Get the drift time array of the spectrum as a memory view (no copy).
 
         This method provides direct access to the underlying drift time data without copying,
         which is more memory efficient for large ion mobility datasets.
@@ -160,13 +160,13 @@
 
         Example:
             >>> spectrum = OSSpectrum()
-            >>> drift_mv = spectrum.getDriftTimeArray_mv()
+            >>> drift_mv = spectrum.get_drift_time_array_mv()
             >>> if drift_mv is not None:
             ...     # CORRECT: Use immediately
             ...     avg_drift = sum(drift_mv) / len(drift_mv)
             ...
             >>> # WRONG: Don't do this!
-            >>> # stored_mv = spectrum.getDriftTimeArray_mv()
+            >>> # stored_mv = spectrum.get_drift_time_array_mv()
             >>> # del spectrum  # Memory view now points to invalid memory!
             >>> # if stored_mv: print(stored_mv[0])  # Undefined behavior/crash
         """
@@ -179,23 +179,23 @@
         cdef double[::1] arr = <double [:n]>_r.get().data.data()
         return arr
 
-    def getDataArrays(self):
+    def get_data_arrays(self):
         """
         Get all data arrays associated with the spectrum.
-        
+
         This includes the m/z array, intensity array, drift time array (if present),
         and any additional meta data arrays that may be present in the spectrum.
-        
+
         Returns:
             list: A list of OSBinaryDataArray objects containing all data arrays
                  associated with this spectrum.
-        
+
         Example:
             >>> spectrum = OSSpectrum()
-            >>> data_arrays = spectrum.getDataArrays()
+            >>> data_arrays = spectrum.get_data_arrays()
             >>> print(f"Number of data arrays: {len(data_arrays)}")
             >>> for i, array in enumerate(data_arrays):
-            ...     data = array.getData()
+            ...     data = array.get_data()
             ...     if data is not None:
             ...         print(f"Array {i}: {len(data)} data points")
         """
@@ -212,28 +212,28 @@
             inc(it)
         return py_result
 
-    def setDataArrays(self, list inp):
+    def set_data_arrays(self, list inp):
         """
         Set all data arrays for the spectrum.
-        
+
         This method replaces all existing data arrays with the provided ones.
         The input should include m/z array, intensity array, and any additional
         meta data arrays (such as drift time arrays for ion mobility data).
-        
+
         Args:
             inp (list): A list of OSBinaryDataArray objects to set as the
                        spectrum's data arrays.
-                       
+
         Raises:
             AssertionError: If inp is not a list or contains elements that are
                            not OSBinaryDataArray instances.
-        
+
         Example:
             >>> spectrum = OSSpectrum()
             >>> mz_array = OSBinaryDataArray()
             >>> intensity_array = OSBinaryDataArray()
             >>> # ... populate arrays with data ...
-            >>> spectrum.setDataArrays([mz_array, intensity_array])
+            >>> spectrum.set_data_arrays([mz_array, intensity_array])
         """
         assert isinstance(inp, list) and all(isinstance(ele_inp, OSBinaryDataArray) for ele_inp in inp), 'Input has to be a list of elements of type OSBinaryDataArray'
 
@@ -247,22 +247,22 @@
 
         self.inst.get().setDataArrays(_r)
 
-    def setMZArray(self, list data):
+    def set_mz_array(self, list data):
         """
         Set the m/z array (mass-to-charge ratios) for the spectrum.
-        
+
         Args:
             data (list): A list of numeric values representing the m/z values
                         for each peak in the spectrum. Values should typically be
                         in ascending order for proper spectrum processing.
-                        
+
         Raises:
             AssertionError: If data is not a list.
-        
+
         Example:
             >>> spectrum = OSSpectrum()
             >>> mz_values = [100.05, 200.10, 300.15, 400.20, 500.25]
-            >>> spectrum.setMZArray(mz_values)
+            >>> spectrum.set_mz_array(mz_values)
         """
         assert isinstance(data, list), 'arg transitions wrong type'
 
@@ -272,24 +272,24 @@
         self.inst.get().setMZArray(v0)
 
 
-    def setIntensityArray(self, list data):
+    def set_intensity_array(self, list data):
         """
         Set the intensity array for the spectrum.
-        
+
         Args:
             data (list): A list of numeric values representing the intensity values
                         for each peak in the spectrum. The length should match the
                         m/z array length.
-                        
+
         Raises:
             AssertionError: If data is not a list.
-        
+
         Example:
             >>> spectrum = OSSpectrum()
             >>> intensities = [1000.0, 5000.0, 3000.0, 2000.0, 1500.0]
-            >>> spectrum.setIntensityArray(intensities)
+            >>> spectrum.set_intensity_array(intensities)
             >>> # Make sure length matches m/z array
-            >>> assert len(intensities) == len(spectrum.getMZArray())
+            >>> assert len(intensities) == len(spectrum.get_mz_array())
         """
         assert isinstance(data, list), 'arg transitions wrong type'
 
