@@ -84,8 +84,8 @@ namespace OpenMS
      *
      * Example:
      * @code
-     * MSSpectrum input;  // spectrum with IM data
-     * IMFrame::toSpectrum(input_spectrum);
+     * MSSpectrum spectrum;  // spectrum with IM FloatDataArrays
+     * PeakPickerIM::pickIMCluster(spectrum, 50.0, 0.1);  // 50 ppm, 0.1 IM tolerance
      * @endcode
      */
     static void pickIMCluster(MSSpectrum& spec, double ppm_tolerance_cluster = 50.0, double im_tolerance_cluster = 0.1);
