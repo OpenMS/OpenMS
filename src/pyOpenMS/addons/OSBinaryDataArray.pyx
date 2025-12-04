@@ -19,9 +19,11 @@
             >>> print(arr)  # [1. 2. 3.]
         """
         cdef shared_ptr[_OSBinaryDataArray] _r = self.inst
-        cdef double[::1] arr = <double [:_r.get().data.size()]>_r.get().data.data()
-        retval = np.asarray(arr.copy())
-        return retval
+        cdef size_t n = _r.get().data.size()
+        if n == 0:
+            return np.empty(0, dtype=np.float64)
+        cdef double[::1] arr = <double [:n]>_r.get().data.data()
+        return np.asarray(arr.copy())
 
     def getData_mv(self):
         """
@@ -31,7 +33,7 @@
         which is more memory efficient for large datasets.
 
         Returns:
-            memoryview: A direct view of the underlying data array.
+            memoryview: A direct view of the underlying data array, or None if empty.
 
         Warning:
             The returned memory view refers directly to the underlying data.
@@ -52,5 +54,8 @@
             >>> # print(stored_view[0])  # Undefined behavior/crash
         """
         cdef shared_ptr[_OSBinaryDataArray] _r = self.inst
-        cdef double[::1] arr = <double [:_r.get().data.size()]>_r.get().data.data()
+        cdef size_t n = _r.get().data.size()
+        if n == 0:
+            return None
+        cdef double[::1] arr = <double [:n]>_r.get().data.data()
         return arr

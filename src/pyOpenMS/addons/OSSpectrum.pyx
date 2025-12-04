@@ -3,11 +3,11 @@
     def getMZArray(self):
         """
         Get the m/z array of the spectrum as a numpy array.
-        
+
         Returns:
             np.ndarray: A 1D numpy array containing the mass-to-charge ratio values
                        for each peak in the spectrum.
-        
+
         Example:
             >>> spectrum = OSSpectrum()
             >>> mz_values = spectrum.getMZArray()
@@ -16,27 +16,28 @@
             >>> mz_values += 0.001  # This won't affect the original data
         """
         cdef shared_ptr[_OSBinaryDataArray] _r = self.inst.get().getMZArray()
-        cdef np.ndarray[np.float64_t, ndim=1] retval
-        cdef double[::1] arr = <double [:_r.get().data.size()]>_r.get().data.data()
-        retval = np.asarray(arr.copy())
-        return retval
+        cdef size_t n = _r.get().data.size()
+        if n == 0:
+            return np.empty(0, dtype=np.float64)
+        cdef double[::1] arr = <double [:n]>_r.get().data.data()
+        return np.asarray(arr.copy())
 
     def getMZArray_mv(self):
         """
         Get the m/z array of the spectrum as a memory view.
-        
+
         This method provides direct access to the underlying data without copying,
         which is more memory efficient for large datasets.
-        
+
         Returns:
             memoryview: A memory view of the mass-to-charge ratio values
-                       for each peak in the spectrum.
-        
+                       for each peak in the spectrum, or None if empty.
+
         Warning:
             DO NOT store the returned memory view for later use after the
             spectrum object goes out of scope, as this will lead to
             undefined behavior and potential crashes.
-            
+
         Example:
             >>> spectrum = OSSpectrum()
             >>> mz_mv = spectrum.getMZArray_mv()
@@ -49,17 +50,20 @@
             >>> # print(stored_mv[0])  # Undefined behavior/crash
         """
         cdef shared_ptr[_OSBinaryDataArray] _r = self.inst.get().getMZArray()
-        cdef double[::1] arr = <double [:_r.get().data.size()]>_r.get().data.data()
+        cdef size_t n = _r.get().data.size()
+        if n == 0:
+            return None
+        cdef double[::1] arr = <double [:n]>_r.get().data.data()
         return arr
 
     def getIntensityArray(self):
         """
         Get the intensity array of the spectrum as a numpy array.
-        
+
         Returns:
             np.ndarray: A 1D numpy array containing the intensity values
                        for each peak in the spectrum.
-        
+
         Example:
             >>> spectrum = OSSpectrum()
             >>> intensities = spectrum.getIntensityArray()
@@ -68,27 +72,28 @@
             >>> normalized = intensities / max(intensities)  # This won't affect the original data
         """
         cdef shared_ptr[_OSBinaryDataArray] _r = self.inst.get().getIntensityArray()
-        cdef np.ndarray[np.float64_t, ndim=1] retval
-        cdef double[::1] arr = <double [:_r.get().data.size()]>_r.get().data.data()
-        retval = np.asarray(arr.copy())
-        return retval
+        cdef size_t n = _r.get().data.size()
+        if n == 0:
+            return np.empty(0, dtype=np.float64)
+        cdef double[::1] arr = <double [:n]>_r.get().data.data()
+        return np.asarray(arr.copy())
 
     def getIntensityArray_mv(self):
         """
         Get the intensity array of the spectrum as a memory view.
-        
+
         This method provides direct access to the underlying data without copying,
         which is more memory efficient for large datasets.
-        
+
         Returns:
             memoryview: A memory view of the intensity values
-                       for each peak in the spectrum.
-        
+                       for each peak in the spectrum, or None if empty.
+
         Warning:
             DO NOT store the returned memory view for later use after the
             spectrum object goes out of scope, as this will lead to
             undefined behavior and potential crashes.
-            
+
         Example:
             >>> spectrum = OSSpectrum()
             >>> intensities_mv = spectrum.getIntensityArray_mv()
@@ -101,21 +106,24 @@
             >>> # print(sum(stored_mv))  # Undefined behavior/crash
         """
         cdef shared_ptr[_OSBinaryDataArray] _r = self.inst.get().getIntensityArray()
-        cdef double[::1] arr = <double [:_r.get().data.size()]>_r.get().data.data()
+        cdef size_t n = _r.get().data.size()
+        if n == 0:
+            return None
+        cdef double[::1] arr = <double [:n]>_r.get().data.data()
         return arr
 
     def getDriftTimeArray(self):
         """
         Get the drift time array of the spectrum as a numpy array.
-        
+
         This method is used for ion mobility spectrometry data where each peak
         has an associated drift time value.
-        
+
         Returns:
             np.ndarray or None: A 1D numpy array containing the drift time values
                                for each peak in the spectrum, or None if no drift
                                time data is available.
-        
+
         Example:
             >>> spectrum = OSSpectrum()
             >>> drift_times = spectrum.getDriftTimeArray()
@@ -125,29 +133,31 @@
             ...     print("No drift time data available")
         """
         cdef shared_ptr[_OSBinaryDataArray] _r = self.inst.get().getDriftTimeArray()
-        if _r.get() == NULL: return None
-        cdef np.ndarray[np.float64_t, ndim=1] retval
-        cdef double[::1] arr = <double [:_r.get().data.size()]>_r.get().data.data()
-        retval = np.asarray(arr.copy())
-        return retval
+        if _r.get() == NULL:
+            return None
+        cdef size_t n = _r.get().data.size()
+        if n == 0:
+            return np.empty(0, dtype=np.float64)
+        cdef double[::1] arr = <double [:n]>_r.get().data.data()
+        return np.asarray(arr.copy())
 
     def getDriftTimeArray_mv(self):
         """
         Get the drift time array of the spectrum as a memory view.
-        
+
         This method provides direct access to the underlying drift time data without copying,
         which is more memory efficient for large ion mobility datasets.
-        
+
         Returns:
             memoryview or None: A memory view of the drift time values
                                for each peak in the spectrum, or None if no drift
                                time data is available.
-        
+
         Warning:
             DO NOT store the returned memory view for later use after the
             spectrum object goes out of scope, as this will lead to
             undefined behavior and potential crashes.
-            
+
         Example:
             >>> spectrum = OSSpectrum()
             >>> drift_mv = spectrum.getDriftTimeArray_mv()
@@ -161,8 +171,12 @@
             >>> # if stored_mv: print(stored_mv[0])  # Undefined behavior/crash
         """
         cdef shared_ptr[_OSBinaryDataArray] _r = self.inst.get().getDriftTimeArray()
-        if _r.get() == NULL: return None
-        cdef double[::1] arr = <double [:_r.get().data.size()]>_r.get().data.data()
+        if _r.get() == NULL:
+            return None
+        cdef size_t n = _r.get().data.size()
+        if n == 0:
+            return None
+        cdef double[::1] arr = <double [:n]>_r.get().data.data()
         return arr
 
     def getDataArrays(self):

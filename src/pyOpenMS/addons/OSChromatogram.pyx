@@ -3,11 +3,11 @@
     def getTimeArray(self):
         """
         Get the time array of the chromatogram as a numpy array.
-        
+
         Returns:
             np.ndarray: A 1D numpy array containing the time values (retention times)
                        for each data point in the chromatogram.
-        
+
         Example:
             >>> chromatogram = OSChromatogram()
             >>> times = chromatogram.getTimeArray()
@@ -16,27 +16,28 @@
             >>> times[0] = 0.0  # This won't affect the original data
         """
         cdef shared_ptr[_OSBinaryDataArray] _r = self.inst.get().getTimeArray()
-        cdef np.ndarray[np.float64_t, ndim=1] retval
-        cdef double[::1] arr = <double [:_r.get().data.size()]>_r.get().data.data()
-        retval = np.asarray(arr.copy())
-        return retval
+        cdef size_t n = _r.get().data.size()
+        if n == 0:
+            return np.empty(0, dtype=np.float64)
+        cdef double[::1] arr = <double [:n]>_r.get().data.data()
+        return np.asarray(arr.copy())
 
     def getTimeArray_mv(self):
         """
         Get the time array of the chromatogram as a memory view.
-        
+
         This method provides direct access to the underlying data without copying,
         which is more memory efficient for large datasets.
-        
+
         Returns:
             memoryview: A memory view of the time values (retention times)
-                       for each data point in the chromatogram.
-        
+                       for each data point in the chromatogram, or None if empty.
+
         Warning:
             DO NOT store the returned memory view for later use after the
             chromatogram object goes out of scope, as this will lead to
             undefined behavior and potential crashes.
-            
+
         Example:
             >>> chromatogram = OSChromatogram()
             >>> times_mv = chromatogram.getTimeArray_mv()
@@ -49,17 +50,20 @@
             >>> # print(stored_mv[0])  # Undefined behavior/crash
         """
         cdef shared_ptr[_OSBinaryDataArray] _r = self.inst.get().getTimeArray()
-        cdef double[::1] arr = <double [:_r.get().data.size()]>_r.get().data.data()
+        cdef size_t n = _r.get().data.size()
+        if n == 0:
+            return None
+        cdef double[::1] arr = <double [:n]>_r.get().data.data()
         return arr
 
     def getIntensityArray(self):
         """
         Get the intensity array of the chromatogram as a numpy array.
-        
+
         Returns:
             np.ndarray: A 1D numpy array containing the intensity values
                        for each data point in the chromatogram.
-        
+
         Example:
             >>> chromatogram = OSChromatogram()
             >>> intensities = chromatogram.getIntensityArray()
@@ -68,27 +72,28 @@
             >>> intensities *= 2.0  # This won't affect the original data
         """
         cdef shared_ptr[_OSBinaryDataArray] _r = self.inst.get().getIntensityArray()
-        cdef np.ndarray[np.float64_t, ndim=1] retval
-        cdef double[::1] arr = <double [:_r.get().data.size()]>_r.get().data.data()
-        retval = np.asarray(arr.copy())
-        return retval
+        cdef size_t n = _r.get().data.size()
+        if n == 0:
+            return np.empty(0, dtype=np.float64)
+        cdef double[::1] arr = <double [:n]>_r.get().data.data()
+        return np.asarray(arr.copy())
 
     def getIntensityArray_mv(self):
         """
         Get the intensity array of the chromatogram as a memory view.
-        
+
         This method provides direct access to the underlying data without copying,
         which is more memory efficient for large datasets.
-        
+
         Returns:
             memoryview: A memory view of the intensity values
-                       for each data point in the chromatogram.
-        
+                       for each data point in the chromatogram, or None if empty.
+
         Warning:
             DO NOT store the returned memory view for later use after the
             chromatogram object goes out of scope, as this will lead to
             undefined behavior and potential crashes.
-            
+
         Example:
             >>> chromatogram = OSChromatogram()
             >>> intensities_mv = chromatogram.getIntensityArray_mv()
@@ -101,7 +106,10 @@
             >>> # print(sum(stored_mv))  # Undefined behavior/crash
         """
         cdef shared_ptr[_OSBinaryDataArray] _r = self.inst.get().getIntensityArray()
-        cdef double[::1] arr = <double [:_r.get().data.size()]>_r.get().data.data()
+        cdef size_t n = _r.get().data.size()
+        if n == 0:
+            return None
+        cdef double[::1] arr = <double [:n]>_r.get().data.data()
         return arr
 
     def getDataArrays(self):
