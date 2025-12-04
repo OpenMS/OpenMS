@@ -589,7 +589,7 @@ PeakGroup FLASHDeconvAlgorithm::findBestPrecursorPeakGroup_(const std::vector<De
 
     for (const auto& pg : precursor_spectrum)
     {
-      if (pg[0].mz > end_mz || pg.back().mz < start_mz) { continue; }
+      if (pg[0].mz > end_mz || pg[pg.size() - 1].mz < start_mz) { continue; }
 
       double max_intensity = 0.0;
       const FLASHHelperClasses::LogMzPeak* tmp_precursor = nullptr;
