@@ -7,6 +7,7 @@ AccurateMassSearch
 AssayGeneratorMetabo
 AssayGeneratorMetaboSirius
 BaselineFilter
+FeatureFinderLFQ
 ClusterMassTraces
 ClusterMassTracesByPrecursor
 CometAdapter

@@ -63,7 +63,7 @@ namespace OpenMS
     }
     if (!spectrum.getPrecursors().empty() && !spectrum.getPrecursors()[0].getActivationMethods().empty())
     {
-      peptide_ID.setMetaValue("activation_method", Precursor::NamesOfActivationMethodShort[*spectrum.getPrecursors()[0].getActivationMethods().begin()]);
+      peptide_ID.setMetaValue("activation_method", Precursor::NamesOfActivationMethodShort[static_cast<size_t>(*spectrum.getPrecursors()[0].getActivationMethods().begin())]);
     }
   }
 

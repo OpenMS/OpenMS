@@ -225,11 +225,11 @@ namespace OpenMS::Internal
         String activation;
         if (optionalAttributeAsString_(activation, attributes, s_activationMethod_))
         {
-          auto it = std::find(Precursor::NamesOfActivationMethodShort, 
-                              Precursor::NamesOfActivationMethodShort + Precursor::ActivationMethod::SIZE_OF_ACTIVATIONMETHOD, 
+          auto it = std::find(Precursor::NamesOfActivationMethodShort,
+                              Precursor::NamesOfActivationMethodShort + static_cast<size_t>(Precursor::ActivationMethod::SIZE_OF_ACTIVATIONMETHOD),
                               activation);
 
-          if (it != Precursor::NamesOfActivationMethodShort + Precursor::ActivationMethod::SIZE_OF_ACTIVATIONMETHOD)
+          if (it != Precursor::NamesOfActivationMethodShort + static_cast<size_t>(Precursor::ActivationMethod::SIZE_OF_ACTIVATIONMETHOD))
           {
             spectrum_data_.back().spectrum.getPrecursors().back().getActivationMethods().insert(Precursor::ActivationMethod(it - Precursor::NamesOfActivationMethodShort));
           }
@@ -1011,12 +1011,12 @@ namespace OpenMS::Internal
           }
           if (!precursor.getActivationMethods().empty())
           { // must not be empty, but technically only ETD, ECD, CID are allowed in mzXML 3.1
-            os << " activationMethod=\"" << Precursor::NamesOfActivationMethodShort[int(*(precursor.getActivationMethods().begin()))] << "\" ";
-          } 
+            os << " activationMethod=\"" << Precursor::NamesOfActivationMethodShort[static_cast<size_t>(*(precursor.getActivationMethods().begin()))] << "\" ";
+          }
           else if (options_.getForceMQCompatability())
           { // a missing activation would make old MQ versions crash...
             OPENMS_LOG_WARN << "Warning: An MS2 scan does not have data on it's activation method. Using 'CID' as fallback!\n";
-            os << " activationMethod=\"" << Precursor::NamesOfActivationMethodShort[Precursor::ActivationMethod::CID] << "\" ";
+            os << " activationMethod=\"" << Precursor::NamesOfActivationMethodShort[static_cast<size_t>(Precursor::ActivationMethod::CID)] << "\" ";
           }
 
           //m/z

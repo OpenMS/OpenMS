@@ -48,6 +48,7 @@ namespace OpenMS
     tools_map["AssayGeneratorMetabo"] = Internal::ToolDescription("AssayGeneratorMetabo", cat_targeted);
     tools_map["AssayGeneratorMetaboSirius"] = Internal::ToolDescription("AssayGeneratorMetaboSirius", cat_targeted);
     tools_map["BaselineFilter"] = Internal::ToolDescription("BaselineFilter", cat_signal_proc_smooth_normalize);
+    tools_map["FeatureFinderLFQ"] = Internal::ToolDescription("FeatureFinderLFQ", cat_quant);
     tools_map["ClusterMassTraces"] = Internal::ToolDescription("ClusterMassTraces", cat_misc);
     tools_map["ClusterMassTracesByPrecursor"] = Internal::ToolDescription("ClusterMassTracesByPrecursor", cat_targeted);
     tools_map["CometAdapter"] = Internal::ToolDescription("CometAdapter", cat_ID_search);

@@ -129,3 +129,7 @@
         cdef MSSpectrum py_result = MSSpectrum.__new__(MSSpectrum)
         py_result.inst = shared_ptr[_MSSpectrum](_r)
         return py_result
+
+    def __len__(self):
+        """Return the number of spectra in the experiment."""
+        return self.inst.get().size()

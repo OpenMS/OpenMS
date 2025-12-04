@@ -8,9 +8,13 @@
 
 #include <OpenMS/config.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/DATASTRUCTURES/DBoundingBox.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/IONMOBILITY/FAIMSHelper.h>
+#include <OpenMS/IONMOBILITY/IMDataConverter.h>
+#include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
@@ -32,6 +36,7 @@
 #include <OpenMS/FEATUREFINDER/MultiplexSatelliteCentroided.h>
 #include <OpenMS/FEATUREFINDER/FeatureFinderMultiplexAlgorithm.h>
 #include <OpenMS/ML/CLUSTERING/GridBasedCluster.h>
+#include <OpenMS/PROCESSING/FEATURE/FeatureOverlapFilter.h>
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
 #include <OpenMS/DATASTRUCTURES/DBoundingBox.h>
 
@@ -50,6 +55,7 @@
 #include <limits>
 #include <locale>
 #include <iomanip>
+#include <set>
 
 using namespace std;
 using namespace OpenMS;
@@ -142,6 +148,13 @@ public:
     setValidFormats_("out_multiplets", ListUtils::create<String>("consensusXML"));
     registerOutputFile_("out_blacklist", "<file>", "", "Optional output file containing all peaks which have been associated with a peptide feature (and subsequently blacklisted).", false, true);
     setValidFormats_("out_blacklist", ListUtils::create<String>("mzML"));
+
+    addEmptyLine_();
+    registerStringOption_("faims_merge_features", "<true/false>", "true",
+      "For FAIMS data with multiple compensation voltages: Merge features representing the same analyte "
+      "detected at different CV values into a single feature. Only features with DIFFERENT FAIMS CV values "
+      "are merged (same CV = different analytes). Has no effect on non-FAIMS data.", false);
+    setValidStrings_("faims_merge_features", {"true", "false"});
 
     registerFullParam_(FeatureFinderMultiplexAlgorithm().getDefaults());
   }
@@ -243,8 +256,7 @@ public:
     OPENMS_LOG_DEBUG << "Loading input..." << endl;
     file.loadExperiment(in_, exp, {FileTypes::MZML}, log_type_);
 
-    FeatureFinderMultiplexAlgorithm algorithm;
-    // pass only relevant parameters to the algorithm and set the log type
+    // Prepare algorithm parameters
     Param params = getParam_();
     params.remove("in");
     params.remove("out");
@@ -256,28 +268,111 @@ public:
     params.remove("no_progress");
     params.remove("force");
     params.remove("test");
-    algorithm.setParameters(params);
-    algorithm.setLogType(this->log_type_);
-    // run feature detection algorithm
-    algorithm.run(exp, true);
+
+    // Split by FAIMS CV (returns single NaN-keyed element for non-FAIMS data)
+    auto faims_groups = IMDataConverter::splitByFAIMSCV(std::move(exp));
+
+    const bool has_faims = faims_groups.size() > 1 || !std::isnan(faims_groups[0].first);
+    if (has_faims)
+    {
+      OPENMS_LOG_INFO << "FAIMS data detected with " << faims_groups.size() << " compensation voltage(s)." << endl;
+    }
+
+    FeatureMap combined_feature_map;
+    ConsensusMap combined_consensus_map;
+    MSExperiment combined_blacklist;
+    bool first_group = true;
+
+    // Process each FAIMS CV group (or single group for non-FAIMS data)
+    for (auto& [group_cv, faims_group] : faims_groups)
+    {
+      if (has_faims)
+      {
+        OPENMS_LOG_INFO << "Processing FAIMS CV group: " << group_cv << " V (" << faims_group.size() << " spectra)" << endl;
+      }
+
+      // Create algorithm instance for this group
+      FeatureFinderMultiplexAlgorithm algorithm_cv;
+      algorithm_cv.setParameters(params);
+      algorithm_cv.setLogType(this->log_type_);
+      algorithm_cv.run(faims_group, true);
+
+      // Annotate features with FAIMS CV (if FAIMS data) and add to combined results
+      FeatureMap& feature_map_cv = algorithm_cv.getFeatureMap();
+      for (auto& feat : feature_map_cv)
+      {
+        if (has_faims)
+        {
+          feat.setMetaValue(Constants::UserParam::FAIMS_CV, group_cv);
+        }
+        combined_feature_map.push_back(feat);
+      }
+
+      // Copy ColumnHeaders from first group (they're the same across all groups)
+      ConsensusMap& consensus_map_cv = algorithm_cv.getConsensusMap();
+      if (first_group)
+      {
+        combined_consensus_map.setColumnHeaders(consensus_map_cv.getColumnHeaders());
+        combined_consensus_map.setExperimentType(consensus_map_cv.getExperimentType());
+        first_group = false;
+      }
+
+      // Annotate consensus features with FAIMS CV
+      for (auto& cf : consensus_map_cv)
+      {
+        if (has_faims)
+        {
+          cf.setMetaValue(Constants::UserParam::FAIMS_CV, group_cv);
+        }
+        combined_consensus_map.push_back(cf);
+      }
+
+      // Combine blacklist
+      MSExperiment& blacklist_cv = algorithm_cv.getBlacklist();
+      for (auto& spec : blacklist_cv)
+      {
+        if (has_faims)
+        {
+          spec.setMetaValue(Constants::UserParam::FAIMS_CV, group_cv);
+        }
+        combined_blacklist.addSpectrum(std::move(spec));
+      }
+    }
+
+    if (has_faims)
+    {
+      OPENMS_LOG_INFO << "Combined " << combined_feature_map.size() << " features from all FAIMS CV groups." << endl;
+
+      // Optionally merge features representing the same analyte at different CV values
+      if (getStringOption_("faims_merge_features") == "true")
+      {
+        Size before_merge = combined_feature_map.size();
+        FeatureOverlapFilter::mergeFAIMSFeatures(combined_feature_map, 5.0, 0.05);
+        OPENMS_LOG_INFO << "FAIMS feature merge: " << before_merge << " -> " << combined_feature_map.size()
+                        << " features (merged " << (before_merge - combined_feature_map.size()) << ")" << endl;
+      }
+    }
+
+    // ensure unique IDs for the combined maps
+    combined_feature_map.ensureUniqueId();
+    combined_consensus_map.ensureUniqueId();
 
     // write feature map, consensus maps and blacklist
+    // Note: use simple setPrimaryMSRunPath since exp was moved
     if (!(out_.empty()))
     {
-      FeatureMap& feature_map = algorithm.getFeatureMap();
-      feature_map.setPrimaryMSRunPath({in_}, exp);
-      writeFeatureMap_(out_, feature_map);
+      combined_feature_map.setPrimaryMSRunPath({in_});
+      writeFeatureMap_(out_, combined_feature_map);
     }
     if (!(out_multiplets_.empty()))
     {
-      ConsensusMap& consensus_map = algorithm.getConsensusMap();
       StringList ms_run_paths(numberOfSamples(params.getValue("algorithm:labels").toString()), in_);
-      consensus_map.setPrimaryMSRunPath(ms_run_paths, exp);
-      writeConsensusMap_(out_multiplets_, consensus_map);
+      combined_consensus_map.setPrimaryMSRunPath(ms_run_paths);
+      writeConsensusMap_(out_multiplets_, combined_consensus_map);
     }
     if (!(out_blacklist_.empty()))
     {
-      writeBlacklist_(out_blacklist_, algorithm.getBlacklist());
+      writeBlacklist_(out_blacklist_, combined_blacklist);
     }
 
     return EXECUTION_OK;
