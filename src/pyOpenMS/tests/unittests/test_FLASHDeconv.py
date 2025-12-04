@@ -154,7 +154,7 @@ class TestLogMzPeak(unittest.TestCase):
         peak2 = pyopenms.LogMzPeak(p, True)
         peak2.logMz = 8.0  # Make peak2 have larger logMz
 
-        self.assertTrue(peak1 < peak2)
+        self.assertLess(peak1, peak2)
         self.assertTrue(peak2 > peak1)
 
     def test_equality_operator(self):
