@@ -32,10 +32,9 @@
 
 using namespace std;
 
-#define DEBUG_PICKER
 #ifdef DEBUG_PICKER
 #include <OpenMS/FORMAT/MzMLFile.h>
-#endif 
+#endif
 
 namespace OpenMS
 {
