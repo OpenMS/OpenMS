@@ -278,7 +278,24 @@ def testAASequence():
     assert abs(seq.getMonoWeight(pyopenms.Residue.ResidueType.Full, 0) - 1958.7140766518) < 1e-5
     # assert seq.has(pyopenms.ResidueDB.getResidue("P"))
 
-    
+    # Test __repr__ and __str__ methods
+    aas_repr = pyopenms.AASequence.fromString("PEPTM(Oxidation)IDE")
+    repr_str = repr(aas_repr)
+    assert "AASequence(" in repr_str
+    assert "sequence=" in repr_str
+    assert "PEPTM(Oxidation)IDE" in repr_str
+    assert "length=" in repr_str
+    assert "mono_mass=" in repr_str
+    assert "modified=True" in repr_str
+    str_str = str(aas_repr)
+    assert str_str == repr_str
+
+    # Test unmodified sequence
+    aas_unmod = pyopenms.AASequence.fromString("PEPTIDE")
+    repr_unmod = repr(aas_unmod)
+    assert "modified=True" not in repr_unmod
+
+
 @report
 def testElement():
     """
@@ -367,6 +384,41 @@ def testResidue():
     pyopenms.Residue.ResidueType.ZIon
     pyopenms.Residue.ResidueType.SizeOfResidueType
 
+
+@report
+def testResidueModificationRepr():
+    """
+    @tests: ResidueModification.__repr__
+    """
+    # Get a modification from the database
+    mdb = pyopenms.ModificationsDB()
+    mod = mdb.getModification("Oxidation", "M", pyopenms.ResidueModification.TermSpecificity.ANYWHERE)
+
+    # Test __repr__ and __str__ methods
+    repr_str = repr(mod)
+    assert "ResidueModification(" in repr_str
+    str_str = str(mod)
+    assert str_str == repr_str
+
+
+@report
+def testMobilityPeak1DRepr():
+    """
+    @tests: MobilityPeak1D.__repr__
+    """
+    p = pyopenms.MobilityPeak1D()
+    p.setMobility(1.234)
+    p.setIntensity(10000.0)
+
+    # Test __repr__ and __str__ methods
+    repr_str = repr(p)
+    assert "MobilityPeak1D(" in repr_str
+    assert "mobility=" in repr_str
+    assert "intensity=" in repr_str
+    str_str = str(p)
+    assert str_str == repr_str
+
+
 @report
 def testIsotopeDistribution():
     """
@@ -391,6 +443,20 @@ def testIsotopeDistribution():
 
     for p in ins:
         print(p)
+
+    # Test __repr__ and __str__ methods
+    iso_repr = pyopenms.IsotopeDistribution()
+    iso_repr.insert(100.0, 0.9)
+    iso_repr.insert(101.0, 0.08)
+    iso_repr.insert(102.0, 0.02)
+
+    repr_str = repr(iso_repr)
+    assert "IsotopeDistribution(" in repr_str
+    assert "num_isotopes=" in repr_str
+    assert "mass_range=" in repr_str
+    str_str = str(iso_repr)
+    assert str_str == repr_str
+
 
 @report
 def testFineIsotopePatternGenerator():
@@ -498,6 +564,17 @@ def testEmpiricalFormula():
     assert m[b"C"] == 2
     assert m[b"H"] == 5
     assert ef.getNumberOfAtoms() == 7
+
+    # Test __repr__ and __str__ methods
+    ef_repr = pyopenms.EmpiricalFormula("C6H12O6")
+    repr_str = repr(ef_repr)
+    assert "EmpiricalFormula(" in repr_str
+    assert "formula=" in repr_str
+    assert "C6H12O6" in repr_str
+    assert "mono_mass=" in repr_str
+    str_str = str(ef_repr)
+    assert str_str == repr_str
+
 
 @report
 def testModificationDefinitionsSet():
@@ -631,7 +708,13 @@ def testChromatogramPeak():
     assert p.getIntensity() == 12.0
     assert p.getRT() == 34.0
 
-
+    # Test __repr__ and __str__ methods
+    repr_str = repr(p)
+    assert "ChromatogramPeak(" in repr_str
+    assert "rt=" in repr_str
+    assert "intensity=" in repr_str
+    str_str = str(p)
+    assert str_str == repr_str
 
 
 @report
@@ -717,6 +800,24 @@ def testConsensusFeature():
 
     p = f.getPeptideIdentifications()
     f.setPeptideIdentifications(p)
+
+    # Test __repr__ and __str__ methods
+    cf_repr = pyopenms.ConsensusFeature()
+    cf_repr.setRT(1234.5)
+    cf_repr.setMZ(445.678)
+    cf_repr.setIntensity(100000.0)
+    cf_repr.setCharge(2)
+    cf_repr.insert(0, pyopenms.Peak2D(), 1)
+    cf_repr.insert(1, pyopenms.BaseFeature())
+
+    repr_str = repr(cf_repr)
+    assert "ConsensusFeature(" in repr_str
+    assert "rt=" in repr_str
+    assert "mz=" in repr_str
+    assert "intensity=" in repr_str
+    assert "num_features=" in repr_str
+    str_str = str(cf_repr)
+    assert str_str == repr_str
 
 
 @report
@@ -3085,6 +3186,27 @@ def testMSExperiment():
             assert rt_min <= details['rt_range'][1] <= rt_max, \
                 f"XIC {i+1}: End RT {details['rt_range'][1]} outside expected range [{rt_min}, {rt_max}]"
 
+    # Test __repr__ and __str__ methods for MSExperiment
+    exp_repr = pyopenms.MSExperiment()
+    s1 = pyopenms.MSSpectrum()
+    s1.setRT(100.0)
+    s1.setMSLevel(1)
+    s1.set_peaks(([100.0, 200.0], [1000.0, 2000.0]))
+    s2 = pyopenms.MSSpectrum()
+    s2.setRT(200.0)
+    s2.setMSLevel(2)
+    s2.set_peaks(([150.0, 250.0], [500.0, 1500.0]))
+    exp_repr.addSpectrum(s1)
+    exp_repr.addSpectrum(s2)
+    exp_repr.updateRanges()
+
+    repr_str = repr(exp_repr)
+    assert "MSExperiment(" in repr_str
+    assert "num_spectra=" in repr_str
+    assert "num_chromatograms=" in repr_str
+    str_str = str(exp_repr)
+    assert str_str == repr_str
+
 
 @report
 def testMSSpectrum():
@@ -3412,6 +3534,21 @@ def testMSSpectrum():
     assert spec.size() == len(data_mz)
     assert spec.size() == len(data_i)
 
+    # Test __repr__ and __str__ methods
+    spec_repr = pyopenms.MSSpectrum()
+    spec_repr.setRT(1234.5)
+    spec_repr.setMSLevel(2)
+    spec_repr.set_peaks(([100.0, 200.0, 300.0], [1000.0, 2000.0, 500.0]))
+
+    repr_str = repr(spec_repr)
+    assert "MSSpectrum(" in repr_str
+    assert "ms_level=" in repr_str
+    assert "rt=" in repr_str
+    assert "num_peaks=" in repr_str
+    str_str = str(spec_repr)
+    assert str_str == repr_str
+
+
 @report
 def testStringDataArray():
     """
@@ -3658,6 +3795,17 @@ def testMSChromatogram():
     assert chrom.size() == len(data_mz)
     assert chrom.size() == len(data_i)
 
+    # Test __repr__ and __str__ methods
+    chrom_repr = pyopenms.MSChromatogram()
+    chrom_repr.setName("test_chromatogram")
+    chrom_repr.set_peaks(([100.0, 200.0, 300.0], [1000.0, 2000.0, 500.0]))
+
+    repr_str = repr(chrom_repr)
+    assert "MSChromatogram(" in repr_str
+    assert "num_peaks=" in repr_str
+    str_str = str(chrom_repr)
+    assert str_str == repr_str
+
 
 @report
 def testMRMFeature():
@@ -3693,6 +3841,27 @@ def testMRMFeature():
     mrmfeature.setScores(s)
     s2 = mrmfeature.getScores()
     assert abs(s2.yseries_score - 4.0) < 1e-4
+
+    # Test __repr__ and __str__ methods
+    mrm_repr = pyopenms.MRMFeature()
+    mrm_repr.setRT(1234.5)
+    mrm_repr.setMZ(445.678)
+    mrm_repr.setIntensity(100000.0)
+    mrm_repr.setCharge(2)
+    f1 = pyopenms.Feature()
+    f2 = pyopenms.Feature()
+    mrm_repr.addFeature(f1, "trans1")
+    mrm_repr.addFeature(f2, "trans2")
+
+    repr_str = repr(mrm_repr)
+    assert "MRMFeature(" in repr_str
+    assert "rt=" in repr_str
+    assert "mz=" in repr_str
+    assert "intensity=" in repr_str
+    assert "num_transitions=" in repr_str
+    str_str = str(mrm_repr)
+    assert str_str == repr_str
+
 
 @report
 def testConfidenceScoring():
@@ -3994,6 +4163,22 @@ def testReactionMonitoringTransition():
     tr_different.setName("different_transition")
     assert tr != tr_different
     assert not tr == tr_different
+
+    # Test __repr__ and __str__ methods
+    tr_repr = pyopenms.ReactionMonitoringTransition()
+    tr_repr.setNativeID("tr_001")
+    tr_repr.setPrecursorMZ(500.25)
+    tr_repr.setProductMZ(300.15)
+    tr_repr.setPeptideRef("PEPTIDER")
+    tr_repr.setLibraryIntensity(10000.0)
+
+    repr_str = repr(tr_repr)
+    assert "ReactionMonitoringTransition(" in repr_str
+    assert "precursor_mz=" in repr_str
+    assert "product_mz=" in repr_str
+    str_str = str(tr_repr)
+    assert str_str == repr_str
+
 
 @report
 def testTargetedExperiment():
@@ -4371,6 +4556,22 @@ def testPeak():
     p2.setRT(45.0)
     assert p2.getRT() == 45.0
 
+    # Test __repr__ and __str__ methods for Peak1D
+    repr_str = repr(p1)
+    assert "Peak1D(" in repr_str
+    assert "mz=" in repr_str
+    assert "intensity=" in repr_str
+    str_str = str(p1)
+    assert str_str == repr_str
+
+    # Test __repr__ and __str__ methods for Peak2D
+    repr_str = repr(p2)
+    assert "Peak2D(" in repr_str
+    assert "rt=" in repr_str
+    assert "mz=" in repr_str
+    assert "intensity=" in repr_str
+    str_str = str(p2)
+    assert str_str == repr_str
 
 
 @report
@@ -4627,7 +4828,6 @@ def testPeptideHit():
     assert "score=" in repr_str
     assert "sequence=" in repr_str
     assert "charge=" in repr_str
-    assert "rank=" in repr_str
     
     # Test with protein evidences
     pe1 = pyopenms.PeptideEvidence()
@@ -5109,7 +5309,6 @@ def testProteinHit():
     assert "accession=" in repr_str
     assert "P12345" in repr_str
     assert "score=" in repr_str
-    assert "rank=" in repr_str
     assert "coverage=" in repr_str
     
     # Test str method

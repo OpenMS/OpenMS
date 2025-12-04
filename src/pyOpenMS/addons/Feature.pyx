@@ -1,5 +1,6 @@
 
 
+
     def __str__(self):
         """
         Return a string representation of the Feature object.
@@ -10,7 +11,7 @@
     def __repr__(self):
         """
         Return a string representation of the Feature object.
-        
+
         Returns key properties in a readable format similar to:
         Feature(rt=1234.5, mz=445.678, intensity=100000.0, charge=2, quality=0.95)
         """
@@ -19,7 +20,7 @@
         cdef float intensity = self.getIntensity()
         cdef int charge = self.getCharge()
         cdef float quality = self.getOverallQuality()
-        
+
         # Build the representation string
         parts = []
         parts.append(f"rt={rt:.2f}")
@@ -29,15 +30,17 @@
             parts.append(f"charge={charge}")
         # Quality is a core property, always show it (typically in range 0-1)
         parts.append(f"quality={quality:.3f}")
-        
+
         # Add number of subordinates if present
-        cdef libcpp_vector[Feature] subordinates = self.getSubordinates()
-        if subordinates.size() > 0:
-            parts.append(f"subordinates={subordinates.size()}")
-        
+        subordinates = self.getSubordinates()
+        num_subordinates = len(subordinates)
+        if num_subordinates > 0:
+            parts.append(f"subordinates={num_subordinates}")
+
         # Add number of peptide IDs if present
-        cdef libcpp_vector[PeptideIdentification] peptide_ids = self.getPeptideIdentifications()
-        if peptide_ids.size() > 0:
-            parts.append(f"peptide_ids={peptide_ids.size()}")
-        
+        peptide_ids = self.getPeptideIdentifications()
+        num_peptide_ids = len(peptide_ids)
+        if num_peptide_ids > 0:
+            parts.append(f"peptide_ids={num_peptide_ids}")
+
         return f"Feature({', '.join(parts)})"

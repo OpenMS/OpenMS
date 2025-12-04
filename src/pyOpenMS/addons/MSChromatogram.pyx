@@ -118,3 +118,37 @@ import numpy as np
         """Return the number of peaks in the chromatogram."""
         return self.inst.get().size()
 
+    def __str__(self):
+        """
+        Return a string representation of the MSChromatogram object.
+        Delegates to __repr__ for consistency.
+        """
+        return self.__repr__()
+
+    def __repr__(self):
+        """
+        Return a string representation of the MSChromatogram object.
+
+        Returns key properties in a readable format:
+        MSChromatogram(name='transition_1', num_peaks=100, rt_range=[0.0, 3600.0])
+        """
+        cdef size_t num_peaks = self.inst.get().size()
+
+        parts = []
+
+        # Add name if set
+        name = self.getName()
+        if name:
+            name_str = name.decode('utf-8') if isinstance(name, bytes) else str(name)
+            if name_str:
+                parts.append(f"name='{name_str}'")
+
+        parts.append(f"num_peaks={num_peaks}")
+
+        # Add RT range if there are peaks
+        if num_peaks > 0:
+            rts, _ = self.get_peaks()
+            parts.append(f"rt_range=[{rts[0]:.2f}, {rts[-1]:.2f}]")
+
+        return f"MSChromatogram({', '.join(parts)})"
+
