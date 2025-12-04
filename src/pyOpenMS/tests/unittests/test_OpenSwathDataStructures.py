@@ -47,7 +47,7 @@ class TestOpenSwathDataStructures(unittest.TestCase):
         drift_exp = [7, 8, 9]
         da = pyopenms.OSBinaryDataArray()
         da.data = drift_exp 
-        da.description = b"Ion Mobility";
+        da.description = b"Ion Mobility"
         arrays = spectrum.getDataArrays()
         arrays.append(da)
         spectrum.setDataArrays(arrays)
@@ -60,7 +60,7 @@ class TestOpenSwathDataStructures(unittest.TestCase):
 
         da = pyopenms.OSBinaryDataArray()
         da.data = [5, 6.88] 
-        da.description = b"test";
+        da.description = b"test"
         arrays = spectrum.getDataArrays()
         arrays.append(da)
         spectrum.setDataArrays(arrays)
@@ -131,7 +131,7 @@ class TestOpenSwathDataStructures(unittest.TestCase):
 
         da = pyopenms.OSBinaryDataArray()
         da.data = [5, 6.88] 
-        da.description = b"test";
+        da.description = b"test"
         arrays = chromatogram.getDataArrays()
         arrays.append(da)
         chromatogram.setDataArrays(arrays)
