@@ -42,7 +42,7 @@ namespace OpenMS
      * @param mass_features mass features to be written
      * @param scan_rt_map scan number to retention time map
      * @param file_name input spectrum file name
-     * @param fs file stream
+     * @param os output stream
      * @param ms_level ms level
      */
 

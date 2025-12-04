@@ -24,7 +24,7 @@ namespace OpenMS
   public:
     /**
             @brief write the header in the tsv output file (spectrum level)
-            @param fs file stream to the output file
+            @param os output stream to the output file
             @param ms_level ms level of the spectrum
             @param detail if set true, detailed information of the mass (e.g., peak list for the mass) is written
             @param report_decoy if set true, decoy and qvalue information will be written.
@@ -81,8 +81,8 @@ namespace OpenMS
 
     /**
      * write isobaric quantification results
-     * @param fs
-     * @param deconvolved_spectra
+     * @param os output stream
+     * @param deconvolved_spectra deconvolved spectra to write
      */
     static void writeIsobaricQuantification(std::ostream& os, std::vector<DeconvolvedSpectrum>& deconvolved_spectra);
 
@@ -92,7 +92,7 @@ namespace OpenMS
     /**
       @brief write the deconvolved masses TopFD output (*.msalign)
       @param dspec deconvolved spectrum to write
-      @param fs file stream to the output file
+      @param os output stream to the output file
       @param filename mzml file name
       @param qval_threshold qvalue threshold to filter out high qvalue precursors.
       @param min_ms_level min ms level of the dataset
