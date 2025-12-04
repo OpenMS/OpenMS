@@ -284,7 +284,7 @@
             ...     # Keep reference to data arrays to prevent garbage collection
             ...     fdas = spectrum.getFloatDataArrays()
             ...     idx, unit = spectrum.getIMData()
-            ...     drift_mv = fdas[idx].get_data_mv()  # Use FloatDataArray.get_data_mv()
+            ...     drift_mv = spectrum.get_drift_time_array_mv()
             ...     total = sum(drift_mv)
         """
         if not self.containsIMData():
