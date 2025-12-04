@@ -4,7 +4,7 @@ import os
 import numpy as np
 import pyopenms
 
-class TestMSSpectrumAndRichSpectrum(unittest.TestCase):
+class TestMSSpectrum(unittest.TestCase):
 
     def setUp(self):
         dirname = os.path.dirname(os.path.abspath(__file__))

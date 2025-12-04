@@ -591,7 +591,7 @@ set(pyopenms_unittest_testfiles
   testLocale.py
   test_MRMFeatureFinderScoring.py
   test_MSNumpressCoder.py
-  test_MSSpectrumAndRichSpectrum.py
+  test_MSSpectrum.py
   test_OpenSwathDataStructures.py
   test_Smoothing.py
   testSpecialCases.py
