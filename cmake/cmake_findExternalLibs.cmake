@@ -166,6 +166,22 @@ endif()
  if (WITH_PARQUET)
    find_package(Arrow CONFIG REQUIRED)
    find_package(Parquet CONFIG REQUIRED)
+   
+   # Determine if Arrow was built as static or shared and set appropriate targets
+   if(TARGET Arrow::arrow_static)
+     set(OPENMS_ARROW_TARGET Arrow::arrow_static)
+   else()
+     set(OPENMS_ARROW_TARGET Arrow::arrow_shared)
+   endif()
+   
+   if(TARGET Parquet::parquet_static)
+     set(OPENMS_PARQUET_TARGET Parquet::parquet_static)
+   else()
+     set(OPENMS_PARQUET_TARGET Parquet::parquet_shared)
+   endif()
+   
+   message(STATUS "Using Arrow target: ${OPENMS_ARROW_TARGET}")
+   message(STATUS "Using Parquet target: ${OPENMS_PARQUET_TARGET}")
  endif()
 
 #------------------------------------------------------------------------------
