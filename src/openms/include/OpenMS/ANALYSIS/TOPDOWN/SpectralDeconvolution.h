@@ -293,6 +293,15 @@ namespace OpenMS
 
     void setTargetPrecursorCharge_();
 
+    /// prepare signal decoy exclusions for decoy runs
+    void prepareSignalDecoyExclusions_();
+
+    /// prepare noise decoy spectrum by filtering signal peaks
+    void prepareNoiseDecoySpectrum_(const MSSpectrum& spec);
+
+    /// register precursor information for MSn spectra (n > 1)
+    void registerPrecursorForMSn_(const PeakGroup& precursor_peak_group);
+
     bool isPeakGroupInExcludedMassForDecoyRuns_(const PeakGroup& peak_group, double tol, int offset = 0) const;
   };
 } // namespace OpenMS
