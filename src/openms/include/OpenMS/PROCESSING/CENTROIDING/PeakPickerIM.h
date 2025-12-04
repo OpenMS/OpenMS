@@ -115,7 +115,7 @@ namespace OpenMS
      * But it can be adjusted to use absolute value tolerance.
      * @param input_spectrum Sorted raw spectrum with duplicate peaks due to scan merging or presence of ion mobility data.
      * @param tolerance Mass tolerance between peaks
-     * * @param use_ppm Whether to use parts per million tolerance. If set to False, absolute tolerance will be used.
+     * @param use_ppm Whether to use parts per million tolerance. If set to False, absolute tolerance will be used.
      */
     void sumFrame_(const MSSpectrum& input_spectrum, MSSpectrum& output_spectrum, double tolerance = 0.01, bool use_ppm = true);
 
