@@ -12,6 +12,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
+#include <OpenMS/INTERFACES/IMSDataConsumer.h>
 #include <OpenMS/PROCESSING/CENTROIDING/PeakPickerIM.h>
 #include <OpenMS/IONMOBILITY/IMTypes.h>
 
@@ -92,35 +93,75 @@ protected:
     String method_;
   };
 
+  // -------------------- Format detection consumer (reads first spectrum only) --------------------
+  class FormatDetector : public Interfaces::IMSDataConsumer<PeakMap>
+  {
+  public:
+    IMFormat detected_format = IMFormat::NONE;
+
+    // Exception to abort after first spectrum (efficient early exit)
+    struct FirstSpectrumRead : std::exception {};
+
+    void consumeSpectrum(PeakMap::SpectrumType& s) override
+    {
+      detected_format = IMTypes::determineIMFormat(s);
+      throw FirstSpectrumRead(); // Abort after reading first spectrum
+    }
+    void consumeChromatogram(PeakMap::ChromatogramType&) override {}
+    void setExperimentalSettings(const ExperimentalSettings&) override {}
+    void setExpectedSize(Size, Size) override {}
+  };
+
+  // -------------------- Passthrough consumer (copies without processing) --------------------
+  class PassthroughConsumer : public MSDataWritingConsumer
+  {
+  public:
+    PassthroughConsumer(const String& filename) : MSDataWritingConsumer(filename) {}
+    void processSpectrum_(MapType::SpectrumType&) override {} // No processing
+    void processChromatogram_(MapType::ChromatogramType&) override {}
+  };
+
   // -------------------- Helper for low-memory path --------------------
   ExitCodes doLowMemAlgorithm(const String& method, const PeakPickerIM& pp,
                               const String& input_file, const String& output_file)
   {
-    // Validate IMFormat before streaming (requires loading file for format detection)
     MzMLFile mzml;
     mzml.setLogType(log_type_);
+
+    // Step 1: Detect IMFormat by reading only the first spectrum (minimal I/O)
+    IMFormat im_format = IMFormat::NONE;
     {
-      PeakMap exp;
-      mzml.load(input_file, exp);
-
-      IMFormat im_format = IMTypes::determineIMFormat(exp);
-      if (im_format == IMFormat::CENTROIDED)
+      FormatDetector detector;
+      try
       {
-        OPENMS_LOG_ERROR << "Error: Input file contains ion mobility data that is already centroided. "
-                         << "PeakPickerIM expects raw (concatenated) IM data. "
-                         << "Re-picking already centroided data is not supported." << std::endl;
-        return ILLEGAL_PARAMETERS;
+        mzml.transform(input_file, &detector);
+        // If we reach here, file has no spectra - format stays NONE
       }
-      if (im_format == IMFormat::NONE)
+      catch (const FormatDetector::FirstSpectrumRead&)
       {
-        OPENMS_LOG_WARN << "Warning: Input file does not contain ion mobility data. "
-                        << "No peak picking will be performed." << std::endl;
-        mzml.store(output_file, exp);
-        return EXECUTION_OK;
+        im_format = detector.detected_format;
       }
-    } // exp goes out of scope, freeing memory before streaming
+    }
 
-    // Proceed with streaming processing
+    // Step 2: Validate format
+    if (im_format == IMFormat::CENTROIDED)
+    {
+      OPENMS_LOG_ERROR << "Error: Input file contains ion mobility data that is already centroided. "
+                       << "PeakPickerIM expects raw (concatenated) IM data. "
+                       << "Re-picking already centroided data is not supported." << std::endl;
+      return ILLEGAL_PARAMETERS;
+    }
+    if (im_format == IMFormat::NONE)
+    {
+      OPENMS_LOG_WARN << "Warning: Input file does not contain ion mobility data. "
+                      << "No peak picking will be performed." << std::endl;
+      // Pass through unchanged
+      PassthroughConsumer passthrough(output_file);
+      mzml.transform(input_file, &passthrough);
+      return EXECUTION_OK;
+    }
+
+    // Step 3: Proceed with streaming processing
     Consumer pp_consumer(output_file, method, pp);
     pp_consumer.addDataProcessing(getProcessingInfo_(DataProcessing::PEAK_PICKING));
     mzml.transform(input_file, &pp_consumer);
