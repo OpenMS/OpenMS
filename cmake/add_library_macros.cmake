@@ -216,10 +216,13 @@ function(openms_add_library)
   openms_register_export_target(${openms_add_library_TARGET_NAME})
 
   #------------------------------------------------------------------------------
-  # copy dll to test/doc bin folder on MSVC systems
+  # On Windows copy DLLs and dependencies of them to other locations of executables that need them (tests, documenter)
+  # TODO Find something that does not copy 100s of MB three times.
+  # TODO I think this should ideally go to the tests and docs CMakeLists separately.
+  # Copy target DLLs themselves
   copy_dll_to_extern_bin(${openms_add_library_TARGET_NAME})
-
-  if(${CMAKE_VERSION} VERSION_GREATER "3.20" AND WIN32)
+  # Copy dependencies
+  if(WIN32)
     # with newer CMakes we can also easily copy dependencies like Qt
     # This stores the command as a list
     set(has_dll_dep
@@ -249,13 +252,7 @@ function(openms_add_library)
             ${DLL_TEST_TARGET_PATH}
             )
 
-    set(copy_dlls_to_doc_folder
-            ${CMAKE_COMMAND} -E copy_if_different
-            $<TARGET_RUNTIME_DLLS:${openms_add_library_TARGET_NAME}>
-            ${DLL_DOC_TARGET_PATH}
-            )
-
-    foreach(command IN ITEMS "${copy_dlls_to_output_folder}" "${copy_dlls_to_test_folder}")# "${copy_dlls_to_doc_folder}")
+    foreach(command IN ITEMS "${copy_dlls_to_output_folder}" "${copy_dlls_to_test_folder}")
       set(if_runtime_dlls_copy
               $<IF:${has_dll_dep},${command},${none_command}>
               )
@@ -264,6 +261,22 @@ function(openms_add_library)
               COMMAND_EXPAND_LISTS
               )
     endforeach()
+
+    if(ENABLE_DOCS)
+        set(copy_dlls_to_doc_folder
+         ${CMAKE_COMMAND} -E copy_if_different
+         $<TARGET_RUNTIME_DLLS:${openms_add_library_TARGET_NAME}>
+         ${DLL_DOC_TARGET_PATH}
+         )
+        set(if_runtime_dlls_copy
+              $<IF:${has_dll_dep},${copy_dlls_to_doc_folder},${none_command}>
+              )
+        add_custom_command(TARGET ${openms_add_library_TARGET_NAME} POST_BUILD
+              COMMAND ${CMAKE_COMMAND} -E make_directory "${DLL_DOC_TARGET_PATH}"
+              COMMAND "${if_runtime_dlls_copy}"
+              COMMAND_EXPAND_LISTS
+              )
+    endif()
 
     ## another fix for APPLE, see https://github.com/OpenMS/OpenMS/pull/7525
     if(APPLECLANG)

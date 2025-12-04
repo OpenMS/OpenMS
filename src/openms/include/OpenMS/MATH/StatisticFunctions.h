@@ -9,7 +9,9 @@
 
 #include <vector>
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/Macros.h>
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <algorithm>
 #include <cmath>
@@ -21,6 +23,26 @@ namespace OpenMS
 
   namespace Math
   {
+    /**
+      @brief Result of adaptiveQuantile computation.
+
+      Fields:
+        - blended       : the final blended (adaptive) quantile
+        - half_raw      : raw q-quantile of values
+        - half_rob      : q-quantile after IQR-winsorization
+        - upper_fence   : Tukey upper fence (Q3 + k*IQR), +inf if undefined
+        - tail_fraction : fraction of values above upper_fence
+        - weight        : blend weight w in [0,1] (0=robust, 1=raw)
+    */
+    struct AdaptiveQuantileResult
+    {
+      double blended{0.0};
+      double half_raw{0.0};
+      double half_rob{0.0};
+      double upper_fence{std::numeric_limits<double>::infinity()};
+      double tail_fraction{0.0};
+      double weight{0.0};
+    };
 
     /**
       @brief Helper function checking if two iterators are not equal
@@ -66,7 +88,7 @@ namespace OpenMS
       IteratorType1 begin_b, IteratorType1 end_b,
       IteratorType2 begin_a, IteratorType2 end_a)
     {
-      if (begin_b != end_b && begin_a == end_a)
+      if ((begin_b == end_b) ^ (begin_a == end_a))
       {
         throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
       }
@@ -256,6 +278,245 @@ namespace OpenMS
     }
 
     /**
+      @brief Calculates the q-quantile (0 <= q <= 1) of a *sorted* range of values.
+
+      Assumes the range [begin, end) is already sorted in non-decreasing order.
+      Uses the common "Type 7" definition (linear interpolation):
+
+        pos = q * (n - 1)
+        idx = floor(pos),  frac = pos - idx
+        quantile = (1 - frac) * x[idx] + frac * x[idx + 1]
+
+      Exact endpoints:
+        - q == 0 returns the first (minimum) element
+        - q == 1 returns the last (maximum) element
+
+      @param begin  Start of range
+      @param end    End of range (past-the-end iterator)
+      @param q      Quantile in [0, 1]
+
+      @pre Input range must be sorted ascending.
+
+      @exception Exception::InvalidRange is thrown if the range is NULL or empty.
+      @exception Exception::InvalidValue is thrown if q is outside [0, 1].
+
+      @ingroup MathFunctionsStatistics
+    */
+    template <typename IteratorType>
+    static double quantile(IteratorType begin, IteratorType end, double q)
+    {
+      OPENMS_PRECONDITION(std::is_sorted(begin, end),
+                          "Math::quantile expects a sorted range. Sort before calling.");
+
+      checkIteratorsNotNULL(begin, end);
+
+      const Size n = std::distance(begin, end);
+      if (n == 0)
+      {
+        throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+      }
+      if (q < 0.0 || q > 1.0)
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                      "q must be in [0,1]", String(q));
+      }
+      if (n == 1) return static_cast<double>(*begin);
+
+      const double pos = q * static_cast<double>(n - 1);
+      const Size i = static_cast<Size>(std::floor(pos));
+      const double frac = pos - static_cast<double>(i);
+
+      const auto it_i = begin + static_cast<typename std::iterator_traits<IteratorType>::difference_type>(i);
+      if (frac == 0.0) return static_cast<double>(*it_i);
+
+      const auto it_ip1 = it_i + 1;
+      return (1.0 - frac) * static_cast<double>(*it_i) + frac * static_cast<double>(*it_ip1);
+    }
+
+    /**
+      @brief Tukey upper fence (UF) for outlier detection.
+
+      Computes Q3 + k * IQR on the (finite) values in [begin,end).
+      If there are too few values or IQR ≤ 0, returns +infinity.
+
+      References: J. W. Tukey (1977). Exploratory Data Analysis.
+
+      @tparam IteratorType  input iterator over arithmetic values
+      @param begin          start iterator
+      @param end            past-the-end iterator
+      @param k              Tukey factor (default 1.5)
+      @return               upper fence (Q3 + k*IQR) or +infinity if undefined
+    */
+    template <typename IteratorType>
+    double tukeyUpperFence(IteratorType begin, IteratorType end, double k = 1.5)
+    {
+        std::vector<double> v;
+        v.reserve(std::distance(begin, end));
+        for (auto it = begin; it != end; ++it)
+        {
+          if (std::isfinite(*it)) v.push_back(static_cast<double>(*it));
+        }
+        if (v.size() < 4) return std::numeric_limits<double>::infinity();
+
+        std::sort(v.begin(), v.end());
+        const double q1  = quantile(v.begin(), v.end(), 0.25);
+        const double q3  = quantile(v.begin(), v.end(), 0.75);
+        const double iqr = q3 - q1;
+        if (!(iqr > 0.0)) return std::numeric_limits<double>::infinity();
+
+        return q3 + k * iqr;
+    }
+
+    /**
+      @brief Fraction of values above a threshold.
+
+      @tparam IteratorType  input iterator over arithmetic values
+      @param begin          start iterator
+      @param end            past-the-end iterator
+      @param threshold      threshold T
+      @return               (# { x > T } / N), ignoring non-finite x
+    */
+    template <typename IteratorType>
+    double tailFractionAbove(IteratorType begin, IteratorType end, double threshold)
+    {
+        size_t n = 0, n_tail = 0;
+        for (auto it = begin; it != end; ++it)
+        {
+          const double x = static_cast<double>(*it);
+          if (!std::isfinite(x)) continue;
+          ++n;
+          if (x > threshold) ++n_tail;
+        }
+        return (n == 0) ? 0.0 : static_cast<double>(n_tail) / static_cast<double>(n);
+    }
+
+    /**
+      @brief Quantile after winsorizing at an upper fence.
+
+      Copies the (finite) values in [begin,end), caps them at @p upper_fence
+      (and at 0 on the lower side, which is convenient for absolute residuals),
+      then returns the requested quantile.
+
+      If @p upper_fence is not finite, this falls back to the raw quantile.
+
+      References: J. W. Tukey (1962). The Future of Data Analysis.
+
+      @tparam IteratorType  input iterator over arithmetic values
+      @param begin          start iterator
+      @param end            past-the-end iterator
+      @param q              quantile in [0,1]
+      @param upper_fence    winsorization cap (Q3+k*IQR), or +inf to disable
+      @return               winsorized quantile
+    */
+    template <typename IteratorType>
+    double winsorizedQuantile(IteratorType begin, IteratorType end, double q, double upper_fence)
+    {
+        std::vector<double> v;
+        v.reserve(std::distance(begin, end));
+        for (auto it = begin; it != end; ++it)
+        {
+          const double x = static_cast<double>(*it);
+          if (!std::isfinite(x)) continue;
+          v.push_back(x);
+        }
+        if (v.empty()) return 0.0;
+
+        if (std::isfinite(upper_fence))
+        {
+          for (double& x : v)
+          {
+            if (x > upper_fence) x = upper_fence;
+            if (x < 0.0) x = 0.0; // defensive; useful when passing |residual|
+          }
+        }
+        std::sort(v.begin(), v.end());
+        return quantile(v.begin(), v.end(), q);
+    }
+
+    /**
+      @brief Adaptive quantile that blends RAW and IQR-winsorized quantiles
+             based on tail density beyond the Tukey upper fence.
+
+      Let UF = Q3 + k*IQR on the (finite) inputs. Compute:
+       - half_raw = quantile(values, q)
+       - half_rob = winsorizedQuantile(values, q, UF)
+       - r       = fraction(values > UF)
+
+      Blend with weight w(r):
+        r ≤ r_sparse  -> w=0 (use robust)
+        r ≥ r_dense   -> w=1 (use raw)
+        otherwise     -> linear interpolation between 0 and 1
+
+      Returned value = (1-w)*half_rob + w*half_raw.
+
+      This keeps windows stable when outliers are sparse, while respecting
+      genuinely broad tails (dense outliers) by leaning toward the raw quantile.
+
+      References:
+          - J. W. Tukey (1962). The Future of Data Analysis.
+          - J. W. Tukey (1977). Exploratory Data Analysis.
+          - R. J. Hyndman, Y. Fan (1996). Sample Quantiles in Statistical Packages
+
+      @tparam IteratorType   input iterator over arithmetic values
+      @param begin           start iterator
+      @param end             past-the-end iterator
+      @param q               target quantile in [0,1] (e.g., 0.99 for 99% half-width)
+      @param k               Tukey factor (default 1.5)
+      @param r_sparse        tail density below which robust wins (default 0.01 = 1%)
+      @param r_dense         tail density above which raw wins (default 0.10 = 10%)
+
+      @return                AdaptiveQuantileResult
+    */
+    template <typename IteratorType>
+    AdaptiveQuantileResult adaptiveQuantile(IteratorType begin, IteratorType end, double q,
+                            double k = 1.5,
+                            double r_sparse = 0.01,
+                            double r_dense  = 0.10)
+    {
+        AdaptiveQuantileResult res;
+
+        // Copy finite values
+        std::vector<double> v;
+        v.reserve(std::distance(begin, end));
+        for (auto it = begin; it != end; ++it)
+        {
+          if (std::isfinite(*it)) v.push_back(static_cast<double>(*it));
+        }
+        if (v.empty())
+        {
+          return res;
+        }
+
+        std::sort(v.begin(), v.end());
+        const double half_raw = quantile(v.begin(), v.end(), q);
+
+        // Robust path (winsorization at Tukey fence)
+        const double uf       = tukeyUpperFence(v.begin(), v.end(), k);
+        const double r        = std::isfinite(uf) ? tailFractionAbove(v.begin(), v.end(), uf) : 0.0;
+        const double half_rob = winsorizedQuantile(v.begin(), v.end(), q, uf);
+
+        // Blend weight w(r)
+        double w = 0.0;
+        if (r_dense <= r_sparse)
+        {
+          w = (r > r_sparse) ? 1.0 : 0.0;
+        }
+        else
+        {
+          const double t = (r - r_sparse) / (r_dense - r_sparse);
+          w = std::max(0.0, std::min(1.0, t));
+        }
+
+        res.half_raw      = half_raw;
+        res.half_rob      = half_rob;
+        res.upper_fence   = uf;
+        res.tail_fraction = r;
+        res.weight        = w;
+        res.blended       = (1.0 - w) * half_rob + w * half_raw;
+        return res;
+    }
+
+    /**
        @brief Calculates the variance of a range of values
 
   The @p mean can be provided explicitly to save computation time. If left at default, it will be computed internally.
@@ -388,6 +649,25 @@ namespace OpenMS
       checkIteratorsEqual(iter_b, end_b);
 
       return error / dist;
+    }
+
+    /**
+       @brief Calculates the root mean square error (RMSE) for the values in
+         [begin_a, end_a) and [begin_b, end_b)
+
+       Computes the square root of the mean of the squared differences between the
+        two iterator ranges (i.e., RMSE = sqrt(MSE)). .
+
+       @exception Exception::InvalidRange is thrown if the iterator ranges are not
+       of the same length or are empty.
+
+       @ingroup MathFunctionsStatistics
+    */
+    template <typename IteratorType1, typename IteratorType2>
+    static double rootMeanSquareError(IteratorType1 begin_a, IteratorType1 end_a,
+                                      IteratorType2 begin_b, IteratorType2 end_b)
+    {
+      return std::sqrt(meanSquareError(begin_a, end_a, begin_b, end_b));
     }
 
     /**

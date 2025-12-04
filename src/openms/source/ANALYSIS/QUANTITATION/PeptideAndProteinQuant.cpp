@@ -719,7 +719,7 @@ namespace OpenMS
       const PeptideHit& hit = p.getHits()[0];
 
       // don't quantify decoys
-      if ((std::string)hit.getMetaValue("target_decoy", DataValue("target")) == "decoy") continue;
+      if (hit.isDecoy()) continue;
 
       stats_.quant_features++;
       const AASequence& seq = hit.getSequence();

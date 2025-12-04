@@ -66,7 +66,7 @@ namespace OpenMS
     @ingroup Metadata
   */
 
-  /// Remove elements from a set (or ordered multi_index_container) if they fulfill a predicate (TODO: deprecate and use std::erase_if with C++20 adoption)
+  /// Remove elements from a set (or ordered multi_index_container) if they fulfill a predicate (manual loop required for non-standard containers that don't support std::erase_if)
   template <typename ContainerType, typename PredicateType>
   static void removeFromSetIf_(ContainerType& container, PredicateType predicate)
   {

@@ -9,6 +9,7 @@
 #include <OpenMS/APPLICATIONS/SearchEngineBase.h>
 
 #include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
+#include <OpenMS/ANALYSIS/ID/OpenSearchModificationAnalysis.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/PepXMLFile.h>
@@ -84,10 +85,6 @@ because of limitations in OpenMS' data structures and file formats.
 
 #define CHRONOSET
 
-#ifndef M_PI
-    #define M_PI 3.14159265358979323846
-#endif
-
 
 
 class TOPPSageAdapter :
@@ -105,484 +102,7 @@ public:
   {
   }
 
-  // Saves details of PTMs as well, useful for if more than one PTM is mapped to a given mass 
-  struct modification
-  {
-    double count = 0; 
-    vector<double> mass; 
-    int numcharges = 0; 
-  }; 
-
-    // Define a struct to hold modification data
-  struct ModData
-  {
-      int count;            // Modification rate
-      String name;            // Modification name
-      int numcharges;      // Number of charges
-      vector<double> masses;  // Masses associated with the modification
-  };
-
-  // Comparator for approximate comparison of double values
-  struct FuzzyDoubleComparator {
-      double epsilon;
-      FuzzyDoubleComparator(double eps = 1e-9) : epsilon(eps) {}
-      bool operator()(const double& a, const double& b) const 
-      {
-          return std::fabs(a - b) >= epsilon && a < b;
-      }
-  };
-
-// delta mass counts to delta masses
-//typedef map<double, double, FuzzyDoubleComparator> CountToDeltaMass;
-
-typedef map<double, double, FuzzyDoubleComparator> DeltaMassHistogram; // maps delta mass to count
-typedef map<double, int, FuzzyDoubleComparator> DeltaMasstoCharge; // maps delta mass to count
-
-// Gaussian function
-static double gaussian(double x, double sigma) {
-    return exp(-(x*x) / (2 * sigma*sigma)) / (sigma * sqrt(2 * M_PI));
-}
-
-// Smooths the PTM-mass histogram , uses a Kernel Density Estimation on top of the histogram. 
-// Smooths the PTM-mass histogram using Gaussian Kernel Density Estimation (KDE).
-static DeltaMassHistogram smoothDeltaMassHist(const DeltaMassHistogram& hist, double sigma = 0.001)
-{
-    if (hist.size() < 3)
-    {
-      return hist; //Not enough data points for smoothing 
-    }
-    // Create a smoothed histogram with a fuzzy comparator for floating-point keys
-    DeltaMassHistogram smoothed_hist(FuzzyDoubleComparator(1e-9));
-
-    // Extract delta masses and counts into vectors for efficient access
-    std::vector<double> deltas;
-    std::vector<double> counts;
-    deltas.reserve(hist.size());
-    counts.reserve(hist.size());
-
-    for (const auto& [delta, count] : hist)
-    {
-        deltas.push_back(delta);
-        counts.push_back(count);
-    }
-
-    const size_t n = deltas.size();
-    std::vector<double> smoothed_counts(n, 0.0);
-
-    // Perform Gaussian smoothing
-    for (size_t i = 0; i < n; ++i)
-    {
-        double weight_sum = 0.0;
-
-        for (size_t j = 0; j < n; ++j)
-        {
-            double mz_diff = deltas[i] - deltas[j];
-
-            // Ignore points beyond 3 standard deviations
-            if (std::abs(mz_diff) > 3.0 * sigma)
-                continue;
-
-            double weight = gaussian(mz_diff, sigma);
-            smoothed_counts[i] += weight * counts[j];
-            weight_sum += weight;
-        }
-
-        if (weight_sum != 0.0)
-        {
-            smoothed_counts[i] /= weight_sum;
-        }
-    }
-
-    // Populate the smoothed histogram
-    for (size_t i = 0; i < n; ++i)
-    {
-        smoothed_hist[deltas[i]] = smoothed_counts[i];
-    }
-
-    return smoothed_hist;
-}
-
-// Identifies local maxima in the delta mass histogram based on count threshold and SNR.
-static DeltaMassHistogram findPeaksInDeltaMassHistogram(const DeltaMassHistogram& hist, double count_threshold = 0.0, double SNR = 2.0)
-{
-    if (hist.size() < 3)
-    {
-        return hist;  // Not enough data points to find peaks
-    }
-
-    DeltaMassHistogram peaks(FuzzyDoubleComparator(1e-9));
-
-    // Extract counts to compute noise level (median count)
-    std::vector<double> counts;
-    counts.reserve(hist.size());
-
-    for (const auto& [_, count] : hist)
-    {
-        counts.push_back(count);
-    }
-
-    // Calculate median as noise level
-    std::nth_element(counts.begin(), counts.begin() + counts.size() / 2, counts.end());
-    double noise_level = counts[counts.size() / 2];
-
-    // Convert histogram to vector for indexed access
-    std::vector<std::pair<double, double>> hist_vector(hist.begin(), hist.end());
-
-    // Check each point except the first and last for local maxima
-    for (size_t i = 1; i < hist_vector.size() - 1; ++i)
-    {
-        double prev_count = hist_vector[i - 1].second;
-        double curr_count = hist_vector[i].second;
-        double next_count = hist_vector[i + 1].second;
-
-        // Check if current point is a local maximum
-        if (curr_count >= prev_count && curr_count >= next_count &&
-            curr_count > count_threshold &&
-            curr_count / noise_level > SNR)
-        {
-            peaks[hist_vector[i].first] = curr_count;
-        }
-    }
-
-    return peaks;
-}
-
-// Returns the maxima of a histogram from the delta masses of each peptide.
-std::pair<DeltaMassHistogram, DeltaMasstoCharge> getDeltaClusterCenter(const PeptideIdentificationList& pips, bool smoothing = false, bool /*debug*/ = false)
-{
-    // Constants
-    constexpr double deltamass_tolerance = 0.0005;
-    constexpr double delta_mass_zero_treshold = 0.05;
-
-    // Lambda to round values to the specified tolerance
-    auto roundToTolerance = [](double value) { // no capture of constexpr value needed
-        return std::round(value / deltamass_tolerance) * deltamass_tolerance;
-    };
-
-    // Data structures to store histogram and charge states
-    DeltaMassHistogram hist(FuzzyDoubleComparator(1e-9));
-    DeltaMasstoCharge num_charges_at_mass(FuzzyDoubleComparator(1e-9));
-    std::unordered_map<double, std::unordered_set<int>> charge_states;
-
-    // Process each peptide identification
-    for (const auto& id : pips)
-    {
-        const auto& hits = id.getHits();
-        for (const auto& hit : hits)
-        {
-            // Retrieve delta mass and charge
-            double delta_mass = hit.getMetaValue("DeltaMass");
-            int charge = hit.getCharge();
-
-            // Ignore delta masses close to zero
-            if (std::abs(delta_mass) <= delta_mass_zero_treshold)
-                continue;
-
-            // Round delta mass to bin similar values
-            double rounded_mass = roundToTolerance(delta_mass);
-
-            // Update histogram count
-            hist[rounded_mass] += 1.0;
-
-            // Update unique charge count
-            if (charge_states[rounded_mass].insert(charge).second)
-            {
-                num_charges_at_mass[rounded_mass] += 1.0;
-            }
-        }
-    }
-
-    // Prepare results
-    std::pair<DeltaMassHistogram, DeltaMasstoCharge> results;   
-    results = { hist, num_charges_at_mass };
-
-    // Apply smoothing if requested
-    if (smoothing)
-    {
-        DeltaMassHistogram smoothed_hist = smoothDeltaMassHist(hist, 0.0001);
-        DeltaMassHistogram hist_maxima = findPeaksInDeltaMassHistogram(smoothed_hist, 0.0, 3.0);
-
-        // Update charge counts for the smoothed maxima
-        DeltaMasstoCharge num_charges_at_mass_smoothed(FuzzyDoubleComparator(1e-9));
-        for (const auto& [mass, _] : hist_maxima)
-        {
-            num_charges_at_mass_smoothed[mass] = num_charges_at_mass[mass];
-        }
-
-        // Update results with smoothed data
-        results = { hist_maxima, num_charges_at_mass_smoothed };
-    }
-
-    return results;
-}
-
-//Fucntion that maps a selection of masses to certain PTMs and returns a summary of said PTMs. Also adds PTM for each petide without in-peptide localization. 
-PeptideIdentificationList mapDifftoMods(DeltaMassHistogram hist, DeltaMasstoCharge charge_hist, PeptideIdentificationList& pips, double precursor_mass_tolerance_ = 5, bool precursor_mass_tolerance_unit_ppm = true, String outfile = "")
-{
-  vector<PeptideIdentificationList> clusters(hist.size(), PeptideIdentificationList());
-  map<double, String, FuzzyDoubleComparator> mass_of_mods(FuzzyDoubleComparator(1e-9));
-  vector<pair<double, String>> mass_of_mods_vec;
-
-  // Load modifications from the database
-  vector<String> searchmodifications_names;
-  ModificationsDB* mod_db = ModificationsDB::getInstance();
-  mod_db->getAllSearchModifications(searchmodifications_names);
-  for (const String& m : searchmodifications_names)
-  {
-      const ResidueModification* residue = mod_db->getModification(m);
-      String res_name = residue->getFullName();
-      double res_diffmonoMass = residue->getDiffMonoMass();
-      if (res_name.find("substitution") == string::npos)
-          mass_of_mods[res_diffmonoMass] = res_name;
-  }
-
-  // Generate combinations of modifications
-  map<double, String, FuzzyDoubleComparator> combo_mods(FuzzyDoubleComparator(1e-9));
-  for (auto mit = mass_of_mods.begin(); mit != mass_of_mods.end(); ++mit)
-  {
-      for (auto mit2 = mit; mit2 != mass_of_mods.end(); ++mit2)
-      {
-          combo_mods[mit->first + mit2->first] = mit->second + "++" + mit2->second;
-      }
-  }
-
-  // Variables for mapping
-  StringList modnames;
-  map<String, modification> modifications;
-  map<double, String> hist_found;
-
-  // Helper function to add or update modifications
-  auto addOrUpdateModification = [&](const String& mod_name, double mass, double count, int numcharges)
-  {
-      if (modifications.find(mod_name) == modifications.end())
-      {
-          modification modi{};
-          modi.mass.push_back(mass);
-          modi.count = count;
-          modi.numcharges = numcharges;
-          modifications[mod_name] = modi;
-      }
-      else
-      {
-          modifications[mod_name].count += count;
-          modifications[mod_name].numcharges = max(numcharges, modifications[mod_name].numcharges);
-      }
-  };
-
-  // Mapping with tolerances //TODO: fix code again, add back high_it 
-  for (const auto& hist_entry : hist)
-  {
-    //Values from the histogram 
-    double current_cluster_mass = hist_entry.first;
-    double count = hist_entry.second;
-    
-    double lowerbound, upperbound; 
-
-    const double epsilon = 1e-8;
-
-    if (precursor_mass_tolerance_unit_ppm) // ppm
-    {
-        double tolerance = current_cluster_mass * precursor_mass_tolerance_ * 1e-6;
-        lowerbound = current_cluster_mass - tolerance;
-        upperbound = current_cluster_mass + tolerance;
-    }
-    else // Dalton
-    {
-        lowerbound = current_cluster_mass - precursor_mass_tolerance_;
-        upperbound = current_cluster_mass + precursor_mass_tolerance_;
-    }
-
-    // Search for modifications within bounds
-    bool mapping_found = false;
-    String mod_name;
-    double mod_mass = 0.0;
-
-    // Search in single modifications using lower_bound
-    auto it_lower = mass_of_mods.lower_bound(lowerbound - epsilon);
-    bool found_lower = false;
-    if (it_lower != mass_of_mods.end() && fabs(it_lower->first - current_cluster_mass) <= precursor_mass_tolerance_)
-    {
-        found_lower = true;
-    }
-
-    // Search in single modifications using upper_bound
-    auto it_upper = mass_of_mods.upper_bound(upperbound + epsilon);
-    bool found_upper = false;
-    if (it_upper != mass_of_mods.begin())
-    {
-        --it_upper; // Move to the largest element <= upperbound
-        if (fabs(it_upper->first - current_cluster_mass) <= precursor_mass_tolerance_)
-        {
-            found_upper = true;
-        }
-    }
-
-    // Compare results from lower_bound and upper_bound
-    if (found_lower && found_upper)
-    {
-        if (it_lower->first == it_upper->first && it_lower->second == it_upper->second)
-        {
-            // Both methods found the same modification
-            mod_name = it_lower->second;
-            mod_mass = it_lower->first;
-            hist_found[mod_mass] = mod_name;
-            mapping_found = true;
-        }
-        else
-        {
-            // Different results from lower_bound and upper_bound
-            // Choose the closer one
-            mod_name = it_lower->second + "//" + it_upper->second; 
-            mod_mass = current_cluster_mass;
-            hist_found[it_lower->first] = it_lower->second;
-            hist_found[it_upper->first] = it_upper->second;
-            mapping_found = true;
-        }
-    }
-    else
-    {
-      // Check if modification can be explained by known modifications
-      for (const auto& hit : hist_found)
-      {
-          if (fabs(hit.first - current_cluster_mass) < precursor_mass_tolerance_)
-          {
-              addOrUpdateModification(hit.second, hit.first, count, charge_hist[current_cluster_mass]); 
-              mapping_found = true;
-              break;
-          } // Check if modification can be explained by a +1 Isotope variant of a known modification 
-          else if (fabs((hit.first + 1) - current_cluster_mass) < precursor_mass_tolerance_)
-          {
-              String temp_mod_name = hit.second + "+1Da";
-              addOrUpdateModification(temp_mod_name, hit.first + 1, count, charge_hist[current_cluster_mass]);
-              hist_found[hit.first + 1] = temp_mod_name;
-              mapping_found = true;
-              break;
-          }
-      }
-      // Search in combination modifications
-      if (!mapping_found)
-      {
-        auto it = combo_mods.lower_bound(current_cluster_mass - epsilon);
-        if (it != combo_mods.end() && fabs(it->first - current_cluster_mass) <= precursor_mass_tolerance_ / 10)
-        {
-            mod_name = it->second;
-            mod_mass = it->first;
-            mapping_found = true;
-        }
-      }
-    }
-    if (fabs(mod_mass) <  precursor_mass_tolerance_) continue; //If the closest mod_mass is too close to 0, continue
-
-    if (mapping_found)
-    {
-        modnames.push_back(mod_name);
-        addOrUpdateModification(mod_name, mod_mass, count, charge_hist[current_cluster_mass]);
-    }
-    else
-    {
-        // Unknown modification
-        String unknown_mod_name = "Unknown" + std::to_string(std::round(current_cluster_mass));
-        addOrUpdateModification(unknown_mod_name, current_cluster_mass, count, charge_hist[current_cluster_mass]);
-    }
-  }
-
-  // Collect all modification data into a vector
-  vector<ModData> mods_by_count;
-
-  //Fill vetcor 
-  for (const auto& mod_pair : modifications)
-  {
-      ModData mod_data;
-      mod_data.count = std::round(mod_pair.second.count);
-      mod_data.name = mod_pair.first;
-      mod_data.numcharges = mod_pair.second.numcharges;
-      mod_data.masses = mod_pair.second.mass;
-
-      mods_by_count.push_back(mod_data);
-  }
-
-  // Sort the modifications based on (numcharges + rate) in descending order
-  sort(mods_by_count.begin(), mods_by_count.end(),
-      [](const ModData& a, const ModData& b)
-      {
-          return (a.numcharges + a.count) > (b.numcharges + b.count);
-      });
-
-  // Add the modifications to the output for each peptide
-  for (auto& id : pips)
-  {
-      auto& hits = id.getHits();
-      for (auto& h : hits)
-      {
-          double deltamass = h.getMetaValue("DeltaMass");
-          String PTM = "";
-
-          // Check if too close to zero 
-          if (fabs(deltamass) < 0.05)
-          {
-              h.setMetaValue("PTM", PTM);
-              continue;
-          }
-
-          bool found = false;
-          // Check with error tolerance if already present in histogram
-          for (const auto& mit : hist_found)
-          {
-              if (fabs(deltamass - mit.first) < precursor_mass_tolerance_)
-              {
-                  PTM = mit.second;
-                  found = true;
-                  break;
-              }
-          }
-          //Otherwise assign unkwown 
-          if (!found)
-          {
-              PTM = "Unknown" + String(deltamass);
-          }
-          h.setMetaValue("PTM", PTM);
-      }
-  }
-  // Remove 'idxml' from output file name and write the table
-  String output_tab = outfile.substr(0, outfile.size() - 5) + "_OutputTable.tsv";
-  std::ofstream outfile_stream(output_tab);
-
-  // Check if the file was opened successfully
-  if (!outfile_stream.is_open())
-  {
-      std::cerr << "Error opening file: " << output_tab << std::endl;
-      // Handle the error appropriately, e.g., return or exit
-      return pips; // Assuming pips is the default return value
-  }
-
-  outfile_stream << "Name\tMass\tModified Peptides (incl. charge variants)\tModified Peptides\n";
-
-  // Iterate over the data and write to the file
-  for (const auto& mod_data : mods_by_count)
-  {
-      outfile_stream << mod_data.name << '\t';
-
-      // Output mass or masses
-      if (mod_data.masses.size() < 2)
-      {
-          outfile_stream << mod_data.masses.at(0) << '\t';
-      }
-      else
-      {
-          outfile_stream << mod_data.masses.at(0) << "/" << mod_data.masses.at(1) << '\t';
-      }
-
-      // Output rounded values
-      outfile_stream << mod_data.numcharges + mod_data.count << '\t'
-                    << mod_data.count << '\n';
-  }
-
-  // Close the file
-  outfile_stream.close();
-
-  //Return the peptides with the additional PTM column 
-  return pips; 
-} 
+  // Note: Modification analysis functionality has been moved to OpenSearchModificationAnalysis class
 
 
 protected:
@@ -916,37 +436,36 @@ protected:
       #endif
       "The Sage executable. Provide a full or relative path, or make sure it can be found in your PATH environment.", true, false, {"is_executable"});
 
-    registerStringOption_("decoy_prefix", "<prefix>", "DECOY_", "Prefix on protein accession used to distinguish decoy from target proteins. NOTE: Decoy suffix is currently not supported by sage.", false, false);
-    registerIntOption_("batch_size", "<int>", 0, "Number of files to load and search in parallel (default = # of CPUs/2)", false, false);
+    registerStringOption_("decoy_prefix", "<prefix>", "DECOY_", "Prefix on protein accession used to distinguish decoy from target proteins. Decoy proteins in the FASTA file should have this prefix in their accession. NOTE: Decoy suffix is currently not supported by Sage.", false, false);
+    registerIntOption_("batch_size", "<int>", 0, "Number of files to load and search in parallel. Setting this to 0 (default) uses an automatic value (typically number of CPUs/2). Default: 0", false, false);
     
-    registerDoubleOption_("precursor_tol_left", "<double>", -6.0, "Start (left side) of the precursor tolerance window w.r.t. precursor location. Usually used with negative values smaller or equal to the 'right' counterpart.", false, false);
-    registerDoubleOption_("precursor_tol_right", "<double>", 6.0, "End (right side) of the precursor tolerance window w.r.t. precursor location. Usually used with positive values larger or equal to the 'left' counterpart.", false, false);
+    registerDoubleOption_("precursor_tol_left", "<double>", -6.0, "Start (left side) of the precursor tolerance window w.r.t. precursor location. This value is relative to the experimental precursor mass and used to define the lower bound of the search window. Must be negative (e.g., -6 ppm means 6 ppm below the observed mass).", false, false);
+    registerDoubleOption_("precursor_tol_right", "<double>", 6.0, "End (right side) of the precursor tolerance window w.r.t. precursor location. This value is added to the experimental precursor mass to define the upper bound of the search window. Must be positive (e.g., 6 ppm means 6 ppm above the observed mass).", false, false);
     registerStringOption_("precursor_tol_unit", "<unit>", "ppm", "Unit of precursor tolerance (ppm or Da)", false, false);
     setValidStrings_("precursor_tol_unit", ListUtils::create<String>("ppm,Da"));
 
-    registerDoubleOption_("fragment_tol_left", "<double>", -20.0, "Start (left side) of the fragment tolerance window w.r.t. precursor location. Usually used with negative values smaller or equal to the 'right' counterpart.", false, false);
-    registerDoubleOption_("fragment_tol_right", "<double>", 20.0, "End (right side) of the fragment tolerance window w.r.t. precursor location. Usually used with positive values larger or equal to the 'left' counterpart.", false, false);
+    registerDoubleOption_("fragment_tol_left", "<double>", -20.0, "Start (left side) of the fragment tolerance window w.r.t. fragment location. This value reduces the experimental fragment mass to define the lower bound of the search window. Must be negative (e.g., -20 ppm means 20 ppm below the observed mass).", false, false);
+    registerDoubleOption_("fragment_tol_right", "<double>", 20.0, "End (right side) of the fragment tolerance window w.r.t. fragment location. This value is added to the experimental fragment mass to define the upper bound of the search window. Must be positive (e.g., 20 ppm means 20 ppm above the observed mass).", false, false);
     registerStringOption_("fragment_tol_unit", "<unit>", "ppm", "Unit of fragment tolerance (ppm or Da)", false, false);
     setValidStrings_("fragment_tol_unit", ListUtils::create<String>("ppm,Da"));
 
     // add advanced options
-    registerIntOption_("min_matched_peaks", "<int>", min_matched_peaks, "Minimum number of b+y ions required to match for PSM to be reported", false, true);
-    registerIntOption_("min_peaks", "<int>", min_peaks, "Minimum number of peaks required for a spectrum to be considered", false, true);
-    registerIntOption_("max_peaks", "<int>", max_peaks, "Take the top N most intense MS2 peaks only for matching", false, true);
-    registerIntOption_("report_psms", "<int>", report_psms, "Number of hits (PSMs) to report for each spectrum", false, true);
-    registerIntOption_("bucket_size", "<int>", bucket_size, "How many fragments are in each internal mass bucket (default: 8192 for hi-res data). Try increasing it to 32k or 64k for low-res. See also: fragment_tol_*", false, true);
-    registerIntOption_("min_len", "<int>", min_len, "Minimum peptide length", false, true);
-    registerIntOption_("max_len", "<int>", max_len, "Maximum peptide length", false, true);
-    registerIntOption_("missed_cleavages", "<int>", missed_cleavages, "Number of missed cleavages", false, true);
-    registerDoubleOption_("fragment_min_mz", "<double>", fragment_min_mz, "Minimum fragment m/z", false, true);
-    registerDoubleOption_("fragment_max_mz", "<double>", fragment_max_mz, "Maximum fragment m/z", false, true);
-    registerDoubleOption_("peptide_min_mass", "<double>", peptide_min_mass, "Minimum monoisotopic peptide mass to consider a peptide from the DB", false, true);
-    registerDoubleOption_("peptide_max_mass", "<double>", peptide_max_mass, "Maximum monoisotopic peptide mass to consider a peptide from the DB", false, true);
-    registerIntOption_("min_ion_index", "<int>", min_ion_index, "Minimum ion index to consider for preliminary scoring. Default = 2 to skip b1/y1 AND (sic) b2/y2 ions that are often missing.", false, true);
-    registerIntOption_("max_variable_mods", "<int>", max_variable_mods, "Maximum number of variable modifications", false, true);  
-    registerStringOption_("isotope_error_range", "<start,end>", isotope_errors, "Range of (C13) isotope errors to consider for precursor."
-      "Can be negative. E.g. '-1,3' for considering '-1/0/1/2/3'", false, true);
-    registerStringOption_("charges", "<start,end>", charges_if_not_annotated, "Range of precursor charges to consider if not annotated in the file."
+    registerIntOption_("min_matched_peaks", "<int>", min_matched_peaks, "Minimum number of b+y ions required to match for PSM to be reported. Default: 6", false, true);
+    registerIntOption_("min_peaks", "<int>", min_peaks, "Minimum number of peaks required for a spectrum to be considered. Spectra with fewer peaks will be ignored. Default: 15", false, true);
+    registerIntOption_("max_peaks", "<int>", max_peaks, "Take the top N most intense MS2 peaks to search. Default: 150", false, true);
+    registerIntOption_("report_psms", "<int>", report_psms, "Number of peptide-spectrum matches (PSMs) to report for each spectrum. The top N scoring PSMs will be reported. Values higher than 1 can be useful for chimeric spectra but may affect downstream statistical analysis. Default: 1", false, true);
+    registerIntOption_("bucket_size", "<int>", bucket_size, "How many fragments are in each internal mass bucket. Default: 8192 (optimal for high-resolution data). Try increasing it to 32768 or 65536 for low-resolution data. See also: fragment_tol_*", false, true);
+    registerIntOption_("min_len", "<int>", min_len, "Minimum peptide length (in amino acids). Default: 5", false, true);
+    registerIntOption_("max_len", "<int>", max_len, "Maximum peptide length (in amino acids). Default: 50", false, true);
+    registerIntOption_("missed_cleavages", "<int>", missed_cleavages, "Maximum number of missed enzymatic cleavages to allow in peptide generation. Default: 2", false, true);
+    registerDoubleOption_("fragment_min_mz", "<double>", fragment_min_mz, "Minimum fragment m/z to consider. Fragment ions below this m/z will be ignored. Default: 200.0", false, true);
+    registerDoubleOption_("fragment_max_mz", "<double>", fragment_max_mz, "Maximum fragment m/z to consider. Fragment ions above this m/z will be ignored. Default: 2000.0", false, true);
+    registerDoubleOption_("peptide_min_mass", "<double>", peptide_min_mass, "Minimum monoisotopic peptide mass to consider for in silico digestion. Peptides below this mass will be excluded from the search database. Default: 500.0", false, true);
+    registerDoubleOption_("peptide_max_mass", "<double>", peptide_max_mass, "Maximum monoisotopic peptide mass to consider for in silico digestion. Peptides above this mass will be excluded from the search database. Default: 5000.0", false, true);
+    registerIntOption_("min_ion_index", "<int>", min_ion_index, "Minimum ion index to consider for preliminary scoring. This parameter controls which fragment ions are used in preliminary scoring. Default: 2 (skips b1/b2/y1/y2 ions, which are often missing or unreliable). Setting this to 1 would only skip b1/y1 ions. Does not affect the final scoring of PSMs.", false, true);
+    registerIntOption_("max_variable_mods", "<int>", max_variable_mods, "Maximum number of variable modifications allowed per peptide. Default: 2", false, true);  
+    registerStringOption_("isotope_error_range", "<start,end>", isotope_errors, "Range of C13 isotope errors to consider for precursor matching, specified as 'start,end' (e.g., '-1,3'). For a range of '-1,3', Sage will consider all isotope errors from -1 to +3 (i.e., -1, 0, 1, 2, 3). This is useful when the monoisotopic peak may not be selected. Can include negative values. Default: '-1,3'. Note: Searching with isotope errors is slower than using a wider precursor tolerance.", false, true);
+    registerStringOption_("charges", "<start,end>", charges_if_not_annotated, "Range of precursor charge states to consider if not annotated in the file, specified as 'start,end' (e.g., '2,5'). For a range of '2,5', Sage will consider charge states 2, 3, 4, and 5. This is only used when charge state information is missing from the input file. Default: '2,5'"
       , false, true);
     
 
@@ -966,13 +485,13 @@ protected:
 
     //FDR and misc 
 
-    registerDoubleOption_("q_value_threshold", "<double>", 1, "The FDR threshhold for filtering peptides", false, false); 
-    registerStringOption_("annotate_matches", "<bool>", "true", "If the matches should be annotated (default: false),", false, false); 
-    registerStringOption_("deisotope", "<bool>", "false", "Sets deisotope option (true or false), default: false", false, false ); 
-    registerStringOption_("chimera", "<bool>", "false", "Sets chimera option (true or false), default: false", false, false  ); 
-    registerStringOption_("predict_rt",  "<bool>", "false", "Sets predict_rt option (true or false), default: false", false, false ); 
-    registerStringOption_("wide_window", "<bool>", "false", "Sets wide_window option (true or false), default: false", false, false);
-    registerStringOption_("smoothing", "<bool>", "true", "Should the PTM histogram be smoothed and local maxima be picked. If false, uses raw data, default: false", false, false);  
+    registerDoubleOption_("q_value_threshold", "<double>", 1, "The FDR (False Discovery Rate) threshold for filtering peptides. PSMs with q-values above this threshold will be excluded. Default: 1 (no filtering)", false, false); 
+    registerStringOption_("annotate_matches", "<bool>", "true", "Whether fragment ion matches should be annotated in the output. This provides additional information about which theoretical ions matched experimental peaks. Default: true", false, false); 
+    registerStringOption_("deisotope", "<bool>", "false", "Perform deisotoping and charge state deconvolution on MS2 spectra. Recommended for high-resolution MS2 data. May interfere with TMT-MS2 quantification. Default: false", false, false ); 
+    registerStringOption_("chimera", "<bool>", "false", "Enable chimeric spectra search mode. When enabled, multiple peptide identifications can be reported for each MS2 scan, useful for co-fragmenting peptides. Default: false", false, false  ); 
+    registerStringOption_("predict_rt",  "<bool>", "false", "Use retention time prediction model as a feature for machine learning scoring. Note: This is incompatible with label-free quantification (LFQ). Default: false", false, false ); 
+    registerStringOption_("wide_window", "<bool>", "false", "Enable wide-window/DIA search mode. When enabled, the precursor_tol parameter is ignored and a dynamic precursor tolerance is used. Default: false", false, false);
+    registerStringOption_("smoothing", "<bool>", "true", "Whether to smooth the PTM (post-translational modification) mass histogram and pick local maxima. If false, uses raw histogram data. Default: true", false, false);  
     registerIntOption_("threads", "<int>", 1, "Amount of threads available to the program", false, false); 
 
     // register peptide indexing parameter (with defaults for this search engine)
@@ -985,6 +504,38 @@ protected:
     //-------------------------------------------------------------
     // parsing parameters
     //-------------------------------------------------------------
+
+    // Validate tolerance parameters
+    double precursor_tol_left = getDoubleOption_("precursor_tol_left");
+    double precursor_tol_right = getDoubleOption_("precursor_tol_right");
+    double fragment_tol_left = getDoubleOption_("fragment_tol_left");
+    double fragment_tol_right = getDoubleOption_("fragment_tol_right");
+
+    // Warn if tolerance parameters seem incorrect
+    if (precursor_tol_left > 0)
+    {
+      OPENMS_LOG_WARN << "WARNING: precursor_tol_left is positive (" << precursor_tol_left << "). "
+                      << "This parameter is used to reduce the experimental mass, so it should typically be negative. "
+                      << "A positive value will likely produce an incorrect search window." << std::endl;
+    }
+    if (precursor_tol_right < 0)
+    {
+      OPENMS_LOG_WARN << "WARNING: precursor_tol_right is negative (" << precursor_tol_right << "). "
+                      << "This parameter is ADDED to the experimental mass, so it should typically be positive. "
+                      << "A negative value will likely produce an incorrect search window." << std::endl;
+    }
+    if (fragment_tol_left > 0)
+    {
+      OPENMS_LOG_WARN << "WARNING: fragment_tol_left is positive (" << fragment_tol_left << "). "
+                      << "This parameter is used to reduce the experimental mass, so it should typically be negative. "
+                      << "A positive value will likely produce an incorrect search window." << std::endl;
+    }
+    if (fragment_tol_right < 0)
+    {
+      OPENMS_LOG_WARN << "WARNING: fragment_tol_right is negative (" << fragment_tol_right << "). "
+                      << "This parameter is ADDED to the experimental mass, so it should typically be positive. "
+                      << "A negative value will likely produce an incorrect search window." << std::endl;
+    }
 
     // do this early, to see if Sage is installed
     String sage_executable = getStringOption_("sage_executable");
@@ -1007,6 +558,7 @@ protected:
     String output_folder = File::path(output_file);
     String fasta_file = getStringOption_("database");
     int batch = getIntOption_("batch_size");
+    int threads = getIntOption_("threads");
     String decoy_prefix = getStringOption_("decoy_prefix");
 
     // create config
@@ -1058,8 +610,14 @@ protected:
     //std::chrono lines for testing/writing purposes only! 
 
     std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+    
+    // Set RAYON_NUM_THREADS environment variable to control Sage's thread usage
+    std::map<QString, QString> sage_env;
+    sage_env["RAYON_NUM_THREADS"] = String(threads).toQString();
+    
     // Sage execution with the executable and the arguments StringList
-    exit_code = runExternalProcess_(sage_executable.toQString(), arguments);
+    exit_code = runExternalProcess_(sage_executable.toQString(), arguments, "", sage_env);
+    
     std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
     #ifdef CHRONOSET
     std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::seconds>(end - begin).count() << "[s]" << std::endl;
@@ -1111,8 +669,15 @@ protected:
     String smoothing_string = getStringOption_("smoothing"); 
     bool smoothing = !(smoothing_string.compare("true")); 
 
-    const  pair<DeltaMassHistogram, DeltaMasstoCharge> resultsClus =  getDeltaClusterCenter(peptide_identifications, smoothing, false); 
-    PeptideIdentificationList mapD = mapDifftoMods(resultsClus.first, resultsClus.second, peptide_identifications, 0.01, false, output_file); //peptide_identifications; 
+    // Use shared modification analysis functionality
+    OpenSearchModificationAnalysis mod_analyzer;
+    auto modification_summaries = mod_analyzer.analyzeModifications(
+      peptide_identifications,
+      0.01, // precursor_mass_tolerance
+      false, // precursor_mass_tolerance_unit_ppm (0.01 Da)
+      smoothing,
+      output_file
+    );
     // remove hits without charge state assigned or charge outside of default range (fix for downstream bugs). TODO: remove if all charges annotated in sage
     IDFilter::filterPeptidesByCharge(peptide_identifications, 2, numeric_limits<int>::max());
     
@@ -1219,17 +784,85 @@ protected:
     for (auto& id : peptide_identifications)
     {
       Int64 scanNrAsInt = 0;
-      
+
       try
-      { // check if spectrum reference is a string that just contains a number        
+      { // check if spectrum reference is a string that just contains a number
         scanNrAsInt = id.getSpectrumReference().toInt64();
         // no exception -> conversion to int was successful. Now lookup full native ID in corresponding file for given spectrum number.
-        id.setSpectrumReference( file2specnr2nativeid[idxToFile[id.getMetaValue(Constants::UserParam::ID_MERGE_INDEX)]].at(scanNrAsInt) );                              
+        // idxToFile values can be full paths but file2specnr2nativeid keys are basenames, so normalize first
+        String file_basename = File::basename(idxToFile[id.getMetaValue(Constants::UserParam::ID_MERGE_INDEX)]);
+        auto file_it = file2specnr2nativeid.find(file_basename);
+        if (file_it != file2specnr2nativeid.end())
+        {
+          id.setSpectrumReference(file_it->second.at(scanNrAsInt));
+        }
       }
       catch (...)
       {
       }
     }
+
+    // Annotate FAIMS compensation voltage if present in any input file
+    // Pre-group peptide indices by file for efficient lookup (avoids O(files * peptides))
+    std::map<Size, std::vector<Size>> file_to_peptide_indices;
+    for (Size i = 0; i < peptide_identifications.size(); ++i)
+    {
+      const auto& pep = peptide_identifications[i];
+      if (pep.metaValueExists(Constants::UserParam::ID_MERGE_INDEX))
+      {
+        file_to_peptide_indices[pep.getMetaValue(Constants::UserParam::ID_MERGE_INDEX)].push_back(i);
+      }
+    }
+
+    for (const auto& mzml : input_files)
+    {
+      // Find file index for this mzML
+      Size file_idx = 0;
+      for (const auto& [idx, fname] : idxToFile)
+      {
+        if (File::basename(fname) == File::basename(mzml))
+        {
+          file_idx = idx;
+          break;
+        }
+      }
+
+      // Skip if no peptides for this file
+      auto it = file_to_peptide_indices.find(file_idx);
+      if (it == file_to_peptide_indices.end() || it->second.empty())
+      {
+        continue;
+      }
+
+      // Load mzML metadata (no peak data needed)
+      MzMLFile m;
+      MSExperiment exp_full;
+      auto opts = m.getOptions();
+      opts.setFillData(false);
+      m.setOptions(opts);
+      m.load(mzml, exp_full);
+
+      // Collect peptide IDs for this file
+      PeptideIdentificationList file_peptides;
+      file_peptides.reserve(it->second.size());
+      for (Size idx : it->second)
+      {
+        file_peptides.push_back(peptide_identifications[idx]);
+      }
+
+      // Annotate FAIMS and copy back
+      SpectrumMetaDataLookup::addMissingFAIMSToPeptideIDs(file_peptides, exp_full);
+      for (Size i = 0; i < file_peptides.size(); ++i)
+      {
+        if (file_peptides[i].metaValueExists(Constants::UserParam::FAIMS_CV))
+        {
+          peptide_identifications[it->second[i]].setMetaValue(
+            Constants::UserParam::FAIMS_CV,
+            file_peptides[i].getMetaValue(Constants::UserParam::FAIMS_CV));
+        }
+      }
+    }
+
     IdXMLFile().store(output_file, protein_identifications, peptide_identifications);
     return EXECUTION_OK;
   }

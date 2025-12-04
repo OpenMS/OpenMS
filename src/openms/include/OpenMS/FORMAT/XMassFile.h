@@ -13,6 +13,7 @@
 #include <OpenMS/FORMAT/HANDLERS/FidHandler.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/SYSTEM/File.h>
 
 namespace OpenMS
 {
@@ -61,7 +62,18 @@ public:
       Internal::FidHandler fid(filename);
       if (!fid)
       {
-        throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+        if (!File::exists(filename))
+        {
+          throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+        }
+        else if (!File::readable(filename))
+        {
+          throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+        }
+        else
+        {
+          throw Exception::IOException(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+        }
       }
 
       //  Delete old spectrum
@@ -138,8 +150,8 @@ public:
       data_processing.setProcessingActions(actions);
       data_processing.setCompletionTime(DateTime::now());
 
-      std::vector< boost::shared_ptr< DataProcessing> > data_processing_vector;
-      data_processing_vector.push_back( boost::shared_ptr< DataProcessing>(new DataProcessing(data_processing)) );
+      std::vector< std::shared_ptr< DataProcessing> > data_processing_vector;
+      data_processing_vector.push_back( std::shared_ptr< DataProcessing>(new DataProcessing(data_processing)) );
       spectrum.setDataProcessing(data_processing_vector);
     }
 

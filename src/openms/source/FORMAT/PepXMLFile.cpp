@@ -1347,23 +1347,21 @@ namespace OpenMS
 
       if (has_decoys_)
       {
-        String curr_status("");
         bool current_prot_is_decoy = protein.hasPrefix(decoy_prefix_);
-        if (peptide_hit_.metaValueExists("target_decoy"))
+        auto current_type = peptide_hit_.getTargetDecoyType();
+        
+        if (current_type == PeptideHit::TargetDecoyType::UNKNOWN)
         {
-          curr_status = peptide_hit_.getMetaValue("target_decoy");
+          // No annotation yet, set based on current protein
+          peptide_hit_.setTargetDecoyType(current_prot_is_decoy ?
+            PeptideHit::TargetDecoyType::DECOY :
+            PeptideHit::TargetDecoyType::TARGET);
         }
-        if (curr_status.empty())
+        else if ((current_type == PeptideHit::TargetDecoyType::TARGET && current_prot_is_decoy) ||
+                 (current_type == PeptideHit::TargetDecoyType::DECOY && !current_prot_is_decoy))
         {
-          peptide_hit_.setMetaValue("target_decoy", current_prot_is_decoy ? "decoy" : "target");
-        }
-        else if (curr_status == "target" && current_prot_is_decoy)
-        {
-          peptide_hit_.setMetaValue("target_decoy", "target+decoy");
-        }
-        else if (curr_status == "decoy" && !current_prot_is_decoy)
-        {
-          peptide_hit_.setMetaValue("target_decoy", "target+decoy");
+          // Peptide matches both target and decoy proteins
+          peptide_hit_.setTargetDecoyType(PeptideHit::TargetDecoyType::TARGET_DECOY);
         }
 
         hit.setMetaValue("target_decoy", current_prot_is_decoy ? "decoy" : "target");
@@ -1649,25 +1647,26 @@ namespace OpenMS
 
       if (has_decoys_)
       {
-        String curr_status("");
         bool current_prot_is_decoy = protein.hasPrefix(decoy_prefix_);
-        if (peptide_hit_.metaValueExists("target_decoy"))
+        auto current_type = peptide_hit_.getTargetDecoyType();
+        
+        if (current_type == PeptideHit::TargetDecoyType::UNKNOWN)
         {
-          curr_status = peptide_hit_.getMetaValue("target_decoy");
+          // No annotation yet, set based on current protein
+          peptide_hit_.setTargetDecoyType(current_prot_is_decoy ?
+            PeptideHit::TargetDecoyType::DECOY :
+            PeptideHit::TargetDecoyType::TARGET);
         }
-        if (curr_status.empty())
+        else if ((current_type == PeptideHit::TargetDecoyType::TARGET && current_prot_is_decoy) ||
+                 (current_type == PeptideHit::TargetDecoyType::DECOY && !current_prot_is_decoy))
         {
-          peptide_hit_.setMetaValue("target_decoy", current_prot_is_decoy ? "decoy" : "target");
+          // Peptide matches both target and decoy proteins
+          peptide_hit_.setTargetDecoyType(PeptideHit::TargetDecoyType::TARGET_DECOY);
         }
-        else if (curr_status == "target" && current_prot_is_decoy)
-        {
-          peptide_hit_.setMetaValue("target_decoy", "target+decoy");
-        }
-        else if (curr_status == "decoy" && !current_prot_is_decoy)
-        {
-          peptide_hit_.setMetaValue("target_decoy", "target+decoy");
-        }
-        hit.setMetaValue("target_decoy", current_prot_is_decoy ? "decoy" : "target");
+        
+        hit.setTargetDecoyType(current_prot_is_decoy ?
+          ProteinHit::TargetDecoyType::DECOY :
+          ProteinHit::TargetDecoyType::TARGET);
       }
       peptide_hit_.addPeptideEvidence(pe);
 
@@ -2105,12 +2104,6 @@ namespace OpenMS
           if (!temp_aa_sequence.hasNTerminalModification())
           {
             temp_aa_sequence.setNTerminalModification(mod.getRegisteredMod());
-          }
-          else
-          {
-            warning(LOAD, "Trying to add a fixed N-term modification from the search_summary to an already"
-                          " annotated and modified N-terminus of " + current_sequence_
-                          + " ... skipping.");
           }
         }
         else if (mod.getRegisteredMod()->getTermSpecificity() == ResidueModification::C_TERM ||

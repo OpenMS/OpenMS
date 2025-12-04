@@ -443,7 +443,11 @@ else()
 endif()
 
 if(LINUX OR APPLE)
-  set(EXTRA_WARNINGS "-Wno-unused-member-function" "-Wno-builtin-macro-redefined" "-Wno-unused" "-Wno-zero-as-null-pointer-constant")
+  set(EXTRA_WARNINGS "-Wno-builtin-macro-redefined" "-Wno-unused" "-Wno-zero-as-null-pointer-constant")
+  # no-unused-member-function is specific to clang
+  if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
+    list(APPEND EXTRA_WARNINGS "-Wno-unused-member-function")
+  endif()
   if(${Python_VERSION} VERSION_GREATER_EQUAL "3.8" AND ${Python_VERSION} VERSION_LESS "3.9")
     list(APPEND EXTRA_WARNINGS "-Wno-deprecated-declarations") # https://github.com/cython/cython/issues/3474
   endif()
@@ -521,7 +525,7 @@ endif()
 IF(LINUX AND PY_NO_OUTPUT)
     add_custom_target(pyopenms
             #COMMAND ${Python_EXECUTABLE} setup.py bdist_egg 2> /dev/null
-            COMMAND ${Python_EXECUTABLE} -m pip wheel -w dist --no-deps --no-binary=pyopenms .
+            COMMAND ${Python_EXECUTABLE} -m pip wheel -w dist --no-deps --no-binary=pyopenms --no-build-isolation .
             #COMMAND ${Python_EXECUTABLE} setup.py bdist --format=zip 2> /dev/null
             #COMMAND ${Python_EXECUTABLE} setup.py build_ext --inplace 2> /dev/null
             COMMENT "Packaging pyopenms wheel."
@@ -536,7 +540,7 @@ ELSE()
             COMMAND codesign --force --sign "-" ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/Qt*
             COMMAND codesign --force --sign "-" ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/*.dylib
             #COMMAND ${Python_EXECUTABLE} setup.py bdist_egg
-            COMMAND ${Python_EXECUTABLE} -m pip wheel -w dist --no-deps --no-binary=pyopenms .
+            COMMAND ${Python_EXECUTABLE} -m pip wheel -w dist --no-deps --no-binary=pyopenms --no-build-isolation .
             #COMMAND ${Python_EXECUTABLE} setup.py bdist --format=zip
             #COMMAND ${Python_EXECUTABLE} setup.py build_ext --inplace
             COMMENT "Packaging pyopenms wheel."
@@ -545,7 +549,7 @@ ELSE()
     ELSE()
         add_custom_target(pyopenms
             #COMMAND ${Python_EXECUTABLE} setup.py bdist_egg
-            COMMAND ${Python_EXECUTABLE} -m pip wheel -w dist --no-deps --no-binary=pyopenms .
+            COMMAND ${Python_EXECUTABLE} -m pip wheel -w dist --no-deps --no-binary=pyopenms --no-build-isolation .
             #COMMAND ${Python_EXECUTABLE} setup.py bdist --format=zip
             #COMMAND ${Python_EXECUTABLE} setup.py build_ext --inplace
             COMMENT "Packaging pyopenms wheel."
@@ -584,6 +588,7 @@ set(pyopenms_unittest_testfiles
   test_FileIO.py
   test_Isobaric_Quantitation.py
   testLightTargetedExperiment.py
+  testLocale.py
   test_MRMFeatureFinderScoring.py
   test_MSNumpressCoder.py
   test_MSSpectrumAndRichSpectrum.py

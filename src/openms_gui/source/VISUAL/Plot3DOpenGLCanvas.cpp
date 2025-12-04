@@ -1020,11 +1020,11 @@ namespace OpenMS
       }
       else if (canvas_3d_.action_mode_ == PlotCanvas::AM_TRANSLATE)
       {
-        Int x_angle = xrot_ + 8 * (e->y() - mouse_move_end_.y());
+        Int x_angle = xrot_ + 8 * (e->position().y() - mouse_move_end_.y());
         normalizeAngle(&x_angle);
         xrot_ = x_angle;
 
-        Int y_angle = yrot_ + 8 * (e->x() - mouse_move_end_.x());
+        Int y_angle = yrot_ + 8 * (e->position().x() - mouse_move_end_.x());
         normalizeAngle(&y_angle);
         yrot_ = y_angle;
 

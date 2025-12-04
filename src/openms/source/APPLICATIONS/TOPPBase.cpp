@@ -1681,13 +1681,13 @@ namespace OpenMS
     }
   }
 
-  TOPPBase::ExitCodes TOPPBase::runExternalProcess_(const QString& executable, const QStringList& arguments, const QString& workdir) const
+  TOPPBase::ExitCodes TOPPBase::runExternalProcess_(const QString& executable, const QStringList& arguments, const QString& workdir, const std::map<QString, QString>& env) const
   {
     String proc_stdout, proc_stderr; // collect all output (might be useful if program crashes, see below)
-    return runExternalProcess_(executable, arguments, proc_stdout, proc_stderr, workdir);
+    return runExternalProcess_(executable, arguments, proc_stdout, proc_stderr, workdir, env);
   }
 
-  TOPPBase::ExitCodes TOPPBase::runExternalProcess_(const QString& executable, const QStringList& arguments, String& proc_stdout, String& proc_stderr, const QString& workdir) const
+  TOPPBase::ExitCodes TOPPBase::runExternalProcess_(const QString& executable, const QStringList& arguments, String& proc_stdout, String& proc_stderr, const QString& workdir, const std::map<QString, QString>& env) const
   {
     proc_stdout.clear();
     proc_stderr.clear();
@@ -1697,7 +1697,7 @@ namespace OpenMS
     auto lam_err = [&](const String& out) { proc_stderr += out; if (debug_level_ >= 4) OPENMS_LOG_INFO << out; };
     ExternalProcess ep(lam_out, lam_err);
 
-    const auto& rt = ep.run(executable, arguments, workdir, true); // does automatic escaping etc... start
+    const auto& rt = ep.run(executable, arguments, workdir, true, ExternalProcess::IO_MODE::READ_WRITE, env); // does automatic escaping etc... start
     if (debug_level_ < 4 && rt != ExternalProcess::RETURNSTATE::SUCCESS)
     { // error occurred: if not written already in callback, do it now
       writeLogError_("Standard output: " + proc_stdout);
@@ -2353,7 +2353,7 @@ namespace OpenMS
 
   void TOPPBase::addDataProcessing_(PeakMap& map, const DataProcessing& dp) const
   {
-    boost::shared_ptr< DataProcessing > dp_(new DataProcessing(dp));
+    std::shared_ptr< DataProcessing > dp_(new DataProcessing(dp));
     for (Size i = 0; i < map.size(); ++i)
     {
       map[i].getDataProcessing().push_back(dp_);

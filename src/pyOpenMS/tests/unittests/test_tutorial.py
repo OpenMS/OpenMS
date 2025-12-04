@@ -85,16 +85,86 @@ def testResidueTutorial():
     lys.getPka()
 
 @report
+def testAASequenceLen():
+    """Test the __len__() method implementation for AASequence"""
+    
+    # Test basic len() functionality
+    seq = AASequence.fromString("PEPTIDE")
+    assert len(seq) == 7
+    assert len(seq) == seq.size()
+    
+    # Test with different sequences
+    short_seq = AASequence.fromString("PEP")
+    assert len(short_seq) == 3
+    
+    long_seq = AASequence.fromString("PEPTIDESEQUENCE")
+    assert len(long_seq) == 15
+    
+    # Test with modified sequences
+    modified_seq = AASequence.fromString("PEPTIDEM(Oxidation)")
+    assert len(modified_seq) == 8  # Modification doesn't change sequence length
+    
+    # Test with empty sequence (if possible)
+    empty_seq = AASequence.fromString("")
+    assert len(empty_seq) == 0
+    
+    print("All len() tests passed!")
+
+@report
+def testMSExperimentLen():
+    """Test the __len__() method implementation for MSExperiment"""
+    
+    # Test with empty experiment
+    exp = MSExperiment()
+    assert len(exp) == 0
+    assert len(exp) == exp.size()
+    
+    # Test with spectra added
+    spectrum1 = MSSpectrum()
+    spectrum1.setRT(1.0)
+    exp.addSpectrum(spectrum1)
+    assert len(exp) == 1
+    assert len(exp) == exp.size()
+    
+    spectrum2 = MSSpectrum()
+    spectrum2.setRT(2.0)
+    exp.addSpectrum(spectrum2)
+    assert len(exp) == 2
+    assert len(exp) == exp.size()
+    
+    # Test with multiple spectra
+    exp2 = MSExperiment()
+    for i in range(5):
+        spectrum = MSSpectrum()
+        spectrum.setRT(float(i))
+        exp2.addSpectrum(spectrum)
+    assert len(exp2) == 5
+    assert len(exp2) == exp2.size()
+    assert len(exp2) == exp2.getNrSpectra()
+    
+    print("All MSExperiment len() tests passed!")
+
+@report
 def testAASequenceTutorial():
 
     seq = AASequence.fromString("DFPIANGER")
+    # Test the new len() functionality
+    assert len(seq) == 9  # "DFPIANGER" has 9 amino acids
+    assert len(seq) == seq.size()  # len() should return same as size()
+    
     prefix = seq.getPrefix(4)
     suffix = seq.getSuffix(5)
     concat = seq + seq
+    
+    # Test len() with different sequences
+    assert len(prefix) == 4
+    assert len(suffix) == 5
+    assert len(concat) == 18  # concatenated sequence should be 2 * 9
 
     print(seq)
     print(concat)
     print(suffix)
+    print("len(seq) =", len(seq), ", seq.size() =", seq.size())
     seq.getMonoWeight() # weight of M
     seq.getMonoWeight(Residue.ResidueType.Full, 2) # weight of M+2H
     mz = seq.getMonoWeight(Residue.ResidueType.Full, 2) / 2.0 # m/z of M+2H
@@ -356,4 +426,72 @@ def testDatastructuresTutorial():
     exp = MSExperiment()
     exp.addChromatogram(chromatogram)
     MzMLFile().store("testfile3.mzML", exp)
+
+@report
+def testMSSpectrumLen():
+    """Test the __len__() method implementation for MSSpectrum"""
+    
+    # Test with empty spectrum
+    spectrum = MSSpectrum()
+    assert len(spectrum) == 0
+    assert len(spectrum) == spectrum.size()
+    
+    # Test with peaks added
+    p1 = Peak1D()
+    p1.setMZ(500.0)
+    p1.setIntensity(1e5)
+    spectrum.push_back(p1)
+    assert len(spectrum) == 1
+    assert len(spectrum) == spectrum.size()
+    
+    p2 = Peak1D()
+    p2.setMZ(600.0)
+    p2.setIntensity(2e5)
+    spectrum.push_back(p2)
+    assert len(spectrum) == 2
+    assert len(spectrum) == spectrum.size()
+    
+    # Test with multiple peaks using set_peaks
+    spectrum2 = MSSpectrum()
+    mz_values = [100.0, 200.0, 300.0, 400.0, 500.0]
+    intensity_values = [1.0, 2.0, 3.0, 4.0, 5.0]
+    spectrum2.set_peaks([mz_values, intensity_values])
+    assert len(spectrum2) == 5
+    assert len(spectrum2) == spectrum2.size()
+    
+    print("All MSSpectrum len() tests passed!")
+
+@report
+def testMSChromatogramLen():
+    """Test the __len__() method implementation for MSChromatogram"""
+    
+    # Test with empty chromatogram
+    chromatogram = MSChromatogram()
+    assert len(chromatogram) == 0
+    assert len(chromatogram) == chromatogram.size()
+    
+    # Test with peaks added
+    p1 = ChromatogramPeak()
+    p1.setRT(1.0)
+    p1.setIntensity(100.0)
+    chromatogram.push_back(p1)
+    assert len(chromatogram) == 1
+    assert len(chromatogram) == chromatogram.size()
+    
+    p2 = ChromatogramPeak()
+    p2.setRT(2.0)
+    p2.setIntensity(200.0)
+    chromatogram.push_back(p2)
+    assert len(chromatogram) == 2
+    assert len(chromatogram) == chromatogram.size()
+    
+    # Test with multiple peaks using set_peaks
+    chromatogram2 = MSChromatogram()
+    rt_values = [1.0, 2.0, 3.0, 4.0, 5.0]
+    intensity_values = [10.0, 20.0, 30.0, 40.0, 50.0]
+    chromatogram2.set_peaks([rt_values, intensity_values])
+    assert len(chromatogram2) == 5
+    assert len(chromatogram2) == chromatogram2.size()
+    
+    print("All MSChromatogram len() tests passed!")
 

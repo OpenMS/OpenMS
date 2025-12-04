@@ -22,43 +22,72 @@
 
 namespace OpenMS
 {
-  std::vector<PeakMap> IMDataConverter::splitByFAIMSCV(PeakMap&& exp)
+  std::vector<std::pair<double, MSExperiment>> IMDataConverter::splitByFAIMSCV(PeakMap&& exp)
   {
-    std::vector<PeakMap> split_peakmap;
+    std::vector<std::pair<double, MSExperiment>> result;
 
-    // TODO test with any random PeakMap without FAIMS data.
-    // What breaks, how should it break?
     std::set<double> CVs = FAIMSHelper::getCompensationVoltages(exp);
 
     if (CVs.empty())
     {
-      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Not FAIMS data!");
+      OPENMS_LOG_INFO << "Not FAIMS compensation voltages found in the data. Returning PeakMap as CV NaN." << std::endl;
+      // Represent "no FAIMS" as a single-element group that carries the original experiment.
+      result.emplace_back(std::numeric_limits<double>::quiet_NaN(), std::move(exp));
+      return result;
     }
 
-    // create map to easily turn a CV value into a PeakMap index
-    std::map<double, size_t> cv2index;
-    size_t counter(0);
+    // use a map internally to accumulate per-CV experiments in ascending CV order
+    std::map<double, MSExperiment> split_peakmap;
     for (double cv : CVs)
     {
-      cv2index[cv] = counter;
-      counter++;
-    }
-
-    // make as many PeakMaps as there are different CVs and fill their Meta Data
-    split_peakmap.resize(CVs.size());
-    for (auto& spec : split_peakmap)
-    {
-      spec.getExperimentalSettings() = exp.getExperimentalSettings();
+      MSExperiment pm;
+      pm.getExperimentalSettings() = exp.getExperimentalSettings();
+      split_peakmap.emplace(cv, std::move(pm));
     }
 
     // fill up the PeakMaps by moving spectra from the input PeakMap
-    for (MSSpectrum& it : exp)
+    // Keep MS2 spectra which might not carry a FAIMS CV (typically they do) by assigning them to the last seen FAIMS CV (nearest previous in run order)
+    double last_faims_cv = std::numeric_limits<double>::quiet_NaN();
+    for (MSSpectrum& spec : exp)
     {
-      split_peakmap[cv2index[it.getDriftTime()]].addSpectrum(std::move(it));
+      if (spec.getDriftTimeUnit() == DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE)
+      {
+        last_faims_cv = spec.getDriftTime();
+        if (const auto map_it = split_peakmap.find(last_faims_cv); map_it == split_peakmap.end())
+        {
+          OPENMS_LOG_WARN << "Encountered spectrum with unexpected FAIMS CV (not in detected set): " << last_faims_cv << std::endl;
+          continue;
+        }
+        else
+        {
+          map_it->second.addSpectrum(std::move(spec));
+        }
+        continue;
+      }
+
+      // No FAIMS CV on spectrum: if it's MS2+ and we have a prior FAIMS CV context, assign it to that bin
+      if (!std::isnan(last_faims_cv) && spec.getMSLevel() > 1)
+      {
+        if (const auto map_it = split_peakmap.find(last_faims_cv); map_it != split_peakmap.end())
+        {
+          map_it->second.addSpectrum(std::move(spec));
+          continue;
+        }
+      }
+
+      // Otherwise skip with a warning
+      OPENMS_LOG_WARN << "Skipping spectrum without FAIMS CV (no prior FAIMS CV context or unexpected layout)." << std::endl;
     }
     
     exp.clear(true);
-    return split_peakmap;
+
+    // move from map (sorted by CV) into vector of (CV, MSExperiment) pairs
+    result.reserve(split_peakmap.size());
+    for (auto& kv : split_peakmap)
+    {
+      result.emplace_back(kv.first, std::move(kv.second));
+    }
+    return result;
   }
 
   MSExperiment IMDataConverter::reshapeIMFrameToMany(MSSpectrum im_frame)

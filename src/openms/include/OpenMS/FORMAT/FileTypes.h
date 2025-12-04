@@ -89,6 +89,7 @@ namespace OpenMS
       XML,                ///< any XML format
       BZ2,                ///< any BZ2 compressed file
       GZ,                 ///< any Gzipped file
+      PARQUET,            ///< Apache Parquet file format (.parquet, .pqt)
       SIZE_OF_TYPE        ///< No file type. Simply stores the number of types
     };
 

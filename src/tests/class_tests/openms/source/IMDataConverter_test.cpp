@@ -38,35 +38,40 @@ START_SECTION((~IMDataConverter()))
 END_SECTION
 
 
-START_SECTION((std::vector<PeakMap> splitByFAIMSCV(PeakMap& exp)))
+START_SECTION((std::vector<std::pair<double, MSExperiment>> splitByFAIMSCV(PeakMap& exp)))
   MzMLFile IM_file;
   PeakMap exp;
   IM_file.load(OPENMS_GET_TEST_DATA_PATH("IM_FAIMS_test.mzML"), exp);
 
   TEST_EQUAL(exp.getSpectra().size(), 19)
 
-  vector<PeakMap> splitPeakMap = IMDataConverter::splitByFAIMSCV(std::move(exp));
+  auto splitPeakMap = IMDataConverter::splitByFAIMSCV(std::move(exp));
   TEST_EQUAL(exp.empty(), true) // moved out
   TEST_EQUAL(splitPeakMap.size(), 3)
 
-	TEST_EQUAL(splitPeakMap[0].size(), 4)
-	TEST_EQUAL(splitPeakMap[1].size(), 9)
-	TEST_EQUAL(splitPeakMap[2].size(), 6)
+  // expect keys -65, -55, -45 in ascending order
+  TEST_EQUAL(splitPeakMap[0].first, -65.0)
+  TEST_EQUAL(splitPeakMap[1].first, -55.0)
+  TEST_EQUAL(splitPeakMap[2].first, -45.0)
 
-	for (PeakMap::Iterator it = splitPeakMap[0].begin(); it != splitPeakMap[0].end(); ++it)
-	{
-		TEST_EQUAL(it->getDriftTime(), -65.0)
-	}
-	for (PeakMap::Iterator it = splitPeakMap[1].begin(); it != splitPeakMap[1].end(); ++it)
-	{
-		TEST_EQUAL(it->getDriftTime(), -55.0)
-	}
-	for (PeakMap::Iterator it = splitPeakMap[2].begin(); it != splitPeakMap[2].end(); ++it)
-	{
-		TEST_EQUAL(it->getDriftTime(), -45.0)
-	}
+  TEST_EQUAL(splitPeakMap[0].second.size(), 4)
+  TEST_EQUAL(splitPeakMap[1].second.size(), 9)
+  TEST_EQUAL(splitPeakMap[2].second.size(), 6)
 
-	TEST_EQUAL(splitPeakMap[1].getExperimentalSettings().getDateTime().toString(), "2019-09-07T09:40:04")
+  for (const auto& spec : splitPeakMap[0].second)
+  {
+    TEST_EQUAL(spec.getDriftTime(), -65.0)
+  }
+  for (const auto& spec : splitPeakMap[1].second)
+  {
+    TEST_EQUAL(spec.getDriftTime(), -55.0)
+  }
+  for (const auto& spec : splitPeakMap[2].second)
+  {
+    TEST_EQUAL(spec.getDriftTime(), -45.0)
+  }
+
+  TEST_EQUAL(splitPeakMap[1].second.getExperimentalSettings().getDateTime().toString(), "2019-09-07T09:40:04")
 
 END_SECTION
 
@@ -185,6 +190,76 @@ END_SECTION
 
 START_SECTION(static MSExperiment reshapeIMFrameToSingle(const MSExperiment& in))
 	NOT_TESTABLE // tested_above
+END_SECTION
+
+START_SECTION((std::vector<std::pair<double, MSExperiment>> splitByFAIMSCV assigns MS2 without explicit CV to last seen FAIMS CV))
+{
+  PeakMap exp_synth;
+
+  MSSpectrum ms1a;
+  ms1a.setMSLevel(1);
+  ms1a.setDriftTimeUnit(DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE);
+  ms1a.setDriftTime(-55.0);
+
+  MSSpectrum ms2a;
+  ms2a.setMSLevel(2);
+  ms2a.setDriftTimeUnit(DriftTimeUnit::NONE);
+
+  MSSpectrum ms2b;
+  ms2b.setMSLevel(2);
+  ms2b.setDriftTimeUnit(DriftTimeUnit::NONE);
+
+  MSSpectrum ms1b;
+  ms1b.setMSLevel(1);
+  ms1b.setDriftTimeUnit(DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE);
+  ms1b.setDriftTime(-45.0);
+
+  MSSpectrum ms2c;
+  ms2c.setMSLevel(2);
+  ms2c.setDriftTimeUnit(DriftTimeUnit::NONE);
+
+  exp_synth.addSpectrum(ms1a);
+  exp_synth.addSpectrum(ms2a);
+  exp_synth.addSpectrum(ms2b);
+  exp_synth.addSpectrum(ms1b);
+  exp_synth.addSpectrum(ms2c);
+
+  auto bins = IMDataConverter::splitByFAIMSCV(std::move(exp_synth));
+  TEST_EQUAL(bins.size(), 2)
+
+  // bins ordered by ascending CV: -55 first, -45 second
+  TEST_EQUAL(bins[0].first, -55.0)
+  TEST_EQUAL(bins[1].first, -45.0)
+
+  const auto& bin_minus55 = bins[0].second;
+  const auto& bin_minus45 = bins[1].second;
+
+  TEST_EQUAL(bin_minus55.size(), 3) // ms1a + ms2a + ms2b
+  TEST_EQUAL(bin_minus45.size(), 2) // ms1b + ms2c
+
+  Size ms2_bin0 = 0;
+  for (const auto& s : bin_minus55) if (s.getMSLevel() > 1) ++ms2_bin0;
+  TEST_EQUAL(ms2_bin0, 2)
+
+  Size ms2_bin1 = 0;
+  for (const auto& s : bin_minus45) if (s.getMSLevel() > 1) ++ms2_bin1;
+  TEST_EQUAL(ms2_bin1, 1)
+}
+END_SECTION
+
+START_SECTION((std::vector<std::pair<double, MSExperiment>> splitByFAIMSCV returns single-element group for non-FAIMS dataset))
+{
+  PeakMap exp_nonfaims;
+  MSSpectrum s;
+  s.setMSLevel(1);
+  s.setDriftTimeUnit(DriftTimeUnit::MILLISECOND);
+  s.setDriftTime(10.0);
+  exp_nonfaims.addSpectrum(s);
+
+  auto bins = IMDataConverter::splitByFAIMSCV(std::move(exp_nonfaims));
+  TEST_EQUAL(bins.size(), 1)
+  TEST_EQUAL(bins[0].second.size(), 1)
+}
 END_SECTION
 
 /////////////////////////////////////////////////////////////

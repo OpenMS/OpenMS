@@ -5,6 +5,7 @@ set(concept_executables_list
   FuzzyStringComparator_test
   #GlobalExceptionHandler_test
   StreamHandler_test
+  Types_test
   VersionInfo_test
   LogConfigHandler_test
   LogStream_test
@@ -275,7 +276,7 @@ if(WITH_HDF5)
   list(APPEND format_executables_list HDF5_test)
 endif()
 if(WITH_PARQUET)
-  list(APPEND format_executables_list Arrow_test)
+  list(APPEND format_executables_list Arrow_test QuantmsIO_test)
 endif()
 
 set(math_executables_list
@@ -288,6 +289,7 @@ set(math_executables_list
   GaussFitter_test
   GumbelDistributionFitter_test
   GridSearch_test
+  CrossValidation_test
   Histogram_test
   LinearInterpolation_test
   LinearRegression_test
@@ -306,6 +308,7 @@ set(math_executables_list
 )
 
 set(filtering_executables_list
+  Biosaur2Algorithm_test
   DataFilters_test
   Deisotoper_test
   ElutionPeakDetection_test
@@ -458,6 +461,7 @@ set(analysis_executables_list
   #FIAMSScheduler_test sometimes failing
   FLASHDeconvAlgorithm_test
   FLASHDeconvHelperStructs_test
+  FragmentIndex_test
   IDBoostGraph_test
   IDMapper_test
   IDMergerAlgorithm_test
@@ -512,7 +516,6 @@ set(analysis_executables_list
   HyperScore_test
   MorpheusScore_test
   OpenPepXLAlgorithm_test
-  OpenPepXLLFAlgorithm_test
   OPXLHelper_test
   OPXLSpectrumProcessingAlgorithms_test
   PoseClusteringAffineSuperimposer_test

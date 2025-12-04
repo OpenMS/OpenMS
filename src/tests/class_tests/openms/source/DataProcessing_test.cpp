@@ -158,6 +158,13 @@ START_SECTION(bool operator!= (const DataProcessing& rhs) const)
 	TEST_FALSE(edit == empty);
 END_SECTION
 
+START_SECTION((static StringList getAllNamesOfProcessingAction()))
+  StringList names = DataProcessing::getAllNamesOfProcessingAction();
+  TEST_EQUAL(names.size(), DataProcessing::SIZE_OF_PROCESSINGACTION);
+  TEST_EQUAL(names[DataProcessing::PEAK_PICKING], "Peak picking");
+  TEST_EQUAL(names[DataProcessing::SMOOTHING], "Smoothing");
+END_SECTION
+
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

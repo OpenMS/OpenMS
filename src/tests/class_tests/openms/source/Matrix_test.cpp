@@ -156,6 +156,29 @@ START_SECTION((reference operator() (size_type const i, size_type const j)))
 }
 END_SECTION
 
+START_SECTION((Value& getValue(size_t const i, size_t const j)))
+{
+  // Create a test matrix
+  Matrix<int> test_matrix(2, 2, 0);
+  
+  // Test non-const version of getValue by modifying values through it
+  test_matrix.getValue(0, 0) = 100;
+  test_matrix.getValue(0, 1) = 200;
+  test_matrix.getValue(1, 0) = 300;
+  test_matrix.getValue(1, 1) = 400;
+  
+  // Verify the values were set correctly
+  TEST_EQUAL(test_matrix(0, 0), 100);
+  TEST_EQUAL(test_matrix(0, 1), 200);
+  TEST_EQUAL(test_matrix(1, 0), 300);
+  TEST_EQUAL(test_matrix(1, 1), 400);
+  
+  // Verify getValue returns reference that can be modified
+  test_matrix.getValue(0, 0) += 5;
+  TEST_EQUAL(test_matrix(0, 0), 105);
+}
+END_SECTION
+
 START_SECTION((void operator()(size_type const i, size_type const j) = value_type value))
 {
   mi(1,1) = 18;

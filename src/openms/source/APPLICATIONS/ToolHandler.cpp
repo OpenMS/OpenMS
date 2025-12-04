@@ -48,6 +48,7 @@ namespace OpenMS
     tools_map["AssayGeneratorMetabo"] = Internal::ToolDescription("AssayGeneratorMetabo", cat_targeted);
     tools_map["AssayGeneratorMetaboSirius"] = Internal::ToolDescription("AssayGeneratorMetaboSirius", cat_targeted);
     tools_map["BaselineFilter"] = Internal::ToolDescription("BaselineFilter", cat_signal_proc_smooth_normalize);
+    tools_map["FeatureFinderLFQ"] = Internal::ToolDescription("FeatureFinderLFQ", cat_quant);
     tools_map["ClusterMassTraces"] = Internal::ToolDescription("ClusterMassTraces", cat_misc);
     tools_map["ClusterMassTracesByPrecursor"] = Internal::ToolDescription("ClusterMassTracesByPrecursor", cat_targeted);
     tools_map["CometAdapter"] = Internal::ToolDescription("CometAdapter", cat_ID_search);
@@ -102,6 +103,7 @@ namespace OpenMS
     tools_map["InternalCalibration"] = Internal::ToolDescription("InternalCalibration", cat_calibration);
     tools_map["IonMobilityBinning"] = Internal::ToolDescription("IonMobilityBinning", cat_file_filter_extract_merge);
     tools_map["IsobaricAnalyzer"] = Internal::ToolDescription("IsobaricAnalyzer", cat_quant);
+    tools_map["IsobaricWorkflow"] = Internal::ToolDescription("IsobaricWorkflow", cat_quant);
     tools_map["JSONExporter"] = Internal::ToolDescription("JSONExporter", cat_dev);
     tools_map["LuciphorAdapter"] = Internal::ToolDescription("LuciphorAdapter", cat_ID_search);
     tools_map["MapAlignerIdentification"] = Internal::ToolDescription("MapAlignerIdentification", cat_map_align);
@@ -134,7 +136,6 @@ namespace OpenMS
     tools_map["OpenMSInfo"] = Internal::ToolDescription("OpenMSInfo", cat_misc);
     tools_map["OpenNuXL"] = Internal::ToolDescription("OpenNuXL", cat_crosslinking);
     tools_map["OpenPepXL"] = Internal::ToolDescription("OpenPepXL", cat_crosslinking);
-    tools_map["OpenPepXLLF"] = Internal::ToolDescription("OpenPepXLLF", cat_crosslinking);
     tools_map["OpenSwathAnalyzer"] = Internal::ToolDescription("OpenSwathAnalyzer", cat_targeted);
     tools_map["OpenSwathAssayGenerator"] = Internal::ToolDescription("OpenSwathAssayGenerator", cat_targeted);
     tools_map["OpenSwathChromatogramExtractor"] = Internal::ToolDescription("OpenSwathChromatogramExtractor", cat_targeted);
@@ -150,12 +151,16 @@ namespace OpenMS
     tools_map["PeakPickerHiRes"] = Internal::ToolDescription("PeakPickerHiRes", cat_centroiding);
     tools_map["PeakPickerIterative"] = Internal::ToolDescription("PeakPickerIterative", cat_centroiding);
     tools_map["PeptideIndexer"] = Internal::ToolDescription("PeptideIndexer", cat_ID_proc);
+    tools_map["PeptideDataBaseSearchFI"] = Internal::ToolDescription("PeptideDataBaseSearchFI", cat_ID_search);
     tools_map["PercolatorAdapter"] = Internal::ToolDescription("PercolatorAdapter", cat_ID_proc);
     tools_map["PhosphoScoring"] = Internal::ToolDescription("PhosphoScoring", cat_ID_proc);
     tools_map["ProteinInference"] = Internal::ToolDescription("ProteinInference", cat_ID_proc);
     tools_map["ProteinQuantifier"] = Internal::ToolDescription("ProteinQuantifier", cat_quant);
     tools_map["ProteomicsLFQ"] = Internal::ToolDescription("ProteomicsLFQ", cat_quant);
     tools_map["PSMFeatureExtractor"] = Internal::ToolDescription("PSMFeatureExtractor", cat_ID_proc);
+#ifdef WITH_PARQUET
+    tools_map["QuantmsIOConverter"] = Internal::ToolDescription("QuantmsIOConverter", cat_file_converter);
+#endif
     tools_map["QCCalculator"] = Internal::ToolDescription("QCCalculator", cat_QC);
     tools_map["QCEmbedder"] = Internal::ToolDescription("QCEmbedder", cat_QC);
     tools_map["QCExporter"] = Internal::ToolDescription("QCExporter", cat_QC);
@@ -198,9 +203,9 @@ namespace OpenMS
       "INIUpdater",
       "Resampler",
     };
-    std::for_each(GUI_tools.begin(), GUI_tools.end(), [&tools_map](const String& del) {
-      tools_map.erase(del);
-    });
+    for (const auto& tool : GUI_tools) {
+      tools_map.erase(tool);
+    }
 #endif
 
     // INTERNAL tools
