@@ -48,21 +48,21 @@ Extract data from spectrum
 
 .. code-block:: bash
 
-  python -m timeit -r 3 -s 'import pyopenms, numpy; d = numpy.random.rand( 100000).astype(numpy.float64); s=pyopenms.OSSpectrum();s.setMZArray(d.tolist()); rr= numpy.sum(d)'  \
-  'q = s.getMZArray(); assert numpy.sum(q) == rr'
+  python -m timeit -r 3 -s 'import pyopenms, numpy; d = numpy.random.rand( 100000).astype(numpy.float64); s=pyopenms.OSSpectrum();s.set_mz_array(d.tolist()); rr= numpy.sum(d)'  \
+  'q = s.get_mz_array(); assert numpy.sum(q) == rr'
   50 loops, best of 3: 6.19 msec per loop -- version 2.7.0
   2000 loops, best of 3: 111 usec per loop
 
-  'q = s.getMZArray_mv(); assert numpy.sum(q) == rr'
+  'q = s.get_mz_array_mv(); assert numpy.sum(q) == rr'
   10000 loops, best of 3: 32.6 usec per loop
 
-  'q = s.getMZArray_mv(); res = q[0] + q[-1]'
+  'q = s.get_mz_array_mv(); res = q[0] + q[-1]'
   200000 loops, best of 3: 994 nsec per loop
 
-  'arr = s.getDataArrays(); assert numpy.sum(arr[0].getData_mv()) == rr'
+  'arr = s.get_data_arrays(); assert numpy.sum(arr[0].get_data_mv()) == rr'
   10000 loops, best of 3: 32.7 usec per loop
 
-  'arr = s.getDataArrays(); tmp = arr[0].getData_mv(); res = tmp[0] + tmp[-1]'
+  'arr = s.get_data_arrays(); tmp = arr[0].get_data_mv(); res = tmp[0] + tmp[-1]'
   200000 loops, best of 3: 1.16 usec per loop
 
 
