@@ -1,14 +1,9 @@
 import unittest
-import os
 
 import numpy as np
 import pyopenms
 
 class TestMSSpectrum(unittest.TestCase):
-
-    def setUp(self):
-        dirname = os.path.dirname(os.path.abspath(__file__))
-
 
     def testMSSpectrum(self):
         spec = pyopenms.MSSpectrum()
