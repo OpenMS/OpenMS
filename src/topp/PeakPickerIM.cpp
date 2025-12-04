@@ -94,7 +94,7 @@ protected:
   };
 
   // -------------------- Format detection consumer (reads first spectrum only) --------------------
-  class FormatDetector : public Interfaces::IMSDataConsumer<PeakMap>
+  class FormatDetector : public Interfaces::IMSDataConsumer
   {
   public:
     IMFormat detected_format = IMFormat::NONE;
@@ -102,14 +102,14 @@ protected:
     // Exception to abort after first spectrum (efficient early exit)
     struct FirstSpectrumRead : std::exception {};
 
-    void consumeSpectrum(PeakMap::SpectrumType& s) override
+    void consumeSpectrum(SpectrumType& s) override
     {
       detected_format = IMTypes::determineIMFormat(s);
       throw FirstSpectrumRead(); // Abort after reading first spectrum
     }
-    void consumeChromatogram(PeakMap::ChromatogramType&) override {}
+    void consumeChromatogram(ChromatogramType&) override {}
     void setExperimentalSettings(const ExperimentalSettings&) override {}
-    void setExpectedSize(Size, Size) override {}
+    void setExpectedSize(size_t, size_t) override {}
   };
 
   // -------------------- Passthrough consumer (copies without processing) --------------------
@@ -228,7 +228,7 @@ protected:
       }
 
       // Annotate processing info (same as low-memory path)
-      exp.addDataProcessing(getProcessingInfo_(DataProcessing::PEAK_PICKING));
+      addDataProcessing_(exp, getProcessingInfo_(DataProcessing::PEAK_PICKING));
 
       mzml.store(output_file, exp);
       return EXECUTION_OK;
