@@ -254,6 +254,45 @@ std::vector<double> FLASHDeconvAlgorithm::getTolerances() const
   return tols_;
 }
 
+int FLASHDeconvAlgorithm::findPrecursorScanNumber_(const MSExperiment& map, Size index, uint ms_level) const
+{
+  for (int p_index = (int)index - 1; p_index >= 0; p_index--)
+  {
+    if (map[p_index].getMSLevel() == ms_level - 1) { return getScanNumber(map, p_index); }
+  }
+  return -1;
+}
+
+void FLASHDeconvAlgorithm::appendDecoyPeakGroups_(DeconvolvedSpectrum& deconvolved_spectrum,
+                                                  const MSSpectrum& spec,
+                                                  int scan_number,
+                                                  const PeakGroup& precursor_pg)
+{
+#pragma omp parallel sections default(none) shared(spec, scan_number, precursor_pg, deconvolved_spectrum)
+  {
+#pragma omp section
+    sd_noise_decoy_.performSpectrumDeconvolution(spec, scan_number, precursor_pg);
+#pragma omp section
+    sd_signal_decoy_.performSpectrumDeconvolution(spec, scan_number, precursor_pg);
+  }
+  deconvolved_spectrum.sortByQscore();
+
+  deconvolved_spectrum.reserve(deconvolved_spectrum.size() + sd_signal_decoy_.getDeconvolvedSpectrum().size()
+                               + sd_noise_decoy_.getDeconvolvedSpectrum().size());
+
+  for (const auto& pg : sd_signal_decoy_.getDeconvolvedSpectrum())
+  {
+    deconvolved_spectrum.push_back(pg);
+  }
+
+  for (const auto& pg : sd_noise_decoy_.getDeconvolvedSpectrum())
+  {
+    deconvolved_spectrum.push_back(pg);
+  }
+
+  deconvolved_spectrum.sort();
+}
+
 void FLASHDeconvAlgorithm::runSpectralDeconvolution_(MSExperiment& map, std::vector<DeconvolvedSpectrum>& deconvolved_spectra)
 {
   startProgress(0, (SignedSize)map.size(), "running FLASHDeconv");
@@ -266,80 +305,46 @@ void FLASHDeconvAlgorithm::runSpectralDeconvolution_(MSExperiment& map, std::vec
 
   for (uint ms_level = 1; ms_level <= current_max_ms_level_; ms_level++)
   {
-    if (ms_level > 1)
-    {
-      // here, register precursor peak groups to the ms2 spectra.
-      findPrecursorPeakGroupsForMSnSpectra_(map, deconvolved_spectra, ms_level);
-    }
+    if (ms_level > 1) { findPrecursorPeakGroupsForMSnSpectra_(map, deconvolved_spectra, ms_level); }
+
     if (merge_spec_ > 0)
     {
       mergeSpectra_(map, ms_level);
-      // repeat precursor peak group registration for merged/averaged spectra
-      if (ms_level > 1 && merge_spec_ > 0)
-      {
-        // here, register precursor peak groups to the ms2 spectra.
-        findPrecursorPeakGroupsForMSnSpectra_(map, deconvolved_spectra, ms_level);
-      }
+      if (ms_level > 1) { findPrecursorPeakGroupsForMSnSpectra_(map, deconvolved_spectra, ms_level); }
     }
 
-    // run Spectral deconvolution
     for (Size index = 0; index < map.size(); index++)
     {
-      int scan_number = merge_spec_ == 0? getScanNumber(map, index) :
-                                         (rt_scan_map.find(map[index].getRT()) == rt_scan_map.end()? getScanNumber(map, index) :
-                                                                                                    rt_scan_map[map[index].getRT()]);//getScanNumber(map, index);
+      int scan_number = merge_spec_ == 0 ? getScanNumber(map, index) :
+                        (rt_scan_map.find(map[index].getRT()) == rt_scan_map.end() ? getScanNumber(map, index) :
+                                                                                     rt_scan_map[map[index].getRT()]);
       const auto& spec = map[index];
 
       if (ms_level != spec.getMSLevel()) { continue; }
-
       nextProgress();
       if (spec.empty()) { continue; }
-      String native_id = spec.getNativeID();
 
+      String native_id = spec.getNativeID();
       PeakGroup precursor_pg;
       if (native_id_precursor_peak_group_map_.find(native_id) != native_id_precursor_peak_group_map_.end())
+      {
         precursor_pg = native_id_precursor_peak_group_map_[native_id];
+      }
 
-      // now do it
       sd_.performSpectrumDeconvolution(spec, scan_number, precursor_pg);
-
       auto& deconvolved_spectrum = sd_.getDeconvolvedSpectrum();
 
-      // add precursor scan number information when a precursor peak group is not found
       if (ms_level > 1 && precursor_pg.empty())
       {
-        for (int p_index = (int)index - 1; p_index >= 0; p_index--)
-        {
-          if(map[p_index].getMSLevel() == ms_level - 1)
-          {
-            deconvolved_spectrum.setPrecursorScanNumber(getScanNumber(map, p_index));
-            break;
-          }
-        }
+        int precursor_scan = findPrecursorScanNumber_(map, index, ms_level);
+        if (precursor_scan >= 0) { deconvolved_spectrum.setPrecursorScanNumber(precursor_scan); }
       }
 
       if (report_decoy_ && !deconvolved_spectrum.empty())
       {
-#pragma omp parallel sections default(none) shared(spec, scan_number, precursor_pg, deconvolved_spectrum)
-        {
-#pragma omp section
-          sd_noise_decoy_.performSpectrumDeconvolution(spec, scan_number, precursor_pg);
-#pragma omp section
-          sd_signal_decoy_.performSpectrumDeconvolution(spec, scan_number, precursor_pg);
-        }
-        deconvolved_spectrum.sortByQscore();
-
-        deconvolved_spectrum.reserve(deconvolved_spectrum.size() + sd_signal_decoy_.getDeconvolvedSpectrum().size()
-                                     + sd_noise_decoy_.getDeconvolvedSpectrum().size());
-
-        for (const auto& pg : sd_signal_decoy_.getDeconvolvedSpectrum())
-            deconvolved_spectrum.push_back(pg);
-
-        for (const auto& pg : sd_noise_decoy_.getDeconvolvedSpectrum())
-            deconvolved_spectrum.push_back(pg);
-
-        deconvolved_spectrum.sort();
+        appendDecoyPeakGroups_(deconvolved_spectrum, spec, scan_number, precursor_pg);
       }
+
       deconvolved_spectra.push_back(deconvolved_spectrum);
     }
     std::sort(deconvolved_spectra.begin(), deconvolved_spectra.end());

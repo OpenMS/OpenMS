@@ -132,6 +132,12 @@ namespace OpenMS
     /// run spectral deconvolution
     void runSpectralDeconvolution_(MSExperiment& map, std::vector<DeconvolvedSpectrum>& deconvolved_spectra);
 
+    /// find precursor scan number when peak group is not found
+    int findPrecursorScanNumber_(const MSExperiment& map, Size index, uint ms_level) const;
+
+    /// append decoy peak groups to deconvolved spectrum
+    void appendDecoyPeakGroups_(DeconvolvedSpectrum& deconvolved_spectrum, const MSSpectrum& spec, int scan_number, const PeakGroup& precursor_pg);
+
     /// run feature finding to get deconvolved features
     void runFeatureFinding_(std::vector<DeconvolvedSpectrum>& deconvolved_spectra, std::vector<FLASHHelperClasses::MassFeature>& deconvolved_features);
 
