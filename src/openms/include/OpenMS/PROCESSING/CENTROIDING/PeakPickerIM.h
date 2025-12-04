@@ -114,6 +114,7 @@ namespace OpenMS
      * By default, this function assumes the tolerance provided is in parts per million.
      * But it can be adjusted to use absolute value tolerance.
      * @param input_spectrum Sorted raw spectrum with duplicate peaks due to scan merging or presence of ion mobility data.
+     * @param output_spectrum Output spectrum containing the summed peaks.
      * @param tolerance Mass tolerance between peaks
      * @param use_ppm Whether to use parts per million tolerance. If set to False, absolute tolerance will be used.
      */
