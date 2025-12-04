@@ -134,7 +134,6 @@ input.setIMFormat(IMFormat::CONCATENATED);
 START_SECTION(void pickIMTraces(MSSpectrum& spectrum))
 {
     PeakPickerIM pp_im;
-    Param param = pp_im.getDefaults();
     
     pp_im.pickIMTraces(input);
 
