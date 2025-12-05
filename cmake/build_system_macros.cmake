@@ -11,6 +11,10 @@
 option(BOOST_USE_STATIC "Use Boost static libraries." ON)
 
 #------------------------------------------------------------------------------
+## export a single option indicating if Arrow/Parquet static libs should be preferred
+option(ARROW_USE_STATIC "Use Arrow/Parquet static libraries." ON)
+
+#------------------------------------------------------------------------------
 ## Wraps the common find boost code into a single call
 ## @param .. simply add all required components to the call
 ## @note This macro will define BOOST_MOC_ARGS that should be added to all moc
