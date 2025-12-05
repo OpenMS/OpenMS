@@ -13,7 +13,7 @@
         Return a string representation of the IsotopeDistribution object.
 
         Returns key properties in a readable format:
-        IsotopeDistribution(num_isotopes=5, mass_range=[100.0, 105.0], most_abundant=100.5)
+        IsotopeDistribution(num_isotopes=5, mass_range=[100.00, 105.00], most_abundant_mass=102.0500)
         """
         num_isotopes = self.size()
 
