@@ -56,6 +56,12 @@ TOPP tools:
       - show load/store progress for files in all TOPP tools (#8041)
     IonMobilityBinning:
       - Detect FAIMS data automatically and split output per FAIMS compensation voltage (CV)
+    FLASHDeconv:
+      - Major update with improved scoring, FDR estimation, and isobaric quantification support (#8257)
+      - Automatic mass tolerance estimation from data
+      - Per-MS-level deconvolved spectrum outputs
+      - TopFD version 1.7 compatible feature and TSV export formats
+      - Improved precursor mass assignment for MSn spectra
   Added Tools:
     - OpenNuXL - A peptide-RNA/DNA cross-linking search engine
     - PeptideDataBaseSearchFI - Experimental peptide database search engine using a fragment index (FI) and the new PeptideSearchEngineFIAlgorithm
