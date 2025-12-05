@@ -26,3 +26,7 @@
         cdef shared_ptr[_String] _s = convString(value)
         deref(self.inst.get())[(<int>key)] = deref(_s.get())
 
+    def __len__(self):
+        """Return the number of elements in the array."""
+        return self.inst.get().size()
+

@@ -72,3 +72,7 @@
         for i in range(N):
             ida_.push_back(data[i])
 
+    def __len__(self):
+        """Return the number of elements in the array."""
+        return self.inst.get().size()
+

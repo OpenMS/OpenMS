@@ -78,7 +78,7 @@ import numpy as np
         ion_annotations = np.full(cnt, '', dtype='U1')
         for sda in self.getStringDataArrays():
             if sda.getName() == 'IonNames':
-                if sda.size() == cnt:
+                if len(sda) == cnt:
                     annotations = [s for s in sda]
                     max_len = max((len(s) for s in annotations), default=1)
                     ion_annotations = np.array(annotations, dtype=f'U{max_len}')
