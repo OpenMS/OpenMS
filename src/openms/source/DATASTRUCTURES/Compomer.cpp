@@ -295,7 +295,7 @@ namespace OpenMS
   {
     if (side >= BOTH)
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Compomer::getMaxMolMultiplier() does not support this value for 'side'!", String(side));
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Compomer::getMaxMolMultiplier() only supports 'side' values LEFT (0) or RIGHT (1), not: ", String(side));
     }
     UInt max_multiplier = 1;
     for (CompomerSide::const_iterator it = this->cmp_[side].begin(); it != this->cmp_[side].end(); ++it)
