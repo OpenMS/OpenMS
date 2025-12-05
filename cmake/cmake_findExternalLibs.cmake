@@ -167,17 +167,29 @@ endif()
    find_package(Arrow CONFIG REQUIRED)
    find_package(Parquet CONFIG REQUIRED)
    
-   # Determine if Arrow was built as static or shared and set appropriate targets
-   if(TARGET Arrow::arrow_static)
+   # Option to prefer static Arrow/Parquet libraries (similar to BOOST_USE_STATIC)
+   option(ARROW_USE_STATIC "Use Arrow/Parquet static libraries." ON)
+   
+   # Determine Arrow target based on ARROW_USE_STATIC preference
+   if(ARROW_USE_STATIC AND TARGET Arrow::arrow_static)
+     set(OPENMS_ARROW_TARGET Arrow::arrow_static)
+   elseif(TARGET Arrow::arrow_shared)
+     set(OPENMS_ARROW_TARGET Arrow::arrow_shared)
+   elseif(TARGET Arrow::arrow_static)
      set(OPENMS_ARROW_TARGET Arrow::arrow_static)
    else()
-     set(OPENMS_ARROW_TARGET Arrow::arrow_shared)
+     message(FATAL_ERROR "No suitable Arrow target found")
    endif()
    
-   if(TARGET Parquet::parquet_static)
+   # Determine Parquet target based on ARROW_USE_STATIC preference
+   if(ARROW_USE_STATIC AND TARGET Parquet::parquet_static)
+     set(OPENMS_PARQUET_TARGET Parquet::parquet_static)
+   elseif(TARGET Parquet::parquet_shared)
+     set(OPENMS_PARQUET_TARGET Parquet::parquet_shared)
+   elseif(TARGET Parquet::parquet_static)
      set(OPENMS_PARQUET_TARGET Parquet::parquet_static)
    else()
-     set(OPENMS_PARQUET_TARGET Parquet::parquet_shared)
+     message(FATAL_ERROR "No suitable Parquet target found")
    endif()
    
    message(STATUS "Using Arrow target: ${OPENMS_ARROW_TARGET}")
