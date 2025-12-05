@@ -54,6 +54,7 @@ class _MSSpectrumDF(_MSSpectrum):
                 - ion_mobility_unit: ion mobility unit string
                 - precursor_mz: precursor m/z (if MS2+, NaN otherwise)
                 - precursor_charge: precursor charge (if MS2+, 0 otherwise)
+                - ion_annotation: ion annotation strings (from StringDataArray named 'IonNames')
                 - Additional columns for each meta value (if export_meta_values=True)
         """
         data_dict = self.get_data_dict(export_meta_values=export_meta_values)

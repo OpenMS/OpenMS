@@ -113,6 +113,37 @@ class TestMSSpectrumDataDict(unittest.TestCase):
         self.assertTrue(np.isnan(data["ion_mobility"][0]))
         self.assertEqual(data["ion_mobility_unit"][0], "")
 
+    def test_ion_annotations(self):
+        """Test get_data_dict with ion annotations from StringDataArray."""
+        spec = pyopenms.MSSpectrum()
+        spec.set_peaks(([100.0, 200.0, 300.0], [1000.0, 2000.0, 3000.0]))
+
+        # Add ion annotations via StringDataArray
+        sda = pyopenms.StringDataArray()
+        sda.setName("IonNames")
+        sda.push_back("y1")
+        sda.push_back("b2")
+        sda.push_back("y3-H2O")
+        spec.setStringDataArrays([sda])
+
+        data = spec.get_data_dict()
+        self.assertIn("ion_annotation", data)
+        self.assertEqual(len(data["ion_annotation"]), 3)
+        self.assertEqual(data["ion_annotation"][0], "y1")
+        self.assertEqual(data["ion_annotation"][1], "b2")
+        self.assertEqual(data["ion_annotation"][2], "y3-H2O")
+
+    def test_no_ion_annotations(self):
+        """Test get_data_dict when no ion annotations are present."""
+        spec = pyopenms.MSSpectrum()
+        spec.set_peaks(([100.0, 200.0], [1000.0, 2000.0]))
+
+        data = spec.get_data_dict()
+        self.assertIn("ion_annotation", data)
+        self.assertEqual(len(data["ion_annotation"]), 2)
+        self.assertEqual(data["ion_annotation"][0], "")
+        self.assertEqual(data["ion_annotation"][1], "")
+
 
 class TestMSSpectrumGetDF(unittest.TestCase):
     """Tests for MSSpectrum.get_df() method (pandas DataFrame export)."""

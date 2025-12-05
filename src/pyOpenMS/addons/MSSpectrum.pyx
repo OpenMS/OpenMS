@@ -24,6 +24,7 @@ import numpy as _np
                 - 'ion_mobility_unit': numpy array of ion mobility unit strings
                 - 'precursor_mz': numpy array of precursor m/z values
                 - 'precursor_charge': numpy array of precursor charge values
+                - 'ion_annotation': numpy array of ion annotation strings (from StringDataArray named 'IonNames')
                 - Additional keys for each meta value (if export_meta_values=True)
         """
         # Get peak data using existing optimized method
@@ -70,6 +71,17 @@ import numpy as _np
         else:
             data_dict['precursor_mz'] = _np.full(cnt, _np.nan, dtype=_np.float64)
             data_dict['precursor_charge'] = _np.full(cnt, 0, dtype=_np.int16)
+
+        # Ion annotations from StringDataArray named 'IonNames'
+        ion_annotations = _np.full(cnt, '', dtype='U1')
+        for sda in self.getStringDataArrays():
+            if sda.getName() == 'IonNames':
+                if len(sda) == cnt:
+                    annotations = [s for s in sda]
+                    max_len = max((len(s) for s in annotations), default=1)
+                    ion_annotations = _np.array(annotations, dtype=f'U{max_len}')
+                break
+        data_dict['ion_annotation'] = ion_annotations
 
         # Metadata Handling - use Python type introspection
         if export_meta_values:
