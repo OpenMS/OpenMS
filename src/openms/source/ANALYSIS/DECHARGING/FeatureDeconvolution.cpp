@@ -153,7 +153,7 @@ namespace OpenMS
       it->split(':', adduct);
       if (adduct.size() != 3 && adduct.size() != 4 && adduct.size() != 5)
       {
-        String error = "FeatureDeconvolution::potential_adducts (" + (*it) + ") does not have three, four or five entries ('Elements:Charge:Probability' or 'Elements:Charge:Probability:RTShift' or 'Elements:Charge:Probability:RTShift:Label'), but " + String(adduct.size()) + " entries!";
+        String error = "FeatureDeconvolution::potential_adducts (" + (*it) + ") does not have three, four or five entries ('Elements:Charge:Probability' or 'Elements:Charge:Probability:RTShift' or 'Elements:Charge:Probability:RTShift:Label'). Multimer-style entries with a molecular multiplier are unsupported because the mass contribution depends on the underlying analyte, but " + String(adduct.size()) + " entries were provided.";
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, error);
       }
       // determine probability

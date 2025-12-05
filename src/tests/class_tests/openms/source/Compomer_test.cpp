@@ -319,51 +319,71 @@ START_SECTION((String getAdductsAsString() const))
 }
 END_SECTION
 
-START_SECTION((String getAdductsAsString(UInt side) const))
+  START_SECTION((String getAdductsAsString(UInt side) const))
+  {
+    Adduct a1(1, 2, 123.456f, "NH4", -0.3453f, 0);
+    Adduct a2(1, -1, 1.007, "H1", -0.13, 0);
+    Compomer c;
+    c.add(a1, Compomer::RIGHT);
+    c.add(a2, Compomer::RIGHT);
+    TEST_EQUAL(c.getAdductsAsString(Compomer::LEFT), "");
+    TEST_EQUAL(c.getAdductsAsString(Compomer::RIGHT), "H-1H8N2");
+    c.add(a1, Compomer::LEFT);
+    TEST_EQUAL(c.getAdductsAsString(Compomer::LEFT), "H8N2");
+    TEST_EQUAL(c.getAdductsAsString(Compomer::RIGHT), "H-1H8N2");
+  }
+  END_SECTION
+
+  START_SECTION((const CompomerComponents& getComponent() const))
+  {
+    Adduct a1(1, 2, 123.456f, "NH4", -0.3453f, 0);
+    Adduct a2(1, -1, 1.007, "H1", -0.13, 0);
+    Compomer c;
+    Compomer::CompomerComponents comp(2);
+    TEST_EQUAL(c.getComponent()==comp, true);
+
+    c.add(a1, Compomer::RIGHT);
+    c.add(a2, Compomer::RIGHT);
+    c.add(a1, Compomer::LEFT);
+    comp[Compomer::RIGHT][a1.getFormula()] = a1;
+    comp[Compomer::RIGHT][a2.getFormula()] = a2;
+    comp[Compomer::LEFT][a1.getFormula()] = a1;
+    TEST_EQUAL(c.getComponent()==comp, true);
+  }
+  END_SECTION
+
+START_SECTION((UInt getMaxMolMultiplier(const UInt side) const))
 {
-  Adduct a1(1, 2, 123.456f, "NH4", -0.3453f, 0);
-	Adduct a2(1, -1, 1.007, "H1", -0.13, 0);
-	Compomer c;
-	c.add(a1, Compomer::RIGHT);
-	c.add(a2, Compomer::RIGHT);
-	TEST_EQUAL(c.getAdductsAsString(Compomer::LEFT), "");
-	TEST_EQUAL(c.getAdductsAsString(Compomer::RIGHT), "H-1H8N2");
-	c.add(a1, Compomer::LEFT);
-	TEST_EQUAL(c.getAdductsAsString(Compomer::LEFT), "H8N2");
-	TEST_EQUAL(c.getAdductsAsString(Compomer::RIGHT), "H-1H8N2");
+  // empty compomer defaults to multiplier 1 for both sides
+  Compomer c;
+  TEST_EQUAL(c.getMaxMolMultiplier(Compomer::LEFT), 1);
+  TEST_EQUAL(c.getMaxMolMultiplier(Compomer::RIGHT), 1);
+
+  // add multimer adducts on the right and ensure maximum is detected
+  Adduct dimer(1, 1, 1.007, "H1", -0.1, 0, "", 2);
+  Adduct trimer(1, 1, 22.990, "Na1", -0.2, 0, "", 3);
+  c.add(dimer, Compomer::RIGHT);
+  TEST_EQUAL(c.getMaxMolMultiplier(Compomer::RIGHT), 2);
+  c.add(trimer, Compomer::RIGHT);
+  TEST_EQUAL(c.getMaxMolMultiplier(Compomer::RIGHT), 3);
+
+  // invalid side should throw
+  TEST_EXCEPTION(Exception::InvalidValue, c.getMaxMolMultiplier(Compomer::BOTH));
 }
 END_SECTION
 
-START_SECTION((const CompomerComponents& getComponent() const))
-{
-  Adduct a1(1, 2, 123.456f, "NH4", -0.3453f, 0);
-	Adduct a2(1, -1, 1.007, "H1", -0.13, 0);
-	Compomer c;
-	Compomer::CompomerComponents comp(2);
-	TEST_EQUAL(c.getComponent()==comp, true);
-
-	c.add(a1, Compomer::RIGHT);
-	c.add(a2, Compomer::RIGHT);
-	c.add(a1, Compomer::LEFT);
-	comp[Compomer::RIGHT][a1.getFormula()] = a1;
-	comp[Compomer::RIGHT][a2.getFormula()] = a2;
-	comp[Compomer::LEFT][a1.getFormula()] = a1;
-	TEST_EQUAL(c.getComponent()==comp, true);
-}
-END_SECTION
-
-START_SECTION((Compomer removeAdduct(const Adduct& a) const))
-{
-  Adduct a1(1, 2, 123.456, "NH4", -0.3453, 0);
-	Adduct a2(1, -1, 1.007, "H1", -0.13, 0);
-	Compomer c;
-	c.add(a1, Compomer::RIGHT);
-	c.add(a2, Compomer::RIGHT);
-	c.add(a1, Compomer::LEFT);
-	Compomer tmp = c.removeAdduct(a1);
-	TEST_EQUAL(tmp.getAdductsAsString(), "() --> (H-1)");
-}
-END_SECTION
+  START_SECTION((Compomer removeAdduct(const Adduct& a) const))
+  {
+    Adduct a1(1, 2, 123.456, "NH4", -0.3453, 0);
+    Adduct a2(1, -1, 1.007, "H1", -0.13, 0);
+    Compomer c;
+    c.add(a1, Compomer::RIGHT);
+    c.add(a2, Compomer::RIGHT);
+    c.add(a1, Compomer::LEFT);
+    Compomer tmp = c.removeAdduct(a1);
+    TEST_EQUAL(tmp.getAdductsAsString(), "() --> (H-1)");
+  }
+  END_SECTION
 
 START_SECTION((Compomer removeAdduct(const Adduct& a, const UInt side) const))
 {
