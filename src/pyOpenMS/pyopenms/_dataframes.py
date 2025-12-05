@@ -16,11 +16,58 @@ from . import MSSpectrum as _MSSpectrum
 from . import PeakSpectrum as _PeakSpectrum
 from . import MSChromatogram as _MSChromatogram
 from . import MRMTransitionGroupCP as _MRMTransitionGroupCP
-from . import DataValue as _DataValue 
+from . import DataValue as _DataValue
 
 import pandas as _pd
 import numpy as _np
 from enum import Enum as _Enum
+
+
+class _MSSpectrumDF(_MSSpectrum):
+    """MSSpectrum with DataFrame export capabilities.
+
+    This class extends MSSpectrum with a get_df() method that converts
+    spectrum data to a pandas DataFrame.
+    """
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def get_df(self, export_meta_values: bool = True) -> _pd.DataFrame:
+        """Returns a pandas DataFrame representation of the MSSpectrum.
+
+        This method converts the spectrum data (peaks, metadata, precursor info,
+        ion mobility) into a pandas DataFrame format.
+
+        Args:
+            export_meta_values (bool): Whether to include meta values in the
+                                       DataFrame. Defaults to True.
+
+        Returns:
+            pd.DataFrame: DataFrame containing the following columns:
+                - mz: m/z values of peaks
+                - intensity: intensity values of peaks
+                - rt: retention time (replicated for each peak)
+                - ms_level: MS level (replicated for each peak)
+                - native_id: native spectrum identifier
+                - ion_mobility: ion mobility values (if present, NaN otherwise)
+                - ion_mobility_unit: ion mobility unit string
+                - precursor_mz: precursor m/z (if MS2+, NaN otherwise)
+                - precursor_charge: precursor charge (if MS2+, 0 otherwise)
+                - Additional columns for each meta value (if export_meta_values=True)
+        """
+        data_dict = self.get_data_dict(export_meta_values=export_meta_values)
+        return _pd.DataFrame(data_dict)
+
+
+# Fix class module and name to show up correctly in documentation
+MSSpectrum = _MSSpectrumDF
+MSSpectrum.__module__ = _MSSpectrum.__module__
+MSSpectrum.__name__ = 'MSSpectrum'
+
+PeakSpectrum = _MSSpectrumDF
+PeakSpectrum.__module__ = _PeakSpectrum.__module__
+PeakSpectrum.__name__ = 'PeakSpectrum'
+
 
 class _ConsensusMapDF(_ConsensusMap):
     def __init__(self, *args, **kwargs):
