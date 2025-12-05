@@ -1,4 +1,6 @@
-import numpy as _np
+cimport numpy as np
+import numpy as np
+
 
 
 
@@ -28,17 +30,17 @@ import numpy as _np
                 - Additional keys for each meta value (if export_meta_values=True)
         """
         # Get peak data using existing optimized method
-        cdef _np.ndarray[_np.float64_t, ndim=1] mzs
-        cdef _np.ndarray[_np.float32_t, ndim=1] intensities
+        cdef np.ndarray[np.float64_t, ndim=1] mzs
+        cdef np.ndarray[np.float32_t, ndim=1] intensities
         mzs, intensities = self.get_peaks()
 
         cnt = len(mzs)
         data_dict = {
             'mz': mzs,
             'intensity': intensities,
-            'rt': _np.full(cnt, self.getRT(), dtype=_np.float64),
-            'ms_level': _np.full(cnt, self.getMSLevel(), dtype=_np.uint16),
-            'native_id': _np.full(cnt, self.getNativeID(), dtype='U100')
+            'rt': np.full(cnt, self.getRT(), dtype=np.float64),
+            'ms_level': np.full(cnt, self.getMSLevel(), dtype=np.uint16),
+            'native_id': np.full(cnt, self.getNativeID(), dtype='U100')
         }
 
         # Ion mobility handling
@@ -46,40 +48,40 @@ import numpy as _np
             im_index, drift_time_unit = self.getIMData()
             im_arrays = self.getFloatDataArrays()
 
-            if im_index >= 0 and im_index < im_arrays.size():
-                data_dict['ion_mobility'] = _np.array(
+            if im_index >= 0 and im_index < len(im_arrays):
+                data_dict['ion_mobility'] = np.array(
                     [im_arrays[im_index][i] for i in range(cnt)],
-                    dtype=_np.float64
+                    dtype=np.float64
                 )
             else:
-                data_dict['ion_mobility'] = _np.full(cnt, _np.nan, dtype=_np.float64)
-            data_dict['ion_mobility_unit'] = _np.full(
+                data_dict['ion_mobility'] = np.full(cnt, np.nan, dtype=np.float64)
+            data_dict['ion_mobility_unit'] = np.full(
                 cnt,
                 self.getDriftTimeUnitAsString(),
                 dtype='U50'
             )
         else:
-            data_dict['ion_mobility'] = _np.full(cnt, _np.nan, dtype=_np.float64)
-            data_dict['ion_mobility_unit'] = _np.full(cnt, '', dtype='U1')
+            data_dict['ion_mobility'] = np.full(cnt, np.nan, dtype=np.float64)
+            data_dict['ion_mobility_unit'] = np.full(cnt, '', dtype='U1')
 
         # Precursor Info
         precursors = self.getPrecursors()
-        if precursors.size() > 0:
+        if len(precursors) > 0:
             precursor = precursors[0]
-            data_dict['precursor_mz'] = _np.full(cnt, precursor.getMZ(), dtype=_np.float64)
-            data_dict['precursor_charge'] = _np.full(cnt, precursor.getCharge(), dtype=_np.int16)
+            data_dict['precursor_mz'] = np.full(cnt, precursor.getMZ(), dtype=np.float64)
+            data_dict['precursor_charge'] = np.full(cnt, precursor.getCharge(), dtype=np.int16)
         else:
-            data_dict['precursor_mz'] = _np.full(cnt, _np.nan, dtype=_np.float64)
-            data_dict['precursor_charge'] = _np.full(cnt, 0, dtype=_np.int16)
+            data_dict['precursor_mz'] = np.full(cnt, np.nan, dtype=np.float64)
+            data_dict['precursor_charge'] = np.full(cnt, 0, dtype=np.int16)
 
         # Ion annotations from StringDataArray named 'IonNames'
-        ion_annotations = _np.full(cnt, '', dtype='U1')
+        ion_annotations = np.full(cnt, '', dtype='U1')
         for sda in self.getStringDataArrays():
             if sda.getName() == 'IonNames':
-                if len(sda) == cnt:
+                if sda.size() == cnt:
                     annotations = [s for s in sda]
                     max_len = max((len(s) for s in annotations), default=1)
-                    ion_annotations = _np.array(annotations, dtype=f'U{max_len}')
+                    ion_annotations = np.array(annotations, dtype=f'U{max_len}')
                 break
         data_dict['ion_annotation'] = ion_annotations
 
@@ -95,19 +97,20 @@ import numpy as _np
                 k_str = k.decode() if isinstance(k, bytes) else k
 
                 try:
-                    if isinstance(v, int):
-                        data_dict[k_str] = _np.full(cnt, v, dtype=_np.int64)
+                    # Check bool before int since bool is subclass of int in Python
+                    if type(v) is type(True):
+                        data_dict[k_str] = np.full(cnt, v, dtype=np.bool_)
+                    elif isinstance(v, int):
+                        data_dict[k_str] = np.full(cnt, v, dtype=np.int64)
                     elif isinstance(v, float):
-                        data_dict[k_str] = _np.full(cnt, v, dtype=_np.float64)
+                        data_dict[k_str] = np.full(cnt, v, dtype=np.float64)
                     elif isinstance(v, str):
-                        data_dict[k_str] = _np.full(cnt, v, dtype=f"U{max(len(v), 1)}")
-                    elif isinstance(v, bool):
-                        data_dict[k_str] = _np.full(cnt, v, dtype=bool)
+                        data_dict[k_str] = np.full(cnt, v, dtype=f"U{max(len(v), 1)}")
                     else:
                         # Fallback for other types
-                        data_dict[k_str] = _np.full(cnt, str(v), dtype='object')
+                        data_dict[k_str] = np.full(cnt, str(v), dtype='object')
                 except Exception:
-                    data_dict[k_str] = _np.full(cnt, str(v), dtype='object')
+                    data_dict[k_str] = np.full(cnt, str(v), dtype='object')
 
         return data_dict
 
@@ -123,8 +126,8 @@ import numpy as _np
         cdef _MSSpectrum * spec_ = self.inst.get()
 
         cdef unsigned int n = spec_.size()
-        cdef _np.ndarray[_np.float64_t, ndim=1] mzs
-        mzs = _np.empty( (n,), dtype=_np.float64)
+        cdef np.ndarray[np.float64_t, ndim=1] mzs
+        mzs = np.empty( (n,), dtype=np.float64)
         cdef _Peak1D p
 
         cdef libcpp_vector[_Peak1D].iterator it = spec_.begin()
@@ -147,8 +150,8 @@ import numpy as _np
         cdef _MSSpectrum * spec_ = self.inst.get()
 
         cdef unsigned int n = spec_.size()
-        cdef _np.ndarray[_np.float32_t, ndim=1] intensities
-        intensities = _np.empty( (n,), dtype=_np.float32)
+        cdef np.ndarray[np.float32_t, ndim=1] intensities
+        intensities = np.empty( (n,), dtype=np.float32)
         cdef _Peak1D p
 
         cdef libcpp_vector[_Peak1D].iterator it = spec_.begin()
@@ -170,10 +173,10 @@ import numpy as _np
         cdef _MSSpectrum * spec_ = self.inst.get()
 
         cdef unsigned int n = spec_.size()
-        cdef _np.ndarray[_np.float64_t, ndim=1] mzs
-        mzs = _np.empty( (n,), dtype=_np.float64)
-        cdef _np.ndarray[_np.float32_t, ndim=1] intensities
-        intensities = _np.empty( (n,), dtype=_np.float32)
+        cdef np.ndarray[np.float64_t, ndim=1] mzs
+        mzs = np.empty( (n,), dtype=np.float64)
+        cdef np.ndarray[np.float32_t, ndim=1] intensities
+        intensities = np.empty( (n,), dtype=np.float32)
         cdef _Peak1D p
 
         cdef libcpp_vector[_Peak1D].iterator it = spec_.begin()
@@ -201,12 +204,12 @@ import numpy as _np
 
         # Select which function to use for set_peaks:
         # If we have numpy arrays, it helps to use optimized functions
-        if isinstance(mzs, _np.ndarray) and isinstance(intensities, _np.ndarray) and \
-          mzs.dtype == _np.float64 and intensities.dtype == _np.float32 and \
+        if isinstance(mzs, np.ndarray) and isinstance(intensities, np.ndarray) and \
+          mzs.dtype == np.float64 and intensities.dtype == np.float32 and \
           mzs.flags["C_CONTIGUOUS"] and intensities.flags["C_CONTIGUOUS"]  :
             self._set_peaks_fast_df(mzs, intensities)
-        elif isinstance(mzs, _np.ndarray) and isinstance(intensities, _np.ndarray) and \
-          mzs.dtype == _np.float64 and intensities.dtype == _np.float64 and \
+        elif isinstance(mzs, np.ndarray) and isinstance(intensities, np.ndarray) and \
+          mzs.dtype == np.float64 and intensities.dtype == np.float64 and \
           mzs.flags["C_CONTIGUOUS"] and intensities.flags["C_CONTIGUOUS"]  :
             self._set_peaks_fast_dd(mzs, intensities)
         else:
@@ -214,7 +217,7 @@ import numpy as _np
 
 
 
-    def _set_peaks_fast_dd(self, _np.ndarray[double, ndim=1, mode="c"] data_mz not None, _np.ndarray[double, ndim=1, mode="c"] data_i not None):
+    def _set_peaks_fast_dd(self, np.ndarray[double, ndim=1, mode="c"] data_mz not None, np.ndarray[double, ndim=1, mode="c"] data_i not None):
 
         cdef _MSSpectrum * spec_ = self.inst.get()
 
@@ -236,7 +239,7 @@ import numpy as _np
         spec_.updateRanges()
 
 
-    def _set_peaks_fast_df(self, _np.ndarray[double, ndim=1, mode="c"] data_mz not None, _np.ndarray[float, ndim=1, mode="c"] data_i not None):
+    def _set_peaks_fast_df(self, np.ndarray[double, ndim=1, mode="c"] data_mz not None, np.ndarray[float, ndim=1, mode="c"] data_i not None):
 
         cdef _MSSpectrum * spec_ = self.inst.get()
 

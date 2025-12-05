@@ -42,7 +42,8 @@ class TestMSSpectrumDataDict(unittest.TestCase):
 
         data = spec.get_data_dict()
         np.testing.assert_array_almost_equal(data["ion_mobility"], [0.5])
-        self.assertEqual(data["ion_mobility_unit"][0], "VSSC")
+        # DriftTimeUnit.VSSC is converted to string "1/K0" (inverse reduced mobility)
+        self.assertEqual(data["ion_mobility_unit"][0], "1/K0")
 
     def test_precursors(self):
         """Test get_data_dict with precursor information."""
