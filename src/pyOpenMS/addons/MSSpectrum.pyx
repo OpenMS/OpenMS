@@ -200,3 +200,38 @@
     def __len__(self):
         """Return the number of peaks in the spectrum."""
         return self.inst.get().size()
+
+    def __str__(self):
+        """
+        Return a string representation of the MSSpectrum object.
+        Delegates to __repr__ for consistency.
+        """
+        return self.__repr__()
+
+    def __repr__(self):
+        """
+        Return a string representation of the MSSpectrum object.
+
+        Returns key properties in a readable format:
+        MSSpectrum(ms_level=2, rt=1234.5, num_peaks=150, mz_range=[100.0, 2000.0])
+        """
+        cdef unsigned int ms_level = self.getMSLevel()
+        cdef double rt = self.getRT()
+        cdef size_t num_peaks = self.inst.get().size()
+
+        parts = []
+        parts.append(f"ms_level={ms_level}")
+        parts.append(f"rt={rt:.2f}")
+        parts.append(f"num_peaks={num_peaks}")
+
+        # Add m/z range if there are peaks
+        if num_peaks > 0:
+            mz_array = self.get_mz_array()
+            parts.append(f"mz_range=[{mz_array[0]:.2f}, {mz_array[-1]:.2f}]")
+
+        # Add drift time if set
+        cdef double drift_time = self.getDriftTime()
+        if drift_time >= 0:
+            parts.append(f"drift_time={drift_time:.2f}")
+
+        return f"MSSpectrum({', '.join(parts)})"
