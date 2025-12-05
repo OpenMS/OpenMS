@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/FLASHHelperClasses.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <iomanip>
@@ -19,17 +19,17 @@ namespace OpenMS
 
   /**
        @brief A class representing a deconvolved spectrum.
-       DeconvolvedSpectrum consists of PeakGroups representing masses.
+       DeconvolvedSpectrum consists of PeakGroup instances representing masses.
        For MSn n>1, a PeakGroup representing the precursor mass is also added in this class. Properly assigning a precursor mass
        from the original precursor peak and its deconvolution result is very important in top down proteomics. This assignment is
-       performed here for conventional datasets. But for FLASHIda acquired datasets, the assignment is already done by FLASHIda.
+       performed here for conventional acquired datasets. But for FLASHIda acquired datasets, the assignment is already done by FLASHIda.
        So this class simply use the results from FLASHIda log file for assignment. The parsing of FLASHIda log file is done
        in FLASHDeconv tool class.
   */
   class OPENMS_DLLAPI DeconvolvedSpectrum
   {
   public:
-    typedef FLASHDeconvHelperStructs::LogMzPeak LogMzPeak;
+    typedef FLASHHelperClasses::LogMzPeak LogMzPeak;
 
     /// default constructor
     DeconvolvedSpectrum() = default;
@@ -52,19 +52,17 @@ namespace OpenMS
     /// assignment operator
     DeconvolvedSpectrum& operator=(const DeconvolvedSpectrum& deconvolved_spectrum) = default;
 
-
     /// Convert DeconvolvedSpectrum to MSSpectrum (e.g., used to store in mzML format).
     /// @param to_charge the charge of each peak in mzml output.
-    /// @param min_ms_level the minimum MS level. If the original spec had an MS level lower than @p min_ms_level the precursor information of the returned spectrum is set to this value.
     /// @param tol the ppm tolerance
     /// @param retain_undeconvolved if set, undeconvolved peaks in the original peaks are output (assuming their abs charge == 1 and m/zs are adjusted with the to_charge parameter)
-    MSSpectrum toSpectrum(int to_charge, uint min_ms_level, double tol = 10.0, bool retain_undeconvolved = false);
+    MSSpectrum toSpectrum(int to_charge, double tol = 10.0, bool retain_undeconvolved = false);
 
     /// original spectrum getter
     const MSSpectrum& getOriginalSpectrum() const;
 
     /// get precursor peak group for MSn (n>1) spectrum. It returns an empty peak group if no peak group is registered (by registerPrecursor)
-    PeakGroup& getPrecursorPeakGroup();
+    const PeakGroup& getPrecursorPeakGroup() const;
 
     /// precursor charge getter (set in registerPrecursor)
     int getPrecursorCharge() const;
@@ -96,11 +94,14 @@ namespace OpenMS
     /// get activation method
     const Precursor::ActivationMethod& getActivationMethod() const;
 
+    /// return isobaric  quantities
+    FLASHHelperClasses::IsobaricQuantities getQuantities() const;
+
+    /// set isobaric quantities
+    void setQuantities(const FLASHHelperClasses::IsobaricQuantities& quantities);
+
     /// set precursor for MSn for n>1
     void setPrecursor(const Precursor& precursor);
-
-    /// set precursor peak intensity
-    void setPrecursorIntensity(float i);
 
     /// set precursor scan number
     void setPrecursorScanNumber(int scan_number);
@@ -124,18 +125,30 @@ namespace OpenMS
     std::vector<PeakGroup>::iterator begin() noexcept;
     std::vector<PeakGroup>::iterator end() noexcept;
 
+    /// PeakGroup vector functions and operators
     const PeakGroup& operator[](Size i) const;
     PeakGroup& operator[](Size i);
     void push_back(const PeakGroup& pg);
+    void emplace_back(const PeakGroup& pg);
+    void pop_back();
+    PeakGroup& back();
     Size size() const noexcept;
     void clear();
     void reserve(Size n);
     bool empty() const;
+    bool isDecoy() const;
 
     /// sort by deconvolved monoisotopic masses
     void sort();
     /// sort by Qscore of peakGroups
     void sortByQscore();
+
+    /// comparison operators
+    bool operator<(const DeconvolvedSpectrum& a) const;
+
+    bool operator>(const DeconvolvedSpectrum& a) const;
+
+    bool operator==(const DeconvolvedSpectrum& a) const;
 
   private:
     /// peak groups (deconvolved masses)
@@ -150,5 +163,7 @@ namespace OpenMS
     Precursor::ActivationMethod activation_method_ = Precursor::ActivationMethod::CID;
     /// scan number and precursor scan number
     int scan_number_ = 0, precursor_scan_number_ = 0;
+    /// isobaric quantities
+    FLASHHelperClasses::IsobaricQuantities quantities_;
   };
 } // namespace OpenMS
