@@ -81,5 +81,49 @@ SageAdapter	-	PeptideIndexing:enzyme:name	string	auto	auto,Glu-C+P,PepsinA + P,c
 SageAdapter	+	PeptideIndexing:enzyme:name	string	auto	auto,Lys-C/P,PepsinA,Asp-N/B,Asp-N_ambic,Chymotrypsin,Chymotrypsin/P,CNBr,leukocyte elastase,proline endopeptidase,glutamyl endopeptidase,unspecific cleavage,TrypChymo,Trypsin/P,V8-DE,V8-E,Arg-C,Arg-C/P,Asp-N,Trypsin,Glu-C+P,PepsinA + P,cyanogen-bromide,Clostripain/P,elastase-trypsin-chymotrypsin,no cleavage,Formic_acid,Lys-C,Lys-N,Alpha-lytic protease,2-iodobenzoate,iodosobenzoate,staphylococcal protease/D,proline-endopeptidase/HKR	
 SequenceCoverageCalculator	+	out	output-file			*.idXML
 SequenceCoverageCalculator	-	out	output-file			*.txt
-SimpleSearchEngine	+	Search:enzyme	string	Trypsin	Trypsin,Arg-C,TrypChymo,Trypsin/P,V8-DE,V8-E,2-iodobenzoate,iodosobenzoate,staphylococcal protease/D,proline-endopeptidase/HKR,Glu-C+P,PepsinA + P,cyanogen-bromide,Clostripain/P,elastase-trypsin-chymotrypsin,no cleavage,unspecific cleavage,Lys-C/P,PepsinA,Arg-C/P,Asp-N,leukocyte elastase,proline endopeptidase,glutamyl endopeptidase,Alpha-lytic protease,Lys-C,Lys-N,Chymotrypsin/P,CNBr,Formic_acid,Asp-N/B,Asp-N_ambic,Chymotrypsin	
-SimpleSearchEngine	-	Search:enzyme	string	Trypsin	Trypsin,TrypChymo,Trypsin/P,V8-DE,V8-E,2-iodobenzoate,iodosobenzoate,staphylococcal protease/D,proline-endopeptidase/HKR,Glu-C+P,PepsinA + P,cyanogen-bromide,Clostripain/P,elastase-trypsin-chymotrypsin,no cleavage,unspecific cleavage,Lys-C/P,PepsinA,Arg-C,Arg-C/P,leukocyte elastase,proline endopeptidase,glutamyl endopeptidase,Alpha-lytic protease,Asp-N,Asp-N/B,Asp-N_ambic,Chymotrypsin,Chymotrypsin/P,CNBr,Formic_acid,Lys-C,Lys-N	
+SimpleSearchEngine	+	Search:enzyme	string	Trypsin	Trypsin,Arg-C,TrypChymo,Trypsin/P,V8-DE,V8-E,2-iodobenzoate,iodosobenzoate,staphylococcal protease/D,proline-endopeptidase/HKR,Glu-C+P,PepsinA + P,cyanogen-bromide,Clostripain/P,elastase-trypsin-chymotrypsin,no cleavage,unspecific cleavage,Lys-C/P,PepsinA,Arg-C/P,Asp-N,leukocyte elastase,proline endopeptidase,glutamyl endopeptidase,Alpha-lytic protease,Lys-C,Lys-N,Chymotrypsin/P,CNBr,Formic_acid,Asp-N/B,Asp-N_ambic,Chymotrypsin
+SimpleSearchEngine	-	Search:enzyme	string	Trypsin	Trypsin,TrypChymo,Trypsin/P,V8-DE,V8-E,2-iodobenzoate,iodosobenzoate,staphylococcal protease/D,proline-endopeptidase/HKR,Glu-C+P,PepsinA + P,cyanogen-bromide,Clostripain/P,elastase-trypsin-chymotrypsin,no cleavage,unspecific cleavage,Lys-C/P,PepsinA,Arg-C,Arg-C/P,leukocyte elastase,proline endopeptidase,glutamyl endopeptidase,Alpha-lytic protease,Asp-N,Asp-N/B,Asp-N_ambic,Chymotrypsin,Chymotrypsin/P,CNBr,Formic_acid,Lys-C,Lys-N
+FLASHDeconv	-	in_log	input-file
+FLASHDeconv	-	out_spec	output-file-list			*.tsv
+FLASHDeconv	+	out_spec1	output-file			*.tsv
+FLASHDeconv	+	out_spec2	output-file			*.tsv
+FLASHDeconv	+	out_spec3	output-file			*.tsv
+FLASHDeconv	+	out_spec4	output-file			*.tsv
+FLASHDeconv	+	out_quant	output-file			*.tsv
+FLASHDeconv	-	out_promex	output-file			*.ms1ft
+FLASHDeconv	-	out_topFD	output-file-list			*.msalign
+FLASHDeconv	+	out_msalign1	output-file			*.msalign
+FLASHDeconv	+	out_msalign2	output-file			*.msalign
+FLASHDeconv	-	out_topFD_feature	output-file-list			*.feature
+FLASHDeconv	+	out_feature1	output-file			*.feature
+FLASHDeconv	+	out_feature2	output-file			*.feature
+FLASHDeconv	+	keep_empty_out	bool	false
+FLASHDeconv	-	min_precursor_snr	double	1.0
+FLASHDeconv	-	target_precursor_charge	int	0
+FLASHDeconv	-	target_precursor_mz	double	0.0
+FLASHDeconv	-	preceding_MS1_count	int	3	1:
+FLASHDeconv	-	write_detail	int	0	0:1
+FLASHDeconv	+	write_detail	bool	false
+FLASHDeconv	-	max_MS_level	int	3	1:
+FLASHDeconv	+	max_ms_level	int	-1
+FLASHDeconv	-	forced_MS_level	int	0	0:
+FLASHDeconv	-	merging_method	int	0	0:2
+FLASHDeconv	-	report_FDR	int	0	0:1
+FLASHDeconv	-	use_RNA_averagine	int	0	0:1
+FLASHDeconv	+	min_mz	double	-1.0
+FLASHDeconv	+	max_mz	double	-1.0
+FLASHDeconv	+	min_rt	double	-1.0
+FLASHDeconv	+	max_rt	double	-1.0
+FLASHDeconv	+	FD:report_FDR	string	false	true,false
+FLASHDeconv	+	FD:use_RNA_averagine	string	false	true,false
+FLASHDeconv	+	FD:merging_method	int	0	0:2
+FLASHDeconv	+	FD:precursor_MS1_window	int	1	1:
+FLASHDeconv	+	FD:isolation_window	double	5.0
+FLASHDeconv	+	SD:precursor_charge	int	0	0:
+FLASHDeconv	+	SD:precursor_mz	double	0.0	0.0:
+FLASHDeconv	+	SD:min_cos	double-list	0.85,0.85	0.5:1.0
+FLASHDeconv	+	SD:min_snr	double-list	0.25,0.25	0.25:
+FLASHDeconv	+	iq:type	string	none	none,itraq4plex,itraq8plex,tmt10plex,tmt11plex,tmt16plex,tmt18plex,tmt6plex
+FLASHDeconv	+	iq:isotope_correction	string	true	true,false
+FLASHDeconv	+	iq:reporter_mz_tol	double	0.002
+FLASHDeconv	+	iq:only_fully_quantified	string	false	true,false

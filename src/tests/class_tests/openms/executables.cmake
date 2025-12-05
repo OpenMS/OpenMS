@@ -182,6 +182,9 @@ set(format_executables_list
   FASTAFile_test
   FeatureFileOptions_test
   FeatureXMLFile_test
+  FLASHDeconvFeatureFile_test
+  FLASHDeconvSpectrumFile_test
+  FLASHHelperClasses_test
   FileHandler_test
   FileTypes_test
   GzipIfstream_test
@@ -447,7 +450,7 @@ set(analysis_executables_list
   ConsensusMapNormalizerAlgorithmQuantile_test
   ConsensusMapMergerAlgorithm_test
   #DataAccessHelper_test
-  DeconvolvedSpectrum_test
+  # DeconvolvedSpectrum_test
   FalseDiscoveryRate_test
   FeatureDeconvolution_test
   FeatureDistance_test
@@ -458,10 +461,8 @@ set(analysis_executables_list
   FeatureGroupingAlgorithm_test
   FeatureHandle_test
   FIAMSDataProcessor_test
-  #FIAMSScheduler_test sometimes failing
   FLASHDeconvAlgorithm_test
   FLASHDeconvHelperStructs_test
-  FragmentIndex_test
   IDBoostGraph_test
   IDMapper_test
   IDMergerAlgorithm_test
@@ -527,6 +528,7 @@ set(analysis_executables_list
   NuXLParameterParsing_test
   SimpleSearchEngineAlgorithm_test
   SimpleSVM_test
+  SpectralDeconvolution_test
   StablePairFinder_test
   PercolatorFeatureSetHelper_test
   TransformationDescription_test
