@@ -9,7 +9,6 @@
 #include <OpenMS/METADATA/SpectrumSettings.h>
 
 #include <OpenMS/CONCEPT/Helpers.h>
-#include <boost/iterator/indirect_iterator.hpp> // for equality
 
 using namespace std;
 
@@ -17,22 +16,6 @@ namespace OpenMS
 {
 
   const std::string SpectrumSettings::NamesOfSpectrumType[] = {"Unknown", "Centroid", "Profile"};
-
-  SpectrumSettings::SpectrumSettings() :
-    MetaInfoInterface(),
-    type_(UNKNOWN),
-    native_id_(),
-    comment_(),
-    instrument_settings_(),
-    source_file_(),
-    acquisition_info_(),
-    precursors_(),
-    products_(),
-    data_processing_()
-  {
-  }
-
-  SpectrumSettings::~SpectrumSettings() = default;
 
   bool SpectrumSettings::operator==(const SpectrumSettings & rhs) const
   {
@@ -91,6 +74,20 @@ namespace OpenMS
     type_ = type;
   }
 
+  void SpectrumSettings::setIMFormat(const IMFormat& im_type)
+  {
+    if (im_type == IMFormat::MIXED)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Single spectrum can't have MIXED ion mobility format.", "SIZE_OF_IMFORMAT");
+    }
+    im_type_ = im_type;
+  }
+  
+  IMFormat SpectrumSettings::getIMFormat() const
+  {
+    return im_type_;
+  }
+  
   const String & SpectrumSettings::getComment() const
   {
     return comment_;
@@ -220,3 +217,4 @@ namespace OpenMS
   }
 
 }
+

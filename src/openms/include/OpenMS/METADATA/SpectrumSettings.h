@@ -3,7 +3,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Marc Sturm $
+// $Authors: Marc Sturm, Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
 #pragma once
@@ -16,6 +16,7 @@
 #include <OpenMS/METADATA/Product.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/DataProcessing.h>
+#include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <map>
@@ -56,13 +57,13 @@ public:
     static StringList getAllNamesOfSpectrumType();
 
     /// Constructor
-    SpectrumSettings();
+    SpectrumSettings() = default;
     /// Copy constructor
     SpectrumSettings(const SpectrumSettings &) = default;
     /// Move constructor
-    SpectrumSettings(SpectrumSettings&&) = default;
+    SpectrumSettings(SpectrumSettings&&) noexcept = default;
     /// Destructor
-    ~SpectrumSettings();
+    ~SpectrumSettings() noexcept = default;
 
     // Assignment operator
     SpectrumSettings & operator=(const SpectrumSettings &) = default;
@@ -81,6 +82,16 @@ public:
     SpectrumType getType() const;
     ///sets the spectrum type
     void setType(SpectrumType type);
+
+    /// @brief sets the IMFormat of the spectrum
+    /// @param im_type
+    void setIMFormat(const IMFormat& im_type);
+
+    /// @brief returns the IMFormat of the spectrum if set. Otherwise UNKNOWN (default). 
+    /// 
+    /// Note: If UNKNOWN, use IMFormat::determineIMFormat to determine the IMFormat based on the data.
+    /// @return IMFormat of the spectrum
+    IMFormat getIMFormat() const;
 
     /// returns the native identifier for the spectrum, used by the acquisition software.
     const String & getNativeID() const;
@@ -138,7 +149,8 @@ public:
 
 protected:
 
-    SpectrumType type_;
+    SpectrumType type_ = UNKNOWN;
+    IMFormat im_type_ = IMFormat::UNKNOWN;
     String native_id_;
     String comment_;
     InstrumentSettings instrument_settings_;

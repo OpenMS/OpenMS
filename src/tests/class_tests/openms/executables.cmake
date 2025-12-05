@@ -278,6 +278,7 @@ set(format_executables_list
 if(WITH_HDF5)
   list(APPEND format_executables_list HDF5_test)
 endif()
+
 if(WITH_PARQUET)
   list(APPEND format_executables_list Arrow_test QuantmsIO_test)
 endif()
@@ -578,6 +579,7 @@ set(transformations_executables_list
   ModelDescription_test
   PeakPickerHiRes_test
   PeakPickerIterative_test
+  PeakPickerIM_test
   PeakWidthEstimator_test
   SeedListGenerator_test
   TraceFitter_test
