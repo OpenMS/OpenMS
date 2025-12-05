@@ -12,6 +12,7 @@
 #include <vector>
 
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
@@ -19,10 +20,28 @@
 
 namespace OpenMS
 {
-  /**
-    @brief Representation of a peptide hit
+  class PeptideHit;
+  using SpectrumMatch = PeptideHit; // better name that might become the default in future version
 
-    It contains the fields score, score_type, rank, and sequence.
+  /**
+    @brief Represents a single spectrum match (candidate) for a specific tandem mass spectrum (MS/MS).
+
+    Stores the primary information about a potential match, including:
+    - The sequence (potentially with modifications) using AASequence.
+    - The primary score assigned by the identification algorithm (e.g., search engine).
+    - The rank of this hit compared to other hits for the same spectrum (stored as a meta value with key "rank").
+    - The precursor charge state assumed for this match.
+    - Evidence linking the peptide sequence to specific protein sequences (PeptideEvidence).
+    - Optional annotations mapping fragment ions in the MS/MS spectrum to interpretations (PeakAnnotation).
+    - Optional secondary scores from post-processing tools (PepXMLAnalysisResult).
+
+    Objects are typically contained within a PeptideIdentification object, which represents
+    all hits found for a single spectrum. Inherits from MetaInfoInterface, allowing
+    arbitrary metadata (key-value pairs) to be attached.
+
+    @deprecated Use SpectrumMatch instead. PeptideHit may be removed in a future OpenMS version.
+
+    @see PeptideIdentification, AASequence, PeptideEvidence, PeakAnnotation, PepXMLAnalysisResult, MetaInfoInterface
 
     @ingroup Metadata
   */
@@ -30,6 +49,14 @@ namespace OpenMS
     public MetaInfoInterface
   {
 public:
+    /// Enum for target/decoy annotation
+    enum class TargetDecoyType
+    {
+      TARGET,       ///< Only matches target proteins
+      DECOY,        ///< Only matches decoy proteins
+      TARGET_DECOY, ///< Matches BOTH target and decoy proteins
+      UNKNOWN       ///< Target/decoy status is unknown (meta value not set)
+    };
 
     /**
    * @brief Contains annotations of a peak
@@ -54,40 +81,18 @@ public:
       are used to separate the parts easily when parsing the annotation.
 
    */
-  struct PeakAnnotation
+  struct OPENMS_DLLAPI PeakAnnotation
   {
     String annotation = "";  // e.g. [alpha|ci$y3-H2O-NH3]
     int charge = 0;
     double mz = -1.;
     double intensity = 0.;
 
-    bool operator<(const PeptideHit::PeakAnnotation& other) const
-    {
-      // sensible to sort first by m/z and charge
-      return std::tie(mz, charge, annotation, intensity) < std::tie(other.mz, other.charge, other.annotation, other.intensity);
-    }
+    bool operator<(const PeptideHit::PeakAnnotation& other) const;
 
-    bool operator==(const PeptideHit::PeakAnnotation& other) const
-    {
-      if (charge != other.charge || mz != other.mz ||
-          intensity != other.intensity || annotation != other.annotation) return false;
-      return true;
-    }
+    bool operator==(const PeptideHit::PeakAnnotation& other) const;
 
-    static void writePeakAnnotationsString_(String& annotation_string, std::vector<PeptideHit::PeakAnnotation> annotations)
-    {
-      if (annotations.empty()) { return; }
-
-      // sort by mz, charge, ...
-      stable_sort(annotations.begin(), annotations.end());
-
-      String val;
-      for (auto& a : annotations)
-      {
-        annotation_string += String(a.mz) + "," + String(a.intensity) + "," + String(a.charge) + "," + String(a.annotation).quote();
-        if (&a != &annotations.back()) { annotation_string += "|"; }
-      }
-    }
+    static void writePeakAnnotationsString_(String& annotation_string, std::vector<PeptideHit::PeakAnnotation> annotations);
 
   };
 
@@ -235,19 +240,19 @@ public:
     /// sets the PSM score
     void setScore(double score);
 
-    /// set information on (search engine) sub scores associated with this PSM
-    void setAnalysisResults(std::vector<PepXMLAnalysisResult> aresult);
+    /// set information on (search engine) sub scores associated with this PSM (only used by pepXML)
+    void setAnalysisResults(const std::vector<PepXMLAnalysisResult>& aresult);
 
-    /// add information on (search engine) sub scores associated with this PSM
+    /// add information on (search engine) sub scores associated with this PSM (only used by pepXML)
     void addAnalysisResults(const PepXMLAnalysisResult& aresult);
 
-    /// returns information on (search engine) sub scores associated with this PSM
-    const std::vector<PepXMLAnalysisResult>& getAnalysisResults() const;
+    /// returns information on (search engine) sub scores associated with this PSM (only used by pepXML)
+    std::vector<PepXMLAnalysisResult> getAnalysisResults() const;
 
     /// returns the PSM rank
     UInt getRank() const;
 
-    /// sets the PSM rank
+    /// sets the PSM rank (0 = top hit)
     void setRank(UInt newrank);
 
     /// returns the fragment annotations
@@ -257,6 +262,43 @@ public:
 
     /// sets the fragment annotations
     void setPeakAnnotations(std::vector<PeptideHit::PeakAnnotation> frag_annotations);
+
+    /**
+     * @brief Returns true if this hit is annotated as mapping to decoy sequences only. 
+     * Returns false for TargetDecoyType::TARGET and TargetDecoyType::TARGET_DECOY.
+     * Note: an unknown/unannotated state (TargetDecoyType::UNKNOWN) will yield false.
+     */
+    bool isDecoy() const;
+
+    /** @brief Sets the target/decoy type for this peptide hit
+     *
+     * This method provides a type-safe way to annotate peptide hits with their
+     * target/decoy status. Use TARGET_DECOY for peptides that match both target
+     * and decoy protein sequences (these are treated as targets in FDR calculations).
+     * Note: UNKNOWN should only be used in special cases where the status needs to
+     * be explicitly marked as unknown.
+     *
+     * @param type The target/decoy classification:
+     *   - TARGET: Only matches target proteins
+     *   - DECOY: Only matches decoy proteins
+     *   - TARGET_DECOY: Matches both target and decoy proteins
+     *   - UNKNOWN: Target/decoy status is unknown (explicit unknown state)
+     */
+    void setTargetDecoyType(TargetDecoyType type);
+
+    /** @brief Returns the target/decoy type for this peptide hit
+     *
+     * This method performs case-insensitive parsing of the "target_decoy" meta value
+     * and returns the corresponding enum value. Returns UNKNOWN if the meta value
+     * does not exist.
+     *
+     * @return The target/decoy classification:
+     *   - TARGET: Only matches target proteins
+     *   - DECOY: Only matches decoy proteins
+     *   - TARGET_DECOY: Matches both target and decoy proteins
+     *   - UNKNOWN: Target/decoy status not set (meta value missing)
+     */
+    TargetDecoyType getTargetDecoyType() const;
 
     //@}
 
@@ -269,12 +311,6 @@ protected:
     /// the score of the peptide hit
     double score_{};
 
-    /// additional scores attached to the original, aggregated score
-    std::vector<PepXMLAnalysisResult>* analysis_results_;
-
-    /// the position(rank) where the hit appeared in the hit list
-    UInt rank_{};
-
     /// the charge of the peptide
     Int charge_{};
 
@@ -283,6 +319,13 @@ protected:
 
     /// annotations of fragments in the corresponding spectrum
     std::vector<PeptideHit::PeakAnnotation> fragment_annotations_;
+
+private:
+    /// Get the number of analysis results stored as meta values (only for pepXML results)
+    size_t getNumberOfAnalysisResultsFromMetaValues_() const;
+
+    /// Extract analysis results from meta values (only for pepXML results)
+    std::vector<PepXMLAnalysisResult> extractAnalysisResultsFromMetaValues_() const;
   };
 
   /// Stream operator

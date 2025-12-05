@@ -1,36 +1,11 @@
-# --------------------------------------------------------------------------
-#                   OpenMS -- Open-Source Mass Spectrometry
-# --------------------------------------------------------------------------
-# Copyright OpenMS Inc. -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-present.
-#
-# This software is released under a three-clause BSD license:
-#  * Redistributions of source code must retain the above copyright
-#    notice, this list of conditions and the following disclaimer.
-#  * Redistributions in binary form must reproduce the above copyright
-#    notice, this list of conditions and the following disclaimer in the
-#    documentation and/or other materials provided with the distribution.
-#  * Neither the name of any author or any participating institution
-#    may be used to endorse or promote products derived from this software
-#    without specific prior written permission.
-# For a full list of authors, refer to the file AUTHORS.
-# --------------------------------------------------------------------------
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-# ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-# INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-# EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-# PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-# OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-# WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-# OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-# ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#
+# Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+# SPDX-License-Identifier: BSD-3-Clause
+# 
 # --------------------------------------------------------------------------
 # $Maintainer: Julianus Pfeuffer $
 # $Authors: Stephan Aiche, Julianus Pfeuffer $
 # --------------------------------------------------------------------------
+
 
 
 # --------------------------------------------------------------------------
@@ -61,22 +36,57 @@ set(OPENMS_LOGOSMALL ${PROJECT_SOURCE_DIR}/cmake/MacOSX/${OPENMS_LOGOSMALL_NAME}
 ##  the app bundles need to have a different RUNTIME_DEPENDENCY_SET (TOPPView_DEPS, ...) due
 ##  to CMake assuming you want standalone bundles. But we want to share libs between them.
 
-# This would be to look in the Contrib and other cmake_prefix_paths for dependencies.
-#list(TRANSFORM CMAKE_PREFIX_PATH APPEND "/bin" OUTPUT_VARIABLE DEP_BIN_DIRS)
-#list(TRANSFORM CMAKE_PREFIX_PATH APPEND "/lib" OUTPUT_VARIABLE DEP_LIB_DIRS)
-# But since we copy them in the build stage to our runtime directory (bin), we can add this one.
+# Add CMAKE_PREFIX_PATH directories to search for runtime dependencies.
+# We need this because TARGET_RUNTIME_DLLS (used during build stage copy) has limitations:
+# - Incomplete CMake configs from third-party libraries that don't properly export targets
+# - Private shared library dependencies not tracked in the dependency graph  
+# - Manual find_library() results without imported targets
+# By adding these paths, we ensure all dependencies are found during installation even if
+# they were missed during the build-time copy step.
+list(TRANSFORM CMAKE_PREFIX_PATH APPEND "/bin" OUTPUT_VARIABLE DEP_BIN_DIRS)
+list(TRANSFORM CMAKE_PREFIX_PATH APPEND "/lib" OUTPUT_VARIABLE DEP_LIB_DIRS)
+
+# Also include our own runtime directory where dependencies were copied during build.
+# This serves as the primary source, with CMAKE_PREFIX_PATH directories as fallback.
+list(APPEND DEP_BIN_DIRS $<TARGET_FILE_DIR:OpenMS>)
+
+# Combine all search directories for comprehensive dependency resolution
+set(RUNTIME_DEP_SEARCH_DIRS ${DEP_BIN_DIRS} ${DEP_LIB_DIRS})
+
+
+## Info on excluding dependencies:
+# PRE_EXCLUDE_REGEXES: Excludes dependencies at the beginning of the dependency analysis. 
+#                      This means that any dependency matching these patterns will be excluded before 
+#                      CMake traverses its own dependencies. This can prevent CMake from spending 
+#                      time analyzing entire dependency chains that you know you want to exclude.
+# POST_EXCLUDE_REGEXES: Excludes dependencies after the complete dependency analysis is done. 
+#                       This is applied to the final list of all found dependencies.
 
 # On Windows we need to tell CMake where to look for.
 # We also do not need API sets. So exclude them.
+
+
 if(WIN32)
-  set(EXCLUDE "api-ms" "ext-ms" "hvsi" "pdmutilities" "wpaxholder" "dxgi" "uxtheme" "d3d11" "winmm" "wldp")
-  set(POST_EXCLUDE ".*WINDOWS.system32.*")
+  # exclude dll's which are system dll's and should not be shipped (bloats installer and leads to incompatibilities)
+  set(PRE_EXCLUDE 
+                  ## these two are direct systems deps of TOPPView etc. Exclude to save time
+                  "api-ms" "ext-ms" 
+                  ## "HvsiFileTrust" "PdmUtilities" are detected as a dependency by CMake which cannot be resolved (and would lead to errors), so ignore it
+                  "hvsi" "pdmutilities"  ## make all lower case, since this is what CMake extracts from the targets and the regex is case sensitive
+                  ) ## TODO I have found that sometimes vcruntime140_1.dll cannot be resolved (but vcruntime140.dll is found). Maybe add it here too?
+  ## exclude every Dll from c:\Windows\System32
+  ## Note: CMake extracts Dll names and will have a list like
+  ##-- Resolved runtime dependencies:
+  ##--   C:/WINDOWS/system32/aclui.dll
+  ##--   C:/WINDOWS/system32/activeds.dll
+  ## ,i.e. folder names have weird cases (and the CMake regex engine is case sensitive)
+  set(POST_EXCLUDE ".*[\\/][Ss][Yy][Ss][Tt][Ee][Mm]32[\\/].*")  # skip system32 DLLs completely (no matter how CMake names the path, could be 'System32', 'system32', 'SYSTEM32' etc)
 elseif(APPLE)
-  set(EXCLUDE "/usr/lib" "/System/")
+  set(PRE_EXCLUDE "/usr/lib" "/System/")
   set(POST_EXCLUDE "")
 else()
-  set(EXCLUDE "")
-  set(POST_EXCLUDE ".*/ld-linux-.*" ".*/linux-vdso.*" ".*/libm\\..*" ".*/libc\\..*" ".*/libpthread\\..*" ".*/libdl\\..*" ".*/libQt6.*")
+  set(PRE_EXCLUDE "")
+  set(POST_EXCLUDE ".*/ld-linux-.*" ".*/linux-vdso.*" ".*/libm\\..*" ".*/libc\\..*" ".*/libpthread\\..*" ".*/libdl\\..*" ".*/libstdc\\+\\+\\..*" ".*/libgcc_s.*" ".*/libgomp\\..*" ".*/libQt6.*")
 endif()
 
 # TODO check if we can reduce the permissions
@@ -87,9 +97,9 @@ install(RUNTIME_DEPENDENCY_SET OPENMS_DEPS
           GROUP_READ GROUP_WRITE GROUP_EXECUTE
           WORLD_READ WORLD_WRITE WORLD_EXECUTE
         COMPONENT Dependencies
-        PRE_EXCLUDE_REGEXES ${EXCLUDE}
+        PRE_EXCLUDE_REGEXES ${PRE_EXCLUDE}
         POST_EXCLUDE_REGEXES ${POST_EXCLUDE}
-        DIRECTORIES $<TARGET_FILE_DIR:OpenMS>)
+        DIRECTORIES ${RUNTIME_DEP_SEARCH_DIRS})
 
 #install(RUNTIME_DEPENDENCY_SET TOPPView_DEPS) # I think without giving DESTINATION and COMPONENT it will be inferred
 #install(RUNTIME_DEPENDENCY_SET TOPPAS_DEPS)
@@ -99,14 +109,11 @@ install(RUNTIME_DEPENDENCY_SET OPENMS_DEPS
 set(THIRDPARTY_COMPONENT_GROUP)
 ## populates the THIRDPARTY_COMPONENT_GROUP list
 if(EXISTS ${SEARCH_ENGINES_DIRECTORY})
-  ## TODO we could think about just recursing over subfolders
-  install_thirdparty_folder("pwiz-bin")
-  install_thirdparty_folder("Comet")
-  install_thirdparty_folder("MSGFPlus")
-  install_thirdparty_folder("LuciPHOr2")
-  install_thirdparty_folder("SpectraST")
-  install_thirdparty_folder("Sirius")
-  install_thirdparty_folder("Percolator")
-  install_thirdparty_folder("MaRaCluster")
-  install_thirdparty_folder("ThermoRawFileParser")
+  ## Automatically recurse over all subfolders in SEARCH_ENGINES_DIRECTORY
+  file(GLOB THIRDPARTY_SUBDIRS RELATIVE ${SEARCH_ENGINES_DIRECTORY} ${SEARCH_ENGINES_DIRECTORY}/*)
+  foreach(SUBDIR ${THIRDPARTY_SUBDIRS})
+    if(IS_DIRECTORY ${SEARCH_ENGINES_DIRECTORY}/${SUBDIR})
+      install_thirdparty_folder("${SUBDIR}")
+    endif()
+  endforeach()
 endif()

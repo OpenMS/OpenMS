@@ -539,26 +539,26 @@ namespace OpenMS
     for (unsigned pattern = 0; pattern < patterns.size(); ++pattern)
     {
       // loop over clusters
-      for (std::map<int, GridBasedCluster>::const_iterator cluster_it = cluster_results[pattern].begin(); cluster_it != cluster_results[pattern].end(); ++cluster_it)
+      for (const auto& cluster_pair : cluster_results[pattern])
       {
-        GridBasedCluster cluster = cluster_it->second;
+        GridBasedCluster cluster = cluster_pair.second;
         std::vector<int> points = cluster.getPoints();
 
         // Construct a satellite set for the complete peptide multiplet
         // Make sure there are no duplicates, i.e. the same satellite from different filtered peaks.
         std::multimap<size_t, MultiplexSatelliteCentroided > satellites;
         // loop over points in cluster
-        for (std::vector<int>::const_iterator point_it = points.begin(); point_it != points.end(); ++point_it)
+        for (const auto& point : points)
         {
-          MultiplexFilteredPeak peak = filter_results[pattern].getPeak(*point_it);
+          MultiplexFilteredPeak peak = filter_results[pattern].getPeak(point);
           // loop over satellites of the peak
-          for (std::multimap<size_t, MultiplexSatelliteCentroided >::const_iterator satellite_it = peak.getSatellites().begin(); satellite_it != peak.getSatellites().end(); ++satellite_it)
+          for (const auto& satellite : peak.getSatellites())
           {
             // check if this satellite (i.e. these indices) are already in the set
             bool satellite_in_set = false;
-            for (std::multimap<size_t, MultiplexSatelliteCentroided >::const_iterator satellite_it_2 = satellites.begin(); satellite_it_2 != satellites.end(); ++satellite_it_2)
+            for (const auto& existing_satellite : satellites)
             {
-              if ((satellite_it_2->second.getRTidx() == satellite_it->second.getRTidx()) && (satellite_it_2->second.getMZidx() == satellite_it->second.getMZidx()))
+              if ((existing_satellite.second.getRTidx() == satellite.second.getRTidx()) && (existing_satellite.second.getMZidx() == satellite.second.getMZidx()))
               {
                 satellite_in_set = true;
                 break;
@@ -569,7 +569,7 @@ namespace OpenMS
               break;
             }
 
-            satellites.insert(std::make_pair(satellite_it->first, MultiplexSatelliteCentroided(satellite_it->second.getRTidx(), satellite_it->second.getMZidx())));
+            satellites.insert(std::make_pair(satellite.first, MultiplexSatelliteCentroided(satellite.second.getRTidx(), satellite.second.getMZidx())));
           }
         }
 
@@ -724,22 +724,22 @@ namespace OpenMS
       setProgress(++progress);
 
       // loop over clusters
-      for (std::map<int, GridBasedCluster>::const_iterator cluster_it = cluster_results[pattern].begin(); cluster_it != cluster_results[pattern].end(); ++cluster_it)
+      for (const auto& cluster_pair : cluster_results[pattern])
       {
-        GridBasedCluster cluster = cluster_it->second;
+        GridBasedCluster cluster = cluster_pair.second;
         std::vector<int> points = cluster.getPoints();
 
         // Construct a satellite set for the complete peptide multiplet
         // Make sure there are no duplicates, i.e. the same satellite from different filtered peaks.
         std::multimap<size_t, MultiplexSatelliteProfile > satellites;
         // loop over points in cluster
-        for (std::vector<int>::const_iterator point_it = points.begin(); point_it != points.end(); ++point_it)
+        for (const auto& point : points)
         {
-          MultiplexFilteredPeak peak = filter_results[pattern].getPeak(*point_it);
+          MultiplexFilteredPeak peak = filter_results[pattern].getPeak(point);
           // loop over satellites of the peak
-          for (std::multimap<size_t, MultiplexSatelliteProfile >::const_iterator satellite_it = peak.getSatellitesProfile().begin(); satellite_it != peak.getSatellitesProfile().end(); ++satellite_it)
+          for (const auto& satellite : peak.getSatellitesProfile())
           {
-            satellites.insert(std::make_pair(satellite_it->first, MultiplexSatelliteProfile(satellite_it->second.getRT(), satellite_it->second.getMZ(), satellite_it->second.getIntensity())));
+            satellites.insert(std::make_pair(satellite.first, MultiplexSatelliteProfile(satellite.second.getRT(), satellite.second.getMZ(), satellite.second.getIntensity())));
           }
         }
 
@@ -916,7 +916,8 @@ namespace OpenMS
       throw OpenMS::Exception::FileEmpty(__FILE__, __LINE__, __FUNCTION__, "Error: No MS1 spectra in input file.");
     }
 
-    //TODO allow skipping?
+    // clear chromatograms (otherwise they are used to calculate optimal RT and m/z ranges)
+    exp.getChromatograms().clear();
 
     // update m/z and RT ranges
     exp.updateRanges();

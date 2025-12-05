@@ -35,7 +35,7 @@ namespace OpenMS
 
   void OnDiscMSExperiment::loadMetaData_(const String& filename)
   {
-    meta_ms_experiment_ = boost::shared_ptr< PeakMap >(new PeakMap);
+    meta_ms_experiment_ = std::shared_ptr< PeakMap >(new PeakMap);
 
     FileHandler f;
     PeakFileOptions options = f.getOptions();

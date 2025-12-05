@@ -13,7 +13,7 @@ cdef extern from "<OpenMS/ANALYSIS/XLMS/XFDRAlgorithm.h>" namespace "OpenMS":
         XFDRAlgorithm() except + nogil 
         XFDRAlgorithm(XFDRAlgorithm &) except + nogil 
 
-        XFDRAlgorithm_ExitCodes run(libcpp_vector[ PeptideIdentification ]& peptide_ids,
+        XFDRAlgorithm_ExitCodes run(PeptideIdentificationList& peptide_ids,
                                     ProteinIdentification& protein_id) except + nogil 
 
         XFDRAlgorithm_ExitCodes validateClassArguments() except + nogil 

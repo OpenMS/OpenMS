@@ -28,7 +28,7 @@ START_TEST(SpectrumAccessSqMass, "$Id$")
 SpectrumAccessSqMass* ptr = nullptr;
 SpectrumAccessSqMass* nullPointer = nullptr;
 
-boost::shared_ptr<PeakMap > exp(new PeakMap);
+std::shared_ptr<PeakMap > exp(new PeakMap);
 OpenSwath::SpectrumAccessPtr expptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(exp);
 
 
@@ -121,14 +121,14 @@ START_SECTION(size_t getNrSpectra() const)
 }
 END_SECTION
 
-START_SECTION(boost::shared_ptr<OpenSwath::ISpectrumAccess> lightClone() const)
+START_SECTION(std::shared_ptr<OpenSwath::ISpectrumAccess> lightClone() const)
 {
   OpenMS::Internal::MzMLSqliteHandler handler(OPENMS_GET_TEST_DATA_PATH("SqliteMassFile_1.sqMass"), 0);
 
   ptr = new SpectrumAccessSqMass(handler);
   TEST_EQUAL(ptr->getNrSpectra(), 2)
 
-  boost::shared_ptr<OpenSwath::ISpectrumAccess> ptr2 = ptr->lightClone();
+  std::shared_ptr<OpenSwath::ISpectrumAccess> ptr2 = ptr->lightClone();
   TEST_EQUAL(ptr2->getNrSpectra(), 2)
   delete ptr;
 }

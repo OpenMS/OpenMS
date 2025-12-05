@@ -14,6 +14,7 @@
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 
 #include <limits> // for "quiet_NaN"
 
@@ -264,21 +265,39 @@ namespace OpenMS
 	   @return True if all peptide IDs could be annotated successfully (including if all already had RT values), false otherwise.
 
 	*/
-	static bool addMissingRTsToPeptideIDs(std::vector<PeptideIdentification>& peptides, const MSExperiment& exp);
+	static bool addMissingRTsToPeptideIDs(PeptideIdentificationList& peptides, const MSExperiment& exp);
 
     /**
      * @brief Adds missing ion mobility information to peptide identifications.
-     * 
+     *
      * This function adds missing ion mobility (IM) information to the peptide identifications.
      * The missing IM information is retrieved from the MSExperiment.
-     * 
+     *
      * @param peptides The vector of peptide identifications to update.
      * @param exp The MSExperiment object representing the raw data file (e.g., mzML) used to look up IM values.
-     * 
+     *
      * @return True if all missing IM information was successfully added to the peptide identifications, false otherwise.
     */
-    static bool addMissingIMToPeptideIDs(std::vector<PeptideIdentification>& peptides,
+    static bool addMissingIMToPeptideIDs(PeptideIdentificationList& peptides,
     									const MSExperiment& exp);
+
+    /**
+     * @brief Adds FAIMS compensation voltage information to peptide identifications.
+     *
+     * This function adds FAIMS compensation voltage (CV) information to the peptide identifications
+     * by looking up the corresponding spectrum and extracting the FAIMS CV.
+     *
+     * Both MS1 and MS2 spectra can have explicit FAIMS CV annotations (DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE).
+     * For MS2 spectra without explicit FAIMS CV, the function falls back to the last seen FAIMS CV
+     * from a preceding spectrum in run order.
+     *
+     * @param peptides The vector of peptide identifications to update.
+     * @param exp The MSExperiment object representing the raw data file (e.g., mzML) used to look up FAIMS CV values.
+     *
+     * @return True if FAIMS data was present and at least some IDs were annotated, false if no FAIMS data present.
+    */
+    static bool addMissingFAIMSToPeptideIDs(PeptideIdentificationList& peptides,
+                                            const MSExperiment& exp);
 
     /**
      * @brief Add missing "spectrum_reference"s to peptide identifications based on raw data
@@ -294,7 +313,7 @@ namespace OpenMS
      *
      * Look-up works by matching RT of a peptide identification with the given spectra. Matched spectra 'native ID' will be annotated to the identification. All spectrum_references are updated/added.
      */
-    static bool addMissingSpectrumReferences(std::vector<PeptideIdentification>& peptides, 
+    static bool addMissingSpectrumReferences(PeptideIdentificationList& peptides, 
       const String& filename,
       bool stop_on_error = false, 
       bool override_spectra_data = false, 

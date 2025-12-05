@@ -3,7 +3,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow, Xiao Liang $
-// $Authors: Marc Sturm, Chris Bielow $
+// $Authors: Marc Sturm, Chris Bielow, Jeremi Maciejewski $
 // --------------------------------------------------------------------------
 
 #pragma once
@@ -148,6 +148,7 @@ namespace OpenMS
      */
     bool filterByMissedCleavages(const String& sequence, const std::function<bool(const Int)>& filter) const;
 
+
   protected:
     /**
       @brief supports functionality for ProteaseDigestion as well (which is deeply weaved into the function)
@@ -177,6 +178,25 @@ namespace OpenMS
       @return Cleavage positions (this includes @p start, but not @p end)
      */
     std::vector<int> tokenize_(const String& sequence, int start = 0, int end = -1) const;
+
+    /**
+      @brief Generates semi-specific digestion products
+
+      Function handling semi-specific digestion (specificity_ == Specificity::SPEC_SEMI).
+      It is intended for calling after tokenizing and missed cleavages variants generation.
+      Fully-specific variants are skipped.
+      Also generates semi-specific variants with missed cleavages.
+
+      @param cleavage_positions A (sorted!) vector of cleavage positions, as returned by tokenize_(). First and last cleavage should be sequence termini.
+      @param output A vector into which produced variants are emplaced.
+      @param min_length Minimal length of reported products
+      @param max_length Maximal length of reported products
+
+      @return number of digestion products NOT matching the length restrictions.
+      @throw Exception::InvalidValue if number of cleavage_positions is smaller than 2 (at least sequence termini are required).
+      @throw Exception::Precondition if vector cleavage_positions is not sorted.
+    */
+    Size semiSpecificDigestion_(const std::vector<int>& cleavage_positions, std::vector<std::pair<Size, Size>>& output, Size min_length = 0, Size max_length = -1) const;
 
     /**
        @brief Helper function for digestUnmodified()

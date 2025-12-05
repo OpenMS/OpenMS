@@ -298,3 +298,6 @@ import numpy as _np
 
         return (pos, unit)
 
+    def __len__(self):
+        """Return the number of peaks in the spectrum."""
+        return self.inst.get().size()

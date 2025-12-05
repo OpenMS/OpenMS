@@ -140,7 +140,7 @@ protected:
     //-------------------------------------------------------------
     FileHandler file;
     vector<ProteinIdentification> protein_ids;
-    vector<PeptideIdentification> peptide_ids;
+    PeptideIdentificationList peptide_ids;
     file.loadIdentifications(inputfile_name, protein_ids, peptide_ids, {FileTypes::IDXML});
     PosteriorErrorProbabilityModel PEP_model;
     PEP_model.setParameters(fit_algorithm);

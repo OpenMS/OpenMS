@@ -167,7 +167,6 @@ END_SECTION
 START_SECTION((map<String, pair<double, double>> void getScaling()
                const))
 {
-  map<String, double> feat_weights;
   auto scaling = svm.getScaling();
    
   TEST_REAL_SIMILAR(scaling["main_var_xx_swath_prelim_score"].first, -8.88447);
@@ -250,6 +249,10 @@ START_SECTION(regression_train_and_predict_on_all)
 
   auto param = svm.getParameters();
   param.setValue("kernel", "RBF");
+  param.setValue("log2_C", ListUtils::create<double>("9,11,13"));
+  param.setValue("log2_gamma", ListUtils::create<double>("-1,1,3"));
+  param.setValue("log2_p", ListUtils::create<double>("-6,-3.32192809489,0,3.32192809489"));
+
   svm.setParameters(param);
 
   svm.setup(x, y, false); // set up regression

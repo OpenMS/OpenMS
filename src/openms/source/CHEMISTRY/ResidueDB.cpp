@@ -53,6 +53,7 @@ namespace OpenMS
         r = it->second; 
       }
     }
+
     if (r == nullptr)
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Residue not found: ", name);

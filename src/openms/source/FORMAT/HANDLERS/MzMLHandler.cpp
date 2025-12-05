@@ -64,7 +64,13 @@ namespace OpenMS::Internal
     {
       options_ = opt;
       spectrum_data_.reserve(options_.getMaxDataPoolSize());
-      chromatogram_data_.reserve(options_.getMaxDataPoolSize());
+
+      // Reserve memory for chromatogram data based on the maximum data pool size if chromatograms are to be skipped.
+      skip_chromatogram_ = options_.getSkipChromatograms();
+      if (!skip_chromatogram_)
+      {
+        chromatogram_data_.reserve(options_.getMaxDataPoolSize());
+      }
     }
 
     /// Get the peak file options
@@ -115,42 +121,40 @@ namespace OpenMS::Internal
       // Whether spectrum should be populated with data
       if (options_.getFillData())
       {
-        size_t errCount = 0;
+        std::atomic<int> errCount = 0;
         String error_message;
-#ifdef _OPENMP
-#pragma omp parallel for
-#endif
+        #pragma omp parallel for
         for (SignedSize i = 0; i < (SignedSize)spectrum_data_.size(); i++)
         {
           // parallel exception catching and re-throwing business
           if (!errCount) // no need to parse further if already an error was encountered
           {
-            try
+          try
+          {
+            populateSpectraWithData_(spectrum_data_[i].data,
+                                      spectrum_data_[i].default_array_length,
+                                      options_,
+                                      spectrum_data_[i].spectrum);
+            if (options_.getSortSpectraByMZ() && !spectrum_data_[i].spectrum.isSorted())
             {
-              populateSpectraWithData_(spectrum_data_[i].data,
-                                       spectrum_data_[i].default_array_length,
-                                       options_,
-                                       spectrum_data_[i].spectrum);
-              if (options_.getSortSpectraByMZ() && !spectrum_data_[i].spectrum.isSorted())
-              {
-                spectrum_data_[i].spectrum.sortByPosition();
-              }
-            }
-
-            catch (OpenMS::Exception::BaseException& e)
-            {
-#pragma omp critical(MZMLErrorHandling)
-              {
-                ++errCount;
-                error_message = e.what();
-              }
-            }
-            catch (...)
-            {
-#pragma omp atomic
-              ++errCount;
+              spectrum_data_[i].spectrum.sortByPosition();
             }
           }
+
+          catch (OpenMS::Exception::BaseException& e)
+          {
+            #pragma omp critical(MZMLErrorHandling)
+            {
+              ++errCount;
+              error_message = e.what();
+            }
+          }
+          catch (...)
+          {
+            ++errCount;
+            error_message = "Unknown exception during spectrum data population";
+          }
+        }
         }
         if (errCount != 0)
         {
@@ -250,50 +254,6 @@ namespace OpenMS::Internal
       chromatogram_data_.clear();
     }
 
-    void MzMLHandler::addSpectrumMetaData_(const std::vector<MzMLHandlerHelper::BinaryData>& input_data,
-                                           const Size n,
-                                           SpectrumType& spectrum) const
-    {
-
-      // add meta data
-      UInt meta_float_array_index = 0;
-      UInt meta_int_array_index = 0;
-      UInt meta_string_array_index = 0;
-      for (Size i = 0; i < input_data.size(); i++) //loop over all binary data arrays
-      {
-        if (input_data[i].meta.getName() != "m/z array" && input_data[i].meta.getName() != "intensity array") // is meta data array?
-        {
-          if (input_data[i].data_type == MzMLHandlerHelper::BinaryData::DT_FLOAT)
-          {
-            if (n < input_data[i].size)
-            {
-              double value = (input_data[i].precision == MzMLHandlerHelper::BinaryData::PRE_64) ? input_data[i].floats_64[n] : input_data[i].floats_32[n];
-              spectrum.getFloatDataArrays()[meta_float_array_index].push_back(value);
-            }
-            ++meta_float_array_index;
-          }
-          else if (input_data[i].data_type == MzMLHandlerHelper::BinaryData::DT_INT)
-          {
-            if (n < input_data[i].size)
-            {
-              Int64 value = (input_data[i].precision == MzMLHandlerHelper::BinaryData::PRE_64) ? input_data[i].ints_64[n] : input_data[i].ints_32[n];
-              spectrum.getIntegerDataArrays()[meta_int_array_index].push_back(value);
-            }
-            ++meta_int_array_index;
-          }
-          else if (input_data[i].data_type == MzMLHandlerHelper::BinaryData::DT_STRING)
-          {
-            if (n < input_data[i].decoded_char.size())
-            {
-              String value = input_data[i].decoded_char[n];
-              spectrum.getStringDataArrays()[meta_string_array_index].push_back(value);
-            }
-            ++meta_string_array_index;
-          }
-        }
-      }
-    }
-
     void MzMLHandler::populateSpectraWithData_(std::vector<MzMLHandlerHelper::BinaryData>& input_data,
                                                Size& default_arr_length,
                                                const PeakFileOptions& peak_file_options,
@@ -358,79 +318,81 @@ namespace OpenMS::Internal
         warning(LOAD, String("Fixing faulty defaultArrayLength to ") + default_arr_length + ".");
       }
 
-      //create meta data arrays and reserve enough space for the content
-      if (input_data.size() > 2)
-      {
-        for (Size i = 0; i < input_data.size(); i++)
-        {
-          if (input_data[i].meta.getName() != "m/z array" && input_data[i].meta.getName() != "intensity array")
-          {
-            if (input_data[i].data_type == MzMLHandlerHelper::BinaryData::DT_FLOAT)
-            {
-              //create new array
-              spectrum.getFloatDataArrays().resize(spectrum.getFloatDataArrays().size() + 1);
-              //reserve space in the array
-              spectrum.getFloatDataArrays().back().reserve(input_data[i].size);
-              //copy meta info into MetaInfoDescription
-              spectrum.getFloatDataArrays().back().MetaInfoDescription::operator=(input_data[i].meta);
-            }
-            else if (input_data[i].data_type == MzMLHandlerHelper::BinaryData::DT_INT)
-            {
-              //create new array
-              spectrum.getIntegerDataArrays().resize(spectrum.getIntegerDataArrays().size() + 1);
-              //reserve space in the array
-              spectrum.getIntegerDataArrays().back().reserve(input_data[i].size);
-              //copy meta info into MetaInfoDescription
-              spectrum.getIntegerDataArrays().back().MetaInfoDescription::operator=(input_data[i].meta);
-            }
-            else if (input_data[i].data_type == MzMLHandlerHelper::BinaryData::DT_STRING)
-            {
-              //create new array
-              spectrum.getStringDataArrays().resize(spectrum.getStringDataArrays().size() + 1);
-              //reserve space in the array
-              spectrum.getStringDataArrays().back().reserve(input_data[i].decoded_char.size());
-              //copy meta info into MetaInfoDescription
-              spectrum.getStringDataArrays().back().MetaInfoDescription::operator=(input_data[i].meta);
-            }
-          }
-        }
-      }
-
       // Copy meta data from m/z and intensity binary
       // We don't have this as a separate location => store it in spectrum
-      for (Size i = 0; i < input_data.size(); i++)
-      {
-        if (input_data[i].meta.getName() == "m/z array" || input_data[i].meta.getName() == "intensity array")
-        {
-          std::vector<UInt> keys;
-          input_data[i].meta.getKeys(keys);
-          for (Size k = 0; k < keys.size(); ++k)
-          {
-            spectrum.setMetaValue(keys[k], input_data[i].meta.getMetaValue(keys[k]));
-          }
-        }
-      }
-
-      // We found that the push back approach is about 5% faster than using
-      // iterators (e.g. spectrum iterator that gets updated)
+      spectrum.addMetaValues(input_data[mz_index].meta);
+      spectrum.addMetaValues(input_data[int_index].meta);
 
       //add the peaks and the meta data to the container (if they pass the restrictions)
       PeakType tmp;
       spectrum.reserve(default_arr_length);
 
-      // the most common case: no ranges, 64 / 32 precision
-      //  -> this saves about 10 % load time
-      if ( mz_precision_64 && !int_precision_64 &&
-           input_data.size() == 2 &&
-           !peak_file_options.hasMZRange() &&
-           !peak_file_options.hasIntensityRange()
-         )
+      // Optimized code paths for different scenarios
+      bool has_mz_range = peak_file_options.hasMZRange();
+      bool has_intensity_range = peak_file_options.hasIntensityRange();
+      bool has_metadata = input_data.size() > 2;
+
+      // Pre-identify metadata arrays and create spectrum arrays for efficient access
+      struct MetaArrayInfo {
+        Size input_index;
+        Size spectrum_index;
+        MzMLHandlerHelper::BinaryData::DATA_TYPE data_type;
+        MzMLHandlerHelper::BinaryData::PRECISION precision;
+      };
+      std::vector<MetaArrayInfo> meta_arrays;
+      meta_arrays.reserve(input_data.size() - 2); // reserve space for all but m/z and intensity arrays
+      if (has_metadata)
       {
-        std::vector< double >::const_iterator mz_it = input_data[mz_index].floats_64.begin();
-        std::vector< float >::const_iterator int_it = input_data[int_index].floats_32.begin();
-        for (Size n = 0; n < default_arr_length; n++)
+        Size meta_float_idx = 0, meta_int_idx = 0, meta_string_idx = 0;
+        for (Size i = 0; i < input_data.size(); i++)
         {
-          //add peak
+          if (i == int_index || i == mz_index) continue; // Skip m/z and intensity arrays
+          
+          MetaArrayInfo info;
+          info.input_index = i;
+          info.data_type = input_data[i].data_type;
+          info.precision = input_data[i].precision;
+            
+          if (input_data[i].data_type == MzMLHandlerHelper::BinaryData::DT_FLOAT) 
+          {
+            info.spectrum_index = meta_float_idx++;
+            //create new array
+            spectrum.getFloatDataArrays().resize(spectrum.getFloatDataArrays().size() + 1);
+            //reserve space in the array
+            spectrum.getFloatDataArrays().back().reserve(input_data[i].size);
+            //copy meta info into MetaInfoDescription
+            spectrum.getFloatDataArrays().back().MetaInfoDescription::operator=(input_data[i].meta);
+          } 
+          else if (input_data[i].data_type == MzMLHandlerHelper::BinaryData::DT_INT)
+          {
+            info.spectrum_index = meta_int_idx++;
+            //create new array
+            spectrum.getIntegerDataArrays().resize(spectrum.getIntegerDataArrays().size() + 1);
+            //reserve space in the array
+            spectrum.getIntegerDataArrays().back().reserve(input_data[i].size);
+            //copy meta info into MetaInfoDescription
+            spectrum.getIntegerDataArrays().back().MetaInfoDescription::operator=(input_data[i].meta);
+          } 
+          else if (input_data[i].data_type == MzMLHandlerHelper::BinaryData::DT_STRING)
+          {
+            info.spectrum_index = meta_string_idx++;
+            //create new array
+            spectrum.getStringDataArrays().resize(spectrum.getStringDataArrays().size() + 1);
+            //reserve space in the array
+            spectrum.getStringDataArrays().back().reserve(input_data[i].decoded_char.size());
+            //copy meta info into MetaInfoDescription
+            spectrum.getStringDataArrays().back().MetaInfoDescription::operator=(input_data[i].meta);
+          }
+          meta_arrays.push_back(info);
+        }
+      }
+
+      // Most common case: no ranges, 64/32 precision, no metadata
+      if (mz_precision_64 && !int_precision_64 && !has_metadata && !has_mz_range && !has_intensity_range)
+      {
+        std::vector<double>::const_iterator mz_it = input_data[mz_index].floats_64.begin();
+        std::vector<float>::const_iterator int_it = input_data[int_index].floats_32.begin();
+        for (Size n = 0; n < default_arr_length; n++) {
           tmp.setIntensity(*int_it);
           tmp.setMZ(*mz_it);
           ++mz_it;
@@ -440,24 +402,110 @@ namespace OpenMS::Internal
         return;
       }
 
-      for (Size n = 0; n < default_arr_length; n++)
+      // Optimized case: no filtering, but with metadata
+      if (!has_mz_range && !has_intensity_range)
       {
+        // Copy all peaks first using direct array access
+        if (mz_precision_64 && int_precision_64) {
+          const auto& mz_data = input_data[mz_index].floats_64;
+          const auto& int_data = input_data[int_index].floats_64;
+          for (Size n = 0; n < default_arr_length; n++) {
+            tmp.setMZ(mz_data[n]);
+            tmp.setIntensity(int_data[n]);
+            spectrum.push_back(tmp);
+          }
+        } else if (mz_precision_64 && !int_precision_64) {
+          const auto& mz_data = input_data[mz_index].floats_64;
+          const auto& int_data = input_data[int_index].floats_32;
+          for (Size n = 0; n < default_arr_length; n++) {
+            tmp.setMZ(mz_data[n]);
+            tmp.setIntensity(int_data[n]);
+            spectrum.push_back(tmp);
+          }
+        } else if (!mz_precision_64 && int_precision_64) {
+          const auto& mz_data = input_data[mz_index].floats_32;
+          const auto& int_data = input_data[int_index].floats_64;
+          for (Size n = 0; n < default_arr_length; n++) {
+            tmp.setMZ(mz_data[n]);
+            tmp.setIntensity(int_data[n]);
+            spectrum.push_back(tmp);
+          }
+        } else {
+          const auto& mz_data = input_data[mz_index].floats_32;
+          const auto& int_data = input_data[int_index].floats_32;
+          for (Size n = 0; n < default_arr_length; n++) {
+            tmp.setMZ(mz_data[n]);
+            tmp.setIntensity(int_data[n]);
+            spectrum.push_back(tmp);
+          }
+        }
+
+        // Copy all metadata arrays in bulk
+        if (has_metadata) {
+          for (const auto& meta : meta_arrays) {
+            const auto& data = input_data[meta.input_index];
+            Size copy_length = std::min(default_arr_length, data.size);
+            // no warning if size mismatched required; done while converting from base64
+
+            if (meta.data_type == MzMLHandlerHelper::BinaryData::DT_FLOAT) {
+              auto& target_array = spectrum.getFloatDataArrays()[meta.spectrum_index];
+              target_array.reserve(copy_length);
+              if (meta.precision == MzMLHandlerHelper::BinaryData::PRE_64) {
+                target_array.insert(target_array.end(), data.floats_64.begin(), data.floats_64.begin() + copy_length);
+              } else {
+                target_array.insert(target_array.end(), data.floats_32.begin(), data.floats_32.begin() + copy_length);
+              }
+            } else if (meta.data_type == MzMLHandlerHelper::BinaryData::DT_INT) {
+              auto& target_array = spectrum.getIntegerDataArrays()[meta.spectrum_index];
+              target_array.reserve(copy_length);
+              if (meta.precision == MzMLHandlerHelper::BinaryData::PRE_64) {
+                target_array.insert(target_array.end(), data.ints_64.begin(), data.ints_64.begin() + copy_length);
+              } else {
+                target_array.insert(target_array.end(), data.ints_32.begin(), data.ints_32.begin() + copy_length);
+              }
+            } else if (meta.data_type == MzMLHandlerHelper::BinaryData::DT_STRING) {
+              auto& target_array = spectrum.getStringDataArrays()[meta.spectrum_index];
+              Size string_copy_length = std::min(copy_length, data.decoded_char.size());
+              target_array.reserve(string_copy_length);
+              target_array.insert(target_array.end(), data.decoded_char.begin(), data.decoded_char.begin() + string_copy_length);
+            }
+          }
+        }
+        return;
+      }
+
+      // General case with filtering (rare case - keep simple)
+      for (Size n = 0; n < default_arr_length; n++) {
         double mz = mz_precision_64 ? input_data[mz_index].floats_64[n] : input_data[mz_index].floats_32[n];
         double intensity = int_precision_64 ? input_data[int_index].floats_64[n] : input_data[int_index].floats_32[n];
-        if ((!peak_file_options.hasMZRange() || peak_file_options.getMZRange().encloses(DPosition<1>(mz)))
-           && (!peak_file_options.hasIntensityRange() || peak_file_options.getIntensityRange().encloses(DPosition<1>(intensity))))
-        {
-          //add peak
+        
+        if ((!has_mz_range || peak_file_options.getMZRange().encloses(DPosition<1>(mz))) &&
+            (!has_intensity_range || peak_file_options.getIntensityRange().encloses(DPosition<1>(intensity)))) {
+          
           tmp.setIntensity(intensity);
           tmp.setMZ(mz);
           spectrum.push_back(tmp);
 
-          // Only if there are more than 2 data arrays, we need to check
-          // for meta data (as there will always be an m/z and intensity
-          // array)
-          if (input_data.size() > 2)
-          {
-            addSpectrumMetaData_(input_data, n, spectrum);
+          // Add metadata efficiently for filtered peaks
+          if (has_metadata) {
+            for (const auto& meta : meta_arrays) {
+              const auto& data = input_data[meta.input_index];
+              if (n < data.size) {
+                if (meta.data_type == MzMLHandlerHelper::BinaryData::DT_FLOAT) {
+                  double value = (meta.precision == MzMLHandlerHelper::BinaryData::PRE_64) ?
+                                 data.floats_64[n] : data.floats_32[n];
+                  spectrum.getFloatDataArrays()[meta.spectrum_index].push_back(value);
+                } else if (meta.data_type == MzMLHandlerHelper::BinaryData::DT_INT) {
+                  Int64 value = (meta.precision == MzMLHandlerHelper::BinaryData::PRE_64) ?
+                                data.ints_64[n] : data.ints_32[n];
+                  spectrum.getIntegerDataArrays()[meta.spectrum_index].push_back(value);
+                } else if (meta.data_type == MzMLHandlerHelper::BinaryData::DT_STRING) {
+                  if (n < data.decoded_char.size()) {
+                    spectrum.getStringDataArrays()[meta.spectrum_index].push_back(data.decoded_char[n]);
+                  }
+                }
+              }
+            }
           }
         }
       }
@@ -762,7 +810,7 @@ namespace OpenMS::Internal
           skip_chromatogram_ = true; // skip the remaining chrom, until endElement(chromatogram)
           ++chromatogram_count_;
         }
-
+    
         chromatogram_ = ChromatogramType();
         default_array_length_ = attributeAsInt_(attributes, s_default_array_length);
         String source_file_ref;
@@ -810,9 +858,15 @@ namespace OpenMS::Internal
       }
       else if (tag == "chromatogramList")
       {
+        // return if skip_chromatogram_ true
+        if (skip_chromatogram_)
+        {
+          return;
+        }
+    
         // default data processing
         default_processing_ = attributeAsString_(attributes, s_default_data_processing_ref);
-
+    
         //Abort if we need meta data only
         if (options_.getMetadataOnly())
         {
@@ -1289,7 +1343,10 @@ namespace OpenMS::Internal
         {
           case XMLHandler::LD_ALLDATA:
           case XMLHandler::LD_COUNTS_WITHOPTIONS:
-            skip_chromatogram_ = false; // don't skip the next chrom
+            if (!options_.getSkipChromatograms())
+            {
+              skip_chromatogram_ = false;  // don't skip the next chrom
+            }
             break;
           case XMLHandler::LD_RAWCOUNTS:
             skip_chromatogram_ = true; // we always skip chroms; we only need the outer <spectrumList/chromatogramList count=...>
@@ -1733,81 +1790,81 @@ namespace OpenMS::Internal
           }
           else if (accession == "MS:1000133") //collision-induced dissociation
           {
-            spec_.getPrecursors().back().getActivationMethods().insert(Precursor::CID);
+            spec_.getPrecursors().back().getActivationMethods().insert(Precursor::ActivationMethod::CID);
           }
           else if (accession == "MS:1000134") //plasma desorption
           {
-            spec_.getPrecursors().back().getActivationMethods().insert(Precursor::PD);
+            spec_.getPrecursors().back().getActivationMethods().insert(Precursor::ActivationMethod::PD);
           }
           else if (accession == "MS:1000135") //post-source decay
           {
-            spec_.getPrecursors().back().getActivationMethods().insert(Precursor::PSD);
+            spec_.getPrecursors().back().getActivationMethods().insert(Precursor::ActivationMethod::PSD);
           }
           else if (accession == "MS:1000136") //surface-induced dissociation
           {
-            spec_.getPrecursors().back().getActivationMethods().insert(Precursor::SID);
+            spec_.getPrecursors().back().getActivationMethods().insert(Precursor::ActivationMethod::SID);
           }
           else if (accession == "MS:1000242") //blackbody infrared radiative dissociation
           {
-            spec_.getPrecursors().back().getActivationMethods().insert(Precursor::BIRD);
+            spec_.getPrecursors().back().getActivationMethods().insert(Precursor::ActivationMethod::BIRD);
           }
           else if (accession == "MS:1000250") //electron capture dissociation
           {
-            spec_.getPrecursors().back().getActivationMethods().insert(Precursor::ECD);
+            spec_.getPrecursors().back().getActivationMethods().insert(Precursor::ActivationMethod::ECD);
           }
           else if (accession == "MS:1000262") //infrared multiphoton dissociation
           {
-            spec_.getPrecursors().back().getActivationMethods().insert(Precursor::IMD);
+            spec_.getPrecursors().back().getActivationMethods().insert(Precursor::ActivationMethod::IMD);
           }
           else if (accession == "MS:1000282") //sustained off-resonance irradiation
           {
-            spec_.getPrecursors().back().getActivationMethods().insert(Precursor::SORI);
+            spec_.getPrecursors().back().getActivationMethods().insert(Precursor::ActivationMethod::SORI);
           }
           else if (accession == "MS:1000422") //beam-type collision-induced dissociation / HCD
           {
-            spec_.getPrecursors().back().getActivationMethods().insert(Precursor::HCD);
+            spec_.getPrecursors().back().getActivationMethods().insert(Precursor::ActivationMethod::HCD);
           }
           else if (accession == "MS:1002472") //trap-type collision-induced dissociation
           {
-            spec_.getPrecursors().back().getActivationMethods().insert(Precursor::TRAP);
+            spec_.getPrecursors().back().getActivationMethods().insert(Precursor::ActivationMethod::TRAP);
           }          
           else if (accession == "MS:1002481") //high-energy collision-induced dissociation
           {
-            spec_.getPrecursors().back().getActivationMethods().insert(Precursor::HCID);
+            spec_.getPrecursors().back().getActivationMethods().insert(Precursor::ActivationMethod::HCID);
           }
           else if (accession == "MS:1000433") //low-energy collision-induced dissociation
           {
-            spec_.getPrecursors().back().getActivationMethods().insert(Precursor::LCID);
+            spec_.getPrecursors().back().getActivationMethods().insert(Precursor::ActivationMethod::LCID);
           }
           else if (accession == "MS:1000435") //photodissociation
           {
-            spec_.getPrecursors().back().getActivationMethods().insert(Precursor::PHD);
+            spec_.getPrecursors().back().getActivationMethods().insert(Precursor::ActivationMethod::PHD);
           }
           else if (accession == "MS:1000598") //electron transfer dissociation
           {
-            spec_.getPrecursors().back().getActivationMethods().insert(Precursor::ETD);
+            spec_.getPrecursors().back().getActivationMethods().insert(Precursor::ActivationMethod::ETD);
           }
           else if (accession == "MS:1003182"  //electron transfer and collision-induced dissociation
             || accession == "MS:1002679")  // workaround: supplemental collision-induced dissociation (see https://github.com/compomics/ThermoRawFileParser/issues/182)
           {
-            spec_.getPrecursors().back().getActivationMethods().insert(Precursor::ETciD);
+            spec_.getPrecursors().back().getActivationMethods().insert(Precursor::ActivationMethod::ETciD);
           }
           else if (accession == "MS:1002631" //electron transfer and higher-energy collision dissociation
             || accession == "MS:1002678") // workaround: supplemental beam-type collision-induced dissociation (see https://github.com/compomics/ThermoRawFileParser/issues/182)
           {
-            spec_.getPrecursors().back().getActivationMethods().insert(Precursor::EThcD);
+            spec_.getPrecursors().back().getActivationMethods().insert(Precursor::ActivationMethod::EThcD);
           }
           else if (accession == "MS:1000599") //pulsed q dissociation
           {
-            spec_.getPrecursors().back().getActivationMethods().insert(Precursor::PQD);
+            spec_.getPrecursors().back().getActivationMethods().insert(Precursor::ActivationMethod::PQD);
           }
           else if (accession == "MS:1001880") //in-source collision-induced dissociation
           {
-            spec_.getPrecursors().back().getActivationMethods().insert(Precursor::INSOURCE);
+            spec_.getPrecursors().back().getActivationMethods().insert(Precursor::ActivationMethod::INSOURCE);
           }
           else if (accession == "MS:1002000") //LIFT
           {
-            spec_.getPrecursors().back().getActivationMethods().insert(Precursor::LIFT);
+            spec_.getPrecursors().back().getActivationMethods().insert(Precursor::ActivationMethod::LIFT);
           }          
           else
             warning(LOAD, String("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
@@ -1855,79 +1912,79 @@ namespace OpenMS::Internal
           }
           else if (accession == "MS:1000133") //collision-induced dissociation
           {
-            chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::CID);
+            chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::ActivationMethod::CID);
           }
           else if (accession == "MS:1000134") //plasma desorption
           {
-            chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::PD);
+            chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::ActivationMethod::PD);
           }
           else if (accession == "MS:1000135") //post-source decay
           {
-            chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::PSD);
+            chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::ActivationMethod::PSD);
           }
           else if (accession == "MS:1000136") //surface-induced dissociation
           {
-            chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::SID);
+            chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::ActivationMethod::SID);
           }
           else if (accession == "MS:1000242") //blackbody infrared radiative dissociation
           {
-            chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::BIRD);
+            chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::ActivationMethod::BIRD);
           }
           else if (accession == "MS:1000250") //electron capture dissociation
           {
-            chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::ECD);
+            chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::ActivationMethod::ECD);
           }
           else if (accession == "MS:1000262") //infrared multiphoton dissociation
           {
-            chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::IMD);
+            chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::ActivationMethod::IMD);
           }
           else if (accession == "MS:1000282") //sustained off-resonance irradiation
           {
-            chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::SORI);
+            chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::ActivationMethod::SORI);
           }
           else if (accession == "MS:1000422") //beam-type collision-induced dissociation / HCD
           {
-            chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::HCD);
+            chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::ActivationMethod::HCD);
           }
           else if (accession == "MS:1002472") //trap-type collision-induced dissociation
           {
-            chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::TRAP);
+            chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::ActivationMethod::TRAP);
           }
           else if (accession == "MS:1002481") //high-energy collision-induced dissociation          
           {
-            chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::HCID);
+            chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::ActivationMethod::HCID);
           }
           else if (accession == "MS:1000433") //low-energy collision-induced dissociation
           {
-            chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::LCID);
+            chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::ActivationMethod::LCID);
           }
           else if (accession == "MS:1000435") //photodissociation
           {
-            chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::PHD);
+            chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::ActivationMethod::PHD);
           }
           else if (accession == "MS:1000598") //electron transfer dissociation
           {
-            chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::ETD);
+            chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::ActivationMethod::ETD);
           }
           else if (accession == "MS:1003182") //electron transfer and collision-induced dissociation
           {
-            chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::ETciD);
+            chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::ActivationMethod::ETciD);
           }
           else if (accession == "MS:1002631") //electron transfer and higher-energy collision dissociation
           {
-            chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::EThcD);
+            chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::ActivationMethod::EThcD);
           }
           else if (accession == "MS:1000599") //pulsed q dissociation
           {
-            chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::PQD);
+            chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::ActivationMethod::PQD);
           }
           else if (accession == "MS:1001880") //in-source collision-induced dissociation
           {
-            chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::INSOURCE);
+            chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::ActivationMethod::INSOURCE);
           }
           else if (accession == "MS:1002000") //LIFT
           {
-            chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::LIFT);
+            chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::ActivationMethod::LIFT);
           }          
           else
           {
@@ -1953,24 +2010,32 @@ namespace OpenMS::Internal
           }
           else if (accession == "MS:1000828") //isolation window lower offset
           {
-            if (in_spectrum_list_)
+            double offset_value = value.toDouble();
+            if (offset_value >= 0) // Skip negative values (indicate null/invalid)
             {
-              spec_.getPrecursors().back().setIsolationWindowLowerOffset(value.toDouble());
-            }
-            else
-            {
-              chromatogram_.getPrecursor().setIsolationWindowLowerOffset(value.toDouble());
+              if (in_spectrum_list_)
+              {
+                spec_.getPrecursors().back().setIsolationWindowLowerOffset(offset_value);
+              }
+              else
+              {
+                chromatogram_.getPrecursor().setIsolationWindowLowerOffset(offset_value);
+              }
             }
           }
           else if (accession == "MS:1000829") //isolation window upper offset
           {
-            if (in_spectrum_list_)
+            double offset_value = value.toDouble();
+            if (offset_value >= 0) // Skip negative values (indicate null/invalid)
             {
-              spec_.getPrecursors().back().setIsolationWindowUpperOffset(value.toDouble());
-            }
-            else
-            {
-              chromatogram_.getPrecursor().setIsolationWindowUpperOffset(value.toDouble());
+              if (in_spectrum_list_)
+              {
+                spec_.getPrecursors().back().setIsolationWindowUpperOffset(offset_value);
+              }
+              else
+              {
+                chromatogram_.getPrecursor().setIsolationWindowUpperOffset(offset_value);
+              }
             }
           }
           else
@@ -1991,24 +2056,32 @@ namespace OpenMS::Internal
           }
           else if (accession == "MS:1000829") //isolation window upper offset
           {
-            if (in_spectrum_list_)
+            double offset_value = value.toDouble();
+            if (offset_value >= 0) // Skip negative values (indicate null/invalid)
             {
-              spec_.getProducts().back().setIsolationWindowUpperOffset(value.toDouble());
-            }
-            else
-            {
-              chromatogram_.getProduct().setIsolationWindowUpperOffset(value.toDouble());
+              if (in_spectrum_list_)
+              {
+                spec_.getProducts().back().setIsolationWindowUpperOffset(offset_value);
+              }
+              else
+              {
+                chromatogram_.getProduct().setIsolationWindowUpperOffset(offset_value);
+              }
             }
           }
           else if (accession == "MS:1000828") //isolation window lower offset
           {
-            if (in_spectrum_list_)
+            double offset_value = value.toDouble();
+            if (offset_value >= 0) // Skip negative values (indicate null/invalid)
             {
-              spec_.getProducts().back().setIsolationWindowLowerOffset(value.toDouble());
-            }
-            else
-            {
-              chromatogram_.getProduct().setIsolationWindowLowerOffset(value.toDouble());
+              if (in_spectrum_list_)
+              {
+                spec_.getProducts().back().setIsolationWindowLowerOffset(offset_value);
+              }
+              else
+              {
+                chromatogram_.getProduct().setIsolationWindowLowerOffset(offset_value);
+              }
             }
           }
           else
@@ -3794,86 +3867,90 @@ namespace OpenMS::Internal
       //activation (mandatory)
       //--------------------------------------------------------------------------------------------
       os << "\t\t\t\t\t\t<activation>\n";
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wfloat-equal"
+#ifdef __clang__
+      #pragma clang diagnostic push
+      #pragma clang diagnostic ignored "-Wfloat-equal"
+#endif
       if (precursor.getActivationEnergy() != 0)
-#pragma clang diagnostic pop
+#ifdef __clang__
+      #pragma clang diagnostic pop
+#endif
       {
         os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000509\" name=\"activation energy\" value=\"" << precursor.getActivationEnergy() << "\" unitAccession=\"UO:0000266\" unitName=\"electronvolt\" unitCvRef=\"UO\" />\n";
       }
-      if (precursor.getActivationMethods().count(Precursor::CID) != 0)
+      if (precursor.getActivationMethods().count(Precursor::ActivationMethod::CID) != 0)
       {
         os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000133\" name=\"collision-induced dissociation\" />\n";
       }
-      if (precursor.getActivationMethods().count(Precursor::PD) != 0)
+      if (precursor.getActivationMethods().count(Precursor::ActivationMethod::PD) != 0)
       {
         os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000134\" name=\"plasma desorption\" />\n";
       }
-      if (precursor.getActivationMethods().count(Precursor::PSD) != 0)
+      if (precursor.getActivationMethods().count(Precursor::ActivationMethod::PSD) != 0)
       {
         os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000135\" name=\"post-source decay\" />\n";
       }
-      if (precursor.getActivationMethods().count(Precursor::SID) != 0)
+      if (precursor.getActivationMethods().count(Precursor::ActivationMethod::SID) != 0)
       {
         os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000136\" name=\"surface-induced dissociation\" />\n";
       }
-      if (precursor.getActivationMethods().count(Precursor::BIRD) != 0)
+      if (precursor.getActivationMethods().count(Precursor::ActivationMethod::BIRD) != 0)
       {
         os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000242\" name=\"blackbody infrared radiative dissociation\" />\n";
       }
-      if (precursor.getActivationMethods().count(Precursor::ECD) != 0)
+      if (precursor.getActivationMethods().count(Precursor::ActivationMethod::ECD) != 0)
       {
         os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000250\" name=\"electron capture dissociation\" />\n";
       }
-      if (precursor.getActivationMethods().count(Precursor::IMD) != 0)
+      if (precursor.getActivationMethods().count(Precursor::ActivationMethod::IMD) != 0)
       {
         os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000262\" name=\"infrared multiphoton dissociation\" />\n";
       }
-      if (precursor.getActivationMethods().count(Precursor::SORI) != 0)
+      if (precursor.getActivationMethods().count(Precursor::ActivationMethod::SORI) != 0)
       {
         os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000282\" name=\"sustained off-resonance irradiation\" />\n";
       }
-      if (precursor.getActivationMethods().count(Precursor::HCID) != 0)
+      if (precursor.getActivationMethods().count(Precursor::ActivationMethod::HCID) != 0)
       {
         os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1002481\" name=\"high-energy collision-induced dissociation\" />\n";
       }
-      if (precursor.getActivationMethods().count(Precursor::HCD) != 0)
+      if (precursor.getActivationMethods().count(Precursor::ActivationMethod::HCD) != 0)
       {
         os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000422\" name=\"beam-type collision-induced dissociation\" />\n";
       }
-      if (precursor.getActivationMethods().count(Precursor::TRAP) != 0)
+      if (precursor.getActivationMethods().count(Precursor::ActivationMethod::TRAP) != 0)
       {
         os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1002472\" name=\"trap-type collision-induced dissociation\" />\n";
       }
-      if (precursor.getActivationMethods().count(Precursor::LCID) != 0)
+      if (precursor.getActivationMethods().count(Precursor::ActivationMethod::LCID) != 0)
       {
         os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000433\" name=\"low-energy collision-induced dissociation\" />\n";
       }
-      if (precursor.getActivationMethods().count(Precursor::PHD) != 0)
+      if (precursor.getActivationMethods().count(Precursor::ActivationMethod::PHD) != 0)
       {
         os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000435\" name=\"photodissociation\" />\n";
       }
-      if (precursor.getActivationMethods().count(Precursor::ETD) != 0)
+      if (precursor.getActivationMethods().count(Precursor::ActivationMethod::ETD) != 0)
       {
         os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000598\" name=\"electron transfer dissociation\" />\n";
       }
-      if (precursor.getActivationMethods().count(Precursor::ETciD) != 0)
+      if (precursor.getActivationMethods().count(Precursor::ActivationMethod::ETciD) != 0)
       {
         os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1003182\" name=\"electron transfer and collision-induced dissociation\" />\n";
       }
-      if (precursor.getActivationMethods().count(Precursor::EThcD) != 0)
+      if (precursor.getActivationMethods().count(Precursor::ActivationMethod::EThcD) != 0)
       {
         os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1002631\" name=\"electron transfer and higher-energy collision dissociation\" />\n";
       }
-      if (precursor.getActivationMethods().count(Precursor::PQD) != 0)
+      if (precursor.getActivationMethods().count(Precursor::ActivationMethod::PQD) != 0)
       {
         os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000599\" name=\"pulsed q dissociation\" />\n";
       }
-      if (precursor.getActivationMethods().count(Precursor::INSOURCE) != 0)
+      if (precursor.getActivationMethods().count(Precursor::ActivationMethod::INSOURCE) != 0)
       {
         os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1001880\" name=\"in-source collision-induced dissociation\" />\n";
       }
-      if (precursor.getActivationMethods().count(Precursor::LIFT) != 0)
+      if (precursor.getActivationMethods().count(Precursor::ActivationMethod::LIFT) != 0)
       {
         os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1002000\" name=\"LIFT\" />\n";
       }      

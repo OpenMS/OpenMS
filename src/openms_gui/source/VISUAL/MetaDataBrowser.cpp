@@ -261,9 +261,6 @@ namespace OpenMS
     //check for Sample
     visualize_(meta.getSample(), item);
 
-    //check for ProteinIdentification
-    visualizeAll_(meta.getProteinIdentifications(), item);
-
     //check for Instrument
     visualize_(meta.getInstrument(), item);
 
@@ -348,7 +345,7 @@ namespace OpenMS
     }
 
     //check for proteins and peptides hits
-    meta.assignRanks();
+    meta.sort();
 
     //list all peptides hits in the tree
     for (Size i = 0; i < meta.getHits().size(); ++i)
@@ -383,7 +380,7 @@ namespace OpenMS
     }
 
     //check for proteinhits objects
-    meta.assignRanks();
+    meta.sort();
 
     for (Size i = 0; i < meta.getHits().size(); ++i)
     {
@@ -845,9 +842,6 @@ namespace OpenMS
 
     //check for AcquisitionInfo
     visualize_(meta.getAcquisitionInfo(), item);
-
-    //check for PeptideIdentification
-    visualizeAll_(meta.getPeptideIdentifications(), item);
 
     connectVisualizer_(visualizer);
   }

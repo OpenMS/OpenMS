@@ -114,7 +114,7 @@ namespace OpenMS
 
 
   IDBoostGraph::IDBoostGraph(ProteinIdentification& proteins,
-                             std::vector<PeptideIdentification>& idedSpectra,
+                             PeptideIdentificationList& idedSpectra,
                              Size use_top_psms,
                              bool use_run_info,
                              bool best_psms_annotated,
@@ -348,7 +348,7 @@ namespace OpenMS
   }
 
   void IDBoostGraph::buildGraphWithRunInfo_(ProteinIdentification& proteins,
-                                           std::vector<PeptideIdentification>& idedSpectra,
+                                           PeptideIdentificationList& idedSpectra,
                                            Size use_top_psms,
                                            const ExperimentalDesign& ed)
   {
@@ -394,7 +394,7 @@ namespace OpenMS
   //TODO actually to build the graph, the inputs could be passed const. But if you want to do sth
   // on the graph later it needs to be non-const. Overload the next functions or somehow make sure it can be used const.
   void IDBoostGraph::buildGraph_(ProteinIdentification& proteins,
-                                std::vector<PeptideIdentification>& idedSpectra,
+                                PeptideIdentificationList& idedSpectra,
                                 Size use_top_psms,
                                 bool best_psms_annotated)
   {

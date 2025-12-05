@@ -160,8 +160,6 @@ The extensible %OpenMS library implements common mass spectrometric data process
         - Database search:
             - Peptides (Tool %SimpleSearchEngine and its classes - started simple but is, by now, rather complete peptide identification engine)
             - Protein-Protein cross-links (Tool OpenPepXL)
-        - Spectral library search:
-            - Tool SpecLibSearcher and its classes
         - DeNovo:
             - Tool CompNovoCID and its classes
     - Quantification:
@@ -546,7 +544,7 @@ Registration of tool parameters
 
 \snippet Tutorial_TOPP.cpp doxygen_snippet_Register
 
-Functions, classes and references can be checked in the %OpenMS / TOPP documentation (ftp://ftp.mi.fu-berlin.de/pub/OpenMS/release-documentation/html/index.html)
+Functions, classes and references can be checked in the %OpenMS / TOPP documentation (http://www.openms.de/current_doxygen/html/)
 
 @subsection tutorial_param_read Read tool parameters
 After a tool is executed, the registered parameters are available in the main_ function of the TOPP tool and can be read using the getStringOption_ method. Special methods for integers, lists and floating point parameters exist and are in the TOPPBase documentation but are not needed for this example.

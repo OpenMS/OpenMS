@@ -24,131 +24,22 @@ set (CTEST_CUSTOM_WARNING_EXCEPTION
     # Suppress warnings imported from qt
     ".*qsharedpointer_impl.h:595:43.*"
     ".*src/openms/extern/.*"
+    # Ignore the generic "non-zero return value" warnings - let the actual errors be classified properly
+    ".*WARNING.*non-zero return value.*cmake.*"
+    )
+
+# Define patterns that should be classified as errors (these override warning classification)
+set(CTEST_CUSTOM_ERROR_MATCH
+    "subprocess-exited-with-error"
+    "FAILED:.*pyopenms"
+    "× Getting requirements to build wheel did not run successfully"
+    "error: subprocess-exited-with-error"
+    ".*FAILED:.*pyOpenMS.*"
+    ".*pip wheel.*"
     )
 
 message(STATUS "CTEST_SOURCE_DIRECTORY: ${CTEST_SOURCE_DIRECTORY}")
 message(STATUS "CTEST_BINARY_DIRECTORY: ${CTEST_BINARY_DIRECTORY}")
-
-# function to set a cache variable from an env variable if it exists only
-macro(add_env_var_to_cache_if_exists VAR_NAME)
-  if (DEFINED ENV{${VAR_NAME}})
-    message("tools/ci/cibuild.cmake: Found ${VAR_NAME} with value $ENV{${VAR_NAME}}")
-    set(INITIAL_CACHE
-"${INITIAL_CACHE}
-${VAR_NAME}=$ENV{${VAR_NAME}}"
-    )
-  endif()
-endmacro()
-
-# same but for multiple variables
-macro(add_env_vars_to_cache_if_exists VAR_NAMES)
-  foreach(VAR_NAME ${VAR_NAMES})
-    add_env_var_to_cache_if_exists(${VAR_NAME})
-  endforeach()
-endmacro()
-
-macro(add_env_var_to_cache_with_default VAR_NAME DEFAULT)
-  if (DEFINED ENV{${VAR_NAME}})
-    set(INITIAL_CACHE
-"${INITIAL_CACHE}
-${VAR_NAME}=$ENV{${VAR_NAME}}"
-    )
-  else()
-      set(INITIAL_CACHE
-"${INITIAL_CACHE}
-${VAR_NAME}=$ENV{${DEFAULT}}"
-    )
-  endif()
-endmacro()
-
-set(INITIAL_CACHE "")
-
-if(DEFINED ENV{CMAKE_CCACHE_EXE})
-  set(INITIAL_CACHE 
-"${INITIAL_CACHE}
-CMAKE_CXX_COMPILER_LAUNCHER=$ENV{CMAKE_CCACHE_EXE}
-CMAKE_C_COMPILER_LAUNCHER=$ENV{CMAKE_CCACHE_EXE}"
-  )
-endif()
-
-set(VARS_TO_LOAD
-  "ADDRESS_SANITIZER"
-  "CC"
-  "CXX"
-  "CFLAGS"
-  "CXXFLAGS"
-  "CMAKE_PREFIX_PATH"
-  "CMAKE_BUILD_TYPE"
-  "CMAKE_GENERATOR_PLATFORM"
-  "Boost_DEBUG"
-  "BOOST_USE_STATIC"
-  "OPENMS_CONTRIB_LIBS"
-  "ENABLE_CLASS_TESTING"
-  "ENABLE_GCC_WERROR"
-  "ENABLE_STYLE_TESTING"
-  "ENABLE_TOPP_TESTING"
-  "ENABLE_PIPELINE_TESTING"
-  "ENABLE_DOCS"
-  "ENABLE_CWL"
-  "ENABLE_TUTORIALS"
-  "ENABLE_UPDATE_CHECK"
-  "MT_ENABLE_OPENMP"
-  "NO_DEPENDENCIES"
-  "SEARCH_ENGINES_DIRECTORY"
-  "SIGNING_IDENTITY"
-  "PACKAGE_TYPE"
-  "PYOPENMS"
-  "PY_MEMLEAK_DISABLE"
-  "PY_NO_OPTIMIZATION"
-  "PY_NO_OUTPUT"
-  "PY_NUM_MODULES"
-  "PY_NUM_THREADS"
-  "Python_ROOT_DIR"
-  "Python_FIND_STRATEGY"
-  "WITH_GUI"
-  "WITH_THERMORAWFILEPARSER_TEST"
- )
-
-message("tools/ci/cibuild.cmake: Loading the following vars from ENV if available: ${VARS_TO_LOAD}")
-add_env_vars_to_cache_if_exists("${VARS_TO_LOAD}")
-
-# Unused now! If you want to set a variable to a non-default, you have to set it in your environment.
-# To make build scripts/workflows clearer from the outside.
-set(OLD_VALUES
-"
-GIT_TRACKING=OFF
-OPENMS_GIT_SHORT_SHA1=ci
-OPENMS_GIT_SHORT_REFSPEC=$ENV{RUN_NAME}
-OPENMS_GIT_LC_DATE=1970-01-01
-ENABLE_UPDATE_CHECK:BOOL=OFF
-Boost_DEBUG=OFF
-CMAKE_PREFIX_PATH=$ENV{OS_PREFIX_PATH}
-OPENMS_CONTRIB_LIBS=$ENV{CONTRIB_BUILD_DIRECTORY}
-BOOST_USE_STATIC=$ENV{USE_STATIC_BOOST}
-CMAKE_BUILD_TYPE=$ENV{BUILD_TYPE}
-PACKAGE_TYPE=$ENV{PACKAGE_TYPE}
-SEARCH_ENGINES_DIRECTORY=$ENV{SEARCH_ENGINES_DIRECTORY}
-ENABLE_TUTORIALS=Off
-ENABLE_GCC_WERROR=Off
-PYOPENMS=$ENV{PYOPENMS}
-MT_ENABLE_OPENMP=$ENV{OPENMP}
-PYTHON_EXECUTABLE:FILEPATH=$ENV{PYTHON_EXE}
-PY_NUM_THREADS=4
-PY_NUM_MODULES=4
-PY_NO_OPTIMIZATION=ON
-PY_MEMLEAK_DISABLE=ON
-PY_SINGLE_THREADED=ON
-PY_NO_OUTPUT=On
-ENABLE_STYLE_TESTING=$ENV{ENABLE_STYLE_TESTING}
-ENABLE_TOPP_TESTING=$ENV{ENABLE_TOPP_TESTING}
-ENABLE_CLASS_TESTING=$ENV{ENABLE_CLASS_TESTING}
-WITH_GUI=$ENV{WITH_GUI}
-ADDRESS_SANITIZER=$ENV{ADDRESS_SANITIZER}
-WITH_THERMORAWFILEPARSER_TEST=Off"
-)
-
-# create cache
-file(WRITE "${CTEST_BINARY_DIRECTORY}/CMakeCache.txt" ${INITIAL_CACHE})
 
 set(OWN_OPTIONS "")
 if($ENV{CMAKE_GENERATOR} MATCHES ".*Visual Studio.*")
@@ -177,18 +68,28 @@ endif()
 
 # we only build when we do non-style testing and we may have special targets like pyopenms
 if("$ENV{ENABLE_STYLE_TESTING}" STREQUAL "OFF")
+  ctest_build(BUILD "${CTEST_BINARY_DIRECTORY}" NUMBER_ERRORS _build_errors)
+
   if("$ENV{PYOPENMS}" STREQUAL "ON")
-    ctest_build(BUILD "${CTEST_BINARY_DIRECTORY}" TARGET "pyopenms" NUMBER_ERRORS _build_errors)
-    # Generate and valdiate the CWL files if "ENABLE_CWL" is set
-  else()
-    ctest_build(BUILD "${CTEST_BINARY_DIRECTORY}" NUMBER_ERRORS _build_errors)
+    ctest_build(BUILD "${CTEST_BINARY_DIRECTORY}" TARGET "pyopenms" NUMBER_ERRORS _py_build_errors)
+    math(EXPR _build_errors "${_build_errors} + ${_py_build_errors}")
   endif()
-  if("$ENV{ENABLE_CWL}" STREQUAL "ON")
-  ctest_build(BUILD "${CTEST_BINARY_DIRECTORY}" TARGET "generate_cwl_files" NUMBER_ERRORS _build_errors)
+
+  # Only build compile_pxds if PYOPENMS is not ON (since it's already a subtarget of pyopenms)
+  if("$ENV{COMPILE_PXDS}" STREQUAL "ON" AND "$ENV{PYOPENMS}" STREQUAL "OFF")
+    ctest_build(BUILD "${CTEST_BINARY_DIRECTORY}" TARGET "compile_pxds" NUMBER_ERRORS _pdxs_build_errors)
+    math(EXPR _build_errors "${_build_errors} + ${_pdxs_build_errors}")
+  endif()
+
+  # Generate and validate the CWL files if "ENABLE_CWL_GENERATION" is set
+  if("$ENV{ENABLE_CWL_GENERATION}" STREQUAL "ON")
+    ctest_build(BUILD "${CTEST_BINARY_DIRECTORY}" TARGET "generate_cwl_files" NUMBER_ERRORS _cwl_build_errors)
+    math(EXPR _build_errors "${_build_errors} + ${_cwl_build_errors}")
   endif()
 else()
   set(_build_errors 0)
 endif()
+
 ## send test results to CDash
 ctest_submit(PARTS Build CAPTURE_CMAKE_ERROR _submit_result)
 

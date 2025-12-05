@@ -16,6 +16,7 @@
 #include <OpenMS/METADATA/Product.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/DataProcessing.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <map>
 #include <vector>
@@ -50,6 +51,9 @@ public:
     };
     /// Names of spectrum types
     static const std::string NamesOfSpectrumType[SIZE_OF_SPECTRUMTYPE];
+
+    /// returns all spectrum type names known to OpenMS
+    static StringList getAllNamesOfSpectrumType();
 
     /// Constructor
     SpectrumSettings();
@@ -123,13 +127,6 @@ public:
     /// sets the products
     void setProducts(const std::vector<Product> & products);
 
-    /// returns a const reference to the PeptideIdentification vector
-    const std::vector<PeptideIdentification> & getPeptideIdentifications() const;
-    /// returns a mutable reference to the PeptideIdentification vector
-    std::vector<PeptideIdentification> & getPeptideIdentifications();
-    /// sets the PeptideIdentification vector
-    void setPeptideIdentifications(const std::vector<PeptideIdentification> & identifications);
-
     /// sets the description of the applied processing
     void setDataProcessing(const std::vector< DataProcessingPtr > & data_processing);
 
@@ -137,7 +134,7 @@ public:
     std::vector< DataProcessingPtr > & getDataProcessing();
 
     /// returns a const reference to the description of the applied processing
-    const std::vector< boost::shared_ptr<const DataProcessing > > getDataProcessing() const;
+    const std::vector< std::shared_ptr<const DataProcessing > > getDataProcessing() const;
 
 protected:
 
@@ -149,7 +146,6 @@ protected:
     AcquisitionInfo acquisition_info_;
     std::vector<Precursor> precursors_;
     std::vector<Product> products_;
-    std::vector<PeptideIdentification> identification_;
     std::vector< DataProcessingPtr > data_processing_;
   };
 

@@ -6,17 +6,9 @@
 // $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModel.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
-#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
-#include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/FEATUREFINDER/FeatureFinderIdentificationAlgorithm.h>
-#include <cstdlib>  // for "rand"
-#include <ctime>    // for "time" (seeding of random number generator)
-#include <iterator> // for "inserter", "back_inserter"
+#include <OpenMS/FORMAT/FileHandler.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -120,6 +112,26 @@ The fitted models are checked for plausibility before they are accepted.
 
 Finally the results (feature maps, parameter @p out) are returned.
 
+<B>Ion Mobility Support (experimental)</B>
+
+This tool supports two types of ion mobility data:
+
+@b FAIMS (Field Asymmetric Ion Mobility Spectrometry):
+FAIMS data is automatically detected based on compensation voltage (CV) annotations in the mzML file.
+The data is split by CV and processed separately for each voltage group.
+Features representing the same analyte detected at different CV values are merged by default (controlled by @p faims:merge_features).
+No special preparation of the input mzML file is required.
+
+@b Bruker @b TimsTOF (trapped ion mobility):
+TimsTOF data requires special preparation of the mzML file. The ion mobility spectra must be concatenated into
+single spectra per frame using msconvert with the @p --combineIonMobilitySpectra option:
+@code
+msconvert input.d --mzML --combineIonMobilitySpectra -o output_dir
+@endcode
+The resulting mzML file contains one spectrum per frame with ion mobility values stored per peak.
+Ion mobility values from peptide identifications (if present in the idXML) are used for IM-aware feature detection.
+The extraction window is controlled by @p extract:IM_window.
+
 @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
 <B>The command line parameters of this tool are:</B>
@@ -201,11 +213,12 @@ protected:
       // load input
       //-------------------------------------------------------------
       OPENMS_LOG_INFO << "Loading input data..." << endl;
+      PeakMap ms_data_full;
       FileHandler mzml;
       mzml.getOptions().addMSLevel(1);
-      mzml.loadExperiment(in, ffid_algo.getMSData(), {FileTypes::MZML}, log_type_);
+      mzml.loadExperiment(in, ms_data_full, {FileTypes::MZML}, log_type_);
 
-      vector<PeptideIdentification> peptides, peptides_ext;
+      PeptideIdentificationList peptides, peptides_ext;
       vector<ProteinIdentification> proteins, proteins_ext;
 
       // "internal" IDs:
@@ -218,26 +231,26 @@ protected:
       }
 
       //-------------------------------------------------------------
-      // run feature detection
+      // Run feature detection (FAIMS handling is done internally)
       //-------------------------------------------------------------
-      ffid_algo.run(peptides, proteins, peptides_ext, proteins_ext, features, FeatureMap(), in);
+      FeatureFinderIdentificationAlgorithm ffid_algo_run;
+      ffid_algo_run.getProgressLogger().setLogType(log_type_);
+      ffid_algo_run.setParameters(getParam_().copySubset(FeatureFinderIdentificationAlgorithm().getDefaults()));
+      ffid_algo_run.setMSData(std::move(ms_data_full));
 
-      // write auxiliary output:
-      bool keep_chromatograms = !chrom_out.empty();
-      bool keep_library = !lib_out.empty();
+      ffid_algo_run.run(peptides, proteins, peptides_ext, proteins_ext, features, FeatureMap(), in);
 
-      // keep assay data for output?
-      if (keep_library)
+      // write auxiliary output (library is empty for multi-FAIMS data):
+      if (!lib_out.empty())
       {
-        FileHandler().storeTransitions(lib_out, ffid_algo.getLibrary(), {FileTypes::TRAML});
+        FileHandler().storeTransitions(lib_out, ffid_algo_run.getLibrary(), {FileTypes::TRAML});
       }
 
-      // keep chromatogram data for output?
-      if (keep_chromatograms)
+      if (!chrom_out.empty())
       {
-        addDataProcessing_(ffid_algo.getChromatograms(), getProcessingInfo_(DataProcessing::FILTERING));
-        FileHandler().storeExperiment(chrom_out, ffid_algo.getChromatograms(), {FileTypes::MZML});
-        ffid_algo.getChromatograms().clear(true);
+        PeakMap chrom_data = ffid_algo_run.getChromatograms();
+        addDataProcessing_(chrom_data, getProcessingInfo_(DataProcessing::FILTERING));
+        FileHandler().storeExperiment(chrom_out, chrom_data, {FileTypes::MZML});
       }
 
       addDataProcessing_(features, getProcessingInfo_(DataProcessing::QUANTITATION));

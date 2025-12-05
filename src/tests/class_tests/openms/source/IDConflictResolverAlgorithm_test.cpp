@@ -28,7 +28,7 @@ START_SECTION(resolveBetweenFeatures())
   hit.setSequence(AASequence::fromString("MORRISSEY"));
   PeptideIdentification id;
   id.insertHit(hit);
-  std::vector<PeptideIdentification> ids;
+  PeptideIdentificationList ids;
   ids.push_back(id);
   
   PeptideHit hit2;
@@ -36,7 +36,7 @@ START_SECTION(resolveBetweenFeatures())
   hit2.setSequence(AASequence::fromString("M(Oxidation)ORRISSEY"));
   PeptideIdentification id2;
   id2.insertHit(hit2);
-  std::vector<PeptideIdentification> ids2;
+  PeptideIdentificationList ids2;
   ids2.push_back(id2);
   
   f1.setRT(1600.5);

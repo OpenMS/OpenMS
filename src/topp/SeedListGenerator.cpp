@@ -129,7 +129,7 @@ protected:
       if (in_type == FileTypes::CONSENSUSXML)
       {
         ConsensusMap consensus;
-        FileHandler().loadConsensusFeatures(in, consensus, {FileTypes::CONSENSUSXML});
+        FileHandler().loadConsensusFeatures(in, consensus, {FileTypes::CONSENSUSXML}, log_type_);
         num_maps = consensus.getColumnHeaders().size();
         ConsensusMap::ColumnHeaders ch = consensus.getColumnHeaders();
         size_t map_count = 0;
@@ -157,21 +157,21 @@ protected:
       else if (in_type == FileTypes::MZML)
       {
         PeakMap experiment;
-        FileHandler().loadExperiment(in, experiment, {FileTypes::MZML});
+        FileHandler().loadExperiment(in, experiment, {FileTypes::MZML}, log_type_);
         seed_gen.generateSeedList(experiment, seed_lists[0]);
       }
       else if (in_type == FileTypes::IDXML)
       {
         vector<ProteinIdentification> proteins;
-        vector<PeptideIdentification> peptides;
-        FileHandler().loadIdentifications(in, proteins, peptides, {FileTypes::IDXML});
+        PeptideIdentificationList peptides;
+        FileHandler().loadIdentifications(in, proteins, peptides, {FileTypes::IDXML}, log_type_);
         seed_gen.generateSeedList(peptides, seed_lists[0],
                                   getFlag_("use_peptide_mass"));
       }
       else if (in_type == FileTypes::FEATUREXML)
       {
         FeatureMap features;
-        FileHandler().loadFeatures(in, features, {FileTypes::FEATUREXML});
+        FileHandler().loadFeatures(in, features, {FileTypes::FEATUREXML}, log_type_);
         seed_gen.generateSeedList(
           features.getUnassignedPeptideIdentifications(), seed_lists[0]);
       }
@@ -187,7 +187,7 @@ protected:
         addDataProcessing_(features, getProcessingInfo_(
                              DataProcessing::DATA_PROCESSING));
         OPENMS_LOG_INFO << "Writing " << features.size() << " seeds to " << out[num_maps] << endl;
-        FileHandler().storeFeatures(out[num_maps], features, {FileTypes::FEATUREXML});
+        FileHandler().storeFeatures(out[num_maps], features, {FileTypes::FEATUREXML}, log_type_);
       }
 
       return EXECUTION_OK;

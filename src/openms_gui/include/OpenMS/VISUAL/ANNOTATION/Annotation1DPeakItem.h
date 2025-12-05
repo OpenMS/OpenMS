@@ -15,6 +15,7 @@
 #include <OpenMS/VISUAL/Plot1DCanvas.h>
 
 #include <QtGui/QColor>
+#include <QtGui/QFontMetricsF>
 
 namespace OpenMS
 {
@@ -53,7 +54,8 @@ public:
       canvas->dataToWidget(canvas->getMapper().map(peak_position_), peak_position_widget, flipped);
 
       // pre-compute bounding box of text_item
-      const auto prebox = QApplication::fontMetrics().boundingRect(position_widget.x(), position_widget.y(), 0, 0, Qt::AlignCenter, getText());
+      const QFontMetricsF fm(QApplication::font());
+      const auto prebox = fm.boundingRect(QRectF(position_widget.x(), position_widget.y(), 0, 0), Qt::AlignCenter, getText());
       // Shift position of the widget/text, so it sits 'on top' of the peak
       // We can only do that there, since we do not know the state of 'flipped' in general
       // Compute the delta in data-units, NOT pixels, since the shift (up/down, or even left/right) depends on state of 'flipped' and axis 
@@ -62,7 +64,7 @@ public:
       // recompute 'position_widget', shifting the text up by 1/2 box
       canvas->dataToWidget(canvas->getMapper().map(position_) + delta_gravity_in_units / 2, position_widget, flipped);
       // re-compute bounding box of text_item on with new position!
-      bounding_box_ = QApplication::fontMetrics().boundingRect(position_widget.x(), position_widget.y(), 0, 0, Qt::AlignCenter, getText());
+      bounding_box_ = fm.boundingRect(QRectF(position_widget.x(), position_widget.y(), 0, 0), Qt::AlignCenter, getText());
 
 
       // draw connection line between anchor point and current position if pixel coordinates differ significantly

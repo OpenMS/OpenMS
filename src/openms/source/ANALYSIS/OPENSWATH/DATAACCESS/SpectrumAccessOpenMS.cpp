@@ -12,7 +12,7 @@
 
 namespace OpenMS
 {
-  SpectrumAccessOpenMS::SpectrumAccessOpenMS(boost::shared_ptr<MSExperimentType> ms_experiment)
+  SpectrumAccessOpenMS::SpectrumAccessOpenMS(std::shared_ptr<MSExperimentType> ms_experiment)
   {
     // store shared pointer to the actual MSExperiment
     ms_experiment_ = std::move(ms_experiment);
@@ -27,9 +27,9 @@ namespace OpenMS
   }
 
 
-  boost::shared_ptr<OpenSwath::ISpectrumAccess> SpectrumAccessOpenMS::lightClone() const
+  std::shared_ptr<OpenSwath::ISpectrumAccess> SpectrumAccessOpenMS::lightClone() const
   {
-    return boost::shared_ptr<SpectrumAccessOpenMS>(new SpectrumAccessOpenMS(*this));
+    return std::shared_ptr<SpectrumAccessOpenMS>(new SpectrumAccessOpenMS(*this));
   }
 
   OpenSwath::SpectrumPtr SpectrumAccessOpenMS::getSpectrumById(int id)

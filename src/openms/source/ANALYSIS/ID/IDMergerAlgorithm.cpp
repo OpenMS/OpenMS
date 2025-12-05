@@ -6,9 +6,11 @@
 // $Authors: Julianus Pfeuffer $
 // --------------------------------------------------------------------------
 
+#include "OpenMS/CONCEPT/LogStream.h"
+#include "OpenMS/METADATA/ProteinIdentification.h"
 #include <OpenMS/ANALYSIS/ID/IDMergerAlgorithm.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
-#include <unordered_map>
+#include <algorithm>
 #include <array>
 
 using namespace std;
@@ -19,12 +21,13 @@ namespace OpenMS
   //TODO parameterize so it only adds/keeps best per peptide, peptide charge, modified peptide
   // How? Maybe keep a map here about the best scores and lookup before adding and update and insert only if better
   // proteins of this peptide could be skipped (if we assume same database as we do currently, it has to be there already)
-  IDMergerAlgorithm::IDMergerAlgorithm(const String& runIdentifier) :
+  IDMergerAlgorithm::IDMergerAlgorithm(const String& runIdentifier, bool addTimeStampToID) :
       IDMergerAlgorithm::DefaultParamHandler("IDMergerAlgorithm"),
       prot_result_(),
       pep_result_(),
       collected_protein_hits_(0, accessionHash_, accessionEqual_),
-      id_(runIdentifier)
+      id_(runIdentifier),
+      fixed_identifier_(!addTimeStampToID)
   {
     defaults_.setValue("annotate_origin",
                        "true",
@@ -35,17 +38,20 @@ namespace OpenMS
                        "Force merging of disagreeing runs. Use at your own risk.");
     defaults_.setValidStrings("allow_disagreeing_settings", {"true","false"});
     defaultsToParam_();
-    prot_result_.setIdentifier(getNewIdentifier_());
+    prot_result_.setIdentifier(getNewIdentifier_(addTimeStampToID));
   }
 
   //TODO overload to accept a set of specific runIDs only
   void IDMergerAlgorithm::insertRuns(
       std::vector<ProteinIdentification>&& prots,
-      std::vector<PeptideIdentification>&& peps
+      PeptideIdentificationList&& peps
       )
   {
-    if (prots.empty() || peps.empty()) return; //error?
-
+    if (prots.empty()) 
+    {
+      OPENMS_LOG_WARN << "No ProteinIdentification(Runs) given. Skipping.";
+      return;
+    }
     //TODO instead of only checking consistency, merge if possible (especially for SILAC mods)
     if (!filled_)
     {
@@ -68,13 +74,18 @@ namespace OpenMS
 
   void IDMergerAlgorithm::insertRuns(
       const std::vector<ProteinIdentification>& prots,
-      const std::vector<PeptideIdentification>& peps
+      const PeptideIdentificationList& peps
   )
   {
+    if (prots.empty()) 
+    {
+      OPENMS_LOG_WARN << "No ProteinIdentification(Runs) given. Skipping.";
+      return;
+    }
+
     //copy
     std::vector<ProteinIdentification> pr = prots;
-    std::vector<PeptideIdentification> pep = peps;
-    if (prots.empty() || peps.empty()) return; //error?
+    PeptideIdentificationList pep = peps;
 
     //TODO instead of only checking consistency, merge if possible (especially for SILAC mods)
     if (!filled_)
@@ -97,7 +108,7 @@ namespace OpenMS
 
   void IDMergerAlgorithm::returnResultsAndClear(
       ProteinIdentification& prots,
-      vector<PeptideIdentification>& peps)
+      PeptideIdentificationList& peps)
   {
     // convert the map from file origin to idx into
     // a vector
@@ -112,21 +123,24 @@ namespace OpenMS
     std::swap(peps, pep_result_);
     //reset so the new this class is reuseable
     prot_result_ = ProteinIdentification{};
-    prot_result_.setIdentifier(getNewIdentifier_());
+    prot_result_.setIdentifier(getNewIdentifier_(!fixed_identifier_));
     //clear, if user gave non-empty vector
     pep_result_.clear();
     //reset internals
     file_origin_to_idx_.clear();
 
-    for (auto& p : collected_protein_hits_)
-      prots.getHits().push_back(std::move(const_cast<ProteinHit&>(p)));
-    // above invalidates set but we clear right after
-
-    collected_protein_hits_.clear();
+    // Safely move hits out using node handles (empties the set)
+    while (!collected_protein_hits_.empty())
+    {
+      auto nh = collected_protein_hits_.extract(collected_protein_hits_.begin());
+      prots.getHits().push_back(std::move(nh.value()));
+    }
+    filled_ = false;
   }
 
-  String IDMergerAlgorithm::getNewIdentifier_() const
+  String IDMergerAlgorithm::getNewIdentifier_(bool addTimeStampToID) const
   {
+    if (!addTimeStampToID) return id_;
     std::array<char, 64> buffer;
     buffer.fill(0);
     time_t rawtime;
@@ -154,7 +168,7 @@ namespace OpenMS
   }
 
   void IDMergerAlgorithm::updateAndMovePepIDs_(
-      vector<PeptideIdentification>&& pepIDs,
+      PeptideIdentificationList&& pepIDs,
       const map<String, Size>& runID_to_runIdx,
       const vector<StringList>& originFiles,
       bool annotate_origin)
@@ -224,10 +238,10 @@ namespace OpenMS
   }
 
 
-  // this merges without checking the existence of a parent protein for the PeptideHits
-  // therefore it can merge peptides and proteins separately and a bit faster.
+  /// this merges without checking the existence of a parent protein for the PeptideHits
+  /// therefore it can merge peptides and proteins separately and a bit faster.
   void IDMergerAlgorithm::movePepIDsAndRefProteinsToResultFaster_(
-      vector<PeptideIdentification>&& pepIDs,
+      PeptideIdentificationList&& pepIDs,
       vector<ProteinIdentification>&& old_protRuns
   )
   {
@@ -272,7 +286,7 @@ namespace OpenMS
 
   /* Old version. Quite slower but only copies actually referenced proteins
   void IDMergerAlgorithm::movePepIDsAndRefProteinsToResult_(
-      vector<PeptideIdentification>&& pepIDs,
+      PeptideIdentificationList&& pepIDs,
       vector<ProteinIdentification>&& oldProtRuns
   )
   {

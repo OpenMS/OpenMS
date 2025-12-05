@@ -65,7 +65,7 @@ namespace OpenMS
       {
         continue;
       }
-      QAction* action = context_menu.addAction(ti->text(), [=]() {
+      QAction* action = context_menu.addAction(ti->text(), [=, this]() {
         // invert visibility upon clicking the item
         setColumnHidden(i, !isColumnHidden(i));
         });
@@ -143,6 +143,10 @@ namespace OpenMS
           else if (ti->data(Qt::CheckStateRole).isValid()) // Note: item with check box also has a display role, so this test needs to come first
           {
             str_list << ti->data(Qt::CheckStateRole).toString();
+          }
+          else if (ti->data(Qt::DisplayRole).isValid())
+          {
+            str_list << ti->data(Qt::DisplayRole).toString();
           }
           else if (ti->data(Qt::DisplayRole).isValid())
           {
@@ -247,7 +251,7 @@ namespace OpenMS
   {
     // check if this function is called on checkbox items only (either no DisplayRole set or the text is '' or ' ')
     if (!item->data(Qt::DisplayRole).isValid() || 
-        (item->data(Qt::DisplayRole).type() == QVariant::Type::String
+        (item->data(Qt::DisplayRole).typeId() == QMetaType::QString
           && (item->data(Qt::DisplayRole).toString().isEmpty() || item->data(Qt::DisplayRole).toString() == " ")
         )
        )

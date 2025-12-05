@@ -8,6 +8,7 @@ from . import Feature as _Feature
 from . import MRMFeature as _MRMFeature
 from . import MSExperiment as _MSExperiment
 from . import PeakMap as _PeakMap
+from . import PeptideIdentificationList as _PeptideIdentificationList
 from . import PeptideIdentification as _PeptideIdentification
 from . import ControlledVocabulary as _ControlledVocabulary
 from . import File as _File
@@ -153,9 +154,9 @@ class _ConsensusMapDF(_ConsensusMap):
                 yield from fun(f)
 
         def extract_meta_data(f: _ConsensusFeature):
-            pep = f.getPeptideIdentifications()  # type: list[PeptideIdentification]
+            pep = f.getPeptideIdentifications()  # type: _PeptideIdentificationList
 
-            if len(pep) != 0:
+            if pep.size() != 0:
                 hits = pep[0].getHits()
 
                 if len(hits) != 0:
@@ -290,13 +291,13 @@ class _FeatureMapDF(_FeatureMap):
             Yields:
             tuple: tuple containing feature information, peptide information (optional) and meta values (optional)
             """
-            pep = f.getPeptideIdentifications()  # type: list[PeptideIdentification]
+            pep = f.getPeptideIdentifications()  # type: _PeptideIdentificationList
             bb = f.getConvexHull().getBoundingBox2D()
                 
             vals = [f.getMetaValue(m) if f.metaValueExists(m) else _np.nan for m in meta_values]
             
             if export_peptide_identifications:
-                if len(pep) > 0:
+                if pep.size() > 0:
                     ID_filename = self.__get_prot_id_filename_from_pep_id(pep[0])
                     hits = pep[0].getHits()
                     if len(hits) > 0:
@@ -339,9 +340,9 @@ class _FeatureMapDF(_FeatureMap):
         merged_df = _pd.merge(feature_df, assigned_peptide_df, on=['feature_id', 'ID_native_id', 'ID_filename'])
 
         Returns:
-        [PeptideIdentification]: list of PeptideIdentification objects
+        _PeptideIdentificationList: list of PeptideIdentification objects
         """
-        result = []
+        result = _PeptideIdentificationList()
         for f in self:
             for pep in f.getPeptideIdentifications():
                 hits = []
@@ -354,7 +355,7 @@ class _FeatureMapDF(_FeatureMap):
                         hit.setMetaValue('ID_native_id', 'unknown')
                     hits.append(hit)
                 pep.setHits(hits)
-                result.append(pep)
+                result.push_back(pep)
         return result
 
 FeatureMap = _FeatureMapDF
@@ -561,22 +562,26 @@ MSExperiment.__name__ = 'MSExperiment'
 
 # TODO think about the best way for such top-level function. IMHO in python, encapsulation in a stateless class in unnecessary.
 #   We should probably not just import this whole submodule without prefix.
-def peptide_identifications_to_df(peps: List[_PeptideIdentification], decode_ontology : bool = True,
-                                  default_missing_values: dict = {bool: False, int: -9999, float: _np.nan, str: ''},
+def peptide_identifications_to_df(peps: _PeptideIdentificationList, decode_ontology : bool = True,
+                                  default_missing_values: dict = None,
                                   export_unidentified : bool = True):
     """Converts a list of peptide identifications to a pandas DataFrame.
     Parameters:
-    peps (List[PeptideIdentification]): list of PeptideIdentification objects
+    peps (PeptideIdentificationList): list of PeptideIdentification objects
     decode_ontology (bool): decode meta value names
     default_missing_values: default value for missing values for each data type
     export_unidentified: export PeptideIdentifications without PeptideHit
     Returns:
     pandas.DataFrame: peptide identifications in a DataFrame
     """
+
+    if default_missing_values is None:
+        default_missing_values = {bool: False, int: -9999, float: _np.nan, str: ''}
+        
     switchDict = {bool: '?', int: 'i', float: 'f', str: 'U100'}
 
     # filter out PeptideIdentifications without PeptideHits if export_unidentified == False
-    count = len(peps)
+    count = peps.size()
     if not export_unidentified:
         count = sum(len(pep.getHits()) > 0 for pep in peps)
 
@@ -661,7 +666,7 @@ def peptide_identifications_to_df(peps: List[_PeptideIdentification], decode_ont
     return _pd.DataFrame(_np.fromiter((extract(pep, pep_idx) for pep_idx, pep in enumerate(peps)), dtype=dt, count=count))
 
 
-def update_scores_from_df(peps: List[_PeptideIdentification], df : _pd.DataFrame, main_score_name : str):
+def update_scores_from_df(peps: _PeptideIdentificationList, df : _pd.DataFrame, main_score_name : str):
     """
     Updates the scores in PeptideIdentification objects using a pandas dataframe.
                 

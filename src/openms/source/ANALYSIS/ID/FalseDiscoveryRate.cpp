@@ -52,7 +52,7 @@ namespace OpenMS
     if (isHigherBetter) return first > second; else return first < second;
   }
 
-  void FalseDiscoveryRate::apply(vector<PeptideIdentification>& ids, bool annotate_peptide_fdr) const
+  void FalseDiscoveryRate::apply(PeptideIdentificationList& ids, bool annotate_peptide_fdr) const
   {
     bool q_value = !param_.getValue("no_qvalues").toBool();
     bool use_all_hits = param_.getValue("use_all_hits").toBool();
@@ -139,35 +139,36 @@ namespace OpenMS
               continue;
             }
 
-            if (!it->getHits()[i].metaValueExists("target_decoy"))
+            auto target_decoy_type = it->getHits()[i].getTargetDecoyType();
+            
+            if (target_decoy_type == PeptideHit::TargetDecoyType::UNKNOWN)
             {
               OPENMS_LOG_FATAL_ERROR << "Meta value 'target_decoy' does not exists, reindex the idXML file with 'PeptideIndexer' first (run-id='" << it->getIdentifier() << ", rank=" << i + 1 << " of " << it->getHits().size() << ")!" << endl;
               throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Meta value 'target_decoy' does not exist!");
             }
 
-            String target_decoy(it->getHits()[i].getMetaValue("target_decoy"));
             const String peptide_sequence = it->getHits()[i].getSequence().toUnmodifiedString();
             const double score = it->getHits()[i].getScore();
 
-            if (target_decoy == "target" || target_decoy == "target+decoy")
+            if (target_decoy_type == PeptideHit::TargetDecoyType::TARGET || target_decoy_type == PeptideHit::TargetDecoyType::TARGET_DECOY)
             {
               target_scores.push_back(score);
 
               if (annotate_peptide_fdr)
               {
-                // store best score for peptide (unmodified sequence)              
+                // store best score for peptide (unmodified sequence)
                 auto [entry_it, success] = peptide_to_best_target_score.emplace(peptide_sequence, score); // try to construct in place (performance)
 
                 if (!success && // emplace failed because key was already present -> replace if current score is better?
-                    isFirstBetterScore(score, entry_it->second, higher_score_better)) 
+                    isFirstBetterScore(score, entry_it->second, higher_score_better))
                 {
                   entry_it->second = score;
-                }                           
+                }
               }
             }
             else
             {
-              if (target_decoy == "decoy")
+              if (target_decoy_type == PeptideHit::TargetDecoyType::DECOY)
               {
                 decoy_scores.push_back(score);
 
@@ -182,13 +183,7 @@ namespace OpenMS
                   }
                 }
               }
-              else
-              {
-                if (!target_decoy.empty())
-                {
-                  throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unknown value of meta value 'target_decoy'", target_decoy);
-                }
-              }
+              // Note: All other cases (UNKNOWN) are handled at the beginning of the loop
             }
           }
         }
@@ -257,14 +252,16 @@ namespace OpenMS
                 continue;
               }
 
-              if (!hits[i].metaValueExists("target_decoy"))
+              auto target_decoy_type = hits[i].getTargetDecoyType();
+              
+              if (target_decoy_type == PeptideHit::TargetDecoyType::UNKNOWN)
               {
                 OPENMS_LOG_FATAL_ERROR << "Meta value 'target_decoy' does not exists, reindex the idXML file with 'PeptideIndexer' (run-id='" << it->getIdentifier() << ", rank=" << i + 1 << " of " << hits.size() << ")!" << endl;
                 throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Meta value 'target_decoy' does not exist!");
               }
 
-              String target_decoy(hits[i].getMetaValue("target_decoy"));
-              if (target_decoy == "target" || target_decoy == "target+decoy")
+              bool is_decoy = hits[i].isDecoy();
+              if (!is_decoy)
               {
                 // if it is a target hit, there are no decoys, fdr/q-value should be zero then
                 new_hits.push_back(hits[i]);
@@ -272,13 +269,7 @@ namespace OpenMS
                 new_hits.back().setMetaValue(score_type, new_hits.back().getScore());
                 new_hits.back().setScore(0);
               }
-              else
-              {
-                if (target_decoy != "decoy")
-                {
-                  throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unknown value of meta value 'target_decoy'", target_decoy);
-                }
-              }
+              // Note: decoy hits are skipped (not added to new_hits)
             }
             it->setHits(new_hits);
           }
@@ -336,8 +327,8 @@ namespace OpenMS
             }
             if (hit.metaValueExists("target_decoy"))
             {
-              String meta_value = (String)hit.getMetaValue("target_decoy");
-              if (meta_value == "decoy" && !add_decoy_peptides)
+              bool is_decoy = hit.isDecoy();
+              if (is_decoy && !add_decoy_peptides)
               {
                 continue;
               }
@@ -346,7 +337,7 @@ namespace OpenMS
               {
                 const String peptide_sequence = hit.getSequence().toUnmodifiedString();
                 double peptide_fdr;
-                if (meta_value == "decoy")
+                if (is_decoy)
                 {
                   peptide_fdr = peptide_to_best_decoy_score[peptide_sequence];
                 }
@@ -356,7 +347,7 @@ namespace OpenMS
                 }
                 if (q_value)
                 {
-                  hit.setMetaValue("peptide q-value", peptide_fdr);
+                  hit.setMetaValue(Constants::UserParam::PEPTIDE_Q_VALUE, peptide_fdr);
                 }
                 else
                 {
@@ -378,7 +369,7 @@ namespace OpenMS
     }
 
     // higher-score-better can be set now, calculations are finished
-    for (vector<PeptideIdentification>::iterator it = ids.begin(); it != ids.end(); ++it)
+    for (PeptideIdentificationList::iterator it = ids.begin(); it != ids.end(); ++it)
     {
       if (q_value)
       {
@@ -395,13 +386,13 @@ namespace OpenMS
         }
       }
       it->setHigherScoreBetter(false);
-      it->assignRanks();
+      it->sort();
     }
 
     return;
   }
 
-  void FalseDiscoveryRate::apply(vector<PeptideIdentification>& fwd_ids, vector<PeptideIdentification>& rev_ids) const
+  void FalseDiscoveryRate::apply(PeptideIdentificationList& fwd_ids, PeptideIdentificationList& rev_ids) const
   {
     if (fwd_ids.empty() || rev_ids.empty())
     {
@@ -409,7 +400,7 @@ namespace OpenMS
     }
     vector<double> target_scores, decoy_scores;
     // get the scores of all peptide hits
-    for (vector<PeptideIdentification>::const_iterator it = fwd_ids.begin(); it != fwd_ids.end(); ++it)
+    for (PeptideIdentificationList::const_iterator it = fwd_ids.begin(); it != fwd_ids.end(); ++it)
     {
       for (vector<PeptideHit>::const_iterator pit = it->getHits().begin(); pit != it->getHits().end(); ++pit)
       {
@@ -417,7 +408,7 @@ namespace OpenMS
       }
     }
 
-    for (vector<PeptideIdentification>::const_iterator it = rev_ids.begin(); it != rev_ids.end(); ++it)
+    for (PeptideIdentificationList::const_iterator it = rev_ids.begin(); it != rev_ids.end(); ++it)
     {
       for (vector<PeptideHit>::const_iterator pit = it->getHits().begin(); pit != it->getHits().end(); ++pit)
       {
@@ -434,7 +425,7 @@ namespace OpenMS
 
     // annotate fdr
     String score_type = fwd_ids.begin()->getScoreType() + "_score";
-    for (vector<PeptideIdentification>::iterator it = fwd_ids.begin(); it != fwd_ids.end(); ++it)
+    for (PeptideIdentificationList::iterator it = fwd_ids.begin(); it != fwd_ids.end(); ++it)
     {
       if (q_value)
       {
@@ -461,7 +452,7 @@ namespace OpenMS
     if (add_decoy_peptides)
     {
       score_type = rev_ids.begin()->getScoreType() + "_score";
-      for (vector<PeptideIdentification>::iterator it = rev_ids.begin(); it != rev_ids.end(); ++it)
+      for (PeptideIdentificationList::iterator it = rev_ids.begin(); it != rev_ids.end(); ++it)
       {
         if (q_value)
         {
@@ -506,24 +497,20 @@ namespace OpenMS
     {
       for (auto pit = it->getHits().begin(); pit != it->getHits().end(); ++pit)
       {
-        if (!pit->metaValueExists("target_decoy"))
+        if (pit->getTargetDecoyType() == ProteinHit::TargetDecoyType::UNKNOWN)
         {
-          OPENMS_LOG_FATAL_ERROR << "Meta value 'target_decoy' does not exists, reindex the idXML file with 'PeptideIndexer' (run-id='" << it->getIdentifier() << ", accession=" << pit->getAccession() << ")!" << endl;
+          OPENMS_LOG_FATAL_ERROR << "Meta value 'target_decoy' does not exist, reindex the idXML file with 'PeptideIndexer' first (run-id='" 
+            << it->getIdentifier() << ")!" << endl;
           throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Meta value 'target_decoy' does not exist!");
         }
 
-        String target_decoy = pit->getMetaValue("target_decoy");
-        if (target_decoy == "decoy")
+        if (pit->isDecoy())
         {
           decoy_scores.push_back(pit->getScore());
         }
-        else if (target_decoy == "target")
-        {
-          target_scores.push_back(pit->getScore());
-        }
         else
         {
-          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unknown value of meta value 'target_decoy'", target_decoy);
+          target_scores.push_back(pit->getScore());
         }
       }
     }
@@ -551,7 +538,7 @@ namespace OpenMS
       for (auto hit : old_hits) // NOTE: performs copy
       {
         // Add decoy proteins only if add_decoy_proteins is set
-        if (add_decoy_proteins || hit.getMetaValue("target_decoy") != "decoy")
+        if (add_decoy_proteins || !hit.isDecoy())
         {
           hit.setMetaValue(score_type, hit.getScore());
           hit.setScore(score_to_fdr[hit.getScore()]);
@@ -880,7 +867,7 @@ namespace OpenMS
   //TODO does not support "by run" and/or "by charge"
   //TODO could be done for a percentage of FalsePos instead of a number
   //TODO can be templated for proteins
-  double FalseDiscoveryRate::rocN(const vector<PeptideIdentification>& ids, Size fp_cutoff) const
+  double FalseDiscoveryRate::rocN(const PeptideIdentificationList& ids, Size fp_cutoff) const
   {
     bool higher_score_better(ids.begin()->isHigherScoreBetter());
     bool use_all_hits = param_.getValue("use_all_hits").toBool();
@@ -905,7 +892,7 @@ namespace OpenMS
     return rocN(scores_labels, fp_cutoff == 0 ? scores_labels.size() : fp_cutoff);
   }
 
-  double FalseDiscoveryRate::rocN(const vector<PeptideIdentification>& ids, Size fp_cutoff, const String& identifier) const
+  double FalseDiscoveryRate::rocN(const PeptideIdentificationList& ids, Size fp_cutoff, const String& identifier) const
   {
     bool higher_score_better(ids.begin()->isHigherScoreBetter());
     bool use_all_hits = param_.getValue("use_all_hits").toBool();
@@ -1092,7 +1079,8 @@ namespace OpenMS
       unordered_set<string> decoy_accs;
       for (const auto& prot : id.getHits())
       {
-        if (!prot.metaValueExists("target_decoy") || prot.getMetaValue("target_decoy") == "decoy")
+        // checks if not a target (UNKNOWN or DECOY)
+        if (prot.getTargetDecoyType() != ProteinHit::TargetDecoyType::TARGET)
         {
           decoy_accs.insert(prot.getAccession());
         }
@@ -1125,7 +1113,7 @@ namespace OpenMS
     scores_to_FDR.clear();
   }
 
-  void FalseDiscoveryRate::applyBasic(const std::vector<ProteinIdentification> & run_info, std::vector<PeptideIdentification> & ids)
+  void FalseDiscoveryRate::applyBasic(const std::vector<ProteinIdentification> & run_info, PeptideIdentificationList & ids)
   {
     if (ids.empty()) return;
     bool treat_runs_separately = param_.getValue("treat_runs_separately").toBool();
@@ -1191,7 +1179,7 @@ namespace OpenMS
   {
     bool q_value = !param_.getValue("no_qvalues").toBool();
     //TODO Check naming conventions. Ontology?
-    const string& score_type = q_value ? "peptide q-value" : "peptide FDR";
+    const string& score_type = q_value ? Constants::UserParam::PEPTIDE_Q_VALUE : "peptide FDR";
     bool add_decoy_peptides = param_.getValue("add_decoy_peptides").toBool();
     // since we do not support multiple runs here yet, we take the orientation of the first ID
     bool higher_better = true;
@@ -1231,11 +1219,11 @@ namespace OpenMS
     IDScoreGetterSetter::setPeptideScoresFromMap_(seq_to_score_labels, map, score_type, add_decoy_peptides, include_unassigned);
   }
 
-  void FalseDiscoveryRate::applyBasicPeptideLevel(std::vector<PeptideIdentification> & ids)
+  void FalseDiscoveryRate::applyBasicPeptideLevel(PeptideIdentificationList & ids)
   {
     bool q_value = !param_.getValue("no_qvalues").toBool();
     //TODO Check naming conventions. Ontology?
-    const string& score_type = q_value ? "peptide q-value" : "peptide FDR";
+    const string& score_type = q_value ? Constants::UserParam::PEPTIDE_Q_VALUE : "peptide FDR";
     bool add_decoy_peptides = param_.getValue("add_decoy_peptides").toBool();
     // since we do not support multiple runs here yet, we take the orientation of the first ID
     bool higher_better = ids[0].isHigherScoreBetter();
@@ -1269,7 +1257,7 @@ namespace OpenMS
   }
 
   // TODO why again do we need higher_score_better here?
-  void FalseDiscoveryRate::applyBasic(std::vector<PeptideIdentification> & ids, bool higher_score_better, int charge, String identifier, bool only_best_per_pep)
+  void FalseDiscoveryRate::applyBasic(PeptideIdentificationList & ids, bool higher_score_better, int charge, String identifier, bool only_best_per_pep)
   {
     bool q_value = !param_.getValue("no_qvalues").toBool();
     //TODO Check naming conventions. Ontology?
@@ -1338,7 +1326,7 @@ namespace OpenMS
     }
     calculateFDRBasic_(scores_to_FDR, scores_labels, q_value, higher_score_better);
     if (!scores_labels.empty())
-      IDScoreGetterSetter::setScores_<PeptideIdentification>(scores_to_FDR, ids, score_type, false, add_decoy_peptides);
+      IDScoreGetterSetter::setScores_<PeptideIdentification>(scores_to_FDR, ids.getData(), score_type, false, add_decoy_peptides);
     scores_to_FDR.clear();
   }
 

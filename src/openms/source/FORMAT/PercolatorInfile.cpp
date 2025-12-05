@@ -23,7 +23,7 @@ namespace OpenMS
   using namespace std;
 
   void PercolatorInfile::store(const String& pin_file,
-    const vector<PeptideIdentification>& peptide_ids, 
+    const PeptideIdentificationList& peptide_ids, 
     const StringList& feature_set, 
     const std::string& enz, 
     int min_charge, 
@@ -34,7 +34,8 @@ namespace OpenMS
   }
 
   // uses spectrum_reference, if empty uses spectrum_id, if also empty fall back to using index
-  String PercolatorInfile::getScanIdentifier(const PeptideIdentification& pid, size_t index)
+  String PercolatorInfile::getScanIdentifier(
+    const PeptideIdentification& pid, size_t index)
   {
     // MSGF+ uses this field, is empty if not specified
     String scan_identifier = pid.getSpectrumReference();
@@ -56,7 +57,7 @@ namespace OpenMS
     return scan_identifier.removeWhitespaces();
   }
 
-  vector<PeptideIdentification> PercolatorInfile::load(
+  PeptideIdentificationList PercolatorInfile::load(
     const String& pin_file,
     bool higher_score_better,
     const String& score_name,
@@ -200,7 +201,7 @@ namespace OpenMS
 
     auto n_rows = csv.rowCount();
 
-    vector<PeptideIdentification> pids;
+    PeptideIdentificationList pids;
     pids.reserve(n_rows);
     String spec_id;
     String raw_file_name("UNKNOWN");
@@ -240,11 +241,11 @@ namespace OpenMS
       //  by this loosely defined format.
       const String& sSpecId = row[to_idx.at("SpecId")];
 
+      double IM = 0.0;
       if (auto it = to_idx.find("ion_mobility"); it != to_idx.end())
       {
-        const String& sIM = row[it->second];
-        const double IM = sIM.toDouble();   
-        if (!pids.empty())  pids.back().setMetaValue(Constants::UserParam::IM, IM);
+        const String& sIM = row[it->second]; // read IM from e.g. Sage output
+        IM = sIM.toDouble();  
       }
       // In theory, this should be an integer, but Sage currently cannot extract the number from all vendor spectrum IDs,
       //  so it writes the full ID as string
@@ -256,7 +257,11 @@ namespace OpenMS
         pids.back().setScoreType(score_name);
         pids.back().setMetaValue(Constants::UserParam::ID_MERGE_INDEX, map_filename_to_idx.at(raw_file_name));
         pids.back().setRT(row[to_idx.at("retentiontime")].toDouble() * 60.0); // search engines typically write minutes (e.g., sage)
-        pids.back().setMetaValue("PinSpecId", sSpecId);  
+        pids.back().setMetaValue("PinSpecId", sSpecId);
+        if (IM > 0.0) // Sage might annotate 0.0 if no IM is present
+        {
+          pids.back().setMetaValue(Constants::UserParam::IM, IM);
+        }
         // Since ScanNr is the closest to help in identifying the spectrum in the file later on,
         // we use it as spectrum_reference. Since it can be integer only or the complete
         // vendor ID, you will need a lookup in case of number only later!!
@@ -332,14 +337,15 @@ namespace OpenMS
       sPeptide.substitute("]-", "]."); // we can parse [+42].MVLVQDLLHPTAASEAR
       sPeptide.substitute("-[", ".["); // we can parse MVLVQDLLHPTAASEAR.[+111]
       AASequence aa_seq = AASequence::fromString(sPeptide);
-      PeptideHit ph(score, rank, charge, std::move(aa_seq));
+      PeptideHit ph(score, rank - 1, charge, std::move(aa_seq));
       ph.setMetaValue("target_decoy", target_decoy);
 
       for (const auto& name : found_extra_scores)
       {
-        ph.setMetaValue(name, row[to_idx.at(name)]);
+        String value = row[to_idx.at(name)];
+        if (name == "ln(-poisson)" && value == "inf") value = "3.5"; // workaround for Sage
+        ph.setMetaValue(name, value);
       }
-      ph.setRank(rank);
 
       // adding own meta values 
       if (SageAnnotation)
@@ -375,7 +381,7 @@ namespace OpenMS
 
 
   TextFile PercolatorInfile::preparePin_(
-    const vector<PeptideIdentification>& peptide_ids, 
+    const PeptideIdentificationList& peptide_ids, 
     const StringList& feature_set, 
     const std::string& enz, 
     int min_charge, 
@@ -426,17 +432,15 @@ namespace OpenMS
         hit.setMetaValue("SpecId", file_identifier + scan_identifier);
         hit.setMetaValue("ScanNr", scan_number);
         
-        if (!hit.metaValueExists("target_decoy") 
-          || hit.getMetaValue("target_decoy").toString().empty()) 
-        {
+        if (hit.getTargetDecoyType() == PeptideHit::TargetDecoyType::UNKNOWN)
+        { 
+          OPENMS_LOG_WARN << "PSM without target/decoy information found. "
+                  << "This may indicate incomplete mapping during PeptideIndexing (e.g., wrong decoy prefix settings)." 
+                  << "Will skip this PSM." << endl;
           continue;
         }
         
-        int label = 1;
-        if (hit.getMetaValue("target_decoy") == "decoy")
-        {
-          label = -1;
-        }
+        int label = hit.isDecoy() ? -1 : 1;
         hit.setMetaValue("Label", label);
         
         int charge = hit.getCharge();

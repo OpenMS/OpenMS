@@ -10,8 +10,8 @@ cdef extern from "<OpenMS/DATASTRUCTURES/LPWrapper.h>" namespace "OpenMS":
         Int addRow(libcpp_vector[ int ] row_indices, libcpp_vector[ double ] row_values, const String & name) except + nogil  # wrap-doc:Adds a row to the LP matrix, returns index
         Int addColumn() except + nogil  # wrap-doc:Adds an empty column to the LP matrix, returns index
         Int addColumn(libcpp_vector[ int ] column_indices, libcpp_vector[ double ] column_values, const String & name) except + nogil  # wrap-doc:Adds a column to the LP matrix, returns index
-        Int addRow(libcpp_vector[ int ] & row_indices, libcpp_vector[ double ] & row_values, const String & name, double lower_bound, double upper_bound, LPWrapper_Type type_) except + nogil  # wrap-doc:Adds a row with boundaries to the LP matrix, returns index
-        Int addColumn(libcpp_vector[ int ] & column_indices, libcpp_vector[ double ] & column_values, const String & name, double lower_bound, double upper_bound, LPWrapper_Type type_) except + nogil  # wrap-doc:Adds a column with boundaries to the LP matrix, returns index
+        Int addRow(const libcpp_vector[ int ] & row_indices, const libcpp_vector[ double ] & row_values, const String & name, double lower_bound, double upper_bound, LPWrapper_Type type_) except + nogil  # wrap-doc:Adds a row with boundaries to the LP matrix, returns index
+        Int addColumn(const libcpp_vector[ int ] & column_indices, const libcpp_vector[ double ] & column_values, const String & name, double lower_bound, double upper_bound, LPWrapper_Type type_) except + nogil  # wrap-doc:Adds a column with boundaries to the LP matrix, returns index
         void deleteRow(Int index) except + nogil  # wrap-doc:Delete index-th row
         void setColumnName(Int index, const String & name) except + nogil  # wrap-doc:Sets name of the index-th column
         String getColumnName(Int index) except + nogil  # wrap-doc:Returns name of the index-th column

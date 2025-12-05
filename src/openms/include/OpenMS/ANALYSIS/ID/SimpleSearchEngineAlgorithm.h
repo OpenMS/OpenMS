@@ -12,6 +12,7 @@
 #include <OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/DATASTRUCTURES/StringView.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 
 #include <vector>
 
@@ -39,7 +40,7 @@ class OPENMS_DLLAPI SimpleSearchEngineAlgorithm :
     ExitCodes search(const String& in_mzML, 
       const String& in_db, 
       std::vector<ProteinIdentification>& prot_ids,
-      std::vector<PeptideIdentification>& pep_ids) const;
+      PeptideIdentificationList& pep_ids) const;
   protected:
     void updateMembers_() override;
 
@@ -49,10 +50,11 @@ class OPENMS_DLLAPI SimpleSearchEngineAlgorithm :
       StringView sequence;
       SignedSize peptide_mod_index; ///< enumeration index of the non-RNA peptide modification
       double score = 0; ///< main score
-      std::vector<PeptideHit::PeakAnnotation> fragment_annotations;      
       double prefix_fraction = 0; ///< fraction of annotated b-ions
       double suffix_fraction = 0; ///< fraction of annotated y-ions
       double mean_error = 0.0; ///< mean absolute fragment mass error
+      int isotope_error = 0;
+      std::vector<PeptideHit::PeakAnnotation> fragment_annotations;
 
       static bool hasBetterScore(const AnnotatedHit_& a, const AnnotatedHit_& b)
       {
@@ -72,7 +74,7 @@ class OPENMS_DLLAPI SimpleSearchEngineAlgorithm :
     void postProcessHits_(const PeakMap& exp, 
       std::vector<std::vector<SimpleSearchEngineAlgorithm::AnnotatedHit_> >& annotated_hits, 
       std::vector<ProteinIdentification>& protein_ids, 
-      std::vector<PeptideIdentification>& peptide_ids, 
+      PeptideIdentificationList& peptide_ids, 
       Size top_hits,
       const ModifiedPeptideGenerator::MapToResidueType& fixed_modifications,
       const ModifiedPeptideGenerator::MapToResidueType& variable_modifications,

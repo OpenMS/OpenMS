@@ -41,8 +41,7 @@ output in the idXML and mzIdentML formats.
         </tr>
         <tr>
             <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_OpenPepXL </td>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_OpenPepXLLF </td>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> - </td>
+            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> - </td>
         </tr>
     </table>
 </center>
@@ -126,7 +125,7 @@ protected:
 
     writeLogInfo_("Reading input file...");
 
-    std::vector<PeptideIdentification> peptide_ids;
+    PeptideIdentificationList peptide_ids;
     ProteinIdentification protein_id;
     // Input File loading, initializes all_pep_ids_ vector
     ExitCodes load_result = loadInputFile_(peptide_ids, protein_id);
@@ -189,7 +188,7 @@ private:
   * Loads the input file.
   * @return 0 if the loading of the input was successful, error code otherwise
   */
-  ExitCodes loadInputFile_(std::vector<PeptideIdentification>& peptide_ids, ProteinIdentification& protein_id)
+  ExitCodes loadInputFile_(PeptideIdentificationList& peptide_ids, ProteinIdentification& protein_id)
   {
     std::vector<ProteinIdentification> protein_ids;
     FileHandler().loadIdentifications(arg_in_, protein_ids, peptide_ids, {FileTypes::MZIDENTML, FileTypes::IDXML, FileTypes::XQUESTXML});

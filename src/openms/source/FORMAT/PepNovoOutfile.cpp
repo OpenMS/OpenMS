@@ -34,7 +34,7 @@ namespace OpenMS
   void
   PepNovoOutfile::load(
     const std::string & result_filename,
-    vector<PeptideIdentification> & peptide_identifications,
+    PeptideIdentificationList & peptide_identifications,
     ProteinIdentification & protein_identification,
     const double & score_threshold,
     const IndexPosMappingType & index_to_precursor,
@@ -66,7 +66,18 @@ namespace OpenMS
     ifstream result_file(result_filename.c_str());
     if (!result_file)
     {
-      throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, result_filename);
+      if (!File::exists(result_filename))
+      {
+        throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, result_filename);
+      }
+      else if (!File::readable(result_filename))
+      {
+        throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, result_filename);
+      }
+      else
+      {
+        throw Exception::IOException(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, result_filename);
+      }
     }
 
     Size line_number(0);     // used to report in which line an error occurred
@@ -316,7 +327,18 @@ namespace OpenMS
     ifstream pepnovo_output_without_parameters(pepnovo_output_without_parameters_filename.c_str());
     if (!pepnovo_output_without_parameters)
     {
-      throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, pepnovo_output_without_parameters_filename);
+      if (!File::exists(pepnovo_output_without_parameters_filename))
+      {
+        throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, pepnovo_output_without_parameters_filename);
+      }
+      else if (!File::readable(pepnovo_output_without_parameters_filename))
+      {
+        throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, pepnovo_output_without_parameters_filename);
+      }
+      else
+      {
+        throw Exception::IOException(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, pepnovo_output_without_parameters_filename);
+      }
     }
 
     ProteinIdentification::SearchParameters search_param;

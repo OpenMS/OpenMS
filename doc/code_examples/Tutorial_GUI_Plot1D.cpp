@@ -11,6 +11,8 @@
 #include <OpenMS/openms_data_path.h> // exotic header for path to tutorial data
 #include <QApplication>
 
+#include <memory>
+
 using namespace OpenMS;
 using namespace std;
 
@@ -20,13 +22,13 @@ Int main(int argc, const char** argv)
 
   QApplication app(argc, const_cast<char**>(argv));
 
-  PeakMap exp;
+  AnnotatedMSRun exp;
+  auto exp_sptr = std::make_shared<AnnotatedMSRun>();
   MSSpectrum spec;
   // demonstrating how to load a single spectrum from file formats which only contain a single spec
   // alternatively: use FileHandler().loadExperiment() if you need an experiment anyway
   FileHandler().loadSpectrum(tutorial_data_path, spec, {FileTypes::DTA});
-  exp.addSpectrum(spec);
-  LayerDataBase::ExperimentSharedPtrType exp_sptr(new PeakMap(exp));
+  exp_sptr->getMSExperiment().addSpectrum(spec);
   LayerDataBase::ODExperimentSharedPtrType on_disc_exp_sptr(new OnDiscMSExperiment());
   Plot1DWidget widget(Param(), DIM::Y, nullptr);
   widget.canvas()->addPeakLayer(exp_sptr, on_disc_exp_sptr);

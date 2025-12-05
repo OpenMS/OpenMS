@@ -28,6 +28,9 @@ namespace OpenMS
 public:
     DataFilters() = default;
 
+    /// Equality operator
+    bool operator==(const DataFilters&) const = default;
+
     ///Information to filter
     enum FilterType
     {

@@ -447,8 +447,8 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
     TEST_REAL_SIMILAR(spec.getPrecursors()[0].getDriftTime(),8.1)
     TEST_EQUAL(spec.getPrecursors()[0].getDriftTimeUnit() == DriftTimeUnit::MILLISECOND, true)
     TEST_EQUAL(spec.getPrecursors()[0].getActivationMethods().size(),2)
-    TEST_EQUAL(spec.getPrecursors()[0].getActivationMethods().count(Precursor::CID),1)
-    TEST_EQUAL(spec.getPrecursors()[0].getActivationMethods().count(Precursor::PD),1)
+    TEST_EQUAL(spec.getPrecursors()[0].getActivationMethods().count(Precursor::ActivationMethod::CID),1)
+    TEST_EQUAL(spec.getPrecursors()[0].getActivationMethods().count(Precursor::ActivationMethod::PD),1)
     TEST_REAL_SIMILAR(spec.getPrecursors()[0].getActivationEnergy(),35)
     TEST_REAL_SIMILAR(spec.getPrecursors()[0].getIsolationWindowLowerOffset(),6.66)
     TEST_REAL_SIMILAR(spec.getPrecursors()[0].getIsolationWindowUpperOffset(),7.77)
@@ -462,7 +462,7 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
     TEST_REAL_SIMILAR(spec.getPrecursors()[1].getIsolationWindowLowerOffset(),16.66)
     TEST_REAL_SIMILAR(spec.getPrecursors()[1].getIsolationWindowUpperOffset(),17.77)
     TEST_EQUAL(spec.getPrecursors()[1].getActivationMethods().size(),1)
-    TEST_EQUAL(spec.getPrecursors()[1].getActivationMethods().count(Precursor::ETD),1)
+    TEST_EQUAL(spec.getPrecursors()[1].getActivationMethods().count(Precursor::ActivationMethod::ETD),1)
     TEST_REAL_SIMILAR(spec.getPrecursors()[1].getActivationEnergy(),36)
     TEST_REAL_SIMILAR(spec.getPrecursors()[1].getIntensity(),0.0f)
     TEST_EQUAL(spec.getPrecursors()[1].getCharge(),0)
@@ -1028,10 +1028,12 @@ START_SECTION((template <typename MapType> void store(const String& filename, co
     empty[0].getAcquisitionInfo().resize(1);
 
     std::string tmp_filename;
-    NEW_TMP_FILE(tmp_filename);
+    NEW_TMP_FILE(tmp_filename);    
+
     file.store(tmp_filename,empty);
     file.load(tmp_filename,exp);
-    TEST_EQUAL(exp==empty,true)
+
+    TEST_EQUAL(exp == empty,true)
 
     //NOTE: If it does not work, use this code to find out where the difference is
     //    TEST_EQUAL(exp.size()==empty.size(),true)
@@ -1215,6 +1217,49 @@ START_SECTION(void transform(const String& filename_in, Interfaces::IMSDataConsu
   TEST_REAL_SIMILAR(consumer.TIC, 350)
 
   TEST_EQUAL(map.getNrSpectra(), 4)
+}
+END_SECTION
+
+START_SECTION((void testSkipChromatograms()))
+{
+  MzMLFile file;
+  PeakFileOptions opts;
+  opts.setSkipChromatograms(true);
+  file.setOptions(opts);
+
+  PeakMap pm;
+  file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), pm);
+  TEST_EQUAL(pm.getChromatograms().size(), 0)
+
+  opts.setSkipChromatograms(false);
+  file.setOptions(opts);
+  file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), pm);
+  TEST_NOT_EQUAL(pm.getChromatograms().size(), 0)
+}
+END_SECTION
+
+START_SECTION((test negative isolation window offsets are skipped))
+{
+  // Test that negative isolation window offsets (which indicate null/invalid values) 
+  // are properly skipped and don't cause exceptions
+  MzMLFile file;
+  PeakMap exp;
+  
+  // This should not throw an exception even though the file contains negative offsets
+  file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_negative_offsets.mzML"), exp);
+  
+  // Verify the file was loaded
+  TEST_EQUAL(exp.size(), 2)
+  
+  // Check the MS2 spectrum (second spectrum, index 1)
+  TEST_EQUAL(exp[1].getPrecursors().size(), 1)
+  
+  // Verify that the precursor m/z was set correctly
+  TEST_REAL_SIMILAR(exp[1].getPrecursors()[0].getMZ(), 577.298034667969)
+  
+  // Verify that the negative offsets were NOT set (should remain at default value of 0)
+  TEST_REAL_SIMILAR(exp[1].getPrecursors()[0].getIsolationWindowLowerOffset(), 0.0)
+  TEST_REAL_SIMILAR(exp[1].getPrecursors()[0].getIsolationWindowUpperOffset(), 0.0)
 }
 END_SECTION
 

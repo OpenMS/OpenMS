@@ -5,6 +5,7 @@ set(concept_executables_list
   FuzzyStringComparator_test
   #GlobalExceptionHandler_test
   StreamHandler_test
+  Types_test
   VersionInfo_test
   LogConfigHandler_test
   LogStream_test
@@ -78,11 +79,13 @@ set(datastructures_executables_list
 set(metadata_executables_list
   AcquisitionInfo_test
   Acquisition_test
+  AnnotatedMSRun_test
   CVTermList_test
   CVTermListInterface_test
   CVTerm_test
   ChromatogramSettings_test
   ContactPerson_test
+  DataArrays_test
   DataProcessing_test
   DocumentIdentifier_test
   ExperimentalDesign_test
@@ -104,6 +107,7 @@ set(metadata_executables_list
   PeptideEvidence_test
   PeptideHit_test
   PeptideIdentification_test
+  PeptideIdentificationList_test
   Precursor_test
   Product_test
   ProteinHit_test
@@ -251,6 +255,7 @@ set(format_executables_list
   UnimodXMLFile_test
   XMassFile_test
   XMLFile_test
+  XMLHandler_test
   XMLValidator_test
   XQuestResultXMLFile_test
   XTandemInfile_test
@@ -270,6 +275,9 @@ set(format_executables_list
 if(WITH_HDF5)
   list(APPEND format_executables_list HDF5_test)
 endif()
+if(WITH_PARQUET)
+  list(APPEND format_executables_list Arrow_test QuantmsIO_test)
+endif()
 
 set(math_executables_list
   BasicStatistics_test
@@ -281,6 +289,7 @@ set(math_executables_list
   GaussFitter_test
   GumbelDistributionFitter_test
   GridSearch_test
+  CrossValidation_test
   Histogram_test
   LinearInterpolation_test
   LinearRegression_test
@@ -299,6 +308,7 @@ set(math_executables_list
 )
 
 set(filtering_executables_list
+  Biosaur2Algorithm_test
   DataFilters_test
   Deisotoper_test
   ElutionPeakDetection_test
@@ -451,6 +461,7 @@ set(analysis_executables_list
   #FIAMSScheduler_test sometimes failing
   FLASHDeconvAlgorithm_test
   FLASHDeconvHelperStructs_test
+  FragmentIndex_test
   IDBoostGraph_test
   IDMapper_test
   IDMergerAlgorithm_test
@@ -505,7 +516,6 @@ set(analysis_executables_list
   HyperScore_test
   MorpheusScore_test
   OpenPepXLAlgorithm_test
-  OpenPepXLLFAlgorithm_test
   OPXLHelper_test
   OPXLSpectrumProcessingAlgorithms_test
   PoseClusteringAffineSuperimposer_test
@@ -513,6 +523,8 @@ set(analysis_executables_list
   PrecursorPurity_test
   QTClusterFinder_test
   ReactionMonitoringTransition_test
+  NuXLModificationsGenerator_test
+  NuXLParameterParsing_test
   SimpleSearchEngineAlgorithm_test
   SimpleSVM_test
   StablePairFinder_test

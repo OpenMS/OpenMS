@@ -231,7 +231,7 @@ protected:
     String outputfile_name = getStringOption_("out");
 
     vector<ProteinIdentification> proteins;
-    vector<PeptideIdentification> peptides;
+    PeptideIdentificationList peptides;
 
     //only used for cxml
     ConsensusMap cmap;
@@ -368,7 +368,7 @@ protected:
     if (!whitelist_peptides.empty())
     {
       OPENMS_LOG_INFO << "Filtering by inclusion peptide whitelisting..." << endl;
-      vector<PeptideIdentification> inclusion_peptides;
+      PeptideIdentificationList inclusion_peptides;
       vector<ProteinIdentification> inclusion_proteins; // ignored
       FileHandler().loadIdentifications(whitelist_peptides, inclusion_proteins,
                        inclusion_peptides, {FileTypes::IDXML});
@@ -418,7 +418,7 @@ protected:
     if (!blacklist_peptides.empty())
     {
       OPENMS_LOG_INFO << "Filtering by exclusion peptide blacklisting..." << endl;
-      vector<PeptideIdentification> exclusion_peptides;
+      PeptideIdentificationList exclusion_peptides;
       vector<ProteinIdentification> exclusion_proteins; // ignored
       FileHandler().loadIdentifications(blacklist_peptides, exclusion_proteins,
                        exclusion_peptides, {FileTypes::IDXML});
@@ -760,6 +760,13 @@ protected:
       }
     }
 
+    if (getFlag_("remove_decoys"))
+    {
+      OPENMS_LOG_INFO << "Removing decoy hits..." << endl;
+      IDFilter::removeDecoyHits(peptides);
+      IDFilter::removeDecoyHits(proteins);
+    }
+
     // Clean-up:
 
     // propagate filter from PSM level to protein level
@@ -804,9 +811,6 @@ protected:
 
     IDFilter::removeEmptyIdentifications(peptides);
     // we want to keep "empty" protein IDs because they contain search meta data
-
-    IDFilter::updateHitRanks(proteins);
-    IDFilter::updateHitRanks(peptides);
 
     // some stats
     OPENMS_LOG_INFO << "Before filtering:\n"

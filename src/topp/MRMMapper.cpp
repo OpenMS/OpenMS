@@ -127,8 +127,8 @@ protected:
     OpenMS::PeakMap chromatogram_map;
     OpenMS::PeakMap output;
 
-    FileHandler().loadTransitions(tr_file, targeted_exp, {FileTypes::TRAML});
-    FileHandler().loadExperiment(in, chromatogram_map, {FileTypes::MZML});
+    FileHandler().loadTransitions(tr_file, targeted_exp, {FileTypes::TRAML}, log_type_);
+    FileHandler().loadExperiment(in, chromatogram_map, {FileTypes::MZML}, log_type_);
 
     Param param = getParam_().copy("algorithm:", true);
 
@@ -138,7 +138,7 @@ protected:
 
     // add all data processing information to all the chromatograms
     DataProcessing dp_ = getProcessingInfo_(DataProcessing::FORMAT_CONVERSION);
-    DataProcessingPtr dp = boost::shared_ptr<DataProcessing>(new DataProcessing(dp_));
+    DataProcessingPtr dp = std::shared_ptr<DataProcessing>(new DataProcessing(dp_));
     std::vector<MSChromatogram > chromatograms = output.getChromatograms();
     for (Size i=0; i<chromatograms.size(); ++i)
     {
@@ -146,7 +146,7 @@ protected:
     }
     output.setChromatograms(chromatograms);
 
-    FileHandler().storeExperiment(out, output, {FileTypes::MZML});
+    FileHandler().storeExperiment(out, output, {FileTypes::MZML}, log_type_);
     return EXECUTION_OK;
   }
 

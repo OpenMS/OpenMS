@@ -71,7 +71,7 @@ MSExperiment exp_no_calibration = exp;
 // adding processing info
 DataProcessing p;
 p.setProcessingActions({OpenMS::DataProcessing::CALIBRATION});
-boost::shared_ptr<DataProcessing> p_(new DataProcessing(p));
+std::shared_ptr<DataProcessing> p_(new DataProcessing(p));
 for (Size i = 0; i < exp.size(); ++i)
 {
   exp[i].getDataProcessing().push_back(p_);
@@ -87,8 +87,8 @@ FeatureMap fmap_ref;
 PeptideHit peptide_hit;
 std::vector<PeptideHit> peptide_hits;
 PeptideIdentification peptide_ID;
-vector<PeptideIdentification> identifications;
-vector<PeptideIdentification> unassignedIDs;
+PeptideIdentificationList identifications;
+PeptideIdentificationList unassignedIDs;
 Feature feature1;
 peptide_hit.setSequence(AASequence::fromString("AAAA"));
 peptide_hit.setCharge(2);

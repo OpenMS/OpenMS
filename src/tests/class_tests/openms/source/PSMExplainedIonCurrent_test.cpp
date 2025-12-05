@@ -147,7 +147,7 @@ PeptideIdentification alabama = createPeptideIdentification("XTandem::2", "ALABA
 PeptideIdentification no_hit_id(himalaya);
 no_hit_id.setHits({});
 
-std::vector<PeptideIdentification> pep_ids({himalaya, alabama, empty_id});
+PeptideIdentificationList pep_ids({himalaya, alabama, empty_id});
 
 // ProteinIdentifications
 ProteinIdentification protId;
@@ -275,7 +275,7 @@ START_SECTION(void compute(FeatureMap& fmap, const MSExperiment& exp, const QCBa
 }
 END_SECTION
 
-START_SECTION(compute(std::vector<PeptideIdentification>& pep_ids, const ProteinIdentification::SearchParameters& search_params, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum,
+START_SECTION(compute(PeptideIdentificationList& pep_ids, const ProteinIdentification::SearchParameters& search_params, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum,
                       ToleranceUnit tolerance_unit = ToleranceUnit::AUTO, double tolerance = 20))
 {
   spectra_map.calculateMap(exp);
@@ -333,7 +333,7 @@ START_SECTION(compute(std::vector<PeptideIdentification>& pep_ids, const Protein
   {
     spectra_map.calculateMap(exp_ms1);
     // PeptideIdentification with spec_ref matching to a MS1 Spectrum
-    std::vector<PeptideIdentification> ms1_pep({createPeptideIdentification("XTandem::3")});
+    PeptideIdentificationList ms1_pep({createPeptideIdentification("XTandem::3")});
     TEST_EXCEPTION(Exception::IllegalArgument, psm_corr.compute(ms1_pep, param, exp_ms1, spectra_map))
   }
 
@@ -343,7 +343,7 @@ START_SECTION(compute(std::vector<PeptideIdentification>& pep_ids, const Protein
   {
     spectra_map.calculateMap(exp_sori);
     // PeptideIdentification with spec_ref matching to MSSpectrum with fragmentation method SORI
-    std::vector<PeptideIdentification> sori_id({createPeptideIdentification("XTandem::5")});
+    PeptideIdentificationList sori_id({createPeptideIdentification("XTandem::5")});
 
     TEST_EXCEPTION(Exception::InvalidParameter, psm_corr.compute(sori_id, param, exp_sori, spectra_map))
   }
@@ -353,7 +353,7 @@ START_SECTION(compute(std::vector<PeptideIdentification>& pep_ids, const Protein
   //--------------------------------------------------------------------
   {
     // put PeptideIdentification with spec_ref matching to MSSpectrum with no peaks to fmap
-    std::vector<PeptideIdentification> failing_ids({no_hit_id, createPeptideIdentification("XTandem::6")});
+    PeptideIdentificationList failing_ids({no_hit_id, createPeptideIdentification("XTandem::6")});
 
     spectra_map.calculateMap(failing_exp);
 

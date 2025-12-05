@@ -409,6 +409,173 @@ START_SECTION([EXTRA](template <typename IteratorType> static double quantile(It
 }
 END_SECTION
 
+START_SECTION([EXTRA](template <typename IteratorType> static double quantile(IteratorType begin, IteratorType end, double q)))
+{
+  std::vector<int> v{1,2,3,4}; // already sorted
+  TEST_REAL_SIMILAR(Math::quantile(v.begin(), v.end(), 0.0), 1.0);
+  TEST_REAL_SIMILAR(Math::quantile(v.begin(), v.end(), 1.0), 4.0);
+  // Type-7 median (even length): pos = 0.5*(n-1) = 1.5 -> 2.5
+  TEST_REAL_SIMILAR(Math::quantile(v.begin(), v.end(), 0.5), 2.5);
+  TEST_REAL_SIMILAR(Math::quantile(v.begin(), v.end(), 0.25), 1.75);
+  TEST_REAL_SIMILAR(Math::quantile(v.begin(), v.end(), 0.75), 3.25);
+
+  std::vector<double> empty;
+  TEST_EXCEPTION(Exception::InvalidRange, Math::quantile(empty.begin(), empty.end(), 0.5));
+  TEST_EXCEPTION(Exception::InvalidValue, Math::quantile(v.begin(), v.end(), -0.1));
+  TEST_EXCEPTION(Exception::InvalidValue, Math::quantile(v.begin(), v.end(),  1.1));
+}
+END_SECTION
+
+START_SECTION([EXTRA](template <typename IteratorType> double tukeyUpperFence(IteratorType begin, IteratorType end, double k)))
+{
+  // v = 1..9 → Q1=3, Q3=7, IQR=4 → UF = 7 + 1.5*4 = 13
+  std::vector<int> v = {1,2,3,4,5,6,7,8,9};
+  TEST_REAL_SIMILAR(Math::tukeyUpperFence(v.begin(), v.end(), 1.5), 13.0);
+
+  // too few valid values → +inf
+  std::vector<double> tiny = {1.0, std::numeric_limits<double>::quiet_NaN()};
+  TEST_EQUAL(std::isinf(Math::tukeyUpperFence(tiny.begin(), tiny.end(), 1.5)), true);
+}
+END_SECTION
+
+START_SECTION([EXTRA](template <typename IteratorType> double tailFractionAbove(IteratorType begin, IteratorType end, double threshold)))
+{
+  std::vector<int> v = {1,2,3,4,5,6,7,8,9};
+  // values > 7 are {8,9} → 2/9
+  double r = Math::tailFractionAbove(v.begin(), v.end(), 7.0);
+  TOLERANCE_ABSOLUTE(1e-12);
+  TEST_REAL_SIMILAR(r, 2.0/9.0);
+
+  // threshold above max → 0
+  TEST_REAL_SIMILAR(Math::tailFractionAbove(v.begin(), v.end(), 10.0), 0.0);
+}
+END_SECTION
+
+START_SECTION([EXTRA](template <typename IteratorType> double winsorizedQuantile(IteratorType begin, IteratorType end, double q, double upper_fence)))
+{
+  // Example: v = {1,2,3,100}
+  // Raw q=0.75 (Type-7): pos=2.25 → 0.75*3 + 0.25*100 = 27.25
+  // UF computed externally: Q1=1.75, Q3=27.25, IQR=25.5 → UF=65.5
+  std::vector<double> v = {1.0, 2.0, 3.0, 100.0};
+  const double uf = 65.5;
+
+  const double raw_q = Math::quantile(v.begin(), v.end(), 0.75);
+  TEST_REAL_SIMILAR(raw_q, 27.25);
+
+  const double win_q = Math::winsorizedQuantile(v.begin(), v.end(), 0.75, uf);
+  TEST_REAL_SIMILAR(win_q, 18.625); // pos=2.25 between 3 and 65.5 → 0.75*3 + 0.25*65.5
+
+  // If UF is +inf, falls back to raw quantile
+  const double win_inf = Math::winsorizedQuantile(v.begin(), v.end(), 0.75, std::numeric_limits<double>::infinity());
+  TEST_REAL_SIMILAR(win_inf, raw_q);
+}
+END_SECTION
+
+START_SECTION([EXTRA](template <typename IteratorType> double adaptiveQuantile(IteratorType begin, IteratorType end, double q, double k, double r_sparse, double r_dense, double* out_half_raw, double* out_half_rob, double* out_upper_fence, double* out_tail_frac)))
+{
+  TOLERANCE_ABSOLUTE(1e-9);
+
+  // --- Case A: sparse tail -> prefer robust (w=0)
+  // Base: 0..9 repeated 20 times (200 values), plus one outlier 1000 (r ≈ 0.005 < 1%)
+  std::vector<double> a;
+  a.reserve(201);
+  for (int rep = 0; rep < 20; ++rep)
+    for (int z = 0; z <= 9; ++z) a.push_back(static_cast<double>(z));
+  a.push_back(1000.0);
+
+  const double qA = 0.997; // forces interpolation with the last value present
+  Math::AdaptiveQuantileResult ada_A = Math::adaptiveQuantile(a.begin(), a.end(), qA,
+                                              /*k=*/1.5, /*r_sparse=*/0.01, /*r_dense=*/0.10);
+
+  // Tail is sparse → expect robust to win and adaptive == robust (within tol),
+  // and robust << raw because 1000 is capped at UF ~ 15.
+  TEST_TRUE(ada_A.tail_fraction < 0.01);
+  TEST_REAL_SIMILAR(ada_A.blended, ada_A.half_rob);
+  TEST_TRUE(ada_A.half_raw > ada_A.half_rob);
+
+  // --- Case B: dense tail -> prefer raw (w=1)
+  // Add many outliers: 30 values of 1000 → r ≳ 0.13 > 0.10
+  std::vector<double> b = a;
+  for (int i=0; i<29; ++i) b.push_back(1000.0); // total outliers now 30
+  Math::AdaptiveQuantileResult ada_B = Math::adaptiveQuantile(b.begin(), b.end(), qA,
+                                              1.5, 0.01, 0.10);
+  TEST_TRUE(ada_B.tail_fraction > 0.10);
+  TEST_REAL_SIMILAR(ada_B.blended, ada_B.half_raw);
+  TEST_TRUE(ada_B.half_raw >= ada_B.half_rob);
+
+  // --- Case C: intermediate tail density -> interpolation between robust and raw
+  // Make about ~5% tail: add 10 outliers to the base (200 base + 10 outliers = 210, r≈0.0476)
+  std::vector<double> c;
+  c.reserve(210);
+  for (int rep = 0; rep < 20; ++rep)
+    for (int z = 0; z <= 9; ++z) c.push_back(static_cast<double>(z));
+  for (int i=0; i<10; ++i) c.push_back(1000.0);
+
+  Math::AdaptiveQuantileResult ada_C = Math::adaptiveQuantile(c.begin(), c.end(), qA,
+                                              1.5, 0.01, 0.10);
+
+  // Expected linear weight w = (r - r_sparse) / (r_dense - r_sparse)
+  const double w = std::max(0.0, std::min(1.0, (ada_C.tail_fraction - 0.01) / (0.10 - 0.01)));
+  const double expected_blend = (1.0 - w) * ada_C.half_rob + w * ada_C.half_raw;
+
+  TEST_TRUE(ada_C.tail_fraction > 0.01 && ada_C.tail_fraction < 0.10);
+  TEST_REAL_SIMILAR(ada_C.blended, expected_blend);
+  TEST_TRUE(ada_C.half_rob <= ada_C.blended && ada_C.blended <= ada_C.half_raw);
+}
+END_SECTION
+
+START_SECTION([EXTRA](template <typename IteratorType1, typename IteratorType2> static double rootMeanSquareError(IteratorType1 begin_a, IteratorType1 end_a, IteratorType2 begin_b, IteratorType2 end_b)))
+{
+  using OpenMS::Math::meanSquareError;
+  using OpenMS::Math::rootMeanSquareError;
+
+  // Simple hand-checkable case: constant offset of -0.5
+  std::vector<double> a{1.0, 2.0, 3.0};
+  std::vector<double> b{1.5, 2.5, 3.5};
+
+  const double mse  = meanSquareError(a.begin(), a.end(), b.begin(), b.end());
+  const double rmse = rootMeanSquareError(a.begin(), a.end(), b.begin(), b.end());
+
+  TEST_REAL_SIMILAR(mse, 0.25);
+  TEST_REAL_SIMILAR(rmse, std::sqrt(0.25));
+
+  // Residuals vs zero baseline equals sqrt(mean of squares)
+  std::vector<double> errs{-2.0, 0.0, 2.0};
+  std::vector<double> zeros(errs.size(), 0.0);
+  TEST_REAL_SIMILAR(
+    rootMeanSquareError(errs.begin(), errs.end(), zeros.begin(), zeros.end()),
+    std::sqrt((4.0 + 0.0 + 4.0) / 3.0)
+  );
+
+  // Exceptions: mismatched length and empty ranges
+  std::vector<double> shortv{1.0, 2.0};
+  TEST_EXCEPTION(Exception::InvalidRange,
+                 rootMeanSquareError(errs.begin(), errs.end(), shortv.begin(), shortv.end()));
+  std::vector<double> empty;
+  TEST_EXCEPTION(Exception::InvalidRange,
+                 rootMeanSquareError(empty.begin(), empty.end(), empty.begin(), empty.end()));
+}
+END_SECTION
+
+START_SECTION((template<typename IteratorType1, typename IteratorType2> static void checkIteratorsAreValid))
+{
+  std::vector<int> v1 = {1, 2, 3};
+  std::vector<int> v2 = {10, 20, 30};
+
+  // Case 1: Both iterators at begin (not at end) --> OK
+  checkIteratorsAreValid(v1.begin(), v1.end(), v2.begin(), v2.end());
+
+  // Case 2: Both iterators at end --> OK
+  checkIteratorsAreValid(v1.end(), v1.end(), v2.end(), v2.end());
+
+  // Case 3: One iterator at end, other not --> should throw
+  TEST_EXCEPTION(Exception::InvalidRange, checkIteratorsAreValid(v1.begin(), v1.end(), v2.end(), v2.end()));
+
+  // Case 4: Reverse mismatch (other one at end) --> should throw
+  TEST_EXCEPTION(Exception::InvalidRange, checkIteratorsAreValid(v1.end(), v1.end(), v2.begin(), v2.end()));
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 

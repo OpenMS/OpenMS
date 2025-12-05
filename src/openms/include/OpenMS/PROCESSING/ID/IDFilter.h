@@ -13,10 +13,12 @@
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/METADATA/AnnotatedMSRun.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/METADATA/ID/IdentificationData.h>
 #include <OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h>
 #include <OpenMS/METADATA/PeptideEvidence.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/config.h>
@@ -30,6 +32,14 @@
 
 namespace OpenMS
 {
+  template<typename T>
+  concept IsPeptideOrProteinIdentification = 
+    std::is_same_v<T, PeptideIdentification> || std::is_same_v<T, ProteinIdentification>;
+
+  template<typename T>
+  concept IsFeatureOrConsensusMap = 
+    std::is_same_v<T, FeatureMap> || std::is_same_v<T, ConsensusMap>;
+
   /**
     @brief Collection of functions for filtering peptide and protein identifications.
 
@@ -90,36 +100,6 @@ namespace OpenMS
           return hit.getScore() >= score;
         }
         return hit.getScore() <= score;
-      }
-    };
-
-    /**
-       @brief Is the rank of this hit below or at the given cut-off?
-
-       Ranks are counted from one (best), so zero is not a valid cut-off.
-    */
-    template<class HitType>
-    struct HasMaxRank {
-      typedef HitType argument_type; // for use as a predicate
-
-      Size rank;
-
-      HasMaxRank(Size rank_) : rank(rank_)
-      {
-        if (rank_ == 0)
-        {
-          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The cut-off value for rank filtering must not be zero!");
-        }
-      }
-
-      bool operator()(const HitType& hit) const
-      {
-        Size hit_rank = hit.getRank();
-        if (hit_rank == 0)
-        {
-          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No rank assigned to peptide or protein hit");
-        }
-        return hit_rank <= rank;
       }
     };
 
@@ -512,7 +492,7 @@ namespace OpenMS
         }
       }
 
-      void filterPeptideEvidences(std::vector<PeptideIdentification>& peptides)
+      void filterPeptideEvidences(PeptideIdentificationList& peptides)
       {
         IDFilter::FilterPeptideEvidences<IDFilter::DigestionFilter>(*this, peptides);
       }
@@ -620,7 +600,7 @@ namespace OpenMS
       removeMatchingItemsUnroll(prot_and_pep_ids.getUnassignedPeptideIdentifications(), pred);
     }
 
-    template<class MapType, class Predicate>
+    template<IsFeatureOrConsensusMap MapType, class Predicate>
     static void removeMatchingPeptideIdentifications(MapType& prot_and_pep_ids, Predicate& pred)
     {
       for (auto& feat : prot_and_pep_ids)
@@ -628,6 +608,13 @@ namespace OpenMS
         removeMatchingItems(feat.getPeptideIdentifications(), pred);
       }
       removeMatchingItems(prot_and_pep_ids.getUnassignedPeptideIdentifications(), pred);
+    }
+
+    // Specialization for PeptideIdentificationList
+    template<class Predicate>
+    static void removeMatchingPeptideIdentifications(PeptideIdentificationList& pep_ids, Predicate& pred)
+    {
+      removeMatchingItems(pep_ids, pred);
     }
 
     ///@}
@@ -646,6 +633,45 @@ namespace OpenMS
         counter += id_it->getHits().size();
       }
       return counter;
+    }
+
+    /// @overload
+    static Size countHits(const PeptideIdentificationList& ids)
+    {
+      Size counter = 0;
+      for (const auto& id : ids)
+      {
+        counter += id.getHits().size();
+      }
+      return counter;
+    }
+
+    /// @overload
+    static void filterHitsByRank(PeptideIdentificationList& ids, Size min_rank, Size max_rank)
+    {
+      std::vector<PeptideIdentification>& vec = ids.getData();
+      filterHitsByRank(vec, min_rank, max_rank);
+    }
+
+    /// @overload
+    static void removeHitsMatchingProteins(PeptideIdentificationList& ids, const std::set<String>& accessions)
+    {
+      std::vector<PeptideIdentification>& vec = ids.getData();
+      removeHitsMatchingProteins(vec, accessions);
+    }
+
+    /// @overload
+    static void keepHitsMatchingProteins(PeptideIdentificationList& ids, const std::set<String>& accessions)
+    {
+      std::vector<PeptideIdentification>& vec = ids.getData();
+      keepHitsMatchingProteins(vec, accessions);
+    }
+
+    /// @overload
+    static bool getBestHit(PeptideIdentificationList& ids, bool assume_sorted, PeptideHit& best_hit)
+    {
+      std::vector<PeptideIdentification>& vec = ids.getData();
+      return getBestHit(vec, assume_sorted, best_hit);
     }
 
     /**
@@ -713,7 +739,7 @@ namespace OpenMS
        @param sequences Output
        @param ignore_mods Extract sequences without modifications?
     */
-    static void extractPeptideSequences(const std::vector<PeptideIdentification>& peptides, std::set<String>& sequences, bool ignore_mods = false);
+    static void extractPeptideSequences(const PeptideIdentificationList& peptides, std::set<String>& sequences, bool ignore_mods = false);
 
     /**
      * @brief Extracts all proteins not matched by PSMs in features
@@ -728,9 +754,9 @@ namespace OpenMS
        @param peptides a collection of peptide evidences
      */
     template<class EvidenceFilter>
-    static void FilterPeptideEvidences(EvidenceFilter& filter, std::vector<PeptideIdentification>& peptides)
+    static void FilterPeptideEvidences(EvidenceFilter& filter, PeptideIdentificationList& peptides)
     {
-      for (std::vector<PeptideIdentification>::iterator pep_it = peptides.begin(); pep_it != peptides.end(); ++pep_it)
+      for (PeptideIdentificationList::iterator pep_it = peptides.begin(); pep_it != peptides.end(); ++pep_it)
       {
         for (std::vector<PeptideHit>::iterator hit_it = pep_it->getHits().begin(); hit_it != pep_it->getHits().end(); ++hit_it)
         {
@@ -746,25 +772,14 @@ namespace OpenMS
 
     /// @name Clean-up functions
     ///@{
-
-    /// Updates the hit ranks on all peptide or protein IDs
-    template<class IdentificationType>
-    static void updateHitRanks(std::vector<IdentificationType>& ids)
-    {
-      for (typename std::vector<IdentificationType>::iterator it = ids.begin(); it != ids.end(); ++it)
-      {
-        it->assignRanks();
-      }
-    }
-
     /// Removes protein hits from the protein IDs in a @p cmap that are not referenced by a peptide in the features
     /// or if requested in the unassigned peptide list
     static void removeUnreferencedProteins(ConsensusMap& cmap, bool include_unassigned);
 
     /// Removes protein hits from @p proteins that are not referenced by a peptide in @p peptides
-    static void removeUnreferencedProteins(std::vector<ProteinIdentification>& proteins, const std::vector<PeptideIdentification>& peptides);
+    static void removeUnreferencedProteins(std::vector<ProteinIdentification>& proteins, const PeptideIdentificationList& peptides);
     /// Removes protein hits from @p proteins that are not referenced by a peptide in @p peptides
-    static void removeUnreferencedProteins(ProteinIdentification& proteins, const std::vector<PeptideIdentification>& peptides);
+    static void removeUnreferencedProteins(ProteinIdentification& proteins, const PeptideIdentificationList& peptides);
 
     /**
        @brief Removes references to missing proteins
@@ -773,7 +788,7 @@ namespace OpenMS
 
        If @p remove_peptides_without_reference is set, peptide hits without any remaining protein reference are removed.
     */
-    static void updateProteinReferences(std::vector<PeptideIdentification>& peptides, const std::vector<ProteinIdentification>& proteins, bool remove_peptides_without_reference = false);
+    static void updateProteinReferences(PeptideIdentificationList& peptides, const std::vector<ProteinIdentification>& proteins, bool remove_peptides_without_reference = false);
 
     /**
        @brief Removes references to missing proteins
@@ -817,7 +832,7 @@ namespace OpenMS
     ///@{
 
     /// Removes peptide or protein identifications that have no hits in them
-    template<class IdentificationType>
+    template<IsPeptideOrProteinIdentification IdentificationType>
     static void removeEmptyIdentifications(std::vector<IdentificationType>& ids)
     {
       struct HasNoHits<IdentificationType> empty_filter;
@@ -867,9 +882,10 @@ namespace OpenMS
         else
         {
           // If one assumes they are all the same in the vector, this could be done in the beginning.
-          String metaval = switcher.findScoreType(id, score_type);
-          if (!metaval.empty())
+          auto result = switcher.findScoreType<IdentificationType>(id, score_type);
+          if (!result.score_name.empty())
           {
+            String metaval = result.score_name;
             if (switcher.isScoreTypeHigherBetter(score_type))
             {
               struct HasMinMetaValue<typename IdentificationType::HitType> score_filter(metaval, threshold_score);
@@ -924,6 +940,20 @@ namespace OpenMS
     }
 
     /**
+       @brief Filters peptide identifications according to the ranking of the hits.
+
+       Overload for PeptideIdentificationList to avoid template deduction issues.
+
+       @param pep_ids The PeptideIdentificationList to filter.
+       @param n Maximum number of hits to keep.
+    */
+    static void keepNBestHits(PeptideIdentificationList& pep_ids, Size n)
+    {
+      std::vector<PeptideIdentification>& vec = pep_ids.getData();
+      keepNBestHits(vec, n);
+    }
+
+    /**
        @brief Filters peptide or protein identifications according to the ranking of the hits.
 
        The hits between @p min_rank and @p max_rank (both inclusive) in each ID are kept.
@@ -940,25 +970,35 @@ namespace OpenMS
     template<class IdentificationType>
     static void filterHitsByRank(std::vector<IdentificationType>& ids, Size min_rank, Size max_rank)
     {
-      updateHitRanks(ids);
-      if (min_rank > 1)
+      for (auto& id : ids)
       {
-        struct HasMaxRank<typename IdentificationType::HitType> rank_filter(min_rank - 1);
-        for (typename std::vector<IdentificationType>::iterator id_it = ids.begin(); id_it != ids.end(); ++id_it)
-        {
-          removeMatchingItems(id_it->getHits(), rank_filter);
-        }
-      }
-      if (max_rank >= min_rank)
-      {
-        struct HasMaxRank<typename IdentificationType::HitType> rank_filter(max_rank);
-        for (typename std::vector<IdentificationType>::iterator id_it = ids.begin(); id_it != ids.end(); ++id_it)
-        {
-          keepMatchingItems(id_it->getHits(), rank_filter);
-        }
+        auto& hits = id.getHits();
+        if (hits.empty()) continue;
+
+        id.sort(); // Ensure hits are properly sorted
+
+        // ignore max_rank?
+        if (max_rank < min_rank) max_rank = hits.size();
+
+        Size rank = 1;
+        double last_score = hits.front().getScore();
+
+        // Remove hits not within [min_rank, max_rank], while computing rank on the fly
+        hits.erase(
+          std::remove_if(hits.begin(), hits.end(),
+            [&](const auto& hit) {
+              if (hit.getScore() != last_score)
+              {
+                ++rank;
+                last_score = hit.getScore();
+              }
+              return rank < min_rank || rank > max_rank;
+            }),
+          hits.end()
+        );
       }
     }
-
+    
     /**
        @brief Removes hits annotated as decoys from peptide or protein identifications.
 
@@ -996,6 +1036,20 @@ namespace OpenMS
     /**
        @brief Filters peptide or protein identifications according to the given proteins (positive).
 
+       Hits with a matching protein accession in @p accessions are kept.
+
+       @note The ranks of the hits may be invalidated.
+    */
+    template<IsPeptideOrProteinIdentification IdentificationType>
+    static void keepHitsMatchingProteins(IdentificationType& id, const std::set<String>& accessions)
+    {
+      struct HasMatchingAccession<typename IdentificationType::HitType> acc_filter(accessions);
+      keepMatchingItems(id.getHits(), acc_filter);      
+    }
+
+    /**
+       @brief Filters peptide or protein identifications according to the given proteins (positive).
+
        Hits with no matching protein accession in @p accessions are removed.
 
        @note The ranks of the hits may be invalidated.
@@ -1003,11 +1057,7 @@ namespace OpenMS
     template<class IdentificationType>
     static void keepHitsMatchingProteins(std::vector<IdentificationType>& ids, const std::set<String>& accessions)
     {
-      struct HasMatchingAccession<typename IdentificationType::HitType> acc_filter(accessions);
-      for (auto& id_it : ids)
-      {
-        keepMatchingItems(id_it.getHits(), acc_filter);
-      }
+      for (auto& id_it : ids) keepHitsMatchingProteins(id_it, accessions);
     }
 
     ///@}
@@ -1022,7 +1072,7 @@ namespace OpenMS
        @param peptides Input/output
        @param strict If set, keep the best hit only if its score is unique - i.e. ties are not allowed. (Otherwise all hits with the best score is kept.)
     */
-    static void keepBestPeptideHits(std::vector<PeptideIdentification>& peptides, bool strict = false);
+    static void keepBestPeptideHits(PeptideIdentificationList& peptides, bool strict = false);
 
     /**
        @brief Filters peptide identifications according to peptide sequence length.
@@ -1032,7 +1082,7 @@ namespace OpenMS
 
        @note The ranks of the hits may be invalidated.
     */
-    static void filterPeptidesByLength(std::vector<PeptideIdentification>& peptides, Size min_length, Size max_length = UINT_MAX);
+    static void filterPeptidesByLength(PeptideIdentificationList& peptides, Size min_length, Size max_length = UINT_MAX);
 
     /**
        @brief Filters peptide identifications according to charge state.
@@ -1042,13 +1092,13 @@ namespace OpenMS
 
        @note The ranks of the hits may be invalidated.
     */
-    static void filterPeptidesByCharge(std::vector<PeptideIdentification>& peptides, Int min_charge, Int max_charge);
+    static void filterPeptidesByCharge(PeptideIdentificationList& peptides, Int min_charge, Int max_charge);
 
     /// Filters peptide identifications by precursor RT, keeping only IDs in the given range
-    static void filterPeptidesByRT(std::vector<PeptideIdentification>& peptides, double min_rt, double max_rt);
+    static void filterPeptidesByRT(PeptideIdentificationList& peptides, double min_rt, double max_rt);
 
     /// Filters peptide identifications by precursor m/z, keeping only IDs in the given range
-    static void filterPeptidesByMZ(std::vector<PeptideIdentification>& peptides, double min_mz, double max_mz);
+    static void filterPeptidesByMZ(PeptideIdentificationList& peptides, double min_mz, double max_mz);
 
     /**
        @brief Filter peptide identifications according to mass deviation.
@@ -1061,7 +1111,7 @@ namespace OpenMS
 
        @note The ranks of the hits may be invalidated.
     */
-    static void filterPeptidesByMZError(std::vector<PeptideIdentification>& peptides, double mass_error, bool unit_ppm);
+    static void filterPeptidesByMZError(PeptideIdentificationList& peptides, double mass_error, bool unit_ppm);
 
 
     /**
@@ -1071,7 +1121,7 @@ namespace OpenMS
        @param peptides PeptideIdentification that will be scanned and filtered
      */
     template<class Filter>
-    static void filterPeptideEvidences(Filter& filter, std::vector<PeptideIdentification>& peptides);
+    static void filterPeptideEvidences(Filter& filter, PeptideIdentificationList& peptides);
 
     /**
        @brief Filters peptide identifications according to p-values from RTPredict.
@@ -1084,15 +1134,15 @@ namespace OpenMS
 
        @note The ranks of the hits may be invalidated.
     */
-    static void filterPeptidesByRTPredictPValue(std::vector<PeptideIdentification>& peptides, const String& metavalue_key, double threshold = 0.05);
+    static void filterPeptidesByRTPredictPValue(PeptideIdentificationList& peptides, const String& metavalue_key, double threshold = 0.05);
 
     /// Removes all peptide hits that have at least one of the given modifications
-    static void removePeptidesWithMatchingModifications(std::vector<PeptideIdentification>& peptides, const std::set<String>& modifications);
+    static void removePeptidesWithMatchingModifications(PeptideIdentificationList& peptides, const std::set<String>& modifications);
 
-    static void removePeptidesWithMatchingRegEx(std::vector<PeptideIdentification>& peptides, const String& regex);
+    static void removePeptidesWithMatchingRegEx(PeptideIdentificationList& peptides, const String& regex);
 
     /// Keeps only peptide hits that have at least one of the given modifications
-    static void keepPeptidesWithMatchingModifications(std::vector<PeptideIdentification>& peptides, const std::set<String>& modifications);
+    static void keepPeptidesWithMatchingModifications(PeptideIdentificationList& peptides, const std::set<String>& modifications);
 
     /**
        @brief Removes all peptide hits with a sequence that matches one in @p bad_peptides.
@@ -1101,7 +1151,7 @@ namespace OpenMS
 
        @note The ranks of the hits may be invalidated.
     */
-    static void removePeptidesWithMatchingSequences(std::vector<PeptideIdentification>& peptides, const std::vector<PeptideIdentification>& bad_peptides, bool ignore_mods = false);
+    static void removePeptidesWithMatchingSequences(PeptideIdentificationList& peptides, const PeptideIdentificationList& bad_peptides, bool ignore_mods = false);
 
     /**
        @brief Removes all peptide hits with a sequence that does not match one in @p good_peptides.
@@ -1110,10 +1160,10 @@ namespace OpenMS
 
        @note The ranks of the hits may be invalidated.
     */
-    static void keepPeptidesWithMatchingSequences(std::vector<PeptideIdentification>& peptides, const std::vector<PeptideIdentification>& good_peptides, bool ignore_mods = false);
+    static void keepPeptidesWithMatchingSequences(PeptideIdentificationList& peptides, const PeptideIdentificationList& good_peptides, bool ignore_mods = false);
 
     /// Removes all peptides that are not annotated as unique for a protein (by PeptideIndexer)
-    static void keepUniquePeptidesPerProtein(std::vector<PeptideIdentification>& peptides);
+    static void keepUniquePeptidesPerProtein(PeptideIdentificationList& peptides);
 
     /**
        @brief Removes duplicate peptide hits from each peptide identification, keeping only unique hits (per ID).
@@ -1121,56 +1171,68 @@ namespace OpenMS
        By default, hits are considered duplicated if they compare as equal using PeptideHit::operator==. However, if @p seq_only is set, only the sequences (incl. modifications) are compared. In both
        cases, the first occurrence of each hit in a peptide ID is kept, later ones are removed.
     */
-    static void removeDuplicatePeptideHits(std::vector<PeptideIdentification>& peptides, bool seq_only = false);
+    static void removeDuplicatePeptideHits(PeptideIdentificationList& peptides, bool seq_only = false);
 
     ///@}
 
 
-    /// @name Filter functions for MS/MS experiments
+    /// @name Filter functions for AnnotatedMSRun
     ///@{
 
-    /// Filters an MS/MS experiment according to score thresholds
-    static void filterHitsByScore(PeakMap& experiment, double peptide_threshold_score, double protein_threshold_score)
+    /// Filters AnnotatedMSRun according to score thresholds
+    static void filterHitsByScore(AnnotatedMSRun& annotated_data,
+                                  double peptide_threshold_score,
+                                  double protein_threshold_score)
     {
       // filter protein hits:
-      filterHitsByScore(experiment.getProteinIdentifications(), protein_threshold_score);
-      // don't remove empty protein IDs - they contain search metadata and may
+      filterHitsByScore(annotated_data.getProteinIdentifications(),
+                        protein_threshold_score);
+      // don't remove empty protein IDs - they contain search meta data and may
       // be referenced by peptide IDs (via run ID)
 
       // filter peptide hits:
-      for (PeakMap::Iterator exp_it = experiment.begin(); exp_it != experiment.end(); ++exp_it)
+      for (PeptideIdentification& peptide_id : annotated_data.getPeptideIdentifications())
       {
-        filterHitsByScore(exp_it->getPeptideIdentifications(), peptide_threshold_score);
-        removeEmptyIdentifications(exp_it->getPeptideIdentifications());
-        // TODO super-duper inefficient.
-        updateProteinReferences(exp_it->getPeptideIdentifications(), experiment.getProteinIdentifications());
+        filterHitsByScore(peptide_id, peptide_threshold_score);
       }
-      // @TODO: remove proteins that aren't referenced by peptides any more?
+      updateProteinReferences(annotated_data.getPeptideIdentifications(), annotated_data.getProteinIdentifications());
     }
 
-    /// Filters an MS/MS experiment by keeping the N best peptide hits for every spectrum
-    static void keepNBestHits(PeakMap& experiment, Size n)
+    /// Filters AnnotatedMSRun by keeping the N best peptide hits for every spectrum
+    static void keepNBestHits(AnnotatedMSRun& annotated_data, Size n)
     {
       // don't filter the protein hits by "N best" here - filter the peptides
       // and update the protein hits!
-      std::vector<PeptideIdentification> all_peptides; // IDs from all spectra
-
+      PeptideIdentificationList all_peptides; // IDs from all spectra
       // filter peptide hits:
-      for (PeakMap::Iterator exp_it = experiment.begin(); exp_it != experiment.end(); ++exp_it)
+      for (PeptideIdentification& peptide_id : annotated_data.getPeptideIdentifications())
       {
-        std::vector<PeptideIdentification>& peptides = exp_it->getPeptideIdentifications();
-        keepNBestHits(peptides, n);
-        removeEmptyIdentifications(peptides);
-        updateProteinReferences(peptides, experiment.getProteinIdentifications());
-        all_peptides.insert(all_peptides.end(), peptides.begin(), peptides.end());
+        // Create a temporary vector with a single PeptideIdentification
+        PeptideIdentificationList temp_vec = {peptide_id};
+        keepNBestHits(temp_vec, n);
+        // Copy back the filtered hits
+        if (!temp_vec.empty())
+        {
+          peptide_id = temp_vec[0];
+        }
+        else
+        {
+          peptide_id.getHits().clear();
+        }
+        
+        // Since we're working with individual PeptideIdentifications, we don't need to remove empty ones
+        // but we still need to update protein references
+        temp_vec = {peptide_id};
+        updateProteinReferences(temp_vec, annotated_data.getProteinIdentifications());
+        all_peptides.push_back(peptide_id);
       }
       // update protein hits:
-      removeUnreferencedProteins(experiment.getProteinIdentifications(), all_peptides);
+      removeUnreferencedProteins(annotated_data.getProteinIdentifications(), all_peptides);
     }
 
     /// Filter identifications by "N best" PeptideIdentification objects (better PeptideIdentification means better [best] PeptideHit than other).
     /// The vector is sorted and reduced to @p n elements. If the vector's size 's' is less than @p n, only 's' best spectra are kept.
-    static void keepNBestSpectra(std::vector<PeptideIdentification>& peptides, Size n);
+    static void keepNBestSpectra(PeptideIdentificationList& peptides, Size n);
 
     /// Filters a Consensus/FeatureMap by keeping the N best peptide hits for every spectrum
     template<class MapType>
@@ -1193,14 +1255,14 @@ namespace OpenMS
     }
 
     /// Filters PeptideHits from PeptideIdentification by keeping only the best peptide hits for every peptide sequence
-    static void keepBestPerPeptide(std::vector<PeptideIdentification>& pep_ids, bool ignore_mods, bool ignore_charges, Size nr_best_spectrum)
+    static void keepBestPerPeptide(PeptideIdentificationList& pep_ids, bool ignore_mods, bool ignore_charges, Size nr_best_spectrum)
     {
       annotateBestPerPeptide(pep_ids, ignore_mods, ignore_charges, nr_best_spectrum);
       HasMetaValue<PeptideHit> best_per_peptide {"best_per_peptide", 1};
       keepMatchingItemsUnroll(pep_ids, best_per_peptide);
     }
 
-    static void keepBestPerPeptidePerRun(std::vector<ProteinIdentification>& prot_ids, std::vector<PeptideIdentification>& pep_ids, bool ignore_mods, bool ignore_charges, Size nr_best_spectrum)
+    static void keepBestPerPeptidePerRun(std::vector<ProteinIdentification>& prot_ids, PeptideIdentificationList& pep_ids, bool ignore_mods, bool ignore_charges, Size nr_best_spectrum)
     {
       annotateBestPerPeptidePerRun(prot_ids, pep_ids, ignore_mods, ignore_charges, nr_best_spectrum);
       HasMetaValue<PeptideHit> best_per_peptide {"best_per_peptide", 1};
@@ -1237,7 +1299,7 @@ namespace OpenMS
 
     /// Annotates PeptideHits from PeptideIdentification if it is the best peptide hit for its peptide sequence
     /// Adds metavalue "bestForItsPeps" which can be used for additional filtering.
-    static void annotateBestPerPeptidePerRun(const std::vector<ProteinIdentification>& prot_ids, std::vector<PeptideIdentification>& pep_ids, bool ignore_mods, bool ignore_charges,
+    static void annotateBestPerPeptidePerRun(const std::vector<ProteinIdentification>& prot_ids, PeptideIdentificationList& pep_ids, bool ignore_mods, bool ignore_charges,
                                              Size nr_best_spectrum)
     {
       RunToSequenceToChargeToPepHitP best_peps_per_run;
@@ -1251,7 +1313,7 @@ namespace OpenMS
     /// Annotates PeptideHits from PeptideIdentification if it is the best peptide hit for its peptide sequence
     /// Adds metavalue "bestForItsPeps" which can be used for additional filtering.
     /// To be used when a RunToSequenceToChargeToPepHitP map is already available
-    static void annotateBestPerPeptidePerRunWithData(RunToSequenceToChargeToPepHitP& best_peps_per_run, std::vector<PeptideIdentification>& pep_ids, bool ignore_mods, bool ignore_charges,
+    static void annotateBestPerPeptidePerRunWithData(RunToSequenceToChargeToPepHitP& best_peps_per_run, PeptideIdentificationList& pep_ids, bool ignore_mods, bool ignore_charges,
                                                      Size nr_best_spectrum)
     {
       for (auto& pep : pep_ids)
@@ -1264,7 +1326,7 @@ namespace OpenMS
     /// Annotates PeptideHits from PeptideIdentification if it is the best peptide hit for its peptide sequence
     /// Adds metavalue "bestForItsPeps" which can be used for additional filtering.
     /// Does not check Run information and just goes over all Peptide IDs
-    static void annotateBestPerPeptide(std::vector<PeptideIdentification>& pep_ids, bool ignore_mods, bool ignore_charges, Size nr_best_spectrum)
+    static void annotateBestPerPeptide(PeptideIdentificationList& pep_ids, bool ignore_mods, bool ignore_charges, Size nr_best_spectrum)
     {
       SequenceToChargeToPepHitP best_pep;
       for (auto& pep : pep_ids)
@@ -1331,29 +1393,30 @@ namespace OpenMS
       }
     }
 
-    /// Filters an MS/MS experiment according to the given proteins
-    static void keepHitsMatchingProteins(PeakMap& experiment, const std::vector<FASTAFile::FASTAEntry>& proteins)
+    /// Filters AnnotatedMSRun according to the given proteins.
+    static void keepHitsMatchingProteins(
+      AnnotatedMSRun& experiment,
+      const std::vector<FASTAFile::FASTAEntry>& proteins)
     {
       std::set<String> accessions;
-      for (std::vector<FASTAFile::FASTAEntry>::const_iterator it = proteins.begin(); it != proteins.end(); ++it)
+      for (auto it = proteins.begin(); it != proteins.end(); ++it)
       {
         accessions.insert(it->identifier);
       }
 
       // filter protein hits:
       keepHitsMatchingProteins(experiment.getProteinIdentifications(), accessions);
-      updateHitRanks(experiment.getProteinIdentifications());
 
       // filter peptide hits:
-      for (PeakMap::Iterator exp_it = experiment.begin(); exp_it != experiment.end(); ++exp_it)
+      // std::pair<OpenMS::MSSpectrum&, OpenMS::PeptideIdentification&>
+      for (auto [spectrum, peptide_id] : experiment)
       {
-        if (exp_it->getMSLevel() == 2)
+        if (spectrum.getMSLevel() == 2)
         {
-          keepHitsMatchingProteins(exp_it->getPeptideIdentifications(), accessions);
-          removeEmptyIdentifications(exp_it->getPeptideIdentifications());
-          updateHitRanks(exp_it->getPeptideIdentifications());
+          keepHitsMatchingProteins(peptide_id, accessions);
         }
       }
+      removeEmptyIdentifications(experiment.getPeptideIdentifications());
     }
 
     ///@}
@@ -1393,6 +1456,22 @@ namespace OpenMS
     */
     static void removeDecoys(IdentificationData& id_data);
     ///@}
+
+    // Specific overloads for PeptideIdentificationList to ensure correct template resolution
+    static void removeDecoyHits(PeptideIdentificationList& ids)
+    {
+      removeDecoyHits(ids.getData());
+    }
+
+    static void filterHitsByScore(PeptideIdentificationList& ids, double threshold_score)
+    {
+      filterHitsByScore(ids.getData(), threshold_score);
+    }
+
+    static void removeUnreferencedProteins(std::vector<ProteinIdentification>& proteins, PeptideIdentificationList& ids)
+    {
+      removeUnreferencedProteins(proteins, ids.getData());
+    }
   };
 
 } // namespace OpenMS

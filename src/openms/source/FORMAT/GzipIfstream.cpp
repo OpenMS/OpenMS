@@ -9,6 +9,7 @@
 #include <iostream>
 #include <OpenMS/FORMAT/GzipIfstream.h>
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/SYSTEM/File.h>
 #include <cstdlib>
 
 using namespace std;
@@ -44,7 +45,9 @@ namespace OpenMS
       if (n_buffer_ < 0)
       {
         close();
-        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "gzip file seems to be corrupted");
+        const char* err_string = gzerror(gzfile_, &gzerror_);
+        std::string error_message = err_string ? err_string : "unknown error (code: " + std::to_string(gzerror_) + ")";
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "error reading from gzip file", error_message);
       }
       return n_buffer_;
     }
@@ -61,12 +64,24 @@ namespace OpenMS
       close();
     }
     gzfile_ = gzopen(filename, "rb"); // read binary: always open in binary mode because windows and mac open in text mode
+    gzbuffer(gzfile_, 524288);        // set buffer size to 512kb to improve read performance (about 7% for mzML files incl. parsing)
 
     //aborting, ahhh!
     if (gzfile_ == nullptr)
     {
       close();
-      throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+      if (!File::exists(filename))
+      {
+        throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+      }
+      else if (!File::readable(filename))
+      {
+        throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+      }
+      else
+      {
+        throw Exception::IOException(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+      }
     }
     else
     {
