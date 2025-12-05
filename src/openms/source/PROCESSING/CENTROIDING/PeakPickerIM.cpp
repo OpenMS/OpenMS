@@ -59,7 +59,7 @@ namespace OpenMS
         if (summed_trace.size() < 20)
         {
 #ifdef DEBUG_PICKER
-          std::cerr << "Skipping trace " << s << " because it has too few points ("
+          OPENMS_LOG_DEBUG << "Skipping trace " << s << " because it has too few points ("
                     << summed_trace.size() << ")." << std::endl;
 #endif
           continue; // skip this spectrum
@@ -77,7 +77,7 @@ namespace OpenMS
       if (mz_diffs.empty())
       {
 #ifdef DEBUG_PICKER
-        std::cerr << "Warning: No valid m/z differences found in any spectra. Using default sampling rate of 0.01" << std::endl;
+        OPENMS_LOG_DEBUG << "Warning: No valid m/z differences found in any spectra. Using default sampling rate of 0.01" << std::endl;
 #endif
         return 0.01; // Fallback value
       }
@@ -91,7 +91,7 @@ namespace OpenMS
       double threshold = mz_diffs[percentile_index];
 
 #ifdef DEBUG_PICKER
-      std::cerr << "75th percentile of position differences is: " << threshold << std::endl;
+      OPENMS_LOG_DEBUG << "75th percentile of position differences is: " << threshold << std::endl;
 #endif
 
       // Filter out large differences (keep diffs <= threshold)
@@ -106,7 +106,7 @@ namespace OpenMS
 
       if (small_mz_diffs.empty())
       {
-        std::cerr << "Warning: No valid small m/z differences found after filtering. Using default sampling rate of 0.01" << std::endl;
+        OPENMS_LOG_WARN << "Warning: No valid small m/z differences found after filtering. Using default sampling rate of 0.01" << std::endl;
         return 0.01;
       }
 
@@ -130,7 +130,7 @@ namespace OpenMS
       }
 
 #ifdef DEBUG_PICKER
-      std::cout << "Computed optimal sampling rate: " << mode_sampling_rate << std::endl;
+      OPENMS_LOG_DEBUG << "Computed optimal sampling rate: " << mode_sampling_rate << std::endl;
 #endif
 
       return mode_sampling_rate;
@@ -217,13 +217,13 @@ namespace OpenMS
 
       if (!fwhm_array)
       {
-        std::cerr << "FWHM data array not found!" << std::endl;
+        OPENMS_LOG_WARN << "FWHM data array not found!" << std::endl;
         return {};
       }
 
       if (fwhm_array->size() != picked_spectrum.size())
       {
-        std::cerr << "Size mismatch between FWHM array and picked peaks!" << std::endl;
+        OPENMS_LOG_WARN << "Size mismatch between FWHM array and picked peaks!" << std::endl;
         return {};
       }
       // Get the Ion Mobility array index from raw_spectrum
@@ -250,7 +250,7 @@ namespace OpenMS
 
         if (center_idx == -1)
         {
-          std::cerr << "No raw peaks found near picked m/z: " << picked_mz << std::endl;
+          OPENMS_LOG_WARN << "No raw peaks found near picked m/z: " << picked_mz << std::endl;
           mobility_traces.emplace_back();
           continue;
         }
@@ -315,7 +315,7 @@ namespace OpenMS
       mz_fwhm_array.setName("MZ FWHM");
 
 #ifdef DEBUG_PICKER
-      std::cout << "picked_traces.size(): " << picked_traces.size() << std::endl;
+      OPENMS_LOG_DEBUG << "picked_traces.size(): " << picked_traces.size() << std::endl;
 #endif
       // Loop over picked traces and their corresponding raw mobilogram traces
       for (size_t i = 0; i < picked_traces.size(); ++i)
@@ -328,7 +328,7 @@ namespace OpenMS
 
         if (picked_float_arrays.empty())
         {
-          std::cerr << "No IM FWHM array found for picked_trace " << i << "!" << std::endl;
+          OPENMS_LOG_WARN << "No IM FWHM array found for picked_trace " << i << "!" << std::endl;
           continue;
         }
 
@@ -337,7 +337,7 @@ namespace OpenMS
 
         if (fwhm_array.size() != picked_trace.size())
         {
-          std::cerr << "FWHM array size mismatch with picked_trace size!" << std::endl;
+          OPENMS_LOG_WARN << "FWHM array size mismatch with picked_trace size!" << std::endl;
           continue;
         }
 
@@ -346,7 +346,7 @@ namespace OpenMS
 
         if (raw_float_arrays.empty())
         {
-          std::cerr << "No raw m/z peaks found for raw_trace " << i << "!" << std::endl;
+          OPENMS_LOG_WARN << "No raw m/z peaks found for raw_trace " << i << "!" << std::endl;
           continue;
         }
 
@@ -355,12 +355,12 @@ namespace OpenMS
 
         if (raw_mz_values.size() != raw_trace.size())
         {
-          std::cerr << "raw_mz_values size mismatch with raw_trace size!" << std::endl;
+          OPENMS_LOG_WARN << "raw_mz_values size mismatch with raw_trace size!" << std::endl;
           continue;
         }
 
 #ifdef DEBUG_PICKER
-        std::cout << "\n--- Processing picked_trace " << i << " ---\n";
+        OPENMS_LOG_DEBUG << "\n--- Processing picked_trace " << i << " ---\n";
 #endif
 
         // Create reusable objects outside the loop to reduce memory allocations
@@ -382,7 +382,7 @@ namespace OpenMS
           double im_upper = centroid_im + (fwhm / 2.0);
 
 #ifdef DEBUG_PICKER
-          std::cout << "Picked peak " << j << " IM centroid: " << centroid_im
+          OPENMS_LOG_DEBUG << "Picked peak " << j << " IM centroid: " << centroid_im
                     << " ion mobility FWHM: " << fwhm
                     << " --> IM bounds: [" << im_lower << ", " << im_upper << "]" << std::endl;
 #endif
@@ -391,7 +391,7 @@ namespace OpenMS
 
           if (center_idx == -1)
           {
-            std::cerr << "Could not find nearest peak to centroid_im in raw_trace!" << std::endl;
+            OPENMS_LOG_WARN << "Could not find nearest peak to centroid_im in raw_trace!" << std::endl;
             continue;
           }
 
@@ -424,7 +424,7 @@ namespace OpenMS
           }
 
 #ifdef DEBUG_PICKER
-          std::cout << "Picked IM peak " << j << ": collected " << raw_peaks_within_bounds.size()
+          OPENMS_LOG_DEBUG << "Picked IM peak " << j << ": collected " << raw_peaks_within_bounds.size()
                     << " raw m/z points between IM [" << im_lower << ", " << im_upper << "]" << std::endl;
 #endif
 
@@ -444,19 +444,18 @@ namespace OpenMS
             mz_fwhm_array.push_back(0.0);
 
 #ifdef DEBUG_PICKER
-            std::cout << "[INFO] Only one raw peak found. Added directly to centroided_frame. m/z: "
+            OPENMS_LOG_DEBUG << "[INFO] Only one raw peak found. Added directly to centroided_frame. m/z: "
                       << single_peak.getMZ() << " intensity: " << single_peak.getIntensity() << std::endl;
 #endif
             // Skip the rest of the loop and move on to the next picked_trace peak
             continue;
           }
         
-          // If not sorted, sort both the peaks array and the corresponding raw m/z values array
-          if (!raw_peaks_within_bounds.isSorted())
-          {
-            raw_peaks_within_bounds.sortByPosition();
-          }
-           
+          // Sort by m/z for sumFrame_() which requires sorted input.
+          // Data is typically unsorted because peaks were collected by walking through IM-sorted
+          // data (expand-left/right), and m/z has no correlation with IM order within FWHM window.
+          raw_peaks_within_bounds.sortByPosition();
+
           // Clear the spectrum for reuse
           raw_mz_peaks.clear(true);
           sumFrame_(raw_peaks_within_bounds, raw_mz_peaks, 0.1, true);
@@ -477,7 +476,7 @@ namespace OpenMS
 
 #ifdef DEBUG_PICKER
             const Peak1D& single_peak = raw_mz_peaks[0];
-            std::cout << "[INFO] sumFrame_ reduced peaks to a single entry. Added directly to centroided_frame. m/z: " << single_peak.getMZ()
+            OPENMS_LOG_DEBUG << "[INFO] sumFrame_ reduced peaks to a single entry. Added directly to centroided_frame. m/z: " << single_peak.getMZ()
                       << " intensity: " << single_peak.getIntensity() << std::endl;
 #endif
             continue;
@@ -510,7 +509,8 @@ namespace OpenMS
             intensity_values.push_back(current_intensity);
           }
 
-          // Sort the vectors if needed TODO: check with Mohammed if this is needed
+          // Sort vectors if needed (safety check - data should already be sorted from sumFrame_)
+          // CubicSpline2d requires sorted x-coordinates
           if (!is_sorted)
           {
             // Reuse indices vector
@@ -558,8 +558,8 @@ namespace OpenMS
           Math::spline_bisection(spline, left_bound, right_bound, apex_mz, apex_intensity, max_search_threshold);
 
 #ifdef DEBUG_PICKER
-          std::cout << "Apex m/z: " << apex_mz << std::endl;
-          std::cout << "Apex intensity: " << apex_intensity << std::endl;
+          OPENMS_LOG_DEBUG << "Apex m/z: " << apex_mz << std::endl;
+          OPENMS_LOG_DEBUG << "Apex intensity: " << apex_intensity << std::endl;
 #endif
 
           // FWHM calculation (same binary search as before)
@@ -627,9 +627,9 @@ namespace OpenMS
           double mz_fwhm = fwhm_right_mz - fwhm_left_mz;
 
 #ifdef DEBUG_PICKER
-          std::cout << "Left m/z at half height: " << fwhm_left_mz << std::endl;
-          std::cout << "Right m/z at half height: " << fwhm_right_mz << std::endl;
-          std::cout << "m/z FWHM: " << mz_fwhm << std::endl;
+          OPENMS_LOG_DEBUG << "Left m/z at half height: " << fwhm_left_mz << std::endl;
+          OPENMS_LOG_DEBUG << "Right m/z at half height: " << fwhm_right_mz << std::endl;
+          OPENMS_LOG_DEBUG << "m/z FWHM: " << mz_fwhm << std::endl;
 #endif
 
           centroided_frame.emplace_back(apex_mz, apex_intensity);
@@ -639,7 +639,7 @@ namespace OpenMS
         }
 
 #ifdef DEBUG_PICKER
-        std::cout << "--- Finished processing picked_trace " << i << " ---\n\n";
+        OPENMS_LOG_DEBUG << "--- Finished processing picked_trace " << i << " ---\n\n";
 #endif
       }
 
@@ -650,11 +650,11 @@ namespace OpenMS
       centroided_frame.sortByPosition();
 
 #ifdef DEBUG_PICKER
-      std::cout << "Peaks in centroided frame: " << centroided_frame.size() << std::endl;
-      std::cout << "Printing centroided_frame inside ComputerCenters function " << std::endl;
+      OPENMS_LOG_DEBUG << "Peaks in centroided frame: " << centroided_frame.size() << std::endl;
+      OPENMS_LOG_DEBUG << "Printing centroided_frame inside ComputerCenters function " << std::endl;
       for (const auto& peak : centroided_frame)
       {
-        std::cout << "m/z: " << peak.getMZ() << ", intensity: " << peak.getIntensity() << std::endl;
+        OPENMS_LOG_DEBUG << "m/z: " << peak.getMZ() << ", intensity: " << peak.getIntensity() << std::endl;
       }
 #endif
       return centroided_frame;
@@ -764,14 +764,14 @@ namespace OpenMS
       MSSpectrum summed_spectrum;
       sumFrame_(spectrum, summed_spectrum, sum_tolerance_mz_, true);
 #ifdef DEBUG_PICKER
-      std::cout << "Spectrum after sumFrame_ has " << summed_spectrum.size() << " peaks." << std::endl;
+      OPENMS_LOG_DEBUG << "Spectrum after sumFrame_ has " << summed_spectrum.size() << " peaks." << std::endl;
 #endif
 
       // ------------------------------------------ step 2a: smooth ------------------------------------------
       // Apply gaussian smoothing to the peaks projected into the m/z axis. This facilitates peak picking
       // in the m/z dimension and subseqent mobilogram extraction for each picked m/z peak.
 #ifdef DEBUG_PICKER
-      std::cout << "Applying Gaussian smoothing..." << std::endl;
+      OPENMS_LOG_DEBUG << "Applying Gaussian smoothing..." << std::endl;
 #endif
       GaussFilter gauss_filter;
       Param gauss_params;
@@ -780,10 +780,10 @@ namespace OpenMS
       gauss_filter.setParameters(gauss_params);
       gauss_filter.filter(summed_spectrum);
 #ifdef DEBUG_PICKER
-      std::cout << "Spectrum after Gaussian smoothing has " << summed_spectrum.size() << " peaks." << std::endl;
+      OPENMS_LOG_DEBUG << "Spectrum after Gaussian smoothing has " << summed_spectrum.size() << " peaks." << std::endl;
       for (const auto& peak : summed_spectrum)
       {
-        std::cout << "m/z: " << peak.getMZ() << ", intensity: " << peak.getIntensity() << std::endl;
+        OPENMS_LOG_DEBUG << "m/z: " << peak.getMZ() << ", intensity: " << peak.getIntensity() << std::endl;
       }
 #endif
 
@@ -799,7 +799,7 @@ namespace OpenMS
       MSSpectrum picked_spectrum;
       picker_mz.pick(summed_spectrum, picked_spectrum);
 #ifdef DEBUG_PICKER
-      std::cout << "Size of picked spectrum: " << picked_spectrum.size() << std::endl;
+      OPENMS_LOG_DEBUG << "Size of picked spectrum: " << picked_spectrum.size() << std::endl;
 #endif
       if (picked_spectrum.empty())
       {
@@ -817,20 +817,20 @@ namespace OpenMS
 
       auto mobilogram_traces = extractIonMobilityTraces(picked_spectrum, spectrum);
 
-      // TODO: Should we add a multipler to the linear sampling rate? We may boost algorithm speed and/or result if we try >1 multiplier
+      // Compute optimal sampling rate from the native spacing of mobilogram data points
       double sampling_rate = computeOptimalSamplingRate(mobilogram_traces);
       Param resampler_param;
       resampler_param.setValue("spacing", sampling_rate);
       resampler_param.setValue("ppm", "false");
 
 #ifdef DEBUG_PICKER
-      std::cout << "Using sampling rate... : " << sampling_rate << std::endl;
+      OPENMS_LOG_DEBUG << "Using sampling rate... : " << sampling_rate << std::endl;
 #endif
 
 #ifdef DEBUG_PICKER
       for (size_t i = 0; i < mobilogram_traces.size(); ++i)
       {
-        std::cout << "Trace " << i << " contains " << mobilogram_traces[i].size() << " points in ion mobility space." << std::endl;
+        OPENMS_LOG_DEBUG << "Trace " << i << " contains " << mobilogram_traces[i].size() << " points in ion mobility space." << std::endl;
       }
 #endif
       // ************************************************* PART II *****************************************************
@@ -844,8 +844,8 @@ namespace OpenMS
 
       // prepare picked ion mobility objects (we are internally using MSSpectrum object for downstram peak picking inputs).
       vector<MSSpectrum> picked_traces;
-      // TODO: check why there are so many mobilogram_traces that are empty. leads to segfault later
-      // --- THIS IS ADDRESSED by Linear Resampling of mobilograms.
+      // Remove empty traces that can occur when no raw peaks are found within the FWHM window
+      // of a picked m/z peak during extractIonMobilityTraces()
       mobilogram_traces.erase(
         std::remove_if(mobilogram_traces.begin(), mobilogram_traces.end(),
                    [](const auto& trace) { return trace.empty(); }),
@@ -856,15 +856,15 @@ namespace OpenMS
         MSSpectrum& trace = mobilogram_traces[i];
 
 #ifdef DEBUG_PICKER
-        std::cout << "\n--- Processing Trace " << i << " ---\n";
-        std::cout << "Original trace has " << trace.size() << " peaks." << std::endl;
+        OPENMS_LOG_DEBUG << "\n--- Processing Trace " << i << " ---\n";
+        OPENMS_LOG_DEBUG << "Original trace has " << trace.size() << " peaks." << std::endl;
 #endif
         MSSpectrum summed_trace;
         summed_trace.reserve(trace.size() + 1);
         summed_trace.emplace_back(-1.0, -1.0);
         sumFrame_(trace, summed_trace, sum_tolerance_im_, false);
 #ifdef DEBUG_PICKER
-        std::cout << "Trace after sumFrame_ has " << summed_trace.size() << " peaks." << std::endl;
+        OPENMS_LOG_DEBUG << "Trace after sumFrame_ has " << summed_trace.size() << " peaks." << std::endl;
 #endif
         // ------------------------------------------ part 2b: smooth and resample --------------------------------
         // Prepare mobilograms for SGolay smoothing.
@@ -873,7 +873,7 @@ namespace OpenMS
         double im_end = summed_trace.back().getMZ();
 
 #ifdef DEBUG_PICKER
-        std::cout << "Original summed trace ion mobility range: [" << im_start << ", " << im_end << "]" << std::endl;
+        OPENMS_LOG_DEBUG << "Original summed trace ion mobility range: [" << im_start << ", " << im_end << "]" << std::endl;
 #endif
         int padding_points = static_cast<int>(std::ceil((sgolay_frame_length_ - 1) / 2.0));
 
@@ -888,7 +888,7 @@ namespace OpenMS
         summed_trace.push_back(back_padding);
 
 #ifdef DEBUG_PICKER
-        std::cout << "Padded summed trace im range: [" << summed_trace.front().getMZ() << ", " << summed_trace.back().getMZ() << "]" << std::endl;
+        OPENMS_LOG_DEBUG << "Padded summed trace im range: [" << summed_trace.front().getMZ() << ", " << summed_trace.back().getMZ() << "]" << std::endl;
 #endif
 
         // linear resample to rescue weak signal
@@ -896,10 +896,10 @@ namespace OpenMS
         lin_resampler.setParameters(resampler_param);
         lin_resampler.raster(summed_trace);
 #ifdef DEBUG_PICKER
-        std::cout << "Size of resampled trace: " << summed_trace.size() << " peaks." << std::endl;
+        OPENMS_LOG_DEBUG << "Size of resampled trace: " << summed_trace.size() << " peaks." << std::endl;
         for (const auto& peak : summed_trace)
         {
-          std::cout << "m/z: " << peak.getMZ() << ", intensity: " << peak.getIntensity() << std::endl;
+          OPENMS_LOG_DEBUG << "m/z: " << peak.getMZ() << ", intensity: " << peak.getIntensity() << std::endl;
         }
 #endif
         // SGolay smooth prior to peak picking
@@ -911,10 +911,10 @@ namespace OpenMS
         sgolay_filter.filter(summed_trace);
 
 #ifdef DEBUG_PICKER
-        std::cout << "Trace after Savitzky-Golay smoothing has " << summed_trace.size() << " peaks." << std::endl;
+        OPENMS_LOG_DEBUG << "Trace after Savitzky-Golay smoothing has " << summed_trace.size() << " peaks." << std::endl;
         for (const auto& peak : summed_trace)
         {
-          std::cout << "m/z: " << peak.getMZ() << ", intensity: " << peak.getIntensity() << std::endl;
+          OPENMS_LOG_DEBUG << "m/z: " << peak.getMZ() << ", intensity: " << peak.getIntensity() << std::endl;
         }
 #endif
 
@@ -940,7 +940,7 @@ namespace OpenMS
         picked_traces.push_back(std::move(picked_trace));
 
 #ifdef DEBUG_PICKER
-        std::cout << "--- Finished Processing Trace " << i << " ---\n\n";
+        OPENMS_LOG_DEBUG << "--- Finished Processing Trace " << i << " ---\n\n";
 #endif
       }
 
@@ -948,7 +948,7 @@ namespace OpenMS
       MSSpectrum centroided_frame = computeCentroids_(mobilogram_traces, picked_traces);
 
 #ifdef DEBUG_PICKER
-      std::cout << "--- Centroided frame has  " << centroided_frame.size() << " --- peaks.\n";
+      OPENMS_LOG_DEBUG << "--- Centroided frame has  " << centroided_frame.size() << " --- peaks.\n";
 #endif
       // Copy only SpectrumSettings from the input into the centroided result
       static_cast<SpectrumSettings&>(centroided_frame) = static_cast<const SpectrumSettings&>(spectrum);
@@ -961,10 +961,10 @@ namespace OpenMS
       
 #ifdef DEBUG_PICKER
       // Print peaks for debugging
-      std::cout << "--- Spectrum final output object has ..  " << spectrum.size() << " --- peaks.\n";
+      OPENMS_LOG_DEBUG << "--- Spectrum final output object has ..  " << spectrum.size() << " --- peaks.\n";
       for (const auto& peak : spectrum)
       {
-        std::cout << "m/z: " << peak.getMZ() << ", intensity: " << peak.getIntensity() << std::endl;
+        OPENMS_LOG_DEBUG << "m/z: " << peak.getMZ() << ", intensity: " << peak.getIntensity() << std::endl;
       }
 #endif
     }
@@ -1274,11 +1274,13 @@ namespace OpenMS
       {
         const MassTrace& mt = split_mtraces[i];
         input[i].setMZ(mt.getCentroidMZ());
-        input[i].setIntensity(mt.computeIntensitySum()); //TODO: somewhat related: why is getIntensity() zero?
+        // Use computeIntensitySum() instead of getIntensity() because getIntensity() depends on
+        // FWHM indices which may not be set for short traces (returns 0 if fwhm_start_idx_ == fwhm_end_idx_ == 0)
+        input[i].setIntensity(mt.computeIntensitySum());
         im_data[i] = mt.getCentroidRT(); // IM
       }
-      input.sortByPosition(); // TODO: maybe needed
-      input.updateRanges(); // TODO: maybe needed
+      input.sortByPosition();
+      input.updateRanges();
       // ensure the output im name is updated
       input.getFloatDataArrays()[im_data_index].setName(Constants::UserParam::ION_MOBILITY_CENTROID);
       input.setIMFormat(IMFormat::CENTROIDED);
