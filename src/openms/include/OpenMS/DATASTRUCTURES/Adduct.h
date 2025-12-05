@@ -28,7 +28,7 @@ public:
     Adduct(Int charge);
 
     /// C'tor for all members
-    Adduct(Int charge, Int amount, double singleMass, const String& formula, double log_prob, double rt_shift, const String& label = "");
+    Adduct(Int charge, Int amount, double singleMass, const String& formula, double log_prob, double rt_shift, const String& label = "", UInt mol_multiplier = 1);
 
     /// Increase amount of this adduct by factor @param m
     Adduct operator*(const Int m) const;
@@ -64,8 +64,15 @@ public:
     const double& getRTShift() const;
     const String& getLabel() const;
 
+    /// Get the molecular multiplier (e.g., 2 for dimers [2M+H]+)
+    UInt getMolMultiplier() const;
+    /// Set the molecular multiplier (e.g., 2 for dimers [2M+H]+)
+    void setMolMultiplier(UInt mol_multiplier);
+
     // convert a ion string to adduct string with charge information (eg. ion_string = "Na1", charge = "1" --> "[M+Na]+")
     String toAdductString(const String& ion_string, const Int& charge);
+    /// Convert to adduct string including molecular multiplier (eg. mol_multiplier = 2, ion_string = "Na1", charge = "1" --> "[2M+Na]+")
+    String toAdductString(const String& ion_string, const Int& charge, UInt mol_multiplier);
     //}
 
 private:
@@ -76,6 +83,7 @@ private:
     String formula_; ///< chemical formula (parsable by EmpiricalFormula)
     double rt_shift_; ///< RT shift induced by a single entity of this adduct (this is for adducts attached prior to ESI, e.g. labeling)
     String label_; ///< Label for this adduct (can be used to indicate heavy labels)
+    UInt mol_multiplier_; ///< Molecular multiplier for multimers (e.g., 2 for [2M+H]+, default is 1)
 
     String checkFormula_(const String& formula);
 

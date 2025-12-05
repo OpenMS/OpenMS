@@ -291,6 +291,24 @@ namespace OpenMS
     return tmp;
   }
 
+  UInt Compomer::getMaxMolMultiplier(const UInt side) const
+  {
+    if (side >= BOTH)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Compomer::getMaxMolMultiplier() does not support this value for 'side'!", String(side));
+    }
+    UInt max_multiplier = 1;
+    for (CompomerSide::const_iterator it = this->cmp_[side].begin(); it != this->cmp_[side].end(); ++it)
+    {
+      UInt mul = it->second.getMolMultiplier();
+      if (mul > max_multiplier)
+      {
+        max_multiplier = mul;
+      }
+    }
+    return max_multiplier;
+  }
+
   /// Adds @p add_side to this compomer.
   void Compomer::add(const CompomerSide& add_side, UInt side)
   {

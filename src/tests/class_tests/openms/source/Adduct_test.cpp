@@ -42,7 +42,7 @@ START_SECTION((Adduct(Int charge)))
 }
 END_SECTION
 
-START_SECTION((Adduct(Int charge, Int amount, double singleMass, String formula, double log_prob, double rt_shift, const String label="")))
+START_SECTION((Adduct(Int charge, Int amount, double singleMass, String formula, double log_prob, double rt_shift, const String label="", UInt mol_multiplier=1)))
 {
 	Adduct a(123, 43, 123.456f, "S", -0.3453, -10);
 	TEST_EQUAL(a.getCharge(), 123);
@@ -52,9 +52,15 @@ START_SECTION((Adduct(Int charge, Int amount, double singleMass, String formula,
 	TEST_REAL_SIMILAR(a.getLogProb(), -0.3453);
   TEST_REAL_SIMILAR(a.getRTShift(), -10);
   TEST_EQUAL(a.getLabel(), "");
+  TEST_EQUAL(a.getMolMultiplier(), 1);
 
 	Adduct a2(123, 43, 123.456f, "S", -0.3453, -10, "testlabel");
-  TEST_EQUAL(a2.getLabel(), "testlabel");	
+  TEST_EQUAL(a2.getLabel(), "testlabel");
+  TEST_EQUAL(a2.getMolMultiplier(), 1);
+
+  // Test with mol_multiplier for multimers
+  Adduct a3(1, 1, 1.007825f, "H", -0.3, 0, "", 2);
+  TEST_EQUAL(a3.getMolMultiplier(), 2);
 }
 END_SECTION
 
@@ -153,6 +159,21 @@ START_SECTION((const String& getLabel() const ))
   TEST_EQUAL(a1.getLabel(), "mylabel");
 END_SECTION
 
+START_SECTION((UInt getMolMultiplier() const))
+  Adduct a(123, 43, 123.456f, "S", -0.3453, -10);
+  TEST_EQUAL(a.getMolMultiplier(), 1);
+  Adduct a2(1, 1, 1.007825f, "H", -0.3, 0, "", 2);
+  TEST_EQUAL(a2.getMolMultiplier(), 2);
+END_SECTION
+
+START_SECTION((void setMolMultiplier(UInt mol_multiplier)))
+  Adduct a;
+  a.setMolMultiplier(3);
+  TEST_EQUAL(a.getMolMultiplier(), 3);
+  a.setMolMultiplier(1);
+  TEST_EQUAL(a.getMolMultiplier(), 1);
+END_SECTION
+
 
 
 START_SECTION((Adduct operator *(const Int m) const))
@@ -187,6 +208,43 @@ START_SECTION((void operator+=(const Adduct &rhs)))
 	a.setAmount(10);
 	a	+= a_p;
 	TEST_EQUAL(a.getAmount(), 43+10);
+}
+END_SECTION
+
+START_SECTION((String toAdductString(const String& ion_string, const Int& charge)))
+{
+  Adduct a;
+  // Test monomer adduct string
+  String result1 = a.toAdductString("H1", 1);
+  TEST_EQUAL(result1, "[M+H]+");
+  
+  String result2 = a.toAdductString("Na1", 1);
+  TEST_EQUAL(result2, "[M+Na]+");
+  
+  // Test negative charge
+  String result3 = a.toAdductString("H-1", -1);
+  TEST_EQUAL(result3, "[M-H]-");
+}
+END_SECTION
+
+START_SECTION((String toAdductString(const String& ion_string, const Int& charge, UInt mol_multiplier)))
+{
+  Adduct a;
+  // Test monomer (mol_multiplier = 1, should not show "1M")
+  String result1 = a.toAdductString("H1", 1, 1);
+  TEST_EQUAL(result1, "[M+H]+");
+  
+  // Test dimer adduct string
+  String result2 = a.toAdductString("H1", 1, 2);
+  TEST_EQUAL(result2, "[2M+H]+");
+  
+  // Test trimer adduct string
+  String result3 = a.toAdductString("Na1", 1, 3);
+  TEST_EQUAL(result3, "[3M+Na]+");
+  
+  // Test dimer with negative charge
+  String result4 = a.toAdductString("H-1", -1, 2);
+  TEST_EQUAL(result4, "[2M-H]-");
 }
 END_SECTION
 

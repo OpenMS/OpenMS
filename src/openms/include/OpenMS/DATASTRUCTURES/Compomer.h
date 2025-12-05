@@ -239,6 +239,17 @@ public:
     */
     StringList getLabels(const UInt side) const;
 
+    /**
+      @brief Get the maximum molecular multiplier from adducts on a specific side
+      
+      Returns the maximum mol_multiplier value across all adducts on the specified side.
+      This is useful for determining if this side of the compomer represents a multimer (e.g., [2M+H]+).
+      
+      @param side Which side to check (LEFT or RIGHT)
+      @return Maximum mol_multiplier value (1 if no multimer adducts)
+    */
+    UInt getMaxMolMultiplier(const UInt side) const;
+
 
     /**
       @brief Add a complete set of adducts to a specific side of the compomer

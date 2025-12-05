@@ -26,7 +26,8 @@ namespace OpenMS
     log_prob_(0),
     formula_(),
     rt_shift_(0),
-    label_()
+    label_(),
+    mol_multiplier_(1)
   {
   }
 
@@ -37,21 +38,28 @@ namespace OpenMS
     log_prob_(0),
     formula_(),
     rt_shift_(0),
-    label_()
+    label_(),
+    mol_multiplier_(1)
   {
   }
 
-  Adduct::Adduct(Int charge, Int amount, double singleMass, const String& formula, double log_prob, double rt_shift, const String& label) :
+  Adduct::Adduct(Int charge, Int amount, double singleMass, const String& formula, double log_prob, double rt_shift, const String& label, UInt mol_multiplier) :
     charge_(charge),
     amount_(amount),
     singleMass_(singleMass),
     log_prob_(log_prob),
     rt_shift_(rt_shift),
-    label_(label)
+    label_(label),
+    mol_multiplier_(mol_multiplier)
   {
     if (amount < 0)
     {
       std::cerr << "Attention: Adduct received negative amount! (" << amount << ")\n";
+    }
+    if (mol_multiplier < 1)
+    {
+      std::cerr << "Warning: Adduct received mol_multiplier < 1! (" << mol_multiplier << "). Setting to 1.\n";
+      mol_multiplier_ = 1;
     }
     formula_ = checkFormula_(formula);
   }
@@ -147,12 +155,42 @@ namespace OpenMS
   {
     return label_;
   }
+
+  UInt Adduct::getMolMultiplier() const
+  {
+    return mol_multiplier_;
+  }
+
+  void Adduct::setMolMultiplier(UInt mol_multiplier)
+  {
+    if (mol_multiplier < 1)
+    {
+      std::cerr << "Warning: Adduct::setMolMultiplier received value < 1! (" << mol_multiplier << "). Setting to 1.\n";
+      mol_multiplier_ = 1;
+    }
+    else
+    {
+      mol_multiplier_ = mol_multiplier;
+    }
+  }
   
   String Adduct::toAdductString(const String& ion_string, const Int& charge)
   {
+    return toAdductString(ion_string, charge, mol_multiplier_);
+  }
+
+  String Adduct::toAdductString(const String& ion_string, const Int& charge, UInt mol_multiplier)
+  {
     EmpiricalFormula ef(ion_string);
     String charge_sign = charge >= 0 ? "+" : "-";
-    String s("[M");
+    String s("[");
+
+    // Add molecular multiplier if > 1 (e.g., [2M+H]+)
+    if (mol_multiplier > 1)
+    {
+      s += String(mol_multiplier);
+    }
+    s += "M";
 
     //need elements sorted canonically (by string)
     std::map<String, String> sorted_elem_map;
@@ -203,6 +241,7 @@ namespace OpenMS
     os << "MassSingle: " << a.singleMass_ << std::endl;
     os << "Formula: " << a.formula_ << std::endl;
     os << "log P: " << a.log_prob_ << std::endl;
+    os << "MolMultiplier: " << a.mol_multiplier_ << std::endl;
     return os;
   }
 
@@ -212,7 +251,8 @@ namespace OpenMS
            && a.amount_ == b.amount_
            && a.singleMass_ == b.singleMass_
            && a.log_prob_ == b.log_prob_
-           && a.formula_ == b.formula_;
+           && a.formula_ == b.formula_
+           && a.mol_multiplier_ == b.mol_multiplier_;
 
   }
 

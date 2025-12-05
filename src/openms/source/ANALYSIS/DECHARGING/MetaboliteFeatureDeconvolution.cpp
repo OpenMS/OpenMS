@@ -104,8 +104,9 @@ namespace OpenMS
     defaults_.setValidStrings("unit", {"Da","ppm"});
 
     // Na+:0.1 , (2)H4H-4:0.1:-2:heavy
-    defaults_.setValue("potential_adducts", std::vector<std::string>{"H:+:0.4","Na:+:0.25","NH4:+:0.25","K:+:0.1","H-2O-1:0:0.05"}, "Adducts used to explain mass differences in format: 'Elements:Charge(+/-/0):Probability[:RTShift[:Label]]', i.e. the number of '+' or '-' indicate the charge ('0' if neutral adduct), e.g. 'Ca:++:0.5' indicates +2. Probabilites have to be in (0,1]. The optional RTShift param indicates the expected RT shift caused by this adduct, e.g. '(2)H4H-4:0:1:-3' indicates a 4 deuterium label, which causes early elution by 3 seconds. As fifth parameter you can add a label for every feature with this adduct. This also determines the map number in the consensus file. Adduct element losses are written in the form 'H-2'. All provided adducts need to have the same charge sign or be neutral! Mixing of adducts with different charge directions is only allowed as neutral complexes. For example, 'H-1Na:0:0.05' can be used to model Sodium gains (with balancing deprotonation) in negative mode.");
+    defaults_.setValue("potential_adducts", std::vector<std::string>{"H:+:0.4","Na:+:0.25","NH4:+:0.25","K:+:0.1","H-2O-1:0:0.05"}, "Adducts used to explain mass differences in format: 'Elements:Charge(+/-/0):Probability[:RTShift[:Label[:MolMultiplier]]]', i.e. the number of '+' or '-' indicate the charge ('0' if neutral adduct), e.g. 'Ca:++:0.5' indicates +2. Probabilites have to be in (0,1]. The optional RTShift param indicates the expected RT shift caused by this adduct, e.g. '(2)H4H-4:0:1:-3' indicates a 4 deuterium label, which causes early elution by 3 seconds. As fifth parameter you can add a label for every feature with this adduct. This also determines the map number in the consensus file. As sixth parameter, you can specify a molecular multiplier for multimers (e.g., '2' for dimers [2M+H]+, default is 1). Adduct element losses are written in the form 'H-2'. All provided adducts need to have the same charge sign or be neutral! Mixing of adducts with different charge directions is only allowed as neutral complexes. For example, 'H-1Na:0:0.05' can be used to model Sodium gains (with balancing deprotonation) in negative mode.");
     defaults_.setValue("max_neutrals", 1, "Maximal number of neutral adducts(q=0) allowed. Add them in the 'potential_adducts' section!");
+    defaults_.setValue("max_multimer", 1, "Maximum molecular multiplier for multimers (e.g., 3 allows detection of [M+...], [2M+...], and [3M+...] forms). Setting this to 1 disables multimer detection.");
 
     defaults_.setValue("use_minority_bound", "true", "Prune the considered adduct transitions by transition probabilities.");
     defaults_.setValidStrings("use_minority_bound", {"true","false"});
@@ -152,7 +153,7 @@ namespace OpenMS
     bool had_nonzero_RT = false; // adducts with RT-shift > 0 ?
 
     // adducts might look like this:
-    //   Element:Probability[:RTShift[:Label]]
+    //   Element:Charge:Probability[:RTShift[:Label[:MolMultiplier]]]
     double summed_probs = 0.0;
     for (StringList::iterator it = potential_adducts_s.begin(); it != potential_adducts_s.end(); ++it)
     {
@@ -162,9 +163,9 @@ namespace OpenMS
 
       StringList adduct;
       it->split(':', adduct);
-      if (adduct.size() != 3 && adduct.size() != 4 && adduct.size() != 5)
+      if (adduct.size() != 3 && adduct.size() != 4 && adduct.size() != 5 && adduct.size() != 6)
       {
-        String error = "MetaboliteFeatureDeconvolution::potential_adducts (" + (*it) + ") does not have three, four or five entries ('Elements:Charge:Probability' or 'Elements:Charge:Probability:RTShift' or 'Elements:Charge:Probability:RTShift:Label'), but " + String(adduct.size()) + " entries!";
+        String error = "MetaboliteFeatureDeconvolution::potential_adducts (" + (*it) + ") does not have three to six entries ('Elements:Charge:Probability[:RTShift[:Label[:MolMultiplier]]]'), but " + String(adduct.size()) + " entries!";
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, error);
       }
       // determine probability
@@ -199,6 +200,18 @@ namespace OpenMS
         map_label_[map_label_inverse_[label]] = label;
       }
 
+      // Molecular Multiplier (for multimers like [2M+H]+):
+      UInt mol_multiplier = 1;
+      if (adduct.size() >= 6)
+      {
+        mol_multiplier = adduct[5].toInt();
+        if (mol_multiplier < 1)
+        {
+          OPENMS_LOG_WARN << "MetaboliteFeatureDeconvolution::potential_adducts: MolMultiplier must be >= 1, got " << mol_multiplier << ". Setting to 1." << std::endl;
+          mol_multiplier = 1;
+        }
+      }
+
       // determine charge of adduct (by # of '+' or '-')
       Size charge_s_len = adduct[1].size();
       Int pos_charge = charge_s_len - adduct[1].remove('+').size();
@@ -217,19 +230,19 @@ namespace OpenMS
         //E.g., for H: M-(p+e)+p <-> M-e == H+
         //E.g., for Na: Na -(p+e)+p <-> Na-e == Na+
         ef -= EmpiricalFormula("H" + String(pos_charge));
-        potential_adducts_.push_back(Adduct(pos_charge, 1, ef.getMonoWeight(), adduct[0], log(prob), rt_shift, label));
+        potential_adducts_.push_back(Adduct(pos_charge, 1, ef.getMonoWeight(), adduct[0], log(prob), rt_shift, label, mol_multiplier));
       }
       else if (neg_charge > 0)
       {
         if (adduct[0] == "H-1")
         {
-          potential_adducts_.push_back(Adduct(-neg_charge, 1, -Constants::PROTON_MASS_U, adduct[0], log(prob), rt_shift,label));
+          potential_adducts_.push_back(Adduct(-neg_charge, 1, -Constants::PROTON_MASS_U, adduct[0], log(prob), rt_shift, label, mol_multiplier));
         }
         else
         {
           EmpiricalFormula ef(adduct[0]);
           ef.setCharge(0);//ensures we get without additional protons, now just add electron masses // effectively subtract electron masses
-          potential_adducts_.push_back(Adduct((Int)-neg_charge, 1, ef.getMonoWeight() + Constants::ELECTRON_MASS_U * neg_charge, adduct[0], log(prob), rt_shift, label));
+          potential_adducts_.push_back(Adduct((Int)-neg_charge, 1, ef.getMonoWeight() + Constants::ELECTRON_MASS_U * neg_charge, adduct[0], log(prob), rt_shift, label, mol_multiplier));
         }
       }
       else if (adduct[1] == "0")//pos,neg == 0
@@ -238,7 +251,7 @@ namespace OpenMS
         {
           EmpiricalFormula ef(adduct[0]);
           ef.setCharge(0);
-          potential_adducts_.push_back(Adduct(ef.getCharge(), 1, ef.getMonoWeight(), adduct[0], log(prob), rt_shift, label));
+          potential_adducts_.push_back(Adduct(ef.getCharge(), 1, ef.getMonoWeight(), adduct[0], log(prob), rt_shift, label, mol_multiplier));
         }
         else
         {
@@ -333,8 +346,15 @@ namespace OpenMS
     else // set DC_CHARGE_ADDUCTS meta value and set it to the formula from EmpiricalFormula, also set the adduct string in "adducts" meta value
     {
       fm_out[f_idx].setMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS, ef_.toString());
-      StringList dc_new_adducts = ListUtils::create<String>(adduct.toAdductString(ef_.toString(), new_q));
+      // Get the maximum mol_multiplier from this side of the compomer for proper annotation (e.g., [2M+H]+)
+      UInt mol_multiplier = c.getMaxMolMultiplier(comp_side);
+      StringList dc_new_adducts = ListUtils::create<String>(adduct.toAdductString(ef_.toString(), new_q, mol_multiplier));
       fm_out[f_idx].setMetaValue("adducts", dc_new_adducts);
+      // Also store the mol_multiplier as metadata for downstream processing
+      if (mol_multiplier > 1)
+      {
+        fm_out[f_idx].setMetaValue("mol_multiplier", mol_multiplier);
+      }
     }
     fm_out[f_idx].setMetaValue("dc_charge_adduct_mass", ef_.getMonoWeight());
     fm_out[f_idx].setMetaValue("is_backbone", Size(c.isSingleAdduct(default_adduct, comp_side) ? 1 : 0));
