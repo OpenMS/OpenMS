@@ -10,19 +10,17 @@
     def __repr__(self):
         """
         Return a string representation of the PeptideEvidence object.
-        
+
         Returns key properties in a readable format similar to:
         PeptideEvidence(protein='P12345', start=71, end=80, aa_before='R', aa_after='N')
         """
-        cdef String acc = self.getProteinAccession()
-        cdef int start = self.getStart()
-        cdef int end = self.getEnd()
-        cdef char aa_before = self.getAABefore()
-        cdef char aa_after = self.getAAAfter()
-        
-        # Get the accession as string
-        acc_str = acc.decode('utf-8') if acc.size() > 0 else ""
-        
+        # autowrap methods return Python types, not C++ types
+        acc_str = self.getProteinAccession()
+        start = self.getStart()
+        end = self.getEnd()
+        aa_before = self.getAABefore()
+        aa_after = self.getAAAfter()
+
         # Build the representation string
         parts = []
         if acc_str:
@@ -31,10 +29,10 @@
             parts.append(f"start={start}")
         if end >= 0:
             parts.append(f"end={end}")
-        # Only show aa_before/aa_after if meaningful (not null or 'X' for unknown)
-        if aa_before != 0 and aa_before != ord('X'):
-            parts.append(f"aa_before='{chr(aa_before)}'")
-        if aa_after != 0 and aa_after != ord('X'):
-            parts.append(f"aa_after='{chr(aa_after)}'")
-        
+        # Only show aa_before/aa_after if meaningful (not empty or 'X' for unknown)
+        if aa_before and aa_before != 'X':
+            parts.append(f"aa_before='{aa_before}'")
+        if aa_after and aa_after != 'X':
+            parts.append(f"aa_after='{aa_after}'")
+
         return f"PeptideEvidence({', '.join(parts)})"

@@ -69,14 +69,19 @@ def _testMetaInfoInterface(what):
     keys = []
     what.getKeys(keys)
     assert len(keys) and all(isinstance(k, bytes) for k in keys)
-    assert what.getMetaValue(keys[0]) == 42
+    # Check that our set keys exist and have correct values (keys are unordered)
+    assert b"key" in keys
+    assert b"key2" in keys
+    assert what.getMetaValue(b"key") == 42
+    assert what.getMetaValue(b"key2") == 42
 
     assert what.metaValueExists("key")
     what.removeMetaValue("key")
 
     keys = []
     what.getKeys(keys)
-    assert what.getMetaValue(keys[0]) == 42
+    assert b"key2" in keys
+    assert what.getMetaValue(b"key2") == 42
 
     what.clearMetaInfo()
     
@@ -573,7 +578,9 @@ def testEmpiricalFormula():
     assert "C6H12O6" in repr_str
     assert "mono_mass=" in repr_str
     str_str = str(ef_repr)
-    assert str_str == repr_str
+    # __str__ returns just the formula, __repr__ returns detailed info
+    assert str_str == "C6H12O6"
+    assert str_str != repr_str
 
 
 @report
@@ -4834,8 +4841,8 @@ def testPeptideHit():
     pe1.setProteinAccession('PH_6057')
     pe1.setStart(71)
     pe1.setEnd(80)
-    pe1.setAABefore(ord('R'))
-    pe1.setAAAfter(ord('N'))
+    pe1.setAABefore(b'R')
+    pe1.setAAAfter(b'N')
     
     ph_repr.addPeptideEvidence(pe1)
     repr_str = repr(ph_repr)
@@ -4878,8 +4885,8 @@ def testPeptideEvidence():
     pe_repr.setProteinAccession('PH_6057')
     pe_repr.setStart(71)
     pe_repr.setEnd(80)
-    pe_repr.setAABefore(ord('R'))
-    pe_repr.setAAAfter(ord('N'))
+    pe_repr.setAABefore(b'R')
+    pe_repr.setAAAfter(b'N')
     
     repr_str = repr(pe_repr)
     assert "PeptideEvidence(" in repr_str

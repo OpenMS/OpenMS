@@ -13,7 +13,9 @@
         Return a string representation of the EmpiricalFormula object.
 
         Returns key properties in a readable format:
-        EmpiricalFormula(formula='C6H12O6', mono_mass=180.063, charge=0)
+        EmpiricalFormula(formula='C6H12O6', mono_mass=180.0630)
+
+        Note: charge is only shown when non-zero.
         """
         # toString() already returns a Python string via autowrap
         formula_str = self.toString()

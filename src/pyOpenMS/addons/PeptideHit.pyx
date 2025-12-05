@@ -13,10 +13,10 @@
         Return a string representation of the PeptideHit object.
 
         Returns key properties in a readable format similar to:
-        PeptideHit(score=18.1, sequence='PEPTIDER', charge=2, num_evidences=3)
+        PeptideHit(score=18.1, sequence='PEPTIDER', charge=2, evidences=[...])
         """
-        cdef double score = self.getScore()
-        cdef int charge = self.getCharge()
+        score = self.getScore()
+        charge = self.getCharge()
 
         # Get the sequence as a string using Python method
         seq = self.getSequence()
@@ -29,9 +29,10 @@
             parts.append(f"sequence='{seq_str}'")
         parts.append(f"charge={charge}")
 
-        # Add protein evidences count
+        # Add protein evidences with details
         evidences = self.getPeptideEvidences()
         if len(evidences) > 0:
-            parts.append(f"num_evidences={len(evidences)}")
+            ev_strs = [repr(e) for e in evidences]
+            parts.append(f"evidences=[{', '.join(ev_strs)}]")
 
         return f"PeptideHit({', '.join(parts)})"

@@ -14,14 +14,11 @@
         Returns key properties in a readable format similar to:
         ProteinHit(accession='P12345', score=150.5, coverage=45.2)
         """
-        cdef String acc = self.getAccession()
-        cdef String desc = self.getDescription()
+        # autowrap methods return Python strings, not C++ String objects
+        acc_str = self.getAccession()
+        desc_str = self.getDescription()
         cdef double score = self.getScore()
         cdef double coverage = self.getCoverage()
-
-        # Get the accession and description as strings
-        acc_str = acc.decode('utf-8') if acc.size() > 0 else ""
-        desc_str = desc.decode('utf-8') if desc.size() > 0 else ""
 
         # Build the representation string
         parts = []
@@ -35,5 +32,5 @@
             if len(desc_str) > 50:
                 desc_str = desc_str[:47] + "..."
             parts.append(f"description='{desc_str}'")
-        
+
         return f"ProteinHit({', '.join(parts)})"

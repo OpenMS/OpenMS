@@ -15,13 +15,11 @@
         Returns key properties in a readable format:
         ResidueModification(id='Oxidation', name='Oxidation', mass_diff=15.9949, origin='M')
         """
-        cdef String mod_id = self.getId()
-        cdef String name = self.getName()
-        cdef double diff_mono = self.getDiffMonoMass()
-        cdef char origin = self.getOrigin()
-
-        mod_id_str = mod_id.decode('utf-8') if mod_id.size() > 0 else ""
-        name_str = name.decode('utf-8') if name.size() > 0 else ""
+        # autowrap methods return Python types, not C++ types
+        mod_id_str = self.getId()
+        name_str = self.getName()
+        diff_mono = self.getDiffMonoMass()
+        origin = self.getOrigin()
 
         parts = []
         if mod_id_str:
@@ -30,7 +28,8 @@
             parts.append(f"name='{name_str}'")
         if diff_mono != 0.0:
             parts.append(f"mass_diff={diff_mono:.4f}")
-        if origin != 0 and origin != ord('X'):
-            parts.append(f"origin='{chr(origin)}'")
+        # origin is a string from autowrap, check if not empty and not 'X'
+        if origin and origin != 'X':
+            parts.append(f"origin='{origin}'")
 
         return f"ResidueModification({', '.join(parts)})"
