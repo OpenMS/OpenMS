@@ -30,8 +30,8 @@ class TestDIAScoring(unittest.TestCase):
                ]
 
           spectrum = pyopenms.OSSpectrum()
-          spectrum.setMZArray(mz)
-          spectrum.setIntensityArray(intensity)
+          spectrum.set_mz_array(mz)
+          spectrum.set_intensity_array(intensity)
 
 
           spectrumList = [ spectrum ]
