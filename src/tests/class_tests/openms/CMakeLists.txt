@@ -74,12 +74,12 @@ endif()
 
 if (WITH_PARQUET)
   target_link_libraries(Arrow_test 
-  Arrow::arrow_shared
-  Parquet::parquet_shared
+  ${OPENMS_ARROW_TARGET}
+  ${OPENMS_PARQUET_TARGET}
   )
   target_link_libraries(QuantmsIO_test 
-  Arrow::arrow_shared
-  Parquet::parquet_shared
+  ${OPENMS_ARROW_TARGET}
+  ${OPENMS_PARQUET_TARGET}
   )
 endif()
 
