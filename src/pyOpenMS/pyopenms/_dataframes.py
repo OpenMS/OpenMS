@@ -202,12 +202,15 @@ class _ConsensusMapDF(_ConsensusMap):
             return _pd.DataFrame(intyarr).set_index('id')
 
     def get_metadata_df(self):
-        """Generates a pandas DataFrame with feature meta data (sequence, charge, mz, RT, quality).
+        """Generates a pandas DataFrame with feature meta data.
+
+        Columns: sequence, charge, rt, mz, quality (indexed by 'id').
 
         Resulting DataFrame can be joined with result from get_intensity_df by their index 'id'.
 
         Returns:
-        pandas.DataFrame: DataFrame with metadata for each feature (such as: best identified sequence, charge, centroid RT/mz, fitting quality)
+            pandas.DataFrame: DataFrame with metadata for each feature (sequence, charge,
+                             rt, mz, quality). All column names are lowercase snake_case.
         """
 
         def gen(cmap: _ConsensusMap, fun):
