@@ -30,3 +30,37 @@
         """Return the number of elements in the array."""
         return self.inst.get().size()
 
+    def get_data(self):
+        """
+        Gets the data as a list of Python strings.
+
+        This method creates a copy of the underlying data, so it's safe to use
+        even after the original StringDataArray object is deleted or modified.
+
+        Returns:
+            list: A list of Python strings containing a copy of the data.
+
+        Example usage:
+
+        .. code-block:: python
+
+            sda = pyopenms.StringDataArray()
+            sda.push_back('a')
+            sda.push_back('b')
+            data = sda.get_data()  # ['a', 'b']
+        """
+        cdef _StringDataArray * sda_ = self.inst.get()
+        cdef unsigned int n = sda_.size()
+
+        if n == 0:
+            return []
+
+        result = []
+        cdef unsigned int i
+        cdef _String s
+        for i in range(n):
+            s = deref(sda_)[i]
+            result.append(_cast_const_away(<char*>s.c_str()))
+
+        return result
+

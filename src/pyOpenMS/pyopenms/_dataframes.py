@@ -17,6 +17,7 @@ from . import MSSpectrum as _MSSpectrum
 from . import PeakSpectrum as _PeakSpectrum
 from . import MSChromatogram as _MSChromatogram
 from . import MRMTransitionGroupCP as _MRMTransitionGroupCP
+from . import Mobilogram as _Mobilogram
 from . import DataValue as _DataValue
 
 import pandas as _pd
@@ -259,14 +260,48 @@ class _ConsensusMapDF(_ConsensusMap):
             >>> # Get only specific columns
             >>> df = cmap.get_df(columns=['sequence', 'mz', 'intensity'])
         """
-        df = _pd.concat([self.get_metadata_df(), self.get_intensity_df()], axis=1)
+        if columns is None:
+            # No column selection - get everything
+            df = _pd.concat([self.get_metadata_df(), self.get_intensity_df()], axis=1)
+            return df
 
-        # Filter columns if requested
-        if columns is not None:
-            available_cols = [c for c in columns if c in df.columns]
-            df = df[available_cols]
+        # Efficient column selection: only compute what's needed
+        requested = set(columns)
+        metadata_cols = {'sequence', 'charge', 'rt', 'mz', 'quality'}
 
-        return df
+        # Get intensity column names
+        labelfree = self.getExperimentType() == "label-free"
+        filemeta = self.getColumnHeaders()
+        if labelfree:
+            intensity_cols = set([header.filename for header in filemeta.values()])
+        else:
+            labels = list(set([header.label for header in filemeta.values()]))
+            if len(labels) == 1:
+                labels[0] = "intensity"
+            intensity_cols = set(labels)
+            intensity_cols.add('file')
+
+        need_metadata = bool(requested & metadata_cols)
+        need_intensity = bool(requested & intensity_cols)
+
+        dfs = []
+        if need_metadata:
+            dfs.append(self.get_metadata_df())
+        if need_intensity:
+            dfs.append(self.get_intensity_df())
+
+        if not dfs:
+            # No columns match - return empty DataFrame with index
+            return _pd.DataFrame(index=_pd.Index([], name='id'))
+
+        if len(dfs) == 1:
+            df = dfs[0]
+        else:
+            df = _pd.concat(dfs, axis=1)
+
+        # Filter to requested columns
+        available_cols = [c for c in columns if c in df.columns]
+        return df[available_cols]
 
 # fix class module and name to show up correctly in readthedocs page generated with sphinx autodoc
 # needs to link back to rst page of original class, which is pyopenms.ConsensusMap, NOT pyopenms._dataframes._ConsensusMapDF (wh)
@@ -390,8 +425,18 @@ class _FeatureMapDF(_FeatureMap):
             >>> print(fmap.get_df_columns())
 
             >>> # Get only specific columns
-            >>> df = fmap.get_df(columns=['feature_id', 'mz', 'RT', 'intensity'])
+            >>> df = fmap.get_df(columns=['feature_id', 'mz', 'rt', 'intensity'])
         """
+        # Determine if peptide IDs are actually needed based on column selection
+        pep_id_cols = {'peptide_sequence', 'peptide_score', 'ID_filename', 'ID_native_id'}
+        if columns is not None:
+            requested = set(columns)
+            # Only export peptide IDs if explicitly requested or export_peptide_identifications is True
+            # and at least one peptide column is requested
+            need_pep_ids = export_peptide_identifications and bool(requested & pep_id_cols)
+        else:
+            need_pep_ids = export_peptide_identifications
+
         # get all possible meta value keys in a set
         if meta_values == 'all':
             meta_values = set()
@@ -403,14 +448,14 @@ class _FeatureMapDF(_FeatureMap):
 
         elif not meta_values: # if None, set to empty list
             meta_values = []
-        
+
         def gen(fmap: FeatureMap, fun):
             for f in fmap:
                 yield from fun(f)
 
         def extract_meta_data(f: _Feature):
             """Extracts feature meta data.
-            
+
             Extracts information from a given feature with the requested meta values and, if requested,
             the sequence, score and ID_filename (primary MS run path of the linked ProteinIdentification)
             of the best PeptideHit (first) assigned to that feature.
@@ -423,10 +468,10 @@ class _FeatureMapDF(_FeatureMap):
             """
             pep = f.getPeptideIdentifications()  # type: _PeptideIdentificationList
             bb = f.getConvexHull().getBoundingBox2D()
-                
+
             vals = [f.getMetaValue(m) if f.metaValueExists(m) else _np.nan for m in meta_values]
-            
-            if export_peptide_identifications:
+
+            if need_pep_ids:
                 if pep.size() > 0:
                     ID_filename = self.__get_prot_id_filename_from_pep_id(pep[0])
                     hits = pep[0].getHits()
@@ -445,11 +490,11 @@ class _FeatureMapDF(_FeatureMap):
         cnt = self.size()
 
         mddtypes = [('feature_id', 'U100')]
-        if export_peptide_identifications:
+        if need_pep_ids:
             mddtypes += [('peptide_sequence', 'U200'), ('peptide_score', 'f'), ('ID_filename', 'U100'), ('ID_native_id', 'U100')]
         mddtypes += [('charge', 'i4'), ('rt', _np.dtype('double')), ('mz', _np.dtype('double')), ('rt_start', _np.dtype('double')), ('rt_end', _np.dtype('double')),
                     ('mz_start', _np.dtype('double')), ('mz_end', _np.dtype('double')), ('quality', 'f'), ('intensity', 'f')]
-        
+
         for meta_value in meta_values:
             if meta_value in common_meta_value_types:
                 mddtypes.append((meta_value.decode(), common_meta_value_types[meta_value]))
@@ -994,6 +1039,59 @@ class _MSChromatogramDF(_MSChromatogram):
 MSChromatogram = _MSChromatogramDF
 MSChromatogram.__module__ = _MSChromatogram.__module__
 MSChromatogram.__name__ = 'MSChromatogram'
+
+
+class _MobilogramDF(_Mobilogram):
+    """Mobilogram with DataFrame export capabilities.
+
+    This class extends Mobilogram with a get_df() method that converts
+    mobilogram data to a pandas DataFrame.
+    """
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def get_df(self, columns: Union[None, List[str]] = None) -> _pd.DataFrame:
+        """Returns a pandas DataFrame representation of the Mobilogram.
+
+        This method converts the mobilogram data (peaks, metadata)
+        into a pandas DataFrame format.
+
+        Note: Mobilogram does not support meta values (no MetaInfoInterface).
+
+        Args:
+            columns (list or None): List of column names to include. If None,
+                                   includes all default columns. Use get_df_columns()
+                                   to discover available columns.
+
+        Returns:
+            pd.DataFrame: DataFrame with requested columns. Default columns include:
+                - mobility: mobility values of peaks
+                - intensity: intensity values of peaks
+                - rt: retention time (replicated for each peak)
+                - drift_time_unit: drift time unit string
+
+        Example:
+            >>> # Get all default columns
+            >>> df = mobilogram.get_df()
+
+            >>> # Discover available columns
+            >>> print(mobilogram.get_df_columns())
+
+            >>> # Get only specific columns (faster)
+            >>> df = mobilogram.get_df(columns=['mobility', 'intensity'])
+        """
+        try:
+            data_dict = self.get_data_dict(columns=columns)
+        except TypeError:
+            # Fallback for older Cython builds without column selection
+            data_dict = self.get_data_dict()
+        return _pd.DataFrame(data_dict)
+
+
+Mobilogram = _MobilogramDF
+Mobilogram.__module__ = _Mobilogram.__module__
+Mobilogram.__name__ = 'Mobilogram'
+
 
 class _MRMTransitionGroupCPDF(_MRMTransitionGroupCP):
     def __init__(self, *args, **kwargs):
