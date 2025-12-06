@@ -229,6 +229,7 @@ import numpy as np
                 k_str = k.decode() if isinstance(k, bytes) else k
 
                 try:
+                    # Check bool before int since bool is subclass of int in Python
                     if type(v) is type(True):
                         data_dict[k_str] = np.full(cnt, v, dtype=np.bool_)
                     elif isinstance(v, int):
