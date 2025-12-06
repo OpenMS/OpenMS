@@ -1,3 +1,119 @@
+cimport numpy as np
+import numpy as np
+
+
+
+
+    def get_data_dict(self, export_meta_values=True):
+        """Returns a dictionary of NumPy arrays with m/z, intensities, and metadata.
+
+        This method extracts spectrum data including peaks, retention time, MS level,
+        ion mobility data (if present), precursor information, and optional meta values
+        into a dictionary format suitable for conversion to a pandas DataFrame.
+
+        Args:
+            export_meta_values (bool): Whether to include meta values in the output.
+                                       Defaults to True.
+
+        Returns:
+            dict: Dictionary with the following keys:
+                - 'mz': numpy array of m/z values (float64)
+                - 'intensity': numpy array of intensity values (float32)
+                - 'rt': numpy array of retention time values (float64)
+                - 'ms_level': numpy array of MS level values (uint16)
+                - 'native_id': numpy array of native ID strings
+                - 'ion_mobility': numpy array of ion mobility values (if present)
+                - 'ion_mobility_unit': numpy array of ion mobility unit strings
+                - 'precursor_mz': numpy array of precursor m/z values
+                - 'precursor_charge': numpy array of precursor charge values
+                - 'ion_annotation': numpy array of ion annotation strings (from StringDataArray named 'IonNames')
+                - Additional keys for each meta value (if export_meta_values=True)
+        """
+        # Get peak data using existing optimized method
+        cdef np.ndarray[np.float64_t, ndim=1] mzs
+        cdef np.ndarray[np.float32_t, ndim=1] intensities
+        mzs, intensities = self.get_peaks()
+
+        cnt = len(mzs)
+        data_dict = {
+            'mz': mzs,
+            'intensity': intensities,
+            'rt': np.full(cnt, self.getRT(), dtype=np.float64),
+            'ms_level': np.full(cnt, self.getMSLevel(), dtype=np.uint16),
+            'native_id': np.full(cnt, self.getNativeID(), dtype='U100')
+        }
+
+        # Ion mobility handling
+        if self.containsIMData():
+            im_index, drift_time_unit = self.getIMData()
+            im_arrays = self.getFloatDataArrays()
+
+            if im_index >= 0 and im_index < len(im_arrays):
+                data_dict['ion_mobility'] = np.array(
+                    [im_arrays[im_index][i] for i in range(cnt)],
+                    dtype=np.float64
+                )
+            else:
+                data_dict['ion_mobility'] = np.full(cnt, np.nan, dtype=np.float64)
+            data_dict['ion_mobility_unit'] = np.full(
+                cnt,
+                self.getDriftTimeUnitAsString(),
+                dtype='U50'
+            )
+        else:
+            data_dict['ion_mobility'] = np.full(cnt, np.nan, dtype=np.float64)
+            data_dict['ion_mobility_unit'] = np.full(cnt, '', dtype='U1')
+
+        # Precursor Info
+        precursors = self.getPrecursors()
+        if len(precursors) > 0:
+            precursor = precursors[0]
+            data_dict['precursor_mz'] = np.full(cnt, precursor.getMZ(), dtype=np.float64)
+            data_dict['precursor_charge'] = np.full(cnt, precursor.getCharge(), dtype=np.int16)
+        else:
+            data_dict['precursor_mz'] = np.full(cnt, np.nan, dtype=np.float64)
+            data_dict['precursor_charge'] = np.full(cnt, 0, dtype=np.int16)
+
+        # Ion annotations from StringDataArray named 'IonNames'
+        ion_annotations = np.full(cnt, '', dtype='U1')
+        for sda in self.getStringDataArrays():
+            if sda.getName() == 'IonNames':
+                if len(sda) == cnt:
+                    annotations = [s for s in sda]
+                    max_len = max((len(s) for s in annotations), default=1)
+                    ion_annotations = np.array(annotations, dtype=f'U{max_len}')
+                break
+        data_dict['ion_annotation'] = ion_annotations
+
+        # Metadata Handling - use Python type introspection
+        if export_meta_values:
+            mvs = []
+            self.getKeys(mvs)
+            for k in mvs:
+                if not self.metaValueExists(k):
+                    continue
+                # Get meta value - autowrap returns Python types
+                v = self.getMetaValue(k)
+                k_str = k.decode() if isinstance(k, bytes) else k
+
+                try:
+                    # Check bool before int since bool is subclass of int in Python
+                    if type(v) is type(True):
+                        data_dict[k_str] = np.full(cnt, v, dtype=np.bool_)
+                    elif isinstance(v, int):
+                        data_dict[k_str] = np.full(cnt, v, dtype=np.int64)
+                    elif isinstance(v, float):
+                        data_dict[k_str] = np.full(cnt, v, dtype=np.float64)
+                    elif isinstance(v, str):
+                        data_dict[k_str] = np.full(cnt, v, dtype=f"U{max(len(v), 1)}")
+                    else:
+                        # Fallback for other types
+                        data_dict[k_str] = np.full(cnt, str(v), dtype='object')
+                except Exception:
+                    data_dict[k_str] = np.full(cnt, str(v), dtype='object')
+
+        return data_dict
+
 
 
     def get_mz_array(MSSpectrum self):
@@ -88,7 +204,7 @@
 
     def set_peaks(self, peaks):
         """Cython signature: set_peaks((numpy_vector, numpy_vector))
-        
+
         Takes a tuple or list of two arrays (m/z, intensity) and populates the
         MSSpectrum. The arrays can be numpy arrays (faster).
         """

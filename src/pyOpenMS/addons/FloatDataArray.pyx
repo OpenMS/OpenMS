@@ -158,3 +158,7 @@
         # We see an improvement of ca 10x using the assign method (and an 600x
         # improvement compared to pure Python).
 
+    def __len__(self):
+        """Return the number of elements in the array."""
+        return self.inst.get().size()
+

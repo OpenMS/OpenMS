@@ -74,9 +74,8 @@ cdef extern from "<OpenMS/KERNEL/MSSpectrum.h>" namespace "OpenMS":
         #    MzMLFile().store("testfile.mzML", exp)
         #  
         #  
-
-        MSSpectrum() except + nogil 
-        MSSpectrum(MSSpectrum &) except + nogil 
+        MSSpectrum() except + nogil
+        MSSpectrum(MSSpectrum &) except + nogil
 
         double getRT() except + nogil  # wrap-doc:Returns the absolute retention time (in seconds)
         void setRT(double) except + nogil   # wrap-doc:Sets the absolute retention time (in seconds)
@@ -137,5 +136,3 @@ cdef extern from "<OpenMS/KERNEL/MSSpectrum.h>" namespace "OpenMS":
         void setFloatDataArrays(libcpp_vector[FloatDataArray] fda) except + nogil  # wrap-doc:Sets the additional float data arrays to store e.g. meta data
         void setIntegerDataArrays(libcpp_vector[IntegerDataArray] ida) except + nogil  # wrap-doc:Sets the additional int data arrays to store e.g. meta data
         void setStringDataArrays(libcpp_vector[StringDataArray] sda) except + nogil  # wrap-doc:Sets the additional string data arrays to store e.g. meta data
-
-
