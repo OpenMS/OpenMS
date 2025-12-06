@@ -1,8 +1,5 @@
 from .special_autowrap_conversionproviders import *
 from autowrap.ConversionProvider import special_converters
-from .pandas_utils import to_dataframe 
-
-__all__ = ['to_dataframe']
 
 def register_converters():
 

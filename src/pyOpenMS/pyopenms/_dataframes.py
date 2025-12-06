@@ -734,14 +734,6 @@ def _add_meta_values(df: _pd.DataFrame, object: any) -> _pd.DataFrame:
 
     return df
 
-def to_pandas(data_dict):
-    """Convert a dictionary of NumPy arrays to a pandas DataFrame if pandas is installed."""
-    try:
-        import pandas as pd
-    except ImportError:
-        raise ImportError("The 'pandas' package is required to use this function.")
-    return pd.DataFrame(data_dict)
-
 class _ChromatogramType(_Enum):
     MASS_CHROMATOGRAM = 0
     TOTAL_ION_CURRENT_CHROMATOGRAM = 1
