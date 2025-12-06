@@ -111,10 +111,10 @@ class _ConsensusMapDF(_ConsensusMap):
 
         Example:
             >>> cmap.get_df_columns()
-            ['sequence', 'charge', 'RT', 'mz', 'quality', 'intensity_file1', ...]
+            ['sequence', 'charge', 'rt', 'mz', 'quality', 'intensity_file1', ...]
         """
         # Metadata columns
-        cols = ['sequence', 'charge', 'RT', 'mz', 'quality']
+        cols = ['sequence', 'charge', 'rt', 'mz', 'quality']
 
         # Intensity columns depend on experiment type
         labelfree = self.getExperimentType() == "label-free"
@@ -232,12 +232,12 @@ class _ConsensusMapDF(_ConsensusMap):
         cnt = self.size()
 
         mddtypes = [('id', _np.dtype('uint64')), ('sequence', 'U200'), ('charge', 'i4'),
-                    ('RT', _np.dtype('double')), ('mz', _np.dtype('double')), ('quality', 'f')]
+                    ('rt', _np.dtype('double')), ('mz', _np.dtype('double')), ('quality', 'f')]
 
         mdarr = _np.fromiter(iter=gen(self, extract_meta_data), dtype=mddtypes, count=cnt)
 
         return _pd.DataFrame(mdarr).set_index('id')
-    
+
     def get_df(self, columns: Union[None, List[str]] = None):
         """Generates a pandas DataFrame with both consensus feature meta data and intensities from each sample.
 
@@ -321,14 +321,14 @@ class _FeatureMapDF(_FeatureMap):
 
         Example:
             >>> fmap.get_df_columns()
-            ['feature_id', 'peptide_sequence', 'charge', 'RT', 'mz', ...]
+            ['feature_id', 'peptide_sequence', 'charge', 'rt', 'mz', ...]
         """
         cols = ['feature_id']
 
         if export_peptide_identifications:
             cols.extend(['peptide_sequence', 'peptide_score', 'ID_filename', 'ID_native_id'])
 
-        cols.extend(['charge', 'RT', 'mz', 'RTstart', 'RTend', 'MZstart', 'MZend', 'quality', 'intensity'])
+        cols.extend(['charge', 'rt', 'mz', 'rt_start', 'rt_end', 'mz_start', 'mz_end', 'quality', 'intensity'])
 
         # Add meta values if 'all' requested
         if columns == 'all':
@@ -447,8 +447,8 @@ class _FeatureMapDF(_FeatureMap):
         mddtypes = [('feature_id', 'U100')]
         if export_peptide_identifications:
             mddtypes += [('peptide_sequence', 'U200'), ('peptide_score', 'f'), ('ID_filename', 'U100'), ('ID_native_id', 'U100')]
-        mddtypes += [('charge', 'i4'), ('RT', _np.dtype('double')), ('mz', _np.dtype('double')), ('RTstart', _np.dtype('double')), ('RTend', _np.dtype('double')),
-                    ('MZstart', _np.dtype('double')), ('MZend', _np.dtype('double')), ('quality', 'f'), ('intensity', 'f')]
+        mddtypes += [('charge', 'i4'), ('rt', _np.dtype('double')), ('mz', _np.dtype('double')), ('rt_start', _np.dtype('double')), ('rt_end', _np.dtype('double')),
+                    ('mz_start', _np.dtype('double')), ('mz_end', _np.dtype('double')), ('quality', 'f'), ('intensity', 'f')]
         
         for meta_value in meta_values:
             if meta_value in common_meta_value_types:
@@ -521,15 +521,15 @@ class _MSExperimentDF(_MSExperiment):
 
         Example:
             >>> exp.get_df_columns(long=True)
-            ['RT', 'mz', 'inty', 'ms_level']
+            ['rt', 'mz', 'intensity', 'ms_level']
 
             >>> exp.get_df_columns(long=False)
-            ['RT', 'ms_level', 'mzarray', 'intarray']
+            ['rt', 'ms_level', 'mz_array', 'intensity_array']
         """
         if long:
-            return ['RT', 'mz', 'inty', 'ms_level']
+            return ['rt', 'mz', 'intensity', 'ms_level']
         else:
-            return ['RT', 'ms_level', 'mzarray', 'intarray']
+            return ['rt', 'ms_level', 'mz_array', 'intensity_array']
 
     def get_df(self, columns: Union[None, List[str]] = None, ms_levels: List[int] = [], long : bool = False):
         """Generates a pandas DataFrame with all peaks in the MSExperiment
@@ -552,13 +552,13 @@ class _MSExperimentDF(_MSExperiment):
             >>> print(exp.get_df_columns())
 
             >>> # Get only specific columns
-            >>> df = exp.get_df(columns=['RT', 'mz', 'inty'], long=True)
+            >>> df = exp.get_df(columns=['rt', 'mz', 'intensity'], long=True)
         """
         self.updateRanges()
         if not ms_levels:
             ms_levels = self.getMSLevels()
         if long:
-            cols = ["RT", "mz", "inty"]
+            cols = ["rt", "mz", "intensity"]
             dfs = []
             for ms_level in ms_levels:
                 spectraarrs2d = self.get2DPeakDataLong(self.getMinRT(), self.getMaxRT(), self.getMinMZ(), self.getMaxMZ(), ms_level)
@@ -567,7 +567,7 @@ class _MSExperimentDF(_MSExperiment):
                 dfs.append(df)
             df = _pd.concat(dfs, ignore_index=True)
         else:
-            cols = ["RT", "ms_level", "mzarray", "intarray"]
+            cols = ["rt", "ms_level", "mz_array", "intensity_array"]
             df = _pd.DataFrame(data=((spec.getRT(), spec.getMSLevel(), *spec.get_peaks()) for spec in self if spec.getMSLevel() in ms_levels), columns=cols)
 
         # Filter columns if requested
@@ -578,13 +578,13 @@ class _MSExperimentDF(_MSExperiment):
         return df
 
     def get_ion_df(self):
-        """Generates a pandas DataFrame with all peaks and the ionic mobility in the MSExperiment
-        
+        """Generates a pandas DataFrame with all peaks and the ion mobility in the MSExperiment
+
         Returns:
         pandas.DataFrame: feature information stored in a DataFrame
         """
-        
-        cols = ["RT", "mz", "inty", "IM"]
+
+        cols = ["rt", "mz", "intensity", "ion_mobility"]
         self.updateRanges()
         spectraarrs2d = self.get2DPeakDataIMLong(self.getMinRT(), self.getMaxRT(), self.getMinMZ(), self.getMaxMZ(), 1)
         return _pd.DataFrame(dict(zip(cols, spectraarrs2d)))
@@ -716,7 +716,7 @@ class _MSExperimentDF(_MSExperiment):
         # if there are no spectra of given MS level return an empty DataFrame
         dtypes = {'i': 'float32', 'i_norm': 'float32', 'i_tic_norm': 'float32', 'mz': 'float64', 'scan': 'int32', 'rt': 'float32', 'polarity': 'int32'}
         if ion_mobility:
-            dtypes = dict(dtypes, **{"IM": "float32"})
+            dtypes = dict(dtypes, **{"ion_mobility": "float32"})
     
         if 1 in self.getMSLevels():
             spec_arrays = _get_spec_arrays(1) if not ion_mobility else _get_ion_spec_arrays(1)
@@ -808,7 +808,7 @@ def peptide_identifications_to_df(peps: _PeptideIdentificationList, decode_ontol
     else:
         clearMVs = decodedMVs
         
-    clearcols = ["id", "RT", "mz", mainscorename, "charge", "protein_accession", "start", "end", "P_ID", "PSM_ID"] + clearMVs
+    clearcols = ["id", "rt", "mz", mainscorename, "charge", "protein_accession", "start", "end", "P_ID", "PSM_ID"] + clearMVs
     coltypes = ['U100', 'f', 'f', 'f', 'i','U1000', 'U1000', 'U1000', 'i', 'i'] + types
     dt = list(zip(clearcols, coltypes))
 
@@ -933,77 +933,31 @@ def _add_meta_values(df: _pd.DataFrame, object: any) -> _pd.DataFrame:
 
     return df
 
-class _ChromatogramType(_Enum):
-    MASS_CHROMATOGRAM = 0
-    TOTAL_ION_CURRENT_CHROMATOGRAM = 1
-    SELECTED_ION_CURRENT_CHROMATOGRAM = 2
-    BASEPEAK_CHROMATOGRAM = 3
-    SELECTED_ION_MONITORING_CHROMATOGRAM = 4
-    SELECTED_REACTION_MONITORING_CHROMATOGRAM = 5
-    ELECTROMAGNETIC_RADIATION_CHROMATOGRAM = 6
-    ABSORPTION_CHROMATOGRAM = 7
-    EMISSION_CHROMATOGRAM = 8
-
 class _MSChromatogramDF(_MSChromatogram):
+    """MSChromatogram with DataFrame export capabilities.
+
+    This class extends MSChromatogram with a get_df() method that converts
+    chromatogram data to a pandas DataFrame.
+    """
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    def get_df_columns(self, columns: str = 'default', export_meta_values: bool = True) -> List[str]:
-        """Returns a list of column names that get_df() would produce.
-
-        Useful for discovering available columns before export.
-
-        Args:
-            columns (str): 'default' for standard columns, 'all' for all available
-                          columns including non-default ones (chromatogram_type, comment).
-            export_meta_values (bool): Whether to include meta value column names.
-
-        Returns:
-            list: List of column name strings.
-
-        Example:
-            >>> # See default columns
-            >>> chrom.get_df_columns()
-            ['time', 'intensity', 'precursor_mz', ...]
-
-            >>> # See ALL available columns
-            >>> chrom.get_df_columns('all')
-            ['time', 'intensity', ..., 'chromatogram_type', 'comment']
-
-            >>> # Export everything
-            >>> df = chrom.get_df(columns=chrom.get_df_columns('all'))
-        """
-        # Default columns (chromatogram_type and comment NOT included by default)
-        cols = ['time', 'intensity', 'precursor_mz', 'precursor_charge',
-                'product_mz', 'native_id']
-
-        # Add non-default columns if 'all' requested
-        if columns == 'all':
-            cols.extend(['chromatogram_type', 'comment'])
-
-        if export_meta_values:
-            mvs = []
-            self.getKeys(mvs)
-            for k in mvs:
-                k_str = k.decode() if isinstance(k, bytes) else k
-                cols.append(k_str)
-
-        return cols
-
     def get_df(self, columns: Union[None, List[str]] = None, export_meta_values: bool = True) -> _pd.DataFrame:
-        """
-        Returns a DataFrame representation of the MSChromatogram.
+        """Returns a pandas DataFrame representation of the MSChromatogram.
+
+        This method converts the chromatogram data (peaks, metadata, precursor/product info)
+        into a pandas DataFrame format.
 
         Args:
             columns (list or None): List of column names to include. If None,
                                    includes all default columns. Use get_df_columns()
                                    to discover available columns.
-            export_meta_values (bool): Whether to export meta values. Only applies
+            export_meta_values (bool): Whether to include meta values. Only applies
                                        when columns=None. Defaults to True.
 
         Returns:
             pd.DataFrame: DataFrame with requested columns. Default columns include:
-                - time: retention time (in seconds)
+                - rt: retention time (in seconds)
                 - intensity: signal intensity at each time point
                 - precursor_mz: precursor m/z
                 - precursor_charge: precursor charge
@@ -1019,86 +973,23 @@ class _MSChromatogramDF(_MSChromatogram):
             >>> # Get all default columns
             >>> df = chrom.get_df()
 
-            >>> # Get only specific columns
-            >>> df = chrom.get_df(columns=['time', 'intensity'])
+            >>> # Discover available columns
+            >>> print(chrom.get_df_columns())
 
-            >>> # Include non-default columns
-            >>> cols = chrom.get_df_columns()
-            >>> cols.extend(['chromatogram_type', 'comment'])
+            >>> # Get only specific columns (faster)
+            >>> df = chrom.get_df(columns=['rt', 'intensity'])
+
+            >>> # Get all columns including non-defaults
+            >>> cols = chrom.get_df_columns('all')
             >>> df = chrom.get_df(columns=cols)
         """
-        rts, intys = self.get_peaks()
-        cnt = len(rts)
-
-        # Determine which columns to include
-        if columns is not None:
-            requested = set(columns)
-        else:
-            requested = None  # None means include all defaults
-
-        def want_default(col):
-            """Returns True if a default column should be included."""
-            return requested is None or col in requested
-
-        def want_explicit(col):
-            """Returns True only if column is explicitly requested."""
-            return requested is not None and col in requested
-
-        data_dict = {}
-
-        # Core data
-        if want_default('time'):
-            data_dict['time'] = rts
-        if want_default('intensity'):
-            data_dict['intensity'] = intys
-
-        # Precursor/Product info
-        if want_default('precursor_mz'):
-            data_dict['precursor_mz'] = _np.full(cnt, self.getPrecursor().getMZ(), dtype=_np.dtype('double'))
-        if want_default('precursor_charge'):
-            data_dict['precursor_charge'] = _np.full(cnt, self.getPrecursor().getCharge(), dtype=_np.dtype('uint16'))
-        if want_default('product_mz'):
-            data_dict['product_mz'] = _np.full(cnt, self.getProduct().getMZ(), dtype=_np.dtype('double'))
-
-        # Identifier
-        if want_default('native_id'):
-            data_dict['native_id'] = _np.full(cnt, self.getNativeID(), dtype=_np.dtype('U100'))
-
-        # Non-default columns (only if explicitly requested)
-        if want_explicit('chromatogram_type'):
-            data_dict['chromatogram_type'] = _np.full(cnt, _ChromatogramType(self.getChromatogramType()).name, dtype=_np.dtype('U100'))
-        if want_explicit('comment'):
-            data_dict['comment'] = _np.full(cnt, self.getComment(), dtype=_np.dtype('U100'))
-
-        df = _pd.DataFrame(data_dict)
-
-        # Meta values
-        if requested is None and export_meta_values:
-            df = _add_meta_values(df, self)
-        elif requested is not None:
-            # Check if any requested columns are meta values
-            mvs = []
-            self.getKeys(mvs)
-            mv_names = {(k.decode() if isinstance(k, bytes) else k): k for k in mvs}
-            for col in requested:
-                if col in mv_names and col not in data_dict:
-                    k = mv_names[col]
-                    dv = self.getMetaValue(k)
-                    try:
-                        if isinstance(dv, float):
-                            df[col] = _np.full(cnt, dv, dtype="float64")
-                        elif isinstance(dv, int):
-                            df[col] = _np.full(cnt, dv, dtype="int64")
-                        elif isinstance(dv, str):
-                            df[col] = _np.full(cnt, dv, dtype=f"U{max(1, len(dv))}")
-                        elif isinstance(dv, bytes):
-                            df[col] = _np.full(cnt, dv.decode(), dtype=f"U{max(1, len(dv))}")
-                        else:
-                            df[col] = _np.full(cnt, str(dv), dtype='object')
-                    except Exception:
-                        df[col] = _np.full(cnt, str(dv), dtype='object')
-
-        return df
+        # Use get_data_dict from Cython addon (similar to MSSpectrum pattern)
+        try:
+            data_dict = self.get_data_dict(columns=columns, export_meta_values=export_meta_values)
+        except TypeError:
+            # Fallback for older Cython builds without column selection
+            data_dict = self.get_data_dict(export_meta_values=export_meta_values)
+        return _pd.DataFrame(data_dict)
 
 MSChromatogram = _MSChromatogramDF
 MSChromatogram.__module__ = _MSChromatogram.__module__
@@ -1122,7 +1013,7 @@ class _MRMTransitionGroupCPDF(_MRMTransitionGroupCP):
         chroms = self.getChromatograms()
         if chroms:
             return _MSChromatogramDF(chroms[0]).get_df_columns(columns=columns, export_meta_values=export_meta_values)
-        return ['time', 'intensity', 'precursor_mz', 'precursor_charge', 'product_mz', 'native_id']
+        return ['rt', 'intensity', 'precursor_mz', 'precursor_charge', 'product_mz', 'native_id']
 
     def get_feature_df_columns(self, columns: str = 'default') -> List[str]:
         """Returns a list of column names that get_feature_df() would produce.
@@ -1133,7 +1024,7 @@ class _MRMTransitionGroupCPDF(_MRMTransitionGroupCP):
         Returns:
             list: List of column name strings.
         """
-        cols = ['feature_id', 'RT', 'intensity', 'quality']
+        cols = ['feature_id', 'rt', 'intensity', 'quality']
 
         if columns == 'all':
             meta_values = set()
@@ -1221,7 +1112,7 @@ class _MRMTransitionGroupCPDF(_MRMTransitionGroupCP):
 
         # get all possible meta value keys in a set
         features = self.getFeatures()
-        mddtypes = [('feature_id', _np.dtype('uint64')), ('RT', 'f'), ('intensity', 'f'), ('quality', 'f')]
+        mddtypes = [('feature_id', _np.dtype('uint64')), ('rt', 'f'), ('intensity', 'f'), ('quality', 'f')]
         if meta_values is not None:
             # Add all possible meta values to meta_value array if 'all' is passed
             if meta_values == 'all':

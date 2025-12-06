@@ -260,7 +260,7 @@ class TestMSChromatogramColumnSelection:
         cols = chromatogram_with_data.get_df_columns()
 
         # Default columns
-        assert 'time' in cols
+        assert 'rt' in cols
         assert 'intensity' in cols
         assert 'precursor_mz' in cols
         assert 'precursor_charge' in cols
@@ -280,7 +280,7 @@ class TestMSChromatogramColumnSelection:
         cols = chromatogram_with_data.get_df_columns('all')
 
         # Default columns should be present
-        assert 'time' in cols
+        assert 'rt' in cols
         assert 'intensity' in cols
         assert 'precursor_mz' in cols
 
@@ -295,7 +295,7 @@ class TestMSChromatogramColumnSelection:
         """Test get_df() default behavior."""
         df = chromatogram_with_data.get_df()
 
-        assert 'time' in df.columns
+        assert 'rt' in df.columns
         assert 'intensity' in df.columns
         assert 'precursor_mz' in df.columns
         assert 'native_id' in df.columns
@@ -306,25 +306,25 @@ class TestMSChromatogramColumnSelection:
         assert 'comment' not in df.columns
 
         assert len(df) == 3
-        assert df.loc[0, 'time'] == 10.0
+        assert df.loc[0, 'rt'] == 10.0
 
     def test_get_df_minimal_columns(self, chromatogram_with_data):
         """Test get_df() with minimal columns."""
-        df = chromatogram_with_data.get_df(columns=['time', 'intensity'])
+        df = chromatogram_with_data.get_df(columns=['rt', 'intensity'])
 
-        assert list(df.columns) == ['time', 'intensity']
+        assert list(df.columns) == ['rt', 'intensity']
         assert len(df) == 3
 
     def test_get_df_with_non_default_columns(self, chromatogram_with_data):
         """Test get_df() with non-default columns."""
-        df = chromatogram_with_data.get_df(columns=['time', 'intensity', 'chromatogram_type', 'comment'])
+        df = chromatogram_with_data.get_df(columns=['rt', 'intensity', 'chromatogram_type', 'comment'])
 
         assert 'chromatogram_type' in df.columns
         assert 'comment' in df.columns
 
     def test_get_df_with_meta_value(self, chromatogram_with_data):
         """Test get_df() with specific meta value."""
-        df = chromatogram_with_data.get_df(columns=['time', 'intensity', 'FWHM'])
+        df = chromatogram_with_data.get_df(columns=['rt', 'intensity', 'FWHM'])
 
         assert 'FWHM' in df.columns
         assert df.loc[0, 'FWHM'] == 5.0
@@ -336,7 +336,7 @@ class TestMSChromatogramColumnSelection:
         df = chromatogram_with_data.get_df(columns=cols)
 
         # Should have all columns
-        assert 'time' in df.columns
+        assert 'rt' in df.columns
         assert 'chromatogram_type' in df.columns
         assert 'comment' in df.columns
         assert 'FWHM' in df.columns
@@ -382,5 +382,5 @@ class TestBackwardCompatibility:
 
         df = chrom.get_df()  # No arguments - should work
 
-        assert 'time' in df.columns
+        assert 'rt' in df.columns
         assert 'intensity' in df.columns
