@@ -1159,7 +1159,7 @@ class _MRMTransitionGroupCPDF(_MRMTransitionGroupCP):
             >>> print(mrm.get_chromatogram_df_columns())
 
             >>> # Get only specific columns
-            >>> df = mrm.get_chromatogram_df(columns=['time', 'intensity'])
+            >>> df = mrm.get_chromatogram_df(columns=['rt', 'intensity'])
         """
         chroms = self.getChromatograms()
         out = [_MSChromatogramDF(c).get_df(columns=columns, export_meta_values=export_meta_values) for c in chroms]
