@@ -708,28 +708,46 @@ def _add_meta_values(df: _pd.DataFrame, object: any) -> _pd.DataFrame:
     object.getKeys(mvs)
     
     for k in mvs:
-        dv = object.getMetaValue(k)  
+        dv = object.getMetaValue(k)
         col_name = k.decode()
-        
+
         try:
-            if dv.valueType() == _DataValue.STRING_VALUE:
-                value = dv.toString().decode()
-                dtype = f"U{len(value)}"
-            elif dv.valueType() == _DataValue.INT_VALUE:
-                value = dv.toInt()
-                dtype = "int32"
-            elif dv.valueType() == _DataValue.DOUBLE_VALUE:
-                value = dv.toDouble()
+            # Handle native Python types (returned by autowrap)
+            if isinstance(dv, float):
+                value = dv
                 dtype = "float64"
-            elif dv.valueType() == _DataValue.EMPTY_VALUE:
-                continue
+            elif isinstance(dv, int):
+                value = dv
+                dtype = "int64"
+            elif isinstance(dv, str):
+                value = dv
+                dtype = f"U{max(1, len(value))}"
+            elif isinstance(dv, bytes):
+                value = dv.decode()
+                dtype = f"U{max(1, len(value))}"
+            # Handle DataValue objects (if ever returned)
+            elif hasattr(dv, 'valueType'):
+                if dv.valueType() == _DataValue.STRING_VALUE:
+                    value = dv.toString().decode()
+                    dtype = f"U{max(1, len(value))}"
+                elif dv.valueType() == _DataValue.INT_VALUE:
+                    value = dv.toInt()
+                    dtype = "int32"
+                elif dv.valueType() == _DataValue.DOUBLE_VALUE:
+                    value = dv.toDouble()
+                    dtype = "float64"
+                elif dv.valueType() == _DataValue.EMPTY_VALUE:
+                    continue
+                else:
+                    value = str(dv)
+                    dtype = "object"
             else:
                 value = str(dv)
                 dtype = "object"
-            
+
             df[col_name] = _np.full(df.shape[0], value, dtype=dtype)
-            
-        except Exception: 
+
+        except Exception:
             df[col_name] = _np.full(df.shape[0], str(dv), dtype='object')
 
     return df

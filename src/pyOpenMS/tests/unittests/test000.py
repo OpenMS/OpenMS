@@ -3361,7 +3361,7 @@ def testMSSpectrum():
     spec.setStringDataArrays([s_da])
 
     df = spec.get_df()
-    assert df.shape == (2, 10)
+    assert df.shape == (2, 11)
     assert df.loc[0, 'mz'] == 1000.0
     assert df.loc[0, 'intensity'] == 200.0
     assert df.loc[0, 'ion_mobility'] == 5.0
