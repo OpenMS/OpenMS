@@ -105,7 +105,7 @@ protected:
     exp.updateRanges();
 
     auto levels = exp.getMSLevels();
-    if (levels.empty()) throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, levels.size());
+    if (levels.empty()) throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, levels.size(), "experiment has no MS levels");
     int min_ms_level = levels.front();
     int max_ms_level = levels.back();
     //-------------------------------------------------------------
