@@ -28,28 +28,83 @@
 
     def get_data(self):
         """
-        Gets the raw data for the integer data array
+        Gets a copy of the data as a numpy array (safe).
 
-        Example usage: 
+        This method creates a copy of the underlying data, so it's safe to use
+        even after the original IntegerDataArray object is deleted or modified.
 
-          idata = pyopenms.IntegerDataArray()
-          data = idata.get_data()
+        Returns:
+            np.ndarray: A numpy array (int32) containing a copy of the data.
 
+        Example usage:
+
+        .. code-block:: python
+
+            ida = pyopenms.IntegerDataArray()
+            ida.push_back(1)
+            ida.push_back(2)
+            data = ida.get_data()  # Safe copy
+            del ida  # Original can be deleted, data is still valid
+            print(data)  # [1, 2]
         """
-
         cdef _IntegerDataArray * ida_ = self.inst.get()
-        cdef libcpp_vector[int].iterator it = ida_.begin()
         cdef unsigned int n = ida_.size()
-        cdef np.ndarray[int, ndim=1] data
-        data = np.zeros( (n,), dtype=np.intc)
 
-        cdef int i = 0
-        while it != ida_.end():
-            data[i] = deref(it)
-            inc(it)
-            i += 1
+        if n == 0:
+            return np.empty(0, dtype=np.int32)
 
-        return data
+        cdef np.ndarray[np.int32_t, ndim=1] result = np.empty(n, dtype=np.int32)
+        cdef unsigned int i
+        for i in range(n):
+            result[i] = deref(ida_)[i]
+
+        return result
+
+    def get_data_mv(self):
+        """
+        Gets the raw data for the integer data array as a memory view (no copy).
+
+        This method provides direct access to the underlying data without copying,
+        which is more memory efficient for large datasets.
+
+        .. warning::
+           This returns a fast but unsafe view on the underlying vector data.
+           Make sure that the object you are getting the data from survives the
+           usage of this view! Specifically, do NOT use it like this:
+           :code:`data = spectrum.getIntegerDataArrays()[0].get_data_mv()` since the
+           underlying IntegerDataArray is temporary for this line and will most
+           likely be garbage collected right after that line.
+
+           For safe access, use get_data() instead.
+
+        Returns:
+            np.ndarray: A numpy array that is a view of the underlying data.
+                       Returns None if no data present.
+
+        Example usage:
+
+        .. code-block:: python
+
+            ida = pyopenms.IntegerDataArray()
+            ida.push_back(1)
+            ida.push_back(2)
+            data = ida.get_data_mv()  # Memory view - changes affect original
+        """
+        cdef _IntegerDataArray * ida_ = self.inst.get()
+        cdef unsigned int n = ida_.size()
+
+        if n == 0:
+            return None
+
+        # Obtain a raw ptr to the beginning of the C++ array
+        cdef libcpp_vector[int] * vec_ptr = <libcpp_vector[int]*> ida_
+        cdef int * raw_ptr = address(deref(vec_ptr)[0])
+
+        # We use a memory view to get the data from the raw data
+        # See https://cython.readthedocs.io/en/latest/src/userguide/memoryviews.html
+        cdef int[:] ida_view = <int[:n]>raw_ptr  # cast to memoryview, refer to the underlying buffer without copy
+        xarr = np.asarray(ida_view)  # numpy array refer to the underlying buffer without copy
+        return xarr
 
     def set_data(self, np.ndarray[int, ndim=1, mode="c"] data not None):
         """

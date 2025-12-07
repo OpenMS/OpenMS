@@ -4,7 +4,83 @@ import numpy as np
 
 
 
-    def get_data_dict(self, export_meta_values=True):
+    def get_df_columns(self, columns='default', export_meta_values=True):
+        """Returns a list of column names that get_df() would produce for this spectrum.
+
+        Useful for discovering available columns before export, especially when
+        selecting specific columns for performance optimization.
+
+        Args:
+            columns (str): 'default' for standard columns, 'all' for all available
+                          columns including non-default ones (ion_mobility_unit,
+                          custom data arrays).
+            export_meta_values (bool): Whether to include meta value column names.
+                                       Defaults to True.
+
+        Returns:
+            list: List of column name strings.
+
+        Example:
+            >>> # See default columns
+            >>> cols = spectrum.get_df_columns()
+            ['mz', 'intensity', 'rt', ...]
+
+            >>> # See ALL available columns including custom data arrays
+            >>> cols = spectrum.get_df_columns('all')
+            ['mz', 'intensity', ..., 'ion_mobility_unit', 'float_array:MyData']
+
+            >>> # Export everything
+            >>> df = spectrum.get_df(columns=spectrum.get_df_columns('all'))
+        """
+        cols = ['mz', 'intensity', 'rt', 'ms_level', 'native_id']
+
+        # Ion mobility columns
+        if self.containsIMData():
+            cols.append('ion_mobility')
+            # ion_mobility_unit only included if 'all' requested
+            if columns == 'all':
+                cols.append('ion_mobility_unit')
+
+        # Precursor columns
+        if len(self.getPrecursors()) > 0:
+            cols.extend(['precursor_mz', 'precursor_charge'])
+
+        # Check for ion annotations (default) and other StringDataArrays (all mode)
+        for sda in self.getStringDataArrays():
+            name = sda.getName()
+            if name == 'IonNames':
+                # ion_annotation is the default column name for IonNames (backward compat)
+                cols.append('ion_annotation')
+                # In 'all' mode, also expose via string_array:IonNames for consistency
+                if columns == 'all':
+                    cols.append(f'string_array:{name}')
+            elif columns == 'all':
+                cols.append(f'string_array:{name}')
+
+        # FloatDataArrays (all mode)
+        # Ion Mobility is also exposed via float_array:<name> for consistency
+        if columns == 'all':
+            for fda in self.getFloatDataArrays():
+                name = fda.getName()
+                cols.append(f'float_array:{name}')
+
+        # IntegerDataArrays (all mode)
+        if columns == 'all':
+            for ida in self.getIntegerDataArrays():
+                name = ida.getName()
+                cols.append(f'int_array:{name}')
+
+        # Meta values
+        if export_meta_values:
+            mvs = []
+            self.getKeys(mvs)
+            for k in mvs:
+                k_str = k.decode() if isinstance(k, bytes) else k
+                cols.append(k_str)
+
+        return cols
+
+    def get_data_dict(self, columns=None, export_meta_values=True):
         """Returns a dictionary of NumPy arrays with m/z, intensities, and metadata.
 
         This method extracts spectrum data including peaks, retention time, MS level,
@@ -12,87 +88,143 @@ import numpy as np
         into a dictionary format suitable for conversion to a pandas DataFrame.
 
         Args:
+            columns (list or None): List of column names to include. If None, includes
+                                   all default columns. Use get_df_columns('all') to see
+                                   all available columns including custom data arrays.
             export_meta_values (bool): Whether to include meta values in the output.
-                                       Defaults to True.
+                                       Only applies when columns=None. Defaults to True.
 
         Returns:
-            dict: Dictionary with the following keys:
+            dict: Dictionary with requested columns as keys and numpy arrays as values.
+                  Default columns include:
                 - 'mz': numpy array of m/z values (float64)
                 - 'intensity': numpy array of intensity values (float32)
                 - 'rt': numpy array of retention time values (float64)
                 - 'ms_level': numpy array of MS level values (uint16)
                 - 'native_id': numpy array of native ID strings
-                - 'ion_mobility': numpy array of ion mobility values (if present)
-                - 'ion_mobility_unit': numpy array of ion mobility unit strings
-                - 'precursor_mz': numpy array of precursor m/z values
-                - 'precursor_charge': numpy array of precursor charge values
-                - 'ion_annotation': numpy array of ion annotation strings (from StringDataArray named 'IonNames')
-                - Additional keys for each meta value (if export_meta_values=True)
+                - 'ion_mobility': ion mobility values (if IM data present)
+                - 'precursor_mz': precursor m/z (if precursor present)
+                - 'precursor_charge': precursor charge (if precursor present)
+                - 'ion_annotation': ion annotations (if IonNames StringDataArray present)
+                - Additional meta value columns (if export_meta_values=True)
+
+                Non-default columns (must be explicitly requested):
+                - 'ion_mobility_unit': ion mobility unit string
+                - 'float_array:<name>': custom FloatDataArray values
+                - 'int_array:<name>': custom IntegerDataArray values
+                - 'string_array:<name>': custom StringDataArray values
+
+        Example:
+            >>> # Get all columns (default)
+            >>> data = spectrum.get_data_dict()
+
+            >>> # Get only specific columns for performance
+            >>> data = spectrum.get_data_dict(columns=['mz', 'intensity'])
+
+            >>> # Get all available columns including custom data arrays
+            >>> all_cols = spectrum.get_df_columns('all')
+            >>> data = spectrum.get_data_dict(columns=all_cols)
         """
         # Get peak data using existing optimized method
         cdef np.ndarray[np.float64_t, ndim=1] mzs
         cdef np.ndarray[np.float32_t, ndim=1] intensities
         mzs, intensities = self.get_peaks()
-
         cnt = len(mzs)
-        data_dict = {
-            'mz': mzs,
-            'intensity': intensities,
-            'rt': np.full(cnt, self.getRT(), dtype=np.float64),
-            'ms_level': np.full(cnt, self.getMSLevel(), dtype=np.uint16),
-            'native_id': np.full(cnt, self.getNativeID(), dtype='U100')
-        }
 
-        # Ion mobility handling
-        if self.containsIMData():
-            im_index, drift_time_unit = self.getIMData()
-            im_arrays = self.getFloatDataArrays()
+        # Determine which columns to include
+        if columns is not None:
+            requested = set(columns)
+        else:
+            requested = None  # None means include all defaults
 
-            if im_index >= 0 and im_index < len(im_arrays):
-                data_dict['ion_mobility'] = np.array(
-                    [im_arrays[im_index][i] for i in range(cnt)],
-                    dtype=np.float64
-                )
+        def want(col):
+            """Check if a column should be included."""
+            return requested is None or col in requested
+
+        data_dict = {}
+
+        # Core peak data (always computed for count, but only added if requested)
+        if want('mz'):
+            data_dict['mz'] = mzs
+        if want('intensity'):
+            data_dict['intensity'] = intensities
+
+        # Spectrum-level info
+        if want('rt'):
+            data_dict['rt'] = np.full(cnt, self.getRT(), dtype=np.float64)
+        if want('ms_level'):
+            data_dict['ms_level'] = np.full(cnt, self.getMSLevel(), dtype=np.uint16)
+        if want('native_id'):
+            data_dict['native_id'] = np.full(cnt, self.getNativeID(), dtype='U100')
+
+        # Ion mobility handling - only compute if requested
+        if want('ion_mobility') or want('ion_mobility_unit'):
+            if self.containsIMData():
+                im_index, drift_time_unit = self.getIMData()
+                im_arrays = self.getFloatDataArrays()
+
+                if want('ion_mobility'):
+                    if im_index >= 0 and im_index < len(im_arrays):
+                        data_dict['ion_mobility'] = np.array(
+                            [im_arrays[im_index][i] for i in range(cnt)],
+                            dtype=np.float64
+                        )
+                    else:
+                        data_dict['ion_mobility'] = np.full(cnt, np.nan, dtype=np.float64)
+
+                if want('ion_mobility_unit'):
+                    data_dict['ion_mobility_unit'] = np.full(
+                        cnt,
+                        self.getDriftTimeUnitAsString(),
+                        dtype='U50'
+                    )
             else:
-                data_dict['ion_mobility'] = np.full(cnt, np.nan, dtype=np.float64)
-            data_dict['ion_mobility_unit'] = np.full(
-                cnt,
-                self.getDriftTimeUnitAsString(),
-                dtype='U50'
-            )
-        else:
-            data_dict['ion_mobility'] = np.full(cnt, np.nan, dtype=np.float64)
-            data_dict['ion_mobility_unit'] = np.full(cnt, '', dtype='U1')
+                # No IM data - only add columns if explicitly requested
+                if requested is not None:
+                    if want('ion_mobility'):
+                        data_dict['ion_mobility'] = np.full(cnt, np.nan, dtype=np.float64)
+                    if want('ion_mobility_unit'):
+                        data_dict['ion_mobility_unit'] = np.full(cnt, '', dtype='U1')
 
-        # Precursor Info
-        precursors = self.getPrecursors()
-        if len(precursors) > 0:
-            precursor = precursors[0]
-            data_dict['precursor_mz'] = np.full(cnt, precursor.getMZ(), dtype=np.float64)
-            data_dict['precursor_charge'] = np.full(cnt, precursor.getCharge(), dtype=np.int16)
-        else:
-            data_dict['precursor_mz'] = np.full(cnt, np.nan, dtype=np.float64)
-            data_dict['precursor_charge'] = np.full(cnt, 0, dtype=np.int16)
+        # Precursor Info - only compute if requested
+        if want('precursor_mz') or want('precursor_charge'):
+            precursors = self.getPrecursors()
+            if len(precursors) > 0:
+                precursor = precursors[0]
+                if want('precursor_mz'):
+                    data_dict['precursor_mz'] = np.full(cnt, precursor.getMZ(), dtype=np.float64)
+                if want('precursor_charge'):
+                    data_dict['precursor_charge'] = np.full(cnt, precursor.getCharge(), dtype=np.int16)
+            else:
+                # No precursor - only add columns if explicitly requested
+                if requested is not None:
+                    if want('precursor_mz'):
+                        data_dict['precursor_mz'] = np.full(cnt, np.nan, dtype=np.float64)
+                    if want('precursor_charge'):
+                        data_dict['precursor_charge'] = np.full(cnt, 0, dtype=np.int16)
 
         # Ion annotations from StringDataArray named 'IonNames'
-        ion_annotations = np.full(cnt, '', dtype='U1')
-        for sda in self.getStringDataArrays():
-            if sda.getName() == 'IonNames':
-                if len(sda) == cnt:
-                    annotations = [s for s in sda]
-                    max_len = max((len(s) for s in annotations), default=1)
-                    ion_annotations = np.array(annotations, dtype=f'U{max_len}')
-                break
-        data_dict['ion_annotation'] = ion_annotations
+        if want('ion_annotation'):
+            ion_annotations = np.full(cnt, '', dtype='U1')
+            for sda in self.getStringDataArrays():
+                if sda.getName() == 'IonNames':
+                    if len(sda) == cnt:
+                        annotations = [s for s in sda]
+                        max_len = max((len(s) for s in annotations), default=1)
+                        ion_annotations = np.array(annotations, dtype=f'U{max_len}')
+                    break
+            # Only add if data present or explicitly requested
+            if requested is not None or any(ion_annotations != ''):
+                data_dict['ion_annotation'] = ion_annotations
 
         # Metadata Handling - use Python type introspection
-        if export_meta_values:
+        # Only process if columns=None (default) or specific meta values requested
+        if requested is None and export_meta_values:
             mvs = []
             self.getKeys(mvs)
             for k in mvs:
                 if not self.metaValueExists(k):
                     continue
-                # Get meta value - autowrap returns Python types
                 v = self.getMetaValue(k)
                 k_str = k.decode() if isinstance(k, bytes) else k
 
@@ -107,10 +239,73 @@ import numpy as np
                     elif isinstance(v, str):
                         data_dict[k_str] = np.full(cnt, v, dtype=f"U{max(len(v), 1)}")
                     else:
-                        # Fallback for other types
                         data_dict[k_str] = np.full(cnt, str(v), dtype='object')
                 except Exception:
                     data_dict[k_str] = np.full(cnt, str(v), dtype='object')
+        elif requested is not None:
+            # Check if any requested columns are meta values
+            mvs = []
+            self.getKeys(mvs)
+            mv_names = {(k.decode() if isinstance(k, bytes) else k): k for k in mvs}
+            for col in requested:
+                if col in mv_names:
+                    k = mv_names[col]
+                    if self.metaValueExists(k):
+                        v = self.getMetaValue(k)
+                        try:
+                            if type(v) is type(True):
+                                data_dict[col] = np.full(cnt, v, dtype=np.bool_)
+                            elif isinstance(v, int):
+                                data_dict[col] = np.full(cnt, v, dtype=np.int64)
+                            elif isinstance(v, float):
+                                data_dict[col] = np.full(cnt, v, dtype=np.float64)
+                            elif isinstance(v, str):
+                                data_dict[col] = np.full(cnt, v, dtype=f"U{max(len(v), 1)}")
+                            else:
+                                data_dict[col] = np.full(cnt, str(v), dtype='object')
+                        except Exception:
+                            data_dict[col] = np.full(cnt, str(v), dtype='object')
+
+        # Custom data arrays - only exported when explicitly requested
+        if requested is not None:
+            # Custom FloatDataArrays (non-default)
+            # Note: Ion Mobility can also be accessed via float_array:<name>
+            # in addition to the default ion_mobility column
+            float_arrays = self.getFloatDataArrays()
+            for fda in float_arrays:
+                name = fda.getName()
+                col_name = f'float_array:{name}'
+                if col_name in requested:
+                    if len(fda) == cnt:
+                        data_dict[col_name] = np.array([fda[j] for j in range(cnt)], dtype=np.float32)
+                    else:
+                        data_dict[col_name] = np.full(cnt, np.nan, dtype=np.float32)
+
+            # Custom IntegerDataArrays (non-default)
+            int_arrays = self.getIntegerDataArrays()
+            for ida in int_arrays:
+                name = ida.getName()
+                col_name = f'int_array:{name}'
+                if col_name in requested:
+                    if len(ida) == cnt:
+                        data_dict[col_name] = np.array([ida[j] for j in range(cnt)], dtype=np.int64)
+                    else:
+                        data_dict[col_name] = np.full(cnt, 0, dtype=np.int64)
+
+            # Custom StringDataArrays (non-default)
+            # Note: IonNames can also be accessed via string_array:IonNames
+            # in addition to the default ion_annotation column
+            string_arrays = self.getStringDataArrays()
+            for sda in string_arrays:
+                name = sda.getName()
+                col_name = f'string_array:{name}'
+                if col_name in requested:
+                    if len(sda) == cnt:
+                        strings = [s for s in sda]
+                        max_len = max((len(s) for s in strings), default=1)
+                        data_dict[col_name] = np.array(strings, dtype=f'U{max_len}')
+                    else:
+                        data_dict[col_name] = np.full(cnt, '', dtype='U1')
 
         return data_dict
 

@@ -114,3 +114,121 @@ import numpy as np
 
         mobilogram_.updateRanges()
 
+    def __len__(self):
+        """Return the number of peaks in the mobilogram."""
+        return self.inst.get().size()
+
+    def __str__(self):
+        """
+        Return a string representation of the Mobilogram object.
+        Delegates to __repr__ for consistency.
+        """
+        return self.__repr__()
+
+    def __repr__(self):
+        """
+        Return a string representation of the Mobilogram object.
+
+        Returns key properties in a readable format:
+        Mobilogram(num_peaks=100, rt=123.45, mobility_range=[0.5, 1.5])
+        """
+        cdef size_t num_peaks = self.inst.get().size()
+
+        parts = []
+        parts.append(f"num_peaks={num_peaks}")
+
+        # Add RT
+        rt = self.getRT()
+        if rt > 0:
+            parts.append(f"rt={rt:.2f}")
+
+        # Add drift time unit
+        unit_str = self.getDriftTimeUnitAsString()
+        if unit_str:
+            unit_decoded = unit_str.decode('utf-8') if isinstance(unit_str, bytes) else str(unit_str)
+            if unit_decoded and unit_decoded != 'none':
+                parts.append(f"unit='{unit_decoded}'")
+
+        # Add mobility range if there are peaks
+        if num_peaks > 0:
+            mobilities, _ = self.get_peaks()
+            parts.append(f"mobility_range=[{mobilities[0]:.4f}, {mobilities[-1]:.4f}]")
+
+        return f"Mobilogram({', '.join(parts)})"
+
+    def get_df_columns(self, columns='default'):
+        """Returns a list of column names that get_df() would produce for this mobilogram.
+
+        Useful for discovering available columns before export.
+
+        Args:
+            columns (str): 'default' for standard columns, 'all' for all available
+                          columns including non-default ones.
+
+        Returns:
+            list: List of column name strings.
+
+        Example:
+            >>> cols = mobilogram.get_df_columns()
+            ['mobility', 'intensity', 'rt', 'drift_time_unit']
+        """
+        # Default columns (Mobilogram doesn't support meta values)
+        return ['mobility', 'intensity', 'rt', 'drift_time_unit']
+
+    def get_data_dict(self, columns=None):
+        """Returns a dictionary of NumPy arrays with mobility, intensities, and metadata.
+
+        This method extracts mobilogram data including peaks
+        into a dictionary format suitable for conversion to a pandas DataFrame.
+
+        Args:
+            columns (list or None): List of column names to include. If None, includes
+                                   all default columns. Use get_df_columns() to see
+                                   all available columns.
+
+        Returns:
+            dict: Dictionary with requested columns as keys and numpy arrays as values.
+                - 'mobility': numpy array of mobility values (float64)
+                - 'intensity': numpy array of intensity values (float32)
+                - 'rt': retention time (float64)
+                - 'drift_time_unit': drift time unit string
+
+        Example:
+            >>> data = mobilogram.get_data_dict()
+            >>> data = mobilogram.get_data_dict(columns=['mobility', 'intensity'])
+        """
+        # Get peak data
+        cdef np.ndarray[np.float64_t, ndim=1] mobilities
+        cdef np.ndarray[np.float32_t, ndim=1] intensities
+        mobilities, intensities = self.get_peaks()
+        cnt = len(mobilities)
+
+        # Determine which columns to include
+        if columns is not None:
+            requested = set(columns)
+        else:
+            requested = None  # None means include all defaults
+
+        def want(col):
+            """Check if a default column should be included."""
+            return requested is None or col in requested
+
+        data_dict = {}
+
+        # Core peak data
+        if want('mobility'):
+            data_dict['mobility'] = mobilities
+        if want('intensity'):
+            data_dict['intensity'] = intensities
+
+        # RT
+        if want('rt'):
+            data_dict['rt'] = np.full(cnt, self.getRT(), dtype=np.float64)
+
+        # Drift time unit
+        if want('drift_time_unit'):
+            unit_str = self.getDriftTimeUnitAsString()
+            unit_decoded = unit_str.decode('utf-8') if isinstance(unit_str, bytes) else str(unit_str)
+            data_dict['drift_time_unit'] = np.full(cnt, unit_decoded, dtype='U50')
+
+        return data_dict

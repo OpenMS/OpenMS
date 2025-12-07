@@ -33,6 +33,10 @@ Dependencies:
 
 PyOpenMS:
 	- PyOpenMS wheels are now available for Python 3.14 on all supported operating systems
+	- BREAKING: DataFrame column names standardized to lowercase snake_case for PEP 8 compliance.
+	  Affected methods: MSSpectrum.get_df(), MSChromatogram.get_df(), ConsensusMap.get_metadata_df(),
+	  FeatureMap.get_df(). Example changes: 'RT' -> 'rt', 'MZ' -> 'mz', 'nativeID' -> 'native_id',
+	  'precursorMZ' -> 'precursor_mz'. Update code that references old column names.
 
 TOPP tools:
   Changes:

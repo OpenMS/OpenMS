@@ -3720,16 +3720,22 @@ def testMSChromatogram():
     chrom.setComment('comment')
 
     df = chrom.get_df()
-    assert df.shape == (2, 9)
-    assert df.loc[0, 'time'] == 1000.0
+    # Default columns: rt, intensity, precursor_mz, precursor_charge, product_mz, native_id, FWHM
+    # chromatogram_type and comment are NOT included by default
+    assert df.shape == (2, 7)
+    assert df.loc[0, 'rt'] == 1000.0
     assert df.loc[1, 'intensity'] == 400
-    assert df.loc[0, 'chromatogram_type'] == 'MASS_CHROMATOGRAM'
     assert df.loc[1, 'precursor_mz'] == 100.0
     assert df.loc[0, 'precursor_charge'] == 1
     assert df.loc[1, 'product_mz'] == 50.0
-    assert df.loc[0, 'comment'] == 'comment'
     assert df.loc[1, 'native_id'] == 'chrom_0'
     assert df.loc[0, 'FWHM'] == 5
+
+    # Test non-default columns (chromatogram_type, comment) via explicit selection
+    df_all = chrom.get_df(columns=['rt', 'intensity', 'chromatogram_type', 'comment'])
+    assert df_all.shape == (2, 4)
+    assert df_all.loc[0, 'chromatogram_type'] == 'MASS_CHROMATOGRAM'
+    assert df_all.loc[0, 'comment'] == 'comment'
 
     chrom.clear(False)
     data_mz = np.array( [5.0, 8.0] ).astype(np.float64)
@@ -3913,11 +3919,17 @@ def testMRMTransitionGroup():
     mrmgroup.addChromatogram(chrom, 'tr1')
 
     df = mrmgroup.get_chromatogram_df()
-    assert df.shape == (1, 8)
-    assert df.loc[0, 'time'] == 1.0
+    # Default columns: rt, intensity, precursor_mz, precursor_charge, product_mz, native_id
+    # chromatogram_type and comment are NOT included by default
+    assert df.shape == (1, 6)
+    assert df.loc[0, 'rt'] == 1.0
     assert df.loc[0, 'intensity'] == 5
-    assert df.loc[0, 'chromatogram_type'] == 'MASS_CHROMATOGRAM'
     assert df.loc[0, 'native_id'] == 'tr1'
+
+    # Test non-default columns (chromatogram_type, comment) via explicit selection
+    df_all = mrmgroup.get_chromatogram_df(columns=['rt', 'intensity', 'chromatogram_type', 'comment'])
+    assert df_all.shape == (1, 4)
+    assert df_all.loc[0, 'chromatogram_type'] == 'MASS_CHROMATOGRAM'
 
     ## feature 1
     f1 = pyopenms.MRMFeature()
@@ -3946,14 +3958,14 @@ def testMRMTransitionGroup():
     assert df.loc[1, 'peak_apices_sum'] == 10.0
     assert df.loc[1, 'intensity'] == 20.0
     assert df.loc[1, 'quality'] == 0.5
-    assert df.loc[1, 'RT'] == 1.0
+    assert df.loc[1, 'rt'] == 1.0
 
     assert np.isnan(df.loc[2, 'leftWidth'])
     assert np.isnan(df.loc[2, 'rightWidth'])
     assert df.loc[2, 'peak_apices_sum'] == 20.0
     assert df.loc[2, 'intensity'] == 40.0
     assert df.loc[2, 'quality'] == 1.0
-    assert df.loc[2, 'RT'] == 2.0
+    assert df.loc[2, 'rt'] == 2.0
 
     # If get "all" meta values should get the same result
     df = mrmgroup.get_feature_df(meta_values='all')
@@ -3963,14 +3975,14 @@ def testMRMTransitionGroup():
     assert df.loc[1, 'peak_apices_sum'] == 10.0
     assert df.loc[1, 'intensity'] == 20.0
     assert df.loc[1, 'quality'] == 0.5
-    assert df.loc[1, 'RT'] == 1.0
+    assert df.loc[1, 'rt'] == 1.0
 
     assert np.isnan(df.loc[2, 'leftWidth'])
     assert np.isnan(df.loc[2, 'rightWidth'])
     assert df.loc[2, 'peak_apices_sum'] == 20.0
     assert df.loc[2, 'intensity'] == 40.0
     assert df.loc[2, 'quality'] == 1.0
-    assert df.loc[2, 'RT'] == 2.0
+    assert df.loc[2, 'rt'] == 2.0
 
 @report
 def testReactionMonitoringTransition():
