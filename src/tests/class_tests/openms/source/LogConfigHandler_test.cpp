@@ -148,6 +148,128 @@ START_SECTION((static LogConfigHandler* getInstance()))
 }
 END_SECTION
 
+START_SECTION((void setLogLevel(const String &log_level) - restoring streams))
+{
+  // Test that setLogLevel can restore streams when lowering the log level
+  
+  // Setup: Create a string stream for INFO level
+  std::vector<std::string> settings;
+  settings.push_back("INFO add test_setloglevel_stream STRING");
+  
+  Param p;
+  p.setValue(LogConfigHandler::PARAM_NAME, settings, "List of all settings that should be applied to the current Logging Configuration");
+  LogConfigHandler::getInstance()->configure(p);
+  
+  // Write a message at INFO level - should appear
+  OPENMS_LOG_INFO << "message1" << endl;
+  
+  // Set log level to ERROR (should remove INFO streams)
+  LogConfigHandler::getInstance()->setLogLevel("ERROR");
+  
+  // Write a message at INFO level - should NOT appear
+  OPENMS_LOG_INFO << "message2" << endl;
+  
+  // Lower log level back to INFO (should restore INFO streams)
+  LogConfigHandler::getInstance()->setLogLevel("INFO");
+  
+  // Write a message at INFO level - should appear again
+  OPENMS_LOG_INFO << "message3" << endl;
+  
+  // Check the stream content
+  ostringstream& test_stream = static_cast<ostringstream&>(LogConfigHandler::getInstance()->getStream("test_setloglevel_stream"));
+  String content(test_stream.str());
+  StringList result;
+  content.trim().split('\n', result, true);
+  
+  // Should have message1 and message3, but not message2
+  TEST_EQUAL(result.size(), 2)
+  TEST_TRUE(result[0].hasSubstring("message1"))
+  TEST_TRUE(result[1].hasSubstring("message3"))
+}
+END_SECTION
+
+START_SECTION((removeAllStreams flushes buffers))
+{
+  // Test that removeAllStreams flushes buffers before clearing
+  
+  // Setup: Create a string stream for WARNING level
+  std::vector<std::string> settings;
+  settings.push_back("WARNING add test_flush_stream STRING");
+  
+  Param p;
+  p.setValue(LogConfigHandler::PARAM_NAME, settings, "List of all settings that should be applied to the current Logging Configuration");
+  LogConfigHandler::getInstance()->configure(p);
+  
+  // Write without endl (no flush yet)
+  OPENMS_LOG_WARN << "unflushed_message";
+  
+  // Set log level to ERROR (which calls removeAllStreams on WARNING)
+  // This should flush the buffer before removing streams
+  LogConfigHandler::getInstance()->setLogLevel("ERROR");
+  
+  // Check the stream content - the unflushed message should be there
+  ostringstream& test_stream = static_cast<ostringstream&>(LogConfigHandler::getInstance()->getStream("test_flush_stream"));
+  String content(test_stream.str());
+  
+  // The message should be in the stream even though it wasn't flushed with endl
+  TEST_TRUE(content.hasSubstring("unflushed_message"))
+}
+END_SECTION
+
+START_SECTION((void setLogLevel(const String &log_level) - NONE level))
+{
+  // Test that setLogLevel("NONE") disables all logging and can be restored
+  
+  // Setup: Create string streams for multiple levels
+  std::vector<std::string> settings;
+  settings.push_back("INFO add test_none_info_stream STRING");
+  settings.push_back("ERROR add test_none_error_stream STRING");
+  
+  Param p;
+  p.setValue(LogConfigHandler::PARAM_NAME, settings, "List of all settings that should be applied to the current Logging Configuration");
+  LogConfigHandler::getInstance()->configure(p);
+  
+  // Write messages - should appear
+  OPENMS_LOG_INFO << "before_none_info" << endl;
+  OPENMS_LOG_ERROR << "before_none_error" << endl;
+  
+  // Set log level to NONE (should remove all streams)
+  LogConfigHandler::getInstance()->setLogLevel("NONE");
+  
+  // Write messages - should NOT appear
+  OPENMS_LOG_INFO << "during_none_info" << endl;
+  OPENMS_LOG_ERROR << "during_none_error" << endl;
+  
+  // Restore log level to INFO (should restore INFO and higher streams)
+  LogConfigHandler::getInstance()->setLogLevel("INFO");
+  
+  // Write messages - should appear again
+  OPENMS_LOG_INFO << "after_none_info" << endl;
+  OPENMS_LOG_ERROR << "after_none_error" << endl;
+  
+  // Check INFO stream
+  ostringstream& info_stream = static_cast<ostringstream&>(LogConfigHandler::getInstance()->getStream("test_none_info_stream"));
+  String info_content(info_stream.str());
+  TEST_TRUE(info_content.hasSubstring("before_none_info"))
+  TEST_FALSE(info_content.hasSubstring("during_none_info"))
+  TEST_TRUE(info_content.hasSubstring("after_none_info"))
+  
+  // Check ERROR stream
+  ostringstream& error_stream = static_cast<ostringstream&>(LogConfigHandler::getInstance()->getStream("test_none_error_stream"));
+  String error_content(error_stream.str());
+  TEST_TRUE(error_content.hasSubstring("before_none_error"))
+  TEST_FALSE(error_content.hasSubstring("during_none_error"))
+  TEST_TRUE(error_content.hasSubstring("after_none_error"))
+}
+END_SECTION
+
+START_SECTION((void setLogLevel(const String &log_level) - invalid level))
+{
+  // Test that setLogLevel throws an exception for invalid log levels
+  TEST_EXCEPTION(Exception::IllegalArgument, LogConfigHandler::getInstance()->setLogLevel("INVALID_LEVEL"))
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
