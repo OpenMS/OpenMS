@@ -217,10 +217,55 @@ namespace OpenMS
   void LogConfigHandler::setLogLevel(const String & log_level)
   {
     std::vector<String> lvls = {"DEBUG", "INFO", "WARNING", "ERROR", "FATAL_ERROR"};
+    
+    bool found_target_level = false;
     for (const auto& lvl : lvls)
     {
-      if (lvl == log_level) break;
-      getLogStreamByName_(lvl).removeAllStreams();
+      if (lvl == log_level)
+      {
+        found_target_level = true;
+      }
+      
+      if (!found_target_level)
+      {
+        // Remove all streams from levels below the target level
+        getLogStreamByName_(lvl).removeAllStreams();
+      }
+      else
+      {
+        // Restore streams for levels at or above the target level based on configuration
+        Logger::LogStream& log = getLogStreamByName_(lvl);
+        const std::set<String>& configured_streams = getConfigSetByName_(lvl);
+        
+        // First, remove all current streams
+        log.removeAllStreams();
+        
+        // Then add back the configured streams
+        for (const String& stream_name : configured_streams)
+        {
+          if (stream_name == "cout")
+          {
+            log.insert(cout);
+          }
+          else if (stream_name == "cerr")
+          {
+            log.insert(cerr);
+          }
+          else
+          {
+            // Handle file/string streams from StreamHandler
+            if (stream_type_map_.count(stream_name) != 0)
+            {
+              StreamHandler::StreamType type = stream_type_map_[stream_name];
+              if (STREAM_HANDLER.hasStream(type, stream_name))
+              {
+                log.insert(STREAM_HANDLER.getStream(type, stream_name));
+                log.setPrefix(STREAM_HANDLER.getStream(type, stream_name), "[%S] ");
+              }
+            }
+          }
+        }
+      }
     }
   }
 

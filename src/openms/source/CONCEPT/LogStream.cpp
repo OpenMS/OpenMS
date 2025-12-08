@@ -469,6 +469,14 @@ namespace OpenMS
         return;
 
       rdbuf()->sync();
+      // Flush all streams before clearing the list
+      for (auto& stream_struct : rdbuf()->stream_list_)
+      {
+        if (stream_struct.stream != nullptr)
+        {
+          stream_struct.stream->flush();
+        }
+      }
       rdbuf()->stream_list_.clear();
     }
 

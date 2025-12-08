@@ -148,6 +148,74 @@ START_SECTION((static LogConfigHandler* getInstance()))
 }
 END_SECTION
 
+START_SECTION((void setLogLevel(const String &log_level) - restoring streams))
+{
+  // Test that setLogLevel can restore streams when lowering the log level
+  
+  // Setup: Create a string stream for INFO level
+  std::vector<std::string> settings;
+  settings.push_back("INFO add test_setloglevel_stream STRING");
+  
+  Param p;
+  p.setValue(LogConfigHandler::PARAM_NAME, settings, "List of all settings that should be applied to the current Logging Configuration");
+  LogConfigHandler::getInstance()->configure(p);
+  
+  // Write a message at INFO level - should appear
+  OPENMS_LOG_INFO << "message1" << endl;
+  
+  // Set log level to ERROR (should remove INFO streams)
+  LogConfigHandler::getInstance()->setLogLevel("ERROR");
+  
+  // Write a message at INFO level - should NOT appear
+  OPENMS_LOG_INFO << "message2" << endl;
+  
+  // Lower log level back to INFO (should restore INFO streams)
+  LogConfigHandler::getInstance()->setLogLevel("INFO");
+  
+  // Write a message at INFO level - should appear again
+  OPENMS_LOG_INFO << "message3" << endl;
+  
+  // Check the stream content
+  ostringstream& test_stream = static_cast<ostringstream&>(LogConfigHandler::getInstance()->getStream("test_setloglevel_stream"));
+  String content(test_stream.str());
+  StringList result;
+  content.trim().split('\n', result, true);
+  
+  // Should have message1 and message3, but not message2
+  TEST_EQUAL(result.size(), 2)
+  TEST_TRUE(result[0].hasSubstring("message1"))
+  TEST_TRUE(result[1].hasSubstring("message3"))
+}
+END_SECTION
+
+START_SECTION((removeAllStreams flushes buffers))
+{
+  // Test that removeAllStreams flushes buffers before clearing
+  
+  // Setup: Create a string stream for WARNING level
+  std::vector<std::string> settings;
+  settings.push_back("WARNING add test_flush_stream STRING");
+  
+  Param p;
+  p.setValue(LogConfigHandler::PARAM_NAME, settings, "List of all settings that should be applied to the current Logging Configuration");
+  LogConfigHandler::getInstance()->configure(p);
+  
+  // Write without endl (no flush yet)
+  OPENMS_LOG_WARN << "unflushed_message";
+  
+  // Set log level to ERROR (which calls removeAllStreams on WARNING)
+  // This should flush the buffer before removing streams
+  LogConfigHandler::getInstance()->setLogLevel("ERROR");
+  
+  // Check the stream content - the unflushed message should be there
+  ostringstream& test_stream = static_cast<ostringstream&>(LogConfigHandler::getInstance()->getStream("test_flush_stream"));
+  String content(test_stream.str());
+  
+  // The message should be in the stream even though it wasn't flushed with endl
+  TEST_TRUE(content.hasSubstring("unflushed_message"))
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
