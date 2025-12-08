@@ -87,8 +87,7 @@ namespace OpenMS
     }
   }
 
-  std::string MRMAssay::getRandomSequence_(size_t sequence_size, boost::variate_generator<boost::mt19937&, boost::uniform_int<> >
-                                           pseudoRNG)
+  std::string MRMAssay::getRandomSequence_(size_t sequence_size, std::mt19937& generator)
   {
     std::string aa[] =
     {
@@ -98,10 +97,11 @@ namespace OpenMS
     size_t aa_size = 17;
 
     std::string peptide_sequence = "";
+    std::uniform_int_distribution<size_t> dist(0, aa_size - 1);
 
     for (size_t i = 0; i < sequence_size; ++i)
     {
-      size_t pos = (pseudoRNG() % aa_size);
+      size_t pos = dist(generator);
       peptide_sequence += aa[pos];
     }
 
@@ -403,9 +403,7 @@ namespace OpenMS
       shuffle_seed = time(nullptr);
     }
 
-    boost::mt19937 generator(shuffle_seed);
-    boost::uniform_int<> uni_dist;
-    boost::variate_generator<boost::mt19937&, boost::uniform_int<> > pseudoRNG(generator, uni_dist);
+    std::mt19937 generator(shuffle_seed);
 
     Size progress = 0;
     startProgress(0, TargetSequenceMap.size(), "Target-decoy mapping");
@@ -421,7 +419,7 @@ namespace OpenMS
         // Get a random unmodified peptide sequence as base for later modification
         if (DecoySequenceMap[ta_it.first].empty())
         {
-          decoy_peptide_string = getRandomSequence_(ta_it.first.size(), pseudoRNG);
+          decoy_peptide_string = getRandomSequence_(ta_it.first.size(), generator);
         }
         else
         {

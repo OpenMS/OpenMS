@@ -43,9 +43,9 @@ public:
     return isInSwath_(swathes, precursor_mz, product_mz);
   }
 
-  std::string getRandomSequence_test(int sequence_size, boost::variate_generator<boost::mt19937&, boost::uniform_int<> > pseudoRNG)
+  std::string getRandomSequence_test(int sequence_size, std::mt19937& generator)
   {
-    return getRandomSequence_(sequence_size, pseudoRNG);
+    return getRandomSequence_(sequence_size, generator);
   }
 
   std::vector<std::vector<size_t> > nchoosekcombinations_test(std::vector<size_t> n, size_t k)
@@ -197,18 +197,15 @@ START_SECTION(bool MRMAssay::isInSwath_(const std::vector<std::pair<double, doub
 
 END_SECTION
 
-START_SECTION(std::string MRMAssay::getRandomSequence_(int sequence_size, boost::variate_generator<boost::mt19937&, boost::uniform
-                                                                                                   _int<> > pseudoRNG))
+START_SECTION(std::string MRMAssay::getRandomSequence_(int sequence_size, std::mt19937& generator))
 {
   MRMAssay_test mrma;
 
-  boost::mt19937 generator(42);
-  boost::uniform_int<> uni_dist;
-  boost::variate_generator<boost::mt19937&, boost::uniform_int<> > pseudoRNG(generator, uni_dist);
+  std::mt19937 generator(42);
 
-  std::string sequence1 = mrma.getRandomSequence_test(10, pseudoRNG);
+  std::string sequence1 = mrma.getRandomSequence_test(10, generator);
 
-  TEST_EQUAL(sequence1, "CHLNHHQQNE");
+  TEST_EQUAL(sequence1, "GTVCSTMMDH");
 }
 
 END_SECTION
@@ -624,9 +621,7 @@ START_SECTION(void uisTransitions(OpenMS::TargetedExperiment& exp, std::vector<S
   String test1;
   NEW_TMP_FILE(test1);
   traml.store(test1, targeted_exp1);
-#if !defined(__APPLE__) // currently fails on macOS likely due to different boost version and different random number generator
   TEST_FILE_SIMILAR(test1.c_str(), OPENMS_GET_TEST_DATA_PATH(out1))
-#endif
   std::vector<String> fragment_types2;
   fragment_types2.push_back(String("y"));
   std::vector<size_t> fragment_charges2;
@@ -650,9 +645,7 @@ START_SECTION(void uisTransitions(OpenMS::TargetedExperiment& exp, std::vector<S
   NEW_TMP_FILE(test2);
   traml.store(test2, targeted_exp2);
 
-#if !defined(__APPLE__) // currently fails on macOS likely due to different boost version and different random number generator
- TEST_FILE_SIMILAR(test2.c_str(), OPENMS_GET_TEST_DATA_PATH(out2))
-#endif
+  TEST_FILE_SIMILAR(test2.c_str(), OPENMS_GET_TEST_DATA_PATH(out2))
 }
 
 END_SECTION
@@ -720,11 +713,9 @@ START_SECTION(void uisTransitions(OpenMS::TargetedExperiment& exp, std::vector<S
   String test1;
   NEW_TMP_FILE(test1);
   traml.store(test1, targeted_exp1);
-	   
-#if !defined(__APPLE__) // currently fails on macOS likely due to different boost version and different random number generator
- TEST_FILE_SIMILAR(test1.c_str(), OPENMS_GET_TEST_DATA_PATH(out1)) 
-#endif
-	
+
+  TEST_FILE_SIMILAR(test1.c_str(), OPENMS_GET_TEST_DATA_PATH(out1))
+
   std::vector<String> fragment_types2;
   fragment_types2.push_back(String("y"));
   fragment_types2.push_back(String("b"));
@@ -749,9 +740,7 @@ START_SECTION(void uisTransitions(OpenMS::TargetedExperiment& exp, std::vector<S
   NEW_TMP_FILE(test2);
   traml.store(test2, targeted_exp2);
 
-#if !defined(__APPLE__) // currently fails on macOS likely due to different boost version and different random number generator
- TEST_FILE_SIMILAR(test2.c_str(), OPENMS_GET_TEST_DATA_PATH(out2)) 
-#endif
+  TEST_FILE_SIMILAR(test2.c_str(), OPENMS_GET_TEST_DATA_PATH(out2))
 	
   std::vector<String> fragment_types3;
   fragment_types3.push_back(String("y"));
@@ -777,11 +766,7 @@ START_SECTION(void uisTransitions(OpenMS::TargetedExperiment& exp, std::vector<S
   NEW_TMP_FILE(test3);
   traml.store(test3, targeted_exp3);
 
-#if !defined(__APPLE__) // currently fails on macOS likely due to different boost version and different random number generator
- TEST_FILE_SIMILAR(test3.c_str(), OPENMS_GET_TEST_DATA_PATH(out3)) 
-#endif	
-}
-
-END_SECTION
+  TEST_FILE_SIMILAR(test3.c_str(), OPENMS_GET_TEST_DATA_PATH(out3))
+}END_SECTION
 
 END_TEST

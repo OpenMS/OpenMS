@@ -13,9 +13,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMIonSeries.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 
-#include <boost/random/mersenne_twister.hpp>
-#include <boost/random/uniform_int.hpp>
-#include <boost/random/variate_generator.hpp>
+#include <random>
 #include <boost/unordered_map.hpp> // cannot remove this since tests fail otherwise
 
 // #define DEBUG_MRMASSAY
@@ -226,11 +224,11 @@ protected:
       @brief Generates random peptide sequence
 
       @param sequence_size length of peptide sequence
-      @param pseudoRNG a Boost pseudo RNG
+      @param generator C++11 Mersenne Twister random number generator
 
       @return random peptide sequence
     */
-    std::string getRandomSequence_(size_t sequence_size, boost::variate_generator<boost::mt19937&, boost::uniform_int<> > pseudoRNG);
+    std::string getRandomSequence_(size_t sequence_size, std::mt19937& generator);
 
     /**
       @brief Computes all N choose K combinations
