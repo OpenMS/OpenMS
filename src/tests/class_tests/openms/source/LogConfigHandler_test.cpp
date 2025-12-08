@@ -263,6 +263,13 @@ START_SECTION((void setLogLevel(const String &log_level) - NONE level))
 }
 END_SECTION
 
+START_SECTION((void setLogLevel(const String &log_level) - invalid level))
+{
+  // Test that setLogLevel throws an exception for invalid log levels
+  TEST_EXCEPTION(Exception::IllegalArgument, LogConfigHandler::getInstance()->setLogLevel("INVALID_LEVEL"))
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
