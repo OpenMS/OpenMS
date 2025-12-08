@@ -54,7 +54,7 @@ namespace OpenMS
     defaults_.setValue("best_charge_and_fraction", "false", "Distinguish between fraction and charge states of a peptide. For peptides, abundances will be reported separately for each fraction and charge;\nfor proteins, abundances will be computed based only on the most prevalent charge observed of each peptide (over all fractions).\nBy default, abundances are summed over all charge states.");
     defaults_.setValidStrings("best_charge_and_fraction", true_false);
 
-    defaults_.setValue("consensus:normalize", "false", "Scale peptide abundances so that medians of all samples are equal. Note: In ProteomicsLFQ, consensus feature normalization is performed separately before this step (unless MSstats/Triqler output is requested).");
+    defaults_.setValue("consensus:normalize", "false", "Scale peptide abundances so that medians of all samples are equal.");
     defaults_.setValidStrings("consensus:normalize", true_false);
 
     defaults_.setValue("consensus:fix_peptides", "false", "Use the same peptides for protein quantification across all samples.\nWith 'N 0',"
