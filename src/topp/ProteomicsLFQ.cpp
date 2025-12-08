@@ -1219,7 +1219,7 @@ protected:
     //-------------------------------------------------------------
     // ConsensusMap normalization (basic median scaling)
     //-------------------------------------------------------------
-    // Note: This normalization is applied automatically for feature intensity-based quantification
+    // Note: This normalization is applied automatically for feature-intensity-based quantification
     // when multiple runs are provided. It uses simple median scaling to make sample medians equal.
     // Normalization is DISABLED when MSstats or Triqler output is requested, as these tools
     // perform their own normalization.
