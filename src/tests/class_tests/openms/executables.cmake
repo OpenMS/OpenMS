@@ -390,6 +390,7 @@ set(chemistry_executables_list
   DigestionEnzymeProtein_test
   ElementDB_test
   Element_test
+  Isotope_test
   EmpiricalFormula_test
   EnzymaticDigestion_test
   FineIsotopeDistribution_test

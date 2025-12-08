@@ -16,10 +16,12 @@
 #include <memory>
 #include <unordered_map>
 #include <string>
+#include <vector>
 
 namespace OpenMS
 {
   class Element;
+  class Isotope;
 
   /** @ingroup Chemistry
 
@@ -69,6 +71,49 @@ public:
 
     /// returns a pointer to the element of atomic number; if no element is found 0 is returned
     const Element* getElement(unsigned int atomic_number) const;
+
+    /** returns a pointer to the isotope with given element symbol/name and mass number;
+     *  if no isotope exists 0 is returned
+     *  @param element_symbol: symbol or name of the element (e.g., "C" or "Carbon")
+     *  @param mass_number: mass number of the isotope (e.g., 14 for Carbon-14)
+     */
+    const Isotope* getIsotope(const std::string& element_symbol, unsigned int mass_number) const;
+
+    /** returns a pointer to the isotope with given atomic number and mass number;
+     *  if no isotope exists 0 is returned
+     *  @param atomic_number: atomic number of the element
+     *  @param mass_number: mass number of the isotope
+     */
+    const Isotope* getIsotope(unsigned int atomic_number, unsigned int mass_number) const;
+
+    /// returns a hashmap that contains isotope symbols (e.g., "(14)C") mapped to pointers to the isotopes
+    const std::unordered_map<std::string, const Isotope*>& getIsotopeSymbols() const;
+
+    /// returns true if the db contains an isotope with the given element symbol and mass number
+    bool hasIsotope(const std::string& element_symbol, unsigned int mass_number) const;
+
+    /// returns true if the db contains an isotope with the given atomic number and mass number
+    bool hasIsotope(unsigned int atomic_number, unsigned int mass_number) const;
+
+    /** Adds a new isotope to the database
+     *
+     * @param element_symbol Symbol of the element (e.g., "C" for Carbon)
+     * @param mass_number Mass number (protons + neutrons)
+     * @param atomic_mass Atomic mass in Daltons
+     * @param abundance Natural abundance (0.0 to 1.0)
+     * @param half_life Half-life in seconds (negative for stable isotopes)
+     * @param decay_mode Decay mode as string ("STABLE", "ALPHA", "BETA_MINUS", "BETA_PLUS", "PROTON", "UNKNOWN")
+     * @param replace_existing If true, replace existing isotope; if false, throw exception if exists
+     *
+     * @throw Exception::IllegalArgument if isotope already exists and replace_existing is false
+     */
+    void addIsotope(const std::string& element_symbol,
+                    unsigned int mass_number,
+                    double atomic_mass,
+                    double abundance,
+                    double half_life = -1.0,
+                    const std::string& decay_mode = "STABLE",
+                    bool replace_existing = false);
 
     /** Adds or replaces a new element to the database
      *
@@ -130,6 +175,18 @@ protected:
     /// constructs isotope objects
     void storeIsotopes_(const std::string& name, const std::string& symbol, const unsigned int an, const std::map<unsigned int, double>& Z_to_mass, const IsotopeDistribution& isotopes);
 
+    /// builds and stores detailed isotope objects with half-life and decay mode
+    void buildIsotope_(const std::string& element_symbol,
+                       unsigned int atomic_number,
+                       unsigned int mass_number,
+                       double atomic_mass,
+                       double abundance,
+                       double half_life,
+                       const std::string& decay_mode);
+
+    /// stores additional isotope data (half-life, decay mode) for known isotopes
+    void storeDetailedIsotopes_();
+
     /**_ resets all containers
     **/
     void clear_();
@@ -139,6 +196,12 @@ protected:
     std::unordered_map<std::string, const Element*> symbols_;
 
     std::unordered_map<unsigned int, const Element*> atomic_numbers_;
+
+    /// map from isotope symbol (e.g., "(14)C") to isotope pointer
+    std::unordered_map<std::string, const Isotope*> isotope_symbols_;
+
+    /// map from (atomic_number, mass_number) pair to isotope pointer
+    std::map<std::pair<unsigned int, unsigned int>, const Isotope*> isotopes_;
 
 private:
     ElementDB();

@@ -12,10 +12,12 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CHEMISTRY/Element.h>
+#include <OpenMS/CHEMISTRY/Isotope.h>
 
 #include <iostream>
 #include <cmath>
 #include <memory>
+#include <utility>
 
 using namespace std;
 
@@ -24,6 +26,7 @@ namespace OpenMS
   ElementDB::ElementDB()
   {
     storeElements_();
+    storeDetailedIsotopes_();
   }
 
   ElementDB::~ElementDB()
@@ -85,6 +88,73 @@ namespace OpenMS
   bool ElementDB::hasElement(unsigned int atomic_number) const
   {
     return atomic_numbers_.find(atomic_number) != atomic_numbers_.end();
+  }
+
+  const Isotope* ElementDB::getIsotope(const string& element_symbol, unsigned int mass_number) const
+  {
+    // First, resolve element_symbol to atomic number
+    const Element* elem = getElement(element_symbol);
+    if (elem == nullptr)
+    {
+      return nullptr;
+    }
+    return getIsotope(elem->getAtomicNumber(), mass_number);
+  }
+
+  const Isotope* ElementDB::getIsotope(unsigned int atomic_number, unsigned int mass_number) const
+  {
+    auto key = make_pair(atomic_number, mass_number);
+    auto it = isotopes_.find(key);
+    if (it != isotopes_.end())
+    {
+      return it->second;
+    }
+    return nullptr;
+  }
+
+  const unordered_map<string, const Isotope*>& ElementDB::getIsotopeSymbols() const
+  {
+    return isotope_symbols_;
+  }
+
+  bool ElementDB::hasIsotope(const string& element_symbol, unsigned int mass_number) const
+  {
+    const Element* elem = getElement(element_symbol);
+    if (elem == nullptr)
+    {
+      return false;
+    }
+    return hasIsotope(elem->getAtomicNumber(), mass_number);
+  }
+
+  bool ElementDB::hasIsotope(unsigned int atomic_number, unsigned int mass_number) const
+  {
+    auto key = make_pair(atomic_number, mass_number);
+    return isotopes_.find(key) != isotopes_.end();
+  }
+
+  void ElementDB::addIsotope(const string& element_symbol,
+                             unsigned int mass_number,
+                             double atomic_mass,
+                             double abundance,
+                             double half_life,
+                             const string& decay_mode,
+                             bool replace_existing)
+  {
+    const Element* elem = getElement(element_symbol);
+    if (elem == nullptr)
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                        "Element with symbol " + element_symbol + " not found");
+    }
+
+    if (hasIsotope(elem->getAtomicNumber(), mass_number) && !replace_existing)
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                        String("Isotope ") + element_symbol + "-" + mass_number + " already exists");
+    }
+
+    buildIsotope_(element_symbol, elem->getAtomicNumber(), mass_number, atomic_mass, abundance, half_life, decay_mode);
   }
 
   void ElementDB::addElement(const std::string& name,
@@ -671,7 +741,88 @@ namespace OpenMS
         addIfUniqueOrThrow(symbols_, iso_symbol, iso_element);
         iso_element.release(); // allocation will be cleaned up by ~ElementDB now
       }
-    } 
+    }
+  }
+
+  void ElementDB::buildIsotope_(const string& element_symbol,
+                                unsigned int atomic_number,
+                                unsigned int mass_number,
+                                double atomic_mass,
+                                double abundance,
+                                double half_life,
+                                const string& decay_mode)
+  {
+    const Element* elem = getElement(atomic_number);
+    if (elem == nullptr)
+    {
+      return;
+    }
+
+    string iso_name = "(" + to_string(mass_number) + ")" + elem->getName();
+    string iso_symbol = "(" + to_string(mass_number) + ")" + element_symbol;
+
+    auto iso = make_unique<Isotope>(
+      iso_name,
+      iso_symbol,
+      atomic_number,
+      mass_number,
+      atomic_mass,
+      abundance,
+      half_life,
+      Isotope::stringToDecayMode(decay_mode)
+    );
+
+    auto key = make_pair(atomic_number, mass_number);
+
+    // Check if isotope already exists
+    auto it = isotopes_.find(key);
+    if (it != isotopes_.end())
+    {
+      // Delete old isotope and replace
+      delete it->second;
+      isotopes_.erase(it);
+      isotope_symbols_.erase(iso_symbol);
+    }
+
+    isotopes_[key] = iso.get();
+    isotope_symbols_[iso_symbol] = iso.get();
+    iso.release(); // ownership transferred
+  }
+
+  void ElementDB::storeDetailedIsotopes_()
+  {
+    // Carbon-14 (radioactive, used in radiocarbon dating)
+    // Half-life: 5730 years = 5730 * 365.25 * 24 * 3600 seconds
+    const double c14_half_life = 5730.0 * 365.25 * 24.0 * 3600.0; // ~1.807e11 seconds
+    buildIsotope_("C", 6, 14, 14.003241989, 0.0, c14_half_life, "BETA_MINUS");
+
+    // Uranium isotopes with half-lives and decay modes
+    // U-234: half-life 245,500 years, alpha decay
+    const double u234_half_life = 245500.0 * 365.25 * 24.0 * 3600.0;
+    buildIsotope_("U", 92, 234, 234.040950, 0.000054, u234_half_life, "ALPHA");
+
+    // U-235: half-life 703.8 million years, alpha decay
+    const double u235_half_life = 703.8e6 * 365.25 * 24.0 * 3600.0;
+    buildIsotope_("U", 92, 235, 235.043928, 0.007204, u235_half_life, "ALPHA");
+
+    // U-238: half-life 4.468 billion years, alpha decay
+    const double u238_half_life = 4.468e9 * 365.25 * 24.0 * 3600.0;
+    buildIsotope_("U", 92, 238, 238.05079, 0.992742, u238_half_life, "ALPHA");
+
+    // Hydrogen isotopes
+    // H-1 (protium): stable
+    buildIsotope_("H", 1, 1, 1.0078250319, 0.999885, -1.0, "STABLE");
+    // H-2 (deuterium): stable
+    buildIsotope_("H", 1, 2, 2.01410178, 0.000115, -1.0, "STABLE");
+    // H-3 (tritium): half-life 12.32 years, beta minus decay
+    const double h3_half_life = 12.32 * 365.25 * 24.0 * 3600.0;
+    buildIsotope_("H", 1, 3, 3.01604927, 0.0, h3_half_life, "BETA_MINUS");
+
+    // Carbon stable isotopes
+    // C-12: stable, most abundant
+    buildIsotope_("C", 6, 12, 12.0, 0.9893, -1.0, "STABLE");
+    // C-13: stable
+    buildIsotope_("C", 6, 13, 13.003355, 0.0107, -1.0, "STABLE");
   }
 
   IsotopeDistribution ElementDB::parseIsotopeDistribution_(const map<unsigned int, double>& abundance, const map<unsigned int, double>& mass)
@@ -699,6 +850,14 @@ namespace OpenMS
     names_.clear();
     symbols_.clear();
     atomic_numbers_.clear();
+
+    // Clear isotopes
+    for (auto& it : isotopes_)
+    {
+      delete it.second;
+    }
+    isotopes_.clear();
+    isotope_symbols_.clear();
   }
 
 } // namespace OpenMS

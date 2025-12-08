@@ -10,6 +10,7 @@ CrossLinksDB.cpp
 DecoyGenerator.cpp
 Element.cpp
 ElementDB.cpp
+Isotope.cpp
 EmpiricalFormula.cpp
 EnzymaticDigestion.cpp
 DigestionEnzyme.cpp

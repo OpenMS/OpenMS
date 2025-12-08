@@ -13,6 +13,7 @@
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 
 #include <string>
+#include <vector>
 
 #define OPENMS_CHEMISTRY_ELEMENT_NAME_DEFAULT "unknown"
 #define OPENMS_CHEMISTRY_ELEMENT_SYMBOL_DEFAULT "??"
@@ -21,6 +22,9 @@
 
 namespace OpenMS
 {
+  // Forward declaration
+  class Isotope;
+
   /** @ingroup Chemistry
 
       @brief Representation of an element
@@ -81,6 +85,15 @@ public:
     /// returns the isotope distribution of the element
     const IsotopeDistribution & getIsotopeDistribution() const;
 
+    /// sets the list of isotopes for this element
+    void setIsotopes(const std::vector<const Isotope*>& isotopes);
+
+    /// returns the list of isotopes for this element
+    const std::vector<const Isotope*>& getIsotopes() const;
+
+    /// returns whether this is an isotope (false for Element, overridden in Isotope)
+    virtual bool isIsotope() const;
+
     /// set the name of the element
     void setName(const std::string & name);
 
@@ -136,6 +149,9 @@ protected:
 
     /// distribution of the isotopes (mass and natural frequency)
     IsotopeDistribution isotopes_;
+
+    /// list of isotopes for this element (pointers are not owned)
+    std::vector<const Isotope*> isotope_list_;
   };
 
   OPENMS_DLLAPI std::ostream & operator<<(std::ostream &, const Element &);

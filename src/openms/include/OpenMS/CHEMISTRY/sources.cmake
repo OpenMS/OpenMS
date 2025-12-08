@@ -10,6 +10,7 @@ CrossLinksDB.h
 DecoyGenerator.h
 Element.h
 ElementDB.h
+Isotope.h
 EmpiricalFormula.h
 EnzymaticDigestion.h
 DigestionEnzyme.h

@@ -9,6 +9,7 @@
 
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/CHEMISTRY/Element.h>
+#include <OpenMS/CHEMISTRY/Isotope.h>
 
 #include <ostream>
 #include <algorithm>
@@ -86,6 +87,21 @@ namespace OpenMS
   const IsotopeDistribution & Element::getIsotopeDistribution() const
   {
     return isotopes_;
+  }
+
+  void Element::setIsotopes(const std::vector<const Isotope*>& isotopes)
+  {
+    isotope_list_ = isotopes;
+  }
+
+  const std::vector<const Isotope*>& Element::getIsotopes() const
+  {
+    return isotope_list_;
+  }
+
+  bool Element::isIsotope() const
+  {
+    return false;
   }
 
   void Element::setName(const string & name)
