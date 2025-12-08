@@ -218,6 +218,16 @@ namespace OpenMS
   {
     std::vector<String> lvls = {"DEBUG", "INFO", "WARNING", "ERROR", "FATAL_ERROR"};
     
+    // Special case: "NONE" means disable all logging
+    if (log_level == "NONE")
+    {
+      for (const auto& lvl : lvls)
+      {
+        getLogStreamByName_(lvl).removeAllStreams();
+      }
+      return;
+    }
+    
     bool found_target_level = false;
     for (const auto& lvl : lvls)
     {
