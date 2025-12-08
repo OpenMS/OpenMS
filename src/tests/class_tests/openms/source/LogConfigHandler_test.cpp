@@ -216,6 +216,53 @@ START_SECTION((removeAllStreams flushes buffers))
 }
 END_SECTION
 
+START_SECTION((void setLogLevel(const String &log_level) - NONE level))
+{
+  // Test that setLogLevel("NONE") disables all logging and can be restored
+  
+  // Setup: Create string streams for multiple levels
+  std::vector<std::string> settings;
+  settings.push_back("INFO add test_none_info_stream STRING");
+  settings.push_back("ERROR add test_none_error_stream STRING");
+  
+  Param p;
+  p.setValue(LogConfigHandler::PARAM_NAME, settings, "List of all settings that should be applied to the current Logging Configuration");
+  LogConfigHandler::getInstance()->configure(p);
+  
+  // Write messages - should appear
+  OPENMS_LOG_INFO << "before_none_info" << endl;
+  OPENMS_LOG_ERROR << "before_none_error" << endl;
+  
+  // Set log level to NONE (should remove all streams)
+  LogConfigHandler::getInstance()->setLogLevel("NONE");
+  
+  // Write messages - should NOT appear
+  OPENMS_LOG_INFO << "during_none_info" << endl;
+  OPENMS_LOG_ERROR << "during_none_error" << endl;
+  
+  // Restore log level to INFO (should restore INFO and higher streams)
+  LogConfigHandler::getInstance()->setLogLevel("INFO");
+  
+  // Write messages - should appear again
+  OPENMS_LOG_INFO << "after_none_info" << endl;
+  OPENMS_LOG_ERROR << "after_none_error" << endl;
+  
+  // Check INFO stream
+  ostringstream& info_stream = static_cast<ostringstream&>(LogConfigHandler::getInstance()->getStream("test_none_info_stream"));
+  String info_content(info_stream.str());
+  TEST_TRUE(info_content.hasSubstring("before_none_info"))
+  TEST_FALSE(info_content.hasSubstring("during_none_info"))
+  TEST_TRUE(info_content.hasSubstring("after_none_info"))
+  
+  // Check ERROR stream
+  ostringstream& error_stream = static_cast<ostringstream&>(LogConfigHandler::getInstance()->getStream("test_none_error_stream"));
+  String error_content(error_stream.str());
+  TEST_TRUE(error_content.hasSubstring("before_none_error"))
+  TEST_FALSE(error_content.hasSubstring("during_none_error"))
+  TEST_TRUE(error_content.hasSubstring("after_none_error"))
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
