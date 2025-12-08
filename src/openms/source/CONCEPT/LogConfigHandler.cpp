@@ -216,7 +216,7 @@ namespace OpenMS
 
   void LogConfigHandler::setLogLevel(const String & log_level)
   {
-    std::vector<String> lvls = {"DEBUG", "INFO", "WARNING", "ERROR", "FATAL_ERROR"};
+    static const std::vector<String> lvls = {"DEBUG", "INFO", "WARNING", "ERROR", "FATAL_ERROR"};
     
     // Special case: "NONE" means disable all logging
     if (log_level == "NONE")
@@ -264,9 +264,10 @@ namespace OpenMS
           else
           {
             // Handle file/string streams from StreamHandler
-            if (stream_type_map_.count(stream_name) != 0)
+            auto it = stream_type_map_.find(stream_name);
+            if (it != stream_type_map_.end())
             {
-              StreamHandler::StreamType type = stream_type_map_[stream_name];
+              StreamHandler::StreamType type = it->second;
               if (STREAM_HANDLER.hasStream(type, stream_name))
               {
                 log.insert(STREAM_HANDLER.getStream(type, stream_name));
