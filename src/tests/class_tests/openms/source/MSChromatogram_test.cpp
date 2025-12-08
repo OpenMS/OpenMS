@@ -6,12 +6,6 @@
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_WINDOWSPLATFORM
-#pragma clang diagnostic push
-// Ignore -Wpessimizing-move, becuase it's intentional
-#pragma clang diagnostic ignored "-Wpessimizing-move"
-#endif
-
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 
@@ -1112,7 +1106,3 @@ END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
-
-#ifndef OPENMS_WINDOWSPLATFORM
-#pragma clang diagnostic pop
-#endif
