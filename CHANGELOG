@@ -25,13 +25,13 @@ General:
     - loading of mzML files is 7-25% faster in general (SIMD ASCII conversion) (#8105)
  - linux arm64 support:
 	- OpenMS releases now include a .deb for arm64 machines
-	- PyOpenMS now has wheels for arm64 linux machines
     
 Dependencies:
-    - PyOpenMS now depends on Autowrap 0.23.0
+    - PyOpenMS now depends on Autowrap 0.24.0
     - PyOpenMS now supports Cython 3.1
 
 PyOpenMS:
+    - PyOpenMS now has wheels for arm64 linux machines
 	- PyOpenMS wheels are now available for Python 3.14 on all supported operating systems
 	- BREAKING: DataFrame column names standardized to lowercase snake_case for PEP 8 compliance.
 	  Affected methods: MSSpectrum.get_df(), MSChromatogram.get_df(), ConsensusMap.get_metadata_df(),
@@ -81,7 +81,7 @@ GUI tools:
 
 OpenMS Library:
   Added:
-    - PeakPickerIM: New algorithm for ion mobility peak picking with three methods (mobilogram, cluster, elution profiles). (#8177)
+    - PeakPickerIM (experimental): New algorithm for ion mobility peak picking with three methods (mobilogram, cluster, elution profiles). (#8177)
     - IMFormat: Added CENTROIDED and UNKNOWN format types for ion mobility data. (#8177)
     - MSSpectrum/SpectrumSettings: Added setIMFormat()/getIMFormat() API for per-spectrum ion mobility format tracking. (#8177)
     - FeatureFinderAlgorithmBiosaur2 (experimental): Feature detection algorithm for label-free proteomics DDA-LFQ based on the Biosaur2 algorithm with support for FAIMS and TimsTOF ion mobility.
