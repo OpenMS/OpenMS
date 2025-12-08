@@ -11,9 +11,7 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 
-#include <boost/random/mersenne_twister.hpp>
-#include <boost/random/variate_generator.hpp>
-#include <boost/random/uniform_int.hpp>
+#include <random>
 
 
 namespace OpenMS
@@ -26,7 +24,7 @@ namespace OpenMS
 
     The unique ids are 64-bit random unsigned random integers.
     The class is implemented as a singleton.
-    The random generator is implemented using boost::random.
+    The random generator is implemented using std::random.
 
     @ingroup Concept
   */
@@ -51,8 +49,8 @@ protected:
 private:
     static UInt64 seed_;
     static UniqueIdGenerator* instance_;
-    static boost::mt19937_64* rng_;
-    static boost::uniform_int<UInt64>* dist_;
+    static std::mt19937_64* rng_;
+    static std::uniform_int_distribution<UInt64>* dist_;
 
     static UniqueIdGenerator& getInstance_();
     void init_();

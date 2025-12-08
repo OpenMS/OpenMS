@@ -14,8 +14,8 @@ namespace OpenMS
 {
   UInt64 UniqueIdGenerator::seed_ = 0;
   UniqueIdGenerator* UniqueIdGenerator::instance_ = nullptr;
-  boost::mt19937_64* UniqueIdGenerator::rng_ = nullptr;
-  boost::uniform_int<UInt64>* UniqueIdGenerator::dist_ = nullptr;
+  std::mt19937_64* UniqueIdGenerator::rng_ = nullptr;
+  std::uniform_int_distribution<UInt64>* UniqueIdGenerator::dist_ = nullptr;
 
   UInt64 UniqueIdGenerator::getUniqueId()
   {
@@ -86,8 +86,8 @@ namespace OpenMS
       // C++11 note: C++ build-in alternative once C++11 can be presumed: 'std::chrono::high_resolution_clock'
       boost::posix_time::ptime t(boost::posix_time::microsec_clock::local_time() );
       seed_ = t.time_of_day().ticks();  // independent of implementation; as opposed to nanoseconds(), which need not be available on every platform
-      rng_ = new boost::mt19937_64 (seed_);
-      dist_ = new boost::uniform_int<UInt64> (0, std::numeric_limits<UInt64>::max());
+      rng_ = new std::mt19937_64 (seed_);
+      dist_ = new std::uniform_int_distribution<UInt64> (0, std::numeric_limits<UInt64>::max());
     }
   }
 

@@ -135,7 +135,7 @@ START_SECTION(OpenMS::TargetedExperiment::Peptide shufflePeptide(OpenMS::Targete
   OpenMS::TargetedExperiment::Peptide shuffleAASequence_target_sequence_01;
   shuffleAASequence_target_sequence_01.sequence = "TESTPEPTIDE";
   OpenMS::TargetedExperiment::Peptide shuffleAASequence_expected_01;
-  shuffleAASequence_expected_01.sequence = "TNGCADQQEAE";
+  shuffleAASequence_expected_01.sequence = "TQEVAATTIIE";
   OpenMS::TargetedExperiment::Peptide shuffleAASequence_result_01;
   shuffleAASequence_result_01 = gen.shufflePeptide(shuffleAASequence_target_sequence_01, 0.2, 42, 10000);
   TEST_EQUAL(shuffleAASequence_result_01.sequence, shuffleAASequence_expected_01.sequence)
@@ -143,7 +143,7 @@ START_SECTION(OpenMS::TargetedExperiment::Peptide shufflePeptide(OpenMS::Targete
   OpenMS::TargetedExperiment::Peptide shuffleAASequence_target_sequence_00;
   shuffleAASequence_target_sequence_00.sequence = "TESTPEPTIDE";
   OpenMS::TargetedExperiment::Peptide shuffleAASequence_expected_00;
-  shuffleAASequence_expected_00.sequence = "TEIEPAPTQTE";
+  shuffleAASequence_expected_00.sequence = "TEITPVIETDE";
   OpenMS::TargetedExperiment::Peptide shuffleAASequence_result_00;
   shuffleAASequence_result_00 = gen.shufflePeptide(shuffleAASequence_target_sequence_00, 0.0, 42, 20);
   TEST_EQUAL(shuffleAASequence_result_00.sequence, shuffleAASequence_expected_00.sequence)
@@ -151,7 +151,7 @@ START_SECTION(OpenMS::TargetedExperiment::Peptide shufflePeptide(OpenMS::Targete
   OpenMS::TargetedExperiment::Peptide shuffleAASequence_target_sequence_01b;
   shuffleAASequence_target_sequence_01b.sequence = "TESTPEPTIDE";
   OpenMS::TargetedExperiment::Peptide shuffleAASequence_expected_01b;
-  shuffleAASequence_expected_01b.sequence = "TNGCADQQEAE";
+  shuffleAASequence_expected_01b.sequence = "TQEVAATTIIE";
   OpenMS::TargetedExperiment::Peptide shuffleAASequence_result_01b;
   shuffleAASequence_result_01b = gen.shufflePeptide(shuffleAASequence_target_sequence_01b, 0.2, 42, 10000);
   TEST_EQUAL(shuffleAASequence_result_01b.sequence, shuffleAASequence_expected_01b.sequence)
@@ -159,7 +159,7 @@ START_SECTION(OpenMS::TargetedExperiment::Peptide shufflePeptide(OpenMS::Targete
   OpenMS::TargetedExperiment::Peptide shuffleAASequence_target_sequence_00b;
   shuffleAASequence_target_sequence_00b.sequence = "TESTPEPTIDE";
   OpenMS::TargetedExperiment::Peptide shuffleAASequence_expected_00b;
-  shuffleAASequence_expected_00b.sequence = "TNDQIADNNEE";
+  shuffleAASequence_expected_00b.sequence = "TFGAQGEAHGE";
   OpenMS::TargetedExperiment::Peptide shuffleAASequence_result_00b;
   shuffleAASequence_result_00b = gen.shufflePeptide(shuffleAASequence_target_sequence_00b, 0.0, 42, 2000);
   TEST_EQUAL(shuffleAASequence_result_00b.sequence, shuffleAASequence_expected_00b.sequence)
@@ -308,7 +308,7 @@ START_SECTION([EXTRA] shuffle_peptide_with_KPR)
   MRMDecoy gen;
   OpenMS::TargetedExperiment::Peptide peptide;
   peptide.sequence = "KPRKPRPK";
-  OpenMS::String expected_sequence = "KNRKPRPK";
+  OpenMS::String expected_sequence = "KPDKPRPK";
   OpenMS::TargetedExperiment::Peptide shuffled = gen.shufflePeptide(peptide, 0.7, 130, 17);
   TEST_EQUAL(shuffled.sequence, expected_sequence)
 }

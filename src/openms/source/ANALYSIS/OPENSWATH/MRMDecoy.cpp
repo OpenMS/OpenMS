@@ -15,9 +15,7 @@
 
 #include <boost/assign.hpp>
 #include <boost/lexical_cast.hpp>
-#include <boost/random/mersenne_twister.hpp>
-#include <boost/random/uniform_int.hpp>
-#include <boost/random/variate_generator.hpp>
+#include <random>
 #include <boost/unordered_map.hpp>
 #include <unordered_set>
 
@@ -114,9 +112,7 @@ namespace OpenMS
     OpenMS::TargetedExperiment::Peptide shuffled = peptide;
 
     //TODO use Math::RandomShuffler (=same approach) and put this rather general method somewhere more prominent.
-    boost::mt19937 generator(seed);
-    boost::uniform_int<> uni_dist;
-    boost::variate_generator<boost::mt19937&, boost::uniform_int<> > pseudoRNG(generator, uni_dist);
+    std::mt19937 generator(seed);
 
     std::string aa[] =
     {
@@ -161,7 +157,8 @@ namespace OpenMS
           // swap current position with random element from vector
           // swapping positions are random in range [0, current_position + 1)
           // which can be at most [0, n)
-          std::iter_swap(pI_it, peptide_index.begin() + pseudoRNG((pI_it - peptide_index.begin()) + 1));
+          std::uniform_int_distribution<> dist(0, (pI_it - peptide_index.begin()));
+          std::iter_swap(pI_it, peptide_index.begin() + dist(generator));
         }
       }
 
@@ -206,13 +203,15 @@ namespace OpenMS
       if (attempts % 10 == 9)
       {
         OpenMS::AASequence shuffled_sequence = TargetedExperimentHelper::getAASequence(shuffled);
-        int res_pos = (pseudoRNG() % aa_size);
+        std::uniform_int_distribution<> aa_dist(0, aa_size - 1);
+        int res_pos = aa_dist(generator);
         int pep_pos = -1;
         size_t pos_trials = 0;
+        std::uniform_int_distribution<> pos_dist(0, shuffled_sequence.size() - 1);
         while (pep_pos < 0 && pos_trials < shuffled_sequence.size())
         {
           // select position to mutate (and ensure we are not changing N/C terminus or any modified position doing it)
-          pep_pos = (pseudoRNG() % shuffled_sequence.size());
+          pep_pos = pos_dist(generator);
           if (shuffled_sequence[pep_pos].isModified() || (pep_pos == 0) || (pep_pos == (int)(shuffled_sequence.size() - 1)))
           {
             pep_pos = -1;
@@ -315,9 +314,7 @@ namespace OpenMS
     };
     int aa_size = 17;
 
-    static boost::mt19937 generator(42);
-    static boost::uniform_int<> uni_dist;
-    static boost::variate_generator<boost::mt19937&, boost::uniform_int<> > pseudoRNG(generator, uni_dist);
+    static std::mt19937 generator(42);
 
     Size lastAA = peptide.sequence.size() - 1;
     if (peptide.sequence[lastAA] == 'K')
@@ -331,7 +328,8 @@ namespace OpenMS
     else
     {
       // randomize
-      int res_pos = (pseudoRNG() % aa_size);
+      std::uniform_int_distribution<> dist(0, aa_size - 1);
+      int res_pos = dist(generator);
       peptide.sequence[lastAA] = (char)aa[res_pos][0];
     }
   }

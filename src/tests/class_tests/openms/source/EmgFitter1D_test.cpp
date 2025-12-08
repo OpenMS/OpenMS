@@ -13,15 +13,13 @@
 
 #include <OpenMS/FEATUREFINDER/EmgFitter1D.h>
 #include <OpenMS/FEATUREFINDER/EmgModel.h>
-#include <boost/random/normal_distribution.hpp>
-#include <boost/random/mersenne_twister.hpp>
+#include <random>
 #include <algorithm>
 
 ///////////////////////////
 
 using namespace OpenMS;
 using namespace std;
-using boost::normal_distribution;
 
 START_TEST(EmgFitter1D, "$Id$")
 
@@ -116,11 +114,11 @@ START_SECTION((QualityType fit1d(const  RawDataArrayType &range, InterpolationMo
 
 	//shake the samples a little with varying variance (difficult test for fitter)
 	EmgModel::SamplesType unexact_samples;
-	boost::mt19937 rng;//random number generator
+	std::mt19937 rng;//random number generator
 	for(unsigned i=0; i<samples.size(); ++i)
   {
 
-	  boost::normal_distribution<double> distInt (samples.at(i).getIntensity(), samples.at(i).getIntensity()/100); //use sample intensity as mean
+	  std::normal_distribution<double> distInt (samples.at(i).getIntensity(), samples.at(i).getIntensity()/100); //use sample intensity as mean
 	  Peak1D p (samples.at(i).getPosition()[0], distInt(rng));
 	  std::cout << "point: (" <<  samples.at(i).getPosition()[0] << ", " << samples.at(i).getIntensity() << ") -> (" <<  p.getPosition()[0] << ", " << p.getIntensity() << ")" << std::endl;
 	  unexact_samples.push_back(p);

@@ -16,8 +16,7 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 
 
-#include <boost/random/mersenne_twister.hpp>
-#include <boost/random/uniform_int_distribution.hpp>
+#include <random>
 
 using namespace OpenMS;
 using namespace std;
@@ -180,9 +179,9 @@ protected:
 
     FASTAFile::FASTAEntry fe;
     
-    boost::random::mt19937 gen; // for cross-platform reproducibility
-    boost::random::uniform_int_distribution<> rng_X(0, AA::unambiguousAACount() - 1); // roll for unambiguous AA (boost uses a closed interval, i.e. [0, 21] for 22 unambiguous AA's)
-    boost::random::uniform_int_distribution<> rng_2(0, 1); // coin flip
+    std::mt19937 gen; // for cross-platform reproducibility
+    std::uniform_int_distribution<> rng_X(0, AA::unambiguousAACount() - 1); // roll for unambiguous AA (std uses a closed interval, i.e. [0, 21] for 22 unambiguous AA's)
+    std::uniform_int_distribution<> rng_2(0, 1); // coin flip
 
     while (ff.readNext(fe))
     {

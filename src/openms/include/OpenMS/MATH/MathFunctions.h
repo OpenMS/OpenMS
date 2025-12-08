@@ -13,8 +13,7 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/KERNEL/RangeManager.h>
 
-#include <boost/random/mersenne_twister.hpp> // for mt19937_64
-#include <boost/random/uniform_int.hpp>
+#include <random> // for std::mt19937_64
 #include <cmath>
 #include <boost/math/special_functions/binomial.hpp>
 #include <boost/math/special_functions/gamma.hpp>
@@ -476,24 +475,24 @@ namespace Math
   class OPENMS_DLLAPI RandomShuffler
   {
   public:
-    explicit RandomShuffler(int seed): rng_(boost::mt19937_64(seed))
+    explicit RandomShuffler(int seed): rng_(std::mt19937_64(seed))
     {
     }
 
-    explicit RandomShuffler(const boost::mt19937_64& mt_rng): rng_(mt_rng)
+    explicit RandomShuffler(const std::mt19937_64& mt_rng): rng_(mt_rng)
     {
     }
 
     RandomShuffler() = default;
     ~RandomShuffler() = default;
 
-    boost::mt19937_64 rng_;
+    std::mt19937_64 rng_;
     template<class RandomAccessIterator>
     void portable_random_shuffle(RandomAccessIterator first, RandomAccessIterator last)
     {
       for (auto i = (last - first) - 1; i > 0; --i) // OMS_CODING_TEST_EXCLUDE
       {
-        boost::uniform_int<decltype(i)> d(0, i);
+        std::uniform_int_distribution<decltype(i)> d(0, i);
         std::swap(first[i], first[d(rng_)]);
       }
     }

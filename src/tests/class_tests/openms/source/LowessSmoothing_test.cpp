@@ -11,8 +11,7 @@
 
 ///////////////////////////
 #include <OpenMS/PROCESSING/SMOOTHING/LowessSmoothing.h>
-#include <boost/random/mersenne_twister.hpp>
-#include <boost/random/normal_distribution.hpp>
+#include <random>
 ///////////////////////////
 
 using namespace OpenMS;
@@ -56,10 +55,10 @@ for (double i = 1.0; i <= 20.0; i += 1.0)
 //noisy data
 // make some noise
 
-boost::random::mt19937 rnd_gen_;
+std::mt19937 rnd_gen_;
 for (Size i = 0; i < y.size(); ++i)
 {
-  boost::normal_distribution<float> udist (y.at(i), 0.05);
+  std::normal_distribution<float> udist (y.at(i), 0.05);
   y_noisy.push_back( udist(rnd_gen_) );
 }
 
