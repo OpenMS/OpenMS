@@ -13,7 +13,7 @@ PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
 
 
 ------------------------------------------------------------------------------------------
-----                                OpenMS 3.5.0     (under development)              ----
+----                                OpenMS 3.5.0     (Released December 2025)         ----
 ------------------------------------------------------------------------------------------
 NOTICE: 3.5.0 is going to be the last official release for MacOS on Intel processors.
 If you need support for OpenMS on that platform moving forward, please contact us.
@@ -95,6 +95,9 @@ TOPP tools:
     - IsobaricWorkflow (experimental) - Simple, targeted, fast workflow for isobaric quantification (#7298)
   Removed Tools:
     - OpenPepXLLF - Experimental search for cross-linked peptide pairs in tandem MS spectra (showed inferior performance in benchmarks)
+    - IDMassAccuracy - Calculates a distribution of the mass error from given mass spectra and IDs
+    - SpecLibCreator - Creates an MSP formatted spectral library
+    - SpecLibSearcher - Identifies peptide MS/MS spectra by spectral matching with a searchable spectral library
 
 GUI tools:
  - fix TOPPAS crash when using TOPP tools with multiple output formats (#8120)
