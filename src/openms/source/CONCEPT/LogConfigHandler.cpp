@@ -111,9 +111,10 @@ namespace OpenMS
           const String & stream_type = commands[3];
 
           // check if a stream with the same name, but different type was already registered
-          if (stream_type_map_.count(stream_name) != 0)
+          auto existing = stream_type_map_.find(stream_name);
+          if (existing != stream_type_map_.end())
           {
-            if (stream_type_map_[stream_name] != getStreamTypeByName_(stream_type))
+            if (existing->second != getStreamTypeByName_(stream_type))
             {
               throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "A stream with the same name but different type was already registered.");
             }
@@ -344,9 +345,10 @@ namespace OpenMS
 
   std::ostream & LogConfigHandler::getStream(const String & name)
   {
-    if (stream_type_map_.count(name) != 0)
+    auto it = stream_type_map_.find(name);
+    if (it != stream_type_map_.end())
     {
-      return STREAM_HANDLER.getStream(stream_type_map_[name], name);
+      return STREAM_HANDLER.getStream(it->second, name);
     }
     else
     {
