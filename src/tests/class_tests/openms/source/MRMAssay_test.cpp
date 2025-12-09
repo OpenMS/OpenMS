@@ -632,7 +632,6 @@ START_SECTION(void uisTransitions(OpenMS::TargetedExperiment& exp, std::vector<S
 
   String out2 = "MRMAssay_uisTransitions_output_2.TraML";
 
-
   TargetedExperiment targeted_exp2 = targeted_exp;
 
   mrma.uisTransitions(targeted_exp2, fragment_types2, fragment_charges2, enable_specific_losses2, enable_unspecific_losses2, enable_ms2_precursors2, product_mz_threshold2, swathes, -4, 20, 42, true);
