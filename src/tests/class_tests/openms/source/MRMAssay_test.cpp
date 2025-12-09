@@ -611,22 +611,16 @@ START_SECTION(void uisTransitions(OpenMS::TargetedExperiment& exp, std::vector<S
   bool enable_ms2_precursors1 = false;
   double product_mz_threshold1 = 0.05;
 
-#if OPENMS_BOOST_VERSION_MINOR < 56
   String out1 = "MRMAssay_uisTransitions_output_1.TraML";
-#else
-  String out1 = "MRMAssay_uisTransitions_output_1_boost58.TraML";
-#endif
 
   TargetedExperiment targeted_exp1 = targeted_exp;
 
-  mrma.uisTransitions(targeted_exp1, fragment_types1, fragment_charges1, enable_specific_losses1, enable_unspecific_losses1, enable_ms2_precursors1, product_mz_threshold1, swathes, -4, 20, 42);
+  mrma.uisTransitions(targeted_exp1, fragment_types1, fragment_charges1, enable_specific_losses1, enable_unspecific_losses1, enable_ms2_precursors1, product_mz_threshold1, swathes, -4, 20, 42, true);
 
   String test1;
   NEW_TMP_FILE(test1);
   traml.store(test1, targeted_exp1);
-#if !defined(__APPLE__) // currently fails on macOS likely due to different boost version and different random number generator
   TEST_FILE_SIMILAR(test1.c_str(), OPENMS_GET_TEST_DATA_PATH(out1))
-#endif
   std::vector<String> fragment_types2;
   fragment_types2.push_back(String("y"));
   std::vector<size_t> fragment_charges2;
@@ -636,15 +630,12 @@ START_SECTION(void uisTransitions(OpenMS::TargetedExperiment& exp, std::vector<S
   bool enable_ms2_precursors2 = false;
   double product_mz_threshold2 = 0.05;
 
-#if OPENMS_BOOST_VERSION_MINOR < 56
   String out2 = "MRMAssay_uisTransitions_output_2.TraML";
-#else
-  String out2 = "MRMAssay_uisTransitions_output_2_boost58.TraML";
-#endif
+
 
   TargetedExperiment targeted_exp2 = targeted_exp;
 
-  mrma.uisTransitions(targeted_exp2, fragment_types2, fragment_charges2, enable_specific_losses2, enable_unspecific_losses2, enable_ms2_precursors2, product_mz_threshold2, swathes, -4, 20, 42);
+  mrma.uisTransitions(targeted_exp2, fragment_types2, fragment_charges2, enable_specific_losses2, enable_unspecific_losses2, enable_ms2_precursors2, product_mz_threshold2, swathes, -4, 20, 42, true);
 
   String test2;
   NEW_TMP_FILE(test2);
@@ -707,23 +698,17 @@ START_SECTION(void uisTransitions(OpenMS::TargetedExperiment& exp, std::vector<S
   bool enable_ms2_precursors1 = false;
   double product_mz_threshold1 = 0.05;
 
-#if OPENMS_BOOST_VERSION_MINOR < 56
   String out1 = "MRMAssay_uisTransitions_output_3.TraML";
-#else
-  String out1 = "MRMAssay_uisTransitions_output_3_boost58.TraML";
-#endif
 
   TargetedExperiment targeted_exp1 = targeted_exp;
 
-  mrma.uisTransitions(targeted_exp1, fragment_types1, fragment_charges1, enable_losses1, enable_losses1, enable_ms2_precursors1, product_mz_threshold1, swathes, -4, 20, 42);
+  mrma.uisTransitions(targeted_exp1, fragment_types1, fragment_charges1, enable_losses1, enable_losses1, enable_ms2_precursors1, product_mz_threshold1, swathes, -4, 20, 42, true);
 
   String test1;
   NEW_TMP_FILE(test1);
   traml.store(test1, targeted_exp1);
 	   
-#if !defined(__APPLE__) // currently fails on macOS likely due to different boost version and different random number generator
  TEST_FILE_SIMILAR(test1.c_str(), OPENMS_GET_TEST_DATA_PATH(out1)) 
-#endif
 	
   std::vector<String> fragment_types2;
   fragment_types2.push_back(String("y"));
@@ -735,23 +720,17 @@ START_SECTION(void uisTransitions(OpenMS::TargetedExperiment& exp, std::vector<S
   bool enable_ms2_precursors2 = false;
   double product_mz_threshold2 = 0.05;
 
-#if OPENMS_BOOST_VERSION_MINOR < 56
   String out2 = "MRMAssay_uisTransitions_output_4.TraML";
-#else
-  String out2 = "MRMAssay_uisTransitions_output_4_boost58.TraML";
-#endif
 
   TargetedExperiment targeted_exp2 = targeted_exp;
 
-  mrma.uisTransitions(targeted_exp2, fragment_types2, fragment_charges2, enable_losses2, enable_losses2, enable_ms2_precursors2, product_mz_threshold2, swathes, -4, 20, 42);
+  mrma.uisTransitions(targeted_exp2, fragment_types2, fragment_charges2, enable_losses2, enable_losses2, enable_ms2_precursors2, product_mz_threshold2, swathes, -4, 20, 42, true);
 
   String test2;
   NEW_TMP_FILE(test2);
   traml.store(test2, targeted_exp2);
 
-#if !defined(__APPLE__) // currently fails on macOS likely due to different boost version and different random number generator
  TEST_FILE_SIMILAR(test2.c_str(), OPENMS_GET_TEST_DATA_PATH(out2)) 
-#endif
 	
   std::vector<String> fragment_types3;
   fragment_types3.push_back(String("y"));
@@ -763,23 +742,17 @@ START_SECTION(void uisTransitions(OpenMS::TargetedExperiment& exp, std::vector<S
   bool enable_ms2_precursors3 = true;
   double product_mz_threshold3 = 0.05;
 
-#if OPENMS_BOOST_VERSION_MINOR < 56
   String out3 = "MRMAssay_uisTransitions_output_5.TraML";
-#else
-  String out3 = "MRMAssay_uisTransitions_output_5_boost58.TraML";
-#endif
 
   TargetedExperiment targeted_exp3 = targeted_exp;
 
-  mrma.uisTransitions(targeted_exp3, fragment_types3, fragment_charges3, enable_losses3, enable_losses3, enable_ms2_precursors3, product_mz_threshold3, swathes, -4, 20, 42);
+  mrma.uisTransitions(targeted_exp3, fragment_types3, fragment_charges3, enable_losses3, enable_losses3, enable_ms2_precursors3, product_mz_threshold3, swathes, -4, 20, 42, true);
 
   String test3;
   NEW_TMP_FILE(test3);
   traml.store(test3, targeted_exp3);
 
-#if !defined(__APPLE__) // currently fails on macOS likely due to different boost version and different random number generator
  TEST_FILE_SIMILAR(test3.c_str(), OPENMS_GET_TEST_DATA_PATH(out3)) 
-#endif	
 }
 
 END_SECTION
