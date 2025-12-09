@@ -52,14 +52,6 @@ jobs:
             # VS 2019: 14.20-14.29 (corresponds to MSVC v142)
             compiler_ver: 14.36    # Specific toolset version for VS 2022 -- must (roughly) match Qt6 compiler (see below)
 
-          - os: macos-15-intel
-            # Since the appleclang version is dependent on the XCode versions that are installed
-            #  on the GH runners, use this as the choice for a specific version
-            # TODO currently unused but XCode/appleclang is the default
-            compiler: xcode
-            # TODO implement support for other versions
-            compiler_ver: "16.0.0"
-
           - os: macos-26
             # Since the appleclang version is dependent on the XCode versions that are installed
             #  on the GH runners, use this as the choice for a specific version
@@ -170,7 +162,7 @@ jobs:
 
     # Create the changelog for the release from our overall changelog
     - id: create_changelog
-      if: matrix.compiler != 'clang++' && startsWith(steps.extract_branch.outputs.RUN_NAME,'release') && startsWith(matrix.os, 'ubuntu') && runner.arch == 'arm64'
+      if: matrix.compiler != 'clang++' && startsWith(steps.extract_branch.outputs.RUN_NAME,'release') && startsWith(matrix.os, 'ubuntu') && runner.arch z= 'arm64'
       shell: bash
       name: Create changelog for release on Ubuntu + GCC
       run: |
