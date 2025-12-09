@@ -523,7 +523,18 @@ Function .onInit
     ## now our own code:
     !insertmacro MULTIUSER_INIT
     !insertmacro UNINSTALL.LOG_PREPARE_INSTALL
-
+    
+    # Early elevation check: If the default install mode is "AllUsers" (MULTIUSER_INSTALLMODE_DEFAULT_ALLUSERS=1)
+    # and user is not admin, MULTIUSER_INIT sets mode to AllUsers but doesn't elevate immediately.
+    # Without this check, the installer would show splash screen, check for previous versions, and
+    # start unpacking before requesting elevation, causing the installer to restart and lose progress.
+    # By elevating here immediately after MULTIUSER_INIT, we avoid wasting time on these operations.
+    ${if} $IsInnerInstance = 0  ; Only check in outer instance (not already elevated)
+        ${andif} $IsAdmin = 0  ; User is not an administrator
+        ${andif} $MultiUser.InstallMode == "AllUsers"  ; AllUsers mode requires elevation
+        Call MultiUser.Elevate  ; Request elevation now, will restart installer with admin rights
+    ${endif}
+    
     # Command line options for silent install (with "/S")
 
     # Get parameters
