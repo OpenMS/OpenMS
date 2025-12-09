@@ -43,14 +43,14 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: windows-2022
+          - os: windows-2025
             # cl.exe is currently the only supported. Needs a VS shell to be set up (especially if used without VS CMake Generator)
             # clang.exe is also installed but untested (might crash with our VS specific compiler definitions)
             # clang-cl.exe might be used instead.
             compiler: cl.exe
             # VS 2022: 14.30-14.39 (corresponds to MSVC v143)
             # VS 2019: 14.20-14.29 (corresponds to MSVC v142)
-            compiler_ver: 14.36    # Specific toolset version for VS 2022 -- must (roughly) match Qt6 compiler (see below)
+            compiler_ver: 14.44   # Specific toolset version for VS 2022 -- must (roughly) match Qt6 compiler (see below)
 
           - os: macos-26
             # Since the appleclang version is dependent on the XCode versions that are installed
@@ -62,20 +62,20 @@ jobs:
 
           # Make sure the compilers are available in that version on the GH runners
           # We are not installing anything.
-          - os: ubuntu-22.04
+          - os: ubuntu-24.04
             compiler: g++
 
-            compiler_ver: 11
+            compiler_ver: 13
           # Make sure the compilers are available in that version on the GH runners
           # We are not installing anything.
           
-          - os: ubuntu-22.04-arm
+          - os: ubuntu-24.04-arm
             compiler: g++
-            compiler_ver: 11
+            compiler_ver: 13
 
-          - os: ubuntu-22.04
+          - os: ubuntu-24.04
             compiler: clang++
-            compiler_ver: 15
+            compiler_ver: 17
     outputs:
       version_number: ${{ steps.create_changelog.outputs.version_number }}
 
