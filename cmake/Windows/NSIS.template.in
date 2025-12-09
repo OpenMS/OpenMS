@@ -524,6 +524,15 @@ Function .onInit
     !insertmacro MULTIUSER_INIT
     !insertmacro UNINSTALL.LOG_PREPARE_INSTALL
 
+    # Check if elevation is required immediately after MULTIUSER_INIT to avoid
+    # unpacking and showing UI before restarting with elevated privileges
+    ${if} $IsInnerInstance = 0  ; Only check in outer instance
+        ${andif} $IsAdmin = 0  ; User is not admin
+        ${andif} $MultiUser.InstallMode == "AllUsers"  ; AllUsers mode is selected
+        # Elevation is required, trigger it now before splash screen and other operations
+        Call MultiUser.Elevate
+    ${endif}
+
     # Command line options for silent install (with "/S")
 
     # Get parameters
