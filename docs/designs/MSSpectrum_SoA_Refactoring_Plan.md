@@ -40,6 +40,9 @@ class MSSpectrum : public RangeManagerContainer<...>, public SpectrumSettings {
 11. [TOPP Tools Migration](#11-topp-tools-migration)
 12. [Risk Assessment](#12-risk-assessment)
 13. [Success Metrics](#13-success-metrics)
+14. [Appendix A: File List](#appendix-a-file-list)
+15. [Appendix B: API Quick Reference](#appendix-b-api-quick-reference)
+16. [Appendix C: Future Extensibility](#appendix-c-future-extensibility---adding-new-dimensions)
 
 ---
 
@@ -1125,6 +1128,324 @@ void push_back(const Peak1D&);
 
 ---
 
-*Document Version: 1.0*
+## Appendix C: Future Extensibility - Adding New Dimensions
+
+This section discusses architectural considerations for extending MSSpectrum with additional per-peak dimensions beyond m/z, intensity, and ion mobility.
+
+### C.1 Potential Future Dimensions
+
+| Dimension | Type | Use Case |
+|-----------|------|----------|
+| Collision Cross Section (CCS) | `float` | Ion mobility calibrated measurements |
+| Peak Width / FWHM | `float` | Peak shape characterization |
+| Signal-to-Noise Ratio | `float` | Quality metrics |
+| Charge State | `int8_t` | Per-peak charge annotation |
+| Isotope Cluster ID | `int32_t` | Grouping isotopic peaks |
+| Retention Time (per-peak) | `float` | 2D chromatographic separations |
+| Peak Quality Score | `float` | Machine learning quality predictions |
+| Baseline | `float` | Local baseline estimates |
+
+### C.2 Design Options for Extensibility
+
+#### Option A: Explicit Named Members (Current Approach for IM)
+
+Add each new dimension as an explicit member:
+
+```cpp
+class MSSpectrum {
+    std::vector<double> mz_;
+    std::vector<float> intensity_;
+    std::vector<float> ion_mobility_;
+    std::vector<float> ccs_;              // New
+    std::vector<float> peak_width_;       // New
+    std::vector<int8_t> charge_state_;    // New
+    // ...
+};
+```
+
+**Pros:**
+- Type-safe access
+- Clear API: `getCCSArray()`, `getChargeStateArray()`
+- Compile-time errors for invalid access
+- Best performance (no indirection)
+
+**Cons:**
+- Requires code changes for each new dimension
+- Class grows with each addition
+- All dimensions always present (even if empty)
+
+#### Option B: Templated Dimension Registry
+
+Use a type-safe registry pattern:
+
+```cpp
+// Dimension tag types
+struct DimensionMZ {};
+struct DimensionIntensity {};
+struct DimensionIonMobility {};
+struct DimensionCCS {};
+
+template<typename Dim> struct DimensionTraits;
+template<> struct DimensionTraits<DimensionMZ> {
+    using value_type = double;
+    static constexpr const char* name = "mz";
+};
+template<> struct DimensionTraits<DimensionIonMobility> {
+    using value_type = float;
+    static constexpr const char* name = "ion_mobility";
+    static constexpr bool optional = true;
+};
+
+class MSSpectrum {
+    // Core storage
+    std::vector<double> mz_;
+    std::vector<float> intensity_;
+
+    // Optional dimensions stored in type-erased map
+    std::unordered_map<std::type_index, std::any> optional_dimensions_;
+
+public:
+    template<typename Dim>
+    const std::vector<typename DimensionTraits<Dim>::value_type>&
+    getDimension() const;
+
+    template<typename Dim>
+    bool hasDimension() const;
+
+    template<typename Dim>
+    void setDimension(std::vector<typename DimensionTraits<Dim>::value_type> data);
+};
+
+// Usage:
+spec.setDimension<DimensionCCS>(ccs_values);
+if (spec.hasDimension<DimensionCCS>()) {
+    const auto& ccs = spec.getDimension<DimensionCCS>();
+}
+```
+
+**Pros:**
+- Type-safe at compile time
+- Extensible without modifying MSSpectrum class
+- Only stores dimensions that are used
+- Clear, expressive API
+
+**Cons:**
+- `std::any` has overhead (type erasure, heap allocation)
+- More complex implementation
+- Requires C++17
+
+#### Option C: Named Dimension Map with Type Variants
+
+Use a string-keyed map with variant types:
+
+```cpp
+class MSSpectrum {
+    std::vector<double> mz_;
+    std::vector<float> intensity_;
+    std::vector<float> ion_mobility_;
+
+    // Extensible typed arrays
+    using DimensionVariant = std::variant<
+        std::vector<float>,
+        std::vector<double>,
+        std::vector<int32_t>,
+        std::vector<int8_t>
+    >;
+    std::unordered_map<std::string, DimensionVariant> extra_dimensions_;
+
+public:
+    template<typename T>
+    const std::vector<T>& getExtraDimension(const std::string& name) const {
+        return std::get<std::vector<T>>(extra_dimensions_.at(name));
+    }
+
+    template<typename T>
+    void setExtraDimension(const std::string& name, std::vector<T> data) {
+        extra_dimensions_[name] = std::move(data);
+    }
+
+    bool hasExtraDimension(const std::string& name) const {
+        return extra_dimensions_.count(name) > 0;
+    }
+};
+
+// Usage:
+spec.setExtraDimension<float>("ccs", ccs_values);
+spec.setExtraDimension<int8_t>("charge", charge_values);
+const auto& ccs = spec.getExtraDimension<float>("ccs");
+```
+
+**Pros:**
+- Fully extensible at runtime
+- No class modification needed for new dimensions
+- Supports different data types via variant
+
+**Cons:**
+- String keys are error-prone (typos)
+- Type must be specified at call site
+- Some runtime overhead
+
+#### Option D: Hybrid Approach (Recommended for Future)
+
+Keep core dimensions as explicit members, use typed registry for extensions:
+
+```cpp
+class MSSpectrum {
+    // ═══════════════════════════════════════════════════════════════
+    // CORE DIMENSIONS (always present conceptually, SoA layout)
+    // ═══════════════════════════════════════════════════════════════
+    std::vector<double> mz_;
+    std::vector<float> intensity_;
+
+    // ═══════════════════════════════════════════════════════════════
+    // WELL-KNOWN OPTIONAL DIMENSIONS (first-class support)
+    // ═══════════════════════════════════════════════════════════════
+    std::vector<float> ion_mobility_;
+    DriftTimeUnit ion_mobility_unit_ = DriftTimeUnit::NONE;
+
+    std::vector<float> ccs_;              // Collision cross section
+    std::vector<float> peak_fwhm_;        // Peak width
+
+    // ═══════════════════════════════════════════════════════════════
+    // EXTENSIBLE DIMENSIONS (for future/custom needs)
+    // ═══════════════════════════════════════════════════════════════
+    struct TypedArray {
+        enum class Type { Float, Double, Int32, Int8, String };
+        Type type;
+        std::string name;
+        std::variant<
+            std::vector<float>,
+            std::vector<double>,
+            std::vector<int32_t>,
+            std::vector<int8_t>,
+            std::vector<std::string>
+        > data;
+    };
+    std::vector<TypedArray> extra_dimensions_;
+
+public:
+    // Well-known dimensions have dedicated API
+    bool hasCCS() const { return !ccs_.empty(); }
+    const std::vector<float>& getCCSArray() const { return ccs_; }
+
+    // Extension dimensions use generic API
+    template<typename T>
+    void addDimension(const std::string& name, std::vector<T> data);
+
+    template<typename T>
+    const std::vector<T>& getDimension(const std::string& name) const;
+};
+```
+
+### C.3 Synchronization Requirements
+
+Any new dimension must participate in:
+
+1. **Sorting:** When `sortByPosition()` is called, all dimension arrays must be permuted
+2. **Selection:** `select(indices)` must filter all arrays
+3. **Resize/Clear:** All arrays must be resized together
+4. **Validation:** Size consistency checks across all arrays
+
+```cpp
+void MSSpectrum::applyPermutation(const std::vector<Size>& indices) {
+    mz_ = permute(mz_, indices);
+    intensity_ = permute(intensity_, indices);
+
+    if (hasIonMobilityArray()) {
+        ion_mobility_ = permute(ion_mobility_, indices);
+    }
+    if (hasCCS()) {
+        ccs_ = permute(ccs_, indices);
+    }
+
+    // Permute all extension dimensions
+    for (auto& dim : extra_dimensions_) {
+        std::visit([&indices](auto& vec) {
+            vec = permute(vec, indices);
+        }, dim.data);
+    }
+
+    // Permute metadata arrays (existing)
+    for (auto& arr : float_data_arrays_) {
+        if (arr.size() == indices.size()) {
+            arr = permute(arr, indices);
+        }
+    }
+}
+```
+
+### C.4 File Format Considerations
+
+New dimensions need serialization support:
+
+| Format | Approach |
+|--------|----------|
+| mzML | Add as new CV-termed binary data arrays |
+| mzXML | Not supported (format is legacy) |
+| SQLite/sqMass | Add new columns or JSON blob |
+| Cached binary | Include in serialized layout |
+
+```xml
+<!-- Example mzML encoding for CCS -->
+<binaryDataArray encodedLength="...">
+  <cvParam cvRef="MS" accession="MS:XXXXXXX" name="collision cross section array"/>
+  <binary>...</binary>
+</binaryDataArray>
+```
+
+### C.5 pyOpenMS Binding Pattern
+
+For each new dimension, add Python methods:
+
+```python
+# In MSSpectrum.pyx
+def has_ccs_array(self):
+    return self.inst.get().hasCCS()
+
+def get_ccs_array(self):
+    if not self.has_ccs_array():
+        return None
+    cdef const vector[float]* ccs = &self.inst.get().getCCSArray()
+    return np.array(<float[:ccs.size()]>ccs.data(), dtype=np.float32)
+
+def set_ccs_array(self, np.ndarray[float, ndim=1] ccs):
+    cdef vector[float] ccs_vec
+    ccs_vec.assign(&ccs[0], &ccs[0] + len(ccs))
+    self.inst.get().setCCSArray(move(ccs_vec))
+```
+
+### C.6 Recommendations
+
+1. **Short-term (this refactoring):** Implement IM as first-class; keep FloatDataArrays for other metadata
+
+2. **Medium-term:** If CCS becomes commonly used, promote it to first-class member
+
+3. **Long-term:** If >3 optional dimensions become common:
+   - Consider Option D (hybrid approach)
+   - Implement compile-time dimension traits for type safety
+   - Add generic iteration over all dimensions for bulk operations
+
+4. **Design principle:**
+   - Core dimensions (m/z, intensity) are always explicit members
+   - Frequently-used optional dimensions get first-class API
+   - Rare/experimental dimensions use the extensible mechanism
+   - Never sacrifice type safety for convenience
+
+### C.7 Migration Path for New Dimensions
+
+When adding a new first-class dimension (e.g., CCS):
+
+1. Add member variable and unit enum if applicable
+2. Add accessor methods (`hasCCS()`, `getCCSArray()`, etc.)
+3. Update `applyPermutation()` and `select()`
+4. Update `clear()` and `resize()`
+5. Update file I/O handlers (mzML priority)
+6. Update pyOpenMS bindings
+7. Add tests
+8. Document CV terms and units
+
+---
+
+*Document Version: 1.1*
 *Date: 2025-01-10*
 *Author: Claude (AI Assistant)*
