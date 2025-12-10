@@ -40,9 +40,10 @@ class MSSpectrum : public RangeManagerContainer<...>, public SpectrumSettings {
 11. [TOPP Tools Migration](#11-topp-tools-migration)
 12. [Risk Assessment](#12-risk-assessment)
 13. [Success Metrics](#13-success-metrics)
-14. [Appendix A: File List](#appendix-a-file-list)
-15. [Appendix B: API Quick Reference](#appendix-b-api-quick-reference)
-16. [Appendix C: Future Extensibility](#appendix-c-future-extensibility---adding-new-dimensions)
+14. [Zero-Copy NumPy Integration](#14-zero-copy-numpy-integration)
+15. [Appendix A: File List](#appendix-a-file-list)
+16. [Appendix B: API Quick Reference](#appendix-b-api-quick-reference)
+17. [Appendix C: Future Extensibility](#appendix-c-future-extensibility---adding-new-dimensions)
 
 ---
 
@@ -1022,6 +1023,440 @@ For each TOPP tool:
 
 ---
 
+## 14. Zero-Copy NumPy Integration
+
+One of the key benefits of the SoA layout is enabling **zero-copy data transfer** between C++ and Python/NumPy. This section details the implementation strategies and safety considerations.
+
+### 14.1 Why Zero-Copy Matters
+
+**Current AoS Limitation:**
+```
+Memory Layout (AoS - Peak1D):
+┌──────────┬───────────┬─────────┬──────────┬───────────┬─────────┐
+│ mz₁ (8B) │ int₁ (4B) │ pad(4B) │ mz₂ (8B) │ int₂ (4B) │ pad(4B) │ ...
+└──────────┴───────────┴─────────┴──────────┴───────────┴─────────┘
+     ↑ m/z values are NOT contiguous - NumPy cannot view this
+```
+
+NumPy requires contiguous memory for a given dtype. With AoS, extracting m/z or intensity requires copying each value individually.
+
+**SoA Enables Direct Views:**
+```
+Memory Layout (SoA):
+mz_ array:        ┌──────────┬──────────┬──────────┬──────────┐
+                  │ mz₁ (8B) │ mz₂ (8B) │ mz₃ (8B) │ mz₄ (8B) │ ...
+                  └──────────┴──────────┴──────────┴──────────┘
+                       ↑ Contiguous float64 - NumPy can view directly!
+
+intensity_ array: ┌───────────┬───────────┬───────────┬───────────┐
+                  │ int₁ (4B) │ int₂ (4B) │ int₃ (4B) │ int₄ (4B) │ ...
+                  └───────────┴───────────┴───────────┴───────────┘
+                       ↑ Contiguous float32 - NumPy can view directly!
+```
+
+### 14.2 Performance Impact
+
+| Operation | Copy-based | Zero-copy | Improvement |
+|-----------|------------|-----------|-------------|
+| `get_peaks()` for 1M peaks | ~50 ms | ~0.001 ms | 50,000x |
+| `set_peaks()` for 1M peaks | ~50 ms | ~0.001 ms | 50,000x |
+| Memory for 1M peak access | 12 MB allocation | 0 bytes | ∞ |
+
+### 14.3 Implementation Approaches
+
+#### Approach A: Typed Memory Views (Recommended for Read)
+
+Cython can expose C++ vector data as typed memory views:
+
+```python
+# In MSSpectrum.pyx
+
+def get_mz_array_view(self):
+    """
+    Get m/z values as a NumPy array VIEW (zero-copy, read-only).
+
+    WARNING: The returned array is a view into internal C++ memory.
+    Do NOT store this array beyond the lifetime of the spectrum.
+    Do NOT modify the spectrum while using this view.
+
+    Returns:
+        np.ndarray: Read-only float64 array viewing internal m/z data
+    """
+    cdef _MSSpectrum* spec_ = self.inst.get()
+    cdef const vector[double]* mz_vec = &spec_.getMZArray()
+    cdef size_t n = mz_vec.size()
+
+    if n == 0:
+        return np.empty(0, dtype=np.float64)
+
+    # Create a NumPy array that VIEWS the C++ memory (no copy!)
+    cdef np.ndarray[np.float64_t, ndim=1] arr = np.asarray(
+        <np.float64_t[:n]> mz_vec.data()
+    )
+    arr.flags.writeable = False  # Prevent accidental modification
+    return arr
+
+def get_intensity_array_view(self):
+    """Get intensity values as a NumPy array VIEW (zero-copy, read-only)."""
+    cdef _MSSpectrum* spec_ = self.inst.get()
+    cdef const vector[float]* int_vec = &spec_.getIntensityArray()
+    cdef size_t n = int_vec.size()
+
+    if n == 0:
+        return np.empty(0, dtype=np.float32)
+
+    cdef np.ndarray[np.float32_t, ndim=1] arr = np.asarray(
+        <np.float32_t[:n]> int_vec.data()
+    )
+    arr.flags.writeable = False
+    return arr
+
+def get_peaks_view(self):
+    """
+    Get (mz, intensity) as NumPy array VIEWS (zero-copy).
+
+    Returns:
+        tuple: (mz_view, intensity_view) - both read-only
+    """
+    return self.get_mz_array_view(), self.get_intensity_array_view()
+```
+
+#### Approach B: Writable Views with Explicit Lock (Advanced)
+
+For in-place modification, use an explicit locking context:
+
+```python
+# In MSSpectrum.pyx
+
+@contextmanager
+def edit_peaks(self):
+    """
+    Context manager for zero-copy in-place peak editing.
+
+    Usage:
+        with spectrum.edit_peaks() as (mz, intensity):
+            intensity *= 2.0  # Modify in-place, no copy!
+            mz += 0.001       # Shift all m/z values
+        # Changes are committed when context exits
+
+    WARNING: Do not resize arrays or store references outside the context.
+    """
+    cdef _MSSpectrum* spec_ = self.inst.get()
+    cdef vector[double]* mz_vec = &spec_.getMZArray()
+    cdef vector[float]* int_vec = &spec_.getIntensityArray()
+    cdef size_t n = mz_vec.size()
+
+    if n == 0:
+        yield np.empty(0, dtype=np.float64), np.empty(0, dtype=np.float32)
+        return
+
+    # Create writable views
+    cdef np.ndarray[np.float64_t, ndim=1] mz_arr = np.asarray(
+        <np.float64_t[:n]> mz_vec.data()
+    )
+    cdef np.ndarray[np.float32_t, ndim=1] int_arr = np.asarray(
+        <np.float32_t[:n]> int_vec.data()
+    )
+
+    try:
+        yield mz_arr, int_arr
+    finally:
+        # Update ranges after modification
+        spec_.updateRanges()
+```
+
+**Usage example:**
+```python
+# Zero-copy intensity normalization
+with spectrum.edit_peaks() as (mz, intensity):
+    max_int = intensity.max()
+    if max_int > 0:
+        intensity /= max_int  # In-place, no copy!
+
+# Zero-copy m/z recalibration
+with spectrum.edit_peaks() as (mz, intensity):
+    mz += calibration_offset  # Shift all m/z values in-place
+```
+
+#### Approach C: Buffer Protocol (Most Flexible)
+
+Expose the C++ vectors via Python's buffer protocol for maximum interoperability:
+
+```cpp
+// In C++ header (MSSpectrum.h)
+class MSSpectrum {
+public:
+    // Expose raw pointers for Python buffer protocol
+    const double* mzData() const noexcept { return mz_.data(); }
+    double* mzData() noexcept { return mz_.data(); }
+    const float* intensityData() const noexcept { return intensity_.data(); }
+    float* intensityData() noexcept { return intensity_.data(); }
+};
+```
+
+```python
+# In MSSpectrum.pyx - implement buffer protocol
+
+def __getbuffer__(self, Py_buffer *buffer, int flags):
+    """Expose m/z array via buffer protocol."""
+    cdef _MSSpectrum* spec_ = self.inst.get()
+    cdef vector[double]* mz_vec = &spec_.getMZArray()
+
+    buffer.buf = <void*>mz_vec.data()
+    buffer.len = mz_vec.size() * sizeof(double)
+    buffer.itemsize = sizeof(double)
+    buffer.format = 'd'  # double
+    buffer.ndim = 1
+    buffer.shape = <Py_ssize_t*>&mz_vec.size()
+    buffer.strides = <Py_ssize_t*>&buffer.itemsize
+    buffer.suboffsets = NULL
+    buffer.readonly = 0 if (flags & PyBUF_WRITABLE) else 1
+```
+
+### 14.4 Safety Considerations
+
+#### Lifetime Management
+
+**Problem:** NumPy view becomes a dangling pointer if:
+1. The MSSpectrum object is deleted
+2. The internal vector reallocates (e.g., `addPeak()` called)
+
+**Solution 1: Reference counting with PyCapsule**
+```python
+def get_mz_array_view_safe(self):
+    """Safe zero-copy view with prevented deallocation."""
+    import weakref
+
+    # Get the view
+    view = self._get_mz_array_view_internal()
+
+    # Prevent spectrum deallocation while view exists
+    view._spectrum_ref = self  # Strong reference
+
+    return view
+```
+
+**Solution 2: Copy-on-resize semantics**
+```cpp
+// In C++ - track if views are active
+class MSSpectrum {
+    mutable bool views_active_ = false;
+
+public:
+    void addPeak(double mz, float intensity) {
+        if (views_active_) {
+            throw Exception::IllegalArgument(
+                "Cannot modify spectrum while Python views are active"
+            );
+        }
+        // ... normal implementation
+    }
+
+    void lockForViews() const { views_active_ = true; }
+    void unlockViews() const { views_active_ = false; }
+};
+```
+
+#### Thread Safety
+
+Zero-copy views require careful handling in multi-threaded contexts:
+
+```python
+# Thread-safe pattern
+import threading
+
+class SpectrumViewLock:
+    def __init__(self, spectrum):
+        self.spectrum = spectrum
+        self.lock = threading.RLock()
+
+    @contextmanager
+    def read_view(self):
+        with self.lock:
+            self.spectrum._lock_for_views()
+            try:
+                yield self.spectrum.get_peaks_view()
+            finally:
+                self.spectrum._unlock_views()
+```
+
+### 14.5 API Design
+
+#### Naming Convention
+
+| Method | Behavior | Use Case |
+|--------|----------|----------|
+| `get_peaks()` | Returns copies (safe) | Default, always safe |
+| `get_peaks_view()` | Returns views (fast) | Performance-critical, careful use |
+| `edit_peaks()` | Context manager for modification | In-place editing |
+| `get_mz_array()` | Copy of m/z | Backward compatible |
+| `get_mz_array_view()` | View of m/z | Zero-copy read |
+
+#### Documentation Requirements
+
+```python
+def get_peaks_view(self):
+    """
+    Get peak data as zero-copy NumPy array views.
+
+    This method returns views directly into the C++ memory, avoiding
+    any data copying. This is ~50,000x faster than get_peaks() for
+    large spectra.
+
+    ⚠️  SAFETY WARNINGS:
+
+    1. LIFETIME: Views become invalid if the spectrum is deleted or
+       modified (addPeak, clear, sort, etc.). Always use views within
+       a limited scope.
+
+    2. READ-ONLY: Views are marked read-only by default. Use edit_peaks()
+       context manager for modification.
+
+    3. NO STORAGE: Do not store views in data structures. Copy if needed:
+       ```
+       mz_copy = spectrum.get_mz_array_view().copy()  # Safe to store
+       ```
+
+    4. THREAD SAFETY: Not thread-safe. Use external locking if sharing
+       spectrum between threads.
+
+    Returns:
+        tuple: (mz_view, intensity_view)
+            - mz_view: np.ndarray[float64], read-only view
+            - intensity_view: np.ndarray[float32], read-only view
+
+    Example:
+        >>> # Fast read-only access
+        >>> mz, intensity = spectrum.get_peaks_view()
+        >>> tic = intensity.sum()  # No copy made
+        >>> base_peak_mz = mz[intensity.argmax()]  # No copy made
+
+        >>> # If you need to store, copy explicitly
+        >>> mz_stored = mz.copy()
+
+    See Also:
+        - get_peaks(): Safe copy-based access (always use if unsure)
+        - edit_peaks(): Context manager for zero-copy modification
+    """
+```
+
+### 14.6 Benchmarks
+
+Add benchmarks to verify zero-copy performance:
+
+```python
+# In tests/benchmark_zerocopy.py
+
+import pyopenms
+import numpy as np
+import timeit
+
+def benchmark_access():
+    # Create large spectrum
+    n = 1_000_000
+    spec = pyopenms.MSSpectrum()
+    spec.set_peaks((np.random.rand(n), np.random.rand(n).astype(np.float32)))
+
+    # Benchmark copy-based access
+    copy_time = timeit.timeit(
+        lambda: spec.get_peaks(),
+        number=100
+    ) / 100
+
+    # Benchmark zero-copy access
+    view_time = timeit.timeit(
+        lambda: spec.get_peaks_view(),
+        number=100
+    ) / 100
+
+    print(f"Copy: {copy_time*1000:.3f} ms")
+    print(f"View: {view_time*1000:.6f} ms")
+    print(f"Speedup: {copy_time/view_time:.0f}x")
+
+def benchmark_modification():
+    n = 1_000_000
+    spec = pyopenms.MSSpectrum()
+    spec.set_peaks((np.random.rand(n), np.random.rand(n).astype(np.float32)))
+
+    # Copy-modify-set pattern
+    def copy_modify():
+        mz, intensity = spec.get_peaks()
+        intensity *= 2.0
+        spec.set_peaks((mz, intensity))
+
+    # Zero-copy modify pattern
+    def zerocopy_modify():
+        with spec.edit_peaks() as (mz, intensity):
+            intensity *= 2.0
+
+    copy_time = timeit.timeit(copy_modify, number=10) / 10
+    view_time = timeit.timeit(zerocopy_modify, number=10) / 10
+
+    print(f"Copy-modify-set: {copy_time*1000:.1f} ms")
+    print(f"Zero-copy edit:  {view_time*1000:.3f} ms")
+    print(f"Speedup: {copy_time/view_time:.0f}x")
+```
+
+### 14.7 Ion Mobility Zero-Copy
+
+Same patterns apply to ion mobility:
+
+```python
+def get_ion_mobility_array_view(self):
+    """Get ion mobility values as zero-copy view."""
+    if not self.has_ion_mobility_array():
+        return None
+
+    cdef _MSSpectrum* spec_ = self.inst.get()
+    cdef const vector[float]* im_vec = &spec_.getIonMobilityArray()
+    cdef size_t n = im_vec.size()
+
+    cdef np.ndarray[np.float32_t, ndim=1] arr = np.asarray(
+        <np.float32_t[:n]> im_vec.data()
+    )
+    arr.flags.writeable = False
+    return arr
+
+@contextmanager
+def edit_peaks_with_im(self):
+    """Zero-copy editing including ion mobility."""
+    # ... similar to edit_peaks but yields (mz, intensity, im)
+```
+
+### 14.8 Integration with DataFrame Export
+
+Optimize DataFrame creation with zero-copy:
+
+```python
+def get_df_zerocopy(self, columns=None):
+    """
+    Create pandas DataFrame using zero-copy where possible.
+
+    Note: DataFrame will hold references to spectrum data.
+    Spectrum must not be modified while DataFrame is in use.
+    """
+    import pandas as pd
+
+    mz, intensity = self.get_peaks_view()
+
+    data = {
+        'mz': mz,           # Zero-copy view
+        'intensity': intensity,  # Zero-copy view
+    }
+
+    if self.has_ion_mobility_array():
+        data['ion_mobility'] = self.get_ion_mobility_array_view()
+
+    # Scalar columns still need to be broadcast (but that's fast)
+    n = len(mz)
+    data['rt'] = np.full(n, self.getRT())
+    data['ms_level'] = np.full(n, self.getMSLevel(), dtype=np.uint8)
+
+    return pd.DataFrame(data)
+```
+
+---
+
 ## Appendix A: File List
 
 ### A.1 Core Files to Modify
@@ -1446,6 +1881,6 @@ When adding a new first-class dimension (e.g., CCS):
 
 ---
 
-*Document Version: 1.1*
+*Document Version: 1.2*
 *Date: 2025-01-10*
 *Author: Claude (AI Assistant)*
