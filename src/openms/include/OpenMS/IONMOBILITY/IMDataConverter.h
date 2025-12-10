@@ -174,6 +174,10 @@ namespace OpenMS
         drift time values from VSSC (Volt-Second per Square Centimeter, also known as 1/k0) to CCS
         (Collisional Cross Section) using the Mason-Schamp equation.
 
+        The conversion applies to both:
+        - Spectrum-level drift time (getDriftTime())
+        - Per-peak ion mobility values stored in float data arrays (identified by VSSC unit via getIMUnit())
+
         The conversion uses the formula:
         CCS = IM * charge * bruker_CCS_coef / sqrt(reduced_mass)
 

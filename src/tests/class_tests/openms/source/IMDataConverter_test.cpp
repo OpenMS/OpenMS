@@ -355,6 +355,38 @@ START_SECTION(static void convertVSSCToCCS(MSExperiment& spectra))
   
   // Sixth spectrum (zero drift time) should not be converted - stays the same
   TEST_REAL_SIMILAR(exp[5].getDriftTime(), 0.0)
+  
+  // Test IM float data array conversion
+  MSExperiment exp_fda;
+  MSSpectrum s_fda;
+  s_fda.setMSLevel(2);
+  s_fda.setDriftTime(1.0);
+  s_fda.setDriftTimeUnit(DriftTimeUnit::VSSC);
+  Precursor p_fda;
+  p_fda.setMZ(500.0);
+  p_fda.setCharge(2);
+  s_fda.setPrecursors({p_fda});
+  
+  // Add IM float data array with VSSC values
+  MSSpectrum::FloatDataArray& im_fda = s_fda.getFloatDataArrays().emplace_back();
+  IMDataConverter::setIMUnit(im_fda, DriftTimeUnit::VSSC);
+  im_fda.push_back(1.0f); // same as spectrum drift time
+  im_fda.push_back(1.2f);
+  im_fda.push_back(0.0f); // invalid - should stay same
+  
+  exp_fda.addSpectrum(s_fda);
+  IMDataConverter::convertVSSCToCCS(exp_fda);
+  
+  // Spectrum-level drift time should be converted
+  TEST_REAL_SIMILAR(exp_fda[0].getDriftTime(), 406.09)
+  
+  // Float data array values should also be converted
+  // CCS = 1.0 * 2 * 1059.62245 / sqrt(27.237...) ≈ 406.09
+  TEST_REAL_SIMILAR(exp_fda[0].getFloatDataArrays()[0][0], 406.09)
+  // CCS = 1.2 * 2 * 1059.62245 / sqrt(27.237...) ≈ 487.31
+  TEST_REAL_SIMILAR(exp_fda[0].getFloatDataArrays()[0][1], 487.31)
+  // Invalid value (0.0) should stay the same
+  TEST_REAL_SIMILAR(exp_fda[0].getFloatDataArrays()[0][2], 0.0)
 }
 END_SECTION
 

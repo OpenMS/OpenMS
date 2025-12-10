@@ -381,12 +381,6 @@ namespace OpenMS
 
     for (auto& s : spectra)
     {
-      const double IM = s.getDriftTime();
-      // skip spectra with invalid drift time (negative, zero, or NaN)
-      if (IM <= 0 || std::isnan(IM))
-      {
-        continue;
-      }
       if (s.getPrecursors().empty())
       {
         continue; // skip spectra without precursor info
@@ -399,8 +393,30 @@ namespace OpenMS
       }
       const double mass = mz * charge;
       const double reduced_mass = mass * IM_N2_gas_mass / (mass + IM_N2_gas_mass);
-      const double CCS = IM * charge * bruker_CCS_coef / std::sqrt(reduced_mass); // Mason-Schamp equation
-      s.setDriftTime(CCS);
+
+      // Convert spectrum-level drift time if valid
+      const double IM = s.getDriftTime();
+      if (IM > 0 && !std::isnan(IM))
+      {
+        const double CCS = IM * charge * bruker_CCS_coef / std::sqrt(reduced_mass); // Mason-Schamp equation
+        s.setDriftTime(CCS);
+      }
+
+      // Also convert IM values in float data arrays (per-peak ion mobility)
+      for (auto& fda : s.getFloatDataArrays())
+      {
+        DriftTimeUnit unit;
+        if (getIMUnit(fda, unit) && unit == DriftTimeUnit::VSSC)
+        {
+          for (auto& im_value : fda)
+          {
+            if (im_value > 0 && !std::isnan(im_value))
+            {
+              im_value = static_cast<float>(im_value * charge * bruker_CCS_coef / std::sqrt(reduced_mass));
+            }
+          }
+        }
+      }
     }
   }
 
