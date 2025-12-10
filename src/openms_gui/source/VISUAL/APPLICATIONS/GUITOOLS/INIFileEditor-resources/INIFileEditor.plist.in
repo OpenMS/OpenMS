@@ -32,11 +32,6 @@
 	<true/>
 	<key>LSRequiresCarbon</key>
 	<true/>
-	<key>LSEnvironment</key>
-	<dict>
-		<key>PATH</key>
-		<string>TOPP/SEARCHENGINES/OMSSA:TOPP/SEARCHENGINES/XTandem</string>
-	</dict>  
 	<key>NSHumanReadableCopyright</key>
 	<string>${MACOSX_BUNDLE_COPYRIGHT}</string>
     <key>NSPrincipalClass</key>
