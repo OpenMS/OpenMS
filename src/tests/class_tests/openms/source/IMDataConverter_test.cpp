@@ -307,6 +307,28 @@ START_SECTION(static void convertVSSCToCCS(MSExperiment& spectra))
   s4.setDriftTimeUnit(DriftTimeUnit::VSSC);
   exp.addSpectrum(s4);
   
+  // Spectrum 5: negative drift time (should be skipped)
+  MSSpectrum s5;
+  s5.setMSLevel(2);
+  s5.setDriftTime(-1.0);
+  s5.setDriftTimeUnit(DriftTimeUnit::VSSC);
+  Precursor p5;
+  p5.setMZ(500.0);
+  p5.setCharge(2);
+  s5.setPrecursors({p5});
+  exp.addSpectrum(s5);
+  
+  // Spectrum 6: zero drift time (should be skipped)
+  MSSpectrum s6;
+  s6.setMSLevel(2);
+  s6.setDriftTime(0.0);
+  s6.setDriftTimeUnit(DriftTimeUnit::VSSC);
+  Precursor p6;
+  p6.setMZ(500.0);
+  p6.setCharge(2);
+  s6.setPrecursors({p6});
+  exp.addSpectrum(s6);
+  
   // Run conversion
   IMDataConverter::convertVSSCToCCS(exp);
   
@@ -327,6 +349,12 @@ START_SECTION(static void convertVSSCToCCS(MSExperiment& spectra))
   
   // Fourth spectrum (no precursor) should not be converted - stays the same
   TEST_REAL_SIMILAR(exp[3].getDriftTime(), 0.5)
+  
+  // Fifth spectrum (negative drift time) should not be converted - stays the same
+  TEST_REAL_SIMILAR(exp[4].getDriftTime(), -1.0)
+  
+  // Sixth spectrum (zero drift time) should not be converted - stays the same
+  TEST_REAL_SIMILAR(exp[5].getDriftTime(), 0.0)
 }
 END_SECTION
 

@@ -382,6 +382,11 @@ namespace OpenMS
     for (auto& s : spectra)
     {
       const double IM = s.getDriftTime();
+      // skip spectra with invalid drift time (negative, zero, or NaN)
+      if (IM <= 0 || std::isnan(IM))
+      {
+        continue;
+      }
       if (s.getPrecursors().empty())
       {
         continue; // skip spectra without precursor info
