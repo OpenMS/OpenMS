@@ -98,20 +98,20 @@ macro(add_mac_app_bundle _name)
       install(IMPORTED_RUNTIME_ARTIFACTS "Qt6::QCocoaIntegrationPlugin"
               DESTINATION "${INSTALL_PLUGIN_DIR}/platforms"
               RUNTIME_DEPENDENCY_SET OPENMS_DEPS
-              COMPONENT Dependencies)
+              COMPONENT Dependencies
+              FOLLOW_SYMLINK_CHAIN)
 			install(IMPORTED_RUNTIME_ARTIFACTS "Qt6::QMacStylePlugin"
 							DESTINATION "${INSTALL_PLUGIN_DIR}/styles"
 							RUNTIME_DEPENDENCY_SET OPENMS_DEPS
-							COMPONENT Dependencies)
+							COMPONENT Dependencies
+							FOLLOW_SYMLINK_CHAIN)
 			# Instead of softlinking, it is recommended by Apple to use RPATHs
       #install(CODE "execute_process(COMMAND ln -fs ../../${INSTALL_LIB_DIR} \${CMAKE_INSTALL_PREFIX}/${_name}.app/Contents/Frameworks)"
 			#				COMPONENT Applications)
       #install(CODE "execute_process(COMMAND ln -fs ../../${INSTALL_PLUGIN_DIR} \${CMAKE_INSTALL_PREFIX}/${_name}.app/Contents/PlugIns)"
-		  # 			COMPONENT Applications)
-			install(CODE "execute_process(COMMAND ${OPENMS_HOST_DIRECTORY}/cmake/MacOSX/fix_dependencies.rb -b \${CMAKE_INSTALL_PREFIX}/${_name}.app/Contents/MacOS/ -e @rpath/ -n -c)"
-							COMPONENT Applications)
-    else() # dmg
-    		## Write a qt.conf file with a ref to the plugin dir in app bundles = PlugIns
+	  
+
+
 				file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/macappqt.conf"
 						 "[Paths]\nPlugins = PlugIns\n")
 				install(FILES "${CMAKE_CURRENT_BINARY_DIR}/macappqt.conf"
