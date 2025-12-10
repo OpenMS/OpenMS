@@ -4,6 +4,8 @@
 <dict>
 	<key>LSMinimumSystemVersion</key>
 	<string>12.0</string>
+	<key>NSBundleIsRelocatable</key>
+	<false/>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>English</string>
 	<key>CFBundleExecutable</key>
@@ -32,11 +34,6 @@
 	<true/>
 	<key>LSRequiresCarbon</key>
 	<true/>
-	<key>LSEnvironment</key>
-	<dict>
-		<key>PATH</key>
-		<string>/usr/bin/</string>
-	</dict>  
 	<key>NSHumanReadableCopyright</key>
 	<string>${MACOSX_BUNDLE_COPYRIGHT}</string>
     <key>NSPrincipalClass</key>
