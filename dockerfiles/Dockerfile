@@ -14,6 +14,7 @@ ARG MAKEFLAGS="-j${NUM_BUILD_CORES}"
 FROM ubuntu:22.04 AS base
 ARG OPENMS_VERSION_TAG
 ARG CMAKE_VERSION=3.28.1
+ARG TARGETARCH
 
 RUN apt-get update \
     && apt-get install -y software-properties-common \
@@ -58,9 +59,15 @@ RUN apt-get update \
 
 # installing cmake
 WORKDIR /tmp
-ADD https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSION}/cmake-${CMAKE_VERSION}-linux-x86_64.sh cmake.sh
 RUN <<-EOF
     set -eux
+    # Map Docker's TARGETARCH to CMake's architecture naming
+    case "${TARGETARCH}" in
+        amd64) CMAKE_ARCH="x86_64" ;;
+        arm64) CMAKE_ARCH="aarch64" ;;
+        *) echo "Unsupported architecture: ${TARGETARCH}" && exit 1 ;;
+    esac
+    wget https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSION}/cmake-${CMAKE_VERSION}-linux-${CMAKE_ARCH}.sh -O cmake.sh
     mkdir -p /opt/cmake
     sh cmake.sh --skip-license --prefix=/opt/cmake
     ln -s /opt/cmake/bin/cmake /usr/local/bin/cmake
@@ -91,8 +98,15 @@ RUN mkdir -p ${THIRDPARTY_DIR}
 RUN <<-EOF
     set -eux
 
+    # Map Docker's TARGETARCH to directory naming
+    case "${TARGETARCH}" in
+        amd64) ARCH_DIR="x86_64" ;;
+        arm64) ARCH_DIR="arm64" ;;
+        *) echo "Unsupported architecture: ${TARGETARCH}" && exit 1 ;;
+    esac
+
     ALL_DIR=THIRDPARTY/All
-    LINUX_DIR=THIRDPARTY/Linux/x86_64
+    LINUX_DIR=THIRDPARTY/Linux/${ARCH_DIR}
     if [ ! -d "$ALL_DIR" ] || [ ! -d "$LINUX_DIR" ]; then
       git submodule update --depth=1 --init THIRDPARTY
     fi
@@ -104,14 +118,24 @@ EOF
 
 # adding thirdparty binaries to the PATH so they will be picked up by the build system
 ENV PATH="${THIRDPARTY_DIR}/LuciPHOr2:${THIRDPARTY_DIR}/MSGFPlus:${THIRDPARTY_DIR}/ThermoRawFileParser:${THIRDPARTY_DIR}/Comet:${THIRDPARTY_DIR}/Fido:${THIRDPARTY_DIR}/MaRaCluster:${THIRDPARTY_DIR}/Percolator:${THIRDPARTY_DIR}/SpectraST:${THIRDPARTY_DIR}/Sage:${PATH}"
-RUN cmake \
-    -DQt6_DIR="/usr/lib/x86_64-linux-gnu/cmake/Qt6" \
-    -DCMAKE_BUILD_TYPE='Release' \
-    -DCMAKE_PREFIX_PATH="/usr/;/usr/local" \
-    -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR} \
-    -DBOOST_USE_STATIC=OFF \
-    -S ${SOURCE_DIR} \
-    -B ${BUILD_DIR}
+RUN <<-EOF
+    set -eux
+    # Map Docker's TARGETARCH to Debian multiarch tuple
+    case "${TARGETARCH}" in
+        amd64) DEB_ARCH="x86_64-linux-gnu" ;;
+        arm64) DEB_ARCH="aarch64-linux-gnu" ;;
+        *) echo "Unsupported architecture: ${TARGETARCH}" && exit 1 ;;
+    esac
+    
+    cmake \
+        -DQt6_DIR="/usr/lib/${DEB_ARCH}/cmake/Qt6" \
+        -DCMAKE_BUILD_TYPE='Release' \
+        -DCMAKE_PREFIX_PATH="/usr/;/usr/local" \
+        -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR} \
+        -DBOOST_USE_STATIC=OFF \
+        -S ${SOURCE_DIR} \
+        -B ${BUILD_DIR}
+EOF
 
 WORKDIR ${BUILD_DIR}
 RUN make all
@@ -193,6 +217,7 @@ ARG SOURCE_DIR
 ARG BUILD_DIR
 ARG NUM_BUILD_CORES=8
 ARG CMAKE_VERSION=3.28.1
+ARG TARGETARCH
 
 RUN apt-get update \ 
     && apt-get install -y --no-install-recommends --no-install-suggests \
@@ -200,13 +225,20 @@ RUN apt-get update \
     xvfb \
     # needed for TSGDialog_test and TOPPView_test
     libqt6test6 \
+    wget \
   && rm -rf /var/lib/apt/lists/*
 
 # installing cmake
 WORKDIR /tmp
-ADD https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSION}/cmake-${CMAKE_VERSION}-linux-x86_64.sh cmake.sh
 RUN <<-EOF
     set -eux
+    # Map Docker's TARGETARCH to CMake's architecture naming
+    case "${TARGETARCH}" in
+        amd64) CMAKE_ARCH="x86_64" ;;
+        arm64) CMAKE_ARCH="aarch64" ;;
+        *) echo "Unsupported architecture: ${TARGETARCH}" && exit 1 ;;
+    esac
+    wget https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSION}/cmake-${CMAKE_VERSION}-linux-${CMAKE_ARCH}.sh -O cmake.sh
     mkdir -p /opt/cmake
     sh cmake.sh --skip-license --prefix=/opt/cmake
     ln -s /opt/cmake/bin/cmake /usr/local/bin/cmake
