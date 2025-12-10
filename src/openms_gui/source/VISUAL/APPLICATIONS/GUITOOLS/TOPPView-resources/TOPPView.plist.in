@@ -143,6 +143,8 @@
 	<true/>
 	<key>LSRequiresCarbon</key>
 	<true/>
+	<key>BundleIsRelocatable</key>
+	<false/>
 	<key>NSHumanReadableCopyright</key>
 	<string>${MACOSX_BUNDLE_COPYRIGHT}</string>
     <key>NSRequiresAquaSystemAppearance</key>
