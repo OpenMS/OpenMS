@@ -15,13 +15,18 @@ class MSSpectrum : private std::vector<Peak1D>, ... {
 **Target State:**
 ```cpp
 class MSSpectrum : public RangeManagerContainer<...>, public SpectrumSettings {
-    std::vector<double> mz_;
-    std::vector<float> intensity_;
-    std::vector<float> ion_mobility_;      // First-class citizen (optional)
+    // SoA storage with shared_ptr for Python zero-copy safety (see Appendix D)
+    std::shared_ptr<std::vector<double>> mz_;
+    std::shared_ptr<std::vector<float>> intensity_;
+    std::shared_ptr<std::vector<float>> ion_mobility_;  // First-class citizen (optional)
     DriftTimeUnit ion_mobility_unit_;
     FloatDataArrays float_data_arrays_;    // Other metadata only
 };
 ```
+
+**Key Design Decision:** Arrays are wrapped in `shared_ptr` to enable safe zero-copy Python/NumPy views (see [Appendix D](#appendix-d-shared_ptr-wrapping-for-data-arrays)).
+
+**Scope:** This refactoring targets `MSSpectrum` only. `MSChromatogram` (which has a similar AoS pattern with `ChromatogramPeak`) is **out of scope** for this initial refactoring but can follow the same pattern in a subsequent effort.
 
 ---
 
@@ -60,19 +65,46 @@ class MSSpectrum : public RangeManagerContainer<...>, public SpectrumSettings {
 | Binary search on m/z | Good | Excellent (contiguous doubles) | 1.5-2x |
 | Sorting | Index shuffle + Peak1D moves | Index shuffle + array permutation | 1.2-1.5x |
 
-### 1.2 Design Goals
+### 1.2 mzML Format Alignment
+
+**Critical insight:** The mzML file format **already stores data as SoA** - m/z and intensity are separate `binaryDataArray` elements.
+
+**Current inefficient data flow:**
+```
+mzML file (SoA) → MzMLHandler → Peak1D vector (AoS) → pyOpenMS → NumPy (SoA)
+                              ↑                      ↑
+                        Converts to AoS        Converts back to SoA
+```
+
+**After refactoring:**
+```
+mzML file (SoA) → MzMLHandler → SoA arrays → pyOpenMS → NumPy (SoA)
+                              ↑                      ↑
+                        Direct copy            Zero-copy view!
+```
+
+This eliminates **two unnecessary format conversions**, providing significant I/O performance improvement.
+
+### 1.3 Design Goals
 
 1. **Performance**: Enable SIMD vectorization and improve cache utilization
-2. **Ion Mobility First-Class**: Elevate IM from hidden FloatDataArray to dedicated member
-3. **API Clarity**: Explicit, honest API that doesn't pretend to be something it's not
-4. **Gradual Migration**: Provide compatibility layer for existing code
-5. **pyOpenMS Improvement**: Simplify Python bindings (already array-based)
+2. **File Format Alignment**: Match mzML's native SoA layout to eliminate conversion overhead
+3. **Ion Mobility First-Class**: Elevate IM from hidden FloatDataArray to dedicated member
+4. **API Clarity**: Explicit, honest API that doesn't pretend to be something it's not
+5. **Gradual Migration**: Provide compatibility layer for existing code
+6. **pyOpenMS Improvement**: Simplify Python bindings with zero-copy capability
 
-### 1.3 Non-Goals
+### 1.4 Non-Goals
 
 - Maintaining proxy/iterator facade that mimics `std::vector<Peak1D>`
 - Binary compatibility with existing compiled code
 - Zero migration effort for downstream code
+
+### 1.5 Target Version and Timeline
+
+- **Target Release:** OpenMS 4.0 (major version bump due to API breaking changes)
+- **Deprecation Period:** Compatibility methods available for 2 releases before removal
+- **MSChromatogram:** Out of scope for this refactoring; will follow in subsequent effort
 
 ---
 
@@ -135,12 +167,14 @@ class MSSpectrum final :
     public SpectrumSettings
 {
 private:
-    // Core SoA arrays (always present)
-    std::vector<double> mz_;
-    std::vector<float> intensity_;
+    // Core SoA arrays with shared_ptr for Python zero-copy safety
+    // Always initialized to non-null empty vectors
+    std::shared_ptr<std::vector<double>> mz_ = std::make_shared<std::vector<double>>();
+    std::shared_ptr<std::vector<float>> intensity_ = std::make_shared<std::vector<float>>();
 
     // Optional ion mobility (per-peak, for CONCATENATED/CENTROIDED format)
-    std::vector<float> ion_mobility_;
+    // nullptr when not present
+    std::shared_ptr<std::vector<float>> ion_mobility_;
     DriftTimeUnit ion_mobility_unit_ = DriftTimeUnit::NONE;
 
     // Per-spectrum metadata (existing)
@@ -154,7 +188,22 @@ private:
     FloatDataArrays float_data_arrays_;
     StringDataArrays string_data_arrays_;
     IntegerDataArrays integer_data_arrays_;
+
+    // Copy-on-Write helper
+    void ensureUniqueMZ() {
+        if (mz_.use_count() > 1) {
+            mz_ = std::make_shared<std::vector<double>>(*mz_);
+        }
+    }
+    void ensureUniqueIntensity() {
+        if (intensity_.use_count() > 1) {
+            intensity_ = std::make_shared<std::vector<float>>(*intensity_);
+        }
+    }
 };
+
+// Verify Peak1D size assumption for documentation accuracy
+static_assert(sizeof(Peak1D) == 16, "Peak1D size assumption violated");
 ```
 
 ### 3.2 Primary API (New - Preferred)
@@ -164,19 +213,28 @@ private:
 // DIRECT ARRAY ACCESS - Preferred for performance-critical code
 // ═══════════════════════════════════════════════════════════════
 
-// M/Z array (always present)
-const std::vector<double>& getMZArray() const noexcept;
-std::vector<double>& getMZArray() noexcept;
+// M/Z array (always present, never null)
+const std::vector<double>& getMZArray() const noexcept { return *mz_; }
+std::vector<double>& getMZArray() noexcept { ensureUniqueMZ(); return *mz_; }
 
-// Intensity array (always present)
-const std::vector<float>& getIntensityArray() const noexcept;
-std::vector<float>& getIntensityArray() noexcept;
+// Intensity array (always present, never null)
+const std::vector<float>& getIntensityArray() const noexcept { return *intensity_; }
+std::vector<float>& getIntensityArray() noexcept { ensureUniqueIntensity(); return *intensity_; }
 
 // Ion mobility array (optional)
 bool hasIonMobilityArray() const noexcept;
 const std::vector<float>& getIonMobilityArray() const;  // throws if empty
 std::vector<float>& getIonMobilityArray();
 DriftTimeUnit getIonMobilityUnit() const noexcept;
+
+// ═══════════════════════════════════════════════════════════════
+// SHARED_PTR ACCESS - For Python/Cython zero-copy bindings
+// ═══════════════════════════════════════════════════════════════
+
+// Returns shared_ptr for safe zero-copy Python views
+std::shared_ptr<const std::vector<double>> getMZArrayPtr() const noexcept { return mz_; }
+std::shared_ptr<const std::vector<float>> getIntensityArrayPtr() const noexcept { return intensity_; }
+std::shared_ptr<const std::vector<float>> getIonMobilityArrayPtr() const;  // nullptr if no IM
 
 // ═══════════════════════════════════════════════════════════════
 // INDEXED ACCESS - Convenience methods
@@ -339,16 +397,25 @@ void MSSpectrum::applyPermutation(const std::vector<Size>& indices) {
 
 ### 5.1 Library Code (src/openms/)
 
-**Files directly accessing Peak1D from MSSpectrum: ~171 files**
+**Files referencing MSSpectrum or Peak1D: ~121 files** (verified via grep)
+
+| Access Pattern | Files | Migration Effort |
+|----------------|-------|------------------|
+| Direct Peak1D manipulation (`push_back`, `emplace_back`) | ~8 | High - requires API change |
+| Indexed access (`spec[i].getMZ()`) | ~29 | Medium - change to `spec.getMZ(i)` |
+| Range-based for loops (`for (Peak1D& p : spec)`) | ~9 | Medium - change to index loops |
+| Read-only/metadata access | ~75 | Low - may not need changes |
 
 | Category | Files | Effort |
 |----------|-------|--------|
-| ANALYSIS/ | ~45 | High |
-| FORMAT/ | ~30 | High (I/O critical) |
-| PROCESSING/ | ~25 | Medium |
-| FEATUREFINDER/ | ~15 | High (performance) |
-| KERNEL/ | ~10 | Core changes |
-| Other | ~46 | Medium |
+| ANALYSIS/ | ~35 | High |
+| FORMAT/ | ~25 | High (I/O critical) |
+| PROCESSING/ | ~20 | Medium |
+| FEATUREFINDER/ | ~12 | High (performance) |
+| KERNEL/ | ~8 | Core changes |
+| Other | ~21 | Medium |
+
+**Note:** Many files only reference MSSpectrum for type declarations or metadata access and won't require significant changes.
 
 ### 5.2 TOPP Tools (src/topp/)
 
@@ -482,16 +549,19 @@ std::transform(intensity.begin(), intensity.end(), intensity.begin(),
                [factor](float i) { return i * factor; });
 ```
 
-**Pattern 4: Iterator-based search**
+**Pattern 4: Iterator-based search (MZBegin/MZEnd)**
+
+**Important:** Current `MZBegin()`/`MZEnd()` return `Iterator` (Peak1D pointer). After refactoring, these methods will be **deprecated** in favor of index-based alternatives.
+
 ```cpp
-// Before
+// Before - returns Peak1D iterator
 auto it = spectrum.MZBegin(500.0);
 while (it != spectrum.MZEnd(600.0)) {
     process(it->getMZ(), it->getIntensity());
     ++it;
 }
 
-// After
+// After (Option A) - use new index-based methods
 Size start = spectrum.findFirstMZ(500.0);
 Size end = spectrum.findLastMZ(600.0);
 const auto& mz = spectrum.getMZArray();
@@ -499,7 +569,23 @@ const auto& intensity = spectrum.getIntensityArray();
 for (Size i = start; i < end; ++i) {
     process(mz[i], intensity[i]);
 }
+
+// After (Option B) - use range-based helper
+auto [start, end] = spectrum.findMZRange(500.0, 600.0);
+for (Size i = start; i < end; ++i) {
+    process(spectrum.getMZ(i), spectrum.getIntensity(i));
+}
 ```
+
+**Migration note for MZBegin/MZEnd users:**
+
+| Old Method | New Method | Return Type Change |
+|------------|------------|-------------------|
+| `MZBegin(mz)` | `findFirstMZ(mz)` | `Iterator` → `Size` |
+| `MZEnd(mz)` | `findLastMZ(mz)` | `Iterator` → `Size` |
+| `MZBegin(begin, mz, end)` | Use `std::lower_bound` on `getMZArray()` | Iterator → Size |
+
+The old iterator-based methods will remain available (deprecated) during the transition period but will be removed in a future major release.
 
 **Pattern 5: Adding peaks**
 ```cpp
@@ -538,64 +624,127 @@ if (spectrum.hasIonMobilityArray()) {
 
 ## 7. Implementation Phases
 
-### Phase 1: Core Infrastructure (Week 1-2)
+> **Note:** Time estimates removed as per project guidelines. Each phase should be completed and tested before proceeding to the next.
 
-**1.1 Add SoA storage alongside existing AoS**
-- [ ] Add `mz_`, `intensity_`, `ion_mobility_`, `ion_mobility_unit_` members
-- [ ] Keep `std::vector<Peak1D>` inheritance temporarily
-- [ ] Implement synchronization between AoS and SoA
+### Phase 0: Preparation
 
-**1.2 Implement new API methods**
-- [ ] `getMZArray()`, `getIntensityArray()` (return references to new members)
-- [ ] `getMZ(i)`, `getIntensity(i)`, `setMZ(i)`, `setIntensity(i)`
+**0.1 Baseline Measurements**
+- [ ] Create performance benchmarks for current AoS implementation
+- [ ] Document current memory usage per spectrum
+- [ ] Record mzML load/save times for reference datasets
+- [ ] Identify all code paths using `MZBegin()`/`MZEnd()` iterators
+
+**0.2 Feature Branch Setup**
+- [ ] Create feature branch `feature/msspectrum-soa`
+- [ ] Set up CI to run full test suite on each commit
+- [ ] Document rollback procedure
+
+### Phase 1: Core Infrastructure (Non-Breaking)
+
+**Strategy:** Add new SoA storage and API **alongside** existing AoS. Both work simultaneously. The AoS storage (`std::vector<Peak1D>` inheritance) remains authoritative during this phase.
+
+**1.1 Add SoA storage (dual-storage mode)**
+- [ ] Add `shared_ptr<vector<T>>` members: `mz_`, `intensity_`, `ion_mobility_`
+- [ ] Keep `std::vector<Peak1D>` inheritance (remains authoritative)
+- [ ] Implement **one-way sync**: mutations to Peak1D auto-update SoA arrays
+- [ ] Add `static_assert(sizeof(Peak1D) == 16)` to verify assumptions
+
+**1.2 Implement new API methods (read from SoA)**
+- [ ] `getMZArray()`, `getIntensityArray()` - return `const` references to SoA
+- [ ] `getMZArrayPtr()`, `getIntensityArrayPtr()` - return `shared_ptr` for Python
+- [ ] `getMZ(i)`, `getIntensity(i)` - read from SoA arrays
 - [ ] `hasIonMobilityArray()`, `getIonMobilityArray()`, `getIonMobilityUnit()`
-- [ ] `addPeak()` overloads
-- [ ] `setData()` bulk setters
+- [ ] `addPeak()` overloads - write to both AoS and SoA
 
-**1.3 Update internal methods to use SoA**
-- [ ] `sortByPosition()` - use index permutation on arrays
+**1.3 Sync mechanism**
+```cpp
+// During Phase 1: AoS is authoritative, SoA is derived
+void push_back(const Peak1D& p) {
+    ContainerType::push_back(p);  // AoS
+    mz_->push_back(p.getMZ());    // Sync to SoA
+    intensity_->push_back(p.getIntensity());
+}
+```
+
+**1.4 Testing**
+- [ ] All existing tests pass unchanged
+- [ ] New tests verify SoA arrays match AoS content
+- [ ] Verify `getMZArray()` returns correct data
+
+### Phase 2: Internal Migration
+
+**Strategy:** Migrate internal MSSpectrum methods to use SoA storage directly. AoS becomes a facade.
+
+**2.1 Update internal methods to use SoA**
+- [ ] `sortByPosition()` - use index permutation on SoA arrays
 - [ ] `sortByIntensity()` - same pattern
 - [ ] `sortByIonMobility()` - same pattern
-- [ ] `select()` - apply to all arrays
-- [ ] `updateRanges()` - iterate arrays directly
-- [ ] `calculateTIC()` - sum intensity array
-- [ ] `getBasePeak()` - find max in intensity array
-
-### Phase 2: Search Methods (Week 2-3)
-
-**2.1 Update binary search methods**
-- [ ] `findNearest()` - binary search on `mz_` array
-- [ ] `MZBegin()`, `MZEnd()` - return indices instead of iterators
-- [ ] `findHighestInWindow()` - use array access
+- [ ] `select()` - apply to all SoA arrays
+- [ ] `updateRanges()` - iterate SoA arrays directly
+- [ ] `calculateTIC()` - sum intensity SoA array
+- [ ] `getBasePeak()` - find max in intensity SoA array
 
 **2.2 Add new index-based search API**
-- [ ] `Size findFirstMZ(double mz) const`
+- [ ] `Size findFirstMZ(double mz) const` - binary search on `mz_`
 - [ ] `Size findLastMZ(double mz) const`
 - [ ] `std::pair<Size, Size> findMZRange(double mz_min, double mz_max) const`
+- [ ] `findNearest()` - update to use SoA
+- [ ] `findHighestInWindow()` - use SoA array access
 
-### Phase 3: Remove AoS (Week 3-4)
+**2.3 Deprecate iterator-based search**
+- [ ] Add `[[deprecated]]` to `MZBegin()`, `MZEnd()` with message pointing to new methods
+- [ ] Iterator methods internally call new index-based methods
+
+**2.4 Testing**
+- [ ] All existing tests still pass
+- [ ] Performance benchmarks show improvement
+- [ ] New index-based search tests added
+
+### Phase 3: Flip Authority (SoA becomes primary)
+
+**Strategy:** SoA becomes the authoritative storage. AoS inheritance removed. Compatibility layer provides Peak1D access.
 
 **3.1 Remove std::vector<Peak1D> inheritance**
-- [ ] Remove `private std::vector<Peak1D>` base
+- [ ] Remove `private std::vector<Peak1D>` base class
 - [ ] Remove all `using ContainerType::*` declarations
-- [ ] Remove `data()` method
-- [ ] Update constructors
+- [ ] Remove `data()` returning `Peak1D*`
+- [ ] Update constructors to only initialize SoA
 
-**3.2 Add compatibility methods**
-- [ ] `getPeak(i)` - creates temporary Peak1D
-- [ ] `setPeak(i, peak)` - extracts and stores components
-- [ ] `toAoS()` - creates vector<Peak1D> on demand
-- [ ] `fromAoS()` - populates from vector<Peak1D>
+**3.2 Add compatibility layer**
+```cpp
+[[deprecated("Use getMZ(i)/getIntensity(i) instead")]]
+Peak1D getPeak(Size i) const {
+    return Peak1D((*mz_)[i], (*intensity_)[i]);
+}
 
-**3.3 Mark deprecated**
-- [ ] Add `[[deprecated]]` attributes to compatibility methods
+[[deprecated("Use setMZ(i)/setIntensity(i) instead")]]
+void setPeak(Size i, const Peak1D& peak) {
+    ensureUniqueMZ();
+    ensureUniqueIntensity();
+    (*mz_)[i] = peak.getMZ();
+    (*intensity_)[i] = peak.getIntensity();
+}
 
-### Phase 4: File I/O Updates (Week 4-5)
+[[deprecated("Use getMZArray()/getIntensityArray() instead")]]
+std::vector<Peak1D> toAoS() const;
+
+void fromAoS(const std::vector<Peak1D>& peaks);  // Not deprecated - useful for migration
+```
+
+**3.3 Testing**
+- [ ] All tests updated to use new API
+- [ ] Deprecated methods still work correctly
+- [ ] No performance regression
+
+### Phase 4: File I/O Updates
+
+**Strategy:** Update file handlers to read/write directly to SoA arrays, eliminating conversion overhead.
 
 **4.1 MzMLHandler (highest priority)**
 - [ ] Update `populateSpectraWithData_()` to use bulk `setData()`
+- [ ] Leverage mzML's native SoA format for direct array copy
 - [ ] Update ion mobility handling to use dedicated array
-- [ ] Update serialization to read from SoA arrays
+- [ ] Update serialization to write from SoA arrays directly
 
 **4.2 MzXMLHandler**
 - [ ] Update peak population loop
@@ -607,26 +756,36 @@ if (spectrum.hasIonMobilityArray()) {
 **4.4 CachedMzMLHandler, MzMLSqliteHandler**
 - [ ] Update for SoA layout
 
-### Phase 5: pyOpenMS Bindings (Week 5-6)
+**4.5 Testing**
+- [ ] mzML roundtrip produces identical output
+- [ ] Performance improvement measured vs baseline
+
+### Phase 5: pyOpenMS Bindings
+
+**Strategy:** Update Cython bindings to use new SoA API and enable zero-copy.
 
 **5.1 Update MSSpectrum.pyx**
-- [ ] Simplify `get_peaks()` to use array access
-- [ ] Simplify `set_peaks()` to use bulk setter
-- [ ] Update `get_mz_array()`, `get_intensity_array()` for direct access
-- [ ] Update ion mobility methods
+- [ ] Simplify `get_peaks()` to use direct array copy (not Peak1D iteration)
+- [ ] Add `get_peaks_view()` for zero-copy access using `getMZArrayPtr()`
+- [ ] Simplify `set_peaks()` to use bulk `setData()`
+- [ ] Add `edit_peaks()` context manager for zero-copy modification
+- [ ] Update ion mobility methods to use new API
 
 **5.2 Update MSSpectrum.pxd**
-- [ ] Add declarations for new methods
-- [ ] Remove declarations for removed methods
+- [ ] Add declarations for new methods (`getMZArrayPtr`, etc.)
+- [ ] Add `shared_ptr` declarations
 
 **5.3 Update tests**
-- [ ] `test_MSSpectrum.py`
+- [ ] `test_MSSpectrum.py` - verify new API
+- [ ] Add zero-copy benchmarks
 - [ ] `test_tutorial.py`
 
-### Phase 6: Library Migration (Week 6-8)
+### Phase 6: Library Migration
 
-**6.1 High-priority modules**
-- [ ] FEATUREFINDER/MassTraceDetection.cpp (performance critical)
+**Strategy:** Migrate OpenMS library code to use new API. Prioritize by performance impact and complexity.
+
+**6.1 High-priority modules (performance critical)**
+- [ ] FEATUREFINDER/MassTraceDetection.cpp
 - [ ] ANALYSIS/ID/ (many files)
 - [ ] PROCESSING/CENTROIDING/ (IM integration)
 
@@ -636,11 +795,11 @@ if (spectrum.hasIonMobilityArray()) {
 - [ ] COMPARISON/
 
 **6.3 Low-priority modules**
-- [ ] Remaining files
+- [ ] Remaining files (mostly metadata access)
 
-### Phase 7: TOPP Tools (Week 8-9)
+### Phase 7: TOPP Tools Migration
 
-**7.1 Critical tools**
+**7.1 Critical tools (IM or performance)**
 - [ ] PeakPickerIM (IM-specialized)
 - [ ] MapNormalizer (performance)
 - [ ] PhosphoScoring (complex access)
@@ -648,17 +807,31 @@ if (spectrum.hasIonMobilityArray()) {
 **7.2 Other tools**
 - [ ] Remaining 16 tools
 
-### Phase 8: Testing & Documentation (Week 9-10)
+### Phase 8: Testing & Documentation
 
-**8.1 Update tests**
-- [ ] MSSpectrum_test.cpp (comprehensive)
-- [ ] Integration tests
-- [ ] Performance benchmarks
+**8.1 Comprehensive testing**
+- [ ] MSSpectrum_test.cpp - full coverage of new API
+- [ ] Integration tests - full pipeline tests
+- [ ] Performance benchmarks - compare to baseline from Phase 0
 
 **8.2 Documentation**
-- [ ] API documentation
-- [ ] Migration guide
-- [ ] Performance guide
+- [ ] API documentation for new methods
+- [ ] Migration guide with examples for each pattern
+- [ ] Performance guide for optimal SoA usage
+
+### Phase 9: Cleanup (Future Release)
+
+**To be done in a subsequent major release after deprecation period:**
+
+**9.1 Remove deprecated methods**
+- [ ] Remove `getPeak()`, `setPeak()`, `toAoS()`
+- [ ] Remove `MZBegin()`, `MZEnd()` (iterator versions)
+- [ ] Remove `containsIMData()`, `getIMData()`
+- [ ] Remove compatibility typedefs
+
+**9.2 Final cleanup**
+- [ ] Remove any remaining Peak1D dependencies
+- [ ] Update all documentation to remove references to deprecated API
 
 ---
 
@@ -1504,62 +1677,102 @@ src/tests/class_tests/openms/source/IMDataConverter_test.cpp
 ### New Methods (Primary API)
 
 ```cpp
-// Array access
-const std::vector<double>& getMZArray() const;
-const std::vector<float>& getIntensityArray() const;
-std::vector<double>& getMZArray();
-std::vector<float>& getIntensityArray();
+// ═══════════════════════════════════════════════════════════════
+// ARRAY ACCESS (reference - for C++ performance code)
+// ═══════════════════════════════════════════════════════════════
+const std::vector<double>& getMZArray() const noexcept;
+const std::vector<float>& getIntensityArray() const noexcept;
+std::vector<double>& getMZArray() noexcept;  // Triggers COW if shared
+std::vector<float>& getIntensityArray() noexcept;  // Triggers COW if shared
 
-// Indexed access
+// ═══════════════════════════════════════════════════════════════
+// SHARED_PTR ACCESS (for Python zero-copy bindings)
+// ═══════════════════════════════════════════════════════════════
+std::shared_ptr<const std::vector<double>> getMZArrayPtr() const noexcept;
+std::shared_ptr<const std::vector<float>> getIntensityArrayPtr() const noexcept;
+std::shared_ptr<const std::vector<float>> getIonMobilityArrayPtr() const;
+
+// ═══════════════════════════════════════════════════════════════
+// INDEXED ACCESS (convenience)
+// ═══════════════════════════════════════════════════════════════
 double getMZ(Size i) const;
 float getIntensity(Size i) const;
 void setMZ(Size i, double mz);
 void setIntensity(Size i, float intensity);
 
-// Ion mobility
-bool hasIonMobilityArray() const;
+// ═══════════════════════════════════════════════════════════════
+// ION MOBILITY
+// ═══════════════════════════════════════════════════════════════
+bool hasIonMobilityArray() const noexcept;
 const std::vector<float>& getIonMobilityArray() const;
 std::vector<float>& getIonMobilityArray();
-DriftTimeUnit getIonMobilityUnit() const;
+DriftTimeUnit getIonMobilityUnit() const noexcept;
 float getIonMobility(Size i) const;
 void setIonMobility(Size i, float im);
 
-// Bulk operations
+// ═══════════════════════════════════════════════════════════════
+// BULK OPERATIONS
+// ═══════════════════════════════════════════════════════════════
 void setData(std::vector<double> mz, std::vector<float> intensity);
 void setData(std::vector<double> mz, std::vector<float> intensity,
              std::vector<float> ion_mobility, DriftTimeUnit im_unit);
 void setIonMobilityArray(std::vector<float> im, DriftTimeUnit unit);
 void clearIonMobility();
+void initializeIonMobility(DriftTimeUnit unit);
 
-// Adding peaks
+// ═══════════════════════════════════════════════════════════════
+// ADDING PEAKS
+// ═══════════════════════════════════════════════════════════════
 void addPeak(double mz, float intensity);
 void addPeak(double mz, float intensity, float ion_mobility);
 
-// Search (index-based)
+// ═══════════════════════════════════════════════════════════════
+// SEARCH (index-based - replaces iterator-based MZBegin/MZEnd)
+// ═══════════════════════════════════════════════════════════════
 Size findFirstMZ(double mz) const;
 Size findLastMZ(double mz) const;
+std::pair<Size, Size> findMZRange(double mz_min, double mz_max) const;
 ```
 
 ### Deprecated Methods (Compatibility)
 
 ```cpp
-[[deprecated]] Peak1D getPeak(Size i) const;
-[[deprecated]] void setPeak(Size i, const Peak1D& peak);
-[[deprecated]] std::vector<Peak1D> toAoS() const;
-[[deprecated]] bool containsIMData() const;
-[[deprecated]] std::pair<Size, DriftTimeUnit> getIMData() const;
+// Peak1D access (creates temporary objects)
+[[deprecated("Use getMZ(i)/getIntensity(i) instead")]]
+Peak1D getPeak(Size i) const;
+
+[[deprecated("Use setMZ(i)/setIntensity(i) instead")]]
+void setPeak(Size i, const Peak1D& peak);
+
+[[deprecated("Use getMZArray()/getIntensityArray() instead")]]
+std::vector<Peak1D> toAoS() const;
+
+// Ion mobility (old API)
+[[deprecated("Use hasIonMobilityArray() instead")]]
+bool containsIMData() const;
+
+[[deprecated("Use getIonMobilityArray() and getIonMobilityUnit() instead")]]
+std::pair<Size, DriftTimeUnit> getIMData() const;
+
+// Iterator-based search (replaced by index-based)
+[[deprecated("Use findFirstMZ() instead")]]
+Iterator MZBegin(CoordinateType mz);
+
+[[deprecated("Use findLastMZ() instead")]]
+Iterator MZEnd(CoordinateType mz);
 ```
 
-### Removed Methods
+### Removed Methods (Phase 3+)
 
 ```cpp
-// No longer available
-Peak1D& operator[](Size i);
+// No longer available after Phase 3
+Peak1D& operator[](Size i);           // Use getMZ(i)/getIntensity(i)
 const Peak1D& operator[](Size i) const;
-iterator begin();
+iterator begin();                      // No Peak1D iteration
 iterator end();
-Peak1D* data();
-void push_back(const Peak1D&);
+Peak1D* data();                        // Use getMZArray().data()
+void push_back(const Peak1D&);         // Use addPeak(mz, intensity)
+void emplace_back(mz, intensity);      // Use addPeak(mz, intensity)
 ```
 
 ---
@@ -2229,6 +2442,18 @@ MSSpectrum::MSSpectrum(MSSpectrum&& other) noexcept
 
 ---
 
-*Document Version: 1.3*
+## Document History
+
+| Version | Date | Changes |
+|---------|------|---------|
+| 1.0 | 2025-12-10 | Initial plan document |
+| 1.1 | 2025-12-10 | Added future extensibility (Appendix C) |
+| 1.2 | 2025-12-10 | Added zero-copy NumPy integration (Section 14) |
+| 1.3 | 2025-12-10 | Added shared_ptr analysis (Appendix D) |
+| 1.4 | 2025-12-10 | Comprehensive revision: reconciled shared_ptr decision, added mzML alignment section, updated file counts, added MZBegin/MZEnd migration, revised implementation phases, added version timeline |
+
+---
+
+*Document Version: 1.4*
 *Date: 2025-12-10*
 *Author: Claude (AI Assistant)*
