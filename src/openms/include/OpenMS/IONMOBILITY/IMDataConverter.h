@@ -188,7 +188,9 @@ namespace OpenMS
         - reduced_mass = (mass * N2_gas_mass) / (mass + N2_gas_mass) with N2_gas_mass = 28.0
 
         @note Each spectrum must have precursor information (m/z and charge) for the conversion to work correctly.
-        @note The drift time unit is not changed by this function; the caller should update it if needed.
+        @note The drift time unit metadata is not changed by this function. Since there is currently no
+              DriftTimeUnit enum value for CCS, the caller may need to handle unit tracking separately
+              or set the unit to DriftTimeUnit::NONE after conversion.
 
         @param[in,out] spectra The MSExperiment containing spectra with VSSC drift times to be converted to CCS values.
                               The drift times are modified in place.
