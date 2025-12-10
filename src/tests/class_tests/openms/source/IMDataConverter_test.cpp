@@ -262,6 +262,74 @@ START_SECTION((std::vector<std::pair<double, MSExperiment>> splitByFAIMSCV retur
 }
 END_SECTION
 
+START_SECTION(static void convertVSSCToCCS(MSExperiment& spectra))
+{
+  // Create a simple MSExperiment with spectra that have VSSC drift times
+  MSExperiment exp;
+  
+  // Spectrum 1: m/z = 500, charge = 2, drift time (1/k0) = 1.0
+  MSSpectrum s1;
+  s1.setMSLevel(2);
+  s1.setDriftTime(1.0);
+  s1.setDriftTimeUnit(DriftTimeUnit::VSSC);
+  Precursor p1;
+  p1.setMZ(500.0);
+  p1.setCharge(2);
+  s1.setPrecursors({p1});
+  exp.addSpectrum(s1);
+  
+  // Spectrum 2: m/z = 750, charge = 3, drift time (1/k0) = 1.5
+  MSSpectrum s2;
+  s2.setMSLevel(2);
+  s2.setDriftTime(1.5);
+  s2.setDriftTimeUnit(DriftTimeUnit::VSSC);
+  Precursor p2;
+  p2.setMZ(750.0);
+  p2.setCharge(3);
+  s2.setPrecursors({p2});
+  exp.addSpectrum(s2);
+  
+  // Spectrum 3: m/z = 400, charge = 0 (should be skipped)
+  MSSpectrum s3;
+  s3.setMSLevel(2);
+  s3.setDriftTime(0.8);
+  s3.setDriftTimeUnit(DriftTimeUnit::VSSC);
+  Precursor p3;
+  p3.setMZ(400.0);
+  p3.setCharge(0); // Unknown charge
+  s3.setPrecursors({p3});
+  exp.addSpectrum(s3);
+  
+  // Spectrum 4: no precursor (should be skipped)
+  MSSpectrum s4;
+  s4.setMSLevel(1);
+  s4.setDriftTime(0.5);
+  s4.setDriftTimeUnit(DriftTimeUnit::VSSC);
+  exp.addSpectrum(s4);
+  
+  // Run conversion
+  IMDataConverter::convertVSSCToCCS(exp);
+  
+  // Verify first spectrum: manually calculate expected CCS
+  // mass = 500 * 2 = 1000
+  // reduced_mass = (1000 * 28) / (1000 + 28) = 27.237...
+  // CCS = 1.0 * 2 * 1059.62245 / sqrt(27.237...) ≈ 406.09
+  TEST_REAL_SIMILAR(exp[0].getDriftTime(), 406.09) // Expected CCS for spectrum 1
+  
+  // Verify second spectrum
+  // mass = 750 * 3 = 2250
+  // reduced_mass = (2250 * 28) / (2250 + 28) = 27.656...
+  // CCS = 1.5 * 3 * 1059.62245 / sqrt(27.656...) ≈ 905.22
+  TEST_REAL_SIMILAR(exp[1].getDriftTime(), 905.22) // Expected CCS for spectrum 2
+  
+  // Third spectrum (charge 0) should not be converted - stays the same
+  TEST_REAL_SIMILAR(exp[2].getDriftTime(), 0.8)
+  
+  // Fourth spectrum (no precursor) should not be converted - stays the same
+  TEST_REAL_SIMILAR(exp[3].getDriftTime(), 0.5)
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

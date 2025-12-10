@@ -166,6 +166,30 @@ namespace OpenMS
         @return True if @p fda is an IM array, false otherwise
       */
       static bool getIMUnit(const DataArrays::FloatDataArray& fda, DriftTimeUnit& unit);
+
+      /**
+        @brief Converts ion mobility values from VSSC (1/k0, inverse reduced ion mobility) to CCS (collisional cross section) in an MSExperiment.
+
+        This function iterates through all spectra in the given MSExperiment and converts their
+        drift time values from VSSC (Volt-Second per Square Centimeter, also known as 1/k0) to CCS
+        (Collisional Cross Section) using the Mason-Schamp equation.
+
+        The conversion uses the formula:
+        CCS = IM * charge * bruker_CCS_coef / sqrt(reduced_mass)
+
+        where:
+        - IM is the ion mobility value (1/k0)
+        - charge is the precursor charge
+        - bruker_CCS_coef is a constant coefficient (1059.62245) for Bruker instruments
+        - reduced_mass = (mass * N2_gas_mass) / (mass + N2_gas_mass) with N2_gas_mass = 28.0
+
+        @note Each spectrum must have precursor information (m/z and charge) for the conversion to work correctly.
+        @note The drift time unit is not changed by this function; the caller should update it if needed.
+
+        @param[in,out] spectra The MSExperiment containing spectra with VSSC drift times to be converted to CCS values.
+                              The drift times are modified in place.
+      */
+      static void convertVSSCToCCS(MSExperiment& spectra);
     };
 
 } //end namespace OpenMS

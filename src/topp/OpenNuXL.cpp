@@ -23,6 +23,7 @@
 #include <OpenMS/PROCESSING/CALIBRATION/PrecursorCorrection.h>
 #include <OpenMS/ANALYSIS/XLMS/OPXLSpectrumProcessingAlgorithms.h>
 #include <OpenMS/CHEMISTRY/DecoyGenerator.h>
+#include <OpenMS/IONMOBILITY/IMDataConverter.h>
 
 #include <OpenMS/FEATUREFINDER/FeatureFinderIdentificationAlgorithm.h>
 
@@ -4580,23 +4581,6 @@ static void scoreXLIons_(
     return make_tuple(IM_format, IM_unit);
   }
 
-  void convertVSSCToCCS(MSExperiment& spectra)
-  { // confirmed values with alpha and MaxQuant
-    OPENMS_LOG_INFO << "Converting 1/k0 to CCS values." << std::endl;
-    constexpr double bruker_CCS_coef = 1059.62245; // constant coefficient for Bruker in the Mason-Schamp equation
-    constexpr double IM_N2_gas_mass = 28.0; // like in alpha code
-    for (auto& s : spectra)
-    {
-      const double IM = s.getDriftTime();
-      const double mz = s.getPrecursors()[0].getMZ();
-      const double charge = s.getPrecursors()[0].getCharge();
-      const double mass = mz * charge;
-      const double reduced_mass = mass * IM_N2_gas_mass / (mass + IM_N2_gas_mass);
-      const double CCS = IM * charge * bruker_CCS_coef / std::sqrt(reduced_mass); // Mason-Schamp equation
-      s.setDriftTime(CCS);
-    }
-  }
-
   void filterPeakInterference_(PeakMap& spectra, const map<String, PrecursorPurity::PurityScores>& purities, double fragment_mass_tolerance = 20.0, bool fragment_mass_tolerance_unit_ppm = true)
   {
     double filtered_peaks_count{0};
@@ -5189,7 +5173,7 @@ static void scoreXLIons_(
     // convert 1/k0 to CCS
     if (IM_unit == DriftTimeUnit::VSSC)
     {      
-      convertVSSCToCCS(spectra);
+      IMDataConverter::convertVSSCToCCS(spectra);
     }
 
     // all data dependent features (IM available or not, precursor intensities from MS1 available etc.) are known. We can define percolator features.
@@ -5954,7 +5938,7 @@ static void scoreXLIons_(
     // convert 1/k0 to CCS
     if (IM_unit == DriftTimeUnit::VSSC)
     {      
-      convertVSSCToCCS(spectra);
+      IMDataConverter::convertVSSCToCCS(spectra);
     }
 
     preprocessSpectra_(spectra, 

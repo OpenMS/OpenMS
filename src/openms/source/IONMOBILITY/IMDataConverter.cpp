@@ -18,6 +18,7 @@
 
 
 #include <cstddef>
+#include <cmath>
 #include <map>
 #include <OpenMS/PROCESSING/SPECTRAMERGING/SpectraMerger.h>
 
@@ -368,6 +369,34 @@ namespace OpenMS
     {
     }
     return false;
+  }
+
+  void IMDataConverter::convertVSSCToCCS(MSExperiment& spectra)
+  {
+    // Constants for the Mason-Schamp equation (confirmed values with alpha and MaxQuant)
+    constexpr double bruker_CCS_coef = 1059.62245; // constant coefficient for Bruker in the Mason-Schamp equation
+    constexpr double IM_N2_gas_mass = 28.0; // N2 gas mass (like in alpha code)
+
+    OPENMS_LOG_INFO << "Converting 1/k0 to CCS values." << std::endl;
+
+    for (auto& s : spectra)
+    {
+      const double IM = s.getDriftTime();
+      if (s.getPrecursors().empty())
+      {
+        continue; // skip spectra without precursor info
+      }
+      const double mz = s.getPrecursors()[0].getMZ();
+      const double charge = s.getPrecursors()[0].getCharge();
+      if (charge == 0)
+      {
+        continue; // skip spectra with unknown charge
+      }
+      const double mass = mz * charge;
+      const double reduced_mass = mass * IM_N2_gas_mass / (mass + IM_N2_gas_mass);
+      const double CCS = IM * charge * bruker_CCS_coef / std::sqrt(reduced_mass); // Mason-Schamp equation
+      s.setDriftTime(CCS);
+    }
   }
 
 }  //end namespace OpenMS
