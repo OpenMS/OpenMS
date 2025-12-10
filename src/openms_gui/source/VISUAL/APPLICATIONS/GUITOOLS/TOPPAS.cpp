@@ -36,7 +36,6 @@
 #include <QPainter>
 #include <QtWidgets/QSplashScreen>
 #include <QtCore/QDir>
-#include <QSurfaceFormat>
 
 
 //OpenMS
@@ -140,17 +139,6 @@ int main(int argc, const char** argv)
       OPENMS_LOG_ERROR << "The parameters '-execute' and '-out_dir' are not valid anymore. This functionality has been moved to the ExecutePipeline tool." << endl;
       return 1;
     }
-
-#if defined(__APPLE__)
-    // see https://bugreports.qt.io/browse/QTBUG-104871
-    // if you link to QtWebEngine and the corresponding macros are enabled, it will
-    // try to default to OpenGL 4.1 on macOS (for hardware acceleration of WebGL in Chromium, which we do not need yet)
-    // but our OpenGL code for 3D View is written in OpenGL 2.x.
-    // Now we force 2.1 which is also available on all? Macs.
-    QSurfaceFormat format;
-    format.setVersion(2, 1); // the default is 2, 0
-    QSurfaceFormat::setDefaultFormat(format); // should be done before creating a QApplication
-#endif
 
     QApplicationTOPP a(argc, const_cast<char**>(argv));
     a.connect(&a, SIGNAL(lastWindowClosed()), &a, SLOT(quit()));
