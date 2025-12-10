@@ -98,10 +98,10 @@ RUN mkdir -p ${THIRDPARTY_DIR}
 RUN <<-EOF
     set -eux
 
-    # Map Docker's TARGETARCH to directory naming
+    # Map Docker's TARGETARCH to THIRDPARTY directory naming
     case "${TARGETARCH}" in
         amd64) ARCH_DIR="x86_64" ;;
-        arm64) ARCH_DIR="arm64" ;;
+        arm64) ARCH_DIR="aarch64" ;;
         *) echo "Unsupported architecture: ${TARGETARCH}" && exit 1 ;;
     esac
 
@@ -112,7 +112,19 @@ RUN <<-EOF
     fi
 
     # copying only the binaries that are relevant to Linux
-    cp -vr "$ALL_DIR"/* "$LINUX_DIR"/* ${THIRDPARTY_DIR}
+    # Copy All directory (platform-independent files)
+    if [ -d "$ALL_DIR" ]; then
+      cp -vr "$ALL_DIR"/* ${THIRDPARTY_DIR}
+    fi
+    
+    # Copy architecture-specific binaries if they exist
+    if [ -d "$LINUX_DIR" ]; then
+      cp -vr "$LINUX_DIR"/* ${THIRDPARTY_DIR}
+    else
+      echo "Warning: No architecture-specific binaries found at $LINUX_DIR"
+      echo "Building without third-party tools for ${ARCH_DIR}"
+    fi
+    
     rm -rf THIRDPARTY
 EOF
 
