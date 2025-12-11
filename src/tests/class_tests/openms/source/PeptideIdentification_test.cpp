@@ -677,37 +677,37 @@ START_SECTION(([EXTRA] buildUSI with file paths and basenames))
   // Using full path as MS run (not recommended but should work)
   String full_path = "/path/to/data/sample.mzML";
   USI usi1 = id1.buildUSI("PXD000561", full_path, false);
-  TEST_EQUAL(usi1.isValid(), true)
-  TEST_STRING_EQUAL(usi1.getMSRun(), full_path)
+  TEST_EQUAL(usi1.isValid(), true);
+  TEST_STRING_EQUAL(usi1.getMSRun(), full_path);
   
   // Test with basename extracted using USI::extractBasename
   String extracted_basename = USI::extractBasename(full_path);
   USI usi2 = id1.buildUSI("PXD000561", extracted_basename, false);
-  TEST_STRING_EQUAL(usi2.getMSRun(), "sample.mzML")
-  TEST_STRING_EQUAL(usi2.toString(), "mzspec:PXD000561:sample.mzML:scan:12345")
+  TEST_STRING_EQUAL(usi2.getMSRun(), "sample.mzML");
+  TEST_STRING_EQUAL(usi2.toString(), "mzspec:PXD000561:sample.mzML:scan:12345");
   
   // Test with file:// URI (common in consensusXML)
   String file_uri = "file:///C:/Users/bielow/data/ES-0014b_2.mzML";
   USI usi3 = id1.buildUSI("PXD000561", USI::extractBasename(file_uri), false);
-  TEST_STRING_EQUAL(usi3.getMSRun(), "ES-0014b_2.mzML")
+  TEST_STRING_EQUAL(usi3.getMSRun(), "ES-0014b_2.mzML");
   
   // Test buildUSIString with extracted basename
   String usi_str = id1.buildUSIString("PXD000561", USI::extractBasename(file_uri), false);
-  TEST_STRING_EQUAL(usi_str, "mzspec:PXD000561:ES-0014b_2.mzML:scan:12345")
+  TEST_STRING_EQUAL(usi_str, "mzspec:PXD000561:ES-0014b_2.mzML:scan:12345");
   
   // Test with various native ID formats and basenames
   PeptideIdentification id2;
   id2.setSpectrumReference("spectrum=219");  // Another common format
   USI usi4 = id2.buildUSI("PXD000561", "sample.mzML", false);
-  TEST_STRING_EQUAL(usi4.getIndex(), "219")
-  TEST_EQUAL(usi4.getIndexType(), USI::IndexType::SCAN)
+  TEST_STRING_EQUAL(usi4.getIndex(), "219");
+  TEST_EQUAL(usi4.getIndexType(), USI::IndexType::SCAN);
   
   // Test with Thermo native ID format
   PeptideIdentification id3;
   id3.setSpectrumReference("controllerType=0 controllerNumber=1 scan=7890");
   USI usi5 = id3.buildUSI("PXD000561", "thermo_sample.raw", false);
-  TEST_STRING_EQUAL(usi5.getIndex(), "7890")
-  TEST_STRING_EQUAL(usi5.getMSRun(), "thermo_sample.raw")
+  TEST_STRING_EQUAL(usi5.getIndex(), "7890");
+  TEST_STRING_EQUAL(usi5.getMSRun(), "thermo_sample.raw");
 }
 END_SECTION
 
