@@ -175,7 +175,7 @@ namespace OpenMS
     {
       String msg = "we don't support bases with multiple reference moieties or multicharacter moieties.";
       throw Exception::InvalidValue(__FILE__, __LINE__,
-                                              OPENMS_PRETTY_FUNCTION, msg, entry["reference_moiety"].get<std::string>());
+                                              OPENMS_PRETTY_FUNCTION, msg, entry["reference_moiety"].dump());
     }
     
     if (entry.find("abbrev") != entry.cend())

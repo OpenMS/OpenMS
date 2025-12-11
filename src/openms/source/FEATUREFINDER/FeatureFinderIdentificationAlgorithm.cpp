@@ -1464,16 +1464,10 @@ namespace OpenMS
 
     for (auto& rt : rts)
     {
-      // large gap between last RT of last region and current RT? then create a new region?
-      if (rt_regions.empty() || (rt_regions.back().end < rt - rt_tolerance))
-      {
-        RTRegion region;
-        region.start = rt - rt_tolerance;
-        // TODO
-        // cppcheck-suppress uninitStructMember
-        rt_regions.push_back(region);
-      }
-      rt_regions.back().end = rt + rt_tolerance;
+        if (rt_regions.empty() || rt_regions.back().end < rt - rt_tolerance)
+            rt_regions.push_back({rt - rt_tolerance, rt + rt_tolerance});
+        else
+            rt_regions.back().end = rt + rt_tolerance;
     }
 
     // sort the peptide IDs into the regions:

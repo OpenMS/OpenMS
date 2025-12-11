@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -83,7 +83,7 @@ namespace OpenMS
       
       vector<pair<size_t, size_t>> digested_peptides; // every thread gets it own copy that is only cleared, not destructed (prevents frequent reallocations)
       #pragma omp parallel for private(digested_peptides)
-      for (SignedSize i = 0; i < fasta_entries.size(); ++i)
+      for (SignedSize i = 0; i < (SignedSize)fasta_entries.size(); ++i)
       {
         digested_peptides.clear();
         const FASTAFile::FASTAEntry& protein = fasta_entries[i];
