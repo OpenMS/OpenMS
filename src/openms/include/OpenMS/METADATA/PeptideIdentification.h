@@ -208,12 +208,13 @@ public:
       mzspec:<collection>:<ms_run>:<index_type>:<index>[:interpretation]
 
       This method uses the spectrum reference (native ID) to extract the scan number.
-      If the top hit is available and include_interpretation is true, the peptide sequence
-      and charge are included in the USI.
+      If include_interpretation is true and hits are available, the first hit's peptide 
+      sequence and charge are included in the USI. For best results when using 
+      interpretation, call sort() before this method to ensure the best-scoring hit is first.
 
       @param dataset_id ProteomeXchange dataset identifier (e.g., "PXD000561") or spectral library name
       @param ms_run_name Name of the MS run file (e.g., "sample.mzML")
-      @param include_interpretation If true and hits are available, include peptide sequence/charge
+      @param include_interpretation If true and hits are available, include peptide sequence/charge from first hit
 
       @return USI object representing this PeptideIdentification
     */
@@ -224,11 +225,11 @@ public:
     /**
       @brief Builds a Universal Spectrum Identifier (USI) string from the PeptideIdentification.
 
-      Convenience method that returns the USI as a string.
+      Convenience method that returns the USI as a string. See buildUSI() for details.
 
       @param dataset_id ProteomeXchange dataset identifier (e.g., "PXD000561")
       @param ms_run_name Name of the MS run file
-      @param include_interpretation If true and hits are available, include peptide sequence/charge
+      @param include_interpretation If true and hits are available, include peptide sequence/charge from first hit
 
       @return USI string or empty string if USI cannot be constructed
     */
