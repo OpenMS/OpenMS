@@ -492,6 +492,7 @@ protected:
     registerStringOption_("predict_rt",  "<bool>", "false", "Use retention time prediction model as a feature for machine learning scoring. Note: This is incompatible with label-free quantification (LFQ). Default: false", false, false ); 
     registerStringOption_("wide_window", "<bool>", "false", "Enable wide-window/DIA search mode. When enabled, the precursor_tol parameter is ignored and a dynamic precursor tolerance is used. Default: false", false, false);
     registerStringOption_("smoothing", "<bool>", "true", "Whether to smooth the PTM (post-translational modification) mass histogram and pick local maxima. If false, uses raw histogram data. Default: true", false, false);  
+    registerIntOption_("threads", "<int>", 1, "Amount of threads available to the program", false, false); 
 
     // register peptide indexing parameter (with defaults for this search engine)
     registerPeptideIndexingParameter_(PeptideIndexing().getParameters());
@@ -611,12 +612,8 @@ protected:
     std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
     
     // Set RAYON_NUM_THREADS environment variable to control Sage's thread usage
-    // Only set if threads > 0; if threads == 0, let Rayon auto-detect (use all CPUs)
     std::map<QString, QString> sage_env;
-    if (threads > 0)
-    {
-      sage_env["RAYON_NUM_THREADS"] = String(threads).toQString();
-    }
+    sage_env["RAYON_NUM_THREADS"] = String(threads).toQString();
     
     // Sage execution with the executable and the arguments StringList
     exit_code = runExternalProcess_(sage_executable.toQString(), arguments, "", sage_env);

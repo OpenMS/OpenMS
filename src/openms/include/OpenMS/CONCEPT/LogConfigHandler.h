@@ -91,18 +91,8 @@ public:
     std::ostream & getStream(const String & stream_name);
 
     /**
-      @brief Sets a minimum @p log_level by removing all streams from loggers lower than that level,
-      and restoring configured streams for loggers at or above that level.
-      
-      This method allows dynamic adjustment of the logging level. When increasing the log level
-      (e.g., from INFO to ERROR), streams are removed from lower priority levels. When decreasing
-      the log level (e.g., from ERROR to INFO), previously configured streams are restored.
-      
-      Order of log_level: "DEBUG", "INFO", "WARNING", "ERROR", "FATAL_ERROR", "NONE"
-      
-      Special value "NONE" disables all logging by removing streams from all levels.
-      
-      @param log_level The minimum log level to enable. Levels below this will have their streams removed.
+      @brief Sets a minimum @p log_level by removing all streams from loggers lower than that level.
+      order of log_level: "DEBUG", "INFO", "WARNING", "ERROR", "FATAL_ERROR"
      */
     void setLogLevel(const String & log_level);
 
