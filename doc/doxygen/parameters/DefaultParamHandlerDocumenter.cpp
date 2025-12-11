@@ -237,6 +237,22 @@ void writeParameters(const String& class_name, const Param& param, bool table_on
         String valid_strings;
         valid_strings.concatenate(it->valid_strings.begin(), it->valid_strings.end(), ", ");
         restrictions += valid_strings;
+
+        // Add clarification for boolean-like string parameters (issue #8475)
+        // Parameters with valid_strings ["true", "false"] and default "true" require explicit values on CLI,
+        // while those with default "false" are treated as flags (no value required)
+        if (it->valid_strings.size() == 2 &&
+            it->valid_strings[0] == "true" && it->valid_strings[1] == "false")
+        {
+          if (it->value.toString() == "true")
+          {
+            restrictions += " (value required)";
+          }
+          else
+          {
+            restrictions += " (flag)";
+          }
+        }
       }
     }
     if (restrictions == "")
@@ -304,6 +320,7 @@ void writeParameters(const String& class_name, const Param& param, bool table_on
       << "<UL style=\"margin-top:0px;\">" << "\n"
       << "  <LI> If a section name is documented, the documentation is displayed as tooltip." << "\n"
       << "  <LI> Advanced parameter names are italic." << "\n"
+      << "  <LI> For boolean parameters: <i>(flag)</i> means the parameter can be specified without a value (e.g., -flag). <i>(value required)</i> means an explicit value must be provided (e.g., -param false)." << "\n"
       << "</UL>" << "\n";
   }
   f.close();

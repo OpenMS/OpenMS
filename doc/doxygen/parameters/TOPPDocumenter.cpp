@@ -31,6 +31,8 @@ void convertINI2HTML(const Param& p, ostream& os)
   os << "<b>Legend:</b><br>\n";
   os << " <div class=\"item item_required\">required parameter</div>\n";
   os << " <div class=\"item item_advanced\">advanced parameter</div>\n";
+  os << " <div class=\"item\"><i>true, false (value required)</i>: boolean parameter that requires an explicit value (e.g., -flag false)</div>\n";
+  os << " <div class=\"item\"><i>true/false</i>: flag parameter that can be specified without a value (e.g., -flag)</div>\n";
   os << "</div>\n";
 
   Param::ParamIterator it = p.begin();
@@ -158,10 +160,18 @@ void convertINI2HTML(const Param& p, ostream& os)
       if (!it->valid_strings.empty())
       {
         // make sure browsers can word wrap with additional whitespace
-        // TODO: If param name is *modification* just add a link to 
+        // TODO: If param name is *modification* just add a link to
         //  a page with all modifications otherwise you get a HUGE list.
         //  Also think about a different separator, in case the restrictions have commas.
         restrictions.concatenate(it->valid_strings.begin(), it->valid_strings.end(), ", ");
+
+        // Add clarification for boolean-like string parameters (issue #8475)
+        // These have valid_strings of "true, false" but require explicit values on CLI
+        if (it->valid_strings.size() == 2 &&
+            it->valid_strings[0] == "true" && it->valid_strings[1] == "false")
+        {
+          restrictions += " (value required)";
+        }
       }
       break;
 
