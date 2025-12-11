@@ -13,6 +13,7 @@
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>
 #include <OpenMS/METADATA/ExperimentalDesign.h>
+#include <OpenMS/METADATA/PeptideEvidence.h>
 
 
 using namespace OpenMS;
@@ -368,6 +369,196 @@ START_SECTION((const ProteinQuant& getProteinResults()))
   TEST_REAL_SIMILAR(protein.total_abundances[0], 308.5);
   TEST_REAL_SIMILAR(protein.total_abundances[1], 58.5);
   TEST_REAL_SIMILAR(protein.total_abundances[2], 257.5);
+}
+END_SECTION
+
+// iBAQ test with indistinguishable protein groups (regression test for issue 8466)
+START_SECTION((iBAQ with indistinguishable protein groups))
+{
+  PeptideAndProteinQuant quantifier;
+  PeptideAndProteinQuant::ProteinQuant quant;
+  PeptideAndProteinQuant::ProteinData protein;
+
+  Param parameters = quantifier.getDefaults();
+  parameters.setValue("method", "iBAQ");
+  quantifier.setParameters(parameters);
+
+  // Create a ConsensusMap with protein groups
+  ConsensusMap consensus;
+
+  // Set up mapList with one sample
+  consensus.getColumnHeaders()[0].filename = "sample1.mzML";
+  consensus.getColumnHeaders()[0].size = 1;
+  consensus.getColumnHeaders()[0].unique_id = 0;
+
+  ProteinIdentification prot_id;
+  prot_id.setIdentifier("PI_test");
+  prot_id.setPrimaryMSRunPath({"sample1.mzML"});
+
+  // Two protein hits in an indistinguishable group
+  ProteinHit hit_leader;
+  hit_leader.setAccession("ProteinLeader");
+  hit_leader.setSequence("AAAKCCCKEEEKGGG"); // 15 aa, trypsin digests to 4 peptides
+
+  ProteinHit hit_member;
+  hit_member.setAccession("ProteinMember");
+  hit_member.setSequence("AAAKCCCKEEEKGGG"); // Same sequence
+
+  prot_id.getHits().push_back(hit_leader);
+  prot_id.getHits().push_back(hit_member);
+
+  // Create indistinguishable protein group with ProteinLeader as leader
+  ProteinIdentification::ProteinGroup group;
+  group.probability = 0.9;
+  group.accessions = {"ProteinLeader", "ProteinMember"};
+  prot_id.getIndistinguishableProteins().push_back(group);
+
+  consensus.getProteinIdentifications().push_back(prot_id);
+
+  ConsensusFeature cf;
+  cf.setUniqueId(1);
+  cf.setRT(100);
+  cf.setMZ(100);
+  cf.setIntensity(1234.0);  // This will be the raw abundance
+  cf.setCharge(2);
+
+  FeatureHandle fh;
+  fh.setMapIndex(0);
+  fh.setUniqueId(1);
+  fh.setRT(100);
+  fh.setMZ(100);
+  fh.setIntensity(1234.0);
+  fh.setCharge(2);
+  cf.insert(fh);
+
+  // Create peptide identification that references ProteinLeader
+  PeptideIdentification pep_id;
+  pep_id.setIdentifier("PI_test");
+  pep_id.setRT(100);
+  pep_id.setMZ(100);
+
+  PeptideHit pep_hit;
+  pep_hit.setSequence(AASequence::fromString("AAAK"));
+  pep_hit.setCharge(2);
+  pep_hit.setScore(1.0);
+
+  // Reference the leader protein
+  PeptideEvidence pe;
+  pe.setProteinAccession("ProteinLeader");
+  pep_hit.addPeptideEvidence(pe);
+
+  pep_id.getHits().push_back(pep_hit);
+  cf.getPeptideIdentifications().push_back(pep_id);
+
+  consensus.push_back(cf);
+
+  // Run quantification
+  ExperimentalDesign ed = ExperimentalDesign::fromConsensusMap(consensus);
+  quantifier.readQuantData(consensus, ed);
+  quantifier.quantifyPeptides();
+  quantifier.quantifyProteins(consensus.getProteinIdentifications()[0]);
+
+  quant = quantifier.getProteinResults();
+
+  // The protein should be quantified under "ProteinLeader" (the group leader)
+  TEST_EQUAL(quant.count("ProteinLeader"), 1);
+  protein = quant["ProteinLeader"];
+
+  // iBAQ: raw abundance 1234.0 / 4 theoretical peptides = 308.5
+  double expected_ibaq = 1234.0 / 4.0;
+  TEST_REAL_SIMILAR(protein.total_abundances[0], expected_ibaq);
+}
+END_SECTION
+
+// iBAQ test with missing leader protein hit (regression test for issue 8466)
+START_SECTION((iBAQ with missing leader protein hit))
+{
+  PeptideAndProteinQuant quantifier;
+  PeptideAndProteinQuant::ProteinQuant quant;
+  PeptideAndProteinQuant::ProteinData protein;
+
+  Param parameters = quantifier.getDefaults();
+  parameters.setValue("method", "iBAQ");
+  quantifier.setParameters(parameters);
+
+  ConsensusMap consensus;
+
+  consensus.getColumnHeaders()[0].filename = "sample1.mzML";
+  consensus.getColumnHeaders()[0].size = 1;
+  consensus.getColumnHeaders()[0].unique_id = 0;
+
+  ProteinIdentification prot_id;
+  prot_id.setIdentifier("PI_test");
+  prot_id.setPrimaryMSRunPath({"sample1.mzML"});
+
+  // KEY BUG SCENARIO: Only add the member protein hit, NOT the leader!
+  // This can happen in real workflows when protein inference produces
+  // group leaders that are not present as individual protein hits.
+  ProteinHit hit_member;
+  hit_member.setAccession("ProteinMember");
+  hit_member.setSequence("AAAKCCCKEEEKGGG"); // 15 aa, trypsin digests to 4 peptides
+
+  prot_id.getHits().push_back(hit_member);
+
+  // Create indistinguishable protein group with ProteinLeader as leader
+  // But ProteinLeader is NOT in the protein hits!
+  ProteinIdentification::ProteinGroup group;
+  group.probability = 0.9;
+  group.accessions = {"ProteinLeader", "ProteinMember"};  // Leader first
+  prot_id.getIndistinguishableProteins().push_back(group);
+
+  consensus.getProteinIdentifications().push_back(prot_id);
+
+  ConsensusFeature cf;
+  cf.setUniqueId(1);
+  cf.setRT(100);
+  cf.setMZ(100);
+  cf.setIntensity(1234.0);
+  cf.setCharge(2);
+
+  FeatureHandle fh;
+  fh.setMapIndex(0);
+  fh.setUniqueId(1);
+  fh.setRT(100);
+  fh.setMZ(100);
+  fh.setIntensity(1234.0);
+  fh.setCharge(2);
+  cf.insert(fh);
+
+  // Peptide references the member protein (which maps to leader in prot_quant_)
+  PeptideIdentification pep_id;
+  pep_id.setIdentifier("PI_test");
+  pep_id.setRT(100);
+  pep_id.setMZ(100);
+
+  PeptideHit pep_hit;
+  pep_hit.setSequence(AASequence::fromString("AAAK"));
+  pep_hit.setCharge(2);
+  pep_hit.setScore(1.0);
+
+  PeptideEvidence pe;
+  pe.setProteinAccession("ProteinMember");  // References member, not leader
+  pep_hit.addPeptideEvidence(pe);
+
+  pep_id.getHits().push_back(pep_hit);
+  cf.getPeptideIdentifications().push_back(pep_id);
+
+  consensus.push_back(cf);
+
+  ExperimentalDesign ed = ExperimentalDesign::fromConsensusMap(consensus);
+  quantifier.readQuantData(consensus, ed);
+  quantifier.quantifyPeptides();
+  quantifier.quantifyProteins(consensus.getProteinIdentifications()[0]);
+
+  quant = quantifier.getProteinResults();
+
+  // Quantified under group leader even though only member hit exists
+  TEST_EQUAL(quant.count("ProteinLeader"), 1);
+  protein = quant["ProteinLeader"];
+
+  // iBAQ: raw abundance 1234.0 / 4 theoretical peptides = 308.5
+  double expected_ibaq = 1234.0 / 4.0;
+  TEST_REAL_SIMILAR(protein.total_abundances[0], expected_ibaq);
 }
 END_SECTION
 

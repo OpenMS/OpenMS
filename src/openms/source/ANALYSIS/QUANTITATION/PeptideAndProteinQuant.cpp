@@ -1277,29 +1277,87 @@ namespace OpenMS
 
   void PeptideAndProteinQuant::performIbaqNormalization_(const ProteinIdentification& proteins)
   {
-    EnzymaticDigestion digest{};
-    for (auto & hit : proteins.getHits())
-    {
-      const OpenMS::String & hit_accession = hit.getAccession();
-      const OpenMS::String & hit_sequence = hit.getSequence();
+    // Build mapping from accession to leader (for indistinguishable protein groups)
+    // This is the same mapping used by transferPeptideDataToProteins_ to populate prot_quant_
+    std::map<String, String> accession_to_leader = mapAccessionToLeader(proteins);
 
-      if (prot_quant_.find(hit_accession) != prot_quant_.end())
+    // Build reverse mapping: leader -> list of all accessions in that group
+    // This allows us to find any protein hit that belongs to a leader's group
+    std::map<String, std::vector<String>> leader_to_members;
+    if (!accession_to_leader.empty())
+    {
+      for (const auto& entry : accession_to_leader)
       {
-        if (hit_sequence.empty())
+        leader_to_members[entry.second].push_back(entry.first);
+      }
+    }
+
+    // Build a map from accession to protein hit for quick lookup
+    std::map<String, const ProteinHit*> accession_to_hit;
+    for (const auto& hit : proteins.getHits())
+    {
+      accession_to_hit[hit.getAccession()] = &hit;
+    }
+
+    // Iterate over prot_quant_ entries (which are keyed by leader accessions)
+    // rather than protein hits, to avoid accession mismatch issues (issue #8466)
+    EnzymaticDigestion digest{};
+    std::vector<String> to_erase;  // Collect entries to remove (can't modify during iteration)
+
+    for (auto& prot_entry : prot_quant_)
+    {
+      const String& leader_accession = prot_entry.first;
+      ProteinData& prot_data = prot_entry.second;
+
+      // Find a protein hit with a sequence for this leader accession
+      // First try the leader directly, then try group members
+      String sequence;
+
+      // 1. Try direct lookup of the leader accession
+      auto hit_it = accession_to_hit.find(leader_accession);
+      if (hit_it != accession_to_hit.end() && !hit_it->second->getSequence().empty())
+      {
+        sequence = hit_it->second->getSequence();
+      }
+      // 2. If leader not found or has no sequence, try group members
+      else if (leader_to_members.count(leader_accession))
+      {
+        for (const String& member_acc : leader_to_members.at(leader_accession))
         {
-          prot_quant_.erase(hit_accession);
-          OPENMS_LOG_WARN << "Removed " << hit_accession <<  ", no protein sequence found!" << endl;
-        }
-        else
-        {
-          std::vector<StringView> peptides {};
-          digest.digestUnmodified(StringView(hit_sequence), peptides);
-          for (auto& total_abundance : prot_quant_[hit_accession].total_abundances)
+          auto member_hit_it = accession_to_hit.find(member_acc);
+          if (member_hit_it != accession_to_hit.end() && !member_hit_it->second->getSequence().empty())
           {
-            total_abundance.second /= double(peptides.size());
+            sequence = member_hit_it->second->getSequence();
+            break;  // Use first available sequence
           }
         }
       }
+
+      if (sequence.empty())
+      {
+        to_erase.push_back(leader_accession);
+        OPENMS_LOG_WARN << "Removed " << leader_accession << ", no protein sequence found!" << endl;
+      }
+      else
+      {
+        std::vector<StringView> peptides{};
+        digest.digestUnmodified(StringView(sequence), peptides);
+        if (peptides.empty())
+        {
+          OPENMS_LOG_WARN << "No theoretical peptides for " << leader_accession << ", iBAQ not applied." << endl;
+          continue;
+        }
+        for (auto& total_abundance : prot_data.total_abundances)
+        {
+          total_abundance.second /= static_cast<double>(peptides.size());
+        }
+      }
+    }
+
+    // Remove entries with missing sequences
+    for (const String& acc : to_erase)
+    {
+      prot_quant_.erase(acc);
     }
   }
 }
