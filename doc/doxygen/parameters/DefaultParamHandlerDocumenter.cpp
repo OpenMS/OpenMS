@@ -234,20 +234,9 @@ void writeParameters(const String& class_name, const Param& param, bool table_on
       //restrictions
       if (!it->valid_strings.empty())
       {
-        // Issue #8475: Distinguish flag parameters from boolean options requiring a value
-        if (it->valid_strings.size() == 2 &&
-            it->valid_strings[0] == "true" && it->valid_strings[1] == "false" &&
-            it->value.toString() == "false")
-        {
-          // Default "false" = flag parameter (no value needed on CLI)
-          restrictions = "(flag)";
-        }
-        else
-        {
-          String valid_strings;
-          valid_strings.concatenate(it->valid_strings.begin(), it->valid_strings.end(), ", ");
-          restrictions += valid_strings;
-        }
+        String valid_strings;
+        valid_strings.concatenate(it->valid_strings.begin(), it->valid_strings.end(), ", ");
+        restrictions += valid_strings;
       }
     }
     if (restrictions == "")
