@@ -265,6 +265,18 @@ namespace OpenMS
       @return Interpretation string in format "SEQUENCE/CHARGE"
     */
     static String buildInterpretation(const String& sequence, int charge = 0);
+
+    /**
+      @brief Extract basename from a file path (removes directory path).
+
+      This is useful when converting full file paths to MS run names for USI.
+      Example: "/path/to/sample.mzML" -> "sample.mzML"
+      Example: "file:///C:/data/sample.mzML" -> "sample.mzML"
+
+      @param filepath Full file path or URI
+      @return Basename without path component
+    */
+    static String extractBasename(const String& filepath);
     //@}
 
     /// @name CV term information
