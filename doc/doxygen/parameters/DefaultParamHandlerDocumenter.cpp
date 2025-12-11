@@ -240,7 +240,7 @@ void writeParameters(const String& class_name, const Param& param, bool table_on
             it->value.toString() == "false")
         {
           // Default "false" = flag parameter (no value needed on CLI)
-          restrictions = "flag";
+          restrictions = "(flag)";
         }
         else
         {

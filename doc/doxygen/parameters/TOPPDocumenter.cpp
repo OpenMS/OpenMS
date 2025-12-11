@@ -170,7 +170,7 @@ void convertINI2HTML(const Param& p, ostream& os)
         String val = it->value.toString();
         if (val == "true" || val == "false")
         {
-          restrictions = "flag";
+          restrictions = "(flag)";
         }
       }
       break;
