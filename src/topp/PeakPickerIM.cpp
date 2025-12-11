@@ -19,6 +19,50 @@
 using namespace OpenMS;
 using namespace std;
 
+//-------------------------------------------------------------
+//Doxygen docu
+//-------------------------------------------------------------
+
+/**
+@page TOPP_PeakPickerIM PeakPickerIM
+
+@brief A tool for peak detection in the ion mobility dimension for mzML files.
+
+<center>
+<table>
+<tr>
+<th ALIGN = "center"> pot. predecessor tools </td>
+<td VALIGN="middle" ROWSPAN=2> &rarr; PeakPickerIM &rarr;</td>
+<th ALIGN = "center"> pot. successor tools </td>
+</tr>
+<tr>
+<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FileConverter </td>
+<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any tool operating on MS peak data @n (in mzML format)</td>
+</tr>
+</table>
+</center>
+
+This tool applies peak picking in the ion mobility dimension to raw LC-IMS-MS data.
+The input mzML file should contain ion mobility data in concatenated format
+(where each spectrum contains an ion mobility float data array).
+
+Three peak picking methods are available:
+- @b mobilogram: Picks peaks along the ion mobility dimension using a peak picker.
+- @b cluster: Clusters peaks in the ion mobility dimension.
+- @b traces: Picks peaks using ion mobility elution profiles.
+
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_PeakPickerIM.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_PeakPickerIM.html
+
+For the parameters of the algorithm section see the algorithm documentation: @ref OpenMS::PeakPickerIM "PeakPickerIM"
+
+*/
+
+// We do not want this class to show up in the docu:
+/// @cond TOPPCLASSES
+
 class TOPPPeakPickerIM : public TOPPBase
 {
 public:
@@ -257,4 +301,6 @@ int main(int argc, const char** argv)
   TOPPPeakPickerIM tool;
   return tool.main(argc, argv);
 }
+
+/// @endcond
 
