@@ -556,15 +556,7 @@ namespace OpenMS
       // Write USI if requested
       if (incl_usi)
       {
-        String usi_string = pid.buildUSIString(usi_dataset_id, usi_ms_run, true);
-        if (!usi_string.empty())
-        {
-          out << usi_string;
-        }
-        else
-        {
-          out << "";
-        }
+        out << pid.buildUSIString(usi_dataset_id, usi_ms_run, true);
       }
       
       writeMetaValues(out, pid, peptide_id_meta_keys);
@@ -660,7 +652,7 @@ protected:
       // Validate USI parameters
       if (add_usi && usi_dataset_id.empty())
       {
-        writeLogWarn_("Warning: 'id:add_usi' is set but 'id:usi_dataset_id' is empty. USI column will contain incomplete identifiers.");
+        writeLogWarn_("'id:add_usi' is set but 'id:usi_dataset_id' is empty. USI column will contain incomplete identifiers.");
       }
 
       // output file names and types
