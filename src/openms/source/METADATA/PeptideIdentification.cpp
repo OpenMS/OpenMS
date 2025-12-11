@@ -319,11 +319,13 @@ namespace OpenMS
     auto scan_num = USI::extractScanNumberFromNativeID(spec_ref);
     
     // Build interpretation string if requested and hits are available
+    // Note: The first hit is used as the interpretation. For best results,
+    // call sort() before this method to ensure the best-scoring hit is first.
     String interpretation;
     if (include_interpretation && !hits_.empty())
     {
-      const PeptideHit& best_hit = hits_.front();  // Assumes sorted (best hit first)
-      interpretation = USI::buildInterpretation(best_hit.getSequence().toString(), best_hit.getCharge());
+      const PeptideHit& first_hit = hits_.front();
+      interpretation = USI::buildInterpretation(first_hit.getSequence().toString(), first_hit.getCharge());
     }
     
     if (scan_num.has_value())
