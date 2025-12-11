@@ -111,9 +111,11 @@ macro(add_mac_app_bundle _name)
       #install(CODE "execute_process(COMMAND ln -fs ../../${INSTALL_LIB_DIR} \${CMAKE_INSTALL_PREFIX}/${_name}.app/Contents/Frameworks)"
 			#				COMPONENT Applications)
       #install(CODE "execute_process(COMMAND ln -fs ../../${INSTALL_PLUGIN_DIR} \${CMAKE_INSTALL_PREFIX}/${_name}.app/Contents/PlugIns)"
-	  
-
-
+	  		  # 			COMPONENT Applications)
+			install(CODE "execute_process(COMMAND ${OPENMS_HOST_DIRECTORY}/cmake/MacOSX/fix_dependencies.rb -b \${CMAKE_INSTALL_PREFIX}/${_name}.app/Contents/MacOS/ -e @rpath/ -n -c)"
+							COMPONENT Applications)
+    else() # dmg
+    		## Write a qt.conf file with a ref to the plugin dir in app bundles = PlugIns
 				file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/macappqt.conf"
 						 "[Paths]\nPlugins = PlugIns\n")
 				install(FILES "${CMAKE_CURRENT_BINARY_DIR}/macappqt.conf"
