@@ -368,6 +368,43 @@ namespace OpenMS
     }
   }
 
+  String USI::extractBasename(const String& filepath)
+  {
+    if (filepath.empty())
+    {
+      return "";
+    }
+
+    String path = filepath;
+
+    // Handle file:// URIs
+    if (path.hasPrefix("file://"))
+    {
+      path = path.substr(7);  // Remove "file://"
+      // Handle Windows paths like file:///C:/path
+      if (path.size() > 2 && path[0] == '/' && path[2] == ':')
+      {
+        path = path.substr(1);  // Remove leading slash for Windows paths
+      }
+    }
+
+    // Find the last path separator (handle both Unix and Windows)
+    size_t last_sep = path.rfind('/');
+    size_t last_win_sep = path.rfind('\\');
+    
+    if (last_win_sep != String::npos && (last_sep == String::npos || last_win_sep > last_sep))
+    {
+      last_sep = last_win_sep;
+    }
+
+    if (last_sep != String::npos)
+    {
+      return path.substr(last_sep + 1);
+    }
+
+    return path;
+  }
+
   const String& USI::getCVAccession()
   {
     return CV_ACCESSION;

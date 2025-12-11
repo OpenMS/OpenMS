@@ -368,6 +368,34 @@ START_SECTION((static String buildInterpretation(const String& sequence, int cha
 }
 END_SECTION
 
+START_SECTION((static String extractBasename(const String& filepath)))
+{
+  // Test Unix-style paths
+  TEST_STRING_EQUAL(USI::extractBasename("/path/to/sample.mzML"), "sample.mzML");
+  TEST_STRING_EQUAL(USI::extractBasename("/data/experiments/run1.mzML"), "run1.mzML");
+  TEST_STRING_EQUAL(USI::extractBasename("/sample.mzML"), "sample.mzML");
+  
+  // Test Windows-style paths
+  TEST_STRING_EQUAL(USI::extractBasename("C:\\data\\sample.mzML"), "sample.mzML");
+  TEST_STRING_EQUAL(USI::extractBasename("C:\\Users\\test\\data\\run1.mzML"), "run1.mzML");
+  
+  // Test file:// URIs (common in mzML and consensusXML)
+  TEST_STRING_EQUAL(USI::extractBasename("file:///path/to/sample.mzML"), "sample.mzML");
+  TEST_STRING_EQUAL(USI::extractBasename("file:///C:/Users/bielow/data/sample.mzML"), "sample.mzML");
+  TEST_STRING_EQUAL(USI::extractBasename("file:///C:/data/experiments/ES-0014b_2.mzML"), "ES-0014b_2.mzML");
+  
+  // Test basename only (no path)
+  TEST_STRING_EQUAL(USI::extractBasename("sample.mzML"), "sample.mzML");
+  TEST_STRING_EQUAL(USI::extractBasename("run1.raw"), "run1.raw");
+  
+  // Test empty string
+  TEST_STRING_EQUAL(USI::extractBasename(""), "");
+  
+  // Test paths with mixed separators
+  TEST_STRING_EQUAL(USI::extractBasename("/data/sub\\folder/sample.mzML"), "sample.mzML");
+}
+END_SECTION
+
 START_SECTION((static const String& getCVAccession()))
 {
   TEST_STRING_EQUAL(USI::getCVAccession(), "MS:1003063");
@@ -386,6 +414,27 @@ START_SECTION((std::ostream& operator<<(std::ostream& os, const USI& usi)))
   stringstream ss;
   ss << usi;
   TEST_STRING_EQUAL(ss.str(), "mzspec:PXD000561:sample.mzML:scan:12345");
+}
+END_SECTION
+
+// Additional tests for file path handling in USI construction
+START_SECTION(([EXTRA] USI construction with file paths))
+{
+  // Test createFromScanNumber with full path - should use path as-is
+  USI usi1 = USI::createFromScanNumber("PXD000561", "/path/to/sample.mzML", 12345);
+  TEST_STRING_EQUAL(usi1.getMSRun(), "/path/to/sample.mzML");
+  
+  // Test creating USI with extracted basename
+  String full_path = "file:///C:/Users/bielow/AppData/Local/Temp/20190911_110348_8204_1/Untitled_workflow/002_FileFilter/out/ES-0014b_2.mzML";
+  String basename = USI::extractBasename(full_path);
+  USI usi2 = USI::createFromScanNumber("PXD000561", basename, 219);
+  TEST_STRING_EQUAL(usi2.getMSRun(), "ES-0014b_2.mzML");
+  TEST_STRING_EQUAL(usi2.toString(), "mzspec:PXD000561:ES-0014b_2.mzML:scan:219");
+  
+  // Test with Windows path
+  String win_path = "C:\\data\\experiments\\sample.mzML";
+  USI usi3 = USI::createFromScanNumber("PXD000561", USI::extractBasename(win_path), 100);
+  TEST_STRING_EQUAL(usi3.getMSRun(), "sample.mzML");
 }
 END_SECTION
 
