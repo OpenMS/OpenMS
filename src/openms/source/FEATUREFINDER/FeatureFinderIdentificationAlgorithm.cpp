@@ -1465,7 +1465,7 @@ namespace OpenMS
     for (auto& rt : rts)
     {
         if (rt_regions.empty() || rt_regions.back().end < rt - rt_tolerance)
-            rt_regions.push_back({rt - rt_tolerance, rt + rt_tolerance});
+            rt_regions.push_back({rt - rt_tolerance, rt + rt_tolerance, ChargeMap()});
         else
             rt_regions.back().end = rt + rt_tolerance;
     }
