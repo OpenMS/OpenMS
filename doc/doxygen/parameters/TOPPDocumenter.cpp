@@ -163,16 +163,6 @@ void convertINI2HTML(const Param& p, ostream& os)
         //  Also think about a different separator, in case the restrictions have commas.
         restrictions.concatenate(it->valid_strings.begin(), it->valid_strings.end(), ", ");
       }
-      else if (value_type == ParamValue::STRING_VALUE)
-      {
-        // Detect flag parameters (issue #8475): type="bool" in INI loads as STRING_VALUE
-        // with value "true"/"false" but no valid_strings
-        String val = it->value.toString();
-        if (val == "true" || val == "false")
-        {
-          restrictions = "(flag)";
-        }
-      }
       break;
 
     default:
