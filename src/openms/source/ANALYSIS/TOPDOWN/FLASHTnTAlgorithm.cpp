@@ -252,7 +252,7 @@ void FLASHTnTAlgorithm::run(const MSExperiment& map, const std::vector<FASTAFile
 
   int max_mod_cntr = extender_param_.getValue("max_mod_count");
   double max_mod_mass = max_mod_cntr * (double)extender_param_.getValue("max_mod_mass") + 1.0;
-  std::map<double, std::vector<ResidueModification>> mod_map;
+  std::map<double, std::vector<ResidueModification>> blind_mod_map;
   const auto inst = ModificationsDB::getInstance();             // give this from outside ...
   std::map<String, std::vector<Size>> tag_to_protein_indices;   // tag to protein index in fasta
   std::map<String, std::vector<Size>> tag_to_protein_positions; // tag to protein position
@@ -296,8 +296,9 @@ void FLASHTnTAlgorithm::run(const MSExperiment& map, const std::vector<FASTAFile
   {
     const auto mod = *inst->getModification(mod_strs[i]);
     if (std::abs(mod.getDiffMonoMass()) > max_mod_mass) continue;
-    mod_map[mod.getDiffMonoMass()].push_back(mod);
+    blind_mod_map[mod.getDiffMonoMass()].push_back(mod);
   }
+
   double precursor_tol = -1, tol;
 
   startProgress(0, (SignedSize)map.size(), "Finding sequence tags ...");
@@ -533,7 +534,18 @@ void FLASHTnTAlgorithm::run(const MSExperiment& map, const std::vector<FASTAFile
 
     if (hits.empty()) continue;
 
-    FLASHTaggerAlgorithm::runMatching(hits, vec_pro, rev_vec_pro, dspec, max_mod_mass);
+    std::vector<int> spec_vec;
+
+    spec_vec.reserve(dspec.size() + 1);
+
+    spec_vec.push_back(0);
+    for (const auto& pg : dspec)
+    {
+      int mn = int(round(pg.getMonoMass()));
+      spec_vec.push_back(mn);
+    }
+
+    FLASHTaggerAlgorithm::runMatching(hits, dspec, spec_vec, vec_pro, rev_vec_pro, max_mod_mass);
 
     std::sort(hits.begin(), hits.end(), [](const ProteinHit& left, const ProteinHit& right) {
       return left.getScore() == right.getScore() ? (left.getCoverage() == right.getCoverage() ? (left.getDescription() > right.getDescription())
@@ -545,8 +557,10 @@ void FLASHTnTAlgorithm::run(const MSExperiment& map, const std::vector<FASTAFile
 
     FLASHExtenderAlgorithm extender;
     extender.setParameters(extender_param_);
-    extender.setModificationMap(mod_map);
-    extender.run(hits, tags_, dspec, tol, multiple_hits_per_spec_);
+    extender.setCandidateBlindModificationMap(blind_mod_map);
+
+    extender.run(hits, dspec, spec_vec, vec_pro, rev_vec_pro, tags_, tol, multiple_hits_per_spec_);
+
     extender.fillProteoforms(proteoform_hits_);
   }
 

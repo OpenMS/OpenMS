@@ -49,13 +49,17 @@ public:
   /**
    * The main run function to perform extension algorithm. Take the candidate protein hits and perform extension for each protein with the tags.
    * @param hits the candidate protein hits
-   * @param tags the sequence tags from FLASHTaggerAlgorithm
    * @param dspec the deconvolved spectrum
+   * @param spec_vec
+   * @param vec_pro
+   * @param rev_vec_pro
+   * @param tags the sequence tags from FLASHTaggerAlgorithm
    * @param ppm mass ppm tolerance
    * @param multiple_hits_per_spec should multiple proteins be considered per spectrum or only the best protein should be considered?
    */
-  void run(std::vector<ProteinHit>& hits, const std::vector<FLASHHelperClasses::Tag>& tags,
-           const DeconvolvedSpectrum& dspec, double ppm, bool multiple_hits_per_spec);
+  void run(std::vector<ProteinHit>& hits,
+           const DeconvolvedSpectrum& dspec, const std::vector<int> spec_vec, const std::vector<std::unordered_set<int>>& vec_pro,
+           const std::vector<std::unordered_set<int>>& rev_vec_pro, const std::vector<FLASHHelperClasses::Tag>& tags, double ppm, bool multiple_hits_per_spec);
 
   /// fill the characterized proteoforms in @p hits
   void fillProteoforms(std::vector<ProteinHit>& hits) const
@@ -66,12 +70,24 @@ public:
     }
   }
 
-  /// set modification map to be considered. Note that they are not for variable modification search.
+  /// set modification map to be considered for blind modification search. Note that they are not for variable modification search.
   /// The mass shifts found by blind modifications matching to the masses of these modifications are annotated.
-  void setModificationMap(const std::map<double, std::vector<ResidueModification>>& mod_map)
+  void setCandidateBlindModificationMap(const std::map<double, std::vector<ResidueModification>>& mod_map)
   {
-    mod_map_ = mod_map;
+      candidate_blind_mod_map_ = mod_map;
   }
+
+    /// set variable modifications to be considered for variable modification search.
+    void setVariableModificationMap(const std::map<double, ResidueModification>& var_mods)
+    {
+        var_mods_ = var_mods;
+    }
+
+    /// set terminal modifications to be considered for variable modification search.
+    void setTerminalModificationMap(const std::map<double, ResidueModification>& terminal_mods)
+    {
+        terminal_mods_ = terminal_mods;
+    }
 
 protected:
   void updateMembers_() override;
@@ -97,10 +113,13 @@ private:
     int protein_start_position_ = -1, protein_end_position_ = -1;
     /// calculated precursor mass from fragment mass pairing (representing complementary ion pairs)
     double calculated_precursor_mass_ = -1;
+    /// n and c term best mass shift between spec and protein. For speed up
+    int n_best_shift_ = 0, c_best_shift_ = 0;
   };
 
   /// modification mass to modification index. To use find nearest function
-  std::map<double, std::vector<ResidueModification>> mod_map_;
+  std::map<double, std::vector<ResidueModification>> candidate_blind_mod_map_;
+  std::map<double, ResidueModification> var_mods_, terminal_mods_;
 
   /** get protein prefix or suffix masses (depending on the mode)
    * @param hit protein hit
@@ -128,6 +147,8 @@ private:
   void updateHitInformation_(const DeconvolvedSpectrum& dspec, HitInformation& hi,
                    double max_mass);
 
+  static int getBestMassShift_(const std::vector<int>& spec_vec, const std::unordered_set<int>& pro_vec);
+
   /**
    * The main function to perform extension algorithm for each hit.
    * @param hit the target protein hit
@@ -145,16 +166,18 @@ private:
    * @param node_index the index representing a deconvolved mass
    * @param pro_index the index respresnting a fragment mass
    * @param score the score of the node
-   * @param num_mod the number of modifications
+   * @param num_blind_mod the number of blind modifications
+   * @param num_var_mod the number of variable modifications
    * @param pro_mass_size the size of protein fragment masses
    * @return
    */
-  Size getVertex_(int node_index, int pro_index, int score, int num_mod, Size pro_mass_size) const;
+  Size getVertex_(int node_index, int pro_index, int score, int num_blind_mod, int num_var_mod, Size pro_mass_size) const;
 
   /// the inverse function of getVertex_(...). Get the values describing the position from the vertex number
   int getNodeIndex_(Size vertex, Size pro_mass_size) const;
   int getProIndex_(Size vertex, Size pro_mass_size) const;
-  int getModNumber_(Size vertex) const;
+  int getBlindModNumber_(Size vertex) const;
+  int getVarModNumber_(Size vertex) const;
   int getScore_(Size vertex) const;
 
   /**
@@ -205,7 +228,7 @@ private:
    * @param truncation_mass the proteoform truncation mass
    * @param cumulative_mod_mass the summed mass shift of the modifications so far
    * @param node_max_score_map the  maximum score achieving vertex of the node
-   * @param max_mod_cntr_for_last_mode maximum number of modifications for the last mode (mode == 2)
+   * @param max_blind_mod_cntr_for_last_mode maximum number of modifications for the last mode (mode == 2)
    */
   void findSubPathsBetweenTagEndPoints(std::map<Size, std::set<std::pair<double, double>>>& sinks,
                           HitInformation& hi,
@@ -216,7 +239,7 @@ private:
                           double truncation_mass,
                           double cumulative_mod_mass,
                           std::map<Size, std::map<Size, int>>& node_max_score_map,
-                          int max_mod_cntr_for_last_mode);
+                          int max_blind_mod_cntr_for_last_mode);
 
   /// get proteoform specific information from the input @p path and relevant data.
   int getProteinLength_(const std::vector<Size>& path, const std::vector<double>& pro_masses) const;
@@ -230,8 +253,8 @@ private:
   std::vector<ProteinHit> proteoform_hits_;
   double tol_;
 
-  int max_blind_mod_cntr_ = 0;
-  int max_var_mod_cntr_ = 3;
+  int max_blind_mod_cntr_ = 1;
+  int max_var_mod_cntr_ = 0;
   int allowed_isotope_error_ = 1;
   const int max_path_score_ = 1200;
   const int min_path_score_ = -20;

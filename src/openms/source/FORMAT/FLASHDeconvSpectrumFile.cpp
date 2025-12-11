@@ -65,6 +65,7 @@ namespace OpenMS
       auto& pg = dspec[i];
       if (!report_decoy && pg.getTargetDecoyType() != PeakGroup::TargetDecoyType::target) continue;
 
+      /// TODO : make this non-random. And move this to FLASHDeconv.cpp before this function is called.
       if (pg.getTargetDecoyType() == PeakGroup::TargetDecoyType::noise_decoy)
       {
         double number = distribution_(generator_);

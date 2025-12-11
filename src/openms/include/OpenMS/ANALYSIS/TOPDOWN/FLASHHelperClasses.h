@@ -246,10 +246,10 @@ namespace OpenMS
       bool operator>(const Tag& a) const;
       bool operator==(const Tag& other) const;
 
-      const String& getSequence() const;
-      const String& getUppercaseSequence() const;
-      double getNtermMass() const;
-      double getCtermMass() const;
+      [[nodiscard]] const String& getSequence() const;
+      [[nodiscard]] const String& getUppercaseSequence() const;
+      [[nodiscard]] double getNtermMass() const;
+      [[nodiscard]] double getCtermMass() const;
       Size getLength() const;
       int getScore() const;
       int getScore(int pos) const;
@@ -340,7 +340,6 @@ namespace OpenMS
             std::sort(v.second.begin(), v.second.end());
           }
         }
-
         findAllPaths_(source, sink, visited, path, all_paths, max_count); // reverse traveling
       }
 

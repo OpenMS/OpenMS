@@ -350,13 +350,13 @@ namespace OpenMS
         }
         else { break; }
 
-        for (Size k = edges[index]; k < edges.size(); k = edges[j])
+        for (; j < edges.size(); j = edges[j])
         {
-          if (k == 0) { break; }
-          if (unused[k])
+          if (j == 0) { break; }
+          if (unused[j])
           {
-            sum_intensity += all_peaks[k].first.getIntensity();
-            unused[k] = false;
+            sum_intensity += all_peaks[j].first.getIntensity();
+            unused[j] = false;
           }
           else
             break;
@@ -1087,7 +1087,12 @@ namespace OpenMS
     const int apex_iso_index = avg.getApexIndex(getMonoMass());
     int apex_charge = -1;
     double z_intensity = 0;
-    double max_s_intensity = 0, max_n_intensity = 0;
+    double max_s_intensity = 0;
+    //double avg_sum = 0;
+    const auto& avg_iso = avg.get(getMonoMass());
+
+    //for(auto i : avg_iso) avg_sum += i.getIntensity();
+
     for (int z = min_abs_charge_; z<= max_abs_charge_; z++)
     {
       double z_i = getChargeIntensity(z);
@@ -1116,8 +1121,12 @@ namespace OpenMS
       int v_index = int(z_index * isotope_count + iso_index);
 
       sig[v_index] += p.intensity;
+      //sig[v_index] += p.intensity / (1e-3 + avg_iso[p.isotopeIndex].getIntensity());
+      //sig[v_index] += std::abs(p.intensity - avg_iso[p.isotopeIndex].getIntensity() * getChargeIntensity(p.abs_charge) / avg_sum);
       max_s_intensity = std::max(max_s_intensity, sig[v_index]);
     }
+    //max_s_intensity = sig[int(charge_count / 2) * isotope_count + int(isotope_count / 2)];
+    max_s_intensity = max_s_intensity <= 0? 1 : max_s_intensity;
 
     for (const auto& p : noisy_peaks)
     {
@@ -1143,8 +1152,9 @@ namespace OpenMS
         }
         if (too_close) continue;
       }
-      noise[v_index] += p.intensity;
-      max_n_intensity = std::max(max_n_intensity, sig[v_index]);
+      noise[v_index] += p.intensity;//
+      //noise[v_index] += p.intensity / (1e-3 + avg_iso[p.isotopeIndex].getIntensity());
+      //noise[v_index] += std::abs(p.intensity - avg_iso[p.isotopeIndex].getIntensity() * getChargeIntensity(p.abs_charge) / avg_sum);
     }
 
     if (max_s_intensity > 0)
@@ -1153,13 +1163,9 @@ namespace OpenMS
       {
         s /= max_s_intensity;
       }
-    }
-
-    if (max_n_intensity > 0)
-    {
       for (auto& n : noise)
       {
-        n /= max_n_intensity;
+        n /= max_s_intensity;
       }
     }
 

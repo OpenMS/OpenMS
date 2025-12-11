@@ -59,16 +59,18 @@ public:
    * The maximum modification mass is used to skip protein sequences that do not match with
    * tag flanking masses.
    * @param hits protein hits to search against
+   * @param deconvolved_spectrum deconvolved spectrum from FLASHDeconv
+   * @param spec_vec
    * @param vec_pro vector of protein prefix masses
    * @param rev_vec_pro vector of protein suffix masses
-   * @param deconvolved_spectrum deconvolved spectrum from FLASHDeconv
    * @param max_mod_mass maximum modification mass (a positive number)
    */
   static void runMatching(std::vector<ProteinHit>& hits,
+                          const DeconvolvedSpectrum& deconvolved_spectrum,
+                          const std::vector<int> spec_vec,
                           const std::vector<std::unordered_set<int>>& vec_pro,
                           const std::vector<std::unordered_set<int>>& rev_vec_pro,
-                   const DeconvolvedSpectrum& deconvolved_spectrum,
-                   double max_mod_mass = 0);
+                          const double max_mod_mass = 0);
 
   /**
    * @brief fill tags with the length of @p tag_length in @p tags

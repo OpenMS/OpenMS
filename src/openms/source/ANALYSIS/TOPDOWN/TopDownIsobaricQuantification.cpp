@@ -21,7 +21,7 @@
 
 namespace OpenMS
 {
-TopDownIsobaricQuantification::TopDownIsobaricQuantification() : DefaultParamHandler("TopDownIsobaricQuantification")
+  TopDownIsobaricQuantification::TopDownIsobaricQuantification() : DefaultParamHandler("TopDownIsobaricQuantification")
   {
     setDefaultParams_();
   }

@@ -6,7 +6,7 @@
 // $Authors: Kyowon Jeong, Jihyung Kim $
 // --------------------------------------------------------------------------
 //#define TRAIN_OUT  //
-//#define DEEP_LEARNING
+#define DEEP_LEARNING
 #include <OpenMS/ANALYSIS/TOPDOWN/DeconvolvedSpectrum.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
@@ -15,6 +15,9 @@
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <QFileInfo>
+#ifdef DEEP_LEARNING
+  #include <OpenMS/ANALYSIS/TOPDOWN/PeakGroupScoring.h>
+#endif
 #ifdef TRAIN_OUT
   #include <OpenMS/ANALYSIS/TOPDOWN/Qscore.h>
 #endif
@@ -345,13 +348,16 @@ protected:
             }
           }
         }
-        out_dl_streams[i] << "Class\n";
+        for (int n = 0; n < PeakGroupScoring::getQscoreFeatureCount(); n++)
+        {
+          out_dl_streams[i] << "F"<<n<<",";
+        }
+        out_dl_streams[i] << "Charge,Qscore,Class\n";
 #endif
       }
 
 #ifdef DEEP_LEARNING
       std::map<int, int> dl_index;
-
 #endif
 
       for (auto& deconvolved_spectrum : deconvolved_spectra)
@@ -390,7 +396,14 @@ protected:
           {
             out_dl_streams[ms_level - 1] << n << ",";
           }
-          out_dl_streams[ms_level - 1] << pg.getTargetDecoyType() << "\n";
+
+          const auto fv = PeakGroupScoring::toFeatureVector(&pg);
+          for (int n = 0; n < PeakGroupScoring::getQscoreFeatureCount(); n++)
+          {
+            out_dl_streams[ms_level - 1] << fv[n] <<",";
+          }
+
+          out_dl_streams[ms_level - 1] << pg.getRepAbsCharge() << ","<< pg.getQscore2D() << "," <<pg.getTargetDecoyType() << "\n";
 
           /*
           int index = 1;

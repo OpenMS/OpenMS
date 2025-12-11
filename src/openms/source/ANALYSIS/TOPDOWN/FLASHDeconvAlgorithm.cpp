@@ -45,7 +45,7 @@ FLASHDeconvAlgorithm::FLASHDeconvAlgorithm(): DefaultParamHandler("FLASHDeconvAl
   defaults_.addTag("use_RNA_averagine", "advanced");
 
   defaults_.setValue(
-    "precursor_MS1_window", 3,
+    "precursor_MS1_window", 1,
     "Number of MS1 spectra around each MS2 spectrum to search for precursor peaks when determining the MS2 precursors. For MS2 spectrum, the mass of precursor ion should be determined for better deconvolution and reliable identification. "
     "If the mass of precursor ion is not found in the immediately preceding MS1 spectrum, previous or next MS1 spectra may be used instead. "
     "This parameter determines up to how many MS1 spectra around each MS2 spectrum will be searched.");
@@ -179,7 +179,7 @@ void FLASHDeconvAlgorithm::mergeSpectra_(MSExperiment& map, uint ms_level)
     {
       // For ms n, first find precursors for all ms n. then make a tmp map having the precursor masses as precursor
       std::map<String, std::vector<Precursor>> original_precursor_map;
-#pragma omp parallel for default(none), shared(map, ms_level, original_precursor_map)
+//#pragma omp parallel for default(none), shared(map, ms_level, original_precursor_map)
       for (int i = 0; i < (int) map.size(); i++)
       {
         auto spec = map[i];

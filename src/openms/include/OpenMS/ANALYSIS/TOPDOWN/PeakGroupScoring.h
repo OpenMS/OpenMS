@@ -31,6 +31,9 @@ namespace OpenMS
   public:
     typedef FLASHHelperClasses::LogMzPeak LogMzPeak;
 
+    /// get the number of features used for Qsocre
+    static int getQscoreFeatureCount();
+
     /// get QScore for a peak group of specific abs_charge
     static double getQscore(const PeakGroup* pg);
 
@@ -43,9 +46,10 @@ namespace OpenMS
     /// get Deep learning based peak group score. Not implemented yet.
     static double getDLscore(PeakGroup* pg, const MSSpectrum& spec, const FLASHHelperClasses::PrecalculatedAveragine& avg, double tol);
 
-  private:
     /// convert a peak group to a feature vector for setQscore calculation
-    static std::vector<double> toFeatureVector_(const PeakGroup* pg);
+    static std::vector<double> toFeatureVector(const PeakGroup* pg);
+
+  private:
     /// the weights for Qscore calculation
     static std::vector<double> weight_;
 
