@@ -27,5 +27,7 @@ cdef extern from "<OpenMS/IONMOBILITY/IMDataConverter.h>" namespace "OpenMS::IMD
 
         bool getIMUnit(FloatDataArray& fda, DriftTimeUnit& unit) except + nogil  # wrap-attach:IMDataConverter
 
+        double convertVSSCToCCS(double IM, double mz, int charge) except + nogil  # wrap-attach:IMDataConverter wrap-as:convertVSSCToCCSSingle
+
         void convertVSSCToCCS(MSExperiment& spectra) except + nogil  # wrap-attach:IMDataConverter
 

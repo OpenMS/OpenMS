@@ -168,15 +168,7 @@ namespace OpenMS
       static bool getIMUnit(const DataArrays::FloatDataArray& fda, DriftTimeUnit& unit);
 
       /**
-        @brief Converts ion mobility values from VSSC (1/k0, inverse reduced ion mobility) to CCS (collisional cross section) in an MSExperiment.
-
-        This function iterates through all spectra in the given MSExperiment and converts their
-        drift time values from VSSC (Volt-Second per Square Centimeter, also known as 1/k0) to CCS
-        (Collisional Cross Section) using the Mason-Schamp equation.
-
-        The conversion applies to both:
-        - Spectrum-level drift time (getDriftTime())
-        - Per-peak ion mobility values stored in float data arrays (identified by VSSC unit via getIMUnit())
+        @brief Converts a single ion mobility value from VSSC (1/k0) to CCS using the Mason-Schamp equation.
 
         The conversion uses the formula:
         CCS = IM * charge * bruker_CCS_coef / sqrt(reduced_mass)
@@ -186,6 +178,24 @@ namespace OpenMS
         - charge is the precursor charge
         - bruker_CCS_coef is a constant coefficient (1059.62245) for Bruker instruments
         - reduced_mass = (mass * N2_gas_mass) / (mass + N2_gas_mass) with N2_gas_mass = 28.0
+
+        @param[in] IM The ion mobility value in VSSC (1/k0)
+        @param[in] mz The precursor m/z value
+        @param[in] charge The precursor charge (must be > 0)
+        @return The CCS value in square Angstroms
+      */
+      static double convertVSSCToCCS(double IM, double mz, int charge);
+
+      /**
+        @brief Converts ion mobility values from VSSC (1/k0, inverse reduced ion mobility) to CCS (collisional cross section) in an MSExperiment.
+
+        This function iterates through all spectra in the given MSExperiment and converts their
+        drift time values from VSSC (Volt-Second per Square Centimeter, also known as 1/k0) to CCS
+        (Collisional Cross Section) using the Mason-Schamp equation.
+
+        The conversion applies to both:
+        - Spectrum-level drift time (getDriftTime())
+        - Per-peak ion mobility values stored in float data arrays (identified by VSSC unit via getIMUnit())
 
         @note Each spectrum must have precursor information (m/z and charge) for the conversion to work correctly.
         @note The drift time unit metadata is not changed by this function. Since there is currently no

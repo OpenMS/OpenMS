@@ -390,6 +390,24 @@ START_SECTION(static void convertVSSCToCCS(MSExperiment& spectra))
 }
 END_SECTION
 
+START_SECTION(static double convertVSSCToCCS(double IM, double mz, int charge))
+{
+  // Test the single-value conversion function
+  // mass = 500 * 2 = 1000
+  // reduced_mass = (1000 * 28) / (1000 + 28) = 27.237...
+  // CCS = 1.0 * 2 * 1059.62245 / sqrt(27.237...) ≈ 406.09
+  double ccs = IMDataConverter::convertVSSCToCCS(1.0, 500.0, 2);
+  TEST_REAL_SIMILAR(ccs, 406.09)
+  
+  // Test with different values
+  // mass = 750 * 3 = 2250
+  // reduced_mass = (2250 * 28) / (2250 + 28) = 27.656...
+  // CCS = 1.5 * 3 * 1059.62245 / sqrt(27.656...) ≈ 905.22
+  ccs = IMDataConverter::convertVSSCToCCS(1.5, 750.0, 3);
+  TEST_REAL_SIMILAR(ccs, 905.22)
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
