@@ -31,8 +31,7 @@ void convertINI2HTML(const Param& p, ostream& os)
   os << "<b>Legend:</b><br>\n";
   os << " <div class=\"item item_required\">required parameter</div>\n";
   os << " <div class=\"item item_advanced\">advanced parameter</div>\n";
-  os << " <div class=\"item\"><i>true, false (value required)</i>: boolean parameter that requires an explicit value (e.g., -flag false)</div>\n";
-  os << " <div class=\"item\"><i>true/false</i>: flag parameter that can be specified without a value (e.g., -flag)</div>\n";
+  os << " <div class=\"item\"><b>*</b> boolean option requires a value</div>\n";
   os << "</div>\n";
 
   Param::ParamIterator it = p.begin();
@@ -170,7 +169,7 @@ void convertINI2HTML(const Param& p, ostream& os)
         if (it->valid_strings.size() == 2 &&
             it->valid_strings[0] == "true" && it->valid_strings[1] == "false")
         {
-          restrictions += " (value required)";
+          restrictions += "*";
         }
       }
       break;
