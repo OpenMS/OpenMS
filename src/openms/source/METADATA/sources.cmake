@@ -45,6 +45,7 @@ SourceFile.cpp
 SpectrumLookup.cpp
 SpectrumMetaDataLookup.cpp
 SpectrumSettings.cpp
+USI.cpp
 )
 
 ### add path to the filenames
