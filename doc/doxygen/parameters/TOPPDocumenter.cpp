@@ -31,7 +31,6 @@ void convertINI2HTML(const Param& p, ostream& os)
   os << "<b>Legend:</b><br>\n";
   os << " <div class=\"item item_required\">required parameter</div>\n";
   os << " <div class=\"item item_advanced\">advanced parameter</div>\n";
-  os << " <div class=\"item\"><b>*</b> boolean option requires a value</div>\n";
   os << "</div>\n";
 
   Param::ParamIterator it = p.begin();
@@ -163,13 +162,15 @@ void convertINI2HTML(const Param& p, ostream& os)
         //  a page with all modifications otherwise you get a HUGE list.
         //  Also think about a different separator, in case the restrictions have commas.
         restrictions.concatenate(it->valid_strings.begin(), it->valid_strings.end(), ", ");
-
-        // Add clarification for boolean-like string parameters (issue #8475)
-        // These have valid_strings of "true, false" but require explicit values on CLI
-        if (it->valid_strings.size() == 2 &&
-            it->valid_strings[0] == "true" && it->valid_strings[1] == "false")
+      }
+      else if (value_type == ParamValue::STRING_VALUE)
+      {
+        // Detect flag parameters (issue #8475): type="bool" in INI loads as STRING_VALUE
+        // with value "true"/"false" but no valid_strings
+        String val = it->value.toString();
+        if (val == "true" || val == "false")
         {
-          restrictions += "*";
+          restrictions = "flag";
         }
       }
       break;

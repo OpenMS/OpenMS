@@ -234,17 +234,19 @@ void writeParameters(const String& class_name, const Param& param, bool table_on
       //restrictions
       if (!it->valid_strings.empty())
       {
-        String valid_strings;
-        valid_strings.concatenate(it->valid_strings.begin(), it->valid_strings.end(), ", ");
-        restrictions += valid_strings;
-
-        // Add clarification for boolean-like string parameters (issue #8475)
-        // Parameters with valid_strings ["true", "false"] and default "true" require explicit values on CLI
+        // Issue #8475: Distinguish flag parameters from boolean options requiring a value
         if (it->valid_strings.size() == 2 &&
             it->valid_strings[0] == "true" && it->valid_strings[1] == "false" &&
-            it->value.toString() == "true")
+            it->value.toString() == "false")
         {
-          restrictions += "*";
+          // Default "false" = flag parameter (no value needed on CLI)
+          restrictions = "flag";
+        }
+        else
+        {
+          String valid_strings;
+          valid_strings.concatenate(it->valid_strings.begin(), it->valid_strings.end(), ", ");
+          restrictions += valid_strings;
         }
       }
     }
@@ -313,7 +315,6 @@ void writeParameters(const String& class_name, const Param& param, bool table_on
       << "<UL style=\"margin-top:0px;\">" << "\n"
       << "  <LI> If a section name is documented, the documentation is displayed as tooltip." << "\n"
       << "  <LI> Advanced parameter names are italic." << "\n"
-      << "  <LI> <b>*</b> boolean option requires a value." << "\n"
       << "</UL>" << "\n";
   }
   f.close();
