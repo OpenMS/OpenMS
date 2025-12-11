@@ -6,6 +6,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/USI.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/CONCEPT/Constants.h>
 
@@ -306,4 +307,47 @@ namespace OpenMS
     }
     return UID;
   }
+
+  USI PeptideIdentification::buildUSI(const String& dataset_id, 
+                                      const String& ms_run_name,
+                                      bool include_interpretation) const
+  {
+    // Get the spectrum reference (native ID)
+    String spec_ref = getSpectrumReference();
+    
+    // Try to extract scan number from native ID
+    auto scan_num = USI::extractScanNumberFromNativeID(spec_ref);
+    
+    // Build interpretation string if requested and hits are available
+    String interpretation;
+    if (include_interpretation && !hits_.empty())
+    {
+      const PeptideHit& best_hit = hits_.front();  // Assumes sorted (best hit first)
+      interpretation = USI::buildInterpretation(best_hit.getSequence().toString(), best_hit.getCharge());
+    }
+    
+    if (scan_num.has_value())
+    {
+      // Use scan number if extraction succeeded
+      return USI(dataset_id, ms_run_name, USI::IndexType::SCAN, String(scan_num.value()), interpretation);
+    }
+    else if (!spec_ref.empty())
+    {
+      // Fall back to nativeId if scan number extraction failed
+      return USI(dataset_id, ms_run_name, USI::IndexType::NATIVEID, spec_ref, interpretation);
+    }
+    else
+    {
+      // Return invalid/empty USI if no spectrum reference is available
+      return USI();
+    }
+  }
+
+  String PeptideIdentification::buildUSIString(const String& dataset_id, 
+                                               const String& ms_run_name,
+                                               bool include_interpretation) const
+  {
+    return buildUSI(dataset_id, ms_run_name, include_interpretation).toString();
+  }
+
 } // namespace OpenMS

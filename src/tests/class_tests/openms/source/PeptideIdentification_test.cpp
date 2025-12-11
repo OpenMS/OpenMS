@@ -21,6 +21,7 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/USI.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
@@ -584,6 +585,85 @@ START_SECTION((std::hash<PeptideIdentification>))
   TEST_EQUAL(id7.hasMZ(), false)
   TEST_EQUAL(id7 == id8, true)
   TEST_EQUAL(std::hash<PeptideIdentification>{}(id7), std::hash<PeptideIdentification>{}(id8))
+}
+END_SECTION
+
+START_SECTION((USI buildUSI(const String& dataset_id, const String& ms_run_name, bool include_interpretation) const))
+{
+  // Test USI generation with scan number in native ID
+  PeptideIdentification id1;
+  id1.setSpectrumReference("controllerType=0 controllerNumber=1 scan=12345");
+  id1.setRT(100.0);
+  id1.setMZ(500.0);
+  
+  USI usi1 = id1.buildUSI("PXD000561", "sample.mzML", false);
+  TEST_EQUAL(usi1.isValid(), true)
+  TEST_STRING_EQUAL(usi1.getCollection(), "PXD000561")
+  TEST_STRING_EQUAL(usi1.getMSRun(), "sample.mzML")
+  TEST_STRING_EQUAL(usi1.getIndex(), "12345")
+  TEST_EQUAL(usi1.getIndexType(), USI::IndexType::SCAN)
+  TEST_STRING_EQUAL(usi1.getInterpretation(), "")
+  
+  // Test USI generation with peptide interpretation
+  PeptideHit hit;
+  hit.setSequence(AASequence::fromString("PEPTIDEK"));
+  hit.setCharge(2);
+  hit.setScore(100.0);
+  id1.insertHit(hit);
+  id1.sort();
+  
+  USI usi2 = id1.buildUSI("PXD000561", "sample.mzML", true);
+  TEST_EQUAL(usi2.isValid(), true)
+  TEST_STRING_EQUAL(usi2.getInterpretation(), "PEPTIDEK/2")
+  
+  // Test USI generation with simple scan= format
+  PeptideIdentification id2;
+  id2.setSpectrumReference("scan=54321");
+  
+  USI usi3 = id2.buildUSI("PXD000562", "another.mzML", false);
+  TEST_EQUAL(usi3.isValid(), true)
+  TEST_STRING_EQUAL(usi3.getIndex(), "54321")
+  
+  // Test USI with nativeId fallback (when scan can't be extracted)
+  PeptideIdentification id3;
+  id3.setSpectrumReference("custom_format_123");
+  
+  USI usi4 = id3.buildUSI("PXD000563", "data.mzML", false);
+  TEST_EQUAL(usi4.isValid(), true)
+  TEST_EQUAL(usi4.getIndexType(), USI::IndexType::NATIVEID)
+  TEST_STRING_EQUAL(usi4.getIndex(), "custom_format_123")
+  
+  // Test empty spectrum reference returns invalid USI
+  PeptideIdentification id4;
+  USI usi5 = id4.buildUSI("PXD000564", "test.mzML", false);
+  TEST_EQUAL(usi5.isValid(), false)
+}
+END_SECTION
+
+START_SECTION((String buildUSIString(const String& dataset_id, const String& ms_run_name, bool include_interpretation) const))
+{
+  PeptideIdentification id;
+  id.setSpectrumReference("scan=12345");
+  id.setRT(100.0);
+  id.setMZ(500.0);
+  
+  PeptideHit hit;
+  hit.setSequence(AASequence::fromString("PEPTIDEK"));
+  hit.setCharge(2);
+  id.insertHit(hit);
+  
+  // Test without interpretation
+  String usi_str1 = id.buildUSIString("PXD000561", "sample.mzML", false);
+  TEST_STRING_EQUAL(usi_str1, "mzspec:PXD000561:sample.mzML:scan:12345")
+  
+  // Test with interpretation
+  String usi_str2 = id.buildUSIString("PXD000561", "sample.mzML", true);
+  TEST_STRING_EQUAL(usi_str2, "mzspec:PXD000561:sample.mzML:scan:12345:PEPTIDEK/2")
+  
+  // Test empty spectrum reference returns empty string
+  PeptideIdentification id2;
+  String usi_str3 = id2.buildUSIString("PXD000561", "sample.mzML", false);
+  TEST_STRING_EQUAL(usi_str3, "")
 }
 END_SECTION
 
