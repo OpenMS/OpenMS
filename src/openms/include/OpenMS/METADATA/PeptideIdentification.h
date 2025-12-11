@@ -12,6 +12,7 @@
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/METADATA/ProteinHit.h>
 #include <OpenMS/CONCEPT/HashUtils.h>
+#include <OpenMS/METADATA/USI.h>
 
 #include <functional>
 #include <string>
@@ -200,6 +201,41 @@ public:
     static String buildUIDFromPepID(const PeptideIdentification& pep_id,
                                     const std::map<String, StringList>& identifier_to_msrunpath);
 
+    /**
+      @brief Builds a Universal Spectrum Identifier (USI) from the PeptideIdentification.
+
+      The USI format follows the PSI-MS specification (MS:1003063):
+      mzspec:<collection>:<ms_run>:<index_type>:<index>[:interpretation]
+
+      This method uses the spectrum reference (native ID) to extract the scan number.
+      If the top hit is available and include_interpretation is true, the peptide sequence
+      and charge are included in the USI.
+
+      @param dataset_id ProteomeXchange dataset identifier (e.g., "PXD000561") or spectral library name
+      @param ms_run_name Name of the MS run file (e.g., "sample.mzML")
+      @param include_interpretation If true and hits are available, include peptide sequence/charge
+
+      @return USI object representing this PeptideIdentification
+    */
+    USI buildUSI(const String& dataset_id, 
+                 const String& ms_run_name,
+                 bool include_interpretation = false) const;
+
+    /**
+      @brief Builds a Universal Spectrum Identifier (USI) string from the PeptideIdentification.
+
+      Convenience method that returns the USI as a string.
+
+      @param dataset_id ProteomeXchange dataset identifier (e.g., "PXD000561")
+      @param ms_run_name Name of the MS run file
+      @param include_interpretation If true and hits are available, include peptide sequence/charge
+
+      @return USI string or empty string if USI cannot be constructed
+    */
+    String buildUSIString(const String& dataset_id, 
+                          const String& ms_run_name,
+                          bool include_interpretation = false) const;
+
 protected:
     String id_; ///< Identifier by which ProteinIdentification and PeptideIdentification are matched
     std::vector<PeptideHit> hits_; ///< A list containing the peptide hits
@@ -280,4 +316,3 @@ namespace std
     }
   };
 } // namespace std
-
