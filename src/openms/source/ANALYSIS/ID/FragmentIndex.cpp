@@ -83,7 +83,7 @@ namespace OpenMS
       
       vector<pair<size_t, size_t>> digested_peptides; // every thread gets it own copy that is only cleared, not destructed (prevents frequent reallocations)
       #pragma omp parallel for private(digested_peptides)
-      for (UInt32 protein_idx = 0; protein_idx < fasta_entries.size(); ++protein_idx)
+      for (SignedSize protein_idx = 0; protein_idx < (SignedSize)fasta_entries.size(); ++protein_idx)
       {
         digested_peptides.clear();
         const FASTAFile::FASTAEntry& protein = fasta_entries[protein_idx];
@@ -122,9 +122,10 @@ namespace OpenMS
               }
               #pragma omp critical (FIIndex)
               {
-                fi_peptides_.emplace_back((protein_idx),
+                fi_peptides_.emplace_back(static_cast<UInt32>(protein_idx),
                                         modification_idx,
-                                        digested_peptide,
+                                        std::make_pair(static_cast<uint16_t>(digested_peptide.first),
+                                                       static_cast<uint16_t>(digested_peptide.second)),
                                         modified_mz);
                 ++modification_idx;
               }
@@ -136,7 +137,10 @@ namespace OpenMS
             {
               #pragma omp critical (FIIndex)
               {
-                fi_peptides_.emplace_back(protein_idx, 0, digested_peptide, unmodified_mz);
+                fi_peptides_.emplace_back(static_cast<UInt32>(protein_idx), 0,
+                                        std::make_pair(static_cast<uint16_t>(digested_peptide.first),
+                                                       static_cast<uint16_t>(digested_peptide.second)),
+                                        unmodified_mz);
               }
             }
           }
