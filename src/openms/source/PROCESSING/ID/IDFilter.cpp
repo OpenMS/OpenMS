@@ -250,6 +250,7 @@ namespace OpenMS
       const unordered_set<String>& accessions = run_to_accessions[run_id];
       struct HasMatchingAccessionUnordered<ProteinHit> acc_filter(accessions);
       keepMatchingItems(prot.getHits(), acc_filter);
+      updateProteinGroups(prot);
     }
   }
 
@@ -272,6 +273,7 @@ namespace OpenMS
     const unordered_set<String>& accessions = run_to_accessions[run_id];
     struct HasMatchingAccessionUnordered<ProteinHit> acc_filter(accessions);
     keepMatchingItems(proteins.getHits(), acc_filter);
+    updateProteinGroups(proteins);
   }
 
   void IDFilter::removeUnreferencedProteins(vector<ProteinIdentification>& proteins, const PeptideIdentificationList& peptides)
@@ -295,6 +297,7 @@ namespace OpenMS
       const unordered_set<String>& accessions = run_to_accessions[run_id];
       struct HasMatchingAccessionUnordered<ProteinHit> acc_filter(accessions);
       keepMatchingItems(prot.getHits(), acc_filter);
+      updateProteinGroups(prot);
     }
   }
 

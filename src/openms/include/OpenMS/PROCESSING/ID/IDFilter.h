@@ -819,6 +819,61 @@ namespace OpenMS
     static bool updateProteinGroups(std::vector<ProteinIdentification::ProteinGroup>& groups, const std::vector<ProteinHit>& hits);
 
     /**
+       @brief Update all protein group collections after protein hits were filtered.
+
+       Updates both "protein groups" and "indistinguishable protein groups" to reference only accessions that still
+       exist as protein hits.
+
+       @param proteins Input/output protein identification run
+
+       @return Returns whether both group collections are still valid (which is the case if only whole groups, if any, were removed).
+    */
+    static bool updateProteinGroups(ProteinIdentification& proteins)
+    {
+      const bool valid_indist = updateProteinGroups(proteins.getIndistinguishableProteins(), proteins.getHits());
+      const bool valid_groups = updateProteinGroups(proteins.getProteinGroups(), proteins.getHits());
+      return valid_indist && valid_groups;
+    }
+
+    /**
+       @brief Update all protein group collections in a ConsensusMap after protein hits were filtered.
+
+       @param cmap Input/output consensus map (updates protein groups in all contained protein runs)
+
+       @return Returns whether all group collections are still valid (which is the case if only whole groups, if any, were removed).
+    */
+    static bool updateProteinGroups(ConsensusMap& cmap)
+    {
+      bool valid = true;
+      for (auto& proteins : cmap.getProteinIdentifications())
+      {
+        valid = updateProteinGroups(proteins) && valid;
+      }
+      return valid;
+    }
+
+    /**
+       @brief Convenience function to keep protein references and groups consistent.
+
+       1) Removes peptide evidences that reference missing proteins (and optionally removes peptide hits without evidence).
+       2) Removes unreferenced protein hits.
+       3) Updates protein groups to match remaining hits.
+
+       @param cmap Input/output consensus map
+       @param remove_peptides_without_reference If set, remove peptide hits without remaining protein reference.
+       @param include_unassigned If set, include unassigned peptide IDs when determining referenced proteins.
+    */
+    static void sanitizeProteinReferencesAndGroups(
+      ConsensusMap& cmap,
+      bool remove_peptides_without_reference = false,
+      bool include_unassigned = true)
+    {
+      updateProteinReferences(cmap, remove_peptides_without_reference);
+      removeUnreferencedProteins(cmap, include_unassigned);
+      updateProteinGroups(cmap);
+    }
+
+    /**
        @brief Update protein hits after protein groups were filtered
 
        @param groups Available protein groups with protein accessions to keep
@@ -851,6 +906,10 @@ namespace OpenMS
       {
         struct HasGoodScore<typename IdentificationType::HitType> score_filter(threshold_score, id_it->isHigherScoreBetter());
         keepMatchingItems(id_it->getHits(), score_filter);
+        if constexpr (std::is_same_v<IdentificationType, ProteinIdentification>)
+        {
+          updateProteinGroups(*id_it);
+        }
       }
     }
 
@@ -899,6 +958,10 @@ namespace OpenMS
             at_least_one_found = true;
           }
         }
+        if constexpr (std::is_same_v<IdentificationType, ProteinIdentification>)
+        {
+          updateProteinGroups(id);
+        }
       }
       if (!at_least_one_found) OPENMS_LOG_WARN << String("Warning: No hit with the given score_type found. All hits removed.") << std::endl;
     }
@@ -921,6 +984,10 @@ namespace OpenMS
     {
       struct HasGoodScore<typename IdentificationType::HitType> score_filter(threshold_score, id.isHigherScoreBetter());
       keepMatchingItems(id.getHits(), score_filter);
+      if constexpr (std::is_same_v<IdentificationType, ProteinIdentification>)
+      {
+        updateProteinGroups(id);
+      }
     }
 
     /**
