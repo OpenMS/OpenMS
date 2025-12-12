@@ -786,9 +786,7 @@ namespace OpenMS
     ppr.buildGraph(inferred_protein_ids[0], inferred_peptide_ids);
     ppr.resolveGraph(inferred_protein_ids[0], inferred_peptide_ids);    
     IDFilter::removeUnreferencedProteins(inferred_protein_ids, inferred_peptide_ids);
-    IDFilter::updateProteinGroups(inferred_protein_ids[0].getIndistinguishableProteins(), inferred_protein_ids[0].getHits());
-    IDFilter::updateProteinGroups(inferred_protein_ids[0].getProteinGroups(), inferred_protein_ids[0].getHits());
+    IDFilter::updateProteinGroups(inferred_protein_ids[0]);
   }
 
 }
-

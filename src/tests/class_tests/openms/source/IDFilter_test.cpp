@@ -313,6 +313,42 @@ START_SECTION((bool updateProteinGroups(vector<ProteinIdentification::ProteinGro
 }
 END_SECTION
 
+START_SECTION((bool updateProteinGroups(ProteinIdentification& proteins)))
+{
+  ProteinIdentification proteins;
+  proteins.setScoreType("test_score");
+  proteins.setHigherScoreBetter(true);
+
+  ProteinHit hit_b;
+  hit_b.setAccession("B");
+  hit_b.setScore(10.0);
+  ProteinHit hit_c;
+  hit_c.setAccession("C");
+  hit_c.setScore(20.0);
+  proteins.getHits() = {hit_b, hit_c}; // "A" is missing on purpose
+
+  ProteinIdentification::ProteinGroup group;
+  group.probability = 0.2;
+  group.accessions = {"A", "B", "C"};
+  proteins.getProteinGroups().push_back(group);
+
+  ProteinIdentification::ProteinGroup indist;
+  indist.probability = 0.1;
+  indist.accessions = {"A", "B"};
+  proteins.getIndistinguishableProteins().push_back(indist);
+
+  const bool valid = IDFilter::updateProteinGroups(proteins);
+  TEST_EQUAL(valid, false);
+  TEST_EQUAL(proteins.getProteinGroups().size(), 1);
+  TEST_EQUAL(proteins.getProteinGroups()[0].accessions.size(), 2);
+  TEST_EQUAL(proteins.getProteinGroups()[0].accessions[0], "C"); // best-scoring remaining accession becomes leader
+  TEST_EQUAL(proteins.getProteinGroups()[0].accessions[1], "B");
+  TEST_EQUAL(proteins.getIndistinguishableProteins().size(), 1);
+  TEST_EQUAL(proteins.getIndistinguishableProteins()[0].accessions.size(), 1);
+  TEST_EQUAL(proteins.getIndistinguishableProteins()[0].accessions[0], "B");
+}
+END_SECTION
+
 START_SECTION((template <class IdentificationType> static void removeEmptyIdentifications(vector<IdentificationType>& ids)))
 {
   vector<ProteinIdentification> proteins(2);
@@ -377,6 +413,35 @@ START_SECTION((template <class IdentificationType> static void keepNBestHits(vec
   TEST_REAL_SIMILAR(peptide_hits[2].getScore(), 39);
   TEST_EQUAL(peptide_hits[2].getSequence().toString(),
                     "THPYGHAIVAGIERYPSK");
+
+  vector<ProteinIdentification> proteins(1);
+  proteins[0].setScoreType("test_score");
+  proteins[0].setHigherScoreBetter(true);
+  proteins[0].getHits().resize(3);
+  proteins[0].getHits()[0].setAccession("A");
+  proteins[0].getHits()[0].setScore(1.0);
+  proteins[0].getHits()[1].setAccession("B");
+  proteins[0].getHits()[1].setScore(2.0);
+  proteins[0].getHits()[2].setAccession("C");
+  proteins[0].getHits()[2].setScore(3.0);
+
+  ProteinIdentification::ProteinGroup group;
+  group.probability = 0.2;
+  group.accessions = {"A", "B", "C"};
+  proteins[0].getProteinGroups().push_back(group);
+
+  ProteinIdentification::ProteinGroup indist;
+  indist.probability = 0.1;
+  indist.accessions = {"A", "B"};
+  proteins[0].getIndistinguishableProteins().push_back(indist);
+
+  IDFilter::keepNBestHits(proteins, 1);
+  TEST_EQUAL(proteins[0].getHits().size(), 1);
+  TEST_EQUAL(proteins[0].getHits()[0].getAccession(), "C");
+  TEST_EQUAL(proteins[0].getProteinGroups().size(), 1);
+  TEST_EQUAL(proteins[0].getProteinGroups()[0].accessions.size(), 1);
+  TEST_EQUAL(proteins[0].getProteinGroups()[0].accessions[0], "C");
+  TEST_EQUAL(proteins[0].getIndistinguishableProteins().size(), 0);
 }
 END_SECTION
 

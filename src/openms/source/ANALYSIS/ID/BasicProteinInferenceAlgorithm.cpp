@@ -187,6 +187,7 @@ namespace OpenMS
           IDFilter::HasMaxMetaValue<ProteinHit>("nr_found_peptides", static_cast<int>(min_peptides_per_protein) - 1));
 
       IDFilter::updateProteinReferences(cmap, prot_run, true);
+      IDFilter::updateProteinGroups(prot_run);
     }
 
     if (group)
@@ -204,7 +205,7 @@ namespace OpenMS
         ibg.resolveGraphPeptideCentric(true);
         ibg.annotateIndistProteins(true); // this does not really add singletons since they are not in the graph
         IDFilter::removeUnreferencedProteins(cmap, include_unassigned);
-        IDFilter::updateProteinGroups(prot_run.getIndistinguishableProteins(), prot_run.getHits());
+        IDFilter::updateProteinGroups(prot_run);
         prot_run.fillIndistinguishableGroupsWithSingletons();
       }
       else
@@ -226,7 +227,7 @@ namespace OpenMS
         //Note: the above does not add singleton groups to graph
         ibg.resolveGraphPeptideCentric(true);
         IDFilter::removeUnreferencedProteins(cmap, include_unassigned);
-        IDFilter::updateProteinGroups(prot_run.getIndistinguishableProteins(), prot_run.getHits());
+        IDFilter::updateProteinGroups(prot_run);
       }
     }
 
@@ -593,6 +594,7 @@ namespace OpenMS
     {
       IDFilter::removeMatchingItems<std::vector<ProteinHit>>(prot_run.getHits(),
           IDFilter::HasMaxMetaValue<ProteinHit>("nr_found_peptides", static_cast<int>(min_peptides_per_protein) - 1));
+      IDFilter::updateProteinGroups(prot_run);
     }
 
     if (group)
@@ -610,7 +612,7 @@ namespace OpenMS
         ibg.resolveGraphPeptideCentric(true);
         ibg.annotateIndistProteins(true); // this does not really add singletons since they are not in the graph
         IDFilter::removeUnreferencedProteins(prot_run, pep_ids);
-        IDFilter::updateProteinGroups(prot_run.getIndistinguishableProteins(), prot_run.getHits());
+        IDFilter::updateProteinGroups(prot_run);
         prot_run.fillIndistinguishableGroupsWithSingletons();
       }
       else

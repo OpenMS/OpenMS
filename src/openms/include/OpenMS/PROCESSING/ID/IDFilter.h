@@ -27,6 +27,8 @@
 #include <functional>
 #include <map>
 #include <set>
+#include <type_traits>
+#include <unordered_map>
 #include <unordered_set>
 #include <vector>
 
@@ -567,6 +569,11 @@ namespace OpenMS
       for (auto& item : items)
       {
         removeMatchingItems(item.getHits(), pred);
+        using ItemType = std::remove_reference_t<decltype(item)>;
+        if constexpr (std::is_same_v<ItemType, ProteinIdentification>)
+        {
+          updateProteinGroups(item);
+        }
       }
     }
 
@@ -577,6 +584,11 @@ namespace OpenMS
       for (auto& item : items)
       {
         keepMatchingItems(item.getHits(), pred);
+        using ItemType = std::remove_reference_t<decltype(item)>;
+        if constexpr (std::is_same_v<ItemType, ProteinIdentification>)
+        {
+          updateProteinGroups(item);
+        }
       }
     }
 
@@ -832,6 +844,56 @@ namespace OpenMS
     {
       const bool valid_indist = updateProteinGroups(proteins.getIndistinguishableProteins(), proteins.getHits());
       const bool valid_groups = updateProteinGroups(proteins.getProteinGroups(), proteins.getHits());
+
+      // Ensure a deterministic, hit-backed leader if groups were reduced:
+      // - Keep accessions[0] as the canonical group label
+      // - Choose the best-scoring remaining hit as leader (tie-break lexicographically)
+      if (!proteins.getHits().empty() && (!valid_indist || !valid_groups))
+      {
+        const bool higher_score_better = proteins.isHigherScoreBetter();
+        std::unordered_map<String, double> acc_to_score;
+        acc_to_score.reserve(proteins.getHits().size());
+        for (const auto& hit : proteins.getHits())
+        {
+          acc_to_score[hit.getAccession()] = hit.getScore();
+        }
+
+        auto repair_leader = [&acc_to_score, higher_score_better](std::vector<ProteinIdentification::ProteinGroup>& groups)
+        {
+          for (auto& group : groups)
+          {
+            if (group.accessions.size() <= 1) continue;
+
+            Size best_index = 0;
+            String best_acc = group.accessions[0];
+            double best_score = acc_to_score.at(best_acc);
+
+            for (Size i = 1; i < group.accessions.size(); ++i)
+            {
+              const String& acc = group.accessions[i];
+              const double score = acc_to_score.at(acc);
+              const bool better = higher_score_better ? (score > best_score) : (score < best_score);
+              const bool tie = (score == best_score) && (acc < best_acc);
+              if (better || tie)
+              {
+                best_index = i;
+                best_acc = acc;
+                best_score = score;
+              }
+            }
+
+            if (best_index != 0)
+            {
+              group.accessions.erase(group.accessions.begin() + best_index);
+              group.accessions.insert(group.accessions.begin(), std::move(best_acc));
+            }
+          }
+        };
+
+        if (!valid_indist) repair_leader(proteins.getIndistinguishableProteins());
+        if (!valid_groups) repair_leader(proteins.getProteinGroups());
+      }
+
       return valid_indist && valid_groups;
     }
 
@@ -1002,7 +1064,13 @@ namespace OpenMS
       {
         id_it->sort();
         if (n < id_it->getHits().size())
+        {
           id_it->getHits().resize(n);
+          if constexpr (std::is_same_v<IdentificationType, ProteinIdentification>)
+          {
+            updateProteinGroups(*id_it);
+          }
+        }
       }
     }
 
@@ -1063,6 +1131,11 @@ namespace OpenMS
             }),
           hits.end()
         );
+
+        if constexpr (std::is_same_v<IdentificationType, ProteinIdentification>)
+        {
+          updateProteinGroups(id);
+        }
       }
     }
     
@@ -1080,6 +1153,10 @@ namespace OpenMS
       for (typename std::vector<IdentificationType>::iterator id_it = ids.begin(); id_it != ids.end(); ++id_it)
       {
         removeMatchingItems(id_it->getHits(), decoy_filter);
+        if constexpr (std::is_same_v<IdentificationType, ProteinIdentification>)
+        {
+          updateProteinGroups(*id_it);
+        }
       }
     }
 
@@ -1097,6 +1174,10 @@ namespace OpenMS
       for (auto& id_it : ids)
       {
         removeMatchingItems(id_it.getHits(), acc_filter);
+        if constexpr (std::is_same_v<IdentificationType, ProteinIdentification>)
+        {
+          updateProteinGroups(id_it);
+        }
       }
     }
 
@@ -1111,7 +1192,11 @@ namespace OpenMS
     static void keepHitsMatchingProteins(IdentificationType& id, const std::set<String>& accessions)
     {
       struct HasMatchingAccession<typename IdentificationType::HitType> acc_filter(accessions);
-      keepMatchingItems(id.getHits(), acc_filter);      
+      keepMatchingItems(id.getHits(), acc_filter);
+      if constexpr (std::is_same_v<IdentificationType, ProteinIdentification>)
+      {
+        updateProteinGroups(id);
+      }
     }
 
     /**

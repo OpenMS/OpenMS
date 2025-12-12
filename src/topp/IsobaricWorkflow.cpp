@@ -769,10 +769,7 @@ protected:
       OPENMS_LOG_INFO << "Removing peptide hits without protein references..." << endl;
     }
 
-    IDFilter::updateProteinReferences(cmap, rm_pep);
-    IDFilter::removeUnreferencedProteins(cmap, true);
-    IDFilter::updateProteinGroups(proteins.getIndistinguishableProteins(), proteins.getHits());
-    IDFilter::updateProteinGroups(proteins.getProteinGroups(), proteins.getHits());
+    IDFilter::sanitizeProteinReferencesAndGroups(cmap, rm_pep, true);
 
     const double max_pro_fdr = getDoubleOption_("proteinFDR");
     const double max_psm_fdr = getDoubleOption_("psmFDR");
@@ -800,8 +797,7 @@ protected:
 
     if (max_pro_fdr < 1.0 || max_psm_fdr < 1.0)
     {
-      IDFilter::updateProteinGroups(proteins.getIndistinguishableProteins(), proteins.getHits());
-      IDFilter::updateProteinGroups(proteins.getProteinGroups(), proteins.getHits());
+      IDFilter::updateProteinGroups(proteins);
     }
 
     if (proteins.getHits().empty())

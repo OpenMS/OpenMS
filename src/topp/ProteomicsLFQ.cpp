@@ -1313,12 +1313,7 @@ protected:
 
     if (!getFlag_("PeptideQuantification:quantify_decoys"))
     { // FDR filtering removed all decoy proteins -> update references and remove all unreferenced (decoy) PSMs
-      IDFilter::updateProteinReferences(consensus, true);
-      IDFilter::removeUnreferencedProteins(consensus, true); // if we don't filter peptides for now, we don't need this
-      IDFilter::updateProteinGroups(overall_proteins.getIndistinguishableProteins(),
-                                    overall_proteins.getHits());
-      IDFilter::updateProteinGroups(overall_proteins.getProteinGroups(),
-                                    overall_proteins.getHits());
+      IDFilter::sanitizeProteinReferencesAndGroups(consensus, true, true);
     }
 
     // FDR filtering
@@ -1348,8 +1343,7 @@ protected:
 
     if (max_fdr < 1. || max_psm_fdr < 1. || !getFlag_("PeptideQuantification:quantify_decoys"))
     {
-      IDFilter::updateProteinGroups(overall_proteins.getIndistinguishableProteins(), overall_proteins.getHits());
-      IDFilter::updateProteinGroups(overall_proteins.getProteinGroups(), overall_proteins.getHits());
+      IDFilter::updateProteinGroups(overall_proteins);
     }
 
     if (overall_proteins.getHits().empty())

@@ -290,10 +290,6 @@ protected:
       {
         OPENMS_LOG_INFO << "Postprocessing: Removing proteins without associated evidence..." << std::endl;
         IDFilter::removeUnreferencedProteins(cmap, true);
-        for (auto& run : cmap.getProteinIdentifications())
-        {
-          IDFilter::updateProteinGroups(run.getIndistinguishableProteins(), run.getHits());
-        }
       }
 
       for (auto& run : cmap.getProteinIdentifications())
@@ -401,8 +397,6 @@ protected:
       {
         OPENMS_LOG_INFO << "Postprocessing: Removing proteins without associated evidence..." << std::endl;
         IDFilter::removeUnreferencedProteins(mergedprots, mergedpeps);
-        IDFilter::updateProteinGroups(mergedprots[0].getIndistinguishableProteins(), mergedprots[0].getHits());
-        IDFilter::updateProteinGroups(mergedprots[0].getProteinGroups(), mergedprots[0].getHits());
       }
 
       bool calc_protFDR = getStringOption_("protein_fdr") == "true";

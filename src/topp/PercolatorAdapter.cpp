@@ -1143,7 +1143,7 @@ protected:
             }
           }
           // filter groups that might contain these unmapped proteins so we do not get errors while writing our output.
-          IDFilter::updateProteinGroups(all_protein_ids[0].getIndistinguishableProteins(), all_protein_ids[0].getHits());
+          IDFilter::updateProteinGroups(all_protein_ids[0]);
         }
 
         //TODO add software percolator and PercolatorAdapter
