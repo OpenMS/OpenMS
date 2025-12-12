@@ -5,7 +5,10 @@ import numpy as np
 
 
     def get_df_columns(self, columns='default', export_meta_values=True):
-        """Returns a list of column names that get_df() would produce for this chromatogram.
+        """
+        get_df_columns(self: MSChromatogram, columns: str = 'default', export_meta_values: bool = True) -> List[str]
+        
+        Returns a list of column names that get_df() would produce for this chromatogram.
 
         Useful for discovering available columns before export, especially when
         selecting specific columns for performance optimization.
@@ -49,7 +52,10 @@ import numpy as np
         return cols
 
     def get_data_dict(self, columns=None, export_meta_values=True):
-        """Returns a dictionary of NumPy arrays with RT, intensities, and metadata.
+        """
+        get_data_dict(self: MSChromatogram, columns: Optional[List[str]] = None, export_meta_values: bool = True) -> Dict[str, np.ndarray]
+        
+        Returns a dictionary of NumPy arrays with RT, intensities, and metadata.
 
         This method extracts chromatogram data including peaks, precursor/product info,
         and optional meta values into a dictionary format suitable for conversion to
@@ -200,7 +206,11 @@ import numpy as np
         return data_dict
 
     def get_peaks(self):
-
+        """
+        get_peaks(self: MSChromatogram) -> Tuple[np.ndarray, np.ndarray]
+        
+        Get RT and intensity arrays as numpy arrays.
+        """
         cdef _MSChromatogram * chrom_ = self.inst.get()
 
         cdef unsigned int n = chrom_.size()
@@ -221,7 +231,11 @@ import numpy as np
         return rts, intensities
 
     def set_peaks(self, peaks):
-
+        """
+        set_peaks(self: MSChromatogram, peaks: Union[Tuple[np.ndarray, np.ndarray], Tuple[List, List]]) -> None
+        
+        Set RT and intensity data from arrays or lists.
+        """
         assert isinstance(peaks, (tuple, list)), "Input for set_peaks needs to be a tuple or a list of size 2 (rt and intensity vector)"
         assert len(peaks) == 2, "Input for set_peaks needs to be a tuple or a list of size 2 (rt and intensity vector)"
 
@@ -244,7 +258,11 @@ import numpy as np
 
 
     def _set_peaks_fast_dd(self, np.ndarray[double, ndim=1, mode="c"] data_rt not None, np.ndarray[double, ndim=1, mode="c"] data_i not None):
-
+        """
+        _set_peaks_fast_dd(self: MSChromatogram, data_rt: np.ndarray, data_i: np.ndarray) -> None
+        
+        Internal method to set peaks from double/double numpy arrays.
+        """
         cdef _MSChromatogram * chrom_ = self.inst.get()
 
         chrom_.resize(0) # empty vector, keep meta data and data arrays
@@ -266,7 +284,11 @@ import numpy as np
 
 
     def _set_peaks_fast_df(self, np.ndarray[double, ndim=1, mode="c"] data_rt not None, np.ndarray[float, ndim=1, mode="c"] data_i not None):
-
+        """
+        _set_peaks_fast_df(self: MSChromatogram, data_rt: np.ndarray, data_i: np.ndarray) -> None
+        
+        Internal method to set peaks from double/float numpy arrays.
+        """
         cdef _MSChromatogram * chrom_ = self.inst.get()
 
         chrom_.resize(0) # empty vector, keep meta data and data arrays
@@ -288,8 +310,11 @@ import numpy as np
 
 
     def _set_peaks_orig(self, rts, intensities):
-
-
+        """
+        _set_peaks_orig(self: MSChromatogram, rts: Union[List, np.ndarray], intensities: Union[List, np.ndarray]) -> None
+        
+        Internal method to set peaks from generic lists or arrays.
+        """
         cdef _MSChromatogram * chrom_ = self.inst.get()
 
         chrom_.resize(0) # empty vector, keep meta data and data arrays
@@ -310,11 +335,17 @@ import numpy as np
         chrom_.updateRanges()
 
     def __len__(self):
-        """Return the number of peaks in the chromatogram."""
+        """
+        __len__(self: MSChromatogram) -> int
+        
+        Return the number of peaks in the chromatogram.
+        """
         return self.inst.get().size()
 
     def __str__(self):
         """
+        __str__(self: MSChromatogram) -> str
+        
         Return a string representation of the MSChromatogram object.
         Delegates to __repr__ for consistency.
         """
@@ -322,6 +353,8 @@ import numpy as np
 
     def __repr__(self):
         """
+        __repr__(self: MSChromatogram) -> str
+        
         Return a string representation of the MSChromatogram object.
 
         Returns key properties in a readable format:

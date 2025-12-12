@@ -5,6 +5,10 @@ from DBoundingBox cimport DBoundingBox2 as _DBoundingBox2
 
     def enclosesXY(self, float x, float y):
         """
+        enclosesXY(self: ConvexHull2D, x: float, y: float) -> int
+        
+        Check if a point (x, y) is enclosed by the convex hull.
+        
         Parameters:
         x (float)
         y (float)
@@ -20,6 +24,10 @@ from DBoundingBox cimport DBoundingBox2 as _DBoundingBox2
 
     def getHullPointsNPY(self):
         """
+        getHullPointsNPY(self: ConvexHull2D) -> np.ndarray
+        
+        Get the hull points as a numpy array.
+        
         Returns:
         result (np.ndarray[np.float32_t, ndim=2])
         """
@@ -38,6 +46,10 @@ from DBoundingBox cimport DBoundingBox2 as _DBoundingBox2
 
     def setHullPointsNPY(self, np.ndarray[np.float32_t, ndim=2] points):
         """
+        setHullPointsNPY(self: ConvexHull2D, points: np.ndarray) -> None
+        
+        Set the hull points from a numpy array.
+        
         Parameters:
         points (np.ndarray[np.float32_t, ndim=2])
         """
@@ -54,6 +66,10 @@ from DBoundingBox cimport DBoundingBox2 as _DBoundingBox2
 
     def getBoundingBox2D(self):
         """
+        getBoundingBox2D(self: ConvexHull2D) -> Tuple[Tuple[float, float], Tuple[float, float]]
+        
+        Get the bounding box of the convex hull.
+        
         Returns:
         ((double,double),(double,double))
         """
@@ -64,6 +80,10 @@ from DBoundingBox cimport DBoundingBox2 as _DBoundingBox2
 
     def addPointXY(self, x, y):
         """
+        addPointXY(self: ConvexHull2D, x: float, y: float) -> None
+        
+        Add a point to the convex hull.
+        
         Parameters:
         x (double)
         y (double)
@@ -75,6 +95,10 @@ from DBoundingBox cimport DBoundingBox2 as _DBoundingBox2
 
     def addPointsNPY(self, np.ndarray[np.float32_t, ndim=2] points):
         """
+        addPointsNPY(self: ConvexHull2D, points: np.ndarray) -> None
+        
+        Add multiple points to the convex hull.
+        
         Parameters:
         points (np.ndarray[np.float32_t, ndim=2])
         """
