@@ -302,7 +302,7 @@ jobs:
           CC: "clang"
           CXX: "clang++"
           BOOST_USE_STATIC: "OFF" #TODO check if necessary?
-          MACOSX_DEPLOYMENT_TARGET: "12"
+          MACOSX_DEPLOYMENT_TARGET: "14"
           SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
           CMAKE_GENERATOR: "Ninja"
           OPENMS_CONTRIB_LIBS: "$GITHUB_WORKSPACE/OpenMS/contrib"
