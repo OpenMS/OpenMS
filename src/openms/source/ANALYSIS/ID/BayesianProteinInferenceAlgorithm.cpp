@@ -743,6 +743,27 @@ namespace OpenMS
       bool greedy_group_resolution, // TODO probably better to add it as a Param
       std::optional<const ExperimentalDesign> exp_des)
   {
+    // For study-wide inference on ConsensusMap data, require a single merged protein run.
+    // (Multiple runs should be merged using ConsensusMapMergerAlgorithm::mergeAllIDRuns() beforehand.)
+    vector<ProteinIdentification>& proteinIDs = cmap.getProteinIdentifications();
+    if (proteinIDs.empty())
+    {
+      throw OpenMS::Exception::MissingInformation(
+          __FILE__,
+          __LINE__,
+          OPENMS_PRETTY_FUNCTION,
+          "No protein identification runs provided for inference.");
+    }
+    if (proteinIDs.size() != 1)
+    {
+      throw OpenMS::Exception::MissingInformation(
+          __FILE__,
+          __LINE__,
+          OPENMS_PRETTY_FUNCTION,
+          "ConsensusMap-based inference requires a single merged ProteinIdentification run. "
+          "Merge runs first (ConsensusMapMergerAlgorithm::mergeAllIDRuns).");
+    }
+
     IDScoreSwitcherAlgorithm switcher;
     Size counter(0);
     try
@@ -808,8 +829,7 @@ namespace OpenMS
       unassigned = IDFilter::extractUnassignedProteins(cmap);
     }
 
-    vector<ProteinIdentification>& proteinIDs = cmap.getProteinIdentifications();
-    if (proteinIDs.size() == 1) // could be merged with the general case, but we can save the runid lookup here.
+    // Single-run inference (ConsensusMap is expected to be merged upfront).
     {
       resetProteinScores_(proteinIDs[0], user_defined_priors);
 
@@ -835,38 +855,6 @@ namespace OpenMS
       }
 
       proteinIDs[0].fillIndistinguishableGroupsWithSingletons();
-    }
-    else if (cmap.getProteinIdentifications().size() > 1)
-    {
-      for (auto& proteinID : cmap.getProteinIdentifications())
-      {
-        //TODO use if case for unassigned
-        //TODO Log the currently processed run
-        resetProteinScores_(proteinID, user_defined_priors);
-
-        //TODO try to calc AUC partial only (e.g. up to 5% FDR)
-        if (!keep_all_psms)
-          OPENMS_LOG_INFO << "Peptide FDR AUC before protein inference: " << pepFDR.rocN(cmap, 0, proteinID.getIdentifier()) << std::endl;
-
-        setScoreTypeAndSettings_(proteinID);
-        IDBoostGraph ibg(proteinID, cmap, nr_top_psms, use_run_info, use_unannotated_ids, keep_all_psms);
-        inferPosteriorProbabilities_(ibg);
-        if (greedy_group_resolution) ibg.resolveGraphPeptideCentric(true);
-
-        if (!keep_all_psms)
-          OPENMS_LOG_INFO << "Peptide FDR AUC after protein inference: " << pepFDR.rocN(cmap, 0, proteinID.getIdentifier()) << std::endl;
-
-        if (!use_unannotated_ids)
-        {
-          auto& unassigned_for_run = unassigned.at(proteinIDs[0].getIdentifier());
-          for (auto& h : unassigned_for_run) h.setScore(0.);
-          proteinID.getHits().reserve(proteinID.getHits().size() + unassigned_for_run.size());
-          std::move(std::begin(unassigned_for_run), std::end(unassigned_for_run), std::back_inserter(proteinID.getHits()));
-          unassigned_for_run.clear();
-        }
-
-        proteinID.fillIndistinguishableGroupsWithSingletons();
-      }
     }
   }
 

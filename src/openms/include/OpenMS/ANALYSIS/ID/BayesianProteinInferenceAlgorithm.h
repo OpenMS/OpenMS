@@ -100,7 +100,9 @@ namespace OpenMS
      *  Optionally adds indistinguishable protein groups with separate scores, too.
      *  Output scores are always posterior probabilities. Input can be posterior or error probabilities.
      *  See Param object defaults_ within the BayesianProteinInferenceAlgorithm for more settings.
-     *  Currently only takes first proteinID run and all peptides (irrespective of getIdentifier()).
+     *  Requires a single merged ProteinIdentification run in the @p cmap (i.e. @p cmap.getProteinIdentifications().size() == 1)
+     *  with peptide IDs referring to that run. For study-wide inference across multiple runs/files, merge runs first
+     *  (ConsensusMapMergerAlgorithm::mergeAllIDRuns).
      * @param cmap Features with input/output peptides and proteins (from getProteinIdentifications)
      * @param greedy_group_resolution Do greedy group resolution? Remove all but best association for "razor" peptides.
      * @param exp_des Experimental design can be used to create an extended graph with replicate information. (experimental)
