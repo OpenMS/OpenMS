@@ -136,6 +136,8 @@
 
     def __str__(self):
         """
+        __str__(self: MSExperiment) -> str
+        
         Return a string representation of the MSExperiment object.
         Delegates to __repr__ for consistency.
         """
@@ -143,6 +145,8 @@
 
     def __repr__(self):
         """
+        __repr__(self: MSExperiment) -> str
+        
         Return a string representation of the MSExperiment object.
 
         Returns key properties in a readable format:

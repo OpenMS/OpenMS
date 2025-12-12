@@ -7,6 +7,8 @@
 
     def __str__(self):
         """
+        __str__(self: PeptideIdentificationList) -> str
+        
         Return a string representation of the PeptideIdentificationList object.
         Delegates to __repr__ for consistency.
         """
@@ -14,6 +16,8 @@
 
     def __repr__(self):
         """
+        __repr__(self: PeptideIdentificationList) -> str
+        
         Return a string representation of the PeptideIdentificationList object.
 
         Returns key properties in a readable format:
