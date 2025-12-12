@@ -2,9 +2,18 @@ from UniqueIdInterface cimport setUniqueId as _setUniqueId
 
 
     def setUniqueIds(self):
+        """
+        setUniqueIds(self: ConsensusMap) -> None
+        
+        Assign unique IDs to all features in the consensus map.
+        """
         self.inst.get().applyMemberFunction(address(_setUniqueId))
 
     def getColumnHeaders(self):
+        """
+        getColumnHeaders(self: ConsensusMap) -> Dict[int, ColumnHeader]
+        
+        Get the column headers describing the input maps.
 
         # ColumnHeaders is a type alias for Map<..> which can not be
         # handled by autowrap automatically. So we have to provide a manual
@@ -12,7 +21,7 @@ from UniqueIdInterface cimport setUniqueId as _setUniqueId
         #
         # (the wrapper works on linux, but msvc complains
         # a lot about the generated code... uwe schmitt)
-
+        """
         cdef ColumnHeaders _r = self.inst.get().getColumnHeaders()
         py_result = dict()
         cdef ColumnHeaders_iterator it__r = _r.begin()
@@ -25,6 +34,11 @@ from UniqueIdInterface cimport setUniqueId as _setUniqueId
         return py_result
 
     def setColumnHeaders(self, dict in_0 ):
+        """
+        setColumnHeaders(self: ConsensusMap, in_0: Dict[int, ColumnHeader]) -> None
+        
+        Set the column headers describing the input maps.
+        """
         assert isinstance(in_0, dict) and all(isinstance(k, int) for k in in_0.keys()) and all(isinstance(v, ColumnHeader) for v in in_0.values()), 'arg in_0 wrong type'
         cdef ColumnHeaders v0
         for key, value in in_0.items():
