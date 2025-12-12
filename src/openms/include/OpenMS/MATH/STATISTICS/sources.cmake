@@ -9,6 +9,7 @@ GaussFitter.h
 GumbelDistributionFitter.h
 GumbelMaxLikelihoodFitter.h
 Histogram.h
+MultipleTesting.h
 PosteriorErrorProbabilityModel.h
 RankData.h
 )

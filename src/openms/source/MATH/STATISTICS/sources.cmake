@@ -9,6 +9,7 @@ GaussFitter.cpp
 GumbelDistributionFitter.cpp
 GumbelMaxLikelihoodFitter.cpp
 Histogram.cpp
+MultipleTesting.cpp
 PosteriorErrorProbabilityModel.cpp
 )
 
