@@ -23,6 +23,8 @@ cpack_add_component(library
                 INSTALL_TYPES recommended full minimal
                 )
 # Add PLIST argument if ApplicationsComponent.plist was generated (for macOS pkg)
+# The PLIST file lists all application bundles with RootRelativeBundlePath and BundleIsRelocatable
+# This is used by CPack's productbuild generator with the --component-plist argument
 if(DEFINED APPLICATIONS_COMPONENT_PLIST AND EXISTS "${APPLICATIONS_COMPONENT_PLIST}")
     cpack_add_component(applications
                     DISPLAY_NAME "OpenMS binaries"
