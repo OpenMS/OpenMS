@@ -55,33 +55,40 @@ set(CTEST_UPDATE_VERSION_ONLY ON)
 set(CTEST_UPDATE_COMMAND "${GIT_EXECUTABLE}")
 ctest_update()
 
-ctest_configure (BUILD "${CTEST_BINARY_DIRECTORY}" OPTIONS "${OWN_OPTIONS}" RETURN_VALUE _configure_ret)
-ctest_submit(PARTS Update Configure CAPTURE_CMAKE_ERROR _submit_result)
+set(_any_submit_failed 0)
 
-if(NOT _submit_result EQUAL 0)
-    execute_process(
-        COMMAND ${CMAKE_COMMAND} -E echo "::warning file=cibuild.cmake,line=168::CTest submission failed, CDASH server is not available. Continuing execution."
-    )
-    message(WARNING "CTest submission failed, no detailed logs will be available.")
+ctest_configure (BUILD "${CTEST_BINARY_DIRECTORY}" OPTIONS "${OWN_OPTIONS}" RETURN_VALUE _configure_ret)
+ctest_submit(PARTS Update Configure
+      RETURN_VALUE _submit_ret
+      CAPTURE_CMAKE_ERROR _submit_cmake_err)
+
+if(NOT _submit_ret EQUAL 0 OR NOT _submit_cmake_err EQUAL 0)
+  set(_any_submit_failed 1)
+  execute_process(
+    COMMAND ${CMAKE_COMMAND} -E echo "::warning file=${CMAKE_CURRENT_LIST_FILE},line=${CMAKE_CURRENT_LIST_LINE}::CTest submission failed, CDASH server is not available. Continuing execution."
+  )
+  message(WARNING "CTest submission failed, no detailed logs will be available.")
 endif()
 
 
 # we only build when we do non-style testing and we may have special targets like pyopenms
 if("$ENV{ENABLE_STYLE_TESTING}" STREQUAL "OFF")
-  # Initialize _submit_result to track any submission failures
-  set(_submit_result 0)
-  
+  # Track submission failures across all build-related submissions
   ctest_build(BUILD "${CTEST_BINARY_DIRECTORY}" NUMBER_ERRORS _build_errors)
-  ctest_submit(PARTS Build CAPTURE_CMAKE_ERROR _this_submit_result)
-  if(NOT _this_submit_result EQUAL 0)
-    set(_submit_result 1)
+  ctest_submit(PARTS Build
+               RETURN_VALUE _this_submit_ret
+               CAPTURE_CMAKE_ERROR _this_submit_cmake_err)
+  if(NOT _this_submit_ret EQUAL 0 OR NOT _this_submit_cmake_err EQUAL 0)
+    set(_any_submit_failed 1)
   endif()
 
   if("$ENV{PYOPENMS}" STREQUAL "ON")
     ctest_build(BUILD "${CTEST_BINARY_DIRECTORY}" TARGET "pyopenms" APPEND NUMBER_ERRORS _py_build_errors)
-    ctest_submit(PARTS Build CAPTURE_CMAKE_ERROR _this_submit_result)
-    if(NOT _this_submit_result EQUAL 0)
-      set(_submit_result 1)
+    ctest_submit(PARTS Build
+                 RETURN_VALUE _this_submit_ret
+                 CAPTURE_CMAKE_ERROR _this_submit_cmake_err)
+    if(NOT _this_submit_ret EQUAL 0 OR NOT _this_submit_cmake_err EQUAL 0)
+      set(_any_submit_failed 1)
     endif()
     math(EXPR _build_errors "${_build_errors} + ${_py_build_errors}")
   endif()
@@ -89,9 +96,11 @@ if("$ENV{ENABLE_STYLE_TESTING}" STREQUAL "OFF")
   # Only build compile_pxds if PYOPENMS is not ON (since it's already a subtarget of pyopenms)
   if("$ENV{COMPILE_PXDS}" STREQUAL "ON" AND "$ENV{PYOPENMS}" STREQUAL "OFF")
     ctest_build(BUILD "${CTEST_BINARY_DIRECTORY}" TARGET "compile_pxds" APPEND NUMBER_ERRORS _pdxs_build_errors)
-    ctest_submit(PARTS Build CAPTURE_CMAKE_ERROR _this_submit_result)
-    if(NOT _this_submit_result EQUAL 0)
-      set(_submit_result 1)
+    ctest_submit(PARTS Build
+                 RETURN_VALUE _this_submit_ret
+                 CAPTURE_CMAKE_ERROR _this_submit_cmake_err)
+    if(NOT _this_submit_ret EQUAL 0 OR NOT _this_submit_cmake_err EQUAL 0)
+      set(_any_submit_failed 1)
     endif()
     math(EXPR _build_errors "${_build_errors} + ${_pdxs_build_errors}")
   endif()
@@ -99,21 +108,22 @@ if("$ENV{ENABLE_STYLE_TESTING}" STREQUAL "OFF")
   # Generate and validate the CWL files if "ENABLE_CWL_GENERATION" is set
   if("$ENV{ENABLE_CWL_GENERATION}" STREQUAL "ON")
     ctest_build(BUILD "${CTEST_BINARY_DIRECTORY}" TARGET "generate_cwl_files" APPEND NUMBER_ERRORS _cwl_build_errors)
-    ctest_submit(PARTS Build CAPTURE_CMAKE_ERROR _this_submit_result)
-    if(NOT _this_submit_result EQUAL 0)
-      set(_submit_result 1)
+    ctest_submit(PARTS Build
+                 RETURN_VALUE _this_submit_ret
+                 CAPTURE_CMAKE_ERROR _this_submit_cmake_err)
+    if(NOT _this_submit_ret EQUAL 0 OR NOT _this_submit_cmake_err EQUAL 0)
+      set(_any_submit_failed 1)
     endif()
     math(EXPR _build_errors "${_build_errors} + ${_cwl_build_errors}")
   endif()
 else()
   set(_build_errors 0)
-  set(_submit_result 0)
 endif()
 
-if(NOT _submit_result EQUAL 0)
-  execute_process(COMMAND ${CMAKE_COMMAND} -E echo "::warning file=cibuild.cmake,line=193::CTest submission failed, CDASH server is not available. Continuing execution.")
+if(_any_submit_failed)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E echo "::warning file=${CMAKE_CURRENT_LIST_FILE},line=${CMAKE_CURRENT_LIST_LINE}::CTest submission failed, CDASH server is not available. Continuing execution.")
   message(WARNING "CTest submission failed, no detailed logs will be available.")
-  if (_test_errors)
+  if (_build_errors)
     message(FATAL_ERROR "There were errors: aborting")
   endif()
 else()
