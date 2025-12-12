@@ -13,8 +13,20 @@
 # The plist file will be generated during CMake configure and referenced
 # in cpack_add_component(Applications ...) via the PLIST argument.
 
+# Only generate the plist if we're building for macOS
+if(NOT APPLE)
+  message(STATUS "Skipping ApplicationsComponent.plist generation (not on macOS)")
+  return()
+endif()
+
 # Get the list of GUI executables
 include(${PROJECT_SOURCE_DIR}/src/openms_gui/source/VISUAL/APPLICATIONS/GUITOOLS/executables.cmake)
+
+# Check if there are any GUI executables to include
+if(NOT GUI_executables)
+  message(STATUS "No GUI executables found for ApplicationsComponent.plist")
+  return()
+endif()
 
 # Generate the plist file in the build directory
 set(APPLICATIONS_COMPONENT_PLIST "${CMAKE_BINARY_DIR}/ApplicationsComponent.plist")
@@ -42,6 +54,3 @@ set(PLIST_CONTENT "${PLIST_CONTENT}</plist>\n")
 # Write the plist file
 file(WRITE "${APPLICATIONS_COMPONENT_PLIST}" "${PLIST_CONTENT}")
 message(STATUS "Generated ApplicationsComponent.plist with bundles: ${GUI_executables}")
-
-# Export the path so it can be used in package_components.cmake
-set(APPLICATIONS_COMPONENT_PLIST "${APPLICATIONS_COMPONENT_PLIST}" PARENT_SCOPE)
