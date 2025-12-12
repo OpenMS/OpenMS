@@ -14,6 +14,9 @@
 # For info about this CPack generator and its capabilities, see the CMake documentation
 # For info about productbuild and the flat package format see https://matthew-brett.github.io/docosx/flat_packages.html
 
+# Generate ApplicationsComponent.plist for CPack component
+include(${PROJECT_SOURCE_DIR}/cmake/generate_applications_component_plist.cmake)
+
 set(CPACK_PACKAGING_INSTALL_PREFIX "/Applications/${CPACK_PACKAGE_NAME}-${OPENMS_PACKAGE_VERSION_FULLSTRING}")
 set(CPACK_PRODUCTBUILD_IDENTIFIER "de.openms")
 set(CPACK_PRODUCTBUILD_RESOURCES_DIR ${PROJECT_SOURCE_DIR}/cmake/MacOSX)

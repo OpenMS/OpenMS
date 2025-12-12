@@ -22,11 +22,21 @@ cpack_add_component(library
                 DESCRIPTION "Libraries"
                 INSTALL_TYPES recommended full minimal
                 )
-cpack_add_component(applications
-                DISPLAY_NAME "OpenMS binaries"
-                DESCRIPTION "OpenMS binaries including TOPP tools, TOPPView and TOPPAS."
-                INSTALL_TYPES recommended full minimal
-                )
+# Add PLIST argument if ApplicationsComponent.plist was generated (for macOS pkg)
+if(DEFINED APPLICATIONS_COMPONENT_PLIST AND EXISTS "${APPLICATIONS_COMPONENT_PLIST}")
+    cpack_add_component(applications
+                    DISPLAY_NAME "OpenMS binaries"
+                    DESCRIPTION "OpenMS binaries including TOPP tools, TOPPView and TOPPAS."
+                    INSTALL_TYPES recommended full minimal
+                    PLIST "${APPLICATIONS_COMPONENT_PLIST}"
+                    )
+else()
+    cpack_add_component(applications
+                    DISPLAY_NAME "OpenMS binaries"
+                    DESCRIPTION "OpenMS binaries including TOPP tools, TOPPView and TOPPAS."
+                    INSTALL_TYPES recommended full minimal
+                    )
+endif()
 cpack_add_component(doc
                 DISPLAY_NAME "Documentation"
                 DESCRIPTION "Class and tool documentation. With tutorials."
