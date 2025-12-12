@@ -223,27 +223,43 @@ jobs:
         # NOTE: x64 is hardcoded. No support for 32bit
         arch: x64
 
-    - name: Setup conda environment for Parquet (Windows only)
+    - name: Install Conda
       if: startsWith(matrix.os, 'windows')
       uses: conda-incubator/setup-miniconda@v3
       with:
         auto-update-conda: true
+        activate-environment: "ci"
         python-version: 3.9
-        activate-environment: openms-parquet
         use-mamba: true
 
-    - name: Install Parquet dependencies (Windows only)
+    - name: Install Dependencies via Conda
+      id: conda-setup
       if: startsWith(matrix.os, 'windows')
+      # NOTE: This weird shell line is needed in order to activate
+      # conda (and put it in this shell's PATH) since the way it's
+      # installed requires a login shell :(
       shell: bash -el {0}
       run: |
-        conda activate openms-parquet
+        # Dump out environment information for debugging:
+        conda info
+
         # None of the other arrow sublibraries seemed necessary, but it's an easy addition.
         conda install -c conda-forge libarrow libparquet -y
-        # Get the conda environment path for later use
-        echo "CONDA_ENV_PATH=$(conda info --base)/envs/openms-parquet" >> $GITHUB_ENV
-        # Add conda environment to PATH for cmake to find the libraries
-        echo "$(conda info --base)/envs/openms-parquet/bin" >> $GITHUB_PATH
-        echo "$(conda info --base)/envs/openms-parquet/Library/bin" >> $GITHUB_PATH
+
+        # Set variables required for the following steps so they
+        # don't need a conda environment or login shell:
+        CONDA_ENV_PREFIX=$(
+          conda info --json |
+            jq --raw-output .active_prefix |
+            sed 's|\\|/|g'
+        )
+
+        echo "$CONDA_ENV_PREFIX/bin" >>"$GITHUB_PATH"
+        echo "$CONDA_ENV_PREFIX/Library/bin" >>"$GITHUB_PATH"
+        echo "cmake_prefix=$CONDA_ENV_PREFIX/Library" >>"$GITHUB_OUTPUT"
+
+        # Some output for debugging:
+        echo "CONDA_ENV_PREFIX=$CONDA_ENV_PREFIX"
 
     - name: Install Qt (Windows)
       if: startsWith(matrix.os, 'windows')
@@ -254,49 +270,59 @@ jobs:
         cache: 'false'
         archives: 'qtsvg qtimageformats qtbase'
 
-    - name: Setup build tools (and system contrib on Linux and Mac)
+    - name: Set Up Build Tools
       id: tools-prefix
       shell: bash
-      env: 
-        # We need to add this, otherwise brew "helpfully" updates all of the GitHub preinstalled packages, which can cause issues
+      env:
+        # We need to add this, otherwise brew "helpfully" updates all
+        # of the GitHub preinstalled packages, which can cause issues:
         HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK: 1
       run: |
         if [[ "${{ matrix.os }}" == ubuntu-* ]]; then
           # WARNING: Don't add any dependency install commands here.
           # Instead edit the following script:
           bash OpenMS/tools/ci/deps-ubuntu.sh
+          # Install libomp for clang compiler (needed for OpenMP support)
+          # Use version-specific package matching the clang version
+          if [[ "${{ matrix.compiler }}" == clang* ]]; then
+            sudo apt-get -qq install -y libomp-${{ matrix.compiler_ver }}-dev
+          fi
           echo "Testing doxygen" && doxygen --version
           echo "cmake_prefix=" >>$GITHUB_OUTPUT
         fi
-        
+
         if [[ "${{ matrix.os }}" == windows-* ]]; then
-          # QT_ROOT_DIR set by Install Qt step
-          # Add conda environment paths to CMAKE_PREFIX_PATH for finding Arrow/Parquet
-          CONDA_CMAKE_PREFIX="$CONDA_ENV_PATH/Library;$CONDA_ENV_PATH/Library/cmake"
-          echo "cmake_prefix=$QT_ROOT_DIR/lib/cmake;$QT_ROOT_DIR;$CONDA_CMAKE_PREFIX" >> $GITHUB_OUTPUT
-          choco install ccache ninja -y --no-progress
-          choco install cmake -y --no-progress
-          ## GH CLI "SHOULD BE" installed. Sometimes I had to manually install nonetheless. Super weird.
-          # https://github.com/actions/runner-images/blob/main/images/win/scripts/Installers/Install-GitHub-CLI.ps1
-          echo "C:\Program Files (x86)\GitHub CLI" >> $GITHUB_PATH
-          # Install eigen from choco
-          choco install eigen -y --no-progress
-          echo "eigen_choco=C:\ProgramData\chocolatey\lib\eigen\share\cmake" >> $GITHUB_OUTPUT
-          choco install doxygen.portable ghostscript graphviz -y --no-progress
-          
+          choco install  -y --no-progress \
+                ccache \
+                cmake \
+                doxygen.portable \
+                eigen \
+                ghostscript \
+                graphviz \
+                ninja
+
           if [[ "${{ steps.set-vars.outputs.pkg_type }}" != "none" ]]; then
             # uses a custom NSIS, which provides 8-k string support and has UltraModernUI integrated already
             curl --no-progress-meter -L -o NSIS.tar.gz https://github.com/OpenMS/NSIS/raw/main/NSIS.tar.gz
             ## overwrite existing NSIS (which has only 1k-string support)
             7z x -so NSIS.tar.gz | 7z x -si -ttar -aoa -o"C:/Program Files (x86)/NSIS/"
           fi
+
+          echo "cmake_prefix=" >>"$GITHUB_OUTPUT"
+          echo "eigen_choco=C:\ProgramData\chocolatey\lib\eigen\share\cmake" >> $GITHUB_OUTPUT
+
+          ## GH CLI "SHOULD BE" installed. Sometimes I had to manually install nonetheless. Super weird.
+          # https://github.com/actions/runner-images/blob/main/images/win/scripts/Installers/Install-GitHub-CLI.ps1
+          echo "C:\Program Files (x86)\GitHub CLI" >> $GITHUB_PATH
         fi
 
         if [[ "${{ matrix.os }}" == macos-* ]]; then
           # WARNING: Don't add any brew install commands here, edit
           # the following script instead:
           bash OpenMS/tools/ci/deps-macos.sh
-          echo "cmake_prefix=$(brew --prefix qt)/lib/cmake;$(brew --prefix qt);$(brew --prefix libomp)" >>$GITHUB_OUTPUT
+
+          echo "$(brew --prefix)/bin" >>"$GITHUB_PATH"
+          echo "cmake_prefix=$(brew --prefix);$(brew --prefix libomp)" >>"$GITHUB_OUTPUT"
         fi
 
     - name: Cache contrib (Windows)
@@ -408,7 +434,8 @@ jobs:
           echo "::endgroup::"
 
           mkdir $GITHUB_WORKSPACE/OpenMS/bld/
-          ${{ steps.set-vars.outputs.xvfb }} ctest --output-on-failure -V -S ../OpenMS/OpenMS/tools/ci/cibuild.cmake
+          bash OpenMS/tools/ci/capture-env.sh -v $GITHUB_WORKSPACE/OpenMS/bld/CMakeCache.txt
+          ${{ steps.set-vars.outputs.xvfb }} ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/ci/cibuild.cmake
           retVal=$?
           
           # Display ccache statistics after build
@@ -428,7 +455,8 @@ jobs:
           # TODO allow actual choice of compiler instead of using default.
           #  Problem: not all compilers are always in the PATH.
           CMAKE_CXX_COMPILER: ${{ steps.set-vars.outputs.cxx_compiler }}
-          CMAKE_PREFIX_PATH: ${{ steps.tools-prefix.outputs.cmake_prefix }}
+          MACOSX_DEPLOYMENT_TARGET: ${{ startsWith(matrix.os, 'macos') && '12.0' || '' }}
+          CMAKE_PREFIX_PATH: "${{ steps.tools-prefix.outputs.cmake_prefix }};${{ steps.conda-setup.outputs.cmake_prefix }}"
           OPENMS_CONTRIB_LIBS: "${{ github.workspace }}/OpenMS/contrib"
           CI_PROVIDER: "GitHub-Actions"
           CMAKE_GENERATOR: "Ninja"
@@ -441,7 +469,7 @@ jobs:
           ENABLE_GCC_WERROR: "OFF" # TODO think about that
           SEARCH_ENGINES_DIRECTORY: ${{ github.workspace }}/_thirdparty
           WITH_GUI: "ON"
-          WITH_PARQUET: "OFF" # Conda on windows, Apt on Ubuntu, Brew on MacOS
+          WITH_PARQUET: "ON"
           SIGNING_IDENTITY: "-"
           ADDRESS_SANITIZER: "Off"
           BUILD_TYPE: "Release"
@@ -616,19 +644,19 @@ jobs:
         run: echo "RUN_NAME=${{ github.event.pull_request && github.event.number || github.ref_name }}" >> $GITHUB_ENV
 
       - name: Download installer artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           pattern: installer-*
           merge-multiple: true
 
       - name: Download source archive as artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           name: OpenMS-${{ needs.build-and-test.outputs.version_number }}.tar.gz
 
       - name: Download changelog as artifact
         if: inputs.do_release
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           name: changelog.txt
       

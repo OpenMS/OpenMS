@@ -65,7 +65,7 @@ namespace OpenMS
       {
         continue;
       }
-      QAction* action = context_menu.addAction(ti->text(), [=]() {
+      QAction* action = context_menu.addAction(ti->text(), [=, this]() {
         // invert visibility upon clicking the item
         setColumnHidden(i, !isColumnHidden(i));
         });

@@ -145,8 +145,8 @@ namespace OpenMS
       GlobalExceptionHandler::getInstance().setMessage(what());
     }
 
-    InvalidSize::InvalidSize(const char* file, int line, const char* function, Size size) noexcept :
-      BaseException(file, line, function, "InvalidSize", "the given size was not expected: " + String(size))
+    InvalidSize::InvalidSize(const char* file, int line, const char* function, Size size, const std::string& message) noexcept :
+      BaseException(file, line, function, "InvalidSize", "the given size was not expected: " + String(size) + " (" + message + ")")
     {
       GlobalExceptionHandler::getInstance().setMessage(what());
     }

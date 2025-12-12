@@ -14,6 +14,7 @@
 #include <OpenMS/METADATA/MassAnalyzer.h>
 #include <OpenMS/METADATA/IonDetector.h>
 #include <OpenMS/METADATA/Software.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <vector>
 
@@ -60,6 +61,9 @@ public:
 
     /// Names of inlet types
     static const std::string NamesOfIonOpticsType[SIZE_OF_IONOPTICSTYPE];
+
+    /// returns all ion optics type names known to OpenMS
+    static StringList getAllNamesOfIonOpticsType();
 
     /// Constructor
     Instrument();

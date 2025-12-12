@@ -376,6 +376,9 @@ public:
 
       /**
         Remove all streams associated to this LogStream, effectively silencing it.
+        
+        Flushes all buffers to ensure any pending log messages are written to their
+        respective streams before they are removed.
       */
       void removeAllStreams();
 

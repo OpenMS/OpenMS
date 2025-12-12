@@ -45,6 +45,27 @@ namespace OpenMS
       */
       AASequence reversePeptides(const AASequence& protein, const String& protease) const;
 
+      /**
+        @brief Generate decoy protein sequences using shuffle algorithm
+        
+        Digests the protein using the specified protease and shuffles each resulting peptide
+        to minimize sequence identity with the target. For top-down proteomics, use "no cleavage"
+        as the protease to shuffle the entire protein as a single sequence.
+        
+        @param protein The protein sequence to generate decoys from
+        @param protease The enzyme name (e.g., "Trypsin", "Trypsin/P", "no cleavage")
+        @param decoy_factor Number of decoy variants to generate per target peptide (default: 1)
+        @return Vector of shuffled decoy sequences (one entry per decoy variant)
+        
+        @note
+          - Peptides <= 2 amino acids are kept unchanged
+          - Each peptide uses a fresh DecoyGenerator with fixed seed to ensure
+            identical peptides produce identical decoys across different proteins
+          - Modifications are discarded
+          - Returns decoy_factor number of complete protein sequences
+      */
+      std::vector<AASequence> shuffle(const AASequence& protein, const String& protease, int decoy_factor = 1);
+
       /* 
           @brief shuffle the protein's peptide sequences between enzymatic cutting positions.
           each peptide is shuffled @param max_attempts times to minimize sequence identity.

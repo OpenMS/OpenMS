@@ -16,7 +16,7 @@
 #include <vector>
 #include <string>
 #include <fstream>
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 namespace OpenMS
 {

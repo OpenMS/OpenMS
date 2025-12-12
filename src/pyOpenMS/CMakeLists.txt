@@ -365,7 +365,7 @@ if(NOT NO_DEPENDENCIES)
         foreach (PYOPENMS_DEPENDENCY ${PYOPENMS_DEPENDENCIES})
             add_custom_command(
                 TARGET prepare_pyopenms_libs POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -DDEPS="$<TARGET_FILE:${PYOPENMS_DEPENDENCY}>" -DTARGET="${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/" -DLOOKUP_DIRS="${OPENMS_CONTRIB_LIBS}/lib\;${QT_INSTALL_BINS}\;${QT_INSTALL_LIBS}" -P ${PROJECT_SOURCE_DIR}/pyopenms_copy_deps.cmake
+                COMMAND ${CMAKE_COMMAND} -DDEPS="$<TARGET_FILE:${PYOPENMS_DEPENDENCY}>" -DTARGET="${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/" -DLOOKUP_DIRS="${OPENMS_CONTRIB_LIBS}/lib\;${OPENMS_CONTRIB_LIBS}/lib64\;${QT_INSTALL_BINS}\;${QT_INSTALL_LIBS}" -P ${PROJECT_SOURCE_DIR}/pyopenms_copy_deps.cmake
             )
         endforeach()
 
@@ -525,7 +525,7 @@ endif()
 IF(LINUX AND PY_NO_OUTPUT)
     add_custom_target(pyopenms
             #COMMAND ${Python_EXECUTABLE} setup.py bdist_egg 2> /dev/null
-            COMMAND ${Python_EXECUTABLE} -m pip wheel -w dist --no-deps --no-binary=pyopenms .
+            COMMAND ${Python_EXECUTABLE} -m pip wheel -w dist --no-deps --no-binary=pyopenms --no-build-isolation .
             #COMMAND ${Python_EXECUTABLE} setup.py bdist --format=zip 2> /dev/null
             #COMMAND ${Python_EXECUTABLE} setup.py build_ext --inplace 2> /dev/null
             COMMENT "Packaging pyopenms wheel."
@@ -540,7 +540,7 @@ ELSE()
             COMMAND codesign --force --sign "-" ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/Qt*
             COMMAND codesign --force --sign "-" ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/*.dylib
             #COMMAND ${Python_EXECUTABLE} setup.py bdist_egg
-            COMMAND ${Python_EXECUTABLE} -m pip wheel -w dist --no-deps --no-binary=pyopenms .
+            COMMAND ${Python_EXECUTABLE} -m pip wheel -w dist --no-deps --no-binary=pyopenms --no-build-isolation .
             #COMMAND ${Python_EXECUTABLE} setup.py bdist --format=zip
             #COMMAND ${Python_EXECUTABLE} setup.py build_ext --inplace
             COMMENT "Packaging pyopenms wheel."
@@ -549,7 +549,7 @@ ELSE()
     ELSE()
         add_custom_target(pyopenms
             #COMMAND ${Python_EXECUTABLE} setup.py bdist_egg
-            COMMAND ${Python_EXECUTABLE} -m pip wheel -w dist --no-deps --no-binary=pyopenms .
+            COMMAND ${Python_EXECUTABLE} -m pip wheel -w dist --no-deps --no-binary=pyopenms --no-build-isolation .
             #COMMAND ${Python_EXECUTABLE} setup.py bdist --format=zip
             #COMMAND ${Python_EXECUTABLE} setup.py build_ext --inplace
             COMMENT "Packaging pyopenms wheel."
@@ -588,9 +588,10 @@ set(pyopenms_unittest_testfiles
   test_FileIO.py
   test_Isobaric_Quantitation.py
   testLightTargetedExperiment.py
+  testLocale.py
   test_MRMFeatureFinderScoring.py
   test_MSNumpressCoder.py
-  test_MSSpectrumAndRichSpectrum.py
+  test_MSSpectrum.py
   test_OpenSwathDataStructures.py
   test_Smoothing.py
   testSpecialCases.py
@@ -600,6 +601,7 @@ set(pyopenms_unittest_testfiles
   test_MzMLConsumer.py
   test_MzXMLConsumer.py
   test_AcquisitionInfo.py
+  test_FLASHDeconv.py
   test_RankData.py
 )
 
