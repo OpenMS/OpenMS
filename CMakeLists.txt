@@ -312,7 +312,7 @@ is_valid_package(${PACKAGE_TYPE})
 ## Required for notarization (in addition to signing):
 ##   SIGNING_EMAIL - Apple ID email for notarization
 ##   CPACK_PRODUCTBUILD_IDENTITY_NAME - Developer ID Installer certificate identity (for .pkg)
-##   CODESIGNPW environment variable - App-specific password for notarization
+##   APPLE_APP_SPECIFIC_NOTARIZATION_PASSWORD environment variable - App-specific password for notarization
 if("${PACKAGE_TYPE}" STREQUAL "dmg" OR "${PACKAGE_TYPE}" STREQUAL "pkg")
   if (NOT DEFINED SIGNING_IDENTITY OR "${SIGNING_IDENTITY}" STREQUAL "" OR "${SIGNING_IDENTITY}" STREQUAL "-")
     message(WARNING "Trying to create macOS package/image without SIGNING_IDENTITY being set. "

@@ -30,11 +30,11 @@ For CI/CD, the following secrets must be configured in your GitHub repository.
 
 | Secret | Description |
 |--------|-------------|
-| `APPLE_DEVELOPER_CERT_64` | Base64-encoded Developer ID Application .p12 certificate |
-| `APPLE_DEVELOPMENT_PW` | Password for the Application certificate |
-| `APPLE_INSTALLER_CERT_64` | Base64-encoded Developer ID Installer .p12 certificate |
-| `APPLE_INSTALLER_PW` | Password for the Installer certificate |
-| `APPLE_NOTARIZATION_PASSWORD` | App-specific password for notarization |
+| `APPLE_DEVELOPER_ID_APPLICATION_CERT` | Base64-encoded Developer ID Application .p12 certificate |
+| `APPLE_DEVELOPER_ID_APPLICATION_PASSWORD` | Password for the Application certificate |
+| `APPLE_DEVELOPER_ID_INSTALLER_CERT` | Base64-encoded Developer ID Installer .p12 certificate |
+| `APPLE_DEVELOPER_ID_INSTALLER_PASSWORD` | Password for the Installer certificate |
+| `APPLE_APP_SPECIFIC_NOTARIZATION_PASSWORD` | App-specific password for notarization |
 | `KEYCHAIN_PASSWORD` | Password for the temporary CI keychain |
 
 The following are configured directly in the workflow (not secrets):
