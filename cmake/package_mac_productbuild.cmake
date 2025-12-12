@@ -14,12 +14,13 @@
 # For info about this CPack generator and its capabilities, see the CMake documentation
 # For info about productbuild and the flat package format see https://matthew-brett.github.io/docosx/flat_packages.html
 
+# Set the install prefix before generating the plist (needed for RootRelativeBundlePath)
+set(CPACK_PACKAGING_INSTALL_PREFIX "/Applications/${CPACK_PACKAGE_NAME}-${OPENMS_PACKAGE_VERSION_FULLSTRING}")
+
 # Generate ApplicationsComponent.plist for CPack component
 include(${PROJECT_SOURCE_DIR}/cmake/generate_applications_component_plist.cmake)
 # Export the variable to parent scope so package_components.cmake can use it
 set(APPLICATIONS_COMPONENT_PLIST "${APPLICATIONS_COMPONENT_PLIST}" PARENT_SCOPE)
-
-set(CPACK_PACKAGING_INSTALL_PREFIX "/Applications/${CPACK_PACKAGE_NAME}-${OPENMS_PACKAGE_VERSION_FULLSTRING}")
 set(CPACK_PRODUCTBUILD_IDENTIFIER "de.openms")
 set(CPACK_PRODUCTBUILD_RESOURCES_DIR ${PROJECT_SOURCE_DIR}/cmake/MacOSX)
 # set(CPACK_PRODUCTBUILD_BACKGROUND ${OPENMS_LOGOSMALL_NAME})

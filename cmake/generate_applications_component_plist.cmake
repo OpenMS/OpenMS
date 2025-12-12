@@ -31,6 +31,11 @@ endif()
 # Generate the plist file in the build directory
 set(APPLICATIONS_COMPONENT_PLIST "${CMAKE_BINARY_DIR}/ApplicationsComponent.plist")
 
+# Construct the base path for bundles relative to system root
+# CPACK_PACKAGING_INSTALL_PREFIX is like "/Applications/OpenMS-3.6.0"
+# We need to remove the leading "/" to make it relative to root
+string(REGEX REPLACE "^/" "" BUNDLE_BASE_PATH "${CPACK_PACKAGING_INSTALL_PREFIX}")
+
 # Start the plist XML
 set(PLIST_CONTENT "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n")
 set(PLIST_CONTENT "${PLIST_CONTENT}<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n")
@@ -38,10 +43,12 @@ set(PLIST_CONTENT "${PLIST_CONTENT}<plist version=\"1.0\">\n")
 set(PLIST_CONTENT "${PLIST_CONTENT}<array>\n")
 
 # Add an entry for each GUI application bundle
+# Bundles are installed to "." (root of install prefix), so the full path is:
+# RootRelativeBundlePath = BUNDLE_BASE_PATH/AppName.app
 foreach(app_name ${GUI_executables})
   set(PLIST_CONTENT "${PLIST_CONTENT}    <dict>\n")
   set(PLIST_CONTENT "${PLIST_CONTENT}        <key>RootRelativeBundlePath</key>\n")
-  set(PLIST_CONTENT "${PLIST_CONTENT}        <string>${app_name}.app</string>\n")
+  set(PLIST_CONTENT "${PLIST_CONTENT}        <string>${BUNDLE_BASE_PATH}/${app_name}.app</string>\n")
   set(PLIST_CONTENT "${PLIST_CONTENT}        <key>BundleIsRelocatable</key>\n")
   set(PLIST_CONTENT "${PLIST_CONTENT}        <true/>\n")
   set(PLIST_CONTENT "${PLIST_CONTENT}    </dict>\n")
@@ -53,4 +60,4 @@ set(PLIST_CONTENT "${PLIST_CONTENT}</plist>\n")
 
 # Write the plist file
 file(WRITE "${APPLICATIONS_COMPONENT_PLIST}" "${PLIST_CONTENT}")
-message(STATUS "Generated ApplicationsComponent.plist with bundles: ${GUI_executables}")
+message(STATUS "Generated ApplicationsComponent.plist with base path: ${BUNDLE_BASE_PATH}")
