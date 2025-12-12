@@ -69,29 +69,31 @@ endif()
 # we only build when we do non-style testing and we may have special targets like pyopenms
 if("$ENV{ENABLE_STYLE_TESTING}" STREQUAL "OFF")
   ctest_build(BUILD "${CTEST_BINARY_DIRECTORY}" NUMBER_ERRORS _build_errors)
+  ctest_submit(PARTS Build CAPTURE_CMAKE_ERROR _submit_result)
 
   if("$ENV{PYOPENMS}" STREQUAL "ON")
     ctest_build(BUILD "${CTEST_BINARY_DIRECTORY}" TARGET "pyopenms" APPEND NUMBER_ERRORS _py_build_errors)
+    ctest_submit(PARTS Build CAPTURE_CMAKE_ERROR _submit_result)
     math(EXPR _build_errors "${_build_errors} + ${_py_build_errors}")
   endif()
 
   # Only build compile_pxds if PYOPENMS is not ON (since it's already a subtarget of pyopenms)
   if("$ENV{COMPILE_PXDS}" STREQUAL "ON" AND "$ENV{PYOPENMS}" STREQUAL "OFF")
     ctest_build(BUILD "${CTEST_BINARY_DIRECTORY}" TARGET "compile_pxds" APPEND NUMBER_ERRORS _pdxs_build_errors)
+    ctest_submit(PARTS Build CAPTURE_CMAKE_ERROR _submit_result)
     math(EXPR _build_errors "${_build_errors} + ${_pdxs_build_errors}")
   endif()
 
   # Generate and validate the CWL files if "ENABLE_CWL_GENERATION" is set
   if("$ENV{ENABLE_CWL_GENERATION}" STREQUAL "ON")
     ctest_build(BUILD "${CTEST_BINARY_DIRECTORY}" TARGET "generate_cwl_files" APPEND NUMBER_ERRORS _cwl_build_errors)
+    ctest_submit(PARTS Build CAPTURE_CMAKE_ERROR _submit_result)
     math(EXPR _build_errors "${_build_errors} + ${_cwl_build_errors}")
   endif()
 else()
   set(_build_errors 0)
+  set(_submit_result 0)
 endif()
-
-## send test results to CDash
-ctest_submit(PARTS Build CAPTURE_CMAKE_ERROR _submit_result)
 
 if(NOT _submit_result EQUAL 0)
   execute_process(COMMAND ${CMAKE_COMMAND} -E echo "::warning file=cibuild.cmake,line=193::CTest submission failed, CDASH server is not available. Continuing execution.")
