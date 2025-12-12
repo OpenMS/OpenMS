@@ -435,6 +435,7 @@ jobs:
           # TODO allow actual choice of compiler instead of using default.
           #  Problem: not all compilers are always in the PATH.
           CMAKE_CXX_COMPILER: ${{ steps.set-vars.outputs.cxx_compiler }}
+          MACOSX_DEPLOYMENT_TARGET: ${{ startsWith(matrix.os, 'macos') && '12.0' || '' }}
           CMAKE_PREFIX_PATH: "${{ steps.tools-prefix.outputs.cmake_prefix }};${{ steps.conda-setup.outputs.cmake_prefix }}"
           OPENMS_CONTRIB_LIBS: "${{ github.workspace }}/OpenMS/contrib"
           CI_PROVIDER: "GitHub-Actions"
@@ -623,19 +624,19 @@ jobs:
         run: echo "RUN_NAME=${{ github.event.pull_request && github.event.number || github.ref_name }}" >> $GITHUB_ENV
 
       - name: Download installer artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           pattern: installer-*
           merge-multiple: true
 
       - name: Download source archive as artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           name: OpenMS-${{ needs.build-and-test.outputs.version_number }}.tar.gz
 
       - name: Download changelog as artifact
         if: inputs.do_release
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           name: changelog.txt
       

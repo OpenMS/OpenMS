@@ -16,7 +16,6 @@
 #include <boost/random/mersenne_twister.hpp>
 #include <boost/random/uniform_int.hpp>
 #include <boost/random/variate_generator.hpp>
-#include <boost/unordered_map.hpp> // cannot remove this since tests fail otherwise
 
 // #define DEBUG_MRMASSAY
 
@@ -59,10 +58,10 @@ public:
     typedef std::map<String, std::vector<const ReactionMonitoringTransition*> > CompoundTransitionMapType;
 
     typedef std::map<String, std::set<std::string> > ModifiedSequenceMap; ///< Maps an unmodified sequence to all its modified sequences
-    typedef boost::unordered_map<size_t, ModifiedSequenceMap> SequenceMapT; ///< Stores the ModifiedSequenceMap for all SWATH windows
+    typedef std::map<size_t, ModifiedSequenceMap> SequenceMapT; ///< Stores the ModifiedSequenceMap for all SWATH windows (uses std::map for deterministic iteration order)
 
     typedef std::vector<std::pair<double, std::string> > FragmentSeqMap; ///< Describes a fragment sequence map of : "fragment m/z" -> "modified sequence"
-    typedef boost::unordered_map<size_t, boost::unordered_map<String, FragmentSeqMap > > IonMapT; ///< Stores a mapping : "unmodified sequence" -> FragmentSeqMap for all SWATH windows
+    typedef std::map<size_t, std::map<String, FragmentSeqMap > > IonMapT; ///< Stores a mapping : "unmodified sequence" -> FragmentSeqMap for all SWATH windows (uses std::map for deterministic iteration order)
 
     typedef std::vector<std::pair<std::string, double> > IonSeries; ///< Describes an ion series: "ion_type" -> "fragment m/z"
     typedef std::map<String, IonSeries > PeptideMapT; ///< Maps a peptide sequence to an ion series: "ion_type" -> "fragment m/z"
