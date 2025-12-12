@@ -250,7 +250,11 @@ if sys.platform == "darwin":
 setup(
 
     name=package_name,
-    packages=find_namespace_packages(exclude=["*.share", "*.share.*"]),
+    packages=find_namespace_packages(
+        where=".",
+        include=["pyopenms", "pyopenms.*"],
+        exclude=["*.share", "*.share.*"]
+    ),
     ext_package="pyopenms",
     package_data= {
         'pyopenms': ['py.typed', '*.pyi']
