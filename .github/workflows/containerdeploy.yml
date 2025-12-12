@@ -1,6 +1,12 @@
 name: Deploy container images
 on:
   workflow_dispatch:
+      inputs:
+      tag-latest:
+        description: 'Also tag images as latest'
+        required: false
+        default: 'false'
+        type: boolean
   push:
     branches:
       - nightly
@@ -9,6 +15,7 @@ on:
       - "Release/*"
 
 jobs:
+
   deploy-docker:
     runs-on: ${{ matrix.os }}
     strategy:
@@ -16,8 +23,10 @@ jobs:
         include:
           - os: ubuntu-22.04
             platform: linux/amd64
+            arch: amd64
           - os: ubuntu-22.04-arm
             platform: linux/arm64
+            arch: arm64
     outputs:
       tag_name: ${{ steps.tag_name.outputs.tag }}
       downcase_repo: ${{ steps.downcase_repo.outputs.repo }}
@@ -31,37 +40,51 @@ jobs:
           sudo rm -rf "/opt/ghc"
           sudo rm -rf "$AGENT_TOOLSDIRECTORY"
           df -h
+
       - name: Extract branch name
         shell: bash
         run: echo "branch=${GITHUB_REF#refs/heads/}" >> $GITHUB_OUTPUT
         id: extract_branch
-      - name: Define tag name
+
+      - name: Define tag names
         shell: bash
         run: |
             BRANCH=${{ steps.extract_branch.outputs.branch }}
-            ## use latest to follow docker conventions
-            if [[ "$BRANCH" == "develop" || "$BRANCH" == "nightly" || "$BRANCH" == "feat/singularity" ]]
-            then 
-              BRANCH="latest"
+            TAG=${BRANCH#release/}
+
+            # Determine if latest should also be used
+            TAG_LATEST=""
+            if [[ "$BRANCH" == "develop" || "$BRANCH" == "nightly" || "$BRANCH" == "feat/singularity" ]]; then
+                TAG_LATEST="latest"
             fi
-            ## Remove release/ from release branch name (or keep the non-release name)
-            echo "tag=${BRANCH#release/}" >> $GITHUB_OUTPUT
+
+            if [[ "${{ github.event.inputs.tag-latest }}" == "true" ]]; then
+                TAG_LATEST="latest"
+            fi
+
+            echo "tag=$TAG" >> $GITHUB_OUTPUT
+            echo "tag_latest=$TAG_LATEST" >> $GITHUB_OUTPUT
         id: tag_name
+
       - name: Downcase REPO
         run: echo "repo=${GITHUB_REPOSITORY,,}" >> $GITHUB_OUTPUT
         id: downcase_repo
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
+
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
+
       - name: Test docker build in runtime base
         uses: docker/build-push-action@v5
         with:
@@ -75,6 +98,7 @@ jobs:
             OPENMS_VERSION_TAG=${{ steps.tag_name.outputs.tag }}
           # cache-from: type=gha
           # cache-to: type=gha,mode=max
+          
       - name: Build and push library image
         uses: docker/build-push-action@v5
         with:
@@ -88,9 +112,12 @@ jobs:
             BUILDKIT_CONTEXT_KEEP_GIT_DIR=1
             OPENMS_VERSION_TAG=${{ steps.tag_name.outputs.tag }}
           tags: |
-            ghcr.io/${{ steps.downcase_repo.outputs.repo }}-library:${{ steps.tag_name.outputs.tag }}
+            ghcr.io/${{ steps.downcase_repo.outputs.repo }}-library:${{ steps.tag_name.outputs.tag }}-${{ matrix.arch }}
+            ${{ steps.tag_name.outputs.tag_latest && 'ghcr.io/' + steps.downcase_repo.outputs.repo + '-library:latest-' + matrix.arch || '' }}
+
           # cache-from: type=gha
           # cache-to: type=gha,mode=max
+
       - name: Build and push tools image
         uses: docker/build-push-action@v6
         with:
@@ -104,10 +131,14 @@ jobs:
             BUILDKIT_CONTEXT_KEEP_GIT_DIR=1
             OPENMS_VERSION_TAG=${{ steps.tag_name.outputs.tag }}
           tags: |
-            ghcr.io/${{ steps.downcase_repo.outputs.repo }}-executables:${{ steps.tag_name.outputs.tag }}
-            ghcr.io/${{ steps.downcase_repo.outputs.repo }}-tools:${{ steps.tag_name.outputs.tag }}
+            ghcr.io/${{ steps.downcase_repo.outputs.repo }}-executables:${{ steps.tag_name.outputs.tag }}-${{ matrix.arch }}
+            ghcr.io/${{ steps.downcase_repo.outputs.repo }}-tools:${{ steps.tag_name.outputs.tag }}-${{ matrix.arch }}
+
+            ${{ steps.tag_name.outputs.tag_latest && 'ghcr.io/' + steps.downcase_repo.outputs.repo + '-executables:latest-' + matrix.arch || '' }}
+            ${{ steps.tag_name.outputs.tag_latest && 'ghcr.io/' + steps.downcase_repo.outputs.repo + '-tools:latest-' + matrix.arch || '' }}
           # cache-from: type=gha
           # cache-to: type=gha,mode=max
+          
       - name: Build and push tools + thirdparty image
         uses: docker/build-push-action@v5
         with:
@@ -121,44 +152,115 @@ jobs:
             BUILDKIT_CONTEXT_KEEP_GIT_DIR=1
             OPENMS_VERSION_TAG=${{ steps.tag_name.outputs.tag }}
           tags: |
-            ghcr.io/${{ steps.downcase_repo.outputs.repo }}-tools-thirdparty:${{ steps.tag_name.outputs.tag }}
+            ghcr.io/${{ steps.downcase_repo.outputs.repo }}-tools-thirdparty:${{ steps.tag_name.outputs.tag }}-${{ matrix.arch }}
+            ${{ steps.tag_name.outputs.tag_latest && 'ghcr.io/' + steps.downcase_repo.outputs.repo + '-tools-thirdparty:latest-' + matrix.arch || '' }}
           # cache-from: type=gha
           # cache-to: type=gha,mode=max
-  deploy-singularity:
-    runs-on: ubuntu-latest
+
+  create-manifests:
     needs: deploy-docker
+    runs-on: ubuntu-latest
     steps:
-      - name: Login to GitHub Container Registry
+      - name: Login to GHCR
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      # install glib2.0 development package needed by singularity
-      - name: Install Dependencies
+
+      - name: Create multi-arch manifests
         run: |
-          sudo apt-get update
-          sudo apt-get install -y libglib2.0-dev          
-      - name: Singularity install with defaults
-        uses: singularityhub/install-singularity@main
-        with:
-          singularity-version: '3.11.5'
-      - name: Build Singularity library image
-        shell: bash
-        run: |
-            sudo singularity build library.sif docker://ghcr.io/${{ needs.deploy-docker.outputs.downcase_repo }}-library:${{ needs.deploy-docker.outputs.tag_name }}
-      - name: Build Singularity tools image
-        shell: bash
-        run: |
-            sudo singularity build executables.sif docker://ghcr.io/${{ needs.deploy-docker.outputs.downcase_repo }}-executables:${{ needs.deploy-docker.outputs.tag_name }}
-      - name: Build Singularity tools + thirdparty image
-        shell: bash
-        run: |
-            sudo singularity build executables-thirdparty.sif docker://ghcr.io/${{ needs.deploy-docker.outputs.downcase_repo }}-tools-thirdparty:${{ needs.deploy-docker.outputs.tag_name }}
-      - name: Upload Singularity images to ghcr.io
-        shell: bash
-        run: |
-            echo ${{ secrets.GITHUB_TOKEN }} | singularity remote login -u jpfeuffer --password-stdin oras://ghcr.io
-            singularity push library.sif oras://ghcr.io/${{ needs.deploy-docker.outputs.downcase_repo }}-library-sif:${{ needs.deploy-docker.outputs.tag_name }}
-            singularity push executables.sif oras://ghcr.io/${{ needs.deploy-docker.outputs.downcase_repo }}-executables-sif:${{ needs.deploy-docker.outputs.tag_name }}
-            singularity push executables-thirdparty.sif oras://ghcr.io/${{ needs.deploy-docker.outputs.downcase_repo }}-tools-thirdparty-sif:${{ needs.deploy-docker.outputs.tag_name }}
+          REPO="ghcr.io/${{ needs.deploy-docker.outputs.downcase_repo }}"
+          TAG="${{ needs.deploy-docker.outputs.tag_name }}"
+          TAG_LATEST="${{ needs.deploy-docker.outputs.tag_latest }}"
+
+          # Main tag
+          docker manifest create $REPO-library:$TAG \
+            --amend $REPO-library:$TAG-amd64 \
+            --amend $REPO-library:$TAG-arm64
+          docker manifest push $REPO-library:$TAG
+
+          docker manifest create $REPO-executables:$TAG \
+            --amend $REPO-executables:$TAG-amd64 \
+            --amend $REPO-executables:$TAG-arm64
+          docker manifest push $REPO-executables:$TAG
+
+          docker manifest create $REPO-tools:$TAG \
+            --amend $REPO-tools:$TAG-amd64 \
+            --amend $REPO-tools:$TAG-arm64
+          docker manifest push $REPO-tools:$TAG
+
+          docker manifest create $REPO-tools-thirdparty:$TAG \
+            --amend $REPO-tools-thirdparty:$TAG-amd64 \
+            --amend $REPO-tools-thirdparty:$TAG-arm64
+          docker manifest push $REPO-tools-thirdparty:$TAG
+
+          # Latest tag (if exists)
+          if [ -n "$TAG_LATEST" ]; then
+            docker manifest create $REPO-library:latest \
+              --amend $REPO-library:latest-amd64 \
+              --amend $REPO-library:latest-arm64
+            docker manifest push $REPO-library:latest
+
+            docker manifest create $REPO-executables:latest \
+              --amend $REPO-executables:latest-amd64 \
+              --amend $REPO-executables:latest-arm64
+            docker manifest push $REPO-executables:latest
+
+            docker manifest create $REPO-tools:latest \
+              --amend $REPO-tools:latest-amd64 \
+              --amend $REPO-tools:latest-arm64
+            docker manifest push $REPO-tools:latest
+
+            docker manifest create $REPO-tools-thirdparty:latest \
+              --amend $REPO-tools-thirdparty:latest-amd64 \
+              --amend $REPO-tools-thirdparty:latest-arm64
+            docker manifest push $REPO-tools-thirdparty:latest
+          fi
+
+deploy-singularity:
+  runs-on: ubuntu-latest
+  needs: [deploy-docker, create-manifests]
+  strategy:
+    matrix:
+      arch: [amd64, arm64]
+  steps:
+    - name: Login to GitHub Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Install Dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libglib2.0-dev          
+
+    - name: Singularity install with defaults
+      uses: singularityhub/install-singularity@main
+      with:
+        singularity-version: '3.11.5'
+
+    - name: Build Singularity library image
+      shell: bash
+      run: |
+        sudo singularity build library-${{ matrix.arch }}.sif docker://ghcr.io/${{ needs.deploy-docker.outputs.downcase_repo }}-library:${{ needs.deploy-docker.outputs.tag_name }}-${{ matrix.arch }}
+
+    - name: Build Singularity tools image
+      shell: bash
+      run: |
+        sudo singularity build executables-${{ matrix.arch }}.sif docker://ghcr.io/${{ needs.deploy-docker.outputs.downcase_repo }}-executables:${{ needs.deploy-docker.outputs.tag_name }}-${{ matrix.arch }}
+
+    - name: Build Singularity tools + thirdparty image
+      shell: bash
+      run: |
+        sudo singularity build executables-thirdparty-${{ matrix.arch }}.sif docker://ghcr.io/${{ needs.deploy-docker.outputs.downcase_repo }}-tools-thirdparty:${{ needs.deploy-docker.outputs.tag_name }}-${{ matrix.arch }}
+
+    - name: Upload Singularity images to ghcr.io
+      shell: bash
+      run: |
+        echo ${{ secrets.GITHUB_TOKEN }} | singularity remote login -u jpfeuffer --password-stdin oras://ghcr.io
+        singularity push library-${{ matrix.arch }}.sif oras://ghcr.io/${{ needs.deploy-docker.outputs.downcase_repo }}-library-sif:${{ needs.deploy-docker.outputs.tag_name }}-${{ matrix.arch }}
+        singularity push executables-${{ matrix.arch }}.sif oras://ghcr.io/${{ needs.deploy-docker.outputs.downcase_repo }}-executables-sif:${{ needs.deploy-docker.outputs.tag_name }}-${{ matrix.arch }}
+        singularity push executables-thirdparty-${{ matrix.arch }}.sif oras://ghcr.io/${{ needs.deploy-docker.outputs.downcase_repo }}-tools-thirdparty-sif:${{ needs.deploy-docker.outputs.tag_name }}-${{ matrix.arch }}
