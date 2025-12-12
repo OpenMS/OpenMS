@@ -237,30 +237,60 @@ deploy-singularity:
         sudo apt-get update
         sudo apt-get install -y libglib2.0-dev          
 
-    - name: Singularity install with defaults
+    - name: Singularity install
       uses: singularityhub/install-singularity@main
       with:
         singularity-version: '3.11.5'
 
-    - name: Build Singularity library image
+    - name: Build arch-specific SIFs
       shell: bash
       run: |
         sudo singularity build library-${{ matrix.arch }}.sif docker://ghcr.io/${{ needs.deploy-docker.outputs.downcase_repo }}-library:${{ needs.deploy-docker.outputs.tag_name }}-${{ matrix.arch }}
-
-    - name: Build Singularity tools image
-      shell: bash
-      run: |
         sudo singularity build executables-${{ matrix.arch }}.sif docker://ghcr.io/${{ needs.deploy-docker.outputs.downcase_repo }}-executables:${{ needs.deploy-docker.outputs.tag_name }}-${{ matrix.arch }}
-
-    - name: Build Singularity tools + thirdparty image
-      shell: bash
-      run: |
         sudo singularity build executables-thirdparty-${{ matrix.arch }}.sif docker://ghcr.io/${{ needs.deploy-docker.outputs.downcase_repo }}-tools-thirdparty:${{ needs.deploy-docker.outputs.tag_name }}-${{ matrix.arch }}
 
-    - name: Upload Singularity images to ghcr.io
+    - name: Upload arch-specific SIFs
       shell: bash
       run: |
         echo ${{ secrets.GITHUB_TOKEN }} | singularity remote login -u jpfeuffer --password-stdin oras://ghcr.io
         singularity push library-${{ matrix.arch }}.sif oras://ghcr.io/${{ needs.deploy-docker.outputs.downcase_repo }}-library-sif:${{ needs.deploy-docker.outputs.tag_name }}-${{ matrix.arch }}
         singularity push executables-${{ matrix.arch }}.sif oras://ghcr.io/${{ needs.deploy-docker.outputs.downcase_repo }}-executables-sif:${{ needs.deploy-docker.outputs.tag_name }}-${{ matrix.arch }}
         singularity push executables-thirdparty-${{ matrix.arch }}.sif oras://ghcr.io/${{ needs.deploy-docker.outputs.downcase_repo }}-tools-thirdparty-sif:${{ needs.deploy-docker.outputs.tag_name }}-${{ matrix.arch }}
+        
+build-multiarch-latest:
+  runs-on: ubuntu-latest
+  needs: deploy-singularity
+  if: ${{ github.event.inputs.tag-latest == 'true' }}
+  steps:
+    - name: Login to GHCR
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Singularity install
+      uses: singularityhub/install-singularity@main
+      with:
+        singularity-version: '3.11.5'
+
+    - name: Build multi-arch latest SIFs
+      shell: bash
+      run: |
+        echo ${{ secrets.GITHUB_TOKEN }} | singularity remote login -u jpfeuffer --password-stdin oras://ghcr.io
+
+        # Build library latest SIF
+        sudo singularity build library-latest.sif docker://ghcr.io/...-library:${{ needs.deploy-docker.outputs.tag_name }}-amd64
+        sudo singularity build --arch arm64 library-latest.sif docker://ghcr.io/...-library:${{ needs.deploy-docker.outputs.tag_name }}-arm64
+
+        # Repeat for executables and tools-thirdparty
+        sudo singularity build executables-latest.sif docker://ghcr.io/...-executables:${{ needs.deploy-docker.outputs.tag_name }}-amd64
+        sudo singularity build --arch arm64 executables-latest.sif docker://ghcr.io/...-executables:${{ needs.deploy-docker.outputs.tag_name }}-arm64
+
+        sudo singularity build executables-thirdparty-latest.sif docker://ghcr.io/...-tools-thirdparty:${{ needs.deploy-docker.outputs.tag_name }}-amd64
+        sudo singularity build --arch arm64 executables-thirdparty-latest.sif docker://ghcr.io/...-tools-thirdparty:${{ needs.deploy-docker.outputs.tag_name }}-arm64
+
+        # Push multi-arch latest
+        singularity push library-latest.sif oras://ghcr.io/...-library-sif:latest
+        singularity push executables-latest.sif oras://ghcr.io/...-executables-sif:latest
+        singularity push executables-thirdparty-latest.sif oras://ghcr.io/...-tools-thirdparty-sif:latest
