@@ -2,14 +2,13 @@
 # macOS notarization script using notarytool (requires Xcode 13+ / macOS 11.3+)
 # altool was deprecated and unsupported after Fall 2023.
 #
-# Usage: notarize_app.sh <bundle_pkg> <bundle_id> <apple_id> <password_env_var> <team_id> [log_folder]
+# Usage: notarize.sh <bundle_pkg> <bundle_id> <apple_id> <password_env_var> [log_folder]
 #
 # Arguments:
 #   bundle_pkg       - The package to notarize (.dmg, .pkg, .zip, or .app)
 #   bundle_id        - The bundle identifier (e.g., de.openms)
 #   apple_id         - Apple ID email for notarization
 #   password_env_var - Environment variable name containing app-specific password
-#   team_id          - Apple Developer Team ID
 #   log_folder       - Optional: folder for log files (defaults to current directory)
 
 set -e
@@ -18,8 +17,7 @@ BUNDLE_PKG="$1"
 BUNDLE_ID="$2"
 ASC_USERNAME="$3"
 ASC_PASSWORD_ENVVAR="$4"
-TEAM_ID="$5"
-LOG_FOLDER="${6:-.}"
+LOG_FOLDER="${5:-.}"
 
 NOTARIZE_LOG="$LOG_FOLDER/notarize.log"
 
@@ -32,13 +30,12 @@ echo "=== macOS Notarization Script ==="
 echo "Bundle: $BUNDLE_PKG"
 echo "Bundle ID: $BUNDLE_ID"
 echo "Apple ID: $ASC_USERNAME"
-echo "Team ID: $TEAM_ID"
 echo "Log folder: $LOG_FOLDER"
 
 # Validate inputs
-if [[ -z "$BUNDLE_PKG" ]] || [[ -z "$BUNDLE_ID" ]] || [[ -z "$ASC_USERNAME" ]] || [[ -z "$ASC_PASSWORD_ENVVAR" ]] || [[ -z "$TEAM_ID" ]]; then
+if [[ -z "$BUNDLE_PKG" ]] || [[ -z "$BUNDLE_ID" ]] || [[ -z "$ASC_USERNAME" ]] || [[ -z "$ASC_PASSWORD_ENVVAR" ]]; then
     echo "Error: Missing required arguments"
-    echo "Usage: $0 <bundle_pkg> <bundle_id> <apple_id> <password_env_var> <team_id> [log_folder]"
+    echo "Usage: $0 <bundle_pkg> <bundle_id> <apple_id> <password_env_var> [log_folder]"
     exit 1
 fi
 
@@ -85,10 +82,10 @@ echo "=== Submitting for notarization ==="
 
 # Submit for notarization using notarytool
 # --wait makes the command block until notarization is complete
+# Note: --team-id is optional if you only have one team
 if xcrun notarytool submit "$BUNDLE_PKG" \
     --apple-id "$ASC_USERNAME" \
     --password "${!ASC_PASSWORD_ENVVAR}" \
-    --team-id "$TEAM_ID" \
     --wait \
     2>&1 | tee "$NOTARIZE_LOG"; then
 
@@ -142,7 +139,6 @@ if xcrun notarytool submit "$BUNDLE_PKG" \
             xcrun notarytool log "$SUBMISSION_ID" \
                 --apple-id "$ASC_USERNAME" \
                 --password "${!ASC_PASSWORD_ENVVAR}" \
-                --team-id "$TEAM_ID" \
                 "$LOG_FOLDER/notarization_details.json" 2>&1 || true
 
             if [[ -f "$LOG_FOLDER/notarization_details.json" ]]; then

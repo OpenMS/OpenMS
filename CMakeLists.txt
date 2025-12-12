@@ -306,16 +306,28 @@ set(PACKAGE_TYPE "none" CACHE STRING "Package type (internal): ${VALID_PACKAGE_T
 message(STATUS "Package type is '${PACKAGE_TYPE}'")
 is_valid_package(${PACKAGE_TYPE})
 
-## Warn here because you need the signing identity before the app bundles are defined in the
-## src subfolder
+## macOS code signing and notarization configuration
+## Required for code signing:
+##   SIGNING_IDENTITY - Developer ID Application certificate identity (e.g., "Developer ID Application: Your Name (TEAMID)")
+## Required for notarization (in addition to signing):
+##   SIGNING_EMAIL - Apple ID email for notarization
+##   CPACK_PRODUCTBUILD_IDENTITY_NAME - Developer ID Installer certificate identity (for .pkg)
+##   CODESIGNPW environment variable - App-specific password for notarization
 if("${PACKAGE_TYPE}" STREQUAL "dmg" OR "${PACKAGE_TYPE}" STREQUAL "pkg")
-  if (NOT DEFINED SIGNING_IDENTITY OR "${SIGNING_IDENTITY}" STREQUAL "" OR NOT DEFINED SIGNING_EMAIL OR "${SIGNING_EMAIL}" STREQUAL "")
-    message(WARNING "Trying to create macOS package/image without SIGNING_IDENTITY and SIGNING_EMAIL being set. "
-                    "Using ad hoc (https://developer.apple.com/documentation/security/seccodesignatureflags/adhoc) identity.")
+  if (NOT DEFINED SIGNING_IDENTITY OR "${SIGNING_IDENTITY}" STREQUAL "" OR "${SIGNING_IDENTITY}" STREQUAL "-")
+    message(WARNING "Trying to create macOS package/image without SIGNING_IDENTITY being set. "
+                    "Using ad hoc (https://developer.apple.com/documentation/security/seccodesignatureflags/adhoc) identity. "
+                    "The package will NOT be notarized and users may have trouble running it.")
     set(CPACK_BUNDLE_APPLE_CERT_APP "-")
   else()
     ## CPack has a special variable for the identity
     set(CPACK_BUNDLE_APPLE_CERT_APP "${SIGNING_IDENTITY}")
+    message(STATUS "Code signing identity: ${SIGNING_IDENTITY}")
+  endif()
+
+  ## Check notarization prerequisites (optional, only warns)
+  if (NOT DEFINED SIGNING_EMAIL OR "${SIGNING_EMAIL}" STREQUAL "")
+    message(STATUS "SIGNING_EMAIL not set. Notarization will be skipped.")
   endif()
 endif()
 
