@@ -195,7 +195,7 @@ jobs:
         path: pyopenms_whls
         
   build-macos-arm:
-    runs-on: macos-latest
+    runs-on: macos-14
     env:
       SYSTEM_VERSION_COMPAT: 0 # workaround for mac see https://github.com/actions/setup-python/issues/469 for details.
     steps:
@@ -617,7 +617,7 @@ jobs:
       SYSTEM_VERSION_COMPAT: 0 #courtesy of https://github.com/actions/setup-python/issues/469 in lieu of an actual solution.
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest, ubuntu-22.04-arm]
+        os: [ubuntu-latest, windows-latest, macos-14, ubuntu-22.04-arm]
     steps:
     - uses: actions/checkout@v4
       name: Checkout sources
