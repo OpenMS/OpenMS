@@ -1,7 +1,7 @@
 name: Deploy container images
 on:
   workflow_dispatch:
-      inputs:
+    inputs:
       tag-latest:
         description: 'Also tag images as latest'
         required: false
@@ -30,6 +30,7 @@ jobs:
     outputs:
       tag_name: ${{ steps.tag_name.outputs.tag }}
       downcase_repo: ${{ steps.downcase_repo.outputs.repo }}
+      tag_latest: ${{ steps.tag_name.outputs.tag_latest }}
     steps:
       - name: Free up space on the runner
         run: |
@@ -113,7 +114,7 @@ jobs:
             OPENMS_VERSION_TAG=${{ steps.tag_name.outputs.tag }}
           tags: |
             ghcr.io/${{ steps.downcase_repo.outputs.repo }}-library:${{ steps.tag_name.outputs.tag }}-${{ matrix.arch }}
-            ${{ steps.tag_name.outputs.tag_latest && 'ghcr.io/' + steps.downcase_repo.outputs.repo + '-library:latest-' + matrix.arch || '' }}
+            ${{ steps.tag_name.outputs.tag_latest != '' && format('ghcr.io/{0}-library:latest-{1}', steps.downcase_repo.outputs.repo, matrix.arch) || '' }}
 
           # cache-from: type=gha
           # cache-to: type=gha,mode=max
@@ -133,9 +134,8 @@ jobs:
           tags: |
             ghcr.io/${{ steps.downcase_repo.outputs.repo }}-executables:${{ steps.tag_name.outputs.tag }}-${{ matrix.arch }}
             ghcr.io/${{ steps.downcase_repo.outputs.repo }}-tools:${{ steps.tag_name.outputs.tag }}-${{ matrix.arch }}
-
-            ${{ steps.tag_name.outputs.tag_latest && 'ghcr.io/' + steps.downcase_repo.outputs.repo + '-executables:latest-' + matrix.arch || '' }}
-            ${{ steps.tag_name.outputs.tag_latest && 'ghcr.io/' + steps.downcase_repo.outputs.repo + '-tools:latest-' + matrix.arch || '' }}
+            ${{ steps.tag_name.outputs.tag_latest != '' && format('ghcr.io/{0}-executables:latest-{1}', steps.downcase_repo.outputs.repo, matrix.arch) || '' }}
+            ${{ steps.tag_name.outputs.tag_latest != '' && format('ghcr.io/{0}-tools:latest-{1}', steps.downcase_repo.outputs.repo, matrix.arch) || '' }}
           # cache-from: type=gha
           # cache-to: type=gha,mode=max
           
@@ -153,7 +153,7 @@ jobs:
             OPENMS_VERSION_TAG=${{ steps.tag_name.outputs.tag }}
           tags: |
             ghcr.io/${{ steps.downcase_repo.outputs.repo }}-tools-thirdparty:${{ steps.tag_name.outputs.tag }}-${{ matrix.arch }}
-            ${{ steps.tag_name.outputs.tag_latest && 'ghcr.io/' + steps.downcase_repo.outputs.repo + '-tools-thirdparty:latest-' + matrix.arch || '' }}
+            ${{ steps.tag_name.outputs.tag_latest != '' && format('ghcr.io/{0}-tools-thirdparty:latest-{1}', steps.downcase_repo.outputs.repo, matrix.arch) || '' }}
           # cache-from: type=gha
           # cache-to: type=gha,mode=max
 
@@ -175,56 +175,68 @@ jobs:
           TAG_LATEST="${{ needs.deploy-docker.outputs.tag_latest }}"
 
           # Main tag
+          docker manifest rm $REPO-library:$TAG 2>/dev/null || true
           docker manifest create $REPO-library:$TAG \
-            --amend $REPO-library:$TAG-amd64 \
-            --amend $REPO-library:$TAG-arm64
+            $REPO-library:$TAG-amd64 \
+            $REPO-library:$TAG-arm64
           docker manifest push $REPO-library:$TAG
 
+          docker manifest rm $REPO-executables:$TAG 2>/dev/null || true
           docker manifest create $REPO-executables:$TAG \
-            --amend $REPO-executables:$TAG-amd64 \
-            --amend $REPO-executables:$TAG-arm64
+            $REPO-executables:$TAG-amd64 \
+            $REPO-executables:$TAG-arm64
           docker manifest push $REPO-executables:$TAG
 
+          docker manifest rm $REPO-tools:$TAG 2>/dev/null || true
           docker manifest create $REPO-tools:$TAG \
-            --amend $REPO-tools:$TAG-amd64 \
-            --amend $REPO-tools:$TAG-arm64
+            $REPO-tools:$TAG-amd64 \
+            $REPO-tools:$TAG-arm64
           docker manifest push $REPO-tools:$TAG
 
+          docker manifest rm $REPO-tools-thirdparty:$TAG 2>/dev/null || true
           docker manifest create $REPO-tools-thirdparty:$TAG \
-            --amend $REPO-tools-thirdparty:$TAG-amd64 \
-            --amend $REPO-tools-thirdparty:$TAG-arm64
+            $REPO-tools-thirdparty:$TAG-amd64 \
+            $REPO-tools-thirdparty:$TAG-arm64
           docker manifest push $REPO-tools-thirdparty:$TAG
 
           # Latest tag (if exists)
           if [ -n "$TAG_LATEST" ]; then
+            docker manifest rm $REPO-library:latest 2>/dev/null || true
             docker manifest create $REPO-library:latest \
-              --amend $REPO-library:latest-amd64 \
-              --amend $REPO-library:latest-arm64
+              $REPO-library:latest-amd64 \
+              $REPO-library:latest-arm64
             docker manifest push $REPO-library:latest
 
+            docker manifest rm $REPO-executables:latest 2>/dev/null || true
             docker manifest create $REPO-executables:latest \
-              --amend $REPO-executables:latest-amd64 \
-              --amend $REPO-executables:latest-arm64
+              $REPO-executables:latest-amd64 \
+              $REPO-executables:latest-arm64
             docker manifest push $REPO-executables:latest
 
+            docker manifest rm $REPO-tools:latest 2>/dev/null || true
             docker manifest create $REPO-tools:latest \
-              --amend $REPO-tools:latest-amd64 \
-              --amend $REPO-tools:latest-arm64
+              $REPO-tools:latest-amd64 \
+              $REPO-tools:latest-arm64
             docker manifest push $REPO-tools:latest
 
+            docker manifest rm $REPO-tools-thirdparty:latest 2>/dev/null || true
             docker manifest create $REPO-tools-thirdparty:latest \
-              --amend $REPO-tools-thirdparty:latest-amd64 \
-              --amend $REPO-tools-thirdparty:latest-arm64
+              $REPO-tools-thirdparty:latest-amd64 \
+              $REPO-tools-thirdparty:latest-arm64
             docker manifest push $REPO-tools-thirdparty:latest
           fi
 
-deploy-singularity:
-  runs-on: ubuntu-latest
-  needs: [deploy-docker, create-manifests]
-  strategy:
-    matrix:
-      arch: [amd64, arm64]
-  steps:
+  deploy-singularity:
+    runs-on: ${{ matrix.os }}
+    needs: [deploy-docker, create-manifests]
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-22.04
+            arch: amd64
+          - os: ubuntu-22.04-arm
+            arch: arm64
+    steps:
     - name: Login to GitHub Container Registry
       uses: docker/login-action@v3
       with:
@@ -256,41 +268,12 @@ deploy-singularity:
         singularity push library-${{ matrix.arch }}.sif oras://ghcr.io/${{ needs.deploy-docker.outputs.downcase_repo }}-library-sif:${{ needs.deploy-docker.outputs.tag_name }}-${{ matrix.arch }}
         singularity push executables-${{ matrix.arch }}.sif oras://ghcr.io/${{ needs.deploy-docker.outputs.downcase_repo }}-executables-sif:${{ needs.deploy-docker.outputs.tag_name }}-${{ matrix.arch }}
         singularity push executables-thirdparty-${{ matrix.arch }}.sif oras://ghcr.io/${{ needs.deploy-docker.outputs.downcase_repo }}-tools-thirdparty-sif:${{ needs.deploy-docker.outputs.tag_name }}-${{ matrix.arch }}
-        
-build-multiarch-latest:
-  runs-on: ubuntu-latest
-  needs: deploy-singularity
-  if: ${{ github.event.inputs.tag-latest == 'true' }}
-  steps:
-    - name: Login to GHCR
-      uses: docker/login-action@v3
-      with:
-        registry: ghcr.io
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Singularity install
-      uses: singularityhub/install-singularity@main
-      with:
-        singularity-version: '3.11.5'
-
-    - name: Build multi-arch latest SIFs
+    - name: Upload arch-specific SIFs as latest
+      if: ${{ needs.deploy-docker.outputs.tag_latest != '' }}
       shell: bash
       run: |
         echo ${{ secrets.GITHUB_TOKEN }} | singularity remote login -u jpfeuffer --password-stdin oras://ghcr.io
-
-        # Build library latest SIF
-        sudo singularity build library-latest.sif docker://ghcr.io/...-library:${{ needs.deploy-docker.outputs.tag_name }}-amd64
-        sudo singularity build --arch arm64 library-latest.sif docker://ghcr.io/...-library:${{ needs.deploy-docker.outputs.tag_name }}-arm64
-
-        # Repeat for executables and tools-thirdparty
-        sudo singularity build executables-latest.sif docker://ghcr.io/...-executables:${{ needs.deploy-docker.outputs.tag_name }}-amd64
-        sudo singularity build --arch arm64 executables-latest.sif docker://ghcr.io/...-executables:${{ needs.deploy-docker.outputs.tag_name }}-arm64
-
-        sudo singularity build executables-thirdparty-latest.sif docker://ghcr.io/...-tools-thirdparty:${{ needs.deploy-docker.outputs.tag_name }}-amd64
-        sudo singularity build --arch arm64 executables-thirdparty-latest.sif docker://ghcr.io/...-tools-thirdparty:${{ needs.deploy-docker.outputs.tag_name }}-arm64
-
-        # Push multi-arch latest
-        singularity push library-latest.sif oras://ghcr.io/...-library-sif:latest
-        singularity push executables-latest.sif oras://ghcr.io/...-executables-sif:latest
-        singularity push executables-thirdparty-latest.sif oras://ghcr.io/...-tools-thirdparty-sif:latest
+        singularity push library-${{ matrix.arch }}.sif oras://ghcr.io/${{ needs.deploy-docker.outputs.downcase_repo }}-library-sif:latest-${{ matrix.arch }}
+        singularity push executables-${{ matrix.arch }}.sif oras://ghcr.io/${{ needs.deploy-docker.outputs.downcase_repo }}-executables-sif:latest-${{ matrix.arch }}
+        singularity push executables-thirdparty-${{ matrix.arch }}.sif oras://ghcr.io/${{ needs.deploy-docker.outputs.downcase_repo }}-tools-thirdparty-sif:latest-${{ matrix.arch }}
