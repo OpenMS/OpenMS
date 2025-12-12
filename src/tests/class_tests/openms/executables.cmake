@@ -293,6 +293,7 @@ set(math_executables_list
   LinearInterpolation_test
   LinearRegression_test
   MathFunctions_test
+  MultipleTesting_test
   #MSNumpress_test
   NNLS_test
   NonNegativeLeastSquaresSolver_test
