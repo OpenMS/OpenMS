@@ -50,7 +50,7 @@ foreach(app_name ${GUI_executables})
   set(PLIST_CONTENT "${PLIST_CONTENT}        <key>RootRelativeBundlePath</key>\n")
   set(PLIST_CONTENT "${PLIST_CONTENT}        <string>${BUNDLE_BASE_PATH}/${app_name}.app</string>\n")
   set(PLIST_CONTENT "${PLIST_CONTENT}        <key>BundleIsRelocatable</key>\n")
-  set(PLIST_CONTENT "${PLIST_CONTENT}        <true/>\n")
+  set(PLIST_CONTENT "${PLIST_CONTENT}        <false/>\n")
   set(PLIST_CONTENT "${PLIST_CONTENT}    </dict>\n")
 endforeach()
 
