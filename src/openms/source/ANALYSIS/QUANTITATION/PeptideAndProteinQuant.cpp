@@ -182,7 +182,7 @@ namespace OpenMS
     for (const auto& entry : ms_section)
     {
       String ed_filename = FileHandler::stripExtension(File::basename(entry.path));
-      if (ed_filename == filename && entry.label == channel_or_label)
+      if (ed_filename == filename && entry.label == static_cast<Int>(channel_or_label))
       {
         return entry.sample;
       }
