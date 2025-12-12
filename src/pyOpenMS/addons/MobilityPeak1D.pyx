@@ -5,8 +5,6 @@
         """
         __str__(self: MobilityPeak1D) -> str
         
-        __str__(self: MobilityPeak1D) -> str
-        
         Return a string representation of the MobilityPeak1D object.
         Delegates to __repr__ for consistency.
         """
@@ -14,8 +12,6 @@
 
     def __repr__(self):
         """
-        __repr__(self: MobilityPeak1D) -> str
-        
         __repr__(self: MobilityPeak1D) -> str
         
         Return a string representation of the MobilityPeak1D object.
