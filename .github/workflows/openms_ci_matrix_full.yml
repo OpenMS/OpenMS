@@ -508,14 +508,19 @@ jobs:
           BUILD_NAME: "${{ steps.extract_branch.outputs.RUN_NAME }}-${{ steps.set-vars.outputs.tp_folder }}-${{ runner.arch }}-${{ matrix.compiler }}-${{ matrix.compiler_ver }}-class-topp-${{ github.run_number }}"
           # The rest of the vars should be saved in the CMakeCache
 
-    # Load the code signing certificate and the package signing certificate TODO: Change which cert to use for non-nightly
+    # Load the code signing certificate and the package signing certificate
+    # For production releases, use Developer ID certificates:
+    # - Developer ID Application certificate for code signing binaries
+    # - Developer ID Installer certificate for signing .pkg installers
     - name: Import Apple Developer Certificates
       if: steps.set-vars.outputs.pkg_type != 'none' && startsWith(matrix.os, 'macos')
       env:
-        APPLE_CERTIFICATE: ${{ secrets.APPLE_DEVELOPER_CERT_64 }}
-        APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_DEVELOPMENT_PW }}
-        INSTALLER_CERTIFICATE: ${{ secrets.APPLE_INSTALLER_CERT_64 }}
-        INSTALLER_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_INSTALLER_PW }}
+        # Developer ID Application certificate (base64 encoded .p12)
+        APPLE_CERTIFICATE: ${{ secrets.APPLE_DEVELOPER_ID_APPLICATION_CERT }}
+        APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_DEVELOPER_ID_APPLICATION_PASSWORD }}
+        # Developer ID Installer certificate (base64 encoded .p12)
+        INSTALLER_CERTIFICATE: ${{ secrets.APPLE_DEVELOPER_ID_INSTALLER_CERT }}
+        INSTALLER_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_DEVELOPER_ID_INSTALLER_PASSWORD }}
         KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
       run: |
         echo $APPLE_CERTIFICATE | base64 --decode > certificate.p12
@@ -525,8 +530,9 @@ jobs:
         security unlock-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
         security set-keychain-settings -t 3600 -u build.keychain
         security import certificate.p12 -k build.keychain -P "$APPLE_CERTIFICATE_PASSWORD" -T /usr/bin/codesign
-        security import installer_certificate.p12 -k build.keychain -P "$INSTALLER_CERTIFICATE_PASSWORD" -T /usr/bin/codesign
+        security import installer_certificate.p12 -k build.keychain -P "$INSTALLER_CERTIFICATE_PASSWORD" -T /usr/bin/codesign -T /usr/bin/productsign
         security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" build.keychain
+        echo "=== Available signing identities ==="
         security find-identity -v -p codesigning build.keychain
 
     - name: Package
@@ -553,9 +559,47 @@ jobs:
           SEARCH_ENGINES_DIRECTORY: "${{ github.workspace }}/_thirdparty"
           CI_PROVIDER: "GitHub-Actions"
           BUILD_NAME: "${{ steps.extract_branch.outputs.RUN_NAME }}-${{ steps.set-vars.outputs.tp_folder }}-${{ runner.arch }}-${{ matrix.compiler }}-${{ matrix.compiler_ver }}-class-topp-${{ github.run_number }}"
-          SIGNING_IDENTITY: "Apple Development: Samuel Wein (B26WBF742H)"
+          # Developer ID Application certificate identity for code signing (public info, not a secret)
+          SIGNING_IDENTITY: "Developer ID Application: OpenMS Inc. (C64UCGJ5PL)"
           SIGNING_EMAIL: "apple@openms.de"
+          # Developer ID Installer certificate identity for signing .pkg (public info, not a secret)
           CPACK_PRODUCTBUILD_IDENTITY_NAME: "Developer ID Installer: OpenMS Inc. (C64UCGJ5PL)"
+
+    # Notarize macOS packages for Gatekeeper approval
+    # This step submits the signed package to Apple for notarization and staples the ticket
+    - name: Notarize macOS Package
+      if: steps.set-vars.outputs.pkg_type == 'pkg' && startsWith(matrix.os, 'macos')
+      shell: bash
+      env:
+        APPLE_APP_SPECIFIC_NOTARIZATION_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_NOTARIZATION_PASSWORD }}
+      run: |
+        echo "=== Starting macOS package notarization ==="
+        cd $GITHUB_WORKSPACE/OpenMS/bld/
+
+        # Find the generated .pkg file
+        PKG_FILE=$(ls -1 *.pkg 2>/dev/null | head -1)
+        if [[ -z "$PKG_FILE" ]]; then
+          echo "Error: No .pkg file found in build directory"
+          ls -la
+          exit 1
+        fi
+
+        echo "Found package: $PKG_FILE"
+
+        # Run notarization script
+        $GITHUB_WORKSPACE/OpenMS/cmake/MacOSX/notarize.sh \
+          "$PKG_FILE" \
+          "de.openms" \
+          "apple@openms.de" \
+          "APPLE_APP_SPECIFIC_NOTARIZATION_PASSWORD" \
+          "$GITHUB_WORKSPACE/OpenMS/bld/"
+
+        echo "=== Notarization complete ==="
+
+        # Verify the notarization
+        echo "=== Verifying package signing and notarization ==="
+        pkgutil --check-signature "$PKG_FILE" || echo "Warning: pkgutil verification returned non-zero"
+        spctl -a -vvv -t install "$PKG_FILE" || echo "Warning: spctl assessment returned non-zero"
 
     # WARNING: Here you have to make sure that only one matrix configuration per OS produces packages. See set-vars steps.
     - name: Upload packages as artifacts
