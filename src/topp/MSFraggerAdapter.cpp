@@ -568,12 +568,12 @@ protected:
                                << "\nfragment_mass_tolerance = " << arg_fragment_mass_tolerance
                                << "\nfragment_mass_units = " << (arg_fragment_mass_unit == "Da" ? 0 : 1)
                                << "\n\nisotope_error = " << arg_isotope_error
-                               << "\n\nsearch_enzyme_name_1 = " << arg_search_enzyme_name
-                               << "\nsearch_enzyme_cut_1 = " << arg_search_enzyme_cutafter
-                               << "\nsearch_enzyme_nocut_1 = " << arg_search_enzyme_nocutbefore
-                               << "\nallowed_missed_cleavage_1 = " << arg_allowed_missed_cleavage
+                               << "\n\nsearch_enzyme_name = " << arg_search_enzyme_name
+                               << "\nsearch_enzyme_cutafter = " << arg_search_enzyme_cutafter
+                               << "\nsearch_enzyme_butnotafter = " << arg_search_enzyme_nocutbefore
                                << "\nsearch_enzyme_sense_1 = " << arg_search_enzyme_sense
                                << "\n\nnum_enzyme_termini = " << arg_num_enzyme_termini
+                               << "\nallowed_missed_cleavage = " << arg_allowed_missed_cleavage
                                << "\n\nclip_nTerm_M = " << arg_clip_nterm_m << '\n';
 
       // Write variable modifications from masses/syntax and unimod to unique set (and also write to log)
