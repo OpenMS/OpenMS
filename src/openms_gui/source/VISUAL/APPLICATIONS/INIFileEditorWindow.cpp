@@ -44,9 +44,9 @@ namespace OpenMS
 
     QMenu* file = new QMenu("&File", this);
     menuBar()->addMenu(file);
-    file->addAction("&Open", this, SLOT(openFile()), Qt::CTRL | Qt::Key_O);
+    file->addAction("&Open", Qt::CTRL | Qt::Key_O, this, &INIFileEditorWindow::openFile);
     file->addSeparator();
-    file->addAction("&Save", this, SLOT(saveFile()), Qt::CTRL | Qt::Key_S);
+    file->addAction("&Save", Qt::CTRL | Qt::Key_S, this, &INIFileEditorWindow::saveFile);
     file->addAction("Save &As", this, SLOT(saveFileAs()));
     file->addSeparator();
     file->addAction("&Quit", this, SLOT(close()));

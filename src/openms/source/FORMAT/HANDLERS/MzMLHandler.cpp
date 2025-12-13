@@ -346,7 +346,7 @@ namespace OpenMS::Internal
         Size meta_float_idx = 0, meta_int_idx = 0, meta_string_idx = 0;
         for (Size i = 0; i < input_data.size(); i++)
         {
-          if (i == int_index || i == mz_index) continue; // Skip m/z and intensity arrays
+          if (static_cast<SignedSize>(i) == int_index || static_cast<SignedSize>(i) == mz_index) continue; // Skip m/z and intensity arrays
           
           MetaArrayInfo info;
           info.input_index = i;

@@ -43,47 +43,39 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: windows-2022
+          - os: windows-2025
             # cl.exe is currently the only supported. Needs a VS shell to be set up (especially if used without VS CMake Generator)
             # clang.exe is also installed but untested (might crash with our VS specific compiler definitions)
             # clang-cl.exe might be used instead.
             compiler: cl.exe
             # VS 2022: 14.30-14.39 (corresponds to MSVC v143)
             # VS 2019: 14.20-14.29 (corresponds to MSVC v142)
-            compiler_ver: 14.36    # Specific toolset version for VS 2022 -- must (roughly) match Qt6 compiler (see below)
+            compiler_ver: 14.44   # Specific toolset version for VS 2022 -- must (roughly) match Qt6 compiler (see below)
 
-          - os: macos-15-intel
+          - os: macos-14
             # Since the appleclang version is dependent on the XCode versions that are installed
             #  on the GH runners, use this as the choice for a specific version
             # TODO currently unused but XCode/appleclang is the default
             compiler: xcode
             # TODO implement support for other versions
-            compiler_ver: "16.0.0"
-
-          - os: macos-26
-            # Since the appleclang version is dependent on the XCode versions that are installed
-            #  on the GH runners, use this as the choice for a specific version
-            # TODO currently unused but XCode/appleclang is the default
-            compiler: xcode
-            # TODO implement support for other versions
-            compiler_ver: "26.0"
+            compiler_ver: "15.4"  # macos-14 runners ship with Xcode 15.4
 
           # Make sure the compilers are available in that version on the GH runners
           # We are not installing anything.
-          - os: ubuntu-22.04
+          - os: ubuntu-24.04
             compiler: g++
 
-            compiler_ver: 11
+            compiler_ver: 13
           # Make sure the compilers are available in that version on the GH runners
           # We are not installing anything.
           
-          - os: ubuntu-22.04-arm
+          - os: ubuntu-24.04-arm
             compiler: g++
-            compiler_ver: 11
+            compiler_ver: 13
 
-          - os: ubuntu-22.04
+          - os: ubuntu-24.04
             compiler: clang++
-            compiler_ver: 15
+            compiler_ver: 17
     outputs:
       version_number: ${{ steps.create_changelog.outputs.version_number }}
 
@@ -370,18 +362,6 @@ jobs:
           THIRDPARTY_DIR="OpenMS/THIRDPARTY"
           mkdir -p _thirdparty
           # Copy the correct architecture
-          cp -R "$THIRDPARTY_DIR/${{ steps.set-vars.outputs.tp_folder }}/$(uname -m)"/* _thirdparty/          
-          # For MacOS 14 we also want to copy over any tools that we only have in x86_64 flavor.
-          if [[ "${{ matrix.os }}" == macos-14 ]]; then
-            echo "Copying x86_64 tools for MacOS 14"
-            for tool in $THIRDPARTY_DIR/MacOS/x86_64/*; do
-              toolname=$(basename "$tool")
-              if [[ ! -e "_thirdparty/$toolname" ]]; then
-                echo "Copying missing tool from x86_64: $toolname"
-                cp -R "$tool" "_thirdparty/"
-              fi
-            done
-          fi
           cp -R OpenMS/THIRDPARTY/All/* _thirdparty/
           # add third-party binaries to PATH
           for thirdpartytool in '${{ github.workspace }}/_thirdparty'/*
@@ -455,7 +435,7 @@ jobs:
           # TODO allow actual choice of compiler instead of using default.
           #  Problem: not all compilers are always in the PATH.
           CMAKE_CXX_COMPILER: ${{ steps.set-vars.outputs.cxx_compiler }}
-          MACOSX_DEPLOYMENT_TARGET: ${{ startsWith(matrix.os, 'macos') && '12.0' || '' }}
+          MACOSX_DEPLOYMENT_TARGET: ${{ startsWith(matrix.os, 'macos') && '14.0' || '' }}
           CMAKE_PREFIX_PATH: "${{ steps.tools-prefix.outputs.cmake_prefix }};${{ steps.conda-setup.outputs.cmake_prefix }}"
           OPENMS_CONTRIB_LIBS: "${{ github.workspace }}/OpenMS/contrib"
           CI_PROVIDER: "GitHub-Actions"

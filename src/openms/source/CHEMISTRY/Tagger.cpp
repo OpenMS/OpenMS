@@ -92,7 +92,7 @@ namespace OpenMS
   }
 
   Tagger::Tagger(size_t min_tag_length, double tolerance, size_t max_tag_length, size_t min_charge, size_t max_charge, const StringList& fixed_mods, const StringList& var_mods, bool tol_is_ppm)
-    : tolerance_{fabs(tolerance)}, min_tag_length_{min_tag_length}, max_tag_length_{max_tag_length}, min_charge_{min_charge}, max_charge_{max_charge}, tol_is_ppm_{tol_is_ppm}
+    : tolerance_{fabs(tolerance)}, tol_is_ppm_{tol_is_ppm}, min_tag_length_{min_tag_length}, max_tag_length_{max_tag_length}, min_charge_{min_charge}, max_charge_{max_charge}
   {
     const std::set<const Residue*> aas = ResidueDB::getInstance()->getResidues("Natural19WithoutI");
 

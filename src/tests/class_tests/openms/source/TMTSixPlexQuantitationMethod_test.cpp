@@ -124,9 +124,9 @@ START_SECTION((virtual Matrix<double> getIsotopeCorrectionMatrix() const ))
                          {0, 0, 0, 0, 0.0210, 0.938}
   };
 
-  for (size_t i = 0; i < m.rows(); ++i)
+  for (Eigen::Index i = 0; i < m.rows(); ++i)
   {
-    for (size_t j = 0; j < m.cols(); ++j)
+    for (Eigen::Index j = 0; j < m.cols(); ++j)
     {
       if (i == j) { TEST_TRUE(m(i,j) > 0.5) } // diagonal entries should be largest
       else { TEST_TRUE(m(i,j) < 0.5) }
