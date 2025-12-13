@@ -30,6 +30,35 @@ START_SECTION(template<class T> std::vector<double> compute_model_fdr(const std:
 }
 END_SECTION
 
+START_SECTION(double bw_nrd0(const std::vector<double>&))
+{
+  std::vector<double> x = {0.0, 1.0, 2.0, 3.0, 4.0};
+  double bw = bw_nrd0(x);
+  // Expected value matching numpy.percentile + statsmodels/pyprophet convention (0.9 factor)
+  TEST_REAL_SIMILAR(bw, 0.9735846228506357)
+}
+END_SECTION
+
+START_SECTION(std::vector<double> linbin(const std::vector<double>&, double, double, std::size_t, const std::vector<double>*))
+{
+  std::vector<double> x = {0.1, 0.4, 0.9};
+  auto bins = linbin(x, 0.0, 1.0, 5, nullptr);
+  TEST_EQUAL(bins.size(), 5)
+  // width = 0.2 -> indices: 0,2,4
+  TEST_REAL_SIMILAR(bins[0], 1.0)
+  TEST_REAL_SIMILAR(bins[1], 0.0)
+  TEST_REAL_SIMILAR(bins[2], 1.0)
+  TEST_REAL_SIMILAR(bins[3], 0.0)
+  TEST_REAL_SIMILAR(bins[4], 1.0)
+
+  std::vector<double> w = {2.0, 3.0, 5.0};
+  auto bins_w = linbin(x, 0.0, 1.0, 5, &w);
+  TEST_REAL_SIMILAR(bins_w[0], 2.0)
+  TEST_REAL_SIMILAR(bins_w[2], 3.0)
+  TEST_REAL_SIMILAR(bins_w[4], 5.0)
+}
+END_SECTION
+
 START_SECTION(std::vector<double> pnorm(const std::vector<double>&, const std::vector<double>&))
 {
   std::vector<double> stat0 = {0.0, 1.0}; // mu=0.5, sample sd = sqrt(0.5)
