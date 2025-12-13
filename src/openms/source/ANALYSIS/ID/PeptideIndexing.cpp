@@ -825,16 +825,16 @@ PeptideIndexing::ExitCodes PeptideIndexing::run_(FASTAContainer<T>& proteins, st
   for (Size run_idx = 0; run_idx < prot_ids.size(); ++run_idx)
   {
     ProteinIdentification::SearchParameters search_parameters = prot_ids[run_idx].getSearchParameters();
-    search_parameters.setMetaValue(METAVALUE_DECOY_STRING, decoy_string_);
-    search_parameters.setMetaValue(METAVALUE_DECOY_STRING_POSITION, prefix_ ? "prefix" : "suffix");
-    search_parameters.setMetaValue(METAVALUE_ENZYME, enzyme.getEnzymeName());
-    search_parameters.setMetaValue(METAVALUE_ENZYME_SPECIFICITY, EnzymaticDigestion::NamesOfSpecificity[enzyme.getSpecificity()]);
-    search_parameters.setMetaValue(METAVALUE_AAA_MAX, aaa_max_);
-    search_parameters.setMetaValue(METAVALUE_MISMATCHES_MAX, mm_max_);
-    search_parameters.setMetaValue(METAVALUE_IL_EQUIVALENT, IL_equivalent_ ? "true" : "false");
-    search_parameters.setMetaValue(METAVALUE_ALLOW_NTERM_PROTEIN_CLEAVAGE, allow_nterm_protein_cleavage_ ? "true" : "false");
-    search_parameters.setMetaValue(METAVALUE_UNMATCHED_ACTION, names_of_unmatched[(Size)unmatched_action_]);
-    search_parameters.setMetaValue(METAVALUE_MISSING_DECOY_ACTION, names_of_missing_decoy[(Size)missing_decoy_action_]);
+    search_parameters.setMetaValue("PeptideIndexer:decoy_string", decoy_string_);
+    search_parameters.setMetaValue("PeptideIndexer:decoy_string_position", prefix_ ? "prefix" : "suffix");
+    search_parameters.setMetaValue("PeptideIndexer:enzyme", enzyme.getEnzymeName());
+    search_parameters.setMetaValue("PeptideIndexer:enzyme_specificity", EnzymaticDigestion::NamesOfSpecificity[enzyme.getSpecificity()]);
+    search_parameters.setMetaValue("PeptideIndexer:aaa_max", aaa_max_);
+    search_parameters.setMetaValue("PeptideIndexer:mismatches_max", mm_max_);
+    search_parameters.setMetaValue("PeptideIndexer:IL_equivalent", IL_equivalent_ ? "true" : "false");
+    search_parameters.setMetaValue("PeptideIndexer:allow_nterm_protein_cleavage", allow_nterm_protein_cleavage_ ? "true" : "false");
+    search_parameters.setMetaValue("PeptideIndexer:unmatched_action", names_of_unmatched[(Size)unmatched_action_]);
+    search_parameters.setMetaValue("PeptideIndexer:missing_decoy_action", names_of_missing_decoy[(Size)missing_decoy_action_]);
     prot_ids[run_idx].setSearchParameters(search_parameters);
   }
 

@@ -372,26 +372,26 @@ START_SECTION((Test PeptideIndexer settings stored as metavalues in SearchParame
   
   // Check that metavalues are set correctly in SearchParameters
   const ProteinIdentification::SearchParameters& search_params = prot_ids[0].getSearchParameters();
-  TEST_EQUAL(search_params.metaValueExists(PeptideIndexing::METAVALUE_DECOY_STRING), true);
-  TEST_EQUAL(search_params.getMetaValue(PeptideIndexing::METAVALUE_DECOY_STRING), "DECOY_");
-  TEST_EQUAL(search_params.metaValueExists(PeptideIndexing::METAVALUE_DECOY_STRING_POSITION), true);
-  TEST_EQUAL(search_params.getMetaValue(PeptideIndexing::METAVALUE_DECOY_STRING_POSITION), "prefix");
-  TEST_EQUAL(search_params.metaValueExists(PeptideIndexing::METAVALUE_ENZYME), true);
-  TEST_EQUAL(search_params.getMetaValue(PeptideIndexing::METAVALUE_ENZYME), "Trypsin");
-  TEST_EQUAL(search_params.metaValueExists(PeptideIndexing::METAVALUE_ENZYME_SPECIFICITY), true);
-  TEST_EQUAL(search_params.getMetaValue(PeptideIndexing::METAVALUE_ENZYME_SPECIFICITY), "full");
-  TEST_EQUAL(search_params.metaValueExists(PeptideIndexing::METAVALUE_AAA_MAX), true);
-  TEST_EQUAL(search_params.getMetaValue(PeptideIndexing::METAVALUE_AAA_MAX), 2);
-  TEST_EQUAL(search_params.metaValueExists(PeptideIndexing::METAVALUE_MISMATCHES_MAX), true);
-  TEST_EQUAL(search_params.getMetaValue(PeptideIndexing::METAVALUE_MISMATCHES_MAX), 1);
-  TEST_EQUAL(search_params.metaValueExists(PeptideIndexing::METAVALUE_IL_EQUIVALENT), true);
-  TEST_EQUAL(search_params.getMetaValue(PeptideIndexing::METAVALUE_IL_EQUIVALENT), "true");
-  TEST_EQUAL(search_params.metaValueExists(PeptideIndexing::METAVALUE_ALLOW_NTERM_PROTEIN_CLEAVAGE), true);
-  TEST_EQUAL(search_params.getMetaValue(PeptideIndexing::METAVALUE_ALLOW_NTERM_PROTEIN_CLEAVAGE), "false");
-  TEST_EQUAL(search_params.metaValueExists(PeptideIndexing::METAVALUE_UNMATCHED_ACTION), true);
-  TEST_EQUAL(search_params.getMetaValue(PeptideIndexing::METAVALUE_UNMATCHED_ACTION), "warn");
-  TEST_EQUAL(search_params.metaValueExists(PeptideIndexing::METAVALUE_MISSING_DECOY_ACTION), true);
-  TEST_EQUAL(search_params.getMetaValue(PeptideIndexing::METAVALUE_MISSING_DECOY_ACTION), "warn");
+  TEST_EQUAL(search_params.metaValueExists("PeptideIndexer:decoy_string"), true);
+  TEST_EQUAL(search_params.getMetaValue("PeptideIndexer:decoy_string"), "DECOY_");
+  TEST_EQUAL(search_params.metaValueExists("PeptideIndexer:decoy_string_position"), true);
+  TEST_EQUAL(search_params.getMetaValue("PeptideIndexer:decoy_string_position"), "prefix");
+  TEST_EQUAL(search_params.metaValueExists("PeptideIndexer:enzyme"), true);
+  TEST_EQUAL(search_params.getMetaValue("PeptideIndexer:enzyme"), "Trypsin");
+  TEST_EQUAL(search_params.metaValueExists("PeptideIndexer:enzyme_specificity"), true);
+  TEST_EQUAL(search_params.getMetaValue("PeptideIndexer:enzyme_specificity"), "full");
+  TEST_EQUAL(search_params.metaValueExists("PeptideIndexer:aaa_max"), true);
+  TEST_EQUAL(search_params.getMetaValue("PeptideIndexer:aaa_max"), 2);
+  TEST_EQUAL(search_params.metaValueExists("PeptideIndexer:mismatches_max"), true);
+  TEST_EQUAL(search_params.getMetaValue("PeptideIndexer:mismatches_max"), 1);
+  TEST_EQUAL(search_params.metaValueExists("PeptideIndexer:IL_equivalent"), true);
+  TEST_EQUAL(search_params.getMetaValue("PeptideIndexer:IL_equivalent"), "true");
+  TEST_EQUAL(search_params.metaValueExists("PeptideIndexer:allow_nterm_protein_cleavage"), true);
+  TEST_EQUAL(search_params.getMetaValue("PeptideIndexer:allow_nterm_protein_cleavage"), "false");
+  TEST_EQUAL(search_params.metaValueExists("PeptideIndexer:unmatched_action"), true);
+  TEST_EQUAL(search_params.getMetaValue("PeptideIndexer:unmatched_action"), "warn");
+  TEST_EQUAL(search_params.metaValueExists("PeptideIndexer:missing_decoy_action"), true);
+  TEST_EQUAL(search_params.getMetaValue("PeptideIndexer:missing_decoy_action"), "warn");
 }
 END_SECTION
 
