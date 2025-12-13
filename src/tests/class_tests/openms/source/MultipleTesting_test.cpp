@@ -8,6 +8,7 @@
 #include <sstream>
 #include <string>
 #include <algorithm>
+#include <cmath>
 
 using namespace OpenMS;
 using namespace OpenMS::Math;
@@ -26,6 +27,38 @@ START_SECTION(template<class T> std::vector<double> compute_model_fdr(const std:
   TEST_REAL_SIMILAR(f[0], 0.1)
   TEST_REAL_SIMILAR(f[1], 0.15)
   TEST_REAL_SIMILAR(f[2], 0.2)
+}
+END_SECTION
+
+START_SECTION(std::vector<double> pnorm(const std::vector<double>&, const std::vector<double>&))
+{
+  std::vector<double> stat0 = {0.0, 1.0}; // mu=0.5, sample sd = sqrt(0.5)
+  std::vector<double> stat = {0.5, 1.5, -0.5, std::numeric_limits<double>::quiet_NaN()};
+
+  auto out = pnorm(stat, stat0);
+  TEST_EQUAL(out.size(), stat.size());
+
+  // compute expected values
+  double mu = 0.5;
+  double var = 0.5; // (0-0.5)^2 + (1-0.5)^2 = 0.5, ddof=1 => /1 = 0.5
+  double sigma = std::sqrt(var);
+  const double sqrt2 = std::sqrt(2.0);
+
+  // first value equals mu -> tail = 0.5
+  double z0 = (stat[0] - mu) / sigma;
+  double expected0 = 1.0 - 0.5 * (1.0 + std::erf(z0 / sqrt2));
+  TEST_REAL_SIMILAR(out[0], expected0);
+
+  double z1 = (stat[1] - mu) / sigma;
+  double expected1 = 1.0 - 0.5 * (1.0 + std::erf(z1 / sqrt2));
+  TEST_REAL_SIMILAR(out[1], expected1);
+
+  double z2 = (stat[2] - mu) / sigma;
+  double expected2 = 1.0 - 0.5 * (1.0 + std::erf(z2 / sqrt2));
+  TEST_REAL_SIMILAR(out[2], expected2);
+
+  // NaN propagated
+  TEST_EQUAL(std::isnan(out[3]), true);
 }
 END_SECTION
 
