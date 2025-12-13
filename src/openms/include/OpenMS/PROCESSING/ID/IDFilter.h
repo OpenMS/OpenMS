@@ -823,8 +823,27 @@ namespace OpenMS
        @brief Update protein groups (both indistinguishable and protein groups) in a ProteinIdentification
 
        Convenience overload that updates both regular protein groups and indistinguishable protein groups
-       based on the current protein hits. Selects the best-scoring remaining protein as the new group leader
-       when the original leader is removed.
+       based on the current protein hits. Additionally performs "leader repair" to ensure the best-scoring
+       protein is at position 0 (the "leader" position) in each group.
+
+       @section Rationale
+
+       In OpenMS, protein groups store accessions as a vector where accessions[0] is the designated
+       "group leader" (see ProteinIdentification.h). The leader is significant because:
+
+       - **Quantification**: Tools like PeptideAndProteinQuant map all proteins to their leader
+         (`accession_to_leader[acc] = pg.accessions[0]`), aggregating abundance under the leader.
+
+       - **mzTab Export**: The leader's accession becomes the main protein row identifier, and
+         leader metadata (description, taxid, species, modifications) is used for reporting.
+
+       - **Downstream Tools**: Many tools expect the first protein in a group to be the most
+         representative or highest-confidence protein.
+
+       When filtering removes the original leader (e.g., it was a decoy protein), without leader
+       repair the new "leader" would be whichever protein happened to be at position 1 - not
+       necessarily the best choice. This function ensures the highest-scoring remaining protein
+       becomes the new leader.
 
        @param proteins Input/output ProteinIdentification whose groups will be updated
 
@@ -836,7 +855,8 @@ namespace OpenMS
        @brief Update protein groups in all ProteinIdentification runs of a ConsensusMap
 
        Convenience overload that iterates over all protein identification runs in the ConsensusMap
-       and updates both regular and indistinguishable protein groups for each.
+       and updates both regular and indistinguishable protein groups for each. Includes leader
+       repair (see updateProteinGroups(ProteinIdentification&) for rationale).
 
        @param cmap Input/output ConsensusMap whose protein groups will be updated
 
@@ -847,14 +867,46 @@ namespace OpenMS
     /**
        @brief Convenience function to sanitize protein references and groups after filtering
 
-       This function consolidates the common post-filtering cleanup pattern:
-       1. Update peptide-protein references (remove PeptideEvidence entries pointing to missing proteins)
-       2. Remove unreferenced proteins (proteins not referenced by any remaining peptide)
-       3. Update protein groups (remove groups or group members that no longer have protein hits)
+       This function consolidates the common post-filtering cleanup pattern into a single call,
+       ensuring operations are performed in the correct order:
+
+       1. **Update peptide-protein references**: Remove PeptideEvidence entries pointing to
+          proteins that no longer exist (e.g., filtered decoys)
+
+       2. **Remove unreferenced proteins**: Remove protein hits that are no longer referenced
+          by any peptide (prevents orphaned proteins in output)
+
+       3. **Update protein groups**: Remove groups or group members that no longer have protein
+          hits, and repair group leaders to ensure best-scoring protein is at position 0
+
+       @section Usage
+
+       Typical usage in ProteomicsLFQ after decoy removal:
+       @code
+       if (!quantify_decoys)
+       {
+         // Decoy proteins were removed by FDR filtering
+         // Clean up peptide references to those decoys, remove orphaned proteins,
+         // and update protein groups to reflect the changes
+         IDFilter::sanitizeProteinReferencesAndGroups(consensus, true, true);
+       }
+       @endcode
+
+       @section WhyNotSeparateCalls
+
+       While the three operations can be called separately, this function:
+       - Ensures correct ordering (references before unreferenced removal before groups)
+       - Reduces boilerplate in TOPP tools
+       - Makes the intent clearer (post-filtering cleanup)
+
+       For conditional cleanup (e.g., only update groups if FDR filtering occurred),
+       use the individual functions instead.
 
        @param cmap Input/output ConsensusMap to sanitize
-       @param remove_peptides_without_reference If true, remove peptide hits that have no remaining protein references
-       @param include_unassigned If true, also consider unassigned peptide identifications
+       @param remove_peptides_without_reference If true, remove peptide hits that have no remaining
+              protein references (e.g., peptides that only matched decoy proteins)
+       @param include_unassigned If true, also consider unassigned peptide identifications when
+              determining which proteins are still referenced
 
        @return Returns whether all protein groups are still valid after sanitization
     */

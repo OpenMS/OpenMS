@@ -444,14 +444,28 @@ namespace OpenMS
     return valid;
   }
 
-  // Helper to repair group leaders: moves the best-scoring protein to position 0
+  /**
+   * @brief Repair group leaders by moving the best-scoring protein to position 0.
+   *
+   * In protein groups, accessions[0] is the "leader" - the representative protein used for:
+   * - Quantification aggregation (all group proteins map to leader in PeptideAndProteinQuant)
+   * - mzTab export (leader provides main accession, description, taxid, species)
+   * - Downstream tool expectations (first protein = most representative)
+   *
+   * When filtering removes the original leader (e.g., it was a decoy), the protein that
+   * ends up at position 0 may not be the best choice. This function ensures the highest-
+   * scoring remaining protein becomes the new leader.
+   *
+   * Time complexity: O(H + G*P) where H=hits, G=groups, P=avg proteins per group
+   * Space complexity: O(H) for the accession-to-score map
+   */
   static void repairGroupLeaders_(vector<ProteinIdentification::ProteinGroup>& groups,
                                   const vector<ProteinHit>& hits,
                                   bool higher_better)
   {
     if (groups.empty() || hits.empty()) return;
 
-    // Build accession -> score map for quick lookup
+    // Build accession -> score map for O(1) score lookups
     unordered_map<String, double> acc_to_score;
     for (const ProteinHit& hit : hits)
     {
