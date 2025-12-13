@@ -821,19 +821,21 @@ PeptideIndexing::ExitCodes PeptideIndexing::run_(FASTAContainer<T>& proteins, st
   OPENMS_LOG_INFO << "  orphaned proteins      : " << stats_orphaned_proteins << (keep_unreferenced_proteins_ ? " (all kept)" : " (all removed)\n");
   OPENMS_LOG_INFO << "-----------------------------------" << std::endl;
 
-  // Store PeptideIndexer settings in ProteinIdentification metavalues for documentation
+  // Store PeptideIndexer settings in SearchParameters metavalues for documentation
   for (Size run_idx = 0; run_idx < prot_ids.size(); ++run_idx)
   {
-    prot_ids[run_idx].setMetaValue(METAVALUE_DECOY_STRING, decoy_string_);
-    prot_ids[run_idx].setMetaValue(METAVALUE_DECOY_STRING_POSITION, prefix_ ? "prefix" : "suffix");
-    prot_ids[run_idx].setMetaValue(METAVALUE_ENZYME, enzyme.getEnzymeName());
-    prot_ids[run_idx].setMetaValue(METAVALUE_ENZYME_SPECIFICITY, EnzymaticDigestion::NamesOfSpecificity[enzyme.getSpecificity()]);
-    prot_ids[run_idx].setMetaValue(METAVALUE_AAA_MAX, aaa_max_);
-    prot_ids[run_idx].setMetaValue(METAVALUE_MISMATCHES_MAX, mm_max_);
-    prot_ids[run_idx].setMetaValue(METAVALUE_IL_EQUIVALENT, IL_equivalent_ ? "true" : "false");
-    prot_ids[run_idx].setMetaValue(METAVALUE_ALLOW_NTERM_PROTEIN_CLEAVAGE, allow_nterm_protein_cleavage_ ? "true" : "false");
-    prot_ids[run_idx].setMetaValue(METAVALUE_UNMATCHED_ACTION, names_of_unmatched[(Size)unmatched_action_]);
-    prot_ids[run_idx].setMetaValue(METAVALUE_MISSING_DECOY_ACTION, names_of_missing_decoy[(Size)missing_decoy_action_]);
+    ProteinIdentification::SearchParameters search_parameters = prot_ids[run_idx].getSearchParameters();
+    search_parameters.setMetaValue(METAVALUE_DECOY_STRING, decoy_string_);
+    search_parameters.setMetaValue(METAVALUE_DECOY_STRING_POSITION, prefix_ ? "prefix" : "suffix");
+    search_parameters.setMetaValue(METAVALUE_ENZYME, enzyme.getEnzymeName());
+    search_parameters.setMetaValue(METAVALUE_ENZYME_SPECIFICITY, EnzymaticDigestion::NamesOfSpecificity[enzyme.getSpecificity()]);
+    search_parameters.setMetaValue(METAVALUE_AAA_MAX, aaa_max_);
+    search_parameters.setMetaValue(METAVALUE_MISMATCHES_MAX, mm_max_);
+    search_parameters.setMetaValue(METAVALUE_IL_EQUIVALENT, IL_equivalent_ ? "true" : "false");
+    search_parameters.setMetaValue(METAVALUE_ALLOW_NTERM_PROTEIN_CLEAVAGE, allow_nterm_protein_cleavage_ ? "true" : "false");
+    search_parameters.setMetaValue(METAVALUE_UNMATCHED_ACTION, names_of_unmatched[(Size)unmatched_action_]);
+    search_parameters.setMetaValue(METAVALUE_MISSING_DECOY_ACTION, names_of_missing_decoy[(Size)missing_decoy_action_]);
+    prot_ids[run_idx].setSearchParameters(search_parameters);
   }
 
   /// exit if no peptides were matched to decoy
