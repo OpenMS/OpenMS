@@ -368,7 +368,7 @@ START_SECTION((Test PeptideIndexer settings stored as metavalues))
   TEST_EQUAL(r, PeptideIndexing::EXECUTION_OK);
   
   // Check that at least one ProteinIdentification was created
-  TEST_EQUAL(prot_ids.size() > 0, true);
+  TEST_EQUAL(!prot_ids.empty(), true);
   
   // Check that metavalues are set correctly
   TEST_EQUAL(prot_ids[0].metaValueExists(PeptideIndexing::METAVALUE_DECOY_STRING), true);
