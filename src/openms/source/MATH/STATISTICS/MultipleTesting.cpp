@@ -8,6 +8,7 @@
 #include <limits>
 #include <numeric>
 #include <stdexcept>
+#include <iterator>
 
 namespace OpenMS
 {
@@ -185,6 +186,66 @@ Pi0Result pi0est(const std::vector<double>& p_values, const std::vector<double>&
   res.pi0 = std::min(pi0s[argmin], 1.0);
   res.pi0_smooth = false;
   return res;
+}
+
+std::vector<double> pnorm(const std::vector<double>& stat, const std::vector<double>& stat0)
+{
+  const std::size_t n = stat.size();
+  std::vector<double> out(n, std::numeric_limits<double>::quiet_NaN());
+
+  // require stat0 non-empty
+  if (stat0.empty()) throw std::invalid_argument("pnorm: stat0 must be non-empty");
+
+  // filter finite entries in stat0
+  std::vector<double> s0;
+  s0.reserve(stat0.size());
+  for (double v : stat0) if (std::isfinite(v)) s0.push_back(v);
+  const std::size_t m = s0.size();
+  if (m == 0) throw std::invalid_argument("pnorm: stat0 contains no finite values");
+
+  // compute mean
+  double sum = 0.0;
+  for (double v : s0) sum += v;
+  double mu = sum / static_cast<double>(m);
+
+  // compute sample standard deviation (ddof=1) when possible
+  double var = 0.0;
+  if (m > 1)
+  {
+    for (double v : s0)
+    {
+      double d = v - mu;
+      var += d * d;
+    }
+    var /= static_cast<double>(m - 1);
+  }
+  else
+  {
+    var = 0.0;
+  }
+  double sigma = std::sqrt(var);
+
+  const double sqrt2 = std::sqrt(2.0);
+
+  // If sigma == 0, treat distribution as degenerate at mu: P(X>stat_i) = 1 if stat_i < mu, 0 otherwise
+  const bool degenerate = !(sigma > 0.0);
+
+  for (std::size_t i = 0; i < n; ++i)
+  {
+    double v = stat[i];
+    if (!std::isfinite(v)) { out[i] = std::numeric_limits<double>::quiet_NaN(); continue; }
+    if (degenerate)
+    {
+      out[i] = (v < mu) ? 1.0 : 0.0;
+      continue;
+    }
+    double z = (v - mu) / sigma;
+    double cdf = 0.5 * (1.0 + std::erf(z / sqrt2));
+    double tail = 1.0 - cdf;
+    out[i] = tail;
+  }
+
+  return out;
 }
 
 } // namespace Math

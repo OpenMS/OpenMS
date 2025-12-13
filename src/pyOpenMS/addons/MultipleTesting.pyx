@@ -23,6 +23,10 @@ cdef extern from * namespace "OpenMS::Math":
       inline std::vector<double> pemp_float_i(std::vector<float> s, std::vector<float> s0) { return pemp<float>(s, s0); }
       inline std::vector<double> pemp_int_i(std::vector<int> s, std::vector<int> s0) { return pemp<int>(s, s0); }
 
+    inline std::vector<double> qvalue_c(std::vector<double> p_values, double pi0, bool pfdr) { return qvalue(p_values, pi0, pfdr); }
+    inline std::vector<double> pnorm_c(std::vector<double> stat, std::vector<double> stat0) { return pnorm(stat, stat0); }
+    inline Pi0Result pi0est_c(std::vector<double> p_values, std::vector<double> lambda_) { return pi0est(p_values, lambda_); }
+
     }}
     """
     libcpp_vector[double] compute_model_fdr_double_i(libcpp_vector[double] a) except +
@@ -32,10 +36,15 @@ cdef extern from * namespace "OpenMS::Math":
     libcpp_vector[double] pemp_double_i(libcpp_vector[double] s, libcpp_vector[double] s0) except +
     libcpp_vector[double] pemp_float_i(libcpp_vector[float] s, libcpp_vector[float] s0) except +
     libcpp_vector[double] pemp_int_i(libcpp_vector[int] s, libcpp_vector[int] s0) except +
+    libcpp_vector[double] qvalue_c(libcpp_vector[double] p_values, double pi0, bint pfdr) except +
+    libcpp_vector[double] pnorm_c(libcpp_vector[double] stat, libcpp_vector[double] stat0) except +
+    # Pi0Result declared later; forward declare return as object using same name in next extern block
+    Pi0Result pi0est_c(libcpp_vector[double] p_values, libcpp_vector[double] lambda_) except +
 
 
 cdef extern from "<OpenMS/MATH/STATISTICS/MultipleTesting.h>" namespace "OpenMS::Math":
     libcpp_vector[double] qvalue(libcpp_vector[double] p_values, double pi0, bint pfdr) except +
+    libcpp_vector[double] pnorm(libcpp_vector[double] stat, libcpp_vector[double] stat0) except +
 
     cdef cppclass Pi0Result:
         double pi0
@@ -116,20 +125,27 @@ def pemp(stat, stat0, dtype="float64"):
     return np.asarray(out, dtype=float)
 
 
-def qvalue_py(p_values, pi0=1.0, pfdr=False):
+def qvalue(p_values, pi0=1.0, pfdr=False):
     """Compute q-values from p-values and pi0."""
-    out = qvalue(_to_vec_double(p_values), <double> pi0, <bint> pfdr)
+    out = qvalue_c(_to_vec_double(p_values), <double> pi0, <bint> pfdr)
     return np.asarray(out, dtype=float)
 
 
-def pi0est_py(p_values, lambda_=None):
+def pnorm(stat, stat0):
+    """Compute tail probabilities under a normal distribution fitted to stat0.
+    Returns array of P(X > stat_i) where X ~ N(mu, sigma^2) with mu/sigma estimated from stat0."""
+    out = pnorm_c(_to_vec_double(stat), _to_vec_double(stat0))
+    return np.asarray(out, dtype=float)
+
+
+def pi0est(p_values, lambda_=None):
     """Estimate pi0. Returns dict {pi0, pi0_lambda, lambda, pi0_smooth}."""
     if lambda_ is None:
         lamb = libcpp_vector[double]()
     else:
         lamb = _to_vec_double(lambda_)
 
-    res = pi0est(_to_vec_double(p_values), lamb)
+    res = pi0est_c(_to_vec_double(p_values), lamb)
 
     return {
         'pi0': res.pi0,

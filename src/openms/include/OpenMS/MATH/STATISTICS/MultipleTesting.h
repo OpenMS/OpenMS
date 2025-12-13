@@ -162,6 +162,10 @@ inline std::vector<double> pemp(const std::vector<T>& stat, const std::vector<T>
 OPENMS_DLLAPI std::vector<double> qvalue(const std::vector<double>& p_values, double pi0, bool pfdr = false);
 OPENMS_DLLAPI Pi0Result pi0est(const std::vector<double>& p_values,
                  const std::vector<double>& lambda_ = std::vector<double>());
+                 
+/// Compute tail probabilities under a normal distribution fitted to stat0
+/// Returns P(X > stat_i) where X ~ N(mu, sigma^2) with mu/sigma estimated from stat0
+OPENMS_DLLAPI std::vector<double> pnorm(const std::vector<double>& stat, const std::vector<double>& stat0);
 
 } // namespace Math
 } // namespace OpenMS
