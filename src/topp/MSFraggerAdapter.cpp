@@ -281,12 +281,12 @@ protected:
     // No cut before
     registerStringOption_(TOPPMSFraggerAdapter::search_enzyme_nocutbefore, "<search_enzyme_nocutbefore>", "P", "Residues that the enzyme will not cut before", false, false);
 
-    // Enzyme sense (cut terminal)
-    registerStringOption_(TOPPMSFraggerAdapter::search_enzyme_sense, "<search_enzyme_sense>", "C", "Enzyme cutting terminal. 'C' for C-terminal (cut after residue), 'N' for N-terminal (cut before residue)", false, false);
+    // Enzyme sense (cut terminus)
+    registerStringOption_(TOPPMSFraggerAdapter::search_enzyme_sense, "<search_enzyme_sense>", "C", "Enzyme cutting terminus. 'C' for C-terminus (cut after residue), 'N' for N-terminus (cut before residue)", false, false);
     setValidStrings_(TOPPMSFraggerAdapter::search_enzyme_sense, ListUtils::create<String>("C,N"));
 
     // Number of enzyme termini
-    registerStringOption_(TOPPMSFraggerAdapter::num_enzyme_termini, "<num_enzyme_termini>", "fully", "Number of enzyme termini (non-enzymatic (0), semi (1), fully (2)", false, false);
+    registerStringOption_(TOPPMSFraggerAdapter::num_enzyme_termini, "<num_enzyme_termini>", "fully", "Number of enzyme termini (non-enzymatic (0), semi (1), fully (2))", false, false);
     setValidStrings_(TOPPMSFraggerAdapter::num_enzyme_termini, ListUtils::create<String>("non-enzymatic,semi,fully"));
 
     // Allowed missed cleavages
