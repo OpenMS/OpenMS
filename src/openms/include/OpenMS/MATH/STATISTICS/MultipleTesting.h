@@ -167,6 +167,13 @@ OPENMS_DLLAPI std::vector<double> qvalue(const std::vector<double>& p_values, do
 OPENMS_DLLAPI Pi0Result pi0est(const std::vector<double>& p_values,
                  const std::vector<double>& lambda_ = std::vector<double>());
 
+/// Bandwidth selector using the "nrd0" (Silverman-ish) rule-of-thumb
+OPENMS_DLLAPI double bw_nrd0(const std::vector<double>& x);
+
+/// Bin data onto an equally spaced grid between xmin (inclusive) and xmax (exclusive)
+/// Returns a vector of length nbins containing counts (or weighted counts if weights provided).
+OPENMS_DLLAPI std::vector<double> linbin(const std::vector<double>& x, double xmin, double xmax, std::size_t nbins, const std::vector<double>* weights = nullptr);
+
 /// Compute tail probabilities under a normal distribution fitted to stat0
 /// Returns P(X > stat_i) where X ~ N(mu, sigma^2) with mu/sigma estimated from stat0
 OPENMS_DLLAPI std::vector<double> pnorm(const std::vector<double>& stat, const std::vector<double>& stat0);

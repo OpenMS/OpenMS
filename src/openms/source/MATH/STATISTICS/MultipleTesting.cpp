@@ -8,6 +8,8 @@
 
 #include <OpenMS/MATH/STATISTICS/MultipleTesting.h>
 
+#include <OpenMS/MATH/StatisticFunctions.h>
+
 #include <algorithm>
 #include <cmath>
 #include <limits>
@@ -251,6 +253,71 @@ std::vector<double> pnorm(const std::vector<double>& stat, const std::vector<dou
   }
 
   return out;
+}
+
+double bw_nrd0(const std::vector<double>& x)
+{
+  // filter finite
+  std::vector<double> xf;
+  xf.reserve(x.size());
+  for (double v : x) if (std::isfinite(v)) xf.push_back(v);
+  const std::size_t n = xf.size();
+  if (n < 2) return 0.0;
+
+  // sample standard deviation (ddof=1)
+  double mean = 0.0;
+  for (double v : xf) mean += v;
+  mean /= static_cast<double>(n);
+  double var = 0.0;
+  for (double v : xf) { double d = v - mean; var += d * d; }
+  var /= static_cast<double>(n - 1);
+  double sd = std::sqrt(var);
+
+  // compute percentiles using existing Math::quantile (Type 7, numpy-like linear interpolation)
+  std::vector<double> cp = xf;
+  std::sort(cp.begin(), cp.end());
+  double q25 = Math::quantile(cp.begin(), cp.end(), 0.25);
+  double q75 = Math::quantile(cp.begin(), cp.end(), 0.75);
+  double iqr = q75 - q25;
+
+  double lo = std::min(sd, iqr / 1.34);
+  // fallbacks to match pyprophet/numpy implementation
+  if (!(lo > 0.0))
+  {
+    if (sd > 0.0) lo = sd;
+    else if (!cp.empty()) lo = std::abs(cp[0]);
+    else lo = 1.0;
+  }
+
+  double bw = 0.9 * lo * std::pow(static_cast<double>(n), -0.2); // Silverman variant used by statsmodels/pyprophet
+  return bw;
+}
+
+std::vector<double> linbin(const std::vector<double>& x, double xmin, double xmax, std::size_t nbins, const std::vector<double>* weights)
+{
+  if (nbins == 0) throw std::invalid_argument("linbin: nbins must be > 0");
+  std::vector<double> bins(nbins, 0.0);
+  if (x.empty()) return bins;
+  if (!(xmax > xmin)) throw std::invalid_argument("linbin: xmax must be > xmin");
+
+  const double width = (xmax - xmin) / static_cast<double>(nbins);
+  if (!(width > 0.0)) return bins;
+
+  const bool use_weights = (weights != nullptr && weights->size() == x.size());
+
+  for (std::size_t i = 0; i < x.size(); ++i)
+  {
+    double v = x[i];
+    if (!std::isfinite(v)) continue;
+    if (v < xmin || v > xmax) continue; // ignore outside range; include xmax in last bin
+    std::size_t idx = static_cast<std::size_t>(std::floor((v - xmin) / width));
+    if (idx >= nbins) idx = nbins - 1; // edge case when v == xmax
+    double w = 1.0;
+    if (use_weights) w = (*weights)[i];
+    bins[idx] += w;
+  }
+
+  return bins;
 }
 
 } // namespace Math
