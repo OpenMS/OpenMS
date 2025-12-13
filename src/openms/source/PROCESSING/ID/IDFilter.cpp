@@ -444,6 +444,47 @@ namespace OpenMS
     return valid;
   }
 
+  // Helper to repair group leaders: moves the best-scoring protein to position 0
+  static void repairGroupLeaders_(vector<ProteinIdentification::ProteinGroup>& groups,
+                                  const vector<ProteinHit>& hits,
+                                  bool higher_better)
+  {
+    if (groups.empty() || hits.empty()) return;
+
+    // Build accession -> score map for quick lookup
+    unordered_map<String, double> acc_to_score;
+    for (const ProteinHit& hit : hits)
+    {
+      acc_to_score[hit.getAccession()] = hit.getScore();
+    }
+
+    for (ProteinIdentification::ProteinGroup& group : groups)
+    {
+      if (group.accessions.size() <= 1) continue; // No repair needed for singleton
+
+      // Find best-scoring protein in the group
+      size_t best_idx = 0;
+      double best_score = acc_to_score[group.accessions[0]];
+
+      for (size_t i = 1; i < group.accessions.size(); ++i)
+      {
+        double score = acc_to_score[group.accessions[i]];
+        bool is_better = higher_better ? (score > best_score) : (score < best_score);
+        if (is_better)
+        {
+          best_score = score;
+          best_idx = i;
+        }
+      }
+
+      // Move best to front if not already there
+      if (best_idx != 0)
+      {
+        std::swap(group.accessions[0], group.accessions[best_idx]);
+      }
+    }
+  }
+
   bool IDFilter::updateProteinGroups(ProteinIdentification& proteins)
   {
     const vector<ProteinHit>& hits = proteins.getHits();
@@ -451,6 +492,11 @@ namespace OpenMS
     // Update both indistinguishable proteins and protein groups
     bool indist_valid = updateProteinGroups(proteins.getIndistinguishableProteins(), hits);
     bool groups_valid = updateProteinGroups(proteins.getProteinGroups(), hits);
+
+    // Repair leaders: ensure best-scoring protein is at position 0
+    bool higher_better = proteins.isHigherScoreBetter();
+    repairGroupLeaders_(proteins.getIndistinguishableProteins(), hits, higher_better);
+    repairGroupLeaders_(proteins.getProteinGroups(), hits, higher_better);
 
     return indist_valid && groups_valid;
   }

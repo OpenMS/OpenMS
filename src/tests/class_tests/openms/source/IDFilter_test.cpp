@@ -318,6 +318,7 @@ START_SECTION((static bool updateProteinGroups(ProteinIdentification& proteins))
   // Set up a ProteinIdentification with hits and groups
   ProteinIdentification prot_id;
   prot_id.setIdentifier("test_run");
+  prot_id.setHigherScoreBetter(true);
 
   // Add protein hits
   vector<ProteinHit> hits(4);
@@ -351,6 +352,8 @@ START_SECTION((static bool updateProteinGroups(ProteinIdentification& proteins))
   TEST_EQUAL(prot_id.getIndistinguishableProteins().size(), 2);
   TEST_EQUAL(prot_id.getProteinGroups().size(), 1);
   TEST_EQUAL(prot_id.getProteinGroups()[0].accessions.size(), 4);
+  // Leader should be A (highest score)
+  TEST_EQUAL(prot_id.getProteinGroups()[0].accessions[0], "A");
 
   // Test 2: Remove protein D - should return false (partial group removal)
   vector<ProteinHit>& mutable_hits = prot_id.getHits();
@@ -360,14 +363,42 @@ START_SECTION((static bool updateProteinGroups(ProteinIdentification& proteins))
   TEST_EQUAL(prot_id.getIndistinguishableProteins().size(), 2);
   TEST_EQUAL(prot_id.getProteinGroups().size(), 1);
   TEST_EQUAL(prot_id.getProteinGroups()[0].accessions.size(), 3);
+  // Leader should still be A
+  TEST_EQUAL(prot_id.getProteinGroups()[0].accessions[0], "A");
 
-  // Test 3: Remove protein A - removes entire indist group
+  // Test 3: Remove protein A - removes entire indist group, leader repair needed
   mutable_hits.erase(mutable_hits.begin()); // Remove A
   valid = IDFilter::updateProteinGroups(prot_id);
   TEST_EQUAL(valid, false); // A was removed from the protein group
   TEST_EQUAL(prot_id.getIndistinguishableProteins().size(), 1); // Group {A} removed
   TEST_EQUAL(prot_id.getProteinGroups().size(), 1);
   TEST_EQUAL(prot_id.getProteinGroups()[0].accessions.size(), 2); // Only B, C remain
+  // Leader should now be B (highest score among remaining: B=0.8, C=0.7)
+  TEST_EQUAL(prot_id.getProteinGroups()[0].accessions[0], "B");
+
+  // Test 4: Leader repair with non-leader having best score
+  ProteinIdentification prot_id2;
+  prot_id2.setIdentifier("test_run2");
+  prot_id2.setHigherScoreBetter(true);
+
+  vector<ProteinHit> hits2(3);
+  hits2[0].setAccession("X");
+  hits2[0].setScore(0.5);  // Low score
+  hits2[1].setAccession("Y");
+  hits2[1].setScore(0.9);  // Highest score
+  hits2[2].setAccession("Z");
+  hits2[2].setScore(0.7);
+  prot_id2.setHits(hits2);
+
+  vector<ProteinIdentification::ProteinGroup> groups2(1);
+  groups2[0].accessions = {"X", "Y", "Z"};  // X is leader but has lowest score
+  groups2[0].probability = 0.8;
+  prot_id2.getIndistinguishableProteins() = groups2;
+
+  valid = IDFilter::updateProteinGroups(prot_id2);
+  TEST_EQUAL(valid, true);
+  // Leader repair should move Y (score 0.9) to front
+  TEST_EQUAL(prot_id2.getIndistinguishableProteins()[0].accessions[0], "Y");
 }
 END_SECTION
 
