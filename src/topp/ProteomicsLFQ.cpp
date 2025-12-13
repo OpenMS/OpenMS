@@ -1330,7 +1330,7 @@ protected:
     // These operations are idempotent and ensure consistent state regardless of
     // which filters were applied. The minor performance cost (~150-300ms for 100k
     // proteins) is negligible compared to the clarity and correctness benefits.
-    IDFilter::sanitizeProteinReferencesAndGroups(consensus, true, true);
+    IDFilter::sanitize(consensus);
     IDFilter::updateProteinGroups(overall_proteins);
 
     if (overall_proteins.getHits().empty())

@@ -528,13 +528,14 @@ namespace OpenMS
     return all_valid;
   }
 
-  bool IDFilter::sanitizeProteinReferencesAndGroups(ConsensusMap& cmap, bool remove_peptides_without_reference, bool include_unassigned)
+  bool IDFilter::sanitize(ConsensusMap& cmap, bool keep_orphan_peptides)
   {
     // Step 1: Update peptide-protein references (remove PeptideEvidence pointing to missing proteins)
-    updateProteinReferences(cmap, remove_peptides_without_reference);
+    // Note: updateProteinReferences takes remove_peptides_without_reference, which is the inverse of keep_orphan_peptides
+    updateProteinReferences(cmap, !keep_orphan_peptides);
 
-    // Step 2: Remove proteins that are no longer referenced by any peptide
-    removeUnreferencedProteins(cmap, include_unassigned);
+    // Step 2: Remove proteins that are no longer referenced by any peptide (always include unassigned)
+    removeUnreferencedProteins(cmap, true);
 
     // Step 3: Update protein groups to reflect the filtered protein hits
     return updateProteinGroups(cmap);

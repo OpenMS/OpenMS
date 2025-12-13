@@ -881,15 +881,13 @@ namespace OpenMS
 
        @section Usage
 
-       Typical usage in ProteomicsLFQ after decoy removal:
+       Typical usage after filtering:
        @code
-       if (!quantify_decoys)
-       {
-         // Decoy proteins were removed by FDR filtering
-         // Clean up peptide references to those decoys, remove orphaned proteins,
-         // and update protein groups to reflect the changes
-         IDFilter::sanitizeProteinReferencesAndGroups(consensus, true, true);
-       }
+       // After FDR filtering or decoy removal - standard cleanup
+       IDFilter::sanitize(consensus);
+
+       // Keep orphan peptides for debugging/audit trail
+       IDFilter::sanitize(consensus, true);
        @endcode
 
        @section WhyNotSeparateCalls
@@ -899,18 +897,16 @@ namespace OpenMS
        - Reduces boilerplate in TOPP tools
        - Makes the intent clearer (post-filtering cleanup)
 
-       For conditional cleanup (e.g., only update groups if FDR filtering occurred),
-       use the individual functions instead.
+       For more granular control (e.g., excluding unassigned peptides), use the individual
+       functions directly: updateProteinReferences(), removeUnreferencedProteins(), updateProteinGroups().
 
        @param cmap Input/output ConsensusMap to sanitize
-       @param remove_peptides_without_reference If true, remove peptide hits that have no remaining
-              protein references (e.g., peptides that only matched decoy proteins)
-       @param include_unassigned If true, also consider unassigned peptide identifications when
-              determining which proteins are still referenced
+       @param keep_orphan_peptides If false (default), remove peptide hits that have no remaining
+              protein references. If true, keep them for debugging or audit purposes.
 
        @return Returns whether all protein groups are still valid after sanitization
     */
-    static bool sanitizeProteinReferencesAndGroups(ConsensusMap& cmap, bool remove_peptides_without_reference = true, bool include_unassigned = true);
+    static bool sanitize(ConsensusMap& cmap, bool keep_orphan_peptides = false);
 
     /**
        @brief Update protein hits after protein groups were filtered

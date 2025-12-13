@@ -454,7 +454,7 @@ START_SECTION((static bool updateProteinGroups(ConsensusMap& cmap)))
 }
 END_SECTION
 
-START_SECTION((static bool sanitizeProteinReferencesAndGroups(ConsensusMap& cmap, bool remove_peptides_without_reference, bool include_unassigned)))
+START_SECTION((static bool sanitize(ConsensusMap& cmap, bool keep_orphan_peptides)))
 {
   ConsensusMap cmap;
 
@@ -510,8 +510,8 @@ START_SECTION((static bool sanitizeProteinReferencesAndGroups(ConsensusMap& cmap
   TEST_EQUAL(cmap.getProteinIdentifications()[0].getHits().size(), 3);
   TEST_EQUAL(cmap.getProteinIdentifications()[0].getIndistinguishableProteins()[0].accessions.size(), 3);
 
-  // Sanitize
-  bool valid = IDFilter::sanitizeProteinReferencesAndGroups(cmap, true, true);
+  // Sanitize with default (remove orphan peptides)
+  bool valid = IDFilter::sanitize(cmap);
 
   // After sanitization: ProtC should be removed (unreferenced)
   TEST_EQUAL(valid, false); // Group lost a member
