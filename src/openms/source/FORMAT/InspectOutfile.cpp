@@ -19,8 +19,10 @@
 
 #include <fstream>
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunreachable-code"
+#ifdef __clang__
+  #pragma clang diagnostic push
+  #pragma clang diagnostic ignored "-Wunreachable-code"
+#endif
 
 using namespace std;
 
@@ -1297,5 +1299,7 @@ namespace OpenMS
 
 } //namespace OpenMS
 
-#pragma clang diagnostic pop
+#ifdef __clang__
+  #pragma clang diagnostic pop
+#endif
 
