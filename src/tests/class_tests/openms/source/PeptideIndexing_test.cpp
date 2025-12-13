@@ -371,26 +371,26 @@ START_SECTION((Test PeptideIndexer settings stored as metavalues))
   TEST_EQUAL(prot_ids.size() > 0, true);
   
   // Check that metavalues are set correctly
-  TEST_EQUAL(prot_ids[0].metaValueExists("PeptideIndexer:decoy_string"), true);
-  TEST_EQUAL(prot_ids[0].getMetaValue("PeptideIndexer:decoy_string"), "DECOY_");
-  TEST_EQUAL(prot_ids[0].metaValueExists("PeptideIndexer:decoy_string_position"), true);
-  TEST_EQUAL(prot_ids[0].getMetaValue("PeptideIndexer:decoy_string_position"), "prefix");
-  TEST_EQUAL(prot_ids[0].metaValueExists("PeptideIndexer:enzyme"), true);
-  TEST_EQUAL(prot_ids[0].getMetaValue("PeptideIndexer:enzyme"), "Trypsin");
-  TEST_EQUAL(prot_ids[0].metaValueExists("PeptideIndexer:enzyme_specificity"), true);
-  TEST_EQUAL(prot_ids[0].getMetaValue("PeptideIndexer:enzyme_specificity"), "full");
-  TEST_EQUAL(prot_ids[0].metaValueExists("PeptideIndexer:aaa_max"), true);
-  TEST_EQUAL(prot_ids[0].getMetaValue("PeptideIndexer:aaa_max"), 2);
-  TEST_EQUAL(prot_ids[0].metaValueExists("PeptideIndexer:mismatches_max"), true);
-  TEST_EQUAL(prot_ids[0].getMetaValue("PeptideIndexer:mismatches_max"), 1);
-  TEST_EQUAL(prot_ids[0].metaValueExists("PeptideIndexer:IL_equivalent"), true);
-  TEST_EQUAL(prot_ids[0].getMetaValue("PeptideIndexer:IL_equivalent"), "true");
-  TEST_EQUAL(prot_ids[0].metaValueExists("PeptideIndexer:allow_nterm_protein_cleavage"), true);
-  TEST_EQUAL(prot_ids[0].getMetaValue("PeptideIndexer:allow_nterm_protein_cleavage"), "false");
-  TEST_EQUAL(prot_ids[0].metaValueExists("PeptideIndexer:unmatched_action"), true);
-  TEST_EQUAL(prot_ids[0].getMetaValue("PeptideIndexer:unmatched_action"), "warn");
-  TEST_EQUAL(prot_ids[0].metaValueExists("PeptideIndexer:missing_decoy_action"), true);
-  TEST_EQUAL(prot_ids[0].getMetaValue("PeptideIndexer:missing_decoy_action"), "warn");
+  TEST_EQUAL(prot_ids[0].metaValueExists(PeptideIndexing::METAVALUE_DECOY_STRING), true);
+  TEST_EQUAL(prot_ids[0].getMetaValue(PeptideIndexing::METAVALUE_DECOY_STRING), "DECOY_");
+  TEST_EQUAL(prot_ids[0].metaValueExists(PeptideIndexing::METAVALUE_DECOY_STRING_POSITION), true);
+  TEST_EQUAL(prot_ids[0].getMetaValue(PeptideIndexing::METAVALUE_DECOY_STRING_POSITION), "prefix");
+  TEST_EQUAL(prot_ids[0].metaValueExists(PeptideIndexing::METAVALUE_ENZYME), true);
+  TEST_EQUAL(prot_ids[0].getMetaValue(PeptideIndexing::METAVALUE_ENZYME), "Trypsin");
+  TEST_EQUAL(prot_ids[0].metaValueExists(PeptideIndexing::METAVALUE_ENZYME_SPECIFICITY), true);
+  TEST_EQUAL(prot_ids[0].getMetaValue(PeptideIndexing::METAVALUE_ENZYME_SPECIFICITY), "full");
+  TEST_EQUAL(prot_ids[0].metaValueExists(PeptideIndexing::METAVALUE_AAA_MAX), true);
+  TEST_EQUAL(prot_ids[0].getMetaValue(PeptideIndexing::METAVALUE_AAA_MAX), 2);
+  TEST_EQUAL(prot_ids[0].metaValueExists(PeptideIndexing::METAVALUE_MISMATCHES_MAX), true);
+  TEST_EQUAL(prot_ids[0].getMetaValue(PeptideIndexing::METAVALUE_MISMATCHES_MAX), 1);
+  TEST_EQUAL(prot_ids[0].metaValueExists(PeptideIndexing::METAVALUE_IL_EQUIVALENT), true);
+  TEST_EQUAL(prot_ids[0].getMetaValue(PeptideIndexing::METAVALUE_IL_EQUIVALENT), "true");
+  TEST_EQUAL(prot_ids[0].metaValueExists(PeptideIndexing::METAVALUE_ALLOW_NTERM_PROTEIN_CLEAVAGE), true);
+  TEST_EQUAL(prot_ids[0].getMetaValue(PeptideIndexing::METAVALUE_ALLOW_NTERM_PROTEIN_CLEAVAGE), "false");
+  TEST_EQUAL(prot_ids[0].metaValueExists(PeptideIndexing::METAVALUE_UNMATCHED_ACTION), true);
+  TEST_EQUAL(prot_ids[0].getMetaValue(PeptideIndexing::METAVALUE_UNMATCHED_ACTION), "warn");
+  TEST_EQUAL(prot_ids[0].metaValueExists(PeptideIndexing::METAVALUE_MISSING_DECOY_ACTION), true);
+  TEST_EQUAL(prot_ids[0].getMetaValue(PeptideIndexing::METAVALUE_MISSING_DECOY_ACTION), "warn");
 }
 END_SECTION
 

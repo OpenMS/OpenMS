@@ -90,7 +90,19 @@ namespace OpenMS
   {
 public:
     /// name of enzyme/specificity which signals that the enzyme/specificity should be taken from meta information
-    static char const* const AUTO_MODE; /* = 'auto' */ 
+    static char const* const AUTO_MODE; /* = 'auto' */
+
+    /// Metavalue keys for storing PeptideIndexer settings in ProteinIdentification
+    static constexpr const char* METAVALUE_DECOY_STRING = "PeptideIndexer:decoy_string";
+    static constexpr const char* METAVALUE_DECOY_STRING_POSITION = "PeptideIndexer:decoy_string_position";
+    static constexpr const char* METAVALUE_ENZYME = "PeptideIndexer:enzyme";
+    static constexpr const char* METAVALUE_ENZYME_SPECIFICITY = "PeptideIndexer:enzyme_specificity";
+    static constexpr const char* METAVALUE_AAA_MAX = "PeptideIndexer:aaa_max";
+    static constexpr const char* METAVALUE_MISMATCHES_MAX = "PeptideIndexer:mismatches_max";
+    static constexpr const char* METAVALUE_IL_EQUIVALENT = "PeptideIndexer:IL_equivalent";
+    static constexpr const char* METAVALUE_ALLOW_NTERM_PROTEIN_CLEAVAGE = "PeptideIndexer:allow_nterm_protein_cleavage";
+    static constexpr const char* METAVALUE_UNMATCHED_ACTION = "PeptideIndexer:unmatched_action";
+    static constexpr const char* METAVALUE_MISSING_DECOY_ACTION = "PeptideIndexer:missing_decoy_action"; 
 
     /// Exit codes
     enum ExitCodes
