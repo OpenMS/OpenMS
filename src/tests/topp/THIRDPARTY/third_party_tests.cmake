@@ -162,7 +162,8 @@ if (NOT (${COMET_BINARY} STREQUAL "COMET_BINARY-NOTFOUND"))
 
   #------------------------------------------------------------------------------
   # DatabaseSuitability tests (internally calls CometAdapter)
-  # These tests need CometAdapter in PATH since DatabaseSuitability calls it via ExternalProcess
+  # These tests need CometAdapter in PATH since DatabaseSuitability calls it via ExternalProcess::run()
+  # which searches PATH, rather than using a direct binary path.
   # test default
   add_test("TOPP_DatabaseSuitability_1" ${TOPP_BIN_PATH}/DatabaseSuitability -test -in_id ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_id.idXML -in_spec ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML -in_novo ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_novo.idXML -database ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta -novo_database ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_novo_database.FASTA -out DatabaseSuitability_1.tmp.tsv)
   set_tests_properties("TOPP_DatabaseSuitability_1" PROPERTIES ENVIRONMENT "PATH=${TOPP_BIN_PATH}${PATH_SEPARATOR}$ENV{PATH}")
