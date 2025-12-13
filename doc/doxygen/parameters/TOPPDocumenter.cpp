@@ -158,10 +158,20 @@ void convertINI2HTML(const Param& p, ostream& os)
       if (!it->valid_strings.empty())
       {
         // make sure browsers can word wrap with additional whitespace
-        // TODO: If param name is *modification* just add a link to 
+        // TODO: If param name is *modification* just add a link to
         //  a page with all modifications otherwise you get a HUGE list.
         //  Also think about a different separator, in case the restrictions have commas.
         restrictions.concatenate(it->valid_strings.begin(), it->valid_strings.end(), ", ");
+      }
+      else if (value_type == ParamValue::STRING_VALUE)
+      {
+        // Issue #8475: Flag parameters are written as type="bool" in INI, which loads
+        // as STRING_VALUE with no valid_strings. Detect these by checking if value is boolean.
+        String val = it->value.toString();
+        if (val == "true" || val == "false")
+        {
+          restrictions = "(flag)";
+        }
       }
       break;
 

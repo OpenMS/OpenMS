@@ -3,6 +3,8 @@
 
     def __str__(self):
         """
+        __str__(self: MRMFeature) -> str
+        
         Return a string representation of the MRMFeature object.
         Delegates to __repr__ for consistency.
         """
@@ -10,6 +12,8 @@
 
     def __repr__(self):
         """
+        __repr__(self: MRMFeature) -> str
+        
         Return a string representation of the MRMFeature object.
 
         Returns key properties in a readable format:
