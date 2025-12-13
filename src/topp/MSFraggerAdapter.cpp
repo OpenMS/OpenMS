@@ -104,6 +104,7 @@ public:
   static const String search_enzyme_name;
   static const String search_enzyme_cutafter;
   static const String search_enzyme_nocutbefore;
+  static const String search_enzyme_sense;
   static const String num_enzyme_termini;
   static const String allowed_missed_cleavage;
   static const String digest_min_length;
@@ -280,6 +281,10 @@ protected:
     // No cut before
     registerStringOption_(TOPPMSFraggerAdapter::search_enzyme_nocutbefore, "<search_enzyme_nocutbefore>", "P", "Residues that the enzyme will not cut before", false, false);
 
+    // Enzyme sense (cut terminal)
+    registerStringOption_(TOPPMSFraggerAdapter::search_enzyme_sense, "<search_enzyme_sense>", "C", "Enzyme cutting terminal. 'C' for C-terminal (cut after residue), 'N' for N-terminal (cut before residue)", false, false);
+    setValidStrings_(TOPPMSFraggerAdapter::search_enzyme_sense, ListUtils::create<String>("C,N"));
+
     // Number of enzyme termini
     registerStringOption_(TOPPMSFraggerAdapter::num_enzyme_termini, "<num_enzyme_termini>", "fully", "Number of enzyme termini (non-enzymatic (0), semi (1), fully (2)", false, false);
     setValidStrings_(TOPPMSFraggerAdapter::num_enzyme_termini, ListUtils::create<String>("non-enzymatic,semi,fully"));
@@ -438,6 +443,7 @@ protected:
       const String & arg_search_enzyme_name = this->getStringOption_(TOPPMSFraggerAdapter::search_enzyme_name);
       const String & arg_search_enzyme_cutafter = this->getStringOption_(TOPPMSFraggerAdapter::search_enzyme_cutafter);
       const String & arg_search_enzyme_nocutbefore = this->getStringOption_(TOPPMSFraggerAdapter::search_enzyme_nocutbefore);
+      const String & arg_search_enzyme_sense = this->getStringOption_(TOPPMSFraggerAdapter::search_enzyme_sense);
 
       std::map< String,int > num_enzyme_termini;
       num_enzyme_termini["non-enzymatic"] = 0;
@@ -562,11 +568,12 @@ protected:
                                << "\nfragment_mass_tolerance = " << arg_fragment_mass_tolerance
                                << "\nfragment_mass_units = " << (arg_fragment_mass_unit == "Da" ? 0 : 1)
                                << "\n\nisotope_error = " << arg_isotope_error
-                               << "\n\nsearch_enzyme_name = " << arg_search_enzyme_name
-                               << "\nsearch_enzyme_cutafter = " << arg_search_enzyme_cutafter
-                               << "\nsearch_enzyme_butnotafter = " << arg_search_enzyme_nocutbefore
+                               << "\n\nsearch_enzyme_name_1 = " << arg_search_enzyme_name
+                               << "\nsearch_enzyme_cut_1 = " << arg_search_enzyme_cutafter
+                               << "\nsearch_enzyme_nocut_1 = " << arg_search_enzyme_nocutbefore
+                               << "\nallowed_missed_cleavage_1 = " << arg_allowed_missed_cleavage
+                               << "\nsearch_enzyme_sense_1 = " << arg_search_enzyme_sense
                                << "\n\nnum_enzyme_termini = " << arg_num_enzyme_termini
-                               << "\nallowed_missed_cleavage = " << arg_allowed_missed_cleavage
                                << "\n\nclip_nTerm_M = " << arg_clip_nterm_m << '\n';
 
       // Write variable modifications from masses/syntax and unimod to unique set (and also write to log)
@@ -997,6 +1004,7 @@ const String TOPPMSFraggerAdapter::isotope_error = "tolerance:isotope_error";
 const String TOPPMSFraggerAdapter::search_enzyme_name = "digest:search_enzyme_name";
 const String TOPPMSFraggerAdapter::search_enzyme_cutafter = "digest:search_enzyme_cutafter";
 const String TOPPMSFraggerAdapter::search_enzyme_nocutbefore = "digest:search_enzyme_nocutbefore";
+const String TOPPMSFraggerAdapter::search_enzyme_sense = "digest:search_enzyme_sense";
 const String TOPPMSFraggerAdapter::num_enzyme_termini = "digest:num_enzyme_termini";
 const String TOPPMSFraggerAdapter::allowed_missed_cleavage = "digest:allowed_missed_cleavage";
 const String TOPPMSFraggerAdapter::digest_min_length = "digest:min_length";
