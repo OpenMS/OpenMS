@@ -102,7 +102,7 @@ public:
     static constexpr const char* METAVALUE_IL_EQUIVALENT = "PeptideIndexer:IL_equivalent";
     static constexpr const char* METAVALUE_ALLOW_NTERM_PROTEIN_CLEAVAGE = "PeptideIndexer:allow_nterm_protein_cleavage";
     static constexpr const char* METAVALUE_UNMATCHED_ACTION = "PeptideIndexer:unmatched_action";
-    static constexpr const char* METAVALUE_MISSING_DECOY_ACTION = "PeptideIndexer:missing_decoy_action"; 
+    static constexpr const char* METAVALUE_MISSING_DECOY_ACTION = "PeptideIndexer:missing_decoy_action";
 
     /// Exit codes
     enum ExitCodes
