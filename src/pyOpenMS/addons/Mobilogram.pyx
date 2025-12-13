@@ -5,7 +5,11 @@ import numpy as np
 
 
     def get_peaks(self):
-
+        """
+        get_peaks(self: Mobilogram) -> Tuple[np.ndarray, np.ndarray]
+        
+        Get mobility and intensity arrays as numpy arrays.
+        """
         cdef _Mobilogram * mobilogram_ = self.inst.get()
 
         cdef unsigned int n = mobilogram_.size()
@@ -26,7 +30,11 @@ import numpy as np
         return mobilities, intensities
 
     def set_peaks(self, peaks):
-
+        """
+        set_peaks(self: Mobilogram, peaks: Union[Tuple[np.ndarray, np.ndarray], Tuple[List, List]]) -> None
+        
+        Set mobility and intensity data from arrays or lists.
+        """
         assert isinstance(peaks, (tuple, list)), "Input for set_peaks needs to be a tuple or a list of size 2 (mobility and intensity vector)"
         assert len(peaks) == 2, "Input for set_peaks needs to be a tuple or a list of size 2 (mobility and intensity vector)"
 
@@ -49,7 +57,11 @@ import numpy as np
 
 
     def _set_peaks_fast_dd(self, np.ndarray[double, ndim=1, mode="c"] data_mb not None, np.ndarray[double, ndim=1, mode="c"] data_i not None):
-
+        """
+        _set_peaks_fast_dd(self: Mobilogram, data_mb: np.ndarray, data_i: np.ndarray) -> None
+        
+        Internal method to set peaks from double/double numpy arrays.
+        """
         cdef _Mobilogram * mobilogram_ = self.inst.get()
 
         mobilogram_.resize(0) # empty vector, keep meta data and data arrays
@@ -71,7 +83,11 @@ import numpy as np
 
 
     def _set_peaks_fast_df(self, np.ndarray[double, ndim=1, mode="c"] data_mb not None, np.ndarray[float, ndim=1, mode="c"] data_i not None):
-
+        """
+        _set_peaks_fast_df(self: Mobilogram, data_mb: np.ndarray, data_i: np.ndarray) -> None
+        
+        Internal method to set peaks from double/float numpy arrays.
+        """
         cdef _Mobilogram * mobilogram_ = self.inst.get()
 
         mobilogram_.resize(0) # empty vector, keep meta data and data arrays
@@ -93,8 +109,11 @@ import numpy as np
 
 
     def _set_peaks_orig(self, mobilities, intensities):
-
-
+        """
+        _set_peaks_orig(self: Mobilogram, mobilities: Union[List, np.ndarray], intensities: Union[List, np.ndarray]) -> None
+        
+        Internal method to set peaks from generic lists or arrays.
+        """
         cdef _Mobilogram * mobilogram_ = self.inst.get()
 
         mobilogram_.resize(0) # empty vector, keep meta data and data arrays
@@ -115,11 +134,17 @@ import numpy as np
         mobilogram_.updateRanges()
 
     def __len__(self):
-        """Return the number of peaks in the mobilogram."""
+        """
+        __len__(self: Mobilogram) -> int
+        
+        Return the number of peaks in the mobilogram.
+        """
         return self.inst.get().size()
 
     def __str__(self):
         """
+        __str__(self: Mobilogram) -> str
+        
         Return a string representation of the Mobilogram object.
         Delegates to __repr__ for consistency.
         """
@@ -127,6 +152,8 @@ import numpy as np
 
     def __repr__(self):
         """
+        __repr__(self: Mobilogram) -> str
+        
         Return a string representation of the Mobilogram object.
 
         Returns key properties in a readable format:
@@ -157,7 +184,10 @@ import numpy as np
         return f"Mobilogram({', '.join(parts)})"
 
     def get_df_columns(self, columns='default'):
-        """Returns a list of column names that get_df() would produce for this mobilogram.
+        """
+        get_df_columns(self: Mobilogram, columns: str = 'default') -> List[str]
+        
+        Returns a list of column names that get_df() would produce for this mobilogram.
 
         Useful for discovering available columns before export.
 
@@ -176,7 +206,10 @@ import numpy as np
         return ['mobility', 'intensity', 'rt', 'drift_time_unit']
 
     def get_data_dict(self, columns=None):
-        """Returns a dictionary of NumPy arrays with mobility, intensities, and metadata.
+        """
+        get_data_dict(self: Mobilogram, columns: Optional[List[str]] = None) -> Dict[str, np.ndarray]
+        
+        Returns a dictionary of NumPy arrays with mobility, intensities, and metadata.
 
         This method extracts mobilogram data including peaks
         into a dictionary format suitable for conversion to a pandas DataFrame.

@@ -5,7 +5,10 @@ import numpy as np
 
 
     def get_df_columns(self, columns='default', export_meta_values=True):
-        """Returns a list of column names that get_df() would produce for this spectrum.
+        """
+        get_df_columns(self: MSSpectrum, columns: str = 'default', export_meta_values: bool = True) -> List[str]
+        
+        Returns a list of column names that get_df() would produce for this spectrum.
 
         Useful for discovering available columns before export, especially when
         selecting specific columns for performance optimization.
@@ -81,7 +84,10 @@ import numpy as np
         return cols
 
     def get_data_dict(self, columns=None, export_meta_values=True):
-        """Returns a dictionary of NumPy arrays with m/z, intensities, and metadata.
+        """
+        get_data_dict(self: MSSpectrum, columns: Optional[List[str]] = None, export_meta_values: bool = True) -> Dict[str, np.ndarray]
+        
+        Returns a dictionary of NumPy arrays with m/z, intensities, and metadata.
 
         This method extracts spectrum data including peaks, retention time, MS level,
         ion mobility data (if present), precursor information, and optional meta values
@@ -313,6 +319,8 @@ import numpy as np
 
     def get_mz_array(MSSpectrum self):
         """
+        get_mz_array(self: MSSpectrum) -> np.ndarray
+        
         Get the m/z values of the spectrum as a numpy array.
 
         Returns:
@@ -339,6 +347,8 @@ import numpy as np
 
     def get_intensity_array(MSSpectrum self):
         """
+        get_intensity_array(self: MSSpectrum) -> np.ndarray
+        
         Get the intensity values of the spectrum as a numpy array.
 
         Returns:
@@ -364,7 +374,10 @@ import numpy as np
         return intensities
 
     def get_peaks(self):
-        """Cython signature: numpy_vector, numpy_vector get_peaks()
+        """
+        get_peaks(self: MSSpectrum) -> Tuple[np.ndarray, np.ndarray]
+        
+        Cython signature: numpy_vector, numpy_vector get_peaks()
 
         Will return a tuple of two numpy arrays (m/z, intensity) corresponding
         to the peaks in the MSSpectrum. Provides fast access to peaks.
@@ -398,7 +411,10 @@ import numpy as np
         return mzs, intensities
 
     def set_peaks(self, peaks):
-        """Cython signature: set_peaks((numpy_vector, numpy_vector))
+        """
+        set_peaks(self: MSSpectrum, peaks: Union[Tuple[np.ndarray, np.ndarray], Tuple[List, List]]) -> None
+        
+        Cython signature: set_peaks((numpy_vector, numpy_vector))
 
         Takes a tuple or list of two arrays (m/z, intensity) and populates the
         MSSpectrum. The arrays can be numpy arrays (faster).
@@ -426,7 +442,11 @@ import numpy as np
 
 
     def _set_peaks_fast_dd(self, np.ndarray[double, ndim=1, mode="c"] data_mz not None, np.ndarray[double, ndim=1, mode="c"] data_i not None):
-
+        """
+        _set_peaks_fast_dd(self: MSSpectrum, data_mz: np.ndarray, data_i: np.ndarray) -> None
+        
+        Internal method to set peaks from double/double numpy arrays.
+        """
         cdef _MSSpectrum * spec_ = self.inst.get()
 
         spec_.resize(0) # empty vector, keep meta data and data arrays
@@ -448,7 +468,11 @@ import numpy as np
 
 
     def _set_peaks_fast_df(self, np.ndarray[double, ndim=1, mode="c"] data_mz not None, np.ndarray[float, ndim=1, mode="c"] data_i not None):
-
+        """
+        _set_peaks_fast_df(self: MSSpectrum, data_mz: np.ndarray, data_i: np.ndarray) -> None
+        
+        Internal method to set peaks from double/float numpy arrays.
+        """
         cdef _MSSpectrum * spec_ = self.inst.get()
 
         spec_.resize(0) # empty vector, keep meta data and data arrays
@@ -470,8 +494,11 @@ import numpy as np
 
 
     def _set_peaks_orig(self, mzs, intensities):
-
-
+        """
+        _set_peaks_orig(self: MSSpectrum, mzs: Union[List, np.ndarray], intensities: Union[List, np.ndarray]) -> None
+        
+        Internal method to set peaks from generic lists or arrays.
+        """
         cdef _MSSpectrum * spec_ = self.inst.get()
 
         spec_.resize(0) # empty vector, keep meta data and data arrays
@@ -492,7 +519,11 @@ import numpy as np
         spec_.updateRanges()
 
     def intensityInRange(self, float mzmin, float mzmax):
-
+        """
+        intensityInRange(self: MSSpectrum, mzmin: float, mzmax: float) -> float
+        
+        Get the total intensity in the m/z range [mzmin, mzmax].
+        """
         cdef double I
 
         cdef _MSSpectrum * spec_ = self.inst.get()
@@ -514,6 +545,8 @@ import numpy as np
 
     def getIMData(self):
         """
+        getIMData(self: MSSpectrum) -> Tuple[int, int]
+        
         Get the position of ion mobility data array and its unit.
 
         Returns:
@@ -537,6 +570,8 @@ import numpy as np
 
     def get_drift_time_array(self):
         """
+        get_drift_time_array(self: MSSpectrum) -> Optional[np.ndarray]
+        
         Get the ion mobility drift time array as a numpy array (copy).
 
         This is a convenience method that retrieves the ion mobility data
@@ -574,6 +609,8 @@ import numpy as np
 
     def get_drift_time_array_mv(self):
         """
+        get_drift_time_array_mv(self: MSSpectrum) -> Optional[memoryview]
+        
         Get the ion mobility drift time array as a memory view (no copy).
 
         This method provides direct access to the underlying drift time data
@@ -613,6 +650,8 @@ import numpy as np
 
     def get_drift_time_unit(self):
         """
+        get_drift_time_unit(self: MSSpectrum) -> Optional[int]
+        
         Get the drift time unit for ion mobility data.
 
         Returns:
@@ -631,11 +670,17 @@ import numpy as np
         return <int>r.second
 
     def __len__(self):
-        """Return the number of peaks in the spectrum."""
+        """
+        __len__(self: MSSpectrum) -> int
+        
+        Return the number of peaks in the spectrum.
+        """
         return self.inst.get().size()
 
     def __str__(self):
         """
+        __str__(self: MSSpectrum) -> str
+        
         Return a string representation of the MSSpectrum object.
         Delegates to __repr__ for consistency.
         """
@@ -643,6 +688,8 @@ import numpy as np
 
     def __repr__(self):
         """
+        __repr__(self: MSSpectrum) -> str
+        
         Return a string representation of the MSSpectrum object.
 
         Returns key properties in a readable format:

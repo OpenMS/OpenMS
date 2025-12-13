@@ -3,6 +3,11 @@
 
 
     def __getitem__(self,  in_0 ):
+        """
+        __getitem__(self: StringDataArray, in_0: int) -> bytes
+        
+        Get element at index in_0.
+        """
         assert isinstance(in_0, int), 'arg in_0 wrong type'
         assert in_0 >= 0, 'arg in_0 cannot be negative'
 
@@ -15,6 +20,11 @@
         return py_result
 
     def __setitem__(self, key, value):
+        """
+        __setitem__(self: StringDataArray, key: int, value: Union[str, bytes, unicode, String]) -> None
+        
+        Set element at index key to value.
+        """
         assert isinstance(key, int), 'arg key wrong type'
         assert (isinstance(value, str) or isinstance(value, unicode) or isinstance(value, bytes) or isinstance(value, String)), 'arg value wrong type'
         assert key >= 0, 'arg key cannot be negative'
@@ -27,11 +37,17 @@
         deref(self.inst.get())[(<int>key)] = deref(_s.get())
 
     def __len__(self):
-        """Return the number of elements in the array."""
+        """
+        __len__(self: StringDataArray) -> int
+        
+        Return the number of elements in the array.
+        """
         return self.inst.get().size()
 
     def get_data(self):
         """
+        get_data(self: StringDataArray) -> List[bytes]
+        
         Gets the data as a list of Python strings.
 
         This method creates a copy of the underlying data, so it's safe to use
