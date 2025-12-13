@@ -1,0 +1,139 @@
+# cython: language_level=3
+
+from libcpp.vector cimport vector as libcpp_vector
+import numpy as np
+cimport cython
+
+cdef extern from * namespace "OpenMS::Math":
+    """
+    #include <OpenMS/MATH/STATISTICS/MultipleTesting.h>
+    namespace OpenMS { namespace Math {
+
+      inline std::vector<double> compute_model_fdr_double_i(std::vector<double> a) {
+        return compute_model_fdr<double>(a);
+      }
+      inline std::vector<double> compute_model_fdr_float_i(std::vector<float> a) {
+        return compute_model_fdr<float>(a);
+      }
+      inline std::vector<double> compute_model_fdr_int_i(std::vector<int> a) {
+        return compute_model_fdr<int>(a);
+      }
+
+      inline std::vector<double> pemp_double_i(std::vector<double> s, std::vector<double> s0) { return pemp<double>(s, s0); }
+      inline std::vector<double> pemp_float_i(std::vector<float> s, std::vector<float> s0) { return pemp<float>(s, s0); }
+      inline std::vector<double> pemp_int_i(std::vector<int> s, std::vector<int> s0) { return pemp<int>(s, s0); }
+
+    }}
+    """
+    libcpp_vector[double] compute_model_fdr_double_i(libcpp_vector[double] a) except +
+    libcpp_vector[double] compute_model_fdr_float_i(libcpp_vector[float] a) except +
+    libcpp_vector[double] compute_model_fdr_int_i(libcpp_vector[int] a) except +
+
+    libcpp_vector[double] pemp_double_i(libcpp_vector[double] s, libcpp_vector[double] s0) except +
+    libcpp_vector[double] pemp_float_i(libcpp_vector[float] s, libcpp_vector[float] s0) except +
+    libcpp_vector[double] pemp_int_i(libcpp_vector[int] s, libcpp_vector[int] s0) except +
+
+
+cdef extern from "<OpenMS/MATH/STATISTICS/MultipleTesting.h>" namespace "OpenMS::Math":
+    libcpp_vector[double] qvalue(libcpp_vector[double] p_values, double pi0, bint pfdr) except +
+
+    cdef cppclass Pi0Result:
+        double pi0
+        libcpp_vector[double] pi0_lambda
+        libcpp_vector[double] lambda_
+        bint pi0_smooth
+
+    Pi0Result pi0est(libcpp_vector[double] p_values, libcpp_vector[double] lambda_) except +
+
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def _to_vec_double(arr):
+    cdef libcpp_vector[double] v
+    a = np.asarray(arr, dtype=float)
+    cdef double[:] mv = a.ravel()
+    v.reserve(mv.shape[0])
+    for i in range(mv.shape[0]):
+        v.push_back(mv[i])
+    return v
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def _to_vec_float(arr):
+    cdef libcpp_vector[float] v
+    a = np.asarray(arr, dtype=float)
+    cdef double[:] mv = a.ravel()
+    v.reserve(mv.shape[0])
+    for i in range(mv.shape[0]):
+        v.push_back(<float> mv[i])
+    return v
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def _to_vec_int(arr):
+    cdef libcpp_vector[int] v
+    a = np.asarray(arr, dtype=int)
+    cdef long[:] mv = a.ravel()
+    v.reserve(mv.shape[0])
+    for i in range(mv.shape[0]):
+        v.push_back(<int> mv[i])
+    return v
+
+def _vec_to_numpy(libcpp_vector[double] v):
+    cdef Py_ssize_t n = v.size()
+    if n == 0:
+        return np.empty((0,), dtype=float)
+    cdef np.ndarray out = np.empty((n,), dtype=float)
+    cdef double[:] outv = out
+    for i in range(n):
+        outv[i] = v[i]
+    return out
+
+
+def compute_model_fdr(values, dtype="float64"):
+    """Compute model-based FDR estimates from posterior error probabilities."""
+    if dtype == "float64":
+        out = compute_model_fdr_double_i(_to_vec_double(values))
+    elif dtype == "float32":
+        out = compute_model_fdr_float_i(_to_vec_float(values))
+    elif dtype == "int32":
+        out = compute_model_fdr_int_i(_to_vec_int(values))
+    else:
+        raise ValueError(f"Unsupported dtype: {dtype!r}")
+    return np.asarray(out, dtype=float)
+
+
+def pemp(stat, stat0, dtype="float64"):
+    """Empirical p-values (qvalue::empPvals translation)."""
+    if dtype == "float64":
+        out = pemp_double_i(_to_vec_double(stat), _to_vec_double(stat0))
+    elif dtype == "float32":
+        out = pemp_float_i(_to_vec_float(stat), _to_vec_float(stat0))
+    elif dtype == "int32":
+        out = pemp_int_i(_to_vec_int(stat), _to_vec_int(stat0))
+    else:
+        raise ValueError(f"Unsupported dtype: {dtype!r}")
+    return np.asarray(out, dtype=float)
+
+
+def qvalue_py(p_values, pi0=1.0, pfdr=False):
+    """Compute q-values from p-values and pi0."""
+    out = qvalue(_to_vec_double(p_values), <double> pi0, <bint> pfdr)
+    return np.asarray(out, dtype=float)
+
+
+def pi0est_py(p_values, lambda_=None):
+    """Estimate pi0. Returns dict {pi0, pi0_lambda, lambda, pi0_smooth}."""
+    if lambda_ is None:
+        lamb = libcpp_vector[double]()
+    else:
+        lamb = _to_vec_double(lambda_)
+
+    res = pi0est(_to_vec_double(p_values), lamb)
+
+    return {
+        'pi0': res.pi0,
+        'pi0_lambda': _vec_to_numpy(res.pi0_lambda),
+        'lambda': _vec_to_numpy(res.lambda_),
+        'pi0_smooth': res.pi0_smooth != 0
+    }
