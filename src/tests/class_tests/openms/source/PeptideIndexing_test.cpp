@@ -343,6 +343,57 @@ START_SECTION((ExitCodes run(std::vector<FASTAFile::FASTAEntry>& proteins, std::
 }
 END_SECTION
 
+START_SECTION((Test PeptideIndexer settings stored as metavalues))
+{
+  // Test that PeptideIndexer settings are stored as metavalues in ProteinIdentification
+  PeptideIndexing pi;
+  Param p = pi.getParameters();
+  p.setValue("decoy_string", "DECOY_");
+  p.setValue("decoy_string_position", "prefix");
+  p.setValue("enzyme:name", "Trypsin");
+  p.setValue("enzyme:specificity", "full");
+  p.setValue("aaa_max", 2);
+  p.setValue("mismatches_max", 1);
+  p.setValue("IL_equivalent", "true");
+  p.setValue("allow_nterm_protein_cleavage", "false");
+  p.setValue("unmatched_action", "warn");
+  p.setValue("missing_decoy_action", "warn");
+  pi.setParameters(p);
+
+  std::vector<FASTAFile::FASTAEntry> proteins = toFASTAVec(QStringList() << "PEPTIDER" << "DECOY_SEQUENCE");
+  std::vector<ProteinIdentification> prot_ids;
+  PeptideIdentificationList pep_ids = toPepVec(QStringList() << "PEPTIDER");
+  
+  PeptideIndexing::ExitCodes r = pi.run(proteins, prot_ids, pep_ids);
+  TEST_EQUAL(r, PeptideIndexing::EXECUTION_OK);
+  
+  // Check that at least one ProteinIdentification was created
+  TEST_EQUAL(prot_ids.size() > 0, true);
+  
+  // Check that metavalues are set correctly
+  TEST_EQUAL(prot_ids[0].metaValueExists("PeptideIndexer:decoy_string"), true);
+  TEST_EQUAL(prot_ids[0].getMetaValue("PeptideIndexer:decoy_string"), "DECOY_");
+  TEST_EQUAL(prot_ids[0].metaValueExists("PeptideIndexer:decoy_string_position"), true);
+  TEST_EQUAL(prot_ids[0].getMetaValue("PeptideIndexer:decoy_string_position"), "prefix");
+  TEST_EQUAL(prot_ids[0].metaValueExists("PeptideIndexer:enzyme"), true);
+  TEST_EQUAL(prot_ids[0].getMetaValue("PeptideIndexer:enzyme"), "Trypsin");
+  TEST_EQUAL(prot_ids[0].metaValueExists("PeptideIndexer:enzyme_specificity"), true);
+  TEST_EQUAL(prot_ids[0].getMetaValue("PeptideIndexer:enzyme_specificity"), "full");
+  TEST_EQUAL(prot_ids[0].metaValueExists("PeptideIndexer:aaa_max"), true);
+  TEST_EQUAL(prot_ids[0].getMetaValue("PeptideIndexer:aaa_max"), 2);
+  TEST_EQUAL(prot_ids[0].metaValueExists("PeptideIndexer:mismatches_max"), true);
+  TEST_EQUAL(prot_ids[0].getMetaValue("PeptideIndexer:mismatches_max"), 1);
+  TEST_EQUAL(prot_ids[0].metaValueExists("PeptideIndexer:IL_equivalent"), true);
+  TEST_EQUAL(prot_ids[0].getMetaValue("PeptideIndexer:IL_equivalent"), "true");
+  TEST_EQUAL(prot_ids[0].metaValueExists("PeptideIndexer:allow_nterm_protein_cleavage"), true);
+  TEST_EQUAL(prot_ids[0].getMetaValue("PeptideIndexer:allow_nterm_protein_cleavage"), "false");
+  TEST_EQUAL(prot_ids[0].metaValueExists("PeptideIndexer:unmatched_action"), true);
+  TEST_EQUAL(prot_ids[0].getMetaValue("PeptideIndexer:unmatched_action"), "warn");
+  TEST_EQUAL(prot_ids[0].metaValueExists("PeptideIndexer:missing_decoy_action"), true);
+  TEST_EQUAL(prot_ids[0].getMetaValue("PeptideIndexer:missing_decoy_action"), "warn");
+}
+END_SECTION
+
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

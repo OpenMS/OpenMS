@@ -821,6 +821,20 @@ PeptideIndexing::ExitCodes PeptideIndexing::run_(FASTAContainer<T>& proteins, st
   OPENMS_LOG_INFO << "  orphaned proteins      : " << stats_orphaned_proteins << (keep_unreferenced_proteins_ ? " (all kept)" : " (all removed)\n");
   OPENMS_LOG_INFO << "-----------------------------------" << std::endl;
 
+  // Store PeptideIndexer settings in ProteinIdentification metavalues for documentation
+  for (Size run_idx = 0; run_idx < prot_ids.size(); ++run_idx)
+  {
+    prot_ids[run_idx].setMetaValue("PeptideIndexer:decoy_string", decoy_string_);
+    prot_ids[run_idx].setMetaValue("PeptideIndexer:decoy_string_position", prefix_ ? "prefix" : "suffix");
+    prot_ids[run_idx].setMetaValue("PeptideIndexer:enzyme", enzyme.getEnzymeName());
+    prot_ids[run_idx].setMetaValue("PeptideIndexer:enzyme_specificity", EnzymaticDigestion::NamesOfSpecificity[enzyme.getSpecificity()]);
+    prot_ids[run_idx].setMetaValue("PeptideIndexer:aaa_max", aaa_max_);
+    prot_ids[run_idx].setMetaValue("PeptideIndexer:mismatches_max", mm_max_);
+    prot_ids[run_idx].setMetaValue("PeptideIndexer:IL_equivalent", IL_equivalent_ ? "true" : "false");
+    prot_ids[run_idx].setMetaValue("PeptideIndexer:allow_nterm_protein_cleavage", allow_nterm_protein_cleavage_ ? "true" : "false");
+    prot_ids[run_idx].setMetaValue("PeptideIndexer:unmatched_action", names_of_unmatched[(Size)unmatched_action_]);
+    prot_ids[run_idx].setMetaValue("PeptideIndexer:missing_decoy_action", names_of_missing_decoy[(Size)missing_decoy_action_]);
+  }
 
   /// exit if no peptides were matched to decoy
   bool has_error = false;
