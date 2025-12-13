@@ -313,6 +313,192 @@ START_SECTION((bool updateProteinGroups(vector<ProteinIdentification::ProteinGro
 }
 END_SECTION
 
+START_SECTION((static bool updateProteinGroups(ProteinIdentification& proteins)))
+{
+  // Set up a ProteinIdentification with hits and groups
+  ProteinIdentification prot_id;
+  prot_id.setIdentifier("test_run");
+
+  // Add protein hits
+  vector<ProteinHit> hits(4);
+  hits[0].setAccession("A");
+  hits[0].setScore(0.9);
+  hits[1].setAccession("B");
+  hits[1].setScore(0.8);
+  hits[2].setAccession("C");
+  hits[2].setScore(0.7);
+  hits[3].setAccession("D");
+  hits[3].setScore(0.6);
+  prot_id.setHits(hits);
+
+  // Add indistinguishable protein groups
+  vector<ProteinIdentification::ProteinGroup> indist_groups(2);
+  indist_groups[0].accessions = {"A"};
+  indist_groups[0].probability = 0.9;
+  indist_groups[1].accessions = {"B", "C"};
+  indist_groups[1].probability = 0.85;
+  prot_id.getIndistinguishableProteins() = indist_groups;
+
+  // Add protein groups
+  vector<ProteinIdentification::ProteinGroup> prot_groups(1);
+  prot_groups[0].accessions = {"A", "B", "C", "D"};
+  prot_groups[0].probability = 0.95;
+  prot_id.getProteinGroups() = prot_groups;
+
+  // Test 1: All proteins present - should return true (valid)
+  bool valid = IDFilter::updateProteinGroups(prot_id);
+  TEST_EQUAL(valid, true);
+  TEST_EQUAL(prot_id.getIndistinguishableProteins().size(), 2);
+  TEST_EQUAL(prot_id.getProteinGroups().size(), 1);
+  TEST_EQUAL(prot_id.getProteinGroups()[0].accessions.size(), 4);
+
+  // Test 2: Remove protein D - should return false (partial group removal)
+  vector<ProteinHit>& mutable_hits = prot_id.getHits();
+  mutable_hits.pop_back(); // Remove D
+  valid = IDFilter::updateProteinGroups(prot_id);
+  TEST_EQUAL(valid, false); // D was removed from the protein group
+  TEST_EQUAL(prot_id.getIndistinguishableProteins().size(), 2);
+  TEST_EQUAL(prot_id.getProteinGroups().size(), 1);
+  TEST_EQUAL(prot_id.getProteinGroups()[0].accessions.size(), 3);
+
+  // Test 3: Remove protein A - removes entire indist group
+  mutable_hits.erase(mutable_hits.begin()); // Remove A
+  valid = IDFilter::updateProteinGroups(prot_id);
+  TEST_EQUAL(valid, false); // A was removed from the protein group
+  TEST_EQUAL(prot_id.getIndistinguishableProteins().size(), 1); // Group {A} removed
+  TEST_EQUAL(prot_id.getProteinGroups().size(), 1);
+  TEST_EQUAL(prot_id.getProteinGroups()[0].accessions.size(), 2); // Only B, C remain
+}
+END_SECTION
+
+START_SECTION((static bool updateProteinGroups(ConsensusMap& cmap)))
+{
+  ConsensusMap cmap;
+
+  // Set up first protein identification run
+  ProteinIdentification prot_id1;
+  prot_id1.setIdentifier("run1");
+  vector<ProteinHit> hits1(2);
+  hits1[0].setAccession("P1");
+  hits1[0].setScore(0.9);
+  hits1[1].setAccession("P2");
+  hits1[1].setScore(0.8);
+  prot_id1.setHits(hits1);
+
+  vector<ProteinIdentification::ProteinGroup> groups1(1);
+  groups1[0].accessions = {"P1", "P2"};
+  groups1[0].probability = 0.9;
+  prot_id1.getIndistinguishableProteins() = groups1;
+
+  // Set up second protein identification run
+  ProteinIdentification prot_id2;
+  prot_id2.setIdentifier("run2");
+  vector<ProteinHit> hits2(2);
+  hits2[0].setAccession("P3");
+  hits2[0].setScore(0.7);
+  hits2[1].setAccession("P4");
+  hits2[1].setScore(0.6);
+  prot_id2.setHits(hits2);
+
+  vector<ProteinIdentification::ProteinGroup> groups2(1);
+  groups2[0].accessions = {"P3", "P4"};
+  groups2[0].probability = 0.85;
+  prot_id2.getIndistinguishableProteins() = groups2;
+
+  cmap.getProteinIdentifications().push_back(prot_id1);
+  cmap.getProteinIdentifications().push_back(prot_id2);
+
+  // Test 1: All proteins present - should return true
+  bool valid = IDFilter::updateProteinGroups(cmap);
+  TEST_EQUAL(valid, true);
+  TEST_EQUAL(cmap.getProteinIdentifications()[0].getIndistinguishableProteins().size(), 1);
+  TEST_EQUAL(cmap.getProteinIdentifications()[1].getIndistinguishableProteins().size(), 1);
+
+  // Test 2: Remove P2 from first run - should return false
+  cmap.getProteinIdentifications()[0].getHits().pop_back();
+  valid = IDFilter::updateProteinGroups(cmap);
+  TEST_EQUAL(valid, false);
+  TEST_EQUAL(cmap.getProteinIdentifications()[0].getIndistinguishableProteins()[0].accessions.size(), 1);
+  TEST_EQUAL(cmap.getProteinIdentifications()[0].getIndistinguishableProteins()[0].accessions[0], "P1");
+}
+END_SECTION
+
+START_SECTION((static bool sanitizeProteinReferencesAndGroups(ConsensusMap& cmap, bool remove_peptides_without_reference, bool include_unassigned)))
+{
+  ConsensusMap cmap;
+
+  // Set up protein identification
+  ProteinIdentification prot_id;
+  prot_id.setIdentifier("test_run");
+  vector<ProteinHit> hits(3);
+  hits[0].setAccession("ProtA");
+  hits[0].setScore(0.9);
+  hits[1].setAccession("ProtB");
+  hits[1].setScore(0.8);
+  hits[2].setAccession("ProtC"); // This one will be unreferenced
+  hits[2].setScore(0.7);
+  prot_id.setHits(hits);
+
+  vector<ProteinIdentification::ProteinGroup> groups(1);
+  groups[0].accessions = {"ProtA", "ProtB", "ProtC"};
+  groups[0].probability = 0.9;
+  prot_id.getIndistinguishableProteins() = groups;
+
+  cmap.getProteinIdentifications().push_back(prot_id);
+
+  // Add peptide identifications that only reference ProtA and ProtB (not ProtC)
+  PeptideIdentification pep_id1;
+  pep_id1.setIdentifier("test_run");
+  PeptideHit pep_hit1;
+  pep_hit1.setSequence(AASequence::fromString("PEPTIDE"));
+  pep_hit1.setScore(0.9);
+  vector<PeptideEvidence> evidences1;
+  PeptideEvidence ev1;
+  ev1.setProteinAccession("ProtA");
+  evidences1.push_back(ev1);
+  pep_hit1.setPeptideEvidences(evidences1);
+  pep_id1.setHits({pep_hit1});
+
+  PeptideIdentification pep_id2;
+  pep_id2.setIdentifier("test_run");
+  PeptideHit pep_hit2;
+  pep_hit2.setSequence(AASequence::fromString("ANOTHER"));
+  pep_hit2.setScore(0.8);
+  vector<PeptideEvidence> evidences2;
+  PeptideEvidence ev2;
+  ev2.setProteinAccession("ProtB");
+  evidences2.push_back(ev2);
+  pep_hit2.setPeptideEvidences(evidences2);
+  pep_id2.setHits({pep_hit2});
+
+  // Add to unassigned peptide IDs
+  cmap.getUnassignedPeptideIdentifications().push_back(pep_id1);
+  cmap.getUnassignedPeptideIdentifications().push_back(pep_id2);
+
+  // Before sanitization: 3 proteins, 1 group with 3 members
+  TEST_EQUAL(cmap.getProteinIdentifications()[0].getHits().size(), 3);
+  TEST_EQUAL(cmap.getProteinIdentifications()[0].getIndistinguishableProteins()[0].accessions.size(), 3);
+
+  // Sanitize
+  bool valid = IDFilter::sanitizeProteinReferencesAndGroups(cmap, true, true);
+
+  // After sanitization: ProtC should be removed (unreferenced)
+  TEST_EQUAL(valid, false); // Group lost a member
+  TEST_EQUAL(cmap.getProteinIdentifications()[0].getHits().size(), 2);
+  TEST_EQUAL(cmap.getProteinIdentifications()[0].getIndistinguishableProteins()[0].accessions.size(), 2);
+
+  // Verify the remaining proteins are ProtA and ProtB
+  set<String> remaining_accessions;
+  for (const auto& hit : cmap.getProteinIdentifications()[0].getHits())
+  {
+    remaining_accessions.insert(hit.getAccession());
+  }
+  TEST_EQUAL(remaining_accessions.count("ProtA"), 1);
+  TEST_EQUAL(remaining_accessions.count("ProtB"), 1);
+  TEST_EQUAL(remaining_accessions.count("ProtC"), 0);
+}
+END_SECTION
+
 START_SECTION((template <class IdentificationType> static void removeEmptyIdentifications(vector<IdentificationType>& ids)))
 {
   vector<ProteinIdentification> proteins(2);

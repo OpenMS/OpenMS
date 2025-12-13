@@ -819,6 +819,47 @@ namespace OpenMS
     static bool updateProteinGroups(std::vector<ProteinIdentification::ProteinGroup>& groups, const std::vector<ProteinHit>& hits);
 
     /**
+       @brief Update protein groups (both indistinguishable and protein groups) in a ProteinIdentification
+
+       Convenience overload that updates both regular protein groups and indistinguishable protein groups
+       based on the current protein hits. Selects the best-scoring remaining protein as the new group leader
+       when the original leader is removed.
+
+       @param proteins Input/output ProteinIdentification whose groups will be updated
+
+       @return Returns whether all groups are still valid (true if only whole groups were removed, false if any group lost members)
+    */
+    static bool updateProteinGroups(ProteinIdentification& proteins);
+
+    /**
+       @brief Update protein groups in all ProteinIdentification runs of a ConsensusMap
+
+       Convenience overload that iterates over all protein identification runs in the ConsensusMap
+       and updates both regular and indistinguishable protein groups for each.
+
+       @param cmap Input/output ConsensusMap whose protein groups will be updated
+
+       @return Returns whether all groups across all runs are still valid
+    */
+    static bool updateProteinGroups(ConsensusMap& cmap);
+
+    /**
+       @brief Convenience function to sanitize protein references and groups after filtering
+
+       This function consolidates the common post-filtering cleanup pattern:
+       1. Update peptide-protein references (remove PeptideEvidence entries pointing to missing proteins)
+       2. Remove unreferenced proteins (proteins not referenced by any remaining peptide)
+       3. Update protein groups (remove groups or group members that no longer have protein hits)
+
+       @param cmap Input/output ConsensusMap to sanitize
+       @param remove_peptides_without_reference If true, remove peptide hits that have no remaining protein references
+       @param include_unassigned If true, also consider unassigned peptide identifications
+
+       @return Returns whether all protein groups are still valid after sanitization
+    */
+    static bool sanitizeProteinReferencesAndGroups(ConsensusMap& cmap, bool remove_peptides_without_reference = true, bool include_unassigned = true);
+
+    /**
        @brief Update protein hits after protein groups were filtered
 
        @param groups Available protein groups with protein accessions to keep

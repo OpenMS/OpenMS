@@ -444,6 +444,42 @@ namespace OpenMS
     return valid;
   }
 
+  bool IDFilter::updateProteinGroups(ProteinIdentification& proteins)
+  {
+    const vector<ProteinHit>& hits = proteins.getHits();
+
+    // Update both indistinguishable proteins and protein groups
+    bool indist_valid = updateProteinGroups(proteins.getIndistinguishableProteins(), hits);
+    bool groups_valid = updateProteinGroups(proteins.getProteinGroups(), hits);
+
+    return indist_valid && groups_valid;
+  }
+
+  bool IDFilter::updateProteinGroups(ConsensusMap& cmap)
+  {
+    bool all_valid = true;
+    for (ProteinIdentification& prot_id : cmap.getProteinIdentifications())
+    {
+      if (!updateProteinGroups(prot_id))
+      {
+        all_valid = false;
+      }
+    }
+    return all_valid;
+  }
+
+  bool IDFilter::sanitizeProteinReferencesAndGroups(ConsensusMap& cmap, bool remove_peptides_without_reference, bool include_unassigned)
+  {
+    // Step 1: Update peptide-protein references (remove PeptideEvidence pointing to missing proteins)
+    updateProteinReferences(cmap, remove_peptides_without_reference);
+
+    // Step 2: Remove proteins that are no longer referenced by any peptide
+    removeUnreferencedProteins(cmap, include_unassigned);
+
+    // Step 3: Update protein groups to reflect the filtered protein hits
+    return updateProteinGroups(cmap);
+  }
+
   void IDFilter::removeUngroupedProteins(const vector<ProteinIdentification::ProteinGroup>& groups, vector<ProteinHit>& hits)
   {
     if (hits.empty())
