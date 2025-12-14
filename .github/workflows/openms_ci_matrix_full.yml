@@ -274,6 +274,9 @@ jobs:
           # WARNING: Don't add any dependency install commands here.
           # Instead edit the following script:
           bash OpenMS/tools/ci/deps-ubuntu.sh
+          if [["${{ steps.set-vars.outputs.pkg_type }}" != "deb" ]]; then
+            bash OpenMS/tools/ci/deps-ubuntu-deb.sh
+          fi
           # Install libomp for clang compiler (needed for OpenMP support)
           # Use version-specific package matching the clang version
           if [[ "${{ matrix.compiler }}" == clang* ]]; then
