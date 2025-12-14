@@ -11,7 +11,9 @@
 #   password_env_var - Environment variable name containing app-specific password
 #   log_folder       - Optional: folder for log files (defaults to current directory)
 
+# Exit on error and fail on any error in a pipeline
 set -e
+set -o pipefail
 
 BUNDLE_PKG="$1"
 BUNDLE_ID="$2"
@@ -25,6 +27,7 @@ mkdir -p "$LOG_FOLDER"
 touch "$NOTARIZE_LOG"
 
 REMOVE_PKG=false
+IS_ZIP=false
 
 echo "=== macOS Notarization Script ==="
 echo "Bundle: $BUNDLE_PKG"
@@ -55,7 +58,8 @@ elif [[ $BUNDLE_PKG == *.pkg ]]; then
     echo "Notarizing PKG: $BUNDLE_PKG"
 elif [[ $BUNDLE_PKG == *.zip ]]; then
     # For zip files, we need to unzip to staple, then re-zip
-    BUNDLE_FILE=${BUNDLE_PKG%.*}
+    BUNDLE_FILE="$BUNDLE_PKG"
+    IS_ZIP=true
     echo "Notarizing ZIP: $BUNDLE_PKG (will staple contents)"
 elif [[ $BUNDLE_PKG == *.app ]]; then
     # Apps need to be zipped for upload, then unzipped for stapling
@@ -83,6 +87,8 @@ echo "=== Submitting for notarization ==="
 # Submit for notarization using notarytool
 # --wait makes the command block until notarization is complete
 # Note: --team-id is optional if you only have one team
+# Ensure pipefail is set for this block in case of subshells
+set -o pipefail
 if xcrun notarytool submit "$BUNDLE_PKG" \
     --apple-id "$ASC_USERNAME" \
     --password "${!ASC_PASSWORD_ENVVAR}" \
@@ -102,7 +108,7 @@ if xcrun notarytool submit "$BUNDLE_PKG" \
 
         # Note: You cannot staple a .zip file directly
         # If the original was a zip, we need to handle it differently
-        if [[ "$BUNDLE_FILE" == *.zip ]]; then
+        if [[ "$IS_ZIP" = true ]]; then
             echo "Warning: Cannot staple a .zip file. The notarization is stored with Apple."
             echo "Users will need to be online for Gatekeeper to verify the notarization."
         else
