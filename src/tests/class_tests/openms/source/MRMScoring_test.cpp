@@ -256,8 +256,8 @@ mean(xcorr_max) # shape score
           const auto& cm = mrmscore.getXCorrPrecursorContrastMatrix();
           // Note: the original code depens on col vs. row order and
           // the old code: for (auto e : mrmscore.getXCorrPrecursorContrastMatrix()) fails with different data
-          for (size_t r = 0; r != cm.rows(); ++r) 
-            for (size_t c = 0; c != cm.cols(); ++c) 
+          for (Eigen::Index r = 0; r != cm.rows(); ++r) 
+            for (Eigen::Index c = 0; c != cm.cols(); ++c) 
             {
               double sum{0};
               for (size_t i = 0; i < cm(r,c).data.size(); ++i)
@@ -301,8 +301,8 @@ mean(xcorr_max) # shape score
           const auto& cm = mrmscore.getXCorrPrecursorCombinedMatrix();
           // Note: the original code depens on col vs. row order and
           // the old code: for (auto e : mrmscore.getXCorrPrecursorCombinedMatrix()) fails with different data
-          for (size_t r = 0; r != cm.rows(); ++r) 
-            for (size_t c = 0; c != cm.cols(); ++c) 
+          for (Eigen::Index r = 0; r != cm.rows(); ++r) 
+            for (Eigen::Index c = 0; c != cm.cols(); ++c) 
             {
               double sum{0};
               for (size_t i = 0; i < cm(r,c).data.size(); ++i)

@@ -475,8 +475,10 @@ namespace OpenMS
   bool MSSpectrum::operator==(const MSSpectrum &rhs) const
   {
     //name_ can differ => it is not checked, range is not checked
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wfloat-equal"
+#ifdef __clang__
+  #pragma clang diagnostic push
+  #pragma clang diagnostic ignored "-Wfloat-equal"
+#endif
     return std::operator==(*this, rhs) &&
            SpectrumSettings::operator==(rhs) &&
            retention_time_ == rhs.retention_time_ &&
@@ -487,7 +489,9 @@ namespace OpenMS
            string_data_arrays_ == rhs.string_data_arrays_ &&
            integer_data_arrays_ == rhs.integer_data_arrays_;
 
-#pragma clang diagnostic pop
+#ifdef __clang__
+  #pragma clang diagnostic pop
+#endif
   }
 
   MSSpectrum &MSSpectrum::operator=(const MSSpectrum &source)
