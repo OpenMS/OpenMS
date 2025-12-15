@@ -8,14 +8,11 @@
         Return a string representation of the Residue object.
         Returns the residue as a compact string (one letter code with optional modification).
         """
-        one_letter = self.getOneLetterCode()
-        if one_letter:
-            if self.isModified():
-                mod_name = self.getModificationName()
-                if mod_name:
-                    return f"{one_letter}({mod_name})"
-            return one_letter
-        return self.getName()
+        try:
+            return self.toString()
+        except RuntimeError:
+            # Fallback if toString() fails (e.g., missing one letter code)
+            return self.getName()
 
     def __repr__(self):
         """
@@ -51,3 +48,4 @@
                 parts.append(f"modification='{mod_name}'")
 
         return f"Residue({', '.join(parts)})"
+
