@@ -157,6 +157,8 @@ cdef extern from "<OpenMS/CHEMISTRY/Residue.h>" namespace "OpenMS":
 
         String residueTypeToIonLetter(ResidueType res_type) except + nogil  # wrap-doc:Helper for mapping residue types to letters for Text annotations and labels
 
+        String toString() except + nogil  # wrap-doc:Returns the residue as string (one letter code with optional modification)
+
 cdef extern from "<OpenMS/CHEMISTRY/Residue.h>" namespace "OpenMS::Residue":
 
     cdef enum ResidueType:
