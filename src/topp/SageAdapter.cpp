@@ -492,7 +492,6 @@ protected:
     registerStringOption_("predict_rt",  "<bool>", "false", "Use retention time prediction model as a feature for machine learning scoring. Note: This is incompatible with label-free quantification (LFQ). Default: false", false, false ); 
     registerStringOption_("wide_window", "<bool>", "false", "Enable wide-window/DIA search mode. When enabled, the precursor_tol parameter is ignored and a dynamic precursor tolerance is used. Default: false", false, false);
     registerStringOption_("smoothing", "<bool>", "true", "Whether to smooth the PTM (post-translational modification) mass histogram and pick local maxima. If false, uses raw histogram data. Default: true", false, false);  
-    registerIntOption_("threads", "<int>", 1, "Amount of threads available to the program", false, false); 
 
     // register peptide indexing parameter (with defaults for this search engine)
     registerPeptideIndexingParameter_(PeptideIndexing().getParameters());
@@ -612,8 +611,12 @@ protected:
     std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
     
     // Set RAYON_NUM_THREADS environment variable to control Sage's thread usage
+    // Only set if threads > 0; if threads == 0, let Rayon auto-detect (use all CPUs)
     std::map<QString, QString> sage_env;
-    sage_env["RAYON_NUM_THREADS"] = String(threads).toQString();
+    if (threads > 0)
+    {
+      sage_env["RAYON_NUM_THREADS"] = String(threads).toQString();
+    }
     
     // Sage execution with the executable and the arguments StringList
     exit_code = runExternalProcess_(sage_executable.toQString(), arguments, "", sage_env);
@@ -784,17 +787,85 @@ protected:
     for (auto& id : peptide_identifications)
     {
       Int64 scanNrAsInt = 0;
-      
+
       try
-      { // check if spectrum reference is a string that just contains a number        
+      { // check if spectrum reference is a string that just contains a number
         scanNrAsInt = id.getSpectrumReference().toInt64();
         // no exception -> conversion to int was successful. Now lookup full native ID in corresponding file for given spectrum number.
-        id.setSpectrumReference( file2specnr2nativeid[idxToFile[id.getMetaValue(Constants::UserParam::ID_MERGE_INDEX)]].at(scanNrAsInt) );                              
+        // idxToFile values can be full paths but file2specnr2nativeid keys are basenames, so normalize first
+        String file_basename = File::basename(idxToFile[id.getMetaValue(Constants::UserParam::ID_MERGE_INDEX)]);
+        auto file_it = file2specnr2nativeid.find(file_basename);
+        if (file_it != file2specnr2nativeid.end())
+        {
+          id.setSpectrumReference(file_it->second.at(scanNrAsInt));
+        }
       }
       catch (...)
       {
       }
     }
+
+    // Annotate FAIMS compensation voltage if present in any input file
+    // Pre-group peptide indices by file for efficient lookup (avoids O(files * peptides))
+    std::map<Size, std::vector<Size>> file_to_peptide_indices;
+    for (Size i = 0; i < peptide_identifications.size(); ++i)
+    {
+      const auto& pep = peptide_identifications[i];
+      if (pep.metaValueExists(Constants::UserParam::ID_MERGE_INDEX))
+      {
+        file_to_peptide_indices[pep.getMetaValue(Constants::UserParam::ID_MERGE_INDEX)].push_back(i);
+      }
+    }
+
+    for (const auto& mzml : input_files)
+    {
+      // Find file index for this mzML
+      Size file_idx = 0;
+      for (const auto& [idx, fname] : idxToFile)
+      {
+        if (File::basename(fname) == File::basename(mzml))
+        {
+          file_idx = idx;
+          break;
+        }
+      }
+
+      // Skip if no peptides for this file
+      auto it = file_to_peptide_indices.find(file_idx);
+      if (it == file_to_peptide_indices.end() || it->second.empty())
+      {
+        continue;
+      }
+
+      // Load mzML metadata (no peak data needed)
+      MzMLFile m;
+      MSExperiment exp_full;
+      auto opts = m.getOptions();
+      opts.setFillData(false);
+      m.setOptions(opts);
+      m.load(mzml, exp_full);
+
+      // Collect peptide IDs for this file
+      PeptideIdentificationList file_peptides;
+      file_peptides.reserve(it->second.size());
+      for (Size idx : it->second)
+      {
+        file_peptides.push_back(peptide_identifications[idx]);
+      }
+
+      // Annotate FAIMS and copy back
+      SpectrumMetaDataLookup::addMissingFAIMSToPeptideIDs(file_peptides, exp_full);
+      for (Size i = 0; i < file_peptides.size(); ++i)
+      {
+        if (file_peptides[i].metaValueExists(Constants::UserParam::FAIMS_CV))
+        {
+          peptide_identifications[it->second[i]].setMetaValue(
+            Constants::UserParam::FAIMS_CV,
+            file_peptides[i].getMetaValue(Constants::UserParam::FAIMS_CV));
+        }
+      }
+    }
+
     IdXMLFile().store(output_file, protein_identifications, peptide_identifications);
     return EXECUTION_OK;
   }

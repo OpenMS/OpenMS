@@ -291,6 +291,7 @@ void ElutionModelFitter::fitElutionModels(FeatureMap& features)
       MassTrace trace;
       trace.peaks.reserve(2);
       trace.theoretical_int = add_zeros;
+      trace.max_rt = 0.0;
       Peak1D peak;
       peak.setMZ(feat.getSubordinates()[0].getMZ());
       peak.setIntensity(0.0);

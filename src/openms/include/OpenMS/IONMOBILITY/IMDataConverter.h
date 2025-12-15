@@ -15,6 +15,7 @@
 
 #include <tuple>
 #include <vector>
+#include <utility>
 
 namespace OpenMS
 {
@@ -36,19 +37,25 @@ namespace OpenMS
         @brief Splits a PeakMap into one PeakMap per FAIMS compensation voltage (CV)
 
         The spectra from the original PeakMap are moved to new PeakMaps, so the original
-        PeakMap is unusable afterwards.
+        PeakMap is unusable afterwards (it is moved-from).
 
         Behavior:
-        - Requires that the dataset contains FAIMS spectra (MS1 with DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE).
-        - MS2+ spectra without an explicit FAIMS CV are assigned to the last seen FAIMS CV (based on run order).
-          Spectra without a prior FAIMS CV context are skipped with a warning.
-        - If the dataset contains no FAIMS spectra at all, an exception is thrown.
+        - If the dataset contains FAIMS spectra (MS1 with DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE),
+          returns a vector of (CV, MSExperiment) pairs, one per unique FAIMS CV. Each experiment
+          contains all spectra assigned to that CV.
+        - MS2+ spectra without an explicit FAIMS CV are assigned to the last seen FAIMS CV
+          (based on run order). Spectra without a prior FAIMS CV context are skipped with a warning.
+        - If the dataset contains no FAIMS spectra at all, an informational message is logged and a
+          single-element vector is returned. This element contains the original PeakMap (i.e. no
+          splitting took place) under a synthetic key (NaN). Callers that specifically work on
+          FAIMS data should usually check for FAIMS CVs via FAIMSHelper::getCompensationVoltages()
+          instead of relying on this special case.
 
         @param exp The PeakMap (will be moved-from)
-        @return Several PeakMaps, one per unique FAIMS CV
-        @throws Exception::MissingInformation if @p exp contains no FAIMS data
+        @return A vector of (FAIMS compensation voltage (CV), MSExperiment) pairs; for non-FAIMS data,
+                a single-element vector containing the original, unsplit PeakMap with a NaN CV key
       */
-      static std::vector<PeakMap> splitByFAIMSCV(PeakMap&& exp);
+      static std::vector<std::pair<double, MSExperiment>> splitByFAIMSCV(PeakMap&& exp);
 
       
       /**

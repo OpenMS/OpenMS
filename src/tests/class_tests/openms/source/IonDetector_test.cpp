@@ -193,6 +193,18 @@ END_SECTION
 
 
 
+START_SECTION((static StringList getAllNamesOfType()))
+  StringList names = IonDetector::getAllNamesOfType();
+  TEST_EQUAL(names.size(), IonDetector::SIZE_OF_TYPE);
+  TEST_EQUAL(names[IonDetector::ELECTRONMULTIPLIER], "Electron multiplier");
+END_SECTION
+
+START_SECTION((static StringList getAllNamesOfAcquisitionMode()))
+  StringList names = IonDetector::getAllNamesOfAcquisitionMode();
+  TEST_EQUAL(names.size(), IonDetector::SIZE_OF_ACQUISITIONMODE);
+  TEST_EQUAL(names[IonDetector::PULSECOUNTING], "Pulse counting");
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

@@ -3,7 +3,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Marc Sturm $
+// $Authors: Marc Sturm, Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
 #pragma once
@@ -16,6 +16,8 @@
 #include <OpenMS/METADATA/Product.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/DataProcessing.h>
+#include <OpenMS/IONMOBILITY/IMTypes.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <map>
 #include <vector>
@@ -51,14 +53,17 @@ public:
     /// Names of spectrum types
     static const std::string NamesOfSpectrumType[SIZE_OF_SPECTRUMTYPE];
 
+    /// returns all spectrum type names known to OpenMS
+    static StringList getAllNamesOfSpectrumType();
+
     /// Constructor
-    SpectrumSettings();
+    SpectrumSettings() = default;
     /// Copy constructor
     SpectrumSettings(const SpectrumSettings &) = default;
     /// Move constructor
-    SpectrumSettings(SpectrumSettings&&) = default;
+    SpectrumSettings(SpectrumSettings&&) noexcept = default;
     /// Destructor
-    ~SpectrumSettings();
+    ~SpectrumSettings() noexcept = default;
 
     // Assignment operator
     SpectrumSettings & operator=(const SpectrumSettings &) = default;
@@ -77,6 +82,16 @@ public:
     SpectrumType getType() const;
     ///sets the spectrum type
     void setType(SpectrumType type);
+
+    /// @brief sets the IMFormat of the spectrum
+    /// @param im_type
+    void setIMFormat(const IMFormat& im_type);
+
+    /// @brief returns the IMFormat of the spectrum if set. Otherwise UNKNOWN (default). 
+    /// 
+    /// Note: If UNKNOWN, use IMFormat::determineIMFormat to determine the IMFormat based on the data.
+    /// @return IMFormat of the spectrum
+    IMFormat getIMFormat() const;
 
     /// returns the native identifier for the spectrum, used by the acquisition software.
     const String & getNativeID() const;
@@ -130,11 +145,12 @@ public:
     std::vector< DataProcessingPtr > & getDataProcessing();
 
     /// returns a const reference to the description of the applied processing
-    const std::vector< boost::shared_ptr<const DataProcessing > > getDataProcessing() const;
+    const std::vector< std::shared_ptr<const DataProcessing > > getDataProcessing() const;
 
 protected:
 
-    SpectrumType type_;
+    SpectrumType type_ = UNKNOWN;
+    IMFormat im_type_ = IMFormat::UNKNOWN;
     String native_id_;
     String comment_;
     InstrumentSettings instrument_settings_;

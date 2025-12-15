@@ -99,8 +99,9 @@ function(openms_add_compiler_flags target_name)
     target_compile_options(${target_name} PRIVATE
       -Wall -Wextra
       -Wno-unknown-pragmas
-
+      -ffp-contract=off
       -Wno-unused-function
+      -Wno-psabi
     )
     
     if(ENABLE_GCC_WERROR)

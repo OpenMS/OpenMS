@@ -64,7 +64,7 @@ protected:
     setValidFormats_("out_qc", ListUtils::create<String>("json"));
   }
 
-  void loadSwathFiles(const String& file_in, const String& tmp, const String& readoptions, boost::shared_ptr<ExperimentalSettings>& exp_meta, std::vector<OpenSwath::SwathMap>& swath_maps,
+  void loadSwathFiles(const String& file_in, const String& tmp, const String& readoptions, std::shared_ptr<ExperimentalSettings>& exp_meta, std::vector<OpenSwath::SwathMap>& swath_maps,
                       Interfaces::IMSDataConsumer* plugin_consumer = nullptr)
   {
     SwathFile swath_file;
@@ -104,7 +104,7 @@ protected:
     ///////////////////////////////////
     // Load the SWATH files
     ///////////////////////////////////
-    boost::shared_ptr<ExperimentalSettings> exp_meta(new ExperimentalSettings);
+    std::shared_ptr<ExperimentalSettings> exp_meta(new ExperimentalSettings);
     std::vector<OpenSwath::SwathMap> swath_maps;
 
     // collect some QC data

@@ -43,10 +43,10 @@
 				<UserParam type="string" name="SageAdapter:1:predict_rt" value="false"/>
 				<UserParam type="string" name="SageAdapter:1:wide_window" value="false"/>
 				<UserParam type="string" name="SageAdapter:1:smoothing" value="false"/>
-				<UserParam type="int" name="SageAdapter:1:threads" value="1"/>
 				<UserParam type="string" name="SageAdapter:1:reindex" value="true"/>
 				<UserParam type="string" name="SageAdapter:1:log" value=""/>
 				<UserParam type="int" name="SageAdapter:1:debug" value="0"/>
+				<UserParam type="int" name="SageAdapter:1:threads" value="1"/>
 				<UserParam type="string" name="SageAdapter:1:no_progress" value="false"/>
 				<UserParam type="string" name="SageAdapter:1:force" value="false"/>
 				<UserParam type="string" name="SageAdapter:1:test" value="true"/>

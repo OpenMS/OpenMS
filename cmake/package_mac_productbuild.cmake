@@ -17,9 +17,9 @@
 set(CPACK_PACKAGING_INSTALL_PREFIX "/Applications/${CPACK_PACKAGE_NAME}-${OPENMS_PACKAGE_VERSION_FULLSTRING}")
 set(CPACK_PRODUCTBUILD_IDENTIFIER "de.openms")
 set(CPACK_PRODUCTBUILD_RESOURCES_DIR ${PROJECT_SOURCE_DIR}/cmake/MacOSX)
-# set(CPACK_PRODUCTBUILD_BACKGROUND ${OPENMS_LOGOSMALL_NAME})
-# set(CPACK_PRODUCTBUILD_BACKGROUND_ALIGNMENT "bottomleft")
-# set(CPACK_PRODUCTBUILD_BACKGROUND_SCALING "tofit")
+set(CPACK_PRODUCTBUILD_BACKGROUND ${OPENMS_LOGOSMALL_NAME})
+set(CPACK_PRODUCTBUILD_BACKGROUND_ALIGNMENT "bottomleft")
+set(CPACK_PRODUCTBUILD_BACKGROUND_SCALING "tofit")
 
 # Allow installing to every Domain if supported by current CMake version (https://gitlab.kitware.com/cmake/cmake/-/merge_requests/6825)
 if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.23.0")
@@ -138,11 +138,4 @@ add_custom_target(dist
   COMMAND cpack -G ${CPACK_GENERATOR}
   COMMENT "Building ${CPACK_GENERATOR} package"
 )
-
-add_custom_target(finalized_dist
-                  COMMAND ${PROJECT_SOURCE_DIR}/cmake/MacOSX/fixdmg.sh
-                  WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
-                  COMMENT "Finalizing dmg image"
-                  DEPENDS dist)
-
 

@@ -739,7 +739,7 @@ START_SECTION((static String getResidueTypeName(const ResidueType res_type)))
 
   TEST_EQUAL(Residue::SizeOfResidueType, Residue::names_of_residuetype.size());
   // test that no entries in array are empty (the initializer of std::array<> can have less values than the std::array<>)
-  for (int i = 0; i < Residue::names_of_residuetype.size(); ++i)
+  for (size_t i = 0; i < Residue::names_of_residuetype.size(); ++i)
   {
     TEST_FALSE(Residue::getResidueTypeName(static_cast<Residue::ResidueType>(i)).empty());
   }

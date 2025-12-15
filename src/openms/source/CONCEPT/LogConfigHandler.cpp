@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <iostream>
+#include <algorithm>
 
 #include <OpenMS/CONCEPT/LogConfigHandler.h>
 
@@ -17,6 +18,12 @@ using std::endl;
 namespace OpenMS
 {
   String LogConfigHandler::PARAM_NAME = "log";
+  
+  namespace 
+  {
+    // Order of log levels from lowest to highest priority
+    const std::vector<String> LOG_LEVELS = {"DEBUG", "INFO", "WARNING", "ERROR", "FATAL_ERROR"};
+  }
 
   LogConfigHandler::LogConfigHandler()
   {
@@ -111,9 +118,10 @@ namespace OpenMS
           const String & stream_type = commands[3];
 
           // check if a stream with the same name, but different type was already registered
-          if (stream_type_map_.count(stream_name) != 0)
+          auto existing = stream_type_map_.find(stream_name);
+          if (existing != stream_type_map_.end())
           {
-            if (stream_type_map_[stream_name] != getStreamTypeByName_(stream_type))
+            if (existing->second != getStreamTypeByName_(stream_type))
             {
               throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "A stream with the same name but different type was already registered.");
             }
@@ -216,11 +224,68 @@ namespace OpenMS
 
   void LogConfigHandler::setLogLevel(const String & log_level)
   {
-    std::vector<String> lvls = {"DEBUG", "INFO", "WARNING", "ERROR", "FATAL_ERROR"};
-    for (const auto& lvl : lvls)
+    // Special case: "NONE" means disable all logging
+    if (log_level == "NONE")
     {
-      if (lvl == log_level) break;
-      getLogStreamByName_(lvl).removeAllStreams();
+      for (const auto& lvl : LOG_LEVELS)
+      {
+        getLogStreamByName_(lvl).removeAllStreams();
+      }
+      return;
+    }
+    
+    // Find the index of the target log level
+    auto target_it = std::find(LOG_LEVELS.begin(), LOG_LEVELS.end(), log_level);
+    if (target_it == LOG_LEVELS.end())
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+                                       "Invalid log level '" + log_level + "'. Valid levels are: DEBUG, INFO, WARNING, ERROR, FATAL_ERROR, NONE");
+    }
+    
+    size_t target_index = std::distance(LOG_LEVELS.begin(), target_it);
+    
+    // Remove streams from all levels below the target level
+    for (size_t i = 0; i < target_index; ++i)
+    {
+      getLogStreamByName_(LOG_LEVELS[i]).removeAllStreams();
+    }
+    
+    // Restore configured streams for the target level and all levels above it
+    for (size_t i = target_index; i < LOG_LEVELS.size(); ++i)
+    {
+      const String& lvl = LOG_LEVELS[i];
+      Logger::LogStream& log = getLogStreamByName_(lvl);
+      const std::set<String>& configured_streams = getConfigSetByName_(lvl);
+      
+      // First, remove all current streams
+      log.removeAllStreams();
+      
+      // Then add back the configured streams
+      for (const String& stream_name : configured_streams)
+      {
+        if (stream_name == "cout")
+        {
+          log.insert(cout);
+        }
+        else if (stream_name == "cerr")
+        {
+          log.insert(cerr);
+        }
+        else
+        {
+          // Handle file/string streams from StreamHandler
+          auto it = stream_type_map_.find(stream_name);
+          if (it != stream_type_map_.end())
+          {
+            StreamHandler::StreamType type = it->second;
+            if (STREAM_HANDLER.hasStream(type, stream_name))
+            {
+              log.insert(STREAM_HANDLER.getStream(type, stream_name));
+              log.setPrefix(STREAM_HANDLER.getStream(type, stream_name), "[%S] ");
+            }
+          }
+        }
+      }
     }
   }
 
@@ -288,9 +353,10 @@ namespace OpenMS
 
   std::ostream & LogConfigHandler::getStream(const String & name)
   {
-    if (stream_type_map_.count(name) != 0)
+    auto it = stream_type_map_.find(name);
+    if (it != stream_type_map_.end())
     {
-      return STREAM_HANDLER.getStream(stream_type_map_[name], name);
+      return STREAM_HANDLER.getStream(it->second, name);
     }
     else
     {
