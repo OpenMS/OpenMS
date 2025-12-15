@@ -134,18 +134,18 @@ import numpy as np
     @property
     def ms_level(self):
         """
-        Extract MS levels from all spectra in the experiment.
+        Access MS levels with support for indexed assignment.
 
-        Returns a NumPy array containing the MS level for each spectrum in the
-        MSExperiment. The array indices correspond to spectrum indices, allowing
-        for direct mapping between spectra and their MS levels.
+        Returns an MSLevelAccessor object that behaves like a numpy array but
+        supports indexed assignment operations. This enables direct updates
+        to MS levels using boolean masks, integer arrays, or slices.
 
         Returns
         -------
-        numpy.ndarray
-            A 1D numpy array of unsigned integers (uint32) containing the MS level
-            of each spectrum. The length of the array equals the number of spectra
-            in the experiment.
+        MSLevelAccessor
+            An accessor object that supports numpy-style operations and
+            indexed assignment. Can be converted to a regular numpy array
+            using np.array(exp.ms_level).
 
         Examples
         --------
@@ -153,15 +153,18 @@ import numpy as np
         >>> # ... load or populate experiment with spectra ...
         >>> ms_levels = exp.ms_level
         >>> print(ms_levels)
-        [1 2 2 1 2 2 ...]
+        MSLevelAccessor([1 2 2 1 2 2 ...])
         >>> # Find all MS2 spectra indices
         >>> ms2_indices = np.where(ms_levels == 2)[0]
+        >>> # Indexed assignment (new feature)
+        >>> exp.ms_level[0] = 2  # Set first spectrum to MS2
+        >>> exp.ms_level[exp.ms_level == 1] = 2  # Set all MS1 to MS2
 
         Notes
         -----
-        - Returns an empty array if the experiment contains no spectra
+        - Returns an empty accessor if the experiment contains no spectra
         - MS levels are typically 1 (MS1) or 2 (MS2), but higher levels are possible
-        - The returned array is a standard NumPy array suitable for vectorized operations
+        - The accessor supports all numpy-style operations
         - This method is more efficient than calling `getSpectrum(i).getMSLevel()`
           repeatedly for large datasets
 
@@ -170,15 +173,7 @@ import numpy as np
         getMSLevels : Get unique MS levels present in the experiment
         getSpectrum : Retrieve individual spectrum by index
         """
-        cdef size_t n_spectra = self.inst.get().getNrSpectra()
-        cdef libcpp_vector[unsigned int] ms_levels
-        ms_levels.reserve(n_spectra)
-        
-        cdef size_t i
-        for i in range(n_spectra):
-            ms_levels.push_back(self.inst.get().getSpectrum(i).getMSLevel())
-        
-        return np.asarray(ms_levels)
+        return MSLevelAccessor(self)
 
     @property
     def rt(self):
@@ -589,18 +584,18 @@ import numpy as np
     @property
     def drift_time(self):
         """
-        Extract drift time from all spectra in the experiment.
+        Access drift times with support for indexed assignment.
 
-        Returns a NumPy array containing the ion mobility drift time for each
-        spectrum in the MSExperiment. For spectra without drift time information,
-        returns NaN.
+        Returns a DriftTimeAccessor object that behaves like a numpy array but
+        supports indexed assignment operations. This enables direct updates
+        to drift times using boolean masks, integer arrays, or slices.
 
         Returns
         -------
-        numpy.ndarray
-            A 1D numpy array of doubles containing the drift time of each spectrum.
-            The length of the array equals the number of spectra in the experiment.
-            NaN values indicate missing drift time information.
+        DriftTimeAccessor
+            An accessor object that supports numpy-style operations and
+            indexed assignment. Can be converted to a regular numpy array
+            using np.array(exp.drift_time).
 
         Examples
         --------
@@ -608,42 +603,27 @@ import numpy as np
         >>> # ... load or populate experiment with IM spectra ...
         >>> drift_times = exp.drift_time
         >>> print(drift_times)
-        [10.5 11.2 nan 12.3 ...]
+        DriftTimeAccessor([10.5 11.2 nan 12.3 ...])
         >>> # Find spectra with drift time data
         >>> has_dt = ~np.isnan(drift_times)
         >>> im_spectra = exp[has_dt]
-        >>> # Filter by drift time range
-        >>> dt_mask = (drift_times >= 10) & (drift_times <= 15)
-        >>> filtered = exp[dt_mask]
+        >>> # Indexed assignment (new feature)
+        >>> exp.drift_time[0] = 25.5  # Set first spectrum drift time
+        >>> exp.drift_time[exp.ms_level == 2] = 30.0  # Set drift time for all MS2
 
         Notes
         -----
-        - Returns an empty array if the experiment contains no spectra
+        - Returns an empty accessor if the experiment contains no spectra
         - NaN indicates that drift time is not set for a spectrum
         - Drift time units can vary; check `drift_time_unit` property
-        - Drift times may be stored directly as a spectrum attribute
-        - The returned array is a standard NumPy array suitable for vectorized operations
+        - The accessor supports all numpy-style operations
 
         See Also
         --------
         drift_time_unit : Get drift time units
         rt : Get retention time values
         """
-        cdef size_t n_spectra = self.inst.get().getNrSpectra()
-        cdef libcpp_vector[double] drift_times
-        drift_times.reserve(n_spectra)
-        
-        cdef size_t i
-        cdef double dt
-        for i in range(n_spectra):
-            dt = self.inst.get().getSpectrum(i).getDriftTime()
-            # IMTypes::DRIFTTIME_NOT_SET is -1
-            if dt < 0:
-                drift_times.push_back(float('nan'))
-            else:
-                drift_times.push_back(dt)
-        
-        return np.asarray(drift_times)
+        return DriftTimeAccessor(self)
 
     @drift_time.setter
     def drift_time(self, values):
@@ -742,13 +722,13 @@ import numpy as np
     def ms_level(self, values):
         """
         Set MS levels for all spectra.
-        
+
         Parameters
         ----------
         values : array-like of int
             Array of MS levels with length equal to number of spectra.
             Typically 1 for MS1, 2 for MS2, etc.
-            
+
         Raises
         ------
         ValueError
@@ -756,70 +736,320 @@ import numpy as np
         """
         values_np = np.asarray(values, dtype=np.uint32)
         cdef size_t n_spectra = self.inst.get().getNrSpectra()
-        
+
         if len(values_np) != n_spectra:
             raise ValueError(f"Length of values ({len(values_np)}) must match number of spectra ({n_spectra})")
-        
+
         # Get copy of all spectra
         cdef libcpp_vector[_MSSpectrum] spectra = self.inst.get().getSpectra()
-        
+
         # Modify the copy
         cdef size_t i
         for i in range(n_spectra):
             spectra[i].setMSLevel(<unsigned int>values_np[i])
-        
+
         # Set modified spectra back
         self.inst.get().setSpectra(spectra)
 
+    def get_peaks_flat(self):
+        """
+        Get all peaks across all spectra as flat numpy arrays.
+
+        Returns a tuple of three numpy arrays containing all peaks from all spectra
+        concatenated together, along with an index array indicating which spectrum
+        each peak belongs to.
+
+        Returns
+        -------
+        tuple of (mz, intensity, spectrum_index)
+            - mz : numpy.ndarray[float64]
+                All m/z values concatenated
+            - intensity : numpy.ndarray[float32]
+                All intensity values concatenated
+            - spectrum_index : numpy.ndarray[int64]
+                Index of the source spectrum for each peak
+
+        Examples
+        --------
+        >>> exp = MSExperiment()
+        >>> # ... load spectra ...
+        >>> mz, intensity, spec_idx = exp.get_peaks_flat()
+        >>> # Get all peaks from spectrum 0
+        >>> mask = spec_idx == 0
+        >>> mz[mask], intensity[mask]
+        >>> # Compute global statistics
+        >>> np.mean(intensity)
+        >>> # Create histogram of all m/z values
+        >>> np.histogram(mz, bins=1000)
+
+        Notes
+        -----
+        This method is useful for operations across all peaks regardless of
+        which spectrum they belong to, such as:
+        - Global peak statistics
+        - M/z histograms
+        - Machine learning features
+        - Data export to flat formats
+        """
+        cdef size_t n_spectra = self.inst.get().getNrSpectra()
+        cdef size_t total_peaks = 0
+        cdef size_t i, j, offset
+        cdef size_t spec_size
+
+        # First pass: count total peaks
+        for i in range(n_spectra):
+            total_peaks += self.inst.get().getSpectrum(i).size()
+
+        # Allocate arrays
+        cdef np.ndarray[np.float64_t, ndim=1] mz_flat = np.empty(total_peaks, dtype=np.float64)
+        cdef np.ndarray[np.float32_t, ndim=1] intensity_flat = np.empty(total_peaks, dtype=np.float32)
+        cdef np.ndarray[np.int64_t, ndim=1] spectrum_idx = np.empty(total_peaks, dtype=np.int64)
+
+        # Second pass: fill arrays
+        offset = 0
+        for i in range(n_spectra):
+            spec_size = self.inst.get().getSpectrum(i).size()
+            for j in range(spec_size):
+                mz_flat[offset] = self.inst.get().getSpectrum(i)[j].getMZ()
+                intensity_flat[offset] = self.inst.get().getSpectrum(i)[j].getIntensity()
+                spectrum_idx[offset] = i
+                offset += 1
+
+        return mz_flat, intensity_flat, spectrum_idx
+
+    @property
+    def precursor_mz(self):
+        """
+        Extract precursor m/z values from all spectra.
+
+        Returns a numpy array containing the precursor m/z value for each spectrum.
+        For spectra without precursors (e.g., MS1), returns NaN.
+
+        Returns
+        -------
+        numpy.ndarray
+            A 1D numpy array of float64 containing the precursor m/z of each spectrum.
+            NaN for spectra without precursors.
+
+        Examples
+        --------
+        >>> exp = MSExperiment()
+        >>> # ... load experiment ...
+        >>> precursor_mz = exp.precursor_mz
+        >>> # Get MS2 spectra with precursor in range
+        >>> mask = (exp.ms_level == 2) & (exp.precursor_mz > 400) & (exp.precursor_mz < 600)
+        >>> filtered = exp[mask]
+
+        See Also
+        --------
+        precursor_charge : Get precursor charge states
+        precursor_intensity : Get precursor intensities
+        """
+        cdef size_t n_spectra = self.inst.get().getNrSpectra()
+        cdef np.ndarray[np.float64_t, ndim=1] precursor_mz = np.empty(n_spectra, dtype=np.float64)
+
+        cdef size_t i
+        cdef libcpp_vector[_Precursor] precursors
+        for i in range(n_spectra):
+            precursors = self.inst.get().getSpectrum(i).getPrecursors()
+            if precursors.size() > 0:
+                precursor_mz[i] = precursors[0].getMZ()
+            else:
+                precursor_mz[i] = np.nan
+
+        return precursor_mz
+
+    @property
+    def precursor_charge(self):
+        """
+        Extract precursor charge states from all spectra.
+
+        Returns a numpy array containing the precursor charge state for each spectrum.
+        For spectra without precursors (e.g., MS1), returns 0.
+
+        Returns
+        -------
+        numpy.ndarray
+            A 1D numpy array of int32 containing the precursor charge of each spectrum.
+            0 for spectra without precursors.
+
+        Examples
+        --------
+        >>> exp = MSExperiment()
+        >>> # ... load experiment ...
+        >>> charges = exp.precursor_charge
+        >>> # Get doubly charged MS2 spectra
+        >>> mask = (exp.ms_level == 2) & (exp.precursor_charge == 2)
+        >>> doubly_charged = exp[mask]
+
+        See Also
+        --------
+        precursor_mz : Get precursor m/z values
+        precursor_intensity : Get precursor intensities
+        """
+        cdef size_t n_spectra = self.inst.get().getNrSpectra()
+        cdef np.ndarray[np.int32_t, ndim=1] precursor_charge = np.zeros(n_spectra, dtype=np.int32)
+
+        cdef size_t i
+        cdef libcpp_vector[_Precursor] precursors
+        for i in range(n_spectra):
+            precursors = self.inst.get().getSpectrum(i).getPrecursors()
+            if precursors.size() > 0:
+                precursor_charge[i] = precursors[0].getCharge()
+
+        return precursor_charge
+
+    @property
+    def precursor_intensity(self):
+        """
+        Extract precursor intensities from all spectra.
+
+        Returns a numpy array containing the precursor intensity for each spectrum.
+        For spectra without precursors (e.g., MS1), returns NaN.
+
+        Returns
+        -------
+        numpy.ndarray
+            A 1D numpy array of float64 containing the precursor intensity of each spectrum.
+            NaN for spectra without precursors.
+
+        Examples
+        --------
+        >>> exp = MSExperiment()
+        >>> # ... load experiment ...
+        >>> precursor_int = exp.precursor_intensity
+        >>> # Filter by precursor intensity
+        >>> mask = exp.precursor_intensity > 1e6
+        >>> high_intensity = exp[mask]
+
+        See Also
+        --------
+        precursor_mz : Get precursor m/z values
+        precursor_charge : Get precursor charge states
+        """
+        cdef size_t n_spectra = self.inst.get().getNrSpectra()
+        cdef np.ndarray[np.float64_t, ndim=1] precursor_intensity = np.empty(n_spectra, dtype=np.float64)
+
+        cdef size_t i
+        cdef libcpp_vector[_Precursor] precursors
+        for i in range(n_spectra):
+            precursors = self.inst.get().getSpectrum(i).getPrecursors()
+            if precursors.size() > 0:
+                precursor_intensity[i] = precursors[0].getIntensity()
+            else:
+                precursor_intensity[i] = np.nan
+
+        return precursor_intensity
+
+    def __len__(self):
+        """
+        Return the number of spectra in the experiment.
+
+        Returns
+        -------
+        int
+            Number of spectra in the experiment.
+
+        Examples
+        --------
+        >>> exp = MSExperiment()
+        >>> len(exp)
+        0
+        >>> # ... add spectra ...
+        >>> len(exp)
+        5
+        """
+        return self.inst.get().getNrSpectra()
+
     def __getitem__(self, key):
+        """
+        Access spectra by index, slice, boolean mask, or integer array.
+
+        Parameters
+        ----------
+        key : int, slice, array-like
+            - int: Returns a single MSSpectrum at that index
+            - slice: Returns a new MSExperiment with the sliced spectra
+            - boolean array: Returns a new MSExperiment with spectra where mask is True
+            - integer array: Returns a new MSExperiment with spectra at those indices
+
+        Returns
+        -------
+        MSSpectrum or MSExperiment
+            Single spectrum for integer index, MSExperiment for all other cases.
+
+        Examples
+        --------
+        >>> spec = exp[0]        # Single spectrum (MSSpectrum)
+        >>> sub = exp[0:5]       # Slice (MSExperiment)
+        >>> ms1 = exp[exp.ms_level == 1]  # Boolean mask (MSExperiment)
+        >>> sub = exp[[0, 2, 4]] # Fancy indexing (MSExperiment)
+        """
         cdef size_t n_spectra = self.inst.get().getNrSpectra()
         cdef libcpp_vector[size_t] indices
         cdef size_t i
-        
-        # Convert key to numpy array for easier handling
-        try:
-            key_array = np.asarray(key)
-        except:
-            raise TypeError("Index must be array-like (list, numpy array, etc.)")
-        
-        # Determine if this is boolean indexing or fancy indexing
-        if key_array.dtype == np.bool_:
-            # Boolean indexing
-            # Validate boolean mask length
-            if len(key_array) != n_spectra:
-                raise IndexError(
-                    f"Boolean index has wrong length: {len(key_array)} instead of {n_spectra}"
-                )
-            # Convert boolean mask to indices
-            indices_np = np.where(key_array)[0]
+        cdef int idx
+
+        # Handle single integer index - return MSSpectrum
+        if isinstance(key, (int, np.integer)):
+            idx = key
+            # Handle negative indices
+            if idx < 0:
+                idx = n_spectra + idx
+            if idx < 0 or idx >= <int>n_spectra:
+                raise IndexError(f"Index {key} out of range for experiment with {n_spectra} spectra")
+            return self.getSpectrum(idx)
+
+        # Handle slice
+        if isinstance(key, slice):
+            indices_np = np.arange(n_spectra)[key]
         else:
-            # Fancy indexing with integers
-            indices_np = key_array.astype(np.intp)
-            # Validate indices are within bounds
-            if len(indices_np) > 0:
-                if np.any(indices_np < 0) or np.any(indices_np >= n_spectra):
+            # Convert key to numpy array for easier handling
+            try:
+                key_array = np.asarray(key)
+            except:
+                raise TypeError("Index must be int, slice, or array-like (list, numpy array, etc.)")
+
+            # Determine if this is boolean indexing or fancy indexing
+            if key_array.dtype == np.bool_:
+                # Boolean indexing
+                # Validate boolean mask length
+                if len(key_array) != n_spectra:
                     raise IndexError(
-                        f"Index out of bounds. Valid range is [0, {n_spectra - 1}]"
+                        f"Boolean index has wrong length: {len(key_array)} instead of {n_spectra}"
                     )
-        
+                # Convert boolean mask to indices
+                indices_np = np.where(key_array)[0]
+            else:
+                # Fancy indexing with integers
+                indices_np = key_array.astype(np.intp)
+                # Handle negative indices
+                indices_np = np.where(indices_np < 0, n_spectra + indices_np, indices_np)
+                # Validate indices are within bounds
+                if len(indices_np) > 0:
+                    if np.any(indices_np < 0) or np.any(indices_np >= n_spectra):
+                        raise IndexError(
+                            f"Index out of bounds. Valid range is [0, {n_spectra - 1}]"
+                        )
+
         # Convert numpy indices to C++ vector
         indices.reserve(len(indices_np))
         for i in range(len(indices_np)):
             indices.push_back(<size_t>indices_np[i])
-        
+
         # Create new MSExperiment
         cdef _MSExperiment * new_exp = new _MSExperiment()
-        
+
         # Copy selected spectra to new experiment
         cdef _MSSpectrum spec
         for i in range(indices.size()):
             spec = self.inst.get().getSpectrum(indices[i])
             new_exp.addSpectrum(spec)
-        
+
         # Create Python wrapper for the new experiment
         cdef MSExperiment py_result = MSExperiment.__new__(MSExperiment)
         py_result.inst = shared_ptr[_MSExperiment](new_exp)
-        
+
         return py_result
 
 # RTAccessor class for indexed assignment support
@@ -869,17 +1099,17 @@ cdef class RTAccessor:
     def __setitem__(self, key, values):
         """
         Set retention time values for the given key.
-        
+
         Intercepts write operations to update the underlying MSExperiment.
         Handles boolean masks, integer arrays, and slices.
-        
+
         Parameters
         ----------
         key : int, slice, array-like
             Index, slice, boolean mask, or integer array
         values : float or array-like
             New retention time value(s)
-            
+
         Raises
         ------
         ValueError
@@ -888,38 +1118,45 @@ cdef class RTAccessor:
             If indices are out of bounds
         """
         # Get current RT values
-        rt_values = self._get_rt_array()
-        
+        rt_values = self._get_rt_array().copy()
+        n = len(rt_values)
+
         # Convert key to indices
         if isinstance(key, (int, np.integer)):
-            # Single integer index
-            indices = np.array([key], dtype=np.intp)
+            # Handle negative indices
+            idx = key if key >= 0 else n + key
+            if idx < 0 or idx >= n:
+                raise IndexError(
+                    f"Index {key} out of bounds. Valid range is [-{n}, {n - 1}]"
+                )
+            indices = np.array([idx], dtype=np.intp)
             values_array = np.array([values], dtype=np.float64)
         elif isinstance(key, slice):
             # Slice indexing
-            indices = np.arange(len(rt_values))[key]
+            indices = np.arange(n)[key]
             values_array = np.asarray(values, dtype=np.float64)
         else:
             # Array-like key (boolean mask or integer array)
             key_array = np.asarray(key)
             if key_array.dtype == np.bool_:
                 # Boolean mask - convert to indices
-                if len(key_array) != len(rt_values):
+                if len(key_array) != n:
                     raise IndexError(
                         f"Boolean mask length ({len(key_array)}) must match "
-                        f"number of spectra ({len(rt_values)})"
+                        f"number of spectra ({n})"
                     )
                 indices = np.where(key_array)[0]
             else:
-                # Integer array
+                # Handle negative indices in fancy indexing
                 indices = key_array.astype(np.intp)
+                indices = np.where(indices < 0, n + indices, indices)
             values_array = np.asarray(values, dtype=np.float64)
-        
-        # Validate indices
+
+        # Validate indices (after normalizing negative indices)
         if len(indices) > 0:
-            if np.any(indices < 0) or np.any(indices >= len(rt_values)):
+            if np.any(indices < 0) or np.any(indices >= n):
                 raise IndexError(
-                    f"Index out of bounds. Valid range is [0, {len(rt_values) - 1}]"
+                    f"Index out of bounds. Valid range is [0, {n - 1}]"
                 )
         
         # Handle broadcasting of single value
@@ -1037,3 +1274,364 @@ cdef class RTAccessor:
     def __str__(self):
         """String conversion of RTAccessor."""
         return str(self._get_rt_array())
+
+
+# MSLevelAccessor class for indexed assignment support
+cdef class MSLevelAccessor:
+    """
+    Proxy class for MS level access with indexed assignment support.
+
+    This class enables numpy-style indexed assignment to MS levels while
+    maintaining backward compatibility with existing code. It intercepts write
+    operations through __setitem__ and delegates read operations to numpy arrays.
+
+    Examples
+    --------
+    >>> exp.ms_level[0] = 2  # Single index
+    >>> exp.ms_level[1:4] = [2, 2, 2]  # Slice
+    >>> exp.ms_level[exp.ms_level == 1] = 2  # Boolean indexing
+    >>> exp.ms_level[[0, 2, 4]] = [2, 2, 2]  # Fancy indexing
+    >>> ms_levels = np.array(exp.ms_level)  # Convert to regular numpy array
+    """
+    cdef MSExperiment parent_exp
+
+    def __init__(self, MSExperiment parent):
+        """Initialize MSLevelAccessor with parent MSExperiment."""
+        self.parent_exp = parent
+
+    def __getitem__(self, key):
+        """
+        Get MS level values for the given key.
+
+        Supports all numpy indexing types: integers, slices, boolean masks,
+        and integer arrays. Delegates to numpy array for read operations.
+        """
+        ms_level_values = self._get_ms_level_array()
+        return ms_level_values[key]
+
+    def __setitem__(self, key, values):
+        """
+        Set MS level values for the given key.
+
+        Intercepts write operations to update the underlying MSExperiment.
+        Handles boolean masks, integer arrays, and slices.
+        """
+        # Get current MS level values
+        ms_level_values = self._get_ms_level_array().copy()
+        n = len(ms_level_values)
+
+        # Convert key to indices
+        if isinstance(key, (int, np.integer)):
+            # Handle negative indices
+            idx = key if key >= 0 else n + key
+            if idx < 0 or idx >= n:
+                raise IndexError(
+                    f"Index {key} out of bounds. Valid range is [-{n}, {n - 1}]"
+                )
+            indices = np.array([idx], dtype=np.intp)
+            values_array = np.array([values], dtype=np.uint32)
+        elif isinstance(key, slice):
+            indices = np.arange(n)[key]
+            values_array = np.asarray(values, dtype=np.uint32)
+        else:
+            key_array = np.asarray(key)
+            if key_array.dtype == np.bool_:
+                if len(key_array) != n:
+                    raise IndexError(
+                        f"Boolean mask length ({len(key_array)}) must match "
+                        f"number of spectra ({n})"
+                    )
+                indices = np.where(key_array)[0]
+            else:
+                # Handle negative indices in fancy indexing
+                indices = key_array.astype(np.intp)
+                indices = np.where(indices < 0, n + indices, indices)
+            values_array = np.asarray(values, dtype=np.uint32)
+
+        # Validate indices (after normalizing negative indices)
+        if len(indices) > 0:
+            if np.any(indices < 0) or np.any(indices >= n):
+                raise IndexError(
+                    f"Index out of bounds. Valid range is [0, {n - 1}]"
+                )
+
+        # Handle broadcasting of single value
+        if values_array.ndim == 0 or (values_array.ndim == 1 and len(values_array) == 1):
+            if values_array.ndim == 0:
+                values_array = np.full(len(indices), values_array.item(), dtype=np.uint32)
+            else:
+                values_array = np.full(len(indices), values_array[0], dtype=np.uint32)
+        elif len(values_array) != len(indices):
+            raise ValueError(
+                f"Length of values ({len(values_array)}) must match "
+                f"number of selected indices ({len(indices)})"
+            )
+
+        # Update MS level values at selected indices
+        ms_level_values[indices] = values_array
+
+        # Set back to experiment using existing setter
+        self.parent_exp.ms_level = ms_level_values
+
+    def __array__(self, dtype=None, copy=None):
+        """Enable numpy.array() conversion."""
+        arr = self._get_ms_level_array()
+        if dtype is not None:
+            arr = arr.astype(dtype)
+        return arr
+
+    def __len__(self):
+        """Return number of spectra."""
+        return self.parent_exp.getNrSpectra()
+
+    def _get_ms_level_array(self):
+        """Internal method to get MS level values as numpy array."""
+        cdef size_t n_spectra = self.parent_exp.inst.get().getNrSpectra()
+        cdef libcpp_vector[unsigned int] ms_levels
+        ms_levels.reserve(n_spectra)
+
+        cdef size_t i
+        for i in range(n_spectra):
+            ms_levels.push_back(self.parent_exp.inst.get().getSpectrum(i).getMSLevel())
+
+        return np.asarray(ms_levels)
+
+    # Arithmetic operators for numpy compatibility
+    def __add__(self, other):
+        return self._get_ms_level_array() + other
+
+    def __radd__(self, other):
+        return other + self._get_ms_level_array()
+
+    def __sub__(self, other):
+        return self._get_ms_level_array() - other
+
+    def __rsub__(self, other):
+        return other - self._get_ms_level_array()
+
+    def __mul__(self, other):
+        return self._get_ms_level_array() * other
+
+    def __rmul__(self, other):
+        return other * self._get_ms_level_array()
+
+    def __truediv__(self, other):
+        return self._get_ms_level_array() / other
+
+    def __rtruediv__(self, other):
+        return other / self._get_ms_level_array()
+
+    # Comparison operators
+    def __eq__(self, other):
+        return self._get_ms_level_array() == other
+
+    def __ne__(self, other):
+        return self._get_ms_level_array() != other
+
+    def __lt__(self, other):
+        return self._get_ms_level_array() < other
+
+    def __le__(self, other):
+        return self._get_ms_level_array() <= other
+
+    def __gt__(self, other):
+        return self._get_ms_level_array() > other
+
+    def __ge__(self, other):
+        return self._get_ms_level_array() >= other
+
+    def __iter__(self):
+        """Iterate over MS level values."""
+        return iter(self._get_ms_level_array())
+
+    def __repr__(self):
+        """String representation of MSLevelAccessor."""
+        return f"MSLevelAccessor({self._get_ms_level_array()})"
+
+    def __str__(self):
+        """String conversion of MSLevelAccessor."""
+        return str(self._get_ms_level_array())
+
+
+# DriftTimeAccessor class for indexed assignment support
+cdef class DriftTimeAccessor:
+    """
+    Proxy class for drift time access with indexed assignment support.
+
+    This class enables numpy-style indexed assignment to drift times while
+    maintaining backward compatibility with existing code. It intercepts write
+    operations through __setitem__ and delegates read operations to numpy arrays.
+
+    Examples
+    --------
+    >>> exp.drift_time[0] = 25.5  # Single index
+    >>> exp.drift_time[1:4] = [25.0, 26.0, 27.0]  # Slice
+    >>> exp.drift_time[exp.ms_level == 2] = 30.0  # Boolean indexing
+    >>> exp.drift_time[[0, 2, 4]] = [25.0, 27.0, 29.0]  # Fancy indexing
+    >>> drift_times = np.array(exp.drift_time)  # Convert to regular numpy array
+    """
+    cdef MSExperiment parent_exp
+
+    def __init__(self, MSExperiment parent):
+        """Initialize DriftTimeAccessor with parent MSExperiment."""
+        self.parent_exp = parent
+
+    def __getitem__(self, key):
+        """
+        Get drift time values for the given key.
+
+        Supports all numpy indexing types: integers, slices, boolean masks,
+        and integer arrays. Delegates to numpy array for read operations.
+        """
+        drift_time_values = self._get_drift_time_array()
+        return drift_time_values[key]
+
+    def __setitem__(self, key, values):
+        """
+        Set drift time values for the given key.
+
+        Intercepts write operations to update the underlying MSExperiment.
+        Handles boolean masks, integer arrays, and slices.
+        """
+        # Get current drift time values
+        drift_time_values = self._get_drift_time_array().copy()
+        n = len(drift_time_values)
+
+        # Convert key to indices
+        if isinstance(key, (int, np.integer)):
+            # Handle negative indices
+            idx = key if key >= 0 else n + key
+            if idx < 0 or idx >= n:
+                raise IndexError(
+                    f"Index {key} out of bounds. Valid range is [-{n}, {n - 1}]"
+                )
+            indices = np.array([idx], dtype=np.intp)
+            values_array = np.array([values], dtype=np.float64)
+        elif isinstance(key, slice):
+            indices = np.arange(n)[key]
+            values_array = np.asarray(values, dtype=np.float64)
+        else:
+            key_array = np.asarray(key)
+            if key_array.dtype == np.bool_:
+                if len(key_array) != n:
+                    raise IndexError(
+                        f"Boolean mask length ({len(key_array)}) must match "
+                        f"number of spectra ({n})"
+                    )
+                indices = np.where(key_array)[0]
+            else:
+                # Handle negative indices in fancy indexing
+                indices = key_array.astype(np.intp)
+                indices = np.where(indices < 0, n + indices, indices)
+            values_array = np.asarray(values, dtype=np.float64)
+
+        # Validate indices (after normalizing negative indices)
+        if len(indices) > 0:
+            if np.any(indices < 0) or np.any(indices >= n):
+                raise IndexError(
+                    f"Index out of bounds. Valid range is [0, {n - 1}]"
+                )
+
+        # Handle broadcasting of single value
+        if values_array.ndim == 0 or (values_array.ndim == 1 and len(values_array) == 1):
+            if values_array.ndim == 0:
+                values_array = np.full(len(indices), values_array.item(), dtype=np.float64)
+            else:
+                values_array = np.full(len(indices), values_array[0], dtype=np.float64)
+        elif len(values_array) != len(indices):
+            raise ValueError(
+                f"Length of values ({len(values_array)}) must match "
+                f"number of selected indices ({len(indices)})"
+            )
+
+        # Update drift time values at selected indices
+        drift_time_values[indices] = values_array
+
+        # Set back to experiment using existing setter
+        self.parent_exp.drift_time = drift_time_values
+
+    def __array__(self, dtype=None, copy=None):
+        """Enable numpy.array() conversion."""
+        arr = self._get_drift_time_array()
+        if dtype is not None:
+            arr = arr.astype(dtype)
+        return arr
+
+    def __len__(self):
+        """Return number of spectra."""
+        return self.parent_exp.getNrSpectra()
+
+    def _get_drift_time_array(self):
+        """Internal method to get drift time values as numpy array."""
+        cdef size_t n_spectra = self.parent_exp.inst.get().getNrSpectra()
+        cdef libcpp_vector[double] drift_times
+        drift_times.reserve(n_spectra)
+
+        cdef size_t i
+        cdef double dt
+        for i in range(n_spectra):
+            dt = self.parent_exp.inst.get().getSpectrum(i).getDriftTime()
+            # IMTypes::DRIFTTIME_NOT_SET is -1
+            if dt < 0:
+                drift_times.push_back(float('nan'))
+            else:
+                drift_times.push_back(dt)
+
+        return np.asarray(drift_times)
+
+    # Arithmetic operators for numpy compatibility
+    def __add__(self, other):
+        return self._get_drift_time_array() + other
+
+    def __radd__(self, other):
+        return other + self._get_drift_time_array()
+
+    def __sub__(self, other):
+        return self._get_drift_time_array() - other
+
+    def __rsub__(self, other):
+        return other - self._get_drift_time_array()
+
+    def __mul__(self, other):
+        return self._get_drift_time_array() * other
+
+    def __rmul__(self, other):
+        return other * self._get_drift_time_array()
+
+    def __truediv__(self, other):
+        return self._get_drift_time_array() / other
+
+    def __rtruediv__(self, other):
+        return other / self._get_drift_time_array()
+
+    # Comparison operators
+    def __eq__(self, other):
+        return self._get_drift_time_array() == other
+
+    def __ne__(self, other):
+        return self._get_drift_time_array() != other
+
+    def __lt__(self, other):
+        return self._get_drift_time_array() < other
+
+    def __le__(self, other):
+        return self._get_drift_time_array() <= other
+
+    def __gt__(self, other):
+        return self._get_drift_time_array() > other
+
+    def __ge__(self, other):
+        return self._get_drift_time_array() >= other
+
+    def __iter__(self):
+        """Iterate over drift time values."""
+        return iter(self._get_drift_time_array())
+
+    def __repr__(self):
+        """String representation of DriftTimeAccessor."""
+        return f"DriftTimeAccessor({self._get_drift_time_array()})"
+
+    def __str__(self):
+        """String conversion of DriftTimeAccessor."""
+        return str(self._get_drift_time_array())
+
