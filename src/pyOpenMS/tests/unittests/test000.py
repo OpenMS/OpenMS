@@ -214,6 +214,7 @@ def testAASequence():
      AASequence.setNTerminalModification
      AASequence.toString
      AASequence.toUnmodifiedString
+     AASequence.getAAFrequencies
     """
     aas = pyopenms.AASequence()
 
@@ -299,6 +300,20 @@ def testAASequence():
     aas_unmod = pyopenms.AASequence.fromString("PEPTIDE")
     repr_unmod = repr(aas_unmod)
     assert "modified=True" not in repr_unmod
+
+    # Test getAAFrequencies - matching C++ test case
+    aas_freq = pyopenms.AASequence.fromString("THREEAAAWITHYYY")
+    freq_table = {}
+    aas_freq.getAAFrequencies(freq_table)
+    assert freq_table[b"T"] == 2
+    assert freq_table[b"H"] == 2
+    assert freq_table[b"R"] == 1
+    assert freq_table[b"E"] == 2
+    assert freq_table[b"A"] == 3
+    assert freq_table[b"W"] == 1
+    assert freq_table[b"I"] == 1
+    assert freq_table[b"Y"] == 3
+    assert len(freq_table) == 8
 
 
 @report
