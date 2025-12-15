@@ -44,16 +44,16 @@
         Returns key properties in a readable format:
         NASequence(sequence='ACGU', length=4, mono_mass=1234.56)
         """
-        # Use Python methods to get values
         seq_str = self.toString()
         length = self.size()
         mono_mass = self.getMonoWeight()
 
         parts = []
         if seq_str:
-            # Truncate very long sequences
-            if len(seq_str) > 50:
-                parts.append(f"sequence='{seq_str[:47]}...'")
+            # Truncate very long sequences (50 chars max, minus 3 for '...')
+            max_display_len = 50
+            if len(seq_str) > max_display_len:
+                parts.append(f"sequence='{seq_str[:max_display_len - 3]}...'")
             else:
                 parts.append(f"sequence='{seq_str}'")
         parts.append(f"length={length}")

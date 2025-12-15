@@ -137,9 +137,12 @@ from DBoundingBox cimport DBoundingBox2 as _DBoundingBox2
         parts = []
         parts.append(f"num_points={num_points}")
         
-        # Get bounding box if we have points
+        # Get bounding box if we have points (wrap in try/except for safety)
         if num_points > 0:
-            bbox = self.getBoundingBox2D()
-            parts.append(f"bbox={bbox}")
+            try:
+                bbox = self.getBoundingBox2D()
+                parts.append(f"bbox={bbox}")
+            except:
+                pass  # Skip bounding box if it can't be computed
         
         return f"ConvexHull2D({', '.join(parts)})"
