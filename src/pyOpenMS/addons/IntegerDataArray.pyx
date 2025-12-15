@@ -151,3 +151,33 @@
         """
         return self.inst.get().size()
 
+    def __str__(self):
+        """
+        __str__(self: IntegerDataArray) -> str
+        
+        Return a string representation of the IntegerDataArray object.
+        Delegates to __repr__ for consistency.
+        """
+        return self.__repr__()
+
+    def __repr__(self):
+        """
+        __repr__(self: IntegerDataArray) -> str
+        
+        Return a string representation of the IntegerDataArray object.
+
+        Returns key properties in a readable format:
+        IntegerDataArray(name='charge_state', size=100)
+        """
+        cdef unsigned int n = self.inst.get().size()
+        
+        parts = []
+        
+        # Get name from MetaInfoDescription
+        name = self.getName()
+        if name:
+            parts.append(f"name='{name}'")
+        
+        parts.append(f"size={n}")
+        
+        return f"IntegerDataArray({', '.join(parts)})"

@@ -31,6 +31,27 @@ cdef class DPosition1:
             raise IndexError("invalid index %d" % ix)
         return deref(self.inst.get())[0]
 
+    def __str__(self):
+        """
+        __str__(self: DPosition1) -> str
+        
+        Return a string representation of the DPosition1 object.
+        Delegates to __repr__ for consistency.
+        """
+        return self.__repr__()
+
+    def __repr__(self):
+        """
+        __repr__(self: DPosition1) -> str
+        
+        Return a string representation of the DPosition1 object.
+
+        Returns key properties in a readable format:
+        DPosition1(x=100.0)
+        """
+        cdef double x = deref(self.inst.get())[0]
+        return f"DPosition1(x={x:.4f})"
+
 
 cdef class DPosition2:
 
@@ -57,3 +78,24 @@ cdef class DPosition2:
             raise IndexError("invalid index %d" % ix)
         return deref(self.inst.get())[ix]
 
+    def __str__(self):
+        """
+        __str__(self: DPosition2) -> str
+        
+        Return a string representation of the DPosition2 object.
+        Delegates to __repr__ for consistency.
+        """
+        return self.__repr__()
+
+    def __repr__(self):
+        """
+        __repr__(self: DPosition2) -> str
+        
+        Return a string representation of the DPosition2 object.
+
+        Returns key properties in a readable format:
+        DPosition2(x=100.0, y=200.0)
+        """
+        cdef double x = deref(self.inst.get())[0]
+        cdef double y = deref(self.inst.get())[1]
+        return f"DPosition2(x={x:.4f}, y={y:.4f})"
