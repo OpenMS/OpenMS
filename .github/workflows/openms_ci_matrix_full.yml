@@ -614,7 +614,8 @@ jobs:
           "de.openms" \
           "apple@openms.de" \
           "APPLE_APP_SPECIFIC_NOTARIZATION_PASSWORD" \
-          "$GITHUB_WORKSPACE/OpenMS/bld/"
+          "$GITHUB_WORKSPACE/OpenMS/bld/" \
+          "C64UCGJ5PL"
 
         echo "=== Notarization complete ==="
 
