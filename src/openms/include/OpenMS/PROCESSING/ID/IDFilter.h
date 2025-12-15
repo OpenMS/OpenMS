@@ -782,31 +782,53 @@ namespace OpenMS
     static void removeUnreferencedProteins(ProteinIdentification& proteins, const PeptideIdentificationList& peptides);
 
     /**
-       @brief Removes references to missing proteins
+       @brief Removes dangling protein references from peptide hits
 
-       Only PeptideEvidence entries that reference protein hits in @p proteins are kept in the peptide hits.
+       Cleans up PeptideEvidence entries by removing references to proteins that no longer exist
+       in the provided protein identifications. This is typically called after filtering protein hits
+       to maintain consistency between peptide-to-protein mappings.
 
-       If @p remove_peptides_without_reference is set, peptide hits without any remaining protein reference are removed.
+       @param[in,out] peptides The peptide identifications to process
+       @param[in] proteins The protein identifications containing valid protein hits
+       @param[in] remove_peptides_without_reference If true, peptide hits that have no remaining
+              protein references after cleanup are also removed (default: false)
+
+       @note Only PeptideEvidence entries referencing protein hits in @p proteins are kept.
+             The matching is done per identification run using the run identifier.
     */
-    static void updateProteinReferences(PeptideIdentificationList& peptides, const std::vector<ProteinIdentification>& proteins, bool remove_peptides_without_reference = false);
+    static void removeDanglingProteinReferences(PeptideIdentificationList& peptides, const std::vector<ProteinIdentification>& proteins, bool remove_peptides_without_reference = false);
 
     /**
-       @brief Removes references to missing proteins
+       @brief Removes dangling protein references from peptide hits in a ConsensusMap
 
-       Only PeptideEvidence entries that reference protein hits in their corresponding protein run of @p cmap are kept in the peptide hits.
+       Cleans up PeptideEvidence entries by removing references to proteins that no longer exist
+       in the ConsensusMap's protein identifications. This is typically called after filtering
+       protein hits to maintain consistency between peptide-to-protein mappings.
 
-       If @p remove_peptides_without_reference is set, peptide hits without any remaining protein reference are removed.
+       @param[in,out] cmap The ConsensusMap containing peptide and protein identifications
+       @param[in] remove_peptides_without_reference If true, peptide hits that have no remaining
+              protein references after cleanup are also removed (default: false)
+
+       @note Only PeptideEvidence entries referencing protein hits in the corresponding
+             protein run of @p cmap are kept. The matching is done per identification run.
     */
-    static void updateProteinReferences(ConsensusMap& cmap, bool remove_peptides_without_reference = false);
+    static void removeDanglingProteinReferences(ConsensusMap& cmap, bool remove_peptides_without_reference = false);
 
     /**
-       @brief Removes references to missing proteins
+       @brief Removes dangling protein references from peptide hits using a reference protein run
 
-       Only PeptideEvidence entries that reference protein hits in @p ref_run are kept in the peptide hits.
+       Cleans up PeptideEvidence entries by removing references to proteins that do not exist
+       in the specified reference protein run. This is typically called after filtering protein
+       hits to maintain consistency between peptide-to-protein mappings.
 
-       If @p remove_peptides_without_reference is set, peptide hits without any remaining protein reference are removed.
+       @param[in,out] cmap The ConsensusMap containing peptide identifications to process
+       @param[in] ref_run The reference ProteinIdentification containing valid protein hits
+       @param[in] remove_peptides_without_reference If true, peptide hits that have no remaining
+              protein references after cleanup are also removed (default: false)
+
+       @note Only PeptideEvidence entries referencing protein hits in @p ref_run are kept.
     */
-    static void updateProteinReferences(ConsensusMap& cmap, const ProteinIdentification& ref_run, bool remove_peptides_without_reference = false);
+    static void removeDanglingProteinReferences(ConsensusMap& cmap, const ProteinIdentification& ref_run, bool remove_peptides_without_reference = false);
 
     /**
        @brief Update protein groups after protein hits were filtered
@@ -1195,7 +1217,7 @@ namespace OpenMS
       {
         filterHitsByScore(peptide_id, peptide_threshold_score);
       }
-      updateProteinReferences(annotated_data.getPeptideIdentifications(), annotated_data.getProteinIdentifications());
+      removeDanglingProteinReferences(annotated_data.getPeptideIdentifications(), annotated_data.getProteinIdentifications());
     }
 
     /// Filters AnnotatedMSRun by keeping the N best peptide hits for every spectrum
@@ -1223,7 +1245,7 @@ namespace OpenMS
         // Since we're working with individual PeptideIdentifications, we don't need to remove empty ones
         // but we still need to update protein references
         temp_vec = {peptide_id};
-        updateProteinReferences(temp_vec, annotated_data.getProteinIdentifications());
+        removeDanglingProteinReferences(temp_vec, annotated_data.getProteinIdentifications());
         all_peptides.push_back(peptide_id);
       }
       // update protein hits:
