@@ -550,7 +550,7 @@ jobs:
           
           # Run cpack directly (generator is already set by PACKAGE_TYPE in CMakeLists.txt)
           echo "Running cpack..."
-          cpack
+          cpack -V
           
           retVal=$?
           if [ $retVal -ne 0 ]; then
