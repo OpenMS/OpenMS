@@ -3,17 +3,24 @@ from DPosition cimport *
 from libcpp cimport bool
 
 cdef extern from "<OpenMS/DATASTRUCTURES/DRange.h>" namespace "OpenMS":
-    
+
     cdef cppclass DRange1 "OpenMS::DRange<1> ":
-        DRange1() except + nogil  # TODO
+        # wrap-ignore
+        DRange1() except + nogil
         DRange1(DRange1 &) except + nogil
-        DRange1(DPosition1 lower, DPosition1 upper) except + nogil  # wrap-ignore
+        DRange1(DPosition1 lower, DPosition1 upper) except + nogil
         bool operator==(DRange1 & rhs) except + nogil
-        bool encloses(DPosition1 & position) except + nogil  # wrap-ignore
-        DRange1 united(DRange1 other_range) except + nogil 
-        # DRangeIntersection intersects(DRange1 & range_) except + nogil 
-        bool isIntersected(DRange1 & range_) except + nogil 
-        bool isEmpty() except + nogil 
+        bool encloses(DPosition1 & position) except + nogil
+        DRange1 united(DRange1 other_range) except + nogil
+        # DRangeIntersection intersects(DRange1 & range_) except + nogil
+        bool isIntersected(DRange1 & range_) except + nogil
+        bool isEmpty() except + nogil
+        void clear() except + nogil
+        DPosition1 minPosition() except + nogil
+        DPosition1 maxPosition() except + nogil
+        void setMin(DPosition1 position) except + nogil
+        void setMax(DPosition1 position) except + nogil
+        void setMinMax(DPosition1 min, DPosition1 max) except + nogil
 
     cdef cppclass DRange2 "OpenMS::DRange<2> ":
         DRange2() except + nogil  # TODO
