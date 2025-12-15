@@ -1,12 +1,8 @@
 # This goes into the PXD file
 from DRange cimport DRange1 as _DRange1
-from DRange cimport DRange2 as _DRange2
 from DPosition cimport DPosition1 as _DPosition1
-from DPosition cimport DPosition2 as _DPosition2
 cdef class DRange1:
     cdef shared_ptr[_DRange1] inst
-cdef class DRange2:
-    cdef shared_ptr[_DRange2] inst
 
 
 cdef class DRange1:
