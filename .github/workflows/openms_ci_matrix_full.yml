@@ -141,7 +141,7 @@ jobs:
           echo "xvfb=" >> $GITHUB_OUTPUT
           echo "static_boost=OFF" >> $GITHUB_OUTPUT
           # build docs on Mac so we don't end up with any nasty post-merge surprises
-          echo "enable_docs=ON" >> $GITHUB_OUTPUT
+          echo "enable_docs=OFF" >> $GITHUB_OUTPUT
           if [ "$DO_PACKAGE" = true ]; then
             echo "pkg_type=pkg" >> $GITHUB_OUTPUT
           else
