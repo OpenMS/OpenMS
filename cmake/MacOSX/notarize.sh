@@ -146,6 +146,7 @@ if xcrun notarytool submit "$BUNDLE_PKG" \
             xcrun notarytool log "$SUBMISSION_ID" \
                 --apple-id "$ASC_USERNAME" \
                 --password "${!ASC_PASSWORD_ENVVAR}" \
+                --team-id "$ASC_TEAMID" \
                 "$LOG_FOLDER/notarization_details.json" 2>&1 || true
 
             if [[ -f "$LOG_FOLDER/notarization_details.json" ]]; then
