@@ -19,7 +19,8 @@ BUNDLE_PKG="$1"
 BUNDLE_ID="$2"
 ASC_USERNAME="$3"
 ASC_PASSWORD_ENVVAR="$4"
-LOG_FOLDER="${5:-.}"
+ASC_TEAMID="$5"
+LOG_FOLDER="${6:-.}"
 
 NOTARIZE_LOG="$LOG_FOLDER/notarize.log"
 
@@ -86,12 +87,12 @@ echo "=== Submitting for notarization ==="
 
 # Submit for notarization using notarytool
 # --wait makes the command block until notarization is complete
-# Note: --team-id is optional if you only have one team
 # Ensure pipefail is set for this block in case of subshells
 set -o pipefail
 if xcrun notarytool submit "$BUNDLE_PKG" \
     --apple-id "$ASC_USERNAME" \
     --password "${!ASC_PASSWORD_ENVVAR}" \
+    --team-id "$ASC_TEAMID" \
     --wait \
     2>&1 | tee "$NOTARIZE_LOG"; then
 
