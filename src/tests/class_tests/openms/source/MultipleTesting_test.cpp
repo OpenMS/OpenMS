@@ -238,4 +238,19 @@ START_SECTION("grid_kde_fft basic integration and sizes")
 }
 END_SECTION
 
+START_SECTION("kde_fft_eval equals grid values when queried at grid points")
+{
+  std::vector<double> x = {0.0, 1.0, 2.0};
+  double bw = bw_nrd0(x);
+  auto res = grid_kde_fft(x, bw, 64, 3.0);
+  auto dens = res.first;
+  auto grid = res.second;
+
+  // evaluate KDE at grid points using kde_fft_eval
+  auto y = kde_fft_eval(grid, bw, 64, 3.0);
+  TEST_EQUAL(y.size(), dens.size())
+  for (std::size_t i = 0; i < dens.size(); ++i) TEST_REAL_SIMILAR(y[i], dens[i]);
+}
+END_SECTION
+
 END_TEST

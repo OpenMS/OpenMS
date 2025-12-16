@@ -189,6 +189,9 @@ OPENMS_DLLAPI std::vector<double> silverman_kernel_fft(double bw, std::size_t M,
 /// Returns pair (density, grid) where grid is the M equally spaced points from a..b.
 OPENMS_DLLAPI std::pair<std::vector<double>, std::vector<double>> grid_kde_fft(const std::vector<double>& x, double bw, std::size_t gridsize = 512, double cut = 3.0);
 
+/// Evaluate KDE at query points using FFT-grid method + cubic spline interpolation
+OPENMS_DLLAPI std::vector<double> kde_fft_eval(const std::vector<double>& x, double bw, std::size_t gridsize = 512, double cut = 3.0);
+
 /// Compute tail probabilities under a normal distribution fitted to stat0
 /// Returns P(X > stat_i) where X ~ N(mu, sigma^2) with mu/sigma estimated from stat0
 OPENMS_DLLAPI std::vector<double> pnorm(const std::vector<double>& stat, const std::vector<double>& stat0);

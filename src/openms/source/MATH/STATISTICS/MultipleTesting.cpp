@@ -29,6 +29,7 @@ namespace evergreen {
 #include <stdexcept>
 #include <iterator>
 #include <utility>
+#include <OpenMS/MATH/MISC/CubicSpline2d.h>
 
 namespace OpenMS
 {
@@ -526,6 +527,26 @@ std::pair<std::vector<double>, std::vector<double>> grid_kde_fft(const std::vect
   }
 
   return {dens, grid};
+}
+
+// Evaluate KDE at query points using FFT-grid method + cubic spline interpolation
+std::vector<double> kde_fft_eval(const std::vector<double>& x, double bw, std::size_t gridsize, double cut)
+{
+  // build grid density
+  auto pg = grid_kde_fft(x, bw, gridsize, cut);
+  const std::vector<double>& dens = pg.first;
+  const std::vector<double>& grid = pg.second;
+
+  // build cubic spline (CubicSpline2d expects sorted x)
+  OpenMS::CubicSpline2d spline(grid, dens);
+
+  std::vector<double> out;
+  out.reserve(x.size());
+  for (double xi : x)
+  {
+    out.push_back(spline.eval(xi));
+  }
+  return out;
 }
 
 } // namespace Math
