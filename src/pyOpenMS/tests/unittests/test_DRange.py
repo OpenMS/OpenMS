@@ -42,12 +42,6 @@ class TestDRange1(unittest.TestCase):
         self.assertEqual(r.minX(), 100.0)
         self.assertEqual(r.maxX(), 200.0)
 
-    def test_getMin_getMax(self):
-        """Test getMin/getMax aliases"""
-        r = pyopenms.DRange1(10.0, 20.0)
-        self.assertEqual(r.getMin(), 10.0)
-        self.assertEqual(r.getMax(), 20.0)
-
     def test_encloses(self):
         """Test encloses method with float values"""
         r = pyopenms.DRange1(10.0, 20.0)

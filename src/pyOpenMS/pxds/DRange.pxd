@@ -7,9 +7,9 @@ cdef extern from "<OpenMS/DATASTRUCTURES/DRange.h>" namespace "OpenMS":
     cdef cppclass DRange1 "OpenMS::DRange<1> ":
         DRange1() except + nogil  # TODO
         DRange1(DRange1 &) except + nogil
-        DRange1(DPosition1 lower, DPosition1 upper) except + nogil  # wrap-ignore
+        DRange1(DPosition1 lower, DPosition1 upper) except + nogil  # wrap-doc:Constructor from min and max positions (as floats)
         bool operator==(DRange1 & rhs) except + nogil
-        bool encloses(DPosition1 & position) except + nogil  # wrap-ignore
+        bool encloses(DPosition1 position) except + nogil  # wrap-doc:Check if a position (float) is within this range
         DRange1 united(DRange1 other_range) except + nogil
         # DRangeIntersection intersects(DRange1 & range_) except + nogil
         bool isIntersected(DRange1 & range_) except + nogil
