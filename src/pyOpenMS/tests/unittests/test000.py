@@ -758,6 +758,30 @@ def testChromatogramPeak():
     str_str = str(p)
     assert str_str == repr_str
 
+    # Test constructor with RT and intensity
+    p2 = pyopenms.ChromatogramPeak(100.5, 5000.0)
+    assert p2.getRT() == 100.5
+    assert p2.getIntensity() == 5000.0
+
+    # Test constructor with int RT (DPosition1 converter accepts int/float)
+    p3 = pyopenms.ChromatogramPeak(200, 10000.0)
+    assert p3.getRT() == 200.0
+    assert p3.getIntensity() == 10000.0
+
+    # Test getPosition returns float
+    pos = p2.getPosition()
+    assert isinstance(pos, float)
+    assert pos == 100.5
+
+    # Test setPosition with float
+    p2.setPosition(300.0)
+    assert p2.getRT() == 300.0
+    assert p2.getPosition() == 300.0
+
+    # Test setPosition with int (DPosition1 converter accepts int/float)
+    p2.setPosition(400)
+    assert p2.getRT() == 400.0
+
 
 @report
 def testChromatogramToosl():
