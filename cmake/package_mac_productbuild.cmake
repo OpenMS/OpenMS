@@ -112,10 +112,6 @@ install(CODE "execute_process(COMMAND ${OPENMS_HOST_DIRECTORY}/cmake/MacOSX/fix_
 install(CODE "
         execute_process(COMMAND find \${CMAKE_INSTALL_PREFIX}/../../../Applications${CPACK_PACKAGING_INSTALL_PREFIX}/${INSTALL_BIN_DIR}/ -type f -execdir codesign --force --options runtime -i de.openms.TOPP.{} --sign \"${CPACK_BUNDLE_APPLE_CERT_APP}\" {} \\; OUTPUT_VARIABLE topp_sign_out ERROR_VARIABLE topp_sign_out)
         execute_process(COMMAND find \${CMAKE_INSTALL_PREFIX}/${INSTALL_LIB_DIR}/ -type f -execdir codesign --force --options runtime -i de.openms.TOPP.libs.{} --sign \"${CPACK_BUNDLE_APPLE_CERT_APP}\" {} \\; OUTPUT_VARIABLE topp_sign_out ERROR_VARIABLE topp_sign_out)
-        if(EXISTS \${CMAKE_INSTALL_PREFIX}/${INSTALL_SHARE_DIR}/THIRDPARTY/)
-          execute_process(COMMAND find \${CMAKE_INSTALL_PREFIX}/${INSTALL_SHARE_DIR}/THIRDPARTY/ -type f -execdir codesign --force --options runtime -i de.openms.thirdparty.{} --sign \"${CPACK_BUNDLE_APPLE_CERT_APP}\" {} \\; OUTPUT_VARIABLE thirdparty_sign_out ERROR_VARIABLE thirdparty_sign_out)
-          message('\${thirdparty_sign_out}')
-        endif()
         message('\${topp_sign_out}')"
         COMPONENT Dependencies
         )
@@ -127,6 +123,17 @@ install(CODE "
         message('\${lib_sign_out}')"
         COMPONENT library
         )
+
+## Sign thirdparty components
+foreach(component IN LISTS THIRDPARTY_COMPONENT_GROUP)
+  install(CODE "
+          if(EXISTS \${CMAKE_INSTALL_PREFIX}/${INSTALL_SHARE_DIR}/THIRDPARTY/${component}/)
+            execute_process(COMMAND find \${CMAKE_INSTALL_PREFIX}/${INSTALL_SHARE_DIR}/THIRDPARTY/${component}/ -type f -execdir codesign --force --options runtime -i de.openms.thirdparty.${component}.{} --sign \"${CPACK_BUNDLE_APPLE_CERT_APP}\" {} \\; OUTPUT_VARIABLE thirdparty_sign_out ERROR_VARIABLE thirdparty_sign_out)
+            message('\${thirdparty_sign_out}')
+          endif()"
+          COMPONENT ${component}
+          )
+endforeach()
 
 ## When Applications are installed (which is the FIRST in alphabetical order AND the main component),
 ## a postinstall script runs to set file icon
