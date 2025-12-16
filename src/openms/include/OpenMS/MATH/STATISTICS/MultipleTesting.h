@@ -192,6 +192,20 @@ OPENMS_DLLAPI std::pair<std::vector<double>, std::vector<double>> grid_kde_fft(c
 /// Evaluate KDE at query points using FFT-grid method + cubic spline interpolation
 OPENMS_DLLAPI std::vector<double> kde_fft_eval(const std::vector<double>& x, double bw, std::size_t gridsize = 512, double cut = 3.0);
 
+/// Estimate local FDR / posterior error probability (PEP) from p-values.
+/// Supports "probit" and "logit" transforms and uses the FFT-grid
+/// Silverman KDE implemented above. Mirrors the python/statsmodels
+/// `lfdr` behavior used in qvalue-style local FDR estimation.
+OPENMS_DLLAPI std::vector<double> lfdr(const std::vector<double>& p_values,
+                                      double pi0,
+                                      bool trunc = true,
+                                      bool monotone = true,
+                                      const std::string& transf = "probit",
+                                      double adj = 1.5,
+                                      double eps = 1e-8,
+                                      std::size_t gridsize = 512,
+                                      double cut = 3.0);
+
 /// Compute tail probabilities under a normal distribution fitted to stat0
 /// Returns P(X > stat_i) where X ~ N(mu, sigma^2) with mu/sigma estimated from stat0
 OPENMS_DLLAPI std::vector<double> pnorm(const std::vector<double>& stat, const std::vector<double>& stat0);

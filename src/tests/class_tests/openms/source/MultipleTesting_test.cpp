@@ -31,6 +31,31 @@ START_SECTION(template<class T> std::vector<double> compute_model_fdr(const std:
 }
 END_SECTION
 
+START_SECTION("lfdr basic checks (probit & logit)")
+{
+  std::vector<double> p = {0.001, 0.01, 0.05, 0.2, 0.8, 0.95};
+  double pi0 = 0.8;
+
+  auto out_probit = lfdr(p, pi0, true, true, "probit", 1.5, 1e-8, 256, 3.0);
+  TEST_EQUAL(out_probit.size(), p.size())
+  // values in [0,1] and finite
+  for (std::size_t i = 0; i < out_probit.size(); ++i)
+  {
+    TEST_EQUAL(std::isfinite(out_probit[i]), true);
+    TEST_EQUAL(out_probit[i] >= 0.0, true);
+    TEST_EQUAL(out_probit[i] <= 1.0, true);
+  }
+  // monotonic non-decreasing in p
+  std::vector<std::size_t> idx(p.size()); for (std::size_t i = 0; i < p.size(); ++i) idx[i] = i;
+  std::stable_sort(idx.begin(), idx.end(), [&](std::size_t a, std::size_t b){ return p[a] < p[b]; });
+  for (std::size_t i = 1; i < idx.size(); ++i) TEST_EQUAL(out_probit[idx[i]] >= out_probit[idx[i-1]], true);
+
+  auto out_logit = lfdr(p, pi0, true, true, "logit", 1.5, 1e-8, 256, 3.0);
+  TEST_EQUAL(out_logit.size(), p.size())
+  for (double v : out_logit) { TEST_EQUAL(std::isfinite(v), true); TEST_EQUAL(v >= 0.0, true); TEST_EQUAL(v <= 1.0, true); }
+}
+END_SECTION
+
 START_SECTION("forrt/revrt roundtrip small")
 {
   std::vector<double> x = {0.0, 1.0, 2.0, 3.0};

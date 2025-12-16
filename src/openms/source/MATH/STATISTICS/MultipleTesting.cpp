@@ -30,6 +30,7 @@ namespace evergreen {
 #include <iterator>
 #include <utility>
 #include <OpenMS/MATH/MISC/CubicSpline2d.h>
+#include <boost/math/distributions/normal.hpp>
 
 namespace OpenMS
 {
@@ -547,6 +548,169 @@ std::vector<double> kde_fft_eval(const std::vector<double>& x, double bw, std::s
     out.push_back(spline.eval(xi));
   }
   return out;
+}
+
+// Estimate local FDR / PEP from p-values using probit/logit transform and FFT-grid KDE
+std::vector<double> lfdr(const std::vector<double>& p_values,
+                         double pi0,
+                         bool trunc,
+                         bool monotone,
+                         const std::string& transf,
+                         double adj,
+                         double eps,
+                         std::size_t gridsize,
+                         double cut)
+{
+  const std::size_t m_total = p_values.size();
+  std::vector<double> lfdr_out(m_total, std::numeric_limits<double>::quiet_NaN());
+
+  if (m_total == 0) return lfdr_out;
+
+  // select finite entries
+  std::vector<char> rm_na(m_total, 0);
+  std::vector<double> p;
+  p.reserve(m_total);
+  for (std::size_t i = 0; i < m_total; ++i)
+  {
+    if (std::isfinite(p_values[i])) { rm_na[i] = 1; p.push_back(p_values[i]); }
+  }
+
+  const std::size_t m = p.size();
+  if (m == 0)
+  {
+    return lfdr_out; // all NA
+  }
+
+  // validate ranges
+  for (double pv : p) if (pv < 0.0 || pv > 1.0) throw std::invalid_argument("lfdr: p-values not in [0,1]");
+  if (pi0 < 0.0 || pi0 > 1.0) throw std::invalid_argument("lfdr: pi0 not in [0,1]");
+
+  // working vectors
+  std::vector<double> x(m);
+  std::vector<double> y;
+
+  if (transf == "probit")
+  {
+    // clip p to avoid infinities
+    for (std::size_t i = 0; i < m; ++i)
+    {
+      double pv = p[i];
+      if (pv < eps) pv = eps;
+      if (pv > 1.0 - eps) pv = 1.0 - eps;
+      p[i] = pv; // replace clipped
+    }
+
+    // inverse normal (probit)
+    boost::math::normal_distribution<double> nd(0.0, 1.0);
+    for (std::size_t i = 0; i < m; ++i) x[i] = boost::math::quantile(nd, p[i]);
+
+    double bw = bw_nrd0(x) * adj;
+    y = kde_fft_eval(x, bw, gridsize, cut);
+
+    // null density f0 = N(0,1)
+    y.reserve(y.size());
+    std::vector<double> f0(m);
+    const double norm_const = 1.0 / std::sqrt(2.0 * M_PI);
+    for (std::size_t i = 0; i < m; ++i)
+    {
+      f0[i] = norm_const * std::exp(-0.5 * x[i] * x[i]);
+    }
+
+    // lfdr = pi0 * f0 / y
+    std::vector<double> lfdr_v(m, std::numeric_limits<double>::quiet_NaN());
+    for (std::size_t i = 0; i < m; ++i)
+    {
+      if (!(y[i] > 0.0)) lfdr_v[i] = std::numeric_limits<double>::infinity();
+      else lfdr_v[i] = pi0 * f0[i] / y[i];
+    }
+    y.swap(lfdr_v); // temporarily store lfdr in y variable
+  }
+  else if (transf == "logit")
+  {
+    for (std::size_t i = 0; i < m; ++i)
+    {
+      double pv = p[i];
+      // use eps to stabilize
+      x[i] = std::log((pv + eps) / (1.0 - pv + eps));
+    }
+    double bw = bw_nrd0(x) * adj;
+    y = kde_fft_eval(x, bw, gridsize, cut);
+
+    // dx = exp(x) / (1+exp(x))^2
+    std::vector<double> dx(m);
+    for (std::size_t i = 0; i < m; ++i)
+    {
+      double ex = std::exp(x[i]);
+      double denom = (1.0 + ex);
+      dx[i] = ex / (denom * denom);
+    }
+
+    std::vector<double> lfdr_v(m, std::numeric_limits<double>::quiet_NaN());
+    for (std::size_t i = 0; i < m; ++i)
+    {
+      if (!(y[i] > 0.0)) lfdr_v[i] = std::numeric_limits<double>::infinity();
+      else lfdr_v[i] = (pi0 * dx[i]) / y[i];
+    }
+    y.swap(lfdr_v);
+  }
+  else
+  {
+    throw std::invalid_argument("lfdr: invalid transf, expected 'probit' or 'logit'");
+  }
+
+  // y now holds lfdr for the finite entries in original order
+  std::vector<double> lfdr_vec = y;
+
+  // truncation
+  if (trunc)
+  {
+    for (double &v : lfdr_vec) if (v > 1.0) v = 1.0;
+  }
+
+  // monotone enforcement in p: make lfdr non-decreasing in p
+  if (monotone && m > 1)
+  {
+    // argsort p ascending
+    std::vector<std::size_t> order = argsort_asc(p);
+    // build sorted lfdr
+    std::vector<double> lfdr_sorted(m);
+    for (std::size_t i = 0; i < m; ++i) lfdr_sorted[i] = lfdr_vec[order[i]];
+    // cumulative maximum (isotonic non-decreasing)
+    for (std::size_t i = 1; i < m; ++i)
+    {
+      if (lfdr_sorted[i] < lfdr_sorted[i - 1]) lfdr_sorted[i] = lfdr_sorted[i - 1];
+    }
+    // compute min-rank mapping (rankdata 'min')
+    std::vector<int> assigned(m, 0);
+    std::vector<std::size_t> minrank(m, 0);
+    for (std::size_t j = 0; j < m; ++j)
+    {
+      std::size_t idx = order[j];
+      if (!assigned[idx])
+      {
+        minrank[idx] = j + 1; // 1-based
+        assigned[idx] = 1;
+      }
+    }
+    // map back: lfdr_mapped[i] = lfdr_sorted[minrank[i]-1]
+    std::vector<double> lfdr_mapped(m, std::numeric_limits<double>::quiet_NaN());
+    for (std::size_t i = 0; i < m; ++i)
+    {
+      std::size_t r = static_cast<std::size_t>(minrank[i]);
+      if (r == 0) lfdr_mapped[i] = std::numeric_limits<double>::quiet_NaN();
+      else lfdr_mapped[i] = lfdr_sorted[r - 1];
+    }
+    lfdr_vec.swap(lfdr_mapped);
+  }
+
+  // place back into output
+  std::size_t k = 0;
+  for (std::size_t i = 0; i < m_total; ++i)
+  {
+    if (rm_na[i]) { lfdr_out[i] = lfdr_vec[k++]; }
+  }
+
+  return lfdr_out;
 }
 
 } // namespace Math
