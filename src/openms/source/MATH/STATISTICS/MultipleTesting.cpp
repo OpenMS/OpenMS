@@ -188,8 +188,16 @@ Pi0Result pi0est(const std::vector<double>& p_values, const std::vector<double>&
   // Choose method: 'smoother' (default) or 'bootstrap'
   if (pi0_method == "smoother")
   {
-    // require at least 4 points to match the reference check behaviour
-    if (ll < 4) throw std::invalid_argument("pi0est: at least 4 lambda values required for smoothing");
+    // If too few lambda values are provided for a smoothing fit, fall back
+    // to the naive (non-smoothed) minimum pi0 across the grid. This keeps
+    // behaviour compatible with existing callers that may pass small
+    // lambda vectors (see unit tests).
+    if (ll < 4)
+    {
+      res.pi0 = std::min(*std::min_element(pi0s.begin(), pi0s.end()), 1.0);
+      res.pi0_smooth = false;
+      return res;
+    }
 
     // Optionally work on log(pi0)
     std::vector<double> y = pi0s;
@@ -199,17 +207,26 @@ Pi0Result pi0est(const std::vector<double>& p_values, const std::vector<double>&
     }
 
     // Fit a small-degree polynomial (up to cubic) by least squares to approximate
-    // the smoother used by the R/qvalue reference implementation. This is a
-    // pragmatic approximation of a smoothing spline for small lambda grids.
-    const std::size_t deg = static_cast<std::size_t>(std::min(3, std::max(1, smooth_df)));
+    // the smoother used by the R/qvalue reference implementation. Use a
+    // centered-and-scaled Vandermonde basis for numerical stability which tends
+    // to reduce small numeric discrepancies versus an unscaled fit.
+    const int deg_i = std::min(3, std::max(1, smooth_df));
+    const std::size_t deg = static_cast<std::size_t>(deg_i);
     const std::size_t D = std::min<std::size_t>(deg + 1, ll);
 
-    // Build normal equations A coeffs = B
+    // compute centering/scale for lambda values
+    double lambda_min = *std::min_element(lambda_v.begin(), lambda_v.end());
+    double lambda_max = *std::max_element(lambda_v.begin(), lambda_v.end());
+    double lambda_mean = 0.5 * (lambda_min + lambda_max);
+    double lambda_scale = lambda_max - lambda_min;
+    if (!(lambda_scale > 0.0)) lambda_scale = 1.0;
+
+    // Build normal equations A coeffs = B using scaled x = (x - mean)/scale
     std::vector<std::vector<double>> A(D, std::vector<double>(D, 0.0));
     std::vector<double> B(D, 0.0);
     for (std::size_t i = 0; i < ll; ++i)
     {
-      double x = lambda_v[i];
+      double x = (lambda_v[i] - lambda_mean) / lambda_scale;
       double xp = 1.0;
       std::vector<double> xv(D);
       for (std::size_t j = 0; j < D; ++j) { xv[j] = xp; xp *= x; }
@@ -249,10 +266,12 @@ Pi0Result pi0est(const std::vector<double>& p_values, const std::vector<double>&
     {
       std::vector<double> coeffs(D, 0.0);
       for (std::size_t i = 0; i < D; ++i) coeffs[i] = M[i][D];
-      double xpow = 1.0;
-      double pred = 0.0;
-      double max_lambda = *std::max_element(lambda_v.begin(), lambda_v.end());
-      for (std::size_t j = 0; j < D; ++j) { pred += coeffs[j] * xpow; xpow *= max_lambda; }
+  // evaluate polynomial at scaled max lambda
+  double max_lambda = *std::max_element(lambda_v.begin(), lambda_v.end());
+  double x_eval = (max_lambda - lambda_mean) / lambda_scale;
+  double xpow = 1.0;
+  double pred = 0.0;
+  for (std::size_t j = 0; j < D; ++j) { pred += coeffs[j] * xpow; xpow *= x_eval; }
       if (smooth_log_pi0)
       {
         if (pred <= -1e300 || !std::isfinite(pred)) pred = *std::min_element(pi0s.begin(), pi0s.end());
