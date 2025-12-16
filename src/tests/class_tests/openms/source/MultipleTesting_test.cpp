@@ -31,6 +31,88 @@ START_SECTION(template<class T> std::vector<double> compute_model_fdr(const std:
 }
 END_SECTION
 
+START_SECTION("lfdr CSV reference (pyprophet) regression")
+{
+  // load CSV
+  const std::string path = OPENMS_GET_TEST_DATA_PATH("test_lfdr_ref_data.csv");
+  std::ifstream in(path.c_str());
+  TEST_EQUAL(bool(in), true)
+
+  std::string header;
+  std::getline(in, header);
+  struct Row { double p; double lfdr_default; double lfdr_monotone_false; double lfdr_transf_logit; double lfdr_eps; };
+  std::vector<Row> rows;
+  std::string line;
+  while (std::getline(in, line))
+  {
+    if (line.empty()) continue;
+    std::vector<std::string> parts;
+    std::stringstream ss(line);
+    std::string item;
+    while (std::getline(ss, item, ','))
+    {
+      // strip optional quotes
+      if (!item.empty() && item.front() == '"' && item.back() == '"') item = item.substr(1, item.size()-2);
+      parts.push_back(item);
+    }
+    if (parts.size() < 5) continue;
+    Row r;
+    r.p = std::stod(parts[0]);
+    r.lfdr_default = std::stod(parts[1]);
+    r.lfdr_monotone_false = std::stod(parts[2]);
+    r.lfdr_transf_logit = std::stod(parts[3]);
+    r.lfdr_eps = std::stod(parts[4]);
+    rows.push_back(r);
+  }
+
+  TEST_EQUAL(rows.empty(), false)
+
+  // sort by p ascending
+  std::sort(rows.begin(), rows.end(), [](const Row &a, const Row &b){ return a.p < b.p; });
+
+  std::vector<double> pvec, ref_default, ref_monotone_false, ref_logit, ref_eps;
+  pvec.reserve(rows.size()); ref_default.reserve(rows.size()); ref_monotone_false.reserve(rows.size()); ref_logit.reserve(rows.size()); ref_eps.reserve(rows.size());
+  for (auto &r : rows) { pvec.push_back(r.p); ref_default.push_back(r.lfdr_default); ref_monotone_false.push_back(r.lfdr_monotone_false); ref_logit.push_back(r.lfdr_transf_logit); ref_eps.push_back(r.lfdr_eps); }
+
+  const double pi0 = 0.669926026474838;
+  auto out_def = lfdr(pvec, pi0);
+  auto out_monofalse = lfdr(pvec, pi0, true, false);
+  auto out_logit = lfdr(pvec, pi0, true, true, "logit");
+  auto out_eps = lfdr(pvec, pi0, true, true, "probit", 1.5, std::pow(10.0, -2));
+
+  TEST_EQUAL(out_def.size(), ref_default.size())
+  TEST_EQUAL(out_monofalse.size(), ref_monotone_false.size())
+  TEST_EQUAL(out_logit.size(), ref_logit.size())
+  TEST_EQUAL(out_eps.size(), ref_eps.size())
+
+  const double tol = 1e-2; // match python test decimal=2
+  for (std::size_t i = 0; i < ref_default.size(); ++i)
+  {
+    TEST_EQUAL(std::fabs(out_def[i] - ref_default[i]) <= tol, true);
+    TEST_EQUAL(std::fabs(out_monofalse[i] - ref_monotone_false[i]) <= tol, true);
+    TEST_EQUAL(std::fabs(out_logit[i] - ref_logit[i]) <= tol, true);
+    TEST_EQUAL(std::fabs(out_eps[i] - ref_eps[i]) <= tol, true);
+  }
+
+  // print results in three lines for regression capture
+  auto print_vec = [&](const std::vector<double>& v)
+  {
+    std::cout << "[";
+    for (std::size_t i = 0; i < v.size(); ++i)
+    {
+      if (i) std::cout << ", ";
+      std::cout << v[i];
+    }
+    std::cout << "]\n";
+  };
+
+  print_vec(out_def);
+  print_vec(out_monofalse);
+  print_vec(out_logit);
+  print_vec(out_eps);
+}
+END_SECTION
+
 START_SECTION("lfdr basic checks (probit & logit)")
 {
   std::vector<double> p = {0.001, 0.01, 0.05, 0.2, 0.8, 0.95};
