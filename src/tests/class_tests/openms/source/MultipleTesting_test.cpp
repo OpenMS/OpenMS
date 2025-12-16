@@ -30,6 +30,19 @@ START_SECTION(template<class T> std::vector<double> compute_model_fdr(const std:
 }
 END_SECTION
 
+START_SECTION("forrt/revrt roundtrip small")
+{
+  std::vector<double> x = {0.0, 1.0, 2.0, 3.0};
+  auto Xp = forrt(x, x.size());
+  auto xr = revrt(Xp, x.size());
+  TEST_EQUAL(xr.size(), x.size())
+  for (std::size_t i = 0; i < x.size(); ++i)
+  {
+    TEST_REAL_SIMILAR(xr[i], x[i]);
+  }
+}
+END_SECTION
+
 START_SECTION(double bw_nrd0(const std::vector<double>&))
 {
   std::vector<double> x = {0.0, 1.0, 2.0, 3.0, 4.0};
@@ -179,6 +192,49 @@ START_SECTION("R reference qvalue CSV matches C++ implementation")
     TEST_REAL_SIMILAR(q_def[i], qd_ref[i]);
     TEST_REAL_SIMILAR(q_pf[i], qpfdr_ref[i]);
   }
+}
+END_SECTION
+
+START_SECTION("silverman_kernel_fft properties")
+{
+  // basic sanity checks
+  std::size_t M = 8;
+  double bw = 1.0;
+  double RANGE = 10.0;
+  auto K = silverman_kernel_fft(bw, M, RANGE);
+  TEST_EQUAL(K.size(), M)
+  // K[0] should equal 1 (exp(0)/BC with BC==1)
+  TEST_REAL_SIMILAR(K[0], 1.0)
+  // positive and decreasing for first half
+  std::size_t half = M / 2;
+  for (std::size_t k = 0; k <= half; ++k)
+  {
+    TEST_EQUAL(std::isfinite(K[k]), true)
+    TEST_EQUAL(K[k] > 0.0, true)
+    if (k > 0) TEST_EQUAL(K[k] <= K[k-1], true);
+  }
+  // symmetry in Munro-packed layout: K[1..half-1] mirrored at K[half+1..]
+  for (std::size_t k = 1; k < half; ++k)
+  {
+    TEST_REAL_SIMILAR(K[k], K[half + k]);
+  }
+}
+END_SECTION
+
+START_SECTION("grid_kde_fft basic integration and sizes")
+{
+  std::vector<double> x = {0.0, 1.0, 2.0};
+  double bw = bw_nrd0(x);
+  auto res = grid_kde_fft(x, bw, 64, 3.0);
+  auto dens = res.first;
+  auto grid = res.second;
+  TEST_EQUAL(dens.size(), grid.size())
+  TEST_EQUAL(dens.empty(), false)
+  // integral should be ~1.0
+  double delta = grid.size() > 1 ? (grid[1] - grid[0]) : 1.0;
+  double sum = 0.0;
+  for (double v : dens) { TEST_EQUAL(std::isfinite(v), true); TEST_EQUAL(v >= 0.0, true); sum += v; }
+  TEST_REAL_SIMILAR(sum * delta, 1.0)
 }
 END_SECTION
 

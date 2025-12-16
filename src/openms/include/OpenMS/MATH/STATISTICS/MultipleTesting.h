@@ -181,6 +181,14 @@ OPENMS_DLLAPI std::vector<double> forrt(const std::vector<double>& X, std::size_
 /// Inverse of `forrt`: reconstruct real signal (scaled by *M to invert forrt)
 OPENMS_DLLAPI std::vector<double> revrt(const std::vector<double>& Xp, std::size_t M = 0);
 
+/// Build Silverman FFT of Gaussian kernel on Munro frequency grid (Munro-packed)
+/// See statsmodels.nonparametric.kdetools.silverman_transform for reference.
+OPENMS_DLLAPI std::vector<double> silverman_kernel_fft(double bw, std::size_t M, double RANGE);
+
+/// FFT-grid Gaussian KDE using Silverman/Munro FFT + linear binning.
+/// Returns pair (density, grid) where grid is the M equally spaced points from a..b.
+OPENMS_DLLAPI std::pair<std::vector<double>, std::vector<double>> grid_kde_fft(const std::vector<double>& x, double bw, std::size_t gridsize = 512, double cut = 3.0);
+
 /// Compute tail probabilities under a normal distribution fitted to stat0
 /// Returns P(X > stat_i) where X ~ N(mu, sigma^2) with mu/sigma estimated from stat0
 OPENMS_DLLAPI std::vector<double> pnorm(const std::vector<double>& stat, const std::vector<double>& stat0);
