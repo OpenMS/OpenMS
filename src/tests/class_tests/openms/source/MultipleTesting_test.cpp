@@ -31,6 +31,17 @@ START_SECTION(template<class T> std::vector<double> compute_model_fdr(const std:
 }
 END_SECTION
 
+START_SECTION("pnorm: pyprophet reference vector")
+{
+  std::vector<double> stat = {0, 1, 3, 2, 0.1, 0.5, 0.6, 0.3, 0.5, 0.6, 0.2, 0.5};
+  std::vector<double> stat0 = {0.4, 0.2, 0.5, 1, 0.5, 0.7, 0.2, 0.4};
+  auto out = pnorm(stat, stat0);
+  std::vector<double> expected = {9.674763e-01, 2.621760e-02, 0.0, 5.201675e-09, 9.287418e-01, 4.811347e-01, 3.351438e-01, 7.610205e-01, 4.811347e-01, 3.351438e-01, 8.617105e-01, 4.811347e-01};
+  TEST_EQUAL(out.size(), expected.size())
+  for (std::size_t i = 0; i < out.size(); ++i) TEST_REAL_SIMILAR(out[i], expected[i]);
+}
+END_SECTION
+
 START_SECTION("lfdr CSV reference (pyprophet) regression")
 {
   // load CSV
@@ -113,6 +124,17 @@ START_SECTION("lfdr CSV reference (pyprophet) regression")
 }
 END_SECTION
 
+START_SECTION("pemp: pyprophet reference vector")
+{
+  std::vector<double> stat = {0, 1, 3, 2, 0.1, 0.5, 0.6, 0.3, 0.5, 0.6, 0.2, 0.5};
+  std::vector<double> stat0 = {0.4, 0.2, 0.5, 1, 0.5, 0.7, 0.2, 0.4};
+  auto out = pemp<double>(stat, stat0);
+  std::vector<double> expected = {1.0, 0.125, 0.125, 0.125, 1.0, 0.25, 0.25, 0.75, 0.25, 0.25, 0.75, 0.25};
+  TEST_EQUAL(out.size(), expected.size())
+  for (std::size_t i = 0; i < out.size(); ++i) TEST_REAL_SIMILAR(out[i], expected[i]);
+}
+END_SECTION
+
 START_SECTION("lfdr basic checks (probit & logit)")
 {
   std::vector<double> p = {0.001, 0.01, 0.05, 0.2, 0.8, 0.95};
@@ -138,6 +160,14 @@ START_SECTION("lfdr basic checks (probit & logit)")
 }
 END_SECTION
 
+START_SECTION("bw_nrd0: pyprophet reference value")
+{
+  std::vector<double> stat = {0, 1, 3, 2, 0.1, 0.5, 0.6, 0.3, 0.5, 0.6, 0.2, 0.5};
+  double bw = bw_nrd0(stat);
+  TEST_REAL_SIMILAR(bw, 0.1736562)
+}
+END_SECTION
+
 START_SECTION("forrt/revrt roundtrip small")
 {
   std::vector<double> x = {0.0, 1.0, 2.0, 3.0};
@@ -148,6 +178,48 @@ START_SECTION("forrt/revrt roundtrip small")
   {
     TEST_REAL_SIMILAR(xr[i], x[i]);
   }
+}
+END_SECTION
+
+START_SECTION("pi0est: pyprophet reference checks")
+{
+  // load CSV used by pyprophet tests
+  const std::string path = OPENMS_GET_TEST_DATA_PATH("test_lfdr_ref_data.csv");
+  std::ifstream in(path.c_str());
+  TEST_EQUAL(bool(in), true)
+  std::string header;
+  std::getline(in, header);
+  std::vector<double> pvec;
+  std::string line;
+  while (std::getline(in, line))
+  {
+    if (line.empty()) continue;
+    std::vector<std::string> parts;
+    std::stringstream ss(line);
+    std::string item;
+    while (std::getline(ss, item, ','))
+    {
+      if (!item.empty() && item.front() == '"' && item.back() == '"') item = item.substr(1, item.size()-2);
+      parts.push_back(item);
+    }
+    if (parts.empty()) continue;
+    pvec.push_back(std::stod(parts[0]));
+  }
+  // sort ascending
+  std::sort(pvec.begin(), pvec.end());
+
+  // expected values from pyprophet tests
+  auto res1 = pi0est(pvec, std::vector<double>{0.4});
+  TEST_REAL_SIMILAR(res1.pi0, 0.697161)
+
+  auto res2 = pi0est(pvec);
+  TEST_REAL_SIMILAR(res2.pi0, 0.6685638)
+
+  // lambda grid 0.4..0.95 step 0.05
+  std::vector<double> lambda_v;
+  for (double l = 0.4; l < 1.0 - 1e-12; l += 0.05) lambda_v.push_back(l);
+  auto res3 = pi0est(pvec, lambda_v);
+  TEST_REAL_SIMILAR(res3.pi0, 0.6658949)
 }
 END_SECTION
 
