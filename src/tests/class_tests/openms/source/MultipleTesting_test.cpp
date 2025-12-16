@@ -4,6 +4,7 @@
 #include <OpenMS/test_config.h>
 
 #include <OpenMS/MATH/STATISTICS/MultipleTesting.h>
+#include <OpenMS/MATH/MISC/CubicSpline2d.h>
 #include <fstream>
 #include <sstream>
 #include <string>
@@ -238,7 +239,7 @@ START_SECTION("grid_kde_fft basic integration and sizes")
 }
 END_SECTION
 
-START_SECTION("kde_fft_eval equals grid values when queried at grid points")
+START_SECTION("kde_fft_eval matches spline-interpolated grid density at sample points")
 {
   std::vector<double> x = {0.0, 1.0, 2.0};
   double bw = bw_nrd0(x);
@@ -246,10 +247,15 @@ START_SECTION("kde_fft_eval equals grid values when queried at grid points")
   auto dens = res.first;
   auto grid = res.second;
 
-  // evaluate KDE at grid points using kde_fft_eval
-  auto y = kde_fft_eval(grid, bw, 64, 3.0);
-  TEST_EQUAL(y.size(), dens.size())
-  for (std::size_t i = 0; i < dens.size(); ++i) TEST_REAL_SIMILAR(y[i], dens[i]);
+  // expected values: spline(grid, dens) evaluated at original sample points x
+  OpenMS::CubicSpline2d spline(grid, dens);
+  std::vector<double> expected;
+  for (double xi : x) expected.push_back(spline.eval(xi));
+
+  // evaluate KDE at sample points using kde_fft_eval (x used as both data and query)
+  auto y = kde_fft_eval(x, bw, 64, 3.0);
+  TEST_EQUAL(y.size(), expected.size())
+  for (std::size_t i = 0; i < expected.size(); ++i) TEST_REAL_SIMILAR(y[i], expected[i]);
 }
 END_SECTION
 
