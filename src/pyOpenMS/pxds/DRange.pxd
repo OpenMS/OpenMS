@@ -10,10 +10,14 @@ cdef extern from "<OpenMS/DATASTRUCTURES/DRange.h>" namespace "OpenMS":
         DRange1(DPosition1 lower, DPosition1 upper) except + nogil  # wrap-ignore
         bool operator==(DRange1 & rhs) except + nogil
         bool encloses(DPosition1 & position) except + nogil  # wrap-ignore
-        DRange1 united(DRange1 other_range) except + nogil 
-        # DRangeIntersection intersects(DRange1 & range_) except + nogil 
-        bool isIntersected(DRange1 & range_) except + nogil 
-        bool isEmpty() except + nogil 
+        DRange1 united(DRange1 other_range) except + nogil
+        # DRangeIntersection intersects(DRange1 & range_) except + nogil
+        bool isIntersected(DRange1 & range_) except + nogil
+        bool isEmpty() except + nogil
+        double minX() except + nogil  # wrap-doc:Returns the minimum x coordinate (same as getMin for 1D)
+        double maxX() except + nogil  # wrap-doc:Returns the maximum x coordinate (same as getMax for 1D)
+        void setMinX(double c) except + nogil  # wrap-doc:Sets the minimum x coordinate
+        void setMaxX(double c) except + nogil  # wrap-doc:Sets the maximum x coordinate 
 
     cdef cppclass DRange2 "OpenMS::DRange<2> ":
         DRange2() except + nogil  # TODO
