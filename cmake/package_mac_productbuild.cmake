@@ -112,7 +112,9 @@ install(CODE "execute_process(COMMAND ${OPENMS_HOST_DIRECTORY}/cmake/MacOSX/fix_
 install(CODE "
         execute_process(COMMAND find \${CMAKE_INSTALL_PREFIX}/../../../Applications${CPACK_PACKAGING_INSTALL_PREFIX}/${INSTALL_BIN_DIR}/ -type f -execdir codesign --force --options runtime -i de.openms.TOPP.{} --sign \"${CPACK_BUNDLE_APPLE_CERT_APP}\" {} \\; OUTPUT_VARIABLE topp_sign_out ERROR_VARIABLE topp_sign_out)
         execute_process(COMMAND find \${CMAKE_INSTALL_PREFIX}/${INSTALL_LIB_DIR}/ -type f -execdir codesign --force --options runtime -i de.openms.TOPP.libs.{} --sign \"${CPACK_BUNDLE_APPLE_CERT_APP}\" {} \\; OUTPUT_VARIABLE topp_sign_out ERROR_VARIABLE topp_sign_out)
-        message('\${topp_sign_out}')"
+        execute_process(COMMAND find \${CMAKE_INSTALL_PREFIX}/${INSTALL_SHARE_DIR}/THIRDPARTY/ -type f -execdir codesign --force --options runtime -i de.openms.thirdparty.{} --sign \"${CPACK_BUNDLE_APPLE_CERT_APP}\" {} \\; OUTPUT_VARIABLE thirdparty_sign_out ERROR_VARIABLE thirdparty_sign_out)
+        message('\${topp_sign_out}')
+        message('\${thirdparty_sign_out}')"
         COMPONENT Dependencies
         )
 install(CODE "execute_process(COMMAND ${OPENMS_HOST_DIRECTORY}/cmake/MacOSX/fix_dependencies.rb -l \${CMAKE_INSTALL_PREFIX}/${INSTALL_LIB_DIR}/ -e @rpath/ -n -c)"
