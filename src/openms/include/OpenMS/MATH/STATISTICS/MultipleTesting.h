@@ -165,7 +165,10 @@ inline std::vector<double> pemp(const std::vector<T>& stat, const std::vector<T>
 // qvalue and pi0est are implemented in the .cpp file
 OPENMS_DLLAPI std::vector<double> qvalue(const std::vector<double>& p_values, double pi0, bool pfdr = false);
 OPENMS_DLLAPI Pi0Result pi0est(const std::vector<double>& p_values,
-                 const std::vector<double>& lambda_ = std::vector<double>());
+                 const std::vector<double>& lambda_ = std::vector<double>(),
+                 const std::string& pi0_method = "smoother",
+                 int smooth_df = 3,
+                 bool smooth_log_pi0 = false);
 
 /// Bandwidth selector using the "nrd0" (Silverman-ish) rule-of-thumb
 OPENMS_DLLAPI double bw_nrd0(const std::vector<double>& x);

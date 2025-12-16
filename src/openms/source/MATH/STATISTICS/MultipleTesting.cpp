@@ -129,7 +129,7 @@ static double percentile(const std::vector<double>& a, double p)
   return cp[idx];
 }
 
-Pi0Result pi0est(const std::vector<double>& p_values, const std::vector<double>& lambda_)
+Pi0Result pi0est(const std::vector<double>& p_values, const std::vector<double>& lambda_, const std::string& pi0_method, int smooth_df, bool smooth_log_pi0)
 {
   // filter finite
   std::vector<double> p;
@@ -179,35 +179,130 @@ Pi0Result pi0est(const std::vector<double>& p_values, const std::vector<double>&
   }
   res.pi0_lambda = pi0s;
 
-  // bootstrap selection: compute minpi0 at 10th percentile
-  double minpi0 = percentile(pi0s, 0.1);
-
-  std::vector<double> W;
-  W.reserve(ll);
-  for (double l : lambda_v)
+  if (ll == 1)
   {
-    double cnt = 0.0;
-    for (double v : p) if (v >= l) cnt += 1.0;
-    W.push_back(cnt);
+    // already handled above, but keep defensive
+    return res;
   }
 
-  std::vector<double> mse(ll);
-  for (std::size_t i = 0; i < ll; ++i)
+  // Choose method: 'smoother' (default) or 'bootstrap'
+  if (pi0_method == "smoother")
   {
-    double w = W[i];
-    double denom = static_cast<double>(m) * static_cast<double>(m) * std::pow(1.0 - lambda_v[i], 2);
-    double term = 0.0;
-    if (denom != 0.0) term = (w / denom) * (1.0 - w / static_cast<double>(m));
-    double diff = (pi0s[i] - minpi0);
-    mse[i] = term + diff * diff;
-  }
+    // require at least 4 points to match the reference check behaviour
+    if (ll < 4) throw std::invalid_argument("pi0est: at least 4 lambda values required for smoothing");
 
-  // pick index with minimal mse
-  std::size_t argmin = 0;
-  for (std::size_t i = 1; i < mse.size(); ++i) if (mse[i] < mse[argmin]) argmin = i;
-  res.pi0 = std::min(pi0s[argmin], 1.0);
-  res.pi0_smooth = false;
-  return res;
+    // Optionally work on log(pi0)
+    std::vector<double> y = pi0s;
+    if (smooth_log_pi0)
+    {
+      for (double &v : y) v = (v > 0.0) ? std::log(v) : -std::numeric_limits<double>::infinity();
+    }
+
+    // Fit a small-degree polynomial (up to cubic) by least squares to approximate
+    // the smoother used by the R/qvalue reference implementation. This is a
+    // pragmatic approximation of a smoothing spline for small lambda grids.
+    const std::size_t deg = static_cast<std::size_t>(std::min(3, std::max(1, smooth_df)));
+    const std::size_t D = std::min<std::size_t>(deg + 1, ll);
+
+    // Build normal equations A coeffs = B
+    std::vector<std::vector<double>> A(D, std::vector<double>(D, 0.0));
+    std::vector<double> B(D, 0.0);
+    for (std::size_t i = 0; i < ll; ++i)
+    {
+      double x = lambda_v[i];
+      double xp = 1.0;
+      std::vector<double> xv(D);
+      for (std::size_t j = 0; j < D; ++j) { xv[j] = xp; xp *= x; }
+      for (std::size_t r = 0; r < D; ++r)
+      {
+        for (std::size_t c = 0; c < D; ++c) A[r][c] += xv[r] * xv[c];
+        B[r] += xv[r] * y[i];
+      }
+    }
+
+    // Solve via Gaussian elimination on augmented matrix (D small <=4)
+    std::vector<std::vector<double>> M(D, std::vector<double>(D + 1, 0.0));
+    for (std::size_t i = 0; i < D; ++i)
+    {
+      for (std::size_t j = 0; j < D; ++j) M[i][j] = A[i][j];
+      M[i][D] = B[i];
+    }
+    bool solve_ok = true;
+    for (std::size_t i = 0; i < D; ++i)
+    {
+      // pivot selection
+      std::size_t piv = i;
+      for (std::size_t r = i + 1; r < D; ++r) if (std::fabs(M[r][i]) > std::fabs(M[piv][i])) piv = r;
+      if (std::fabs(M[piv][i]) < 1e-16) { solve_ok = false; break; }
+      if (piv != i) std::swap(M[piv], M[i]);
+      double diag = M[i][i];
+      for (std::size_t c = i; c < D + 1; ++c) M[i][c] /= diag;
+      for (std::size_t r = 0; r < D; ++r)
+      {
+        if (r == i) continue;
+        double fac = M[r][i];
+        for (std::size_t c = i; c < D + 1; ++c) M[r][c] -= fac * M[i][c];
+      }
+    }
+
+    if (solve_ok)
+    {
+      std::vector<double> coeffs(D, 0.0);
+      for (std::size_t i = 0; i < D; ++i) coeffs[i] = M[i][D];
+      double xpow = 1.0;
+      double pred = 0.0;
+      double max_lambda = *std::max_element(lambda_v.begin(), lambda_v.end());
+      for (std::size_t j = 0; j < D; ++j) { pred += coeffs[j] * xpow; xpow *= max_lambda; }
+      if (smooth_log_pi0)
+      {
+        if (pred <= -1e300 || !std::isfinite(pred)) pred = *std::min_element(pi0s.begin(), pi0s.end());
+        else pred = std::exp(pred);
+      }
+      if (!std::isfinite(pred)) pred = *std::min_element(pi0s.begin(), pi0s.end());
+      res.pi0 = std::min(std::max(pred, 0.0), 1.0);
+      res.pi0_smooth = true;
+      return res;
+    }
+
+    // fallback to naive min pi0
+    res.pi0 = std::min(*std::min_element(pi0s.begin(), pi0s.end()), 1.0);
+    res.pi0_smooth = false;
+    return res;
+  }
+  else if (pi0_method == "bootstrap")
+  {
+    // bootstrap variant as used by pyprophet/qvalue
+    double minpi0 = percentile(pi0s, 0.1);
+    std::vector<double> W;
+    W.reserve(ll);
+    for (double l : lambda_v)
+    {
+      double cnt = 0.0;
+      for (double v : p) if (v >= l) cnt += 1.0;
+      W.push_back(cnt);
+    }
+    std::vector<double> mse(ll, 0.0);
+    for (std::size_t i = 0; i < ll; ++i)
+    {
+      double l = lambda_v[i];
+      double w = W[i];
+      double term1 = 0.0;
+      double denom = static_cast<double>(m) * static_cast<double>(m) * (1.0 - l) * (1.0 - l);
+      if (denom > 0.0) term1 = (w / denom) * (1.0 - w / static_cast<double>(m));
+      double term2 = (pi0s[i] - minpi0) * (pi0s[i] - minpi0);
+      mse[i] = term1 + term2;
+    }
+    std::size_t argmin = 0;
+    double best = mse[0];
+    for (std::size_t i = 1; i < mse.size(); ++i) if (mse[i] < best) { best = mse[i]; argmin = i; }
+    res.pi0 = std::min(pi0s[argmin], 1.0);
+    res.pi0_smooth = false;
+    return res;
+  }
+  else
+  {
+    throw std::invalid_argument("pi0est: pi0_method must be 'smoother' or 'bootstrap'");
+  }
 }
 
 std::vector<double> pnorm(const std::vector<double>& stat, const std::vector<double>& stat0)
