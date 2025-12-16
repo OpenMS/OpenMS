@@ -31,15 +31,6 @@ cdef class DPosition1:
             raise IndexError("invalid index %d" % ix)
         return deref(self.inst.get())[0]
 
-    def __str__(self):
-        """
-        __str__(self: DPosition1) -> str
-        
-        Return a string representation of the DPosition1 object.
-        Delegates to __repr__ for consistency.
-        """
-        return self.__repr__()
-
     def __repr__(self):
         """
         __repr__(self: DPosition1) -> str
@@ -77,15 +68,6 @@ cdef class DPosition2:
         if ix != 0 and ix != 1:
             raise IndexError("invalid index %d" % ix)
         return deref(self.inst.get())[ix]
-
-    def __str__(self):
-        """
-        __str__(self: DPosition2) -> str
-        
-        Return a string representation of the DPosition2 object.
-        Delegates to __repr__ for consistency.
-        """
-        return self.__repr__()
 
     def __repr__(self):
         """

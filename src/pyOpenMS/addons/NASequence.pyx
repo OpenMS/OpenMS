@@ -30,10 +30,9 @@
         """
         __str__(self: NASequence) -> str
         
-        Return a string representation of the NASequence object.
-        Delegates to __repr__ for consistency.
+        Return the sequence string for human-readable output.
         """
-        return self.__repr__()
+        return self.toString()
 
     def __repr__(self):
         """

@@ -113,15 +113,6 @@ from DBoundingBox cimport DBoundingBox2 as _DBoundingBox2
             vec.push_back(p)
         self.inst.get().addPoints(vec)
 
-    def __str__(self):
-        """
-        __str__(self: ConvexHull2D) -> str
-        
-        Return a string representation of the ConvexHull2D object.
-        Delegates to __repr__ for consistency.
-        """
-        return self.__repr__()
-
     def __repr__(self):
         """
         __repr__(self: ConvexHull2D) -> str

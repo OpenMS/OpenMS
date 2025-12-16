@@ -44,15 +44,6 @@
         """
         return self.inst.get().size()
 
-    def __str__(self):
-        """
-        __str__(self: StringDataArray) -> str
-        
-        Return a string representation of the StringDataArray object.
-        Delegates to __repr__ for consistency.
-        """
-        return self.__repr__()
-
     def __repr__(self):
         """
         __repr__(self: StringDataArray) -> str

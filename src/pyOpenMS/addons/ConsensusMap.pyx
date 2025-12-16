@@ -9,15 +9,6 @@ from UniqueIdInterface cimport setUniqueId as _setUniqueId
         """
         self.inst.get().applyMemberFunction(address(_setUniqueId))
 
-    def __str__(self):
-        """
-        __str__(self: ConsensusMap) -> str
-        
-        Return a string representation of the ConsensusMap object.
-        Delegates to __repr__ for consistency.
-        """
-        return self.__repr__()
-
     def __repr__(self):
         """
         __repr__(self: ConsensusMap) -> str

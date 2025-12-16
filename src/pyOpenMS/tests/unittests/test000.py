@@ -977,8 +977,6 @@ def testConsensusMap():
     repr_str = repr(cm_repr)
     assert "ConsensusMap(" in repr_str
     assert "num_consensus_features=" in repr_str
-    str_str = str(cm_repr)
-    assert str_str == repr_str
 
 @report
 def testConsensusXMLFile():
@@ -1108,8 +1106,6 @@ def testConvexHull2D():
     repr_str = repr(ch_repr)
     assert "ConvexHull2D(" in repr_str
     assert "num_points=" in repr_str
-    str_str = str(ch_repr)
-    assert str_str == repr_str
 
 
 @report
@@ -2077,8 +2073,6 @@ def testFeatureMap():
     repr_str = repr(fm_repr)
     assert "FeatureMap(" in repr_str
     assert "num_features=" in repr_str
-    str_str = str(fm_repr)
-    assert str_str == repr_str
 
 
 @report
@@ -3665,7 +3659,7 @@ def testStringDataArray():
     da[2] = b"world"
     assert da.size() == 3
 
-    # Test __repr__ and __str__ methods
+    # Test __repr__ method
     sda_repr = pyopenms.StringDataArray()
     sda_repr.setName("annotation")
     sda_repr.push_back("test1")
@@ -3675,8 +3669,6 @@ def testStringDataArray():
     assert "StringDataArray(" in repr_str
     assert "name='annotation'" in repr_str
     assert "size=2" in repr_str
-    str_str = str(sda_repr)
-    assert str_str == repr_str
 
 @report
 def testIntegerDataArray():
@@ -3707,7 +3699,7 @@ def testIntegerDataArray():
     da.set_data(q)
     assert da.size() == 4
 
-    # Test __repr__ and __str__ methods
+    # Test __repr__ method
     ida_repr = pyopenms.IntegerDataArray()
     ida_repr.setName("charge_state")
     ida_repr.push_back(1)
@@ -3718,8 +3710,6 @@ def testIntegerDataArray():
     assert "IntegerDataArray(" in repr_str
     assert "name='charge_state'" in repr_str
     assert "size=3" in repr_str
-    str_str = str(ida_repr)
-    assert str_str == repr_str
 
 @report
 def testFloatDataArray():
@@ -3750,7 +3740,7 @@ def testFloatDataArray():
     da.set_data(q)
     assert da.size() == 4
 
-    # Test __repr__ and __str__ methods
+    # Test __repr__ method
     fda_repr = pyopenms.FloatDataArray()
     fda_repr.setName("ion_mobility")
     fda_repr.push_back(1.5)
@@ -3760,8 +3750,6 @@ def testFloatDataArray():
     assert "FloatDataArray(" in repr_str
     assert "name='ion_mobility'" in repr_str
     assert "size=2" in repr_str
-    str_str = str(fda_repr)
-    assert str_str == repr_str
 
 @report
 def testMSChromatogram():
@@ -6197,22 +6185,18 @@ def testDPosition():
     assert dp[0] == 1.0
     assert dp[1] == 2.0
 
-    # Test __repr__ and __str__ methods for DPosition1
+    # Test __repr__ method for DPosition1
     dp1_repr = pyopenms.DPosition1(123.456)
     repr_str = repr(dp1_repr)
     assert "DPosition1(" in repr_str
     assert "x=" in repr_str
-    str_str = str(dp1_repr)
-    assert str_str == repr_str
 
-    # Test __repr__ and __str__ methods for DPosition2
+    # Test __repr__ method for DPosition2
     dp2_repr = pyopenms.DPosition2(100.0, 200.0)
     repr_str = repr(dp2_repr)
     assert "DPosition2(" in repr_str
     assert "x=" in repr_str
     assert "y=" in repr_str
-    str_str = str(dp2_repr)
-    assert str_str == repr_str
 
 @report
 def testResidueDB():
@@ -6395,14 +6379,17 @@ def testNASequence():
     oligo_mod.getFormula(pyopenms.NASequence.NASFragmentType.WIon, charge)
 
     # Test __repr__ and __str__ methods
+    # Test __repr__ method
     na_repr = pyopenms.NASequence.fromString("ACGU")
     repr_str = repr(na_repr)
     assert "NASequence(" in repr_str
     assert "sequence=" in repr_str
     assert "length=" in repr_str
     assert "mono_mass=" in repr_str
+    
+    # Test __str__ method returns the sequence string
     str_str = str(na_repr)
-    assert str_str == repr_str
+    assert str_str == "ACGU"
 
     # Test __len__ method
     assert len(na_repr) == 4
