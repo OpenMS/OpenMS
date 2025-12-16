@@ -406,6 +406,41 @@ def testResidue():
 
 
 @report
+def testResidueRepr():
+    """
+    @tests: Residue.__repr__
+    """
+    # Get a residue from the database
+    rdb = pyopenms.ResidueDB()
+    glycine = rdb.getResidue(s("Glycine"))
+
+    # Test __repr__ method
+    repr_str = repr(glycine)
+    assert "Residue(" in repr_str
+    assert "name=" in repr_str
+    assert "Glycine" in repr_str
+    assert "one_letter=" in repr_str
+    assert "'G'" in repr_str
+    assert "three_letter=" in repr_str
+    assert "'Gly'" in repr_str
+    assert "formula=" in repr_str
+    assert "mono_mass=" in repr_str
+
+    # Test __str__ method for unmodified residue
+    str_str = str(glycine)
+    assert str_str == "G"
+
+    # Test with modified residue - get oxidized methionine
+    methionine = rdb.getResidue(s("Methionine"))
+    str_str = str(methionine)
+    assert str_str == "M"
+    repr_str = repr(methionine)
+    assert "Residue(" in repr_str
+    assert "'M'" in repr_str
+    assert "'Met'" in repr_str
+
+
+@report
 def testResidueModificationRepr():
     """
     @tests: ResidueModification.__repr__
