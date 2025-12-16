@@ -9,6 +9,18 @@
 #include <OpenMS/MATH/STATISTICS/MultipleTesting.h>
 
 #include <OpenMS/MATH/StatisticFunctions.h>
+#include <complex>
+#include <cmath>
+
+// Use the evergreen umbrella header so the vendor headers are included
+// consistently inside the `evergreen` namespace and their helper
+// macros are defined. Then include the FFT submodule *inside* the
+// `evergreen` namespace so its template and type definitions live in
+// `evergreen::` as the rest of the code expects.
+#include <Evergreen/evergreen.hpp>
+namespace evergreen {
+#include <FFT/FFT.hpp>
+}
 
 #include <algorithm>
 #include <cmath>
@@ -318,6 +330,73 @@ std::vector<double> linbin(const std::vector<double>& x, double xmin, double xma
   }
 
   return bins;
+}
+
+// forward using evergreen real FFT (Munro-packed / rfft-like ordering)
+// Matches numpy.fft.rfft semantics (no forward 1/N scaling).
+std::vector<double> forrt(const std::vector<double>& X, std::size_t M)
+{
+  if (M == 0) M = X.size();
+  if (M == 0) return std::vector<double>();
+
+  const std::size_t half = M / 2;
+  const std::size_t out_len = M;
+
+  // create a 1-D tensor and copy (zero-pad if needed)
+  evergreen::Tensor<double> t({M});
+  for (std::size_t i = 0; i < M; ++i)
+  {
+    double v = 0.0;
+    if (i < X.size() && std::isfinite(X[i])) v = X[i];
+    t[i] = v;
+  }
+
+  // use DIF-based real FFT provided by evergreen (packed real format)
+  // Use FRESHLY_ZERO_PADDED=true for the single-axis case to match optimized path
+  evergreen::Tensor<evergreen::cpx> packed = evergreen::real_fft<evergreen::DIF, false, false, true>(t);
+
+  const std::size_t ny = packed.flat_size(); // should be half + 1
+  std::vector<double> out(out_len, 0.0);
+
+  // store real parts
+  for (std::size_t k = 0; k < ny; ++k) out[k] = packed[k].r;
+  // store imag parts for k=1..half-1
+  for (std::size_t k = 1; k < ny - 1; ++k) out[half + k] = packed[k].i;
+
+  return out;
+}
+
+// inverse using evergreen real_ifft on Munro-packed spectrum
+std::vector<double> revrt(const std::vector<double>& Xp, std::size_t M)
+{
+  if (M == 0) M = Xp.size();
+  if (M == 0) return std::vector<double>();
+
+  const std::size_t half = M / 2;
+  const std::size_t ny = half + 1;
+
+  if (Xp.size() < M) throw std::invalid_argument("revrt: input length must equal M");
+
+  // build packed complex tensor
+  evergreen::Tensor<evergreen::cpx> packed({ny});
+  for (std::size_t k = 0; k < ny; ++k)
+  {
+    double re = Xp[k];
+    double im = 0.0;
+    if (k > 0 && k < ny - 1)
+    {
+      im = Xp[half + k];
+    }
+  packed[k] = evergreen::cpx{re, im};
+  }
+
+  // use evergreen real_ifft which returns a real tensor of length M
+  evergreen::Tensor<double> rec = evergreen::real_ifft<evergreen::DIF, false, false>(packed);
+
+  std::vector<double> out(M, 0.0);
+  const std::size_t ncopy = std::min(rec.flat_size(), M);
+  for (std::size_t i = 0; i < ncopy; ++i) out[i] = rec[i];
+  return out;
 }
 
 } // namespace Math

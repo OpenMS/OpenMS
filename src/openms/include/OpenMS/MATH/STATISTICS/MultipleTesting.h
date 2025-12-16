@@ -174,6 +174,13 @@ OPENMS_DLLAPI double bw_nrd0(const std::vector<double>& x);
 /// Returns a vector of length nbins containing counts (or weighted counts if weights provided).
 OPENMS_DLLAPI std::vector<double> linbin(const std::vector<double>& x, double xmin, double xmax, std::size_t nbins, const std::vector<double>* weights = nullptr);
 
+/// Munro-packed real FFT (forward). Packs rfft(X,M)/M into length-M vector
+/// format: [Re(Y_0..Y_{M/2}), Im(Y_1..Y_{M/2-1})]
+OPENMS_DLLAPI std::vector<double> forrt(const std::vector<double>& X, std::size_t M = 0);
+
+/// Inverse of `forrt`: reconstruct real signal (scaled by *M to invert forrt)
+OPENMS_DLLAPI std::vector<double> revrt(const std::vector<double>& Xp, std::size_t M = 0);
+
 /// Compute tail probabilities under a normal distribution fitted to stat0
 /// Returns P(X > stat_i) where X ~ N(mu, sigma^2) with mu/sigma estimated from stat0
 OPENMS_DLLAPI std::vector<double> pnorm(const std::vector<double>& stat, const std::vector<double>& stat0);
