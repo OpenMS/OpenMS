@@ -14,7 +14,7 @@ cdef extern from "<OpenMS/KERNEL/ChromatogramPeak.h>" namespace "OpenMS":
 
         ChromatogramPeak() except + nogil  # wrap-doc:A 1-dimensional raw data point or peak for chromatograms
         ChromatogramPeak(ChromatogramPeak &) except + nogil
-        ChromatogramPeak(PositionType retention_time, IntensityType intensity) except + nogil  # wrap-ignore
+        ChromatogramPeak(PositionType retention_time, IntensityType intensity) except + nogil
         bool operator==(ChromatogramPeak) except + nogil 
         bool operator!=(ChromatogramPeak) except + nogil 
 
@@ -24,8 +24,8 @@ cdef extern from "<OpenMS/KERNEL/ChromatogramPeak.h>" namespace "OpenMS":
         IntensityType getIntensity() except + nogil  # wrap-doc:Returns the intensity
         void setIntensity(IntensityType) except + nogil  # wrap-doc:Sets the intensity
 
-        DPosition1 getPosition() except + nogil  # wrap-ignore
-        void setPosition(DPosition1) except + nogil  # wrap-ignore
+        DPosition1 getPosition() except + nogil
+        void setPosition(DPosition1) except + nogil
 
         CoordinateType getRT() except + nogil  # wrap-doc:Returns the retention time
         void setRT(CoordinateType) except + nogil  # wrap-doc:Sets retention time
