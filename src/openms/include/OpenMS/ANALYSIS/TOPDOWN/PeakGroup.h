@@ -43,9 +43,9 @@ namespace OpenMS
 
     /**
            @brief Constructor specifying charge range
-           @param min_abs_charge min Charge
-           @param max_abs_charge max Charge
-           @param is_positive whether MS is positive mode
+           @param[in] min_abs_charge min Charge
+           @param[in] max_abs_charge max Charge
+           @param[in] is_positive whether MS is positive mode
     */
     explicit PeakGroup(int min_abs_charge, int max_abs_charge, bool is_positive);
 
@@ -75,13 +75,13 @@ namespace OpenMS
 
     /**
            @brief Update setQscore. Cosine and SNRs are also updated.
-           @param noisy_peaks noisy peaks to calculate setQscore
-           @param avg precalculated averagine
-           @param min_cos the peak groups with cosine score less than this will have setQscore 0.
-           @param tol ppm tolerance
-           @param is_low_charge if set, charge fit score calculation becomes less stroct
-           @param excluded_masses masses to exclude
-           @param is_last if this is set, it means that PeakGroupScoring calculation is at its last iteration. More detailed noise power calculation is activated and mono mass is not recalibrated.
+           @param[in] noisy_peaks noisy peaks to calculate setQscore
+           @param[in] avg precalculated averagine
+           @param[in] min_cos the peak groups with cosine score less than this will have setQscore 0.
+           @param[in] tol ppm tolerance
+           @param[in] is_low_charge if set, charge fit score calculation becomes less stroct
+           @param[in] excluded_masses masses to exclude
+           @param[in] is_last if this is set, it means that PeakGroupScoring calculation is at its last iteration. More detailed noise power calculation is activated and mono mass is not recalibrated.
            @return returns isotope offset after isotope cosine calculation
       */
     int updateQscore(const std::vector<LogMzPeak>& noisy_peaks, const FLASHHelperClasses::PrecalculatedAveragine& avg, double min_cos,
@@ -90,11 +90,11 @@ namespace OpenMS
     /**
      * @brief given a monoisotopic mass, recruit raw peaks from the raw input spectrum and add to this peakGroup. This is a bit time-consuming and is done for only a small number of selected
      * high-quality peakgroups.
-     * @param spec raw spectrum
-     * @param tol ppm tolerance
-     * @param avg precalculated averagine
-     * @param mono_mass monoisotopic mass
-     * @param renew_signal_peaks Whether or not the signal peaks should be renewed during recruitment
+     * @param[in] spec raw spectrum
+     * @param[in] tol ppm tolerance
+     * @param[in] avg precalculated averagine
+     * @param[in] mono_mass monoisotopic mass
+     * @param[in] renew_signal_peaks Whether or not the signal peaks should be renewed during recruitment
      * @return returns the noisy peaks for this peakgroup - i.e., the raw peaks within the range of this peakGroup that are not matched to any istope of this peakGroup mass.
      */
     std::vector<LogMzPeak> recruitAllPeaksInSpectrum(const MSSpectrum& spec, double tol, const FLASHHelperClasses::PrecalculatedAveragine& avg, double mono_mass, bool renew_signal_peaks = true);
@@ -102,9 +102,9 @@ namespace OpenMS
     /**
      * @brief Get noisy peaks for this PeakGroup without modifying any state (const-safe).
      * This is a const alternative to recruitAllPeaksInSpectrum(..., false) for use in output/write functions.
-     * @param spec raw spectrum
-     * @param tol ppm tolerance
-     * @param avg precalculated averagine
+     * @param[in] spec raw spectrum
+     * @param[in] tol ppm tolerance
+     * @param[in] avg precalculated averagine
      * @return returns the noisy peaks - raw peaks within range that don't match the isotope pattern
      */
     std::vector<LogMzPeak> getNoisyPeaks(const MSSpectrum& spec, double tol, const FLASHHelperClasses::PrecalculatedAveragine& avg) const;
@@ -263,7 +263,7 @@ namespace OpenMS
      * The 2D Q-score incorporates feature-level information such as retention time
      * consistency or ion mobility correlation across multiple scans.
      *
-     * @param fqscore The 2D quality score to set, typically in range [0, 1].
+     * @param[in] fqscore The 2D quality score to set, typically in range [0, 1].
      */
     void setQscore2D(double fqscore);
 
@@ -272,7 +272,7 @@ namespace OpenMS
      *
      * Associates this peak group with a feature (traced isotope pattern across scans).
      *
-     * @param findex The feature index to assign to this peak group.
+     * @param[in] findex The feature index to assign to this peak group.
      */
     void setFeatureIndex(uint findex);
 
@@ -304,7 +304,7 @@ namespace OpenMS
      * Calculates the average mass error for peaks at each isotope index,
      * comparing observed masses to theoretical masses from the averagine model.
      *
-     * @param ppm If true (default), returns errors in parts-per-million (ppm).
+     * @param[in] ppm If true (default), returns errors in parts-per-million (ppm).
      *            If false, returns errors in Daltons (Da).
      * @return Vector of average mass errors, one per unique isotope index present
      *         in the peak group. Returns an empty vector if no peaks are present.
@@ -324,11 +324,11 @@ namespace OpenMS
     /**
      * @brief Get deep learning feature vectors (signal and noise).
      *
-     * @param spec Raw spectrum to extract features from.
-     * @param charge_count Number of charges to include in the feature vector.
-     * @param isotope_count Number of isotopes to include in the feature vector.
-     * @param avg Precalculated averagine model for theoretical isotope patterns.
-     * @param tol Tolerance in ppm for peak matching.
+     * @param[in] spec Raw spectrum to extract features from.
+     * @param[in] charge_count Number of charges to include in the feature vector.
+     * @param[in] isotope_count Number of isotopes to include in the feature vector.
+     * @param[in] avg Precalculated averagine model for theoretical isotope patterns.
+     * @param[in] tol Tolerance in ppm for peak matching.
      * @return Tuple of (signal_vector, noise_vector) for ML model input.
      */
     std::tuple<std::vector<double>, std::vector<double>> getDLVector(const MSSpectrum& spec, const Size charge_count, const Size isotope_count,
@@ -358,9 +358,9 @@ namespace OpenMS
 
     /**
      * calculate noisy peak power. The goal of this function is to group noisy peaks that are possibly from the same molecule and sum their intensities before calculate power
-     * @param noisy_peaks noisy peaks to calculate power
-     * @param z charge
-     * @param tol ppm tolerance
+     * @param[in] noisy_peaks noisy peaks to calculate power
+     * @param[in] z charge
+     * @param[in] tol ppm tolerance
      * @return calculated noise power
      */
     float getNoisePeakPower_(const std::vector<LogMzPeak>& noisy_peaks, int z, double tol) const;

@@ -186,8 +186,8 @@ private:
    * @brief returns the relative delta mass between the first feature
    * and the feature with the map index idx
    *
-   * @param feature_handles    feature handles of a consensus feature
-   * @param idx    map index of interest
+   * @param[in] feature_handles    feature handles of a consensus feature
+   * @param[in] idx    map index of interest
    */
   double deltaMassFromMapIndex_(const ConsensusFeature::HandleSetType& feature_handles, unsigned idx)
   {
@@ -209,9 +209,9 @@ private:
    * @brief check whether the theoretical delta mass pattern
    * contains the label set of the detected pattern
    *
-   * @param pattern    theoretical pattern
-   * @param label_set    label set of the detected pettern
-   * @param index_label_set    index within the pattern at which the label sets were matched
+   * @param[in] pattern    theoretical pattern
+   * @param[in] label_set    label set of the detected pettern
+   * @param[in] index_label_set    index within the pattern at which the label sets were matched
    * 
    * @return mass shift in the theoretical pattern where both label sets match
    */
@@ -234,10 +234,10 @@ private:
    * @brief check wether all delta masses in the detected pattern
    * match up with a delta mass in the theoretical pattern
    *
-   * @param consensus    detected pattern
-   * @param pattern    theoretical pattern
-   * @param delta_mass_at_label_set    delta mass in the theoretical pattern at which the matching label set was found
-   * @param delta_mass_matched    Was this delta mass in the theoretical pattern matched?
+   * @param[in] consensus    detected pattern
+   * @param[in] pattern    theoretical pattern
+   * @param[in] delta_mass_at_label_set    delta mass in the theoretical pattern at which the matching label set was found
+   * @param[in] delta_mass_matched    Was this delta mass in the theoretical pattern matched?
    * 
    * @return All delta masses matching?
    */
@@ -287,11 +287,11 @@ private:
   /**
    * @brief find a theoretical delta mass pattern that matches the detected pattern
    *
-   * @param consensus    detected pattern
-   * @param label set    label set extracted from the detected pattern
-   * @param theoretical_patterns    list of theoretical delta mass patterns
-   * @param delta_mass_matched    Was this delta mass in the theoretical pattern matched?
-   * @param index_label_set    index within the pattern at which the label sets were matched
+   * @param[in] consensus    detected pattern
+   * @param[in] label set    label set extracted from the detected pattern
+   * @param[in] theoretical_patterns    list of theoretical delta mass patterns
+   * @param[in] delta_mass_matched    Was this delta mass in the theoretical pattern matched?
+   * @param[in] index_label_set    index within the pattern at which the label sets were matched
    * 
    * @return index of matching pattern
    */
@@ -322,10 +322,10 @@ private:
   /**
    * @brief find the m/z for the complete consensus
    *
-   * @param mz    m/z of the incomplete consensus
-   * @param charge    charge of the incomplete consensus
-   * @param pattern    matching theoretical delta mass pattern
-   * @param delta_mass_matched    Was this delta mass in the theoretical pattern matched?
+   * @param[in] mz    m/z of the incomplete consensus
+   * @param[in] charge    charge of the incomplete consensus
+   * @param[in] pattern    matching theoretical delta mass pattern
+   * @param[in] delta_mass_matched    Was this delta mass in the theoretical pattern matched?
    * 
    * @return m/z for the complete consensus
    */
@@ -352,9 +352,9 @@ private:
   /**
    * @brief check if this position is blacklisted
    * 
-   * @param RT
-   * @param mz
-   * @param charge
+   * @param[in] RT
+   * @param[in] mz
+   * @param[in] charge
    */
   bool isBlacklisted(double rt, double mz, size_t charge)
   {
@@ -388,10 +388,10 @@ private:
   /**
    * @brief complete consensus
    *
-   * @param consensus    (possibly) incomplete consensus
-   * @param pattern    matching theoretical delta mass pattern
-   * @param delta_mass_matched    Was this delta mass in the theoretical pattern matched?
-   * @param index_label_set    index within the pattern at which the label sets were matched
+   * @param[in] consensus    (possibly) incomplete consensus
+   * @param[in] pattern    matching theoretical delta mass pattern
+   * @param[in] delta_mass_matched    Was this delta mass in the theoretical pattern matched?
+   * @param[in] index_label_set    index within the pattern at which the label sets were matched
    * 
    * @return completed consensus
    */
@@ -484,10 +484,10 @@ private:
    * (1) remove quant/ID conflicts
    * (2) fill in dummy features in order to complete multiplets
    *
-   * @param map_in    input consensus map
-   * @param map_out    consensus map without conflicts and complete multiplets
-   * @param map_conflicts    consensus map with conflicts
-   * @param generator    generator for the list of theoretical patterns
+   * @param[in] map_in    input consensus map
+   * @param[in] map_out    consensus map without conflicts and complete multiplets
+   * @param[in] map_conflicts    consensus map with conflicts
+   * @param[in] generator    generator for the list of theoretical patterns
    */
   void constructNewConsensusMap_(const ConsensusMap& map_in, ConsensusMap& map_out, ConsensusMap& map_conflicts, MultiplexDeltaMassesGenerator generator)
   {

@@ -103,7 +103,7 @@ protected:
     /**
      * @brief Return an ordered pair of the positions where the EGH reaches a height of alpha * height of the EGH
      *
-     * @param alpha The alpha at which the boundaries should be computed
+     * @param[in] alpha The alpha at which the boundaries should be computed
      */
     std::pair<double, double> getAlphaBoundaries_(const double alpha) const;
 

@@ -36,7 +36,7 @@ namespace OpenMS
 
        Checks whether the score types are the same (warns if not) and whether the score orientations agree (error if not).
 
-       @param ids Input/output peptide identifications
+       @param[in,out] ids Input/output peptide identifications
 
        @throw Exception::InvalidValue Score orientations do not agree
     */
@@ -45,8 +45,8 @@ namespace OpenMS
     /**
        @brief Aggregate peptide scores into one final score (to be implemented by subclasses).
 
-       @param scores List of scores for the same peptide by different search engines
-       @param higher_better Whether higher or lower scores are better
+       @param[in,out] scores List of scores for the same peptide by different search engines
+       @param[in] higher_better Whether higher or lower scores are better
 
        @return Final score for the respective peptide
     */

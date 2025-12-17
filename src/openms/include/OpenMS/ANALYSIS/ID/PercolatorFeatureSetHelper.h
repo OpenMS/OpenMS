@@ -41,9 +41,9 @@ namespace OpenMS
     public:
         /**
           @brief concatMULTISEPeptideIds
-          @param all_peptide_ids PeptideIdentification vector to append to
-          @param new_peptide_ids PeptideIdentification vector to be appended
-          @param search_engine search engine to depend on for feature creation
+          @param[in] all_peptide_ids PeptideIdentification vector to append to
+          @param[in] new_peptide_ids PeptideIdentification vector to be appended
+          @param[in] search_engine search engine to depend on for feature creation
          
           Appends a vector of PeptideIdentification to another and prepares Percolator features in MetaInfo (With the respective key "CONCAT:" + search_engine).
          */
@@ -51,9 +51,9 @@ namespace OpenMS
 
         /**
           @brief mergeMULTISEPeptideIds
-          @param all_peptide_ids PeptideIdentification vector to be merged into
-          @param new_peptide_ids PeptideIdentification vector to merge
-          @param search_engine search engine to create features from their scores
+          @param[in] all_peptide_ids PeptideIdentification vector to be merged into
+          @param[in] new_peptide_ids PeptideIdentification vector to merge
+          @param[in] search_engine search engine to create features from their scores
          
           Merges a vector of PeptideIdentification into another and prepares the merged MetaInfo and scores for collection in addMULTISEFeatures for feature registration.
          */
@@ -61,8 +61,8 @@ namespace OpenMS
 
         /**
           @brief mergeMULTISEProteinIds
-          @param all_protein_ids ProteinIdentification vector to be merged into
-          @param new_protein_ids ProteinIdentification vector to merge
+          @param[in] all_protein_ids ProteinIdentification vector to be merged into
+          @param[in] new_protein_ids ProteinIdentification vector to merge
          
           Concatenates SearchParameter of multiple search engine runs and merges PeptideEvidences, collects used search engines in MetaInfo for collection in addMULTISEFeatures for feature registration.
          */
@@ -71,8 +71,8 @@ namespace OpenMS
 
         /**
           @brief addMSGFFeatures
-          @param peptide_ids PeptideIdentification vector to create Percolator features in
-          @param feature_set register of added features
+          @param[in] peptide_ids PeptideIdentification vector to create Percolator features in
+          @param[in] feature_set register of added features
          
           Creates and adds MSGF+ specific Percolator features and registers them in feature_set. MSGF+ should be run with the addFeatures flag enabled.
          */
@@ -80,8 +80,8 @@ namespace OpenMS
 
         /**
           @brief addXTANDEMFeatures
-          @param peptide_ids PeptideIdentification vector to create Percolator features in
-          @param feature_set register of added features
+          @param[in] peptide_ids PeptideIdentification vector to create Percolator features in
+          @param[in] feature_set register of added features
          
           Creates and adds X!Tandem specific Percolator features and registers them in feature_set
          */
@@ -89,8 +89,8 @@ namespace OpenMS
 
         /**
           @brief addCOMETFeatures
-          @param peptide_ids PeptideIdentification vector to create Percolator features in
-          @param feature_set register of added features
+          @param[in] peptide_ids PeptideIdentification vector to create Percolator features in
+          @param[in] feature_set register of added features
          
           Creates and adds Comet specific Percolator features and registers them in feature_set
          */
@@ -98,8 +98,8 @@ namespace OpenMS
 
         /**
           @brief addMASCOTFeatures
-          @param peptide_ids PeptideIdentification vector to create Percolator features in
-          @param feature_set register of added features
+          @param[in] peptide_ids PeptideIdentification vector to create Percolator features in
+          @param[in] feature_set register of added features
          
           Creates and adds Mascot specific Percolator features and registers them in feature_set
          */
@@ -107,11 +107,11 @@ namespace OpenMS
 
         /**
           @brief addMULTISEFeatures
-          @param peptide_ids PeptideIdentification vector to create Percolator features in
-          @param search_engines_used the list of search engines to be considered
-          @param feature_set register of added features
-          @param complete_only will only add features for PeptideIdentifications where all given search engines identified something
-          @param limits_imputation
+          @param[in] peptide_ids PeptideIdentification vector to create Percolator features in
+          @param[in] search_engines_used the list of search engines to be considered
+          @param[in] feature_set register of added features
+          @param[in] complete_only will only add features for PeptideIdentifications where all given search engines identified something
+          @param[in] limits_imputation
          
           Adds multiple search engine specific Percolator features and registers them in feature_set
          */
@@ -119,9 +119,9 @@ namespace OpenMS
 
         /**
           @brief addCONCATSEFeatures
-          @param peptide_id_list PeptideIdentification vector to create Percolator features in
-          @param search_engines_used the list of search engines to be considered
-          @param feature_set register of added features
+          @param[in] peptide_id_list PeptideIdentification vector to create Percolator features in
+          @param[in] search_engines_used the list of search engines to be considered
+          @param[in] feature_set register of added features
          
           Adds multiple search engine specific Percolator features and registers them in feature_set
         */
@@ -129,8 +129,8 @@ namespace OpenMS
 
         /**
           @brief checkExtraFeatures
-          @param psms the vector of PeptideHit to be checked
-          @param extra_features the list of requested extra features
+          @param[in] psms the vector of PeptideHit to be checked
+          @param[in] extra_features the list of requested extra features
          
           checks and removes requested extra Percolator features that are actually unavailable (to compute)
          */
@@ -138,7 +138,7 @@ namespace OpenMS
 
         /**
          * @brief addMSFraggerFeatures
-         * @param extra_features register of added features
+         * @param[in] extra_features register of added features
          *
          * Registers the MSFragger specific Percolator features in extra_features.
          */

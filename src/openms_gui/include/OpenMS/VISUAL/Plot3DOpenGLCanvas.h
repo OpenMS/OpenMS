@@ -46,8 +46,8 @@ public:
     /**
      @brief Constructor
 
-     @param parent The parent widget
-     @param canvas_3d The main 3d canvas
+     @param[in] parent The parent widget
+     @param[in] canvas_3d The main 3d canvas
     */
     Plot3DOpenGLCanvas(QWidget * parent, Plot3DCanvas & canvas_3d);
     /**

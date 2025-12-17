@@ -73,13 +73,13 @@ namespace OpenMS
     /**
       @brief Runs a program and calls the callback functions from time to time if output from the external program is available.
 
-      @param exe The program to call (can contain spaces in path, no problem)
-      @param args A list of extra arguments (can be empty)
-      @param working_dir Execute the external process in the given directory (relevant when relative input/output paths are given). Leave empty to use the current working directory.
-      @param verbose Report the call command and errors via the callbacks (default: false)
+      @param[in] exe The program to call (can contain spaces in path, no problem)
+      @param[in] args A list of extra arguments (can be empty)
+      @param[in] working_dir Execute the external process in the given directory (relevant when relative input/output paths are given). Leave empty to use the current working directory.
+      @param[in] verbose Report the call command and errors via the callbacks (default: false)
       @param[out] error_msg Message to display to the user if something went wrong (if return != SUCCESS)
-      @param io_mode Open mode for the process (read access, write access, ...)
-      @param env Additional environment variables to pass to the process (key-value pairs). These will be added to the system environment.
+      @param[in] io_mode Open mode for the process (read access, write access, ...)
+      @param[in] env Additional environment variables to pass to the process (key-value pairs). These will be added to the system environment.
       @return Did the external program succeed (SUCCESS) or did something go wrong?
     */
     RETURNSTATE run(const QString& exe, const QStringList& args, const QString& working_dir, const bool verbose, String& error_msg, IO_MODE io_mode = IO_MODE::READ_WRITE, const std::map<QString, QString>& env = std::map<QString, QString>());

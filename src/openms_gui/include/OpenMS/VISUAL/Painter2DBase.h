@@ -46,9 +46,9 @@ namespace OpenMS
     /**
        @brief Paints items using the given painter onto the canvas.
  
-       @param painter The painter used for drawing 
-       @param canvas The canvas to paint onto (should expose all the details needed, like canvas size, draw mode, colors etc)
-       @param layer_index Which layer is currently painted
+       @param[in] painter The painter used for drawing 
+       @param[in] canvas The canvas to paint onto (should expose all the details needed, like canvas size, draw mode, colors etc)
+       @param[in] layer_index Which layer is currently painted
     */
     virtual void paint(QPainter* painter, Plot2DCanvas* canvas, int layer_index) = 0;
 
@@ -66,20 +66,20 @@ namespace OpenMS
     /**
       @brief Paints a convex hull.
 
-      @param painter The QPainter to paint on
-      @param canvas The canvas (for configuration details)
-      @param hull Reference to convex hull
-      @param has_identifications Draw hulls in green (true) or blue color (false)
+      @param[in] painter The QPainter to paint on
+      @param[in] canvas The canvas (for configuration details)
+      @param[in] hull Reference to convex hull
+      @param[in] has_identifications Draw hulls in green (true) or blue color (false)
     */
     static void paintConvexHull_(QPainter& painter, Plot2DCanvas* canvas, const ConvexHull2D& hull, bool has_identifications);
 
     /**
       @brief Paints convex hulls.
 
-      @param painter The QPainter to paint on
-      @param canvas The canvas (for configuration details)
-      @param hulls Reference to convex hulls
-      @param has_identifications Draw hulls in green (true) or blue color (false)
+      @param[in] painter The QPainter to paint on
+      @param[in] canvas The canvas (for configuration details)
+      @param[in] hulls Reference to convex hulls
+      @param[in] has_identifications Draw hulls in green (true) or blue color (false)
     */
     static void paintConvexHulls_(QPainter& painter, Plot2DCanvas* canvas, const std::vector<ConvexHull2D>& hulls, bool has_identifications);
 
@@ -107,11 +107,11 @@ namespace OpenMS
       Paints the peaks as small ellipses. The peaks are colored according to the
       selected dot gradient.
 
-      @param painter The QPainter to paint with.
-      @param canvas The canvas to paint on.
-      @param layer_index The index of the layer.
-      @param rt_pixel_count
-      @param mz_pixel_count
+      @param[in] painter The QPainter to paint with.
+      @param[in] canvas The canvas to paint on.
+      @param[in] layer_index The index of the layer.
+      @param[in] rt_pixel_count
+      @param[in] mz_pixel_count
     */
     void paintMaximumIntensities_(QPainter& painter, Plot2DCanvas* canvas, Size layer_index, Size rt_pixel_count, Size mz_pixel_count);
 
@@ -201,28 +201,28 @@ namespace OpenMS
     /**
       @brief Paints the consensus elements of a consensus features layer.
 
-      @param painter The QPainter to paint on
-      @param canvas The canvas (for configuration details)
-      @param layer_index Index of the layer
+      @param[in] painter The QPainter to paint on
+      @param[in] canvas The canvas (for configuration details)
+      @param[in] layer_index Index of the layer
     */
     void paintConsensusElements_(QPainter* painter, Plot2DCanvas* canvas, Size layer_index);
 
     /**
       @brief Paints one consensus element of a consensus features layer.
 
-      @param painter The QPainter to paint on
-      @param canvas The canvas (for configuration details)
-      @param layer_index Index of the layer
-      @param cf Reference to the consensus feature to be painted
+      @param[in] painter The QPainter to paint on
+      @param[in] canvas The canvas (for configuration details)
+      @param[in] layer_index Index of the layer
+      @param[in] cf Reference to the consensus feature to be painted
     */
     void paintConsensusElement_(QPainter* painter, Plot2DCanvas* canvas, Size layer_index, const ConsensusFeature& cf);
 
     /**
       @brief checks if any element of a consensus feature is currently visible.
 
-      @param canvas The canvas (for configuration details)
-      @param cf The ConsensusFeature that needs checking
-      @param layer_index Index of the layer.
+      @param[in] canvas The canvas (for configuration details)
+      @param[in] cf The ConsensusFeature that needs checking
+      @param[in] layer_index Index of the layer.
     */
     bool isConsensusFeatureVisible_(const Plot2DCanvas* canvas, const ConsensusFeature& cf, Size layer_index);
 

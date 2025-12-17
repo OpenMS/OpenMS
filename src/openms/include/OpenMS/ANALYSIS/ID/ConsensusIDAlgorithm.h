@@ -39,9 +39,9 @@ namespace OpenMS
 
         Make sure that the score type (PeptideIdentification::getScoreType()) and the score orientation (PeptideIdentification::isHigherScoreBetter()) are set properly!
 
-        @param ids Peptide identifications (input: more than one, output: one)
-        @param number_of_runs Number of ID runs (default: size of "ids")
-        @param se_info map from run identifiers to search engine infos to retain original search engine information
+        @param[in,out] ids Peptide identifications (input: more than one, output: one)
+        @param[in] number_of_runs Number of ID runs (default: size of "ids")
+        @param[in] se_info map from run identifiers to search engine infos to retain original search engine information
         @todo we could pass the score_types that we want to carry over in the map as well (right now it always takes main)
      */
     void apply(PeptideIdentificationList& ids, const std::map<String, String>& se_info, Size number_of_runs = 0);
@@ -92,9 +92,9 @@ namespace OpenMS
     /**
        @brief Consensus computation (to be implemented by subclasses).
 
-       @param ids Peptide identifications (input)
-       @param se_info mapping from run identifier to search engine to carry over infos to result
-       @param results Algorithm results (output). For each peptide sequence, two scores are expected: the actual consensus score and the "support" value, in this order.
+       @param[in,out] ids Peptide identifications (input)
+       @param[in] se_info mapping from run identifier to search engine to carry over infos to result
+       @param[out] results Algorithm results (output). For each peptide sequence, two scores are expected: the actual consensus score and the "support" value, in this order.
     */
     virtual void apply_(PeptideIdentificationList& ids, const std::map<String, String>& se_info, SequenceGrouping& results) = 0;
 

@@ -101,12 +101,12 @@ namespace OpenMS
       /**
         @brief Add a new calibration point
 
-        @param rt Retention time
-        @param mz_obs Observed m/z
-        @param intensity Intensity (useful for weighted model fitting)
-        @param mz_ref Theoretical m/z
-        @param weight Weight of calibration point (useful for weighted model fitting)
-        @param group Peak group of this calibration point. Using -1 will not assign any peak group. See also: median()
+        @param[in] rt Retention time
+        @param[in] mz_obs Observed m/z
+        @param[in] intensity Intensity (useful for weighted model fitting)
+        @param[in] mz_ref Theoretical m/z
+        @param[in] weight Weight of calibration point (useful for weighted model fitting)
+        @param[in] group Peak group of this calibration point. Using -1 will not assign any peak group. See also: median()
       */
       void insertCalibrationPoint(CalDataType::CoordinateType rt, CalDataType::CoordinateType mz_obs, CalDataType::IntensityType intensity, 
                                   CalDataType::CoordinateType mz_ref, double weight,
@@ -135,7 +135,7 @@ namespace OpenMS
       /**
         @brief Retrieve the group of the i'th calibration point.
 
-        @param i Index
+        @param[in] i Index
         @return Group; returns -1 if peak has no group.
       */
       int getGroup(Size i) const;
@@ -160,8 +160,8 @@ namespace OpenMS
 
         The container must be sorted by RT (see sortByRT())!
 
-        @param rt_left Left border of RT range to medianize
-        @param rt_right Right border of RT range to medianize
+        @param[in] rt_left Left border of RT range to medianize
+        @param[in] rt_right Right border of RT range to medianize
         @return New container, containing median representation for each peak group
 
       */

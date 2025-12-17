@@ -31,9 +31,9 @@ public:
     /**
       @brief Solve the non-negative least square problem Ax=b, where x>0
 
-      @param A Input matrix A of size m x n
-      @param b Input vector (OpenMS::Matrix with one column) b of size m x 1
-      @param x Output vector (OpenMS::Matrix with one column) with non-negative least square solution of size n x 1
+      @param[in] A Input matrix A of size m x n
+      @param[in] b Input vector (OpenMS::Matrix with one column) b of size m x 1
+      @param[out] x Output vector (OpenMS::Matrix with one column) with non-negative least square solution of size n x 1
       @return status of solution (either NonNegativeLeastSquaresSolver::SOLVED, NonNegativeLeastSquaresSolver::ITERATION_EXCEEDED)
 
       @throws Exception::InvalidParameters if Matrix dimensions do not fit

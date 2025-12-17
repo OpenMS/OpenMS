@@ -104,23 +104,23 @@ protected:
     /**
      * Returns the theoretical value of the fitted model at position k in the passed mass trace
      *
-     * @param trace the mass trace for which the value should be computed
-     * @param k  use the position of the k-th peak to compute the value
+     * @param[in] trace the mass trace for which the value should be computed
+     * @param[in] k  use the position of the k-th peak to compute the value
      */
     double computeTheoretical(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace& trace, Size k) const;
 
     /**
      * Checks if the fitted model fills out at least 'min_rt_span' of the RT span
      *
-     * @param rt_bounds RT boundaries of the fitted model
-     * @param min_rt_span Minimum RT span in relation to extended area that has to remain after model fitting
+     * @param[in] rt_bounds RT boundaries of the fitted model
+     * @param[in] min_rt_span Minimum RT span in relation to extended area that has to remain after model fitting
      */
     virtual bool checkMinimalRTSpan(const std::pair<double, double>& rt_bounds, const double min_rt_span) = 0;
 
     /**
      * Checks if the fitted model is not to big
      *
-     * @param max_rt_span Maximum RT span in relation to extended area that the model is allowed to have
+     * @param[in] max_rt_span Maximum RT span in relation to extended area that the model is allowed to have
      */
     virtual bool checkMaximalRTSpan(const double max_rt_span) = 0;
 
@@ -132,10 +132,10 @@ protected:
     /**
      * Returns a textual representation of the fitted model function, that can be plotted using Gnuplot
      *
-     * @param trace The mass trace that should be plotted
-     * @param function_name The name of the function (e.g. f(x) -> function_name = f)
-     * @param baseline The intensity of the baseline
-     * @param rt_shift A shift value, that allows to plot all RT profiles side by side, even if they would overlap in reality.
+     * @param[in] trace The mass trace that should be plotted
+     * @param[in] function_name The name of the function (e.g. f(x) -> function_name = f)
+     * @param[in] baseline The intensity of the baseline
+     * @param[in] rt_shift A shift value, that allows to plot all RT profiles side by side, even if they would overlap in reality.
      *                 This should be 0 for the first mass trace and increase by a fixed value for each mass trace.
      */
     virtual String getGnuplotFormula(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace& trace, const char function_name, const double baseline, const double rt_shift) = 0;
@@ -152,7 +152,7 @@ protected:
     /**
      * Updates all member variables to the fitted values stored in the solver.
      *
-     * @param s The solver containing the fitted parameter values.
+     * @param[in] s The solver containing the fitted parameter values.
      */
     virtual void getOptimizedParameters_(const std::vector<double>& s) = 0;
     /**

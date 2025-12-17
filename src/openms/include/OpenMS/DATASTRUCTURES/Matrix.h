@@ -97,6 +97,11 @@ namespace OpenMS
     /**
      * @brief Get element at (row, col)
      * Note: pyOpenMS can't easily wrap operator() so we provide additional getter.
+     * @brief Constructor to create a matrix with specified dimensions and fill value.
+     *
+     * @param[in] rows Number of rows in the matrix.
+     * @param[in] cols Number of columns in the matrix.
+     * @param[in] value Initial value to fill the matrix.
      */
     const Value& getValue(size_t const row, size_t const col) const
     {
@@ -190,7 +195,7 @@ namespace OpenMS
      * @tparam T The type of the matrix elements.
      * @tparam ROWS The number of rows in the matrix.
      * @tparam COLS The number of columns in the matrix.
-     * @param array The 2D array containing the values to be assigned to the matrix.
+     * @param[in] array The 2D array containing the values to be assigned to the matrix.
      */
     template <typename T, long int ROWS, long int COLS>
     void setMatrix(T const (&array)[ROWS][COLS])
@@ -223,7 +228,7 @@ namespace OpenMS
     /**
      * @brief Equality operator. Compares two matrices for equality.
      *
-     * @param rhs The matrix to be compared.
+     * @param[in] rhs The matrix to be compared.
      * @return True if matrices are equal, false otherwise.
      *
      * @throw Exception::Precondition if matrices have different dimensions (Debug mode only)
@@ -245,8 +250,8 @@ namespace OpenMS
     /**
      * @brief Friend function to output the matrix to an output stream.
      *
-     * @param os Output stream.
-     * @param matrix Matrix to be output.
+     * @param[in,out] os Output stream.
+     * @param[in] matrix Matrix to be output.
      * @return Reference to the output stream.
      */
     friend std::ostream& operator<<(std::ostream& os, const Matrix<Value>& matrix)

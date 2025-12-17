@@ -73,7 +73,7 @@ public:
     LogType getLogType() const;
 
     /// @brief  Sets the logger to be used for progress logging
-    /// @param logger 
+    /// @param[in] logger
     void setLogger(ProgressLoggerImpl* logger);
 
     /**
