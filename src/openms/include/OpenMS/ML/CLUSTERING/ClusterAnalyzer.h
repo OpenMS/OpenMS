@@ -37,8 +37,8 @@ public:
     /**
         @brief Method to calculate the average silhouette widths for a clustering
 
-        @param tree vector of BinaryTreeNode's representing the clustering
-        @param original DistanceMatrix for all clustered elements started from
+        @param[in] tree vector of BinaryTreeNode's representing the clustering
+        @param[in] original DistanceMatrix for all clustered elements started from
         @return a vector filled with the average silhouette widths for each cluster step
 
         The average silhouette width will be calculated for each clustering step beginning with the first step(n-1 cluster) ending with the last (1 cluster, average silhouette width is 0 by definition).
@@ -49,9 +49,9 @@ public:
     /**
         @brief Method to calculate Dunns indices for a clustering
 
-        @param tree vector of BinaryTreeNode's representing the clustering
-        @param original DistanceMatrix for all clustered elements started from
-        @param tree_from_singlelinkage true if tree was created by SingleLinkage, i.e. the distances are the minimal distances in increasing order and can be used to speed up the calculation
+        @param[in] tree vector of BinaryTreeNode's representing the clustering
+        @param[in] original DistanceMatrix for all clustered elements started from
+        @param[in] tree_from_singlelinkage true if tree was created by SingleLinkage, i.e. the distances are the minimal distances in increasing order and can be used to speed up the calculation
         @see BinaryTreeNode
     */
     std::vector<float> dunnIndices(const std::vector<BinaryTreeNode> & tree, const DistanceMatrix<float> & original, const bool tree_from_singlelinkage = false);
@@ -59,8 +59,8 @@ public:
     /**
         @brief Method to calculate the cohesions of a certain partition
 
-        @param clusters vector of vectors holding the clusters (with indices to the actual elements)
-        @param original DistanceMatrix for all clustered elements started from
+        @param[in] clusters vector of vectors holding the clusters (with indices to the actual elements)
+        @param[in] original DistanceMatrix for all clustered elements started from
         @return a vector that holds the cohesions of each cluster given with @p clusters (order corresponds to @p clusters)
     */
     std::vector<float> cohesion(const std::vector<std::vector<Size> > & clusters, const DistanceMatrix<float> & original);

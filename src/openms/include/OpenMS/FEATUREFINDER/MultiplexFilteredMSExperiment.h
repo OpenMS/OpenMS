@@ -68,9 +68,9 @@ namespace OpenMS
         
         /**
          * @brief write all peaks to a consensusXML file
-         * 
-         * @param exp_picked   original (i.e. not white) centroided experimental data
-         * @param debug_out    file name of the debug output
+         *
+         * @param[in] exp_picked   original (i.e. not white) centroided experimental data
+         * @param[in] debug_out    file name of the debug output
          */
         void writeDebugOutput(const MSExperiment& exp_picked, const String& debug_out) const;
         

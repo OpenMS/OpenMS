@@ -193,7 +193,7 @@ public:
       Fill MSExperiment with data.
       Note that all data present (including meta-data) will be deleted prior to adding new data!
 
-      @param container An iterable type whose elements support getRT(), getMZ() and getIntensity()
+      @param[in] container An iterable type whose elements support getRT(), getMZ() and getIntensity()
 
       @exception Exception::Precondition is thrown if the container is not sorted according to
       retention time (in debug AND release mode)
@@ -210,8 +210,8 @@ public:
       Fill MSExperiment with data.
       Note that all data present (including meta-data) will be deleted prior to adding new data!
 
-      @param container An iterable type whose elements support getRT(), getMZ() and getIntensity()
-      @param store_metadata_names [MetaInfoInterface input only] Names of metadata arrays which should be created;
+      @param[in] container An iterable type whose elements support getRT(), getMZ() and getIntensity()
+      @param[in] store_metadata_names [MetaInfoInterface input only] Names of metadata arrays which should be created;
                                   data is filled from the metainfointerface of each element of the input container.
                                   Currently, only float data is supported!
 
@@ -256,7 +256,7 @@ public:
                              If found, "masstrace_intensity" (X>=0) meta values are added as data points (with 13C spacing).
                              This is useful for, e.g., FF-Metabo output.
                              Note that the actual feature will NOT be added if mass traces are found (since MT0 is usually identical)
-      @param container The input data with RT,m/z and intensity
+      @param[in] container The input data with RT,m/z and intensity
 
       @exception Exception::Precondition is thrown if the container is not sorted according to
       retention time (in debug AND release mode) OR a "masstrace_intensity" value is expected but not found
@@ -316,14 +316,14 @@ public:
      *
      * For fast pyOpenMS access to peak data in format: [rt, [mz, intensity]]
      *
-     * @param min_rt The minimum retention time.
-     * @param max_rt The maximum retention time.
-     * @param min_mz The minimum m/z value.
-     * @param max_mz The maximum m/z value.
-     * @param ms_level The MS level of the spectra to consider.
-     * @param rt The vector to store the retention times in.
-     * @param mz The vector to store the m/z values in.
-     * @param intensity The vector to store the intensities in.
+     * @param[in] min_rt The minimum retention time.
+     * @param[in] max_rt The maximum retention time.
+     * @param[in] min_mz The minimum m/z value.
+     * @param[in] max_mz The maximum m/z value.
+     * @param[in] ms_level The MS level of the spectra to consider.
+     * @param[out] rt The vector to store the retention times in.
+     * @param[out] mz The vector to store the m/z values in.
+     * @param[out] intensity The vector to store the intensities in.
      */
     void get2DPeakDataPerSpectrum(
       CoordinateType min_rt,
@@ -339,15 +339,15 @@ public:
      *
      * For fast pyOpenMS access to MS1 peak data in format: [rt, [mz, intensity, ion mobility]]
      *
-     * @param min_rt The minimum retention time.
-     * @param max_rt The maximum retention time.
-     * @param min_mz The minimum m/z value.
-     * @param max_mz The maximum m/z value.
-     * @param ms_level The MS level of the spectra to consider.
-     * @param rt The vector to store the retention times in.
-     * @param mz The vector to store the m/z values in.
-     * @param intensity The vector to store the intensities in.
-     * @param ion_mobility The vector to store the ion mobility values in.
+     * @param[in] min_rt The minimum retention time.
+     * @param[in] max_rt The maximum retention time.
+     * @param[in] min_mz The minimum m/z value.
+     * @param[in] max_mz The maximum m/z value.
+     * @param[in] ms_level The MS level of the spectra to consider.
+     * @param[out] rt The vector to store the retention times in.
+     * @param[out] mz The vector to store the m/z values in.
+     * @param[out] intensity The vector to store the intensities in.
+     * @param[out] ion_mobility The vector to store the ion mobility values in.
      */
     void get2DPeakDataIMPerSpectrum(
       CoordinateType min_rt,
@@ -364,14 +364,14 @@ public:
      *
      * For fast pyOpenMS access to MS1 peak data in format: [rt, mz, intensity]
      *
-     * @param min_rt The minimum retention time.
-     * @param max_rt The maximum retention time.
-     * @param min_mz The minimum m/z value.
-     * @param max_mz The maximum m/z value.
-     * @param ms_level The MS level of the spectra to consider.
-     * @param rt The vector to store the retention times in.
-     * @param mz The vector to store the m/z values in.
-     * @param intensity The vector to store the intensities in.
+     * @param[in] min_rt The minimum retention time.
+     * @param[in] max_rt The maximum retention time.
+     * @param[in] min_mz The minimum m/z value.
+     * @param[in] max_mz The maximum m/z value.
+     * @param[in] ms_level The MS level of the spectra to consider.
+     * @param[out] rt The vector to store the retention times in.
+     * @param[out] mz The vector to store the m/z values in.
+     * @param[out] intensity The vector to store the intensities in.
      */
     void get2DPeakData(
       CoordinateType min_rt,
@@ -388,14 +388,14 @@ public:
      *
      * For fast pyOpenMS access to MS1 peak data in format: [rt, mz, intensity, ion mobility]
      *
-     * @param min_rt The minimum retention time.
-     * @param max_rt The maximum retention time.
-     * @param min_mz The minimum m/z value.
-     * @param max_mz The maximum m/z value.
-     * @param ms_level The MS level of the spectra to consider.
-     * @param rt The vector to store the retention times in.
-     * @param mz The vector to store the m/z values in.
-     * @param intensity The vector to store the intensities in.
+     * @param[in] min_rt The minimum retention time.
+     * @param[in] max_rt The maximum retention time.
+     * @param[in] min_mz The minimum m/z value.
+     * @param[in] max_mz The maximum m/z value.
+     * @param[in] ms_level The MS level of the spectra to consider.
+     * @param[out] rt The vector to store the retention times in.
+     * @param[out] mz The vector to store the m/z values in.
+     * @param[out] intensity The vector to store the intensities in.
      */
     void get2DPeakDataIM(
       CoordinateType min_rt,
@@ -410,12 +410,12 @@ public:
 
   /**
    * @brief Calculates the sum of intensities for a range of elements.
-   * 
+   *
    * @tparam Iterator The iterator type.
-   * @param begin The iterator pointing to the beginning of the range.
-   * @param end The iterator pointing to the end of the range.
+   * @param[in] begin The iterator pointing to the beginning of the range.
+   * @param[in] end The iterator pointing to the end of the range.
    * @return The sum of intensities.
-   * 
+   *
    * @throws static assert fails if the iterator value type does not have a `getIntensity()` member function.
    */
 struct SumIntensityReduction {
@@ -609,9 +609,9 @@ std::vector<std::vector<MSExperiment::CoordinateType>> aggregate(
  * This function takes a vector of mz_rt_ranges, an ms_level, and a MzReductionFunctionType
  * and extracts the XICs from the MSExperiment based on the given parameters.
  *
- * @param mz_rt_ranges A vector of pairs of RangeMZ and RangeRT representing the m/z and retention time ranges.
- * @param ms_level The MS level of the spectra to consider.
- * @param func_mz_reduction The MzReductionFunctionType used to reduce the m/z values.
+ * @param[in] mz_rt_ranges A vector of pairs of RangeMZ and RangeRT representing the m/z and retention time ranges.
+ * @param[in] ms_level The MS level of the spectra to consider.
+ * @param[in] func_mz_reduction The MzReductionFunctionType used to reduce the m/z values.
  *
  * @return A vector of MSChromatogram objects representing the extracted XICs.
  */
@@ -736,10 +736,10 @@ std::vector<MSChromatogram> extractXICs(
 
   /**
    * @brief Wrapper for aggregate function that takes a matrix of m/z and RT ranges
-   * 
-   * @param ranges Matrix where each row contains [mz_min, mz_max, rt_min, rt_max]
-   * @param ms_level MS level to process
-   * @param mz_agg Aggregation function for m/z values ("sum", "max", "min", "mean")
+   *
+   * @param[in] ranges Matrix where each row contains [mz_min, mz_max, rt_min, rt_max]
+   * @param[in] ms_level MS level to process
+   * @param[in] mz_agg Aggregation function for m/z values ("sum", "max", "min", "mean")
    * @return Vector of vectors containing aggregated intensity values for each range
    */
   std::vector<std::vector<MSExperiment::CoordinateType>> aggregateFromMatrix(
@@ -819,10 +819,10 @@ std::vector<MSChromatogram> extractXICs(
 
   /**
    * @brief Wrapper for extractXICs function that takes a matrix of m/z and RT ranges
-   * 
-   * @param ranges Matrix where each row contains [mz_min, mz_max, rt_min, rt_max]
-   * @param ms_level MS level to process
-   * @param mz_agg Aggregation function for m/z values ("sum", "max", "min", "mean")
+   *
+   * @param[in] ranges Matrix where each row contains [mz_min, mz_max, rt_min, rt_max]
+   * @param[in] ms_level MS level to process
+   * @param[in] mz_agg Aggregation function for m/z values ("sum", "max", "min", "mean")
    * @return Vector of MSChromatogram objects, one for each range
    */
   std::vector<MSChromatogram> extractXICsFromMatrix(
@@ -1028,21 +1028,21 @@ std::vector<MSChromatogram> extractXICs(
     /**
       @brief Sorts the data points by retention time
 
-      @param sort_mz if @em true, spectra are sorted by m/z position as well
+      @param[in] sort_mz if @em true, spectra are sorted by m/z position as well
     */
     void sortSpectra(bool sort_mz = true);
 
     /**
       @brief Sorts the data points of the chromatograms by m/z
 
-      @param sort_rt if @em true, chromatograms are sorted by rt position as well
+      @param[in] sort_rt if @em true, chromatograms are sorted by rt position as well
     */
     void sortChromatograms(bool sort_rt = true);
 
     /**
       @brief Checks if all spectra are sorted with respect to ascending RT
 
-      @param check_mz if @em true, checks if all peaks are sorted with respect to ascending m/z
+      @param[in] check_mz if @em true, checks if all peaks are sorted with respect to ascending m/z
     */
     bool isSorted(bool check_mz = true) const;
 
@@ -1122,7 +1122,7 @@ std::vector<MSChromatogram> extractXICs(
     /**
       @brief Returns the index of the first product spectrum given an index.
 
-      @param zero_based_index The index of the current spectrum.
+      @param[in] zero_based_index The index of the current spectrum.
 
       @return Index of the first product spectrum or -1 if not found.
     */
@@ -1188,8 +1188,8 @@ std::vector<MSChromatogram> extractXICs(
     By default, each MS spectrum's intensity just gets summed up. Regular RT bins can be obtained by specifying @p rt_bin_size.
     If a bin size in RT seconds greater than 0 is given resampling is used.
 
-    @param rt_bin_size RT bin size in seconds (0 = no resampling)
-    @param ms_level MS level of spectra for calculation (0 = all levels)
+    @param[in] rt_bin_size RT bin size in seconds (0 = no resampling)
+    @param[in] ms_level MS level of spectra for calculation (0 = all levels)
     @return TIC Chromatogram
     **/
     const MSChromatogram calculateTIC(float rt_bin_size = 0, UInt ms_level = 1) const;
@@ -1197,7 +1197,7 @@ std::vector<MSChromatogram> extractXICs(
     /**
       @brief Clears all data and meta data
 
-      @param clear_meta_data If @em true, all meta data is cleared in addition to the data.
+      @param[in] clear_meta_data If @em true, all meta data is cleared in addition to the data.
     */
     void clear(bool clear_meta_data);
 
@@ -1322,7 +1322,7 @@ std::vector<MSChromatogram> extractXICs(
     /*
       @brief Append a spectrum to current MSExperiment
 
-      @param rt RT of new spectrum
+      @param[in] rt RT of new spectrum
       @return Pointer to newly created spectrum
     */
     SpectrumType* createSpec_(PeakType::CoordinateType rt);
@@ -1330,8 +1330,8 @@ std::vector<MSChromatogram> extractXICs(
     /*
       @brief Append a spectrum including floatdata arrays to current MSExperiment
 
-      @param rt RT of new spectrum
-      @param metadata_names Names of floatdata arrays attached to this spectrum
+      @param[in] rt RT of new spectrum
+      @param[in] metadata_names Names of floatdata arrays attached to this spectrum
       @return Pointer to newly created spectrum
     */
     SpectrumType* createSpec_(PeakType::CoordinateType rt, const StringList& metadata_names);

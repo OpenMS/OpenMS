@@ -454,8 +454,8 @@ namespace OpenMS
     /*!
       @brief Return the best match for each observation, according to a given score type
 
-      @param score_ref Score type to use
-      @param require_score Exclude matches without score of this type, even if they are the only matches for their observations?
+      @param[in] score_ref Score type to use
+      @param[in] require_score Exclude matches without score of this type, even if they are the only matches for their observations?
     */
     std::vector<ObservationMatchRef> getBestMatchPerObservation(ScoreTypeRef score_ref,
                                                                 bool require_score = false) const;
@@ -469,7 +469,7 @@ namespace OpenMS
 
       If other parts are invalidated by filtering, the data structure is automatically cleaned up (IdentificationData::cleanup) to remove any invalidated references at the end of this operation.
 
-      @param func Functor that returns true for container elements to be removed
+      @param[in] func Functor that returns true for container elements to be removed
     */
     template <typename PredicateType>
     void removeObservationMatchesIf(PredicateType&& func)
@@ -484,7 +484,7 @@ namespace OpenMS
 
       If other parts are invalidated by filtering, the data structure is automatically cleaned up (IdentificationData::cleanup) to remove any invalidated references at the end of this operation.
 
-      @param func Functor that returns true for container elements to be removed
+      @param[in] func Functor that returns true for container elements to be removed
     */
     template <typename PredicateType>
     void removeParentSequencesIf(PredicateType&& func)
@@ -516,11 +516,11 @@ namespace OpenMS
 
       Make sure there are no invalid references or "orphan" data entries.
 
-      @param require_observation_match Remove identified molecules, observations and adducts that aren't part of observation matches?
-      @param require_identified_sequence Remove parent sequences (proteins/RNAs) that aren't referenced by identified peptides/oligonucleotides?
-      @param require_parent_match Remove identified peptides/oligonucleotides that don't reference a parent sequence (protein/RNA)?
-      @param require_parent_group Remove parent sequences that aren't part of parent sequence groups?
-      @param require_match_group Remove input matches that aren't part of match groups?
+      @param[in] require_observation_match Remove identified molecules, observations and adducts that aren't part of observation matches?
+      @param[in] require_identified_sequence Remove parent sequences (proteins/RNAs) that aren't referenced by identified peptides/oligonucleotides?
+      @param[in] require_parent_match Remove identified peptides/oligonucleotides that don't reference a parent sequence (protein/RNA)?
+      @param[in] require_parent_group Remove parent sequences that aren't part of parent sequence groups?
+      @param[in] require_match_group Remove input matches that aren't part of match groups?
     */
     void cleanup(bool require_observation_match = true,
                  bool require_identified_sequence = true,
@@ -537,7 +537,7 @@ namespace OpenMS
       Can be used to make a deep copy by calling merge() on an empty object.
       The returned translation table allows updating of references that are held externally.
 
-      @param other Instance to merge in.
+      @param[in] other Instance to merge in.
 
       @return Translation table for references (old -> new)
     */
@@ -558,9 +558,9 @@ namespace OpenMS
       If @p any_score is false, only the primary score from the most recent processing step (that assigned a score) is taken into account.
       If @p any_score is true, all score types assigned across all elements are considered (this implies @p all_elements = true).
 
-      @param container Container with elements derived from @p ScoredProcessingResult
-      @param all_elements Consider all elements?
-      @param any_score Consider any score (or just primary/most recent ones)?
+      @param[in] container Container with elements derived from @p ScoredProcessingResult
+      @param[in] all_elements Consider all elements?
+      @param[in] any_score Consider any score (or just primary/most recent ones)?
 
       @return Reference to the chosen score type (or @p getScoreTypes().end() if there were no scores)
     */
@@ -671,9 +671,9 @@ namespace OpenMS
     /*!
       @brief Helper function to merge scored processing results while updating references (to processing steps and score types)
 
-      @param result Instance that gets updated
-      @param other Instance to merge into @p result
-      @param trans Mapping of corresponding references between @p other and @p result
+      @param[in,out] result Instance that gets updated
+      @param[in] other Instance to merge into @p result
+      @param[in] trans Mapping of corresponding references between @p other and @p result
     */
     void mergeScoredProcessingResults_(ScoredProcessingResult& result,
                                        const ScoredProcessingResult& other,

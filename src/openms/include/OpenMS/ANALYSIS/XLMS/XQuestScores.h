@@ -27,28 +27,28 @@ namespace OpenMS
   public:
    /**
      @brief compute a simple and fast to compute pre-score for a cross-link spectrum match
-     @param matched_alpha number of experimental peaks matched to theoretical linear ions from the alpha peptide
-     @param ions_alpha number of theoretical ions from the alpha peptide
-     @param matched_beta number of experimental peaks matched to theoretical linear ions from the beta peptide
-     @param ions_beta number of theoretical ions from the beta peptide
+     @param[in] matched_alpha number of experimental peaks matched to theoretical linear ions from the alpha peptide
+     @param[in] ions_alpha number of theoretical ions from the alpha peptide
+     @param[in] matched_beta number of experimental peaks matched to theoretical linear ions from the beta peptide
+     @param[in] ions_beta number of theoretical ions from the beta peptide
     */
     static float preScore(Size matched_alpha, Size ions_alpha, Size matched_beta, Size ions_beta);
 
    /**
      @brief compute a simple and fast to compute pre-score for a mono-link spectrum match
-     @param matched_alpha number of experimental peaks matched to theoretical linear ions from the alpha peptide
-     @param ions_alpha number of theoretical ions from the alpha peptide
+     @param[in] matched_alpha number of experimental peaks matched to theoretical linear ions from the alpha peptide
+     @param[in] ions_alpha number of theoretical ions from the alpha peptide
     */
     static float preScore(Size matched_alpha, Size ions_alpha);
 
    /**
      @brief compute the match-odds score, a score based on the probability of getting the given number of matched peaks by chance
-     @param theoretical_spec theoretical spectrum, sorted by position
-     @param matched_size alignment between the theoretical and the experimental spectra
-     @param fragment_mass_tolerance fragment mass tolerance of the alignment
-     @param fragment_mass_tolerance_unit_ppm fragment mass tolerance unit of the alignment, true = ppm, false = Da
-     @param is_xlink_spectrum type of cross-link, true = cross-link, false = mono-link
-     @param n_charges number of considered charges in the theoretical spectrum
+     @param[in] theoretical_spec theoretical spectrum, sorted by position
+     @param[in] matched_size alignment between the theoretical and the experimental spectra
+     @param[in] fragment_mass_tolerance fragment mass tolerance of the alignment
+     @param[in] fragment_mass_tolerance_unit_ppm fragment mass tolerance unit of the alignment, true = ppm, false = Da
+     @param[in] is_xlink_spectrum type of cross-link, true = cross-link, false = mono-link
+     @param[in] n_charges number of considered charges in the theoretical spectrum
     */
     static double matchOddsScore(const PeakSpectrum& theoretical_spec,  const Size matched_size, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool is_xlink_spectrum = false, Size n_charges = 1);
 

@@ -64,7 +64,7 @@ namespace OpenMS
       Afterwards, use applyTransformation() or predict() to calibrate your data.
       If you call train(), the ppm-setting will be overwritten, depending on the type of training data.
 
-      @param ppm_model Are the coefficients derived from ppm calibration data, or from absolute deltas?
+      @param[in] ppm_model Are the coefficients derived from ppm calibration data, or from absolute deltas?
     */
     MZTrafoModel(bool ppm_model);
 
@@ -74,14 +74,14 @@ namespace OpenMS
       @brief Convert string to enum
 
       Returns 'SIZE_OF_MODELTYPE' if string is unknown.
-      @param name A string from names_of_modeltype[].
+      @param[in] name A string from names_of_modeltype[].
       @return The corresponding enum value.
     */
     static MODELTYPE nameToEnum(const std::string& name);
     /**
       @brief Convert enum to string
-        
-      @param mt The enum value
+
+      @param[in] mt The enum value
       @return Stringified version
     */
     static const std::string& enumToName(MODELTYPE mt); 
@@ -93,8 +93,8 @@ namespace OpenMS
       This is not done via member, to keep a small memory footprint since hundreds of
       MZTrafoModels are expected to be build at the same time and the RANSAC params
       should be identical for all of them.
-      
-      @param p RANSAC params
+
+      @param[in] p RANSAC params
     */
     static void setRANSACParams(const Math::RANSACParam& p);
 
@@ -145,7 +145,7 @@ namespace OpenMS
       Applies the function y = intercept + slope*mz + power*mz^2
       and returns y.
 
-      @param mz The uncalibrated m/z value
+      @param[in] mz The uncalibrated m/z value
       @return The calibrated m/z value
 
     */
@@ -154,8 +154,8 @@ namespace OpenMS
     /**
       @brief Binary search for the model nearest to a specific RT
 
-      @param tms Vector of models, sorted by RT
-      @param rt The target retention time
+      @param[in] tms Vector of models, sorted by RT
+      @param[in] rt The target retention time
       @return Returns the index into 'tms' with the closest RT.
 
       @note Make sure the vector is sorted with respect to RT! Otherwise the result is undefined.
@@ -194,11 +194,11 @@ namespace OpenMS
        - set Model's rt position
        - call train() (see overloaded method)
 
-      @param cd List of calibrants
-      @param md Type of model (linear, quadratic, ...)
-      @param use_RANSAC Remove outliers before computing the model?
-      @param rt_left Filter 'cd' by RT; all calibrants with RT < 'rt_left' are removed
-      @param rt_right Filter 'cd' by RT; all calibrants with RT > 'rt_right' are removed
+      @param[in] cd List of calibrants
+      @param[in] md Type of model (linear, quadratic, ...)
+      @param[in] use_RANSAC Remove outliers before computing the model?
+      @param[in] rt_left Filter 'cd' by RT; all calibrants with RT < 'rt_left' are removed
+      @param[in] rt_right Filter 'cd' by RT; all calibrants with RT > 'rt_right' are removed
       @return True if model was build, false otherwise
 
     */
@@ -223,11 +223,11 @@ namespace OpenMS
        - [apply RANSAC] (depending on 'use_RANSAC')
        - build model and store its parameters internally
 
-      @param error_mz Observed Mass error (in ppm or Th)
-      @param theo_mz Theoretical m/z values, corresponding to 'error_mz'
-      @param weights For weighted models only: weight of calibrants; ignored otherwise
-      @param md Type of model (linear, quadratic, ...)
-      @param use_RANSAC Remove outliers before computing the model?
+      @param[in] error_mz Observed Mass error (in ppm or Th)
+      @param[in] theo_mz Theoretical m/z values, corresponding to 'error_mz'
+      @param[in] weights For weighted models only: weight of calibrants; ignored otherwise
+      @param[in] md Type of model (linear, quadratic, ...)
+      @param[in] use_RANSAC Remove outliers before computing the model?
       @return True if model was build, false otherwise
 
     */
@@ -243,9 +243,9 @@ namespace OpenMS
       Parameters will be filled with internal model parameters.
       The model must be trained before; Exception is thrown otherwise!
 
-      @param intercept The intercept
-      @param slope The slope
-      @param power The coefficient for x*x (will be 0 for linear models)
+      @param[out] intercept The intercept
+      @param[out] slope The slope
+      @param[out] power The coefficient for x*x (will be 0 for linear models)
       @throw Exception::Precondition if model is not trained yet
     */
     void getCoefficients(double& intercept, double& slope, double& power);
@@ -262,9 +262,9 @@ namespace OpenMS
       It must be exactly three values. If you want a linear model, set 'power' to zero.
       If you want a constant model, set slope to zero in addition.
 
-      @param intercept The offset
-      @param slope The slope
-      @param power The x*x coefficient (for quadratic models)
+      @param[in] intercept The offset
+      @param[in] slope The slope
+      @param[in] power The x*x coefficient (for quadratic models)
     */
     void setCoefficients(double intercept, double slope, double power);
 

@@ -131,14 +131,14 @@ public:
   /**
     @brief Set the MS data used for feature detection (copy version)
 
-    @param ms_data Input MS experiment containing centroided or profile MS1 spectra
+    @param[in] ms_data Input MS experiment containing centroided or profile MS1 spectra
   */
   void setMSData(const MSExperiment& ms_data);
 
   /**
     @brief Set the MS data used for feature detection (move version)
 
-    @param ms_data Input MS experiment containing centroided or profile MS1 spectra (will be moved)
+    @param[in] ms_data Input MS experiment containing centroided or profile MS1 spectra (will be moved)
   */
   void setMSData(MSExperiment&& ms_data);
 
@@ -162,7 +162,7 @@ public:
     This is a convenience overload that discards the intermediate hills and peptide feature vectors.
     Use this when you only need the final FeatureMap output.
 
-    @param feature_map Output FeatureMap that will receive the detected features and meta information
+    @param[out] feature_map Output FeatureMap that will receive the detected features and meta information
 
     @note The input MS data must be set via setMSData() before calling this method
   */
@@ -181,9 +181,9 @@ public:
     7. Detects isotope patterns and assembles peptide features
     8. Converts features to OpenMS FeatureMap format
 
-    @param feature_map Output FeatureMap that receives the detected features and meta information
-    @param hills Output container for all detected hills that survived filtering steps. Useful for diagnostics and quality control.
-    @param peptide_features Output container storing intermediate peptide feature representations before conversion to FeatureMap entries
+    @param[out] feature_map Output FeatureMap that receives the detected features and meta information
+    @param[out] hills Output container for all detected hills that survived filtering steps. Useful for diagnostics and quality control.
+    @param[out] peptide_features Output container storing intermediate peptide feature representations before conversion to FeatureMap entries
 
     @note The input MS data must be set via setMSData() before calling this method
     @note All spectra with MS level != 1 will be removed from the internal MS data
@@ -199,8 +199,8 @@ public:
     The TSV file format matches the output of the reference Python implementation, allowing
     for easy comparison and downstream processing with Biosaur2-compatible tools.
 
-    @param features Peptide features to export (typically obtained from run())
-    @param filename Destination file path for the TSV output
+    @param[in] features Peptide features to export (typically obtained from run())
+    @param[in] filename Destination file path for the TSV output
   */
   void writeTSV(const std::vector<PeptideFeature>& features, const String& filename) const;
 
@@ -210,8 +210,8 @@ public:
     This method writes detailed information about each detected hill to a TSV file,
     which is useful for debugging, quality control, and understanding the feature detection process.
 
-    @param hills Hills to export (typically obtained from run())
-    @param filename Destination file path for the TSV output
+    @param[in] hills Hills to export (typically obtained from run())
+    @param[in] filename Destination file path for the TSV output
   */
   void writeHills(const std::vector<Hill>& hills, const String& filename) const;
 

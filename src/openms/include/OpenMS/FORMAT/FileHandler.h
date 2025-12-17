@@ -51,7 +51,7 @@ public:
       First tries to determine the type from the file name.
       If this fails, the type is determined from the file content.
 
-      @param filename the name of the file to check
+      @param[in] filename the name of the file to check
 
       @return A FileTypes::Type corresponding to the extension, or FileTypes::UNKNOWN if not determinable
 
@@ -63,7 +63,7 @@ public:
     /**
       @brief Try to get the file type from the filename
 
-      @param filename the name of the file to check
+      @param[in] filename the name of the file to check
 
       @return A FileTypes::Type corresponding to the extension, or FileTypes::UNKNOWN if not determinable
 
@@ -73,10 +73,13 @@ public:
 
 
     /**
-       @brief Check if @p filename has the extension @p type 
-               
+       @brief Check if @p filename has the extension @p type
+
        If the extension is not known (e.g. '.tmp') this is also allowed.
        However, if the extension is another one (neither @p type nor unknown), false is returned.
+
+       @param[in] filename The filename to check
+       @param[in] type The expected file type
     */
     static bool hasValidExtension(const String& filename, const FileTypes::Type type);
 
@@ -88,10 +91,10 @@ public:
       If the extension is unknown, the everything in the basename of the file after the last '.' is removed. E.g. 'future.newEnding' becomes 'future'
       If the filename does not contain '.', but the path (if any) does, nothing is removed, e.g. '/my.dotted.dir/filename' is returned unchanged.
 
-      @param filename the name to strip
+      @param[in] filename the name to strip
 
       @return the stripped filename
-      
+
     */
     static String stripExtension(const String& filename);
 
@@ -103,8 +106,8 @@ public:
       E.g. 'experiment.featureXML'+ FileTypes::TRANSFORMATIONXML  becomes 'experiment.trafoXML' and 'c:\\files\\data.mzML.gz' + FileTypes::FEATUREXML becomes 'c:\\files\\data.featureXML'
       If the existing extension is unknown, the everything after the last '.' is removed, e.g. 'exp.tmp' + FileTypes::IDXML becomes 'exp.idXML'
 
-      @param filename the original @p filename
-      @param new_type the @p FileTypes::Types to use to set the new extension
+      @param[in] filename the original @p filename
+      @param[in] new_type the @p FileTypes::Types to use to set the new extension
 
       @return the updated string
 
@@ -118,9 +121,9 @@ public:
              This function makes sure that the type derived from @p output_filename and @p requested_type are consistent, i.e.
              are either identical or one of them is UNKNOWN. Upon conflict, an error message is printed and the UNKNOWN type is returned.
 
-      @param output_filename A full filename (with none, absolute or relative paths) whose type is 
+      @param[in] output_filename A full filename (with none, absolute or relative paths) whose type is
                              determined using FileHandler::getTypeByFileName() internally
-      @param requested_type A type as string, usually obtained from '-out_type', e.g. "FASTA" (case insensitive).
+      @param[in] requested_type A type as string, usually obtained from '-out_type', e.g. "FASTA" (case insensitive).
                             The string can be empty (yields UNKNOWN for this type)
       @return A consistent file type or UNKNOWN upon conflict
     */
@@ -129,6 +132,8 @@ public:
 
     /**
       @brief Determines the file type of a file by parsing the first few lines
+
+      @param[in] filename The file to check
 
       @exception Exception::FileNotFound is thrown if the file is not present
     */

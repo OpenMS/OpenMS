@@ -96,11 +96,11 @@ public:
 
         You can specify zlib-compression.
 
-        @param in A vector of data to be encoded (String)
-        @param out A String containing the Base64 encoded data
-        @param zlib_compression Whether the data should be compressed with zlib before encoding in Base64
-        @param append_null_byte Whether a null-byte should be appended after each of the Strings contained in the in vector
-      
+        @param[in] in A vector of data to be encoded (String)
+        @param[out] out A String containing the Base64 encoded data
+        @param[in] zlib_compression Whether the data should be compressed with zlib before encoding in Base64
+        @param[in] append_null_byte Whether a null-byte should be appended after each of the Strings contained in the in vector
+
         @note Unless append_null_byte is false, will add a null byte ("\0") at the end of each input
     */
     static void encodeStrings(const std::vector<String> & in, String & out, bool zlib_compression = false, bool append_null_byte = true);
@@ -110,9 +110,9 @@ public:
 
         You have to specify whether the Base64 string is zlib-compressed.
 
-        @param in A String containing the Base64 encoded data
-        @param out A vector containing the decoded data (split at null "\0") bytes
-        @param zlib_compression Whether the data should be decompressed with zlib after decoding in Base64
+        @param[in] in A String containing the Base64 encoded data
+        @param[out] out A vector containing the decoded data (split at null "\0") bytes
+        @param[in] zlib_compression Whether the data should be decompressed with zlib after decoding in Base64
     */
     static void decodeStrings(const String & in, std::vector<String> & out, bool zlib_compression = false);
 
