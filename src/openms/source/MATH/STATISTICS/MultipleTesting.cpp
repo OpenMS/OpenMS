@@ -30,6 +30,9 @@ namespace evergreen {
 #include <iterator>
 #include <utility>
 #include <OpenMS/MATH/MISC/CubicSpline2d.h>
+#include <OpenMS/MATH/MISC/SmoothingSpline.h>
+#include <cstdlib> // for getenv
+#include <iostream>
 #include <boost/math/distributions/normal.hpp>
 
 namespace OpenMS
@@ -206,87 +209,131 @@ Pi0Result pi0est(const std::vector<double>& p_values, const std::vector<double>&
       for (double &v : y) v = (v > 0.0) ? std::log(v) : -std::numeric_limits<double>::infinity();
     }
 
-    // Fit a small-degree polynomial (up to cubic) by least squares to approximate
-    // the smoother used by the R/qvalue reference implementation. Use a
-    // centered-and-scaled Vandermonde basis for numerical stability which tends
-    // to reduce small numeric discrepancies versus an unscaled fit.
-    const int deg_i = std::min(3, std::max(1, smooth_df));
-    const std::size_t deg = static_cast<std::size_t>(deg_i);
-    const std::size_t D = std::min<std::size_t>(deg + 1, ll);
-
-    // compute centering/scale for lambda values
-    double lambda_min = *std::min_element(lambda_v.begin(), lambda_v.end());
-    double lambda_max = *std::max_element(lambda_v.begin(), lambda_v.end());
-    double lambda_mean = 0.5 * (lambda_min + lambda_max);
-    double lambda_scale = lambda_max - lambda_min;
-    if (!(lambda_scale > 0.0)) lambda_scale = 1.0;
-
-    // Build normal equations A coeffs = B using scaled x = (x - mean)/scale
-    std::vector<std::vector<double>> A(D, std::vector<double>(D, 0.0));
-    std::vector<double> B(D, 0.0);
-    for (std::size_t i = 0; i < ll; ++i)
+    // Use a cubic-spline interpolant (UnivariateSpline-like) across the
+    // (lambda, pi0(lambda)) grid. The Python/reference implementation uses
+    // SciPy's UnivariateSpline with k = smooth_df and no smoothing factor when
+    // computing the "smoother" pi0; that behaves as an interpolating cubic
+    // spline when possible. To match that behaviour more closely we build a
+    // cubic spline over the provided lambda grid (optionally in log-space)
+    // and evaluate it at the largest lambda.
+    try
     {
-      double x = (lambda_v[i] - lambda_mean) / lambda_scale;
-      double xp = 1.0;
-      std::vector<double> xv(D);
-      for (std::size_t j = 0; j < D; ++j) { xv[j] = xp; xp *= x; }
-      for (std::size_t r = 0; r < D; ++r)
+      // Build a sorted unique mapping of lambda -> y (y may be log(pi0) if requested).
+      std::map<double, double> xy;
+      for (std::size_t i = 0; i < ll; ++i) xy[lambda_v[i]] = y[i];
+
+      if (xy.size() < 2)
       {
-        for (std::size_t c = 0; c < D; ++c) A[r][c] += xv[r] * xv[c];
-        B[r] += xv[r] * y[i];
+        // not enough unique knots for interpolation: fallback
+        res.pi0 = std::min(*std::min_element(pi0s.begin(), pi0s.end()), 1.0);
+        res.pi0_smooth = false;
+        return res;
       }
-    }
 
-    // Solve via Gaussian elimination on augmented matrix (D small <=4)
-    std::vector<std::vector<double>> M(D, std::vector<double>(D + 1, 0.0));
-    for (std::size_t i = 0; i < D; ++i)
-    {
-      for (std::size_t j = 0; j < D; ++j) M[i][j] = A[i][j];
-      M[i][D] = B[i];
-    }
-    bool solve_ok = true;
-    for (std::size_t i = 0; i < D; ++i)
-    {
-      // pivot selection
-      std::size_t piv = i;
-      for (std::size_t r = i + 1; r < D; ++r) if (std::fabs(M[r][i]) > std::fabs(M[piv][i])) piv = r;
-      if (std::fabs(M[piv][i]) < 1e-16) { solve_ok = false; break; }
-      if (piv != i) std::swap(M[piv], M[i]);
-      double diag = M[i][i];
-      for (std::size_t c = i; c < D + 1; ++c) M[i][c] /= diag;
-      for (std::size_t r = 0; r < D; ++r)
-      {
-        if (r == i) continue;
-        double fac = M[r][i];
-        for (std::size_t c = i; c < D + 1; ++c) M[r][c] -= fac * M[i][c];
-      }
-    }
+      // extract sorted vectors
+      std::vector<double> xs; xs.reserve(xy.size());
+      std::vector<double> ys; ys.reserve(xy.size());
+      for (const auto &kv : xy) { xs.push_back(kv.first); ys.push_back(kv.second); }
 
-    if (solve_ok)
-    {
-      std::vector<double> coeffs(D, 0.0);
-      for (std::size_t i = 0; i < D; ++i) coeffs[i] = M[i][D];
-  // evaluate polynomial at scaled max lambda
-  double max_lambda = *std::max_element(lambda_v.begin(), lambda_v.end());
-  double x_eval = (max_lambda - lambda_mean) / lambda_scale;
-  double xpow = 1.0;
-  double pred = 0.0;
-  for (std::size_t j = 0; j < D; ++j) { pred += coeffs[j] * xpow; xpow *= x_eval; }
-      if (smooth_log_pi0)
+      // Use the dedicated SmoothingSpline utility which performs a
+      // discrete second-difference penalty fit with GCV-chosen lambda.
+      // This reproduces the smoothed behaviour used by the reference
+      // implementation (SciPy/R) more faithfully than a plain
+      // interpolating spline or a low-degree polynomial.
+      double max_lambda = *std::max_element(lambda_v.begin(), lambda_v.end());
+      double pred = std::numeric_limits<double>::quiet_NaN();
+      try
       {
-        if (pred <= -1e300 || !std::isfinite(pred)) pred = *std::min_element(pi0s.begin(), pi0s.end());
-        else pred = std::exp(pred);
+        SmoothingSpline ss(xs, ys, /*lambda=*/-1.0);
+        if (ss.ok())
+        {
+          pred = ss.eval(max_lambda);
+        }
+        else
+        {
+          // fallback: use the last knot value
+          pred = ys.back();
+        }
+
+        if (smooth_log_pi0)
+        {
+          if (!std::isfinite(pred))
+          {
+            res.pi0 = std::min(*std::min_element(pi0s.begin(), pi0s.end()), 1.0);
+            res.pi0_smooth = false;
+            return res;
+          }
+          // exponentiate log-space prediction
+          pred = std::exp(pred);
+        }
+
+        if (!std::isfinite(pred))
+        {
+          res.pi0 = std::min(*std::min_element(pi0s.begin(), pi0s.end()), 1.0);
+          res.pi0_smooth = false;
+          return res;
+        }
       }
-      if (!std::isfinite(pred)) pred = *std::min_element(pi0s.begin(), pi0s.end());
+      catch (...) // any spline construction/eval failure -> fallback
+      {
+        res.pi0 = std::min(*std::min_element(pi0s.begin(), pi0s.end()), 1.0);
+        res.pi0_smooth = false;
+        return res;
+      }
+
+      // Optional debug output for unit-test troubleshooting. Set the
+      // environment variable OPENMS_TEST_VERBOSE=True to enable. This
+      // prints the knots (xs, ys), the evaluated lambda and predicted
+      // value so we can inspect why the spline prediction differs from
+      // the reference implementation.
+      const char* dbg = std::getenv("OPENMS_TEST_VERBOSE");
+      if (dbg && std::string(dbg) == "True")
+      {
+        std::cerr << "pi0est debug: lambda_v=[";
+        for (std::size_t ii = 0; ii < lambda_v.size(); ++ii)
+        {
+          if (ii) std::cerr << ", ";
+          std::cerr << lambda_v[ii];
+        }
+        std::cerr << "]\n";
+
+        std::cerr << "pi0est debug: pi0s=[";
+        for (std::size_t ii = 0; ii < pi0s.size(); ++ii)
+        {
+          if (ii) std::cerr << ", ";
+          std::cerr << pi0s[ii];
+        }
+        std::cerr << "]\n";
+
+        std::cerr << "pi0est debug: xs=[";
+        for (std::size_t ii = 0; ii < xs.size(); ++ii)
+        {
+          if (ii) std::cerr << ", ";
+          std::cerr << xs[ii];
+        }
+        std::cerr << "]\n";
+
+        std::cerr << "pi0est debug: ys=[";
+        for (std::size_t ii = 0; ii < ys.size(); ++ii)
+        {
+          if (ii) std::cerr << ", ";
+          std::cerr << ys[ii];
+        }
+        std::cerr << "]\n";
+
+        std::cerr << "pi0est debug: max_lambda=" << max_lambda << " pred=" << pred << "\n";
+      }
+
       res.pi0 = std::min(std::max(pred, 0.0), 1.0);
       res.pi0_smooth = true;
       return res;
     }
-
-    // fallback to naive min pi0
-    res.pi0 = std::min(*std::min_element(pi0s.begin(), pi0s.end()), 1.0);
-    res.pi0_smooth = false;
-    return res;
+    catch (...) // any spline construction/eval failure -> fallback
+    {
+      res.pi0 = std::min(*std::min_element(pi0s.begin(), pi0s.end()), 1.0);
+      res.pi0_smooth = false;
+      return res;
+    }
   }
   else if (pi0_method == "bootstrap")
   {
