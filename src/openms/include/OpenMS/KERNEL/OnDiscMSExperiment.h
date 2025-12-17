@@ -15,6 +15,7 @@
 #include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/METADATA/ExperimentalSettings.h>
 #include <OpenMS/FORMAT/HANDLERS/IndexedMzMLHandler.h>
+#include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
 
 #include <vector>
 #include <limits>
@@ -67,7 +68,8 @@ public:
     OnDiscMSExperiment(const OnDiscMSExperiment& source) :
       filename_(source.filename_),
       indexed_mzml_file_(source.indexed_mzml_file_),
-      meta_ms_experiment_(source.meta_ms_experiment_)
+      meta_ms_experiment_(source.meta_ms_experiment_),
+      options_(source.options_)
     {
     }
 
@@ -155,19 +157,14 @@ public:
     /**
       @brief returns a single spectrum
 
+      If PeakFileOptions has m/z or intensity range set, the spectrum will be filtered accordingly.
+
       @param[in] id The index of the spectrum
     */
-    MSSpectrum getSpectrum(Size id)
-    {
-      if (!meta_ms_experiment_) return indexed_mzml_file_.getMSSpectrumById(int(id));
-
-      MSSpectrum spectrum(meta_ms_experiment_->operator[](id));
-      indexed_mzml_file_.getMSSpectrumById(int(id), spectrum);
-      return spectrum;
-    }
+    MSSpectrum getSpectrum(Size id);
 
     /**
-      @brief returns a single spectrum
+      @brief returns a single spectrum (without applying PeakFileOptions filters)
     */
     OpenMS::Interfaces::SpectrumPtr getSpectrumById(Size id)
     {
@@ -177,16 +174,11 @@ public:
     /**
       @brief returns a single chromatogram
 
+      If PeakFileOptions has RT or intensity range set, the chromatogram will be filtered accordingly.
+
       @param[in] id The index of the chromatogram
     */
-    MSChromatogram getChromatogram(Size id)
-    {
-      if (!meta_ms_experiment_) return indexed_mzml_file_.getMSChromatogramById(int(id));
-
-      MSChromatogram chromatogram(meta_ms_experiment_->getChromatogram(id));
-      indexed_mzml_file_.getMSChromatogramById(int(id), chromatogram);
-      return chromatogram;
-    }
+    MSChromatogram getChromatogram(Size id);
 
     /**
       @brief returns a single chromatogram
@@ -209,6 +201,15 @@ public:
 
     /// sets whether to skip some XML checks and be fast instead
     void setSkipXMLChecks(bool skip);
+
+    /// @brief Mutable access to the options for loading/storing
+    PeakFileOptions& getOptions();
+
+    /// @brief Non-mutable access to the options for loading/storing
+    const PeakFileOptions& getOptions() const;
+
+    /// @brief set options for loading/storing
+    void setOptions(const PeakFileOptions& options);
 
 private:
 
@@ -233,6 +234,8 @@ protected:
     std::unordered_map< std::string, Size > chromatograms_native_ids_;
     /// Mapping of spectra native ids to offsets
     std::unordered_map< std::string, Size > spectra_native_ids_;
+    /// Options for loading / storing
+    PeakFileOptions options_;
   };
 
 typedef OpenMS::OnDiscMSExperiment OnDiscPeakMap;

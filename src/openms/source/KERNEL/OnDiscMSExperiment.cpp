@@ -28,6 +28,21 @@ namespace OpenMS
     indexed_mzml_file_.setSkipXMLChecks(skip);
   }
 
+  PeakFileOptions& OnDiscMSExperiment::getOptions()
+  {
+    return options_;
+  }
+
+  const PeakFileOptions& OnDiscMSExperiment::getOptions() const
+  {
+    return options_;
+  }
+
+  void OnDiscMSExperiment::setOptions(const PeakFileOptions& options)
+  {
+    options_ = options;
+  }
+
   OpenMS::Interfaces::ChromatogramPtr OnDiscMSExperiment::getChromatogramById(Size id)
   {
     return indexed_mzml_file_.getChromatogramById(id);
@@ -38,7 +53,9 @@ namespace OpenMS
     meta_ms_experiment_ = std::shared_ptr< PeakMap >(new PeakMap);
 
     FileHandler f;
-    PeakFileOptions options = f.getOptions();
+    // Start with user-provided options (for RT range, MS levels, etc.)
+    PeakFileOptions options = options_;
+    // Always disable filling data for metadata loading (we load data on-demand)
     options.setFillData(false);
     f.setOptions(options);
     f.loadExperiment(filename, *meta_ms_experiment_.get(), {FileTypes::MZML});
@@ -106,6 +123,76 @@ namespace OpenMS
     MSSpectrum spec = getMetaSpectrumById_(id);
     indexed_mzml_file_.getMSSpectrumByNativeId(id, spec);
     return spec;
+  }
+
+  MSSpectrum OnDiscMSExperiment::getSpectrum(Size id)
+  {
+    MSSpectrum spectrum;
+    if (!meta_ms_experiment_)
+    {
+      spectrum = indexed_mzml_file_.getMSSpectrumById(int(id));
+    }
+    else
+    {
+      spectrum = meta_ms_experiment_->operator[](id);
+      indexed_mzml_file_.getMSSpectrumById(int(id), spectrum);
+    }
+
+    // Apply m/z and intensity range filters if set
+    if (options_.hasMZRange() || options_.hasIntensityRange())
+    {
+      MSSpectrum filtered;
+      filtered.SpectrumSettings::operator=(spectrum);
+      filtered.reserve(spectrum.size());
+
+      for (const auto& peak : spectrum)
+      {
+        bool pass_mz = !options_.hasMZRange() || options_.getMZRange().encloses(DPosition<1>(peak.getMZ()));
+        bool pass_int = !options_.hasIntensityRange() || options_.getIntensityRange().encloses(DPosition<1>(peak.getIntensity()));
+        if (pass_mz && pass_int)
+        {
+          filtered.push_back(peak);
+        }
+      }
+      return filtered;
+    }
+
+    return spectrum;
+  }
+
+  MSChromatogram OnDiscMSExperiment::getChromatogram(Size id)
+  {
+    MSChromatogram chromatogram;
+    if (!meta_ms_experiment_)
+    {
+      chromatogram = indexed_mzml_file_.getMSChromatogramById(int(id));
+    }
+    else
+    {
+      chromatogram = meta_ms_experiment_->getChromatogram(id);
+      indexed_mzml_file_.getMSChromatogramById(int(id), chromatogram);
+    }
+
+    // Apply RT and intensity range filters if set (RT range for chromatograms filters on RT dimension)
+    if (options_.hasRTRange() || options_.hasIntensityRange())
+    {
+      MSChromatogram filtered;
+      filtered.ChromatogramSettings::operator=(chromatogram);
+      filtered.reserve(chromatogram.size());
+
+      for (const auto& peak : chromatogram)
+      {
+        bool pass_rt = !options_.hasRTRange() || options_.getRTRange().encloses(DPosition<1>(peak.getRT()));
+        bool pass_int = !options_.hasIntensityRange() || options_.getIntensityRange().encloses(DPosition<1>(peak.getIntensity()));
+        if (pass_rt && pass_int)
+        {
+          filtered.push_back(peak);
+        }
+      }
+      return filtered;
+    }
+
+    return chromatogram;
   }
 
 } //namespace OpenMS

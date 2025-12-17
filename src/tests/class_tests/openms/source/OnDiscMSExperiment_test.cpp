@@ -11,6 +11,7 @@
 
 ///////////////////////////
 #include <OpenMS/KERNEL/OnDiscMSExperiment.h>
+#include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
 ///////////////////////////
 
 START_TEST(OnDiscMSExperiment, "$Id$");
@@ -305,6 +306,113 @@ START_SECTION(MSMSSpectrum getSpectrumByNativeId(const std::string& id))
   TEST_EQUAL(s.empty(), false);
   TEST_EQUAL(s.size(), 19914);
   TEST_EXCEPTION(Exception::IllegalArgument, tmp2.getSpectrumByNativeId("TIK"))
+}
+END_SECTION
+
+START_SECTION((PeakFileOptions& getOptions()))
+{
+  OnDiscPeakMap tmp;
+  PeakFileOptions& options = tmp.getOptions();
+  TEST_EQUAL(options.hasMZRange(), false);
+  TEST_EQUAL(options.hasRTRange(), false);
+  TEST_EQUAL(options.hasIntensityRange(), false);
+
+  // Test that modifications persist
+  options.setMZRange(DRange<1>(400.0, 600.0));
+  TEST_EQUAL(tmp.getOptions().hasMZRange(), true);
+  TEST_REAL_SIMILAR(tmp.getOptions().getMZRange().minPosition()[0], 400.0);
+  TEST_REAL_SIMILAR(tmp.getOptions().getMZRange().maxPosition()[0], 600.0);
+}
+END_SECTION
+
+START_SECTION((const PeakFileOptions& getOptions() const))
+{
+  OnDiscPeakMap tmp;
+  tmp.getOptions().setMZRange(DRange<1>(400.0, 600.0));
+
+  const OnDiscPeakMap& const_tmp = tmp;
+  const PeakFileOptions& options = const_tmp.getOptions();
+  TEST_EQUAL(options.hasMZRange(), true);
+  TEST_REAL_SIMILAR(options.getMZRange().minPosition()[0], 400.0);
+}
+END_SECTION
+
+START_SECTION((void setOptions(const PeakFileOptions& options)))
+{
+  OnDiscPeakMap tmp;
+  PeakFileOptions options;
+  options.setMZRange(DRange<1>(400.0, 600.0));
+  options.setIntensityRange(DRange<1>(100.0, 1000.0));
+
+  tmp.setOptions(options);
+  TEST_EQUAL(tmp.getOptions().hasMZRange(), true);
+  TEST_EQUAL(tmp.getOptions().hasIntensityRange(), true);
+  TEST_REAL_SIMILAR(tmp.getOptions().getMZRange().minPosition()[0], 400.0);
+  TEST_REAL_SIMILAR(tmp.getOptions().getIntensityRange().minPosition()[0], 100.0);
+}
+END_SECTION
+
+START_SECTION(([EXTRA] Test m/z range filtering on getSpectrum))
+{
+  OnDiscPeakMap tmp;
+  tmp.openFile(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
+
+  // Get unfiltered spectrum first
+  MSSpectrum s_unfiltered = tmp.getSpectrum(0);
+  TEST_EQUAL(s_unfiltered.size(), 19914);
+
+  // Now set m/z range filter and verify filtering works
+  tmp.getOptions().setMZRange(DRange<1>(400.0, 600.0));
+  MSSpectrum s_filtered = tmp.getSpectrum(0);
+
+  // Filtered spectrum should be smaller
+  TEST_EQUAL(s_filtered.size() < s_unfiltered.size(), true);
+  TEST_EQUAL(s_filtered.size() > 0, true);
+
+  // All peaks should be within range
+  for (const auto& peak : s_filtered)
+  {
+    TEST_EQUAL(peak.getMZ() >= 400.0, true);
+    TEST_EQUAL(peak.getMZ() <= 600.0, true);
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] Test intensity range filtering on getSpectrum))
+{
+  OnDiscPeakMap tmp;
+  tmp.openFile(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
+
+  // Get unfiltered spectrum first
+  MSSpectrum s_unfiltered = tmp.getSpectrum(0);
+  Size unfiltered_size = s_unfiltered.size();
+
+  // Set intensity range filter
+  tmp.getOptions().setIntensityRange(DRange<1>(1000.0, 1000000.0));
+  MSSpectrum s_filtered = tmp.getSpectrum(0);
+
+  // Filtered spectrum should be smaller (fewer peaks above 1000 intensity)
+  TEST_EQUAL(s_filtered.size() < unfiltered_size, true);
+
+  // All peaks should be within intensity range
+  for (const auto& peak : s_filtered)
+  {
+    TEST_EQUAL(peak.getIntensity() >= 1000.0, true);
+    TEST_EQUAL(peak.getIntensity() <= 1000000.0, true);
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] Test copy constructor copies options))
+{
+  OnDiscPeakMap tmp;
+  tmp.getOptions().setMZRange(DRange<1>(400.0, 600.0));
+  tmp.openFile(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
+
+  OnDiscPeakMap tmp2(tmp);
+  TEST_EQUAL(tmp2.getOptions().hasMZRange(), true);
+  TEST_REAL_SIMILAR(tmp2.getOptions().getMZRange().minPosition()[0], 400.0);
+  TEST_REAL_SIMILAR(tmp2.getOptions().getMZRange().maxPosition()[0], 600.0);
 }
 END_SECTION
 
