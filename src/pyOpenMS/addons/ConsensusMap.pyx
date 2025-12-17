@@ -40,6 +40,57 @@ from UniqueIdInterface cimport setUniqueId as _setUniqueId
         
         return f"ConsensusMap({', '.join(parts)})"
 
+    def __len__(self):
+        """
+        __len__(self: ConsensusMap) -> int
+
+        Return the number of consensus features in the map.
+
+        Enables use of Python's built-in len() function.
+
+        Returns:
+            int: The number of consensus features in this map.
+        """
+        return self.inst.get().size()
+
+    def append(self, ConsensusFeature item):
+        """
+        append(self: ConsensusMap, item: ConsensusFeature) -> None
+
+        Add a single consensus feature to the end of the map.
+
+        This method provides a Pythonic interface equivalent to push_back().
+
+        Args:
+            item: A single ConsensusFeature object to append.
+        """
+        self.inst.get().push_back(deref(item.inst.get()))
+
+    def extend(self, items):
+        """
+        extend(self: ConsensusMap, items: Iterable[ConsensusFeature]) -> None
+
+        Add multiple consensus features to the end of the map.
+
+        Args:
+            items: Can be:
+                - A list/iterable of ConsensusFeature objects
+                - Another ConsensusMap object
+
+        Raises:
+            TypeError: If items is not iterable or another ConsensusMap.
+        """
+        if hasattr(items, '__iter__') and not hasattr(items, 'inst'):
+            # Handle regular iterables (list, tuple, etc.)
+            for consensus_feature in items:
+                self.inst.get().push_back(deref((<ConsensusFeature>consensus_feature).inst.get()))
+        elif hasattr(items, 'inst') and hasattr(items, '__len__'):
+            # Handle another ConsensusMap
+            for consensus_feature in items:
+                self.inst.get().push_back(deref((<ConsensusFeature>consensus_feature).inst.get()))
+        else:
+            raise TypeError("extend() argument must be iterable or another ConsensusMap")
+
     def getColumnHeaders(self):
         """
         getColumnHeaders(self: ConsensusMap) -> Dict[int, ColumnHeader]

@@ -29,3 +29,54 @@ from UniqueIdInterface cimport setUniqueId as _setUniqueId
             parts.append(f"unassigned_peptide_ids={len(unassigned_peptide_ids)}")
         
         return f"FeatureMap({', '.join(parts)})"
+
+    def __len__(self):
+        """
+        __len__(self: FeatureMap) -> int
+
+        Return the number of features in the map.
+
+        Enables use of Python's built-in len() function.
+
+        Returns:
+            int: The number of features in this map.
+        """
+        return self.inst.get().size()
+
+    def append(self, Feature item):
+        """
+        append(self: FeatureMap, item: Feature) -> None
+
+        Add a single feature to the end of the map.
+
+        This method provides a Pythonic interface equivalent to push_back().
+
+        Args:
+            item: A single Feature object to append.
+        """
+        self.inst.get().push_back(deref(item.inst.get()))
+
+    def extend(self, items):
+        """
+        extend(self: FeatureMap, items: Iterable[Feature]) -> None
+
+        Add multiple features to the end of the map.
+
+        Args:
+            items: Can be:
+                - A list/iterable of Feature objects
+                - Another FeatureMap object
+
+        Raises:
+            TypeError: If items is not iterable or another FeatureMap.
+        """
+        if hasattr(items, '__iter__') and not hasattr(items, 'inst'):
+            # Handle regular iterables (list, tuple, etc.)
+            for feature in items:
+                self.inst.get().push_back(deref((<Feature>feature).inst.get()))
+        elif hasattr(items, 'inst') and hasattr(items, '__len__'):
+            # Handle another FeatureMap
+            for feature in items:
+                self.inst.get().push_back(deref((<Feature>feature).inst.get()))
+        else:
+            raise TypeError("extend() argument must be iterable or another FeatureMap")
