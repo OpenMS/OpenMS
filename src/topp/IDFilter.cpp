@@ -807,7 +807,7 @@ protected:
     {
       OPENMS_LOG_INFO << "Removing peptide hits without protein references..." << endl;
     }
-    IDFilter::updateProteinReferences(peptides, proteins, rm_pep);
+    IDFilter::removeDanglingProteinReferences(peptides, proteins, rm_pep);
 
     IDFilter::removeEmptyIdentifications(peptides);
     // we want to keep "empty" protein IDs because they contain search meta data

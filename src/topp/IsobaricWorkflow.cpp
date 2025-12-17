@@ -769,7 +769,7 @@ protected:
       OPENMS_LOG_INFO << "Removing peptide hits without protein references..." << endl;
     }
 
-    IDFilter::updateProteinReferences(cmap, rm_pep);
+    IDFilter::removeDanglingProteinReferences(cmap, rm_pep);
     IDFilter::removeUnreferencedProteins(cmap, true);
     IDFilter::updateProteinGroups(proteins.getIndistinguishableProteins(), proteins.getHits());
     IDFilter::updateProteinGroups(proteins.getProteinGroups(), proteins.getHits());
@@ -790,7 +790,7 @@ protected:
     if (max_pro_fdr < 1.0)
     {
       IDFilter::filterHitsByScore(proteins, max_pro_fdr);
-      IDFilter::updateProteinReferences(cmap, rm_pep);
+      IDFilter::removeDanglingProteinReferences(cmap, rm_pep);
     }
 
     if (max_psm_fdr < 1.0) 
