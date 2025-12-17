@@ -66,9 +66,9 @@ namespace OpenMS
     /**
       @brief Store peptide and protein identifications in parquet format
 
-      @param filename Output filename (should end with .parquet)
-      @param protein_identifications Vector of protein identifications
-      @param peptide_identifications Vector of peptide identifications
+      @param[out] filename Output filename (should end with .parquet)
+      @param[in] protein_identifications Vector of protein identifications
+      @param[in] peptide_identifications Vector of peptide identifications
 
       @throws Exception::UnableToCreateFile if file cannot be created
     */
@@ -79,10 +79,10 @@ namespace OpenMS
     /**
       @brief Store peptide and protein identifications in parquet format with all PSMs
 
-      @param filename Output filename (should end with .parquet)
-      @param protein_identifications Vector of protein identifications
-      @param peptide_identifications Vector of peptide identifications
-      @param export_all_psms If true, export all PSMs per spectrum with rank column
+      @param[out] filename Output filename (should end with .parquet)
+      @param[in] protein_identifications Vector of protein identifications
+      @param[in] peptide_identifications Vector of peptide identifications
+      @param[in] export_all_psms If true, export all PSMs per spectrum with rank column
 
       @throws Exception::UnableToCreateFile if file cannot be created
     */
@@ -94,11 +94,11 @@ namespace OpenMS
     /**
       @brief Store peptide and protein identifications in parquet format with enhanced options
 
-      @param filename Output filename (should end with .parquet)
-      @param protein_identifications Vector of protein identifications
-      @param peptide_identifications Vector of peptide identifications
-      @param export_all_psms If true, export all PSMs per spectrum with rank column. If false, export only first PSM
-      @param meta_value_keys Set of meta value keys to export as additional columns
+      @param[out] filename Output filename (should end with .parquet)
+      @param[in] protein_identifications Vector of protein identifications
+      @param[in] peptide_identifications Vector of peptide identifications
+      @param[in] export_all_psms If true, export all PSMs per spectrum with rank column. If false, export only first PSM
+      @param[in] meta_value_keys Set of meta value keys to export as additional columns
 
       @throws Exception::UnableToCreateFile if file cannot be created
     */

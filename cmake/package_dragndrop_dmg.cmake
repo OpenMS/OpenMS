@@ -113,14 +113,23 @@ if (DEFINED CMAKE_VERSION AND NOT "${CMAKE_VERSION}" VERSION_LESS "3.5")
   set(CPACK_DMG_BACKGROUND_IMAGE ${PROJECT_SOURCE_DIR}/cmake/MacOSX/background.png)
   set(CPACK_DMG_FORMAT UDBZ) ## Try bzip2 to get slightly smaller images
   
-  ## Sign the image. CPACK_BUNDLE_APPLE_CERT_APP needs to be unique and found in one of the
+  ## Sign the DMG image. CPACK_BUNDLE_APPLE_CERT_APP needs to be unique and found in one of the
   ## keychains in the search list (which needs to be unlocked).
-  if (DEFINED CPACK_BUNDLE_APPLE_CERT_APP)
+  ## Note: The executables/bundles inside should already be signed with hardened runtime and timestamp.
+  ## For notarization, SIGNING_EMAIL must also be set.
+  if (DEFINED CPACK_BUNDLE_APPLE_CERT_APP AND DEFINED SIGNING_EMAIL)
     add_custom_target(signed_dist
-                      COMMAND codesign --deep --force --sign ${CPACK_BUNDLE_APPLE_CERT_APP} ${CPACK_PACKAGE_FILE_NAME}.dmg
-                      COMMAND ${OPENMS_HOST_DIRECTORY}/cmake/MacOSX/notarize_app.sh ${CPACK_PACKAGE_FILE_NAME}.dmg de.openms ${SIGNING_EMAIL} CODESIGNPW ${OPENMS_HOST_BINARY_DIRECTORY}
+                      COMMAND codesign --deep --force --timestamp --sign ${CPACK_BUNDLE_APPLE_CERT_APP} ${CPACK_PACKAGE_FILE_NAME}.dmg
+                      COMMAND ${OPENMS_HOST_DIRECTORY}/cmake/MacOSX/notarize.sh ${CPACK_PACKAGE_FILE_NAME}.dmg de.openms ${SIGNING_EMAIL} APPLE_APP_SPECIFIC_NOTARIZATION_PASSWORD ${OPENMS_HOST_BINARY_DIRECTORY}
                       WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
                       COMMENT "Signing and notarizing ${CPACK_PACKAGE_FILE_NAME}.dmg as ${CPACK_BUNDLE_APPLE_CERT_APP}"
+                      DEPENDS dist)
+  elseif(DEFINED CPACK_BUNDLE_APPLE_CERT_APP)
+    message(STATUS "SIGNING_EMAIL not set. DMG will be signed but not notarized.")
+    add_custom_target(signed_dist
+                      COMMAND codesign --deep --force --timestamp --sign ${CPACK_BUNDLE_APPLE_CERT_APP} ${CPACK_PACKAGE_FILE_NAME}.dmg
+                      WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
+                      COMMENT "Signing ${CPACK_PACKAGE_FILE_NAME}.dmg as ${CPACK_BUNDLE_APPLE_CERT_APP} (not notarized)"
                       DEPENDS dist)
   endif()
   

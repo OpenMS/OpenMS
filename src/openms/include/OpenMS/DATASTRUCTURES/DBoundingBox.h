@@ -127,7 +127,7 @@ public:
     /**
         @brief Checks whether this range contains a certain point.
 
-        @param position The point's position.
+        @param[in] position The point's position.
         @returns true if point lies inside this area.
     */
     bool encloses(const PositionType& position) const

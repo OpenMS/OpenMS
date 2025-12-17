@@ -32,14 +32,14 @@ namespace OpenMS
             The parameter @p max_charge_ should be >= @p min_charge_.
             Also @p max_tag_length should be >= @p min_tag_length.
 
-            @param min_tag_length the minimal sequence tag length.
-            @param tolerance the tolerance for matching residue masses to peak delta masses.
-            @param max_tag_length the maximal sequence tag length.
-            @param min_charge minimal fragment charge considered for each sequence tag.
-            @param max_charge maximal fragment charge considered for each sequence tag.
-            @param fixed_mods a list of modification names. The modified residues replace the unmodified versions.
-            @param var_mods a list of modification names. The modified residues are added as additional entries to the list of residues.
-            @param tol_is_ppm if set to true, the tolerance is interpreted as ppm, otherwise as absolute value. Defaults to true.
+            @param[in] min_tag_length the minimal sequence tag length.
+            @param[in] tolerance the tolerance for matching residue masses to peak delta masses.
+            @param[in] max_tag_length the maximal sequence tag length.
+            @param[in] min_charge minimal fragment charge considered for each sequence tag.
+            @param[in] max_charge maximal fragment charge considered for each sequence tag.
+            @param[in,out] fixed_mods a list of modification names. The modified residues replace the unmodified versions.
+            @param[in,out] var_mods a list of modification names. The modified residues are added as additional entries to the list of residues.
+            @param[in] tol_is_ppm if set to true, the tolerance is interpreted as ppm, otherwise as absolute value. Defaults to true.
           */
       Tagger(size_t min_tag_length, double tolerance, size_t max_tag_length = 65535, size_t min_charge = 1, size_t max_charge = 1, const StringList& fixed_mods = StringList(), const StringList& var_mods = StringList(), bool tol_is_ppm = true);
 
@@ -50,8 +50,8 @@ namespace OpenMS
             It uses the standard residues from ResidueDB including
             the fixed and variable modifications given to the constructor.
 
-            @param mzs a vector of mz values, containing the mz values from a centroided fragment spectrum.
-            @param tags the vector of tags, that is filled with this function.
+            @param[in] mzs a vector of mz values, containing the mz values from a centroided fragment spectrum.
+            @param[out] tags the vector of tags, that is filled with this function.
           */
       void getTag(const std::vector<double>& mzs, std::vector<std::string>& tags) const;
 
@@ -62,8 +62,8 @@ namespace OpenMS
             It uses the standard residues from ResidueDB including
             the fixed and variable modifications given to the constructor.
 
-            @param spec a centroided fragment spectrum.
-            @param tags the vector of tags, that is filled with this function.
+            @param[in] spec a centroided fragment spectrum.
+            @param[out] tags the vector of tags, that is filled with this function.
           */
       void getTag(const MSSpectrum& spec, std::vector<std::string>& tags) const;
 
@@ -73,7 +73,7 @@ namespace OpenMS
             Allows to change the maximal considered charge e.g. based on a spectra
             precursor charge without calling the constructor multiple times.
 
-            @param max_charge the new maximal charge.
+            @param[in] max_charge the new maximal charge.
           */
       void setMaxCharge(size_t max_charge);
 

@@ -45,8 +45,8 @@ public:
     /**
         @brief calculates similarity between two points in euclidean space
 
-        @param a a pair of float, giving the x and the y coordinates of the first point
-        @param b a pair of float, giving the x and the y coordinates of the second point
+        @param[in] a a pair of float, giving the x and the y coordinates of the first point
+        @param[in] b a pair of float, giving the x and the y coordinates of the second point
 
         calculates similarity from the euclidean distance between given 2D points, scaled in [0,1] @see setScale
     */
@@ -55,7 +55,7 @@ public:
     /**
         @brief calculates self similarity, will yield 0
 
-        @param c a pair of float, giving the x and the y coordinates
+        @param[in] c a pair of float, giving the x and the y coordinates
 
     */
     float operator()(const std::pair<float, float> & c) const;
@@ -63,7 +63,7 @@ public:
     /**
         @brief clusters the indices according to their respective element distances
 
-        @param x float value to scale the result
+        @param[in] x float value to scale the result
         @throw Exception::DivisionByZero if scaling is inapplicable because it is 0
 
         sets the scale so that similarities can be correctly calculated from distances. Should be set so that the greatest distance in a chosen set will be scales to 1 (i.e. @p x = greatest possible distance in the set)

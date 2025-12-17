@@ -78,56 +78,56 @@ public:
 
     /**
       @brief Constructor with net-charge, mass, and probability
-      
-      @param net_charge Net charge of the compomer (right side - left side)
-      @param mass Mass difference represented by the compomer
-      @param log_p Log probability of this adduct combination
+
+      @param[in] net_charge Net charge of the compomer (right side - left side)
+      @param[in] mass Mass difference represented by the compomer
+      @param[in] log_p Log probability of this adduct combination
     */
     Compomer(Int net_charge, double mass, double log_p);
 
     /**
       @brief Copy constructor
-      
-      @param p Source compomer to copy from
+
+      @param[in] p Source compomer to copy from
     */
     Compomer(const Compomer& p);
 
     /**
       @brief Assignment Operator
-      
-      @param source Source compomer to assign from
+
+      @param[in] source Source compomer to assign from
       @return Reference to this object
     */
     Compomer& operator=(const Compomer& source);
 
     /**
       @brief Add an adduct to a specific side of the compomer
-      
+
       Adds the specified amount of the adduct to the given side and
       updates the compomer's properties (net charge, mass, etc.).
-      
-      @param a The adduct to add
-      @param side Which side to add the adduct to (0=LEFT, 1=RIGHT)
+
+      @param[in] a The adduct to add
+      @param[in] side Which side to add the adduct to (0=LEFT, 1=RIGHT)
     */
     void add(const Adduct& a, UInt side);
 
     /**
       @brief Determines if two compomers conflict with each other
-      
+
       Checks if these two compomers can coexist for one feature by examining
       if they have conflicting adduct compositions on the specified sides.
-      
-      @param cmp The other Compomer to compare against
-      @param side_this Which side of this compomer to check (0=LEFT, 1=RIGHT)
-      @param side_other Which side of the other compomer to check (0=LEFT, 1=RIGHT)
+
+      @param[in] cmp The other Compomer to compare against
+      @param[in] side_this Which side of this compomer to check (0=LEFT, 1=RIGHT)
+      @param[in] side_other Which side of the other compomer to check (0=LEFT, 1=RIGHT)
       @return True if the compomers conflict (cannot coexist), false otherwise
      */
     bool isConflicting(const Compomer& cmp, UInt side_this, UInt side_other) const;
 
     /**
       @brief Set a unique identifier for this compomer
-      
-      @param id The unique ID to assign
+
+      @param[in] id The unique ID to assign
     */
     void setID(const Size& id);
     
@@ -200,17 +200,17 @@ public:
 
     /**
       @brief Get a string representation of adducts on a specific side
-      
-      @param side Which side to get adducts for (LEFT, RIGHT, or BOTH)
+
+      @param[in] side Which side to get adducts for (LEFT, RIGHT, or BOTH)
       @return String representation of adducts on the specified side
     */
     String getAdductsAsString(UInt side) const;
 
     /**
       @brief Check if the compomer contains only a single adduct on the specified side
-      
-      @param a Output parameter that will contain the adduct if found
-      @param side Which side to check (LEFT or RIGHT)
+
+      @param[out] a Output parameter that will contain the adduct if found
+      @param[in] side Which side to check (LEFT or RIGHT)
       @return True if only a single adduct is present on the specified side
     */
     bool isSingleAdduct(Adduct& a, const UInt side) const;
@@ -242,40 +242,40 @@ public:
 
     /**
       @brief Add a complete set of adducts to a specific side of the compomer
-      
-      @param add_side The set of adducts to add
-      @param side Which side to add the adducts to (LEFT or RIGHT)
+
+      @param[in] add_side The set of adducts to add
+      @param[in] side Which side to add the adducts to (LEFT or RIGHT)
     */
     void add(const CompomerSide& add_side, UInt side);
 
     /**
       @brief Comparison operator for sorting compomers
-      
+
       Sorts compomers by (in order of importance):
       1. Net charge
       2. Mass
       3. Probability
-      
-      @param c1 First compomer to compare
-      @param c2 Second compomer to compare
+
+      @param[in] c1 First compomer to compare
+      @param[in] c2 Second compomer to compare
       @return True if c1 should be ordered before c2
     */
     friend OPENMS_DLLAPI bool operator<(const Compomer& c1, const Compomer& c2);
 
     /**
       @brief Output stream operator for printing compomer contents
-      
-      @param os Output stream to write to
-      @param cmp Compomer to print
+
+      @param[in,out] os Output stream to write to
+      @param[in] cmp Compomer to print
       @return Reference to the output stream
     */
     friend OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const Compomer& cmp);
 
     /**
       @brief Equality comparison operator
-      
-      @param a First compomer to compare
-      @param b Second compomer to compare
+
+      @param[in] a First compomer to compare
+      @param[in] b Second compomer to compare
       @return True if the compomers are equal
     */
     friend OPENMS_DLLAPI bool operator==(const Compomer& a, const  Compomer& b);

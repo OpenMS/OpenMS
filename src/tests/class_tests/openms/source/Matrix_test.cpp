@@ -91,7 +91,7 @@ START_SECTION((Matrix(const Matrix & source)))
   TEST_EQUAL(mi2(1,2),7);
 
   // test iterators and confirm column first order
-  size_t row{}, col{};
+  Eigen::Index row{}, col{};
   for (auto & i : mi2.getEigenMatrix().reshaped())
   {
 	TEST_EQUAL(i, mi.getValue(row, col));

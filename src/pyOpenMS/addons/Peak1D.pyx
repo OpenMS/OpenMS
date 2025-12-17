@@ -3,6 +3,8 @@
 
     def __str__(self):
         """
+        __str__(self: Peak1D) -> str
+        
         Return a string representation of the Peak1D object.
         Delegates to __repr__ for consistency.
         """
@@ -10,6 +12,8 @@
 
     def __repr__(self):
         """
+        __repr__(self: Peak1D) -> str
+        
         Return a string representation of the Peak1D object.
 
         Returns key properties in a readable format:

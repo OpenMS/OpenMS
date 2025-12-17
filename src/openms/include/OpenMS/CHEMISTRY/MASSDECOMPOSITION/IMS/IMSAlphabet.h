@@ -80,7 +80,7 @@ public:
       /**
         Constructor with elements.
 
-        @param elements Elements to be set
+        @param[in] elements Elements to be set
       */
       explicit IMSAlphabet(const container & elements) :
         elements_(elements)
@@ -90,7 +90,7 @@ public:
       /**
         Copy constructor.
 
-        @param alphabet Alphabet to be assigned
+        @param[out] alphabet Alphabet to be assigned
       */
       IMSAlphabet(const IMSAlphabet & alphabet) :
         elements_(alphabet.elements_)
@@ -110,7 +110,7 @@ public:
         Gets the element with index @c index.
         @note Operation takes constant time.
 
-        @param index of the element
+        @param[in] index of the element
         @return Element with the given index in alphabet
       */
       const element_type & getElement(size_type index) const
@@ -124,16 +124,16 @@ public:
         If the parameter @c forced is set to true, a new element will be appended to the alphabet
         in the case the alphabet contains no element with the name @c name.
 
-        @param name The name of the element that should be replaced in (or appended to) the alphabet.
-        @param mass The new mass of the element in the alphabet.
-        @param forced Indicates whether a new element should be created (if set to @c true) if there is no element with the name @c name or not (if set to @c false).
+        @param[in] name The name of the element that should be replaced in (or appended to) the alphabet.
+        @param[in] mass The new mass of the element in the alphabet.
+        @param[in] forced Indicates whether a new element should be created (if set to @c true) if there is no element with the name @c name or not (if set to @c false).
       */
       void setElement(const name_type & name, mass_type mass, bool forced = false);
 
       /**
         Removes the element with name @c name from the alphabet.
 
-        @param name The name of the element to be removed from the alphabet.
+        @param[in] name The name of the element to be removed from the alphabet.
         @return A boolean indicating whether an element was removed (@c true) or not (@c false).
       */
       bool erase(const name_type & name);
@@ -142,7 +142,7 @@ public:
         Gets the element with the symbol @name. If there is
         no such element, throws @c Exception::InvalidValue.
 
-        @param name Name of the element.
+        @param[in] name Name of the element.
         @return Element with the given name, or if there are no such element
         @throws Exception::InvalidValue.
       */
@@ -151,7 +151,7 @@ public:
       /**
         Gets the symbol of the element with an index @c index in alphabet.
 
-        @param index of the element.
+        @param[in] index of the element.
         @return Name of the element.
       */
       const name_type & getName(size_type index) const;
@@ -160,7 +160,7 @@ public:
         Gets mono isotopic mass of the element with the symbol @c name.
         If there is no such element, throws an @c Exception::InvalidValue.
 
-        @param name Symbol of the element.
+        @param[in] name Symbol of the element.
         @return Mass of the element, or if there are no element
         @throws Exception::InvalidValue.
         @see getMass(size_type index)
@@ -170,7 +170,7 @@ public:
       /**
         Gets mass of the element with an index @c index in alphabet.
 
-        @param index Index of the element.
+        @param[in] index Index of the element.
         @return Mass of the element.
         @see getMass(const std::string& name)
       */
@@ -179,7 +179,7 @@ public:
       /**
         Gets masses of elements isotopes given by @c isotope_index.
 
-        @param isotope_index Index of isotope
+        @param[in] isotope_index Index of isotope
         @return Masses of elements isotopes with the given index.
       */
       masses_type getMasses(size_type isotope_index = 0) const;
@@ -204,8 +204,8 @@ public:
         Adds a new element with name @c name and mass @c value
         to the alphabet.
 
-        @param name Name of the element to be added.
-        @param value Mass of the element to be added.
+        @param[in] name Name of the element to be added.
+        @param[in] value Mass of the element to be added.
 
         @see push_back(const element_type&)
       */
@@ -217,7 +217,7 @@ public:
       /**
         Adds a new element @c element to the alphabet.
 
-        @param element The @c Element to be added.
+        @param[in] element The @c Element to be added.
       */
       void push_back(const element_type & element)
       {
@@ -252,7 +252,7 @@ public:
         Loads the alphabet data from the file @c fname using the default
         parser. If there is no file @c fname, throws an @c IOException.
 
-        @param fname The file name to be loaded.
+        @param[in] fname The file name to be loaded.
         @throws Exception::IOException
 
         @see load(const std::string& fname, AlphabetParser<>* parser)
@@ -264,8 +264,8 @@ public:
         Loads the alphabet data from the file @c fname using @c parser.
         If there is no file @c fname found, throws an @c IOException.
 
-        @param fname File name to be loaded.
-        @param parser Parser to be used by loading.
+        @param[in] fname File name to be loaded.
+        @param[in] parser Parser to be used by loading.
         @throws Exception::IOException
 
         @see load(const std::string& fname)
@@ -304,8 +304,8 @@ public:
     /**
       Prints alphabet to the stream @c os.
 
-      @param os Output stream to which alphabet is written
-      @param alphabet Alphabet to be written.
+      @param[out] os Output stream to which alphabet is written
+      @param[in] alphabet Alphabet to be written.
     */
     OPENMS_DLLAPI std::ostream & operator<<(std::ostream & os, const IMSAlphabet & alphabet);
 

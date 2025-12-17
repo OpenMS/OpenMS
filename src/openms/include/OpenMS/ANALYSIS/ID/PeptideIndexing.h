@@ -159,9 +159,9 @@ public:
     Runtime: PeptideIndexer is usually very fast (loading and storing the data takes the most time) and search speed can be further improved (linearly), but using more threads. 
     Avoid allowing too many (>=4) ambiguous amino acids if your database contains long stretches of 'X' (exponential search space).
 
-    @param proteins A list of proteins -- either read piecewise from a FASTA file or as existing vector of FASTAEntries.
-    @param prot_ids Resulting protein identifications associated to pep_ids (will be re-written completely)
-    @param pep_ids Peptide identifications which should be search within @p proteins and then linked to @p prot_ids
+    @param[in] proteins A list of proteins -- either read piecewise from a FASTA file or as existing vector of FASTAEntries.
+    @param[out] prot_ids Resulting protein identifications associated to pep_ids (will be re-written completely)
+    @param[in] pep_ids Peptide identifications which should be search within @p proteins and then linked to @p prot_ids
     @return Exit status codes.
 
     */

@@ -886,7 +886,7 @@ namespace OpenMS
     /**
        @brief Set the area using unit data (RT, m/z, ...)
 
-       @param data Area in units
+       @param[in] data Area in units
     */
     const Area& setArea(const RangeAllType& data)
     {
@@ -899,7 +899,7 @@ namespace OpenMS
     /**
        @brief Set the area using axis data (X and Y)
 
-       @param data Area as displayed on the axis
+       @param[in] data Area as displayed on the axis
     */
     const Area& setArea(const AreaXYType& data)
     {
@@ -922,7 +922,7 @@ namespace OpenMS
     /**
       @brief Clone the current object, set the area of the clone using axis data (X and Y) and return the clone.
 
-      @param data New area as displayed on the axis
+      @param[in] data New area as displayed on the axis
     */
     Area cloneWith(const AreaXYType& data) const
     {
@@ -934,7 +934,7 @@ namespace OpenMS
     /**
       @brief Clone the current object, set the area of the clone using unit data (RT, m/z, ...) and return the clone.
 
-      @param data New area in units
+      @param[in] data New area in units
     */
     Area cloneWith(const RangeAllType& data) const
     {

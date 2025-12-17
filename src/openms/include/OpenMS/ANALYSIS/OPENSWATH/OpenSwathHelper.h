@@ -219,8 +219,8 @@ public:
       features altogether.
 
       @param[in] transition_group_map Input data containing the picked and scored map
-      @param useQualCutoff Whether to apply a quality cutoff to the data
-      @param qualCutoff What quality cutoff should be applied (all data above the cutoff will be kept)
+      @param[in] useQualCutoff Whether to apply a quality cutoff to the data
+      @param[in] qualCutoff What quality cutoff should be applied (all data above the cutoff will be kept)
 
       @return Result of the best scoring peaks (stored as map of peptide id and RT)
 

@@ -1241,13 +1241,13 @@ protected:
     bool bayesian = getStringOption_("protein_inference") == "bayesian";
     bool greedy_group_resolution = getStringOption_("protein_quantification") == "shared_peptides";
 
+    // Study-wide inference operates on a single merged ID run.
+    ConsensusMapMergerAlgorithm cmerge;
+    // The following will result in a SINGLE protein run for the whole consensusMap.
+    cmerge.mergeAllIDRuns(consensus);
+
     if (!bayesian) // simple aggregation
     {
-      ConsensusMapMergerAlgorithm cmerge;
-      // The following will result in a SINGLE protein run for the whole consensusMap,
-      // but I think the information about which protein was in which run, is not important
-      cmerge.mergeAllIDRuns(consensus);
-
       BasicProteinInferenceAlgorithm bpia;
       auto bpiaparams = bpia.getParameters();
       bpiaparams.setValue("annotate_indistinguishable_groups", groups ? "true" : "false");
@@ -1265,6 +1265,7 @@ protected:
       // In theory, if none is needed we can save memory. For quantification,
       // we basically discard peptide+PSM information from inference and use the info from the cMaps.
       bayesparams.setValue("keep_best_PSM_only", "false");
+      bayes.setParameters(bayesparams);
       //bayesian inference automatically annotates groups, therefore remove them later
       bayes.inferPosteriorProbabilities(consensus, greedy_group_resolution);
       if (!groups)
@@ -1323,7 +1324,7 @@ protected:
 
     if (!getFlag_("PeptideQuantification:quantify_decoys"))
     { // FDR filtering removed all decoy proteins -> update references and remove all unreferenced (decoy) PSMs
-      IDFilter::updateProteinReferences(consensus, true);
+      IDFilter::removeDanglingProteinReferences(consensus, true);
       IDFilter::removeUnreferencedProteins(consensus, true); // if we don't filter peptides for now, we don't need this
       IDFilter::updateProteinGroups(overall_proteins.getIndistinguishableProteins(),
                                     overall_proteins.getHits());
@@ -1348,7 +1349,7 @@ protected:
 
     if (max_fdr < 1. || !getFlag_("PeptideQuantification:quantify_decoys"))
     {
-      IDFilter::updateProteinReferences(consensus, true);
+      IDFilter::removeDanglingProteinReferences(consensus, true);
     }
 
     if (max_psm_fdr < 1.)
