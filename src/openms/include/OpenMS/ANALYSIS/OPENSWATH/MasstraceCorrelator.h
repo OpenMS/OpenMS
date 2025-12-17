@@ -66,14 +66,14 @@ namespace OpenMS
      *
      * @note The pairs need to be sorted by the first entry (RT)
      *
-     * @param hull_points1 The first input masstrace
-     * @param hull_points2 The second input masstrace
-     * @param lag The computed lag (output coelution score) 
-     * @param lag_intensity The computed intensity at the lag (output shape score) 
-     * @param pearson_score The computed pearson score (output)
-     * @param min_corr Minimal correlation needed to proceed computing the cross-correlations
-     * @param max_lag Currently unused
-     * @param mindiff Minimal differences for matching up the two mass traces
+     * @param[in] hull_points1 The first input masstrace
+     * @param[in] hull_points2 The second input masstrace
+     * @param[out] lag The computed lag (output coelution score) 
+     * @param[out] lag_intensity The computed intensity at the lag (output shape score) 
+     * @param[out] pearson_score The computed pearson score (output)
+     * @param[in] min_corr Minimal correlation needed to proceed computing the cross-correlations
+     * @param[in] max_lag Currently unused
+     * @param[in] mindiff Minimal differences for matching up the two mass traces
      *
     */
     void scoreHullpoints(const MasstracePointsType& hull_points1,
@@ -93,10 +93,10 @@ namespace OpenMS
      *  - a vector of maximal intensities (max_rt, max_int)
      *  - a vector of retention times of the feature
      *
-     * @param map The input consensus map
-     * @param feature_points The list of all mass traces
-     * @param max_intensities The list of maximal intensities 
-     * @param rt_cache The list of retention times of all features
+     * @param[in] map The input consensus map
+     * @param[in] feature_points The list of all mass traces
+     * @param[in] max_intensities The list of maximal intensities 
+     * @param[in] rt_cache The list of retention times of all features
     */
     void createConsensusMapCache(const ConsensusMap& map,
                                  std::vector<MasstracePointsType>& feature_points,
@@ -118,12 +118,12 @@ namespace OpenMS
      * This is useful for matching mass traces that are not of the exact same
      * length and/or have missing values.
      *
-     * @param hull_points1 The first input mass trace
-     * @param hull_points2 The second input mass trace
-     * @param vec1 The intensities of the first mass trace with matched-up points
-     * @param vec2 The intensities of the second mass trace with matched-up points
-     * @param mindiff The minimal difference in RT for points to match up 
-     * @param padEnds Whether to pad ends with zeros
+     * @param[in] hull_points1 The first input mass trace
+     * @param[in] hull_points2 The second input mass trace
+     * @param[in] vec1 The intensities of the first mass trace with matched-up points
+     * @param[in] vec2 The intensities of the second mass trace with matched-up points
+     * @param[in] mindiff The minimal difference in RT for points to match up 
+     * @param[in] padEnds Whether to pad ends with zeros
      *
     */
     void matchMassTraces_(const MasstracePointsType& hull_points1,

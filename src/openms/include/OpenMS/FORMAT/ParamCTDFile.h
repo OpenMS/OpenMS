@@ -42,9 +42,9 @@ namespace OpenMS
     /**
        @brief Write CTD file
 
-       @param filename The name of the file the param data structure should be stored in.
-       @param param The param data structure that should be stored.
-       @param tool_info Additional information about the Tool for which the param data should be stored.
+       @param[out] filename The name of the file the param data structure should be stored in.
+       @param[in] param The param data structure that should be stored.
+       @param[out] tool_info Additional information about the Tool for which the param data should be stored.
 
        @exception std::ios::failure is thrown if the file could not be created
      */
@@ -53,9 +53,9 @@ namespace OpenMS
     /**
        @brief Write CTD to output stream.
 
-       @param os_ptr The stream to which the param data should be written.
-       @param param The param data structure that should be writte to stream.
-       @param tool_info Additional information about the Tool for which the param data should be written.
+       @param[out] os_ptr The stream to which the param data should be written.
+       @param[out] param The param data structure that should be writte to stream.
+       @param[out] tool_info Additional information about the Tool for which the param data should be written.
      */
     void writeCTDToStream(std::ostream* os_ptr, const Param& param, const ToolInfo& tool_info) const;
 
@@ -64,7 +64,7 @@ namespace OpenMS
       @brief Escapes certain characters in a string that are not allowed in XML
              Escaped characters are: & < > " '
 
-      @param to_escape The string in which the characters should be escaped
+      @param[in] to_escape The string in which the characters should be escaped
 
       @returns The escaped string
      */
@@ -73,9 +73,9 @@ namespace OpenMS
     /**
       @brief Replace all occurrences of a character in a string with a string
 
-      @param replace_in The string in which the characters should be replaced.
-      @param to_replace The character that should be replaced.
-      @param replace_with The string the character should be replaced with.
+      @param[in] replace_in The string in which the characters should be replaced.
+      @param[in] to_replace The character that should be replaced.
+      @param[in] replace_with The string the character should be replaced with.
      */
     static void replace(std::string& replace_in, char to_replace, const std::string& replace_with);
 

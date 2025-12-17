@@ -57,71 +57,71 @@ namespace OpenMS
 
     /**
       @brief compute the logOccupancyProb score, similar to the match_odds, a score based on the probability of getting the given number of matched peaks by chance
-      @param theoretical_spec theoretical spectrum, sorted by position
-      @param matched_size number of matched peaks between experimental and theoretical spectra
-      @param fragment_mass_tolerance the tolerance of the alignment
-      @param fragment_mass_tolerance_unit_ppm the tolerance unit of the alignment, true = ppm, false = Da
+      @param[in] theoretical_spec theoretical spectrum, sorted by position
+      @param[in] matched_size number of matched peaks between experimental and theoretical spectra
+      @param[in] fragment_mass_tolerance the tolerance of the alignment
+      @param[in] fragment_mass_tolerance_unit_ppm the tolerance unit of the alignment, true = ppm, false = Da
      */
     static double logOccupancyProb(const PeakSpectrum& theoretical_spec,  const Size matched_size, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm);
 
    /**
     * @brief compute the weighted total ion current score for a cross-link. Reimplementation from xQuest.
-    * @param alpha_size sequence length of alpha peptide
-    * @param beta_size  sequence length of beta peptide
-    * @param intsum_alpha intensity sum of matched peaks from alpha peptide
-    * @param intsum_beta intensity sum of matched peaks from beta peptide
-    * @param total_current sum of peak intensities of the experimental spectrum
-    * @param type_is_cross_link type of cross-link, true = cross-link, false = mono-link
+    * @param[in] alpha_size sequence length of alpha peptide
+    * @param[in] beta_size  sequence length of beta peptide
+    * @param[in] intsum_alpha intensity sum of matched peaks from alpha peptide
+    * @param[in] intsum_beta intensity sum of matched peaks from beta peptide
+    * @param[in] total_current sum of peak intensities of the experimental spectrum
+    * @param[in] type_is_cross_link type of cross-link, true = cross-link, false = mono-link
     * @return true = cross-link, false = mono-link. in case of a mono-link, beta_size and intsum_beta should be 0
     */
     static double weightedTICScoreXQuest(Size alpha_size, Size beta_size, double intsum_alpha, double intsum_beta, double total_current, bool type_is_cross_link);
 
    /**
     * @brief compute the weighted total ion current score for a cross-link. Scaling changed from original xQuest.
-    * @param alpha_size sequence length of alpha peptide
-    * @param beta_size sequence length of beta peptide
-    * @param intsum_alpha intensity sum of matched peaks from alpha peptide
-    * @param intsum_beta intensity sum of matched peaks from beta peptide
-    * @param total_current Sum of peak intensities of the experimental spectrum
-    * @param type_is_cross_link Type of cross-link, true = cross-link, false = mono-link
+    * @param[in] alpha_size sequence length of alpha peptide
+    * @param[in] beta_size sequence length of beta peptide
+    * @param[in] intsum_alpha intensity sum of matched peaks from alpha peptide
+    * @param[in] intsum_beta intensity sum of matched peaks from beta peptide
+    * @param[in] total_current Sum of peak intensities of the experimental spectrum
+    * @param[in] type_is_cross_link Type of cross-link, true = cross-link, false = mono-link
     * @return true = cross-link, false = mono-link. in case of a mono-link, beta_size and intsum_beta should be 0
     */
     static double weightedTICScore(Size alpha_size, Size beta_size, double intsum_alpha, double intsum_beta, double total_current, bool type_is_cross_link);
 
    /**
     * @brief computes sum of peak intensities of matched peaks for either the alpha or the beta peptide
-    * @param matched_spec_linear alignment between linear alpha or beta ions and linear experimental peaks
-    * @param matched_spec_xlinks alignment between xlink alpha or beta ions and xlink experimental peaks
-    * @param spectrum_linear_peaks experimental linear ion spectrum
-    * @param spectrum_xlink_peaks experimental xlink spectrum
+    * @param[in] matched_spec_linear alignment between linear alpha or beta ions and linear experimental peaks
+    * @param[in] matched_spec_xlinks alignment between xlink alpha or beta ions and xlink experimental peaks
+    * @param[in] spectrum_linear_peaks experimental linear ion spectrum
+    * @param[in] spectrum_xlink_peaks experimental xlink spectrum
     */
     static double matchedCurrentChain(const std::vector< std::pair< Size, Size > >& matched_spec_linear, const std::vector< std::pair< Size, Size > >& matched_spec_xlinks, const PeakSpectrum& spectrum_linear_peaks, const PeakSpectrum& spectrum_xlink_peaks);
 
    /**
     * @brief computes sum of peak intensities of all matched peaks
-    * @param matched_spec_linear_alpha alignment between linear alpha ions and linear experimental peaks
-    * @param matched_spec_linear_beta alignment between linear beta ions and linear experimental peaks
-    * @param matched_spec_xlinks_alpha alignment between xlink alpha ions and xlink experimental peaks
-    * @param matched_spec_xlinks_beta alignment between xlink beta ions and xlink experimental peaks
-    * @param spectrum_linear_peaks experimental linear ion spectrum
-    * @param spectrum_xlink_peaks experimental xlink spectrum
+    * @param[in] matched_spec_linear_alpha alignment between linear alpha ions and linear experimental peaks
+    * @param[in] matched_spec_linear_beta alignment between linear beta ions and linear experimental peaks
+    * @param[in] matched_spec_xlinks_alpha alignment between xlink alpha ions and xlink experimental peaks
+    * @param[in] matched_spec_xlinks_beta alignment between xlink beta ions and xlink experimental peaks
+    * @param[in] spectrum_linear_peaks experimental linear ion spectrum
+    * @param[in] spectrum_xlink_peaks experimental xlink spectrum
     */
     static double totalMatchedCurrent(const std::vector< std::pair< Size, Size > >& matched_spec_linear_alpha, const std::vector< std::pair< Size, Size > >& matched_spec_linear_beta, const std::vector< std::pair< Size, Size > >& matched_spec_xlinks_alpha, const std::vector< std::pair< Size, Size > >& matched_spec_xlinks_beta, const PeakSpectrum& spectrum_linear_peaks, const PeakSpectrum& spectrum_xlink_peaks);
 
    /**
     * @brief computes a crude cross-correlation between two spectra. Crude, because it uses a static binsize based on a tolerance in Da and it uses equal intensities for all peaks
-    * @param spec1 first spectrum
-    * @param spec2 second spectrum
-    * @param maxshift Number of bins, that should be considered for shifting the second spectrum. the second spectrum is shifted from -maxshift to +maxshift of tolerance bins and a correlation is computed for each position.
-    * @param tolerance or binsize in Da
+    * @param[in] spec1 first spectrum
+    * @param[in] spec2 second spectrum
+    * @param[in] maxshift Number of bins, that should be considered for shifting the second spectrum. the second spectrum is shifted from -maxshift to +maxshift of tolerance bins and a correlation is computed for each position.
+    * @param[in] tolerance or binsize in Da
     */
     static std::vector< double > xCorrelation(const PeakSpectrum & spec1, const PeakSpectrum & spec2, Int maxshift, double tolerance);
 
     /**
      * @brief computes a crude dot product between two spectra. Crude, because it uses a static binsize based on a tolerance in Da and it uses equal intensities for all peaks
-     * @param spec1 first spectrum
-     * @param spec2 second spectrum
-     * @param tolerance tolerance or binsize in Da
+     * @param[in] spec1 first spectrum
+     * @param[in] spec2 second spectrum
+     * @param[in] tolerance tolerance or binsize in Da
      */
     static double xCorrelationPrescore(const PeakSpectrum & spec1, const PeakSpectrum & spec2, double tolerance);
   };

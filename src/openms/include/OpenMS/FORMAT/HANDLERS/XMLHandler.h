@@ -425,8 +425,8 @@ public:
       *  Thus, if the @p value contains a large UInt64, conversion will fail.
       *  Value ranges are currently also not checked, only for XSD types which happen to match the internal representation.
       * 
-      *  @param type An XSD type. If the type is not supported, the returned type will be a string
-      *  @param value The value in sting format, e.g. "123.34"
+      *  @param[out] type An XSD type. If the type is not supported, the returned type will be a string
+      *  @param[in] value The value in sting format, e.g. "123.34"
       *  @return The Datavalue with the respective type (double, int or string)
       *  @throws Exception::ConversionError if the value does not fit into the internal representation or (for few types) exceeds the XSD specs.
       * 
@@ -468,12 +468,12 @@ public:
          @brief Convert the value of a <em>\<cvParam value=.\></em> (as commonly found in PSI schemata) to the DataValue with the correct type (e.g. int) according to
                 the type stored in the CV (usually PSI-MS CV), as well as set its unit.
 
-         @param cv A CV, usually the PSI-MS CV, see ControlledVocabulary::getPSIMSCV()
-         @param parent_tag The tag which encloses the \<cvParam\>
-         @param accession The accession from the 'accession' attribute of the \<cvParam\>
-         @param name The name from the 'name' attribute of the \<cvParam\>
-         @param value The value from the 'value' attribute of the \<cvParam\>
-         @param unit_accession The unit_accession from the 'unitAccession' attribute of the \<cvParam\>
+         @param[in] cv A CV, usually the PSI-MS CV, see ControlledVocabulary::getPSIMSCV()
+         @param[in] parent_tag The tag which encloses the \<cvParam\>
+         @param[in] accession The accession from the 'accession' attribute of the \<cvParam\>
+         @param[in] name The name from the 'name' attribute of the \<cvParam\>
+         @param[in] value The value from the 'value' attribute of the \<cvParam\>
+         @param[in] unit_accession The unit_accession from the 'unitAccession' attribute of the \<cvParam\>
          @return DataValue::EMPTY if a conversion error occured (e.g. if @p value could not be converted to an integer for an @p accession which requires an integer) or the DataValue upon success
       */
       DataValue cvParamToValue(const ControlledVocabulary& cv, const String& parent_tag, 
@@ -484,8 +484,8 @@ public:
          @brief Convert the value of a <em>\<cvParam value=.\></em> (as commonly found in PSI schemata) to the DataValue with the correct type (e.g. int) according to
                 the type stored in the CV (usually PSI-MS CV), as well as set its unit.
 
-         @param cv A CV, usually the PSI-MS CV, see ControlledVocabulary::getPSIMSCV()
-         @param raw_term Represenation of the raw data (i.e. all strings) from a \<cvParam ...\> without the conversion to a specific value type
+         @param[in] cv A CV, usually the PSI-MS CV, see ControlledVocabulary::getPSIMSCV()
+         @param[in] raw_term Represenation of the raw data (i.e. all strings) from a \<cvParam ...\> without the conversion to a specific value type
          @return DataValue::EMPTY if a conversion error occured (e.g. if @p value could not be converted to an integer for an @p accession which requires an integer) or the DataValue upon success
       */
       DataValue cvParamToValue(const ControlledVocabulary& cv, const CVTerm& raw_term) const;

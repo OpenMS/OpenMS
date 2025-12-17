@@ -72,8 +72,8 @@ public:
     /*
         @brief updates crc32 check sum whether the buffer is corrupted
         @note if this function is used it has to be called after every call of function read
-        @param s the buffer which will be checked
-        @param n the size of the buffer
+        @param[in] s the buffer which will be checked
+        @param[in] n the size of the buffer
     *
     //void updateCRC32(const char* s,const size_t n);
 

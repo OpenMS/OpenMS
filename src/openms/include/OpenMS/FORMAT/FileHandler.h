@@ -163,12 +163,12 @@ public:
     /**
       @brief Loads a file into an MSExperiment
 
-      @param filename The file name of the file to load.
-      @param exp The experiment to load the data into.
-      @param allowed_types A vector of supported filetypes. If the vector is empty, load from any type that we have a handler for. Otherwise @p getType() is called internally to check the type
-      @param log Progress logging mode
-      @param rewrite_source_file Set's the SourceFile name and path to the current file. Note that this looses the link to the primary MS run the file originated from.
-      @param compute_hash If source files are rewritten, this flag triggers a recomputation of hash values. A SHA1 string gets stored in the checksum member of SourceFile.
+      @param[out] filename The file name of the file to load.
+      @param[in] exp The experiment to load the data into.
+      @param[in] allowed_types A vector of supported filetypes. If the vector is empty, load from any type that we have a handler for. Otherwise @p getType() is called internally to check the type
+      @param[in] log Progress logging mode
+      @param[in] rewrite_source_file Set's the SourceFile name and path to the current file. Note that this looses the link to the primary MS run the file originated from.
+      @param[out] compute_hash If source files are rewritten, this flag triggers a recomputation of hash values. A SHA1 string gets stored in the checksum member of SourceFile.
 
       @exception Exception::FileNotFound is thrown if the file could not be opened
       @exception Exception::ParseError is thrown if an error occurs during parsing
@@ -182,10 +182,10 @@ public:
 
       The file type to store the data in is determined by the file name. Supported formats for storing are mzML, mzXML, mzData and DTA2D. If the file format cannot be determined from the file name, the mzML format is used.
 
-      @param filename The name of the file to store the data in.
-      @param exp The experiment to store.
-      @param allowed_types A vector of supported filetypes. If empty we try to guess based on the filename. If that fails we throw UnableToCreateFile. If there is only one allowed type, check whether it agrees with the filename, and throw UnableToCreateFile if they disagree.
-      @param log Progress logging mode
+      @param[in] filename The name of the file to store the data in.
+      @param[out] exp The experiment to store.
+      @param[in] allowed_types A vector of supported filetypes. If empty we try to guess based on the filename. If that fails we throw UnableToCreateFile. If there is only one allowed type, check whether it agrees with the filename, and throw UnableToCreateFile if they disagree.
+      @param[in] log Progress logging mode
 
       @exception Exception::UnableToCreateFile is thrown if the file could not be written
     */
@@ -194,9 +194,9 @@ public:
         /**
       @brief Loads a single MSSpectrum from a file
 
-      @param filename The file name of the file to load.
-      @param spec The spectrum to load the data into.
-      @param allowed_types A vector of supported filetypes. If the vector is empty, load from any type that we have a handler for. Otherwise @p getType() is called internally to check the type
+      @param[in] filename The file name of the file to load.
+      @param[out] spec The spectrum to load the data into.
+      @param[in] allowed_types A vector of supported filetypes. If the vector is empty, load from any type that we have a handler for. Otherwise @p getType() is called internally to check the type
 
       @exception Exception::FileNotFound is thrown if the file could not be opened
       @exception Exception::ParseError is thrown if an error occurs during parsing
@@ -206,9 +206,9 @@ public:
         /**
       @brief Stores a single MSSpectrum to a file
 
-      @param filename The file name of the file to store.
-      @param spec The spectrum to store the data from.
-      @param allowed_types A vector of supported filetypes. If the vector is empty, load from any type that we have a handler for. Otherwise @p getType() is called internally to check the type
+      @param[in] filename The file name of the file to store.
+      @param[in] spec The spectrum to store the data from.
+      @param[in] allowed_types A vector of supported filetypes. If the vector is empty, load from any type that we have a handler for. Otherwise @p getType() is called internally to check the type
 
       @exception Exception::UnableToCreateFile is thrown if the file could not be written
     */
@@ -217,10 +217,10 @@ public:
     /**
       @brief Loads a file into a FeatureMap
 
-      @param filename the file name of the file to load.
-      @param map The FeatureMap to load the data into.
-      @param allowed_types A vector of supported filetypes. If the vector is empty, load from any type that we have a handler for. Otherwise @p getType() is called internally to check the type
-      @param log Progress logging mode
+      @param[in] filename the file name of the file to load.
+      @param[out] map The FeatureMap to load the data into.
+      @param[in] allowed_types A vector of supported filetypes. If the vector is empty, load from any type that we have a handler for. Otherwise @p getType() is called internally to check the type
+      @param[in] log Progress logging mode
       
       @exception Exception::FileNotFound is thrown if the file could not be opened
       @exception Exception::ParseError is thrown if an error occurs during parsing
@@ -230,10 +230,10 @@ public:
     /**
       @brief Store a FeatureMap
 
-      @param filename the file name of the file to write.
-      @param map The FeatureMap to store.
-      @param allowed_types A vector of supported filetypes. If empty we try to guess based on the filename. If that fails we throw UnableToCreateFile. If there is only one allowed type, check whether it agrees with the filename, and throw UnableToCreateFile if they disagree.
-      @param log Progress logging mode
+      @param[in] filename the file name of the file to write.
+      @param[out] map The FeatureMap to store.
+      @param[in] allowed_types A vector of supported filetypes. If empty we try to guess based on the filename. If that fails we throw UnableToCreateFile. If there is only one allowed type, check whether it agrees with the filename, and throw UnableToCreateFile if they disagree.
+      @param[in] log Progress logging mode
 
       @exception Exception::UnableToCreateFile is thrown if the file could not be written
     */
@@ -242,10 +242,10 @@ public:
     /**
       @brief Loads a file into a ConsensusMap
 
-      @param filename the file name of the file to load.
-      @param map The ConsensusMap to load the data into.
-      @param allowed_types A vector of supported filetypes. If the vector is empty, load from any type that we have a handler for. Otherwise @p getType() is called internally to check the type
-      @param log Progress logging mode
+      @param[in] filename the file name of the file to load.
+      @param[in] map The ConsensusMap to load the data into.
+      @param[in] allowed_types A vector of supported filetypes. If the vector is empty, load from any type that we have a handler for. Otherwise @p getType() is called internally to check the type
+      @param[in] log Progress logging mode
 
       @exception Exception::FileNotFound is thrown if the file could not be opened
       @exception Exception::ParseError is thrown if an error occurs during parsing
@@ -255,10 +255,10 @@ public:
     /**
       @brief Store a ConsensusFeatureMap
 
-      @param filename the file name of the file to write.
-      @param map The ConsensusMap to store.
-      @param allowed_types A vector of supported filetypes. If empty we try to guess based on the filename. If that fails we throw UnableToCreateFile. If there is only one allowed type, check whether it agrees with the filename, and throw UnableToCreateFile if they disagree.
-      @param log Progress logging mode
+      @param[in] filename the file name of the file to write.
+      @param[out] map The ConsensusMap to store.
+      @param[in] allowed_types A vector of supported filetypes. If empty we try to guess based on the filename. If that fails we throw UnableToCreateFile. If there is only one allowed type, check whether it agrees with the filename, and throw UnableToCreateFile if they disagree.
+      @param[in] log Progress logging mode
 
       @exception Exception::UnableToCreateFile is thrown if the file could not be written
     */
@@ -267,11 +267,11 @@ public:
     /**
       @brief Loads an identification file into a proteinIdentifications and peptideIdentifications
 
-      @param filename the file name of the file to load.
-      @param additional_proteins The proteinIdentification vector to load the data into.
-      @param additional_peptides The peptideIdentification vector to load the data into.
-      @param allowed_types A vector of supported filetypes. If the vector is empty, load from any type that we have a handler for. Otherwise @p getType() is called internally to check the type
-      @param log Progress logging mode      
+      @param[in] filename the file name of the file to load.
+      @param[in] additional_proteins The proteinIdentification vector to load the data into.
+      @param[in] additional_peptides The peptideIdentification vector to load the data into.
+      @param[in] allowed_types A vector of supported filetypes. If the vector is empty, load from any type that we have a handler for. Otherwise @p getType() is called internally to check the type
+      @param[in] log Progress logging mode      
 
       @exception Exception::FileNotFound is thrown if the file could not be opened
       @exception Exception::ParseError is thrown if an error occurs during parsing
@@ -281,11 +281,11 @@ public:
     /**
       @brief Stores proteins and peptides into an Identification File
 
-      @param filename the file name of the file to write to.
-      @param additional_proteins The proteinIdentification vector to load the data from.
-      @param additional_peptides The peptideIdentification vector to load the data from.
-      @param allowed_types A vector of supported filetypes. If empty we try to guess based on the filename. If that fails we throw UnableToCreateFile. If there is only one allowed type, check whether it agrees with the filename, and throw UnableToCreateFile if they disagree.
-      @param log Progress logging mode
+      @param[in] filename the file name of the file to write to.
+      @param[in] additional_proteins The proteinIdentification vector to load the data from.
+      @param[in] additional_peptides The peptideIdentification vector to load the data from.
+      @param[in] allowed_types A vector of supported filetypes. If empty we try to guess based on the filename. If that fails we throw UnableToCreateFile. If there is only one allowed type, check whether it agrees with the filename, and throw UnableToCreateFile if they disagree.
+      @param[in] log Progress logging mode
 
       @exception Exception::UnableToCreateFile is thrown if the file could not be written
     */
@@ -294,10 +294,10 @@ public:
     /**
       @brief Load transitions of a spectral library
 
-      @param filename the file name of the file to read.
-      @param library The TargetedExperiment to load.
-      @param allowed_types A vector of supported filetypes. If the vector is empty, load from any type that we have a handler for. Otherwise @p getType() is called internally to check the type
-      @param log Progress logging mode
+      @param[in] filename the file name of the file to read.
+      @param[out] library The TargetedExperiment to load.
+      @param[in] allowed_types A vector of supported filetypes. If the vector is empty, load from any type that we have a handler for. Otherwise @p getType() is called internally to check the type
+      @param[in] log Progress logging mode
       
       @exception Exception::FileNotFound is thrown if the file could not be opened
       @exception Exception::ParseError is thrown if an error occurs during parsing
@@ -307,10 +307,10 @@ public:
     /**
       @brief Store transitions of a spectral library
 
-      @param filename the file name of the file to write.
-      @param library The TargetedExperiment to store.
-      @param allowed_types A vector of supported filetypes. If empty we try to guess based on the filename. If that fails we throw UnableToCreateFile. If there is only one allowed type, check whether it agrees with the filename, and throw UnableToCreateFile if they disagree.
-      @param log Progress logging mode
+      @param[out] filename the file name of the file to write.
+      @param[out] library The TargetedExperiment to store.
+      @param[in] allowed_types A vector of supported filetypes. If empty we try to guess based on the filename. If that fails we throw UnableToCreateFile. If there is only one allowed type, check whether it agrees with the filename, and throw UnableToCreateFile if they disagree.
+      @param[in] log Progress logging mode
 
       @exception Exception::UnableToCreateFile is thrown if the file could not be written
     */
@@ -319,10 +319,10 @@ public:
         /**
       @brief Loads a file into Transformations
 
-      @param filename the file name of the file to load.
+      @param[in] filename the file name of the file to load.
       @param[out] map The Transformations to load the data into.
-      @param fit_model Call fitModel() on the @p map before returning?
-      @param allowed_types A vector of supported filetypes. If the vector is empty, load from any type that we have a handler for. Otherwise @p getType() is called internally to check the type
+      @param[in] fit_model Call fitModel() on the @p map before returning?
+      @param[in] allowed_types A vector of supported filetypes. If the vector is empty, load from any type that we have a handler for. Otherwise @p getType() is called internally to check the type
 
       @exception Exception::FileNotFound is thrown if the file could not be opened
       @exception Exception::ParseError is thrown if an error occurs during parsing
@@ -333,9 +333,9 @@ public:
     /**
       @brief Store Transformations
 
-      @param filename the file name of the file to write.
-      @param map The Transformations to store.
-      @param allowed_types A vector of supported filetypes. If empty we try to guess based on the filename. If that fails we throw UnableToCreateFile. If there is only one allowed type, check whether it agrees with the filename, and throw UnableToCreateFile if they disagree.
+      @param[out] filename the file name of the file to write.
+      @param[in] map The Transformations to store.
+      @param[in] allowed_types A vector of supported filetypes. If empty we try to guess based on the filename. If that fails we throw UnableToCreateFile. If there is only one allowed type, check whether it agrees with the filename, and throw UnableToCreateFile if they disagree.
 
       @exception Exception::UnableToCreateFile is thrown if the file could not be written
     */
@@ -345,19 +345,19 @@ public:
       @brief Store QC info
 
       @brief Stores QC data in mzQC file with JSON format
-      @param input_file mzML input file name
-      @param filename mzQC output file name
-      @param exp MSExperiment to extract QC data from, prior sortSpectra() and updateRanges() required
-      @param feature_map FeatureMap from feature file (featureXML)
-      @param prot_ids protein identifications from ID file (idXML)
-      @param pep_ids protein identifications from ID file (idXML)
-      @param consensus_map an optional consensus map to store.
-      @param contact_name name of the person creating the mzQC file
-      @param contact_address contact address (mail/e-mail or phone) of the person creating the mzQC file
-      @param description description and comments about the mzQC file contents
-      @param label unique and informative label for the run
-      @param remove_duplicate_features whether to remove duplicate features only for QCML for now
-      @param allowed_types A vector of supported filetypes. If empty we try to guess based on the filename. If that fails we throw UnableToCreateFile. If there is only one allowed type, check whether it agrees with the filename, and throw UnableToCreateFile if they disagree.
+      @param[in] input_file mzML input file name
+      @param[in] filename mzQC output file name
+      @param[in] exp MSExperiment to extract QC data from, prior sortSpectra() and updateRanges() required
+      @param[in] feature_map FeatureMap from feature file (featureXML)
+      @param[in] prot_ids protein identifications from ID file (idXML)
+      @param[in] pep_ids protein identifications from ID file (idXML)
+      @param[out] consensus_map an optional consensus map to store.
+      @param[in] contact_name name of the person creating the mzQC file
+      @param[in] contact_address contact address (mail/e-mail or phone) of the person creating the mzQC file
+      @param[in] description description and comments about the mzQC file contents
+      @param[in] label unique and informative label for the run
+      @param[in] remove_duplicate_features whether to remove duplicate features only for QCML for now
+      @param[in] allowed_types A vector of supported filetypes. If empty we try to guess based on the filename. If that fails we throw UnableToCreateFile. If there is only one allowed type, check whether it agrees with the filename, and throw UnableToCreateFile if they disagree.
 
       @exception Exception::UnableToCreateFile is thrown if the file could not be written
     */

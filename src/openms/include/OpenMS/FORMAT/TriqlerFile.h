@@ -152,7 +152,7 @@ namespace OpenMS
       using MapSequenceToLines_ = std::map<String, std::set<TriqlerLine_>>;
       /*
         *  @brief Constructs the lines and adds them to the TextFile
-        *  @param peptideseq_quantifyable Has to be a set (only) for deterministic ordered output
+        *  @param[out] peptideseq_quantifyable Has to be a set (only) for deterministic ordered output
         */
       void constructFile_(TextFile& csv_out,
                           const std::set<String>& peptideseq_quantifyable,

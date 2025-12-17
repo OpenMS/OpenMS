@@ -33,8 +33,8 @@ public:
     /**
       * @brief Compresses data using zlib directly
       *
-      * @param raw_data Data to be compressed
-      * @param compressed_data Compressed result data
+      * @param[in] raw_data Data to be compressed
+      * @param[out] compressed_data Compressed result data
       * 
     */
     static void compressString(std::string& raw_data, std::string& compressed_data);
@@ -42,9 +42,9 @@ public:
     /**
      * @brief Compresses data using zlib directly
      *
-     * @param raw_data Data to be compressed
-     * @param in_length Length of @p raw_data in bytes
-     * @param compressed_data Compressed result data
+     * @param[in] raw_data Data to be compressed
+     * @param[in] in_length Length of @p raw_data in bytes
+     * @param[out] compressed_data Compressed result data
      *
      */
     static void compressData(const void* raw_data, const size_t in_length, std::string& compressed_data);

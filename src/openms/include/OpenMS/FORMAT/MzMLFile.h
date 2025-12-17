@@ -50,8 +50,8 @@ public:
     /**
       @brief Loads a map from a MzML file. Spectra and chromatograms are sorted by default (this can be disabled using PeakFileOptions).
 
-      @param filename The filename with the data
-      @param map Is an MSExperiment
+      @param[in] filename The filename with the data
+      @param[out] map Is an MSExperiment
 
       @exception Exception::FileNotFound is thrown if the file could not be opened
       @exception Exception::ParseError is thrown if an error occurs during parsing
@@ -111,10 +111,10 @@ public:
       does not require a full first pass through the file to compute the
       correct number of spectra and chromatograms in the input file.
 
-      @param filename_in Filename of input mzML file to transform
-      @param consumer Consumer class to operate on the input filename (implementing a transformation)
-      @param skip_full_count Whether to skip computing the correct number of spectra and chromatograms in the input file
-      @param skip_first_pass Skip first file parsing pass, which hands only meta-data (number of spectra/chroms and experimental settings) to the consumer
+      @param[in] filename_in Filename of input mzML file to transform
+      @param[in] consumer Consumer class to operate on the input filename (implementing a transformation)
+      @param[in] skip_full_count Whether to skip computing the correct number of spectra and chromatograms in the input file
+      @param[in] skip_first_pass Skip first file parsing pass, which hands only meta-data (number of spectra/chroms and experimental settings) to the consumer
     */
     void transform(const String& filename_in, Interfaces::IMSDataConsumer * consumer, bool skip_full_count = false, bool skip_first_pass = false);
 
@@ -127,11 +127,11 @@ public:
       applied to the data before storing them in a map (e.g. if data-reduction
       should be applied to the data before loading all data into memory).
 
-      @param filename_in Filename of input mzML file to transform
-      @param consumer Consumer class to operate on the input filename (implementing a transformation)
-      @param map Map to store the resulting spectra and chromatograms
-      @param skip_full_count Whether to skip computing the correct number of spectra and chromatograms in the input file
-      @param skip_first_pass Skip first file parsing pass, which hands only meta-data (number of spectra/chroms and experimental settings) to the consumer
+      @param[in] filename_in Filename of input mzML file to transform
+      @param[in] consumer Consumer class to operate on the input filename (implementing a transformation)
+      @param[in] map Map to store the resulting spectra and chromatograms
+      @param[in] skip_full_count Whether to skip computing the correct number of spectra and chromatograms in the input file
+      @param[in] skip_first_pass Skip first file parsing pass, which hands only meta-data (number of spectra/chroms and experimental settings) to the consumer
     */
     void transform(const String& filename_in, Interfaces::IMSDataConsumer * consumer, PeakMap& map, bool skip_full_count = false, bool skip_first_pass = false);
 
@@ -145,9 +145,9 @@ public:
     /**
       @brief Checks if a file is valid with respect to the mapping file and the controlled vocabulary.
 
-      @param filename File name of the file to be checked.
-      @param errors Errors during the validation are returned in this output parameter.
-      @param warnings Warnings during the validation are returned in this output parameter.
+      @param[in] filename File name of the file to be checked.
+      @param[out] errors Errors during the validation are returned in this output parameter.
+      @param[out] warnings Warnings during the validation are returned in this output parameter.
 
       @exception Exception::FileNotFound is thrown if the file could not be opened
     */
@@ -156,7 +156,7 @@ public:
     /**
       @brief Checks if a file is an indexed MzML file or not.
 
-      @param filename File name of the file to be checked.
+      @param[in] filename File name of the file to be checked.
 
       @exception Exception::FileNotFound is thrown if the file could not be opened
     */
@@ -179,8 +179,8 @@ public:
        You can use this function to estimate the spectrum type, but it should be done for each MS-level separately.
        Otherwise you might get mixed (PROFILE+CENTROIDED) results.
        
-       @param filename File name of the mzML file to be checked
-       @param first_n_spectra_only Only inspect this many spectra (UNKNOWN spectra do not count) and then end parsing the file
+       @param[in] filename File name of the mzML file to be checked
+       @param[in] first_n_spectra_only Only inspect this many spectra (UNKNOWN spectra do not count) and then end parsing the file
        
        @return Map of MS level to counts (centroided, profile, unknown)
        

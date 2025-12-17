@@ -68,8 +68,8 @@ public:
     /**
         @brief Method to calculate the average aberration from average population in partition resulting from a certain step in clustering
 
-        @param cluster_quantity desired partition Size analogue to ClusterAnalyzer::cut
-        @param tree vector of BinaryTreeNode's representing the clustering
+        @param[in] cluster_quantity desired partition Size analogue to ClusterAnalyzer::cut
+        @param[in] tree vector of BinaryTreeNode's representing the clustering
         @throw invalid_parameter if desired clustering is invalid
         @return the average aberration from the average cluster population (number of elements/cluster_quantity) at cluster_quantity
         @see BinaryTreeNode
@@ -83,9 +83,9 @@ public:
     not -1, and subtract that from the number of leaves, to get the number of clusters formed
     , i.e. cluster_quantity = data.size() - real_leaf_count;
 
-        @param cluster_quantity Size giving the number of clusters (i.e. starting elements - cluster_quantity = cluster step)
-        @param tree vector of BinaryTreeNode's representing the clustering
-        @param clusters vector of vectors holding the clusters (with indices to the actual elements)
+        @param[in] cluster_quantity Size giving the number of clusters (i.e. starting elements - cluster_quantity = cluster step)
+        @param[in] tree vector of BinaryTreeNode's representing the clustering
+        @param[in] clusters vector of vectors holding the clusters (with indices to the actual elements)
         @throw invalid_parameter if desired clusterstep is invalid
         @see BinaryTreeNode
 
@@ -96,9 +96,9 @@ public:
 /**
         @brief Method to calculate subtrees from a given tree resulting from a certain step in clustering given by the number of clusters
 
-        @param cluster_quantity Size giving the number of clusters (i.e. starting elements - cluster_quantity = cluster step)
-        @param tree vector of BinaryTreeNode's representing the clustering
-        @param subtrees vector of trees holding the trees, tree is composed of cut at given size
+        @param[in] cluster_quantity Size giving the number of clusters (i.e. starting elements - cluster_quantity = cluster step)
+        @param[in] tree vector of BinaryTreeNode's representing the clustering
+        @param[in] subtrees vector of trees holding the trees, tree is composed of cut at given size
         @throw invalid_parameter if desired clusterstep is invalid
         @see BinaryTreeNode
 
@@ -109,8 +109,8 @@ public:
 /**
         @brief Returns the hierarchy described by a clustering tree as Newick-String
 
-        @param tree vector of BinaryTreeNode's representing the clustering
-        @param include_distance bool value indicating whether the distance shall be included to the string
+        @param[in] tree vector of BinaryTreeNode's representing the clustering
+        @param[in] include_distance bool value indicating whether the distance shall be included to the string
         @see BinaryTreeNode
 
     */

@@ -326,11 +326,11 @@ public:
     /// Creates a new modification from a mass and adds it to ModificationsDB.
     /// If not terminal, needs a Residue to be put on.
 
-    /// @param mod The mass to put between the brackets (might contain +/- at the front)
-    /// @param mass Basically, the same as mod, just as double (since usually both representations are present when calling this function and to avoid overhead??)
-    /// @param delta_mass Is the given mass a delta mass (i.e. does @p mod contain a = or -)?
-    /// @param specificity To which site can this mod be applied?
-    /// @param residue [only required for ANYWHERE term spec] Residue with further information (e.g. residue weights) for the new mod
+    /// @param[in] mod The mass to put between the brackets (might contain +/- at the front)
+    /// @param[in] mass Basically, the same as mod, just as double (since usually both representations are present when calling this function and to avoid overhead??)
+    /// @param[in] delta_mass Is the given mass a delta mass (i.e. does @p mod contain a = or -)?
+    /// @param[in] specificity To which site can this mod be applied?
+    /// @param[in] residue [only required for ANYWHERE term spec] Residue with further information (e.g. residue weights) for the new mod
     /// @return a new or existing mod; registered to ModDB in both cases, so the pointer is non-owning (FullId is e.g. M[+1234.1] and FullName [+1234.1]. Id and Name are empty as defined for a "user-defined" mod.
     static const ResidueModification* createUnknownFromMassString(const String& mod,
                                                                   const double mass,
@@ -347,10 +347,10 @@ public:
 
     If base and addons is empty, a null_ptr is returned.
 
-    @param base An already present mod, can be a nullptr
-    @param addons A set of mods to add on top of the mod. 
-    @param allow_unknown_masses If any input (incl. base) is already an unknown mass, nothing is done
-    @param residue [only required for ANYWHERE term spec] Residue with further information (e.g. residue weights) for the new mod
+    @param[in] base An already present mod, can be a nullptr
+    @param[in] addons A set of mods to add on top of the mod. 
+    @param[in] allow_unknown_masses If any input (incl. base) is already an unknown mass, nothing is done
+    @param[in] residue [only required for ANYWHERE term spec] Residue with further information (e.g. residue weights) for the new mod
     @return A (new custom) mod, which is registered in ModificationsDB if needed.
     @throws Exception::Precondition if term spec or origins to not match between all given mods
     **/

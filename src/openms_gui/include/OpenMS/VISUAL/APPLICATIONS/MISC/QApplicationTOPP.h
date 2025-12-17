@@ -50,8 +50,8 @@ public:
     /**
       @brief Show the About-Dialog with License and Citation for all GUI tools
 
-      @param parent Parent widget (usually 'this')
-      @param toolname name of the tool (used as heading)
+      @param[in] parent Parent widget (usually 'this')
+      @param[in] toolname name of the tool (used as heading)
     */
     static void showAboutDialog(QWidget* parent, const QString& toolname);
 

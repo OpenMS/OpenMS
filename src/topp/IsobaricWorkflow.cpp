@@ -359,17 +359,17 @@ protected:
    * @brief Fills an existing ConsensusFeature with all kinds of information of an identified and isobarically quantified peptide.
    *
    * @param[out] cf the ConsensusFeature to fill
-   * @param pep information about the PSM (object will be moved)
-   * @param exp the MSExperiment to extract information about spectra
-   * @param id_spec_idx index of the identifying spectrum
-   * @param quant_spec_idx index of the quantifying spectrum
-   * @param itys the extracted intensities from the quant. spec.
-   * @param quant_method the quantification method used (for channel information), e.g. TMT10plex
-   * @param quant_purity purity of the quant. precursor(s) (if available, else -1.)
-   * @param id_purity purity of the id precursor
-   * @param min_reporter_intensity minimum intensity of a reporter ion to be considered
-   * @param file_idx index of the file in the input list
-   * @param spec_idx index of the spectrum over all files
+   * @param[in] pep information about the PSM (object will be moved)
+   * @param[in] exp the MSExperiment to extract information about spectra
+   * @param[in] id_spec_idx index of the identifying spectrum
+   * @param[in] quant_spec_idx index of the quantifying spectrum
+   * @param[in] itys the extracted intensities from the quant. spec.
+   * @param[in] quant_method the quantification method used (for channel information), e.g. TMT10plex
+   * @param[in] quant_purity purity of the quant. precursor(s) (if available, else -1.)
+   * @param[in] id_purity purity of the id precursor
+   * @param[in] min_reporter_intensity minimum intensity of a reporter ion to be considered
+   * @param[in] file_idx index of the file in the input list
+   * @param[in] spec_idx index of the spectrum over all files
    */
   void inline fillConsensusFeature_(ConsensusFeature & cf, PeptideIdentification& pep,
    const MSExperiment& exp, Size id_spec_idx, Size quant_spec_idx, const std::vector<double>& itys,
