@@ -133,11 +133,13 @@ private:
      @brief Solve the non-negative least squares problem using Matrix and vectors.
 
      Solves the NNLS problem Ax = b, where A is the correction matrix and b is the vector of observed intensities.
-     This version uses Eigen matrices and std::vector for the computation.
-     
-     @param[in] correction_matrix The isotope correction matrix (A)
+
+     @note This overload mutates the correction matrix in-place for efficiency. Use the const-preserving
+           overload (taking const Matrix<double>&) if the original matrix must remain unchanged.
+
+     @param[in,out] correction_matrix The isotope correction matrix (A). Modified in-place by the NNLS solver.
      @param[in] b The vector of observed intensities (b)
-     @param[in] x The output vector of corrected intensities (x)
+     @param[out] x The output vector of corrected intensities (x)
      */
     static void solveNNLS_(Matrix<double>& correction_matrix,
                            std::vector<double>& b,
