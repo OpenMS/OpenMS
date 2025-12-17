@@ -65,6 +65,7 @@ set(datastructures_executables_list
   MassExplainer_test
   MatchedIterator_test
   Matrix_test
+  MatrixEigen_test
   OPXLDataStructs_test
   Param_test
   ParamValue_test
