@@ -148,14 +148,14 @@ private:
     /**
      @brief Compute statistics for the correction process.
 
-     Calculates various statistics about the correction process, such as the sum of corrected intensities,
-     and updates the statistics object.
+     Calculates various statistics about the correction process by comparing the NNLS solution
+     (guaranteed non-negative) with the naive LU-decomposition solution (which may have negative values).
 
-     @param m_x The vector of corrected intensities
-     @param x_naive The vector of naive (uncorrected) intensities for comparison
-     @param cf_intensity The original intensity of the consensus feature
-     @param quant_method The isobaric quantitation method
-     @param stats The statistics object to update
+     @param[in] m_x The NNLS-corrected intensities (non-negative)
+     @param[in] x_naive The naive LU-decomposition solution (may contain negative values)
+     @param[in] cf_intensity The original intensity of the consensus feature
+     @param[in] quant_method The isobaric quantitation method
+     @param[in,out] stats The statistics object to update
      */
     static void computeStats_(const std::vector<double>& m_x,
                               const std::vector<double>& x_naive,
@@ -166,14 +166,14 @@ private:
     /**
      @brief Compute statistics for the correction process using OpenMS matrices.
 
-     Calculates various statistics about the correction process, such as the sum of corrected intensities,
-     and updates the statistics object.
-     
-     @param[in] m_x The vector of corrected intensities as OpenMS matrix
-     @param[out] x_naive The vector of naive (uncorrected) intensities for comparison
+     Calculates various statistics about the correction process by comparing the NNLS solution
+     (guaranteed non-negative) with the naive LU-decomposition solution (which may have negative values).
+
+     @param[in] m_x The NNLS-corrected intensities as OpenMS matrix (non-negative)
+     @param[in] x_naive The naive LU-decomposition solution (may contain negative values)
      @param[in] cf_intensity The original intensity of the consensus feature
      @param[in] quant_method The isobaric quantitation method
-     @param[in] stats The statistics object to update
+     @param[in,out] stats The statistics object to update
      */
     static void computeStats_(const Matrix<double>& m_x,
                               const std::vector<double>& x_naive,
