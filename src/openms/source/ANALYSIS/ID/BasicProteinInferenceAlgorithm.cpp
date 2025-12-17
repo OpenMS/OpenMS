@@ -86,7 +86,7 @@ namespace OpenMS
     {
       std::vector<ProteinIdentification> tmp(1);
       std::swap(tmp[0], prot_id);
-      IDFilter::updateProteinReferences(pep_ids, tmp, true); //TODO allow keeping PSMs without evidence?
+      IDFilter::removeDanglingProteinReferences(pep_ids, tmp, true); //TODO allow keeping PSMs without evidence?
       std::swap(tmp[0], prot_id);
     }
 
@@ -186,7 +186,7 @@ namespace OpenMS
       IDFilter::removeMatchingItems<std::vector<ProteinHit>>(prot_run.getHits(),
           IDFilter::HasMaxMetaValue<ProteinHit>("nr_found_peptides", static_cast<int>(min_peptides_per_protein) - 1));
 
-      IDFilter::updateProteinReferences(cmap, prot_run, true);
+      IDFilter::removeDanglingProteinReferences(cmap, prot_run, true);
     }
 
     if (group)
@@ -259,7 +259,7 @@ namespace OpenMS
 
     if (min_peptides_per_protein > 0) //potentially sth was filtered
     {
-      IDFilter::updateProteinReferences(pep_ids, prot_ids, true); //TODO allow keeping PSMs without evidence?
+      IDFilter::removeDanglingProteinReferences(pep_ids, prot_ids, true); //TODO allow keeping PSMs without evidence?
     }
 
     IDScoreSwitcherAlgorithm::switchBackScoreType(pep_ids, isr); // NOP if no switch was performed
