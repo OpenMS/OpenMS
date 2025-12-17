@@ -841,6 +841,28 @@ namespace OpenMS
     static bool updateProteinGroups(std::vector<ProteinIdentification::ProteinGroup>& groups, const std::vector<ProteinHit>& hits);
 
     /**
+       @brief Updates both indistinguishable proteins and protein groups based on current protein hits
+
+       Convenience function that updates both the indistinguishable proteins and regular protein groups
+       stored in a ProteinIdentification object based on the current protein hits.
+       This ensures protein group consistency after filtering operations.
+
+       @param proteins Input/output ProteinIdentification containing protein hits and groups to update
+    */
+    static void updateProteinGroups(ProteinIdentification& proteins);
+
+    /**
+       @brief Updates protein groups for all protein identification runs in a ConsensusMap
+
+       Iterates through all protein identifications in the ConsensusMap and updates their
+       indistinguishable proteins and regular protein groups based on current protein hits.
+       This ensures protein group consistency after filtering operations.
+
+       @param cmap Input/output ConsensusMap containing protein identifications to update
+    */
+    static void updateProteinGroups(ConsensusMap& cmap);
+
+    /**
        @brief Update protein hits after protein groups were filtered
 
        @param groups Available protein groups with protein accessions to keep

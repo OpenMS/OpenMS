@@ -315,6 +315,135 @@ START_SECTION((bool updateProteinGroups(vector<ProteinIdentification::ProteinGro
 }
 END_SECTION
 
+START_SECTION((static void updateProteinGroups(ProteinIdentification& proteins)))
+{
+  ProteinIdentification proteins;
+
+  // Set up protein hits
+  ProteinHit hit1, hit2, hit3;
+  hit1.setAccession("A");
+  hit2.setAccession("B");
+  hit3.setAccession("C");
+  proteins.insertHit(hit1);
+  proteins.insertHit(hit2);
+  proteins.insertHit(hit3);
+
+  // Set up indistinguishable proteins
+  ProteinIdentification::ProteinGroup indist_group;
+  indist_group.accessions.push_back("A");
+  indist_group.accessions.push_back("B");
+  indist_group.probability = 0.9;
+  proteins.insertIndistinguishableProteins(indist_group);
+
+  // Set up regular protein groups
+  ProteinIdentification::ProteinGroup prot_group;
+  prot_group.accessions.push_back("B");
+  prot_group.accessions.push_back("C");
+  prot_group.probability = 0.8;
+  proteins.insertProteinGroup(prot_group);
+
+  // No filtering - all groups should remain intact
+  IDFilter::updateProteinGroups(proteins);
+  TEST_EQUAL(proteins.getIndistinguishableProteins().size(), 1);
+  TEST_EQUAL(proteins.getIndistinguishableProteins()[0].accessions.size(), 2);
+  TEST_EQUAL(proteins.getProteinGroups().size(), 1);
+  TEST_EQUAL(proteins.getProteinGroups()[0].accessions.size(), 2);
+
+  // Remove protein "A" - should affect indistinguishable proteins
+  vector<ProteinHit>& hits = proteins.getHits();
+  hits.erase(std::remove_if(hits.begin(), hits.end(),
+    [](const ProteinHit& h) { return h.getAccession() == "A"; }), hits.end());
+
+  IDFilter::updateProteinGroups(proteins);
+  TEST_EQUAL(proteins.getIndistinguishableProteins().size(), 1);
+  TEST_EQUAL(proteins.getIndistinguishableProteins()[0].accessions.size(), 1);
+  TEST_EQUAL(proteins.getIndistinguishableProteins()[0].accessions[0], "B");
+  TEST_EQUAL(proteins.getProteinGroups().size(), 1);
+  TEST_EQUAL(proteins.getProteinGroups()[0].accessions.size(), 2);
+
+  // Remove protein "B" - should remove indist group entirely, affect protein group
+  hits.erase(std::remove_if(hits.begin(), hits.end(),
+    [](const ProteinHit& h) { return h.getAccession() == "B"; }), hits.end());
+
+  IDFilter::updateProteinGroups(proteins);
+  TEST_EQUAL(proteins.getIndistinguishableProteins().size(), 0);
+  TEST_EQUAL(proteins.getProteinGroups().size(), 1);
+  TEST_EQUAL(proteins.getProteinGroups()[0].accessions.size(), 1);
+  TEST_EQUAL(proteins.getProteinGroups()[0].accessions[0], "C");
+}
+END_SECTION
+
+START_SECTION((static void updateProteinGroups(ConsensusMap& cmap)))
+{
+  ConsensusMap cmap;
+
+  // Set up first protein identification run
+  ProteinIdentification prot1;
+  prot1.setIdentifier("run1");
+  ProteinHit hit1a, hit1b;
+  hit1a.setAccession("A");
+  hit1b.setAccession("B");
+  prot1.insertHit(hit1a);
+  prot1.insertHit(hit1b);
+
+  ProteinIdentification::ProteinGroup group1;
+  group1.accessions.push_back("A");
+  group1.accessions.push_back("B");
+  group1.probability = 0.9;
+  prot1.insertIndistinguishableProteins(group1);
+
+  // Set up second protein identification run
+  ProteinIdentification prot2;
+  prot2.setIdentifier("run2");
+  ProteinHit hit2a, hit2b, hit2c;
+  hit2a.setAccession("X");
+  hit2b.setAccession("Y");
+  hit2c.setAccession("Z");
+  prot2.insertHit(hit2a);
+  prot2.insertHit(hit2b);
+  prot2.insertHit(hit2c);
+
+  ProteinIdentification::ProteinGroup group2;
+  group2.accessions.push_back("X");
+  group2.accessions.push_back("Y");
+  group2.accessions.push_back("Z");
+  group2.probability = 0.8;
+  prot2.insertProteinGroup(group2);
+
+  cmap.getProteinIdentifications().push_back(prot1);
+  cmap.getProteinIdentifications().push_back(prot2);
+
+  // All groups should remain intact initially
+  IDFilter::updateProteinGroups(cmap);
+  TEST_EQUAL(cmap.getProteinIdentifications()[0].getIndistinguishableProteins().size(), 1);
+  TEST_EQUAL(cmap.getProteinIdentifications()[0].getIndistinguishableProteins()[0].accessions.size(), 2);
+  TEST_EQUAL(cmap.getProteinIdentifications()[1].getProteinGroups().size(), 1);
+  TEST_EQUAL(cmap.getProteinIdentifications()[1].getProteinGroups()[0].accessions.size(), 3);
+
+  // Remove protein "A" from first run
+  vector<ProteinHit>& hits1 = cmap.getProteinIdentifications()[0].getHits();
+  hits1.erase(std::remove_if(hits1.begin(), hits1.end(),
+    [](const ProteinHit& h) { return h.getAccession() == "A"; }), hits1.end());
+
+  // Remove proteins "Y" and "Z" from second run
+  vector<ProteinHit>& hits2 = cmap.getProteinIdentifications()[1].getHits();
+  hits2.erase(std::remove_if(hits2.begin(), hits2.end(),
+    [](const ProteinHit& h) { return h.getAccession() == "Y" || h.getAccession() == "Z"; }), hits2.end());
+
+  IDFilter::updateProteinGroups(cmap);
+
+  // First run: indist group should have only "B"
+  TEST_EQUAL(cmap.getProteinIdentifications()[0].getIndistinguishableProteins().size(), 1);
+  TEST_EQUAL(cmap.getProteinIdentifications()[0].getIndistinguishableProteins()[0].accessions.size(), 1);
+  TEST_EQUAL(cmap.getProteinIdentifications()[0].getIndistinguishableProteins()[0].accessions[0], "B");
+
+  // Second run: protein group should have only "X"
+  TEST_EQUAL(cmap.getProteinIdentifications()[1].getProteinGroups().size(), 1);
+  TEST_EQUAL(cmap.getProteinIdentifications()[1].getProteinGroups()[0].accessions.size(), 1);
+  TEST_EQUAL(cmap.getProteinIdentifications()[1].getProteinGroups()[0].accessions[0], "X");
+}
+END_SECTION
+
 START_SECTION((template <class IdentificationType> static void removeEmptyIdentifications(vector<IdentificationType>& ids)))
 {
   vector<ProteinIdentification> proteins(2);

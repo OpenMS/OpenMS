@@ -444,6 +444,21 @@ namespace OpenMS
     return valid;
   }
 
+  void IDFilter::updateProteinGroups(ProteinIdentification& proteins)
+  {
+    const vector<ProteinHit>& hits = proteins.getHits();
+    updateProteinGroups(proteins.getIndistinguishableProteins(), hits);
+    updateProteinGroups(proteins.getProteinGroups(), hits);
+  }
+
+  void IDFilter::updateProteinGroups(ConsensusMap& cmap)
+  {
+    for (ProteinIdentification& prot : cmap.getProteinIdentifications())
+    {
+      updateProteinGroups(prot);
+    }
+  }
+
   void IDFilter::removeUngroupedProteins(const vector<ProteinIdentification::ProteinGroup>& groups, vector<ProteinHit>& hits)
   {
     if (hits.empty())
