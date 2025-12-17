@@ -11,6 +11,7 @@
 
 ///////////////////////////
 #include <OpenMS/ML/NNLS/NonNegativeLeastSquaresSolver.h>
+#include <OpenMS/DATASTRUCTURES/MatrixEigen.h>  // for Eigen::Index
 ///////////////////////////
 
 using namespace OpenMS;
@@ -52,7 +53,7 @@ START_SECTION((static Int solve(const Matrix< double > &A, const Matrix< double 
 	Matrix<double> A,b,x;
 	A.setMatrix<double,3,4>(A_1);
 	b.setMatrix<double,3,1>(b_1);
-	x.getEigenMatrix().resize(4,1);
+	x.resize(4,1);
 	
 	TOLERANCE_ABSOLUTE(0.0005);
 	
@@ -77,7 +78,7 @@ START_SECTION((static Int solve(const Matrix< double > &A, const Matrix< double 
 	
 	A.setMatrix<double,4,4>(A_2);
 	b.setMatrix<double,4,1>(b_2);
-	x.getEigenMatrix().resize(4,1);
+	x.resize(4,1);
 	
 	NonNegativeLeastSquaresSolver::solve(A,b,x);
 	for (Eigen::Index i=0;i<x.rows();++i)

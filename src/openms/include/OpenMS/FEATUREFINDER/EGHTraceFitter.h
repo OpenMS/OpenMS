@@ -40,10 +40,10 @@ public:
 
       ~EGHTraceFunctor() override;
 
-      int operator()(const Eigen::VectorXd& x, Eigen::VectorXd& fvec) override;
+      int operator()(const double* x, double* fvec) override;
 
       // compute Jacobian matrix for the different parameters
-      int df(const Eigen::VectorXd& x, Eigen::MatrixXd& J) override;
+      int df(const double* x, double* J) override;
 
 protected:
       const TraceFitter::ModelData* m_data;
@@ -107,7 +107,7 @@ protected:
      */
     std::pair<double, double> getAlphaBoundaries_(const double alpha) const;
 
-    void getOptimizedParameters_(const Eigen::VectorXd& x_init) override;
+    void getOptimizedParameters_(const std::vector<double>& x_init) override;
 
     void setInitialParameters_(FeatureFinderAlgorithmPickedHelperStructs::MassTraces& traces);
 

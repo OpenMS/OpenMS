@@ -13,6 +13,7 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/RangeUtils.h>
 #include <OpenMS/ML/INTERPOLATION/BilinearInterpolation.h>
+#include <OpenMS/DATASTRUCTURES/MatrixEigen.h>
 #include <OpenMS/VISUAL/MultiGradient.h>
 
 
@@ -279,8 +280,8 @@ protected:
     //----------------------------------------------------------------
     //Do the actual resampling
     BilinearInterpolation<double, double> bilip;
-    bilip.getData().getEigenMatrix().resize(rows, cols);
-    bilip.getData().getEigenMatrix().setZero();
+    bilip.getData().resize(rows, cols);
+    bilip.getData().fill(0.0);
 
     if (!getFlag_("transpose"))
     {
@@ -360,7 +361,7 @@ protected:
     double factor = getDoubleOption_("max_intensity");
     if (factor == 0)
     {
-      factor = bilip.getData().getEigenMatrix().maxCoeff();
+      factor = eigenView(bilip.getData()).maxCoeff();
     }
     // with a user-supplied gradient, we need to logarithmize explicitly;
     // by default, the gradient itself is adjusted to the log-scale:

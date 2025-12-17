@@ -32,12 +32,16 @@ namespace OpenMS
 
   EGHTraceFitter::EGHTraceFunctor::~EGHTraceFunctor() = default;
 
-  int EGHTraceFitter::EGHTraceFunctor::operator()(const Eigen::VectorXd& x, Eigen::VectorXd& fvec)
+  int EGHTraceFitter::EGHTraceFunctor::operator()(const double* x, double* fvec)
   {
-    double H  = x(0);
-    double tR = x(1);
-    double sigma = x(2);
-    double tau = x(3);
+    // Create Eigen::Map views for convenient indexing
+    Eigen::Map<const Eigen::VectorXd> x_map(x, m_inputs);
+    Eigen::Map<Eigen::VectorXd> fvec_map(fvec, m_values);
+
+    double H  = x_map(0);
+    double tR = x_map(1);
+    double sigma = x_map(2);
+    double tau = x_map(3);
 
     double t_diff, t_diff2, denominator = 0.0;
 
@@ -66,19 +70,23 @@ namespace OpenMS
           fegh = 0.0;
         }
 
-        fvec(count) = (fegh - trace.peaks[i].second->getIntensity()) * weight;
+        fvec_map(count) = (fegh - trace.peaks[i].second->getIntensity()) * weight;
         ++count;
       }
     }
     return 0;
   }
 
-  int EGHTraceFitter::EGHTraceFunctor::df(const Eigen::VectorXd& x, Eigen::MatrixXd& J)
+  int EGHTraceFitter::EGHTraceFunctor::df(const double* x, double* J)
   {
-    double H  = x(0);
-    double tR = x(1);
-    double sigma = fabs(x(2)); // must be non-negative!
-    double tau = x(3);
+    // Create Eigen::Map views for convenient indexing
+    Eigen::Map<const Eigen::VectorXd> x_map(x, m_inputs);
+    Eigen::Map<Eigen::MatrixXd> J_map(J, m_values, m_inputs);
+
+    double H  = x_map(0);
+    double tR = x_map(1);
+    double sigma = fabs(x_map(2)); // must be non-negative!
+    double tau = x_map(3);
 
     double derivative_H, derivative_tR, derivative_sigma, derivative_tau = 0.0;
     double t_diff, t_diff2, exp1, denominator = 0.0;
@@ -126,10 +134,10 @@ namespace OpenMS
         }
 
         // set the jacobian matrix
-        J(count, 0) = derivative_H * weight;
-        J(count, 1) = derivative_tR * weight;
-        J(count, 2) = derivative_sigma * weight;
-        J(count, 3) = derivative_tau * weight;
+        J_map(count, 0) = derivative_H * weight;
+        J_map(count, 1) = derivative_tR * weight;
+        J_map(count, 2) = derivative_sigma * weight;
+        J_map(count, 3) = derivative_tau * weight;
         ++count;
       }
     }
@@ -175,11 +183,11 @@ namespace OpenMS
   {
     setInitialParameters_(traces);
 
-    Eigen::VectorXd x_init(NUM_PARAMS_);
-    x_init(0) = height_;
-    x_init(1) = apex_rt_;
-    x_init(2) = sigma_;
-    x_init(3) = tau_;
+    std::vector<double> x_init(NUM_PARAMS_);
+    x_init[0] = height_;
+    x_init[1] = apex_rt_;
+    x_init[2] = sigma_;
+    x_init[3] = tau_;
 
     TraceFitter::ModelData data{};
     data.traces_ptr = &traces;
@@ -299,12 +307,12 @@ namespace OpenMS
     return bounds;
   }
 
-  void EGHTraceFitter::getOptimizedParameters_(const Eigen::VectorXd& x_init)
+  void EGHTraceFitter::getOptimizedParameters_(const std::vector<double>& x_init)
   {
-    height_ =  x_init(0);
-    apex_rt_ =  x_init(1);
-    sigma_ =  x_init(2);
-    tau_ =  x_init(3);
+    height_ =  x_init[0];
+    apex_rt_ =  x_init[1];
+    sigma_ =  x_init[2];
+    tau_ =  x_init[3];
 
     // we set alpha to 0.04 which is conceptually equal to
     // 2.5 sigma for lower and upper bound

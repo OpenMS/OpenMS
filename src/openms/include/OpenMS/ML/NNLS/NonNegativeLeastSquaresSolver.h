@@ -9,6 +9,7 @@
 #pragma once
 
 #include <OpenMS/DATASTRUCTURES/Matrix.h>
+#include <vector>
 
 namespace OpenMS
 {
@@ -28,7 +29,7 @@ public:
     };
 
     /**
-      @brief This is a wrapper for the external nnls library for the non-negative least square problem Ax=b, where x>0
+      @brief Solve the non-negative least square problem Ax=b, where x>0
 
       @param A Input matrix A of size m x n
       @param b Input vector (OpenMS::Matrix with one column) b of size m x 1
@@ -37,19 +38,39 @@ public:
 
       @throws Exception::InvalidParameters if Matrix dimensions do not fit
     */
-    static Int solve(const Matrix<double> & A, const Matrix<double> & b, Matrix<double> & x);
+    static Int solve(const Matrix<double>& A, const Matrix<double>& b, Matrix<double>& x);
 
     /**
-      @brief This is a wrapper for the external nnls library for the non-negative least square problem Ax=b, where x>0. Works without copies but inputs will be modified.
+      @brief Solve the non-negative least square problem Ax=b, where x>0. Works in-place.
 
-      @param A Input pointer to Eigen::MatrixXd A of size m x n (Note: due to an in-place algorithm, A will be modified!)
-      @param b Input vector b of size m (Note: due to an in-place algorithm, b will be modified!)‚
-      @param x Output vector with non-negative least square solution of size n. Contents will be overwritten!‚
+      This version works directly on raw buffers and modifies inputs in-place for efficiency.
+
+      @param A Input matrix A of size m x n (column-major storage). Will be modified!
+      @param A_rows Number of rows in A
+      @param A_cols Number of columns in A
+      @param b Input vector b of size m. Will be modified!
+      @param x Output vector with non-negative least square solution of size n. Contents will be overwritten!
       @return status of solution (either NonNegativeLeastSquaresSolver::SOLVED, NonNegativeLeastSquaresSolver::ITERATION_EXCEEDED)
 
       @throws Exception::InvalidParameters if Matrix dimensions do not fit
     */
-    static Int solve(Matrix<double>::EigenMatrixType& A, std::vector<double>& b, std::vector<double>& x);
+    static Int solve(double* A, int A_rows, int A_cols,
+                     std::vector<double>& b, std::vector<double>& x);
+
+    /**
+      @brief Solve the non-negative least square problem Ax=b using Matrix and vectors.
+
+      This is a convenience overload that works with OpenMS Matrix and std::vector.
+      Note: The matrix A will be modified during computation!
+
+      @param A Input matrix A of size m x n. Will be modified!
+      @param b Input vector b of size m. Will be modified!
+      @param x Output vector with non-negative least square solution of size n.
+      @return status of solution (either NonNegativeLeastSquaresSolver::SOLVED, NonNegativeLeastSquaresSolver::ITERATION_EXCEEDED)
+
+      @throws Exception::InvalidParameters if Matrix dimensions do not fit
+    */
+    static Int solve(Matrix<double>& A, std::vector<double>& b, std::vector<double>& x);
   };
 
 } // namespace OpenMS
