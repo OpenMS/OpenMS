@@ -51,7 +51,7 @@ namespace OpenMS
    * Then, the mobilogram of each m/z peak centroid is retrieved using the m/z peak FWHM.
    * Peak picking algorithm is applied to the mobilogram to resolve isobaric species with different ion mobility measurement.
    *
-   * @param spectrum Spectrum containing ion mobility data in its FloatDataArrays
+   * @param[in,out] spectrum Spectrum containing ion mobility data in its FloatDataArrays
    */
     void pickIMTraces(MSSpectrum& spectrum);
 
@@ -74,7 +74,7 @@ namespace OpenMS
      *
      * Uses parameters pickIMCluster:ppm_tolerance_cluster and pickIMCluster:im_tolerance_cluster.
      *
-     * @param spec Spectrum containing ion mobility data in its FloatDataArrays
+     * @param[in,out] spec Spectrum containing ion mobility data in its FloatDataArrays
      *
      * @throws Exception::MissingInformation if input spectrum lacks ion mobility data
      *
@@ -97,7 +97,7 @@ namespace OpenMS
      * This function processes an MS spectrum containing ion mobility data and
      * extracts IM elution profiles based on the configured ppm tolerance.
      *
-     * @param input Spectrum containing ion mobility data in its FloatDataArrays
+     * @param[in,out] input Spectrum containing ion mobility data in its FloatDataArrays
      */
     void pickIMElutionProfiles(MSSpectrum& input) const;
 
@@ -113,10 +113,10 @@ namespace OpenMS
      *
      * By default, this function assumes the tolerance provided is in parts per million.
      * But it can be adjusted to use absolute value tolerance.
-     * @param input_spectrum Sorted raw spectrum with duplicate peaks due to scan merging or presence of ion mobility data.
-     * @param output_spectrum Output spectrum containing the summed peaks.
-     * @param tolerance Mass tolerance between peaks
-     * @param use_ppm Whether to use parts per million tolerance. If set to False, absolute tolerance will be used.
+     * @param[in] input_spectrum Sorted raw spectrum with duplicate peaks due to scan merging or presence of ion mobility data.
+     * @param[out] output_spectrum Output spectrum containing the summed peaks.
+     * @param[in] tolerance Mass tolerance between peaks
+     * @param[in] use_ppm Whether to use parts per million tolerance. If set to False, absolute tolerance will be used.
      */
     void sumFrame_(const MSSpectrum& input_spectrum, MSSpectrum& output_spectrum, double tolerance = 0.01, bool use_ppm = true);
 

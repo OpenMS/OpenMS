@@ -55,32 +55,32 @@ namespace OpenMS
     /*!
       @brief Convert IDs from legacy peptide/protein identifications in a feature map
 
-      @param features Feature map containing IDs in legacy format
-      @param clear_original Clear original IDs after conversion?
+      @param[in,out] features Feature map containing IDs in legacy format
+      @param[in] clear_original Clear original IDs after conversion?
     */
     static void importFeatureIDs(FeatureMap& features, bool clear_original = true);
 
     /*!
       @brief Convert IDs in a feature map to legacy peptide/protein identifications
 
-      @param features Feature map containing IDs in new format
-      @param clear_original Clear original IDs after conversion?
+      @param[in,out] features Feature map containing IDs in new format
+      @param[in] clear_original Clear original IDs after conversion?
     */
     static void exportFeatureIDs(FeatureMap& features, bool clear_original = true);
 
     /*!
       @brief Convert IDs from legacy peptide/protein identifications in a consensus map
 
-      @param consensus Consensus map containing IDs in legacy format
-      @param clear_original Clear original IDs after conversion?
+      @param[in,out] consensus Consensus map containing IDs in legacy format
+      @param[in] clear_original Clear original IDs after conversion?
     */
     static void importConsensusIDs(ConsensusMap& consensus, bool clear_original = true);
 
     /*!
       @brief Convert IDs in a consensus map to legacy peptide/protein identifications
 
-      @param consensus Consensus map containing IDs in new format
-      @param clear_original Clear original IDs after conversion?
+      @param[in,out] consensus Consensus map containing IDs in new format
+      @param[in] clear_original Clear original IDs after conversion?
     */
     static void exportConsensusIDs(ConsensusMap& consensus, bool clear_original = true);
 

@@ -32,7 +32,7 @@ namespace OpenMS
     /**
     @brief Sets the 'mass' metavalue to all PeptideHits by computing the theoretical mass
 
-    @param features FeatureMap with PeptideHits
+    @param[in,out] features FeatureMap with PeptideHits
     **/
     void compute(FeatureMap& features);
 

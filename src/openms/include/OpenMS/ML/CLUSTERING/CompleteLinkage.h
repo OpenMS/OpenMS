@@ -50,11 +50,11 @@ public:
   elements of their clusters. After @p threshold is exceeded, @p cluster_tree is filled with dummy clusteringsteps (children: (0,1), distance:-1) to
   the root.
 
-  @param original_distance Contains the distances of the elements to be clustered, will be changed during clustering process, make sure to have a copy
+  @param[in,out] original_distance Contains the distances of the elements to be clustered, will be changed during clustering process, make sure to have a copy
   or be able to redo
-  @param cluster_tree Represents the clustering, each node contains the next merged clusters (not element indices) and their distance, strict order is
+  @param[in] cluster_tree Represents the clustering, each node contains the next merged clusters (not element indices) and their distance, strict order is
   kept: left_child < right_child
-  @param threshold The minimal distance from which on cluster merging is considered unrealistic. By default set to 1, i.e. complete
+  @param[in] threshold The minimal distance from which on cluster merging is considered unrealistic. By default set to 1, i.e. complete
   clustering until only one cluster remains
   
   @throw ClusterFunctor::InsufficientInput thrown if input is <2.

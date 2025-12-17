@@ -56,13 +56,13 @@ public:
       - peaks are picked
       - the accurate mass search for all the picked peaks is performed
 
-      The intermediate summed spectra and picked peaks can be saved to the filesystem. 
-      Also, the results of the accurate mass search and the signal-to-noise information 
+      The intermediate summed spectra and picked peaks can be saved to the filesystem.
+      Also, the results of the accurate mass search and the signal-to-noise information
       of the resulting spectrum is saved.
 
-      @param experiment  Input MSExperiment
-      @param n_seconds Input number of seconds
-      @param load_cached_spectrum Load the cached picked spectrum if exists
+      @param[in] experiment  Input MSExperiment
+      @param[in] n_seconds Input number of seconds
+      @param[in] load_cached_spectrum Load the cached picked spectrum if exists
       @param[out] output Output of the accurate mass search results
       @return a boolean indicating if the picked spectrum was loaded from the cached file
     */
@@ -71,20 +71,20 @@ public:
     /**
       @brief Cut the time axis of the experiment from 0 to @p n_seconds
 
-      @param experiment  Input MSExperiment
-      @param n_seconds Input number of seconds
-      @param output   [out] Spectra with retention time less than @p n_seconds
+      @param[in] experiment  Input MSExperiment
+      @param[in] n_seconds Input number of seconds
+      @param[out] output   Spectra with retention time less than @p n_seconds
     */
     void cutForTime(const MSExperiment& experiment, const float n_seconds, std::vector<MSSpectrum>& output);
 
     /**
       @brief Sum the spectra with different retention times into one.
 
-      The bin size for summing the intensities is defined as mz / (resolution*4) 
+      The bin size for summing the intensities is defined as mz / (resolution*4)
       for all the mzs taken with the @p bin_step defined in the parameters.
-      Uses `SpectrumAddition::addUpSpectra` function with the sliding bin size parameter. 
+      Uses `SpectrumAddition::addUpSpectra` function with the sliding bin size parameter.
 
-      @param input  Input vector of spectra
+      @param[in] input  Input vector of spectra
       @return a spectrum
     */
     MSSpectrum mergeAlongTime(const std::vector<OpenMS::MSSpectrum>& input);
@@ -92,7 +92,7 @@ public:
     /**
       @brief Pick peaks from the summed spectrum
 
-      @param input  Input vector of spectra
+      @param[in] input  Input vector of spectra
       @return a spectrum with picked peaks
     */
     MSSpectrum extractPeaks(const MSSpectrum& input);
@@ -102,7 +102,7 @@ public:
 
       Applies `SavitzkyGolayFilter` and `PeakPickerHiRes`
 
-      @param input  Input a picked spectrum
+      @param[in] input  Input a picked spectrum
       @return a feature map with the peaks converted to features and polarity from the parameters
     */
     FeatureMap convertToFeatureMap(const MSSpectrum& input);
@@ -112,7 +112,7 @@ public:
 
       Uses `SignalToNoiseEstimatorMedianRapid`
 
-      @param input  Input a picked spectrum
+      @param[in] input  Input a picked spectrum
       @return a spectrum object storing logSN information
     */
     MSSpectrum trackNoise(const MSSpectrum& input);
@@ -122,8 +122,8 @@ public:
 
       Uses `AccurateMassSearchEngine`
 
-      @param input  Input a feature map
-      @param output  [out] mzTab file with the accurate mass search results
+      @param[in,out] input  Input a feature map
+      @param[out] output  mzTab file with the accurate mass search results
     */
     void runAccurateMassSearch(FeatureMap& input, OpenMS::MzTab& output);
 

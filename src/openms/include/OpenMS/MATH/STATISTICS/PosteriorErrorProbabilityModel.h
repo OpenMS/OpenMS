@@ -60,12 +60,12 @@ public:
 
       /**
        * @brief extract and transform score types to a range and score orientation that the PEP model can handle
-       * @param protein_ids the protein identifications
-       * @param peptide_ids the peptide identifications
-       * @param split_charge whether different charge states should be treated separately
-       * @param top_hits_only only consider rank 1
-       * @param target_decoy_available whether target decoy information is stored as meta value
-       * @param fdr_for_targets_smaller fdr threshold for targets
+       * @param[in] protein_ids the protein identifications
+       * @param[in] peptide_ids the peptide identifications
+       * @param[in] split_charge whether different charge states should be treated separately
+       * @param[in] top_hits_only only consider rank 1
+       * @param[in] target_decoy_available whether target decoy information is stored as meta value
+       * @param[in] fdr_for_targets_smaller fdr threshold for targets
        * @return engine (and optional charge state) id -> vector of triplets (score, target, decoy)
        * @note supported engines are: XTandem,OMSSA,MASCOT,SpectraST,MyriMatch,SimTandem,MSGFPlus,MS-GF+,Comet,Sage
        */
@@ -79,15 +79,15 @@ public:
 
       /**
        * @brief update score entries with PEP (or 1-PEP) estimates
-       * @param PEP_model the PEP model used to update the scores
-       * @param search_engine the score of search_engine will be updated
-       * @param charge identifications with the given charge will be updated
-       * @param prob_correct report 1-PEP
-       * @param split_charge if charge states have been treated separately
-       * @param protein_ids the protein identifications
-       * @param peptide_ids the peptide identifications
-       * @param unable_to_fit_data there was a problem fitting the data (probabilities are all smaller 0 or larger 1)
-       * @param data_might_not_be_well_fit fit was successful but of bad quality (probabilities are all smaller 0.8 and larger 0.2)
+       * @param[in] PEP_model the PEP model used to update the scores
+       * @param[in] search_engine the score of search_engine will be updated
+       * @param[in] charge identifications with the given charge will be updated
+       * @param[in] prob_correct report 1-PEP
+       * @param[in] split_charge if charge states have been treated separately
+       * @param[in,out] protein_ids the protein identifications
+       * @param[in,out] peptide_ids the peptide identifications
+       * @param[out] unable_to_fit_data there was a problem fitting the data (probabilities are all smaller 0 or larger 1)
+       * @param[out] data_might_not_be_well_fit fit was successful but of bad quality (probabilities are all smaller 0.8 and larger 0.2)
        * @note supported engines are: XTandem,OMSSA,MASCOT,SpectraST,MyriMatch,SimTandem,MSGFPlus,MS-GF+,Comet
        */
       static void updateScores(
@@ -105,8 +105,8 @@ public:
           @brief fits the distributions to the data points(search_engine_scores). Estimated parameters for the distributions are saved in member variables.
           computeProbability can be used afterwards.
           Uses two Gaussians to fit. And Gauss+Gauss or Gumbel+Gauss to plot and calculate final probabilities.
-          @param search_engine_scores a vector which holds the data points
-          @param outlier_handling Valid values are in the Param 'outlier_handling'
+          @param[in,out] search_engine_scores a vector which holds the data points
+          @param[in] outlier_handling Valid values are in the Param 'outlier_handling'
           @return true if algorithm has run through. Else false will be returned. In that case no plot and no probabilities are calculated.
           @note the vector is sorted from smallest to biggest value!
       */
@@ -116,8 +116,8 @@ public:
           @brief fits the distributions to the data points(search_engine_scores). Estimated parameters for the distributions are saved in member variables.
           computeProbability can be used afterwards.
           Uses Gumbel+Gauss for everything. Fits Gumbel by maximizing log likelihood.
-          @param search_engine_scores a vector which holds the data points
-          @param outlier_handling Valid values are in the Param 'outlier_handling'
+          @param[in,out] search_engine_scores a vector which holds the data points
+          @param[in] outlier_handling Valid values are in the Param 'outlier_handling'
           @return true if algorithm has run through. Else false will be returned. In that case no plot and no probabilities are calculated.
           @note the vector is sorted from smallest to biggest value!
       */
@@ -125,9 +125,9 @@ public:
 
       /**
           @brief fits the distributions to the data points(search_engine_scores) and writes the computed probabilities into the given vector (the second one).
-          @param search_engine_scores a vector which holds the data points
+          @param[in,out] search_engine_scores a vector which holds the data points
           @param[out] probabilities Probability for each data point after running this function. If it has some content it will be overwritten.
-          @param outlier_handling Valid values are in the Param 'outlier_handling'
+          @param[in] outlier_handling Valid values are in the Param 'outlier_handling'
           @return true if algorithm has run through. Else false will be returned. In that case no plot and no probabilities are calculated.
           @note the vectors are sorted from smallest to biggest value!
       */
@@ -154,8 +154,8 @@ public:
           std::vector<double>& incorrect_posterior) const;
 
       /**
-       * @param x_scores Scores observed "on the x-axis"
-       * @param incorrect_posteriors Posteriors/responsibilities of belonging to the incorrect component
+       * @param[in] x_scores Scores observed "on the x-axis"
+       * @param[in] incorrect_posteriors Posteriors/responsibilities of belonging to the incorrect component
        * @return New estimate for the mean of the correct (pair.first) and incorrect (pair.second) component
        * @note only for Gaussian estimates
        */
@@ -163,9 +163,9 @@ public:
                                                                  const std::vector<double> &incorrect_posteriors);
 
       /**
-       * @param x_scores Scores observed "on the x-axis"
-       * @param incorrect_posteriors Posteriors/responsibilities of belonging to the incorrect component
-       * @param pos_neg_mean Positive(correct) and negative(incorrect) means, respectively
+       * @param[in] x_scores Scores observed "on the x-axis"
+       * @param[in] incorrect_posteriors Posteriors/responsibilities of belonging to the incorrect component
+       * @param[in] pos_neg_mean Positive(correct) and negative(incorrect) means, respectively
        * @return New estimate for the std. deviation of the correct (pair.first) and incorrect (pair.second) component
        * @note only for Gaussian estimates
        */
@@ -239,15 +239,15 @@ private:
       void processOutliers_(std::vector<double>& x_scores, const String& outlier_handling) const;
 
       /// transform different score types to a range and score orientation that the model can handle (engine string is assumed in upper-case)
-      /// @param engine the search engine name as in the SE param object
-      /// @param hit the PeptideHit to extract transformed scores from
-      /// @param current_score_type the current score type of the PeptideIdentification to take precedence
+      /// @param[in] engine the search engine name as in the SE param object
+      /// @param[in] hit the PeptideHit to extract transformed scores from
+      /// @param[in] current_score_type the current score type of the PeptideIdentification to take precedence
       static double transformScore_(const String& engine, const PeptideHit& hit, const String& current_score_type);
 
       /// gets a specific score (either main score [preferred] or metavalue)
-      /// @param requested_score_types the requested score_types in order of preference (will be tested with a "_score" suffix as well)
-      /// @param hit the PeptideHit to extract from
-      /// @param actual_score_type the current score type to take preference if matching
+      /// @param[in] requested_score_types the requested score_types in order of preference (will be tested with a "_score" suffix as well)
+      /// @param[in] hit the PeptideHit to extract from
+      /// @param[in] actual_score_type the current score type to take preference if matching
       static double getScore_(const std::vector<String>& requested_score_types, const PeptideHit & hit, const String& actual_score_type);
 
       /// assignment operator (not implemented)

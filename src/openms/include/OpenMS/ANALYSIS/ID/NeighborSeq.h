@@ -31,7 +31,7 @@ namespace OpenMS
 
     public:
       /// Constructor
-      /// @param digested_relevant_peptides A vector of digested relevant peptides
+      /// @param[in] digested_relevant_peptides A vector of digested relevant peptides
       NeighborSeq(std::vector<AASequence>&& digested_relevant_peptides);
 
       /**
@@ -39,7 +39,7 @@ namespace OpenMS
        * 
        * Includes all b and y ions with charge 1 (even the prefix ions, e.g. b1), but no internal ions.
        * 
-       * @param peptide_sequence The peptide sequence for which to generate the spectrum.
+       * @param[in] peptide_sequence The peptide sequence for which to generate the spectrum.
        * @return The generated theoretical spectrum.
        */
       MSSpectrum generateSpectrum(const AASequence& peptide_sequence);
@@ -49,10 +49,10 @@ namespace OpenMS
        *
        * All peaks are considered. Use generateSpectrum() to generate theoretical spectra with b/y ions.
        *
-       * @param spec1 The first theoretical spectrum.
-       * @param spec2 The second theoretical spectrum.
-       * @param min_shared_ion_fraction The minimal required proportion of shared ions in [0, 1]
-       * @param mz_bin_size Bin size for the m/z values, which determines if two peaks are considered to be the same (typically, 0.05 for high resolution and 1.0005079 for low resolution).
+       * @param[in] spec1 The first theoretical spectrum.
+       * @param[in] spec2 The second theoretical spectrum.
+       * @param[in] min_shared_ion_fraction The minimal required proportion of shared ions in [0, 1]
+       * @param[in] mz_bin_size Bin size for the m/z values, which determines if two peaks are considered to be the same (typically, 0.05 for high resolution and 1.0005079 for low resolution).
        * @return True if the spectra share a sufficient number of ions, false otherwise.
        */
       static bool isNeighborSpectrum(const MSSpectrum& spec1, const MSSpectrum& spec2, const double min_shared_ion_fraction, const double mz_bin_size);
@@ -61,9 +61,9 @@ namespace OpenMS
        *
        * All peaks are considered. Use generateSpectrum() to generate theoretical spectra with b/y ions.
        * 
-       * @param spec1 The first theoretical spectrum.
-       * @param spec2 The second theoretical spectrum.
-       * @param mz_bin_size Bin size for the m/z values, which determines if two peaks are considered to be the same.
+       * @param[in] spec1 The first theoretical spectrum.
+       * @param[in] spec2 The second theoretical spectrum.
+       * @param[in] mz_bin_size Bin size for the m/z values, which determines if two peaks are considered to be the same.
        * @return The number of shared ions
        */
       static int computeSharedIonCount(const MSSpectrum& spec1, const MSSpectrum& spec2, const double& mz_bin_size);
@@ -73,11 +73,11 @@ namespace OpenMS
        * 
        * Also updates the internal statistics, which can be retrieved using getNeighborStats().
        * 
-       * @param neighbor_candidate The peptide sequence (from a neighbor protein) to compare against the internal relevant peptides (see constructor).
-       * @param mass_tolerance_pc Maximal precursor mass difference (in Da or ppm; see 'mass_tolerance_pc_ppm') between neighbor and relevant peptide.
-       * @param mass_tolerance_pc_ppm Is 'mass_tolerance_pc' in Da or ppm?
-       * @param min_shared_ion_fraction The ion tolerance for neighbor peptides.
-       * @param mz_bin_size Bin size for spectra m/z comparison (the original study suggests 0.05 Th for high-res and 1.0005079 Th for low-res spectra).
+       * @param[in] neighbor_candidate The peptide sequence (from a neighbor protein) to compare against the internal relevant peptides (see constructor).
+       * @param[in] mass_tolerance_pc Maximal precursor mass difference (in Da or ppm; see 'mass_tolerance_pc_ppm') between neighbor and relevant peptide.
+       * @param[in] mass_tolerance_pc_ppm Is 'mass_tolerance_pc' in Da or ppm?
+       * @param[in] min_shared_ion_fraction The ion tolerance for neighbor peptides.
+       * @param[in] mz_bin_size Bin size for spectra m/z comparison (the original study suggests 0.05 Th for high-res and 1.0005079 Th for low-res spectra).
        * @return true if @p neighbor_candidate is neighbor to one or more relevant peptides, false otherwise.
        */
       bool isNeighborPeptide(const AASequence& neighbor_candidate,
@@ -139,9 +139,9 @@ namespace OpenMS
       
       /**
        * @brief Finds candidate positions based on a given mono-isotopic weight and mass tolerance.
-       * @param mono_weight The mono-isotopic weight to find candidates for.
-       * @param mass_tolerance The allowed tolerance for matching the mass.
-       * @param mass_tolerance_pc_ppm Whether the mass tolerance is in ppm.
+       * @param[in] mono_weight The mono-isotopic weight to find candidates for.
+       * @param[in] mass_tolerance The allowed tolerance for matching the mass.
+       * @param[in] mass_tolerance_pc_ppm Whether the mass tolerance is in ppm.
        * @return A pair of begin/end iterators into mass_position_map_ for the candidate positions
        */
       auto findCandidatePositions_(const double mono_weight, double mass_tolerance, const bool mass_tolerance_pc_ppm);

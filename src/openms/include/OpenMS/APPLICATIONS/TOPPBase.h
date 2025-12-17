@@ -159,12 +159,12 @@ public:
     /**
       @brief Constructor
 
-      @param name Tool name.
-      @param description Short description of the tool (one line).
-      @param official If this is an official TOPP tool contained in the OpenMS/TOPP release.
+      @param[in] name Tool name.
+      @param[in] description Short description of the tool (one line).
+      @param[in] official If this is an official TOPP tool contained in the OpenMS/TOPP release.
              If @em true the tool name is checked against the list of TOPP tools and a warning printed if missing.
-      @param citations Add one or more citations if they are associated specifically to this TOPP tool; they will be printed during `--help`
-      @param toolhandler_test Check if this tool is registered with the ToolHandler (disable for unit tests only)
+      @param[in] citations Add one or more citations if they are associated specifically to this TOPP tool; they will be printed during `--help`
+      @param[in] toolhandler_test Check if this tool is registered with the ToolHandler (disable for unit tests only)
     */
     TOPPBase(const String& name, const String& description, bool official = true, const std::vector<Citation>& citations = {}, bool toolhandler_test = true);
 
@@ -177,7 +177,7 @@ public:
     /**
       @brief Sets the maximal number of usable threads
 
-      @param num_threads The number of threads that should be usable.
+      @param[in] num_threads The number of threads that should be usable.
 
       @note This method only works if %OpenMS is compiled with %OpenMP support.
     */
@@ -277,10 +277,10 @@ public:
 
       Parses command line arguments according to the current parameter definitions and returns the result as a Param object.
 
-      @param argc @p argc variable from command line
-      @param argv @p argv variable from command line
-      @param misc Key to store a StringList of all non-option arguments
-      @param unknown Key to store a StringList of all unknown options
+      @param[in] argc @p argc variable from command line
+      @param[in] argv @p argv variable from command line
+      @param[in] misc Key to store a StringList of all non-option arguments
+      @param[in] unknown Key to store a StringList of all unknown options
 
       @return A Param object representing the parameters set on the command line.
     */
@@ -434,9 +434,9 @@ protected:
 
       A ParamEntry of type String is turned into a flag if its default value is "false" and its valid strings are "true" and "false".
 
-      @param entry The ParamEntry that defines name, default value, description, restrictions, and required-/advancedness (via tags) of the parameter.
-      @param argument Argument description text for the help output.
-      @param full_name Full name of the parameter, if different from the name in the ParamEntry (ParamEntry names cannot contain sections)
+      @param[in] entry The ParamEntry that defines name, default value, description, restrictions, and required-/advancedness (via tags) of the parameter.
+      @param[in] argument Argument description text for the help output.
+      @param[in] full_name Full name of the parameter, if different from the name in the ParamEntry (ParamEntry names cannot contain sections)
     */
     ParameterInformation paramEntryToParameterInformation_(const Param::ParamEntry& entry, const String& argument = "", const String& full_name = "") const;
 
@@ -448,12 +448,12 @@ protected:
     /**
       @brief Registers a string option.
 
-      @param name Name of the option in the command line and the INI file
-      @param argument Argument description text for the help output
-      @param default_value Default argument
-      @param description Description of the parameter. Indentation of newline is done automatically.
-      @param required If the user has to provide a value i.e. if the value has to differ from the default (checked in get-method)
-      @param advanced If @em true, this parameter is advanced and by default hidden in the GUI and during --help.
+      @param[in] name Name of the option in the command line and the INI file
+      @param[in] argument Argument description text for the help output
+      @param[in] default_value Default argument
+      @param[in] description Description of the parameter. Indentation of newline is done automatically.
+      @param[in] required If the user has to provide a value i.e. if the value has to differ from the default (checked in get-method)
+      @param[in] advanced If @em true, this parameter is advanced and by default hidden in the GUI and during --help.
     */
     void registerStringOption_(const String& name, const String& argument, const String& default_value, const String& description, bool required = true, bool advanced = false);
 
@@ -483,13 +483,13 @@ protected:
       when the option is accessed in the TOPP tool. 
       This may also enable lookup on the PATH or skipping of the existence-check (see @p tags).
 
-      @param name Name of the option in the command line and the INI file
-      @param argument Argument description text for the help output
-      @param default_value Default argument
-      @param description Description of the parameter. Indentation of newline is done automatically.
-      @param required If the user has to provide a value i.e. if the value has to differ from the default (verified in getStringOption())
-      @param advanced If @em true, this parameter is advanced and by default hidden in the GUI and during --help.
-      @param tags A list of tags, extending/omitting automated checks on the input file (e.g. when its an executable)
+      @param[in] name Name of the option in the command line and the INI file
+      @param[in] argument Argument description text for the help output
+      @param[in] default_value Default argument
+      @param[in] description Description of the parameter. Indentation of newline is done automatically.
+      @param[in] required If the user has to provide a value i.e. if the value has to differ from the default (verified in getStringOption())
+      @param[in] advanced If @em true, this parameter is advanced and by default hidden in the GUI and during --help.
+      @param[in] tags A list of tags, extending/omitting automated checks on the input file (e.g. when its an executable)
                       Valid tags: @em 'skipexists' - will prevent checking if the given file really exists (useful for partial paths, e.g. in OpenMS/share/... which will be resolved by the TOPP tool internally)
                                   @em 'is_executable' - checks existence of the file first using its actual value, and upon failure also using the PATH environment (and common exe file endings on Windows, e.g. .exe and .bat).
     */
@@ -501,12 +501,12 @@ protected:
       Output files behave like string options, but are automatically checked with outputFileWritable_()
       when the option is accessed in the TOPP tool.
 
-      @param name Name of the option in the command line and the INI file
-      @param argument Argument description text for the help output
-      @param default_value Default argument
-      @param description Description of the parameter. Indentation of newline is done automatically.
-      @param required If the user has to provide a value i.e. if the value has to differ from the default (checked in get-method)
-      @param advanced If @em true, this parameter is advanced and by default hidden in the GUI and during --help.
+      @param[in] name Name of the option in the command line and the INI file
+      @param[in] argument Argument description text for the help output
+      @param[in] default_value Default argument
+      @param[in] description Description of the parameter. Indentation of newline is done automatically.
+      @param[in] required If the user has to provide a value i.e. if the value has to differ from the default (checked in get-method)
+      @param[in] advanced If @em true, this parameter is advanced and by default hidden in the GUI and during --help.
     */
     void registerOutputFile_(const String& name, const String& argument, const String& default_value, const String& description, bool required = true, bool advanced = false);
 
@@ -523,12 +523,12 @@ protected:
             separate outputs). This could be left empty in case of an unknown amount of different extensions that
             are produced but is highly recommended.
 
-      @param name Name of the option in the command line and the INI file
-      @param argument Argument description text for the help output
-      @param default_value Default value (remember, no extension is specified here)
-      @param description Description of the parameter. Indentation of newline is done automatically.
-      @param required If the user has to provide a value i.e. if the value has to differ from the default (checked in get-method)
-      @param advanced If @em true, this parameter is advanced and by default hidden in the GUI and during --help.
+      @param[in] name Name of the option in the command line and the INI file
+      @param[in] argument Argument description text for the help output
+      @param[in] default_value Default value (remember, no extension is specified here)
+      @param[in] description Description of the parameter. Indentation of newline is done automatically.
+      @param[in] required If the user has to provide a value i.e. if the value has to differ from the default (checked in get-method)
+      @param[in] advanced If @em true, this parameter is advanced and by default hidden in the GUI and during --help.
     */
     void registerOutputPrefix_(const String& name, const String& argument, const String& default_value, const String& description, bool required = true, bool advanced = false);
 
@@ -537,12 +537,12 @@ protected:
       
       @note Setting format(s) via setValidFormat_ for an output directory is not possible as directories do not have a file extension.
 
-      @param name Name of the option in the command line and the INI file
-      @param argument Argument description text for the help output
-      @param default_value Default value
-      @param description Description of the parameter. Indentation of newline is done automatically.
-      @param required If the user has to provide a value i.e. if the value has to differ from the default (checked in get-method)
-      @param advanced If @em true, this parameter is advanced and by default hidden in the GUI and during --help.
+      @param[in] name Name of the option in the command line and the INI file
+      @param[in] argument Argument description text for the help output
+      @param[in] default_value Default value
+      @param[in] description Description of the parameter. Indentation of newline is done automatically.
+      @param[in] required If the user has to provide a value i.e. if the value has to differ from the default (checked in get-method)
+      @param[in] advanced If @em true, this parameter is advanced and by default hidden in the GUI and during --help.
     */
     void registerOutputDir_(const String& name, const String& argument, const String& default_value, const String& description, bool required = true, bool advanced = false);
 
@@ -565,12 +565,12 @@ protected:
     /**
       @brief Registers a double option.
 
-      @param name Name of the option in the command line and the INI file
-      @param argument Argument description text for the help output
-      @param default_value Default argument
-      @param description Description of the parameter. Indentation of newline is done automatically.
-      @param required If the user has to provide a value i.e. if the value has to differ from the default (checked in get-method)
-      @param advanced If @em true, this parameter is advanced and by default hidden in the GUI and during --help.
+      @param[in] name Name of the option in the command line and the INI file
+      @param[in] argument Argument description text for the help output
+      @param[in] default_value Default argument
+      @param[in] description Description of the parameter. Indentation of newline is done automatically.
+      @param[in] required If the user has to provide a value i.e. if the value has to differ from the default (checked in get-method)
+      @param[in] advanced If @em true, this parameter is advanced and by default hidden in the GUI and during --help.
     */
     void registerDoubleOption_(const String& name, const String& argument, double default_value, const String& description, bool required = true, bool advanced = false);
 
@@ -602,12 +602,12 @@ protected:
     /**
       @brief Registers an integer option.
 
-      @param name Name of the option in the command line and the INI file
-      @param argument Argument description text for the help output
-      @param default_value Default argument
-      @param description Description of the parameter. Indentation of newline is done automatically.
-      @param required If the user has to provide a value i.e. if the value has to differ from the default (checked in get-method)
-      @param advanced If @em true, this parameter is advanced and by default hidden in the GUI and during --help.
+      @param[in] name Name of the option in the command line and the INI file
+      @param[in] argument Argument description text for the help output
+      @param[in] default_value Default argument
+      @param[in] description Description of the parameter. Indentation of newline is done automatically.
+      @param[in] required If the user has to provide a value i.e. if the value has to differ from the default (checked in get-method)
+      @param[in] advanced If @em true, this parameter is advanced and by default hidden in the GUI and during --help.
     */
     void registerIntOption_(const String& name, const String& argument,
                             Int default_value, const String& description,
@@ -616,12 +616,12 @@ protected:
     /**
       @brief Registers a list of integers option.
 
-      @param name Name of the option in the command line and the INI file
-      @param argument Argument description text for the help output
-      @param default_value Default argument
-      @param description Description of the parameter. Indentation of newline is done automatically.
-      @param required If the user has to provide a value i.e. if the value has to differ from the default (checked in get-method)
-      @param advanced If @em true, this parameter is advanced and by default hidden in the GUI and during --help.
+      @param[in] name Name of the option in the command line and the INI file
+      @param[in] argument Argument description text for the help output
+      @param[in] default_value Default argument
+      @param[in] description Description of the parameter. Indentation of newline is done automatically.
+      @param[in] required If the user has to provide a value i.e. if the value has to differ from the default (checked in get-method)
+      @param[in] advanced If @em true, this parameter is advanced and by default hidden in the GUI and during --help.
 
     */
     void registerIntList_(const String& name, const String& argument, const IntList& default_value, const String& description, bool required = true, bool advanced = false);
@@ -629,24 +629,24 @@ protected:
     /**
        @brief Registers a list of doubles option.
 
-       @param name Name of the option in the command line and the INI file
-       @param argument Argument description text for the help output
-       @param default_value Default argument
-       @param description Description of the parameter. Indentation of newline is done automatically.
-       @param required If the user has to provide a value i.e. if the value has to differ from the default (checked in get-method)
-       @param advanced If @em true, this parameter is advanced and by default hidden in the GUI and during --help.
+       @param[in] name Name of the option in the command line and the INI file
+       @param[in] argument Argument description text for the help output
+       @param[in] default_value Default argument
+       @param[in] description Description of the parameter. Indentation of newline is done automatically.
+       @param[in] required If the user has to provide a value i.e. if the value has to differ from the default (checked in get-method)
+       @param[in] advanced If @em true, this parameter is advanced and by default hidden in the GUI and during --help.
      */
     void registerDoubleList_(const String& name, const String& argument, const DoubleList& default_value, const String& description, bool required = true, bool advanced = false);
 
     /**
        @brief Registers a list of strings option.
 
-       @param name Name of the option in the command line and the INI file
-       @param argument Argument description text for the help output
-       @param default_value Default argument
-       @param description Description of the parameter. Indentation of newline is done automatically.
-       @param required If the user has to provide a value i.e. if the value has to differ from the default (checked in get-method)
-       @param advanced If @em true, this parameter is advanced and by default hidden in the GUI and during --help.
+       @param[in] name Name of the option in the command line and the INI file
+       @param[in] argument Argument description text for the help output
+       @param[in] default_value Default argument
+       @param[in] description Description of the parameter. Indentation of newline is done automatically.
+       @param[in] required If the user has to provide a value i.e. if the value has to differ from the default (checked in get-method)
+       @param[in] advanced If @em true, this parameter is advanced and by default hidden in the GUI and during --help.
      */
     void registerStringList_(const String& name, const String& argument, const StringList& default_value, const String& description, bool required = true, bool advanced = false);
 
@@ -656,13 +656,13 @@ protected:
        A list of input files behaves like a StringList, but are automatically checked with inputFileWritable_()
        when the option is accessed in the TOPP tool.
 
-       @param name Name of the option in the command line and the INI file
-       @param argument Argument description text for the help output
-       @param default_value Default argument
-       @param description Description of the parameter. Indentation of newline is done automatically.
-       @param required If the user has to provide a value i.e. if the value has to differ from the default (checked in get-method)
-       @param advanced If @em true, this parameter is advanced and by default hidden in the GUI and during --help.
-       @param tags A list of tags, extending/omitting automated checks on the input file (e.g. when its an executable)
+       @param[in] name Name of the option in the command line and the INI file
+       @param[in] argument Argument description text for the help output
+       @param[in] default_value Default argument
+       @param[in] description Description of the parameter. Indentation of newline is done automatically.
+       @param[in] required If the user has to provide a value i.e. if the value has to differ from the default (checked in get-method)
+       @param[in] advanced If @em true, this parameter is advanced and by default hidden in the GUI and during --help.
+       @param[in] tags A list of tags, extending/omitting automated checks on the input file (e.g. when its an executable)
                        Valid tags: 'skipexists' - will prevent checking if the given file really exists (useful for partial paths, e.g. in OpenMS/share/... which will be resolved by the TOPP tool internally)
                                    'is_executable' - checks existence of the file using the PATH environment (and common exe file endings on Windows, e.g. .exe and .bat).
        */
@@ -674,12 +674,12 @@ protected:
        A list of output files behaves like a StringList, but are automatically checked with outputFileWritable_()
        when the option is accessed in the TOPP tool.
 
-       @param name Name of the option in the command line and the INI file
-       @param argument Argument description text for the help output
-       @param default_value Default argument
-       @param description Description of the parameter. Indentation of newline is done automatically.
-       @param required If the user has to provide a value i.e. if the value has to differ from the default (checked in get-method)
-       @param advanced If @em true, this parameter is advanced and by default hidden in the GUI and during --help.
+       @param[in] name Name of the option in the command line and the INI file
+       @param[in] argument Argument description text for the help output
+       @param[in] default_value Default argument
+       @param[in] description Description of the parameter. Indentation of newline is done automatically.
+       @param[in] required If the user has to provide a value i.e. if the value has to differ from the default (checked in get-method)
+       @param[in] advanced If @em true, this parameter is advanced and by default hidden in the GUI and during --help.
      */
     void registerOutputFileList_(const String& name, const String& argument, const StringList& default_value, const String& description, bool required = true, bool advanced = false);
 
@@ -807,9 +807,9 @@ protected:
       This method does not abort execution of the tool, but will warn the user through stderr!
       It is called automatically in the main method.
 
-      @param param Parameters to check
-      @param filename The source file name
-      @param location Exact location inside the source file
+      @param[in] param Parameters to check
+      @param[in] filename The source file name
+      @param[in] location Exact location inside the source file
     */
     void checkParam_(const Param& param, const String& filename, const String& location) const;
 
@@ -818,9 +818,9 @@ protected:
 
       Checks if String/Format restrictions are met (or throws InvalidParameter() otherwise).
       
-      @param param_value As given via commandline/ini/default
-      @param param_name Name of the parameter (key)
-      @param p All meta information for this param
+      @param[in] param_value As given via commandline/ini/default
+      @param[in] param_name Name of the parameter (key)
+      @param[in] p All meta information for this param
 
     */
     void fileParamValidityCheck_(const StringList& param_value, const String& param_name, const ParameterInformation& p) const;
@@ -835,9 +835,9 @@ protected:
       
       For OutputFile(s), it checks if the file is writeable.
 
-      @param param_value As given via commandline/ini/default
-      @param param_name Name of the parameter (key)
-      @param p All meta information for this param
+      @param[in,out] param_value As given via commandline/ini/default
+      @param[in] param_name Name of the parameter (key)
+      @param[in] p All meta information for this param
 
     */
     void fileParamValidityCheck_(String& param_value, const String& param_name, const ParameterInformation& p) const;
@@ -905,8 +905,8 @@ protected:
       , e.g. "in" which specified the filename (this is useful for error messages when the file cannot be read, so the
       user can immediately see which parameter to change). If no parameter is responsible for the
       name of the input file, then leave @em param_name empty.
-      @param filename An absolute or relative path+filename
-      @param param_name Name of the parameter the filename value was provided by
+      @param[in] filename An absolute or relative path+filename
+      @param[in] param_name Name of the parameter the filename value was provided by
 
       @exception Exception::FileNotFound is thrown if the file is not found
       @exception Exception::FileNotReadable is thrown if the file is not readable
@@ -970,11 +970,11 @@ protected:
 
     /**
        @brief Helper function avoiding repeated code between CTD, JSON and CWL.
-       @param writer a parameter writer, designed to be of type ParamCTDFile,
+       @param[in,out] writer a parameter writer, designed to be of type ParamCTDFile,
                      ParamJSONFile or ParamCWLFile
-       @param write_type The type of file that is being written, typically
+       @param[in] write_type The type of file that is being written, typically
                          write_ctd, write_json or write_cwl.
-       @param fileExtension The extension of the requested tool description file.
+       @param[in] fileExtension The extension of the requested tool description file.
     */
     template <typename Writer>
     void writeToolDescription_(Writer& writer, std::string write_type, std::string fileExtension);
@@ -1009,7 +1009,7 @@ private:
     /**
       @brief Returns the parameter identified by the given name.
 
-      @param name The name of the parameter to search.
+      @param[in] name The name of the parameter to search.
       @exception Exception::UnregisteredParameter is thrown if the parameter was not registered
       @return A reference to the parameter with the given name.
     */

@@ -70,9 +70,9 @@ namespace OpenMS
     /**
      * @brief Analyze delta mass patterns from peptide identifications
      * 
-     * @param peptide_ids List of peptide identifications containing delta mass information
-     * @param use_smoothing Whether to apply smoothing to the delta mass histogram
-     * @param debug Enable debug output
+     * @param[in,out] peptide_ids List of peptide identifications containing delta mass information
+     * @param[in] use_smoothing Whether to apply smoothing to the delta mass histogram
+     * @param[out] debug Enable debug output
      * @return Pair containing delta mass histogram and charge state counts
      */
     std::pair<DeltaMassHistogram, DeltaMassToChargeCount> 
@@ -83,12 +83,12 @@ namespace OpenMS
     /**
      * @brief Map delta masses to known modifications and annotate peptides
      * 
-     * @param delta_mass_histogram Histogram of delta masses
-     * @param charge_histogram Charge state counts for each delta mass
-     * @param peptide_ids List of peptide identifications to annotate (modified in-place)
-     * @param precursor_mass_tolerance Mass tolerance for mapping
-     * @param precursor_mass_tolerance_unit_ppm Whether tolerance is in ppm (true) or Da (false)
-     * @param output_file Optional file path for writing modification summary table
+     * @param[in] delta_mass_histogram Histogram of delta masses
+     * @param[in] charge_histogram Charge state counts for each delta mass
+     * @param[in,out] peptide_ids List of peptide identifications to annotate (modified in-place)
+     * @param[in] precursor_mass_tolerance Mass tolerance for mapping
+     * @param[in] precursor_mass_tolerance_unit_ppm Whether tolerance is in ppm (true) or Da (false)
+     * @param[in] output_file Optional file path for writing modification summary table
      * @return List of modification summaries found
      */
     std::vector<ModificationSummary>
@@ -102,11 +102,11 @@ namespace OpenMS
     /**
      * @brief Complete analysis workflow: analyze patterns and map to modifications
      * 
-     * @param peptide_ids List of peptide identifications (modified in-place)
-     * @param precursor_mass_tolerance Mass tolerance for mapping
-     * @param precursor_mass_tolerance_unit_ppm Whether tolerance is in ppm (true) or Da (false)
-     * @param use_smoothing Whether to apply smoothing to delta mass histogram
-     * @param output_file Optional file path for writing modification summary table
+     * @param[in] peptide_ids List of peptide identifications (modified in-place)
+     * @param[in] precursor_mass_tolerance Mass tolerance for mapping
+     * @param[in] precursor_mass_tolerance_unit_ppm Whether tolerance is in ppm (true) or Da (false)
+     * @param[in] use_smoothing Whether to apply smoothing to delta mass histogram
+     * @param[in] output_file Optional file path for writing modification summary table
      * @return List of modification summaries found
      */
     std::vector<ModificationSummary>

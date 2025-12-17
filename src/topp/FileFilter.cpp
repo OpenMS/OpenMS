@@ -297,11 +297,11 @@ private:
 
   /**
    * @brief Apply RT filtering with block-aware modes
-   * @param exp The MSExperiment to filter; will be reloaded with actual data
-   * @param f The filehandler with filtering options
-   * @param rt_l Lower RT bound
-   * @param rt_u Upper RT bound
-   * @param rt_block_mode The RT cutting mode (RTBlockMode enum)
+   * @param[in] exp The MSExperiment to filter; will be reloaded with actual data
+   * @param[in] f The filehandler with filtering options
+   * @param[in] rt_l Lower RT bound
+   * @param[in] rt_u Upper RT bound
+   * @param[in] rt_block_mode The RT cutting mode (RTBlockMode enum)
    */
   void applyRTBlockFiltering(PeakMap& exp, FileHandler& f, double rt_l, double rt_u, RTBlockMode rt_block_mode)
   {
