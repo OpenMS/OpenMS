@@ -412,6 +412,16 @@
 			<userParam name="cross_link:name" unitName="xsd:string" value="DSS"/>
 			<userParam name="precursor:corrections" unitName="xsd:string" value="[4, 3, 2, 1, 0]"/>
 			<userParam name="modifications:variable_max_per_peptide" unitName="xsd:integer" value="3"/>
+			<userParam name="PeptideIndexer:decoy_string" unitName="xsd:string" value="decoy_"/>
+			<userParam name="PeptideIndexer:decoy_string_position" unitName="xsd:string" value="prefix"/>
+			<userParam name="PeptideIndexer:enzyme" unitName="xsd:string" value="Trypsin"/>
+			<userParam name="PeptideIndexer:enzyme_specificity" unitName="xsd:string" value="full"/>
+			<userParam name="PeptideIndexer:aaa_max" unitName="xsd:integer" value="3"/>
+			<userParam name="PeptideIndexer:mismatches_max" unitName="xsd:integer" value="0"/>
+			<userParam name="PeptideIndexer:IL_equivalent" unitName="xsd:string" value="false"/>
+			<userParam name="PeptideIndexer:allow_nterm_protein_cleavage" unitName="xsd:string" value="true"/>
+			<userParam name="PeptideIndexer:unmatched_action" unitName="xsd:string" value="error"/>
+			<userParam name="PeptideIndexer:missing_decoy_action" unitName="xsd:string" value="warn"/>
 			<userParam name="feature_extractor" unitName="xsd:string" value="TOPP_PSMFeatureExtractor"/>
 			<userParam name="extra_features" unitName="xsd:string" value="precursor_mz_error_ppm,OpenPepXL:score,isotope_error,OpenPepXL:xquest_score,OpenPepXL:xcorr xlink,OpenPepXL:xcorr common,OpenPepXL:match-odds,OpenPepXL:intsum,OpenPepXL:wTIC,OpenPepXL:TIC,OpenPepXL:prescore,OpenPepXL:log_occupancy,OpenPepXL:log_occupancy_alpha,OpenPepXL:log_occupancy_beta,matched_xlink_alpha,matched_xlink_beta,matched_linear_alpha,matched_linear_beta,ppm_error_abs_sum_linear_alpha,ppm_error_abs_sum_linear_beta,ppm_error_abs_sum_xlinks_alpha,ppm_error_abs_sum_xlinks_beta,ppm_error_abs_sum_linear,ppm_error_abs_sum_xlinks,ppm_error_abs_sum_alpha,ppm_error_abs_sum_beta,ppm_error_abs_sum,precursor_total_intensity,precursor_target_intensity,precursor_signal_proportion,precursor_target_peak_count,precursor_residual_peak_count"/>
 			<userParam name="charges" unitName="xsd:string" value="2,3,4,5,6,7,8"/>
