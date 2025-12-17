@@ -137,6 +137,18 @@ SmoothingSpline::SmoothingSpline(const std::vector<double>& xs,
   std::vector<double> DtD;
   build_DtD(n, DtD);
 
+  // scale DtD to account for non-unit knot spacing. The discrete second
+  // difference approximates h^2 f''; the continuous roughness penalty
+  // integral scales like sum((f'')^2) * h. Combining these gives an
+  // effective factor ~ 1 / h^3 for the discrete DtD matrix. Use the
+  // average knot spacing as an approximation.
+  double h = (xs_.back() - xs_.front()) / static_cast<double>(n - 1);
+  if (h > 0.0)
+  {
+    double scale = 1.0 / (h * h * h);
+    for (int i = 0; i < n * n; ++i) DtD[i] *= scale;
+  }
+
   // choose lambda by GCV if requested (lambda <= 0)
   double lambda_opt = lambda;
   if (lambda_opt <= 0.0)
