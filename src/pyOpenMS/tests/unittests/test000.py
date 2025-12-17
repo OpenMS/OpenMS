@@ -4568,6 +4568,71 @@ def testMatrixDouble():
     assert test_matrix.getValue(2, 3) == 120.7
 
 @report
+def testMatrixDoubleColumnMajorOrdering():
+    """
+    @tests: MatrixDouble
+    Verify Matrix preserves row/column ordering through Python<->C++ round-trip.
+    This test catches column-major vs row-major issues that could cause data
+    transposition when passing matrices between numpy and C++.
+    """
+    # Test 1: Non-square matrix with unique values at each position
+    # Using 3x4 matrix where value[i,j] = i*10 + j makes each element unique
+    # and any transposition immediately detectable
+    original = np.array([[0, 1, 2, 3],
+                         [10, 11, 12, 13],
+                         [20, 21, 22, 23]], dtype=np.float64)  # 3 rows x 4 cols
+
+    m = pyopenms.MatrixDouble()
+    m.set_matrix(original)
+
+    # Verify shape preserved (not transposed)
+    assert m.rows() == 3, f"Expected 3 rows, got {m.rows()}"
+    assert m.cols() == 4, f"Expected 4 cols, got {m.cols()}"
+
+    # Verify each element via getValue matches numpy indexing
+    for i in range(3):
+        for j in range(4):
+            expected = original[i, j]
+            actual = m.getValue(i, j)
+            assert actual == expected, \
+                f"getValue mismatch at ({i},{j}): C++={actual}, numpy={expected}"
+
+    # Test 2: Round-trip preservation (numpy -> C++ -> numpy)
+    result = m.get_matrix()
+    assert result.shape == original.shape, \
+        f"Shape mismatch after round-trip: {result.shape} vs {original.shape}"
+    assert np.array_equal(original, result), \
+        f"Data mismatch after round-trip:\nOriginal:\n{original}\nResult:\n{result}"
+
+    # Test 3: Verify view indexing matches getValue for all elements
+    view = m.get_matrix_as_view()
+    assert view.shape == (3, 4), f"View shape mismatch: {view.shape}"
+    for i in range(3):
+        for j in range(4):
+            assert view[i, j] == m.getValue(i, j), \
+                f"View mismatch at ({i},{j}): view={view[i,j]}, getValue={m.getValue(i,j)}"
+
+    # Test 4: Verify modifications through view are reflected in C++ object
+    view[2, 3] = 99.0
+    assert m.getValue(2, 3) == 99.0, "View modification not reflected in C++ object"
+
+    # Test 5: Test with transposed-like access pattern to catch subtle bugs
+    # Create matrix where row index and col index have very different values
+    m2 = pyopenms.MatrixDouble(2, 5, 0.0)  # 2 rows, 5 cols - very non-square
+    for i in range(2):
+        for j in range(5):
+            m2.setValue(i, j, i * 100 + j)
+
+    view2 = m2.get_matrix_as_view()
+    assert view2.shape == (2, 5), f"Non-square view shape wrong: {view2.shape}"
+
+    # Check corners and middle to ensure no transposition
+    assert view2[0, 0] == 0, f"[0,0] = {view2[0,0]}, expected 0"
+    assert view2[0, 4] == 4, f"[0,4] = {view2[0,4]}, expected 4"
+    assert view2[1, 0] == 100, f"[1,0] = {view2[1,0]}, expected 100"
+    assert view2[1, 4] == 104, f"[1,4] = {view2[1,4]}, expected 104"
+
+@report
 def testMapAlignmentIdentification():
 
     """
