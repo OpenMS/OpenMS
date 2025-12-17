@@ -124,6 +124,17 @@ install(CODE "
         COMPONENT library
         )
 
+## Sign thirdparty components
+foreach(component IN LISTS THIRDPARTY_COMPONENT_GROUP)
+  install(CODE "
+          if(EXISTS \${CMAKE_INSTALL_PREFIX}/${INSTALL_SHARE_DIR}/THIRDPARTY/${component}/)
+            execute_process(COMMAND find \${CMAKE_INSTALL_PREFIX}/${INSTALL_SHARE_DIR}/THIRDPARTY/${component}/ -type f -execdir codesign --force --options runtime -i de.openms.thirdparty.${component}.{} --sign \"${CPACK_BUNDLE_APPLE_CERT_APP}\" {} \\; OUTPUT_VARIABLE thirdparty_sign_out ERROR_VARIABLE thirdparty_sign_out)
+            message('\${thirdparty_sign_out}')
+          endif()"
+          COMPONENT ${component}
+          )
+endforeach()
+
 ## When Applications are installed (which is the FIRST in alphabetical order AND the main component),
 ## a postinstall script runs to set file icon
 install(FILES       ${PROJECT_SOURCE_DIR}/cmake/MacOSX/openms_logo_large_transparent.png
