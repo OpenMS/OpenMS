@@ -362,6 +362,8 @@ jobs:
           THIRDPARTY_DIR="OpenMS/THIRDPARTY"
           mkdir -p _thirdparty
           # Copy the correct architecture
+          cp -R "$THIRDPARTY_DIR/${{ steps.set-vars.outputs.tp_folder }}/$(uname -m)"/* _thirdparty/
+          # Copy architecture independent tools
           cp -R OpenMS/THIRDPARTY/All/* _thirdparty/
           # add third-party binaries to PATH
           for thirdpartytool in '${{ github.workspace }}/_thirdparty'/*
