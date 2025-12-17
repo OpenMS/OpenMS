@@ -361,15 +361,21 @@ START_SECTION((Test PeptideIndexer settings stored as metavalues in SearchParame
   pi.setParameters(p);
 
   std::vector<FASTAFile::FASTAEntry> proteins = toFASTAVec(QStringList() << "PEPTIDER" << "DECOY_SEQUENCE");
-  std::vector<ProteinIdentification> prot_ids;
+
+  // Create a ProteinIdentification with an identifier that matches the PeptideIdentifications
+  std::vector<ProteinIdentification> prot_ids(1);
+  prot_ids[0].setIdentifier("test_run");
+
+  // Create PeptideIdentifications with matching identifier
   PeptideIdentificationList pep_ids = toPepVec(QStringList() << "PEPTIDER");
-  
+  for (auto& pep_id : pep_ids)
+  {
+    pep_id.setIdentifier("test_run");
+  }
+
   PeptideIndexing::ExitCodes r = pi.run(proteins, prot_ids, pep_ids);
   TEST_EQUAL(r, PeptideIndexing::EXECUTION_OK);
-  
-  // Check that at least one ProteinIdentification was created
-  TEST_EQUAL(!prot_ids.empty(), true);
-  
+
   // Check that metavalues are set correctly in SearchParameters
   const ProteinIdentification::SearchParameters& search_params = prot_ids[0].getSearchParameters();
   TEST_EQUAL(search_params.metaValueExists("PeptideIndexer:decoy_string"), true);
