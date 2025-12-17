@@ -1,16 +1,22 @@
 from libcpp.map cimport map as libcpp_map
+from cython.operator cimport dereference as deref, preincrement as inc
 
 
     def getAAFrequencies(self, dict mmap):
         """
         getAAFrequencies(self: AASequence, mmap: dict) -> None
-        
+
         Get amino acid frequencies and populate the provided dictionary.
         """
         cdef libcpp_map[_String, size_t] c_mmap
         self.inst.get().getAAFrequencies(c_mmap)
-        for k,v in mmap.iteritems():
-            v = c_mmap[ _String(<char *>k) ]
+        # Clear the dictionary to match C++ behavior
+        mmap.clear()
+        # Copy results from C++ map to Python dict
+        cdef libcpp_map[_String, size_t].iterator it = c_mmap.begin()
+        while it != c_mmap.end():
+            mmap[<bytes>deref(it).first.c_str()] = deref(it).second
+            inc(it)
 
     def __iter__(self):
         """

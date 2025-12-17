@@ -44,6 +44,28 @@
         """
         return self.inst.get().size()
 
+    def __repr__(self):
+        """
+        __repr__(self: StringDataArray) -> str
+        
+        Return a string representation of the StringDataArray object.
+
+        Returns key properties in a readable format:
+        StringDataArray(name='annotation', size=100)
+        """
+        cdef unsigned int n = self.inst.get().size()
+        
+        parts = []
+        
+        # Get name from MetaInfoDescription
+        name = self.getName()
+        if name:
+            parts.append(f"name='{name}'")
+        
+        parts.append(f"size={n}")
+        
+        return f"StringDataArray({', '.join(parts)})"
+
     def get_data(self):
         """
         get_data(self: StringDataArray) -> List[bytes]

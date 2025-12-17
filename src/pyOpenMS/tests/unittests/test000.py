@@ -214,6 +214,7 @@ def testAASequence():
      AASequence.setNTerminalModification
      AASequence.toString
      AASequence.toUnmodifiedString
+     AASequence.getAAFrequencies
     """
     aas = pyopenms.AASequence()
 
@@ -299,6 +300,20 @@ def testAASequence():
     aas_unmod = pyopenms.AASequence.fromString("PEPTIDE")
     repr_unmod = repr(aas_unmod)
     assert "modified=True" not in repr_unmod
+
+    # Test getAAFrequencies - matching C++ test case
+    aas_freq = pyopenms.AASequence.fromString("THREEAAAWITHYYY")
+    freq_table = {}
+    aas_freq.getAAFrequencies(freq_table)
+    assert freq_table[b"T"] == 2
+    assert freq_table[b"H"] == 2
+    assert freq_table[b"R"] == 1
+    assert freq_table[b"E"] == 2
+    assert freq_table[b"A"] == 3
+    assert freq_table[b"W"] == 1
+    assert freq_table[b"I"] == 1
+    assert freq_table[b"Y"] == 3
+    assert len(freq_table) == 8
 
 
 @report
@@ -388,6 +403,41 @@ def testResidue():
     pyopenms.Residue.ResidueType.YIon
     pyopenms.Residue.ResidueType.ZIon
     pyopenms.Residue.ResidueType.SizeOfResidueType
+
+
+@report
+def testResidueRepr():
+    """
+    @tests: Residue.__repr__
+    """
+    # Get a residue from the database
+    rdb = pyopenms.ResidueDB()
+    glycine = rdb.getResidue(s("Glycine"))
+
+    # Test __repr__ method
+    repr_str = repr(glycine)
+    assert "Residue(" in repr_str
+    assert "name=" in repr_str
+    assert "Glycine" in repr_str
+    assert "one_letter=" in repr_str
+    assert "'G'" in repr_str
+    assert "three_letter=" in repr_str
+    assert "'Gly'" in repr_str
+    assert "formula=" in repr_str
+    assert "mono_mass=" in repr_str
+
+    # Test __str__ method for unmodified residue
+    str_str = str(glycine)
+    assert str_str == "G"
+
+    # Test with modified residue - get oxidized methionine
+    methionine = rdb.getResidue(s("Methionine"))
+    str_str = str(methionine)
+    assert str_str == "M"
+    repr_str = repr(methionine)
+    assert "Residue(" in repr_str
+    assert "'M'" in repr_str
+    assert "'Met'" in repr_str
 
 
 @report
@@ -723,6 +773,30 @@ def testChromatogramPeak():
     str_str = str(p)
     assert str_str == repr_str
 
+    # Test constructor with RT and intensity
+    p2 = pyopenms.ChromatogramPeak(100.5, 5000.0)
+    assert p2.getRT() == 100.5
+    assert p2.getIntensity() == 5000.0
+
+    # Test constructor with int RT (DPosition1 converter accepts int/float)
+    p3 = pyopenms.ChromatogramPeak(200, 10000.0)
+    assert p3.getRT() == 200.0
+    assert p3.getIntensity() == 10000.0
+
+    # Test getPosition returns float
+    pos = p2.getPosition()
+    assert isinstance(pos, float)
+    assert pos == 100.5
+
+    # Test setPosition with float
+    p2.setPosition(300.0)
+    assert p2.getRT() == 300.0
+    assert p2.getPosition() == 300.0
+
+    # Test setPosition with int (DPosition1 converter accepts int/float)
+    p2.setPosition(400)
+    assert p2.getRT() == 400.0
+
 
 @report
 def testChromatogramToosl():
@@ -927,6 +1001,22 @@ def testConsensusMap():
     assert m == m
     assert not m != m
 
+    # Test __repr__ and __str__ methods
+    cm_repr = pyopenms.ConsensusMap()
+    cf1 = pyopenms.ConsensusFeature()
+    cf1.setRT(100.0)
+    cf1.setMZ(500.0)
+    cf2 = pyopenms.ConsensusFeature()
+    cf2.setRT(200.0)
+    cf2.setMZ(600.0)
+    cm_repr.push_back(cf1)
+    cm_repr.push_back(cf2)
+    cm_repr.setExperimentType("label-free")
+
+    repr_str = repr(cm_repr)
+    assert "ConsensusMap(" in repr_str
+    assert "num_consensus_features=" in repr_str
+
 @report
 def testConsensusXMLFile():
     """
@@ -1044,6 +1134,17 @@ def testConvexHull2D():
     ch = pyopenms.ConvexHull2D()
     ch.clear()
     assert ch == ch
+
+    # Test __repr__ and __str__ methods
+    ch_repr = pyopenms.ConvexHull2D()
+    ch_repr.addPointXY(100.0, 400.0)
+    ch_repr.addPointXY(110.0, 400.0)
+    ch_repr.addPointXY(110.0, 410.0)
+    ch_repr.addPointXY(100.0, 410.0)
+
+    repr_str = repr(ch_repr)
+    assert "ConvexHull2D(" in repr_str
+    assert "num_points=" in repr_str
 
 
 @report
@@ -1994,6 +2095,23 @@ def testFeatureMap():
 
     fm += fm
     assert fm + fm2 != fm
+
+    # Test __repr__ and __str__ methods
+    fm_repr = pyopenms.FeatureMap()
+    f1 = pyopenms.Feature()
+    f1.setRT(100.0)
+    f1.setMZ(500.0)
+    f1.setIntensity(1000.0)
+    f2 = pyopenms.Feature()
+    f2.setRT(200.0)
+    f2.setMZ(600.0)
+    f2.setIntensity(2000.0)
+    fm_repr.push_back(f1)
+    fm_repr.push_back(f2)
+
+    repr_str = repr(fm_repr)
+    assert "FeatureMap(" in repr_str
+    assert "num_features=" in repr_str
 
 
 @report
@@ -3580,6 +3698,17 @@ def testStringDataArray():
     da[2] = b"world"
     assert da.size() == 3
 
+    # Test __repr__ method
+    sda_repr = pyopenms.StringDataArray()
+    sda_repr.setName("annotation")
+    sda_repr.push_back("test1")
+    sda_repr.push_back("test2")
+
+    repr_str = repr(sda_repr)
+    assert "StringDataArray(" in repr_str
+    assert "name='annotation'" in repr_str
+    assert "size=2" in repr_str
+
 @report
 def testIntegerDataArray():
     """
@@ -3609,6 +3738,18 @@ def testIntegerDataArray():
     da.set_data(q)
     assert da.size() == 4
 
+    # Test __repr__ method
+    ida_repr = pyopenms.IntegerDataArray()
+    ida_repr.setName("charge_state")
+    ida_repr.push_back(1)
+    ida_repr.push_back(2)
+    ida_repr.push_back(3)
+
+    repr_str = repr(ida_repr)
+    assert "IntegerDataArray(" in repr_str
+    assert "name='charge_state'" in repr_str
+    assert "size=3" in repr_str
+
 @report
 def testFloatDataArray():
     """
@@ -3637,6 +3778,17 @@ def testFloatDataArray():
     q = np.append(q, 4.0).astype(np.float32)
     da.set_data(q)
     assert da.size() == 4
+
+    # Test __repr__ method
+    fda_repr = pyopenms.FloatDataArray()
+    fda_repr.setName("ion_mobility")
+    fda_repr.push_back(1.5)
+    fda_repr.push_back(2.5)
+
+    repr_str = repr(fda_repr)
+    assert "FloatDataArray(" in repr_str
+    assert "name='ion_mobility'" in repr_str
+    assert "size=2" in repr_str
 
 @report
 def testMSChromatogram():
@@ -6072,6 +6224,19 @@ def testDPosition():
     assert dp[0] == 1.0
     assert dp[1] == 2.0
 
+    # Test __repr__ method for DPosition1
+    dp1_repr = pyopenms.DPosition1(123.456)
+    repr_str = repr(dp1_repr)
+    assert "DPosition1(" in repr_str
+    assert "x=" in repr_str
+
+    # Test __repr__ method for DPosition2
+    dp2_repr = pyopenms.DPosition2(100.0, 200.0)
+    repr_str = repr(dp2_repr)
+    assert "DPosition2(" in repr_str
+    assert "x=" in repr_str
+    assert "y=" in repr_str
+
 @report
 def testResidueDB():
     rdb = pyopenms.ResidueDB()
@@ -6251,6 +6416,22 @@ def testNASequence():
     charge = 2
     oligo_mod.getMonoWeight(pyopenms.NASequence.NASFragmentType.WIon, charge)
     oligo_mod.getFormula(pyopenms.NASequence.NASFragmentType.WIon, charge)
+
+    # Test __repr__ and __str__ methods
+    # Test __repr__ method
+    na_repr = pyopenms.NASequence.fromString("ACGU")
+    repr_str = repr(na_repr)
+    assert "NASequence(" in repr_str
+    assert "sequence=" in repr_str
+    assert "length=" in repr_str
+    assert "mono_mass=" in repr_str
+    
+    # Test __str__ method returns the sequence string
+    str_str = str(na_repr)
+    assert str_str == "ACGU"
+
+    # Test __len__ method
+    assert len(na_repr) == 4
 
 
 
