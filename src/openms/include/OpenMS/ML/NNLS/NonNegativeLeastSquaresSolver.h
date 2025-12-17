@@ -31,6 +31,8 @@ public:
     /**
       @brief Solve the non-negative least square problem Ax=b, where x>0
 
+      This overload copies the input matrix and vector before solving, preserving the originals.
+
       @param[in] A Input matrix A of size m x n
       @param[in] b Input vector (OpenMS::Matrix with one column) b of size m x 1
       @param[out] x Output vector (OpenMS::Matrix with one column) with non-negative least square solution of size n x 1
@@ -45,11 +47,11 @@ public:
 
       This version works directly on raw buffers and modifies inputs in-place for efficiency.
 
-      @param A Input matrix A of size m x n (column-major storage). Will be modified!
-      @param A_rows Number of rows in A
-      @param A_cols Number of columns in A
-      @param b Input vector b of size m. Will be modified!
-      @param x Output vector with non-negative least square solution of size n. Contents will be overwritten!
+      @param[in,out] A Input matrix A of size m x n (column-major storage). Modified in-place by the solver.
+      @param[in] A_rows Number of rows in A
+      @param[in] A_cols Number of columns in A
+      @param[in,out] b Input vector b of size m. Modified in-place by the solver.
+      @param[out] x Output vector with non-negative least square solution of size n.
       @return status of solution (either NonNegativeLeastSquaresSolver::SOLVED, NonNegativeLeastSquaresSolver::ITERATION_EXCEEDED)
 
       @throws Exception::InvalidParameters if Matrix dimensions do not fit
@@ -60,12 +62,11 @@ public:
     /**
       @brief Solve the non-negative least square problem Ax=b using Matrix and vectors.
 
-      This is a convenience overload that works with OpenMS Matrix and std::vector.
-      Note: The matrix A will be modified during computation!
+      This overload works with OpenMS Matrix and std::vector, modifying inputs in-place for efficiency.
 
-      @param A Input matrix A of size m x n. Will be modified!
-      @param b Input vector b of size m. Will be modified!
-      @param x Output vector with non-negative least square solution of size n.
+      @param[in,out] A Input matrix A of size m x n. Modified in-place by the solver.
+      @param[in,out] b Input vector b of size m. Modified in-place by the solver.
+      @param[out] x Output vector with non-negative least square solution of size n.
       @return status of solution (either NonNegativeLeastSquaresSolver::SOLVED, NonNegativeLeastSquaresSolver::ITERATION_EXCEEDED)
 
       @throws Exception::InvalidParameters if Matrix dimensions do not fit
