@@ -8,13 +8,10 @@
 
 #include <OpenMS/DATASTRUCTURES/Matrix.h>
 
-// Note: Matrix<T> is now a header-only template class.
-// No explicit template instantiations needed since all code is in the header.
-
 namespace OpenMS
 {
-  // Provide default instantiations to ensure symbols exist in the library
-  // (mainly for backwards compatibility with existing binaries)
+  // Explicit template instantiations to ensure symbols exist in the library.
+  // This compiles the template code for these types into libOpenMS.so.
   template class Matrix<int>;
   template class Matrix<double>;
   template class Matrix<float>;
