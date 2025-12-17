@@ -47,14 +47,22 @@ public:
 
       This version works directly on raw buffers and modifies inputs in-place for efficiency.
 
-      @param[in,out] A Input matrix A of size m x n (column-major storage). Modified in-place by the solver.
-      @param[in] A_rows Number of rows in A
-      @param[in] A_cols Number of columns in A
+      @param[in,out] A Pointer to matrix data of size m x n (need memory-contiguous representation
+                       in column-major order, i.e., A_rows * A_cols doubles). Must be non-null and
+                       point to a buffer of at least A_rows * A_cols doubles. The caller retains
+                       ownership and must ensure A remains valid for the duration of this call.
+                       Modified in-place by the solver; contents are undefined after the call.
+                       Passing nullptr or an insufficiently sized buffer results in undefined behavior.
+      @param[in] A_rows Number of rows in A (must be > 0)
+      @param[in] A_cols Number of columns in A (must be > 0)
       @param[in,out] b Input vector b of size m. Modified in-place by the solver.
       @param[out] x Output vector with non-negative least square solution of size n.
       @return status of solution (either NonNegativeLeastSquaresSolver::SOLVED, NonNegativeLeastSquaresSolver::ITERATION_EXCEEDED)
 
-      @throws Exception::InvalidParameters if Matrix dimensions do not fit
+      @throws Exception::InvalidParameters if A_rows does not match b.size()
+
+      @note For a safer interface with bounds checking, prefer the Matrix<double>& overload.
+            A future revision may adopt std::span for improved pointer safety.
     */
     static Int solve(double* A, int A_rows, int A_cols,
                      std::vector<double>& b, std::vector<double>& x);
