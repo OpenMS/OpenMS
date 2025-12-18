@@ -23,11 +23,20 @@ namespace OpenMS
 {
 namespace Math
 {
+/**
+  @brief Result of pi0 estimation.
+
+  Fields:
+    - pi0          : estimated proportion of true null hypotheses
+    - pi0_lambda   : pi0 estimates at each lambda value
+    - lambda_      : lambda values used for estimation
+    - pi0_smooth   : whether smoothing was successfully applied
+*/
 struct OPENMS_DLLAPI Pi0Result
 {
   double pi0 = 1.0;
   std::vector<double> pi0_lambda;
-    std::vector<double> lambda_;
+  std::vector<double> lambda_;
   bool pi0_smooth = false;
 };
 
