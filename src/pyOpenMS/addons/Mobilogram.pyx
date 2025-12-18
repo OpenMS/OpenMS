@@ -1,5 +1,6 @@
 cimport numpy as np
 import numpy as np
+import pandas as pd
 
 
 
@@ -265,3 +266,39 @@ import numpy as np
             data_dict['drift_time_unit'] = np.full(cnt, unit_decoded, dtype='U50')
 
         return data_dict
+
+    def get_df(self, columns=None):
+        """
+        get_df(self: Mobilogram, columns: Optional[List[str]] = None) -> pd.DataFrame
+
+        Returns a pandas DataFrame representation of the Mobilogram.
+
+        This method converts the mobilogram data (peaks, metadata)
+        into a pandas DataFrame format.
+
+        Note: Mobilogram does not support meta values (no MetaInfoInterface).
+
+        Args:
+            columns (list or None): List of column names to include. If None,
+                                   includes all default columns. Use get_df_columns()
+                                   to discover available columns.
+
+        Returns:
+            pd.DataFrame: DataFrame with requested columns. Default columns include:
+                - mobility: mobility values of peaks
+                - intensity: intensity values of peaks
+                - rt: retention time (replicated for each peak)
+                - drift_time_unit: drift time unit string
+
+        Example:
+            >>> # Get all default columns
+            >>> df = mobilogram.get_df()
+
+            >>> # Discover available columns
+            >>> print(mobilogram.get_df_columns())
+
+            >>> # Get only specific columns (faster)
+            >>> df = mobilogram.get_df(columns=['mobility', 'intensity'])
+        """
+        data_dict = self.get_data_dict(columns=columns)
+        return pd.DataFrame(data_dict)

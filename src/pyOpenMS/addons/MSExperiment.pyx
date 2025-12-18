@@ -1,4 +1,6 @@
-
+cimport numpy as np
+import numpy as np
+import pandas as pd
 
     def get2DPeakData(MSExperiment self, float min_rt, float max_rt, float min_mz, float max_mz, unsigned int ms_level):
         """Cython signature: tuple[np.array[float] rt, np.array[float] mz, np.array[float] inty] get2DPeakData(float min_rt, float max_rt, float min_mz, float max_mz, unsigned int ms_level)"""        
@@ -171,3 +173,244 @@
             parts.append(f"rt_range=[{min_rt:.2f}, {max_rt:.2f}]")
 
         return f"MSExperiment({', '.join(parts)})"
+
+    def get_df_columns(self, long=False):
+        """
+        get_df_columns(self: MSExperiment, long: bool = False) -> List[str]
+
+        Returns a list of column names that get_df() would produce.
+
+        Useful for discovering available columns before export.
+
+        Args:
+            long (bool): If True, returns columns for long format.
+                        If False, returns columns for compact format.
+
+        Returns:
+            list: List of column name strings.
+
+        Example:
+            >>> exp.get_df_columns(long=True)
+            ['rt', 'mz', 'intensity', 'ms_level']
+
+            >>> exp.get_df_columns(long=False)
+            ['rt', 'ms_level', 'mz_array', 'intensity_array']
+        """
+        if long:
+            return ['rt', 'mz', 'intensity', 'ms_level']
+        else:
+            return ['rt', 'ms_level', 'mz_array', 'intensity_array']
+
+    def get_df(self, columns=None, ms_levels=None, long=False):
+        """
+        get_df(self: MSExperiment, columns: Optional[List[str]] = None, ms_levels: List[int] = [], long: bool = False) -> pd.DataFrame
+
+        Generates a pandas DataFrame with all peaks in the MSExperiment
+
+        Parameters:
+        columns (list or None): List of column names to include. If None,
+                               includes all columns. Use get_df_columns() to discover available columns.
+        ms_levels (List[int]): Get only spectra with the given MS levels. Default is an empty list, which means all MS levels will be included.
+        long (bool): set to True if you want to have a long/expanded/melted dataframe with one row per peak. Faster but
+            replicated RT information. If False, returns rows in the style: rt, np.array(mz), np.array(int)
+
+        Returns:
+        pd.DataFrame: feature information stored in a DataFrame
+
+        Example:
+            >>> # Get all columns
+            >>> df = exp.get_df()
+
+            >>> # Discover available columns
+            >>> print(exp.get_df_columns())
+
+            >>> # Get only specific columns
+            >>> df = exp.get_df(columns=['rt', 'mz', 'intensity'], long=True)
+        """
+        if ms_levels is None:
+            ms_levels = []
+        self.updateRanges()
+        if not ms_levels:
+            ms_levels = self.getMSLevels()
+        if long:
+            cols = ["rt", "mz", "intensity"]
+            dfs = []
+            for ms_level in ms_levels:
+                spectraarrs2d = self.get2DPeakDataLong(self.getMinRT(), self.getMaxRT(), self.getMinMZ(), self.getMaxMZ(), ms_level)
+                df = pd.DataFrame(dict(zip(cols, spectraarrs2d)))
+                df["ms_level"] = ms_level
+                dfs.append(df)
+            df = pd.concat(dfs, ignore_index=True)
+        else:
+            cols = ["rt", "ms_level", "mz_array", "intensity_array"]
+            df = pd.DataFrame(data=((spec.getRT(), spec.getMSLevel(), *spec.get_peaks()) for spec in self if spec.getMSLevel() in ms_levels), columns=cols)
+
+        # Filter columns if requested
+        if columns is not None:
+            available_cols = [c for c in columns if c in df.columns]
+            df = df[available_cols]
+
+        return df
+
+    def get_ion_df(self):
+        """
+        get_ion_df(self: MSExperiment) -> pd.DataFrame
+
+        Generates a pandas DataFrame with all peaks and the ion mobility in the MSExperiment
+
+        Returns:
+        pd.DataFrame: feature information stored in a DataFrame
+        """
+
+        cols = ["rt", "mz", "intensity", "ion_mobility"]
+        self.updateRanges()
+        spectraarrs2d = self.get2DPeakDataIMLong(self.getMinRT(), self.getMaxRT(), self.getMinMZ(), self.getMaxMZ(), 1)
+        return pd.DataFrame(dict(zip(cols, spectraarrs2d)))
+
+    def get_massql_df(self, ion_mobility=False):
+        """
+        get_massql_df(self: MSExperiment, ion_mobility: bool = False) -> Tuple[pd.DataFrame, pd.DataFrame]
+
+        Exports data from MSExperiment to pandas DataFrames to be used with MassQL.
+
+        The Python module massql allows queries in mass spectrometry data (MS1 and MS2
+        data frames) in a SQL like fashion (https://github.com/mwang87/MassQueryLanguage).
+
+        Both dataframes contain the columns:
+        'i': intensity of a peak
+        'i_norm': intensity normalized by the maximun intensity in the spectrum
+        'i_tic_norm': intensity normalized by the sum of intensities (TIC) in the spectrum
+        'mz': mass to charge of a peak
+        'scan': number of the spectrum
+        'rt': retention time of the spectrum
+        'polarity': ion mode of the spectrum as integer value (positive: 1, negative: 2)
+        'ion': the ionic mobility of a peak if ion parameter is True
+
+        The MS2 dataframe contains additional columns:
+        'precmz': mass to charge of the precursor ion
+        'ms1scan': number of the corresponding MS1 spectrum
+        'charge': charge of the precursor ion
+
+        Parameters:
+            ion_mobility (bool): if True, returns the ion mobility of the peaks.
+
+        Returns:
+        ms1_df (pd.DataFrame): peak data of MS1 spectra
+        ms2_df (pd.DataFrame): peak data of MS2 spectra with precursor information
+        """
+        from . import IonSource as _IonSource
+        self.updateRanges()
+
+        def _get_polarity(spec):
+            '''Returns polarity as an integer value for the massql dataframe.
+
+            According to massql positive polarity is represented by 1 and negative by 2.
+
+            Parameters:
+            spec (MSSpectrum): the spectrum to extract polarity
+
+            Returns:
+            int: polarity as int value according to massql specification
+            '''
+            polarity = spec.getInstrumentSettings().getPolarity()
+            if polarity == _IonSource.Polarity.POLNULL:
+                return 0
+            elif polarity == _IonSource.Polarity.POSITIVE:
+                return 1
+            elif polarity == _IonSource.Polarity.NEGATIVE:
+                return 2
+
+        def _get_spec_arrays(mslevel):
+            '''Get spectrum data as a matrix.
+
+            Generator yields peak data from each spectrum (with specified MS level) as a numpy.ndarray.
+            Normalized intensity values are calculated and the placeholder values replaced. For 'i_norm' and
+            'i_tic_norm' the intensity values are divided by the maximum intensity value in the spectrum and
+            the sum of intensity values, respectively.
+
+            Parameters:
+            mslevel (int): only spectra with the given MS level will be considered
+
+            Yields:
+            np.ndarray: 2D array with peak data (rows) from each spectrum
+            '''
+            for scan_num, spec in enumerate(self):
+                if spec.getMSLevel() == mslevel:
+                    mz, inty = spec.get_peaks()
+                    # data for both DataFrames: i, i_norm, i_tic_norm, mz, scan, rt, polarity
+                    data = (inty, inty/np.amax(inty, initial=0), inty/np.sum(inty), mz, scan_num + 1, spec.getRT()/60, _get_polarity(spec))
+                    cols = 7
+                    if mslevel == 2:
+                        cols = 10
+                        # data for MS2 only: precmz, ms1scan, charge
+                        # set fallback values if no precursor is annotated (-1)
+                        if spec.getPrecursors():
+                            data += (spec.getPrecursors()[0].getMZ(), self.getPrecursorSpectrum(scan_num)+1, spec.getPrecursors()[0].getCharge())
+                        else:
+                            data += (-1, -1, -1)
+                    # create empty ndarr with shape according to MS level
+                    ndarr = np.empty(shape=(spec.size(), cols))
+                    # set column values
+                    for i in range(cols):
+                        ndarr[:,i] = data[i]
+                    yield ndarr
+
+        def _get_ion_spec_arrays(mslevel):
+            '''Get spectrum data as a matrix.
+
+            Generator yields peak data from each spectrum (with specified MS level) as a numpy.ndarray.
+            Normalized intensity values are calculated and the placeholder values replaced. For 'i_norm' and
+            'i_tic_norm' the intensity values are divided by the maximum intensity value in the spectrum and
+            the sum of intensity values, respectively.
+
+            Parameters:
+            mslevel (int): only spectra with the given MS level will be considered
+
+            Yields:
+            np.ndarray: 2D array with peak data (rows) from each spectrum
+            '''
+            for scan_num, spec in enumerate(self):
+                if spec.getMSLevel() == mslevel:
+                    mz, inty = spec.get_peaks()
+                    ion_array_idx, ion_unit = spec.getIMData()
+                    ion_data_arr = spec.getFloatDataArrays()[ion_array_idx]
+                    ion_data = ion_data_arr.get_data()
+
+                    # data for both DataFrames: i, i_norm, i_tic_norm, mz, scan, rt, polarity
+                    data = (inty, inty/np.amax(inty, initial=0), inty/np.sum(inty), mz, scan_num + 1, spec.getRT()/60, _get_polarity(spec), ion_data)
+                    cols = 8
+                    if mslevel == 2:
+                        cols = 11
+                        # data for MS2 only: precmz, ms1scan, charge
+                        # set fallback values if no precursor is annotated (-1)
+                        if spec.getPrecursors():
+                            data += (spec.getPrecursors()[0].getMZ(), self.getPrecursorSpectrum(scan_num)+1, spec.getPrecursors()[0].getCharge())
+                        else:
+                            data += (-1, -1, -1)
+                    # create empty ndarr with shape according to MS level
+                    ndarr = np.empty(shape=(spec.size(), cols))
+                    # set column values
+                    for i in range(cols):
+                        ndarr[:,i] = data[i]
+                    yield ndarr
+
+        # create DataFrame for MS1 and MS2 with according column names and data types
+        # if there are no spectra of given MS level return an empty DataFrame
+        dtypes = {'i': 'float32', 'i_norm': 'float32', 'i_tic_norm': 'float32', 'mz': 'float64', 'scan': 'int32', 'rt': 'float32', 'polarity': 'int32'}
+        if ion_mobility:
+            dtypes = dict(dtypes, **{"ion_mobility": "float32"})
+
+        if 1 in self.getMSLevels():
+            spec_arrays = _get_spec_arrays(1) if not ion_mobility else _get_ion_spec_arrays(1)
+            ms1_df = pd.DataFrame(np.concatenate(list(spec_arrays), axis=0), columns=dtypes.keys()).astype(dtypes)
+        else:
+            ms1_df = pd.DataFrame(columns=dtypes.keys()).astype(dtypes)
+
+        dtypes = dict(dtypes, **{'precmz': 'float64', 'ms1scan': 'int32', 'charge': 'int32'})
+        if 2 in self.getMSLevels():
+            spec_arrays = _get_spec_arrays(2) if not ion_mobility else _get_ion_spec_arrays(2)
+            ms2_df = pd.DataFrame(np.concatenate(list(spec_arrays), axis=0), columns=dtypes.keys()).astype(dtypes)
+        else:
+            ms2_df = pd.DataFrame(columns=dtypes.keys()).astype(dtypes)
+
+        return ms1_df, ms2_df

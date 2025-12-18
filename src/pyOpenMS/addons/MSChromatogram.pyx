@@ -1,5 +1,6 @@
 cimport numpy as np
 import numpy as np
+import pandas as pd
 
 
 
@@ -204,6 +205,53 @@ import numpy as np
                             data_dict[col] = np.full(cnt, str(v), dtype='object')
 
         return data_dict
+
+    def get_df(self, columns=None, export_meta_values=True):
+        """
+        get_df(self: MSChromatogram, columns: Optional[List[str]] = None, export_meta_values: bool = True) -> pd.DataFrame
+
+        Returns a pandas DataFrame representation of the MSChromatogram.
+
+        This method converts the chromatogram data (peaks, metadata, precursor/product info)
+        into a pandas DataFrame format.
+
+        Args:
+            columns (list or None): List of column names to include. If None,
+                                   includes all default columns. Use get_df_columns()
+                                   to discover available columns.
+            export_meta_values (bool): Whether to include meta values. Only applies
+                                       when columns=None. Defaults to True.
+
+        Returns:
+            pd.DataFrame: DataFrame with requested columns. Default columns include:
+                - rt: retention time (in seconds)
+                - intensity: signal intensity at each time point
+                - precursor_mz: precursor m/z
+                - precursor_charge: precursor charge
+                - product_mz: product m/z
+                - native_id: chromatogram native identifier
+                - Additional meta value columns (if export_meta_values=True)
+
+            Non-default columns (must be explicitly requested):
+                - chromatogram_type: type of chromatogram
+                - comment: chromatogram comment
+
+        Example:
+            >>> # Get all default columns
+            >>> df = chrom.get_df()
+
+            >>> # Discover available columns
+            >>> print(chrom.get_df_columns())
+
+            >>> # Get only specific columns (faster)
+            >>> df = chrom.get_df(columns=['rt', 'intensity'])
+
+            >>> # Get all columns including non-defaults
+            >>> cols = chrom.get_df_columns('all')
+            >>> df = chrom.get_df(columns=cols)
+        """
+        data_dict = self.get_data_dict(columns=columns, export_meta_values=export_meta_values)
+        return pd.DataFrame(data_dict)
 
     def get_peaks(self):
         """

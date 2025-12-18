@@ -1,4 +1,8 @@
 from UniqueIdInterface cimport setUniqueId as _setUniqueId
+cimport numpy as np
+import numpy as np
+import pandas as pd
+from collections import defaultdict as _defaultdict
 
 
     def setUniqueIds(self):
@@ -163,3 +167,222 @@ from UniqueIdInterface cimport setUniqueId as _setUniqueId
            inc(it_in_0)
         in_0.clear()
         in_0.update(replace_in_0)
+
+    def get_df_columns(self, columns='default'):
+        """
+        get_df_columns(self: ConsensusMap, columns: str = 'default') -> List[str]
+
+        Returns a list of column names that get_df() would produce.
+
+        Useful for discovering available columns before export.
+
+        Args:
+            columns (str): 'default' for standard columns, 'all' for all available columns.
+
+        Returns:
+            list: List of column name strings.
+
+        Example:
+            >>> cmap.get_df_columns()
+            ['sequence', 'charge', 'rt', 'mz', 'quality', 'intensity_file1', ...]
+        """
+        # Metadata columns
+        cols = ['sequence', 'charge', 'rt', 'mz', 'quality']
+
+        # Intensity columns depend on experiment type
+        labelfree = self.getExperimentType() == "label-free"
+        filemeta = self.getColumnHeaders()
+
+        if labelfree:
+            # File-wide columns for label-free
+            files = list(set([header.filename for header in filemeta.values()]))
+            cols.extend(files)
+        else:
+            # Label columns for labelled experiments
+            labels = list(set([header.label for header in filemeta.values()]))
+            if len(labels) == 1:
+                labels[0] = "intensity"
+            cols.extend(labels)
+            cols.append('file')
+
+        return cols
+
+    def get_intensity_df(self):
+        """
+        get_intensity_df(self: ConsensusMap) -> pd.DataFrame
+
+        Generates a pandas DataFrame with feature intensities from each sample in long format (over files).
+
+        For labelled analyses channel intensities will be in one row, therefore resulting in a semi-long/block format.
+        Resulting DataFrame can be joined with result from get_metadata_df by their index 'id'.
+
+        Returns:
+        pd.DataFrame: intensity DataFrame
+        """
+        labelfree = self.getExperimentType() == "label-free"
+        filemeta = self.getColumnHeaders()  # type: dict[int, ColumnHeader]
+
+        labels = list(set([header.label for header in filemeta.values()]))
+        files = list(set([header.filename for header in filemeta.values()]))
+        label_to_idx = {k: v for v, k in enumerate(labels)}
+        file_to_idx = {k: v for v, k in enumerate(files)}
+
+        def gen(cmap, fun):
+            for f in cmap:
+                yield from fun(f)
+
+        if not labelfree:
+
+            def extract_row_blocks_channel_wide_file_long(f):
+                subfeatures = f.getFeatureList()  # type: list[FeatureHandle]
+                filerows = _defaultdict(lambda: [0] * len(labels))
+                for fh in subfeatures:
+                    header = filemeta[fh.getMapIndex()]
+                    row = filerows[header.filename]
+                    row[label_to_idx[header.label]] = fh.getIntensity()
+                return (f.getUniqueId(), filerows)
+
+            def extract_rows_channel_wide_file_long(f):
+                uniqueid, rowdict = extract_row_blocks_channel_wide_file_long(f)
+                for file, row in rowdict.items():
+                    row.append(file)
+                    yield tuple([uniqueid] + row)
+
+            if len(labels) == 1:
+                labels[0] = "intensity"
+
+            dtypes = [('id', np.dtype('uint64'))] + list(zip(labels, ['f'] * len(labels)))
+            dtypes.append(('file', 'U300'))
+
+            intyarr = np.fromiter(iter=gen(self, extract_rows_channel_wide_file_long), dtype=dtypes, count=self.size())
+
+            return pd.DataFrame(intyarr).set_index('id')
+
+        else:
+            # Specialized for LabelFree which has to have only one channel
+            def extract_row_blocks_channel_long_file_wide_LF(f):
+                subfeatures = f.getFeatureList()  # type: list[FeatureHandle]
+                row = [0.] * len(files)
+
+                for fh in subfeatures:
+                    header = filemeta[fh.getMapIndex()]
+                    row[file_to_idx[header.filename]] = fh.getIntensity()
+
+                yield tuple([f.getUniqueId()] + row)
+
+            dtypes = [('id', np.dtype('uint64'))] + list(zip(files, ['f'] * len(files)))
+
+            intyarr = np.fromiter(iter=gen(self, extract_row_blocks_channel_long_file_wide_LF), dtype=dtypes, count=self.size())
+
+            return pd.DataFrame(intyarr).set_index('id')
+
+    def get_metadata_df(self):
+        """
+        get_metadata_df(self: ConsensusMap) -> pd.DataFrame
+
+        Generates a pandas DataFrame with feature meta data.
+
+        Columns: sequence, charge, rt, mz, quality (indexed by 'id').
+
+        Resulting DataFrame can be joined with result from get_intensity_df by their index 'id'.
+
+        Returns:
+            pd.DataFrame: DataFrame with metadata for each feature (sequence, charge,
+                         rt, mz, quality). All column names are lowercase snake_case.
+        """
+
+        def gen(cmap, fun):
+            for f in cmap:
+                yield from fun(f)
+
+        def extract_meta_data(f):
+            pep = f.getPeptideIdentifications()
+
+            if pep.size() != 0:
+                hits = pep[0].getHits()
+
+                if len(hits) != 0:
+                    besthit = hits[0]
+                    yield f.getUniqueId(), besthit.getSequence().toString(), f.getCharge(), f.getRT(), f.getMZ(), f.getQuality()
+
+                else:
+                    yield f.getUniqueId(), None, f.getCharge(), f.getRT(), f.getMZ(), f.getQuality()
+
+            else:
+                yield f.getUniqueId(), None, f.getCharge(), f.getRT(), f.getMZ(), f.getQuality()
+
+        cnt = self.size()
+
+        mddtypes = [('id', np.dtype('uint64')), ('sequence', 'U200'), ('charge', 'i4'),
+                    ('rt', np.dtype('double')), ('mz', np.dtype('double')), ('quality', 'f')]
+
+        mdarr = np.fromiter(iter=gen(self, extract_meta_data), dtype=mddtypes, count=cnt)
+
+        return pd.DataFrame(mdarr).set_index('id')
+
+    def get_df(self, columns=None):
+        """
+        get_df(self: ConsensusMap, columns: Optional[List[str]] = None) -> pd.DataFrame
+
+        Generates a pandas DataFrame with both consensus feature meta data and intensities from each sample.
+
+        Args:
+            columns (list or None): List of column names to include. If None,
+                                   includes all columns. Use get_df_columns()
+                                   to discover available columns.
+
+        Returns:
+            pd.DataFrame: meta data and intensity DataFrame
+
+        Example:
+            >>> # Get all columns
+            >>> df = cmap.get_df()
+
+            >>> # Discover available columns
+            >>> print(cmap.get_df_columns())
+
+            >>> # Get only specific columns
+            >>> df = cmap.get_df(columns=['sequence', 'mz', 'intensity'])
+        """
+        if columns is None:
+            # No column selection - get everything
+            df = pd.concat([self.get_metadata_df(), self.get_intensity_df()], axis=1)
+            return df
+
+        # Efficient column selection: only compute what's needed
+        requested = set(columns)
+        metadata_cols = {'sequence', 'charge', 'rt', 'mz', 'quality'}
+
+        # Get intensity column names
+        labelfree = self.getExperimentType() == "label-free"
+        filemeta = self.getColumnHeaders()
+        if labelfree:
+            intensity_cols = set([header.filename for header in filemeta.values()])
+        else:
+            labels = list(set([header.label for header in filemeta.values()]))
+            if len(labels) == 1:
+                labels[0] = "intensity"
+            intensity_cols = set(labels)
+            intensity_cols.add('file')
+
+        need_metadata = bool(requested & metadata_cols)
+        need_intensity = bool(requested & intensity_cols)
+
+        dfs = []
+        if need_metadata:
+            dfs.append(self.get_metadata_df())
+        if need_intensity:
+            dfs.append(self.get_intensity_df())
+
+        if not dfs:
+            # No columns match - return empty DataFrame with index
+            return pd.DataFrame(index=pd.Index([], name='id'))
+
+        if len(dfs) == 1:
+            df = dfs[0]
+        else:
+            df = pd.concat(dfs, axis=1)
+
+        # Filter to requested columns
+        available_cols = [c for c in columns if c in df.columns]
+        return df[available_cols]

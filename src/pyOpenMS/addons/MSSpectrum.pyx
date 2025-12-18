@@ -1,5 +1,6 @@
 cimport numpy as np
 import numpy as np
+import pandas as pd
 
 
 
@@ -315,6 +316,52 @@ import numpy as np
 
         return data_dict
 
+    def get_df(self, columns=None, export_meta_values=True):
+        """
+        get_df(self: MSSpectrum, columns: Optional[List[str]] = None, export_meta_values: bool = True) -> pd.DataFrame
+
+        Returns a pandas DataFrame representation of the MSSpectrum.
+
+        This method converts the spectrum data (peaks, metadata, precursor info,
+        ion mobility) into a pandas DataFrame format.
+
+        Args:
+            columns (list or None): List of column names to include. If None,
+                                   includes all default columns. Use get_df_columns()
+                                   to discover available columns.
+            export_meta_values (bool): Whether to include meta values. Only applies
+                                       when columns=None. Defaults to True.
+
+        Returns:
+            pd.DataFrame: DataFrame with requested columns. Default columns include:
+                - mz: m/z values of peaks
+                - intensity: intensity values of peaks
+                - rt: retention time (replicated for each peak)
+                - ms_level: MS level (replicated for each peak)
+                - native_id: native spectrum identifier
+                - ion_mobility: ion mobility values (if IM data present)
+                - precursor_mz: precursor m/z (if precursor present)
+                - precursor_charge: precursor charge (if precursor present)
+                - ion_annotation: ion annotation strings (if IonNames present)
+                - Additional meta value columns (if export_meta_values=True)
+
+        Example:
+            >>> # Get all default columns
+            >>> df = spectrum.get_df()
+
+            >>> # Discover available columns
+            >>> print(spectrum.get_df_columns())
+
+            >>> # Get only specific columns (faster)
+            >>> df = spectrum.get_df(columns=['mz', 'intensity'])
+
+            >>> # Get all columns including non-defaults like ion_mobility_unit
+            >>> cols = spectrum.get_df_columns()
+            >>> cols.append('ion_mobility_unit')
+            >>> df = spectrum.get_df(columns=cols)
+        """
+        data_dict = self.get_data_dict(columns=columns, export_meta_values=export_meta_values)
+        return pd.DataFrame(data_dict)
 
 
     def get_mz_array(MSSpectrum self):
