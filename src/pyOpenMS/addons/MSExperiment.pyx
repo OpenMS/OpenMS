@@ -171,23 +171,3 @@
             parts.append(f"rt_range=[{min_rt:.2f}, {max_rt:.2f}]")
 
         return f"MSExperiment({', '.join(parts)})"
-
-    def setExperimentalSettings(self, ExperimentalSettings exp_settings):
-        """
-        setExperimentalSettings(self: MSExperiment, exp_settings: ExperimentalSettings) -> None
-
-        Set experimental settings (meta-data) for this experiment.
-
-        This copies all experimental settings from the provided ExperimentalSettings
-        object to this MSExperiment, including source files, instrument settings,
-        sample information, contact persons, and other meta-data.
-
-        Args:
-            exp_settings: ExperimentalSettings object containing the meta-data to set.
-        """
-        cdef _MSExperiment * exp_ = self.inst.get()
-        cdef _ExperimentalSettings * settings_ = exp_settings.inst.get()
-        # This assignment invokes MSExperiment::operator=(const ExperimentalSettings&)
-        # which copies only the ExperimentalSettings portion (not spectra/chromatograms).
-        # C++ overload resolution selects this operator because the RHS type is ExperimentalSettings.
-        deref(exp_) = deref(settings_)
