@@ -274,6 +274,9 @@ jobs:
           # WARNING: Don't add any dependency install commands here.
           # Instead edit the following script:
           bash OpenMS/tools/ci/deps-ubuntu.sh
+          if [[ "${{ steps.set-vars.outputs.pkg_type }}" == "deb" ]]; then
+            bash OpenMS/tools/ci/deps-ubuntu-deb.sh
+          fi
           # Install libomp for clang compiler (needed for OpenMP support)
           # Use version-specific package matching the clang version
           if [[ "${{ matrix.compiler }}" == clang* ]]; then
@@ -298,6 +301,8 @@ jobs:
             curl --no-progress-meter -L -o NSIS.tar.gz https://github.com/OpenMS/NSIS/raw/main/NSIS.tar.gz
             ## overwrite existing NSIS (which has only 1k-string support)
             7z x -so NSIS.tar.gz | 7z x -si -ttar -aoa -o"C:/Program Files (x86)/NSIS/"
+            # Ensure makensis.exe is discoverable during CMake configuration
+            echo "C:\Program Files (x86)\NSIS" >> $GITHUB_PATH
           fi
 
           echo "cmake_prefix=" >>"$GITHUB_OUTPUT"
@@ -358,11 +363,7 @@ jobs:
           git submodule update --init THIRDPARTY
           cd ..
           # add third-party binaries to PATH
-          # use flat THIRDPARTY structure
-          THIRDPARTY_DIR="OpenMS/THIRDPARTY"
-          mkdir -p _thirdparty
-          # Copy the correct architecture
-          cp -R "$THIRDPARTY_DIR/${{ steps.set-vars.outputs.tp_folder }}/$(uname -m)"/* _thirdparty/
+          # use flat          cp -R "$THIRDPARTY_DIR/${{ steps.set-vars.outputs.tp_folder }}/$(uname -m)"/* _thirdparty/
           # Copy architecture independent tools
           cp -R OpenMS/THIRDPARTY/All/* _thirdparty/
           # add third-party binaries to PATH
@@ -578,6 +579,11 @@ jobs:
           "apple@openms.de" \
           "APPLE_APP_SPECIFIC_NOTARIZATION_PASSWORD" \
           "$TEAM_ID" \
+e.sh \
+          "$PKG_FILE" \
+          "de.openms" \
+          "apple@openms.de" \
+          "APPLE_APP_SPECIFIC_NOTARIZATION_PASSWORD" \
           "$GITHUB_WORKSPACE/OpenMS/bld/"
 
         echo "=== Notarization complete ==="
