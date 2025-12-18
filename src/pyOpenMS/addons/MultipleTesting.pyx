@@ -26,6 +26,9 @@ cdef extern from * namespace "OpenMS::Math":
     inline std::vector<double> qvalue_c(std::vector<double> p_values, double pi0, bool pfdr) { return qvalue(p_values, pi0, pfdr); }
     inline std::vector<double> pnorm_c(std::vector<double> stat, std::vector<double> stat0) { return pnorm(stat, stat0); }
     inline Pi0Result pi0est_c(std::vector<double> p_values, std::vector<double> lambda_) { return pi0est(p_values, lambda_); }
+    inline std::vector<double> lfdr_c(std::vector<double> p_values, double pi0, bool trunc, bool monotone, std::string transf, double adj, double eps, size_t gridsize, double cut) { 
+      return lfdr(p_values, pi0, trunc, monotone, transf, adj, eps, gridsize, cut); 
+    }
 
     }}
     """
@@ -40,11 +43,13 @@ cdef extern from * namespace "OpenMS::Math":
     libcpp_vector[double] pnorm_c(libcpp_vector[double] stat, libcpp_vector[double] stat0) except +
     # Pi0Result declared later; forward declare return as object using same name in next extern block
     Pi0Result pi0est_c(libcpp_vector[double] p_values, libcpp_vector[double] lambda_) except +
+    libcpp_vector[double] lfdr_c(libcpp_vector[double] p_values, double pi0, bint trunc, bint monotone, const char* transf, double adj, double eps, size_t gridsize, double cut) except +
 
 
 cdef extern from "<OpenMS/MATH/STATISTICS/MultipleTesting.h>" namespace "OpenMS::Math":
     libcpp_vector[double] qvalue(libcpp_vector[double] p_values, double pi0, bint pfdr) except +
     libcpp_vector[double] pnorm(libcpp_vector[double] stat, libcpp_vector[double] stat0) except +
+    libcpp_vector[double] lfdr(libcpp_vector[double] p_values, double pi0, bint trunc, bint monotone, const char* transf, double adj, double eps, size_t gridsize, double cut) except +
 
     cdef cppclass Pi0Result:
         double pi0
@@ -153,3 +158,48 @@ def pi0est(p_values, lambda_=None):
         'lambda': _vec_to_numpy(res.lambda_),
         'pi0_smooth': res.pi0_smooth != 0
     }
+
+
+def lfdr(p_values, pi0, trunc=True, monotone=True, transf="probit", adj=1.5, eps=1e-8, gridsize=512, cut=3.0):
+    """
+    Estimate local false discovery rate (local FDR) from p-values.
+    
+    Parameters
+    ----------
+    p_values : array-like
+        Vector of p-values from hypothesis tests
+    pi0 : float
+        Estimated proportion of true null hypotheses (from pi0est())
+    trunc : bool, optional
+        If True, truncate lfdr values to [0,1] range (default True)
+    monotone : bool, optional
+        If True, enforce monotonicity constraint (default True)
+    transf : str, optional
+        Transformation to apply: "probit" (inverse normal) or "logit" (log-odds) (default "probit")
+    adj : float, optional
+        Bandwidth adjustment factor (multiplied by automatic bandwidth selection) (default 1.5)
+    eps : float, optional
+        Small constant added to density estimates to avoid division by zero (default 1e-8)
+    gridsize : int, optional
+        Number of FFT grid points for KDE (default 512)
+    cut : float, optional
+        Grid extension factor in units of bandwidth (default 3.0)
+    
+    Returns
+    -------
+    ndarray
+        Vector of local FDR values, one for each input p-value
+    """
+    transf_bytes = transf.encode('utf-8')
+    out = lfdr_c(
+        _to_vec_double(p_values), 
+        <double> pi0, 
+        <bint> trunc, 
+        <bint> monotone,
+        <const char*> transf_bytes,
+        <double> adj,
+        <double> eps,
+        <size_t> gridsize,
+        <double> cut
+    )
+    return np.asarray(out, dtype=float)
