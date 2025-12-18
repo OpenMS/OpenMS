@@ -768,7 +768,7 @@ set(pyopenms_unittest_testfiles
   testLocale.py
   test_MRMFeatureFinderScoring.py
   test_MSNumpressCoder.py
-  test_MSSpectrumAndRichSpectrum.py
+  test_MSSpectrum.py
   test_OpenSwathDataStructures.py
   test_Smoothing.py
   testSpecialCases.py
@@ -778,6 +778,7 @@ set(pyopenms_unittest_testfiles
   test_MzMLConsumer.py
   test_MzXMLConsumer.py
   test_AcquisitionInfo.py
+  test_FLASHDeconv.py
 )
 
 # Please add your test here when you decide to write a new testfile in the tests/integration_tests folder

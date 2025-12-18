@@ -719,7 +719,7 @@ struct ImmoniumIonsInPeptide
 //-------------------------------------------------------------
 
 /**
-    @page UTILS_OpenNuXL OpenNuXL 
+    @page TOPP_OpenNuXL OpenNuXL 
 
     @brief Annotate NA to peptide crosslinks in MS/MS spectra.
 
@@ -1097,9 +1097,9 @@ protected:
 
 
 /*  
-     @param N number of theoretical peaks
-     @param peak_in_spectrum number of experimental peaks
-     @param matched_size number of matched theoretical peaks
+     @param[in] N number of theoretical peaks
+     @param[in] peak_in_spectrum number of experimental peaks
+     @param[in] matched_size number of matched theoretical peaks
    
   static double matchOddsScore_(
     const Size& N,

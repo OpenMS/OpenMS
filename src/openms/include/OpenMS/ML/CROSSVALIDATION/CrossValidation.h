@@ -66,8 +66,8 @@ public:
     Deterministic round-robin assignment: fold(i) = i % K.
     For leave-one-out (LOO), use K = n.
 
-    @param n Number of samples
-    @param K Requested number of folds (clamped to [1, n])
+    @param[in] n Number of samples
+    @param[in] K Requested number of folds (clamped to [1, n])
 
     @exception Exception::InvalidValue if @p n == 0 or @p K == 0
 
@@ -106,13 +106,13 @@ public:
     @tparam TrainEval Callable of signature `void(const Cand&, const std::vector<std::vector<Size>>&, std::vector<double>&)`
     @tparam ScoreFn   Callable of signature `double(const std::vector<double>&)`
 
-    @param cbegin         Begin iterator of candidate grid
-    @param cend           End iterator of candidate grid
-    @param folds          Fold index sets (e.g., from makeKFolds)
-    @param train_eval     Callback: fit on train folds and append |error| for all held-out points
-    @param score          Callback: convert accumulated errors to a scalar loss (lower is better)
-    @param tie_tol        Absolute tolerance for tie detection (default: 1e-12)
-    @param tie_break      Preference for ties (default: PreferLarger)
+    @param[in] cbegin         Begin iterator of candidate grid
+    @param[in] cend           End iterator of candidate grid
+    @param[in] folds          Fold index sets (e.g., from makeKFolds)
+    @param[in] train_eval     Callback: fit on train folds and append |error| for all held-out points
+    @param[in] score          Callback: convert accumulated errors to a scalar loss (lower is better)
+    @param[in] tie_tol        Absolute tolerance for tie detection (default: 1e-12)
+    @param[in] tie_break      Preference for ties (default: PreferLarger)
 
     @return (best_candidate, best_score)
 

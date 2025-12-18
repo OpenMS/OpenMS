@@ -37,9 +37,9 @@ public:
     /**
       @brief C'tor with items to show and select from
 
-      @param parent Parent widget
-      @param items A set of strings to show and select from. Can be filtered in the dialog
-      @param items_prechosen A set of strings which are already chosen (on the right side) when first showing this dialog. This must be a subset of @p items
+      @param[in] parent Parent widget
+      @param[in] items A set of strings to show and select from. Can be filtered in the dialog
+      @param[in] items_prechosen A set of strings which are already chosen (on the right side) when first showing this dialog. This must be a subset of @p items
 
       @throws Exception::InvalidValue if any of @p items_prechosen is not contained in @p items
 

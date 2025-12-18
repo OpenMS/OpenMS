@@ -41,7 +41,7 @@ namespace OpenMS
 
     /**
      * @brief Move constructor for efficiently loading a MSExperiment without a deep copy
-     * @param experiment The MSExperiment to move into this object
+     * @param[in] experiment The MSExperiment to move into this object
      */
     explicit AnnotatedMSRun(MSExperiment&& experiment) : data(std::move(experiment))
     {};
@@ -84,13 +84,13 @@ namespace OpenMS
 
     /**
      * @brief Set all peptide identifications for all spectra
-     * @param ids Vector of peptide identifications
+     * @param[in] ids Vector of peptide identifications
      */
     void setPeptideIdentifications(PeptideIdentificationList&& ids);
 
     /**
      * @brief Set all peptide identifications for all spectra
-     * @param ids Vector of peptide identifications
+     * @param[in] ids Vector of peptide identifications
      */
     void setPeptideIdentifications(const PeptideIdentificationList& ids);
 
@@ -108,13 +108,13 @@ namespace OpenMS
 
     /**
      * @brief Set the MSExperiment
-     * @param experiment The MSExperiment to set
+     * @param[in] experiment The MSExperiment to set
      */
     void setMSExperiment(MSExperiment&& experiment);
 
     /**
      * @brief Set the MSExperiment
-     * @param experiment The MSExperiment to set
+     * @param[in] experiment The MSExperiment to set
      */
     void setMSExperiment(const MSExperiment& experiment);
 
@@ -174,7 +174,7 @@ namespace OpenMS
 
     /**
      * @brief Access a spectrum and its associated peptide identification
-     * @param idx The index of the spectrum
+     * @param[in] idx The index of the spectrum
      * @return A pair of references to the spectrum and its peptide identification
      */
     inline Mapping operator[](size_t idx)
@@ -184,7 +184,7 @@ namespace OpenMS
 
     /**
      * @brief Access a spectrum and its associated peptide identification (const version)
-     * @param idx The index of the spectrum
+     * @param[in] idx The index of the spectrum
      * @return A pair of const references to the spectrum and its peptide identification
      */
     inline ConstMapping operator[](size_t idx) const
@@ -210,8 +210,8 @@ namespace OpenMS
 
       /**
        * @brief Constructor
-       * @param ptr1 Iterator to the spectra
-       * @param ptr2 Iterator to the peptide identifications
+       * @param[in] ptr1 Iterator to the spectra
+       * @param[in] ptr2 Iterator to the peptide identifications
        */
       PairIterator(T1 ptr1, T2 ptr2) : m_ptr1(ptr1), m_ptr2(ptr2)
       {}
@@ -249,8 +249,8 @@ namespace OpenMS
 
       /**
        * @brief Equality operator
-       * @param a First iterator
-       * @param b Second iterator
+       * @param[in] a First iterator
+       * @param[in] b Second iterator
        * @return True if the iterators are equal
        */
       inline friend bool operator==(const PairIterator& a, const PairIterator& b)
@@ -260,8 +260,8 @@ namespace OpenMS
 
       /**
        * @brief Inequality operator
-       * @param a First iterator
-       * @param b Second iterator
+       * @param[in] a First iterator
+       * @param[in] b Second iterator
        * @return True if the iterators are not equal
        */
       inline friend bool operator!=(const PairIterator& a, const PairIterator& b)

@@ -65,8 +65,8 @@ namespace OpenMS
     /**
      * Generates a simple tandem MS Spectrum,
      * @param[out] spectrum Each peak is only represented as a single m/z value
-     * @param peptide The input peptide
-     * @param charge The max charge of the peaks
+     * @param[in] peptide The input peptide
+     * @param[in] charge The max charge of the peaks
      */
     void getPrefixAndSuffixIonsMZ(std::vector<float>& spectrum, const AASequence& peptide, int charge) const;
 

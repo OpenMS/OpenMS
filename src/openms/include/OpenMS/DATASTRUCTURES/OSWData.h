@@ -306,9 +306,9 @@ namespace OpenMS
 
         /// Replace existing protein at position @p index
         /// Note: this is NOT the protein ID, but the index into the internal protein vector. See getProteins()
-        /// 
-        /// @param index A valid index into the getProteins() vector
-        /// @param protein The protein to replace the existing one
+        ///
+        /// @param[in] index A valid index into the getProteins() vector
+        /// @param[in] protein The protein to replace the existing one
         /// @throws Exception::Precondition() if transition IDs within protein are unknown
         void setProtein(const Size index, OSWProtein&& protein)
         {
@@ -369,7 +369,7 @@ namespace OpenMS
 
           Make sure that the other OSW data is loaded (at least via OSWFile::readMinimal()) before building this mapping here.
 
-          @param chrom_traces The external sqMass file, which we build the mapping on
+          @param[in] chrom_traces The external sqMass file, which we build the mapping on
           @throws Exception::MissingInformation if any nativeID is not known internally
           @throws Exception::Precondition if the run_ids do not match
         */

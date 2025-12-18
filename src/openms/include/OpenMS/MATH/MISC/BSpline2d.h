@@ -51,15 +51,15 @@ public:
      *
      * @see ok().
      *
-     * @param x		The array of x values in the domain.
-     * @param y		The array of y values corresponding to each of the
+     * @param[in] x		The array of x values in the domain.
+     * @param[in] y		The array of y values corresponding to each of the
      *			x values in the domain.
-     * @param wavelength	The cutoff wavelength, in the same units as the
+     * @param[in] wavelength	The cutoff wavelength, in the same units as the
      *				@p x values.  A wavelength of zero disables
      *				the derivative constraint.
-     * @param boundary_condition	The boundary condition type. If
+     * @param[in] boundary_condition	The boundary condition type. If
      *			omitted it defaults to BC_ZERO_SECOND.
-     * @param num_nodes The number of nodes to use for the cubic b-spline.
+     * @param[in] num_nodes The number of nodes to use for the cubic b-spline.
      *			If less than 2, a "reasonable" number will be
      *			calculated automatically, taking into account
      *			the given cutoff wavelength.
@@ -78,7 +78,7 @@ public:
      * Solve the spline curve for a new set of y values.  Returns false
      * if the solution fails.
      *
-     * @param y The array of y values corresponding to each of the
+     * @param[in] y The array of y values corresponding to each of the
      *		x values in the domain.
      */
     bool solve(const std::vector<double>& y);

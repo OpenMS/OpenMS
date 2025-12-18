@@ -49,8 +49,9 @@ jobs:
     - name: Install Qt
       uses: jurplel/install-qt-action@v4
       with:
-        version: '6.*'
-        host: 'windows' # default: win64_msvc2017_64
+        version: '6.8.3'
+        host: 'windows'
+        arch: 'win64_msvc2022_64'
         target: 'desktop'
         install-deps: 'true'
         archives: 'qtsvg qtbase'
@@ -166,6 +167,7 @@ jobs:
           CCACHE_COMPRESS: true
           CCACHE_COMPRESSLEVEL: 6
           CCACHE_MAXSIZE: 1G
+          WITH_PARQUET: "ON"
           PYOPENMS: "ON"
           PY_NUM_THREADS: ${{ steps.cpu-cores.outputs.count }}
           ENABLE_TUTORIALS: "OFF"
@@ -194,7 +196,7 @@ jobs:
         path: pyopenms_whls
         
   build-macos-arm:
-    runs-on: macos-latest
+    runs-on: macos-14
     env:
       SYSTEM_VERSION_COMPAT: 0 # workaround for mac see https://github.com/actions/setup-python/issues/469 for details.
     steps:
@@ -302,7 +304,7 @@ jobs:
           CC: "clang"
           CXX: "clang++"
           BOOST_USE_STATIC: "OFF" #TODO check if necessary?
-          MACOSX_DEPLOYMENT_TARGET: "12"
+          MACOSX_DEPLOYMENT_TARGET: "14"
           SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
           CMAKE_GENERATOR: "Ninja"
           OPENMS_CONTRIB_LIBS: "$GITHUB_WORKSPACE/OpenMS/contrib"
@@ -317,6 +319,7 @@ jobs:
           CCACHE_COMPRESSLEVEL: 6
           CCACHE_MAXSIZE: 1G
           MT_ENABLE_OPENMP: "ON"
+          WITH_PARQUET: "ON"
           PYOPENMS: "ON"
           PY_NUM_THREADS: ${{ steps.cpu-cores.outputs.count }}
           ENABLE_TUTORIALS: "OFF"
@@ -603,6 +606,7 @@ jobs:
           BUILD_FLAGS: "-j${{ steps.cpu-cores.outputs.count }}"
           NO_DEPENDENCIES: "ON"
           Python_FIND_STRATEGY: "LOCATION"
+          WITH_PARQUET: "ON"
           PYOPENMS: "ON"
           PY_NUM_THREADS: ${{ steps.cpu-cores.outputs.count }}
           CI_PROVIDER: "GitHub-Actions"
@@ -731,6 +735,7 @@ jobs:
           BUILD_FLAGS: "-j${{ steps.cpu-cores.outputs.count }}"
           NO_DEPENDENCIES: "ON"
           Python_FIND_STRATEGY: "LOCATION"
+          WITH_PARQUET: "ON"
           PYOPENMS: "ON"
           PY_NUM_THREADS: ${{ steps.cpu-cores.outputs.count }}
           CI_PROVIDER: "GitHub-Actions"
@@ -762,13 +767,13 @@ jobs:
 
 # Tests the build workflows
   test:
-    needs: [build-win, build-macos, build-lnx, build-macos-arm, build-lnx-arm]
+    needs: [build-win, build-lnx, build-macos-arm, build-lnx-arm]
     runs-on: ${{ matrix.os }}
     env:
       SYSTEM_VERSION_COMPAT: 0 #courtesy of https://github.com/actions/setup-python/issues/469 in lieu of an actual solution.
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-15-intel, windows-latest, macos-latest, ubuntu-22.04-arm]
+        os: [ubuntu-latest, windows-latest, macos-14, ubuntu-22.04-arm]
     steps:
     - uses: actions/checkout@v4
       name: Checkout sources
@@ -784,10 +789,6 @@ jobs:
             bash ${MINICONDA_FILENAME} -b -f -p $HOME/miniconda3
           elif [[ "${{ runner.os }}" == "Linux" && "${{ runner.arch }}" == "X64" ]]; then
             MINICONDA_FILENAME=Miniconda3-latest-Linux-x86_64.sh
-            curl -o $MINICONDA_FILENAME "https://repo.anaconda.com/miniconda/$MINICONDA_FILENAME"
-            bash ${MINICONDA_FILENAME} -b -f -p $HOME/miniconda3
-          elif [[ "${{ runner.os }}" == "macOS" && "${{ runner.arch }}" == "X64" ]]; then
-            MINICONDA_FILENAME=Miniconda3-latest-MacOSX-x86_64.sh
             curl -o $MINICONDA_FILENAME "https://repo.anaconda.com/miniconda/$MINICONDA_FILENAME"
             bash ${MINICONDA_FILENAME} -b -f -p $HOME/miniconda3
           elif [[ "${{ runner.os }}" == "macOS" && "${{ runner.arch }}" == "ARM64"  ]]; then
@@ -816,9 +817,6 @@ jobs:
       run: |
         PYTHON_VERSIONS=$(cat OpenMS/.github/workflows/python_versions.json)
         echo $PYTHON_VERSIONS
-        if [[ "${{ runner.os }}" == "macOS" && "${{ runner.arch }}" == "X64" ]]; then
-          conda config --add channels conda-forge
-        fi
 
         for py in $(echo "${PYTHON_VERSIONS}" | jq -r '.[]'); do
           py=$(echo "$py" | tr -d " \r\n")
@@ -869,16 +867,6 @@ jobs:
       with:
           name: Linux-ARM64-wheels
           path: /home/runner/work/OpenMS/OpenMS/Linux-ARM64-wheels
-    - name: Download artifacts
-      uses: actions/download-artifact@v4
-      with:
-          name: Windows-X64-wheels
-          path: /home/runner/work/OpenMS/OpenMS/Windows-X64-wheels
-    - name: Download artifacts
-      uses: actions/download-artifact@v4
-      with:
-          name: macOS-X64-wheels
-          path: /home/runner/work/OpenMS/OpenMS/macOS-X64-wheels
     - name: Download artifacts
       uses: actions/download-artifact@v4
       with:

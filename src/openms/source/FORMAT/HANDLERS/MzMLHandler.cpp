@@ -346,7 +346,7 @@ namespace OpenMS::Internal
         Size meta_float_idx = 0, meta_int_idx = 0, meta_string_idx = 0;
         for (Size i = 0; i < input_data.size(); i++)
         {
-          if (i == int_index || i == mz_index) continue; // Skip m/z and intensity arrays
+          if (static_cast<SignedSize>(i) == int_index || static_cast<SignedSize>(i) == mz_index) continue; // Skip m/z and intensity arrays
           
           MetaArrayInfo info;
           info.input_index = i;
@@ -1513,6 +1513,10 @@ namespace OpenMS::Internal
         else if (accession == "MS:1000525") //spectrum representation
         {
           spec_.setType(SpectrumSettings::UNKNOWN);
+        }
+        else if (accession == "MS:1003441") //ion mobility centroid frame
+        {
+          spec_.setIMFormat(IMFormat::CENTROIDED);
         }
         // spectrum attribute
         else if (accession == "MS:1000511") //ms level
@@ -5060,6 +5064,12 @@ namespace OpenMS::Internal
       else
       {
         os << "\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000525\" name=\"spectrum representation\" />\n";
+      }
+
+      //ion mobility frame representation
+      if (spec.getIMFormat() == IMFormat::CENTROIDED)
+      {
+        os << "\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1003441\" name=\"ion mobility centroid frame\" />\n";
       }
 
       //spectrum attributes
