@@ -85,10 +85,6 @@ public:
     // Collision detection index: (modified_seq + charge) → peptide_id
     std::unordered_map<std::string, std::string> collision_index;
 
-    // Group ordering: group_id → [file_offset, ...]
-    // Empty if groups are consecutive (no reordering needed)
-    std::map<String, std::vector<std::streampos>> group_offsets;
-
     // Deduplicated entities (lightweight versions for Pass 1)
     std::vector<LightPeptide> peptides;
     std::vector<LightProtein> proteins;
@@ -102,7 +98,6 @@ public:
     // Statistics
     Size total_transitions = 0;
     Size total_groups = 0;
-    bool groups_are_consecutive = true;  // False if reordering needed
 
     // For IPF/UIS: target ion map (SWATH → seq → [(mz, mod_seq), ...])
     IonMapT target_ion_map;
@@ -129,11 +124,10 @@ private:
 
 1. **Sequential scan** - Read each line once, O(n)
 2. **Extract group_id** - Track current vs previous group
-3. **Validate consecutiveness** - If group_id seen before after different group, mark `groups_are_consecutive = false`
+3. **Validate consecutiveness** - If group_id seen before after different group, **throw error immediately**
 4. **Build collision index** - For each unique peptide: `collision_index[seq+charge] = peptide_id`
-5. **Record group offsets** - If not consecutive: `group_offsets[group_id].push_back(file_position)`
-6. **Deduplicate** - Create lightweight Peptide/Protein/Compound objects
-7. **Build target ion map** (if IPF enabled) - Store fragment m/z per SWATH window
+5. **Deduplicate** - Create lightweight Peptide/Protein/Compound objects
+6. **Build target ion map** (if IPF enabled) - Store fragment m/z per SWATH window
 
 **Memory for Pass 1** (10GB file, ~1M unique peptides):
 
@@ -147,46 +141,27 @@ private:
 | target_ion_map (IPF) | ~200 MB |
 | **Total Pass 1** | **~500-700 MB** |
 
-### Step 2: Handle Non-Consecutive Groups
+### Step 2: Validate Consecutive Groups (Fail Fast)
 
-If `groups_are_consecutive == false`, we have three options:
-
-**Option A: External Sort (Recommended for very large files)**
+If groups are not consecutive, fail immediately with a clear error message:
 
 ```cpp
-void externalSortByGroupId(const String& input, const String& sorted_output) {
-  // 1. Split file into chunks that fit in memory
-  // 2. Sort each chunk by group_id
-  // 3. Merge sorted chunks using k-way merge
-  // Result: sorted file where all transitions of a group are consecutive
-}
-```
-
-**Option B: Use Group Offset Index**
-
-```cpp
-// In Pass 2, instead of sequential read:
-for (auto& [group_id, offsets] : index.group_offsets) {
-  std::vector<TSVTransition> group_transitions;
-  for (auto offset : offsets) {
-    file.seekg(offset);
-    group_transitions.push_back(readLine(file));
+void TransitionTSVIndexer::validateGroupConsecutiveness_() {
+  if (!groups_are_consecutive_) {
+    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+      "Streaming mode requires all transitions of a peptide group to appear "
+      "consecutively in the TSV file. Found split group: '" + split_group_id_ + "'. "
+      "Pre-sort input with: sort -t$'\\t' -k<group_col> -s input.tsv > sorted.tsv",
+      filename_);
   }
-  processGroup(group_id, group_transitions);
 }
 ```
 
-**Tradeoff**: Random I/O is slower than sequential, but avoids creating temp file.
-
-**Option C: Abort and Require Sorted Input**
-
-```cpp
-if (!index.groups_are_consecutive) {
-  throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-    "TSV file must have consecutive transitions per group for streaming mode. "
-    "Use 'sort -t$'\\t' -k<group_col>' or disable streaming mode.", filename);
-}
-```
+**Rationale**:
+- Keeps implementation simple (no external sort, no offset tracking)
+- Most library generation tools produce grouped output
+- User can easily pre-sort if needed
+- Avoids hidden complexity and potential bugs
 
 ### Step 3: Second Pass - Streaming Processing
 
@@ -292,29 +267,14 @@ if (use_streaming_mode || file_size > streaming_threshold)
 {
   OPENMS_LOG_INFO << "Using streaming mode for large file..." << std::endl;
 
-  // === PASS 1: Build indices ===
+  // === PASS 1: Build indices (validates consecutive groups) ===
   OPENMS_LOG_INFO << "Pass 1: Building collision index and validating group order..." << std::endl;
   TransitionTSVIndexer indexer;
-  auto index = indexer.buildIndex(in_tsv);
+  auto index = indexer.buildIndex(in_tsv);  // Throws if groups not consecutive
 
   OPENMS_LOG_INFO << "Found " << index.total_transitions << " transitions in "
                   << index.total_groups << " groups" << std::endl;
   OPENMS_LOG_INFO << "Collision index size: " << index.collision_index.size() << std::endl;
-
-  // Handle non-consecutive groups
-  if (!index.groups_are_consecutive) {
-    if (allow_external_sort) {
-      OPENMS_LOG_INFO << "Groups not consecutive, performing external sort..." << std::endl;
-      String sorted_file = File::getTempDirectory() + "/" + File::getUniqueName() + ".tsv";
-      externalSortByGroupId(in_tsv, sorted_file);
-      in_tsv = sorted_file;
-      // Rebuild index for sorted file (groups now consecutive)
-      index = indexer.buildIndex(in_tsv);
-    } else {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        "Groups not consecutive. Enable -allow_external_sort or pre-sort input.", in_tsv);
-    }
-  }
 
   // === PASS 2: Stream processing ===
   OPENMS_LOG_INFO << "Pass 2: Processing transitions with decoy generation..." << std::endl;
@@ -397,12 +357,11 @@ struct OPENMS_DLLAPI LightProtein
 | Component | Count | Size | Total |
 |-----------|-------|------|-------|
 | Collision index | 1M entries | 100 bytes | 100 MB |
-| Group offsets (worst case) | 30M entries | 8 bytes | 240 MB |
 | LightPeptide vector | 1M | 100 bytes | 100 MB |
 | LightProtein vector | 100K | 50 bytes | 5 MB |
 | Dedup maps | 1.1M entries | 50 bytes | 55 MB |
 | Target ion map (IPF) | 1M × 5 ions | 40 bytes | 200 MB |
-| **Pass 1 Total** | | | **~700 MB** |
+| **Pass 1 Total** | | | **~460 MB** |
 
 ### Pass 2 Peak Memory
 
@@ -419,9 +378,9 @@ struct OPENMS_DLLAPI LightProtein
 | Mode | Peak Memory |
 |------|-------------|
 | Current (load all) | 15-20 GB |
-| **Two-Pass Streaming** | **~700 MB** |
+| **Two-Pass Streaming** | **~500 MB** |
 
-**20-30x reduction** in peak memory usage.
+**30-40x reduction** in peak memory usage.
 
 ## Files to Create/Modify
 
@@ -433,7 +392,6 @@ struct OPENMS_DLLAPI LightProtein
 5. `src/openms/include/OpenMS/ANALYSIS/OPENSWATH/StreamingTransitionTSVWriter.h`
 6. `src/openms/source/ANALYSIS/OPENSWATH/StreamingTransitionTSVWriter.cpp`
 7. `src/openms/include/OpenMS/ANALYSIS/OPENSWATH/LightTargetedTypes.h`
-8. `src/openms/include/OpenMS/ANALYSIS/OPENSWATH/ExternalSort.h` (optional)
 
 ### Modified Files
 1. `src/topp/OpenSwathAssayGenerator.cpp` - Add streaming mode option
@@ -453,7 +411,7 @@ struct OPENMS_DLLAPI LightProtein
 
 | Risk | Impact | Mitigation |
 |------|--------|------------|
-| Non-consecutive groups | High | External sort or offset-based random access |
+| Non-consecutive groups | High | Fail fast with clear error message; user pre-sorts |
 | IPF/UIS cross-group collision | High | Build target_ion_map in Pass 1 |
 | Decoy order dependence | Medium | Process groups in deterministic order |
 | PQP output needs final data | Medium | Stream to temp TSV, then convert |
@@ -462,15 +420,14 @@ struct OPENMS_DLLAPI LightProtein
 ## Implementation Order
 
 1. **Phase 1**: `LightTargetedTypes.h` - Lightweight data structures
-2. **Phase 2**: `TransitionTSVIndexer` - Pass 1 index building
-3. **Phase 3**: Group consecutiveness validation + external sort
-4. **Phase 4**: `StreamingTransitionProcessor` - Pass 2 processing
-5. **Phase 5**: Decoy generation with collision checking
-6. **Phase 6**: `StreamingTransitionTSVWriter` - Output streaming
-7. **Phase 7**: Integration into `OpenSwathAssayGenerator`
-8. **Phase 8**: IPF/UIS support with target_ion_map
-9. **Phase 9**: PQP output format support
-10. **Phase 10**: Performance optimization and comprehensive testing
+2. **Phase 2**: `TransitionTSVIndexer` - Pass 1 index building + group validation
+3. **Phase 3**: `StreamingTransitionProcessor` - Pass 2 processing
+4. **Phase 4**: Decoy generation with collision checking
+5. **Phase 5**: `StreamingTransitionTSVWriter` - Output streaming
+6. **Phase 6**: Integration into `OpenSwathAssayGenerator`
+7. **Phase 7**: IPF/UIS support with target_ion_map
+8. **Phase 8**: PQP output format support
+9. **Phase 9**: Performance optimization and comprehensive testing
 
 ## Command-Line Interface
 
@@ -481,9 +438,10 @@ OpenSwathAssayGenerator -in large_library.tsv -out filtered.tsv
 # Force streaming mode
 OpenSwathAssayGenerator -in library.tsv -out filtered.tsv -streaming_mode
 
-# With external sort for unsorted input
-OpenSwathAssayGenerator -in unsorted.tsv -out filtered.tsv -streaming_mode -allow_external_sort
-
 # Set streaming threshold (default: 1GB)
 OpenSwathAssayGenerator -in library.tsv -out filtered.tsv -streaming_threshold 500000000
+
+# If groups are not consecutive, pre-sort the input:
+sort -t$'\t' -k11 -s input.tsv > sorted.tsv  # k11 = TransitionGroupId column
+OpenSwathAssayGenerator -in sorted.tsv -out filtered.tsv -streaming_mode
 ```
