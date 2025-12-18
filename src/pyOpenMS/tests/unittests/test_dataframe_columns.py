@@ -617,3 +617,217 @@ class TestBackwardCompatibility:
 
         assert 'rt' in df.columns
         assert 'intensity' in df.columns
+
+
+class TestToArrowMethods:
+    """Tests for to_arrow() methods that export to Apache Arrow Tables."""
+
+    def test_spectrum_to_arrow(self):
+        """Test MSSpectrum.to_arrow() returns valid Arrow Table."""
+        pytest.importorskip('pyarrow')
+        import pyarrow as pa
+
+        spec = pyopenms.MSSpectrum()
+        spec.setMSLevel(2)
+        spec.setRT(123.45)
+        mzs = np.array([100.0, 200.0, 300.0], dtype=np.float64)
+        ints = np.array([10.0, 20.0, 30.0], dtype=np.float32)
+        spec.set_peaks([mzs, ints])
+
+        table = spec.to_arrow()
+
+        assert isinstance(table, pa.Table)
+        assert table.num_rows == 3
+        assert 'mz' in table.column_names
+        assert 'intensity' in table.column_names
+
+    def test_spectrum_to_arrow_column_selection(self):
+        """Test MSSpectrum.to_arrow() with column selection."""
+        pytest.importorskip('pyarrow')
+        import pyarrow as pa
+
+        spec = pyopenms.MSSpectrum()
+        mzs = np.array([100.0, 200.0], dtype=np.float64)
+        ints = np.array([10.0, 20.0], dtype=np.float32)
+        spec.set_peaks([mzs, ints])
+
+        table = spec.to_arrow(columns=['mz', 'intensity'])
+
+        assert table.num_columns == 2
+        assert 'mz' in table.column_names
+        assert 'intensity' in table.column_names
+        assert 'rt' not in table.column_names
+
+    def test_chromatogram_to_arrow(self):
+        """Test MSChromatogram.to_arrow() returns valid Arrow Table."""
+        pytest.importorskip('pyarrow')
+        import pyarrow as pa
+
+        chrom = pyopenms.MSChromatogram()
+        rts = np.array([10.0, 20.0, 30.0], dtype=np.float64)
+        ints = np.array([100.0, 200.0, 150.0], dtype=np.float32)
+        chrom.set_peaks([rts, ints])
+
+        table = chrom.to_arrow()
+
+        assert isinstance(table, pa.Table)
+        assert table.num_rows == 3
+        assert 'rt' in table.column_names
+        assert 'intensity' in table.column_names
+
+    def test_mobilogram_to_arrow(self):
+        """Test Mobilogram.to_arrow() returns valid Arrow Table."""
+        pytest.importorskip('pyarrow')
+        import pyarrow as pa
+
+        mob = pyopenms.Mobilogram()
+        mobilities = np.array([1.0, 2.0, 3.0], dtype=np.float64)
+        ints = np.array([100.0, 200.0, 150.0], dtype=np.float32)
+        mob.set_peaks([mobilities, ints])
+
+        table = mob.to_arrow()
+
+        assert isinstance(table, pa.Table)
+        assert table.num_rows == 3
+        assert 'mobility' in table.column_names
+        assert 'intensity' in table.column_names
+
+    def test_experiment_to_arrow_long_format(self):
+        """Test MSExperiment.to_arrow() with long_format=True."""
+        pytest.importorskip('pyarrow')
+        import pyarrow as pa
+
+        exp = pyopenms.MSExperiment()
+        spec = pyopenms.MSSpectrum()
+        spec.setMSLevel(1)
+        mzs = np.array([100.0, 200.0], dtype=np.float64)
+        ints = np.array([10.0, 20.0], dtype=np.float32)
+        spec.set_peaks([mzs, ints])
+        exp.addSpectrum(spec)
+
+        table = exp.to_arrow(long_format=True)
+
+        assert isinstance(table, pa.Table)
+        assert 'mz' in table.column_names
+        assert 'intensity' in table.column_names
+        assert 'ms_level' in table.column_names
+
+    def test_feature_map_to_arrow(self):
+        """Test FeatureMap.to_arrow() returns valid Arrow Table."""
+        pytest.importorskip('pyarrow')
+        import pyarrow as pa
+
+        fmap = pyopenms.FeatureMap()
+        f = pyopenms.Feature()
+        f.setRT(100.0)
+        f.setMZ(500.0)
+        f.setIntensity(1000.0)
+        fmap.push_back(f)
+
+        table = fmap.to_arrow()
+
+        assert isinstance(table, pa.Table)
+        assert table.num_rows == 1
+
+    def test_to_arrow_to_pandas_roundtrip(self):
+        """Test that to_arrow().to_pandas() produces same result as get_df()."""
+        pytest.importorskip('pyarrow')
+
+        spec = pyopenms.MSSpectrum()
+        spec.setMSLevel(1)
+        mzs = np.array([100.0, 200.0, 300.0], dtype=np.float64)
+        ints = np.array([10.0, 20.0, 30.0], dtype=np.float32)
+        spec.set_peaks([mzs, ints])
+
+        df_direct = spec.get_df(columns=['mz', 'intensity'])
+        df_via_arrow = spec.to_arrow(columns=['mz', 'intensity']).to_pandas()
+
+        assert list(df_direct['mz']) == list(df_via_arrow['mz'])
+        assert list(df_direct['intensity']) == list(df_via_arrow['intensity'])
+
+
+class TestBugFixes:
+    """Tests for specific bug fixes."""
+
+    def test_peptide_id_missing_metavalue_no_error(self):
+        """Test that missing metavalues don't cause UnboundLocalError.
+
+        Regression test for bug where accessing default_missing_values[type(val)]
+        would fail if val was never assigned (metavalue didn't exist).
+        """
+        pep_list = pyopenms.PeptideIdentificationList()
+
+        # Create two peptide IDs with different metavalues
+        pep1 = pyopenms.PeptideIdentification()
+        pep1.setRT(100.0)
+        pep1.setMZ(500.0)
+        hit1 = pyopenms.PeptideHit()
+        hit1.setScore(10.0)
+        hit1.setCharge(2)
+        hit1.setSequence(pyopenms.AASequence.fromString('PEPTIDE'))
+        hit1.setMetaValue('custom_score', 0.95)  # Only pep1 has this metavalue
+        pep1.setHits([hit1])
+        pep_list.append(pep1)
+
+        pep2 = pyopenms.PeptideIdentification()
+        pep2.setRT(200.0)
+        pep2.setMZ(600.0)
+        hit2 = pyopenms.PeptideHit()
+        hit2.setScore(20.0)
+        hit2.setCharge(3)
+        hit2.setSequence(pyopenms.AASequence.fromString('ANOTHER'))
+        # hit2 does NOT have 'custom_score' metavalue
+        pep2.setHits([hit2])
+        pep_list.append(pep2)
+
+        # This should not raise UnboundLocalError
+        df = pep_list.get_df()
+        assert len(df) == 2
+
+    def test_massql_df_empty_spectrum_no_division_by_zero(self):
+        """Test that get_massql_df() handles empty/zero-intensity spectra.
+
+        Regression test for division by zero when normalizing intensities.
+        """
+        exp = pyopenms.MSExperiment()
+
+        # Add a normal spectrum
+        spec1 = pyopenms.MSSpectrum()
+        spec1.setMSLevel(1)
+        mzs = np.array([100.0, 200.0], dtype=np.float64)
+        ints = np.array([1000.0, 2000.0], dtype=np.float32)
+        spec1.set_peaks([mzs, ints])
+        exp.addSpectrum(spec1)
+
+        # Add an empty spectrum (edge case)
+        spec2 = pyopenms.MSSpectrum()
+        spec2.setMSLevel(1)
+        spec2.set_peaks([np.array([], dtype=np.float64), np.array([], dtype=np.float32)])
+        exp.addSpectrum(spec2)
+
+        # This should not raise division by zero warning/error
+        ms1_df, ms2_df = exp.get_massql_df()
+
+        # Verify normalized columns are finite (no inf or nan from division)
+        if len(ms1_df) > 0:
+            assert ms1_df['i_norm'].notna().all() or (ms1_df['i_norm'] == 0).all()
+            assert ms1_df['i_tic_norm'].notna().all() or (ms1_df['i_tic_norm'] == 0).all()
+
+    def test_massql_df_zero_intensity_spectrum(self):
+        """Test get_massql_df() with spectrum where all intensities are zero."""
+        exp = pyopenms.MSExperiment()
+
+        spec = pyopenms.MSSpectrum()
+        spec.setMSLevel(1)
+        mzs = np.array([100.0, 200.0, 300.0], dtype=np.float64)
+        ints = np.array([0.0, 0.0, 0.0], dtype=np.float32)  # All zeros
+        spec.set_peaks([mzs, ints])
+        exp.addSpectrum(spec)
+
+        # This should handle division by zero gracefully
+        ms1_df, ms2_df = exp.get_massql_df()
+
+        # Normalized values should be 0 (not inf or nan)
+        assert len(ms1_df) == 3
+        assert (ms1_df['i_norm'] == 0).all()
+        assert (ms1_df['i_tic_norm'] == 0).all()

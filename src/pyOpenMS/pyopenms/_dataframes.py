@@ -19,7 +19,7 @@ __all__ = [
     '_add_meta_values',
 ]
 
-from typing import List, Union
+from typing import Any, List, Union
 
 from . import PeptideIdentificationList as _PeptideIdentificationList
 from . import DataValue as _DataValue
@@ -92,13 +92,13 @@ def update_scores_from_df(peps: _PeptideIdentificationList, df: _pd.DataFrame, m
     return peps.update_scores_from_df(df, main_score_name)
 
 
-def _add_meta_values(df: _pd.DataFrame, object: any) -> _pd.DataFrame:
+def _add_meta_values(df: _pd.DataFrame, object: Any) -> _pd.DataFrame:
     """
     Adds metavalues from given object to given DataFrame.
 
     Args:
         df (pd.DataFrame): DataFrame to which metavalues will be added.
-        object (any): Object from which metavalues will be extracted.
+        object (Any): Object from which metavalues will be extracted.
 
     Returns:
         pd.DataFrame: DataFrame with added meta values.

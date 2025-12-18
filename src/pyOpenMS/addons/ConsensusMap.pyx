@@ -256,7 +256,9 @@ from collections import defaultdict as _defaultdict
             dtypes = [('id', np.dtype('uint64'))] + list(zip(labels, ['f'] * len(labels)))
             dtypes.append(('file', 'U300'))
 
-            intyarr = np.fromiter(iter=gen(self, extract_rows_channel_wide_file_long), dtype=dtypes, count=self.size())
+            # Count actual rows: one row per file per feature (not one per feature)
+            total_rows = sum(len(extract_row_blocks_channel_wide_file_long(f)[1]) for f in self)
+            intyarr = np.fromiter(iter=gen(self, extract_rows_channel_wide_file_long), dtype=dtypes, count=total_rows)
 
             return pd.DataFrame(intyarr).set_index('id')
 

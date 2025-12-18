@@ -424,8 +424,13 @@ import numpy as np
             for scan_num, spec in enumerate(self):
                 if spec.getMSLevel() == mslevel:
                     mz, inty = spec.get_peaks()
+                    # Safe division: handle empty spectra or all-zero intensities
+                    max_inty = np.amax(inty, initial=0)
+                    sum_inty = np.sum(inty)
+                    i_norm = np.zeros_like(inty) if max_inty == 0 else inty / max_inty
+                    i_tic_norm = np.zeros_like(inty) if sum_inty == 0 else inty / sum_inty
                     # data for both DataFrames: i, i_norm, i_tic_norm, mz, scan, rt, polarity
-                    data = (inty, inty/np.amax(inty, initial=0), inty/np.sum(inty), mz, scan_num + 1, spec.getRT()/60, _get_polarity(spec))
+                    data = (inty, i_norm, i_tic_norm, mz, scan_num + 1, spec.getRT()/60, _get_polarity(spec))
                     cols = 7
                     if mslevel == 2:
                         cols = 10
@@ -463,8 +468,13 @@ import numpy as np
                     ion_data_arr = spec.getFloatDataArrays()[ion_array_idx]
                     ion_data = ion_data_arr.get_data()
 
+                    # Safe division: handle empty spectra or all-zero intensities
+                    max_inty = np.amax(inty, initial=0)
+                    sum_inty = np.sum(inty)
+                    i_norm = np.zeros_like(inty) if max_inty == 0 else inty / max_inty
+                    i_tic_norm = np.zeros_like(inty) if sum_inty == 0 else inty / sum_inty
                     # data for both DataFrames: i, i_norm, i_tic_norm, mz, scan, rt, polarity
-                    data = (inty, inty/np.amax(inty, initial=0), inty/np.sum(inty), mz, scan_num + 1, spec.getRT()/60, _get_polarity(spec), ion_data)
+                    data = (inty, i_norm, i_tic_norm, mz, scan_num + 1, spec.getRT()/60, _get_polarity(spec), ion_data)
                     cols = 8
                     if mslevel == 2:
                         cols = 11
