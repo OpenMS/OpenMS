@@ -54,6 +54,16 @@
 				<UserParam type="string" name="MSGFPlusAdapter:1:force" value="false"/>
 				<UserParam type="string" name="MSGFPlusAdapter:1:test" value="false"/>
 				<UserParam type="string" name="EnzymeTermSpecificity" value="full"/>
+				<UserParam type="string" name="PeptideIndexer:decoy_string" value="_rev"/>
+				<UserParam type="string" name="PeptideIndexer:decoy_string_position" value="suffix"/>
+				<UserParam type="string" name="PeptideIndexer:enzyme" value="Trypsin/P"/>
+				<UserParam type="string" name="PeptideIndexer:enzyme_specificity" value="full"/>
+				<UserParam type="int" name="PeptideIndexer:aaa_max" value="3"/>
+				<UserParam type="int" name="PeptideIndexer:mismatches_max" value="0"/>
+				<UserParam type="string" name="PeptideIndexer:IL_equivalent" value="false"/>
+				<UserParam type="string" name="PeptideIndexer:allow_nterm_protein_cleavage" value="true"/>
+				<UserParam type="string" name="PeptideIndexer:unmatched_action" value="error"/>
+				<UserParam type="string" name="PeptideIndexer:missing_decoy_action" value="silent"/>
 				<UserParam type="string" name="InferenceEngine" value="TOPPProteinInference"/>
 				<UserParam type="string" name="InferenceEngineVersion" value="3.0.0-pre-fix-plfq-idconflict-2022-11-02"/>
 				<UserParam type="string" name="TOPPProteinInference:aggregation_method" value="best"/>

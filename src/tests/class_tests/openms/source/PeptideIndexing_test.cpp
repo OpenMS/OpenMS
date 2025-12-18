@@ -343,6 +343,64 @@ START_SECTION((ExitCodes run(std::vector<FASTAFile::FASTAEntry>& proteins, std::
 }
 END_SECTION
 
+START_SECTION((Test PeptideIndexer settings stored as metavalues in SearchParameters))
+{
+  // Test that PeptideIndexer settings are stored as metavalues in SearchParameters
+  PeptideIndexing pi;
+  Param p = pi.getParameters();
+  p.setValue("decoy_string", "DECOY_");
+  p.setValue("decoy_string_position", "prefix");
+  p.setValue("enzyme:name", "Trypsin");
+  p.setValue("enzyme:specificity", "full");
+  p.setValue("aaa_max", 2);
+  p.setValue("mismatches_max", 1);
+  p.setValue("IL_equivalent", "true");
+  p.setValue("allow_nterm_protein_cleavage", "false");
+  p.setValue("unmatched_action", "warn");
+  p.setValue("missing_decoy_action", "warn");
+  pi.setParameters(p);
+
+  std::vector<FASTAFile::FASTAEntry> proteins = toFASTAVec(QStringList() << "PEPTIDER" << "DECOY_SEQUENCE");
+
+  // Create a ProteinIdentification with an identifier that matches the PeptideIdentifications
+  std::vector<ProteinIdentification> prot_ids(1);
+  prot_ids[0].setIdentifier("test_run");
+
+  // Create PeptideIdentifications with matching identifier
+  PeptideIdentificationList pep_ids = toPepVec(QStringList() << "PEPTIDER");
+  for (auto& pep_id : pep_ids)
+  {
+    pep_id.setIdentifier("test_run");
+  }
+
+  PeptideIndexing::ExitCodes r = pi.run(proteins, prot_ids, pep_ids);
+  TEST_EQUAL(r, PeptideIndexing::EXECUTION_OK);
+
+  // Check that metavalues are set correctly in SearchParameters
+  const ProteinIdentification::SearchParameters& search_params = prot_ids[0].getSearchParameters();
+  TEST_EQUAL(search_params.metaValueExists("PeptideIndexer:decoy_string"), true);
+  TEST_EQUAL(search_params.getMetaValue("PeptideIndexer:decoy_string"), "DECOY_");
+  TEST_EQUAL(search_params.metaValueExists("PeptideIndexer:decoy_string_position"), true);
+  TEST_EQUAL(search_params.getMetaValue("PeptideIndexer:decoy_string_position"), "prefix");
+  TEST_EQUAL(search_params.metaValueExists("PeptideIndexer:enzyme"), true);
+  TEST_EQUAL(search_params.getMetaValue("PeptideIndexer:enzyme"), "Trypsin");
+  TEST_EQUAL(search_params.metaValueExists("PeptideIndexer:enzyme_specificity"), true);
+  TEST_EQUAL(search_params.getMetaValue("PeptideIndexer:enzyme_specificity"), "full");
+  TEST_EQUAL(search_params.metaValueExists("PeptideIndexer:aaa_max"), true);
+  TEST_EQUAL(search_params.getMetaValue("PeptideIndexer:aaa_max"), 2);
+  TEST_EQUAL(search_params.metaValueExists("PeptideIndexer:mismatches_max"), true);
+  TEST_EQUAL(search_params.getMetaValue("PeptideIndexer:mismatches_max"), 1);
+  TEST_EQUAL(search_params.metaValueExists("PeptideIndexer:IL_equivalent"), true);
+  TEST_EQUAL(search_params.getMetaValue("PeptideIndexer:IL_equivalent"), "true");
+  TEST_EQUAL(search_params.metaValueExists("PeptideIndexer:allow_nterm_protein_cleavage"), true);
+  TEST_EQUAL(search_params.getMetaValue("PeptideIndexer:allow_nterm_protein_cleavage"), "false");
+  TEST_EQUAL(search_params.metaValueExists("PeptideIndexer:unmatched_action"), true);
+  TEST_EQUAL(search_params.getMetaValue("PeptideIndexer:unmatched_action"), "warn");
+  TEST_EQUAL(search_params.metaValueExists("PeptideIndexer:missing_decoy_action"), true);
+  TEST_EQUAL(search_params.getMetaValue("PeptideIndexer:missing_decoy_action"), "warn");
+}
+END_SECTION
+
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
