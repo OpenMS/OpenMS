@@ -433,6 +433,9 @@ protected:
       cf.setCharge(id_spec.getPrecursors()[0].getCharge());
       cf.setIntensity(overall_intensity);
       pep.setIdentifier(ID_RUN_NAME_);
+      // Set id_merge_index to track which input file this peptide identification originated from.
+      // This is required for proper mzTab export when multiple files are merged into a single ID run.
+      pep.setMetaValue(Constants::UserParam::ID_MERGE_INDEX, file_idx);
       cf.setPeptideIdentifications({std::move(pep)});
   }
 
