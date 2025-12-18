@@ -45,15 +45,15 @@ namespace OpenMS
     using OverlapMode = FeatureOverlapMode;
     
     /*
-        @brief Filter overlapping features using a spatial datastructure (quadtree). 
+        @brief Filter overlapping features using a spatial datastructure (quadtree).
                Retains only the best feature in each cluster of overlapping features.
 
-        @param FeatureComparator must implement the concept of a less comparator.
+        @param[in] FeatureComparator must implement the concept of a less comparator.
                If several features overlap, the feature that evaluates as "smallest" is considered the best (according to the passed comparator) and is kept.
                The other overlapping features are removed and FeatureOverlapCallback evaluated on them.
                Default: overall feature quality.
 
-        @param FeatureOverlapCallback(best_in_cluster, f) is called if a feature f overlaps with a feature best_in_cluster.
+        @param[in] FeatureOverlapCallback(best_in_cluster, f) is called if a feature f overlaps with a feature best_in_cluster.
                FeatureOverlapCallback provides a customization point to e.g.:
               - transfer information from the soon-to-be-removed feature f over to the best_in_cluster feature
               - gather overlap statistics
@@ -74,11 +74,11 @@ namespace OpenMS
         @brief Filter overlapping features with configurable overlap detection mode.
                Extended version that allows choosing between different overlap detection strategies.
 
-        @param fmap The feature map to filter
-        @param FeatureComparator Comparator to determine the best feature in overlapping clusters
-        @param FeatureOverlapCallback Callback function called when features overlap
-        @param mode The overlap detection mode to use
-        @param tolerances Tolerances for centroid-based overlap detection (only used when mode == CENTROID_BASED)
+        @param[in,out] fmap The feature map to filter
+        @param[in] FeatureComparator Comparator to determine the best feature in overlapping clusters
+        @param[in] FeatureOverlapCallback Callback function called when features overlap
+        @param[in] mode The overlap detection mode to use
+        @param[in] tolerances Tolerances for centroid-based overlap detection (only used when mode == CENTROID_BASED)
 
         @ingroup Datareduction
     */
@@ -103,9 +103,9 @@ namespace OpenMS
         This callback is designed to work with features that may or may not have FAIMS CV
         annotations. Features without FAIMS_CV will simply not contribute to merged_centroid_IMs.
 
-        @param intensity_mode How to combine intensities: SUM adds all intensities,
+        @param[in] intensity_mode How to combine intensities: SUM adds all intensities,
                               MAX keeps the highest intensity (default: SUM)
-        @param write_meta_values If true, write merge tracking meta values to the surviving
+        @param[in] write_meta_values If true, write merge tracking meta values to the surviving
                                  feature for debugging/analysis (default: true)
         @return A callback function suitable for use with filter()
     */
@@ -129,20 +129,20 @@ namespace OpenMS
         - "merged_centroid_IMs": FAIMS CV values (if present on the original features)
         - "FAIMS_merge_count": number of FAIMS CV values that were merged
 
-        @param feature_map The feature map to process (modified in place)
-        @param max_rt_diff Maximum RT difference in seconds for considering features as
+        @param[in,out] feature_map The feature map to process (modified in place)
+        @param[in] max_rt_diff Maximum RT difference in seconds for considering features as
                           overlapping (default: 5.0)
-        @param max_mz_diff Maximum m/z difference in Da for considering features as
+        @param[in] max_mz_diff Maximum m/z difference in Da for considering features as
                           overlapping (default: 0.05)
-        @param require_same_charge If true, only merge features with identical charge states.
+        @param[in] require_same_charge If true, only merge features with identical charge states.
                                    If false, features with different charges can be merged
                                    (default: true)
-        @param require_same_im If true, only merge features with identical FAIMS CV values.
+        @param[in] require_same_im If true, only merge features with identical FAIMS CV values.
                                Features without FAIMS_CV are treated as a separate group and
                                can only merge with other features lacking FAIMS_CV (default: false)
-        @param intensity_mode How to combine intensities: SUM adds all intensities,
+        @param[in] intensity_mode How to combine intensities: SUM adds all intensities,
                               MAX keeps the highest intensity (default: SUM)
-        @param write_meta_values If true, write merge tracking meta values to merged features
+        @param[in] write_meta_values If true, write merge tracking meta values to merged features
                                  (default: true)
     */
     static void mergeOverlappingFeatures(FeatureMap& feature_map,
@@ -174,9 +174,9 @@ namespace OpenMS
 
         The feature with highest intensity is kept, and intensities are summed.
 
-        @param feature_map The feature map to process (modified in place)
-        @param max_rt_diff Maximum RT difference in seconds (default: 5.0)
-        @param max_mz_diff Maximum m/z difference in Da (default: 0.05)
+        @param[in,out] feature_map The feature map to process (modified in place)
+        @param[in] max_rt_diff Maximum RT difference in seconds (default: 5.0)
+        @param[in] max_mz_diff Maximum m/z difference in Da (default: 0.05)
     */
     static void mergeFAIMSFeatures(FeatureMap& feature_map,
                                    double max_rt_diff = 5.0,

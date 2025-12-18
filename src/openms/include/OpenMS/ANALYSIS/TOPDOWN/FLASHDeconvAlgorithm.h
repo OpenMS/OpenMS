@@ -56,9 +56,9 @@ namespace OpenMS
 
     /**
      * @brief Run FLASHDeconv algorithm for @p map and store @p deconvolved_spectra and @p deconvolved_feature
-     * @param map the dataset
-     * @param deconvolved_spectra the deconvolved spectra will be stored in here
-     * @param deconvolved_feature the deconvolved features wll be strored in here
+     * @param[in] map the dataset
+     * @param[out] deconvolved_spectra the deconvolved spectra will be stored in here
+     * @param[in] deconvolved_feature the deconvolved features wll be strored in here
      */
     void run(MSExperiment& map, std::vector<DeconvolvedSpectrum>& deconvolved_spectra, std::vector<FLASHHelperClasses::MassFeature>& deconvolved_feature);
 

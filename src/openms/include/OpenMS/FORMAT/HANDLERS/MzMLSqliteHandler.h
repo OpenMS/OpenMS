@@ -56,8 +56,8 @@ public:
       /**
           @brief Constructor of sqMass file
 
-          @param filename The sqMass filename
-          @param run_id Unique identifier which links the sqMass and OSW file. It is currently only used for storing and ignored when reading an sqMass file.
+          @param[in] filename The sqMass filename
+          @param[in] run_id Unique identifier which links the sqMass and OSW file. It is currently only used for storing and ignored when reading an sqMass file.
       */
       MzMLSqliteHandler(const String& filename, const UInt64 run_id);
 
@@ -72,8 +72,8 @@ public:
       /**
           @brief Read an experiment into an MSExperiment structure
 
-          @param exp The result data structure
-          @param meta_only Only read the meta data
+          @param[out] exp The result data structure
+          @param[in] meta_only Only read the meta data
       */
       void readExperiment(MSExperiment & exp, bool meta_only = false) const;
 
@@ -84,18 +84,18 @@ public:
       /**
           @brief Read an set of spectra (potentially restricted to a subset)
 
-          @param exp The result
-          @param indices A list of indices restricting the resulting spectra only to those specified here
-          @param meta_only Only read the meta data
+          @param[in] exp The result
+          @param[in] indices A list of indices restricting the resulting spectra only to those specified here
+          @param[in] meta_only Only read the meta data
       */
       void readSpectra(std::vector<MSSpectrum> & exp, const std::vector<int> & indices, bool meta_only = false) const;
 
       /**
           @brief Read an set of chromatograms (potentially restricted to a subset)
 
-          @param exp The result
-          @param indices A list of indices restricting the resulting chromatograms only to those specified here
-          @param meta_only Only read the meta data
+          @param[out] exp The result
+          @param[out] indices A list of indices restricting the resulting chromatograms only to those specified here
+          @param[in] meta_only Only read the meta data
       */
       void readChromatograms(std::vector<MSChromatogram> & exp, const std::vector<int> & indices, bool meta_only = false) const;
 
@@ -116,10 +116,10 @@ public:
       /**
           @brief Set file configuration
 
-          @param write_full_meta Whether to write a complete mzML meta data structure into the RUN_EXTRA field (allows complete recovery of the input file)
-          @param use_lossy_compression Whether to use lossy compression (ms numpress)
-          @param linear_abs_mass_acc Accepted loss in mass accuracy (absolute m/z, in Th)
-          @param sql_batch_size Batch size of SQL insert statements
+          @param[in] write_full_meta Whether to write a complete mzML meta data structure into the RUN_EXTRA field (allows complete recovery of the input file)
+          @param[in] use_lossy_compression Whether to use lossy compression (ms numpress)
+          @param[in] linear_abs_mass_acc Accepted loss in mass accuracy (absolute m/z, in Th)
+          @param[in] sql_batch_size Batch size of SQL insert statements
       */
       void setConfig(bool write_full_meta, bool use_lossy_compression, double linear_abs_mass_acc, int sql_batch_size = 500) 
       {
@@ -132,9 +132,9 @@ public:
       /**
           @brief Get spectral indices around a specific retention time
 
-          @param RT The retention time
-          @param deltaRT Tolerance window around RT (if less or equal than zero, only the first spectrum *after* RT is returned)
-          @param indices Spectra to consider (if empty, all spectra are considered)
+          @param[in] RT The retention time
+          @param[out] deltaRT Tolerance window around RT (if less or equal than zero, only the first spectrum *after* RT is returned)
+          @param[out] indices Spectra to consider (if empty, all spectra are considered)
           @return The indices of the spectra within RT +/- deltaRT
       */
       std::vector<size_t> getSpectraIndicesbyRT(double RT, double deltaRT, const std::vector<int> & indices) const;
@@ -167,7 +167,7 @@ public:
       /**
           @brief Write an experiment to disk
 
-          @param exp The data to write
+          @param[out] exp The data to write
       */
       void writeExperiment(const MSExperiment & exp);
 
@@ -185,14 +185,14 @@ public:
       /**
           @brief Writes a set of spectra to disk
 
-          @param spectra The spectra to write
+          @param[in] spectra The spectra to write
       */
       void writeSpectra(const std::vector<MSSpectrum>& spectra);
 
       /**
           @brief Writes a set of chromatograms to disk
 
-          @param chroms The chromatograms to write
+          @param[in] chroms The chromatograms to write
       */
       void writeChromatograms(const std::vector<MSChromatogram>& chroms);
 
@@ -201,8 +201,8 @@ public:
 
           @note This is a low level function, do not call this function unless you know what you are doing!
 
-          @param exp The result data structure
-          @param write_full_meta Add full meta information into sql tables
+          @param[out] exp The result data structure
+          @param[in] write_full_meta Add full meta information into sql tables
       */
       void writeRunLevelInformation(const MSExperiment& exp, bool write_full_meta);
 

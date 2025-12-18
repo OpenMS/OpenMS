@@ -71,8 +71,8 @@ namespace OpenMS
       a binaryDataArray tag and store the result as a BinaryData object. The
       result will be appended to the data vector.
 
-      @param indexListNode DOMNode of type binaryDataArray
-      @param data Binary data extracted from the string
+      @param[in] indexListNode DOMNode of type binaryDataArray
+      @param[in] data Binary data extracted from the string
     */
     void handleBinaryDataArray_(xercesc::DOMNode* indexListNode, std::vector<BinaryData>& data);
 
@@ -85,8 +85,8 @@ namespace OpenMS
       vector with all binary data found in the string in the binaryDataArray
       tags.
 
-      @param in Input string containing the raw XML
-      @param data Binary data extracted from the string
+      @param[in] in Input string containing the raw XML
+      @param[in] data Binary data extracted from the string
 
       @pre in must have \<spectrum\> or \<chromatogram\> as root element.
 
@@ -106,8 +106,8 @@ namespace OpenMS
       one \<spectrum\> tag (from \<spectrum\> to \</spectrum\>). This function will
       extract the contained binaryDataArray and provide the result as Spectrum.
 
-      @param in Input string containing the raw XML
-      @param sptr Resulting spectrum
+      @param[in] in Input string containing the raw XML
+      @param[out] sptr Resulting spectrum
 
       @pre in must have \<spectrum\> as root element.
 
@@ -121,8 +121,8 @@ namespace OpenMS
       one \<spectrum\> tag (from \<spectrum\> to \</spectrum\>). This function will
       extract the contained binaryDataArray and provide the result as Spectrum.
 
-      @param in Input string containing the raw XML
-      @param s Resulting spectrum
+      @param[in] in Input string containing the raw XML
+      @param[out] s Resulting spectrum
 
       @pre in must have \<spectrum\> as root element.
 
@@ -137,8 +137,8 @@ namespace OpenMS
       function will extract the contained binaryDataArray and provide the
       result as Chromatogram.
 
-      @param in Input string containing the raw XML
-      @param c Resulting chromatogram
+      @param[in] in Input string containing the raw XML
+      @param[out] c Resulting chromatogram
 
       @pre in must have \<chromatogram\> as root element.
     */
@@ -152,8 +152,8 @@ namespace OpenMS
       function will extract the contained binaryDataArray and provide the
       result as Chromatogram.
 
-      @param in Input string containing the raw XML
-      @param cptr Resulting chromatogram
+      @param[in] in Input string containing the raw XML
+      @param[out] cptr Resulting chromatogram
 
       @pre in must have \<chromatogram\> as root element.
     */

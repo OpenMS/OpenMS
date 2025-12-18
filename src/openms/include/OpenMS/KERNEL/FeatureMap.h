@@ -139,7 +139,7 @@ namespace OpenMS
 
       For conflicting UID's, new UID's will be assigned.
 
-      @param rhs The feature to add to this one.
+      @param[in] rhs The feature to add to this one.
     */
     FeatureMap& operator+=(const FeatureMap& rhs);
 
@@ -217,7 +217,7 @@ namespace OpenMS
     /**
       @brief Clears all data and meta data
 
-      @param clear_meta_data If @em true, all meta data is cleared in addition to the data.
+      @param[in] clear_meta_data If @em true, all meta data is cleared in addition to the data.
     */
     void clear(bool clear_meta_data = true);
 

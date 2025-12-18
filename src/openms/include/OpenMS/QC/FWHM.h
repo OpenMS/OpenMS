@@ -39,7 +39,7 @@ namespace OpenMS
 
       A warning is issued on the commandline if a feature does not have either 'FWHM' or 'model_FWHM' as metavalue.
 
-      @param features FeatureMap with features which have metavalue 'FWHM' or 'model_FWHM'
+      @param[in,out] features FeatureMap with features which have metavalue 'FWHM' or 'model_FWHM'
     **/
     void compute(FeatureMap& features);
 

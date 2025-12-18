@@ -33,50 +33,50 @@ namespace OpenMS
 
     /** @brief Write out an IdentificationData object to SQL-based OMS file
      *
-     * @param filename The output file
-     * @param id_data The IdentificationData object
+     * @param[in] filename The output file
+     * @param[in] id_data The IdentificationData object
      */
     void store(const String& filename, const IdentificationData& id_data);
 
     /** @brief Write out a feature map to SQL-based OMS file
      *
-     * @param filename The output file
-     * @param features The feature map
+     * @param[in] filename The output file
+     * @param[in] features The feature map
      */
     void store(const String& filename, const FeatureMap& features);
 
     /** @brief Write out a consensus map to SQL-based OMS file
      *
-     * @param filename The output file
-     * @param consensus The consensus map
+     * @param[in] filename The output file
+     * @param[in] consensus The consensus map
      */
     void store(const String& filename, const ConsensusMap& consensus);
 
     /** @brief Read in an OMS file and construct an IdentificationData object
      *
-     * @param filename The input file
-     * @param id_data The IdentificationData object
+     * @param[out] filename The input file
+     * @param[in] id_data The IdentificationData object
      */
     void load(const String& filename, IdentificationData& id_data);
 
     /** @brief Read in an OMS file and construct a feature map
      *
-     * @param filename The input file
-     * @param features The feature map
+     * @param[out] filename The input file
+     * @param[in] features The feature map
      */
     void load(const String& filename, FeatureMap& features);
 
     /** @brief Read in an OMS file and construct a consensus map
      *
-     * @param filename The input file
-     * @param consensus The consensus map
+     * @param[out] filename The input file
+     * @param[in] consensus The consensus map
      */
     void load(const String& filename, ConsensusMap& consensus);
 
     /** @brief Read in an OMS file and write out the contents in JSON format
      *
-     * @param filename_in The input file (OMS)
-     * @param filename_out The output file (JSON)
+     * @param[in] filename_in The input file (OMS)
+     * @param[out] filename_out The output file (JSON)
      */
     void exportToJSON(const String& filename_in, const String& filename_out);
 

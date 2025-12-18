@@ -63,10 +63,10 @@ public:
 
       Find putative ChargePairs, then score them and hand over to ILP.
 
-      @param fm_in  Input feature-map
-      @param fm_out Output feature-map (sorted by position and augmented with user params)
-      @param cons_map   [out] Output of grouped features belonging to a charge group
-      @param cons_map_p [out] Output of paired features connected by an edge
+      @param[in] fm_in  Input feature-map
+      @param[out] fm_out Output feature-map (sorted by position and augmented with user params)
+      @param[out] cons_map   Output of grouped features belonging to a charge group
+      @param[out] cons_map_p Output of paired features connected by an edge
     */
     void compute(const FeatureMap& fm_in, FeatureMap& fm_out, ConsensusMap& cons_map, ConsensusMap& cons_map_p);
 

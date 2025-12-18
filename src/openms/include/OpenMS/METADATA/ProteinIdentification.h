@@ -434,8 +434,8 @@ public:
     /**
        Set the file paths to the primary MS runs (usually the mzML files obtained after data conversion from raw files)
 
-       @param s The file paths
-       @param raw Store paths to the raw files (or equivalent) rather than mzMLs
+       @param[in] s The file paths
+       @param[in] raw Store paths to the raw files (or equivalent) rather than mzMLs
     */
     void setPrimaryMSRunPath(const StringList& s, bool raw = false);
 
@@ -448,7 +448,7 @@ public:
        Get the file paths to the primary MS runs
 
        @param[out] output The file paths
-       @param raw Get raw files (or equivalent) instead of mzMLs
+       @param[in] raw Get raw files (or equivalent) instead of mzMLs
     */
     void getPrimaryMSRunPath(StringList& output, bool raw = false) const;
 

@@ -75,18 +75,32 @@ function write_file() {
   fi
 
   for var in "${vars_to_cache[@]}"; do
-    # This next line is a little tricky.  It says to evaluate $var and
-    # use its value as the name of another variable to evaluate
-    # (indirection).  The ":-" bit says to set the variable to an
-    # empty string if it is not already defined.
+    # Indirection: get value, default to empty
     val="${!var:-}"
 
-    if [ -n "${val}" ]; then
-      if [ "$option_verbose" -eq 1 ]; then
-        echo "Found $var with value $val"
-      fi
+    # Sanitize: trim CR, LF, and trailing whitespace
+    val_sane="$(printf '%s' "$val" | tr -d '\r\n' | sed 's/[[:space:]]*$//')"
 
-      printf '%s:STRING=%s\n' "$var" "${val}" >>"$file"
+    if [ -n "$val_sane" ]; then
+      if [ "$option_verbose" -eq 1 ]; then
+        # Redact sensitive variables
+        case "$var" in
+          SIGNING_EMAIL|SIGNING_IDENTITY|CPACK_PRODUCTBUILD_IDENTITY_NAME)
+            # Mask: show first and last char, rest as asterisks (if length > 2)
+            len=${#val_sane}
+            if [ "$len" -le 2 ]; then
+              masked="$val_sane"
+            else
+              masked="${val_sane:0:1}***${val_sane: -1}"
+            fi
+            echo "Found $var with value $masked (redacted)"
+            ;;
+          *)
+            echo "Found $var with value $val_sane"
+            ;;
+        esac
+      fi
+      printf '%s:STRING=%s\n' "$var" "$val_sane" >>"$file"
     fi
   done
 }

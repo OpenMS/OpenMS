@@ -278,7 +278,7 @@ public:
      * Note: UNKNOWN should only be used in special cases where the status needs to
      * be explicitly marked as unknown.
      *
-     * @param type The target/decoy classification:
+     * @param[in] type The target/decoy classification:
      *   - TARGET: Only matches target proteins
      *   - DECOY: Only matches decoy proteins
      *   - TARGET_DECOY: Matches both target and decoy proteins

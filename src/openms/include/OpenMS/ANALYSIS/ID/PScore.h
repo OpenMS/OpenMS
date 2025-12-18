@@ -29,9 +29,9 @@ struct OPENMS_DLLAPI PScore
    
     @note ranks are zero based (highest intensity peak in window has rank 0)
    
-    @param mz m/z positions of the peaks
-    @param intensities of the peaks
-    @param mz_window window in Thomson centered at each peak
+    @param[in] mz m/z positions of the peaks
+    @param[in] intensities of the peaks
+    @param[in] mz_window window in Thomson centered at each peak
    */  
   static std::vector<Size> calculateIntensityRankInMZWindow(const std::vector<double>& mz, const std::vector<double>& intensities, double mz_window);
 
@@ -45,8 +45,8 @@ struct OPENMS_DLLAPI PScore
    
     @note ranks are zero based (top element has rank 0)
    
-    @param peak_map Fragment spectra used for rank calculation. Typically a peak map after removal of all MS1 spectra.
-    @param mz_window window in Thomson centered at each peak
+    @param[in] peak_map Fragment spectra used for rank calculation. Typically a peak map after removal of all MS1 spectra.
+    @param[in] mz_window window in Thomson centered at each peak
    */
   static std::vector<std::vector<Size> > calculateRankMap(const PeakMap& peak_map, double mz_window = 100);
 
@@ -64,21 +64,21 @@ struct OPENMS_DLLAPI PScore
     Similar to Andromeda, a vector of theoretical spectra can be provided that e.g. contain loss spectra or higher charge spectra depending on the sequence.
     The best score obtained by scoring all those theoretical spectra against the experimental ones is returned.
    
-    @param fragment_mass_tolerance mass tolerance for matching peaks
-    @param fragment_mass_tolerance_unit_ppm whether Thomson or ppm is used
-    @param peak_level_spectra spectra for different peak levels (=filtered by maximum rank).
-    @param theo_spectra theoretical spectra as obtained e.g. from TheoreticalSpectrumGenerator
-    @param mz_window window in Thomson centered at each peak
+    @param[in] fragment_mass_tolerance mass tolerance for matching peaks
+    @param[in] fragment_mass_tolerance_unit_ppm whether Thomson or ppm is used
+    @param[in] peak_level_spectra spectra for different peak levels (=filtered by maximum rank).
+    @param[in] theo_spectra theoretical spectra as obtained e.g. from TheoreticalSpectrumGenerator
+    @param[in] mz_window window in Thomson centered at each peak
    */ 
   static double computePScore(double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const std::map<Size, PeakSpectrum>& peak_level_spectra, const std::vector<PeakSpectrum>& theo_spectra, double mz_window = 100.0);
 
   /** @brief Computes the PScore for a single theoretical spectrum
    
-    @param fragment_mass_tolerance mass tolerance for matching peaks
-    @param fragment_mass_tolerance_unit_ppm whether Thomson or ppm is used
-    @param peak_level_spectra spectra for different peak levels (=filtered by maximum rank).
-    @param theo_spectrum Theoretical spectrum as obtained e.g. from TheoreticalSpectrumGenerator
-    @param mz_window window in Thomson centered at each peak
+    @param[in] fragment_mass_tolerance mass tolerance for matching peaks
+    @param[in] fragment_mass_tolerance_unit_ppm whether Thomson or ppm is used
+    @param[in] peak_level_spectra spectra for different peak levels (=filtered by maximum rank).
+    @param[in] theo_spectrum Theoretical spectrum as obtained e.g. from TheoreticalSpectrumGenerator
+    @param[in] mz_window window in Thomson centered at each peak
    */ 
   static double computePScore(double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const std::map<Size, PeakSpectrum>& peak_level_spectra, const PeakSpectrum& theo_spectrum, double mz_window = 100.0);
 

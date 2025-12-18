@@ -107,7 +107,7 @@ public:
     /**
       @brief Add one targeted experiment to another.
 
-      @param rhs The targeted experiment to add to this one.
+      @param[in] rhs The targeted experiment to add to this one.
     */
     TargetedExperiment& operator+=(const TargetedExperiment & rhs);
     TargetedExperiment& operator+=(TargetedExperiment && rhs);
@@ -115,7 +115,7 @@ public:
     /**
       @brief Clears all data and meta data
 
-      @param clear_meta_data If @em true, all meta data is cleared in addition to the data.
+      @param[in] clear_meta_data If @em true, all meta data is cleared in addition to the data.
     */
     void clear(bool clear_meta_data);
 
