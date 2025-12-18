@@ -34,6 +34,7 @@
 #include <OpenMS/FORMAT/MzTabFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <string>
 #include <vector>
 
@@ -858,6 +859,65 @@ protected:
     String out_mzTab = getStringOption_("out_mzTab");
     if (! out_mzTab.empty()) 
     {
+      // Fix for MzTab export: if multiple files are present but no id_merge_index,
+      // add id_merge_index to peptide identifications
+      auto& protein_id = cmap.getProteinIdentifications()[0];
+      StringList file_paths;
+      protein_id.getPrimaryMSRunPath(file_paths);
+
+      if (file_paths.size() > 1)
+      {
+        OPENMS_LOG_INFO << "Multiple files detected in ProteinIdentification (" << file_paths.size()
+                        << " files). Adding id_merge_index to peptide identifications..." << std::endl;
+
+        // Create a map from filename to index
+        std::map<String, Size> file_to_index;
+        for (Size i = 0; i < file_paths.size(); ++i)
+        {
+          file_to_index[file_paths[i]] = i;
+        }
+
+        // Add id_merge_index to each peptide identification based on the column header filename
+        const auto& column_headers = cmap.getColumnHeaders();
+
+        for (auto& cf : cmap)
+        {
+          for (auto& pid : cf.getPeptideIdentifications())
+          {
+            // Find the filename from the first FeatureHandle's map index
+            Size map_index = 0; // default to first map
+            if (! cf.empty()) { map_index = cf.begin()->getMapIndex(); }
+
+            // Get filename from column headers using map index
+            auto col_it = column_headers.find(map_index);
+            if (col_it != column_headers.end())
+            {
+              String filename = col_it->second.filename;
+              auto it = file_to_index.find(filename);
+              if (it != file_to_index.end()) { pid.setMetaValue(Constants::UserParam::ID_MERGE_INDEX, it->second); }
+              else
+              {
+                OPENMS_LOG_WARN << "Warning: Could not find file index for " << filename << std::endl;
+                pid.setMetaValue(Constants::UserParam::ID_MERGE_INDEX, 0); // fallback to first file
+              }
+            }
+            else
+            {
+              OPENMS_LOG_WARN << "Warning: Could not find column header for map index " << map_index << std::endl;
+              pid.setMetaValue(Constants::UserParam::ID_MERGE_INDEX, 0); // fallback to first file
+            }
+          }
+        }
+
+        // Also handle unassigned peptide identifications if any
+        for (auto& pid : cmap.getUnassignedPeptideIdentifications())
+        {
+          pid.setMetaValue(Constants::UserParam::ID_MERGE_INDEX, 0); // fallback to first file
+        }
+
+        OPENMS_LOG_INFO << "Added id_merge_index to peptide identifications." << std::endl;
+      }
+
       const bool report_unidentified_features(false);
       const bool report_unmapped(true);
       const bool report_subfeatures(false);
