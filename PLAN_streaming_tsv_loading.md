@@ -134,12 +134,11 @@ private:
 | Component | Size |
 |-----------|------|
 | collision_index | ~100 MB (1M entries × 100 bytes) |
-| group_offsets (if needed) | ~240 MB (30M offsets × 8 bytes) |
 | peptide_map | ~50 MB |
 | protein_map | ~5 MB |
 | LightPeptide vector | ~100 MB |
 | target_ion_map (IPF) | ~200 MB |
-| **Total Pass 1** | **~500-700 MB** |
+| **Total Pass 1** | **~455 MB** |
 
 ### Step 2: Validate Consecutive Groups (Fail Fast)
 
