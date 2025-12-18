@@ -363,6 +363,43 @@ import numpy as np
         data_dict = self.get_data_dict(columns=columns, export_meta_values=export_meta_values)
         return pd.DataFrame(data_dict)
 
+    def to_arrow(self, columns=None, export_meta_values=True):
+        """
+        to_arrow(self: MSSpectrum, columns: Optional[List[str]] = None, export_meta_values: bool = True) -> pa.Table
+
+        Returns an Apache Arrow Table representation of the MSSpectrum.
+
+        This method converts the spectrum data (peaks, metadata, precursor info,
+        ion mobility) into an Arrow Table format for efficient data interchange.
+
+        Args:
+            columns (list or None): List of column names to include. If None,
+                                   includes all default columns. Use get_df_columns()
+                                   to discover available columns.
+            export_meta_values (bool): Whether to include meta values. Only applies
+                                       when columns=None. Defaults to True.
+
+        Returns:
+            pyarrow.Table: Arrow Table with requested columns.
+
+        Example:
+            >>> # Get all default columns
+            >>> table = spectrum.to_arrow()
+
+            >>> # Get only specific columns (faster)
+            >>> table = spectrum.to_arrow(columns=['mz', 'intensity'])
+
+            >>> # Convert to pandas (zero-copy with pandas 2.0+)
+            >>> df = table.to_pandas()
+
+            >>> # Convert to polars
+            >>> import polars as pl
+            >>> df = pl.from_arrow(table)
+        """
+        import pyarrow as pa
+        data_dict = self.get_data_dict(columns=columns, export_meta_values=export_meta_values)
+        return pa.Table.from_pydict(data_dict)
+
 
     def get_mz_array(MSSpectrum self):
         """

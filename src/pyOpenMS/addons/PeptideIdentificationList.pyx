@@ -208,6 +208,37 @@ import numpy as np
 
         return pd.DataFrame(np.fromiter((extract(pep, pep_idx) for pep_idx, pep in enumerate(self)), dtype=dt, count=count))
 
+    def to_arrow(self, decode_ontology=True, default_missing_values=None, export_unidentified=True):
+        """
+        to_arrow(self: PeptideIdentificationList, decode_ontology: bool = True, default_missing_values: dict = None, export_unidentified: bool = True) -> pa.Table
+
+        Returns an Apache Arrow Table with peptide identification information.
+
+        Parameters:
+            decode_ontology (bool): Decode meta value names using the PSI-MS ontology.
+                                   Default True.
+            default_missing_values (dict): Default values for missing data by type.
+                                          Default: {<bool>: False, <int>: -9999, <float>: nan, <str>: ''}
+            export_unidentified (bool): Export PeptideIdentifications without PeptideHit.
+                                       Default True.
+
+        Returns:
+            pyarrow.Table: Arrow Table with peptide identification data.
+
+        Example:
+            >>> table = peps.to_arrow()
+            >>> df = table.to_pandas()
+
+            >>> # Convert to polars
+            >>> import polars as pl
+            >>> df = pl.from_arrow(table)
+        """
+        import pyarrow as pa
+        df = self.get_df(decode_ontology=decode_ontology,
+                        default_missing_values=default_missing_values,
+                        export_unidentified=export_unidentified)
+        return pa.Table.from_pandas(df)
+
     def update_scores_from_df(self, df, main_score_name):
         """
         update_scores_from_df(self: PeptideIdentificationList, df: pd.DataFrame, main_score_name: str) -> PeptideIdentificationList

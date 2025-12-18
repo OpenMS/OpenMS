@@ -253,6 +253,91 @@ import numpy as np
 
         return df
 
+    def to_arrow(self, columns=None, ms_levels=None, long_format=False):
+        """
+        to_arrow(self: MSExperiment, columns: Optional[List[str]] = None, ms_levels: List[int] = [], long_format: bool = False) -> pa.Table
+
+        Returns an Apache Arrow Table with all peaks in the MSExperiment.
+
+        Args:
+            columns (list or None): List of column names to include. If None,
+                                   includes all columns. Use get_df_columns() to discover available columns.
+            ms_levels (List[int]): Get only spectra with the given MS levels. Default is an empty list,
+                                  which means all MS levels will be included.
+            long_format (bool): Set to True for a long/expanded table with one row per peak.
+                              If False, returns rows with array columns (rt, ms_level, mz_array, intensity_array).
+
+        Returns:
+            pyarrow.Table: Arrow Table with peak data.
+
+        Example:
+            >>> # Get all columns in long format
+            >>> table = exp.to_arrow(long_format=True)
+
+            >>> # Convert to pandas (zero-copy with pandas 2.0+)
+            >>> df = table.to_pandas()
+
+            >>> # Convert to polars
+            >>> import polars as pl
+            >>> df = pl.from_arrow(table)
+        """
+        import pyarrow as pa
+        if ms_levels is None:
+            ms_levels = []
+        self.updateRanges()
+        if not ms_levels:
+            ms_levels = self.getMSLevels()
+
+        if long_format:
+            # Build data dict for long format
+            all_rts = []
+            all_mzs = []
+            all_intensities = []
+            all_ms_levels = []
+
+            for ms_level in ms_levels:
+                rt_arr, mz_arr, inty_arr = self.get2DPeakDataLong(
+                    self.getMinRT(), self.getMaxRT(), self.getMinMZ(), self.getMaxMZ(), ms_level
+                )
+                all_rts.append(rt_arr)
+                all_mzs.append(mz_arr)
+                all_intensities.append(inty_arr)
+                all_ms_levels.append(np.full(len(rt_arr), ms_level, dtype=np.int32))
+
+            data_dict = {
+                'rt': np.concatenate(all_rts) if all_rts else np.array([], dtype=np.float32),
+                'mz': np.concatenate(all_mzs) if all_mzs else np.array([], dtype=np.float32),
+                'intensity': np.concatenate(all_intensities) if all_intensities else np.array([], dtype=np.float32),
+                'ms_level': np.concatenate(all_ms_levels) if all_ms_levels else np.array([], dtype=np.int32),
+            }
+        else:
+            # Compact format with arrays
+            rts = []
+            ms_level_list = []
+            mz_arrays = []
+            intensity_arrays = []
+
+            for spec in self:
+                if spec.getMSLevel() in ms_levels:
+                    rts.append(spec.getRT())
+                    ms_level_list.append(spec.getMSLevel())
+                    mz, inty = spec.get_peaks()
+                    mz_arrays.append(mz)
+                    intensity_arrays.append(inty)
+
+            data_dict = {
+                'rt': np.array(rts, dtype=np.float64),
+                'ms_level': np.array(ms_level_list, dtype=np.int32),
+                'mz_array': mz_arrays,  # List of arrays for Arrow list type
+                'intensity_array': intensity_arrays,
+            }
+
+        # Filter columns if requested
+        if columns is not None:
+            data_dict = {k: v for k, v in data_dict.items() if k in columns}
+
+        return pa.Table.from_pydict(data_dict)
+
     def get_ion_df(self):
         """
         get_ion_df(self: MSExperiment) -> pd.DataFrame

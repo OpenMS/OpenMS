@@ -183,3 +183,47 @@ import numpy as np
             df = df[[c for c in available_cols if c in df.columns]]
 
         return df
+
+    def chromatograms_to_arrow(self, columns=None, export_meta_values=True):
+        """
+        chromatograms_to_arrow(self: MRMTransitionGroupCP, columns: Optional[List[str]] = None, export_meta_values: bool = True) -> pa.Table
+
+        Returns an Apache Arrow Table representation of the Chromatograms.
+
+        Args:
+            columns (list or None): List of column names to include. If None,
+                                   includes all default columns.
+            export_meta_values (bool): Whether to export meta values.
+
+        Returns:
+            pyarrow.Table: Arrow Table with chromatogram data.
+
+        Example:
+            >>> table = mrm.chromatograms_to_arrow()
+            >>> df = table.to_pandas()
+        """
+        import pyarrow as pa
+        df = self.get_chromatogram_df(columns=columns, export_meta_values=export_meta_values)
+        return pa.Table.from_pandas(df)
+
+    def features_to_arrow(self, columns=None, meta_values=None):
+        """
+        features_to_arrow(self: MRMTransitionGroupCP, columns: Optional[List[str]] = None, meta_values: Optional[Union[List[str], str]] = None) -> pa.Table
+
+        Returns an Apache Arrow Table representation of the Features.
+
+        Args:
+            columns (list or None): List of column names to include. If None,
+                                   includes all columns.
+            meta_values: Meta values to include (None, [custom list] or 'all').
+
+        Returns:
+            pyarrow.Table: Arrow Table with feature data.
+
+        Example:
+            >>> table = mrm.features_to_arrow()
+            >>> df = table.to_pandas()
+        """
+        import pyarrow as pa
+        df = self.get_feature_df(columns=columns, meta_values=meta_values)
+        return pa.Table.from_pandas(df)

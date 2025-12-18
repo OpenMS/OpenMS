@@ -302,3 +302,36 @@ import numpy as np
         import pandas as pd
         data_dict = self.get_data_dict(columns=columns)
         return pd.DataFrame(data_dict)
+
+    def to_arrow(self, columns=None):
+        """
+        to_arrow(self: Mobilogram, columns: Optional[List[str]] = None) -> pa.Table
+
+        Returns an Apache Arrow Table representation of the Mobilogram.
+
+        This method converts the mobilogram data (peaks, metadata)
+        into an Arrow Table format for efficient data interchange.
+
+        Note: Mobilogram does not support meta values (no MetaInfoInterface).
+
+        Args:
+            columns (list or None): List of column names to include. If None,
+                                   includes all default columns. Use get_df_columns()
+                                   to discover available columns.
+
+        Returns:
+            pyarrow.Table: Arrow Table with requested columns.
+
+        Example:
+            >>> # Get all default columns
+            >>> table = mobilogram.to_arrow()
+
+            >>> # Get only specific columns (faster)
+            >>> table = mobilogram.to_arrow(columns=['mobility', 'intensity'])
+
+            >>> # Convert to pandas (zero-copy with pandas 2.0+)
+            >>> df = table.to_pandas()
+        """
+        import pyarrow as pa
+        data_dict = self.get_data_dict(columns=columns)
+        return pa.Table.from_pydict(data_dict)

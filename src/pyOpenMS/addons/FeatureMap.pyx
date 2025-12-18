@@ -287,6 +287,38 @@ import numpy as np
 
         return df
 
+    def to_arrow(self, columns=None, meta_values=None, export_peptide_identifications=True):
+        """
+        to_arrow(self: FeatureMap, columns: Optional[List[str]] = None, meta_values: Optional[Union[List[str], str]] = None, export_peptide_identifications: bool = True) -> pa.Table
+
+        Returns an Apache Arrow Table with feature information.
+
+        Args:
+            columns (list or None): List of column names to include. If None,
+                                   includes all columns. Use get_df_columns() to discover available columns.
+            meta_values: Meta values to include (None, [custom list of meta value names] or 'all').
+            export_peptide_identifications (bool): Export sequence and score for best PeptideHit
+                                                  assigned to a feature.
+
+        Returns:
+            pyarrow.Table: Arrow Table with feature data.
+
+        Example:
+            >>> # Get all columns
+            >>> table = fmap.to_arrow()
+
+            >>> # Convert to pandas (zero-copy with pandas 2.0+)
+            >>> df = table.to_pandas()
+
+            >>> # Convert to polars
+            >>> import polars as pl
+            >>> df = pl.from_arrow(table)
+        """
+        import pyarrow as pa
+        df = self.get_df(columns=columns, meta_values=meta_values,
+                        export_peptide_identifications=export_peptide_identifications)
+        return pa.Table.from_pandas(df)
+
     def get_assigned_peptide_identifications(self):
         """
         get_assigned_peptide_identifications(self: FeatureMap) -> PeptideIdentificationList

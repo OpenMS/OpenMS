@@ -390,3 +390,32 @@ from collections import defaultdict as _defaultdict
         # Filter to requested columns
         available_cols = [c for c in columns if c in df.columns]
         return df[available_cols]
+
+    def to_arrow(self, columns=None):
+        """
+        to_arrow(self: ConsensusMap, columns: Optional[List[str]] = None) -> pa.Table
+
+        Returns an Apache Arrow Table with consensus feature meta data and intensities.
+
+        Args:
+            columns (list or None): List of column names to include. If None,
+                                   includes all columns. Use get_df_columns()
+                                   to discover available columns.
+
+        Returns:
+            pyarrow.Table: Arrow Table with consensus feature data.
+
+        Example:
+            >>> # Get all columns
+            >>> table = cmap.to_arrow()
+
+            >>> # Convert to pandas (zero-copy with pandas 2.0+)
+            >>> df = table.to_pandas()
+
+            >>> # Convert to polars
+            >>> import polars as pl
+            >>> df = pl.from_arrow(table)
+        """
+        import pyarrow as pa
+        df = self.get_df(columns=columns)
+        return pa.Table.from_pandas(df)
