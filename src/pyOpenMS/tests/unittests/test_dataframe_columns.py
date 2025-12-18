@@ -342,6 +342,239 @@ class TestMSChromatogramColumnSelection:
         assert 'FWHM' in df.columns
 
 
+class TestMobilogramColumnSelection:
+    """Tests for Mobilogram.get_df() column selection."""
+
+    @pytest.fixture
+    def mobilogram_with_data(self):
+        """Create a mobilogram with peaks."""
+        mob = pyopenms.Mobilogram()
+        mob.setRT(100.0)
+
+        # Set peaks
+        mobilities = np.array([0.8, 0.9, 1.0], dtype=np.float64)
+        ints = np.array([100.0, 200.0, 150.0], dtype=np.float32)
+        mob.set_peaks([mobilities, ints])
+
+        return mob
+
+    def test_get_df_columns(self, mobilogram_with_data):
+        """Test get_df_columns() returns expected columns."""
+        cols = mobilogram_with_data.get_df_columns()
+
+        assert 'mobility' in cols
+        assert 'intensity' in cols
+        assert 'rt' in cols
+        assert 'drift_time_unit' in cols
+
+    def test_get_df_default(self, mobilogram_with_data):
+        """Test get_df() default behavior."""
+        df = mobilogram_with_data.get_df()
+
+        assert 'mobility' in df.columns
+        assert 'intensity' in df.columns
+        assert 'rt' in df.columns
+        assert len(df) == 3
+        assert df.loc[0, 'mobility'] == 0.8
+        assert df.loc[0, 'rt'] == 100.0
+
+    def test_get_df_minimal_columns(self, mobilogram_with_data):
+        """Test get_df() with minimal columns."""
+        df = mobilogram_with_data.get_df(columns=['mobility', 'intensity'])
+
+        assert list(df.columns) == ['mobility', 'intensity']
+        assert len(df) == 3
+
+
+class TestPeptideIdentificationListGetDF:
+    """Tests for PeptideIdentificationList.get_df() method."""
+
+    @pytest.fixture
+    def peptide_id_list(self):
+        """Create a PeptideIdentificationList with test data."""
+        pep_list = pyopenms.PeptideIdentificationList()
+
+        # Create first PeptideIdentification with a hit
+        pep1 = pyopenms.PeptideIdentification()
+        pep1.setRT(100.0)
+        pep1.setMZ(500.25)
+        pep1.setScoreType('Mascot')
+        pep1.setIdentifier('test_id_1')
+
+        hit1 = pyopenms.PeptideHit()
+        hit1.setScore(50.0)
+        hit1.setCharge(2)
+        hit1.setSequence(pyopenms.AASequence.fromString('PEPTIDE'))
+        hit1.setMetaValue('target_decoy', 'target')
+        pep1.setHits([hit1])
+
+        pep_list.append(pep1)
+
+        # Create second PeptideIdentification with a hit
+        pep2 = pyopenms.PeptideIdentification()
+        pep2.setRT(200.0)
+        pep2.setMZ(600.30)
+        pep2.setScoreType('Mascot')
+        pep2.setIdentifier('test_id_2')
+
+        hit2 = pyopenms.PeptideHit()
+        hit2.setScore(75.0)
+        hit2.setCharge(3)
+        hit2.setSequence(pyopenms.AASequence.fromString('ANOTHER'))
+        hit2.setMetaValue('target_decoy', 'decoy')
+        pep2.setHits([hit2])
+
+        pep_list.append(pep2)
+
+        return pep_list
+
+    @pytest.fixture
+    def empty_peptide_id_list(self):
+        """Create an empty PeptideIdentificationList."""
+        return pyopenms.PeptideIdentificationList()
+
+    @pytest.fixture
+    def peptide_id_list_with_unidentified(self):
+        """Create a PeptideIdentificationList with unidentified entries."""
+        pep_list = pyopenms.PeptideIdentificationList()
+
+        # Create identified entry
+        pep1 = pyopenms.PeptideIdentification()
+        pep1.setRT(100.0)
+        pep1.setMZ(500.25)
+        pep1.setScoreType('Mascot')
+        pep1.setIdentifier('test_id_1')
+
+        hit1 = pyopenms.PeptideHit()
+        hit1.setScore(50.0)
+        hit1.setCharge(2)
+        hit1.setSequence(pyopenms.AASequence.fromString('PEPTIDE'))
+        pep1.setHits([hit1])
+        pep_list.append(pep1)
+
+        # Create unidentified entry (no hits)
+        pep2 = pyopenms.PeptideIdentification()
+        pep2.setRT(200.0)
+        pep2.setMZ(600.30)
+        pep2.setIdentifier('test_id_2')
+        # No hits set
+        pep_list.append(pep2)
+
+        return pep_list
+
+    def test_get_df_basic(self, peptide_id_list):
+        """Test get_df() returns expected DataFrame structure."""
+        df = peptide_id_list.get_df()
+
+        assert len(df) == 2
+        assert 'rt' in df.columns
+        assert 'mz' in df.columns
+        assert 'charge' in df.columns
+        assert 'P_ID' in df.columns
+        assert 'PSM_ID' in df.columns
+
+    def test_get_df_values(self, peptide_id_list):
+        """Test get_df() returns correct values."""
+        df = peptide_id_list.get_df()
+
+        assert df.loc[0, 'rt'] == pytest.approx(100.0, rel=1e-3)
+        assert df.loc[0, 'mz'] == pytest.approx(500.25, rel=1e-3)
+        assert df.loc[0, 'charge'] == 2
+
+        assert df.loc[1, 'rt'] == pytest.approx(200.0, rel=1e-3)
+        assert df.loc[1, 'mz'] == pytest.approx(600.30, rel=1e-3)
+        assert df.loc[1, 'charge'] == 3
+
+    def test_get_df_empty_list(self, empty_peptide_id_list):
+        """Test get_df() with empty list."""
+        df = empty_peptide_id_list.get_df()
+        assert len(df) == 0
+
+    def test_get_df_export_unidentified_true(self, peptide_id_list_with_unidentified):
+        """Test get_df() exports unidentified entries when export_unidentified=True."""
+        df = peptide_id_list_with_unidentified.get_df(export_unidentified=True)
+        assert len(df) == 2
+
+    def test_get_df_export_unidentified_false(self, peptide_id_list_with_unidentified):
+        """Test get_df() skips unidentified entries when export_unidentified=False."""
+        df = peptide_id_list_with_unidentified.get_df(export_unidentified=False)
+        assert len(df) == 1
+
+    def test_get_df_decode_ontology_false(self, peptide_id_list):
+        """Test get_df() with decode_ontology=False."""
+        df = peptide_id_list.get_df(decode_ontology=False)
+        assert len(df) == 2
+
+    def test_get_df_custom_missing_values(self, peptide_id_list_with_unidentified):
+        """Test get_df() with custom default_missing_values."""
+        custom_missing = {bool: False, int: 0, float: 0.0, str: 'N/A'}
+        df = peptide_id_list_with_unidentified.get_df(
+            default_missing_values=custom_missing,
+            export_unidentified=True
+        )
+        assert len(df) == 2
+
+    def test_update_scores_from_df(self, peptide_id_list):
+        """Test update_scores_from_df() method."""
+        df = peptide_id_list.get_df()
+
+        # Modify scores in DataFrame
+        df['new_score'] = [100.0, 200.0]
+
+        # Update scores
+        peptide_id_list.update_scores_from_df(df, 'new_score')
+
+        # Verify scores were updated
+        assert peptide_id_list[0].getHits()[0].getScore() == 100.0
+        assert peptide_id_list[1].getHits()[0].getScore() == 200.0
+
+        # Verify score type was set
+        assert peptide_id_list[0].getScoreType() == 'new_score'
+
+
+class TestBackwardsCompatibleFunctions:
+    """Tests for backwards-compatible wrapper functions in _dataframes module."""
+
+    @pytest.fixture
+    def peptide_id_list(self):
+        """Create a PeptideIdentificationList with test data."""
+        pep_list = pyopenms.PeptideIdentificationList()
+
+        pep1 = pyopenms.PeptideIdentification()
+        pep1.setRT(100.0)
+        pep1.setMZ(500.25)
+        pep1.setScoreType('Mascot')
+        pep1.setIdentifier('test_id_1')
+
+        hit1 = pyopenms.PeptideHit()
+        hit1.setScore(50.0)
+        hit1.setCharge(2)
+        hit1.setSequence(pyopenms.AASequence.fromString('PEPTIDE'))
+        pep1.setHits([hit1])
+
+        pep_list.append(pep1)
+        return pep_list
+
+    def test_peptide_identifications_to_df_wrapper(self, peptide_id_list):
+        """Test that the wrapper function calls get_df() correctly."""
+        # Call the wrapper function
+        df = pyopenms.peptide_identifications_to_df(peptide_id_list)
+
+        assert len(df) == 1
+        assert 'rt' in df.columns
+        assert 'mz' in df.columns
+
+    def test_update_scores_from_df_wrapper(self, peptide_id_list):
+        """Test that the wrapper function calls update_scores_from_df() correctly."""
+        df = pyopenms.peptide_identifications_to_df(peptide_id_list)
+        df['new_score'] = [100.0]
+
+        # Call the wrapper function
+        result = pyopenms.update_scores_from_df(peptide_id_list, df, 'new_score')
+
+        assert result[0].getHits()[0].getScore() == 100.0
+
+
 class TestBackwardCompatibility:
     """Tests to ensure backward compatibility with existing code."""
 
