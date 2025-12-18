@@ -192,10 +192,7 @@ Pi0Result pi0est(const std::vector<double>& p_values, const std::vector<double>&
   // Choose method: 'smoother' (default) or 'bootstrap'
   if (pi0_method == "smoother")
   {
-    // If too few lambda values are provided for a smoothing fit, fall back
-    // to the naive (non-smoothed) minimum pi0 across the grid. This keeps
-    // behaviour compatible with existing callers that may pass small
-    // lambda vectors (see unit tests).
+    // If too few lambda values for smoothing, fall back to minimum pi0
     if (ll < 4)
     {
       res.pi0 = std::min(*std::min_element(pi0s.begin(), pi0s.end()), 1.0);
@@ -203,104 +200,45 @@ Pi0Result pi0est(const std::vector<double>& p_values, const std::vector<double>&
       return res;
     }
 
-    // Optionally work on log(pi0)
+    // Optionally work on log(pi0) to match PyProphet's smooth_log_pi0 behavior
     std::vector<double> y = pi0s;
     if (smooth_log_pi0)
     {
       for (double &v : y) v = (v > 0.0) ? std::log(v) : -std::numeric_limits<double>::infinity();
     }
 
-    // Use a cubic-spline interpolant (UnivariateSpline-like) across the
-    // (lambda, pi0(lambda)) grid. The Python/reference implementation uses
-    // SciPy's UnivariateSpline with k = smooth_df and no smoothing factor when
-    // computing the "smoother" pi0; that behaves as an interpolating cubic
-    // spline when possible. To match that behaviour more closely we build a
-    // cubic spline over the provided lambda grid (optionally in log-space)
-    // and evaluate it at the largest lambda.
-    try
-    {
-      // Build a sorted unique mapping of lambda -> y (y may be log(pi0) if requested).
-      std::map<double, double> xy;
-      for (std::size_t i = 0; i < ll; ++i) xy[lambda_v[i]] = y[i];
+    // Build a sorted unique mapping of lambda -> y (y may be log(pi0) if requested)
+    std::map<double, double> xy;
+    for (std::size_t i = 0; i < ll; ++i) xy[lambda_v[i]] = y[i];
 
-      if (xy.size() < 2)
-      {
-        // not enough unique knots for interpolation: fallback
-        res.pi0 = std::min(*std::min_element(pi0s.begin(), pi0s.end()), 1.0);
-        res.pi0_smooth = false;
-        return res;
-      }
-
-      // extract sorted vectors
-      std::vector<double> xs; xs.reserve(xy.size());
-      std::vector<double> ys; ys.reserve(xy.size());
-      for (const auto &kv : xy) { xs.push_back(kv.first); ys.push_back(kv.second); }
-
-      // Use BSplineSmoothingSpline which matches scipy's UnivariateSpline behavior.
-      // This automatically selects between polynomial fitting (for simple cases with
-      // few data points) and BSpline fitting (for complex cases), matching the
-      // optimization problem that scipy solves: minimize roughness subject to RSS ≤ s.
-      // 
-      // The smoothing parameter s is auto-computed as: s = m - sqrt(2*m)
-      // where m is the number of data points. This gives appropriate smoothing
-      // similar to scipy's default behavior.
-      double max_lambda = *std::max_element(lambda_v.begin(), lambda_v.end());
-      double pred = std::numeric_limits<double>::quiet_NaN();
-      try
-      {
-        OpenMS::Math::BSplineSmoothingSpline spl(xs, ys, -1.0, 3);
-        
-        if (!spl.ok())
-        {
-          res.pi0 = std::min(*std::min_element(pi0s.begin(), pi0s.end()), 1.0);
-          res.pi0_smooth = false;
-          return res;
-        }
-        
-        pred = spl.eval(max_lambda);
-        
-        if (!std::isfinite(pred))
-        {
-          res.pi0 = std::min(*std::min_element(pi0s.begin(), pi0s.end()), 1.0);
-          res.pi0_smooth = false;
-          return res;
-        }
-
-        if (smooth_log_pi0)
-        {
-          if (!std::isfinite(pred))
-          {
-            res.pi0 = std::min(*std::min_element(pi0s.begin(), pi0s.end()), 1.0);
-            res.pi0_smooth = false;
-            return res;
-          }
-          pred = std::exp(pred);
-        }
-
-        if (!std::isfinite(pred))
-        {
-          res.pi0 = std::min(*std::min_element(pi0s.begin(), pi0s.end()), 1.0);
-          res.pi0_smooth = false;
-          return res;
-        }
-      }
-      catch (...) // any spline construction/eval failure -> fallback
-      {
-        res.pi0 = std::min(*std::min_element(pi0s.begin(), pi0s.end()), 1.0);
-        res.pi0_smooth = false;
-        return res;
-      }
-
-      res.pi0 = std::min(std::max(pred, 0.0), 1.0);
-      res.pi0_smooth = true;
-      return res;
-    }
-    catch (...) // fallback for outer try block
+    if (xy.size() < 2)
     {
       res.pi0 = std::min(*std::min_element(pi0s.begin(), pi0s.end()), 1.0);
       res.pi0_smooth = false;
       return res;
     }
+
+    // Extract sorted vectors
+    std::vector<double> xs; xs.reserve(xy.size());
+    std::vector<double> ys; ys.reserve(xy.size());
+    for (const auto &kv : xy) { xs.push_back(kv.first); ys.push_back(kv.second); }
+
+    // Use BSplineSmoothingSpline which matches scipy's UnivariateSpline behavior
+    // with automatic smoothing parameter selection (s = m - sqrt(2*m))
+    double max_lambda = *std::max_element(lambda_v.begin(), lambda_v.end());
+    OpenMS::Math::BSplineSmoothingSpline spl(xs, ys, -1.0, 3);
+    double pred = spl.eval(max_lambda);
+
+    // If working in log-space, exponentiate the result
+    if (smooth_log_pi0)
+    {
+      pred = std::exp(pred);
+    }
+
+    // Clamp to [0, 1] range
+    res.pi0 = std::min(std::max(pred, 0.0), 1.0);
+    res.pi0_smooth = true;
+    return res;
   }
   else if (pi0_method == "bootstrap")
   {
