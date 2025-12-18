@@ -76,6 +76,11 @@ namespace OpenMS
                              int k = 3);
 
       /**
+       * @brief Destructor - cleans up internal BSpline2d if used
+       */
+      ~BSplineSmoothingSpline();
+
+      /**
        * @brief Evaluate the smoothing spline at x
        * 
        * @param x Point at which to evaluate

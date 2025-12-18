@@ -279,7 +279,7 @@ Pi0Result pi0est(const std::vector<double>& p_values, const std::vector<double>&
         // similar to scipy's default behavior.
         try
         {
-          OpenMS::BSplineSmoothingSpline spl(xs, ys, -1.0, 3);
+          OpenMS::Math::BSplineSmoothingSpline spl(xs, ys, -1.0, 3);
           
           if (!spl.ok())
           {

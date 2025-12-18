@@ -85,7 +85,7 @@ namespace OpenMS
 
     BSplineSmoothingSpline::~BSplineSmoothingSpline()
     {
-      if (spline_) delete spline_;
+      delete spline_;
     }
 
     bool BSplineSmoothingSpline::try_polynomial_fit(const std::vector<double>& x,
