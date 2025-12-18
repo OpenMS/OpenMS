@@ -365,7 +365,7 @@ if(NOT NO_DEPENDENCIES)
         foreach (PYOPENMS_DEPENDENCY ${PYOPENMS_DEPENDENCIES})
             add_custom_command(
                 TARGET prepare_pyopenms_libs POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -DDEPS="$<TARGET_FILE:${PYOPENMS_DEPENDENCY}>" -DTARGET="${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/" -DLOOKUP_DIRS="${OPENMS_CONTRIB_LIBS}/lib\;${QT_INSTALL_BINS}\;${QT_INSTALL_LIBS}" -P ${PROJECT_SOURCE_DIR}/pyopenms_copy_deps.cmake
+                COMMAND ${CMAKE_COMMAND} -DDEPS="$<TARGET_FILE:${PYOPENMS_DEPENDENCY}>" -DTARGET="${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/" -DLOOKUP_DIRS="${OPENMS_CONTRIB_LIBS}/lib\;${OPENMS_CONTRIB_LIBS}/lib64\;${QT_INSTALL_BINS}\;${QT_INSTALL_LIBS}" -P ${PROJECT_SOURCE_DIR}/pyopenms_copy_deps.cmake
             )
         endforeach()
 
@@ -591,7 +591,7 @@ set(pyopenms_unittest_testfiles
   testLocale.py
   test_MRMFeatureFinderScoring.py
   test_MSNumpressCoder.py
-  test_MSSpectrumAndRichSpectrum.py
+  test_MSSpectrum.py
   test_OpenSwathDataStructures.py
   test_Smoothing.py
   testSpecialCases.py
@@ -601,6 +601,7 @@ set(pyopenms_unittest_testfiles
   test_MzMLConsumer.py
   test_MzXMLConsumer.py
   test_AcquisitionInfo.py
+  test_FLASHDeconv.py
 )
 
 # Please add your test here when you decide to write a new testfile in the tests/integration_tests folder

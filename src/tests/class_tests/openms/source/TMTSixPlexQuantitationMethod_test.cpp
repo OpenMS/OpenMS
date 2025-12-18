@@ -99,19 +99,34 @@ END_SECTION
 START_SECTION((virtual Matrix<double> getIsotopeCorrectionMatrix() const ))
 {
   TMTSixPlexQuantitationMethod quant_meth;
-  
-  // we only check the default matrix here which is an identity matrix 
-  // for tmt6plex
+
   Matrix<double> m = quant_meth.getIsotopeCorrectionMatrix();
   TEST_EQUAL(m.rows(), 6)
   TEST_EQUAL(m.cols(), 6)
     
   ABORT_IF(m.rows() != 6)
   ABORT_IF(m.cols() != 6)
-  
-  for(size_t i = 0; i < m.rows(); ++i)
+
+  /**
+0.9390    0.0050         0         0         0         0
+   0.0610    0.9280    0.0110         0         0         0
+        0    0.0670    0.9470    0.0170         0         0
+        0         0    0.0420    0.9420    0.0160    0.0020
+        0         0         0    0.0410    0.9630    0.0320
+        0         0         0         0    0.0210    0.9380
+  */
+
+  double real_m[6][6] = {{0.939, 0.0050, 0, 0,0 ,0},
+                         {0.0610, 0.928, 0.0110, 0, 0 ,0},
+                         {0, 0.0670, 0.947, 0.0170,0,0},
+                         {0, 0, 0.0420, 0.942, 0.0160, 0.0020},
+                         {0, 0, 0, 0.0410,0.963,0.0320},
+                         {0, 0, 0, 0, 0.0210, 0.938}
+  };
+
+  for (Eigen::Index i = 0; i < m.rows(); ++i)
   {
-    for(size_t j = 0; j < m.cols(); ++j)
+    for (Eigen::Index j = 0; j < m.cols(); ++j)
     {
       if (i == j) { TEST_TRUE(m(i,j) > 0.5) } // diagonal entries should be largest
       else { TEST_TRUE(m(i,j) < 0.5) }

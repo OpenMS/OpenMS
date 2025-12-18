@@ -47,7 +47,7 @@ public:
     /**
       @brief Constructor, opens the file stream
 
-      @param filename The filename of the .mzML file (it is assumed a second
+      @param[in] filename The filename of the .mzML file (it is assumed a second
       file .mzML.cached exists).
 
       @throws Exception::FileNotFound is thrown if the file is not found
@@ -64,7 +64,7 @@ public:
     SpectrumAccessOpenMSCached(const SpectrumAccessOpenMSCached & rhs);
 
     /// Light clone operator (actual data will not get copied)
-    boost::shared_ptr<OpenSwath::ISpectrumAccess> lightClone() const override;
+    std::shared_ptr<OpenSwath::ISpectrumAccess> lightClone() const override;
 
     OpenSwath::SpectrumPtr getSpectrumById(int id) override;
 

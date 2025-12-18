@@ -42,11 +42,11 @@ class TestChromatogramExtractor(unittest.TestCase):
         # The functionality is not tested here!
         self.assertEqual(len(output_chromatograms), len(targeted.getTransitions()))
         self.assertNotEqual(len(output_chromatograms), 0)
-        self.assertNotEqual(len(output_chromatograms[0].getIntensityArray()), 0)
-        self.assertNotEqual(len(output_chromatograms[0].getTimeArray()), 0)
+        self.assertNotEqual(len(output_chromatograms[0].get_intensity_array()), 0)
+        self.assertNotEqual(len(output_chromatograms[0].get_time_array()), 0)
         # one chromatogram per transition; one chromatographic peak for each spectrum
-        self.assertEqual(len(output_chromatograms[0].getIntensityArray()), exp.size())
-        self.assertEqual(len(output_chromatograms[0].getTimeArray()), exp.size())
+        self.assertEqual(len(output_chromatograms[0].get_intensity_array()), exp.size())
+        self.assertEqual(len(output_chromatograms[0].get_time_array()), exp.size())
 
 if __name__ == '__main__':
     unittest.main()

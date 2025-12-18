@@ -7,42 +7,52 @@
 		<VariableModification name="Gln-&gt;pyro-Glu (N-term Q)" />
 		<VariableModification name="Glu-&gt;pyro-Glu (N-term E)" />
 		<VariableModification name="Oxidation (M)" />
+				<UserParam type="string" name="PeptideIndexer:decoy_string" value="DECOY_"/>
+				<UserParam type="string" name="PeptideIndexer:decoy_string_position" value="prefix"/>
+				<UserParam type="string" name="PeptideIndexer:enzyme" value="Trypsin/P"/>
+				<UserParam type="string" name="PeptideIndexer:enzyme_specificity" value="none"/>
+				<UserParam type="int" name="PeptideIndexer:aaa_max" value="4"/>
+				<UserParam type="int" name="PeptideIndexer:mismatches_max" value="0"/>
+				<UserParam type="string" name="PeptideIndexer:IL_equivalent" value="false"/>
+				<UserParam type="string" name="PeptideIndexer:allow_nterm_protein_cleavage" value="true"/>
+				<UserParam type="string" name="PeptideIndexer:unmatched_action" value="error"/>
+				<UserParam type="string" name="PeptideIndexer:missing_decoy_action" value="error"/>
 	</SearchParameters>
 	<IdentificationRun date="2017-08-15T14:14:18" search_engine="XTandem" search_engine_version="" search_parameters_ref="SP_0" >
-		<ProteinIdentification score_type="XTandem" higher_score_better="false" significance_threshold="0" >
-			<ProteinHit id="PH_0" accession="tr|A0A0J9YWM6|A0A0J9YWM6_HUMAN" score="0" coverage="35.7142857142857" sequence="XSTLLINQPQYAWL*KELGLREENEGVYNGSWGGRGEDLAMH" >
+		<ProteinIdentification score_type="XTandem" higher_score_better="false" significance_threshold="0.0" >
+			<ProteinHit id="PH_0" accession="tr|A0A0J9YWM6|A0A0J9YWM6_HUMAN" score="0.0" coverage="35.714285714285715" sequence="XSTLLINQPQYAWL*KELGLREENEGVYNGSWGGRGEDLAMH" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</ProteinHit>
-			<ProteinHit id="PH_1" accession="DECOY_sp|P49419-2|AL7A1_HUMAN" score="0" coverage="2.92397660818713" sequence="M*STLLINQPQYAWLK*ELGLREENEGVYNGSWGGRGEVITTYCPANNEPIARVRQASVADYEETVKKAREAWKIWADIPAPKRGEIVRQIGDALREKIQVLGSLVSLEMGKILVEGVGEVQEYVDICDYAVGLSRMIGGPILPSERSGHALIEQWNPVGLVGIITAFNFPVAVYGWNNAIAMICGNVCLWKGAPTTSLISVAVTKIIAKVLEDNKLPGAICSLTCGGADIGTAMAKDERVNLLSFTGSTQVGKQVGLMVQERFGRSLLELGGNNAIIAFEDADLSLVVPSALFAAVGTAGQRCTTARRLFIHESIHDEVVNRLKKAYAQIRVGNPWDPNVLYGPLHTKQAVSMFLGAVEEAKKEGGTVVYGGKVMDRPGNYVEPTIVTGLGHDASIAHTETFAPILYVFKFKNEEEVFAWNNEVKQGLSSSIFTKDLGRIFRWLGPKGSDCGIVNVNIPTSGAEIGGAFGGEKHTGGGRESGSDAWKQYMRRSTCTINYSKDLPLAQGIKFQ" >
+			<ProteinHit id="PH_1" accession="DECOY_sp|P49419-2|AL7A1_HUMAN" score="0.0" coverage="2.923976608187135" sequence="M*STLLINQPQYAWLK*ELGLREENEGVYNGSWGGRGEVITTYCPANNEPIARVRQASVADYEETVKKAREAWKIWADIPAPKRGEIVRQIGDALREKIQVLGSLVSLEMGKILVEGVGEVQEYVDICDYAVGLSRMIGGPILPSERSGHALIEQWNPVGLVGIITAFNFPVAVYGWNNAIAMICGNVCLWKGAPTTSLISVAVTKIIAKVLEDNKLPGAICSLTCGGADIGTAMAKDERVNLLSFTGSTQVGKQVGLMVQERFGRSLLELGGNNAIIAFEDADLSLVVPSALFAAVGTAGQRCTTARRLFIHESIHDEVVNRLKKAYAQIRVGNPWDPNVLYGPLHTKQAVSMFLGAVEEAKKEGGTVVYGGKVMDRPGNYVEPTIVTGLGHDASIAHTETFAPILYVFKFKNEEEVFAWNNEVKQGLSSSIFTKDLGRIFRWLGPKGSDCGIVNVNIPTSGAEIGGAFGGEKHTGGGRESGSDAWKQYMRRSTCTINYSKDLPLAQGIKFQ" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 			</ProteinHit>
 		</ProteinIdentification>
-		<PeptideIdentification score_type="XTandem" higher_score_better="true" significance_threshold="0" MZ="858.97412109375" RT="12186.8068" spectrum_reference="controllerType=0 controllerNumber=1 scan=55757" >
-			<PeptideHit score="75.2" sequence="STLLINQPQYAWLK" charge="2" aa_before="X M" aa_after="E E" start="1 1" end="14 14" protein_refs="PH_0 PH_1" >
+		<PeptideIdentification score_type="XTandem" higher_score_better="true" significance_threshold="0.0" MZ="858.97412109375" RT="1.21868068e04" spectrum_reference="controllerType=0 controllerNumber=1 scan=55757" >
+			<PeptideHit score="75.200000000000003" sequence="STLLINQPQYAWLK" charge="2" aa_before="X M" aa_after="E E" start="1 1" end="14 14" protein_refs="PH_0 PH_1" >
 				<UserParam type="string" name="target_decoy" value="target+decoy"/>
-				<UserParam type="float" name="nextscore" value="70.7"/>
-				<UserParam type="float" name="delta" value="0.009"/>
-				<UserParam type="float" name="mass" value="1716.9319"/>
-				<UserParam type="float" name="E-Value" value="1e-15"/>
-				<UserParam type="float" name="hyperscore" value="75.2"/>
+				<UserParam type="float" name="nextscore" value="70.700000000000003"/>
+				<UserParam type="float" name="delta" value="9.0e-03"/>
+				<UserParam type="float" name="mass" value="1716.931900000000042"/>
+				<UserParam type="float" name="E-Value" value="1.0e-15"/>
+				<UserParam type="float" name="hyperscore" value="75.200000000000003"/>
 				<UserParam type="float" name="b_score" value="19.5"/>
 				<UserParam type="int" name="b_ions" value="7"/>
-				<UserParam type="float" name="y_score" value="20.3"/>
+				<UserParam type="float" name="y_score" value="20.300000000000001"/>
 				<UserParam type="int" name="y_ions" value="13"/>
 				<UserParam type="string" name="protein_references" value="non-unique"/>
 			</PeptideHit>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="XTandem" higher_score_better="true" significance_threshold="0" MZ="903.489685058594" RT="10303.5304" spectrum_reference="controllerType=0 controllerNumber=1 scan=46896" >
-			<PeptideHit score="77.8" sequence="MSTLLINQPQYAWLK" charge="2" aa_before="[ [" aa_after="E E" start="0 0" end="14 14" protein_refs="PH_0 PH_1" >
+		<PeptideIdentification score_type="XTandem" higher_score_better="true" significance_threshold="0.0" MZ="903.489685058593977" RT="1.03035304e04" spectrum_reference="controllerType=0 controllerNumber=1 scan=46896" >
+			<PeptideHit score="77.799999999999997" sequence="MSTLLINQPQYAWLK" charge="2" aa_before="[ [" aa_after="E E" start="0 0" end="14 14" protein_refs="PH_0 PH_1" >
 				<UserParam type="string" name="target_decoy" value="target+decoy"/>
-				<UserParam type="float" name="nextscore" value="71.9"/>
+				<UserParam type="float" name="nextscore" value="71.900000000000006"/>
 				<UserParam type="float" name="delta" value="0.01"/>
-				<UserParam type="float" name="mass" value="1805.962"/>
-				<UserParam type="float" name="E-Value" value="1e-15"/>
-				<UserParam type="float" name="hyperscore" value="77.8"/>
+				<UserParam type="float" name="mass" value="1805.961999999999989"/>
+				<UserParam type="float" name="E-Value" value="1.0e-15"/>
+				<UserParam type="float" name="hyperscore" value="77.799999999999997"/>
 				<UserParam type="float" name="b_score" value="14.9"/>
 				<UserParam type="int" name="b_ions" value="10"/>
-				<UserParam type="float" name="y_score" value="16.1"/>
+				<UserParam type="float" name="y_score" value="16.100000000000001"/>
 				<UserParam type="int" name="y_ions" value="12"/>
 				<UserParam type="string" name="protein_references" value="non-unique"/>
 			</PeptideHit>

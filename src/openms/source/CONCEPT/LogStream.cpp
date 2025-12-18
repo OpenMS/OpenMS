@@ -469,6 +469,20 @@ namespace OpenMS
         return;
 
       rdbuf()->sync();
+      // Distribute any incomplete line before clearing streams
+      if (!rdbuf()->incomplete_line_.empty())
+      {
+        rdbuf()->distribute_(rdbuf()->incomplete_line_);
+        rdbuf()->incomplete_line_.clear();
+      }
+      // Flush all streams before clearing the list
+      for (auto& stream_struct : rdbuf()->stream_list_)
+      {
+        if (stream_struct.stream != nullptr)
+        {
+          stream_struct.stream->flush();
+        }
+      }
       rdbuf()->stream_list_.clear();
     }
 

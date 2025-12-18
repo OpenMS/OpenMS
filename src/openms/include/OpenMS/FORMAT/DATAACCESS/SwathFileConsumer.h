@@ -93,7 +93,7 @@ public:
     /**
      * @brief Constructor
      *
-     * @param swath_boundaries A vector of SwathMaps of which only the center,
+     * @param[in] swath_boundaries A vector of SwathMaps of which only the center,
      * lower and upper attributes will be used to infer the expected Swath maps.
      *
      */
@@ -301,8 +301,8 @@ protected:
     std::vector<OpenSwath::SwathMap> swath_map_boundaries_;
 
     /// A list of SWATH maps and the MS1 map
-    std::vector<boost::shared_ptr<PeakMap > > swath_maps_;
-    boost::shared_ptr<PeakMap > ms1_map_;
+    std::vector<std::shared_ptr<PeakMap > > swath_maps_;
+    std::shared_ptr<PeakMap > ms1_map_;
 
     /// The Experimental settings
     // (MSExperiment has no constructor using ExperimentalSettings)
@@ -342,7 +342,7 @@ public:
 protected:
     void addNewSwathMap_()
     {
-      boost::shared_ptr<PeakMap > exp(new PeakMap(settings_));
+      std::shared_ptr<PeakMap > exp(new PeakMap(settings_));
       swath_maps_.push_back(exp);
     }
 
@@ -358,7 +358,7 @@ protected:
 
     void addMS1Map_()
     {
-      boost::shared_ptr<PeakMap > exp(new PeakMap(settings_));
+      std::shared_ptr<PeakMap > exp(new PeakMap(settings_));
       ms1_map_ = exp;
     }
 
@@ -437,7 +437,7 @@ protected:
       swath_consumers_.push_back(consumer);
 
       // maps for meta data
-      boost::shared_ptr<PeakMap > exp(new PeakMap(settings_));
+      std::shared_ptr<PeakMap > exp(new PeakMap(settings_));
       swath_maps_.push_back(exp);
     }
 
@@ -457,7 +457,7 @@ protected:
       String cached_file = meta_file + ".cached";
       ms1_consumer_ = new MSDataCachedConsumer(cached_file, true);
       ms1_consumer_->setExpectedSize(nr_ms1_spectra_, 0);
-      boost::shared_ptr<PeakMap > exp(new PeakMap(settings_));
+      std::shared_ptr<PeakMap > exp(new PeakMap(settings_));
       ms1_map_ = exp;
     }
 
@@ -497,7 +497,7 @@ protected:
 
       if (have_ms1)
       {
-        boost::shared_ptr<PeakMap > exp(new PeakMap);
+        std::shared_ptr<PeakMap > exp(new PeakMap);
         String meta_file = cachedir_ + basename_ + "_ms1.mzML";
         // write metadata to disk and store the correct data processing tag
         Internal::CachedMzMLHandler().writeMetadata(*ms1_map_, meta_file, true);
@@ -510,7 +510,7 @@ protected:
 #endif
       for (SignedSize i = 0; i < boost::numeric_cast<SignedSize>(swath_consumers_size); i++)
       {
-        boost::shared_ptr<PeakMap > exp(new PeakMap);
+        std::shared_ptr<PeakMap > exp(new PeakMap);
         String meta_file = cachedir_ + basename_ + "_" + String(i) +  ".mzML";
         // write metadata to disk and store the correct data processing tag
         Internal::CachedMzMLHandler().writeMetadata(*swath_maps_[i], meta_file, true);

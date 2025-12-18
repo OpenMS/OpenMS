@@ -975,7 +975,7 @@ namespace OpenMS::Internal
               {
                 if (!precursor.getActivationMethods().empty())
                 {
-                  writeCVS_(os, *(precursor.getActivationMethods().begin()), 18, "1000044", "ActivationMethod", 7);
+                  writeCVS_(os, static_cast<UInt>(*(precursor.getActivationMethods().begin())), 18, "1000044", "ActivationMethod", 7);
                 }
                 writeCVS_(os, precursor.getActivationEnergy(), "1000045", "CollisionEnergy", 7);
                 os << "\t\t\t\t\t\t\t<cvParam cvLabel=\"psi\" accession=\"PSI:1000046\" name=\"EnergyUnit\" value=\"eV\"/>\n";

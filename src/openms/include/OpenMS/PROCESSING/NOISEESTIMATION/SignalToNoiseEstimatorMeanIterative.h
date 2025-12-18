@@ -136,7 +136,7 @@ protected:
 
 
     /** calculate StN values for all datapoints given, by using a sliding window approach
-                  @param c raw data
+                  @param[in] c raw data
                   @exception Throws Exception::InvalidValue
            */
     void computeSTN_(const Container& c) override

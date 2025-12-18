@@ -56,20 +56,20 @@ public:
     /**
      * @brief Extract RTs given for individual features of each map, calculate distances for each pair of maps and cluster hierarchical using average linkage.
      *
-     * @param feature_maps Vector of input maps (FeatureMap) whose distance is to be calculated.
-     * @param tree Vector of BinaryTreeNodes that will be computed
-     * @param maps_ranges Vector to store all sorted RTs of extracted identifications for each map in @p feature_maps; needed to determine the 10/90 percentiles
+     * @param[in] feature_maps Vector of input maps (FeatureMap) whose distance is to be calculated.
+     * @param[in] tree Vector of BinaryTreeNodes that will be computed
+     * @param[out] maps_ranges Vector to store all sorted RTs of extracted identifications for each map in @p feature_maps; needed to determine the 10/90 percentiles
     */
     static void buildTree(std::vector<FeatureMap>& feature_maps, std::vector<BinaryTreeNode>& tree, std::vector<std::vector<double>>& maps_ranges);
 
     /**
      * @brief Align feature maps tree guided using align() of @ref OpenMS::MapAlignmentAlgorithmIdentification and use TreeNode with larger 10/90 percentile range as reference.
      *
-     * @param tree Vector of BinaryTreeNodes that contains order for alignment.
-     * @param feature_maps_transformed Vector with input maps for transformation process. Because the transformed maps are stored within this vector it's not const.
-     * @param maps_ranges Vector that contains all sorted RTs of extracted identifications for each map; needed to determine the 10/90 percentiles.
-     * @param map_transformed FeatureMap to store all features of combined maps with original and transformed RTs in order of alignment.
-     * @param trafo_order Vector to store indices of maps in order of alignment.
+     * @param[in] tree Vector of BinaryTreeNodes that contains order for alignment.
+     * @param[out] feature_maps_transformed Vector with input maps for transformation process. Because the transformed maps are stored within this vector it's not const.
+     * @param[in] maps_ranges Vector that contains all sorted RTs of extracted identifications for each map; needed to determine the 10/90 percentiles.
+     * @param[in] map_transformed FeatureMap to store all features of combined maps with original and transformed RTs in order of alignment.
+     * @param[in] trafo_order Vector to store indices of maps in order of alignment.
     */
     void treeGuidedAlignment(const std::vector<BinaryTreeNode>& tree, std::vector<FeatureMap>& feature_maps_transformed,
                              std::vector<std::vector<double>>& maps_ranges, FeatureMap& map_transformed,
@@ -84,10 +84,10 @@ public:
     /**
      * @brief Extract original RT ("original_RT" MetaInfo) and transformed RT for each feature to compute RT transformations.
      *
-     * @param feature_maps Vector of input maps for size information.
-     * @param map_transformed FeatureMap that contains all features of combined maps with original and transformed RTs in order of alignment.
-     * @param transformations Vector to store transformation descriptions for each map. (output)
-     * @param trafo_order Vector that contains the indices of aligned maps in order of alignment.
+     * @param[in] feature_maps Vector of input maps for size information.
+     * @param[out] map_transformed FeatureMap that contains all features of combined maps with original and transformed RTs in order of alignment.
+     * @param[in] transformations Vector to store transformation descriptions for each map. (output)
+     * @param[out] trafo_order Vector that contains the indices of aligned maps in order of alignment.
     */
     void computeTrafosByOriginalRT(std::vector<FeatureMap>& feature_maps, FeatureMap& map_transformed,
                                    std::vector<TransformationDescription>& transformations, const std::vector<Size>& trafo_order);
@@ -95,8 +95,8 @@ public:
     /**
      * @brief Apply transformations on input maps.
      *
-     * @param feature_maps Vector of maps to be transformed (output)
-     * @param transformations Vector that contains TransformationDescriptions that are applied to input maps
+     * @param[in] feature_maps Vector of maps to be transformed (output)
+     * @param[out] transformations Vector that contains TransformationDescriptions that are applied to input maps
     */
     static void computeTransformedFeatureMaps(std::vector<FeatureMap>& feature_maps, const std::vector<TransformationDescription>& transformations);
 
@@ -128,10 +128,10 @@ protected:
     /**
      * @brief For given peptide identifications extract sequences and store with associated feature RT.
      *
-     * @param peptides Vector of peptide identifications to extract sequences.
-     * @param peptide_rts Map to store a list of feature RTs for each peptide sequence as key.
-     * @param map_range Vector in which all feature RTs are stored for given peptide identifications.
-     * @param feature_rt RT value of the feature to which the peptide identifications to be analysed belong.
+     * @param[in] peptides Vector of peptide identifications to extract sequences.
+     * @param[out] peptide_rts Map to store a list of feature RTs for each peptide sequence as key.
+     * @param[out] map_range Vector in which all feature RTs are stored for given peptide identifications.
+     * @param[in] feature_rt RT value of the feature to which the peptide identifications to be analysed belong.
      */
     static void addPeptideSequences_(const PeptideIdentificationList& peptides, SeqAndRTList& peptide_rts,
             std::vector<double>& map_range, double feature_rt);
@@ -139,9 +139,9 @@ protected:
     /**
      * @brief For each input map, extract peptide identifications (sequences) of existing features with associated feature RT.
      *
-     * @param feature_maps Vector of original maps containing peptide identifications.
-     * @param maps_seq_and_rt Vector of maps to store feature RTs given for individual peptide sequences for each feature map.
-     * @param maps_ranges Vector to store all feature RTs of extracted identifications for each map; needed to determine the 10/90 percentiles.
+     * @param[in] feature_maps Vector of original maps containing peptide identifications.
+     * @param[out] maps_seq_and_rt Vector of maps to store feature RTs given for individual peptide sequences for each feature map.
+     * @param[out] maps_ranges Vector to store all feature RTs of extracted identifications for each map; needed to determine the 10/90 percentiles.
      */
     static void extractSeqAndRt_(const std::vector<FeatureMap>& feature_maps, std::vector<SeqAndRTList>& maps_seq_and_rt,
             std::vector<std::vector<double>>& maps_ranges);

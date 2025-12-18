@@ -42,37 +42,37 @@ public:
      * the same size and sorted in x. Sortedness in x is required
      * for @see SplinePackage.
      *
-     * @param x x-coordinates of input data points (knots)
-     * @param y y-coordinates of input data points
+     * @param[in] x x-coordinates of input data points (knots)
+     * @param[in] y y-coordinates of input data points
      */
     CubicSpline2d(const std::vector<double>& x, const std::vector<double>& y);
 
     /**
      * @brief constructor of spline interpolation
      *
-     * @param m (x,y) coordinates of input data points
+     * @param[in] m (x,y) coordinates of input data points
      */
     CubicSpline2d(const std::map<double, double>& m);
 
     /**
      * @brief evaluates the spline at position x
      *
-     * @param x x-position
+     * @param[in] x x-position
      */
     double eval(double x) const;
 
     /**
      * @brief evaluates first derivative of spline at position x
      *
-     * @param x x-position
+     * @param[in] x x-position
      */
     double derivative(double x) const;
 
     /**
      * @brief evaluates derivative of spline at position x
      *
-     * @param x x-position
-     * @param order order of the derivative
+     * @param[in] x x-position
+     * @param[in] order order of the derivative
      * Only order 1 or 2 make sense for cubic splines.
      */
     double derivatives(double x, unsigned order) const;
@@ -82,8 +82,8 @@ private:
     /**
      * @brief initialize the spline
      *
-     * @param x x-coordinates of input data points (knots)
-     * @param y y-coordinates of input data points
+     * @param[in] x x-coordinates of input data points (knots)
+     * @param[in] y y-coordinates of input data points
      */
     void init_(const std::vector<double>& x, const std::vector<double>& y);
 

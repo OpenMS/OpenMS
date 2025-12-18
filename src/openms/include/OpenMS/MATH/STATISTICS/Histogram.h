@@ -224,9 +224,9 @@ public:
 
       /**
        * @brief Increment all bins from to lowest(=first) bin up to (and including?) the bin for @p val by a certain number of counts
-       * @param val The value which determines the highest bin
-       * @param inclusive Is the highest bin included?
-       * @param increment Increase each bin by this value
+       * @param[in] val The value which determines the highest bin
+       * @param[in] inclusive Is the highest bin included?
+       * @param[in] increment Increase each bin by this value
        * @return The index of the bin for @p value
       */
       Size incUntil(BinSizeType val, bool inclusive, ValueType increment = 1)
@@ -245,9 +245,9 @@ public:
 
      /**
        * @brief Increment all bins from the bin of @p val to the highest(=last) bin by a certain number of counts
-       * @param val The value which determines the lowest bin
-       * @param inclusive Is the lowest bin included?
-       * @param increment Increase each bin by this value
+       * @param[in] val The value which determines the lowest bin
+       * @param[in] inclusive Is the lowest bin included?
+       * @param[in] increment Increase each bin by this value
        * @return The index of the bin for @p value
       */
       Size incFrom(BinSizeType val, bool inclusive, ValueType increment = 1)

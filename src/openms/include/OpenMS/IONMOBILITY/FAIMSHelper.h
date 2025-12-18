@@ -9,6 +9,7 @@
 #pragma once
 
 #include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <set>
 
 namespace OpenMS
@@ -34,10 +35,26 @@ namespace OpenMS
         - If the data does not contain any FAIMS spectra, an empty set will be returned.
         - The sentinel IMTypes::DRIFTTIME_NOT_SET is ignored; a warning is logged if encountered.
 
-        @param exp The input experiment
+        @param[in] exp The input experiment
         @return Unique FAIMS compensation voltages (in volts)
       */
       static std::set<double> getCompensationVoltages(const PeakMap& exp);
+
+      /**
+        @brief Filter peptide identifications by FAIMS compensation voltage
+
+        Filters peptide identifications to only include those matching the specified
+        FAIMS CV. IDs without FAIMS_CV annotation are included for backward compatibility.
+
+        @param[in] peptides Input peptide identifications
+        @param[in] target_cv Target FAIMS compensation voltage to filter for
+        @param[in] cv_tolerance Tolerance for floating point comparison (default: 0.01)
+        @return Filtered list of peptide identifications
+      */
+      static PeptideIdentificationList filterPeptidesByFAIMSCV(
+        const PeptideIdentificationList& peptides,
+        double target_cv,
+        double cv_tolerance = 0.01);
     };
 
 } //end namespace OpenMS

@@ -73,8 +73,8 @@ public:
     /**
       @brief Constructor
 
-      @param metavalue MetaValue that needs to be present.
-      @param reverse if @p reverse is true, operator() returns true if the metavalue does not exist.
+      @param[in] metavalue MetaValue that needs to be present.
+      @param[in] reverse if @p reverse is true, operator() returns true if the metavalue does not exist.
     */
     HasMetaValue(String metavalue, bool reverse = false) :
       metavalue_key_(metavalue),
@@ -108,9 +108,9 @@ public:
     /**
       @brief Constructor
 
-      @param min lower boundary
-      @param max upper boundary
-      @param reverse if @p reverse is true, operator() returns true if the spectrum lies outside the
+      @param[in] min lower boundary
+      @param[in] max upper boundary
+      @param[in] reverse if @p reverse is true, operator() returns true if the spectrum lies outside the
       range
     */
     InRTRange(double min, double max, bool reverse = false) :
@@ -145,8 +145,8 @@ public:
     /**
       @brief Constructor
 
-      @param levels an array of MS levels
-      @param reverse if @p reverse is true, operator() returns true if the spectrum lies outside the
+      @param[in] levels an array of MS levels
+      @param[in] reverse if @p reverse is true, operator() returns true if the spectrum lies outside the
       set
     */
     InMSLevelRange(const IntList& levels, bool reverse = false) :
@@ -180,8 +180,8 @@ public:
     /**
       @brief Constructor
 
-      @param mode scan mode
-      @param reverse if @p reverse is true, operator() returns true if the spectrum has a different
+      @param[in] mode scan mode
+      @param[in] reverse if @p reverse is true, operator() returns true if the spectrum has a different
       scan mode
     */
     HasScanMode(Int mode, bool reverse = false) :
@@ -214,8 +214,8 @@ public:
     /**
       @brief Constructor
 
-      @param polarity scan polarity
-      @param reverse if @p reverse is true, operator() returns true if the spectrum has a different
+      @param[in] polarity scan polarity
+      @param[in] reverse if @p reverse is true, operator() returns true if the spectrum has a different
       scan polarity
     */
     HasScanPolarity(Int polarity, bool reverse = false) :
@@ -249,7 +249,7 @@ public:
     /**
       @brief Constructor
 
-      @param reverse if @p reverse is true, operator() returns true if the spectrum is not empty
+      @param[in] reverse if @p reverse is true, operator() returns true if the spectrum is not empty
     */
     explicit IsEmptySpectrum(bool reverse = false) :
       reverse_(reverse)
@@ -279,7 +279,7 @@ public:
     /**
       @brief Constructor
 
-      @param reverse if @p reverse is true, operator() returns true if the spectrum is not a zoom
+      @param[in] reverse if @p reverse is true, operator() returns true if the spectrum is not a zoom
       spectrum
     */
     explicit IsZoomSpectrum(bool reverse = false) :
@@ -312,8 +312,8 @@ public:
     /**
       @brief Constructor
 
-      @param methods List of methods that is compared against precursor activation methods.
-      @param reverse if @p reverse is true, operator() returns true if the spectrum is not using one
+      @param[in] methods List of methods that is compared against precursor activation methods.
+      @param[in] reverse if @p reverse is true, operator() returns true if the spectrum is not using one
       of the specified activation methods.
     */
     HasActivationMethod(const StringList& methods, bool reverse = false) :
@@ -327,7 +327,7 @@ public:
       {
         for (const Precursor::ActivationMethod am : p.getActivationMethods())
         {
-          if (ListUtils::contains(methods_, Precursor::NamesOfActivationMethod[am]))
+          if (ListUtils::contains(methods_, Precursor::NamesOfActivationMethod[static_cast<size_t>(am)]))
           {
             // found matching activation method
             if (reverse_) return false;
@@ -360,9 +360,9 @@ public:
     /**
       @brief Constructor
 
-      @param mz_left left m/z boundary (closed interval)
-      @param mz_right right m/z boundary (closed interval)
-      @param reverse if @p reverse is true, operator() returns true if the precursor's m/z is outside of the given interval.
+      @param[in] mz_left left m/z boundary (closed interval)
+      @param[in] mz_right right m/z boundary (closed interval)
+      @param[in] reverse if @p reverse is true, operator() returns true if the precursor's m/z is outside of the given interval.
     */
     InPrecursorMZRange(const double& mz_left, const double& mz_right, bool reverse = false) :
       mz_left_(mz_left),
@@ -408,8 +408,8 @@ public:
     /**
       @brief Constructor
 
-      @param charges List of charges that is compared against precursor charge.
-      @param reverse if @p reverse is true, operator() returns true if the spectrum has not one of
+      @param[in] charges List of charges that is compared against precursor charge.
+      @param[in] reverse if @p reverse is true, operator() returns true if the spectrum has not one of
       the specified precursor charges.
     */
     HasPrecursorCharge(const IntList& charges, bool reverse = false) :
@@ -452,9 +452,9 @@ public:
     /**
       @brief Constructor
 
-      @param min lower boundary
-      @param max upper boundary
-      @param reverse if @p reverse is true, operator() returns true if the peak lies outside the
+      @param[in] min lower boundary
+      @param[in] max upper boundary
+      @param[in] reverse if @p reverse is true, operator() returns true if the peak lies outside the
       range
     */
     InMzRange(double min, double max, bool reverse = false) :
@@ -489,9 +489,9 @@ public:
     /**
       @brief Constructor
 
-      @param min lower boundary
-      @param max upper boundary
-      @param reverse if @p reverse is true, operator() returns true if the peak lies outside the set
+      @param[in] min lower boundary
+      @param[in] max upper boundary
+      @param[in] reverse if @p reverse is true, operator() returns true if the peak lies outside the set
     */
     InIntensityRange(double min, double max, bool reverse = false) :
       min_(min),
@@ -525,9 +525,9 @@ public:
     /**
       @brief Constructor
 
-      @param min minimum collision energy to be included in the range.
-      @param max maximum collision energy to be included in the range.
-      @param reverse if @p reverse is true, operator() returns true if the collision energy lies outside the range.
+      @param[in] min minimum collision energy to be included in the range.
+      @param[in] max maximum collision energy to be included in the range.
+      @param[in] reverse if @p reverse is true, operator() returns true if the collision energy lies outside the range.
     */
     IsInCollisionEnergyRange(double min, double max, bool reverse = false) :
       min_energy_(min),
@@ -578,9 +578,9 @@ public:
     /**
       @brief Constructor
 
-      @param min_size minimum width of the isolation window.
-      @param max_size maximum width of the isolation window.
-      @param reverse if @p reverse is true, operator() returns true if the width of the isolation window lies outside the range.
+      @param[in] min_size minimum width of the isolation window.
+      @param[in] max_size maximum width of the isolation window.
+      @param[in] reverse if @p reverse is true, operator() returns true if the width of the isolation window lies outside the range.
     */
     IsInIsolationWindowSizeRange(double min_size, double max_size, bool reverse = false) :
       min_size_(min_size),
@@ -623,8 +623,8 @@ public:
     /**
       @brief Constructor
 
-      @param vec_mz Vector of m/z values, of which at least one needs to be covered
-      @param reverse if @p reverse is true, operator() returns true if the isolation window is outside for ALL m/z values.
+      @param[in] vec_mz Vector of m/z values, of which at least one needs to be covered
+      @param[in] reverse if @p reverse is true, operator() returns true if the isolation window is outside for ALL m/z values.
     */
     IsInIsolationWindow(std::vector<double> vec_mz, bool reverse = false) :
       vec_mz_(vec_mz),
