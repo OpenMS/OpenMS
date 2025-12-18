@@ -69,7 +69,7 @@ struct OPENMS_DLLAPI Pi0Result
   permutation-based null hypothesis testing.
 
   Reference:
-  Käll L, Storey JD, MacCoss MJ, Noble WS. (2008)
+  Kall L, Storey JD, MacCoss MJ, Noble WS. (2008)
   "Posterior error probabilities and false discovery rates: two sides of the same coin."
   J Proteome Res. 7(1):40-4. doi: 10.1021/pr700739d
 
@@ -377,13 +377,13 @@ OPENMS_DLLAPI std::vector<double> lfdr(const std::vector<double>& p_values,
 
   Estimates parameters (mean and standard deviation) from a null distribution (@p stat0),
   then computes upper tail probabilities P(X > stat_i) for each value in @p stat,
-  where X ~ N(μ, σ²) with μ and σ estimated from @p stat0.
+  where X ~ N(mu, sigma^2) with mu and sigma estimated from @p stat0.
 
   This is useful for computing empirical p-values when you have both target scores
   (@p stat) and a sample from the null distribution (@p stat0).
 
   @param stat Vector of test statistics for which to compute tail probabilities
-  @param stat0 Vector of statistics from the null distribution used to estimate N(μ, σ²)
+  @param stat0 Vector of statistics from the null distribution used to estimate N(mu, sigma^2)
   @return Vector of upper tail probabilities (p-values), one for each value in @p stat
 
   @note Uses robust estimators (median, MAD) if the null distribution is suspected

@@ -25,7 +25,9 @@ cdef extern from * namespace "OpenMS::Math":
 
     inline std::vector<double> qvalue_c(std::vector<double> p_values, double pi0, bool pfdr) { return qValue(p_values, pi0, pfdr); }
     inline std::vector<double> pnorm_c(std::vector<double> stat, std::vector<double> stat0) { return pNorm(stat, stat0); }
-    inline Pi0Result pi0est_c(std::vector<double> p_values, std::vector<double> lambda_) { return pi0Est(p_values, lambda_); }
+    inline Pi0Result pi0est_c(std::vector<double> p_values, std::vector<double> lambda_, std::string pi0_method, int smooth_df, bool smooth_log_pi0) { 
+      return pi0Est(p_values, lambda_, pi0_method, smooth_df, smooth_log_pi0); 
+    }
     inline std::vector<double> lfdr_c(std::vector<double> p_values, double pi0, bool trunc, bool monotone, std::string transf, double adj, double eps, size_t gridsize, double cut) { 
       return lfdr(p_values, pi0, trunc, monotone, transf, adj, eps, gridsize, cut); 
     }
@@ -42,7 +44,7 @@ cdef extern from * namespace "OpenMS::Math":
     libcpp_vector[double] qvalue_c(libcpp_vector[double] p_values, double pi0, bint pfdr) except +
     libcpp_vector[double] pnorm_c(libcpp_vector[double] stat, libcpp_vector[double] stat0) except +
     # Pi0Result declared later; forward declare return as object using same name in next extern block
-    Pi0Result pi0est_c(libcpp_vector[double] p_values, libcpp_vector[double] lambda_) except +
+    Pi0Result pi0est_c(libcpp_vector[double] p_values, libcpp_vector[double] lambda_, const char* pi0_method, int smooth_df, bint smooth_log_pi0) except +
     libcpp_vector[double] lfdr_c(libcpp_vector[double] p_values, double pi0, bint trunc, bint monotone, const char* transf, double adj, double eps, size_t gridsize, double cut) except +
 
 
@@ -57,7 +59,7 @@ cdef extern from "<OpenMS/MATH/STATISTICS/MultipleTesting.h>" namespace "OpenMS:
         libcpp_vector[double] lambda_
         bint pi0_smooth
 
-    Pi0Result pi0Est(libcpp_vector[double] p_values, libcpp_vector[double] lambda_) except +
+    Pi0Result pi0Est(libcpp_vector[double] p_values, libcpp_vector[double] lambda_, const char* pi0_method, int smooth_df, bint smooth_log_pi0) except +
 
 
 @cython.boundscheck(False)
@@ -226,7 +228,7 @@ def pnorm(stat, stat0):
     
     This function fits a normal distribution to the null statistics (stat0) and
     computes tail probabilities for the test statistics (stat). Specifically, it
-    estimates μ and σ from stat0, then returns P(X > stat_i) where X ~ N(μ, σ²).
+    estimates mu and sigma from stat0, then returns P(X > stat_i) where X ~ N(mu, sigma^2).
     This provides a parametric alternative to empirical p-value computation.
     
     Parameters
@@ -259,7 +261,7 @@ def pnorm(stat, stat0):
     return np.asarray(out, dtype=float)
 
 
-def pi0est(p_values, lambda_=None):
+def pi0est(p_values, lambda_=None, pi0_method="smoother", smooth_df=3, smooth_log_pi0=False):
     """
     Estimate the proportion of true null hypotheses (pi0) using the Storey method.
     
@@ -275,6 +277,15 @@ def pi0est(p_values, lambda_=None):
     lambda_ : array-like, optional
         Vector of lambda thresholds for estimating pi0. If None (default), a
         sequence of values from 0.05 to 0.95 will be used automatically.
+    pi0_method : str, optional
+        Method for pi0 estimation: "smoother" (default) applies smoothing spline,
+        "bootstrap" uses bootstrap resampling (not yet implemented).
+    smooth_df : int, optional
+        Degrees of freedom for the smoothing spline (default: 3).
+        Only used when pi0_method="smoother".
+    smooth_log_pi0 : bool, optional
+        If True, apply smoothing on log(pi0) scale (default: False).
+        Only used when pi0_method="smoother".
     
     Returns
     -------
@@ -312,7 +323,9 @@ def pi0est(p_values, lambda_=None):
     else:
         lamb = _to_vec_double(lambda_)
 
-    res = pi0est_c(_to_vec_double(p_values), lamb)
+    pi0_method_bytes = pi0_method.encode('utf-8')
+    res = pi0est_c(_to_vec_double(p_values), lamb, <const char*> pi0_method_bytes, 
+                   <int> smooth_df, <bint> smooth_log_pi0)
 
     return {
         'pi0': res.pi0,

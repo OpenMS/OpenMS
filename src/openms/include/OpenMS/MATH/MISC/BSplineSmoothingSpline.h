@@ -27,11 +27,11 @@ namespace OpenMS
      * 
      * Unlike the BSpline2d class which requires explicit node specification,
      * this class implements the scipy-style optimization:
-     *   minimize: RSS(f) + λ * ∫(f''(x))² dx
+     *   minimize: RSS(f) + lambda * integral(f''(x))^2 dx
      * 
      * Or equivalently with smoothing parameter s:
-     *   minimize: ∫(f''(x))² dx
-     *   subject to: RSS(f) ≤ s
+     *   minimize: integral(f''(x))^2 dx
+     *   subject to: RSS(f) <= s
      * 
      * The key difference from BSpline2d:
      * - BSpline2d: Minimizes RSS for a fixed number of nodes (interpolating spline)
@@ -66,7 +66,7 @@ namespace OpenMS
        * - s = 0: Interpolating spline (passes through all points)
        * - s > 0: Allows deviation from data points
        * - s = m - sqrt(2*m): Default used by scipy.UnivariateSpline
-       * - s → ∞: Approaches simple polynomial fit
+       * - s -> infinity: Approaches simple polynomial fit
        * 
        * @note For small datasets (n < 4), falls back to interpolation
        */
@@ -136,7 +136,7 @@ namespace OpenMS
        * Strategy:
        * 1. Start with minimal nodes (single cubic segment)
        * 2. Gradually increase nodes if RSS > s (underfitting)
-       * 3. Find the configuration where RSS ≈ s
+       * 3. Find the configuration where RSS ~= s
        */
       void fit_smoothing_spline(const std::vector<double>& x,
                                 const std::vector<double>& y,

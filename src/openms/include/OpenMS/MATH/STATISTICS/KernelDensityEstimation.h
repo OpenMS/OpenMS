@@ -155,7 +155,7 @@ namespace OpenMS
       The result is in Munro-packed format compatible with forrt() and revrt().
 
       This implementation uses the Silverman transform, which efficiently computes the
-      Gaussian kernel in frequency space as: K(f) = exp(-2π²σ²f²) where σ = bw/4.
+      Gaussian kernel in frequency space as: K(f) = exp(-2*pi^2*sigma^2*f^2) where sigma = bw/4.
 
       Reference:
       Silverman BW. (1982) "Algorithm AS 176: Kernel density estimation using the Fast
@@ -214,7 +214,7 @@ namespace OpenMS
       Computes KDE values at each input data point using the FFT-grid method followed
       by cubic spline interpolation. This is more efficient than direct evaluation for
       large datasets, as the FFT-grid computation scales as O(n + M*log(M)) followed by
-      O(n*log(M)) for spline interpolation, compared to O(n²) for direct methods.
+      O(n*log(M)) for spline interpolation, compared to O(n^2) for direct methods.
 
       The function first computes KDE on a regular grid using grid_kde_fft(), then
       interpolates these grid values to the query points using cubic spline interpolation.
