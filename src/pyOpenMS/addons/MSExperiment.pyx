@@ -186,6 +186,8 @@
             exp_settings: ExperimentalSettings object containing the meta-data to set.
         """
         cdef _MSExperiment * exp_ = self.inst.get()
-        # Use the assignment operator MSExperiment::operator=(const ExperimentalSettings&)
         cdef _ExperimentalSettings * settings_ = exp_settings.inst.get()
+        # This assignment invokes MSExperiment::operator=(const ExperimentalSettings&)
+        # which copies only the ExperimentalSettings portion (not spectra/chromatograms).
+        # C++ overload resolution selects this operator because the RHS type is ExperimentalSettings.
         deref(exp_) = deref(settings_)
