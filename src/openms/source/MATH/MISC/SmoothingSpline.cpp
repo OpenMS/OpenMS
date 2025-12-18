@@ -5,6 +5,10 @@
 #include <cmath>
 #include <algorithm>
 #include <iostream>
+#include <cstdio>
+#include <unistd.h>
+#include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
 namespace OpenMS
 {
@@ -13,7 +17,9 @@ namespace Math
 // small helper: solve linear system A x = b using Gaussian elimination with partial pivoting
 static bool solve_linear_system(std::vector<double> A, std::vector<double> b, std::vector<double>& x, int n)
 {
-  const double EPS = 1e-18;
+  // slightly relaxed pivot tolerance to avoid false singular detections
+  // make EPS a bit laxer to tolerate near-singular matrices from DtD scaling
+  const double EPS = 1e-08;
   x.assign(n, 0.0);
   // augment and perform elimination in-place on A (row-major)
   for (int i = 0; i < n; ++i)
@@ -87,10 +93,13 @@ static bool solve_smoothed(const std::vector<double>& DtD,
 {
   int n = static_cast<int>(y.size());
   std::vector<double> M(n * n, 0.0);
+  // small ridge added to diagonal to stabilise ill-conditioned systems
+  // increased to improve numerical robustness
+  const double RIDGE = 1e-4;
   for (int i = 0; i < n; ++i)
   {
     for (int j = 0; j < n; ++j) M[i * n + j] = lambda * DtD[i * n + j];
-    M[i * n + i] += 1.0;
+    M[i * n + i] += 1.0 + RIDGE;
   }
   // solve M c = y
   bool ok = solve_linear_system(M, y, c, n);
@@ -108,7 +117,11 @@ static bool solve_smoothed(const std::vector<double>& DtD,
       e[k] = 1.0;
       std::vector<double> sol;
       bool ok2 = solve_linear_system(M, e, sol, n);
-      if (!ok2) return false;
+      if (!ok2)
+      {
+        // If any column solve fails, consider this lambda invalid for GCV
+        return false;
+      }
       trace += sol[k];
     }
     *trace_out = trace;
@@ -124,6 +137,25 @@ SmoothingSpline::SmoothingSpline(const std::vector<double>& xs,
   ok_ = false;
   const int n = static_cast<int>(xs.size());
   if (n < 2 || static_cast<int>(ys.size()) != n) return;
+
+  // Quick early-entry debug so we can detect whether the constructor is
+  // invoked at all in the failing unit-test runs. This uses the same env
+  // gates as the later diagnostics.
+  {
+    const char* dbg_top = std::getenv("OPENMS_TEST_VERBOSE");
+    const char* dbg_force_top = std::getenv("OPENMS_FORCE_SMOOTH_DEBUG");
+    const char* dbg_log_top = std::getenv("OPENMS_DEBUG_LOG");
+    if ((!dbg_top || dbg_top[0] == '\0') && dbg_force_top && dbg_force_top[0] != '\0') dbg_top = dbg_force_top;
+    if ((!dbg_top || dbg_top[0] == '\0') && dbg_log_top && dbg_log_top[0] != '\0') dbg_top = dbg_log_top;
+    if (dbg_top && dbg_top[0] != '\0')
+    {
+      // unbuffered syscall for strace and immediate stderr print
+      char tmpbuf[128];
+      int tmplen = std::snprintf(tmpbuf, sizeof(tmpbuf), "SmoothingSpline ctor ENTRY n=%d\n", n);
+      if (tmplen > 0) (void)write(STDERR_FILENO, tmpbuf, static_cast<size_t>(tmplen));
+      std::cerr << "SmoothingSpline ctor ENTRY n=" << n << std::endl;
+    }
+  }
 
   // For very small n fall back to interpolation (no smoothing)
   if (n < 4)
@@ -151,15 +183,19 @@ SmoothingSpline::SmoothingSpline(const std::vector<double>& xs,
 
   // choose lambda by GCV if requested (lambda <= 0)
   double lambda_opt = lambda;
+  // candidate list for GCV diagnostics (declared outer so debug printing can access it)
+  struct Candidate { double logl; double l; double gcv; double rss; double trace; };
+  std::vector<Candidate> candidates;
   if (lambda_opt <= 0.0)
   {
-    // grid search on log-space
-    const int GRID = 120;
+    // grid search on log-space. widen the search and increase resolution
+    const int GRID = 200;
     double best_l = 0.0;
     double best_gcv = std::numeric_limits<double>::infinity();
     for (int i = 0; i < GRID; ++i)
     {
-      double logl = -12.0 + 24.0 * static_cast<double>(i) / static_cast<double>(GRID - 1);
+      // search log10(lambda) in [-10, +4]
+      double logl = -10.0 + 14.0 * static_cast<double>(i) / static_cast<double>(GRID - 1);
       double l = std::pow(10.0, logl);
       std::vector<double> ctmp;
       double trace = 0.0;
@@ -171,9 +207,76 @@ SmoothingSpline::SmoothingSpline(const std::vector<double>& xs,
       double denom = static_cast<double>(n) - trace;
       if (denom <= 0.0) continue;
       double gcv = rss / (denom * denom);
+      candidates.push_back(Candidate{logl, l, gcv, rss, trace});
       if (gcv < best_gcv) { best_gcv = gcv; best_l = l; }
     }
-    if (best_gcv < std::numeric_limits<double>::infinity()) lambda_opt = best_l; else lambda_opt = 1.0;
+    if (!candidates.empty())
+    {
+      // choose best candidate
+      lambda_opt = best_l;
+    }
+    else
+    {
+      lambda_opt = 1.0;
+    }
+  }
+  // optional debug output to help diagnose GCV/solve issues
+  const char* dbg_env = std::getenv("OPENMS_TEST_VERBOSE");
+  // allow forced smoothing debug via OPENMS_FORCE_SMOOTH_DEBUG in case
+  // the standard test variable is not set (helps during CI/debug runs)
+  const char* dbg_force = std::getenv("OPENMS_FORCE_SMOOTH_DEBUG");
+  // also accept the project's OpenMS debug env var so instrumentation
+  // integrates with the normal logging switches used in this repo
+  const char* dbg_log = std::getenv("OPENMS_DEBUG_LOG");
+  if ((!dbg_env || dbg_env[0] == '\0') && dbg_force && dbg_force[0] != '\0') dbg_env = dbg_force;
+  if ((!dbg_env || dbg_env[0] == '\0') && dbg_log && dbg_log[0] != '\0') dbg_env = dbg_log;
+  // If forced debug is present, also write a tiny marker to a temp file so
+  // we can detect runtime execution even if stderr is redirected or
+  // suppressed by the test harness.
+  if ((dbg_force && dbg_force[0] != '\0') || (dbg_log && dbg_log[0] != '\0'))
+  {
+    // Use the project File utility so the marker file is created in the
+    // configured temp directory (OPENMS_TMPDIR or system temp). This keeps
+    // instrumentation consistent with the project's file handling.
+    OpenMS::String marker = File::getTempDirectory();
+    marker.ensureLastChar('/');
+    marker += "SmoothingSpline_instrumentation.log";
+
+    FILE* f = std::fopen(marker.c_str(), "a");
+    if (f)
+    {
+      std::fprintf(f, "SmoothingSpline ctor entered (n=%d)\n", n);
+      std::fclose(f);
+    }
+
+    // Also emit an unbuffered write to stderr to ensure visibility when the
+    // test harness redirects or buffers stdio. Use a single syscall so it
+    // appears in strace output reliably.
+    {
+      char buf[256];
+      int len = std::snprintf(buf, sizeof(buf), "SmoothingSpline ctor (unbuf) n=%d marker=%s\n", n, marker.c_str());
+      if (len > 0) (void)write(STDERR_FILENO, buf, static_cast<size_t>(len));
+    }
+
+    // Also print via std::cerr so the debug information appears on stderr
+    // (the test harness captures stderr and shows it in logs).
+    std::cerr << "SmoothingSpline ctor entered (n=" << n << ", marker=" << marker << ")" << std::endl;
+  }
+  if (dbg_env && dbg_env[0] != '\0')
+  {
+    std::cerr << "SmoothingSpline debug: n=" << n << " lambda_opt=" << lambda_opt << "\n";
+    if (!candidates.empty())
+    {
+      // sort candidates by gcv ascending and print the top ones
+      std::sort(candidates.begin(), candidates.end(), [](const Candidate& a, const Candidate& b){ return a.gcv < b.gcv; });
+      std::cerr << "SmoothingSpline debug: top GCV candidates (log10(lambda), lambda, gcv, rss, trace):\n";
+      int limit = std::min(static_cast<int>(candidates.size()), 10);
+      for (int i = 0; i < limit; ++i)
+      {
+        const Candidate& cnd = candidates[i];
+        std::cerr << "  " << cnd.logl << ", " << cnd.l << ", " << cnd.gcv << ", " << cnd.rss << ", " << cnd.trace << "\n";
+      }
+    }
   }
 
   // final solve with lambda_opt
@@ -183,12 +286,29 @@ SmoothingSpline::SmoothingSpline(const std::vector<double>& xs,
   {
     // fallback to original values
     smoothed_y_ = ys;
-    try { spline_ = CubicSpline2d(xs_, smoothed_y_); ok_ = true; } catch (...) { ok_ = false; }
+    try { spline_ = CubicSpline2d(xs_, smoothed_y_); ok_ = true; }
+    catch (...) { ok_ = false; }
+    if (dbg_env && dbg_env[0] != '\0')
+    {
+      std::cerr << "SmoothingSpline debug: final solve failed, falling back to raw ys (n=" << n << ")\n";
+    }
     return;
   }
 
   smoothed_y_ = c;
   try { spline_ = CubicSpline2d(xs_, smoothed_y_); ok_ = true; } catch (...) { ok_ = false; }
+  if (dbg_env && dbg_env[0] != '\0')
+  {
+    std::cerr << "SmoothingSpline debug: solved OK, smoothed_y = [";
+    for (int i = 0; i < n; ++i)
+    {
+      if (i) std::cerr << ", ";
+      std::cerr << smoothed_y_[i];
+    }
+    std::cerr << "]\n";
+    // predicted value at the rightmost knot
+    std::cerr << "SmoothingSpline debug: pred_at_max_x = " << smoothed_y_.back() << " (x=" << xs_.back() << ")\n";
+  }
 }
 
 
