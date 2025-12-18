@@ -197,24 +197,6 @@ namespace OpenMS
       // Compute RSS
       double rss = compute_polynomial_rss(x, y);
       
-      // Check for debug output
-      const char* dbg_env = std::getenv("OPENMS_TEST_VERBOSE");
-      const char* dbg_pi0 = std::getenv("OPENMS_PI0_BSPLINE_DEBUG");
-      bool debug = (dbg_env && dbg_env[0] != '\0') || (dbg_pi0 && dbg_pi0[0] != '\0');
-      
-      if (debug)
-      {
-        OPENMS_LOG_INFO << "BSplineSmoothingSpline: Polynomial fit (degree=" << degree << ")" << std::endl;
-        OPENMS_LOG_INFO << "  Coefficients: [";
-        for (size_t i = 0; i < coeffs.size(); ++i)
-        {
-          if (i > 0) OPENMS_LOG_INFO << ", ";
-          OPENMS_LOG_INFO << coeffs[i];
-        }
-        OPENMS_LOG_INFO << "]" << std::endl;
-        OPENMS_LOG_INFO << "  RSS: " << rss << " (target: " << s_target << ")" << std::endl;
-      }
-      
       // Accept if RSS <= s_target (or close enough)
       return rss <= s_target * 1.1;  // Allow 10% margin
     }
@@ -251,16 +233,6 @@ namespace OpenMS
       const int n = static_cast<int>(x.size());
       
       // Check for debug output
-      const char* dbg_env = std::getenv("OPENMS_TEST_VERBOSE");
-      const char* dbg_pi0 = std::getenv("OPENMS_PI0_BSPLINE_DEBUG");
-      bool debug = (dbg_env && dbg_env[0] != '\0') || (dbg_pi0 && dbg_pi0[0] != '\0');
-
-      if (debug)
-      {
-        OPENMS_LOG_INFO << "BSplineSmoothingSpline: Fitting with s_target=" << s_target 
-                        << " for n=" << n << " points" << std::endl;
-      }
-
       // KEY INSIGHT from scipy analysis:
       // UnivariateSpline with typical smoothing (s = m - sqrt(2m)) often selects
       // ZERO interior knots, which is mathematically equivalent to a cubic polynomial.
@@ -280,23 +252,10 @@ namespace OpenMS
         rss_ = compute_polynomial_rss(x, y);
         num_interior_knots_ = 0;  // No interior knots (single polynomial segment)
         ok_ = true;
-        
-        if (debug)
-        {
-          OPENMS_LOG_INFO << "BSplineSmoothingSpline: Using polynomial fit" << std::endl;
-          OPENMS_LOG_INFO << "  RSS=" << rss_ << " for target s=" << s_target << std::endl;
-          double x_max = x.back();
-          double y_max = eval_polynomial(x_max);
-          OPENMS_LOG_INFO << "  eval(" << x_max << ") = " << y_max << std::endl;
-        }
         return;
       }
       
       // STEP 2: Polynomial didn't fit well enough, try BSpline with more knots
-      if (debug)
-      {
-        OPENMS_LOG_INFO << "BSplineSmoothingSpline: Polynomial fit insufficient, trying BSpline with interior knots" << std::endl;
-      }
 
       // Strategy: Try different numbers of interior knots
       // Start from 0 (single cubic segment) and increase until RSS drops below s_target
@@ -334,17 +293,6 @@ namespace OpenMS
       std::sort(node_counts.begin(), node_counts.end());
       node_counts.erase(std::unique(node_counts.begin(), node_counts.end()), node_counts.end());
 
-      if (debug)
-      {
-        OPENMS_LOG_INFO << "BSplineSmoothingSpline: Testing node counts: [";
-        for (size_t i = 0; i < node_counts.size(); ++i)
-        {
-          if (i > 0) OPENMS_LOG_INFO << ", ";
-          OPENMS_LOG_INFO << node_counts[i];
-        }
-        OPENMS_LOG_INFO << "]" << std::endl;
-      }
-
       for (int num_nodes : node_counts)
       {
         try
@@ -362,13 +310,6 @@ namespace OpenMS
           int num_interior = num_nodes - 2;
 
           candidates.push_back(Candidate{num_nodes, num_interior, rss, spl, true});
-
-          if (debug)
-          {
-            OPENMS_LOG_INFO << "BSplineSmoothingSpline: num_nodes=" << num_nodes
-                            << " (interior=" << num_interior << ") → RSS=" << rss 
-                            << " (target=" << s_target << ")" << std::endl;
-          }
         }
         catch (...)
         {
@@ -414,18 +355,6 @@ namespace OpenMS
       for (size_t i = 1; i < candidates.size(); ++i)
       {
         delete candidates[i].spline;
-      }
-
-      if (debug)
-      {
-        OPENMS_LOG_INFO << "BSplineSmoothingSpline: Selected num_nodes=" << best.num_nodes
-                        << " (interior=" << num_interior_knots_ << ") with RSS=" << rss_
-                        << " for target s=" << s_target << std::endl;
-        
-        // Evaluate at some test points
-        double x_max = x.back();
-        double y_max = eval(x_max);
-        OPENMS_LOG_INFO << "BSplineSmoothingSpline: eval(" << x_max << ") = " << y_max << std::endl;
       }
     }
 

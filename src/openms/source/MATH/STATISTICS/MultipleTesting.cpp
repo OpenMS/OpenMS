@@ -41,15 +41,6 @@ namespace OpenMS
 {
 namespace Math
 {
-// helper: interpret some common environment truthy values (case-insensitive)
-static bool env_true(const char* v)
-{
-  if (!v) return false;
-  std::string s(v);
-  std::transform(s.begin(), s.end(), s.begin(), [](unsigned char c){ return static_cast<char>(std::tolower(c)); });
-  return (s == "true" || s == "1" || s == "yes");
-}
-
 // Helper: stable argsort ascending
 static std::vector<std::size_t> argsort_asc(const std::vector<double>& a)
 {
@@ -258,16 +249,6 @@ Pi0Result pi0est(const std::vector<double>& p_values, const std::vector<double>&
         // Try the B-spline fitter (cubic). If it cannot fit we return the
         // conservative (unsmoothed) minimum pi0 and do not attempt the
         // SmoothingSpline fallback here.
-        const char* dbg2 = std::getenv("OPENMS_TEST_VERBOSE");
-        if (env_true(dbg2))
-        {
-          std::cerr << "pi0est debug (pre-spline): xs=[";
-          for (std::size_t ii = 0; ii < xs.size(); ++ii) { if (ii) std::cerr << ", "; std::cerr << xs[ii]; }
-          std::cerr << "]\n";
-          std::cerr << "pi0est debug (pre-spline): ys=[";
-          for (std::size_t ii = 0; ii < ys.size(); ++ii) { if (ii) std::cerr << ", "; std::cerr << ys[ii]; }
-          std::cerr << "]\n";
-        }
 
         // Use BSplineSmoothingSpline which matches scipy's UnivariateSpline behavior.
         // This automatically selects between polynomial fitting (for simple cases with
@@ -283,10 +264,6 @@ Pi0Result pi0est(const std::vector<double>& p_values, const std::vector<double>&
           
           if (!spl.ok())
           {
-            if (env_true(dbg2)) 
-            {
-              std::cerr << "pi0est debug: BSplineSmoothingSpline failed to fit, using min pi0\n";
-            }
             res.pi0 = std::min(*std::min_element(pi0s.begin(), pi0s.end()), 1.0);
             res.pi0_smooth = false;
             return res;
@@ -294,17 +271,8 @@ Pi0Result pi0est(const std::vector<double>& p_values, const std::vector<double>&
           
           pred = spl.eval(max_lambda);
           
-          if (env_true(dbg2))
-          {
-            std::cerr << "pi0est debug: BSplineSmoothingSpline pred=" << pred << "\n";
-          }
-          
           if (!std::isfinite(pred))
           {
-            if (env_true(dbg2))
-            {
-              std::cerr << "pi0est debug: BSplineSmoothingSpline prediction not finite, using min pi0\n";
-            }
             res.pi0 = std::min(*std::min_element(pi0s.begin(), pi0s.end()), 1.0);
             res.pi0_smooth = false;
             return res;
@@ -312,20 +280,12 @@ Pi0Result pi0est(const std::vector<double>& p_values, const std::vector<double>&
         }
         catch (const std::exception& e)
         {
-          if (env_true(dbg2))
-          {
-            std::cerr << "pi0est debug: BSplineSmoothingSpline exception: " << e.what() << ", using min pi0\n";
-          }
           res.pi0 = std::min(*std::min_element(pi0s.begin(), pi0s.end()), 1.0);
           res.pi0_smooth = false;
           return res;
         }
         catch (...)
         {
-          if (env_true(dbg2))
-          {
-            std::cerr << "pi0est debug: BSplineSmoothingSpline unknown exception, using min pi0\n";
-          }
           res.pi0 = std::min(*std::min_element(pi0s.begin(), pi0s.end()), 1.0);
           res.pi0_smooth = false;
           return res;
@@ -354,48 +314,6 @@ Pi0Result pi0est(const std::vector<double>& p_values, const std::vector<double>&
         res.pi0 = std::min(*std::min_element(pi0s.begin(), pi0s.end()), 1.0);
         res.pi0_smooth = false;
         return res;
-      }
-
-      // Optional debug output for unit-test troubleshooting. Set the
-      // environment variable OPENMS_TEST_VERBOSE=True to enable. This
-      // prints the knots (xs, ys), the evaluated lambda and predicted
-      // value so we can inspect why the spline prediction differs from
-      // the reference implementation.
-  const char* dbg = std::getenv("OPENMS_TEST_VERBOSE");
-  if (env_true(dbg))
-      {
-        std::cerr << "pi0est debug: lambda_v=[";
-        for (std::size_t ii = 0; ii < lambda_v.size(); ++ii)
-        {
-          if (ii) std::cerr << ", ";
-          std::cerr << lambda_v[ii];
-        }
-        std::cerr << "]\n";
-
-        std::cerr << "pi0est debug: pi0s=[";
-        for (std::size_t ii = 0; ii < pi0s.size(); ++ii)
-        {
-          if (ii) std::cerr << ", ";
-          std::cerr << pi0s[ii];
-        }
-        std::cerr << "]\n";
-
-        std::cerr << "pi0est debug: xs=[";
-        for (std::size_t ii = 0; ii < xs.size(); ++ii)
-        {
-          if (ii) std::cerr << ", ";
-          std::cerr << xs[ii];
-        }
-        std::cerr << "]\n";
-        std::cerr << "pi0est debug: ys=[";
-        for (std::size_t ii = 0; ii < ys.size(); ++ii)
-        {
-          if (ii) std::cerr << ", ";
-          std::cerr << ys[ii];
-        }
-        std::cerr << "]\n";
-
-        std::cerr << "pi0est debug: max_lambda=" << max_lambda << " pred=" << pred << "\n";
       }
 
       res.pi0 = std::min(std::max(pred, 0.0), 1.0);
