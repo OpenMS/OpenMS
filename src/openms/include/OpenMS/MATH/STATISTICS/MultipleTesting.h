@@ -83,7 +83,7 @@ struct OPENMS_DLLAPI Pi0Result
   @ingroup MathFunctionsStatistics
 */
 template <class T>
-inline std::vector<double> compute_model_fdr(const std::vector<T>& data_in)
+inline std::vector<double> computeModelFdr(const std::vector<T>& data_in)
 {
   using D = double;
   const std::size_t n = data_in.size();
@@ -179,12 +179,12 @@ inline std::vector<double> compute_model_fdr(const std::vector<T>& data_in)
   @ingroup MathFunctionsStatistics
 */
 template <class T>
-inline std::vector<double> pemp(const std::vector<T>& stat, const std::vector<T>& stat0)
+inline std::vector<double> pEmp(const std::vector<T>& stat, const std::vector<T>& stat0)
 {
   using D = double;
   const std::size_t m = stat.size();
   const std::size_t m0 = stat0.size();
-  if (m == 0 || m0 == 0) throw std::invalid_argument("pemp: input arrays must be non-empty");
+  if (m == 0 || m0 == 0) throw std::invalid_argument("pEmp: input arrays must be non-empty");
 
   // concatenate
   std::vector<D> statc;
@@ -265,10 +265,10 @@ inline std::vector<double> pemp(const std::vector<T>& stat, const std::vector<T>
 
   @exception Exception::InvalidArgument if p-values are outside [0,1] or pi0 is outside [0,1]
 
-  @see pi0est() for estimating pi0
+  @see pi0Est() for estimating pi0
   @ingroup MathFunctionsStatistics
 */
-OPENMS_DLLAPI std::vector<double> qvalue(const std::vector<double>& p_values, double pi0, bool pfdr = false);
+OPENMS_DLLAPI std::vector<double> qValue(const std::vector<double>& p_values, double pi0, bool pfdr = false);
 
 /**
   @brief Estimate the proportion of true null hypotheses (pi0).
@@ -313,11 +313,11 @@ OPENMS_DLLAPI std::vector<double> qvalue(const std::vector<double>& p_values, do
   @see Pi0Result for details on return structure
   @ingroup MathFunctionsStatistics
 */
-OPENMS_DLLAPI Pi0Result pi0est(const std::vector<double>& p_values,
-                 const std::vector<double>& lambda_ = std::vector<double>(),
-                 const std::string& pi0_method = "smoother",
-                 int smooth_df = 3,
-                 bool smooth_log_pi0 = false);
+OPENMS_DLLAPI Pi0Result pi0Est(const std::vector<double>& p_values,
+                const std::vector<double>& lambda_ = std::vector<double>(),
+                const std::string& pi0_method = "smoother",
+                int smooth_df = 3,
+                bool smooth_log_pi0 = false);
 
 /**
   @brief Estimate local false discovery rate (local FDR) or posterior error probability (PEP).
@@ -391,7 +391,7 @@ OPENMS_DLLAPI std::vector<double> lfdr(const std::vector<double>& p_values,
 
   @ingroup MathFunctionsStatistics
 */
-OPENMS_DLLAPI std::vector<double> pnorm(const std::vector<double>& stat, const std::vector<double>& stat0);
+OPENMS_DLLAPI std::vector<double> pNorm(const std::vector<double>& stat, const std::vector<double>& stat0);
 
 } // namespace Math
 } // namespace OpenMS

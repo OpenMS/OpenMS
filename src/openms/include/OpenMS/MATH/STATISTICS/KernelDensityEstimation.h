@@ -65,7 +65,7 @@ namespace OpenMS
 
       @ingroup MathStatistics
     */
-    OPENMS_DLLAPI double bw_nrd0(const std::vector<double>& x);
+    OPENMS_DLLAPI double bwNrd0(const std::vector<double>& x);
 
     /**
       @brief Linear binning of data onto an equally-spaced grid.
@@ -92,7 +92,7 @@ namespace OpenMS
 
       @ingroup MathStatistics
     */
-    OPENMS_DLLAPI std::vector<double> linbin(const std::vector<double>& x, 
+    OPENMS_DLLAPI std::vector<double> linBin(const std::vector<double>& x, 
                                              double xmin, 
                                              double xmax, 
                                              std::size_t nbins, 
@@ -117,11 +117,11 @@ namespace OpenMS
       @param M Length of FFT (if 0, uses X.size() and rounds up to next power of 2)
       @return Real-valued Munro-packed FFT coefficients of length M
 
-      @see revrt() for the inverse transform
+      @see revRt() for the inverse transform
 
       @ingroup MathStatistics
     */
-    OPENMS_DLLAPI std::vector<double> forrt(const std::vector<double>& X, std::size_t M = 0);
+    OPENMS_DLLAPI std::vector<double> forRt(const std::vector<double>& X, std::size_t M = 0);
 
     /**
       @brief Inverse FFT of Munro-packed data to real-valued output.
@@ -141,11 +141,11 @@ namespace OpenMS
       @param M Length of output (if 0, uses Xp.size())
       @return Real-valued reconstructed signal of length M
 
-      @see forrt() for the forward transform
+      @see forRt() for the forward transform
 
       @ingroup MathStatistics
     */
-    OPENMS_DLLAPI std::vector<double> revrt(const std::vector<double>& Xp, std::size_t M = 0);
+    OPENMS_DLLAPI std::vector<double> revRt(const std::vector<double>& Xp, std::size_t M = 0);
 
     /**
       @brief Compute the FFT of a Gaussian kernel in Munro-packed format.
@@ -171,7 +171,7 @@ namespace OpenMS
 
       @ingroup MathStatistics
     */
-    OPENMS_DLLAPI std::vector<double> silverman_kernel_fft(double bw, std::size_t M, double RANGE);
+    OPENMS_DLLAPI std::vector<double> silvermanKernelFft(double bw, std::size_t M, double RANGE);
 
     /**
       @brief Fast kernel density estimation on a regular grid using FFT convolution.
@@ -203,10 +203,10 @@ namespace OpenMS
 
       @ingroup MathStatistics
     */
-    OPENMS_DLLAPI std::pair<std::vector<double>, std::vector<double>> grid_kde_fft(const std::vector<double>& x, 
-                                                                                     double bw, 
-                                                                                     std::size_t gridsize = 512, 
-                                                                                     double cut = 3.0);
+    OPENMS_DLLAPI std::pair<std::vector<double>, std::vector<double>> gridKdeFft(const std::vector<double>& x, 
+                                                                                   double bw, 
+                                                                                   std::size_t gridsize = 512, 
+                                                                                   double cut = 3.0);
 
     /**
       @brief Evaluate kernel density estimates at the data points themselves.
@@ -225,14 +225,14 @@ namespace OpenMS
       @param cut Extension factor for grid range (default 3.0)
       @return Vector of KDE values, one for each point in @p x
 
-      @see grid_kde_fft() for the underlying grid-based KDE computation
+      @see gridKdeFft() for the underlying grid-based KDE computation
 
       @ingroup MathStatistics
     */
-    OPENMS_DLLAPI std::vector<double> kde_fft_eval(const std::vector<double>& x, 
-                                                    double bw, 
-                                                    std::size_t gridsize = 512, 
-                                                    double cut = 3.0);
+    OPENMS_DLLAPI std::vector<double> kdeFftEval(const std::vector<double>& x, 
+                                                  double bw, 
+                                                  std::size_t gridsize = 512, 
+                                                  double cut = 3.0);
 
   } // namespace Math
 } // namespace OpenMS

@@ -10,22 +10,22 @@ cdef extern from * namespace "OpenMS::Math":
     namespace OpenMS { namespace Math {
 
       inline std::vector<double> compute_model_fdr_double_i(std::vector<double> a) {
-        return compute_model_fdr<double>(a);
+        return computeModelFdr<double>(a);
       }
       inline std::vector<double> compute_model_fdr_float_i(std::vector<float> a) {
-        return compute_model_fdr<float>(a);
+        return computeModelFdr<float>(a);
       }
       inline std::vector<double> compute_model_fdr_int_i(std::vector<int> a) {
-        return compute_model_fdr<int>(a);
+        return computeModelFdr<int>(a);
       }
 
-      inline std::vector<double> pemp_double_i(std::vector<double> s, std::vector<double> s0) { return pemp<double>(s, s0); }
-      inline std::vector<double> pemp_float_i(std::vector<float> s, std::vector<float> s0) { return pemp<float>(s, s0); }
-      inline std::vector<double> pemp_int_i(std::vector<int> s, std::vector<int> s0) { return pemp<int>(s, s0); }
+      inline std::vector<double> pemp_double_i(std::vector<double> s, std::vector<double> s0) { return pEmp<double>(s, s0); }
+      inline std::vector<double> pemp_float_i(std::vector<float> s, std::vector<float> s0) { return pEmp<float>(s, s0); }
+      inline std::vector<double> pemp_int_i(std::vector<int> s, std::vector<int> s0) { return pEmp<int>(s, s0); }
 
-    inline std::vector<double> qvalue_c(std::vector<double> p_values, double pi0, bool pfdr) { return qvalue(p_values, pi0, pfdr); }
-    inline std::vector<double> pnorm_c(std::vector<double> stat, std::vector<double> stat0) { return pnorm(stat, stat0); }
-    inline Pi0Result pi0est_c(std::vector<double> p_values, std::vector<double> lambda_) { return pi0est(p_values, lambda_); }
+    inline std::vector<double> qvalue_c(std::vector<double> p_values, double pi0, bool pfdr) { return qValue(p_values, pi0, pfdr); }
+    inline std::vector<double> pnorm_c(std::vector<double> stat, std::vector<double> stat0) { return pNorm(stat, stat0); }
+    inline Pi0Result pi0est_c(std::vector<double> p_values, std::vector<double> lambda_) { return pi0Est(p_values, lambda_); }
     inline std::vector<double> lfdr_c(std::vector<double> p_values, double pi0, bool trunc, bool monotone, std::string transf, double adj, double eps, size_t gridsize, double cut) { 
       return lfdr(p_values, pi0, trunc, monotone, transf, adj, eps, gridsize, cut); 
     }
@@ -47,8 +47,8 @@ cdef extern from * namespace "OpenMS::Math":
 
 
 cdef extern from "<OpenMS/MATH/STATISTICS/MultipleTesting.h>" namespace "OpenMS::Math":
-    libcpp_vector[double] qvalue(libcpp_vector[double] p_values, double pi0, bint pfdr) except +
-    libcpp_vector[double] pnorm(libcpp_vector[double] stat, libcpp_vector[double] stat0) except +
+    libcpp_vector[double] qValue(libcpp_vector[double] p_values, double pi0, bint pfdr) except +
+    libcpp_vector[double] pNorm(libcpp_vector[double] stat, libcpp_vector[double] stat0) except +
     libcpp_vector[double] lfdr(libcpp_vector[double] p_values, double pi0, bint trunc, bint monotone, const char* transf, double adj, double eps, size_t gridsize, double cut) except +
 
     cdef cppclass Pi0Result:
@@ -57,7 +57,7 @@ cdef extern from "<OpenMS/MATH/STATISTICS/MultipleTesting.h>" namespace "OpenMS:
         libcpp_vector[double] lambda_
         bint pi0_smooth
 
-    Pi0Result pi0est(libcpp_vector[double] p_values, libcpp_vector[double] lambda_) except +
+    Pi0Result pi0Est(libcpp_vector[double] p_values, libcpp_vector[double] lambda_) except +
 
 
 @cython.boundscheck(False)

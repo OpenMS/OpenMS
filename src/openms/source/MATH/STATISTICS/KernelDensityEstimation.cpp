@@ -66,7 +66,7 @@ namespace OpenMS
       return bins;
     }
 
-    double bw_nrd0(const std::vector<double>& x)
+    double bwNrd0(const std::vector<double>& x)
     {
       // filter finite
       std::vector<double> xf;
@@ -104,12 +104,12 @@ namespace OpenMS
       return bw;
     }
 
-    std::vector<double> linbin(const std::vector<double>& x, double xmin, double xmax, std::size_t nbins, const std::vector<double>* weights)
+    std::vector<double> linBin(const std::vector<double>& x, double xmin, double xmax, std::size_t nbins, const std::vector<double>* weights)
     {
-      if (nbins == 0) throw std::invalid_argument("linbin: nbins must be > 0");
+      if (nbins == 0) throw std::invalid_argument("linBin: nbins must be > 0");
       std::vector<double> bins(nbins, 0.0);
       if (x.empty()) return bins;
-      if (!(xmax > xmin)) throw std::invalid_argument("linbin: xmax must be > xmin");
+      if (!(xmax > xmin)) throw std::invalid_argument("linBin: xmax must be > xmin");
 
       const double width = (xmax - xmin) / static_cast<double>(nbins);
       if (!(width > 0.0)) return bins;
@@ -131,7 +131,7 @@ namespace OpenMS
       return bins;
     }
 
-    std::vector<double> forrt(const std::vector<double>& X, std::size_t M)
+    std::vector<double> forRt(const std::vector<double>& X, std::size_t M)
     {
       if (M == 0) M = X.size();
       if (M == 0) return std::vector<double>();
@@ -163,7 +163,7 @@ namespace OpenMS
       return out;
     }
 
-    std::vector<double> revrt(const std::vector<double>& Xp, std::size_t M)
+    std::vector<double> revRt(const std::vector<double>& Xp, std::size_t M)
     {
       if (M == 0) M = Xp.size();
       if (M == 0) return std::vector<double>();
@@ -171,7 +171,7 @@ namespace OpenMS
       const std::size_t half = M / 2;
       const std::size_t ny = half + 1;
 
-      if (Xp.size() < M) throw std::invalid_argument("revrt: input length must equal M");
+      if (Xp.size() < M) throw std::invalid_argument("revRt: input length must equal M");
 
       // build packed complex tensor
       evergreen::Tensor<evergreen::cpx> packed({ny});
@@ -195,7 +195,7 @@ namespace OpenMS
       return out;
     }
 
-    std::vector<double> silverman_kernel_fft(double bw, std::size_t M, double RANGE)
+    std::vector<double> silvermanKernelFft(double bw, std::size_t M, double RANGE)
     {
       if (M == 0) return std::vector<double>();
       const std::size_t half = M / 2;
@@ -225,7 +225,7 @@ namespace OpenMS
       return out;
     }
 
-    std::pair<std::vector<double>, std::vector<double>> grid_kde_fft(const std::vector<double>& x, double bw, std::size_t gridsize, double cut)
+    std::pair<std::vector<double>, std::vector<double>> gridKdeFft(const std::vector<double>& x, double bw, std::size_t gridsize, double cut)
     {
       std::vector<double> xx = x;
       // ensure column vector semantics
@@ -264,16 +264,16 @@ namespace OpenMS
       }
 
       // forward Munro RFFT
-      std::vector<double> Y = forrt(binned, M);
+      std::vector<double> Y = forRt(binned, M);
 
       // multiply by Silverman kernel FFT
-      std::vector<double> K = silverman_kernel_fft(bw, M, RANGE);
-      if (K.size() != Y.size()) throw std::runtime_error("grid_kde_fft: internal size mismatch");
+      std::vector<double> K = silvermanKernelFft(bw, M, RANGE);
+      if (K.size() != Y.size()) throw std::runtime_error("gridKdeFft: internal size mismatch");
       std::vector<double> Z(M);
       for (std::size_t i = 0; i < M; ++i) Z[i] = K[i] * Y[i];
 
       // inverse
-      std::vector<double> dens = revrt(Z, M);
+      std::vector<double> dens = revRt(Z, M);
 
       // renormalize to enforce integral 1
       double sum = 0.0;
@@ -287,10 +287,10 @@ namespace OpenMS
       return {dens, grid};
     }
 
-    std::vector<double> kde_fft_eval(const std::vector<double>& x, double bw, std::size_t gridsize, double cut)
+    std::vector<double> kdeFftEval(const std::vector<double>& x, double bw, std::size_t gridsize, double cut)
     {
       // build grid density
-      auto pg = grid_kde_fft(x, bw, gridsize, cut);
+      auto pg = gridKdeFft(x, bw, gridsize, cut);
       const std::vector<double>& dens = pg.first;
       const std::vector<double>& grid = pg.second;
 

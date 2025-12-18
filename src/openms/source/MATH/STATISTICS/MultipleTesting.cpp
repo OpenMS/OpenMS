@@ -50,7 +50,7 @@ static std::vector<std::size_t> argsort_asc(const std::vector<double>& a)
   return idx;
 }
 
-std::vector<double> qvalue(const std::vector<double>& p_values, double pi0, bool pfdr)
+std::vector<double> qValue(const std::vector<double>& p_values, double pi0, bool pfdr)
 {
   const std::size_t m_total = p_values.size();
   if (m_total == 0) return std::vector<double>();
@@ -70,8 +70,8 @@ std::vector<double> qvalue(const std::vector<double>& p_values, double pi0, bool
   if (m == 0) return qvals_out;
 
   // validate
-  for (auto vv : p) if (vv < 0.0 || vv > 1.0) throw std::invalid_argument("qvalue: p-values not in [0,1]");
-  if (pi0 < 0.0 || pi0 > 1.0) throw std::invalid_argument("qvalue: pi0 not in [0,1]");
+  for (auto vv : p) if (vv < 0.0 || vv > 1.0) throw std::invalid_argument("qValue: p-values not in [0,1]");
+  if (pi0 < 0.0 || pi0 > 1.0) throw std::invalid_argument("qValue: pi0 not in [0,1]");
 
   // argsort ascending
   std::vector<std::size_t> u = argsort_asc(p);
@@ -134,13 +134,13 @@ static double percentile(const std::vector<double>& a, double p)
   return cp[idx];
 }
 
-Pi0Result pi0est(const std::vector<double>& p_values, const std::vector<double>& lambda_, const std::string& pi0_method, int smooth_df, bool smooth_log_pi0)
+Pi0Result pi0Est(const std::vector<double>& p_values, const std::vector<double>& lambda_, const std::string& pi0_method, int smooth_df, bool smooth_log_pi0)
 {
   // filter finite
   std::vector<double> p;
   for (double v : p_values) if (std::isfinite(v)) p.push_back(v);
   const std::size_t m = p.size();
-  if (m == 0) throw std::invalid_argument("pi0est: no finite p-values provided");
+  if (m == 0) throw std::invalid_argument("pi0Est: no finite p-values provided");
 
   // default lambda range if empty
   std::vector<double> lambda_v = lambda_;
@@ -153,8 +153,8 @@ Pi0Result pi0est(const std::vector<double>& p_values, const std::vector<double>&
   if (ll == 0) throw std::invalid_argument("pi0est: empty lambda");
 
   // validations
-  for (double v : p) if (v < 0.0 || v > 1.0) throw std::invalid_argument("pi0est: p-values not in [0,1]");
-  for (double l : lambda_v) if (l < 0.0 || l >= 1.0) throw std::invalid_argument("pi0est: lambda must be in [0,1)");
+  for (double v : p) if (v < 0.0 || v > 1.0) throw std::invalid_argument("pi0Est: p-values not in [0,1]");
+  for (double l : lambda_v) if (l < 0.0 || l >= 1.0) throw std::invalid_argument("pi0Est: lambda must be in [0,1)");
 
   Pi0Result res;
   res.lambda_ = lambda_v;
@@ -277,20 +277,20 @@ Pi0Result pi0est(const std::vector<double>& p_values, const std::vector<double>&
   }
 }
 
-std::vector<double> pnorm(const std::vector<double>& stat, const std::vector<double>& stat0)
+std::vector<double> pNorm(const std::vector<double>& stat, const std::vector<double>& stat0)
 {
   const std::size_t n = stat.size();
   std::vector<double> out(n, std::numeric_limits<double>::quiet_NaN());
 
   // require stat0 non-empty
-  if (stat0.empty()) throw std::invalid_argument("pnorm: stat0 must be non-empty");
+  if (stat0.empty()) throw std::invalid_argument("pNorm: stat0 must be non-empty");
 
   // filter finite entries in stat0
   std::vector<double> s0;
   s0.reserve(stat0.size());
   for (double v : stat0) if (std::isfinite(v)) s0.push_back(v);
   const std::size_t m = s0.size();
-  if (m == 0) throw std::invalid_argument("pnorm: stat0 contains no finite values");
+  if (m == 0) throw std::invalid_argument("pNorm: stat0 contains no finite values");
 
   // compute mean
   double sum = 0.0;
@@ -391,8 +391,8 @@ std::vector<double> lfdr(const std::vector<double>& p_values,
     boost::math::normal_distribution<double> nd(0.0, 1.0);
     for (std::size_t i = 0; i < m; ++i) x[i] = boost::math::quantile(nd, p[i]);
 
-    double bw = bw_nrd0(x) * adj;
-    y = kde_fft_eval(x, bw, gridsize, cut);
+    double bw = bwNrd0(x) * adj;
+    y = kdeFftEval(x, bw, gridsize, cut);
 
     // null density f0 = N(0,1)
     y.reserve(y.size());
@@ -420,8 +420,8 @@ std::vector<double> lfdr(const std::vector<double>& p_values,
       // use eps to stabilize
       x[i] = std::log((pv + eps) / (1.0 - pv + eps));
     }
-    double bw = bw_nrd0(x) * adj;
-    y = kde_fft_eval(x, bw, gridsize, cut);
+    double bw = bwNrd0(x) * adj;
+    y = kdeFftEval(x, bw, gridsize, cut);
 
     // dx = exp(x) / (1+exp(x))^2
     std::vector<double> dx(m);

@@ -21,10 +21,10 @@ START_TEST(MultipleTesting, "$Id$")
 TOLERANCE_ABSOLUTE(1e-4)
 TOLERANCE_RELATIVE(1.0 + 1e-4)
 
-START_SECTION(template<class T> std::vector<double> compute_model_fdr(const std::vector<T>&))
+START_SECTION(template<class T> std::vector<double> computeModelFdr(const std::vector<T>&))
 {
   std::vector<double> data = {0.1, 0.2, 0.3};
-  auto f = compute_model_fdr<double>(data);
+  auto f = computeModelFdr<double>(data);
   TEST_EQUAL(f.size(), data.size())
   TEST_REAL_SIMILAR(f[0], 0.1)
   TEST_REAL_SIMILAR(f[1], 0.15)
@@ -32,11 +32,11 @@ START_SECTION(template<class T> std::vector<double> compute_model_fdr(const std:
 }
 END_SECTION
 
-START_SECTION("pnorm: pyprophet reference vector")
+START_SECTION("pNorm: pyprophet reference vector")
 {
   std::vector<double> stat = {0, 1, 3, 2, 0.1, 0.5, 0.6, 0.3, 0.5, 0.6, 0.2, 0.5};
   std::vector<double> stat0 = {0.4, 0.2, 0.5, 1, 0.5, 0.7, 0.2, 0.4};
-  auto out = pnorm(stat, stat0);
+  auto out = pNorm(stat, stat0);
   std::vector<double> expected = {9.674763e-01, 2.621760e-02, 0.0, 5.201675e-09, 9.287418e-01, 4.811347e-01, 3.351438e-01, 7.610205e-01, 4.811347e-01, 3.351438e-01, 8.617105e-01, 4.811347e-01};
   TEST_EQUAL(out.size(), expected.size())
   for (std::size_t i = 0; i < out.size(); ++i) TEST_REAL_SIMILAR(out[i], expected[i]);
@@ -129,7 +129,7 @@ START_SECTION("pemp: pyprophet reference vector")
 {
   std::vector<double> stat = {0, 1, 3, 2, 0.1, 0.5, 0.6, 0.3, 0.5, 0.6, 0.2, 0.5};
   std::vector<double> stat0 = {0.4, 0.2, 0.5, 1, 0.5, 0.7, 0.2, 0.4};
-  auto out = pemp<double>(stat, stat0);
+  auto out = pEmp<double>(stat, stat0);
   std::vector<double> expected = {1.0, 0.125, 0.125, 0.125, 1.0, 0.25, 0.25, 0.75, 0.25, 0.25, 0.75, 0.25};
   TEST_EQUAL(out.size(), expected.size())
   for (std::size_t i = 0; i < out.size(); ++i) TEST_REAL_SIMILAR(out[i], expected[i]);
@@ -164,7 +164,7 @@ END_SECTION
 START_SECTION("bw_nrd0: pyprophet reference value")
 {
   std::vector<double> stat = {0, 1, 3, 2, 0.1, 0.5, 0.6, 0.3, 0.5, 0.6, 0.2, 0.5};
-  double bw = bw_nrd0(stat);
+  double bw = bwNrd0(stat);
   TEST_REAL_SIMILAR(bw, 0.1736562)
 }
 END_SECTION
@@ -172,8 +172,8 @@ END_SECTION
 START_SECTION("forrt/revrt roundtrip small")
 {
   std::vector<double> x = {0.0, 1.0, 2.0, 3.0};
-  auto Xp = forrt(x, x.size());
-  auto xr = revrt(Xp, x.size());
+  auto Xp = forRt(x, x.size());
+  auto xr = revRt(Xp, x.size());
   TEST_EQUAL(xr.size(), x.size())
   for (std::size_t i = 0; i < x.size(); ++i)
   {
@@ -210,34 +210,34 @@ START_SECTION("pi0est: pyprophet reference checks")
   std::sort(pvec.begin(), pvec.end());
 
   // expected values from pyprophet tests
-  auto res1 = pi0est(pvec, std::vector<double>{0.4});
+  auto res1 = pi0Est(pvec, std::vector<double>{0.4});
   TEST_REAL_SIMILAR(res1.pi0, 0.697161)
 
-  auto res2 = pi0est(pvec);
+  auto res2 = pi0Est(pvec);
   TEST_REAL_SIMILAR(res2.pi0, 0.6685638)
 
   // lambda grid 0.4..0.95 step 0.05 with smooth_log_pi0=true
-  // This matches PyProphet's test: pi0est(stat['p'], lambda_=np.arange(0.4,1.0,0.05), smooth_log_pi0=True)
+  // This matches PyProphet's test: pi0Est(stat['p'], lambda_=np.arange(0.4,1.0,0.05), smooth_log_pi0=True)
   std::vector<double> lambda_v;
   for (double l = 0.4; l < 1.0 - 1e-12; l += 0.05) lambda_v.push_back(l);
-  auto res3 = pi0est(pvec, lambda_v, "smoother", 3, true);  // smooth_log_pi0=true
+  auto res3 = pi0Est(pvec, lambda_v, "smoother", 3, true);  // smooth_log_pi0=true
   TEST_REAL_SIMILAR(res3.pi0, 0.6658949)
 }
 END_SECTION
 
-START_SECTION(double bw_nrd0(const std::vector<double>&))
+START_SECTION(double bwNrd0(const std::vector<double>&))
 {
   std::vector<double> x = {0.0, 1.0, 2.0, 3.0, 4.0};
-  double bw = bw_nrd0(x);
+  double bw = bwNrd0(x);
   // Expected value matching numpy.percentile + statsmodels/pyprophet convention (0.9 factor)
   TEST_REAL_SIMILAR(bw, 0.9735846228506357)
 }
 END_SECTION
 
-START_SECTION(std::vector<double> linbin(const std::vector<double>&, double, double, std::size_t, const std::vector<double>*))
+START_SECTION(std::vector<double> linBin(const std::vector<double>&, double, double, std::size_t, const std::vector<double>*))
 {
   std::vector<double> x = {0.1, 0.4, 0.9};
-  auto bins = linbin(x, 0.0, 1.0, 5, nullptr);
+  auto bins = linBin(x, 0.0, 1.0, 5, nullptr);
   TEST_EQUAL(bins.size(), 5)
   // width = 0.2 -> indices: 0,2,4
   TEST_REAL_SIMILAR(bins[0], 1.0)
@@ -247,19 +247,19 @@ START_SECTION(std::vector<double> linbin(const std::vector<double>&, double, dou
   TEST_REAL_SIMILAR(bins[4], 1.0)
 
   std::vector<double> w = {2.0, 3.0, 5.0};
-  auto bins_w = linbin(x, 0.0, 1.0, 5, &w);
+  auto bins_w = linBin(x, 0.0, 1.0, 5, &w);
   TEST_REAL_SIMILAR(bins_w[0], 2.0)
   TEST_REAL_SIMILAR(bins_w[2], 3.0)
   TEST_REAL_SIMILAR(bins_w[4], 5.0)
 }
 END_SECTION
 
-START_SECTION(std::vector<double> pnorm(const std::vector<double>&, const std::vector<double>&))
+START_SECTION(std::vector<double> pNorm(const std::vector<double>&, const std::vector<double>&))
 {
   std::vector<double> stat0 = {0.0, 1.0}; // mu=0.5, sample sd = sqrt(0.5)
   std::vector<double> stat = {0.5, 1.5, -0.5, std::numeric_limits<double>::quiet_NaN()};
 
-  auto out = pnorm(stat, stat0);
+  auto out = pNorm(stat, stat0);
   TEST_EQUAL(out.size(), stat.size());
 
   // compute expected values
@@ -286,22 +286,22 @@ START_SECTION(std::vector<double> pnorm(const std::vector<double>&, const std::v
 }
 END_SECTION
 
-START_SECTION(template<class T> std::vector<double> pemp(const std::vector<T>&, const std::vector<T>&))
+START_SECTION(template<class T> std::vector<double> pEmp(const std::vector<T>&, const std::vector<T>&))
 {
   std::vector<double> stat = {0.9, 0.8};
   std::vector<double> stat0 = {0.1, 0.2};
-  auto p = pemp<double>(stat, stat0);
+  auto p = pEmp<double>(stat, stat0);
   TEST_EQUAL(p.size(), stat.size())
   TEST_REAL_SIMILAR(p[0], 0.5)
   TEST_REAL_SIMILAR(p[1], 0.5)
 }
 END_SECTION
 
-START_SECTION(std::vector<double> qvalue(const std::vector<double>&, double, bool))
+START_SECTION(std::vector<double> qValue(const std::vector<double>&, double, bool))
 {
   std::vector<double> p = {0.01, 0.02, 0.03};
   double pi0 = 1.0;
-  auto q = qvalue(p, pi0, false);
+  auto q = qValue(p, pi0, false);
   TEST_EQUAL(q.size(), p.size())
   TEST_REAL_SIMILAR(q[0], 0.03)
   TEST_REAL_SIMILAR(q[1], 0.03)
@@ -309,12 +309,12 @@ START_SECTION(std::vector<double> qvalue(const std::vector<double>&, double, boo
 }
 END_SECTION
 
-START_SECTION(Pi0Result pi0est(const std::vector<double>&, const std::vector<double>&))
+START_SECTION(Pi0Result pi0Est(const std::vector<double>&, const std::vector<double>&))
 {
   std::vector<double> p = {0.9, 0.8, 0.85, 0.95};
   // Choose lambda grid such that all p >= lambda -> estimator becomes clipped to 1
   std::vector<double> lambda = {0.5, 0.6};
-  auto res = pi0est(p, lambda);
+  auto res = pi0Est(p, lambda);
   TEST_EQUAL(res.pi0, 1.0)
 }
 END_SECTION
@@ -363,8 +363,8 @@ START_SECTION("R reference qvalue CSV matches C++ implementation")
   for (auto &r : rows) { pvec.push_back(r.p); qd_ref.push_back(r.qd); qpfdr_ref.push_back(r.qpfdr); }
 
   const double pi0 = 0.669926026474838;
-  auto q_def = qvalue(pvec, pi0, false);
-  auto q_pf = qvalue(pvec, pi0, true);
+  auto q_def = qValue(pvec, pi0, false);
+  auto q_pf = qValue(pvec, pi0, true);
 
   TEST_EQUAL(q_def.size(), qd_ref.size())
   TEST_EQUAL(q_pf.size(), qpfdr_ref.size())
@@ -377,13 +377,13 @@ START_SECTION("R reference qvalue CSV matches C++ implementation")
 }
 END_SECTION
 
-START_SECTION("silverman_kernel_fft properties")
+START_SECTION("silvermanKernelFft properties")
 {
   // basic sanity checks
   std::size_t M = 8;
   double bw = 1.0;
   double RANGE = 10.0;
-  auto K = silverman_kernel_fft(bw, M, RANGE);
+  auto K = silvermanKernelFft(bw, M, RANGE);
   TEST_EQUAL(K.size(), M)
   // K[0] should equal 1 (exp(0)/BC with BC==1)
   TEST_REAL_SIMILAR(K[0], 1.0)
@@ -403,11 +403,11 @@ START_SECTION("silverman_kernel_fft properties")
 }
 END_SECTION
 
-START_SECTION("grid_kde_fft basic integration and sizes")
+START_SECTION("gridKdeFft basic integration and sizes")
 {
   std::vector<double> x = {0.0, 1.0, 2.0};
-  double bw = bw_nrd0(x);
-  auto res = grid_kde_fft(x, bw, 64, 3.0);
+  double bw = bwNrd0(x);
+  auto res = gridKdeFft(x, bw, 64, 3.0);
   auto dens = res.first;
   auto grid = res.second;
   TEST_EQUAL(dens.size(), grid.size())
@@ -420,11 +420,11 @@ START_SECTION("grid_kde_fft basic integration and sizes")
 }
 END_SECTION
 
-START_SECTION("kde_fft_eval matches spline-interpolated grid density at sample points")
+START_SECTION("kdeFftEval matches spline-interpolated grid density at sample points")
 {
   std::vector<double> x = {0.0, 1.0, 2.0};
-  double bw = bw_nrd0(x);
-  auto res = grid_kde_fft(x, bw, 64, 3.0);
+  double bw = bwNrd0(x);
+  auto res = gridKdeFft(x, bw, 64, 3.0);
   auto dens = res.first;
   auto grid = res.second;
 
@@ -433,8 +433,8 @@ START_SECTION("kde_fft_eval matches spline-interpolated grid density at sample p
   std::vector<double> expected;
   for (double xi : x) expected.push_back(spline.eval(xi));
 
-  // evaluate KDE at sample points using kde_fft_eval (x used as both data and query)
-  auto y = kde_fft_eval(x, bw, 64, 3.0);
+  // evaluate KDE at sample points using kdeFftEval (x used as both data and query)
+  auto y = kdeFftEval(x, bw, 64, 3.0);
   TEST_EQUAL(y.size(), expected.size())
   for (std::size_t i = 0; i < expected.size(); ++i) TEST_REAL_SIMILAR(y[i], expected[i]);
 }
