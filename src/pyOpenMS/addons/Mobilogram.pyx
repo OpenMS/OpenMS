@@ -1,6 +1,5 @@
 cimport numpy as np
 import numpy as np
-import pandas as pd
 
 
 
@@ -300,5 +299,6 @@ import pandas as pd
             >>> # Get only specific columns (faster)
             >>> df = mobilogram.get_df(columns=['mobility', 'intensity'])
         """
+        import pandas as pd
         data_dict = self.get_data_dict(columns=columns)
         return pd.DataFrame(data_dict)

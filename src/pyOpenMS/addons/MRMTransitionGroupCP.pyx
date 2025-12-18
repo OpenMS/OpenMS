@@ -1,6 +1,7 @@
 cimport numpy as np
 import numpy as np
-import pandas as pd
+
+
 
 
     def get_chromatogram_df_columns(self, columns='default', export_meta_values=True):
@@ -72,6 +73,7 @@ import pandas as pd
             >>> # Get only specific columns
             >>> df = mrm.get_chromatogram_df(columns=['rt', 'intensity'])
         """
+        import pandas as pd
         chroms = self.getChromatograms()
         out = [c.get_df(columns=columns, export_meta_values=export_meta_values) for c in chroms]
         if out:
@@ -103,6 +105,7 @@ import pandas as pd
             >>> # Get only specific columns
             >>> df = mrm.get_feature_df(columns=['feature_id', 'rt', 'intensity'])
         """
+        import pandas as pd
         # Common meta value types for numpy type mapping
         common_meta_value_types = {
             b'label': 'U50',

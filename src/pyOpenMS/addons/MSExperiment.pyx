@@ -1,9 +1,9 @@
 cimport numpy as np
 import numpy as np
-import pandas as pd
+
 
     def get2DPeakData(MSExperiment self, float min_rt, float max_rt, float min_mz, float max_mz, unsigned int ms_level):
-        """Cython signature: tuple[np.array[float] rt, np.array[float] mz, np.array[float] inty] get2DPeakData(float min_rt, float max_rt, float min_mz, float max_mz, unsigned int ms_level)"""        
+        """Cython signature: tuple[np.array[float] rt, np.array[float] mz, np.array[float] inty] get2DPeakData(float min_rt, float max_rt, float min_mz, float max_mz, unsigned int ms_level)"""
 
         cdef _MSExperiment * exp_ = self.inst.get()
         cdef libcpp_vector[float] rt
@@ -174,36 +174,36 @@ import pandas as pd
 
         return f"MSExperiment({', '.join(parts)})"
 
-    def get_df_columns(self, long=False):
+    def get_df_columns(self, long_format=False):
         """
-        get_df_columns(self: MSExperiment, long: bool = False) -> List[str]
+        get_df_columns(self: MSExperiment, long_format: bool = False) -> List[str]
 
         Returns a list of column names that get_df() would produce.
 
         Useful for discovering available columns before export.
 
         Args:
-            long (bool): If True, returns columns for long format.
-                        If False, returns columns for compact format.
+            long_format (bool): If True, returns columns for long format.
+                               If False, returns columns for compact format.
 
         Returns:
             list: List of column name strings.
 
         Example:
-            >>> exp.get_df_columns(long=True)
+            >>> exp.get_df_columns(long_format=True)
             ['rt', 'mz', 'intensity', 'ms_level']
 
-            >>> exp.get_df_columns(long=False)
+            >>> exp.get_df_columns(long_format=False)
             ['rt', 'ms_level', 'mz_array', 'intensity_array']
         """
-        if long:
+        if long_format:
             return ['rt', 'mz', 'intensity', 'ms_level']
         else:
             return ['rt', 'ms_level', 'mz_array', 'intensity_array']
 
-    def get_df(self, columns=None, ms_levels=None, long=False):
+    def get_df(self, columns=None, ms_levels=None, long_format=False):
         """
-        get_df(self: MSExperiment, columns: Optional[List[str]] = None, ms_levels: List[int] = [], long: bool = False) -> pd.DataFrame
+        get_df(self: MSExperiment, columns: Optional[List[str]] = None, ms_levels: List[int] = [], long_format: bool = False) -> pd.DataFrame
 
         Generates a pandas DataFrame with all peaks in the MSExperiment
 
@@ -211,7 +211,7 @@ import pandas as pd
         columns (list or None): List of column names to include. If None,
                                includes all columns. Use get_df_columns() to discover available columns.
         ms_levels (List[int]): Get only spectra with the given MS levels. Default is an empty list, which means all MS levels will be included.
-        long (bool): set to True if you want to have a long/expanded/melted dataframe with one row per peak. Faster but
+        long_format (bool): set to True if you want to have a long/expanded/melted dataframe with one row per peak. Faster but
             replicated RT information. If False, returns rows in the style: rt, np.array(mz), np.array(int)
 
         Returns:
@@ -225,14 +225,15 @@ import pandas as pd
             >>> print(exp.get_df_columns())
 
             >>> # Get only specific columns
-            >>> df = exp.get_df(columns=['rt', 'mz', 'intensity'], long=True)
+            >>> df = exp.get_df(columns=['rt', 'mz', 'intensity'], long_format=True)
         """
+        import pandas as pd
         if ms_levels is None:
             ms_levels = []
         self.updateRanges()
         if not ms_levels:
             ms_levels = self.getMSLevels()
-        if long:
+        if long_format:
             cols = ["rt", "mz", "intensity"]
             dfs = []
             for ms_level in ms_levels:
@@ -261,7 +262,7 @@ import pandas as pd
         Returns:
         pd.DataFrame: feature information stored in a DataFrame
         """
-
+        import pandas as pd
         cols = ["rt", "mz", "intensity", "ion_mobility"]
         self.updateRanges()
         spectraarrs2d = self.get2DPeakDataIMLong(self.getMinRT(), self.getMaxRT(), self.getMinMZ(), self.getMaxMZ(), 1)
@@ -298,6 +299,7 @@ import pandas as pd
         ms1_df (pd.DataFrame): peak data of MS1 spectra
         ms2_df (pd.DataFrame): peak data of MS2 spectra with precursor information
         """
+        import pandas as pd
         from . import IonSource as _IonSource
         self.updateRanges()
 

@@ -1,7 +1,8 @@
 from UniqueIdInterface cimport setUniqueId as _setUniqueId
 cimport numpy as np
 import numpy as np
-import pandas as pd
+
+
 
 
     def setUniqueIds(self):
@@ -177,6 +178,7 @@ import pandas as pd
             >>> # Get only specific columns
             >>> df = fmap.get_df(columns=['feature_id', 'mz', 'rt', 'intensity'])
         """
+        import pandas as pd
         # Common meta value types for numpy type mapping
         common_meta_value_types = {
             b'label': 'U50',
@@ -203,7 +205,7 @@ import pandas as pd
             requested = set(columns)
             # Only export peptide IDs if explicitly requested or export_peptide_identifications is True
             # and at least one peptide column is requested
-            need_pep_ids = export_peptide_identifications and bool(requested & pep_id_cols)
+            need_pep_ids = export_peptide_identifications and len(requested & pep_id_cols) > 0
         else:
             need_pep_ids = export_peptide_identifications
 

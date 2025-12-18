@@ -1,8 +1,9 @@
 from UniqueIdInterface cimport setUniqueId as _setUniqueId
 cimport numpy as np
 import numpy as np
-import pandas as pd
 from collections import defaultdict as _defaultdict
+
+
 
 
     def setUniqueIds(self):
@@ -219,6 +220,7 @@ from collections import defaultdict as _defaultdict
         Returns:
         pd.DataFrame: intensity DataFrame
         """
+        import pandas as pd
         labelfree = self.getExperimentType() == "label-free"
         filemeta = self.getColumnHeaders()  # type: dict[int, ColumnHeader]
 
@@ -290,6 +292,7 @@ from collections import defaultdict as _defaultdict
             pd.DataFrame: DataFrame with metadata for each feature (sequence, charge,
                          rt, mz, quality). All column names are lowercase snake_case.
         """
+        import pandas as pd
 
         def gen(cmap, fun):
             for f in cmap:
@@ -344,6 +347,7 @@ from collections import defaultdict as _defaultdict
             >>> # Get only specific columns
             >>> df = cmap.get_df(columns=['sequence', 'mz', 'intensity'])
         """
+        import pandas as pd
         if columns is None:
             # No column selection - get everything
             df = pd.concat([self.get_metadata_df(), self.get_intensity_df()], axis=1)
@@ -365,8 +369,8 @@ from collections import defaultdict as _defaultdict
             intensity_cols = set(labels)
             intensity_cols.add('file')
 
-        need_metadata = bool(requested & metadata_cols)
-        need_intensity = bool(requested & intensity_cols)
+        need_metadata = len(requested & metadata_cols) > 0
+        need_intensity = len(requested & intensity_cols) > 0
 
         dfs = []
         if need_metadata:

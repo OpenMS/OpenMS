@@ -1,6 +1,5 @@
 cimport numpy as np
 import numpy as np
-import pandas as pd
 
 
 
@@ -250,6 +249,7 @@ import pandas as pd
             >>> cols = chrom.get_df_columns('all')
             >>> df = chrom.get_df(columns=cols)
         """
+        import pandas as pd
         data_dict = self.get_data_dict(columns=columns, export_meta_values=export_meta_values)
         return pd.DataFrame(data_dict)
 

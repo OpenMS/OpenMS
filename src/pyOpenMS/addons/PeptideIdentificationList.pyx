@@ -1,6 +1,7 @@
 cimport numpy as np
 import numpy as np
-import pandas as pd
+
+
 
 
     def __len__(self):
@@ -84,7 +85,7 @@ import pandas as pd
             decode_ontology (bool): Decode meta value names using the PSI-MS ontology.
                                    Default True.
             default_missing_values (dict): Default values for missing data by type.
-                                          Default: {bool: False, int: -9999, float: nan, str: ''}
+                                          Default: {<bool>: False, <int>: -9999, <float>: nan, <str>: ''}
             export_unidentified (bool): Export PeptideIdentifications without PeptideHit.
                                        Default True.
 
@@ -109,16 +110,18 @@ import pandas as pd
             >>> # Skip unidentified entries
             >>> df = peps.get_df(export_unidentified=False)
 
-            >>> # Custom missing values
+            >>> # Custom missing values (use Python type objects)
             >>> df = peps.get_df(default_missing_values={bool: False, int: 0, float: 0.0, str: 'NA'})
         """
+        import pandas as pd
         from . import ControlledVocabulary as _ControlledVocabulary
         from . import File as _File
 
         if default_missing_values is None:
-            default_missing_values = {bool: False, int: -9999, float: np.nan, str: ''}
+            # Use type() to get Python types since 'bool' conflicts with C bool in Cython
+            default_missing_values = {type(True): False, type(1): -9999, type(1.0): np.nan, type(''): ''}
 
-        switchDict = {bool: '?', int: 'i', float: 'f', str: 'U100'}
+        switchDict = {type(True): '?', type(1): 'i', type(1.0): 'f', type(''): 'U100'}
 
         # filter out PeptideIdentifications without PeptideHits if export_unidentified == False
         count = self.size()
