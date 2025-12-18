@@ -9,7 +9,7 @@
 #pragma once
 
 #include <OpenMS/ANALYSIS/TOPDOWN/DeconvolvedSpectrum.h>
-#include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/FLASHHelperClasses.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/FEATUREFINDER/MassTraceDetection.h>
@@ -20,20 +20,19 @@ namespace OpenMS
 {
   /**
   @brief Feature trace in mass dimension for FLASHDeconv
-  This class performs mass tracing on the deconvolved masses by FLASHDeconvAlgorithm
+  This class performs mass tracing on the deconvolved masses by SpectralDeconvolution
   In other words, per spectrum deconvolved masses are converted into deconvolved features
   Currently only works for MS1 spectra. (Top-down DIA is not yet used much).
   Every time an MS1 spectrum is deconvolved, the relevant information is stored in this class.
-  Tracing is performed at the end of FLASHDeconv run.
-  This class also comes with tsv, TopFD, ProMex format output functions.
+  This class also comes with tsv, TopFD feature file formats.
   @ingroup Topdown
   */
 
   class OPENMS_DLLAPI MassFeatureTrace : public DefaultParamHandler
   {
   public:
-    typedef FLASHDeconvHelperStructs::PrecalculatedAveragine PrecalculatedAveragine;
-    typedef FLASHDeconvHelperStructs::LogMzPeak LogMzPeak;
+    typedef FLASHHelperClasses::PrecalculatedAveragine PrecalculatedAveragine;
+    typedef FLASHHelperClasses::LogMzPeak LogMzPeak;
 
     /// constructor
     MassFeatureTrace();
@@ -51,21 +50,20 @@ namespace OpenMS
     MassFeatureTrace& operator=(const MassFeatureTrace& fd) = default;
     MassFeatureTrace& operator=(MassFeatureTrace&& fd) = default;
 
-    /// Obtain and store information from deconvolved_spectrum (necessary information for mass tracing afterwards)
-    void storeInformationFromDeconvolvedSpectrum(DeconvolvedSpectrum& deconvolved_spectrum);
-
     /**
        @brief Find mass features.
-       @param averagine precalculated averagine for cosine calculation
+       @param[in] averagine precalculated averagine for cosine calculation
+       @param[in] deconvolved_spectra the spectra on which features are found
+       @param[in] ms_level ms level to process
+       @param[out] is_decoy if set, only process decoy spectra. otherwise only target spectra
        */
-    std::vector<FLASHDeconvHelperStructs::MassFeature> findFeatures(const PrecalculatedAveragine& averagine);
+    std::vector<FLASHHelperClasses::MassFeature> findFeaturesAndUpdateQscore2D(const PrecalculatedAveragine& averagine, std::vector<DeconvolvedSpectrum>& deconvolved_spectra, int ms_level = 1,
+                                                                                     bool is_decoy = false);
 
   protected:
     void updateMembers_() override;
 
   private:
-    /// cosine thresholds for scoring and filtering
-    double min_isotope_cosine_;
     /// peak group information is stored in here for tracing
     std::map<double, std::map<double, PeakGroup>> peak_group_map_; // rt , mono mass, peakgroup
   };

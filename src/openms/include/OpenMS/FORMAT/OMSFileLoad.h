@@ -41,8 +41,8 @@ namespace OpenMS
 
         Opens the connection to the database file (in read-only mode).
 
-        @param filename Path to the .oms input file (SQLite database)
-        @param log_type Type of logging to use
+        @param[in] filename Path to the .oms input file (SQLite database)
+        @param[in] log_type Type of logging to use
 
         @throw Exception::FailedAPICall Database cannot be opened
       */

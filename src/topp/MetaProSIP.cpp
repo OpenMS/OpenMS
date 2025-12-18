@@ -2320,6 +2320,7 @@ protected:
   ///< Returns highest scoring rate and score pair in the map
   void getBestRateScorePair(const MapRateToScoreType& map_rate_to_score, double& best_rate, double& best_score)
   {
+    best_rate = 0.0;
     best_score = -1;
     for (MapRateToScoreType::const_iterator mit = map_rate_to_score.begin(); mit != map_rate_to_score.end(); ++mit)
     {

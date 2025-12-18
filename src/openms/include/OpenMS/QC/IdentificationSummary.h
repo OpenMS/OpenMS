@@ -54,8 +54,8 @@ namespace OpenMS
     /**
    @brief computes a summary of an idXML file
 
-   @param prot_ids vector with ProteinIdentifications
-   @param pep_ids vector with PeptideIdentifications
+   @param[in] prot_ids vector with ProteinIdentifications
+   @param[in] pep_ids vector with PeptideIdentifications
    @return result object with summary values:
            total number of PSM (peptide_spectrum_matches),
            number of identified peptides with given FDR threshold (unique_peptides),

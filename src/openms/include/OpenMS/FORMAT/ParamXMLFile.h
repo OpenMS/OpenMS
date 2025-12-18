@@ -30,8 +30,8 @@ public:
     /**
       @brief Write XML file.
 
-      @param filename The filename where the param data structure should be stored.
-      @param param The Param class that should be stored in the file.
+      @param[in] filename The filename where the param data structure should be stored.
+      @param[out] param The Param class that should be stored in the file.
 
       @exception Exception::UnableToCreateFile is thrown if the file could not be created
     */
@@ -40,16 +40,16 @@ public:
     /**
       @brief Write XML to output stream.
 
-      @param os_ptr The stream where the param class should be written to.
-      @param param The Param class that should be written to the stream.
+      @param[out] os_ptr The stream where the param class should be written to.
+      @param[out] param The Param class that should be written to the stream.
     */
     void writeXMLToStream(std::ostream* os_ptr, const Param& param) const;
 
     /**
       @brief Read XML file.
 
-      @param filename The file from where to read the Param object.
-      @param param The param object where the read data should be stored.
+      @param[out] filename The file from where to read the Param object.
+      @param[out] param The param object where the read data should be stored.
 
       @exception Exception::FileNotFound is thrown if the file could not be found
       @exception Exception::ParseError is thrown if an error occurs during parsing

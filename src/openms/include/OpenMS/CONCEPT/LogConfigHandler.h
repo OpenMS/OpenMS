@@ -49,7 +49,7 @@ public:
 
       This function will <b>not</b> apply to settings to the log handlers. Use configure() for that.
 
-      @param setting StringList containing the configuration options
+      @param[in] setting StringList containing the configuration options
       @throw Exception::ParseError In case of an invalid configuration.
       @return Param object containing all settings, that can be applied using the LogConfigHandler::configure() method
      */
@@ -91,8 +91,18 @@ public:
     std::ostream & getStream(const String & stream_name);
 
     /**
-      @brief Sets a minimum @p log_level by removing all streams from loggers lower than that level.
-      order of log_level: "DEBUG", "INFO", "WARNING", "ERROR", "FATAL_ERROR"
+      @brief Sets a minimum @p log_level by removing all streams from loggers lower than that level,
+      and restoring configured streams for loggers at or above that level.
+      
+      This method allows dynamic adjustment of the logging level. When increasing the log level
+      (e.g., from INFO to ERROR), streams are removed from lower priority levels. When decreasing
+      the log level (e.g., from ERROR to INFO), previously configured streams are restored.
+      
+      Order of log_level: "DEBUG", "INFO", "WARNING", "ERROR", "FATAL_ERROR", "NONE"
+      
+      Special value "NONE" disables all logging by removing streams from all levels.
+      
+      @param[in] log_level The minimum log level to enable. Levels below this will have their streams removed.
      */
     void setLogLevel(const String & log_level);
 
@@ -109,7 +119,7 @@ protected:
     /**
       @brief Returns the named global instance of the LogStream. (OpenMS::OpenMS_Log_debug, OpenMS::OpenMS_Log_info, OpenMS::OpenMS_Log_warn, OpenMS::OpenMS_Log_error, OpenMS::OpenMS_Log_fatal)
 
-      @param stream_name Name of the stream. Should be DEBUG,INFO,WARNING,ERROR,FATAL_ERROR.
+      @param[in] stream_name Name of the stream. Should be DEBUG,INFO,WARNING,ERROR,FATAL_ERROR.
 
       @throw ElementNotFoundException if the given @p stream_name does not correspond to one of the known LogStream instances
 
@@ -120,7 +130,7 @@ protected:
     /**
       @brief Returns the correct set of registered streams for the given stream type (e.g. DEBUG, INFO, ..)
 
-      @param stream_type String representation of the stream type (DEBUG, INFO, ..)
+      @param[in] stream_type String representation of the stream type (DEBUG, INFO, ..)
 
       @throw ElementNotFoundException if the given @p stream_type does not correspond to one of the known LogStreams
      */
@@ -129,7 +139,7 @@ protected:
     /**
       @brief Translates the given @p stream_type String into a valid StreamHandler::StreamType
 
-      @param stream_type String representation of the StreamHandler::StreamType
+      @param[in] stream_type String representation of the StreamHandler::StreamType
 
       @throw Exception::IllegalArgument is thrown when the passed @p stream_type does not correspond to an existing StreamHandler::StreamType
 

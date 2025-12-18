@@ -10,7 +10,14 @@ on:
 
 jobs:
   deploy-docker:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-22.04
+            platform: linux/amd64
+          - os: ubuntu-22.04-arm
+            platform: linux/arm64
     outputs:
       tag_name: ${{ steps.tag_name.outputs.tag }}
       downcase_repo: ${{ steps.downcase_repo.outputs.repo }}
@@ -61,6 +68,7 @@ jobs:
           load: true # so other build steps can make use of cache layers from this build
           file: dockerfiles/Dockerfile
           target: test
+          platforms: ${{ matrix.platform }}
           build-args: |
             NUM_BUILD_CORES=4
             BUILDKIT_CONTEXT_KEEP_GIT_DIR=1
@@ -73,6 +81,8 @@ jobs:
           push: true # Will only build if this is not here
           file: dockerfiles/Dockerfile
           target: library
+          platforms: ${{ matrix.platform }}
+          provenance: mode=max
           build-args: |
             NUM_BUILD_CORES=4
             BUILDKIT_CONTEXT_KEEP_GIT_DIR=1
@@ -87,6 +97,8 @@ jobs:
           push: true # Will only build if this is not here
           file: dockerfiles/Dockerfile
           target: tools
+          platforms: ${{ matrix.platform }}
+          provenance: mode=max
           build-args: |
             NUM_BUILD_CORES=4
             BUILDKIT_CONTEXT_KEEP_GIT_DIR=1
@@ -102,6 +114,8 @@ jobs:
           push: true # Will only build if this is not here
           file: dockerfiles/Dockerfile
           target: tools-thirdparty
+          platforms: ${{ matrix.platform }}
+          provenance: mode=max
           build-args: |
             NUM_BUILD_CORES=4
             BUILDKIT_CONTEXT_KEEP_GIT_DIR=1

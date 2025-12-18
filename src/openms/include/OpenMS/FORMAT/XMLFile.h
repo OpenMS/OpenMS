@@ -36,8 +36,8 @@ public:
 
         Error messages are printed to the error stream, unless redirected with the attribute @p os .
 
-        @param filename The name of the file to validate.
-        @param os The ostream where error messages should be send.
+        @param[in] filename The name of the file to validate.
+        @param[in,out] os The ostream where error messages should be send.
 
         @exception Exception::FileNotFound is thrown if the file cannot be found
         @exception Exception::NotImplemented is thrown if there is no schema available for the file type
@@ -51,6 +51,9 @@ protected:
       /**
         @brief Parses the XML file given by @p filename using the handler given by @p handler.
 
+        @param[in] filename The XML file to parse
+        @param[in] handler The XML handler to use for parsing
+
         @exception Exception::FileNotFound is thrown if the file is not found
         @exception Exception::ParseError is thrown if an error occurred during the parsing
       */
@@ -58,6 +61,9 @@ protected:
 
       /**
         @brief Parses the in-memory buffer given by @p buffer using the handler given by @p handler.
+
+        @param[in] buffer The buffer to parse
+        @param[in] handler The XML handler to use for parsing
 
         @note Currently the buffer needs to be plain text, gzip buffer is not supported.
 
@@ -67,6 +73,9 @@ protected:
 
       /**
         @brief Stores the contents of the XML handler given by @p handler in the file given by @p filename.
+
+        @param[in] filename The output filename
+        @param[in] handler The XML handler containing the content to write
 
         @exception Exception::UnableToCreateFile is thrown if the file cannot be created
       */
@@ -87,7 +96,7 @@ protected:
     /**
       @brief Encodes tabs '\\t' in the string as &amp;\#x9; and returns the encoded string.
 
-      @param to_encode The String to encode.
+      @param[in] to_encode The String to encode.
       @return The encoded string.
     */
     String OPENMS_DLLAPI encodeTab(const String& to_encode);

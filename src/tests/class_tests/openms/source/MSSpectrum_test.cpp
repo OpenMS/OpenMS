@@ -14,6 +14,7 @@
 #include <OpenMS/KERNEL/MSSpectrum.h>
 ///////////////////////////
 
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/IONMOBILITY/IMDataConverter.h>
 
 #include <sstream>
@@ -1334,7 +1335,7 @@ START_SECTION( SpectrumSettings::SpectrumType MSSpectrum::getType(const bool que
   // second easiest: type is given in data processing
   DataProcessing dp;
   dp.setProcessingActions( { DataProcessing::PEAK_PICKING } );
-  boost::shared_ptr< DataProcessing > dp_(new DataProcessing(dp));
+  std::shared_ptr< DataProcessing > dp_(new DataProcessing(dp));
   edit.getDataProcessing().push_back(dp_);
   // still profile, since DP is only checked when type is unknown
   TEST_EQUAL(edit.getType(false), SpectrumSettings::PROFILE);
@@ -1390,6 +1391,14 @@ START_SECTION(PeakType::IntensityType calculateTIC() const)
 }
 END_SECTION
 
+
+START_SECTION(void setIMFormat(IMFormat imf))
+{
+  // test invalid format validation
+  MSSpectrum spec;
+  TEST_EXCEPTION(Exception::InvalidValue, spec.setIMFormat(IMFormat::MIXED)); // this should trigger the validation check because a single spectrum can't be mixed
+}
+END_SECTION
 
 START_SECTION(void clear(bool clear_meta_data))
 {
@@ -1458,7 +1467,7 @@ START_SECTION((std::pair<DriftTimeUnit, std::vector<float>> maybeGetIMData() con
   
   // Create a float data array with ion mobility data
   DataArrays::FloatDataArray im_array;
-  im_array.setName("Ion Mobility");
+  im_array.setName(Constants::UserParam::ION_MOBILITY);
   im_array.resize(3);
   im_array[0] = 1.0f;
   im_array[1] = 2.0f;

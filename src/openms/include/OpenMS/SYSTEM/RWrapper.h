@@ -41,8 +41,8 @@ public:
 
       An exception will be thrown if the file cannot be found.
 
-      @param script_file Name of the R script
-      @param verbose Print error message to OPENMS_LOG_ERROR upon FileNotFound
+      @param[in] script_file Name of the R script
+      @param[in] verbose Print error message to OPENMS_LOG_ERROR upon FileNotFound
       @return Full filename with absolute path
       @throw Exception::FileNotFound
     */
@@ -51,8 +51,8 @@ public:
     /**
       @brief Check for presence of 'Rscript'.
 
-      @param executable Name of the R interpreter
-      @param verbose Print failure information?
+      @param[in] executable Name of the R interpreter
+      @param[in] verbose Print failure information?
       @return Success status
     */
     static bool findR(const QString& executable = QString("Rscript"), bool verbose = true);
@@ -71,11 +71,11 @@ public:
       The 'cmd_args' are passed via commandline and should be read by the R script using R' commandArgs() function.
       Usually, the args are input and output filenames.
 
-      @param script_file Filename of the R script
-      @param cmd_args Command line arguments to the script
-      @param executable Name of the R interpreter
-      @param find_R Run findR()? May be skipped if runScript() is run repeatedly
-      @param verbose Print status information; also passed internally to findR() and findScript().
+      @param[in] script_file Filename of the R script
+      @param[in] cmd_args Command line arguments to the script
+      @param[in] executable Name of the R interpreter
+      @param[in] find_R Run findR()? May be skipped if runScript() is run repeatedly
+      @param[in] verbose Print status information; also passed internally to findR() and findScript().
       @return Success status
     */
     static bool runScript(const String& script_file, const QStringList& cmd_args, const QString& executable = QString("Rscript"), bool find_R = false, bool verbose = true);

@@ -62,8 +62,8 @@ public:
      *
      * @note Smoothed intensities are added to @p mt_vec
      *
-     * @param mt Input mass trace
-     * @param single_mtraces Output single mass traces (detected peaks)
+     * @param[in,out] mt Input mass trace
+     * @param[out] single_mtraces Output single mass traces (detected peaks)
      *
     */
     void detectPeaks(MassTrace& mt, std::vector<MassTrace>& single_mtraces);
@@ -73,8 +73,8 @@ public:
      *
      * @note Smoothed intensities are added to @p mt_vec
      *
-     * @param mt_vec Input mass traces
-     * @param single_mtraces Output single mass traces (detected peaks)
+     * @param[in,out] mt_vec Input mass traces
+     * @param[out] single_mtraces Output single mass traces (detected peaks)
      *
     */
     void detectPeaks(std::vector<MassTrace>& mt_vec, std::vector<MassTrace>& single_mtraces);
@@ -97,16 +97,16 @@ public:
      * works on the smoothed intensities which must be available at this step.
      * Initially it identifies potential maxima as peaks that have maximum
      * intensity within a range of peak +/- num_neighboring_peaks.
-     * All such maxima in the smoothed data get added to the list of maxima. 
+     * All such maxima in the smoothed data get added to the list of maxima.
      * Minima are found through bisection between the maxima.
      *
-     * @param tr Input mass trace
-     * @param num_neighboring_peaks How many data points are expected to belong
+     * @param[in] tr Input mass trace
+     * @param[in] num_neighboring_peaks How many data points are expected to belong
      *                              to a peak, i.e. the expected peak width
      *                              (this is used to split traces and find
      *                              maxima)
-     * @param chrom_maxes Output of maxima (gets cleared)
-     * @param chrom_mins Output of minima (gets cleared)
+     * @param[out] chrom_maxes Output of maxima (gets cleared)
+     * @param[out] chrom_mins Output of minima (gets cleared)
      *
      * Returns a vector of indices where a maxima may occur (chrom_maxes) and a
      * vector of indices where a minima may occur (chrom_mins).

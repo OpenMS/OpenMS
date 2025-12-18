@@ -63,7 +63,7 @@ for include in extra_includes:
 persisted_data_path = "include_dir.bin"
 autowrap_include_dirs = pickle.load(open(persisted_data_path, "rb"))
 
-from setuptools import setup, Extension
+from setuptools import setup, Extension, find_namespace_packages
 
 with open("pyopenms/version.py", "w") as fp:
     print("version=%r" % package_version, file=fp)
@@ -250,7 +250,11 @@ if sys.platform == "darwin":
 setup(
 
     name=package_name,
-    packages=["pyopenms"],
+    packages=find_namespace_packages(
+        where=".",
+        include=["pyopenms", "pyopenms.*"],
+        exclude=["*.share", "*.share.*"]
+    ),
     ext_package="pyopenms",
     package_data= {
         'pyopenms': ['py.typed', '*.pyi']

@@ -17,6 +17,7 @@
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 #include <OpenMS/METADATA/DataArrays.h>
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <set>
 
@@ -242,6 +243,9 @@ public:
     /// Names corresponding to peak mass types
     static const std::string NamesOfPeakMassType[SIZE_OF_PEAKMASSTYPE];
 
+    /// returns all peak mass type names known to OpenMS
+    static StringList getAllNamesOfPeakMassType();
+
     /// Search parameters of the DB search
     struct OPENMS_DLLAPI SearchParameters :
       public MetaInfoInterface
@@ -430,8 +434,8 @@ public:
     /**
        Set the file paths to the primary MS runs (usually the mzML files obtained after data conversion from raw files)
 
-       @param s The file paths
-       @param raw Store paths to the raw files (or equivalent) rather than mzMLs
+       @param[in] s The file paths
+       @param[in] raw Store paths to the raw files (or equivalent) rather than mzMLs
     */
     void setPrimaryMSRunPath(const StringList& s, bool raw = false);
 
@@ -444,7 +448,7 @@ public:
        Get the file paths to the primary MS runs
 
        @param[out] output The file paths
-       @param raw Get raw files (or equivalent) instead of mzMLs
+       @param[in] raw Get raw files (or equivalent) instead of mzMLs
     */
     void getPrimaryMSRunPath(StringList& output, bool raw = false) const;
 

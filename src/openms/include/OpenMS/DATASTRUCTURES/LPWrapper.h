@@ -202,9 +202,9 @@ public:
     /**
       @brief Adds a row to the LP matrix
       
-      @param row_indices Indices of the columns that have non-zero coefficients in this row
-      @param row_values Values of the non-zero coefficients in this row
-      @param name Name of the row (for identification purposes)
+      @param[in] row_indices Indices of the columns that have non-zero coefficients in this row
+      @param[in] row_values Values of the non-zero coefficients in this row
+      @param[in] name Name of the row (for identification purposes)
       @return Index of the newly added row
     */
     Int addRow(const std::vector<Int>& row_indices, const std::vector<double>& row_values, const String& name);
@@ -219,9 +219,9 @@ public:
     /**
       @brief Adds a column to the LP matrix
       
-      @param column_indices Indices of the rows that have non-zero coefficients in this column
-      @param column_values Values of the non-zero coefficients in this column
-      @param name Name of the column (for identification purposes)
+      @param[in] column_indices Indices of the rows that have non-zero coefficients in this column
+      @param[in] column_values Values of the non-zero coefficients in this column
+      @param[in] name Name of the column (for identification purposes)
       @return Index of the newly added column
     */
     Int addColumn(const std::vector<Int>& column_indices, const std::vector<double>& column_values, const String& name);
@@ -231,12 +231,12 @@ public:
 
       If you have a fixed variable, GLPK requires to use the "fixed" type, instead of "double-bounded" with equal bounds.
 
-      @param row_indices
-      @param row_values
-      @param name
-      @param lower_bound
-      @param upper_bound
-      @param type Type of the row 1 - unbounded, 2 - only lower bound, 3 - only upper bound, 4 - double-bounded variable, 5 - fixed variable
+      @param[in] row_indices
+      @param[in] row_values
+      @param[in] name
+      @param[in] lower_bound
+      @param[in] upper_bound
+      @param[in] type Type of the row 1 - unbounded, 2 - only lower bound, 3 - only upper bound, 4 - double-bounded variable, 5 - fixed variable
     */
     Int addRow(const std::vector<Int>& row_indices, const std::vector<double>& row_values,
                const String& name, double lower_bound, double upper_bound, Type type);
@@ -244,34 +244,34 @@ public:
     /**
       @brief Adds a column with boundaries to the LP matrix, returns index
 
-      @param column_indices
-      @param column_values
-      @param name
-      @param lower_bound
-      @param upper_bound
-      @param type 1 - unbounded, 2 - only lower bound, 3 - only upper bound, 4 - double-bounded variable, 5 - fixed variable
+      @param[in] column_indices
+      @param[in] column_values
+      @param[in] name
+      @param[in] lower_bound
+      @param[in] upper_bound
+      @param[in] type 1 - unbounded, 2 - only lower bound, 3 - only upper bound, 4 - double-bounded variable, 5 - fixed variable
     */
     Int addColumn(const std::vector<Int>& column_indices, const std::vector<double>& column_values, const String& name, double lower_bound, double upper_bound, Type type);
 
     /**
       @brief Delete the row at the specified index
       
-      @param index Index of the row to delete
+      @param[in] index Index of the row to delete
     */
     void deleteRow(Int index);
     
     /**
       @brief Set the name of a column
       
-      @param index Index of the column to rename
-      @param name New name for the column
+      @param[in] index Index of the column to rename
+      @param[in] name New name for the column
     */
     void setColumnName(Int index, const String& name);
     
     /**
       @brief Get the name of a column
       
-      @param index Index of the column
+      @param[in] index Index of the column
       @return Name of the column
     */
     String getColumnName(Int index);
@@ -279,7 +279,7 @@ public:
     /**
       @brief Get the name of a row
       
-      @param index Index of the row
+      @param[in] index Index of the row
       @return Name of the row
     */
     String getRowName(Int index);
@@ -287,7 +287,7 @@ public:
     /**
       @brief Find the index of a row by its name
       
-      @param name Name of the row to find
+      @param[in] name Name of the row to find
       @return Index of the row with the given name
     */
     Int getRowIndex(const String& name);
@@ -295,7 +295,7 @@ public:
     /**
       @brief Find the index of a column by its name
       
-      @param name Name of the column to find
+      @param[in] name Name of the column to find
       @return Index of the column with the given name
     */
     Int getColumnIndex(const String& name);
@@ -303,7 +303,7 @@ public:
     /**
       @brief Get the upper bound of a column
       
-      @param index Index of the column
+      @param[in] index Index of the column
       @return Upper bound value of the column
     */
     double getColumnUpperBound(Int index);
@@ -311,7 +311,7 @@ public:
     /**
       @brief Get the lower bound of a column
       
-      @param index Index of the column
+      @param[in] index Index of the column
       @return Lower bound value of the column
     */
     double getColumnLowerBound(Int index);
@@ -319,7 +319,7 @@ public:
     /**
       @brief Get the upper bound of a row
       
-      @param index Index of the row
+      @param[in] index Index of the row
       @return Upper bound value of the row
     */
     double getRowUpperBound(Int index);
@@ -327,7 +327,7 @@ public:
     /**
       @brief Get the lower bound of a row
       
-      @param index Index of the row
+      @param[in] index Index of the row
       @return Lower bound value of the row
     */
     double getRowLowerBound(Int index);
@@ -335,43 +335,43 @@ public:
     /**
       @brief Set the name of a row
       
-      @param index Index of the row to rename
-      @param name New name for the row
+      @param[in] index Index of the row to rename
+      @param[in] name New name for the row
     */
     void setRowName(Int index, const String& name);
 
     /**
       @brief Set column bounds.
 
-      @param index
-      @param lower_bound
-      @param upper_bound
-      @param type 1 - unbounded, 2 - only lower bound, 3 - only upper bound, 4 - double-bounded variable, 5 - fixed variable
+      @param[in] index
+      @param[in] lower_bound
+      @param[in] upper_bound
+      @param[in] type 1 - unbounded, 2 - only lower bound, 3 - only upper bound, 4 - double-bounded variable, 5 - fixed variable
      */
     void setColumnBounds(Int index, double lower_bound, double upper_bound, Type type);
 
     /**
       @brief Set row bounds.
 
-      @param index
-      @param lower_bound
-      @param upper_bound
-      @param type 1 - unbounded, 2 - only lower bound, 3 - only upper bound, 4 - double-bounded variable, 5 - fixed constraint
+      @param[in] index
+      @param[in] lower_bound
+      @param[in] upper_bound
+      @param[in] type 1 - unbounded, 2 - only lower bound, 3 - only upper bound, 4 - double-bounded variable, 5 - fixed constraint
      */
     void setRowBounds(Int index, double lower_bound, double upper_bound, Type type);
 
     /**
       @brief Set column/variable type.
 
-      @param index
-      @param type 1- continuous, 2- integer, 3- binary variable
+      @param[in] index
+      @param[in] type 1- continuous, 2- integer, 3- binary variable
      */
     void setColumnType(Int index, VariableType type);
 
     /**
       @brief Get column/variable type.
 
-      @param index
+      @param[in] index
       @return 1- continuous, 2- integer, 3- binary variable
      */
     VariableType getColumnType(Int index);
@@ -379,15 +379,15 @@ public:
     /**
       @brief Set the objective coefficient for a column/variable
       
-      @param index Index of the column/variable
-      @param obj_value Coefficient value in the objective function
+      @param[in] index Index of the column/variable
+      @param[in] obj_value Coefficient value in the objective function
     */
     void setObjective(Int index, double obj_value);
     
     /**
       @brief Get the objective coefficient for a column/variable
       
-      @param index Index of the column/variable
+      @param[in] index Index of the column/variable
       @return Coefficient value in the objective function
     */
     double getObjective(Int index);
@@ -395,7 +395,7 @@ public:
     /**
       @brief Set objective direction.
 
-      @param sense 1- minimize, 2- maximize
+      @param[in] sense 1- minimize, 2- maximize
      */
     void setObjectiveSense(Sense sense);
     /**
@@ -422,17 +422,17 @@ public:
     /**
       @brief Set the value of a matrix element at the specified position
       
-      @param row_index Index of the row
-      @param column_index Index of the column
-      @param value Value to set at the specified position
+      @param[in] row_index Index of the row
+      @param[in] column_index Index of the column
+      @param[in] value Value to set at the specified position
     */
     void setElement(Int row_index, Int column_index, double value);
     
     /**
       @brief Get the value of a matrix element at the specified position
       
-      @param row_index Index of the row
-      @param column_index Index of the column
+      @param[in] row_index Index of the row
+      @param[in] column_index Index of the column
       @return Value at the specified position
     */
     double getElement(Int row_index, Int column_index);
@@ -441,16 +441,16 @@ public:
     /**
       @brief Read LP from file
 
-      @param filename Filename where to store the LP problem.
-      @param format LP, MPS or GLPK.
+      @param[out] filename Filename where to store the LP problem.
+      @param[in] format LP, MPS or GLPK.
      */
     void readProblem(const String& filename, const String& format);
 
     /**
       @brief Write LP formulation to a file.
 
-      @param filename output filename, if the filename ends with '.gz' it will be compressed
-      @param format MPS-format is supported by GLPK and COIN-OR; LP and GLPK-formats only by GLPK
+      @param[out] filename output filename, if the filename ends with '.gz' it will be compressed
+      @param[in] format MPS-format is supported by GLPK and COIN-OR; LP and GLPK-formats only by GLPK
      */
     void writeProblem(const String& filename, const WriteFormat format) const;
 
@@ -459,8 +459,8 @@ public:
 
       The verbose level (0,1,2) determines if the solver prints status messages and internals.
 
-      @param solver_param
-      @param verbose_level
+      @param[in] solver_param
+      @param[in] verbose_level
 
       @return solver dependent (todo: fix)
     */
@@ -484,7 +484,7 @@ public:
     /**
       @brief Get the value of a variable in the solution
       
-      @param index Index of the column/variable
+      @param[in] index Index of the column/variable
       @return Value of the variable in the optimal solution
     */
     double getColumnValue(Int index);
@@ -492,7 +492,7 @@ public:
     /**
       @brief Get the number of non-zero entries in a specific row
       
-      @param idx Index of the row
+      @param[in] idx Index of the row
       @return Number of non-zero coefficients in the row
     */
     Int getNumberOfNonZeroEntriesInRow(Int idx);
@@ -500,8 +500,8 @@ public:
     /**
       @brief Get the indices of non-zero entries in a specific row
       
-      @param idx Index of the row
-      @param indexes Vector to store the column indices of non-zero entries
+      @param[in] idx Index of the row
+      @param[out] indexes Vector to store the column indices of non-zero entries
     */
     void getMatrixRow(Int idx, std::vector<Int>& indexes);
 

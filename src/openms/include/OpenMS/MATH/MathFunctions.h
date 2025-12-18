@@ -16,6 +16,12 @@
 #include <boost/random/mersenne_twister.hpp> // for mt19937_64
 #include <boost/random/uniform_int.hpp>
 #include <cmath>
+#include <boost/math/special_functions/binomial.hpp>
+#include <boost/math/special_functions/gamma.hpp>
+#include <boost/math/special_functions/log1p.hpp>
+#include <boost/math/distributions/binomial.hpp>
+#include <boost/math/distributions/complement.hpp>
+#include <limits>
 #include <utility> // for std::pair
 #include <vector>
 
@@ -34,9 +40,9 @@ namespace Math
   /**
     @brief Given an interval/range and a new value, extend the range to include the new value if needed
 
-    @param min The current minimum of the range
-    @param max The current maximum of the range
-    @param value The new value which may extend the range
+    @param[in,out] min The current minimum of the range
+    @param[in,out] max The current maximum of the range
+    @param[in] value The new value which may extend the range
     @return true if the range was modified
   */
   template<typename T>
@@ -107,10 +113,10 @@ namespace Math
     The overlap between neighboring bins will thus be `2 x extend_margin`.
     The borders of the original interval will @em not be extended.
     
-    @param min The minimum of the range; must be smaller than @p max
-    @param max The maximum of the range
-    @param number_of_bins How many bins should the range be divided into? Must be 1 or larger
-    @param extend_margin Overlap of neighboring bins (=0 for no overlap). Negative values will shrink the range (feature).
+    @param[in] min The minimum of the range; must be smaller than @p max
+    @param[in] max The maximum of the range
+    @param[in] number_of_bins How many bins should the range be divided into? Must be 1 or larger
+    @param[in] extend_margin Overlap of neighboring bins (=0 for no overlap). Negative values will shrink the range (feature).
     @return Vector with @p number_of_bins elements, each representing the margins of one bin
 
     @throws OpenMS::Precondition if `min >= max` or `number_of_bins == 0`
@@ -179,7 +185,7 @@ namespace Math
   /**
       @brief Transforms a number from linear to log10 scale. Avoids negative logarithms by adding 1.
 
-      @param x The number to transform
+      @param[in] x The number to transform
 
       @ingroup MathFunctionsMisc
   */
@@ -191,7 +197,7 @@ namespace Math
   /**
       @brief Transforms a number from log10 to to linear scale. Subtracts the 1 added by linear2log(double)
 
-      @param x The number to transform
+      @param[in] x The number to transform
 
       @ingroup MathFunctionsMisc
   */
@@ -231,8 +237,8 @@ namespace Math
      round_to(1234.9    , -2)  // 1200
     \endcode
 
-    @param value The value to round
-    @param digits The number of digits to round to (can be negative)
+    @param[in] value The value to round
+    @param[in] digits The number of digits to round to (can be negative)
     @return The rounded value
   */
   template<typename T>
@@ -258,9 +264,9 @@ namespace Math
 
     @note If @p total is zero, the function returns 0.0 to avoid division by zero.
 
-    @param value The value to compute the percentage for
-    @param total The total value to compute the percentage against
-    @param digits The number of digits to round the result to
+    @param[in] value The value to compute the percentage for
+    @param[in] total The total value to compute the percentage against
+    @param[in] digits The number of digits to round the result to
     @return The percentage of @p value in relation to @p total, rounded to @p digits
     @throw OpenMS::Exception::InvalidValue if @p value or @p total is negative.
 
@@ -294,8 +300,8 @@ namespace Math
 
   /**
     @brief Returns the greatest common divisor (gcd) of two numbers by applying the Euclidean algorithm.
-    @param a A number.
-    @param b A number.
+    @param[in] a A number.
+    @param[in] b A number.
     @return The greatest common divisor.
     @see gcd(T a, T b, T& a1, T& b1)
     @ingroup MathFunctionsMisc
@@ -317,10 +323,10 @@ namespace Math
    @brief Returns the greatest common divisor by applying the extended Euclidean algorithm (Knuth TAoCP vol. 2, p342).
    Calculates u1, u2 and u3 (which is returned) so that a * u1 + b * u2 = u3 = gcd(a, b, u1, u2)
 
-   @param a A number.
-   @param b A number.
-   @param u1 A reference to the number to be returned (see the above formula).
-   @param u2 A reference to the number to be returned (see the above formula).
+   @param[in] a A number.
+   @param[in] b A number.
+   @param[out] u1 A reference to the number to be returned (see the above formula).
+   @param[out] u2 A reference to the number to be returned (see the above formula).
    @return The greatest common divisor.
    @see gcd(T, T)
    @ingroup MathFunctionsMisc
@@ -360,8 +366,8 @@ namespace Math
 
     The returned ppm value can be either positive (mz_obs > mz_ref) or negative (mz_obs < mz_ref)!
 
-    @param mz_obs Observed (experimental) m/z
-    @param mz_ref Reference (theoretical) m/z
+    @param[in] mz_obs Observed (experimental) m/z
+    @param[in] mz_ref Reference (theoretical) m/z
     @return The ppm value
   */
   template<typename T>
@@ -375,8 +381,8 @@ namespace Math
 
     The returned ppm value is always >= 0.
 
-    @param mz_obs Observed (experimental) m/z
-    @param mz_ref Reference (theoretical) m/z
+    @param[in] mz_obs Observed (experimental) m/z
+    @param[in] mz_ref Reference (theoretical) m/z
     @return The absolute ppm value
   */
   template<typename T>
@@ -390,8 +396,8 @@ namespace Math
 
     The returned mass diff can be either positive (ppm > 0) or negative (ppm < 0)!
 
-    @param ppm Parts-per-million error
-    @param mz_ref Reference m/z
+    @param[in] ppm Parts-per-million error
+    @param[in] mz_ref Reference m/z
     @return The mass diff in [Th]
   */
   template<typename T>
@@ -405,8 +411,8 @@ namespace Math
 
     The returned mass diff is always positive!
 
-    @param ppm Parts-per-million error
-    @param mz_ref Reference m/z
+    @param[in] ppm Parts-per-million error
+    @param[in] mz_ref Reference m/z
     @return The absolute mass diff in [Th]
   */
   template<typename T>
@@ -423,9 +429,9 @@ namespace Math
     includes the largest value x which still has @p val in *its* tolerance
     window for the given ppms, so the compatibility relation is symmetric.
 
-    @param val Value
-    @param tol Tolerance
-    @param ppm Whether @p tol is in ppm or absolute
+    @param[in] val Value
+    @param[in] tol Tolerance
+    @param[in] ppm Whether @p tol is in ppm or absolute
     @return Tolerance window boundaries
   */
   inline std::pair<double, double> getTolWindow(double val, double tol, bool ppm)
@@ -497,5 +503,84 @@ namespace Math
       rng_.seed(val);
     }
   };
+
+  /**
+   * @brief Calculate logarithm of binomial coefficient C(n,k) using log-gamma function
+   * 
+   * @param[in] n Total number of items
+   * @param[in] k Number of items to choose
+   * @return Natural logarithm of binomial coefficient C(n,k)
+   * @throws std::invalid_argument if k > n
+   */
+  inline double log_binomial_coef(unsigned n, unsigned k) 
+  {
+    // Handle edge cases for improved numerical stability
+    if (k > n) 
+    {
+      throw std::invalid_argument("k cannot be greater than n in binomial coefficient");
+    }
+    
+    if (k == 0 || k == n) 
+    {
+      return 0.0;  // log(1) = 0
+    }
+    
+    // Use symmetry to minimize computation for large k
+    if (k > n / 2) 
+    {
+      k = n - k;
+    }
+    
+    return boost::math::lgamma(n + 1.0) - boost::math::lgamma(k + 1.0) - boost::math::lgamma(n - k + 1.0);
+  }
+
+  /**
+   * @brief Log-sum-exp operation for numerical stability
+   * 
+   * @param[in] x First logarithmic value
+   * @param[in] y Second logarithmic value
+   * @return Natural logarithm of (exp(x) + exp(y))
+   */
+  inline double log_sum_exp(double x, double y) 
+  {
+    // Handle infinite cases
+    if (std::isinf(x) && x < 0) return y;
+    if (std::isinf(y) && y < 0) return x;
+    
+    // Use the maximum value for numerical stability
+    double max_val = std::max(x, y);
+    return max_val + std::log(std::exp(x - max_val) + std::exp(y - max_val));
+  }
+
+  /**
+   * @brief Calculate binomial cumulative distribution function P(X ≥ n)
+   * 
+   * Calculates P(X ≥ n) for a binomial distribution with parameters N and p,
+   * using numerically stable algorithms in the log domain to handle large values.
+   * 
+   * @param[in] N Total number of trials
+   * @param[in] n Minimum number of successes
+   * @param[in] p Probability of success in each trial
+   * @return Probability P(X ≥ n) for binomial distribution B(N,p)
+   * @throws std::invalid_argument if parameters are invalid
+   */
+  inline double binomial_cdf_complement(unsigned N, unsigned n, double p)
+  {
+    if (p < 0.0 || p > 1.0)
+    {
+      throw std::invalid_argument("Probability p must be between 0 and 1");
+    }
+    if (n > N)
+    {
+      throw std::invalid_argument("n cannot be greater than N");
+    }
+
+    if (n == 0)   return 1.0;                // P(X ≥ 0) = 1
+    if (p == 0.0) return (n == 0) ? 1.0 : 0.0;
+    if (p == 1.0) return 1.0;               // all mass at N
+
+    const boost::math::binomial_distribution<double> dist(N, p);
+    return boost::math::cdf(boost::math::complement(dist, n - 1));
+  }
 } // namespace Math
 } // namespace OpenMS

@@ -40,7 +40,7 @@ namespace OpenMS
                        const bool split_file,
                        const String& tmp,
                        const String& readoptions,
-                       boost::shared_ptr<ExperimentalSettings > & exp_meta,
+                       std::shared_ptr<ExperimentalSettings > & exp_meta,
                        std::vector< OpenSwath::SwathMap > & swath_maps,
                        Interfaces::IMSDataConsumer* plugin_consumer)
   {
@@ -78,7 +78,7 @@ namespace OpenMS
   // Protected
 
   bool TOPPOpenSwathBase::loadSwathFiles(const StringList& file_list,
-                      boost::shared_ptr<ExperimentalSettings >& exp_meta,
+                      std::shared_ptr<ExperimentalSettings >& exp_meta,
                       std::vector< OpenSwath::SwathMap >& swath_maps,
                       const bool split_file,
                       const String& tmp,
@@ -161,7 +161,7 @@ namespace OpenMS
   }
 
   void TOPPOpenSwathBase::prepareChromOutput(Interfaces::IMSDataConsumer ** chromatogramConsumer,
-                          const boost::shared_ptr<ExperimentalSettings>& exp_meta,
+                          const std::shared_ptr<ExperimentalSettings>& exp_meta,
                           const OpenSwath::LightTargetedExperiment& transition_exp,
                           const String& out_chrom,
                           const UInt64 run_id)
@@ -273,6 +273,10 @@ namespace OpenMS
       Param model_params = getParam_().copy("model:", true);
       model_params.setValue("symmetric_regression", "false");
       model_params.setValue("span", irt_detection_param.getValue("lowess:span"));
+      model_params.setValue("auto_span", irt_detection_param.getValue("lowess:auto_span"));
+      model_params.setValue("auto_span_min", irt_detection_param.getValue("lowess:auto_span_min"));
+      model_params.setValue("auto_span_max", irt_detection_param.getValue("lowess:auto_span_max"));
+      model_params.setValue("auto_span_grid", irt_detection_param.getValue("lowess:auto_span_grid"));
       model_params.setValue("num_nodes", irt_detection_param.getValue("b_spline:num_nodes"));
       String model_type = irt_detection_param.getValue("alignmentMethod").toString();
       trafo_rtnorm.fitModel(model_type, model_params);

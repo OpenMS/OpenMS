@@ -6,6 +6,9 @@
 // $Authors: Erhan Kenar, Holger Franken $
 // --------------------------------------------------------------------------
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/IONMOBILITY/FAIMSHelper.h>
+#include <OpenMS/IONMOBILITY/IMDataConverter.h>
+#include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MassTrace.h>
@@ -15,6 +18,10 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/PROCESSING/FEATURE/FeatureOverlapFilter.h>
+
+#include <limits>
+#include <set>
 
 
 using namespace OpenMS;
@@ -90,6 +97,115 @@ public:
 
 protected:
 
+  /**
+   * @brief Process a single PeakMap (or FAIMS CV group) through the full FFMetabo pipeline
+   * @param[in,out] ms_peakmap Input peak map (will be modified - sorted)
+   * @param[in] common_param Common parameters
+   * @param[in] mtd_param MassTraceDetection parameters
+   * @param[in] epd_param ElutionPeakDetection parameters
+   * @param[in] ffm_param FeatureFindingMetabo parameters
+   * @param[out] feat_map Output feature map
+   * @param[out] feat_chromatograms Output chromatograms (if enabled)
+   * @return True on success, false on error
+   */
+  bool processOneGroup_(PeakMap& ms_peakmap,
+                        const Param& common_param,
+                        Param mtd_param,
+                        Param epd_param,
+                        Param ffm_param,
+                        FeatureMap& feat_map,
+                        std::vector<std::vector<OpenMS::MSChromatogram>>& feat_chromatograms)
+  {
+    // make sure the spectra are sorted by m/z
+    ms_peakmap.sortSpectra(true);
+
+    vector<MassTrace> m_traces;
+
+    //-------------------------------------------------------------
+    // configure and run mass trace detection
+    //-------------------------------------------------------------
+    MassTraceDetection mtdet;
+    mtd_param.insert("", common_param);
+    mtd_param.remove("chrom_fwhm");
+    mtdet.setParameters(mtd_param);
+    mtdet.run(ms_peakmap, m_traces);
+
+    //-------------------------------------------------------------
+    // configure and run elution peak detection
+    //-------------------------------------------------------------
+    std::vector<MassTrace> m_traces_final;
+    if (epd_param.getValue("enabled").toBool())
+    {
+      std::vector<MassTrace> splitted_mtraces;
+      epd_param.remove("enabled");
+      epd_param.insert("", common_param);
+      epd_param.remove("noise_threshold_int");
+      ElutionPeakDetection epdet;
+      epdet.setParameters(epd_param);
+      epdet.detectPeaks(m_traces, splitted_mtraces);
+      if (epdet.getParameters().getValue("width_filtering") == "auto")
+      {
+        m_traces_final.clear();
+        epdet.filterByPeakWidth(splitted_mtraces, m_traces_final);
+      }
+      else
+      {
+        m_traces_final = splitted_mtraces;
+      }
+    }
+    else
+    {
+      m_traces_final = m_traces;
+      for (Size i = 0; i < m_traces_final.size(); ++i)
+      {
+        m_traces_final[i].estimateFWHM(false);
+      }
+      if (ffm_param.getValue("use_smoothed_intensities").toBool())
+      {
+        OPENMS_LOG_WARN << "Without EPD, smoothing is not supported. Setting 'use_smoothed_intensities' to false!" << std::endl;
+        ffm_param.setValue("use_smoothed_intensities", "false");
+      }
+    }
+
+    //-------------------------------------------------------------
+    // configure and run feature finding
+    //-------------------------------------------------------------
+    ffm_param.insert("", common_param);
+    ffm_param.remove("noise_threshold_int");
+    ffm_param.remove("chrom_peak_snr");
+
+    FeatureFindingMetabo ffmet;
+    ffmet.setParameters(ffm_param);
+    ffmet.run(m_traces_final, feat_map, feat_chromatograms);
+
+    Size trace_count(0);
+    for (Size i = 0; i < feat_map.size(); ++i)
+    {
+      OPENMS_PRECONDITION(feat_map[i].metaValueExists(Constants::UserParam::NUM_OF_MASSTRACES),
+          "MetaValue 'num_of_masstraces' missing from FFMetabo output!");
+      trace_count += (Size) feat_map[i].getMetaValue(Constants::UserParam::NUM_OF_MASSTRACES);
+    }
+
+    if (trace_count != m_traces_final.size())
+    {
+      if (!ffm_param.getValue("remove_single_traces").toBool())
+      {
+        OPENMS_LOG_ERROR << "FF-Metabo: Internal error. Not all mass traces have been assembled to features!" << std::endl;
+        return false;
+      }
+      else
+      {
+        OPENMS_LOG_INFO << "FF-Metabo: " << (m_traces_final.size() - trace_count) << " unassembled traces have been removed." << std::endl;
+      }
+    }
+
+    OPENMS_LOG_INFO << "-- FF-Metabo stats --\n"
+             << "Input traces:    " << m_traces_final.size() << "\n"
+             << "Output features: " << feat_map.size() << " (total trace count: " << trace_count << ")" << std::endl;
+
+    return true;
+  }
+
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Centroided mzML file");
@@ -99,6 +215,13 @@ protected:
 
     registerOutputFile_("out_chrom", "<file>", "", "Optional mzML file with chromatograms", false);
     setValidFormats_("out_chrom", ListUtils::create<String>("mzML"));
+
+    addEmptyLine_();
+    registerStringOption_("faims_merge_features", "<true/false>", "true",
+      "For FAIMS data with multiple compensation voltages: Merge features representing the same analyte "
+      "detected at different CV values into a single feature. Only features with DIFFERENT FAIMS CV values "
+      "are merged (same CV = different analytes). Has no effect on non-FAIMS data.", false);
+    setValidStrings_("faims_merge_features", {"true", "false"});
 
     addEmptyLine_();
     registerSubsection_("algorithm", "Algorithm parameters section");
@@ -179,11 +302,6 @@ protected:
       }
     }
 
-    // make sure the spectra are sorted by m/z
-    ms_peakmap.sortSpectra(true);
-
-    vector<MassTrace> m_traces;
-
     //-------------------------------------------------------------
     // set parameters
     //-------------------------------------------------------------
@@ -200,96 +318,82 @@ protected:
     Param ffm_param = getParam_().copy("algorithm:ffm:", true);
     writeDebug_("Parameters passed to FeatureFindingMetabo", ffm_param, 3);
 
-    //-------------------------------------------------------------
-    // configure and run mass trace detection
-    //-------------------------------------------------------------
-
-    MassTraceDetection mtdet;
-    mtd_param.insert("", common_param);
-    mtd_param.remove("chrom_fwhm");
-    mtdet.setParameters(mtd_param);
-
-    mtdet.run(ms_peakmap, m_traces);
-
-    //-------------------------------------------------------------
-    // configure and run elution peak detection
-    //-------------------------------------------------------------
-
-    std::vector<MassTrace> m_traces_final;
-    if (epd_param.getValue("enabled").toBool())
-    {
-      std::vector<MassTrace> splitted_mtraces;
-      epd_param.remove("enabled"); // artificially added above
-      epd_param.insert("", common_param);
-      epd_param.remove("noise_threshold_int");
-      ElutionPeakDetection epdet;
-      epdet.setParameters(epd_param);
-      // fill mass traces with smoothed data as well .. bad design..
-      epdet.detectPeaks(m_traces, splitted_mtraces);
-      if (epdet.getParameters().getValue("width_filtering") == "auto")
-      {
-        m_traces_final.clear();
-        epdet.filterByPeakWidth(splitted_mtraces, m_traces_final);
-      }
-      else
-      {
-        m_traces_final = splitted_mtraces;
-      }
-    }
-    else // no elution peak detection
-    {
-      m_traces_final = m_traces;
-      for (Size i = 0; i < m_traces_final.size(); ++i) // estimate FWHM, so .getIntensity() can be called later
-      {
-        m_traces_final[i].estimateFWHM(false);
-      }
-      if (ffm_param.getValue("use_smoothed_intensities").toBool())
-      {
-        OPENMS_LOG_WARN << "Without EPD, smoothing is not supported. Setting 'use_smoothed_intensities' to false!" << std::endl;
-        ffm_param.setValue("use_smoothed_intensities", "false");
-      }
-    }
-
-    //-------------------------------------------------------------
-    // configure and run feature finding
-    //-------------------------------------------------------------
-
-    ffm_param.insert("", common_param);
-    ffm_param.remove("noise_threshold_int");
-    ffm_param.remove("chrom_peak_snr");
     String report_chromatograms = out_chrom.empty() ? "false" : "true";
     ffm_param.setValue("report_chromatograms", report_chromatograms);
 
-    FeatureMap feat_map;
-    std::vector< std::vector< OpenMS::MSChromatogram > > feat_chromatograms;
-    FeatureFindingMetabo ffmet;
-    ffmet.setParameters(ffm_param);
-    ffmet.run(m_traces_final, feat_map, feat_chromatograms);
-
-    Size trace_count(0);
-    for (Size i = 0; i < feat_map.size(); ++i)
+    // Store polarities before potentially moving ms_peakmap (needed later for output annotation)
+    set<IonSource::Polarity> polarities;
+    for (const auto& spec : ms_peakmap)
     {
-      OPENMS_PRECONDITION(feat_map[i].metaValueExists(Constants::UserParam::NUM_OF_MASSTRACES),
-          "MetaValue 'num_of_masstraces' missing from FFMetabo output!");
-      trace_count += (Size) feat_map[i].getMetaValue(Constants::UserParam::NUM_OF_MASSTRACES);
+      polarities.insert(spec.getInstrumentSettings().getPolarity());
     }
 
-    if (trace_count != m_traces_final.size())
+    //-------------------------------------------------------------
+    // Split by FAIMS CV (returns single NaN-keyed element for non-FAIMS data)
+    //-------------------------------------------------------------
+    auto faims_groups = IMDataConverter::splitByFAIMSCV(std::move(ms_peakmap));
+
+    const bool has_faims = faims_groups.size() > 1 || !std::isnan(faims_groups[0].first);
+    if (has_faims)
     {
-      if (!ffm_param.getValue("remove_single_traces").toBool())
-      { 
-        OPENMS_LOG_ERROR << "FF-Metabo: Internal error. Not all mass traces have been assembled to features! Aborting." << std::endl;
+      OPENMS_LOG_INFO << "FAIMS data detected with " << faims_groups.size() << " compensation voltage(s)." << endl;
+    }
+
+    FeatureMap feat_map;
+    std::vector<std::vector<OpenMS::MSChromatogram>> feat_chromatograms;
+
+    // Process each FAIMS CV group (or single group for non-FAIMS data)
+    for (auto& [group_cv, faims_group] : faims_groups)
+    {
+      if (has_faims)
+      {
+        OPENMS_LOG_INFO << "Processing FAIMS CV group: " << group_cv << " V (" << faims_group.size() << " spectra)" << endl;
+      }
+
+      // Process this group
+      FeatureMap feat_map_cv;
+      std::vector<std::vector<OpenMS::MSChromatogram>> feat_chromatograms_cv;
+
+      if (!processOneGroup_(faims_group, common_param, mtd_param, epd_param, ffm_param,
+                            feat_map_cv, feat_chromatograms_cv))
+      {
+        if (has_faims)
+        {
+          OPENMS_LOG_ERROR << "Processing failed for FAIMS CV " << group_cv << " V. Aborting." << endl;
+        }
         return UNEXPECTED_RESULT;
       }
-      else
+
+      // Annotate features with FAIMS CV (if FAIMS data) and add to combined results
+      for (auto& feat : feat_map_cv)
       {
-        OPENMS_LOG_INFO << "FF-Metabo: " << (m_traces_final.size() - trace_count) << " unassembled traces have been removed." << std::endl;
-      }     
+        if (has_faims)
+        {
+          feat.setMetaValue(Constants::UserParam::FAIMS_CV, group_cv);
+        }
+        feat_map.push_back(feat);
+      }
+
+      // Combine chromatograms
+      for (auto& chrom_group : feat_chromatograms_cv)
+      {
+        feat_chromatograms.push_back(std::move(chrom_group));
+      }
     }
 
-    OPENMS_LOG_INFO << "-- FF-Metabo stats --\n"
-             << "Input traces:    " << m_traces_final.size() << "\n"
-             << "Output features: " << feat_map.size() << " (total trace count: " << trace_count << ")" << std::endl;
+    if (has_faims)
+    {
+      OPENMS_LOG_INFO << "Combined " << feat_map.size() << " features from all FAIMS CV groups." << endl;
+
+      // Optionally merge features representing the same analyte at different CV values
+      if (getStringOption_("faims_merge_features") == "true")
+      {
+        Size before_merge = feat_map.size();
+        FeatureOverlapFilter::mergeFAIMSFeatures(feat_map, 5.0, 0.05);
+        OPENMS_LOG_INFO << "FAIMS feature merge: " << before_merge << " -> " << feat_map.size()
+                        << " features (merged " << (before_merge - feat_map.size()) << ")" << endl;
+      }
+    }
 
     // filter features with zero intensity (this can happen if the FWHM is zero (bc of overly skewed shape) and no peaks end up being summed up)
     auto intensity_zero = [&](Feature& f) { return f.getIntensity() == 0; };
@@ -318,18 +422,13 @@ protected:
     }
 
     // store ionization mode of spectra (useful for post-processing by AccurateMassSearch tool)
-    if (!feat_map.empty())
+    // Note: polarities were collected before ms_peakmap was potentially moved
+    if (!feat_map.empty() && !polarities.empty())
     {
-      set<IonSource::Polarity> pols;
-      for (Size i = 0; i < ms_peakmap.size(); ++i)
-      {
-        pols.insert(ms_peakmap[i].getInstrumentSettings().getPolarity());
-      }
-      // concat to single string
       StringList sl_pols;
-      for (set<IonSource::Polarity>::const_iterator it = pols.begin(); it != pols.end(); ++it)
+      for (const auto& pol : polarities)
       {
-        sl_pols.push_back(String(IonSource::NamesOfPolarity[*it]));
+        sl_pols.push_back(String(IonSource::NamesOfPolarity[pol]));
       }
       feat_map[0].setMetaValue("scan_polarity", ListUtils::concatenate(sl_pols, ";"));
     }
@@ -338,10 +437,14 @@ protected:
     // writing output
     //-------------------------------------------------------------
 
+    // ensure unique IDs for the combined feature map
+    feat_map.ensureUniqueId();
+
     // annotate output with data processing info
     addDataProcessing_(feat_map, getProcessingInfo_(DataProcessing::QUANTITATION));
 
     // annotate "spectra_data" metavalue
+    // Note: use simple form since ms_peakmap may have been moved for FAIMS processing
     if (getFlag_("test"))
     {
       // if test mode set, add file without path so we can compare it
@@ -349,7 +452,7 @@ protected:
     }
     else
     {
-      feat_map.setPrimaryMSRunPath({in}, ms_peakmap);
+      feat_map.setPrimaryMSRunPath({in});
     }    
 
     FileHandler().storeFeatures(out, feat_map, {FileTypes::FEATUREXML});

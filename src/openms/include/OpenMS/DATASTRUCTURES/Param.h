@@ -11,6 +11,8 @@
 #include <OpenMS/DATASTRUCTURES/ParamValue.h>
 #include <OpenMS/OpenMSConfig.h>
 
+#include <cstddef>
+#include <iterator>
 #include <set>
 #include <string>
 #include <map>
@@ -167,6 +169,13 @@ public:
     class OPENMS_DLLAPI ParamIterator
     {
 public:
+      // Iterator type definitions for C++ standard library compatibility
+      using iterator_category = std::forward_iterator_tag;
+      using value_type = Param::ParamEntry;
+      using difference_type = std::ptrdiff_t;
+      using pointer = const Param::ParamEntry*;
+      using reference = const Param::ParamEntry&;
+
       /// Struct that captures information on entered / left nodes for ParamIterator
       struct OPENMS_DLLAPI TraceInfo
       {
@@ -254,10 +263,10 @@ protected:
     /**
       @brief Sets a value.
 
-      @param key String key. Can contain ':' which separates section names
-      @param value The actual value
-      @param description Verbose description of the parameter
-      @param tags list of tags associated to this parameter
+      @param[in] key String key. Can contain ':' which separates section names
+      @param[in] value The actual value
+      @param[in] description Verbose description of the parameter
+      @param[in] tags list of tags associated to this parameter
     */
     void setValue(const std::string& key, const ParamValue& value, const std::string& description = "", const std::vector<std::string>& tags = std::vector<std::string>());
 
@@ -285,7 +294,7 @@ protected:
     /**
       @brief Tests if a parameter is set (expecting its fully qualified name, e.g., TextExporter:1:proteins_only)
 
-      @param key The fully qualified name of the parameter to check.
+      @param[in] key The fully qualified name of the parameter to check.
       @return True if the parameter exists, false otherwise.
     */
     bool exists(const std::string& key) const;
@@ -293,7 +302,7 @@ protected:
     /**
       @brief Checks whether a section is present.
 
-      @param key The key of the section to be searched for. May or may not contain ":" suffix.
+      @param[in] key The key of the section to be searched for. May or may not contain ":" suffix.
       @return True if the section exists, false otherwise.
      */
     bool hasSection(const std::string& key) const;
@@ -301,7 +310,7 @@ protected:
     /**
       @brief Find leaf node by name (if it exists).
 
-      @param leaf The name of the parameter to find excluding the path parameter, e.g., given the parameter TextExporter:1:proteins_only the leaf would be named proteins_only.
+      @param[in] leaf The name of the parameter to find excluding the path parameter, e.g., given the parameter TextExporter:1:proteins_only the leaf would be named proteins_only.
       @return Returns end() if leaf does not exist.
     */
     ParamIterator findFirst(const std::string& leaf) const;
@@ -309,8 +318,8 @@ protected:
     /**
       @brief Find next leaf node by name (if it exists), not considering the @p start_leaf
 
-      @param leaf The name of the parameter to find excluding the path parameter, e.g., given the parameter TextExporter:1:proteins_only the leaf would be named proteins_only.
-      @param start_leaf The already found leaf, that should not be considered during this search.
+      @param[in] leaf The name of the parameter to find excluding the path parameter, e.g., given the parameter TextExporter:1:proteins_only the leaf would be named proteins_only.
+      @param[in] start_leaf The already found leaf, that should not be considered during this search.
       @return Returns end() if leaf does not exist.
     */
     ParamIterator findNext(const std::string& leaf, const ParamIterator& start_leaf) const;
@@ -438,16 +447,16 @@ protected:
     /**
       @brief Returns a new Param object containing all entries that start with @p prefix.
 
-      @param prefix should contain a ':' at the end if you want to extract a subtree.
+      @param[in] prefix should contain a ':' at the end if you want to extract a subtree.
              Otherwise not only nodes, but as well values with that prefix are copied.
-      @param remove_prefix indicates if the prefix is removed before adding entries to the new Param
+      @param[in] remove_prefix indicates if the prefix is removed before adding entries to the new Param
     */
     Param copy(const std::string& prefix, bool remove_prefix = false) const;
 
     /**
       @brief Returns a new Param object containing all entries in the given subset.
 
-      @param subset The subset of Param nodes that should be copied out of the object
+      @param[in] subset The subset of Param nodes that should be copied out of the object
              here. Includes values etc. Does not check any compatibility. Just matches the names.
       @note Only matches entries and nodes at the root=top level and copies over whole subtrees if matched.
             This function is mainly used for copying subsection parameters that were not registered as
@@ -482,12 +491,12 @@ protected:
 
       Not transferred are values from parameter "version" (to preserve the new version) or "type" (to preserve layout).
 
-      @param p_outdated Old/outdated param object, whose values (as long as they are still valid) are used to update this object 
-      @param verbose Print information about expected value updates
-      @param add_unknown Add unknown parameters from @p p_outdated to this param object.
-      @param fail_on_invalid_values Return false if outdated parameters hold invalid values
-      @param fail_on_unknown_parameters Return false if outdated parameters contain unknown parameters (takes precedence over @p add_unknown)
-      @param stream The stream where all the logging output is send to.
+      @param[in] p_outdated Old/outdated param object, whose values (as long as they are still valid) are used to update this object 
+      @param[in] verbose Print information about expected value updates
+      @param[in] add_unknown Add unknown parameters from @p p_outdated to this param object.
+      @param[in] fail_on_invalid_values Return false if outdated parameters hold invalid values
+      @param[in] fail_on_unknown_parameters Return false if outdated parameters contain unknown parameters (takes precedence over @p add_unknown)
+      @param[out] stream The stream where all the logging output is send to.
       @return true on success, false on failure
     */
     bool update(const Param& p_outdated, bool verbose, bool add_unknown, bool fail_on_invalid_values, bool fail_on_unknown_parameters, Logger::LogStream& stream);
@@ -495,7 +504,7 @@ protected:
     /**
       @brief Adds missing parameters from the given param @p toMerge to this param. Existing parameters will not be modified.
 
-      @param toMerge The Param object from which parameters should be added to this param.
+      @param[in] toMerge The Param object from which parameters should be added to this param.
     */
     void merge(const Param& toMerge);
 
@@ -507,9 +516,9 @@ protected:
     /**
       @brief Insert all values of @p defaults and adds the prefix @p prefix, if the values are not already set.
 
-      @param defaults The default values.
-      @param prefix The prefix to add to all defaults.
-      @param showMessage If <tt>true</tt> each default that is actually set is printed to stdout as well.
+      @param[in] defaults The default values.
+      @param[in] prefix The prefix to add to all defaults.
+      @param[in] showMessage If <tt>true</tt> each default that is actually set is printed to stdout as well.
 
       @see checkDefaults
     */
@@ -526,9 +535,9 @@ protected:
       - If a numeric parameter is out of the valid range, an exception is thrown.
       - If entry is a numeric list an exception is thrown, if one or more list members are out of the valid range
 
-      @param name The name that is used in error messages.
-      @param defaults The default values.
-      @param prefix The prefix where to check for the defaults.
+      @param[in] name The name that is used in error messages.
+      @param[in] defaults The default values.
+      @param[in] prefix The prefix where to check for the defaults.
 
       Warnings etc. will be send to OPENMS_LOG_WARN.
 
@@ -609,9 +618,9 @@ protected:
       "prefix:-c" -> "bvalue"<BR>
       "prefix:misc" -> list("misc1","misc2")<BR>
 
-      @param argc argc variable from command line
-      @param argv argv variable from command line
-      @param prefix prefix for all options
+      @param[in] argc argc variable from command line
+      @param[in] argv argv variable from command line
+      @param[in] prefix prefix for all options
     */
     void parseCommandLine(const int argc, const char** argv, const std::string& prefix = "");
 
@@ -620,13 +629,13 @@ protected:
 
       Parses command line arguments to specified key locations and stores the result internally.
 
-      @param argc argc variable from command line
-      @param argv argv variable from command line
-      @param options_with_one_argument a map of options that are followed by one argument (with key where they are stored)
-      @param options_without_argument a map of options that are not followed by an argument (with key where they are stored). Options specified on the command line are set to the string 'true'.
-      @param options_with_multiple_argument a map of options that are followed by several arguments (with key where they are stored)
-      @param misc key where a StringList of all non-option arguments are stored
-      @param unknown key where a StringList of all unknown options are stored
+      @param[in] argc argc variable from command line
+      @param[in] argv argv variable from command line
+      @param[out] options_with_one_argument a map of options that are followed by one argument (with key where they are stored)
+      @param[out] options_without_argument a map of options that are not followed by an argument (with key where they are stored). Options specified on the command line are set to the string 'true'.
+      @param[out] options_with_multiple_argument a map of options that are followed by several arguments (with key where they are stored)
+      @param[out] misc key where a StringList of all non-option arguments are stored
+      @param[out] unknown key where a StringList of all unknown options are stored
     */
     void parseCommandLine(const int argc, const char** argv, const std::map<std::string, std::string>& options_with_one_argument, const std::map<std::string, std::string>& options_without_argument, const std::map<std::string, std::string>& options_with_multiple_argument, const std::string& misc = "misc", const std::string& unknown = "unknown");
 

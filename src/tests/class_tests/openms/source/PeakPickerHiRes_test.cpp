@@ -8,6 +8,7 @@
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 
 ///////////////////////////
@@ -103,7 +104,7 @@ START_SECTION((template <typename PeakType> void pick(const MSSpectrum& input, M
     input.emplace_back(100.04, 200);
 
     input.getFloatDataArrays().resize(1);
-    input.getFloatDataArrays()[0].setName("Ion Mobility");
+    input.getFloatDataArrays()[0].setName(Constants::UserParam::ION_MOBILITY);
     input.getFloatDataArrays()[0].push_back(100.0);
     input.getFloatDataArrays()[0].push_back(150.0);
     input.getFloatDataArrays()[0].push_back(150.0);

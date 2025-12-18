@@ -61,11 +61,11 @@ private:
       - Sort and de-duplicate candidates with a small tolerance.
       - Guarantee a non-empty result by falling back to a single value if necessary.
 
-    @param n_pts           Number of data points available.
-    @param grid_str        Span candidates in (0, 1). If empty, a default span grid is used.
-    @param span_min_param  Minimum allowed span (will be raised to at least `0.01`).
-    @param span_max_param  Maximum allowed span (will be lowered to at most `0.99`).
-    @param min_neighbors   Minimum number of neighbors to include in each local regression.
+    @param[in] n_pts           Number of data points available.
+    @param[in] grid_str        Span candidates in (0, 1). If empty, a default span grid is used.
+    @param[in] span_min_param  Minimum allowed span (will be raised to at least `0.01`).
+    @param[in] span_max_param  Maximum allowed span (will be lowered to at most `0.99`).
+    @param[in] min_neighbors   Minimum number of neighbors to include in each local regression.
 
     @return Vector of candidate spans after clamping and de-duplication.
   */
@@ -97,8 +97,8 @@ private:
 
     If @p errs is empty, returns `+inf` to signal an unusable model fit.
 
-    @param errs   Absolute residuals (validation errors).
-    @param metric Metric name (`"rmse"`, `"mae"`, `"p90"`, `"p95"`, `"p99"`).
+    @param[in] errs   Absolute residuals (validation errors).
+    @param[in] metric Metric name (`"rmse"`, `"mae"`, `"p90"`, `"p95"`, `"p99"`).
     @return Scalar loss; lower values indicate better fit.
   */
   static double scoreResiduals(const std::vector<double>& errs, CVMetric metric);

@@ -26,8 +26,8 @@ public:
       /**
         @brief Constructor
 
-                @param mapping The mapping rules
-                @param cv @em All controlled vocabularies required for the mapping
+                @param[in] mapping The mapping rules
+                @param[in] cv @em All controlled vocabularies required for the mapping
             */
       TraMLValidator(const CVMappings & mapping, const ControlledVocabulary & cv);
 

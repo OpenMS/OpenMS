@@ -836,12 +836,16 @@ protected:
           switchScores_(pep);
         }
 
-        // add missing RTs to peptide IDs
+        // add missing RTs and FAIMS CVs to peptide IDs
         MSExperiment exp;
         MzMLFile mzml_file{};
-        mzml_file.getOptions().setMetadataOnly(true);
-    		mzml_file.load(in, exp); 
+        // Load spectrum metadata (not just file metadata) but skip peak data
+        mzml_file.getOptions().setMetadataOnly(false);
+        mzml_file.getOptions().setFillData(false);
+        mzml_file.load(in, exp);
         SpectrumMetaDataLookup::addMissingRTsToPeptideIDs(peptide_ids, exp);
+        // Annotate FAIMS compensation voltage if present
+        SpectrumMetaDataLookup::addMissingFAIMSToPeptideIDs(peptide_ids, exp);
       }
 
       // use OpenMS meta value key

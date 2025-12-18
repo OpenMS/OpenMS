@@ -525,7 +525,7 @@ namespace OpenMS
   /**
   @brief Sorts the data points by retention time
 
-  @param sort_mz if @em true, spectra are sorted by m/z position as well
+  @param[in] sort_mz if @em true, spectra are sorted by m/z position as well
   */
   void MSExperiment::sortSpectra(bool sort_mz)
   {
@@ -544,7 +544,7 @@ namespace OpenMS
   /**
   @brief Sorts the data points of the chromatograms by m/z
 
-  @param sort_rt if @em true, chromatograms are sorted by rt position as well
+  @param[in] sort_rt if @em true, chromatograms are sorted by rt position as well
   */
   void MSExperiment::sortChromatograms(bool sort_rt)
   {
@@ -563,7 +563,7 @@ namespace OpenMS
   /**
   @brief Checks if all spectra are sorted with respect to ascending RT
 
-  @param check_mz if @em true, checks if all peaks are sorted with respect to ascending m/z
+  @param[in] check_mz if @em true, checks if all peaks are sorted with respect to ascending m/z
   */
   bool MSExperiment::isSorted(bool check_mz) const
   {
@@ -791,6 +791,7 @@ namespace OpenMS
     {
       return -1;
     }
+    
     auto spec = spectra_.cbegin();
     spec += zero_based_index;
     auto pc_spec = getFirstProductSpectrum(spec);
@@ -995,7 +996,7 @@ namespace OpenMS
   /**
   @brief Clears all data and meta data
 
-  @param clear_meta_data If @em true, all meta data is cleared in addition to the data.
+  @param[in] clear_meta_data If @em true, all meta data is cleared in addition to the data.
   */
   void MSExperiment::clear(bool clear_meta_data)
   {
@@ -1069,8 +1070,8 @@ namespace OpenMS
   /*
   @brief Append a spectrum including float data arrays to current MSExperiment
 
-  @param rt RT of new spectrum
-  @param metadata_names Names of float data arrays attached to this spectrum
+  @param[in] rt RT of new spectrum
+  @param[in] metadata_names Names of float data arrays attached to this spectrum
   @return Pointer to newly created spectrum
   */
   MSExperiment::SpectrumType* MSExperiment::createSpec_(PeakType::CoordinateType rt, const StringList& metadata_names)

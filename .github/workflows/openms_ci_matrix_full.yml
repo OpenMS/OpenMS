@@ -43,48 +43,39 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: windows-2022
+          - os: windows-2025
             # cl.exe is currently the only supported. Needs a VS shell to be set up (especially if used without VS CMake Generator)
             # clang.exe is also installed but untested (might crash with our VS specific compiler definitions)
             # clang-cl.exe might be used instead.
             compiler: cl.exe
             # VS 2022: 14.30-14.39 (corresponds to MSVC v143)
             # VS 2019: 14.20-14.29 (corresponds to MSVC v142)
-            compiler_ver: 14.36    # Specific toolset version for VS 2022 -- must (roughly) match Qt6 compiler (see below)
+            compiler_ver: 14.44   # Specific toolset version for VS 2022 -- must (roughly) match Qt6 compiler (see below)
 
-          - os: macos-15-intel
+          - os: macos-14
             # Since the appleclang version is dependent on the XCode versions that are installed
             #  on the GH runners, use this as the choice for a specific version
             # TODO currently unused but XCode/appleclang is the default
             compiler: xcode
             # TODO implement support for other versions
-            compiler_ver: "16.0.0"
-
-          - os: macos-26
-            # Since the appleclang version is dependent on the XCode versions that are installed
-            #  on the GH runners, use this as the choice for a specific version
-            # TODO currently unused but XCode/appleclang is the default
-            compiler: xcode
-            # TODO implement support for other versions
-            compiler_ver: "26.0"
+            compiler_ver: "15.4"  # macos-14 runners ship with Xcode 15.4
 
           # Make sure the compilers are available in that version on the GH runners
           # We are not installing anything.
-          - os: ubuntu-22.04
+          - os: ubuntu-24.04
             compiler: g++
 
-            compiler_ver: 11
+            compiler_ver: 13
           # Make sure the compilers are available in that version on the GH runners
           # We are not installing anything.
           
-          - os: ubuntu-22.04-arm
+          - os: ubuntu-24.04-arm
             compiler: g++
-            compiler_ver: 11
+            compiler_ver: 13
 
-
-          - os: ubuntu-22.04
+          - os: ubuntu-24.04
             compiler: clang++
-            compiler_ver: 15
+            compiler_ver: 17
     outputs:
       version_number: ${{ steps.create_changelog.outputs.version_number }}
 
@@ -171,7 +162,7 @@ jobs:
 
     # Create the changelog for the release from our overall changelog
     - id: create_changelog
-      if: matrix.compiler != 'clang++' && startsWith(steps.extract_branch.outputs.RUN_NAME,'release') && startsWith(matrix.os, 'ubuntu')
+      if: matrix.compiler != 'clang++' && startsWith(steps.extract_branch.outputs.RUN_NAME,'release') && startsWith(matrix.os, 'ubuntu') && runner.arch == 'arm64'
       shell: bash
       name: Create changelog for release on Ubuntu + GCC
       run: |
@@ -224,27 +215,43 @@ jobs:
         # NOTE: x64 is hardcoded. No support for 32bit
         arch: x64
 
-    - name: Setup conda environment for Parquet (Windows only)
+    - name: Install Conda
       if: startsWith(matrix.os, 'windows')
       uses: conda-incubator/setup-miniconda@v3
       with:
         auto-update-conda: true
+        activate-environment: "ci"
         python-version: 3.9
-        activate-environment: openms-parquet
         use-mamba: true
 
-    - name: Install Parquet dependencies (Windows only)
+    - name: Install Dependencies via Conda
+      id: conda-setup
       if: startsWith(matrix.os, 'windows')
+      # NOTE: This weird shell line is needed in order to activate
+      # conda (and put it in this shell's PATH) since the way it's
+      # installed requires a login shell :(
       shell: bash -el {0}
       run: |
-        conda activate openms-parquet
+        # Dump out environment information for debugging:
+        conda info
+
         # None of the other arrow sublibraries seemed necessary, but it's an easy addition.
         conda install -c conda-forge libarrow libparquet -y
-        # Get the conda environment path for later use
-        echo "CONDA_ENV_PATH=$(conda info --base)/envs/openms-parquet" >> $GITHUB_ENV
-        # Add conda environment to PATH for cmake to find the libraries
-        echo "$(conda info --base)/envs/openms-parquet/bin" >> $GITHUB_PATH
-        echo "$(conda info --base)/envs/openms-parquet/Library/bin" >> $GITHUB_PATH
+
+        # Set variables required for the following steps so they
+        # don't need a conda environment or login shell:
+        CONDA_ENV_PREFIX=$(
+          conda info --json |
+            jq --raw-output .active_prefix |
+            sed 's|\\|/|g'
+        )
+
+        echo "$CONDA_ENV_PREFIX/bin" >>"$GITHUB_PATH"
+        echo "$CONDA_ENV_PREFIX/Library/bin" >>"$GITHUB_PATH"
+        echo "cmake_prefix=$CONDA_ENV_PREFIX/Library" >>"$GITHUB_OUTPUT"
+
+        # Some output for debugging:
+        echo "CONDA_ENV_PREFIX=$CONDA_ENV_PREFIX"
 
     - name: Install Qt (Windows)
       if: startsWith(matrix.os, 'windows')
@@ -255,49 +262,59 @@ jobs:
         cache: 'false'
         archives: 'qtsvg qtimageformats qtbase'
 
-    - name: Setup build tools (and system contrib on Linux and Mac)
+    - name: Set Up Build Tools
       id: tools-prefix
       shell: bash
-      env: 
-        # We need to add this, otherwise brew "helpfully" updates all of the GitHub preinstalled packages, which can cause issues
+      env:
+        # We need to add this, otherwise brew "helpfully" updates all
+        # of the GitHub preinstalled packages, which can cause issues:
         HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK: 1
       run: |
         if [[ "${{ matrix.os }}" == ubuntu-* ]]; then
           # WARNING: Don't add any dependency install commands here.
           # Instead edit the following script:
           bash OpenMS/tools/ci/deps-ubuntu.sh
+          # Install libomp for clang compiler (needed for OpenMP support)
+          # Use version-specific package matching the clang version
+          if [[ "${{ matrix.compiler }}" == clang* ]]; then
+            sudo apt-get -qq install -y libomp-${{ matrix.compiler_ver }}-dev
+          fi
           echo "Testing doxygen" && doxygen --version
           echo "cmake_prefix=" >>$GITHUB_OUTPUT
         fi
-        
+
         if [[ "${{ matrix.os }}" == windows-* ]]; then
-          # QT_ROOT_DIR set by Install Qt step
-          # Add conda environment paths to CMAKE_PREFIX_PATH for finding Arrow/Parquet
-          CONDA_CMAKE_PREFIX="$CONDA_ENV_PATH/Library;$CONDA_ENV_PATH/Library/cmake"
-          echo "cmake_prefix=$QT_ROOT_DIR/lib/cmake;$QT_ROOT_DIR;$CONDA_CMAKE_PREFIX" >> $GITHUB_OUTPUT
-          choco install ccache ninja -y --no-progress
-          choco install cmake -y --no-progress
-          ## GH CLI "SHOULD BE" installed. Sometimes I had to manually install nonetheless. Super weird.
-          # https://github.com/actions/runner-images/blob/main/images/win/scripts/Installers/Install-GitHub-CLI.ps1
-          echo "C:\Program Files (x86)\GitHub CLI" >> $GITHUB_PATH
-          # Install eigen from choco
-          choco install eigen -y --no-progress
-          echo "eigen_choco=C:\ProgramData\chocolatey\lib\eigen\share\cmake" >> $GITHUB_OUTPUT
-          choco install doxygen.portable ghostscript graphviz -y --no-progress
-          
+          choco install  -y --no-progress \
+                ccache \
+                cmake \
+                doxygen.portable \
+                eigen \
+                ghostscript \
+                graphviz \
+                ninja
+
           if [[ "${{ steps.set-vars.outputs.pkg_type }}" != "none" ]]; then
             # uses a custom NSIS, which provides 8-k string support and has UltraModernUI integrated already
             curl --no-progress-meter -L -o NSIS.tar.gz https://github.com/OpenMS/NSIS/raw/main/NSIS.tar.gz
             ## overwrite existing NSIS (which has only 1k-string support)
             7z x -so NSIS.tar.gz | 7z x -si -ttar -aoa -o"C:/Program Files (x86)/NSIS/"
           fi
+
+          echo "cmake_prefix=" >>"$GITHUB_OUTPUT"
+          echo "eigen_choco=C:\ProgramData\chocolatey\lib\eigen\share\cmake" >> $GITHUB_OUTPUT
+
+          ## GH CLI "SHOULD BE" installed. Sometimes I had to manually install nonetheless. Super weird.
+          # https://github.com/actions/runner-images/blob/main/images/win/scripts/Installers/Install-GitHub-CLI.ps1
+          echo "C:\Program Files (x86)\GitHub CLI" >> $GITHUB_PATH
         fi
 
         if [[ "${{ matrix.os }}" == macos-* ]]; then
           # WARNING: Don't add any brew install commands here, edit
           # the following script instead:
           bash OpenMS/tools/ci/deps-macos.sh
-          echo "cmake_prefix=$(brew --prefix qt)/lib/cmake;$(brew --prefix qt);$(brew --prefix libomp)" >>$GITHUB_OUTPUT
+
+          echo "$(brew --prefix)/bin" >>"$GITHUB_PATH"
+          echo "cmake_prefix=$(brew --prefix);$(brew --prefix libomp)" >>"$GITHUB_OUTPUT"
         fi
 
     - name: Cache contrib (Windows)
@@ -345,18 +362,8 @@ jobs:
           THIRDPARTY_DIR="OpenMS/THIRDPARTY"
           mkdir -p _thirdparty
           # Copy the correct architecture
-          cp -R "$THIRDPARTY_DIR/${{ steps.set-vars.outputs.tp_folder }}/$(uname -m)"/* _thirdparty/          
-          # For MacOS 14 we also want to copy over any tools that we only have in x86_64 flavor.
-          if [[ "${{ matrix.os }}" == macos-14 ]]; then
-            echo "Copying x86_64 tools for MacOS 14"
-            for tool in $THIRDPARTY_DIR/MacOS/x86_64/*; do
-              toolname=$(basename "$tool")
-              if [[ ! -e "_thirdparty/$toolname" ]]; then
-                echo "Copying missing tool from x86_64: $toolname"
-                cp -R "$tool" "_thirdparty/"
-              fi
-            done
-          fi
+          cp -R "$THIRDPARTY_DIR/${{ steps.set-vars.outputs.tp_folder }}/$(uname -m)"/* _thirdparty/
+          # Copy architecture independent tools
           cp -R OpenMS/THIRDPARTY/All/* _thirdparty/
           # add third-party binaries to PATH
           for thirdpartytool in '${{ github.workspace }}/_thirdparty'/*
@@ -371,7 +378,7 @@ jobs:
 
    # Upload the changelog to the same artifact that we will add the installers to.
     - name: Upload changelog as artifact
-      if: steps.set-vars.outputs.pkg_type != 'none' && startsWith(steps.extract_branch.outputs.RUN_NAME,'release') && startsWith(matrix.os, 'ubuntu')
+      if: steps.set-vars.outputs.pkg_type != 'none' && startsWith(steps.extract_branch.outputs.RUN_NAME,'release') && startsWith(matrix.os, 'ubuntu') && runner.arch == 'arm64'
       uses: actions/upload-artifact@v4
       with:
         name: changelog.txt
@@ -409,7 +416,8 @@ jobs:
           echo "::endgroup::"
 
           mkdir $GITHUB_WORKSPACE/OpenMS/bld/
-          ${{ steps.set-vars.outputs.xvfb }} ctest --output-on-failure -V -S ../OpenMS/OpenMS/tools/ci/cibuild.cmake
+          bash OpenMS/tools/ci/capture-env.sh -v $GITHUB_WORKSPACE/OpenMS/bld/CMakeCache.txt
+          ${{ steps.set-vars.outputs.xvfb }} ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/ci/cibuild.cmake
           retVal=$?
           
           # Display ccache statistics after build
@@ -429,7 +437,8 @@ jobs:
           # TODO allow actual choice of compiler instead of using default.
           #  Problem: not all compilers are always in the PATH.
           CMAKE_CXX_COMPILER: ${{ steps.set-vars.outputs.cxx_compiler }}
-          CMAKE_PREFIX_PATH: ${{ steps.tools-prefix.outputs.cmake_prefix }}
+          MACOSX_DEPLOYMENT_TARGET: ${{ startsWith(matrix.os, 'macos') && '14.0' || '' }}
+          CMAKE_PREFIX_PATH: "${{ steps.tools-prefix.outputs.cmake_prefix }};${{ steps.conda-setup.outputs.cmake_prefix }}"
           OPENMS_CONTRIB_LIBS: "${{ github.workspace }}/OpenMS/contrib"
           CI_PROVIDER: "GitHub-Actions"
           CMAKE_GENERATOR: "Ninja"
@@ -442,13 +451,13 @@ jobs:
           ENABLE_GCC_WERROR: "OFF" # TODO think about that
           SEARCH_ENGINES_DIRECTORY: ${{ github.workspace }}/_thirdparty
           WITH_GUI: "ON"
-          WITH_PARQUET: "OFF" # Conda on windows, Apt on Ubuntu, Brew on MacOS
+          WITH_PARQUET: "ON"
           SIGNING_IDENTITY: "-"
           ADDRESS_SANITIZER: "Off"
           BUILD_TYPE: "Release"
           OPENMP: "ON"
           BOOST_USE_STATIC: ${{ steps.set-vars.outputs.static_boost }}
-          COMPILE_PXDS: ${{ startsWith(matrix.os, 'ubuntu') && github.event_name == 'pull_request' && github.event.pull_request.base.ref == 'develop' && 'ON' || 'OFF' }} # test generation of pxds
+          COMPILE_PXDS: ${{ (startsWith(matrix.os, 'ubuntu') && github.event_name == 'pull_request' && github.event.pull_request.base.ref == 'develop' && runner.arch == 'arm64') && 'ON' || 'OFF' }}
           #  BUILD_FLAGS: "-p:CL_MPCount=2" # For VS Generator and MSBuild
           BUILD_FLAGS: "-j${{ steps.cpu-cores.outputs.count }}" # Ninja will otherwise use all cores (doesn't go well in GHA).
           CMAKE_CCACHE_EXE: "ccache"
@@ -481,25 +490,33 @@ jobs:
           BUILD_NAME: "${{ steps.extract_branch.outputs.RUN_NAME }}-${{ steps.set-vars.outputs.tp_folder }}-${{ runner.arch }}-${{ matrix.compiler }}-${{ matrix.compiler_ver }}-class-topp-${{ github.run_number }}"
           # The rest of the vars should be saved in the CMakeCache
 
-    # Load the code signing certificate and the package signing certificate TODO: Change which cert to use for non-nightly
+    # Load the code signing certificate and the package signing certificate
+    # For production releases, use Developer ID certificates:
+    # - Developer ID Application certificate for code signing binaries
+    # - Developer ID Installer certificate for signing .pkg installers
     - name: Import Apple Developer Certificates
       if: steps.set-vars.outputs.pkg_type != 'none' && startsWith(matrix.os, 'macos')
       env:
-        APPLE_CERTIFICATE: ${{ secrets.APPLE_DEVELOPER_CERT_64 }}
-        APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_DEVELOPMENT_PW }}
-        INSTALLER_CERTIFICATE: ${{ secrets.APPLE_INSTALLER_CERT_64 }}
-        INSTALLER_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_INSTALLER_PW }}
+        # Developer ID Application certificate (base64 encoded .p12)
+        APPLE_CERTIFICATE: ${{ secrets.APPLE_DEVELOPER_ID_APPLICATION_CERT }}
+        APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_DEVELOPER_ID_APPLICATION_PASSWORD }}
+        # Developer ID Installer certificate (base64 encoded .p12)
+        INSTALLER_CERTIFICATE: ${{ secrets.APPLE_DEVELOPER_ID_INSTALLER_CERT }}
+        INSTALLER_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_DEVELOPER_ID_INSTALLER_PASSWORD }}
         KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
       run: |
         echo $APPLE_CERTIFICATE | base64 --decode > certificate.p12
         echo $INSTALLER_CERTIFICATE | base64 --decode > installer_certificate.p12
         security create-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
+        security list-keychains -d user -s build.keychain
         security default-keychain -s build.keychain
         security unlock-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
         security set-keychain-settings -t 3600 -u build.keychain
-        security import certificate.p12 -k build.keychain -P "$APPLE_CERTIFICATE_PASSWORD" -T /usr/bin/codesign
-        security import installer_certificate.p12 -k build.keychain -P "$INSTALLER_CERTIFICATE_PASSWORD" -T /usr/bin/codesign
-        security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" build.keychain
+        security import certificate.p12 -k build.keychain -P "$APPLE_CERTIFICATE_PASSWORD" -T /usr/bin/codesign -T /usr/bin/productbuild
+        security import installer_certificate.p12 -k build.keychain -P "$INSTALLER_CERTIFICATE_PASSWORD" -T /usr/bin/codesign -T /usr/bin/productsign -T /usr/bin/productbuild
+        security set-key-partition-list -S apple-tool:,apple:,codesign:,productsign:,productbuild: -s -k "$KEYCHAIN_PASSWORD" build.keychain
+        
+        echo "=== Available signing identities ==="
         security find-identity -v -p codesigning build.keychain
 
     - name: Package
@@ -508,7 +525,7 @@ jobs:
       run: |
           # do not fail immediately
           set +e
-          ${{ steps.set-vars.outputs.xvfb }} ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/ci/cipackage.cmake
+          ${{ steps.set-vars.outputs.xvfb }} ctest --output-on-failure -VV -S $GITHUB_WORKSPACE/OpenMS/tools/ci/cipackage.cmake
           retVal=$?
           if [ $retVal -ne 0 ]; then
               echo -e "\033[0;31m Errors in packaging:"
@@ -526,9 +543,49 @@ jobs:
           SEARCH_ENGINES_DIRECTORY: "${{ github.workspace }}/_thirdparty"
           CI_PROVIDER: "GitHub-Actions"
           BUILD_NAME: "${{ steps.extract_branch.outputs.RUN_NAME }}-${{ steps.set-vars.outputs.tp_folder }}-${{ runner.arch }}-${{ matrix.compiler }}-${{ matrix.compiler_ver }}-class-topp-${{ github.run_number }}"
-          SIGNING_IDENTITY: "Apple Development: Samuel Wein (B26WBF742H)"
+          # Developer ID Application certificate identity for code signing (public info, not a secret)
+          SIGNING_IDENTITY: "Developer ID Application: OpenMS Inc. (C64UCGJ5PL)"
           SIGNING_EMAIL: "apple@openms.de"
+          # Developer ID Installer certificate identity for signing .pkg (public info, not a secret)
           CPACK_PRODUCTBUILD_IDENTITY_NAME: "Developer ID Installer: OpenMS Inc. (C64UCGJ5PL)"
+
+    # Notarize macOS packages for Gatekeeper approval
+    # This step submits the signed package to Apple for notarization and staples the ticket
+    - name: Notarize macOS Package
+      if: steps.set-vars.outputs.pkg_type == 'pkg' && startsWith(matrix.os, 'macos')
+      shell: bash
+      env:
+        APPLE_APP_SPECIFIC_NOTARIZATION_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_NOTARIZATION_PASSWORD }}
+        TEAM_ID: "C64UCGJ5PL"
+      run: |
+        echo "=== Starting macOS package notarization ==="
+        cd $GITHUB_WORKSPACE/OpenMS/bld/
+
+        # Find the generated .pkg file
+        PKG_FILE=$(ls -1 *.pkg 2>/dev/null | head -1)
+        if [[ -z "$PKG_FILE" ]]; then
+          echo "Error: No .pkg file found in build directory"
+          ls -la
+          exit 1
+        fi
+
+        echo "Found package: $PKG_FILE"
+
+        # Run notarization script
+        $GITHUB_WORKSPACE/OpenMS/cmake/MacOSX/notarize.sh \
+          "$PKG_FILE" \
+          "de.openms" \
+          "apple@openms.de" \
+          "APPLE_APP_SPECIFIC_NOTARIZATION_PASSWORD" \
+          "$TEAM_ID" \
+          "$GITHUB_WORKSPACE/OpenMS/bld/"
+
+        echo "=== Notarization complete ==="
+
+        # Verify the notarization
+        echo "=== Verifying package signing and notarization ==="
+        pkgutil --check-signature "$PKG_FILE" || echo "Warning: pkgutil verification returned non-zero"
+        spctl -a -vvv -t install "$PKG_FILE" || echo "Warning: spctl assessment returned non-zero"
 
     # WARNING: Here you have to make sure that only one matrix configuration per OS produces packages. See set-vars steps.
     - name: Upload packages as artifacts
@@ -543,7 +600,7 @@ jobs:
 
     #Zip the documentation first, since there are :: which make the upload action choke.
     - name: Zip Documentation
-      if: steps.set-vars.outputs.pkg_type != 'none' && startsWith(matrix.os, 'ubuntu')
+      if: steps.set-vars.outputs.pkg_type != 'none' && startsWith(matrix.os, 'ubuntu') && runner.arch == 'arm64'
       uses: thedoctor0/zip-release@0.7.6
       with:
         type: 'zip'
@@ -553,7 +610,7 @@ jobs:
     
    # Compress the source
     - name: Create tarball
-      if: steps.set-vars.outputs.pkg_type != 'none' && startsWith(matrix.os, 'ubuntu')
+      if: steps.set-vars.outputs.pkg_type != 'none' && startsWith(matrix.os, 'ubuntu') && runner.arch == 'arm64'
       run: |
         tar --exclude='bld/*' \
             --exclude='OpenMS-${{ steps.create_changelog.outputs.version_number }}.tar.gz' \
@@ -565,7 +622,7 @@ jobs:
         
    # Upload the source tar
     - name: Upload source tar as artifact
-      if: steps.set-vars.outputs.pkg_type != 'none' && startsWith(matrix.os, 'ubuntu')
+      if: steps.set-vars.outputs.pkg_type != 'none' && startsWith(matrix.os, 'ubuntu') && runner.arch == 'arm64'
       uses: actions/upload-artifact@v4
       with:
         name: OpenMS-${{ steps.create_changelog.outputs.version_number }}.tar.gz
@@ -576,7 +633,7 @@ jobs:
     # Only upload docs when we are building the package, use the ubuntu build simply 'cause its fast
 
     - name: Upload Documentation as artifacts
-      if: steps.set-vars.outputs.pkg_type != 'none' && startsWith(matrix.os, 'ubuntu')
+      if: steps.set-vars.outputs.pkg_type != 'none' && startsWith(matrix.os, 'ubuntu') && runner.arch == 'arm64'
       uses: actions/upload-artifact@v4
       with:
         name: documentation
@@ -585,7 +642,8 @@ jobs:
 
     - name: Generate KNIME descriptors and payloads
     # We never want to build the KNIME update site on our second Ubuntu + Clang matrix entry even if inputs.knime is true, so we check for that specific os + compiler combo
-      if: steps.set-vars.outputs.pkg_type != 'none' || ( inputs.knime && !(startsWith(matrix.os, 'ubuntu') && startsWith(matrix.compiler, 'clang++') ) )
+    # we also don't want it from both the arm and x86_64 builds
+      if: (steps.set-vars.outputs.pkg_type != 'none' && !(startsWith(matrix.os, 'ubuntu') && runner.arch == 'arm64')) || ( inputs.knime && !(startsWith(matrix.os, 'ubuntu') && (startsWith(matrix.compiler, 'clang++') || runner.arch == 'arm64') ) )
       shell: bash
       run: |
         cd $GITHUB_WORKSPACE/OpenMS/bld/
@@ -595,7 +653,8 @@ jobs:
         
     - name: Upload KNIME payload and descriptors as artifacts
     # We never want to build the KNIME update site on our second Ubuntu + Clang matrix entry even if inputs.knime is true, so we check for that specific os + compiler combo
-      if: steps.set-vars.outputs.pkg_type != 'none' ||  ( inputs.knime && !(startsWith(matrix.os, 'ubuntu') && startsWith(matrix.compiler, 'clang++') ) )
+    # we also don't want it from both the arm and x86_64 builds
+      if: (steps.set-vars.outputs.pkg_type != 'none' && !(startsWith(matrix.os, 'ubuntu') && runner.arch == 'arm64')) ||  ( inputs.knime && !(startsWith(matrix.os, 'ubuntu') && (startsWith(matrix.compiler, 'clang++') || runner.arch == 'arm64') ) )
       uses: actions/upload-artifact@v4
       with:
         name: ${{ format('knime-{0}{1}', steps.set-vars.outputs.tp_folder, runner.arch == 'arm64' && '-arm64' || '') }}
@@ -615,19 +674,19 @@ jobs:
         run: echo "RUN_NAME=${{ github.event.pull_request && github.event.number || github.ref_name }}" >> $GITHUB_ENV
 
       - name: Download installer artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           pattern: installer-*
           merge-multiple: true
 
       - name: Download source archive as artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           name: OpenMS-${{ needs.build-and-test.outputs.version_number }}.tar.gz
 
       - name: Download changelog as artifact
         if: inputs.do_release
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           name: changelog.txt
       

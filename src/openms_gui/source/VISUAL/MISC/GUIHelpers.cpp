@@ -288,7 +288,7 @@ namespace OpenMS
   GUIHelpers::OverlapDetector::OverlapDetector(int levels)
   {
     if (levels <= 0)
-      throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, levels);
+      throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, levels, "levels must be positive");
     rows_.resize(levels, 0);
   }
 

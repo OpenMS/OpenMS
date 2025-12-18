@@ -19,6 +19,16 @@ namespace OpenMS
   class ConsensusMap;
   class ConsensusFeature;
 
+  /// small quality control class, holding temporary data for reporting
+  struct ChannelQC
+  {
+
+    std::vector<double> mz_deltas; ///< m/z distance between expected and observed reporter ion closest to expected position
+    int signal_not_unique{0};  ///< counts if more than one peak was found within the search window of each reporter position
+  };
+
+  typedef std::map<String, ChannelQC> ChannelQCSet;
+
   /**
     @brief Extracts individual channels from MS/MS spectra for isobaric labeling experiments.
 
@@ -47,7 +57,7 @@ public:
     /**
       @brief C'tor to create a new channel extractor for the given quantitation method.
 
-      @param quant_method IsobaricQuantitationMethod providing the necessary information which channels should be extracted.
+      @param[in] quant_method IsobaricQuantitationMethod providing the necessary information which channels should be extracted.
     */
     explicit IsobaricChannelExtractor(const IsobaricQuantitationMethod* const quant_method);
 
@@ -60,10 +70,59 @@ public:
     /**
       @brief Extracts the isobaric channels from the tandem MS data and stores intensity values in a consensus map.
 
-      @param ms_exp_data Raw data to search for isobaric quantitation channels.
-      @param consensus_map Output map containing the identified channels and the corresponding intensities.
+      @param[in] ms_exp_data Raw data to search for isobaric quantitation channels.
+      @param[in] consensus_map Output map containing the identified channels and the corresponding intensities.
     */
     void extractChannels(const PeakMap& ms_exp_data, ConsensusMap& consensus_map);
+
+    /**
+     * @brief Extracts intensities for channels of reporter ions from isobaric tags (according to the quantitation method given when creating this object)
+     * 
+     * Stores statistics about extraction in @p channel_qc.
+     * 
+     * @param[in] spec_idx index in the MSExperiment @p exp
+     * @param[in] exp reference to the MSExperiment for finding precursors etc.
+     * @param[out] channel_qc vector of pairs of m/z and channel index for storing channel QC information
+     * @return std::vector<double> extracted intensities for each channel (0 if no peak was found)
+     */
+    std::vector<double> extractSingleSpec(Size spec_idx, const MSExperiment& exp, std::vector<std::pair<double, unsigned>>& channel_qc);
+
+    /**  
+    * @brief Registers channel information in a ConsensusMap.  
+    * 
+    * Adds column headers with channel metadata to the consensus map.  
+    * Only needed when using extractSingleSpec() instead of extractChannels().  
+    * 
+    * @param[out] consensus_map ConsensusMap to register channels in  
+    * @param[in] filename Optional filename to associate with channels  
+    */  
+    void registerChannelsInOutputMap(ConsensusMap& consensus_map, const String& filename = "");
+
+    /**
+     * @brief Prints statistics about the channel errors with OPENMS_LOG_INFO.
+     */
+    void printStats();
+    void printStats(ChannelQCSet& stats) const;
+
+    /**
+     * @brief Prints the stats collected during quantification. ChannelQC mzdeltas may contain missing values encoded as quiet_NaN.
+     * 
+     * @param[in] stats the stats to print (NOT const, since we need to sort it for median calculation)
+     *
+     */
+    void printStatsWithMissing(std::vector<ChannelQC>& stats) const;
+
+    /**
+     * @brief Clears channel statistics, e.g. after a new experiment has been loaded.
+     */
+    void clearStats();
+
+    /**
+     * @brief Returns a reference to the channel statistics.
+     * 
+     * @return Reference to the internal ChannelQCSet containing accumulated QC metrics
+     */
+    ChannelQCSet& getStats();
 
 private:
     /**
@@ -73,7 +132,7 @@ private:
       MS1 precursor scan of an MS2 scan and the MS1 scan immediately
       following the current MS2 scan.
     */
-    struct PuritySate_
+    struct PurityState_
     {
       /// Iterator pointing to the potential MS1 precursor scan
       PeakMap::ConstIterator precursorScan;
@@ -88,21 +147,21 @@ private:
       /**
         @brief C'tor taking the experiment that will be analyzed.
 
-        @param targetExp The experiment that will be analyzed.
+        @param[in] targetExp The experiment that will be analyzed.
       */
-      PuritySate_(const PeakMap& targetExp);
+      PurityState_(const PeakMap& targetExp);
 
       /**
         @brief Searches the experiment for the next MS1 spectrum with a retention time bigger then @p rt.
 
-        @param rt The next follow up scan should have a retention bigger then this value.
+        @param[in] rt The next follow up scan should have a retention bigger then this value.
       */
       void advanceFollowUp(const double rt);
 
       /**
         @brief Check if the currently selected follow up scan has a retention time bigger then the given value.
 
-        @param rt The retention time to check.
+        @param[in] rt The retention time to check.
       */
       bool followUpValid(const double rt) const;
     };
@@ -137,13 +196,16 @@ private:
     /// Flag if precursor purity will solely be computed based on the precursor scan (false), or interpolated between the precursor- and the following MS1 scan.
     bool interpolate_precursor_purity_;
 
-    /// add channel information to the map after it has been filled
-    void registerChannelsInOutputMap_(ConsensusMap& consensus_map);
+    /// Constant for distance used in qc calculations
+    static constexpr double qc_dist_mz = 0.5; // fixed! Do not change!
+
+    /// Accumulates QC metrics for the different channels
+    ChannelQCSet channel_mz_delta;
 
     /**
       @brief Checks if the given precursor fulfills all constraints for extractions.
 
-      @param precursor The precursor to test.
+      @param[in] precursor The precursor to test.
       @return $true$ if the precursor can be used for extraction, $false$ otherwise.
     */
     bool isValidPrecursor_(const Precursor& precursor) const;
@@ -151,7 +213,7 @@ private:
     /**
       @brief Checks whether the given ConsensusFeature contains a channel that is below the given intensity threshold.
 
-      @param cf The ConsensusFeature to check.
+      @param[in] cf The ConsensusFeature to check.
       @return $true$ if a low intensity reporter is contained, $false$ otherwise.
     */
     bool hasLowIntensityReporter_(const ConsensusFeature& cf) const;
@@ -159,17 +221,17 @@ private:
     /**
       @brief Computes the purity of the precursor given an iterator pointing to the MS/MS spectrum and one to the precursor spectrum.
 
-      @param ms2_spec Iterator pointing to the MS2 spectrum.
-      @param precursor Iterator pointing to the precursor spectrum of ms2_spec.
+      @param[in] ms2_spec Iterator pointing to the MS2 spectrum.
+      @param[in] precursor Iterator pointing to the precursor spectrum of ms2_spec.
       @return Fraction of the total intensity in the isolation window of the precursor spectrum that was assigned to the precursor.
     */
-    double computePrecursorPurity_(const PeakMap::ConstIterator& ms2_spec, const PuritySate_& precursor) const;
+    double computePrecursorPurity_(const PeakMap::ConstIterator& ms2_spec, const PurityState_& precursor) const;
 
     /**
       @brief Computes the purity of the precursor given an iterator pointing to the MS/MS spectrum and a reference to the potential precursor spectrum.
 
-      @param ms2_spec Iterator pointing to the MS2 spectrum.
-      @param precursor_spec Precursor spectrum of ms2_spec.
+      @param[in] ms2_spec Iterator pointing to the MS2 spectrum.
+      @param[in] precursor_spec Precursor spectrum of ms2_spec.
       @return Fraction of the total intensity in the isolation window of the precursor spectrum that was assigned to the precursor.
     */
     double computeSingleScanPrecursorPurity_(const PeakMap::ConstIterator& ms2_spec, const PeakMap::SpectrumType& precursor_spec) const;
@@ -177,14 +239,14 @@ private:
     /**
       @brief Get the first (of potentially many) activation methods (HCD,CID,...) of this spectrum.
 
-      @param s The spectrum
+      @param[in] s The spectrum
       @return Entry from Precursor::NamesOfActivationMethod or empty string.
     */
     String getActivationMethod_(const PeakMap::SpectrumType& s) const
     {
       for (std::vector<Precursor>::const_iterator it = s.getPrecursors().begin(); it != s.getPrecursors().end(); ++it)
       {
-        if (!it->getActivationMethods().empty()) return Precursor::NamesOfActivationMethod[*(it->getActivationMethods().begin())];
+        if (!it->getActivationMethods().empty()) return Precursor::NamesOfActivationMethod[static_cast<size_t>(*(it->getActivationMethods().begin()))];
       }
       return "";
     }
