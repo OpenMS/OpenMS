@@ -31,6 +31,7 @@ namespace evergreen {
 #include <utility>
 #include <OpenMS/MATH/MISC/CubicSpline2d.h>
 #include <OpenMS/MATH/MISC/BSpline2d.h>
+#include <OpenMS/MATH/MISC/BSplineSmoothingSpline.h>
 #include <OpenMS/MATH/MISC/SmoothingSpline.h>
 #include <cstdlib> // for getenv
 #include <iostream>
@@ -268,188 +269,66 @@ Pi0Result pi0est(const std::vector<double>& p_values, const std::vector<double>&
           std::cerr << "]\n";
         }
 
-        // Check for explicit wavelength control via env vars.
-        const char* bw_env = std::getenv("OPENMS_PI0_BSPLINE_WAVELENGTH");
-        const char* bws_env = std::getenv("OPENMS_PI0_BSPLINE_WAVELENGTHS");
-        bool found_pred = false;
-
-        
-        auto try_bs = [&](double wavelength)->double
+        // Use BSplineSmoothingSpline which matches scipy's UnivariateSpline behavior.
+        // This automatically selects between polynomial fitting (for simple cases with
+        // few data points) and BSpline fitting (for complex cases), matching the
+        // optimization problem that scipy solves: minimize roughness subject to RSS ≤ s.
+        // 
+        // The smoothing parameter s is auto-computed as: s = m - sqrt(2*m)
+        // where m is the number of data points. This gives appropriate smoothing
+        // similar to scipy's default behavior.
+        try
         {
-          try
+          OpenMS::BSplineSmoothingSpline spl(xs, ys, -1.0, 3);
+          
+          if (!spl.ok())
           {
-            // Try a broader set of node-count configurations if the default
-            // auto nodes fail for non-zero wavelength. We pick the candidate
-            // with a valid prediction and minimal RSS to the input knots
-            // (xs, ys) as a simple goodness-of-fit metric.
-            std::vector<size_t> node_cands;
-            
-            // Check if user wants to force a specific node count
-            const char* force_nodes_env = std::getenv("OPENMS_PI0_BSPLINE_FORCE_NODES");
-            if (force_nodes_env)
+            if (env_true(dbg2)) 
             {
-              try {
-                size_t forced = std::stoul(force_nodes_env);
-                node_cands.push_back(forced);
-                if (env_true(dbg2)) std::cerr << "pi0est debug: Forcing nodes=" << forced << " from OPENMS_PI0_BSPLINE_FORCE_NODES\n";
-              } catch (...) {
-                // Fall back to default behavior
-              }
+              std::cerr << "pi0est debug: BSplineSmoothingSpline failed to fit, using min pi0\n";
             }
-            
-            if (node_cands.empty())
-            {
-              node_cands.push_back(0); // library auto-select
-              size_t n = xs.size();
-              if (n > 0)
-              {
-                // try a small/medium/large range of nodes derived from n
-                node_cands.push_back(std::max<size_t>(4, n / 4));
-                node_cands.push_back(std::max<size_t>(4, n / 2));
-                node_cands.push_back(n);
-                node_cands.push_back(std::min<size_t>(std::max<size_t>(n * 2, 4), 2000));
-                node_cands.push_back(std::min<size_t>(std::max<size_t>(n * 4, 4), 2000));
-              }
-            }
-
-            // Enable verbose BSpline internals if requested
-            bool was_debug = false;
-            if (env_true(dbg2))
-            {
-              OpenMS::BSpline2d::debug(true);
-              was_debug = true;
-            }
-
-            double best_pred = std::numeric_limits<double>::quiet_NaN();
-            double best_rss = std::numeric_limits<double>::infinity();
-            bool found_any = false;
-
-            for (size_t nodes : node_cands)
-            {
-              try
-              {
-                OpenMS::BSpline2d bs(xs, ys, wavelength, OpenMS::BSpline2d::BC_ZERO_SECOND, nodes);
-                if (!bs.ok()) continue;
-
-                // evaluate prediction at max_lambda
-                double pred_local = bs.eval(max_lambda);
-                if (!std::isfinite(pred_local)) continue;
-
-                // compute RSS on the provided knots as a goodness metric
-                double rss = 0.0;
-                bool rss_ok = true;
-                for (std::size_t ii = 0; ii < xs.size(); ++ii)
-                {
-                  double v = bs.eval(xs[ii]);
-                  if (!std::isfinite(v)) { rss_ok = false; break; }
-                  double d = v - ys[ii]; rss += d * d;
-                }
-                if (!rss_ok) continue;
-
-                // choose candidate with minimal rss (prefer smoother fits that
-                // approximate the knot values well). If equal within eps, keep
-                // the one with fewer nodes (prefer simpler models).
-                const double EPS_RSS = 1e-12;
-                bool is_new_best = false;
-                if (!found_any || (rss + EPS_RSS < best_rss) || (std::fabs(rss - best_rss) <= EPS_RSS && nodes <  (size_t)0))
-                {
-                  best_rss = rss;
-                  best_pred = pred_local;
-                  found_any = true;
-                  is_new_best = true;
-                }
-                if (env_true(dbg2))
-                {
-                  std::cerr << "pi0est debug: BSpline try nodes=" << nodes << " rss=" << rss << " pred=" << pred_local;
-                  if (is_new_best) std::cerr << " [NEW BEST]";
-                  std::cerr << "\n";
-                }
-              }
-              catch (...) { /* try next */ }
-            }
-
-            if (was_debug) OpenMS::BSpline2d::debug(false);
-
-            if (found_any) return best_pred;
-            return std::numeric_limits<double>::quiet_NaN();
-          }
-          catch (...) { return std::numeric_limits<double>::quiet_NaN(); }
-        };
-
-        // If a single wavelength is specified, use it.
-        if (bw_env && bw_env[0] != '\0')
-        {
-          double w = 0.0;
-          try { w = std::stod(std::string(bw_env)); }
-          catch (...) { w = 0.0; }
-          pred = try_bs(w);
-          if (env_true(dbg2)) std::cerr << "pi0est debug: BSpline wavelength=" << w << " pred=" << pred << "\n";
-          if (!std::isfinite(pred))
-          {
             res.pi0 = std::min(*std::min_element(pi0s.begin(), pi0s.end()), 1.0);
             res.pi0_smooth = false;
             return res;
-          }
-          found_pred = true;
-        }
-        else if (bws_env && bws_env[0] != '\0')
-        {
-          std::string s(bws_env);
-          std::vector<double> cand;
-          if (s == "AUTO")
-          {
-            cand = {0.0, 1e-8, 1e-6, 1e-4, 1e-3, 1e-2, 1e-1};
-          }
-          else
-          {
-            // parse comma-separated list
-            std::istringstream iss(s);
-            std::string tok;
-            while (std::getline(iss, tok, ','))
-            {
-              try { cand.push_back(std::stod(tok)); } catch (...) { }
-            }
-          }
-
-          if (env_true(dbg2))
-          {
-            std::cerr << "pi0est debug: BSpline wavelength sweep candidates=[";
-            for (size_t i = 0; i < cand.size(); ++i) { if (i) std::cerr << ", "; std::cerr << cand[i]; }
-            std::cerr << "]\n";
           }
           
-          for (double w : cand)
+          pred = spl.eval(max_lambda);
+          
+          if (env_true(dbg2))
           {
-            double p = try_bs(w);
+            std::cerr << "pi0est debug: BSplineSmoothingSpline pred=" << pred << "\n";
+          }
+          
+          if (!std::isfinite(pred))
+          {
             if (env_true(dbg2))
             {
-              std::cerr << "pi0est debug: BSpline wavelength=" << w << " pred=" << p;
-              if (std::isfinite(p) && !found_pred) std::cerr << " [FIRST VALID - WILL USE THIS]";
-              std::cerr << "\n";
+              std::cerr << "pi0est debug: BSplineSmoothingSpline prediction not finite, using min pi0\n";
             }
-            if (std::isfinite(p) && !found_pred)
-            {
-              pred = p; found_pred = true; // pick first successful
-            }
-          }
-          if (!found_pred)
-          {
             res.pi0 = std::min(*std::min_element(pi0s.begin(), pi0s.end()), 1.0);
             res.pi0_smooth = false;
             return res;
           }
         }
-        else
+        catch (const std::exception& e)
         {
-          // default: interpolating cubic (wavelength=0)
-          pred = try_bs(0.0);
-          if (env_true(dbg2)) std::cerr << "pi0est debug: used BSpline (w=0) pred=" << pred << "\n";
-          if (!std::isfinite(pred))
+          if (env_true(dbg2))
           {
-            res.pi0 = std::min(*std::min_element(pi0s.begin(), pi0s.end()), 1.0);
-            res.pi0_smooth = false;
-            return res;
+            std::cerr << "pi0est debug: BSplineSmoothingSpline exception: " << e.what() << ", using min pi0\n";
           }
+          res.pi0 = std::min(*std::min_element(pi0s.begin(), pi0s.end()), 1.0);
+          res.pi0_smooth = false;
+          return res;
+        }
+        catch (...)
+        {
+          if (env_true(dbg2))
+          {
+            std::cerr << "pi0est debug: BSplineSmoothingSpline unknown exception, using min pi0\n";
+          }
+          res.pi0 = std::min(*std::min_element(pi0s.begin(), pi0s.end()), 1.0);
+          res.pi0_smooth = false;
+          return res;
         }
 
         if (smooth_log_pi0)
