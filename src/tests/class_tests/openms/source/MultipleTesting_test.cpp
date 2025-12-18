@@ -215,10 +215,11 @@ START_SECTION("pi0est: pyprophet reference checks")
   auto res2 = pi0est(pvec);
   TEST_REAL_SIMILAR(res2.pi0, 0.6685638)
 
-  // lambda grid 0.4..0.95 step 0.05
+  // lambda grid 0.4..0.95 step 0.05 with smooth_log_pi0=true
+  // This matches PyProphet's test: pi0est(stat['p'], lambda_=np.arange(0.4,1.0,0.05), smooth_log_pi0=True)
   std::vector<double> lambda_v;
   for (double l = 0.4; l < 1.0 - 1e-12; l += 0.05) lambda_v.push_back(l);
-  auto res3 = pi0est(pvec, lambda_v);
+  auto res3 = pi0est(pvec, lambda_v, "smoother", 3, true);  // smooth_log_pi0=true
   TEST_REAL_SIMILAR(res3.pi0, 0.6658949)
 }
 END_SECTION
