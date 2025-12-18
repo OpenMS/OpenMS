@@ -222,6 +222,33 @@ namespace OpenMS
     const_iterator cend() const { return data_.cend(); }
     ///@}
 
+    ///@name Reduction operations
+    ///@{
+
+    /**
+     * @brief Returns the maximum value in the matrix.
+     *
+     * @return The maximum value. For empty matrices, returns Value() (default-constructed value).
+     */
+    Value maxValue() const
+    {
+      if (data_.empty()) return Value();
+      return *std::max_element(data_.begin(), data_.end());
+    }
+
+    /**
+     * @brief Returns the minimum value in the matrix.
+     *
+     * @return The minimum value. For empty matrices, returns Value() (default-constructed value).
+     */
+    Value minValue() const
+    {
+      if (data_.empty()) return Value();
+      return *std::min_element(data_.begin(), data_.end());
+    }
+
+    ///@}
+
     ///@name Comparison
     ///@{
 

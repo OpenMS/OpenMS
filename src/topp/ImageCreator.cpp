@@ -13,7 +13,6 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/RangeUtils.h>
 #include <OpenMS/ML/INTERPOLATION/BilinearInterpolation.h>
-#include <OpenMS/DATASTRUCTURES/MatrixEigen.h>
 #include <OpenMS/VISUAL/MultiGradient.h>
 
 
@@ -361,7 +360,7 @@ protected:
     double factor = getDoubleOption_("max_intensity");
     if (factor == 0)
     {
-      factor = eigenView(bilip.getData()).maxCoeff();
+      factor = bilip.getData().maxValue();
     }
     // with a user-supplied gradient, we need to logarithmize explicitly;
     // by default, the gradient itself is adjusted to the log-scale:
