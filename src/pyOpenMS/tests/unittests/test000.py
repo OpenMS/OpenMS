@@ -3424,6 +3424,53 @@ def testMSExperiment():
     str_str = str(exp_repr)
     assert str_str == repr_str
 
+    # Test setExperimentalSettings
+    exp_with_settings = pyopenms.MSExperiment()
+    settings = pyopenms.ExperimentalSettings()
+    
+    # Set some properties on the ExperimentalSettings
+    settings.setComment("Test comment for setExperimentalSettings")
+    settings.setFractionIdentifier("fraction_123")
+    
+    # Create sample and set it
+    sample = pyopenms.Sample()
+    sample.setName("Test Sample")
+    settings.setSample(sample)
+    
+    # Create and set source files
+    source_file = pyopenms.SourceFile()
+    source_file.setNameOfFile("test_file.mzML")
+    source_file.setPathToFile("/test/path/")
+    settings.setSourceFiles([source_file])
+    
+    # Apply the settings to the MSExperiment
+    exp_with_settings.setExperimentalSettings(settings)
+    
+    # Verify the settings were applied
+    assert exp_with_settings.getComment() == "Test comment for setExperimentalSettings"
+    assert exp_with_settings.getFractionIdentifier() == "fraction_123"
+    assert exp_with_settings.getSample().getName() == "Test Sample"
+    
+    source_files = exp_with_settings.getSourceFiles()
+    assert len(source_files) == 1
+    assert source_files[0].getNameOfFile() == "test_file.mzML"
+    assert source_files[0].getPathToFile() == "/test/path/"
+    
+    # Test that setExperimentalSettings doesn't affect spectra
+    spec_for_settings = pyopenms.MSSpectrum()
+    spec_for_settings.setRT(500.0)
+    spec_for_settings.setMSLevel(1)
+    exp_with_settings.addSpectrum(spec_for_settings)
+    assert exp_with_settings.getNrSpectra() == 1
+    
+    # Apply settings again and verify spectra are still there
+    settings2 = pyopenms.ExperimentalSettings()
+    settings2.setComment("New comment")
+    exp_with_settings.setExperimentalSettings(settings2)
+    
+    assert exp_with_settings.getComment() == "New comment"
+    assert exp_with_settings.getNrSpectra() == 1  # spectra should still be there
+
 
 @report
 def testMSSpectrum():
