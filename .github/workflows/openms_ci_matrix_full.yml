@@ -579,11 +579,6 @@ jobs:
           "apple@openms.de" \
           "APPLE_APP_SPECIFIC_NOTARIZATION_PASSWORD" \
           "$TEAM_ID" \
-e.sh \
-          "$PKG_FILE" \
-          "de.openms" \
-          "apple@openms.de" \
-          "APPLE_APP_SPECIFIC_NOTARIZATION_PASSWORD" \
           "$GITHUB_WORKSPACE/OpenMS/bld/"
 
         echo "=== Notarization complete ==="
