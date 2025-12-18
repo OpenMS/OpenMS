@@ -831,3 +831,55 @@ class TestBugFixes:
         assert len(ms1_df) == 3
         assert (ms1_df['i_norm'] == 0).all()
         assert (ms1_df['i_tic_norm'] == 0).all()
+
+    def test_featuremap_missing_spectrum_native_id(self):
+        """Test FeatureMap.get_df() handles missing spectrum_native_id metavalue.
+
+        Regression test for bug where getMetaValue('spectrum_native_id') was called
+        without checking if the metavalue exists, causing KeyError or unexpected behavior.
+        """
+        fmap = pyopenms.FeatureMap()
+
+        # Add a feature WITH spectrum_native_id
+        f1 = pyopenms.Feature()
+        f1.setRT(100.0)
+        f1.setMZ(500.0)
+        f1.setIntensity(1000.0)
+        f1.setCharge(2)
+        f1.setMetaValue('spectrum_native_id', 'scan=100')
+        # Add peptide identification to trigger the code path
+        pep1 = pyopenms.PeptideIdentification()
+        hit1 = pyopenms.PeptideHit()
+        hit1.setSequence(pyopenms.AASequence.fromString('PEPTIDE'))
+        hit1.setScore(10.0)
+        pep1.setHits([hit1])
+        pep_list1 = pyopenms.PeptideIdentificationList()
+        pep_list1.push_back(pep1)
+        f1.setPeptideIdentifications(pep_list1)
+        fmap.push_back(f1)
+
+        # Add a feature WITHOUT spectrum_native_id (the bug case)
+        f2 = pyopenms.Feature()
+        f2.setRT(200.0)
+        f2.setMZ(600.0)
+        f2.setIntensity(2000.0)
+        f2.setCharge(3)
+        # NO setMetaValue('spectrum_native_id', ...) - this is the bug case
+        pep2 = pyopenms.PeptideIdentification()
+        hit2 = pyopenms.PeptideHit()
+        hit2.setSequence(pyopenms.AASequence.fromString('ANOTHER'))
+        hit2.setScore(20.0)
+        pep2.setHits([hit2])
+        pep_list2 = pyopenms.PeptideIdentificationList()
+        pep_list2.push_back(pep2)
+        f2.setPeptideIdentifications(pep_list2)
+        fmap.push_back(f2)
+
+        # This should not raise an error
+        df = fmap.get_df(export_peptide_identifications=True)
+
+        assert len(df) == 2
+        # First feature should have the native_id
+        assert df.iloc[0]['ID_native_id'] == 'scan=100'
+        # Second feature should have 'None' string (numpy converts None to string due to U100 dtype)
+        assert df.iloc[1]['ID_native_id'] == 'None'

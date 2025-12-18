@@ -246,12 +246,16 @@ import numpy as np
             if need_pep_ids:
                 if pep.size() > 0:
                     ID_filename = self._get_prot_id_filename_from_pep_id(pep[0])
+                    # Check if spectrum_native_id meta value exists before accessing
+                    spec_id = None
+                    if f.metaValueExists('spectrum_native_id'):
+                        spec_id = f.getMetaValue('spectrum_native_id')
                     hits = pep[0].getHits()
                     if len(hits) > 0:
                         besthit = hits[0]
-                        pep_values = (besthit.getSequence().toString(), besthit.getScore(), ID_filename, f.getMetaValue('spectrum_native_id'))
+                        pep_values = (besthit.getSequence().toString(), besthit.getScore(), ID_filename, spec_id)
                     else:
-                        pep_values = (None, None, ID_filename, f.getMetaValue('spectrum_native_id'))
+                        pep_values = (None, None, ID_filename, spec_id)
                 else:
                     pep_values = (None, None, None, None)
             else:
