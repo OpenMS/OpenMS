@@ -128,17 +128,37 @@ namespace OpenMS
   MSSpectrum OnDiscMSExperiment::getSpectrum(Size id)
   {
     MSSpectrum spectrum;
-    if (!meta_ms_experiment_)
+
+    // If we have metadata, we can check RT range and MS level filters BEFORE loading peak data
+    // This allows skipping expensive I/O for spectra that will be filtered out anyway
+    if (meta_ms_experiment_)
     {
-      spectrum = indexed_mzml_file_.getMSSpectrumById(int(id));
+      spectrum = meta_ms_experiment_->operator[](id);
+
+      // Check RT range filter - skip loading peaks if outside range
+      if (options_.hasRTRange() && !options_.getRTRange().encloses(DPosition<1>(spectrum.getRT())))
+      {
+        // Return spectrum with metadata but no peaks (filtered out)
+        return spectrum;
+      }
+
+      // Check MS level filter - skip loading peaks if MS level doesn't match
+      if (options_.hasMSLevels() && !options_.containsMSLevel(spectrum.getMSLevel()))
+      {
+        // Return spectrum with metadata but no peaks (filtered out)
+        return spectrum;
+      }
+
+      // Spectrum passes metadata filters, load peak data
+      indexed_mzml_file_.getMSSpectrumById(int(id), spectrum);
     }
     else
     {
-      spectrum = meta_ms_experiment_->operator[](id);
-      indexed_mzml_file_.getMSSpectrumById(int(id), spectrum);
+      // No metadata available, must load full spectrum
+      spectrum = indexed_mzml_file_.getMSSpectrumById(int(id));
     }
 
-    // Apply m/z and intensity range filters if set
+    // Apply m/z and intensity range filters if set (requires peak data)
     if (options_.hasMZRange() || options_.hasIntensityRange())
     {
       MSSpectrum filtered;

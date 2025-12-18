@@ -416,6 +416,48 @@ START_SECTION(([EXTRA] Test copy constructor copies options))
 }
 END_SECTION
 
+START_SECTION(([EXTRA] Test RT range filter skips loading peak data))
+{
+  OnDiscPeakMap tmp;
+  tmp.openFile(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
+
+  // Get first spectrum to know its RT
+  MSSpectrum s1 = tmp.getSpectrum(0);
+  double rt = s1.getRT();
+  TEST_EQUAL(s1.size(), 19914);  // has peaks
+
+  // Now set RT range that excludes this spectrum
+  tmp.getOptions().setRTRange(DRange<1>(rt + 1000, rt + 2000));
+  MSSpectrum s2 = tmp.getSpectrum(0);
+
+  // Spectrum should have metadata but no peaks (filtered out, peaks not loaded)
+  TEST_EQUAL(s2.empty(), true);  // no peaks loaded
+  TEST_REAL_SIMILAR(s2.getRT(), rt);  // but metadata is preserved
+}
+END_SECTION
+
+START_SECTION(([EXTRA] Test MS level filter skips loading peak data))
+{
+  OnDiscPeakMap tmp;
+  tmp.openFile(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
+
+  // Get first spectrum info
+  MSSpectrum s1 = tmp.getSpectrum(0);
+  int ms_level = s1.getMSLevel();
+  TEST_EQUAL(s1.size(), 19914);  // has peaks
+
+  // Set MS level filter to exclude this spectrum's level
+  std::vector<Int> levels;
+  levels.push_back(ms_level + 1);  // filter for a different MS level
+  tmp.getOptions().setMSLevels(levels);
+  MSSpectrum s2 = tmp.getSpectrum(0);
+
+  // Spectrum should have metadata but no peaks (filtered out, peaks not loaded)
+  TEST_EQUAL(s2.empty(), true);  // no peaks loaded
+  TEST_EQUAL(s2.getMSLevel(), ms_level);  // but metadata is preserved
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
