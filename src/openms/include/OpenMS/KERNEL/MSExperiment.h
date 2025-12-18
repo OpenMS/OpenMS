@@ -1064,6 +1064,9 @@ std::vector<MSChromatogram> extractXICs(
     /// returns the meta information of this experiment (mutable access)
     ExperimentalSettings& getExperimentalSettings();
 
+    /// sets the meta information of this experiment
+    void setExperimentalSettings(const ExperimentalSettings& experimental_settings);
+
     /// get the file path to the first MS run
     void getPrimaryMSRunPath(StringList& toFill) const;
 

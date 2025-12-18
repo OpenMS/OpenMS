@@ -53,6 +53,7 @@ cdef extern from "<OpenMS/KERNEL/MSExperiment.h>" namespace "OpenMS":
         MSExperiment(MSExperiment &) except + nogil 
 
         ExperimentalSettings getExperimentalSettings() except + nogil 
+        void setExperimentalSettings(ExperimentalSettings) except + nogil  # wrap-doc:Sets the experimental settings (meta-data) from an ExperimentalSettings object
         
         # COMMENT: Spectra functions
         MSSpectrum& operator[](size_t) except + nogil  # wrap-upper-limit:size()

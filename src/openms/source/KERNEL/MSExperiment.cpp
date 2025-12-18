@@ -638,6 +638,12 @@ namespace OpenMS
     return *this;
   }
 
+  /// sets the meta information of this experiment
+  void MSExperiment::setExperimentalSettings(const ExperimentalSettings& experimental_settings)
+  {
+    ExperimentalSettings::operator=(experimental_settings);
+  }
+
   /// get the file path to the first MS run
   void MSExperiment::getPrimaryMSRunPath(StringList& toFill) const
   {
