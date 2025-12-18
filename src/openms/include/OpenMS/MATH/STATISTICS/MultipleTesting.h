@@ -24,13 +24,28 @@ namespace OpenMS
 namespace Math
 {
 /**
-  @brief Result of pi0 estimation.
+  @brief Result of pi0 estimation for multiple testing correction.
+
+  This structure contains the estimated proportion of true null hypotheses (pi0),
+  which is a key parameter in FDR estimation. The pi0 value represents the proportion
+  of hypotheses that are truly null (i.e., no real effect) among all tested hypotheses.
+
+  The estimation uses the method described in:
+  Storey JD and Tibshirani R. (2003) "Statistical significance for genome-wide experiments."
+  PNAS 100: 9440-9445. doi: 10.1073/pnas.1530509100
 
   Fields:
-    - pi0          : estimated proportion of true null hypotheses
-    - pi0_lambda   : pi0 estimates at each lambda value
-    - lambda_      : lambda values used for estimation
-    - pi0_smooth   : whether smoothing was successfully applied
+    - pi0          : Estimated proportion of true null hypotheses (range: 0-1).
+                     A value of 1.0 means all hypotheses are assumed null (most conservative).
+    - pi0_lambda   : Vector of pi0 estimates at each lambda threshold value.
+                     Used for diagnostic purposes and smoothing.
+    - lambda_      : Vector of lambda threshold values used for estimation.
+                     Typically ranges from 0 to 0.95 in steps.
+    - pi0_smooth   : Boolean indicating whether smoothing (via spline fitting) was
+                     successfully applied. If false, the minimum pi0 value is used
+                     as a conservative fallback.
+
+  @see pi0est() for the estimation procedure
 */
 struct OPENMS_DLLAPI Pi0Result
 {
@@ -40,7 +55,33 @@ struct OPENMS_DLLAPI Pi0Result
   bool pi0_smooth = false;
 };
 
-/// Compute model-based FDR estimates from posterior error probabilities
+/**
+  @brief Compute model-based FDR estimates from posterior error probabilities.
+
+  This function converts posterior error probabilities (PEPs) into false discovery
+  rate (FDR) estimates using a model-based approach. The method follows the framework
+  described in Kall et al. (2008).
+
+  The FDR at rank i is calculated as:
+    FDR(i) = (sum of PEPs up to rank i) / i
+
+  This provides a direct relationship between PEPs and FDR without requiring
+  permutation-based null hypothesis testing.
+
+  Reference:
+  Käll L, Storey JD, MacCoss MJ, Noble WS. (2008)
+  "Posterior error probabilities and false discovery rates: two sides of the same coin."
+  J Proteome Res. 7(1):40-4. doi: 10.1021/pr700739d
+
+  @param data_in Vector of posterior error probabilities (PEPs), typically in range [0,1]
+  @return Vector of FDR estimates corresponding to each input PEP value.
+          NaN values in input are propagated to output.
+
+  @note The function is templated to accept various numeric types but converts
+        internally to double for computation.
+
+  @ingroup MathFunctionsStatistics
+*/
 template <class T>
 inline std::vector<double> compute_model_fdr(const std::vector<T>& data_in)
 {
@@ -107,7 +148,36 @@ inline std::vector<double> compute_model_fdr(const std::vector<T>& data_in)
   return fdr;
 }
 
-/// Compute empirical p-values (bioconductor/qvalue empPvals translation)
+/**
+  @brief Compute empirical p-values from test statistics and null distribution.
+
+  This function calculates empirical p-values by comparing observed test statistics
+  against a null (permuted/randomized) distribution. The method is commonly used
+  in permutation-based hypothesis testing.
+
+  The empirical p-value for a statistic s is defined as:
+    p(s) = (number of null statistics >= s) / (number of null statistics)
+
+  This implementation follows the algorithm from the Bioconductor qvalue package
+  (Bass et al. 2015) with rank-based tie handling for improved numerical stability.
+
+  Reference:
+  Bass AJ, Dabney A, Robinson D. (2015) "qvalue: Q-value estimation for false
+  discovery rate control." R package. Bioconductor.
+  http://bioconductor.org/packages/qvalue/
+
+  @param stat Vector of observed test statistics (typically from real data). For example, this would be your target scores.
+  @param stat0 Vector of null test statistics (from permutations or simulations). For example, this would be your decoy scores.
+  @return Vector of empirical p-values, one for each element in @p stat.
+          Values are bounded below by 1/m0 where m0 is the size of the null distribution.
+
+  @exception Exception::InvalidArgument if either input vector is empty
+
+  @note Assumes larger statistic values indicate stronger signals (one-sided test).
+        For two-sided tests, use absolute values of statistics.
+
+  @ingroup MathFunctionsStatistics
+*/
 template <class T>
 inline std::vector<double> pemp(const std::vector<T>& stat, const std::vector<T>& stat0)
 {
@@ -171,43 +241,309 @@ inline std::vector<double> pemp(const std::vector<T>& stat, const std::vector<T>
   return out;
 }
 
-// qvalue and pi0est are implemented in the .cpp file
+/**
+  @brief Calculate q-values (FDR-adjusted p-values) for multiple testing correction.
+
+  Converts p-values to q-values using the Storey-Tibshirani method. A q-value is
+  the minimum FDR at which a test is called significant. This provides a more
+  interpretable measure than p-values when performing multiple hypothesis tests.
+
+  The q-value for test i is defined as:
+    q(i) = min_{t>=p(i)} FDR(t)
+
+  where FDR(t) is the expected false discovery rate when calling all tests with
+  p-value <= t significant.
+
+  Reference:
+  Storey JD. (2002) "A direct approach to false discovery rates."
+  J. R. Statist. Soc. B. 64(3): 479-498. doi: 10.1111/1467-9868.00346
+
+  @param p_values Vector of p-values to be adjusted (must be in range [0,1])
+  @param pi0 Proportion of true null hypotheses (typically estimated by pi0est())
+  @param pfdr If true, compute positive FDR; if false (default), compute regular FDR
+  @return Vector of q-values corresponding to input p-values. NaN values are propagated.
+
+  @exception Exception::InvalidArgument if p-values are outside [0,1] or pi0 is outside [0,1]
+
+  @see pi0est() for estimating pi0
+  @ingroup MathFunctionsStatistics
+*/
 OPENMS_DLLAPI std::vector<double> qvalue(const std::vector<double>& p_values, double pi0, bool pfdr = false);
+
+/**
+  @brief Estimate the proportion of true null hypotheses (pi0).
+
+  This function estimates pi0, the proportion of truly null hypotheses among all
+  tested hypotheses, which is a key parameter for FDR control. The estimation uses
+  the method of Storey & Tibshirani (2003) with optional smoothing.
+
+  The algorithm works by:
+  1. Computing pi0 estimates at multiple lambda threshold values
+  2. Optionally smoothing these estimates using a cubic spline
+  3. Evaluating the smoothed curve at the maximum lambda value
+
+  When @p smooth_log_pi0 is true, smoothing is performed in log-space to ensure
+  positive pi0 estimates and better numerical stability, following the approach
+  used in PyProphet (Reiter et al. 2011).
+
+  References:
+  - Storey JD and Tibshirani R. (2003) "Statistical significance for genome-wide experiments."
+    PNAS 100: 9440-9445. doi: 10.1073/pnas.1530509100
+  - Reiter L et al. (2011) "mProphet: automated data processing and statistical validation
+    for large-scale SRM experiments." Nat Methods 8(5):430-5. doi: 10.1038/nmeth.1584
+
+  @param p_values Vector of p-values from hypothesis tests (range [0,1])
+  @param lambda_ Vector of lambda threshold values for estimation. If empty, defaults
+                 to seq(0, 0.90, 0.05). Lambda values represent p-value thresholds.
+  @param pi0_method Method for pi0 estimation: "smoother" (default) uses spline smoothing,
+                    "bootstrap" uses bootstrap resampling 
+  @param smooth_df Degrees of freedom for smoothing spline (default: 3 for cubic spline)
+  @param smooth_log_pi0 If true, perform smoothing in log-space for improved stability
+                        and to guarantee positive estimates (default: false)
+
+  @return Pi0Result structure containing:
+          - pi0: estimated proportion (range [0,1])
+          - pi0_lambda: vector of pi0 estimates at each lambda
+          - lambda_: lambda values used
+          - pi0_smooth: whether smoothing succeeded (false means conservative minimum used)
+
+  @note If smoothing fails or produces invalid results, the function returns the minimum
+        pi0 estimate as a conservative fallback.
+
+  @see Pi0Result for details on return structure
+  @ingroup MathFunctionsStatistics
+*/
 OPENMS_DLLAPI Pi0Result pi0est(const std::vector<double>& p_values,
                  const std::vector<double>& lambda_ = std::vector<double>(),
                  const std::string& pi0_method = "smoother",
                  int smooth_df = 3,
                  bool smooth_log_pi0 = false);
 
-/// Bandwidth selector using the "nrd0" (Silverman-ish) rule-of-thumb
+/**
+  @brief Bandwidth selector using the "nrd0" rule-of-thumb for kernel density estimation.
+
+  Computes an appropriate bandwidth for Gaussian kernel density estimation using
+  Silverman's rule-of-thumb (also known as "normal reference distribution" or "nrd0").
+  This is a quick, robust bandwidth estimator suitable for unimodal distributions.
+
+  The bandwidth is calculated as:
+    bw = 0.9 * min(sd, IQR/1.34) * n^(-1/5)
+
+  where sd is standard deviation, IQR is interquartile range, and n is sample size.
+
+  Reference:
+  Silverman BW. (1986) "Density Estimation for Statistics and Data Analysis."
+  Chapman & Hall/CRC. ISBN 978-0412246203
+
+  @param x Vector of data values for which bandwidth is computed
+  @return Bandwidth value (positive scalar)
+
+  @note This is equivalent to R's bw.nrd0() and Python statsmodels' bw_silverman()
+
+  @ingroup MathFunctionsStatistics
+*/
 OPENMS_DLLAPI double bw_nrd0(const std::vector<double>& x);
 
-/// Bin data onto an equally spaced grid between xmin (inclusive) and xmax (exclusive)
-/// Returns a vector of length nbins containing counts (or weighted counts if weights provided).
+/**
+  @brief Linear binning of data onto an equally-spaced grid.
+
+  Distributes data points onto a regular grid using linear interpolation, which is
+  a key preprocessing step for FFT-based kernel density estimation. Each data point
+  is allocated to its two nearest grid points proportionally based on distance.
+
+  If weights are provided, weighted counts are computed; otherwise uniform weights
+  of 1.0 are used.
+
+  Reference:
+  Scott DW. (1992) "Multivariate Density Estimation: Theory, Practice, and Visualization."
+  Wiley. ISBN 978-0471547709 (Section on binned kernel estimation)
+
+  @param x Vector of data values to be binned
+  @param xmin Minimum value of grid (inclusive)
+  @param xmax Maximum value of grid (exclusive)
+  @param nbins Number of bins in the grid
+  @param weights Optional vector of weights for each data point. If nullptr, uniform weights are used.
+  @return Vector of length @p nbins containing (weighted) counts at each grid point
+
+  @note Values outside [xmin, xmax) are ignored (not binned)
+
+  @ingroup MathFunctionsStatistics
+*/
 OPENMS_DLLAPI std::vector<double> linbin(const std::vector<double>& x, double xmin, double xmax, std::size_t nbins, const std::vector<double>* weights = nullptr);
 
-/// Munro-packed real FFT (forward). Packs rfft(X,M)/M into length-M vector
-/// format: [Re(Y_0..Y_{M/2}), Im(Y_1..Y_{M/2-1})]
+/**
+  @brief Forward FFT of real-valued data using Munro-packed format.
+
+  Performs a forward Fast Fourier Transform on real-valued input data, returning
+  the result in a compact Munro-packed format. This format takes advantage of the
+  Hermitian symmetry property of real FFTs to store all unique frequency information
+  in a real-valued vector of the same length as the input.
+
+  The output format is: [Re(Y_0), Re(Y_1), ..., Re(Y_{M/2}), Im(Y_1), ..., Im(Y_{M/2-1})]
+  where Y_k are the complex FFT coefficients. The result is scaled by dividing by M.
+
+  Reference:
+  Munro WD. (1976) "Efficient computation of the discrete Fourier transform."
+  Also described in: Press WH et al. (2007) "Numerical Recipes" 3rd Ed. Section 12.3
+
+  @param X Real-valued input vector
+  @param M Length of FFT (if 0, uses X.size() and rounds up to next power of 2)
+  @return Real-valued Munro-packed FFT coefficients of length M
+
+  @see revrt() for the inverse transform
+
+  @ingroup MathFunctionsStatistics
+*/
 OPENMS_DLLAPI std::vector<double> forrt(const std::vector<double>& X, std::size_t M = 0);
 
-/// Inverse of `forrt`: reconstruct real signal (scaled by *M to invert forrt)
+/**
+  @brief Inverse FFT of Munro-packed data to real-valued output.
+
+  Performs the inverse operation of forrt(), reconstructing a real-valued signal
+  from its Munro-packed frequency domain representation. The output is scaled by
+  multiplying by M to invert the scaling applied in forrt().
+
+  The input must be in Munro-packed format:
+  [Re(Y_0), Re(Y_1), ..., Re(Y_{M/2}), Im(Y_1), ..., Im(Y_{M/2-1})]
+
+  Reference:
+  Munro WD. (1976) "Efficient computation of the discrete Fourier transform."
+  Also described in: Press WH et al. (2007) "Numerical Recipes" 3rd Ed. Section 12.3
+
+  @param Xp Munro-packed real-valued frequency coefficients
+  @param M Length of output (if 0, uses Xp.size())
+  @return Real-valued reconstructed signal of length M
+
+  @see forrt() for the forward transform
+
+  @ingroup MathFunctionsStatistics
+*/
 OPENMS_DLLAPI std::vector<double> revrt(const std::vector<double>& Xp, std::size_t M = 0);
 
-/// Build Silverman FFT of Gaussian kernel on Munro frequency grid (Munro-packed)
-/// See statsmodels.nonparametric.kdetools.silverman_transform for reference.
+/**
+  @brief Compute the FFT of a Gaussian kernel in Munro-packed format.
+
+  Generates the frequency-domain representation of a Gaussian kernel with specified
+  bandwidth, suitable for convolution-based kernel density estimation via FFT.
+  The result is in Munro-packed format compatible with forrt() and revrt().
+
+  This implementation uses the Silverman transform, which efficiently computes the
+  Gaussian kernel in frequency space as: K(f) = exp(-2π²σ²f²) where σ = bw/4.
+
+  Reference:
+  Silverman BW. (1982) "Algorithm AS 176: Kernel density estimation using the Fast
+  Fourier Transform." Journal of the Royal Statistical Society. Series C (Applied
+  Statistics) 31(1):93-99. DOI: 10.2307/2347084
+
+  Also implemented in: Python statsmodels.nonparametric.kdetools.silverman_transform
+
+  @param bw Bandwidth of the Gaussian kernel (standard deviation)
+  @param M Length of the FFT grid (number of frequency bins)
+  @param RANGE Range of the spatial domain over which the kernel will be applied
+  @return Munro-packed FFT coefficients of the Gaussian kernel
+
+  @ingroup MathFunctionsStatistics
+*/
 OPENMS_DLLAPI std::vector<double> silverman_kernel_fft(double bw, std::size_t M, double RANGE);
 
-/// FFT-grid Gaussian KDE using Silverman/Munro FFT + linear binning.
-/// Returns pair (density, grid) where grid is the M equally spaced points from a..b.
+/**
+  @brief Fast kernel density estimation on a regular grid using FFT convolution.
+
+  Computes Gaussian kernel density estimates at equally-spaced grid points using
+  the FFT-based convolution algorithm. This approach scales as O(n + M*log(M))
+  compared to O(n*M) for direct evaluation, making it highly efficient for large
+  datasets or fine grids.
+
+  The algorithm:
+  1. Bins data onto a regular grid using linear binning
+  2. Computes FFT of binned data and Gaussian kernel
+  3. Performs pointwise multiplication in frequency domain
+  4. Inverse FFT to obtain density estimates
+
+  The grid extends from min(x) - cut*bw to max(x) + cut*bw.
+
+  Reference:
+  Silverman BW. (1982) "Algorithm AS 176: Kernel density estimation using the Fast
+  Fourier Transform." J. R. Statist. Soc. C 31(1):93-99. DOI: 10.2307/2347084
+
+  @param x Data values for which to estimate density
+  @param bw Bandwidth of the Gaussian kernel
+  @param gridsize Number of equally-spaced grid points (M). Should be power of 2 for FFT efficiency
+  @param cut Extension factor: grid extends cut*bw beyond data range on each side
+  @return Pair of vectors: (density_values, grid_points), each of length @p gridsize
+
+  @note Returns uniform density if data range is zero (all identical values)
+
+  @ingroup MathFunctionsStatistics
+*/
 OPENMS_DLLAPI std::pair<std::vector<double>, std::vector<double>> grid_kde_fft(const std::vector<double>& x, double bw, std::size_t gridsize = 512, double cut = 3.0);
 
-/// Evaluate KDE at query points using FFT-grid method + cubic spline interpolation
+/**
+  @brief Evaluate kernel density estimates at the data points themselves.
+
+  Computes KDE values at each input data point using the FFT-grid method followed
+  by cubic spline interpolation. This is more efficient than direct evaluation for
+  large datasets, as the FFT-grid computation scales as O(n + M*log(M)) followed by
+  O(n*log(M)) for spline interpolation, compared to O(n²) for direct methods.
+
+  The function first computes KDE on a regular grid using grid_kde_fft(), then
+  interpolates these grid values to the query points using cubic spline interpolation.
+
+  @param x Data values at which to evaluate the density
+  @param bw Bandwidth of the Gaussian kernel
+  @param gridsize Number of grid points for FFT computation (default 512)
+  @param cut Extension factor for grid range (default 3.0)
+  @return Vector of KDE values, one for each point in @p x
+
+  @see grid_kde_fft() for the underlying grid-based KDE computation
+
+  @ingroup MathFunctionsStatistics
+*/
 OPENMS_DLLAPI std::vector<double> kde_fft_eval(const std::vector<double>& x, double bw, std::size_t gridsize = 512, double cut = 3.0);
 
-/// Estimate local FDR / posterior error probability (PEP) from p-values.
-/// Supports "probit" and "logit" transforms and uses the FFT-grid
-/// Silverman KDE implemented above. Mirrors the python/statsmodels
-/// `lfdr` behavior used in qvalue-style local FDR estimation.
+/**
+  @brief Estimate local false discovery rate (local FDR) or posterior error probability (PEP).
+
+  Computes local FDR values from p-values using kernel density estimation and the
+  two-component mixture model framework. Local FDR represents the probability that
+  a specific hypothesis is null given its test statistic, providing a more granular
+  assessment than global FDR (q-values).
+
+  The method transforms p-values to a more suitable scale (probit or logit), estimates
+  the null and alternative density components using KDE, then computes:
+    lfdr(z) = pi0 * f0(z) / f(z)
+
+  where f0 is the null density, f is the mixture density, and z is the transformed value.
+
+  The implementation follows the approach used in the R/Bioconductor qvalue package
+  and Python statsmodels, using FFT-based KDE (Silverman's method) for efficiency.
+
+  References:
+  Efron B. (2004) "Large-scale simultaneous hypothesis testing: the choice of a null
+  hypothesis." J Am Stat Assoc 99(465):96-104. DOI: 10.1198/016214504000000089
+
+  Storey JD and Tibshirani R. (2003) "Statistical significance for genomewide studies."
+  PNAS 100(16):9440-9445. DOI: 10.1073/pnas.1530509100
+
+  @param p_values Vector of p-values from hypothesis tests
+  @param pi0 Estimated proportion of true null hypotheses (from pi0est())
+  @param trunc If true, truncate lfdr values to [0,1] range (default true)
+  @param monotone If true, enforce monotonicity constraint (default true)
+  @param transf Transformation to apply: "probit" (inverse normal) or "logit" (log-odds)
+  @param adj Bandwidth adjustment factor (multiplied by automatic bandwidth selection)
+  @param eps Small constant added to density estimates to avoid division by zero
+  @param gridsize Number of FFT grid points for KDE (default 512)
+  @param cut Grid extension factor in units of bandwidth (default 3.0)
+  @return Vector of local FDR values, one for each input p-value
+
+  @note The "probit" transform is generally preferred for p-values as it better stabilizes
+        the variance across the support.
+
+  @see pi0est() for estimating pi0
+  @see grid_kde_fft() for the underlying KDE implementation
+
+  @ingroup MathFunctionsStatistics
+*/
 OPENMS_DLLAPI std::vector<double> lfdr(const std::vector<double>& p_values,
                                       double pi0,
                                       bool trunc = true,
@@ -218,8 +554,25 @@ OPENMS_DLLAPI std::vector<double> lfdr(const std::vector<double>& p_values,
                                       std::size_t gridsize = 512,
                                       double cut = 3.0);
 
-/// Compute tail probabilities under a normal distribution fitted to stat0
-/// Returns P(X > stat_i) where X ~ N(mu, sigma^2) with mu/sigma estimated from stat0
+/**
+  @brief Compute tail probabilities under a fitted normal distribution.
+
+  Estimates parameters (mean and standard deviation) from a null distribution (@p stat0),
+  then computes upper tail probabilities P(X > stat_i) for each value in @p stat,
+  where X ~ N(μ, σ²) with μ and σ estimated from @p stat0.
+
+  This is useful for computing empirical p-values when you have both target scores
+  (@p stat) and a sample from the null distribution (@p stat0).
+
+  @param stat Vector of test statistics for which to compute tail probabilities
+  @param stat0 Vector of statistics from the null distribution used to estimate N(μ, σ²)
+  @return Vector of upper tail probabilities (p-values), one for each value in @p stat
+
+  @note Uses robust estimators (median, MAD) if the null distribution is suspected
+        to be contaminated
+
+  @ingroup MathFunctionsStatistics
+*/
 OPENMS_DLLAPI std::vector<double> pnorm(const std::vector<double>& stat, const std::vector<double>& stat0);
 
 } // namespace Math
