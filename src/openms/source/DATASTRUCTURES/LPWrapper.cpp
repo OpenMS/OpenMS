@@ -716,20 +716,12 @@ namespace OpenMS
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
                                       "Invalid LP format for HIGHS, allowed are MPS and LP");
     }
-    
-    // HIGHS auto-detects format from extension, so add .mps if no extension present
-    String output_filename = filename;
-    if (!output_filename.hasSuffix(".mps") && !output_filename.hasSuffix(".lp") && 
-        !output_filename.hasSuffix(".tmp"))
-    {
-      output_filename += ".mps";
-    }
-    
-    HighsStatus status = highs_model_->writeModel(output_filename.c_str());
+
+    HighsStatus status = highs_model_->writeModel(filename.c_str());
     if (status != HighsStatus::kOk)
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                    "HiGHS failed to write model", output_filename);
+                                    "HiGHS failed to write model", filename);
     }
 #else
     if (format == FORMAT_LP)
