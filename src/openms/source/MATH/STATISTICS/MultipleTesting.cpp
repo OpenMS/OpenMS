@@ -32,7 +32,6 @@ namespace evergreen {
 #include <OpenMS/MATH/MISC/CubicSpline2d.h>
 #include <OpenMS/MATH/MISC/BSpline2d.h>
 #include <OpenMS/MATH/MISC/BSplineSmoothingSpline.h>
-#include <OpenMS/MATH/MISC/SmoothingSpline.h>
 #include <cstdlib> // for getenv
 #include <iostream>
 #include <boost/math/distributions/normal.hpp>
@@ -237,54 +236,30 @@ Pi0Result pi0est(const std::vector<double>& p_values, const std::vector<double>&
       std::vector<double> ys; ys.reserve(xy.size());
       for (const auto &kv : xy) { xs.push_back(kv.first); ys.push_back(kv.second); }
 
-      // Use the dedicated SmoothingSpline utility which performs a
-      // discrete second-difference penalty fit with GCV-chosen lambda.
-      // This reproduces the smoothed behaviour used by the reference
-      // implementation (SciPy/R) more faithfully than a plain
-      // interpolating spline or a low-degree polynomial.
+      // Use BSplineSmoothingSpline which matches scipy's UnivariateSpline behavior.
+      // This automatically selects between polynomial fitting (for simple cases with
+      // few data points) and BSpline fitting (for complex cases), matching the
+      // optimization problem that scipy solves: minimize roughness subject to RSS ≤ s.
+      // 
+      // The smoothing parameter s is auto-computed as: s = m - sqrt(2*m)
+      // where m is the number of data points. This gives appropriate smoothing
+      // similar to scipy's default behavior.
       double max_lambda = *std::max_element(lambda_v.begin(), lambda_v.end());
       double pred = std::numeric_limits<double>::quiet_NaN();
       try
       {
-        // Try the B-spline fitter (cubic). If it cannot fit we return the
-        // conservative (unsmoothed) minimum pi0 and do not attempt the
-        // SmoothingSpline fallback here.
-
-        // Use BSplineSmoothingSpline which matches scipy's UnivariateSpline behavior.
-        // This automatically selects between polynomial fitting (for simple cases with
-        // few data points) and BSpline fitting (for complex cases), matching the
-        // optimization problem that scipy solves: minimize roughness subject to RSS ≤ s.
-        // 
-        // The smoothing parameter s is auto-computed as: s = m - sqrt(2*m)
-        // where m is the number of data points. This gives appropriate smoothing
-        // similar to scipy's default behavior.
-        try
-        {
-          OpenMS::Math::BSplineSmoothingSpline spl(xs, ys, -1.0, 3);
-          
-          if (!spl.ok())
-          {
-            res.pi0 = std::min(*std::min_element(pi0s.begin(), pi0s.end()), 1.0);
-            res.pi0_smooth = false;
-            return res;
-          }
-          
-          pred = spl.eval(max_lambda);
-          
-          if (!std::isfinite(pred))
-          {
-            res.pi0 = std::min(*std::min_element(pi0s.begin(), pi0s.end()), 1.0);
-            res.pi0_smooth = false;
-            return res;
-          }
-        }
-        catch (const std::exception& e)
+        OpenMS::Math::BSplineSmoothingSpline spl(xs, ys, -1.0, 3);
+        
+        if (!spl.ok())
         {
           res.pi0 = std::min(*std::min_element(pi0s.begin(), pi0s.end()), 1.0);
           res.pi0_smooth = false;
           return res;
         }
-        catch (...)
+        
+        pred = spl.eval(max_lambda);
+        
+        if (!std::isfinite(pred))
         {
           res.pi0 = std::min(*std::min_element(pi0s.begin(), pi0s.end()), 1.0);
           res.pi0_smooth = false;
@@ -320,7 +295,7 @@ Pi0Result pi0est(const std::vector<double>& p_values, const std::vector<double>&
       res.pi0_smooth = true;
       return res;
     }
-    catch (...) // any spline construction/eval failure -> fallback
+    catch (...) // fallback for outer try block
     {
       res.pi0 = std::min(*std::min_element(pi0s.begin(), pi0s.end()), 1.0);
       res.pi0_smooth = false;
