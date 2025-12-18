@@ -31,6 +31,9 @@ set(sources_list
   PeakIntegrator.cpp
   PeakPickerChromatogram.cpp
   PeakPickerMobilogram.cpp
+  StreamingTransitionProcessor.cpp
+  StreamingTSVReader.cpp
+  StreamingTSVWriter.cpp
   SwathMapMassCorrection.cpp
   SwathWindowLoader.cpp
   SwathQC.cpp

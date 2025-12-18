@@ -31,6 +31,9 @@ set(sources_list_h
   PeakIntegrator.h
   PeakPickerChromatogram.h
   PeakPickerMobilogram.h
+  StreamingTransitionProcessor.h
+  StreamingTSVReader.h
+  StreamingTSVWriter.h
   SwathMapMassCorrection.h
   SwathWindowLoader.h
   SwathQC.h

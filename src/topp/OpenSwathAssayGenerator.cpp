@@ -9,6 +9,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMAssay.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/StreamingTransitionProcessor.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
@@ -126,6 +127,8 @@ protected:
     registerFlag_("enable_identification_unspecific_losses", "IPF: set this flag if unspecific neutral losses (H2O1, H3N1, C1H2N2, C1H2N1O1) for identification fragment ions should be allowed", true);
     registerFlag_("enable_swath_specifity", "IPF: set this flag if identification transitions without precursor specificity (i.e. across whole precursor isolation window instead of precursor MZ) should be generated.", true);
 
+    registerFlag_("streaming_mode", "Enable streaming mode for processing large TSV files with minimal memory usage. Requires input and output to be TSV format, and transitions must be grouped consecutively by peptide.", true);
+
   }
 
   ExitCodes main_(int, const char**) override
@@ -195,6 +198,56 @@ protected:
       disable_decoy_transitions = true;
     }
 
+    bool streaming_mode = getFlag_("streaming_mode");
+
+    // Streaming mode: process large TSV files with minimal memory
+    if (streaming_mode)
+    {
+      // Validate: streaming mode only works with TSV input and output
+      if (in_type != FileTypes::TSV && in_type != FileTypes::MRM)
+      {
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "Streaming mode requires TSV or MRM input format. Got: " + FileTypes::typeToName(in_type));
+      }
+      if (out_type != FileTypes::TSV)
+      {
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "Streaming mode requires TSV output format. Got: " + FileTypes::typeToName(out_type));
+      }
+      if (enable_ipf)
+      {
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "Streaming mode does not yet support IPF (identification transitions). Disable IPF or use non-streaming mode.");
+      }
+
+      OPENMS_LOG_INFO << "=== STREAMING MODE ENABLED ===" << std::endl;
+      OPENMS_LOG_INFO << "Processing large TSV file with minimal memory usage." << std::endl;
+
+      StreamingTransitionProcessor processor;
+      processor.setLogType(ProgressLogger::CMD);
+
+      // Configure processor parameters
+      Param proc_param;
+      proc_param.setValue("min_product_mz", product_lower_mz_limit);
+      proc_param.setValue("max_product_mz", product_upper_mz_limit);
+      proc_param.setValue("max_transitions", max_transitions);
+      proc_param.setValue("generate_decoys", is_test ? "false" : "true");
+      processor.setParameters(proc_param);
+
+      // Process file in streaming mode
+      processor.process(in, out);
+
+      // Report statistics
+      const auto& stats = processor.getStatistics();
+      OPENMS_LOG_INFO << "=== Streaming Processing Complete ===" << std::endl;
+      OPENMS_LOG_INFO << "Input:  " << stats.input_transitions << " transitions, " << stats.input_groups << " groups" << std::endl;
+      OPENMS_LOG_INFO << "Output: " << stats.output_transitions << " transitions, " << stats.output_groups << " groups" << std::endl;
+      OPENMS_LOG_INFO << "Decoys: " << stats.decoys_generated << " generated, " << stats.decoys_collided << " collisions" << std::endl;
+
+      return EXECUTION_OK;
+    }
+
+    // Non-streaming mode: load all data into memory
     std::vector<String> allowed_fragment_types;
     allowed_fragment_types_string.split(",", allowed_fragment_types);
 
