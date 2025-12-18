@@ -93,9 +93,9 @@ protected:
         If no mod is found an error is issued and the return string is empty
         @note A duplicate of this function is also used in PepXMLFile
 
-        @param mass Modified AA's mass
-        @param origin AA one letter code
-        @param modification_description [out] Name of the modification, e.g. 'Carboxymethyl (C)'
+        @param[in,out] mass Modified AA's mass
+        @param[in] origin AA one letter code
+        @param[in] modification_description [out] Name of the modification, e.g. 'Carboxymethyl (C)'
     */
     void matchModification_(const double mass, const String & origin, String & modification_description);
 

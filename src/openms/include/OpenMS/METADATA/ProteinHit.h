@@ -179,7 +179,7 @@ public:
      * This method provides a type-safe way to annotate protein hits with their
      * target/decoy status.
      *
-     * @param type The target/decoy classification:
+     * @param[in] type The target/decoy classification:
      *   - TARGET: Target protein
      *   - DECOY: Decoy protein
      *   - UNKNOWN: Target/decoy status is unknown; the "target_decoy" meta value is removed

@@ -292,7 +292,7 @@ namespace OpenMS
 
     /**
      * @brief Inserts a (2-dimensional coordinate, value) pair.
-     * @param v Pair to be inserted.
+     * @param[in] v Pair to be inserted.
      * @return Iterator that points to the inserted pair.
      */
     cell_iterator insert(const value_type& v)
@@ -314,7 +314,7 @@ namespace OpenMS
 
     /**
      * @brief Erases elements matching the 2-dimensional coordinate.
-     * @param key Key of element to be erased.
+     * @param[in] key Key of element to be erased.
      * @return Number of elements erased.
      */
     size_type erase(const key_type& key)
@@ -465,7 +465,7 @@ namespace OpenMS
 
     /**
      * @brief Computes the cell index for a given cluster center coordinate.
-     * @param key Cluster center coordinate
+     * @param[in] key Cluster center coordinate
      * @return Cell index corresponding to the coordinate
      * @throws Exception::OutOfRange if computed cell index exceeds Int64 limits
      */

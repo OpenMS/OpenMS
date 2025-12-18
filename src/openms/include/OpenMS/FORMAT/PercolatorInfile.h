@@ -40,20 +40,20 @@ namespace OpenMS
       * specified thresholds and handling decoy targets as needed.
       * Note: If a filename column is encountered the set of @p filenames is filled in the order of appearance and PeptideIdentifications annotated with the id_merge_index meta value to link them to the filename (similar to a merged idXML file). 
       * 
-      * @param pin_file he path to the Percolator input file with a `.pin` extension.
+      * @param[in] pin_file he path to the Percolator input file with a `.pin` extension.
       * 
-      * @param higher_score_better A boolean flag indicating whether higher scores are considered better (`true`) or lower scores are better (`false`).
+      * @param[in] higher_score_better A boolean flag indicating whether higher scores are considered better (`true`) or lower scores are better (`false`).
       * 
-      * @param score_name The name of the primary score to be used for ranking peptide hits.
+      * @param[in] score_name The name of the primary score to be used for ranking peptide hits.
       * 
-      * @param extra_scores A list of additional score names that should be extracted and stored in each `PeptideHit`.
+      * @param[out] extra_scores A list of additional score names that should be extracted and stored in each `PeptideHit`.
       * 
-      * @param filenames Will be populated with the unique raw file names extracted from the input data.
+      * @param[out] filenames Will be populated with the unique raw file names extracted from the input data.
       * 
-      * @param decoy_prefix The prefix used to identify decoy protein accessions. Proteins with accessions starting with this prefix are marked as decoys. Otherwise, it assumes that the pin file already contains the correctly annotated decoy status.
-      * @param threshold A double value representing the threshold for the `spectrum_q` value. Only spectra with `spectrum_q` below this threshold are processed.
+      * @param[in] decoy_prefix The prefix used to identify decoy protein accessions. Proteins with accessions starting with this prefix are marked as decoys. Otherwise, it assumes that the pin file already contains the correctly annotated decoy status.
+      * @param[in] threshold A double value representing the threshold for the `spectrum_q` value. Only spectra with `spectrum_q` below this threshold are processed.
                          Implemented to allow prefiltering of Sage results.
-      * @param SageAnnotation A boolean value used to determine if the pin file is coming from Sage or not 
+      * @param[in] SageAnnotation A boolean value used to determine if the pin file is coming from Sage or not 
       * @return A `std::vector` of `PeptideIdentification` objects containing the peptide identifications.
       
       * @throws `Exception::ParseError` if any line in the input file does not have the expected number of columns.

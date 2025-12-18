@@ -103,7 +103,7 @@ signals:
     /**
         @brief Signal emitted whenever the visible area changes.
 
-        @param area The new visible area.
+        @param[in] area The new visible area.
     */
     void visibleAreaChanged(DRange<2> area);
     /// Requests to display the spectrum with index @p index in 1D

@@ -6,7 +6,6 @@
 // $Authors: Jihyung Kim $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -132,7 +131,6 @@ namespace OpenMS
     {
       // refresh 'flashdeconv_param_' from data within the Wizards controls
       updateFLASHDeconvParamFromWidgets_();
-
       Param tmp_param = flashdeconv_param_;
 
       // show the parameters to the user
@@ -166,38 +164,42 @@ namespace OpenMS
       // get checkbox results from the Wizard control
       if (ui->checkbox_spec->isChecked())
       {
-        flashdeconv_output_tags_.push_back("out_spec");
+        flashdeconv_output_tags_.emplace_back("out_spec1");
+        flashdeconv_output_tags_.emplace_back("out_spec2");
+        flashdeconv_output_tags_.emplace_back("out_spec3");
+        flashdeconv_output_tags_.emplace_back("out_spec4");
       }
       if (ui->checkbox_mzml->isChecked())
       {
-        flashdeconv_output_tags_.push_back("out_mzml");
-        flashdeconv_output_tags_.push_back("out_annotated_mzml");
+        flashdeconv_output_tags_.emplace_back("out_mzml");
+        flashdeconv_output_tags_.emplace_back("out_annotated_mzml");
       }
-      if (ui->checkbox_promex->isChecked())
+      if (ui->checkbox_quant->isChecked())
       {
-        flashdeconv_output_tags_.push_back("out_promex");
+        flashdeconv_output_tags_.emplace_back("out_quant");
       }
       if (ui->checkbox_topfd->isChecked())
       {
-        flashdeconv_output_tags_.push_back("out_topFD");
-        flashdeconv_output_tags_.push_back("out_topFD_feature");
+        flashdeconv_output_tags_.emplace_back("out_msalign1");
+        flashdeconv_output_tags_.emplace_back("out_msalign2");
+        flashdeconv_output_tags_.emplace_back("out_feature1");
+        flashdeconv_output_tags_.emplace_back("out_feature2");
       }
 
       // optional FLASHIda support part
       if (ui->checkbox_readlogfile->isChecked())
       {
-        flashdeconv_output_tags_.push_back("in_log");
+        flashdeconv_output_tags_.push_back("ida_log");
       }
     }
 
     void FLASHDeconvTabWidget::updateOutputParamFromPerInputFile(const QString& input_file_name)
     {
-      const Size max_ms_level = flashdeconv_param_.getValue("max_MS_level");
       std::string filepath_without_ext = getCurrentOutDir_().toStdString() + "/" + FileHandler::stripExtension(File::basename(input_file_name));
 
       for (const auto& param : flashdeconv_param_outputs_)
       {
-        const std::string tag = param.name;
+        std::string tag = param.name;
 
         std::string org_desc = param.description;
         auto org_tags = flashdeconv_param_outputs_.getTags(tag);
@@ -209,7 +211,10 @@ namespace OpenMS
           is_requested = true;
         }
 
-        if (tag == "out_mzml" || tag == "out_annotated_mzml" || tag == "out_promex" || tag == "in_log") //  params having string values //  params having string values
+        if (tag == "out_mzml" || tag == "out_annotated_mzml" || tag == "out_quant" || tag == "ida_log"
+            || tag == "out_spec1"|| tag == "out_spec2"|| tag == "out_spec3"|| tag == "out_spec4"
+            || tag == "out_msalign1" || tag == "out_msalign2"
+            || tag == "out_feature1" || tag == "out_feature2") //  params having string values //  params having string values
         {
           // if not requested, set default value
           if (!is_requested)
@@ -228,15 +233,47 @@ namespace OpenMS
           {
             out_path += "_annotated.mzML";
           }
-          else if (tag == "out_promex")
+          else if (tag == "out_quant")
           {
-            out_path += ".ms1ft";
+            out_path += "_quant.tsv";
           }
-          else // (tag == "in_log")
+          else if (tag == "ida_log")
           {
             String dir_path_only = File::path(input_file_name);
             String file_name_only = FileHandler::stripExtension(File::basename(input_file_name));
             out_path = dir_path_only + '/' + "IDALog_" + file_name_only + ".log";
+          }
+          else if (tag == "out_spec1")
+          {
+            out_path += "_ms1.tsv";
+          }
+          else if (tag == "out_spec2")
+          {
+            out_path += "_ms2.tsv";
+          }
+          else if (tag == "out_spec3")
+          {
+            out_path += "_ms3.tsv";
+          }
+          else if (tag == "out_spec4")
+          {
+            out_path += "_ms4.tsv";
+          }
+          else if (tag == "out_msalign1")
+          {
+            out_path += "_ms1.msalign";
+          }
+          else if (tag == "out_msalign2")
+          {
+            out_path += "_ms2.msalign";
+          }
+          else if (tag == "out_feature1")
+          {
+            out_path += "_ms1.feature";
+          }
+          else if (tag == "out_feature2")
+          {
+            out_path += "_ms2.feature";
           }
           flashdeconv_param_outputs_.setValue(tag, out_path, org_desc, org_tags);
         }
@@ -249,27 +286,6 @@ namespace OpenMS
             flashdeconv_param_outputs_.setValue(tag, tmp, org_desc, org_tags);
             continue;
           }
-
-          // if requested, set file path accordingly
-          std::string out_extension = "";
-          if (tag == "out_spec")
-          {
-            out_extension = ".tsv";
-          }
-          if (tag == "out_topFD")
-          {
-            out_extension = ".msalign";
-          }
-          if (tag == "out_topFD_feature")
-          {
-            out_extension = ".feature";
-          }
-          std::vector<std::string> files_paths;
-          for (Size i = 0; i < max_ms_level; ++i)
-          {
-            files_paths.push_back(filepath_without_ext + "_ms" + std::to_string(i + 1) + out_extension);
-          }
-          flashdeconv_param_outputs_.setValue(tag, files_paths, org_desc, org_tags);
         }
       }
     }
@@ -292,8 +308,9 @@ namespace OpenMS
       flashdeconv_param_.remove("in");
       flashdeconv_param_.remove("out");
 
-      // parameters for different output format & in_log
-      StringList out_params = {"out_spec", "out_annotated_mzml", "out_mzml", "out_promex", "out_topFD", "out_topFD_feature", "in_log"};
+      // parameters for different output format
+      StringList out_params = {"out_spec1","out_spec2","out_spec3","out_spec4", "out_annotated_mzml", "out_mzml",
+                               "out_quant", "out_msalign1", "out_feature1", "out_msalign2", "out_feature2"};
       for (const auto& name : out_params)
         flashdeconv_param_outputs_.setValue(name, ""); // create a dummy param, just so we can use ::copySubset
       flashdeconv_param_outputs_ = flashdeconv_param_.copySubset(flashdeconv_param_outputs_);
@@ -301,6 +318,10 @@ namespace OpenMS
       // remove output format params from global parameter set
       for (const auto& name : out_params)
         flashdeconv_param_.remove(name);
+
+      // add ida_log parameter to flashdeconv_param_outputs_ (rename ida_log to get it out of "FD:" prefix)
+      flashdeconv_param_outputs_.setValue("ida_log", "", flashdeconv_param_.getDescription("FD:ida_log"), flashdeconv_param_.getTags("FD:ida_log"));
+      flashdeconv_param_.remove("FD:ida_log");
 
       ui->list_editor->load(flashdeconv_param_);
     }

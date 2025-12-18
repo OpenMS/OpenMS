@@ -60,8 +60,8 @@ public:
     /**
       @brief loads a Mascot Generic File into a PeakMap
 
-      @param filename file name which the map should be read from
-      @param exp the map which is filled with the data from the given file
+      @param[in] filename file name which the map should be read from
+      @param[out] exp the map which is filled with the data from the given file
       @throw FileNotFound is thrown if the given file could not be found
     */
     template <typename MapType>

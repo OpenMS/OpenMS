@@ -166,8 +166,8 @@ namespace OpenMS
       of which should be set to the index that caused the failure and the
       smallest allowed value to simplify debugging.
 
-      @param	index the value of the index causing the problem
-      @param	size	smallest value allowed for index
+      @param[in]	index the value of the index causing the problem
+      @param[in]	size	smallest value allowed for index
 
       @ingroup Exceptions
     */
@@ -185,7 +185,7 @@ namespace OpenMS
       requested size.  This exception is thrown, if buffer sizes are
       insufficient.
 
-      @param	size the size causing the problem
+      @param[in]	size the size causing the problem
 
       @ingroup Exceptions
     */
@@ -202,8 +202,8 @@ namespace OpenMS
       allowed.  The constructor has two additional arguments, the values
       of which should be set to the index that caused the failure and the
       largest allowed value to simplify debugging.
-      @param	index the value of the index causing the problem
-      @param	size	largest value allowed for index
+      @param[in]	index the value of the index causing the problem
+      @param[in]	size	largest value allowed for index
 
       @ingroup Exceptions
     */
@@ -220,7 +220,7 @@ namespace OpenMS
       Throw this exception to indicate that an array/vector of elements
       was expected to be sorted, but was found to be unsorted.
 
-      @param	message What was unsorted?
+      @param[in]	message What was unsorted?
 
       @ingroup Exceptions
     */
@@ -236,7 +236,7 @@ namespace OpenMS
       Throw this exception to indicate that an external library call came
       back unsuccessful.
 
-      @param	size the size causing the problem
+      @param[in]	size the size causing the problem
 
       @ingroup Exceptions
     */
@@ -267,14 +267,15 @@ namespace OpenMS
       Throw this exception to indicate that a size was unexpected.
       The constructor has an additional argument: the value of of the
       requested size.
-      @param	size the size causing the problem
+      @param[in]	size the size causing the problem
+      @param[in]	message context message explaining why the size is invalid
 
       @ingroup Exceptions
     */
     class OPENMS_DLLAPI InvalidSize : public BaseException
     {
     public:
-      InvalidSize(const char* file, int line, const char* function, Size size = 0) noexcept;
+      InvalidSize(const char* file, int line, const char* function, Size size, const std::string& message) noexcept;
     };
 
 
@@ -419,7 +420,7 @@ namespace OpenMS
 
       Throw this exception to indicate that an allocation failed.
       This exception is thrown in the OPENMS new handler.
-      @param	size	the number of bytes that should have been allocated
+      @param[in]	size	the number of bytes that should have been allocated
       @see GlobalException::newHandler
 
       @ingroup Exceptions

@@ -50,8 +50,8 @@ public:
     /**
         @brief Loads a spectrum from a XMass file.
 
-@param filename Name of the XMass file which should be loaded.
-@param spectrum Spectrum in which the data loaded from the file should be stored.
+@param[in] filename Name of the XMass file which should be loaded.
+@param[out] spectrum Spectrum in which the data loaded from the file should be stored.
 
         @exception Exception::FileNotFound is thrown if the file could not be read
     */
@@ -150,16 +150,16 @@ public:
       data_processing.setProcessingActions(actions);
       data_processing.setCompletionTime(DateTime::now());
 
-      std::vector< boost::shared_ptr< DataProcessing> > data_processing_vector;
-      data_processing_vector.push_back( boost::shared_ptr< DataProcessing>(new DataProcessing(data_processing)) );
+      std::vector< std::shared_ptr< DataProcessing> > data_processing_vector;
+      data_processing_vector.push_back( std::shared_ptr< DataProcessing>(new DataProcessing(data_processing)) );
       spectrum.setDataProcessing(data_processing_vector);
     }
 
     /**
         @brief Import settings from a XMass file.
 
-        @param filename File from which the experimental settings should be loaded.
-        @param exp MSExperiment where the experimental settings will be stored.
+        @param[in] filename File from which the experimental settings should be loaded.
+        @param[out] exp MSExperiment where the experimental settings will be stored.
 
         @exception Exception::FileNotFound is thrown if the file could not be opened.
     */

@@ -195,6 +195,9 @@ public:
      *                              If zero, will use std::random_device for non-deterministic.
      * @param[in] sort_by_intensity     Whether to sort the assays by the highest cumulative intense transitions. This is useful for sampling the most intense peptides for iRTs.
      * @param[in] top_fraction     Only sample from the top N fraction of sorted assays to narrow down on only really intense peptides. This is useful for selecting a few "high quality" peptides to use for linear iRTs.
+     * @param[in] priority_peptides Optional set of peptide sequences to prioritize during sampling. If provided, these peptides
+     *                              will be sampled first if found in @p exp, before the remaining quota is filled with regular sampling.
+     *                              Useful for ensuring common iRT peptides (e.g., from irtkit or cirtkit) are included when present.
      *
      * @return A new LightTargetedExperiment containing only the sampled
      *         compounds, their transitions, and associated proteins.
@@ -205,7 +208,8 @@ public:
       Size peptides_per_bin,
       unsigned int seed = 0,
       bool sort_by_intensity = false,
-      double top_fraction = 1.0);
+      double top_fraction = 1.0,
+      const std::unordered_set<std::string> & priority_peptides = std::unordered_set<std::string>());
 
     /**
       @brief Returns the feature with the highest score for each transition group.
@@ -215,8 +219,8 @@ public:
       features altogether.
 
       @param[in] transition_group_map Input data containing the picked and scored map
-      @param useQualCutoff Whether to apply a quality cutoff to the data
-      @param qualCutoff What quality cutoff should be applied (all data above the cutoff will be kept)
+      @param[in] useQualCutoff Whether to apply a quality cutoff to the data
+      @param[in] qualCutoff What quality cutoff should be applied (all data above the cutoff will be kept)
 
       @return Result of the best scoring peaks (stored as map of peptide id and RT)
 

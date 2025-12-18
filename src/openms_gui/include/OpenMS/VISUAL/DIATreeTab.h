@@ -42,7 +42,7 @@ namespace OpenMS
     bool hasData(const LayerDataBase* layer) override;
 
     /// refresh the table using data from @p cl
-    /// @param cl Layer with OSW data; cannot be const, since we might read missing protein data from source on demand
+    /// @param[in] cl Layer with OSW data; cannot be const, since we might read missing protein data from source on demand
     void updateEntries(LayerDataBase* cl) override;
 
     /// remove all visible data
@@ -66,7 +66,7 @@ namespace OpenMS
     /** 
       @brief convert a tree item to a pointer into an OSWData structure
 
-      @param item The tree item (protein, peptide,...) that was clicked
+      @param[in] item The tree item (protein, peptide,...) that was clicked
       @return The index into the current OSWData @p current_data_
     **/
     OSWIndexTrace prepareSignal_(QTreeWidgetItem* item);

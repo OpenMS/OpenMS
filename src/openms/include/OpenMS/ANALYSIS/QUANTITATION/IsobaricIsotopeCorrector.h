@@ -53,9 +53,9 @@ public:
     /**
      @brief Apply isotope correction to the given input map and store the corrected values in the output map.
 
-     @param consensus_map_in The map containing the values that should be corrected.
-     @param consensus_map_out The map where the corrected values should be stored.
-     @param quant_method IsobaricQuantitationMethod (e.g., iTRAQ 4 plex)
+     @param[in] consensus_map_in The map containing the values that should be corrected.
+     @param[in,out] consensus_map_out The map where the corrected values should be stored.
+     @param[in] quant_method IsobaricQuantitationMethod (e.g., iTRAQ 4 plex)
 
      @throws Exception::FailedAPICall If the least-squares fit fails.
      @throws Exception::InvalidParameter If the given correction matrix is invalid.
@@ -70,8 +70,8 @@ public:
      This method applies the isotope correction directly to a vector of intensities representing
      the different isobaric channels. The vector is modified in-place to contain the corrected values.
      
-     @param intensities Vector of channel intensities to be corrected (modified in-place)
-     @param quant_method IsobaricQuantitationMethod providing the correction matrix (e.g., iTRAQ 4 plex)
+     @param[in,out] intensities Vector of channel intensities to be corrected (modified in-place)
+     @param[in] quant_method IsobaricQuantitationMethod providing the correction matrix (e.g., iTRAQ 4 plex)
      
      @throws Exception::FailedAPICall If the least-squares fit fails.
      @throws Exception::InvalidParameter If the given correction matrix is invalid.
@@ -113,9 +113,9 @@ private:
      * 
      * Extracts the intensities for each channel from the given ConsensusFeature.
      * 
-     * @param quant_method The isobaric quantitation method defining the channels
-     * @param cf ConsensusFeature containing the channel intensities
-     * @param cm ConsensusMap containing the feature
+     * @param[in] quant_method The isobaric quantitation method defining the channels
+     * @param[in] cf ConsensusFeature containing the channel intensities
+     * @param[in] cm ConsensusMap containing the feature
      * @return Vector of intensities, one for each channel
      */
     static std::vector<double> getIntensities_(const IsobaricQuantitationMethod* quant_method, const ConsensusFeature& cf, const ConsensusMap& cm);
@@ -126,9 +126,9 @@ private:
      Solves the NNLS problem Ax = b, where A is the correction matrix and b is the vector of observed intensities.
      This version uses OpenMS Matrix objects for the computation.
      
-     @param correction_matrix The isotope correction matrix (A)
-     @param m_b The vector of observed intensities (b)
-     @param m_x The output vector of corrected intensities (x)
+     @param[in] correction_matrix The isotope correction matrix (A)
+     @param[in] m_b The vector of observed intensities (b)
+     @param[in] m_x The output vector of corrected intensities (x)
      
      @throws Exception::FailedAPICall If the NNLS solver fails
      */
@@ -141,9 +141,9 @@ private:
      Solves the NNLS problem Ax = b, where A is the correction matrix and b is the vector of observed intensities.
      This version uses Eigen matrices and std::vector for the computation.
      
-     @param correction_matrix The isotope correction matrix (A) as Eigen matrix
-     @param b The vector of observed intensities (b)
-     @param x The output vector of corrected intensities (x)
+     @param[in] correction_matrix The isotope correction matrix (A) as Eigen matrix
+     @param[in] b The vector of observed intensities (b)
+     @param[in] x The output vector of corrected intensities (x)
      */
     static void solveNNLS_(Matrix<double>::EigenMatrixType& correction_matrix, std::vector<double>& b, std::vector<double>& x);
 
@@ -162,11 +162,11 @@ private:
      Calculates various statistics about the correction process, such as the sum of corrected intensities,
      and updates the statistics object.
      
-     @param m_x The vector of corrected intensities as OpenMS matrix
-     @param x The vector of corrected intensities as Eigen matrix
-     @param cf_intensity The original intensity of the consensus feature
-     @param quant_method The isobaric quantitation method
-     @param stats The statistics object to update
+     @param[in] m_x The vector of corrected intensities as OpenMS matrix
+     @param[out] x The vector of corrected intensities as Eigen matrix
+     @param[in] cf_intensity The original intensity of the consensus feature
+     @param[in] quant_method The isobaric quantitation method
+     @param[in] stats The statistics object to update
      */
     static void computeStats_(const Matrix<double>& m_x,
                               const Eigen::MatrixXd& x, const float cf_intensity,
@@ -178,10 +178,10 @@ private:
      Copies the consensus feature from the input map to the output map and updates its
      intensities with the corrected values.
      
-     @param consensus_map_in The input consensus map
-     @param consensus_map_out The output consensus map to be updated
-     @param current_cf Index of the current consensus feature
-     @param m_x Vector of corrected intensities
+     @param[in] consensus_map_in The input consensus map
+     @param[in,out] consensus_map_out The output consensus map to be updated
+     @param[in] current_cf Index of the current consensus feature
+     @param[in] m_x Vector of corrected intensities
      @return The sum of corrected intensities
      */
     static float updateOutputMap_(const ConsensusMap& consensus_map_in,
@@ -195,10 +195,10 @@ private:
      Copies the consensus feature from the input map to the output map and updates its
      intensities with the corrected values.
      
-     @param consensus_map_in The input consensus map
-     @param consensus_map_out The output consensus map to be updated
-     @param current_cf Index of the current consensus feature
-     @param m_x Matrix of corrected intensities
+     @param[in] consensus_map_in The input consensus map
+     @param[out] consensus_map_out The output consensus map to be updated
+     @param[in] current_cf Index of the current consensus feature
+     @param[out] m_x Matrix of corrected intensities
      @return The sum of corrected intensities
      */
     static float updateOutputMap_(const ConsensusMap& consensus_map_in,

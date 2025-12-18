@@ -393,6 +393,9 @@ protected:
       // one of the following two needs to be set
       p.setValue("tr_irt_nonlinear", "", "additional nonlinear transition file ('TraML'). Takes precedent even when `auto_rt` is set to 'true'");
 
+      // priority peptides for sampling
+      p.setValue("tr_irt_priority_sampling", "", "Optional custom transition file (TSV format only) containing additional priority peptides for iRT sampling. These peptides will be prioritized alongside the built-in irtkit and cirtkit peptides when `auto_irt` is enabled. Useful for including project-specific or custom iRT peptides.");
+
       p.setValue("rt_norm", "", "RT normalization file (how to map the RTs of this run to the ones stored in the library). If set, tr_irt may be omitted.");
 
       return p;
@@ -471,7 +474,7 @@ protected:
     Parsing is case-insensitive and tolerant of surrounding whitespace.
     Unknown tokens or an empty/malformed value raise an exception.
 
-    @param estimate_windows_option_str  The option string (e.g. "all", "none", "rt,mz").
+    @param[in] estimate_windows_option_str  The option string (e.g. "all", "none", "rt,mz").
     @return An @c EstimateWindowsChoice with the requested flags set.
     @throws Exception::InvalidParameter
             If the string is empty/malformed or contains unknown tokens.
@@ -530,8 +533,8 @@ protected:
       - m/z window: ppm
       - IM window: native instrument units
 
-    @param v            The candidate window value.
-    @param min_positive Minimum strictly-positive threshold (default: 1e-9).
+    @param[in] v            The candidate window value.
+    @param[in] min_positive Minimum strictly-positive threshold (default: 1e-9).
                          Estimates <= this threshold are deemed invalid.
     @return True if the window is usable; false otherwise.
   */
@@ -555,13 +558,13 @@ protected:
       - MS1 m/z window (ppm)
       - IM window (1/k0), only when applicable (e.g., PASEF/IM data)
 
-    @param label       Human-readable label used in logs (e.g., "RT", "MS2 m/z (ppm)", "MS1 ion mobility (1/k0)").
-    @param estimate    Auto-estimated window value to consider.
-    @param dst_param   Destination parameter to update on success (by reference).
-    @param user_value  The current/user-specified value (reported in logs).
-    @param applicable  Whether this window is applicable for the current run/config.
+    @param[in] label       Human-readable label used in logs (e.g., "RT", "MS2 m/z (ppm)", "MS1 ion mobility (1/k0)").
+    @param[in] estimate    Auto-estimated window value to consider.
+    @param[out] dst_param   Destination parameter to update on success (by reference).
+    @param[in] user_value  The current/user-specified value (reported in logs).
+    @param[in] applicable  Whether this window is applicable for the current run/config.
                        If false, the value is not applied and a note is logged.
-    @param commit      Whether to apply the estimate. If false, only logs the estimate vs. user value.
+    @param[in] commit      Whether to apply the estimate. If false, only logs the estimate vs. user value.
                        Default: true (backwards compatible).
   */
   void apply_window(const char* label,
@@ -602,6 +605,60 @@ protected:
         // leave dst_param unchanged
       }
     }
+
+  /**
+    @brief Load priority peptide sequences from TSV files (irtkit and cirtkit)
+    
+    Loads peptide sequences from the specified TSV files and returns them as a
+    set for quick lookup. Used to prioritize common iRT peptides during sampling.
+    
+    @param[in] tsv_files Vector of file paths to TSV files to load
+    @param[in] tsv_reader_param Parameters for the TSV reader
+    
+    @return Set of unique peptide sequences from the loaded files
+  */
+  std::unordered_set<std::string> loadPriorityPeptideSequences(
+    const std::vector<String>& tsv_files,
+    const Param& tsv_reader_param)
+  {
+    std::unordered_set<std::string> priority_sequences;
+    
+    for (const auto& tsv_file : tsv_files)
+    {
+      if (tsv_file.empty() || !File::exists(tsv_file))
+      {
+        OPENMS_LOG_WARN << "Priority peptide file not found: " << tsv_file << std::endl;
+        continue;
+      }
+      
+      try
+      {
+        FileTypes::Type file_type = FileHandler::getType(tsv_file);
+        OpenSwath::LightTargetedExperiment priority_exp = loadTransitionList(file_type, tsv_file, tsv_reader_param);
+        
+        for (const auto& compound : priority_exp.getCompounds())
+        {
+          if (!compound.sequence.empty())
+          {
+            priority_sequences.insert(compound.sequence);
+          }
+        }
+        
+        OPENMS_LOG_INFO << "Loaded " << priority_exp.getCompounds().size() 
+                        << " compounds from priority file: " << tsv_file << std::endl;
+      }
+      catch (const Exception::BaseException& e)
+      {
+        OPENMS_LOG_WARN << "Failed to load priority peptide file " << tsv_file 
+                        << ": " << e.what() << std::endl;
+      }
+    }
+    
+    OPENMS_LOG_INFO << "Total unique priority peptide sequences: " 
+                    << priority_sequences.size() << std::endl;
+    
+    return priority_sequences;
+  }
 
   ExitCodes main_(int, const char **) override
   {
@@ -653,6 +710,7 @@ protected:
 
     String irt_tr_file = irt_calibration_params.getValue("tr_irt").toString();
     String nonlinear_irt_tr_file = irt_calibration_params.getValue("tr_irt_nonlinear").toString();
+    String priority_sampling_irt_tr_file = irt_calibration_params.getValue("tr_irt_priority_sampling").toString();
     String trafo_in = irt_calibration_params.getValue("rt_norm").toString();
     String swath_windows_file = getStringOption_("swath_windows_file");
 
@@ -723,6 +781,24 @@ protected:
       if (irt_pep_lin == 0)
       {
         writeLogError_("Parameter error: --irt_peptides_per_bin must be > 0 when auto_irt is enabled.");
+        return PARSE_ERROR;
+      }
+    }
+    
+    // Validate priority iRT sampling file format if provided
+    if (!priority_sampling_irt_tr_file.empty())
+    {
+      if (!File::exists(priority_sampling_irt_tr_file))
+      {
+        writeLogError_("Parameter error: Priority iRT file does not exist: " + priority_sampling_irt_tr_file);
+        return PARSE_ERROR;
+      }
+      
+      FileTypes::Type priority_file_type = FileHandler::getType(priority_sampling_irt_tr_file);
+      if (priority_file_type != FileTypes::TSV)
+      {
+        writeLogError_("Parameter error: Priority iRT file must be in TSV format. Provided: " + 
+                       FileTypes::typeToName(priority_file_type));
         return PARSE_ERROR;
       }
     }
@@ -882,7 +958,7 @@ protected:
     ///////////////////////////////////
     // Load the SWATH files
     ///////////////////////////////////
-    boost::shared_ptr<ExperimentalSettings> exp_meta(new ExperimentalSettings);
+    std::shared_ptr<ExperimentalSettings> exp_meta(new ExperimentalSettings);
     std::vector< OpenSwath::SwathMap > swath_maps;
 
     // collect some QC data
@@ -925,6 +1001,55 @@ protected:
     calibration_param.setValue("mz_estimation_padding_factor", getDoubleOption_("mz_estimation_padding_factor"));
     calibration_param.setValue("mz_correction_function", mz_correction_function);
 
+    // Load priority peptide sequences from irtkit and cirtkit if auto_irt is enabled
+    std::unordered_set<std::string> priority_peptides;
+    if (auto_irt)
+    {
+      String data_path = File::getOpenMSDataPath();
+      std::vector<String> priority_files;
+      
+      String irtkit_path = data_path + "/CHEMISTRY/irtkit.tsv";
+      String cirtkit_path = data_path + "/CHEMISTRY/cirtkit.tsv";
+      
+      if (File::exists(irtkit_path))
+      {
+        priority_files.push_back(irtkit_path);
+      }
+      else
+      {
+        OPENMS_LOG_WARN << "irtkit.tsv not found at: " << irtkit_path << std::endl;
+      }
+      
+      if (File::exists(cirtkit_path))
+      {
+        priority_files.push_back(cirtkit_path);
+      }
+      else
+      {
+        OPENMS_LOG_WARN << "cirtkit.tsv not found at: " << cirtkit_path << std::endl;
+      }
+      
+      // Add custom priority iRT file if provided
+      if (!priority_sampling_irt_tr_file.empty())
+      {
+        if (File::exists(priority_sampling_irt_tr_file))
+        {
+          priority_files.push_back(priority_sampling_irt_tr_file);
+          OPENMS_LOG_DEBUG << "Including custom priority iRT file: " << priority_sampling_irt_tr_file << std::endl;
+        }
+      }
+      
+      if (!priority_files.empty())
+      {
+        Param priority_tsv_param = TransitionTSVFile().getDefaults();
+        priority_peptides = loadPriorityPeptideSequences(priority_files, priority_tsv_param);
+      }
+      else
+      {
+        OPENMS_LOG_WARN << "No priority peptide files found. Continuing without priority sampling." << std::endl;
+      }
+    }
+
     // 1) Prepare in‐memory iRT experiments for linear + nonlinear
     OpenSwath::LightTargetedExperiment lin_irt_exp;
     if (!irt_tr_file.empty())
@@ -949,7 +1074,8 @@ protected:
         irt_pep_lin,
         irt_seed,
         true,
-        0.4
+        0.4,
+        priority_peptides
       );
     }
 
@@ -976,7 +1102,8 @@ protected:
         irt_pep_nl,
         irt_seed,
         true,
-        0.7
+        0.7,
+        priority_peptides
       );
     }
 

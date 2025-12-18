@@ -36,7 +36,7 @@ namespace OpenMS
     {
       no_mzml_ = false;
       // check for Calibration
-      auto is_not_elem = [](const boost::shared_ptr<const OpenMS::DataProcessing>& dp) { return (dp->getProcessingActions().count(DataProcessing::CALIBRATION) == 0); };
+      auto is_not_elem = [](const std::shared_ptr<const OpenMS::DataProcessing>& dp) { return (dp->getProcessingActions().count(DataProcessing::CALIBRATION) == 0); };
       auto vdp = exp[0].getDataProcessing(); // get a copy to avoid calling .begin() and .end() on two different temporaries
       if (all_of(vdp.begin(), vdp.end(), is_not_elem))
       {

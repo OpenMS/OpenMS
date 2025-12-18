@@ -138,24 +138,24 @@ public:
     /**
       @brief Reverse a peptide sequence (with its modifications)
 
-      @param peptide The peptide sequence and modifications
-      @param keepN Whether to keep N terminus in place
-      @param keepC Whether to keep C terminus in place
-      @param const_pattern A list of AA to leave in place
+      @param[in] peptide The peptide sequence and modifications
+      @param[in] keepN Whether to keep N terminus in place
+      @param[in] keepC Whether to keep C terminus in place
+      @param[in] const_pattern A list of AA to leave in place
     */
     static OpenMS::TargetedExperiment::Peptide reversePeptide(
                 const OpenMS::TargetedExperiment::Peptide& peptide,
                 const bool keepN,
-                const bool keepC, 
+                const bool keepC,
                 const String& const_pattern = String());
 
     /**
       @brief Find all residues in a sequence that should not be reversed / shuffled
-      
-      @param sequence The amino acid sequence
-      @param keepN Whether to keep N terminus constant
-      @param keepC Whether to keep C terminus constant
-      @param keep_const_pattern A string containing the AA to not change (e.g. 'KRP')
+
+      @param[in] sequence The amino acid sequence
+      @param[in] keepN Whether to keep N terminus constant
+      @param[in] keepC Whether to keep C terminus constant
+      @param[in] keep_const_pattern A string containing the AA to not change (e.g. 'KRP')
     */
     static IndexType findFixedResidues(const std::string& sequence,
         bool keepN, bool keepC, const OpenMS::String& keep_const_pattern);

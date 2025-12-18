@@ -8,6 +8,7 @@
 
 #include <OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimatorMedianRapid.h>
 
+#include <algorithm>
 #include <numeric>
 
 // array_wrapper needs to be included before it is used

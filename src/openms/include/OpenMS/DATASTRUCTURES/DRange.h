@@ -143,7 +143,7 @@ public:
     /**
          @brief Checks whether this range (half open interval!) contains a certain point.
 
-         @param position The point's position.
+         @param[in] position The point's position.
          @returns true if point lies inside this area.
     */
     bool encloses(const PositionType& position) const
@@ -194,7 +194,7 @@ public:
     /**
          @brief Checks how this range intersects with another @p range.
 
-         @param range The max_ range.
+         @param[in] range The max_ range.
     */
     DRangeIntersection intersects(const DRange& range) const
     {
@@ -235,7 +235,7 @@ public:
     /**
          @brief Checks whether this range intersects with another @p range.
 
-         @param range The max_ range.
+         @param[in] range The max_ range.
          @returns True if the areas intersect (i.e. they intersect or one contains the other).
     */
     bool isIntersected(const DRange& range) const
@@ -276,7 +276,7 @@ public:
            factor = 1.01 extends the range by 1% in total, i.e. 0.5% left and right.
            factor = 2.00 doubles the total range, e.g. from [0,100] to [-50,150]
 
-         @param factor Multiplier (allowed is [0, inf)).
+         @param[in] factor Multiplier (allowed is [0, inf)).
          @return A reference to self
     */
     DRange<D>& extend(double factor)
@@ -303,8 +303,8 @@ public:
 
      Examples (for D=1):
        addition = 0.5 extends the range by 1 in total, i.e. 0.5 left and right.
-   
-     @param addition Additive for each dimension (can be negative). Resulting invalid min/max are not fixed automatically!
+
+     @param[in] addition Additive for each dimension (can be negative). Resulting invalid min/max are not fixed automatically!
      @return A reference to self
     */
     DRange<D>& extend(typename Base::PositionType addition)
@@ -346,7 +346,7 @@ public:
 
     /**
      * @brief Make sure @p point is inside the current area
-     * @param point A point potentially outside the current range, which will be pulled into the current range.
+     * @param[in,out] point A point potentially outside the current range, which will be pulled into the current range.
      */
     void pullIn(DPosition<D>& point) const
     {

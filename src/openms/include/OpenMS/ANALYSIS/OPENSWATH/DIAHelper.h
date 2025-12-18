@@ -48,16 +48,16 @@ namespace OpenMS
     /**
       @brief Integrate intensities in a spectrum in range @p im_range (if defined) for multiple windows.
 
-      @param spectrum Input spectrum
-      @param windows_center Center locations of the windows.
-      @param width Width of the windows across m/z
+      @param[in] spectrum Input spectrum
+      @param[in] windows_center Center locations of the windows.
+      @param[in] width Width of the windows across m/z
       @param[out] integrated_windows_intensity Integrated intensity for each window
       @param[out] integrated_windows_mz Integrated intensity-weighted m/z for each window
       @param[out] integrated_windows_im Integrated intensity-weighted im for each window
-      @param im_range is the range of the IM dimension (if defined)
-      @param remove_zero Remove zero intensity windows?
+      @param[in] im_range is the range of the IM dimension (if defined)
+      @param[in] remove_zero Remove zero intensity windows?
     */
-    OPENMS_DLLAPI void integrateWindows(const OpenSwath::SpectrumPtr& spectrum, 
+    OPENMS_DLLAPI void integrateWindows(const OpenSwath::SpectrumPtr& spectrum,
                                         const std::vector<double>& windows_center,
                                         double width,
                                         std::vector<double>& integrated_windows_intensity,
@@ -69,15 +69,15 @@ namespace OpenMS
 
     /**
       @brief Integrate intensities of a SpectrumSequence in range @p im_range (if defined) for multiple windows.
-      
-      @param spectrum Input spectrum
-      @param windows_center Center locations of the windows.
-      @param width Width of the windows across m/z
+
+      @param[in] spectrum Input spectrum
+      @param[in] windows_center Center locations of the windows.
+      @param[in] width Width of the windows across m/z
       @param[out] integrated_windows_intensity Integrated intensity for each window
       @param[out] integrated_windows_mz Integrated intensity-weighted m/z for each window
       @param[out] integrated_windows_im Integrated intensity-weighted im for each window
-      @param im_range is the range of the IM dimension (if defined)
-      @param remove_zero Remove zero intensity windows?    
+      @param[in] im_range is the range of the IM dimension (if defined)
+      @param[in] remove_zero Remove zero intensity windows?
     */
     OPENMS_DLLAPI void integrateWindows(const SpectrumSequence& spectrum,
                                         const std::vector<double>& windows_center,
@@ -155,9 +155,9 @@ namespace OpenMS
     OPENMS_DLLAPI void extractSecond(const std::vector<std::pair<double, double> >& peaks, std::vector<double>& mass);
 
     /** @brief optionally convert a DIA extraction window from ppm to m/z
-      @param mz_ref Extraction window center
-      @param dia_extraction_window How wide the extraction window is total (can be in m/z or ppm)
-      @param ppm  Is extraction window is in ppm?
+      @param[in] mz_ref Extraction window center
+      @param[in] dia_extraction_window How wide the extraction window is total (can be in m/z or ppm)
+      @param[in] ppm  Is extraction window is in ppm?
       @return The extraction window in m/z
     */
     OPENMS_DLLAPI RangeMZ createMZRangePPM(double mz_ref, double dia_extraction_window, const bool ppm);

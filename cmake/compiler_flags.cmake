@@ -101,6 +101,7 @@ function(openms_add_compiler_flags target_name)
       -Wno-unknown-pragmas
       -ffp-contract=off
       -Wno-unused-function
+      -Wno-psabi
     )
     
     if(ENABLE_GCC_WERROR)

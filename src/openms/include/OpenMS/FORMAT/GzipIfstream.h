@@ -31,15 +31,15 @@ public:
 
     /**
       * @brief Reads n bytes from the bzip2 compressed file into buffer s
-      * 
-      * @param s Buffer to be filled with the output 
-      * @param n The size of the buffer s
+      *
+      * @param[out] s Buffer to be filled with the output
+      * @param[in] n The size of the buffer s
       * @return The number of actually read bytes. If it is less than n, the end of the file was reached and the stream is closed
-      * 
+      *
       * @note This returns a raw byte stream that is *not* null-terminated. Be careful here.
       * @note The length of the buffer needs to at least n
       * @note Closes the stream if the end of file is reached. Check isOpen before reading from the file again
-      * 
+      *
       * @exception Exception::ConversionError is thrown if decompression fails
       * @exception Exception::IllegalArgument is thrown if no file for decompression is given. This can happen even happen if a file was already open but read until the end.
     */
@@ -72,8 +72,8 @@ public:
     /*
         @brief updates crc32 check sum whether the buffer is corrupted
         @note if this function is used it has to be called after every call of function read
-        @param s the buffer which will be checked
-        @param n the size of the buffer
+        @param[in] s the buffer which will be checked
+        @param[in] n the size of the buffer
     *
     //void updateCRC32(const char* s,const size_t n);
 

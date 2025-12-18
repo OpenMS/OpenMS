@@ -57,7 +57,7 @@ START_SECTION((static Int solve(const Matrix< double > &A, const Matrix< double 
 	TOLERANCE_ABSOLUTE(0.0005);
 	
 	NonNegativeLeastSquaresSolver::solve(A,b,x);
-	for (size_t i = 0;i < x.rows(); ++i)
+	for (Eigen::Index i = 0;i < x.rows(); ++i)
 	{
 		TEST_REAL_SIMILAR(x(i,0), x_1[i][0]);
 	}	
@@ -80,7 +80,7 @@ START_SECTION((static Int solve(const Matrix< double > &A, const Matrix< double 
 	x.getEigenMatrix().resize(4,1);
 	
 	NonNegativeLeastSquaresSolver::solve(A,b,x);
-	for (size_t i=0;i<x.rows();++i)
+	for (Eigen::Index i=0;i<x.rows();++i)
 	{
 		TEST_REAL_SIMILAR(x(i,0), x_2[i][0]);
 	}	

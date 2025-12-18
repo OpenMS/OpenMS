@@ -63,14 +63,14 @@ public:
       /**
         Constructor with weights.
 
-        @param alphabet Weights over which masses to be decomposed.
+        @param[in] alphabet Weights over which masses to be decomposed.
       */
       explicit IntegerMassDecomposer(const Weights & alphabet);
 
       /**
         Returns true if decomposition over the @c mass exists, otherwise - false.
 
-        @param mass Mass to be decomposed.
+        @param[in] mass Mass to be decomposed.
         @return true if decomposition over a given mass exists, otherwise - false.
       */
       bool exist(value_type mass) override;
@@ -78,7 +78,7 @@ public:
       /**
         Gets one possible decomposition for @c mass.
 
-        @param mass Mass to be decomposed.
+        @param[in] mass Mass to be decomposed.
         @return One possible decomposition for a given mass.
       */
       decomposition_type getDecomposition(value_type mass) override;
@@ -86,7 +86,7 @@ public:
       /**
         Gets all possible decompositions for @c mass.
 
-        @param mass Mass to be decomposed.
+        @param[in] mass Mass to be decomposed.
         @return All possible decompositions for a given mass.
       */
       decompositions_type getAllDecompositions(value_type mass) override;
@@ -96,7 +96,7 @@ public:
         Since using getAllDecomposition() the usage of this function could
         be @b consuming.
 
-        @param mass Mass to be decomposed
+        @param[in] mass Mass to be decomposed
         @return number of decompositions for a given mass.
       */
       decomposition_value_type getNumberOfDecompositions(value_type mass) override;
@@ -164,10 +164,10 @@ private:
       /**
         Collects decompositions for @c mass by recursion.
 
-        @param mass Mass to be decomposed.
-        @param alphabetMassIndex An index of the mass in alphabet that is used on this step of recursion.
-        @param decomposition Decomposition which is calculated on this step of recursion.
-        @param decompositionsStore Container where decompositions are collected.
+        @param[in] mass Mass to be decomposed.
+        @param[in] alphabetMassIndex An index of the mass in alphabet that is used on this step of recursion.
+        @param[in] decomposition Decomposition which is calculated on this step of recursion.
+        @param[in] decompositionsStore Container where decompositions are collected.
       */
       void collectDecompositionsRecursively_(value_type mass, size_type alphabetMassIndex,
                                              decomposition_type decomposition, decompositions_type & decompositionsStore);
