@@ -236,7 +236,7 @@ jobs:
         conda info
 
         # None of the other arrow sublibraries seemed necessary, but it's an easy addition.
-        conda install -c conda-forge libarrow libparquet -y
+        conda install -c conda-forge libarrow libparquet highs -y
 
         # Set variables required for the following steps so they
         # don't need a conda environment or login shell:

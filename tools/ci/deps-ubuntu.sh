@@ -56,4 +56,16 @@ sudo apt-get -qq install -y \
   doxygen \
   ghostscript \
   graphviz
+
+# Install HIGHS LP solver from source
+# HiGHS is a modern LP/MIP solver that exports CMake config files
+HIGHS_VERSION=v1.7.2
+cd /tmp
+git clone --depth 1 --branch ${HIGHS_VERSION} https://github.com/ERGO-Code/HiGHS.git
+cd HiGHS
+cmake -S. -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local
+cmake --build build --parallel
+sudo cmake --install build
+cd /
+rm -rf /tmp/HiGHS
 # [installation_documentation]
