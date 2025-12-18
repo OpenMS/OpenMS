@@ -29,12 +29,41 @@ namespace OpenMS
 
     @ingroup Kernel
 
+    This class allows random access to spectra and chromatograms in indexed mzML
+    files without loading the entire file into memory.
+
+    @section OnDiscMSExperiment_filtering Filtering with PeakFileOptions
+
+    PeakFileOptions can be used to filter data when retrieving spectra/chromatograms:
+    - RT range and MS level filters: Checked BEFORE loading peak data (skips I/O)
+    - m/z range and intensity filters: Applied AFTER loading peak data
+
+    @note Unlike in-memory loading (FileHandler), where filtered spectra are completely
+    removed from the container, OnDiscMSExperiment preserves all indices. When a spectrum
+    doesn't pass RT range or MS level filters, getSpectrum() returns the spectrum with
+    metadata but no peaks (I/O is skipped). This preserves the index mapping to the file.
+
+    Example:
+    @code
+    OnDiscMSExperiment exp;
+    exp.openFile("data.mzML");
+    exp.getOptions().setMSLevels({2});  // Only want MS2
+    exp.getOptions().setRTRange(DRange<1>(100, 200));
+
+    for (Size i = 0; i < exp.size(); ++i)
+    {
+      MSSpectrum s = exp.getSpectrum(i);
+      if (s.empty()) continue;  // Filtered out, no I/O was performed
+      // Process MS2 spectrum in RT range...
+    }
+    @endcode
+
     @note This implementation is @a not thread-safe since it keeps internally a
     single file access pointer which it moves when accessing a specific
-    data item. Please provide a separate copy to each thread, e.g. 
+    data item. Please provide a separate copy to each thread, e.g.
 
     @code
-    #pragma omp parallel for firstprivate(ondisc_map) 
+    #pragma omp parallel for firstprivate(ondisc_map)
     @endcode
 
   */

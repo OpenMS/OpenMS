@@ -53,9 +53,10 @@ namespace OpenMS
     meta_ms_experiment_ = std::shared_ptr< PeakMap >(new PeakMap);
 
     FileHandler f;
-    // Start with user-provided options (for RT range, MS levels, etc.)
-    PeakFileOptions options = options_;
-    // Always disable filling data for metadata loading (we load data on-demand)
+    // Always load ALL metadata without RT/MS level filters to maintain proper index correspondence
+    // with indexed_mzml_file_. Filtering is applied at retrieval time in getSpectrum()/getChromatogram().
+    // We only set fillData=false to avoid loading peak data during metadata loading.
+    PeakFileOptions options;
     options.setFillData(false);
     f.setOptions(options);
     f.loadExperiment(filename, *meta_ms_experiment_.get(), {FileTypes::MZML});
