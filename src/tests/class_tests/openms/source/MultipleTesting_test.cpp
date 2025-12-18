@@ -4,6 +4,7 @@
 #include <OpenMS/test_config.h>
 
 #include <OpenMS/MATH/STATISTICS/MultipleTesting.h>
+#include <OpenMS/MATH/STATISTICS/KernelDensityEstimation.h>
 #include <OpenMS/MATH/MISC/CubicSpline2d.h>
 #include <fstream>
 #include <sstream>
