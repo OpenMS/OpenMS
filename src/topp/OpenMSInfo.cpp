@@ -132,9 +132,11 @@ protected:
        << "Binary arch  : " << Internal::OpenMSOSInfo::getBinaryArchitecture() << '\n'
        << "Build type   : " << Internal::OpenMSBuildInfo::getBuildType() << '\n';
 #ifdef OPENMS_HAS_COINOR
-    is << "LP-Solver    : COIN-OR\n";
+  is << "LP-Solver    : COIN-OR\n";
+#elif defined(OPENMS_HAS_HIGHS)
+  is << "LP-Solver    : HIGHS\n";
 #else
-    cout << "LP-Solver    : GLPK\n";
+  is << "LP-Solver    : GLPK\n";
 #endif
 #ifdef _OPENMP
     is << "OpenMP       : "

@@ -89,64 +89,81 @@ endif()
 
 #------------------------------------------------------------------------------
 # LP Solver detection (COIN-OR, HIGHS, or GLPK)
-# Users can control solver selection with USE_COINOR, USE_HIGHS, USE_GLPK CMake options
-# By default, the priority is: COIN-OR > HIGHS > GLPK
+# Users control selection with LP_SOLVER (AUTO, COINOR, HIGHS, GLPK)
+# Default priority (AUTO): COIN-OR > HIGHS > GLPK
 
-# Define options for LP solver selection
-option(USE_COINOR "Search for and use COIN-OR LP solver if available" ON)
-option(USE_HIGHS "Search for and use HIGHS LP solver if available" ON)
-option(USE_GLPK "Search for and use GLPK LP solver if available" ON)
+set(LP_SOLVER "AUTO" CACHE STRING "LP solver selection: AUTO, COINOR, HIGHS, GLPK. AUTO: tries COIN-OR, then HIGHS, then GLPK.")
+set_property(CACHE LP_SOLVER PROPERTY STRINGS AUTO COINOR HIGHS GLPK)
 
 set(LP_SOLVER_FOUND FALSE)
+string(TOUPPER "${LP_SOLVER}" LP_SOLVER_UPPER)
 
 #------------------------------------------------------------------------------
-# COIN-OR
-# Our find module creates an imported CoinOR::CoinOR target
-if(USE_COINOR AND NOT LP_SOLVER_FOUND)
+# selection helpers
+function(_try_coinor)
   find_package(COIN)
   if (COIN_FOUND)
-    set(OPENMS_HAS_COINOR 1)
-    set(LPTARGET "CoinOR::CoinOR")
-    set(LP_SOLVER_FOUND TRUE)
+    set(OPENMS_HAS_COINOR 1 PARENT_SCOPE)
+    set(LPTARGET "CoinOR::CoinOR" PARENT_SCOPE)
+    set(LP_SOLVER_FOUND TRUE PARENT_SCOPE)
     message(STATUS "Using LP solver: COIN-OR")
+  elseif(LP_SOLVER_UPPER STREQUAL "COINOR")
+    message(FATAL_ERROR "COIN-OR LP solver requested but not found!")
   endif()
-endif()
+endfunction()
 
-#------------------------------------------------------------------------------
-# HIGHS
-# creates HIGHS::HIGHS target
-if(USE_HIGHS AND NOT LP_SOLVER_FOUND)
+function(_try_highs)
   find_package(HIGHS)
   if (HIGHS_FOUND)
-    set(OPENMS_HAS_HIGHS 1)
-    set(CF_OPENMS_HIGHS_VERSION_MAJOR ${HIGHS_VERSION_MAJOR})
-    set(CF_OPENMS_HIGHS_VERSION_MINOR ${HIGHS_VERSION_MINOR})
-    set(CF_OPENMS_HIGHS_VERSION_PATCH ${HIGHS_VERSION_PATCH})
-    set(CF_OPENMS_HIGHS_VERSION ${HIGHS_VERSION_STRING})
-    set(LPTARGET "HIGHS::HIGHS")
-    set(LP_SOLVER_FOUND TRUE)
+    set(OPENMS_HAS_HIGHS 1 PARENT_SCOPE)
+    set(CF_OPENMS_HIGHS_VERSION_MAJOR ${HIGHS_VERSION_MAJOR} PARENT_SCOPE)
+    set(CF_OPENMS_HIGHS_VERSION_MINOR ${HIGHS_VERSION_MINOR} PARENT_SCOPE)
+    set(CF_OPENMS_HIGHS_VERSION_PATCH ${HIGHS_VERSION_PATCH} PARENT_SCOPE)
+    set(CF_OPENMS_HIGHS_VERSION ${HIGHS_VERSION_STRING} PARENT_SCOPE)
+    set(LPTARGET "highs::highs" PARENT_SCOPE)
+    set(LP_SOLVER_FOUND TRUE PARENT_SCOPE)
     message(STATUS "Using LP solver: HIGHS")
+  elseif(LP_SOLVER_UPPER STREQUAL "HIGHS")
+    message(FATAL_ERROR "HIGHS LP solver requested but not found!")
   endif()
-endif()
+endfunction()
 
-#------------------------------------------------------------------------------
-# GLPK
-# creates GLPK::GLPK target
-if(USE_GLPK AND NOT LP_SOLVER_FOUND)
+function(_try_glpk)
   find_package(GLPK)
   if (GLPK_FOUND)
-    set(CF_OPENMS_GLPK_VERSION_MAJOR ${GLPK_VERSION_MAJOR})
-    set(CF_OPENMS_GLPK_VERSION_MINOR ${GLPK_VERSION_MINOR})
-    set(CF_OPENMS_GLPK_VERSION ${GLPK_VERSION_STRING})
-    set(LPTARGET "GLPK::GLPK")
-    set(LP_SOLVER_FOUND TRUE)
+    set(CF_OPENMS_GLPK_VERSION_MAJOR ${GLPK_VERSION_MAJOR} PARENT_SCOPE)
+    set(CF_OPENMS_GLPK_VERSION_MINOR ${GLPK_VERSION_MINOR} PARENT_SCOPE)
+    set(CF_OPENMS_GLPK_VERSION ${GLPK_VERSION_STRING} PARENT_SCOPE)
+    set(LPTARGET "GLPK::GLPK" PARENT_SCOPE)
+    set(LP_SOLVER_FOUND TRUE PARENT_SCOPE)
     message(STATUS "Using LP solver: GLPK")
+  elseif(LP_SOLVER_UPPER STREQUAL "GLPK")
+    message(FATAL_ERROR "GLPK LP solver requested but not found!")
   endif()
+endfunction()
+
+# selection logic
+if(LP_SOLVER_UPPER STREQUAL "AUTO")
+  _try_coinor()
+  if(NOT LP_SOLVER_FOUND)
+    _try_highs()
+  endif()
+  if(NOT LP_SOLVER_FOUND)
+    _try_glpk()
+  endif()
+elseif(LP_SOLVER_UPPER STREQUAL "COINOR")
+  _try_coinor()
+elseif(LP_SOLVER_UPPER STREQUAL "HIGHS")
+  _try_highs()
+elseif(LP_SOLVER_UPPER STREQUAL "GLPK")
+  _try_glpk()
+else()
+  message(FATAL_ERROR "Invalid LP_SOLVER value '${LP_SOLVER}'. Use AUTO, COINOR, HIGHS, or GLPK.")
 endif()
 
 if(NOT LP_SOLVER_FOUND)
   message(FATAL_ERROR "No LP solver found. At least one of COIN-OR, HIGHS, or GLPK must be available. "
-                      "You can enable/disable specific solvers with -DUSE_COINOR=ON/OFF, -DUSE_HIGHS=ON/OFF, or -DUSE_GLPK=ON/OFF")
+                      "Set -DLP_SOLVER=AUTO (default) or force a specific solver with -DLP_SOLVER=COINOR|HIGHS|GLPK.")
 endif()
 
 #------------------------------------------------------------------------------

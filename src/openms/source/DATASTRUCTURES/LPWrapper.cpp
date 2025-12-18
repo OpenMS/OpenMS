@@ -99,8 +99,10 @@ namespace OpenMS
     model_->addRow((int)row_indices.size(), row_indices.data(), row_values.data(), -COIN_DBL_MAX, COIN_DBL_MAX, name.c_str());
     return model_->numberRows() - 1;
 #elif defined(OPENMS_HAS_HIGHS)
+    (void)name;  // HIGHS doesn't support row names, suppress unused parameter warning
     const Int index = highs_model_->getNumRow();
     highs_model_->addRow(-kHighsInf, kHighsInf, (HighsInt)row_indices.size(), row_indices.data(), row_values.data());
+    row_names_.push_back(name);  // Store name in mapping
     return index;
 #else
     std::vector<Int> row_indices_ = row_indices;
@@ -126,7 +128,9 @@ namespace OpenMS
     return model_->numberColumns() - 1;
 #elif defined(OPENMS_HAS_HIGHS)
     const Int index = highs_model_->getNumCol();
-    highs_model_->addCol(0.0, 0, 0, nullptr, nullptr);
+    // new columns are initially fixed at zero, like in glpk: cost=0, lower=0, upper=0, num_nz=0, no matrix entries
+    highs_model_->addCol(0.0, 0.0, 0.0, 0, nullptr, nullptr);
+    col_names_.push_back(String("col") + String(index));  // Add default name
     return index;
 #else
     return glp_add_cols(lp_problem_, 1) - 1;
@@ -143,12 +147,16 @@ namespace OpenMS
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Indices and values vectors differ in size");
     }
+#ifdef OPENMS_HAS_HIGHS
+    (void)name;  // HIGHS doesn't support column names, suppress unused parameter warning
+#endif
 #ifdef OPENMS_HAS_COINOR
     model_->addColumn((int)column_indices.size(), column_indices.data(), column_values.data(), -COIN_DBL_MAX, COIN_DBL_MAX, 0.0, name.c_str());
     return model_->numberColumns() - 1;
 #elif defined(OPENMS_HAS_HIGHS)
     const Int index = highs_model_->getNumCol();
     highs_model_->addCol(0.0, -kHighsInf, kHighsInf, (HighsInt)column_indices.size(), column_indices.data(), column_values.data());
+    col_names_.push_back(name);  // Store name in mapping
     return index;
 #else
     std::vector<Int> column_indices_ = column_indices;
@@ -268,7 +276,7 @@ namespace OpenMS
 #ifdef OPENMS_HAS_COINOR
     model_->deleteRow(index);
 #elif defined(OPENMS_HAS_HIGHS)
-    highs_model_->deleteRows(index, index);
+    highs_model_->deleteRows(index, index); // HIGHS uses inclusive range [from_index, to_index]
 #else
     int num[] = { 0, index + 1 }; // glpk starts reading at pos 1
     glp_del_rows(lp_problem_, 1, num);
@@ -284,8 +292,9 @@ namespace OpenMS
 #ifdef OPENMS_HAS_COINOR
     model_->setElement(row_index, column_index, value);
 #elif defined(OPENMS_HAS_HIGHS)
-    // HIGHS uses changeCoeff to modify matrix coefficients
-    highs_model_->changeCoeff(row_index, column_index, value);
+    // HiGHS changeCoeff only works for existing non-zero entries in sparse matrix
+    // For now, setElement is not supported - would need to rebuild entire matrix
+    throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
 #else
     const Int length = glp_get_mat_row(lp_problem_, row_index + 1, nullptr, nullptr); // get row length
     std::vector<double> values(length + 1);
@@ -331,15 +340,22 @@ namespace OpenMS
 #ifdef OPENMS_HAS_COINOR
     return model_->getElement(row_index, column_index);
 #elif defined(OPENMS_HAS_HIGHS)
-    // Get the row from HIGHS LP
-    const HighsLp& lp = highs_model_->getLp();
-    // Search through the sparse matrix for the element
-    for (HighsInt i = lp.a_matrix_.start_[row_index]; i < lp.a_matrix_.start_[row_index + 1]; ++i)
+    // HIGHS provides sparse matrix access - search for the element in the row
+    const HighsSparseMatrix& matrix = highs_model_->getLp().a_matrix_;
+    if (column_index >= 0 && column_index < (Int)matrix.start_.size() - 1)
     {
-      if (lp.a_matrix_.index_[i] == column_index)
-        return lp.a_matrix_.value_[i];
+      HighsInt start = matrix.start_[column_index];
+      HighsInt end = matrix.start_[column_index + 1];
+      for (HighsInt i = start; i < end; ++i)
+      {
+        if ((Int)matrix.index_[i] == row_index)
+        {
+          return matrix.value_[i];
+        }
+      }
     }
-    return 0.;
+    // Element not found in sparse matrix (implicitly zero)
+    return 0.0;
 #else
     const Int length = glp_get_mat_row(lp_problem_, row_index + 1, nullptr, nullptr);
     std::vector<double> values(length + 1);
@@ -359,9 +375,11 @@ namespace OpenMS
 #ifdef OPENMS_HAS_COINOR
     model_->setColumnName(index, name.c_str());
 #elif defined(OPENMS_HAS_HIGHS)
-    // HIGHS doesn't directly support setting names, but we can work with it
-    // For now, we'll skip this as it's not critical for functionality
-    (void)index; (void)name; // avoid unused parameter warnings
+    // Store name in mapping for HIGHS
+    if (index >= 0 && index < (Int)col_names_.size())
+    {
+      col_names_[index] = name;
+    }
 #else
     glp_set_col_name(lp_problem_, index + 1, name.c_str());
 #endif
@@ -372,9 +390,11 @@ namespace OpenMS
 #ifdef OPENMS_HAS_COINOR
     model_->setRowName(index, name.c_str());
 #elif defined(OPENMS_HAS_HIGHS)
-    // HIGHS doesn't directly support setting names, but we can work with it
-    // For now, we'll skip this as it's not critical for functionality
-    (void)index; (void)name; // avoid unused parameter warnings
+    // Store name in mapping for HIGHS
+    if (index >= 0 && index < (Int)row_names_.size())
+    {
+      row_names_[index] = name;
+    }
 #else
     glp_set_row_name(lp_problem_, index + 1, name.c_str());
 #endif
@@ -567,6 +587,10 @@ namespace OpenMS
 #ifdef OPENMS_HAS_COINOR
     return model_->getColumnName(index);
 #elif defined(OPENMS_HAS_HIGHS)
+    if (index >= 0 && index < (Int)col_names_.size())
+    {
+      return col_names_[index];
+    }
     // HIGHS doesn't directly support getting names
     return String("col") + String(index);
 #else
@@ -579,7 +603,10 @@ namespace OpenMS
 #ifdef OPENMS_HAS_COINOR
     return model_->getRowName(index);
 #elif defined(OPENMS_HAS_HIGHS)
-    // HIGHS doesn't directly support getting names
+    if (index >= 0 && index < (Int)row_names_.size())
+    {
+      return row_names_[index];
+    }
     return String("row") + String(index);
 #else
     return String(glp_get_row_name(lp_problem_, index + 1));
@@ -591,9 +618,13 @@ namespace OpenMS
 #ifdef OPENMS_HAS_COINOR
     return model_->row(name.c_str());
 #elif defined(OPENMS_HAS_HIGHS)
-    // HIGHS doesn't support named indices, so we can't look up by name
-    // Return -1 to indicate not found
-    (void)name;
+    for (Int i = 0; i < (Int)row_names_.size(); ++i)
+    {
+      if (row_names_[i] == name)
+      {
+        return i;
+      }
+    }
     return -1;
 #else
     glp_create_index(lp_problem_);
@@ -606,9 +637,13 @@ namespace OpenMS
 #ifdef OPENMS_HAS_COINOR
     return model_->column(name.c_str());
 #elif defined(OPENMS_HAS_HIGHS)
-    // HIGHS doesn't support named indices, so we can't look up by name
-    // Return -1 to indicate not found
-    (void)name;
+    for (Int i = 0; i < (Int)col_names_.size(); ++i)
+    {
+      if (col_names_[i] == name)
+      {
+        return i;
+      }
+    }
     return -1;
 #else
     glp_create_index(lp_problem_);
@@ -631,14 +666,13 @@ namespace OpenMS
 #elif defined(OPENMS_HAS_HIGHS)
   void LPWrapper::readProblem(const String& filename, const String& format)
   {
-    // HIGHS supports MPS format
-    if (format == "MPS")
+    // Try reading directly
+    HighsStatus status = highs_model_->readModel(filename.c_str());
+    
+    if (status != HighsStatus::kOk)
     {
-      highs_model_->readModel(filename.c_str());
-    }
-    else
-    {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid LP format for HIGHS, only MPS is supported");
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                    "HiGHS failed to read model", filename);
     }
   }
 #else
@@ -676,13 +710,26 @@ namespace OpenMS
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid LP format, allowed is MPS");
     }
 #elif defined(OPENMS_HAS_HIGHS)
-    if (format == FORMAT_MPS)
+    // HIGHS only supports MPS and LP formats
+    if (format == FORMAT_GLPK)
     {
-      highs_model_->writeModel(filename.c_str());
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+                                      "Invalid LP format for HIGHS, allowed are MPS and LP");
     }
-    else
+    
+    // HIGHS auto-detects format from extension, so add .mps if no extension present
+    String output_filename = filename;
+    if (!output_filename.hasSuffix(".mps") && !output_filename.hasSuffix(".lp") && 
+        !output_filename.hasSuffix(".tmp"))
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid LP format for HIGHS, only MPS is supported");
+      output_filename += ".mps";
+    }
+    
+    HighsStatus status = highs_model_->writeModel(output_filename.c_str());
+    if (status != HighsStatus::kOk)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                    "HiGHS failed to write model", output_filename);
     }
 #else
     if (format == FORMAT_LP)
@@ -1020,8 +1067,24 @@ namespace OpenMS
     }
     return nonzeroentries;
 #elif defined(OPENMS_HAS_HIGHS)
-    const HighsLp& lp = highs_model_->getLp();
-    return lp.a_matrix_.start_[idx + 1] - lp.a_matrix_.start_[idx];
+    // HIGHS stores matrix in COLUMN-WISE format, so we need to iterate through all columns
+    // to count entries in the requested row
+    const HighsSparseMatrix& matrix = highs_model_->getLp().a_matrix_;
+    Int count = 0;
+    for (Int col = 0; col < matrix.num_col_; ++col)
+    {
+      HighsInt start = matrix.start_[col];
+      HighsInt end = matrix.start_[col + 1];
+      for (HighsInt i = start; i < end; ++i)
+      {
+        if (matrix.index_[i] == idx)
+        {
+          count++;
+          break;  // Found entry in this column, move to next column
+        }
+      }
+    }
+    return count;
 #else
     /* Non-zero coefficient count in the row. */
     // glpk uses arrays beginning at pos 1, so we need to shift
@@ -1044,10 +1107,21 @@ namespace OpenMS
     }
 #elif defined(OPENMS_HAS_HIGHS)
     indexes.clear();
-    const HighsLp& lp = highs_model_->getLp();
-    for (HighsInt i = lp.a_matrix_.start_[idx]; i < lp.a_matrix_.start_[idx + 1]; ++i)
+    const HighsSparseMatrix& matrix = highs_model_->getLp().a_matrix_;
+    // HIGHS stores matrix in COLUMN-WISE format, so iterate through all columns
+    // to find entries in the requested row
+    for (Int col = 0; col < matrix.num_col_; ++col)
     {
-      indexes.push_back(lp.a_matrix_.index_[i]);
+      HighsInt start = matrix.start_[col];
+      HighsInt end = matrix.start_[col + 1];
+      for (HighsInt i = start; i < end; ++i)
+      {
+        if (matrix.index_[i] == idx)
+        {
+          indexes.push_back(col);  // Column index where this row has an entry
+          break;  // Found entry in this column, move to next column
+        }
+      }
     }
 #else
     Int size = getNumberOfNonZeroEntriesInRow(idx);

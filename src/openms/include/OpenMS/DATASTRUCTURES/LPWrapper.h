@@ -26,16 +26,7 @@ class Highs;
 #if !defined(OPENMS_HAS_COINOR) && !defined(OPENMS_HAS_HIGHS)
   #ifndef GLP_PROB_DEFINED
     #define GLP_PROB_DEFINED
-    // depending on the glpk version
-    // define glp_prob as forward or struct
-    #if OPENMS_GLPK_VERSION_MAJOR == 4 && OPENMS_GLPK_VERSION_MINOR < 48
-    typedef struct
-    {
-      double _opaque_prob[100];
-    } glp_prob;
-    #else
     class glp_prob;
-    #endif
   #endif
 #endif
 
@@ -46,7 +37,7 @@ namespace OpenMS
     @brief A wrapper class for linear programming (LP) solvers
 
     This class provides a unified interface to different linear programming solvers,
-    including GLPK (GNU Linear Programming Kit) and COIN-OR (if available).
+    including GLPK (GNU Linear Programming Kit), COIN-OR (if available), and HIGHS (if available).
     
     Linear programming is a method to find the best outcome in a mathematical model
     whose requirements are represented by linear relationships. It is used for
@@ -425,6 +416,11 @@ public:
       @param[in] row_index Index of the row
       @param[in] column_index Index of the column
       @param[in] value Value to set at the specified position
+      
+      @throws Exception::NotImplemented for HIGHS solver (sparse matrix modification not supported)
+      
+      @note HIGHS does not support element-wise matrix modification after construction.
+            Use addRow() or addColumn() to build the matrix incrementally instead.
     */
     void setElement(Int row_index, Int column_index, double value);
     
@@ -518,6 +514,8 @@ protected:
     std::vector<double> solution_;     ///< Solution vector when using COIN-OR
 #elif defined(OPENMS_HAS_HIGHS)
     Highs * highs_model_ = nullptr;    ///< HIGHS model object for the LP problem
+    std::vector<String> row_names_;    ///< Row names mapping for HIGHS (doesn't support names natively)
+    std::vector<String> col_names_;    ///< Column names mapping for HIGHS (doesn't support names natively)
 #else
     glp_prob * lp_problem_ = nullptr;  ///< GLPK problem object for the LP problem
 #endif

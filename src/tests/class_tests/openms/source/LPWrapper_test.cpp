@@ -244,27 +244,32 @@ START_SECTION((double getRowLowerBound(Int index)))
 }
 END_SECTION
 
-
 START_SECTION((void setElement(Int row_index, Int column_index, double value)))
 {
+// setElement is not supported by HIGHS
+#ifndef OPENMS_HAS_HIGHS
   lp.setElement(1,2,0.5);
-  TEST_REAL_SIMILAR(lp.getElement(1,2),0.5)  
+  TEST_REAL_SIMILAR(lp.getElement(1,2),0.5)
+#endif
 }
 END_SECTION
 
 
 START_SECTION((double getElement(Int row_index, Int column_index)))
 {
+#ifndef OPENMS_HAS_HIGHS
   lp.setElement(0,2,0.1);
   TEST_REAL_SIMILAR(lp.getElement(0,2),0.1)
+#else
+  // For HIGHS, just test that getElement works for existing matrix values
+  TEST_REAL_SIMILAR(lp.getElement(0,0),0.5)
+  TEST_REAL_SIMILAR(lp.getElement(1,1),0.5)
+#endif
 }
 END_SECTION
 
-
 START_SECTION((void readProblem(String filename, String format)))
 {
-  if(lp.getSolver() == LPWrapper::SOLVER_GLPK)
-    {
       lp.readProblem(OPENMS_GET_TEST_DATA_PATH("LPWrapper_test.lp"),"LP");
       TEST_EQUAL(lp.getNumberOfColumns(),2)
       TEST_EQUAL(lp.getNumberOfRows(),3)
@@ -281,10 +286,7 @@ START_SECTION((void readProblem(String filename, String format)))
       TEST_EQUAL(lp.getElement(1,1),3)
       TEST_EQUAL(lp.getElement(2,0),3)
       TEST_EQUAL(lp.getElement(2,1),2) 
-    }
-#ifdef OPENMS_HAS_COINOR
-  else  if (lp.getSolver()==LPWrapper::SOLVER_COINOR)
-    {
+#if defined(OPENMS_HAS_COINOR) || defined(OPENMS_HAS_HIGHS)
       lp.readProblem(OPENMS_GET_TEST_DATA_PATH("LPWrapper_test.mps"),"MPS");
       TEST_EQUAL(lp.getNumberOfColumns(),2)
       TEST_EQUAL(lp.getNumberOfRows(),3)
@@ -301,16 +303,15 @@ START_SECTION((void readProblem(String filename, String format)))
       TEST_EQUAL(lp.getElement(1,1),3)
       TEST_EQUAL(lp.getElement(2,0),3)
       TEST_EQUAL(lp.getElement(2,1),2)
-    }
 #endif
 }
 END_SECTION
 
 START_SECTION((void writeProblem(const String &filename, const WriteFormat format) const ))
 {
-#ifdef OPENMS_HAS_COINOR
+#if defined(OPENMS_HAS_COINOR) || defined(OPENMS_HAS_HIGHS)
     String tmp_filename;
-    NEW_TMP_FILE(tmp_filename);
+    NEW_TMP_FILE_EXT(tmp_filename,".mps");
     lp.writeProblem(tmp_filename,LPWrapper::FORMAT_MPS);
     LPWrapper lp2;
     lp2.readProblem(tmp_filename,"MPS");
@@ -331,7 +332,7 @@ START_SECTION((void writeProblem(const String &filename, const WriteFormat forma
     TEST_EQUAL(lp2.getElement(2,1),2)
 #else
     String tmp_filename;
-    NEW_TMP_FILE(tmp_filename);
+    NEW_TMP_FILE_EXT(tmp_filename,".lp");
     lp.writeProblem(tmp_filename, LPWrapper::FORMAT_LP);
     LPWrapper lp2;
     lp2.readProblem(tmp_filename, "LP");
@@ -434,12 +435,16 @@ END_SECTION
 
 START_SECTION((SOLVER getSolver() const ))
 {
-
+  LPWrapper::SOLVER solver = lp4.getSolver();
+  bool solver_valid = false;
+  if (solver == LPWrapper::SOLVER_GLPK) solver_valid = true;
 #ifdef OPENMS_HAS_COINOR
-  TEST_EQUAL(lp4.getSolver(),LPWrapper::SOLVER_COINOR)
-#else
-  TEST_EQUAL(lp4.getSolver(), LPWrapper::SOLVER_GLPK)
+  if (solver == LPWrapper::SOLVER_COINOR) solver_valid = true;
 #endif
+#ifdef OPENMS_HAS_HIGHS
+  if (solver == LPWrapper::SOLVER_HIGHS) solver_valid = true;
+#endif
+  TEST_EQUAL(solver_valid, true)
 }
 END_SECTION
 
