@@ -192,7 +192,7 @@ import numpy as np
 
             ret += [str(pep_idx), 0]  # we currently only export the first hit
 
-            for k in metavals:
+            for idx, k in enumerate(metavals):
                 if besthit.metaValueExists(k):
                     val = besthit.getMetaValue(k)
                     if k == b"target_decoy":
@@ -203,7 +203,7 @@ import numpy as np
                     else:
                         ret.append(val)
                 else:
-                    ret.append(default_missing_values[type(val)])
+                    ret.append(dmv[idx])  # Use precomputed default for this metavalue's type
             return tuple(ret)
 
         return pd.DataFrame(np.fromiter((extract(pep, pep_idx) for pep_idx, pep in enumerate(self)), dtype=dt, count=count))
