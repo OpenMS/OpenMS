@@ -26,7 +26,6 @@ namespace OpenMS
       : k_(k), x_(x), y_(y)
     {
       ok_ = false;
-      spline_ = nullptr;
 
       const int n = static_cast<int>(x.size());
       if (n < 2 || static_cast<int>(y.size()) != n)
@@ -63,18 +62,17 @@ namespace OpenMS
         // Pure interpolation: use BSpline with wavelength=0, auto nodes
         try
         {
-          spline_ = new BSpline2d(x, y, 0.0, BSpline2d::BC_ZERO_SECOND, 0);
+          spline_ = std::make_unique<BSpline2d>(x, y, 0.0, BSpline2d::BC_ZERO_SECOND, 0);
           if (spline_->ok())
           {
             ok_ = true;
-            rss_ = compute_rss(spline_, x, y);
+            rss_ = compute_rss(spline_.get(), x, y);
             num_interior_knots_ = n - 2; // Interpolation uses all points
           }
         }
         catch (...)
         {
-          if (spline_) delete spline_;
-          spline_ = nullptr;
+          spline_.reset();
         }
         return;
       }
@@ -83,10 +81,7 @@ namespace OpenMS
       fit_smoothing_spline(x, y, s_);
     }
 
-    BSplineSmoothingSpline::~BSplineSmoothingSpline()
-    {
-      delete spline_;
-    }
+    BSplineSmoothingSpline::~BSplineSmoothingSpline() = default;
 
     bool BSplineSmoothingSpline::try_polynomial_fit(const std::vector<double>& x,
                                                       const std::vector<double>& y,
@@ -270,7 +265,7 @@ namespace OpenMS
         int num_nodes;
         int num_interior_knots;
         double rss;
-        BSpline2d* spline;
+        std::unique_ptr<BSpline2d> spline;
         bool valid;
       };
 
@@ -298,18 +293,17 @@ namespace OpenMS
         try
         {
           // Try with wavelength=0 (no smoothing penalty in BSpline optimization)
-          BSpline2d* spl = new BSpline2d(x, y, 0.0, BSpline2d::BC_ZERO_SECOND, num_nodes);
+          auto spl = std::make_unique<BSpline2d>(x, y, 0.0, BSpline2d::BC_ZERO_SECOND, num_nodes);
           
           if (!spl->ok())
           {
-            delete spl;
             continue;
           }
 
-          double rss = compute_rss(spl, x, y);
+          double rss = compute_rss(spl.get(), x, y);
           int num_interior = num_nodes - 2;
 
-          candidates.push_back(Candidate{num_nodes, num_interior, rss, spl, true});
+          candidates.push_back(Candidate{num_nodes, num_interior, rss, std::move(spl), true});
         }
         catch (...)
         {
@@ -345,17 +339,11 @@ namespace OpenMS
                 });
 
       // Use the best candidate
-      const Candidate& best = candidates[0];
-      spline_ = best.spline;
+      Candidate& best = candidates[0];
+      spline_ = std::move(best.spline);
       rss_ = best.rss;
       num_interior_knots_ = best.num_interior_knots;
       ok_ = true;
-
-      // Clean up other candidates
-      for (size_t i = 1; i < candidates.size(); ++i)
-      {
-        delete candidates[i].spline;
-      }
     }
 
     double BSplineSmoothingSpline::compute_rss(const BSpline2d* spl,

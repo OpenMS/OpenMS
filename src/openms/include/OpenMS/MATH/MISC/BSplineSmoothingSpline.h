@@ -13,6 +13,7 @@
 #include <OpenMS/config.h>
 #include <OpenMS/MATH/MISC/BSpline2d.h>
 #include <vector>
+#include <memory>
 
 namespace OpenMS
 {
@@ -81,6 +82,26 @@ namespace OpenMS
       ~BSplineSmoothingSpline();
 
       /**
+       * @brief Deleted copy constructor (cannot copy owned resources)
+       */
+      BSplineSmoothingSpline(const BSplineSmoothingSpline&) = delete;
+
+      /**
+       * @brief Deleted copy assignment (cannot copy owned resources)
+       */
+      BSplineSmoothingSpline& operator=(const BSplineSmoothingSpline&) = delete;
+
+      /**
+       * @brief Defaulted move constructor
+       */
+      BSplineSmoothingSpline(BSplineSmoothingSpline&&) = default;
+
+      /**
+       * @brief Defaulted move assignment
+       */
+      BSplineSmoothingSpline& operator=(BSplineSmoothingSpline&&) = default;
+
+      /**
        * @brief Evaluate the smoothing spline at x
        * 
        * @param x Point at which to evaluate
@@ -125,7 +146,7 @@ namespace OpenMS
       std::vector<double> poly_coeffs_;
       
       // The fitted BSpline (owned, only used if fit_type_ == BSPLINE)
-      BSpline2d* spline_ = nullptr;
+      std::unique_ptr<BSpline2d> spline_;
 
       /**
        * @brief Find optimal wavelength/nodes combination to match smoothing target
