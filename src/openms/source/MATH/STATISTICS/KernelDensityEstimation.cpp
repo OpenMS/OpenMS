@@ -9,6 +9,7 @@
 // --------------------------------------------------------------------------
 
 #include <algorithm>
+#include <bit>
 #include <cmath>
 #include <limits>
 #include <stdexcept>
@@ -31,15 +32,6 @@ namespace OpenMS
 {
   namespace Math
   {
-
-    // Helper: next power of two >= v
-    static std::size_t next_pow2(std::size_t v)
-    {
-      if (v == 0) return 1;
-      std::size_t p = 1;
-      while (p < v) p <<= 1;
-      return p;
-    }
 
     // Fast linear binning matching statsmodels' endpoint rules (internal helper)
     static std::vector<double> fast_linbin(const std::vector<double>& x, double a, double b, std::size_t M)
@@ -234,7 +226,7 @@ namespace OpenMS
 
       // M = 2^ceil(log2(max(gridsize, n, 512)))
       std::size_t target = std::max<std::size_t>(gridsize, std::max<std::size_t>(n, 512));
-      std::size_t M = next_pow2(target);
+      std::size_t M = std::bit_ceil(target);
 
       // compute a,b
       double a = 0.0, b = 0.0;
