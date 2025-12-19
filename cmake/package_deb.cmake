@@ -45,8 +45,10 @@ set(CPACK_COMPONENTS_ALL applications doc library share ${THIRDPARTY_COMPONENT_G
 
 ## Autogeneration with SHLIBDEPS will add to this variable. For now we include most things statically and require the standard Qt package and libc6 only.
 ## (only available in Ubuntu >=17.10). For older Ubuntu, dependencies can be installed from a thirdparty repo.
+## External libraries from Debian repositories should be listed here to avoid file conflicts
+## Note: SQLiteCpp is statically linked, but SQLite3 is dynamically linked at runtime
 set(CPACK_DEBIAN_PACKAGE_DEPENDS 
-  "libqt6svg6 (>= 6.2.2), libc6 (>= 2.28), libqt6widgets6t64 (>= 6.2.2) | libqt6widgets6 (>= 6.2.2), libqt6gui6t64 (>= 6.2.2) | libqt6gui6 (>= 6.2.2), libqt6core6t64 (>= 6.2.2) | libqt6core6 (>= 6.2.2), libyaml-cpp0.7 | libyaml-cpp0.8")
+  "libqt6svg6 (>= 6.2.2), libc6 (>= 2.28), libqt6widgets6t64 (>= 6.2.2) | libqt6widgets6 (>= 6.2.2), libqt6gui6t64 (>= 6.2.2) | libqt6gui6 (>= 6.2.2), libqt6core6t64 (>= 6.2.2) | libqt6core6 (>= 6.2.2), libyaml-cpp0.7 | libyaml-cpp0.8, libsqlite3-0 (>= 3.35.0)")
 
 SET(CPACK_DEBIAN_PACKAGE_PRIORITY "optional")
 SET(CPACK_DEBIAN_PACKAGE_SECTION "science")
