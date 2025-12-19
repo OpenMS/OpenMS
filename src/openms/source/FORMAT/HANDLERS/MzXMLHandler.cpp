@@ -583,6 +583,8 @@ namespace OpenMS::Internal
             !options_.getPrecursorMZRange().encloses(DPosition<1>(mz_pos)))
         {
           skip_spectrum_ = true;
+          // Remove the spectrum that was already added to spectrum_data_
+          spectrum_data_.pop_back();
         }
       }
       else if (open_tags_.back() == "comment")
