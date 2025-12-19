@@ -380,6 +380,9 @@ else()
     )
 endif()
 
+# Create pyopenms alias target for CI compatibility (cibuild.cmake expects this target)
+add_custom_target(pyopenms DEPENDS pyopenms_compile)
+
 #------------------------------------------------------------------------------
 # Install Python files for py-build-cmake
 #------------------------------------------------------------------------------
