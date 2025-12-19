@@ -77,11 +77,11 @@ def _to_vec_double(arr):
 @cython.wraparound(False)
 def _to_vec_float(arr):
     cdef libcpp_vector[float] v
-    a = np.asarray(arr, dtype=float)
-    cdef double[:] mv = a.ravel()
+    a = np.asarray(arr, dtype=np.float32)
+    cdef float[:] mv = a.ravel()
     v.reserve(mv.shape[0])
     for i in range(mv.shape[0]):
-        v.push_back(<float> mv[i])
+        v.push_back(mv[i])
     return v
 
 @cython.boundscheck(False)
