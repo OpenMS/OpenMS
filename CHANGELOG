@@ -16,6 +16,18 @@ PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
 ----                                OpenMS 3.6.0     (under development)              ----
 ------------------------------------------------------------------------------------------
 
+OpenMS Library:
+ - Port of statistical functions from PyProphet (#8524)
+    - KernelDensityEstimation: FFT-based kernel density estimation using Silverman's algorithm
+    - RankData: Rank computation with multiple tie-handling methods (average, min, max, dense, ordinal)
+    - MultipleTesting: FDR control and multiple testing corrections
+      - computeModelFDR(): model-based FDR estimation from posterior error probabilities
+      - pEmp(): empirical p-value computation from test statistics
+      - qValue(): FDR-adjusted p-values (q-values)
+      - pi0est(): proportion of true null hypotheses estimation
+      - lfdr(): local FDR (posterior error probability) estimation
+      - pNorm(): tail probabilities under normal distribution
+    - Full PyOpenMS Python bindings for all statistics functions
  
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 3.5.0     (Released December 2025)         ----
