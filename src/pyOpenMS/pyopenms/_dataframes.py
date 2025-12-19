@@ -19,7 +19,7 @@ __all__ = [
     '_add_meta_values',
 ]
 
-from typing import Any, List, Union
+from typing import Any
 
 from . import PeptideIdentificationList as _PeptideIdentificationList
 from . import DataValue as _DataValue
