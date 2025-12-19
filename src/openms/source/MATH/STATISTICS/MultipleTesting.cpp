@@ -3,15 +3,19 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Justin Sing $
-// $Authors: $
+// $Authors: Justin Sing $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/MATH/STATISTICS/MultipleTesting.h>
-#include <OpenMS/MATH/STATISTICS/KernelDensityEstimation.h>
-
-#include <OpenMS/MATH/StatisticFunctions.h>
-#include <complex>
+#include <algorithm>
 #include <cmath>
+#include <complex>
+#include <cstdlib> // for getenv
+#include <iostream>
+#include <iterator>
+#include <limits>
+#include <numeric>
+#include <stdexcept>
+#include <utility>
 
 // Use the evergreen umbrella header so the vendor headers are included
 // consistently inside the `evergreen` namespace and their helper
@@ -23,19 +27,14 @@ namespace evergreen {
 #include <FFT/FFT.hpp>
 }
 
-#include <algorithm>
-#include <cmath>
-#include <limits>
-#include <numeric>
-#include <stdexcept>
-#include <iterator>
-#include <utility>
-#include <OpenMS/MATH/MISC/CubicSpline2d.h>
+#include <boost/math/distributions/normal.hpp>
+
 #include <OpenMS/MATH/MISC/BSpline2d.h>
 #include <OpenMS/MATH/MISC/BSplineSmoothingSpline.h>
-#include <cstdlib> // for getenv
-#include <iostream>
-#include <boost/math/distributions/normal.hpp>
+#include <OpenMS/MATH/MISC/CubicSpline2d.h>
+#include <OpenMS/MATH/StatisticFunctions.h>
+#include <OpenMS/MATH/STATISTICS/KernelDensityEstimation.h>
+#include <OpenMS/MATH/STATISTICS/MultipleTesting.h>
 
 namespace OpenMS
 {

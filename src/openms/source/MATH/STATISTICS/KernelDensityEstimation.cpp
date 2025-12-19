@@ -8,24 +8,24 @@
 // $Authors: Justin Sing $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/MATH/STATISTICS/KernelDensityEstimation.h>
-#include <OpenMS/MATH/StatisticFunctions.h>
-#include <OpenMS/MATH/MISC/CubicSpline2d.h>
+#include <algorithm>
+#include <cmath>
+#include <limits>
+#include <stdexcept>
 
-// Use the evergreen umbrella header so the vendor headers are included
-// consistently inside the `evergreen` namespace and their helper
-// macros are defined. Then include the FFT submodule *inside* the
-// `evergreen` namespace so its template and type definitions live in
-// `evergreen::` as the rest of the code expects.
+ // Use the evergreen umbrella header so the vendor headers are included
+ // consistently inside the `evergreen` namespace and their helper
+ // macros are defined. Then include the FFT submodule *inside* the
+ // `evergreen` namespace so its template and type definitions live in
+ // `evergreen::` as the rest of the code expects.
 #include <Evergreen/evergreen.hpp>
 namespace evergreen {
 #include <FFT/FFT.hpp>
 }
 
-#include <algorithm>
-#include <cmath>
-#include <limits>
-#include <stdexcept>
+#include <OpenMS/MATH/MISC/CubicSpline2d.h>
+#include <OpenMS/MATH/STATISTICS/KernelDensityEstimation.h>
+#include <OpenMS/MATH/StatisticFunctions.h>
 
 namespace OpenMS
 {

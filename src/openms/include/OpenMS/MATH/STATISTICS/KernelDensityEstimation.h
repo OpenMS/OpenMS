@@ -10,10 +10,11 @@
 
 #pragma once
 
-#include <OpenMS/config.h>
-#include <vector>
-#include <utility>
 #include <cstddef>
+#include <utility>
+#include <vector>
+
+#include <OpenMS/config.h>
 
 namespace OpenMS
 {

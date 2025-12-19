@@ -3,18 +3,18 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Justin Sing $
-// $Authors: $
+// $Authors: Justin Sing $
 // --------------------------------------------------------------------------
 
 #pragma once
 
-#include <vector>
 #include <algorithm>
-#include <numeric>
 #include <cmath>
 #include <limits>
+#include <numeric>
 #include <stdexcept>
 #include <string>
+#include <vector>
 
 #include <OpenMS/config.h>
 #include <OpenMS/MATH/STATISTICS/RankData.h>
