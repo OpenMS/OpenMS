@@ -389,8 +389,8 @@ protected:
       UInt64 map_index = 0;
       Peak2D::IntensityType overall_intensity = 0.;
       // Calculate column offset for this file's channels to ensure consecutive map indices.
-      // For file i with N channels, col_offset = i * N, resulting in consecutive indices:
-      // File 0: [0, 1, ..., N-1], File 1: [N, N+1, ..., 2N-1], etc.
+      // For file_idx with N channels, col_offset = file_idx * N, resulting in consecutive indices:
+      // file_idx=0: [0, 1, ..., N-1], file_idx=1: [N, N+1, ..., 2N-1], etc.
       // This matches the column headers registered by registerChannelsInOutputMap().
       Size col_offset = file_idx * quant_method->getChannelInformation().size();
 
@@ -579,7 +579,8 @@ protected:
       cur_cmap.resize(pep_ids.size());
 
       // Note: We do NOT call registerChannelsInOutputMap here.
-      // Column headers will be registered when merging cur_cmap into cmap below (lines 646/649).
+      // Column headers will be registered when merging cur_cmap into the global cmap below
+      // (either by move+register for the first file, or register+append for subsequent files).
       // The features in cur_cmap reference columns using the manual col_offset calculation.
 
       #pragma omp parallel for /*num_threads(inner_threads)*/

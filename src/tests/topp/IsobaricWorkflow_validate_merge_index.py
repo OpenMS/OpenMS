@@ -20,10 +20,6 @@ def validate_consensus_xml(filename, expected_num_files):
     tree = ET.parse(filename)
     root = tree.getroot()
     
-    # ConsensusXML files don't have a namespace by default
-    # (or use the OpenMS consensusXML schema)
-    ns = {}
-    
     # Track id_merge_index values found
     merge_indices_found = set()
     features_without_merge_index = 0
