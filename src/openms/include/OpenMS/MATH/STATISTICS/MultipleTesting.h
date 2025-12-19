@@ -189,8 +189,8 @@ inline std::vector<double> pEmp(const std::vector<T>& stat, const std::vector<T>
   // concatenate
   std::vector<D> statc;
   statc.reserve(m + m0);
-  for (auto&& v : stat) statc.push_back(static_cast<D>(v));
-  for (auto&& v : stat0) statc.push_back(static_cast<D>(v));
+  for (auto v : stat) statc.push_back(static_cast<D>(v));
+  for (auto v : stat0) statc.push_back(static_cast<D>(v));
 
   // v flags: True for stat, False for stat0
   std::vector<char> v;
