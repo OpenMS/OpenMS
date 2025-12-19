@@ -35,8 +35,6 @@ namespace OpenMS
      * @brief Eigen matrix type.
      */
     using EigenMatrixType = Eigen::Matrix<Value, Eigen::Dynamic, Eigen::Dynamic>;
-    using EigenMatrixType::innerStride;
-    using EigenMatrixType::outerStride;
 
     // Default constructor. Creates the "null" matrix.
     Matrix() = default;
