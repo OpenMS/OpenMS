@@ -127,9 +127,9 @@ namespace OpenMS
     /**
       @brief Inverse FFT of Munro-packed data to real-valued output.
 
-      Performs the inverse operation of forrt(), reconstructing a real-valued signal
+      Performs the inverse operation of forRt(), reconstructing a real-valued signal
       from its Munro-packed frequency domain representation. The output is scaled by
-      multiplying by M to invert the scaling applied in forrt().
+      multiplying by M to invert the scaling applied in forRt().
 
       The input must be in Munro-packed format:
       [Re(Y_0), Re(Y_1), ..., Re(Y_{M/2}), Im(Y_1), ..., Im(Y_{M/2-1})]
