@@ -11,15 +11,7 @@
 #include <OpenMS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/KERNEL/Peak1D.h>
-
-// forward decl
-namespace Eigen
-{
-    template<typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols>
-    class Matrix;
-    using MatrixXd = Matrix<double, -1, -1, 0, -1, -1>;
-    using VectorXd = Matrix<double, -1, 1, 0, -1, 1>;
-}
+#include <vector>
 
 namespace OpenMS
 {
@@ -38,7 +30,10 @@ namespace OpenMS
   {
 
 public:
-    /** Generic functor for LM-Optimization */
+    /** Generic functor for LM-Optimization
+     *  Uses raw pointer interface to avoid Eigen in public headers.
+     *  Implementations should use Eigen::Map to wrap these pointers.
+     */
     //TODO: This is copy and paste from LevMarqFitter1d.h. Make a generic wrapper for LM optimization
     class GenericFunctor
     {
@@ -50,9 +45,10 @@ public:
 
       virtual ~GenericFunctor();
 
-      virtual int operator()(const Eigen::VectorXd& x, Eigen::VectorXd& fvec) = 0;
-      // compute Jacobian matrix for the different parameters
-      virtual int df(const Eigen::VectorXd& x, Eigen::MatrixXd& J) = 0;
+      /// Compute residuals. x has size inputs(), fvec has size values()
+      virtual int operator()(const double* x, double* fvec) = 0;
+      /// Compute Jacobian matrix. x has size inputs(), J is values() x inputs() (column-major)
+      virtual int df(const double* x, double* J) = 0;
 
 protected:
       const int m_inputs, m_values;
@@ -158,11 +154,11 @@ protected:
      *
      * @param[in] s The solver containing the fitted parameter values.
      */
-    virtual void getOptimizedParameters_(const Eigen::VectorXd& s) = 0;
+    virtual void getOptimizedParameters_(const std::vector<double>& s) = 0;
     /**
      * Optimize the given parameters using the Levenberg-Marquardt algorithm.
      */
-    void optimize_(Eigen::VectorXd& x_init, GenericFunctor& functor);
+    void optimize_(std::vector<double>& x_init, GenericFunctor& functor);
 
     /// Maximum number of iterations
     SignedSize max_iterations_;
