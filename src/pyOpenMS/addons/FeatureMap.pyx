@@ -129,7 +129,7 @@ import numpy as np
 
         Gets the primary MS run path of the ProteinIdentification linked with the given PeptideIdentification.
 
-        Parameters:
+        Args:
         pep_id: PeptideIdentification
 
         Returns:
@@ -151,7 +151,7 @@ import numpy as np
 
         Optionally the feature meta values and information for the assigned PeptideHit can be exported.
 
-        Parameters:
+        Args:
         columns (list or None): List of column names to include. If None,
                                includes all columns. Use get_df_columns() to discover available columns.
 
@@ -232,7 +232,7 @@ import numpy as np
             the sequence, score and ID_filename (primary MS run path of the linked ProteinIdentification)
             of the best PeptideHit (first) assigned to that feature.
 
-            Parameters:
+            Args:
             f (Feature): feature from which to extract the meta data
 
             Yields:

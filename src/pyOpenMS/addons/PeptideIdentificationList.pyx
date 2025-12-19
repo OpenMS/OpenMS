@@ -81,7 +81,7 @@ import numpy as np
 
         Converts the peptide identifications to a pandas DataFrame.
 
-        Parameters:
+        Args:
             decode_ontology (bool): Decode meta value names using the PSI-MS ontology.
                                    Default True.
             default_missing_values (dict): Default values for missing data by type.
@@ -150,9 +150,10 @@ import numpy as np
                 for p in self:
                     hits = p.getHits()
                     if not len(hits) == 0:
-                        mv = hits[0].getMetaValue(k)
-                        types.append(switchDict[type(mv)])
-                        break
+                        if hits[0].metaValueExists(k):
+                            mv = hits[0].getMetaValue(k)
+                            types.append(switchDict[type(mv)])
+                            break
 
         # get default value for each type in types to append if there are no hits in a PeptideIdentification
         def get_key(val):
@@ -248,7 +249,7 @@ import numpy as np
         This method is useful when you've computed new scores (e.g., from rescoring)
         and want to update the original PeptideIdentifications.
 
-        Parameters:
+        Args:
             df (pd.DataFrame): DataFrame obtained by converting this list to a DataFrame.
                               Minimum required columns: P_ID and a column with name
                               matching main_score_name.
