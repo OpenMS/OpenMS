@@ -64,7 +64,7 @@ namespace OpenMS
 
       @note This is equivalent to R's bw.nrd0() and Python statsmodels' bw_silverman()
 
-      @ingroup MathStatistics
+      @ingroup MathFunctionsStatistics
     */
     OPENMS_DLLAPI double bwNrd0(const std::vector<double>& x);
 
@@ -91,7 +91,7 @@ namespace OpenMS
 
       @note Values outside [xmin, xmax] are ignored (not binned)
 
-      @ingroup MathStatistics
+      @ingroup MathFunctionsStatistics
     */
     OPENMS_DLLAPI std::vector<double> linBin(const std::vector<double>& x, 
                                              double xmin, 
@@ -120,7 +120,7 @@ namespace OpenMS
 
       @see revRt() for the inverse transform
 
-      @ingroup MathStatistics
+      @ingroup MathFunctionsStatistics
     */
     OPENMS_DLLAPI std::vector<double> forRt(const std::vector<double>& X, std::size_t M = 0);
 
@@ -144,7 +144,7 @@ namespace OpenMS
 
       @see forRt() for the forward transform
 
-      @ingroup MathStatistics
+      @ingroup MathFunctionsStatistics
     */
     OPENMS_DLLAPI std::vector<double> revRt(const std::vector<double>& Xp, std::size_t M = 0);
 
@@ -170,7 +170,7 @@ namespace OpenMS
       @param RANGE Range of the spatial domain over which the kernel will be applied
       @return Munro-packed FFT coefficients of the Gaussian kernel
 
-      @ingroup MathStatistics
+      @ingroup MathFunctionsStatistics
     */
     OPENMS_DLLAPI std::vector<double> silvermanKernelFFT(double bw, std::size_t M, double RANGE);
 
@@ -202,7 +202,7 @@ namespace OpenMS
 
       @note Returns uniform density if data range is zero (all identical values)
 
-      @ingroup MathStatistics
+      @ingroup MathFunctionsStatistics
     */
     OPENMS_DLLAPI std::pair<std::vector<double>, std::vector<double>> gridKdeFFT(const std::vector<double>& x, 
                                                                                    double bw, 
@@ -228,7 +228,7 @@ namespace OpenMS
 
       @see gridKdeFFT() for the underlying grid-based KDE computation
 
-      @ingroup MathStatistics
+      @ingroup MathFunctionsStatistics
     */
     OPENMS_DLLAPI std::vector<double> kdeFFTEval(const std::vector<double>& x, 
                                                   double bw, 
