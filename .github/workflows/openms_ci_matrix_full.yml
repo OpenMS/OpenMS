@@ -298,6 +298,8 @@ jobs:
             curl --no-progress-meter -L -o NSIS.tar.gz https://github.com/OpenMS/NSIS/raw/main/NSIS.tar.gz
             ## overwrite existing NSIS (which has only 1k-string support)
             7z x -so NSIS.tar.gz | 7z x -si -ttar -aoa -o"C:/Program Files (x86)/NSIS/"
+            # Ensure makensis.exe is discoverable during CMake configuration
+            echo "C:\Program Files (x86)\NSIS" >> $GITHUB_PATH
           fi
 
           echo "cmake_prefix=" >>"$GITHUB_OUTPUT"
