@@ -1661,6 +1661,12 @@ namespace OpenMS::Internal
               precursor.setMetaValue("isolation window target m/z",
                                      precursor.getMZ());
               precursor.setMZ(this_mz);
+              // Check if precursor m/z is within specified range (when using selected ion m/z)
+              if (in_spectrum_list_ && options_.hasPrecursorMZRange() &&
+                  !options_.getPrecursorMZRange().encloses(DPosition<1>(this_mz)))
+              {
+                skip_spectrum_ = true;
+              }
             }
             else // keep precursor m/z from isolation window
             {
@@ -2007,6 +2013,12 @@ namespace OpenMS::Internal
             if (in_spectrum_list_)
             {
               spec_.getPrecursors().back().setMZ(value.toDouble());
+              // Check if precursor m/z is within specified range (only if not using selected ion m/z as precursor)
+              if (!options_.getPrecursorMZSelectedIon() && options_.hasPrecursorMZRange() &&
+                  !options_.getPrecursorMZRange().encloses(DPosition<1>(value.toDouble())))
+              {
+                skip_spectrum_ = true;
+              }
             }
             else
             {
