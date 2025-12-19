@@ -279,8 +279,8 @@ protected:
     //----------------------------------------------------------------
     //Do the actual resampling
     BilinearInterpolation<double, double> bilip;
-    bilip.getData().getEigenMatrix().resize(rows, cols);
-    bilip.getData().getEigenMatrix().setZero();
+    bilip.getData().resize(rows, cols);
+    bilip.getData().fill(0.0);
 
     if (!getFlag_("transpose"))
     {
@@ -360,7 +360,7 @@ protected:
     double factor = getDoubleOption_("max_intensity");
     if (factor == 0)
     {
-      factor = bilip.getData().getEigenMatrix().maxCoeff();
+      factor = bilip.getData().maxValue();
     }
     // with a user-supplied gradient, we need to logarithmize explicitly;
     // by default, the gradient itself is adjusted to the log-scale:
