@@ -69,8 +69,12 @@ namespace Math {
 
       // Detect NaNs (only meaningful for floating types)
       auto is_nan_at = [&](std::size_t i) -> bool {
-        if constexpr (std::is_floating_point<T>::value) return std::isnan(a[i]);
-        else return false;
+        if constexpr (std::is_floating_point<T>::value) {
+          return std::isnan(a[i]);
+        } else {
+          (void)i; // suppress unused parameter warning
+          return false;
+        }
       };
 
       bool any_nan = false;

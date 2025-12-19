@@ -140,7 +140,7 @@ namespace OpenMS
       const std::size_t out_len = M;
 
       // create a 1-D tensor and copy (zero-pad if needed)
-      evergreen::Tensor<double> t({M});
+      evergreen::Tensor<double> t(std::vector<std::size_t>{M});
       for (std::size_t i = 0; i < M; ++i)
       {
         double v = 0.0;
@@ -174,7 +174,7 @@ namespace OpenMS
       if (Xp.size() < M) throw std::invalid_argument("revRt: input length must equal M");
 
       // build packed complex tensor
-      evergreen::Tensor<evergreen::cpx> packed({ny});
+      evergreen::Tensor<evergreen::cpx> packed(std::vector<std::size_t>{ny});
       for (std::size_t k = 0; k < ny; ++k)
       {
         double re = Xp[k];
@@ -190,7 +190,7 @@ namespace OpenMS
       evergreen::Tensor<double> rec = evergreen::real_ifft<evergreen::DIF, false, false>(packed);
 
       std::vector<double> out(M, 0.0);
-      const std::size_t ncopy = std::min(rec.flat_size(), M);
+      const std::size_t ncopy = std::min(rec.flat_size(), static_cast<std::size_t>(M));
       for (std::size_t i = 0; i < ncopy; ++i) out[i] = rec[i];
       return out;
     }
