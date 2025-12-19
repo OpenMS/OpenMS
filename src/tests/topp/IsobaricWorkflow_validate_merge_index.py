@@ -20,11 +20,9 @@ def validate_consensus_xml(filename, expected_num_files):
     tree = ET.parse(filename)
     root = tree.getroot()
     
-    # Find the namespace
-    ns = {'': 'http://psi.hupo.org/ms/mzml'}
-    if root.tag.startswith('{'):
-        ns_uri = root.tag[1:].split('}')[0]
-        ns = {'': ns_uri}
+    # ConsensusXML files don't have a namespace by default
+    # (or use the OpenMS consensusXML schema)
+    ns = {}
     
     # Track id_merge_index values found
     merge_indices_found = set()
@@ -35,20 +33,20 @@ def validate_consensus_xml(filename, expected_num_files):
     map_indices = set()
     
     # Check each consensus feature
-    for feature in root.findall('.//consensusElement', ns):
+    for feature in root.findall('.//consensusElement'):
         total_features += 1
         
         # Check map indices
-        for element in feature.findall('.//element', ns):
+        for element in feature.findall('.//element'):
             map_attrib = element.get('map')
             if map_attrib is not None:
                 map_indices.add(int(map_attrib))
         
         # Check PeptideIdentification
-        for pep_id in feature.findall('.//PeptideIdentification', ns):
+        for pep_id in feature.findall('.//PeptideIdentification'):
             # Look for id_merge_index in UserParam
             found_merge_index = False
-            for user_param in pep_id.findall('.//UserParam', ns):
+            for user_param in pep_id.findall('.//UserParam'):
                 if user_param.get('name') == 'id_merge_index':
                     merge_index = int(user_param.get('value'))
                     merge_indices_found.add(merge_index)

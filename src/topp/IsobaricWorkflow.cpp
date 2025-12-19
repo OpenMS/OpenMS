@@ -578,8 +578,8 @@ protected:
 
       cur_cmap.resize(pep_ids.size());
 
-      // Note: We do NOT call registerChannelsInOutputMap here for cmap.
-      // Column headers will be registered when merging cur_cmap into cmap below.
+      // Note: We do NOT call registerChannelsInOutputMap here.
+      // Column headers will be registered when merging cur_cmap into cmap below (lines 646/649).
       // The features in cur_cmap reference columns using the manual col_offset calculation.
 
       #pragma omp parallel for /*num_threads(inner_threads)*/
