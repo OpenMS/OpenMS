@@ -182,7 +182,7 @@ namespace OpenMS
       evergreen::Tensor<double> rec = evergreen::real_ifft<evergreen::DIF, false, false>(packed);
 
       std::vector<double> out(M, 0.0);
-      const std::size_t ncopy = std::min(rec.flat_size(), static_cast<std::size_t>(M));
+      const std::size_t ncopy = std::min(static_cast<std::size_t>(rec.flat_size()), static_cast<std::size_t>(M));
       for (std::size_t i = 0; i < ncopy; ++i) out[i] = rec[i];
       return out;
     }
