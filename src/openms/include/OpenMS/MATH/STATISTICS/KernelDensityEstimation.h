@@ -217,7 +217,7 @@ namespace OpenMS
       large datasets, as the FFT-grid computation scales as O(n + M*log(M)) followed by
       O(n*log(M)) for spline interpolation, compared to O(n^2) for direct methods.
 
-      The function first computes KDE on a regular grid using grid_kde_fft(), then
+      The function first computes KDE on a regular grid using gridKdeFFT(), then
       interpolates these grid values to the query points using cubic spline interpolation.
 
       @param x Data values at which to evaluate the density
