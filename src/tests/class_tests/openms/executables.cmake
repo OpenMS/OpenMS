@@ -287,6 +287,7 @@ set(math_executables_list
   BasicStatistics_test
   BilinearInterpolation_test
   BSpline2d_test
+  BSplineSmoothingSpline_test
   CubicSpline2d_test
   EmgGradientDescent_test
   GammaDistributionFitter_test
