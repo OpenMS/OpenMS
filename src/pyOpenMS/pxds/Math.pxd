@@ -2,12 +2,13 @@ cdef extern from "<OpenMS/MATH/MathFunctions.h>" namespace "OpenMS::Math":
 
     cdef cppclass Math:
         # wrap-doc:
-        #  Math namespace wrapper for mathematical utility functions.
+        #  Math namespace wrapper providing mathematical utility functions.
         #  
-        #  Provides static methods for PPM (parts-per-million) calculations commonly
-        #  used in mass spectrometry for comparing observed and theoretical m/z values.
+        #  This class provides static methods for various mathematical operations
+        #  commonly used in mass spectrometry data analysis, including PPM calculations,
+        #  statistical functions, and other numerical utilities.
         #  
-        #  Example usage in Python:
+        #  Example usage:
         #    >>> ppm = pyopenms.Math.getPPM(1000.001, 1000.0)  # Returns 1.0 ppm
         #    >>> mass_diff = pyopenms.Math.ppmToMass(5.0, 1000.0)  # Returns 0.005 Da
         
