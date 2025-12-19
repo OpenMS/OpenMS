@@ -1,0 +1,7 @@
+# Build/configure-time dependencies for pyOpenMS
+# These are needed for CMake configure when building OpenMS with PYOPENMS=ON
+# (separate from pyproject.toml build-system.requires which are for pip wheel builds)
+
+numpy>=2.0
+Cython>=3.1
+autowrap>=0.24.0

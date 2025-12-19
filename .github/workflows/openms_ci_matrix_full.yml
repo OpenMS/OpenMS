@@ -408,9 +408,9 @@ jobs:
             export ENABLE_CWL=ON
           fi
 
-          # Install minimal Python dependencies for pyOpenMS CMake configure
+          # Install Python dependencies for pyOpenMS CMake configure
           if [[ "${PYOPENMS:-}" == "ON" ]]; then
-            pip install -q numpy Cython autowrap
+            pip install -q -r $GITHUB_WORKSPACE/OpenMS/src/pyOpenMS/requirements-build.txt
           fi
 
           # Display ccache statistics before build
