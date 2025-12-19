@@ -242,8 +242,8 @@ jobs:
           CIBW_BEFORE_ALL: "yum install -y cmake ninja-build"
           CIBW_ENVIRONMENT: |
             OpenMS_ROOT=/project/openms-build
-            CMAKE_PREFIX_PATH=/contrib-build:/project/openms-build
             LD_LIBRARY_PATH=/project/openms-build/lib
+          CIBW_CONFIG_SETTINGS: "cmake.options.CMAKE_PREFIX_PATH='/contrib-build;/project/openms-build'"
           CIBW_REPAIR_WHEEL_COMMAND: "auditwheel repair -w {dest_dir} {wheel}"
           CIBW_BUILD_VERBOSITY: 1
 
@@ -279,8 +279,8 @@ jobs:
           CIBW_BEFORE_ALL: "yum install -y cmake ninja-build"
           CIBW_ENVIRONMENT: |
             OpenMS_ROOT=/project/openms-build
-            CMAKE_PREFIX_PATH=/contrib-build:/project/openms-build
             LD_LIBRARY_PATH=/project/openms-build/lib
+          CIBW_CONFIG_SETTINGS: "cmake.options.CMAKE_PREFIX_PATH='/contrib-build;/project/openms-build'"
           CIBW_REPAIR_WHEEL_COMMAND: "auditwheel repair -w {dest_dir} {wheel}"
           CIBW_BUILD_VERBOSITY: 1
 
@@ -320,8 +320,8 @@ jobs:
           CIBW_ARCHS_MACOS: "arm64"
           CIBW_ENVIRONMENT: |
             OpenMS_ROOT=${{ github.workspace }}/openms-build
-            CMAKE_PREFIX_PATH=$(brew --prefix):$(brew --prefix libomp):${{ github.workspace }}/openms-build
             MACOSX_DEPLOYMENT_TARGET=14.0
+          CIBW_CONFIG_SETTINGS: "cmake.options.CMAKE_PREFIX_PATH='/opt/homebrew;/opt/homebrew/opt/libomp;${{ github.workspace }}/openms-build'"
           CIBW_REPAIR_WHEEL_COMMAND: "delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel}"
           CIBW_BUILD_VERBOSITY: 1
 
@@ -386,7 +386,7 @@ jobs:
           CIBW_BEFORE_BUILD: "pip install delvewheel"
           CIBW_ENVIRONMENT: |
             OpenMS_ROOT=${{ github.workspace }}/openms-build
-            CMAKE_PREFIX_PATH=${{ env.Qt6_Dir }}/lib/cmake;${{ env.Qt6_Dir }};${{ github.workspace }}/contrib;${{ github.workspace }}/openms-build
+          CIBW_CONFIG_SETTINGS: "cmake.options.CMAKE_PREFIX_PATH='${{ env.Qt6_Dir }}/lib/cmake;${{ env.Qt6_Dir }};${{ github.workspace }}/contrib;${{ github.workspace }}/openms-build'"
           CIBW_REPAIR_WHEEL_COMMAND: "delvewheel repair -w {dest_dir} {wheel}"
           CIBW_BUILD_VERBOSITY: 1
 
