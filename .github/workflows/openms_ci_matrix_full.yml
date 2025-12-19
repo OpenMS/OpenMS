@@ -408,10 +408,6 @@ jobs:
             export ENABLE_CWL=ON
           fi
 
-          if [[ "${PYOPENMS:-}" == "ON" ]]; then
-            python -m pip install -r $GITHUB_WORKSPACE/OpenMS/src/pyOpenMS/requirements_bld.txt
-          fi
-
           # Display ccache statistics before build
           echo "::group::ccache statistics before build"
           ccache -s || true
