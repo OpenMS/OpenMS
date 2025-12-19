@@ -88,11 +88,11 @@ def _to_vec_float(arr):
 @cython.wraparound(False)
 def _to_vec_int(arr):
     cdef libcpp_vector[int] v
-    a = np.asarray(arr, dtype=int)
-    cdef long[:] mv = a.ravel()
+    a = np.asarray(arr, dtype=np.int32)
+    cdef int[:] mv = a.ravel()
     v.reserve(mv.shape[0])
     for i in range(mv.shape[0]):
-        v.push_back(<int> mv[i])
+        v.push_back(mv[i])
     return v
 
 def _vec_to_numpy(libcpp_vector[double] v):
