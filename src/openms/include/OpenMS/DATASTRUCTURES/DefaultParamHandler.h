@@ -111,9 +111,9 @@ namespace OpenMS
      *
      * Parameters are written with 'name' as key and 'value' as value
      *
-     * @param write_this  Params to be written
-     * @param write_here  a MetaInfoInterface object into which the meta values will be written
-     * @param key_prefix  Will be added in front of the parameter name for the meta value key.
+     * @param[in] write_this  Params to be written
+     * @param[in,out] write_here  a MetaInfoInterface object into which the meta values will be written
+     * @param[in] key_prefix  Will be added in front of the parameter name for the meta value key.
      *                    If the prefix isn't empty and doesn't end with a colon one will be added.
      */
     static void writeParametersToMetaValues(const Param& write_this, MetaInfoInterface& write_here, const String& key_prefix = "");

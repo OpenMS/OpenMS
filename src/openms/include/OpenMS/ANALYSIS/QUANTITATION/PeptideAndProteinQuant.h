@@ -170,7 +170,7 @@ public:
 
          Peptide abundances must be computed first with quantifyPeptides(). Optional protein inference information (e.g. BasicProteinInference or Epifany) can be supplied via @p proteins.
          
-         @param proteins Optional protein inference information
+         @param[in] proteins Optional protein inference information
     */
     void quantifyProteins(const ProteinIdentification& proteins = ProteinIdentification());
 
@@ -233,8 +233,8 @@ private:
     /**
      *   @brief Determine fraction, filename, charge state, and channel of a peptide with the highest
      *   number of abundances.
-     *   @param peptide_abundances Const input map fraction -> filename -> charge -> channel -> abundance
-     *   @param best Will additionally return the best fraction, filename, charge state, and channel
+     *   @param[in] peptide_abundances Const input map fraction -> filename -> charge -> channel -> abundance
+     *   @param[in] best Will additionally return the best fraction, filename, charge state, and channel
      *   @return true if at least one abundance was found, false otherwise
      */
     bool getBest_(
@@ -285,16 +285,16 @@ private:
          
          This method populates prot_quant_ with peptide abundance and PSM count data.
          
-         @param proteins Protein identification information
+         @param[in] proteins Protein identification information
     */
     void transferPeptideDataToProteins_(const ProteinIdentification& proteins);
 
     /**
          @brief Select peptides for protein quantification based on filtering criteria.
          
-         @param protein_accession The protein accession to select peptides for
-         @param top_n Maximum number of peptides to select (0 = no limit)
-         @param fix_peptides Whether to use consistent peptides across samples
+         @param[in] protein_accession The protein accession to select peptides for
+         @param[in] top_n Maximum number of peptides to select (0 = no limit)
+         @param[in] fix_peptides Whether to use consistent peptides across samples
          @return Vector of selected peptide sequences
     */
     std::vector<String> selectPeptidesForQuantification_(const String& protein_accession,
@@ -304,8 +304,8 @@ private:
     /**
          @brief Aggregate abundances using the specified mathematical method.
          
-         @param abundances Vector of abundance values to aggregate
-         @param method Aggregation method ("median", "mean", "weighted_mean", "sum")
+         @param[in] abundances Vector of abundance values to aggregate
+         @param[in] method Aggregation method ("median", "mean", "weighted_mean", "sum")
          @return Aggregated abundance value
     */
     double aggregateAbundances_(const std::vector<double>& abundances,
@@ -314,11 +314,11 @@ private:
     /**
          @brief Calculate protein abundances for a single protein using selected peptides.
          
-         @param protein_accession The protein accession
-         @param selected_peptides Vector of peptide sequences to use for quantification
-         @param aggregate_method Method to aggregate peptide abundances
-         @param top_n Maximum number of peptides to use per sample
-         @param include_all Whether to include proteins with insufficient peptides
+         @param[in] protein_accession The protein accession
+         @param[in] selected_peptides Vector of peptide sequences to use for quantification
+         @param[in] aggregate_method Method to aggregate peptide abundances
+         @param[in] top_n Maximum number of peptides to use per sample
+         @param[in] include_all Whether to include proteins with insufficient peptides
     */
     void calculateProteinAbundances_(const String& protein_accession,
                                     const std::vector<String>& selected_peptides,
@@ -329,12 +329,12 @@ private:
     /**
          @brief Calculate detailed protein abundances at channel level using selected peptides.
          
-         @param protein_accession The protein accession
-         @param selected_peptides Vector of peptide sequences to use for quantification
-         @param aggregate_method Method to aggregate peptide abundances
-         @param top_n Maximum number of peptides to use per sample
-         @param include_all Whether to include proteins with insufficient peptides
-         @param accession_to_leader Map for resolving protein group leaders
+         @param[in] protein_accession The protein accession
+         @param[in] selected_peptides Vector of peptide sequences to use for quantification
+         @param[in] aggregate_method Method to aggregate peptide abundances
+         @param[in] top_n Maximum number of peptides to use per sample
+         @param[in] include_all Whether to include proteins with insufficient peptides
+         @param[in] accession_to_leader Map for resolving protein group leaders
     */
     void calculateFileAndChannelLevelProteinAbundances_(const String& protein_accession,
                                            const std::vector<String>& selected_peptides,
@@ -346,15 +346,15 @@ private:
     /**
          @brief Perform iBAQ normalization on protein abundances.
          
-         @param proteins Protein identification information containing sequences
+         @param[in] proteins Protein identification information containing sequences
     */
     void performIbaqNormalization_(const ProteinIdentification& proteins);
 
     /**
          @brief Get the "canonical" protein accession from the list of protein accessions of a peptide.
 
-         @param pep_accessions Protein accessions of a peptide
-         @param accession_to_leader Captures information about indistinguishable proteins (maps accession to accession of group leader)
+         @param[in] pep_accessions Protein accessions of a peptide
+         @param[in] accession_to_leader Captures information about indistinguishable proteins (maps accession to accession of group leader)
 
          If there is no information about indistinguishable proteins (from protXML) available, a canonical accession exists only for proteotypic peptides - it's the single accession for the respective peptide.
 
@@ -375,9 +375,9 @@ private:
     /**
          @brief Map (filename, channel) to sample using ExperimentalDesign.
          
-         @param filename The base filename (without path/extension)
-         @param channel_or_label The channel/label identifier
-         @param ed The experimental design containing the mapping information
+         @param[in] filename The base filename (without path/extension)
+         @param[in] channel_or_label The channel/label identifier
+         @param[in] ed The experimental design containing the mapping information
          @return The sample ID corresponding to the filename and channel
     */
     size_t getSampleIDFromFilenameAndChannel_(const String& filename,

@@ -104,7 +104,12 @@ namespace OpenMS
       /// Returns the peak count of all traces
       Size getPeakCount() const;
 
-      ///Checks if still valid (seed still contained and enough traces)
+      /**
+        @brief Checks if still valid (seed still contained and enough traces)
+
+        @param[in] seed_mz The seed m/z value
+        @param[in] trace_tolerance Tolerance for traces
+      */
       bool isValid(double seed_mz, double trace_tolerance);
 
       /**
@@ -129,7 +134,7 @@ namespace OpenMS
                intensity value for each point in RT. The flattened representation
                is comparable to the TIC of the MassTraces.
 
-        @param intensity_profile An empty std::list of pair<double, double> that will be filled.
+        @param[out] intensity_profile An empty std::list of pair<double, double> that will be filled.
                 The first element of the pair holds the RT value, the second value the sum of intensities
                 of all peaks in the different mass traces with this specific RT.
       */

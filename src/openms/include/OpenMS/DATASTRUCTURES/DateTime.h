@@ -137,7 +137,7 @@ public:
     */
     void getTime(UInt& hour, UInt& minute, UInt& second) const;
 
-    // add @param s seconds to date time
+    // add @param[in] s seconds to date time
     DateTime& addSecs(int s);
 
     /**
@@ -160,12 +160,12 @@ public:
     void clear();
 
     /* @brief Returns a string representation of the DateTime object.
-       @param format "yyyy-MM-ddThh:mm:ss" corresponds to ISO 8601 and should be preferred.
+       @param[in] format "yyyy-MM-ddThh:mm:ss" corresponds to ISO 8601 and should be preferred.
 	  */
 	  String toString(const std::string& format = "yyyy-MM-ddThh:mm:ss") const;
 
     /* @brief Creates a DateTime object from string representation.
-       @param format "yyyy-MM-ddThh:mm:ss" corresponds to ISO 8601 and should be preferred.
+       @param[in] format "yyyy-MM-ddThh:mm:ss" corresponds to ISO 8601 and should be preferred.
 	  */
       static DateTime fromString(const std::string& date, const std::string& format = "yyyy-MM-ddThh:mm:ss");
 

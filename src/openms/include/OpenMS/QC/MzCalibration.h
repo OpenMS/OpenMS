@@ -39,9 +39,9 @@ namespace OpenMS
 
     /**
      * @brief Writes results as meta values to the PeptideIdentification of the given FeatureMap
-     * @param features FeatureMap with m/z-values of PeptideIdentification after calibration, meta values are added here
-     * @param exp PeakMap of the original experiment. Can be empty (i.e. not available).
-     * @param map_to_spectrum Map to find index of spectrum given by meta value at PepID
+     * @param[in,out] features FeatureMap with m/z-values of PeptideIdentification after calibration, meta values are added here
+     * @param[in] exp PeakMap of the original experiment. Can be empty (i.e. not available).
+     * @param[in] map_to_spectrum Map to find index of spectrum given by meta value at PepID
      * @throws Exception::InvalidParameter PeptideID is missing meta value 'spectrum_reference'
      * @throws Exception::IllegalArgument Spectrum for a PepID has MSLevel of 1
      * @throws Exception::MissingInformation Meta value 'mz_raw' missing from MSExperiment

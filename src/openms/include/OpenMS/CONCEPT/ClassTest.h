@@ -153,24 +153,24 @@ namespace OpenMS
       printWithPrefix(const std::string& text, const int marked = -1);
 
       /**
-         @brief Set up some classtest variables as obtained from the 'START_TEST' macro 
+         @brief Set up some classtest variables as obtained from the 'START_TEST' macro
                 and check that no additional arguments were passed to the test executable.
 
-         @param version A version string, obtained from 'START_TEST(FuzzyStringComparator, "<VERSION>")'
-         @param class_name The class under test (used for error messages etc), obtained from 'START_TEST(FuzzyStringComparator, "<VERSION>")'
-         @param argc The number of arguments to the main() function of the class test (must be 1; test will quit otherwise)
-         @param argv0 Name of the executable (for debug output)
+         @param[in] version A version string, obtained from 'START_TEST(FuzzyStringComparator, "<VERSION>")'
+         @param[in] class_name The class under test (used for error messages etc), obtained from 'START_TEST(FuzzyStringComparator, "<VERSION>")'
+         @param[in] argc The number of arguments to the main() function of the class test (must be 1; test will quit otherwise)
+         @param[in] argv0 Name of the executable (for debug output)
       */
       void OPENMS_DLLAPI mainInit(const char* version, const char* class_name, int argc, const char* argv0);
 
       /**
         @brief Test if two files are exactly equal (used in TEST_FILE_EQUAL macro)
-        
-        @param line The line where the macro was called (for reporting)
-        @param filename The temp file
-        @param templatename The ground truth file
-        @param filename_stringified The expression used as the first macro argument
-        @param templatename_stringified The expression used as the second macro argument
+
+        @param[in] line The line where the macro was called (for reporting)
+        @param[in] filename The temp file
+        @param[in] templatename The ground truth file
+        @param[in] filename_stringified The expression used as the first macro argument
+        @param[in] templatename_stringified The expression used as the second macro argument
       */
       void OPENMS_DLLAPI filesEqual(int line, const char* filename, const char* templatename, const char* filename_stringified, const char* templatename_stringified);
 
@@ -563,8 +563,8 @@ namespace TEST = OpenMS::Internal::ClassTest;
 
  @note This macro evaluates its arguments once or twice, depending on verbosity settings.
 
- @param a value/object to test
- @param b expected value
+ @param[in] a value/object to test
+ @param[in] b expected value
 
  @hideinitializer
  */
@@ -575,7 +575,7 @@ namespace TEST = OpenMS::Internal::ClassTest;
  This macro tests if its argument evaluates to 'true'.
  If possible use TEST_EQUAL(a, b) instead of TEST_TRUE(a==b), because the latter makes bug tracing harder.
 
- @param a value/object convertible to bool
+ @param[in] a value/object convertible to bool
  
  @hideinitializer
 */
@@ -586,7 +586,7 @@ namespace TEST = OpenMS::Internal::ClassTest;
  This macro tests if its argument evaluates to 'false'.
  If possible use TEST_NOT_EQUAL(a, b) instead of TEST_FALSE(a!=b), because the latter makes bug tracing harder.
 
- @param a value/object convertible to bool
+ @param[in] a value/object convertible to bool
 
  @hideinitializer
 */
@@ -599,8 +599,8 @@ namespace TEST = OpenMS::Internal::ClassTest;
  The only difference between the two macros is that #TEST_NOT_EQUAL evaluates
  !((a) == (b)).
 
- @param a value/object to test
- @param b forbidden value
+ @param[in] a value/object to test
+ @param[in] b forbidden value
 
  @hideinitializer
  */
@@ -613,8 +613,8 @@ namespace TEST = OpenMS::Internal::ClassTest;
 
  @note This macro evaluates its arguments once or twice, depending on verbosity settings.
 
- @param a value to test
- @param b expected value
+ @param[in] a value to test
+ @param[in] b expected value
 
  @hideinitializer
  */
@@ -649,8 +649,8 @@ namespace TEST = OpenMS::Internal::ClassTest;
  @note Both arguments are converted to @c double.  The actual comparison is done
  by isRealSimilar().
 
- @param a value to test
- @param b expected value
+ @param[in] a value to test
+ @param[in] b expected value
 
  @hideinitializer
  */
@@ -666,8 +666,8 @@ namespace TEST = OpenMS::Internal::ClassTest;
  @note Both arguments are converted to @c std::string.  The actual comparison
  is done by testStringSimilar().
 
- @param a value to test
- @param b expected value
+ @param[in] a value to test
+ @param[in] b expected value
 
  @hideinitializer
  */
@@ -682,8 +682,8 @@ namespace TEST = OpenMS::Internal::ClassTest;
 
  @note The actual comparison is done by isFileSimilar().
 
- @param a value to test
- @param b expected value
+ @param[in] a value to test
+ @param[in] b expected value
 
  @hideinitializer
  */
@@ -785,8 +785,8 @@ namespace TEST = OpenMS::Internal::ClassTest;
  vector[-1]).  If no or a wrong exception occurred, false is returned,
  otherwise true.
 
- @param exception_type the exception-class
- @param command any general C++ or OpenMS-specific command
+ @param[in] exception_type the exception-class
+ @param[in] command any general C++ or OpenMS-specific command
 
  @hideinitializer
  */
@@ -868,7 +868,7 @@ namespace TEST = OpenMS::Internal::ClassTest;
   However the test is executed only when the #OPENMS_PRECONDITION macros are active,
   i.e., when compiling in Debug mode.  (See Macros.h)
 
- @param command any general C++ or OpenMS-specific command
+ @param[in] command any general C++ or OpenMS-specific command
 
   @hideinitializer
  */
@@ -885,7 +885,7 @@ namespace TEST = OpenMS::Internal::ClassTest;
   However the test is executed only when the #OPENMS_POSTCONDITION macros are active,
   i.e., when compiling in Debug mode.  (See Macros.h)
 
- @param command any general C++ or OpenMS-specific command
+ @param[in] command any general C++ or OpenMS-specific command
 
   @hideinitializer
  */
@@ -906,9 +906,9 @@ namespace TEST = OpenMS::Internal::ClassTest;
  If no, a wrong exception occurred or a wrong message is returned, false is
  returned, otherwise true.
 
- @param exception_type the exception-class
- @param command any general C++ or OpenMS-specific command
- @param message the message the exception should give
+ @param[in] exception_type the exception-class
+ @param[in] command any general C++ or OpenMS-specific command
+ @param[in] message the message the exception should give
 
  @hideinitializer
  */

@@ -156,8 +156,8 @@ namespace OpenMS
 
       /**
        * @brief Extracts the DateTime from datetime string from xQuest
-       * @param xquest_datetime_string The DateTime String to be processed
-       * @param date_time DateTime that reflects the value given in the `xquest_datetime_string`
+       * @param[in] xquest_datetime_string The DateTime String to be processed
+       * @param[in] date_time DateTime that reflects the value given in the `xquest_datetime_string`
        */
       inline void extractDateTime_(const String & xquest_datetime_string, DateTime & date_time) const;
 
@@ -165,21 +165,21 @@ namespace OpenMS
        * @brief Assigns all meta values stored in the peptide_id_attributes
        * member to an meta info interface
        *
-       * @param meta_info_interface Where the meta values from the peptide_id_attributes member should be assigned to
+       * @param[in] meta_info_interface Where the meta values from the peptide_id_attributes member should be assigned to
        */
       void addMetaValues_(MetaInfoInterface & meta_info_interface);
 
       /**
        * @brief Gets the link location of a xQuest xlinkPositionString.
-       * @param attributes XML attributes of Xerces.
-       * @param pair Pair to be populated with the xlinkposition in xQuest.
+       * @param[in] attributes XML attributes of Xerces.
+       * @param[out] pair Pair to be populated with the xlinkposition in xQuest.
        */
       void getLinkPosition_(const xercesc::Attributes & attributes, std::pair<SignedSize, SignedSize> & pair);
 
       /**
        * @brief Sets the peptide evidence for Alpha and Beta.
-       * @param prot_string Protein string of the xquest file the peptide evidence should be populated from.
-       * @param pep_hit For which peptide hit the peptide evidence should be set.
+       * @param[out] prot_string Protein string of the xquest file the peptide evidence should be populated from.
+       * @param[in] pep_hit For which peptide hit the peptide evidence should be set.
        */
       void setPeptideEvidence_(const String & prot_string, PeptideHit & pep_hit);
 

@@ -28,10 +28,10 @@ public:
       Currently PeakMap does not have a unique id but ConsensusMap has
       one, so we assign a new one here.
 
-      @param input_map_index The index of the input map.
-      @param input_map The input map to be converted.
-      @param output_map The resulting ConsensusMap.
-      @param n The maximum number of elements to be copied.
+      @param[in] input_map_index The index of the input map.
+      @param[in,out] input_map The input map to be converted.
+      @param[out] output_map The resulting ConsensusMap.
+      @param[in] n The maximum number of elements to be copied.
     */
     static void convert(UInt64 const input_map_index,
                         PeakMap& input_map,
@@ -44,9 +44,9 @@ public:
       The previous content of output_map is cleared. UID's of the elements and
       the container is copied if the @p keep_uids flag is set.
 
-      @param input_map The container to be converted.
-      @param keep_uids Shall the UID's of the elements and the container be kept or created anew
-      @param output_map The resulting ConsensusMap.
+      @param[in] input_map The container to be converted.
+      @param[in] keep_uids Shall the UID's of the elements and the container be kept or created anew
+      @param[out] output_map The resulting ConsensusMap.
     */
     static void convert(ConsensusMap const& input_map,
                         const bool keep_uids,
@@ -66,10 +66,10 @@ public:
       a meaningful way, apply one of the sorting methods to @p input_map
       beforehand.)
 
-      @param input_map_index The index of the input map.
-      @param input_map The container to be converted.
-      @param output_map The resulting ConsensusMap.
-      @param n The maximum number of elements to be copied.
+      @param[in] input_map_index The index of the input map.
+      @param[in] input_map The container to be converted.
+      @param[out] output_map The resulting ConsensusMap.
+      @param[in] n The maximum number of elements to be copied.
     */
     static void convert(UInt64 const input_map_index,
                         FeatureMap const& input_map,

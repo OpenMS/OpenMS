@@ -108,15 +108,15 @@ namespace OpenMS
     /**
       * @brief Constructor
       *
-      * @param stop_condition The total probability (if use_total_prob == true) or
+      * @param[in] stop_condition The total probability (if use_total_prob == true) or
       *        threshold (if use_total_prob is false) (see class docu)
       *
-      * @param use_total_prob Whether the stop_condition should be interpreted as a
+      * @param[in] use_total_prob Whether the stop_condition should be interpreted as a
       *        probability threshold (only configurations with intensity above this
       *        threshold will be returned) or as a total probability that the distribution
       *        should cover.
       *
-      * @param absolute Whether threshold is absolute or relative (ignored if use_total_prob is true, see class docu)
+      * @param[in] absolute Whether threshold is absolute or relative (ignored if use_total_prob is true, see class docu)
       *
       **/
     FineIsotopePatternGenerator(double stop_condition, bool use_total_prob = true, bool absolute = false) :

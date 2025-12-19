@@ -416,8 +416,8 @@ namespace OpenMS
     /**
      * @brief Get the Monoisotopic Weight of a NASequence. NB returns the uncharged mass + or - proton masses to match the charge param
      *
-     * @param type fragment type to return
-     * @param charge how many protons to add or subtract, NB the mass returned is the UNCHARGED MASS
+     * @param[in] type fragment type to return
+     * @param[in] charge how many protons to add or subtract, NB the mass returned is the UNCHARGED MASS
      *
      * @return double
      */
@@ -426,8 +426,8 @@ namespace OpenMS
     /**
      * @brief Get the Average Weight of a NASequence. NB returns the uncharged mass + or - proton masses to match the charge param
      *
-     * @param type fragment type to return
-     * @param charge how many protons to add or subtract, NB the mass returned is the UNCHARGED MASS
+     * @param[in] type fragment type to return
+     * @param[out] charge how many protons to add or subtract, NB the mass returned is the UNCHARGED MASS
      *
      * @return double
      */
@@ -436,8 +436,8 @@ namespace OpenMS
     /**
      * @brief Get the formula for a NASequence
      *
-     * @param type fragment type for formula
-     * @param charge how many H to add or subtract
+     * @param[in] type fragment type for formula
+     * @param[out] charge how many H to add or subtract
      *
      * @return EmpiricalFormula
      */
@@ -446,7 +446,7 @@ namespace OpenMS
     /**
      * @brief Return sequence prefix of the given length (not end index!)
      *
-     * @param length
+     * @param[in] length
 
      * @return NASequence
      */
@@ -455,7 +455,7 @@ namespace OpenMS
     /**
      * @brief Return sequence suffix of the given length (not start index!)
      *
-     * @param length
+     * @param[in] length
 
      * @return NASequence
      */
@@ -464,8 +464,8 @@ namespace OpenMS
     /**
      * @brief Return subsequence with given starting position and length
      *
-     * @param start
-     * @param length
+     * @param[in] start
+     * @param[in] length
      *
      * @return NASequence
      */
@@ -474,7 +474,7 @@ namespace OpenMS
     /**
        @brief create NASequence object by parsing an OpenMS string
 
-       @param s Input string
+       @param[in] s Input string
 
        @throws Exception::ParseError if an invalid string representation of a nucleic acid sequence is passed
     */
@@ -488,7 +488,7 @@ namespace OpenMS
     /**
        @brief create NASequence object by parsing a C string (character array)
 
-       @param s Input string
+       @param[in] s Input string
 
        @throws Exception::ParseError if an invalid string representation of a nucleic acid sequence is passed
     */
@@ -503,9 +503,9 @@ namespace OpenMS
     /**
        @brief Parses modifications in square brackets
 
-       @param str_it Current position in the string to be parsed
-       @param str Full input string
-       @param nas Current AASequence object (will be modified with the correct ribo added)
+       @param[in] str_it Current position in the string to be parsed
+       @param[in] str Full input string
+       @param[in,out] nas Current AASequence object (will be modified with the correct ribo added)
 
        @return Position at which to continue parsing
     */

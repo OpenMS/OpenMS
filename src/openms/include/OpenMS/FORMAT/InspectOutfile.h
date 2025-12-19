@@ -49,11 +49,11 @@ public:
 
     /** load the results of an Inspect search
 
-            @param result_filename Input parameter which is the file name of the input file
-            @param peptide_identifications Output parameter which holds the peptide identifications from the given file
-            @param protein_identification Output parameter which holds the protein identifications from the given file
-            @param p_value_threshold
-            @param database_filename
+            @param[out] result_filename Input parameter which is the file name of the input file
+            @param[out] peptide_identifications Output parameter which holds the peptide identifications from the given file
+            @param[out] protein_identification Output parameter which holds the protein identifications from the given file
+            @param[in] p_value_threshold
+            @param[in] database_filename
             @throw FileNotFound is thrown if the given file could not be found
             @throw ParseError is thrown if the given file could not be parsed
             @throw FileEmpty is thrown if the given file is empty
@@ -62,8 +62,8 @@ public:
 
     /** loads only results which exceeds a given P-value threshold
 
-            @param result_filename The filename of the results file
-            @param p_value_threshold Only identifications exceeding this threshold are read
+            @param[in] result_filename The filename of the results file
+            @param[in] p_value_threshold Only identifications exceeding this threshold are read
             @throw FileNotFound is thrown is the file is not found
             @throw FileEmpty is thrown if the given file is empty
     */

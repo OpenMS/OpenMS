@@ -140,8 +140,8 @@ namespace OpenMS
 
     /**
        @brief After computing the overview statistic, you can query a concrete distribution by giving the name of the statistic
-       @param which Distribution based on which data? 
-       @param number_of_bins Number of histogram bins (equally spaced within [min,max] of the distribution)
+       @param[in] which Distribution based on which data? 
+       @param[in] number_of_bins Number of histogram bins (equally spaced within [min,max] of the distribution)
        @return The distribution
        @throws Exception::InvalidValue if @p which is not a valid overview statistic for the underlying data
     */

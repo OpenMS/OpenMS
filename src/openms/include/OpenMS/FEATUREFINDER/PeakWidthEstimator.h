@@ -30,9 +30,9 @@ namespace OpenMS
 
     /**
     * @brief constructor
-    * 
-    * @param exp_picked m/z positions of picked peaks
-    * @param boundaries corresponding peak widths
+    *
+    * @param[in] exp_picked m/z positions of picked peaks
+    * @param[in] boundaries corresponding peak widths
     *
     * @throw Exception::UnableToFit if the B-spline initialisation fails.
     */

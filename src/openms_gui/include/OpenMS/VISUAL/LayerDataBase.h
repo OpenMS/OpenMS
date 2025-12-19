@@ -366,9 +366,9 @@ namespace OpenMS
     /**
         @brief C'tor with params
         
-        @param supported_types Which identification data types are allowed to be opened by the user in annotate()
-        @param file_dialog_text The header text of the file dialog shown to the user
-        @param gui_lock Optional GUI element which will be locked (disabled) during call to 'annotateWorker_'; can be null_ptr
+        @param[in] supported_types Which identification data types are allowed to be opened by the user in annotate()
+        @param[in] file_dialog_text The header text of the file dialog shown to the user
+        @param[in] gui_lock Optional GUI element which will be locked (disabled) during call to 'annotateWorker_'; can be null_ptr
       **/
     LayerAnnotatorBase(const FileTypeList& supported_types, const String& file_dialog_text, QWidget* gui_lock);
     

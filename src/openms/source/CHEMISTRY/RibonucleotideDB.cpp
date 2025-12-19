@@ -106,7 +106,7 @@ namespace OpenMS
   // Return the Empirical formula for the ribo with a base-loss. Ideally we store these in the JSON, otherwise its guessed from the code.
   EmpiricalFormula getBaseLossFormula_(const nlohmann::json::value_type& entry)
   {
-    String code = entry.at("short_name");
+    String code = entry.at("short_name").get<std::string>();
     // If we have an explicitly defined baseloss_formula
     if (auto e = entry.find("baseloss_formula"); e != entry.cend() && !e->is_null())
     {
@@ -175,12 +175,12 @@ namespace OpenMS
     {
       String msg = "we don't support bases with multiple reference moieties or multicharacter moieties.";
       throw Exception::InvalidValue(__FILE__, __LINE__,
-                                              OPENMS_PRETTY_FUNCTION, msg, entry["reference_moiety"]);
+                                              OPENMS_PRETTY_FUNCTION, msg, entry["reference_moiety"].dump());
     }
     
     if (entry.find("abbrev") != entry.cend())
     {
-      ribo->setHTMLCode(entry.at("abbrev")); //This is the single letter unicode representation that only SOME mods have
+      ribo->setHTMLCode(entry.at("abbrev").get<std::string>()); //This is the single letter unicode representation that only SOME mods have
     }
     ribo->setFormula(entry.at("formula").get<OpenMS::EmpiricalFormula>());
 
@@ -195,7 +195,7 @@ namespace OpenMS
 
     if (auto e = entry.find("mass_monoiso"); e != entry.cend() && !e->is_null())
     {
-      ribo->setMonoMass(*e);
+      ribo->setMonoMass(e->get<double>());
     }
     else
     {

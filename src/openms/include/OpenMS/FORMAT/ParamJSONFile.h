@@ -66,8 +66,8 @@ namespace OpenMS
     /**
       @brief Read JSON file that is formatted in CWL conforming style.
 
-      @param filename The file from where to read the Param object.
-      @param param A param object with pre-filled defaults, which are updated by the values in the JSON file
+      @param[out] filename The file from where to read the Param object.
+      @param[out] param A param object with pre-filled defaults, which are updated by the values in the JSON file
       @return returns true if file was successfully loaded; false if an unknown (non-default) parameter name was encountered in the JSON file
 
       @exception Exception::FileNotFound is thrown if the file could not be found
@@ -77,9 +77,9 @@ namespace OpenMS
 
     /**
        @brief Write Json file with set values
-       @param filename The name of the file the param data structure should be stored in.
-       @param param The param data structure that should be stored.
-       @param tool_info unused, required for compatiblity with ParamCWLFile
+       @param[in] filename The name of the file the param data structure should be stored in.
+       @param[in,out] param The param data structure that should be stored.
+       @param[in] tool_info unused, required for compatiblity with ParamCWLFile
        @exception std::ios::failure is thrown if the file could not be created
      */
     void store(const std::string& filename, const Param& param, const ToolInfo& tool_info) const;
