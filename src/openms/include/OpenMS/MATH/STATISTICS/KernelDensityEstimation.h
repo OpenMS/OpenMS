@@ -84,12 +84,12 @@ namespace OpenMS
 
       @param x Vector of data values to be binned
       @param xmin Minimum value of grid (inclusive)
-      @param xmax Maximum value of grid (exclusive)
+      @param xmax Maximum value of grid (inclusive)
       @param nbins Number of bins in the grid
       @param weights Optional vector of weights for each data point. If nullptr, uniform weights are used.
       @return Vector of length @p nbins containing (weighted) counts at each grid point
 
-      @note Values outside [xmin, xmax) are ignored (not binned)
+      @note Values outside [xmin, xmax] are ignored (not binned)
 
       @ingroup MathStatistics
     */
