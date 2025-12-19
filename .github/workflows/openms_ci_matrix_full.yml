@@ -1209,3 +1209,49 @@ jobs:
               git push --set-upstream origin releaseannouncement${{ needs.build-and-test.outputs.version_number }}
               gh pr create --title "Release announcement for ${{ needs.build-and-test.outputs.version_number }}" --body "announces ${{ needs.build-and-test.outputs.version_number }}"
             popd
+
+  #----------------------------------------------------------------------------
+  # Quick pyOpenMS wheel test using py-build-cmake
+  # This job validates that the new build system works correctly
+  #----------------------------------------------------------------------------
+  pyopenms-quick-test:
+    # Only run on PRs to develop and on non-clang Linux builds
+    if: github.event_name == 'pull_request' && github.event.pull_request.base.ref == 'develop'
+    needs: build-and-test
+    runs-on: ubuntu-24.04
+    container: ghcr.io/openms/contrib_manylinux_2_34:latest-amd64
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: OpenMS
+
+      - name: Build OpenMS for pyOpenMS
+        run: |
+          cd OpenMS
+          mkdir -p bld && cd bld
+          cmake .. \
+            -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_PREFIX_PATH=/contrib-build \
+            -DOPENMS_CONTRIB_LIBS=/contrib-build \
+            -DPYOPENMS=OFF \
+            -DENABLE_TUTORIALS=OFF \
+            -DENABLE_DOCS=OFF \
+            -DWITH_GUI=OFF
+          ninja OpenMS OpenSwathAlgo -j4
+
+      - name: Build pyOpenMS wheel with uv
+        run: |
+          cd OpenMS
+          pip install uv
+          cd src/pyOpenMS
+          OpenMS_ROOT=$GITHUB_WORKSPACE/OpenMS/bld \
+          CMAKE_PREFIX_PATH=/contrib-build:$GITHUB_WORKSPACE/OpenMS/bld \
+            uv build --wheel
+
+      - name: Test pyOpenMS wheel
+        run: |
+          cd OpenMS/src/pyOpenMS
+          pip install dist/*.whl
+          python -c "import pyopenms; print('pyopenms version:', pyopenms.__version__)"
+          python -c "import pyopenms; print('Glucose mass:', pyopenms.EmpiricalFormula('C6H12O6').getMonoWeight())"
