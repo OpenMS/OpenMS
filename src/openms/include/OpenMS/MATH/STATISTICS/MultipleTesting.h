@@ -17,6 +17,7 @@
 #include <vector>
 
 #include <OpenMS/config.h>
+#include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/MATH/STATISTICS/RankData.h>
 
 namespace OpenMS
@@ -139,7 +140,7 @@ inline std::vector<double> computeModelFDR(const std::vector<T>& data_in)
       fdr[order[i]] = std::numeric_limits<double>::quiet_NaN();
       continue;
     }
-    const std::size_t r_idx = static_cast<std::size_t>(static_cast<long long>(r_d) - 1);
+    const std::size_t r_idx = static_cast<std::size_t>(static_cast<Int64>(r_d) - 1);
     const double denom = r_d;
     const double numer = cumsum[std::min(r_idx, cumsum.size() - 1)];
     fdr[order[i]] = numer / denom;
@@ -217,7 +218,7 @@ inline std::vector<double> pEmp(const std::vector<T>& stat, const std::vector<T>
   std::vector<double> p(m);
   for (std::size_t i = 0; i < m; ++i)
   {
-    p[i] = static_cast<double>(static_cast<long long>(u[i]) - static_cast<long long>(i)) / static_cast<double>(m0);
+    p[i] = static_cast<double>(static_cast<Int64>(u[i]) - static_cast<Int64>(i)) / static_cast<double>(m0);
   }
 
   // ranks: floor(rankdata(-stat)) - 1
@@ -229,7 +230,7 @@ inline std::vector<double> pEmp(const std::vector<T>& stat, const std::vector<T>
   for (std::size_t i = 0; i < m; ++i)
   {
     double rf = std::floor(ranks[i]);
-    std::size_t idx = static_cast<std::size_t>(static_cast<long long>(rf) - 1);
+    std::size_t idx = static_cast<std::size_t>(static_cast<Int64>(rf) - 1);
     if (idx >= p.size()) idx = p.size() - 1;
     out[i] = p[idx];
   }
