@@ -40,7 +40,7 @@ namespace OpenMS
       Silverman BW. (1982) "Algorithm AS 176: Kernel density estimation using the
       Fast Fourier Transform." J. R. Statist. Soc. C 31(1):93-99. DOI: 10.2307/2347084
 
-      @ingroup MathStatistics
+      @ingroup MathFunctionsStatistics
     */
 
     /**
