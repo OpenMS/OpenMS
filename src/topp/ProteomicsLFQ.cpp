@@ -85,6 +85,13 @@ ProteomicsLFQ has different methods to extract features: ID-based (targeted only
   2. The second method adds untargeted feature detection to obtain quantities from unidentified features.
      Transfer of Ids (match between runs) is performed by transfering feature identifications to coeluting, unidentified features with similar mass and RT in other runs.
 
+@b FAIMS (Field Asymmetric Ion Mobility Spectrometry): @n
+FAIMS data is automatically detected based on compensation voltage (CV) annotations in the mzML file.
+The data is split by CV and processed separately for each voltage group during feature detection.
+Features representing the same analyte detected at different CV values are merged automatically.
+The merged features are then aligned and linked across runs based on RT and m/z.
+No special preparation of the input mzML file is required.
+
 Output:
   - mzTab file with analysis results
   - MSstats file with analysis results for statistical downstream analysis in MSstats
@@ -862,6 +869,10 @@ protected:
         if (e != EXECUTION_OK) return e;
       }
 
+      // Annotate peptide IDs with FAIMS CV from spectrum data (required for proper per-CV filtering in FFI)
+      // Safe to call on non-FAIMS data - returns false and does nothing if no FAIMS data present
+      SpectrumMetaDataLookup::addMissingFAIMSToPeptideIDs(peptide_ids, ms_centroided);
+
       StringList id_msfile_ref;
       protein_ids[0].getPrimaryMSRunPath(id_msfile_ref);
       id_MS_run_ref.push_back(id_msfile_ref[0]);
@@ -1313,7 +1324,7 @@ protected:
 
     if (!getFlag_("PeptideQuantification:quantify_decoys"))
     { // FDR filtering removed all decoy proteins -> update references and remove all unreferenced (decoy) PSMs
-      IDFilter::updateProteinReferences(consensus, true);
+      IDFilter::removeDanglingProteinReferences(consensus, true);
       IDFilter::removeUnreferencedProteins(consensus, true); // if we don't filter peptides for now, we don't need this
       IDFilter::updateProteinGroups(overall_proteins.getIndistinguishableProteins(),
                                     overall_proteins.getHits());
@@ -1338,7 +1349,7 @@ protected:
 
     if (max_fdr < 1. || !getFlag_("PeptideQuantification:quantify_decoys"))
     {
-      IDFilter::updateProteinReferences(consensus, true);
+      IDFilter::removeDanglingProteinReferences(consensus, true);
     }
 
     if (max_psm_fdr < 1.)

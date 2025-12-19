@@ -39,7 +39,7 @@ public:
     /**
       @brief Normalizes the intensity ratios in the given input map (using median).
 
-      @param consensus_map The map to normalize.
+      @param[in] consensus_map The map to normalize.
     */
     void normalize(ConsensusMap& consensus_map);
 
@@ -53,8 +53,8 @@ private:
     /**
       @brief Given a ConsensusFeature the method will return an iterator pointing to the consensus element representing the reference channel.
 
-      @param cf The ConsensusFeature for which the reference element should be found.
-      @param consensus_map The ConsensusMap in which the reference element should be found.
+      @param[in] cf The ConsensusFeature for which the reference element should be found.
+      @param[in] consensus_map The ConsensusMap in which the reference element should be found.
       @return An iterator pointing to the consensus element of the reference channel. ConsensusFeature::end() if the reference channel is not contained.
     */
     ConsensusFeature::HandleSetType::iterator findReferenceChannel_(ConsensusFeature& cf, const ConsensusMap& consensus_map) const;
@@ -62,15 +62,15 @@ private:
     /**
       @brief Constructs a mapping from file description to the index in the corresponding ratio/intensity vectors.
 
-      @param consensus_map The consensus map for which the mapping should be build.
+      @param[in] consensus_map The consensus map for which the mapping should be build.
     */
     void buildVectorIndex_(const ConsensusMap& consensus_map);
 
     /**
       @brief Collects ratios and intensities for a given ConsensusFeature.
 
-      @param cf The consensus feature to evaluate.
-      @param ref_intensity The intensity of the reference channel.
+      @param[in] cf The consensus feature to evaluate.
+      @param[in] ref_intensity The intensity of the reference channel.
     */
     void collectRatios_(const ConsensusFeature& cf,
                         const Peak2D::IntensityType& ref_intensity);
@@ -78,7 +78,7 @@ private:
     /**
       @brief Computes the normalization factors from the given peptide ratios.
 
-      @param normalization_factors The normalization factors to compute.
+      @param[in] normalization_factors The normalization factors to compute.
     */
     void computeNormalizationFactors_(std::vector<Peak2D::IntensityType>& normalization_factors);
 

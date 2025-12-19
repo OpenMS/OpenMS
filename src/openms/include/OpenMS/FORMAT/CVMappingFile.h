@@ -46,9 +46,9 @@ public:
 
         @exception Exception::FileNotFound is thrown if the file could not be opened
         @exception Exception::ParseError is thrown if an error occurs during parsing
-        @param strip_namespaces if enable, namespace definitions of the paths are eliminated, e.g. 'pf:cvParam' -> 'cvParam'
-        @param cv_mappings  The CVMappings instance in which the rules, cvs and other content from the file should be stored
-        @param filename  The filename to read from
+        @param[in] filename  The filename to read from
+        @param[out] cv_mappings  The CVMappings instance in which the rules, cvs and other content from the file should be stored
+        @param[in] strip_namespaces if enable, namespace definitions of the paths are eliminated, e.g. 'pf:cvParam' -> 'cvParam'
     */
     void load(const String& filename, CVMappings& cv_mappings, bool strip_namespaces = false);
 

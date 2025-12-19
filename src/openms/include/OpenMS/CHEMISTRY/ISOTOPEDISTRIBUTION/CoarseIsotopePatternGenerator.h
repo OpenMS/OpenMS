@@ -138,8 +138,8 @@ namespace OpenMS
     /**
        @brief Estimate peptide IsotopeDistribution from average weight and exact number of sulfurs
 
-       @param average_weight: Average weight to estimate an EmpiricalFormula for
-       @param S: The exact number of Sulfurs in this molecule
+       @param[in] average_weight Average weight to estimate an EmpiricalFormula for
+       @param[in] S The exact number of Sulfurs in this molecule
 
        @pre S <= average_weight / average_weight(sulfur)
        @pre average_weight >= 0
@@ -158,13 +158,13 @@ namespace OpenMS
        approximateFromPeptideWeight: 0.573753000;0.318752000;0.088542200;0.016396700;0.002277320;0.000253036
 
        KL divergences of the first 20 intensities of estimateFromPeptideWeight and this approximation range from 4.97E-5 for a
-       monoisotopic mass of 20 to 0.0144 for a mass of 2500. For comparison, when comparing an observed pattern with a 
+       monoisotopic mass of 20 to 0.0144 for a mass of 2500. For comparison, when comparing an observed pattern with a
        theoretical ground truth, the observed pattern is said to be an isotopic pattern if the KL between the two is below 0.05
        for 2 peaks and below 0.6 for >=6 peaks by Guo Ci Teo et al.
 
-       @param mass m/z of monoisotopic peak (with charge = 1) to approximate the distribution of intensities for
-       @param num_peaks: How many peaks should be generated (independent of this->max_isotope)
-       @param charge Charge of the resulting distribution
+       @param[in] mass m/z of monoisotopic peak (with charge = 1) to approximate the distribution of intensities for
+       @param[in] num_peaks How many peaks should be generated (independent of this->max_isotope)
+       @param[in] charge Charge of the resulting distribution
     */
     static IsotopeDistribution approximateFromPeptideWeight(double mass, UInt num_peaks = 20, UInt charge = 1);
 
@@ -172,11 +172,11 @@ namespace OpenMS
        @brief roughly approximate intensity distribution of peptidic isotope patterns from monoisotopic weight using Poisson distribution.
        Foundation from: Bellew et al, https://dx.doi.org/10.1093/bioinformatics/btl276
 
-       This method is around 100 times faster than estimateFromPeptideWeight, but only an approximation of the intensities. 
+       This method is around 100 times faster than estimateFromPeptideWeight, but only an approximation of the intensities.
        It does not return IsotopeDistribution but a vector of intensities. For an assessment of accuracy, see approximateFromPeptideWeight.
 
-       @param mass: m/z of monoisotopic peak (with charge = 1) to approximate the distribution of intensities for
-       @param num_peaks: How many peaks should be generated (independent of this->max_isotope)
+       @param[in] mass m/z of monoisotopic peak (with charge = 1) to approximate the distribution of intensities for
+       @param[in] num_peaks How many peaks should be generated (independent of this->max_isotope)
     */
     static std::vector<double> approximateIntensities(double mass, UInt num_peaks = 20);
 
@@ -222,13 +222,13 @@ namespace OpenMS
     /**
        @brief Estimate IsotopeDistribution from weight, exact number of sulfurs, and average remaining composition
 
-       @param average_weight: Average weight to estimate an IsotopeDistribution for
-       @param S: The exact numbers of Sulfurs in this molecule
-       @param C: The approximate relative stoichiometry of Carbons to other elements (excluding Sulfur) in this molecule
-       @param H: The approximate relative stoichiometry of Hydrogens to other elements (excluding Sulfur) in this molecule
-       @param N: The approximate relative stoichiometry of Nitrogens to other elements (excluding Sulfur) in this molecule
-       @param O: The approximate relative stoichiometry of Oxygens to other elements (excluding Sulfur) in this molecule
-       @param P: The approximate relative stoichiometry of Phosphoruses to other elements (excluding Sulfur) in this molecule
+       @param[in] average_weight Average weight to estimate an IsotopeDistribution for
+       @param[in] S The exact numbers of Sulfurs in this molecule
+       @param[in] C The approximate relative stoichiometry of Carbons to other elements (excluding Sulfur) in this molecule
+       @param[in] H The approximate relative stoichiometry of Hydrogens to other elements (excluding Sulfur) in this molecule
+       @param[in] N The approximate relative stoichiometry of Nitrogens to other elements (excluding Sulfur) in this molecule
+       @param[in] O The approximate relative stoichiometry of Oxygens to other elements (excluding Sulfur) in this molecule
+       @param[in] P The approximate relative stoichiometry of Phosphoruses to other elements (excluding Sulfur) in this molecule
 
        @pre S, C, H, N, O, P >= 0
        @pre average_weight >= 0
@@ -240,9 +240,9 @@ namespace OpenMS
        fragment's average weight, and a list of isolated precursor isotopes.
 
        The max_depth of the isotopic distribution is set to max(precursor_isotopes)+1.
-       @param average_weight_precursor: average weight of the precursor peptide
-       @param average_weight_fragment: average weight of the fragment
-       @param precursor_isotopes: the precursor isotopes that were isolated. 0 corresponds to the mono-isotopic molecule (M0), 1->M1, etc.
+       @param[in] average_weight_precursor average weight of the precursor peptide
+       @param[in] average_weight_fragment average weight of the fragment
+       @param[in] precursor_isotopes the precursor isotopes that were isolated. 0 corresponds to the mono-isotopic molecule (M0), 1->M1, etc.
 
        @pre average_weight_precursor >= average_weight_fragment
        @pre average_weight_fragment > 0
@@ -257,11 +257,11 @@ namespace OpenMS
        and a list of isolated precursor isotopes.
 
        The max_depth of the isotopic distribution is set to max(precursor_isotopes)+1.
-       @param average_weight_precursor: average weight of the precursor peptide
-       @param S_precursor: The exact number of Sulfurs in the precursor peptide
-       @param average_weight_fragment: average weight of the fragment
-       @param S_fragment: The exact number of Sulfurs in the fragment
-       @param precursor_isotopes: the precursor isotopes that were isolated
+       @param[in] average_weight_precursor average weight of the precursor peptide
+       @param[in] S_precursor The exact number of Sulfurs in the precursor peptide
+       @param[in] average_weight_fragment average weight of the fragment
+       @param[in] S_fragment The exact number of Sulfurs in the fragment
+       @param[in] precursor_isotopes the precursor isotopes that were isolated
 
        @pre S_fragment <= average_weight_fragment / average_weight(sulfur)
        @pre S_precursor - S_fragment <= (average_weight_precursor - average_weight_fragment) / average_weight(sulfur)
@@ -277,9 +277,9 @@ namespace OpenMS
        fragment's average weight, and a list of isolated precursor isotopes.
 
        The max_depth of the isotopic distribution is set to max(precursor_isotopes)+1.
-       @param average_weight_precursor: average weight of the precursor nucleotide
-       @param average_weight_fragment: average weight of the fragment
-       @param precursor_isotopes: the precursor isotopes that were isolated. 0 corresponds to the mono-isotopic molecule (M0), 1->M1, etc.
+       @param[in] average_weight_precursor average weight of the precursor nucleotide
+       @param[in] average_weight_fragment average weight of the fragment
+       @param[in] precursor_isotopes the precursor isotopes that were isolated. 0 corresponds to the mono-isotopic molecule (M0), 1->M1, etc.
 
        @pre average_weight_precursor >= average_weight_fragment
        @pre average_weight_precursor > 0
@@ -293,9 +293,9 @@ namespace OpenMS
        fragment's average weight, and a list of isolated precursor isotopes.
 
        The max_depth of the isotopic distribution is set to max(precursor_isotopes)+1.
-       @param average_weight_precursor: average weight of the precursor nucleotide
-       @param average_weight_fragment: average weight of the fragment
-       @param precursor_isotopes: the precursor isotopes that were isolated. 0 corresponds to the mono-isotopic molecule (M0), 1->M1, etc.
+       @param[in] average_weight_precursor average weight of the precursor nucleotide
+       @param[in] average_weight_fragment average weight of the fragment
+       @param[in] precursor_isotopes the precursor isotopes that were isolated. 0 corresponds to the mono-isotopic molecule (M0), 1->M1, etc.
 
        @pre average_weight_precursor >= average_weight_fragment
        @pre average_weight_precursor > 0
@@ -309,15 +309,15 @@ namespace OpenMS
        fragment's average weight, a list of isolated precursor isotopes, and average composition
 
        The max_depth of the isotopic distribution is set to max(precursor_isotopes)+1.
-       @param average_weight_precursor: average weight of the precursor molecule
-       @param average_weight_fragment: average weight of the fragment molecule
-       @param precursor_isotopes: the precursor isotopes that were isolated. 0 corresponds to the mono-isotopic molecule (M0), 1->M1, etc.
-       @param C: The approximate relative stoichiometry of Carbons to other elements in this molecule
-       @param H: The approximate relative stoichiometry of Hydrogens to other elements in this molecule
-       @param N: The approximate relative stoichiometry of Nitrogens to other elements in this molecule
-       @param O: The approximate relative stoichiometry of Oxygens to other elements in this molecule
-       @param S: The approximate relative stoichiometry of Sulfurs to other elements in this molecule
-       @param P: The approximate relative stoichiometry of Phosphoruses to other elements in this molecule
+       @param[in] average_weight_precursor average weight of the precursor molecule
+       @param[in] average_weight_fragment average weight of the fragment molecule
+       @param[in] precursor_isotopes the precursor isotopes that were isolated. 0 corresponds to the mono-isotopic molecule (M0), 1->M1, etc.
+       @param[in] C The approximate relative stoichiometry of Carbons to other elements in this molecule
+       @param[in] H The approximate relative stoichiometry of Hydrogens to other elements in this molecule
+       @param[in] N The approximate relative stoichiometry of Nitrogens to other elements in this molecule
+       @param[in] O The approximate relative stoichiometry of Oxygens to other elements in this molecule
+       @param[in] S The approximate relative stoichiometry of Sulfurs to other elements in this molecule
+       @param[in] P The approximate relative stoichiometry of Phosphoruses to other elements in this molecule
 
        @pre S, C, H, N, O, P >= 0
        @pre average_weight_precursor >= average_weight_fragment
@@ -339,10 +339,10 @@ namespace OpenMS
        Equations come from Rockwood, AL; Kushnir, MA; Nelson, GJ. in
        "Dissociation of Individual Isotopic Peaks: Predicting Isotopic Distributions of Product Ions in MSn"
 
-       @param fragment_isotope_dist the isotopic distribution of the fragment (as if it was a precursor).
-       @param comp_fragment_isotope_dist the isotopic distribution of the complementary fragment (as if it was a precursor).
-       @param precursor_isotopes a list of which precursor isotopes were isolated. 0 corresponds to the mono-isotopic molecule (M0), 1->M1, etc.
-       @param fragment_mono_mass the monoisotopic mass of the fragment.
+       @param[in] fragment_isotope_dist the isotopic distribution of the fragment (as if it was a precursor).
+       @param[in] comp_fragment_isotope_dist the isotopic distribution of the complementary fragment (as if it was a precursor).
+       @param[in] precursor_isotopes a list of which precursor isotopes were isolated. 0 corresponds to the mono-isotopic molecule (M0), 1->M1, etc.
+       @param[in] fragment_mono_mass the monoisotopic mass of the fragment.
        @pre fragment_isotope_dist and comp_fragment_isotope_dist are gapless (no missing isotopes between the min/max isotopes of the dist)
     */
     IsotopeDistribution calcFragmentIsotopeDist(const IsotopeDistribution& fragment_isotope_dist, const IsotopeDistribution& comp_fragment_isotope_dist, const std::set<UInt>& precursor_isotopes, const double fragment_mono_mass) const;
@@ -365,9 +365,9 @@ namespace OpenMS
 
     /** @brief calculates the fragment distribution for a fragment molecule and stores it in @p result.
 
-        @param fragment_isotope_dist the isotopic distribution of the fragment (as if it was a precursor).
-        @param comp_fragment_isotope_dist the isotopic distribution of the complementary fragment (as if it was a precursor).
-        @param precursor_isotopes which precursor isotopes were isolated. 0 corresponds to the mono-isotopic molecule (M0), 1->M1, etc.
+        @param[in] fragment_isotope_dist the isotopic distribution of the fragment (as if it was a precursor).
+        @param[in] comp_fragment_isotope_dist the isotopic distribution of the complementary fragment (as if it was a precursor).
+        @param[in] precursor_isotopes which precursor isotopes were isolated. 0 corresponds to the mono-isotopic molecule (M0), 1->M1, etc.
     */
     IsotopeDistribution calcFragmentIsotopeDist_(const IsotopeDistribution::ContainerType& fragment_isotope_dist, const IsotopeDistribution::ContainerType& comp_fragment_isotope_dist, const std::set<UInt>& precursor_isotopes) const;
 

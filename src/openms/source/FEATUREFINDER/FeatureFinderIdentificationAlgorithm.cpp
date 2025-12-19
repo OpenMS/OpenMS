@@ -1150,7 +1150,7 @@ namespace OpenMS
    * Note: RT region boundaries are determined from ALL IDs (including those without IM),
    * so skipping individual IDs for IM statistics does not affect RT extraction.
    *
-   * @param r RT region containing peptide identifications (per charge state)
+   * @param[in] r RT region containing peptide identifications (per charge state)
    * @return IMStats structure with median, min, and max IM values
    *         Returns {-1.0, -1.0, -1.0} only if no valid IM data is available
    *

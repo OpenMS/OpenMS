@@ -70,7 +70,7 @@ namespace OpenMS
   }
 
   /// check consistency of input
-  /// @param init_thresh_p set default threshold (set to "false" to keep current value)
+  /// @param[in] init_thresh_p set default threshold (set to "false" to keep current value)
   void MassExplainer::init_(bool init_thresh_p)
   {
     if (init_thresh_p)
@@ -296,12 +296,12 @@ namespace OpenMS
 
 
   /// search the mass database for explanations
-  /// @param net_charge       net charge of compomer
-  /// @param mass_to_explain  mass in Da that needs explanation
-  /// @param mass_delta       allowed deviation from exact mass
-  /// @param thresh_log_p     minimal log probability required
-  /// @param firstExplanation begin range with candidates according to net_charge and mass
-  /// @param lastExplanation  end range
+  /// @param[in] net_charge       net charge of compomer
+  /// @param[in] mass_to_explain  mass in Da that needs explanation
+  /// @param[in] mass_delta       allowed deviation from exact mass
+  /// @param[in] thresh_log_p     minimal log probability required
+  /// @param[in] firstExplanation begin range with candidates according to net_charge and mass
+  /// @param[in] lastExplanation  end range
   SignedSize MassExplainer::query(const Int net_charge,
                                   const float mass_to_explain,
                                   const float mass_delta,

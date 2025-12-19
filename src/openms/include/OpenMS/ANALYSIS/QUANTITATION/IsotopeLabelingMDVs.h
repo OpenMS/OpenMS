@@ -56,11 +56,11 @@ namespace OpenMS
       The formula is obtained from "The importance of accurately correcting for the natural abundance of stable isotopes",
       Midani et al, doi:10.1016/j.ab.2016.12.011
      
-      @param  normalized_feature Feature with normalized values for each component and unlabeled chemical formula for each component group.
+      @param[in]  normalized_feature Feature with normalized values for each component and unlabeled chemical formula for each component group.
       @param[out] corrected_feature Feature with corrected values for each component.
-      @param  correction_matrix  Square matrix holding correction factors derived either experimentally or theoretically which describe how spectral peaks of
+      @param[in]  correction_matrix  Square matrix holding correction factors derived either experimentally or theoretically which describe how spectral peaks of
       naturally abundant 13C contribute to spectral peaks that overlap (or convolve) the spectral peaks of the corrected MDV of the derivatization agent.
-      @param  correction_matrix_agent name of the derivatization agent, the internally stored correction matrix if the name of the agent is supplied,
+      @param[out]  correction_matrix_agent name of the derivatization agent, the internally stored correction matrix if the name of the agent is supplied,
       only "TBDMS" is supported for now.
     */
     void isotopicCorrection(
@@ -76,11 +76,11 @@ namespace OpenMS
       The formula is obtained from "The importance of accurately correcting for the natural abundance of stable isotopes",
       Midani et al, doi:10.1016/j.ab.2016.12.011
      
-      @param  measured_fm FeatureMap with normalized values for each component and unlabeled chemical formula for each component group.
+      @param[in]  measured_fm FeatureMap with normalized values for each component and unlabeled chemical formula for each component group.
       @param[out] corrected_fm FeatureMap with corrected values for each component.
-      @param  correction_matrix Square matrix holding correction factors derived either experimentally or theoretically which describe how spectral peaks of
+      @param[in]  correction_matrix Square matrix holding correction factors derived either experimentally or theoretically which describe how spectral peaks of
       naturally abundant 13C contribute to spectral peaks that overlap (or convolve) the spectral peaks of the corrected MDV of the derivatization agent.
-      @param  correction_matrix_agent name of the derivatization agent, the internally stored correction matrix if the name of the agent is supplied,
+      @param[out]  correction_matrix_agent name of the derivatization agent, the internally stored correction matrix if the name of the agent is supplied,
       only "TBDMS" is supported for now.
     */
     void isotopicCorrections(

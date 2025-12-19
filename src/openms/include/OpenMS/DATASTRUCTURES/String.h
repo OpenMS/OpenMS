@@ -184,10 +184,10 @@ public:
     /**
      @brief Wrapper for the STL substr() method. Returns a String object with its contents initialized to a substring of the current object.
 
-     @param pos Position of a character in the current string object to be used as starting character for the substring.
+     @param[in] pos Position of a character in the current string object to be used as starting character for the substring.
      If the @p pos is past the end of the string, it is set to the end of the string.
 
-     @param n Length of the substring.
+     @param[in] n Length of the substring.
      If this value would make the substring to span past the end of the current string content, only those characters until the end of the string are used.
      npos is a static member constant value with the greatest possible value for an element of type size_t, therefore, when this value is used, all the
      characters between pos and the end of the string are used as the initialization substring.
@@ -200,7 +200,7 @@ public:
 
       If @p n is greater than size(), the result is an empty string.
 
-      @param n Number of characters that will be removed from the end of the string.
+      @param[in] n Number of characters that will be removed from the end of the string.
      */
     OPENMS_DLLAPI String chop(Size n) const;
 

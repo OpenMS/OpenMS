@@ -712,7 +712,7 @@ namespace OpenMS
       /**
        * @brief Helper function to validate that a spectrum contains IM data in the correct format for peak picking
        *
-       * @param spectrum The spectrum to validate
+       * @param[in] spectrum The spectrum to validate
        * @return true if the spectrum should be processed (has concatenated IM data)
        * @return false if the spectrum should be skipped (no IM data)
        * @throws Exception::InvalidValue if the data is already centroided, UNKNOWN, or unhandled format

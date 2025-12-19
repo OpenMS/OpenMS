@@ -31,7 +31,7 @@ public:
 
         Open fid File as stream and initialize index.
 
-        @param filename to fid File.
+        @param[in] filename to fid File.
       */
       explicit FidHandler(const String & filename);
 

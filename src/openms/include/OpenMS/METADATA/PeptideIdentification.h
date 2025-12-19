@@ -172,7 +172,7 @@ public:
       @brief Builds MultiMap over all PI's via their UID (as obtained from buildUIDFromPepID()),
              which is mapped to a index of PI therein, i.e. cm[p.first].getPeptideIdentifications()[p.second];
 
-      @param cmap All PI's of the CMap are enumerated and their UID -> pair mapping is computed
+      @param[in] cmap All PI's of the CMap are enumerated and their UID -> pair mapping is computed
 
       @return Returns the MultiMap
     */
@@ -188,8 +188,8 @@ public:
       @throw Exception::MissingInformation if Spectrum reference missing at PeptideIdentification
       @throw Exception::MissingInformation if Multiple files in a run, but no map_index in PeptideIdentification found
 
-      @param pep_id  PeptideIdentification for which the UID is computed
-      @param identifier_to_msrunpath Mapping required to build UID. Can be obtained from
+      @param[in] pep_id  PeptideIdentification for which the UID is computed
+      @param[in] identifier_to_msrunpath Mapping required to build UID. Can be obtained from
              ProteinIdentification::Mapping::identifier_to_msrunpath which can be created
              from the corresponding ProtID's
 

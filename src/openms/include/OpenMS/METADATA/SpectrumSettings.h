@@ -84,7 +84,7 @@ public:
     void setType(SpectrumType type);
 
     /// @brief sets the IMFormat of the spectrum
-    /// @param im_type
+    /// @param[in] im_type
     void setIMFormat(const IMFormat& im_type);
 
     /// @brief returns the IMFormat of the spectrum if set. Otherwise UNKNOWN (default). 

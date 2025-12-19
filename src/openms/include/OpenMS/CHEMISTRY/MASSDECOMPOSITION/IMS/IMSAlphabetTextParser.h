@@ -42,7 +42,7 @@ public:
       /**
         Parses the input stream @c is.
 
-        @param is The input stream to be parsed
+        @param[in] is The input stream to be parsed
       */
       void parse(std::istream & is) override;
     };

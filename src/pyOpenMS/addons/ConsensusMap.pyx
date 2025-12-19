@@ -9,6 +9,88 @@ from UniqueIdInterface cimport setUniqueId as _setUniqueId
         """
         self.inst.get().applyMemberFunction(address(_setUniqueId))
 
+    def __repr__(self):
+        """
+        __repr__(self: ConsensusMap) -> str
+        
+        Return a string representation of the ConsensusMap object.
+
+        Returns key properties in a readable format:
+        ConsensusMap(num_consensus_features=100, num_maps=3, experiment_type='label-free')
+        """
+        cdef int num_features = self.inst.get().size()
+        
+        parts = []
+        parts.append(f"num_consensus_features={num_features}")
+        
+        # Get number of column headers (input maps)
+        column_headers = self.getColumnHeaders()
+        if len(column_headers) > 0:
+            parts.append(f"num_maps={len(column_headers)}")
+        
+        # Get experiment type
+        exp_type = self.getExperimentType()
+        if exp_type:
+            parts.append(f"experiment_type='{exp_type}'")
+        
+        # Get number of protein identifications
+        protein_ids = self.getProteinIdentifications()
+        if len(protein_ids) > 0:
+            parts.append(f"protein_ids={len(protein_ids)}")
+        
+        return f"ConsensusMap({', '.join(parts)})"
+
+    def __len__(self):
+        """
+        __len__(self: ConsensusMap) -> int
+
+        Return the number of consensus features in the map.
+
+        Enables use of Python's built-in len() function.
+
+        Returns:
+            int: The number of consensus features in this map.
+        """
+        return self.inst.get().size()
+
+    def append(self, ConsensusFeature item):
+        """
+        append(self: ConsensusMap, item: ConsensusFeature) -> None
+
+        Add a single consensus feature to the end of the map.
+
+        This method provides a Pythonic interface equivalent to push_back().
+
+        Args:
+            item: A single ConsensusFeature object to append.
+        """
+        self.inst.get().push_back(deref(item.inst.get()))
+
+    def extend(self, items):
+        """
+        extend(self: ConsensusMap, items: Iterable[ConsensusFeature]) -> None
+
+        Add multiple consensus features to the end of the map.
+
+        Args:
+            items: Can be:
+                - A list/iterable of ConsensusFeature objects
+                - Another ConsensusMap object
+
+        Raises:
+            TypeError: If items is not iterable or another ConsensusMap.
+        """
+        if hasattr(items, '__iter__') and not hasattr(items, 'inst'):
+            # Handle regular iterables (list, tuple, etc.)
+            for consensus_feature in items:
+                self.inst.get().push_back(deref((<ConsensusFeature>consensus_feature).inst.get()))
+        elif hasattr(items, 'inst') and hasattr(items, '__len__'):
+            # Handle another ConsensusMap
+            for consensus_feature in items:
+                self.inst.get().push_back(deref((<ConsensusFeature>consensus_feature).inst.get()))
+        else:
+            raise TypeError("extend() argument must be iterable or another ConsensusMap")
+
     def getColumnHeaders(self):
         """
         getColumnHeaders(self: ConsensusMap) -> Dict[int, ColumnHeader]

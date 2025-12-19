@@ -46,11 +46,11 @@ namespace OpenMS
      * Stores average and variance of PSMExplainedIonCurrent as a struct and stores it in the results vector (can be accessed by getResults()).
      * Each PSMExplainedIonCurrent is also stored in the first PeptideHit of the corresponding PeptideIdentification as metavalue "PSM_correctness".
      *
-     * @param fmap Input FeatureMap for annotation and data for theoretical spectra
-     * @param exp Input MSExperiment for MS2 spectra; spectra should be sorted (ascending RT)
-     * @param map_to_spectrum Map to find index of spectrum given by meta value at PepID
-     * @param tolerance Search window for matching peaks; distance has to be lower than tolerance value
-     * @param tolerance_unit Tolerance in ppm or Dalton (if auto was chosen, the unit and value will taken from FeatureMap metadata)
+     * @param[in,out] fmap Input FeatureMap for annotation and data for theoretical spectra
+     * @param[in] exp Input MSExperiment for MS2 spectra; spectra should be sorted (ascending RT)
+     * @param[in] map_to_spectrum Map to find index of spectrum given by meta value at PepID
+     * @param[in] tolerance Search window for matching peaks; distance has to be lower than tolerance value
+     * @param[in] tolerance_unit Tolerance in ppm or Dalton (if auto was chosen, the unit and value will taken from FeatureMap metadata)
      * @throws Exceptions::MissingInformation If fragment mass tolerance is missing in metadata of FeatureMap (& no ToleranceUnit is given)
      * @throws Exception::InvalidParameter PeptideID is missing meta value 'spectrum_reference'
      * @throws Exception::IllegalArgument Spectrum for a PepID has ms-level of 1
@@ -65,12 +65,12 @@ namespace OpenMS
      *
      * Same as above, but with PeptideIdentification + SearchParameter input instead of FeatureMap
      *
-     * @param pep_ids Input peptide identifications for annotation and data for theoretical spectra
-     * @param search_params Input search parameters from ID-search that generated the peptide identifications from @p pep_ids
-     * @param exp Input MSExperiment for MS2 spectra; spectra should be sorted (ascending RT)
-     * @param map_to_spectrum Map to find index of spectrum given by meta value at PepID
-     * @param tolerance Search window for matching peaks; distance has to be lower than tolerance value
-     * @param tolerance_unit Tolerance in ppm or Dalton (if auto was chosen, the unit and value will taken from FeatureMap metadata)
+     * @param[in,out] pep_ids Input peptide identifications for annotation and data for theoretical spectra
+     * @param[in] search_params Input search parameters from ID-search that generated the peptide identifications from @p pep_ids
+     * @param[in] exp Input MSExperiment for MS2 spectra; spectra should be sorted (ascending RT)
+     * @param[in] map_to_spectrum Map to find index of spectrum given by meta value at PepID
+     * @param[in] tolerance Search window for matching peaks; distance has to be lower than tolerance value
+     * @param[in] tolerance_unit Tolerance in ppm or Dalton (if auto was chosen, the unit and value will taken from FeatureMap metadata)
      * @throws Exceptions::MissingInformation If fragment mass tolerance is missing in metadata of FeatureMap (& no ToleranceUnit is given)
      * @throws Exception::InvalidParameter PeptideID is missing meta value 'spectrum_reference'
      * @throws Exception::IllegalArgument Spectrum for a PepID has ms-level of 1

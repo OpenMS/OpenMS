@@ -155,7 +155,7 @@ public:
     /**
       @brief returns a single spectrum
 
-      @param id The index of the spectrum
+      @param[in] id The index of the spectrum
     */
     MSSpectrum getSpectrum(Size id)
     {
@@ -177,7 +177,7 @@ public:
     /**
       @brief returns a single chromatogram
 
-      @param id The index of the chromatogram
+      @param[in] id The index of the chromatogram
     */
     MSChromatogram getChromatogram(Size id)
     {
@@ -191,14 +191,14 @@ public:
     /**
       @brief returns a single chromatogram
 
-      @param id The native identifier of the chromatogram
+      @param[in] id The native identifier of the chromatogram
     */
     MSChromatogram getChromatogramByNativeId(const std::string& id);
 
     /**
       @brief returns a single spectrum
 
-      @param id The native identifier of the spectrum
+      @param[in] id The native identifier of the spectrum
     */
     MSSpectrum getSpectrumByNativeId(const std::string& id);
 
