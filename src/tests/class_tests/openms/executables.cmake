@@ -295,6 +295,7 @@ set(math_executables_list
   GridSearch_test
   CrossValidation_test
   Histogram_test
+  KernelDensityEstimation_test
   LinearInterpolation_test
   LinearRegression_test
   MathFunctions_test
