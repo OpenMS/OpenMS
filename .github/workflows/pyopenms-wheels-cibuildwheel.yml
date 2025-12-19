@@ -250,8 +250,8 @@ jobs:
           CIBW_BEFORE_ALL: "yum install -y cmake ninja-build"
           CIBW_ENVIRONMENT: |
             OpenMS_ROOT=/project/openms-build
-            CMAKE_PREFIX_PATH=/contrib-build:/project/openms-build
             LD_LIBRARY_PATH=/project/openms-build/lib
+          CIBW_CONFIG_SETTINGS: "cmake.options.CMAKE_PREFIX_PATH='/contrib-build;/project/openms-build'"
           CIBW_REPAIR_WHEEL_COMMAND: "auditwheel repair -w {dest_dir} {wheel}"
           CIBW_BUILD_VERBOSITY: 1
 
@@ -294,8 +294,8 @@ jobs:
           CIBW_BEFORE_ALL: "yum install -y cmake ninja-build"
           CIBW_ENVIRONMENT: |
             OpenMS_ROOT=/project/openms-build
-            CMAKE_PREFIX_PATH=/contrib-build:/project/openms-build
             LD_LIBRARY_PATH=/project/openms-build/lib
+          CIBW_CONFIG_SETTINGS: "cmake.options.CMAKE_PREFIX_PATH='/contrib-build;/project/openms-build'"
           CIBW_REPAIR_WHEEL_COMMAND: "auditwheel repair -w {dest_dir} {wheel}"
           CIBW_BUILD_VERBOSITY: 1
 
