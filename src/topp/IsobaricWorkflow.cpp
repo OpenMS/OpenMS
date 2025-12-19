@@ -388,6 +388,10 @@ protected:
       // for each channel of current file
       UInt64 map_index = 0;
       Peak2D::IntensityType overall_intensity = 0.;
+      // Calculate column offset for this file's channels to ensure consecutive map indices.
+      // For file i with N channels, col_offset = i * N, resulting in consecutive indices:
+      // File 0: [0, 1, ..., N-1], File 1: [N, N+1, ..., 2N-1], etc.
+      // This matches the column headers registered by registerChannelsInOutputMap().
       Size col_offset = file_idx * quant_method->getChannelInformation().size();
 
       for (IsobaricQuantitationMethod::IsobaricChannelList::const_iterator cl_it = quant_method->getChannelInformation().begin();

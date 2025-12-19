@@ -847,10 +847,36 @@ set_tests_properties("TOPP_IsobaricAnalyzer_MS3TMT10Plex_1_out1" PROPERTIES DEPE
 
 #------------------------------------------------------------------------------
 # IsobaricWorkflow tests
-# TODO
-#add_test("TOPP_IsobaricAnalyzer_1" ${TOPP_BIN_PATH}/IsobaricAnalyzer -test -in ${DATA_DIR_TOPP}/IsobaricAnalyzer_input_1.mzML ${DATA_DIR_TOPP}/IsobaricAnalyzer_input_1.mzML -ini ${DATA_DIR_TOPP}/IsobaricAnalyzer.ini -out IsobaricAnalyzer_output_1.tmp.consensusXML)
-#add_test("TOPP_IsobaricAnalyzer_1_out1" ${DIFF} -whitelist "id=" "<map" "?xml-stylesheet" -in1 IsobaricAnalyzer_output_1.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/IsobaricAnalyzer_output_1.consensusXML )
-#set_tests_properties("TOPP_IsobaricAnalyzer_1_out1" PROPERTIES DEPENDS "TOPP_IsobaricAnalyzer_1")
+# TODO: Add test data files for IsobaricWorkflow with multiple mzML/idXML pairs
+# Test should verify:
+#   1. id_merge_index is set on all PeptideIdentifications (0, 1, 2, ... for N files)
+#   2. Map indices in ConsensusFeatures are consecutive
+#   3. mzTab export works correctly with multiple input files
+# 
+# Required test files (to be created):
+#   - IsobaricWorkflow_input_1.mzML (TMT/iTRAQ MS2 or MS3 spectra)
+#   - IsobaricWorkflow_input_1.idXML (matching spectrum references)
+#   - IsobaricWorkflow_input_2.mzML
+#   - IsobaricWorkflow_input_2.idXML
+#   - IsobaricWorkflow.ini (tool parameters)
+#   - IsobaricWorkflow_output.consensusXML (expected output)
+#   - IsobaricWorkflow_output.mzTab (expected mzTab output)
+#
+# Example test structure:
+#add_test("TOPP_IsobaricWorkflow_1" ${TOPP_BIN_PATH}/IsobaricWorkflow -test 
+#  -in ${DATA_DIR_TOPP}/IsobaricWorkflow_input_1.mzML ${DATA_DIR_TOPP}/IsobaricWorkflow_input_2.mzML
+#  -in_id ${DATA_DIR_TOPP}/IsobaricWorkflow_input_1.idXML ${DATA_DIR_TOPP}/IsobaricWorkflow_input_2.idXML
+#  -type tmt10plex
+#  -out IsobaricWorkflow_output.tmp.consensusXML
+#  -out_mzTab IsobaricWorkflow_output.tmp.mzTab)
+#add_test("TOPP_IsobaricWorkflow_1_out1" ${DIFF} -whitelist "id=" "<map" "?xml-stylesheet" "uniqueId" 
+#  -in1 IsobaricWorkflow_output.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/IsobaricWorkflow_output.consensusXML)
+#set_tests_properties("TOPP_IsobaricWorkflow_1_out1" PROPERTIES DEPENDS "TOPP_IsobaricWorkflow_1")
+#add_test("TOPP_IsobaricWorkflow_1_out2" ${DIFF} -whitelist "COM"
+#  -in1 IsobaricWorkflow_output.tmp.mzTab -in2 ${DATA_DIR_TOPP}/IsobaricWorkflow_output.mzTab)
+#set_tests_properties("TOPP_IsobaricWorkflow_1_out2" PROPERTIES DEPENDS "TOPP_IsobaricWorkflow_1")
+# Validation of id_merge_index can be done with:
+#   python3 ${DATA_DIR_TOPP}/IsobaricWorkflow_validate_merge_index.py IsobaricWorkflow_output.tmp.consensusXML 2
 
 #------------------------------------------------------------------------------
 # IDConflictResolver tests
