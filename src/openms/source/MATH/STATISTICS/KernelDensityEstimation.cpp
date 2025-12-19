@@ -293,7 +293,9 @@ namespace OpenMS
       out.reserve(x.size());
       for (double xi : x)
       {
-        out.push_back(spline.eval(xi));
+        double val = spline.eval(xi);
+        // Clamp negative densities to zero (can occur from extrapolation outside grid range)
+        out.push_back(val < 0.0 ? 0.0 : val);
       }
       return out;
     }
