@@ -96,12 +96,12 @@ namespace OpenMS
 
     /**
      * @brief Get element at (row, col)
-     * Note: pyOpenMS can't easily wrap operator() so we provide additional getter.
-     * @brief Constructor to create a matrix with specified dimensions and fill value.
      *
-     * @param[in] rows Number of rows in the matrix.
-     * @param[in] cols Number of columns in the matrix.
-     * @param[in] value Initial value to fill the matrix.
+     * Note: pyOpenMS can't easily wrap operator() so we provide additional getter.
+     *
+     * @param[in] row Zero-based row index.
+     * @param[in] col Zero-based column index.
+     * @return Const reference to the value at the given position.
      */
     const Value& getValue(size_t const row, size_t const col) const
     {
@@ -110,7 +110,12 @@ namespace OpenMS
 
     /**
      * @brief Get mutable element at (row, col)
+     *
      * Note: pyOpenMS can't easily wrap operator() so we provide additional getter.
+     *
+     * @param[in] row Zero-based row index.
+     * @param[in] col Zero-based column index.
+     * @return Mutable reference to the value at the given position.
      */
     Value& getValue(size_t const row, size_t const col)
     {
@@ -119,7 +124,12 @@ namespace OpenMS
 
     /**
      * @brief Set element at (row, col)
+     *
      * Note: pyOpenMS can't easily wrap operator() so we provide additional setter.
+     *
+     * @param[in] row Zero-based row index.
+     * @param[in] col Zero-based column index.
+     * @param[in] value Value to set at the given position.
      */
     void setValue(size_t const row, size_t const col, const Value& value)
     {
