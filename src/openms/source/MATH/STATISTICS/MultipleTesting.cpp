@@ -183,12 +183,6 @@ Pi0Result pi0Est(const std::vector<double>& p_values, const std::vector<double>&
   }
   res.pi0_lambda = pi0s;
 
-  if (ll == 1)
-  {
-    // already handled above, but keep defensive
-    return res;
-  }
-
   // Choose method: 'smoother' (default) or 'bootstrap'
   if (pi0_method == "smoother")
   {
