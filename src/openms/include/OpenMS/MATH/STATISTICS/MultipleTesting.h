@@ -195,8 +195,8 @@ inline std::vector<double> pEmp(const std::vector<T>& stat, const std::vector<T>
   // v flags: True for stat, False for stat0
   std::vector<char> v;
   v.reserve(m + m0);
-  for (std::size_t i = 0; i < m; ++i) v.push_back(1);
-  for (std::size_t i = 0; i < m0; ++i) v.push_back(0);
+  v.insert(v.end(), m, 1);
+  v.insert(v.end(), m0, 0);
 
   // argsort descending (stable)
   const std::size_t N = statc.size();
