@@ -35,7 +35,7 @@ namespace OpenMS
     @section OnDiscMSExperiment_filtering Filtering with PeakFileOptions
 
     PeakFileOptions can be used to filter data when retrieving spectra/chromatograms:
-    - RT range and MS level filters: Checked BEFORE loading peak data (skips I/O)
+    - RT range, MS level, and precursor m/z range filters: Checked BEFORE loading peak data (skips I/O)
     - m/z range and intensity filters: Applied AFTER loading peak data
 
     @note Unlike in-memory loading (FileHandler), where filtered spectra are completely
