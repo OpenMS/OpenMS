@@ -21,7 +21,8 @@
 #include <numeric>
 //#include <unordered_map>
 #include <algorithm>
-#include <Eigen/Dense>
+#include <OpenMS/DATASTRUCTURES/MatrixEigen.h>
+#include <Eigen/LU>
 
 namespace OpenMS
 {
@@ -47,8 +48,8 @@ namespace OpenMS
     const DerivatizationAgent& correction_matrix_agent)
   {
     // MDV_corrected = correction_matrix_inversed * MDV_observed (normalized_features)
-    auto& em = correction_matrix.getEigenMatrix();
-    if (em.isIdentity() && !(em.size() == 0))
+    auto em = eigenView(correction_matrix);
+    if (em.isIdentity() && !(correction_matrix.empty()))
     {
       throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                         "IsotopeLabelingMDVs: The given isotope correction matrix is an identity matrix leading to no correction."
