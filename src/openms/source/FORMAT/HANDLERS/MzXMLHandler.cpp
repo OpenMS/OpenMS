@@ -578,6 +578,12 @@ namespace OpenMS::Internal
           spectrum_data_.back().spectrum.getPrecursors().back().setIsolationWindowLowerOffset(0.5 * window_width);
           spectrum_data_.back().spectrum.getPrecursors().back().setIsolationWindowUpperOffset(0.5 * window_width);
         }
+        // Check if precursor m/z is within specified range
+        if (options_.hasPrecursorMZRange() &&
+            !options_.getPrecursorMZRange().encloses(DPosition<1>(mz_pos)))
+        {
+          skip_spectrum_ = true;
+        }
       }
       else if (open_tags_.back() == "comment")
       {
