@@ -10,13 +10,13 @@ cdef extern from * namespace "OpenMS::Math":
     namespace OpenMS { namespace Math {
 
       inline std::vector<double> compute_model_fdr_double_i(std::vector<double> a) {
-        return computeModelFdr<double>(a);
+        return computeModelFDR<double>(a);
       }
       inline std::vector<double> compute_model_fdr_float_i(std::vector<float> a) {
-        return computeModelFdr<float>(a);
+        return computeModelFDR<float>(a);
       }
       inline std::vector<double> compute_model_fdr_int_i(std::vector<int> a) {
-        return computeModelFdr<int>(a);
+        return computeModelFDR<int>(a);
       }
 
       inline std::vector<double> pemp_double_i(std::vector<double> s, std::vector<double> s0) { return pEmp<double>(s, s0); }

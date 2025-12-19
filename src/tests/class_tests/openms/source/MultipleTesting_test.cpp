@@ -29,10 +29,10 @@ START_TEST(MultipleTesting, "$Id$")
 TOLERANCE_ABSOLUTE(1e-4)
 TOLERANCE_RELATIVE(1.0 + 1e-4)
 
-START_SECTION(template<class T> std::vector<double> computeModelFdr(const std::vector<T>&))
+START_SECTION(template<class T> std::vector<double> computeModelFDR(const std::vector<T>&))
 {
   std::vector<double> data = {0.1, 0.2, 0.3};
-  auto f = computeModelFdr<double>(data);
+  auto f = computeModelFDR<double>(data);
   TEST_EQUAL(f.size(), data.size())
   TEST_REAL_SIMILAR(f[0], 0.1)
   TEST_REAL_SIMILAR(f[1], 0.15)

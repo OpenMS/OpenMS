@@ -83,7 +83,7 @@ struct OPENMS_DLLAPI Pi0Result
   @ingroup MathFunctionsStatistics
 */
 template <class T>
-inline std::vector<double> computeModelFdr(const std::vector<T>& data_in)
+inline std::vector<double> computeModelFDR(const std::vector<T>& data_in)
 {
   using D = double;
   const std::size_t n = data_in.size();
