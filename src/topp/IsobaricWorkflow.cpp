@@ -578,12 +578,9 @@ protected:
 
       cur_cmap.resize(pep_ids.size());
 
-      channel_extractor.registerChannelsInOutputMap(cmap, mz_file);
-      // add filename references
-      for (auto& column : cur_cmap.getColumnHeaders())
-      {
-        column.second.filename = mz_file;
-      }
+      // Note: We do NOT call registerChannelsInOutputMap here for cmap.
+      // Column headers will be registered when merging cur_cmap into cmap below.
+      // The features in cur_cmap reference columns using the manual col_offset calculation.
 
       #pragma omp parallel for /*num_threads(inner_threads)*/
       for (int64_t pep_idx = 0; pep_idx < static_cast<int64_t>(pep_ids.size()); ++pep_idx)
@@ -645,11 +642,14 @@ protected:
 
       if (cmap.empty())
       {
+        // First file: move cur_cmap to cmap and register column headers
         cmap = std::move(cur_cmap);
         channel_extractor.registerChannelsInOutputMap(cmap, mz_file);
       }
       else
       {
+        // Subsequent files: register column headers in cmap first, then append features
+        channel_extractor.registerChannelsInOutputMap(cmap, mz_file);
         cmap.reserve(cmap.size() + cur_cmap.size());
         cmap.insert(cmap.end(), std::make_move_iterator(cur_cmap.begin()), std::make_move_iterator(cur_cmap.end()));
       }
