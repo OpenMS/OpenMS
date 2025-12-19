@@ -226,7 +226,7 @@ Pi0Result pi0Est(const std::vector<double>& p_values, const std::vector<double>&
     // Use BSplineSmoothingSpline which matches scipy's UnivariateSpline behavior
     // with automatic smoothing parameter selection (s = m - sqrt(2*m))
     double max_lambda = *std::max_element(lambda_v.begin(), lambda_v.end());
-    OpenMS::Math::BSplineSmoothingSpline spl(xs, ys, -1.0, 3);
+    OpenMS::Math::BSplineSmoothingSpline spl(xs, ys, -1.0, smooth_df);
     double pred = spl.eval(max_lambda);
 
     // If working in log-space, exponentiate the result
