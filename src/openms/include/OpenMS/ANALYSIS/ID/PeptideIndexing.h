@@ -90,7 +90,7 @@ namespace OpenMS
   {
 public:
     /// name of enzyme/specificity which signals that the enzyme/specificity should be taken from meta information
-    static char const* const AUTO_MODE; /* = 'auto' */ 
+    static char const* const AUTO_MODE; /* = 'auto' */
 
     /// Exit codes
     enum ExitCodes
