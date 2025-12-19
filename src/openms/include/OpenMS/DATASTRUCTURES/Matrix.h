@@ -72,8 +72,8 @@ namespace OpenMS
      * Provides direct access to the element at the specified row and column
      * without bounds checking.
      *
-     * @param row Index of the row.
-     * @param col Index of the column.
+     * @param[in] row Index of the row.
+     * @param[in] col Index of the column.
      * @return Const reference to the matrix element at (row, col).
      *
      * @note This operator does not perform bounds checking. Accessing elements
@@ -90,8 +90,8 @@ namespace OpenMS
      * Provides direct access to the element at the specified row and column
      * without bounds checking.
      *
-     * @param row Index of the row.
-     * @param col Index of the column.
+     * @param[in] row Index of the row.
+     * @param[in] col Index of the column.
      * @return Reference to the matrix element at (row, col).
      *
      * @note This operator does not perform bounds checking. Accessing elements
@@ -105,8 +105,8 @@ namespace OpenMS
     /**
      * @brief Get matrix entry (const version).
      *
-     * @param i Row index.
-     * @param j Column index.
+     * @param[in] i Row index.
+     * @param[in] j Column index.
      * @return Const reference to the matrix element at (i, j).
      *
      * @note pyOpenMS can't easily wrap operator() so we provide additional getter/setter.
@@ -119,8 +119,8 @@ namespace OpenMS
     /**
      * @brief Get matrix entry.
      *
-     * @param i Row index.
-     * @param j Column index.
+     * @param[in] i Row index.
+     * @param[in] j Column index.
      * @return Reference to the matrix element at (i, j).
      *
      * @note pyOpenMS can't easily wrap operator() so we provide additional getter/setter.
@@ -133,9 +133,9 @@ namespace OpenMS
     /**
      * @brief Set matrix entry.
      *
-     * @param i Row index.
-     * @param j Column index.
-     * @param value The value to set at position (i, j).
+     * @param[in] i Row index.
+     * @param[in] j Column index.
+     * @param[in] value The value to set at position (i, j).
      *
      * @note pyOpenMS can't easily wrap operator() so we provide additional getter/setter.
      */
@@ -147,7 +147,7 @@ namespace OpenMS
     /**
      * @brief Set all matrix elements to the given value.
      *
-     * @param value The value to fill the matrix with.
+     * @param[in] value The value to fill the matrix with.
      *
      * @note Affects all elements in the matrix while maintaining the current
      *       rows and columns dimensions.
@@ -175,8 +175,8 @@ namespace OpenMS
      * the underlying storage may be reallocated/invalidated, so any
      * existing pointers or iterators into the matrix become invalid.
      *
-     * @param rows New number of rows.
-     * @param cols New number of columns.
+     * @param[in] rows New number of rows.
+     * @param[in] cols New number of columns.
      *
      * @note This method is needed for Cython/pyOpenMS compatibility.
      *       Wrappers relying on stable memory or contiguous layout must
@@ -370,7 +370,7 @@ namespace OpenMS
     /**
      * @brief Inequality operator. Returns true if two matrices are not equal.
      *
-     * @param rhs Matrix to compare against.
+     * @param[in] rhs Matrix to compare against.
      * @return True if matrices differ in dimensions or element values, false otherwise.
      *
      * @see operator==
