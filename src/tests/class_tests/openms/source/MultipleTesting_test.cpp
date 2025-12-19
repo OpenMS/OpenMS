@@ -385,13 +385,13 @@ START_SECTION("R reference qvalue CSV matches C++ implementation")
 }
 END_SECTION
 
-START_SECTION("silvermanKernelFft properties")
+START_SECTION("silvermanKernelFFT properties")
 {
   // basic sanity checks
   std::size_t M = 8;
   double bw = 1.0;
   double RANGE = 10.0;
-  auto K = silvermanKernelFft(bw, M, RANGE);
+  auto K = silvermanKernelFFT(bw, M, RANGE);
   TEST_EQUAL(K.size(), M)
   // K[0] should equal 1 (exp(0)/BC with BC==1)
   TEST_REAL_SIMILAR(K[0], 1.0)
@@ -411,11 +411,11 @@ START_SECTION("silvermanKernelFft properties")
 }
 END_SECTION
 
-START_SECTION("gridKdeFft basic integration and sizes")
+START_SECTION("gridKdeFFT basic integration and sizes")
 {
   std::vector<double> x = {0.0, 1.0, 2.0};
   double bw = bwNrd0(x);
-  auto res = gridKdeFft(x, bw, 64, 3.0);
+  auto res = gridKdeFFT(x, bw, 64, 3.0);
   auto dens = res.first;
   auto grid = res.second;
   TEST_EQUAL(dens.size(), grid.size())
@@ -428,11 +428,11 @@ START_SECTION("gridKdeFft basic integration and sizes")
 }
 END_SECTION
 
-START_SECTION("kdeFftEval matches spline-interpolated grid density at sample points")
+START_SECTION("kdeFFTEval matches spline-interpolated grid density at sample points")
 {
   std::vector<double> x = {0.0, 1.0, 2.0};
   double bw = bwNrd0(x);
-  auto res = gridKdeFft(x, bw, 64, 3.0);
+  auto res = gridKdeFFT(x, bw, 64, 3.0);
   auto dens = res.first;
   auto grid = res.second;
 
@@ -441,8 +441,8 @@ START_SECTION("kdeFftEval matches spline-interpolated grid density at sample poi
   std::vector<double> expected;
   for (double xi : x) expected.push_back(spline.eval(xi));
 
-  // evaluate KDE at sample points using kdeFftEval (x used as both data and query)
-  auto y = kdeFftEval(x, bw, 64, 3.0);
+  // evaluate KDE at sample points using kdeFFTEval (x used as both data and query)
+  auto y = kdeFFTEval(x, bw, 64, 3.0);
   TEST_EQUAL(y.size(), expected.size())
   for (std::size_t i = 0; i < expected.size(); ++i) TEST_REAL_SIMILAR(y[i], expected[i]);
 }

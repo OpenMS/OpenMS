@@ -385,7 +385,7 @@ std::vector<double> lfdr(const std::vector<double>& p_values,
     for (std::size_t i = 0; i < m; ++i) x[i] = boost::math::quantile(nd, p[i]);
 
     double bw = bwNrd0(x) * adj;
-    y = kdeFftEval(x, bw, gridsize, cut);
+    y = kdeFFTEval(x, bw, gridsize, cut);
 
     // null density f0 = N(0,1)
     y.reserve(y.size());
@@ -414,7 +414,7 @@ std::vector<double> lfdr(const std::vector<double>& p_values,
       x[i] = std::log((pv + eps) / (1.0 - pv + eps));
     }
     double bw = bwNrd0(x) * adj;
-    y = kdeFftEval(x, bw, gridsize, cut);
+    y = kdeFFTEval(x, bw, gridsize, cut);
 
     // dx = exp(x) / (1+exp(x))^2
     std::vector<double> dx(m);

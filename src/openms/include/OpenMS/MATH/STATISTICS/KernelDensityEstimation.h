@@ -153,7 +153,7 @@ namespace OpenMS
 
       Generates the frequency-domain representation of a Gaussian kernel with specified
       bandwidth, suitable for convolution-based kernel density estimation via FFT.
-      The result is in Munro-packed format compatible with forrt() and revrt().
+      The result is in Munro-packed format compatible with forRt() and revRt().
 
       This implementation uses the Silverman transform, which efficiently computes the
       Gaussian kernel in frequency space as: K(f) = exp(-2*pi^2*sigma^2*f^2) where sigma = bw/4.
@@ -172,7 +172,7 @@ namespace OpenMS
 
       @ingroup MathStatistics
     */
-    OPENMS_DLLAPI std::vector<double> silvermanKernelFft(double bw, std::size_t M, double RANGE);
+    OPENMS_DLLAPI std::vector<double> silvermanKernelFFT(double bw, std::size_t M, double RANGE);
 
     /**
       @brief Fast kernel density estimation on a regular grid using FFT convolution.
@@ -204,7 +204,7 @@ namespace OpenMS
 
       @ingroup MathStatistics
     */
-    OPENMS_DLLAPI std::pair<std::vector<double>, std::vector<double>> gridKdeFft(const std::vector<double>& x, 
+    OPENMS_DLLAPI std::pair<std::vector<double>, std::vector<double>> gridKdeFFT(const std::vector<double>& x, 
                                                                                    double bw, 
                                                                                    std::size_t gridsize = 512, 
                                                                                    double cut = 3.0);
@@ -226,11 +226,11 @@ namespace OpenMS
       @param cut Extension factor for grid range (default 3.0)
       @return Vector of KDE values, one for each point in @p x
 
-      @see gridKdeFft() for the underlying grid-based KDE computation
+      @see gridKdeFFT() for the underlying grid-based KDE computation
 
       @ingroup MathStatistics
     */
-    OPENMS_DLLAPI std::vector<double> kdeFftEval(const std::vector<double>& x, 
+    OPENMS_DLLAPI std::vector<double> kdeFFTEval(const std::vector<double>& x, 
                                                   double bw, 
                                                   std::size_t gridsize = 512, 
                                                   double cut = 3.0);

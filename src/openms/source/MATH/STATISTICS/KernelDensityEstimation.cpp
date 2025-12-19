@@ -195,7 +195,7 @@ namespace OpenMS
       return out;
     }
 
-    std::vector<double> silvermanKernelFft(double bw, std::size_t M, double RANGE)
+    std::vector<double> silvermanKernelFFT(double bw, std::size_t M, double RANGE)
     {
       if (M == 0) return std::vector<double>();
       const std::size_t half = M / 2;
@@ -225,7 +225,7 @@ namespace OpenMS
       return out;
     }
 
-    std::pair<std::vector<double>, std::vector<double>> gridKdeFft(const std::vector<double>& x, double bw, std::size_t gridsize, double cut)
+    std::pair<std::vector<double>, std::vector<double>> gridKdeFFT(const std::vector<double>& x, double bw, std::size_t gridsize, double cut)
     {
       std::vector<double> xx = x;
       // ensure column vector semantics
@@ -267,8 +267,8 @@ namespace OpenMS
       std::vector<double> Y = forRt(binned, M);
 
       // multiply by Silverman kernel FFT
-      std::vector<double> K = silvermanKernelFft(bw, M, RANGE);
-      if (K.size() != Y.size()) throw std::runtime_error("gridKdeFft: internal size mismatch");
+      std::vector<double> K = silvermanKernelFFT(bw, M, RANGE);
+      if (K.size() != Y.size()) throw std::runtime_error("gridKdeFFT: internal size mismatch");
       std::vector<double> Z(M);
       for (std::size_t i = 0; i < M; ++i) Z[i] = K[i] * Y[i];
 
@@ -287,10 +287,10 @@ namespace OpenMS
       return {dens, grid};
     }
 
-    std::vector<double> kdeFftEval(const std::vector<double>& x, double bw, std::size_t gridsize, double cut)
+    std::vector<double> kdeFFTEval(const std::vector<double>& x, double bw, std::size_t gridsize, double cut)
     {
       // build grid density
-      auto pg = gridKdeFft(x, bw, gridsize, cut);
+      auto pg = gridKdeFFT(x, bw, gridsize, cut);
       const std::vector<double>& dens = pg.first;
       const std::vector<double>& grid = pg.second;
 

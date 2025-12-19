@@ -172,17 +172,17 @@ START_SECTION(std::vector<double> revRt(const std::vector<double>&, std::size_t)
 END_SECTION
 
 /////////////////////////////////////////////////////////////
-// silvermanKernelFft Tests
+// silvermanKernelFFT Tests
 /////////////////////////////////////////////////////////////
 
-START_SECTION(std::vector<double> silvermanKernelFft(double, std::size_t, double))
+START_SECTION(std::vector<double> silvermanKernelFFT(double, std::size_t, double))
 {
   // Test basic kernel generation
   double bw = 1.0;
   std::size_t M = 8;
   double range = 10.0;
   
-  auto kernel_fft = silvermanKernelFft(bw, M, range);
+  auto kernel_fft = silvermanKernelFFT(bw, M, range);
   TEST_EQUAL(kernel_fft.size(), M)
   
   // DC component (first element) should be 1.0 (normalized kernel integrates to 1)
@@ -196,21 +196,21 @@ START_SECTION(std::vector<double> silvermanKernelFft(double, std::size_t, double
   }
   
   // Test with different bandwidth
-  kernel_fft = silvermanKernelFft(0.5, M, range);
+  kernel_fft = silvermanKernelFFT(0.5, M, range);
   TEST_EQUAL(kernel_fft.size(), M)
   TEST_REAL_SIMILAR(kernel_fft[0], 1.0)
   
   // Test with larger grid
-  kernel_fft = silvermanKernelFft(1.0, 64, range);
+  kernel_fft = silvermanKernelFFT(1.0, 64, range);
   TEST_EQUAL(kernel_fft.size(), 64)
 }
 END_SECTION
 
 /////////////////////////////////////////////////////////////
-// gridKdeFft Tests
+// gridKdeFFT Tests
 /////////////////////////////////////////////////////////////
 
-START_SECTION((gridKdeFft))
+START_SECTION((gridKdeFFT))
 {
   // Test with simple uniform data
   std::vector<double> data;
@@ -218,7 +218,7 @@ START_SECTION((gridKdeFft))
   
   double bw = 1.0;
   std::size_t gridsize = 64;
-  auto result = gridKdeFft(data, bw, gridsize, 3.0);
+  auto result = gridKdeFFT(data, bw, gridsize, 3.0);
   
   // Note: gridsize is rounded up to power of 2 (64->64, but implementation may use 512)
   TEST_EQUAL(result.first.size(), result.second.size())  // sizes match
@@ -244,7 +244,7 @@ START_SECTION((gridKdeFft))
   
   // Test with single point (should give Gaussian-like shape)
   std::vector<double> single = {0.0};
-  result = gridKdeFft(single, 1.0, 32, 3.0);
+  result = gridKdeFFT(single, 1.0, 32, 3.0);
   TEST_EQUAL(result.first.size() >= 32, true)
   TEST_EQUAL(result.second.size() >= 32, true)
   
@@ -255,30 +255,30 @@ START_SECTION((gridKdeFft))
   
   // Test with two separated peaks
   std::vector<double> bimodal = {-5.0, -4.9, -5.1, 5.0, 4.9, 5.1};
-  result = gridKdeFft(bimodal, 0.5, 128, 3.0);
+  result = gridKdeFFT(bimodal, 0.5, 128, 3.0);
   // Should see two peaks in density
   // (checking for bimodality is complex, so just verify basic properties)
   TEST_EQUAL(result.first.size() >= 128, true)
   
   // Test empty data
   std::vector<double> empty;
-  result = gridKdeFft(empty, 1.0, 32, 3.0);
+  result = gridKdeFFT(empty, 1.0, 32, 3.0);
   TEST_EQUAL(result.first.size() >= 32, true)
   // Should return uniform or zero density
 }
 END_SECTION
 
 /////////////////////////////////////////////////////////////
-// kdeFftEval Tests
+// kdeFFTEval Tests
 /////////////////////////////////////////////////////////////
 
-START_SECTION((kdeFftEval))
+START_SECTION((kdeFFTEval))
 {
   // Test basic evaluation at data points
   std::vector<double> data = {0.0, 1.0, 2.0, 3.0, 4.0};
   double bw = 1.0;
   
-  auto densities = kdeFftEval(data, bw, 64, 3.0);
+  auto densities = kdeFFTEval(data, bw, 64, 3.0);
   TEST_EQUAL(densities.size(), data.size())
   
   // All density values should be positive and finite
@@ -305,7 +305,7 @@ START_SECTION((kdeFftEval))
   for (int i = 0; i < 50; ++i) clustered.push_back(0.0 + i * 0.01); // cluster around 0
   for (int i = 0; i < 50; ++i) clustered.push_back(10.0 + i * 0.01); // cluster around 10
   
-  densities = kdeFftEval(clustered, 0.5, 128, 3.0);
+  densities = kdeFFTEval(clustered, 0.5, 128, 3.0);
   TEST_EQUAL(densities.size(), clustered.size())
   
   // Points in first cluster should have similar high density
@@ -324,13 +324,13 @@ START_SECTION((kdeFftEval))
   
   // Test with single point
   std::vector<double> single = {5.0};
-  densities = kdeFftEval(single, 1.0, 64, 3.0);
+  densities = kdeFFTEval(single, 1.0, 64, 3.0);
   TEST_EQUAL(densities.size(), 1)
   TEST_EQUAL(densities[0] > 0.0, true)
   
   // Test with identical points (density should be very high)
   std::vector<double> identical(10, 3.0);
-  densities = kdeFftEval(identical, 0.5, 64, 3.0);
+  densities = kdeFFTEval(identical, 0.5, 64, 3.0);
   TEST_EQUAL(densities.size(), 10)
   for (double v : densities)
   {
@@ -340,7 +340,7 @@ START_SECTION((kdeFftEval))
   
   // Test empty data
   std::vector<double> empty;
-  densities = kdeFftEval(empty, 1.0, 64, 3.0);
+  densities = kdeFFTEval(empty, 1.0, 64, 3.0);
   TEST_EQUAL(densities.size(), 0)
 }
 END_SECTION
@@ -366,12 +366,12 @@ START_SECTION((Integration test: Full KDE pipeline))
   TEST_EQUAL(bw > 0.0, true)
   
   // Step 2: Grid-based KDE
-  auto grid_result = gridKdeFft(data, bw, 256, 3.0);
+  auto grid_result = gridKdeFFT(data, bw, 256, 3.0);
   TEST_EQUAL(grid_result.first.size() >= 256, true)
   TEST_EQUAL(grid_result.second.size() >= 256, true)
   
   // Step 3: Evaluate at data points
-  auto point_densities = kdeFftEval(data, bw, 256, 3.0);
+  auto point_densities = kdeFFTEval(data, bw, 256, 3.0);
   TEST_EQUAL(point_densities.size(), data.size())
   
   // All densities should be positive
