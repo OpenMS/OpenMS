@@ -50,13 +50,11 @@ jobs:
         run: |
           cd build
           # Create a minimal package with just what pyOpenMS needs
-          # include/ contains generated headers (config.h, etc.)
+          # src/openms/include/ contains generated headers (OpenMSConfig.h, etc.)
           # Source headers come from the checkout in wheel build job
           tar -czf openms-build-linux.tar.gz \
             lib/ \
-            bin/ \
-            include/ \
-            cmake/ \
+            src/openms/include/ \
             CMakeCache.txt \
             OpenMSConfig.cmake \
             OpenMSConfigVersion.cmake \
@@ -93,13 +91,11 @@ jobs:
         run: |
           cd build
           # Create a minimal package with just what pyOpenMS needs
-          # include/ contains generated headers (config.h, etc.)
+          # src/openms/include/ contains generated headers (OpenMSConfig.h, etc.)
           # Source headers come from the checkout in wheel build job
           tar -czf openms-build-linux-arm.tar.gz \
             lib/ \
-            bin/ \
-            include/ \
-            cmake/ \
+            src/openms/include/ \
             CMakeCache.txt \
             OpenMSConfig.cmake \
             OpenMSConfigVersion.cmake \
@@ -138,13 +134,11 @@ jobs:
         run: |
           cd build
           # Create a minimal package with just what pyOpenMS needs
-          # include/ contains generated headers (config.h, etc.)
+          # src/openms/include/ contains generated headers (OpenMSConfig.h, etc.)
           # Source headers come from the checkout in wheel build job
           tar -czf openms-build-macos.tar.gz \
             lib/ \
-            bin/ \
-            include/ \
-            cmake/ \
+            src/openms/include/ \
             CMakeCache.txt \
             OpenMSConfig.cmake \
             OpenMSConfigVersion.cmake \
@@ -210,13 +204,11 @@ jobs:
         run: |
           cd build
           # Create a minimal package with just what pyOpenMS needs
-          # include/ contains generated headers (config.h, etc.)
+          # src/openms/include/ contains generated headers (OpenMSConfig.h, etc.)
           # Source headers come from the checkout in wheel build job
           7z a openms-build-windows.zip \
             lib/ \
-            bin/ \
-            include/ \
-            cmake/ \
+            src/openms/include/ \
             CMakeCache.txt \
             OpenMSConfig.cmake \
             OpenMSConfigVersion.cmake \
