@@ -67,12 +67,11 @@ This file summarizes repo-specific conventions and workflows for contributors an
 - Avoid pointers; prefer references.
 - Prefer forward declarations in headers; include only base class headers, non-pointer members, and templates.
 
-## TOPP/UTILS tool development
-- New tools typically start as UTILS (unstable) and can be promoted later.
-- Add new tool source (e.g., `src/utils/<Tool>.cpp`) and register in `src/utils/executables.cmake`.
+## TOPP tool development
+- Add new tool source (e.g., `src/topp/<Tool>.cpp`) and register in `src/topp/executables.cmake`.
 - Register tool in `src/openms/source/APPLICATIONS/ToolHandler.cpp` to generate Doxygen help output.
 - Define parameters in `registerOptionsAndFlags_()`; read with `getStringOption_` and related helpers.
-- Document the tool and add to `doc/doxygen/public/UTILS.doxygen` where applicable.
+- Document the tool and add to `doc/doxygen/public/TOPP.doxygen` where applicable.
 - Add TOPP tests in `src/tests/topp/CMakeLists.txt`.
 
 ## pyOpenMS wrapping
@@ -97,7 +96,7 @@ This file summarizes repo-specific conventions and workflows for contributors an
 ## Change-impact checklist (agent quick wins)
 - New C++ class: add `.h`/`.cpp`, Doxygen docs, class test, `OPENMS_DLLAPI`, register in CMake lists.
 - C++ API change: update `.pxd`/addons, pyOpenMS tests, and relevant docs; tag commits with `API` as needed.
-- New/changed TOPP tool: register in `src/utils/executables.cmake` and `ToolHandler.cpp`, add docs, add TOPP tests and data.
+- New/changed TOPP tool: register in `src/topp/executables.cmake` and `ToolHandler.cpp`, add docs, add TOPP tests and data.
 - Parameter or I/O change: update tool docs/CTD, tests, and `CHANGELOG`; use `PARAM`/`IO` commit tags.
 - File format change: update `FileHandler::NamesOfTypes[]`, schemas/validators, and tests.
 
