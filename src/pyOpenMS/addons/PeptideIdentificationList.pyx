@@ -81,39 +81,46 @@ import numpy as np
 
         Converts the peptide identifications to a pandas DataFrame.
 
-        Args:
-            decode_ontology (bool): Decode meta value names using the PSI-MS ontology.
-                                   Default True.
-            default_missing_values (dict): Default values for missing data by type.
-                                          Default: {<bool>: False, <int>: -9999, <float>: nan, <str>: ''}
-            export_unidentified (bool): Export PeptideIdentifications without PeptideHit.
-                                       Default True.
+        :param decode_ontology: Decode meta value names using the PSI-MS ontology.
+                                Default True.
+        :type decode_ontology: bool
 
-        Returns:
-            pd.DataFrame: DataFrame with peptide identification information including:
-                - id: identifier
-                - rt: retention time
-                - mz: mass-to-charge ratio
-                - score: peptide score (column name from score type)
-                - charge: peptide charge
-                - protein_accession: comma-separated protein accessions
-                - start: comma-separated start positions
-                - end: comma-separated end positions
-                - P_ID: peptide identification index
-                - PSM_ID: PSM index (currently always 0, only first hit exported)
-                - Additional meta value columns from PeptideHit
+        :param default_missing_values: Default values for missing data by type.
+                                       Default: {<bool>: False, <int>: -9999, <float>: nan, <str>: ''}
+        :type default_missing_values: dict
 
-        Example:
-            >>> peps = feature_map.get_assigned_peptide_identifications()
-            >>> df = peps.get_df()
+        :param export_unidentified: Export PeptideIdentifications without PeptideHit.
+                                    Default True.
+        :type export_unidentified: bool
 
-            >>> # Skip unidentified entries
-            >>> df = peps.get_df(export_unidentified=False)
+        :return: DataFrame with peptide identification information including:
+                 id, rt, mz, score (column name from score type), charge,
+                 protein_accession (comma-separated), start (comma-separated),
+                 end (comma-separated), P_ID (peptide identification index),
+                 PSM_ID (PSM index, currently always 0, only first hit exported),
+                 and additional meta value columns from PeptideHit.
+        :rtype: pd.DataFrame
 
-            >>> # Custom missing values (use Python type objects)
-            >>> df = peps.get_df(default_missing_values={bool: False, int: 0, float: 0.0, str: 'NA'})
+        :raises ImportError: If pandas is not installed
+
+        Example::
+
+            peps = feature_map.get_assigned_peptide_identifications()
+            df = peps.get_df()
+
+            # Skip unidentified entries
+            df = peps.get_df(export_unidentified=False)
+
+            # Custom missing values (use Python type objects)
+            df = peps.get_df(default_missing_values={bool: False, int: 0, float: 0.0, str: 'NA'})
         """
-        import pandas as pd
+        try:
+            import pandas as pd
+        except ImportError:
+            raise ImportError(
+                "pandas is required for get_df(). "
+                "Please install it with: pip install pandas"
+            )
         from . import ControlledVocabulary as _ControlledVocabulary
         from . import File as _File
 
@@ -234,7 +241,13 @@ import numpy as np
             >>> import polars as pl
             >>> df = pl.from_arrow(table)
         """
-        import pyarrow as pa
+        try:
+            import pyarrow as pa
+        except ImportError:
+            raise ImportError(
+                "pyarrow is required for to_arrow(). "
+                "Please install it with: pip install pyarrow"
+            )
         df = self.get_df(decode_ontology=decode_ontology,
                         default_missing_values=default_missing_values,
                         export_unidentified=export_unidentified)

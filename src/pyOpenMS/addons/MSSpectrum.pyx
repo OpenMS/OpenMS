@@ -324,42 +324,47 @@ import numpy as np
         This method converts the spectrum data (peaks, metadata, precursor info,
         ion mobility) into a pandas DataFrame format.
 
-        Args:
-            columns (list or None): List of column names to include. If None,
-                                   includes all default columns. Use get_df_columns()
-                                   to discover available columns.
-            export_meta_values (bool): Whether to include meta values. Only applies
-                                       when columns=None. Defaults to True.
+        :param columns: List of column names to include. If None,
+                        includes all default columns. Use get_df_columns()
+                        to discover available columns.
+        :type columns: Optional[List[str]]
 
-        Returns:
-            pd.DataFrame: DataFrame with requested columns. Default columns include:
-                - mz: m/z values of peaks
-                - intensity: intensity values of peaks
-                - rt: retention time (replicated for each peak)
-                - ms_level: MS level (replicated for each peak)
-                - native_id: native spectrum identifier
-                - ion_mobility: ion mobility values (if IM data present)
-                - precursor_mz: precursor m/z (if precursor present)
-                - precursor_charge: precursor charge (if precursor present)
-                - ion_annotation: ion annotation strings (if IonNames present)
-                - Additional meta value columns (if export_meta_values=True)
+        :param export_meta_values: Whether to include meta values. Only applies
+                                   when columns=None. Defaults to True.
+        :type export_meta_values: bool
 
-        Example:
-            >>> # Get all default columns
-            >>> df = spectrum.get_df()
+        :return: DataFrame with requested columns. Default columns include:
+                 mz, intensity, rt, ms_level, native_id, ion_mobility (if IM data present),
+                 precursor_mz, precursor_charge (if precursor present),
+                 ion_annotation (if IonNames present), and additional meta value columns
+                 (if export_meta_values=True).
+        :rtype: pd.DataFrame
 
-            >>> # Discover available columns
-            >>> print(spectrum.get_df_columns())
+        :raises ImportError: If pandas is not installed
 
-            >>> # Get only specific columns (faster)
-            >>> df = spectrum.get_df(columns=['mz', 'intensity'])
+        Example::
 
-            >>> # Get all columns including non-defaults like ion_mobility_unit
-            >>> cols = spectrum.get_df_columns()
-            >>> cols.append('ion_mobility_unit')
-            >>> df = spectrum.get_df(columns=cols)
+            # Get all default columns
+            df = spectrum.get_df()
+
+            # Discover available columns
+            print(spectrum.get_df_columns())
+
+            # Get only specific columns (faster)
+            df = spectrum.get_df(columns=['mz', 'intensity'])
+
+            # Get all columns including non-defaults like ion_mobility_unit
+            cols = spectrum.get_df_columns()
+            cols.append('ion_mobility_unit')
+            df = spectrum.get_df(columns=cols)
         """
-        import pandas as pd
+        try:
+            import pandas as pd
+        except ImportError:
+            raise ImportError(
+                "pandas is required for get_df(). "
+                "Please install it with: pip install pandas"
+            )
         data_dict = self.get_data_dict(columns=columns, export_meta_values=export_meta_values)
         return pd.DataFrame(data_dict)
 
@@ -396,7 +401,13 @@ import numpy as np
             >>> import polars as pl
             >>> df = pl.from_arrow(table)
         """
-        import pyarrow as pa
+        try:
+            import pyarrow as pa
+        except ImportError:
+            raise ImportError(
+                "pyarrow is required for to_arrow(). "
+                "Please install it with: pip install pyarrow"
+            )
         data_dict = self.get_data_dict(columns=columns, export_meta_values=export_meta_values)
         return pa.Table.from_pydict(data_dict)
 

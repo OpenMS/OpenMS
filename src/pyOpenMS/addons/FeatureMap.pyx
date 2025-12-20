@@ -151,34 +151,46 @@ import numpy as np
 
         Optionally the feature meta values and information for the assigned PeptideHit can be exported.
 
-        Args:
-        columns (list or None): List of column names to include. If None,
-                               includes all columns. Use get_df_columns() to discover available columns.
+        :param columns: List of column names to include. If None,
+                        includes all columns. Use get_df_columns() to discover available columns.
+        :type columns: Optional[List[str]]
 
-        meta_values: meta values to include (None, [custom list of meta value names] or 'all')
+        :param meta_values: Meta values to include (None, [custom list of meta value names] or 'all')
+        :type meta_values: Optional[Union[List[str], str]]
 
-        export_peptide_identifications (bool): export sequence and score for best PeptideHit assigned to a feature.
-        Additionally the ID_filename (file name of the corresponding ProteinIdentification) and the ID_native_id
-        (spectrum ID of the corresponding Feature) are exported. They are also annotated as meta values when
-        collecting all assigned PeptideIdentifications from a FeatureMap with FeatureMap.get_assigned_peptide_identifications().
-        A DataFrame from the assigned peptides generated with peptide_identifications_to_df(assigned_peptides) can be
-        merged with the FeatureMap DataFrame with:
-        merged_df = pd.merge(feature_df, assigned_peptide_df, on=['feature_id', 'ID_native_id', 'ID_filename'])
+        :param export_peptide_identifications: Export sequence and score for best PeptideHit assigned to a feature.
+                                               Additionally the ID_filename (file name of the corresponding ProteinIdentification)
+                                               and the ID_native_id (spectrum ID of the corresponding Feature) are exported.
+                                               They are also annotated as meta values when collecting all assigned PeptideIdentifications
+                                               from a FeatureMap with FeatureMap.get_assigned_peptide_identifications().
+                                               A DataFrame from the assigned peptides generated with peptide_identifications_to_df(assigned_peptides)
+                                               can be merged with the FeatureMap DataFrame with:
+                                               merged_df = pd.merge(feature_df, assigned_peptide_df, on=['feature_id', 'ID_native_id', 'ID_filename'])
+        :type export_peptide_identifications: bool
 
-        Returns:
-        pd.DataFrame: feature information stored in a DataFrame
+        :return: Feature information stored in a DataFrame
+        :rtype: pd.DataFrame
 
-        Example:
-            >>> # Get all columns
-            >>> df = fmap.get_df()
+        :raises ImportError: If pandas is not installed
 
-            >>> # Discover available columns
-            >>> print(fmap.get_df_columns())
+        Example::
 
-            >>> # Get only specific columns
-            >>> df = fmap.get_df(columns=['feature_id', 'mz', 'rt', 'intensity'])
+            # Get all columns
+            df = fmap.get_df()
+
+            # Discover available columns
+            print(fmap.get_df_columns())
+
+            # Get only specific columns
+            df = fmap.get_df(columns=['feature_id', 'mz', 'rt', 'intensity'])
         """
-        import pandas as pd
+        try:
+            import pandas as pd
+        except ImportError:
+            raise ImportError(
+                "pandas is required for get_df(). "
+                "Please install it with: pip install pandas"
+            )
         # Common meta value types for numpy type mapping
         common_meta_value_types = {
             b'label': 'U50',
@@ -318,7 +330,13 @@ import numpy as np
             >>> import polars as pl
             >>> df = pl.from_arrow(table)
         """
-        import pyarrow as pa
+        try:
+            import pyarrow as pa
+        except ImportError:
+            raise ImportError(
+                "pyarrow is required for to_arrow(). "
+                "Please install it with: pip install pyarrow"
+            )
         df = self.get_df(columns=columns, meta_values=meta_values,
                         export_peptide_identifications=export_peptide_identifications)
         return pa.Table.from_pandas(df)
