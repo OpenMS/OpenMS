@@ -298,6 +298,8 @@ jobs:
             curl --no-progress-meter -L -o NSIS.tar.gz https://github.com/OpenMS/NSIS/raw/main/NSIS.tar.gz
             ## overwrite existing NSIS (which has only 1k-string support)
             7z x -so NSIS.tar.gz | 7z x -si -ttar -aoa -o"C:/Program Files (x86)/NSIS/"
+            # Ensure makensis.exe is discoverable during CMake configuration
+            echo "C:\Program Files (x86)\NSIS" >> $GITHUB_PATH
           fi
 
           echo "cmake_prefix=" >>"$GITHUB_OUTPUT"
@@ -471,7 +473,9 @@ jobs:
           CCACHE_COMPILERCHECK: content
           WITH_THERMORAWFILEPARSER_TEST: "OFF"
           Eigen3_DIR: "${{ steps.tools-prefix.outputs.eigen_choco }}" # Eigen is installed on windows using choco
-          USE_EXTERNAL_JSON: ${{ (startsWith(matrix.os, 'macos') || startsWith(matrix.os, 'windows')) && 'OFF' || 'ON' }}          
+          USE_EXTERNAL_JSON: ${{ (startsWith(matrix.os, 'macos') || startsWith(matrix.os, 'windows')) && 'OFF' || 'ON' }}
+          USE_EXTERNAL_SQLITECPP: ${{ startsWith(matrix.os, 'ubuntu') && 'ON' || 'OFF' }}
+          USE_EXTERNAL_SIMDE: ${{ startsWith(matrix.os, 'ubuntu') && 'ON' || 'OFF' }}
           # It's literally only Ubuntu's package manager that forcibly bundles nlohmann_json w/ arrow. The rest we can control via a cmake option in contrib +
           # Note that apache arrow's brew/apt packages are DIFFERENT. I believe Ubuntu's packages have Nlohmann_JSON bundled with them, while 
           # brew doesn't. As such, this results in compatibility issues between OpenMS' Nlohmann_JSON and Ubuntu's system packages. 
