@@ -217,10 +217,18 @@ from collections import defaultdict as _defaultdict
         For labelled analyses channel intensities will be in one row, therefore resulting in a semi-long/block format.
         Resulting DataFrame can be joined with result from get_metadata_df by their index 'id'.
 
-        Returns:
-        pd.DataFrame: intensity DataFrame
+        :return: Intensity DataFrame
+        :rtype: pd.DataFrame
+
+        :raises ImportError: If pandas is not installed
         """
-        import pandas as pd
+        try:
+            import pandas as pd
+        except ImportError:
+            raise ImportError(
+                "pandas is required for get_intensity_df(). "
+                "Please install it with: pip install pandas"
+            )
         labelfree = self.getExperimentType() == "label-free"
         filemeta = self.getColumnHeaders()  # type: dict[int, ColumnHeader]
 
@@ -290,11 +298,19 @@ from collections import defaultdict as _defaultdict
 
         Resulting DataFrame can be joined with result from get_intensity_df by their index 'id'.
 
-        Returns:
-            pd.DataFrame: DataFrame with metadata for each feature (sequence, charge,
-                         rt, mz, quality). All column names are lowercase snake_case.
+        :return: DataFrame with metadata for each feature (sequence, charge,
+                 rt, mz, quality). All column names are lowercase snake_case.
+        :rtype: pd.DataFrame
+
+        :raises ImportError: If pandas is not installed
         """
-        import pandas as pd
+        try:
+            import pandas as pd
+        except ImportError:
+            raise ImportError(
+                "pandas is required for get_metadata_df(). "
+                "Please install it with: pip install pandas"
+            )
 
         def gen(cmap, fun):
             for f in cmap:
@@ -331,25 +347,34 @@ from collections import defaultdict as _defaultdict
 
         Generates a pandas DataFrame with both consensus feature meta data and intensities from each sample.
 
-        Args:
-            columns (list or None): List of column names to include. If None,
-                                   includes all columns. Use get_df_columns()
-                                   to discover available columns.
+        :param columns: List of column names to include. If None,
+                        includes all columns. Use get_df_columns()
+                        to discover available columns.
+        :type columns: Optional[List[str]]
 
-        Returns:
-            pd.DataFrame: meta data and intensity DataFrame
+        :return: Meta data and intensity DataFrame
+        :rtype: pd.DataFrame
 
-        Example:
-            >>> # Get all columns
-            >>> df = cmap.get_df()
+        :raises ImportError: If pandas is not installed
 
-            >>> # Discover available columns
-            >>> print(cmap.get_df_columns())
+        Example::
 
-            >>> # Get only specific columns
-            >>> df = cmap.get_df(columns=['sequence', 'mz', 'intensity'])
+            # Get all columns
+            df = consensusmap.get_df()
+
+            # Discover available columns
+            print(consensusmap.get_df_columns())
+
+            # Get only specific columns
+            df = consensusmap.get_df(columns=['sequence', 'mz', 'intensity'])
         """
-        import pandas as pd
+        try:
+            import pandas as pd
+        except ImportError:
+            raise ImportError(
+                "pandas is required for get_df(). "
+                "Please install it with: pip install pandas"
+            )
         if columns is None:
             # No column selection - get everything
             df = pd.concat([self.get_metadata_df(), self.get_intensity_df()], axis=1)
@@ -399,25 +424,34 @@ from collections import defaultdict as _defaultdict
 
         Returns an Apache Arrow Table with consensus feature meta data and intensities.
 
-        Args:
-            columns (list or None): List of column names to include. If None,
-                                   includes all columns. Use get_df_columns()
-                                   to discover available columns.
+        :param columns: List of column names to include. If None,
+                        includes all columns. Use get_df_columns()
+                        to discover available columns.
+        :type columns: Optional[List[str]]
 
-        Returns:
-            pyarrow.Table: Arrow Table with consensus feature data.
+        :return: Arrow Table with consensus feature data.
+        :rtype: pyarrow.Table
 
-        Example:
-            >>> # Get all columns
-            >>> table = cmap.to_arrow()
+        :raises ImportError: If pyarrow is not installed
 
-            >>> # Convert to pandas (zero-copy with pandas 2.0+)
-            >>> df = table.to_pandas()
+        Example::
 
-            >>> # Convert to polars
-            >>> import polars as pl
-            >>> df = pl.from_arrow(table)
+            # Get all columns
+            table = consensusmap.to_arrow()
+
+            # Convert to pandas (zero-copy with pandas 2.0+)
+            df = table.to_pandas()
+
+            # Convert to polars
+            import polars as pl
+            df = pl.from_arrow(table)
         """
-        import pyarrow as pa
+        try:
+            import pyarrow as pa
+        except ImportError:
+            raise ImportError(
+                "pyarrow is required for to_arrow(). "
+                "Please install it with: pip install pyarrow"
+            )
         df = self.get_df(columns=columns)
         return pa.Table.from_pandas(df)

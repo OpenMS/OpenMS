@@ -54,26 +54,37 @@ import numpy as np
 
         Returns a DataFrame representation of the Chromatograms stored in MRMTransitionGroupCP.
 
-        Args:
-            columns (list or None): List of column names to include. If None,
-                                   includes all default columns.
-            export_meta_values (bool): Whether to export meta values. Only applies
-                                       when columns=None.
+        :param columns: List of column names to include. If None,
+                        includes all default columns.
+        :type columns: Optional[List[str]]
 
-        Returns:
-            pd.DataFrame: DataFrame representation of the chromatograms.
+        :param export_meta_values: Whether to export meta values. Only applies
+                                   when columns=None.
+        :type export_meta_values: bool
 
-        Example:
-            >>> # Get all default columns
-            >>> df = mrm.get_chromatogram_df()
+        :return: DataFrame representation of the chromatograms.
+        :rtype: pd.DataFrame
 
-            >>> # Discover available columns
-            >>> print(mrm.get_chromatogram_df_columns())
+        :raises ImportError: If pandas is not installed
 
-            >>> # Get only specific columns
-            >>> df = mrm.get_chromatogram_df(columns=['rt', 'intensity'])
+        Example::
+
+            # Get all default columns
+            df = mrm.get_chromatogram_df()
+
+            # Discover available columns
+            print(mrm.get_chromatogram_df_columns())
+
+            # Get only specific columns
+            df = mrm.get_chromatogram_df(columns=['rt', 'intensity'])
         """
-        import pandas as pd
+        try:
+            import pandas as pd
+        except ImportError:
+            raise ImportError(
+                "pandas is required for get_chromatogram_df(). "
+                "Please install it with: pip install pandas"
+            )
         chroms = self.getChromatograms()
         out = [c.get_df(columns=columns, export_meta_values=export_meta_values) for c in chroms]
         if out:
@@ -86,26 +97,37 @@ import numpy as np
 
         Returns a DataFrame representation of the Features stored in MRMTransitionGroupCP.
 
-        Args:
-            columns (list or None): List of column names to include. If None,
-                                   includes all columns. Use get_feature_df_columns()
-                                   to discover available columns.
-            meta_values: meta values to include (None, [custom list of meta value names] or 'all')
+        :param columns: List of column names to include. If None,
+                        includes all columns. Use get_feature_df_columns()
+                        to discover available columns.
+        :type columns: Optional[List[str]]
 
-        Returns:
-            pd.DataFrame: DataFrame representation of the Features.
+        :param meta_values: Meta values to include (None, [custom list of meta value names] or 'all')
+        :type meta_values: Optional[Union[List[str], str]]
 
-        Example:
-            >>> # Get all columns
-            >>> df = mrm.get_feature_df()
+        :return: DataFrame representation of the Features.
+        :rtype: pd.DataFrame
 
-            >>> # Discover available columns
-            >>> print(mrm.get_feature_df_columns())
+        :raises ImportError: If pandas is not installed
 
-            >>> # Get only specific columns
-            >>> df = mrm.get_feature_df(columns=['feature_id', 'rt', 'intensity'])
+        Example::
+
+            # Get all columns
+            df = mrm.get_feature_df()
+
+            # Discover available columns
+            print(mrm.get_feature_df_columns())
+
+            # Get only specific columns
+            df = mrm.get_feature_df(columns=['feature_id', 'rt', 'intensity'])
         """
-        import pandas as pd
+        try:
+            import pandas as pd
+        except ImportError:
+            raise ImportError(
+                "pandas is required for get_feature_df(). "
+                "Please install it with: pip install pandas"
+            )
         # Common meta value types for numpy type mapping
         common_meta_value_types = {
             b'label': 'U50',
@@ -190,19 +212,30 @@ import numpy as np
 
         Returns an Apache Arrow Table representation of the Chromatograms.
 
-        Args:
-            columns (list or None): List of column names to include. If None,
-                                   includes all default columns.
-            export_meta_values (bool): Whether to export meta values.
+        :param columns: List of column names to include. If None,
+                        includes all default columns.
+        :type columns: Optional[List[str]]
 
-        Returns:
-            pyarrow.Table: Arrow Table with chromatogram data.
+        :param export_meta_values: Whether to export meta values.
+        :type export_meta_values: bool
 
-        Example:
-            >>> table = mrm.chromatograms_to_arrow()
-            >>> df = table.to_pandas()
+        :return: Arrow Table with chromatogram data.
+        :rtype: pyarrow.Table
+
+        :raises ImportError: If pyarrow is not installed
+
+        Example::
+
+            table = mrm.chromatograms_to_arrow()
+            df = table.to_pandas()
         """
-        import pyarrow as pa
+        try:
+            import pyarrow as pa
+        except ImportError:
+            raise ImportError(
+                "pyarrow is required for chromatograms_to_arrow(). "
+                "Please install it with: pip install pyarrow"
+            )
         df = self.get_chromatogram_df(columns=columns, export_meta_values=export_meta_values)
         return pa.Table.from_pandas(df)
 
@@ -212,18 +245,29 @@ import numpy as np
 
         Returns an Apache Arrow Table representation of the Features.
 
-        Args:
-            columns (list or None): List of column names to include. If None,
-                                   includes all columns.
-            meta_values: Meta values to include (None, [custom list] or 'all').
+        :param columns: List of column names to include. If None,
+                        includes all columns.
+        :type columns: Optional[List[str]]
 
-        Returns:
-            pyarrow.Table: Arrow Table with feature data.
+        :param meta_values: Meta values to include (None, [custom list] or 'all').
+        :type meta_values: Optional[Union[List[str], str]]
 
-        Example:
-            >>> table = mrm.features_to_arrow()
-            >>> df = table.to_pandas()
+        :return: Arrow Table with feature data.
+        :rtype: pyarrow.Table
+
+        :raises ImportError: If pyarrow is not installed
+
+        Example::
+
+            table = mrm.features_to_arrow()
+            df = table.to_pandas()
         """
-        import pyarrow as pa
+        try:
+            import pyarrow as pa
+        except ImportError:
+            raise ImportError(
+                "pyarrow is required for features_to_arrow(). "
+                "Please install it with: pip install pyarrow"
+            )
         df = self.get_feature_df(columns=columns, meta_values=meta_values)
         return pa.Table.from_pandas(df)

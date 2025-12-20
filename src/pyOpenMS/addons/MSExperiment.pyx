@@ -207,27 +207,42 @@ import numpy as np
 
         Generates a pandas DataFrame with all peaks in the MSExperiment
 
-        Parameters:
-        columns (list or None): List of column names to include. If None,
-                               includes all columns. Use get_df_columns() to discover available columns.
-        ms_levels (List[int]): Get only spectra with the given MS levels. Default is an empty list, which means all MS levels will be included.
-        long_format (bool): set to True if you want to have a long/expanded/melted dataframe with one row per peak. Faster but
-            replicated RT information. If False, returns rows in the style: rt, np.array(mz), np.array(int)
+        :param columns: List of column names to include. If None,
+                        includes all columns. Use get_df_columns() to discover available columns.
+        :type columns: Optional[List[str]]
 
-        Returns:
-        pd.DataFrame: feature information stored in a DataFrame
+        :param ms_levels: Get only spectra with the given MS levels. Default is an empty list,
+                          which means all MS levels will be included.
+        :type ms_levels: List[int]
 
-        Example:
-            >>> # Get all columns
-            >>> df = exp.get_df()
+        :param long_format: Set to True if you want to have a long/expanded/melted dataframe
+                            with one row per peak. Faster but replicated RT information.
+                            If False, returns rows in the style: rt, np.array(mz), np.array(int)
+        :type long_format: bool
 
-            >>> # Discover available columns
-            >>> print(exp.get_df_columns())
+        :return: Feature information stored in a DataFrame
+        :rtype: pd.DataFrame
 
-            >>> # Get only specific columns
-            >>> df = exp.get_df(columns=['rt', 'mz', 'intensity'], long_format=True)
+        :raises ImportError: If pandas is not installed
+
+        Example::
+
+            # Get all columns
+            df = exp.get_df()
+
+            # Discover available columns
+            print(exp.get_df_columns())
+
+            # Get only specific columns
+            df = exp.get_df(columns=['rt', 'mz', 'intensity'], long_format=True)
         """
-        import pandas as pd
+        try:
+            import pandas as pd
+        except ImportError:
+            raise ImportError(
+                "pandas is required for get_df(). "
+                "Please install it with: pip install pandas"
+            )
         if ms_levels is None:
             ms_levels = []
         self.updateRanges()
@@ -259,29 +274,42 @@ import numpy as np
 
         Returns an Apache Arrow Table with all peaks in the MSExperiment.
 
-        Args:
-            columns (list or None): List of column names to include. If None,
-                                   includes all columns. Use get_df_columns() to discover available columns.
-            ms_levels (List[int]): Get only spectra with the given MS levels. Default is an empty list,
-                                  which means all MS levels will be included.
-            long_format (bool): Set to True for a long/expanded table with one row per peak.
-                              If False, returns rows with array columns (rt, ms_level, mz_array, intensity_array).
+        :param columns: List of column names to include. If None,
+                        includes all columns. Use get_df_columns() to discover available columns.
+        :type columns: Optional[List[str]]
 
-        Returns:
-            pyarrow.Table: Arrow Table with peak data.
+        :param ms_levels: Get only spectra with the given MS levels. Default is an empty list,
+                          which means all MS levels will be included.
+        :type ms_levels: List[int]
 
-        Example:
-            >>> # Get all columns in long format
-            >>> table = exp.to_arrow(long_format=True)
+        :param long_format: Set to True for a long/expanded table with one row per peak.
+                            If False, returns rows with array columns (rt, ms_level, mz_array, intensity_array).
+        :type long_format: bool
 
-            >>> # Convert to pandas (zero-copy with pandas 2.0+)
-            >>> df = table.to_pandas()
+        :return: Arrow Table with peak data.
+        :rtype: pyarrow.Table
 
-            >>> # Convert to polars
-            >>> import polars as pl
-            >>> df = pl.from_arrow(table)
+        :raises ImportError: If pyarrow is not installed
+
+        Example::
+
+            # Get all columns in long format
+            table = exp.to_arrow(long_format=True)
+
+            # Convert to pandas (zero-copy with pandas 2.0+)
+            df = table.to_pandas()
+
+            # Convert to polars
+            import polars as pl
+            df = pl.from_arrow(table)
         """
-        import pyarrow as pa
+        try:
+            import pyarrow as pa
+        except ImportError:
+            raise ImportError(
+                "pyarrow is required for to_arrow(). "
+                "Please install it with: pip install pyarrow"
+            )
         if ms_levels is None:
             ms_levels = []
         self.updateRanges()
@@ -344,10 +372,18 @@ import numpy as np
 
         Generates a pandas DataFrame with all peaks and the ion mobility in the MSExperiment
 
-        Returns:
-        pd.DataFrame: feature information stored in a DataFrame
+        :return: Feature information stored in a DataFrame
+        :rtype: pd.DataFrame
+
+        :raises ImportError: If pandas is not installed
         """
-        import pandas as pd
+        try:
+            import pandas as pd
+        except ImportError:
+            raise ImportError(
+                "pandas is required for get_ion_df(). "
+                "Please install it with: pip install pandas"
+            )
         cols = ["rt", "mz", "intensity", "ion_mobility"]
         self.updateRanges()
         spectraarrs2d = self.get2DPeakDataIMLong(self.getMinRT(), self.getMaxRT(), self.getMinMZ(), self.getMaxMZ(), 1)
@@ -377,14 +413,21 @@ import numpy as np
         'ms1scan': number of the corresponding MS1 spectrum
         'charge': charge of the precursor ion
 
-        Parameters:
-            ion_mobility (bool): if True, returns the ion mobility of the peaks.
+        :param ion_mobility: If True, returns the ion mobility of the peaks.
+        :type ion_mobility: bool
 
-        Returns:
-        ms1_df (pd.DataFrame): peak data of MS1 spectra
-        ms2_df (pd.DataFrame): peak data of MS2 spectra with precursor information
+        :return: ms1_df - peak data of MS1 spectra, ms2_df - peak data of MS2 spectra with precursor information
+        :rtype: Tuple[pd.DataFrame, pd.DataFrame]
+
+        :raises ImportError: If pandas is not installed
         """
-        import pandas as pd
+        try:
+            import pandas as pd
+        except ImportError:
+            raise ImportError(
+                "pandas is required for get_massql_df(). "
+                "Please install it with: pip install pandas"
+            )
         from . import IonSource as _IonSource
         self.updateRanges()
 

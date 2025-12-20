@@ -214,42 +214,45 @@ import numpy as np
         This method converts the chromatogram data (peaks, metadata, precursor/product info)
         into a pandas DataFrame format.
 
-        Args:
-            columns (list or None): List of column names to include. If None,
-                                   includes all default columns. Use get_df_columns()
-                                   to discover available columns.
-            export_meta_values (bool): Whether to include meta values. Only applies
-                                       when columns=None. Defaults to True.
+        :param columns: List of column names to include. If None,
+                        includes all default columns. Use get_df_columns()
+                        to discover available columns.
+        :type columns: Optional[List[str]]
 
-        Returns:
-            pd.DataFrame: DataFrame with requested columns. Default columns include:
-                - rt: retention time (in seconds)
-                - intensity: signal intensity at each time point
-                - precursor_mz: precursor m/z
-                - precursor_charge: precursor charge
-                - product_mz: product m/z
-                - native_id: chromatogram native identifier
-                - Additional meta value columns (if export_meta_values=True)
+        :param export_meta_values: Whether to include meta values. Only applies
+                                   when columns=None. Defaults to True.
+        :type export_meta_values: bool
 
-            Non-default columns (must be explicitly requested):
-                - chromatogram_type: type of chromatogram
-                - comment: chromatogram comment
+        :return: DataFrame with requested columns. Default columns include:
+                 rt, intensity, precursor_mz, precursor_charge, product_mz, native_id,
+                 and additional meta value columns (if export_meta_values=True).
+                 Non-default columns (must be explicitly requested): chromatogram_type, comment.
+        :rtype: pd.DataFrame
 
-        Example:
-            >>> # Get all default columns
-            >>> df = chrom.get_df()
+        :raises ImportError: If pandas is not installed
 
-            >>> # Discover available columns
-            >>> print(chrom.get_df_columns())
+        Example::
 
-            >>> # Get only specific columns (faster)
-            >>> df = chrom.get_df(columns=['rt', 'intensity'])
+            # Get all default columns
+            df = chrom.get_df()
 
-            >>> # Get all columns including non-defaults
-            >>> cols = chrom.get_df_columns('all')
-            >>> df = chrom.get_df(columns=cols)
+            # Discover available columns
+            print(chrom.get_df_columns())
+
+            # Get only specific columns (faster)
+            df = chrom.get_df(columns=['rt', 'intensity'])
+
+            # Get all columns including non-defaults
+            cols = chrom.get_df_columns('all')
+            df = chrom.get_df(columns=cols)
         """
-        import pandas as pd
+        try:
+            import pandas as pd
+        except ImportError:
+            raise ImportError(
+                "pandas is required for get_df(). "
+                "Please install it with: pip install pandas"
+            )
         data_dict = self.get_data_dict(columns=columns, export_meta_values=export_meta_values)
         return pd.DataFrame(data_dict)
 
@@ -262,27 +265,38 @@ import numpy as np
         This method converts the chromatogram data (peaks, metadata, precursor/product info)
         into an Arrow Table format for efficient data interchange.
 
-        Args:
-            columns (list or None): List of column names to include. If None,
-                                   includes all default columns. Use get_df_columns()
-                                   to discover available columns.
-            export_meta_values (bool): Whether to include meta values. Only applies
-                                       when columns=None. Defaults to True.
+        :param columns: List of column names to include. If None,
+                        includes all default columns. Use get_df_columns()
+                        to discover available columns.
+        :type columns: Optional[List[str]]
 
-        Returns:
-            pyarrow.Table: Arrow Table with requested columns.
+        :param export_meta_values: Whether to include meta values. Only applies
+                                   when columns=None. Defaults to True.
+        :type export_meta_values: bool
 
-        Example:
-            >>> # Get all default columns
-            >>> table = chrom.to_arrow()
+        :return: Arrow Table with requested columns.
+        :rtype: pyarrow.Table
 
-            >>> # Get only specific columns (faster)
-            >>> table = chrom.to_arrow(columns=['rt', 'intensity'])
+        :raises ImportError: If pyarrow is not installed
 
-            >>> # Convert to pandas (zero-copy with pandas 2.0+)
-            >>> df = table.to_pandas()
+        Example::
+
+            # Get all default columns
+            table = chrom.to_arrow()
+
+            # Get only specific columns (faster)
+            table = chrom.to_arrow(columns=['rt', 'intensity'])
+
+            # Convert to pandas (zero-copy with pandas 2.0+)
+            df = table.to_pandas()
         """
-        import pyarrow as pa
+        try:
+            import pyarrow as pa
+        except ImportError:
+            raise ImportError(
+                "pyarrow is required for to_arrow(). "
+                "Please install it with: pip install pyarrow"
+            )
         data_dict = self.get_data_dict(columns=columns, export_meta_values=export_meta_values)
         return pa.Table.from_pydict(data_dict)
 

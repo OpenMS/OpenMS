@@ -277,29 +277,35 @@ import numpy as np
 
         Note: Mobilogram does not support meta values (no MetaInfoInterface).
 
-        Args:
-            columns (list or None): List of column names to include. If None,
-                                   includes all default columns. Use get_df_columns()
-                                   to discover available columns.
+        :param columns: List of column names to include. If None,
+                        includes all default columns. Use get_df_columns()
+                        to discover available columns.
+        :type columns: Optional[List[str]]
 
-        Returns:
-            pd.DataFrame: DataFrame with requested columns. Default columns include:
-                - mobility: mobility values of peaks
-                - intensity: intensity values of peaks
-                - rt: retention time (replicated for each peak)
-                - drift_time_unit: drift time unit string
+        :return: DataFrame with requested columns. Default columns include:
+                 mobility, intensity, rt, drift_time_unit.
+        :rtype: pd.DataFrame
 
-        Example:
-            >>> # Get all default columns
-            >>> df = mobilogram.get_df()
+        :raises ImportError: If pandas is not installed
 
-            >>> # Discover available columns
-            >>> print(mobilogram.get_df_columns())
+        Example::
 
-            >>> # Get only specific columns (faster)
-            >>> df = mobilogram.get_df(columns=['mobility', 'intensity'])
+            # Get all default columns
+            df = mobilogram.get_df()
+
+            # Discover available columns
+            print(mobilogram.get_df_columns())
+
+            # Get only specific columns (faster)
+            df = mobilogram.get_df(columns=['mobility', 'intensity'])
         """
-        import pandas as pd
+        try:
+            import pandas as pd
+        except ImportError:
+            raise ImportError(
+                "pandas is required for get_df(). "
+                "Please install it with: pip install pandas"
+            )
         data_dict = self.get_data_dict(columns=columns)
         return pd.DataFrame(data_dict)
 
@@ -314,24 +320,33 @@ import numpy as np
 
         Note: Mobilogram does not support meta values (no MetaInfoInterface).
 
-        Args:
-            columns (list or None): List of column names to include. If None,
-                                   includes all default columns. Use get_df_columns()
-                                   to discover available columns.
+        :param columns: List of column names to include. If None,
+                        includes all default columns. Use get_df_columns()
+                        to discover available columns.
+        :type columns: Optional[List[str]]
 
-        Returns:
-            pyarrow.Table: Arrow Table with requested columns.
+        :return: Arrow Table with requested columns.
+        :rtype: pyarrow.Table
 
-        Example:
-            >>> # Get all default columns
-            >>> table = mobilogram.to_arrow()
+        :raises ImportError: If pyarrow is not installed
 
-            >>> # Get only specific columns (faster)
-            >>> table = mobilogram.to_arrow(columns=['mobility', 'intensity'])
+        Example::
 
-            >>> # Convert to pandas (zero-copy with pandas 2.0+)
-            >>> df = table.to_pandas()
+            # Get all default columns
+            table = mobilogram.to_arrow()
+
+            # Get only specific columns (faster)
+            table = mobilogram.to_arrow(columns=['mobility', 'intensity'])
+
+            # Convert to pandas (zero-copy with pandas 2.0+)
+            df = table.to_pandas()
         """
-        import pyarrow as pa
+        try:
+            import pyarrow as pa
+        except ImportError:
+            raise ImportError(
+                "pyarrow is required for to_arrow(). "
+                "Please install it with: pip install pyarrow"
+            )
         data_dict = self.get_data_dict(columns=columns)
         return pa.Table.from_pydict(data_dict)
