@@ -68,7 +68,7 @@ protected:
 
     static const Size NUM_PARAMS_;
 
-    void getOptimizedParameters_(const Eigen::VectorXd& s) override;
+    void getOptimizedParameters_(const std::vector<double>& s) override;
 
     class GaussTraceFunctor :
       public TraceFitter::GenericFunctor
@@ -77,10 +77,10 @@ public:
       GaussTraceFunctor(int dimensions,
                         const TraceFitter::ModelData* data);
 
-      int operator()(const Eigen::VectorXd& x, Eigen::VectorXd& fvec) override;
+      int operator()(const double* x, double* fvec) override;
 
       // compute Jacobian matrix for the different parameters
-      int df(const Eigen::VectorXd& x, Eigen::MatrixXd& J) override;
+      int df(const double* x, double* J) override;
 protected:
       const TraceFitter::ModelData* m_data;
     };
