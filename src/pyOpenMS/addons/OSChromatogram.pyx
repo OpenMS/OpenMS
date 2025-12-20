@@ -2,6 +2,8 @@
 
     def get_time_array(self):
         """
+        get_time_array(self: OSChromatogram) -> np.ndarray
+
         Get the time array of the chromatogram as a numpy array (copy).
 
         Returns:
@@ -24,6 +26,8 @@
 
     def get_time_array_mv(self):
         """
+        get_time_array_mv(self: OSChromatogram) -> Optional[memoryview]
+
         Get the time array of the chromatogram as a memory view (no copy).
 
         This method provides direct access to the underlying data without copying,
@@ -58,6 +62,8 @@
 
     def get_intensity_array(self):
         """
+        get_intensity_array(self: OSChromatogram) -> np.ndarray
+
         Get the intensity array of the chromatogram as a numpy array (copy).
 
         Returns:
@@ -80,6 +86,8 @@
 
     def get_intensity_array_mv(self):
         """
+        get_intensity_array_mv(self: OSChromatogram) -> Optional[memoryview]
+
         Get the intensity array of the chromatogram as a memory view (no copy).
 
         This method provides direct access to the underlying data without copying,
@@ -114,6 +122,8 @@
 
     def get_data_arrays(self):
         """
+        get_data_arrays(self: OSChromatogram) -> List[OSBinaryDataArray]
+
         Get all data arrays associated with the chromatogram.
 
         This includes the time array, intensity array, and any additional
@@ -145,6 +155,8 @@
 
     def set_data_arrays(self, list inp):
         """
+        set_data_arrays(self: OSChromatogram, inp: List[OSBinaryDataArray]) -> None
+
         Set all data arrays for the chromatogram.
 
         This method replaces all existing data arrays with the provided ones.
@@ -179,6 +191,8 @@
 
     def set_time_array(self, list data):
         """
+        set_time_array(self: OSChromatogram, data: List[float]) -> None
+
         Set the time array (retention times) for the chromatogram.
 
         Args:
@@ -203,6 +217,8 @@
 
     def set_intensity_array(self, list data):
         """
+        set_intensity_array(self: OSChromatogram, data: List[float]) -> None
+
         Set the intensity array for the chromatogram.
 
         Args:
@@ -226,4 +242,3 @@
         cdef libcpp_vector[double] _vec = data
         v0.get().data = data
         self.inst.get().setIntensityArray(v0)
-

@@ -236,7 +236,9 @@ import numpy as np
                 yield from fun(f)
 
         def extract_meta_data(f):
-            """Extracts feature meta data.
+            """extract_meta_data(f: Feature) -> Iterator[tuple]
+
+            Extracts feature meta data.
 
             Extracts information from a given feature with the requested meta values and, if requested,
             the sequence, score and ID_filename (primary MS run path of the linked ProteinIdentification)

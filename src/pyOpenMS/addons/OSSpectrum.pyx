@@ -2,6 +2,8 @@
 
     def get_mz_array(self):
         """
+        get_mz_array(self: OSSpectrum) -> np.ndarray
+
         Get the m/z array of the spectrum as a numpy array (copy).
 
         Returns:
@@ -24,6 +26,8 @@
 
     def get_mz_array_mv(self):
         """
+        get_mz_array_mv(self: OSSpectrum) -> Optional[memoryview]
+
         Get the m/z array of the spectrum as a memory view (no copy).
 
         This method provides direct access to the underlying data without copying,
@@ -58,6 +62,8 @@
 
     def get_intensity_array(self):
         """
+        get_intensity_array(self: OSSpectrum) -> np.ndarray
+
         Get the intensity array of the spectrum as a numpy array (copy).
 
         Returns:
@@ -80,6 +86,8 @@
 
     def get_intensity_array_mv(self):
         """
+        get_intensity_array_mv(self: OSSpectrum) -> Optional[memoryview]
+
         Get the intensity array of the spectrum as a memory view (no copy).
 
         This method provides direct access to the underlying data without copying,
@@ -114,6 +122,8 @@
 
     def get_drift_time_array(self):
         """
+        get_drift_time_array(self: OSSpectrum) -> Optional[np.ndarray]
+
         Get the drift time array of the spectrum as a numpy array (copy).
 
         This method is used for ion mobility spectrometry data where each peak
@@ -143,6 +153,8 @@
 
     def get_drift_time_array_mv(self):
         """
+        get_drift_time_array_mv(self: OSSpectrum) -> Optional[memoryview]
+
         Get the drift time array of the spectrum as a memory view (no copy).
 
         This method provides direct access to the underlying drift time data without copying,
@@ -181,6 +193,8 @@
 
     def get_data_arrays(self):
         """
+        get_data_arrays(self: OSSpectrum) -> List[OSBinaryDataArray]
+
         Get all data arrays associated with the spectrum.
 
         This includes the m/z array, intensity array, drift time array (if present),
@@ -214,6 +228,8 @@
 
     def set_data_arrays(self, list inp):
         """
+        set_data_arrays(self: OSSpectrum, inp: List[OSBinaryDataArray]) -> None
+
         Set all data arrays for the spectrum.
 
         This method replaces all existing data arrays with the provided ones.
@@ -249,6 +265,8 @@
 
     def set_mz_array(self, list data):
         """
+        set_mz_array(self: OSSpectrum, data: List[float]) -> None
+
         Set the m/z array (mass-to-charge ratios) for the spectrum.
 
         Args:
@@ -274,6 +292,8 @@
 
     def set_intensity_array(self, list data):
         """
+        set_intensity_array(self: OSSpectrum, data: List[float]) -> None
+
         Set the intensity array for the spectrum.
 
         Args:
@@ -297,4 +317,3 @@
         cdef libcpp_vector[double] _vec = data
         v0.get().data = data
         self.inst.get().setIntensityArray(v0)
-

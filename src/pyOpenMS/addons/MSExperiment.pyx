@@ -133,7 +133,11 @@ import numpy as np
         return py_result
 
     def __len__(self):
-        """Return the number of spectra in the experiment."""
+        """
+        __len__(self: MSExperiment) -> int
+
+        Return the number of spectra in the experiment.
+        """
         return self.inst.get().size()
 
     def __str__(self):
@@ -434,7 +438,9 @@ import numpy as np
         self.updateRanges()
 
         def _get_polarity(spec):
-            '''Returns polarity as an integer value for the massql dataframe.
+            '''_get_polarity(spec: MSSpectrum) -> int
+
+            Returns polarity as an integer value for the massql dataframe.
 
             According to massql positive polarity is represented by 1 and negative by 2.
 
@@ -453,7 +459,9 @@ import numpy as np
                 return 2
 
         def _get_spec_arrays(mslevel):
-            '''Get spectrum data as a matrix.
+            '''_get_spec_arrays(mslevel: int) -> Iterator[np.ndarray]
+
+            Get spectrum data as a matrix.
 
             Generator yields peak data from each spectrum (with specified MS level) as a numpy.ndarray.
             Normalized intensity values are calculated and the placeholder values replaced. For 'i_norm' and
@@ -493,7 +501,9 @@ import numpy as np
                     yield ndarr
 
         def _get_ion_spec_arrays(mslevel):
-            '''Get spectrum data as a matrix.
+            '''_get_ion_spec_arrays(mslevel: int) -> Iterator[np.ndarray]
+
+            Get spectrum data as a matrix.
 
             Generator yields peak data from each spectrum (with specified MS level) as a numpy.ndarray.
             Normalized intensity values are calculated and the placeholder values replaced. For 'i_norm' and

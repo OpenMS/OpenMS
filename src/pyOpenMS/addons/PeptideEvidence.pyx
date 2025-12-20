@@ -2,6 +2,8 @@
 
     def __str__(self):
         """
+        __str__(self: PeptideEvidence) -> str
+
         Return a string representation of the PeptideEvidence object.
         Delegates to __repr__ for consistency.
         """
@@ -9,6 +11,8 @@
 
     def __repr__(self):
         """
+        __repr__(self: PeptideEvidence) -> str
+
         Return a string representation of the PeptideEvidence object.
 
         Returns key properties in a readable format similar to:

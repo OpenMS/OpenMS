@@ -243,7 +243,10 @@ import numpy as np
             requested = None  # None means include all defaults
 
         def want(col):
-            """Check if a default column should be included."""
+            """want(col: str) -> bool
+
+            Check if a default column should be included.
+            """
             return requested is None or col in requested
 
         data_dict = {}

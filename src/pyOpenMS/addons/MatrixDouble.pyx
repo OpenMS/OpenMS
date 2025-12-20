@@ -9,7 +9,10 @@ from numpy.lib.stride_tricks import as_strided
     
     @staticmethod
     def fromNdArray(np.ndarray[double, ndim=2] data not None):
-        """Creates a new Matrix from a numpy ndarray."""
+        """fromNdArray(data: np.ndarray[double, ndim=2]) -> MatrixDouble
+
+        Creates a new Matrix from a numpy ndarray.
+        """
         cdef MatrixDouble mat = MatrixDouble()
         mat.set_matrix(data)
         return mat
@@ -71,4 +74,3 @@ from numpy.lib.stride_tricks import as_strided
         for i in range(int(rows)):
             for j in range(int(cols)):
                 mat_.setValue(i, j, data[i][j])
-

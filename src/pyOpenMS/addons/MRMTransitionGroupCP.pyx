@@ -152,7 +152,9 @@ import numpy as np
                 yield from fun(f)
 
         def extract_meta_data(f):
-            """Extracts feature meta data.
+            """extract_meta_data(f: MRMFeature) -> Iterator[tuple]
+
+            Extracts feature meta data.
 
             Extracts information from a given feature with the requested meta values.
 

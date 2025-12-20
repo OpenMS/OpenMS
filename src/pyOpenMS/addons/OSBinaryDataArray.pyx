@@ -4,6 +4,8 @@
 
     def get_data(self):
         """
+        get_data(self: OSBinaryDataArray) -> np.ndarray
+
         Retrieve the data as a NumPy array (copy).
 
         This method creates a copy of the underlying data, so it's safe to use
@@ -27,6 +29,8 @@
 
     def get_data_mv(self):
         """
+        get_data_mv(self: OSBinaryDataArray) -> Optional[memoryview]
+
         Retrieve the data as a memory view for fast direct access (no copy).
 
         This method provides direct access to the underlying data without copying,
