@@ -243,7 +243,7 @@ jobs:
           cmake .. \
             -G "Visual Studio 17 2022" -A x64 \
             -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_PREFIX_PATH="$Qt6_Dir/lib/cmake;$Qt6_Dir" \
+            -DCMAKE_PREFIX_PATH="$QT_ROOT_DIR/lib/cmake;$QT_ROOT_DIR" \
             -DOPENMS_CONTRIB_LIBS="$GITHUB_WORKSPACE/contrib" \
             -DPYOPENMS=OFF \
             -DENABLE_TUTORIALS=OFF \
@@ -475,8 +475,8 @@ jobs:
         shell: bash
         run: |
           # Export CMAKE_PREFIX_PATH for cibuildwheel
-          # Qt6_Dir is set by install-qt-action
-          echo "PYOPENMS_CMAKE_PREFIX_PATH=${Qt6_Dir}/lib/cmake;${Qt6_Dir};${GITHUB_WORKSPACE}/contrib;${GITHUB_WORKSPACE}/openms-build" >> $GITHUB_ENV
+          # QT_ROOT_DIR is set by install-qt-action v4
+          echo "PYOPENMS_CMAKE_PREFIX_PATH=${QT_ROOT_DIR}/lib/cmake;${QT_ROOT_DIR};${GITHUB_WORKSPACE}/contrib;${GITHUB_WORKSPACE}/openms-build" >> $GITHUB_ENV
           echo "PYOPENMS_OPENMS_ROOT=${GITHUB_WORKSPACE}/openms-build" >> $GITHUB_ENV
           # Construct CIBW_BUILD from Python versions (e.g., "cp310-win_amd64 cp311-win_amd64 ...")
           CIBW_BUILD=$(echo '${{ needs.setup.outputs.python-versions }}' | jq -r '.[]' | sed 's/\.//g' | sed 's/^/cp/' | sed 's/$/-win_amd64/' | tr '\n' ' ')
