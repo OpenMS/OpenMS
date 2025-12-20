@@ -253,6 +253,9 @@ jobs:
         run: |
           mkdir -p openms-build
           tar -xzf openms-build-linux.tar.gz -C openms-build
+          # Fix hardcoded paths from build container to wheel build container
+          # The build job runs at /__w/OpenMS/OpenMS, but cibuildwheel mounts at /project
+          sed -i 's|/__w/OpenMS/OpenMS|/project|g' openms-build/OpenMSTargets.cmake
 
       - name: Build wheels with cibuildwheel
         uses: pypa/cibuildwheel@v2.22
@@ -294,6 +297,9 @@ jobs:
         run: |
           mkdir -p openms-build
           tar -xzf openms-build-linux-arm.tar.gz -C openms-build
+          # Fix hardcoded paths from build container to wheel build container
+          # The build job runs at /__w/OpenMS/OpenMS, but cibuildwheel mounts at /project
+          sed -i 's|/__w/OpenMS/OpenMS|/project|g' openms-build/OpenMSTargets.cmake
 
       - name: Build wheels with cibuildwheel
         uses: pypa/cibuildwheel@v2.22
