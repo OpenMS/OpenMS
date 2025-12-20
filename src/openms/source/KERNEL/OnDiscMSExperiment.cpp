@@ -151,8 +151,8 @@ namespace OpenMS
       }
 
       // Check precursor m/z range filter - skip loading peaks if precursor m/z is outside range
-      // This only applies to MS2+ spectra that have precursor information
-      if (options_.hasPrecursorMZRange() && spectrum.getMSLevel() >= 2 && !spectrum.getPrecursors().empty())
+      // This applies to any spectrum that has precursor information
+      if (options_.hasPrecursorMZRange() && !spectrum.getPrecursors().empty())
       {
         double precursor_mz = spectrum.getPrecursors()[0].getMZ();
         if (!options_.getPrecursorMZRange().encloses(DPosition<1>(precursor_mz)))
