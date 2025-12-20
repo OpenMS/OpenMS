@@ -265,25 +265,30 @@ import numpy as np
         This method converts the chromatogram data (peaks, metadata, precursor/product info)
         into an Arrow Table format for efficient data interchange.
 
-        Args:
-            columns (list or None): List of column names to include. If None,
-                                   includes all default columns. Use get_df_columns()
-                                   to discover available columns.
-            export_meta_values (bool): Whether to include meta values. Only applies
-                                       when columns=None. Defaults to True.
+        :param columns: List of column names to include. If None,
+                        includes all default columns. Use get_df_columns()
+                        to discover available columns.
+        :type columns: Optional[List[str]]
 
-        Returns:
-            pyarrow.Table: Arrow Table with requested columns.
+        :param export_meta_values: Whether to include meta values. Only applies
+                                   when columns=None. Defaults to True.
+        :type export_meta_values: bool
 
-        Example:
-            >>> # Get all default columns
-            >>> table = chrom.to_arrow()
+        :return: Arrow Table with requested columns.
+        :rtype: pyarrow.Table
 
-            >>> # Get only specific columns (faster)
-            >>> table = chrom.to_arrow(columns=['rt', 'intensity'])
+        :raises ImportError: If pyarrow is not installed
 
-            >>> # Convert to pandas (zero-copy with pandas 2.0+)
-            >>> df = table.to_pandas()
+        Example::
+
+            # Get all default columns
+            table = chrom.to_arrow()
+
+            # Get only specific columns (faster)
+            table = chrom.to_arrow(columns=['rt', 'intensity'])
+
+            # Convert to pandas (zero-copy with pandas 2.0+)
+            df = table.to_pandas()
         """
         try:
             import pyarrow as pa

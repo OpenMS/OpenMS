@@ -309,26 +309,33 @@ import numpy as np
 
         Returns an Apache Arrow Table with feature information.
 
-        Args:
-            columns (list or None): List of column names to include. If None,
-                                   includes all columns. Use get_df_columns() to discover available columns.
-            meta_values: Meta values to include (None, [custom list of meta value names] or 'all').
-            export_peptide_identifications (bool): Export sequence and score for best PeptideHit
-                                                  assigned to a feature.
+        :param columns: List of column names to include. If None,
+                        includes all columns. Use get_df_columns() to discover available columns.
+        :type columns: Optional[List[str]]
 
-        Returns:
-            pyarrow.Table: Arrow Table with feature data.
+        :param meta_values: Meta values to include (None, [custom list of meta value names] or 'all').
+        :type meta_values: Optional[Union[List[str], str]]
 
-        Example:
-            >>> # Get all columns
-            >>> table = fmap.to_arrow()
+        :param export_peptide_identifications: Export sequence and score for best PeptideHit
+                                               assigned to a feature.
+        :type export_peptide_identifications: bool
 
-            >>> # Convert to pandas (zero-copy with pandas 2.0+)
-            >>> df = table.to_pandas()
+        :return: Arrow Table with feature data.
+        :rtype: pyarrow.Table
 
-            >>> # Convert to polars
-            >>> import polars as pl
-            >>> df = pl.from_arrow(table)
+        :raises ImportError: If pyarrow is not installed
+
+        Example::
+
+            # Get all columns
+            table = fmap.to_arrow()
+
+            # Convert to pandas (zero-copy with pandas 2.0+)
+            df = table.to_pandas()
+
+            # Convert to polars
+            import polars as pl
+            df = pl.from_arrow(table)
         """
         try:
             import pyarrow as pa

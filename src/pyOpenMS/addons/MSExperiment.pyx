@@ -274,27 +274,34 @@ import numpy as np
 
         Returns an Apache Arrow Table with all peaks in the MSExperiment.
 
-        Args:
-            columns (list or None): List of column names to include. If None,
-                                   includes all columns. Use get_df_columns() to discover available columns.
-            ms_levels (List[int]): Get only spectra with the given MS levels. Default is an empty list,
-                                  which means all MS levels will be included.
-            long_format (bool): Set to True for a long/expanded table with one row per peak.
-                              If False, returns rows with array columns (rt, ms_level, mz_array, intensity_array).
+        :param columns: List of column names to include. If None,
+                        includes all columns. Use get_df_columns() to discover available columns.
+        :type columns: Optional[List[str]]
 
-        Returns:
-            pyarrow.Table: Arrow Table with peak data.
+        :param ms_levels: Get only spectra with the given MS levels. Default is an empty list,
+                          which means all MS levels will be included.
+        :type ms_levels: List[int]
 
-        Example:
-            >>> # Get all columns in long format
-            >>> table = exp.to_arrow(long_format=True)
+        :param long_format: Set to True for a long/expanded table with one row per peak.
+                            If False, returns rows with array columns (rt, ms_level, mz_array, intensity_array).
+        :type long_format: bool
 
-            >>> # Convert to pandas (zero-copy with pandas 2.0+)
-            >>> df = table.to_pandas()
+        :return: Arrow Table with peak data.
+        :rtype: pyarrow.Table
 
-            >>> # Convert to polars
-            >>> import polars as pl
-            >>> df = pl.from_arrow(table)
+        :raises ImportError: If pyarrow is not installed
+
+        Example::
+
+            # Get all columns in long format
+            table = exp.to_arrow(long_format=True)
+
+            # Convert to pandas (zero-copy with pandas 2.0+)
+            df = table.to_pandas()
+
+            # Convert to polars
+            import polars as pl
+            df = pl.from_arrow(table)
         """
         try:
             import pyarrow as pa

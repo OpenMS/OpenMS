@@ -320,23 +320,26 @@ import numpy as np
 
         Note: Mobilogram does not support meta values (no MetaInfoInterface).
 
-        Args:
-            columns (list or None): List of column names to include. If None,
-                                   includes all default columns. Use get_df_columns()
-                                   to discover available columns.
+        :param columns: List of column names to include. If None,
+                        includes all default columns. Use get_df_columns()
+                        to discover available columns.
+        :type columns: Optional[List[str]]
 
-        Returns:
-            pyarrow.Table: Arrow Table with requested columns.
+        :return: Arrow Table with requested columns.
+        :rtype: pyarrow.Table
 
-        Example:
-            >>> # Get all default columns
-            >>> table = mobilogram.to_arrow()
+        :raises ImportError: If pyarrow is not installed
 
-            >>> # Get only specific columns (faster)
-            >>> table = mobilogram.to_arrow(columns=['mobility', 'intensity'])
+        Example::
 
-            >>> # Convert to pandas (zero-copy with pandas 2.0+)
-            >>> df = table.to_pandas()
+            # Get all default columns
+            table = mobilogram.to_arrow()
+
+            # Get only specific columns (faster)
+            table = mobilogram.to_arrow(columns=['mobility', 'intensity'])
+
+            # Convert to pandas (zero-copy with pandas 2.0+)
+            df = table.to_pandas()
         """
         try:
             import pyarrow as pa

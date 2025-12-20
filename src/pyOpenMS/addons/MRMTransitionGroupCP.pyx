@@ -212,17 +212,22 @@ import numpy as np
 
         Returns an Apache Arrow Table representation of the Chromatograms.
 
-        Args:
-            columns (list or None): List of column names to include. If None,
-                                   includes all default columns.
-            export_meta_values (bool): Whether to export meta values.
+        :param columns: List of column names to include. If None,
+                        includes all default columns.
+        :type columns: Optional[List[str]]
 
-        Returns:
-            pyarrow.Table: Arrow Table with chromatogram data.
+        :param export_meta_values: Whether to export meta values.
+        :type export_meta_values: bool
 
-        Example:
-            >>> table = mrm.chromatograms_to_arrow()
-            >>> df = table.to_pandas()
+        :return: Arrow Table with chromatogram data.
+        :rtype: pyarrow.Table
+
+        :raises ImportError: If pyarrow is not installed
+
+        Example::
+
+            table = mrm.chromatograms_to_arrow()
+            df = table.to_pandas()
         """
         try:
             import pyarrow as pa
@@ -240,17 +245,22 @@ import numpy as np
 
         Returns an Apache Arrow Table representation of the Features.
 
-        Args:
-            columns (list or None): List of column names to include. If None,
-                                   includes all columns.
-            meta_values: Meta values to include (None, [custom list] or 'all').
+        :param columns: List of column names to include. If None,
+                        includes all columns.
+        :type columns: Optional[List[str]]
 
-        Returns:
-            pyarrow.Table: Arrow Table with feature data.
+        :param meta_values: Meta values to include (None, [custom list] or 'all').
+        :type meta_values: Optional[Union[List[str], str]]
 
-        Example:
-            >>> table = mrm.features_to_arrow()
-            >>> df = table.to_pandas()
+        :return: Arrow Table with feature data.
+        :rtype: pyarrow.Table
+
+        :raises ImportError: If pyarrow is not installed
+
+        Example::
+
+            table = mrm.features_to_arrow()
+            df = table.to_pandas()
         """
         try:
             import pyarrow as pa

@@ -222,24 +222,31 @@ import numpy as np
 
         Returns an Apache Arrow Table with peptide identification information.
 
-        Parameters:
-            decode_ontology (bool): Decode meta value names using the PSI-MS ontology.
-                                   Default True.
-            default_missing_values (dict): Default values for missing data by type.
-                                          Default: {<bool>: False, <int>: -9999, <float>: nan, <str>: ''}
-            export_unidentified (bool): Export PeptideIdentifications without PeptideHit.
-                                       Default True.
+        :param decode_ontology: Decode meta value names using the PSI-MS ontology.
+                                Default True.
+        :type decode_ontology: bool
 
-        Returns:
-            pyarrow.Table: Arrow Table with peptide identification data.
+        :param default_missing_values: Default values for missing data by type.
+                                       Default: {<bool>: False, <int>: -9999, <float>: nan, <str>: ''}
+        :type default_missing_values: dict
 
-        Example:
-            >>> table = peps.to_arrow()
-            >>> df = table.to_pandas()
+        :param export_unidentified: Export PeptideIdentifications without PeptideHit.
+                                    Default True.
+        :type export_unidentified: bool
 
-            >>> # Convert to polars
-            >>> import polars as pl
-            >>> df = pl.from_arrow(table)
+        :return: Arrow Table with peptide identification data.
+        :rtype: pyarrow.Table
+
+        :raises ImportError: If pyarrow is not installed
+
+        Example::
+
+            table = peps.to_arrow()
+            df = table.to_pandas()
+
+            # Convert to polars
+            import polars as pl
+            df = pl.from_arrow(table)
         """
         try:
             import pyarrow as pa
