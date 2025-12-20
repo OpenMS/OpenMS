@@ -23,6 +23,28 @@ on:
 
 jobs:
   #----------------------------------------------------------------------------
+  # Setup job to read Python versions from JSON
+  #----------------------------------------------------------------------------
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      python-versions: ${{ steps.set-versions.outputs.versions }}
+      python-versions-array: ${{ steps.set-versions.outputs.versions-array }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github/workflows/python_versions.json
+          sparse-checkout-cone-mode: false
+
+      - name: Read Python versions
+        id: set-versions
+        run: |
+          # Output as JSON array for matrix
+          echo "versions=$(cat .github/workflows/python_versions.json)" >> $GITHUB_OUTPUT
+          # Output as space-separated for display
+          echo "versions-array=$(jq -r '.[]' .github/workflows/python_versions.json | tr '\n' ' ')" >> $GITHUB_OUTPUT
+
+  #----------------------------------------------------------------------------
   # Build OpenMS on each platform first
   #----------------------------------------------------------------------------
   build-openms-linux:
@@ -257,7 +279,7 @@ jobs:
   # Build wheels using cibuildwheel
   #----------------------------------------------------------------------------
   build-wheels-linux:
-    needs: [build-openms-linux]
+    needs: [setup, build-openms-linux]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -285,13 +307,18 @@ jobs:
           sed -i 's|/__w/OpenMS/OpenMS/build|/project/openms-build|g' openms-build/OpenMSTargets.cmake
           sed -i 's|/__w/OpenMS/OpenMS|/project|g' openms-build/OpenMSTargets.cmake
 
+      - name: Set CIBW_BUILD from python_versions.json
+        run: |
+          # Construct CIBW_BUILD from Python versions (e.g., "cp310-manylinux_x86_64 cp311-manylinux_x86_64 ...")
+          CIBW_BUILD=$(echo '${{ needs.setup.outputs.python-versions }}' | jq -r '.[]' | sed 's/\.//g' | sed 's/^/cp/' | sed 's/$/-manylinux_x86_64/' | tr '\n' ' ')
+          echo "CIBW_BUILD=$CIBW_BUILD" >> $GITHUB_ENV
+
       - name: Build wheels with cibuildwheel
         uses: pypa/cibuildwheel@v2.22
         with:
           package-dir: src/pyOpenMS
           output-dir: wheelhouse
         env:
-          CIBW_BUILD: "cp310-manylinux_x86_64 cp311-manylinux_x86_64 cp312-manylinux_x86_64 cp313-manylinux_x86_64"
           CIBW_MANYLINUX_X86_64_IMAGE: ghcr.io/openms/contrib_manylinux_2_34:latest-amd64
           CIBW_BEFORE_ALL: "yum install -y cmake ninja-build"
           CIBW_ENVIRONMENT: "OpenMS_ROOT=/project/openms-build LD_LIBRARY_PATH=/project/openms-build/lib CMAKE_PREFIX_PATH=/contrib-build:/project/openms-build"
@@ -304,7 +331,7 @@ jobs:
           path: wheelhouse/*.whl
 
   build-wheels-linux-arm:
-    needs: [build-openms-linux-arm]
+    needs: [setup, build-openms-linux-arm]
     runs-on: ubuntu-22.04-arm
     steps:
       - uses: actions/checkout@v4
@@ -332,13 +359,18 @@ jobs:
           sed -i 's|/__w/OpenMS/OpenMS/build|/project/openms-build|g' openms-build/OpenMSTargets.cmake
           sed -i 's|/__w/OpenMS/OpenMS|/project|g' openms-build/OpenMSTargets.cmake
 
+      - name: Set CIBW_BUILD from python_versions.json
+        run: |
+          # Construct CIBW_BUILD from Python versions (e.g., "cp310-manylinux_aarch64 cp311-manylinux_aarch64 ...")
+          CIBW_BUILD=$(echo '${{ needs.setup.outputs.python-versions }}' | jq -r '.[]' | sed 's/\.//g' | sed 's/^/cp/' | sed 's/$/-manylinux_aarch64/' | tr '\n' ' ')
+          echo "CIBW_BUILD=$CIBW_BUILD" >> $GITHUB_ENV
+
       - name: Build wheels with cibuildwheel
         uses: pypa/cibuildwheel@v2.22
         with:
           package-dir: src/pyOpenMS
           output-dir: wheelhouse
         env:
-          CIBW_BUILD: "cp310-manylinux_aarch64 cp311-manylinux_aarch64 cp312-manylinux_aarch64 cp313-manylinux_aarch64"
           CIBW_MANYLINUX_AARCH64_IMAGE: ghcr.io/openms/contrib_manylinux_2_34:latest-arm64
           CIBW_BEFORE_ALL: "yum install -y cmake ninja-build"
           CIBW_ENVIRONMENT: "OpenMS_ROOT=/project/openms-build LD_LIBRARY_PATH=/project/openms-build/lib CMAKE_PREFIX_PATH=/contrib-build:/project/openms-build"
@@ -351,7 +383,7 @@ jobs:
           path: wheelhouse/*.whl
 
   build-wheels-macos:
-    needs: [build-openms-macos]
+    needs: [setup, build-openms-macos]
     runs-on: macos-14
     steps:
       - uses: actions/checkout@v4
@@ -370,13 +402,18 @@ jobs:
         run: |
           bash tools/ci/deps-macos.sh
 
+      - name: Set CIBW_BUILD from python_versions.json
+        run: |
+          # Construct CIBW_BUILD from Python versions (e.g., "cp310-macosx_arm64 cp311-macosx_arm64 ...")
+          CIBW_BUILD=$(echo '${{ needs.setup.outputs.python-versions }}' | jq -r '.[]' | sed 's/\.//g' | sed 's/^/cp/' | sed 's/$/-macosx_arm64/' | tr '\n' ' ')
+          echo "CIBW_BUILD=$CIBW_BUILD" >> $GITHUB_ENV
+
       - name: Build wheels with cibuildwheel
         uses: pypa/cibuildwheel@v2.22
         with:
           package-dir: src/pyOpenMS
           output-dir: wheelhouse
         env:
-          CIBW_BUILD: "cp310-macosx_arm64 cp311-macosx_arm64 cp312-macosx_arm64 cp313-macosx_arm64"
           CIBW_ARCHS_MACOS: "arm64"
           CIBW_BEFORE_BUILD: "pip install delocate"
           CIBW_ENVIRONMENT: "OpenMS_ROOT=${{ github.workspace }}/openms-build CMAKE_PREFIX_PATH=/opt/homebrew:/opt/homebrew/opt/libomp:${{ github.workspace }}/openms-build MACOSX_DEPLOYMENT_TARGET=14.0"
@@ -389,7 +426,7 @@ jobs:
           path: wheelhouse/*.whl
 
   build-wheels-windows:
-    needs: [build-openms-windows]
+    needs: [setup, build-openms-windows]
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -441,6 +478,9 @@ jobs:
           # Qt6_Dir is set by install-qt-action
           echo "PYOPENMS_CMAKE_PREFIX_PATH=${Qt6_Dir}/lib/cmake;${Qt6_Dir};${GITHUB_WORKSPACE}/contrib;${GITHUB_WORKSPACE}/openms-build" >> $GITHUB_ENV
           echo "PYOPENMS_OPENMS_ROOT=${GITHUB_WORKSPACE}/openms-build" >> $GITHUB_ENV
+          # Construct CIBW_BUILD from Python versions (e.g., "cp310-win_amd64 cp311-win_amd64 ...")
+          CIBW_BUILD=$(echo '${{ needs.setup.outputs.python-versions }}' | jq -r '.[]' | sed 's/\.//g' | sed 's/^/cp/' | sed 's/$/-win_amd64/' | tr '\n' ' ')
+          echo "CIBW_BUILD=$CIBW_BUILD" >> $GITHUB_ENV
 
       - name: Build wheels with cibuildwheel
         uses: pypa/cibuildwheel@v2.22
@@ -448,7 +488,6 @@ jobs:
           package-dir: src/pyOpenMS
           output-dir: wheelhouse
         env:
-          CIBW_BUILD: "cp310-win_amd64 cp311-win_amd64 cp312-win_amd64 cp313-win_amd64"
           CIBW_BEFORE_BUILD: "pip install delvewheel"
           # Use shell variable expansion - PYOPENMS_* vars are set in previous step
           CIBW_ENVIRONMENT: "OpenMS_ROOT=$PYOPENMS_OPENMS_ROOT CMAKE_PREFIX_PATH=$PYOPENMS_CMAKE_PREFIX_PATH"
@@ -464,12 +503,12 @@ jobs:
   # Test wheels
   #----------------------------------------------------------------------------
   test-wheels:
-    needs: [build-wheels-linux, build-wheels-linux-arm, build-wheels-macos, build-wheels-windows]
+    needs: [setup, build-wheels-linux, build-wheels-linux-arm, build-wheels-macos, build-wheels-windows]
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        python-version: ['3.10', '3.11', '3.12', '3.13']
+        python-version: ${{ fromJson(needs.setup.outputs.python-versions) }}
         os: [ubuntu-latest, ubuntu-22.04-arm, macos-14, windows-latest]
         include:
           # Map os to artifact names
