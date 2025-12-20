@@ -448,7 +448,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        python-version: ['3.10', '3.11', '3.12', '3.13']
+        os: [ubuntu-latest, ubuntu-22.04-arm, macos-14, windows-latest]
         include:
+          # Map os to artifact names
           - os: ubuntu-latest
             artifact: wheels-linux-x64
           - os: ubuntu-22.04-arm
@@ -467,12 +470,14 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: ${{ matrix.python-version }}
 
       - name: Test wheel
         shell: bash
         run: |
-          pip install wheelhouse/*.whl
+          # Install the wheel matching this Python version
+          PYVER=$(echo "${{ matrix.python-version }}" | tr -d '.')
+          pip install wheelhouse/*cp${PYVER}*.whl
           python -c "import pyopenms; print('pyopenms version:', pyopenms.__version__)"
           python -c "import pyopenms; print(pyopenms.EmpiricalFormula('C6H12O6').getMonoWeight())"
 
