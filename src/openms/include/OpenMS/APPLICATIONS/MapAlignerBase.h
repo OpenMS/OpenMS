@@ -103,6 +103,12 @@ protected:
     registerOutputFileList_("trafo_out", "<files>", StringList(), "Transformation output files. This option or 'out' has to be provided; they can be used together.", false);
     setValidFormats_("trafo_out", ListUtils::create<String>("trafoXML"));
 
+    // Optional spectra files for transformation
+    registerInputFileList_("in_spectra_files", "<files>", StringList(), "Optional input spectra files (mzML) that will be transformed along with the alignment. Size must match the number of input files.", false);
+    setValidFormats_("in_spectra_files", ListUtils::create<String>("mzML"));
+    registerOutputFileList_("out_spectra_files", "<files>", StringList(), "Optional output spectra files (mzML) corresponding to transformed in_spectra_files. Size must match in_spectra_files.", false);
+    setValidFormats_("out_spectra_files", ListUtils::create<String>("mzML"));
+
     if (ref_params != REF_NONE)
     {
       registerTOPPSubsection_("reference", "Options to define a reference file (use either 'file' or 'index', not both)");
@@ -127,6 +133,8 @@ protected:
     StringList ins = getStringList_("in");
     StringList outs = getStringList_("out");
     StringList trafos = getStringList_("trafo_out");
+    StringList in_spectra = getStringList_("in_spectra_files");
+    StringList out_spectra = getStringList_("out_spectra_files");
 
     //-------------------------------------------------------------
     // check for valid input
@@ -155,6 +163,21 @@ protected:
       if (FileHandler::getType(ins[i]) != in_type)
       {
         writeLogError_("Error: All input files (parameter 'in') must have the same format!");
+        return ILLEGAL_PARAMETERS;
+      }
+    }
+
+    // check optional spectra files
+    if (!in_spectra.empty() || !out_spectra.empty())
+    {
+      if (in_spectra.size() != ins.size())
+      {
+        writeLogError_("Error: The number of spectra input files has to be equal to the number of main input files (parameters 'in_spectra_files'/'in')");
+        return ILLEGAL_PARAMETERS;
+      }
+      if (out_spectra.size() != in_spectra.size())
+      {
+        writeLogError_("Error: The number of spectra input and output files has to be equal (parameters 'in_spectra_files'/'out_spectra_files')");
         return ILLEGAL_PARAMETERS;
       }
     }
