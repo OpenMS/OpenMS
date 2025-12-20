@@ -12,8 +12,8 @@ import numpy as np
 
         Enables use of Python's built-in len() function.
 
-        Returns:
-            int: The number of peptide identifications in this list.
+        :return: The number of peptide identifications in this list.
+        :rtype: int
         """
         return self.size()
 
@@ -25,8 +25,8 @@ import numpy as np
 
         This method provides a Pythonic interface equivalent to push_back().
 
-        Args:
-            item: A single PeptideIdentification object to append.
+        :param item: A single PeptideIdentification object to append.
+        :type item: PeptideIdentification
         """
         self.push_back(item)
 
@@ -36,13 +36,11 @@ import numpy as np
 
         Add multiple peptide identifications to the end of the list.
 
-        Args:
-            items: Can be:
-                - A list/iterable of PeptideIdentification objects
-                - Another PeptideIdentificationList object
-
-        Raises:
-            TypeError: If items is not iterable or another PeptideIdentificationList.
+        :param items: Can be:
+                      - A list/iterable of PeptideIdentification objects
+                      - Another PeptideIdentificationList object
+        :type items: Iterable[PeptideIdentification]
+        :raises TypeError: If items is not iterable or another PeptideIdentificationList.
         """
         if hasattr(items, '__iter__') and not hasattr(items, 'inst'):
             # Handle regular iterables (list, tuple, etc.)
@@ -269,18 +267,19 @@ import numpy as np
         This method is useful when you've computed new scores (e.g., from rescoring)
         and want to update the original PeptideIdentifications.
 
-        Args:
-            df (pd.DataFrame): DataFrame obtained by converting this list to a DataFrame.
-                              Minimum required columns: P_ID and a column with name
-                              matching main_score_name.
-            main_score_name (str): Name of the column containing the new scores.
-                                  This will also be set as the score type.
+        :param df: DataFrame obtained by converting this list to a DataFrame.
+                   Minimum required columns: P_ID and a column with name
+                   matching main_score_name.
+        :type df: pd.DataFrame
+        :param main_score_name: Name of the column containing the new scores.
+                                This will also be set as the score type.
+        :type main_score_name: str
+        :return: The updated list of peptide identifications
+                 (modifies in place and returns self).
+        :rtype: PeptideIdentificationList
 
-        Returns:
-            PeptideIdentificationList: The updated list of peptide identifications
-                                      (modifies in place and returns self).
+        Example::
 
-        Example:
             >>> # Get DataFrame, compute new scores, update
             >>> df = peps.get_df()
             >>> df['new_score'] = compute_new_scores(df)

@@ -13,17 +13,18 @@ import numpy as np
         Useful for discovering available columns before export, especially when
         selecting specific columns for performance optimization.
 
-        Args:
-            columns (str): 'default' for standard columns, 'all' for all available
-                          columns including non-default ones (ion_mobility_unit,
-                          custom data arrays).
-            export_meta_values (bool): Whether to include meta value column names.
-                                       Defaults to True.
+        :param columns: 'default' for standard columns, 'all' for all available
+                        columns including non-default ones (ion_mobility_unit,
+                        custom data arrays).
+        :type columns: str
+        :param export_meta_values: Whether to include meta value column names.
+                                   Defaults to True.
+        :type export_meta_values: bool
+        :return: List of column name strings.
+        :rtype: list
 
-        Returns:
-            list: List of column name strings.
+        Example::
 
-        Example:
             >>> # See default columns
             >>> cols = spectrum.get_df_columns()
             ['mz', 'intensity', 'rt', ...]
@@ -93,34 +94,35 @@ import numpy as np
         ion mobility data (if present), precursor information, and optional meta values
         into a dictionary format suitable for conversion to a pandas DataFrame.
 
-        Args:
-            columns (list or None): List of column names to include. If None, includes
-                                   all default columns. Use get_df_columns('all') to see
-                                   all available columns including custom data arrays.
-            export_meta_values (bool): Whether to include meta values in the output.
-                                       Only applies when columns=None. Defaults to True.
+        :param columns: List of column names to include. If None, includes
+                        all default columns. Use get_df_columns('all') to see
+                        all available columns including custom data arrays.
+        :type columns: Optional[List[str]]
+        :param export_meta_values: Whether to include meta values in the output.
+                                   Only applies when columns=None. Defaults to True.
+        :type export_meta_values: bool
+        :return: Dictionary with requested columns as keys and numpy arrays as values.
+                 Default columns include:
+                 - 'mz': numpy array of m/z values (float64)
+                 - 'intensity': numpy array of intensity values (float32)
+                 - 'rt': numpy array of retention time values (float64)
+                 - 'ms_level': numpy array of MS level values (uint16)
+                 - 'native_id': numpy array of native ID strings
+                 - 'ion_mobility': ion mobility values (if IM data present)
+                 - 'precursor_mz': precursor m/z (if precursor present)
+                 - 'precursor_charge': precursor charge (if precursor present)
+                 - 'ion_annotation': ion annotations (if IonNames StringDataArray present)
+                 - Additional meta value columns (if export_meta_values=True)
 
-        Returns:
-            dict: Dictionary with requested columns as keys and numpy arrays as values.
-                  Default columns include:
-                - 'mz': numpy array of m/z values (float64)
-                - 'intensity': numpy array of intensity values (float32)
-                - 'rt': numpy array of retention time values (float64)
-                - 'ms_level': numpy array of MS level values (uint16)
-                - 'native_id': numpy array of native ID strings
-                - 'ion_mobility': ion mobility values (if IM data present)
-                - 'precursor_mz': precursor m/z (if precursor present)
-                - 'precursor_charge': precursor charge (if precursor present)
-                - 'ion_annotation': ion annotations (if IonNames StringDataArray present)
-                - Additional meta value columns (if export_meta_values=True)
+                 Non-default columns (must be explicitly requested):
+                 - 'ion_mobility_unit': ion mobility unit string
+                 - 'float_array:<name>': custom FloatDataArray values
+                 - 'int_array:<name>': custom IntegerDataArray values
+                 - 'string_array:<name>': custom StringDataArray values
+        :rtype: dict
 
-                Non-default columns (must be explicitly requested):
-                - 'ion_mobility_unit': ion mobility unit string
-                - 'float_array:<name>': custom FloatDataArray values
-                - 'int_array:<name>': custom IntegerDataArray values
-                - 'string_array:<name>': custom StringDataArray values
+        Example::
 
-        Example:
             >>> # Get all columns (default)
             >>> data = spectrum.get_data_dict()
 

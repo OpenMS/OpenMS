@@ -13,16 +13,17 @@ import numpy as np
         Useful for discovering available columns before export, especially when
         selecting specific columns for performance optimization.
 
-        Args:
-            columns (str): 'default' for standard columns, 'all' for all available
-                          columns including non-default ones (chromatogram_type, comment).
-            export_meta_values (bool): Whether to include meta value column names.
-                                       Defaults to True.
+        :param columns: 'default' for standard columns, 'all' for all available
+                        columns including non-default ones (chromatogram_type, comment).
+        :type columns: str
+        :param export_meta_values: Whether to include meta value column names.
+                                   Defaults to True.
+        :type export_meta_values: bool
+        :return: List of column name strings.
+        :rtype: list
 
-        Returns:
-            list: List of column name strings.
+        Example::
 
-        Example:
             >>> # See default columns
             >>> cols = chrom.get_df_columns()
             ['rt', 'intensity', 'precursor_mz', ...]
@@ -61,29 +62,30 @@ import numpy as np
         and optional meta values into a dictionary format suitable for conversion to
         a pandas DataFrame.
 
-        Args:
-            columns (list or None): List of column names to include. If None, includes
-                                   all default columns. Use get_df_columns('all') to see
-                                   all available columns.
-            export_meta_values (bool): Whether to include meta values in the output.
-                                       Only applies when columns=None. Defaults to True.
+        :param columns: List of column names to include. If None, includes
+                        all default columns. Use get_df_columns('all') to see
+                        all available columns.
+        :type columns: Optional[List[str]]
+        :param export_meta_values: Whether to include meta values in the output.
+                                   Only applies when columns=None. Defaults to True.
+        :type export_meta_values: bool
+        :return: Dictionary with requested columns as keys and numpy arrays as values.
+                 Default columns include:
+                 - 'rt': numpy array of retention time values (float64)
+                 - 'intensity': numpy array of intensity values (float32)
+                 - 'precursor_mz': precursor m/z (float64)
+                 - 'precursor_charge': precursor charge (uint16)
+                 - 'product_mz': product m/z (float64)
+                 - 'native_id': chromatogram native identifier
+                 - Additional meta value columns (if export_meta_values=True)
 
-        Returns:
-            dict: Dictionary with requested columns as keys and numpy arrays as values.
-                  Default columns include:
-                - 'rt': numpy array of retention time values (float64)
-                - 'intensity': numpy array of intensity values (float32)
-                - 'precursor_mz': precursor m/z (float64)
-                - 'precursor_charge': precursor charge (uint16)
-                - 'product_mz': product m/z (float64)
-                - 'native_id': chromatogram native identifier
-                - Additional meta value columns (if export_meta_values=True)
+                 Non-default columns (must be explicitly requested):
+                 - 'chromatogram_type': type of chromatogram
+                 - 'comment': chromatogram comment
+        :rtype: dict
 
-                Non-default columns (must be explicitly requested):
-                - 'chromatogram_type': type of chromatogram
-                - 'comment': chromatogram comment
+        Example::
 
-        Example:
             >>> # Get all columns (default)
             >>> data = chrom.get_data_dict()
 
@@ -474,4 +476,3 @@ import numpy as np
             parts.append(f"rt_range=[{rts[0]:.2f}, {rts[-1]:.2f}]")
 
         return f"MSChromatogram({', '.join(parts)})"
-

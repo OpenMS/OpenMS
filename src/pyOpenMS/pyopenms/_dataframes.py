@@ -11,6 +11,7 @@ This module provides backwards-compatible function aliases:
 And utility functions:
 - common_meta_value_types: Dictionary for numpy type mapping of common meta values
 """
+from __future__ import annotations
 
 __all__ = [
     'peptide_identifications_to_df',
@@ -19,13 +20,20 @@ __all__ = [
     '_add_meta_values',
 ]
 
-from typing import Any
+from typing import Any, TYPE_CHECKING
 
 from . import PeptideIdentificationList as _PeptideIdentificationList
 from . import DataValue as _DataValue
 
-import pandas as _pd
 import numpy as _np
+
+if TYPE_CHECKING:
+    import pandas as _pd
+else:
+    class _PandasStub:
+        DataFrame = Any
+
+    _pd = _PandasStub()
 
 
 # Common meta value types for numpy type mapping
@@ -63,14 +71,16 @@ def peptide_identifications_to_df(peps: _PeptideIdentificationList, decode_ontol
     This is a backwards-compatible wrapper that calls PeptideIdentificationList.get_df().
     For new code, prefer calling peps.get_df() directly.
 
-    Parameters:
-    peps (PeptideIdentificationList): list of PeptideIdentification objects
-    decode_ontology (bool): decode meta value names
-    default_missing_values: default value for missing values for each data type
-    export_unidentified: export PeptideIdentifications without PeptideHit
-
-    Returns:
-    pandas.DataFrame: peptide identifications in a DataFrame
+    :param peps: list of PeptideIdentification objects
+    :type peps: PeptideIdentificationList
+    :param decode_ontology: decode meta value names
+    :type decode_ontology: bool
+    :param default_missing_values: default value for missing values for each data type
+    :type default_missing_values: dict
+    :param export_unidentified: export PeptideIdentifications without PeptideHit
+    :type export_unidentified: bool
+    :return: peptide identifications in a DataFrame
+    :rtype: pandas.DataFrame
     """
     return peps.get_df(decode_ontology=decode_ontology,
                        default_missing_values=default_missing_values,
@@ -96,12 +106,12 @@ def _add_meta_values(df: _pd.DataFrame, object: Any) -> _pd.DataFrame:
     """
     Adds metavalues from given object to given DataFrame.
 
-    Args:
-        df (pd.DataFrame): DataFrame to which metavalues will be added.
-        object (Any): Object from which metavalues will be extracted.
-
-    Returns:
-        pd.DataFrame: DataFrame with added meta values.
+    :param df: DataFrame to which metavalues will be added.
+    :type df: pandas.DataFrame
+    :param object: Object from which metavalues will be extracted.
+    :type object: Any
+    :return: DataFrame with added meta values.
+    :rtype: pandas.DataFrame
     """
     mvs = []
     object.getKeys(mvs)

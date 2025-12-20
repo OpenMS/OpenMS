@@ -182,14 +182,14 @@ import numpy as np
 
         Useful for discovering available columns before export.
 
-        Args:
-            long_format (bool): If True, returns columns for long format.
-                               If False, returns columns for compact format.
+        :param long_format: If True, returns columns for long format.
+                            If False, returns columns for compact format.
+        :type long_format: bool
+        :return: List of column name strings.
+        :rtype: list
 
-        Returns:
-            list: List of column name strings.
+        Example::
 
-        Example:
             >>> exp.get_df_columns(long_format=True)
             ['rt', 'mz', 'intensity', 'ms_level']
 
@@ -370,7 +370,9 @@ import numpy as np
         """
         get_ion_df(self: MSExperiment) -> pd.DataFrame
 
-        Generates a pandas DataFrame with all peaks and the ion mobility in the MSExperiment
+        Generates a pandas DataFrame with all MS1 peaks and their ion mobility in the MSExperiment.
+
+        Only MS level 1 spectra are exported.
 
         :return: Feature information stored in a DataFrame
         :rtype: pd.DataFrame

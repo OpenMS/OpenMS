@@ -53,8 +53,8 @@ from collections import defaultdict as _defaultdict
 
         Enables use of Python's built-in len() function.
 
-        Returns:
-            int: The number of consensus features in this map.
+        :return: The number of consensus features in this map.
+        :rtype: int
         """
         return self.inst.get().size()
 
@@ -66,8 +66,8 @@ from collections import defaultdict as _defaultdict
 
         This method provides a Pythonic interface equivalent to push_back().
 
-        Args:
-            item: A single ConsensusFeature object to append.
+        :param item: A single ConsensusFeature object to append.
+        :type item: ConsensusFeature
         """
         self.inst.get().push_back(deref(item.inst.get()))
 
@@ -77,13 +77,11 @@ from collections import defaultdict as _defaultdict
 
         Add multiple consensus features to the end of the map.
 
-        Args:
-            items: Can be:
-                - A list/iterable of ConsensusFeature objects
-                - Another ConsensusMap object
-
-        Raises:
-            TypeError: If items is not iterable or another ConsensusMap.
+        :param items: Can be:
+                      - A list/iterable of ConsensusFeature objects
+                      - Another ConsensusMap object
+        :type items: Iterable[ConsensusFeature]
+        :raises TypeError: If items is not iterable or another ConsensusMap.
         """
         if hasattr(items, '__iter__') and not hasattr(items, 'inst'):
             # Handle regular iterables (list, tuple, etc.)
@@ -177,13 +175,13 @@ from collections import defaultdict as _defaultdict
 
         Useful for discovering available columns before export.
 
-        Args:
-            columns (str): 'default' for standard columns, 'all' for all available columns.
+        :param columns: 'default' for standard columns, 'all' for all available columns.
+        :type columns: str
+        :return: List of column name strings.
+        :rtype: list
 
-        Returns:
-            list: List of column name strings.
+        Example::
 
-        Example:
             >>> cmap.get_df_columns()
             ['sequence', 'charge', 'rt', 'mz', 'quality', 'intensity_file1', ...]
         """
