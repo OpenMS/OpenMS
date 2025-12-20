@@ -29,6 +29,12 @@ jobs:
     runs-on: ubuntu-latest
     container: ghcr.io/openms/contrib_manylinux_2_34:latest-amd64
     steps:
+      # Cancel older builds if still running
+      - uses: rokroskar/workflow-run-cleanup-action@master
+        env:
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+        if: "!startsWith(github.ref, 'refs/tags/') && github.ref != 'refs/heads/master' && github.ref != 'refs/heads/develop'"
+
       - uses: actions/checkout@v4
 
       - name: Build OpenMS
@@ -49,6 +55,9 @@ jobs:
       - name: Package OpenMS build
         run: |
           cd build
+          # Strip libraries to reduce wheel size significantly
+          strip --strip-all lib/libOpenMS.so
+          strip --strip-all lib/libOpenSwathAlgo.so
           # Create a minimal package with just what pyOpenMS needs
           # src/openms/include/ and src/openswathalgo/include/ contain generated headers
           # Source headers come from the checkout in wheel build job
@@ -73,6 +82,12 @@ jobs:
     runs-on: ubuntu-22.04-arm
     container: ghcr.io/openms/contrib_manylinux_2_34:latest-arm64
     steps:
+      # Cancel older builds if still running
+      - uses: rokroskar/workflow-run-cleanup-action@master
+        env:
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+        if: "!startsWith(github.ref, 'refs/tags/') && github.ref != 'refs/heads/master' && github.ref != 'refs/heads/develop'"
+
       - uses: actions/checkout@v4
 
       - name: Build OpenMS
@@ -93,6 +108,9 @@ jobs:
       - name: Package OpenMS build
         run: |
           cd build
+          # Strip libraries to reduce wheel size significantly
+          strip --strip-all lib/libOpenMS.so
+          strip --strip-all lib/libOpenSwathAlgo.so
           # Create a minimal package with just what pyOpenMS needs
           # src/openms/include/ and src/openswathalgo/include/ contain generated headers
           # Source headers come from the checkout in wheel build job
@@ -195,6 +213,9 @@ jobs:
 
       - name: Build OpenMS
         shell: bash
+        env:
+          # Workaround for MSVC constexpr mutex constructor bug
+          CXXFLAGS: "-D_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR"
         run: |
           mkdir build && cd build
           cmake .. \
