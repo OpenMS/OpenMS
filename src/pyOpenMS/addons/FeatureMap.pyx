@@ -42,8 +42,8 @@ import numpy as np
 
         Enables use of Python's built-in len() function.
 
-        Returns:
-            int: The number of features in this map.
+        :return: The number of features in this map.
+        :rtype: int
         """
         return self.inst.get().size()
 
@@ -55,8 +55,8 @@ import numpy as np
 
         This method provides a Pythonic interface equivalent to push_back().
 
-        Args:
-            item: A single Feature object to append.
+        :param item: A single Feature object to append.
+        :type item: Feature
         """
         self.inst.get().push_back(deref(item.inst.get()))
 
@@ -66,13 +66,11 @@ import numpy as np
 
         Add multiple features to the end of the map.
 
-        Args:
-            items: Can be:
-                - A list/iterable of Feature objects
-                - Another FeatureMap object
-
-        Raises:
-            TypeError: If items is not iterable or another FeatureMap.
+        :param items: Can be:
+                      - A list/iterable of Feature objects
+                      - Another FeatureMap object
+        :type items: Iterable[Feature]
+        :raises TypeError: If items is not iterable or another FeatureMap.
         """
         if hasattr(items, '__iter__') and not hasattr(items, 'inst'):
             # Handle regular iterables (list, tuple, etc.)
@@ -93,14 +91,15 @@ import numpy as np
 
         Useful for discovering available columns before export.
 
-        Args:
-            columns (str): 'default' for standard columns, 'all' to include all meta values.
-            export_peptide_identifications (bool): Whether to include peptide ID columns.
+        :param columns: 'default' for standard columns, 'all' to include all meta values.
+        :type columns: str
+        :param export_peptide_identifications: Whether to include peptide ID columns.
+        :type export_peptide_identifications: bool
+        :return: List of column name strings.
+        :rtype: list
 
-        Returns:
-            list: List of column name strings.
+        Example::
 
-        Example:
             >>> fmap.get_df_columns()
             ['feature_id', 'peptide_sequence', 'charge', 'rt', 'mz', ...]
         """
@@ -129,11 +128,10 @@ import numpy as np
 
         Gets the primary MS run path of the ProteinIdentification linked with the given PeptideIdentification.
 
-        Args:
-        pep_id: PeptideIdentification
-
-        Returns:
-        str: primary MS run path (filename) of the ProteinIdentification with the same identifier as the given PeptideIdentification
+        :param pep_id: PeptideIdentification
+        :type pep_id: PeptideIdentification
+        :return: primary MS run path (filename) of the ProteinIdentification with the same identifier as the given PeptideIdentification
+        :rtype: str
         """
         for prot in self.getProteinIdentifications():
             if prot.getIdentifier() == pep_id.getIdentifier():
@@ -244,11 +242,10 @@ import numpy as np
             the sequence, score and ID_filename (primary MS run path of the linked ProteinIdentification)
             of the best PeptideHit (first) assigned to that feature.
 
-            Args:
-            f (Feature): feature from which to extract the meta data
-
-            Yields:
-            tuple: tuple containing feature information, peptide information (optional) and meta values (optional)
+            :param f: feature from which to extract the meta data
+            :type f: Feature
+            :yield: tuple containing feature information, peptide information (optional) and meta values (optional)
+            :rtype: tuple
             """
             pep = f.getPeptideIdentifications()
             bb = f.getConvexHull().getBoundingBox2D()

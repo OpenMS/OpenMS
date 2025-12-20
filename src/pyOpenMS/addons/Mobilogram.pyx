@@ -191,14 +191,14 @@ import numpy as np
 
         Useful for discovering available columns before export.
 
-        Args:
-            columns (str): 'default' for standard columns, 'all' for all available
-                          columns including non-default ones.
+        :param columns: 'default' for standard columns, 'all' for all available
+                        columns including non-default ones.
+        :type columns: str
+        :return: List of column name strings.
+        :rtype: list
 
-        Returns:
-            list: List of column name strings.
+        Example::
 
-        Example:
             >>> cols = mobilogram.get_df_columns()
             ['mobility', 'intensity', 'rt', 'drift_time_unit']
         """
@@ -214,19 +214,19 @@ import numpy as np
         This method extracts mobilogram data including peaks
         into a dictionary format suitable for conversion to a pandas DataFrame.
 
-        Args:
-            columns (list or None): List of column names to include. If None, includes
-                                   all default columns. Use get_df_columns() to see
-                                   all available columns.
+        :param columns: List of column names to include. If None, includes
+                        all default columns. Use get_df_columns() to see
+                        all available columns.
+        :type columns: Optional[List[str]]
+        :return: Dictionary with requested columns as keys and numpy arrays as values.
+                 - 'mobility': numpy array of mobility values (float64)
+                 - 'intensity': numpy array of intensity values (float32)
+                 - 'rt': retention time (float64)
+                 - 'drift_time_unit': drift time unit string
+        :rtype: dict
 
-        Returns:
-            dict: Dictionary with requested columns as keys and numpy arrays as values.
-                - 'mobility': numpy array of mobility values (float64)
-                - 'intensity': numpy array of intensity values (float32)
-                - 'rt': retention time (float64)
-                - 'drift_time_unit': drift time unit string
+        Example::
 
-        Example:
             >>> data = mobilogram.get_data_dict()
             >>> data = mobilogram.get_data_dict(columns=['mobility', 'intensity'])
         """

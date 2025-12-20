@@ -10,12 +10,12 @@ import numpy as np
 
         Returns a list of column names that get_chromatogram_df() would produce.
 
-        Args:
-            columns (str): 'default' for standard columns, 'all' for all available columns.
-            export_meta_values (bool): Whether to include meta value columns.
-
-        Returns:
-            list: List of column name strings.
+        :param columns: 'default' for standard columns, 'all' for all available columns.
+        :type columns: str
+        :param export_meta_values: Whether to include meta value columns.
+        :type export_meta_values: bool
+        :return: List of column name strings.
+        :rtype: list
         """
         # Use the first chromatogram to get columns (all should have same structure)
         chroms = self.getChromatograms()
@@ -29,11 +29,10 @@ import numpy as np
 
         Returns a list of column names that get_feature_df() would produce.
 
-        Args:
-            columns (str): 'default' for core columns, 'all' to include all meta values.
-
-        Returns:
-            list: List of column name strings.
+        :param columns: 'default' for core columns, 'all' to include all meta values.
+        :type columns: str
+        :return: List of column name strings.
+        :rtype: list
         """
         cols = ['feature_id', 'rt', 'intensity', 'quality']
 
