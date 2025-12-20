@@ -52,9 +52,11 @@ jobs:
           # Create a minimal package with just what pyOpenMS needs
           # src/openms/include/ contains generated headers (OpenMSConfig.h, etc.)
           # Source headers come from the checkout in wheel build job
+          # Modules/ contains CMake find modules (FindLIBSVM.cmake, etc.)
           tar -czf openms-build-linux.tar.gz \
             lib/ \
             src/openms/include/ \
+            Modules/ \
             CMakeCache.txt \
             OpenMSConfig.cmake \
             OpenMSConfigVersion.cmake \
@@ -93,9 +95,11 @@ jobs:
           # Create a minimal package with just what pyOpenMS needs
           # src/openms/include/ contains generated headers (OpenMSConfig.h, etc.)
           # Source headers come from the checkout in wheel build job
+          # Modules/ contains CMake find modules (FindLIBSVM.cmake, etc.)
           tar -czf openms-build-linux-arm.tar.gz \
             lib/ \
             src/openms/include/ \
+            Modules/ \
             CMakeCache.txt \
             OpenMSConfig.cmake \
             OpenMSConfigVersion.cmake \
@@ -136,9 +140,11 @@ jobs:
           # Create a minimal package with just what pyOpenMS needs
           # src/openms/include/ contains generated headers (OpenMSConfig.h, etc.)
           # Source headers come from the checkout in wheel build job
+          # Modules/ contains CMake find modules (FindLIBSVM.cmake, etc.)
           tar -czf openms-build-macos.tar.gz \
             lib/ \
             src/openms/include/ \
+            Modules/ \
             CMakeCache.txt \
             OpenMSConfig.cmake \
             OpenMSConfigVersion.cmake \
@@ -206,9 +212,11 @@ jobs:
           # Create a minimal package with just what pyOpenMS needs
           # src/openms/include/ contains generated headers (OpenMSConfig.h, etc.)
           # Source headers come from the checkout in wheel build job
+          # Modules/ contains CMake find modules (FindLIBSVM.cmake, etc.)
           7z a openms-build-windows.zip \
             lib/ \
             src/openms/include/ \
+            Modules/ \
             CMakeCache.txt \
             OpenMSConfig.cmake \
             OpenMSConfigVersion.cmake \
