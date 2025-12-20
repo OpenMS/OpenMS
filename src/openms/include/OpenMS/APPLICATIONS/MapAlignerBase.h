@@ -20,6 +20,7 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelInterpolated.h>
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
 
 //-------------------------------------------------------------
 // Doxygen docu
