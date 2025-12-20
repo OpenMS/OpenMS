@@ -141,8 +141,11 @@ PY_NUM_THREADS = "4"
 NO_DEPENDENCIES = "ON"
 
 [tool.py-build-cmake.cmake.env]
-# Environment variables for CMake can be overridden via shell or --config-settings
-# CMAKE_PREFIX_PATH should include paths to OpenMS dependencies (Eigen3, Qt6, etc.)
+# Pass environment variables to CMake subprocess
+# CMAKE_PREFIX_PATH is used by CMake to find dependencies (OpenMS, Eigen3, Qt6, etc.)
+CMAKE_PREFIX_PATH = "${CMAKE_PREFIX_PATH}"
+# OpenMS_ROOT can also be set via environment
+OpenMS_ROOT = "${OpenMS_ROOT}"
 
 [tool.py-build-cmake.stubgen]
 args = ["-v"]

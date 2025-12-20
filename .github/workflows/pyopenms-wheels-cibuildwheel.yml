@@ -21,10 +21,6 @@ on:
   pull_request:
     branches: [develop]
 
-env:
-  # Python versions to build (used in before-all scripts)
-  PYTHON_VERSIONS: '["3.10", "3.11", "3.12", "3.13", "3.14"]'
-
 jobs:
   #----------------------------------------------------------------------------
   # Build OpenMS on each platform first
@@ -54,13 +50,17 @@ jobs:
         run: |
           cd build
           # Create a minimal package with just what pyOpenMS needs
+          # include/ contains generated headers (config.h, etc.)
+          # Source headers come from the checkout in wheel build job
           tar -czf openms-build-linux.tar.gz \
             lib/ \
             bin/ \
-            src/openms/include \
+            include/ \
+            cmake/ \
             CMakeCache.txt \
             OpenMSConfig.cmake \
-            OpenMSConfigVersion.cmake
+            OpenMSConfigVersion.cmake \
+            OpenMSTargets.cmake
 
       - uses: actions/upload-artifact@v4
         with:
@@ -92,13 +92,18 @@ jobs:
       - name: Package OpenMS build
         run: |
           cd build
+          # Create a minimal package with just what pyOpenMS needs
+          # include/ contains generated headers (config.h, etc.)
+          # Source headers come from the checkout in wheel build job
           tar -czf openms-build-linux-arm.tar.gz \
             lib/ \
             bin/ \
-            src/openms/include \
+            include/ \
+            cmake/ \
             CMakeCache.txt \
             OpenMSConfig.cmake \
-            OpenMSConfigVersion.cmake
+            OpenMSConfigVersion.cmake \
+            OpenMSTargets.cmake
 
       - uses: actions/upload-artifact@v4
         with:
@@ -132,13 +137,18 @@ jobs:
       - name: Package OpenMS build
         run: |
           cd build
+          # Create a minimal package with just what pyOpenMS needs
+          # include/ contains generated headers (config.h, etc.)
+          # Source headers come from the checkout in wheel build job
           tar -czf openms-build-macos.tar.gz \
             lib/ \
             bin/ \
-            src/openms/include \
+            include/ \
+            cmake/ \
             CMakeCache.txt \
             OpenMSConfig.cmake \
-            OpenMSConfigVersion.cmake
+            OpenMSConfigVersion.cmake \
+            OpenMSTargets.cmake
 
       - uses: actions/upload-artifact@v4
         with:
@@ -199,13 +209,18 @@ jobs:
         shell: bash
         run: |
           cd build
+          # Create a minimal package with just what pyOpenMS needs
+          # include/ contains generated headers (config.h, etc.)
+          # Source headers come from the checkout in wheel build job
           7z a openms-build-windows.zip \
             lib/ \
             bin/ \
-            src/openms/include \
+            include/ \
+            cmake/ \
             CMakeCache.txt \
             OpenMSConfig.cmake \
-            OpenMSConfigVersion.cmake
+            OpenMSConfigVersion.cmake \
+            OpenMSTargets.cmake
 
       - uses: actions/upload-artifact@v4
         with:
@@ -391,6 +406,14 @@ jobs:
         with:
           arch: x64
 
+      - name: Set up build environment
+        shell: bash
+        run: |
+          # Export CMAKE_PREFIX_PATH for cibuildwheel
+          # Qt6_Dir is set by install-qt-action
+          echo "PYOPENMS_CMAKE_PREFIX_PATH=${Qt6_Dir}/lib/cmake;${Qt6_Dir};${GITHUB_WORKSPACE}/contrib;${GITHUB_WORKSPACE}/openms-build" >> $GITHUB_ENV
+          echo "PYOPENMS_OPENMS_ROOT=${GITHUB_WORKSPACE}/openms-build" >> $GITHUB_ENV
+
       - name: Build wheels with cibuildwheel
         uses: pypa/cibuildwheel@v2.22
         with:
@@ -399,9 +422,10 @@ jobs:
         env:
           CIBW_BUILD: "cp310-win_amd64 cp311-win_amd64 cp312-win_amd64 cp313-win_amd64"
           CIBW_BEFORE_BUILD: "pip install delvewheel"
-          CIBW_ENVIRONMENT: |
-            OpenMS_ROOT=${{ github.workspace }}/openms-build
-            CMAKE_PREFIX_PATH=${{ env.Qt6_Dir }}/lib/cmake;${{ env.Qt6_Dir }};${{ github.workspace }}/contrib;${{ github.workspace }}/openms-build
+          # Use shell variable expansion - PYOPENMS_* vars are set in previous step
+          CIBW_ENVIRONMENT: >
+            OpenMS_ROOT=$PYOPENMS_OPENMS_ROOT
+            CMAKE_PREFIX_PATH=$PYOPENMS_CMAKE_PREFIX_PATH
           CIBW_REPAIR_WHEEL_COMMAND: "delvewheel repair -w {dest_dir} {wheel}"
           CIBW_BUILD_VERBOSITY: 1
 
@@ -465,7 +489,8 @@ jobs:
         run: ls -la dist/
 
       - name: Publish to nightly PyPI
-        if: contains(github.ref, 'develop') || contains(github.ref, 'nightly') || (contains(github.ref, 'Release') && !inputs.upload-to-pypi)
+        # Publish to nightly on develop/nightly branches, or Release tags without pypi flag
+        if: github.ref_name == 'develop' || github.ref_name == 'nightly' || github.ref_name == 'py_nightly_test' || (startsWith(github.ref, 'refs/tags/Release') && !inputs.upload-to-pypi)
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           repository-url: https://pypi.cs.uni-tuebingen.de/
@@ -474,7 +499,8 @@ jobs:
           packages-dir: dist/
 
       - name: Publish to PyPI
-        if: contains(github.ref, 'Release') && inputs.upload-to-pypi
+        # Publish to PyPI only for Release tags with explicit pypi flag
+        if: startsWith(github.ref, 'refs/tags/Release') && inputs.upload-to-pypi
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           user: __token__
