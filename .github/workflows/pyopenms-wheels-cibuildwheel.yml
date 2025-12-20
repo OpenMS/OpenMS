@@ -255,10 +255,7 @@ jobs:
           CIBW_BUILD: "cp310-manylinux_x86_64 cp311-manylinux_x86_64 cp312-manylinux_x86_64 cp313-manylinux_x86_64"
           CIBW_MANYLINUX_X86_64_IMAGE: ghcr.io/openms/contrib_manylinux_2_34:latest-amd64
           CIBW_BEFORE_ALL: "yum install -y cmake ninja-build"
-          CIBW_ENVIRONMENT: |
-            OpenMS_ROOT=/project/openms-build
-            LD_LIBRARY_PATH=/project/openms-build/lib
-            CMAKE_PREFIX_PATH=/contrib-build:/project/openms-build
+          CIBW_ENVIRONMENT: "OpenMS_ROOT=/project/openms-build LD_LIBRARY_PATH=/project/openms-build/lib CMAKE_PREFIX_PATH=/contrib-build:/project/openms-build"
           CIBW_REPAIR_WHEEL_COMMAND: "auditwheel repair -w {dest_dir} {wheel}"
           CIBW_BUILD_VERBOSITY: 1
 
@@ -299,10 +296,7 @@ jobs:
           CIBW_BUILD: "cp310-manylinux_aarch64 cp311-manylinux_aarch64 cp312-manylinux_aarch64 cp313-manylinux_aarch64"
           CIBW_MANYLINUX_AARCH64_IMAGE: ghcr.io/openms/contrib_manylinux_2_34:latest-arm64
           CIBW_BEFORE_ALL: "yum install -y cmake ninja-build"
-          CIBW_ENVIRONMENT: |
-            OpenMS_ROOT=/project/openms-build
-            LD_LIBRARY_PATH=/project/openms-build/lib
-            CMAKE_PREFIX_PATH=/contrib-build:/project/openms-build
+          CIBW_ENVIRONMENT: "OpenMS_ROOT=/project/openms-build LD_LIBRARY_PATH=/project/openms-build/lib CMAKE_PREFIX_PATH=/contrib-build:/project/openms-build"
           CIBW_REPAIR_WHEEL_COMMAND: "auditwheel repair -w {dest_dir} {wheel}"
           CIBW_BUILD_VERBOSITY: 1
 
@@ -340,10 +334,7 @@ jobs:
           CIBW_BUILD: "cp310-macosx_arm64 cp311-macosx_arm64 cp312-macosx_arm64 cp313-macosx_arm64"
           CIBW_ARCHS_MACOS: "arm64"
           CIBW_BEFORE_BUILD: "pip install delocate"
-          CIBW_ENVIRONMENT: |
-            OpenMS_ROOT=${{ github.workspace }}/openms-build
-            CMAKE_PREFIX_PATH=/opt/homebrew:/opt/homebrew/opt/libomp:${{ github.workspace }}/openms-build
-            MACOSX_DEPLOYMENT_TARGET=14.0
+          CIBW_ENVIRONMENT: "OpenMS_ROOT=${{ github.workspace }}/openms-build CMAKE_PREFIX_PATH=/opt/homebrew:/opt/homebrew/opt/libomp:${{ github.workspace }}/openms-build MACOSX_DEPLOYMENT_TARGET=14.0"
           CIBW_REPAIR_WHEEL_COMMAND: "delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel}"
           CIBW_BUILD_VERBOSITY: 1
 
@@ -415,9 +406,7 @@ jobs:
           CIBW_BUILD: "cp310-win_amd64 cp311-win_amd64 cp312-win_amd64 cp313-win_amd64"
           CIBW_BEFORE_BUILD: "pip install delvewheel"
           # Use shell variable expansion - PYOPENMS_* vars are set in previous step
-          CIBW_ENVIRONMENT: >
-            OpenMS_ROOT=$PYOPENMS_OPENMS_ROOT
-            CMAKE_PREFIX_PATH=$PYOPENMS_CMAKE_PREFIX_PATH
+          CIBW_ENVIRONMENT: "OpenMS_ROOT=$PYOPENMS_OPENMS_ROOT CMAKE_PREFIX_PATH=$PYOPENMS_CMAKE_PREFIX_PATH"
           CIBW_REPAIR_WHEEL_COMMAND: "delvewheel repair -w {dest_dir} {wheel}"
           CIBW_BUILD_VERBOSITY: 1
 
