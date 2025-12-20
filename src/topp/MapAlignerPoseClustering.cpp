@@ -110,6 +110,8 @@ private:
     progresslogger.setLogType(log_type_);
     progresslogger.startProgress(0, in_spectra_files.size(), "transforming spectra files");
     
+    // Note: MapAlignerPoseClustering does not support store_original_rt flag,
+    // so we always pass false to transformRetentionTimes
     for (Size i = 0; i < in_spectra_files.size(); ++i)
     {
       progresslogger.setProgress(i);
@@ -235,7 +237,8 @@ protected:
     ProgressLogger plog;
     plog.setLogType(log_type_);
 
-    // Collect transformations for optional spectra files
+    // Collect transformations for optional spectra files and trafo_out
+    // Pre-allocated for thread-safe access in OpenMP parallel loop
     vector<TransformationDescription> transformations(in_files.size());
 
     plog.startProgress(0, in_files.size(), "Aligning input maps");

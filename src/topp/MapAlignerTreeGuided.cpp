@@ -152,6 +152,8 @@ private:
     progresslogger.setLogType(log_type_);
     progresslogger.startProgress(0, in_spectra_files.size(), "transforming spectra files");
     
+    // Note: MapAlignerTreeGuided does not support store_original_rt flag,
+    // so we always pass false to transformRetentionTimes
     for (Size i = 0; i < in_spectra_files.size(); ++i)
     {
       progresslogger.setProgress(i);
