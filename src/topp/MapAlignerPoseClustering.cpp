@@ -91,8 +91,6 @@ public:
     TOPPMapAlignerBase("MapAlignerPoseClustering", "Corrects retention time distortions between maps using a pose clustering approach.")
   {}
 
-private:
-
 protected:
   void registerOptionsAndFlags_() override
   {
