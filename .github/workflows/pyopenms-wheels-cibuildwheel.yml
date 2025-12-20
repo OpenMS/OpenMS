@@ -50,12 +50,13 @@ jobs:
         run: |
           cd build
           # Create a minimal package with just what pyOpenMS needs
-          # src/openms/include/ contains generated headers (OpenMSConfig.h, etc.)
+          # src/openms/include/ and src/openswathalgo/include/ contain generated headers
           # Source headers come from the checkout in wheel build job
           # Modules/ contains CMake find modules (FindLIBSVM.cmake, etc.)
           tar -czf openms-build-linux.tar.gz \
             lib/ \
             src/openms/include/ \
+            src/openswathalgo/include/ \
             Modules/ \
             CMakeCache.txt \
             OpenMSConfig.cmake \
@@ -93,12 +94,13 @@ jobs:
         run: |
           cd build
           # Create a minimal package with just what pyOpenMS needs
-          # src/openms/include/ contains generated headers (OpenMSConfig.h, etc.)
+          # src/openms/include/ and src/openswathalgo/include/ contain generated headers
           # Source headers come from the checkout in wheel build job
           # Modules/ contains CMake find modules (FindLIBSVM.cmake, etc.)
           tar -czf openms-build-linux-arm.tar.gz \
             lib/ \
             src/openms/include/ \
+            src/openswathalgo/include/ \
             Modules/ \
             CMakeCache.txt \
             OpenMSConfig.cmake \
@@ -138,12 +140,13 @@ jobs:
         run: |
           cd build
           # Create a minimal package with just what pyOpenMS needs
-          # src/openms/include/ contains generated headers (OpenMSConfig.h, etc.)
+          # src/openms/include/ and src/openswathalgo/include/ contain generated headers
           # Source headers come from the checkout in wheel build job
           # Modules/ contains CMake find modules (FindLIBSVM.cmake, etc.)
           tar -czf openms-build-macos.tar.gz \
             lib/ \
             src/openms/include/ \
+            src/openswathalgo/include/ \
             Modules/ \
             CMakeCache.txt \
             OpenMSConfig.cmake \
@@ -210,12 +213,13 @@ jobs:
         run: |
           cd build
           # Create a minimal package with just what pyOpenMS needs
-          # src/openms/include/ contains generated headers (OpenMSConfig.h, etc.)
+          # src/openms/include/ and src/openswathalgo/include/ contain generated headers
           # Source headers come from the checkout in wheel build job
           # Modules/ contains CMake find modules (FindLIBSVM.cmake, etc.)
           7z a openms-build-windows.zip \
             lib/ \
             src/openms/include/ \
+            src/openswathalgo/include/ \
             Modules/ \
             CMakeCache.txt \
             OpenMSConfig.cmake \
