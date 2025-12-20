@@ -208,6 +208,41 @@ protected:
     return EXECUTION_OK;
   }
 
+  void transformSpectraFiles_(const StringList& in_spectra_files, 
+                             const StringList& out_spectra_files,
+                             const vector<TransformationDescription>& transformations,
+                             bool store_original_rt)
+  {
+    if (in_spectra_files.empty() || out_spectra_files.empty())
+    {
+      return; // Nothing to do
+    }
+
+    OPENMS_PRECONDITION(in_spectra_files.size() == transformations.size(), 
+                        "Number of spectra files must match number of transformations");
+    OPENMS_PRECONDITION(in_spectra_files.size() == out_spectra_files.size(), 
+                        "Number of input and output spectra files must match");
+
+    ProgressLogger progresslogger;
+    progresslogger.setLogType(log_type_);
+    progresslogger.startProgress(0, in_spectra_files.size(), "transforming spectra files");
+    
+    for (Size i = 0; i < in_spectra_files.size(); ++i)
+    {
+      progresslogger.setProgress(i);
+      
+      PeakMap exp;
+      FileHandler().loadExperiment(in_spectra_files[i], exp, {FileTypes::MZML}, log_type_);
+      
+      MapAlignmentTransformer::transformRetentionTimes(exp, transformations[i], store_original_rt);
+      
+      addDataProcessing_(exp, getProcessingInfo_(DataProcessing::ALIGNMENT));
+      FileHandler().storeExperiment(out_spectra_files[i], exp, {FileTypes::MZML}, log_type_);
+    }
+    
+    progresslogger.endProgress();
+  }
+
 };
 
 }

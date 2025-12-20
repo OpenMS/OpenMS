@@ -92,41 +92,6 @@ public:
   {}
 
 private:
-  void transformSpectraFiles_(const StringList& in_spectra_files, 
-                             const StringList& out_spectra_files,
-                             const vector<TransformationDescription>& transformations)
-  {
-    if (in_spectra_files.empty() || out_spectra_files.empty())
-    {
-      return; // Nothing to do
-    }
-
-    OPENMS_PRECONDITION(in_spectra_files.size() == transformations.size(), 
-                        "Number of spectra files must match number of transformations");
-    OPENMS_PRECONDITION(in_spectra_files.size() == out_spectra_files.size(), 
-                        "Number of input and output spectra files must match");
-
-    ProgressLogger progresslogger;
-    progresslogger.setLogType(log_type_);
-    progresslogger.startProgress(0, in_spectra_files.size(), "transforming spectra files");
-    
-    // Note: MapAlignerPoseClustering does not support store_original_rt flag,
-    // so we always pass false to transformRetentionTimes
-    for (Size i = 0; i < in_spectra_files.size(); ++i)
-    {
-      progresslogger.setProgress(i);
-      
-      PeakMap exp;
-      FileHandler().loadExperiment(in_spectra_files[i], exp, {FileTypes::MZML}, log_type_);
-      
-      MapAlignmentTransformer::transformRetentionTimes(exp, transformations[i], false);
-      
-      addDataProcessing_(exp, getProcessingInfo_(DataProcessing::ALIGNMENT));
-      FileHandler().storeExperiment(out_spectra_files[i], exp, {FileTypes::MZML}, log_type_);
-    }
-    
-    progresslogger.endProgress();
-  }
 
 protected:
   void registerOptionsAndFlags_() override
@@ -237,7 +202,7 @@ protected:
     ProgressLogger plog;
     plog.setLogType(log_type_);
 
-    // Collect transformations for optional spectra files and trafo_out
+    // Collect transformations for optional spectra files
     // Pre-allocated for thread-safe access in OpenMP parallel loop
     vector<TransformationDescription> transformations(in_files.size());
 
@@ -324,9 +289,10 @@ protected:
     plog.endProgress();
     
     // Transform optional spectra files
+    // Note: MapAlignerPoseClustering does not support store_original_rt flag
     StringList in_spectra_files = getStringList_("in_spectra_files");
     StringList out_spectra_files = getStringList_("out_spectra_files");
-    transformSpectraFiles_(in_spectra_files, out_spectra_files, transformations);
+    transformSpectraFiles_(in_spectra_files, out_spectra_files, transformations, false);
     
     return EXECUTION_OK;
   }
