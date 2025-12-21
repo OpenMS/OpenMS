@@ -410,13 +410,7 @@ jobs:
 
           # Install Python build and test dependencies from pyproject.toml for pyOpenMS CMake configure
           if [[ "${PYOPENMS:-}" == "ON" ]]; then
-            pip install -q $(python3 -c "
-import tomllib
-data = tomllib.load(open('$GITHUB_WORKSPACE/OpenMS/src/pyOpenMS/pyproject.toml', 'rb'))
-build_deps = [d for d in data['build-system']['requires'] if 'py-build-cmake' not in d]
-test_deps = data.get('dependency-groups', {}).get('test', [])
-print(' '.join(build_deps + test_deps))
-")
+            pip install -q $(python3 -c "import tomllib; data = tomllib.load(open('$GITHUB_WORKSPACE/OpenMS/src/pyOpenMS/pyproject.toml', 'rb')); build_deps = [d for d in data['build-system']['requires'] if 'py-build-cmake' not in d]; test_deps = data.get('dependency-groups', {}).get('test', []); print(' '.join(build_deps + test_deps))")
           fi
 
           # Display ccache statistics before build
