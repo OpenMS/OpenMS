@@ -51,6 +51,7 @@ brew install \
   qtbase \
   qtsvg \
   apache-arrow \
+  zstd \
   bash
 
 # Optional dependencies:
