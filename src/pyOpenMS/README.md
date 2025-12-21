@@ -86,26 +86,34 @@ Use **lowercase snake_case** for all Python-facing names to follow PEP 8:
 **Note**: C++ OpenMS uses camelCase (e.g., `getPrecursorMZ()`), but Python convenience methods
 and DataFrame columns should use snake_case for Pythonic consistency.
 
-### DataFrame Export Pattern (get_data_dict → get_df)
+### DataFrame Export Pattern (get_data_dict + get_df)
 
-To add DataFrame export to a class while keeping pandas as an **optional dependency**:
+To add DataFrame export to a class, implement both methods directly in the Cython addon file:
 
-1. **Cython addon** (`addons/<Class>.pyx`): Implement `get_data_dict(columns=None)` returning a dict of numpy arrays
-2. **Python wrapper** (`pyopenms/_dataframes.py`): Create `_<Class>DF` wrapper that adds `get_df()` calling `get_data_dict()`
+1. **`get_df_columns()`**: Returns list of available column names (for discovery)
+2. **`get_data_dict(columns=None)`**: Returns dict of numpy arrays (works without pandas)
+3. **`get_df(columns=None)`**: Returns pandas DataFrame (imports pandas lazily)
 
-This two-layer pattern ensures:
+This pattern ensures:
 - Users without pandas can still access data via `get_data_dict()`
-- Pandas import only happens when `get_df()` is called
 - Column selection happens at the data extraction level for efficiency
+- All DataFrame logic is in one place (the Cython addon)
 
 **Example addon** (`addons/MyClass.pyx`):
 ```cython
 cimport numpy as np
 import numpy as np
+import pandas as pd
+
+    def get_df_columns(self, columns='default'):
+        """Returns list of column names that get_df() would produce."""
+        cols = ['mz', 'intensity']
+        if columns == 'all':
+            cols.append('extra_data')
+        return cols
 
     def get_data_dict(self, columns=None):
         """Returns dict of numpy arrays for DataFrame conversion."""
-        # Determine which columns to include
         if columns is not None:
             requested = set(columns)
         else:
@@ -120,17 +128,15 @@ import numpy as np
         if want('intensity'):
             data['intensity'] = self.get_intensity_array()
         return data
-```
 
-**Example wrapper** (`pyopenms/_dataframes.py`):
-```python
-class _MyClassDF(_MyClass):
     def get_df(self, columns=None):
         """Returns pandas DataFrame."""
-        return _pd.DataFrame(self.get_data_dict(columns=columns))
-
-MyClass = _MyClassDF
+        return pd.DataFrame(self.get_data_dict(columns=columns))
 ```
+
+**Standalone utility functions** are kept in `pyopenms/_dataframes.py`:
+- `peptide_identifications_to_df()`: Convert PeptideIdentification list to DataFrame
+- `update_scores_from_df()`: Update scores in PeptideIdentifications from DataFrame
 
 ### Adding Pythonic Methods
 

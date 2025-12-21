@@ -682,6 +682,8 @@ jobs:
           # pip install all the stuff
           python -m pip install --upgrade pip
           python -m pip install $CURRENT_WHL
+          # Install optional dependencies needed for tests
+          python -m pip install pandas pyarrow
 
           # check if package was installed
           python -c "import importlib.util; p_name = 'pyopenms'; package = importlib.util.find_spec(p_name); print(p_name + ' was sucessfully installed! Nice one!') if package is not None else print('Something seems to be wrong!')"

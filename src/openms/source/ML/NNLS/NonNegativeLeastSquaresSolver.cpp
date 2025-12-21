@@ -13,34 +13,25 @@
 namespace OpenMS
 {
 
-  Int NonNegativeLeastSquaresSolver::solve(Matrix<double>::EigenMatrixType& A, std::vector<double>& b, std::vector<double>& x)
+  Int NonNegativeLeastSquaresSolver::solve(double* A, int A_rows, int A_cols,
+                                           std::vector<double>& b, std::vector<double>& x)
   {
-    // this needs to be int (not Int, Size or anything else), because the external nnls constructor expects it this way!
-    int a_rows = (int)A.rows();
-    int a_cols = (int)A.cols();
-
-    if (a_rows != (int) b.size())
+    if (A_rows != (int)b.size())
     {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "NNSL::solve() #rows of A does not match #rows of b !");
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                        "NNSL::solve() #rows of A does not match #rows of b !");
     }
 
-    x.resize(a_cols); // description says it does not have to be initialized
+    x.resize(A_cols);
 
-    // translate A to array a (column major order)
-    double* a_vec = A.data();
-
-    // translate b
-    double* b_vec = b.data();
-
-    // prepare solution array (directly copied from example)
-    double* x_vec = x.data();
+    // prepare solution array
     double rnorm;
-    double* w = new double[a_cols];
-    double* zz = new double[a_rows];
-    int* indx = new int[a_cols];
+    double* w = new double[A_cols];
+    double* zz = new double[A_rows];
+    int* indx = new int[A_cols];
     int mode;
 
-    NNLS::nnls_(a_vec, &a_rows, &a_rows, &a_cols, b_vec, x_vec, &rnorm, w, zz, indx, &mode);
+    NNLS::nnls_(A, &A_rows, &A_rows, &A_cols, b.data(), x.data(), &rnorm, w, zz, indx, &mode);
 
     // clean up
     delete[] w;
@@ -53,7 +44,8 @@ namespace OpenMS
     }
     else if (mode == 2) // this should not happen (dimensions are bad)
     {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "NonNegativeLeastSquaresSolver::solve() Bad dimension reported!");
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                        "NonNegativeLeastSquaresSolver::solve() Bad dimension reported!");
     }
     else /*if (mode==3)*/
     {
@@ -61,20 +53,31 @@ namespace OpenMS
     }
   }
 
-  Int NonNegativeLeastSquaresSolver::solve(const Matrix<double> & A, const Matrix<double> & b, Matrix<double> & x)
+  Int NonNegativeLeastSquaresSolver::solve(Matrix<double>& A, std::vector<double>& b, std::vector<double>& x)
   {
+    int a_rows = (int)A.rows();
+    int a_cols = (int)A.cols();
+    return solve(A.data(), a_rows, a_cols, b, x);
+  }
 
+  Int NonNegativeLeastSquaresSolver::solve(const Matrix<double>& A, const Matrix<double>& b, Matrix<double>& x)
+  {
     if (A.rows() != b.rows())
     {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "NNSL::solve() #rows of A does not match #rows of b !");
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                        "NNSL::solve() #rows of A does not match #rows of b !");
     }
 
-    // translate A to array a (column major order)
-    double * a_vec = new double[A.rows() * A.cols()];
+    // this needs to be int (not Int, Size or anything else), because the external nnls constructor expects it this way!
+    int a_rows = (int)A.rows();
+    int a_cols = (int)A.cols();
+
+    // translate A to array a (column major order) - need to copy since NNLS modifies input
+    double* a_vec = new double[A.rows() * A.cols()];
     size_t idx = 0;
-    for (long int col = 0; col < A.cols(); ++col)
+    for (Size col = 0; col < A.cols(); ++col)
     {
-      for (long int row = 0; row < A.rows(); ++row)
+      for (Size row = 0; row < A.rows(); ++row)
       {
         a_vec[idx] = A(row, col);
         idx++;
@@ -85,13 +88,9 @@ namespace OpenMS
     //std::cout << "A:\n" << A << std::endl;
 #endif
 
-    // this needs to be int (not Int, Size or anything else), because the external nnls constructor expects it this way!
-    int a_rows = (int)A.rows();
-    int a_cols = (int)A.cols();
-
     // translate b
-    double * b_vec = new double[a_rows];
-    for (long int row = 0; row < b.rows(); ++row)
+    double* b_vec = new double[a_rows];
+    for (Size row = 0; row < b.rows(); ++row)
     {
       b_vec[row] = b(row, 0);
     }
@@ -101,11 +100,11 @@ namespace OpenMS
 #endif
 
     // prepare solution array (directly copied from example)
-    double * x_vec = new double[a_cols];
+    double* x_vec = new double[a_cols];
     double rnorm;
-    double * w = new double[a_cols];
-    double * zz = new double[a_rows];
-    int * indx = new int[a_cols];
+    double* w = new double[a_cols];
+    double* zz = new double[a_rows];
+    int* indx = new int[a_cols];
     int mode;
 
 #ifdef NNLS_DEBUG
@@ -115,8 +114,8 @@ namespace OpenMS
     NNLS::nnls_(a_vec, &a_rows, &a_rows, &a_cols, b_vec, x_vec, &rnorm, w, zz, indx, &mode);
 
     // translate solution back to Matrix:
-    x.getEigenMatrix().resize(a_cols, 1);
-    x.getEigenMatrix().setZero();
+    x.resize(a_cols, 1);
+    x.fill(0.0);
     for (Int row = 0; row < a_cols; ++row)
     {
       x(row, 0) = x_vec[row];
@@ -140,9 +139,10 @@ namespace OpenMS
     }
     else if (mode == 2) // this should not happen (dimensions are bad)
     {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "NonNegativeLeastSquaresSolver::solve() Bad dimension reported!");
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                        "NonNegativeLeastSquaresSolver::solve() Bad dimension reported!");
     }
-    else     /*if (mode==3)*/
+    else /*if (mode==3)*/
     {
       return ITERATION_EXCEEDED;
     }
