@@ -66,6 +66,7 @@ jobs:
           cmake .. \
             -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX=$GITHUB_WORKSPACE/openms-install \
             -DCMAKE_PREFIX_PATH=/contrib-build \
             -DOPENMS_CONTRIB_LIBS=/contrib-build \
             -DPYOPENMS=OFF \
@@ -74,30 +75,23 @@ jobs:
             -DWITH_PARQUET=ON
           ninja OpenMS OpenSwathAlgo
 
-      - name: Package OpenMS build
+      - name: Install and package OpenMS
         run: |
           cd build
-          # Strip libraries to reduce wheel size significantly
-          strip --strip-all lib/libOpenMS.so
-          strip --strip-all lib/libOpenSwathAlgo.so
-          # Create a minimal package with just what pyOpenMS needs
-          # src/openms/include/ and src/openswathalgo/include/ contain generated headers
-          # Source headers come from the checkout in wheel build job
-          # Modules/ contains CMake find modules (FindLIBSVM.cmake, etc.)
-          tar -czf openms-build-linux.tar.gz \
-            lib/ \
-            src/openms/include/ \
-            src/openswathalgo/include/ \
-            Modules/ \
-            CMakeCache.txt \
-            OpenMSConfig.cmake \
-            OpenMSConfigVersion.cmake \
-            OpenMSTargets.cmake
+          # Install OpenMS components with stripping (reduces wheel size)
+          # Using cmake --install produces relocatable paths (no sed fixes needed)
+          cmake --install . --component library --strip
+          cmake --install . --component OpenMS_headers
+          cmake --install . --component OpenSwathAlgo_headers
+          cmake --install . --component cmake
+          # Package the install directory
+          cd $GITHUB_WORKSPACE/openms-install
+          tar -czf ../openms-build-linux.tar.gz .
 
       - uses: actions/upload-artifact@v4
         with:
           name: openms-build-linux-x64
-          path: build/openms-build-linux.tar.gz
+          path: openms-build-linux.tar.gz
           retention-days: 1
 
   build-openms-linux-arm:
@@ -119,6 +113,7 @@ jobs:
           cmake .. \
             -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX=$GITHUB_WORKSPACE/openms-install \
             -DCMAKE_PREFIX_PATH=/contrib-build \
             -DOPENMS_CONTRIB_LIBS=/contrib-build \
             -DPYOPENMS=OFF \
@@ -127,30 +122,23 @@ jobs:
             -DWITH_PARQUET=ON
           ninja OpenMS OpenSwathAlgo
 
-      - name: Package OpenMS build
+      - name: Install and package OpenMS
         run: |
           cd build
-          # Strip libraries to reduce wheel size significantly
-          strip --strip-all lib/libOpenMS.so
-          strip --strip-all lib/libOpenSwathAlgo.so
-          # Create a minimal package with just what pyOpenMS needs
-          # src/openms/include/ and src/openswathalgo/include/ contain generated headers
-          # Source headers come from the checkout in wheel build job
-          # Modules/ contains CMake find modules (FindLIBSVM.cmake, etc.)
-          tar -czf openms-build-linux-arm.tar.gz \
-            lib/ \
-            src/openms/include/ \
-            src/openswathalgo/include/ \
-            Modules/ \
-            CMakeCache.txt \
-            OpenMSConfig.cmake \
-            OpenMSConfigVersion.cmake \
-            OpenMSTargets.cmake
+          # Install OpenMS components with stripping (reduces wheel size)
+          # Using cmake --install produces relocatable paths (no sed fixes needed)
+          cmake --install . --component library --strip
+          cmake --install . --component OpenMS_headers
+          cmake --install . --component OpenSwathAlgo_headers
+          cmake --install . --component cmake
+          # Package the install directory
+          cd $GITHUB_WORKSPACE/openms-install
+          tar -czf ../openms-build-linux-arm.tar.gz .
 
       - uses: actions/upload-artifact@v4
         with:
           name: openms-build-linux-arm64
-          path: build/openms-build-linux-arm.tar.gz
+          path: openms-build-linux-arm.tar.gz
           retention-days: 1
 
   build-openms-macos:
@@ -169,6 +157,7 @@ jobs:
           cmake .. \
             -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX=$GITHUB_WORKSPACE/openms-install \
             -DCMAKE_PREFIX_PATH="$(brew --prefix):$(brew --prefix libomp):$(brew --prefix icu4c)" \
             -DOpenMP_ROOT=$(brew --prefix libomp) \
             -DPYOPENMS=OFF \
@@ -178,27 +167,23 @@ jobs:
             -DWITH_PARQUET=ON
           ninja OpenMS OpenSwathAlgo
 
-      - name: Package OpenMS build
+      - name: Install and package OpenMS
         run: |
           cd build
-          # Create a minimal package with just what pyOpenMS needs
-          # src/openms/include/ and src/openswathalgo/include/ contain generated headers
-          # Source headers come from the checkout in wheel build job
-          # Modules/ contains CMake find modules (FindLIBSVM.cmake, etc.)
-          tar -czf openms-build-macos.tar.gz \
-            lib/ \
-            src/openms/include/ \
-            src/openswathalgo/include/ \
-            Modules/ \
-            CMakeCache.txt \
-            OpenMSConfig.cmake \
-            OpenMSConfigVersion.cmake \
-            OpenMSTargets.cmake
+          # Install OpenMS components with stripping (reduces wheel size)
+          # Using cmake --install produces relocatable paths (no sed fixes needed)
+          cmake --install . --component library --strip
+          cmake --install . --component OpenMS_headers
+          cmake --install . --component OpenSwathAlgo_headers
+          cmake --install . --component cmake
+          # Package the install directory
+          cd $GITHUB_WORKSPACE/openms-install
+          tar -czf ../openms-build-macos.tar.gz .
 
       - uses: actions/upload-artifact@v4
         with:
           name: openms-build-macos-arm64
-          path: build/openms-build-macos.tar.gz
+          path: openms-build-macos.tar.gz
           retention-days: 1
 
   build-openms-windows:
@@ -245,6 +230,7 @@ jobs:
           cmake .. \
             -G "Visual Studio 17 2022" -A x64 \
             -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX="$GITHUB_WORKSPACE/openms-install" \
             -DCMAKE_PREFIX_PATH="$QT_ROOT_DIR/lib/cmake;$QT_ROOT_DIR" \
             -DOPENMS_CONTRIB_LIBS="$GITHUB_WORKSPACE/contrib" \
             -DPYOPENMS=OFF \
@@ -253,28 +239,24 @@ jobs:
             -DWITH_PARQUET=ON
           cmake --build . --config Release --target OpenMS OpenSwathAlgo -j
 
-      - name: Package OpenMS build
+      - name: Install and package OpenMS
         shell: bash
         run: |
           cd build
-          # Create a minimal package with just what pyOpenMS needs
-          # src/openms/include/ and src/openswathalgo/include/ contain generated headers
-          # Source headers come from the checkout in wheel build job
-          # Modules/ contains CMake find modules (FindLIBSVM.cmake, etc.)
-          7z a openms-build-windows.zip \
-            lib/ \
-            src/openms/include/ \
-            src/openswathalgo/include/ \
-            Modules/ \
-            CMakeCache.txt \
-            OpenMSConfig.cmake \
-            OpenMSConfigVersion.cmake \
-            OpenMSTargets.cmake
+          # Install OpenMS components (no stripping on Windows)
+          # Using cmake --install produces relocatable paths (no sed fixes needed)
+          cmake --install . --config Release --component library
+          cmake --install . --config Release --component OpenMS_headers
+          cmake --install . --config Release --component OpenSwathAlgo_headers
+          cmake --install . --config Release --component cmake
+          # Package the install directory
+          cd "$GITHUB_WORKSPACE/openms-install"
+          7z a ../openms-build-windows.zip .
 
       - uses: actions/upload-artifact@v4
         with:
           name: openms-build-windows-x64
-          path: build/openms-build-windows.zip
+          path: openms-build-windows.zip
           retention-days: 1
 
   #----------------------------------------------------------------------------
@@ -300,14 +282,9 @@ jobs:
 
       - name: Extract OpenMS build
         run: |
+          # Extract installed OpenMS (cmake --install produces relocatable paths, no sed fixes needed)
           mkdir -p openms-build
           tar -xzf openms-build-linux.tar.gz -C openms-build
-          # Fix hardcoded paths from build container to wheel build container
-          # The build job runs at /__w/OpenMS/OpenMS with build at /__w/OpenMS/OpenMS/build
-          # cibuildwheel mounts workspace at /project, extracted build is at /project/openms-build
-          # Order matters: replace more specific path first
-          sed -i 's|/__w/OpenMS/OpenMS/build|/project/openms-build|g' openms-build/OpenMSTargets.cmake
-          sed -i 's|/__w/OpenMS/OpenMS|/project|g' openms-build/OpenMSTargets.cmake
 
       - name: Set CIBW_BUILD from python_versions.json
         run: |
@@ -323,7 +300,7 @@ jobs:
         env:
           CIBW_MANYLINUX_X86_64_IMAGE: ghcr.io/openms/contrib_manylinux_2_34:latest-amd64
           CIBW_BEFORE_ALL: "yum install -y cmake ninja-build"
-          CIBW_ENVIRONMENT: "OpenMS_ROOT=/project/openms-build LD_LIBRARY_PATH=/project/openms-build/lib CMAKE_PREFIX_PATH=/contrib-build:/project/openms-build"
+          CIBW_ENVIRONMENT: "OpenMS_ROOT=/project/openms-build CMAKE_PREFIX_PATH=/contrib-build:/project/openms-build LD_LIBRARY_PATH=/project/openms-build/lib"
           CIBW_REPAIR_WHEEL_COMMAND: "auditwheel repair -w {dest_dir} {wheel}"
           CIBW_BUILD_VERBOSITY: 1
 
@@ -352,14 +329,9 @@ jobs:
 
       - name: Extract OpenMS build
         run: |
+          # Extract installed OpenMS (cmake --install produces relocatable paths, no sed fixes needed)
           mkdir -p openms-build
           tar -xzf openms-build-linux-arm.tar.gz -C openms-build
-          # Fix hardcoded paths from build container to wheel build container
-          # The build job runs at /__w/OpenMS/OpenMS with build at /__w/OpenMS/OpenMS/build
-          # cibuildwheel mounts workspace at /project, extracted build is at /project/openms-build
-          # Order matters: replace more specific path first
-          sed -i 's|/__w/OpenMS/OpenMS/build|/project/openms-build|g' openms-build/OpenMSTargets.cmake
-          sed -i 's|/__w/OpenMS/OpenMS|/project|g' openms-build/OpenMSTargets.cmake
 
       - name: Set CIBW_BUILD from python_versions.json
         run: |
@@ -375,7 +347,7 @@ jobs:
         env:
           CIBW_MANYLINUX_AARCH64_IMAGE: ghcr.io/openms/contrib_manylinux_2_34:latest-arm64
           CIBW_BEFORE_ALL: "yum install -y cmake ninja-build"
-          CIBW_ENVIRONMENT: "OpenMS_ROOT=/project/openms-build LD_LIBRARY_PATH=/project/openms-build/lib CMAKE_PREFIX_PATH=/contrib-build:/project/openms-build"
+          CIBW_ENVIRONMENT: "OpenMS_ROOT=/project/openms-build CMAKE_PREFIX_PATH=/contrib-build:/project/openms-build LD_LIBRARY_PATH=/project/openms-build/lib"
           CIBW_REPAIR_WHEEL_COMMAND: "auditwheel repair -w {dest_dir} {wheel}"
           CIBW_BUILD_VERBOSITY: 1
 
@@ -397,6 +369,7 @@ jobs:
 
       - name: Extract OpenMS build
         run: |
+          # Extract installed OpenMS (cmake --install produces relocatable paths)
           mkdir -p openms-build
           tar -xzf openms-build-macos.tar.gz -C openms-build
 
@@ -465,6 +438,7 @@ jobs:
       - name: Extract OpenMS build
         shell: bash
         run: |
+          # Extract installed OpenMS (cmake --install produces relocatable paths)
           mkdir -p openms-build
           7z x openms-build-windows.zip -oopenms-build
 
