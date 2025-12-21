@@ -34,6 +34,8 @@ cdef extern from "<OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>" name
         void setLibraryIntensity(double l) except + nogil
         double getProductMZ() except + nogil
         double getPrecursorMZ() except + nogil
+        bool isPrecursorImSet() except + nogil
+        double getPrecursorIM() except + nogil
 
         libcpp_string getCompoundRef() except + nogil
 

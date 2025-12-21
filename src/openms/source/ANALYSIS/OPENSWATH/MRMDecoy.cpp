@@ -794,7 +794,7 @@ namespace OpenMS
       else if (method == "shuffle")
       {
         decoy_temp_peptide = shufflePeptide(temp_peptide, identity_threshold, -1, max_attempts);
-        if (do_switchKR && hasCNterminalMods_(temp_peptide, do_switchKR))
+        if (do_switchKR && hasCNterminalMods_(decoy_temp_peptide, do_switchKR))
         {
           exclusion_peptides.insert(decoy_compound.id);
           continue;

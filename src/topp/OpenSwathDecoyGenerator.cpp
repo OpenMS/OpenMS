@@ -240,6 +240,12 @@ protected:
       OPENMS_LOG_INFO << "Number of target proteins: " << light_exp.proteins.size() << std::endl;
       OPENMS_LOG_INFO << "Number of decoy proteins: " << light_decoy.proteins.size() << std::endl;
 
+      if (light_exp.compounds.empty() || light_exp.proteins.empty())
+      {
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "The input experiment has no compounds or proteins.");
+      }
+
       if ((float)light_decoy.compounds.size() / (float)light_exp.compounds.size() < min_decoy_fraction ||
           (float)light_decoy.proteins.size() / (float)light_exp.proteins.size() < min_decoy_fraction)
       {
@@ -357,7 +363,7 @@ protected:
         tsv_reader.setLogType(log_type_);
         tsv_reader.convertTargetedExperimentToTSV(tr_file, targeted_merged);
       }
-      if (out_type == FileTypes::PQP)
+      else if (out_type == FileTypes::PQP)
       {
         const char * tr_file = out.c_str();
         TransitionPQPFile pqp_reader = TransitionPQPFile();

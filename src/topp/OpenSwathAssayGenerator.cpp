@@ -370,7 +370,7 @@ protected:
         tsv_reader.setLogType(log_type_);
         tsv_reader.convertTargetedExperimentToTSV(tr_file, targeted_exp);
       }
-      if (out_type == FileTypes::PQP)
+      else if (out_type == FileTypes::PQP)
       {
         const char * tr_file = out.c_str();
         TransitionPQPFile pqp_reader = TransitionPQPFile();
