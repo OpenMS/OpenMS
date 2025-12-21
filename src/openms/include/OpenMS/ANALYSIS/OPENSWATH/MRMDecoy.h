@@ -12,6 +12,7 @@
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
 
 
 #include <string>
@@ -101,6 +102,46 @@ public:
                         const bool enable_specific_losses,
                         const bool enable_unspecific_losses,
                         const int round_decPow = -4) const;
+
+    /**
+      @brief Generate decoys from a LightTargetedExperiment (memory-efficient version)
+
+      Light version of generateDecoys() for memory-efficient processing of large libraries.
+
+      @param[in] exp The target experiment (Light structure)
+      @param[out] dec The decoy experiment (Light structure)
+      @param[in] method The decoy generation method: "shuffle", "reverse", or "pseudo-reverse"
+      @param[in] aim_decoy_fraction Fraction of decoys to generate (1.0 = 100%)
+      @param[in] switchKR Whether to switch terminal K/R
+      @param[in] decoy_tag Tag to prepend to decoy IDs
+      @param[in] max_attempts Maximum shuffle attempts
+      @param[in] identity_threshold Maximum sequence identity for shuffled decoys
+      @param[in] precursor_mz_shift Precursor m/z shift for decoys
+      @param[in] product_mz_shift Product m/z shift for decoys (for shift method)
+      @param[in] product_mz_threshold Product m/z threshold for annotation
+      @param[in] fragment_types Fragment types to consider
+      @param[in] fragment_charges Fragment charges to consider
+      @param[in] enable_specific_losses Enable specific neutral losses
+      @param[in] enable_unspecific_losses Enable unspecific neutral losses
+      @param[in] round_decPow Round product m/z values to decimal power
+
+    */
+    void generateDecoysLight(const OpenSwath::LightTargetedExperiment& exp,
+                             OpenSwath::LightTargetedExperiment& dec,
+                             const String& method,
+                             const double aim_decoy_fraction,
+                             const bool switchKR,
+                             const String& decoy_tag,
+                             const int max_attempts,
+                             const double identity_threshold,
+                             const double precursor_mz_shift,
+                             const double product_mz_shift,
+                             const double product_mz_threshold,
+                             const std::vector<String>& fragment_types,
+                             const std::vector<size_t>& fragment_charges,
+                             const bool enable_specific_losses,
+                             const bool enable_unspecific_losses,
+                             const int round_decPow = -4) const;
 
     /**
        @brief Switch the final Amino Acid of a tryptic peptide.

@@ -636,4 +636,372 @@ namespace OpenMS
 
   }
 
+  void MRMDecoy::generateDecoysLight(const OpenSwath::LightTargetedExperiment& exp,
+                                     OpenSwath::LightTargetedExperiment& dec,
+                                     const String& method,
+                                     const double aim_decoy_fraction,
+                                     const bool do_switchKR,
+                                     const String& decoy_tag,
+                                     const int max_attempts,
+                                     const double identity_threshold,
+                                     const double precursor_mz_shift,
+                                     const double product_mz_shift,
+                                     const double product_mz_threshold,
+                                     const std::vector<String>& fragment_types,
+                                     const std::vector<size_t>& fragment_charges,
+                                     const bool enable_specific_losses,
+                                     const bool enable_unspecific_losses,
+                                     const int round_decPow) const
+  {
+    MRMIonSeries mrmis;
+    std::vector<OpenSwath::LightCompound> decoy_compounds;
+    std::vector<OpenSwath::LightProtein> decoy_proteins;
+    std::vector<OpenSwath::LightTransition> decoy_transitions;
+
+    // Create decoy proteins
+    for (const auto& protein : exp.proteins)
+    {
+      OpenSwath::LightProtein decoy_protein = protein;
+      decoy_protein.id = decoy_tag + protein.id;
+      decoy_proteins.push_back(decoy_protein);
+    }
+
+    srand(time(nullptr));
+    std::vector<size_t> item_list, selection_list;
+    item_list.reserve(exp.compounds.size());
+    for (Size k = 0; k < exp.compounds.size(); k++) { item_list.push_back(k); }
+
+    if (aim_decoy_fraction > 1.0)
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                       "Decoy fraction needs to be less than one");
+    }
+    else if (aim_decoy_fraction < 1.0)
+    {
+      Math::RandomShuffler shuffler;
+      shuffler.portable_random_shuffle(item_list.begin(), item_list.end());
+      selection_list.reserve(aim_decoy_fraction * exp.compounds.size());
+      Size k = 0;
+      while (selection_list.size() < aim_decoy_fraction * exp.compounds.size())
+      {
+        selection_list.push_back(item_list[k++ % item_list.size()]);
+      }
+    }
+    else
+    {
+      selection_list = item_list;
+    }
+
+    // Create map of all peptide sequences to detect duplicates
+    std::unordered_map<std::string, std::string> allPeptideSequences;
+    for (const auto& idx : selection_list)
+    {
+      const auto& compound = exp.compounds[idx];
+      if (compound.isPeptide())
+      {
+        allPeptideSequences[compound.sequence + std::to_string(compound.charge)] = compound.id;
+      }
+    }
+
+    std::unordered_set<std::string> exclusion_peptides;
+
+    // Build compound map
+    std::map<std::string, const OpenSwath::LightCompound*> compound_map;
+    for (const auto& compound : exp.compounds)
+    {
+      compound_map[compound.id] = &compound;
+    }
+
+    // Go through all compounds and generate decoys
+    Size progress = 0;
+    startProgress(0, selection_list.size(), "Generating decoy peptides (Light)");
+
+    for (const auto& idx : selection_list)
+    {
+      setProgress(++progress);
+
+      OpenSwath::LightCompound decoy_compound = exp.compounds[idx];
+      const std::string original_id = decoy_compound.id;
+      decoy_compound.id = decoy_tag + decoy_compound.id;
+
+      // Update protein refs
+      for (auto& prot_ref : decoy_compound.protein_refs)
+      {
+        prot_ref = decoy_tag + prot_ref;
+      }
+
+      // Update peptide_group_label
+      if (!decoy_compound.peptide_group_label.empty())
+      {
+        decoy_compound.peptide_group_label = decoy_tag + decoy_compound.peptide_group_label;
+      }
+
+      if (!decoy_compound.isPeptide())
+      {
+        // For metabolites, just copy with decoy tag
+        decoy_compounds.push_back(decoy_compound);
+        continue;
+      }
+
+      // Parse sequence to AASequence
+      OpenMS::AASequence original_sequence;
+      try
+      {
+        original_sequence = AASequence::fromString(decoy_compound.sequence);
+      }
+      catch (Exception::InvalidValue&)
+      {
+        OPENMS_LOG_DEBUG << "[peptide] Skipping " << decoy_compound.id << " - cannot parse sequence" << std::endl;
+        exclusion_peptides.insert(decoy_compound.id);
+        continue;
+      }
+
+      // Create a temporary heavy Peptide for decoy generation
+      OpenMS::TargetedExperiment::Peptide temp_peptide;
+      temp_peptide.sequence = original_sequence.toUnmodifiedString();
+      temp_peptide.id = original_id;
+
+      // Copy modifications
+      for (const auto& mod : decoy_compound.modifications)
+      {
+        OpenMS::TargetedExperiment::Peptide::Modification temp_mod;
+        temp_mod.location = mod.location;
+        temp_mod.unimod_id = mod.unimod_id;
+        temp_peptide.mods.push_back(temp_mod);
+      }
+
+      // Apply decoy method
+      OpenMS::TargetedExperiment::Peptide decoy_temp_peptide;
+      if (method == "pseudo-reverse")
+      {
+        if (hasCNterminalMods_(temp_peptide, do_switchKR))
+        {
+          exclusion_peptides.insert(decoy_compound.id);
+          continue;
+        }
+        decoy_temp_peptide = pseudoreversePeptide_(temp_peptide);
+        if (do_switchKR) { switchKR(decoy_temp_peptide); }
+      }
+      else if (method == "reverse")
+      {
+        if (hasCNterminalMods_(temp_peptide, false))
+        {
+          exclusion_peptides.insert(decoy_compound.id);
+          continue;
+        }
+        decoy_temp_peptide = reversePeptide_(temp_peptide);
+      }
+      else if (method == "shuffle")
+      {
+        decoy_temp_peptide = shufflePeptide(temp_peptide, identity_threshold, -1, max_attempts);
+        if (do_switchKR && hasCNterminalMods_(temp_peptide, do_switchKR))
+        {
+          exclusion_peptides.insert(decoy_compound.id);
+          continue;
+        }
+        else if (do_switchKR)
+        {
+          switchKR(decoy_temp_peptide);
+        }
+      }
+      else
+      {
+        decoy_temp_peptide = temp_peptide;
+      }
+
+      // Check for duplicates
+      std::string decoy_key = std::string(decoy_temp_peptide.sequence) + std::to_string(decoy_compound.charge);
+      if (allPeptideSequences.find(decoy_key) != allPeptideSequences.end())
+      {
+        exclusion_peptides.insert(decoy_compound.id);
+        continue;
+      }
+      allPeptideSequences[decoy_key] = decoy_compound.id;
+
+      // Update Light compound sequence from decoy
+      decoy_compound.sequence = getModifiedPeptideSequence_(decoy_temp_peptide);
+
+      // Update modifications
+      decoy_compound.modifications.clear();
+      for (const auto& mod : decoy_temp_peptide.mods)
+      {
+        OpenSwath::LightModification light_mod;
+        light_mod.location = mod.location;
+        light_mod.unimod_id = mod.unimod_id;
+        decoy_compound.modifications.push_back(light_mod);
+      }
+
+      decoy_compounds.push_back(decoy_compound);
+    }
+    endProgress();
+
+    // Build decoy compound map
+    std::map<std::string, const OpenSwath::LightCompound*> decoy_compound_map;
+    for (const auto& compound : decoy_compounds)
+    {
+      decoy_compound_map[compound.id] = &compound;
+    }
+
+    // Group transitions by peptide_ref
+    std::map<std::string, std::vector<const OpenSwath::LightTransition*>> peptide_trans_map;
+    for (const auto& tr : exp.transitions)
+    {
+      peptide_trans_map[tr.peptide_ref].push_back(&tr);
+    }
+
+    progress = 0;
+    startProgress(0, peptide_trans_map.size(), "Generating decoy transitions (Light)");
+
+    for (const auto& pep_it : peptide_trans_map)
+    {
+      setProgress(++progress);
+
+      const std::string& peptide_ref = pep_it.first;
+      std::string decoy_peptide_ref = decoy_tag + peptide_ref;
+
+      // Check if we have this decoy compound
+      auto decoy_comp_it = decoy_compound_map.find(decoy_peptide_ref);
+      if (decoy_comp_it == decoy_compound_map.end())
+      {
+        continue;
+      }
+
+      auto target_comp_it = compound_map.find(peptide_ref);
+      if (target_comp_it == compound_map.end())
+      {
+        continue;
+      }
+
+      const OpenSwath::LightCompound* target_compound = target_comp_it->second;
+      const OpenSwath::LightCompound* decoy_compound = decoy_comp_it->second;
+
+      if (!target_compound->isPeptide())
+      {
+        // For metabolites, just copy transitions with decoy tag
+        for (const auto* tr : pep_it.second)
+        {
+          OpenSwath::LightTransition decoy_tr = *tr;
+          decoy_tr.transition_name = decoy_tag + tr->transition_name;
+          decoy_tr.peptide_ref = decoy_peptide_ref;
+          decoy_tr.decoy = true;
+          decoy_transitions.push_back(decoy_tr);
+        }
+        continue;
+      }
+
+      OpenMS::AASequence target_sequence, decoy_sequence;
+      try
+      {
+        target_sequence = AASequence::fromString(target_compound->sequence);
+        decoy_sequence = AASequence::fromString(decoy_compound->sequence);
+      }
+      catch (Exception::InvalidValue&)
+      {
+        continue;
+      }
+
+      int target_charge = target_compound->charge > 0 ? target_compound->charge : 1;
+      int decoy_charge = decoy_compound->charge > 0 ? decoy_compound->charge : 1;
+
+      MRMIonSeries::IonSeries target_ionseries = mrmis.getIonSeries(
+          target_sequence, target_charge, fragment_types, fragment_charges,
+          enable_specific_losses, enable_unspecific_losses, round_decPow);
+
+      MRMIonSeries::IonSeries decoy_ionseries = mrmis.getIonSeries(
+          decoy_sequence, decoy_charge, fragment_types, fragment_charges,
+          enable_specific_losses, enable_unspecific_losses, round_decPow);
+
+      double decoy_precursor_mz = decoy_sequence.getMZ(decoy_charge) + precursor_mz_shift;
+
+      for (const auto* tr : pep_it.second)
+      {
+        if (!tr->detecting_transition || tr->decoy)
+        {
+          continue;
+        }
+
+        OpenSwath::LightTransition decoy_tr = *tr;
+        decoy_tr.transition_name = decoy_tag + tr->transition_name;
+        decoy_tr.peptide_ref = decoy_peptide_ref;
+        decoy_tr.decoy = true;
+        decoy_tr.precursor_mz = decoy_precursor_mz;
+
+        // Annotate and get decoy fragment m/z
+        std::pair<String, double> targetion = mrmis.annotateIon(target_ionseries, tr->product_mz, product_mz_threshold);
+        std::pair<String, double> decoyion = mrmis.getIon(decoy_ionseries, targetion.first);
+
+        if (method == "shift")
+        {
+          decoy_tr.product_mz = decoyion.second + product_mz_shift;
+        }
+        else
+        {
+          decoy_tr.product_mz = decoyion.second;
+        }
+
+        if (decoyion.second > 0)
+        {
+          // Update fragment annotation
+          if (!targetion.first.empty())
+          {
+            decoy_tr.fragment_type = targetion.first.substr(0, 1);
+            std::string num_str;
+            for (size_t i = 1; i < targetion.first.size() && std::isdigit(targetion.first[i]); ++i)
+            {
+              num_str += targetion.first[i];
+            }
+            if (!num_str.empty())
+            {
+              decoy_tr.fragment_nr = std::stoi(num_str);
+            }
+            decoy_tr.annotation = targetion.first;
+          }
+          decoy_transitions.push_back(decoy_tr);
+        }
+        else
+        {
+          exclusion_peptides.insert(decoy_peptide_ref);
+        }
+      }
+    }
+    endProgress();
+
+    // Filter out excluded peptides from transitions
+    decoy_transitions.erase(
+        std::remove_if(decoy_transitions.begin(), decoy_transitions.end(),
+                       [&exclusion_peptides](const OpenSwath::LightTransition& tr) {
+                         return exclusion_peptides.find(tr.peptide_ref) != exclusion_peptides.end();
+                       }),
+        decoy_transitions.end());
+
+    // Filter compounds
+    std::vector<OpenSwath::LightCompound> filtered_compounds;
+    std::unordered_set<std::string> protein_ids;
+    for (const auto& compound : decoy_compounds)
+    {
+      if (exclusion_peptides.find(compound.id) == exclusion_peptides.end())
+      {
+        filtered_compounds.push_back(compound);
+        for (const auto& prot_ref : compound.protein_refs)
+        {
+          protein_ids.insert(prot_ref);
+        }
+      }
+    }
+
+    // Filter proteins
+    std::vector<OpenSwath::LightProtein> filtered_proteins;
+    for (const auto& protein : decoy_proteins)
+    {
+      if (protein_ids.find(protein.id) != protein_ids.end())
+      {
+        filtered_proteins.push_back(protein);
+      }
+    }
+
+    dec.transitions = std::move(decoy_transitions);
+    dec.compounds = std::move(filtered_compounds);
+    dec.proteins = std::move(filtered_proteins);
+  }
+
 }

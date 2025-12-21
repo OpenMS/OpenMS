@@ -26,9 +26,15 @@ namespace OpenSwath
     double precursor_im{-1};
     int fragment_charge{};
     bool decoy{};
-    bool detecting_transition{};
-    bool quantifying_transition{};
+    bool detecting_transition{true};
+    bool quantifying_transition{true};
     bool identifying_transition{};
+
+    // Additional fields for roundtrip TSV/PQP I/O
+    int fragment_nr{-1};                         ///< Fragment ion ordinal (e.g. 7 for y7)
+    std::string fragment_type;                   ///< Fragment ion type (e.g. "b" or "y")
+    std::string annotation;                      ///< Transition-level annotation
+    std::vector<std::string> peptidoforms;       ///< Peptidoforms for IPF
 
     int getProductChargeState() const
     {
@@ -146,6 +152,11 @@ namespace OpenSwath
     std::string sum_formula;
     std::string compound_name;
 
+    // Additional fields for roundtrip TSV/PQP I/O
+    std::string label_type;                      ///< Label type (e.g. "heavy" or "light")
+    std::string smiles;                          ///< SMILES representation (metabolomics)
+    std::string adducts;                         ///< Adducts (metabolomics)
+
     // By convention, if there is no (metabolic) compound name, it is a peptide 
     bool isPeptide() const
     {
@@ -179,6 +190,9 @@ namespace OpenSwath
   {
     std::string id;
     std::string sequence;
+
+    // Additional fields for roundtrip TSV/PQP I/O
+    std::string uniprot_id;                      ///< UniProt identifier
   };
 
   struct LightTargetedExperiment

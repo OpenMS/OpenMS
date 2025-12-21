@@ -1191,4 +1191,289 @@ namespace OpenMS
     exp.setTransitions(filtered_transitions);
   }
 
+  // =====================================================================
+  // Light (memory-efficient) versions of the above methods
+  // =====================================================================
+
+  void MRMAssay::reannotateTransitionsLight(OpenSwath::LightTargetedExperiment& exp,
+                                            double precursor_mz_threshold,
+                                            double product_mz_threshold,
+                                            const std::vector<String>& fragment_types,
+                                            const std::vector<size_t>& fragment_charges,
+                                            bool enable_specific_losses,
+                                            bool enable_unspecific_losses,
+                                            int round_decPow)
+  {
+    std::vector<OpenSwath::LightTransition> transitions;
+    OpenMS::MRMIonSeries mrmis;
+
+    // Build compound map for quick lookup
+    std::map<std::string, const OpenSwath::LightCompound*> compound_map;
+    for (const auto& compound : exp.compounds)
+    {
+      compound_map[compound.id] = &compound;
+    }
+
+    // Group transitions by peptide_ref
+    std::map<std::string, std::vector<OpenSwath::LightTransition*>> peptide_trans_map;
+    for (auto& tr : exp.transitions)
+    {
+      peptide_trans_map[tr.peptide_ref].push_back(&tr);
+    }
+
+    Size progress = 0;
+    startProgress(0, exp.transitions.size(), "Annotating transitions (Light)");
+
+    for (auto& pep_it : peptide_trans_map)
+    {
+      const std::string& peptide_ref = pep_it.first;
+
+      // Get compound
+      auto comp_it = compound_map.find(peptide_ref);
+      if (comp_it == compound_map.end() || !comp_it->second->isPeptide())
+      {
+        // Skip non-peptide compounds (metabolomics) - just keep transitions as-is
+        for (auto* tr : pep_it.second)
+        {
+          setProgress(++progress);
+          transitions.push_back(*tr);
+        }
+        continue;
+      }
+
+      const OpenSwath::LightCompound* compound = comp_it->second;
+      OpenMS::AASequence target_peptide_sequence;
+      try
+      {
+        target_peptide_sequence = AASequence::fromString(compound->sequence);
+      }
+      catch (Exception::InvalidValue&)
+      {
+        // Can't parse sequence, keep transitions as-is
+        for (auto* tr : pep_it.second)
+        {
+          setProgress(++progress);
+          transitions.push_back(*tr);
+        }
+        continue;
+      }
+
+      int precursor_charge = compound->charge > 0 ? compound->charge : 1;
+
+      MRMIonSeries::IonSeries target_ionseries = mrmis.getIonSeries(
+          target_peptide_sequence, precursor_charge, fragment_types,
+          fragment_charges, enable_specific_losses,
+          enable_unspecific_losses, round_decPow);
+
+      // Generate theoretical precursor m/z
+      double precursor_mz = target_peptide_sequence.getMZ(precursor_charge);
+      precursor_mz = Math::roundDecimal(precursor_mz, round_decPow);
+
+      for (auto* tr : pep_it.second)
+      {
+        setProgress(++progress);
+
+        // Annotate transition from theoretical ion series
+        std::pair<String, double> targetion = mrmis.annotateIon(target_ionseries, tr->product_mz, product_mz_threshold);
+
+        // Ensure that precursor m/z is within threshold
+        if (std::fabs(tr->precursor_mz - precursor_mz) > precursor_mz_threshold)
+        {
+          targetion.first = "unannotated";
+        }
+
+        // Skip unannotated transitions
+        if (targetion.first == "unannotated")
+        {
+          OPENMS_LOG_DEBUG << "[unannotated] Skipping " << target_peptide_sequence.toString()
+            << " PrecursorMZ: " << tr->precursor_mz << " ProductMZ: " << tr->product_mz << std::endl;
+          continue;
+        }
+
+        OpenSwath::LightTransition new_tr = *tr;
+
+        // Set precursor m/z to theoretical value
+        new_tr.precursor_mz = precursor_mz;
+
+        // Set product m/z to theoretical value
+        new_tr.product_mz = targetion.second;
+
+        // Parse fragment type and number from annotation
+        // Format examples: "y7", "b3", "y5-H2O1"
+        std::string annotation = targetion.first;
+        if (!annotation.empty())
+        {
+          new_tr.fragment_type = annotation.substr(0, 1);
+
+          // Extract fragment number
+          std::string num_str;
+          for (size_t i = 1; i < annotation.size(); ++i)
+          {
+            if (std::isdigit(annotation[i]))
+            {
+              num_str += annotation[i];
+            }
+            else
+            {
+              break;
+            }
+          }
+          if (!num_str.empty())
+          {
+            new_tr.fragment_nr = std::stoi(num_str);
+          }
+          new_tr.annotation = annotation;
+        }
+
+        transitions.push_back(new_tr);
+      }
+    }
+    endProgress();
+
+    exp.transitions = std::move(transitions);
+  }
+
+  void MRMAssay::restrictTransitionsLight(OpenSwath::LightTargetedExperiment& exp,
+                                          double lower_mz_limit,
+                                          double upper_mz_limit,
+                                          const std::vector<std::pair<double, double> >& swathes)
+  {
+    std::vector<OpenSwath::LightTransition> transitions;
+
+    // Build compound map for quick lookup
+    std::map<std::string, const OpenSwath::LightCompound*> compound_map;
+    for (const auto& compound : exp.compounds)
+    {
+      compound_map[compound.id] = &compound;
+    }
+
+    Size progress = 0;
+    startProgress(0, exp.transitions.size(), "Restricting transitions (Light)");
+
+    for (const auto& tr : exp.transitions)
+    {
+      setProgress(++progress);
+
+      // Check if product m/z falls into swath from precursor m/z and if yes, skip
+      if (!swathes.empty())
+      {
+        if (MRMAssay::isInSwath_(swathes, tr.precursor_mz, tr.product_mz))
+        {
+          OPENMS_LOG_DEBUG << "[swath] Skipping PrecursorMZ: " << tr.precursor_mz << " ProductMZ: " << tr.product_mz << std::endl;
+          continue;
+        }
+      }
+
+      // Check if product m/z is outside of m/z boundaries and if yes, skip
+      if (tr.product_mz < lower_mz_limit || tr.product_mz > upper_mz_limit)
+      {
+        OPENMS_LOG_DEBUG << "[mz_limit] Skipping PrecursorMZ: " << tr.precursor_mz << " ProductMZ: " << tr.product_mz << std::endl;
+        continue;
+      }
+
+      // Append transition
+      transitions.push_back(tr);
+    }
+
+    exp.transitions = std::move(transitions);
+    endProgress();
+  }
+
+  void MRMAssay::detectingTransitionsLight(OpenSwath::LightTargetedExperiment& exp,
+                                           int min_transitions,
+                                           int max_transitions)
+  {
+    std::vector<OpenSwath::LightTransition> transitions;
+    std::vector<OpenSwath::LightCompound> compounds;
+    std::vector<OpenSwath::LightProtein> proteins;
+
+    std::unordered_set<std::string> peptide_ids;
+    std::unordered_set<std::string> protein_list;
+
+    // Group transitions by peptide_ref
+    std::map<std::string, std::vector<OpenSwath::LightTransition>> transitions_map;
+    for (const auto& tr : exp.transitions)
+    {
+      transitions_map[tr.peptide_ref].push_back(tr);
+    }
+
+    Size progress = 0;
+    startProgress(0, transitions_map.size() + exp.compounds.size() + exp.proteins.size(), "Select detecting transitions (Light)");
+
+    for (auto& m : transitions_map)
+    {
+      setProgress(++progress);
+
+      // Ensure that all precursors have the minimum number of transitions
+      if (m.second.size() >= static_cast<size_t>(min_transitions))
+      {
+        // LibraryIntensity stores all reference transition intensities of a precursor
+        std::vector<double> library_intensity;
+        for (const auto& tr : m.second)
+        {
+          library_intensity.push_back(tr.library_intensity);
+        }
+
+        // Sort by intensity, reverse and delete all elements after max_transitions
+        std::sort(library_intensity.begin(), library_intensity.end(), std::greater<double>());
+        if (static_cast<size_t>(max_transitions) < library_intensity.size())
+        {
+          library_intensity.resize(max_transitions);
+        }
+
+        // Check if transitions are among the ones with maximum intensity
+        size_t j = 0;
+        for (auto& tr : m.second)
+        {
+          if (std::find(library_intensity.begin(), library_intensity.end(), tr.library_intensity) != library_intensity.end() &&
+              !tr.decoy &&
+              j < static_cast<size_t>(max_transitions))
+          {
+            tr.detecting_transition = true;
+            transitions.push_back(tr);
+            peptide_ids.insert(tr.peptide_ref);
+            j++;
+          }
+        }
+      }
+    }
+
+    // Build compound map
+    std::map<std::string, const OpenSwath::LightCompound*> compound_map;
+    for (const auto& compound : exp.compounds)
+    {
+      compound_map[compound.id] = &compound;
+    }
+
+    for (const auto& compound : exp.compounds)
+    {
+      setProgress(++progress);
+
+      if (peptide_ids.find(compound.id) != peptide_ids.end())
+      {
+        compounds.push_back(compound);
+        for (const auto& protein_ref : compound.protein_refs)
+        {
+          protein_list.insert(protein_ref);
+        }
+      }
+    }
+
+    for (const auto& protein : exp.proteins)
+    {
+      setProgress(++progress);
+
+      if (protein_list.find(protein.id) != protein_list.end())
+      {
+        proteins.push_back(protein);
+      }
+    }
+
+    exp.transitions = std::move(transitions);
+    exp.compounds = std::move(compounds);
+    exp.proteins = std::move(proteins);
+
+    endProgress();
+  }
+
 }

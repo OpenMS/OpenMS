@@ -675,24 +675,80 @@ namespace OpenMS
       transition.identifying_transition = tr_it->identifying_transition;
       transition.quantifying_transition = tr_it->quantifying_transition;
 
+      // Additional fields for roundtrip I/O
+      transition.fragment_nr = tr_it->fragment_nr;
+      transition.fragment_type = tr_it->fragment_type;
+      transition.annotation = tr_it->Annotation;
+      transition.peptidoforms.assign(tr_it->peptidoforms.begin(), tr_it->peptidoforms.end());
+
       exp.transitions.push_back(transition);
 
       // check whether we need a new compound
       if (compound_map.find(tr_it->group_id) == compound_map.end())
       {
         OpenSwath::LightCompound compound;
+        compound.id = tr_it->group_id;
+        compound.drift_time = tr_it->drift_time;
+        compound.rt = tr_it->rt_calibrated;
+        compound.charge = 0;
+        if (!tr_it->precursor_charge.empty() && tr_it->precursor_charge != "NA")
+        {
+          compound.charge = tr_it->precursor_charge.toInt();
+        }
+        compound.peptide_group_label = tr_it->peptide_group_label;
+        compound.gene_name = tr_it->GeneName;
+
         if (tr_it->isPeptide())
         {
-          OpenMS::TargetedExperiment::Peptide tramlpeptide;
-          createPeptide_(tr_it, tramlpeptide);
-          OpenSwathDataAccessHelper::convertTargetedCompound(tramlpeptide, compound);
+          compound.sequence = tr_it->FullPeptideName.empty() ? tr_it->PeptideSequence : tr_it->FullPeptideName;
+          compound.protein_refs.assign(tr_it->ProteinName.begin(), tr_it->ProteinName.end());
+          // Parse modifications from FullPeptideName if available
+          String sequence = tr_it->FullPeptideName.empty() ? tr_it->PeptideSequence : tr_it->FullPeptideName;
+          try
+          {
+            AASequence aa_sequence = AASequence::fromString(sequence);
+            if (aa_sequence.hasNTerminalModification())
+            {
+              OpenSwath::LightModification mod;
+              mod.location = -1;
+              mod.unimod_id = aa_sequence.getNTerminalModification()->getUniModRecordId();
+              compound.modifications.push_back(mod);
+            }
+            if (aa_sequence.hasCTerminalModification())
+            {
+              OpenSwath::LightModification mod;
+              mod.location = static_cast<int>(aa_sequence.size());
+              mod.unimod_id = aa_sequence.getCTerminalModification()->getUniModRecordId();
+              compound.modifications.push_back(mod);
+            }
+            for (Size i = 0; i != aa_sequence.size(); i++)
+            {
+              if (aa_sequence[i].isModified())
+              {
+                OpenSwath::LightModification mod;
+                mod.location = static_cast<int>(i);
+                mod.unimod_id = aa_sequence.getResidue(i).getModification()->getUniModRecordId();
+                compound.modifications.push_back(mod);
+              }
+            }
+          }
+          catch (Exception::InvalidValue&)
+          {
+            // If we can't parse the sequence, just continue without modifications
+            OPENMS_LOG_DEBUG << "Could not parse modifications from sequence: " << sequence << std::endl;
+          }
         }
         else
         {
-          OpenMS::TargetedExperiment::Compound tramlcompound;
-          createCompound_(tr_it, tramlcompound);
-          OpenSwathDataAccessHelper::convertTargetedCompound(tramlcompound, compound);
+          compound.compound_name = tr_it->CompoundName;
+          compound.sum_formula = tr_it->SumFormula;
         }
+
+        // Additional fields for roundtrip I/O
+        compound.label_type = tr_it->label_type;
+        compound.smiles = tr_it->SMILES;
+        compound.adducts = tr_it->Adducts;
+
         exp.compounds.push_back(compound);
         compound_map[compound.id] = 0;
       }
@@ -705,6 +761,11 @@ namespace OpenMS
           OpenSwath::LightProtein protein;
           protein.id = tr_it->ProteinName[i];
           protein.sequence = "";
+          // Set uniprot_id if available at matching index
+          if (i < tr_it->uniprot_id.size())
+          {
+            protein.uniprot_id = tr_it->uniprot_id[i];
+          }
           exp.proteins.push_back(protein);
           protein_map[tr_it->ProteinName[i]] = 0;
         }
@@ -1488,9 +1549,174 @@ namespace OpenMS
   {
     if (targeted_exp.containsInvalidReferences())
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           "Invalid input, contains duplicate or invalid references");
     }
+  }
+
+  void TransitionTSVFile::convertLightTargetedExperimentToTSV(const char* filename, const OpenSwath::LightTargetedExperiment& targeted_exp)
+  {
+    // Build maps for quick lookup
+    std::map<std::string, const OpenSwath::LightCompound*> compound_map;
+    for (const auto& compound : targeted_exp.compounds)
+    {
+      compound_map[compound.id] = &compound;
+    }
+
+    std::map<std::string, const OpenSwath::LightProtein*> protein_map;
+    for (const auto& protein : targeted_exp.proteins)
+    {
+      protein_map[protein.id] = &protein;
+    }
+
+    // start writing
+    std::ofstream os(filename);
+    os.precision(writtenDigits(double()));
+
+    // Write header
+    for (Size i = 0; i < header_names_.size(); i++)
+    {
+      os << header_names_[i];
+      if (i != header_names_.size() - 1)
+      {
+        os << "\t";
+      }
+    }
+    os << std::endl;
+
+    Size progress = 0;
+    startProgress(0, targeted_exp.transitions.size(), "writing OpenSWATH Transition List TSV file");
+
+    for (const auto& tr : targeted_exp.transitions)
+    {
+      setProgress(progress++);
+
+      // Get associated compound
+      const OpenSwath::LightCompound* compound = nullptr;
+      auto comp_it = compound_map.find(tr.peptide_ref);
+      if (comp_it != compound_map.end())
+      {
+        compound = comp_it->second;
+      }
+
+      // Build protein names and uniprot ids
+      std::vector<String> protein_names;
+      std::vector<String> uniprot_ids;
+      if (compound != nullptr)
+      {
+        for (const auto& prot_ref : compound->protein_refs)
+        {
+          protein_names.push_back(prot_ref);
+          auto prot_it = protein_map.find(prot_ref);
+          if (prot_it != protein_map.end() && !prot_it->second->uniprot_id.empty())
+          {
+            uniprot_ids.push_back(prot_it->second->uniprot_id);
+          }
+        }
+      }
+
+      String precursor_charge = "NA";
+      if (compound != nullptr && compound->charge != 0)
+      {
+        precursor_charge = String(compound->charge);
+      }
+
+      String fragment_charge = "NA";
+      if (tr.fragment_charge != 0)
+      {
+        fragment_charge = String(tr.fragment_charge);
+      }
+
+      String peptide_group_label;
+      String label_type;
+      String compound_name;
+      String sum_formula;
+      String smiles;
+      String adducts;
+      String gene_name;
+      String peptide_sequence;
+      String full_peptide_name;
+      double rt_calibrated = -1;
+      double drift_time = -1;
+
+      if (compound != nullptr)
+      {
+        peptide_group_label = compound->peptide_group_label;
+        label_type = compound->label_type;
+        gene_name = compound->gene_name;
+        rt_calibrated = compound->rt;
+        drift_time = compound->drift_time;
+
+        if (compound->isPeptide())
+        {
+          full_peptide_name = compound->sequence;
+          // Extract unmodified sequence
+          try
+          {
+            peptide_sequence = AASequence::fromString(compound->sequence).toUnmodifiedString();
+          }
+          catch (Exception::InvalidValue&)
+          {
+            peptide_sequence = compound->sequence;
+          }
+        }
+        else
+        {
+          compound_name = compound->compound_name;
+          sum_formula = compound->sum_formula;
+          smiles = compound->smiles;
+          adducts = compound->adducts;
+        }
+      }
+
+      // Use precursor_im from transition if compound drift_time not set
+      if (drift_time < 0 && tr.precursor_im >= 0)
+      {
+        drift_time = tr.precursor_im;
+      }
+
+      String annotation = tr.annotation;
+      if (annotation.empty())
+      {
+        annotation = "NA";
+      }
+
+      String line;
+      line +=
+        String(tr.precursor_mz)                 + "\t"
+        + String(tr.product_mz)                 + "\t"
+        + precursor_charge                      + "\t"
+        + fragment_charge                       + "\t"
+        + String(tr.library_intensity)          + "\t"
+        + String(rt_calibrated)                 + "\t"
+        + peptide_sequence                      + "\t"
+        + full_peptide_name                     + "\t"
+        + peptide_group_label                   + "\t"
+        + label_type                            + "\t"
+        + compound_name                         + "\t"
+        + sum_formula                           + "\t"
+        + smiles                                + "\t"
+        + adducts                               + "\t"
+        + ListUtils::concatenate(protein_names, ";")  + "\t"
+        + ListUtils::concatenate(uniprot_ids, ";")    + "\t"
+        + gene_name                             + "\t"
+        + tr.fragment_type                      + "\t"
+        + String(tr.fragment_nr)                + "\t"
+        + annotation                            + "\t"
+        + String(-1)                            + "\t"  // CE not stored in Light
+        + String(drift_time)                    + "\t"
+        + tr.peptide_ref                        + "\t"
+        + tr.transition_name                    + "\t"
+        + String(tr.decoy)                      + "\t"
+        + String(tr.detecting_transition)       + "\t"
+        + String(tr.identifying_transition)     + "\t"
+        + String(tr.quantifying_transition)     + "\t"
+        + ListUtils::concatenate(std::vector<String>(tr.peptidoforms.begin(), tr.peptidoforms.end()), "|");
+
+      os << line << std::endl;
+    }
+    endProgress();
+    os.close();
   }
 
 }

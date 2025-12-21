@@ -38,6 +38,8 @@ namespace OpenMS
     std::string select_sql;
 
     // Use legacy TraML identifiers for precursors (transition_group_id) and transitions (transition_name)?
+    // When legacy_traml_id=true, use TRAML_ID column (string identifiers from TraML)
+    // When legacy_traml_id=false, use numeric ID column
     std::string traml_id = "ID";
     if (legacy_traml_id)
     {
@@ -732,6 +734,425 @@ namespace OpenMS
     std::vector<TSVTransition> transition_list;
     readPQPInput_(filename, transition_list, legacy_traml_id);
     TSVToTargetedExperiment_(transition_list, targeted_exp);
+  }
+
+  void TransitionPQPFile::convertLightTargetedExperimentToPQP(const char* filename, const OpenSwath::LightTargetedExperiment& targeted_exp)
+  {
+    // delete file if present
+    remove(filename);
+
+    // Open database
+    SqliteConnector conn(filename);
+
+    // Create SQL structure (same as heavy version)
+    const char* create_sql =
+      "CREATE TABLE VERSION(" \
+      "ID INT NOT NULL);" \
+
+      // gene table
+      "CREATE TABLE GENE(" \
+      "ID INT PRIMARY KEY NOT NULL," \
+      "GENE_NAME TEXT NOT NULL," \
+      "DECOY INT NOT NULL);" \
+
+      // peptide_gene_mapping table
+      "CREATE TABLE PEPTIDE_GENE_MAPPING(" \
+      "PEPTIDE_ID INT NOT NULL," \
+      "GENE_ID INT NOT NULL);" \
+
+      // protein table
+      "CREATE TABLE PROTEIN(" \
+      "ID INT PRIMARY KEY NOT NULL," \
+      "PROTEIN_ACCESSION TEXT NOT NULL," \
+      "DECOY INT NOT NULL);" \
+
+      // peptide_protein_mapping table
+      "CREATE TABLE PEPTIDE_PROTEIN_MAPPING(" \
+      "PEPTIDE_ID INT NOT NULL," \
+      "PROTEIN_ID INT NOT NULL);" \
+
+      // peptide table
+      "CREATE TABLE PEPTIDE(" \
+      "ID INT PRIMARY KEY NOT NULL," \
+      "UNMODIFIED_SEQUENCE TEXT NOT NULL," \
+      "MODIFIED_SEQUENCE TEXT NOT NULL," \
+      "DECOY INT NOT NULL);" \
+
+      // precursor_peptide_mapping table
+      "CREATE TABLE PRECURSOR_PEPTIDE_MAPPING(" \
+      "PRECURSOR_ID INT NOT NULL," \
+      "PEPTIDE_ID INT NOT NULL);" \
+
+      // compound table
+      "CREATE TABLE COMPOUND(" \
+      "ID INT PRIMARY KEY NOT NULL," \
+      "COMPOUND_NAME TEXT NOT NULL," \
+      "SUM_FORMULA TEXT NOT NULL," \
+      "SMILES TEXT NOT NULL," \
+      "ADDUCTS TEXT NOT NULL," \
+      "DECOY INT NOT NULL);" \
+
+      // precursor_compound_mapping table
+      "CREATE TABLE PRECURSOR_COMPOUND_MAPPING(" \
+      "PRECURSOR_ID INT NOT NULL," \
+      "COMPOUND_ID INT NOT NULL);" \
+
+      // precursor table
+      "CREATE TABLE PRECURSOR(" \
+      "ID INT PRIMARY KEY NOT NULL," \
+      "TRAML_ID TEXT NULL," \
+      "GROUP_LABEL TEXT NULL," \
+      "PRECURSOR_MZ REAL NOT NULL," \
+      "CHARGE INT NULL," \
+      "LIBRARY_INTENSITY REAL NULL," \
+      "LIBRARY_RT REAL NULL," \
+      "LIBRARY_DRIFT_TIME REAL NULL," \
+      "DECOY INT NOT NULL);" \
+
+      // transition_precursor_mapping table
+      "CREATE TABLE TRANSITION_PRECURSOR_MAPPING(" \
+      "TRANSITION_ID INT NOT NULL," \
+      "PRECURSOR_ID INT NOT NULL);" \
+
+      // transition_peptide_mapping table
+      "CREATE TABLE TRANSITION_PEPTIDE_MAPPING(" \
+      "TRANSITION_ID INT NOT NULL," \
+      "PEPTIDE_ID INT NOT NULL);" \
+
+      // transition table
+      "CREATE TABLE TRANSITION(" \
+      "ID INT PRIMARY KEY NOT NULL," \
+      "TRAML_ID TEXT NULL," \
+      "PRODUCT_MZ REAL NOT NULL," \
+      "CHARGE INT NULL," \
+      "TYPE CHAR(1) NULL," \
+      "ANNOTATION TEXT NULL," \
+      "ORDINAL INT NULL," \
+      "DETECTING INT NOT NULL," \
+      "IDENTIFYING INT NOT NULL," \
+      "QUANTIFYING INT NOT NULL," \
+      "LIBRARY_INTENSITY REAL NULL," \
+      "DECOY INT NOT NULL);";
+
+    // Execute SQL create statement
+    conn.executeStatement(create_sql);
+
+    // Build index maps
+    std::vector<std::string> group_vec, peptide_vec, compound_vec, protein_vec;
+    std::unordered_map<std::string, int> group_map, peptide_map, compound_map, protein_map, gene_map;
+    std::unordered_map<int, double> precursor_mz_map;
+    std::unordered_map<int, bool> precursor_decoy_map;
+
+    // Loop through compounds to generate index maps
+    for (const auto& compound : targeted_exp.compounds)
+    {
+      group_vec.push_back(compound.id);
+      if (compound.isPeptide())
+      {
+        peptide_vec.push_back(compound.sequence);
+      }
+      else
+      {
+        compound_vec.push_back(compound.id);
+      }
+    }
+
+    // Loop through proteins
+    for (const auto& protein : targeted_exp.proteins)
+    {
+      protein_vec.push_back(protein.id);
+    }
+
+    // Loop through transitions and add peptidoforms
+    for (const auto& tr : targeted_exp.transitions)
+    {
+      for (const auto& peptidoform : tr.peptidoforms)
+      {
+        peptide_vec.push_back(peptidoform);
+      }
+    }
+
+    // Create unique sorted sets and maps
+    boost::erase(compound_vec, boost::unique<boost::return_found_end>(boost::sort(compound_vec)));
+    int compound_map_idx = 0;
+    for (const auto& x : compound_vec) { compound_map[x] = compound_map_idx++; }
+
+    boost::erase(protein_vec, boost::unique<boost::return_found_end>(boost::sort(protein_vec)));
+    int protein_map_idx = 0;
+    for (const auto& x : protein_vec) { protein_map[x] = protein_map_idx++; }
+
+    boost::erase(group_vec, boost::unique<boost::return_found_end>(boost::sort(group_vec)));
+    int group_map_idx = 0;
+    for (const auto& x : group_vec) { group_map[x] = group_map_idx++; }
+
+    boost::erase(peptide_vec, boost::unique<boost::return_found_end>(boost::sort(peptide_vec)));
+    int peptide_map_idx = 0;
+    for (const auto& x : peptide_vec) { peptide_map[x] = peptide_map_idx++; }
+
+    // Build compound lookup
+    std::map<std::string, const OpenSwath::LightCompound*> compound_lookup;
+    for (const auto& compound : targeted_exp.compounds)
+    {
+      compound_lookup[compound.id] = &compound;
+    }
+
+    // Insert transitions
+    {
+      std::stringstream insert_transition_sql, insert_transition_peptide_mapping_sql, insert_transition_precursor_mapping_sql;
+      insert_transition_sql.precision(11);
+
+      for (Size i = 0; i < targeted_exp.transitions.size(); i++)
+      {
+        const auto& tr = targeted_exp.transitions[i];
+        int group_set_index = group_map[tr.peptide_ref];
+
+        if (precursor_mz_map.find(group_set_index) == precursor_mz_map.end())
+        {
+          precursor_mz_map[group_set_index] = tr.precursor_mz;
+        }
+        if (precursor_decoy_map.find(group_set_index) == precursor_decoy_map.end())
+        {
+          if (tr.detecting_transition)
+          {
+            precursor_decoy_map[group_set_index] = tr.decoy;
+          }
+        }
+
+        // IPF: Generate transition-peptide mapping tables
+        for (const auto& peptidoform : tr.peptidoforms)
+        {
+          insert_transition_peptide_mapping_sql << "INSERT INTO TRANSITION_PEPTIDE_MAPPING (TRANSITION_ID, PEPTIDE_ID) VALUES (" <<
+            i << "," << peptide_map[peptidoform] << "); ";
+        }
+
+        // Associate transitions with their precursors
+        insert_transition_precursor_mapping_sql << "INSERT INTO TRANSITION_PRECURSOR_MAPPING (TRANSITION_ID, PRECURSOR_ID) VALUES (" <<
+          i << "," << group_set_index << "); ";
+
+        std::string transition_charge = "NULL";
+        if (tr.fragment_charge != 0)
+        {
+          transition_charge = String(tr.fragment_charge);
+        }
+
+        std::string fragment_type_char = tr.fragment_type.empty() ? "" : tr.fragment_type.substr(0, 1);
+
+        // Insert transition data
+        insert_transition_sql << "INSERT INTO TRANSITION (ID, TRAML_ID, PRODUCT_MZ, CHARGE, TYPE, ANNOTATION, ORDINAL, " <<
+          "DETECTING, IDENTIFYING, QUANTIFYING, LIBRARY_INTENSITY, DECOY) VALUES (" << i << ",'" <<
+          tr.transition_name << "'," <<
+          tr.product_mz << "," <<
+          transition_charge << ",'" <<
+          fragment_type_char << "','" <<
+          tr.annotation << "'," <<
+          tr.fragment_nr << "," <<
+          tr.detecting_transition << "," <<
+          tr.identifying_transition << "," <<
+          tr.quantifying_transition << "," <<
+          tr.library_intensity << "," << tr.decoy << "); ";
+
+        if (i % 50000 == 0 && i > 0)
+        {
+          conn.executeStatement("BEGIN TRANSACTION");
+          conn.executeStatement(insert_transition_sql.str());
+          conn.executeStatement(insert_transition_peptide_mapping_sql.str());
+          conn.executeStatement(insert_transition_precursor_mapping_sql.str());
+          conn.executeStatement("END TRANSACTION");
+          insert_transition_sql.str("");
+          insert_transition_sql.clear();
+          insert_transition_peptide_mapping_sql.str("");
+          insert_transition_peptide_mapping_sql.clear();
+          insert_transition_precursor_mapping_sql.str("");
+          insert_transition_precursor_mapping_sql.clear();
+        }
+      }
+      conn.executeStatement("BEGIN TRANSACTION");
+      conn.executeStatement(insert_transition_sql.str());
+      conn.executeStatement(insert_transition_peptide_mapping_sql.str());
+      conn.executeStatement(insert_transition_precursor_mapping_sql.str());
+      conn.executeStatement("END TRANSACTION");
+    }
+
+    std::stringstream insert_precursor_sql, insert_precursor_peptide_mapping, insert_precursor_compound_mapping;
+    insert_precursor_sql.precision(11);
+    std::vector<std::pair<int, int>> peptide_protein_map_vec;
+    std::vector<std::pair<int, int>> peptide_gene_map_vec;
+
+    // Insert precursors (compounds)
+    for (const auto& compound : targeted_exp.compounds)
+    {
+      int group_set_index = group_map[compound.id];
+
+      if (compound.isPeptide())
+      {
+        int peptide_set_index = peptide_map[compound.sequence];
+
+        for (const auto& prot_ref : compound.protein_refs)
+        {
+          if (protein_map.find(prot_ref) != protein_map.end())
+          {
+            peptide_protein_map_vec.emplace_back(peptide_set_index, protein_map[prot_ref]);
+          }
+        }
+
+        std::string gene_name = compound.gene_name.empty() ? "NA" : compound.gene_name;
+        if (gene_map.find(gene_name) == gene_map.end()) gene_map[gene_name] = (int)gene_map.size();
+        peptide_gene_map_vec.emplace_back(peptide_set_index, gene_map[gene_name]);
+
+        insert_precursor_sql <<
+          "INSERT INTO PRECURSOR (ID, TRAML_ID, GROUP_LABEL, PRECURSOR_MZ, CHARGE, LIBRARY_INTENSITY, " <<
+          "LIBRARY_DRIFT_TIME, LIBRARY_RT, DECOY) VALUES (" <<
+          group_set_index << ",'" << compound.id << "','" <<
+          compound.peptide_group_label << "'," <<
+          precursor_mz_map[group_set_index] << "," <<
+          compound.charge <<
+          ",NULL," <<
+          compound.drift_time << "," <<
+          compound.rt << "," <<
+          precursor_decoy_map[group_set_index] << "); ";
+
+        insert_precursor_peptide_mapping << "INSERT INTO PRECURSOR_PEPTIDE_MAPPING (PRECURSOR_ID, PEPTIDE_ID) VALUES (" <<
+          group_set_index << "," << peptide_set_index << "); ";
+      }
+      else
+      {
+        int compound_set_index = compound_map[compound.id];
+
+        std::string compound_charge = "NULL";
+        if (compound.charge != 0)
+        {
+          compound_charge = String(compound.charge);
+        }
+
+        insert_precursor_sql << "INSERT INTO PRECURSOR (ID, TRAML_ID, GROUP_LABEL, PRECURSOR_MZ, CHARGE, LIBRARY_INTENSITY, " <<
+          "LIBRARY_DRIFT_TIME, LIBRARY_RT, DECOY) VALUES (" << group_set_index
+          << ",'" << compound.id << "',NULL," <<
+          precursor_mz_map[group_set_index] << "," <<
+          compound_charge <<
+          ",NULL," <<
+          compound.drift_time << "," <<
+          compound.rt << "," <<
+          precursor_decoy_map[group_set_index] << "); ";
+
+        insert_precursor_compound_mapping << "INSERT INTO PRECURSOR_COMPOUND_MAPPING (PRECURSOR_ID, COMPOUND_ID) VALUES (" <<
+          group_set_index << "," << compound_set_index << "); ";
+      }
+    }
+
+    boost::erase(peptide_protein_map_vec, boost::unique<boost::return_found_end>(boost::sort(peptide_protein_map_vec)));
+    boost::erase(peptide_gene_map_vec, boost::unique<boost::return_found_end>(boost::sort(peptide_gene_map_vec)));
+
+    // Prepare peptide-gene mapping inserts
+    std::stringstream insert_peptide_gene_mapping;
+    for (const auto& it : peptide_gene_map_vec)
+    {
+      insert_peptide_gene_mapping << "INSERT INTO PEPTIDE_GENE_MAPPING (PEPTIDE_ID, GENE_ID) VALUES (" <<
+        it.first << "," << it.second << "); ";
+    }
+
+    // Prepare gene inserts
+    std::stringstream insert_gene_sql;
+    for (const auto& it : gene_map)
+    {
+      insert_gene_sql << "INSERT INTO GENE (ID, GENE_NAME, DECOY) VALUES (" <<
+        it.second << ",'" << it.first << "'," << 0 << "); ";
+    }
+
+    // Prepare peptide-protein mapping inserts
+    std::stringstream insert_peptide_protein_mapping;
+    for (const auto& it : peptide_protein_map_vec)
+    {
+      insert_peptide_protein_mapping << "INSERT INTO PEPTIDE_PROTEIN_MAPPING (PEPTIDE_ID, PROTEIN_ID) VALUES (" <<
+        it.first << "," << it.second << "); ";
+    }
+
+    // Prepare protein inserts
+    std::stringstream insert_protein_sql;
+    for (const auto& it : protein_map)
+    {
+      insert_protein_sql << "INSERT INTO PROTEIN (ID, PROTEIN_ACCESSION, DECOY) VALUES (" <<
+        it.second << ",'" << it.first << "'," << 0 << "); ";
+    }
+
+    // Prepare peptide inserts
+    std::stringstream insert_peptide_sql;
+    for (const auto& it : peptide_map)
+    {
+      std::string unmodified_seq;
+      try
+      {
+        unmodified_seq = AASequence::fromString(it.first).toUnmodifiedString();
+      }
+      catch (Exception::InvalidValue&)
+      {
+        unmodified_seq = it.first;
+      }
+      insert_peptide_sql << "INSERT INTO PEPTIDE (ID, UNMODIFIED_SEQUENCE, MODIFIED_SEQUENCE, DECOY) VALUES (" <<
+        it.second << ",'" <<
+        unmodified_seq << "','" <<
+        it.first << "'," << 0 << "); ";
+    }
+
+    // Prepare compound inserts
+    std::stringstream insert_compound_sql;
+    for (const auto& it : compound_map)
+    {
+      auto comp_it = compound_lookup.find(it.first);
+      std::string compound_name = it.first;
+      std::string sum_formula;
+      std::string smiles;
+      std::string adducts;
+      if (comp_it != compound_lookup.end())
+      {
+        compound_name = comp_it->second->compound_name.empty() ? it.first : comp_it->second->compound_name;
+        sum_formula = comp_it->second->sum_formula;
+        smiles = comp_it->second->smiles;
+        adducts = comp_it->second->adducts;
+      }
+      insert_compound_sql << "INSERT INTO COMPOUND (ID, COMPOUND_NAME, SUM_FORMULA, SMILES, ADDUCTS, DECOY) VALUES (" <<
+        it.second << ",'" <<
+        compound_name << "','" <<
+        sum_formula << "','" <<
+        smiles << "','" <<
+        adducts << "'," <<
+        0 << "); ";
+    }
+
+    // Prepare decoy updates
+    std::stringstream update_decoys_sql;
+    update_decoys_sql << "UPDATE PEPTIDE SET DECOY = 1 WHERE ID IN " <<
+      "(SELECT PEPTIDE.ID FROM PRECURSOR " <<
+      "JOIN PRECURSOR_PEPTIDE_MAPPING ON PRECURSOR.ID = PRECURSOR_PEPTIDE_MAPPING.PRECURSOR_ID " <<
+      "JOIN PEPTIDE ON PRECURSOR_PEPTIDE_MAPPING.PEPTIDE_ID = PEPTIDE.ID WHERE PRECURSOR.DECOY = 1); ";
+    update_decoys_sql << "UPDATE COMPOUND SET DECOY = 1 WHERE ID IN " <<
+      "(SELECT COMPOUND.ID FROM PRECURSOR " <<
+      "JOIN PRECURSOR_COMPOUND_MAPPING ON PRECURSOR.ID = PRECURSOR_COMPOUND_MAPPING.PRECURSOR_ID " <<
+      "JOIN COMPOUND ON PRECURSOR_COMPOUND_MAPPING.COMPOUND_ID = COMPOUND.ID WHERE PRECURSOR.DECOY = 1); ";
+    update_decoys_sql << "UPDATE PROTEIN SET DECOY = 1 WHERE ID IN " <<
+      "(SELECT PROTEIN.ID FROM PEPTIDE " <<
+      "JOIN PEPTIDE_PROTEIN_MAPPING ON PEPTIDE.ID = PEPTIDE_PROTEIN_MAPPING.PEPTIDE_ID " <<
+      "JOIN PROTEIN ON PEPTIDE_PROTEIN_MAPPING.PROTEIN_ID = PROTEIN.ID WHERE PEPTIDE.DECOY = 1); ";
+    update_decoys_sql << "UPDATE GENE SET DECOY = 1 WHERE ID IN " <<
+      "(SELECT GENE.ID FROM PEPTIDE " <<
+      "JOIN PEPTIDE_GENE_MAPPING ON PEPTIDE.ID = PEPTIDE_GENE_MAPPING.PEPTIDE_ID " <<
+      "JOIN GENE ON PEPTIDE_GENE_MAPPING.GENE_ID = GENE.ID WHERE PEPTIDE.DECOY = 1); ";
+
+    conn.executeStatement("BEGIN TRANSACTION");
+
+    // Execute SQL insert statement
+    String insert_version = "INSERT INTO VERSION (ID) VALUES (3);";
+    conn.executeStatement(insert_version);
+    conn.executeStatement(insert_protein_sql.str());
+    conn.executeStatement(insert_peptide_protein_mapping.str());
+    conn.executeStatement(insert_gene_sql.str());
+    conn.executeStatement(insert_peptide_gene_mapping.str());
+    conn.executeStatement(insert_peptide_sql.str());
+    conn.executeStatement(insert_compound_sql.str());
+    conn.executeStatement(insert_precursor_peptide_mapping.str());
+    conn.executeStatement(insert_precursor_compound_mapping.str());
+    conn.executeStatement(insert_precursor_sql.str());
+    conn.executeStatement(update_decoys_sql.str());
+    conn.executeStatement("END TRANSACTION");
   }
 
 }

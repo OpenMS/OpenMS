@@ -226,6 +226,14 @@ public:
     */
     void convertTargetedExperimentToPQP(const char* filename, OpenMS::TargetedExperiment& targeted_exp);
 
+    /** @brief Write out a targeted experiment (Light structure) into a PQP file
+     *
+      @param[in] filename The output file
+      @param[in] targeted_exp The targeted experiment (Light structure)
+     *
+    */
+    void convertLightTargetedExperimentToPQP(const char* filename, const OpenSwath::LightTargetedExperiment& targeted_exp);
+
     /** @brief Read in a PQP file and construct a targeted experiment (TraML structure)
      *
       @param[out] filename The input file

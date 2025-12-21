@@ -12,6 +12,7 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMIonSeries.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
 
 #include <boost/random/mersenne_twister.hpp>
 #include <boost/random/uniform_int.hpp>
@@ -184,6 +185,64 @@ public:
 
     */
     void filterUnreferencedDecoysCompound(OpenMS::TargetedExperiment &exp);
+
+    // =====================================================================
+    // Light (memory-efficient) versions of the above methods
+    // =====================================================================
+
+    /**
+      @brief Annotates and filters transitions in a LightTargetedExperiment
+
+      Light version of reannotateTransitions() for memory-efficient processing.
+
+      @param[out] exp the input, unfiltered transitions
+      @param[in] precursor_mz_threshold the precursor m/z threshold in Th for annotation
+      @param[in] product_mz_threshold the product m/z threshold in Th for annotation
+      @param[in] fragment_types the fragment types to consider for annotation
+      @param[in] fragment_charges the fragment charges to consider for annotation
+      @param[in] enable_specific_losses whether specific neutral losses should be considered
+      @param[in] enable_unspecific_losses whether unspecific neutral losses should be considered
+      @param[in] round_decPow round product m/z values to decimal power (default: -4)
+
+    */
+    void reannotateTransitionsLight(OpenSwath::LightTargetedExperiment& exp,
+                                    double precursor_mz_threshold,
+                                    double product_mz_threshold,
+                                    const std::vector<String>& fragment_types,
+                                    const std::vector<size_t>& fragment_charges,
+                                    bool enable_specific_losses,
+                                    bool enable_unspecific_losses,
+                                    int round_decPow = -4);
+
+    /**
+      @brief Restrict and filter transitions in a LightTargetedExperiment
+
+      Light version of restrictTransitions() for memory-efficient processing.
+
+      @param[in] exp the input, unfiltered transitions
+      @param[in] lower_mz_limit the lower product m/z limit in Th
+      @param[in] upper_mz_limit the upper product m/z limit in Th
+      @param[in] swathes the swath window settings
+
+    */
+    void restrictTransitionsLight(OpenSwath::LightTargetedExperiment& exp,
+                                  double lower_mz_limit,
+                                  double upper_mz_limit,
+                                  const std::vector<std::pair<double, double> >& swathes);
+
+    /**
+      @brief Select detecting fragment ions in a LightTargetedExperiment
+
+      Light version of detectingTransitions() for memory-efficient processing.
+
+      @param[in] exp the input, unfiltered transitions
+      @param[out] min_transitions the minimum number of transitions required per assay
+      @param[in] max_transitions the maximum number of transitions required per assay
+
+    */
+    void detectingTransitionsLight(OpenSwath::LightTargetedExperiment& exp,
+                                   int min_transitions,
+                                   int max_transitions);
 
 protected:
 

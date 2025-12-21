@@ -322,6 +322,14 @@ public:
     */
     void convertTargetedExperimentToTSV(const char* filename, OpenMS::TargetedExperiment& targeted_exp);
 
+    /** @brief Write out a targeted experiment (Light structure) into a tsv file
+     *
+     * @param[in] filename The output file
+     * @param[in] targeted_exp The targeted experiment (Light structure)
+     *
+    */
+    void convertLightTargetedExperimentToTSV(const char* filename, const OpenSwath::LightTargetedExperiment& targeted_exp);
+
     /** @brief Read in a tsv/mrm file and construct a targeted experiment (TraML structure)
      *
      * @param[out] filename The input file
