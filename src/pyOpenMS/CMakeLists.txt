@@ -249,6 +249,8 @@ set(PYGEN_SENTINEL "${PYOPENMS_BUILD_DIR}/.cpp_extension_generated")
 if(LINUX AND PY_NO_OUTPUT)
   add_custom_command(
     OUTPUT ${PYGEN_SENTINEL}
+    # Fake dependency on OpenMS to trigger rebuild when headers change
+    # TODO: Should depend on .pxd files instead for more accurate rebuilds
     DEPENDS OpenMS
     COMMAND ${Python_EXECUTABLE} create_cpp_extension.py 2> /dev/null
     COMMAND ${CMAKE_COMMAND} -E touch ${PYGEN_SENTINEL}
@@ -258,6 +260,8 @@ if(LINUX AND PY_NO_OUTPUT)
 else()
   add_custom_command(
     OUTPUT ${PYGEN_SENTINEL}
+    # Fake dependency on OpenMS to trigger rebuild when headers change
+    # TODO: Should depend on .pxd files instead for more accurate rebuilds
     DEPENDS OpenMS
     COMMAND ${Python_EXECUTABLE} create_cpp_extension.py
     COMMAND ${CMAKE_COMMAND} -E touch ${PYGEN_SENTINEL}
@@ -279,6 +283,7 @@ add_custom_target(compile_pxds DEPENDS ${PYCPPFILES} ${PYPYXFILES})
 #------------------------------------------------------------------------------
 set(PY_RPATH ${CMAKE_INSTALL_RPATH})
 if(APPLE)
+  # TODO: Maybe we need a similar rpath for Linux too (e.g., $ORIGIN)
   list(APPEND PY_RPATH "@loader_path/")
 endif()
 
@@ -368,6 +373,7 @@ else()
     )
     add_dependencies(pyopenms_compile compile_pxds)
 
+    # TODO: Check if fix_pyi_imports.py is really necessary
     add_custom_command(TARGET pyopenms_compile POST_BUILD
       COMMAND ${Python_EXECUTABLE} ${PYOPENMS_BUILD_DIR}/fix_pyi_imports.py ${PYOPENMS_BUILD_DIR}/pyopenms/pyopenms.pyi
       COMMENT "Fixing typing information for pyopenms"

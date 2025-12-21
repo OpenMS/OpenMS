@@ -63,7 +63,6 @@ classifiers = [
 ]
 dependencies = [
     "numpy>=2.0",
-    "pandas",
     "matplotlib>=3.5",
 ]
 
@@ -73,6 +72,11 @@ Documentation = "https://pyopenms.readthedocs.io"
 "Source Code" = "https://github.com/OpenMS/OpenMS/tree/develop/src/pyOpenMS"
 "Bug Tracker" = "https://github.com/OpenMS/OpenMS/issues"
 "Documentation Source" = "https://github.com/OpenMS/pyopenms-docs"
+
+[project.optional-dependencies]
+dataframes = ["pandas"]
+arrow = ["pyarrow"]
+all = ["pandas", "pyarrow"]
 
 # Dependency groups (PEP 735) - installable with: uv sync --only-group <name>
 [dependency-groups]
