@@ -108,6 +108,7 @@ jobs:
           cmake --install . --component library --strip
           cmake --install . --component OpenMS_headers
           cmake --install . --component OpenSwathAlgo_headers
+          cmake --install . --component thirdparty_headers
           cmake --install . --component cmake
           # Package the install directory
           cd $GITHUB_WORKSPACE/openms-install
@@ -156,6 +157,7 @@ jobs:
           cmake --install . --component library --strip
           cmake --install . --component OpenMS_headers
           cmake --install . --component OpenSwathAlgo_headers
+          cmake --install . --component thirdparty_headers
           cmake --install . --component cmake
           # Package the install directory
           cd $GITHUB_WORKSPACE/openms-install
@@ -202,6 +204,7 @@ jobs:
           cmake --install . --component library --strip
           cmake --install . --component OpenMS_headers
           cmake --install . --component OpenSwathAlgo_headers
+          cmake --install . --component thirdparty_headers
           cmake --install . --component cmake
           # Package the install directory
           cd $GITHUB_WORKSPACE/openms-install
@@ -276,6 +279,7 @@ jobs:
           cmake --install . --config Release --component library
           cmake --install . --config Release --component OpenMS_headers
           cmake --install . --config Release --component OpenSwathAlgo_headers
+          cmake --install . --config Release --component thirdparty_headers
           cmake --install . --config Release --component cmake
           # Package the install directory
           cd "$GITHUB_WORKSPACE/openms-install"
