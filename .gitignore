@@ -109,13 +109,6 @@ kubeconfig
 *.kubeconfig
 kube/config
 
-# Database files with potential credentials
-*.sqlite
-*.sqlite3
-*.db
-!test*.db
-!*test.db
-
 # OAuth
 oauth_token*
 oauth-token*
