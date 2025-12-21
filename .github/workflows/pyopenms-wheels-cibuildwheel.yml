@@ -39,8 +39,8 @@ jobs:
       - name: Read Python versions
         id: set-versions
         run: |
-          # Output as JSON array for matrix
-          echo "versions=$(cat .github/workflows/python_versions.json)" >> $GITHUB_OUTPUT
+          # Output as JSON array for matrix (compact to single line)
+          echo "versions=$(jq -c . .github/workflows/python_versions.json)" >> $GITHUB_OUTPUT
           # Output as space-separated for display
           echo "versions-array=$(jq -r '.[]' .github/workflows/python_versions.json | tr '\n' ' ')" >> $GITHUB_OUTPUT
 
@@ -167,7 +167,7 @@ jobs:
           cmake .. \
             -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_PREFIX_PATH="$(brew --prefix):$(brew --prefix libomp)" \
+            -DCMAKE_PREFIX_PATH="$(brew --prefix):$(brew --prefix libomp):$(brew --prefix icu4c)" \
             -DOpenMP_ROOT=$(brew --prefix libomp) \
             -DPYOPENMS=OFF \
             -DENABLE_TUTORIALS=OFF \
@@ -416,7 +416,7 @@ jobs:
         env:
           CIBW_ARCHS_MACOS: "arm64"
           CIBW_BEFORE_BUILD: "pip install delocate"
-          CIBW_ENVIRONMENT: "OpenMS_ROOT=${{ github.workspace }}/openms-build CMAKE_PREFIX_PATH=/opt/homebrew:/opt/homebrew/opt/libomp:${{ github.workspace }}/openms-build MACOSX_DEPLOYMENT_TARGET=14.0"
+          CIBW_ENVIRONMENT: "OpenMS_ROOT=${{ github.workspace }}/openms-build CMAKE_PREFIX_PATH=/opt/homebrew:/opt/homebrew/opt/libomp:/opt/homebrew/opt/icu4c:${{ github.workspace }}/openms-build MACOSX_DEPLOYMENT_TARGET=14.0"
           CIBW_REPAIR_WHEEL_COMMAND: "delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel}"
           CIBW_BUILD_VERBOSITY: 1
 
