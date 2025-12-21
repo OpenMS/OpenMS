@@ -27,9 +27,8 @@ build-backend = "py_build_cmake.build"
 
 [project]
 name = "pyopenms"
-# Version is set here; for nightly builds, update via config-settings or CI
-# To set version: pip install . --config-settings=local_scheme=version
-version = "3.4.0"
+# Version is set here; CI will update this dynamically for nightly builds (appends .devYYYYMMDD)
+version = "3.6.0"
 description = "Python wrapper for C++ LC-MS library OpenMS"
 readme = "README.rst"
 license = {text = "BSD-3-Clause"}

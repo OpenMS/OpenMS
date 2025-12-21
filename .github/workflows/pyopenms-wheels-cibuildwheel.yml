@@ -23,26 +23,50 @@ on:
 
 jobs:
   #----------------------------------------------------------------------------
-  # Setup job to read Python versions from JSON
+  # Setup job to read Python versions and calculate package version
   #----------------------------------------------------------------------------
   setup:
     runs-on: ubuntu-latest
     outputs:
       python-versions: ${{ steps.set-versions.outputs.versions }}
       python-versions-array: ${{ steps.set-versions.outputs.versions-array }}
+      pyopenms-version: ${{ steps.set-versions.outputs.pyopenms-version }}
+      is-nightly: ${{ steps.set-versions.outputs.is-nightly }}
     steps:
       - uses: actions/checkout@v4
         with:
-          sparse-checkout: .github/workflows/python_versions.json
+          sparse-checkout: |
+            .github/workflows/python_versions.json
+            CMakeLists.txt
           sparse-checkout-cone-mode: false
 
-      - name: Read Python versions
+      - name: Read Python versions and calculate package version
         id: set-versions
         run: |
-          # Output as JSON array for matrix (compact to single line)
+          # Output Python versions as JSON array for matrix (compact to single line)
           echo "versions=$(jq -c . .github/workflows/python_versions.json)" >> $GITHUB_OUTPUT
           # Output as space-separated for display
           echo "versions-array=$(jq -r '.[]' .github/workflows/python_versions.json | tr '\n' ' ')" >> $GITHUB_OUTPUT
+
+          # Extract OpenMS version from CMakeLists.txt
+          MAJOR=$(grep 'OPENMS_PACKAGE_VERSION_MAJOR' CMakeLists.txt | head -1 | sed 's/.*"\([0-9]*\)".*/\1/')
+          MINOR=$(grep 'OPENMS_PACKAGE_VERSION_MINOR' CMakeLists.txt | head -1 | sed 's/.*"\([0-9]*\)".*/\1/')
+          PATCH=$(grep 'OPENMS_PACKAGE_VERSION_PATCH' CMakeLists.txt | head -1 | sed 's/.*"\([0-9]*\)".*/\1/')
+          BASE_VERSION="${MAJOR}.${MINOR}.${PATCH}"
+          echo "Base OpenMS version: $BASE_VERSION"
+
+          # For nightly builds (develop, nightly, py_nightly_test branches), append .devYYYYMMDD
+          if [[ "${{ github.ref_name }}" == "develop" || "${{ github.ref_name }}" == "nightly" || "${{ github.ref_name }}" == "py_nightly_test" ]]; then
+            DATE_SUFFIX=$(date +%Y%m%d)
+            PYOPENMS_VERSION="${BASE_VERSION}.dev${DATE_SUFFIX}"
+            echo "is-nightly=true" >> $GITHUB_OUTPUT
+          else
+            PYOPENMS_VERSION="${BASE_VERSION}"
+            echo "is-nightly=false" >> $GITHUB_OUTPUT
+          fi
+
+          echo "pyopenms-version=${PYOPENMS_VERSION}" >> $GITHUB_OUTPUT
+          echo "pyOpenMS version: $PYOPENMS_VERSION"
 
   #----------------------------------------------------------------------------
   # Build OpenMS on each platform first
@@ -292,6 +316,14 @@ jobs:
           CIBW_BUILD=$(echo '${{ needs.setup.outputs.python-versions }}' | jq -r '.[]' | sed 's/\.//g' | sed 's/^/cp/' | sed 's/$/-manylinux_x86_64/' | tr '\n' ' ')
           echo "CIBW_BUILD=$CIBW_BUILD" >> $GITHUB_ENV
 
+      - name: Set pyOpenMS version
+        run: |
+          # Update pyproject.toml with the calculated version (includes .devYYYYMMDD for nightlies)
+          VERSION="${{ needs.setup.outputs.pyopenms-version }}"
+          echo "Setting pyOpenMS version to: $VERSION"
+          sed -i "s/^version = .*/version = \"${VERSION}\"/" src/pyOpenMS/pyproject.toml
+          grep "^version" src/pyOpenMS/pyproject.toml
+
       - name: Build wheels with cibuildwheel
         uses: pypa/cibuildwheel@v2.22
         with:
@@ -339,6 +371,14 @@ jobs:
           CIBW_BUILD=$(echo '${{ needs.setup.outputs.python-versions }}' | jq -r '.[]' | sed 's/\.//g' | sed 's/^/cp/' | sed 's/$/-manylinux_aarch64/' | tr '\n' ' ')
           echo "CIBW_BUILD=$CIBW_BUILD" >> $GITHUB_ENV
 
+      - name: Set pyOpenMS version
+        run: |
+          # Update pyproject.toml with the calculated version (includes .devYYYYMMDD for nightlies)
+          VERSION="${{ needs.setup.outputs.pyopenms-version }}"
+          echo "Setting pyOpenMS version to: $VERSION"
+          sed -i "s/^version = .*/version = \"${VERSION}\"/" src/pyOpenMS/pyproject.toml
+          grep "^version" src/pyOpenMS/pyproject.toml
+
       - name: Build wheels with cibuildwheel
         uses: pypa/cibuildwheel@v2.22
         with:
@@ -382,6 +422,14 @@ jobs:
           # Construct CIBW_BUILD from Python versions (e.g., "cp310-macosx_arm64 cp311-macosx_arm64 ...")
           CIBW_BUILD=$(echo '${{ needs.setup.outputs.python-versions }}' | jq -r '.[]' | sed 's/\.//g' | sed 's/^/cp/' | sed 's/$/-macosx_arm64/' | tr '\n' ' ')
           echo "CIBW_BUILD=$CIBW_BUILD" >> $GITHUB_ENV
+
+      - name: Set pyOpenMS version
+        run: |
+          # Update pyproject.toml with the calculated version (includes .devYYYYMMDD for nightlies)
+          VERSION="${{ needs.setup.outputs.pyopenms-version }}"
+          echo "Setting pyOpenMS version to: $VERSION"
+          sed -i '' "s/^version = .*/version = \"${VERSION}\"/" src/pyOpenMS/pyproject.toml
+          grep "^version" src/pyOpenMS/pyproject.toml
 
       - name: Build wheels with cibuildwheel
         uses: pypa/cibuildwheel@v2.22
@@ -457,6 +505,15 @@ jobs:
           # Construct CIBW_BUILD from Python versions (e.g., "cp310-win_amd64 cp311-win_amd64 ...")
           CIBW_BUILD=$(echo '${{ needs.setup.outputs.python-versions }}' | jq -r '.[]' | sed 's/\.//g' | sed 's/^/cp/' | sed 's/$/-win_amd64/' | tr '\n' ' ')
           echo "CIBW_BUILD=$CIBW_BUILD" >> $GITHUB_ENV
+
+      - name: Set pyOpenMS version
+        shell: bash
+        run: |
+          # Update pyproject.toml with the calculated version (includes .devYYYYMMDD for nightlies)
+          VERSION="${{ needs.setup.outputs.pyopenms-version }}"
+          echo "Setting pyOpenMS version to: $VERSION"
+          sed -i "s/^version = .*/version = \"${VERSION}\"/" src/pyOpenMS/pyproject.toml
+          grep "^version" src/pyOpenMS/pyproject.toml
 
       - name: Build wheels with cibuildwheel
         uses: pypa/cibuildwheel@v2.22

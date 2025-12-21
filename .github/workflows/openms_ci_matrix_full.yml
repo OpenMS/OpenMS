@@ -1216,7 +1216,7 @@ jobs:
   # This job validates that the new build system works correctly
   #----------------------------------------------------------------------------
   pyopenms-quick-test:
-    # Only run on PRs to develop and on non-clang Linux builds
+    # Only run on PRs to develop
     if: github.event_name == 'pull_request' && github.event.pull_request.base.ref == 'develop'
     needs: build-and-test
     runs-on: ubuntu-24.04
