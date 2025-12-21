@@ -84,11 +84,11 @@ for OPEN_MS_CONTRIB_BUILD_DIR in OPEN_MS_CONTRIB_BUILD_DIRS.split(";"):
 #
 if iswin:
     if IS_DEBUG:
-        libraries = ["OpenMSd", "OpenSwathAlgod", "Qt5Cored", "Qt5Networkd"]
+        libraries = ["OpenMSd", "OpenSwathAlgod", "Qt6Cored", "Qt6Networkd"]
     else:
-        libraries = ["OpenMS", "OpenSwathAlgo", "Qt5Core", "Qt5Network"]
+        libraries = ["OpenMS", "OpenSwathAlgo", "Qt6Core", "Qt6Network"]
 elif sys.platform.startswith("linux"):
-    libraries = ["OpenMS", "OpenSwathAlgo", "Qt5Core", "Qt5Network"]
+    libraries = ["OpenMS", "OpenSwathAlgo", "Qt6Core", "Qt6Network"]
 elif sys.platform == "darwin":
     libraries = ["OpenMS", "OpenSwathAlgo"]
 else:
@@ -169,8 +169,8 @@ if iswin:
     # such that  boost::throw_excption() is declared but not implemented.
     # The linker does not like that very much ...
     extra_compile_args = ["/EHs", "/bigobj"]
-    extra_compile_args.append("/std:c++17")
-    extra_link_args.append("/std:c++17")
+    extra_compile_args.append("/std:c++20")
+    extra_link_args.append("/std:c++20")
 
 elif sys.platform.startswith("linux"):
     extra_link_args = ["-Wl,-s"]
@@ -192,8 +192,8 @@ if OMP and OPENMP_CXX_FLAGS:
     extra_compile_args.extend(OPENMP_CXX_FLAGS.split(";"))
 
 if not iswin:
-    extra_link_args.append("-std=c++17")
-    extra_compile_args.append("-std=c++17")
+    extra_link_args.append("-std=c++20")
+    extra_compile_args.append("-std=c++20")
     if isosx: # MacOS
         extra_compile_args.append("-stdlib=libc++")
         extra_link_args.append("-stdlib=libc++") # MacOS libstdc++ does not include c++11+ lib support.
@@ -222,9 +222,6 @@ if not iswin:
 
 mnames = ["_pyopenms_%s" % (k+1) for k in range(int(PY_NUM_MODULES))]
 ext = []
-
-##WARNING debug
-libraries.extend("boost_regex-mt-x64")
 
 for module in mnames:
 
