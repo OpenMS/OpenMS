@@ -1326,6 +1326,20 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
   add_test("TOPP_OpenSwathDecoyGenerator_test_5_out1" ${DIFF} -in1 OpenSwathDecoyGenerator_5.tmp.TraML -in2 ${DATA_DIR_TOPP}/OpenSwathDecoyGenerator_output_5.TraML)
   set_tests_properties("TOPP_OpenSwathDecoyGenerator_test_5_out1" PROPERTIES DEPENDS "TOPP_OpenSwathDecoyGenerator_test_5")
 
+  # Test 6: Light path (TSV -> TSV) - tests the memory-efficient LightTargetedExperiment path
+  # This path is used when both input AND output are TSV/PQP formats
+  add_test("TOPP_OpenSwathDecoyGenerator_test_6_light"
+    ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDecoyGenerator_input_4.tsv -out OpenSwathDecoyGenerator_6_light.tmp.tsv -out_type tsv -method pseudo-reverse -separate -switchKR true -enable_detection_unspecific_losses -enable_detection_specific_losses -min_decoy_fraction 0.4)
+  add_test("TOPP_OpenSwathDecoyGenerator_test_6_light_out1" ${DIFF} -in1 OpenSwathDecoyGenerator_6_light.tmp.tsv -in2 ${DATA_DIR_TOPP}/OpenSwathDecoyGenerator_output_6_light.tsv)
+  set_tests_properties("TOPP_OpenSwathDecoyGenerator_test_6_light_out1" PROPERTIES DEPENDS "TOPP_OpenSwathDecoyGenerator_test_6_light")
+
+  # Test 7: Heavy path with same parameters as test 6 - verifies both paths produce same decoy sequences
+  # This path uses TargetedExperiment (heavy) when output is TraML
+  add_test("TOPP_OpenSwathDecoyGenerator_test_7_heavy"
+    ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDecoyGenerator_input_4.tsv -out OpenSwathDecoyGenerator_7_heavy.tmp.TraML -out_type TraML -method pseudo-reverse -separate -switchKR true -enable_detection_unspecific_losses -enable_detection_specific_losses -min_decoy_fraction 0.4)
+  add_test("TOPP_OpenSwathDecoyGenerator_test_7_heavy_out1" ${DIFF} -in1 OpenSwathDecoyGenerator_7_heavy.tmp.TraML -in2 ${DATA_DIR_TOPP}/OpenSwathDecoyGenerator_output_7_heavy.TraML)
+  set_tests_properties("TOPP_OpenSwathDecoyGenerator_test_7_heavy_out1" PROPERTIES DEPENDS "TOPP_OpenSwathDecoyGenerator_test_7_heavy")
+
   # TargetedFileConverter : convert from and to different targeted files
   # Contains heavy and light transitions in 2 different notations
   add_test("TOPP_ConvertTSVToTraML_test_1" ${TOPP_BIN_PATH}/TargetedFileConverter -test -in ${DATA_DIR_TOPP}/ConvertTSVToTraML_1_input.tsv -out ConvertTSVToTraML_output.tmp.TraML -out_type TraML)
