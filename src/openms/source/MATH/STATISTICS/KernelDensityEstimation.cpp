@@ -127,9 +127,6 @@ namespace OpenMS
       if (M == 0) M = X.size();
       if (M == 0) return std::vector<double>();
 
-      const std::size_t half = M / 2;
-      const std::size_t out_len = M;
-
       // create a 1-D tensor with zero-padding to size M
       evergreen::Tensor<double> t(evergreen::Vector<unsigned long>{static_cast<unsigned long>(M)});
       for (std::size_t i = 0; i < M; ++i)
@@ -139,17 +136,21 @@ namespace OpenMS
         t[i] = v;
       }
 
-      // use DIF-based real FFT provided by evergreen (packed real format)
-      // Use FRESHLY_ZERO_PADDED=true for the single-axis case to match optimized path
-      evergreen::Tensor<evergreen::cpx> packed = evergreen::real_fft<evergreen::DIF, false, false, true>(t);
+      // Compute real FFT: input size M produces (M/2 + 1) complex values
+      // due to conjugate symmetry of real FFT output
+      evergreen::Tensor<evergreen::cpx> fft_result = evergreen::real_fft<evergreen::DIF, false, false, true>(t);
 
-      const std::size_t ny = packed.flat_size(); // should be half + 1
-      std::vector<double> out(out_len, 0.0);
+      // Convert to Munro-packed format for efficient storage and pointwise multiplication:
+      // [real_0, real_1, ..., real_M/2, imag_1, ..., imag_(M/2-1)]
+      // This avoids storing redundant imaginary parts and reduces memory overhead
+      const std::size_t half = M / 2;
+      const std::size_t ny = fft_result.flat_size(); // should be half + 1
+      std::vector<double> out(M, 0.0);
 
-      // store real parts
-      for (std::size_t k = 0; k < ny; ++k) out[k] = packed[k].r;
-      // store imag parts for k=1..half-1
-      for (std::size_t k = 1; k < ny - 1; ++k) out[half + k] = packed[k].i;
+      // store real parts: real_0, real_1, ..., real_M/2
+      for (std::size_t k = 0; k < ny; ++k) out[k] = fft_result[k].r;
+      // store imaginary parts: imag_1, ..., imag_(M/2-1) in second half
+      for (std::size_t k = 1; k < ny - 1; ++k) out[half + k] = fft_result[k].i;
 
       return out;
     }
@@ -164,7 +165,8 @@ namespace OpenMS
 
       if (Xp.size() < M) throw std::invalid_argument("revRt: input length must equal M");
 
-      // build packed complex tensor
+      // Unpack Munro-packed format: [real_0, real_1, ..., real_M/2, imag_1, ..., imag_(M/2-1)]
+      // into complex tensor for inverse FFT
       evergreen::Tensor<evergreen::cpx> packed(evergreen::Vector<unsigned long>{static_cast<unsigned long>(ny)});
       for (std::size_t k = 0; k < ny; ++k)
       {
@@ -172,12 +174,12 @@ namespace OpenMS
         double im = 0.0;
         if (k > 0 && k < ny - 1)
         {
-          im = Xp[half + k];
+          im = Xp[half + k];  // imaginary parts stored in second half of input vector
         }
         packed[k] = evergreen::cpx{re, im};
       }
 
-      // use evergreen real_ifft which returns a real tensor of length M
+      // Compute inverse real FFT: (M/2 + 1) complex values produce M real values
       evergreen::Tensor<double> rec = evergreen::real_ifft<evergreen::DIF, false, false>(packed);
 
       std::vector<double> out(M, 0.0);
