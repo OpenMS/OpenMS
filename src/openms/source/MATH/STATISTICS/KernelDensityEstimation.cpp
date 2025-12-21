@@ -77,10 +77,9 @@ namespace OpenMS
       double sd = std::sqrt(var);
 
       // compute percentiles using existing Math::quantile (Type 7, numpy-like linear interpolation)
-      std::vector<double> cp = xf;
-      std::sort(cp.begin(), cp.end());
-      double q25 = Math::quantile(cp.begin(), cp.end(), 0.25);
-      double q75 = Math::quantile(cp.begin(), cp.end(), 0.75);
+      std::sort(xf.begin(), xf.end());
+      double q25 = Math::quantile(xf.begin(), xf.end(), 0.25);
+      double q75 = Math::quantile(xf.begin(), xf.end(), 0.75);
       double iqr = q75 - q25;
 
       double lo = std::min(sd, iqr / 1.34);
@@ -88,7 +87,7 @@ namespace OpenMS
       if (!(lo > 0.0))
       {
         if (sd > 0.0) lo = sd;
-        else if (!cp.empty()) lo = std::abs(cp[0]);
+        else if (!xf.empty()) lo = std::abs(xf[0]);
         else lo = 1.0;
       }
 
@@ -131,7 +130,7 @@ namespace OpenMS
       const std::size_t half = M / 2;
       const std::size_t out_len = M;
 
-      // create a 1-D tensor and copy (zero-pad if needed)
+      // create a 1-D tensor with zero-padding to size M
       evergreen::Tensor<double> t(evergreen::Vector<unsigned long>{static_cast<unsigned long>(M)});
       for (std::size_t i = 0; i < M; ++i)
       {
@@ -219,10 +218,7 @@ namespace OpenMS
 
     std::pair<std::vector<double>, std::vector<double>> gridKdeFFT(const std::vector<double>& x, double bw, std::size_t gridsize, double cut)
     {
-      std::vector<double> xx = x;
-      // ensure column vector semantics
-      // n
-      const std::size_t n = xx.size();
+      const std::size_t n = x.size();
 
       // M = 2^ceil(log2(max(gridsize, n, 512)))
       std::size_t target = std::max<std::size_t>(gridsize, std::max<std::size_t>(n, 512));
@@ -232,7 +228,7 @@ namespace OpenMS
       double a = 0.0, b = 0.0;
       if (n > 0)
       {
-        auto mm = std::minmax_element(xx.begin(), xx.end());
+        auto mm = std::minmax_element(x.begin(), x.end());
         a = *mm.first - cut * bw;
         b = *mm.second + cut * bw;
       }
@@ -249,13 +245,13 @@ namespace OpenMS
       double RANGE = b - a;
 
       // linear binning normalized by (delta * n)
-      std::vector<double> binned = fast_linbin(xx, a, b, M);
+      std::vector<double> binned = fast_linbin(x, a, b, M);
       if (n > 0)
       {
         for (double &v : binned) v /= (delta * static_cast<double>(n));
       }
 
-      // forward Munro RFFT
+      // FFT-based convolution using Silverman's algorithm (see gridKdeFFT() documentation)
       std::vector<double> Y = forRt(binned, M);
 
       // multiply by Silverman kernel FFT

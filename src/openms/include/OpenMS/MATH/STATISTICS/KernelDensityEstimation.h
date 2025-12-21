@@ -182,11 +182,22 @@ namespace OpenMS
       compared to O(n*M) for direct evaluation, making it highly efficient for large
       datasets or fine grids.
 
-      The algorithm:
-      1. Bins data onto a regular grid using linear binning
-      2. Computes FFT of binned data and Gaussian kernel
-      3. Performs pointwise multiplication in frequency domain
-      4. Inverse FFT to obtain density estimates
+      The Silverman Algorithm:
+      Uses the convolution theorem to compute KDE efficiently in the frequency domain:
+      density(x) = IFFT(FFT(binned_data) * FFT(kernel))
+
+      Silverman's analytical kernel representation:
+      Instead of FFT-ing a spatial Gaussian kernel, the algorithm computes the kernel
+      analytically in the frequency domain using: K(f) = exp(-2*pi^2*sigma^2*f^2) / (1 - f^2*pi^2/3)
+      This is both more numerically stable and efficient than FFT-ing the spatial kernel,
+      and avoids the need for an additional FFT operation.
+
+      Implementation steps:
+      1. Bin data onto a regular grid using linear binning
+      2. Compute FFT of binned data using real FFT (via evergreen library)
+      3. Compute Silverman's analytical Gaussian kernel in frequency domain
+      4. Multiply FFT(data) pointwise by kernel in frequency domain
+      5. Inverse FFT to obtain density estimates
 
       The grid extends from min(x) - cut*bw to max(x) + cut*bw.
 
