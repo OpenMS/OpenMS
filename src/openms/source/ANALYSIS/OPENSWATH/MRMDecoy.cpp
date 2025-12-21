@@ -897,6 +897,7 @@ namespace OpenMS
       }
       catch (Exception::InvalidValue&)
       {
+        OPENMS_LOG_DEBUG << "[transition] Skipping transitions for " << peptide_ref << " - cannot parse sequence" << std::endl;
         continue;
       }
 
