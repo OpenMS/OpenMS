@@ -108,7 +108,8 @@ namespace OpenMS
       in a real-valued vector of the same length as the input.
 
       The output format is: [Re(Y_0), Re(Y_1), ..., Re(Y_{M/2}), Im(Y_1), ..., Im(Y_{M/2-1})]
-      where Y_k are the complex FFT coefficients. The result is scaled by dividing by M.
+      where Y_k are the complex FFT coefficients. The result is UNSCALED (no normalization
+      factor applied); the caller must handle any necessary scaling.
 
       Reference:
       Munro WD. (1976) "Efficient computation of the discrete Fourier transform."
@@ -116,9 +117,9 @@ namespace OpenMS
 
       @param X Real-valued input vector
       @param M Length of FFT (if 0, uses X.size() and rounds up to next power of 2)
-      @return Real-valued Munro-packed FFT coefficients of length M
+      @return Real-valued Munro-packed FFT coefficients of length M (unscaled)
 
-      @see revRt() for the inverse transform
+      @see revRt() for the inverse transform (which applies scaling by multiplying by M)
 
       @ingroup MathFunctionsStatistics
     */
@@ -129,7 +130,7 @@ namespace OpenMS
 
       Performs the inverse operation of forRt(), reconstructing a real-valued signal
       from its Munro-packed frequency domain representation. The output is scaled by
-      multiplying by M to invert the scaling applied in forRt().
+      multiplying by M (applied by the evergreen::real_ifft function).
 
       The input must be in Munro-packed format:
       [Re(Y_0), Re(Y_1), ..., Re(Y_{M/2}), Im(Y_1), ..., Im(Y_{M/2-1})]
@@ -140,9 +141,9 @@ namespace OpenMS
 
       @param Xp Munro-packed real-valued frequency coefficients
       @param M Length of output (if 0, uses Xp.size())
-      @return Real-valued reconstructed signal of length M
+      @return Real-valued reconstructed signal of length M (scaled by M)
 
-      @see forRt() for the forward transform
+      @see forRt() for the forward transform (which returns unscaled coefficients)
 
       @ingroup MathFunctionsStatistics
     */
