@@ -94,6 +94,7 @@ jobs:
             -DCMAKE_PREFIX_PATH=/contrib-build \
             -DOPENMS_CONTRIB_LIBS=/contrib-build \
             -DPYOPENMS=OFF \
+            -DWITH_GUI=OFF \
             -DENABLE_TUTORIALS=OFF \
             -DENABLE_DOCS=OFF \
             -DWITH_PARQUET=ON
@@ -141,6 +142,7 @@ jobs:
             -DCMAKE_PREFIX_PATH=/contrib-build \
             -DOPENMS_CONTRIB_LIBS=/contrib-build \
             -DPYOPENMS=OFF \
+            -DWITH_GUI=OFF \
             -DENABLE_TUTORIALS=OFF \
             -DENABLE_DOCS=OFF \
             -DWITH_PARQUET=ON
@@ -185,6 +187,7 @@ jobs:
             -DCMAKE_PREFIX_PATH="$(brew --prefix):$(brew --prefix libomp):$(brew --prefix icu4c)" \
             -DOpenMP_ROOT=$(brew --prefix libomp) \
             -DPYOPENMS=OFF \
+            -DWITH_GUI=OFF \
             -DENABLE_TUTORIALS=OFF \
             -DENABLE_DOCS=OFF \
             -DMT_ENABLE_OPENMP=ON \
@@ -258,6 +261,7 @@ jobs:
             -DCMAKE_PREFIX_PATH="$QT_ROOT_DIR/lib/cmake;$QT_ROOT_DIR" \
             -DOPENMS_CONTRIB_LIBS="$GITHUB_WORKSPACE/contrib" \
             -DPYOPENMS=OFF \
+            -DWITH_GUI=OFF \
             -DENABLE_TUTORIALS=OFF \
             -DENABLE_DOCS=OFF \
             -DWITH_PARQUET=ON
