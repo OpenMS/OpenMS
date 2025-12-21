@@ -163,6 +163,8 @@ jobs:
 
       - name: Build OpenMS
         run: |
+          # icu4c is keg-only, so we need to add it to the library search path for linking
+          export LIBRARY_PATH="$(brew --prefix icu4c)/lib:${LIBRARY_PATH:-}"
           mkdir build && cd build
           cmake .. \
             -G Ninja \
@@ -416,7 +418,7 @@ jobs:
         env:
           CIBW_ARCHS_MACOS: "arm64"
           CIBW_BEFORE_BUILD: "pip install delocate"
-          CIBW_ENVIRONMENT: "OpenMS_ROOT=${{ github.workspace }}/openms-build CMAKE_PREFIX_PATH=/opt/homebrew:/opt/homebrew/opt/libomp:/opt/homebrew/opt/icu4c:${{ github.workspace }}/openms-build MACOSX_DEPLOYMENT_TARGET=14.0"
+          CIBW_ENVIRONMENT: "OpenMS_ROOT=${{ github.workspace }}/openms-build CMAKE_PREFIX_PATH=/opt/homebrew:/opt/homebrew/opt/libomp:/opt/homebrew/opt/icu4c:${{ github.workspace }}/openms-build LIBRARY_PATH=/opt/homebrew/opt/icu4c/lib MACOSX_DEPLOYMENT_TARGET=14.0"
           CIBW_REPAIR_WHEEL_COMMAND: "delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel}"
           CIBW_BUILD_VERBOSITY: 1
 
