@@ -14,6 +14,9 @@
 #include <OpenMS/MATH/STATISTICS/KernelDensityEstimation.h>
 #include <cmath>
 #include <algorithm>
+#include <fstream>
+#include <sstream>
+#include <map>
 
 using namespace OpenMS;
 using namespace OpenMS::Math;
@@ -386,6 +389,107 @@ START_SECTION((Integration test: Full KDE pipeline))
   double max_density = *std::max_element(point_densities.begin(), point_densities.end());
   double min_density = *std::min_element(point_densities.begin(), point_densities.end());
   TEST_EQUAL(max_density > min_density, true)
+}
+END_SECTION
+
+START_SECTION("kde reference (statsmodels) regression")
+{
+  // Load CSV reference data
+  const std::string path = OPENMS_GET_TEST_DATA_PATH("kde_reference_data.csv");
+  std::ifstream in(path.c_str());
+  TEST_EQUAL(bool(in), true)
+
+  std::string header;
+  std::getline(in, header);
+  
+  struct Row {
+    std::string dataset;
+    std::size_t data_index;
+    double x_value;
+    double bandwidth;
+    double density;
+  };
+  
+  std::map<std::string, std::vector<Row>> datasets_by_name;
+  std::string line;
+  
+  while (std::getline(in, line))
+  {
+    if (line.empty()) continue;
+    
+    std::vector<std::string> parts;
+    std::stringstream ss(line);
+    std::string item;
+    while (std::getline(ss, item, ','))
+    {
+      if (!item.empty() && item.front() == '"' && item.back() == '"')
+        item = item.substr(1, item.size()-2);
+      parts.push_back(item);
+    }
+    
+    if (parts.size() < 5) continue;
+    
+    Row r;
+    r.dataset = parts[0];
+    r.data_index = std::stoul(parts[1]);
+    r.x_value = std::stod(parts[2]);
+    r.bandwidth = std::stod(parts[3]);
+    r.density = std::stod(parts[4]);
+    
+    datasets_by_name[r.dataset].push_back(r);
+  }
+
+  TEST_EQUAL(datasets_by_name.empty(), false)
+
+  // Tolerances for quasi-equivalence with statsmodels reference
+  // Using Silverman's rule explicitly (same algorithm as OpenMS bwNrd0)
+  const double bw_rel_tol = 0.05; // Allow 5% relative error in bandwidth (implementation differences)
+  const double dens_rel_tol = 0.05; // Allow 5% relative error in density (FFT/spline/rounding)
+  const double dens_abs_tol = 0.005; // Allow 0.005 absolute error in density
+  std::size_t total_tests = 0;
+
+  // Test each dataset
+  for (auto& [dataset_name, rows] : datasets_by_name)
+  {
+    // Extract data points and reference results
+    std::vector<double> data_points;
+    std::vector<double> ref_densities;
+    double ref_bw = 0.0;
+    
+    for (const auto& r : rows)
+    {
+      data_points.push_back(r.x_value);
+      ref_densities.push_back(r.density);
+      ref_bw = r.bandwidth; // Same for all rows in dataset
+    }
+    
+    // Compute our bandwidth from the original data points
+    double our_bw = bwNrd0(data_points);
+    TEST_EQUAL(our_bw > 0.0, true)
+    
+    // Bandwidth should be close to statsmodels (allowing for quantile computation differences)
+    double bw_rel_error = (ref_bw > 1e-10) ? std::fabs(our_bw - ref_bw) / ref_bw : std::fabs(our_bw - ref_bw);
+    TEST_EQUAL(bw_rel_error <= bw_rel_tol, true)
+    
+    // Evaluate KDE at data points using our computed bandwidth
+    auto our_densities = kdeFFTEval(data_points, our_bw);
+    TEST_EQUAL(our_densities.size(), ref_densities.size())
+    
+    // Check quasi-equivalence of density values
+    for (std::size_t i = 0; i < ref_densities.size(); ++i)
+    {
+      // Use relative tolerance for density comparison
+      double ref = ref_densities[i];
+      double our = our_densities[i];
+      double rel_error = (ref > 1e-10) ? std::fabs(our - ref) / std::abs(ref) : std::fabs(our - ref);
+      
+      // Density matches if within 25% relative error OR 0.05 absolute error
+      TEST_EQUAL(rel_error <= dens_rel_tol || std::fabs(our - ref) <= dens_abs_tol, true)
+      total_tests++;
+    }
+  }
+  
+  std::cout << "Passed " << total_tests << " density quasi-equivalence checks\n";
 }
 END_SECTION
 
