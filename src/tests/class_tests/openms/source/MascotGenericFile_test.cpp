@@ -220,6 +220,50 @@ START_SECTION((COMPOUND_NAME to Metabolite_Name mapping))
 }
 END_SECTION
 
+START_SECTION((GNPS MGF file - 3-Des-Microcystein_LR))
+{
+  // Test loading a real GNPS library spectrum with COMPOUND_NAME and SPECTRUMID metadata
+  PeakMap exp;
+  MascotGenericFile mgf_file;
+  
+  // Load the GNPS MGF file
+  mgf_file.load(OPENMS_GET_TEST_DATA_PATH("MascotGenericFile_GNPS.mgf"), exp);
+  
+  // Test that we have one spectrum
+  TEST_EQUAL(exp.size(), 1)
+  
+  // Test that SPECTRUMID was correctly parsed and stored as GNPS_Spectrum_ID
+  TEST_EQUAL(exp[0].metaValueExists("GNPS_Spectrum_ID"), true)
+  TEST_EQUAL(String(exp[0].getMetaValue("GNPS_Spectrum_ID")), "CCMSLIB00000001547")
+  
+  // Test that COMPOUND_NAME was correctly mapped to MSM_METABOLITE_NAME
+  TEST_EQUAL(exp[0].metaValueExists(Constants::UserParam::MSM_METABOLITE_NAME), true)
+  TEST_EQUAL(String(exp[0].getMetaValue(Constants::UserParam::MSM_METABOLITE_NAME)), "3-Des-Microcystein_LR")
+  
+  // Test precursor m/z
+  TEST_REAL_SIMILAR(exp[0].getPrecursors()[0].getMZ(), 981.54)
+  
+  // Test charge state
+  TEST_EQUAL(exp[0].getPrecursors()[0].getCharge(), 1)
+  
+  // Test that we have the expected number of peaks (43 peaks in the file)
+  TEST_EQUAL(exp[0].size(), 43)
+  
+  // Test the base peak (m/z 599.352783 with intensity 764523.0)
+  bool found_base_peak = false;
+  for (Size i = 0; i < exp[0].size(); ++i)
+  {
+    if (std::abs(exp[0][i].getMZ() - 599.352783) < 0.001)
+    {
+      found_base_peak = true;
+      TEST_REAL_SIMILAR(exp[0][i].getIntensity(), 764523.0)
+      break;
+    }
+  }
+  TEST_EQUAL(found_base_peak, true)
+}
+END_SECTION
+
 delete ptr;
 
 /////////////////////////////////////////////////////////////
