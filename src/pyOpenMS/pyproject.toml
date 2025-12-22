@@ -127,6 +127,8 @@ include = [
 # CMake build configuration
 build_type = "Release"
 source_path = "."
+# Use CMAKE_BUILD_PARALLEL_LEVEL environment variable to control parallelism
+# CI sets this to prevent OOM; developers can override locally
 build_args = ["-j"]
 install_components = ["python_modules"]
 

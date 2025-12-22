@@ -344,7 +344,7 @@ jobs:
         env:
           CIBW_MANYLINUX_X86_64_IMAGE: ghcr.io/openms/contrib_manylinux_2_34:latest-amd64
           CIBW_BEFORE_ALL: "yum install -y cmake ninja-build"
-          CIBW_ENVIRONMENT: "OpenMS_ROOT=/project/openms-build CMAKE_PREFIX_PATH=/contrib-build:/project/openms-build LD_LIBRARY_PATH=/project/openms-build/lib"
+          CIBW_ENVIRONMENT: "OpenMS_ROOT=/project/openms-build CMAKE_PREFIX_PATH=/contrib-build:/project/openms-build LD_LIBRARY_PATH=/project/openms-build/lib CMAKE_BUILD_PARALLEL_LEVEL=2"
           CIBW_REPAIR_WHEEL_COMMAND: "auditwheel repair -w {dest_dir} {wheel}"
           CIBW_BUILD_VERBOSITY: 1
 
@@ -399,7 +399,7 @@ jobs:
         env:
           CIBW_MANYLINUX_AARCH64_IMAGE: ghcr.io/openms/contrib_manylinux_2_34:latest-arm64
           CIBW_BEFORE_ALL: "yum install -y cmake ninja-build"
-          CIBW_ENVIRONMENT: "OpenMS_ROOT=/project/openms-build CMAKE_PREFIX_PATH=/contrib-build:/project/openms-build LD_LIBRARY_PATH=/project/openms-build/lib"
+          CIBW_ENVIRONMENT: "OpenMS_ROOT=/project/openms-build CMAKE_PREFIX_PATH=/contrib-build:/project/openms-build LD_LIBRARY_PATH=/project/openms-build/lib CMAKE_BUILD_PARALLEL_LEVEL=2"
           CIBW_REPAIR_WHEEL_COMMAND: "auditwheel repair -w {dest_dir} {wheel}"
           CIBW_BUILD_VERBOSITY: 1
 
@@ -451,7 +451,7 @@ jobs:
         env:
           CIBW_ARCHS_MACOS: "arm64"
           CIBW_BEFORE_BUILD: "pip install delocate"
-          CIBW_ENVIRONMENT: "OpenMS_ROOT=${{ github.workspace }}/openms-build CMAKE_PREFIX_PATH=/opt/homebrew:/opt/homebrew/opt/libomp:/opt/homebrew/opt/icu4c:${{ github.workspace }}/openms-build LIBRARY_PATH=/opt/homebrew/opt/icu4c/lib MACOSX_DEPLOYMENT_TARGET=14.0"
+          CIBW_ENVIRONMENT: "OpenMS_ROOT=${{ github.workspace }}/openms-build CMAKE_PREFIX_PATH=/opt/homebrew:/opt/homebrew/opt/libomp:/opt/homebrew/opt/icu4c:${{ github.workspace }}/openms-build LIBRARY_PATH=/opt/homebrew/opt/icu4c/lib MACOSX_DEPLOYMENT_TARGET=14.0 CMAKE_BUILD_PARALLEL_LEVEL=2"
           CIBW_REPAIR_WHEEL_COMMAND: "delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel}"
           CIBW_BUILD_VERBOSITY: 1
 
@@ -535,7 +535,7 @@ jobs:
         env:
           CIBW_BEFORE_BUILD: "pip install delvewheel"
           # Use shell variable expansion - PYOPENMS_* vars are set in previous step
-          CIBW_ENVIRONMENT: "OpenMS_ROOT=$PYOPENMS_OPENMS_ROOT CMAKE_PREFIX_PATH=$PYOPENMS_CMAKE_PREFIX_PATH"
+          CIBW_ENVIRONMENT: "OpenMS_ROOT=$PYOPENMS_OPENMS_ROOT CMAKE_PREFIX_PATH=$PYOPENMS_CMAKE_PREFIX_PATH CMAKE_BUILD_PARALLEL_LEVEL=2"
           CIBW_REPAIR_WHEEL_COMMAND: "delvewheel repair -w {dest_dir} {wheel}"
           CIBW_BUILD_VERBOSITY: 1
 
