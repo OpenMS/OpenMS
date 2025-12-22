@@ -192,10 +192,14 @@ protected:
     int uis_seed = getIntOption_("ipf_decoy_seed");
     bool disable_decoy_transitions = getFlag_("disable_decoy_transitions");
 
-    // In test mode, use fixed seed for reproducibility (unless user specified one)
-    if (is_test && uis_seed == -1)
+    // In test mode, use fixed seed and disable decoy transitions for reproducibility
+    if (is_test)
     {
-      uis_seed = 42;
+      if (uis_seed == -1)
+      {
+        uis_seed = 42;
+      }
+      disable_decoy_transitions = true;
     }
 
     std::vector<String> allowed_fragment_types;
