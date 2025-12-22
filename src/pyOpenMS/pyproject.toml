@@ -127,9 +127,9 @@ include = [
 # CMake build configuration
 build_type = "Release"
 source_path = "."
-# Limit parallel jobs to prevent OOM on memory-constrained runners (e.g., ARM)
+# Limit parallel jobs to prevent OOM (2 jobs = ~8GB memory usage)
 # The number of parallel jobs can be overridden via CMAKE_BUILD_PARALLEL_LEVEL env var
-build_args = ["-j4"]
+build_args = ["-j2"]
 install_components = ["python_modules"]
 
 [tool.py-build-cmake.cmake.options]
