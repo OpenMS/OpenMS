@@ -1,6 +1,6 @@
 
 
-    def load(self, filename, protein_ids, peptide_ids, *args):
+    def load(self, filename, protein_ids, peptide_ids, document_id=None):
         """
         load(self, filename, protein_ids, peptide_ids, document_id=None)
         
@@ -10,7 +10,7 @@
         PeptideIdentificationList objects for peptide_ids parameter.
         
         :param filename: Path to the idXML file to load
-        :type filename: str or bytes
+        :type filename: str or bytes or String
         :param protein_ids: List to store protein identifications (modified in place)
         :type protein_ids: list[ProteinIdentification]
         :param peptide_ids: Container to store peptide identifications (modified in place).
@@ -32,46 +32,47 @@
             peptide_ids = []
             pyopenms.IdXMLFile().load("test.idXML", protein_ids, peptide_ids)
         """
-        cdef PeptideIdentificationList cpp_peptide_ids
-        cdef bool needs_conversion = False
+        # Import at function level to avoid circular dependencies
+        from . import PeptideIdentificationList as _PeptideIdentificationList
         
         # Check if peptide_ids is a Python list (old API) or PeptideIdentificationList (new API)
         if isinstance(peptide_ids, list):
             # Old API: Convert Python list to PeptideIdentificationList
-            needs_conversion = True
-            cpp_peptide_ids = PeptideIdentificationList()
-            # Copy existing items from Python list to PeptideIdentificationList
-            for pep_id in peptide_ids:
-                cpp_peptide_ids.push_back(pep_id)
+            temp_peptide_ids = _PeptideIdentificationList()
+            temp_peptide_ids.extend(peptide_ids)
+            
+            # Call the C++ load method
+            if document_id is None:
+                self.inst.get().load(
+                    deref(convString(filename).get()),
+                    protein_ids,
+                    deref(temp_peptide_ids.inst.get())
+                )
+            else:
+                self.inst.get().load(
+                    deref(convString(filename).get()),
+                    protein_ids,
+                    deref(temp_peptide_ids.inst.get()),
+                    deref(convString(document_id).get())
+                )
+            
+            # Copy results back to Python list
+            peptide_ids[:] = list(temp_peptide_ids)
         else:
             # New API: Use PeptideIdentificationList directly
-            cpp_peptide_ids = peptide_ids
-        
-        # Call the appropriate C++ method based on number of arguments
-        if len(args) == 0:
-            # load(filename, protein_ids, peptide_ids)
-            self.inst.get().load(
-                _String(<char*>_bytes(filename)),
-                protein_ids,
-                cpp_peptide_ids
-            )
-        elif len(args) == 1:
-            # load(filename, protein_ids, peptide_ids, document_id)
-            document_id = args[0]
-            self.inst.get().load(
-                _String(<char*>_bytes(filename)),
-                protein_ids,
-                cpp_peptide_ids,
-                deref(document_id.inst.get())
-            )
-        else:
-            raise ValueError("Invalid number of arguments")
-        
-        # If we converted from Python list, copy results back
-        if needs_conversion:
-            peptide_ids[:] = []  # Clear the original list
-            for i in range(cpp_peptide_ids.size()):
-                peptide_ids.append(cpp_peptide_ids[i])
+            if document_id is None:
+                self.inst.get().load(
+                    deref(convString(filename).get()),
+                    protein_ids,
+                    deref(peptide_ids.inst.get())
+                )
+            else:
+                self.inst.get().load(
+                    deref(convString(filename).get()),
+                    protein_ids,
+                    deref(peptide_ids.inst.get()),
+                    deref(convString(document_id).get())
+                )
     
     def store(self, filename, protein_ids, peptide_ids, document_id=b""):
         """
@@ -83,7 +84,7 @@
         PeptideIdentificationList objects for peptide_ids parameter.
         
         :param filename: Path to the idXML file to store
-        :type filename: str or bytes
+        :type filename: str or bytes or String
         :param protein_ids: List of protein identifications to store
         :type protein_ids: list[ProteinIdentification]
         :param peptide_ids: Container of peptide identifications to store.
@@ -91,7 +92,7 @@
                            PeptideIdentificationList (3.5+ style)
         :type peptide_ids: list[PeptideIdentification] or PeptideIdentificationList
         :param document_id: Optional document identifier
-        :type document_id: str or bytes, optional
+        :type document_id: str or bytes or String, optional
         
         Example::
         
@@ -106,22 +107,26 @@
             peptide_ids = [...]
             pyopenms.IdXMLFile().store("test.idXML", protein_ids, peptide_ids)
         """
-        cdef PeptideIdentificationList cpp_peptide_ids
+        # Import at function level to avoid circular dependencies
+        from . import PeptideIdentificationList as _PeptideIdentificationList
         
         # Check if peptide_ids is a Python list (old API) or PeptideIdentificationList (new API)
         if isinstance(peptide_ids, list):
             # Old API: Convert Python list to PeptideIdentificationList
-            cpp_peptide_ids = PeptideIdentificationList()
-            for pep_id in peptide_ids:
-                cpp_peptide_ids.push_back(pep_id)
+            temp_peptide_ids = _PeptideIdentificationList()
+            temp_peptide_ids.extend(peptide_ids)
+            
+            self.inst.get().store(
+                deref(convString(filename).get()),
+                protein_ids,
+                deref(temp_peptide_ids.inst.get()),
+                deref(convString(document_id).get())
+            )
         else:
             # New API: Use PeptideIdentificationList directly
-            cpp_peptide_ids = peptide_ids
-        
-        # Call the C++ store method
-        self.inst.get().store(
-            _String(<char*>_bytes(filename)),
-            protein_ids,
-            cpp_peptide_ids,
-            _String(<char*>_bytes(document_id))
-        )
+            self.inst.get().store(
+                deref(convString(filename).get()),
+                protein_ids,
+                deref(peptide_ids.inst.get()),
+                deref(convString(document_id).get())
+            )

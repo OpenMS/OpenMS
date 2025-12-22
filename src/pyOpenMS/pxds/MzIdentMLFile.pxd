@@ -16,7 +16,7 @@ cdef extern from "<OpenMS/FORMAT/MzIdentMLFile.h>" namespace "OpenMS":
         MzIdentMLFile() except + nogil 
         MzIdentMLFile(MzIdentMLFile &) except + nogil 
 
-        void load(String filename, libcpp_vector[ProteinIdentification] & poid, PeptideIdentificationList & peid) except + nogil 
+        void load(String filename, libcpp_vector[ProteinIdentification] & poid, PeptideIdentificationList & peid) except + nogil  # wrap-ignore
             # wrap-doc:
                 #  Loads the identifications from a MzIdentML file
                 #  
@@ -27,7 +27,7 @@ cdef extern from "<OpenMS/FORMAT/MzIdentMLFile.h>" namespace "OpenMS":
                 #  :raises:
                 #    Exception: ParseError is thrown if an error occurs during parsin
 
-        void store(String filename, libcpp_vector[ProteinIdentification] & poid, PeptideIdentificationList & peid) except + nogil 
+        void store(String filename, libcpp_vector[ProteinIdentification] & poid, PeptideIdentificationList & peid) except + nogil  # wrap-ignore
             # wrap-doc:
                 #  Stores the identifications in a MzIdentML file
                 #  
@@ -45,4 +45,3 @@ cdef extern from "<OpenMS/FORMAT/MzIdentMLFile.h>" namespace "OpenMS":
                 #  :param warnings: Warnings during the validation are returned in this output parameter
                 #  :raises:
                 #    Exception: FileNotFound is thrown if the file could not be opened
-

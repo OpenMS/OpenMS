@@ -22,25 +22,25 @@ cdef extern from "<OpenMS/FORMAT/PepXMLFile.h>" namespace "OpenMS":
         void load(String filename,
                   libcpp_vector[ProteinIdentification] & protein_ids,
                   PeptideIdentificationList & peptide_ids
-                  ) except + nogil 
+                  ) except + nogil  # wrap-ignore
 
         void load(String filename,
                   libcpp_vector[ProteinIdentification] & protein_ids,
                   PeptideIdentificationList & peptide_ids,
                   String experiment_name
-                  ) except + nogil 
+                  ) except + nogil  # wrap-ignore
 
         void load(String filename,
                   libcpp_vector[ProteinIdentification] & protein_ids,
                   PeptideIdentificationList & peptide_ids,
                   String experiment_name,
                   SpectrumMetaDataLookup lookup
-                  ) except + nogil 
+                  ) except + nogil  # wrap-ignore
 
         void store(String filename,
                   libcpp_vector[ProteinIdentification] & protein_ids,
                   PeptideIdentificationList & peptide_ids
-                  ) except + nogil 
+                  ) except + nogil  # wrap-ignore
 
         void store(String filename,
                   libcpp_vector[ProteinIdentification] & protein_ids,
@@ -49,8 +49,7 @@ cdef extern from "<OpenMS/FORMAT/PepXMLFile.h>" namespace "OpenMS":
                   String mz_name,
                   bool peptideprophet_analyzed,
                   double rt_tolerance
-                  ) except + nogil 
+                  ) except + nogil  # wrap-ignore
 
         void keepNativeSpectrumName(bool keep) except + nogil 
-        void setParseUnknownScores(bool parse_unknown_scores) except + nogil 
-
+        void setParseUnknownScores(bool parse_unknown_scores) except + nogil
