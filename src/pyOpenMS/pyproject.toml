@@ -85,19 +85,15 @@ build = [
     "Cython>=3.1.0",
     "numpy>=2.0",
 ]
-dev = [
-    "py-build-cmake>=0.3.0",
-    "autowrap>=0.24.0",
-    "Cython>=3.1.0",
-    "numpy>=2.0",
-    "pytest",
-    "pytest-cov",
-    "pandas",
-    "matplotlib>=3.5",
-]
 test = [
     "pytest",
     "pytest-cov",
+    "pandas",  # tests need pandas for DataFrame functionality
+]
+dev = [
+    {include-group = "build"},
+    {include-group = "test"},
+    "matplotlib>=3.5",
 ]
 
 #------------------------------------------------------------------------------
