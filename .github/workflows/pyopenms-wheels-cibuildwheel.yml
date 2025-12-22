@@ -183,12 +183,15 @@ jobs:
           # zstd is required for static Arrow/Parquet linking
           export LIBRARY_PATH="$(brew --prefix icu4c)/lib:$(brew --prefix zstd)/lib:${LIBRARY_PATH:-}"
           mkdir build && cd build
+          # Note: CMAKE_PREFIX_PATH uses semicolons as list separators when passed via -D
+          # BOOST_USE_STATIC_LIBS=OFF works around Boost's incomplete find_dependency calls
           cmake .. \
             -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_INSTALL_PREFIX=$GITHUB_WORKSPACE/openms-install \
-            -DCMAKE_PREFIX_PATH="$(brew --prefix):$(brew --prefix libomp):$(brew --prefix icu4c):$(brew --prefix zstd)" \
+            -DCMAKE_PREFIX_PATH="$(brew --prefix);$(brew --prefix libomp);$(brew --prefix icu4c);$(brew --prefix zstd)" \
             -DOpenMP_ROOT=$(brew --prefix libomp) \
+            -DBOOST_USE_STATIC_LIBS=OFF \
             -DPYOPENMS=OFF \
             -DWITH_GUI=OFF \
             -DENABLE_TUTORIALS=OFF \
