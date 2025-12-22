@@ -1681,6 +1681,16 @@ namespace OpenMS
         annotation = "NA";
       }
 
+      // Default empty fields to "NA" to match heavy-path output
+      if (peptide_group_label.empty())
+      {
+        peptide_group_label = "NA";
+      }
+      if (gene_name.empty())
+      {
+        gene_name = "NA";
+      }
+
       String line;
       line +=
         String(tr.precursor_mz)                 + "\t"
@@ -1703,7 +1713,7 @@ namespace OpenMS
         + tr.fragment_type                      + "\t"
         + String(tr.fragment_nr)                + "\t"
         + annotation                            + "\t"
-        + String(-1)                            + "\t"  // CE not stored in Light
+        + String(-1.0)                          + "\t"  // CE not stored in Light
         + String(drift_time)                    + "\t"
         + tr.peptide_ref                        + "\t"
         + tr.transition_name                    + "\t"
