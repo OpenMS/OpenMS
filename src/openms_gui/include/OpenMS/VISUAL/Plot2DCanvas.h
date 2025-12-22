@@ -183,8 +183,8 @@ protected:
       Internally, this function makes use of the members 'canvas_coverage_min_' (giving the fraction (e.g. 20%) of area which should be covered by data)
       and 'pen_size_max_' (maximum allowed number of pixels per data point).
 
-      @param ratio_data2pixel The current ratio of # data points vs. # pixels of image
-      @param pen_size In/Out param: gives the initial pen size, and is increased (up to @p MAX_PEN_SIZE) to reach desired coverage given by 'canvas_coverage_min_'
+      @param[in] ratio_data2pixel The current ratio of # data points vs. # pixels of image
+      @param[in] pen_size In/Out param: gives the initial pen size, and is increased (up to @p MAX_PEN_SIZE) to reach desired coverage given by 'canvas_coverage_min_'
       @return The factor by which @p pen_size increased (gives a hint of how many data points should be merged to avoid overplotting)
     */
     double adaptPenScaling_(double ratio_data2pixel, double& pen_size) const;
@@ -208,8 +208,8 @@ protected:
       @brief Convert chart to widget coordinates
 
       Translates chart coordinates to widget coordinates.
-      @param x the chart coordinate x
-      @param y the chart coordinate y
+      @param[in] x the chart coordinate x
+      @param[in] y the chart coordinate y
       @return A point in widget coordinates
     */
     QPoint dataToWidget_(double x, double y) const

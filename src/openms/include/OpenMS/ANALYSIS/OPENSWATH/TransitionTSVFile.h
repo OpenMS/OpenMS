@@ -225,18 +225,18 @@ private:
 
     /** @brief Determine separator in a CSV file and check for correct headers
      *
-     * @param line The header to be parsed
-     * @param delimiter The delimiter which will be determined from the input
-     * @param header_dict The map which maps the fields in the header to their position
+     * @param[in] line The header to be parsed
+     * @param[in] delimiter The delimiter which will be determined from the input
+     * @param[in] header_dict The map which maps the fields in the header to their position
      *
     */
     void getTSVHeader_(const std::string& line, char& delimiter, std::map<std::string, int>& header_dict) const;
 
     /** @brief Read tab or comma separated input with columns defined by their column headers only
      *
-     * @param filename The input file
-     * @param filetype The type of file ("mrm" or "tsv")
-     * @param transition_list The output list of transitions
+     * @param[in] filename The input file
+     * @param[in] filetype The type of file ("mrm" or "tsv")
+     * @param[in] transition_list The output list of transitions
      *
     */
     void readUnstructuredTSVInput_(const char* filename, FileTypes::Type filetype, std::vector<TSVTransition>& transition_list);
@@ -266,7 +266,7 @@ private:
      * provided "peptide group label" for a peptide and replace it with the
      * peptide identifier (transition group id).
      *
-     * @param transition_list The list of transitions to be fixed.
+     * @param[out] transition_list The list of transitions to be fixed.
      *
      */
     void resolveMixedSequenceGroups_(std::vector<TSVTransition>& transition_list) const;
@@ -299,8 +299,8 @@ private:
 
     /** @brief Write a TargetedExperiment to a file
      *
-     * @param filename Name of the output file
-     * @param targeted_exp The data structure to be written to the file
+     * @param[in] filename Name of the output file
+     * @param[out] targeted_exp The data structure to be written to the file
     */
     void writeTSVOutput_(const char* filename, OpenMS::TargetedExperiment& targeted_exp);
 
@@ -316,26 +316,26 @@ public:
 
     /** @brief Write out a targeted experiment (TraML structure) into a tsv file
      *
-     * @param filename The output file
-     * @param targeted_exp The targeted experiment
+     * @param[out] filename The output file
+     * @param[out] targeted_exp The targeted experiment
      *
     */
     void convertTargetedExperimentToTSV(const char* filename, OpenMS::TargetedExperiment& targeted_exp);
 
     /** @brief Read in a tsv/mrm file and construct a targeted experiment (TraML structure)
      *
-     * @param filename The input file
-     * @param filetype The type of file ("mrm" or "tsv")
-     * @param targeted_exp The output targeted experiment
+     * @param[out] filename The input file
+     * @param[in] filetype The type of file ("mrm" or "tsv")
+     * @param[out] targeted_exp The output targeted experiment
      *
     */
     void convertTSVToTargetedExperiment(const char* filename, FileTypes::Type filetype, OpenMS::TargetedExperiment& targeted_exp);
 
     /** @brief Read in a tsv file and construct a targeted experiment (Light transition structure)
      *
-     * @param filename The input file
-     * @param filetype The type of file ("mrm" or "tsv")
-     * @param targeted_exp The output targeted experiment
+     * @param[in] filename The input file
+     * @param[in] filetype The type of file ("mrm" or "tsv")
+     * @param[out] targeted_exp The output targeted experiment
      *
     */
     void convertTSVToTargetedExperiment(const char* filename, FileTypes::Type filetype, OpenSwath::LightTargetedExperiment& targeted_exp);

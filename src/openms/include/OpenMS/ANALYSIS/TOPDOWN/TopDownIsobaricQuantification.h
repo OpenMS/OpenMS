@@ -44,9 +44,9 @@ namespace OpenMS
 
     /**
      * Run quantification
-     * @param exp the MS experiment
-     * @param deconvolved_spectra deconvolved spectra for which the quantification will be carried out
-     * @param mass_features mass features that are used to merge quantification results for the MS2 spectra from the same precursor mass
+     * @param[in] exp the MS experiment
+     * @param[in] deconvolved_spectra deconvolved spectra for which the quantification will be carried out
+     * @param[out] mass_features mass features that are used to merge quantification results for the MS2 spectra from the same precursor mass
      */
     void quantify(const MSExperiment& exp, std::vector<DeconvolvedSpectrum>& deconvolved_spectra, const std::vector<FLASHHelperClasses::MassFeature>& mass_features);
 

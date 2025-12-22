@@ -41,7 +41,7 @@ namespace OpenMS
     /**
     @brief Constructs a mass mapping of targets and decoys using the unique m_id identifier.
 
-    @param t_exp TransitionExperiment holds compound and transition information used for the mapping.
+    @param[in] t_exp TransitionExperiment holds compound and transition information used for the mapping.
 
     */
     static std::vector<MetaboTargetDecoyMassMapping> constructTargetDecoyMassMapping(const TargetedExperiment& t_exp);
@@ -49,20 +49,20 @@ namespace OpenMS
     /**
     @brief Resolves overlapping target and decoy transition masses by adding a specifiable mass (e.g. CH2) to the overlapping decoy fragment.
 
-    @param t_exp TransitionExperiment holds compound and transition information
-    @param mappings map of identifier to target and decoy masses
-    @param mass_to_add (e.g. CH2)
-    @param mz_tol m/z tolerarance for target and decoy transition masses to be considered overlapping
-    @param mz_tol_unit m/z tolerance unit ("ppm" or "Da")
+    @param[in,out] t_exp TransitionExperiment holds compound and transition information
+    @param[in,out] mappings map of identifier to target and decoy masses
+    @param[in] mass_to_add (e.g. CH2)
+    @param[in] mz_tol m/z tolerarance for target and decoy transition masses to be considered overlapping
+    @param[in] mz_tol_unit m/z tolerance unit ("ppm" or "Da")
     */
     static void resolveOverlappingTargetDecoyMassesByDecoyMassShift(TargetedExperiment& t_exp, std::vector<MetaboTargetedTargetDecoy::MetaboTargetDecoyMassMapping>& mappings, const double& mass_to_add, const double& mz_tol, const String& mz_tol_unit);
 
     /**
     @brief Generate a decoy for targets where fragmentation tree re-rooting was not possible, by adding a specifiable mass to the target fragments.
 
-    @param t_exp TransitionExperiment holds compound and transition information
-    @param mappings map of identifier to target and decoy masses
-    @param mass_to_add the maximum number of transitions required per assay
+    @param[in,out] t_exp TransitionExperiment holds compound and transition information
+    @param[in,out] mappings map of identifier to target and decoy masses
+    @param[in] mass_to_add the maximum number of transitions required per assay
 
     */
     static void generateMissingDecoysByMassShift(TargetedExperiment& t_exp, std::vector<MetaboTargetedTargetDecoy::MetaboTargetDecoyMassMapping>& mappings, const double& mass_to_add);
@@ -71,7 +71,7 @@ namespace OpenMS
     /**
     @brief Generate a TransitionMap based on Compound_Ref and ReactionMonitoringTransitions
 
-    @param t_exp TransitionExperiment holds compound and transition information
+    @param[in] t_exp TransitionExperiment holds compound and transition information
     */
     static std::map<String, std::vector<OpenMS::ReactionMonitoringTransition> > constructTransitionsMap_(const TargetedExperiment& t_exp);
   };

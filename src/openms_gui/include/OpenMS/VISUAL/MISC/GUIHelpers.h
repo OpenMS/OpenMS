@@ -62,12 +62,12 @@ namespace OpenMS
 
        Internally used getTextDimension() to figure out the size of the text-block/background which needs to be painted.
 
-       @param painter Where to draw
-       @param text Each item is a new line
-       @param where Coordinates where to start drawing (upper left corner of text)
-       @param col_fg Optional text color; if invalid (=default) will use the current painter's color
-       @param col_bg Optional background color of bounding rectangle; if invalid (=default) no background will be painted
-       @param font Font to use; will use Courier by default
+       @param[in] painter Where to draw
+       @param[in] text Each item is a new line
+       @param[in] where Coordinates where to start drawing (upper left corner of text)
+       @param[in] col_fg Optional text color; if invalid (=default) will use the current painter's color
+       @param[in] col_bg Optional background color of bounding rectangle; if invalid (=default) no background will be painted
+       @param[in] font Font to use; will use Courier by default
     */
     OPENMS_GUI_DLLAPI void drawText(QPainter& painter, const QStringList& text, const QPoint& where, const QColor& col_fg = QColor("invalid"), const QColor& col_bg = QColor("invalid"),
                                    const QFont& font = QFont("Courier"));
@@ -124,7 +124,7 @@ namespace OpenMS
     {
     public:
       /// C'tor receives the widget to lock
-      /// @param gui QWidget to lock(including all children); can be nullptr (nothing will be locked)
+      /// @param[in] gui QWidget to lock(including all children); can be nullptr (nothing will be locked)
       GUILock(QWidget* gui);
 
       /// no copy/assignment allowed

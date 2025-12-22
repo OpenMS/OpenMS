@@ -50,11 +50,11 @@ public:
     /**
         @brief Loads peptide sequences with modifications out of a PepXML file
 
-        @param filename PepXML file to load
-        @param proteins Protein identification output
-        @param peptides Peptide identification output
-        @param experiment_name Experiment file name, which is used to extract the corresponding search results from the PepXML file.
-        @param lookup Helper for looking up retention times (PepXML may contain only scan numbers).
+        @param[in] filename PepXML file to load
+        @param[out] proteins Protein identification output
+        @param[out] peptides Peptide identification output
+        @param[out] experiment_name Experiment file name, which is used to extract the corresponding search results from the PepXML file.
+        @param[in] lookup Helper for looking up retention times (PepXML may contain only scan numbers).
 
         @exception Exception::FileNotFound is thrown if the file could not be opened
         @exception Exception::ParseError is thrown if an error occurs during parsing

@@ -43,8 +43,8 @@ public:
 
     /** function call operator, calculates the similarity of the given arguments
 
-        @param spec1 First spectrum given in a binned representation
-        @param spec2 Second spectrum given in a binned representation
+        @param[in] spec1 First spectrum given in a binned representation
+        @param[in] spec2 Second spectrum given in a binned representation
     */
     double operator()(const PeakSpectrum & spec1, const PeakSpectrum & spec2) const override;
 

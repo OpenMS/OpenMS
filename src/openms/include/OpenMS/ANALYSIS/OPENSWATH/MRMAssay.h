@@ -71,14 +71,14 @@ public:
     /**
       @brief Annotates and filters transitions in a TargetedExperiment
 
-      @param exp the input, unfiltered transitions
-      @param precursor_mz_threshold the precursor m/z threshold in Th for annotation
-      @param product_mz_threshold the product m/z threshold in Th for annotation
-      @param fragment_types the fragment types to consider for annotation
-      @param fragment_charges the fragment charges to consider for annotation
-      @param enable_specific_losses whether specific neutral losses should be considered
-      @param enable_unspecific_losses whether unspecific neutral losses (H2O1, H3N1, C1H2N2, C1H2N1O1) should be considered
-      @param round_decPow round product m/z values to decimal power (default: -4)
+      @param[out] exp the input, unfiltered transitions
+      @param[in] precursor_mz_threshold the precursor m/z threshold in Th for annotation
+      @param[in] product_mz_threshold the product m/z threshold in Th for annotation
+      @param[in] fragment_types the fragment types to consider for annotation
+      @param[in] fragment_charges the fragment charges to consider for annotation
+      @param[in] enable_specific_losses whether specific neutral losses should be considered
+      @param[in] enable_unspecific_losses whether unspecific neutral losses (H2O1, H3N1, C1H2N2, C1H2N1O1) should be considered
+      @param[in] round_decPow round product m/z values to decimal power (default: -4)
 
     */
     void reannotateTransitions(OpenMS::TargetedExperiment& exp,
@@ -93,10 +93,10 @@ public:
     /**
       @brief Restrict and filter transitions in a TargetedExperiment
 
-      @param exp the input, unfiltered transitions
-      @param lower_mz_limit the lower product m/z limit in Th
-      @param upper_mz_limit the upper product m/z limit in Th
-      @param swathes the swath window settings (to exclude fragment ions falling
+      @param[in] exp the input, unfiltered transitions
+      @param[in] lower_mz_limit the lower product m/z limit in Th
+      @param[in] upper_mz_limit the upper product m/z limit in Th
+      @param[in] swathes the swath window settings (to exclude fragment ions falling
       into the precursor isolation window)
 
     */
@@ -107,9 +107,9 @@ public:
     /**
       @brief Select detecting fragment ions
 
-      @param exp the input, unfiltered transitions
-      @param min_transitions the minimum number of transitions required per assay
-      @param max_transitions the maximum number of transitions required per assay
+      @param[in] exp the input, unfiltered transitions
+      @param[out] min_transitions the minimum number of transitions required per assay
+      @param[in] max_transitions the maximum number of transitions required per assay
 
     */
     void detectingTransitions(OpenMS::TargetedExperiment& exp, int min_transitions, int max_transitions);
@@ -134,18 +134,18 @@ public:
       non-detecting and non-quantifying and are annotated with the set of
       peptidoforms to which they map.
 
-      @param exp the input, unfiltered transitions
-      @param fragment_types the fragment types to consider for annotation
-      @param fragment_charges the fragment charges to consider for annotation
-      @param enable_specific_losses whether specific neutral losses should be considered
-      @param enable_unspecific_losses whether unspecific neutral losses (H2O1, H3N1, C1H2N2, C1H2N1O1) should be considered
-      @param enable_ms2_precursors whether MS2 precursors should be considered
-      @param mz_threshold the product m/z threshold in Th for annotation
-      @param swathes the swath window settings (to exclude fragment ions falling
-      @param round_decPow round product m/z values to decimal power (default: -4)
-      @param max_num_alternative_localizations maximum number of allowed peptide sequence permutations
-      @param shuffle_seed set seed for shuffle (-1: select seed based on time)
-      @param disable_decoy_transitions whether to disable generation of decoy UIS transitions
+      @param[in] exp the input, unfiltered transitions
+      @param[in] fragment_types the fragment types to consider for annotation
+      @param[in] fragment_charges the fragment charges to consider for annotation
+      @param[in] enable_specific_losses whether specific neutral losses should be considered
+      @param[in] enable_unspecific_losses whether unspecific neutral losses (H2O1, H3N1, C1H2N2, C1H2N1O1) should be considered
+      @param[in] enable_ms2_precursors whether MS2 precursors should be considered
+      @param[in] mz_threshold the product m/z threshold in Th for annotation
+      @param[in] swathes the swath window settings (to exclude fragment ions falling
+      @param[in] round_decPow round product m/z values to decimal power (default: -4)
+      @param[in] max_num_alternative_localizations maximum number of allowed peptide sequence permutations
+      @param[in] shuffle_seed set seed for shuffle (-1: select seed based on time)
+      @param[in] disable_decoy_transitions whether to disable generation of decoy UIS transitions
     */
     void uisTransitions(OpenMS::TargetedExperiment& exp,
                         const std::vector<String>& fragment_types,
@@ -163,9 +163,9 @@ public:
     /**
     @brief Filters target and decoy transitions by intensity, only keeping the top N transitions
 
-    @param exp the transition list which will be filtered
-    @param min_transitions the minimum number of transitions required per assay (targets only)
-    @param max_transitions the maximum number of transitions allowed per assay
+    @param[in] exp the transition list which will be filtered
+    @param[in] min_transitions the minimum number of transitions required per assay (targets only)
+    @param[in] max_transitions the maximum number of transitions allowed per assay
 
     */
     void filterMinMaxTransitionsCompound(OpenMS::TargetedExperiment& exp, int min_transitions, int max_transitions);
@@ -180,7 +180,7 @@ public:
            target: 84_CompoundName_[M+H]+_88_22
            decoy: 84_CompoundName_decoy_[M+H]+_88_22
 
-    @param exp the transition list which will be filtered
+    @param[in] exp the transition list which will be filtered
 
     */
     void filterUnreferencedDecoysCompound(OpenMS::TargetedExperiment &exp);
@@ -190,9 +190,9 @@ protected:
     /**
       @brief Check whether fragment ion are unique ion signatures in vector within threshold and return matching peptidoforms
 
-      @param fragment_ion the queried fragment ion
-      @param ions a vector of pairs of fragment ion m/z and peptide sequences which could interfere with fragment_ion
-      @param mz_threshold the threshold within which to search for interferences
+      @param[in] fragment_ion the queried fragment ion
+      @param[in] ions a vector of pairs of fragment ion m/z and peptide sequences which could interfere with fragment_ion
+      @param[in] mz_threshold the threshold within which to search for interferences
 
       @return a vector of strings containing all peptidoforms with which fragment_ion overlaps
     */
@@ -203,8 +203,8 @@ protected:
     /**
       @brief Get swath index (precursor isolation window ordinal) for a particular precursor
 
-      @param swathes the swath window settings
-      @param precursor_mz the query precursor m/z
+      @param[in] swathes the swath window settings
+      @param[in] precursor_mz the query precursor m/z
 
       @return index of swath where precursor_mz falls into
     */
@@ -213,9 +213,9 @@ protected:
     /**
       @brief Check whether the product m/z of a transition falls into the precursor isolation window
 
-      @param swathes the swath window settings
-      @param precursor_mz the query precursor m/z
-      @param product_mz the query product m/z
+      @param[in] swathes the swath window settings
+      @param[in] precursor_mz the query precursor m/z
+      @param[in] product_mz the query product m/z
 
       @return whether product m/z falls into precursor isolation window
     */
@@ -224,8 +224,8 @@ protected:
     /**
       @brief Generates random peptide sequence
 
-      @param sequence_size length of peptide sequence
-      @param pseudoRNG a Boost pseudo RNG
+      @param[in] sequence_size length of peptide sequence
+      @param[in] pseudoRNG a Boost pseudo RNG
 
       @return random peptide sequence
     */
@@ -234,8 +234,8 @@ protected:
     /**
       @brief Computes all N choose K combinations
 
-      @param n vector of N indices
-      @param k number of K
+      @param[in] n vector of N indices
+      @param[in] k number of K
 
       @return a vector of all N index combinations
     */
@@ -244,9 +244,9 @@ protected:
     /**
       @brief Generate modified peptide forms based on all possible combinations
 
-      @param sequences template AASequences
-      @param mods_combs all possible combinations (e.g. from nchoosekcombinations() )
-      @param modification String of the modification
+      @param[in] sequences template AASequences
+      @param[in] mods_combs all possible combinations (e.g. from nchoosekcombinations() )
+      @param[in] modification String of the modification
 
       @return a vector of all modified peptides.
     */
@@ -261,7 +261,7 @@ protected:
       all modification-carrying residue permutations (n choose k possibilities) that are
       physicochemically possible according to ModificationsDB.
 
-      @param sequence template AASequence
+      @param[in] sequence template AASequence
 
       @return a vector of all alternative modified peptides.
     */
@@ -277,9 +277,9 @@ protected:
       residues. E.g. target sequence SAS(Phospho)K could result in [SAS(Phospho)K, S(Phospho)ASK]
       but the responding set of the decoy sequence SSS(Phospho)K would be [SSS(Phospho)K, S(Phospho)SSK].
 
-      @param sequence template AASequence
+      @param[in] sequence template AASequence
 
-      @param decoy_sequence template decoy AASequence
+      @param[in] decoy_sequence template decoy AASequence
 
       @return a vector of all alternative modified peptides.
 
@@ -357,13 +357,13 @@ protected:
       peptide and records the identity of all peptidoforms that map to each
       transition. The resulting transitions are stored in transitions.
 
-      @param exp The input experiment with the target peptides 
-      @param transitions The output containing annotated transitions with potential interferences
-      @param mz_threshold The threshold for annotating transitions as equal
-      @param swathes The swath windows used
-      @param round_decPow round product m/z values to decimal power (default: -4)
-      @param TargetPeptideMap Theoretical transitions for each peptide generated before
-      @param TargetIonMap Theoretical transitions for each peptide generated before
+      @param[in] exp The input experiment with the target peptides 
+      @param[out] transitions The output containing annotated transitions with potential interferences
+      @param[in] mz_threshold The threshold for annotating transitions as equal
+      @param[in] swathes The swath windows used
+      @param[in] round_decPow round product m/z values to decimal power (default: -4)
+      @param[in] TargetPeptideMap Theoretical transitions for each peptide generated before
+      @param[in] TargetIonMap Theoretical transitions for each peptide generated before
 
       @details Used internally by the IPF algorithm, see MRMAssay::uisTransitions()
 

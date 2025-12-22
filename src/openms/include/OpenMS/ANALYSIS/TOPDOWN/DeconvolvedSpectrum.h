@@ -36,7 +36,7 @@ namespace OpenMS
 
     /**
        @brief Constructor for DeconvolvedSpectrum. Takes the spectrum and scan number calculated from outside
-       @param scan_number scan number of the spectrum
+       @param[in] scan_number scan number of the spectrum
   */
     explicit DeconvolvedSpectrum(int scan_number);
 
@@ -53,9 +53,9 @@ namespace OpenMS
     DeconvolvedSpectrum& operator=(const DeconvolvedSpectrum& deconvolved_spectrum) = default;
 
     /// Convert DeconvolvedSpectrum to MSSpectrum (e.g., used to store in mzML format).
-    /// @param to_charge the charge of each peak in mzml output.
-    /// @param tol the ppm tolerance
-    /// @param retain_undeconvolved if set, undeconvolved peaks in the original peaks are output (assuming their abs charge == 1 and m/zs are adjusted with the to_charge parameter)
+    /// @param[in] to_charge the charge of each peak in mzml output.
+    /// @param[in] tol the ppm tolerance
+    /// @param[in] retain_undeconvolved if set, undeconvolved peaks in the original peaks are output (assuming their abs charge == 1 and m/zs are adjusted with the to_charge parameter)
     MSSpectrum toSpectrum(int to_charge, double tol = 10.0, bool retain_undeconvolved = false);
 
     /// original spectrum getter
@@ -72,17 +72,17 @@ namespace OpenMS
 
     /// get possible max mass of the deconvolved masses - for MS1, max mass specified by user
     /// for MSn, min value between max mass specified by the user and precursor mass
-    /// @param max_mass the max mass specified by the user
+    /// @param[in] max_mass the max mass specified by the user
     double getCurrentMaxMass(double max_mass) const;
 
     /// get possible min mass of the deconvolved masses - for MS1, min mass specified by user
     /// for MSn, 50.0
-    /// @param min_mass the min mass specified by the user
+    /// @param[in] min_mass the min mass specified by the user
     double getCurrentMinMass(double min_mass) const;
 
     /// get possible max charge of the deconvolved masses - for MS1, max charge specified by user
     /// for MSn, min value between max charge specified by the user and precursor charge
-    /// @param max_abs_charge the max absolute value of the charge specified by the user
+    /// @param[in] max_abs_charge the max absolute value of the charge specified by the user
     int getCurrentMaxAbsCharge(int max_abs_charge) const;
 
     /// get scan number of the original spectrum

@@ -40,10 +40,10 @@ namespace OpenMS
        @brief Performs the enzymatic digestion of a protein represented as AASequence.
        Digestion logic is implemented by overloaded function @p digest .
 
-       @param protein Sequence to digest
-       @param output Digestion products (peptides)
-       @param min_length Minimal length of reported products
-       @param max_length Maximal length of reported products (0 = no restriction)
+       @param[in] protein Sequence to digest
+       @param[in] output Digestion products (peptides)
+       @param[in] min_length Minimal length of reported products
+       @param[in] max_length Maximal length of reported products (0 = no restriction)
        @return Number of discarded digestion products (which are not matching length restrictions)
 
     */
@@ -58,10 +58,10 @@ namespace OpenMS
        Currently, Specificity::SPEC_SEMI and Specificity::SPEC_FULL are supported.
        Others raise an exception
 
-       @param protein Sequence to digest
-       @param output Digestion products (start and past-the-end indices of peptides)
-       @param min_length Minimal length of reported products
-       @param max_length Maximal length of reported products (0 = no restriction)
+       @param[in] protein Sequence to digest
+       @param[in] output Digestion products (start and past-the-end indices of peptides)
+       @param[in] min_length Minimal length of reported products
+       @param[in] max_length Maximal length of reported products (0 = no restriction)
        @return Number of discarded digestion products (which are not matching length restrictions)
        @throw Exception::InvalidValue If object's specificity_ value is not supported.
 
@@ -76,12 +76,12 @@ namespace OpenMS
 
       Checks if peptide is a valid digestion product of the enzyme, taking into account specificity and the flags provided here.
 
-      @param protein Protein sequence
-      @param pep_pos Starting index of potential peptide
-      @param pep_length Length of potential peptide
-      @param ignore_missed_cleavages Do not compare MC's of potential peptide to the maximum allowed MC's
-      @param allow_nterm_protein_cleavage Regard peptide as n-terminal of protein if it starts only at pos=1 or 2 and protein starts with 'M'
-      @param allow_random_asp_pro_cleavage Allow cleavage at D|P sites to count as n/c-terminal.
+      @param[in] protein Protein sequence
+      @param[in] pep_pos Starting index of potential peptide
+      @param[in] pep_length Length of potential peptide
+      @param[in] ignore_missed_cleavages Do not compare MC's of potential peptide to the maximum allowed MC's
+      @param[in] allow_nterm_protein_cleavage Regard peptide as n-terminal of protein if it starts only at pos=1 or 2 and protein starts with 'M'
+      @param[in] allow_random_asp_pro_cleavage Allow cleavage at D|P sites to count as n/c-terminal.
       @return True if peptide has correct n/c terminals (according to enzyme, specificity and above flags)
 
     */
