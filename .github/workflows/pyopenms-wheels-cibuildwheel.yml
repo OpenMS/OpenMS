@@ -242,14 +242,16 @@ jobs:
         run: |
           mkdir build && cd build
           # Note: CMAKE_PREFIX_PATH uses semicolons as list separators when passed via -D
-          # BOOST_USE_STATIC_LIBS=OFF works around Boost's incomplete find_dependency calls
+          # BOOST_USE_STATIC=OFF works around Boost's incomplete find_dependency calls
+          # ARROW_USE_STATIC=OFF since static Arrow still links to shared abseil libs anyway
           # Build in the build directory (don't install) to preserve absolute library paths
           cmake .. \
             -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_PREFIX_PATH="$(brew --prefix);$(brew --prefix libomp)" \
             -DOpenMP_ROOT=$(brew --prefix libomp) \
-            -DBOOST_USE_STATIC_LIBS=OFF \
+            -DBOOST_USE_STATIC=OFF \
+            -DARROW_USE_STATIC=OFF \
             -DPYOPENMS=OFF \
             -DWITH_GUI=OFF \
             -DENABLE_TUTORIALS=OFF \
