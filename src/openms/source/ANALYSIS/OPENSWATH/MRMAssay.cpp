@@ -1480,6 +1480,82 @@ namespace OpenMS
   // Light (memory-efficient) versions of IPF methods
   // =====================================================================
 
+  namespace
+  {
+    /// Helper function to reconstruct AASequence from a LightCompound
+    /// Handles two cases:
+    /// 1. PQP input: compound.sequence contains full modified sequence (e.g., "AALIGS(UniMod:21)LGSIFK")
+    /// 2. TraML input (via DataAccessHelper): compound.sequence is unmodified, mods in compound.modifications
+    OpenMS::AASequence getAASequenceFromLightCompound(const OpenSwath::LightCompound& compound)
+    {
+      OpenMS::AASequence aas = AASequence::fromString(compound.sequence);
+
+      // Check if sequence was parsed with modifications already (PQP case)
+      // If so, don't apply modifications again
+      bool has_mods = aas.hasNTerminalModification() || aas.hasCTerminalModification();
+      if (!has_mods)
+      {
+        for (Size i = 0; i < aas.size() && !has_mods; ++i)
+        {
+          if (aas[i].isModified())
+          {
+            has_mods = true;
+          }
+        }
+      }
+
+      // If the sequence already has modifications, return it as-is
+      if (has_mods)
+      {
+        return aas;
+      }
+
+      // Otherwise, apply modifications from the LightCompound (TraML case)
+      OpenMS::ModificationsDB* mod_db = OpenMS::ModificationsDB::getInstance();
+
+      for (const auto& mod : compound.modifications)
+      {
+        if (mod.unimod_id < 0)
+        {
+          continue; // Skip invalid modifications
+        }
+
+        String mod_name = "UniMod:" + String(mod.unimod_id);
+
+        if (mod.location == -1)
+        {
+          // N-terminal modification
+          const ResidueModification* res_mod = mod_db->getModification(mod_name, "", ResidueModification::N_TERM);
+          if (res_mod)
+          {
+            aas.setNTerminalModification(res_mod);
+          }
+        }
+        else if (mod.location == static_cast<int>(aas.size()))
+        {
+          // C-terminal modification
+          const ResidueModification* res_mod = mod_db->getModification(mod_name, "", ResidueModification::C_TERM);
+          if (res_mod)
+          {
+            aas.setCTerminalModification(res_mod);
+          }
+        }
+        else if (mod.location >= 0 && mod.location < static_cast<int>(aas.size()))
+        {
+          // Residue modification
+          String residue = String(aas[mod.location].getOneLetterCode());
+          const ResidueModification* res_mod = mod_db->getModification(mod_name, residue, ResidueModification::ANYWHERE);
+          if (res_mod)
+          {
+            aas.setModification(mod.location, res_mod);
+          }
+        }
+      }
+
+      return aas;
+    }
+  } // anonymous namespace
+
   void MRMAssay::generateTargetInSilicoMapLight_(const OpenSwath::LightTargetedExperiment& exp,
                                                  const std::vector<String>& fragment_types,
                                                  const std::vector<size_t>& fragment_charges,
@@ -1508,13 +1584,13 @@ namespace OpenMS
         continue;
       }
 
-      // Parse sequence - temporary AASequence for peptidoform generation
+      // Reconstruct AASequence from compound (including modifications)
       OpenMS::AASequence peptide_sequence;
       try
       {
-        peptide_sequence = AASequence::fromString(compound.sequence);
+        peptide_sequence = getAASequenceFromLightCompound(compound);
       }
-      catch (Exception::InvalidValue&)
+      catch (Exception::BaseException&)
       {
         OPENMS_LOG_DEBUG << "[uis] Skipping compound (cannot parse sequence): " << compound.id << std::endl;
         continue;
@@ -1601,13 +1677,13 @@ namespace OpenMS
         continue;
       }
 
-      // Parse sequence
+      // Reconstruct AASequence from compound (including modifications)
       OpenMS::AASequence peptide_sequence;
       try
       {
-        peptide_sequence = AASequence::fromString(compound.sequence);
+        peptide_sequence = getAASequenceFromLightCompound(compound);
       }
-      catch (Exception::InvalidValue&)
+      catch (Exception::BaseException&)
       {
         continue;
       }
@@ -1704,12 +1780,13 @@ namespace OpenMS
 
       const OpenSwath::LightCompound* compound = comp_it->second;
 
+      // Reconstruct AASequence from compound (including modifications)
       OpenMS::AASequence peptide_sequence;
       try
       {
-        peptide_sequence = AASequence::fromString(compound->sequence);
+        peptide_sequence = getAASequenceFromLightCompound(*compound);
       }
-      catch (Exception::InvalidValue&)
+      catch (Exception::BaseException&)
       {
         continue;
       }
@@ -1835,10 +1912,12 @@ namespace OpenMS
       OpenMS::AASequence target_sequence;
       try
       {
+        // Decoy sequence is already a full modified string from generateDecoyInSilicoMapLight_
         decoy_sequence = AASequence::fromString(decoy_compound.sequence);
-        target_sequence = AASequence::fromString(target_compound->sequence);
+        // Target sequence needs to be reconstructed from compound + modifications
+        target_sequence = getAASequenceFromLightCompound(*target_compound);
       }
-      catch (Exception::InvalidValue&)
+      catch (Exception::BaseException&)
       {
         continue;
       }
@@ -1847,14 +1926,15 @@ namespace OpenMS
       double decoy_precursor_mz = decoy_sequence.getMZ(precursor_charge);
       double target_precursor_mz = target_sequence.getMZ(precursor_charge);
 
-      int decoy_precursor_swath = getSwath_(swathes, decoy_precursor_mz);
+      // Use TARGET precursor swath for lookups - same as heavy version
+      // (DecoyIonMap was populated using target swath in generateDecoyInSilicoMapLight_)
       int target_precursor_swath = getSwath_(swathes, target_precursor_mz);
 
       String decoy_unmod_str = decoy_sequence.toUnmodifiedString();
       String target_unmod_str = target_sequence.toUnmodifiedString();
 
-      // Check if we have decoy ion data
-      auto decoy_swath_it = DecoyIonMap.find(decoy_precursor_swath);
+      // Check if we have decoy ion data (use TARGET swath, not decoy swath)
+      auto decoy_swath_it = DecoyIonMap.find(target_precursor_swath);
       if (decoy_swath_it == DecoyIonMap.end())
       {
         continue;

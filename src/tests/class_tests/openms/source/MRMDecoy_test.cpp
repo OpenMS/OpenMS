@@ -14,7 +14,6 @@
 ///////////////////////////
 
 #include <OpenMS/FORMAT/TraMLFile.h>
-#include <OpenMS/FORMAT/TraMLFile.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
 
