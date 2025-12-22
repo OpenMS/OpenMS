@@ -244,13 +244,9 @@ protected:
       }
     }
 
-    // Use memory-efficient Light path for TSV/PQP → TSV/PQP when IPF is disabled.
-    // TODO: Extend light path to support IPF workflows. This requires:
-    // 1. Light versions of IPF-specific annotation methods in MRMAssay
-    // 2. Proper handling of identifying transitions and peptidoforms in light structures
-    // 3. Testing with IPF-enabled assay generation
-    bool use_light_path = !enable_ipf
-                       && (in_type == FileTypes::TSV || in_type == FileTypes::MRM || in_type == FileTypes::PQP)
+    // Use memory-efficient Light path for TSV/PQP → TSV/PQP workflows.
+    // This includes IPF (identifying transitions) which is now supported via uisTransitionsLight().
+    bool use_light_path = (in_type == FileTypes::TSV || in_type == FileTypes::MRM || in_type == FileTypes::PQP)
                        && (out_type == FileTypes::TSV || out_type == FileTypes::PQP);
 
     if (use_light_path)
@@ -287,6 +283,15 @@ protected:
       OPENMS_LOG_INFO << "Filtering and selecting detecting transitions (Light)" << std::endl;
       assays.restrictTransitionsLight(light_exp, product_lower_mz_limit, product_upper_mz_limit, swathes);
       assays.detectingTransitionsLight(light_exp, min_transitions, max_transitions);
+
+      if (enable_ipf)
+      {
+        OPENMS_LOG_INFO << "Generating identifying transitions for IPF (Light)" << std::endl;
+        assays.uisTransitionsLight(light_exp, allowed_fragment_types, allowed_fragment_charges,
+                                   enable_identification_specific_losses, enable_identification_unspecific_losses,
+                                   enable_identification_ms2_precursors, product_mz_threshold, swathes,
+                                   -4, max_num_alternative_localizations, -1, false);
+      }
 
       OPENMS_LOG_INFO << "Writing assays " << out << std::endl;
       if (out_type == FileTypes::TSV)
