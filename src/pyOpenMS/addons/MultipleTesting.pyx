@@ -106,7 +106,7 @@ def _vec_to_numpy(libcpp_vector[double] v):
     return out
 
 
-cpdef compute_model_fdr(values, dtype="float64"):
+def compute_model_fdr(values, dtype="float64"):
     """
     Compute model-based FDR estimates from posterior error probabilities.
     
@@ -142,7 +142,7 @@ cpdef compute_model_fdr(values, dtype="float64"):
     return np.asarray(out, dtype=float)
 
 
-cpdef pemp(stat, stat0, dtype="float64"):
+def pemp(stat, stat0, dtype="float64"):
     """
     Compute empirical p-values from test statistics and null distribution.
     
@@ -182,7 +182,7 @@ cpdef pemp(stat, stat0, dtype="float64"):
     return np.asarray(out, dtype=float)
 
 
-cpdef qvalue(p_values, pi0=1.0, pfdr=False):
+def qvalue(p_values, pi0=1.0, pfdr=False):
     """
     Compute q-values from p-values using the Storey-Tibshirani method.
     
@@ -222,7 +222,7 @@ cpdef qvalue(p_values, pi0=1.0, pfdr=False):
     return np.asarray(out, dtype=float)
 
 
-cpdef pnorm(stat, stat0):
+def pnorm(stat, stat0):
     """
     Compute parametric p-values under a normal distribution fitted to null statistics.
     
@@ -261,7 +261,7 @@ cpdef pnorm(stat, stat0):
     return np.asarray(out, dtype=float)
 
 
-cpdef pi0est(p_values, lambda_=None, pi0_method="smoother", smooth_df=3, smooth_log_pi0=False):
+def pi0est(p_values, lambda_=None, pi0_method="smoother", smooth_df=3, smooth_log_pi0=False):
     """
     Estimate the proportion of true null hypotheses (pi0) using the Storey method.
     
@@ -335,7 +335,7 @@ cpdef pi0est(p_values, lambda_=None, pi0_method="smoother", smooth_df=3, smooth_
     }
 
 
-cpdef lfdr(p_values, pi0, trunc=True, monotone=True, transf="probit", adj=1.5, eps=1e-8, gridsize=512, cut=3.0):
+def lfdr(p_values, pi0, trunc=True, monotone=True, transf="probit", adj=1.5, eps=1e-8, gridsize=512, cut=3.0):
     """
     Estimate local false discovery rate (local FDR) from p-values.
     
