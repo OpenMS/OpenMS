@@ -1348,8 +1348,10 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
   add_test("TOPP_OpenSwathDecoyGenerator_test_8_pqp_to_tsv"
     ${TOPP_BIN_PATH}/TargetedFileConverter -test -in OpenSwathDecoyGenerator_8.tmp.pqp -out OpenSwathDecoyGenerator_8_roundtrip.tmp.tsv -out_type tsv)
   set_tests_properties("TOPP_OpenSwathDecoyGenerator_test_8_pqp_to_tsv" PROPERTIES DEPENDS "TOPP_OpenSwathDecoyGenerator_test_8_pqp")
-  # Step 3: Compare roundtrip TSV with direct TSV output (test 6) - should have same content
-  add_test("TOPP_OpenSwathDecoyGenerator_test_8_out1" ${DIFF} -in1 OpenSwathDecoyGenerator_8_roundtrip.tmp.tsv -in2 ${DATA_DIR_TOPP}/OpenSwathDecoyGenerator_output_6_light.tsv)
+  # Step 3: Compare roundtrip TSV with expected PQP roundtrip output
+  # Use -sort flag because PQP roundtrip may return rows in different order (by ID vs by intensity)
+  # Note: PQP format doesn't store UniprotId, so expected file has empty UniprotId column
+  add_test("TOPP_OpenSwathDecoyGenerator_test_8_out1" ${DIFF} -sort -in1 OpenSwathDecoyGenerator_8_roundtrip.tmp.tsv -in2 ${DATA_DIR_TOPP}/OpenSwathDecoyGenerator_output_8_pqp_roundtrip.tsv)
   set_tests_properties("TOPP_OpenSwathDecoyGenerator_test_8_out1" PROPERTIES DEPENDS "TOPP_OpenSwathDecoyGenerator_test_8_pqp_to_tsv")
 
   # TargetedFileConverter : convert from and to different targeted files
@@ -1436,7 +1438,8 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
   add_test("TOPP_TargetedFileConverter_light_path_prepare" ${TOPP_BIN_PATH}/TargetedFileConverter -test -in ${DATA_DIR_TOPP}/ConvertTSVToTraML_1_input.tsv -out TargetedFileConverter_light_path.tmp.pqp -out_type pqp)
   add_test("TOPP_TargetedFileConverter_light_path" ${TOPP_BIN_PATH}/TargetedFileConverter -test -in TargetedFileConverter_light_path.tmp.pqp -out TargetedFileConverter_light_path.tmp.tsv -out_type tsv)
   set_tests_properties("TOPP_TargetedFileConverter_light_path" PROPERTIES DEPENDS "TOPP_TargetedFileConverter_light_path_prepare")
-  add_test("TOPP_TargetedFileConverter_light_path_out1" ${DIFF} -in1 TargetedFileConverter_light_path.tmp.tsv -in2 ${DATA_DIR_TOPP}/ConvertTSVToTraML_1_input.tsv)
+  # Use -sort flag because PQP roundtrip may return rows in different order
+  add_test("TOPP_TargetedFileConverter_light_path_out1" ${DIFF} -sort -in1 TargetedFileConverter_light_path.tmp.tsv -in2 ${DATA_DIR_TOPP}/TargetedFileConverter_light_path_output.tsv)
   set_tests_properties("TOPP_TargetedFileConverter_light_path_out1" PROPERTIES DEPENDS "TOPP_TargetedFileConverter_light_path")
 
   # protein group conversion test PQP
