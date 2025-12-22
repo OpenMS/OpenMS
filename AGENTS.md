@@ -33,7 +33,7 @@ This file summarizes repo-specific conventions and workflows for contributors an
 - Use `NEW_TMP_FILE` for each output file in tests; avoid side effects in comparison macros.
 - Run with `ctest`, use `-R` for subset, `-V/-VV` for verbosity, `-C` for multi-config generators.
 - Use `FuzzyDiff` for numeric comparisons; keep test data small; use whitelist for unstable lines.
-- Test templates: `tools/create_test.php` (requires `make xml`).
+- Test file structure: See `doc/doxygen/public/developer_faq.doxygen` (section "How to add a new class test") for test template and examples.
 - `START_SECTION` macro pitfalls: wrap template methods with 2+ arguments in parentheses.
 - pyOpenMS tests: `ctest -R pyopenms` or `pytest` with `PYTHONPATH=/path/to/OpenMS-build/pyOpenMS` (run outside the source tree to avoid shadowing).
 
