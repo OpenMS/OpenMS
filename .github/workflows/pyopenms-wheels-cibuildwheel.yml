@@ -399,7 +399,8 @@ jobs:
         env:
           CIBW_MANYLINUX_AARCH64_IMAGE: ghcr.io/openms/contrib_manylinux_2_34:latest-arm64
           CIBW_BEFORE_ALL: "yum install -y cmake ninja-build"
-          CIBW_ENVIRONMENT: "OpenMS_ROOT=/project/openms-build CMAKE_PREFIX_PATH=/contrib-build:/project/openms-build LD_LIBRARY_PATH=/project/openms-build/lib"
+          # Limit parallel jobs on ARM to prevent OOM (2 jobs = ~8GB memory usage)
+          CIBW_ENVIRONMENT: "OpenMS_ROOT=/project/openms-build CMAKE_PREFIX_PATH=/contrib-build:/project/openms-build LD_LIBRARY_PATH=/project/openms-build/lib CMAKE_BUILD_PARALLEL_LEVEL=2"
           CIBW_REPAIR_WHEEL_COMMAND: "auditwheel repair -w {dest_dir} {wheel}"
           CIBW_BUILD_VERBOSITY: 1
 
