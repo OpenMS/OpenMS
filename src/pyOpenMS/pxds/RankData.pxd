@@ -12,3 +12,6 @@ cdef extern from "<OpenMS/MATH/STATISTICS/RankData.h>" namespace "OpenMS::Math":
     cdef const int RANKDATA_OMIT      "OpenMS::Math::RankData::NaNPolicy::Omit"
     cdef const int RANKDATA_RAISE     "OpenMS::Math::RankData::NaNPolicy::Raise"
 
+# Python-level function declarations
+cpdef rankdata(values, method=?, nan_policy=?, dtype=?)
+

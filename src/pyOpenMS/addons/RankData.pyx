@@ -111,7 +111,7 @@ def _to_vec_int(arr):
         v.push_back(mv[i])
     return v
 
-def rankdata(values, method="average", nan_policy="propagate", dtype="float64"):
+cpdef rankdata(values, method="average", nan_policy="propagate", dtype="float64"):
     """
         Rank items (1-based) with SciPy-like tie handling.
 
