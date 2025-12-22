@@ -1303,7 +1303,7 @@ namespace OpenMS
         std::string annotation = targetion.first;
         if (!annotation.empty())
         {
-          new_tr.fragment_type = annotation.substr(0, 1);
+          new_tr.setFragmentType(annotation.substr(0, 1));
 
           // Extract fragment number
           std::string num_str;
@@ -1320,7 +1320,7 @@ namespace OpenMS
           }
           if (!num_str.empty())
           {
-            new_tr.fragment_nr = std::stoi(num_str);
+            new_tr.fragment_nr = static_cast<int16_t>(std::stoi(num_str));
           }
           new_tr.annotation = annotation;
         }
@@ -1426,10 +1426,10 @@ namespace OpenMS
         for (auto& tr : m.second)
         {
           if (std::find(library_intensity.begin(), library_intensity.end(), tr.library_intensity) != library_intensity.end() &&
-              !tr.decoy &&
+              !tr.getDecoy() &&
               j < static_cast<size_t>(max_transitions))
           {
-            tr.detecting_transition = true;
+            tr.setDetectingTransition(true);
             transitions.push_back(tr);
             peptide_ids.insert(tr.peptide_ref);
             j++;
@@ -1836,17 +1836,17 @@ namespace OpenMS
         tr.precursor_mz = precursor_mz;
         tr.product_mz = product_mz;
         tr.library_intensity = 1.0;
-        tr.decoy = false;
-        tr.detecting_transition = false;
-        tr.identifying_transition = true;
-        tr.quantifying_transition = false;
+        tr.setDecoy(false);
+        tr.setDetectingTransition(false);
+        tr.setIdentifyingTransition(true);
+        tr.setQuantifyingTransition(false);
         tr.annotation = annotation;
         tr.peptidoforms = matching_pfs;
 
         // Parse fragment type/number from annotation
         if (!annotation.empty() && annotation != "MS2_Precursor_i0")
         {
-          tr.fragment_type = annotation.substr(0, 1);
+          tr.setFragmentType(annotation.substr(0, 1));
           std::string num_str;
           for (size_t i = 1; i < annotation.size() && std::isdigit(annotation[i]); ++i)
           {
@@ -1854,7 +1854,7 @@ namespace OpenMS
           }
           if (!num_str.empty())
           {
-            tr.fragment_nr = std::stoi(num_str);
+            tr.fragment_nr = static_cast<int16_t>(std::stoi(num_str));
           }
         }
 
@@ -1990,17 +1990,17 @@ namespace OpenMS
         tr.precursor_mz = decoy_precursor_mz;
         tr.product_mz = product_mz;
         tr.library_intensity = 1.0;
-        tr.decoy = true;
-        tr.detecting_transition = false;
-        tr.identifying_transition = true;
-        tr.quantifying_transition = false;
+        tr.setDecoy(true);
+        tr.setDetectingTransition(false);
+        tr.setIdentifyingTransition(true);
+        tr.setQuantifyingTransition(false);
         tr.annotation = annotation;
         tr.peptidoforms = matching_pfs;
 
         // Parse fragment type/number from annotation
         if (!annotation.empty() && annotation != "MS2_Precursor_i0")
         {
-          tr.fragment_type = annotation.substr(0, 1);
+          tr.setFragmentType(annotation.substr(0, 1));
           std::string num_str;
           for (size_t i = 1; i < annotation.size() && std::isdigit(annotation[i]); ++i)
           {
@@ -2008,7 +2008,7 @@ namespace OpenMS
           }
           if (!num_str.empty())
           {
-            tr.fragment_nr = std::stoi(num_str);
+            tr.fragment_nr = static_cast<int16_t>(std::stoi(num_str));
           }
         }
 

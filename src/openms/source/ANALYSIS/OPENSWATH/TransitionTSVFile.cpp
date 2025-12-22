@@ -667,17 +667,17 @@ namespace OpenMS
       transition.fragment_charge = 0; // use zero for charge that is not set
       if (!tr_it->fragment_charge.empty() && tr_it->fragment_charge != "NA")
       {
-        transition.fragment_charge = tr_it->fragment_charge.toInt();
+        transition.fragment_charge = static_cast<int8_t>(tr_it->fragment_charge.toInt());
       }
 
-      transition.decoy = tr_it->decoy;
-      transition.detecting_transition = tr_it->detecting_transition;
-      transition.identifying_transition = tr_it->identifying_transition;
-      transition.quantifying_transition = tr_it->quantifying_transition;
+      transition.setDecoy(tr_it->decoy);
+      transition.setDetectingTransition(tr_it->detecting_transition);
+      transition.setIdentifyingTransition(tr_it->identifying_transition);
+      transition.setQuantifyingTransition(tr_it->quantifying_transition);
 
       // Additional fields for roundtrip I/O
-      transition.fragment_nr = tr_it->fragment_nr;
-      transition.fragment_type = tr_it->fragment_type;
+      transition.fragment_nr = static_cast<int16_t>(tr_it->fragment_nr);
+      transition.setFragmentType(tr_it->fragment_type);
       transition.annotation = tr_it->Annotation;
       transition.peptidoforms.assign(tr_it->peptidoforms.begin(), tr_it->peptidoforms.end());
 
@@ -1710,17 +1710,17 @@ namespace OpenMS
         + ListUtils::concatenate(protein_names, ";")  + "\t"
         + ListUtils::concatenate(uniprot_ids, ";")    + "\t"
         + gene_name                             + "\t"
-        + tr.fragment_type                      + "\t"
+        + tr.getFragmentType()                  + "\t"
         + String(tr.fragment_nr)                + "\t"
         + annotation                            + "\t"
         + String(-1.0)                          + "\t"  // CE not stored in Light
         + String(drift_time)                    + "\t"
         + tr.peptide_ref                        + "\t"
         + tr.transition_name                    + "\t"
-        + String(tr.decoy)                      + "\t"
-        + String(tr.detecting_transition)       + "\t"
-        + String(tr.identifying_transition)     + "\t"
-        + String(tr.quantifying_transition)     + "\t"
+        + String(tr.getDecoy())                 + "\t"
+        + String(tr.isDetectingTransition())    + "\t"
+        + String(tr.isIdentifyingTransition())  + "\t"
+        + String(tr.isQuantifyingTransition())  + "\t"
         + ListUtils::concatenate(std::vector<String>(tr.peptidoforms.begin(), tr.peptidoforms.end()), "|");
 
       os << line << std::endl;

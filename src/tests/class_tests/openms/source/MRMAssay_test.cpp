@@ -819,7 +819,7 @@ START_SECTION(void uisTransitionsLight(OpenSwath::LightTargetedExperiment& exp, 
   size_t initial_identifying = 0;
   for (const auto& tr : light_exp.transitions)
   {
-    if (tr.identifying_transition) initial_identifying++;
+    if (tr.isIdentifyingTransition()) initial_identifying++;
   }
 
   MRMAssay mrma;
@@ -847,10 +847,10 @@ START_SECTION(void uisTransitionsLight(OpenSwath::LightTargetedExperiment& exp, 
   size_t decoy_identifying = 0;
   for (const auto& tr : light_exp.transitions)
   {
-    if (tr.identifying_transition)
+    if (tr.isIdentifyingTransition())
     {
       final_identifying++;
-      if (tr.decoy) decoy_identifying++;
+      if (tr.getDecoy()) decoy_identifying++;
       else target_identifying++;
     }
   }
@@ -869,7 +869,7 @@ START_SECTION(void uisTransitionsLight(OpenSwath::LightTargetedExperiment& exp, 
   bool has_peptidoforms = false;
   for (const auto& tr : light_exp.transitions)
   {
-    if (tr.identifying_transition && !tr.peptidoforms.empty())
+    if (tr.isIdentifyingTransition() && !tr.peptidoforms.empty())
     {
       has_peptidoforms = true;
       break;
@@ -976,10 +976,10 @@ START_SECTION([EXTRA] uisTransitionsLight vs uisTransitions equivalence test)
   size_t light_decoy_ident = 0;
   for (const auto& tr : light_exp.transitions)
   {
-    if (tr.identifying_transition)
+    if (tr.isIdentifyingTransition())
     {
       light_identifying++;
-      if (tr.decoy)
+      if (tr.getDecoy())
         light_decoy_ident++;
       else
         light_target_ident++;

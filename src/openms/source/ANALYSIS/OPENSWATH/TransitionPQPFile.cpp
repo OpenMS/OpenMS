@@ -912,9 +912,9 @@ namespace OpenMS
         }
         if (precursor_decoy_map.find(group_set_index) == precursor_decoy_map.end())
         {
-          if (tr.detecting_transition)
+          if (tr.isDetectingTransition())
           {
-            precursor_decoy_map[group_set_index] = tr.decoy;
+            precursor_decoy_map[group_set_index] = tr.getDecoy();
           }
         }
 
@@ -932,10 +932,11 @@ namespace OpenMS
         std::string transition_charge = "NULL";
         if (tr.fragment_charge != 0)
         {
-          transition_charge = String(tr.fragment_charge);
+          transition_charge = String(static_cast<int>(tr.fragment_charge));
         }
 
-        std::string fragment_type_char = tr.fragment_type.empty() ? "" : tr.fragment_type.substr(0, 1);
+        std::string fragment_type_str = tr.getFragmentType();
+        std::string fragment_type_char = fragment_type_str.empty() ? "" : fragment_type_str.substr(0, 1);
 
         // Insert transition data
         insert_transition_sql << "INSERT INTO TRANSITION (ID, TRAML_ID, PRODUCT_MZ, CHARGE, TYPE, ANNOTATION, ORDINAL, " <<
@@ -946,10 +947,10 @@ namespace OpenMS
           fragment_type_char << "','" <<
           tr.annotation << "'," <<
           tr.fragment_nr << "," <<
-          tr.detecting_transition << "," <<
-          tr.identifying_transition << "," <<
-          tr.quantifying_transition << "," <<
-          tr.library_intensity << "," << tr.decoy << "); ";
+          tr.isDetectingTransition() << "," <<
+          tr.isIdentifyingTransition() << "," <<
+          tr.isQuantifyingTransition() << "," <<
+          tr.library_intensity << "," << tr.getDecoy() << "); ";
 
         if (i % 50000 == 0 && i > 0)
         {

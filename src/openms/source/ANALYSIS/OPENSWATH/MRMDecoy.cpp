@@ -1006,7 +1006,7 @@ namespace OpenMS
           OpenSwath::LightTransition decoy_tr = *tr;
           decoy_tr.transition_name = decoy_tag + tr->transition_name;
           decoy_tr.peptide_ref = decoy_peptide_ref;
-          decoy_tr.decoy = true;
+          decoy_tr.setDecoy(true);
           decoy_transitions.push_back(decoy_tr);
         }
         continue;
@@ -1039,7 +1039,7 @@ namespace OpenMS
 
       for (const auto* tr : pep_it.second)
       {
-        if (!tr->detecting_transition || tr->decoy)
+        if (!tr->isDetectingTransition() || tr->getDecoy())
         {
           continue;
         }
@@ -1047,7 +1047,7 @@ namespace OpenMS
         OpenSwath::LightTransition decoy_tr = *tr;
         decoy_tr.transition_name = decoy_tag + tr->transition_name;
         decoy_tr.peptide_ref = decoy_peptide_ref;
-        decoy_tr.decoy = true;
+        decoy_tr.setDecoy(true);
         decoy_tr.precursor_mz = decoy_precursor_mz;
 
         // Annotate and get decoy fragment m/z
@@ -1068,7 +1068,7 @@ namespace OpenMS
           // Update fragment annotation
           if (!targetion.first.empty())
           {
-            decoy_tr.fragment_type = targetion.first.substr(0, 1);
+            decoy_tr.setFragmentType(targetion.first.substr(0, 1));
             std::string num_str;
             for (size_t i = 1; i < targetion.first.size() && std::isdigit(targetion.first[i]); ++i)
             {
@@ -1076,7 +1076,7 @@ namespace OpenMS
             }
             if (!num_str.empty())
             {
-              decoy_tr.fragment_nr = std::stoi(num_str);
+              decoy_tr.fragment_nr = static_cast<int16_t>(std::stoi(num_str));
             }
             decoy_tr.annotation = targetion.first;
           }

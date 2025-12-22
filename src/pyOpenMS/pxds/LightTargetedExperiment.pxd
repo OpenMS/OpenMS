@@ -14,15 +14,13 @@ cdef extern from "<OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>" name
         double precursor_mz
         double precursor_im
 
-        int fragment_charge
-        bool decoy
-        bool detecting_transition
-        bool quantifying_transition
-        bool identifying_transition
+        signed char fragment_charge  # int8_t
+        # Note: decoy, detecting_transition, quantifying_transition, identifying_transition
+        # are now packed in flags struct - use getter/setter methods below
 
         # Additional fields for roundtrip TSV/PQP I/O
-        int fragment_nr
-        libcpp_string fragment_type
+        short fragment_nr  # int16_t
+        # Note: fragment_type is now an enum - use getFragmentType()/setFragmentType() methods
         libcpp_string annotation
         libcpp_vector[libcpp_string] peptidoforms
 
@@ -38,6 +36,14 @@ cdef extern from "<OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>" name
         double getPrecursorIM() except + nogil
 
         libcpp_string getCompoundRef() except + nogil
+
+        # Decoy getter/setter
+        bool getDecoy() except + nogil
+        void setDecoy(bool d) except + nogil
+
+        # Fragment type getter/setter (string interface for backward compatibility)
+        libcpp_string getFragmentType() except + nogil
+        void setFragmentType(libcpp_string s) except + nogil
 
         # Detecting / quantifying / identifying transitions
         void setDetectingTransition (bool d) except + nogil
