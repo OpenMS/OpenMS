@@ -372,7 +372,272 @@ namespace OpenMS
     }
     return full_peptide_name;
   }
-  
+
+  //
+  // Light versions of decoy generation methods
+  // These operate directly on strings and LightModification vectors for memory efficiency
+  //
+
+  std::pair<std::string, std::vector<OpenSwath::LightModification>> MRMDecoy::reversePeptideLight(
+      const std::string& sequence,
+      const std::vector<OpenSwath::LightModification>& modifications,
+      const bool keepN,
+      const bool keepC,
+      const String& const_pattern)
+  {
+    std::string reversed = sequence;
+    std::vector<OpenSwath::LightModification> reversed_mods = modifications;
+
+    // Block tryptic residues and N-/C-terminus from reversing
+    MRMDecoy::IndexType idx = MRMDecoy::findFixedResidues(sequence, keepN, keepC, const_pattern);
+
+    std::vector<Size> peptide_index;
+    for (Size i = 0; i < sequence.size(); i++)
+    {
+      peptide_index.push_back(i);
+    }
+
+    // Erase the indices where K/P/R are (from the back to preserve indices)
+    for (IndexType::reverse_iterator it = idx.rbegin(); it != idx.rend(); ++it)
+    {
+      peptide_index.erase(peptide_index.begin() + *it);
+    }
+
+    // Reverse the peptide index
+    std::reverse(peptide_index.begin(), peptide_index.end());
+
+    // Re-insert the fixed positions at their original places
+    for (IndexType::iterator it = idx.begin(); it != idx.end(); ++it)
+    {
+      peptide_index.insert(peptide_index.begin() + *it, *it);
+    }
+
+    // Apply the reversed index to create the new sequence
+    for (Size i = 0; i < peptide_index.size(); i++)
+    {
+      reversed[i] = sequence[peptide_index[i]];
+    }
+
+    // Relocate modifications based on index mapping
+    for (auto& mod : reversed_mods)
+    {
+      // C and N terminal mods are implicitly not reversed (positions -1 and sequence.size())
+      if (mod.location >= 0 && mod.location < static_cast<int>(sequence.size()))
+      {
+        for (Size k = 0; k < peptide_index.size(); k++)
+        {
+          if (static_cast<int>(peptide_index[k]) == mod.location)
+          {
+            mod.location = static_cast<int>(k);
+            break;
+          }
+        }
+      }
+    }
+
+    return std::make_pair(reversed, reversed_mods);
+  }
+
+  std::pair<std::string, std::vector<OpenSwath::LightModification>> MRMDecoy::pseudoreversePeptideLight_(
+      const std::string& sequence,
+      const std::vector<OpenSwath::LightModification>& modifications) const
+  {
+    // Match heavy version: pseudoreversePeptide_ calls reversePeptide with no const_pattern (defaults to empty)
+    return MRMDecoy::reversePeptideLight(sequence, modifications, false, true);
+  }
+
+  void MRMDecoy::switchKRLight(std::string& sequence)
+  {
+    static std::string aa[] =
+    {
+      "A", "N", "D", "C", "E", "Q", "G", "H", "I", "L", "M", "F", "S", "T", "W",
+      "Y", "V"
+    };
+    constexpr int aa_size = 17;
+
+    static boost::mt19937 generator(42);
+    static boost::uniform_int<> uni_dist;
+    static boost::variate_generator<boost::mt19937&, boost::uniform_int<> > pseudoRNG(generator, uni_dist);
+
+    if (sequence.empty()) return;
+
+    Size lastAA = sequence.size() - 1;
+    if (sequence[lastAA] == 'K')
+    {
+      sequence[lastAA] = 'R';
+    }
+    else if (sequence[lastAA] == 'R')
+    {
+      sequence[lastAA] = 'K';
+    }
+    else
+    {
+      // Randomize
+      int res_pos = (pseudoRNG() % aa_size);
+      sequence[lastAA] = aa[res_pos][0];
+    }
+  }
+
+  bool MRMDecoy::hasCNterminalModsLight_(
+      const std::vector<OpenSwath::LightModification>& modifications,
+      size_t sequence_length,
+      bool checkCterminalAA)
+  {
+    for (const auto& mod : modifications)
+    {
+      // N-terminal modification at position -1
+      if (mod.location == -1)
+      {
+        return true;
+      }
+      // C-terminal modification at position sequence_length
+      if (mod.location == static_cast<int>(sequence_length))
+      {
+        return true;
+      }
+      // Check C-terminal AA position if requested
+      if (checkCterminalAA && mod.location == static_cast<int>(sequence_length) - 1)
+      {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  std::pair<std::string, std::vector<OpenSwath::LightModification>> MRMDecoy::shufflePeptideLight(
+      const std::string& sequence,
+      const std::vector<OpenSwath::LightModification>& modifications,
+      const double identity_threshold,
+      int seed,
+      const int max_attempts) const
+  {
+    if (seed == -1)
+    {
+      seed = time(nullptr);
+    }
+
+    std::string shuffled = sequence;
+    std::vector<OpenSwath::LightModification> shuffled_mods = modifications;
+
+    // Working copy of input that may be mutated during iterations
+    std::string peptide_seq = sequence;
+
+    boost::mt19937 generator(seed);
+    boost::uniform_int<> uni_dist;
+    boost::variate_generator<boost::mt19937&, boost::uniform_int<> > pseudoRNG(generator, uni_dist);
+
+    static std::string aa[] =
+    {
+      "A", "N", "D", "C", "E", "Q", "G", "H", "I", "L", "M", "F", "S", "T", "W",
+      "Y", "V"
+    };
+    constexpr int aa_size = 17;
+
+    int attempts = 0;
+    // Loop: attempt to shuffle and check whether difference is large enough
+    while (AASequenceIdentity(sequence, shuffled) > identity_threshold &&
+           attempts < max_attempts)
+    {
+      // Block tryptic residues and N-/C-terminus from shuffling
+      MRMDecoy::IndexType idx = findFixedAndTermResidues_(peptide_seq);
+
+      shuffled = peptide_seq;
+      shuffled_mods = modifications;
+
+      std::vector<Size> peptide_index;
+      for (Size i = 0; i < peptide_seq.size(); i++)
+      {
+        peptide_index.push_back(i);
+      }
+
+      // Erase the indices where K/P/R are (from the back to preserve indices)
+      for (IndexType::reverse_iterator it = idx.rbegin(); it != idx.rend(); ++it)
+      {
+        peptide_index.erase(peptide_index.begin() + *it);
+      }
+
+      // Shuffle the peptide index (Fisher-Yates shuffle)
+      if (peptide_index.begin() != peptide_index.end())
+      {
+        for (std::vector<Size>::iterator pI_it = peptide_index.begin() + 1; pI_it != peptide_index.end(); ++pI_it)
+        {
+          std::iter_swap(pI_it, peptide_index.begin() + pseudoRNG((pI_it - peptide_index.begin()) + 1));
+        }
+      }
+
+      // Re-insert the fixed positions at their original places
+      for (IndexType::iterator it = idx.begin(); it != idx.end(); ++it)
+      {
+        peptide_index.insert(peptide_index.begin() + *it, *it);
+      }
+
+      // Apply shuffled index to create new sequence
+      for (Size i = 0; i < peptide_index.size(); i++)
+      {
+        shuffled[i] = peptide_seq[peptide_index[i]];
+      }
+
+      // Relocate modifications based on index mapping
+      for (Size j = 0; j < shuffled_mods.size(); j++)
+      {
+        // C and N terminal mods are implicitly not shuffled (positions -1 and sequence.size())
+        if (shuffled_mods[j].location >= 0 && shuffled_mods[j].location < static_cast<int>(peptide_seq.size()))
+        {
+          for (Size k = 0; k < peptide_index.size(); k++)
+          {
+            if (static_cast<int>(peptide_index[k]) == shuffled_mods[j].location)
+            {
+              shuffled_mods[j].location = static_cast<int>(k);
+              break;
+            }
+          }
+        }
+      }
+
+      ++attempts;
+
+      // Every 10 attempts (at 9, 19, 29...), mutate a random non-fixed AA to help convergence
+      // This matches the heavy version's timing (attempts % 10 == 9)
+      if (attempts % 10 == 9)
+      {
+        // Important: pick the new amino acid FIRST (matching heavy version's RNG call order)
+        int res_pos = (pseudoRNG() % aa_size);
+
+        // Find positions that are not modified and not N/C terminal
+        int pep_pos = -1;
+        size_t pos_trials = 0;
+        while (pep_pos < 0 && pos_trials < shuffled.size())
+        {
+          pep_pos = (pseudoRNG() % shuffled.size());
+          // Check if position is modified or is N/C terminus
+          bool is_modified = false;
+          for (const auto& mod : shuffled_mods)
+          {
+            if (mod.location == pep_pos)
+            {
+              is_modified = true;
+              break;
+            }
+          }
+          if (is_modified || (pep_pos == 0) || (pep_pos == static_cast<int>(shuffled.size() - 1)))
+          {
+            pep_pos = -1;
+          }
+          else
+          {
+            // Mutate the amino acid
+            shuffled[pep_pos] = aa[res_pos][0];
+          }
+          ++pos_trials;
+        }
+        // Important: persist the mutation for next iteration (like heavy version)
+        peptide_seq = shuffled;
+      }
+    }
+
+    return std::make_pair(shuffled, shuffled_mods);
+  }
+
   void MRMDecoy::generateDecoys(const OpenMS::TargetedExperiment& exp, OpenMS::TargetedExperiment& dec,
                                 const String& method, const double aim_decoy_fraction, const bool do_switchKR,
                                 const String& decoy_tag, const int max_attempts, const double identity_threshold,
@@ -756,61 +1021,62 @@ namespace OpenMS
         continue;
       }
 
-      // Create a temporary heavy Peptide for decoy generation
-      OpenMS::TargetedExperiment::Peptide temp_peptide;
-      temp_peptide.sequence = original_sequence.toUnmodifiedString();
-      temp_peptide.id = original_id;
+      // Use pure light-path decoy generation methods (no heavy Peptide allocation)
+      std::string decoy_sequence;
+      std::vector<OpenSwath::LightModification> decoy_mods;
 
-      // Copy modifications
-      for (const auto& mod : decoy_compound.modifications)
-      {
-        OpenMS::TargetedExperiment::Peptide::Modification temp_mod;
-        temp_mod.location = mod.location;
-        temp_mod.unimod_id = mod.unimod_id;
-        temp_peptide.mods.push_back(temp_mod);
-      }
+      // Get unmodified sequence for decoy generation
+      std::string unmodified_sequence = original_sequence.toUnmodifiedString();
 
-      // Apply decoy method
-      OpenMS::TargetedExperiment::Peptide decoy_temp_peptide;
+      // Apply decoy method using light methods
       if (method == "pseudo-reverse")
       {
-        if (hasCNterminalMods_(temp_peptide, do_switchKR))
+        if (hasCNterminalModsLight_(decoy_compound.modifications, unmodified_sequence.size(), do_switchKR))
         {
           exclusion_peptides.insert(decoy_compound.id);
           continue;
         }
-        decoy_temp_peptide = pseudoreversePeptide_(temp_peptide);
-        if (do_switchKR) { switchKR(decoy_temp_peptide); }
+        auto result = pseudoreversePeptideLight_(unmodified_sequence, decoy_compound.modifications);
+        decoy_sequence = result.first;
+        decoy_mods = result.second;
+        if (do_switchKR) { switchKRLight(decoy_sequence); }
       }
       else if (method == "reverse")
       {
-        if (hasCNterminalMods_(temp_peptide, false))
+        if (hasCNterminalModsLight_(decoy_compound.modifications, unmodified_sequence.size(), false))
         {
           exclusion_peptides.insert(decoy_compound.id);
           continue;
         }
-        decoy_temp_peptide = reversePeptide_(temp_peptide);
+        // Note: heavy reversePeptide_() calls reversePeptide(peptide, false, false) with no const_pattern
+        // so we must also use empty const_pattern here (the default)
+        auto result = reversePeptideLight(unmodified_sequence, decoy_compound.modifications, false, false);
+        decoy_sequence = result.first;
+        decoy_mods = result.second;
       }
       else if (method == "shuffle")
       {
-        decoy_temp_peptide = shufflePeptide(temp_peptide, identity_threshold, -1, max_attempts);
-        if (do_switchKR && hasCNterminalMods_(decoy_temp_peptide, do_switchKR))
+        auto result = shufflePeptideLight(unmodified_sequence, decoy_compound.modifications, identity_threshold, -1, max_attempts);
+        decoy_sequence = result.first;
+        decoy_mods = result.second;
+        if (do_switchKR && hasCNterminalModsLight_(decoy_mods, decoy_sequence.size(), do_switchKR))
         {
           exclusion_peptides.insert(decoy_compound.id);
           continue;
         }
         else if (do_switchKR)
         {
-          switchKR(decoy_temp_peptide);
+          switchKRLight(decoy_sequence);
         }
       }
       else
       {
-        decoy_temp_peptide = temp_peptide;
+        decoy_sequence = unmodified_sequence;
+        decoy_mods = decoy_compound.modifications;
       }
 
       // Check for duplicates
-      std::string decoy_key = std::string(decoy_temp_peptide.sequence) + std::to_string(decoy_compound.charge);
+      std::string decoy_key = decoy_sequence + std::to_string(decoy_compound.charge);
       if (allPeptideSequences.find(decoy_key) != allPeptideSequences.end())
       {
         exclusion_peptides.insert(decoy_compound.id);
@@ -818,18 +1084,27 @@ namespace OpenMS
       }
       allPeptideSequences[decoy_key] = decoy_compound.id;
 
-      // Update Light compound sequence from decoy
-      decoy_compound.sequence = getModifiedPeptideSequence_(decoy_temp_peptide);
+      // Build modified sequence string with UniMod notation
+      String full_decoy_sequence;
+      for (int loc = -1; loc <= static_cast<int>(decoy_sequence.size()); loc++)
+      {
+        if (loc > -1 && loc < static_cast<int>(decoy_sequence.size()))
+        {
+          full_decoy_sequence += decoy_sequence[loc];
+        }
+        // Add modifications at this location
+        for (const auto& mod : decoy_mods)
+        {
+          if (mod.location == loc)
+          {
+            full_decoy_sequence += "(UniMod:" + String(mod.unimod_id) + ")";
+          }
+        }
+      }
+      decoy_compound.sequence = full_decoy_sequence;
 
       // Update modifications
-      decoy_compound.modifications.clear();
-      for (const auto& mod : decoy_temp_peptide.mods)
-      {
-        OpenSwath::LightModification light_mod;
-        light_mod.location = mod.location;
-        light_mod.unimod_id = mod.unimod_id;
-        decoy_compound.modifications.push_back(light_mod);
-      }
+      decoy_compound.modifications = decoy_mods;
 
       decoy_compounds.push_back(decoy_compound);
     }

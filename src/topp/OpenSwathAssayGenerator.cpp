@@ -244,7 +244,11 @@ protected:
       }
     }
 
-    // Use memory-efficient Light path for TSV/PQP → TSV/PQP when IPF is disabled
+    // Use memory-efficient Light path for TSV/PQP → TSV/PQP when IPF is disabled.
+    // TODO: Extend light path to support IPF workflows. This requires:
+    // 1. Light versions of IPF-specific annotation methods in MRMAssay
+    // 2. Proper handling of identifying transitions and peptidoforms in light structures
+    // 3. Testing with IPF-enabled assay generation
     bool use_light_path = !enable_ipf
                        && (in_type == FileTypes::TSV || in_type == FileTypes::MRM || in_type == FileTypes::PQP)
                        && (out_type == FileTypes::TSV || out_type == FileTypes::PQP);

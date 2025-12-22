@@ -26,8 +26,15 @@ namespace OpenSwath
     double precursor_im{-1};
     int fragment_charge{};
     bool decoy{};
+    /// Whether to use this transition for peak group detection (default: true).
+    /// @note For IPF workflows, identifying transitions have this set to false.
+    /// All loaders/converters explicitly set this value from source data.
     bool detecting_transition{true};
+    /// Whether to use this transition for quantification (default: true).
+    /// @note For IPF workflows, identifying transitions have this set to false.
+    /// All loaders/converters explicitly set this value from source data.
     bool quantifying_transition{true};
+    /// Whether to use this transition for peptidoform inference in IPF (default: false)
     bool identifying_transition{};
 
     // Additional fields for roundtrip TSV/PQP I/O

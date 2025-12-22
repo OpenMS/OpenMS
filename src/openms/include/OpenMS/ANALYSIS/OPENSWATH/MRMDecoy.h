@@ -201,12 +201,90 @@ public:
     static IndexType findFixedResidues(const std::string& sequence,
         bool keepN, bool keepC, const OpenMS::String& keep_const_pattern);
 
+    /**
+      @brief Reverse a peptide sequence (light version operating on strings)
+
+      Light version of reversePeptide() for memory-efficient processing.
+      Operates directly on sequence string and LightModification vector.
+
+      @param[in] sequence The amino acid sequence
+      @param[in] modifications The modifications with locations
+      @param[in] keepN Whether to keep N terminus in place
+      @param[in] keepC Whether to keep C terminus in place
+      @param[in] const_pattern A list of AA to leave in place
+      @return Pair of reversed sequence and relocated modifications
+    */
+    static std::pair<std::string, std::vector<OpenSwath::LightModification>> reversePeptideLight(
+        const std::string& sequence,
+        const std::vector<OpenSwath::LightModification>& modifications,
+        bool keepN,
+        bool keepC,
+        const String& const_pattern = String());
+
+    /**
+      @brief Shuffle a peptide sequence (light version operating on strings)
+
+      Light version of shufflePeptide() for memory-efficient processing.
+      Operates directly on sequence string and LightModification vector.
+
+      @param[in] sequence The amino acid sequence
+      @param[in] modifications The modifications with locations
+      @param[in] identity_threshold Maximum allowed sequence identity
+      @param[in] seed Random seed (-1 for time-based)
+      @param[in] max_attempts Maximum shuffle attempts
+      @return Pair of shuffled sequence and relocated modifications
+    */
+    std::pair<std::string, std::vector<OpenSwath::LightModification>> shufflePeptideLight(
+        const std::string& sequence,
+        const std::vector<OpenSwath::LightModification>& modifications,
+        double identity_threshold,
+        int seed = -1,
+        int max_attempts = 100) const;
+
+    /**
+      @brief Switch the final amino acid of a tryptic peptide (light version)
+
+      Light version of switchKR() operating directly on a sequence string.
+      If last AA is K, switches to R (and vice versa). Otherwise randomizes.
+
+      @param[in,out] sequence The sequence to modify in place
+    */
+    static void switchKRLight(std::string& sequence);
+
 protected:
 
     /**
       @brief Check if a peptide has C or N terminal modifications
     */
     bool hasCNterminalMods_(const OpenMS::TargetedExperiment::Peptide& peptide, bool checkCterminalAA) const;
+
+    /**
+      @brief Check if light modifications include C or N terminal modifications
+
+      Light version of hasCNterminalMods_() for LightModification vectors.
+
+      @param[in] modifications The modifications vector
+      @param[in] sequence_length Length of the peptide sequence
+      @param[in] checkCterminalAA Also check the C-terminal amino acid position
+      @return True if terminal modifications are present
+    */
+    static bool hasCNterminalModsLight_(
+        const std::vector<OpenSwath::LightModification>& modifications,
+        size_t sequence_length,
+        bool checkCterminalAA);
+
+    /**
+      @brief Pseudo-reverse a peptide sequence (light version)
+
+      Light version that keeps C terminus in place.
+
+      @param[in] sequence The amino acid sequence
+      @param[in] modifications The modifications with locations
+      @return Pair of pseudo-reversed sequence and relocated modifications
+    */
+    std::pair<std::string, std::vector<OpenSwath::LightModification>> pseudoreversePeptideLight_(
+        const std::string& sequence,
+        const std::vector<OpenSwath::LightModification>& modifications) const;
 
     /**
       @brief Find all K, R, P sites in a sequence to be set as fixed

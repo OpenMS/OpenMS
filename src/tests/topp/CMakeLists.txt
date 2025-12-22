@@ -1340,6 +1340,18 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
   add_test("TOPP_OpenSwathDecoyGenerator_test_7_heavy_out1" ${DIFF} -in1 OpenSwathDecoyGenerator_7_heavy.tmp.TraML -in2 ${DATA_DIR_TOPP}/OpenSwathDecoyGenerator_output_7_heavy.TraML)
   set_tests_properties("TOPP_OpenSwathDecoyGenerator_test_7_heavy_out1" PROPERTIES DEPENDS "TOPP_OpenSwathDecoyGenerator_test_7_heavy")
 
+  # Test 8: Light path PQP output (TSV -> PQP) - verifies memory-efficient LightTargetedExperiment path writes valid PQP
+  # Step 1: Generate decoys and write to PQP using light path
+  add_test("TOPP_OpenSwathDecoyGenerator_test_8_pqp"
+    ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDecoyGenerator_input_4.tsv -out OpenSwathDecoyGenerator_8.tmp.pqp -out_type pqp -method pseudo-reverse -separate -switchKR true -enable_detection_unspecific_losses -enable_detection_specific_losses -min_decoy_fraction 0.4)
+  # Step 2: Convert PQP back to TSV to verify roundtrip integrity (uses light path for both read and write)
+  add_test("TOPP_OpenSwathDecoyGenerator_test_8_pqp_to_tsv"
+    ${TOPP_BIN_PATH}/TargetedFileConverter -test -in OpenSwathDecoyGenerator_8.tmp.pqp -out OpenSwathDecoyGenerator_8_roundtrip.tmp.tsv -out_type tsv)
+  set_tests_properties("TOPP_OpenSwathDecoyGenerator_test_8_pqp_to_tsv" PROPERTIES DEPENDS "TOPP_OpenSwathDecoyGenerator_test_8_pqp")
+  # Step 3: Compare roundtrip TSV with direct TSV output (test 6) - should have same content
+  add_test("TOPP_OpenSwathDecoyGenerator_test_8_out1" ${DIFF} -in1 OpenSwathDecoyGenerator_8_roundtrip.tmp.tsv -in2 ${DATA_DIR_TOPP}/OpenSwathDecoyGenerator_output_6_light.tsv)
+  set_tests_properties("TOPP_OpenSwathDecoyGenerator_test_8_out1" PROPERTIES DEPENDS "TOPP_OpenSwathDecoyGenerator_test_8_pqp_to_tsv")
+
   # TargetedFileConverter : convert from and to different targeted files
   # Contains heavy and light transitions in 2 different notations
   add_test("TOPP_ConvertTSVToTraML_test_1" ${TOPP_BIN_PATH}/TargetedFileConverter -test -in ${DATA_DIR_TOPP}/ConvertTSVToTraML_1_input.tsv -out ConvertTSVToTraML_output.tmp.TraML -out_type TraML)
@@ -1419,6 +1431,13 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
   add_test("TOPP_TargetedFileConverter_test_5" ${TOPP_BIN_PATH}/TargetedFileConverter -test -in ${DATA_DIR_TOPP}/ConvertTSVToTraML_output.TraML -out ConvertTraMLToTSV_output.tmp.tsv -out_type tsv)
   add_test("TOPP_TargetedFileConverter_test_5_out1" ${DIFF} -in1 ConvertTraMLToTSV_output.tmp.tsv -in2 ${DATA_DIR_TOPP}/ConvertTraMLToTSV_output.tsv)
   set_tests_properties("TOPP_TargetedFileConverter_test_5_out1" PROPERTIES DEPENDS "TOPP_TargetedFileConverter_test_5")
+
+  # Light path TSV -> PQP -> TSV roundtrip test (uses LightTargetedExperiment)
+  add_test("TOPP_TargetedFileConverter_light_path_prepare" ${TOPP_BIN_PATH}/TargetedFileConverter -test -in ${DATA_DIR_TOPP}/ConvertTSVToTraML_1_input.tsv -out TargetedFileConverter_light_path.tmp.pqp -out_type pqp)
+  add_test("TOPP_TargetedFileConverter_light_path" ${TOPP_BIN_PATH}/TargetedFileConverter -test -in TargetedFileConverter_light_path.tmp.pqp -out TargetedFileConverter_light_path.tmp.tsv -out_type tsv)
+  set_tests_properties("TOPP_TargetedFileConverter_light_path" PROPERTIES DEPENDS "TOPP_TargetedFileConverter_light_path_prepare")
+  add_test("TOPP_TargetedFileConverter_light_path_out1" ${DIFF} -in1 TargetedFileConverter_light_path.tmp.tsv -in2 ${DATA_DIR_TOPP}/ConvertTSVToTraML_1_input.tsv)
+  set_tests_properties("TOPP_TargetedFileConverter_light_path_out1" PROPERTIES DEPENDS "TOPP_TargetedFileConverter_light_path")
 
   # protein group conversion test PQP
   add_test("TOPP_TargetedFileConverter_test_12_prepare" ${TOPP_BIN_PATH}/TargetedFileConverter -algorithm:override_group_label_check -test -in ${DATA_DIR_TOPP}/TargetedFileConverter_12_input.TraML -out TargetedFileConverter_12_output.tmp.pqp -out_type pqp)

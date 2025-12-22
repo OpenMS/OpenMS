@@ -16,6 +16,7 @@
 #include <OpenMS/FORMAT/TraMLFile.h>
 #include <OpenMS/FORMAT/TraMLFile.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
 
 #include <boost/assign/std/vector.hpp>
 
@@ -42,6 +43,23 @@ public:
   }
   IndexType findFixedResidues_helper(const std::string& sequence) const {return findFixedResidues_(sequence);}
   IndexType findFixedAndTermResidues_helper(const std::string& sequence) const {return findFixedAndTermResidues_(sequence);}
+
+  // Helper method to expose protected pseudoreversePeptideLight_
+  std::pair<std::string, std::vector<OpenSwath::LightModification>> pseudoreversePeptideLight_helper(
+    const std::string& sequence,
+    const std::vector<OpenSwath::LightModification>& modifications) const
+  {
+    return pseudoreversePeptideLight_(sequence, modifications);
+  }
+
+  // Helper method to expose protected hasCNterminalModsLight_
+  static bool hasCNterminalModsLight_helper(
+    const std::vector<OpenSwath::LightModification>& modifications,
+    size_t sequence_length,
+    bool checkCterminalAA)
+  {
+    return hasCNterminalModsLight_(modifications, sequence_length, checkCterminalAA);
+  }
 };
 
 START_TEST(MRMDecoy, "$Id$")
@@ -523,6 +541,479 @@ START_SECTION((void generateDecoys(const OpenMS::TargetedExperiment& exp,
   TEST_FILE_SIMILAR(test.c_str(), OPENMS_GET_TEST_DATA_PATH(out))
 }
 
+END_SECTION
+
+/////////////////////////////////////////////////////////////
+// Tests comparing Light methods with Heavy methods
+/////////////////////////////////////////////////////////////
+
+START_SECTION([EXTRA] reversePeptideLight_matches_heavy)
+{
+  // Test that reversePeptideLight produces the same sequence and modification
+  // positions as the heavy reversePeptide method
+
+  // Test case 1: Simple peptide with one modification
+  {
+    OpenMS::TargetedExperiment::Peptide peptide;
+    peptide.sequence = "TESTPEPTIDE";
+    OpenMS::TargetedExperiment::Peptide::Modification modification;
+    modification.avg_mass_delta = 79.9799;
+    modification.location = 2;  // S at position 2
+    modification.mono_mass_delta = 79.966331;
+    modification.unimod_id = 21;  // Phospho
+    peptide.mods.push_back(modification);
+
+    // Create equivalent light modifications
+    std::vector<OpenSwath::LightModification> light_mods;
+    OpenSwath::LightModification light_mod;
+    light_mod.location = 2;
+    light_mod.unimod_id = 21;
+    light_mods.push_back(light_mod);
+
+    // Test keepN=false, keepC=true (pseudo-reverse style)
+    auto heavy_result = MRMDecoy::reversePeptide(peptide, false, true);
+    auto light_result = MRMDecoy::reversePeptideLight(peptide.sequence, light_mods, false, true);
+
+    TEST_EQUAL(light_result.first, heavy_result.sequence)
+    TEST_EQUAL(light_result.second.size(), heavy_result.mods.size())
+    TEST_EQUAL(light_result.second[0].location, heavy_result.mods[0].location)
+  }
+
+  // Test case 2: Peptide with multiple modifications
+  {
+    OpenMS::TargetedExperiment::Peptide peptide;
+    peptide.sequence = "TESTPEPTIDE";
+    OpenMS::TargetedExperiment::Peptide::Modification mod1, mod2;
+    mod1.location = 2;  // S
+    mod1.unimod_id = 21;
+    mod2.location = 0;  // N-term T (kept in place with keepN)
+    mod2.unimod_id = 1;
+    peptide.mods.push_back(mod1);
+    peptide.mods.push_back(mod2);
+
+    std::vector<OpenSwath::LightModification> light_mods;
+    OpenSwath::LightModification lm1, lm2;
+    lm1.location = 2;
+    lm1.unimod_id = 21;
+    lm2.location = 0;
+    lm2.unimod_id = 1;
+    light_mods.push_back(lm1);
+    light_mods.push_back(lm2);
+
+    // Test keepN=true, keepC=true
+    auto heavy_result = MRMDecoy::reversePeptide(peptide, true, true);
+    auto light_result = MRMDecoy::reversePeptideLight(peptide.sequence, light_mods, true, true);
+
+    TEST_EQUAL(light_result.first, heavy_result.sequence)
+    TEST_EQUAL(light_result.second.size(), heavy_result.mods.size())
+    for (size_t i = 0; i < light_result.second.size(); ++i)
+    {
+      TEST_EQUAL(light_result.second[i].location, heavy_result.mods[i].location)
+    }
+  }
+
+  // Test case 3: Full reverse (keepN=false, keepC=false)
+  {
+    OpenMS::TargetedExperiment::Peptide peptide;
+    peptide.sequence = "TESTPEPTIDE";
+    OpenMS::TargetedExperiment::Peptide::Modification mod;
+    mod.location = 2;
+    mod.unimod_id = 21;
+    peptide.mods.push_back(mod);
+
+    std::vector<OpenSwath::LightModification> light_mods;
+    OpenSwath::LightModification lm;
+    lm.location = 2;
+    lm.unimod_id = 21;
+    light_mods.push_back(lm);
+
+    auto heavy_result = MRMDecoy::reversePeptide(peptide, false, false);
+    auto light_result = MRMDecoy::reversePeptideLight(peptide.sequence, light_mods, false, false);
+
+    TEST_EQUAL(light_result.first, heavy_result.sequence)
+    TEST_EQUAL(light_result.second.size(), heavy_result.mods.size())
+    TEST_EQUAL(light_result.second[0].location, heavy_result.mods[0].location)
+  }
+
+  // Test case 4: With const_pattern
+  {
+    OpenMS::TargetedExperiment::Peptide peptide;
+    peptide.sequence = "TESTPEPTIDE";
+    OpenMS::TargetedExperiment::Peptide::Modification mod;
+    mod.location = 2;
+    mod.unimod_id = 21;
+    peptide.mods.push_back(mod);
+
+    std::vector<OpenSwath::LightModification> light_mods;
+    OpenSwath::LightModification lm;
+    lm.location = 2;
+    lm.unimod_id = 21;
+    light_mods.push_back(lm);
+
+    String const_pattern = "I";
+    auto heavy_result = MRMDecoy::reversePeptide(peptide, true, true, const_pattern);
+    auto light_result = MRMDecoy::reversePeptideLight(peptide.sequence, light_mods, true, true, const_pattern);
+
+    TEST_EQUAL(light_result.first, heavy_result.sequence)
+    TEST_EQUAL(light_result.second.size(), heavy_result.mods.size())
+    TEST_EQUAL(light_result.second[0].location, heavy_result.mods[0].location)
+  }
+
+  // Test case 5: Empty modifications
+  {
+    OpenMS::TargetedExperiment::Peptide peptide;
+    peptide.sequence = "TESTPEPTIDE";
+
+    std::vector<OpenSwath::LightModification> light_mods;
+
+    auto heavy_result = MRMDecoy::reversePeptide(peptide, false, true);
+    auto light_result = MRMDecoy::reversePeptideLight(peptide.sequence, light_mods, false, true);
+
+    TEST_EQUAL(light_result.first, heavy_result.sequence)
+    TEST_EQUAL(light_result.second.size(), 0)
+  }
+}
+END_SECTION
+
+START_SECTION([EXTRA] pseudoreversePeptideLight_matches_heavy)
+{
+  MRMDecoyHelper gen;
+
+  // Test case 1: Simple peptide with modification
+  {
+    OpenMS::TargetedExperiment::Peptide peptide;
+    peptide.sequence = "TESTPEPTIDE";
+    OpenMS::TargetedExperiment::Peptide::Modification modification;
+    modification.avg_mass_delta = 79.9799;
+    modification.location = 2;
+    modification.mono_mass_delta = 79.966331;
+    modification.unimod_id = 21;
+    peptide.mods.push_back(modification);
+
+    std::vector<OpenSwath::LightModification> light_mods;
+    OpenSwath::LightModification lm;
+    lm.location = 2;
+    lm.unimod_id = 21;
+    light_mods.push_back(lm);
+
+    auto heavy_result = gen.pseudoreversePeptide_helper(peptide);
+    auto light_result = gen.pseudoreversePeptideLight_helper(peptide.sequence, light_mods);
+
+    TEST_EQUAL(light_result.first, heavy_result.sequence)
+    TEST_EQUAL(light_result.second.size(), heavy_result.mods.size())
+    TEST_EQUAL(light_result.second[0].location, heavy_result.mods[0].location)
+  }
+
+  // Test case 2: No modifications
+  {
+    OpenMS::TargetedExperiment::Peptide peptide;
+    peptide.sequence = "TESTPEPTIDE";
+
+    std::vector<OpenSwath::LightModification> light_mods;
+
+    auto heavy_result = gen.pseudoreversePeptide_helper(peptide);
+    auto light_result = gen.pseudoreversePeptideLight_helper(peptide.sequence, light_mods);
+
+    TEST_EQUAL(light_result.first, heavy_result.sequence)
+    TEST_EQUAL(light_result.second.size(), 0)
+  }
+
+  // Test case 3: Peptide ending with K (tryptic)
+  {
+    OpenMS::TargetedExperiment::Peptide peptide;
+    peptide.sequence = "TESTPEPTIDEK";
+    OpenMS::TargetedExperiment::Peptide::Modification modification;
+    modification.location = 2;
+    modification.unimod_id = 21;
+    peptide.mods.push_back(modification);
+
+    std::vector<OpenSwath::LightModification> light_mods;
+    OpenSwath::LightModification lm;
+    lm.location = 2;
+    lm.unimod_id = 21;
+    light_mods.push_back(lm);
+
+    auto heavy_result = gen.pseudoreversePeptide_helper(peptide);
+    auto light_result = gen.pseudoreversePeptideLight_helper(peptide.sequence, light_mods);
+
+    TEST_EQUAL(light_result.first, heavy_result.sequence)
+    // C-terminal AA should be preserved
+    TEST_EQUAL(light_result.first[light_result.first.size()-1], 'K')
+  }
+}
+END_SECTION
+
+START_SECTION([EXTRA] shufflePeptideLight_matches_heavy)
+{
+  MRMDecoy gen;
+
+  // Test case 1: Simple shuffle with modification
+  {
+    OpenMS::TargetedExperiment::Peptide peptide;
+    peptide.sequence = "TESTPEPTIDE";
+    OpenMS::TargetedExperiment::Peptide::Modification modification;
+    modification.avg_mass_delta = 79.9799;
+    modification.location = 2;
+    modification.mono_mass_delta = 79.966331;
+    modification.unimod_id = 21;
+    peptide.mods.push_back(modification);
+
+    std::vector<OpenSwath::LightModification> light_mods;
+    OpenSwath::LightModification lm;
+    lm.location = 2;
+    lm.unimod_id = 21;
+    light_mods.push_back(lm);
+
+    // Use same seed for reproducibility
+    int seed = 43;
+    double identity_threshold = 0.7;
+
+    auto heavy_result = gen.shufflePeptide(peptide, identity_threshold, seed);
+    auto light_result = gen.shufflePeptideLight(peptide.sequence, light_mods, identity_threshold, seed);
+
+    TEST_EQUAL(light_result.first, heavy_result.sequence)
+    TEST_EQUAL(light_result.second.size(), heavy_result.mods.size())
+    TEST_EQUAL(light_result.second[0].location, heavy_result.mods[0].location)
+  }
+
+  // Test case 2: Shuffle with multiple modifications
+  {
+    OpenMS::TargetedExperiment::Peptide peptide;
+    peptide.sequence = "GPPSEDGPGVPPPSPR";
+    OpenMS::TargetedExperiment::Peptide::Modification mod1, mod2;
+    mod1.avg_mass_delta = 79.9799;
+    mod1.location = 3;  // first S
+    mod1.mono_mass_delta = 79.966331;
+    mod1.unimod_id = 21;
+    mod2.avg_mass_delta = 79.9799;
+    mod2.location = 13;  // second S
+    mod2.mono_mass_delta = 79.966331;
+    mod2.unimod_id = 21;
+    peptide.mods.push_back(mod1);
+    peptide.mods.push_back(mod2);
+
+    std::vector<OpenSwath::LightModification> light_mods;
+    OpenSwath::LightModification lm1, lm2;
+    lm1.location = 3;
+    lm1.unimod_id = 21;
+    lm2.location = 13;
+    lm2.unimod_id = 21;
+    light_mods.push_back(lm1);
+    light_mods.push_back(lm2);
+
+    int seed = 130;
+    double identity_threshold = 0.7;
+
+    auto heavy_result = gen.shufflePeptide(peptide, identity_threshold, seed);
+    auto light_result = gen.shufflePeptideLight(peptide.sequence, light_mods, identity_threshold, seed);
+
+    TEST_EQUAL(light_result.first, heavy_result.sequence)
+    TEST_EQUAL(light_result.second.size(), heavy_result.mods.size())
+    for (size_t i = 0; i < light_result.second.size(); ++i)
+    {
+      TEST_EQUAL(light_result.second[i].location, heavy_result.mods[i].location)
+    }
+  }
+
+  // Test case 3: Shuffle with terminal K preserved
+  {
+    OpenMS::TargetedExperiment::Peptide peptide;
+    peptide.sequence = "TESTPEPTIDEK";
+
+    std::vector<OpenSwath::LightModification> light_mods;
+
+    int seed = 42;
+    double identity_threshold = 0.7;
+
+    auto heavy_result = gen.shufflePeptide(peptide, identity_threshold, seed, 20);
+    auto light_result = gen.shufflePeptideLight(peptide.sequence, light_mods, identity_threshold, seed, 20);
+
+    TEST_EQUAL(light_result.first, heavy_result.sequence)
+    // Terminal K should be preserved
+    TEST_EQUAL(light_result.first[light_result.first.size()-1], 'K')
+    TEST_EQUAL(heavy_result.sequence[heavy_result.sequence.size()-1], 'K')
+  }
+
+  // Test case 4: Shuffle with terminal R preserved
+  {
+    OpenMS::TargetedExperiment::Peptide peptide;
+    peptide.sequence = "TESTPEPTIDER";
+
+    std::vector<OpenSwath::LightModification> light_mods;
+
+    int seed = 42;
+    double identity_threshold = 0.7;
+
+    auto heavy_result = gen.shufflePeptide(peptide, identity_threshold, seed, 20);
+    auto light_result = gen.shufflePeptideLight(peptide.sequence, light_mods, identity_threshold, seed, 20);
+
+    TEST_EQUAL(light_result.first, heavy_result.sequence)
+    // Terminal R should be preserved
+    TEST_EQUAL(light_result.first[light_result.first.size()-1], 'R')
+  }
+
+  // Test case 5: No modifications
+  {
+    OpenMS::TargetedExperiment::Peptide peptide;
+    peptide.sequence = "TESTPEPTIDE";
+
+    std::vector<OpenSwath::LightModification> light_mods;
+
+    int seed = 42;
+    double identity_threshold = 0.7;
+
+    auto heavy_result = gen.shufflePeptide(peptide, identity_threshold, seed);
+    auto light_result = gen.shufflePeptideLight(peptide.sequence, light_mods, identity_threshold, seed);
+
+    TEST_EQUAL(light_result.first, heavy_result.sequence)
+    TEST_EQUAL(light_result.second.size(), 0)
+  }
+
+  // Test case 6: K/R/P pattern preservation
+  {
+    OpenMS::TargetedExperiment::Peptide peptide;
+    peptide.sequence = "KPRKPRPK";
+
+    std::vector<OpenSwath::LightModification> light_mods;
+
+    int seed = 130;
+    double identity_threshold = 0.7;
+    int max_attempts = 17;
+
+    auto heavy_result = gen.shufflePeptide(peptide, identity_threshold, seed, max_attempts);
+    auto light_result = gen.shufflePeptideLight(peptide.sequence, light_mods, identity_threshold, seed, max_attempts);
+
+    TEST_EQUAL(light_result.first, heavy_result.sequence)
+  }
+}
+END_SECTION
+
+START_SECTION([EXTRA] switchKRLight_matches_heavy)
+{
+  MRMDecoy gen;
+
+  // Test case 1: Switch K to R
+  {
+    OpenMS::TargetedExperiment::Peptide heavy_peptide;
+    heavy_peptide.sequence = "TESTPEPTIDEK";
+    gen.switchKR(heavy_peptide);
+
+    std::string light_sequence = "TESTPEPTIDEK";
+    MRMDecoy::switchKRLight(light_sequence);
+
+    TEST_EQUAL(light_sequence, heavy_peptide.sequence)
+    TEST_EQUAL(light_sequence[light_sequence.size()-1], 'R')
+  }
+
+  // Test case 2: Switch R to K
+  {
+    OpenMS::TargetedExperiment::Peptide heavy_peptide;
+    heavy_peptide.sequence = "TESTPEPTIDER";
+    gen.switchKR(heavy_peptide);
+
+    std::string light_sequence = "TESTPEPTIDER";
+    MRMDecoy::switchKRLight(light_sequence);
+
+    TEST_EQUAL(light_sequence, heavy_peptide.sequence)
+    TEST_EQUAL(light_sequence[light_sequence.size()-1], 'K')
+  }
+
+  // Test case 3: Non-K/R terminal - both should randomize (but may differ due to separate random calls)
+  // We just check that the sequence length is preserved and terminal changed
+  {
+    std::string light_sequence = "TESTPEPTIDEX";
+    MRMDecoy::switchKRLight(light_sequence);
+
+    TEST_EQUAL(light_sequence.size(), 12)
+    // Terminal should have changed from X to something else
+    TEST_NOT_EQUAL(light_sequence[light_sequence.size()-1], 'X')
+  }
+}
+END_SECTION
+
+START_SECTION([EXTRA] hasCNterminalModsLight_matches_behavior)
+{
+  // Test that hasCNterminalModsLight_ correctly identifies terminal modifications
+
+  // Test case 1: N-terminal modification (location = -1)
+  {
+    std::vector<OpenSwath::LightModification> mods;
+    OpenSwath::LightModification mod;
+    mod.location = -1;  // N-terminal
+    mod.unimod_id = 272;  // sulfonation of N-terminus
+    mods.push_back(mod);
+
+    size_t seq_length = 11;
+    bool has_terminal = MRMDecoyHelper::hasCNterminalModsLight_helper(mods, seq_length, false);
+    TEST_EQUAL(has_terminal, true)
+  }
+
+  // Test case 2: C-terminal modification (location = sequence length)
+  {
+    std::vector<OpenSwath::LightModification> mods;
+    OpenSwath::LightModification mod;
+    mod.location = 11;  // C-terminal for length 11
+    mod.unimod_id = 193;  // O18 label
+    mods.push_back(mod);
+
+    size_t seq_length = 11;
+    bool has_terminal = MRMDecoyHelper::hasCNterminalModsLight_helper(mods, seq_length, false);
+    TEST_EQUAL(has_terminal, true)
+  }
+
+  // Test case 3: Modification on C-terminal AA (location = sequence length - 1, checkCterminalAA=true)
+  {
+    std::vector<OpenSwath::LightModification> mods;
+    OpenSwath::LightModification mod;
+    mod.location = 10;  // C-terminal AA for length 11
+    mod.unimod_id = 35;
+    mods.push_back(mod);
+
+    size_t seq_length = 11;
+    bool has_terminal_with_check = MRMDecoyHelper::hasCNterminalModsLight_helper(mods, seq_length, true);
+    bool has_terminal_without_check = MRMDecoyHelper::hasCNterminalModsLight_helper(mods, seq_length, false);
+
+    TEST_EQUAL(has_terminal_with_check, true)
+    TEST_EQUAL(has_terminal_without_check, false)
+  }
+
+  // Test case 4: Internal modification - should return false
+  {
+    std::vector<OpenSwath::LightModification> mods;
+    OpenSwath::LightModification mod;
+    mod.location = 5;  // Internal
+    mod.unimod_id = 21;
+    mods.push_back(mod);
+
+    size_t seq_length = 11;
+    bool has_terminal = MRMDecoyHelper::hasCNterminalModsLight_helper(mods, seq_length, false);
+    TEST_EQUAL(has_terminal, false)
+  }
+
+  // Test case 5: No modifications - should return false
+  {
+    std::vector<OpenSwath::LightModification> mods;
+    size_t seq_length = 11;
+    bool has_terminal = MRMDecoyHelper::hasCNterminalModsLight_helper(mods, seq_length, false);
+    TEST_EQUAL(has_terminal, false)
+  }
+
+  // Test case 6: Both N and C terminal modifications
+  {
+    std::vector<OpenSwath::LightModification> mods;
+    OpenSwath::LightModification mod1, mod2;
+    mod1.location = -1;  // N-terminal
+    mod1.unimod_id = 272;
+    mod2.location = 11;  // C-terminal
+    mod2.unimod_id = 193;
+    mods.push_back(mod1);
+    mods.push_back(mod2);
+
+    size_t seq_length = 11;
+    bool has_terminal = MRMDecoyHelper::hasCNterminalModsLight_helper(mods, seq_length, false);
+    TEST_EQUAL(has_terminal, true)
+  }
+}
 END_SECTION
 
 /////////////////////////////////////////////////////////////
