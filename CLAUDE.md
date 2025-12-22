@@ -12,6 +12,26 @@ Per [CMake documentation](https://cmake.org/cmake/help/latest/variable/CMAKE_PRE
 
 Using the wrong separator causes CMake to treat multiple paths as a single incorrect path.
 
+### delocate-wheel `-L` flag (macOS wheel repair)
+**`-L` is NOT a library search path!** It specifies the **destination subdirectory** inside the wheel where copied libraries are stored (default: `.dylibs`).
+
+```
+-L DYLIBS_REL_DIR, --lib-sdir DYLIBS_REL_DIR
+    Subdirectory in package to store copied libraries (default: .dylibs)
+```
+
+**Wrong** (causes `SameFileError` when source == destination):
+```yaml
+CIBW_REPAIR_WHEEL_COMMAND: "delocate-wheel -L /path/to/openms/lib {wheel}"
+```
+
+**Correct** (delocate finds libraries via absolute paths embedded in binaries):
+```yaml
+CIBW_REPAIR_WHEEL_COMMAND: "delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel}"
+```
+
+This is different from `-L` in gcc/ld which adds library search paths.
+
 ## pyOpenMS Python Wrapping
 
 ### Architecture
