@@ -139,8 +139,13 @@ install_components = ["python_modules"]
 # CMake options - OpenMS_ROOT should be set via environment or config-settings
 # Example: pip install . --config-settings=cmake.options.OpenMS_ROOT=/path/to/openms
 # Or set environment variable: export OpenMS_ROOT=/path/to/openms
+#
+# PY_NUM_MODULES: Number of submodules to split pyopenms into (reduces per-module memory)
+# PY_NUM_THREADS: Number of parallel Cython compilations (each uses 2-4GB RAM)
+# Defaults are conservative for CI (~7GB RAM). Local builds with more RAM can increase:
+#   pip install . --config-settings=cmake.options.PY_NUM_THREADS=4
 PY_NUM_MODULES = "8"
-PY_NUM_THREADS = "4"
+PY_NUM_THREADS = "1"
 # Skip dependency bundling - wheel repair tools will handle this
 NO_DEPENDENCIES = "ON"
 
