@@ -84,8 +84,6 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Build OpenMS
-        env:
-          CMAKE_BUILD_PARALLEL_LEVEL: 2
         run: |
           yum install -y cmake ninja-build
           mkdir build && cd build
@@ -100,7 +98,7 @@ jobs:
             -DENABLE_TUTORIALS=OFF \
             -DENABLE_DOCS=OFF \
             -DWITH_PARQUET=ON
-          ninja -j2 OpenMS OpenSwathAlgo
+          ninja OpenMS OpenSwathAlgo
 
       - name: Install and package OpenMS
         run: |
@@ -135,8 +133,6 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Build OpenMS
-        env:
-          CMAKE_BUILD_PARALLEL_LEVEL: 2
         run: |
           yum install -y cmake ninja-build
           mkdir build && cd build
@@ -151,7 +147,7 @@ jobs:
             -DENABLE_TUTORIALS=OFF \
             -DENABLE_DOCS=OFF \
             -DWITH_PARQUET=ON
-          ninja -j2 OpenMS OpenSwathAlgo
+          ninja OpenMS OpenSwathAlgo
 
       - name: Install and package OpenMS
         run: |
@@ -182,8 +178,6 @@ jobs:
         run: bash tools/ci/deps-macos.sh
 
       - name: Build OpenMS
-        env:
-          CMAKE_BUILD_PARALLEL_LEVEL: 2
         run: |
           # icu4c is keg-only, so we need to add it to the library search path for linking
           # zstd is required for static Arrow/Parquet linking
@@ -204,7 +198,7 @@ jobs:
             -DENABLE_DOCS=OFF \
             -DMT_ENABLE_OPENMP=ON \
             -DWITH_PARQUET=ON
-          ninja -j2 OpenMS OpenSwathAlgo
+          ninja OpenMS OpenSwathAlgo
 
       - name: Install and package OpenMS
         run: |
@@ -265,8 +259,6 @@ jobs:
         env:
           # Workaround for MSVC constexpr mutex constructor bug
           CXXFLAGS: "-D_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR"
-          # Limit parallelism to prevent OOM on CI runners
-          CMAKE_BUILD_PARALLEL_LEVEL: 2
         run: |
           mkdir build && cd build
           cmake .. \
