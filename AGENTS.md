@@ -25,6 +25,10 @@ This file summarizes repo-specific conventions and workflows for contributors an
 - Windows: Visual Studio 2019+ (MSVC), CMake >= 3.24, 64-bit only, Visual Studio generator, avoid MinGW; keep build paths short.
 - Style checks: `ENABLE_STYLE_TESTING=ON` runs cpplint at `src/tests/coding/cpplint.py`.
 
+## Known build workarounds
+- **Boost static libs on macOS**: Boost's CMake config has incomplete `find_dependency()` calls for transitive dependencies. Use `-DBOOST_USE_STATIC_LIBS=OFF` to avoid linker errors. This is a 5+ year old upstream issue.
+- **CMAKE_PREFIX_PATH separators** (per [CMake docs](https://cmake.org/cmake/help/latest/variable/CMAKE_PREFIX_PATH.html)): When passing via `-D` option, use semicolons (`;`) as list separators (e.g., `-DCMAKE_PREFIX_PATH="/path/one;/path/two"`). Environment variables use OS-native separators (`:` on Unix, `;` on Windows).
+
 ## Testing
 - Unit/class tests: `src/tests/class_tests/<lib>/source/`, add to `executables.cmake`; data in `src/tests/class_tests/libs/data/` (prefix files with class name).
 - TOPP tests: add to `src/tests/topp/CMakeLists.txt`, data in `src/tests/topp/`.
