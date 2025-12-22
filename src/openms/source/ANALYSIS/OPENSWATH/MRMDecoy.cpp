@@ -99,6 +99,40 @@ namespace OpenMS
     return identity;
   }
 
+  //
+  // Helper functions for converting between heavy and light modification formats
+  //
+  namespace detail
+  {
+    /// Convert heavy Peptide modifications to light format (location + unimod_id only)
+    inline std::vector<OpenSwath::LightModification> toLightMods(
+        const std::vector<TargetedExperiment::Peptide::Modification>& heavy_mods)
+    {
+      std::vector<OpenSwath::LightModification> light_mods;
+      light_mods.reserve(heavy_mods.size());
+      for (const auto& mod : heavy_mods)
+      {
+        OpenSwath::LightModification lm;
+        lm.location = mod.location;
+        lm.unimod_id = mod.unimod_id;
+        light_mods.push_back(lm);
+      }
+      return light_mods;
+    }
+
+    /// Apply location updates from light modifications back to heavy modifications
+    inline void applyLocationUpdates(
+        std::vector<TargetedExperiment::Peptide::Modification>& heavy_mods,
+        const std::vector<OpenSwath::LightModification>& light_mods)
+    {
+      OPENMS_PRECONDITION(heavy_mods.size() == light_mods.size(), "Modification count mismatch");
+      for (Size i = 0; i < heavy_mods.size(); ++i)
+      {
+        heavy_mods[i].location = light_mods[i].location;
+      }
+    }
+  } // namespace detail
+
   OpenMS::TargetedExperiment::Peptide MRMDecoy::shufflePeptide(
     OpenMS::TargetedExperiment::Peptide peptide, const double identity_threshold, int seed,
     const int max_attempts) const
@@ -107,190 +141,36 @@ namespace OpenMS
     std::cout << " shuffle peptide " << peptide.sequence << std::endl;
     seed = 41;
 #endif
-    if (seed == -1)
-    {
-      seed = time(nullptr);
-    }
-    OpenMS::TargetedExperiment::Peptide shuffled = peptide;
+    // Delegate to light implementation
+    auto light_mods = detail::toLightMods(peptide.mods);
+    auto [new_sequence, new_mods] = shufflePeptideLight(
+        peptide.sequence, light_mods, identity_threshold, seed, max_attempts);
 
-    //TODO use Math::RandomShuffler (=same approach) and put this rather general method somewhere more prominent.
-    boost::mt19937 generator(seed);
-    boost::uniform_int<> uni_dist;
-    boost::variate_generator<boost::mt19937&, boost::uniform_int<> > pseudoRNG(generator, uni_dist);
-
-    std::string aa[] =
-    {
-      "A", "N", "D", "C", "E", "Q", "G", "H", "I", "L", "M", "F", "S", "T", "W",
-      "Y", "V"
-    };
-    int aa_size = 17;
-
-    int attempts = 0;
-    // loop: copy the original peptide, attempt to shuffle it and check whether difference is large enough
-    while (MRMDecoy::AASequenceIdentity(peptide.sequence, shuffled.sequence) > identity_threshold &&
-           attempts < max_attempts)
-    {
-      // Block tryptic residues and N-/C-terminus from shuffling
-      MRMDecoy::IndexType idx = findFixedAndTermResidues_(peptide.sequence);
-
-      shuffled = peptide;
-      std::vector<Size> peptide_index;
-      for (Size i = 0; i < peptide.sequence.size(); i++)
-      {
-        peptide_index.push_back(i);
-      }
-
-      // we erase the indices where K/P/R are (from the back / in reverse order
-      // to not delete indices we access later)
-      for (IndexType::reverse_iterator it = idx.rbegin(); it != idx.rend(); ++it)
-      {
-        peptide_index.erase(peptide_index.begin() + *it);
-      }
-
-      // shuffle the peptide index (without the K/P/R which we leave in place)
-      // one could also use std::random_shuffle here but then the code becomes
-      // not testable since the implementation of std::random_shuffle differs
-      // between libc++ (llvm/mac-osx) and libstdc++ (gcc) and VS
-      // see also https://code.google.com/p/chromium/issues/detail?id=358564
-      // the actual code here for the shuffling is based on the implementation of
-      // std::random_shuffle in libstdc++
-      if (peptide_index.begin() != peptide_index.end())
-      {
-        for (std::vector<Size>::iterator pI_it = peptide_index.begin() + 1; pI_it != peptide_index.end(); ++pI_it)
-        {
-          // swap current position with random element from vector
-          // swapping positions are random in range [0, current_position + 1)
-          // which can be at most [0, n)
-          std::iter_swap(pI_it, peptide_index.begin() + pseudoRNG((pI_it - peptide_index.begin()) + 1));
-        }
-      }
-
-      // re-insert the missing K/P/R at the appropriate places
-      for (IndexType::iterator it = idx.begin(); it != idx.end(); ++it)
-      {
-        peptide_index.insert(peptide_index.begin() + *it, *it);
-      }
-
-      // use the shuffled index to create the new peptide sequence and
-      // then to place the modifications at their appropriate places (make sure
-      // that the modifications are placed with their initial amino acids).
-      for (Size i = 0; i < peptide_index.size(); i++)
-      {
-        shuffled.sequence[i] = peptide.sequence[peptide_index[i]];
-      }
-      for (Size j = 0; j < shuffled.mods.size(); j++)
-      {
-        for (Size k = 0; k < peptide_index.size(); k++)
-        {
-          // C and N terminal mods are implicitly not shuffled because they live at positions -1 and sequence.size()
-          if (boost::numeric_cast<int>(peptide_index[k]) == shuffled.mods[j].location)
-          {
-            shuffled.mods[j].location = boost::numeric_cast<int>(k);
-            break;
-          }
-        }
-      }
+    peptide.sequence = new_sequence;
+    detail::applyLocationUpdates(peptide.mods, new_mods);
 
 #ifdef DEBUG_MRMDECOY
-      for (Size j = 0; j < shuffled.mods.size(); j++)
-      {
-        std::cout << " position after shuffling " << shuffled.mods[j].location << " mass difference " << shuffled.mods[j].mono_mass_delta << std::endl;
-      }
+    for (Size j = 0; j < peptide.mods.size(); j++)
+    {
+      std::cout << " position after shuffling " << peptide.mods[j].location << " mass difference " << peptide.mods[j].mono_mass_delta << std::endl;
+    }
 #endif
 
-      ++attempts;
-
-      // If our attempts have failed so far, we will mutate a random AA of
-      // the sequence and see whether we can achieve sufficient shuffling with
-      // the new sequence.
-      if (attempts % 10 == 9)
-      {
-        OpenMS::AASequence shuffled_sequence = TargetedExperimentHelper::getAASequence(shuffled);
-        int res_pos = (pseudoRNG() % aa_size);
-        int pep_pos = -1;
-        size_t pos_trials = 0;
-        while (pep_pos < 0 && pos_trials < shuffled_sequence.size())
-        {
-          // select position to mutate (and ensure we are not changing N/C terminus or any modified position doing it)
-          pep_pos = (pseudoRNG() % shuffled_sequence.size());
-          if (shuffled_sequence[pep_pos].isModified() || (pep_pos == 0) || (pep_pos == (int)(shuffled_sequence.size() - 1)))
-          {
-            pep_pos = -1;
-          }
-          else
-          {
-            if (pep_pos == 0)
-            {
-              shuffled_sequence = AASequence::fromString(aa[res_pos]) + shuffled_sequence.getSuffix(shuffled_sequence.size() - pep_pos - 1);
-            }
-            else if (pep_pos == (int)(shuffled_sequence.size() - 1))
-            {
-              shuffled_sequence = shuffled_sequence.getPrefix(pep_pos) + AASequence::fromString(aa[res_pos]);
-            }
-            else
-            {
-              shuffled_sequence = shuffled_sequence.getPrefix(pep_pos) + AASequence::fromString(aa[res_pos]) + shuffled_sequence.getSuffix(shuffled_sequence.size() - pep_pos - 1);
-            }
-          }
-          ++pos_trials;
-        }
-        shuffled.sequence = shuffled_sequence.toUnmodifiedString();
-        peptide = shuffled;
-      }
-    }
-
-    return shuffled;
+    return peptide;
   }
 
   OpenMS::TargetedExperiment::Peptide MRMDecoy::reversePeptide(
-      const OpenMS::TargetedExperiment::Peptide& peptide, const bool keepN, const bool keepC, 
+      const OpenMS::TargetedExperiment::Peptide& peptide, const bool keepN, const bool keepC,
       const String& const_pattern)
   {
+    // Delegate to light implementation
+    auto light_mods = detail::toLightMods(peptide.mods);
+    auto [new_sequence, new_mods] = reversePeptideLight(
+        peptide.sequence, light_mods, keepN, keepC, const_pattern);
+
     OpenMS::TargetedExperiment::Peptide reversed = peptide;
-    // Block tryptic residues and N-/C-terminus from shuffling
-    MRMDecoy::IndexType idx = MRMDecoy::findFixedResidues(peptide.sequence, keepN, keepC, const_pattern);
-
-    std::vector<Size> peptide_index;
-    for (Size i = 0; i < peptide.sequence.size(); i++)
-    {
-      peptide_index.push_back(i);
-    }
-
-    // we erase the indices where K/P/R are (from the back / in reverse order
-    // to not delete indices we access later)
-    for (IndexType::reverse_iterator it = idx.rbegin(); it != idx.rend(); ++it)
-    {
-      peptide_index.erase(peptide_index.begin() + *it);
-    }
-
-    // reverse the peptide index
-    std::reverse(peptide_index.begin(), peptide_index.end());
-
-    // re-insert the missing K/P/R at the appropriate places
-    for (IndexType::iterator it = idx.begin(); it != idx.end(); ++it)
-    {
-      peptide_index.insert(peptide_index.begin() + *it, *it);
-    }
-
-    // use the reversed index to create the new peptide sequence and
-    // then to place the modifications at their appropriate places (make sure
-    // that the modifications are placed with their initial amino acids).
-    for (Size i = 0; i < peptide_index.size(); i++)
-    {
-      reversed.sequence[i] = peptide.sequence[peptide_index[i]];
-    }
-    for (Size j = 0; j < reversed.mods.size(); j++)
-    {
-      for (Size k = 0; k < peptide_index.size(); k++)
-      {
-        // C and N terminal mods are implicitly not reversed because they live at positions -1 and sequence.size()
-        if (boost::numeric_cast<int>(peptide_index[k]) == reversed.mods[j].location)
-        {
-          reversed.mods[j].location = boost::numeric_cast<int>(k);
-          break;
-        }
-      }
-    }
+    reversed.sequence = new_sequence;
+    detail::applyLocationUpdates(reversed.mods, new_mods);
     return reversed;
   }
 
@@ -308,48 +188,15 @@ namespace OpenMS
 
   void MRMDecoy::switchKR(OpenMS::TargetedExperiment::Peptide& peptide) const
   {
-    static std::string aa[] =
-    {
-      "A", "N", "D", "C", "E", "Q", "G", "H", "I", "L", "M", "F", "S", "T", "W",
-      "Y", "V"
-    };
-    int aa_size = 17;
-
-    static boost::mt19937 generator(42);
-    static boost::uniform_int<> uni_dist;
-    static boost::variate_generator<boost::mt19937&, boost::uniform_int<> > pseudoRNG(generator, uni_dist);
-
-    Size lastAA = peptide.sequence.size() - 1;
-    if (peptide.sequence[lastAA] == 'K')
-    {
-      peptide.sequence[lastAA] = 'R';
-    }
-    else if (peptide.sequence[lastAA] == 'R')
-    {
-      peptide.sequence[lastAA] = 'K';
-    }
-    else
-    {
-      // randomize
-      int res_pos = (pseudoRNG() % aa_size);
-      peptide.sequence[lastAA] = (char)aa[res_pos][0];
-    }
+    // Delegate to light implementation (operates directly on sequence string)
+    switchKRLight(peptide.sequence);
   }
 
   bool MRMDecoy::hasCNterminalMods_(const OpenMS::TargetedExperiment::Peptide& peptide, bool checkCterminalAA) const
   {
-    for (Size j = 0; j < peptide.mods.size(); j++)
-    {
-      if (peptide.mods[j].location == -1 || peptide.mods[j].location == (int)peptide.sequence.size())
-      {
-        return true;
-      }
-      if (checkCterminalAA && peptide.mods[j].location == (int)peptide.sequence.size() - 1)
-      {
-        return true;
-      }
-    }
-    return false;
+    // Delegate to light implementation
+    auto light_mods = detail::toLightMods(peptide.mods);
+    return hasCNterminalModsLight_(light_mods, peptide.sequence.size(), checkCterminalAA);
   }
 
   String MRMDecoy::getModifiedPeptideSequence_(const OpenMS::TargetedExperiment::Peptide& pep) const
@@ -535,7 +382,8 @@ namespace OpenMS
 
     int attempts = 0;
     // Loop: attempt to shuffle and check whether difference is large enough
-    while (AASequenceIdentity(sequence, shuffled) > identity_threshold &&
+    // Note: compare against peptide_seq (not sequence) since peptide_seq may be mutated
+    while (AASequenceIdentity(peptide_seq, shuffled) > identity_threshold &&
            attempts < max_attempts)
     {
       // Block tryptic residues and N-/C-terminus from shuffling
