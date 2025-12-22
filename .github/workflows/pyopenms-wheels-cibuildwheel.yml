@@ -32,6 +32,10 @@ jobs:
       python-versions-array: ${{ steps.set-versions.outputs.versions-array }}
       pyopenms-version: ${{ steps.set-versions.outputs.pyopenms-version }}
       is-nightly: ${{ steps.set-versions.outputs.is-nightly }}
+      cibw-build-linux-x64: ${{ steps.set-versions.outputs.cibw-build-linux-x64 }}
+      cibw-build-linux-arm64: ${{ steps.set-versions.outputs.cibw-build-linux-arm64 }}
+      cibw-build-macos-arm64: ${{ steps.set-versions.outputs.cibw-build-macos-arm64 }}
+      cibw-build-windows-x64: ${{ steps.set-versions.outputs.cibw-build-windows-x64 }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -47,6 +51,19 @@ jobs:
           echo "versions=$(jq -c . .github/workflows/python_versions.json)" >> $GITHUB_OUTPUT
           # Output as space-separated for display
           echo "versions-array=$(jq -r '.[]' .github/workflows/python_versions.json | tr '\n' ' ')" >> $GITHUB_OUTPUT
+
+          # Pre-calculate CIBW_BUILD for each platform
+          CIBW_LINUX_X64=$(jq -r '.[]' .github/workflows/python_versions.json | sed 's/\.//g' | sed 's/^/cp/' | sed 's/$/-manylinux_x86_64/' | tr '\n' ' ')
+          echo "cibw-build-linux-x64=$CIBW_LINUX_X64" >> $GITHUB_OUTPUT
+          
+          CIBW_LINUX_ARM64=$(jq -r '.[]' .github/workflows/python_versions.json | sed 's/\.//g' | sed 's/^/cp/' | sed 's/$/-manylinux_aarch64/' | tr '\n' ' ')
+          echo "cibw-build-linux-arm64=$CIBW_LINUX_ARM64" >> $GITHUB_OUTPUT
+          
+          CIBW_MACOS_ARM64=$(jq -r '.[]' .github/workflows/python_versions.json | sed 's/\.//g' | sed 's/^/cp/' | sed 's/$/-macosx_arm64/' | tr '\n' ' ')
+          echo "cibw-build-macos-arm64=$CIBW_MACOS_ARM64" >> $GITHUB_OUTPUT
+          
+          CIBW_WINDOWS_X64=$(jq -r '.[]' .github/workflows/python_versions.json | sed 's/\.//g' | sed 's/^/cp/' | sed 's/$/-win_amd64/' | tr '\n' ' ')
+          echo "cibw-build-windows-x64=$CIBW_WINDOWS_X64" >> $GITHUB_OUTPUT
 
           # Extract OpenMS version from CMakeLists.txt
           MAJOR=$(grep 'OPENMS_PACKAGE_VERSION_MAJOR' CMakeLists.txt | head -1 | sed 's/.*"\([0-9]*\)".*/\1/')
@@ -71,9 +88,10 @@ jobs:
   #----------------------------------------------------------------------------
   # Build OpenMS on each platform first
   #----------------------------------------------------------------------------
-  build-openms-linux:
+  # Linux x64: Build OpenMS and wheels in same job to preserve absolute library paths
+  build-wheels-linux:
+    needs: [setup]
     runs-on: ubuntu-latest
-    container: ghcr.io/openms/contrib_manylinux_2_34:latest-amd64
     steps:
       # Cancel older builds if still running
       - uses: rokroskar/workflow-run-cleanup-action@ee1451b869ba1e381729b3d40489997021f0d562  # v0.3.3
@@ -83,46 +101,67 @@ jobs:
 
       - uses: actions/checkout@v4
 
-      - name: Build OpenMS
-        run: |
-          yum install -y cmake ninja-build
-          mkdir build && cd build
-          cmake .. \
-            -G Ninja \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_INSTALL_PREFIX=$GITHUB_WORKSPACE/openms-install \
-            -DCMAKE_PREFIX_PATH=/contrib-build \
-            -DOPENMS_CONTRIB_LIBS=/contrib-build \
-            -DPYOPENMS=OFF \
-            -DWITH_GUI=OFF \
-            -DENABLE_TUTORIALS=OFF \
-            -DENABLE_DOCS=OFF \
-            -DWITH_PARQUET=ON
-          ninja OpenMS OpenSwathAlgo
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Install and package OpenMS
+      - name: Build OpenMS in container
         run: |
-          cd build
-          # Install OpenMS components with stripping (reduces wheel size)
-          # Using cmake --install produces relocatable paths (no sed fixes needed)
-          cmake --install . --component library --strip
-          cmake --install . --component OpenMS_headers
-          cmake --install . --component OpenSwathAlgo_headers
-          cmake --install . --component thirdparty_headers
-          cmake --install . --component cmake
-          # Package the install directory
-          cd $GITHUB_WORKSPACE/openms-install
-          tar -czf ../openms-build-linux.tar.gz .
+          # Build OpenMS on host (not in job container) so cibuildwheel can mount workspace
+          docker run --rm \
+            -v $GITHUB_WORKSPACE:/project \
+            -w /project \
+            ghcr.io/openms/contrib_manylinux_2_34:latest-amd64 \
+            bash -c '
+              yum install -y cmake ninja-build
+              mkdir build && cd build
+              cmake .. \
+                -G Ninja \
+                -DCMAKE_BUILD_TYPE=Release \
+                -DCMAKE_PREFIX_PATH=/contrib-build \
+                -DOPENMS_CONTRIB_LIBS=/contrib-build \
+                -DPYOPENMS=OFF \
+                -DWITH_GUI=OFF \
+                -DENABLE_TUTORIALS=OFF \
+                -DENABLE_DOCS=OFF \
+                -DWITH_PARQUET=ON
+              ninja OpenMS OpenSwathAlgo
+            '
+
+      - name: Set pyOpenMS version
+        run: |
+          # Update pyproject.toml with the calculated version (includes .devYYYYMMDD for nightlies)
+          VERSION="${{ needs.setup.outputs.pyopenms-version }}"
+          echo "Setting pyOpenMS version to: $VERSION"
+          sed -i "s/^version = .*/version = \"${VERSION}\"/" src/pyOpenMS/pyproject.toml
+          grep "^version" src/pyOpenMS/pyproject.toml
+
+      - name: Build wheels with cibuildwheel
+        uses: pypa/cibuildwheel@v2.22
+        with:
+          package-dir: src/pyOpenMS
+          output-dir: wheelhouse
+        env:
+          CIBW_BUILD: ${{ needs.setup.outputs.cibw-build-linux-x64 }}
+          CIBW_MANYLINUX_X86_64_IMAGE: ghcr.io/openms/contrib_manylinux_2_34:latest-amd64
+          CIBW_BEFORE_ALL: "yum install -y cmake ninja-build"
+          # Use build directory directly - libraries have absolute paths
+          CIBW_ENVIRONMENT: "OpenMS_ROOT=/project/build CMAKE_PREFIX_PATH=/contrib-build:/project/build LD_LIBRARY_PATH=/project/build/lib CMAKE_BUILD_PARALLEL_LEVEL=2"
+          CIBW_REPAIR_WHEEL_COMMAND: "auditwheel repair -w {dest_dir} {wheel}"
+          CIBW_BUILD_VERBOSITY: 1
 
       - uses: actions/upload-artifact@v4
         with:
-          name: openms-build-linux-x64
-          path: openms-build-linux.tar.gz
-          retention-days: 1
+          name: wheels-linux-x64
+          path: wheelhouse/*.whl
 
-  build-openms-linux-arm:
+  # Linux ARM64: Build OpenMS and wheels in same job to preserve absolute library paths
+  build-wheels-linux-arm:
+    needs: [setup]
     runs-on: ubuntu-22.04-arm
-    container: ghcr.io/openms/contrib_manylinux_2_34:latest-arm64
     steps:
       # Cancel older builds if still running
       - uses: rokroskar/workflow-run-cleanup-action@ee1451b869ba1e381729b3d40489997021f0d562  # v0.3.3
@@ -132,44 +171,66 @@ jobs:
 
       - uses: actions/checkout@v4
 
-      - name: Build OpenMS
-        run: |
-          yum install -y cmake ninja-build
-          mkdir build && cd build
-          cmake .. \
-            -G Ninja \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_INSTALL_PREFIX=$GITHUB_WORKSPACE/openms-install \
-            -DCMAKE_PREFIX_PATH=/contrib-build \
-            -DOPENMS_CONTRIB_LIBS=/contrib-build \
-            -DPYOPENMS=OFF \
-            -DWITH_GUI=OFF \
-            -DENABLE_TUTORIALS=OFF \
-            -DENABLE_DOCS=OFF \
-            -DWITH_PARQUET=ON
-          ninja OpenMS OpenSwathAlgo
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Install and package OpenMS
+      - name: Build OpenMS in container
         run: |
-          cd build
-          # Install OpenMS components with stripping (reduces wheel size)
-          # Using cmake --install produces relocatable paths (no sed fixes needed)
-          cmake --install . --component library --strip
-          cmake --install . --component OpenMS_headers
-          cmake --install . --component OpenSwathAlgo_headers
-          cmake --install . --component thirdparty_headers
-          cmake --install . --component cmake
-          # Package the install directory
-          cd $GITHUB_WORKSPACE/openms-install
-          tar -czf ../openms-build-linux-arm.tar.gz .
+          # Build OpenMS on host (not in job container) so cibuildwheel can mount workspace
+          docker run --rm \
+            -v $GITHUB_WORKSPACE:/project \
+            -w /project \
+            ghcr.io/openms/contrib_manylinux_2_34:latest-arm64 \
+            bash -c '
+              yum install -y cmake ninja-build
+              mkdir build && cd build
+              cmake .. \
+                -G Ninja \
+                -DCMAKE_BUILD_TYPE=Release \
+                -DCMAKE_PREFIX_PATH=/contrib-build \
+                -DOPENMS_CONTRIB_LIBS=/contrib-build \
+                -DPYOPENMS=OFF \
+                -DWITH_GUI=OFF \
+                -DENABLE_TUTORIALS=OFF \
+                -DENABLE_DOCS=OFF \
+                -DWITH_PARQUET=ON
+              ninja OpenMS OpenSwathAlgo
+            '
+
+      - name: Set pyOpenMS version
+        run: |
+          # Update pyproject.toml with the calculated version (includes .devYYYYMMDD for nightlies)
+          VERSION="${{ needs.setup.outputs.pyopenms-version }}"
+          echo "Setting pyOpenMS version to: $VERSION"
+          sed -i "s/^version = .*/version = \"${VERSION}\"/" src/pyOpenMS/pyproject.toml
+          grep "^version" src/pyOpenMS/pyproject.toml
+
+      - name: Build wheels with cibuildwheel
+        uses: pypa/cibuildwheel@v2.22
+        with:
+          package-dir: src/pyOpenMS
+          output-dir: wheelhouse
+        env:
+          CIBW_BUILD: ${{ needs.setup.outputs.cibw-build-linux-arm64 }}
+          CIBW_MANYLINUX_AARCH64_IMAGE: ghcr.io/openms/contrib_manylinux_2_34:latest-arm64
+          CIBW_BEFORE_ALL: "yum install -y cmake ninja-build"
+          # Use build directory directly - libraries have absolute paths
+          CIBW_ENVIRONMENT: "OpenMS_ROOT=/project/build CMAKE_PREFIX_PATH=/contrib-build:/project/build LD_LIBRARY_PATH=/project/build/lib CMAKE_BUILD_PARALLEL_LEVEL=2"
+          CIBW_REPAIR_WHEEL_COMMAND: "auditwheel repair -w {dest_dir} {wheel}"
+          CIBW_BUILD_VERBOSITY: 1
 
       - uses: actions/upload-artifact@v4
         with:
-          name: openms-build-linux-arm64
-          path: openms-build-linux-arm.tar.gz
-          retention-days: 1
+          name: wheels-linux-arm64
+          path: wheelhouse/*.whl
 
-  build-openms-macos:
+  # macOS: Build OpenMS and wheels in same job to preserve absolute library paths for delocate
+  build-wheels-macos:
+    needs: [setup]
     runs-on: macos-14
     steps:
       - uses: actions/checkout@v4
@@ -179,17 +240,14 @@ jobs:
 
       - name: Build OpenMS
         run: |
-          # icu4c is keg-only, so we need to add it to the library search path for linking
-          # zstd is required for static Arrow/Parquet linking
-          export LIBRARY_PATH="$(brew --prefix icu4c)/lib:$(brew --prefix zstd)/lib:${LIBRARY_PATH:-}"
           mkdir build && cd build
           # Note: CMAKE_PREFIX_PATH uses semicolons as list separators when passed via -D
           # BOOST_USE_STATIC_LIBS=OFF works around Boost's incomplete find_dependency calls
+          # Build in the build directory (don't install) to preserve absolute library paths
           cmake .. \
             -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_INSTALL_PREFIX=$GITHUB_WORKSPACE/openms-install \
-            -DCMAKE_PREFIX_PATH="$(brew --prefix);$(brew --prefix libomp);$(brew --prefix icu4c);$(brew --prefix zstd)" \
+            -DCMAKE_PREFIX_PATH="$(brew --prefix);$(brew --prefix libomp)" \
             -DOpenMP_ROOT=$(brew --prefix libomp) \
             -DBOOST_USE_STATIC_LIBS=OFF \
             -DPYOPENMS=OFF \
@@ -200,27 +258,38 @@ jobs:
             -DWITH_PARQUET=ON
           ninja OpenMS OpenSwathAlgo
 
-      - name: Install and package OpenMS
+      - name: Set pyOpenMS version
         run: |
-          cd build
-          # Install OpenMS components with stripping (reduces wheel size)
-          # Using cmake --install produces relocatable paths (no sed fixes needed)
-          cmake --install . --component library --strip
-          cmake --install . --component OpenMS_headers
-          cmake --install . --component OpenSwathAlgo_headers
-          cmake --install . --component thirdparty_headers
-          cmake --install . --component cmake
-          # Package the install directory
-          cd $GITHUB_WORKSPACE/openms-install
-          tar -czf ../openms-build-macos.tar.gz .
+          # Update pyproject.toml with the calculated version (includes .devYYYYMMDD for nightlies)
+          VERSION="${{ needs.setup.outputs.pyopenms-version }}"
+          echo "Setting pyOpenMS version to: $VERSION"
+          sed -i '' "s/^version = .*/version = \"${VERSION}\"/" src/pyOpenMS/pyproject.toml
+          grep "^version" src/pyOpenMS/pyproject.toml
+
+      - name: Build wheels with cibuildwheel
+        uses: pypa/cibuildwheel@v2.22
+        with:
+          package-dir: src/pyOpenMS
+          output-dir: wheelhouse
+        env:
+          CIBW_BUILD: ${{ needs.setup.outputs.cibw-build-macos-arm64 }}
+          CIBW_ARCHS_MACOS: "arm64"
+          CIBW_BEFORE_BUILD: "pip install delocate"
+          # Use build directory directly - libraries have absolute paths to Homebrew dependencies
+          # This allows delocate to find and bundle all dependencies correctly
+          CIBW_ENVIRONMENT: "OpenMS_ROOT=${{ github.workspace }}/build CMAKE_PREFIX_PATH=/opt/homebrew:/opt/homebrew/opt/libomp:${{ github.workspace }}/build DYLD_LIBRARY_PATH=${{ github.workspace }}/build/lib MACOSX_DEPLOYMENT_TARGET=14.0 CMAKE_BUILD_PARALLEL_LEVEL=2"
+          # delocate finds libraries via absolute paths embedded in the extension modules
+          CIBW_REPAIR_WHEEL_COMMAND: "delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel}"
+          CIBW_BUILD_VERBOSITY: 1
 
       - uses: actions/upload-artifact@v4
         with:
-          name: openms-build-macos-arm64
-          path: openms-build-macos.tar.gz
-          retention-days: 1
+          name: wheels-macos-arm64
+          path: wheelhouse/*.whl
 
-  build-openms-windows:
+  # Windows: Build OpenMS and wheels in same job to preserve absolute library paths
+  build-wheels-windows:
+    needs: [setup]
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -264,7 +333,6 @@ jobs:
           cmake .. \
             -G "Visual Studio 17 2022" -A x64 \
             -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_INSTALL_PREFIX="$GITHUB_WORKSPACE/openms-install" \
             -DCMAKE_PREFIX_PATH="$QT_ROOT_DIR/lib/cmake;$QT_ROOT_DIR" \
             -DOPENMS_CONTRIB_LIBS="$GITHUB_WORKSPACE/contrib" \
             -DPYOPENMS=OFF \
@@ -274,252 +342,6 @@ jobs:
             -DWITH_PARQUET=ON
           cmake --build . --config Release --target OpenMS OpenSwathAlgo
 
-      - name: Install and package OpenMS
-        shell: bash
-        run: |
-          cd build
-          # Install OpenMS components (no stripping on Windows)
-          # Using cmake --install produces relocatable paths (no sed fixes needed)
-          cmake --install . --config Release --component library
-          cmake --install . --config Release --component OpenMS_headers
-          cmake --install . --config Release --component OpenSwathAlgo_headers
-          cmake --install . --config Release --component thirdparty_headers
-          cmake --install . --config Release --component cmake
-          # Package the install directory
-          cd "$GITHUB_WORKSPACE/openms-install"
-          7z a ../openms-build-windows.zip .
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: openms-build-windows-x64
-          path: openms-build-windows.zip
-          retention-days: 1
-
-  #----------------------------------------------------------------------------
-  # Build wheels using cibuildwheel
-  #----------------------------------------------------------------------------
-  build-wheels-linux:
-    needs: [setup, build-openms-linux]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - uses: actions/download-artifact@v4
-        with:
-          name: openms-build-linux-x64
-          path: .
-
-      - name: Extract OpenMS build
-        run: |
-          # Extract installed OpenMS (cmake --install produces relocatable paths, no sed fixes needed)
-          mkdir -p openms-build
-          tar -xzf openms-build-linux.tar.gz -C openms-build
-
-      - name: Set CIBW_BUILD from python_versions.json
-        run: |
-          # Construct CIBW_BUILD from Python versions (e.g., "cp310-manylinux_x86_64 cp311-manylinux_x86_64 ...")
-          CIBW_BUILD=$(echo '${{ needs.setup.outputs.python-versions }}' | jq -r '.[]' | sed 's/\.//g' | sed 's/^/cp/' | sed 's/$/-manylinux_x86_64/' | tr '\n' ' ')
-          echo "CIBW_BUILD=$CIBW_BUILD" >> $GITHUB_ENV
-
-      - name: Set pyOpenMS version
-        run: |
-          # Update pyproject.toml with the calculated version (includes .devYYYYMMDD for nightlies)
-          VERSION="${{ needs.setup.outputs.pyopenms-version }}"
-          echo "Setting pyOpenMS version to: $VERSION"
-          sed -i "s/^version = .*/version = \"${VERSION}\"/" src/pyOpenMS/pyproject.toml
-          grep "^version" src/pyOpenMS/pyproject.toml
-
-      - name: Build wheels with cibuildwheel
-        uses: pypa/cibuildwheel@v2.22
-        with:
-          package-dir: src/pyOpenMS
-          output-dir: wheelhouse
-        env:
-          CIBW_MANYLINUX_X86_64_IMAGE: ghcr.io/openms/contrib_manylinux_2_34:latest-amd64
-          CIBW_BEFORE_ALL: "yum install -y cmake ninja-build"
-          CIBW_ENVIRONMENT: "OpenMS_ROOT=/project/openms-build CMAKE_PREFIX_PATH=/contrib-build:/project/openms-build LD_LIBRARY_PATH=/project/openms-build/lib CMAKE_BUILD_PARALLEL_LEVEL=2"
-          CIBW_REPAIR_WHEEL_COMMAND: "auditwheel repair -w {dest_dir} {wheel}"
-          CIBW_BUILD_VERBOSITY: 1
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: wheels-linux-x64
-          path: wheelhouse/*.whl
-
-  build-wheels-linux-arm:
-    needs: [setup, build-openms-linux-arm]
-    runs-on: ubuntu-22.04-arm
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - uses: actions/download-artifact@v4
-        with:
-          name: openms-build-linux-arm64
-          path: .
-
-      - name: Extract OpenMS build
-        run: |
-          # Extract installed OpenMS (cmake --install produces relocatable paths, no sed fixes needed)
-          mkdir -p openms-build
-          tar -xzf openms-build-linux-arm.tar.gz -C openms-build
-
-      - name: Set CIBW_BUILD from python_versions.json
-        run: |
-          # Construct CIBW_BUILD from Python versions (e.g., "cp310-manylinux_aarch64 cp311-manylinux_aarch64 ...")
-          CIBW_BUILD=$(echo '${{ needs.setup.outputs.python-versions }}' | jq -r '.[]' | sed 's/\.//g' | sed 's/^/cp/' | sed 's/$/-manylinux_aarch64/' | tr '\n' ' ')
-          echo "CIBW_BUILD=$CIBW_BUILD" >> $GITHUB_ENV
-
-      - name: Set pyOpenMS version
-        run: |
-          # Update pyproject.toml with the calculated version (includes .devYYYYMMDD for nightlies)
-          VERSION="${{ needs.setup.outputs.pyopenms-version }}"
-          echo "Setting pyOpenMS version to: $VERSION"
-          sed -i "s/^version = .*/version = \"${VERSION}\"/" src/pyOpenMS/pyproject.toml
-          grep "^version" src/pyOpenMS/pyproject.toml
-
-      - name: Build wheels with cibuildwheel
-        uses: pypa/cibuildwheel@v2.22
-        with:
-          package-dir: src/pyOpenMS
-          output-dir: wheelhouse
-        env:
-          CIBW_MANYLINUX_AARCH64_IMAGE: ghcr.io/openms/contrib_manylinux_2_34:latest-arm64
-          CIBW_BEFORE_ALL: "yum install -y cmake ninja-build"
-          CIBW_ENVIRONMENT: "OpenMS_ROOT=/project/openms-build CMAKE_PREFIX_PATH=/contrib-build:/project/openms-build LD_LIBRARY_PATH=/project/openms-build/lib CMAKE_BUILD_PARALLEL_LEVEL=2"
-          CIBW_REPAIR_WHEEL_COMMAND: "auditwheel repair -w {dest_dir} {wheel}"
-          CIBW_BUILD_VERBOSITY: 1
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: wheels-linux-arm64
-          path: wheelhouse/*.whl
-
-  build-wheels-macos:
-    needs: [setup, build-openms-macos]
-    runs-on: macos-14
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/download-artifact@v4
-        with:
-          name: openms-build-macos-arm64
-          path: .
-
-      - name: Extract OpenMS build
-        run: |
-          # Extract installed OpenMS (cmake --install produces relocatable paths)
-          mkdir -p openms-build
-          tar -xzf openms-build-macos.tar.gz -C openms-build
-
-      - name: Install dependencies for wheel building
-        run: |
-          bash tools/ci/deps-macos.sh
-
-      - name: Set CIBW_BUILD from python_versions.json
-        run: |
-          # Construct CIBW_BUILD from Python versions (e.g., "cp310-macosx_arm64 cp311-macosx_arm64 ...")
-          CIBW_BUILD=$(echo '${{ needs.setup.outputs.python-versions }}' | jq -r '.[]' | sed 's/\.//g' | sed 's/^/cp/' | sed 's/$/-macosx_arm64/' | tr '\n' ' ')
-          echo "CIBW_BUILD=$CIBW_BUILD" >> $GITHUB_ENV
-
-      - name: Set pyOpenMS version
-        run: |
-          # Update pyproject.toml with the calculated version (includes .devYYYYMMDD for nightlies)
-          VERSION="${{ needs.setup.outputs.pyopenms-version }}"
-          echo "Setting pyOpenMS version to: $VERSION"
-          sed -i '' "s/^version = .*/version = \"${VERSION}\"/" src/pyOpenMS/pyproject.toml
-          grep "^version" src/pyOpenMS/pyproject.toml
-
-      - name: Build wheels with cibuildwheel
-        uses: pypa/cibuildwheel@v2.22
-        with:
-          package-dir: src/pyOpenMS
-          output-dir: wheelhouse
-        env:
-          CIBW_ARCHS_MACOS: "arm64"
-          CIBW_BEFORE_BUILD: "pip install delocate"
-          CIBW_ENVIRONMENT: "OpenMS_ROOT=${{ github.workspace }}/openms-build CMAKE_PREFIX_PATH=/opt/homebrew:/opt/homebrew/opt/libomp:/opt/homebrew/opt/icu4c:${{ github.workspace }}/openms-build LIBRARY_PATH=/opt/homebrew/opt/icu4c/lib DYLD_LIBRARY_PATH=${{ github.workspace }}/openms-build/lib MACOSX_DEPLOYMENT_TARGET=14.0 CMAKE_BUILD_PARALLEL_LEVEL=2"
-          # delocate finds libraries via absolute paths embedded in the extension modules
-          # -L was removed because it caused SameFileError when source and dest paths matched
-          CIBW_REPAIR_WHEEL_COMMAND: "delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel}"
-          CIBW_BUILD_VERBOSITY: 1
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: wheels-macos-arm64
-          path: wheelhouse/*.whl
-
-  build-wheels-windows:
-    needs: [setup, build-openms-windows]
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup cmake
-        uses: jwlawson/actions-setup-cmake@v2
-        with:
-          cmake-version: '3.25.x'
-
-      - name: Install Qt
-        uses: jurplel/install-qt-action@v4
-        with:
-          version: '6.8.3'
-          host: 'windows'
-          arch: 'win64_msvc2022_64'
-          target: 'desktop'
-          archives: 'qtsvg qtbase'
-
-      - name: Download contrib
-        shell: bash
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          cd contrib
-          gh release download -R OpenMS/contrib --pattern 'contrib_build-Windows.tar.gz'
-          7z x -so contrib_build-Windows.tar.gz | 7z x -si -ttar
-          rm contrib_build-Windows.tar.gz
-
-      - uses: actions/download-artifact@v4
-        with:
-          name: openms-build-windows-x64
-          path: .
-
-      - name: Extract OpenMS build
-        shell: bash
-        run: |
-          # Extract installed OpenMS (cmake --install produces relocatable paths)
-          mkdir -p openms-build
-          7z x openms-build-windows.zip -oopenms-build
-
-      - name: Set up Visual Studio shell
-        uses: egor-tensin/vs-shell@v2
-        with:
-          arch: x64
-
-      - name: Set up build environment
-        shell: bash
-        run: |
-          # Export CMAKE_PREFIX_PATH for cibuildwheel
-          # QT_ROOT_DIR is set by install-qt-action v4
-          echo "PYOPENMS_CMAKE_PREFIX_PATH=${QT_ROOT_DIR}/lib/cmake;${QT_ROOT_DIR};${GITHUB_WORKSPACE}/contrib;${GITHUB_WORKSPACE}/openms-build" >> $GITHUB_ENV
-          echo "PYOPENMS_OPENMS_ROOT=${GITHUB_WORKSPACE}/openms-build" >> $GITHUB_ENV
-          # Construct CIBW_BUILD from Python versions (e.g., "cp310-win_amd64 cp311-win_amd64 ...")
-          CIBW_BUILD=$(echo '${{ needs.setup.outputs.python-versions }}' | jq -r '.[]' | sed 's/\.//g' | sed 's/^/cp/' | sed 's/$/-win_amd64/' | tr '\n' ' ')
-          echo "CIBW_BUILD=$CIBW_BUILD" >> $GITHUB_ENV
-
       - name: Set pyOpenMS version
         shell: bash
         run: |
@@ -535,9 +357,10 @@ jobs:
           package-dir: src/pyOpenMS
           output-dir: wheelhouse
         env:
+          CIBW_BUILD: ${{ needs.setup.outputs.cibw-build-windows-x64 }}
           CIBW_BEFORE_BUILD: "pip install delvewheel"
-          # Use shell variable expansion - PYOPENMS_* vars are set in previous step
-          CIBW_ENVIRONMENT: "OpenMS_ROOT=$PYOPENMS_OPENMS_ROOT CMAKE_PREFIX_PATH=$PYOPENMS_CMAKE_PREFIX_PATH CMAKE_BUILD_PARALLEL_LEVEL=2"
+          # Use build directory directly - libraries have absolute paths
+          CIBW_ENVIRONMENT: "OpenMS_ROOT=${{ github.workspace }}/build CMAKE_PREFIX_PATH=${{ env.QT_ROOT_DIR }}/lib/cmake;${{ env.QT_ROOT_DIR }};${{ github.workspace }}/contrib;${{ github.workspace }}/build CMAKE_BUILD_PARALLEL_LEVEL=2"
           CIBW_REPAIR_WHEEL_COMMAND: "delvewheel repair -w {dest_dir} {wheel}"
           CIBW_BUILD_VERBOSITY: 1
 

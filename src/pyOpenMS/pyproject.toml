@@ -121,6 +121,7 @@ include = [
     "converters/*",
     "extra_includes/*",
     "create_cpp_extension.py",
+    "fix_pyi_imports.py",
 ]
 
 [tool.py-build-cmake.cmake]
