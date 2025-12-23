@@ -123,3 +123,136 @@ src/tests/toppas/*.trf
 /test.mzML
 /test.mzData
 /test_output.log
+_CPack_Packages
+_deps
+Modules
+src/openms_gui/OpenMS_GUI_autogen
+src/openms/OpenMS_autogen
+OpenMS-build/*
+vcpkg_installed
+build-release/*
+build-debug/*
+doc/*
+
+# Security - Credentials, tokens, and secrets
+.env
+.env.*
+.env.local
+.env.*.local
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+*.cer
+*.der
+!*.crt.example
+!*.key.example
+credentials.json
+credentials.yaml
+credentials.yml
+secrets.json
+secrets.yaml
+secrets.yml
+secrets.toml
+**/secrets/
+**/credentials/
+.secrets
+.credentials
+*.secret
+*.secrets
+
+# AWS
+.aws/
+aws_credentials
+.boto
+
+# SSH keys
+id_rsa
+id_rsa.pub
+id_dsa
+id_dsa.pub
+id_ecdsa
+id_ecdsa.pub
+id_ed25519
+id_ed25519.pub
+*.ppk
+
+# API tokens and keys
+.npmrc
+.pypirc
+.netrc
+.htpasswd
+.htaccess
+*.token
+api_key*
+apikey*
+auth.json
+auth.yaml
+auth.yml
+
+# Docker secrets
+docker-compose.override.yml
+docker-compose.*.yml
+!docker-compose.example.yml
+
+# Kubernetes
+kubeconfig
+*.kubeconfig
+kube/config
+
+# OAuth
+oauth_token*
+oauth-token*
+client_secret*
+client-secret*
+
+# GPG
+*.gpg
+secring.*
+pubring.*
+trustdb.*
+
+# Terraform
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
+.terraform/
+
+# Ansible
+*.vault
+vault.yml
+vault.yaml
+group_vars/*/vault*
+host_vars/*/vault*
+
+# IDE credential storage
+.idea/**/dataSources/
+.idea/**/dataSources.ids
+.idea/**/dataSources.xml
+.idea/**/dataSources.local.xml
+
+# Shell history (may contain credentials)
+.bash_history
+.zsh_history
+.sh_history
+
+# Local configuration that may contain secrets
+config.local.*
+settings.local.*
+*.local.json
+*.local.yaml
+*.local.yml
+*.local.toml
+
+# Jupyter notebooks checkpoints (may contain credentials in outputs)
+.ipynb_checkpoints/
+
+# GitHub tokens
+.github_token
+github_token*
+
+# Claude/AI tokens
+.claude_token
+.anthropic_key
