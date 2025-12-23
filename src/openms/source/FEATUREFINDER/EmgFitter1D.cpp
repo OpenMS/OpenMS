@@ -13,7 +13,7 @@
 #include <OpenMS/MATH/StatisticFunctions.h>
 #include <OpenMS/CONCEPT/Constants.h>
 
-#include <unsupported/Eigen/NonLinearOptimization>
+#include <Eigen/Core>
 
 namespace OpenMS
 {
@@ -22,15 +22,19 @@ namespace OpenMS
   const EmgFitter1D::CoordinateType EmgFitter1D::EgmFitterFunctor::sqrt_2 = sqrt(2.0);
   const EmgFitter1D::CoordinateType EmgFitter1D::EgmFitterFunctor::c = -emg_const / sqrt_2;
 
-  int EmgFitter1D::EgmFitterFunctor::operator()(const Eigen::VectorXd& x, Eigen::VectorXd& fvec) const
+  int EmgFitter1D::EgmFitterFunctor::operator()(const double* x, double* fvec) const
   {
+    // Create Eigen::Map views for convenient indexing
+    Eigen::Map<const Eigen::VectorXd> x_map(x, m_inputs);
+    Eigen::Map<Eigen::VectorXd> fvec_map(fvec, m_values);
+
     Size n = m_data->n;
     EmgFitter1D::RawDataArrayType set = m_data->set;
 
-    EmgFitter1D::CoordinateType h = x(0);
-    EmgFitter1D::CoordinateType w = x(1);
-    EmgFitter1D::CoordinateType s = x(2);
-    EmgFitter1D::CoordinateType z = x(3);
+    EmgFitter1D::CoordinateType h = x_map(0);
+    EmgFitter1D::CoordinateType w = x_map(1);
+    EmgFitter1D::CoordinateType s = x_map(2);
+    EmgFitter1D::CoordinateType z = x_map(3);
 
     EmgFitter1D::CoordinateType Yi = 0.0;
     double prefix = (h * w / s) * sqrt2pi;
@@ -46,24 +50,28 @@ namespace OpenMS
       // Simplified EMG (doi=10.1.1.915.3568) Equation 9
       Yi = prefix * exp(part1 - (diff / s)) / (1 + exp(c * ((diff / w) - part2)));
 
-      fvec(i) = Yi - set[i].getIntensity();
+      fvec_map(i) = Yi - set[i].getIntensity();
     }
     return 0;
   }
 
   // compute Jacobian matrix for the different parameters
-  int EmgFitter1D::EgmFitterFunctor::df(const Eigen::VectorXd& x, Eigen::MatrixXd& J) const
+  int EmgFitter1D::EgmFitterFunctor::df(const double* x, double* J) const
   {
+    // Create Eigen::Map views for convenient indexing
+    Eigen::Map<const Eigen::VectorXd> x_map(x, m_inputs);
+    Eigen::Map<Eigen::MatrixXd> J_map(J, m_values, m_inputs);
+
     Size n =  m_data->n;
     EmgFitter1D::RawDataArrayType set = m_data->set;
 
-    EmgFitter1D::CoordinateType h = x(0);
-    EmgFitter1D::CoordinateType w = x(1);
+    EmgFitter1D::CoordinateType h = x_map(0);
+    EmgFitter1D::CoordinateType w = x_map(1);
     EmgFitter1D::CoordinateType w2 = w*w;
-    EmgFitter1D::CoordinateType s = x(2);
+    EmgFitter1D::CoordinateType s = x_map(2);
     EmgFitter1D::CoordinateType s2 = s*s;
     EmgFitter1D::CoordinateType s3 = s2 * s;
-    EmgFitter1D::CoordinateType z = x(3);
+    EmgFitter1D::CoordinateType z = x_map(3);
 
     EmgFitter1D::CoordinateType diff, exp1, exp2, exp3 = 0.0;
     EmgFitter1D::CoordinateType derivative_height, derivative_width, derivative_symmetry, derivative_retention = 0.0;
@@ -91,10 +99,10 @@ namespace OpenMS
       derivative_retention = h * w / s2 * sqrt2pi * exp1 / exp2 - (emg_const * h) / s * sqrt2pi * exp1 * exp3 / ((exp2 * exp2) * sqrt_2);
 
       // set the jacobian matrix
-      J(i, 0) = derivative_height;
-      J(i, 1) = derivative_width;
-      J(i, 2) = derivative_symmetry;
-      J(i, 3) = derivative_retention;
+      J_map(i, 0) = derivative_height;
+      J_map(i, 1) = derivative_width;
+      J_map(i, 2) = derivative_symmetry;
+      J_map(i, 3) = derivative_retention;
     }
     return 0;
   }
@@ -163,11 +171,11 @@ namespace OpenMS
     setInitialParameters_(set);
 
     // Optimize parameter with Levenberg-Marquardt algorithm
-    Eigen::VectorXd x_init(4);
-    x_init(0) = height_;
-    x_init(1) = width_;
-    x_init(2) = symmetry_;
-    x_init(3) = retention_;
+    std::vector<double> x_init(4);
+    x_init[0] = height_;
+    x_init[1] = width_;
+    x_init[2] = symmetry_;
+    x_init[3] = retention_;
 
     if (!symmetric_)
     {

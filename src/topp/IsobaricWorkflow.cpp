@@ -604,7 +604,8 @@ protected:
             std::vector<double> itys = channel_extractor.extractSingleSpec(quant_spec_idx, exp, channel_qc);
 
             // TODO if itys are all zero we can actually skip correction and quantification
-            auto m = correction_matrix.getEigenMatrix();
+            // NNLS modifies input, so we need a copy of the correction matrix
+            Matrix<double> m = correction_matrix;
             std::vector<double> corrected(itys.size(), 0.);
             NonNegativeLeastSquaresSolver::solve(m, itys, corrected);
             fillConsensusFeature_(cur_cmap[pep_idx], pep, exp, id_spec_idx, quant_spec_idx, corrected, quant_method, quant_purity, id_purity, min_reporter_intensity, i);

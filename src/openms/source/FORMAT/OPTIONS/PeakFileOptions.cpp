@@ -106,6 +106,22 @@ namespace OpenMS
     return intensity_range_;
   }
 
+  void PeakFileOptions::setPrecursorMZRange(const DRange<1>& range)
+  {
+    precursor_mz_range_ = range;
+    has_precursor_mz_range_ = true;
+  }
+
+  bool PeakFileOptions::hasPrecursorMZRange() const
+  {
+    return has_precursor_mz_range_;
+  }
+
+  const DRange<1>& PeakFileOptions::getPrecursorMZRange() const
+  {
+    return precursor_mz_range_;
+  }
+
   void PeakFileOptions::setMSLevels(const vector<Int>& levels)
   {
     ms_levels_ = levels;
@@ -282,7 +298,7 @@ namespace OpenMS
 
   bool PeakFileOptions::hasFilters() const
   {
-    return (has_rt_range_ || hasMSLevels());
+    return (has_rt_range_ || hasMSLevels() || has_precursor_mz_range_);
   }
 
   void PeakFileOptions::setSkipChromatograms(bool skip)

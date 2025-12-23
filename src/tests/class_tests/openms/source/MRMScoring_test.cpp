@@ -9,6 +9,7 @@
 #include "OpenMS/OPENSWATHALGO/OpenSwathAlgoConfig.h"
 
 #include "OpenMS/ANALYSIS/OPENSWATH/MRMScoring.h"
+#include "OpenMS/DATASTRUCTURES/MatrixEigen.h"
 #include "OpenMS/OPENSWATHALGO/DATAACCESS/MockObjects.h"
 #include "OpenMS/OPENSWATHALGO/DATAACCESS/DataStructures.h"
 #include "OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h"
@@ -256,8 +257,8 @@ mean(xcorr_max) # shape score
           const auto& cm = mrmscore.getXCorrPrecursorContrastMatrix();
           // Note: the original code depens on col vs. row order and
           // the old code: for (auto e : mrmscore.getXCorrPrecursorContrastMatrix()) fails with different data
-          for (Eigen::Index r = 0; r != cm.rows(); ++r) 
-            for (Eigen::Index c = 0; c != cm.cols(); ++c) 
+          for (Size r = 0; r != cm.rows(); ++r) 
+            for (Size c = 0; c != cm.cols(); ++c) 
             {
               double sum{0};
               for (size_t i = 0; i < cm(r,c).data.size(); ++i)
@@ -301,8 +302,8 @@ mean(xcorr_max) # shape score
           const auto& cm = mrmscore.getXCorrPrecursorCombinedMatrix();
           // Note: the original code depens on col vs. row order and
           // the old code: for (auto e : mrmscore.getXCorrPrecursorCombinedMatrix()) fails with different data
-          for (Eigen::Index r = 0; r != cm.rows(); ++r) 
-            for (Eigen::Index c = 0; c != cm.cols(); ++c) 
+          for (Size r = 0; r != cm.rows(); ++r) 
+            for (Size c = 0; c != cm.cols(); ++c) 
             {
               double sum{0};
               for (size_t i = 0; i < cm(r,c).data.size(); ++i)
@@ -734,7 +735,7 @@ mean(m4)
 
           TEST_EQUAL(mrmscore.getMIPrecursorContrastMatrix().rows(), 3)
           TEST_EQUAL(mrmscore.getMIPrecursorContrastMatrix().cols(), 2)
-          double sum = mrmscore.getMIPrecursorContrastMatrix().getEigenMatrix().sum();
+          double sum = OpenMS::eigenView(mrmscore.getMIPrecursorContrastMatrix()).sum();
           TEST_REAL_SIMILAR(sum, 12.01954465)
         }
     END_SECTION
@@ -755,7 +756,7 @@ mean(m4)
           TEST_EQUAL(mrmscore.getMIPrecursorCombinedMatrix().rows(), 5)
           TEST_EQUAL(mrmscore.getMIPrecursorCombinedMatrix().cols(), 5)
 
-          double sum = mrmscore.getMIPrecursorCombinedMatrix().getEigenMatrix().sum();
+          double sum = OpenMS::eigenView(mrmscore.getMIPrecursorCombinedMatrix()).sum();
           TEST_REAL_SIMILAR(sum, 48.98726953)
         }
     END_SECTION

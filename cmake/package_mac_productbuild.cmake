@@ -110,8 +110,8 @@ install(CODE "execute_process(COMMAND ${OPENMS_HOST_DIRECTORY}/cmake/MacOSX/fix_
 # prefix to the other prefix. This is unfortunately very unrobust.
 # TODO find better order or rewrite fix_dependencies script to be called separately
 install(CODE "
-        execute_process(COMMAND find \${CMAKE_INSTALL_PREFIX}/../../../Applications${CPACK_PACKAGING_INSTALL_PREFIX}/${INSTALL_BIN_DIR}/ -type f -execdir codesign --force --options runtime -i de.openms.TOPP.{} --sign \"${CPACK_BUNDLE_APPLE_CERT_APP}\" {} \\; OUTPUT_VARIABLE topp_sign_out ERROR_VARIABLE topp_sign_out)
-        execute_process(COMMAND find \${CMAKE_INSTALL_PREFIX}/${INSTALL_LIB_DIR}/ -type f -execdir codesign --force --options runtime -i de.openms.TOPP.libs.{} --sign \"${CPACK_BUNDLE_APPLE_CERT_APP}\" {} \\; OUTPUT_VARIABLE topp_sign_out ERROR_VARIABLE topp_sign_out)
+        execute_process(COMMAND find \${CMAKE_INSTALL_PREFIX}/../../../Applications${CPACK_PACKAGING_INSTALL_PREFIX}/${INSTALL_BIN_DIR}/ -type f -execdir codesign --force --options runtime --timestamp -i de.openms.TOPP.{} --sign \"${CPACK_BUNDLE_APPLE_CERT_APP}\" {} \\; OUTPUT_VARIABLE topp_sign_out ERROR_VARIABLE topp_sign_out)
+        execute_process(COMMAND find \${CMAKE_INSTALL_PREFIX}/${INSTALL_LIB_DIR}/ -type f -execdir codesign --force --options runtime --timestamp -i de.openms.TOPP.libs.{} --sign \"${CPACK_BUNDLE_APPLE_CERT_APP}\" {} \\; OUTPUT_VARIABLE topp_sign_out ERROR_VARIABLE topp_sign_out)
         message('\${topp_sign_out}')"
         COMPONENT Dependencies
         )
@@ -119,7 +119,7 @@ install(CODE "execute_process(COMMAND ${OPENMS_HOST_DIRECTORY}/cmake/MacOSX/fix_
         COMPONENT library
         )
 install(CODE "
-        execute_process(COMMAND find \${CMAKE_INSTALL_PREFIX}/${INSTALL_LIB_DIR}/ -type f -execdir codesign --force --options runtime -i de.openms.TOPP.libs.{} --sign \"${CPACK_BUNDLE_APPLE_CERT_APP}\" {} \\; OUTPUT_VARIABLE lib_sign_out ERROR_VARIABLE lib_sign_out)
+        execute_process(COMMAND find \${CMAKE_INSTALL_PREFIX}/${INSTALL_LIB_DIR}/ -type f -execdir codesign --force --options runtime --timestamp -i de.openms.TOPP.libs.{} --sign \"${CPACK_BUNDLE_APPLE_CERT_APP}\" {} \\; OUTPUT_VARIABLE lib_sign_out ERROR_VARIABLE lib_sign_out)
         message('\${lib_sign_out}')"
         COMPONENT library
         )
@@ -128,7 +128,7 @@ install(CODE "
 foreach(component IN LISTS THIRDPARTY_COMPONENT_GROUP)
   install(CODE "
           if(EXISTS \${CMAKE_INSTALL_PREFIX}/${INSTALL_SHARE_DIR}/THIRDPARTY/${component}/)
-            execute_process(COMMAND find \${CMAKE_INSTALL_PREFIX}/${INSTALL_SHARE_DIR}/THIRDPARTY/${component}/ -type f -execdir codesign --force --options runtime -i de.openms.thirdparty.${component}.{} --sign \"${CPACK_BUNDLE_APPLE_CERT_APP}\" {} \\; OUTPUT_VARIABLE thirdparty_sign_out ERROR_VARIABLE thirdparty_sign_out)
+            execute_process(COMMAND find \${CMAKE_INSTALL_PREFIX}/${INSTALL_SHARE_DIR}/THIRDPARTY/${component}/ -type f -execdir codesign --force --options runtime --timestamp -i de.openms.thirdparty.${component}.{} --sign \"${CPACK_BUNDLE_APPLE_CERT_APP}\" {} \\; OUTPUT_VARIABLE thirdparty_sign_out ERROR_VARIABLE thirdparty_sign_out)
             message('\${thirdparty_sign_out}')
           endif()"
           COMPONENT ${component}
