@@ -1703,9 +1703,10 @@ namespace OpenMS
         continue;
       }
 
-      // Create decoy compound
+      // Create decoy compound - keep same id as target (same as heavy version)
+      // Decoy transitions reference target compound ids since no decoy compounds
+      // are added to exp.compounds. Decoys are distinguished by the decoy flag.
       OpenSwath::LightCompound decoy_compound = compound;
-      decoy_compound.id = "DECOY_" + compound.id;
 
       // Build decoy sequence with modifications
       AASequence decoy_sequence = AASequence::fromString(decoy_it->second);
