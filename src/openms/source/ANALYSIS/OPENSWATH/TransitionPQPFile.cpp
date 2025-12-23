@@ -31,37 +31,19 @@ namespace OpenMS
 
   TransitionPQPFile::~TransitionPQPFile() = default;
 
-  void TransitionPQPFile::readPQPInput_(const char* filename, std::vector<TSVTransition>& transition_list, bool legacy_traml_id)
+  TransitionPQPFile::PQPSqlQueryInfo TransitionPQPFile::buildPQPSelectQuery_(sqlite3* db, bool legacy_traml_id) const
   {
-    sqlite3 *db;
-    sqlite3_stmt * cntstmt;
-    sqlite3_stmt * stmt;
-    std::string select_sql;
+    PQPSqlQueryInfo info;
 
     // Use legacy TraML identifiers for precursors (transition_group_id) and transitions (transition_name)?
     // When legacy_traml_id=true, use TRAML_ID column (string identifiers from TraML)
     // When legacy_traml_id=false, use numeric ID column
-    std::string traml_id = "ID";
-    if (legacy_traml_id)
-    {
-      traml_id = "TRAML_ID";
-    }
+    std::string traml_id = legacy_traml_id ? "TRAML_ID" : "ID";
 
-    startProgress(0, 1, "reading PQP file (SQL warmup)");
-
-    // Open database
-    SqliteConnector conn(filename);
-    db = conn.getDB();
-
-    // Count transitions
-    SqliteConnector::prepareStatement(db, &cntstmt, "SELECT COUNT(*) FROM TRANSITION;");
-    sqlite3_step( cntstmt );
-    int num_transitions = sqlite3_column_int(cntstmt, 0);
-    sqlite3_finalize(cntstmt);
-
+    // Check for optional columns/tables
     String select_drift_time = "";
-    bool drift_time_exists = SqliteConnector::columnExists(db, "PRECURSOR", "LIBRARY_DRIFT_TIME");
-    if (drift_time_exists)
+    info.drift_time_exists = SqliteConnector::columnExists(db, "PRECURSOR", "LIBRARY_DRIFT_TIME");
+    if (info.drift_time_exists)
     {
       select_drift_time = ", PRECURSOR.LIBRARY_DRIFT_TIME AS drift_time ";
     }
@@ -69,8 +51,8 @@ namespace OpenMS
     String select_gene = "";
     String select_gene_null = "";
     String join_gene = "";
-    bool gene_exists = SqliteConnector::tableExists(db, "GENE");
-    if (gene_exists)
+    info.gene_exists = SqliteConnector::tableExists(db, "GENE");
+    if (info.gene_exists)
     {
       select_gene = ", GENE_AGGREGATED.GENE_NAME AS gene_name ";
       select_gene_null = ", 'NA' AS gene_name ";
@@ -91,8 +73,8 @@ namespace OpenMS
     bool adducts_exists = SqliteConnector::columnExists(db, "COMPOUND", "ADDUCTS");
     if (adducts_exists) select_adducts = "COMPOUND.ADDUCTS AS Adducts, ";
 
-    // Get peptides
-    select_sql = "SELECT " \
+    // Build peptides query
+    info.select_sql = "SELECT " \
                   "PRECURSOR.PRECURSOR_MZ AS precursor, " \
                   "TRANSITION.PRODUCT_MZ AS product, " \
                   "PRECURSOR.LIBRARY_RT AS rt_calibrated, " \
@@ -143,8 +125,8 @@ namespace OpenMS
                     "GROUP BY TRANSITION_ID) "\
                     "AS PEPTIDE_AGGREGATED ON TRANSITION.ID = PEPTIDE_AGGREGATED.TRANSITION_ID ";
 
-    // Get compounds
-    select_sql += "UNION SELECT " \
+    // Append compounds query
+    info.select_sql += "UNION SELECT " \
                   "PRECURSOR.PRECURSOR_MZ AS precursor, " \
                   "TRANSITION.PRODUCT_MZ AS product, " \
                   "PRECURSOR.LIBRARY_RT AS rt_calibrated, " \
@@ -182,9 +164,32 @@ namespace OpenMS
                   "INNER JOIN PRECURSOR_COMPOUND_MAPPING ON PRECURSOR.ID = PRECURSOR_COMPOUND_MAPPING.PRECURSOR_ID " \
                   "INNER JOIN COMPOUND ON PRECURSOR_COMPOUND_MAPPING.COMPOUND_ID = COMPOUND.ID; ";
 
+    return info;
+  }
+
+  void TransitionPQPFile::readPQPInput_(const char* filename, std::vector<TSVTransition>& transition_list, bool legacy_traml_id)
+  {
+    sqlite3 *db;
+    sqlite3_stmt * cntstmt;
+    sqlite3_stmt * stmt;
+
+    startProgress(0, 1, "reading PQP file (SQL warmup)");
+
+    // Open database
+    SqliteConnector conn(filename);
+    db = conn.getDB();
+
+    // Count transitions
+    SqliteConnector::prepareStatement(db, &cntstmt, "SELECT COUNT(*) FROM TRANSITION;");
+    sqlite3_step( cntstmt );
+    int num_transitions = sqlite3_column_int(cntstmt, 0);
+    sqlite3_finalize(cntstmt);
+
+    // Build SQL query using shared helper
+    PQPSqlQueryInfo query_info = buildPQPSelectQuery_(db, legacy_traml_id);
 
     // Execute SQL select statement
-    SqliteConnector::prepareStatement(db, &stmt, select_sql);
+    SqliteConnector::prepareStatement(db, &stmt, query_info.select_sql);
     sqlite3_step(stmt);
     endProgress();
 
@@ -227,8 +232,8 @@ namespace OpenMS
       Sql::extractValue<int>((int*)&mytransition.quantifying_transition, stmt, 27);
       if (Sql::extractValue<std::string>(&tmp_field, stmt, 28)) tmp_field.split('|', mytransition.peptidoforms);
       // optional attributes only present in newer file versions
-      if (drift_time_exists) Sql::extractValue<double>(&mytransition.drift_time, stmt, 29);
-      if (gene_exists) Sql::extractValue<std::string>(&mytransition.GeneName, stmt, 30);
+      if (query_info.drift_time_exists) Sql::extractValue<double>(&mytransition.drift_time, stmt, 29);
+      if (query_info.gene_exists) Sql::extractValue<std::string>(&mytransition.GeneName, stmt, 30);
 
       if (mytransition.GeneName == "NA") mytransition.GeneName = "";
 
@@ -249,13 +254,6 @@ namespace OpenMS
     sqlite3 *db;
     sqlite3_stmt * cntstmt;
     sqlite3_stmt * stmt;
-    std::string select_sql;
-
-    std::string traml_id = "ID";
-    if (legacy_traml_id)
-    {
-      traml_id = "TRAML_ID";
-    }
 
     startProgress(0, 1, "reading PQP file (SQL warmup)");
 
@@ -269,131 +267,11 @@ namespace OpenMS
     int num_transitions = sqlite3_column_int(cntstmt, 0);
     sqlite3_finalize(cntstmt);
 
-    String select_drift_time = "";
-    bool drift_time_exists = SqliteConnector::columnExists(db, "PRECURSOR", "LIBRARY_DRIFT_TIME");
-    if (drift_time_exists)
-    {
-      select_drift_time = ", PRECURSOR.LIBRARY_DRIFT_TIME AS drift_time ";
-    }
-
-    String select_gene = "";
-    String select_gene_null = "";
-    String join_gene = "";
-    bool gene_exists = SqliteConnector::tableExists(db, "GENE");
-    if (gene_exists)
-    {
-      select_gene = ", GENE_AGGREGATED.GENE_NAME AS gene_name ";
-      select_gene_null = ", 'NA' AS gene_name ";
-      join_gene = "INNER JOIN PEPTIDE_GENE_MAPPING ON PEPTIDE.ID = PEPTIDE_GENE_MAPPING.PEPTIDE_ID " \
-                  "INNER JOIN " \
-                  "(SELECT PEPTIDE_ID, GROUP_CONCAT(GENE_NAME,';') AS GENE_NAME " \
-                  "FROM GENE " \
-                  "INNER JOIN PEPTIDE_GENE_MAPPING ON GENE.ID = PEPTIDE_GENE_MAPPING.GENE_ID "\
-                  "GROUP BY PEPTIDE_ID) " \
-                  "AS GENE_AGGREGATED ON PEPTIDE.ID = GENE_AGGREGATED.PEPTIDE_ID ";
-    }
-
-    String select_annotation = "'' AS Annotation, ";
-    bool annotation_exists = SqliteConnector::columnExists(db, "TRANSITION", "ANNOTATION");
-    if (annotation_exists) select_annotation = "TRANSITION.ANNOTATION AS Annotation, ";
-
-    String select_adducts = "'' AS Adducts, ";
-    bool adducts_exists = SqliteConnector::columnExists(db, "COMPOUND", "ADDUCTS");
-    if (adducts_exists) select_adducts = "COMPOUND.ADDUCTS AS Adducts, ";
-
-    // Build SQL query (same as readPQPInput_)
-    select_sql = "SELECT " \
-                  "PRECURSOR.PRECURSOR_MZ AS precursor, " \
-                  "TRANSITION.PRODUCT_MZ AS product, " \
-                  "PRECURSOR.LIBRARY_RT AS rt_calibrated, " \
-                  "TRANSITION." + traml_id + " AS transition_name, " \
-                  "-1 AS CE, " \
-                  "TRANSITION.LIBRARY_INTENSITY AS library_intensity, " \
-                  "PRECURSOR." + traml_id + " AS group_id, " \
-                  "TRANSITION.DECOY AS decoy, " \
-                  "PEPTIDE.UNMODIFIED_SEQUENCE AS PeptideSequence, " \
-                  "PROTEIN_AGGREGATED.PROTEIN_ACCESSION AS ProteinName, " \
-                  + select_annotation + \
-                  "PEPTIDE.MODIFIED_SEQUENCE AS FullPeptideName, " \
-                  "NULL AS CompoundName, " \
-                  "NULL AS SMILES, " \
-                  "NULL AS SumFormula, " \
-                  "NULL AS Adducts, " \
-                  "PRECURSOR.CHARGE AS precursor_charge, " \
-                  "PRECURSOR.GROUP_LABEL AS peptide_group_label, " \
-                  "NULL AS label_type, " \
-                  "TRANSITION.CHARGE AS fragment_charge, " \
-                  "TRANSITION.ORDINAL AS fragment_nr, " \
-                  "NULL AS fragment_mzdelta, " \
-                  "NULL AS fragment_modification, " \
-                  "TRANSITION.TYPE AS fragment_type, " \
-                  "NULL AS uniprot_id, " \
-                  "TRANSITION.DETECTING AS detecting_transition, " \
-                  "TRANSITION.IDENTIFYING AS identifying_transition, " \
-                  "TRANSITION.QUANTIFYING AS quantifying_transition, " \
-                  "PEPTIDE_AGGREGATED.PEPTIDOFORMS AS peptidoforms " + \
-                  select_drift_time + \
-                  select_gene + \
-                  "FROM PRECURSOR " + \
-                  join_gene + \
-                  "INNER JOIN TRANSITION_PRECURSOR_MAPPING ON PRECURSOR.ID = TRANSITION_PRECURSOR_MAPPING.PRECURSOR_ID " \
-                  "INNER JOIN TRANSITION ON TRANSITION_PRECURSOR_MAPPING.TRANSITION_ID = TRANSITION.ID " \
-                  "INNER JOIN PRECURSOR_PEPTIDE_MAPPING ON PRECURSOR.ID = PRECURSOR_PEPTIDE_MAPPING.PRECURSOR_ID " \
-                  "INNER JOIN PEPTIDE ON PRECURSOR_PEPTIDE_MAPPING.PEPTIDE_ID = PEPTIDE.ID " \
-                  "INNER JOIN " \
-                    "(SELECT PEPTIDE_ID, GROUP_CONCAT(PROTEIN_ACCESSION,';') AS PROTEIN_ACCESSION " \
-                    "FROM PROTEIN " \
-                    "INNER JOIN PEPTIDE_PROTEIN_MAPPING ON PROTEIN.ID = PEPTIDE_PROTEIN_MAPPING.PROTEIN_ID "\
-                    "GROUP BY PEPTIDE_ID) " \
-                    "AS PROTEIN_AGGREGATED ON PEPTIDE.ID = PROTEIN_AGGREGATED.PEPTIDE_ID " \
-                  "LEFT OUTER JOIN " \
-                    "(SELECT TRANSITION_ID, GROUP_CONCAT(MODIFIED_SEQUENCE,'|') AS PEPTIDOFORMS " \
-                    "FROM TRANSITION_PEPTIDE_MAPPING "\
-                    "INNER JOIN PEPTIDE ON TRANSITION_PEPTIDE_MAPPING.PEPTIDE_ID = PEPTIDE.ID "\
-                    "GROUP BY TRANSITION_ID) "\
-                    "AS PEPTIDE_AGGREGATED ON TRANSITION.ID = PEPTIDE_AGGREGATED.TRANSITION_ID ";
-
-    // Compounds query
-    select_sql += "UNION SELECT " \
-                  "PRECURSOR.PRECURSOR_MZ AS precursor, " \
-                  "TRANSITION.PRODUCT_MZ AS product, " \
-                  "PRECURSOR.LIBRARY_RT AS rt_calibrated, " \
-                  "TRANSITION." + traml_id + " AS transition_name, " \
-                  "-1 AS CE, " \
-                  "TRANSITION.LIBRARY_INTENSITY AS library_intensity, " \
-                  "PRECURSOR." + traml_id + " AS group_id, " \
-                  "TRANSITION.DECOY AS decoy, " \
-                  "NULL AS PeptideSequence, " \
-                  "NULL AS ProteinName, " \
-                  + select_annotation + \
-                  "NULL AS FullPeptideName, " \
-                  "COMPOUND.COMPOUND_NAME AS CompoundName, " \
-                  "COMPOUND.SMILES AS SMILES, " \
-                  "COMPOUND.SUM_FORMULA AS SumFormula, " \
-                  + select_adducts + \
-                  "PRECURSOR.CHARGE AS precursor_charge, " \
-                  "PRECURSOR.GROUP_LABEL AS peptide_group_label, " \
-                  "NULL AS label_type, " \
-                  "TRANSITION.CHARGE AS fragment_charge, " \
-                  "TRANSITION.ORDINAL AS fragment_nr, " \
-                  "NULL AS fragment_mzdelta, " \
-                  "NULL AS fragment_modification, " \
-                  "TRANSITION.TYPE AS fragment_type, " \
-                  "NULL AS uniprot_id, " \
-                  "TRANSITION.DETECTING AS detecting_transition, " \
-                  "TRANSITION.IDENTIFYING AS identifying_transition, " \
-                  "TRANSITION.QUANTIFYING AS quantifying_transition, " \
-                  "NULL AS peptidoforms " +
-                  select_drift_time +
-                  select_gene_null +
-                  "FROM PRECURSOR " \
-                  "INNER JOIN TRANSITION_PRECURSOR_MAPPING ON PRECURSOR.ID = TRANSITION_PRECURSOR_MAPPING.PRECURSOR_ID " \
-                  "INNER JOIN TRANSITION ON TRANSITION_PRECURSOR_MAPPING.TRANSITION_ID = TRANSITION.ID " \
-                  "INNER JOIN PRECURSOR_COMPOUND_MAPPING ON PRECURSOR.ID = PRECURSOR_COMPOUND_MAPPING.PRECURSOR_ID " \
-                  "INNER JOIN COMPOUND ON PRECURSOR_COMPOUND_MAPPING.COMPOUND_ID = COMPOUND.ID; ";
+    // Build SQL query using shared helper
+    PQPSqlQueryInfo query_info = buildPQPSelectQuery_(db, legacy_traml_id);
 
     // Execute SQL select statement
-    SqliteConnector::prepareStatement(db, &stmt, select_sql);
+    SqliteConnector::prepareStatement(db, &stmt, query_info.select_sql);
     sqlite3_step(stmt);
     endProgress();
 
@@ -443,8 +321,8 @@ namespace OpenMS
       Sql::extractValue<int>(&identifying, stmt, 26);
       Sql::extractValue<int>(&quantifying, stmt, 27);
       Sql::extractValue<String>(&peptidoforms_str, stmt, 28);
-      if (drift_time_exists) Sql::extractValue<double>(&drift_time, stmt, 29);
-      if (gene_exists)
+      if (query_info.drift_time_exists) Sql::extractValue<double>(&drift_time, stmt, 29);
+      if (query_info.gene_exists)
       {
         Sql::extractValue<std::string>(&gene_name, stmt, 30);
         if (gene_name == "NA") gene_name = "";

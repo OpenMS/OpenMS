@@ -186,15 +186,6 @@ protected:
     */
     void TSVToTargetedExperiment_(std::vector<TSVTransition>& transition_list, OpenMS::TargetedExperiment& exp);
 
-    /** @brief Convert a list of TSVTransition to a LightTargetedExperiment
-     *
-     * Converts the list (read from csv/mrm) file into a object model using the
-     * LightTargetedExperiment with proper hierarchical structure from
-     * Transition to Peptide to Protein.
-     *
-    */
-    void TSVToTargetedExperiment_(std::vector<TSVTransition>& transition_list, OpenSwath::LightTargetedExperiment& exp);
-
     /// Convert an OpenMS transition to a TSVTransition for output writing
     TransitionTSVFile::TSVTransition convertTransition_(const ReactionMonitoringTransition* it, OpenMS::TargetedExperiment& targeted_exp);
     //@}

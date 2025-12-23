@@ -10,6 +10,9 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
 
+// Forward declaration for SQLite
+struct sqlite3;
+
 namespace OpenMS
 {
 
@@ -191,6 +194,25 @@ namespace OpenMS
   {
 
 private:
+
+    /// Holds information about a PQP SQL query and optional column availability
+    struct PQPSqlQueryInfo
+    {
+      std::string select_sql;      ///< The complete SQL SELECT query
+      bool drift_time_exists;      ///< Whether LIBRARY_DRIFT_TIME column exists
+      bool gene_exists;            ///< Whether GENE table exists
+    };
+
+    /** @brief Build the SQL query for reading PQP transitions
+     *
+     * This helper builds the SQL query used by both readPQPInput_ and
+     * streamPQPToLightTargetedExperiment_ to avoid code duplication.
+     *
+     * @param[in] db The SQLite database connection
+     * @param[in] legacy_traml_id Whether to use legacy TraML IDs
+     * @return PQPSqlQueryInfo containing the query and column availability flags
+     */
+    PQPSqlQueryInfo buildPQPSelectQuery_(sqlite3* db, bool legacy_traml_id) const;
 
     /** @brief Read PQP SQLite file
      *
