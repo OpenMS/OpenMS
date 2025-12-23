@@ -1690,6 +1690,38 @@ namespace OpenMS
       {
         gene_name = "NA";
       }
+      if (label_type.empty())
+      {
+        label_type = "NA";
+      }
+      if (compound_name.empty())
+      {
+        compound_name = "NA";
+      }
+      if (sum_formula.empty())
+      {
+        sum_formula = "NA";
+      }
+      if (smiles.empty())
+      {
+        smiles = "NA";
+      }
+      if (adducts.empty())
+      {
+        adducts = "NA";
+      }
+      if (peptide_sequence.empty())
+      {
+        peptide_sequence = "NA";
+      }
+      if (full_peptide_name.empty())
+      {
+        full_peptide_name = "NA";
+      }
+
+      // Join protein names/uniprot ids, use "NA" if empty
+      String protein_names_str = protein_names.empty() ? "NA" : ListUtils::concatenate(protein_names, ";");
+      String uniprot_ids_str = uniprot_ids.empty() ? "NA" : ListUtils::concatenate(uniprot_ids, ";");
 
       String line;
       line +=
@@ -1707,8 +1739,8 @@ namespace OpenMS
         + sum_formula                           + "\t"
         + smiles                                + "\t"
         + adducts                               + "\t"
-        + ListUtils::concatenate(protein_names, ";")  + "\t"
-        + ListUtils::concatenate(uniprot_ids, ";")    + "\t"
+        + protein_names_str                     + "\t"
+        + uniprot_ids_str                       + "\t"
         + gene_name                             + "\t"
         + String(tr.getFragmentType())          + "\t"
         + String(tr.fragment_nr)                + "\t"
