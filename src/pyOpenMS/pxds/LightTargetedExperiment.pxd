@@ -21,7 +21,7 @@ cdef extern from "<OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>" name
         # Additional fields for roundtrip TSV/PQP I/O
         short fragment_nr  # int16_t
         # Note: fragment_type is now an enum - use getFragmentType()/setFragmentType() methods
-        libcpp_string annotation
+        # Note: annotation is now reconstructed via getAnnotation() - no direct field access
         libcpp_vector[libcpp_string] peptidoforms
 
         int getProductChargeState() except + nogil
@@ -44,6 +44,9 @@ cdef extern from "<OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>" name
         # Fragment type getter/setter (string interface for backward compatibility)
         libcpp_string getFragmentType() except + nogil
         void setFragmentType(libcpp_string s) except + nogil
+
+        # Annotation reconstruction (computed from fragment_type, fragment_nr, fragment_charge)
+        libcpp_string getAnnotation() except + nogil
 
         # Detecting / quantifying / identifying transitions
         void setDetectingTransition (bool d) except + nogil

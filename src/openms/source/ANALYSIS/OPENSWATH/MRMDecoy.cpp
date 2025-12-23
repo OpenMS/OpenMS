@@ -1065,12 +1065,13 @@ namespace OpenMS
 
         if (decoyion.second > 0)
         {
-          // Update fragment annotation
+          // Update fragment type/number/charge from annotation (format: b4^1, y10^2, etc.)
           if (!targetion.first.empty())
           {
             decoy_tr.setFragmentType(targetion.first.substr(0, 1));
             std::string num_str;
-            for (size_t i = 1; i < targetion.first.size() && std::isdigit(targetion.first[i]); ++i)
+            size_t i = 1;
+            for (; i < targetion.first.size() && std::isdigit(targetion.first[i]); ++i)
             {
               num_str += targetion.first[i];
             }
@@ -1078,7 +1079,19 @@ namespace OpenMS
             {
               decoy_tr.fragment_nr = static_cast<int16_t>(std::stoi(num_str));
             }
-            decoy_tr.annotation = targetion.first;
+            // Extract charge after '^'
+            if (i < targetion.first.size() && targetion.first[i] == '^')
+            {
+              std::string charge_str;
+              for (size_t j = i + 1; j < targetion.first.size() && std::isdigit(targetion.first[j]); ++j)
+              {
+                charge_str += targetion.first[j];
+              }
+              if (!charge_str.empty())
+              {
+                decoy_tr.fragment_charge = static_cast<int8_t>(std::stoi(charge_str));
+              }
+            }
           }
           decoy_transitions.push_back(decoy_tr);
         }

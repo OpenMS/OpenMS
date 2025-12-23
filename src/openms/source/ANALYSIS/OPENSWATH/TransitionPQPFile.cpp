@@ -945,7 +945,7 @@ namespace OpenMS
           tr.product_mz << "," <<
           transition_charge << ",'" <<
           fragment_type_char << "','" <<
-          tr.annotation << "'," <<
+          tr.getAnnotation() << "'," <<
           tr.fragment_nr << "," <<
           tr.isDetectingTransition() << "," <<
           tr.isIdentifyingTransition() << "," <<

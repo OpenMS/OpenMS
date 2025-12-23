@@ -114,7 +114,6 @@ namespace OpenSwath
     // Additional fields for roundtrip TSV/PQP I/O
     int16_t fragment_nr{-1};                     ///< Fragment ion ordinal (e.g. 7 for y7)
     FragmentIonType fragment_type{FragmentIonType::Empty}; ///< Fragment ion type enum
-    std::string annotation;                      ///< Transition-level annotation
     std::vector<std::string> peptidoforms;       ///< Peptidoforms for IPF
 
     // Legacy bool accessors for API compatibility
@@ -124,6 +123,30 @@ namespace OpenSwath
     // Fragment type string accessors for backward compatibility
     std::string getFragmentType() const { return fragmentIonTypeToString(fragment_type); }
     void setFragmentType(const std::string& s) { fragment_type = stringToFragmentIonType(s); }
+
+    /// Reconstruct annotation from fragment_type, fragment_nr, and fragment_charge
+    /// Returns string like "b8", "y6^2", "prec", or empty if no fragment info set
+    std::string getAnnotation() const
+    {
+      if (fragment_type == FragmentIonType::Empty)
+      {
+        return "";
+      }
+      if (fragment_type == FragmentIonType::Precursor)
+      {
+        return "prec";
+      }
+      std::string result = fragmentIonTypeToString(fragment_type);
+      if (fragment_nr >= 0)
+      {
+        result += std::to_string(fragment_nr);
+      }
+      if (fragment_charge > 0)
+      {
+        result += "^" + std::to_string(static_cast<int>(fragment_charge));
+      }
+      return result;
+    }
 
     int getProductChargeState() const
     {

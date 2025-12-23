@@ -678,7 +678,7 @@ namespace OpenMS
       // Additional fields for roundtrip I/O
       transition.fragment_nr = static_cast<int16_t>(tr_it->fragment_nr);
       transition.setFragmentType(tr_it->fragment_type);
-      transition.annotation = tr_it->Annotation;
+      // Note: annotation is now reconstructed from fragment_type, fragment_nr, and fragment_charge via getAnnotation()
       transition.peptidoforms.assign(tr_it->peptidoforms.begin(), tr_it->peptidoforms.end());
 
       exp.transitions.push_back(transition);
@@ -1675,7 +1675,7 @@ namespace OpenMS
         drift_time = tr.precursor_im;
       }
 
-      String annotation = tr.annotation;
+      String annotation = tr.getAnnotation();
       if (annotation.empty())
       {
         annotation = "NA";

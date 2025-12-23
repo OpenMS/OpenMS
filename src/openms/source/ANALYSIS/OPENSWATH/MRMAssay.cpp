@@ -1298,8 +1298,8 @@ namespace OpenMS
         // Set product m/z to theoretical value
         new_tr.product_mz = targetion.second;
 
-        // Parse fragment type and number from annotation
-        // Format examples: "y7", "b3", "y5-H2O1"
+        // Parse fragment type/number/charge from annotation
+        // Format examples: "y7", "b3^1", "y5^2", "y5-H2O1"
         std::string annotation = targetion.first;
         if (!annotation.empty())
         {
@@ -1307,22 +1307,28 @@ namespace OpenMS
 
           // Extract fragment number
           std::string num_str;
-          for (size_t i = 1; i < annotation.size(); ++i)
+          size_t i = 1;
+          for (; i < annotation.size() && std::isdigit(annotation[i]); ++i)
           {
-            if (std::isdigit(annotation[i]))
-            {
-              num_str += annotation[i];
-            }
-            else
-            {
-              break;
-            }
+            num_str += annotation[i];
           }
           if (!num_str.empty())
           {
             new_tr.fragment_nr = static_cast<int16_t>(std::stoi(num_str));
           }
-          new_tr.annotation = annotation;
+          // Extract charge after '^'
+          if (i < annotation.size() && annotation[i] == '^')
+          {
+            std::string charge_str;
+            for (size_t j = i + 1; j < annotation.size() && std::isdigit(annotation[j]); ++j)
+            {
+              charge_str += annotation[j];
+            }
+            if (!charge_str.empty())
+            {
+              new_tr.fragment_charge = static_cast<int8_t>(std::stoi(charge_str));
+            }
+          }
         }
 
         transitions.push_back(new_tr);
@@ -1840,21 +1846,35 @@ namespace OpenMS
         tr.setDetectingTransition(false);
         tr.setIdentifyingTransition(true);
         tr.setQuantifyingTransition(false);
-        tr.annotation = annotation;
         tr.peptidoforms = matching_pfs;
 
-        // Parse fragment type/number from annotation
+        // Parse fragment type/number/charge from annotation to populate compact fields
+        // Annotation format: b4^1, y10^2, etc.
         if (!annotation.empty() && annotation != "MS2_Precursor_i0")
         {
           tr.setFragmentType(annotation.substr(0, 1));
           std::string num_str;
-          for (size_t i = 1; i < annotation.size() && std::isdigit(annotation[i]); ++i)
+          size_t i = 1;
+          for (; i < annotation.size() && std::isdigit(annotation[i]); ++i)
           {
             num_str += annotation[i];
           }
           if (!num_str.empty())
           {
             tr.fragment_nr = static_cast<int16_t>(std::stoi(num_str));
+          }
+          // Extract charge after '^'
+          if (i < annotation.size() && annotation[i] == '^')
+          {
+            std::string charge_str;
+            for (size_t j = i + 1; j < annotation.size() && std::isdigit(annotation[j]); ++j)
+            {
+              charge_str += annotation[j];
+            }
+            if (!charge_str.empty())
+            {
+              tr.fragment_charge = static_cast<int8_t>(std::stoi(charge_str));
+            }
           }
         }
 
@@ -1994,21 +2014,35 @@ namespace OpenMS
         tr.setDetectingTransition(false);
         tr.setIdentifyingTransition(true);
         tr.setQuantifyingTransition(false);
-        tr.annotation = annotation;
         tr.peptidoforms = matching_pfs;
 
-        // Parse fragment type/number from annotation
+        // Parse fragment type/number/charge from annotation to populate compact fields
+        // Annotation format: b4^1, y10^2, etc.
         if (!annotation.empty() && annotation != "MS2_Precursor_i0")
         {
           tr.setFragmentType(annotation.substr(0, 1));
           std::string num_str;
-          for (size_t i = 1; i < annotation.size() && std::isdigit(annotation[i]); ++i)
+          size_t i = 1;
+          for (; i < annotation.size() && std::isdigit(annotation[i]); ++i)
           {
             num_str += annotation[i];
           }
           if (!num_str.empty())
           {
             tr.fragment_nr = static_cast<int16_t>(std::stoi(num_str));
+          }
+          // Extract charge after '^'
+          if (i < annotation.size() && annotation[i] == '^')
+          {
+            std::string charge_str;
+            for (size_t j = i + 1; j < annotation.size() && std::isdigit(annotation[j]); ++j)
+            {
+              charge_str += annotation[j];
+            }
+            if (!charge_str.empty())
+            {
+              tr.fragment_charge = static_cast<int8_t>(std::stoi(charge_str));
+            }
           }
         }
 
