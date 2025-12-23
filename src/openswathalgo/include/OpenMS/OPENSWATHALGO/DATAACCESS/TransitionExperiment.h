@@ -51,8 +51,8 @@ namespace OpenSwath
     if (s == "x") return FragmentIonType::XIon;
     if (s == "y") return FragmentIonType::YIon;
     if (s == "z") return FragmentIonType::ZIon;
-    if (s == "z'" || s == "z'") return FragmentIonType::ZPrimeIon;
-    if (s == "z." || s == "z.") return FragmentIonType::ZDotIon;
+    if (s == "z'") return FragmentIonType::ZPrimeIon;
+    if (s == "z.") return FragmentIonType::ZDotIon;
     if (s == "prec" || s == "precursor") return FragmentIonType::Precursor;
     if (s == "b-H2O" || s == "b-H20") return FragmentIonType::BMinusH2O;
     if (s == "y-H2O" || s == "y-H20") return FragmentIonType::YMinusH2O;
