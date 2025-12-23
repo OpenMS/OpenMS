@@ -1714,9 +1714,9 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
   set_tests_properties("TOPP_OpenSwathWorkflow_17_b_out1" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_17_b")
   set_tests_properties("TOPP_OpenSwathWorkflow_17_b_out2" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_17_b")
 
-  add_test("TOPP_OpenSwathFileSplitter_1" ${TOPP_BIN_PATH}/OpenSwathFileSplitter -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.mzML -outputDirectory ""  -out_qc ${TESTS_TEMP_DIR}/OpenSwathFileSplitter_1.tmp.json -test)
-  add_test("TOPP_OpenSwathFileSplitter_1_out1" ${DIFF} -whitelist "id=" -in1 OpenSwathWorkflow_1_input_ms1.mzML -in2 ${DATA_DIR_TOPP}/openswath_tmpfile_ms1.mzML)
-  add_test("TOPP_OpenSwathFileSplitter_1_out2" ${DIFF} -whitelist "id=" -in1 OpenSwathWorkflow_1_input_4.mzML -in2 ${DATA_DIR_TOPP}/openswath_tmpfile_4.mzML)
+  add_test("TOPP_OpenSwathFileSplitter_1" ${TOPP_BIN_PATH}/OpenSwathFileSplitter -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.mzML -outputDirectory "tmp_path/"  -out_qc ${TESTS_TEMP_DIR}/OpenSwathFileSplitter_1.tmp.json -test)
+  add_test("TOPP_OpenSwathFileSplitter_1_out1" ${DIFF} -whitelist "id=" -in1 ${TESTS_TEMP_DIR}/OpenSwathWorkflow_1_input_ms1.mzML -in2 ${DATA_DIR_TOPP}/openswath_tmpfile_ms1.mzML)
+  add_test("TOPP_OpenSwathFileSplitter_1_out2" ${DIFF} -whitelist "id=" -in1 ${TESTS_TEMP_DIR}/OpenSwathWorkflow_1_input_4.mzML -in2 ${DATA_DIR_TOPP}/openswath_tmpfile_4.mzML)
   add_test("TOPP_OpenSwathFileSplitter_1_out3" ${DIFF} -in1 ${TESTS_TEMP_DIR}/OpenSwathFileSplitter_1.tmp.json -in2 ${DATA_DIR_TOPP}/OpenSwathFileSplitter_1.json)
   set_tests_properties("TOPP_OpenSwathFileSplitter_1_out1" PROPERTIES DEPENDS "TOPP_OpenSwathFileSplitter_1")
   set_tests_properties("TOPP_OpenSwathFileSplitter_1_out2" PROPERTIES DEPENDS "TOPP_OpenSwathFileSplitter_1")
