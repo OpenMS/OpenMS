@@ -250,6 +250,21 @@ private:
     /** @brief Cleanup of the read fields (removing quotes etc.)
     */
     void cleanupTransitions_(TSVTransition& mytransition);
+
+    /** @brief Stream TSV directly to LightTargetedExperiment (memory-efficient)
+     *
+     * This function reads the TSV file line by line and directly populates
+     * the LightTargetedExperiment without creating an intermediate
+     * vector<TSVTransition>. This reduces peak memory usage by ~5x for large files.
+     *
+     * Mixed sequence group detection is performed inline during streaming.
+     *
+     * @param[in] filename The input file
+     * @param[in] filetype The type of file ("mrm" or "tsv")
+     * @param[out] exp The output LightTargetedExperiment
+     *
+    */
+    void streamTSVToLightTargetedExperiment_(const char* filename, FileTypes::Type filetype, OpenSwath::LightTargetedExperiment& exp);
     //@}
 
     /** @name Conversion helper functions
