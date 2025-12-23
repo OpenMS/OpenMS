@@ -1710,7 +1710,7 @@ namespace OpenMS
         + ListUtils::concatenate(protein_names, ";")  + "\t"
         + ListUtils::concatenate(uniprot_ids, ";")    + "\t"
         + gene_name                             + "\t"
-        + tr.getFragmentType()                  + "\t"
+        + String(tr.getFragmentType())          + "\t"
         + String(tr.fragment_nr)                + "\t"
         + annotation                            + "\t"
         + String(-1.0)                          + "\t"  // CE not stored in Light
