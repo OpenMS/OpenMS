@@ -107,8 +107,6 @@ src/openswathalgo/include/OpenMS/OPENSWATHALGO/OpenSwathAlgoConfig.h
 
 # Log files
 *.log
-TOPP.log
-TOPPAS.log
 
 # Test data and output files
 src/tests/class_tests/*/include/OpenMS/test_config.h
@@ -123,16 +121,6 @@ src/tests/toppas/*.trf
 /test.mzML
 /test.mzData
 /test_output.log
-_CPack_Packages
-_deps
-Modules
-src/openms_gui/OpenMS_GUI_autogen
-src/openms/OpenMS_autogen
-OpenMS-build/*
-vcpkg_installed
-build-release/*
-build-debug/*
-doc/*
 
 # Security - Credentials, tokens, and secrets
 .env
