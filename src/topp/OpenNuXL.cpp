@@ -2974,14 +2974,7 @@ static void scoreXLIons_(
     String input_file = getStringOption_("in");
     String dir = File::path(input_file);
     String csv_file;
-    if (dir == ".")
-    {
-      csv_file = File::basename(input_file) + ".ambiguous_masses.csv";
-    }
-    else
-    {
-      csv_file = dir + "/" + File::basename(input_file) + ".ambiguous_masses.csv";
-    }
+    csv_file = QDir(dir.toQString()).filePath((File::basename(input_file) + ".ambiguous_masses.csv").toQString()).toStdString();
     getAdductAndAAPlusAdductMassCountsFromSpectra(nucleotide_to_fragment_adducts, exp, adduct_mass_count, aa_plus_adduct_mass_count, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, csv_file);
 
     if (debug_level_ > 0) { OPENMS_LOG_DEBUG << "Total counts per residue:" << endl; }
@@ -6369,7 +6362,7 @@ static void scoreXLIons_(
       }
       else
       { // use output_folder
-        String b = extra_output_directory + "/" + File::basename(out_idxml).substitute(".idXML", "_");
+        String b = QDir(extra_output_directory.toQString()).filePath(File::basename(out_idxml).substitute(".idXML", "_").toQString()).toStdString();
 
         fdr.calculatePeptideAndXLQValueAndFilterAtPSMLevel(protein_ids,
           peptide_ids,
@@ -6483,7 +6476,7 @@ static void scoreXLIons_(
           }
           else
           { // use output_folder
-            String b = extra_output_directory + "/" + File::basename(out_idxml).substitute(".idXML", "_perc_");
+            String b = QDir(extra_output_directory.toQString()).filePath(File::basename(out_idxml).substitute(".idXML", "_perc_").toQString()).toStdString();
             
             fdr.calculatePeptideAndXLQValueAndFilterAtPSMLevel(protein_ids,
               peptide_ids,
