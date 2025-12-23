@@ -379,12 +379,15 @@ protected:
       {
         std::vector<std::pair<double, double> > uis_swathes;
 
-        if (!enable_swath_specifity)
+        // Generate default UIS SWATH windows if swath specificity is disabled
+        // or if no swathes were provided (same logic as light path)
+        if (!enable_swath_specifity || swathes.empty())
         {
           int num_precursor_windows = static_cast<int>(Math::round((precursor_upper_mz_limit - precursor_lower_mz_limit) / precursor_mz_threshold));
           for (int i = 0; i < num_precursor_windows; i++)
           {
-            uis_swathes.push_back(std::make_pair((precursor_lower_mz_limit+(i*precursor_mz_threshold)),(precursor_lower_mz_limit+((i+1)*precursor_mz_threshold))));
+            uis_swathes.push_back(std::make_pair((precursor_lower_mz_limit + (i * precursor_mz_threshold)),
+                                                 (precursor_lower_mz_limit + ((i + 1) * precursor_mz_threshold))));
           }
         }
         else
