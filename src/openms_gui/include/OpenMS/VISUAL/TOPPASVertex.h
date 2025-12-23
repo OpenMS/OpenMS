@@ -113,7 +113,7 @@ public:
 		  /*
 		  @brief Check length of filename and throw Exception::FileNotWritable() if too long
 		
-		  @param filename Full path to file (using relative paths will circumvent the effectiveness)
+		  @param[in] filename Full path to file (using relative paths will circumvent the effectiveness)
 		  @throw Exception::FileNotWritable() if too long (>=255 chars)
 		  */
 		  void check_(const QString& filename);
@@ -216,7 +216,7 @@ public:
     /// Sets the topological sort number (overridden in tool and output vertices)
     virtual void setTopoNr(UInt nr);
     /// Resets the status
-    /// @param reset_all_files Not used in this implementation, but in derived classes
+    /// @param[in] reset_all_files Not used in this implementation, but in derived classes
     virtual void reset(bool reset_all_files = false);
     /// Marks this node (and everything further downstream) as unreachable. Overridden behavior in mergers.
     virtual void markUnreachable();

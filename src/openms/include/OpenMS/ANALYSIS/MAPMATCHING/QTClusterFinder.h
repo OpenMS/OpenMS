@@ -145,11 +145,11 @@ namespace OpenMS
     /**
      * @brief Extract the best cluster from cluster_heads and turn it into a consensus feature
      * 
-     * @param cluster_heads the heap where the clusters are stored, must not be empty
+     * @param[in] cluster_heads the heap where the clusters are stored, must not be empty
      * @param[out] feature The resulting consensus feature which is constructed here
-     * @param element_mapping the element mapping is used to update clusters when features are removed
-     * @param grid the grid is used to find new features for clusters that have to be updated
-     * @param handles used to access clusters if we know their id from the element mapping
+     * @param[in,out] element_mapping the element mapping is used to update clusters when features are removed
+     * @param[in] grid the grid is used to find new features for clusters that have to be updated
+     * @param[in] handles used to access clusters if we know their id from the element mapping
      * 
      * @return bool whether a consensus feature was made or not
      */
@@ -162,11 +162,11 @@ namespace OpenMS
     /**
      * @brief Computes an initial QT clustering of the points in the hash grid
      * 
-     * @param grid the grid is used to find new features for clusters that have to be updated
-     * @param cluster_heads the heap where the QTClusters are inserted
-     * @param cluster_data vector where the BulkData objects of the clusters are stored
-     * @param handles vector where handles of the inserted clusters are stored
-     * @param element_mapping the element mapping where all the clusters get registered for their features
+     * @param[in,out] grid the grid is used to find new features for clusters that have to be updated
+     * @param[in,out] cluster_heads the heap where the QTClusters are inserted
+     * @param[in] cluster_data vector where the BulkData objects of the clusters are stored
+     * @param[out] handles vector where handles of the inserted clusters are stored
+     * @param[in] element_mapping the element mapping where all the clusters get registered for their features
      */
     void computeClustering_(const Grid& grid,
                             Heap& cluster_heads,
@@ -177,8 +177,8 @@ namespace OpenMS
     /** 
      * @brief Removes id of current top cluster in the heap from element mapping
      * 
-     * @param cluster the current top cluster in the heap which id is removed
-     * @param element_mapping the element mapping from which the ids are removed
+     * @param[in] cluster the current top cluster in the heap which id is removed
+     * @param[in] element_mapping the element mapping from which the ids are removed
      */
     void removeFromElementMapping_(const QTCluster& cluster,
                                    ElementMapping& element_mapping);
@@ -187,8 +187,8 @@ namespace OpenMS
      * @brief creates a consensus feature from the given elements
      * 
      * @param[out] feature The resulting consensus feature which is constructed here
-     * @param quality the quality of the new consensus feature
-     * @param elements the original features that from the new consensus feature
+     * @param[in] quality the quality of the new consensus feature
+     * @param[in] elements the original features that from the new consensus feature
      * 
      * @note the features from elements are registered in the already_used_ member of this class
      */
@@ -202,12 +202,12 @@ namespace OpenMS
      * 2. update all clusters accordingly by removing neighbors used by the current best
      * 3. invalidate clusters whose center has been used by the current best
      * 
-     * @param element_mapping the element mapping is used to update clusters and updated itself
-     * @param grid the grid is used to find new features for clusters that have to be updated
-     * @param cluster_heads the heap is updated for changing clusters and popped in the end
-     * @param elements the features that now have to be removed from other clusters than the current best
-     * @param handles used to access clusters if we know their id from the element mapping
-     * @param best_id id of the current best cluster, will be removed from the element mapping
+     * @param[in] element_mapping the element mapping is used to update clusters and updated itself
+     * @param[in,out] grid the grid is used to find new features for clusters that have to be updated
+     * @param[in] cluster_heads the heap is updated for changing clusters and popped in the end
+     * @param[in] elements the features that now have to be removed from other clusters than the current best
+     * @param[in] handles used to access clusters if we know their id from the element mapping
+     * @param[in] best_id id of the current best cluster, will be removed from the element mapping
      * 
      * @note The feature from elements are not deleted from the element mapping. 
      * After this function is called we don't have any cluster with those features left and
@@ -232,8 +232,8 @@ namespace OpenMS
     /**
      * @brief Adds elements to the cluster based on the elements hashed in the grid
      * 
-     * @param grid the grid is used to find neighboring features the cluster
-     * @param cluster cluster to which the new elements are added
+     * @param[in,out] grid the grid is used to find neighboring features the cluster
+     * @param[in] cluster cluster to which the new elements are added
      */ 
     void addClusterElements_(const Grid& grid, QTCluster& cluster);
 

@@ -38,7 +38,7 @@ public:
       /**
           @brief Constructor
 
-          @param filename The sqMass filename
+          @param[in] filename The sqMass filename
       */
       MzMLSqliteSwathHandler(const String& filename) :
         filename_(filename)
@@ -62,7 +62,7 @@ public:
       /**
           @brief Read indices of spectra belonging to specified SWATH window from file
 
-          @param swath_map Contains the upper/lower boundaries of the SWATH window
+          @param[in] swath_map Contains the upper/lower boundaries of the SWATH window
           @return A list of spectral indices for the provided SWATH window
 
       */

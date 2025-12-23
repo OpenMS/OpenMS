@@ -33,7 +33,7 @@ namespace OpenMS
       /**
       * @brief Retrieve modifications from strings
       * 
-      * @param modNames The list of modification names
+      * @param[in] modNames The list of modification names
       * @return A map of modifications and associated residue
       * ResidueModifications are referenced by Residues in AASequence objects. Every time an AASequence object
       * with modifications is constructed, it needs to query if the (modified) Residue is already

@@ -24,20 +24,20 @@ namespace OpenMS
     /**
       Constructor for a single vertical line of 1px width.
 
-      @param center_pos Center of the line in unit coordinates (only the non-gravity component will be used)
-      @param color Optional color. If invalid (=default), the current painter color will be used when this is painted
-      @param text Optional text displayed next to the line. Can contain '\n' which will force multiple lines.
+      @param[in] center_pos Center of the line in unit coordinates (only the non-gravity component will be used)
+      @param[in] color Optional color. If invalid (=default), the current painter color will be used when this is painted
+      @param[in] text Optional text displayed next to the line. Can contain '\n' which will force multiple lines.
     **/ 
     Annotation1DVerticalLineItem(const PointXYType& center_pos, const QColor& color = QColor("as_before"), const QString& text = "");
     /**
       Constructor for a single vertical line of 1px width or a broader line (band) with the given width
 
-      @param center_pos Center of the line in unit coordinates (only the non-gravity component will be used)
-      @param width Full width of the band in unit coordinates; use =0 to make a thin line and not a band;
-      @param alpha255 A transparency value from 0 (not visible), to 255 (fully opaque)
-      @param dashed_line Should the line/band be dashed
-      @param color Optional color. If invalid (=default), the current painter color will be used when this is painted
-      @param text Optional text displayed next to the line/band. Can contain '\n' which will force multiple lines. Text will be plotted at the very top (modify using setTextYOffset())
+      @param[in] center_pos Center of the line in unit coordinates (only the non-gravity component will be used)
+      @param[in] width Full width of the band in unit coordinates; use =0 to make a thin line and not a band;
+      @param[in] alpha255 A transparency value from 0 (not visible), to 255 (fully opaque)
+      @param[in] dashed_line Should the line/band be dashed
+      @param[in] color Optional color. If invalid (=default), the current painter color will be used when this is painted
+      @param[in] text Optional text displayed next to the line/band. Can contain '\n' which will force multiple lines. Text will be plotted at the very top (modify using setTextYOffset())
     **/
     Annotation1DVerticalLineItem(const PointXYType& center_pos, const float width, const int alpha255 = 128, const bool dashed_line = false, const QColor& color = QColor("as_before"),
                                  const QString& text = "");

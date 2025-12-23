@@ -157,8 +157,8 @@ namespace Internal
       @throw Exception if getParsingSuccess() returns false
       @throw Exception if id cannot be found
 
-      @param id The spectrum native id
-      @param s The spectrum to be used and filled with data
+      @param[in] id The spectrum native id
+      @param[out] s The spectrum to be used and filled with data
     */
     void getMSSpectrumByNativeId(const std::string& id, OpenMS::MSSpectrum& s);
 
@@ -168,8 +168,8 @@ namespace Internal
       @throw Exception if getParsingSuccess() returns false
       @throw Exception if id is not within [0, getNrSpectra()-1]
 
-      @param id The spectrum id
-      @param s The spectrum to be used and filled with data
+      @param[in] id The spectrum id
+      @param[out] s The spectrum to be used and filled with data
     */
     void getMSSpectrumById(int id, OpenMS::MSSpectrum& s);
 
@@ -199,8 +199,8 @@ namespace Internal
       @throw Exception if getParsingSuccess() returns false
       @throw Exception if id cannot be found
 
-      @param id The chromatogram native id
-      @param c The chromatogram to be used and filled with data
+      @param[in] id The chromatogram native id
+      @param[out] c The chromatogram to be used and filled with data
     */
     void getMSChromatogramByNativeId(const std::string& id, OpenMS::MSChromatogram& c);
 
@@ -210,8 +210,8 @@ namespace Internal
       @throw Exception if getParsingSuccess() returns false
       @throw Exception if id is not within [0, getNrChromatograms()-1]
 
-      @param id The chromatogram id
-      @param c The chromatogram to be used and filled with data
+      @param[in] id The chromatogram id
+      @param[out] c The chromatogram to be used and filled with data
     */
     void getMSChromatogramById(int id, OpenMS::MSChromatogram& c);
 

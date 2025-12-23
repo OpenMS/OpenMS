@@ -57,9 +57,9 @@ public:
     /**
       @brief Flags or filters features and subordinates in a FeatureMap
 
-      @param features FeatureMap to flag or filter
-      @param filter_criteria MRMFeatureQC class defining QC parameters
-      @param transitions transitions from a TargetedExperiment
+      @param[in] features FeatureMap to flag or filter
+      @param[in] filter_criteria MRMFeatureQC class defining QC parameters
+      @param[out] transitions transitions from a TargetedExperiment
 
     */
     void FilterFeatureMap(FeatureMap& features, const MRMFeatureQC& filter_criteria,
@@ -71,10 +71,10 @@ public:
         filter_criteria represents the bounds on acceptable PercentRSD values.
         NOTE that flagging nor filtering will be done on the labels and transitions type counts.
 
-      @param features FeatureMap to flag or filter
-      @param filter_criteria MRMFeatureQC class defining QC parameters defining the acceptable limits of the PercentRSD
+      @param[in] features FeatureMap to flag or filter
+      @param[in] filter_criteria MRMFeatureQC class defining QC parameters defining the acceptable limits of the PercentRSD
         where PercentRSD = (value std dev)/(value mean)*100Percent
-      @param filter_values MRMFeatureQC class filled with bounds representing the PercentRSD found in e.g., pooled QC samples or replicate Unknown samples
+      @param[out] filter_values MRMFeatureQC class filled with bounds representing the PercentRSD found in e.g., pooled QC samples or replicate Unknown samples
 
     */
     void FilterFeatureMapPercRSD(FeatureMap& features, const MRMFeatureQC& filter_criteria, const MRMFeatureQC& filter_values);
@@ -86,10 +86,10 @@ public:
         NOTE that filtering is only done on the `Intensity` member.
 
 
-      @param features FeatureMap to flag or filter
-      @param filter_criteria MRMFeatureQC class defining QC parameters defining the acceptable limits of PercentBackgroundInterference
+      @param[in] features FeatureMap to flag or filter
+      @param[in] filter_criteria MRMFeatureQC class defining QC parameters defining the acceptable limits of PercentBackgroundInterference
         where PercentBackgroundInterference = (value Sample)/(value Blank)*100Percent
-      @param filter_values MRMFeatureQC class filled with bounds representing the average values found in e.g., pooled QC samples or replicate Unknown samples
+      @param[out] filter_values MRMFeatureQC class filled with bounds representing the average values found in e.g., pooled QC samples or replicate Unknown samples
 
     */
     void FilterFeatureMapBackgroundInterference(FeatureMap& features, const MRMFeatureQC& filter_criteria, const MRMFeatureQC& filter_values);
@@ -145,9 +145,9 @@ public:
     /**
       @brief Calculates the ion ratio between two transitions
 
-      @param component_1 component of the numerator
-      @param component_2 component of the denominator
-      @param feature_name name of the feature to calculate the ratio on
+      @param[in] component_1 component of the numerator
+      @param[in] component_2 component of the denominator
+      @param[in] feature_name name of the feature to calculate the ratio on
        e.g., peak_apex, peak_area
 
       @return The ratio.
@@ -157,8 +157,8 @@ public:
     /**
       @brief Calculates the retention time difference between two features
 
-      @param component_1 First eluting component
-      @param component_2 Second eluting component
+      @param[in] component_1 First eluting component
+      @param[in] component_2 Second eluting component
 
       @return The difference.
     */
@@ -167,8 +167,8 @@ public:
     /**
       @brief Calculates the resolution between two features
 
-      @param component_1 component 1
-      @param component_2 component 2
+      @param[in] component_1 component 1
+      @param[in] component_2 component 2
 
       @return The difference.
     */
@@ -247,8 +247,8 @@ public:
     /**
       @brief Count the number of heavy/light labels and quantifying/detecting/identifying transitions
 
-      @param component_group Component group with subordinates
-      @param transitions Transitions from a TargetedExperiment
+      @param[in] component_group Component group with subordinates
+      @param[out] transitions Transitions from a TargetedExperiment
 
       @return Map of labels/transition types and their corresponding number.
     */

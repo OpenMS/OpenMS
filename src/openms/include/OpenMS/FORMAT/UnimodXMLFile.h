@@ -32,8 +32,8 @@ public:
     /**
       @brief loads data from unimod.xml file
 
-          @param filename the filename were the unimod xml file should be read from
-          @param modifications the modifications which are read from the file
+          @param[in] filename the filename were the unimod xml file should be read from
+          @param[in] modifications the modifications which are read from the file
           @throw FileNotFound is thrown if the file could not be found
           @throw ParseError is thrown if the given file could not be parsed
 

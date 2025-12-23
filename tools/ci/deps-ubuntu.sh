@@ -39,7 +39,11 @@ sudo apt-get -qq install -y \
   libsvm-dev \
   libbz2-dev \
   coinor-libcoinmp-dev \
-  libhdf5-dev
+  libhdf5-dev \
+  libsqlite3-dev \
+  libsqlitecpp-dev \
+  nlohmann-json3-dev \
+  libsimde-dev
 
   sudo apt update
   sudo apt-get install -y -V ca-certificates lsb-release wget

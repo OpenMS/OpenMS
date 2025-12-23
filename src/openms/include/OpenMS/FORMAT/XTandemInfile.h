@@ -178,9 +178,9 @@ public:
       If @p ignore_member_parameters is true, only a very limited number of
       tags fed by member variables (i.e. in, out, database/taxonomy) is written.
       
-      @param filename the name of the file which is written
-      @param ignore_member_parameters Do not write tags for class members
-      @param force_default_mods Force writing of mods covered by special parameters
+      @param[out] filename the name of the file which is written
+      @param[in] ignore_member_parameters Do not write tags for class members
+      @param[in] force_default_mods Force writing of mods covered by special parameters
       @throw UnableToCreateFile is thrown if the given file could not be created
     */
     void write(const String& filename, bool ignore_member_parameters = false,
@@ -208,8 +208,8 @@ protected:
       Also, if a fixed mod is already given, a corresponding variable mods needs to have its delta mass reduced by the fixed modifications mass.
       This is also done automatically here.
 
-      @param mods The modifications to convert
-      @param affected_origins Set of origins, which were used previously. Will be augmented with the current mods.
+      @param[in] mods The modifications to convert
+      @param[in] affected_origins Set of origins, which were used previously. Will be augmented with the current mods.
 
       @return An X! Tandem compatible string representation.
     */

@@ -1,7 +1,9 @@
+cimport numpy as np
+import numpy as np
 
 
     def get2DPeakData(MSExperiment self, float min_rt, float max_rt, float min_mz, float max_mz, unsigned int ms_level):
-        """Cython signature: tuple[np.array[float] rt, np.array[float] mz, np.array[float] inty] get2DPeakData(float min_rt, float max_rt, float min_mz, float max_mz, unsigned int ms_level)"""        
+        """Cython signature: tuple[np.array[float] rt, np.array[float] mz, np.array[float] inty] get2DPeakData(float min_rt, float max_rt, float min_mz, float max_mz, unsigned int ms_level)"""
 
         cdef _MSExperiment * exp_ = self.inst.get()
         cdef libcpp_vector[float] rt
@@ -171,3 +173,386 @@
             parts.append(f"rt_range=[{min_rt:.2f}, {max_rt:.2f}]")
 
         return f"MSExperiment({', '.join(parts)})"
+
+    def get_df_columns(self, long_format=False):
+        """
+        get_df_columns(self: MSExperiment, long_format: bool = False) -> List[str]
+
+        Returns a list of column names that get_df() would produce.
+
+        Useful for discovering available columns before export.
+
+        :param long_format: If True, returns columns for long format.
+                            If False, returns columns for compact format.
+        :type long_format: bool
+        :return: List of column name strings.
+        :rtype: list
+
+        Example::
+
+            >>> exp.get_df_columns(long_format=True)
+            ['rt', 'mz', 'intensity', 'ms_level']
+
+            >>> exp.get_df_columns(long_format=False)
+            ['rt', 'ms_level', 'mz_array', 'intensity_array']
+        """
+        if long_format:
+            return ['rt', 'mz', 'intensity', 'ms_level']
+        else:
+            return ['rt', 'ms_level', 'mz_array', 'intensity_array']
+
+    def get_df(self, columns=None, ms_levels=None, long_format=False):
+        """
+        get_df(self: MSExperiment, columns: Optional[List[str]] = None, ms_levels: List[int] = [], long_format: bool = False) -> pd.DataFrame
+
+        Generates a pandas DataFrame with all peaks in the MSExperiment
+
+        :param columns: List of column names to include. If None,
+                        includes all columns. Use get_df_columns() to discover available columns.
+        :type columns: Optional[List[str]]
+
+        :param ms_levels: Get only spectra with the given MS levels. Default is an empty list,
+                          which means all MS levels will be included.
+        :type ms_levels: List[int]
+
+        :param long_format: Set to True if you want to have a long/expanded/melted dataframe
+                            with one row per peak. Faster but replicated RT information.
+                            If False, returns rows in the style: rt, np.array(mz), np.array(int)
+        :type long_format: bool
+
+        :return: Feature information stored in a DataFrame
+        :rtype: pd.DataFrame
+
+        :raises ImportError: If pandas is not installed
+
+        Example::
+
+            # Get all columns
+            df = exp.get_df()
+
+            # Discover available columns
+            print(exp.get_df_columns())
+
+            # Get only specific columns
+            df = exp.get_df(columns=['rt', 'mz', 'intensity'], long_format=True)
+        """
+        try:
+            import pandas as pd
+        except ImportError:
+            raise ImportError(
+                "pandas is required for get_df(). "
+                "Please install it with: pip install pandas"
+            )
+        if ms_levels is None:
+            ms_levels = []
+        self.updateRanges()
+        if not ms_levels:
+            ms_levels = self.getMSLevels()
+        if long_format:
+            cols = ["rt", "mz", "intensity"]
+            dfs = []
+            for ms_level in ms_levels:
+                spectraarrs2d = self.get2DPeakDataLong(self.getMinRT(), self.getMaxRT(), self.getMinMZ(), self.getMaxMZ(), ms_level)
+                df = pd.DataFrame(dict(zip(cols, spectraarrs2d)))
+                df["ms_level"] = ms_level
+                dfs.append(df)
+            df = pd.concat(dfs, ignore_index=True)
+        else:
+            cols = ["rt", "ms_level", "mz_array", "intensity_array"]
+            df = pd.DataFrame(data=((spec.getRT(), spec.getMSLevel(), *spec.get_peaks()) for spec in self if spec.getMSLevel() in ms_levels), columns=cols)
+
+        # Filter columns if requested
+        if columns is not None:
+            available_cols = [c for c in columns if c in df.columns]
+            df = df[available_cols]
+
+        return df
+
+    def to_arrow(self, columns=None, ms_levels=None, long_format=False):
+        """
+        to_arrow(self: MSExperiment, columns: Optional[List[str]] = None, ms_levels: List[int] = [], long_format: bool = False) -> pa.Table
+
+        Returns an Apache Arrow Table with all peaks in the MSExperiment.
+
+        :param columns: List of column names to include. If None,
+                        includes all columns. Use get_df_columns() to discover available columns.
+        :type columns: Optional[List[str]]
+
+        :param ms_levels: Get only spectra with the given MS levels. Default is an empty list,
+                          which means all MS levels will be included.
+        :type ms_levels: List[int]
+
+        :param long_format: Set to True for a long/expanded table with one row per peak.
+                            If False, returns rows with array columns (rt, ms_level, mz_array, intensity_array).
+        :type long_format: bool
+
+        :return: Arrow Table with peak data.
+        :rtype: pyarrow.Table
+
+        :raises ImportError: If pyarrow is not installed
+
+        Example::
+
+            # Get all columns in long format
+            table = exp.to_arrow(long_format=True)
+
+            # Convert to pandas (zero-copy with pandas 2.0+)
+            df = table.to_pandas()
+
+            # Convert to polars
+            import polars as pl
+            df = pl.from_arrow(table)
+        """
+        try:
+            import pyarrow as pa
+        except ImportError:
+            raise ImportError(
+                "pyarrow is required for to_arrow(). "
+                "Please install it with: pip install pyarrow"
+            )
+        if ms_levels is None:
+            ms_levels = []
+        self.updateRanges()
+        if not ms_levels:
+            ms_levels = self.getMSLevels()
+
+        if long_format:
+            # Build data dict for long format
+            all_rts = []
+            all_mzs = []
+            all_intensities = []
+            all_ms_levels = []
+
+            for ms_level in ms_levels:
+                rt_arr, mz_arr, inty_arr = self.get2DPeakDataLong(
+                    self.getMinRT(), self.getMaxRT(), self.getMinMZ(), self.getMaxMZ(), ms_level
+                )
+                all_rts.append(rt_arr)
+                all_mzs.append(mz_arr)
+                all_intensities.append(inty_arr)
+                all_ms_levels.append(np.full(len(rt_arr), ms_level, dtype=np.int32))
+
+            data_dict = {
+                'rt': np.concatenate(all_rts) if all_rts else np.array([], dtype=np.float32),
+                'mz': np.concatenate(all_mzs) if all_mzs else np.array([], dtype=np.float32),
+                'intensity': np.concatenate(all_intensities) if all_intensities else np.array([], dtype=np.float32),
+                'ms_level': np.concatenate(all_ms_levels) if all_ms_levels else np.array([], dtype=np.int32),
+            }
+        else:
+            # Compact format with arrays
+            rts = []
+            ms_level_list = []
+            mz_arrays = []
+            intensity_arrays = []
+
+            for spec in self:
+                if spec.getMSLevel() in ms_levels:
+                    rts.append(spec.getRT())
+                    ms_level_list.append(spec.getMSLevel())
+                    mz, inty = spec.get_peaks()
+                    mz_arrays.append(mz)
+                    intensity_arrays.append(inty)
+
+            data_dict = {
+                'rt': np.array(rts, dtype=np.float64),
+                'ms_level': np.array(ms_level_list, dtype=np.int32),
+                'mz_array': mz_arrays,  # List of arrays for Arrow list type
+                'intensity_array': intensity_arrays,
+            }
+
+        # Filter columns if requested
+        if columns is not None:
+            data_dict = {k: v for k, v in data_dict.items() if k in columns}
+
+        return pa.Table.from_pydict(data_dict)
+
+    def get_ion_df(self):
+        """
+        get_ion_df(self: MSExperiment) -> pd.DataFrame
+
+        Generates a pandas DataFrame with all MS1 peaks and their ion mobility in the MSExperiment.
+
+        Only MS level 1 spectra are exported.
+
+        :return: Feature information stored in a DataFrame
+        :rtype: pd.DataFrame
+
+        :raises ImportError: If pandas is not installed
+        """
+        try:
+            import pandas as pd
+        except ImportError:
+            raise ImportError(
+                "pandas is required for get_ion_df(). "
+                "Please install it with: pip install pandas"
+            )
+        cols = ["rt", "mz", "intensity", "ion_mobility"]
+        self.updateRanges()
+        spectraarrs2d = self.get2DPeakDataIMLong(self.getMinRT(), self.getMaxRT(), self.getMinMZ(), self.getMaxMZ(), 1)
+        return pd.DataFrame(dict(zip(cols, spectraarrs2d)))
+
+    def get_massql_df(self, ion_mobility=False):
+        """
+        get_massql_df(self: MSExperiment, ion_mobility: bool = False) -> Tuple[pd.DataFrame, pd.DataFrame]
+
+        Exports data from MSExperiment to pandas DataFrames to be used with MassQL.
+
+        The Python module massql allows queries in mass spectrometry data (MS1 and MS2
+        data frames) in a SQL like fashion (https://github.com/mwang87/MassQueryLanguage).
+
+        Both dataframes contain the columns:
+        'i': intensity of a peak
+        'i_norm': intensity normalized by the maximun intensity in the spectrum
+        'i_tic_norm': intensity normalized by the sum of intensities (TIC) in the spectrum
+        'mz': mass to charge of a peak
+        'scan': number of the spectrum
+        'rt': retention time of the spectrum
+        'polarity': ion mode of the spectrum as integer value (positive: 1, negative: 2)
+        'ion': the ionic mobility of a peak if ion parameter is True
+
+        The MS2 dataframe contains additional columns:
+        'precmz': mass to charge of the precursor ion
+        'ms1scan': number of the corresponding MS1 spectrum
+        'charge': charge of the precursor ion
+
+        :param ion_mobility: If True, returns the ion mobility of the peaks.
+        :type ion_mobility: bool
+
+        :return: ms1_df - peak data of MS1 spectra, ms2_df - peak data of MS2 spectra with precursor information
+        :rtype: Tuple[pd.DataFrame, pd.DataFrame]
+
+        :raises ImportError: If pandas is not installed
+        """
+        try:
+            import pandas as pd
+        except ImportError:
+            raise ImportError(
+                "pandas is required for get_massql_df(). "
+                "Please install it with: pip install pandas"
+            )
+        from . import IonSource as _IonSource
+        self.updateRanges()
+
+        def _get_polarity(spec):
+            '''Returns polarity as an integer value for the massql dataframe.
+
+            According to massql positive polarity is represented by 1 and negative by 2.
+
+            Parameters:
+            spec (MSSpectrum): the spectrum to extract polarity
+
+            Returns:
+            int: polarity as int value according to massql specification
+            '''
+            polarity = spec.getInstrumentSettings().getPolarity()
+            if polarity == _IonSource.Polarity.POLNULL:
+                return 0
+            elif polarity == _IonSource.Polarity.POSITIVE:
+                return 1
+            elif polarity == _IonSource.Polarity.NEGATIVE:
+                return 2
+
+        def _get_spec_arrays(mslevel):
+            '''Get spectrum data as a matrix.
+
+            Generator yields peak data from each spectrum (with specified MS level) as a numpy.ndarray.
+            Normalized intensity values are calculated and the placeholder values replaced. For 'i_norm' and
+            'i_tic_norm' the intensity values are divided by the maximum intensity value in the spectrum and
+            the sum of intensity values, respectively.
+
+            Parameters:
+            mslevel (int): only spectra with the given MS level will be considered
+
+            Yields:
+            np.ndarray: 2D array with peak data (rows) from each spectrum
+            '''
+            for scan_num, spec in enumerate(self):
+                if spec.getMSLevel() == mslevel:
+                    mz, inty = spec.get_peaks()
+                    # Safe division: handle empty spectra or all-zero intensities
+                    max_inty = np.amax(inty, initial=0)
+                    sum_inty = np.sum(inty)
+                    i_norm = np.zeros_like(inty) if max_inty == 0 else inty / max_inty
+                    i_tic_norm = np.zeros_like(inty) if sum_inty == 0 else inty / sum_inty
+                    # data for both DataFrames: i, i_norm, i_tic_norm, mz, scan, rt, polarity
+                    data = (inty, i_norm, i_tic_norm, mz, scan_num + 1, spec.getRT()/60, _get_polarity(spec))
+                    cols = 7
+                    if mslevel == 2:
+                        cols = 10
+                        # data for MS2 only: precmz, ms1scan, charge
+                        # set fallback values if no precursor is annotated (-1)
+                        if spec.getPrecursors():
+                            data += (spec.getPrecursors()[0].getMZ(), self.getPrecursorSpectrum(scan_num)+1, spec.getPrecursors()[0].getCharge())
+                        else:
+                            data += (-1, -1, -1)
+                    # create empty ndarr with shape according to MS level
+                    ndarr = np.empty(shape=(spec.size(), cols))
+                    # set column values
+                    for i in range(cols):
+                        ndarr[:,i] = data[i]
+                    yield ndarr
+
+        def _get_ion_spec_arrays(mslevel):
+            '''Get spectrum data as a matrix.
+
+            Generator yields peak data from each spectrum (with specified MS level) as a numpy.ndarray.
+            Normalized intensity values are calculated and the placeholder values replaced. For 'i_norm' and
+            'i_tic_norm' the intensity values are divided by the maximum intensity value in the spectrum and
+            the sum of intensity values, respectively.
+
+            Parameters:
+            mslevel (int): only spectra with the given MS level will be considered
+
+            Yields:
+            np.ndarray: 2D array with peak data (rows) from each spectrum
+            '''
+            for scan_num, spec in enumerate(self):
+                if spec.getMSLevel() == mslevel:
+                    mz, inty = spec.get_peaks()
+                    ion_array_idx, ion_unit = spec.getIMData()
+                    ion_data_arr = spec.getFloatDataArrays()[ion_array_idx]
+                    ion_data = ion_data_arr.get_data()
+
+                    # Safe division: handle empty spectra or all-zero intensities
+                    max_inty = np.amax(inty, initial=0)
+                    sum_inty = np.sum(inty)
+                    i_norm = np.zeros_like(inty) if max_inty == 0 else inty / max_inty
+                    i_tic_norm = np.zeros_like(inty) if sum_inty == 0 else inty / sum_inty
+                    # data for both DataFrames: i, i_norm, i_tic_norm, mz, scan, rt, polarity
+                    data = (inty, i_norm, i_tic_norm, mz, scan_num + 1, spec.getRT()/60, _get_polarity(spec), ion_data)
+                    cols = 8
+                    if mslevel == 2:
+                        cols = 11
+                        # data for MS2 only: precmz, ms1scan, charge
+                        # set fallback values if no precursor is annotated (-1)
+                        if spec.getPrecursors():
+                            data += (spec.getPrecursors()[0].getMZ(), self.getPrecursorSpectrum(scan_num)+1, spec.getPrecursors()[0].getCharge())
+                        else:
+                            data += (-1, -1, -1)
+                    # create empty ndarr with shape according to MS level
+                    ndarr = np.empty(shape=(spec.size(), cols))
+                    # set column values
+                    for i in range(cols):
+                        ndarr[:,i] = data[i]
+                    yield ndarr
+
+        # create DataFrame for MS1 and MS2 with according column names and data types
+        # if there are no spectra of given MS level return an empty DataFrame
+        dtypes = {'i': 'float32', 'i_norm': 'float32', 'i_tic_norm': 'float32', 'mz': 'float64', 'scan': 'int32', 'rt': 'float32', 'polarity': 'int32'}
+        if ion_mobility:
+            dtypes = dict(dtypes, **{"ion_mobility": "float32"})
+
+        if 1 in self.getMSLevels():
+            spec_arrays = _get_spec_arrays(1) if not ion_mobility else _get_ion_spec_arrays(1)
+            ms1_df = pd.DataFrame(np.concatenate(list(spec_arrays), axis=0), columns=dtypes.keys()).astype(dtypes)
+        else:
+            ms1_df = pd.DataFrame(columns=dtypes.keys()).astype(dtypes)
+
+        dtypes = dict(dtypes, **{'precmz': 'float64', 'ms1scan': 'int32', 'charge': 'int32'})
+        if 2 in self.getMSLevels():
+            spec_arrays = _get_spec_arrays(2) if not ion_mobility else _get_ion_spec_arrays(2)
+            ms2_df = pd.DataFrame(np.concatenate(list(spec_arrays), axis=0), columns=dtypes.keys()).astype(dtypes)
+        else:
+            ms2_df = pd.DataFrame(columns=dtypes.keys()).astype(dtypes)
+
+        return ms1_df, ms2_df

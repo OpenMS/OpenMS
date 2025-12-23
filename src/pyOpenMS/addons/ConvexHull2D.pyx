@@ -113,3 +113,27 @@ from DBoundingBox cimport DBoundingBox2 as _DBoundingBox2
             vec.push_back(p)
         self.inst.get().addPoints(vec)
 
+    def __repr__(self):
+        """
+        __repr__(self: ConvexHull2D) -> str
+        
+        Return a string representation of the ConvexHull2D object.
+
+        Returns key properties in a readable format:
+        ConvexHull2D(num_points=10, bbox=((100.0, 400.0), (110.0, 410.0)))
+        """
+        cdef libcpp_vector[_DPosition2] points = self.inst.get().getHullPoints()
+        cdef int num_points = points.size()
+        
+        parts = []
+        parts.append(f"num_points={num_points}")
+        
+        # Get bounding box if we have points (wrap in try/except for safety)
+        if num_points > 0:
+            try:
+                bbox = self.getBoundingBox2D()
+                parts.append(f"bbox={bbox}")
+            except:
+                pass  # Skip bounding box if it can't be computed
+        
+        return f"ConvexHull2D({', '.join(parts)})"

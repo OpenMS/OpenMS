@@ -93,7 +93,7 @@ public:
     /**
      * @brief Constructor
      *
-     * @param swath_boundaries A vector of SwathMaps of which only the center,
+     * @param[in] swath_boundaries A vector of SwathMaps of which only the center,
      * lower and upper attributes will be used to infer the expected Swath maps.
      *
      */

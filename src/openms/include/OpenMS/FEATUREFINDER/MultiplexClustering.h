@@ -45,24 +45,24 @@ namespace OpenMS
 
         /**
          * @brief constructor
-         * 
-         * @param exp_profile    experimental data in profile mode
-         * @param exp_picked    experimental data in centroid mode
-         * @param boundaries    peak boundaries for exp_picked
-         * @param rt_typical    elution time of a characteristic peptide in the sample
-         * 
+         *
+         * @param[in] exp_profile    experimental data in profile mode
+         * @param[in] exp_picked    experimental data in centroid mode
+         * @param[in] boundaries    peak boundaries for exp_picked
+         * @param[in] rt_typical    elution time of a characteristic peptide in the sample
+         *
          * @throw Exception::IllegalArgument if centroided data and the corresponding list of peak boundaries do not contain same number of spectra
          */
         MultiplexClustering(const MSExperiment& exp_profile, const MSExperiment& exp_picked, const std::vector<std::vector<PeakPickerHiRes::PeakBoundary> >& boundaries, double rt_typical);
         
         /**
          * @brief constructor
-         * 
-         * @param exp    experimental data in centroid mode
-         * @param mz_tolerance    margin in m/z with which the centres of the same peak in different spectra my shift (or 'jitter')
-         * @param mz_tolerance_unit    unit for mz_tolerance, ppm (true), Da (false)
-         * @param rt_typical    elution time of a characteristic peptide in the sample
-         * 
+         *
+         * @param[in] exp    experimental data in centroid mode
+         * @param[in] mz_tolerance    margin in m/z with which the centres of the same peak in different spectra my shift (or 'jitter')
+         * @param[in] mz_tolerance_unit    unit for mz_tolerance, ppm (true), Da (false)
+         * @param[in] rt_typical    elution time of a characteristic peptide in the sample
+         *
          * @throw Exception::IllegalArgument if centroided data and the corresponding list of peak boundaries do not contain same number of spectra
          */
         MultiplexClustering(const MSExperiment& exp, double mz_tolerance, bool mz_tolerance_unit, double rt_typical);
@@ -70,9 +70,9 @@ namespace OpenMS
         /**
          * @brief cluster filter results
          * Data points are grouped into clusters. Each cluster contains data about one peptide multiplet.
-         * 
-         * @param filter_results    data points relevant for peptide multiplets i.e. output from multiplex filtering
-         * 
+         *
+         * @param[in] filter_results    data points relevant for peptide multiplets i.e. output from multiplex filtering
+         *
          * @return cluster results (cluster ID, details about cluster including list of filter result IDs belonging to the cluster)
          */
         std::vector<std::map<int,GridBasedCluster> > cluster(const std::vector<MultiplexFilteredMSExperiment>& filter_results);
@@ -85,8 +85,8 @@ namespace OpenMS
             public:
             /**
             * @brief constructor
-            * 
-            * @param rt_scaling    scaling of RT coordinates before calculating Euclidean distance 
+            *
+            * @param[in] rt_scaling    scaling of RT coordinates before calculating Euclidean distance
             */
             MultiplexDistance(double rt_scaling);
        
@@ -97,9 +97,9 @@ namespace OpenMS
             
             /**
              * @brief returns Euclidean distance
-             * 
-             * @param p1    first point in the (m/z,RT) plane
-             * @param p2    second point in the (m/z,RT) plane
+             *
+             * @param[in] p1    first point in the (m/z,RT) plane
+             * @param[in] p2    second point in the (m/z,RT) plane
              * @return distance
              */
             double operator()(const Point& p1, const Point& p2) const;

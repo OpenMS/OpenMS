@@ -198,7 +198,7 @@ public:
   /// Move range of *this to min/max of @p sandbox, without changing the span, if possible.
   /// This does tighten the range unless @p sandbox's ranges are smaller than *this.
   /// Empty ranges are not modified.
-  /// @param sandbox Range to translate/move the current range into
+  /// @param[in] sandbox Range to translate/move the current range into
   /// @throw Exception::InvalidRange if @p sandbox is empty
   void pushInto(const RangeBase& sandbox)
   {
@@ -230,7 +230,7 @@ public:
 
      Scaling an empty range will not have any effect.
 
-     @param factor The multiplier to increase the range by
+     @param[in] factor The multiplier to increase the range by
   */
   void scaleBy(const double factor)
   {
@@ -589,7 +589,7 @@ public:
 
   /// copy all overlapping dimensions from @p rhs to this instance.
   /// Dimensions which are not contained in @p rhs are left untouched.
-  /// @param rhs Range to copy from
+  /// @param[in] rhs Range to copy from
   /// @return true if one or more dimensions overlapped
   template<typename... RangeBasesOther>
   bool assignUnsafe(const RangeManager<RangeBasesOther...>& rhs)
@@ -609,7 +609,7 @@ public:
 
   /// copy all overlapping dimensions from @p rhs to this instance.
   /// Dimensions which are not contained in @p rhs are left untouched.
-  /// @param rhs Range to copy from
+  /// @param[in] rhs Range to copy from
   /// @throw Exception::InvalidRange if no dimensions overlapped
   template<typename... RangeBasesOther>
   auto& assign(const RangeManager<RangeBasesOther...>& rhs)
@@ -623,7 +623,7 @@ public:
 
   /// extend all dimensions which overlap with @p rhs to contain the range of @p rhs
   /// Dimensions which are not contained in @p rhs are left untouched.
-  /// @param rhs Range to extend from
+  /// @param[in] rhs Range to extend from
   /// @return false if no dimensions overlapped
   template<typename... RangeBasesOther>
   bool extendUnsafe(const RangeManager<RangeBasesOther...>& rhs)
@@ -642,7 +642,7 @@ public:
 
   /// extend all dimensions which overlap with @p rhs to contain the range of @p rhs
   /// Dimensions which are not contained in @p rhs are left untouched.
-  /// @param rhs Range to extend from
+  /// @param[in] rhs Range to extend from
   /// @throw Exception::InvalidRange if no dimensions overlapped
   template<typename... RangeBasesOther>
   void extend(const RangeManager<RangeBasesOther...>& rhs)
@@ -676,7 +676,7 @@ public:
   /// Move range of *this to min/max of @p rhs, without changing the span, if possible.
   /// This does tighten the range unless @p rhs's ranges are smaller than *this.
   /// Dimensions which are not contained in @p rhs or are empty are left untouched.
-  /// @param rhs Range to translate/move the current range into
+  /// @param[in] rhs Range to translate/move the current range into
   /// @return true if dimensions overlapped, false otherwise
   template<typename... RangeBasesOther>
   bool pushIntoUnsafe(const RangeManager<RangeBasesOther...>& rhs)
@@ -697,7 +697,7 @@ public:
   /// Move range of *this to min/max of @p sandbox, without changing the span, if possible.
   /// This does tighten the range unless @p sandbox's ranges are smaller than *this.
   /// Dimensions which are not contained in @p sandbox or are empty are left untouched.
-  /// @param sandbox Range to translate/move the current range into
+  /// @param[in] sandbox Range to translate/move the current range into
   /// @throw Exception::InvalidRange if no dimensions overlapped
   template<typename... RangeBasesOther>
   void pushInto(const RangeManager<RangeBasesOther...>& sandbox)
@@ -711,7 +711,7 @@ public:
 
   /// Clamp min/max of all overlapping dimensions to min/max of @p rhs
   /// Dimensions which are not contained in @p rhs or where rhs is empty are left untouched.
-  /// @param rhs Range to clamp to
+  /// @param[in] rhs Range to clamp to
   /// @return true if dimensions overlapped, false otherwise
   template<typename... RangeBasesOther>
   bool clampToUnsafe(const RangeManager<RangeBasesOther...>& rhs)
@@ -732,7 +732,7 @@ public:
   /// Clamp min/max of all overlapping dimensions to min/max of @p rhs.
   /// This may tighten the range (even to a single point).
   /// Dimensions which are not contained in @p rhs or where rhs is empty are left untouched.
-  /// @param rhs Range to clamp to
+  /// @param[in] rhs Range to clamp to
   /// @throw Exception::InvalidRange if no dimensions overlapped
   template<typename... RangeBasesOther>
   void clampTo(const RangeManager<RangeBasesOther...>& rhs)
