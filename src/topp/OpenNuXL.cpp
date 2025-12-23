@@ -1591,7 +1591,7 @@ protected:
     OPENMS_PRECONDITION(partial_loss_template_z1_b_ions.size() == partial_loss_template_z1_y_ions.size(), "b- and y-ion arrays must have same size.");
     OPENMS_PRECONDITION(partial_loss_template_z1_b_ions.size() > 0, "b- and y-ion arrays must not be empty.");
 
-    auto ambigious_match = [&](const double& mz, const double z, const String& name)->bool
+    auto ambiguous_match = [&](const double& mz, const double z, const String& name)->bool
     {
       auto it = fragment_adduct2block_if_masses_present.find(name); // get vector of blocked mass lists
       if (it != fragment_adduct2block_if_masses_present.end())
@@ -1612,7 +1612,7 @@ protected:
               break;
             }
           } 
-          if (mass_list_matches) { return true; } // mass list matched every peak -> ambigious explanation
+          if (mass_list_matches) { return true; } // mass list matched every peak -> ambiguous explanation
         }
       }
       return false;
@@ -1998,7 +1998,7 @@ protected:
           // TODO move out?
           auto it = std::find(exp_spectrum.getStringDataArrays()[0].begin(), exp_spectrum.getStringDataArrays()[0].end(), fa.name);
           bool has_tag_that_matches_fragmentadduct = (it != exp_spectrum.getStringDataArrays()[0].end());
-          if (has_tag_that_matches_fragmentadduct && ambigious_match(theo_mz, z, fa.name)) continue;
+          if (has_tag_that_matches_fragmentadduct && ambiguous_match(theo_mz, z, fa.name)) continue;
 
           const double max_dist_dalton = fragment_mass_tolerance_unit_ppm ? theo_mz * fragment_mass_tolerance * 1e-6 : fragment_mass_tolerance;
           Size index = exp_spectrum.findNearest(theo_mz);
@@ -2527,7 +2527,7 @@ static void scoreXLIons_(
 
     if (!debug_file.empty())
     {
-      // output ambigious masses
+      // output ambiguous masses
       ofstream of;
       of.open(debug_file);
       of << "Ambigious residues (+adduct) masses that exactly match to other masses." << endl;
@@ -2746,7 +2746,7 @@ static void scoreXLIons_(
       std::set<std::string> tags;
       tagger.getTag(spec, tags);
       spec.getStringDataArrays().push_back({});
-      for (std::string s : tags) // map tag to ambigious fragment adduct and store
+      for (std::string s : tags) // map tag to ambiguous fragment adduct and store
       {
         std::sort(s.begin(), s.end());          
         if (const auto it = tag2ADs.find(s); it != tag2ADs.end()) 
@@ -2958,7 +2958,7 @@ static void scoreXLIons_(
     const bool fragment_mass_tolerance_unit_ppm,
     const NuXLParameterParsing::NucleotideToFragmentAdductMap& nucleotide_to_fragment_adducts)
   {
-    // check for theoretically ambigious fragment shifts: AA tags of length 1-2 without adduct that match to two AA + adduct, one AA + adduct, just an adduct
+    // check for theoretically ambiguous fragment shifts: AA tags of length 1-2 without adduct that match to two AA + adduct, one AA + adduct, just an adduct
     map<String, set<String>> tag2ADs; // AA tags that match adduct names in mass
     unordered_map<String, unordered_set<String>> ADs2tag;
     getTagToAdduct(nucleotide_to_fragment_adducts, tag2ADs, ADs2tag, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm);
@@ -2970,7 +2970,10 @@ static void scoreXLIons_(
     // annotates in spec.getFloatDataArrays()[2] / name "nucleotide_mass_tags";
     map<double, size_t> adduct_mass_count;
     map<double, size_t> aa_plus_adduct_mass_count;
-    getAdductAndAAPlusAdductMassCountsFromSpectra(nucleotide_to_fragment_adducts, exp, adduct_mass_count, aa_plus_adduct_mass_count, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, getStringOption_("in") + ".ambigious_masses.csv");
+    // Output CSV to same directory as input file
+    String input_file = getStringOption_("in");
+    String csv_file = File::path(input_file) + File::basename(input_file) + ".ambiguous_masses.csv";
+    getAdductAndAAPlusAdductMassCountsFromSpectra(nucleotide_to_fragment_adducts, exp, adduct_mass_count, aa_plus_adduct_mass_count, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, csv_file);
 
     if (debug_level_ > 0) { OPENMS_LOG_DEBUG << "Total counts per residue:" << endl; }
 
