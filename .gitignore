@@ -6,6 +6,11 @@
 *.user
 **/.DS_Store
 /**/*.canno
+# Cache files created by SwathFile with unique timestamps (YYYYMMDD_HHMMSS_hostname_pid_number.mzML)
+[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9]_*_*_*.mzML
+# SwathFile test cache files
+openswath_tmpfile_*.mzML
+tmp_osw_cached*.mzML
 _CPack_Packages
 _deps
 bin
