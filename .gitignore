@@ -1,8 +1,9 @@
 # Build artifacts and generated files
 *.cached
+*.deb
 *.pyc
 *.swp
-*.tmp.*
+*.tmp*
 *.user
 **/.DS_Store
 /**/*.canno
@@ -20,6 +21,7 @@ build-release/*
 contrib-build
 contrib_build
 DartConfiguration.tcl
+install_manifest.txt
 lib
 Makefile
 moc_*.cxx*
@@ -29,11 +31,15 @@ openms_build
 # NB: this is the build dir not src/pyOpenMS which is tracked
 pyOpenMS
 qrc_resources.cxx
+resources.qrc.depends
 src/openms/OpenMS_autogen
-src/openms_gui/OpenMS_GUI_autogen
+src/openms_gui/*_autogen
+src/openswathalgo/*_autogen
+src/tests/class_tests/openms_gui/*_autogen
 src/tests/topp/tmp_path
 src/tests/toppas/TOPPAS_out
 Testing
+thirdparty_licenses.txt
 vcpkg_installed
 
 # Generated CMake files
@@ -41,14 +47,24 @@ cmake-*-build
 cmake-build-*
 cmake_install.cmake
 CMakeCache.txt
+CMakeDoxyfile.in
+CMakeDoxygenDefaults.cmake
 CMakeFiles
+CPackConfig.cmake
+CPackSourceConfig.cmake
 CTestTestfile.cmake
+OpenMSConfig.cmake
+OpenMSConfigVersion.cmake
+OpenMSTargets.cmake
+# NOTE: Modules/ is a generated directory, but cmake/modules/ contains tracked files
+Modules/
 
 # IDE and editor files
 *.code-workspace
 .cache/*
 .clion.*
 .idea
+.qt/
 .vs
 .vscode
 OpenMS.config
@@ -63,7 +79,47 @@ doc/latex/
 doc/doxygen/parameters/
 doc/doxygen/html/
 doc/doxygen/xml/
+doc/doxygen/Doxyfile
+doc/doxygen/Doxyfile_*
+doc/doxygen/doxygen-error.log
+doc/code_examples/*.mzML
+doc/code_examples/*.consensusXML
+doc/code_examples/*.featureXML
+doc/code_examples/*.arrow
+doc/code_examples/*.csv
+doc/code_examples/*.parquet
 doc/code_examples/output/
 doc/code_examples/data/
 
-# NOTE: Modules/ contains tracked CMake module files - don't use Modules alone
+# Generated header files (CMake-configured)
+src/openms/include/OpenMS/config.h
+src/openms/include/OpenMS/OpenMSConfig.h
+src/openms/include/OpenMS/build_config*.h
+src/openms/include/OpenMS/openms_data_path.h
+src/openms/include/OpenMS/openms_package_version.h
+src/openms/extern/**/*Config.cmake
+src/openms/extern/**/*ConfigVersion.cmake
+src/openms/extern/**/*config*.cmake
+src/openms/extern/**/*.pc
+src/openms_gui/include/OpenMS/VISUAL/OpenMS_GUIConfig.h
+src/openms_gui/qrc_resources.cpp
+src/openswathalgo/include/OpenMS/OPENSWATHALGO/OpenSwathAlgoConfig.h
+
+# Log files
+*.log
+TOPP.log
+TOPPAS.log
+
+# Test data and output files
+src/tests/class_tests/*/include/OpenMS/test_config.h
+src/tests/class_tests/*/*.arrow
+src/tests/class_tests/*/*.csv
+src/tests/class_tests/*/*.parquet
+src/tests/class_tests/*/data/*.mgf
+*.ambiguous_masses.csv
+src/tests/toppas/*.trf
+
+# Test files in root (should be in proper directories)
+/test.mzML
+/test.mzData
+/test_output.log
