@@ -2075,22 +2075,8 @@ namespace OpenMS
       {
         gene_name = "NA";
       }
-      if (label_type.empty())
-      {
-        label_type = "NA";
-      }
-      if (compound_name.empty())
-      {
-        compound_name = "NA";
-      }
-      if (sum_formula.empty())
-      {
-        sum_formula = "NA";
-      }
-      if (smiles.empty())
-      {
-        smiles = "NA";
-      }
+      // Note: label_type, compound_name, sum_formula, smiles are left empty if not set
+      // (for consistency with heavy path output)
       if (adducts.empty())
       {
         adducts = "NA";
