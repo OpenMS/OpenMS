@@ -112,11 +112,7 @@ src/openswathalgo/include/OpenMS/OPENSWATHALGO/OpenSwathAlgoConfig.h
 
 # Test data and output files
 src/tests/class_tests/*/include/OpenMS/test_config.h
-src/tests/class_tests/*/*.arrow
-src/tests/class_tests/*/*.csv
-src/tests/class_tests/*/*.parquet
-src/tests/class_tests/*/data/*.mgf
-*.ambiguous_masses.csv
+src/tests/topp/OpenNuXL_1_input.mzML.ambiguous_masses.csv
 src/tests/toppas/*.trf
 
 # Test files in root (should be in proper directories)
