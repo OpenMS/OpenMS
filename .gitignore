@@ -11,7 +11,9 @@
 [0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9]_*_*_*.mzML
 # SwathFile test cache files
 openswath_tmpfile_*.mzML
-tmp_osw_cached*.mzML
+tmp_osw_cached_*.mzML
+tmp_osw_cached*.mzML.cached
+tmp_osw_cached_ms1.mzML*
 _CPack_Packages
 _deps
 bin

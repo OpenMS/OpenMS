@@ -2530,7 +2530,7 @@ static void scoreXLIons_(
       // output ambiguous masses
       ofstream of;
       of.open(debug_file);
-      of << "Ambigious residues (+adduct) masses that exactly match to other masses." << endl;
+      of << "Ambiguous residues (+adduct) masses that exactly match to other masses." << endl;
       of << "Total\tResidue\tAdduct" << endl;
       for (auto& m : aa_plus_adduct_mass)
       {
@@ -2972,7 +2972,16 @@ static void scoreXLIons_(
     map<double, size_t> aa_plus_adduct_mass_count;
     // Output CSV to same directory as input file
     String input_file = getStringOption_("in");
-    String csv_file = File::path(input_file) + File::basename(input_file) + ".ambiguous_masses.csv";
+    String dir = File::path(input_file);
+    String csv_file;
+    if (dir == ".")
+    {
+      csv_file = File::basename(input_file) + ".ambiguous_masses.csv";
+    }
+    else
+    {
+      csv_file = dir + "/" + File::basename(input_file) + ".ambiguous_masses.csv";
+    }
     getAdductAndAAPlusAdductMassCountsFromSpectra(nucleotide_to_fragment_adducts, exp, adduct_mass_count, aa_plus_adduct_mass_count, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, csv_file);
 
     if (debug_level_ > 0) { OPENMS_LOG_DEBUG << "Total counts per residue:" << endl; }
