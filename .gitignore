@@ -1,6 +1,8 @@
 # Build artifacts and generated files
+*.cached
 *.pyc
 *.swp
+*.tmp.*
 *.user
 **/.DS_Store
 /**/*.canno
@@ -10,10 +12,6 @@ bin
 build
 build-debug/*
 build-release/*
-cmake-*-build
-cmake-build-*
-CMakeCache.txt
-CMakeFiles
 contrib-build
 contrib_build
 DartConfiguration.tcl
@@ -23,11 +21,23 @@ moc_*.cxx*
 OpenMS-build/*
 openms-build
 openms_build
+# NB: this is the build dir not src/pyOpenMS which is tracked
+pyOpenMS
 qrc_resources.cxx
 src/openms/OpenMS_autogen
 src/openms_gui/OpenMS_GUI_autogen
+src/tests/topp/tmp_path
+src/tests/toppas/TOPPAS_out
 Testing
 vcpkg_installed
+
+# Generated CMake files
+cmake-*-build
+cmake-build-*
+cmake_install.cmake
+CMakeCache.txt
+CMakeFiles
+CTestTestfile.cmake
 
 # IDE and editor files
 *.code-workspace
@@ -45,6 +55,7 @@ OpenMS.includes
 doc/html/
 doc/xml/
 doc/latex/
+doc/doxygen/parameters/
 doc/doxygen/html/
 doc/doxygen/xml/
 doc/code_examples/output/
