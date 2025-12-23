@@ -489,7 +489,12 @@ namespace OpenMS
         Size start_idx(lower_it - mz_keys.begin());
         Size end_idx(upper_it - mz_keys.begin());
 
-        OPENMS_LOG_DEBUG << "identifying " << msexp[spec_idx].getMetaValue("GNPS_Spectrum_ID") << endl;
+        {
+          String id_to_log = msexp[spec_idx].metaValueExists("GNPS_Spectrum_ID")
+            ? msexp[spec_idx].getMetaValue("GNPS_Spectrum_ID").toString()
+            : msexp[spec_idx].getNativeID();
+          OPENMS_LOG_DEBUG << "identifying " << id_to_log << endl;
+        }
 
         vector<SpectralMatch> partial_results;
 
@@ -507,14 +512,19 @@ namespace OpenMS
           OPENMS_LOG_DEBUG << endl;
           
           String metabolite_name = "";
-          if (spec_db[search_idx].metaValueExists("Metabolite_Name")) {
-            metabolite_name = spec_db[search_idx].getMetaValue("Metabolite_Name").toString();
+          if (spec_db[search_idx].metaValueExists(Constants::UserParam::MSM_METABOLITE_NAME)) {
+            metabolite_name = spec_db[search_idx]
+                                .getMetaValue(Constants::UserParam::MSM_METABOLITE_NAME)
+                                .toString();
           } else if (spec_db[search_idx].metaValueExists("GNPS_Spectrum_ID")) {
-            metabolite_name = spec_db[search_idx].getMetaValue("GNPS_Spectrum_ID").toString();
+            metabolite_name = spec_db[search_idx]
+                                .getMetaValue("GNPS_Spectrum_ID")
+                                .toString();
           }
-          
-          OPENMS_LOG_DEBUG << "scanning " << spec_db[search_idx].getPrecursors()[0].getMZ() << " " << metabolite_name << endl;
 
+          OPENMS_LOG_DEBUG << "scanning "
+                           << spec_db[search_idx].getPrecursors()[0].getMZ()
+                           << " " << metabolite_name << endl;
           // check for charge state of precursor ions: do they match?
           if ( (ion_mode_ == "positive" && spec_db[search_idx].getPrecursors()[0].getCharge() < 0) || (ion_mode_ == "negative" && spec_db[search_idx].getPrecursors()[0].getCharge() > 0))
           {
@@ -552,19 +562,27 @@ namespace OpenMS
             tmp_match.setMatchingSpectrumIndex(search_idx);
             tmp_match.setObservedSpectrumNativeID(msexp[spec_idx].getNativeID());
 
-            tmp_match.setPrimaryIdentifier(spec_db[search_idx].getMetaValue("GNPS_Spectrum_ID"));
+            String primary_id_value;
+            if (spec_db[search_idx].metaValueExists("GNPS_Spectrum_ID"))
+            {
+              primary_id_value = spec_db[search_idx].getMetaValue("GNPS_Spectrum_ID").toString();
+            }
+            else if (spec_db[search_idx].metaValueExists("Massbank_Accession_ID"))
+            {
+              primary_id_value = spec_db[search_idx].getMetaValue("Massbank_Accession_ID").toString();
+            }
+            else if (spec_db[search_idx].metaValueExists(Constants::UserParam::MSM_METABOLITE_NAME))
+            {
+              primary_id_value = spec_db[search_idx].getMetaValue(Constants::UserParam::MSM_METABOLITE_NAME).toString();
+            }
+            else
+            {
+              primary_id_value = spec_db[search_idx].getNativeID();
+            }
+            tmp_match.setPrimaryIdentifier(primary_id_value);
             tmp_match.setSecondaryIdentifier(spec_db[search_idx].getMetaValue("HMDB_ID"));
             tmp_match.setSumFormula(spec_db[search_idx].getMetaValue(Constants::UserParam::MSM_SUM_FORMULA));
-            
-            // Use the same fallback logic that's already working for logging
-            String common_name_value = "";
-            if (spec_db[search_idx].metaValueExists("Metabolite_Name")) {
-              common_name_value = spec_db[search_idx].getMetaValue("Metabolite_Name").toString();
-            } else if (spec_db[search_idx].metaValueExists("GNPS_Spectrum_ID")) {
-              common_name_value = spec_db[search_idx].getMetaValue("GNPS_Spectrum_ID").toString();
-            }
-            tmp_match.setCommonName(common_name_value);
-            
+            tmp_match.setCommonName(metabolite_name);
             tmp_match.setInchiString(spec_db[search_idx].getMetaValue(Constants::UserParam::MSM_INCHI_STRING));
             tmp_match.setSMILESString(spec_db[search_idx].getMetaValue(Constants::UserParam::MSM_SMILES_STRING));
             tmp_match.setPrecursorAdduct(spec_db[search_idx].getMetaValue(Constants::UserParam::MSM_PRECURSOR_ADDUCT));
