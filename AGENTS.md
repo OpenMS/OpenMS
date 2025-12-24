@@ -1,21 +1,89 @@
 # OpenMS Agent Notes
 
-This file summarizes repo-specific conventions and workflows for contributors and automated changes. It is intentionally concise; use the linked docs for full details.
+This file provides context and instructions for AI coding agents working on OpenMS. It follows the [AGENTS.md](https://agents.md) standard and is intentionally concise; use the linked docs for full details.
 
-## Key docs in this repo/build
+## Critical Constraints
+
+**NEVER do these things:**
+- Build the project unless explicitly asked (extremely resource-intensive)
+- Modify files in `src/openms/extern/` (third-party vendored code)
+- Commit secrets, credentials, or `.env` files
+- Use `std::cout`/`std::cerr` directly (use OpenMS logging macros)
+- Use `std::endl` (use `\n` for performance)
+- Add `using namespace` or `using std::...` in header files
+- Modify the contrib tree or third-party dependencies
+- Skip tests when making code changes
+
+## Quick Commands
+
+```bash
+# Configure (from OpenMS-build/ directory, adjust paths as needed)
+cmake -DCMAKE_BUILD_TYPE=Debug ../OpenMS
+
+# Build everything (includes tests)
+cmake --build . -j$(nproc)
+
+# Run all tests
+ctest -j$(nproc)
+
+# Run specific test by name pattern
+ctest -R FeatureMap -j4
+
+# Run tests with verbose output
+ctest -R MyTest -V
+
+# Run style checks
+cmake --build . --target test_style
+
+# Regenerate pyOpenMS after changes
+rm pyOpenMS/.cpp_extension_generated
+cmake --build . --target pyopenms -j4
+
+# Run pyOpenMS tests
+ctest -R pyopenms
+
+# Check code formatting
+clang-format --dry-run -Werror src/openms/source/MYFILE.cpp
+```
+
+## Key Docs in This Repo
+
 - `README.md`, `CONTRIBUTING.md`, `ARCHITECTURE.MD`, `CODE_OF_CONDUCT.md`, `PULL_REQUEST_TEMPLATE.md`.
 - `src/pyOpenMS/README.md`, `src/pyOpenMS/README_WRAPPING_NEW_CLASSES`.
 - `share/OpenMS/examples/external_code/README.md`, `src/tests/external/README.md`.
 - `dockerfiles/README.md`, `cmake/MacOSX/README.md`, `tools/jenkins/README.MD`.
 - Doxygen (if built) in `OpenMS-build/doc/html/` including `index.html`, `developer_coding_conventions.html`, `developer_cpp_guide.html`, `developer_how_to_write_tests.html`, `howto_commit_messages.html`, `developer_faq.html`, `developer_tutorial.html`, `install_linux.html`, `install_mac.html`, `install_win.html`, `pyOpenMS.html`.
 
-## Repo layout (high signal)
+## Repo Layout
+
 - Default build directory: `OpenMS-build/` (out-of-tree).
 - Core C++: `src/openms/`, `src/openms_gui/`, `src/openswathalgo/`, `src/topp/`.
 - Tests: `src/tests/class_tests/openms/`, `src/tests/class_tests/openms_gui/`, `src/tests/topp/`.
 - pyOpenMS: `src/pyOpenMS/` with `pxds/`, `addons/`, `pyopenms/`, `tests/`.
 
-## Build and install (summary)
+```
+OpenMS/
+├── src/
+│   ├── openms/              # Core C++ library
+│   │   ├── include/OpenMS/  # Headers (.h)
+│   │   └── source/          # Implementation (.cpp)
+│   ├── openms_gui/          # Qt-based GUI components
+│   ├── openswathalgo/       # OpenSWATH algorithms
+│   ├── topp/                # Command-line tools (TOPP)
+│   ├── pyOpenMS/            # Python bindings
+│   │   ├── pxds/            # .pxd declarations for autowrap
+│   │   ├── addons/          # Python-only method additions
+│   │   └── tests/           # Python tests
+│   └── tests/
+│       ├── class_tests/openms/source/  # C++ unit tests
+│       └── topp/            # TOPP integration tests
+├── cmake/                   # CMake modules
+├── doc/                     # Documentation source
+└── share/OpenMS/            # Runtime data files
+```
+
+## Build and Install
+
 - Out-of-tree build expected in `OpenMS-build/`; build in place for development (install prefixes are for system installs).
 - Use `CMAKE_BUILD_TYPE=Debug` for development to keep assertions/pre/post-conditions.
 - Dependencies via distro packages or the contrib tree; set `OPENMS_CONTRIB_LIBS` and `CMAKE_PREFIX_PATH` as needed (Qt, contrib).
@@ -26,6 +94,7 @@ This file summarizes repo-specific conventions and workflows for contributors an
 - Style checks: `ENABLE_STYLE_TESTING=ON` runs cpplint at `src/tests/coding/cpplint.py`.
 
 ## Testing
+
 - Unit/class tests: `src/tests/class_tests/<lib>/source/`, add to `executables.cmake`; data in `src/tests/class_tests/libs/data/` (prefix files with class name).
 - TOPP tests: add to `src/tests/topp/CMakeLists.txt`, data in `src/tests/topp/`.
 - GUI tests: `src/tests/class_tests/openms_gui/source/` (Qt TestLib).
@@ -37,7 +106,34 @@ This file summarizes repo-specific conventions and workflows for contributors an
 - `START_SECTION` macro pitfalls: wrap template methods with 2+ arguments in parentheses.
 - pyOpenMS tests: `ctest -R pyopenms` or `pytest` with `PYTHONPATH=/path/to/OpenMS-build/pyOpenMS` (run outside the source tree to avoid shadowing).
 
-## Coding conventions (Doxygen)
+**Unit test example:**
+```cpp
+// src/tests/class_tests/openms/source/MyClass_test.cpp
+#include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/PATH/TO/MyClass.h>
+
+START_TEST(MyClass, "$Id$")
+
+MyClass* ptr = nullptr;
+
+START_SECTION(MyClass())
+  ptr = new MyClass();
+  TEST_NOT_EQUAL(ptr, nullptr)
+END_SECTION
+
+START_SECTION(void process(const MSSpectrum&))
+  MSSpectrum spec;
+  spec.push_back(Peak1D(100.0, 1000.0));
+  ptr->process(spec);
+  TEST_EQUAL(spec.size(), 1)
+END_SECTION
+
+delete ptr;
+END_TEST
+```
+
+## Coding Conventions
+
 - Indentation: 2 spaces, no tabs; Unix line endings.
 - Spacing: after keywords (`if`, `for`) and around binary operators.
 - Braces: opening/closing braces align; use braces even for single-line blocks (trivial one-liners may stay single-line).
@@ -57,7 +153,64 @@ This file summarizes repo-specific conventions and workflows for contributors an
 - Each file preamble contains the `$Maintainer:$` marker.
 - Formatting: use `./.clang-format` in supporting IDEs.
 
-## C++ guide (OpenMS-specific)
+**Naming examples:**
+```cpp
+// Classes/Types/Namespaces: PascalCase
+class FeatureMap;
+namespace OpenMS { }
+
+// Methods: lowerCamelCase
+void processSpectrum();
+
+// Variables: snake_case
+int peak_count = 0;
+
+// Private/protected members: trailing underscore
+double intensity_;
+
+// Enums/macros: UPPER_SNAKE_CASE
+enum class Status { RUNNING, COMPLETE };
+#define OPENMS_DLLAPI
+```
+
+**File structure example:**
+```cpp
+// MyClass.h - Header file
+#pragma once
+#include <OpenMS/KERNEL/MSSpectrum.h>
+
+namespace OpenMS
+{
+  class OPENMS_DLLAPI MyClass  // Export macro required
+  {
+  public:
+    MyClass();
+    void process(const MSSpectrum& spectrum);
+
+  private:
+    double threshold_;  // Trailing underscore
+  };
+}
+
+// MyClass.cpp - Implementation file
+#include <OpenMS/PATH/TO/MyClass.h>
+using namespace OpenMS;  // OK in .cpp files
+
+MyClass::MyClass() : threshold_(0.0) {}
+
+void MyClass::process(const MSSpectrum& spectrum)
+{
+  // 2-space indentation, braces on own lines
+  if (spectrum.empty())
+  {
+    OPENMS_LOG_WARN << "Empty spectrum\n";  // Use logging macros
+    return;
+  }
+}
+```
+
+## C++ Guide (OpenMS-specific)
+
 - `OPENMS_DLLAPI` on all non-template exported classes/structs/functions/vars; not on templates; include in friend operator declarations.
 - Use OpenMS logging macros and `OpenMS::LogStream`; avoid `std::cout/err` directly.
 - Use `ProgressLogger` in tools for progress reporting.
@@ -67,14 +220,16 @@ This file summarizes repo-specific conventions and workflows for contributors an
 - Avoid pointers; prefer references.
 - Prefer forward declarations in headers; include only base class headers, non-pointer members, and templates.
 
-## TOPP tool development
+## TOPP Tool Development
+
 - Add new tool source (e.g., `src/topp/<Tool>.cpp`) and register in `src/topp/executables.cmake`.
 - Register tool in `src/openms/source/APPLICATIONS/ToolHandler.cpp` to generate Doxygen help output.
 - Define parameters in `registerOptionsAndFlags_()`; read with `getStringOption_` and related helpers.
 - Document the tool and add to `doc/doxygen/public/TOPP.doxygen` where applicable.
 - Add TOPP tests in `src/tests/topp/CMakeLists.txt`.
 
-## pyOpenMS wrapping
+## pyOpenMS Wrapping
+
 - Autowrap reads `.pxd` in `src/pyOpenMS/pxds/` and generates `pyopenms/pyopenms.pyx` -> `pyopenms.cpp` -> module.
 - Addons in `src/pyOpenMS/addons/` inject Python-only methods (indent only; no `cdef class`).
 - Keep `.pxd` signatures in sync with C++ APIs; update or remove `wrap-ignore` when wrapping changes.
@@ -93,14 +248,16 @@ This file summarizes repo-specific conventions and workflows for contributors an
   cmake --build OpenMS-build --target pyopenms -j4
   ```
 
-## Change-impact checklist (agent quick wins)
+## Change-Impact Checklist
+
 - New C++ class: add `.h`/`.cpp`, Doxygen docs, class test, `OPENMS_DLLAPI`, register in CMake lists.
 - C++ API change: update `.pxd`/addons, pyOpenMS tests, and relevant docs; tag commits with `API` as needed.
 - New/changed TOPP tool: register in `src/topp/executables.cmake` and `ToolHandler.cpp`, add docs, add TOPP tests and data.
 - Parameter or I/O change: update tool docs/CTD, tests, and `CHANGELOG`; use `PARAM`/`IO` commit tags.
 - File format change: update `FileHandler::NamesOfTypes[]`, schemas/validators, and tests.
 
-## Contribution workflow and commit messages
+## Contribution Workflow and Commit Messages
+
 - Development follows Gitflow; use forks and open PRs against `develop`.
 - Commit format: `[TAG1,TAG2] short summary` (<=120 chars, <=80 preferred), blank line, longer description, and `Fixes #N`/`Closes #N` when applicable.
 - Commit tags: NOP, DOC, COMMENT, API, INTERNAL, FEATURE, FIX, TEST, FORMAT, PARAM, IO, LOG, GUI, RESOURCE, BUILD.
@@ -108,25 +265,51 @@ This file summarizes repo-specific conventions and workflows for contributors an
 - Minimize pushes on open PRs (CI is heavy).
 - Run `tools/checker.php` and/or `ENABLE_STYLE_TESTING` for local checks.
 
-## Debugging and profiling
+**Commit message example:**
+```
+[TAG1,TAG2] Short summary (<=80 chars preferred)
+
+Longer description explaining why, not what.
+
+Fixes #123
+```
+
+## Debugging and Profiling
+
 - Linux: use `ldd` to inspect shared libs; `nm -C` for symbols; `perf`/`hotspot` for profiling.
 - Windows: Dependency Walker or `dumpbin /DEPENDENTS` and `dumpbin /EXPORTS`.
 - Memory checks: AddressSanitizer or valgrind with `tools/valgrind/openms_external.supp`.
 
-## External projects and examples
+```bash
+# Linux: inspect shared libraries
+ldd /path/to/binary
+nm -C /path/to/library.so | grep MySymbol
+
+# Memory checking
+valgrind --suppressions=tools/valgrind/openms_external.supp ./MyTest
+
+# Profile with perf
+perf record -g ./MyTool input.mzML
+perf report
+```
+
+## External Projects and Examples
+
 - Example external CMake project: `share/OpenMS/examples/external_code/`.
 - External test project: `src/tests/external/`.
 - Use the same compiler/generator as OpenMS; set `OPENMS_CONTRIB_LIBS` and `OpenMS_DIR` when configuring.
 
-## CI, packaging, and containers
+## CI, Packaging, and Containers
+
 - CI runs in GitHub Actions; CDash collects nightly results.
 - Jenkins packaging uses `tools/jenkins/os_compiler_matrix.tsv` (edit only if needed).
 - PR commands/labels: `/reformat`, label `NoJenkins`, comment `rebuild jenkins`.
 - Container images: see `dockerfiles/README.md` and GHCR packages.
 - macOS code signing/notarization: see `cmake/MacOSX/README.md`.
 
-## Documentation links (external)
-### OpenMS docs
+## Documentation Links (External)
+
+### OpenMS Docs
 - http://www.openms.org/
 - http://www.OpenMS.de
 - https://openms.readthedocs.io/en/latest
@@ -139,7 +322,7 @@ This file summarizes repo-specific conventions and workflows for contributors an
 - https://abibuilder.cs.uni-tuebingen.de/archive/openms/OpenMSInstaller/nightly/
 - http://www.psidev.info/
 
-### Doxygen developer pages (release/latest)
+### Doxygen Developer Pages (release/latest)
 - https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/developer_tutorial.html
 - https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/developer_coding_conventions.html
 - https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/developer_cpp_guide.html
@@ -147,7 +330,7 @@ This file summarizes repo-specific conventions and workflows for contributors an
 - https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/howto_commit_messages.html
 - https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/developer_faq.html
 
-### Developer workflow and contribution
+### Developer Workflow and Contribution
 - https://github.com/OpenMS/OpenMS
 - https://github.com/OpenMS/OpenMS/issues
 - https://github.com/OpenMS/OpenMS/wiki#-for-developers
@@ -165,7 +348,7 @@ This file summarizes repo-specific conventions and workflows for contributors an
 - http://cdash.seqan.de/index.php?project=OpenMS
 - https://github.com/OpenMS/OpenMS/tags
 
-### Build/install guides
+### Build/Install Guides
 - https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/install_linux.html
 - https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/install_mac.html
 - https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/install_win.html
@@ -182,7 +365,7 @@ This file summarizes repo-specific conventions and workflows for contributors an
 - https://brew.sh/
 - http://www.OpenMS.de/download/
 
-### Coding and tooling
+### Coding and Tooling
 - https://clang.llvm.org/docs/ClangFormat.html
 - https://devblogs.microsoft.com/cppblog/clangformat-support-in-visual-studio-2017-15-7-preview-1/
 - https://git-scm.com/
@@ -192,7 +375,7 @@ This file summarizes repo-specific conventions and workflows for contributors an
 - https://docs.microsoft.com/en-us/cpp/error-messages/compiler-errors-1/compiler-error-c2471?view=msvc-170
 - https://github.com/OpenMS/autowrap/blob/master/docs/README.md
 
-### Testing and profiling tools
+### Testing and Profiling Tools
 - https://openms.readthedocs.io/en/latest/docs/topp/adding-new-tool-to-topp.html#how-do-I-add-a-new-TOPP-test
 - https://perf.wiki.kernel.org/index.php/Main_Page
 - https://github.com/KDAB/hotspot
@@ -201,7 +384,7 @@ This file summarizes repo-specific conventions and workflows for contributors an
 - https://github.com/cbielow/wintime
 - http://www.dependencywalker.com/
 
-### Packaging and containers
+### Packaging and Containers
 - https://github.com/orgs/OpenMS/packages
 - https://github.com/OpenMS/NSIS
 - http://miktex.org/
