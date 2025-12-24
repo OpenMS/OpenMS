@@ -302,10 +302,6 @@ namespace OpenMS
     };
     constexpr int aa_size = 17;
 
-    static boost::mt19937 generator(42);
-    static boost::uniform_int<> uni_dist;
-    static boost::variate_generator<boost::mt19937&, boost::uniform_int<> > pseudoRNG(generator, uni_dist);
-
     if (sequence.empty()) return;
 
     Size lastAA = sequence.size() - 1;
@@ -319,8 +315,16 @@ namespace OpenMS
     }
     else
     {
-      // Randomize
-      int res_pos = (pseudoRNG() % aa_size);
+      // Use portable FNV-1a hash of sequence to deterministically select replacement AA.
+      // This ensures the same peptide always gets the same replacement regardless of
+      // processing order, making results reproducible across platforms (including ARM64).
+      uint64_t hash = 14695981039346656037ULL; // FNV offset basis
+      for (char c : sequence)
+      {
+        hash ^= static_cast<uint64_t>(c);
+        hash *= 1099511628211ULL; // FNV prime
+      }
+      int res_pos = static_cast<int>(hash % aa_size);
       sequence[lastAA] = aa[res_pos][0];
     }
   }
