@@ -157,8 +157,9 @@ CMAKE_PREFIX_PATH = "${CMAKE_PREFIX_PATH}"
 # OpenMS_ROOT can also be set via environment
 OpenMS_ROOT = "${OpenMS_ROOT}"
 
+# Disable stub generation - OpenMS has its own stubs
 [tool.py-build-cmake.stubgen]
-args = ["-v"]
+enabled = false
 
 #------------------------------------------------------------------------------
 # cibuildwheel configuration
