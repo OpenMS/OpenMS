@@ -1943,12 +1943,8 @@ namespace OpenMS
       {
         gene_name = "NA";
       }
-      // Note: label_type, compound_name, sum_formula, smiles are left empty if not set
+      // Note: label_type, compound_name, sum_formula, smiles, adducts are left empty if not set
       // (for consistency with heavy path output)
-      if (adducts.empty())
-      {
-        adducts = "NA";
-      }
       if (peptide_sequence.empty())
       {
         peptide_sequence = "NA";
@@ -1958,9 +1954,9 @@ namespace OpenMS
         full_peptide_name = "NA";
       }
 
-      // Join protein names/uniprot ids, use "NA" if empty
+      // Join protein names (use "NA" if empty) and uniprot ids (leave empty if not set, for consistency with heavy path)
       String protein_names_str = protein_names.empty() ? "NA" : ListUtils::concatenate(protein_names, ";");
-      String uniprot_ids_str = uniprot_ids.empty() ? "NA" : ListUtils::concatenate(uniprot_ids, ";");
+      String uniprot_ids_str = ListUtils::concatenate(uniprot_ids, ";");
 
       String line;
       line +=
