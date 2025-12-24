@@ -1191,4 +1191,924 @@ namespace OpenMS
     exp.setTransitions(filtered_transitions);
   }
 
+  // =====================================================================
+  // Light (memory-efficient) versions of the above methods
+  // =====================================================================
+
+  void MRMAssay::reannotateTransitionsLight(OpenSwath::LightTargetedExperiment& exp,
+                                            double precursor_mz_threshold,
+                                            double product_mz_threshold,
+                                            const std::vector<String>& fragment_types,
+                                            const std::vector<size_t>& fragment_charges,
+                                            bool enable_specific_losses,
+                                            bool enable_unspecific_losses,
+                                            int round_decPow)
+  {
+    std::vector<OpenSwath::LightTransition> transitions;
+    OpenMS::MRMIonSeries mrmis;
+
+    // Build compound map for quick lookup
+    std::map<std::string, const OpenSwath::LightCompound*> compound_map;
+    for (const auto& compound : exp.compounds)
+    {
+      compound_map[compound.id] = &compound;
+    }
+
+    // Group transitions by peptide_ref
+    std::map<std::string, std::vector<OpenSwath::LightTransition*>> peptide_trans_map;
+    for (auto& tr : exp.transitions)
+    {
+      peptide_trans_map[tr.peptide_ref].push_back(&tr);
+    }
+
+    Size progress = 0;
+    startProgress(0, exp.transitions.size(), "Annotating transitions (Light)");
+
+    for (auto& pep_it : peptide_trans_map)
+    {
+      const std::string& peptide_ref = pep_it.first;
+
+      // Get compound
+      auto comp_it = compound_map.find(peptide_ref);
+      if (comp_it == compound_map.end() || !comp_it->second->isPeptide())
+      {
+        // Skip non-peptide compounds (metabolomics) - just keep transitions as-is
+        for (auto* tr : pep_it.second)
+        {
+          setProgress(++progress);
+          transitions.push_back(*tr);
+        }
+        continue;
+      }
+
+      const OpenSwath::LightCompound* compound = comp_it->second;
+      OpenMS::AASequence target_peptide_sequence;
+      try
+      {
+        target_peptide_sequence = AASequence::fromString(compound->sequence);
+      }
+      catch (Exception::InvalidValue&)
+      {
+        // Can't parse sequence, keep transitions as-is
+        for (auto* tr : pep_it.second)
+        {
+          setProgress(++progress);
+          transitions.push_back(*tr);
+        }
+        continue;
+      }
+
+      int precursor_charge = compound->charge > 0 ? compound->charge : 1;
+
+      MRMIonSeries::IonSeries target_ionseries = mrmis.getIonSeries(
+          target_peptide_sequence, precursor_charge, fragment_types,
+          fragment_charges, enable_specific_losses,
+          enable_unspecific_losses, round_decPow);
+
+      // Generate theoretical precursor m/z
+      double precursor_mz = target_peptide_sequence.getMZ(precursor_charge);
+      precursor_mz = Math::roundDecimal(precursor_mz, round_decPow);
+
+      for (auto* tr : pep_it.second)
+      {
+        setProgress(++progress);
+
+        // Annotate transition from theoretical ion series
+        std::pair<String, double> targetion = mrmis.annotateIon(target_ionseries, tr->product_mz, product_mz_threshold);
+
+        // Ensure that precursor m/z is within threshold
+        if (std::fabs(tr->precursor_mz - precursor_mz) > precursor_mz_threshold)
+        {
+          targetion.first = "unannotated";
+        }
+
+        // Skip unannotated transitions
+        if (targetion.first == "unannotated")
+        {
+          OPENMS_LOG_DEBUG << "[unannotated] Skipping " << target_peptide_sequence.toString()
+            << " PrecursorMZ: " << tr->precursor_mz << " ProductMZ: " << tr->product_mz << std::endl;
+          continue;
+        }
+
+        OpenSwath::LightTransition new_tr = *tr;
+
+        // Set precursor m/z to theoretical value
+        new_tr.precursor_mz = precursor_mz;
+
+        // Set product m/z to theoretical value
+        new_tr.product_mz = targetion.second;
+
+        // Parse fragment type/number/charge from annotation
+        // Format examples: "y7", "b3^1", "y5^2", "y5-H2O1"
+        std::string annotation = targetion.first;
+        if (!annotation.empty())
+        {
+          new_tr.setFragmentType(annotation.substr(0, 1));
+
+          // Extract fragment number
+          std::string num_str;
+          size_t i = 1;
+          for (; i < annotation.size() && std::isdigit(annotation[i]); ++i)
+          {
+            num_str += annotation[i];
+          }
+          if (!num_str.empty())
+          {
+            new_tr.fragment_nr = static_cast<int16_t>(std::stoi(num_str));
+          }
+          // Extract charge after '^'
+          if (i < annotation.size() && annotation[i] == '^')
+          {
+            std::string charge_str;
+            for (size_t j = i + 1; j < annotation.size() && std::isdigit(annotation[j]); ++j)
+            {
+              charge_str += annotation[j];
+            }
+            if (!charge_str.empty())
+            {
+              new_tr.fragment_charge = static_cast<int8_t>(std::stoi(charge_str));
+            }
+          }
+        }
+
+        transitions.push_back(new_tr);
+      }
+    }
+    endProgress();
+
+    exp.transitions = std::move(transitions);
+  }
+
+  void MRMAssay::restrictTransitionsLight(OpenSwath::LightTargetedExperiment& exp,
+                                          double lower_mz_limit,
+                                          double upper_mz_limit,
+                                          const std::vector<std::pair<double, double> >& swathes)
+  {
+    std::vector<OpenSwath::LightTransition> transitions;
+
+    // Build compound map for quick lookup
+    std::map<std::string, const OpenSwath::LightCompound*> compound_map;
+    for (const auto& compound : exp.compounds)
+    {
+      compound_map[compound.id] = &compound;
+    }
+
+    Size progress = 0;
+    startProgress(0, exp.transitions.size(), "Restricting transitions (Light)");
+
+    for (const auto& tr : exp.transitions)
+    {
+      setProgress(++progress);
+
+      // Check if product m/z falls into swath from precursor m/z and if yes, skip
+      if (!swathes.empty())
+      {
+        if (MRMAssay::isInSwath_(swathes, tr.precursor_mz, tr.product_mz))
+        {
+          OPENMS_LOG_DEBUG << "[swath] Skipping PrecursorMZ: " << tr.precursor_mz << " ProductMZ: " << tr.product_mz << std::endl;
+          continue;
+        }
+      }
+
+      // Check if product m/z is outside of m/z boundaries and if yes, skip
+      if (tr.product_mz < lower_mz_limit || tr.product_mz > upper_mz_limit)
+      {
+        OPENMS_LOG_DEBUG << "[mz_limit] Skipping PrecursorMZ: " << tr.precursor_mz << " ProductMZ: " << tr.product_mz << std::endl;
+        continue;
+      }
+
+      // Append transition
+      transitions.push_back(tr);
+    }
+
+    exp.transitions = std::move(transitions);
+    endProgress();
+  }
+
+  void MRMAssay::detectingTransitionsLight(OpenSwath::LightTargetedExperiment& exp,
+                                           int min_transitions,
+                                           int max_transitions)
+  {
+    std::vector<OpenSwath::LightTransition> transitions;
+    std::vector<OpenSwath::LightCompound> compounds;
+    std::vector<OpenSwath::LightProtein> proteins;
+
+    std::unordered_set<std::string> peptide_ids;
+    std::unordered_set<std::string> protein_list;
+
+    // Group transitions by peptide_ref
+    std::map<std::string, std::vector<OpenSwath::LightTransition>> transitions_map;
+    for (const auto& tr : exp.transitions)
+    {
+      transitions_map[tr.peptide_ref].push_back(tr);
+    }
+
+    Size progress = 0;
+    startProgress(0, transitions_map.size() + exp.compounds.size() + exp.proteins.size(), "Select detecting transitions (Light)");
+
+    for (auto& m : transitions_map)
+    {
+      setProgress(++progress);
+
+      // Ensure that all precursors have the minimum number of transitions
+      if (m.second.size() >= static_cast<size_t>(min_transitions))
+      {
+        // LibraryIntensity stores all reference transition intensities of a precursor
+        std::vector<double> library_intensity;
+        for (const auto& tr : m.second)
+        {
+          library_intensity.push_back(tr.library_intensity);
+        }
+
+        // Sort by intensity, reverse and delete all elements after max_transitions
+        std::sort(library_intensity.begin(), library_intensity.end(), std::greater<double>());
+        if (static_cast<size_t>(max_transitions) < library_intensity.size())
+        {
+          library_intensity.resize(max_transitions);
+        }
+
+        // Check if transitions are among the ones with maximum intensity
+        size_t j = 0;
+        for (auto& tr : m.second)
+        {
+          if (std::find(library_intensity.begin(), library_intensity.end(), tr.library_intensity) != library_intensity.end() &&
+              !tr.getDecoy() &&
+              j < static_cast<size_t>(max_transitions))
+          {
+            tr.setDetectingTransition(true);
+            transitions.push_back(tr);
+            peptide_ids.insert(tr.peptide_ref);
+            j++;
+          }
+        }
+      }
+    }
+
+    // Build compound map
+    std::map<std::string, const OpenSwath::LightCompound*> compound_map;
+    for (const auto& compound : exp.compounds)
+    {
+      compound_map[compound.id] = &compound;
+    }
+
+    for (const auto& compound : exp.compounds)
+    {
+      setProgress(++progress);
+
+      if (peptide_ids.find(compound.id) != peptide_ids.end())
+      {
+        compounds.push_back(compound);
+        for (const auto& protein_ref : compound.protein_refs)
+        {
+          protein_list.insert(protein_ref);
+        }
+      }
+    }
+
+    for (const auto& protein : exp.proteins)
+    {
+      setProgress(++progress);
+
+      if (protein_list.find(protein.id) != protein_list.end())
+      {
+        proteins.push_back(protein);
+      }
+    }
+
+    exp.transitions = std::move(transitions);
+    exp.compounds = std::move(compounds);
+    exp.proteins = std::move(proteins);
+
+    endProgress();
+  }
+
+  // =====================================================================
+  // Light (memory-efficient) versions of IPF methods
+  // =====================================================================
+
+  namespace
+  {
+    /// Helper function to reconstruct AASequence from a LightCompound
+    /// Handles two cases:
+    /// 1. PQP input: compound.sequence contains full modified sequence (e.g., "AALIGS(UniMod:21)LGSIFK")
+    /// 2. TraML input (via DataAccessHelper): compound.sequence is unmodified, mods in compound.modifications
+    OpenMS::AASequence getAASequenceFromLightCompound(const OpenSwath::LightCompound& compound)
+    {
+      OpenMS::AASequence aas = AASequence::fromString(compound.sequence);
+
+      // Check if sequence was parsed with modifications already (PQP case)
+      // If so, don't apply modifications again
+      bool has_mods = aas.hasNTerminalModification() || aas.hasCTerminalModification();
+      if (!has_mods)
+      {
+        for (Size i = 0; i < aas.size() && !has_mods; ++i)
+        {
+          if (aas[i].isModified())
+          {
+            has_mods = true;
+          }
+        }
+      }
+
+      // If the sequence already has modifications, return it as-is
+      if (has_mods)
+      {
+        return aas;
+      }
+
+      // Otherwise, apply modifications from the LightCompound (TraML case)
+      OpenMS::ModificationsDB* mod_db = OpenMS::ModificationsDB::getInstance();
+
+      for (const auto& mod : compound.modifications)
+      {
+        if (mod.unimod_id < 0)
+        {
+          continue; // Skip invalid modifications
+        }
+
+        String mod_name = "UniMod:" + String(mod.unimod_id);
+
+        if (mod.location == -1)
+        {
+          // N-terminal modification
+          const ResidueModification* res_mod = mod_db->getModification(mod_name, "", ResidueModification::N_TERM);
+          if (res_mod)
+          {
+            aas.setNTerminalModification(res_mod);
+          }
+        }
+        else if (mod.location == static_cast<int>(aas.size()))
+        {
+          // C-terminal modification
+          const ResidueModification* res_mod = mod_db->getModification(mod_name, "", ResidueModification::C_TERM);
+          if (res_mod)
+          {
+            aas.setCTerminalModification(res_mod);
+          }
+        }
+        else if (mod.location >= 0 && mod.location < static_cast<int>(aas.size()))
+        {
+          // Residue modification
+          String residue = String(aas[mod.location].getOneLetterCode());
+          const ResidueModification* res_mod = mod_db->getModification(mod_name, residue, ResidueModification::ANYWHERE);
+          if (res_mod)
+          {
+            aas.setModification(mod.location, res_mod);
+          }
+        }
+      }
+
+      return aas;
+    }
+  } // anonymous namespace
+
+  void MRMAssay::generateTargetInSilicoMapLight_(const OpenSwath::LightTargetedExperiment& exp,
+                                                 const std::vector<String>& fragment_types,
+                                                 const std::vector<size_t>& fragment_charges,
+                                                 bool enable_specific_losses,
+                                                 bool enable_unspecific_losses,
+                                                 bool enable_ms2_precursors,
+                                                 const std::vector<std::pair<double, double> >& swathes,
+                                                 int round_decPow,
+                                                 size_t max_num_alternative_localizations,
+                                                 SequenceMapT& TargetSequenceMap,
+                                                 IonMapT& TargetIonMap,
+                                                 PeptideMapT& TargetPeptideMap)
+  {
+    OpenMS::MRMIonSeries mrmis;
+
+    Size progress = 0;
+    startProgress(0, exp.compounds.size(), "Generation of target in silico peptide map (Light)");
+
+    for (const auto& compound : exp.compounds)
+    {
+      setProgress(progress++);
+
+      // Skip non-peptide compounds (metabolites)
+      if (!compound.isPeptide())
+      {
+        continue;
+      }
+
+      // Reconstruct AASequence from compound (including modifications)
+      OpenMS::AASequence peptide_sequence;
+      try
+      {
+        peptide_sequence = getAASequenceFromLightCompound(compound);
+      }
+      catch (Exception::BaseException&)
+      {
+        OPENMS_LOG_DEBUG << "[uis] Skipping compound (cannot parse sequence): " << compound.id << std::endl;
+        continue;
+      }
+
+      int precursor_charge = compound.charge > 0 ? compound.charge : 1;
+      double precursor_mz = peptide_sequence.getMZ(precursor_charge);
+      int precursor_swath = getSwath_(swathes, precursor_mz);
+
+      // Compute all alternative peptidoforms compatible with ModificationsDB
+      const std::vector<AASequence> alternative_peptide_sequences = generateTheoreticalPeptidoforms_(peptide_sequence);
+
+      // Some permutations might be too complex, skip if threshold is reached
+      if (alternative_peptide_sequences.size() > max_num_alternative_localizations)
+      {
+        OPENMS_LOG_DEBUG << "[uis] Peptide skipped (too many permutations possible): " << compound.id << std::endl;
+        continue;
+      }
+
+      // Iterate over all peptidoforms
+      for (const auto& alt_aa : alternative_peptide_sequences)
+      {
+        // Append peptidoform to index
+        TargetSequenceMap[precursor_swath][alt_aa.toUnmodifiedString()].insert(alt_aa.toString());
+
+        // Generate theoretical ion series
+        auto ionseries = mrmis.getIonSeries(alt_aa, precursor_charge,
+            fragment_types, fragment_charges, enable_specific_losses,
+            enable_unspecific_losses);
+
+        if (enable_ms2_precursors)
+        {
+          // Add precursor to theoretical transitions
+          double prec_mz = Math::roundDecimal(precursor_mz, round_decPow);
+          TargetIonMap[precursor_swath][alt_aa.toUnmodifiedString()].emplace_back(prec_mz, alt_aa.toString());
+          TargetPeptideMap[compound.id].emplace_back("MS2_Precursor_i0", prec_mz);
+        }
+
+        // Iterate over all theoretical transitions
+        for (const auto& im_it : ionseries)
+        {
+          // Append transition to indices to find interfering transitions
+          double fragment_mz = Math::roundDecimal(im_it.second, round_decPow);
+          TargetIonMap[precursor_swath][alt_aa.toUnmodifiedString()].emplace_back(fragment_mz, alt_aa.toString());
+          TargetPeptideMap[compound.id].emplace_back(im_it.first, fragment_mz);
+        }
+      }
+    }
+    endProgress();
+  }
+
+  void MRMAssay::generateDecoyInSilicoMapLight_(const OpenSwath::LightTargetedExperiment& exp,
+                                                const std::vector<String>& fragment_types,
+                                                const std::vector<size_t>& fragment_charges,
+                                                bool enable_specific_losses,
+                                                bool enable_unspecific_losses,
+                                                bool enable_ms2_precursors,
+                                                const std::vector<std::pair<double, double> >& swathes,
+                                                int round_decPow,
+                                                TargetDecoyMapLightT& TargetDecoyMap,
+                                                const PeptideMapT& TargetPeptideMap,
+                                                const std::map<String, String>& DecoySequenceMap,
+                                                IonMapT& DecoyIonMap,
+                                                PeptideMapT& DecoyPeptideMap)
+  {
+    OpenMS::MRMIonSeries mrmis;
+
+    Size progress = 0;
+    startProgress(0, exp.compounds.size(), "Generation of decoy in silico peptide map (Light)");
+
+    for (const auto& compound : exp.compounds)
+    {
+      setProgress(progress++);
+
+      // Skip non-peptide compounds (metabolites)
+      if (!compound.isPeptide())
+      {
+        continue;
+      }
+
+      // Skip compounds that are not in target peptide map (e.g., those with too many permutations)
+      if (TargetPeptideMap.find(compound.id) == TargetPeptideMap.end())
+      {
+        continue;
+      }
+
+      // Reconstruct AASequence from compound (including modifications)
+      OpenMS::AASequence peptide_sequence;
+      try
+      {
+        peptide_sequence = getAASequenceFromLightCompound(compound);
+      }
+      catch (Exception::BaseException&)
+      {
+        continue;
+      }
+
+      String unmodified_sequence = peptide_sequence.toUnmodifiedString();
+
+      // Check if we have a decoy sequence for this target
+      auto decoy_it = DecoySequenceMap.find(unmodified_sequence);
+      if (decoy_it == DecoySequenceMap.end())
+      {
+        continue;
+      }
+
+      // Create decoy compound - keep same id as target (same as heavy version)
+      // Decoy transitions reference target compound ids since no decoy compounds
+      // are added to exp.compounds. Decoys are distinguished by the decoy flag.
+      OpenSwath::LightCompound decoy_compound = compound;
+
+      // Build decoy sequence with modifications
+      AASequence decoy_sequence = AASequence::fromString(decoy_it->second);
+
+      // Generate theoretical peptidoforms for decoy using target as template
+      const std::vector<AASequence> alternative_peptide_sequences =
+          generateTheoreticalPeptidoformsDecoy_(peptide_sequence, decoy_sequence);
+
+      int precursor_charge = compound.charge > 0 ? compound.charge : 1;
+
+      // Use TARGET peptide's precursor for SWATH index (same as heavy version)
+      double target_precursor_mz = peptide_sequence.getMZ(precursor_charge);
+      int precursor_swath = getSwath_(swathes, target_precursor_mz);
+
+      // Iterate over all peptidoforms
+      for (const auto& alt_aa : alternative_peptide_sequences)
+      {
+        // Generate theoretical ion series
+        auto ionseries = mrmis.getIonSeries(alt_aa, precursor_charge,
+            fragment_types, fragment_charges, enable_specific_losses,
+            enable_unspecific_losses);
+
+        if (enable_ms2_precursors)
+        {
+          // Use TARGET precursor m/z (same as heavy version)
+          double prec_mz = Math::roundDecimal(target_precursor_mz, round_decPow);
+          DecoyIonMap[precursor_swath][alt_aa.toUnmodifiedString()].emplace_back(prec_mz, alt_aa.toString());
+          // Use TARGET compound id as key (same as heavy version)
+          DecoyPeptideMap[compound.id].emplace_back("MS2_Precursor_i0", prec_mz);
+        }
+
+        for (const auto& im_it : ionseries)
+        {
+          double fragment_mz = Math::roundDecimal(im_it.second, round_decPow);
+          DecoyIonMap[precursor_swath][alt_aa.toUnmodifiedString()].emplace_back(fragment_mz, alt_aa.toString());
+          // Use TARGET compound id as key (same as heavy version)
+          DecoyPeptideMap[compound.id].emplace_back(im_it.first, fragment_mz);
+        }
+      }
+
+      // Store decoy compound in map
+      decoy_compound.sequence = alternative_peptide_sequences.empty() ? decoy_it->second : alternative_peptide_sequences[0].toString();
+      TargetDecoyMap[compound.id] = decoy_compound;
+    }
+    endProgress();
+  }
+
+  void MRMAssay::generateTargetAssaysLight_(const OpenSwath::LightTargetedExperiment& exp,
+                                            std::vector<OpenSwath::LightTransition>& transitions,
+                                            double mz_threshold,
+                                            const std::vector<std::pair<double, double> >& swathes,
+                                            int round_decPow,
+                                            const PeptideMapT& TargetPeptideMap,
+                                            const IonMapT& TargetIonMap)
+  {
+    // Build compound lookup map
+    std::map<std::string, const OpenSwath::LightCompound*> compound_map;
+    for (const auto& compound : exp.compounds)
+    {
+      compound_map[compound.id] = &compound;
+    }
+
+    Size progress = 0;
+    startProgress(0, TargetPeptideMap.size(), "Generation of target identification transitions (Light)");
+
+    size_t transition_idx = transitions.size();
+
+    for (const auto& pep_it : TargetPeptideMap)
+    {
+      setProgress(progress++);
+
+      const String& peptide_id = pep_it.first;
+      auto comp_it = compound_map.find(peptide_id);
+      if (comp_it == compound_map.end())
+      {
+        continue;
+      }
+
+      const OpenSwath::LightCompound* compound = comp_it->second;
+
+      // Reconstruct AASequence from compound (including modifications)
+      OpenMS::AASequence peptide_sequence;
+      try
+      {
+        peptide_sequence = getAASequenceFromLightCompound(*compound);
+      }
+      catch (Exception::BaseException&)
+      {
+        continue;
+      }
+
+      int precursor_charge = compound->charge > 0 ? compound->charge : 1;
+      double precursor_mz = peptide_sequence.getMZ(precursor_charge);
+      int precursor_swath = getSwath_(swathes, precursor_mz);
+      String unmod_str = peptide_sequence.toUnmodifiedString();
+
+      // Check if we have data for this SWATH/sequence combination
+      auto swath_it = TargetIonMap.find(precursor_swath);
+      if (swath_it == TargetIonMap.end())
+      {
+        continue;
+      }
+      auto seq_it = swath_it->second.find(unmod_str);
+      if (seq_it == swath_it->second.end())
+      {
+        continue;
+      }
+
+      // Sort and deduplicate transitions
+      IonSeries sorted_ions = pep_it.second;
+      std::sort(sorted_ions.begin(), sorted_ions.end());
+      sorted_ions.erase(std::unique(sorted_ions.begin(), sorted_ions.end()), sorted_ions.end());
+
+      for (const auto& ion : sorted_ions)
+      {
+        const std::string& annotation = ion.first;
+        double product_mz = ion.second;
+
+        // Find matching peptidoforms
+        std::vector<std::string> matching_pfs = getMatchingPeptidoforms_(
+            product_mz, seq_it->second, mz_threshold);
+
+        if (matching_pfs.empty())
+        {
+          continue;
+        }
+
+        // Create light transition
+        OpenSwath::LightTransition tr;
+        tr.transition_name = String(transition_idx++) + "_UIS_" + peptide_id + "_" +
+            String(Math::roundDecimal(precursor_mz, round_decPow)) + "_" +
+            String(Math::roundDecimal(product_mz, round_decPow));
+        tr.peptide_ref = peptide_id;
+        tr.precursor_mz = precursor_mz;
+        tr.product_mz = product_mz;
+        tr.library_intensity = 1.0;
+        tr.setDecoy(false);
+        tr.setDetectingTransition(false);
+        tr.setIdentifyingTransition(true);
+        tr.setQuantifyingTransition(false);
+        tr.peptidoforms = matching_pfs;
+
+        // Parse fragment type/number/charge from annotation to populate compact fields
+        // Annotation format: b4^1, y10^2, etc.
+        if (!annotation.empty() && annotation != "MS2_Precursor_i0")
+        {
+          tr.setFragmentType(annotation.substr(0, 1));
+          std::string num_str;
+          size_t i = 1;
+          for (; i < annotation.size() && std::isdigit(annotation[i]); ++i)
+          {
+            num_str += annotation[i];
+          }
+          if (!num_str.empty())
+          {
+            tr.fragment_nr = static_cast<int16_t>(std::stoi(num_str));
+          }
+          // Extract charge after '^'
+          if (i < annotation.size() && annotation[i] == '^')
+          {
+            std::string charge_str;
+            for (size_t j = i + 1; j < annotation.size() && std::isdigit(annotation[j]); ++j)
+            {
+              charge_str += annotation[j];
+            }
+            if (!charge_str.empty())
+            {
+              tr.fragment_charge = static_cast<int8_t>(std::stoi(charge_str));
+            }
+          }
+        }
+
+        transitions.push_back(std::move(tr));
+      }
+    }
+    endProgress();
+  }
+
+  void MRMAssay::generateDecoyAssaysLight_(const OpenSwath::LightTargetedExperiment& exp,
+                                           std::vector<OpenSwath::LightTransition>& transitions,
+                                           double mz_threshold,
+                                           const std::vector<std::pair<double, double> >& swathes,
+                                           int round_decPow,
+                                           const PeptideMapT& DecoyPeptideMap,
+                                           const TargetDecoyMapLightT& TargetDecoyMap,
+                                           const IonMapT& DecoyIonMap,
+                                           const IonMapT& TargetIonMap)
+  {
+    // Build compound lookup map for targets
+    std::map<std::string, const OpenSwath::LightCompound*> compound_map;
+    for (const auto& compound : exp.compounds)
+    {
+      compound_map[compound.id] = &compound;
+    }
+
+    Size progress = 0;
+    startProgress(0, DecoyPeptideMap.size(), "Generation of decoy identification transitions (Light)");
+
+    size_t transition_idx = transitions.size();
+
+    for (const auto& pep_it : DecoyPeptideMap)
+    {
+      setProgress(progress++);
+
+      // DecoyPeptideMap keys are TARGET compound ids (same as heavy version)
+      const String& target_id = pep_it.first;
+
+      auto decoy_comp_it = TargetDecoyMap.find(target_id);
+      if (decoy_comp_it == TargetDecoyMap.end())
+      {
+        continue;
+      }
+
+      const OpenSwath::LightCompound& decoy_compound = decoy_comp_it->second;
+
+      auto target_comp_it = compound_map.find(target_id);
+      if (target_comp_it == compound_map.end())
+      {
+        continue;
+      }
+      const OpenSwath::LightCompound* target_compound = target_comp_it->second;
+
+      OpenMS::AASequence decoy_sequence;
+      OpenMS::AASequence target_sequence;
+      try
+      {
+        // Decoy sequence is already a full modified string from generateDecoyInSilicoMapLight_
+        decoy_sequence = AASequence::fromString(decoy_compound.sequence);
+        // Target sequence needs to be reconstructed from compound + modifications
+        target_sequence = getAASequenceFromLightCompound(*target_compound);
+      }
+      catch (Exception::BaseException&)
+      {
+        continue;
+      }
+
+      int precursor_charge = decoy_compound.charge > 0 ? decoy_compound.charge : 1;
+      double decoy_precursor_mz = decoy_sequence.getMZ(precursor_charge);
+      double target_precursor_mz = target_sequence.getMZ(precursor_charge);
+
+      // Use TARGET precursor swath for lookups - same as heavy version
+      // (DecoyIonMap was populated using target swath in generateDecoyInSilicoMapLight_)
+      int target_precursor_swath = getSwath_(swathes, target_precursor_mz);
+
+      String decoy_unmod_str = decoy_sequence.toUnmodifiedString();
+      String target_unmod_str = target_sequence.toUnmodifiedString();
+
+      // Check if we have decoy ion data (use TARGET swath, not decoy swath)
+      auto decoy_swath_it = DecoyIonMap.find(target_precursor_swath);
+      if (decoy_swath_it == DecoyIonMap.end())
+      {
+        continue;
+      }
+      auto decoy_seq_it = decoy_swath_it->second.find(decoy_unmod_str);
+      if (decoy_seq_it == decoy_swath_it->second.end())
+      {
+        continue;
+      }
+
+      // Sort and deduplicate transitions
+      IonSeries sorted_ions = pep_it.second;
+      std::sort(sorted_ions.begin(), sorted_ions.end());
+      sorted_ions.erase(std::unique(sorted_ions.begin(), sorted_ions.end()), sorted_ions.end());
+
+      for (const auto& ion : sorted_ions)
+      {
+        const std::string& annotation = ion.first;
+        double product_mz = ion.second;
+
+        // Find matching decoy peptidoforms
+        std::vector<std::string> matching_pfs = getMatchingPeptidoforms_(
+            product_mz, decoy_seq_it->second, mz_threshold);
+
+        if (matching_pfs.empty())
+        {
+          continue;
+        }
+
+        // Check for overlap with target transitions
+        auto target_swath_it = TargetIonMap.find(target_precursor_swath);
+        if (target_swath_it != TargetIonMap.end())
+        {
+          auto target_seq_it = target_swath_it->second.find(target_unmod_str);
+          if (target_seq_it != target_swath_it->second.end())
+          {
+            std::vector<std::string> target_overlap = getMatchingPeptidoforms_(
+                product_mz, target_seq_it->second, mz_threshold);
+            if (!target_overlap.empty())
+            {
+              // Skip this decoy transition as it overlaps with target
+              continue;
+            }
+          }
+        }
+
+        // Create light transition
+        OpenSwath::LightTransition tr;
+        tr.transition_name = String(transition_idx++) + "_UISDECOY_" + decoy_compound.id + "_" +
+            String(Math::roundDecimal(decoy_precursor_mz, round_decPow)) + "_" +
+            String(Math::roundDecimal(product_mz, round_decPow));
+        tr.peptide_ref = decoy_compound.id;
+        tr.precursor_mz = decoy_precursor_mz;
+        tr.product_mz = product_mz;
+        tr.library_intensity = 1.0;
+        tr.setDecoy(true);
+        tr.setDetectingTransition(false);
+        tr.setIdentifyingTransition(true);
+        tr.setQuantifyingTransition(false);
+        tr.peptidoforms = matching_pfs;
+
+        // Parse fragment type/number/charge from annotation to populate compact fields
+        // Annotation format: b4^1, y10^2, etc.
+        if (!annotation.empty() && annotation != "MS2_Precursor_i0")
+        {
+          tr.setFragmentType(annotation.substr(0, 1));
+          std::string num_str;
+          size_t i = 1;
+          for (; i < annotation.size() && std::isdigit(annotation[i]); ++i)
+          {
+            num_str += annotation[i];
+          }
+          if (!num_str.empty())
+          {
+            tr.fragment_nr = static_cast<int16_t>(std::stoi(num_str));
+          }
+          // Extract charge after '^'
+          if (i < annotation.size() && annotation[i] == '^')
+          {
+            std::string charge_str;
+            for (size_t j = i + 1; j < annotation.size() && std::isdigit(annotation[j]); ++j)
+            {
+              charge_str += annotation[j];
+            }
+            if (!charge_str.empty())
+            {
+              tr.fragment_charge = static_cast<int8_t>(std::stoi(charge_str));
+            }
+          }
+        }
+
+        transitions.push_back(std::move(tr));
+      }
+    }
+    endProgress();
+  }
+
+  void MRMAssay::uisTransitionsLight(OpenSwath::LightTargetedExperiment& exp,
+                                     const std::vector<String>& fragment_types,
+                                     const std::vector<size_t>& fragment_charges,
+                                     bool enable_specific_losses,
+                                     bool enable_unspecific_losses,
+                                     bool enable_ms2_precursors,
+                                     double mz_threshold,
+                                     const std::vector<std::pair<double, double> >& swathes,
+                                     int round_decPow,
+                                     size_t max_num_alternative_localizations,
+                                     int shuffle_seed,
+                                     bool disable_decoy_transitions)
+  {
+    // Use same map types as heavy version - they use std::string keys
+    SequenceMapT TargetSequenceMap;
+    IonMapT TargetIonMap;
+    PeptideMapT TargetPeptideMap;
+
+    std::vector<OpenSwath::LightTransition> transitions;
+
+    // Step 1: Generate target in-silico map
+    generateTargetInSilicoMapLight_(exp, fragment_types, fragment_charges,
+        enable_specific_losses, enable_unspecific_losses, enable_ms2_precursors,
+        swathes, round_decPow, max_num_alternative_localizations,
+        TargetSequenceMap, TargetIonMap, TargetPeptideMap);
+
+    // Step 2: Generate target identification transitions
+    generateTargetAssaysLight_(exp, transitions, mz_threshold, swathes,
+        round_decPow, TargetPeptideMap, TargetIonMap);
+
+    if (!disable_decoy_transitions)
+    {
+      // Step 3: Generate decoy sequences and in-silico map
+      std::map<String, String> DecoySequenceMap;
+      IonMapT DecoyIonMap;
+      PeptideMapT DecoyPeptideMap;
+      TargetDecoyMapLightT TargetDecoyMap;
+
+      // Reuse the existing heavy generateDecoySequences_ - it only uses SequenceMapT
+      generateDecoySequences_(TargetSequenceMap, DecoySequenceMap, shuffle_seed);
+
+      generateDecoyInSilicoMapLight_(exp, fragment_types, fragment_charges,
+          enable_specific_losses, enable_unspecific_losses, enable_ms2_precursors,
+          swathes, round_decPow, TargetDecoyMap, TargetPeptideMap,
+          DecoySequenceMap, DecoyIonMap, DecoyPeptideMap);
+
+      // Step 4: Generate decoy identification transitions
+      generateDecoyAssaysLight_(exp, transitions, mz_threshold, swathes,
+          round_decPow, DecoyPeptideMap, TargetDecoyMap, DecoyIonMap, TargetIonMap);
+    }
+
+    // Append new transitions to experiment
+    for (auto& tr : transitions)
+    {
+      exp.transitions.push_back(std::move(tr));
+    }
+  }
+
 }
