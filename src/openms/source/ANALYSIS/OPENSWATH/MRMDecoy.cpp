@@ -508,7 +508,6 @@ namespace OpenMS
       proteins.push_back(protein);
     }
 
-    srand(time(nullptr));
     std::vector<size_t> item_list, selection_list;
     item_list.reserve(exp.getPeptides().size());
     for (Size k = 0; k < exp.getPeptides().size(); k++) {item_list.push_back(k);}
@@ -783,7 +782,6 @@ namespace OpenMS
       decoy_proteins.push_back(decoy_protein);
     }
 
-    srand(time(nullptr));
     std::vector<size_t> item_list, selection_list;
     item_list.reserve(exp.compounds.size());
     for (Size k = 0; k < exp.compounds.size(); k++) { item_list.push_back(k); }
