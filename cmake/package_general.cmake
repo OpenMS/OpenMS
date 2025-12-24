@@ -27,7 +27,7 @@ set(CPACK_STRIP_FILES TRUE) # to save some space in the installers
 set(OPENMS_LOGO_NAME openms_logo_large_transparent.png) ## The filename of the logo to be used for the OpenMS folder e.g. on the DMG
 set(OPENMS_LOGO ${PROJECT_SOURCE_DIR}/cmake/MacOSX/${OPENMS_LOGO_NAME}) ## The logo to be used for the OpenMS folder e.g. on the DMG
 
-set(OPENMS_LOGOSMALL_NAME openms_logo_corner_transparent.png) ## The filename of the logo to be used for the OpenMS folder e.g. on the PKG
+set(OPENMS_LOGOSMALL_NAME openms_logo_corner_small.png) ## The filename of the logo to be used for the OpenMS folder e.g. on the PKG
 set(OPENMS_LOGOSMALL ${PROJECT_SOURCE_DIR}/cmake/MacOSX/${OPENMS_LOGOSMALL_NAME}) ## The logo to be used for the OpenMS folder e.g. on the PKG
 
 ########################################################### Fixing dynamic dependencies
