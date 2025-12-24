@@ -286,7 +286,7 @@ namespace OpenMS
     {
       if (tr_it->isIdentifyingTransition())
       {
-        if (tr_it->decoy)
+        if (tr_it->getDecoy())
         {
           identifying_transitions_decoy.push_back(tr_it->getNativeID());
         }
