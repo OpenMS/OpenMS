@@ -171,11 +171,8 @@ build = "cp310-* cp311-* cp312-* cp313-* cp314-*"
 skip = "*-win32 *-musllinux_* pp*"
 
 # Test the wheel after building
-test-requires = ["pytest", "numpy", "pandas"]
-test-command = """
-python -c "import pyopenms; print('pyopenms version:', pyopenms.__version__)"
-python -c "import pyopenms; print(pyopenms.EmpiricalFormula('C6H12O6').getMonoWeight())"
-"""
+test-requires = ["pytest", "numpy", "pandas", "pyarrow"]
+test-command = "pytest {package}/tests/unittests -v --tb=short"
 
 # Build in isolated environment
 build-verbosity = 1
