@@ -1305,10 +1305,16 @@ ${TOPP_BIN_PATH}/OpenSwathAssayGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathAss
   add_test("TOPP_OpenSwathAssayGenerator_test_3_out1" ${DIFF} -whitelist "id=" -in1 OpenSwathAssayGenerator_output_3.tmp.TraML -in2 ${DATA_DIR_TOPP}/OpenSwathAssayGenerator_output_3.TraML)
   set_tests_properties("TOPP_OpenSwathAssayGenerator_test_3_out1" PROPERTIES DEPENDS "TOPP_OpenSwathAssayGenerator_test_3")
   # Test 4: PQP input with IPF enabled (tests light path IPF implementation)
+  # Step 1: Generate PQP output
   add_test("TOPP_OpenSwathAssayGenerator_test_4"
 ${TOPP_BIN_PATH}/OpenSwathAssayGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathAssayGenerator_input_4.pqp -out OpenSwathAssayGenerator_output_4.tmp.pqp -out_type pqp -allowed_fragment_charges 1,2,3,4 -enable_ipf -unimod_file ${DATA_DIR_TOPP}/OpenSwathAssayGenerator_input_2_unimod.xml)
-  add_test("TOPP_OpenSwathAssayGenerator_test_4_out1" ${DIFF} -whitelist "ID=" -in1 OpenSwathAssayGenerator_output_4.tmp.pqp -in2 ${DATA_DIR_TOPP}/OpenSwathAssayGenerator_output_4.pqp)
-  set_tests_properties("TOPP_OpenSwathAssayGenerator_test_4_out1" PROPERTIES DEPENDS "TOPP_OpenSwathAssayGenerator_test_4")
+  # Step 2: Convert PQP to TSV for portable comparison (PQP binary layout differs across platforms)
+  add_test("TOPP_OpenSwathAssayGenerator_test_4_pqp_to_tsv"
+    ${TOPP_BIN_PATH}/TargetedFileConverter -test -in OpenSwathAssayGenerator_output_4.tmp.pqp -out OpenSwathAssayGenerator_output_4_roundtrip.tmp.tsv -out_type tsv)
+  set_tests_properties("TOPP_OpenSwathAssayGenerator_test_4_pqp_to_tsv" PROPERTIES DEPENDS "TOPP_OpenSwathAssayGenerator_test_4")
+  # Step 3: Compare TSV with -sort flag (row order may differ between platforms)
+  add_test("TOPP_OpenSwathAssayGenerator_test_4_out1" ${DIFF} -sort -in1 OpenSwathAssayGenerator_output_4_roundtrip.tmp.tsv -in2 ${DATA_DIR_TOPP}/OpenSwathAssayGenerator_output_4_roundtrip.tsv)
+  set_tests_properties("TOPP_OpenSwathAssayGenerator_test_4_out1" PROPERTIES DEPENDS "TOPP_OpenSwathAssayGenerator_test_4_pqp_to_tsv")
 
   add_test("TOPP_OpenSwathDecoyGenerator_test_1"
 ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDecoyGenerator_input.TraML -out OpenSwathDecoyGenerator.tmp.TraML -out_type TraML -method pseudo-reverse -separate -switchKR false)
