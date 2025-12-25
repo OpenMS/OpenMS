@@ -11,7 +11,6 @@ cdef extern from "<OpenMS/IONMOBILITY/IMTypes.h>" namespace "OpenMS":
       IMFormat determineIMFormat(const MSExperiment& exp) except + nogil
       IMFormat determineIMFormat(const MSSpectrum& spec) except + nogil
 
-      # static fxn
       @staticmethod
       DriftTimeUnit toDriftTimeUnit(const libcpp_string& dtu_string) except + nogil
 

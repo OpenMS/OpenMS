@@ -6,6 +6,7 @@ from MSExperiment cimport *
 from MzTab cimport *
 from PeptideHit cimport *
 from libcpp cimport bool
+from libcpp.vector cimport vector as libcpp_vector
 
 cdef extern from "<OpenMS/ANALYSIS/ID/MetaboliteSpectralMatching.h>" namespace "OpenMS":
 

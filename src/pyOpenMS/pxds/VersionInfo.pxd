@@ -36,4 +36,4 @@ cdef extern from "<OpenMS/CONCEPT/VersionInfo.h>" namespace "OpenMS::VersionInfo
         bool operator>(VersionDetails) except + nogil
 
         @staticmethod
-        VersionDetails create(String)
+        VersionDetails create(String) except + nogil

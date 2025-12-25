@@ -8,7 +8,7 @@ cdef extern from "<OpenMS/SYSTEM/File.h>" namespace "OpenMS":
     cdef cppclass File:
 
         @staticmethod
-        String getExecutablePath()
+        String getExecutablePath() except + nogil
 
         # Method used to test if a @p file exists.
         @staticmethod
@@ -78,7 +78,7 @@ cdef extern from "<OpenMS/SYSTEM/File.h>" namespace "OpenMS":
         @staticmethod
         String getUserDirectory() except + nogil
 
-        # get the system's default OpenMS.ini file in the users home directory (&lt except + nogil home&gt except + nogil /OpenMS/OpenMS.ini)
+        # get the system's default OpenMS.ini file in the users home directory (<home>/OpenMS/OpenMS.ini)
         # or create/repair it if required
         @staticmethod
         Param getSystemParameters() except + nogil

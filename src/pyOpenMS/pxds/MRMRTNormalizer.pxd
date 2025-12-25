@@ -4,6 +4,9 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMRTNormalizer.h>" namespace "Open
 
     cdef cppclass MRMRTNormalizer:
 
+        MRMRTNormalizer() except + nogil
+        MRMRTNormalizer(MRMRTNormalizer &) except + nogil  # compiler
+
         @staticmethod
         libcpp_vector[libcpp_pair[double,double]] removeOutliersIterative(
                 libcpp_vector[libcpp_pair[double,double]] & pairs,
