@@ -1,6 +1,6 @@
 # OpenMS Agent Notes
 
-This file provides context and instructions for AI coding agents working on OpenMS. It follows the [AGENTS.md](https://agents.md) standard and is intentionally concise; use the linked docs for full details.
+This file provides context and instructions for AI coding agents working on OpenMS. It follows the [AGENTS.md](https://agents.md) standard.
 
 ## Critical Constraints
 
@@ -60,6 +60,15 @@ clang-format --dry-run -Werror src/openms/source/MYFILE.cpp
 - Core C++: `src/openms/`, `src/openms_gui/`, `src/openswathalgo/`, `src/topp/`.
 - Tests: `src/tests/class_tests/openms/`, `src/tests/class_tests/openms_gui/`, `src/tests/topp/`.
 - pyOpenMS: `src/pyOpenMS/` with `pxds/`, `addons/`, `pyopenms/`, `tests/`.
+## Project Stack
+
+- **Language**: C++20, Python 3.9+
+- **Build**: CMake 3.24+, out-of-tree builds in `OpenMS-build/`
+- **Testing**: CTest, GoogleTest-style macros, pytest for Python
+- **Style**: `.clang-format` in repo root, cpplint via `ENABLE_STYLE_TESTING=ON`
+- **Platforms**: Linux, macOS (Apple Clang), Windows (MSVC 2019+)
+
+## Repository Layout
 
 ```
 OpenMS/
@@ -293,6 +302,27 @@ bool fragment_tolerance_ppm_;
 | `@todo` | Include assignee name: `@todo JohnDoe fix this` |
 
 **Naming examples:**
+│   ├── openms/           # Core C++ library
+│   │   ├── include/OpenMS/  # Headers (.h)
+│   │   └── source/          # Implementation (.cpp)
+│   ├── openms_gui/       # Qt-based GUI components
+│   ├── openswathalgo/    # OpenSWATH algorithms
+│   ├── topp/             # Command-line tools (TOPP)
+│   ├── pyOpenMS/         # Python bindings
+│   │   ├── pxds/         # .pxd declarations for autowrap
+│   │   ├── addons/       # Python-only method additions
+│   │   └── tests/        # Python tests
+│   └── tests/
+│       ├── class_tests/openms/source/  # C++ unit tests
+│       └── topp/         # TOPP integration tests
+├── cmake/                # CMake modules
+├── doc/                  # Documentation source
+└── share/OpenMS/         # Runtime data files
+```
+
+## Code Style (with Examples)
+
+**Naming conventions:**
 ```cpp
 // Classes/Types/Namespaces: PascalCase
 class FeatureMap;
@@ -312,7 +342,7 @@ enum class Status { RUNNING, COMPLETE };
 #define OPENMS_DLLAPI
 ```
 
-**File structure example:**
+**File structure:**
 ```cpp
 // MyClass.h - Header file
 #pragma once
@@ -405,6 +435,50 @@ void MyClass::process(const MSSpectrum& spectrum)
 - Run `tools/checker.php` and/or `ENABLE_STYLE_TESTING` for local checks.
 
 **Commit message example:**
+**Formatting rules:**
+- 2 spaces indentation, no tabs
+- Unix line endings (LF)
+- Braces on their own lines, aligned
+- Space after keywords (`if`, `for`, `while`)
+- Always use braces, even for single-line blocks
+
+## Testing Patterns
+
+**Unit test structure:**
+```cpp
+// src/tests/class_tests/openms/source/MyClass_test.cpp
+#include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/PATH/TO/MyClass.h>
+
+START_TEST(MyClass, "$Id$")
+
+MyClass* ptr = nullptr;
+
+START_SECTION(MyClass())
+  ptr = new MyClass();
+  TEST_NOT_EQUAL(ptr, nullptr)
+END_SECTION
+
+START_SECTION(void process(const MSSpectrum&))
+  MSSpectrum spec;
+  spec.push_back(Peak1D(100.0, 1000.0));
+  ptr->process(spec);
+  TEST_EQUAL(spec.size(), 1)
+END_SECTION
+
+delete ptr;
+END_TEST
+```
+
+**Adding tests:**
+1. Create `src/tests/class_tests/openms/source/ClassName_test.cpp`
+2. Add to `src/tests/class_tests/openms/executables.cmake`
+3. Use `NEW_TMP_FILE(filename)` for temp output files
+4. Test data goes in `src/tests/class_tests/libs/data/` (prefix with class name)
+
+## Git Workflow
+
+**Commit message format:**
 ```
 [TAG1,TAG2] Short summary (<=80 chars preferred)
 
@@ -418,6 +492,86 @@ Fixes #123
 - Linux: use `ldd` to inspect shared libs; `nm -C` for symbols; `perf`/`hotspot` for profiling.
 - Windows: Dependency Walker or `dumpbin /DEPENDENTS` and `dumpbin /EXPORTS`.
 - Memory checks: AddressSanitizer or valgrind with `tools/valgrind/openms_external.supp`.
+**Valid tags:** `NOP`, `DOC`, `COMMENT`, `API`, `INTERNAL`, `FEATURE`, `FIX`, `TEST`, `FORMAT`, `PARAM`, `IO`, `LOG`, `GUI`, `RESOURCE`, `BUILD`
+
+**Branch workflow:**
+- Fork the repo, branch from `develop`
+- Open PRs against `develop` (Gitflow)
+- Minimize pushes on open PRs (CI is resource-heavy)
+
+## Change Impact Checklist
+
+When you change | Also update
+----------------|------------
+C++ class (new) | Add `.h`/`.cpp`, Doxygen docs, class test, `OPENMS_DLLAPI`, CMake registration
+C++ API | `.pxd` files, pyOpenMS addons, tests, docs
+TOPP tool (new) | `src/topp/executables.cmake`, `ToolHandler.cpp`, docs, TOPP tests
+Parameters | Tool docs, CTD, tests, `CHANGELOG`
+File format | `FileHandler::NamesOfTypes[]`, schemas, tests
+
+## pyOpenMS Wrapping
+
+**Key files:**
+- `.pxd` declarations: `src/pyOpenMS/pxds/`
+- Python addons: `src/pyOpenMS/addons/`
+- Type converters: `src/pyOpenMS/converters/`
+
+**Common patterns:**
+```python
+# In addons/MyClass.pyx - inject Python-only methods
+def get_df(self):
+    """Return pandas DataFrame."""
+    import pandas as pd
+    return pd.DataFrame(self.get_data_dict())
+```
+
+**Gotchas:**
+- Always declare default and copy constructors in `.pxd`
+- Use `cimport`, not Python `import` for Cython imports
+- Autowrap returns Python strings; do NOT call `.decode()`
+- Use snake_case for Python-facing names
+
+## Verification Commands
+
+After making changes, verify with:
+```bash
+# Check formatting
+clang-format --dry-run -Werror <changed-files>
+
+# Run relevant tests
+ctest -R <ClassName> -V
+
+# For pyOpenMS changes
+cd OpenMS-build && ctest -R pyopenms -V
+
+# Style check
+cmake --build OpenMS-build --target test_style
+```
+
+## Key Documentation
+
+**In-repo docs:**
+- `README.md` - Project overview
+- `CONTRIBUTING.md` - Contribution guidelines
+- `src/pyOpenMS/README.md` - pyOpenMS development
+- `src/pyOpenMS/README_WRAPPING_NEW_CLASSES` - Wrapping guide
+
+**Online resources:**
+- [OpenMS Documentation](https://openms.readthedocs.io/en/latest)
+- [pyOpenMS API Reference](https://pyopenms.readthedocs.io/en/latest/apidocs/index.html)
+- [Developer Coding Conventions](https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/developer_coding_conventions.html)
+- [How to Write Tests](https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/developer_how_to_write_tests.html)
+- [GitHub Wiki](https://github.com/OpenMS/OpenMS/wiki)
+
+## Common Gotchas
+
+1. **Template methods with 2+ args in tests**: Wrap in parentheses for `START_SECTION`
+2. **GUI tests need display**: Set `QT_QPA_PLATFORM=minimal` for headless runs
+3. **pyOpenMS tests shadow imports**: Run from outside source tree with `PYTHONPATH` set
+4. **Windows paths**: Keep build paths short; use 64-bit only
+5. **FuzzyDiff for numeric tests**: Build `all`/`ALL_BUILD` to include it
+
+## Debugging Tips
 
 ```bash
 # Linux: inspect shared libraries
