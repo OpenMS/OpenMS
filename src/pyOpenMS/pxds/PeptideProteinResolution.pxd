@@ -81,11 +81,9 @@ cdef extern from "<OpenMS/ANALYSIS/ID/PeptideProteinResolution.h>" namespace "Op
                 #  :param protein: ProteinIdentification object storing IDs and groups
                 #  :param peptides: Vector of ProteinIdentifications with links to the proteins
 
-
-# COMMENT: wrap static methods
-cdef extern from "<OpenMS/ANALYSIS/ID/PeptideProteinResolution.h>" namespace "OpenMS::PeptideProteinResolution":        
         # static members
-        void run(libcpp_vector[ ProteinIdentification ] & proteins, PeptideIdentificationList & peptides) except + nogil   #wrap-attach:PeptideProteinResolution
+        @staticmethod
+        void run(libcpp_vector[ ProteinIdentification ] & proteins, PeptideIdentificationList & peptides) except + nogil
 
 cdef extern from "<OpenMS/ANALYSIS/ID/PeptideProteinResolution.h>" namespace "OpenMS":
     

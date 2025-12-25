@@ -49,10 +49,6 @@ cdef extern from "<OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>" namespace "O
         # wrap-doc:Get noise decoy weight determined during q-value calculation.
 
         # Static method
-        # Note: Static methods need special handling in Cython
-
-
-cdef extern from "<OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>" namespace "OpenMS::FLASHDeconvAlgorithm":
-
-    int getScanNumber(MSExperiment & exp, Size index) except + nogil  # wrap-attach:FLASHDeconvAlgorithm
-    # wrap-doc:Get scan number of the spectrum at index in exp
+        @staticmethod
+        int getScanNumber(MSExperiment & exp, Size index) except + nogil
+        # wrap-doc:Get scan number of the spectrum at index in exp

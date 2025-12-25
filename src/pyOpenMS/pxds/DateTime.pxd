@@ -26,13 +26,14 @@ cdef extern from "<OpenMS/DATASTRUCTURES/DateTime.h>" namespace "OpenMS":
 
         # void getTime(UInt hour, UInt minute, UInt second) except + nogil 
 
-        String getTime() except + nogil 
+        String getTime() except + nogil
 
         # Returns the current date and time
-        DateTime now() except + nogil 
+        @staticmethod
+        DateTime now() except + nogil
 
         #Sets the undefined date: 00/00/0000 00:00:00
-        void clear() except + nogil 
+        void clear() except + nogil
 
         #  @brief Returns a string representation of the date and time
         #  The format of the string will be yyyy-MM-dd hh:mm:ss
@@ -46,12 +47,4 @@ cdef extern from "<OpenMS/DATASTRUCTURES/DateTime.h>" namespace "OpenMS":
         #    - yyyy-MM-ddThh:mm:ss (ISO 8601 format)
         #    - yyyy-MM-ddZ (ISO 8601 format)
         #    - yyyy-MM-dd+hh:mm (ISO 8601 format)
-        void set(String date) except + nogil 
-
-cdef extern from "<OpenMS/DATASTRUCTURES/DateTime.h>" namespace "OpenMS::DateTime":
-
-    DateTime now() # wrap-attach:DateTime
-
-
-
-
+        void set(String date) except + nogil
