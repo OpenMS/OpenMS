@@ -11,7 +11,7 @@
 #include <OpenMS/OPENSWATHALGO/OpenSwathAlgoConfig.h>
 
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/DataStructures.h>
-#include <boost/shared_ptr.hpp>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -44,7 +44,7 @@ public:
       individual copy on which it can operate.
 
     */
-    virtual boost::shared_ptr<ISpectrumAccess> lightClone() const = 0;
+    virtual std::shared_ptr<ISpectrumAccess> lightClone() const = 0;
 
     /// Return a pointer to a spectrum at the given id
     virtual SpectrumPtr getSpectrumById(int id) = 0;
@@ -128,6 +128,6 @@ public:
 
    };
 
-  typedef boost::shared_ptr<ISpectrumAccess> SpectrumAccessPtr;
+  typedef std::shared_ptr<ISpectrumAccess> SpectrumAccessPtr;
 }
 

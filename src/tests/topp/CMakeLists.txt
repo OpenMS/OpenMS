@@ -1304,6 +1304,17 @@ ${TOPP_BIN_PATH}/OpenSwathAssayGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathAss
 ${TOPP_BIN_PATH}/OpenSwathAssayGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathAssayGenerator_input_2.TraML -out OpenSwathAssayGenerator_output_3.tmp.TraML -out_type TraML -allowed_fragment_charges 1,2,3,4 -enable_ipf -unimod_file ${DATA_DIR_TOPP}/OpenSwathAssayGenerator_input_3_unimod.xml)
   add_test("TOPP_OpenSwathAssayGenerator_test_3_out1" ${DIFF} -whitelist "id=" -in1 OpenSwathAssayGenerator_output_3.tmp.TraML -in2 ${DATA_DIR_TOPP}/OpenSwathAssayGenerator_output_3.TraML)
   set_tests_properties("TOPP_OpenSwathAssayGenerator_test_3_out1" PROPERTIES DEPENDS "TOPP_OpenSwathAssayGenerator_test_3")
+  # Test 4: PQP input with IPF enabled (tests light path IPF implementation)
+  # Step 1: Generate PQP output
+  add_test("TOPP_OpenSwathAssayGenerator_test_4"
+${TOPP_BIN_PATH}/OpenSwathAssayGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathAssayGenerator_input_4.pqp -out OpenSwathAssayGenerator_output_4.tmp.pqp -out_type pqp -allowed_fragment_charges 1,2,3,4 -enable_ipf -unimod_file ${DATA_DIR_TOPP}/OpenSwathAssayGenerator_input_2_unimod.xml)
+  # Step 2: Convert PQP to TSV for portable comparison (PQP binary layout differs across platforms)
+  add_test("TOPP_OpenSwathAssayGenerator_test_4_pqp_to_tsv"
+    ${TOPP_BIN_PATH}/TargetedFileConverter -test -in OpenSwathAssayGenerator_output_4.tmp.pqp -out OpenSwathAssayGenerator_output_4_roundtrip.tmp.tsv -out_type tsv)
+  set_tests_properties("TOPP_OpenSwathAssayGenerator_test_4_pqp_to_tsv" PROPERTIES DEPENDS "TOPP_OpenSwathAssayGenerator_test_4")
+  # Step 3: Compare TSV with -sort flag (row order may differ between platforms)
+  add_test("TOPP_OpenSwathAssayGenerator_test_4_out1" ${DIFF} -sort -in1 OpenSwathAssayGenerator_output_4_roundtrip.tmp.tsv -in2 ${DATA_DIR_TOPP}/OpenSwathAssayGenerator_output_4_roundtrip.tsv)
+  set_tests_properties("TOPP_OpenSwathAssayGenerator_test_4_out1" PROPERTIES DEPENDS "TOPP_OpenSwathAssayGenerator_test_4_pqp_to_tsv")
 
   add_test("TOPP_OpenSwathDecoyGenerator_test_1"
 ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDecoyGenerator_input.TraML -out OpenSwathDecoyGenerator.tmp.TraML -out_type TraML -method pseudo-reverse -separate -switchKR false)
@@ -1325,6 +1336,34 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
     ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDecoyGenerator_input_5.tsv -out OpenSwathDecoyGenerator_5.tmp.TraML -out_type TraML -method pseudo-reverse -switchKR false -min_decoy_fraction 0.4)
   add_test("TOPP_OpenSwathDecoyGenerator_test_5_out1" ${DIFF} -in1 OpenSwathDecoyGenerator_5.tmp.TraML -in2 ${DATA_DIR_TOPP}/OpenSwathDecoyGenerator_output_5.TraML)
   set_tests_properties("TOPP_OpenSwathDecoyGenerator_test_5_out1" PROPERTIES DEPENDS "TOPP_OpenSwathDecoyGenerator_test_5")
+
+  # Test 6: Light path (TSV -> TSV) - tests the memory-efficient LightTargetedExperiment path
+  # This path is used when both input AND output are TSV/PQP formats
+  add_test("TOPP_OpenSwathDecoyGenerator_test_6_light"
+    ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDecoyGenerator_input_4.tsv -out OpenSwathDecoyGenerator_6_light.tmp.tsv -out_type tsv -method pseudo-reverse -separate -switchKR true -enable_detection_unspecific_losses -enable_detection_specific_losses -min_decoy_fraction 0.4)
+  add_test("TOPP_OpenSwathDecoyGenerator_test_6_light_out1" ${DIFF} -in1 OpenSwathDecoyGenerator_6_light.tmp.tsv -in2 ${DATA_DIR_TOPP}/OpenSwathDecoyGenerator_output_6_light.tsv)
+  set_tests_properties("TOPP_OpenSwathDecoyGenerator_test_6_light_out1" PROPERTIES DEPENDS "TOPP_OpenSwathDecoyGenerator_test_6_light")
+
+  # Test 7: Heavy path with same parameters as test 6 - verifies both paths produce same decoy sequences
+  # This path uses TargetedExperiment (heavy) when output is TraML
+  add_test("TOPP_OpenSwathDecoyGenerator_test_7_heavy"
+    ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDecoyGenerator_input_4.tsv -out OpenSwathDecoyGenerator_7_heavy.tmp.TraML -out_type TraML -method pseudo-reverse -separate -switchKR true -enable_detection_unspecific_losses -enable_detection_specific_losses -min_decoy_fraction 0.4)
+  add_test("TOPP_OpenSwathDecoyGenerator_test_7_heavy_out1" ${DIFF} -in1 OpenSwathDecoyGenerator_7_heavy.tmp.TraML -in2 ${DATA_DIR_TOPP}/OpenSwathDecoyGenerator_output_7_heavy.TraML)
+  set_tests_properties("TOPP_OpenSwathDecoyGenerator_test_7_heavy_out1" PROPERTIES DEPENDS "TOPP_OpenSwathDecoyGenerator_test_7_heavy")
+
+  # Test 8: Light path PQP output (TSV -> PQP) - verifies memory-efficient LightTargetedExperiment path writes valid PQP
+  # Step 1: Generate decoys and write to PQP using light path
+  add_test("TOPP_OpenSwathDecoyGenerator_test_8_pqp"
+    ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDecoyGenerator_input_4.tsv -out OpenSwathDecoyGenerator_8.tmp.pqp -out_type pqp -method pseudo-reverse -separate -switchKR true -enable_detection_unspecific_losses -enable_detection_specific_losses -min_decoy_fraction 0.4)
+  # Step 2: Convert PQP back to TSV to verify roundtrip integrity (uses light path for both read and write)
+  add_test("TOPP_OpenSwathDecoyGenerator_test_8_pqp_to_tsv"
+    ${TOPP_BIN_PATH}/TargetedFileConverter -test -in OpenSwathDecoyGenerator_8.tmp.pqp -out OpenSwathDecoyGenerator_8_roundtrip.tmp.tsv -out_type tsv)
+  set_tests_properties("TOPP_OpenSwathDecoyGenerator_test_8_pqp_to_tsv" PROPERTIES DEPENDS "TOPP_OpenSwathDecoyGenerator_test_8_pqp")
+  # Step 3: Compare roundtrip TSV with expected PQP roundtrip output
+  # Use -sort flag because PQP roundtrip may return rows in different order (by ID vs by intensity)
+  # Note: PQP format doesn't store UniprotId, so expected file has empty UniprotId column
+  add_test("TOPP_OpenSwathDecoyGenerator_test_8_out1" ${DIFF} -sort -in1 OpenSwathDecoyGenerator_8_roundtrip.tmp.tsv -in2 ${DATA_DIR_TOPP}/OpenSwathDecoyGenerator_output_8_pqp_roundtrip.tsv)
+  set_tests_properties("TOPP_OpenSwathDecoyGenerator_test_8_out1" PROPERTIES DEPENDS "TOPP_OpenSwathDecoyGenerator_test_8_pqp_to_tsv")
 
   # TargetedFileConverter : convert from and to different targeted files
   # Contains heavy and light transitions in 2 different notations
@@ -1405,6 +1444,14 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
   add_test("TOPP_TargetedFileConverter_test_5" ${TOPP_BIN_PATH}/TargetedFileConverter -test -in ${DATA_DIR_TOPP}/ConvertTSVToTraML_output.TraML -out ConvertTraMLToTSV_output.tmp.tsv -out_type tsv)
   add_test("TOPP_TargetedFileConverter_test_5_out1" ${DIFF} -in1 ConvertTraMLToTSV_output.tmp.tsv -in2 ${DATA_DIR_TOPP}/ConvertTraMLToTSV_output.tsv)
   set_tests_properties("TOPP_TargetedFileConverter_test_5_out1" PROPERTIES DEPENDS "TOPP_TargetedFileConverter_test_5")
+
+  # Light path TSV -> PQP -> TSV roundtrip test (uses LightTargetedExperiment)
+  add_test("TOPP_TargetedFileConverter_light_path_prepare" ${TOPP_BIN_PATH}/TargetedFileConverter -test -in ${DATA_DIR_TOPP}/ConvertTSVToTraML_1_input.tsv -out TargetedFileConverter_light_path.tmp.pqp -out_type pqp)
+  add_test("TOPP_TargetedFileConverter_light_path" ${TOPP_BIN_PATH}/TargetedFileConverter -test -in TargetedFileConverter_light_path.tmp.pqp -out TargetedFileConverter_light_path.tmp.tsv -out_type tsv)
+  set_tests_properties("TOPP_TargetedFileConverter_light_path" PROPERTIES DEPENDS "TOPP_TargetedFileConverter_light_path_prepare")
+  # Use -sort flag because PQP roundtrip may return rows in different order
+  add_test("TOPP_TargetedFileConverter_light_path_out1" ${DIFF} -sort -in1 TargetedFileConverter_light_path.tmp.tsv -in2 ${DATA_DIR_TOPP}/TargetedFileConverter_light_path_output.tsv)
+  set_tests_properties("TOPP_TargetedFileConverter_light_path_out1" PROPERTIES DEPENDS "TOPP_TargetedFileConverter_light_path")
 
   # protein group conversion test PQP
   add_test("TOPP_TargetedFileConverter_test_12_prepare" ${TOPP_BIN_PATH}/TargetedFileConverter -algorithm:override_group_label_check -test -in ${DATA_DIR_TOPP}/TargetedFileConverter_12_input.TraML -out TargetedFileConverter_12_output.tmp.pqp -out_type pqp)
@@ -1850,6 +1897,24 @@ set_tests_properties("TOPP_PeakPickerIterative_1_out1" PROPERTIES DEPENDS "TOPP_
 add_test("TOPP_PeakPickerIterative_2" ${TOPP_BIN_PATH}/PeakPickerIterative -in ${DATA_DIR_TOPP}/PeakPickerIterative_2_input.mzML -ini ${DATA_DIR_TOPP}/PeakPickerIterative_2.ini -out PeakPickerIterative_2.tmp.mzML -test)
 add_test("TOPP_PeakPickerIterative_2_out1" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 PeakPickerIterative_2.tmp.mzML -in2 ${DATA_DIR_TOPP}/PeakPickerIterative_2_output.mzML)
 set_tests_properties("TOPP_PeakPickerIterative_2_out1" PROPERTIES DEPENDS "TOPP_PeakPickerIterative_2")
+
+#------------------------------------------------------------------------------
+# TOPP_PeakPickerIM
+# test default 'mobilogram' method
+add_test("TOPP_PeakPickerIM_1" ${TOPP_BIN_PATH}/PeakPickerIM -in ${DATA_DIR_TOPP}/PeakPickerIM_input_1.mzML -ini ${DATA_DIR_TOPP}/PeakPickerIM_parameters_1.ini -out PeakPickerIM_1.tmp.mzML -test)
+# test 'cluster' method
+add_test("TOPP_PeakPickerIM_2" ${TOPP_BIN_PATH}/PeakPickerIM -in ${DATA_DIR_TOPP}/PeakPickerIM_input_1.mzML -ini ${DATA_DIR_TOPP}/PeakPickerIM_parameters_2.ini -out PeakPickerIM_2.tmp.mzML -test)
+# test 'trace' method
+add_test("TOPP_PeakPickerIM_3" ${TOPP_BIN_PATH}/PeakPickerIM -in ${DATA_DIR_TOPP}/PeakPickerIM_input_1.mzML -ini ${DATA_DIR_TOPP}/PeakPickerIM_parameters_3.ini -out PeakPickerIM_3.tmp.mzML -test)
+# Output comparison tests are limited to Linux amd64 due to numeric differences on other platforms
+if (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND (CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "x86_64" OR CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "amd64"))
+  add_test("TOPP_PeakPickerIM_1_out1" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 PeakPickerIM_1.tmp.mzML -in2 ${DATA_DIR_TOPP}/PeakPickerIM_1_output.mzML)
+  set_tests_properties("TOPP_PeakPickerIM_1_out1" PROPERTIES DEPENDS "TOPP_PeakPickerIM_1")
+  add_test("TOPP_PeakPickerIM_2_out1" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 PeakPickerIM_2.tmp.mzML -in2 ${DATA_DIR_TOPP}/PeakPickerIM_2_output.mzML)
+  set_tests_properties("TOPP_PeakPickerIM_2_out1" PROPERTIES DEPENDS "TOPP_PeakPickerIM_2")
+  add_test("TOPP_PeakPickerIM_3_out1" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 PeakPickerIM_3.tmp.mzML -in2 ${DATA_DIR_TOPP}/PeakPickerIM_3_output.mzML)
+  set_tests_properties("TOPP_PeakPickerIM_3_out1" PROPERTIES DEPENDS "TOPP_PeakPickerIM_3")
+endif()
 
 
 #------------------------------------------------------------------------------

@@ -45,20 +45,20 @@ public:
     /**
      * @brief constructor
      *
-     * @param exp_profile    experimental data in profile mode
-     * @param exp_centroided    experimental data in centroid mode
-     * @param boundaries    peak boundaries for exp_centroided
-     * @param patterns    patterns of isotopic peaks to be searched for
-     * @param isotopes_per_peptide_min    minimum number of isotopic peaks in peptides
-     * @param isotopes_per_peptide_max    maximum number of isotopic peaks in peptides
-     * @param intensity_cutoff    intensity cutoff
-     * @param rt_band    RT range used for filtering
-     * @param mz_tolerance    error margin in m/z for matching expected patterns to experimental data
-     * @param mz_tolerance_unit    unit for mz_tolerance, ppm (true), Da (false)
-     * @param peptide_similarity    similarity score for two peptides in the same multiplet
-     * @param averagine_similarity    similarity score for peptide isotope pattern and averagine model
-     * @param averagine_similarity_scaling    scaling factor x for the averagine similarity parameter p when detecting peptide singlets. With p' = p + x(1-p).
-     * @param averagine_type    The averagine model to use, current options are RNA DNA or peptide.
+     * @param[in,out] exp_profile    experimental data in profile mode
+     * @param[in] exp_centroided    experimental data in centroid mode
+     * @param[in] boundaries    peak boundaries for exp_centroided
+     * @param[in] patterns    patterns of isotopic peaks to be searched for
+     * @param[in] isotopes_per_peptide_min    minimum number of isotopic peaks in peptides
+     * @param[in] isotopes_per_peptide_max    maximum number of isotopic peaks in peptides
+     * @param[in] intensity_cutoff    intensity cutoff
+     * @param[in] rt_band    RT range used for filtering
+     * @param[in] mz_tolerance    error margin in m/z for matching expected patterns to experimental data
+     * @param[in] mz_tolerance_unit    unit for mz_tolerance, ppm (true), Da (false)
+     * @param[in] peptide_similarity    similarity score for two peptides in the same multiplet
+     * @param[in] averagine_similarity    similarity score for peptide isotope pattern and averagine model
+     * @param[in] averagine_similarity_scaling    scaling factor x for the averagine similarity parameter p when detecting peptide singlets. With p' = p + x(1-p).
+     * @param[in] averagine_type    The averagine model to use, current options are RNA DNA or peptide.
      *
      * @throw Exception::IllegalArgument if profile and centroided data do not contain same number of spectra
      * @throw Exception::IllegalArgument if centroided data and the corresponding list of peak boundaries do not contain same number of spectra
@@ -87,9 +87,9 @@ private:
     /**
      * @brief averagine filter for profile mode
      *
-     * @param pattern    m/z pattern to search for
-     * @param peak    peak to be filtered
-     * @param satellites_profile    spline-interpolated satellites of the peak. If they pass, they will be added to the peak.
+     * @param[in] pattern    m/z pattern to search for
+     * @param[in] peak    peak to be filtered
+     * @param[in] satellites_profile    spline-interpolated satellites of the peak. If they pass, they will be added to the peak.
      *
      * @return if this filter was passed i.e. the correlation coefficient is greater than averagine_similarity_
      */
@@ -98,8 +98,8 @@ private:
     /**
      * @brief peptide correlation filter for profile mode
      *
-     * @param pattern    m/z pattern to search for
-     * @param satellites_profile    spline-interpolated satellites of the peak. If they pass, they will be added to the peak.
+     * @param[in] pattern    m/z pattern to search for
+     * @param[in] satellites_profile    spline-interpolated satellites of the peak. If they pass, they will be added to the peak.
      *
      * @return if this filter was passed i.e. the correlation coefficient is greater than averagine_similarity_
      */

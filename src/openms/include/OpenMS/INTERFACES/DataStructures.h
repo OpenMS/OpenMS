@@ -10,7 +10,7 @@
 
 #include <string>
 #include <vector>
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 #include <OpenMS/config.h>
 
@@ -51,7 +51,7 @@ namespace Interfaces
     /// the binary data.
     std::vector<double> data;
   };
-  typedef boost::shared_ptr<BinaryDataArray> BinaryDataArrayPtr;
+  typedef std::shared_ptr<BinaryDataArray> BinaryDataArrayPtr;
 
   /// Identifying information for a chromatogram
   struct OPENMS_DLLAPI ChromatogramMeta
@@ -70,7 +70,7 @@ namespace Interfaces
     }
 
   };
-  typedef boost::shared_ptr<ChromatogramMeta> ChromatogramMetaPtr;
+  typedef std::shared_ptr<ChromatogramMeta> ChromatogramMetaPtr;
 
   /// A single chromatogram.
   struct OPENMS_DLLAPI Chromatogram
@@ -127,7 +127,7 @@ public:
     }
 
   };
-  typedef boost::shared_ptr<Chromatogram> ChromatogramPtr;
+  typedef std::shared_ptr<Chromatogram> ChromatogramPtr;
 
   /// Identifying information for a spectrum
   struct OPENMS_DLLAPI SpectrumMeta
@@ -150,7 +150,7 @@ public:
     }
 
   };
-  typedef boost::shared_ptr<SpectrumMeta> SpectrumMetaPtr;
+  typedef std::shared_ptr<SpectrumMeta> SpectrumMetaPtr;
 
   /// The structure that captures the generation of a peak list (including the underlying acquisitions)
   struct OPENMS_DLLAPI Spectrum
@@ -207,7 +207,7 @@ public:
     }
 
   };
-  typedef boost::shared_ptr<Spectrum> SpectrumPtr;
+  typedef std::shared_ptr<Spectrum> SpectrumPtr;
 
 } //end namespace Interfaces
 } //end namespace OpenMS

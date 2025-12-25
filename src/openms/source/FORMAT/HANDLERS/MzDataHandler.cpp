@@ -975,7 +975,7 @@ namespace OpenMS::Internal
               {
                 if (!precursor.getActivationMethods().empty())
                 {
-                  writeCVS_(os, *(precursor.getActivationMethods().begin()), 18, "1000044", "ActivationMethod", 7);
+                  writeCVS_(os, static_cast<UInt>(*(precursor.getActivationMethods().begin())), 18, "1000044", "ActivationMethod", 7);
                 }
                 writeCVS_(os, precursor.getActivationEnergy(), "1000045", "CollisionEnergy", 7);
                 os << "\t\t\t\t\t\t\t<cvParam cvLabel=\"psi\" accession=\"PSI:1000046\" name=\"EnergyUnit\" value=\"eV\"/>\n";
@@ -1181,7 +1181,14 @@ namespace OpenMS::Internal
       {
         if (accession == "PSI:1000040")       //m/z
         {
-          spec_.getPrecursors().back().setMZ(asDouble_(value));
+          double mz = asDouble_(value);
+          spec_.getPrecursors().back().setMZ(mz);
+          // Check if precursor m/z is within specified range
+          if (options_.hasPrecursorMZRange() &&
+              !options_.getPrecursorMZRange().encloses(DPosition<1>(mz)))
+          {
+            skip_spectrum_ = true;
+          }
         }
         else if (accession == "PSI:1000041")       //Charge
         {

@@ -11,6 +11,7 @@
 ///////////////////////////
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMAssay.h>
 #include <OpenMS/FORMAT/TraMLFile.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
 ///////////////////////////
 
 using namespace OpenMS;
@@ -611,11 +612,7 @@ START_SECTION(void uisTransitions(OpenMS::TargetedExperiment& exp, std::vector<S
   bool enable_ms2_precursors1 = false;
   double product_mz_threshold1 = 0.05;
 
-#if OPENMS_BOOST_VERSION_MINOR < 56
   String out1 = "MRMAssay_uisTransitions_output_1.TraML";
-#else
-  String out1 = "MRMAssay_uisTransitions_output_1_boost58.TraML";
-#endif
 
   TargetedExperiment targeted_exp1 = targeted_exp;
 
@@ -636,11 +633,7 @@ START_SECTION(void uisTransitions(OpenMS::TargetedExperiment& exp, std::vector<S
   bool enable_ms2_precursors2 = false;
   double product_mz_threshold2 = 0.05;
 
-#if OPENMS_BOOST_VERSION_MINOR < 56
   String out2 = "MRMAssay_uisTransitions_output_2.TraML";
-#else
-  String out2 = "MRMAssay_uisTransitions_output_2_boost58.TraML";
-#endif
 
   TargetedExperiment targeted_exp2 = targeted_exp;
 
@@ -707,11 +700,7 @@ START_SECTION(void uisTransitions(OpenMS::TargetedExperiment& exp, std::vector<S
   bool enable_ms2_precursors1 = false;
   double product_mz_threshold1 = 0.05;
 
-#if OPENMS_BOOST_VERSION_MINOR < 56
   String out1 = "MRMAssay_uisTransitions_output_3.TraML";
-#else
-  String out1 = "MRMAssay_uisTransitions_output_3_boost58.TraML";
-#endif
 
   TargetedExperiment targeted_exp1 = targeted_exp;
 
@@ -735,11 +724,7 @@ START_SECTION(void uisTransitions(OpenMS::TargetedExperiment& exp, std::vector<S
   bool enable_ms2_precursors2 = false;
   double product_mz_threshold2 = 0.05;
 
-#if OPENMS_BOOST_VERSION_MINOR < 56
   String out2 = "MRMAssay_uisTransitions_output_4.TraML";
-#else
-  String out2 = "MRMAssay_uisTransitions_output_4_boost58.TraML";
-#endif
 
   TargetedExperiment targeted_exp2 = targeted_exp;
 
@@ -763,11 +748,7 @@ START_SECTION(void uisTransitions(OpenMS::TargetedExperiment& exp, std::vector<S
   bool enable_ms2_precursors3 = true;
   double product_mz_threshold3 = 0.05;
 
-#if OPENMS_BOOST_VERSION_MINOR < 56
   String out3 = "MRMAssay_uisTransitions_output_5.TraML";
-#else
-  String out3 = "MRMAssay_uisTransitions_output_5_boost58.TraML";
-#endif
 
   TargetedExperiment targeted_exp3 = targeted_exp;
 
@@ -778,8 +759,244 @@ START_SECTION(void uisTransitions(OpenMS::TargetedExperiment& exp, std::vector<S
   traml.store(test3, targeted_exp3);
 
 #if !defined(__APPLE__) // currently fails on macOS likely due to different boost version and different random number generator
- TEST_FILE_SIMILAR(test3.c_str(), OPENMS_GET_TEST_DATA_PATH(out3)) 
-#endif	
+ TEST_FILE_SIMILAR(test3.c_str(), OPENMS_GET_TEST_DATA_PATH(out3))
+#endif
+}
+
+END_SECTION
+
+START_SECTION(void uisTransitionsLight(OpenSwath::LightTargetedExperiment& exp, const std::vector<String>& fragment_types, const std::vector<size_t>& fragment_charges, bool enable_specific_losses, bool enable_unspecific_losses, bool enable_ms2_precursors, double mz_threshold, const std::vector<std::pair<double, double> >& swathes, int round_decPow, size_t max_num_alternative_localizations, int shuffle_seed, bool disable_decoy_transitions))
+{
+  // Setup SWATH windows (same as heavy version tests)
+  std::vector<std::pair<double, double> > swathes;
+  swathes.push_back(std::make_pair(400, 425));
+  swathes.push_back(std::make_pair(424, 450));
+  swathes.push_back(std::make_pair(449, 475));
+  swathes.push_back(std::make_pair(474, 500));
+  swathes.push_back(std::make_pair(499, 525));
+  swathes.push_back(std::make_pair(524, 550));
+  swathes.push_back(std::make_pair(549, 575));
+  swathes.push_back(std::make_pair(574, 600));
+  swathes.push_back(std::make_pair(599, 625));
+  swathes.push_back(std::make_pair(624, 650));
+  swathes.push_back(std::make_pair(649, 675));
+  swathes.push_back(std::make_pair(674, 700));
+  swathes.push_back(std::make_pair(699, 725));
+  swathes.push_back(std::make_pair(724, 750));
+  swathes.push_back(std::make_pair(749, 775));
+  swathes.push_back(std::make_pair(774, 800));
+  swathes.push_back(std::make_pair(799, 825));
+  swathes.push_back(std::make_pair(824, 850));
+  swathes.push_back(std::make_pair(849, 875));
+  swathes.push_back(std::make_pair(874, 900));
+  swathes.push_back(std::make_pair(899, 925));
+  swathes.push_back(std::make_pair(924, 950));
+  swathes.push_back(std::make_pair(949, 975));
+  swathes.push_back(std::make_pair(974, 1000));
+  swathes.push_back(std::make_pair(999, 1025));
+  swathes.push_back(std::make_pair(1024, 1050));
+  swathes.push_back(std::make_pair(1049, 1075));
+  swathes.push_back(std::make_pair(1074, 1100));
+  swathes.push_back(std::make_pair(1099, 1125));
+  swathes.push_back(std::make_pair(1124, 1150));
+  swathes.push_back(std::make_pair(1149, 1175));
+  swathes.push_back(std::make_pair(1174, 1200));
+
+  // Load input TraML
+  TraMLFile traml;
+  TargetedExperiment targeted_exp;
+  String in = "MRMAssay_uisTransitions_input_1.TraML";
+  traml.load(OPENMS_GET_TEST_DATA_PATH(in), targeted_exp);
+
+  // Convert to LightTargetedExperiment
+  OpenSwath::LightTargetedExperiment light_exp;
+  OpenSwathDataAccessHelper::convertTargetedExp(targeted_exp, light_exp);
+
+  // Count initial transitions
+  size_t initial_transitions = light_exp.transitions.size();
+
+  // Count initial identifying transitions
+  size_t initial_identifying = 0;
+  for (const auto& tr : light_exp.transitions)
+  {
+    if (tr.isIdentifyingTransition()) initial_identifying++;
+  }
+
+  MRMAssay mrma;
+
+  std::vector<String> fragment_types;
+  fragment_types.push_back(String("y"));
+  std::vector<size_t> fragment_charges;
+  fragment_charges.push_back(2);
+  bool enable_specific_losses = true;
+  bool enable_unspecific_losses = false;
+  bool enable_ms2_precursors = false;
+  double product_mz_threshold = 0.05;
+
+  // Run uisTransitionsLight with fixed seed for reproducibility
+  mrma.uisTransitionsLight(light_exp, fragment_types, fragment_charges,
+      enable_specific_losses, enable_unspecific_losses, enable_ms2_precursors,
+      product_mz_threshold, swathes, -4, 20, 42, false);
+
+  // Count final transitions
+  size_t final_transitions = light_exp.transitions.size();
+
+  // Count identifying transitions
+  size_t final_identifying = 0;
+  size_t target_identifying = 0;
+  size_t decoy_identifying = 0;
+  for (const auto& tr : light_exp.transitions)
+  {
+    if (tr.isIdentifyingTransition())
+    {
+      final_identifying++;
+      if (tr.getDecoy()) decoy_identifying++;
+      else target_identifying++;
+    }
+  }
+
+  // Test: New transitions should have been added
+  TEST_EQUAL(final_transitions > initial_transitions, true)
+
+  // Test: Identifying transitions should have been created
+  TEST_EQUAL(final_identifying > initial_identifying, true)
+
+  // Test: Both target and decoy identifying transitions should exist
+  TEST_EQUAL(target_identifying > 0, true)
+  TEST_EQUAL(decoy_identifying > 0, true)
+
+  // Test: Identifying transitions should have peptidoforms annotated
+  bool has_peptidoforms = false;
+  for (const auto& tr : light_exp.transitions)
+  {
+    if (tr.isIdentifyingTransition() && !tr.peptidoforms.empty())
+    {
+      has_peptidoforms = true;
+      break;
+    }
+  }
+  TEST_EQUAL(has_peptidoforms, true)
+}
+
+END_SECTION
+
+START_SECTION([EXTRA] uisTransitionsLight vs uisTransitions equivalence test)
+{
+  // This test verifies that uisTransitionsLight produces equivalent output to the heavy version
+  // We compare the number and types of transitions generated
+
+  std::vector<std::pair<double, double> > swathes;
+  swathes.push_back(std::make_pair(400, 425));
+  swathes.push_back(std::make_pair(424, 450));
+  swathes.push_back(std::make_pair(449, 475));
+  swathes.push_back(std::make_pair(474, 500));
+  swathes.push_back(std::make_pair(499, 525));
+  swathes.push_back(std::make_pair(524, 550));
+  swathes.push_back(std::make_pair(549, 575));
+  swathes.push_back(std::make_pair(574, 600));
+  swathes.push_back(std::make_pair(599, 625));
+  swathes.push_back(std::make_pair(624, 650));
+  swathes.push_back(std::make_pair(649, 675));
+  swathes.push_back(std::make_pair(674, 700));
+  swathes.push_back(std::make_pair(699, 725));
+  swathes.push_back(std::make_pair(724, 750));
+  swathes.push_back(std::make_pair(749, 775));
+  swathes.push_back(std::make_pair(774, 800));
+  swathes.push_back(std::make_pair(799, 825));
+  swathes.push_back(std::make_pair(824, 850));
+  swathes.push_back(std::make_pair(849, 875));
+  swathes.push_back(std::make_pair(874, 900));
+  swathes.push_back(std::make_pair(899, 925));
+  swathes.push_back(std::make_pair(924, 950));
+  swathes.push_back(std::make_pair(949, 975));
+  swathes.push_back(std::make_pair(974, 1000));
+  swathes.push_back(std::make_pair(999, 1025));
+  swathes.push_back(std::make_pair(1024, 1050));
+  swathes.push_back(std::make_pair(1049, 1075));
+  swathes.push_back(std::make_pair(1074, 1100));
+  swathes.push_back(std::make_pair(1099, 1125));
+  swathes.push_back(std::make_pair(1124, 1150));
+  swathes.push_back(std::make_pair(1149, 1175));
+  swathes.push_back(std::make_pair(1174, 1200));
+
+  // Load input TraML
+  TraMLFile traml;
+  TargetedExperiment targeted_exp_heavy;
+  String in = "MRMAssay_uisTransitions_input_1.TraML";
+  traml.load(OPENMS_GET_TEST_DATA_PATH(in), targeted_exp_heavy);
+
+  size_t initial_transitions = targeted_exp_heavy.getTransitions().size();
+
+  // Convert to Light for light path
+  OpenSwath::LightTargetedExperiment light_exp;
+  OpenSwathDataAccessHelper::convertTargetedExp(targeted_exp_heavy, light_exp);
+
+  MRMAssay mrma;
+
+  std::vector<String> fragment_types;
+  fragment_types.push_back(String("y"));
+  std::vector<size_t> fragment_charges;
+  fragment_charges.push_back(2);
+  bool enable_specific_losses = true;
+  bool enable_unspecific_losses = false;
+  bool enable_ms2_precursors = false;
+  double product_mz_threshold = 0.05;
+
+  // Run heavy version with fixed seed
+  mrma.uisTransitions(targeted_exp_heavy, fragment_types, fragment_charges,
+      enable_specific_losses, enable_unspecific_losses, enable_ms2_precursors,
+      product_mz_threshold, swathes, -4, 20, 42);
+
+  // Run light version with same parameters and seed
+  mrma.uisTransitionsLight(light_exp, fragment_types, fragment_charges,
+      enable_specific_losses, enable_unspecific_losses, enable_ms2_precursors,
+      product_mz_threshold, swathes, -4, 20, 42, false);
+
+  // Count heavy transitions by type
+  size_t heavy_total = targeted_exp_heavy.getTransitions().size();
+  size_t heavy_identifying = 0;
+  size_t heavy_target_ident = 0;
+  size_t heavy_decoy_ident = 0;
+  for (const auto& tr : targeted_exp_heavy.getTransitions())
+  {
+    if (tr.isIdentifyingTransition())
+    {
+      heavy_identifying++;
+      if (tr.getDecoyTransitionType() == ReactionMonitoringTransition::DECOY)
+        heavy_decoy_ident++;
+      else
+        heavy_target_ident++;
+    }
+  }
+
+  // Count light transitions by type
+  size_t light_total = light_exp.transitions.size();
+  size_t light_identifying = 0;
+  size_t light_target_ident = 0;
+  size_t light_decoy_ident = 0;
+  for (const auto& tr : light_exp.transitions)
+  {
+    if (tr.isIdentifyingTransition())
+    {
+      light_identifying++;
+      if (tr.getDecoy())
+        light_decoy_ident++;
+      else
+        light_target_ident++;
+    }
+  }
+
+  // Test: Total transition counts should be equal
+  TEST_EQUAL(light_total, heavy_total)
+
+  // Test: Identifying transition counts should be equal
+  TEST_EQUAL(light_identifying, heavy_identifying)
+
+  // Test: Target identifying counts should be equal
+  TEST_EQUAL(light_target_ident, heavy_target_ident)
+
+  // Test: Decoy identifying counts should be equal
+  TEST_EQUAL(light_decoy_ident, heavy_decoy_ident)
 }
 
 END_SECTION

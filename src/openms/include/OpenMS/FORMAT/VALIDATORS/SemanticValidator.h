@@ -34,8 +34,8 @@ public:
       /**
         @brief Constructor
 
-        @param mapping The mapping rules
-        @param cv @em All controlled vocabularies required for the mapping
+        @param[in] mapping The mapping rules
+        @param[in] cv @em All controlled vocabularies required for the mapping
       */
       SemanticValidator(const CVMappings & mapping, const ControlledVocabulary & cv);
 
@@ -58,9 +58,9 @@ public:
       /**
           @brief Semantically validates an XML file.
 
-          @param filename The file to validate
-          @param errors Errors during the validation are returned in this output parameter.
-          @param warnings Warnings during the validation are returned in this output parameter.
+          @param[in] filename The file to validate
+          @param[out] errors Errors during the validation are returned in this output parameter.
+          @param[out] warnings Warnings during the validation are returned in this output parameter.
 
           @return @em true if the validation was successful, @em false otherwise.
 

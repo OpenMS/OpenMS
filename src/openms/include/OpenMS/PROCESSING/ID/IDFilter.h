@@ -37,8 +37,15 @@ namespace OpenMS
     std::is_same_v<T, PeptideIdentification> || std::is_same_v<T, ProteinIdentification>;
 
   template<typename T>
-  concept IsFeatureOrConsensusMap = 
+  concept IsFeatureOrConsensusMap =
     std::is_same_v<T, FeatureMap> || std::is_same_v<T, ConsensusMap>;
+
+  /// Concept to exclude std::vector of identification types (used to disambiguate template overloads)
+  template<typename T>
+  concept IsNotIdentificationVector =
+    !std::is_same_v<T, std::vector<PeptideIdentification>> &&
+    !std::is_same_v<T, std::vector<ProteinIdentification>> &&
+    !std::is_same_v<T, PeptideIdentificationList>;
 
   /**
     @brief Collection of functions for filtering peptide and protein identifications.
@@ -169,8 +176,8 @@ namespace OpenMS
           /**
            * @brief Constructor for HasMinMetaValue.
            * 
-           * @param key_ The key of the meta value to check.
-           * @param value_ The minimum value threshold.
+           * @param[in] key_ The key of the meta value to check.
+           * @param[in] value_ The minimum value threshold.
            */
           HasMinMetaValue(const String& key_, const double& value_) : 
             key(key_), 
@@ -181,7 +188,7 @@ namespace OpenMS
           /**
            * @brief Operator() function to check if a HitType object has a minimum meta value.
            * 
-           * @param hit The HitType object to check.
+           * @param[in] hit The HitType object to check.
            * @return True if the HitType object has a meta value with a value greater than or equal to the threshold, false otherwise.
            */
           bool operator()(const HitType& hit) const
@@ -234,7 +241,7 @@ namespace OpenMS
        * 
        * This operator checks if the given HitType object has either "target_decoy" or "isDecoy" meta values.
        * 
-       * @param hit The HitType object to be checked.
+       * @param[in] hit The HitType object to be checked.
        * @return True if the HitType object has decoy annotation, false otherwise.
        */
       bool operator()(const HitType& hit) const
@@ -674,14 +681,21 @@ namespace OpenMS
       return getBestHit(vec, assume_sorted, best_hit);
     }
 
+    /// @overload
+    static void removeEmptyIdentifications(PeptideIdentificationList& ids)
+    {
+      std::vector<PeptideIdentification>& vec = ids.getData();
+      removeEmptyIdentifications(vec);
+    }
+
     /**
        @brief Finds the best-scoring hit in a vector of peptide or protein identifications.
 
        If there are several hits with the best score, the first one is taken.
 
-       @param identifications Vector of peptide or protein IDs, each containing one or more (peptide/protein) hits
-       @param assume_sorted Are hits sorted by score (best score first) already? This allows for faster query, since only the first hit needs to be looked at
-       @param best_hit Contains the best hit if successful
+       @param[in] identifications Vector of peptide or protein IDs, each containing one or more (peptide/protein) hits
+       @param[in] assume_sorted Are hits sorted by score (best score first) already? This allows for faster query, since only the first hit needs to be looked at
+       @param[in] best_hit Contains the best hit if successful
 
        @throws Exception::InvalidValue if the IDs have different score types (i.e. scores cannot be compared)
 
@@ -735,23 +749,23 @@ namespace OpenMS
     /**
        @brief Extracts all unique peptide sequences from a list of peptide IDs
 
-       @param peptides Input
-       @param sequences Output
-       @param ignore_mods Extract sequences without modifications?
+       @param[in,out] peptides Input
+       @param[out] sequences Output
+       @param[in] ignore_mods Extract sequences without modifications?
     */
     static void extractPeptideSequences(const PeptideIdentificationList& peptides, std::set<String>& sequences, bool ignore_mods = false);
 
     /**
      * @brief Extracts all proteins not matched by PSMs in features
-     * @param cmap the Input ConsensusMap
+     * @param[in] cmap the Input ConsensusMap
      * @return extracted ProteinHits for every IDRun
      */
     static std::map<String, std::vector<ProteinHit>> extractUnassignedProteins(ConsensusMap& cmap);
 
     /**
        @brief remove peptide evidences based on a filter
-       @param filter filter function that overloads ()(PeptideEvidence&) operator
-       @param peptides a collection of peptide evidences
+       @param[in] filter filter function that overloads ()(PeptideEvidence&) operator
+       @param[in] peptides a collection of peptide evidences
      */
     template<class EvidenceFilter>
     static void FilterPeptideEvidences(EvidenceFilter& filter, PeptideIdentificationList& peptides)
@@ -782,37 +796,59 @@ namespace OpenMS
     static void removeUnreferencedProteins(ProteinIdentification& proteins, const PeptideIdentificationList& peptides);
 
     /**
-       @brief Removes references to missing proteins
+       @brief Removes dangling protein references from peptide hits
 
-       Only PeptideEvidence entries that reference protein hits in @p proteins are kept in the peptide hits.
+       Cleans up PeptideEvidence entries by removing references to proteins that no longer exist
+       in the provided protein identifications. This is typically called after filtering protein hits
+       to maintain consistency between peptide-to-protein mappings.
 
-       If @p remove_peptides_without_reference is set, peptide hits without any remaining protein reference are removed.
+       @param[in,out] peptides The peptide identifications to process
+       @param[in] proteins The protein identifications containing valid protein hits
+       @param[in] remove_peptides_without_reference If true, peptide hits that have no remaining
+              protein references after cleanup are also removed (default: false)
+
+       @note Only PeptideEvidence entries referencing protein hits in @p proteins are kept.
+             The matching is done per identification run using the run identifier.
     */
-    static void updateProteinReferences(PeptideIdentificationList& peptides, const std::vector<ProteinIdentification>& proteins, bool remove_peptides_without_reference = false);
+    static void removeDanglingProteinReferences(PeptideIdentificationList& peptides, const std::vector<ProteinIdentification>& proteins, bool remove_peptides_without_reference = false);
 
     /**
-       @brief Removes references to missing proteins
+       @brief Removes dangling protein references from peptide hits in a ConsensusMap
 
-       Only PeptideEvidence entries that reference protein hits in their corresponding protein run of @p cmap are kept in the peptide hits.
+       Cleans up PeptideEvidence entries by removing references to proteins that no longer exist
+       in the ConsensusMap's protein identifications. This is typically called after filtering
+       protein hits to maintain consistency between peptide-to-protein mappings.
 
-       If @p remove_peptides_without_reference is set, peptide hits without any remaining protein reference are removed.
+       @param[in,out] cmap The ConsensusMap containing peptide and protein identifications
+       @param[in] remove_peptides_without_reference If true, peptide hits that have no remaining
+              protein references after cleanup are also removed (default: false)
+
+       @note Only PeptideEvidence entries referencing protein hits in the corresponding
+             protein run of @p cmap are kept. The matching is done per identification run.
     */
-    static void updateProteinReferences(ConsensusMap& cmap, bool remove_peptides_without_reference = false);
+    static void removeDanglingProteinReferences(ConsensusMap& cmap, bool remove_peptides_without_reference = false);
 
     /**
-       @brief Removes references to missing proteins
+       @brief Removes dangling protein references from peptide hits using a reference protein run
 
-       Only PeptideEvidence entries that reference protein hits in @p ref_run are kept in the peptide hits.
+       Cleans up PeptideEvidence entries by removing references to proteins that do not exist
+       in the specified reference protein run. This is typically called after filtering protein
+       hits to maintain consistency between peptide-to-protein mappings.
 
-       If @p remove_peptides_without_reference is set, peptide hits without any remaining protein reference are removed.
+       @param[in,out] cmap The ConsensusMap containing peptide identifications to process
+       @param[in] ref_run The reference ProteinIdentification containing valid protein hits
+       @param[in] remove_peptides_without_reference If true, peptide hits that have no remaining
+              protein references after cleanup are also removed (default: false)
+
+       @note Only PeptideEvidence entries referencing protein hits in @p ref_run are kept.
     */
-    static void updateProteinReferences(ConsensusMap& cmap, const ProteinIdentification& ref_run, bool remove_peptides_without_reference = false);
+    static void removeDanglingProteinReferences(ConsensusMap& cmap, const ProteinIdentification& ref_run, bool remove_peptides_without_reference = false);
 
     /**
        @brief Update protein groups after protein hits were filtered
 
-       @param groups Input/output protein groups
-       @param hits Available protein hits (all others are removed from the groups)
+       @param[in] groups Input/output protein groups
+       @param[in,out] hits Available protein hits (all others are removed from the groups)
 
        @return Returns whether the groups are still valid (which is the case if only whole groups, if any, were removed).
     */
@@ -821,8 +857,8 @@ namespace OpenMS
     /**
        @brief Update protein hits after protein groups were filtered
 
-       @param groups Available protein groups with protein accessions to keep
-       @param hits Input/output hits (all others are removed from the groups)
+       @param[in,out] groups Available protein groups with protein accessions to keep
+       @param[in] hits Input/output hits (all others are removed from the groups)
     */
     static void removeUngroupedProteins(const std::vector<ProteinIdentification::ProteinGroup>& groups, std::vector<ProteinHit>& hits);
     ///@}
@@ -863,9 +899,9 @@ namespace OpenMS
      * Note: Removes a hit if the @p score_type is not found at all.
      * 
      * @tparam IdentificationType The type of identification.
-     * @param ids The vector of identifications to filter.
-     * @param threshold_score The threshold score to filter the hits.
-     * @param score_type The score type to consider for filtering.
+     * @param[in] ids The vector of identifications to filter.
+     * @param[in] threshold_score The threshold score to filter the hits.
+     * @param[in] score_type The score type to consider for filtering.
      */
     template<class IdentificationType>
     static void filterHitsByScore(std::vector<IdentificationType>& ids, double threshold_score, IDScoreSwitcherAlgorithm::ScoreType score_type)
@@ -944,8 +980,8 @@ namespace OpenMS
 
        Overload for PeptideIdentificationList to avoid template deduction issues.
 
-       @param pep_ids The PeptideIdentificationList to filter.
-       @param n Maximum number of hits to keep.
+       @param[in] pep_ids The PeptideIdentificationList to filter.
+       @param[in] n Maximum number of hits to keep.
     */
     static void keepNBestHits(PeptideIdentificationList& pep_ids, Size n)
     {
@@ -1069,8 +1105,8 @@ namespace OpenMS
     /**
        @brief Filters peptide identifications keeping only the single best-scoring hit per ID.
 
-       @param peptides Input/output
-       @param strict If set, keep the best hit only if its score is unique - i.e. ties are not allowed. (Otherwise all hits with the best score is kept.)
+       @param[in,out] peptides Input/output
+       @param[in] strict If set, keep the best hit only if its score is unique - i.e. ties are not allowed. (Otherwise all hits with the best score is kept.)
     */
     static void keepBestPeptideHits(PeptideIdentificationList& peptides, bool strict = false);
 
@@ -1105,9 +1141,9 @@ namespace OpenMS
 
        Only peptide hits with a low mass deviation (between theoretical peptide mass and precursor mass) are kept.
 
-       @param peptides Input/output
-       @param mass_error Threshold for the mass deviation
-       @param unit_ppm Is @p mass_error given in PPM?
+       @param[in,out] peptides Input/output
+       @param[in] mass_error Threshold for the mass deviation
+       @param[in] unit_ppm Is @p mass_error given in PPM?
 
        @note The ranks of the hits may be invalidated.
     */
@@ -1117,8 +1153,8 @@ namespace OpenMS
     /**
        @brief Digest a collection of proteins and filter PeptideEvidences based on specificity
        PeptideEvidences of peptides are removed if the digest of a protein did not produce the peptide sequence
-       @param filter filter function on PeptideEvidence level
-       @param peptides PeptideIdentification that will be scanned and filtered
+       @param[in] filter filter function on PeptideEvidence level
+       @param[in] peptides PeptideIdentification that will be scanned and filtered
      */
     template<class Filter>
     static void filterPeptideEvidences(Filter& filter, PeptideIdentificationList& peptides);
@@ -1128,9 +1164,9 @@ namespace OpenMS
 
        Filters the peptide hits by the probability (p-value) of a correct peptide identification having a deviation between observed and predicted RT equal to or greater than allowed.
 
-       @param peptides Input/output
-       @param metavalue_key Name of the meta value that holds the p-value: "predicted_RT_p_value" or "predicted_RT_p_value_first_dim"
-       @param threshold P-value threshold
+       @param[in] peptides Input/output
+       @param[in] metavalue_key Name of the meta value that holds the p-value: "predicted_RT_p_value" or "predicted_RT_p_value_first_dim"
+       @param[in] threshold P-value threshold
 
        @note The ranks of the hits may be invalidated.
     */
@@ -1195,7 +1231,7 @@ namespace OpenMS
       {
         filterHitsByScore(peptide_id, peptide_threshold_score);
       }
-      updateProteinReferences(annotated_data.getPeptideIdentifications(), annotated_data.getProteinIdentifications());
+      removeDanglingProteinReferences(annotated_data.getPeptideIdentifications(), annotated_data.getProteinIdentifications());
     }
 
     /// Filters AnnotatedMSRun by keeping the N best peptide hits for every spectrum
@@ -1223,7 +1259,7 @@ namespace OpenMS
         // Since we're working with individual PeptideIdentifications, we don't need to remove empty ones
         // but we still need to update protein references
         temp_vec = {peptide_id};
-        updateProteinReferences(temp_vec, annotated_data.getProteinIdentifications());
+        removeDanglingProteinReferences(temp_vec, annotated_data.getProteinIdentifications());
         all_peptides.push_back(peptide_id);
       }
       // update protein hits:
@@ -1247,7 +1283,7 @@ namespace OpenMS
       keepNBestHits(map.getUnassignedPeptideIdentifications(), n);
     }
 
-    template<class MapType>
+    template<IsNotIdentificationVector MapType>
     static void removeEmptyIdentifications(MapType& prot_and_pep_ids)
     {
       const auto pred = HasNoHits<PeptideIdentification>();
@@ -1431,8 +1467,8 @@ namespace OpenMS
 
       @see IdentificationData::getBestMatchPerObservation
 
-      @param id_data Data to be filtered
-      @param score_ref Reference to the score type defining "best" matches
+      @param[in] id_data Data to be filtered
+      @param[in] score_ref Reference to the score type defining "best" matches
     */
     static void keepBestMatchPerObservation(IdentificationData& id_data, IdentificationData::ScoreTypeRef score_ref);
 
@@ -1443,9 +1479,9 @@ namespace OpenMS
       Matches without a score of the required type are also removed.
       The data structure will be cleaned up (IdentificationData::cleanup) to remove any invalidated references at the end of this operation.
 
-      @param id_data Data to be filtered
-      @param score_ref Reference to the score type used for filtering
-      @param cutoff Score cut-off for filtering
+      @param[in] id_data Data to be filtered
+      @param[in] score_ref Reference to the score type used for filtering
+      @param[in] cutoff Score cut-off for filtering
     */
     static void filterObservationMatchesByScore(IdentificationData& id_data, IdentificationData::ScoreTypeRef score_ref, double cutoff);
 

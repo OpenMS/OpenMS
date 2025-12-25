@@ -48,7 +48,7 @@ public:
         start and end of the container. The resampling frequency can be
         controlled by the "spacing" parameter.
 
-        @param container The container to be resampled
+        @param[in,out] container The container to be resampled
     */
     template <class PeakContainerT>
     void raster(PeakContainerT& container)
@@ -82,9 +82,9 @@ public:
         This is especially useful if multiple spectra or chromatograms need to
         be resampled according to the same raster.
 
-        @param container The container to be resampled
-        @param start_pos The start position to be used for resampling
-        @param end_pos The end position to be used for resampling
+        @param[in,out] container The container to be resampled
+        @param[in] start_pos The start position to be used for resampling
+        @param[in] end_pos The end position to be used for resampling
     */
     template <typename PeakContainerT>
     void raster_align(PeakContainerT& container, double start_pos, double end_pos)
@@ -131,10 +131,10 @@ public:
         outside the range of the output container will simply be added to the
         first or last data point.
 
-        @param raw_it Start of the input container to be resampled (containing the data)
-        @param raw_end End of the input container to be resampled (containing the data)
-        @param resampled_begin Iterator pointing to start of the output spectrum range (m/z need to be populated, intensities should be zero)
-        @param resampled_end Iterator pointing to end of the output spectrum range (m/z need to be populated, intensities should be zero)
+        @param[in] raw_it Start of the input container to be resampled (containing the data)
+        @param[in] raw_end End of the input container to be resampled (containing the data)
+        @param[in,out] resampled_begin Iterator pointing to start of the output spectrum range (m/z need to be populated, intensities should be zero)
+        @param[in,out] resampled_end Iterator pointing to end of the output spectrum range (m/z need to be populated, intensities should be zero)
 
     */
     template <typename PeakTypeIterator, typename ConstPeakTypeIterator>
@@ -195,14 +195,14 @@ public:
         outside the range of the output container will simply be added to the
         first or last data point.
 
-        @param mz_raw_it Start of the input container to be resampled (containing the m/z data)
-        @param mz_raw_end End of the input container to be resampled (containing the m/z data)
-        @param int_raw_it Start of the input container to be resampled (containing the intensity data)
-        @param int_raw_end End of the input container to be resampled (containing the intensity data)
-        @param mz_resample_it Iterator pointing to start of the output spectrum range (m/z which need to be populated)
-        @param mz_resample_end Iterator pointing to end of the output spectrum range (m/z which need to be populated)
-        @param int_resample_it Iterator pointing to start of the output spectrum range (intensities)
-        @param int_resample_end Iterator pointing to end of the output spectrum range (intensities)
+        @param[in] mz_raw_it Start of the input container to be resampled (containing the m/z data)
+        @param[in] mz_raw_end End of the input container to be resampled (containing the m/z data)
+        @param[in] int_raw_it Start of the input container to be resampled (containing the intensity data)
+        @param[in] int_raw_end End of the input container to be resampled (containing the intensity data)
+        @param[in] mz_resample_it Iterator pointing to start of the output spectrum range (m/z which need to be populated)
+        @param[in] mz_resample_end Iterator pointing to end of the output spectrum range (m/z which need to be populated)
+        @param[in,out] int_resample_it Iterator pointing to start of the output spectrum range (intensities)
+        @param[in,out] int_resample_end Iterator pointing to end of the output spectrum range (intensities)
 
     */
     template <typename PeakTypeIterator, typename ConstPeakTypeIterator>
@@ -276,10 +276,10 @@ public:
         The intensities at the resampling point is computed by a linear
         interpolation between the two closest resampling points.
 
-        @param raw_it Start of the input (raw) spectrum to be resampled
-        @param raw_end End of the input (raw) spectrum to be resampled
-        @param resampled_start Iterator pointing to start of the output spectrum range (m/z need to be populated, intensities should be zero)
-        @param resampled_end Iterator pointing to end of the output spectrum range (m/z need to be populated, intensities should be zero)
+        @param[in] raw_it Start of the input (raw) spectrum to be resampled
+        @param[in] raw_end End of the input (raw) spectrum to be resampled
+        @param[in,out] resampled_start Iterator pointing to start of the output spectrum range (m/z need to be populated, intensities should be zero)
+        @param[in,out] resampled_end Iterator pointing to end of the output spectrum range (m/z need to be populated, intensities should be zero)
     */
     template <typename PeakTypeIterator>
     void raster_interpolate(PeakTypeIterator raw_it, PeakTypeIterator raw_end, PeakTypeIterator resampled_start, PeakTypeIterator resampled_end)

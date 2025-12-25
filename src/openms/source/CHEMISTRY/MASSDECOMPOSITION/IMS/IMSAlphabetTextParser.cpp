@@ -18,7 +18,7 @@
     - lines containing only white space
     - lines starting with '#' (even after leading whitespace, but not after anything else)
 
-  @param is The input stream to be parsed.
+  @param[in] is The input stream to be parsed.
 */
 void OpenMS::ims::IMSAlphabetTextParser::parse(std::istream & is)
 {

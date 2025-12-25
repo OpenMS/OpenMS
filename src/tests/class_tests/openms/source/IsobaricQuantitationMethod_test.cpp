@@ -141,9 +141,9 @@ START_SECTION((virtual Matrix<double> getIsotopeCorrectionMatrix() const =0))
     {0.002, 0.056, 0.924, 0.04},
     {0, 0.001, 0.045, 0.923}};
 
-  for (size_t i = 0; i < m.rows(); ++i)
+  for (Size i = 0; i < m.rows(); ++i)
   {
-    for (size_t j = 0; j < m.cols(); ++j)
+    for (Size j = 0; j < m.cols(); ++j)
     {
       TEST_REAL_SIMILAR(real_m[i][j], m(i,j))
     }
@@ -160,9 +160,9 @@ START_SECTION((virtual Matrix<double> getIsotopeCorrectionMatrix() const =0))
     {0.002, 0.056, 0.854, 0.04},
     {0, 0.006, 0.045, 0.923}};
 
-  for(size_t i = 0; i < m.rows(); ++i)
+  for(Size i = 0; i < m.rows(); ++i)
   {
-    for(size_t j = 0; j < m.cols(); ++j)
+    for(Size j = 0; j < m.cols(); ++j)
     {
       TEST_REAL_SIMILAR(real_m2[i][j], m(i,j))
     }

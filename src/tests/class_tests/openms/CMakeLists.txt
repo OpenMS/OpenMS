@@ -67,6 +67,9 @@ target_link_libraries(Base64_test ZLIB::ZLIB)
 target_link_libraries(LPWrapper_test CoinOR::CoinOR)
 target_link_libraries(SpectraSTSimilarityScore_test Eigen3::Eigen)
 target_link_libraries(BinnedSpectrum_test Eigen3::Eigen)
+target_link_libraries(BilinearInterpolation_test Eigen3::Eigen)
+target_link_libraries(MatrixEigen_test Eigen3::Eigen)
+target_link_libraries(MRMScoring_test Eigen3::Eigen)
 
 if (WITH_HDF5)
   target_link_libraries(HDF5_test HDF5::HDF5)
@@ -74,12 +77,12 @@ endif()
 
 if (WITH_PARQUET)
   target_link_libraries(Arrow_test 
-  Arrow::arrow_shared
-  Parquet::parquet_shared
+  ${OPENMS_ARROW_TARGET}
+  ${OPENMS_PARQUET_TARGET}
   )
   target_link_libraries(QuantmsIO_test 
-  Arrow::arrow_shared
-  Parquet::parquet_shared
+  ${OPENMS_ARROW_TARGET}
+  ${OPENMS_PARQUET_TARGET}
   )
 endif()
 

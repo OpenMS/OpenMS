@@ -36,7 +36,7 @@ namespace OpenMS
 public:
 
     /// Constructor
-    MetaInfoInterface();
+    MetaInfoInterface() = default;
     /// Copy constructor
     MetaInfoInterface(const MetaInfoInterface& rhs);
     /// Move constructor
@@ -84,8 +84,8 @@ public:
     /// Removes the DataValue corresponding to @p index if it exists
     void removeMetaValue(UInt index);
 
-    /// Copy all meta values from @p from to this one
-    /// Existing values will be overwritten, new values will be added
+    /// Copy all meta values from @p from to this object (both named String and indexed UInt keys).
+    /// Existing entries with the same key are overwritten; others are preserved.
     void addMetaValues(const MetaInfoInterface& from);
 
     /// Returns a reference to the MetaInfoRegistry
@@ -108,8 +108,8 @@ protected:
     /// Creates the MetaInfo object if it does not exist
     inline void createIfNotExists_();
 
-    /// Pointer to the MetaInfo object (0 by default)
-    MetaInfo* meta_;
+    /// Pointer to the MetaInfo object
+    MetaInfo* meta_ = nullptr;
   };
 
 } // namespace OpenMS

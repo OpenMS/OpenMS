@@ -912,10 +912,13 @@ protected:
 
     // Parse ion mobility information if present
     bool all_ids_have_im = SpectrumMetaDataLookup::addMissingIMToPeptideIDs(peptide_identifications, exp);
-    if (all_ids_have_im) 
+    if (all_ids_have_im)
     {
       protein_identifications[0].setMetaValue(Constants::UserParam::IM, exp.getSpectrum(0).getDriftTimeUnitAsString());
     }
+
+    // Parse FAIMS compensation voltage if present
+    SpectrumMetaDataLookup::addMissingFAIMSToPeptideIDs(peptide_identifications, exp);
 
     // remove base_name meta value from peptide identifications
     for (auto& peptide_identification : peptide_identifications)

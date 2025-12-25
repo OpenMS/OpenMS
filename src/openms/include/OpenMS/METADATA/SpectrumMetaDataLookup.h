@@ -177,14 +177,14 @@ namespace OpenMS
        @brief Read spectra and store their meta data
 
        @tparam SpectrumContainer Spectrum container class, must support @p size and @p operator[]
-       @param spectra Container of spectra
-       @param scan_regexp Regular expression for matching scan numbers in spectrum native IDs (must contain the named group "?<SCAN>")
-       @param get_precursor_rt Assign precursor retention times? (This relies on all precursor spectra being present and in the right order.)
+       @param[in] spectra Container of spectra
+       @param[in] scan_regexp Regular expression for matching scan numbers in spectrum native IDs (must contain the named group "?<SCAN>")
+       @param[in] get_precursor_rt Assign precursor retention times? (This relies on all precursor spectra being present and in the right order.)
 
        @throw Exception::IllegalArgument if @p scan_regexp does not contain "?<SCAN>" (and is not empty)
     */
     template <typename SpectrumContainer>
-    void readSpectra(const SpectrumContainer& spectra, 
+    void readSpectra(const SpectrumContainer& spectra,
                      const String& scan_regexp = default_scan_regexp,
                      bool get_precursor_rt = false)
     {
@@ -211,7 +211,7 @@ namespace OpenMS
     /**
      * @brief set spectra_data from read SpectrumContainer origin (i.e. filename)
      *
-     * @param spectra_data the name (and path) of the origin of the read SpectrumContainer
+     * @param[in] spectra_data the name (and path) of the origin of the read SpectrumContainer
      */
     void setSpectraDataRef(const String& spectra_data)
     {
@@ -222,18 +222,18 @@ namespace OpenMS
     /**
        @brief Look up meta data of a spectrum
 
-       @param index Index of the spectrum
-       @param meta Meta data output
+       @param[in] index Index of the spectrum
+       @param[out] meta Meta data output
     */
     void getSpectrumMetaData(Size index, SpectrumMetaData& meta) const;
 
     /**
        @brief Extract meta data from a spectrum
 
-       @param spectrum Spectrum input
-       @param meta Meta data output
-       @param scan_regexp Regular expression for extracting scan number from spectrum native ID
-       @param precursor_rts RTs of potential precursor spectra of different MS levels
+       @param[in] spectrum Spectrum input
+       @param[out] meta Meta data output
+       @param[in] scan_regexp Regular expression for extracting scan number from spectrum native ID
+       @param[in] precursor_rts RTs of potential precursor spectra of different MS levels
 
        Scan number and precursor RT, respectively, are only extracted if @p scan_regexp/@p precursor_rts are not empty.
     */
@@ -245,9 +245,9 @@ namespace OpenMS
     /**
        @brief Extract meta data via a spectrum reference
 
-       @param spectrum_ref Spectrum reference to parse
-       @param meta Meta data output
-       @param flags What meta data to extract
+       @param[in] spectrum_ref Spectrum reference to parse
+       @param[out] meta Meta data output
+       @param[in] flags What meta data to extract
 
        @throw Exception::ElementNotFound if a spectrum look-up was necessary, but no matching spectrum was found
 
@@ -259,8 +259,8 @@ namespace OpenMS
 	/**
 	   @brief Add missing retention time (RT) values to peptide identifications based on raw data
 
-	   @param peptides Peptide IDs with or without RT values
-	   @param exp The MSExperiment object representing the raw data file (e.g., mzML) used to look up RT values.
+	   @param[in,out] peptides Peptide IDs with or without RT values
+	   @param[in] exp The MSExperiment object representing the raw data file (e.g., mzML) used to look up RT values.
 
 	   @return True if all peptide IDs could be annotated successfully (including if all already had RT values), false otherwise.
 
@@ -269,27 +269,45 @@ namespace OpenMS
 
     /**
      * @brief Adds missing ion mobility information to peptide identifications.
-     * 
+     *
      * This function adds missing ion mobility (IM) information to the peptide identifications.
      * The missing IM information is retrieved from the MSExperiment.
-     * 
-     * @param peptides The vector of peptide identifications to update.
-     * @param exp The MSExperiment object representing the raw data file (e.g., mzML) used to look up IM values.
-     * 
+     *
+     * @param[in,out] peptides The vector of peptide identifications to update.
+     * @param[in] exp The MSExperiment object representing the raw data file (e.g., mzML) used to look up IM values.
+     *
      * @return True if all missing IM information was successfully added to the peptide identifications, false otherwise.
     */
     static bool addMissingIMToPeptideIDs(PeptideIdentificationList& peptides,
     									const MSExperiment& exp);
 
     /**
+     * @brief Adds FAIMS compensation voltage information to peptide identifications.
+     *
+     * This function adds FAIMS compensation voltage (CV) information to the peptide identifications
+     * by looking up the corresponding spectrum and extracting the FAIMS CV.
+     *
+     * Both MS1 and MS2 spectra can have explicit FAIMS CV annotations (DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE).
+     * For MS2 spectra without explicit FAIMS CV, the function falls back to the last seen FAIMS CV
+     * from a preceding spectrum in run order.
+     *
+     * @param[in,out] peptides The vector of peptide identifications to update.
+     * @param[in] exp The MSExperiment object representing the raw data file (e.g., mzML) used to look up FAIMS CV values.
+     *
+     * @return True if FAIMS data was present and at least some IDs were annotated, false if no FAIMS data present.
+    */
+    static bool addMissingFAIMSToPeptideIDs(PeptideIdentificationList& peptides,
+                                            const MSExperiment& exp);
+
+    /**
      * @brief Add missing "spectrum_reference"s to peptide identifications based on raw data
      *
-     * @param peptides Peptide IDs with or without spectrum_reference
-     * @param filename the name of the mz_file from which to draw spectrum_references
-     * @param stop_on_error Stop when an ID could not be matched to a spectrum (or keep going)?
-     * @param override_spectra_data if given ProteinIdentifications should be updated with new "spectra_data" values from SpectrumMetaDataLookup
-     * @param override_spectra_references if given PeptideIdentifications with existing spectrum_reference should be updated from SpectrumMetaDataLookup
-     * @param proteins Protein IDs corresponding to the Peptide IDs
+     * @param[in,out] peptides Peptide IDs with or without spectrum_reference
+     * @param[in] filename the name of the mz_file from which to draw spectrum_references
+     * @param[in] stop_on_error Stop when an ID could not be matched to a spectrum (or keep going)?
+     * @param[in] override_spectra_data if given ProteinIdentifications should be updated with new "spectra_data" values from SpectrumMetaDataLookup
+     * @param[in] override_spectra_references if given PeptideIdentifications with existing spectrum_reference should be updated from SpectrumMetaDataLookup
+     * @param[in,out] proteins Protein IDs corresponding to the Peptide IDs
      *
      * @return True if all peptide IDs could be annotated successfully (including if all already had "spectrum_reference" values), false otherwise.
      *

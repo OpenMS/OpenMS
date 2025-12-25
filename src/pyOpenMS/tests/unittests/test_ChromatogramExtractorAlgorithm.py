@@ -45,7 +45,7 @@ class TestChromatogramExtractorAlgorithm(unittest.TestCase):
 
         # Start with length zero
         tmp_out = [ pyopenms.OSChromatogram() for i in range(len(targeted))]
-        self.assertEqual(len(tmp_out[0].getIntensityArray()), 0)
+        self.assertEqual(len(tmp_out[0].get_intensity_array()), 0)
 
         extractor = pyopenms.ChromatogramExtractorAlgorithm()
         mz_extraction_window = 10.0
@@ -59,11 +59,11 @@ class TestChromatogramExtractorAlgorithm(unittest.TestCase):
         self.assertNotEqual(len(tmp_out), 0)
 
         # End with different length
-        self.assertEqual(len(tmp_out[0].getIntensityArray()), exp_size)
-        self.assertNotEqual(len(tmp_out[0].getIntensityArray()), 0)
-        self.assertNotEqual(len(tmp_out[0].getTimeArray()), 0)
-        self.assertNotEqual(tmp_out[0].getIntensityArray()[0], 0)
-        self.assertNotEqual(tmp_out[0].getTimeArray()[0], 0)
+        self.assertEqual(len(tmp_out[0].get_intensity_array()), exp_size)
+        self.assertNotEqual(len(tmp_out[0].get_intensity_array()), 0)
+        self.assertNotEqual(len(tmp_out[0].get_time_array()), 0)
+        self.assertNotEqual(tmp_out[0].get_intensity_array()[0], 0)
+        self.assertNotEqual(tmp_out[0].get_time_array()[0], 0)
 
 if __name__ == '__main__':
     unittest.main()

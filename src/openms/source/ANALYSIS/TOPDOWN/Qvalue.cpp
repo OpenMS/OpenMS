@@ -8,297 +8,193 @@
 
 #include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/Qvalue.h>
+#include <OpenMS/DATASTRUCTURES/MatrixEigen.h>
+#include <Eigen/QR>
 
 namespace OpenMS
 {
-  void Qvalue::updatePeakGroupQvalues(std::vector<DeconvolvedSpectrum>& deconvolved_spectra,
-                                      std::vector<DeconvolvedSpectrum>& deconvolved_decoy_spectra) // per ms level + precursor update as well.
+  /// simple function to generate distribution from input vector values
+  Matrix<double> getDistVector(const std::vector<double>& values, Size num_bin, double minv, double maxv)
   {
-    uint bin_number = 25;                         // 25 is enough resolution for qvalue calculation. In most cases FDR 5% will be used.
-    std::map<uint, std::vector<float>> tscore_map; // per ms level
+    Matrix<double> ret(num_bin, 1, .0);
+    for (const auto& v : values)
+    {
+      if (v >= maxv) continue;
+      if (v < minv) continue;
 
-    std::map<uint, std::vector<float>> dscore_iso_decoy_map;
-    std::map<uint, std::map<float, float>> qscore_iso_decoy_map; // maps for isotope decoy only qvalues
+      Size bin = Size((v - minv) / (maxv - minv) * num_bin);
+      ret.setValue(bin, 0, ret.getValue(bin, 0) + 1);
+    }
+    return ret;
+  }
 
-    std::map<uint, std::vector<float>> dscore_noise_decoy_map;
-    std::map<uint, std::map<float, float>> qscore_noise_decoy_map; // maps for noise decoy only qvalues
-
-    std::map<uint, std::vector<float>> dscore_charge_decoy_map;
-    std::map<uint, std::map<float, float>> qscore_charge_decoy_map; // maps for charge decoy only qvalues
+  double Qvalue::updatePeakGroupQvalues(std::vector<DeconvolvedSpectrum>& deconvolved_spectra) // per ms level + precursor update as well.
+  {
+    double noise_weight = 1;
+    std::map<uint, std::vector<double>> score_map_target; // target PeakGroupScoring vector per ms level
+    std::map<uint, std::vector<double>> score_signal_decoy_map; // signal decoy PeakGroupScoring vector per ms level
+    std::map<uint, std::vector<double>> score_noise_decoy_map; // noise decoy PeakGroupScoring vector per ms level
+    std::map<uint, std::map<double, double>> qscore_qvalue_map; // mapping from qscore to qvalue
 
     // to calculate qvalues per ms level, store Qscores per ms level
+    std::set<uint> used_feature_indices;
+
     for (auto& deconvolved_spectrum : deconvolved_spectra)
     {
+      if (deconvolved_spectrum.empty())
+        continue;
+
       uint ms_level = deconvolved_spectrum.getOriginalSpectrum().getMSLevel();
       for (auto& pg : deconvolved_spectrum)
       {
-        tscore_map[ms_level].push_back(pg.getQscore());
-      }
-    }
+        if (pg.getFeatureIndex() > 0 && used_feature_indices.find(pg.getFeatureIndex()) != used_feature_indices.end())
+          continue;
+        used_feature_indices.insert(pg.getFeatureIndex());
 
-    for (auto& decoy_deconvolved_spectrum : deconvolved_decoy_spectra)
-    {
-      uint ms_level = decoy_deconvolved_spectrum.getOriginalSpectrum().getMSLevel();
-      for (auto& pg : decoy_deconvolved_spectrum)
-      {
-        if (pg.getTargetDummyType() == PeakGroup::TargetDummyType::isotope_dummy)
+        if (pg.getTargetDecoyType() == PeakGroup::TargetDecoyType::target)
         {
-          dscore_iso_decoy_map[ms_level].push_back(pg.getQscore());
+          score_map_target[ms_level].push_back(pg.getQscore2D());
         }
-        else if (pg.getTargetDummyType() == PeakGroup::TargetDummyType::noise_dummy)
+        else if (pg.getTargetDecoyType() == PeakGroup::TargetDecoyType::signal_decoy)
         {
-          dscore_noise_decoy_map[ms_level].push_back(pg.getQscore());
+          score_signal_decoy_map[ms_level].push_back(pg.getQscore2D());
         }
-        else if (pg.getTargetDummyType() == PeakGroup::TargetDummyType::charge_dummy)
+        else if (pg.getTargetDecoyType() == PeakGroup::TargetDecoyType::noise_decoy)
         {
-          dscore_charge_decoy_map[ms_level].push_back(pg.getQscore());
+          score_noise_decoy_map[ms_level].push_back(pg.getQscore2D());
         }
       }
     }
 
-    for (auto& [ms_level, qscores] : tscore_map)
+    // per ms score, calculate Qvalues
+    for (auto& [ms_level, scores_target] : score_map_target)
     {
-      auto& dscore_iso = dscore_iso_decoy_map[ms_level];
-      auto& dscore_charge = dscore_charge_decoy_map[ms_level];
-      auto& dscore_noise = dscore_noise_decoy_map[ms_level];
+      auto& scores_signal_decoy = score_signal_decoy_map[ms_level];
+      auto& scores_noise_decoy = score_noise_decoy_map[ms_level];
 
-      auto mixed_dist = getDistribution(qscores, bin_number);
-      auto charge_dist = getDistribution(dscore_charge, bin_number);
-      auto noise_dist = getDistribution(dscore_noise, bin_number);
-      auto iso_dist = getDistribution(dscore_iso, bin_number);
+      std::sort(scores_target.begin(), scores_target.end());
+      std::sort(scores_signal_decoy.begin(), scores_signal_decoy.end());
+      std::sort(scores_noise_decoy.begin(), scores_noise_decoy.end());
 
-      std::vector<float> weight_limit;
-      weight_limit.push_back(((float)dscore_charge.size()) / qscores.size());
-      weight_limit.push_back(((float)dscore_noise.size()) / qscores.size());
-      weight_limit.push_back(((float)dscore_iso.size()) / qscores.size());
+      double sum = 0;
+      double max_score_for_weight_calculation = .7;
+      double min_score_for_weight_calculation = .3;
+      double iso_sum = std::accumulate(scores_signal_decoy.begin(), scores_signal_decoy.end(), .0);
 
-      std::vector<float> weights(4, .25f);
-      std::vector<float> target_dist(bin_number);
-
-      for (uint iteration = 0; iteration < 100; iteration++)
+      for (int i = scores_signal_decoy.size() - 1; i >= 0; i--)
       {
-        std::fill(target_dist.begin(), target_dist.end(), .0f);
-
-        for (int i = (int)bin_number - 1; i >= 0; i--) //
+        sum += scores_signal_decoy[i];
+        if (sum > iso_sum * .8 || scores_signal_decoy[i] < .5)
         {
-          float fp = (charge_dist[i] * weights[0] + noise_dist[i] * weights[1] + iso_dist[i] * weights[2]);
-          target_dist[i] = std::max(.0f, mixed_dist[i] - fp);
-          if (mixed_dist[i] > 0 && mixed_dist[i] < charge_dist[i] * weight_limit[0] + noise_dist[i] * weight_limit[1] + iso_dist[i] * weight_limit[2])
-          {
-            break;
-          }
-        }
-
-        float csum = .0f;
-
-        for (auto r : target_dist)
-          csum += r;
-
-        if (csum > 0)
-        {
-          for (auto& r : target_dist)
-            r /= csum;
-        }
-
-        std::vector<std::vector<float>> comp_dists {};
-        comp_dists.push_back(charge_dist);
-        comp_dists.push_back(noise_dist);
-        comp_dists.push_back(iso_dist);
-        comp_dists.push_back(target_dist);
-
-        auto tmp_weight = getDistributionWeights(mixed_dist, comp_dists);
-        float tmp_sum = 0;
-        for (Size i = 0; i < tmp_weight.size() - 1; i++)
-        {
-          tmp_weight[i] = std::min(tmp_weight[i], weight_limit[i]);
-          tmp_sum += tmp_weight[i];
-        }
-
-        tmp_weight[tmp_weight.size() - 1] = 1 - tmp_sum;
-
-        if (tmp_weight == weights)
-        {
+          max_score_for_weight_calculation = std::min(max_score_for_weight_calculation, scores_signal_decoy[i]);
           break;
         }
-        weights = tmp_weight;
       }
 
-      weights[0] *= dscore_charge.empty() ? .0 : (((double)qscores.size()) / dscore_charge.size());
-      weights[1] *= dscore_noise.empty() ? .0 : (((double)qscores.size()) / dscore_noise.size());
-      weights[2] *= dscore_iso.empty() ? .0 : (((double)qscores.size()) / dscore_iso.size());
+      Size num_bin = 6;
+      // get the score distributions
+      auto score_dist_target = getDistVector(scores_target, num_bin, min_score_for_weight_calculation, max_score_for_weight_calculation);
+      auto score_dist_noise_decoy = getDistVector(scores_noise_decoy, num_bin, min_score_for_weight_calculation, max_score_for_weight_calculation);
+      auto score_dist_signal_decoy = getDistVector(scores_signal_decoy, num_bin, min_score_for_weight_calculation, max_score_for_weight_calculation);
 
-      std::sort(qscores.begin(), qscores.end());
-      std::sort(dscore_iso.begin(), dscore_iso.end());
-      std::sort(dscore_noise.begin(), dscore_noise.end());
-      std::sort(dscore_charge.begin(), dscore_charge.end());
-
-      auto& map_charge = qscore_charge_decoy_map[ms_level];
-      float tmp_q_charge = 1;
-
-      // calculate q values using targets and charge dummies
-      for (size_t i = 0; i < qscores.size(); i++)
+      // noise decoy weight calculation using Least Square
+      Matrix<double> left(score_dist_target.rows(), 2, 1);
+      for (int r = 0; r < score_dist_target.rows(); r++)
       {
-        float ts = qscores[i];
-        size_t dindex = dscore_charge.size() == 0 ? 0 : std::distance(std::lower_bound(dscore_charge.begin(), dscore_charge.end(), ts), dscore_charge.end());
-        size_t tindex = qscores.size() - i;
-        float nom = weights[0] * (float)dindex;
-        float denom = (float)(tindex);
-        tmp_q_charge = (nom / denom);
-        map_charge[ts] = tmp_q_charge;
+        double v = score_dist_target.getValue(r, 0);
+        v -= score_dist_signal_decoy.getValue(r, 0);
+        score_dist_target.setValue(r, 0, v);
+        left.setValue(r, 0, score_dist_noise_decoy.getValue(r, 0));
       }
 
-      auto& map_iso = qscore_iso_decoy_map[ms_level];
-      float tmp_q_iso = 1;
+      auto calculated_vec = eigenView(left).completeOrthogonalDecomposition().pseudoInverse() * eigenView(score_dist_target);
+      noise_weight = calculated_vec.row(0)[0];
 
-      // calculate q values using targets and isotope dummies
-      for (size_t i = 0; i < qscores.size(); i++)
+      if (calculated_vec.row(1)[0] < 0)
       {
-        float ts = qscores[i];
-        size_t dindex = dscore_iso.size() == 0 ? 0 : std::distance(std::lower_bound(dscore_iso.begin(), dscore_iso.end(), ts), dscore_iso.end());
-        size_t tindex = qscores.size() - i;
-        float nom = weights[2] * (float)dindex;
-        float denom = (float)(tindex);
-        tmp_q_iso = nom / denom;
-        map_iso[ts] = tmp_q_iso;
+        auto calculated_vec_non_negative = eigenView(score_dist_noise_decoy).completeOrthogonalDecomposition().pseudoInverse() * eigenView(score_dist_target);
+        noise_weight = calculated_vec_non_negative.row(0)[0];
       }
 
-      auto& map_noise = qscore_noise_decoy_map[ms_level];
-      float tmp_q_noise = 1;
+      if (std::isnan(noise_weight)) noise_weight = 1.0;
+      noise_weight = std::max(noise_weight, 0.01);
+      std::sort(scores_target.rbegin(), scores_target.rend());
+      std::sort(scores_signal_decoy.rbegin(), scores_signal_decoy.rend());
+      std::sort(scores_noise_decoy.rbegin(), scores_noise_decoy.rend());
 
-      // calculate q values using targets and noise dummies
-      for (size_t i = 0; i < qscores.size(); i++)
+      // now get the qvalues
+      auto& map_qvalue = qscore_qvalue_map[ms_level];
+      double nom_i = 0, nom_c = 0, nom_n = 0;
+      Size j_i = 0, j_n = 0;
+
+      for (Size i = 0; i < scores_target.size(); i++)
       {
-        float ts = qscores[i];
-        size_t dindex = dscore_noise.size() == 0 ? 0 : std::distance(std::lower_bound(dscore_noise.begin(), dscore_noise.end(), ts), dscore_noise.end());
-        size_t tindex = qscores.size() - i;
-        float nom = weights[1] * (float)dindex;
-        float denom = (float)(tindex);
-        // tmp_q_noise = std::min(tmp_q_noise, (nom / denom));
-        tmp_q_noise = (nom / denom);
-        map_noise[ts] = tmp_q_noise;
+        double ts = scores_target[i];
+        double di = 0, dc = 0, dn = 0;
+        while (i < scores_target.size() - 1 && scores_target[i + 1] == ts)
+        {
+          i++;
+        }
+
+        while (j_n < scores_noise_decoy.size() && scores_noise_decoy[j_n] >= ts)
+        {
+          dn += noise_weight;
+          ++j_n;
+        }
+        while (j_i < scores_signal_decoy.size() && scores_signal_decoy[j_i] >= ts)
+        {
+          di++;
+          ++j_i;
+        }
+        nom_n += dn;
+        nom_i += di;
+        nom_c += dc;
+        double tmp_q = (nom_i + nom_c + nom_n) / double(1 + i);
+        map_qvalue[ts] = std::min(1.0, tmp_q);
       }
     }
 
-    for (auto& titem : tscore_map)
+    // refine qvalues to make them monotonic decreasing
+    for (const auto& titem : score_map_target)
     {
       uint ms_level = titem.first;
+      auto& map_qvalue = qscore_qvalue_map[ms_level];
+
+      double cummin = 1.0;
+      {
+        for (auto&& rit = map_qvalue.begin(); rit != map_qvalue.end(); ++rit)
+        {
+          cummin = std::min(rit->second, cummin);
+          rit->second = cummin;
+        }
+      }
+
       for (auto& deconvolved_spectrum : deconvolved_spectra)
       {
+        if (deconvolved_spectrum.empty() || deconvolved_spectrum.isDecoy())
+          continue;
+
+        // set precursor Qvalue here
+        if (deconvolved_spectrum.getOriginalSpectrum().getMSLevel() == ms_level + 1 && !deconvolved_spectrum.getPrecursorPeakGroup().empty())
+        {
+          auto precursor_pg = deconvolved_spectrum.getPrecursorPeakGroup();
+          double qs = precursor_pg.getQscore2D();
+
+          precursor_pg.setQvalue(map_qvalue[qs]);
+          deconvolved_spectrum.setPrecursorPeakGroup(precursor_pg);
+        }
+
         if (deconvolved_spectrum.getOriginalSpectrum().getMSLevel() != ms_level)
         {
           continue;
         }
-        auto& map_iso = qscore_iso_decoy_map[ms_level];
-        auto& map_noise = qscore_noise_decoy_map[ms_level];
-        auto& map_charge = qscore_charge_decoy_map[ms_level];
 
         for (auto& pg : deconvolved_spectrum)
         {
-          pg.setQvalue(map_charge[pg.getQscore()], PeakGroup::TargetDummyType::charge_dummy);
-          pg.setQvalue(map_noise[pg.getQscore()], PeakGroup::TargetDummyType::noise_dummy);
-          pg.setQvalue(map_iso[pg.getQscore()], PeakGroup::TargetDummyType::isotope_dummy);
-
-          if (deconvolved_spectrum.getOriginalSpectrum().getMSLevel() > 1 && !deconvolved_spectrum.getPrecursorPeakGroup().empty())
-          {
-            float qs = deconvolved_spectrum.getPrecursorPeakGroup().getQscore();
-            auto& pmap_iso = qscore_iso_decoy_map[ms_level - 1];
-            auto& pmap_charge = qscore_charge_decoy_map[ms_level - 1];
-            auto& pmap_noise = qscore_noise_decoy_map[ms_level - 1];
-            deconvolved_spectrum.getPrecursorPeakGroup().setQvalue(pmap_iso[qs], PeakGroup::TargetDummyType::isotope_dummy);
-            deconvolved_spectrum.getPrecursorPeakGroup().setQvalue(pmap_noise[qs], PeakGroup::TargetDummyType::noise_dummy);
-            deconvolved_spectrum.getPrecursorPeakGroup().setQvalue(pmap_charge[qs], PeakGroup::TargetDummyType::charge_dummy);
-          }
+          pg.setQvalue(map_qvalue[pg.getQscore2D()]);
         }
       }
     }
-  }
-
-  uint Qvalue::getBinNumber(float qscore, uint total_bin_number)
-  {
-    return (uint)(pow(qscore, 3.0) * (total_bin_number - 1.0) + .5f);
-  }
-
-  float Qvalue::getBinValue(uint bin_number, uint total_bin_number)
-  {
-    return pow((double)(bin_number) / (total_bin_number - 1.0), 1.0 / 3.0);
-  }
-
-  std::vector<float> Qvalue::getDistribution(const std::vector<float>& qscores, uint bin_number)
-  {
-    std::vector<float> ret(bin_number, .0f);
-
-    for (float qscore : qscores)
-    {
-      if (qscore < 0.0f || qscore > 1.0f)
-      {
-        continue;
-      }
-      uint bin = getBinNumber(qscore, bin_number);
-      ret[bin]++;
-    }
-    if (qscores.size() > 0)
-    {
-      for (uint i = 0; i < bin_number; i++)
-      {
-        ret[i] /= qscores.size();
-      }
-    }
-    float csum = .0f;
-    for (auto r : ret)
-      csum += r;
-    if (csum > 0)
-    {
-      for (auto& r : ret)
-        r /= csum;
-    }
-    // ret = smoothByMovingAvg(ret);
-    return ret;
-  }
-
-  std::vector<float> Qvalue::getDistributionWeights(const std::vector<float>& mixed_dist, const std::vector<std::vector<float>>& comp_dists, uint num_iterations)
-  {
-    uint weight_cntr = comp_dists.size();
-    uint bin_number = mixed_dist.size();
-    std::vector<float> weights(weight_cntr, 1.0f / weight_cntr);
-
-    for (uint n = 0; n < num_iterations; n++)
-    {
-      std::vector<float> tmp_weights(weights);
-      float tmp_weight_sum = .0f;
-
-      for (uint i = 0; i < weight_cntr; i++)
-      {
-        float t = .0f;
-        for (uint k = 0; k < bin_number; k++)
-        {
-          float denom = .0f;
-          for (uint j = 0; j < weight_cntr; j++)
-          {
-            denom += weights[j] * comp_dists[j][k];
-          }
-          if (denom > 0)
-          {
-            t += comp_dists[i][k] * mixed_dist[k] / denom;
-          }
-        }
-        tmp_weights[i] *= t;
-        tmp_weights[i] = std::max(.0f, tmp_weights[i]);
-        tmp_weight_sum += tmp_weights[i];
-      }
-
-      if (tmp_weight_sum > 0)
-      {
-        for (float& tmp_weight : tmp_weights)
-        {
-          tmp_weight /= tmp_weight_sum;
-        }
-      }
-      if (weights == tmp_weights)
-      {
-        break;
-      }
-      weights.swap(tmp_weights);
-    }
-    return weights;
+    return noise_weight;
   }
 } // namespace OpenMS

@@ -53,7 +53,7 @@ public:
     /// If no spectrum/chrom is selected, false is returned and @p exp is empty
     /// 
     /// @param[out] exp The currently active spec/chrom
-    /// @param current_type Either DT_PEAK or DT_CHROMATOGRAM, depending on what is currently shown
+    /// @param[in] current_type Either DT_PEAK or DT_CHROMATOGRAM, depending on what is currently shown
     /// @return true if a spec/chrom is currently active
     bool getSelectedScan(MSExperiment& exp, LayerDataBase::DataType& current_type) const;
 

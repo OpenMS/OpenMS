@@ -1436,8 +1436,8 @@ protected:
       os << "Activation methods\n";
       for (const auto& am : act_method_counts)
       {
-        os << "    MS-Level " << am.first.mslevel << " & " << Precursor::NamesOfActivationMethodShort[am.first.am] << " (" << Precursor::NamesOfActivationMethod[am.first.am] << "): " << am.second << '\n';
-        os_tsv << "activation methods (mslevel, method, count)" << '\t' << am.first.mslevel << '\t' << Precursor::NamesOfActivationMethodShort[am.first.am] << '\t' << am.second << '\n';
+        os << "    MS-Level " << am.first.mslevel << " & " << Precursor::NamesOfActivationMethodShort[static_cast<size_t>(am.first.am)] << " (" << Precursor::NamesOfActivationMethod[static_cast<size_t>(am.first.am)] << "): " << am.second << '\n';
+        os_tsv << "activation methods (mslevel, method, count)" << '\t' << am.first.mslevel << '\t' << Precursor::NamesOfActivationMethodShort[static_cast<size_t>(am.first.am)] << '\t' << am.second << '\n';
       }
       os << '\n';
 
@@ -1591,7 +1591,7 @@ protected:
                << "  activation methods: \n";
             for (auto const& am : pc.getActivationMethods())
             {
-              os << "    " << Precursor::NamesOfActivationMethodShort[am] << " (" << Precursor::NamesOfActivationMethod[am] << ")\n";
+              os << "    " << Precursor::NamesOfActivationMethodShort[static_cast<size_t>(am)] << " (" << Precursor::NamesOfActivationMethod[static_cast<size_t>(am)] << ")\n";
             }
 
             os << '\n';

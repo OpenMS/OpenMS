@@ -157,7 +157,7 @@ namespace OpenMS
 
     if (pairs_clique_ordered.size() != pairs.size())
     {
-      throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, pairs_clique_ordered.size() - pairs.size());
+      throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, pairs_clique_ordered.size() - pairs.size(), "pairs_clique_ordered size does not match pairs size");
     }
     /* swap pairs, such that edges are order by cliques (so we can make clean cuts) */
     pairs.swap(pairs_clique_ordered);

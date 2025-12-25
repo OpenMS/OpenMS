@@ -72,11 +72,11 @@ public:
           For example the 95% Confidence Interval is supposed to be an interval that has a 95% chance of
           containing the true value of the parameter.
           
-          @param confidence_interval_P Value between 0-1 to determine lower and upper CI borders.
-          @param x_begin Begin iterator of x values
-          @param x_end End iterator of x values
-          @param y_begin Begin iterator of y values (same length as x)
-          @param compute_goodness Compute meta stats about the fit. If this is not done, none of the members (except slope and intercept) are meaningful.
+          @param[in] confidence_interval_P Value between 0-1 to determine lower and upper CI borders.
+          @param[in] x_begin Begin iterator of x values
+          @param[in] x_end End iterator of x values
+          @param[in] y_begin Begin iterator of y values (same length as x)
+          @param[in] compute_goodness Compute meta stats about the fit. If this is not done, none of the members (except slope and intercept) are meaningful.
 
           @exception Exception::UnableToFit is thrown if fitting cannot be performed
       */
@@ -98,12 +98,12 @@ public:
           For example the 95% Confidence Interval is supposed to be an interval that has a 95% chance of
           containing the true value of the parameter.
 
-          @param confidence_interval_P Value between 0-1 to determine lower and upper CI borders.
-          @param x_begin Begin iterator of x values
-          @param x_end End iterator of x values
-          @param y_begin Begin iterator of y values (same length as x)
-          @param w_begin Begin iterator of weight values (same length as x)
-          @param compute_goodness Compute meta stats about the fit. If this is not done, none of the members (except slope and intercept) are meaningful.
+          @param[in] confidence_interval_P Value between 0-1 to determine lower and upper CI borders.
+          @param[in] x_begin Begin iterator of x values
+          @param[in] x_end End iterator of x values
+          @param[in] y_begin Begin iterator of y values (same length as x)
+          @param[in] w_begin Begin iterator of weight values (same length as x)
+          @param[in] compute_goodness Compute meta stats about the fit. If this is not done, none of the members (except slope and intercept) are meaningful.
 
           @exception Exception::UnableToFit is thrown if fitting cannot be performed
       */

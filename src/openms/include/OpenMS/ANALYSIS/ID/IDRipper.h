@@ -116,11 +116,11 @@ public:
       Iteration over all @p peptides. For each annotated file origin create a map entry and store the
       respective @p peptides and @p proteins.
 
-      @param ripped Contains the protein identification and peptide identification for each file origin annotated in proteins and peptides
-      @param proteins Protein identification
-      @param peptides Peptide identification annotated with file origin
-      @param numeric_filenames If false, deduce output files using basenames of origin annotations. Throws an exception if they are not unique. If true, assemble output files based on numerical IDs only.
-      @param split_ident_runs Split identification runs into different files.
+      @param[in] ripped Contains the protein identification and peptide identification for each file origin annotated in proteins and peptides
+      @param[in] proteins Protein identification
+      @param[in] peptides Peptide identification annotated with file origin
+      @param[out] numeric_filenames If false, deduce output files using basenames of origin annotations. Throws an exception if they are not unique. If true, assemble output files based on numerical IDs only.
+      @param[in] split_ident_runs Split identification runs into different files.
     */
     void rip(
             RipFileMap& ripped,
@@ -137,10 +137,10 @@ public:
 
       @param[out] rfis File info relating to @p rfcs
       @param[out] rfcs Contains the protein identification and peptide identification for each file origin annotated in proteins and peptides
-      @param proteins Protein identification
-      @param peptides Peptide identification annotated with file origin
-      @param numeric_filenames If false, deduce output files using basenames of origin annotations. Throws an exception if they are not unique. If true, assemble output files based on numerical IDs only.
-      @param split_ident_runs Split identification runs into different files.
+      @param[in] proteins Protein identification
+      @param[in] peptides Peptide identification annotated with file origin
+      @param[out] numeric_filenames If false, deduce output files using basenames of origin annotations. Throws an exception if they are not unique. If true, assemble output files based on numerical IDs only.
+      @param[in] split_ident_runs Split identification runs into different files.
     */
     // Autowrap compatible wrapper for rip(RipFileMap,...)
     void rip(

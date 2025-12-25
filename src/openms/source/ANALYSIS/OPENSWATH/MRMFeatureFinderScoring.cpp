@@ -22,8 +22,7 @@
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 
 #include <boost/range/adaptor/map.hpp>
-#include <boost/shared_ptr.hpp>
-#include <boost/make_shared.hpp>
+#include <memory>
 #include <boost/foreach.hpp>
 
 #define run_identifier "unique_run_identifier"
@@ -158,8 +157,8 @@ namespace OpenMS
     OpenSwathDataAccessHelper::convertTargetedExp(transition_exp_, transition_exp);
     TransitionGroupMapType transition_group_map;
 
-    boost::shared_ptr<PeakMap > sh_chromatograms = boost::make_shared<PeakMap >(chromatograms);
-    boost::shared_ptr<PeakMap > sh_swath_map = boost::make_shared<PeakMap >(swath_map);
+    std::shared_ptr<PeakMap > sh_chromatograms = std::make_shared<PeakMap >(chromatograms);
+    std::shared_ptr<PeakMap > sh_swath_map = std::make_shared<PeakMap >(swath_map);
 
     OpenSwath::SpectrumAccessPtr chromatogram_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(sh_chromatograms);
     OpenSwath::SpectrumAccessPtr swath_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(sh_swath_map);
@@ -287,7 +286,7 @@ namespace OpenMS
     {
       if (tr_it->isIdentifyingTransition())
       {
-        if (tr_it->decoy)
+        if (tr_it->getDecoy())
         {
           identifying_transitions_decoy.push_back(tr_it->getNativeID());
         }

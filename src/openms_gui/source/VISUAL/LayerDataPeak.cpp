@@ -298,7 +298,7 @@ namespace OpenMS
   
   const LayerDataBase::ConstExperimentSharedPtrType LayerDataPeak::getPeakData() const
   {
-    return boost::static_pointer_cast<const ExperimentType>(peak_map_);
+    return std::static_pointer_cast<const ExperimentType>(peak_map_);
   }
 
 } // namespace OpenMS

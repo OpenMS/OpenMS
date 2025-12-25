@@ -1,6 +1,6 @@
 // Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
 // $Authors: $
@@ -40,15 +40,16 @@ START_SECTION((Matrix()))
   TEST_EQUAL(mi1.cols(), 0);
   TEST_EQUAL(mi1.rows(), 0);
 
-  for (auto & i : mi1.getEigenMatrix().reshaped())
+  // Test iteration over empty matrix (should not execute loop body)
+  for (auto & i : mi1)
   {
-	TEST_EQUAL(i, i - 1); // this should not be executed on empty matrix
+    TEST_EQUAL(i, i - 1); // this should not be executed on empty matrix
   }
 
-  for (const auto & i : mi1.getEigenMatrix().reshaped())
+  for (const auto & i : mi1)
   {
-	TEST_EQUAL(i, i - 1); // this should not be executed on empty matrix
-  }  
+    TEST_EQUAL(i, i - 1); // this should not be executed on empty matrix
+  }
   STATUS("mi1:\n"<< mi1);
 }
 END_SECTION;
@@ -61,12 +62,12 @@ END_SECTION;
 
 Matrix<int> mi;
 
-START_SECTION((void getEigenMatrix().resize(size_type i, size_type j)))
+START_SECTION((void resize(size_type i, size_type j)))
 {
-  mi.getEigenMatrix().resize(2,2);
-  mi.getEigenMatrix().fill(3);
-  mi.getEigenMatrix().resize(2,3);
-  mi.getEigenMatrix().fill(7);
+  mi.resize(2,2);
+  mi.fill(3);
+  mi.resize(2,3);
+  mi.fill(7);
   STATUS("mi1:\n"<< mi);
   TEST_EQUAL(mi(0,0),7);
   TEST_EQUAL(mi(0,1),7);
@@ -91,21 +92,22 @@ START_SECTION((Matrix(const Matrix & source)))
   TEST_EQUAL(mi2(1,2),7);
 
   // test iterators and confirm column first order
-  size_t row{}, col{};
-  for (auto & i : mi2.getEigenMatrix().reshaped())
+  // Column-major storage: iterating should go (0,0), (1,0), (0,1), (1,1), (0,2), (1,2)
+  Size row = 0, col = 0;
+  for (auto it = mi2.begin(); it != mi2.end(); ++it)
   {
-	TEST_EQUAL(i, mi.getValue(row, col));
-	++col;
-	if (col == mi2.cols()) { col = 0; ++row;}
+    TEST_EQUAL(*it, mi.getValue(row, col));
+    ++row;
+    if (row == mi2.rows()) { row = 0; ++col; }
   }
 
   row = 0; col = 0;
-  for (const auto & i : mi2.getEigenMatrix().reshaped())
+  for (auto it = mi2.cbegin(); it != mi2.cend(); ++it)
   {
-	TEST_EQUAL(i, mi.getValue(row, col));
-	++col;
-	if (col == mi2.cols()) { col = 0; ++row;}
-  }  
+    TEST_EQUAL(*it, mi.getValue(row, col));
+    ++row;
+    if (row == mi2.rows()) { row = 0; ++col; }
+  }
 }
 END_SECTION
 
@@ -160,19 +162,19 @@ START_SECTION((Value& getValue(size_t const i, size_t const j)))
 {
   // Create a test matrix
   Matrix<int> test_matrix(2, 2, 0);
-  
+
   // Test non-const version of getValue by modifying values through it
   test_matrix.getValue(0, 0) = 100;
   test_matrix.getValue(0, 1) = 200;
   test_matrix.getValue(1, 0) = 300;
   test_matrix.getValue(1, 1) = 400;
-  
+
   // Verify the values were set correctly
   TEST_EQUAL(test_matrix(0, 0), 100);
   TEST_EQUAL(test_matrix(0, 1), 200);
   TEST_EQUAL(test_matrix(1, 0), 300);
   TEST_EQUAL(test_matrix(1, 1), 400);
-  
+
   // Verify getValue returns reference that can be modified
   test_matrix.getValue(0, 0) += 5;
   TEST_EQUAL(test_matrix(0, 0), 105);

@@ -77,11 +77,11 @@ namespace OpenMS
 
       Must match TOPPBase' Ctor!
 
-      @param name Tool name.
-      @param description Short description of the tool (one line).
-      @param official If this is an official TOPP tool contained in the OpenMS/TOPP release.
+      @param[in] name Tool name.
+      @param[in] description Short description of the tool (one line).
+      @param[in] official If this is an official TOPP tool contained in the OpenMS/TOPP release.
              If @em true the tool name is checked against the list of TOPP tools and a warning printed if missing.
-      @param citations Add one or more citations if they are associated specifically to this TOPP tool; they will be printed during `--help`
+      @param[in] citations Add one or more citations if they are associated specifically to this TOPP tool; they will be printed during `--help`
     */
     TOPPOpenSwathBase(String name, String description, bool official = true, const std::vector<Citation>& citations = {});
 
@@ -97,25 +97,25 @@ namespace OpenMS
      * The files will be either loaded into memory or cached to disk (depending on
      * the readoptions parameter).
      *
-     * @param file_list The input file(s)
-     * @param exp_meta The output (meta data about experiment)
-     * @param swath_maps The output (ptr to raw data)
-     * @param split_file If loading a single file that contains a single SWATH window
-     * @param tmp Temporary directory
-     * @param readoptions Description on how to read the data ("normal", "cache")
-     * @param swath_windows_file Provided file containing the SWATH windows which will be mapped to the experimental windows
-     * @param min_upper_edge_dist Distance for each assay to the upper edge of the SWATH window
-     * @param force Whether to override the sanity check
-     * @param sort_swath_maps Whether to sort the provided windows first before mapping
-     * @param prm Whether data is in prm format; allows for overlap
-     * @param pasef Whether data is in PASEF format; allows for overlap
-     * @param plugin_consumer Intermediate consumer for mzML input. See SwathFile::loadMzML() for details.
+     * @param[in] file_list The input file(s)
+     * @param[out] exp_meta The output (meta data about experiment)
+     * @param[out] swath_maps The output (ptr to raw data)
+     * @param[in] split_file If loading a single file that contains a single SWATH window
+     * @param[in] tmp Temporary directory
+     * @param[in] readoptions Description on how to read the data ("normal", "cache")
+     * @param[in] swath_windows_file Provided file containing the SWATH windows which will be mapped to the experimental windows
+     * @param[in] min_upper_edge_dist Distance for each assay to the upper edge of the SWATH window
+     * @param[in] force Whether to override the sanity check
+     * @param[in] sort_swath_maps Whether to sort the provided windows first before mapping
+     * @param[in] prm Whether data is in prm format; allows for overlap
+     * @param[in] pasef Whether data is in PASEF format; allows for overlap
+     * @param[in,out] plugin_consumer Intermediate consumer for mzML input. See SwathFile::loadMzML() for details.
      *
      * @return Returns whether loading and sanity check was successful
      *
      */
     bool loadSwathFiles(const StringList& file_list,
-                        boost::shared_ptr<ExperimentalSettings >& exp_meta,
+                        std::shared_ptr<ExperimentalSettings >& exp_meta,
                         std::vector< OpenSwath::SwathMap >& swath_maps,
                         const bool split_file,
                         const String& tmp,
@@ -135,14 +135,14 @@ namespace OpenMS
      * lossy compression). This assumes that 0.05 accuracy in RT is sufficient
      * for all purposes.
      *
-     * @param chromatogramConsumer The consumer to process chromatograms
-     * @param exp_meta meta data about experiment
-     * @param transition_exp The spectral library
-     * @param out_chrom The output file for the chromatograms
-     * @param run_id Unique identifier which links the sqMass and OSW file
+     * @param[out] chromatogramConsumer The consumer to process chromatograms
+     * @param[in] exp_meta meta data about experiment
+     * @param[in] transition_exp The spectral library
+     * @param[in] out_chrom The output file for the chromatograms
+     * @param[in] run_id Unique identifier which links the sqMass and OSW file
      */
     void prepareChromOutput(Interfaces::IMSDataConsumer ** chromatogramConsumer,
-                            const boost::shared_ptr<ExperimentalSettings>& exp_meta,
+                            const std::shared_ptr<ExperimentalSettings>& exp_meta,
                             const OpenSwath::LightTargetedExperiment& transition_exp,
                             const String& out_chrom,
                             const UInt64 run_id);
@@ -150,9 +150,9 @@ namespace OpenMS
     /**
      * @brief Loads transition list from TraML / TSV or PQP
      *
-     * @param tr_type Input file type
-     * @param tr_file Input file name
-     * @param tsv_reader_param Parameters on how to interpret spectral data
+     * @param[in] tr_type Input file type
+     * @param[in] tr_file Input file name
+     * @param[in] tsv_reader_param Parameters on how to interpret spectral data
      *
      */
     OpenSwath::LightTargetedExperiment loadTransitionList(const FileTypes::Type& tr_type,
@@ -170,23 +170,23 @@ namespace OpenMS
      * @note Internally, the retention time and @p m/z calibration are performed
      * by OpenMS::OpenSwathCalibrationWorkflow::performRTNormalization
      *
-     * @param trafo_in Input trafoXML file (if not empty, transformation will be
+     * @param[in] trafo_in Input trafoXML file (if not empty, transformation will be
      *                 loaded from this file)
-     * @param irt_transitions  Input iRT transition experiment (if trafo_in
+     * @param[in] irt_transitions  Input iRT transition experiment (if trafo_in
      *                     is empty, this will be used for iRT extraction)
-     * @param swath_maps The raw data (swath maps)
-     * @param min_rsq Minimal R^2 value that is expected for the RT regression
-     * @param min_coverage Minimal coverage of the chromatographic space that needs to be achieved
-     * @param feature_finder_param Parameter set for the feature finding in chromatographic dimension
-     * @param cp_irt Parameter set for the chromatogram extraction
-     * @param irt_detection_param Parameter set for the detection of the iRTs (outlier detection, peptides per bin etc)
-     * @param calibration_param Parameter for the m/z and im calibration (see SwathMapMassCorrection)
-     * @param debug_level Debug level (writes out the RT normalization chromatograms if larger than 1)
-     * @param pasef whether the data is PASEF data with possible overlapping m/z windows (with different ion mobility). In this case, the "best" SWATH window (with precursor centered around IM) is chosen.
-     * @param load_into_memory Whether to cache the current SWATH map in memory
-     * @param irt_trafo_out Output trafoXML file (if not empty and no input trafoXML file is given,
+     * @param[in,out] swath_maps The raw data (swath maps)
+     * @param[in] min_rsq Minimal R^2 value that is expected for the RT regression
+     * @param[in] min_coverage Minimal coverage of the chromatographic space that needs to be achieved
+     * @param[in] feature_finder_param Parameter set for the feature finding in chromatographic dimension
+     * @param[in] cp_irt Parameter set for the chromatogram extraction
+     * @param[in] irt_detection_param Parameter set for the detection of the iRTs (outlier detection, peptides per bin etc)
+     * @param[in] calibration_param Parameter for the m/z and im calibration (see SwathMapMassCorrection)
+     * @param[in] debug_level Debug level (writes out the RT normalization chromatograms if larger than 1)
+     * @param[in] pasef whether the data is PASEF data with possible overlapping m/z windows (with different ion mobility). In this case, the "best" SWATH window (with precursor centered around IM) is chosen.
+     * @param[in] load_into_memory Whether to cache the current SWATH map in memory
+     * @param[in] irt_trafo_out Output trafoXML file (if not empty and no input trafoXML file is given,
      *        the transformation parameters will be stored in this file)
-     * @param irt_mzml_out Output Chromatogram mzML containing the iRT peptides (if not empty,
+     * @param[in] irt_mzml_out Output Chromatogram mzML containing the iRT peptides (if not empty,
      *        iRT chromatograms will be stored in this file)
      *
      * @return CalibrationResult with: \n
@@ -216,7 +216,7 @@ namespace OpenMS
                          const bool split_file,
                          const String& tmp,
                          const String& readoptions,
-                         boost::shared_ptr<ExperimentalSettings > & exp_meta,
+                         std::shared_ptr<ExperimentalSettings > & exp_meta,
                          std::vector< OpenSwath::SwathMap > & swath_maps,
                          Interfaces::IMSDataConsumer* plugin_consumer);
   }; // end TOPPOpenSwathBase

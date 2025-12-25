@@ -35,29 +35,29 @@ public:
 
     /**
      * @brief normalizes the maps of the consensusMap
-     * @param map ConsensusMap
+     * @param[in,out] map ConsensusMap
      */
     static void normalizeMaps(ConsensusMap & map);
 
     /**
      * @brief resamples data_in and writes the results to data_out
-     * @param data_in the data to be resampled
-     * @param data_out the results are written to this vector
-     * @param n_resampling_points the number of points to resample from data_in
+     * @param[in] data_in the data to be resampled
+     * @param[out] data_out the results are written to this vector
+     * @param[in] n_resampling_points the number of points to resample from data_in
      */
     static void resample(const std::vector<double> & data_in, std::vector<double> & data_out, UInt n_resampling_points);
 
     /**
      * @brief extracts the intensities of the features of the different maps
-     * @param map ConsensusMap
-     * @param out_intensities resulting data, contains the feature intensities for each map of the consensus map
+     * @param[in] map ConsensusMap
+     * @param[out] out_intensities resulting data, contains the feature intensities for each map of the consensus map
      */
     static void extractIntensityVectors(const ConsensusMap & map, std::vector<std::vector<double> > & out_intensities);
 
     /**
      * @brief writes the intensity values in feature_ints to the corresponding features in map
-     * @param feature_ints contains the new feature intensities for each map of the consensus map
-     * @param map ConsensusMap the map to be updated
+     * @param[in] feature_ints contains the new feature intensities for each map of the consensus map
+     * @param[in] map ConsensusMap the map to be updated
      */
     static void setNormalizedIntensityValues(const std::vector<std::vector<double> > & feature_ints, ConsensusMap & map);
   };
