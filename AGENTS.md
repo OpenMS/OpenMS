@@ -84,14 +84,61 @@ OpenMS/
 
 ## Build and Install
 
+- **CMake minimum**: 3.21; **C++ standard**: C++20
 - Out-of-tree build expected in `OpenMS-build/`; build in place for development (install prefixes are for system installs).
 - Use `CMAKE_BUILD_TYPE=Debug` for development to keep assertions/pre/post-conditions.
 - Dependencies via distro packages or the contrib tree; set `OPENMS_CONTRIB_LIBS` and `CMAKE_PREFIX_PATH` as needed (Qt, contrib).
 - pyOpenMS build deps: `src/pyOpenMS/requirements_bld.txt`; enable with `-DPYOPENMS=ON` and optional `-DPY_NUM_THREADS`/`-DPY_NUM_MODULES`.
-- Linux: package manager preferred; contrib is fallback; `QT_QPA_PLATFORM=minimal` can help for remote GUI runs.
-- macOS: Apple Clang (Xcode), Homebrew; remove older Qt versions if they interfere.
-- Windows: Visual Studio 2019+ (MSVC), CMake >= 3.24, 64-bit only, Visual Studio generator, avoid MinGW; keep build paths short.
 - Style checks: `ENABLE_STYLE_TESTING=ON` runs cpplint at `src/tests/coding/cpplint.py`.
+
+**Required dependencies:**
+- XercesC, Boost (date_time, regex, iostreams), Eigen3 (3.4.0+), libSVM (2.91+), COIN-OR or GLPK, ZLIB, BZip2, Qt6 (6.1.0+)
+
+**Optional:** HDF5 (`-DWITH_HDF5=ON`), Apache Arrow/Parquet (`-DWITH_PARQUET=ON`)
+
+## Platform-Specific Build Gotchas
+
+### Windows
+- **MSYS/MinGW NOT supported** — must use Visual Studio environment
+- **MSVC 2019+ required** (version 1920+); AddressSanitizer needs this minimum
+- **64-bit only**; use Visual Studio generator (not Ninja/Make)
+- **Keep build paths short** to avoid path length issues
+- **Never mix Release/Debug libraries** — causes stack corruption and segfaults
+- Compiler must match between contrib and OpenMS builds
+- HDF5 forced to static linking on MSVC
+- OpenMP requires `/openmp:experimental` flag (set automatically) for SIMD support
+- Nested OpenMP (`MT_ENABLE_NESTED_OPENMP`) defaults to OFF on MSVC
+
+### macOS
+- **Apple Clang (Xcode) required**; Homebrew for dependencies
+- **AppleClang >= 15.0.0**: Requires `-ld_classic` linker flag (set automatically)
+- Remove older Qt versions if they interfere with Qt6
+- Qt6 requires `PrintSupport` component for platform plugin
+- `QT_QPA_PLATFORM=minimal` helps for headless/remote GUI runs
+- Code signing and notarization required for distribution (see `cmake/MacOSX/README.md`)
+- `fix_dependencies.rb` script fixes RPATH for relocatable binaries
+
+### Linux
+- Package manager preferred for dependencies; contrib is fallback
+- `-fPIC` flag applied automatically for shared library compatibility
+- `QT_QPA_PLATFORM=minimal` for headless GUI test runs
+- STL debug mode (`_GLIBCXX_DEBUG`) only supported with GCC in Debug builds
+- System libraries (libc, libstdc++, libpthread, etc.) excluded from packaging
+
+### Qt6 Issues
+- **Minimum version**: 6.1.0
+- If Qt6 not found: `-DCMAKE_PREFIX_PATH='<path_to_Qt6_lib_parent>'`
+- WebEngineWidgets optional; if missing, JavaScript views disabled in TOPPView (warning only)
+- Required components: Core, Network; GUI components need Widgets, Svg, OpenGLWidgets
+
+### Boost from Homebrew Warning
+- Statically linked Boost from system installs (brew) NOT fully supported
+- Issue: Boost CMake doesn't expose transitive dependencies as targets
+- Workaround: Use `-DBOOST_USE_STATIC=OFF` for shared libraries OR build Boost with contrib
+
+### Common CMake Issues
+- **CMAKE_SIZEOF_VOID_P bug**: Variable vanishes on CMake version updates → delete `CMakeFiles/` and `CMakeCache.txt`, rerun cmake
+- **Eigen3 version detection**: Build system handles CMake's version checking quirks with Eigen3 4.0+ automatically
 
 ## Testing
 
@@ -152,6 +199,98 @@ END_TEST
 - Comments: at least ~5% of code, use `//` style, plain English describing the next few lines.
 - Each file preamble contains the `$Maintainer:$` marker.
 - Formatting: use `./.clang-format` in supporting IDEs.
+
+## Doxygen Documentation Style
+
+OpenMS uses `/** */` block comments with `@` tags (not `\` backslash). `@brief` is **required** (not auto-generated from first line).
+
+**File header (required in every .h file):**
+```cpp
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
+//
+// --------------------------------------------------------------------------
+// $Maintainer: Your Name $
+// $Authors: Original Author, Your Name $
+// --------------------------------------------------------------------------
+```
+
+**Class documentation:**
+```cpp
+/**
+  @brief An algorithm to decharge features (i.e. as found by FeatureFinder).
+
+  Detailed description goes here after a blank line.
+  Can span multiple lines.
+
+  @htmlinclude OpenMS_FeatureDeconvolution.parameters
+
+  @ingroup Analysis
+*/
+class OPENMS_DLLAPI FeatureDeconvolution : public DefaultParamHandler
+```
+
+**Method documentation with parameters:**
+```cpp
+/**
+  @brief Compute a zero-charge feature map from charged features.
+
+  Find putative ChargePairs, then score them and hand over to ILP.
+
+  @param[in] fm_in      Input feature-map
+  @param[out] fm_out    Output feature-map (sorted by position)
+  @param[in,out] cons   Consensus map modified in place
+
+  @return The number of charge groups found
+
+  @throws Exception::MissingInformation if RT/MZ data missing
+  @throws Exception::InvalidParameter if threshold < 0
+
+  @note The original sequence is saved as MetaValue.
+  @warning This method modifies fm_out in place.
+*/
+Size compute(const FeatureMap& fm_in, FeatureMap& fm_out, ConsensusMap& cons);
+```
+
+**Parameter direction tags:** Always use `[in]`, `[out]`, or `[in,out]` for all parameters.
+
+**Grouping constructors/destructors:**
+```cpp
+/** @name Constructors and Destructors
+*/
+//@{
+/// Default constructor
+FeatureDeconvolution();
+
+/// Copy constructor
+FeatureDeconvolution(const FeatureDeconvolution& source);
+
+/// Destructor
+~FeatureDeconvolution() override;
+//@}
+```
+
+**Simple inline documentation:** Use `///` for brief single-line docs:
+```cpp
+/// Fragment mass tolerance for spectrum comparisons
+double fragment_mass_tolerance_;
+
+/// Is fragment mass tolerance given in ppm (or Da)?
+bool fragment_tolerance_ppm_;
+```
+
+**Common Doxygen tags:**
+| Tag | Usage |
+|-----|-------|
+| `@brief` | Required first line summary |
+| `@param[in/out]` | Parameter with direction |
+| `@return` | Return value description |
+| `@throws` / `@exception` | Exceptions that may be thrown |
+| `@note` | Important notes |
+| `@warning` | Warnings about usage |
+| `@ingroup` | Category grouping (e.g., `Analysis_ID`) |
+| `@see` | Cross-references |
+| `@todo` | Include assignee name: `@todo JohnDoe fix this` |
 
 **Naming examples:**
 ```cpp
