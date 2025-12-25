@@ -1,6 +1,7 @@
 
 
 
+
     def load(self, filename, protein_ids, peptide_ids):
         """
         load(self, filename, protein_ids, peptide_ids)

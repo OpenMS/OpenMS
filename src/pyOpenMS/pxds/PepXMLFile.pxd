@@ -11,7 +11,7 @@ cdef extern from "<OpenMS/FORMAT/PepXMLFile.h>" namespace "OpenMS":
 
     cdef cppclass PepXMLFile:
 
-        PepXMLFile() except + nogil 
+        PepXMLFile() except + nogil
         #  copy constructor of 'PepXMLFile' is implicitly deleted because base class 'Internal::XMLHandler' has a deleted copy constructor protected Internal::XMLHandler,
         PepXMLFile(PepXMLFile &) except + nogil  # wrap-ignore
 
@@ -51,5 +51,5 @@ cdef extern from "<OpenMS/FORMAT/PepXMLFile.h>" namespace "OpenMS":
                   double rt_tolerance
                   ) except + nogil  # wrap-ignore
 
-        void keepNativeSpectrumName(bool keep) except + nogil 
+        void keepNativeSpectrumName(bool keep) except + nogil
         void setParseUnknownScores(bool parse_unknown_scores) except + nogil

@@ -157,5 +157,98 @@ class TestBackwardCompatibilityPepXMLFile(unittest.TestCase):
                 os.unlink(temp_filename)
 
 
+class TestBackwardCompatibilityMzIdentMLFile(unittest.TestCase):
+    """Test backward compatibility for MzIdentMLFile with Python lists"""
+
+    def setUp(self):
+        dirname = os.path.dirname(os.path.abspath(__file__))
+        self.filename = os.path.join(dirname, "test.mzid").encode()
+
+    def test_load_with_python_list(self):
+        """Test that MzIdentMLFile.load() works with Python lists (old API)"""
+        mzid_file = pyopenms.MzIdentMLFile()
+        protein_ids = []
+        peptide_ids = []  # Old-style Python list
+
+        # This should work with backward compatibility
+        mzid_file.load(self.filename, protein_ids, peptide_ids)
+
+        # Verify the results
+        self.assertGreater(len(protein_ids), 0)
+        self.assertGreater(len(peptide_ids), 0)
+        self.assertIsInstance(peptide_ids, list)
+        self.assertIsInstance(peptide_ids[0], pyopenms.PeptideIdentification)
+
+    def test_load_with_peptide_identification_list(self):
+        """Test that MzIdentMLFile.load() works with PeptideIdentificationList (new API)"""
+        mzid_file = pyopenms.MzIdentMLFile()
+        protein_ids = []
+        peptide_ids = pyopenms.PeptideIdentificationList()  # New-style
+
+        # This should work with new API
+        mzid_file.load(self.filename, protein_ids, peptide_ids)
+
+        # Verify the results
+        self.assertGreater(len(protein_ids), 0)
+        self.assertGreater(peptide_ids.size(), 0)
+        self.assertIsInstance(peptide_ids, pyopenms.PeptideIdentificationList)
+
+    def test_store_with_python_list(self):
+        """Test that MzIdentMLFile.store() works with Python lists (old API)"""
+        # First load data
+        mzid_file = pyopenms.MzIdentMLFile()
+        protein_ids = []
+        peptide_ids = []
+        mzid_file.load(self.filename, protein_ids, peptide_ids)
+
+        original_peptide_count = len(peptide_ids)
+
+        # Now store using old-style Python list
+        with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.mzid') as tmpfile:
+            temp_filename = tmpfile.name
+
+        try:
+            mzid_file.store(temp_filename.encode(), protein_ids, peptide_ids)
+
+            # Verify we can read it back
+            protein_ids_2 = []
+            peptide_ids_2 = []
+            mzid_file.load(temp_filename.encode(), protein_ids_2, peptide_ids_2)
+
+            self.assertGreater(len(protein_ids_2), 0)
+            self.assertEqual(len(peptide_ids_2), original_peptide_count)
+        finally:
+            if os.path.exists(temp_filename):
+                os.unlink(temp_filename)
+
+    def test_store_with_peptide_identification_list(self):
+        """Test that MzIdentMLFile.store() works with PeptideIdentificationList (new API)"""
+        # First load data
+        mzid_file = pyopenms.MzIdentMLFile()
+        protein_ids = []
+        peptide_ids = pyopenms.PeptideIdentificationList()
+        mzid_file.load(self.filename, protein_ids, peptide_ids)
+
+        original_peptide_count = peptide_ids.size()
+
+        # Now store using new-style PeptideIdentificationList
+        with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.mzid') as tmpfile:
+            temp_filename = tmpfile.name
+
+        try:
+            mzid_file.store(temp_filename.encode(), protein_ids, peptide_ids)
+
+            # Verify we can read it back
+            protein_ids_2 = []
+            peptide_ids_2 = pyopenms.PeptideIdentificationList()
+            mzid_file.load(temp_filename.encode(), protein_ids_2, peptide_ids_2)
+
+            self.assertGreater(len(protein_ids_2), 0)
+            self.assertEqual(peptide_ids_2.size(), original_peptide_count)
+        finally:
+            if os.path.exists(temp_filename):
+                os.unlink(temp_filename)
+
+
 if __name__ == '__main__':
     unittest.main()
