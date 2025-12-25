@@ -166,7 +166,7 @@ In the pxd file (e.g., pxds/XMLHandler.pxd):
 
     cdef cppclass XMLHandler:
         # private
-        XMLHandler() except + nogil  #wrap-ignore
+        XMLHandler() except + nogil  # wrap-ignore
         # copy constructor deleted in base class
         XMLHandler(XMLHandler &) except + nogil  # wrap-ignore
 
