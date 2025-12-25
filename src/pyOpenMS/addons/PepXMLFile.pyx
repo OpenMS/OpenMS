@@ -7,17 +7,13 @@
 
         Loads the identifications from a PepXML file.
 
-        Provides backward compatibility by accepting both Python lists and
-        PeptideIdentificationList objects for peptide_ids parameter.
-
         :param filename: Path to the PepXML file to load
         :type filename: str or bytes or String
         :param protein_ids: List to store protein identifications (modified in place)
         :type protein_ids: list[ProteinIdentification]
         :param peptide_ids: Container to store peptide identifications (modified in place).
-                           Accepts both list[PeptideIdentification] (pre-3.5 style) and
-                           PeptideIdentificationList (3.5+ style)
-        :type peptide_ids: list[PeptideIdentification] or PeptideIdentificationList
+                           Must be a PeptideIdentificationList.
+        :type peptide_ids: PeptideIdentificationList
         :param experiment_name: Optional experiment name
         :type experiment_name: str or bytes or String, optional
         :param lookup: Optional spectrum metadata lookup structure
@@ -25,29 +21,36 @@
 
         Example::
 
-            # New style (3.5+)
             protein_ids = []
             peptide_ids = pyopenms.PeptideIdentificationList()
             pyopenms.PepXMLFile().load("test.pep.xml", protein_ids, peptide_ids)
 
-            # Old style (backward compatible)
-            protein_ids = []
-            peptide_ids = []
-            pyopenms.PepXMLFile().load("test.pep.xml", protein_ids, peptide_ids)
+        .. deprecated::
+            Passing a Python list for peptide_ids is deprecated since pyOpenMS 3.5.
+            Use PeptideIdentificationList instead. The list interface will be removed
+            in a future version.
         """
+        import warnings
+
         # Convert protein_ids list to C++ vector
         cdef libcpp_vector[_ProteinIdentification] * c_protein_ids = new libcpp_vector[_ProteinIdentification]()
         cdef ProteinIdentification prot_item
         for prot_item in protein_ids:
             c_protein_ids.push_back(deref(prot_item.inst.get()))
 
-        # Check if peptide_ids is a Python list (old API) or PeptideIdentificationList (new API)
+        # Check if peptide_ids is a Python list (deprecated) or PeptideIdentificationList (new API)
         cdef PeptideIdentificationList temp_peptide_ids
         cdef PeptideIdentificationList pep_id_list
         cdef SpectrumMetaDataLookup c_lookup
 
         if isinstance(peptide_ids, list):
-            # Old API: Convert Python list to PeptideIdentificationList
+            # Deprecated: Python list interface
+            warnings.warn(
+                "Passing a Python list for peptide_ids is deprecated since pyOpenMS 3.5. "
+                "Use PeptideIdentificationList instead: peptide_ids = pyopenms.PeptideIdentificationList()",
+                DeprecationWarning,
+                stacklevel=2
+            )
             temp_peptide_ids = PeptideIdentificationList()
             temp_peptide_ids.extend(peptide_ids)
 
@@ -122,17 +125,13 @@
 
         Stores the identifications to a PepXML file.
 
-        Provides backward compatibility by accepting both Python lists and
-        PeptideIdentificationList objects for peptide_ids parameter.
-
         :param filename: Path to the PepXML file to store
         :type filename: str or bytes or String
         :param protein_ids: List of protein identifications to store
         :type protein_ids: list[ProteinIdentification]
         :param peptide_ids: Container of peptide identifications to store.
-                           Accepts both list[PeptideIdentification] (pre-3.5 style) and
-                           PeptideIdentificationList (3.5+ style)
-        :type peptide_ids: list[PeptideIdentification] or PeptideIdentificationList
+                           Must be a PeptideIdentificationList.
+        :type peptide_ids: PeptideIdentificationList
         :param mz_file: Optional mz file name
         :type mz_file: str or bytes or String, optional
         :param mz_name: Optional mz name
@@ -144,29 +143,36 @@
 
         Example::
 
-            # New style (3.5+)
             protein_ids = [...]
             peptide_ids = pyopenms.PeptideIdentificationList()
             peptide_ids.extend([...])
             pyopenms.PepXMLFile().store("test.pep.xml", protein_ids, peptide_ids)
 
-            # Old style (backward compatible)
-            protein_ids = [...]
-            peptide_ids = [...]
-            pyopenms.PepXMLFile().store("test.pep.xml", protein_ids, peptide_ids)
+        .. deprecated::
+            Passing a Python list for peptide_ids is deprecated since pyOpenMS 3.5.
+            Use PeptideIdentificationList instead. The list interface will be removed
+            in a future version.
         """
+        import warnings
+
         # Convert protein_ids list to C++ vector
         cdef libcpp_vector[_ProteinIdentification] * c_protein_ids = new libcpp_vector[_ProteinIdentification]()
         cdef ProteinIdentification prot_item
         for prot_item in protein_ids:
             c_protein_ids.push_back(deref(prot_item.inst.get()))
 
-        # Check if peptide_ids is a Python list (old API) or PeptideIdentificationList (new API)
+        # Check if peptide_ids is a Python list (deprecated) or PeptideIdentificationList (new API)
         cdef PeptideIdentificationList temp_peptide_ids
         cdef PeptideIdentificationList pep_id_list
 
         if isinstance(peptide_ids, list):
-            # Old API: Convert Python list to PeptideIdentificationList
+            # Deprecated: Python list interface
+            warnings.warn(
+                "Passing a Python list for peptide_ids is deprecated since pyOpenMS 3.5. "
+                "Use PeptideIdentificationList instead: peptide_ids = pyopenms.PeptideIdentificationList()",
+                DeprecationWarning,
+                stacklevel=2
+            )
             temp_peptide_ids = PeptideIdentificationList()
             temp_peptide_ids.extend(peptide_ids)
 

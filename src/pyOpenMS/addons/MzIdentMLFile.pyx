@@ -1,49 +1,51 @@
 
 
 
-
     def load(self, filename, protein_ids, peptide_ids):
         """
         load(self, filename, protein_ids, peptide_ids)
 
         Loads the identifications from a MzIdentML file.
 
-        Provides backward compatibility by accepting both Python lists and
-        PeptideIdentificationList objects for peptide_ids parameter.
-
         :param filename: Path to the MzIdentML file to load
         :type filename: str or bytes or String
         :param protein_ids: List to store protein identifications (modified in place)
         :type protein_ids: list[ProteinIdentification]
         :param peptide_ids: Container to store peptide identifications (modified in place).
-                           Accepts both list[PeptideIdentification] (pre-3.5 style) and
-                           PeptideIdentificationList (3.5+ style)
-        :type peptide_ids: list[PeptideIdentification] or PeptideIdentificationList
+                           Must be a PeptideIdentificationList.
+        :type peptide_ids: PeptideIdentificationList
 
         Example::
 
-            # New style (3.5+)
             protein_ids = []
             peptide_ids = pyopenms.PeptideIdentificationList()
             pyopenms.MzIdentMLFile().load("test.mzid", protein_ids, peptide_ids)
 
-            # Old style (backward compatible)
-            protein_ids = []
-            peptide_ids = []
-            pyopenms.MzIdentMLFile().load("test.mzid", protein_ids, peptide_ids)
+        .. deprecated::
+            Passing a Python list for peptide_ids is deprecated since pyOpenMS 3.5.
+            Use PeptideIdentificationList instead. The list interface will be removed
+            in a future version.
         """
+        import warnings
+
         # Convert protein_ids list to C++ vector
         cdef libcpp_vector[_ProteinIdentification] * c_protein_ids = new libcpp_vector[_ProteinIdentification]()
         cdef ProteinIdentification prot_item
         for prot_item in protein_ids:
             c_protein_ids.push_back(deref(prot_item.inst.get()))
 
-        # Check if peptide_ids is a Python list (old API) or PeptideIdentificationList (new API)
+        # Check if peptide_ids is a Python list (deprecated) or PeptideIdentificationList (new API)
         cdef PeptideIdentificationList temp_peptide_ids
         cdef PeptideIdentificationList pep_id_list
 
         if isinstance(peptide_ids, list):
-            # Old API: Convert Python list to PeptideIdentificationList
+            # Deprecated: Python list interface
+            warnings.warn(
+                "Passing a Python list for peptide_ids is deprecated since pyOpenMS 3.5. "
+                "Use PeptideIdentificationList instead: peptide_ids = pyopenms.PeptideIdentificationList()",
+                DeprecationWarning,
+                stacklevel=2
+            )
             temp_peptide_ids = PeptideIdentificationList()
             temp_peptide_ids.extend(peptide_ids)
 
@@ -82,43 +84,46 @@
 
         Stores the identifications to a MzIdentML file.
 
-        Provides backward compatibility by accepting both Python lists and
-        PeptideIdentificationList objects for peptide_ids parameter.
-
         :param filename: Path to the MzIdentML file to store
         :type filename: str or bytes or String
         :param protein_ids: List of protein identifications to store
         :type protein_ids: list[ProteinIdentification]
         :param peptide_ids: Container of peptide identifications to store.
-                           Accepts both list[PeptideIdentification] (pre-3.5 style) and
-                           PeptideIdentificationList (3.5+ style)
-        :type peptide_ids: list[PeptideIdentification] or PeptideIdentificationList
+                           Must be a PeptideIdentificationList.
+        :type peptide_ids: PeptideIdentificationList
 
         Example::
 
-            # New style (3.5+)
             protein_ids = [...]
             peptide_ids = pyopenms.PeptideIdentificationList()
             peptide_ids.extend([...])
             pyopenms.MzIdentMLFile().store("test.mzid", protein_ids, peptide_ids)
 
-            # Old style (backward compatible)
-            protein_ids = [...]
-            peptide_ids = [...]
-            pyopenms.MzIdentMLFile().store("test.mzid", protein_ids, peptide_ids)
+        .. deprecated::
+            Passing a Python list for peptide_ids is deprecated since pyOpenMS 3.5.
+            Use PeptideIdentificationList instead. The list interface will be removed
+            in a future version.
         """
+        import warnings
+
         # Convert protein_ids list to C++ vector
         cdef libcpp_vector[_ProteinIdentification] * c_protein_ids = new libcpp_vector[_ProteinIdentification]()
         cdef ProteinIdentification prot_item
         for prot_item in protein_ids:
             c_protein_ids.push_back(deref(prot_item.inst.get()))
 
-        # Check if peptide_ids is a Python list (old API) or PeptideIdentificationList (new API)
+        # Check if peptide_ids is a Python list (deprecated) or PeptideIdentificationList (new API)
         cdef PeptideIdentificationList temp_peptide_ids
         cdef PeptideIdentificationList pep_id_list
 
         if isinstance(peptide_ids, list):
-            # Old API: Convert Python list to PeptideIdentificationList
+            # Deprecated: Python list interface
+            warnings.warn(
+                "Passing a Python list for peptide_ids is deprecated since pyOpenMS 3.5. "
+                "Use PeptideIdentificationList instead: peptide_ids = pyopenms.PeptideIdentificationList()",
+                DeprecationWarning,
+                stacklevel=2
+            )
             temp_peptide_ids = PeptideIdentificationList()
             temp_peptide_ids.extend(peptide_ids)
 
