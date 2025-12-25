@@ -132,6 +132,8 @@ Step 2: Create an addon file (e.g., addons/ModificationsDB.pyx):
       pass
 
 This creates a Python wrapper that uses the singleton instance without destroying it.
+Note: The commented line should match the wrap-manual-memory directive in the pxd file.
+Some singleton classes may have multiple getInstance() overloads with different parameters.
 
 Examples: ModificationsDB.pxd, ElementDB.pxd, CrossLinksDB.pxd
 
