@@ -164,16 +164,18 @@ For classes that require specific parameters and have deleted default constructo
 
 In the pxd file (e.g., pxds/XMLHandler.pxd):
 
-    cdef cppclass XMLHandler:
-        # private
-        XMLHandler() except + nogil  # wrap-ignore
-        # copy constructor deleted in base class
-        XMLHandler(XMLHandler &) except + nogil  # wrap-ignore
-
-        # Actual constructor with required parameters
-        XMLHandler(const String & filename, const String & version) except + nogil 
+    cdef extern from "<OpenMS/FORMAT/HANDLERS/XMLHandler.h>" namespace "OpenMS::Internal":
         
-        # ... other methods ...
+        cdef cppclass XMLHandler:
+            # private
+            XMLHandler() except + nogil  # wrap-ignore
+            # copy constructor deleted in base class
+            XMLHandler(XMLHandler &) except + nogil  # wrap-ignore
+
+            # Actual constructor with required parameters
+            XMLHandler(const String & filename, const String & version) except + nogil 
+            
+            # ... other methods ...
 
 Key points:
   - Mark the default and copy constructors with "# wrap-ignore"
