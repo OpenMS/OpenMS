@@ -57,18 +57,18 @@ cdef extern from "<OpenMS/METADATA/ExperimentalDesign.h>" namespace "OpenMS":
 
         # return if each fraction number is associated with the same number of fraction_group
         bool sameNrOfMSFilesPerFraction() except + nogil  # wrap-doc:Returns if each fraction number is associated with the same number of fraction_group
-                
-# COMMENT: wrap static methods
-cdef extern from "<OpenMS/METADATA/ExperimentalDesign.h>" namespace "OpenMS::ExperimentalDesign":
 
         # Extract experimental design from consensus map
-        ExperimentalDesign fromConsensusMap(ConsensusMap c) except + nogil  #wrap-attach:ExperimentalDesign
+        @staticmethod
+        ExperimentalDesign fromConsensusMap(ConsensusMap c) except + nogil
 
         # Extract experimental design from feature map
-        ExperimentalDesign fromFeatureMap(FeatureMap f) except + nogil  #wrap-attach:ExperimentalDesign
+        @staticmethod
+        ExperimentalDesign fromFeatureMap(FeatureMap f) except + nogil
 
         # Extract experimental design from identifications
-        ExperimentalDesign fromIdentifications(const libcpp_vector[ProteinIdentification] & proteins) except + nogil  #wrap-attach:ExperimentalDesign
+        @staticmethod
+        ExperimentalDesign fromIdentifications(const libcpp_vector[ProteinIdentification] & proteins) except + nogil
 
 cdef extern from "<OpenMS/METADATA/ExperimentalDesign.h>" namespace "OpenMS::ExperimentalDesign":
     

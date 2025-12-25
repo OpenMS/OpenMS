@@ -49,30 +49,29 @@ cdef extern from "<OpenMS/METADATA/SpectrumMetaDataLookup.h>" namespace "OpenMS"
                 #  :param metadata: Meta data output
                 #  :param flags: What meta data to extract
 
-        void setSpectraDataRef(const String & spectra_data) except + nogil 
+        void setSpectraDataRef(const String & spectra_data) except + nogil
 
-#
-## wrap static methods
-#
-cdef extern from "<OpenMS/METADATA/SpectrumMetaDataLookup.h>" namespace "OpenMS::SpectrumMetaDataLookup":
+        ###   TODO: Missing optional parameters:
+        ###   boost::regex& scan_regexp
+        ###   std::map<Size, double>& precursor_rts
+        @staticmethod
+        void getSpectrumMetaData(MSSpectrum spectrum,
+                                 SpectrumMetaData& meta) except + nogil
 
-    ###   TODO: Missing optional parameters:
-    ###   boost::regex& scan_regexp 
-    ###   std::map<Size, double>& precursor_rts 
-    void getSpectrumMetaData(MSSpectrum spectrum,
-                             SpectrumMetaData& meta) except + nogil  # wrap-attach:SpectrumMetaDataLookup
+        @staticmethod
+        bool addMissingRTsToPeptideIDs(PeptideIdentificationList,
+                                       MSExperiment exp) except + nogil
 
-    bool addMissingRTsToPeptideIDs(PeptideIdentificationList, 
-								  MSExperiment exp) except + nogil  # wrap-attach:SpectrumMetaDataLookup
+        @staticmethod
+        bool addMissingIMToPeptideIDs(PeptideIdentificationList,
+                                      MSExperiment exp) except + nogil
 
-    bool addMissingIMToPeptideIDs(PeptideIdentificationList, 
-								  MSExperiment exp) except + nogil  # wrap-attach:SpectrumMetaDataLookup
-
-    bool addMissingSpectrumReferences(PeptideIdentificationList, 
-                                   String filename, bool stop_on_error, 
-                                   bool override_spectra_data, 
-                                   bool override_spectra_references,
-                                   libcpp_vector[ProteinIdentification] proteins) except + nogil  # wrap-attach:SpectrumMetaDataLookup
+        @staticmethod
+        bool addMissingSpectrumReferences(PeptideIdentificationList,
+                                       String filename, bool stop_on_error,
+                                       bool override_spectra_data,
+                                       bool override_spectra_references,
+                                       libcpp_vector[ProteinIdentification] proteins) except + nogil
 
 cdef extern from "<OpenMS/METADATA/SpectrumMetaDataLookup.h>" namespace "OpenMS::SpectrumMetaDataLookup":
 

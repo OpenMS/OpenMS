@@ -75,19 +75,28 @@ cdef extern from "<OpenMS/FORMAT/FileHandler.h>" namespace "OpenMS":
         PeakFileOptions  getOptions() except + nogil  # wrap-doc:Access to the options for loading/storing
         void setOptions(PeakFileOptions) except + nogil  # wrap-doc:Sets options for loading/storing
 
-#
-# wrap static method:
-#
-cdef extern from "<OpenMS/FORMAT/FileHandler.h>" namespace "OpenMS::FileHandler":
+        @staticmethod
+        int getType(const String& filename) except + nogil
 
-    int getType(const String& filename) except + nogil  # wrap-attach:FileHandler
-    FileType getTypeByFileName(const String & filename) except + nogil  # wrap-attach:FileHandler 
-    FileType getTypeByContent(const String & filename) except + nogil  # wrap-attach:FileHandler 
-    String computeFileHash(const String & filename) except + nogil  # wrap-attach:FileHandler 
-    bool isSupported(FileType type_) except + nogil  # wrap-attach:FileHandler 
-    bool hasValidExtension(const String & filename, FileType type_) except + nogil  # wrap-attach:FileHandler 
+        @staticmethod
+        FileType getTypeByFileName(const String & filename) except + nogil
 
-    # Returns the file name without the extension
-    String stripExtension(String file) except + nogil  # wrap-attach:FileHandler
-    # Removes the current extension (if any) and adds a new one
-    String swapExtension(String filename, FileType new_type) except + nogil  # wrap-attach:FileHandler 
+        @staticmethod
+        FileType getTypeByContent(const String & filename) except + nogil
+
+        @staticmethod
+        String computeFileHash(const String & filename) except + nogil
+
+        @staticmethod
+        bool isSupported(FileType type_) except + nogil
+
+        @staticmethod
+        bool hasValidExtension(const String & filename, FileType type_) except + nogil
+
+        # Returns the file name without the extension
+        @staticmethod
+        String stripExtension(String file) except + nogil
+
+        # Removes the current extension (if any) and adds a new one
+        @staticmethod
+        String swapExtension(String filename, FileType new_type) except + nogil
