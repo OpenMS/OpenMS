@@ -2345,27 +2345,27 @@ namespace OpenMS::Internal
         }
         else if (accession == "MS:1000047") //emulsion
         {
-          samples_[current_id_].setState(Sample::EMULSION);
+          samples_[current_id_].setState(Sample::SampleState::EMULSION);
         }
         else if (accession == "MS:1000048") //gas
         {
-          samples_[current_id_].setState(Sample::GAS);
+          samples_[current_id_].setState(Sample::SampleState::GAS);
         }
         else if (accession == "MS:1000049") //liquid
         {
-          samples_[current_id_].setState(Sample::LIQUID);
+          samples_[current_id_].setState(Sample::SampleState::LIQUID);
         }
         else if (accession == "MS:1000050") //solid
         {
-          samples_[current_id_].setState(Sample::SOLID);
+          samples_[current_id_].setState(Sample::SampleState::SOLID);
         }
         else if (accession == "MS:1000051") //solution
         {
-          samples_[current_id_].setState(Sample::SOLUTION);
+          samples_[current_id_].setState(Sample::SampleState::SOLUTION);
         }
         else if (accession == "MS:1000052") //suspension
         {
-          samples_[current_id_].setState(Sample::SUSPENSION);
+          samples_[current_id_].setState(Sample::SampleState::SUSPENSION);
         }
         else if (accession.hasPrefix("PATO:")) //quality of an object
         {
@@ -4260,27 +4260,27 @@ namespace OpenMS::Internal
       os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000004\" name=\"sample mass\" value=\"" << sa.getMass() << "\" unitAccession=\"UO:0000021\" unitName=\"gram\" unitCvRef=\"UO\" />\n";
       os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000005\" name=\"sample volume\" value=\"" << sa.getVolume() << "\" unitAccession=\"UO:0000098\" unitName=\"milliliter\" unitCvRef=\"UO\" />\n";
       os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000006\" name=\"sample concentration\" value=\"" << sa.getConcentration() << "\" unitAccession=\"UO:0000175\" unitName=\"gram per liter\" unitCvRef=\"UO\" />\n";
-      if (sa.getState() == Sample::EMULSION)
+      if (sa.getState() == Sample::SampleState::EMULSION)
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000047\" name=\"emulsion\" />\n";
       }
-      else if (sa.getState() == Sample::GAS)
+      else if (sa.getState() == Sample::SampleState::GAS)
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000048\" name=\"gas\" />\n";
       }
-      else if (sa.getState() == Sample::LIQUID)
+      else if (sa.getState() == Sample::SampleState::LIQUID)
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000049\" name=\"liquid\" />\n";
       }
-      else if (sa.getState() == Sample::SOLID)
+      else if (sa.getState() == Sample::SampleState::SOLID)
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000050\" name=\"solid\" />\n";
       }
-      else if (sa.getState() == Sample::SOLUTION)
+      else if (sa.getState() == Sample::SampleState::SOLUTION)
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000051\" name=\"solution\" />\n";
       }
-      else if (sa.getState() == Sample::SUSPENSION)
+      else if (sa.getState() == Sample::SampleState::SUSPENSION)
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000052\" name=\"suspension\" />\n";
       }

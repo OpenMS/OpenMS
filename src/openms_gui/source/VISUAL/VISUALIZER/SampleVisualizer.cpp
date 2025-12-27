@@ -44,12 +44,12 @@ namespace OpenMS
   {
     if (!isEditable())
     {
-      fillComboBox_(samplestate_, &temp_.NamesOfSampleState[temp_.getState()], 1);
+      fillComboBox_(samplestate_, &temp_.NamesOfSampleState[static_cast<size_t>(temp_.getState())], 1);
     }
     else
     {
-      fillComboBox_(samplestate_, temp_.NamesOfSampleState, Sample::SIZE_OF_SAMPLESTATE);
-      samplestate_->setCurrentIndex(temp_.getState());
+      fillComboBox_(samplestate_, temp_.NamesOfSampleState, static_cast<size_t>(Sample::SampleState::SIZE_OF_SAMPLESTATE));
+      samplestate_->setCurrentIndex(static_cast<int>(temp_.getState()));
     }
 
     samplename_->setText(temp_.getName().c_str());

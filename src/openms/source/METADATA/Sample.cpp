@@ -17,7 +17,7 @@ namespace OpenMS
 
   Sample::Sample() :
     MetaInfoInterface(),
-    state_(SAMPLENULL),
+    state_(SampleState::SAMPLENULL),
     mass_(0.0),
     volume_(0.0),
     concentration_(0.0)
@@ -177,8 +177,8 @@ namespace OpenMS
   StringList Sample::getAllNamesOfSampleState()
   {
     StringList names;
-    names.reserve(SIZE_OF_SAMPLESTATE);
-    for (size_t i = 0; i < SIZE_OF_SAMPLESTATE; ++i)
+    names.reserve(static_cast<size_t>(SampleState::SIZE_OF_SAMPLESTATE));
+    for (size_t i = 0; i < static_cast<size_t>(SampleState::SIZE_OF_SAMPLESTATE); ++i)
     {
       names.push_back(NamesOfSampleState[i]);
     }
