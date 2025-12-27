@@ -145,7 +145,7 @@ namespace OpenMS
        @return The distribution
        @throws Exception::InvalidValue if @p which is not a valid overview statistic for the underlying data
     */
-    virtual Math::Histogram<> getDistribution(const RangeStatsType& which, const UInt number_of_bins = 500) const = 0;
+    virtual Histogram<> getDistribution(const RangeStatsType& which, const UInt number_of_bins = 500) const = 0;
 
 
   protected:
@@ -167,7 +167,7 @@ namespace OpenMS
   public:
     LayerStatisticsPeakMap(const PeakMap& pm);
  
-    Math::Histogram<> getDistribution(const RangeStatsType& which, const UInt number_of_bins) const override;
+    Histogram<> getDistribution(const RangeStatsType& which, const UInt number_of_bins) const override;
 
   private:
     void computeStatistics_() override;
@@ -183,7 +183,7 @@ namespace OpenMS
   public:
     LayerStatisticsFeatureMap(const FeatureMap& fm);
 
-    Math::Histogram<> getDistribution(const RangeStatsType& which,
+    Histogram<> getDistribution(const RangeStatsType& which,
                                       const UInt number_of_bins) const override;
 
   private:
@@ -200,7 +200,7 @@ namespace OpenMS
   public:
     LayerStatisticsConsensusMap(const ConsensusMap& cm);
 
-    Math::Histogram<> getDistribution(const RangeStatsType& which,
+    Histogram<> getDistribution(const RangeStatsType& which,
                                       const UInt number_of_bins) const override;
 
   private:
@@ -217,7 +217,7 @@ namespace OpenMS
   public:
     LayerStatisticsIdent(const IPeptideIds::PepIds& cm);
 
-    Math::Histogram<> getDistribution(const RangeStatsType& which,
+    Histogram<> getDistribution(const RangeStatsType& which,
                                       const UInt number_of_bins) const override;
 
   private:

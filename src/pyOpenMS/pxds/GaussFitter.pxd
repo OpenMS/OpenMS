@@ -3,7 +3,7 @@ from libcpp cimport bool
 from DPosition cimport *
 from String cimport *
 
-cdef extern from "<OpenMS/MATH/STATISTICS/GaussFitter.h>" namespace "OpenMS::Math":
+cdef extern from "<OpenMS/MATH/STATISTICS/GaussFitter.h>" namespace "OpenMS":
 
     cdef cppclass GaussFitter:
 
@@ -19,7 +19,7 @@ cdef extern from "<OpenMS/MATH/STATISTICS/GaussFitter.h>" namespace "OpenMS::Mat
         #  @exception Exception::UnableToFit is thrown if fitting cannot be performed
         GaussFitResult fit(libcpp_vector[DPosition2] points) except + nogil  # wrap-doc:Fits a Gaussian distribution to the given data points
 
-cdef extern from "<OpenMS/MATH/STATISTICS/GaussFitter.h>" namespace "OpenMS::Math::GaussFitter":
+cdef extern from "<OpenMS/MATH/STATISTICS/GaussFitter.h>" namespace "OpenMS::GaussFitter":
 
     cdef cppclass GaussFitResult:
 

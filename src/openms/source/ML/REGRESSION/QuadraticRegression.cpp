@@ -13,7 +13,7 @@
 #include <Mathematics/Matrix3x3.h>
 #include <Mathematics/LinearSystem.h>
 
-namespace OpenMS::Math
+namespace OpenMS
 {
   // Note:x, y must be of same size
   double computeChiSquareWeighted(
@@ -127,4 +127,4 @@ namespace OpenMS::Math
       throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "UnableToFit-QuadraticRegression", "Could not fit a linear model to the data");
     }
   }
-} //OpenMS //Math
+} //OpenMS

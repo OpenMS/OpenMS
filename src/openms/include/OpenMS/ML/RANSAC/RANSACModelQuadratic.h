@@ -13,9 +13,6 @@
 
 namespace OpenMS
 {
-
-  namespace Math
-  {
     /**
       @brief Implementation of a quadratic RANSAC model fit.
       
@@ -34,8 +31,6 @@ namespace OpenMS
       static DVec rm_inliers_impl(const DVecIt& begin, const DVecIt& end, const ModelParameters& coefficients, double max_threshold);
 
     };
-
-  }
 
 
 }

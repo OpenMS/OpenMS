@@ -65,7 +65,7 @@ namespace OpenMS
     /// standard derivation in bounding box
     CoordinateType tolerance_stdev_box_;
     /// basic statistics
-    Math::BasicStatistics<> statistics_;
+    BasicStatistics<> statistics_;
     /// interpolation step size
     CoordinateType interpolation_step_;
 

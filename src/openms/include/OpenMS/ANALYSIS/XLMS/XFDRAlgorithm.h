@@ -102,7 +102,7 @@ private:
       @param[in] mono
 
      */
-    void fdr_xprophet_(std::map< String, Math::Histogram<> >& cum_histograms,
+    void fdr_xprophet_(std::map< String, Histogram<> >& cum_histograms,
                       const String& targetclass, const String& decoyclass, const String& fulldecoyclass,
                       std::vector< double >& fdr, bool mono) const;
 

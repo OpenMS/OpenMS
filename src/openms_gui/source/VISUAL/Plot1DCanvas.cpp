@@ -43,7 +43,6 @@ using namespace std;
 
 namespace OpenMS
 {
-  using namespace Math;
   using namespace Internal;
 
   /// returns an MSExp with a single spec (converted from @p exp_sptr's chromatograms at index  @p index (or ondisc_sptr, if that should be empty)

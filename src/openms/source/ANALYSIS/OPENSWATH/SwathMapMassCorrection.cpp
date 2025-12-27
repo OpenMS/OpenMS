@@ -393,7 +393,7 @@ namespace OpenMS
     // linear correction is default (none returns in the beginning of the function)
     std::vector<double> im_regression_params;
     double confidence_interval_P(0.0);
-    Math::LinearRegression lr;
+    LinearRegression lr;
     lr.computeRegression(confidence_interval_P, exp_im.begin(), exp_im.end(), theo_im.begin()); // to convert exp_im -> theoretical im
     im_regression_params.push_back(lr.getIntercept());
     im_regression_params.push_back(lr.getSlope());
@@ -629,7 +629,7 @@ namespace OpenMS
     else if (corr_type == "unweighted_regression")
     {
       double confidence_interval_P(0.0);
-      Math::LinearRegression lr;
+      LinearRegression lr;
       lr.computeRegression(confidence_interval_P, exp_mz.begin(), exp_mz.end(), theo_mz.begin());
       regression_params.push_back(lr.getIntercept());
       regression_params.push_back(lr.getSlope());
@@ -638,7 +638,7 @@ namespace OpenMS
     else if (corr_type == "weighted_regression")
     {
       double confidence_interval_P(0.0);
-      Math::LinearRegression lr;
+      LinearRegression lr;
       lr.computeRegressionWeighted(confidence_interval_P, exp_mz.begin(), exp_mz.end(), theo_mz.begin(), weights.begin());
       regression_params.push_back(lr.getIntercept());
       regression_params.push_back(lr.getSlope());
@@ -647,7 +647,7 @@ namespace OpenMS
     else if (corr_type == "quadratic_regression")
     {
       // Quadratic fit
-      Math::QuadraticRegression qr;
+      QuadraticRegression qr;
       qr.computeRegression(exp_mz.begin(), exp_mz.end(), theo_mz.begin());
       regression_params.push_back(qr.getA());
       regression_params.push_back(qr.getB());
@@ -656,7 +656,7 @@ namespace OpenMS
     else if (corr_type == "weighted_quadratic_regression")
     {
       // Quadratic fit (weighted)
-      Math::QuadraticRegression qr;
+      QuadraticRegression qr;
       qr.computeRegressionWeighted(exp_mz.begin(), exp_mz.end(), theo_mz.begin(), weights.begin());
       regression_params.push_back(qr.getA());
       regression_params.push_back(qr.getB());
@@ -665,7 +665,7 @@ namespace OpenMS
     else if (corr_type == "quadratic_regression_delta_ppm")
     {
       // Quadratic fit using ppm differences
-      Math::QuadraticRegression qr;
+      QuadraticRegression qr;
       qr.computeRegression(exp_mz.begin(), exp_mz.end(), delta_ppm.begin());
       regression_params.push_back(qr.getA());
       regression_params.push_back(qr.getB());
@@ -675,7 +675,7 @@ namespace OpenMS
     {
       // Regression fit using ppm differences
       double confidence_interval_P(0.0);
-      Math::LinearRegression lr;
+      LinearRegression lr;
       lr.computeRegression(confidence_interval_P, exp_mz.begin(), exp_mz.end(), delta_ppm.begin());
       regression_params.push_back(lr.getIntercept());
       regression_params.push_back(lr.getSlope());
@@ -684,7 +684,7 @@ namespace OpenMS
     else if (corr_type == "weighted_quadratic_regression_delta_ppm")
     {
       // Quadratic fit using ppm differences
-      Math::QuadraticRegression qr;
+      QuadraticRegression qr;
       qr.computeRegressionWeighted(exp_mz.begin(), exp_mz.end(), delta_ppm.begin(), weights.begin());
       regression_params.push_back(qr.getA());
       regression_params.push_back(qr.getB());

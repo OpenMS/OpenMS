@@ -1,4 +1,4 @@
-cdef extern from "<OpenMS/MATH/MathFunctions.h>" namespace "OpenMS::Math":
+cdef extern from "<OpenMS/MATH/MathFunctions.h>" namespace "OpenMS":
 
     cdef cppclass Math:
         # wrap-doc:

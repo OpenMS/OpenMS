@@ -25,7 +25,6 @@ using namespace std;
 
 namespace OpenMS
 {
-  using namespace Math;
 
   HistogramWidget::HistogramWidget(const Histogram<> & distribution, QWidget * parent) :
     QWidget(parent),
@@ -226,7 +225,7 @@ namespace OpenMS
   void HistogramWidget::invalidate_()
   {
     //apply log trafo if needed
-    Math::Histogram<> dist(dist_);
+    Histogram<> dist(dist_);
     if (log_mode_)
     {
       dist.applyLogTransformation(100.0);

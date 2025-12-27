@@ -21,8 +21,6 @@
 
 namespace OpenMS
 {
-  namespace Math
-  {
 
     /**
         @brief Representation of a histogram
@@ -430,8 +428,6 @@ protected:
       }
       return os;
     }
-
-  }   // namespace Math
 
 } // namespace OpenMS
 

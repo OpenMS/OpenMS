@@ -262,7 +262,7 @@ namespace OpenMS
       // We require at least five data points for a reliable linear interpolation.
       if (intensities1.size() > 5)
       {
-        OpenMS::Math::LinearRegressionWithoutIntercept linreg;
+        OpenMS::LinearRegressionWithoutIntercept linreg;
         linreg.addData(intensities1, intensities2);
 
         ratios.push_back(linreg.getSlope());

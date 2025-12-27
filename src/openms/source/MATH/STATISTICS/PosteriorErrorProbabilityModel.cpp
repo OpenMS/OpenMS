@@ -28,7 +28,7 @@
 
 using namespace std;
 
-namespace OpenMS::Math
+namespace OpenMS
 {
 
     PosteriorErrorProbabilityModel::PosteriorErrorProbabilityModel() :
@@ -128,7 +128,7 @@ namespace OpenMS::Math
       double sumIncorrectPosteriors = Math::sum(incorrect_posteriors.begin(),incorrect_posteriors.end());
       double sumCorrectPosteriors = x_scores.size() - sumIncorrectPosteriors;
 
-      OpenMS::Math::GumbelMaxLikelihoodFitter gmlf{incorrectly_assigned_fit_gumbel_param_};
+      OpenMS::GumbelMaxLikelihoodFitter gmlf{incorrectly_assigned_fit_gumbel_param_};
 
       do
       {
@@ -1151,4 +1151,4 @@ namespace OpenMS::Math
         }
       }
     }
-} // namespace OpenMS // namespace Math
+} // namespace OpenMS

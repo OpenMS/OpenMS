@@ -159,7 +159,7 @@ namespace OpenMS
         peak_shape_values_x.push_back(coord);
       }
       // compute normal approximation at these CoordinateType points (y values)
-      Math::BasicStatistics<> normal_widening_model;
+      BasicStatistics<> normal_widening_model;
       normal_widening_model.setSum(1);
       normal_widening_model.setMean(0);
       normal_widening_model.setVariance(isotope_stdev_ * isotope_stdev_);

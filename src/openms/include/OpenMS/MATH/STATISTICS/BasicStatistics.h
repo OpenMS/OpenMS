@@ -16,8 +16,6 @@
 
 namespace OpenMS
 {
-  namespace Math
-  {
 
     /**
          @brief Calculates some basic statistical parameters of a distribution:
@@ -286,7 +284,5 @@ private:
       //@}
 
     };
-
-  }   // namespace Math
 
 } // namespace OpenMS

@@ -9,7 +9,7 @@
 //#include <OpenMS/CONCEPT/Macros.h>
 #include <OpenMS/ML/REGRESSION/LinearRegressionWithoutIntercept.h>
 
-namespace OpenMS::Math
+namespace OpenMS
 {
 
     LinearRegressionWithoutIntercept::LinearRegressionWithoutIntercept() :
@@ -46,5 +46,5 @@ namespace OpenMS::Math
       return sum_xy_ / sum_xx_;
     }
 
-} //OpenMS //Math
+} //OpenMS
 

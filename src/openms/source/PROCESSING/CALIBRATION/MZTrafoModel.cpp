@@ -35,7 +35,7 @@ namespace OpenMS
 
   const std::string MZTrafoModel::names_of_modeltype[] = {"linear", "linear_weighted", "quadratic", "quadratic_weighted", "size_of_modeltype"};
 
-  Math::RANSACParam* MZTrafoModel::ransac_params_ = nullptr;
+  RANSACParam* MZTrafoModel::ransac_params_ = nullptr;
   int MZTrafoModel::ransac_seed_ = time(nullptr);
   double MZTrafoModel::limit_offset_ = std::numeric_limits<double>::max(); // no limit by default
   double MZTrafoModel::limit_scale_ = std::numeric_limits<double>::max(); // no limit by default
@@ -54,10 +54,10 @@ namespace OpenMS
     return names_of_modeltype[mt];
   }
 
-  void MZTrafoModel::setRANSACParams(const Math::RANSACParam& p)
+  void MZTrafoModel::setRANSACParams(const RANSACParam& p)
   {
     delete ransac_params_;
-    ransac_params_ = new Math::RANSACParam(p);
+    ransac_params_ = new RANSACParam(p);
   }
 
   void MZTrafoModel::setRANSACSeed(int seed)
@@ -192,7 +192,7 @@ namespace OpenMS
           {
             pairs.emplace_back(theo_mz[i], obs_mz[i]);
           }
-          r = Math::RANSAC<Math::RansacModelLinear>(ransac_seed_).ransac(pairs, *ransac_params_);
+          r = RANSAC<RansacModelLinear>(ransac_seed_).ransac(pairs, *ransac_params_);
           if (r.size() < 2)
           {
             return false; // RANSAC failed
@@ -207,7 +207,7 @@ namespace OpenMS
         }
 
         double confidence_interval_P(0.0);
-        Math::LinearRegression lr;
+        LinearRegression lr;
         lr.computeRegression(confidence_interval_P, theo_mz.begin(), theo_mz.end(), obs_mz.begin(), false);
         coeff_.push_back(lr.getIntercept());
         coeff_.push_back(lr.getSlope());
@@ -220,7 +220,7 @@ namespace OpenMS
           return false;
         }
         double confidence_interval_P(0.0);
-        Math::LinearRegression lr;
+        LinearRegression lr;
         lr.computeRegressionWeighted(confidence_interval_P, theo_mz.begin(), theo_mz.end(), obs_mz.begin(), weights.begin(), false);
         coeff_.push_back(lr.getIntercept());
         coeff_.push_back(lr.getSlope());
@@ -241,7 +241,7 @@ namespace OpenMS
           {
             pairs.emplace_back(theo_mz[i], obs_mz[i]);
           }
-          r = Math::RANSAC<Math::RansacModelQuadratic>(ransac_seed_).ransac(pairs, *ransac_params_);
+          r = RANSAC<RansacModelQuadratic>(ransac_seed_).ransac(pairs, *ransac_params_);
           obs_mz.clear();
           theo_mz.clear();
           for (Size i = 0; i < r.size(); ++i)
@@ -251,7 +251,7 @@ namespace OpenMS
           }
         }
         // Quadratic fit
-        Math::QuadraticRegression qr;
+        QuadraticRegression qr;
         qr.computeRegression(theo_mz.begin(), theo_mz.end(), obs_mz.begin());
         coeff_.push_back(qr.getA());
         coeff_.push_back(qr.getB());
@@ -264,7 +264,7 @@ namespace OpenMS
           return false;
         }
         // Quadratic fit (weighted)
-        Math::QuadraticRegression qr;
+        QuadraticRegression qr;
         qr.computeRegressionWeighted(theo_mz.begin(), theo_mz.end(), obs_mz.begin(), weights.begin());
         coeff_.push_back(qr.getA());
         coeff_.push_back(qr.getB());

@@ -28,7 +28,6 @@ using namespace std;
 namespace OpenMS
 {
   using namespace Internal;
-  using namespace Math;
 
   Plot2DWidget::Plot2DWidget(const Param& preferences, QWidget* parent) :
     PlotWidget(preferences, parent)

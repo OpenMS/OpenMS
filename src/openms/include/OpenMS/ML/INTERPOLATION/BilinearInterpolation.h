@@ -14,9 +14,6 @@
 namespace OpenMS
 {
 
-  namespace Math
-  {
-
     /**
          @brief Provides access to bilinearly interpolated values (and
          derivatives) from discrete data points.  Values beyond the given range
@@ -780,8 +777,6 @@ protected:
       ContainerType data_;
       //@}
     };
-
-  }   // namespace Math
 
 } // namespace OpenMS
 

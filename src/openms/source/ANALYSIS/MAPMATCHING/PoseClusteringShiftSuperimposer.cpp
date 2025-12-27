@@ -60,7 +60,7 @@ namespace OpenMS
   void PoseClusteringShiftSuperimposer::run(const ConsensusMap & map_model, const ConsensusMap & map_scene, TransformationDescription & transformation)
   {
     typedef ConstRefVector<ConsensusMap> PeakPointerArray_;
-    typedef Math::LinearInterpolation<double, double> LinearInterpolationType_;
+    typedef LinearInterpolation<double, double> LinearInterpolationType_;
 
     LinearInterpolationType_ shift_hash_;
 
@@ -420,7 +420,7 @@ namespace OpenMS
 
       // iterative cut-off based on mean and stdev - relies upon scaling_cutoff_stdev_multiplier which is a bit hard to set right.
       {
-        Math::BasicStatistics<double> statistics;
+        BasicStatistics<double> statistics;
         std::vector<double>::const_iterator data_begin = shift_hash_.getData().begin();
         const Size data_size = shift_hash_.getData().size();
         Size data_range_begin = 0;

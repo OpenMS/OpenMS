@@ -16,7 +16,6 @@
 
 using namespace std;
 using namespace OpenMS;
-using namespace Math;
 
 ///////////////////////////
 
@@ -132,11 +131,11 @@ START_SECTION((static DVec rm_inliers_impl(const DVecIt& begin, const DVecIt& en
   NOT_TESTABLE // tested above in rm_fit_impl
 END_SECTION
 
-START_SECTION([EXTRA](static Math::RANSAC<Math::RansacModelLinear>::ransac(const std::vector<std::pair<double, double> >& pairs, 
-                                                                           size_t n, 
-                                                                           size_t k, 
-                                                                           double t, 
-                                                                           size_t d, 
+START_SECTION([EXTRA](static RANSAC<RansacModelLinear>::ransac(const std::vector<std::pair<double, double> >& pairs,
+                                                                           size_t n,
+                                                                           size_t k,
+                                                                           double t,
+                                                                           size_t d,
                                                                            bool relative_d = false,
                                                                            int (*rng)(int) = NULL)))
 {
@@ -403,7 +402,7 @@ if __name__=='__main__':
   }
   std::sort(test_pairs.begin(), test_pairs.end());
 
-  Math::RANSAC<Math::RansacModelLinear> r;
+  RANSAC<RansacModelLinear> r;
   //TODO set seed
   test_pairs_out = r.ransac(test_pairs, 2, 1200, 100*100, 10, false);
   std::sort(test_pairs_out.begin(), test_pairs_out.end());

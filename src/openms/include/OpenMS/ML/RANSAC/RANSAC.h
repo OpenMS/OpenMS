@@ -24,8 +24,6 @@
 namespace OpenMS
 {
 
-  namespace Math
-  {
     /**
       @brief A simple struct to carry all the parameters required for a RANSAC run.
     */
@@ -219,8 +217,5 @@ public:
     private:
       Math::RandomShuffler shuffler_{};
     }; // class
-  
-  } // namespace Math
-
 
 } // namespace OpenMS

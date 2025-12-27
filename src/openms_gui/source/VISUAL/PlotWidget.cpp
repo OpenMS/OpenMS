@@ -25,7 +25,6 @@ using namespace std;
 
 namespace OpenMS
 {
-  using namespace Math;
 
   const char PlotWidget::RT_AXIS_TITLE[] = "Time [s]";
   const char PlotWidget::MZ_AXIS_TITLE[] = "m/z";

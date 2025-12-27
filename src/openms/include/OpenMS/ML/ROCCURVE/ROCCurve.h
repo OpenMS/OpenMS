@@ -16,8 +16,6 @@
 
 namespace OpenMS
 {
-  namespace Math
-  {
     /**
       @brief ROCCurves show the trade-off in sensitivity and specificity for binary classifiers using different cutoff values
 
@@ -106,5 +104,4 @@ public:
 
       bool sorted_{};
     };
-  }
 }

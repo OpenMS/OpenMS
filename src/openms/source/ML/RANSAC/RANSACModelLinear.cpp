@@ -12,7 +12,7 @@
 #include <numeric>
 
 
-namespace OpenMS::Math
+namespace OpenMS
 {
 
     RansacModelLinear::ModelParameters RansacModelLinear::rm_fit_impl(const DVecIt& begin, const DVecIt& end)
@@ -79,4 +79,4 @@ namespace OpenMS::Math
     }
 
 
-} // OpenMS //Math
+} // OpenMS

@@ -22,7 +22,7 @@
 
 using boost::math::detail::inverse_students_t;
 
-namespace OpenMS::Math
+namespace OpenMS
 {
     static void vector2ToStdVec_(const std::vector<gte::Vector2<double>>& points, std::vector<double>& Xout, std::vector<double>& Yout){
       unsigned N = static_cast<unsigned>(points.size());
@@ -305,5 +305,5 @@ namespace OpenMS::Math
             "UnableToFit-LinearRegression", "Could not fit a linear model to the data");
       }
     }
-} // OpenMS //Math
+} // OpenMS
 

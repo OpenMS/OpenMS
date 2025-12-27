@@ -76,7 +76,7 @@ namespace OpenMS
   /// Update the histogram for data of a certain FloatDataArray or IntegerDataArray
   /// of an MSSpectrum
   template<typename DataArrayType>
-  void updateHistFromDataArray(const DataArrayType& arrays, const std::string& name, Math::Histogram<>& hist)
+  void updateHistFromDataArray(const DataArrayType& arrays, const std::string& name, Histogram<>& hist)
   {
     for (const auto& mda : arrays)
     {
@@ -110,10 +110,10 @@ namespace OpenMS
     overview_range_data_.emplace(RangeStatsType {RangeStatsSource::CORE, "intensity"}, stat_intensity);
   }
 
-  Math::Histogram<> LayerStatisticsPeakMap::getDistribution(const RangeStatsType& which, const UInt number_of_bins) const
+  Histogram<> LayerStatisticsPeakMap::getDistribution(const RangeStatsType& which, const UInt number_of_bins) const
   {
     auto mm = getMinMax(overview_range_data_, which, "PeakMap"); // may throw if unknown statistic
-    Math::Histogram<> result(mm.min, mm.max, (mm.max - mm.min) / number_of_bins);
+    Histogram<> result(mm.min, mm.max, (mm.max - mm.min) / number_of_bins);
     
     if (which == RangeStatsType{ RangeStatsSource::CORE, "intensity" })
     {
@@ -142,7 +142,7 @@ namespace OpenMS
     computeStatistics_();
   }
 
-  void addMetaDistributionValue(Math::Histogram<>& result, const string& name, const MetaInfoInterface& mi)
+  void addMetaDistributionValue(Histogram<>& result, const string& name, const MetaInfoInterface& mi)
   {
     if (mi.metaValueExists(name))
     {
@@ -150,11 +150,11 @@ namespace OpenMS
     }
   }
 
-  Math::Histogram<> LayerStatisticsFeatureMap::getDistribution(const RangeStatsType& which,
+  Histogram<> LayerStatisticsFeatureMap::getDistribution(const RangeStatsType& which,
                                                                const UInt number_of_bins) const
   {
     auto mm = getMinMax(overview_range_data_, which, "FeatureMap"); // may throw if unknown statistic
-    Math::Histogram<> result(mm.min, mm.max, (mm.max-mm.min) / number_of_bins);
+    Histogram<> result(mm.min, mm.max, (mm.max-mm.min) / number_of_bins);
 
     if (which.src == RangeStatsSource::CORE)
     {
@@ -192,11 +192,11 @@ namespace OpenMS
     computeStatistics_();
   }
 
-  Math::Histogram<> LayerStatisticsConsensusMap::getDistribution(const RangeStatsType& which,
+  Histogram<> LayerStatisticsConsensusMap::getDistribution(const RangeStatsType& which,
                                                                  const UInt number_of_bins) const
   {
     auto mm = getMinMax(overview_range_data_, which, "ConsensusMap"); // may throw if unknown statistic
-    Math::Histogram<> result(mm.min, mm.max, (mm.max - mm.min) / number_of_bins);
+    Histogram<> result(mm.min, mm.max, (mm.max - mm.min) / number_of_bins);
 
     if (which.src == RangeStatsSource::CORE)
     {
@@ -241,12 +241,12 @@ namespace OpenMS
     computeStatistics_();
   }
 
-  Math::Histogram<> LayerStatisticsIdent::getDistribution(const RangeStatsType& which,
+  Histogram<> LayerStatisticsIdent::getDistribution(const RangeStatsType& which,
                                                           const UInt number_of_bins) const
   {
     auto mm =
       getMinMax(overview_range_data_, which, "vector<PepIDs>"); // may throw if unknown statistic
-    Math::Histogram<> result(mm.min, mm.max, (mm.max - mm.min) / number_of_bins);
+    Histogram<> result(mm.min, mm.max, (mm.max - mm.min) / number_of_bins);
 
     if (which.src == RangeStatsSource::METAINFO)
     {

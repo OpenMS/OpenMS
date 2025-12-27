@@ -20,7 +20,6 @@ using namespace std;
 
 namespace OpenMS
 {
-  using namespace Math;
 
   void AxisTickCalculator::calcGridLines(double x1, double x2, GridVector & grid)
   {
@@ -49,7 +48,7 @@ namespace OpenMS
     UInt n_max_big_gridlines = (UInt)floor(dx / sDec);
 
     std::vector<double> big;
-    double currGL = ceilDecimal(x1, (UInt)sDecPow);
+    double currGL = Math::ceilDecimal(x1, (UInt)sDecPow);
 
     // big grid lines
     while (currGL < (x2 + epsilon))

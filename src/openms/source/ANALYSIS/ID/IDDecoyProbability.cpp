@@ -183,11 +183,11 @@ namespace OpenMS
 #endif
     }
 
-    Math::GammaDistributionFitter gdf;
-    Math::GammaDistributionFitter::GammaDistributionFitResult result_gamma_1st (1.0, 3.0);
+    GammaDistributionFitter gdf;
+    GammaDistributionFitter::GammaDistributionFitResult result_gamma_1st (1.0, 3.0);
     gdf.setInitialParameters(result_gamma_1st);
     // TODO heuristic for good start parameters
-    Math::GammaDistributionFitter::GammaDistributionFitResult result_gamma = gdf.fit(rev_data);
+    GammaDistributionFitter::GammaDistributionFitResult result_gamma = gdf.fit(rev_data);
 
 #ifdef IDDECOYPROBABILITY_DEBUG
     cerr << gdf.getGnuplotFormula() << endl;
@@ -286,8 +286,8 @@ namespace OpenMS
 #ifdef IDDECOYPROBABILITY_DEBUG
     cerr << "setting initial parameters: " << endl;
 #endif
-    Math::GaussFitter gf;
-    Math::GaussFitter::GaussFitResult result_1st(gauss_A, gauss_x0, gauss_sigma);
+    GaussFitter gf;
+    GaussFitter::GaussFitResult result_1st(gauss_A, gauss_x0, gauss_sigma);
     gf.setInitialParameters(result_1st);
 #ifdef IDDECOYPROBABILITY_DEBUG
     cerr << "Initial Gauss guess: A=" << gauss_A << ", x0=" << gauss_x0 << ", sigma=" << gauss_sigma << endl;
@@ -296,7 +296,7 @@ namespace OpenMS
     //TODO: fail-to-fit correction was done using the GNUPlotFormula. Seemed to be a hack.
     //Changed it to try-catch-block but I am not sure if this correction should be made
     //at all. Can someone please verify?
-    Math::GaussFitter::GaussFitResult result_gauss (gauss_A, gauss_x0, gauss_sigma);
+    GaussFitter::GaussFitResult result_gauss (gauss_A, gauss_x0, gauss_sigma);
     try {
         result_gauss = gf.fit(diff_data);
     }
@@ -428,9 +428,9 @@ namespace OpenMS
 #endif
   }
 
-  double IDDecoyProbability::getProbability_(const Math::GammaDistributionFitter::GammaDistributionFitResult & result_gamma,
+  double IDDecoyProbability::getProbability_(const GammaDistributionFitter::GammaDistributionFitResult & result_gamma,
                                                  const Transformation_ & gamma_trafo,
-                                                 const Math::GaussFitter::GaussFitResult & result_gauss,
+                                                 const GaussFitter::GaussFitResult & result_gauss,
                                                  const Transformation_ & gauss_trafo,
                                                  double score)
   {

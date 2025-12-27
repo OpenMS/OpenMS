@@ -44,7 +44,7 @@ namespace OpenMS
 
 
   void showDistribution(LayerStatisticsDialog* lsd, const QString& text,
-                        const Math::Histogram<>& hist)
+                        const Histogram<>& hist)
   {
     if (text == "intensity")
     {

@@ -3,7 +3,7 @@ from libcpp cimport bool
 from Types cimport *
 from Matrix cimport *
 
-cdef extern from "<OpenMS/ML/INTERPOLATION/BilinearInterpolation.h>" namespace "OpenMS::Math":
+cdef extern from "<OpenMS/ML/INTERPOLATION/BilinearInterpolation.h>" namespace "OpenMS":
     
     cdef cppclass BilinearInterpolation[KeyType,ValueType]:
         # wrap-instances:

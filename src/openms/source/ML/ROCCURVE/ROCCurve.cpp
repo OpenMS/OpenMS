@@ -13,7 +13,7 @@
 #include <cmath>
 #include <numeric>
 
-namespace OpenMS::Math
+namespace OpenMS
 {
 
     ROCCurve::ROCCurve() :
@@ -237,4 +237,4 @@ namespace OpenMS::Math
     }
 
 
-} //OpenMS //Math
+} //OpenMS

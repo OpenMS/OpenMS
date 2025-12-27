@@ -18,8 +18,6 @@
 
 namespace OpenMS
 {
-  namespace Math
-  {
     /**
         @brief Implements a fitter for Gaussian functions
 
@@ -115,6 +113,5 @@ private:
       /// Assignment operator (not implemented)
       GaussFitter & operator=(const GaussFitter & rhs);
     };
-  }
 }
 

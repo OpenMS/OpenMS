@@ -157,13 +157,13 @@ using namespace OpenMS;
 
     // Generate Histograms of the scores for each class
     // Use cumulative histograms to count the number of scores above consecutive thresholds
-    std::map< String, Math::Histogram<> >  cum_histograms;
+    std::map< String, Histogram<> >  cum_histograms;
     for (const auto &class_scores: scores)
     {
       std::vector< double > current_scores = class_scores.second;
 
-      Math::Histogram<> histogram(this->min_score_, this->max_score_, arg_binsize_);
-      Math::Histogram<>::getCumulativeHistogram(current_scores.begin(), current_scores.end(), true, true, histogram);
+      Histogram<> histogram(this->min_score_, this->max_score_, arg_binsize_);
+      Histogram<>::getCumulativeHistogram(current_scores.begin(), current_scores.end(), true, true, histogram);
       cum_histograms[class_scores.first] = histogram;
     }
 
@@ -444,7 +444,7 @@ using namespace OpenMS;
     }
   }
 
-  void XFDRAlgorithm::fdr_xprophet_(std::map< String, Math::Histogram<> > & cum_histograms,
+  void XFDRAlgorithm::fdr_xprophet_(std::map< String, Histogram<> > & cum_histograms,
                     const String  & targetclass, const String & decoyclass, const String & fulldecoyclass,
                     std::vector< double > & fdr, bool mono) const
   {

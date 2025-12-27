@@ -27,10 +27,6 @@ namespace OpenMS
   class ProteinIdentification;
   class PeptideHit;
   class PeptideIdentificationList;
-  namespace Math
-  {
-
-
     /**
       @brief Implements a mixture model of the inverse gumbel and the gauss distribution or a gaussian mixture.
 
@@ -272,6 +268,5 @@ private:
       ///points to getGumbelGnuplotFormula
       const String (PosteriorErrorProbabilityModel::* getPositiveGnuplotFormula_)(const GaussFitter::GaussFitResult & params) const;
     };
-  }
 }
 

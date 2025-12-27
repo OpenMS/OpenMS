@@ -56,8 +56,8 @@ public:
 protected:
     CoordinateType min_;
     CoordinateType max_;
-    Math::BasicStatistics<> statistics1_;
-    Math::BasicStatistics<> statistics2_;
+    BasicStatistics<> statistics1_;
+    BasicStatistics<> statistics2_;
 
     void updateMembers_() override;
   };

@@ -20,7 +20,6 @@ using namespace std;
 
 namespace OpenMS
 {
-  using namespace Math;
 
   LabeledPairFinder::LabeledPairFinder() :
     BaseGroupFinder()
@@ -141,7 +140,7 @@ namespace OpenMS
         double start_value = dists[start_index];
         double end_value = dists[end_index];
         double bin_step = fabs(end_value - start_value) / 99.999; //ensure that we have 100 bins
-        Math::Histogram<> hist(start_value, end_value, bin_step);
+        Histogram<> hist(start_value, end_value, bin_step);
         //std::cout << "HIST from " << start_value << " to " << end_value << " (bin size " << bin_step << ")" << endl;
         for (Size i = start_index; i <= end_index; ++i)
         {

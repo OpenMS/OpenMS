@@ -12,7 +12,7 @@
 #include <numeric>
 
 
-namespace OpenMS::Math
+namespace OpenMS
 {
 
     // Quadratic regression for RANSAC
@@ -82,4 +82,4 @@ namespace OpenMS::Math
     }
 
 
-} // OpenMS //Math
+} // OpenMS

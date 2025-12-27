@@ -68,7 +68,7 @@ namespace OpenMS
       }
 
       //calculate regression
-      Math::QuadraticRegression qr;
+      QuadraticRegression qr;
       std::vector<double>::const_iterator w_begin = weigths.begin();
       qr.computeRegressionWeighted(input_x.begin(), input_x.end(), input_y.begin(), w_begin);
 

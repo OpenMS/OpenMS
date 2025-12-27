@@ -25,7 +25,6 @@ using namespace std;
 namespace OpenMS
 {
   using namespace Internal;
-  using namespace Math;
 
   Plot1DWidget::Plot1DWidget(const Param& preferences, const DIM gravity_axis, QWidget* parent) :
     PlotWidget(preferences, parent)

@@ -18,7 +18,7 @@ from PeptideIdentification cimport *
 from GaussFitter cimport *
 from TextFile cimport *
 
-cdef extern from "<OpenMS/MATH/STATISTICS/PosteriorErrorProbabilityModel.h>" namespace "OpenMS::Math":
+cdef extern from "<OpenMS/MATH/STATISTICS/PosteriorErrorProbabilityModel.h>" namespace "OpenMS":
 
     cdef cppclass PosteriorErrorProbabilityModel(DefaultParamHandler):
         # wrap-inherits:

@@ -18,8 +18,6 @@
 
 namespace OpenMS
 {
-  namespace Math
-  {
     /**
       @brief This class offers functions to perform least-squares fits to a straight line model, \f$ Y(c,x) = c_0 + c_1 x \f$.
 
@@ -222,7 +220,6 @@ private:
 
       return chi_squared;
     }
-  } // namespace Math
 } // namespace OpenMS
 
 

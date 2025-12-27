@@ -16,7 +16,6 @@ using namespace std;
 
 namespace OpenMS
 {
-  using namespace Math;
 
   HistogramDialog::HistogramDialog(const Histogram<> & distribution, QWidget * parent) :
     QDialog(parent)

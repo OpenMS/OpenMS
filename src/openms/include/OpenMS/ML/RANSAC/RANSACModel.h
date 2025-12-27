@@ -17,9 +17,6 @@
 namespace OpenMS
 {
 
-  namespace Math
-  {
-
     /**
       @brief Generic plug-in template base class using 'Curiously recurring template pattern' (CRTP)
              to allow for arbitrary RANSAC models (e.g. linear or quadratic fits).
@@ -71,8 +68,6 @@ namespace OpenMS
         return static_cast<const ModelT*>(this)->rm_inliers_impl(begin, end, coefficients, max_threshold);
       }
     };
-
-  }
 
 
 }

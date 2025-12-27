@@ -14,7 +14,6 @@
 ///////////////////////////
 
 using namespace OpenMS;
-using namespace Math;
 using namespace std;
 
 START_TEST(GammaDistributionFitter, "$Id$")

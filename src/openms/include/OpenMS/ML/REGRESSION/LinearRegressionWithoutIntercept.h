@@ -15,8 +15,6 @@
 
 namespace OpenMS
 {
-  namespace Math
-  {
     /**
       @brief This class offers functions to perform least-squares fits to a straight line model, \f$ Y(c,x) = c_0 + c_1 x \f$.
 
@@ -68,7 +66,6 @@ namespace OpenMS
       
     };
 
-  } // namespace Math
 } // namespace OpenMS
 
 

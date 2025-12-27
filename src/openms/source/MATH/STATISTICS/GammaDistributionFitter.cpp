@@ -20,7 +20,7 @@
 // #define GAMMA_DISTRIBUTION_FITTER_VERBOSE
 // #undef  GAMMA_DISTRIBUTION_FITTER_VERBOSE
 
-namespace OpenMS::Math
+namespace OpenMS
 {
 
     GammaDistributionFitter::GammaDistributionFitter() :
@@ -143,4 +143,4 @@ namespace OpenMS::Math
       return GammaDistributionFitResult(x_init(0), x_init(1));
     }
 
-} // namespace OpenMS //namespace Math
+} // namespace OpenMS

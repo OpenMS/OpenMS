@@ -43,9 +43,9 @@ public:
 protected:
 
     /// statistics for first peak site
-    Math::BasicStatistics<> statistics1_;
+    BasicStatistics<> statistics1_;
     /// statistics for second peak site
-    Math::BasicStatistics<> statistics2_;
+    BasicStatistics<> statistics2_;
 
     void updateMembers_() override;
   };

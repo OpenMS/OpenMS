@@ -21,7 +21,6 @@ START_TEST(LinearRegression<Iterator>, "$Id$")
 /////////////////////////////////////////////////////////////
 
 using namespace OpenMS;
-using namespace Math;
 using namespace std;
 
 LinearRegression* ptr;

@@ -150,7 +150,7 @@ namespace OpenMS
         bool use_RANSAC = true;
 
         Size RANSAC_initial_points = (md == MZTrafoModel::LINEAR) ? 2 : 3;
-        Math::RANSACParam p(RANSAC_initial_points, 70, 10, 30, true); // TODO: check defaults (taken from tool)
+        RANSACParam p(RANSAC_initial_points, 70, 10, 30, true); // TODO: check defaults (taken from tool)
         MZTrafoModel::setRANSACParams(p);
         // these limits are a little loose, but should prevent grossly wrong models without burdening the user with yet another parameter.
         MZTrafoModel::setCoefficientLimits(25.0, 25.0, 0.5); 

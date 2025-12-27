@@ -34,7 +34,7 @@ public:
     typedef DPosition<1> PositionType;
     typedef double CoordinateType;
     using KeyType = double;
-    typedef Math::LinearInterpolation<KeyType> LinearInterpolation;
+    typedef LinearInterpolation<KeyType> LinearInterpolation;
 
     /// Default constructor
     InterpolationModel() :

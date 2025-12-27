@@ -108,9 +108,9 @@ protected:
     void normalizeBins_(const std::vector<double> & scores, std::vector<double> & binned, Transformation_ & trafo);
 
     // returns the probability of given score with the transformations of reverse and forward searches and the results of the fits
-    double getProbability_(const Math::GammaDistributionFitter::GammaDistributionFitResult & result_gamma,
+    double getProbability_(const GammaDistributionFitter::GammaDistributionFitResult & result_gamma,
                                const Transformation_ & gamma_trafo,
-                               const Math::GaussFitter::GaussFitResult & result_gauss,
+                               const GaussFitter::GaussFitResult & result_gauss,
                                const Transformation_ & gauss_trafo,
                                double score);
 

@@ -136,9 +136,9 @@ public slots:
     /// Shows statistics about the data (count, min, max, avg of intensity, charge, quality and meta data)
     void showStatistics();
     /// Shows the intensity distribution of the current layer
-    void showIntensityDistribution(const Math::Histogram<>& dist);
+    void showIntensityDistribution(const Histogram<>& dist);
     /// Shows the meta data distribution of value @p name of the current layer
-    void showMetaDistribution(const String& name, const Math::Histogram<>& dist);
+    void showMetaDistribution(const String& name, const Histogram<>& dist);
     /// Updates the axes by setting the right labels and calling recalculateAxes_();
     void updateAxes();
     /**

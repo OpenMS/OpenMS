@@ -74,10 +74,10 @@ namespace OpenMS
 
   */
   void initializeHashTables(
-    Math::LinearInterpolation<double, double>& scaling_hash_1,
-    Math::LinearInterpolation<double, double>& scaling_hash_2,
-    Math::LinearInterpolation<double, double>& rt_low_hash_,
-    Math::LinearInterpolation<double, double>& rt_high_hash_,
+    LinearInterpolation<double, double>& scaling_hash_1,
+    LinearInterpolation<double, double>& scaling_hash_2,
+    LinearInterpolation<double, double>& rt_low_hash_,
+    LinearInterpolation<double, double>& rt_high_hash_,
     const double max_scaling, const double max_shift,
     const double scaling_bucket_size, const double shift_bucket_size,
     const double rt_low, const double rt_high)
@@ -124,10 +124,10 @@ namespace OpenMS
   void affineTransformationHashing(const bool do_dump_pairs,
                                    const std::vector<Peak2D> & model_map,
                                    const std::vector<Peak2D> & scene_map,
-                                   Math::LinearInterpolation<double, double>& scaling_hash_1,
-                                   Math::LinearInterpolation<double, double>& scaling_hash_2,
-                                   Math::LinearInterpolation<double, double>& rt_low_hash_,
-                                   Math::LinearInterpolation<double, double>& rt_high_hash_,
+                                   LinearInterpolation<double, double>& scaling_hash_1,
+                                   LinearInterpolation<double, double>& scaling_hash_2,
+                                   LinearInterpolation<double, double>& rt_low_hash_,
+                                   LinearInterpolation<double, double>& rt_high_hash_,
                                    const int hashing_round,
                                    const double rt_pair_min_distance,
                                    const String& dump_pairs_basename,
@@ -295,7 +295,7 @@ namespace OpenMS
 
   */
   void scalingEstimate(
-    Math::LinearInterpolation<double, double>& scaling_hash_1,
+    LinearInterpolation<double, double>& scaling_hash_1,
     const bool do_dump_buckets,
     const UInt struc_elem_length_datapoints,
     const String& dump_buckets_basename,
@@ -307,7 +307,7 @@ namespace OpenMS
     double& scale_high_1,
     double& scale_centroid_1)
   {
-    typedef Math::LinearInterpolation<double, double> LinearInterpolationType_;
+    typedef LinearInterpolation<double, double> LinearInterpolationType_;
     UInt filtering_stage = 0;
 
     // optionally, dump before filtering
@@ -416,7 +416,7 @@ namespace OpenMS
     // ***************************************************************************
     // iterative cut-off based on mean and stdev - relies upon scaling_cutoff_stdev_multiplier which is a bit hard to set right.
     // ***************************************************************************
-    Math::BasicStatistics<double> statistics;
+    BasicStatistics<double> statistics;
     std::vector<double>::const_iterator data_begin = scaling_hash_1.getData().begin();
     const Size data_size = scaling_hash_1.getData().size();
     Size data_range_begin = 0;
@@ -451,8 +451,8 @@ namespace OpenMS
 
   void shiftEstimate(
     const bool do_dump_buckets,
-    Math::LinearInterpolation<double, double>& rt_low_hash_,
-    Math::LinearInterpolation<double, double>& rt_high_hash_,
+    LinearInterpolation<double, double>& rt_low_hash_,
+    LinearInterpolation<double, double>& rt_high_hash_,
     const Int dump_buckets_serial,
     const UInt struc_elem_length_datapoints,
     const double scaling_histogram_crossing_slope,
@@ -508,7 +508,7 @@ namespace OpenMS
     morph_filter_param.setValue("method", "tophat");
     morph_filter.setParameters(morph_filter_param);
 
-    typedef Math::LinearInterpolation<double, double> LinearInterpolationType_;
+    typedef LinearInterpolation<double, double> LinearInterpolationType_;
     LinearInterpolationType_::container_type buffer(rt_low_hash_.getData().size());
     morph_filter.filterRange(rt_low_hash_.getData().begin(), rt_low_hash_.getData().end(), buffer.begin());
     rt_low_hash_.getData().swap(buffer);
@@ -628,7 +628,7 @@ namespace OpenMS
 
     // iterative cut-off based on mean and stdev - relies upon scaling_cutoff_stdev_multiplier which is a bit hard to set right.
     {
-      Math::BasicStatistics<double> statistics;
+      BasicStatistics<double> statistics;
       std::vector<double>::const_iterator data_begin = rt_low_hash_.getData().begin();
       const Size data_size = rt_low_hash_.getData().size();
       Size data_range_begin = 0;
@@ -656,7 +656,7 @@ namespace OpenMS
 
     // iterative cut-off based on mean and stdev - relies upon scaling_cutoff_stdev_multiplier which is a bit hard to set right.
     {
-      Math::BasicStatistics<double> statistics;
+      BasicStatistics<double> statistics;
       std::vector<double>::const_iterator data_begin = rt_high_hash_.getData().begin();
       const Size data_size = rt_high_hash_.getData().size();
       Size data_range_begin = 0;
@@ -745,7 +745,7 @@ namespace OpenMS
     //**************************************************************************
     // Working variables
     //**************************************************************************
-    typedef Math::LinearInterpolation<double, double> LinearInterpolationType_;
+    typedef LinearInterpolation<double, double> LinearInterpolationType_;
     // these are a set of hashes that transform bins to actual RT values ...
     LinearInterpolationType_ scaling_hash_1; //scaling estimate from round 1 hashing
     LinearInterpolationType_ scaling_hash_2; //scaling estimate from round 2 hashing

@@ -14,7 +14,6 @@
 
 using namespace OpenMS;
 using namespace std;
-using namespace Math;
 
 START_TEST(QuadraticRegression, "$Id$")
 

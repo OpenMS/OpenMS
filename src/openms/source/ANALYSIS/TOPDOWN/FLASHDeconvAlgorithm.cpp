@@ -434,7 +434,7 @@ void FLASHDeconvAlgorithm::determineTolerance_(const MSExperiment& map, const Pa
     {
       points.emplace_back(b, bins[b - l]);
     }
-    Math::GaussFitter fitter;
+    GaussFitter fitter;
     const auto fit = fitter.fit(points);
 
     tols_[ms_level - 1] = round(fit.sigma * 2.17 * 2); // 97% area under curve in gaussian

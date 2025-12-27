@@ -17,7 +17,7 @@ using namespace std;
 // #define GAUSS_FITTER_VERBOSE
 // #undef  GAUSS_FITTER_VERBOSE
 
-namespace OpenMS::Math
+namespace OpenMS
 {
     GaussFitter::GaussFitter()
     : init_param_(0.06, 3.0, 0.5)
@@ -144,4 +144,4 @@ namespace OpenMS::Math
       return -log(sigma) - halflogtwopi - 0.5 * pow((x - x0) / sigma, 2.0);
     }
   
-} // namespace OpenMS  //namespace Math
+} // namespace OpenMS

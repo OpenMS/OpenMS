@@ -16,8 +16,6 @@
 
 namespace OpenMS
 {
-  namespace Math
-  {
     /**
       @brief Implements a fitter for the Gamma distribution.
 
@@ -80,6 +78,5 @@ private:
       /// assignment operator (not implemented to prevent usage)
       GammaDistributionFitter& operator=(const GammaDistributionFitter& rhs);
     };
-  }
 }
 

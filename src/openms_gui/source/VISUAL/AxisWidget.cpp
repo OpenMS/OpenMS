@@ -26,7 +26,6 @@ using namespace std;
 
 namespace OpenMS
 {
-  using namespace Math;
 
   AxisWidget::AxisWidget(const AxisPainter::Alignment alignment, const char* legend, QWidget* parent) :
     QWidget(parent),
@@ -81,11 +80,11 @@ namespace OpenMS
     if (is_log_)
     {
       // abort if no change
-      if (min_ == linear2log(min) && max_ == linear2log(max))
+      if (min_ == Math::linear2log(min) && max_ == Math::linear2log(max))
         return;
 
-      min_ = linear2log(min);
-      max_ = linear2log(max);
+      min_ = Math::linear2log(min);
+      max_ = Math::linear2log(max);
 
       AxisTickCalculator::calcLogGridLines(min_, max_, grid_line_);
     }
@@ -115,7 +114,7 @@ namespace OpenMS
       }
       else
       {
-        setAxisBounds(log2linear(min_), log2linear(max_));
+        setAxisBounds(Math::log2linear(min_), Math::log2linear(max_));
       }
       update();
     }

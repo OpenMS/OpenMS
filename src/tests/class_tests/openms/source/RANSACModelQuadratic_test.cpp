@@ -16,7 +16,6 @@
 
 using namespace std;
 using namespace OpenMS;
-using namespace Math;
 
 ///////////////////////////
 
@@ -121,11 +120,11 @@ START_SECTION((static DVec rm_inliers_impl(const DVecIt& begin, const DVecIt& en
   NOT_TESTABLE // tested above in rm_fit_impl
 END_SECTION
 
-START_SECTION([EXTRA](static Math::RANSAC<Math::RANSACModelQuadratic>::ransac(const std::vector<std::pair<double, double> >& pairs, 
-                                                                           size_t n, 
-                                                                           size_t k, 
-                                                                           double t, 
-                                                                           size_t d, 
+START_SECTION([EXTRA](static RANSAC<RansacModelQuadratic>::ransac(const std::vector<std::pair<double, double> >& pairs,
+                                                                           size_t n,
+                                                                           size_t k,
+                                                                           double t,
+                                                                           size_t d,
                                                                            bool relative_d = false,
                                                                            int (*rng)(int) = NULL)))
 {

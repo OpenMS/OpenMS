@@ -16,8 +16,6 @@
 
 namespace OpenMS
 {
-  namespace Math
-  {
     /*
       @brief Estimates model parameters for a quadratic equation
 
@@ -63,6 +61,5 @@ protected:
       double chi_squared_;
     }; //class
 
-  } //namespace
 } //namespace
 

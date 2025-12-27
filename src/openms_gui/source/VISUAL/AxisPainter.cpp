@@ -13,7 +13,6 @@ using namespace std;
 
 namespace OpenMS
 {
-  using namespace Math;
 
   void AxisPainter::paint(QPainter * painter, QPaintEvent *, const double & min, const double & max, const GridVector & grid,
                           const Int width, const Int height, const AxisPainter::Alignment alignment, const UInt margin,
@@ -132,11 +131,11 @@ namespace OpenMS
         UInt tick_pos;
         if (is_inverse_orientation)
         {
-          tick_pos = UInt(intervalTransformation(grid[i][j], min, max, i_end, i_beg)) + ((alignment == LEFT || alignment == RIGHT) ? -1 : 1) * margin;
+          tick_pos = UInt(Math::intervalTransformation(grid[i][j], min, max, i_end, i_beg)) + ((alignment == LEFT || alignment == RIGHT) ? -1 : 1) * margin;
         }
         else
         {
-          tick_pos = UInt(intervalTransformation(grid[i][j], min, max, i_beg, i_end));
+          tick_pos = UInt(Math::intervalTransformation(grid[i][j], min, max, i_beg, i_end));
         }
 
         // paint ticks

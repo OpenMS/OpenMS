@@ -62,7 +62,7 @@ double max_peak_int = 168324;
 double max_peak_mz =  240.10051;
 double sigma = 0.000375375;
 
-Math::GaussFitter::GaussFitResult gfi(max_peak_int, max_peak_mz, sigma);
+GaussFitter::GaussFitResult gfi(max_peak_int, max_peak_mz, sigma);
 
 
 START_SECTION((GaussFitResult fit(std::vector< DPosition< 2 > >& points) const))
@@ -106,9 +106,9 @@ START_SECTION((GaussFitResult fit(std::vector< DPosition< 2 > >& points) const))
     gp.push_back(d);
   }
 
-  Math::GaussFitter gf;
+  GaussFitter gf;
   gf.setInitialParameters(gfi);
-  Math::GaussFitter::GaussFitResult gfr = gf.fit(gp);
+  GaussFitter::GaussFitResult gfr = gf.fit(gp);
   /*
   x0:      240.10051 --> 240.1007246725147
   sigma: 0.000375375 --> 0.00046642320683761701
@@ -133,7 +133,7 @@ END_SECTION
 
 START_SECTION((static std::vector<double> eval(const std::vector<double>& evaluation_points, const GaussFitResult& model)))
   GaussFitter f1;
-  std::vector<double> rnd = Math::GaussFitter::eval(std::vector<double>(&mz[0], &mz[0] + 7), gfi);
+  std::vector<double> rnd = GaussFitter::eval(std::vector<double>(&mz[0], &mz[0] + 7), gfi);
 
   double int_fitted[] = {
     78670.515322697669,

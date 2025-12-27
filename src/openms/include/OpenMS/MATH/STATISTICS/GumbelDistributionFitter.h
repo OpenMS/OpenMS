@@ -16,8 +16,6 @@
 
 namespace OpenMS
 {
-  namespace Math
-  {
     /**
       @brief Implements a fitter for the Gumbel distribution.
 
@@ -90,6 +88,5 @@ private:
       /// assignment operator (not implemented)
       GumbelDistributionFitter & operator=(const GumbelDistributionFitter & rhs);
     };
-  }
 }
 

@@ -12,7 +12,6 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 
 using namespace OpenMS;
-using namespace Math; //PosteriorErrorProbabilityModel
 using namespace std;
 
 //-------------------------------------------------------------
@@ -65,7 +64,7 @@ The plots are saved as a Gnuplot file. An attempt is made to call Gnuplot, which
 @htmlinclude TOPP_IDPosteriorErrorProbability.html
 
 For the parameters of the algorithm section see the algorithms documentation: @n
-@ref OpenMS::Math::PosteriorErrorProbabilityModel "fit_algorithm" @n
+@ref OpenMS::PosteriorErrorProbabilityModel "fit_algorithm" @n
 
 */
 

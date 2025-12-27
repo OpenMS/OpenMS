@@ -14,7 +14,7 @@
 
 using namespace std;
 
-namespace OpenMS::Math
+namespace OpenMS
 {
     namespace // anonymous namespace to prevent name clashes with GumbleDistributionFitter
     {
@@ -123,4 +123,4 @@ namespace OpenMS::Math
       init_param_ = param;
     }
 
-} // namespace OpenMS   //namespace Math
+} // namespace OpenMS

@@ -11,5 +11,5 @@
 
 namespace OpenMS
 {
-  Math::LinearInterpolation<> default_linint_;
+  LinearInterpolation<> default_linint_;
 }

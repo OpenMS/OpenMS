@@ -71,7 +71,6 @@ using namespace std;
 namespace OpenMS
 {
   using namespace Internal;
-  using namespace Math;
 
   const std::string user_section = "preferences:user:";
 

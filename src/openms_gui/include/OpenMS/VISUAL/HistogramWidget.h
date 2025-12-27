@@ -43,7 +43,7 @@ namespace OpenMS
 
 public:
     /// Constructor
-    HistogramWidget(const Math::Histogram<> & distribution, QWidget * parent = nullptr);
+    HistogramWidget(const Histogram<> & distribution, QWidget * parent = nullptr);
 
     /// Destructor
     ~HistogramWidget() override;
@@ -72,7 +72,7 @@ public slots:
 
 protected:
     /// The histogram to display
-    Math::Histogram<> dist_;
+    Histogram<> dist_;
 
     /// Flag that indicates if splitters are shown
     bool show_splitters_;

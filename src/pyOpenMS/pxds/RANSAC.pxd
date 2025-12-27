@@ -3,7 +3,7 @@ from String cimport *
 from RANSACModelLinear cimport *
 from RANSACModelQuadratic cimport *
 
-cdef extern from "<OpenMS/ML/RANSAC/RANSAC.h>" namespace "OpenMS::Math":
+cdef extern from "<OpenMS/ML/RANSAC/RANSAC.h>" namespace "OpenMS":
 
     cdef cppclass RANSAC[TModelType]:
         # wrap-instances:

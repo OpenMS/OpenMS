@@ -20,7 +20,6 @@ using namespace std;
 namespace OpenMS
 {
   using namespace Internal;
-  using namespace Math;
 
   Plot3DWidget::Plot3DWidget(const Param & preferences, QWidget * parent) :
     PlotWidget(preferences, parent)

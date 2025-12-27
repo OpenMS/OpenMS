@@ -7,11 +7,11 @@
 // --------------------------------------------------------------------------
 
 
-namespace OpenMS::Math
+namespace OpenMS
 {
 
 
     // template class -- nothing here
-    
-} // OpenMS // Math
+
+} // OpenMS
 

@@ -40,9 +40,9 @@ namespace OpenMS
           String(pairs.size()) + " input RT peptides is below limit of 30 peptides required for the RANSAC outlier detection algorithm.");
     }
 
-    Math::RANSAC<Math::RansacModelLinear> r;
+    RANSAC<RansacModelLinear> r;
     std::vector<std::pair<double, double> > new_pairs = r.ransac(pairs, n, k, t, d);
-    double bestrsq = Math::RansacModelLinear::rm_rsq_impl(new_pairs.begin(), new_pairs.end());
+    double bestrsq = RansacModelLinear::rm_rsq_impl(new_pairs.begin(), new_pairs.end());
 
     if (bestrsq < rsq_limit)
     {
@@ -80,7 +80,7 @@ namespace OpenMS
       x_tmp.erase(x_tmp.begin() + i);
       y_tmp.erase(y_tmp.begin() + i);
 
-      Math::LinearRegression lin_reg;
+      LinearRegression lin_reg;
       lin_reg.computeRegression(0.95, x_tmp.begin(), x_tmp.end(), y_tmp.begin());
 
       rsq_tmp.push_back(lin_reg.getRSquared());
@@ -93,7 +93,7 @@ namespace OpenMS
     // Returns candidate outlier: A linear regression and residuals are calculated for
     // the data points. The one with highest residual error is selected as the outlier candidate. The
     // corresponding iterator position is then returned.
-    Math::LinearRegression lin_reg;
+    LinearRegression lin_reg;
     lin_reg.computeRegression(0.95, x.begin(), x.end(), y.begin());
 
     std::vector<double> residuals;
@@ -135,7 +135,7 @@ namespace OpenMS
 
     while (x.size() >= coverage_limit * pairs.size() && rsq < rsq_limit)
     {
-      Math::LinearRegression lin_reg;
+      LinearRegression lin_reg;
       lin_reg.computeRegression(confidence_interval, x.begin(), x.end(), y.begin());
 
       rsq = lin_reg.getRSquared();

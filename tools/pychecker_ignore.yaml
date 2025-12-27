@@ -120,15 +120,15 @@ PyOpenMSChecker:
       - total_abundances
     OpenMS::ModificationDefinitionsSet:
       - findMatches
-    OpenMS::Math::PosteriorErrorProbabilityModel:
+    OpenMS::PosteriorErrorProbabilityModel:
       - extractAndTransformScores
     # TODO: iterators
-    OpenMS::Math::RansacModelQuadratic:
+    OpenMS::RansacModelQuadratic:
       - rm_fit_impl
       - rm_rsq_impl
       - rm_rss_impl
       - rm_inliers_impl
-    OpenMS::Math::RansacModelLinear:
+    OpenMS::RansacModelLinear:
       - rm_fit_impl
       - rm_rsq_impl
       - rm_rss_impl
@@ -329,7 +329,7 @@ PyOpenMSChecker:
         - init
         - getInstance
         - getAveragine
-    OpenMS::Math::LinearInterpolation:
+    OpenMS::LinearInterpolation:
         - getData
         - getData
         - setData
@@ -340,7 +340,7 @@ PyOpenMSChecker:
 
     OpenMS::CrossLinksDB:
       - getInstance
-    OpenMS::Math::RANSACParam:
+    OpenMS::RANSACParam:
       - rng
     OpenMS::AbsoluteQuantitation:
       - getQuantMethodsAsMap
@@ -1346,20 +1346,20 @@ PyOpenMSChecker:
 
     # MATH - Python provides alternative functions for most
     - OpenMS::Math
-    - OpenMS::Math::BasicStatistics
-    - OpenMS::Math::BilinearInterpolation
-    - OpenMS::Math::GammaDistributionFitter
-    - OpenMS::Math::GammaDistributionFitter::GammaDistributionFitResult
-    - OpenMS::Math::GaussFitter
-    - OpenMS::Math::GaussFitter::GaussFitResult
-    - OpenMS::Math::GumbelDistributionFitter
-    - OpenMS::Math::GumbelDistributionFitter::GumbelDistributionFitResult
-    - OpenMS::Math::Histogram
-    - OpenMS::Math::LinearRegression
-    - OpenMS::Math::QuadraticRegression
-    - OpenMS::Math::ROCCurve
-    - OpenMS::Math::ROCCurve::simsortdec
-    - OpenMS::Math::ROCCurve::SummaryStatistics
+    - OpenMS::BasicStatistics
+    - OpenMS::BilinearInterpolation
+    - OpenMS::GammaDistributionFitter
+    - OpenMS::GammaDistributionFitter::GammaDistributionFitResult
+    - OpenMS::GaussFitter
+    - OpenMS::GaussFitter::GaussFitResult
+    - OpenMS::GumbelDistributionFitter
+    - OpenMS::GumbelDistributionFitter::GumbelDistributionFitResult
+    - OpenMS::Histogram
+    - OpenMS::LinearRegression
+    - OpenMS::QuadraticRegression
+    - OpenMS::ROCCurve
+    - OpenMS::ROCCurve::simsortdec
+    - OpenMS::ROCCurve::SummaryStatistics
 
     # Base classes
     - OpenMS::BaseGroupFinder
