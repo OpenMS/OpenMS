@@ -496,7 +496,7 @@ def testType():
      Type.UNKNOWN
      Type.XMASS
     """
-    for ti in  [
+    for ti in [
       pyopenms.FileType.CONSENSUSXML
      ,pyopenms.FileType.DTA
      ,pyopenms.FileType.DTA2D
@@ -590,7 +590,7 @@ def testAttachment():
     assert inst.binary is not None
     assert inst.qualityRef is not None
     assert inst.colTypes is not None
-    assert inst.tableRows  is not None
+    assert inst.tableRows is not None
 
     assert inst.toXMLString is not None
     assert inst.toCSVString is not None
@@ -673,7 +673,7 @@ def testRNaseDigestion():
     dig.setEnzyme("RNase_T1")
     assert dig.getEnzymeName() == "RNase_T1"
 
-    oligo = pyopenms.NASequence.fromString("pAUGUCGCAG");
+    oligo = pyopenms.NASequence.fromString("pAUGUCGCAG")
 
     result = []
     dig.digest(oligo, result)
@@ -686,7 +686,7 @@ def testNASequence():
     @tests: NASequence
      """
 
-    oligo = pyopenms.NASequence.fromString("pAUGUCGCAG");
+    oligo = pyopenms.NASequence.fromString("pAUGUCGCAG")
 
     assert oligo.size() == 9
     seq_formula = oligo.getFormula()

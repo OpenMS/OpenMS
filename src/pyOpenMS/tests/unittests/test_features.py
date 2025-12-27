@@ -421,8 +421,8 @@ def testElutionPeakDetection():
     assert detection.computeMassTraceNoise is not None
     assert detection.computeMassTraceSNR is not None
     assert detection.computeApexSNR is not None
-    assert detection.findLocalExtrema  is not None
-    assert detection.smoothData  is not None
+    assert detection.findLocalExtrema is not None
+    assert detection.smoothData is not None
 
     trace = pyopenms.Kernel_MassTrace()
     detection.smoothData(trace, 4)

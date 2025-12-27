@@ -732,14 +732,14 @@ def testMSSpectrum():
 
     spec = pyopenms.MSSpectrum()
     dfunit = spec.getDriftTimeUnit()
-    assert pyopenms.DriftTimeUnit().getMapping()[dfunit]  == "NONE"
+    assert pyopenms.DriftTimeUnit().getMapping()[dfunit] == "NONE"
     assert dfunit == pyopenms.DriftTimeUnit.NONE
     assert spec.getDriftTimeUnitAsString() == '<NONE>'
-    spec.setDriftTimeUnit( pyopenms.DriftTimeUnit.MILLISECOND )
+    spec.setDriftTimeUnit(pyopenms.DriftTimeUnit.MILLISECOND)
 
     dfunit = spec.getDriftTimeUnit()
     assert dfunit == pyopenms.DriftTimeUnit.MILLISECOND
-    assert pyopenms.DriftTimeUnit().getMapping()[dfunit]  == "MILLISECOND"
+    assert pyopenms.DriftTimeUnit().getMapping()[dfunit] == "MILLISECOND"
     assert spec.getDriftTimeUnitAsString() == 'ms'
 
     spec = pyopenms.MSSpectrum()
@@ -846,7 +846,7 @@ def testMSChromatogram():
     assert mz0 == mz
     assert ii0 == ii
 
-    assert int(chrom.isSorted()) in  (0,1)
+    assert int(chrom.isSorted()) in (0,1)
 
     chrom.clear(False)
     p = pyopenms.ChromatogramPeak()
@@ -987,7 +987,7 @@ def testBase64():
 
     b = pyopenms.Base64()
     out = pyopenms.String()
-    inp =  [1.0, 2.0, 3.0]
+    inp = [1.0, 2.0, 3.0]
     b.encode64(inp, b.ByteOrder.BYTEORDER_LITTLEENDIAN, out, False)
     res = out.toString()
     assert len(res) != 0
@@ -1020,7 +1020,7 @@ def testNumpressCoder():
     nc.estimate_fixed_point = True
     tmp = pyopenms.String()
     out = []
-    inp =  [1.0, 2.0, 3.0]
+    inp = [1.0, 2.0, 3.0]
     np.encodeNP(inp, tmp, True, nc)
 
     res = tmp.toString()
