@@ -86,8 +86,9 @@
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
 
 #include <OpenMS/KERNEL/BinnedSpectrum.h>
+#include <OpenMS/SYSTEM/File.h>
 
-#include <QtCore/QDir>
+#include <QtCore/QStringList>
 
 #include <map>
 #include <algorithm>
@@ -2974,7 +2975,9 @@ static void scoreXLIons_(
     String input_file = getStringOption_("in");
     String dir = File::path(input_file);
     String csv_file;
-    csv_file = QDir(dir.toQString()).filePath((File::basename(input_file) + ".ambiguous_masses.csv").toQString()).toStdString();
+    csv_file = dir;
+    csv_file.ensureLastChar('/');
+    csv_file += File::basename(input_file) + ".ambiguous_masses.csv";
     getAdductAndAAPlusAdductMassCountsFromSpectra(nucleotide_to_fragment_adducts, exp, adduct_mass_count, aa_plus_adduct_mass_count, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, csv_file);
 
     if (debug_level_ > 0) { OPENMS_LOG_DEBUG << "Total counts per residue:" << endl; }
@@ -4659,18 +4662,17 @@ static void scoreXLIons_(
 
     String out_xl_idxml = getStringOption_("out_xls");
 
-    // create extra output directy of set
+    // create extra output directory if set
     String extra_output_directory = getStringOption_("output_folder");
     if (!extra_output_directory.empty())
     {
       // convert path to absolute path
-      QDir extra_dir(extra_output_directory.toQString());
-      extra_output_directory = String(extra_dir.absolutePath());
+      extra_output_directory = File::absolutePath(extra_output_directory);
 
-      // trying to create directory if not present
-      if (!extra_dir.exists())
+      // create directory if not present
+      if (!File::exists(extra_output_directory))
       {
-        extra_dir.mkpath(extra_output_directory.toQString());
+        File::makeDir(extra_output_directory);
       }
     }
 
@@ -6357,12 +6359,14 @@ static void scoreXLIons_(
         // copy XL results (with highest threshold=little filtering) to output
         if (!out_xl_idxml.empty())
         {
-          QFile::copy(String(original_PSM_output_filename + String::number(xl_fdr_max, 4) + "_XLs.idXML").toQString(), out_xl_idxml.toQString());
+          File::copy(original_PSM_output_filename + String::number(xl_fdr_max, 4) + "_XLs.idXML", out_xl_idxml);
         }
       }
       else
       { // use output_folder
-        String b = QDir(extra_output_directory.toQString()).filePath(File::basename(out_idxml).substitute(".idXML", "_").toQString()).toStdString();
+        String id_xml_out = extra_output_directory;
+        id_xml_out.ensureLastChar('/');
+        id_xml_out += File::basename(out_idxml).substitute(".idXML", "_");
 
         fdr.calculatePeptideAndXLQValueAndFilterAtPSMLevel(protein_ids,
           peptide_ids,
@@ -6372,12 +6376,12 @@ static void scoreXLIons_(
           xl_pi,
           XL_FDR,
           XL_peptidelevel_FDR,
-          b,
+          id_xml_out,
           decoy_factor);
         // copy XL results (with highest threshold=little filtering) to output
         if (!out_xl_idxml.empty())
         {
-          QFile::copy(String(b + String::number(xl_fdr_max, 4) + "_XLs.idXML").toQString(), out_xl_idxml.toQString());
+          File::copy(id_xml_out + String::number(xl_fdr_max, 4) + "_XLs.idXML", out_xl_idxml);
         }
       }
 
@@ -6471,13 +6475,15 @@ static void scoreXLIons_(
             // copy XL results (with highest threshold=little filtering) to outut TODO: first copy would not be needed
             if (!out_xl_idxml.empty())
             {
-              QFile::copy(String(percolator_PSM_output_filename + String::number(xl_fdr_max, 4) + "_XLs.idXML").toQString(), out_xl_idxml.toQString());
+              File::copy(percolator_PSM_output_filename + String::number(xl_fdr_max, 4) + "_XLs.idXML", out_xl_idxml);
             }
           }
           else
           { // use output_folder
-            String b = QDir(extra_output_directory.toQString()).filePath(File::basename(out_idxml).substitute(".idXML", "_perc_").toQString()).toStdString();
-            
+            String id_xml_out = extra_output_directory;
+            id_xml_out.ensureLastChar('/');
+            id_xml_out += File::basename(out_idxml).substitute(".idXML", "_perc_");
+
             fdr.calculatePeptideAndXLQValueAndFilterAtPSMLevel(protein_ids,
               peptide_ids,
               pep_pi, 
@@ -6486,14 +6492,14 @@ static void scoreXLIons_(
               xl_pi,
               XL_FDR,
               XL_peptidelevel_FDR,
-              b,
+              id_xml_out,
               decoy_factor);
 
 
             // copy XL results (with highest threshold=little filtering) to output TODO: first copy would not be needed if percolator succeeds
             if (!out_xl_idxml.empty())
             {
-              QFile::copy(String(b + String::number(xl_fdr_max, 4) + "_XLs.idXML").toQString(), out_xl_idxml.toQString());
+              File::copy(id_xml_out + String::number(xl_fdr_max, 4) + "_XLs.idXML", out_xl_idxml);
             }
           }
           OPENMS_LOG_INFO << "done." << endl;
