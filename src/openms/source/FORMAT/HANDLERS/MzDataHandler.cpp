@@ -591,11 +591,11 @@ namespace OpenMS::Internal
          << sm.getName()
          << "</sampleName>\n";
 
-      if (! sm.getNumber().empty() || sm.getState() != Sample::SAMPLENULL || sm.getMass() || sm.getVolume() || sm.getConcentration() || ! sm.isMetaEmpty())
+      if (! sm.getNumber().empty() || sm.getState() != Sample::SampleState::SAMPLENULL || sm.getMass() || sm.getVolume() || sm.getConcentration() || ! sm.isMetaEmpty())
       {
         os << "\t\t\t<sampleDescription>\n";
         writeCVS_(os, sm.getNumber(), "1000001", "SampleNumber");
-        writeCVS_(os, sm.getState(), 0, "1000003", "SampleState");
+        writeCVS_(os, static_cast<UInt>(sm.getState()), 0, "1000003", "SampleState");
         writeCVS_(os, sm.getMass(), "1000004", "SampleMass");
         writeCVS_(os, sm.getVolume(), "1000005", "SampleVolume");
         writeCVS_(os, sm.getConcentration(), "1000006", "SampleConcentration");

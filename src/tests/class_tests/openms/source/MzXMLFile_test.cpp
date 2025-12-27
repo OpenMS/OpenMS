@@ -255,7 +255,7 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
     //---------------------------------------------------------------------------
     TEST_EQUAL(e.getSample().getName(), "")
     TEST_EQUAL(e.getSample().getNumber(), "")
-    TEST_EQUAL(e.getSample().getState(), Sample::SAMPLENULL)
+    TEST_EQUAL(e.getSample().getState(), Sample::SampleState::SAMPLENULL)
     TEST_EQUAL(e.getSample().getMass(), 0.0f)
     TEST_EQUAL(e.getSample().getVolume(), 0.0f)
     TEST_EQUAL(e.getSample().getConcentration(), 0.0f)
