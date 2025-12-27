@@ -74,12 +74,16 @@ means you forgot to add the copy constructor in the class XXX and it is expected
 - copy-constructor -> __copy__
 
 = Hints to autowrap
-- wrap-ignore: is a hint for autowrap to not wrap the function (but the declaration might still be important for Cython to know about) 
+- wrap-ignore: is a hint for autowrap to not wrap the function (but the declaration might still be important for Cython to know about)
 - wrap-as - see for example AASequence ":"
 - wrap-iter-begin, wrap-iter-end (see ConsensusMap.pxd)
 - wrap-instances - for templated classes (see MSSpectrum.pxd)
 - wrap-attach: enums, static methods (see for example VersionInfo.pxd)
 - wrap-upper-limit:size or size() (see MSSpectrum.pxd)
+- wrap-manual-memory: prevents autowrap from generating default memory management;
+  used with singletons where you provide custom __init__ and __dealloc__ in addon files.
+  When using this directive, you must provide both __init__ (to get the singleton instance)
+  and __dealloc__ (typically just 'pass' to prevent deleting the singleton instance).
 
 = Wrapping classes with deleted or private constructors
 
@@ -117,6 +121,9 @@ Key points:
   - Mark constructors with "# private" or "# wrap-ignore" to prevent autowrap from wrapping them
   - Add "# wrap-manual-memory:" directive with the memory management comment
   - Declare getInstance() but mark it with "# wrap-ignore" (it will be used in addon)
+  - Note: When a function is marked with "# wrap-ignore", autowrap still generates an internal
+    wrapper with a mangled name: _<functionName>_<ClassName>(). For example, getInstance()
+    in ModificationsDB becomes _getInstance_ModificationsDB(). Use this name in addon files.
 
 Step 2: Create an addon file (e.g., addons/ModificationsDB.pyx):
 
@@ -127,13 +134,16 @@ Step 2: Create an addon file (e.g., addons/ModificationsDB.pyx):
       self.inst = AutowrapPtrHolder[_ModificationsDB](_getInstance_ModificationsDB())
 
     def __dealloc__(self):
-      # Careful here, the wrapped ptr is a single instance and we should not
-      # reset it, therefore use 'wrap-manual-dealloc'
+      # The wrapped ptr is a singleton - we must NOT delete it when Python
+      # garbage collects this wrapper object. Just do nothing here.
       pass
 
 This creates a Python wrapper that uses the singleton instance without destroying it.
-Note: The commented line should match the wrap-manual-memory directive in the pxd file.
-Some singleton classes may have multiple getInstance() overloads with different parameters.
+Key points for the addon file:
+  - The commented line "cdef AutowrapPtrHolder..." should match the wrap-manual-memory directive
+  - __init__ uses the mangled function name (e.g., _getInstance_ModificationsDB)
+  - __dealloc__ must be 'pass' to prevent the singleton from being deleted
+  - Some singleton classes may have multiple getInstance() overloads with different parameters
 
 Examples: ModificationsDB.pxd, ElementDB.pxd, CrossLinksDB.pxd
 
@@ -192,18 +202,25 @@ For base classes that should not be instantiated directly but only through deriv
 
 In the pxd file (e.g., pxds/ConsensusIDAlgorithm.pxd):
 
-    cdef cppclass ConsensusIDAlgorithm:
+    cdef cppclass ConsensusIDAlgorithm(DefaultParamHandler):
+        # wrap-inherits:
+        #  DefaultParamHandler
+        # wrap-ignore
+        # ABSTRACT class
+
         # protected
         ConsensusIDAlgorithm() except + nogil  # wrap-ignore
         # private
-        ConsensusIDAlgorithm(ConsensusIDAlgorithm &) except + nogil  # wrap-ignore
-        
+        ConsensusIDAlgorithm(ConsensusIDAlgorithm) except + nogil  # wrap-ignore
+
         # Public methods
-        void apply(libcpp_vector[PeptideIdentification] & ids) except + nogil
+        void apply(PeptideIdentificationList & ids, Size number_of_runs) except + nogil
 
 Key points:
   - Mark protected or private constructors with "# wrap-ignore"
   - Add comments like "# protected" or "# private" to document why
+  - For truly abstract classes, you may also add class-level "# wrap-ignore" to prevent
+    the class from being wrapped entirely (only derived classes will be wrapped)
   - Derived classes can have their own constructors exposed
 
 Examples: ConsensusIDAlgorithm.pxd, ConsensusIDAlgorithmIdentity.pxd
