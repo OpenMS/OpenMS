@@ -1123,8 +1123,8 @@ START_SECTION([EXTRA] generateDecoysLight_modified_sequence_duplicate_detection)
   // (i.e., modifications are at different positions)
   if (decoys.compounds.size() == 2)
   {
-    const std::string& seq1 = decoys.compounds[0].sequence;
-    const std::string& seq2 = decoys.compounds[1].sequence;
+    const auto& seq1 = decoys.compounds[0].sequence;
+    const auto& seq2 = decoys.compounds[1].sequence;
     
     // The sequences should be different because they have different modifications
     TEST_NOT_EQUAL(seq1, seq2)
