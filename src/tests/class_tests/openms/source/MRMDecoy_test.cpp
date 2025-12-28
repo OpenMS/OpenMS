@@ -1061,29 +1061,25 @@ START_SECTION([EXTRA] generateDecoysLight_modified_sequence_duplicate_detection)
   transition1.transition_name = "transition1";
   transition1.product_mz = 500.0;
   transition1.precursor_mz = 600.0;
-  transition1.detecting_transition = true;
+  transition1.setDetectingTransition(true);
   transition1.fragment_charge = 1;
-  
-  // Add required annotation for fragment type
-  OpenSwath::LightTransition::Annotation annot1;
-  annot1.key = "annotation";
-  annot1.value = "y3";
-  transition1.annotations.push_back(annot1);
+
+  // Set fragment type directly using new API (replaces annotations)
+  transition1.setFragmentType("y");
+  transition1.fragment_nr = 3;
   exp.transitions.push_back(transition1);
-  
+
   OpenSwath::LightTransition transition2;
   transition2.peptide_ref = "peptide2";
   transition2.transition_name = "transition2";
   transition2.product_mz = 501.0;
   transition2.precursor_mz = 601.0;
-  transition2.detecting_transition = true;
+  transition2.setDetectingTransition(true);
   transition2.fragment_charge = 1;
-  
-  // Add required annotation for fragment type
-  OpenSwath::LightTransition::Annotation annot2;
-  annot2.key = "annotation";
-  annot2.value = "y3";
-  transition2.annotations.push_back(annot2);
+
+  // Set fragment type directly using new API (replaces annotations)
+  transition2.setFragmentType("y");
+  transition2.fragment_nr = 3;
   exp.transitions.push_back(transition2);
   
   // Generate decoys using the Light path
@@ -1106,7 +1102,7 @@ START_SECTION([EXTRA] generateDecoysLight_modified_sequence_duplicate_detection)
     0.7,  // identity_threshold
     0.0,  // precursor_mz_shift
     20.0,  // product_mz_shift
-    0.8,  // product_mz_threshold
+    500.0,  // product_mz_threshold - high value to match any ion (test focuses on duplicate detection)
     fragment_types,
     fragment_charges,
     true,  // enable_specific_losses
