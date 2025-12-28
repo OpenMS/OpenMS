@@ -579,7 +579,6 @@ set(pyopenms_unittest_testfiles
   test_ProteaseDigestion.py
   test_algorithms.py
   test_chemistry.py
-  test_chemistry_basics.py
   test_core_structures.py
   test_features.py
   test_file_io.py
@@ -590,6 +589,7 @@ set(pyopenms_unittest_testfiles
   test_spectrum_experiment.py
   test_targeted_mrm.py
   test_tutorial.py
+  test_validation_signal.py
   test_BaselineFiltering.py
   test_ChromatogramExtractor.py
   test_ChromatogramExtractorAlgorithm.py

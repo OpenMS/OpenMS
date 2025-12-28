@@ -318,12 +318,12 @@ def testMSExperiment():
     EXPECTED_NO_PEAK_SUMS = [0.0, 12322.06]  
     
     # Test each isotope array sum
-    for i, (actual_sum, expected_sum) in enumerate(zip(isotope_sums, EXPECTED_ISO_SUMS)):
+    for i, (actual_sum, expected_sum) in enumerate(zip(isotope_sums, EXPECTED_ISO_SUMS, strict=True)):
         assert np.isclose(actual_sum, expected_sum, rtol=1e-5), \
             f"Expected isotope {i+1} sum {expected_sum}, got {actual_sum}"
     
     # Test each no-peak array sum
-    for i, (actual_sum, expected_sum) in enumerate(zip(no_peak_sums, EXPECTED_NO_PEAK_SUMS)):
+    for i, (actual_sum, expected_sum) in enumerate(zip(no_peak_sums, EXPECTED_NO_PEAK_SUMS, strict=True)):
         assert np.isclose(actual_sum, expected_sum, rtol=1e-5), \
             f"Expected no-peak region {i+1} sum {expected_sum}, got {actual_sum}"
 
@@ -365,7 +365,7 @@ def testMSExperiment():
     
     # Test XIC results
     for i, (details, exp_size, exp_total) in enumerate(zip(
-            xic_details, EXPECTED_XIC_SIZES, EXPECTED_XIC_TOTAL_INTENSITIES)):
+            xic_details, EXPECTED_XIC_SIZES, EXPECTED_XIC_TOTAL_INTENSITIES, strict=True)):
         
         assert details['size'] == exp_size, \
             f"XIC {i+1}: Expected {exp_size} points, got {details['size']}"
@@ -1082,5 +1082,5 @@ if __name__ == "__main__":
         try:
             test_func()
             print(f"✅ {test_func.__name__}")
-        except Exception as e:
+        except (AssertionError, RuntimeError, ValueError, TypeError) as e:
             print(f"❌ {test_func.__name__}: {e}")
