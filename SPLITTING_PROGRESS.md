@@ -311,4 +311,4 @@ Tests were organized by functionality into logical groups, making it easier to:
 - Helper functions extracted to test_helpers.py are imported in each test file
 - Each test file can run independently
 - Baseline results show expected behavior (some tests fail/error - this is OK)
-- Must maintain exact same test results after split to prove nothing was lost
+- Must maintain same test results after split to prove nothing was lost
