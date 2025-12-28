@@ -1123,15 +1123,15 @@ START_SECTION([EXTRA] generateDecoysLight_modified_sequence_duplicate_detection)
   // (i.e., modifications are at different positions)
   if (decoys.compounds.size() == 2)
   {
-    std::string seq1 = decoys.compounds[0].sequence;
-    std::string seq2 = decoys.compounds[1].sequence;
+    const std::string& seq1 = decoys.compounds[0].sequence;
+    const std::string& seq2 = decoys.compounds[1].sequence;
     
     // The sequences should be different because they have different modifications
     TEST_NOT_EQUAL(seq1, seq2)
     
     // Both should contain UniMod annotations
-    TEST_EQUAL(seq1.find("UniMod:") != std::string::npos, true)
-    TEST_EQUAL(seq2.find("UniMod:") != std::string::npos, true)
+    TEST_NOT_EQUAL(seq1.find("UniMod:"), std::string::npos)
+    TEST_NOT_EQUAL(seq2.find("UniMod:"), std::string::npos)
   }
   
   // Also verify that we got transitions for both decoys
