@@ -14,7 +14,7 @@ Successfully split `test000.py` (6,843 lines, 173 test functions) into 13 modula
 - test_chemistry.py: 16 passed, 2 failed (18 tests)
 - test_core_structures.py: 11 passed, 6 failed (17 tests)
 - test_spectrum_experiment.py: 10 passed, 1 failed (11 tests)
-- test_features.py: 7 passed, 2 failed (9 tests) - note: has 10 test functions
+- test_features.py: 7 passed, 2 failed (9 tests) - note: has 1 helper function (testDataProcessing)
 - test_file_io.py: 28 passed, 0 failed (28 tests)
 - test_identification.py: 17 passed, 0 failed (17 tests)
 - test_targeted_mrm.py: 9 passed, 0 failed (9 tests)
@@ -95,7 +95,7 @@ Successfully split `test000.py` (6,843 lines, 173 test functions) into 13 modula
 - testNumpressConfig
 - testPeakTypeEstimator
 
-### 5. test_features.py (10 tests)
+### 5. test_features.py (9 tests)
 **Status:** ✅ Complete and tested (7 passed, 2 failed)
 **Tests:**
 - testFeatureFileOptions
@@ -263,7 +263,7 @@ All 173 tests from test000.py have been successfully split into 13 modular test 
 2. **test_chemistry.py** - 18 tests (16 passed, 2 failed)
 3. **test_core_structures.py** - 17 tests (11 passed, 6 failed)
 4. **test_spectrum_experiment.py** - 11 tests (10 passed, 1 failed)
-5. **test_features.py** - 10 tests (7 passed, 2 failed)
+5. **test_features.py** - 9 tests (7 passed, 2 failed)
 6. **test_file_io.py** - 28 tests (28 passed, 0 failed) ✅
 7. **test_identification.py** - 17 tests (17 passed, 0 failed) ✅
 8. **test_targeted_mrm.py** - 9 tests (9 passed, 0 failed) ✅
@@ -273,8 +273,8 @@ All 173 tests from test000.py have been successfully split into 13 modular test 
 12. **test_miscellaneous.py** - 18 tests (16 passed, 2 failed)
 13. **test_validation_signal.py** - 14 tests (14 passed, 0 failed) ✅
 
-**Total: 174 test functions = 173 tests executed**
-- Note: test_features.py has 10 test functions but one is a helper
+### Total: 173 test functions = 173 tests executed
+- Note: test_features.py has 1 helper function (testDataProcessing) not counted
 
 **Organization Strategy:**
 Tests were organized by functionality into logical groups, making it easier to:

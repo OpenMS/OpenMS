@@ -706,6 +706,8 @@ def testGaussFitter():
      GaussFitter.__init__
     """
     ins = pyopenms.GaussFitter()
+    assert ins is not None
+    assert isinstance(ins, pyopenms.GaussFitter)
 
 @report
 def testKernelMassTrace():
@@ -749,6 +751,8 @@ def testKernelMassTrace():
     assert trace.updateWeightedMZsd is not None
 
     s = trace.getSize()
+    assert isinstance(s, int)
+    assert s >= 0
 
 
 if __name__ == "__main__":

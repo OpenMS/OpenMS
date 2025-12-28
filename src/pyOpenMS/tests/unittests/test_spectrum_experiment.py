@@ -402,7 +402,7 @@ def testMSExperiment():
     assert str_str == repr_str
 
 
-def testSpectrumSetting(s=pyopenms.SpectrumSettings()):
+def testSpectrumSetting(s=None):
     """
     @tests: SpectrumSettings
      SpectrumSettings.SpectrumType
@@ -427,6 +427,8 @@ def testSpectrumSetting(s=pyopenms.SpectrumSettings()):
      SpectrumSettings.setType
      SpectrumSettings.unify
     """
+    if s is None:
+        s = pyopenms.SpectrumSettings()
 
     assert s.getType() in [ pyopenms.SpectrumSettings.SpectrumType.UNKNOWN,
                                pyopenms.SpectrumSettings.SpectrumType.CENTROID,
