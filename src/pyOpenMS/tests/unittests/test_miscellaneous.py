@@ -77,12 +77,13 @@ def testConsensusMap():
     m.getUniqueId()
     m.hasInvalidUniqueId()
     m.hasValidUniqueId()
-    m.setDataProcessing
-    m.setColumnHeaders
-    m.setProteinIdentifications
-    m.setUnassignedPeptideIdentifications
-    m.setUniqueId
-    m.setUniqueIds
+    # Verify setter methods exist and are callable
+    assert callable(m.setDataProcessing)
+    assert callable(m.setColumnHeaders)
+    assert callable(m.setProteinIdentifications)
+    assert callable(m.setUnassignedPeptideIdentifications)
+    assert callable(m.setUniqueId)
+    assert callable(m.setUniqueIds)
     m.size()
     m.sortByIntensity()
     m.sortByMZ()
@@ -102,8 +103,8 @@ def testConsensusMap():
     m.updateRanges()
 
     assert isinstance(m.getMinRT(), float)
-    assert isinstance(m.getMinRT(), float)
-    assert isinstance(m.getMaxMZ(), float)
+    assert isinstance(m.getMaxRT(), float)
+    assert isinstance(m.getMinMZ(), float)
     assert isinstance(m.getMaxMZ(), float)
     assert isinstance(m.getMinIntensity(), float)
     assert isinstance(m.getMaxIntensity(), float)
