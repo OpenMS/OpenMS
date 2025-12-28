@@ -85,7 +85,7 @@ Successfully split `test000.py` (6,843 lines, 173 test functions) into 13 modula
 **Status:** ✅ Complete and tested (10 passed, 1 failed)
 **Tests:**
 - testSpectrumAlignment
-- testChromatogramToosl
+- testChromatogramTools
 - testExperimentalSettings
 - testMSExperiment
 - testMSSpectrum

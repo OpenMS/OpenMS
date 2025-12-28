@@ -162,21 +162,21 @@ def testXTandemInfile():
     """
     f = pyopenms.XTandemInfile()
 
-    f.setFragmentMassTolerance is not None
-    f.getFragmentMassTolerance is not None
+    assert f.setFragmentMassTolerance is not None
+    assert f.getFragmentMassTolerance is not None
 
-    f.setPrecursorMassTolerancePlus is not None
-    f.getPrecursorMassTolerancePlus is not None
-    f.setPrecursorMassToleranceMinus is not None
-    f.getPrecursorMassToleranceMinus is not None
+    assert f.setPrecursorMassTolerancePlus is not None
+    assert f.getPrecursorMassTolerancePlus is not None
+    assert f.setPrecursorMassToleranceMinus is not None
+    assert f.getPrecursorMassToleranceMinus is not None
 
-    f.setPrecursorErrorType is not None
-    f.getPrecursorErrorType is not None
+    assert f.setPrecursorErrorType is not None
+    assert f.getPrecursorErrorType is not None
 
-    f.setFragmentMassErrorUnit is not None
-    f.getFragmentMassErrorUnit is not None
-    f.setPrecursorMassErrorUnit is not None
-    f.getPrecursorMassErrorUnit is not None
+    assert f.setFragmentMassErrorUnit is not None
+    assert f.getFragmentMassErrorUnit is not None
+    assert f.setPrecursorMassErrorUnit is not None
+    assert f.getPrecursorMassErrorUnit is not None
 
 
 @report
@@ -396,7 +396,7 @@ def testIBSpectraFile():
     correctError = False
     try:
         fh.store(pyopenms.String("test.ibspectra.file"), cmap)
-        assert False
+        raise AssertionError("Should have raised RuntimeError")
     except RuntimeError:
         correctError = True
 

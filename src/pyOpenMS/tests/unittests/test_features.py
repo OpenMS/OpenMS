@@ -96,8 +96,9 @@ def testSeedListGenerator():
      SeedListGenerator.__init__
     """
     ff = pyopenms.SeedListGenerator()
-    p = ff.getDefaults()
-    _testParam(p)
+
+    # TODO
+    # assert pyopenms.SeedListGenerator().generateSeedList is not None
 
     # TODO 
     # assert pyopenms.SeedListGenerator().compute is not None

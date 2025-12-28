@@ -690,11 +690,11 @@ def testNASequence():
 
     assert oligo.size() == 9
     seq_formula = oligo.getFormula()
-    seq_formula.toString() == u'C86H108N35O64P9'
+    assert seq_formula.toString() == u'C86H108N35O64P9'
 
     oligo_mod = pyopenms.NASequence.fromString("A[m1A][Gm]A")
     seq_formula = oligo_mod.getFormula()
-    seq_formula.toString() == u'C42H53N20O23P3'
+    assert seq_formula.toString() == u'C42H53N20O23P3'
 
     for r in oligo:
         pass

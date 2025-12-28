@@ -80,7 +80,7 @@ def testSpectrumAlignment():
     assert isinstance(aligner(rich_spec, rich_spec), float)
 
 @report
-def testChromatogramToosl():
+def testChromatogramTools():
     """
     @tests: ChromatogramTools
      ChromatogramTools.__init__
@@ -88,8 +88,8 @@ def testChromatogramToosl():
      ChromatogramTools.convertSpectraToChromatograms
     """
     pyopenms.ChromatogramTools()
-    pyopenms.ChromatogramTools.convertChromatogramsToSpectra
-    pyopenms.ChromatogramTools.convertSpectraToChromatograms
+    assert pyopenms.ChromatogramTools.convertChromatogramsToSpectra is not None
+    assert pyopenms.ChromatogramTools.convertSpectraToChromatograms is not None
 
 
 @report

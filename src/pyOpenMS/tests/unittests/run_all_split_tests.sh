@@ -2,8 +2,12 @@
 # Test runner for all split test files
 # Part of Issue #8567 - test000.py splitting
 
-cd "$(dirname "$0")"
-source ../../../../venv_test/bin/activate
+cd "$(dirname "$0")" || { echo "Failed to change directory"; exit 1; }
+
+# Activate virtual environment if it exists
+if [ -f "../../../../venv_test/bin/activate" ]; then
+    source ../../../../venv_test/bin/activate
+fi
 
 echo "======================================================================="
 echo "Running All Split Test Files"
