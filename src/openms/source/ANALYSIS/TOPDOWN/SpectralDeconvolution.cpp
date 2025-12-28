@@ -91,7 +91,18 @@ namespace OpenMS
       return;
     }
 
-    auto precursor = spec.getPrecursors()[0];
+    // Get precursor from spectrum if available, otherwise create one from target parameters
+    Precursor precursor;
+    if (!spec.getPrecursors().empty())
+    {
+      precursor = spec.getPrecursors()[0];
+    }
+    else
+    {
+      // Create precursor from target parameters when spectrum has no precursors
+      precursor.setMZ(target_precursor_mz_);
+    }
+
     double target_precursor_mass
       = (precursor.getMZ() - FLASHHelperClasses::getChargeMass(target_precursor_charge_ > 0)) * std::abs(target_precursor_charge_);
     precursor.setCharge(target_precursor_charge_);
