@@ -98,7 +98,7 @@ def testExperimentalSettings():
     @tests: ExperimentalSettings
      ExperimentalSettings.__init__
     """
-    ff = pyopenms.ExperimentalSettings()
+    pyopenms.ExperimentalSettings()
 
 @report
 def testMSExperiment():
