@@ -64,6 +64,9 @@ namespace OpenMS
     /// get precursor peak group for MSn (n>1) spectrum. It returns an empty peak group if no peak group is registered (by registerPrecursor)
     const PeakGroup& getPrecursorPeakGroup() const;
 
+    /// get deconvolved precursor peak group for MSn (n>1) spectrum. It returns an empty peak group if no peak group is registered (by registerPrecursor)
+    const Precursor& getDeconvolvedPrecursor() const;
+
     /// precursor charge getter (set in registerPrecursor)
     int getPrecursorCharge() const;
 
@@ -98,13 +101,21 @@ namespace OpenMS
     const Precursor::ActivationMethod& getActivationMethod() const;
 
     /// return isobaric  quantities
-    FLASHHelperClasses::IsobaricQuantities getQuantities() const;
+    const FLASHHelperClasses::IsobaricQuantities getQuantities() const;
+
+    const std::vector<std::tuple<double, double>>& getPrecursorMassIntensityMap() const
+    {
+      return precursor_mass_intensity_map_;
+    }
 
     /// set isobaric quantities
     void setQuantities(const FLASHHelperClasses::IsobaricQuantities& quantities);
 
     /// set precursor for MSn for n>1
     void setPrecursor(const Precursor& precursor);
+
+    /// set deconvolved precursor for MSn for n>1
+    void setDeconvolvedPrecursor(const Precursor& precursor);
 
     /// set precursor scan number
     void setPrecursorScanNumber(int scan_number);
@@ -119,7 +130,9 @@ namespace OpenMS
     void setOriginalSpectrum(const MSSpectrum& spec);
 
     /// set peak groups in this spectrum
-    void setPeakGroups(std::vector<PeakGroup>& x);
+    void setPeakGroups(const std::vector<PeakGroup>& x);
+
+    void setPrecursorMassIntensityMap(const std::vector<std::tuple<double, double>>& map);
 
     /// iterators and vector operators for std::vector<PeakGroup> peak_groups_ in this spectrum
     std::vector<PeakGroup>::const_iterator begin() const noexcept;
@@ -162,6 +175,10 @@ namespace OpenMS
     PeakGroup precursor_peak_group_;
     /// precursor raw peak (not deconvolved one)
     Precursor precursor_peak_;
+    /// precursor deconvolved peak
+    Precursor deconvolved_precursor_peak_;
+    /// precursor peak intensities within the isolation window
+    std::vector<std::tuple<double, double>> precursor_mass_intensity_map_;
     /// activation method for file output
     Precursor::ActivationMethod activation_method_ = Precursor::ActivationMethod::CID;
     /// scan number and precursor scan number

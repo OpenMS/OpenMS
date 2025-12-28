@@ -42,20 +42,75 @@ namespace OpenMS
     if (dspec.getOriginalSpectrum().getMSLevel() > 1)
     {
       precursor_ss << dspec.getPrecursorScanNumber() << "\t"
-                   << (dspec.getPrecursorPeakGroup().getFeatureIndex() == 0 ? "nan" : std::to_string(dspec.getPrecursorPeakGroup().getFeatureIndex()))
-                   << "\t" << std::to_string(dspec.getPrecursor().getMZ()) << "\t" << dspec.getPrecursor().getIntensity() << "\t"
-                   << dspec.getPrecursor().getCharge() << "\t";
+                   << (dspec.getPrecursorPeakGroup().getFeatureIndex() == 0 ? "NaN" : std::to_string(dspec.getPrecursorPeakGroup().getFeatureIndex()))
+                   << "\t" << std::to_string(dspec.getPrecursor().getMZ()) << "\t"  << dspec.getPrecursor().getIntensity() << "\t";
+
+      double total_int = 0;
+      for (const auto& [m, it] : dspec.getPrecursorMassIntensityMap())
+      {
+        if (m <= 0)
+        {
+          total_int = it;
+          break;
+        }
+      }
 
       if (dspec.getPrecursorPeakGroup().empty())
       {
-        precursor_ss << "nan\tnan\tnan\tnan\t";
-        if (report_decoy) precursor_ss << "nan\t";
+        precursor_ss << "NaN\tNaN\tNaN\tNaN\tNaN\tNaN\tNaN\tNaN\t0\tNaN\tNaN\t" << std::to_string(total_int) << "\t";
+        if (report_decoy) precursor_ss << "NaN\t";
       }
       else
       {
-        precursor_ss << dspec.getPrecursorPeakGroup().getChargeSNR(dspec.getPrecursor().getCharge()) << "\t"
+        std::stringstream mass_ss, int_ss;
+        double pg_intensity = 0;
+        for (const auto& [m, it] : dspec.getPrecursorMassIntensityMap())
+        {
+          if (std::abs(m - dspec.getPrecursorPeakGroup().getMonoMass()) < 0.0001)
+          {
+            pg_intensity = it;
+            mass_ss << std::to_string(m) <<" ";
+            break;
+          }
+        }
+
+        for (const auto& [m, it] : dspec.getPrecursorMassIntensityMap())
+        {
+          if (std::abs(m - dspec.getPrecursorPeakGroup().getMonoMass()) < 0.0001) continue;
+          if (m <= 0)
+          {
+            continue;
+          }
+          mass_ss << std::to_string(m) <<" ";
+        }
+
+        for (const auto& [m, it] : dspec.getPrecursorMassIntensityMap())
+        {
+          if (std::abs(m - dspec.getPrecursorPeakGroup().getMonoMass()) < 0.0001)
+          {
+            int_ss << it / total_int << " ";
+            break;
+          }
+        }
+        for (const auto& [m, it] : dspec.getPrecursorMassIntensityMap())
+        {
+          if (std::abs(m - dspec.getPrecursorPeakGroup().getMonoMass()) < 0.0001) continue;
+          if (m <= 0) continue;
+          int_ss << it / total_int << " ";
+        }
+
+        auto mass_str = mass_ss.str();
+        auto int_str = int_ss.str();
+        if (!mass_str.empty()) mass_str.pop_back();
+        if (!int_str.empty()) int_str.pop_back();
+
+        precursor_ss << dspec.getPrecursor().getCharge() << "\t" << dspec.getPrecursorPeakGroup().getChargeSNR(dspec.getPrecursor().getCharge()) << "\t"
                      << std::to_string(dspec.getPrecursorPeakGroup().getMonoMass()) << "\t"
                      << std::to_string(dspec.getPrecursorPeakGroup().getQscore()) << "\t" << dspec.getPrecursorPeakGroup().getQscore2D() << "\t";
+
+        precursor_ss <<std::to_string(dspec.getDeconvolvedPrecursor().getMZ()) << "\t" << dspec.getDeconvolvedPrecursor().getIntensity()  << "\t" << pg_intensity << "\t"
+                     << dspec.getPrecursorMassIntensityMap().size() - 1 << "\t" << mass_str << "\t" << int_str << "\t" << total_int << "\t";
+
         if (report_decoy) { precursor_ss << dspec.getPrecursorPeakGroup().getQvalue() << "\t"; }
       }
     }
@@ -268,7 +323,9 @@ namespace OpenMS
               "SumIntensity\tMinCharge\tMaxCharge\t"
               "PeakCount\tPeakMZs\tPeakIntensities\tPeakCharges\tPeakMasses\tPeakIsotopeIndices\tPeakPPMErrors\t"
               "NoisePeakMZs\tNoisePeakIntensities\tNoisePeakCharges\tNoisePeakMasses\tNoisePeakIsotopeIndices\tNoisePeakPPMErrors\t"
-              "PrecursorScanNum\tPrecursorFeatureIndex\tPrecursorMz\tPrecursorIntensity\tPrecursorCharge\tPrecursorSNR\tPrecursorMonoisotopicMass\tPrecursorQscore\tPrecursorQscore2D\t";
+              "PrecursorScanNum\tPrecursorFeatureIndex\tPrecursorMz\tPrecursorPeakIntensity\tPrecursorCharge\tPrecursorSNR\tPrecursorMonoisotopicMass\tPrecursorQscore\tPrecursorQscore2D\t"
+              "DeconvolvedPrecursorPeakMzWithinIsolationWindow\tDeconvolvedPrecursorPeakIntensityWithinIsolationWindow\tPrecursorMassIntensityWithinIsolationWindow\tMassCountWithinIsolationWindow\tMassesWithinIsolationWindow\t"
+              "MassIntensityRatiosWithinIsolationWindow\tTotalPeakIntensityWithinIsolationWindow\t";
         if (report_decoy)
         {
           fs << "PrecursorQvalue\t";
@@ -310,7 +367,9 @@ namespace OpenMS
         fs << "RetentionTime\tMassCountInSpec\tAverageMass\tMonoisotopicMass\t"
               "SumIntensity\tMinCharge\tMaxCharge\t"
               "PeakCount\t"
-              "PrecursorScanNum\tPrecursorFeatureIndex\tPrecursorMz\tPrecursorIntensity\tPrecursorCharge\tPrecursorSNR\tPrecursorMonoisotopicMass\tPrecursorQscore\tPrecursorQscore2D\t";
+              "PrecursorScanNum\tPrecursorFeatureIndex\tPrecursorMz\tPrecursorPeakIntensity\tPrecursorCharge\tPrecursorSNR\tPrecursorMonoisotopicMass\tPrecursorQscore\tPrecursorQscore2D\t"
+              "DeconvolvedPrecursorPeakMzWithinIsolationWindow\tDeconvolvedPrecursorPeakIntensityWithinIsolationWindow\tPrecursorMassIntensityWithinIsolationWindow\tMassCountWithinIsolationWindow\tMassesWithinIsolationWindow\t"
+              "MassIntensityRatiosWithinIsolationWindow\tTotalPeakIntensityWithinIsolationWindow\t";
         if (report_decoy)
         {
           fs << "PrecursorQvalue\t";
@@ -328,8 +387,10 @@ namespace OpenMS
   void FLASHDeconvSpectrumFile::writeIsobaricQuantification(std::fstream& fs, std::vector<DeconvolvedSpectrum>& deconvolved_spectra)
   {
     std::stringstream ss;
-    ss << "Scan\tPrecursorScan\tPrecursorMZ\tRetentionTime\tMassCountInSpec\tQuantifiedChannelCount\tPrecursorQscore\tActivation\tActivationEnergy"
-          "\tPrecursorCharge\tIsolationLeft\tIsolationRight\tPrecursorMass\tPrecursorSNR";
+    ss << "ScanNum\tPrecursorScanNum\tPrecursorFeatureIndex\tPrecursorMZ\tPrecursorPeakIntensity\tPrecursorCharge\tPrecursorSNR\tPrecursorMonoisotopicMass\tPrecursorQscore\t"
+          "IsolationLeft\tIsolationRight\tDeconvolvedPrecursorPeakMzWithinIsolationWindow\tDeconvolvedPrecursorPeakIntensityWithinIsolationWindow\tPrecursorMassIntensityWithinIsolationWindow\tMassCountWithinIsolationWindow\tMassesWithinIsolationWindow\t"
+          "MassIntensityRatiosWithinIsolationWindow\tTotalPeakIntensityWithinIsolationWindow\t"
+          "RetentionTime\tMassCountInSpec\tQuantifiedChannelCount\tActivation\tActivationEnergy";
 
     Size channel_count = 0;
     for (auto& dspec : deconvolved_spectra)
@@ -373,16 +434,81 @@ namespace OpenMS
       int ch_count = 0;
       for (auto q : quant.quantities) if (q != 0) ch_count++;
 
-      ss << scan << "\t" << dspec.getPrecursorScanNumber() << "\t" << dspec.getPrecursor().getMZ() << "\t" << dspec.getOriginalSpectrum().getRT()
-         << "\t" << dspec.size() << "\t" << ch_count << "\t" << (precursor_found ? std::to_string(dspec.getPrecursorPeakGroup().getQscore2D()) : "NaN") << "\t"
+      ss << scan << "\t" << dspec.getPrecursorScanNumber() << "\t" << (dspec.getPrecursorPeakGroup().getFeatureIndex() == 0 ? "NaN" : std::to_string(dspec.getPrecursorPeakGroup().getFeatureIndex()))
+         << "\t" <<  std::to_string(dspec.getPrecursor().getMZ()) << "\t" <<  dspec.getPrecursor().getIntensity() << "\t" << (precursor_found ? std::to_string(dspec.getPrecursor().getCharge()) : "NaN") << "\t"
+         << (precursor_found ? std::to_string(dspec.getPrecursorPeakGroup().getChargeSNR(dspec.getPrecursorPeakGroup().getRepAbsCharge())) : "NaN") << "\t"
+         << (precursor_found ? std::to_string(dspec.getPrecursorPeakGroup().getMonoMass()) : "NaN") << "\t" << (precursor_found ? std::to_string(dspec.getPrecursorPeakGroup().getQscore2D()) : "NaN")
+         << "\t" << dspec.getPrecursor().getMZ() - dspec.getPrecursor().getIsolationWindowLowerOffset() << "\t"
+         << dspec.getPrecursor().getMZ() + dspec.getPrecursor().getIsolationWindowUpperOffset() << "\t";
+
+      double total_int = 0;
+      for (const auto& [m, it] : dspec.getPrecursorMassIntensityMap())
+      {
+        if (m <= 0)
+        {
+          total_int = it;
+          break;
+        }
+      }
+
+      if (precursor_found)
+      {
+        std::stringstream mass_ss, int_ss;
+        double pg_intensity = 0;
+        for (const auto& [m, it] : dspec.getPrecursorMassIntensityMap())
+        {
+          if (std::abs(m - dspec.getPrecursorPeakGroup().getMonoMass()) < 0.0001)
+          {
+            pg_intensity = it;
+            mass_ss << std::to_string(m) << " ";
+            break;
+          }
+        }
+
+        for (const auto& [m, it] : dspec.getPrecursorMassIntensityMap())
+        {
+          if (std::abs(m - dspec.getPrecursorPeakGroup().getMonoMass()) < 0.0001) continue;
+          if (m <= 0)
+          {
+            continue;
+          }
+          mass_ss << std::to_string(m) << " ";
+        }
+
+        for (const auto& [m, it] : dspec.getPrecursorMassIntensityMap())
+        {
+          if (std::abs(m - dspec.getPrecursorPeakGroup().getMonoMass()) < 0.0001)
+          {
+            int_ss << it / total_int << " ";
+            break;
+          }
+        }
+        for (const auto& [m, it] : dspec.getPrecursorMassIntensityMap())
+        {
+          if (std::abs(m - dspec.getPrecursorPeakGroup().getMonoMass()) < 0.0001) continue;
+          if (m <= 0) continue;
+          int_ss << it / total_int << " ";
+        }
+
+        auto mass_str = mass_ss.str();
+        auto int_str = int_ss.str();
+        if (! mass_str.empty()) mass_str.pop_back();
+        if (! int_str.empty()) int_str.pop_back();
+
+        ss << std::to_string(dspec.getDeconvolvedPrecursor().getMZ()) << "\t" << dspec.getDeconvolvedPrecursor().getIntensity() << "\t"
+           << pg_intensity << "\t" << dspec.getPrecursorMassIntensityMap().size() - 1 << "\t" << mass_str << "\t" << int_str << "\t";
+      }
+      else
+      {
+        ss << "NaN\tNaN\tNaN\t0\tNaN\tNaN\t";
+      }
+
+      ss << total_int << "\t" << dspec.getOriginalSpectrum().getRT() << "\t" << dspec.size() << "\t" << ch_count << "\t"
          << (dspec.getActivationMethod() < Precursor::ActivationMethod::SIZE_OF_ACTIVATIONMETHOD
                ? Precursor::NamesOfActivationMethodShort[dspec.getActivationMethod()]
                : "N/A")
-         << "\t" << dspec.getPrecursor().getActivationEnergy() << "\t" << dspec.getPrecursor().getCharge() << "\t"
-         << dspec.getPrecursor().getMZ() - dspec.getPrecursor().getIsolationWindowLowerOffset() << "\t"
-         << dspec.getPrecursor().getMZ() + dspec.getPrecursor().getIsolationWindowUpperOffset() << "\t"
-         << (precursor_found ? std::to_string(dspec.getPrecursorPeakGroup().getMonoMass()) : "NaN") << "\t"
-         << (precursor_found ? std::to_string(dspec.getPrecursorPeakGroup().getChargeSNR(dspec.getPrecursorCharge())) : "NaN");
+         << "\t" << dspec.getPrecursor().getActivationEnergy();
+
       double sum = 0;
 
       if (quant.empty())
