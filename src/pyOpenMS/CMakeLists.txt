@@ -577,7 +577,18 @@ endif()
 # Please add your test here when you decide to write a new testfile in the tests/unittests folder
 set(pyopenms_unittest_testfiles
   test_ProteaseDigestion.py
-  test000.py
+  test_algorithms.py
+  test_chemistry.py
+  test_chemistry_basics.py
+  test_core_structures.py
+  test_features.py
+  test_file_io.py
+  test_identification.py
+  test_metadata_instrument.py
+  test_miscellaneous.py
+  test_quantification.py
+  test_spectrum_experiment.py
+  test_targeted_mrm.py
   test_tutorial.py
   test_BaselineFiltering.py
   test_ChromatogramExtractor.py
