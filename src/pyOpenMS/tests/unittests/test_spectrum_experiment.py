@@ -716,7 +716,7 @@ def testMSSpectrum():
     f_da.append( pyopenms.FloatDataArray() )
     f_da[1].push_back(8.0)
     spec.setFloatDataArrays( f_da )
-    assert len(spec.getFloatDataArrays()) == 2.0
+    assert len(spec.getFloatDataArrays()) == 2
     assert spec.getFloatDataArrays()[0][0] == 5.0
     assert spec.getFloatDataArrays()[1][0] == 8.0
     assert spec.getFloatDataArrays()[0] == spec.getFloatDataArrays()[0] # test __eq__
