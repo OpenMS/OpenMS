@@ -237,7 +237,7 @@ def _testParam(p):
             continue
         f = k.split(b":")[0]
         p.setSectionDescription(f, k)
-        # TODO: keys inside maps are not yet properly decoded
+        # Note: keys inside maps are not yet properly decoded
         assert p.getSectionDescription(f) == k.decode()
 
         assert p.get(k) is not None
