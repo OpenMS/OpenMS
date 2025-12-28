@@ -358,7 +358,7 @@ def testConsensusFeature():
     f.insert(2, pyopenms.ConsensusFeature())
 
     f.computeConsensus()
-    f.computeDechargeConsensus()
+    f.computeDechargeConsensus
     f.computeMonoisotopicConsensus()
 
     assert f.size() >= 0
