@@ -99,7 +99,7 @@ namespace OpenMS
     UInt current_min_ms_level_ = 0;
 
     /// the number of preceding full scans from which MS2 precursor mass will be searched.
-    int precursor_MS1_window_ = 0;
+    //int precursor_MS1_window_ = 0;
 
     /// FLASHIda log file name
     String ida_log_file_;
@@ -120,8 +120,12 @@ namespace OpenMS
     double noise_decoy_weight_ = 1;
     /// FLASHIda parsing information is stored here: MS1 scan - information
     std::map<int, std::vector<std::vector<float>>> precursor_map_for_ida_;
+    /// a map from native ID to precursor peak
+    std::map<String, Precursor> native_id_precursor_peak_map_;
     /// a map from native ID to precursor peak group
     std::map<String, PeakGroup> native_id_precursor_peak_group_map_;
+    /// a map from native ID to precursor mass - intensity pair (within isolation window)
+    std::map<String, std::vector<std::tuple<double, double>>> native_id_precursor_mass_intensity_map_;
 
     /// read dataset to update ms level information
     void updateMSLevels_(MSExperiment& map);
