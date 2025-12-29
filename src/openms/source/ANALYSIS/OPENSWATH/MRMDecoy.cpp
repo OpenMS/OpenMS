@@ -600,7 +600,8 @@ namespace OpenMS
       }
 
       // Check that the decoy precursor does not happen to be a target precursor AND is not already present
-      if (allPeptideSequences.find(peptide.sequence + String((peptide.getChargeState()))) != allPeptideSequences.end())
+      // Use getModifiedPeptideSequence_ to match the format used when populating allPeptideSequences at line 542
+      if (allPeptideSequences.find(MRMDecoy::getModifiedPeptideSequence_(peptide) + String((peptide.getChargeState()))) != allPeptideSequences.end())
       {
         OPENMS_LOG_DEBUG << "[peptide] Skipping " << peptide.id << " since decoy peptide is also a target peptide or this decoy peptide is already present" << std::endl;
         exclusion_peptides.insert(peptide.id);
