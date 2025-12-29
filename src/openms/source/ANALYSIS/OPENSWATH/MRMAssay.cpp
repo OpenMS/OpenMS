@@ -11,14 +11,46 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 
 #include <boost/lexical_cast.hpp>
-#include <regex>
-#include <unordered_set>
 #include <map>
+#include <regex>
+#include <set>
+#include <unordered_map>
+#include <unordered_set>
 
 using namespace std;
 
 namespace OpenMS
 {
+  namespace
+  {
+    /// Helper function to sort all FragmentSeqMaps in an IonMapT by m/z
+    /// This enables binary search in getMatchingPeptidoforms_
+    void sortIonMap(MRMAssay::IonMapT& ion_map)
+    {
+      for (auto& swath_entry : ion_map)
+      {
+        for (auto& seq_entry : swath_entry.second)
+        {
+          std::sort(seq_entry.second.begin(), seq_entry.second.end(),
+              [](const std::pair<double, std::string>& a, const std::pair<double, std::string>& b)
+              { return a.first < b.first; });
+        }
+      }
+    }
+
+    /// Helper function to sort and deduplicate all IonSeries in a PeptideMapT
+    /// This avoids repeated sorting in generateTargetAssays_/generateDecoyAssays_
+    void sortAndDeduplicatePeptideMap(MRMAssay::PeptideMapT& peptide_map)
+    {
+      for (auto& entry : peptide_map)
+      {
+        auto& ions = entry.second;
+        std::sort(ions.begin(), ions.end());
+        ions.erase(std::unique(ions.begin(), ions.end()), ions.end());
+      }
+    }
+  } // anonymous namespace
+
   MRMAssay::MRMAssay() = default;
 
   MRMAssay::~MRMAssay() = default;
@@ -29,12 +61,15 @@ namespace OpenMS
   {
     std::vector<std::string> isoforms;
 
-    for (const auto& i_it : ions) // map: "fragment m/z" -> "modified sequence"
+    // ions must be sorted by m/z (first element of pair) for binary search to work
+    // Use lower_bound to find first element >= (fragment_ion - mz_threshold)
+    auto lower = std::lower_bound(ions.begin(), ions.end(), fragment_ion - mz_threshold,
+        [](const std::pair<double, std::string>& elem, double val) { return elem.first < val; });
+
+    // Iterate from lower bound until we exceed the threshold
+    for (auto it = lower; it != ions.end() && it->first <= fragment_ion + mz_threshold; ++it)
     {
-      if (i_it.first - mz_threshold <= fragment_ion && i_it.first + mz_threshold >= fragment_ion)
-      {
-        isoforms.push_back(i_it.second);
-      }
+      isoforms.push_back(it->second);
     }
 
     std::sort(isoforms.begin(), isoforms.end());
@@ -45,26 +80,38 @@ namespace OpenMS
 
   int MRMAssay::getSwath_(const std::vector<std::pair<double, double> >& swathes, const double precursor_mz)
   {
-    int swath = -1;
-
-    // we go through all swaths in ascending order and if the transitions falls
-    // in overlap, only the upper swath will be used and checked.
-    for (auto it = swathes.begin(); it != swathes.end(); ++it)
-    {
-      if (precursor_mz >= it->first && precursor_mz <= it->second)
-      {
-        swath = it - swathes.begin();
-      }
-    }
-
-    if (swath != -1)
-    {
-      return swath;
-    }
-    else
+    if (swathes.empty())
     {
       return -1;
     }
+
+    // Binary search: find first swath with lower bound > precursor_mz
+    // Swaths are sorted by lower bound (first element)
+    auto it = std::upper_bound(swathes.begin(), swathes.end(), precursor_mz,
+        [](double mz, const std::pair<double, double>& s) { return mz < s.first; });
+
+    // Back up to find candidate swath(s) that might contain precursor_mz
+    // If precursor falls in overlap region, we want the LAST (upper) matching swath
+    int swath = -1;
+
+    // Check the swath before upper_bound result (if exists)
+    if (it != swathes.begin())
+    {
+      auto candidate = it - 1;
+      if (precursor_mz >= candidate->first && precursor_mz <= candidate->second)
+      {
+        swath = static_cast<int>(candidate - swathes.begin());
+      }
+    }
+
+    // Check if the upper_bound swath itself also contains precursor (overlap case)
+    // If so, prefer this one (higher index, matching original "last match" semantics)
+    if (it != swathes.end() && precursor_mz >= it->first && precursor_mz <= it->second)
+    {
+      swath = static_cast<int>(it - swathes.begin());
+    }
+
+    return swath;
   }
 
   bool MRMAssay::isInSwath_(const std::vector<std::pair<double, double> >& swathes, const double precursor_mz, const double product_mz)
@@ -72,19 +119,9 @@ namespace OpenMS
     int swath_idx = getSwath_(swathes, precursor_mz);
 
     if (swath_idx == -1) { return true; } // remove all transitions that are not in swath range
-    else
-    {
-      std::pair<double, double> swath = swathes[getSwath_(swathes, precursor_mz)];
 
-      if (product_mz >= swath.first && product_mz <= swath.second)
-      {
-        return true;
-      }
-      else
-      { 
-        return false;
-      }
-    }
+    const std::pair<double, double>& swath = swathes[swath_idx];  // Use cached index, avoid redundant call
+    return (product_mz >= swath.first && product_mz <= swath.second);
   }
 
   std::string MRMAssay::getRandomSequence_(size_t sequence_size, boost::variate_generator<boost::mt19937&, boost::uniform_int<> >
@@ -365,9 +402,13 @@ namespace OpenMS
 
       // Iterate over all peptidoforms
       for (const auto& alt_aa : alternative_peptide_sequences)
-      { 
+      {
+        // Cache string representations to avoid repeated conversions
+        const String unmod_str = alt_aa.toUnmodifiedString();
+        const String mod_str = alt_aa.toString();
+
         // Append peptidoform to index
-        TargetSequenceMap[precursor_swath][alt_aa.toUnmodifiedString()].insert(alt_aa.toString());
+        TargetSequenceMap[precursor_swath][unmod_str].insert(mod_str);
         // Generate theoretical ion series
         auto ionseries = mrmis.getIonSeries(alt_aa, precursor_charge,
             fragment_types, fragment_charges, enable_specific_losses,
@@ -377,7 +418,7 @@ namespace OpenMS
         {
           // Add precursor to theoretical transitions
           double prec_mz = Math::roundDecimal(precursor_mz, round_decPow);
-          TargetIonMap[precursor_swath][alt_aa.toUnmodifiedString()].emplace_back(prec_mz, alt_aa.toString());
+          TargetIonMap[precursor_swath][unmod_str].emplace_back(prec_mz, mod_str);
           TargetPeptideMap[peptide.id].emplace_back("MS2_Precursor_i0", prec_mz);
         }
 
@@ -386,7 +427,7 @@ namespace OpenMS
         {
           // Append transition to indices to find interfering transitions
           double fragment_mz = Math::roundDecimal(im_it.second, round_decPow);
-          TargetIonMap[precursor_swath][alt_aa.toUnmodifiedString()].emplace_back(fragment_mz, alt_aa.toString());
+          TargetIonMap[precursor_swath][unmod_str].emplace_back(fragment_mz, mod_str);
           TargetPeptideMap[peptide.id].emplace_back(im_it.first, fragment_mz);
         }
       }
@@ -513,15 +554,19 @@ namespace OpenMS
       // Iterate over all peptidoforms
       for (const auto& alt_aa : alternative_decoy_peptide_sequences)
       {
+        // Cache string representations to avoid repeated conversions
+        const String unmod_str = alt_aa.toUnmodifiedString();
+        const String mod_str = alt_aa.toString();
+
         // Generate theoretical ion series
         MRMIonSeries::IonSeries ionseries = mrmis.getIonSeries(alt_aa, precursor_charge, // use same charge state as target
-                                                               fragment_types, fragment_charges, enable_specific_losses, enable_unspecific_losses);  
+                                                               fragment_types, fragment_charges, enable_specific_losses, enable_unspecific_losses);
 
         if (enable_ms2_precursors)
         {
           // Add precursor to theoretical transitions
           double prec_mz = Math::roundDecimal(precursor_mz, round_decPow);
-          DecoyIonMap[precursor_swath][alt_aa.toUnmodifiedString()].emplace_back(prec_mz, alt_aa.toString());
+          DecoyIonMap[precursor_swath][unmod_str].emplace_back(prec_mz, mod_str);
           DecoyPeptideMap[peptide.id].emplace_back("MS2_Precursor_i0", prec_mz);
         }
 
@@ -530,7 +575,7 @@ namespace OpenMS
         {
           // Append transition to indices to find interfering transitions
           double fragment_mz = Math::roundDecimal(im_it.second, round_decPow);
-          DecoyIonMap[precursor_swath][alt_aa.toUnmodifiedString()].emplace_back(fragment_mz, alt_aa.toString());
+          DecoyIonMap[precursor_swath][unmod_str].emplace_back(fragment_mz, mod_str);
           DecoyPeptideMap[decoy_peptide.id].emplace_back(im_it.first, fragment_mz);
         }
       }
@@ -567,17 +612,12 @@ namespace OpenMS
       AASequence peptide_sequence = TargetedExperimentHelper::getAASequence(peptide);
       int target_precursor_swath = getSwath_(swathes, peptide_sequence.getMZ(precursor_charge));
 
-      // Sort all transitions and make them unique
-      auto transition_vector = pep_it.second;
-      std::sort(transition_vector.begin(), transition_vector.end());
-      auto tr_vec_end = std::unique(transition_vector.begin(), transition_vector.end());
-
-      // Iterate over all transitions
-      for (auto tr_it = transition_vector.begin(); tr_it != tr_vec_end; ++tr_it)
-      { 
+      // Iterate over all transitions (already sorted and deduplicated by sortAndDeduplicatePeptideMap)
+      for (const auto& tr : pep_it.second)
+      {
         // Compute the set of peptidoforms mapping to this transition
         vector<string> isoforms = getMatchingPeptidoforms_(
-            tr_it->second, TargetIonMap.at(target_precursor_swath).at(peptide_sequence.toUnmodifiedString()), mz_threshold);
+            tr.second, TargetIonMap.at(target_precursor_swath).at(peptide_sequence.toUnmodifiedString()), mz_threshold);
 
         // Check that transition maps to at least one peptidoform
         if (!isoforms.empty())
@@ -586,18 +626,18 @@ namespace OpenMS
           trn.setDetectingTransition(false);
           trn.setMetaValue("insilico_transition", "true");
           trn.setPrecursorMZ(Math::roundDecimal(peptide_sequence.getMZ(precursor_charge), round_decPow));
-          trn.setProductMZ(tr_it->second);
+          trn.setProductMZ(tr.second);
           trn.setPeptideRef(peptide.id);
-          mrmis.annotateTransitionCV(trn, tr_it->first);
+          mrmis.annotateTransitionCV(trn, tr.first);
           trn.setIdentifyingTransition(true);
           trn.setQuantifyingTransition(false);
 
           // Set transition name containing mapping to peptidoforms with potential peptidoforms enumerated in brackets
           String identifier = String(transition_index) + "_" + String("UIS") +  \
             "_{" + ListUtils::concatenate(isoforms, "|") + "}_" +  \
-            String(trn.getPrecursorMZ()) + "_" + String(trn.getProductMZ()) + "_" + 
-            String(peptide.getRetentionTime()) + "_" + tr_it->first; 
-          trn.setName(identifier); 
+            String(trn.getPrecursorMZ()) + "_" + String(trn.getProductMZ()) + "_" +
+            String(peptide.getRetentionTime()) + "_" + tr.first;
+          trn.setName(identifier);
           trn.setNativeID(identifier);
           trn.setMetaValue("Peptidoforms", ListUtils::concatenate(isoforms, "|"));
 
@@ -646,17 +686,12 @@ namespace OpenMS
       TargetedExperiment::Peptide decoy_peptide = TargetDecoyMap[decoy_pep_it.first];
       OpenMS::AASequence decoy_peptide_sequence = TargetedExperimentHelper::getAASequence(decoy_peptide);
 
-      // Sort all transitions and make them unique
-      auto transition_vector = decoy_pep_it.second;
-      std::sort(transition_vector.begin(), transition_vector.end());
-      auto tr_vec_end = std::unique(transition_vector.begin(), transition_vector.end());
-
-      // Iterate over all transitions
-      for (auto decoy_tr_it = transition_vector.begin(); decoy_tr_it != tr_vec_end; ++decoy_tr_it)
+      // Iterate over all transitions (already sorted and deduplicated by sortAndDeduplicatePeptideMap)
+      for (const auto& decoy_tr : decoy_pep_it.second)
       {
         // Check mapping of transitions to other peptidoforms
         vector<string> decoy_isoforms = getMatchingPeptidoforms_(
-            decoy_tr_it->second, DecoyIonMap.at(target_precursor_swath).at(decoy_peptide_sequence.toUnmodifiedString()), mz_threshold);
+            decoy_tr.second, DecoyIonMap.at(target_precursor_swath).at(decoy_peptide_sequence.toUnmodifiedString()), mz_threshold);
 
         // Check that transition maps to at least one peptidoform
         if (!decoy_isoforms.empty())
@@ -666,9 +701,9 @@ namespace OpenMS
           trn.setDetectingTransition(false);
           trn.setMetaValue("insilico_transition", "true");
           trn.setPrecursorMZ(Math::roundDecimal(target_peptide_sequence.getMZ(precursor_charge), round_decPow));
-          trn.setProductMZ(decoy_tr_it->second);
+          trn.setProductMZ(decoy_tr.second);
           trn.setPeptideRef(decoy_peptide.id);
-          mrmis.annotateTransitionCV(trn, decoy_tr_it->first);
+          mrmis.annotateTransitionCV(trn, decoy_tr.first);
           trn.setIdentifyingTransition(true);
           trn.setQuantifyingTransition(false);
 
@@ -676,8 +711,8 @@ namespace OpenMS
           String identifier = String(transition_index) + "_" + String("UISDECOY") +
                 "_{" + ListUtils::concatenate(decoy_isoforms, "|") + "}_" +
                 String(trn.getPrecursorMZ()) + "_" + String(trn.getProductMZ()) + "_" +
-                String(decoy_peptide.getRetentionTime()) + "_" + decoy_tr_it->first;
-          trn.setName(identifier); 
+                String(decoy_peptide.getRetentionTime()) + "_" + decoy_tr.first;
+          trn.setName(identifier);
           trn.setNativeID(identifier);
           trn.setMetaValue("Peptidoforms", ListUtils::concatenate(decoy_isoforms, "|"));
 
@@ -685,7 +720,7 @@ namespace OpenMS
 
           // Check if decoy transition is overlapping with target transition
           vector<string> target_isoforms_overlap = getMatchingPeptidoforms_(
-              decoy_tr_it->second, TargetIonMap.at(target_precursor_swath).at(target_peptide_sequence.toUnmodifiedString()), mz_threshold);
+              decoy_tr.second, TargetIonMap.at(target_precursor_swath).at(target_peptide_sequence.toUnmodifiedString()), mz_threshold);
 
           if (!target_isoforms_overlap.empty())
           {
@@ -803,6 +838,9 @@ namespace OpenMS
     ProteinVectorType proteins;
     TransitionVectorType transitions;
 
+    // Reserve capacity to avoid reallocations (upper bound: all transitions pass filter)
+    transitions.reserve(exp.getTransitions().size());
+
     Size progress = 0;
     startProgress(0, exp.getTransitions().size(), "Restricting transitions");
     for (Size i = 0; i < exp.getTransitions().size(); ++i)
@@ -875,6 +913,11 @@ namespace OpenMS
       TransitionsMap[tr.getPeptideRef()].push_back(tr);
     }
 
+    // Reserve capacity to avoid reallocations (upper bounds)
+    transitions.reserve(exp.getTransitions().size());
+    peptides.reserve(exp.getPeptides().size());
+    proteins.reserve(exp.getProteins().size());
+
     Size progress = 0;
     startProgress(0, TransitionsMap.size() + exp.getPeptides().size() + exp.getProteins().size(), "Select detecting transitions");
     for (std::map<String, TransitionVectorType>::iterator m = TransitionsMap.begin();
@@ -886,20 +929,21 @@ namespace OpenMS
       {
         // LibraryIntensity stores all reference transition intensities of a precursor
         std::vector<double> LibraryIntensity;
-        for (TransitionVectorType::iterator tr_it = m->second.begin(); tr_it != m->second.end(); ++tr_it)
+        LibraryIntensity.reserve(m->second.size());
+        for (const auto& tr_it : m->second)
         {
-          LibraryIntensity.push_back(boost::lexical_cast<double>(tr_it->getLibraryIntensity()));
+          LibraryIntensity.push_back(tr_it.getLibraryIntensity());
         }
 
-        // Sort by intensity, reverse and delete all elements after max_transitions to find the best candidates
-        std::sort(LibraryIntensity.begin(), LibraryIntensity.end());
-        std::reverse(LibraryIntensity.begin(), LibraryIntensity.end());
+        // Sort by intensity descending and keep only top max_transitions for determining threshold
+        std::sort(LibraryIntensity.begin(), LibraryIntensity.end(), std::greater<double>());
         if ((Size)max_transitions < LibraryIntensity.size())
         {
-          std::vector<double>::iterator start_delete = LibraryIntensity.begin();
-          std::advance(start_delete, max_transitions);
-          LibraryIntensity.erase(start_delete, LibraryIntensity.end());
+          LibraryIntensity.resize(max_transitions);
         }
+
+        // Build set of top intensities for O(log n) lookup
+        std::set<double> top_intensities(LibraryIntensity.begin(), LibraryIntensity.end());
 
         // Check if transitions are among the ones with maximum intensity
         // If several transitions have the same intensities ensure restriction max_transitions
@@ -909,7 +953,7 @@ namespace OpenMS
           ReactionMonitoringTransition tr = *tr_it;
 
           if (
-              (std::find(LibraryIntensity.begin(), LibraryIntensity.end(), boost::lexical_cast<double>(tr.getLibraryIntensity())) != LibraryIntensity.end()) &&
+              top_intensities.find(tr.getLibraryIntensity()) != top_intensities.end() &&
                tr.getDecoyTransitionType() != ReactionMonitoringTransition::DECOY &&
                j < (Size)max_transitions)
           {
@@ -1002,6 +1046,15 @@ namespace OpenMS
     // Step 1: Generate target in silico peptide map containing theoretical transitions
     generateTargetInSilicoMap_(exp, fragment_types, fragment_charges, enable_specific_losses, enable_unspecific_losses, enable_ms2_precursors, swathes, round_decPow, max_num_alternative_localizations, TargetSequenceMap, TargetIonMap, TargetPeptideMap);
 
+    // Sort TargetIonMap by m/z for binary search in getMatchingPeptidoforms_
+    sortIonMap(TargetIonMap);
+    // Sort and deduplicate TargetPeptideMap to avoid repeated sorting in generateTargetAssays_
+    sortAndDeduplicatePeptideMap(TargetPeptideMap);
+
+    // Reserve capacity for new UIS transitions (estimate: ~6 transitions per peptide, x2 for decoys)
+    size_t estimated_new_transitions = TargetPeptideMap.size() * 6 * (disable_decoy_transitions ? 1 : 2);
+    transitions.reserve(transitions.size() + estimated_new_transitions);
+
     // Step 2: Generate target identification transitions
     generateTargetAssays_(exp, transitions, mz_threshold, swathes, round_decPow, TargetPeptideMap, TargetIonMap);
 
@@ -1012,6 +1065,11 @@ namespace OpenMS
 
       // Step 3b: Generate decoy in silico peptide map containing theoretical transitions
       generateDecoyInSilicoMap_(exp, fragment_types, fragment_charges, enable_specific_losses, enable_unspecific_losses, enable_ms2_precursors, swathes, round_decPow, TargetDecoyMap, TargetPeptideMap, DecoySequenceMap, DecoyIonMap, DecoyPeptideMap);
+
+      // Sort DecoyIonMap by m/z for binary search in getMatchingPeptidoforms_
+      sortIonMap(DecoyIonMap);
+      // Sort and deduplicate DecoyPeptideMap to avoid repeated sorting in generateDecoyAssays_
+      sortAndDeduplicatePeptideMap(DecoyPeptideMap);
 
       // Step 4: Generate decoy identification transitions
       generateDecoyAssays_(exp, transitions, mz_threshold, swathes, round_decPow, DecoyPeptideMap, TargetDecoyMap, DecoyIonMap, TargetIonMap);
@@ -1041,6 +1099,11 @@ namespace OpenMS
       TransitionsMap[tr.getCompoundRef()].push_back(tr);
     }
 
+    // Reserve capacity to avoid reallocations (upper bounds)
+    transitions.reserve(exp.getTransitions().size());
+    compounds.reserve(exp.getCompounds().size());
+    compound_ids.reserve(exp.getCompounds().size());
+
     for (std::map<String, TransitionVectorType>::iterator m = TransitionsMap.begin();
          m != TransitionsMap.end(); ++m)
     {
@@ -1049,17 +1112,21 @@ namespace OpenMS
         {
         // LibraryIntensity stores all reference transition intensities of a precursor
         std::vector<double> LibraryIntensity;
-        for (TransitionVectorType::iterator tr_it = m->second.begin(); tr_it != m->second.end(); ++tr_it)
+        LibraryIntensity.reserve(m->second.size());
+        for (const auto& tr_it : m->second)
         {
-          LibraryIntensity.push_back(boost::lexical_cast<double>(tr_it->getLibraryIntensity()));
+          LibraryIntensity.push_back(tr_it.getLibraryIntensity());
         }
 
         // Reverse-sort by intensity and delete all elements after max_transitions to find the best candidates
-        std::sort(LibraryIntensity.begin(), LibraryIntensity.end(), std::greater<>());
+        std::sort(LibraryIntensity.begin(), LibraryIntensity.end(), std::greater<double>());
         if ((Size)max_transitions < LibraryIntensity.size())
         {
           LibraryIntensity.resize(max_transitions);
         }
+
+        // Build set of top intensities for O(log n) lookup
+        std::set<double> top_intensities(LibraryIntensity.begin(), LibraryIntensity.end());
 
         // Check if transitions are among the ones with maximum intensity
         // If several transitions have the same intensities ensure restriction max_transitions
@@ -1067,7 +1134,7 @@ namespace OpenMS
         for (TransitionVectorType::iterator tr_it = m->second.begin(); tr_it != m->second.end(); ++tr_it)
         {
           ReactionMonitoringTransition tr = *tr_it;
-          if ((std::find(LibraryIntensity.begin(), LibraryIntensity.end(), boost::lexical_cast<double>(tr.getLibraryIntensity())) != LibraryIntensity.end()) && j < (Size)max_transitions)
+          if (top_intensities.find(tr.getLibraryIntensity()) != top_intensities.end() && j < (Size)max_transitions)
           {
             // Set meta value tag for detecting transition
             tr.setDetectingTransition(true);
@@ -1208,7 +1275,7 @@ namespace OpenMS
     OpenMS::MRMIonSeries mrmis;
 
     // Build compound map for quick lookup
-    std::map<std::string, const OpenSwath::LightCompound*> compound_map;
+    std::unordered_map<std::string, const OpenSwath::LightCompound*> compound_map;
     for (const auto& compound : exp.compounds)
     {
       compound_map[compound.id] = &compound;
@@ -1346,8 +1413,11 @@ namespace OpenMS
   {
     std::vector<OpenSwath::LightTransition> transitions;
 
+    // Reserve capacity to avoid reallocations (upper bound: all transitions pass filter)
+    transitions.reserve(exp.transitions.size());
+
     // Build compound map for quick lookup
-    std::map<std::string, const OpenSwath::LightCompound*> compound_map;
+    std::unordered_map<std::string, const OpenSwath::LightCompound*> compound_map;
     for (const auto& compound : exp.compounds)
     {
       compound_map[compound.id] = &compound;
@@ -1403,6 +1473,11 @@ namespace OpenMS
       transitions_map[tr.peptide_ref].push_back(tr);
     }
 
+    // Reserve capacity to avoid reallocations (upper bounds)
+    transitions.reserve(exp.transitions.size());
+    compounds.reserve(exp.compounds.size());
+    proteins.reserve(exp.proteins.size());
+
     Size progress = 0;
     startProgress(0, transitions_map.size() + exp.compounds.size() + exp.proteins.size(), "Select detecting transitions (Light)");
 
@@ -1415,23 +1490,27 @@ namespace OpenMS
       {
         // LibraryIntensity stores all reference transition intensities of a precursor
         std::vector<double> library_intensity;
+        library_intensity.reserve(m.second.size());
         for (const auto& tr : m.second)
         {
           library_intensity.push_back(tr.library_intensity);
         }
 
-        // Sort by intensity, reverse and delete all elements after max_transitions
+        // Sort by intensity descending and keep only top max_transitions
         std::sort(library_intensity.begin(), library_intensity.end(), std::greater<double>());
         if (static_cast<size_t>(max_transitions) < library_intensity.size())
         {
           library_intensity.resize(max_transitions);
         }
 
+        // Build set of top intensities for O(log n) lookup
+        std::set<double> top_intensities(library_intensity.begin(), library_intensity.end());
+
         // Check if transitions are among the ones with maximum intensity
         size_t j = 0;
         for (auto& tr : m.second)
         {
-          if (std::find(library_intensity.begin(), library_intensity.end(), tr.library_intensity) != library_intensity.end() &&
+          if (top_intensities.find(tr.library_intensity) != top_intensities.end() &&
               !tr.getDecoy() &&
               j < static_cast<size_t>(max_transitions))
           {
@@ -1445,7 +1524,7 @@ namespace OpenMS
     }
 
     // Build compound map
-    std::map<std::string, const OpenSwath::LightCompound*> compound_map;
+    std::unordered_map<std::string, const OpenSwath::LightCompound*> compound_map;
     for (const auto& compound : exp.compounds)
     {
       compound_map[compound.id] = &compound;
@@ -1619,8 +1698,12 @@ namespace OpenMS
       // Iterate over all peptidoforms
       for (const auto& alt_aa : alternative_peptide_sequences)
       {
+        // Cache string representations to avoid repeated conversions
+        const String unmod_str = alt_aa.toUnmodifiedString();
+        const String mod_str = alt_aa.toString();
+
         // Append peptidoform to index
-        TargetSequenceMap[precursor_swath][alt_aa.toUnmodifiedString()].insert(alt_aa.toString());
+        TargetSequenceMap[precursor_swath][unmod_str].insert(mod_str);
 
         // Generate theoretical ion series
         auto ionseries = mrmis.getIonSeries(alt_aa, precursor_charge,
@@ -1631,7 +1714,7 @@ namespace OpenMS
         {
           // Add precursor to theoretical transitions
           double prec_mz = Math::roundDecimal(precursor_mz, round_decPow);
-          TargetIonMap[precursor_swath][alt_aa.toUnmodifiedString()].emplace_back(prec_mz, alt_aa.toString());
+          TargetIonMap[precursor_swath][unmod_str].emplace_back(prec_mz, mod_str);
           TargetPeptideMap[compound.id].emplace_back("MS2_Precursor_i0", prec_mz);
         }
 
@@ -1640,7 +1723,7 @@ namespace OpenMS
         {
           // Append transition to indices to find interfering transitions
           double fragment_mz = Math::roundDecimal(im_it.second, round_decPow);
-          TargetIonMap[precursor_swath][alt_aa.toUnmodifiedString()].emplace_back(fragment_mz, alt_aa.toString());
+          TargetIonMap[precursor_swath][unmod_str].emplace_back(fragment_mz, mod_str);
           TargetPeptideMap[compound.id].emplace_back(im_it.first, fragment_mz);
         }
       }
@@ -1724,6 +1807,10 @@ namespace OpenMS
       // Iterate over all peptidoforms
       for (const auto& alt_aa : alternative_peptide_sequences)
       {
+        // Cache string representations to avoid repeated conversions
+        const String unmod_str = alt_aa.toUnmodifiedString();
+        const String mod_str = alt_aa.toString();
+
         // Generate theoretical ion series
         auto ionseries = mrmis.getIonSeries(alt_aa, precursor_charge,
             fragment_types, fragment_charges, enable_specific_losses,
@@ -1733,7 +1820,7 @@ namespace OpenMS
         {
           // Use TARGET precursor m/z (same as heavy version)
           double prec_mz = Math::roundDecimal(target_precursor_mz, round_decPow);
-          DecoyIonMap[precursor_swath][alt_aa.toUnmodifiedString()].emplace_back(prec_mz, alt_aa.toString());
+          DecoyIonMap[precursor_swath][unmod_str].emplace_back(prec_mz, mod_str);
           // Use TARGET compound id as key (same as heavy version)
           DecoyPeptideMap[compound.id].emplace_back("MS2_Precursor_i0", prec_mz);
         }
@@ -1741,7 +1828,7 @@ namespace OpenMS
         for (const auto& im_it : ionseries)
         {
           double fragment_mz = Math::roundDecimal(im_it.second, round_decPow);
-          DecoyIonMap[precursor_swath][alt_aa.toUnmodifiedString()].emplace_back(fragment_mz, alt_aa.toString());
+          DecoyIonMap[precursor_swath][unmod_str].emplace_back(fragment_mz, mod_str);
           // Use TARGET compound id as key (same as heavy version)
           DecoyPeptideMap[compound.id].emplace_back(im_it.first, fragment_mz);
         }
@@ -1763,7 +1850,7 @@ namespace OpenMS
                                             const IonMapT& TargetIonMap)
   {
     // Build compound lookup map
-    std::map<std::string, const OpenSwath::LightCompound*> compound_map;
+    std::unordered_map<std::string, const OpenSwath::LightCompound*> compound_map;
     for (const auto& compound : exp.compounds)
     {
       compound_map[compound.id] = &compound;
@@ -1815,12 +1902,8 @@ namespace OpenMS
         continue;
       }
 
-      // Sort and deduplicate transitions
-      IonSeries sorted_ions = pep_it.second;
-      std::sort(sorted_ions.begin(), sorted_ions.end());
-      sorted_ions.erase(std::unique(sorted_ions.begin(), sorted_ions.end()), sorted_ions.end());
-
-      for (const auto& ion : sorted_ions)
+      // Iterate over transitions (already sorted and deduplicated by sortAndDeduplicatePeptideMap)
+      for (const auto& ion : pep_it.second)
       {
         const std::string& annotation = ion.first;
         double product_mz = ion.second;
@@ -1842,7 +1925,7 @@ namespace OpenMS
         tr.peptide_ref = peptide_id;
         tr.precursor_mz = precursor_mz;
         tr.product_mz = product_mz;
-        tr.library_intensity = 1.0;
+        tr.library_intensity = -1.0;  // Placeholder for IPF identifying transitions
         tr.setDecoy(false);
         tr.setDetectingTransition(false);
         tr.setIdentifyingTransition(true);
@@ -1896,7 +1979,7 @@ namespace OpenMS
                                            const IonMapT& TargetIonMap)
   {
     // Build compound lookup map for targets
-    std::map<std::string, const OpenSwath::LightCompound*> compound_map;
+    std::unordered_map<std::string, const OpenSwath::LightCompound*> compound_map;
     for (const auto& compound : exp.compounds)
     {
       compound_map[compound.id] = &compound;
@@ -1966,12 +2049,8 @@ namespace OpenMS
         continue;
       }
 
-      // Sort and deduplicate transitions
-      IonSeries sorted_ions = pep_it.second;
-      std::sort(sorted_ions.begin(), sorted_ions.end());
-      sorted_ions.erase(std::unique(sorted_ions.begin(), sorted_ions.end()), sorted_ions.end());
-
-      for (const auto& ion : sorted_ions)
+      // Iterate over transitions (already sorted and deduplicated by sortAndDeduplicatePeptideMap)
+      for (const auto& ion : pep_it.second)
       {
         const std::string& annotation = ion.first;
         double product_mz = ion.second;
@@ -2010,7 +2089,7 @@ namespace OpenMS
         tr.peptide_ref = decoy_compound.id;
         tr.precursor_mz = decoy_precursor_mz;
         tr.product_mz = product_mz;
-        tr.library_intensity = 1.0;
+        tr.library_intensity = -1.0;  // Placeholder for IPF identifying transitions
         tr.setDecoy(true);
         tr.setDetectingTransition(false);
         tr.setIdentifyingTransition(true);
@@ -2079,6 +2158,15 @@ namespace OpenMS
         swathes, round_decPow, max_num_alternative_localizations,
         TargetSequenceMap, TargetIonMap, TargetPeptideMap);
 
+    // Sort TargetIonMap by m/z for binary search in getMatchingPeptidoforms_
+    sortIonMap(TargetIonMap);
+    // Sort and deduplicate TargetPeptideMap to avoid repeated sorting in generateTargetAssaysLight_
+    sortAndDeduplicatePeptideMap(TargetPeptideMap);
+
+    // Reserve capacity for new UIS transitions (estimate: ~6 transitions per peptide, x2 for decoys)
+    size_t estimated_new_transitions = TargetPeptideMap.size() * 6 * (disable_decoy_transitions ? 1 : 2);
+    transitions.reserve(estimated_new_transitions);
+
     // Step 2: Generate target identification transitions
     generateTargetAssaysLight_(exp, transitions, mz_threshold, swathes,
         round_decPow, TargetPeptideMap, TargetIonMap);
@@ -2099,12 +2187,18 @@ namespace OpenMS
           swathes, round_decPow, TargetDecoyMap, TargetPeptideMap,
           DecoySequenceMap, DecoyIonMap, DecoyPeptideMap);
 
+      // Sort DecoyIonMap by m/z for binary search in getMatchingPeptidoforms_
+      sortIonMap(DecoyIonMap);
+      // Sort and deduplicate DecoyPeptideMap to avoid repeated sorting in generateDecoyAssaysLight_
+      sortAndDeduplicatePeptideMap(DecoyPeptideMap);
+
       // Step 4: Generate decoy identification transitions
       generateDecoyAssaysLight_(exp, transitions, mz_threshold, swathes,
           round_decPow, DecoyPeptideMap, TargetDecoyMap, DecoyIonMap, TargetIonMap);
     }
 
     // Append new transitions to experiment
+    exp.transitions.reserve(exp.transitions.size() + transitions.size());
     for (auto& tr : transitions)
     {
       exp.transitions.push_back(std::move(tr));

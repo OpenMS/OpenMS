@@ -1015,6 +1015,126 @@ START_SECTION([EXTRA] hasCNterminalModsLight_matches_behavior)
 }
 END_SECTION
 
+START_SECTION([EXTRA] generateDecoysLight_modified_sequence_duplicate_detection)
+{
+  // Regression test for the fix where Light path was incorrectly using unmodified sequences
+  // for duplicate detection instead of modified sequences (with UniMod annotations).
+  // This test verifies that peptides with the same unmodified sequence but different
+  // modifications generate separate decoys (not treated as duplicates).
+  
+  MRMDecoy gen;
+  
+  // Create a minimal light experiment with two peptides that have:
+  // - Same unmodified sequence
+  // - Different modifications
+  // These should NOT be treated as duplicates
+  
+  OpenSwath::LightTargetedExperiment exp;
+  
+  // Peptide 1: TESTPEPTIDE with modification at position 2 (UniMod:21, Phospho)
+  OpenSwath::LightCompound compound1;
+  compound1.id = "peptide1";
+  compound1.sequence = "TESTPEPTIDE";
+  compound1.charge = 2;
+  
+  OpenSwath::LightModification mod1;
+  mod1.location = 2;
+  mod1.unimod_id = 21;  // Phospho
+  compound1.modifications.push_back(mod1);
+  exp.compounds.push_back(compound1);
+  
+  // Peptide 2: TESTPEPTIDE with modification at position 5 (UniMod:35, Oxidation)
+  OpenSwath::LightCompound compound2;
+  compound2.id = "peptide2";
+  compound2.sequence = "TESTPEPTIDE";  // Same unmodified sequence
+  compound2.charge = 2;  // Same charge
+  
+  OpenSwath::LightModification mod2;
+  mod2.location = 5;
+  mod2.unimod_id = 35;  // Oxidation
+  compound2.modifications.push_back(mod2);
+  exp.compounds.push_back(compound2);
+  
+  // Add minimal transitions for each peptide so they pass validation
+  OpenSwath::LightTransition transition1;
+  transition1.peptide_ref = "peptide1";
+  transition1.transition_name = "transition1";
+  transition1.product_mz = 500.0;
+  transition1.precursor_mz = 600.0;
+  transition1.setDetectingTransition(true);
+  transition1.fragment_charge = 1;
+
+  // Set fragment type directly using new API (replaces annotations)
+  transition1.setFragmentType("y");
+  transition1.fragment_nr = 3;
+  exp.transitions.push_back(transition1);
+
+  OpenSwath::LightTransition transition2;
+  transition2.peptide_ref = "peptide2";
+  transition2.transition_name = "transition2";
+  transition2.product_mz = 501.0;
+  transition2.precursor_mz = 601.0;
+  transition2.setDetectingTransition(true);
+  transition2.fragment_charge = 1;
+
+  // Set fragment type directly using new API (replaces annotations)
+  transition2.setFragmentType("y");
+  transition2.fragment_nr = 3;
+  exp.transitions.push_back(transition2);
+  
+  // Generate decoys using the Light path
+  OpenSwath::LightTargetedExperiment decoys;
+  std::vector<String> fragment_types;
+  fragment_types.push_back("y");
+  fragment_types.push_back("b");
+  std::vector<size_t> fragment_charges;
+  fragment_charges.push_back(1);
+  fragment_charges.push_back(2);
+  
+  gen.generateDecoysLight(
+    exp,
+    decoys,
+    "pseudo-reverse",
+    1.0,  // aim_decoy_fraction - aim for 100% decoys
+    false,  // do_switchKR
+    "DECOY_",
+    10,  // max_attempts
+    0.7,  // identity_threshold
+    0.0,  // precursor_mz_shift
+    20.0,  // product_mz_shift
+    500.0,  // product_mz_threshold - high value to match any ion (test focuses on duplicate detection)
+    fragment_types,
+    fragment_charges,
+    true,  // enable_specific_losses
+    false,  // enable_unspecific_losses
+    -4  // round_decPow
+  );
+  
+  // Verify that BOTH peptides generated decoys (they should not be treated as duplicates)
+  // Before the fix, the second peptide would be incorrectly excluded as a duplicate
+  // because only the unmodified sequence was used for duplicate detection
+  TEST_EQUAL(decoys.compounds.size(), 2)
+  
+  // Verify that the two decoys have different modified sequences
+  // (i.e., modifications are at different positions)
+  if (decoys.compounds.size() == 2)
+  {
+    const auto& seq1 = decoys.compounds[0].sequence;
+    const auto& seq2 = decoys.compounds[1].sequence;
+    
+    // The sequences should be different because they have different modifications
+    TEST_NOT_EQUAL(seq1, seq2)
+    
+    // Both should contain UniMod annotations
+    TEST_NOT_EQUAL(seq1.find("UniMod:"), std::string::npos)
+    TEST_NOT_EQUAL(seq2.find("UniMod:"), std::string::npos)
+  }
+  
+  // Also verify that we got transitions for both decoys
+  TEST_EQUAL(decoys.transitions.size(), 2)
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
