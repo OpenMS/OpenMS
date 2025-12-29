@@ -575,11 +575,6 @@ protected:
       cur_cmap.resize(pep_ids.size());
 
       channel_extractor.registerChannelsInOutputMap(cmap, mz_file);
-      // add filename references
-      for (auto& column : cur_cmap.getColumnHeaders())
-      {
-        column.second.filename = mz_file;
-      }
 
       #pragma omp parallel for /*num_threads(inner_threads)*/
       for (int64_t pep_idx = 0; pep_idx < static_cast<int64_t>(pep_ids.size()); ++pep_idx)
@@ -640,16 +635,10 @@ protected:
 
       // TODO cleanup, reset?
 
-      if (cmap.empty())
-      {
-        cmap = std::move(cur_cmap);
-        channel_extractor.registerChannelsInOutputMap(cmap, mz_file);
-      }
-      else
-      {
-        cmap.reserve(cmap.size() + cur_cmap.size());
-        cmap.insert(cmap.end(), std::make_move_iterator(cur_cmap.begin()), std::make_move_iterator(cur_cmap.end()));
-      }
+      // Always use insert (not move assignment) to preserve column headers registered at line 577.
+      // Move assignment would lose column headers if early files have no peptide IDs after filtering.
+      cmap.reserve(cmap.size() + cur_cmap.size());
+      cmap.insert(cmap.end(), std::make_move_iterator(cur_cmap.begin()), std::make_move_iterator(cur_cmap.end()));
 
       // TODO If we do the parquet export, we can export the feature file here already. Then, if prot. inference and quant are disabled,
       //  the tool could be run on a single file and distributed over multiple nodes. We could use a parquet partitioned over raw_files
