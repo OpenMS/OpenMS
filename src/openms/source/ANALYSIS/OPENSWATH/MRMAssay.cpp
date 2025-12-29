@@ -402,9 +402,13 @@ namespace OpenMS
 
       // Iterate over all peptidoforms
       for (const auto& alt_aa : alternative_peptide_sequences)
-      { 
+      {
+        // Cache string representations to avoid repeated conversions
+        const String unmod_str = alt_aa.toUnmodifiedString();
+        const String mod_str = alt_aa.toString();
+
         // Append peptidoform to index
-        TargetSequenceMap[precursor_swath][alt_aa.toUnmodifiedString()].insert(alt_aa.toString());
+        TargetSequenceMap[precursor_swath][unmod_str].insert(mod_str);
         // Generate theoretical ion series
         auto ionseries = mrmis.getIonSeries(alt_aa, precursor_charge,
             fragment_types, fragment_charges, enable_specific_losses,
@@ -414,7 +418,7 @@ namespace OpenMS
         {
           // Add precursor to theoretical transitions
           double prec_mz = Math::roundDecimal(precursor_mz, round_decPow);
-          TargetIonMap[precursor_swath][alt_aa.toUnmodifiedString()].emplace_back(prec_mz, alt_aa.toString());
+          TargetIonMap[precursor_swath][unmod_str].emplace_back(prec_mz, mod_str);
           TargetPeptideMap[peptide.id].emplace_back("MS2_Precursor_i0", prec_mz);
         }
 
@@ -423,7 +427,7 @@ namespace OpenMS
         {
           // Append transition to indices to find interfering transitions
           double fragment_mz = Math::roundDecimal(im_it.second, round_decPow);
-          TargetIonMap[precursor_swath][alt_aa.toUnmodifiedString()].emplace_back(fragment_mz, alt_aa.toString());
+          TargetIonMap[precursor_swath][unmod_str].emplace_back(fragment_mz, mod_str);
           TargetPeptideMap[peptide.id].emplace_back(im_it.first, fragment_mz);
         }
       }
@@ -550,15 +554,19 @@ namespace OpenMS
       // Iterate over all peptidoforms
       for (const auto& alt_aa : alternative_decoy_peptide_sequences)
       {
+        // Cache string representations to avoid repeated conversions
+        const String unmod_str = alt_aa.toUnmodifiedString();
+        const String mod_str = alt_aa.toString();
+
         // Generate theoretical ion series
         MRMIonSeries::IonSeries ionseries = mrmis.getIonSeries(alt_aa, precursor_charge, // use same charge state as target
-                                                               fragment_types, fragment_charges, enable_specific_losses, enable_unspecific_losses);  
+                                                               fragment_types, fragment_charges, enable_specific_losses, enable_unspecific_losses);
 
         if (enable_ms2_precursors)
         {
           // Add precursor to theoretical transitions
           double prec_mz = Math::roundDecimal(precursor_mz, round_decPow);
-          DecoyIonMap[precursor_swath][alt_aa.toUnmodifiedString()].emplace_back(prec_mz, alt_aa.toString());
+          DecoyIonMap[precursor_swath][unmod_str].emplace_back(prec_mz, mod_str);
           DecoyPeptideMap[peptide.id].emplace_back("MS2_Precursor_i0", prec_mz);
         }
 
@@ -567,7 +575,7 @@ namespace OpenMS
         {
           // Append transition to indices to find interfering transitions
           double fragment_mz = Math::roundDecimal(im_it.second, round_decPow);
-          DecoyIonMap[precursor_swath][alt_aa.toUnmodifiedString()].emplace_back(fragment_mz, alt_aa.toString());
+          DecoyIonMap[precursor_swath][unmod_str].emplace_back(fragment_mz, mod_str);
           DecoyPeptideMap[decoy_peptide.id].emplace_back(im_it.first, fragment_mz);
         }
       }
@@ -1690,8 +1698,12 @@ namespace OpenMS
       // Iterate over all peptidoforms
       for (const auto& alt_aa : alternative_peptide_sequences)
       {
+        // Cache string representations to avoid repeated conversions
+        const String unmod_str = alt_aa.toUnmodifiedString();
+        const String mod_str = alt_aa.toString();
+
         // Append peptidoform to index
-        TargetSequenceMap[precursor_swath][alt_aa.toUnmodifiedString()].insert(alt_aa.toString());
+        TargetSequenceMap[precursor_swath][unmod_str].insert(mod_str);
 
         // Generate theoretical ion series
         auto ionseries = mrmis.getIonSeries(alt_aa, precursor_charge,
@@ -1702,7 +1714,7 @@ namespace OpenMS
         {
           // Add precursor to theoretical transitions
           double prec_mz = Math::roundDecimal(precursor_mz, round_decPow);
-          TargetIonMap[precursor_swath][alt_aa.toUnmodifiedString()].emplace_back(prec_mz, alt_aa.toString());
+          TargetIonMap[precursor_swath][unmod_str].emplace_back(prec_mz, mod_str);
           TargetPeptideMap[compound.id].emplace_back("MS2_Precursor_i0", prec_mz);
         }
 
@@ -1711,7 +1723,7 @@ namespace OpenMS
         {
           // Append transition to indices to find interfering transitions
           double fragment_mz = Math::roundDecimal(im_it.second, round_decPow);
-          TargetIonMap[precursor_swath][alt_aa.toUnmodifiedString()].emplace_back(fragment_mz, alt_aa.toString());
+          TargetIonMap[precursor_swath][unmod_str].emplace_back(fragment_mz, mod_str);
           TargetPeptideMap[compound.id].emplace_back(im_it.first, fragment_mz);
         }
       }
@@ -1795,6 +1807,10 @@ namespace OpenMS
       // Iterate over all peptidoforms
       for (const auto& alt_aa : alternative_peptide_sequences)
       {
+        // Cache string representations to avoid repeated conversions
+        const String unmod_str = alt_aa.toUnmodifiedString();
+        const String mod_str = alt_aa.toString();
+
         // Generate theoretical ion series
         auto ionseries = mrmis.getIonSeries(alt_aa, precursor_charge,
             fragment_types, fragment_charges, enable_specific_losses,
@@ -1804,7 +1820,7 @@ namespace OpenMS
         {
           // Use TARGET precursor m/z (same as heavy version)
           double prec_mz = Math::roundDecimal(target_precursor_mz, round_decPow);
-          DecoyIonMap[precursor_swath][alt_aa.toUnmodifiedString()].emplace_back(prec_mz, alt_aa.toString());
+          DecoyIonMap[precursor_swath][unmod_str].emplace_back(prec_mz, mod_str);
           // Use TARGET compound id as key (same as heavy version)
           DecoyPeptideMap[compound.id].emplace_back("MS2_Precursor_i0", prec_mz);
         }
@@ -1812,7 +1828,7 @@ namespace OpenMS
         for (const auto& im_it : ionseries)
         {
           double fragment_mz = Math::roundDecimal(im_it.second, round_decPow);
-          DecoyIonMap[precursor_swath][alt_aa.toUnmodifiedString()].emplace_back(fragment_mz, alt_aa.toString());
+          DecoyIonMap[precursor_swath][unmod_str].emplace_back(fragment_mz, mod_str);
           // Use TARGET compound id as key (same as heavy version)
           DecoyPeptideMap[compound.id].emplace_back(im_it.first, fragment_mz);
         }
