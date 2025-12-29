@@ -88,7 +88,7 @@ if iswin:
     else:
         libraries = ["OpenMS", "OpenSwathAlgo", "Qt5Core", "Qt5Network"]
 elif sys.platform.startswith("linux"):
-    libraries = ["OpenMS", "OpenSwathAlgo", "Qt5Core", "Qt5Network"]
+    libraries = ["OpenMS", "OpenSwathAlgo", "Qt6Core", "Qt6Network"]
 elif sys.platform == "darwin":
     libraries = ["OpenMS", "OpenSwathAlgo"]
 else:
@@ -122,7 +122,7 @@ import numpy
 
 include_dirs = [
     "extra_includes",
-    j(numpy.core.__path__[0], "include")
+    numpy.get_include()
 ]
 
 # append all include and library dirs exported by CMake
@@ -175,7 +175,7 @@ if iswin:
 elif sys.platform.startswith("linux"):
     extra_link_args = ["-Wl,-s"]
     if OMP:
-        libraries.append("libomp")
+        libraries.append("gomp")  # GNU OpenMP runtime
         libraries.append("pthread")
 elif sys.platform == "darwin":
     library_dirs.insert(0,j(OPEN_MS_BUILD_DIR,"pyOpenMS","pyopenms"))
@@ -192,8 +192,8 @@ if OMP and OPENMP_CXX_FLAGS:
     extra_compile_args.extend(OPENMP_CXX_FLAGS.split(";"))
 
 if not iswin:
-    extra_link_args.append("-std=c++17")
-    extra_compile_args.append("-std=c++17")
+    extra_link_args.append("-std=c++20")
+    extra_compile_args.append("-std=c++20")
     if isosx: # MacOS
         extra_compile_args.append("-stdlib=libc++")
         extra_link_args.append("-stdlib=libc++") # MacOS libstdc++ does not include c++11+ lib support.
@@ -223,8 +223,8 @@ if not iswin:
 mnames = ["_pyopenms_%s" % (k+1) for k in range(int(PY_NUM_MODULES))]
 ext = []
 
-##WARNING debug
-libraries.extend("boost_regex-mt-x64")
+##WARNING debug - boost_regex naming varies by platform
+libraries.append("boost_regex")
 
 for module in mnames:
 

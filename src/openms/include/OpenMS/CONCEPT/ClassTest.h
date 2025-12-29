@@ -415,8 +415,8 @@ namespace TEST = OpenMS::Internal::ClassTest;
 
  The implementation is done in namespace #OpenMS::Internal::ClassTest.
 
- To create a test you can use the 'create_test.php' script in %OpenMS/tools/
- (other useful scripts in the same directory - have a look).
+ To create a test, follow the guidelines in @ref developer_faq (section "How to add a new class test").
+ Look at existing test files in src/tests/class_tests/ for examples.
 
  @ingroup Concept
 
