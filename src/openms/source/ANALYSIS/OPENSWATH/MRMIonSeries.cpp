@@ -8,6 +8,8 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMIonSeries.h>
 
+#include <OpenMS/CONCEPT/Constants.h>
+
 #include <boost/assign.hpp>
 #include <boost/lexical_cast.hpp>
 
@@ -535,14 +537,70 @@ namespace OpenMS
                                                                 const bool enable_unspecific_losses,
                                                                 const int round_decPow)
   {
+    // Static neutral loss formulas
     const static EmpiricalFormula H2O = EmpiricalFormula("H2O1");
     const static EmpiricalFormula NH3 = EmpiricalFormula("H3N1");
     const static EmpiricalFormula CN2 = EmpiricalFormula("C1H2N2");
     const static EmpiricalFormula CNO = EmpiricalFormula("C1H2N1O1");
 
+    // Static ion type mass adjustments (computed once at first call)
+    static const double aion_adj = Residue::getInternalToAIon().getMonoWeight();
+    static const double bion_adj = Residue::getInternalToBIon().getMonoWeight();
+    static const double cion_adj = Residue::getInternalToCIon().getMonoWeight();
+    static const double xion_adj = Residue::getInternalToXIon().getMonoWeight();
+    static const double yion_adj = Residue::getInternalToYIon().getMonoWeight();
+    static const double zion_adj = Residue::getInternalToZIon().getMonoWeight();
+
     std::map<String, double> ionseries;
 
-    for (std::vector<String>::const_iterator ft_it = fragment_types.begin(); ft_it != fragment_types.end(); ++ft_it)
+    const Size seq_size = sequence.size();
+    if (seq_size == 0)
+    {
+      return ionseries;
+    }
+
+    // Pre-compute cumulative internal mass from N-terminus
+    // cumulative_mass[i] = sum of internal masses of residues 0..i-1
+    std::vector<double> cumulative_mass(seq_size + 1, 0.0);
+    for (Size i = 0; i < seq_size; ++i)
+    {
+      cumulative_mass[i + 1] = cumulative_mass[i] + sequence[i].getMonoWeight(Residue::Internal);
+    }
+
+    // Get terminal modification masses
+    const double n_term_mod_mass = sequence.hasNTerminalModification() ?
+        sequence.getNTerminalModification()->getDiffMonoMass() : 0.0;
+    const double c_term_mod_mass = sequence.hasCTerminalModification() ?
+        sequence.getCTerminalModification()->getDiffMonoMass() : 0.0;
+
+    // Total internal mass for suffix ion calculations
+    const double total_internal_mass = cumulative_mass[seq_size];
+
+    // Lambda to handle neutral losses for a residue range
+    auto add_neutral_losses = [&](const String& ft, Size ordinal, Size start_idx, Size end_idx, double pos, size_t charge)
+    {
+      for (Size j = start_idx; j < end_idx; ++j)
+      {
+        if (sequence[j].hasNeutralLoss())
+        {
+          for (const auto& lit : sequence[j].getLossFormulas())
+          {
+            if (enable_specific_losses && lit != H2O && lit != NH3 && lit != CN2 && lit != CNO)
+            {
+              ionseries[ft + String(ordinal) + "-" + lit.toString() + "^" + String(charge)] =
+                  Math::roundDecimal(pos - lit.getMonoWeight() / charge, round_decPow);
+            }
+            else if (enable_unspecific_losses && (lit == H2O || lit == NH3 || lit == CN2 || lit == CNO))
+            {
+              ionseries[ft + String(ordinal) + "-" + lit.toString() + "^" + String(charge)] =
+                  Math::roundDecimal(pos - lit.getMonoWeight() / charge, round_decPow);
+            }
+          }
+        }
+      }
+    };
+
+    for (const auto& ft : fragment_types)
     {
       for (const auto& charge : fragment_charges)
       {
@@ -551,77 +609,54 @@ namespace OpenMS
           continue;
         }
 
-        for (Size i = 1; i < sequence.size(); ++i)
+        const double proton_mass_contrib = Constants::PROTON_MASS_U * static_cast<double>(charge);
+
+        // Determine if this is a prefix (a/b/c) or suffix (x/y/z) ion
+        bool is_prefix = (ft == "a" || ft == "b" || ft == "c");
+        bool is_suffix = (ft == "x" || ft == "y" || ft == "z");
+
+        if (!is_prefix && !is_suffix)
         {
-          double pos = 0;
-          AASequence ion;
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+              ft + " ion series for peptide sequence \"" + sequence.toString() +
+              "\" with precursor charge +" + String(precursor_charge) + " could not be generated.");
+        }
 
-          if (*ft_it == "a")
-          {
-            ion = sequence.getPrefix(i);
-            pos = ion.getMZ(charge, Residue::AIon);
-          }
-          else if (*ft_it == "b")
-          {
-            ion = sequence.getPrefix(i);
-            pos = ion.getMZ(charge, Residue::BIon);
-          }
-          else if (*ft_it == "c")
-          {
-            ion = sequence.getPrefix(i);
-            pos = ion.getMZ(charge, Residue::CIon);
-          }
-          else if (*ft_it == "x")
-          {
-            ion = sequence.getSuffix(i);
-            pos = ion.getMZ(charge, Residue::XIon);
-          }
-          else if (*ft_it == "y")
-          {
-            ion = sequence.getSuffix(i);
-            pos = ion.getMZ(charge, Residue::YIon);
-          }
-          else if (*ft_it == "z")
-          {
-            ion = sequence.getSuffix(i);
-            pos = ion.getMZ(charge, Residue::ZIon);
-          }
-          else
-          {
-            throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                *ft_it + " ion series for peptide sequence \"" + sequence.toString() +
-                "\" with precursor charge +" + String(precursor_charge) + " could not be generated.");
-          }
-          
-          ionseries[*ft_it + String(i) + "^" + String(charge)] = Math::roundDecimal(pos, round_decPow);
+        // Get the appropriate ion type adjustment
+        double ion_adj = 0.0;
+        if (ft == "a") ion_adj = aion_adj;
+        else if (ft == "b") ion_adj = bion_adj;
+        else if (ft == "c") ion_adj = cion_adj;
+        else if (ft == "x") ion_adj = xion_adj;
+        else if (ft == "y") ion_adj = yion_adj;
+        else if (ft == "z") ion_adj = zion_adj;
 
-          for (Size j = 0; j < ion.size(); ++j)
+        for (Size i = 1; i < seq_size; ++i)
+        {
+          double internal_mass;
+          Size start_idx, end_idx;  // For neutral loss iteration
+
+          if (is_prefix)
           {
-            if (ion[j].hasNeutralLoss())
-            {
-              for (const auto& lit : ion[j].getLossFormulas())
-              {
-                if (enable_specific_losses && 
-                    lit != H2O &&
-                    lit != NH3 &&
-                    lit != CN2 &&
-                    lit != CNO)
-                {
-                  ionseries[*ft_it + String(i) + "-" + lit.toString() + "^" + String(charge)] =
-                    Math::roundDecimal(pos - lit.getMonoWeight() / charge, round_decPow);
-                }
-                else if (enable_unspecific_losses && (
-                    lit == H2O ||
-                    lit == NH3 ||
-                    lit == CN2 ||
-                    lit == CNO))
-                {
-                  ionseries[*ft_it + String(i) + "-" + lit.toString() + "^" + String(charge)] =
-                    Math::roundDecimal(pos - lit.getMonoWeight() / charge, round_decPow);
-                }
-              }
-            }
+            // Prefix ion at ordinal i: residues 0..i-1, includes N-term mod
+            internal_mass = cumulative_mass[i] + n_term_mod_mass;
+            start_idx = 0;
+            end_idx = i;
           }
+          else // is_suffix
+          {
+            // Suffix ion at ordinal i: residues (seq_size-i)..seq_size-1, includes C-term mod
+            internal_mass = total_internal_mass - cumulative_mass[seq_size - i] + c_term_mod_mass;
+            start_idx = seq_size - i;
+            end_idx = seq_size;
+          }
+
+          // Compute m/z: (internal_mass + protons + ion_adjustment) / charge
+          const double pos = (internal_mass + proton_mass_contrib + ion_adj) / static_cast<double>(charge);
+          ionseries[ft + String(i) + "^" + String(charge)] = Math::roundDecimal(pos, round_decPow);
+
+          // Handle neutral losses for residues in this fragment
+          add_neutral_losses(ft, i, start_idx, end_idx, pos, charge);
         }
       }
     }
