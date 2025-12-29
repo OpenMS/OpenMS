@@ -144,6 +144,23 @@ START_SECTION((const DRange<1>& getIntensityRange() const))
 	TEST_EQUAL(tmp.getIntensityRange(), DRange<1>());
 END_SECTION
 
+START_SECTION((void setPrecursorMZRange(const DRange<1>& range)))
+	PeakFileOptions tmp;
+	tmp.setPrecursorMZRange(makeRange(400, 600));
+	TEST_EQUAL(tmp.hasPrecursorMZRange(), true);
+	TEST_EQUAL(tmp.getPrecursorMZRange(), makeRange(400, 600));
+END_SECTION
+
+START_SECTION((bool hasPrecursorMZRange() const))
+	PeakFileOptions tmp;
+	TEST_EQUAL(tmp.hasPrecursorMZRange(), false);
+END_SECTION
+
+START_SECTION((const DRange<1>& getPrecursorMZRange() const))
+	PeakFileOptions tmp;
+	TEST_EQUAL(tmp.getPrecursorMZRange(), DRange<1>());
+END_SECTION
+
 START_SECTION((void setMSLevels(const vector<Int>& levels)))
 	PeakFileOptions tmp;
 	vector<Int> levels;
