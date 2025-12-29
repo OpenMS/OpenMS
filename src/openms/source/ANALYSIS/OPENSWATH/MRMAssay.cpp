@@ -14,6 +14,7 @@
 #include <map>
 #include <regex>
 #include <set>
+#include <unordered_map>
 #include <unordered_set>
 
 using namespace std;
@@ -1266,7 +1267,7 @@ namespace OpenMS
     OpenMS::MRMIonSeries mrmis;
 
     // Build compound map for quick lookup
-    std::map<std::string, const OpenSwath::LightCompound*> compound_map;
+    std::unordered_map<std::string, const OpenSwath::LightCompound*> compound_map;
     for (const auto& compound : exp.compounds)
     {
       compound_map[compound.id] = &compound;
@@ -1408,7 +1409,7 @@ namespace OpenMS
     transitions.reserve(exp.transitions.size());
 
     // Build compound map for quick lookup
-    std::map<std::string, const OpenSwath::LightCompound*> compound_map;
+    std::unordered_map<std::string, const OpenSwath::LightCompound*> compound_map;
     for (const auto& compound : exp.compounds)
     {
       compound_map[compound.id] = &compound;
@@ -1515,7 +1516,7 @@ namespace OpenMS
     }
 
     // Build compound map
-    std::map<std::string, const OpenSwath::LightCompound*> compound_map;
+    std::unordered_map<std::string, const OpenSwath::LightCompound*> compound_map;
     for (const auto& compound : exp.compounds)
     {
       compound_map[compound.id] = &compound;
@@ -1833,7 +1834,7 @@ namespace OpenMS
                                             const IonMapT& TargetIonMap)
   {
     // Build compound lookup map
-    std::map<std::string, const OpenSwath::LightCompound*> compound_map;
+    std::unordered_map<std::string, const OpenSwath::LightCompound*> compound_map;
     for (const auto& compound : exp.compounds)
     {
       compound_map[compound.id] = &compound;
@@ -1962,7 +1963,7 @@ namespace OpenMS
                                            const IonMapT& TargetIonMap)
   {
     // Build compound lookup map for targets
-    std::map<std::string, const OpenSwath::LightCompound*> compound_map;
+    std::unordered_map<std::string, const OpenSwath::LightCompound*> compound_map;
     for (const auto& compound : exp.compounds)
     {
       compound_map[compound.id] = &compound;
