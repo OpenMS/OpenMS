@@ -100,6 +100,8 @@ namespace OpenMS
       if (delta <= mz_threshold)
       {
         bool is_better = false;
+        int this_charge = extractChargeFromAnnotation_(ordinal.first);
+        int this_ordinal = extractOrdinalFromAnnotation_(ordinal.first);
 
         if (delta < closest_delta - delta_epsilon)
         {
@@ -109,9 +111,6 @@ namespace OpenMS
         else if (delta <= closest_delta + delta_epsilon)
         {
           // Within epsilon of current best - use tie-breaking rules
-          int this_charge = extractChargeFromAnnotation_(ordinal.first);
-          int this_ordinal = extractOrdinalFromAnnotation_(ordinal.first);
-
           if (this_charge < best_charge)
           {
             // Prefer lower charge state (b8^2 over b18^4)
@@ -127,8 +126,8 @@ namespace OpenMS
         if (is_better)
         {
           closest_delta = delta;
-          best_charge = extractChargeFromAnnotation_(ordinal.first);
-          best_ordinal = extractOrdinalFromAnnotation_(ordinal.first);
+          best_charge = this_charge;
+          best_ordinal = this_ordinal;
           ion = make_pair(ordinal.first, ordinal.second);
         }
       }
