@@ -10,7 +10,7 @@
 
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 #include <OpenMS/MATH/MathFunctions.h>
-#include <unordered_map>
+#include <map>
 
 // #define DEBUG_MRMIONSERIES
 
@@ -54,7 +54,7 @@ public:
     ~MRMIonSeries();
     //@}
 
-    typedef std::unordered_map<String, double> IonSeries; ///< An MRM ion series which maps: "ion_type" -> "fragment m/z"
+    typedef std::map<String, double> IonSeries; ///< An MRM ion series which maps: "ion_type" -> "fragment m/z"
 
     /**
       @brief Selects ion from IonSeries according to annotation string

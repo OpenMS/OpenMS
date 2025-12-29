@@ -12,6 +12,7 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMIonSeries.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
 
 #include <boost/random/mersenne_twister.hpp>
 #include <boost/random/uniform_int.hpp>
@@ -184,6 +185,96 @@ public:
 
     */
     void filterUnreferencedDecoysCompound(OpenMS::TargetedExperiment &exp);
+
+    // =====================================================================
+    // Light (memory-efficient) versions of the above methods
+    // =====================================================================
+
+    /**
+      @brief Annotates and filters transitions in a LightTargetedExperiment
+
+      Light version of reannotateTransitions() for memory-efficient processing.
+
+      @param[out] exp the input, unfiltered transitions
+      @param[in] precursor_mz_threshold the precursor m/z threshold in Th for annotation
+      @param[in] product_mz_threshold the product m/z threshold in Th for annotation
+      @param[in] fragment_types the fragment types to consider for annotation
+      @param[in] fragment_charges the fragment charges to consider for annotation
+      @param[in] enable_specific_losses whether specific neutral losses should be considered
+      @param[in] enable_unspecific_losses whether unspecific neutral losses should be considered
+      @param[in] round_decPow round product m/z values to decimal power (default: -4)
+
+    */
+    void reannotateTransitionsLight(OpenSwath::LightTargetedExperiment& exp,
+                                    double precursor_mz_threshold,
+                                    double product_mz_threshold,
+                                    const std::vector<String>& fragment_types,
+                                    const std::vector<size_t>& fragment_charges,
+                                    bool enable_specific_losses,
+                                    bool enable_unspecific_losses,
+                                    int round_decPow = -4);
+
+    /**
+      @brief Restrict and filter transitions in a LightTargetedExperiment
+
+      Light version of restrictTransitions() for memory-efficient processing.
+
+      @param[in] exp the input, unfiltered transitions
+      @param[in] lower_mz_limit the lower product m/z limit in Th
+      @param[in] upper_mz_limit the upper product m/z limit in Th
+      @param[in] swathes the swath window settings
+
+    */
+    void restrictTransitionsLight(OpenSwath::LightTargetedExperiment& exp,
+                                  double lower_mz_limit,
+                                  double upper_mz_limit,
+                                  const std::vector<std::pair<double, double> >& swathes);
+
+    /**
+      @brief Select detecting fragment ions in a LightTargetedExperiment
+
+      Light version of detectingTransitions() for memory-efficient processing.
+
+      @param[in] exp the input, unfiltered transitions
+      @param[out] min_transitions the minimum number of transitions required per assay
+      @param[in] max_transitions the maximum number of transitions required per assay
+
+    */
+    void detectingTransitionsLight(OpenSwath::LightTargetedExperiment& exp,
+                                   int min_transitions,
+                                   int max_transitions);
+
+    /**
+      @brief Annotate UIS / site-specific transitions (light version)
+
+      Light version of uisTransitions() for memory-efficient processing of large libraries.
+      Works with LightTargetedExperiment structures.
+
+      @param[in,out] exp The light targeted experiment to annotate
+      @param[in] fragment_types Fragment types to consider (e.g., "b", "y")
+      @param[in] fragment_charges Fragment charges to consider
+      @param[in] enable_specific_losses Enable specific neutral losses
+      @param[in] enable_unspecific_losses Enable unspecific neutral losses
+      @param[in] enable_ms2_precursors Enable MS2 precursor transitions
+      @param[in] mz_threshold m/z tolerance for matching
+      @param[in] swathes SWATH isolation windows as (lower, upper) pairs
+      @param[in] round_decPow Decimal power for m/z rounding (default -4)
+      @param[in] max_num_alternative_localizations Max peptidoform permutations (default 20)
+      @param[in] shuffle_seed Random seed for decoy generation (-1 = time-based)
+      @param[in] disable_decoy_transitions Skip decoy transition generation
+    */
+    void uisTransitionsLight(OpenSwath::LightTargetedExperiment& exp,
+                             const std::vector<String>& fragment_types,
+                             const std::vector<size_t>& fragment_charges,
+                             bool enable_specific_losses,
+                             bool enable_unspecific_losses,
+                             bool enable_ms2_precursors,
+                             double mz_threshold,
+                             const std::vector<std::pair<double, double> >& swathes,
+                             int round_decPow = -4,
+                             size_t max_num_alternative_localizations = 20,
+                             int shuffle_seed = -1,
+                             bool disable_decoy_transitions = false);
 
 protected:
 
@@ -391,6 +482,86 @@ protected:
                              TargetDecoyMapT& TargetDecoyMap,
                              const IonMapT& DecoyIonMap,
                              const IonMapT& TargetIonMap);
+
+    // =====================================================================
+    // Light (memory-efficient) versions of IPF helper methods
+    // =====================================================================
+
+    /// Light version of TargetDecoyMapT using LightCompound
+    typedef std::map<String, OpenSwath::LightCompound> TargetDecoyMapLightT;
+
+    /**
+      @brief Generate target in silico map (light version)
+
+      Light version of generateTargetInSilicoMap_() for memory-efficient processing.
+
+      @details Used internally by the IPF algorithm, see MRMAssay::uisTransitionsLight()
+    */
+    void generateTargetInSilicoMapLight_(const OpenSwath::LightTargetedExperiment& exp,
+                                         const std::vector<String>& fragment_types,
+                                         const std::vector<size_t>& fragment_charges,
+                                         bool enable_specific_losses,
+                                         bool enable_unspecific_losses,
+                                         bool enable_ms2_precursors,
+                                         const std::vector<std::pair<double, double> >& swathes,
+                                         int round_decPow,
+                                         size_t max_num_alternative_localizations,
+                                         SequenceMapT& TargetSequenceMap,
+                                         IonMapT& TargetIonMap,
+                                         PeptideMapT& TargetPeptideMap);
+
+    /**
+      @brief Generate decoy in silico map (light version)
+
+      Light version of generateDecoyInSilicoMap_() for memory-efficient processing.
+
+      @details Used internally by the IPF algorithm, see MRMAssay::uisTransitionsLight()
+    */
+    void generateDecoyInSilicoMapLight_(const OpenSwath::LightTargetedExperiment& exp,
+                                        const std::vector<String>& fragment_types,
+                                        const std::vector<size_t>& fragment_charges,
+                                        bool enable_specific_losses,
+                                        bool enable_unspecific_losses,
+                                        bool enable_ms2_precursors,
+                                        const std::vector<std::pair<double, double> >& swathes,
+                                        int round_decPow,
+                                        TargetDecoyMapLightT& TargetDecoyMap,
+                                        const PeptideMapT& TargetPeptideMap,
+                                        const std::map<String, String>& DecoySequenceMap,
+                                        IonMapT& DecoyIonMap,
+                                        PeptideMapT& DecoyPeptideMap);
+
+    /**
+      @brief Generate target identification transitions (light version)
+
+      Light version of generateTargetAssays_() for memory-efficient processing.
+
+      @details Used internally by the IPF algorithm, see MRMAssay::uisTransitionsLight()
+    */
+    void generateTargetAssaysLight_(const OpenSwath::LightTargetedExperiment& exp,
+                                    std::vector<OpenSwath::LightTransition>& transitions,
+                                    double mz_threshold,
+                                    const std::vector<std::pair<double, double> >& swathes,
+                                    int round_decPow,
+                                    const PeptideMapT& TargetPeptideMap,
+                                    const IonMapT& TargetIonMap);
+
+    /**
+      @brief Generate decoy assays (light version)
+
+      Light version of generateDecoyAssays_() for memory-efficient processing.
+
+      @details Used internally by the IPF algorithm, see MRMAssay::uisTransitionsLight()
+    */
+    void generateDecoyAssaysLight_(const OpenSwath::LightTargetedExperiment& exp,
+                                   std::vector<OpenSwath::LightTransition>& transitions,
+                                   double mz_threshold,
+                                   const std::vector<std::pair<double, double> >& swathes,
+                                   int round_decPow,
+                                   const PeptideMapT& DecoyPeptideMap,
+                                   const TargetDecoyMapLightT& TargetDecoyMap,
+                                   const IonMapT& DecoyIonMap,
+                                   const IonMapT& TargetIonMap);
 
   };
 }

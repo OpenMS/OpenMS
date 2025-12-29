@@ -38,7 +38,7 @@ public:
     struct PeptideData
     {
       /// mapping: fraction -> filename -> charge -> channel/label -> abundance
-      std::map<Int, std::map<String, std::map<Int, std::map<Int, double>>>> abundances;
+      std::map<Int, std::map<String, std::map<Int, std::map<UInt, double>>>> abundances;
 
       /// mapping: fraction -> filename -> charge -> abundance
       std::map<Int, std::map<String, std::map<Int, UInt64>>> psm_counts;
@@ -71,7 +71,7 @@ public:
       std::map<String, SampleAbundances> peptide_psm_counts;
 
       /// mapping: filename -> channel/label -> abundance
-      std::map<String, std::map<Int, double>> channel_level_abundances;
+      std::map<String, std::map<UInt, double>> channel_level_abundances;
 
       /// mapping: filename -> PSM counts
       std::map<String, UInt64> file_level_psm_counts;
@@ -222,13 +222,14 @@ private:
          @p fraction, use 0 for first fraction (or if no fractionation was performed)
          @p filename, the base filename (without path/extension) from which the feature originates
          @p channel_or_label, the channel/label identifier (e.g., TMT channel, typically 1 for LFQ)
+         Channel identifiers originate from consensus map headers/experimental designs and are therefore non-negative.
          If @p hit is empty ("ambiguous/no annotation"), nothing is stored.
     */
     void quantifyFeature_(const FeatureHandle& feature,
       size_t fraction,
       const String& filename,
       const PeptideHit& hit,
-      Int channel_or_label);
+      UInt channel_or_label);
 
     /**
      *   @brief Determine fraction, filename, charge state, and channel of a peptide with the highest
@@ -238,8 +239,8 @@ private:
      *   @return true if at least one abundance was found, false otherwise
      */
     bool getBest_(
-      const std::map<Int, std::map<String, std::map<Int, std::map<Int, double>>>> & peptide_abundances,
-      std::tuple<size_t, String, size_t, Int> & best);
+      const std::map<Int, std::map<String, std::map<Int, std::map<UInt, double>>>> & peptide_abundances,
+      std::tuple<size_t, String, size_t, UInt> & best);
 
     /**
          @brief Order keys (charges/peptides for peptide/protein quantification) according to how many samples they allow to quantify, breaking ties by total abundance.
@@ -381,7 +382,7 @@ private:
          @return The sample ID corresponding to the filename and channel
     */
     size_t getSampleIDFromFilenameAndChannel_(const String& filename,
-                                           Int channel_or_label,
+                                           UInt channel_or_label,
                                            const ExperimentalDesign& ed) const;
 
     /// Clear all data when parameters are set

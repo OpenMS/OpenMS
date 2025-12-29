@@ -13,16 +13,17 @@ import numpy as np
         Useful for discovering available columns before export, especially when
         selecting specific columns for performance optimization.
 
-        Args:
-            columns (str): 'default' for standard columns, 'all' for all available
-                          columns including non-default ones (chromatogram_type, comment).
-            export_meta_values (bool): Whether to include meta value column names.
-                                       Defaults to True.
+        :param columns: 'default' for standard columns, 'all' for all available
+                        columns including non-default ones (chromatogram_type, comment).
+        :type columns: str
+        :param export_meta_values: Whether to include meta value column names.
+                                   Defaults to True.
+        :type export_meta_values: bool
+        :return: List of column name strings.
+        :rtype: list
 
-        Returns:
-            list: List of column name strings.
+        Example::
 
-        Example:
             >>> # See default columns
             >>> cols = chrom.get_df_columns()
             ['rt', 'intensity', 'precursor_mz', ...]
@@ -61,29 +62,30 @@ import numpy as np
         and optional meta values into a dictionary format suitable for conversion to
         a pandas DataFrame.
 
-        Args:
-            columns (list or None): List of column names to include. If None, includes
-                                   all default columns. Use get_df_columns('all') to see
-                                   all available columns.
-            export_meta_values (bool): Whether to include meta values in the output.
-                                       Only applies when columns=None. Defaults to True.
+        :param columns: List of column names to include. If None, includes
+                        all default columns. Use get_df_columns('all') to see
+                        all available columns.
+        :type columns: Optional[List[str]]
+        :param export_meta_values: Whether to include meta values in the output.
+                                   Only applies when columns=None. Defaults to True.
+        :type export_meta_values: bool
+        :return: Dictionary with requested columns as keys and numpy arrays as values.
+                 Default columns include:
+                 - 'rt': numpy array of retention time values (float64)
+                 - 'intensity': numpy array of intensity values (float32)
+                 - 'precursor_mz': precursor m/z (float64)
+                 - 'precursor_charge': precursor charge (uint16)
+                 - 'product_mz': product m/z (float64)
+                 - 'native_id': chromatogram native identifier
+                 - Additional meta value columns (if export_meta_values=True)
 
-        Returns:
-            dict: Dictionary with requested columns as keys and numpy arrays as values.
-                  Default columns include:
-                - 'rt': numpy array of retention time values (float64)
-                - 'intensity': numpy array of intensity values (float32)
-                - 'precursor_mz': precursor m/z (float64)
-                - 'precursor_charge': precursor charge (uint16)
-                - 'product_mz': product m/z (float64)
-                - 'native_id': chromatogram native identifier
-                - Additional meta value columns (if export_meta_values=True)
+                 Non-default columns (must be explicitly requested):
+                 - 'chromatogram_type': type of chromatogram
+                 - 'comment': chromatogram comment
+        :rtype: dict
 
-                Non-default columns (must be explicitly requested):
-                - 'chromatogram_type': type of chromatogram
-                - 'comment': chromatogram comment
+        Example::
 
-        Example:
             >>> # Get all columns (default)
             >>> data = chrom.get_data_dict()
 
@@ -204,6 +206,101 @@ import numpy as np
                             data_dict[col] = np.full(cnt, str(v), dtype='object')
 
         return data_dict
+
+    def get_df(self, columns=None, export_meta_values=True):
+        """
+        get_df(self: MSChromatogram, columns: Optional[List[str]] = None, export_meta_values: bool = True) -> pd.DataFrame
+
+        Returns a pandas DataFrame representation of the MSChromatogram.
+
+        This method converts the chromatogram data (peaks, metadata, precursor/product info)
+        into a pandas DataFrame format.
+
+        :param columns: List of column names to include. If None,
+                        includes all default columns. Use get_df_columns()
+                        to discover available columns.
+        :type columns: Optional[List[str]]
+
+        :param export_meta_values: Whether to include meta values. Only applies
+                                   when columns=None. Defaults to True.
+        :type export_meta_values: bool
+
+        :return: DataFrame with requested columns. Default columns include:
+                 rt, intensity, precursor_mz, precursor_charge, product_mz, native_id,
+                 and additional meta value columns (if export_meta_values=True).
+                 Non-default columns (must be explicitly requested): chromatogram_type, comment.
+        :rtype: pd.DataFrame
+
+        :raises ImportError: If pandas is not installed
+
+        Example::
+
+            # Get all default columns
+            df = chrom.get_df()
+
+            # Discover available columns
+            print(chrom.get_df_columns())
+
+            # Get only specific columns (faster)
+            df = chrom.get_df(columns=['rt', 'intensity'])
+
+            # Get all columns including non-defaults
+            cols = chrom.get_df_columns('all')
+            df = chrom.get_df(columns=cols)
+        """
+        try:
+            import pandas as pd
+        except ImportError:
+            raise ImportError(
+                "pandas is required for get_df(). "
+                "Please install it with: pip install pandas"
+            )
+        data_dict = self.get_data_dict(columns=columns, export_meta_values=export_meta_values)
+        return pd.DataFrame(data_dict)
+
+    def to_arrow(self, columns=None, export_meta_values=True):
+        """
+        to_arrow(self: MSChromatogram, columns: Optional[List[str]] = None, export_meta_values: bool = True) -> pa.Table
+
+        Returns an Apache Arrow Table representation of the MSChromatogram.
+
+        This method converts the chromatogram data (peaks, metadata, precursor/product info)
+        into an Arrow Table format for efficient data interchange.
+
+        :param columns: List of column names to include. If None,
+                        includes all default columns. Use get_df_columns()
+                        to discover available columns.
+        :type columns: Optional[List[str]]
+
+        :param export_meta_values: Whether to include meta values. Only applies
+                                   when columns=None. Defaults to True.
+        :type export_meta_values: bool
+
+        :return: Arrow Table with requested columns.
+        :rtype: pyarrow.Table
+
+        :raises ImportError: If pyarrow is not installed
+
+        Example::
+
+            # Get all default columns
+            table = chrom.to_arrow()
+
+            # Get only specific columns (faster)
+            table = chrom.to_arrow(columns=['rt', 'intensity'])
+
+            # Convert to pandas (zero-copy with pandas 2.0+)
+            df = table.to_pandas()
+        """
+        try:
+            import pyarrow as pa
+        except ImportError:
+            raise ImportError(
+                "pyarrow is required for to_arrow(). "
+                "Please install it with: pip install pyarrow"
+            )
+        data_dict = self.get_data_dict(columns=columns, export_meta_values=export_meta_values)
+        return pa.Table.from_pydict(data_dict)
 
     def get_peaks(self):
         """
@@ -379,4 +476,3 @@ import numpy as np
             parts.append(f"rt_range=[{rts[0]:.2f}, {rts[-1]:.2f}]")
 
         return f"MSChromatogram({', '.join(parts)})"
-

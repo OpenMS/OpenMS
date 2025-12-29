@@ -911,11 +911,14 @@ def testConsensusMap():
      ConsensusMap.__init__
      ConsensusMap.__iter__
      ConsensusMap.__le__
+     ConsensusMap.__len__
      ConsensusMap.__lt__
      ConsensusMap.__ne__
+     ConsensusMap.append
      ConsensusMap.clear
      ConsensusMap.clearUniqueId
      ConsensusMap.ensureUniqueId
+     ConsensusMap.extend
      ConsensusMap.getDataProcessing
      ConsensusMap.getColumnHeaders
      ConsensusMap.getProteinIdentifications
@@ -1016,6 +1019,49 @@ def testConsensusMap():
     repr_str = repr(cm_repr)
     assert "ConsensusMap(" in repr_str
     assert "num_consensus_features=" in repr_str
+
+    # Test __len__, append, and extend methods
+    cm_len = pyopenms.ConsensusMap()
+    assert len(cm_len) == 0
+    assert len(cm_len) == cm_len.size()
+
+    cf_test1 = pyopenms.ConsensusFeature()
+    cf_test1.setRT(100.0)
+    cf_test1.setMZ(500.0)
+
+    cf_test2 = pyopenms.ConsensusFeature()
+    cf_test2.setRT(200.0)
+    cf_test2.setMZ(600.0)
+
+    cf_test3 = pyopenms.ConsensusFeature()
+    cf_test3.setRT(300.0)
+    cf_test3.setMZ(700.0)
+
+    # Test append (single item)
+    cm_len.append(cf_test1)
+    assert len(cm_len) == 1
+    assert len(cm_len) == cm_len.size()
+
+    # Test extend with list
+    cm_len.extend([cf_test2, cf_test3])
+    assert len(cm_len) == 3
+    assert len(cm_len) == cm_len.size()
+
+    # Verify the features were added correctly
+    assert cm_len[0].getRT() == 100.0
+    assert cm_len[1].getRT() == 200.0
+    assert cm_len[2].getRT() == 300.0
+
+    # Test extend with another ConsensusMap
+    cm_source = pyopenms.ConsensusMap()
+    cf_test4 = pyopenms.ConsensusFeature()
+    cf_test4.setRT(400.0)
+    cf_test4.setMZ(800.0)
+    cm_source.push_back(cf_test4)
+
+    cm_len.extend(cm_source)
+    assert len(cm_len) == 4
+    assert cm_len[3].getRT() == 400.0
 
 @report
 def testConsensusXMLFile():
@@ -1987,9 +2033,12 @@ def testFeatureMap():
      FeatureMap.__radd__
      FeatureMap.__getitem__
      FeatureMap.__iter__
+     FeatureMap.__len__
+     FeatureMap.append
      FeatureMap.clear
      FeatureMap.clearUniqueId
      FeatureMap.ensureUniqueId
+     FeatureMap.extend
      FeatureMap.getDataProcessing
      FeatureMap.getProteinIdentifications
      FeatureMap.getUnassignedPeptideIdentifications
@@ -2112,6 +2161,49 @@ def testFeatureMap():
     repr_str = repr(fm_repr)
     assert "FeatureMap(" in repr_str
     assert "num_features=" in repr_str
+
+    # Test __len__, append, and extend methods
+    fm_len = pyopenms.FeatureMap()
+    assert len(fm_len) == 0
+    assert len(fm_len) == fm_len.size()
+
+    f_test1 = pyopenms.Feature()
+    f_test1.setRT(100.0)
+    f_test1.setMZ(500.0)
+
+    f_test2 = pyopenms.Feature()
+    f_test2.setRT(200.0)
+    f_test2.setMZ(600.0)
+
+    f_test3 = pyopenms.Feature()
+    f_test3.setRT(300.0)
+    f_test3.setMZ(700.0)
+
+    # Test append (single item)
+    fm_len.append(f_test1)
+    assert len(fm_len) == 1
+    assert len(fm_len) == fm_len.size()
+
+    # Test extend with list
+    fm_len.extend([f_test2, f_test3])
+    assert len(fm_len) == 3
+    assert len(fm_len) == fm_len.size()
+
+    # Verify the features were added correctly
+    assert fm_len[0].getRT() == 100.0
+    assert fm_len[1].getRT() == 200.0
+    assert fm_len[2].getRT() == 300.0
+
+    # Test extend with another FeatureMap
+    fm_source = pyopenms.FeatureMap()
+    f_test4 = pyopenms.Feature()
+    f_test4.setRT(400.0)
+    f_test4.setMZ(800.0)
+    fm_source.push_back(f_test4)
+
+    fm_len.extend(fm_source)
+    assert len(fm_len) == 4
+    assert fm_len[3].getRT() == 400.0
 
 
 @report
@@ -3144,9 +3236,9 @@ def testMSExperiment():
     assert exp.get_df(ms_levels=[1]).shape == (3, 4)
     assert exp.get_df(ms_levels=[2]).shape == (2, 4)
 
-    assert exp.get_df(long=True).shape == (10, 4)
-    assert exp.get_df(long = True, ms_levels=[1]).shape == (6, 4)
-    assert exp.get_df(long=True, ms_levels=[2]).shape == (4, 4)
+    assert exp.get_df(long_format=True).shape == (10, 4)
+    assert exp.get_df(long_format=True, ms_levels=[1]).shape == (6, 4)
+    assert exp.get_df(long_format=True, ms_levels=[2]).shape == (4, 4)
 
     pyopenms.MzMLFile().load(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'BSA1_F1.mzML'), exp)
 
@@ -4568,6 +4660,71 @@ def testMatrixDouble():
     assert test_matrix.getValue(2, 3) == 120.7
 
 @report
+def testMatrixDoubleColumnMajorOrdering():
+    """
+    @tests: MatrixDouble
+    Verify Matrix preserves row/column ordering through Python<->C++ round-trip.
+    This test catches column-major vs row-major issues that could cause data
+    transposition when passing matrices between numpy and C++.
+    """
+    # Test 1: Non-square matrix with unique values at each position
+    # Using 3x4 matrix where value[i,j] = i*10 + j makes each element unique
+    # and any transposition immediately detectable
+    original = np.array([[0, 1, 2, 3],
+                         [10, 11, 12, 13],
+                         [20, 21, 22, 23]], dtype=np.float64)  # 3 rows x 4 cols
+
+    m = pyopenms.MatrixDouble()
+    m.set_matrix(original)
+
+    # Verify shape preserved (not transposed)
+    assert m.rows() == 3, f"Expected 3 rows, got {m.rows()}"
+    assert m.cols() == 4, f"Expected 4 cols, got {m.cols()}"
+
+    # Verify each element via getValue matches numpy indexing
+    for i in range(3):
+        for j in range(4):
+            expected = original[i, j]
+            actual = m.getValue(i, j)
+            assert actual == expected, \
+                f"getValue mismatch at ({i},{j}): C++={actual}, numpy={expected}"
+
+    # Test 2: Round-trip preservation (numpy -> C++ -> numpy)
+    result = m.get_matrix()
+    assert result.shape == original.shape, \
+        f"Shape mismatch after round-trip: {result.shape} vs {original.shape}"
+    assert np.array_equal(original, result), \
+        f"Data mismatch after round-trip:\nOriginal:\n{original}\nResult:\n{result}"
+
+    # Test 3: Verify view indexing matches getValue for all elements
+    view = m.get_matrix_as_view()
+    assert view.shape == (3, 4), f"View shape mismatch: {view.shape}"
+    for i in range(3):
+        for j in range(4):
+            assert view[i, j] == m.getValue(i, j), \
+                f"View mismatch at ({i},{j}): view={view[i,j]}, getValue={m.getValue(i,j)}"
+
+    # Test 4: Verify modifications through view are reflected in C++ object
+    view[2, 3] = 99.0
+    assert m.getValue(2, 3) == 99.0, "View modification not reflected in C++ object"
+
+    # Test 5: Test with transposed-like access pattern to catch subtle bugs
+    # Create matrix where row index and col index have very different values
+    m2 = pyopenms.MatrixDouble(2, 5, 0.0)  # 2 rows, 5 cols - very non-square
+    for i in range(2):
+        for j in range(5):
+            m2.setValue(i, j, i * 100 + j)
+
+    view2 = m2.get_matrix_as_view()
+    assert view2.shape == (2, 5), f"Non-square view shape wrong: {view2.shape}"
+
+    # Check corners and middle to ensure no transposition
+    assert view2[0, 0] == 0, f"[0,0] = {view2[0,0]}, expected 0"
+    assert view2[0, 4] == 4, f"[0,4] = {view2[0,4]}, expected 4"
+    assert view2[1, 0] == 100, f"[1,0] = {view2[1,0]}, expected 100"
+    assert view2[1, 4] == 104, f"[1,4] = {view2[1,4]}, expected 104"
+
+@report
 def testMapAlignmentIdentification():
 
     """
@@ -5166,12 +5323,15 @@ def testPeptideIdentificationList():
     """
     @tests: PeptideIdentificationList
      PeptideIdentificationList.__init__
-     PeptideIdentificationList.size
-     PeptideIdentificationList.empty
-     PeptideIdentificationList.clear
-     PeptideIdentificationList.push_back
      PeptideIdentificationList.__getitem__
      PeptideIdentificationList.__iter__
+     PeptideIdentificationList.__len__
+     PeptideIdentificationList.append
+     PeptideIdentificationList.clear
+     PeptideIdentificationList.empty
+     PeptideIdentificationList.extend
+     PeptideIdentificationList.push_back
+     PeptideIdentificationList.size
     """
     import pyopenms
 
@@ -5230,6 +5390,57 @@ def testPeptideIdentificationList():
     pil.clear()
     assert pil.empty()
     assert pil.size() == 0
+
+    # Test __len__, append, and extend methods
+    pil_len = pyopenms.PeptideIdentificationList()
+    assert len(pil_len) == 0
+    assert len(pil_len) == pil_len.size()
+
+    pi_test1 = pyopenms.PeptideIdentification()
+    pi_test1.setRT(100.0)
+    pi_test1.setMZ(500.0)
+    pi_test1.setIdentifier("test_append_1")
+
+    pi_test2 = pyopenms.PeptideIdentification()
+    pi_test2.setRT(200.0)
+    pi_test2.setMZ(600.0)
+    pi_test2.setIdentifier("test_append_2")
+
+    pi_test3 = pyopenms.PeptideIdentification()
+    pi_test3.setRT(300.0)
+    pi_test3.setMZ(700.0)
+    pi_test3.setIdentifier("test_append_3")
+
+    # Test append (single item)
+    pil_len.append(pi_test1)
+    assert len(pil_len) == 1
+    assert len(pil_len) == pil_len.size()
+
+    # Test extend with list
+    pil_len.extend([pi_test2, pi_test3])
+    assert len(pil_len) == 3
+    assert len(pil_len) == pil_len.size()
+
+    # Verify the peptide identifications were added correctly
+    assert pil_len[0].getRT() == 100.0
+    assert pil_len[0].getIdentifier() == "test_append_1"
+    assert pil_len[1].getRT() == 200.0
+    assert pil_len[1].getIdentifier() == "test_append_2"
+    assert pil_len[2].getRT() == 300.0
+    assert pil_len[2].getIdentifier() == "test_append_3"
+
+    # Test extend with another PeptideIdentificationList
+    pil_source = pyopenms.PeptideIdentificationList()
+    pi_test4 = pyopenms.PeptideIdentification()
+    pi_test4.setRT(400.0)
+    pi_test4.setMZ(800.0)
+    pi_test4.setIdentifier("test_append_4")
+    pil_source.push_back(pi_test4)
+
+    pil_len.extend(pil_source)
+    assert len(pil_len) == 4
+    assert pil_len[3].getRT() == 400.0
+    assert pil_len[3].getIdentifier() == "test_append_4"
 
 
 @report

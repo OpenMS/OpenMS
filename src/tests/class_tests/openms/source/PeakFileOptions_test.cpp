@@ -146,9 +146,9 @@ END_SECTION
 
 START_SECTION((void setPrecursorMZRange(const DRange<1>& range)))
 	PeakFileOptions tmp;
-	tmp.setPrecursorMZRange(makeRange(400, 600));
+	tmp.setPrecursorMZRange(makeRange(400, 1200));
 	TEST_EQUAL(tmp.hasPrecursorMZRange(), true);
-	TEST_EQUAL(tmp.getPrecursorMZRange(), makeRange(400, 600));
+	TEST_EQUAL(tmp.getPrecursorMZRange(), makeRange(400, 1200));
 END_SECTION
 
 START_SECTION((bool hasPrecursorMZRange() const))
@@ -243,6 +243,27 @@ START_SECTION((skipChromatograms))
   TEST_FALSE(opts.getSkipChromatograms())
   opts.setSkipChromatograms(true);
   TEST_TRUE(opts.getSkipChromatograms())
+}
+END_SECTION
+
+START_SECTION((hasFilters))
+{
+  PeakFileOptions opts;
+  TEST_FALSE(opts.hasFilters())
+  
+  // test RT range
+  opts.setRTRange(makeRange(10, 100));
+  TEST_TRUE(opts.hasFilters())
+  
+  // reset and test MS levels
+  PeakFileOptions opts2;
+  opts2.addMSLevel(2);
+  TEST_TRUE(opts2.hasFilters())
+  
+  // reset and test precursor m/z range
+  PeakFileOptions opts3;
+  opts3.setPrecursorMZRange(makeRange(400, 1200));
+  TEST_TRUE(opts3.hasFilters())
 }
 END_SECTION
 

@@ -88,7 +88,7 @@ public:
 
     ///@name Precursor m/z range option
     //@{
-    ///restricts the range of precursor m/z values for spectra to load
+    ///restricts the range of precursor m/z values for MS2+ spectra to load
     void setPrecursorMZRange(const DRange<1> & range);
     ///returns @c true if a precursor m/z range has been set
     bool hasPrecursorMZRange() const;
