@@ -186,15 +186,6 @@ protected:
     */
     void TSVToTargetedExperiment_(std::vector<TSVTransition>& transition_list, OpenMS::TargetedExperiment& exp);
 
-    /** @brief Convert a list of TSVTransition to a LightTargetedExperiment
-     *
-     * Converts the list (read from csv/mrm) file into a object model using the
-     * LightTargetedExperiment with proper hierarchical structure from
-     * Transition to Peptide to Protein.
-     *
-    */
-    void TSVToTargetedExperiment_(std::vector<TSVTransition>& transition_list, OpenSwath::LightTargetedExperiment& exp);
-
     /// Convert an OpenMS transition to a TSVTransition for output writing
     TransitionTSVFile::TSVTransition convertTransition_(const ReactionMonitoringTransition* it, OpenMS::TargetedExperiment& targeted_exp);
     //@}
@@ -250,6 +241,21 @@ private:
     /** @brief Cleanup of the read fields (removing quotes etc.)
     */
     void cleanupTransitions_(TSVTransition& mytransition);
+
+    /** @brief Stream TSV directly to LightTargetedExperiment (memory-efficient)
+     *
+     * This function reads the TSV file line by line and directly populates
+     * the LightTargetedExperiment without creating an intermediate
+     * vector<TSVTransition>. This reduces peak memory usage by ~5x for large files.
+     *
+     * Mixed sequence group detection is performed inline during streaming.
+     *
+     * @param[in] filename The input file
+     * @param[in] filetype The type of file ("mrm" or "tsv")
+     * @param[out] exp The output LightTargetedExperiment
+     *
+    */
+    void streamTSVToLightTargetedExperiment_(const char* filename, FileTypes::Type filetype, OpenSwath::LightTargetedExperiment& exp);
     //@}
 
     /** @name Conversion helper functions
@@ -321,6 +327,14 @@ public:
      *
     */
     void convertTargetedExperimentToTSV(const char* filename, OpenMS::TargetedExperiment& targeted_exp);
+
+    /** @brief Write out a targeted experiment (Light structure) into a tsv file
+     *
+     * @param[in] filename The output file
+     * @param[in] targeted_exp The targeted experiment (Light structure)
+     *
+    */
+    void convertLightTargetedExperimentToTSV(const char* filename, const OpenSwath::LightTargetedExperiment& targeted_exp);
 
     /** @brief Read in a tsv/mrm file and construct a targeted experiment (TraML structure)
      *

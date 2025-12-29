@@ -150,6 +150,18 @@ namespace OpenMS
         return spectrum;
       }
 
+      // Check precursor m/z range filter - skip loading peaks if precursor m/z is outside range
+      // This applies to any spectrum that has precursor information
+      if (options_.hasPrecursorMZRange() && !spectrum.getPrecursors().empty())
+      {
+        double precursor_mz = spectrum.getPrecursors()[0].getMZ();
+        if (!options_.getPrecursorMZRange().encloses(DPosition<1>(precursor_mz)))
+        {
+          // Return spectrum with metadata but no peaks (filtered out)
+          return spectrum;
+        }
+      }
+
       // Spectrum passes metadata filters, load peak data
       indexed_mzml_file_.getMSSpectrumById(int(id), spectrum);
     }
