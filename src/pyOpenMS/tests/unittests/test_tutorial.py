@@ -7,21 +7,13 @@ import os
 
 from pyopenms import String as s
 from pyopenms import *
+from test_helpers import report
 
 try:
     long
 except NameError:
     long = int
 
-from functools import wraps
-
-
-def report(f):
-    @wraps(f)
-    def wrapper(*a, **kw):
-        print("run b", f.__name__)
-        f(*a, **kw)
-    return wrapper
 
 @report
 def testElementTutorial():

@@ -576,6 +576,7 @@ endif()
 
 # Please add your test here when you decide to write a new testfile in the tests/unittests folder
 set(pyopenms_unittest_testfiles
+  test_helpers.py
   test_ProteaseDigestion.py
   test_algorithms.py
   test_chemistry.py
