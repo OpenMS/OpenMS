@@ -1842,7 +1842,7 @@ namespace OpenMS
         tr.peptide_ref = peptide_id;
         tr.precursor_mz = precursor_mz;
         tr.product_mz = product_mz;
-        tr.library_intensity = 1.0;
+        tr.library_intensity = -1.0;  // Placeholder for IPF identifying transitions
         tr.setDecoy(false);
         tr.setDetectingTransition(false);
         tr.setIdentifyingTransition(true);
@@ -2010,7 +2010,7 @@ namespace OpenMS
         tr.peptide_ref = decoy_compound.id;
         tr.precursor_mz = decoy_precursor_mz;
         tr.product_mz = product_mz;
-        tr.library_intensity = 1.0;
+        tr.library_intensity = -1.0;  // Placeholder for IPF identifying transitions
         tr.setDecoy(true);
         tr.setDetectingTransition(false);
         tr.setIdentifyingTransition(true);

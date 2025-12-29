@@ -29,6 +29,53 @@ namespace OpenMS
     }
   }
 
+  namespace
+  {
+    /// Extract charge from annotation string (e.g., "b8^2" -> 2, "y5" -> 1)
+    int extractChargeFromAnnotation_(const String& annotation)
+    {
+      size_t pos = annotation.find('^');
+      if (pos != std::string::npos && pos + 1 < annotation.size())
+      {
+        try
+        {
+          return annotation.substr(pos + 1).toInt();
+        }
+        catch (...)
+        {
+          return 1;
+        }
+      }
+      return 1; // default charge is 1
+    }
+
+    /// Extract ordinal from annotation string (e.g., "b8^2" -> 8, "y15" -> 15)
+    int extractOrdinalFromAnnotation_(const String& annotation)
+    {
+      if (annotation.empty() || annotation == "unannotated")
+      {
+        return std::numeric_limits<int>::max();
+      }
+      size_t i = 1;
+      while (i < annotation.size() && std::isdigit(annotation[i]))
+      {
+        ++i;
+      }
+      if (i > 1)
+      {
+        try
+        {
+          return annotation.substr(1, i - 1).toInt();
+        }
+        catch (...)
+        {
+          return std::numeric_limits<int>::max();
+        }
+      }
+      return std::numeric_limits<int>::max();
+    }
+  } // anonymous namespace
+
   std::pair<String, double> MRMIonSeries::annotateIon(const IonSeries& ionseries, const double ProductMZ, const double mz_threshold)
   {
     // make sure to only use annotated transitions and to use the theoretical MZ
@@ -39,13 +86,49 @@ namespace OpenMS
     String unannotated = "unannotated";
     ion = make_pair(unannotated, -1);
     double closest_delta = std::numeric_limits<double>::max();
+    int best_charge = std::numeric_limits<int>::max();
+    int best_ordinal = std::numeric_limits<int>::max();
+
+    // Epsilon for considering two deltas as "equal" - use fraction of mz_threshold
+    const double delta_epsilon = mz_threshold * 0.01; // 1% of threshold
 
     for (const auto& ordinal : ionseries)
     {
-      if (std::fabs(ordinal.second - ProductMZ) <= mz_threshold && std::fabs(ordinal.second - ProductMZ) <= closest_delta)
+      double delta = std::fabs(ordinal.second - ProductMZ);
+      if (delta <= mz_threshold)
       {
-        closest_delta = std::fabs(ordinal.second - ProductMZ);
-        ion = make_pair(ordinal.first, ordinal.second);
+        bool is_better = false;
+
+        if (delta < closest_delta - delta_epsilon)
+        {
+          // Significantly closer - always prefer
+          is_better = true;
+        }
+        else if (delta <= closest_delta + delta_epsilon)
+        {
+          // Within epsilon of current best - use tie-breaking rules
+          int this_charge = extractChargeFromAnnotation_(ordinal.first);
+          int this_ordinal = extractOrdinalFromAnnotation_(ordinal.first);
+
+          if (this_charge < best_charge)
+          {
+            // Prefer lower charge state (b8^2 over b18^4)
+            is_better = true;
+          }
+          else if (this_charge == best_charge && this_ordinal < best_ordinal)
+          {
+            // Same charge - prefer shorter fragment (lower ordinal)
+            is_better = true;
+          }
+        }
+
+        if (is_better)
+        {
+          closest_delta = delta;
+          best_charge = extractChargeFromAnnotation_(ordinal.first);
+          best_ordinal = extractOrdinalFromAnnotation_(ordinal.first);
+          ion = make_pair(ordinal.first, ordinal.second);
+        }
       }
     }
 
