@@ -8,6 +8,7 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathWorkflow.h>
 #include <cmath>
+#include <unordered_map>
 
 // OpenSwathCalibrationWorkflow
 namespace OpenMS
@@ -949,21 +950,24 @@ namespace OpenMS
     featureFinder.setParameters(feature_finder_param);
     featureFinder.prepareProteinPeptideMaps_(transition_exp);
 
-    // Map ms1 chromatogram id to sequence number
-    std::map<String, int> ms1_chromatogram_map;
+    // Map ms1 chromatogram id to sequence number (unordered for O(1) lookup)
+    std::unordered_map<String, int> ms1_chromatogram_map;
+    ms1_chromatogram_map.reserve(ms1_chromatograms.size());
     for (Size i = 0; i < ms1_chromatograms.size(); i++)
     {
       ms1_chromatogram_map[ms1_chromatograms[i].getNativeID()] = boost::numeric_cast<int>(i);
     }
 
-    // Map chromatogram id to sequence number
-    std::map<String, int> chromatogram_map;
+    // Map chromatogram id to sequence number (unordered for O(1) lookup)
+    std::unordered_map<String, int> chromatogram_map;
+    chromatogram_map.reserve(ms2_chromatograms.size());
     for (Size i = 0; i < ms2_chromatograms.size(); i++)
     {
       chromatogram_map[ms2_chromatograms[i].getNativeID()] = boost::numeric_cast<int>(i);
     }
-    // Map peptide id to sequence number
-    std::map<String, int> assay_peptide_map;
+    // Map peptide id to sequence number (unordered for O(1) lookup)
+    std::unordered_map<String, int> assay_peptide_map;
+    assay_peptide_map.reserve(transition_exp.getCompounds().size());
     for (Size i = 0; i < transition_exp.getCompounds().size(); i++)
     {
       assay_peptide_map[transition_exp.getCompounds()[i].id] = boost::numeric_cast<int>(i);
