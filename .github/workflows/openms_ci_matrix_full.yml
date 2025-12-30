@@ -552,6 +552,10 @@ jobs:
           SIGNING_EMAIL: "apple@openms.de"
           # Developer ID Installer certificate identity for signing .pkg (public info, not a secret)
           CPACK_PRODUCTBUILD_IDENTITY_NAME: "Developer ID Installer: OpenMS Inc. (C64UCGJ5PL)"
+          # External library options to prevent file conflicts with system packages
+          USE_EXTERNAL_JSON: ${{ (startsWith(matrix.os, 'macos') || startsWith(matrix.os, 'windows')) && 'OFF' || 'ON' }}
+          USE_EXTERNAL_SQLITECPP: ${{ startsWith(matrix.os, 'ubuntu') && 'ON' || 'OFF' }}
+          USE_EXTERNAL_SIMDE: ${{ startsWith(matrix.os, 'ubuntu') && 'ON' || 'OFF' }}
 
     # Notarize macOS packages for Gatekeeper approval
     # This step submits the signed package to Apple for notarization and staples the ticket

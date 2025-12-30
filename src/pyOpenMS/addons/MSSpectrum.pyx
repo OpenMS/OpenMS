@@ -13,17 +13,18 @@ import numpy as np
         Useful for discovering available columns before export, especially when
         selecting specific columns for performance optimization.
 
-        Args:
-            columns (str): 'default' for standard columns, 'all' for all available
-                          columns including non-default ones (ion_mobility_unit,
-                          custom data arrays).
-            export_meta_values (bool): Whether to include meta value column names.
-                                       Defaults to True.
+        :param columns: 'default' for standard columns, 'all' for all available
+                        columns including non-default ones (ion_mobility_unit,
+                        custom data arrays).
+        :type columns: str
+        :param export_meta_values: Whether to include meta value column names.
+                                   Defaults to True.
+        :type export_meta_values: bool
+        :return: List of column name strings.
+        :rtype: list
 
-        Returns:
-            list: List of column name strings.
+        Example::
 
-        Example:
             >>> # See default columns
             >>> cols = spectrum.get_df_columns()
             ['mz', 'intensity', 'rt', ...]
@@ -93,34 +94,35 @@ import numpy as np
         ion mobility data (if present), precursor information, and optional meta values
         into a dictionary format suitable for conversion to a pandas DataFrame.
 
-        Args:
-            columns (list or None): List of column names to include. If None, includes
-                                   all default columns. Use get_df_columns('all') to see
-                                   all available columns including custom data arrays.
-            export_meta_values (bool): Whether to include meta values in the output.
-                                       Only applies when columns=None. Defaults to True.
+        :param columns: List of column names to include. If None, includes
+                        all default columns. Use get_df_columns('all') to see
+                        all available columns including custom data arrays.
+        :type columns: Optional[List[str]]
+        :param export_meta_values: Whether to include meta values in the output.
+                                   Only applies when columns=None. Defaults to True.
+        :type export_meta_values: bool
+        :return: Dictionary with requested columns as keys and numpy arrays as values.
+                 Default columns include:
+                 - 'mz': numpy array of m/z values (float64)
+                 - 'intensity': numpy array of intensity values (float32)
+                 - 'rt': numpy array of retention time values (float64)
+                 - 'ms_level': numpy array of MS level values (uint16)
+                 - 'native_id': numpy array of native ID strings
+                 - 'ion_mobility': ion mobility values (if IM data present)
+                 - 'precursor_mz': precursor m/z (if precursor present)
+                 - 'precursor_charge': precursor charge (if precursor present)
+                 - 'ion_annotation': ion annotations (if IonNames StringDataArray present)
+                 - Additional meta value columns (if export_meta_values=True)
 
-        Returns:
-            dict: Dictionary with requested columns as keys and numpy arrays as values.
-                  Default columns include:
-                - 'mz': numpy array of m/z values (float64)
-                - 'intensity': numpy array of intensity values (float32)
-                - 'rt': numpy array of retention time values (float64)
-                - 'ms_level': numpy array of MS level values (uint16)
-                - 'native_id': numpy array of native ID strings
-                - 'ion_mobility': ion mobility values (if IM data present)
-                - 'precursor_mz': precursor m/z (if precursor present)
-                - 'precursor_charge': precursor charge (if precursor present)
-                - 'ion_annotation': ion annotations (if IonNames StringDataArray present)
-                - Additional meta value columns (if export_meta_values=True)
+                 Non-default columns (must be explicitly requested):
+                 - 'ion_mobility_unit': ion mobility unit string
+                 - 'float_array:<name>': custom FloatDataArray values
+                 - 'int_array:<name>': custom IntegerDataArray values
+                 - 'string_array:<name>': custom StringDataArray values
+        :rtype: dict
 
-                Non-default columns (must be explicitly requested):
-                - 'ion_mobility_unit': ion mobility unit string
-                - 'float_array:<name>': custom FloatDataArray values
-                - 'int_array:<name>': custom IntegerDataArray values
-                - 'string_array:<name>': custom StringDataArray values
+        Example::
 
-        Example:
             >>> # Get all columns (default)
             >>> data = spectrum.get_data_dict()
 
@@ -315,6 +317,106 @@ import numpy as np
 
         return data_dict
 
+    def get_df(self, columns=None, export_meta_values=True):
+        """
+        get_df(self: MSSpectrum, columns: Optional[List[str]] = None, export_meta_values: bool = True) -> pd.DataFrame
+
+        Returns a pandas DataFrame representation of the MSSpectrum.
+
+        This method converts the spectrum data (peaks, metadata, precursor info,
+        ion mobility) into a pandas DataFrame format.
+
+        :param columns: List of column names to include. If None,
+                        includes all default columns. Use get_df_columns()
+                        to discover available columns.
+        :type columns: Optional[List[str]]
+
+        :param export_meta_values: Whether to include meta values. Only applies
+                                   when columns=None. Defaults to True.
+        :type export_meta_values: bool
+
+        :return: DataFrame with requested columns. Default columns include:
+                 mz, intensity, rt, ms_level, native_id, ion_mobility (if IM data present),
+                 precursor_mz, precursor_charge (if precursor present),
+                 ion_annotation (if IonNames present), and additional meta value columns
+                 (if export_meta_values=True).
+        :rtype: pd.DataFrame
+
+        :raises ImportError: If pandas is not installed
+
+        Example::
+
+            # Get all default columns
+            df = spectrum.get_df()
+
+            # Discover available columns
+            print(spectrum.get_df_columns())
+
+            # Get only specific columns (faster)
+            df = spectrum.get_df(columns=['mz', 'intensity'])
+
+            # Get all columns including non-defaults like ion_mobility_unit
+            cols = spectrum.get_df_columns()
+            cols.append('ion_mobility_unit')
+            df = spectrum.get_df(columns=cols)
+        """
+        try:
+            import pandas as pd
+        except ImportError:
+            raise ImportError(
+                "pandas is required for get_df(). "
+                "Please install it with: pip install pandas"
+            )
+        data_dict = self.get_data_dict(columns=columns, export_meta_values=export_meta_values)
+        return pd.DataFrame(data_dict)
+
+    def to_arrow(self, columns=None, export_meta_values=True):
+        """
+        to_arrow(self: MSSpectrum, columns: Optional[List[str]] = None, export_meta_values: bool = True) -> pa.Table
+
+        Returns an Apache Arrow Table representation of the MSSpectrum.
+
+        This method converts the spectrum data (peaks, metadata, precursor info,
+        ion mobility) into an Arrow Table format for efficient data interchange.
+
+        :param columns: List of column names to include. If None,
+                        includes all default columns. Use get_df_columns()
+                        to discover available columns.
+        :type columns: Optional[List[str]]
+
+        :param export_meta_values: Whether to include meta values. Only applies
+                                   when columns=None. Defaults to True.
+        :type export_meta_values: bool
+
+        :return: Arrow Table with requested columns.
+        :rtype: pyarrow.Table
+
+        :raises ImportError: If pyarrow is not installed
+
+        Example::
+
+            # Get all default columns
+            table = spectrum.to_arrow()
+
+            # Get only specific columns (faster)
+            table = spectrum.to_arrow(columns=['mz', 'intensity'])
+
+            # Convert to pandas (zero-copy with pandas 2.0+)
+            df = table.to_pandas()
+
+            # Convert to polars
+            import polars as pl
+            df = pl.from_arrow(table)
+        """
+        try:
+            import pyarrow as pa
+        except ImportError:
+            raise ImportError(
+                "pyarrow is required for to_arrow(). "
+                "Please install it with: pip install pyarrow"
+            )
+        data_dict = self.get_data_dict(columns=columns, export_meta_values=export_meta_values)
+        return pa.Table.from_pydict(data_dict)
 
 
     def get_mz_array(MSSpectrum self):

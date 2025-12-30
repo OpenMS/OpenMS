@@ -37,8 +37,15 @@ namespace OpenMS
     std::is_same_v<T, PeptideIdentification> || std::is_same_v<T, ProteinIdentification>;
 
   template<typename T>
-  concept IsFeatureOrConsensusMap = 
+  concept IsFeatureOrConsensusMap =
     std::is_same_v<T, FeatureMap> || std::is_same_v<T, ConsensusMap>;
+
+  /// Concept to exclude std::vector of identification types (used to disambiguate template overloads)
+  template<typename T>
+  concept IsNotIdentificationVector =
+    !std::is_same_v<T, std::vector<PeptideIdentification>> &&
+    !std::is_same_v<T, std::vector<ProteinIdentification>> &&
+    !std::is_same_v<T, PeptideIdentificationList>;
 
   /**
     @brief Collection of functions for filtering peptide and protein identifications.
@@ -674,6 +681,13 @@ namespace OpenMS
       return getBestHit(vec, assume_sorted, best_hit);
     }
 
+    /// @overload
+    static void removeEmptyIdentifications(PeptideIdentificationList& ids)
+    {
+      std::vector<PeptideIdentification>& vec = ids.getData();
+      removeEmptyIdentifications(vec);
+    }
+
     /**
        @brief Finds the best-scoring hit in a vector of peptide or protein identifications.
 
@@ -1269,7 +1283,7 @@ namespace OpenMS
       keepNBestHits(map.getUnassignedPeptideIdentifications(), n);
     }
 
-    template<class MapType>
+    template<IsNotIdentificationVector MapType>
     static void removeEmptyIdentifications(MapType& prot_and_pep_ids)
     {
       const auto pred = HasNoHits<PeptideIdentification>();

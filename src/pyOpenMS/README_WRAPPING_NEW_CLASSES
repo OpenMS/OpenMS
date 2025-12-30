@@ -44,6 +44,8 @@ cdef extern from "<OpenMS/path/to/header.h>" namespace "OpenMS":
   compiler will add a default copy constructur to any class, so there is always
   one if it is not declared, see http://www.cplusplus.com/articles/y8hv0pDG/ "The
   implicit copy constructor does a member-wise copy of the source object.")
+  EXCEPTION: If the constructor is deleted or private in C++, see the section 
+  "Wrapping classes with deleted or private constructors" below.
 - to expose a function to Python, copy the signature to your pxd file, e.g.
   "DataValue getValue()" and make sure you "cimport" all corresponding classes.
   Replace std::vector with vector from libcpp.vector (see for example PepXMLFile.pxd)
@@ -72,10 +74,180 @@ means you forgot to add the copy constructor in the class XXX and it is expected
 - copy-constructor -> __copy__
 
 = Hints to autowrap
-- wrap-ignore: is a hint for autowrap to not wrap the function (but the declaration might still be important for Cython to know about) 
+- wrap-ignore: is a hint for autowrap to not wrap the function (but the declaration might still be important for Cython to know about)
 - wrap-as - see for example AASequence ":"
 - wrap-iter-begin, wrap-iter-end (see ConsensusMap.pxd)
 - wrap-instances - for templated classes (see MSSpectrum.pxd)
 - wrap-attach: enums, static methods (see for example VersionInfo.pxd)
 - wrap-upper-limit:size or size() (see MSSpectrum.pxd)
+- wrap-manual-memory: prevents autowrap from generating default memory management;
+  used with singletons where you provide custom __init__ and __dealloc__ in addon files.
+  When using this directive, you must provide both __init__ (to get the singleton instance)
+  and __dealloc__ (typically just 'pass' to prevent deleting the singleton instance).
+
+= Wrapping classes with deleted or private constructors
+
+Some OpenMS classes have deleted or private default constructors and/or copy constructors.
+This commonly occurs in:
+  - Singleton classes (e.g., ModificationsDB, ElementDB, CrossLinksDB)
+  - Utility classes with only static methods (e.g., AAIndex, UniqueIdGenerator)
+  - Handler classes that require specific initialization (e.g., XMLHandler)
+  - Base classes that should not be instantiated directly (e.g., ConsensusIDAlgorithm)
+
+When wrapping such classes, you need to handle them differently from regular classes.
+
+= Pattern 1: Classes with private/deleted default and copy constructors (Singletons)
+
+For singleton classes that have a getInstance() static method:
+
+Step 1: In the pxd file (e.g., pxds/ModificationsDB.pxd):
+
+    cdef cppclass ModificationsDB "OpenMS::ModificationsDB":
+        # wrap-manual-memory:
+        #  cdef AutowrapPtrHolder[_ModificationsDB] inst
+
+        # private
+        ModificationsDB() except + nogil  # wrap-ignore
+        # private
+        ModificationsDB(ModificationsDB) except + nogil  # wrap-ignore
+
+        # ... public methods ...
+
+    ## wrap static methods
+    cdef extern from "<OpenMS/CHEMISTRY/ModificationsDB.h>" namespace "OpenMS::ModificationsDB":
+        ModificationsDB* getInstance() except + nogil  # wrap-ignore
+
+Key points:
+  - Mark constructors with "# private" or "# wrap-ignore" to prevent autowrap from wrapping them
+  - Add "# wrap-manual-memory:" directive with the memory management comment
+  - Declare getInstance() but mark it with "# wrap-ignore" (it will be used in addon)
+  - Note: When a function is marked with "# wrap-ignore", autowrap still generates an internal
+    wrapper with a mangled name: _<functionName>_<ClassName>(). For example, getInstance()
+    in ModificationsDB becomes _getInstance_ModificationsDB(). Use this name in addon files.
+
+Step 2: Create an addon file (e.g., addons/ModificationsDB.pyx):
+
+    # NOTE: using shared_ptr for a singleton will lead to segfaults, use raw ptr instead
+    # cdef AutowrapPtrHolder[_ModificationsDB] inst
+
+    def __init__(self):
+      self.inst = AutowrapPtrHolder[_ModificationsDB](_getInstance_ModificationsDB())
+
+    def __dealloc__(self):
+      # The wrapped ptr is a singleton - we must NOT delete it when Python
+      # garbage collects this wrapper object. Just do nothing here.
+      pass
+
+This creates a Python wrapper that uses the singleton instance without destroying it.
+Key points for the addon file:
+  - The commented line "cdef AutowrapPtrHolder..." should match the wrap-manual-memory directive
+  - __init__ uses the mangled function name (e.g., _getInstance_ModificationsDB)
+  - __dealloc__ must be 'pass' to prevent the singleton from being deleted
+  - Some singleton classes may have multiple getInstance() overloads with different parameters
+
+Examples: ModificationsDB.pxd, ElementDB.pxd, CrossLinksDB.pxd
+
+= Pattern 2: Utility classes with only static methods (no instance needed)
+
+For utility classes where you only want to expose static methods and don't need to create instances:
+
+In the pxd file (e.g., pxds/AAIndex.pxd):
+
+    cdef cppclass AAIndex "OpenMS::AAIndex":
+        # private
+        AAIndex() except + nogil  # wrap-ignore
+        # private
+        AAIndex(AAIndex &) except + nogil  # wrap-ignore
+        
+        # Static or utility methods that don't need an instance
+        double aliphatic(char aa) except + nogil 
+        double acidic(char aa) except + nogil 
+
+Key points:
+  - Mark both default and copy constructors with "# wrap-ignore"
+  - Comment them as "# private" for clarity
+  - No addon file needed if all methods are static or class-level
+
+Examples: AAIndex.pxd, UniqueIdGenerator.pxd
+
+= Pattern 3: Handler classes with specific constructor requirements
+
+For classes that require specific parameters and have deleted default constructors:
+
+In the pxd file (e.g., pxds/XMLHandler.pxd):
+
+    cdef extern from "<OpenMS/FORMAT/HANDLERS/XMLHandler.h>" namespace "OpenMS::Internal":
+        
+        cdef cppclass XMLHandler:
+            # private
+            XMLHandler() except + nogil  # wrap-ignore
+            # copy constructor deleted in base class
+            XMLHandler(XMLHandler &) except + nogil  # wrap-ignore
+
+            # Actual constructor with required parameters
+            XMLHandler(const String & filename, const String & version) except + nogil 
+            
+            # ... other methods ...
+
+Key points:
+  - Mark the default and copy constructors with "# wrap-ignore"
+  - Keep the parameterized constructors that should be exposed
+  - Add comments explaining why (e.g., "deleted in base class", "# private")
+
+Examples: XMLHandler.pxd, ConsensusIDAlgorithm.pxd
+
+= Pattern 4: Base classes or abstract classes with protected/private constructors
+
+For base classes that should not be instantiated directly but only through derived classes:
+
+In the pxd file (e.g., pxds/ConsensusIDAlgorithm.pxd):
+
+    cdef cppclass ConsensusIDAlgorithm(DefaultParamHandler):
+        # wrap-inherits:
+        #  DefaultParamHandler
+        # wrap-ignore
+        # ABSTRACT class
+
+        # protected
+        ConsensusIDAlgorithm() except + nogil  # wrap-ignore
+        # private
+        ConsensusIDAlgorithm(ConsensusIDAlgorithm) except + nogil  # wrap-ignore
+
+        # Public methods
+        void apply(PeptideIdentificationList & ids, Size number_of_runs) except + nogil
+
+Key points:
+  - Mark protected or private constructors with "# wrap-ignore"
+  - Add comments like "# protected" or "# private" to document why
+  - For truly abstract classes, you may also add class-level "# wrap-ignore" to prevent
+    the class from being wrapped entirely (only derived classes will be wrapped)
+  - Derived classes can have their own constructors exposed
+
+Examples: ConsensusIDAlgorithm.pxd, ConsensusIDAlgorithmIdentity.pxd
+
+= Common errors and solutions:
+
+Error: "Call with wrong number of arguments (expected 0, got 1)"
+Solution: You forgot to declare the copy constructor. Either add it (if available) or mark it 
+          with "# wrap-ignore" if it's deleted/private.
+
+Error: "no matching function for call to 'ClassName::ClassName()'"
+Solution: The class has no default constructor. Mark it with "# wrap-ignore" and either:
+          - Provide a parameterized constructor, or
+          - Create a manual wrapper in an addon file (for singletons)
+
+Error: Segfault when using singleton classes
+Solution: Don't use shared_ptr for singletons. Use raw pointer with manual memory management
+          as shown in Pattern 1, and don't delete the instance in __dealloc__.
+
+= Summary of wrap-ignore usage:
+
+Use "# wrap-ignore" on constructors when:
+  1. The constructor is private or deleted in C++
+  2. The class is a singleton and instances should be obtained via getInstance()
+  3. The class should not be instantiated from Python
+  4. The copy constructor is explicitly deleted (e.g., for non-copyable classes)
+
+Always add a comment explaining why the constructor is ignored (e.g., "# private", 
+"# deleted", "# singleton pattern", "# deleted in base class").
 
