@@ -10,9 +10,11 @@
 
 #include <iosfwd>
 #include <vector>
+#include <functional>
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/CONCEPT/HashUtils.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
@@ -134,6 +136,50 @@ public:
         return a.getRank() < b.getRank();
       }
 
+    };
+    //@}
+
+    /// @name Hash functors for PeptideHit
+    //@{
+    /**
+     * @brief Hash functor for PeptideHit based on sequence and charge.
+     *
+     * This hasher computes a portable hash based on the peptide sequence
+     * (including modifications) and charge state. This represents the
+     * "identity" of a peptide hit for most practical purposes.
+     *
+     * @note This hash is NOT consistent with operator== which also compares
+     *       score, rank, evidences, annotations, and meta info. Use this
+     *       hasher when you want to identify unique peptides by sequence+charge.
+     *
+     * Example usage:
+     * @code
+     * std::unordered_set<PeptideHit, PeptideHit::SequenceChargeHash> unique_hits;
+     * @endcode
+     */
+    class OPENMS_DLLAPI SequenceChargeHash
+    {
+    public:
+      std::size_t operator()(const PeptideHit& hit) const noexcept
+      {
+        std::size_t seed = std::hash<AASequence>{}(hit.getSequence());
+        hash_combine(seed, hash_int(hit.getCharge()));
+        return seed;
+      }
+    };
+
+    /**
+     * @brief Equality functor for PeptideHit based on sequence and charge.
+     *
+     * Companion to SequenceChargeHash for use in unordered containers.
+     */
+    class OPENMS_DLLAPI SequenceChargeEqual
+    {
+    public:
+      bool operator()(const PeptideHit& a, const PeptideHit& b) const noexcept
+      {
+        return a.getSequence() == b.getSequence() && a.getCharge() == b.getCharge();
+      }
     };
     //@}
 

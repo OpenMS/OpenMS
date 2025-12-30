@@ -17,6 +17,7 @@
 #include <vector>
 #include <iosfwd>
 #include <map>
+#include <functional>
 
 namespace OpenMS
 {
@@ -668,5 +669,75 @@ protected:
   OPENMS_DLLAPI std::istream& operator>>(std::istream& os, const AASequence& peptide);
 
 } // namespace OpenMS
+
+// Hash function specialization for AASequence
+// Placed in std namespace to allow use with std::unordered_map/set
+namespace std
+{
+  /**
+   * @brief Hash function for OpenMS::AASequence.
+   *
+   * Computes a portable hash based on the amino acid sequence (one-letter codes),
+   * modifications on each residue, and terminal modifications.
+   *
+   * Design decisions:
+   * - Uses one-letter codes instead of pointers for portability
+   * - Includes modification IDs for modified residues
+   * - Includes terminal modifications
+   * - Hash is consistent with operator==
+   *
+   * @note This hash is platform-independent and reproducible.
+   */
+  template<>
+  struct hash<OpenMS::AASequence>
+  {
+    std::size_t operator()(const OpenMS::AASequence& seq) const noexcept
+    {
+      std::size_t seed = 0;
+
+      // Hash each residue
+      for (const auto& residue : seq)
+      {
+        // Hash one-letter code (single character, fast)
+        const OpenMS::String& olc = residue.getOneLetterCode();
+        if (!olc.empty())
+        {
+          OpenMS::hash_combine(seed, OpenMS::hash_char(olc[0]));
+        }
+
+        // Hash modification if present
+        const OpenMS::ResidueModification* mod = residue.getModification();
+        if (mod != nullptr)
+        {
+          // Use full ID for portability (e.g., "Oxidation (M)")
+          const OpenMS::String& mod_id = mod->getFullId();
+          OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(static_cast<std::string>(mod_id)));
+        }
+      }
+
+      // Hash N-terminal modification if present
+      const OpenMS::ResidueModification* n_mod = seq.getNTerminalModification();
+      if (n_mod != nullptr)
+      {
+        const OpenMS::String& n_mod_id = n_mod->getFullId();
+        // Use a different seed offset for N-term to distinguish from C-term
+        std::size_t n_hash = OpenMS::fnv1a_hash_string(static_cast<std::string>(n_mod_id));
+        OpenMS::hash_combine(seed, n_hash ^ 0x4e5445524d); // "NTERM" in hex-like
+      }
+
+      // Hash C-terminal modification if present
+      const OpenMS::ResidueModification* c_mod = seq.getCTerminalModification();
+      if (c_mod != nullptr)
+      {
+        const OpenMS::String& c_mod_id = c_mod->getFullId();
+        // Use a different seed offset for C-term
+        std::size_t c_hash = OpenMS::fnv1a_hash_string(static_cast<std::string>(c_mod_id));
+        OpenMS::hash_combine(seed, c_hash ^ 0x435445524d); // "CTERM" in hex-like
+      }
+
+      return seed;
+    }
+  };
+} // namespace std
 
 

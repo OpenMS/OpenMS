@@ -10,6 +10,8 @@ cdef extern from "<OpenMS/METADATA/PeptideHit.h>" namespace "OpenMS":
     cdef cppclass PeptideHit(MetaInfoInterface):
         # wrap-inherits:
         #   MetaInfoInterface
+        # wrap-hash:
+        #  getSequence().toString().c_str()
         # wrap-doc:
         #  Represents a single peptide identification hit from a database search
         #  

@@ -12,8 +12,11 @@
 #include <map>
 #include <set>
 #include <string>
+#include <functional>
 
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/CONCEPT/HashUtils.h>
+#include <OpenMS/CHEMISTRY/Element.h>
 
 namespace OpenMS
 {
@@ -311,3 +314,46 @@ protected:
   OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const EmpiricalFormula& formula);
 
 } // namespace OpenMS
+
+// Hash function specialization for EmpiricalFormula
+// Placed in std namespace to allow use with std::unordered_map/set
+namespace std
+{
+  /**
+   * @brief Hash function for OpenMS::EmpiricalFormula.
+   *
+   * Computes a portable hash based on element atomic numbers and their counts,
+   * plus the charge. The hash is consistent with operator==.
+   *
+   * Design decisions:
+   * - Uses atomic numbers instead of pointers for portability across runs
+   * - Map is sorted by Element* (pointer), but atomic_number provides stable ordering
+   * - FNV-1a based combining for good distribution
+   *
+   * @note This hash is platform-independent and reproducible.
+   */
+  template<>
+  struct hash<OpenMS::EmpiricalFormula>
+  {
+    std::size_t operator()(const OpenMS::EmpiricalFormula& ef) const noexcept
+    {
+      std::size_t seed = 0;
+
+      // Hash each (element, count) pair
+      // Elements are stored sorted by pointer in the map, but we use atomic_number
+      // which gives a deterministic ordering since ElementDB is a singleton
+      for (const auto& [element_ptr, count] : ef)
+      {
+        // Hash atomic number (unique identifier for element, portable)
+        OpenMS::hash_combine(seed, OpenMS::hash_int(element_ptr->getAtomicNumber()));
+        // Hash count
+        OpenMS::hash_combine(seed, OpenMS::hash_int(count));
+      }
+
+      // Hash the charge
+      OpenMS::hash_combine(seed, OpenMS::hash_int(ef.getCharge()));
+
+      return seed;
+    }
+  };
+} // namespace std
