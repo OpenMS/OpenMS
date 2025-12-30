@@ -5,6 +5,7 @@ from DPosition cimport *
 cdef extern from "<OpenMS/KERNEL/Peak2D.h>" namespace "OpenMS":
 
     cdef cppclass Peak2D:
+        # wrap-hash:
         # wrap-doc:
             #  A 2-dimensional raw data point or peak.
             #  

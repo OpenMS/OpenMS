@@ -6,7 +6,8 @@ from String cimport *
 cdef extern from "<OpenMS/DATASTRUCTURES/Adduct.h>" namespace "OpenMS":
 
     cdef cppclass Adduct:
-  
+        # wrap-hash:
+
         Adduct() except + nogil 
         Adduct(Adduct &) except + nogil  # compiler
   

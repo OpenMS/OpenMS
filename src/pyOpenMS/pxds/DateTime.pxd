@@ -4,6 +4,7 @@ from Types cimport *
 cdef extern from "<OpenMS/DATASTRUCTURES/DateTime.h>" namespace "OpenMS":
 
     cdef cppclass DateTime:
+        # wrap-hash:
 
         DateTime()   except + nogil 
         DateTime(DateTime &) except + nogil 

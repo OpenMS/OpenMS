@@ -9,8 +9,10 @@
 #pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/CONCEPT/HashUtils.h>
 #include <OpenMS/OpenMSConfig.h>
 
+#include <functional>
 #include <memory> // unique_ptr
 #include <string>
 
@@ -195,4 +197,26 @@ public:
       std::unique_ptr<QDateTime> dt_; // use PImpl, to avoid costly #include
   };
 
-} // namespace OPENMS
+} // namespace OpenMS
+
+// Hash function specialization for DateTime
+namespace std
+{
+  template<>
+  struct hash<OpenMS::DateTime>
+  {
+    std::size_t operator()(const OpenMS::DateTime& dt) const noexcept
+    {
+      // Hash the date/time components directly
+      OpenMS::UInt month, day, year, hour, minute, second;
+      dt.get(month, day, year, hour, minute, second);
+      std::size_t seed = OpenMS::hash_int(year);
+      OpenMS::hash_combine(seed, OpenMS::hash_int(month));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(day));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(hour));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(minute));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(second));
+      return seed;
+    }
+  };
+} // namespace std

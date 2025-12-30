@@ -120,4 +120,26 @@ namespace OpenMS
     return hash;
   }
 
+  /**
+   * @brief Hash for a floating point type (float or double).
+   *
+   * Hashes the raw bytes of the floating point value. This is consistent
+   * with the default operator== for floating point types.
+   *
+   * @note Normalizes -0.0 to +0.0 since they compare equal but have different
+   *       bit patterns. This ensures the hash contract is satisfied.
+   *
+   * @tparam T Must be a floating point type (float, double)
+   * @param value Floating point value to hash
+   * @return Hash value
+   */
+  template<typename T>
+  inline std::size_t hash_float(T value) noexcept
+  {
+    static_assert(std::is_floating_point_v<T>, "hash_float requires a floating point type");
+    // Normalize -0.0 to +0.0 (they compare equal but have different bit patterns)
+    if (value == T(0)) value = T(0);
+    return fnv1a_hash_bytes(&value, sizeof(T));
+  }
+
 } // namespace OpenMS
