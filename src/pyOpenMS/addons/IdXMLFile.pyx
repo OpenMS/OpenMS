@@ -7,23 +7,33 @@
 
         Loads the identifications from an idXML file.
 
+        Provides backward compatibility by accepting both Python lists and
+        PeptideIdentificationList objects for the peptide_ids parameter.
+
         :param filename: Path to the idXML file to load
         :type filename: str or bytes or String
         :param protein_ids: List to store protein identifications (modified in place)
         :type protein_ids: list[ProteinIdentification]
         :param peptide_ids: Container to store peptide identifications (modified in place).
-                           Must be a PeptideIdentificationList.
-        :type peptide_ids: PeptideIdentificationList
+                           Accepts both list[PeptideIdentification] (deprecated) and
+                           PeptideIdentificationList (recommended).
+        :type peptide_ids: list[PeptideIdentification] or PeptideIdentificationList
         :param document_id: Optional document identifier (output parameter)
         :type document_id: String, optional
 
         Example::
 
+            # Recommended: Use PeptideIdentificationList
             protein_ids = []
             peptide_ids = pyopenms.PeptideIdentificationList()
             pyopenms.IdXMLFile().load("test.idXML", protein_ids, peptide_ids)
 
-        .. deprecated::
+            # Backward compatible: Python list (deprecated)
+            protein_ids = []
+            peptide_ids = []
+            pyopenms.IdXMLFile().load("test.idXML", protein_ids, peptide_ids)
+
+        .. deprecated:: 3.5
             Passing a Python list for peptide_ids is deprecated since pyOpenMS 3.5.
             Use PeptideIdentificationList instead. The list interface will be removed
             in a future version.
@@ -101,24 +111,34 @@
 
         Stores the identifications to an idXML file.
 
+        Provides backward compatibility by accepting both Python lists and
+        PeptideIdentificationList objects for the peptide_ids parameter.
+
         :param filename: Path to the idXML file to store
         :type filename: str or bytes or String
         :param protein_ids: List of protein identifications to store
         :type protein_ids: list[ProteinIdentification]
         :param peptide_ids: Container of peptide identifications to store.
-                           Must be a PeptideIdentificationList.
-        :type peptide_ids: PeptideIdentificationList
+                           Accepts both list[PeptideIdentification] (deprecated) and
+                           PeptideIdentificationList (recommended).
+        :type peptide_ids: list[PeptideIdentification] or PeptideIdentificationList
         :param document_id: Optional document identifier
         :type document_id: str or bytes or String, optional
 
         Example::
 
+            # Recommended: Use PeptideIdentificationList
             protein_ids = [...]
             peptide_ids = pyopenms.PeptideIdentificationList()
             peptide_ids.extend([...])
             pyopenms.IdXMLFile().store("test.idXML", protein_ids, peptide_ids)
 
-        .. deprecated::
+            # Backward compatible: Python list (deprecated)
+            protein_ids = [...]
+            peptide_ids = [...]
+            pyopenms.IdXMLFile().store("test.idXML", protein_ids, peptide_ids)
+
+        .. deprecated:: 3.5
             Passing a Python list for peptide_ids is deprecated since pyOpenMS 3.5.
             Use PeptideIdentificationList instead. The list interface will be removed
             in a future version.
