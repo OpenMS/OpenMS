@@ -11,7 +11,7 @@ cdef extern from "<OpenMS/FORMAT/IdXMLFile.h>" namespace "OpenMS":
 
         void load(String filename,
                   libcpp_vector[ProteinIdentification] & protein_ids,
-                  PeptideIdentificationList & peptide_ids,
+                  PeptideIdentificationList & peptide_ids
                   ) except + nogil  # wrap-doc:Loads the identifications of an idXML file without identifier
 
         void store(String filename,
