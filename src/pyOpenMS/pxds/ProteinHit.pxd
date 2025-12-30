@@ -10,6 +10,8 @@ cdef extern from "<OpenMS/METADATA/ProteinHit.h>" namespace "OpenMS":
     cdef cppclass ProteinHit(MetaInfoInterface):
         # wrap-inherits:
         #   MetaInfoInterface
+        # wrap-hash:
+        #  std
         # wrap-doc:
         #  Represents a single protein identification hit from a database search
         #  

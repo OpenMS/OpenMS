@@ -12,8 +12,10 @@
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/CONCEPT/HashUtils.h>
 #include <OpenMS/FEATUREFINDER/MassTraceDetection.h>
 #include <boost/dynamic_bitset.hpp>
+#include <functional>
 
 namespace OpenMS
 {
@@ -243,3 +245,30 @@ namespace OpenMS
     static float getChargeMass(bool positive_ioniziation_mode);
   };
 } // namespace OpenMS
+
+namespace std
+{
+  /// @brief Hash specialization for FLASHHelperClasses::MassFeature
+  template<>
+  struct hash<OpenMS::FLASHHelperClasses::MassFeature>
+  {
+    std::size_t operator()(const OpenMS::FLASHHelperClasses::MassFeature& mf) const noexcept
+    {
+      // Hash based on avg_mass (the field used in operator==)
+      return OpenMS::hash_float(mf.avg_mass);
+    }
+  };
+
+  /// @brief Hash specialization for FLASHHelperClasses::LogMzPeak
+  template<>
+  struct hash<OpenMS::FLASHHelperClasses::LogMzPeak>
+  {
+    std::size_t operator()(const OpenMS::FLASHHelperClasses::LogMzPeak& peak) const noexcept
+    {
+      // Hash based on logMz and intensity (the fields used in operator==)
+      std::size_t seed = OpenMS::hash_float(peak.logMz);
+      OpenMS::hash_combine(seed, OpenMS::hash_float(peak.intensity));
+      return seed;
+    }
+  };
+} // namespace std

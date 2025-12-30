@@ -376,4 +376,87 @@ private:
 
   /// Stream operator
   OPENMS_DLLAPI std::ostream& operator<< (std::ostream& stream, const PeptideHit& hit);
+
+  /**
+   * @brief Hash function for MetaInfoInterface.
+   *
+   * Computes a hash based on all stored meta values.
+   * This is a helper function used by hash specializations for classes
+   * inheriting from MetaInfoInterface.
+   *
+   * @param mii The MetaInfoInterface to hash
+   * @return Hash value combining all meta keys and values
+   */
+  OPENMS_DLLAPI std::size_t hash_meta_info_interface(const MetaInfoInterface& mii);
 } // namespace OpenMS
+
+// Hash function specialization for PeptideHit::PeakAnnotation
+namespace std
+{
+  template<>
+  struct hash<OpenMS::PeptideHit::PeakAnnotation>
+  {
+    std::size_t operator()(const OpenMS::PeptideHit::PeakAnnotation& pa) const noexcept
+    {
+      std::size_t seed = OpenMS::fnv1a_hash_string(pa.annotation);
+      OpenMS::hash_combine(seed, OpenMS::hash_int(pa.charge));
+      OpenMS::hash_combine(seed, OpenMS::hash_float(pa.mz));
+      OpenMS::hash_combine(seed, OpenMS::hash_float(pa.intensity));
+      return seed;
+    }
+  };
+} // namespace std
+
+// Hash function specialization for PeptideHit
+namespace std
+{
+  /**
+   * @brief Hash function for OpenMS::PeptideHit.
+   *
+   * Computes a hash consistent with operator==, which compares:
+   * - MetaInfoInterface (all meta values)
+   * - sequence_ (AASequence)
+   * - score_ (double)
+   * - rank (stored as meta value)
+   * - charge_ (int)
+   * - peptide_evidences_ (vector<PeptideEvidence>)
+   * - fragment_annotations_ (vector<PeakAnnotation>)
+   *
+   * @note Hash is consistent with operator==.
+   */
+  template<>
+  struct hash<OpenMS::PeptideHit>
+  {
+    std::size_t operator()(const OpenMS::PeptideHit& hit) const noexcept
+    {
+      // Start with MetaInfoInterface hash
+      std::size_t seed = OpenMS::hash_meta_info_interface(hit);
+
+      // Hash sequence
+      OpenMS::hash_combine(seed, std::hash<OpenMS::AASequence>{}(hit.getSequence()));
+
+      // Hash score
+      OpenMS::hash_combine(seed, OpenMS::hash_float(hit.getScore()));
+
+      // Hash rank (stored as meta value, accessed via getter)
+      OpenMS::hash_combine(seed, OpenMS::hash_int(hit.getRank()));
+
+      // Hash charge
+      OpenMS::hash_combine(seed, OpenMS::hash_int(hit.getCharge()));
+
+      // Hash peptide evidences
+      for (const auto& pe : hit.getPeptideEvidences())
+      {
+        OpenMS::hash_combine(seed, std::hash<OpenMS::PeptideEvidence>{}(pe));
+      }
+
+      // Hash fragment annotations
+      for (const auto& fa : hit.getPeakAnnotations())
+      {
+        OpenMS::hash_combine(seed, std::hash<OpenMS::PeptideHit::PeakAnnotation>{}(fa));
+      }
+
+      return seed;
+    }
+  };
+} // namespace std

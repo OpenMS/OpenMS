@@ -11,13 +11,16 @@
 #include <vector>
 
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/CONCEPT/HashUtils.h>
 #include <OpenMS/METADATA/MetaInfoRegistry.h>
+#include <OpenMS/METADATA/MetaInfo.h>
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
+
+#include <functional>
 
 namespace OpenMS
 {
   class String;
-  class MetaInfo;
 
   /**
     @brief Interface for classes that can store arbitrary meta information
@@ -110,6 +113,26 @@ protected:
 
     /// Pointer to the MetaInfo object
     MetaInfo* meta_ = nullptr;
+
+    // Grant access to hash implementation
+    friend struct std::hash<MetaInfoInterface>;
   };
 
 } // namespace OpenMS
+
+// Hash function specialization for MetaInfoInterface
+namespace std
+{
+  template<>
+  struct hash<OpenMS::MetaInfoInterface>
+  {
+    std::size_t operator()(const OpenMS::MetaInfoInterface& mii) const noexcept
+    {
+      if (mii.meta_ == nullptr)
+      {
+        return 0; // Empty MetaInfoInterface hashes to 0
+      }
+      return std::hash<OpenMS::MetaInfo>{}(*mii.meta_);
+    }
+  };
+} // namespace std

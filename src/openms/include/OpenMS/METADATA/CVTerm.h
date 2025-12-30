@@ -10,6 +10,9 @@
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
+#include <OpenMS/CONCEPT/HashUtils.h>
+
+#include <functional>
 
 namespace OpenMS
 {
@@ -159,4 +162,34 @@ protected:
   };
 
 } // namespace OpenMS
+
+// Hash function specialization for CVTerm::Unit
+namespace std
+{
+  template<>
+  struct hash<OpenMS::CVTerm::Unit>
+  {
+    std::size_t operator()(const OpenMS::CVTerm::Unit& u) const noexcept
+    {
+      std::size_t seed = OpenMS::fnv1a_hash_string(u.accession);
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(u.name));
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(u.cv_ref));
+      return seed;
+    }
+  };
+
+  template<>
+  struct hash<OpenMS::CVTerm>
+  {
+    std::size_t operator()(const OpenMS::CVTerm& cvt) const noexcept
+    {
+      std::size_t seed = OpenMS::fnv1a_hash_string(cvt.getAccession());
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(cvt.getName()));
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(cvt.getCVIdentifierRef()));
+      OpenMS::hash_combine(seed, std::hash<OpenMS::CVTerm::Unit>{}(cvt.getUnit()));
+      OpenMS::hash_combine(seed, std::hash<OpenMS::DataValue>{}(cvt.getValue()));
+      return seed;
+    }
+  };
+} // namespace std
 

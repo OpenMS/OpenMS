@@ -388,6 +388,7 @@ set(chemistry_executables_list
   CoarseIsotopeDistribution_test
   CrossLinksDB_test
   DecoyGenerator_test
+  DigestionEnzyme_test
   DigestionEnzymeProtein_test
   ElementDB_test
   Element_test

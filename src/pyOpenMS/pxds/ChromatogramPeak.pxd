@@ -12,6 +12,7 @@ cdef extern from "<OpenMS/KERNEL/ChromatogramPeak.h>" namespace "OpenMS":
 
     cdef cppclass ChromatogramPeak:
         # wrap-hash:
+        #  std
 
         ChromatogramPeak() except + nogil  # wrap-doc:A 1-dimensional raw data point or peak for chromatograms
         ChromatogramPeak(ChromatogramPeak &) except + nogil

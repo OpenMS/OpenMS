@@ -19,8 +19,10 @@
 #include <OpenMS/METADATA/CVTermList.h>
 #include <OpenMS/METADATA/CVTermListInterface.h>
 #include <OpenMS/CHEMISTRY/Residue.h>
+#include <OpenMS/CONCEPT/HashUtils.h>
 
 #include <boost/numeric/conversion/cast.hpp>
+#include <functional>
 
 namespace OpenMS
 {
@@ -624,5 +626,255 @@ private:
 
   }
 
+  // Helper function to hash CVTermList
+  inline std::size_t hashCVTermList(const CVTermList& cvtl)
+  {
+    std::size_t seed = 0;
+    const auto& cv_terms = cvtl.getCVTerms();
+    for (const auto& [accession, terms] : cv_terms)
+    {
+      hash_combine(seed, fnv1a_hash_string(accession));
+      for (const auto& term : terms)
+      {
+        hash_combine(seed, fnv1a_hash_string(term.getAccession()));
+        hash_combine(seed, fnv1a_hash_string(term.getName()));
+        hash_combine(seed, fnv1a_hash_string(term.getCVIdentifierRef()));
+        if (term.hasValue())
+        {
+          hash_combine(seed, fnv1a_hash_string(term.getValue().toString()));
+        }
+        if (term.hasUnit())
+        {
+          hash_combine(seed, fnv1a_hash_string(term.getUnit().accession));
+        }
+      }
+    }
+    return seed;
+  }
+
+  // Helper function to hash CVTermListInterface
+  inline std::size_t hashCVTermListInterface(const CVTermListInterface& cvtli)
+  {
+    std::size_t seed = 0;
+    const auto& cv_terms = cvtli.getCVTerms();
+    for (const auto& [accession, terms] : cv_terms)
+    {
+      hash_combine(seed, fnv1a_hash_string(accession));
+      for (const auto& term : terms)
+      {
+        hash_combine(seed, fnv1a_hash_string(term.getAccession()));
+        hash_combine(seed, fnv1a_hash_string(term.getName()));
+        hash_combine(seed, fnv1a_hash_string(term.getCVIdentifierRef()));
+        if (term.hasValue())
+        {
+          hash_combine(seed, fnv1a_hash_string(term.getValue().toString()));
+        }
+        if (term.hasUnit())
+        {
+          hash_combine(seed, fnv1a_hash_string(term.getUnit().accession));
+        }
+      }
+    }
+    return seed;
+  }
+
 } // namespace OpenMS
+
+// Hash function specializations for TargetedExperimentHelper classes
+// Placed in std namespace to allow use with std::unordered_map/set
+namespace std
+{
+  /// Hash function for TargetedExperimentHelper::CV
+  template<>
+  struct hash<OpenMS::TargetedExperimentHelper::CV>
+  {
+    std::size_t operator()(const OpenMS::TargetedExperimentHelper::CV& cv) const noexcept
+    {
+      std::size_t seed = 0;
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(cv.id));
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(cv.fullname));
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(cv.version));
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(cv.URI));
+      return seed;
+    }
+  };
+
+  /// Hash function for TargetedExperimentHelper::Protein
+  template<>
+  struct hash<OpenMS::TargetedExperimentHelper::Protein>
+  {
+    std::size_t operator()(const OpenMS::TargetedExperimentHelper::Protein& protein) const noexcept
+    {
+      std::size_t seed = OpenMS::hashCVTermList(protein);
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(protein.id));
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(protein.sequence));
+      return seed;
+    }
+  };
+
+  /// Hash function for TargetedExperimentHelper::RetentionTime
+  template<>
+  struct hash<OpenMS::TargetedExperimentHelper::RetentionTime>
+  {
+    std::size_t operator()(const OpenMS::TargetedExperimentHelper::RetentionTime& rt) const noexcept
+    {
+      std::size_t seed = OpenMS::hashCVTermListInterface(rt);
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(rt.software_ref));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<std::int8_t>(rt.retention_time_unit)));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<std::int8_t>(rt.retention_time_type)));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(rt.isRTset() ? 1 : 0));
+      if (rt.isRTset())
+      {
+        OpenMS::hash_combine(seed, OpenMS::hash_float(rt.getRT()));
+      }
+      return seed;
+    }
+  };
+
+  /// Hash function for TargetedExperimentHelper::PeptideCompound
+  template<>
+  struct hash<OpenMS::TargetedExperimentHelper::PeptideCompound>
+  {
+    std::size_t operator()(const OpenMS::TargetedExperimentHelper::PeptideCompound& pc) const noexcept
+    {
+      std::size_t seed = OpenMS::hashCVTermList(pc);
+      for (const auto& rt : pc.rts)
+      {
+        OpenMS::hash_combine(seed, std::hash<OpenMS::TargetedExperimentHelper::RetentionTime>{}(rt));
+      }
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(pc.id));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(pc.hasCharge() ? 1 : 0));
+      if (pc.hasCharge())
+      {
+        OpenMS::hash_combine(seed, OpenMS::hash_int(pc.getChargeState()));
+      }
+      return seed;
+    }
+  };
+
+  /// Hash function for TargetedExperimentHelper::Compound
+  template<>
+  struct hash<OpenMS::TargetedExperimentHelper::Compound>
+  {
+    std::size_t operator()(const OpenMS::TargetedExperimentHelper::Compound& compound) const noexcept
+    {
+      std::size_t seed = std::hash<OpenMS::TargetedExperimentHelper::PeptideCompound>{}(compound);
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(compound.molecular_formula));
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(compound.smiles_string));
+      OpenMS::hash_combine(seed, OpenMS::hash_float(compound.theoretical_mass));
+      return seed;
+    }
+  };
+
+  /// Hash function for TargetedExperimentHelper::Peptide
+  template<>
+  struct hash<OpenMS::TargetedExperimentHelper::Peptide>
+  {
+    std::size_t operator()(const OpenMS::TargetedExperimentHelper::Peptide& peptide) const noexcept
+    {
+      std::size_t seed = std::hash<OpenMS::TargetedExperimentHelper::PeptideCompound>{}(peptide);
+      for (const auto& ref : peptide.protein_refs)
+      {
+        OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(ref));
+      }
+      OpenMS::hash_combine(seed, OpenMS::hashCVTermList(peptide.evidence));
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(peptide.sequence));
+      for (const auto& mod : peptide.mods)
+      {
+        OpenMS::hash_combine(seed, OpenMS::hashCVTermListInterface(mod));
+        OpenMS::hash_combine(seed, OpenMS::hash_float(mod.avg_mass_delta));
+        OpenMS::hash_combine(seed, OpenMS::hash_float(mod.mono_mass_delta));
+        OpenMS::hash_combine(seed, OpenMS::hash_int(mod.location));
+        OpenMS::hash_combine(seed, OpenMS::hash_int(mod.unimod_id));
+      }
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(peptide.getPeptideGroupLabel()));
+      return seed;
+    }
+  };
+
+  /// Hash function for TargetedExperimentHelper::Contact
+  template<>
+  struct hash<OpenMS::TargetedExperimentHelper::Contact>
+  {
+    std::size_t operator()(const OpenMS::TargetedExperimentHelper::Contact& contact) const noexcept
+    {
+      std::size_t seed = OpenMS::hashCVTermList(contact);
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(contact.id));
+      return seed;
+    }
+  };
+
+  /// Hash function for TargetedExperimentHelper::Publication
+  template<>
+  struct hash<OpenMS::TargetedExperimentHelper::Publication>
+  {
+    std::size_t operator()(const OpenMS::TargetedExperimentHelper::Publication& pub) const noexcept
+    {
+      std::size_t seed = OpenMS::hashCVTermList(pub);
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(pub.id));
+      return seed;
+    }
+  };
+
+  /// Hash function for TargetedExperimentHelper::Instrument
+  template<>
+  struct hash<OpenMS::TargetedExperimentHelper::Instrument>
+  {
+    std::size_t operator()(const OpenMS::TargetedExperimentHelper::Instrument& inst) const noexcept
+    {
+      std::size_t seed = OpenMS::hashCVTermList(inst);
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(inst.id));
+      return seed;
+    }
+  };
+
+  /// Hash function for TargetedExperimentHelper::Prediction
+  template<>
+  struct hash<OpenMS::TargetedExperimentHelper::Prediction>
+  {
+    std::size_t operator()(const OpenMS::TargetedExperimentHelper::Prediction& pred) const noexcept
+    {
+      std::size_t seed = OpenMS::hashCVTermList(pred);
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(pred.software_ref));
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(pred.contact_ref));
+      return seed;
+    }
+  };
+
+  /// Hash function for TargetedExperimentHelper::Interpretation
+  template<>
+  struct hash<OpenMS::TargetedExperimentHelper::Interpretation>
+  {
+    std::size_t operator()(const OpenMS::TargetedExperimentHelper::Interpretation& interp) const noexcept
+    {
+      std::size_t seed = OpenMS::hashCVTermListInterface(interp);
+      OpenMS::hash_combine(seed, OpenMS::hash_int(interp.ordinal));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(interp.rank));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(interp.iontype)));
+      return seed;
+    }
+  };
+
+  /// Hash function for TargetedExperimentHelper::TraMLProduct
+  template<>
+  struct hash<OpenMS::TargetedExperimentHelper::TraMLProduct>
+  {
+    std::size_t operator()(const OpenMS::TargetedExperimentHelper::TraMLProduct& product) const noexcept
+    {
+      std::size_t seed = OpenMS::hashCVTermListInterface(product);
+      OpenMS::hash_combine(seed, OpenMS::hash_int(product.hasCharge() ? 1 : 0));
+      if (product.hasCharge())
+      {
+        OpenMS::hash_combine(seed, OpenMS::hash_int(product.getChargeState()));
+      }
+      OpenMS::hash_combine(seed, OpenMS::hash_float(product.getMZ()));
+      for (const auto& interp : product.getInterpretationList())
+      {
+        OpenMS::hash_combine(seed, std::hash<OpenMS::TargetedExperimentHelper::Interpretation>{}(interp));
+      }
+      return seed;
+    }
+  };
+
+} // namespace std
 

@@ -8,6 +8,8 @@ from MetaInfoRegistry cimport *
 cdef extern from "<OpenMS/METADATA/MetaInfo.h>" namespace "OpenMS":
 
     cdef cppclass MetaInfo:
+        # wrap-hash:
+        #  std
         # wrap-doc:
                 #  A Type-Name-Value tuple class
                 #  

@@ -18,7 +18,9 @@
 #include <OpenMS/METADATA/DataProcessing.h>
 #include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/CONCEPT/HashUtils.h>
 
+#include <functional>
 #include <map>
 #include <vector>
 
@@ -165,4 +167,139 @@ protected:
   OPENMS_DLLAPI std::ostream & operator<<(std::ostream & os, const SpectrumSettings & spec);
 
 } // namespace OpenMS
+
+namespace std
+{
+  /**
+   * @brief Hash function for OpenMS::SpectrumSettings.
+   *
+   * Hashes all fields used in operator==:
+   * - MetaInfoInterface (via getKeys/getMetaValue)
+   * - type_ (SpectrumType enum)
+   * - native_id_ (String)
+   * - comment_ (String)
+   * - instrument_settings_ (InstrumentSettings - hashes scan_mode, zoom_scan, polarity, scan_windows)
+   * - acquisition_info_ (AcquisitionInfo - hashes method_of_combination and acquisitions)
+   * - source_file_ (SourceFile - hashes name, path, file_size, file_type, checksum, native_id_type)
+   * - precursors_ (vector<Precursor> - hashes each precursor's key fields)
+   * - products_ (vector<Product> - uses std::hash<Product>)
+   * - data_processing_ (vector<DataProcessingPtr> - hashes dereferenced contents)
+   *
+   * @note This hash is consistent with operator==. Since operator== compares
+   * all fields including MetaInfoInterface and complex nested types, this hash
+   * includes representative fields from each. For nested types without their own
+   * std::hash, we hash their primary identifying fields.
+   */
+  template<>
+  struct hash<OpenMS::SpectrumSettings>
+  {
+    std::size_t operator()(const OpenMS::SpectrumSettings& s) const noexcept
+    {
+      std::size_t seed = 0;
+
+      // Hash type_ (enum)
+      OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(s.getType())));
+
+      // Hash native_id_ (String)
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(s.getNativeID()));
+
+      // Hash comment_ (String)
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(s.getComment()));
+
+      // Hash instrument_settings_ key fields
+      const auto& is = s.getInstrumentSettings();
+      OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(is.getScanMode())));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(is.getZoomScan() ? 1 : 0));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(is.getPolarity())));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(is.getScanWindows().size())));
+      for (const auto& sw : is.getScanWindows())
+      {
+        OpenMS::hash_combine(seed, OpenMS::hash_float(sw.begin));
+        OpenMS::hash_combine(seed, OpenMS::hash_float(sw.end));
+      }
+
+      // Hash acquisition_info_ key fields
+      const auto& ai = s.getAcquisitionInfo();
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(ai.getMethodOfCombination()));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(ai.size())));
+      for (const auto& acq : ai)
+      {
+        OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(acq.getIdentifier()));
+      }
+
+      // Hash source_file_ key fields
+      const auto& sf = s.getSourceFile();
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(sf.getNameOfFile()));
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(sf.getPathToFile()));
+      OpenMS::hash_combine(seed, OpenMS::hash_float(sf.getFileSize()));
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(sf.getFileType()));
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(sf.getChecksum()));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(sf.getChecksumType())));
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(sf.getNativeIDType()));
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(sf.getNativeIDTypeAccession()));
+
+      // Hash precursors_ (key fields from each Precursor)
+      OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(s.getPrecursors().size())));
+      for (const auto& p : s.getPrecursors())
+      {
+        OpenMS::hash_combine(seed, OpenMS::hash_float(p.getMZ()));
+        OpenMS::hash_combine(seed, OpenMS::hash_float(p.getIntensity()));
+        OpenMS::hash_combine(seed, OpenMS::hash_int(p.getCharge()));
+        OpenMS::hash_combine(seed, OpenMS::hash_float(p.getActivationEnergy()));
+        OpenMS::hash_combine(seed, OpenMS::hash_float(p.getIsolationWindowLowerOffset()));
+        OpenMS::hash_combine(seed, OpenMS::hash_float(p.getIsolationWindowUpperOffset()));
+        OpenMS::hash_combine(seed, OpenMS::hash_float(p.getDriftTime()));
+        // Hash activation methods
+        for (const auto& am : p.getActivationMethods())
+        {
+          OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(am)));
+        }
+        // Hash possible charge states
+        for (const auto& cs : p.getPossibleChargeStates())
+        {
+          OpenMS::hash_combine(seed, OpenMS::hash_int(cs));
+        }
+      }
+
+      // Hash products_ (using std::hash<Product>)
+      OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(s.getProducts().size())));
+      for (const auto& p : s.getProducts())
+      {
+        OpenMS::hash_combine(seed, std::hash<OpenMS::Product>{}(p));
+      }
+
+      // Hash data_processing_ (dereferenced contents)
+      const auto dp = s.getDataProcessing();
+      OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(dp.size())));
+      for (const auto& dp_ptr : dp)
+      {
+        if (dp_ptr)
+        {
+          // Hash Software name and version
+          OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(dp_ptr->getSoftware().getName()));
+          OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(dp_ptr->getSoftware().getVersion()));
+          // Hash processing actions
+          for (const auto& action : dp_ptr->getProcessingActions())
+          {
+            OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(action)));
+          }
+          // Hash completion time
+          OpenMS::hash_combine(seed, std::hash<OpenMS::DateTime>{}(dp_ptr->getCompletionTime()));
+        }
+      }
+
+      // Hash MetaInfoInterface (base class) - hash the keys and values
+      std::vector<OpenMS::String> keys;
+      s.getKeys(keys);
+      OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(keys.size())));
+      for (const auto& key : keys)
+      {
+        OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(key));
+        OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(s.getMetaValue(key).toString()));
+      }
+
+      return seed;
+    }
+  };
+} // namespace std
 

@@ -10,12 +10,12 @@
 #pragma once
 
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
+#include <OpenMS/CONCEPT/HashUtils.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
-
-
 #include <array>
+#include <functional>
 #include <iosfwd>
 #include <set>
 #include <vector>
@@ -509,4 +509,101 @@ protected:
   // write 'name threelettercode onelettercode formula'
   OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const Residue& residue);
 
-}
+} // namespace OpenMS
+
+namespace std
+{
+  /// @brief Hash specialization for OpenMS::Residue
+  /// Hashes all fields used in operator== for consistency.
+  template<>
+  struct hash<OpenMS::Residue>
+  {
+    std::size_t operator()(const OpenMS::Residue& r) const noexcept
+    {
+      std::size_t seed = 0;
+
+      // Hash name_
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(r.getName()));
+
+      // Hash synonyms_ (std::set<String>)
+      for (const auto& syn : r.getSynonyms())
+      {
+        OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(syn));
+      }
+
+      // Hash three_letter_code_
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(r.getThreeLetterCode()));
+
+      // Hash one_letter_code_
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(r.getOneLetterCode()));
+
+      // Hash formula_
+      OpenMS::hash_combine(seed, std::hash<OpenMS::EmpiricalFormula>{}(r.getFormula()));
+
+      // Hash average_weight_
+      OpenMS::hash_combine(seed, OpenMS::hash_float(r.getAverageWeight()));
+
+      // Hash mono_weight_
+      OpenMS::hash_combine(seed, OpenMS::hash_float(r.getMonoWeight()));
+
+      // Hash modification_ (pointer comparison in operator==)
+      OpenMS::hash_combine(seed, OpenMS::hash_int(reinterpret_cast<std::uintptr_t>(r.getModification())));
+
+      // Hash loss_names_ (std::vector<String>)
+      for (const auto& name : r.getLossNames())
+      {
+        OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(name));
+      }
+
+      // Hash loss_formulas_ (std::vector<EmpiricalFormula>)
+      for (const auto& formula : r.getLossFormulas())
+      {
+        OpenMS::hash_combine(seed, std::hash<OpenMS::EmpiricalFormula>{}(formula));
+      }
+
+      // Hash NTerm_loss_names_ (std::vector<String>)
+      for (const auto& name : r.getNTermLossNames())
+      {
+        OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(name));
+      }
+
+      // Hash NTerm_loss_formulas_ (std::vector<EmpiricalFormula>)
+      for (const auto& formula : r.getNTermLossFormulas())
+      {
+        OpenMS::hash_combine(seed, std::hash<OpenMS::EmpiricalFormula>{}(formula));
+      }
+
+      // Hash low_mass_ions_ (std::vector<EmpiricalFormula>)
+      for (const auto& formula : r.getLowMassIons())
+      {
+        OpenMS::hash_combine(seed, std::hash<OpenMS::EmpiricalFormula>{}(formula));
+      }
+
+      // Hash pka_
+      OpenMS::hash_combine(seed, OpenMS::hash_float(r.getPka()));
+
+      // Hash pkb_
+      OpenMS::hash_combine(seed, OpenMS::hash_float(r.getPkb()));
+
+      // Hash pkc_
+      OpenMS::hash_combine(seed, OpenMS::hash_float(r.getPkc()));
+
+      // Hash gb_sc_
+      OpenMS::hash_combine(seed, OpenMS::hash_float(r.getSideChainBasicity()));
+
+      // Hash gb_bb_l_
+      OpenMS::hash_combine(seed, OpenMS::hash_float(r.getBackboneBasicityLeft()));
+
+      // Hash gb_bb_r_
+      OpenMS::hash_combine(seed, OpenMS::hash_float(r.getBackboneBasicityRight()));
+
+      // Hash residue_sets_ (std::set<String>)
+      for (const auto& rs : r.getResidueSets())
+      {
+        OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(rs));
+      }
+
+      return seed;
+    }
+  };
+} // namespace std

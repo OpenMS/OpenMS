@@ -933,3 +933,52 @@ namespace OpenMS
   }
 
 } // namespace OpenMS
+
+// Hash function implementation for DataValue
+namespace std
+{
+  std::size_t hash<OpenMS::DataValue>::operator()(const OpenMS::DataValue& dv) const noexcept
+  {
+    // Hash the type, unit type, and unit
+    std::size_t seed = OpenMS::hash_int(static_cast<unsigned char>(dv.value_type_));
+    OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<unsigned char>(dv.unit_type_)));
+    OpenMS::hash_combine(seed, OpenMS::hash_int(dv.unit_));
+
+    // Hash the value based on type
+    switch (dv.value_type_)
+    {
+      case OpenMS::DataValue::EMPTY_VALUE:
+        break;
+      case OpenMS::DataValue::STRING_VALUE:
+        OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(*dv.data_.str_));
+        break;
+      case OpenMS::DataValue::INT_VALUE:
+        OpenMS::hash_combine(seed, OpenMS::hash_int(dv.data_.ssize_));
+        break;
+      case OpenMS::DataValue::DOUBLE_VALUE:
+        OpenMS::hash_combine(seed, OpenMS::hash_float(dv.data_.dou_));
+        break;
+      case OpenMS::DataValue::STRING_LIST:
+        for (const auto& s : *dv.data_.str_list_)
+        {
+          OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(s));
+        }
+        break;
+      case OpenMS::DataValue::INT_LIST:
+        for (const auto& i : *dv.data_.int_list_)
+        {
+          OpenMS::hash_combine(seed, OpenMS::hash_int(i));
+        }
+        break;
+      case OpenMS::DataValue::DOUBLE_LIST:
+        for (const auto& d : *dv.data_.dou_list_)
+        {
+          OpenMS::hash_combine(seed, OpenMS::hash_float(d));
+        }
+        break;
+      default:
+        break;
+    }
+    return seed;
+  }
+} // namespace std

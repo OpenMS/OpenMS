@@ -12,7 +12,10 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/CONCEPT/HashUtils.h>
 #include <OpenMS/OpenMSConfig.h>
+
+#include <functional>
 
 class QString;
 
@@ -419,6 +422,19 @@ private:
 
     /// Clears the current state of the DataValue and release every used memory.
     void clear_() noexcept;
+
+    // Grant access to hash implementation
+    friend struct std::hash<DataValue>;
   };
 }
+
+// Hash function specialization for DataValue
+namespace std
+{
+  template<>
+  struct hash<OpenMS::DataValue>
+  {
+    std::size_t operator()(const OpenMS::DataValue& dv) const noexcept;
+  };
+} // namespace std
 
