@@ -9,10 +9,12 @@
 #pragma once
 
 #include <iosfwd>
+#include <algorithm>
 #include <map>
 #include <set>
 #include <string>
 #include <functional>
+#include <vector>
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/HashUtils.h>
@@ -322,31 +324,39 @@ namespace std
   /**
    * @brief Hash function for OpenMS::EmpiricalFormula.
    *
-   * Computes a portable hash based on element atomic numbers and their counts,
+   * Computes a hash based on element symbols and their counts,
    * plus the charge. The hash is consistent with operator==.
    *
    * Design decisions:
-   * - Uses atomic numbers instead of pointers for portability across runs
-   * - Map is sorted by Element* (pointer), but atomic_number provides stable ordering
+   * - Uses element symbols (not pointers) to distinguish isotopes like (13)C vs C
+   * - Sorts elements by symbol for reproducible hash across runs
    * - FNV-1a based combining for good distribution
    *
-   * @note This hash is platform-independent and reproducible.
+   * @note Hash is reproducible across process runs on the same platform.
    */
   template<>
   struct hash<OpenMS::EmpiricalFormula>
   {
     std::size_t operator()(const OpenMS::EmpiricalFormula& ef) const noexcept
     {
-      std::size_t seed = 0;
-
-      // Hash each (element, count) pair
-      // Elements are stored sorted by pointer in the map, but we use atomic_number
-      // which gives a deterministic ordering since ElementDB is a singleton
+      // Collect elements with symbols for deterministic ordering
+      // (map iteration order depends on pointer addresses which vary across runs)
+      // Use symbols instead of atomic numbers to distinguish isotopes like (13)C vs C
+      // Typical formulas have only 4-6 elements, so no need to reserve
+      std::vector<std::pair<std::string, OpenMS::SignedSize>> elements;
       for (const auto& [element_ptr, count] : ef)
       {
-        // Hash atomic number (unique identifier for element, portable)
-        OpenMS::hash_combine(seed, OpenMS::hash_int(element_ptr->getAtomicNumber()));
-        // Hash count
+        elements.emplace_back(element_ptr->getSymbol(), count);
+      }
+
+      // Sort by symbol for reproducible hash
+      std::sort(elements.begin(), elements.end());
+
+      // Hash in sorted order
+      std::size_t seed = 0;
+      for (const auto& [symbol, count] : elements)
+      {
+        OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(symbol));
         OpenMS::hash_combine(seed, OpenMS::hash_int(count));
       }
 

@@ -11,6 +11,7 @@
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/CONCEPT/HashUtils.h>
 #include <OpenMS/CHEMISTRY/Residue.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 
@@ -677,7 +678,7 @@ namespace std
   /**
    * @brief Hash function for OpenMS::AASequence.
    *
-   * Computes a portable hash based on the amino acid sequence (one-letter codes),
+   * Computes a hash based on the amino acid sequence (one-letter codes),
    * modifications on each residue, and terminal modifications.
    *
    * Design decisions:
@@ -686,7 +687,7 @@ namespace std
    * - Includes terminal modifications
    * - Hash is consistent with operator==
    *
-   * @note This hash is platform-independent and reproducible.
+   * @note Hash is reproducible across process runs for equal sequences.
    */
   template<>
   struct hash<OpenMS::AASequence>
@@ -710,8 +711,8 @@ namespace std
         if (mod != nullptr)
         {
           // Use full ID for portability (e.g., "Oxidation (M)")
-          const OpenMS::String& mod_id = mod->getFullId();
-          OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(static_cast<std::string>(mod_id)));
+          // String inherits from std::string, no copy needed
+          OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(mod->getFullId()));
         }
       }
 
@@ -719,20 +720,18 @@ namespace std
       const OpenMS::ResidueModification* n_mod = seq.getNTerminalModification();
       if (n_mod != nullptr)
       {
-        const OpenMS::String& n_mod_id = n_mod->getFullId();
         // Use a different seed offset for N-term to distinguish from C-term
-        std::size_t n_hash = OpenMS::fnv1a_hash_string(static_cast<std::string>(n_mod_id));
-        OpenMS::hash_combine(seed, n_hash ^ 0x4e5445524d); // "NTERM" in hex-like
+        std::size_t n_hash = OpenMS::fnv1a_hash_string(n_mod->getFullId());
+        OpenMS::hash_combine(seed, n_hash ^ 0x4e5445524dULL); // "NTERM" in hex-like
       }
 
       // Hash C-terminal modification if present
       const OpenMS::ResidueModification* c_mod = seq.getCTerminalModification();
       if (c_mod != nullptr)
       {
-        const OpenMS::String& c_mod_id = c_mod->getFullId();
         // Use a different seed offset for C-term
-        std::size_t c_hash = OpenMS::fnv1a_hash_string(static_cast<std::string>(c_mod_id));
-        OpenMS::hash_combine(seed, c_hash ^ 0x435445524d); // "CTERM" in hex-like
+        std::size_t c_hash = OpenMS::fnv1a_hash_string(c_mod->getFullId());
+        OpenMS::hash_combine(seed, c_hash ^ 0x435445524dULL); // "CTERM" in hex-like
       }
 
       return seed;

@@ -12,19 +12,23 @@
 #include <cstdint>
 #include <functional>
 #include <string>
+#include <type_traits>
 
 namespace OpenMS
 {
   /**
-   * @brief Portable hash utilities for OpenMS classes.
+   * @brief Hash utilities for OpenMS classes.
    *
    * This header provides hash functions that are:
-   * - Portable: Same input produces same hash across platforms/compilers
+   * - Consistent: Equal inputs produce equal hashes
    * - Fast: Uses efficient FNV-1a algorithm
    * - Low collision: Uses proper hash combining with golden ratio mixing
    *
-   * @note std::hash<std::string> is implementation-defined and NOT portable.
-   *       Use fnv1a_hash_string() or fnv1a_hash_bytes() for portable hashing.
+   * @note These hash functions satisfy the requirements for std::unordered_map/set:
+   *       if a == b, then hash(a) == hash(b). When used with stable identifiers
+   *       (strings, not pointers), hashes are reproducible across process runs
+   *       on the same platform. Not suitable for cross-platform persistent storage
+   *       due to endianness and size_t differences.
    *
    * @ingroup Concept
    */
@@ -39,7 +43,7 @@ namespace OpenMS
    *
    * @param data Pointer to data bytes
    * @param size Number of bytes
-   * @return Portable 64-bit hash value
+   * @return Hash value (size_t)
    */
   inline std::size_t fnv1a_hash_bytes(const void* data, std::size_t size) noexcept
   {
@@ -57,10 +61,11 @@ namespace OpenMS
   /**
    * @brief FNV-1a hash for a string.
    *
-   * Portable alternative to std::hash<std::string>.
+   * Consistent alternative to std::hash<std::string> which may vary
+   * between standard library implementations.
    *
    * @param s String to hash
-   * @return Portable hash value
+   * @return Hash value
    */
   inline std::size_t fnv1a_hash_string(const std::string& s) noexcept
   {
@@ -85,22 +90,23 @@ namespace OpenMS
   }
 
   /**
-   * @brief Portable hash for an integer type.
+   * @brief Hash for an integer type.
    *
-   * Uses bit mixing to ensure good distribution for integer values.
+   * Uses FNV-1a on the bytes of the integer for good distribution.
    *
+   * @tparam T Must be an integral type (int, long, size_t, etc.)
    * @param value Integer value to hash
    * @return Hash value
    */
   template<typename T>
   inline std::size_t hash_int(T value) noexcept
   {
-    // Use FNV-1a on the bytes of the integer for portability
+    static_assert(std::is_integral_v<T>, "hash_int requires an integral type");
     return fnv1a_hash_bytes(&value, sizeof(T));
   }
 
   /**
-   * @brief Portable hash for a character.
+   * @brief Hash for a character.
    *
    * @param c Character to hash
    * @return Hash value (same as fnv1a of single byte)
