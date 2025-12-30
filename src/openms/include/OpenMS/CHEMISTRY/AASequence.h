@@ -397,9 +397,9 @@ protected:
 
         will be produced, depending on whether relative or absolute masses are used.
 
-        @param integer_mass Whether to use integer masses in brackets (default is true, if false, accurate masses will be written)
-        @param mass_delta Whether to write absolute masses M[147] or relative mass deltas M[+16] (default is false)
-        @param fixed_modifications Optional list of fixed modifications that should not be added to the output (they are considered to be present in all cases)
+        @param[in] integer_mass Whether to use integer masses in brackets (default is true, if false, accurate masses will be written)
+        @param[in] mass_delta Whether to write absolute masses M[147] or relative mass deltas M[+16] (default is false)
+        @param[in] fixed_modifications Optional list of fixed modifications that should not be added to the output (they are considered to be present in all cases)
 
         @note Using integer masses may mean that there could be multiple modifications mapping to the same mass
     */
@@ -578,8 +578,8 @@ protected:
     /**
       @brief create AASequence object by parsing an OpenMS string
 
-      @param s Input string
-      @param permissive If set, skip spaces and replace stop codon symbols ("*", "#", "+") by "X" (unknown amino acid) during parsing
+      @param[in] s Input string
+      @param[in] permissive If set, skip spaces and replace stop codon symbols ("*", "#", "+") by "X" (unknown amino acid) during parsing
 
       @throws Exception::ParseError if an invalid string representation of an AA sequence is passed
     */
@@ -589,8 +589,8 @@ protected:
     /**
       @brief create AASequence object by parsing a C string (character array)
 
-      @param s Input string
-      @param permissive If set, skip spaces and replace stop codon symbols ("*", "#", "+") by "X" (unknown amino acid) during parsing
+      @param[in] s Input string
+      @param[in] permissive If set, skip spaces and replace stop codon symbols ("*", "#", "+") by "X" (unknown amino acid) during parsing
 
       @throws Exception::ParseError if an invalid string representation of an AA sequence is passed
     */
@@ -598,21 +598,21 @@ protected:
                                  bool permissive = true);
 
     /// @brief constructor from String
-    /// @param s A String representing the amino acid sequence
+    /// @param[in] s A String representing the amino acid sequence
     explicit AASequence(const String& s);
 
     /// @brief constructor from C string
-    /// @param s A C-style string representing the amino acid sequence
+    /// @param[in] s A C-style string representing the amino acid sequence
     explicit AASequence(const char* s);
 
     /// @brief constructor from String
-    /// @param s A String representing the amino acid sequence
-    /// @param permissive If set, skip spaces and replace stop codon symbols ("*", "#", "+") by "X" (unknown amino acid) during parsing
+    /// @param[in] s A String representing the amino acid sequence
+    /// @param[in] permissive If set, skip spaces and replace stop codon symbols ("*", "#", "+") by "X" (unknown amino acid) during parsing
     explicit AASequence(const String& s, bool permissive);
 
     /// @brief constructor from C string
-    /// @param s A C-style string representing the amino acid sequence
-    /// @param permissive If set, skip spaces and replace stop codon symbols ("*", "#", "+") by "X" (unknown amino acid) during parsing
+    /// @param[in] s A C-style string representing the amino acid sequence
+    /// @param[in] permissive If set, skip spaces and replace stop codon symbols ("*", "#", "+") by "X" (unknown amino acid) during parsing
     explicit AASequence(const char* s, bool permissive);
 
   protected:
@@ -629,10 +629,10 @@ protected:
       If dot notation is used it resolves cterm ambiguity based on the presence
       of the dot.
 
-      @param str_it Current position in the string to be parsed
-      @param str Full input string
-      @param aas Current AASequence object (will be modified with the correct residue added)
-      @param specificity Whether the current modification should be interpreted as N- or C-terminal
+      @param[in] str_it Current position in the string to be parsed
+      @param[in] str Full input string
+      @param[in,out] aas Current AASequence object (will be modified with the correct residue added)
+      @param[in] specificity Whether the current modification should be interpreted as N- or C-terminal
 
       @return Position at which to continue parsing
     */
@@ -647,10 +647,10 @@ protected:
       If dot notation is used it resolves cterm ambiguity based on the presence
       of the dot.
 
-      @param str_it Current position in the string to be parsed
-      @param str Full input string
-      @param aas Current AASequence object (will be modified with the correct residue added)
-      @param specificity Whether the current modification should be interpreted as N- or C-terminal
+      @param[in] str_it Current position in the string to be parsed
+      @param[in] str Full input string
+      @param[in,out] aas Current AASequence object (will be modified with the correct residue added)
+      @param[in] specificity Whether the current modification should be interpreted as N- or C-terminal
 
       @return Position at which to continue parsing
     */

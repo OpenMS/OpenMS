@@ -62,8 +62,8 @@ namespace OpenMS
      * 
      * Initializes a new merger with the specified run identifier.
      * 
-     * @param runIdentifier Base identifier for the merged run (default: "merged")
-     * @param addTimeStampToID Whether to append a timestamp to the run identifier for uniqueness (default: true)
+     * @param[in] runIdentifier Base identifier for the merged run (default: "merged")
+     * @param[in] addTimeStampToID Whether to append a timestamp to the run identifier for uniqueness (default: true)
      */
     explicit IDMergerAlgorithm (const String& runIdentifier = "merged", bool addTimeStampToID = true);
 
@@ -78,8 +78,8 @@ namespace OpenMS
      * - Duplicates file origins if multiple (compatible) protein runs from the same spectrumfile
      *   are merged 
      * 
-     * @param prots Vector of protein identifications to be merged
-     * @param peps Vector of peptide identifications to be merged
+     * @param[in] prots Vector of protein identifications to be merged
+     * @param[in] peps Vector of peptide identifications to be merged
      */
     void insertRuns(std::vector<ProteinIdentification>&& prots,   
                     PeptideIdentificationList&& peps);
@@ -94,8 +94,8 @@ namespace OpenMS
      * - Duplicates file origins if multiple (compatible) protein runs from the same spectrumfile
      *   are merged
      *
-     * @param prots Vector of protein identifications to be merged
-     * @param peps Vector of peptide identifications to be merged
+     * @param[in] prots Vector of protein identifications to be merged
+     * @param[in] peps Vector of peptide identifications to be merged
      */
     void insertRuns(const std::vector<ProteinIdentification>& prots,
                     const PeptideIdentificationList& peps);
@@ -116,8 +116,8 @@ namespace OpenMS
      * This method should be called after all desired runs have been inserted to obtain
      * the final merged result.
      * 
-     * @param prots [out] The merged protein identification containing the union of all protein hits
-     * @param peps [out] The merged peptide identifications containing all PSMs from the inserted runs
+     * @param[in] prots [out] The merged protein identification containing the union of all protein hits
+     * @param[in] peps [out] The merged peptide identifications containing all PSMs from the inserted runs
      * 
      * @note After calling this method, the internal state is reset, and the algorithm
      *       can be reused for a new merging operation.
@@ -133,7 +133,7 @@ namespace OpenMS
      * Creates a new identifier by combining the base identifier with a timestamp
      * if requested.
      * 
-     * @param addTimeStampToID Whether to append a timestamp to the identifier
+     * @param[in] addTimeStampToID Whether to append a timestamp to the identifier
      * @return The generated identifier string
      */
     String getNewIdentifier_(bool addTimeStampToID) const;
@@ -143,8 +143,8 @@ namespace OpenMS
      * 
      * Transfers search parameters from one protein identification to another.
      * 
-     * @param from Source protein identification
-     * @param to Destination protein identification
+     * @param[in] from Source protein identification
+     * @param[out] to Destination protein identification
      */
     static void copySearchParams_(const ProteinIdentification& from, ProteinIdentification& to);
 
@@ -154,8 +154,8 @@ namespace OpenMS
      * Verifies that all runs have compatible search engine settings before merging.
      * Uses the first run as an implicit reference.
      * 
-     * @param protRuns The runs to check (first = implicit reference)
-     * @param experiment_type Experiment type to allow certain mismatches (e.g., "SILAC")
+     * @param[in] protRuns The runs to check (first = implicit reference)
+     * @param[in] experiment_type Experiment type to allow certain mismatches (e.g., "SILAC")
      * @return True if all runs are consistent, false otherwise
      * @throws BaseException for disagreeing settings
      * 
@@ -171,9 +171,9 @@ namespace OpenMS
      * Verifies that all runs have compatible search engine settings before merging,
      * using an explicitly provided reference run.
      * 
-     * @param protRuns The runs to check
-     * @param ref An external protein run to use as reference
-     * @param experiment_type Experiment type to allow certain mismatches (e.g., "SILAC")
+     * @param[in] protRuns The runs to check
+     * @param[in] ref An external protein run to use as reference
+     * @param[in] experiment_type Experiment type to allow certain mismatches (e.g., "SILAC")
      * @return True if all runs are consistent with the reference, false otherwise
      * @throws BaseException for disagreeing settings
      * 
@@ -189,7 +189,7 @@ namespace OpenMS
      * 
      * Moves and inserts protein IDs if not yet present, then clears the input.
      * 
-     * @param old_protRuns Vector of protein identifications to insert
+     * @param[in] old_protRuns Vector of protein identifications to insert
      */
     void insertProteinIDs_(
         std::vector<ProteinIdentification>&& old_protRuns
@@ -201,10 +201,10 @@ namespace OpenMS
      * Updates the references in peptide IDs to point to the new protein ID run,
      * then moves the peptide IDs based on the provided mapping.
      * 
-     * @param pepIDs Vector of peptide identifications to update and move
-     * @param runID_to_runIdx Mapping from run IDs to run indices
-     * @param originFiles List of origin files for each run
-     * @param annotate_origin Whether to annotate peptide IDs with their origin
+     * @param[in] pepIDs Vector of peptide identifications to update and move
+     * @param[in] runID_to_runIdx Mapping from run IDs to run indices
+     * @param[in] originFiles List of origin files for each run
+     * @param[in] annotate_origin Whether to annotate peptide IDs with their origin
      */
     void updateAndMovePepIDs_(
         PeptideIdentificationList&& pepIDs,
@@ -219,8 +219,8 @@ namespace OpenMS
      * A faster implementation for moving peptide IDs and their referenced proteins
      * to the result data structures.
      * 
-     * @param pepIDs Vector of peptide identifications to move
-     * @param old_protRuns Vector of protein identifications to reference
+     * @param[in] pepIDs Vector of peptide identifications to move
+     * @param[in] old_protRuns Vector of protein identifications to reference
      */
     void movePepIDsAndRefProteinsToResultFaster_(
         PeptideIdentificationList&& pepIDs,
@@ -236,7 +236,7 @@ namespace OpenMS
     /**
      * @brief Hash function for protein hits based on accession.
      * 
-     * @param p Protein hit to hash
+     * @param[in] p Protein hit to hash
      * @return Hash value for the protein hit
      */
     static size_t accessionHash_(const ProteinHit& p){
@@ -246,8 +246,8 @@ namespace OpenMS
     /**
      * @brief Equality function for protein hits based on accession.
      * 
-     * @param p1 First protein hit to compare
-     * @param p2 Second protein hit to compare
+     * @param[in] p1 First protein hit to compare
+     * @param[in] p2 Second protein hit to compare
      * @return True if the accessions are equal, false otherwise
      */
     static bool accessionEqual_(const ProteinHit& p1, const ProteinHit& p2){

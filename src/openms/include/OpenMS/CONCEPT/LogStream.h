@@ -96,8 +96,8 @@ public:
       /**
         Create a new LogStreamBuf object and set the level to @p log_level
 
-        @param log_level The log level of the LogStreamBuf (default is unknown)
-        @param col If messages should be colored, provide a colorizer here
+        @param[in] log_level The log level of the LogStreamBuf (default is unknown)
+        @param[in] col If messages should be colored, provide a colorizer here
       */
       LogStreamBuf(const std::string& log_level = UNKNOWN_LOG_LEVEL, Colorizer* col = nullptr);
 
@@ -136,7 +136,7 @@ public:
       /**
         Set the level of the LogStream
 
-        @param level The new LogLevel
+        @param[in] level The new LogLevel
       */
       void setLevel(std::string level);
 
@@ -219,7 +219,7 @@ protected:
         Adds the new line to the cache and removes an old one
         if necessary
 
-        @param line The Log message that should be added to the cache
+        @param[in] line The Log message that should be added to the cache
         @return An additional massage if a re-occurring message was removed
         from the cache
       */
@@ -300,9 +300,9 @@ public:
         If the argument <tt>stream</tt> is set to an output stream (e.g. <tt>cout</tt>)
         all output is send to that stream.
 
-        @param	buf
-        @param  delete_buf
-        @param	stream
+        @param[in]	buf
+        @param[in]  delete_buf
+        @param[in]	stream
       */
       LogStream(LogStreamBuf * buf = nullptr, bool delete_buf = true, std::ostream * stream = nullptr);
 
@@ -332,7 +332,7 @@ public:
       /**
         Set the level of the LogStream
 
-       @param level The new LogLevel
+       @param[in] level The new LogLevel
       */
       void setLevel(std::string level);
 
@@ -358,7 +358,7 @@ public:
         If <tt>min_level</tt> and <tt>max_level</tt> are equal, this function can be used
         to listen to a specified channel.
 
-        @param s a reference to the stream to be associated
+        @param[in] s a reference to the stream to be associated
       */
       void insert(std::ostream & s);
 
@@ -370,7 +370,7 @@ public:
         If the stream was not in the list of associated streams nothing will
         happen.
 
-        @param s the stream to be removed
+        @param[in] s the stream to be removed
       */
       void remove(std::ostream & s);
 
@@ -403,8 +403,8 @@ public:
         - <b>%s</b> time and date in short format (MM/DD, HH:MM)
         - <b>%%</b>	percent sign (escape sequence)
 
-        @param s The stream that will be prefixed.
-        @param prefix The prefix used for the stream.
+        @param[in] s The stream that will be prefixed.
+        @param[in] prefix The prefix used for the stream.
       */
       void setPrefix(const std::ostream & s, const std::string & prefix);
 

@@ -182,3 +182,24 @@
         """
         return self.inst.get().size()
 
+    def __repr__(self):
+        """
+        __repr__(self: FloatDataArray) -> str
+        
+        Return a string representation of the FloatDataArray object.
+
+        Returns key properties in a readable format:
+        FloatDataArray(name='ion_mobility', size=100)
+        """
+        cdef unsigned int n = self.inst.get().size()
+        
+        parts = []
+        
+        # Get name from MetaInfoDescription
+        name = self.getName()
+        if name:
+            parts.append(f"name='{name}'")
+        
+        parts.append(f"size={n}")
+        
+        return f"FloatDataArray({', '.join(parts)})"

@@ -122,9 +122,9 @@ namespace OpenMS
     /**
        @brief Calculates the median of a range of values
        
-       @param begin Start of range
-       @param end End of range (past-the-end iterator)
-       @param sorted Is the range already sorted? If not, it will be sorted.
+       @param[in] begin Start of range
+       @param[in] end End of range (past-the-end iterator)
+       @param[in] sorted Is the range already sorted? If not, it will be sorted.
     @return Median (as floating point, since we need to support average of middle values)
        @exception Exception::InvalidRange is thrown if the range is NULL
 
@@ -169,9 +169,9 @@ namespace OpenMS
       For efficiency, you must provide the median separately, in order to avoid potentially duplicate efforts (usually one
       computes the median anyway externally).
       
-      @param begin Start of range
-      @param end End of range (past-the-end iterator)
-      @param median_of_numbers The precomputed median of range @p begin - @p end.
+      @param[in] begin Start of range
+      @param[in] end End of range (past-the-end iterator)
+      @param[in] median_of_numbers The precomputed median of range @p begin - @p end.
       @return the MAD
 
       @ingroup MathFunctionsStatistics
@@ -199,9 +199,9 @@ namespace OpenMS
       For efficiency, you must provide the mean separately, in order to avoid potentially duplicate efforts (usually one
       computes the mean anyway externally).
       
-      @param begin Start of range
-      @param end End of range (past-the-end iterator)
-      @param mean_of_numbers The precomputed mean of range @p begin - @p end.
+      @param[in] begin Start of range
+      @param[in] end End of range (past-the-end iterator)
+      @param[in] mean_of_numbers The precomputed mean of range @p begin - @p end.
       @return the MeanAbsoluteDeviation
 
       @ingroup MathFunctionsStatistics
@@ -223,16 +223,16 @@ namespace OpenMS
        
        The range is divided into half and the median for the first half is returned.
 
-       @param begin Start of range
-       @param end End of range (past-the-end iterator)
-       @param sorted Is the range already sorted? If not, it will be sorted.
-       
+       @param[in] begin Start of range
+       @param[in] end End of range (past-the-end iterator)
+       @param[in] sorted Is the range already sorted? If not, it will be sorted.
+
        @exception Exception::InvalidRange is thrown if the range is NULL
-       
+
        @ingroup MathFunctionsStatistics
     */
     template <typename IteratorType>
-    static double quantile1st(IteratorType begin, IteratorType end, 
+    static double quantile1st(IteratorType begin, IteratorType end,
                               bool sorted = false)
     {
       checkIteratorsNotNULL(begin, end);
@@ -255,9 +255,9 @@ namespace OpenMS
 
        The range is divided into half and the median for the second half is returned.
 
-       @param begin Start of range
-       @param end End of range (past-the-end iterator)
-       @param sorted Is the range already sorted? If not, it will be sorted.
+       @param[in] begin Start of range
+       @param[in] end End of range (past-the-end iterator)
+       @param[in] sorted Is the range already sorted? If not, it will be sorted.
 
        @exception Exception::InvalidRange is thrown if the range is NULL
 
@@ -291,9 +291,9 @@ namespace OpenMS
         - q == 0 returns the first (minimum) element
         - q == 1 returns the last (maximum) element
 
-      @param begin  Start of range
-      @param end    End of range (past-the-end iterator)
-      @param q      Quantile in [0, 1]
+      @param[in] begin  Start of range
+      @param[in] end    End of range (past-the-end iterator)
+      @param[in] q      Quantile in [0, 1]
 
       @pre Input range must be sorted ascending.
 
@@ -342,9 +342,9 @@ namespace OpenMS
       References: J. W. Tukey (1977). Exploratory Data Analysis.
 
       @tparam IteratorType  input iterator over arithmetic values
-      @param begin          start iterator
-      @param end            past-the-end iterator
-      @param k              Tukey factor (default 1.5)
+      @param[in] begin          start iterator
+      @param[in] end            past-the-end iterator
+      @param[in] k              Tukey factor (default 1.5)
       @return               upper fence (Q3 + k*IQR) or +infinity if undefined
     */
     template <typename IteratorType>
@@ -371,9 +371,9 @@ namespace OpenMS
       @brief Fraction of values above a threshold.
 
       @tparam IteratorType  input iterator over arithmetic values
-      @param begin          start iterator
-      @param end            past-the-end iterator
-      @param threshold      threshold T
+      @param[in] begin          start iterator
+      @param[in] end            past-the-end iterator
+      @param[in] threshold      threshold T
       @return               (# { x > T } / N), ignoring non-finite x
     */
     template <typename IteratorType>
@@ -402,10 +402,10 @@ namespace OpenMS
       References: J. W. Tukey (1962). The Future of Data Analysis.
 
       @tparam IteratorType  input iterator over arithmetic values
-      @param begin          start iterator
-      @param end            past-the-end iterator
-      @param q              quantile in [0,1]
-      @param upper_fence    winsorization cap (Q3+k*IQR), or +inf to disable
+      @param[in] begin          start iterator
+      @param[in] end            past-the-end iterator
+      @param[in] q              quantile in [0,1]
+      @param[in] upper_fence    winsorization cap (Q3+k*IQR), or +inf to disable
       @return               winsorized quantile
     */
     template <typename IteratorType>
@@ -458,12 +458,12 @@ namespace OpenMS
           - R. J. Hyndman, Y. Fan (1996). Sample Quantiles in Statistical Packages
 
       @tparam IteratorType   input iterator over arithmetic values
-      @param begin           start iterator
-      @param end             past-the-end iterator
-      @param q               target quantile in [0,1] (e.g., 0.99 for 99% half-width)
-      @param k               Tukey factor (default 1.5)
-      @param r_sparse        tail density below which robust wins (default 0.01 = 1%)
-      @param r_dense         tail density above which raw wins (default 0.10 = 10%)
+      @param[in] begin           start iterator
+      @param[in] end             past-the-end iterator
+      @param[in] q               target quantile in [0,1] (e.g., 0.99 for 99% half-width)
+      @param[in] k               Tukey factor (default 1.5)
+      @param[in] r_sparse        tail density below which robust wins (default 0.01 = 1%)
+      @param[in] r_dense         tail density above which raw wins (default 0.10 = 10%)
 
       @return                AdaptiveQuantileResult
     */

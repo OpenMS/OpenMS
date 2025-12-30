@@ -28,6 +28,8 @@
 
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/SwathMap.h>
 
+#include <unordered_map>
+
 #ifdef _OPENMP
 #include <omp.h>
 #endif
@@ -93,12 +95,12 @@ public:
      * Function for wrapping in Python, only uses OpenMS datastructures and
      * does not return the map.
      *
-     * @param chromatograms The input chromatograms
-     * @param output The output features with corresponding scores
-     * @param transition_exp The transition list describing the experiment
-     * @param trafo Optional transformation of the experimental retention time
+     * @param[in] chromatograms The input chromatograms
+     * @param[out] output The output features with corresponding scores
+     * @param[in] transition_exp The transition list describing the experiment
+     * @param[in] trafo Optional transformation of the experimental retention time
      *              to the normalized retention time space used in the transition list
-     * @param swath_map Optional SWATH-MS (DIA) map corresponding from which the chromatograms were extracted
+     * @param[in] swath_map Optional SWATH-MS (DIA) map corresponding from which the chromatograms were extracted
      *
     */
     void pickExperiment(const PeakMap & chromatograms,
@@ -109,16 +111,16 @@ public:
 
     /** @brief Pick and score features in a single experiment from chromatograms
      *
-     * @param input The input chromatograms
-     * @param output The output features with corresponding scores
-     * @param transition_exp The transition list describing the experiment
-     * @param trafo Optional transformation of the experimental retention time
+     * @param[in] input The input chromatograms
+     * @param[out] output The output features with corresponding scores
+     * @param[in] transition_exp The transition list describing the experiment
+     * @param[in] trafo Optional transformation of the experimental retention time
      *              to the normalized retention time space used in the
      *              transition list.
-     * @param swath_maps Optional SWATH-MS (DIA) map corresponding from which
+     * @param[in] swath_maps Optional SWATH-MS (DIA) map corresponding from which
      *                  the chromatograms were extracted. Use empty map if no
      *                  data is available.
-     * @param transition_group_map Output mapping of transition groups
+     * @param[in] transition_group_map Output mapping of transition groups
      *
     */
     void pickExperiment(const OpenSwath::SpectrumAccessPtr& input,
@@ -132,7 +134,7 @@ public:
      *
      * Calling this method _is_ required before calling scorePeakgroups.
      *
-     * @param transition_exp The transition list describing the experiment
+     * @param[in] transition_exp The transition list describing the experiment
      *
     */
     void prepareProteinPeptideMaps_(const OpenSwath::LightTargetedExperiment& transition_exp);
@@ -143,16 +145,16 @@ public:
      * Iterate through all features found along the chromatograms of the
      * transition group and score each one individually.
      *
-     * @param transition_group The MRMTransitionGroup to be scored (input)
-     * @param trafo Optional transformation of the experimental retention time
+     * @param[in] transition_group The MRMTransitionGroup to be scored (input)
+     * @param[in] trafo Optional transformation of the experimental retention time
      *              to the normalized retention time space used in the
      *              transition list.
-     * @param swath_maps Optional SWATH-MS (DIA) map corresponding from which
+     * @param[in] swath_maps Optional SWATH-MS (DIA) map corresponding from which
      *                   the chromatograms were extracted. Use empty map if no
      *                   data is available.
-     * @param output The output features with corresponding scores (the found
+     * @param[out] output The output features with corresponding scores (the found
      *               features will be added to this FeatureMap).
-     * @param ms1only Whether to only do MS1 scoring and skip all MS2 scoring
+     * @param[in] ms1only Whether to only do MS1 scoring and skip all MS2 scoring
      *
     */
     void scorePeakgroups(MRMTransitionGroupType& transition_group,
@@ -174,7 +176,7 @@ public:
      * used to extract precursor ion signal and provides additional scores. If
      * no MS1 map is provided, the respective scores are not calculated.
      *
-     * @param ms1_map The raw mass spectrometric MS1 data
+     * @param[in] ms1_map The raw mass spectrometric MS1 data
      *
     */
     void setMS1Map(OpenSwath::SpectrumAccessPtr ms1_map)
@@ -188,13 +190,13 @@ public:
      * onto each other when they share identifiers, e.g. if the transition id
      * is the same as the chromatogram native id.
      *
-     * @param input The input chromatograms
-     * @param transition_exp The transition list describing the experiment
-     * @param transition_group_map Mapping of transition groups
-     * @param trafo Optional transformation of the experimental retention time
+     * @param[in] input The input chromatograms
+     * @param[in] transition_exp The transition list describing the experiment
+     * @param[in] transition_group_map Mapping of transition groups
+     * @param[in] trafo Optional transformation of the experimental retention time
      *              to the normalized retention time space used in the
      *              transition list.
-     * @param rt_extraction_window The used retention time extraction window
+     * @param[in] rt_extraction_window The used retention time extraction window
      *
     */
     void mapExperimentToTransitionList(const OpenSwath::SpectrumAccessPtr& input,
@@ -208,8 +210,8 @@ private:
      *
      * For standard assays, transition_group_detection is identical to transition_group and the others are empty.
      *
-     * @param transition_group Containing all detecting, identifying transitions
-     * @param transition_group_detection To be filled with detecting transitions
+     * @param[in] transition_group Containing all detecting, identifying transitions
+     * @param[in] transition_group_detection To be filled with detecting transitions
     */
     void splitTransitionGroupsDetection_(const MRMTransitionGroupType& transition_group,
                                          MRMTransitionGroupType& transition_group_detection) const;
@@ -219,9 +221,9 @@ private:
      * For standard assays, transition_group_identification is empty. When UIS scoring
      * is enabled, it contains the corresponding identification transitions.
      *
-     * @param transition_group Containing all detecting, identifying transitions
-     * @param transition_group_identification To be filled with identifying transitions
-     * @param transition_group_identification_decoy To be filled with identifying decoy transitions
+     * @param[in] transition_group Containing all detecting, identifying transitions
+     * @param[in] transition_group_identification To be filled with identifying transitions
+     * @param[out] transition_group_identification_decoy To be filled with identifying decoy transitions
     */
     void splitTransitionGroupsIdentification_(const MRMTransitionGroupType& transition_group,
                                               MRMTransitionGroupType& transition_group_identification,
@@ -232,18 +234,18 @@ private:
      * The function is used twice, for target and decoy identification transitions. The results are
      * reported analogously to the ones for detecting transitions but must be stored separately.
      *
-     * @param transition_group_identification Containing all detecting and identifying transitions
-     * @param transition_group_detection Containing all detecting transitions
-     * @param scorer An instance of OpenSwathScoring
-     * @param feature_idx The index of the current feature
-     * @param native_ids_detection The native IDs of the detecting transitions
-     * @param det_intensity_ratio_score The intensity score of the detection transitions for normalization
-     * @param det_mi_ratio_score The MI score of the detection transitions for normalization
-     * @param swath_maps Optional SWATH-MS (DIA) map corresponding from which
+     * @param[out] transition_group_identification Containing all detecting and identifying transitions
+     * @param[out] transition_group_detection Containing all detecting transitions
+     * @param[in] scorer An instance of OpenSwathScoring
+     * @param[in] feature_idx The index of the current feature
+     * @param[in] native_ids_detection The native IDs of the detecting transitions
+     * @param[in] det_intensity_ratio_score The intensity score of the detection transitions for normalization
+     * @param[in] det_mi_ratio_score The MI score of the detection transitions for normalization
+     * @param[in] swath_maps Optional SWATH-MS (DIA) map corresponding from which
      *                  the chromatograms were extracted. Use empty map if no
      *                  data is available.
-     * @param drift_target The target drift value
-     * @param im_range Ion mobility subrange to consider (used as filter); can be empty (i.e. no IM filtering). If scoring non-IMS data, this should be empty, otherwise a missing information exception is thrown when integrating spectra for scoring.
+     * @param[out] drift_target The target drift value
+     * @param[in] im_range Ion mobility subrange to consider (used as filter); can be empty (i.e. no IM filtering). If scoring non-IMS data, this should be empty, otherwise a missing information exception is thrown when integrating spectra for scoring.
      * @return a struct of type OpenSwath_Ind_Scores containing either target or decoy values
     */
     OpenSwath_Ind_Scores scoreIdentification_(MRMTransitionGroupType& transition_group_identification,
@@ -288,8 +290,8 @@ private:
 
     double im_extra_drift_;
 
-    // members
-    std::map<OpenMS::String, const PeptideType*> PeptideRefMap_;
+    // members (unordered_map for O(1) lookup performance)
+    std::unordered_map<OpenMS::String, const PeptideType*> PeptideRefMap_;
     OpenSwath_Scores_Usage su_;
     OpenMS::DIAScoring diascoring_;
     OpenMS::EmgScoring emgscoring_;

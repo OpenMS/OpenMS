@@ -30,7 +30,7 @@ public:
     /// C'tor for all members
     Adduct(Int charge, Int amount, double singleMass, const String& formula, double log_prob, double rt_shift, const String& label = "");
 
-    /// Increase amount of this adduct by factor @param m
+    /// Increase amount of this adduct by factor @param[in] m
     Adduct operator*(const Int m) const;
     /// Add two adducts amount if they are equal (defined by equal formula)
     Adduct operator+(const Adduct& rhs);

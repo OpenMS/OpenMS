@@ -48,9 +48,9 @@ public:
         Use the IDMapper class to add protein and peptide information to a
         quantitative ConsensusMap prior to this step.
 
-        @param consensus_map Peptide quantitation with ProteinIdentifications attached, where
+        @param[in] consensus_map Peptide quantitation with ProteinIdentifications attached, where
                      Protein quantitation will be attached
-        @param reference_map Index of (iTRAQ) reference channel within the consensus map
+        @param[in] reference_map Index of (iTRAQ) reference channel within the consensus map
 
         @throws Exception::MissingInformation if Protein/PeptideIdentifications are missing
     */

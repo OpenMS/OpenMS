@@ -81,7 +81,18 @@ cdef extern from "<OpenMS/PROCESSING/ID/IDFilter.h>" namespace "OpenMS":
 
         void removeUnreferencedProteins(libcpp_vector[ProteinIdentification]& proteins, PeptideIdentificationList& peptides) except + nogil  # wrap-doc:Removes protein hits from the protein IDs in a 'cmap' that are not referenced by a peptide in the features or if requested in the unassigned peptide list
 
-        void updateProteinReferences(PeptideIdentificationList& peptides, libcpp_vector[ProteinIdentification]& proteins, bool remove_peptides_without_reference) except + nogil  # wrap-doc:Removes references to missing proteins. Only PeptideEvidence entries that reference protein hits in 'proteins' are kept in the peptide hits
+        void removeDanglingProteinReferences(PeptideIdentificationList& peptides, libcpp_vector[ProteinIdentification]& proteins, bool remove_peptides_without_reference) except + nogil
+            # wrap-doc:
+                #  Removes dangling protein references from peptide hits
+                #
+                #  Cleans up PeptideEvidence entries by removing references to proteins that no longer exist
+                #  in the provided protein identifications. This is typically called after filtering protein hits
+                #  to maintain consistency between peptide-to-protein mappings.
+                #
+                #  :param peptides: The peptide identifications to process (in/out)
+                #  :param proteins: The protein identifications containing valid protein hits (in)
+                #  :param remove_peptides_without_reference: If true, peptide hits that have no remaining
+                #         protein references after cleanup are also removed (default: false) (in)
 
         bool updateProteinGroups(libcpp_vector[ProteinGroup]& groups, libcpp_vector[ProteinHit]& hits) except + nogil 
             # wrap-doc:

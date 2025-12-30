@@ -191,14 +191,14 @@ import numpy as np
 
         Useful for discovering available columns before export.
 
-        Args:
-            columns (str): 'default' for standard columns, 'all' for all available
-                          columns including non-default ones.
+        :param columns: 'default' for standard columns, 'all' for all available
+                        columns including non-default ones.
+        :type columns: str
+        :return: List of column name strings.
+        :rtype: list
 
-        Returns:
-            list: List of column name strings.
+        Example::
 
-        Example:
             >>> cols = mobilogram.get_df_columns()
             ['mobility', 'intensity', 'rt', 'drift_time_unit']
         """
@@ -214,19 +214,19 @@ import numpy as np
         This method extracts mobilogram data including peaks
         into a dictionary format suitable for conversion to a pandas DataFrame.
 
-        Args:
-            columns (list or None): List of column names to include. If None, includes
-                                   all default columns. Use get_df_columns() to see
-                                   all available columns.
+        :param columns: List of column names to include. If None, includes
+                        all default columns. Use get_df_columns() to see
+                        all available columns.
+        :type columns: Optional[List[str]]
+        :return: Dictionary with requested columns as keys and numpy arrays as values.
+                 - 'mobility': numpy array of mobility values (float64)
+                 - 'intensity': numpy array of intensity values (float32)
+                 - 'rt': retention time (float64)
+                 - 'drift_time_unit': drift time unit string
+        :rtype: dict
 
-        Returns:
-            dict: Dictionary with requested columns as keys and numpy arrays as values.
-                - 'mobility': numpy array of mobility values (float64)
-                - 'intensity': numpy array of intensity values (float32)
-                - 'rt': retention time (float64)
-                - 'drift_time_unit': drift time unit string
+        Example::
 
-        Example:
             >>> data = mobilogram.get_data_dict()
             >>> data = mobilogram.get_data_dict(columns=['mobility', 'intensity'])
         """
@@ -265,3 +265,88 @@ import numpy as np
             data_dict['drift_time_unit'] = np.full(cnt, unit_decoded, dtype='U50')
 
         return data_dict
+
+    def get_df(self, columns=None):
+        """
+        get_df(self: Mobilogram, columns: Optional[List[str]] = None) -> pd.DataFrame
+
+        Returns a pandas DataFrame representation of the Mobilogram.
+
+        This method converts the mobilogram data (peaks, metadata)
+        into a pandas DataFrame format.
+
+        Note: Mobilogram does not support meta values (no MetaInfoInterface).
+
+        :param columns: List of column names to include. If None,
+                        includes all default columns. Use get_df_columns()
+                        to discover available columns.
+        :type columns: Optional[List[str]]
+
+        :return: DataFrame with requested columns. Default columns include:
+                 mobility, intensity, rt, drift_time_unit.
+        :rtype: pd.DataFrame
+
+        :raises ImportError: If pandas is not installed
+
+        Example::
+
+            # Get all default columns
+            df = mobilogram.get_df()
+
+            # Discover available columns
+            print(mobilogram.get_df_columns())
+
+            # Get only specific columns (faster)
+            df = mobilogram.get_df(columns=['mobility', 'intensity'])
+        """
+        try:
+            import pandas as pd
+        except ImportError:
+            raise ImportError(
+                "pandas is required for get_df(). "
+                "Please install it with: pip install pandas"
+            )
+        data_dict = self.get_data_dict(columns=columns)
+        return pd.DataFrame(data_dict)
+
+    def to_arrow(self, columns=None):
+        """
+        to_arrow(self: Mobilogram, columns: Optional[List[str]] = None) -> pa.Table
+
+        Returns an Apache Arrow Table representation of the Mobilogram.
+
+        This method converts the mobilogram data (peaks, metadata)
+        into an Arrow Table format for efficient data interchange.
+
+        Note: Mobilogram does not support meta values (no MetaInfoInterface).
+
+        :param columns: List of column names to include. If None,
+                        includes all default columns. Use get_df_columns()
+                        to discover available columns.
+        :type columns: Optional[List[str]]
+
+        :return: Arrow Table with requested columns.
+        :rtype: pyarrow.Table
+
+        :raises ImportError: If pyarrow is not installed
+
+        Example::
+
+            # Get all default columns
+            table = mobilogram.to_arrow()
+
+            # Get only specific columns (faster)
+            table = mobilogram.to_arrow(columns=['mobility', 'intensity'])
+
+            # Convert to pandas (zero-copy with pandas 2.0+)
+            df = table.to_pandas()
+        """
+        try:
+            import pyarrow as pa
+        except ImportError:
+            raise ImportError(
+                "pyarrow is required for to_arrow(). "
+                "Please install it with: pip install pyarrow"
+            )
+        data_dict = self.get_data_dict(columns=columns)
+        return pa.Table.from_pydict(data_dict)

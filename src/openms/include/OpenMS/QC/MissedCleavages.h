@@ -50,7 +50,7 @@ namespace OpenMS
      * Additionally the first PeptideHit in each PeptideIdentification of the FeatureMap is annotated with metavalue 'missed_cleavages'.
      * The protease and digestion parameters are taken from the first ProteinIdentication (and SearchParameter therein) within the FeatureMap itself.
      *
-     * @param fmap FeatureMap with Peptide and ProteinIdentifications
+     * @param[in,out] fmap FeatureMap with Peptide and ProteinIdentifications
      */
     void compute(FeatureMap& fmap);
     void compute(std::vector<ProteinIdentification>& prot_ids, PeptideIdentificationList& pep_ids);

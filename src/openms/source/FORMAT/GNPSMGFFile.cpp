@@ -47,9 +47,9 @@ namespace OpenMS
 
   /**
    * @brief Bin peaks by similar m/z position and averaged intensities
-   * @param peaks Vector of Peak1D peaks sorted by m/z position
-   * @param bin_width Size of bin
-   * @param binned_peaks Result vector with binned peaks passed in by reference
+   * @param[in] peaks Vector of Peak1D peaks sorted by m/z position
+   * @param[in] bin_width Size of bin
+   * @param[out] binned_peaks Result vector with binned peaks passed in by reference
    */
   void binPeaks_(
     const vector<Peak1D> &peaks,
@@ -89,9 +89,9 @@ namespace OpenMS
 
   /**
    * @brief Flatten spectra from MSExperiment into a single vector of Peak1D peaks
-   * @param exp MSExperiment containing at least 1 spectrum
-   * @param bin_width Size of binned scan (m/z)
-   * @param merged_peaks Result vector of peaks passed in by reference
+   * @param[in] exp MSExperiment containing at least 1 spectrum
+   * @param[in] bin_width Size of binned scan (m/z)
+   * @param[out] merged_peaks Result vector of peaks passed in by reference
    */
   void flattenAndBinSpectra_(
     MSExperiment &exp,
@@ -123,13 +123,13 @@ namespace OpenMS
 
   /**
    * @brief Private function that outputs MS/MS Block Header
-   * @param output_file Stream that will write to file
-   * @param scan_index Current scan index in GNPSExport formatted output
-   * @param feature_id ConsensusFeature Id found in input mzXML file
-   * @param feature_charge ConsensusFeature's highest charge as mentioned in the input mzXML file
-   * @param feature_mz m/z position of PeptideIdentification with highest intensity
-   * @param spec_index Spectrum index of PeptideIdentification with highest intensity
-   * @param feature_rt ConsensusFeature's retention time specified in input mzXML file
+   * @param[in] output_file Stream that will write to file
+   * @param[out] scan_index Current scan index in GNPSExport formatted output
+   * @param[in] feature_id ConsensusFeature Id found in input mzXML file
+   * @param[in] feature_charge ConsensusFeature's highest charge as mentioned in the input mzXML file
+   * @param[in] feature_mz m/z position of PeptideIdentification with highest intensity
+   * @param[in] spec_index Spectrum index of PeptideIdentification with highest intensity
+   * @param[in] feature_rt ConsensusFeature's retention time specified in input mzXML file
    */
   void writeMSMSBlockHeader_(
     ofstream &output_file,
@@ -158,8 +158,8 @@ namespace OpenMS
 
   /**
    * @brief Private function to write peak mass and intensity to output file
-   * @param output_file Stream that will write to file
-   * @param peaks Vector of peaks that will be outputted
+   * @param[in] output_file Stream that will write to file
+   * @param[out] peaks Vector of peaks that will be outputted
    */
   void writeMSMSBlock_(
     ofstream &output_file,
@@ -180,8 +180,8 @@ namespace OpenMS
 
   /**
    * @brief Private method used to sort PeptideIdentification map indices in order of annotation's intensity
-   * @param feature ConsensusFeature annotated with PeptideIdentifications
-   * @param featureMaps_sortedByInt Result vector of map indices in order of PeptideIdentification intensity
+   * @param[in] feature ConsensusFeature annotated with PeptideIdentifications
+   * @param[out] featureMaps_sortedByInt Result vector of map indices in order of PeptideIdentification intensity
    */
   void sortElementMapsByIntensity_(const ConsensusFeature& feature, vector<pair<int,double>>& element_maps)
   {
@@ -202,9 +202,9 @@ namespace OpenMS
 
   /**
    * @brief Retrieve list of PeptideIdentification parameters from ConsensusFeature metadata, sorted by map intensity
-   * @param feature ConsensusFeature feature containing PeptideIdentification annotations
-   * @param sorted_element_maps Sorted list of element_maps
-   * @param pepts Result vector of <map_index,spectrum_index> of PeptideIdentification annotations sorted by map intensity in feature
+   * @param[in] feature ConsensusFeature feature containing PeptideIdentification annotations
+   * @param[in] sorted_element_maps Sorted list of element_maps
+   * @param[out] pepts Result vector of <map_index,spectrum_index> of PeptideIdentification annotations sorted by map intensity in feature
    */
   void getElementPeptideIdentificationsByElementIntensity_(
     const ConsensusFeature& feature,

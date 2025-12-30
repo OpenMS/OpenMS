@@ -359,17 +359,17 @@ protected:
    * @brief Fills an existing ConsensusFeature with all kinds of information of an identified and isobarically quantified peptide.
    *
    * @param[out] cf the ConsensusFeature to fill
-   * @param pep information about the PSM (object will be moved)
-   * @param exp the MSExperiment to extract information about spectra
-   * @param id_spec_idx index of the identifying spectrum
-   * @param quant_spec_idx index of the quantifying spectrum
-   * @param itys the extracted intensities from the quant. spec.
-   * @param quant_method the quantification method used (for channel information), e.g. TMT10plex
-   * @param quant_purity purity of the quant. precursor(s) (if available, else -1.)
-   * @param id_purity purity of the id precursor
-   * @param min_reporter_intensity minimum intensity of a reporter ion to be considered
-   * @param file_idx index of the file in the input list
-   * @param spec_idx index of the spectrum over all files
+   * @param[in] pep information about the PSM (object will be moved)
+   * @param[in] exp the MSExperiment to extract information about spectra
+   * @param[in] id_spec_idx index of the identifying spectrum
+   * @param[in] quant_spec_idx index of the quantifying spectrum
+   * @param[in] itys the extracted intensities from the quant. spec.
+   * @param[in] quant_method the quantification method used (for channel information), e.g. TMT10plex
+   * @param[in] quant_purity purity of the quant. precursor(s) (if available, else -1.)
+   * @param[in] id_purity purity of the id precursor
+   * @param[in] min_reporter_intensity minimum intensity of a reporter ion to be considered
+   * @param[in] file_idx index of the file in the input list
+   * @param[in] spec_idx index of the spectrum over all files
    */
   void inline fillConsensusFeature_(ConsensusFeature & cf, PeptideIdentification& pep,
    const MSExperiment& exp, Size id_spec_idx, Size quant_spec_idx, const std::vector<double>& itys,
@@ -433,6 +433,9 @@ protected:
       cf.setCharge(id_spec.getPrecursors()[0].getCharge());
       cf.setIntensity(overall_intensity);
       pep.setIdentifier(ID_RUN_NAME_);
+      // Set id_merge_index to track which input file this peptide identification originated from.
+      // This is required for proper mzTab export when multiple files are merged into a single ID run.
+      pep.setMetaValue(Constants::UserParam::ID_MERGE_INDEX, file_idx);
       cf.setPeptideIdentifications({std::move(pep)});
   }
 
@@ -572,11 +575,6 @@ protected:
       cur_cmap.resize(pep_ids.size());
 
       channel_extractor.registerChannelsInOutputMap(cmap, mz_file);
-      // add filename references
-      for (auto& column : cur_cmap.getColumnHeaders())
-      {
-        column.second.filename = mz_file;
-      }
 
       #pragma omp parallel for /*num_threads(inner_threads)*/
       for (int64_t pep_idx = 0; pep_idx < static_cast<int64_t>(pep_ids.size()); ++pep_idx)
@@ -601,7 +599,8 @@ protected:
             std::vector<double> itys = channel_extractor.extractSingleSpec(quant_spec_idx, exp, channel_qc);
 
             // TODO if itys are all zero we can actually skip correction and quantification
-            auto m = correction_matrix.getEigenMatrix();
+            // NNLS modifies input, so we need a copy of the correction matrix
+            Matrix<double> m = correction_matrix;
             std::vector<double> corrected(itys.size(), 0.);
             NonNegativeLeastSquaresSolver::solve(m, itys, corrected);
             fillConsensusFeature_(cur_cmap[pep_idx], pep, exp, id_spec_idx, quant_spec_idx, corrected, quant_method, quant_purity, id_purity, min_reporter_intensity, i);
@@ -636,16 +635,10 @@ protected:
 
       // TODO cleanup, reset?
 
-      if (cmap.empty())
-      {
-        cmap = std::move(cur_cmap);
-        channel_extractor.registerChannelsInOutputMap(cmap, mz_file);
-      }
-      else
-      {
-        cmap.reserve(cmap.size() + cur_cmap.size());
-        cmap.insert(cmap.end(), std::make_move_iterator(cur_cmap.begin()), std::make_move_iterator(cur_cmap.end()));
-      }
+      // Always use insert (not move assignment) to preserve column headers registered at line 577.
+      // Move assignment would lose column headers if early files have no peptide IDs after filtering.
+      cmap.reserve(cmap.size() + cur_cmap.size());
+      cmap.insert(cmap.end(), std::make_move_iterator(cur_cmap.begin()), std::make_move_iterator(cur_cmap.end()));
 
       // TODO If we do the parquet export, we can export the feature file here already. Then, if prot. inference and quant are disabled,
       //  the tool could be run on a single file and distributed over multiple nodes. We could use a parquet partitioned over raw_files
@@ -769,7 +762,7 @@ protected:
       OPENMS_LOG_INFO << "Removing peptide hits without protein references..." << endl;
     }
 
-    IDFilter::updateProteinReferences(cmap, rm_pep);
+    IDFilter::removeDanglingProteinReferences(cmap, rm_pep);
     IDFilter::removeUnreferencedProteins(cmap, true);
     IDFilter::updateProteinGroups(proteins.getIndistinguishableProteins(), proteins.getHits());
     IDFilter::updateProteinGroups(proteins.getProteinGroups(), proteins.getHits());
@@ -790,7 +783,7 @@ protected:
     if (max_pro_fdr < 1.0)
     {
       IDFilter::filterHitsByScore(proteins, max_pro_fdr);
-      IDFilter::updateProteinReferences(cmap, rm_pep);
+      IDFilter::removeDanglingProteinReferences(cmap, rm_pep);
     }
 
     if (max_psm_fdr < 1.0) 
