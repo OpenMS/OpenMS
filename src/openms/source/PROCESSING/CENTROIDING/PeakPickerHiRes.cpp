@@ -46,6 +46,8 @@ namespace OpenMS
     defaults_.setValidStrings("report_FWHM", {"true","false"});
     defaults_.setValue("report_FWHM_unit", "relative", "Unit of FWHM. Either absolute in the unit of input, e.g. 'm/z' for spectra, or relative as ppm (only sensible for spectra, not chromatograms).");
     defaults_.setValidStrings("report_FWHM_unit", {"relative","absolute"});
+    defaults_.setValue("one_sided", "false", "Allow PeakPickerHiRes to pick peaks not flanked by lower intensity neighbor peaks on both sides. Highly recommended for TimsTOF data");
+    defaults_.setValidStrings("one_sided", {"true","false"});
 
     // parameters for STN estimator
     defaults_.insert("SignalToNoise:", SignalToNoiseEstimatorMedian< MSSpectrum >().getDefaults());
@@ -167,6 +169,7 @@ namespace OpenMS
       double central_peak_mz = input[i].getPos(), central_peak_int = input[i].getIntensity();
       double left_neighbor_mz = input[i - 1].getPos(), left_neighbor_int = input[i - 1].getIntensity();
       double right_neighbor_mz = input[i + 1].getPos(), right_neighbor_int = input[i + 1].getIntensity();
+      bool has_left_neighbor = false, has_right_neighbor = false;
 
       // do not interpolate when the left or right support is a zero-data-point
       if (std::fabs(left_neighbor_int) < std::numeric_limits<double>::epsilon())
@@ -184,6 +187,9 @@ namespace OpenMS
         left_to_central = central_peak_mz - left_neighbor_mz;
         central_to_right = right_neighbor_mz - central_peak_mz;
         min_spacing = (left_to_central < central_to_right) ? left_to_central : central_to_right;
+        // if left or right neighbor is more than min space from core peak, we consider them missing
+        has_left_neighbor = left_to_central < spacing_difference_ * min_spacing;
+        has_right_neighbor = central_to_right < spacing_difference_ * min_spacing;
       }
 
       double act_snt = 0.0, act_snt_l1 = 0.0, act_snt_r1 = 0.0;
@@ -195,14 +201,13 @@ namespace OpenMS
       }
 
       // look for peak cores meeting MZ and intensity/SNT criteria
-      if ((central_peak_int > left_neighbor_int) && 
-        (central_peak_int > right_neighbor_int) && 
-        (act_snt >= signal_to_noise_) && 
-        (act_snt_l1 >= signal_to_noise_) && 
-        (act_snt_r1 >= signal_to_noise_) &&
-        (!check_spacings || 
-        ((left_to_central < spacing_difference_ * min_spacing) && 
-          (central_to_right < spacing_difference_ * min_spacing))))
+      if ((central_peak_int > left_neighbor_int) &&
+          (central_peak_int > right_neighbor_int) &&
+          (act_snt >= signal_to_noise_) &&
+          (act_snt_l1 >= signal_to_noise_) &&
+          (act_snt_r1 >= signal_to_noise_) &&
+          (!check_spacings ||
+           (one_sided_ ? (has_left_neighbor || has_right_neighbor) : (has_left_neighbor && has_right_neighbor))))
       {
         // special case: if a peak core is surrounded by more intense
         // satellite peaks (indicates oscillation rather than
@@ -217,15 +222,16 @@ namespace OpenMS
         }
 
         // checking signal-to-noise?
+        bool has_left_neighbor_l2 = left_neighbor_mz - input[i - 2].getPos() < spacing_difference_ * min_spacing;
+        bool has_right_neighbor_r2 = input[i + 2].getPos() - right_neighbor_mz < spacing_difference_ * min_spacing;
+
         if ((i > 1) &&
           (i + 2 < input.size()) &&
           (left_neighbor_int < input[i - 2].getIntensity()) &&
           (right_neighbor_int < input[i + 2].getIntensity()) &&
           (act_snt_l2 >= signal_to_noise_) &&
           (act_snt_r2 >= signal_to_noise_) &&
-          (!check_spacings ||
-          ((left_neighbor_mz - input[i - 2].getPos() < spacing_difference_ * min_spacing) && 
-            (input[i + 2].getPos() - right_neighbor_mz < spacing_difference_ * min_spacing))))
+          (!check_spacings || (one_sided_ ? (has_left_neighbor_l2 || has_right_neighbor_r2) : (has_left_neighbor_l2 && has_right_neighbor_r2))))
         {
           ++i;
           continue;
@@ -235,14 +241,16 @@ namespace OpenMS
         double weighted_im = 0;
 
         peak_raw_data[central_peak_mz] = central_peak_int;
-        peak_raw_data[left_neighbor_mz] = left_neighbor_int;
-        peak_raw_data[right_neighbor_mz] = right_neighbor_int;
+        // if we determined there are no flanking peaks, do not add neighbors from missing side
+        if (!check_spacings || has_left_neighbor) {peak_raw_data[left_neighbor_mz] = left_neighbor_int;}
+        if (!check_spacings || has_right_neighbor) {peak_raw_data[right_neighbor_mz] = right_neighbor_int;}
 
         if (has_im)
         {
           weighted_im += input.getFloatDataArrays()[im_data_index][i] * input[i].getIntensity();
-          weighted_im += input.getFloatDataArrays()[im_data_index][i-1] * input[i-1].getIntensity();
-          weighted_im += input.getFloatDataArrays()[im_data_index][i+1] * input[i+1].getIntensity();
+          // if no left or right neighbor, do not include ion mobility from missing side
+          if (!check_spacings || has_left_neighbor) {weighted_im += input.getFloatDataArrays()[im_data_index][i-1] * input[i-1].getIntensity();}
+          if (!check_spacings || has_right_neighbor) {weighted_im += input.getFloatDataArrays()[im_data_index][i + 1] * input[i + 1].getIntensity();}
         }
 
         // peak core found, now extend it
@@ -342,6 +350,18 @@ namespace OpenMS
 
         // calculate maximum by evaluating the spline's 1st derivative
         // (bisection method)
+        // Since we included situations where left or right neighbors could be missing,
+        // we can either create a 'phantom' neighbor peak of equal distance from central mz to existing neighbor mz
+        // but how to handle ion mobility array? spline_bisection expects "peak_spline" to have the same mz range
+        // Introducing a 'phantom' peak extending past 'peak_spline' range will throw an error.
+        // We have to add a proper peak to peak_spline and have to decide what ion mobility value to assign to it.
+
+        // for now, simply replace mz value of missing neighbor with central mz peak.
+        if (one_sided_) {
+          left_neighbor_mz = (has_left_neighbor) ? left_neighbor_mz: central_peak_mz;
+          right_neighbor_mz = (has_right_neighbor) ? right_neighbor_mz: central_peak_mz;
+        }
+
         double max_peak_mz = central_peak_mz;
         double max_peak_int = central_peak_int;
         double threshold = 1e-6;
@@ -623,6 +643,7 @@ namespace OpenMS
     ms_levels_ = getParameters().getValue("ms_levels");
     report_FWHM_ = getParameters().getValue("report_FWHM").toBool();
     report_FWHM_as_ppm_ = getParameters().getValue("report_FWHM_unit")!="absolute";
+    one_sided_ = getParameters().getValue("one_sided").toBool();
   }
 
 }
