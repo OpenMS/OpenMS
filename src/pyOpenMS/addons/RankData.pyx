@@ -1,7 +1,7 @@
 
 
 # -*- coding: utf-8 -*-
-# cython: language_level=3
+# cython: language_level=3, warn.unreachable=False, warn.undeclared=False
 
 from libcpp.vector cimport vector as libcpp_vector
 import numpy as np

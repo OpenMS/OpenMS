@@ -1,9 +1,23 @@
-# cython: language_level=3
+# cython: language_level=3, warn.unreachable=False, warn.undeclared=False
 
 from libcpp.vector cimport vector as libcpp_vector
 import numpy as np
 cimport cython
 
+# First define the types we need
+cdef extern from "<OpenMS/MATH/STATISTICS/MultipleTesting.h>" namespace "OpenMS::Math":
+    cdef cppclass Pi0Result:
+        double pi0
+        libcpp_vector[double] pi0_lambda
+        libcpp_vector[double] lambda_
+        bint pi0_smooth
+
+    libcpp_vector[double] qValue(libcpp_vector[double] p_values, double pi0, bint pfdr) except +
+    libcpp_vector[double] pNorm(libcpp_vector[double] stat, libcpp_vector[double] stat0) except +
+    libcpp_vector[double] lfdr(libcpp_vector[double] p_values, double pi0, bint trunc, bint monotone, const char* transf, double adj, double eps, size_t gridsize, double cut) except +
+    Pi0Result pi0Est(libcpp_vector[double] p_values, libcpp_vector[double] lambda_, const char* pi0_method, int smooth_df, bint smooth_log_pi0) except +
+
+# Now inline wrapper functions
 cdef extern from * namespace "OpenMS::Math":
     """
     #include <OpenMS/MATH/STATISTICS/MultipleTesting.h>
@@ -43,23 +57,8 @@ cdef extern from * namespace "OpenMS::Math":
     libcpp_vector[double] pemp_int_i(libcpp_vector[int] s, libcpp_vector[int] s0) except +
     libcpp_vector[double] qvalue_c(libcpp_vector[double] p_values, double pi0, bint pfdr) except +
     libcpp_vector[double] pnorm_c(libcpp_vector[double] stat, libcpp_vector[double] stat0) except +
-    # Pi0Result declared later; forward declare return as object using same name in next extern block
     Pi0Result pi0est_c(libcpp_vector[double] p_values, libcpp_vector[double] lambda_, const char* pi0_method, int smooth_df, bint smooth_log_pi0) except +
     libcpp_vector[double] lfdr_c(libcpp_vector[double] p_values, double pi0, bint trunc, bint monotone, const char* transf, double adj, double eps, size_t gridsize, double cut) except +
-
-
-cdef extern from "<OpenMS/MATH/STATISTICS/MultipleTesting.h>" namespace "OpenMS::Math":
-    libcpp_vector[double] qValue(libcpp_vector[double] p_values, double pi0, bint pfdr) except +
-    libcpp_vector[double] pNorm(libcpp_vector[double] stat, libcpp_vector[double] stat0) except +
-    libcpp_vector[double] lfdr(libcpp_vector[double] p_values, double pi0, bint trunc, bint monotone, const char* transf, double adj, double eps, size_t gridsize, double cut) except +
-
-    cdef cppclass Pi0Result:
-        double pi0
-        libcpp_vector[double] pi0_lambda
-        libcpp_vector[double] lambda_
-        bint pi0_smooth
-
-    Pi0Result pi0Est(libcpp_vector[double] p_values, libcpp_vector[double] lambda_, const char* pi0_method, int smooth_df, bint smooth_log_pi0) except +
 
 
 @cython.boundscheck(False)
