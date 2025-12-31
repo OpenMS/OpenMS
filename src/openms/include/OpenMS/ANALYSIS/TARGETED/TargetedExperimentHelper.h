@@ -868,6 +868,17 @@ namespace std
         OpenMS::hash_combine(seed, OpenMS::hash_int(product.getChargeState()));
       }
       OpenMS::hash_combine(seed, OpenMS::hash_float(product.getMZ()));
+      // Hash configuration_list_ (required for consistency with operator==)
+      for (const auto& config : product.getConfigurationList())
+      {
+        OpenMS::hash_combine(seed, OpenMS::hashCVTermList(config));
+        OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(config.contact_ref));
+        OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(config.instrument_ref));
+        for (const auto& validation : config.validations)
+        {
+          OpenMS::hash_combine(seed, OpenMS::hashCVTermList(validation));
+        }
+      }
       for (const auto& interp : product.getInterpretationList())
       {
         OpenMS::hash_combine(seed, std::hash<OpenMS::TargetedExperimentHelper::Interpretation>{}(interp));

@@ -94,8 +94,13 @@ namespace OpenMS
    *
    * Uses FNV-1a on the bytes of the integer for good distribution.
    *
+   * @note This function hashes the platform's native byte representation.
+   *       Results may differ on big-endian vs little-endian systems.
+   *       This is acceptable for in-process hash containers but not for
+   *       cross-platform persistent storage. See header documentation.
+   *
    * @tparam T Must be an integral type (int, long, size_t, etc.)
-   * @param value Integer value to hash
+   * @param[in] value Integer value to hash
    * @return Hash value
    */
   template<typename T>

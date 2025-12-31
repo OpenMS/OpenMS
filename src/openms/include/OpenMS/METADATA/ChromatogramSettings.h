@@ -172,9 +172,8 @@ namespace std
    * - data_processing_ (software, actions, completion time for each element)
    * - type_ (chromatogram type enum)
    *
-   * @note This hash implementation hashes the key identifying fields of nested types.
-   *       MetaInfo and CVTermList are not fully hashed as they lack hash specializations,
-   *       but the most commonly differing fields are included.
+   * @note This hash implementation hashes the key identifying fields of nested types
+   *       and includes MetaInfoInterface. Consistent with operator==.
    */
   template<>
   struct hash<OpenMS::ChromatogramSettings>
@@ -275,6 +274,9 @@ namespace std
 
       // Hash type_
       OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(cs.getChromatogramType())));
+
+      // Hash MetaInfoInterface base class
+      OpenMS::hash_combine(seed, std::hash<OpenMS::MetaInfoInterface>{}(cs));
 
       return seed;
     }

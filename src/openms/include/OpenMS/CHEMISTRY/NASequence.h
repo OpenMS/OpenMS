@@ -535,7 +535,12 @@ namespace std
    * Design decisions:
    * - Uses ribonucleotide codes instead of pointers for portability
    * - Includes 5' and 3' terminal modification codes
-   * - Hash is consistent with operator== (compares seq_, five_prime_, three_prime_)
+   * - Hash is consistent with operator== when all Ribonucleotide pointers originate
+   *   from RibonucleotideDB (the singleton guarantees identical codes map to identical pointers)
+   *
+   * @pre All Ribonucleotide* in the sequence must originate from RibonucleotideDB.
+   *      If pointers from different sources with identical codes are used,
+   *      hash equality may not imply object equality (violating hash contract).
    *
    * @note Hash is reproducible across process runs for equal sequences.
    */

@@ -126,7 +126,7 @@ START_SECTION(([EXTRA] std::hash<ProteinProteinCrossLink>))
   OPXLDataStructs::ProteinProteinCrossLink link1;
   link1.alpha = &alpha1;
   link1.beta = &beta1;
-  link1.cross_link_position = std::make_pair<SignedSize, SignedSize>(3, 5);
+  link1.cross_link_position = {3, 5};
   link1.cross_linker_mass = 150.0;
   link1.cross_linker_name = "DSS";
   link1.term_spec_alpha = ResidueModification::ANYWHERE;
@@ -137,7 +137,7 @@ START_SECTION(([EXTRA] std::hash<ProteinProteinCrossLink>))
   OPXLDataStructs::ProteinProteinCrossLink link2;
   link2.alpha = &alpha1;
   link2.beta = &beta1;
-  link2.cross_link_position = std::make_pair<SignedSize, SignedSize>(3, 5);
+  link2.cross_link_position = {3, 5};
   link2.cross_linker_mass = 150.0;
   link2.cross_linker_name = "DSS";
   link2.term_spec_alpha = ResidueModification::ANYWHERE;
@@ -148,7 +148,7 @@ START_SECTION(([EXTRA] std::hash<ProteinProteinCrossLink>))
   OPXLDataStructs::ProteinProteinCrossLink link3;
   link3.alpha = &alpha2;
   link3.beta = &beta2;
-  link3.cross_link_position = std::make_pair<SignedSize, SignedSize>(1, 2);
+  link3.cross_link_position = {1, 2};
   link3.cross_linker_mass = 200.0;
   link3.cross_linker_name = "BS3";
   link3.term_spec_alpha = ResidueModification::N_TERM;

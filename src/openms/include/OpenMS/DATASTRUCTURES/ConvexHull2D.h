@@ -79,6 +79,9 @@ public:
     /// accessor for the outer points
     const PointArrayType& getHullPoints() const;
 
+    /// accessor for the internal map representation (RT -> m/z bounding box)
+    const HullPointType& getMapPoints() const { return map_points_; }
+
     /// accessor for the outer(!) points (no checking is performed if this is actually a convex hull)
     void setHullPoints(const PointArrayType& points);
 
@@ -149,8 +152,17 @@ namespace std
     {
       std::size_t seed = 0;
 
+      // Hash map_points_ (map of RT -> m/z bounding box)
+      // std::map iteration order is deterministic (sorted by key)
+      const auto& map_points = hull.getMapPoints();
+      OpenMS::hash_combine(seed, OpenMS::hash_int(map_points.size()));
+      for (const auto& entry : map_points)
+      {
+        OpenMS::hash_combine(seed, OpenMS::hash_float(entry.first));
+        OpenMS::hash_combine(seed, std::hash<OpenMS::DBoundingBox<1>>{}(entry.second));
+      }
+
       // Hash outer_points_ (vector of DPosition<2>)
-      // These are the fields checked in operator==
       const auto& outer_points = hull.getHullPoints();
       OpenMS::hash_combine(seed, OpenMS::hash_int(outer_points.size()));
       for (const auto& point : outer_points)
