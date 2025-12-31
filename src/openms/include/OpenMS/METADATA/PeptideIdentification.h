@@ -13,7 +13,6 @@
 #include <OpenMS/METADATA/ProteinHit.h>
 #include <OpenMS/CONCEPT/HashUtils.h>
 
-#include <cmath>
 #include <functional>
 #include <string>
 #include <map>
@@ -238,7 +237,7 @@ namespace std
     std::size_t operator()(const OpenMS::PeptideIdentification& pi) const noexcept
     {
       // Start with MetaInfoInterface hash (includes significance_threshold, experiment_label, base_name)
-      std::size_t seed = OpenMS::hash_meta_info_interface(pi);
+      std::size_t seed = std::hash<OpenMS::MetaInfoInterface>{}(pi);
 
       // Hash identifier
       OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(pi.getIdentifier()));

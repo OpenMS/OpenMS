@@ -288,15 +288,8 @@ namespace std
         }
       }
 
-      // Hash MetaInfoInterface (base class) - hash the keys and values
-      std::vector<OpenMS::String> keys;
-      s.getKeys(keys);
-      OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(keys.size())));
-      for (const auto& key : keys)
-      {
-        OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(key));
-        OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(s.getMetaValue(key).toString()));
-      }
+      // Hash MetaInfoInterface base class
+      OpenMS::hash_combine(seed, std::hash<OpenMS::MetaInfoInterface>{}(s));
 
       return seed;
     }

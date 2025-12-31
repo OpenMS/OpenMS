@@ -222,9 +222,6 @@ protected:
     DriftTimeUnit drift_time_unit_{DriftTimeUnit::NONE};
     Int charge_{};
     std::vector<Int> possible_charge_states_;
-
-    // Grant access to hash implementation
-    friend struct std::hash<Precursor>;
   };
 } // namespace OpenMS
 

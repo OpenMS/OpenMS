@@ -376,18 +376,6 @@ private:
 
   /// Stream operator
   OPENMS_DLLAPI std::ostream& operator<< (std::ostream& stream, const PeptideHit& hit);
-
-  /**
-   * @brief Hash function for MetaInfoInterface.
-   *
-   * Computes a hash based on all stored meta values.
-   * This is a helper function used by hash specializations for classes
-   * inheriting from MetaInfoInterface.
-   *
-   * @param mii The MetaInfoInterface to hash
-   * @return Hash value combining all meta keys and values
-   */
-  OPENMS_DLLAPI std::size_t hash_meta_info_interface(const MetaInfoInterface& mii);
 } // namespace OpenMS
 
 // Hash function specialization for PeptideHit::PeakAnnotation
@@ -430,7 +418,7 @@ namespace std
     std::size_t operator()(const OpenMS::PeptideHit& hit) const noexcept
     {
       // Start with MetaInfoInterface hash
-      std::size_t seed = OpenMS::hash_meta_info_interface(hit);
+      std::size_t seed = std::hash<OpenMS::MetaInfoInterface>{}(hit);
 
       // Hash sequence
       OpenMS::hash_combine(seed, std::hash<OpenMS::AASequence>{}(hit.getSequence()));

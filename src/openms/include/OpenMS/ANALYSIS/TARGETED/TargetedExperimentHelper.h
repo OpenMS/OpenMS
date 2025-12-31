@@ -626,11 +626,12 @@ private:
 
   }
 
-  // Helper function to hash CVTermList
-  inline std::size_t hashCVTermList(const CVTermList& cvtl)
+  /// Helper template to hash any type with getCVTerms() method (CVTermList, CVTermListInterface)
+  template<typename T>
+  inline std::size_t hashCVTerms(const T& obj)
   {
     std::size_t seed = 0;
-    const auto& cv_terms = cvtl.getCVTerms();
+    const auto& cv_terms = obj.getCVTerms();
     for (const auto& [accession, terms] : cv_terms)
     {
       hash_combine(seed, fnv1a_hash_string(accession));
@@ -652,31 +653,9 @@ private:
     return seed;
   }
 
-  // Helper function to hash CVTermListInterface
-  inline std::size_t hashCVTermListInterface(const CVTermListInterface& cvtli)
-  {
-    std::size_t seed = 0;
-    const auto& cv_terms = cvtli.getCVTerms();
-    for (const auto& [accession, terms] : cv_terms)
-    {
-      hash_combine(seed, fnv1a_hash_string(accession));
-      for (const auto& term : terms)
-      {
-        hash_combine(seed, fnv1a_hash_string(term.getAccession()));
-        hash_combine(seed, fnv1a_hash_string(term.getName()));
-        hash_combine(seed, fnv1a_hash_string(term.getCVIdentifierRef()));
-        if (term.hasValue())
-        {
-          hash_combine(seed, fnv1a_hash_string(term.getValue().toString()));
-        }
-        if (term.hasUnit())
-        {
-          hash_combine(seed, fnv1a_hash_string(term.getUnit().accession));
-        }
-      }
-    }
-    return seed;
-  }
+  // Convenience wrappers for backward compatibility
+  inline std::size_t hashCVTermList(const CVTermList& cvtl) { return hashCVTerms(cvtl); }
+  inline std::size_t hashCVTermListInterface(const CVTermListInterface& cvtli) { return hashCVTerms(cvtli); }
 
 } // namespace OpenMS
 

@@ -557,6 +557,8 @@ namespace std
       // Hash digestion_enzyme using the base class hash
       OpenMS::hash_combine(seed, std::hash<OpenMS::DigestionEnzyme>{}(sp.digestion_enzyme));
       OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(sp.enzyme_term_specificity)));
+      // Hash MetaInfoInterface base class
+      OpenMS::hash_combine(seed, std::hash<OpenMS::MetaInfoInterface>{}(sp));
       return seed;
     }
   };
@@ -598,14 +600,8 @@ namespace std
       OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(pi.getScoreType()));
       OpenMS::hash_combine(seed, OpenMS::hash_float(pi.getSignificanceThreshold()));
       OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(pi.isHigherScoreBetter())));
-      // Hash MetaInfoInterface by iterating through keys
-      std::vector<OpenMS::String> keys;
-      pi.getKeys(keys);
-      for (const auto& key : keys)
-      {
-        OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(key));
-        OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(pi.getMetaValue(key).toString()));
-      }
+      // Hash MetaInfoInterface base class
+      OpenMS::hash_combine(seed, std::hash<OpenMS::MetaInfoInterface>{}(pi));
       return seed;
     }
   };

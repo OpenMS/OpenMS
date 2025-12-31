@@ -455,41 +455,4 @@ namespace OpenMS
     }
   }
 
-  std::size_t hash_meta_info_interface(const MetaInfoInterface& mii)
-  {
-    std::size_t seed = 0;
-
-    // Get all string keys and hash them
-    std::vector<String> keys;
-    mii.getKeys(keys);
-
-    // Sort keys for consistent ordering (keys may be stored in arbitrary order)
-    std::sort(keys.begin(), keys.end());
-
-    for (const String& key : keys)
-    {
-      // Hash the key
-      hash_combine(seed, fnv1a_hash_string(key));
-      // Hash the value
-      hash_combine(seed, std::hash<DataValue>{}(mii.getMetaValue(key)));
-    }
-
-    // Get all UInt keys and hash them
-    std::vector<UInt> uint_keys;
-    mii.getKeys(uint_keys);
-
-    // Sort for consistent ordering
-    std::sort(uint_keys.begin(), uint_keys.end());
-
-    for (UInt key : uint_keys)
-    {
-      // Hash the key
-      hash_combine(seed, hash_int(key));
-      // Hash the value
-      hash_combine(seed, std::hash<DataValue>{}(mii.getMetaValue(key)));
-    }
-
-    return seed;
-  }
-
 } // namespace OpenMS
