@@ -1135,6 +1135,150 @@ START_SECTION([EXTRA] generateDecoysLight_modified_sequence_duplicate_detection)
 }
 END_SECTION
 
+START_SECTION([EXTRA] generateDecoys_modified_sequence_duplicate_detection)
+{
+  // Regression test for the fix where Heavy path was incorrectly using unmodified sequences
+  // for duplicate detection instead of modified sequences (with UniMod annotations).
+  // This test verifies that peptides with the same unmodified sequence but different
+  // modifications generate separate decoys (not treated as duplicates).
+
+  MRMDecoy gen;
+
+  // Create a minimal TargetedExperiment with two peptides that have:
+  // - Same unmodified sequence
+  // - Different modifications
+  // These should NOT be treated as duplicates
+
+  TargetedExperiment exp;
+  TargetedExperiment decoy_exp;
+
+  // Add a dummy protein
+  TargetedExperiment::Protein protein;
+  protein.id = "protein1";
+  exp.addProtein(protein);
+
+  // Peptide 1: TESTPEPTIDE with Phospho modification at position 2
+  TargetedExperiment::Peptide peptide1;
+  peptide1.id = "peptide1";
+  peptide1.sequence = "TESTPEPTIDE";
+  peptide1.setChargeState(2);
+  peptide1.protein_refs.push_back("protein1");
+
+  TargetedExperiment::Peptide::Modification mod1;
+  mod1.location = 2;
+  mod1.unimod_id = 21;  // Phospho
+  mod1.mono_mass_delta = 79.966331;
+  mod1.avg_mass_delta = 79.9799;
+  peptide1.mods.push_back(mod1);
+  exp.addPeptide(peptide1);
+
+  // Peptide 2: TESTPEPTIDE with Oxidation modification at position 5
+  TargetedExperiment::Peptide peptide2;
+  peptide2.id = "peptide2";
+  peptide2.sequence = "TESTPEPTIDE";  // Same unmodified sequence
+  peptide2.setChargeState(2);  // Same charge
+  peptide2.protein_refs.push_back("protein1");
+
+  TargetedExperiment::Peptide::Modification mod2;
+  mod2.location = 5;
+  mod2.unimod_id = 35;  // Oxidation
+  mod2.mono_mass_delta = 15.994915;
+  mod2.avg_mass_delta = 15.9994;
+  peptide2.mods.push_back(mod2);
+  exp.addPeptide(peptide2);
+
+  // Add minimal transitions for each peptide
+  ReactionMonitoringTransition transition1;
+  transition1.setNativeID("transition1");
+  transition1.setPeptideRef("peptide1");
+  transition1.setProductMZ(500.0);
+  transition1.setPrecursorMZ(600.0);
+  transition1.setDetectingTransition(true);
+
+  CVTerm cv_term1;
+  cv_term1.setCVIdentifierRef("MS");
+  cv_term1.setAccession("MS:1001220");
+  cv_term1.setName("frag: y ion");
+  transition1.addProductCVTerm(cv_term1);
+
+  ReactionMonitoringTransition::Product product1;
+  product1.setChargeState(1);
+  transition1.setProduct(product1);
+  exp.addTransition(transition1);
+
+  ReactionMonitoringTransition transition2;
+  transition2.setNativeID("transition2");
+  transition2.setPeptideRef("peptide2");
+  transition2.setProductMZ(501.0);
+  transition2.setPrecursorMZ(601.0);
+  transition2.setDetectingTransition(true);
+
+  CVTerm cv_term2;
+  cv_term2.setCVIdentifierRef("MS");
+  cv_term2.setAccession("MS:1001220");
+  cv_term2.setName("frag: y ion");
+  transition2.addProductCVTerm(cv_term2);
+
+  ReactionMonitoringTransition::Product product2;
+  product2.setChargeState(1);
+  transition2.setProduct(product2);
+  exp.addTransition(transition2);
+
+  // Generate decoys using the Heavy path
+  std::vector<String> fragment_types;
+  fragment_types.push_back("y");
+  fragment_types.push_back("b");
+  std::vector<size_t> fragment_charges;
+  fragment_charges.push_back(1);
+  fragment_charges.push_back(2);
+
+  gen.generateDecoys(
+    exp,
+    decoy_exp,
+    "pseudo-reverse",
+    1.0,  // aim_decoy_fraction - aim for 100% decoys
+    false,  // do_switchKR
+    "DECOY_",
+    10,  // max_attempts
+    0.7,  // identity_threshold
+    0.0,  // precursor_mz_shift
+    20.0,  // product_mz_shift
+    500.0,  // product_mz_threshold - high value to match any ion
+    fragment_types,
+    fragment_charges,
+    true,  // enable_specific_losses
+    false,  // enable_unspecific_losses
+    -4  // round_decPow
+  );
+
+  // Verify that BOTH peptides generated decoys (they should not be treated as duplicates)
+  // Before the fix, the second peptide would be incorrectly excluded as a duplicate
+  // because only the unmodified sequence was used for duplicate detection
+  TEST_EQUAL(decoy_exp.getPeptides().size(), 2)
+
+  // Verify that the two decoys have different modified sequences
+  if (decoy_exp.getPeptides().size() == 2)
+  {
+    const auto& pep1 = decoy_exp.getPeptides()[0];
+    const auto& pep2 = decoy_exp.getPeptides()[1];
+
+    // Both should have modifications
+    TEST_EQUAL(pep1.mods.size() >= 1, true)
+    TEST_EQUAL(pep2.mods.size() >= 1, true)
+
+    // The modifications should be at different positions (since they came from peptides
+    // with modifications at different positions)
+    if (pep1.mods.size() >= 1 && pep2.mods.size() >= 1)
+    {
+      TEST_NOT_EQUAL(pep1.mods[0].location, pep2.mods[0].location)
+    }
+  }
+
+  // Also verify that we got transitions for both decoys
+  TEST_EQUAL(decoy_exp.getTransitions().size(), 2)
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

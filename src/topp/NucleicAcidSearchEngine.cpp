@@ -781,7 +781,7 @@ protected:
     IdentificationData::ScoreTypeRef score_ref = id_data.findScoreType("hyperscore");
     FalseDiscoveryRate fdr;
     Param fdr_params = fdr.getDefaults();
-    fdr_params.setValue("use_all_hits", only_top_hits ? "true" : "false");
+    fdr_params.setValue("use_all_hits", only_top_hits ? "false" : "true");
     bool remove_decoys = getFlag_("fdr:remove_decoys");
     fdr_params.setValue("add_decoy_peptides", remove_decoys ? "false" : "true");
     fdr.setParameters(fdr_params);

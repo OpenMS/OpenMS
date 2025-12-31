@@ -599,8 +599,10 @@ namespace OpenMS
         else if (do_switchKR) { switchKR(peptide); }
       }
 
-      // Check that the decoy precursor does not happen to be a target precursor AND is not already present
-      if (allPeptideSequences.find(peptide.sequence + String((peptide.getChargeState()))) != allPeptideSequences.end())
+      // Check that the decoy precursor does not happen to be a target precursor AND is not already present.
+      // Use getModifiedPeptideSequence_ to match the key format used when populating allPeptideSequences above.
+      const std::string peptide_key = MRMDecoy::getModifiedPeptideSequence_(peptide) + String(peptide.getChargeState());
+      if (allPeptideSequences.find(peptide_key) != allPeptideSequences.end())
       {
         OPENMS_LOG_DEBUG << "[peptide] Skipping " << peptide.id << " since decoy peptide is also a target peptide or this decoy peptide is already present" << std::endl;
         exclusion_peptides.insert(peptide.id);
@@ -609,7 +611,7 @@ namespace OpenMS
       {
         // Since this decoy will be added, add it to the precursor map so that the same decoy is not added twice
         OPENMS_LOG_DEBUG << "[peptide] adding " << peptide.id << " to master list of peptides " << std::endl;
-        allPeptideSequences[MRMDecoy::getModifiedPeptideSequence_(peptide) + String(peptide.getChargeState())] = peptide.id;
+        allPeptideSequences[peptide_key] = peptide.id;
       }
 
       for (Size prot_idx = 0; prot_idx < peptide.protein_refs.size(); ++prot_idx)
