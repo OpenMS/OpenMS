@@ -9,7 +9,6 @@
 #pragma once
 
 #include <vector>
-#include <algorithm>
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/HashUtils.h>

@@ -9,7 +9,10 @@
 #pragma once
 
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHHelperClasses.h>
+#include <OpenMS/CONCEPT/HashUtils.h>
 #include <OpenMS/DATASTRUCTURES/Matrix.h>
+
+#include <functional>
 
 namespace OpenMS
 {
@@ -420,3 +423,19 @@ namespace OpenMS
     float qvalue_ = 1.f;
   };
 } // namespace OpenMS
+
+namespace std
+{
+  /// std::hash specialization for OpenMS::PeakGroup
+  /// Hashes all fields used in operator== (monoisotopic mass and intensity)
+  template<>
+  struct hash<OpenMS::PeakGroup>
+  {
+    std::size_t operator()(const OpenMS::PeakGroup& pg) const noexcept
+    {
+      std::size_t seed = OpenMS::hash_float(pg.getMonoMass());
+      OpenMS::hash_combine(seed, OpenMS::hash_float(pg.getIntensity()));
+      return seed;
+    }
+  };
+} // namespace std

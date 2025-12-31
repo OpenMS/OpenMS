@@ -10,8 +10,7 @@ cdef extern from "<OpenMS/CHEMISTRY/AASequence.h>" namespace "OpenMS":
 
     cdef cppclass AASequence:
         # wrap-hash:
-        #  toString().c_str()
-        #
+        #  std
         # wrap-doc:
         #  Representation of a peptide/protein sequence
         #  This class represents amino acid sequences in OpenMS. An AASequence

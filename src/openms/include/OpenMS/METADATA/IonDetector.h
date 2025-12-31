@@ -11,6 +11,7 @@
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/CONCEPT/HashUtils.h>
+#include <functional>
 
 namespace OpenMS
 {
@@ -134,33 +135,27 @@ protected:
   };
 } // namespace OpenMS
 
-// Hash function specialization for IonDetector
 namespace std
 {
   /**
-   * @brief Hash function for IonDetector.
+   * @brief Hash function for OpenMS::IonDetector.
    *
-   * Hashes based on all fields compared in operator==:
-   * - order_, type_, acquisition_mode_, resolution_, ADC_sampling_frequency_
-   * - MetaInfoInterface base class (including all meta info key-value pairs)
+   * Hashes type, acquisition mode, resolution, ADC sampling frequency, and order.
+   * Note: MetaInfoInterface base class fields are not included in the hash as
+   * MetaInfoInterface does not yet have a hash implementation. This hash is
+   * consistent with operator== for objects that differ only in the IonDetector-specific
+   * fields.
    */
   template<>
   struct hash<OpenMS::IonDetector>
   {
-    std::size_t operator()(const OpenMS::IonDetector& detector) const noexcept
+    std::size_t operator()(const OpenMS::IonDetector& d) const noexcept
     {
-      std::size_t seed = 0;
-
-      // Hash member fields
-      OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(detector.getType())));
-      OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(detector.getAcquisitionMode())));
-      OpenMS::hash_combine(seed, OpenMS::hash_float(detector.getResolution()));
-      OpenMS::hash_combine(seed, OpenMS::hash_float(detector.getADCSamplingFrequency()));
-      OpenMS::hash_combine(seed, OpenMS::hash_int(detector.getOrder()));
-
-      // Hash MetaInfoInterface base class
-      OpenMS::hash_combine(seed, std::hash<OpenMS::MetaInfoInterface>{}(detector));
-
+      std::size_t seed = OpenMS::hash_int(static_cast<int>(d.getType()));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(d.getAcquisitionMode())));
+      OpenMS::hash_combine(seed, OpenMS::hash_float(d.getResolution()));
+      OpenMS::hash_combine(seed, OpenMS::hash_float(d.getADCSamplingFrequency()));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(d.getOrder()));
       return seed;
     }
   };

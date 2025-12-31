@@ -12,6 +12,8 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/CONCEPT/HashUtils.h>
 
+#include <functional>
+
 namespace OpenMS
 {
 
@@ -206,31 +208,28 @@ protected:
 // Hash function specialization for IonSource
 namespace std
 {
-  /**
-   * @brief Hash function for IonSource.
-   *
-   * Hashes based on all fields compared in operator==:
-   * - order_, inlet_type_, ionization_method_, polarity_
-   * - MetaInfoInterface base class (including all meta info key-value pairs)
-   */
   template<>
   struct hash<OpenMS::IonSource>
   {
-    std::size_t operator()(const OpenMS::IonSource& source) const noexcept
+    std::size_t operator()(const OpenMS::IonSource& is) const noexcept
     {
-      std::size_t seed = 0;
+      // Hash all fields used in operator==: order_, inlet_type_, ionization_method_, polarity_, and MetaInfoInterface
+      std::size_t seed = OpenMS::hash_int(is.getOrder());
+      OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(is.getInletType())));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(is.getIonizationMethod())));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(is.getPolarity())));
 
-      // Hash member fields
-      OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(source.getInletType())));
-      OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(source.getIonizationMethod())));
-      OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(source.getPolarity())));
-      OpenMS::hash_combine(seed, OpenMS::hash_int(source.getOrder()));
-
-      // Hash MetaInfoInterface base class
-      OpenMS::hash_combine(seed, std::hash<OpenMS::MetaInfoInterface>{}(source));
+      // Hash MetaInfoInterface: iterate over UInt keys and hash key-value pairs
+      std::vector<OpenMS::UInt> keys;
+      is.getKeys(keys);
+      for (OpenMS::UInt key : keys)
+      {
+        OpenMS::hash_combine(seed, OpenMS::hash_int(key));
+        OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(is.getMetaValue(key).toString()));
+      }
 
       return seed;
     }
   };
-} // namespace std
+}
 

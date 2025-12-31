@@ -10,7 +10,9 @@ import unittest
 from pyopenms import (
     Peak1D, Peak2D, ChromatogramPeak, MobilityPeak1D,
     AASequence, EmpiricalFormula, PeptideHit, PeptideEvidence,
-    FeatureHandle, DateTime, Adduct
+    FeatureHandle, DateTime, Adduct, DataValue, MetaInfoInterface,
+    CVTerm, Software, Precursor, ProteinHit, PeptideIdentification,
+    Product, SpectrumSettings, ChromatogramSettings
 )
 
 
@@ -263,6 +265,228 @@ class TestAdductHash(unittest.TestCase):
 
         d = {a: "sodium"}
         self.assertEqual(d[a], "sodium")
+
+
+class TestDataValueHash(unittest.TestCase):
+    """Test hash function for DataValue - critical epsilon test"""
+
+    def test_equal_int_values_have_equal_hash(self):
+        dv1 = DataValue(42)
+        dv2 = DataValue(42)
+        self.assertEqual(hash(dv1), hash(dv2))
+
+    def test_equal_string_values_have_equal_hash(self):
+        dv1 = DataValue("test")
+        dv2 = DataValue("test")
+        self.assertEqual(hash(dv1), hash(dv2))
+
+    def test_double_epsilon_compatibility(self):
+        """Critical test: doubles within epsilon (1e-6) must have equal hashes"""
+        dv1 = DataValue(1.0000001)
+        dv2 = DataValue(1.0000002)  # Within epsilon
+        # These are equal per operator== so must have equal hash
+        self.assertEqual(hash(dv1), hash(dv2))
+
+    def test_different_doubles_have_different_hash(self):
+        dv1 = DataValue(1.0)
+        dv2 = DataValue(2.0)
+        self.assertNotEqual(hash(dv1), hash(dv2))
+
+    def test_can_use_in_dict(self):
+        dv = DataValue(42)
+        d = {dv: "answer"}
+        self.assertEqual(d[dv], "answer")
+
+
+class TestMetaInfoInterfaceHash(unittest.TestCase):
+    """Test hash function for MetaInfoInterface - critical order-independence test"""
+
+    def test_equal_meta_have_equal_hash(self):
+        m1 = MetaInfoInterface()
+        m1.setMetaValue("key1", "value1")
+
+        m2 = MetaInfoInterface()
+        m2.setMetaValue("key1", "value1")
+
+        self.assertEqual(hash(m1), hash(m2))
+
+    def test_order_independent_hash(self):
+        """Critical test: insertion order should not affect hash"""
+        m1 = MetaInfoInterface()
+        m1.setMetaValue("name", "test")
+        m1.setMetaValue("score", 1.5)
+
+        m2 = MetaInfoInterface()
+        m2.setMetaValue("score", 1.5)  # Different order
+        m2.setMetaValue("name", "test")
+
+        self.assertEqual(hash(m1), hash(m2))
+
+    def test_can_use_in_dict(self):
+        m = MetaInfoInterface()
+        m.setMetaValue("key", "value")
+        d = {m: "meta"}
+        self.assertEqual(d[m], "meta")
+
+
+class TestPeptideHitHash(unittest.TestCase):
+    """Test hash function for PeptideHit"""
+
+    def test_equal_hits_have_equal_hash(self):
+        ph1 = PeptideHit()
+        ph1.setSequence(AASequence.fromString("PEPTIDE"))
+        ph1.setScore(10.5)
+        ph1.setCharge(2)
+
+        ph2 = PeptideHit()
+        ph2.setSequence(AASequence.fromString("PEPTIDE"))
+        ph2.setScore(10.5)
+        ph2.setCharge(2)
+
+        self.assertEqual(hash(ph1), hash(ph2))
+
+    def test_different_hits_have_different_hash(self):
+        ph1 = PeptideHit()
+        ph1.setSequence(AASequence.fromString("PEPTIDE"))
+
+        ph2 = PeptideHit()
+        ph2.setSequence(AASequence.fromString("PROTEIN"))
+
+        self.assertNotEqual(hash(ph1), hash(ph2))
+
+    def test_can_use_in_set(self):
+        hits = set()
+        for seq in ["PEPTIDE", "PROTEIN", "PEPTIDE"]:  # PEPTIDE twice
+            ph = PeptideHit()
+            ph.setSequence(AASequence.fromString(seq))
+            hits.add(ph)
+        self.assertEqual(len(hits), 2)
+
+
+class TestCVTermHash(unittest.TestCase):
+    """Test hash function for CVTerm"""
+
+    def test_equal_terms_have_equal_hash(self):
+        cv1 = CVTerm()
+        cv1.setAccession("MS:1000001")
+        cv1.setName("sample number")
+
+        cv2 = CVTerm()
+        cv2.setAccession("MS:1000001")
+        cv2.setName("sample number")
+
+        self.assertEqual(hash(cv1), hash(cv2))
+
+    def test_can_use_in_dict(self):
+        cv = CVTerm()
+        cv.setAccession("MS:1000001")
+        d = {cv: "term"}
+        self.assertEqual(d[cv], "term")
+
+
+class TestSoftwareHash(unittest.TestCase):
+    """Test hash function for Software"""
+
+    def test_equal_software_have_equal_hash(self):
+        sw1 = Software()
+        sw1.setName("OpenMS")
+        sw1.setVersion("3.0")
+
+        sw2 = Software()
+        sw2.setName("OpenMS")
+        sw2.setVersion("3.0")
+
+        self.assertEqual(hash(sw1), hash(sw2))
+
+    def test_can_use_in_dict(self):
+        sw = Software()
+        sw.setName("OpenMS")
+        d = {sw: "software"}
+        self.assertEqual(d[sw], "software")
+
+
+class TestPrecursorHash(unittest.TestCase):
+    """Test hash function for Precursor"""
+
+    def test_equal_precursors_have_equal_hash(self):
+        p1 = Precursor()
+        p1.setMZ(500.0)
+        p1.setCharge(2)
+
+        p2 = Precursor()
+        p2.setMZ(500.0)
+        p2.setCharge(2)
+
+        self.assertEqual(hash(p1), hash(p2))
+
+    def test_can_use_in_dict(self):
+        p = Precursor()
+        p.setMZ(500.0)
+        d = {p: "precursor"}
+        self.assertEqual(d[p], "precursor")
+
+
+class TestProteinHitHash(unittest.TestCase):
+    """Test hash function for ProteinHit"""
+
+    def test_equal_hits_have_equal_hash(self):
+        ph1 = ProteinHit()
+        ph1.setAccession("sp|P12345|TEST")
+        ph1.setScore(100.0)
+
+        ph2 = ProteinHit()
+        ph2.setAccession("sp|P12345|TEST")
+        ph2.setScore(100.0)
+
+        self.assertEqual(hash(ph1), hash(ph2))
+
+    def test_can_use_in_set(self):
+        hits = set()
+        for acc in ["P12345", "P67890", "P12345"]:
+            ph = ProteinHit()
+            ph.setAccession(acc)
+            hits.add(ph)
+        self.assertEqual(len(hits), 2)
+
+
+class TestPeptideIdentificationHash(unittest.TestCase):
+    """Test hash function for PeptideIdentification"""
+
+    def test_equal_ids_have_equal_hash(self):
+        pi1 = PeptideIdentification()
+        pi1.setIdentifier("test_run")
+        pi1.setScoreType("XCorr")
+
+        pi2 = PeptideIdentification()
+        pi2.setIdentifier("test_run")
+        pi2.setScoreType("XCorr")
+
+        self.assertEqual(hash(pi1), hash(pi2))
+
+    def test_can_use_in_dict(self):
+        pi = PeptideIdentification()
+        pi.setIdentifier("test")
+        d = {pi: "identification"}
+        self.assertEqual(d[pi], "identification")
+
+
+class TestProductHash(unittest.TestCase):
+    """Test hash function for Product"""
+
+    def test_equal_products_have_equal_hash(self):
+        p1 = Product()
+        p1.setMZ(500.0)
+
+        p2 = Product()
+        p2.setMZ(500.0)
+
+        self.assertEqual(hash(p1), hash(p2))
+
+    def test_can_use_in_dict(self):
+        p = Product()
+        p.setMZ(500.0)
+        d = {p: "product"}
+        self.assertEqual(d[p], "product")
 
 
 if __name__ == "__main__":

@@ -10,6 +10,7 @@
 
 #include <OpenMS/METADATA/CVTermList.h>
 #include <OpenMS/CONCEPT/HashUtils.h>
+#include <functional>
 
 namespace OpenMS
 {
@@ -68,31 +69,24 @@ protected:
   };
 } // namespace OpenMS
 
-// Hash function specialization for Product
 namespace std
 {
   /**
-   * @brief Hash function for Product.
+   * @brief Hash function for OpenMS::Product.
    *
-   * Hashes based on all fields compared in operator==:
-   * - mz_, window_low_, window_up_
-   * - CVTermList base class (including all CV terms)
+   * Hashes mz, isolation window lower offset, and isolation window upper offset.
+   * Note: CVTermList base class fields are not included in the hash as CVTermList
+   * does not yet have a hash implementation. This hash is consistent with operator==
+   * for objects that differ only in the Product-specific fields.
    */
   template<>
   struct hash<OpenMS::Product>
   {
-    std::size_t operator()(const OpenMS::Product& product) const noexcept
+    std::size_t operator()(const OpenMS::Product& p) const noexcept
     {
-      std::size_t seed = 0;
-
-      // Hash member fields
-      OpenMS::hash_combine(seed, OpenMS::hash_float(product.getMZ()));
-      OpenMS::hash_combine(seed, OpenMS::hash_float(product.getIsolationWindowLowerOffset()));
-      OpenMS::hash_combine(seed, OpenMS::hash_float(product.getIsolationWindowUpperOffset()));
-
-      // Hash CVTermList base class
-      OpenMS::hash_combine(seed, std::hash<OpenMS::CVTermList>{}(product));
-
+      std::size_t seed = OpenMS::hash_float(p.getMZ());
+      OpenMS::hash_combine(seed, OpenMS::hash_float(p.getIsolationWindowLowerOffset()));
+      OpenMS::hash_combine(seed, OpenMS::hash_float(p.getIsolationWindowUpperOffset()));
       return seed;
     }
   };

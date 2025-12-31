@@ -15,7 +15,9 @@
 #include <OpenMS/METADATA/Precursor.h>
 #include <OpenMS/METADATA/Product.h>
 #include <OpenMS/METADATA/DataProcessing.h>
+#include <OpenMS/CONCEPT/HashUtils.h>
 
+#include <functional>
 #include <map>
 #include <vector>
 
@@ -151,4 +153,131 @@ protected:
   OPENMS_DLLAPI std::ostream & operator<<(std::ostream & os, const ChromatogramSettings & spec);
 
 } // namespace OpenMS
+
+// Hash function specialization for ChromatogramSettings
+namespace std
+{
+  /**
+   * @brief Hash function for OpenMS::ChromatogramSettings.
+   *
+   * Hashes all fields used in operator==:
+   * - MetaInfoInterface (base class - meta values)
+   * - native_id_ (string)
+   * - comment_ (string)
+   * - instrument_settings_ (scan mode, zoom scan, polarity, scan windows, and MetaInfo)
+   * - acquisition_info_ (method of combination, acquisitions, and MetaInfo)
+   * - source_file_ (file properties and CVTermList)
+   * - precursor_ (activation methods, windows, drift time, charge, and Peak1D/CVTermList)
+   * - product_ (uses std::hash<Product>)
+   * - data_processing_ (software, actions, completion time for each element)
+   * - type_ (chromatogram type enum)
+   *
+   * @note This hash implementation hashes the key identifying fields of nested types.
+   *       MetaInfo and CVTermList are not fully hashed as they lack hash specializations,
+   *       but the most commonly differing fields are included.
+   */
+  template<>
+  struct hash<OpenMS::ChromatogramSettings>
+  {
+    std::size_t operator()(const OpenMS::ChromatogramSettings& cs) const noexcept
+    {
+      std::size_t seed = 0;
+
+      // Hash native_id_ and comment_
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(cs.getNativeID()));
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(cs.getComment()));
+
+      // Hash instrument_settings_
+      const auto& is = cs.getInstrumentSettings();
+      OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(is.getScanMode())));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(is.getZoomScan() ? 1 : 0));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(is.getPolarity())));
+      // Hash scan windows
+      const auto& scan_windows = is.getScanWindows();
+      OpenMS::hash_combine(seed, OpenMS::hash_int(scan_windows.size()));
+      for (const auto& sw : scan_windows)
+      {
+        OpenMS::hash_combine(seed, OpenMS::hash_float(sw.begin));
+        OpenMS::hash_combine(seed, OpenMS::hash_float(sw.end));
+      }
+
+      // Hash acquisition_info_
+      const auto& ai = cs.getAcquisitionInfo();
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(ai.getMethodOfCombination()));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(ai.size()));
+      for (const auto& acq : ai)
+      {
+        OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(acq.getIdentifier()));
+      }
+
+      // Hash source_file_
+      const auto& sf = cs.getSourceFile();
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(sf.getNameOfFile()));
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(sf.getPathToFile()));
+      OpenMS::hash_combine(seed, OpenMS::hash_float(static_cast<double>(sf.getFileSize())));
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(sf.getFileType()));
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(sf.getChecksum()));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(sf.getChecksumType())));
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(sf.getNativeIDType()));
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(sf.getNativeIDTypeAccession()));
+
+      // Hash precursor_
+      const auto& prec = cs.getPrecursor();
+      // Hash activation methods
+      const auto& am = prec.getActivationMethods();
+      OpenMS::hash_combine(seed, OpenMS::hash_int(am.size()));
+      for (const auto& method : am)
+      {
+        OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(method)));
+      }
+      OpenMS::hash_combine(seed, OpenMS::hash_float(prec.getActivationEnergy()));
+      OpenMS::hash_combine(seed, OpenMS::hash_float(prec.getIsolationWindowLowerOffset()));
+      OpenMS::hash_combine(seed, OpenMS::hash_float(prec.getIsolationWindowUpperOffset()));
+      OpenMS::hash_combine(seed, OpenMS::hash_float(prec.getDriftTime()));
+      OpenMS::hash_combine(seed, OpenMS::hash_float(prec.getDriftTimeWindowLowerOffset()));
+      OpenMS::hash_combine(seed, OpenMS::hash_float(prec.getDriftTimeWindowUpperOffset()));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(prec.getDriftTimeUnit())));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(prec.getCharge()));
+      // Hash possible charge states
+      const auto& pcs = prec.getPossibleChargeStates();
+      OpenMS::hash_combine(seed, OpenMS::hash_int(pcs.size()));
+      for (const auto& charge : pcs)
+      {
+        OpenMS::hash_combine(seed, OpenMS::hash_int(charge));
+      }
+      // Hash Peak1D part (MZ and intensity)
+      OpenMS::hash_combine(seed, OpenMS::hash_float(prec.getMZ()));
+      OpenMS::hash_combine(seed, OpenMS::hash_float(prec.getIntensity()));
+
+      // Hash product_ using existing std::hash<Product>
+      OpenMS::hash_combine(seed, std::hash<OpenMS::Product>{}(cs.getProduct()));
+
+      // Hash data_processing_
+      const auto dp = cs.getDataProcessing();
+      OpenMS::hash_combine(seed, OpenMS::hash_int(dp.size()));
+      for (const auto& proc_ptr : dp)
+      {
+        if (proc_ptr)
+        {
+          // Hash software using std::hash<Software>
+          OpenMS::hash_combine(seed, std::hash<OpenMS::Software>{}(proc_ptr->getSoftware()));
+          // Hash processing actions
+          const auto& actions = proc_ptr->getProcessingActions();
+          OpenMS::hash_combine(seed, OpenMS::hash_int(actions.size()));
+          for (const auto& action : actions)
+          {
+            OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(action)));
+          }
+          // Hash completion time using std::hash<DateTime>
+          OpenMS::hash_combine(seed, std::hash<OpenMS::DateTime>{}(proc_ptr->getCompletionTime()));
+        }
+      }
+
+      // Hash type_
+      OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(cs.getChromatogramType())));
+
+      return seed;
+    }
+  };
+} // namespace std
 

@@ -9,10 +9,11 @@
 #pragma once
 
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>
+#include <OpenMS/CONCEPT/HashUtils.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/METADATA/CVTermList.h>
-#include <OpenMS/CONCEPT/HashUtils.h>
 
+#include <functional>
 #include <vector>
 #include <bitset>
 
@@ -330,33 +331,130 @@ protected:
   };
 } // namespace OpenMS
 
-// Hash function specialization for ReactionMonitoringTransition
 namespace std
 {
-  /**
-   * @brief Hash function for ReactionMonitoringTransition.
-   *
-   * Hashes based on the native ID (name_) which serves as the unique identifier
-   * for transitions within a TraML document or targeted experiment.
-   *
-   * @note This hash assumes that nativeID uniquely identifies a transition.
-   *       In the TraML specification, the id attribute of a Transition element
-   *       must be unique within the document. The operator== compares all fields,
-   *       but for hash-equality contract purposes, if two transitions have the
-   *       same nativeID, they should be considered the same transition.
-   *
-   * @warning If used with transitions from different sources where nativeIDs
-   *          may collide, consider using a composite key or a different hashing
-   *          strategy.
-   *
-   * This enables use in std::unordered_map and std::unordered_set.
-   */
+  /// Hash function for ReactionMonitoringTransition
   template<>
   struct hash<OpenMS::ReactionMonitoringTransition>
   {
-    std::size_t operator()(const OpenMS::ReactionMonitoringTransition& t) const noexcept
+    std::size_t operator()(const OpenMS::ReactionMonitoringTransition& rmt) const noexcept
     {
-      return OpenMS::fnv1a_hash_string(t.getNativeID());
+      std::size_t seed = 0;
+
+      // Hash base class CVTermList - use the CV terms map
+      for (const auto& [accession, terms] : rmt.getCVTerms())
+      {
+        OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(accession));
+        OpenMS::hash_combine(seed, OpenMS::hash_int(terms.size()));
+        for (const auto& term : terms)
+        {
+          OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(term.getAccession()));
+          OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(term.getName()));
+        }
+      }
+
+      // Hash name_
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(rmt.getName()));
+
+      // Hash peptide_ref_
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(rmt.getPeptideRef()));
+
+      // Hash compound_ref_
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(rmt.getCompoundRef()));
+
+      // Hash precursor_mz_
+      OpenMS::hash_combine(seed, OpenMS::hash_float(rmt.getPrecursorMZ()));
+
+      // Hash precursor_cv_terms_ (pointer - check if present)
+      if (rmt.hasPrecursorCVTerms())
+      {
+        const auto& precursorTerms = rmt.getPrecursorCVTermList();
+        for (const auto& [accession, terms] : precursorTerms.getCVTerms())
+        {
+          OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(accession));
+          OpenMS::hash_combine(seed, OpenMS::hash_int(terms.size()));
+        }
+      }
+      else
+      {
+        OpenMS::hash_combine(seed, OpenMS::hash_int(0));
+      }
+
+      // Hash product_ - use getMZ and charge state
+      const auto& product = rmt.getProduct();
+      OpenMS::hash_combine(seed, OpenMS::hash_float(product.getMZ()));
+      if (product.hasCharge())
+      {
+        OpenMS::hash_combine(seed, OpenMS::hash_int(product.getChargeState()));
+      }
+      // Hash product CV terms
+      for (const auto& [accession, terms] : product.getCVTerms())
+      {
+        OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(accession));
+        OpenMS::hash_combine(seed, OpenMS::hash_int(terms.size()));
+      }
+      // Hash configuration list size and interpretation list size
+      OpenMS::hash_combine(seed, OpenMS::hash_int(product.getConfigurationList().size()));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(product.getInterpretationList().size()));
+
+      // Hash intermediate_products_ - use size and individual product m/z values
+      const auto& intermediates = rmt.getIntermediateProducts();
+      OpenMS::hash_combine(seed, OpenMS::hash_int(intermediates.size()));
+      for (const auto& ip : intermediates)
+      {
+        OpenMS::hash_combine(seed, OpenMS::hash_float(ip.getMZ()));
+        if (ip.hasCharge())
+        {
+          OpenMS::hash_combine(seed, OpenMS::hash_int(ip.getChargeState()));
+        }
+      }
+
+      // Hash rts (RetentionTime)
+      const auto& rt = rmt.getRetentionTime();
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(rt.software_ref));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(rt.retention_time_unit)));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(rt.retention_time_type)));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(rt.isRTset() ? 1 : 0));
+      if (rt.isRTset())
+      {
+        OpenMS::hash_combine(seed, OpenMS::hash_float(rt.getRT()));
+      }
+      // Hash RetentionTime CV terms
+      for (const auto& [accession, terms] : rt.getCVTerms())
+      {
+        OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(accession));
+        OpenMS::hash_combine(seed, OpenMS::hash_int(terms.size()));
+      }
+
+      // Hash prediction_ (pointer - check if present)
+      if (rmt.hasPrediction())
+      {
+        const auto& pred = rmt.getPrediction();
+        OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(pred.software_ref));
+        OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(pred.contact_ref));
+        for (const auto& [accession, terms] : pred.getCVTerms())
+        {
+          OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(accession));
+          OpenMS::hash_combine(seed, OpenMS::hash_int(terms.size()));
+        }
+      }
+      else
+      {
+        OpenMS::hash_combine(seed, OpenMS::hash_int(0));
+      }
+
+      // Hash library_intensity_
+      OpenMS::hash_combine(seed, OpenMS::hash_float(rmt.getLibraryIntensity()));
+
+      // Hash decoy_type_
+      OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(rmt.getDecoyTransitionType())));
+
+      // Hash transition_flags_ (bitset<3>) - use the boolean accessors
+      OpenMS::hash_combine(seed, OpenMS::hash_int(rmt.isDetectingTransition() ? 1 : 0));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(rmt.isIdentifyingTransition() ? 1 : 0));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(rmt.isQuantifyingTransition() ? 1 : 0));
+
+      return seed;
     }
   };
 } // namespace std

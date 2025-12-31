@@ -10,6 +10,7 @@
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/HashUtils.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/OpenMSConfig.h>
 
 #include <functional>
@@ -17,11 +18,10 @@
 #include <string>
 
 // foward declarations
-class QDateTime; 
+class QDateTime;
 
 namespace OpenMS
 {
-  class String;
 
   /**
       @brief DateTime Class.
@@ -207,16 +207,11 @@ namespace std
   {
     std::size_t operator()(const OpenMS::DateTime& dt) const noexcept
     {
-      // Hash the date/time components directly
-      OpenMS::UInt month, day, year, hour, minute, second;
-      dt.get(month, day, year, hour, minute, second);
-      std::size_t seed = OpenMS::hash_int(year);
-      OpenMS::hash_combine(seed, OpenMS::hash_int(month));
-      OpenMS::hash_combine(seed, OpenMS::hash_int(day));
-      OpenMS::hash_combine(seed, OpenMS::hash_int(hour));
-      OpenMS::hash_combine(seed, OpenMS::hash_int(minute));
-      OpenMS::hash_combine(seed, OpenMS::hash_int(second));
-      return seed;
+      // Hash the date/time components including milliseconds to match operator==
+      // (which compares the underlying QDateTime including milliseconds)
+      // Use toString with millisecond format and convert to std::string for hashing
+      std::string datetime_str = dt.toString("yyyy-MM-ddThh:mm:ss.zzz");
+      return OpenMS::fnv1a_hash_string(datetime_str);
     }
   };
 } // namespace std

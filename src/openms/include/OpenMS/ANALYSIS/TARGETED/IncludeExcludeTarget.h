@@ -11,7 +11,9 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/METADATA/CVTermList.h>
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>
+#include <OpenMS/CONCEPT/HashUtils.h>
 
+#include <functional>
 #include <vector>
 
 namespace OpenMS
@@ -144,5 +146,153 @@ protected:
     RetentionTime rts_;
 
   };
-}
+} // namespace OpenMS
+
+namespace std
+{
+  /// std::hash specialization for OpenMS::IncludeExcludeTarget
+  template <>
+  struct hash<OpenMS::IncludeExcludeTarget>
+  {
+    std::size_t operator()(const OpenMS::IncludeExcludeTarget& t) const noexcept
+    {
+      std::size_t seed = 0;
+
+      // Hash CVTermList base class (cv_terms_ map)
+      // Hash by iterating through cv_terms and hashing accession + each CV term
+      for (const auto& [accession, cv_terms] : t.getCVTerms())
+      {
+        OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(accession));
+        for (const auto& cv_term : cv_terms)
+        {
+          OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(cv_term.getAccession()));
+          OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(cv_term.getName()));
+          OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(cv_term.getValue().toString()));
+        }
+      }
+
+      // Hash name_
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(t.getName()));
+
+      // Hash precursor_mz_
+      OpenMS::hash_combine(seed, OpenMS::hash_float(t.getPrecursorMZ()));
+
+      // Hash precursor_cv_terms_
+      for (const auto& [accession, cv_terms] : t.getPrecursorCVTermList().getCVTerms())
+      {
+        OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(accession));
+        for (const auto& cv_term : cv_terms)
+        {
+          OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(cv_term.getAccession()));
+          OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(cv_term.getName()));
+          OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(cv_term.getValue().toString()));
+        }
+      }
+
+      // Hash product_mz_
+      OpenMS::hash_combine(seed, OpenMS::hash_float(t.getProductMZ()));
+
+      // Hash product_cv_terms_
+      for (const auto& [accession, cv_terms] : t.getProductCVTermList().getCVTerms())
+      {
+        OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(accession));
+        for (const auto& cv_term : cv_terms)
+        {
+          OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(cv_term.getAccession()));
+          OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(cv_term.getName()));
+          OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(cv_term.getValue().toString()));
+        }
+      }
+
+      // Hash interpretation_list_
+      for (const auto& interp : t.getInterpretations())
+      {
+        for (const auto& [accession, cv_terms] : interp.getCVTerms())
+        {
+          OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(accession));
+          for (const auto& cv_term : cv_terms)
+          {
+            OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(cv_term.getAccession()));
+            OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(cv_term.getName()));
+            OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(cv_term.getValue().toString()));
+          }
+        }
+      }
+
+      // Hash peptide_ref_
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(t.getPeptideRef()));
+
+      // Hash compound_ref_
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(t.getCompoundRef()));
+
+      // Hash configurations_
+      for (const auto& config : t.getConfigurations())
+      {
+        OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(config.contact_ref));
+        OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(config.instrument_ref));
+        // Hash CVTermList part of Configuration
+        for (const auto& [accession, cv_terms] : config.getCVTerms())
+        {
+          OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(accession));
+          for (const auto& cv_term : cv_terms)
+          {
+            OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(cv_term.getAccession()));
+            OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(cv_term.getName()));
+            OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(cv_term.getValue().toString()));
+          }
+        }
+        // Hash validations
+        for (const auto& validation : config.validations)
+        {
+          for (const auto& [accession, cv_terms] : validation.getCVTerms())
+          {
+            OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(accession));
+            for (const auto& cv_term : cv_terms)
+            {
+              OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(cv_term.getAccession()));
+              OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(cv_term.getName()));
+              OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(cv_term.getValue().toString()));
+            }
+          }
+        }
+      }
+
+      // Hash prediction_
+      for (const auto& [accession, cv_terms] : t.getPrediction().getCVTerms())
+      {
+        OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(accession));
+        for (const auto& cv_term : cv_terms)
+        {
+          OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(cv_term.getAccession()));
+          OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(cv_term.getName()));
+          OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(cv_term.getValue().toString()));
+        }
+      }
+
+      // Hash rts_ (RetentionTime)
+      const auto& rt = t.getRetentionTime();
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(rt.software_ref));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(rt.retention_time_unit)));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(rt.retention_time_type)));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(rt.isRTset() ? 1 : 0));
+      if (rt.isRTset())
+      {
+        OpenMS::hash_combine(seed, OpenMS::hash_float(rt.getRT()));
+      }
+      // Hash CVTermListInterface part of RetentionTime
+      for (const auto& [accession, cv_terms] : rt.getCVTerms())
+      {
+        OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(accession));
+        for (const auto& cv_term : cv_terms)
+        {
+          OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(cv_term.getAccession()));
+          OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(cv_term.getName()));
+          OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(cv_term.getValue().toString()));
+        }
+      }
+
+      return seed;
+    }
+  };
+} // namespace std
 

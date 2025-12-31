@@ -10,7 +10,7 @@ cdef extern from "<OpenMS/KERNEL/FeatureHandle.h>" namespace "OpenMS":
         #  Peak2D
         #  UniqueIdInterface
         # wrap-hash:
-        #   std
+        #  std
 
         FeatureHandle() except + nogil  # wrap-doc:Representation of a Peak2D, RichPeak2D or Feature
         FeatureHandle(FeatureHandle &) except + nogil 

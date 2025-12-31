@@ -11,6 +11,8 @@ cdef extern from "<OpenMS/METADATA/CVTermList.h>" namespace "OpenMS":
     cdef cppclass CVTermList(MetaInfoInterface):
         # wrap-inherits:
         #   MetaInfoInterface
+        # wrap-hash:
+        #  std
 
         ######################################################################
         # Cython has a problem with inheritance of overloaded methods, so we

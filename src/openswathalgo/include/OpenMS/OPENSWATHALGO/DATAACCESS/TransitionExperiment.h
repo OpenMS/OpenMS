@@ -233,12 +233,34 @@ namespace OpenSwath
     {
       return flags.identifying;
     }
+
+    /// Equality operator - compares transition_name (consistent with hash)
+    bool operator==(const LightTransition& rhs) const
+    {
+      return transition_name == rhs.transition_name;
+    }
+
+    bool operator!=(const LightTransition& rhs) const
+    {
+      return !(*this == rhs);
+    }
   };
 
   struct LightModification
   {
     int location;
     int unimod_id;
+
+    /// Equality operator - compares location and unimod_id (consistent with hash)
+    bool operator==(const LightModification& rhs) const
+    {
+      return location == rhs.location && unimod_id == rhs.unimod_id;
+    }
+
+    bool operator!=(const LightModification& rhs) const
+    {
+      return !(*this == rhs);
+    }
   };
 
   // A compound is either a peptide or a metabolite
@@ -297,6 +319,17 @@ namespace OpenSwath
     }
 
     std::vector<LightModification> modifications;
+
+    /// Equality operator - compares id (consistent with hash)
+    bool operator==(const LightCompound& rhs) const
+    {
+      return id == rhs.id;
+    }
+
+    bool operator!=(const LightCompound& rhs) const
+    {
+      return !(*this == rhs);
+    }
   };
 
   struct LightProtein
@@ -306,6 +339,17 @@ namespace OpenSwath
 
     // Additional fields for roundtrip TSV/PQP I/O
     std::string uniprot_id;                      ///< UniProt identifier
+
+    /// Equality operator - compares id (consistent with hash)
+    bool operator==(const LightProtein& rhs) const
+    {
+      return id == rhs.id;
+    }
+
+    bool operator!=(const LightProtein& rhs) const
+    {
+      return !(*this == rhs);
+    }
   };
 
   struct LightTargetedExperiment

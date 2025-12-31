@@ -12,6 +12,8 @@
 ///////////////////////////
 
 #include <OpenMS/DATASTRUCTURES/DRange.h>
+#include <unordered_set>
+#include <unordered_map>
 
 /////////////////////////////////////////////////////////////
 
@@ -472,6 +474,59 @@ START_SECTION(void pullIn(DPosition<D>& point) const)
   r.pullIn(p_in);
   TEST_REAL_SIMILAR(p_in.getX(), 2)
   TEST_REAL_SIMILAR(p_in.getY(), 3)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] std::hash<DRange<D>>))
+{
+  // Test that equal objects have equal hashes
+  DRange<2> r1(1.0, 2.0, 3.0, 4.0);
+  DRange<2> r2(1.0, 2.0, 3.0, 4.0);
+  DRange<2> r3(0.0, 0.0, 5.0, 5.0);
+
+  std::hash<DRange<2>> hasher;
+
+  TEST_EQUAL(r1 == r2, true)
+  TEST_EQUAL(hasher(r1), hasher(r2))
+
+  // Different ranges should (very likely) have different hashes
+  TEST_EQUAL(r1 == r3, false)
+  TEST_NOT_EQUAL(hasher(r1), hasher(r3))
+
+  // Test use in unordered_set
+  std::unordered_set<DRange<2>> range_set;
+  range_set.insert(r1);
+  range_set.insert(r2);  // duplicate, should not increase size
+  range_set.insert(r3);
+
+  TEST_EQUAL(range_set.size(), 2)
+  TEST_EQUAL(range_set.count(r1), 1)
+  TEST_EQUAL(range_set.count(r3), 1)
+
+  // Test use in unordered_map
+  std::unordered_map<DRange<2>, std::string> range_map;
+  range_map[r1] = "first";
+  range_map[r3] = "second";
+
+  TEST_EQUAL(range_map.size(), 2)
+  TEST_EQUAL(range_map[r1], "first")
+  TEST_EQUAL(range_map[r2], "first")  // r2 == r1, same key
+  TEST_EQUAL(range_map[r3], "second")
+
+  // Test with different dimensions (DRange<1>)
+  DRange<1> r1d_a, r1d_b;
+  r1d_a.setMin(DPosition<1>(1.0));
+  r1d_a.setMax(DPosition<1>(5.0));
+  r1d_b.setMin(DPosition<1>(1.0));
+  r1d_b.setMax(DPosition<1>(5.0));
+
+  std::hash<DRange<1>> hasher1d;
+  TEST_EQUAL(r1d_a == r1d_b, true)
+  TEST_EQUAL(hasher1d(r1d_a), hasher1d(r1d_b))
+
+  std::unordered_set<DRange<1>> range_set_1d;
+  range_set_1d.insert(r1d_a);
+  TEST_EQUAL(range_set_1d.count(r1d_b), 1)
 }
 END_SECTION
 /////////////////////////////////////////////////////////////

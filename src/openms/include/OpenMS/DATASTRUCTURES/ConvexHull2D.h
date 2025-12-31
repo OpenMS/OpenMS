@@ -8,13 +8,15 @@
 
 #pragma once
 
+#include <OpenMS/CONCEPT/HashUtils.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/DBoundingBox.h>
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
 #include <OpenMS/OpenMSConfig.h>
 
-#include <vector>
+#include <functional>
 #include <map>
+#include <vector>
 
 namespace OpenMS
 {
@@ -135,5 +137,29 @@ protected:
     mutable PointArrayType outer_points_;
 
   };
-} // namespace OPENMS
+} // namespace OpenMS
+
+// Hash function specialization for ConvexHull2D
+namespace std
+{
+  template<>
+  struct hash<OpenMS::ConvexHull2D>
+  {
+    std::size_t operator()(const OpenMS::ConvexHull2D& hull) const noexcept
+    {
+      std::size_t seed = 0;
+
+      // Hash outer_points_ (vector of DPosition<2>)
+      // These are the fields checked in operator==
+      const auto& outer_points = hull.getHullPoints();
+      OpenMS::hash_combine(seed, OpenMS::hash_int(outer_points.size()));
+      for (const auto& point : outer_points)
+      {
+        OpenMS::hash_combine(seed, std::hash<OpenMS::DPosition<2>>{}(point));
+      }
+
+      return seed;
+    }
+  };
+} // namespace std
 

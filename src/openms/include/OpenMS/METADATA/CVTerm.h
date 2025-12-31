@@ -185,11 +185,8 @@ namespace std
   /**
    * @brief Hash function for CVTerm.
    *
-   * Hashes based on accession, name, cv_identifier_ref, and unit.
-   * Value is not included because DataValue doesn't have a portable hash.
-   *
-   * @note This is consistent with operator== for typical use cases where
-   *       values are either not set or identical when accession matches.
+   * Hashes based on all fields: accession, name, cv_identifier_ref, unit, and value.
+   * This is consistent with operator== which compares all fields.
    */
   template<>
   struct hash<OpenMS::CVTerm>
@@ -201,6 +198,7 @@ namespace std
       OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(term.getName()));
       OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(term.getCVIdentifierRef()));
       OpenMS::hash_combine(seed, std::hash<OpenMS::CVTerm::Unit>{}(term.getUnit()));
+      OpenMS::hash_combine(seed, std::hash<OpenMS::DataValue>{}(term.getValue()));
       return seed;
     }
   };

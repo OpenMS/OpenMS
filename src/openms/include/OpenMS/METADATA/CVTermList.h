@@ -116,7 +116,7 @@ namespace std
   /**
    * @brief Hash function for CVTermList.
    *
-   * Hashes based on all CV terms stored in the list.
+   * Hashes based on the MetaInfoInterface base class and all CV terms.
    * Iterates through the map of accession -> vector<CVTerm>.
    *
    * @note std::map iteration order is deterministic (sorted by key), so
@@ -128,7 +128,10 @@ namespace std
   {
     std::size_t operator()(const OpenMS::CVTermList& list) const noexcept
     {
-      std::size_t seed = 0;
+      // Start with MetaInfoInterface base class hash
+      std::size_t seed = std::hash<OpenMS::MetaInfoInterface>{}(list);
+
+      // Hash all CV terms
       for (const auto& entry : list.getCVTerms())
       {
         // Hash the accession string
