@@ -11,7 +11,7 @@ cdef extern from "<OpenMS/METADATA/Software.h>" namespace "OpenMS":
         Software() except + nogil
         Software(Software &) except + nogil
 
-        bool operator==(Software) except + nogil
+        bool operator==(Software &) except + nogil
 
         String getName() except + nogil  # wrap-doc:Returns the name of the software
         String getVersion() except + nogil  # wrap-doc:Returns the software version
