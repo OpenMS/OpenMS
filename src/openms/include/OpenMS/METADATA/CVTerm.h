@@ -10,6 +10,7 @@
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
+#include <OpenMS/CONCEPT/HashUtils.h>
 
 namespace OpenMS
 {
@@ -159,4 +160,49 @@ protected:
   };
 
 } // namespace OpenMS
+
+// Hash function specializations for CVTerm and CVTerm::Unit
+namespace std
+{
+  /**
+   * @brief Hash function for CVTerm::Unit.
+   *
+   * Hashes based on accession, name, and cv_ref fields.
+   */
+  template<>
+  struct hash<OpenMS::CVTerm::Unit>
+  {
+    std::size_t operator()(const OpenMS::CVTerm::Unit& unit) const noexcept
+    {
+      std::size_t seed = 0;
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(unit.accession));
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(unit.name));
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(unit.cv_ref));
+      return seed;
+    }
+  };
+
+  /**
+   * @brief Hash function for CVTerm.
+   *
+   * Hashes based on accession, name, cv_identifier_ref, and unit.
+   * Value is not included because DataValue doesn't have a portable hash.
+   *
+   * @note This is consistent with operator== for typical use cases where
+   *       values are either not set or identical when accession matches.
+   */
+  template<>
+  struct hash<OpenMS::CVTerm>
+  {
+    std::size_t operator()(const OpenMS::CVTerm& term) const noexcept
+    {
+      std::size_t seed = 0;
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(term.getAccession()));
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(term.getName()));
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(term.getCVIdentifierRef()));
+      OpenMS::hash_combine(seed, std::hash<OpenMS::CVTerm::Unit>{}(term.getUnit()));
+      return seed;
+    }
+  };
+} // namespace std
 

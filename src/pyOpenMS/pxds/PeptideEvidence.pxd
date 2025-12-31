@@ -6,8 +6,9 @@ from String cimport *
 cdef extern from "<OpenMS/METADATA/PeptideEvidence.h>" namespace "OpenMS":
     cdef cppclass PeptideEvidence :
         # wrap-hash:
+        #   std
 
-        PeptideEvidence() except + nogil 
+        PeptideEvidence() except + nogil
         PeptideEvidence(PeptideEvidence &) except + nogil 
 
         # const members

@@ -11,6 +11,7 @@
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/METADATA/CVTermList.h>
+#include <OpenMS/CONCEPT/HashUtils.h>
 
 #include <vector>
 #include <bitset>
@@ -327,5 +328,36 @@ protected:
     std::bitset<3> transition_flags_;
     //@}
   };
-}
+} // namespace OpenMS
+
+// Hash function specialization for ReactionMonitoringTransition
+namespace std
+{
+  /**
+   * @brief Hash function for ReactionMonitoringTransition.
+   *
+   * Hashes based on the native ID (name_) which serves as the unique identifier
+   * for transitions within a TraML document or targeted experiment.
+   *
+   * @note This hash assumes that nativeID uniquely identifies a transition.
+   *       In the TraML specification, the id attribute of a Transition element
+   *       must be unique within the document. The operator== compares all fields,
+   *       but for hash-equality contract purposes, if two transitions have the
+   *       same nativeID, they should be considered the same transition.
+   *
+   * @warning If used with transitions from different sources where nativeIDs
+   *          may collide, consider using a composite key or a different hashing
+   *          strategy.
+   *
+   * This enables use in std::unordered_map and std::unordered_set.
+   */
+  template<>
+  struct hash<OpenMS::ReactionMonitoringTransition>
+  {
+    std::size_t operator()(const OpenMS::ReactionMonitoringTransition& t) const noexcept
+    {
+      return OpenMS::fnv1a_hash_string(t.getNativeID());
+    }
+  };
+} // namespace std
 

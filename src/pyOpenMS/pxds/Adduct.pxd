@@ -7,8 +7,9 @@ cdef extern from "<OpenMS/DATASTRUCTURES/Adduct.h>" namespace "OpenMS":
 
     cdef cppclass Adduct:
         # wrap-hash:
+        #   std
 
-        Adduct() except + nogil 
+        Adduct() except + nogil
         Adduct(Adduct &) except + nogil  # compiler
   
         Adduct(Int charge) except + nogil 

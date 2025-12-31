@@ -12,6 +12,7 @@
 #include <vector>
 #include <map>
 #include <cstdint>
+#include <functional>
 
 #include <OpenMS/OPENSWATHALGO/OpenSwathAlgoConfig.h>
 
@@ -382,4 +383,72 @@ namespace OpenSwath
   };
 
 } //end Namespace OpenSwath
+
+// Hash function specializations for OpenSwath types
+namespace std
+{
+  /**
+   * @brief Hash function for LightTransition.
+   *
+   * Hashes based on the transition_name which serves as the unique identifier.
+   * This enables use in std::unordered_map and std::unordered_set.
+   */
+  template<>
+  struct hash<OpenSwath::LightTransition>
+  {
+    std::size_t operator()(const OpenSwath::LightTransition& t) const noexcept
+    {
+      return std::hash<std::string>{}(t.transition_name);
+    }
+  };
+
+  /**
+   * @brief Hash function for LightCompound.
+   *
+   * Hashes based on the id which serves as the unique identifier.
+   * This enables use in std::unordered_map and std::unordered_set.
+   */
+  template<>
+  struct hash<OpenSwath::LightCompound>
+  {
+    std::size_t operator()(const OpenSwath::LightCompound& c) const noexcept
+    {
+      return std::hash<std::string>{}(c.id);
+    }
+  };
+
+  /**
+   * @brief Hash function for LightProtein.
+   *
+   * Hashes based on the id which serves as the unique identifier.
+   * This enables use in std::unordered_map and std::unordered_set.
+   */
+  template<>
+  struct hash<OpenSwath::LightProtein>
+  {
+    std::size_t operator()(const OpenSwath::LightProtein& p) const noexcept
+    {
+      return std::hash<std::string>{}(p.id);
+    }
+  };
+
+  /**
+   * @brief Hash function for LightModification.
+   *
+   * Hashes based on location and unimod_id using a proper combining function
+   * to reduce collision probability.
+   * This enables use in std::unordered_map and std::unordered_set.
+   */
+  template<>
+  struct hash<OpenSwath::LightModification>
+  {
+    std::size_t operator()(const OpenSwath::LightModification& m) const noexcept
+    {
+      std::size_t seed = std::hash<int>{}(m.location);
+      // Use standard hash combine formula (from boost) for better distribution
+      seed ^= std::hash<int>{}(m.unimod_id) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+      return seed;
+    }
+  };
+} // namespace std
 

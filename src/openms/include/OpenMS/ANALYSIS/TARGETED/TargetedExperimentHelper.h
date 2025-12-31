@@ -626,3 +626,92 @@ private:
 
 } // namespace OpenMS
 
+// Hash function specializations for TargetedExperimentHelper types
+namespace std
+{
+  /**
+   * @brief Hash function for TargetedExperimentHelper::Configuration.
+   *
+   * Hashes based on contact_ref, instrument_ref, validations, and CVTermList base.
+   */
+  template<>
+  struct hash<OpenMS::TargetedExperimentHelper::Configuration>
+  {
+    std::size_t operator()(const OpenMS::TargetedExperimentHelper::Configuration& config) const noexcept
+    {
+      std::size_t seed = 0;
+      // Hash CVTermList base class
+      OpenMS::hash_combine(seed, std::hash<OpenMS::CVTermList>{}(config));
+      // Hash member fields
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(config.contact_ref));
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(config.instrument_ref));
+      // Hash validations vector
+      for (const auto& validation : config.validations)
+      {
+        OpenMS::hash_combine(seed, std::hash<OpenMS::CVTermList>{}(validation));
+      }
+      return seed;
+    }
+  };
+
+  /**
+   * @brief Hash function for TargetedExperimentHelper::Interpretation.
+   *
+   * Hashes based on ordinal, rank, iontype, and CVTermListInterface base.
+   */
+  template<>
+  struct hash<OpenMS::TargetedExperimentHelper::Interpretation>
+  {
+    std::size_t operator()(const OpenMS::TargetedExperimentHelper::Interpretation& interp) const noexcept
+    {
+      std::size_t seed = 0;
+      // Hash CVTermListInterface base class
+      OpenMS::hash_combine(seed, std::hash<OpenMS::CVTermListInterface>{}(interp));
+      // Hash member fields
+      OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(interp.ordinal)));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(interp.rank)));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(interp.iontype)));
+      return seed;
+    }
+  };
+
+  /**
+   * @brief Hash function for TargetedExperimentHelper::TraMLProduct.
+   *
+   * Hashes based on all fields compared in operator==:
+   * - CVTermListInterface base class
+   * - charge_, charge_set_, mz_
+   * - configuration_list_
+   * - interpretation_list_
+   */
+  template<>
+  struct hash<OpenMS::TargetedExperimentHelper::TraMLProduct>
+  {
+    std::size_t operator()(const OpenMS::TargetedExperimentHelper::TraMLProduct& product) const noexcept
+    {
+      std::size_t seed = 0;
+      // Hash CVTermListInterface base class
+      OpenMS::hash_combine(seed, std::hash<OpenMS::CVTermListInterface>{}(product));
+      // Hash charge state (using hasCharge() to safely handle charge access)
+      OpenMS::hash_combine(seed, OpenMS::hash_int(product.hasCharge() ? 1 : 0));
+      if (product.hasCharge())
+      {
+        OpenMS::hash_combine(seed, OpenMS::hash_int(product.getChargeState()));
+      }
+      // Hash m/z
+      OpenMS::hash_combine(seed, OpenMS::hash_float(product.getMZ()));
+      // Hash configuration_list_
+      for (const auto& config : product.getConfigurationList())
+      {
+        OpenMS::hash_combine(seed, std::hash<OpenMS::TargetedExperimentHelper::Configuration>{}(config));
+      }
+      // Hash interpretation_list_
+      for (const auto& interp : product.getInterpretationList())
+      {
+        OpenMS::hash_combine(seed, std::hash<OpenMS::TargetedExperimentHelper::Interpretation>{}(interp));
+      }
+      return seed;
+    }
+  };
+} // namespace std
+

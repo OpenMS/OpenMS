@@ -9,6 +9,7 @@
 #pragma once
 
 #include <OpenMS/METADATA/CVTermList.h>
+#include <OpenMS/CONCEPT/HashUtils.h>
 
 namespace OpenMS
 {
@@ -66,4 +67,34 @@ protected:
     double window_up_ = 0.0;
   };
 } // namespace OpenMS
+
+// Hash function specialization for Product
+namespace std
+{
+  /**
+   * @brief Hash function for Product.
+   *
+   * Hashes based on all fields compared in operator==:
+   * - mz_, window_low_, window_up_
+   * - CVTermList base class (including all CV terms)
+   */
+  template<>
+  struct hash<OpenMS::Product>
+  {
+    std::size_t operator()(const OpenMS::Product& product) const noexcept
+    {
+      std::size_t seed = 0;
+
+      // Hash member fields
+      OpenMS::hash_combine(seed, OpenMS::hash_float(product.getMZ()));
+      OpenMS::hash_combine(seed, OpenMS::hash_float(product.getIsolationWindowLowerOffset()));
+      OpenMS::hash_combine(seed, OpenMS::hash_float(product.getIsolationWindowUpperOffset()));
+
+      // Hash CVTermList base class
+      OpenMS::hash_combine(seed, std::hash<OpenMS::CVTermList>{}(product));
+
+      return seed;
+    }
+  };
+} // namespace std
 

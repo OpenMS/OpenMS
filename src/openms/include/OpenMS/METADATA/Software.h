@@ -11,6 +11,7 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/METADATA/CVTermList.h>
+#include <OpenMS/CONCEPT/HashUtils.h>
 
 namespace OpenMS
 {
@@ -59,4 +60,33 @@ protected:
     String version_;
   };
 } // namespace OpenMS
+
+// Hash function specialization for Software
+namespace std
+{
+  /**
+   * @brief Hash function for Software.
+   *
+   * Hashes based on all fields compared in operator==:
+   * - name_, version_
+   * - CVTermList base class (including all CV terms)
+   */
+  template<>
+  struct hash<OpenMS::Software>
+  {
+    std::size_t operator()(const OpenMS::Software& software) const noexcept
+    {
+      std::size_t seed = 0;
+
+      // Hash member fields
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(software.getName()));
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(software.getVersion()));
+
+      // Hash CVTermList base class
+      OpenMS::hash_combine(seed, std::hash<OpenMS::CVTermList>{}(software));
+
+      return seed;
+    }
+  };
+} // namespace std
 
