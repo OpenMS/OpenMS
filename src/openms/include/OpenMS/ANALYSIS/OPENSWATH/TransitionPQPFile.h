@@ -10,6 +10,9 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
 
+// Forward declaration for SQLite
+struct sqlite3;
+
 namespace OpenMS
 {
 
@@ -192,6 +195,25 @@ namespace OpenMS
 
 private:
 
+    /// Holds information about a PQP SQL query and optional column availability
+    struct PQPSqlQueryInfo
+    {
+      std::string select_sql;      ///< The complete SQL SELECT query
+      bool drift_time_exists;      ///< Whether LIBRARY_DRIFT_TIME column exists
+      bool gene_exists;            ///< Whether GENE table exists
+    };
+
+    /** @brief Build the SQL query for reading PQP transitions
+     *
+     * This helper builds the SQL query used by both readPQPInput_ and
+     * streamPQPToLightTargetedExperiment_ to avoid code duplication.
+     *
+     * @param[in] db The SQLite database connection
+     * @param[in] legacy_traml_id Whether to use legacy TraML IDs
+     * @return PQPSqlQueryInfo containing the query and column availability flags
+     */
+    PQPSqlQueryInfo buildPQPSelectQuery_(sqlite3* db, bool legacy_traml_id) const;
+
     /** @brief Read PQP SQLite file
      *
      * @param[in] filename The input file
@@ -200,6 +222,19 @@ private:
      *
     */
     void readPQPInput_(const char* filename, std::vector<TSVTransition>& transition_list, bool legacy_traml_id = false);
+
+    /** @brief Stream PQP directly to LightTargetedExperiment (memory-efficient)
+     *
+     * This function reads the PQP file and directly populates the
+     * LightTargetedExperiment without creating an intermediate vector<TSVTransition>.
+     * This reduces peak memory usage by ~5x for large files.
+     *
+     * @param[in] filename The input file
+     * @param[out] exp The output LightTargetedExperiment
+     * @param[in] legacy_traml_id Should legacy TraML IDs be used (boolean)?
+     *
+    */
+    void streamPQPToLightTargetedExperiment_(const char* filename, OpenSwath::LightTargetedExperiment& exp, bool legacy_traml_id = false);
 
     /** @brief Write a TargetedExperiment to a file
      *
@@ -225,6 +260,14 @@ public:
      *
     */
     void convertTargetedExperimentToPQP(const char* filename, OpenMS::TargetedExperiment& targeted_exp);
+
+    /** @brief Write out a targeted experiment (Light structure) into a PQP file
+     *
+      @param[in] filename The output file
+      @param[in] targeted_exp The targeted experiment (Light structure)
+     *
+    */
+    void convertLightTargetedExperimentToPQP(const char* filename, const OpenSwath::LightTargetedExperiment& targeted_exp);
 
     /** @brief Read in a PQP file and construct a targeted experiment (TraML structure)
      *
