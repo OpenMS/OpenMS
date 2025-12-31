@@ -23,7 +23,6 @@
 namespace OpenMS
 {
   class String;
-  class Element;
   class ElementDB;
   class IsotopeDistribution;
   class IsotopePatternGenerator;

@@ -76,17 +76,17 @@ namespace OpenMS
    * @brief Combine a hash value with additional data using golden ratio mixing.
    *
    * This function combines two hash values using the well-known formula from Boost:
-   *   seed ^= hash + 0x9e3779b9 + (seed << 6) + (seed >> 2)
+   *   seed ^= hash + golden_ratio + (seed << 6) + (seed >> 2)
    *
-   * The constant 0x9e3779b9 is derived from the golden ratio and provides
-   * good bit mixing properties.
+   * The constant 0x9e3779b97f4a7c15 is derived from the 64-bit golden ratio
+   * (2^64 / phi) and provides good bit mixing properties on 64-bit systems.
    *
    * @param seed The existing hash value (modified in place)
    * @param value The new hash value to combine
    */
   inline void hash_combine(std::size_t& seed, std::size_t value) noexcept
   {
-    seed ^= value + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+    seed ^= value + 0x9e3779b97f4a7c15 + (seed << 6) + (seed >> 2);
   }
 
   /**
