@@ -628,7 +628,7 @@ private:
 
   /// Helper template to hash any type with getCVTerms() method (CVTermList, CVTermListInterface)
   template<typename T>
-  inline std::size_t hashCVTerms(const T& obj)
+  inline std::size_t hashCVTerms(const T& obj) noexcept
   {
     std::size_t seed = 0;
     const auto& cv_terms = obj.getCVTerms();
@@ -654,8 +654,8 @@ private:
   }
 
   // Convenience wrappers for backward compatibility
-  inline std::size_t hashCVTermList(const CVTermList& cvtl) { return hashCVTerms(cvtl); }
-  inline std::size_t hashCVTermListInterface(const CVTermListInterface& cvtli) { return hashCVTerms(cvtli); }
+  inline std::size_t hashCVTermList(const CVTermList& cvtl) noexcept { return hashCVTerms(cvtl); }
+  inline std::size_t hashCVTermListInterface(const CVTermListInterface& cvtli) noexcept { return hashCVTerms(cvtli); }
 
 } // namespace OpenMS
 
