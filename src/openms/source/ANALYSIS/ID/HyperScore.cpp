@@ -37,7 +37,7 @@ namespace OpenMS
   {
     if (exp_spectrum.empty() || theo_spectrum.empty())
     {
-      std::cout << "Warning: HyperScore: One of the given spectra is empty." << '\n';
+      std::cout << "Warning: HyperScore: One of the given spectra is empty." << std::endl;
       return 0.0;
     }
 
@@ -49,7 +49,7 @@ namespace OpenMS
     }
     else
     {
-      std::cout << "Error: HyperScore: Theoretical spectrum without StringDataArray (\"IonNames\" annotation) provided." << '\n';
+      std::cout << "Error: HyperScore: Theoretical spectrum without StringDataArray (\"IonNames\" annotation) provided." << std::endl;
       return 0.0;
     }
 
@@ -111,7 +111,7 @@ namespace OpenMS
   {
     if (exp_spectrum.empty() || theo_spectrum.empty())
     {
-      std::cout << "Warning: HyperScore: One of the given spectra is empty." << '\n';
+      std::cout << "Warning: HyperScore: One of the given spectra is empty." << std::endl;
       return 0.0;
     }
 
@@ -123,7 +123,7 @@ namespace OpenMS
     }
     else
     {
-      std::cout << "Error: HyperScore: Theoretical spectrum without StringDataArray (\"IonNames\" annotation) provided." << '\n';
+      std::cout << "Error: HyperScore: Theoretical spectrum without StringDataArray (\"IonNames\" annotation) provided." << std::endl;
       return 0.0;
     }
 
@@ -200,7 +200,7 @@ namespace OpenMS
 
     if (exp_spectrum.size() < 1 || theo_spectrum.size() < 1)
     {
-      std::cout << "Warning: HyperScore: One of the given spectra is empty." << '\n';
+      std::cout << "Warning: HyperScore: One of the given spectra is empty." << std::endl;
       return 0.0;
     }
 
@@ -212,19 +212,19 @@ namespace OpenMS
     }
     else
     {
-      std::cout << "Error: HyperScore: Theoretical spectrum without StringDataArray (\"IonNames\" annotation) provided." << '\n';
+      std::cout << "Error: HyperScore: Theoretical spectrum without StringDataArray (\"IonNames\" annotation) provided." << std::endl;
       return 0.0;
     }
 
     if (theo_charges.size() != theo_spectrum.size())
     {
-      std::cout << "Error: HyperScore: #charges != #peaks in theoretical spectrum." << '\n';
+      std::cout << "Error: HyperScore: #charges != #peaks in theoretical spectrum." << std::endl;
       return 0.0;
     }
 
     if (exp_charges.size() != exp_spectrum.size())
     {
-      std::cout << "Error: HyperScore: #charges != #peaks in experimental spectrum." << '\n';
+      std::cout << "Error: HyperScore: #charges != #peaks in experimental spectrum." << std::endl;
       return 0.0;
     }
 
@@ -293,7 +293,7 @@ namespace OpenMS
   {
     if (exp_spectrum.size() < 1 || theo_spectrum.size() < 1)
     {
-      std::cout << "Warning: HyperScore: One of the given spectra is empty." << '\n';
+      std::cout << "Warning: HyperScore: One of the given spectra is empty." << std::endl;
       return 0.0;
     }
 
@@ -305,19 +305,19 @@ namespace OpenMS
     }
     else
     {
-      std::cout << "Error: HyperScore: Theoretical spectrum without StringDataArray (\"IonNames\" annotation) provided." << '\n';
+      std::cout << "Error: HyperScore: Theoretical spectrum without StringDataArray (\"IonNames\" annotation) provided." << std::endl;
       return 0.0;
     }
 
     if (theo_charges.size() != theo_spectrum.size())
     {
-      std::cout << "Error: HyperScore: #charges != #peaks in theoretical spectrum." << '\n';
+      std::cout << "Error: HyperScore: #charges != #peaks in theoretical spectrum." << std::endl;
       return 0.0;
     }
 
     if (exp_charges.size() != exp_spectrum.size())
     {
-      std::cout << "Error: HyperScore: #charges != #peaks in experimental spectrum." << '\n';
+      std::cout << "Error: HyperScore: #charges != #peaks in experimental spectrum." << std::endl;
       return 0.0;
     }
 
@@ -325,7 +325,7 @@ namespace OpenMS
     const Size N = intensity_sum.size(); // length of peptide
     if (N == 0 || N > 100000) // peptides longer than 100k residues are unreasonable
     {
-      std::cout << "Error: HyperScore: intensity_sum has invalid size: " << N << '\n';
+      std::cout << "Error: HyperScore: intensity_sum has invalid size: " << N << std::endl;
       return 0.0;
     }
     std::vector<double> b_ions(N, 0.0);

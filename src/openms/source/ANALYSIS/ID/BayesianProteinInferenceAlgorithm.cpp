@@ -1002,7 +1002,7 @@ namespace OpenMS
         else
         {
           //TODO Exception
-          std::cerr << "Protein sequence not annotated" << '\n';
+          std::cerr << "Protein sequence not annotated" << std::endl;
         }
       }
     }*/

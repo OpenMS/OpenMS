@@ -257,7 +257,7 @@ namespace OpenMS
       if (n >= 0)
       {
         //Comment: throw?
-        std::cerr << "Error occurred at position n = " << n << ". Enable NUMPRESS_DEBUG to get more info." << '\n';
+        std::cerr << "Error occurred at position n = " << n << ". Enable NUMPRESS_DEBUG to get more info." << std::endl;
       }
       else
       {
@@ -269,15 +269,15 @@ namespace OpenMS
     }
     catch (int e)
     {
-      std::cerr << "MSNumpress encoder threw exception: " << e << '\n';
+      std::cerr << "MSNumpress encoder threw exception: " << e << std::endl;
     }
     catch (char const * e)
     {
-      std::cerr << "MSNumpress encoder threw exception: " << e << '\n';
+      std::cerr << "MSNumpress encoder threw exception: " << e << std::endl;
     }
     catch (...)
     {
-      std::cerr << "Unknown exception while encoding " << dataSize << " doubles" << '\n';
+      std::cerr << "Unknown exception while encoding " << dataSize << " doubles" << std::endl;
     }
   }
 

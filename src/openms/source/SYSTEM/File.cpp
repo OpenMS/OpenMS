@@ -323,7 +323,7 @@ namespace OpenMS
     {
       if (!parent_dir.rmdir(path))
       {
-        std::cerr << "Could not remove directory " << String(dir.dirName()) << "!" << '\n';
+        std::cerr << "Could not remove directory " << String(dir.dirName()) << "!" << std::endl;
         fail = true;
       }
     }
@@ -845,7 +845,7 @@ namespace OpenMS
     {
       if (File::exists(filenames_[i]) && !File::remove(filenames_[i]))
       {
-        std::cerr << "Warning: unable to remove temporary file '" << filenames_[i] << "'" << '\n';
+        std::cerr << "Warning: unable to remove temporary file '" << filenames_[i] << "'" << std::endl;
       }
     }
   }

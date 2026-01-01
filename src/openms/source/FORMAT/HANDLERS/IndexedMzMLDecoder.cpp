@@ -45,8 +45,8 @@ namespace OpenMS
       }
       catch (boost::bad_lexical_cast&)
       {
-        std::cerr << "Trying to convert corrupted / unreadable value to std::streampos : " << s << '\n';
-        std::cerr << "This can also happen if the value exceeds 63 bits, please check your input." << '\n';
+        std::cerr << "Trying to convert corrupted / unreadable value to std::streampos : " << s << std::endl;
+        std::cerr << "This can also happen if the value exceeds 63 bits, please check your input." << std::endl;
         throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
             String("Could not convert string '") + s + "' to a 64 bit integer.");
       }
@@ -56,7 +56,7 @@ namespace OpenMS
       {
         std::cerr << "Your system may not support addressing a file of this size,"
           << " only addresses that fit into a " << sizeof(std::streamsize)*8 <<
-          " bit integer are supported on your system." << '\n';
+          " bit integer are supported on your system." << std::endl;
         throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
             String("Could not convert string '") + s + "' to an integer on your system.");
       }
@@ -94,7 +94,7 @@ namespace OpenMS
     if (indexoffset < 0 || indexoffset > length)
     {
       std::cerr << "IndexedMzMLDecoder::parseOffsets Error: Offset was " <<
-        indexoffset << " (not between 0 and " << length << ")." << '\n';
+        indexoffset << " (not between 0 and " << length << ")." << std::endl;
       return -1;
     }
 
@@ -111,9 +111,9 @@ namespace OpenMS
     if (buffer == nullptr)
     {
       // Warning: Index takes up more than 10 % of the whole file, please check your input file." << '\n';
-      std::cerr << "IndexedMzMLDecoder::parseOffsets Could not allocate enough memory to read in index of indexedMzML" << '\n'; 
-      std::cerr << "IndexedMzMLDecoder::parseOffsets calculated index offset " << indexoffset << " and file length " << length << 
-        ", consequently tried to read into memory " << readl << " bytes." << '\n';
+      std::cerr << "IndexedMzMLDecoder::parseOffsets Could not allocate enough memory to read in index of indexedMzML" << std::endl;
+      std::cerr << "IndexedMzMLDecoder::parseOffsets calculated index offset " << indexoffset << " and file length " << length <<
+        ", consequently tried to read into memory " << readl << " bytes." << std::endl;
       return -1;
     }
 
@@ -187,7 +187,7 @@ namespace OpenMS
       }
       catch (Exception::ConversionError& /*e*/)
       {
-        std::cerr << "Corrupted / unreadable value in <indexListOffset> : " << thismatch << '\n';
+        std::cerr << "Corrupted / unreadable value in <indexListOffset> : " << thismatch << std::endl;
         // free resources and re-throw
         throw;  // re-throw conversion error
       }
@@ -196,7 +196,7 @@ namespace OpenMS
     {
       std::cerr << "IndexedMzMLDecoder::findIndexListOffset Error: Could not find element indexListOffset in the last "
                 << buffersize << " bytes. Maybe this is not a indexedMzML."
-                << buffer.get() << '\n';
+                << buffer.get() << std::endl;
     }
 
     return indexoffset;
@@ -244,7 +244,7 @@ namespace OpenMS
     if (!elementRoot)
     {
       std::cerr << "IndexedMzMLDecoder::domParseIndexedEnd Error: " <<
-        "No root element found:" << std::endl << std::endl << in << '\n';
+        "No root element found:" << std::endl << std::endl << in << std::endl;
       return -1;
     }
 
@@ -255,7 +255,7 @@ namespace OpenMS
     if (li->getLength() != 1)
     {
       std::cerr << "IndexedMzMLDecoder::domParseIndexedEnd Error: "
-        << "no indexList element found:" << std::endl << std::endl << in << '\n';
+        << "no indexList element found:" << std::endl << std::endl << in << std::endl;
       return -1;
     }
     xercesc::DOMNode* indexListNode = li->item(0);
@@ -324,8 +324,8 @@ namespace OpenMS
         else
         {
           std::cerr << "IndexedMzMLDecoder::domParseIndexedEnd Error: expected only " <<
-            "'spectrum' or 'chromatogram' below indexList but found instead '" << 
-            name << "'." << '\n';
+            "'spectrum' or 'chromatogram' below indexList but found instead '" <<
+            name << "'." << std::endl;
           xercesc::XMLString::release(&x_idref_tag);
           xercesc::XMLString::release(&x_name_tag);
           return -1;

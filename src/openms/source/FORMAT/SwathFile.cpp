@@ -85,7 +85,7 @@ namespace OpenMS
       double upper = -1, lower = -1, center = -1;
       if (exp->empty())
       {
-        std::cerr << "WARNING: File " << file_list[i] << "\n does not have any scans - I will skip it" << '\n';
+        std::cerr << "WARNING: File " << file_list[i] << "\n does not have any scans - I will skip it" << std::endl;
         continue;
       }
       if (exp->getSpectra()[0].getPrecursors().empty())

@@ -47,7 +47,7 @@ namespace OpenMS
     //check name
     if (name.find(':') != std::string::npos)
     {
-      std::cerr << "Error ParamEntry name must not contain ':' characters!" << '\n';
+      std::cerr << "Error ParamEntry name must not contain ':' characters!" << std::endl;
     }
   }
 
