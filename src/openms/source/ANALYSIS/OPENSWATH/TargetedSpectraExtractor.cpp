@@ -190,7 +190,7 @@ namespace OpenMS
       const std::vector<Precursor>& precursors = spectrum.getPrecursors();
       if (precursors.empty())
       {
-        OPENMS_LOG_WARN << "annotateSpectra(): No precursor MZ found. Setting spectrum_mz to 0." << std::endl;
+        OPENMS_LOG_WARN << "annotateSpectra(): No precursor MZ found. Setting spectrum_mz to 0." << '\n';
       }
       const double spectrum_mz = precursors.empty() ? 0.0 : precursors.front().getMZ();
 
@@ -226,7 +226,7 @@ namespace OpenMS
           if (checkRtAndMzTol(spectrum_mz, spectrum_rt, target_mz, target_rt, mz_tol, rt_win))
           {
             OPENMS_LOG_DEBUG << "annotateSpectra(): " << peptide_ref_s << "]";
-            OPENMS_LOG_DEBUG << " (target_rt: " << target_rt << ") (target_mz: " << target_mz << ")" << std::endl;
+            OPENMS_LOG_DEBUG << " (target_rt: " << target_rt << ") (target_mz: " << target_mz << ")" << '\n';
             MSSpectrum annotated_spectrum = spectrum;
             annotated_spectrum.setName(peptide_ref_s);
             annotated_spectra.push_back(std::move(annotated_spectrum));
@@ -363,7 +363,7 @@ namespace OpenMS
       const std::vector<Precursor>& precursors = spectrum.getPrecursors();
       if (precursors.empty())
       {
-        OPENMS_LOG_WARN << "annotateSpectra(): No precursor MZ found. Setting spectrum_mz to 0." << std::endl;
+        OPENMS_LOG_WARN << "annotateSpectra(): No precursor MZ found. Setting spectrum_mz to 0." << '\n';
       }
       const double spectrum_mz = precursors.empty() ? 0.0 : precursors.front().getMZ();
       const double mz_tolerance = mz_unit_is_Da_ ? mz_tolerance_ : mz_tolerance_ / 1e6;
@@ -372,7 +372,7 @@ namespace OpenMS
       const double mz_left_lim = spectrum_mz ? spectrum_mz - mz_tolerance : std::numeric_limits<double>::min();
       const double mz_right_lim = spectrum_mz ? spectrum_mz + mz_tolerance : std::numeric_limits<double>::max();
 
-      OPENMS_LOG_DEBUG << "annotateSpectra(): [" << i << "] (RT: " << spectrum_rt << ") (MZ: " << spectrum_mz << ")" << std::endl;
+      OPENMS_LOG_DEBUG << "annotateSpectra(): [" << i << "] (RT: " << spectrum_rt << ") (MZ: " << spectrum_mz << ")" << '\n';
 
       for (Size j = 0; j < transitions.size(); ++j)
       {
@@ -387,7 +387,7 @@ namespace OpenMS
             target_mz >= mz_left_lim && target_mz <= mz_right_lim)
         {
           OPENMS_LOG_DEBUG << "annotateSpectra(): [" << j << "][" << transitions[j].getPeptideRef() << "]";
-          OPENMS_LOG_DEBUG << " (target_rt: " << target_rt << ") (target_mz: " << target_mz << ")" << std::endl << std::endl;
+          OPENMS_LOG_DEBUG << " (target_rt: " << target_rt << ") (target_mz: " << target_mz << ")" << std::endl << '\n';
           MSSpectrum annotated_spectrum = spectrum;
           annotated_spectrum.setName(transitions[j].getPeptideRef());
           annotated_spectra.push_back(annotated_spectrum);
@@ -402,7 +402,7 @@ namespace OpenMS
         }
       }
     }
-    OPENMS_LOG_DEBUG << "annotateSpectra(): (input size: " << spectra.size() << ") (annotated spectra: " << annotated_spectra.size() << ")\n" << std::endl;
+    OPENMS_LOG_DEBUG << "annotateSpectra(): (input size: " << spectra.size() << ") (annotated spectra: " << annotated_spectra.size() << ")\n" << '\n';
   }
 
   void TargetedSpectraExtractor::annotateSpectra(
@@ -482,7 +482,7 @@ namespace OpenMS
     }
 
     OPENMS_LOG_DEBUG << "pickSpectrum(): " << spectrum.getName() << " (input size: " <<
-      spectrum.size() << ") (picked: " << picked_spectrum.size() << ")\n" << std::endl;
+      spectrum.size() << ") (picked: " << picked_spectrum.size() << ")\n" << '\n';
   }
 
   void TargetedSpectraExtractor::scoreSpectra(
@@ -811,7 +811,7 @@ namespace OpenMS
       {
         warn_msg += std::to_string(idx) + " ";
       }
-      OPENMS_LOG_WARN << std:: endl << warn_msg << std::endl;
+      OPENMS_LOG_WARN << std:: endl << warn_msg << '\n';
     }
   }
 
@@ -843,7 +843,7 @@ namespace OpenMS
       const std::vector<Precursor>& precursors = spectrum.getPrecursors();
       if (precursors.empty())
       {
-        OPENMS_LOG_WARN << "untargetedMatching(): No precursor MZ found. Setting spectrum_mz to 0." << std::endl;
+        OPENMS_LOG_WARN << "untargetedMatching(): No precursor MZ found. Setting spectrum_mz to 0." << '\n';
       }
       const double spectrum_mz = precursors.empty() ? 0.0 : precursors.front().getMZ();
       Feature feature;
@@ -1126,7 +1126,7 @@ namespace OpenMS
       library_.push_back(s);
       bs_library_.emplace_back(s, bin_size_, false, peak_spread_, bin_offset_);
     }
-    OPENMS_LOG_INFO << "The library contains " << bs_library_.size() << " spectra." << std::endl;
+    OPENMS_LOG_INFO << "The library contains " << bs_library_.size() << " spectra." << '\n';
   }
 
 }// namespace OpenMS

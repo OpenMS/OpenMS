@@ -825,12 +825,12 @@ namespace OpenMS::Internal
               if (it->getMZ() != it->getMZ())
             {
               emz = "nan";
-              OPENMS_LOG_WARN << "Found no spectrum reference and no m/z position of identified spectrum! You are probably converting from an old format with insufficient data provision. Setting 'nan' - downstream applications might fail unless you set the references right." << std::endl;
+              OPENMS_LOG_WARN << "Found no spectrum reference and no m/z position of identified spectrum! You are probably converting from an old format with insufficient data provision. Setting 'nan' - downstream applications might fail unless you set the references right." << '\n';
             }
             if (it->getRT() != it->getRT())
             {
               ert = "nan";
-              OPENMS_LOG_WARN << "Found no spectrum reference and no RT position of identified spectrum! You are probably converting from an old format with insufficient data provision. Setting 'nan' - downstream applications might fail unless you set the references right." << std::endl;
+              OPENMS_LOG_WARN << "Found no spectrum reference and no RT position of identified spectrum! You are probably converting from an old format with insufficient data provision. Setting 'nan' - downstream applications might fail unless you set the references right." << '\n';
             }
             sid = String("MZ:") + emz + String("@RT:") + ert;
           }
@@ -849,7 +849,7 @@ namespace OpenMS::Internal
         }
         else
         {
-          OPENMS_LOG_WARN << "Falling back to referencing first spectrum file given because file or identifier could not be mapped." << std::endl;
+          OPENMS_LOG_WARN << "Falling back to referencing first spectrum file given because file or identifier could not be mapped." << '\n';
         }
 
         sidres += String("\t\t\t<SpectrumIdentificationResult spectraData_ref=\"")
@@ -917,7 +917,7 @@ namespace OpenMS::Internal
           else
           {
             //encountered a PeptideIdentification which is not linked to any ProteinIdentification
-            OPENMS_LOG_ERROR << "encountered a PeptideIdentification which is not linked to any ProteinIdentification" << std::endl;
+            OPENMS_LOG_ERROR << "encountered a PeptideIdentification which is not linked to any ProteinIdentification" << '\n';
           }
         }
 
@@ -945,7 +945,7 @@ namespace OpenMS::Internal
           else
           {
             //encountered a PeptideIdentification which is not linked to any ProteinIdentification
-            OPENMS_LOG_ERROR << "encountered a PeptideIdentification crosslink information which is not linked to any ProteinIdentification" << std::endl;
+            OPENMS_LOG_ERROR << "encountered a PeptideIdentification crosslink information which is not linked to any ProteinIdentification" << '\n';
           }
         }
       }
@@ -1219,7 +1219,7 @@ namespace OpenMS::Internal
           // TODO find ways to represent additional fragment types or filter out known incompatible types
 
           // OPENMS_LOG_WARN << "Well, fudge you very much, there is no matching annotation. ";
-          // OPENMS_LOG_WARN << pep.annotation << std::endl;
+          // OPENMS_LOG_WARN << pep.annotation << '\n';
           continue;
         }
         String lt = "frag: " + iontype + " ion";
@@ -1453,7 +1453,7 @@ namespace OpenMS::Internal
             }
             else
             {
-              OPENMS_LOG_WARN << "Found no start position of peptide hit in protein sequence." << std::endl;
+              OPENMS_LOG_WARN << "Found no start position of peptide hit in protein sequence." << '\n';
             }
             if (pe->getEnd() != PeptideEvidence::UNKNOWN_POSITION)
             {
@@ -1465,7 +1465,7 @@ namespace OpenMS::Internal
             }
             else
             {
-              OPENMS_LOG_WARN << "Found no end position of peptide hit in protein sequence." << std::endl;
+              OPENMS_LOG_WARN << "Found no end position of peptide hit in protein sequence." << '\n';
             }
             if (!idec.empty())
             {
@@ -1489,7 +1489,7 @@ namespace OpenMS::Internal
         if (sc.empty())
         {
           sc = "NA";
-          OPENMS_LOG_WARN << "No score assigned to this PSM: " /*<< hit.getSequence().toString()*/ << std::endl;
+          OPENMS_LOG_WARN << "No score assigned to this PSM: " /*<< hit.getSequence().toString()*/ << '\n';
         }
         String c(hit.getCharge()); //charge
 
@@ -1522,7 +1522,7 @@ namespace OpenMS::Internal
 
         if (pevid_ids.empty())
         {
-          OPENMS_LOG_WARN << "PSM without peptide evidence registered in the given search database found. This will cause an invalid mzIdentML file (which OpenMS can still consume)." << std::endl;
+          OPENMS_LOG_WARN << "PSM without peptide evidence registered in the given search database found. This will cause an invalid mzIdentML file (which OpenMS can still consume)." << '\n';
         }
         for (std::vector<String>::const_iterator pevref = pevid_ids.begin(); pevref != pevid_ids.end(); ++pevref)
         {
@@ -1595,7 +1595,7 @@ namespace OpenMS::Internal
           sii_tmp += String(5, '\t') + cv_.getTermByName("PSM-level search engine specific statistic").toXMLString(cv_ns);
           sii_tmp += "\n" + String(5, '\t') + "<userParam name=\"" + score_name_placeholder
                        + "\" unitName=\"" + "xsd:double" + "\" value=\"" + sc + "\"/>";
-          OPENMS_LOG_WARN << "Converting unknown score type to PSM-level search engine specific statistic from PSI controlled vocabulary." << std::endl;
+          OPENMS_LOG_WARN << "Converting unknown score type to PSM-level search engine specific statistic from PSI controlled vocabulary." << '\n';
         }
         sii_tmp += "\n";
 
@@ -2001,7 +2001,7 @@ namespace OpenMS::Internal
             }
             else
             {
-              OPENMS_LOG_WARN << "Found no start position of peptide hit in protein sequence." << std::endl;
+              OPENMS_LOG_WARN << "Found no start position of peptide hit in protein sequence." << '\n';
             }
             if (pe->getEnd() != PeptideEvidence::UNKNOWN_POSITION)
             {
@@ -2013,7 +2013,7 @@ namespace OpenMS::Internal
             }
             else
             {
-              OPENMS_LOG_WARN << "Found no end position of peptide hit in protein sequence." << std::endl;
+              OPENMS_LOG_WARN << "Found no end position of peptide hit in protein sequence." << '\n';
             }
             if (!idec.empty())
             {
@@ -2070,7 +2070,7 @@ namespace OpenMS::Internal
             }
             else
             {
-              OPENMS_LOG_WARN << "Found no start position of peptide hit in protein sequence." << std::endl;
+              OPENMS_LOG_WARN << "Found no start position of peptide hit in protein sequence." << '\n';
             }
             if (end[ev] != String(PeptideEvidence::UNKNOWN_POSITION))
             {
@@ -2078,7 +2078,7 @@ namespace OpenMS::Internal
             }
             else
             {
-              OPENMS_LOG_WARN << "Found no end position of peptide hit in protein sequence." << std::endl;
+              OPENMS_LOG_WARN << "Found no end position of peptide hit in protein sequence." << '\n';
             }
             if (!idec.empty())
             {
@@ -2119,7 +2119,7 @@ namespace OpenMS::Internal
       if (sc.empty())
       {
         sc = "NA";
-        OPENMS_LOG_WARN << "No score assigned to this PSM: " /*<< hit.getSequence().toString()*/ << std::endl;
+        OPENMS_LOG_WARN << "No score assigned to this PSM: " /*<< hit.getSequence().toString()*/ << '\n';
       }
       String c(hit.getCharge()); //charge
 
@@ -2152,7 +2152,7 @@ namespace OpenMS::Internal
 
       if (pevid_ids.empty())
       {
-        OPENMS_LOG_WARN << "PSM without peptide evidence registered in the given search database found. This will cause an invalid mzIdentML file (which OpenMS can still consume)." << std::endl;
+        OPENMS_LOG_WARN << "PSM without peptide evidence registered in the given search database found. This will cause an invalid mzIdentML file (which OpenMS can still consume)." << '\n';
       }
       for (std::vector<String>::const_iterator pevref = pevid_ids.begin(); pevref != pevid_ids.end(); ++pevref)
       {
@@ -2201,7 +2201,7 @@ namespace OpenMS::Internal
         sii_tmp += String(5, '\t') + cv_.getTermByName("PSM-level search engine specific statistic").toXMLString(cv_ns);
         sii_tmp += "\n" + String(5, '\t') + "<userParam name=\"" + score_name_placeholder
                      + "\" unitName=\"" + "xsd:double" + "\" value=\"" + sc + "\"/>";
-        OPENMS_LOG_WARN << "Converting unknown score type to PSM-level search engine specific statistic from PSI controlled vocabulary." << std::endl;
+        OPENMS_LOG_WARN << "Converting unknown score type to PSM-level search engine specific statistic from PSI controlled vocabulary." << '\n';
       }
       sii_tmp += "\n";
 

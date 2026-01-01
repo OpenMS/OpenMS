@@ -183,7 +183,7 @@ namespace OpenMS
         prefix << "  relative_acceptable: " << ratio_max_allowed_ << "\n" <<
         prefix << " --------------------------------\n" <<
         prefix << "  absolute_max:        " << absdiff_max_ << "\n" <<
-        prefix << "  absolute_acceptable: " << absdiff_max_allowed_ << std::endl;
+        prefix << "  absolute_acceptable: " << absdiff_max_allowed_ << '\n';
 
       writeWhitelistCases_(prefix);
 
@@ -212,7 +212,7 @@ namespace OpenMS
         << " " << QDir::toNativeSeparators(File::absolutePath(input_1_name_).toQString()).toStdString()
         << " " << QDir::toNativeSeparators(File::absolutePath(input_2_name_).toQString()).toStdString()
         #endif
-        << std::endl;
+        << '\n';
     }
 
     // If verbose level is low, report only the first error.
@@ -241,17 +241,17 @@ namespace OpenMS
         prefix << "  relative_acceptable: " << ratio_max_allowed_ << '\n' <<
         prefix << '\n' <<
         prefix << "  absolute_max:        " << absdiff_max_ << '\n' <<
-        prefix << "  absolute_acceptable: " << absdiff_max_allowed_ << std::endl;
+        prefix << "  absolute_acceptable: " << absdiff_max_allowed_ << '\n';
 
       writeWhitelistCases_(prefix);
 
-      *log_dest_ << prefix << std::endl;
+      *log_dest_ << prefix << '\n';
 
       if (line_num_1_max_ == -1 && line_num_2_max_ == -1)
       {
         *log_dest_ <<
           prefix << "No numeric differences were found.\n" <<
-          prefix << std::endl;
+          prefix << '\n';
       }
       else
       {
@@ -322,7 +322,7 @@ namespace OpenMS
           if (element_2_.is_number) // we are comparing numbers
           {
 #ifdef DEBUG_FUZZY
-            std::cout << "cmp number: " << String(element_1_.number) << " : " << String(element_2_.number) << std::endl;
+            std::cout << "cmp number: " << String(element_1_.number) << " : " << String(element_2_.number) << '\n';
 #endif
             if (element_1_.number == element_2_.number)
             {
@@ -388,7 +388,7 @@ namespace OpenMS
                     ratio = 1.0 / ratio;
                   }
 #ifdef DEBUG_FUZZY
-                  std::cout << " check ratio:  " << ratio << " vs " << ratio_max_ << std::endl;
+                  std::cout << " check ratio:  " << ratio << " vs " << ratio_max_ << '\n';
 #endif
 
                   // by now, we are sure that ratio >= 1
@@ -401,7 +401,7 @@ namespace OpenMS
                     if (ratio > ratio_max_allowed_)
                     {
 #ifdef DEBUG_FUZZY
-                      std::cout << "Ratio test failed: is larger than ratio_max " << std::endl;
+                      std::cout << "Ratio test failed: is larger than ratio_max " << '\n';
 #endif
                       if (!is_absdiff_small_)
                       {
@@ -548,7 +548,7 @@ namespace OpenMS
       readNextLine_(input_2, line_str_2, line_num_2_);
 #ifdef DEBUG_FUZZY
       std::cout << "eof: " << input_2.eof() << " failbit: " << input_2.fail() << " badbit: " << input_2.bad() << " reading " << input_2.tellg () << "chars\n";
-      std::cout << line_str_1 << "\n" << line_str_2 << std::endl;
+      std::cout << line_str_1 << "\n" << line_str_2 << '\n';
 #endif
       // compare the two lines of input
       if (!compareLines_(line_str_1, line_str_2) && verbose_level_ < 3)

@@ -321,8 +321,8 @@ namespace OpenMS
 
   void EGHTraceFitter::setInitialParameters_(FeatureFinderAlgorithmPickedHelperStructs::MassTraces& traces)
   {
-    OPENMS_LOG_DEBUG << "EGHTraceFitter->setInitialParameters(...)" << std::endl;
-    OPENMS_LOG_DEBUG << "Number of traces: " << traces.size() << std::endl;
+    OPENMS_LOG_DEBUG << "EGHTraceFitter->setInitialParameters(...)" << '\n';
+    OPENMS_LOG_DEBUG << "Number of traces: " << traces.size() << '\n';
 
     // aggregate data; some peaks (where intensity is zero) can be missing!
     // mapping: RT -> total intensity over all mass traces
@@ -339,7 +339,7 @@ namespace OpenMS
            total_intensities.begin(); it != total_intensities.end(); ++it)
     {
       totals[index++] = it->second;
-      // OPENMS_LOG_DEBUG << it->second << std::endl;
+      // OPENMS_LOG_DEBUG << it->second << '\n';
     }
 
     std::vector<double> smoothed(N);
@@ -355,18 +355,18 @@ namespace OpenMS
       {
         max_index = i;
       }
-      // OPENMS_LOG_DEBUG << smoothed[i] << std::endl;
+      // OPENMS_LOG_DEBUG << smoothed[i] << '\n';
     }
-    OPENMS_LOG_DEBUG << "Maximum at index " << max_index << std::endl;
+    OPENMS_LOG_DEBUG << "Maximum at index " << max_index << '\n';
     height_ = smoothed[max_index] - traces.baseline;
-    OPENMS_LOG_DEBUG << "height: " << height_ << std::endl;
+    OPENMS_LOG_DEBUG << "height: " << height_ << '\n';
     std::list<std::pair<double, double> >::iterator it = total_intensities.begin();
     std::advance(it, max_index);
     apex_rt_ = it->first;
-    OPENMS_LOG_DEBUG << "apex_rt: " << apex_rt_ << std::endl;
+    OPENMS_LOG_DEBUG << "apex_rt: " << apex_rt_ << '\n';
     region_rt_span_ = (total_intensities.rbegin()->first -
                        total_intensities.begin()->first);
-    OPENMS_LOG_DEBUG << "region_rt_span: " << region_rt_span_ << std::endl;
+    OPENMS_LOG_DEBUG << "region_rt_span: " << region_rt_span_ << '\n';
 
     // find RT values where intensity is at half-maximum:
     index = static_cast<Int>(max_index);
@@ -379,7 +379,7 @@ namespace OpenMS
     std::advance(it, index);
     double left_rt = it->first;
     OPENMS_LOG_DEBUG << "Left half-maximum at index " << index << ", RT " << left_rt
-              << std::endl;
+              << '\n';
     index = static_cast<Int>(max_index);
     while ((index < Int(N - 1)) && (smoothed[index] > height_ * 0.5))
     {
@@ -390,12 +390,12 @@ namespace OpenMS
     std::advance(it, index - Int(N));
     double right_rt = it->first;
     OPENMS_LOG_DEBUG << "Right half-maximum at index " << index << ", RT "
-              << right_rt << std::endl;
+              << right_rt << '\n';
 
     double A = apex_rt_ - left_rt;
     double B = right_rt - apex_rt_;
-    //OPENMS_LOG_DEBUG << "A: " << A << std::endl;
-    //OPENMS_LOG_DEBUG << "B: " << B << std::endl;
+    //OPENMS_LOG_DEBUG << "A: " << A << '\n';
+    //OPENMS_LOG_DEBUG << "B: " << B << '\n';
 
     // compute estimates for tau / sigma based on A and B:
     double alpha = (left_height + right_height) * 0.5 / height_;   // ~0.5
@@ -407,9 +407,9 @@ namespace OpenMS
     {
       tau_ = std::numeric_limits<double>::epsilon();
     }
-    OPENMS_LOG_DEBUG << "tau: " << tau_ << std::endl;
+    OPENMS_LOG_DEBUG << "tau: " << tau_ << '\n';
     sigma_ = sqrt(-0.5 / log_alpha * B * A);
-    OPENMS_LOG_DEBUG << "sigma: " << sigma_ << std::endl;
+    OPENMS_LOG_DEBUG << "sigma: " << sigma_ << '\n';
   }
 
   void EGHTraceFitter::updateMembers_()

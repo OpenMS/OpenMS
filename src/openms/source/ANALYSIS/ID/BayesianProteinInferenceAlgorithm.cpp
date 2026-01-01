@@ -295,13 +295,13 @@ namespace OpenMS
             //TODO print graph with peptide probabilities to see which evidences cause problems with which params
           }
           OPENMS_LOG_WARN << "Warning: Loopy belief propagation encountered a problem in a connected component. Skipping"
-                      " inference there." << std::endl;
+                      " inference there." << '\n';
           return 0;
         }
       }
       else
       {
-        OPENMS_LOG_WARN << "Skipped cc with only one type (proteins or peptides)" << std::endl;
+        OPENMS_LOG_WARN << "Skipped cc with only one type (proteins or peptides)" << '\n';
         return 0;
       }
     }
@@ -444,14 +444,14 @@ namespace OpenMS
           // Graph builder needs to build otherwise it leaks memory.
           bigb.to_graph();
           std::cout << "Warning: Loopy belief propagation encountered a problem in a connected component. Skipping"
-                      "inference there." << std::endl;
+                      "inference there." << '\n';
           return 0;
         }
         //TODO we could write out the posteriors here, so we can easily read them for the best params of the grid search
       }
       else
       {
-        std::cout << "Skipped cc with only one type (proteins or peptides)" << std::endl;
+        std::cout << "Skipped cc with only one type (proteins or peptides)" << '\n';
         return 0;
       }
     }
@@ -471,10 +471,10 @@ namespace OpenMS
 
     double operator() (double alpha, double beta, double gamma)
     {
-      OPENMS_LOG_INFO << "Evaluating: " << alpha << " " << beta << " " << gamma << std::endl;
+      OPENMS_LOG_INFO << "Evaluating: " << alpha << " " << beta << " " << gamma << '\n';
       if (beta - alpha >= 0.3 && alpha + beta <= 1.0)
       {
-        OPENMS_LOG_INFO << "Skipping improbable parameter combination.. " << std::endl;
+        OPENMS_LOG_INFO << "Skipping improbable parameter combination.. " << '\n';
         return 0.;
       }
       param_.setValue("model_parameters:prot_prior", gamma);
@@ -835,7 +835,7 @@ namespace OpenMS
 
       // TODO try to calc AUC partial only (e.g. up to 5% FDR)
       if (!keep_all_psms)
-        OPENMS_LOG_INFO << "Peptide FDR AUC before protein inference: " << pepFDR.rocN(cmap, 0) << std::endl;
+        OPENMS_LOG_INFO << "Peptide FDR AUC before protein inference: " << pepFDR.rocN(cmap, 0) << '\n';
 
       setScoreTypeAndSettings_(proteinIDs[0]);
       IDBoostGraph ibg(proteinIDs[0], cmap, nr_top_psms, use_run_info, use_unannotated_ids, keep_all_psms, exp_des);
@@ -843,7 +843,7 @@ namespace OpenMS
       if (greedy_group_resolution) ibg.resolveGraphPeptideCentric(true);
 
       if (!keep_all_psms)
-        OPENMS_LOG_INFO << "Peptide FDR AUC after protein inference: " << pepFDR.rocN(cmap, 0) << std::endl;
+        OPENMS_LOG_INFO << "Peptide FDR AUC after protein inference: " << pepFDR.rocN(cmap, 0) << '\n';
 
       if (!use_unannotated_ids)
       {
@@ -888,19 +888,19 @@ namespace OpenMS
     //TODO think about running grid search on the small CCs only (maybe it's enough)
     if (gs.getNrCombos() > 1)
     {
-      OPENMS_LOG_INFO << "Testing " << gs.getNrCombos() << " param combinations." << std::endl;
+      OPENMS_LOG_INFO << "Testing " << gs.getNrCombos() << " param combinations." << '\n';
       gs.evaluate(GridSearchEvaluator(param_, ibg, debug_lvl_), -1.0, bestParams);
     }
     else
     {
-      OPENMS_LOG_INFO << "Only one combination specified: Skipping grid search." << std::endl;
+      OPENMS_LOG_INFO << "Only one combination specified: Skipping grid search." << '\n';
     }
 
     double bestGamma = gamma_search[bestParams[2]];
     double bestBeta = beta_search[bestParams[1]];
     double bestAlpha = alpha_search[bestParams[0]];
-    OPENMS_LOG_INFO << "Best params found at a=" << bestAlpha << ", b=" << bestBeta << ", g=" << bestGamma << std::endl;
-    OPENMS_LOG_INFO << "Running with best parameters:" << std::endl;
+    OPENMS_LOG_INFO << "Best params found at a=" << bestAlpha << ", b=" << bestBeta << ", g=" << bestGamma << '\n';
+    OPENMS_LOG_INFO << "Running with best parameters:" << '\n';
     param_.setValue("model_parameters:prot_prior", bestGamma);
     param_.setValue("model_parameters:pep_emission", bestAlpha);
     param_.setValue("model_parameters:pep_spurious_emission", bestBeta);
@@ -1002,7 +1002,7 @@ namespace OpenMS
         else
         {
           //TODO Exception
-          std::cerr << "Protein sequence not annotated" << std::endl;
+          std::cerr << "Protein sequence not annotated" << '\n';
         }
       }
     }*/
@@ -1011,7 +1011,7 @@ namespace OpenMS
     if (proteinIDs.size() > 1)
     {
       OPENMS_LOG_WARN << "Warning: more than one protein identification run provided for inference. Only "
-                         "the first will be processed for now." << std::endl;
+                         "the first will be processed for now." << '\n';
     }
 
     // groups will be reannotated
@@ -1057,7 +1057,7 @@ namespace OpenMS
     resetProteinScores_(proteinIDs[0], user_defined_priors);
 
     if (!keep_all_psms)
-      OPENMS_LOG_INFO << "Peptide FDR AUC before protein inference: " << pepFDR.rocN(peptideIDs, 0, proteinIDs[0].getIdentifier()) << std::endl;
+      OPENMS_LOG_INFO << "Peptide FDR AUC before protein inference: " << pepFDR.rocN(peptideIDs, 0, proteinIDs[0].getIdentifier()) << '\n';
 
     setScoreTypeAndSettings_(proteinIDs[0]);
     IDBoostGraph ibg(proteinIDs[0], peptideIDs, nr_top_psms, use_run_info, keep_all_psms, exp_des);
@@ -1066,7 +1066,7 @@ namespace OpenMS
     proteinIDs[0].fillIndistinguishableGroupsWithSingletons();
 
     if (!keep_all_psms)
-      OPENMS_LOG_INFO << "Peptide FDR AUC after protein inference: " << pepFDR.rocN(peptideIDs, 0, proteinIDs[0].getIdentifier()) << std::endl;
+      OPENMS_LOG_INFO << "Peptide FDR AUC after protein inference: " << pepFDR.rocN(peptideIDs, 0, proteinIDs[0].getIdentifier()) << '\n';
   }
 
   void BayesianProteinInferenceAlgorithm::resetProteinScores_(ProteinIdentification& protein_id, bool keep_old_as_prior)

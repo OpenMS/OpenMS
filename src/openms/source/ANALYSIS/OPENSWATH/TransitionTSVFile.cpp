@@ -242,12 +242,12 @@ namespace OpenMS
 #ifdef TRANSITIONTSVREADER_TESTING
       for (Size i = 0; i < tmp_line.size(); i++)
       {
-        std::cout << "line " << i << " " << tmp_line[i] << std::endl;
+        std::cout << "line " << i << " " << tmp_line[i] << '\n';
       }
 
       for (const auto& iter : header_dict)
       {
-        std::cout << "header " << iter.first << " " << iter.second << std::endl;
+        std::cout << "header " << iter.first << " " << iter.second << '\n';
       }
 #endif
 
@@ -433,26 +433,26 @@ namespace OpenMS
       }
 
 #ifdef TRANSITIONTSVREADER_TESTING
-      std::cout << mytransition.precursor << std::endl;
-      std::cout << mytransition.product << std::endl;
-      std::cout << mytransition.rt_calibrated << std::endl;
-      std::cout << mytransition.transition_name << std::endl;
-      std::cout << mytransition.CE << std::endl;
-      std::cout << mytransition.library_intensity << std::endl;
-      std::cout << mytransition.group_id << std::endl;
-      std::cout << mytransition.decoy << std::endl;
-      std::cout << mytransition.PeptideSequence << std::endl;
-      std::cout << mytransition.ProteinName << std::endl;
-      std::cout << mytransition.Annotation << std::endl;
-      std::cout << mytransition.FullPeptideName << std::endl;
-      std::cout << mytransition.precursor_charge << std::endl;
-      std::cout << mytransition.peptide_group_label << std::endl;
-      std::cout << mytransition.fragment_charge << std::endl;
-      std::cout << mytransition.fragment_nr << std::endl;
-      std::cout << mytransition.fragment_mzdelta << std::endl;
-      std::cout << mytransition.fragment_modification << std::endl;
-      std::cout << mytransition.fragment_type << std::endl;
-      std::cout << mytransition.uniprot_id << std::endl;
+      std::cout << mytransition.precursor << '\n';
+      std::cout << mytransition.product << '\n';
+      std::cout << mytransition.rt_calibrated << '\n';
+      std::cout << mytransition.transition_name << '\n';
+      std::cout << mytransition.CE << '\n';
+      std::cout << mytransition.library_intensity << '\n';
+      std::cout << mytransition.group_id << '\n';
+      std::cout << mytransition.decoy << '\n';
+      std::cout << mytransition.PeptideSequence << '\n';
+      std::cout << mytransition.ProteinName << '\n';
+      std::cout << mytransition.Annotation << '\n';
+      std::cout << mytransition.FullPeptideName << '\n';
+      std::cout << mytransition.precursor_charge << '\n';
+      std::cout << mytransition.peptide_group_label << '\n';
+      std::cout << mytransition.fragment_charge << '\n';
+      std::cout << mytransition.fragment_nr << '\n';
+      std::cout << mytransition.fragment_mzdelta << '\n';
+      std::cout << mytransition.fragment_modification << '\n';
+      std::cout << mytransition.fragment_type << '\n';
+      std::cout << mytransition.uniprot_id << '\n';
 #endif
 
       tmp_line.clear();
@@ -460,7 +460,7 @@ namespace OpenMS
 
     if (spectrast_legacy && retentionTimeInterpretation_ == "iRT")
     {
-      std::cout << "Warning: SpectraST was not run in RT normalization mode but the converted list was interpreted to have iRT units. Check whether you need to adapt the parameter -algorithm:retentionTimeInterpretation. You can ignore this warning if you used a legacy SpectraST 4.0 file." << std::endl;
+      std::cout << "Warning: SpectraST was not run in RT normalization mode but the converted list was interpreted to have iRT units. Check whether you need to adapt the parameter -algorithm:retentionTimeInterpretation. You can ignore this warning if you used a legacy SpectraST 4.0 file." << '\n';
 
     }
   }
@@ -905,13 +905,13 @@ namespace OpenMS
           if (override_group_label_check_)
           {
             OPENMS_LOG_WARN << "Warning: Found multiple peptide sequences for peptide label group " << effective_label <<
-              ". Since 'override_group_label_check' is on, nothing will be changed." << std::endl;
+              ". Since 'override_group_label_check' is on, nothing will be changed." << '\n';
           }
           else
           {
             OPENMS_LOG_WARN << "Warning: Found multiple peptide sequences for peptide label group " << effective_label <<
               ". This is most likely an error and to fix this, a new peptide label group will be inferred - " <<
-              "to override this decision, please use the override_group_label_check parameter." << std::endl;
+              "to override this decision, please use the override_group_label_check parameter." << '\n';
             effective_label = mytransition.group_id;
           }
         }
@@ -993,7 +993,7 @@ namespace OpenMS
           }
           catch (Exception::InvalidValue&)
           {
-            OPENMS_LOG_DEBUG << "Could not parse modifications from sequence: " << sequence << std::endl;
+            OPENMS_LOG_DEBUG << "Could not parse modifications from sequence: " << sequence << '\n';
           }
         }
         else
@@ -1064,14 +1064,14 @@ namespace OpenMS
           {
             // We wont fix it but give out a warning
             OPENMS_LOG_WARN << "Warning: Found multiple peptide sequences for peptide label group " << pep_it.first << 
-              ". Since 'override_group_label_check' is on, nothing will be changed." << std::endl;
+              ". Since 'override_group_label_check' is on, nothing will be changed." << '\n';
           }
           else
           {
             // Lets fix it and inform the user
             OPENMS_LOG_WARN << "Warning: Found multiple peptide sequences for peptide label group " << pep_it.first << 
               ". This is most likely an error and to fix this, a new peptide label group will be inferred - " << 
-              "to override this decision, please use the override_group_label_check parameter." << std::endl;
+              "to override this decision, please use the override_group_label_check parameter." << '\n';
             tr_it->peptide_group_label = tr_it->group_id;
           }
         }
@@ -1381,13 +1381,13 @@ namespace OpenMS
       if (force_invalid_mods_)
       {
         // fallback: parse the "naked" peptide sequence which should always work
-        OPENMS_LOG_DEBUG << "Invalid sequence when parsing '" << tr_it->FullPeptideName << "'" << std::endl;
+        OPENMS_LOG_DEBUG << "Invalid sequence when parsing '" << tr_it->FullPeptideName << "'" << '\n';
         aa_sequence = AASequence::fromString(tr_it->PeptideSequence);
       }
       else
       {
-        OPENMS_LOG_DEBUG << "Invalid sequence when parsing '" << tr_it->FullPeptideName << "'" << std::endl;
-        std::cerr << "Error while reading file (use 'force_invalid_mods' parameter to override): " << e.what() << std::endl;
+        OPENMS_LOG_DEBUG << "Invalid sequence when parsing '" << tr_it->FullPeptideName << "'" << '\n';
+        std::cerr << "Error while reading file (use 'force_invalid_mods' parameter to override): " << e.what() << '\n';
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
             "Invalid input, cannot parse: " + tr_it->FullPeptideName);
       }
@@ -1404,8 +1404,8 @@ namespace OpenMS
         return;
       }
       OPENMS_LOG_WARN << "Warning: The peptide sequence " << peptide.sequence << " and the full peptide name " << aa_sequence << 
-        " are not equal. Please check your input." << std::endl;
-      OPENMS_LOG_WARN << "(use force_invalid_mods to override)" << std::endl;
+        " are not equal. Please check your input." << '\n';
+      OPENMS_LOG_WARN << "(use force_invalid_mods to override)" << '\n';
     }
 
     // Unfortunately, we cannot store an AASequence here but have to work with
@@ -1514,7 +1514,7 @@ namespace OpenMS
 
 #ifdef TRANSITIONTSVREADER_TESTING
       OPENMS_LOG_DEBUG << "Peptide rts empty " <<
-      pep.rts.empty()  << " or no cv term " << pep.getRetentionTime() << std::endl;
+      pep.rts.empty()  << " or no cv term " << pep.getRetentionTime() << '\n';
 #endif
 
       if (pep.hasRetentionTime())
@@ -1733,7 +1733,7 @@ namespace OpenMS
         os << "\t";
       }
     }
-    os << std::endl;
+    os << '\n';
 
     for (const auto& it : mytransitions)
     {
@@ -1769,7 +1769,7 @@ namespace OpenMS
         + (String)it.quantifying_transition   + "\t"
         + ListUtils::concatenate(it.peptidoforms, "|");
 
-      os << line << std::endl;
+      os << line << '\n';
     }
     os.close();
   }
@@ -1835,7 +1835,7 @@ namespace OpenMS
         os << "\t";
       }
     }
-    os << std::endl;
+    os << '\n';
 
     Size progress = 0;
     startProgress(0, targeted_exp.transitions.size(), "writing OpenSWATH Transition List TSV file");
@@ -1990,7 +1990,7 @@ namespace OpenMS
         + String(tr.isQuantifyingTransition())  + "\t"
         + ListUtils::concatenate(std::vector<String>(tr.peptidoforms.begin(), tr.peptidoforms.end()), "|");
 
-      os << line << std::endl;
+      os << line << '\n';
     }
     endProgress();
     os.close();

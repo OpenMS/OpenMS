@@ -188,10 +188,10 @@ namespace OpenMS
       }
 
 #ifdef NUMPRESS_DEBUG
-      std::cout << "encodeNPRaw: numpressed array with with length " << numpressed.size() << std::endl;
+      std::cout << "encodeNPRaw: numpressed array with with length " << numpressed.size() << '\n';
       for (int i = 0; i < byteCount; i++)
       {
-        std::cout << "array[" << i << "] : " << (int)numpressed[i] << std::endl;
+        std::cout << "array[" << i << "] : " << (int)numpressed[i] << '\n';
       }
 #endif
 
@@ -219,7 +219,7 @@ namespace OpenMS
             if (!std::isfinite(u) || !std::isfinite(d))
             {
 #ifdef NUMPRESS_DEBUG
-              std::cout << "infinite u: " << u << " d: " << d << std::endl;
+              std::cout << "infinite u: " << u << " d: " << d << '\n';
 #endif
               break;
             }
@@ -228,7 +228,7 @@ namespace OpenMS
               if (fabs(u) > config.numpressErrorTolerance)
               {
 #ifdef NUMPRESS_DEBUG
-                std::cout << "fabs(u): " << fabs(u) << " > config.numpressErrorTolerance: " << config.numpressErrorTolerance << std::endl;
+                std::cout << "fabs(u): " << fabs(u) << " > config.numpressErrorTolerance: " << config.numpressErrorTolerance << '\n';
 #endif
                 break;
               }
@@ -238,7 +238,7 @@ namespace OpenMS
               if (fabs(d) > config.numpressErrorTolerance)
               {
 #ifdef NUMPRESS_DEBUG
-                std::cout << "fabs(d): " << fabs(d) << " > config.numpressErrorTolerance: " << config.numpressErrorTolerance << std::endl;
+                std::cout << "fabs(d): " << fabs(d) << " > config.numpressErrorTolerance: " << config.numpressErrorTolerance << '\n';
 #endif
                 break;
               }
@@ -246,8 +246,8 @@ namespace OpenMS
             else if (fabs(1.0 - (d / u)) > config.numpressErrorTolerance)
             {
 #ifdef NUMPRESS_DEBUG
-              std::cout << "d: " << d << " u: " << u << std::endl;
-              std::cout << "fabs(1.0 - (d / u)): " << fabs(1.0 - (d / u)) << " > config.numpressErrorTolerance: " << config.numpressErrorTolerance << std::endl;
+              std::cout << "d: " << d << " u: " << u << '\n';
+              std::cout << "fabs(1.0 - (d / u)): " << fabs(1.0 - (d / u)) << " > config.numpressErrorTolerance: " << config.numpressErrorTolerance << '\n';
 #endif
               break;
             }
@@ -257,7 +257,7 @@ namespace OpenMS
       if (n >= 0)
       {
         //Comment: throw?
-        std::cerr << "Error occurred at position n = " << n << ". Enable NUMPRESS_DEBUG to get more info." << std::endl;
+        std::cerr << "Error occurred at position n = " << n << ". Enable NUMPRESS_DEBUG to get more info." << '\n';
       }
       else
       {
@@ -269,15 +269,15 @@ namespace OpenMS
     }
     catch (int e)
     {
-      std::cerr << "MSNumpress encoder threw exception: " << e << std::endl;
+      std::cerr << "MSNumpress encoder threw exception: " << e << '\n';
     }
     catch (char const * e)
     {
-      std::cerr << "MSNumpress encoder threw exception: " << e << std::endl;
+      std::cerr << "MSNumpress encoder threw exception: " << e << '\n';
     }
     catch (...)
     {
-      std::cerr << "Unknown exception while encoding " << dataSize << " doubles" << std::endl;
+      std::cerr << "Unknown exception while encoding " << dataSize << " doubles" << '\n';
     }
   }
 
@@ -294,10 +294,10 @@ namespace OpenMS
     size_t byteCount = in_size;
 
 #ifdef NUMPRESS_DEBUG
-    std::cout << "decodeNPInternal_: array input with length " << in_size << std::endl;
+    std::cout << "decodeNPInternal_: array input with length " << in_size << '\n';
     for (int i = 0; i < in_size; i++)
     {
-      std::cout << "array[" << i << "] : " << (int)in[i] << std::endl;
+      std::cout << "array[" << i << "] : " << (int)in[i] << '\n';
     }
 #endif
 
@@ -359,10 +359,10 @@ namespace OpenMS
     }
 
 #ifdef NUMPRESS_DEBUG
-    std::cout << "decodeNPInternal_: output size " << out.size() << std::endl;
+    std::cout << "decodeNPInternal_: output size " << out.size() << '\n';
     for (int i = 0; i < out.size(); i++)
     {
-      std::cout << "array[" << i << "] : " << out[i] << std::endl;
+      std::cout << "array[" << i << "] : " << out[i] << '\n';
     }
 #endif
 

@@ -90,7 +90,7 @@ namespace OpenMS
     /* to manually retrace
     for (Size i = 0; i < original.dimensionsize(); ++i)
     {
-        std::cout << interdist_i[i] << " | " << cluster_with_interdist[i] << " | " << intradist_i[i] << std::endl;
+        std::cout << interdist_i[i] << " | " << cluster_with_interdist[i] << " | " << intradist_i[i] << '\n';
     }
     */
 
@@ -263,15 +263,15 @@ namespace OpenMS
           }
           std::cout << " | ";
       }
-      std::cout << std::endl;
-      std::cout << "---------" << std::endl;
+      std::cout << '\n';
+      std::cout << "---------" << '\n';
       for (Size z = 0; z < original.dimensionsize(); ++z)
       {
           std::cout << interdist_i[z] << " , " << intradist_i[z] << " , " << cluster_with_interdist[z] << " , ";
-          std::cout << ((interdist_i[z] - intradist_i[z]) / std::max(interdist_i[z],intradist_i[z])) << std::endl;
+          std::cout << ((interdist_i[z] - intradist_i[z]) / std::max(interdist_i[z],intradist_i[z])) << '\n';
 
       }
-      std::cout << "---------" << std::endl;
+      std::cout << "---------" << '\n';
       */
 
       //calculate average silhouette width for clusters and then overall average silhouette width for cluster step
@@ -299,9 +299,9 @@ namespace OpenMS
       /* to manually retrace
           for (Size i = 0; i < silhouettes.size(); ++i)
           {
-              std::cout << "s(" <<  (i) << ") = " << silhouettes[i] << std::endl;
+              std::cout << "s(" <<  (i) << ") = " << silhouettes[i] << '\n';
           }
-          std::cout << "---------" << std::endl;
+          std::cout << "---------" << '\n';
       */
       average_silhouette_widths.push_back(average_overall_silhouette / (float)(tree.size() + 1));
     }
@@ -488,9 +488,9 @@ namespace OpenMS
       }
 
       /* to manually retrace
-          std::cout << min_intercluster_distance << std::endl;
-          std::cout << clusters_with_min_intercluster_dist.first << " , " << clusters_with_min_intercluster_dist.second << std::endl;
-          std::cout << max_intracluster_distance << std::endl;
+          std::cout << min_intercluster_distance << '\n';
+          std::cout << clusters_with_min_intercluster_dist.first << " , " << clusters_with_min_intercluster_dist.second << '\n';
+          std::cout << max_intracluster_distance << '\n';
       */
 
     }
@@ -678,7 +678,7 @@ namespace OpenMS
       {
         av_c_dist = av_dist;
       }
-      //~ std::cout << " av clu i " << av_c_dist << std::endl;
+      //~ std::cout << " av clu i " << av_c_dist << '\n';
       cohesions.push_back(av_c_dist);
     }
     return cohesions;
