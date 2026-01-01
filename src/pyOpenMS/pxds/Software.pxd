@@ -9,9 +9,9 @@ cdef extern from "<OpenMS/METADATA/Software.h>" namespace "OpenMS":
         #  std
 
         Software() except + nogil
-        Software(Software &) except + nogil
+        Software(const Software &) except + nogil
 
-        bool operator==(Software &) except + nogil
+        bool operator==(const Software &) const except + nogil
 
         String getName() except + nogil  # wrap-doc:Returns the name of the software
         String getVersion() except + nogil  # wrap-doc:Returns the software version
