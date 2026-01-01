@@ -154,7 +154,7 @@ public:
      *
      * Example usage:
      * @code
-     * std::unordered_set<PeptideHit, PeptideHit::SequenceChargeHash> unique_hits;
+     * std::unordered_set<PeptideHit, PeptideHit::SequenceChargeHash, PeptideHit::SequenceChargeEqual> unique_hits;
      * @endcode
      */
     class OPENMS_DLLAPI SequenceChargeHash
@@ -417,7 +417,7 @@ namespace std
   {
     std::size_t operator()(const OpenMS::PeptideHit& hit) const noexcept
     {
-      // Start with MetaInfoInterface hash
+      // Start with MetaInfoInterface hash (includes rank which is stored as meta value)
       std::size_t seed = std::hash<OpenMS::MetaInfoInterface>{}(hit);
 
       // Hash sequence
@@ -426,8 +426,8 @@ namespace std
       // Hash score
       OpenMS::hash_combine(seed, OpenMS::hash_float(hit.getScore()));
 
-      // Hash rank (stored as meta value, accessed via getter)
-      OpenMS::hash_combine(seed, OpenMS::hash_int(hit.getRank()));
+      // Note: rank is NOT hashed separately - it's included via MetaInfoInterface above
+      // (rank is stored as meta value "rank" when non-zero)
 
       // Hash charge
       OpenMS::hash_combine(seed, OpenMS::hash_int(hit.getCharge()));
