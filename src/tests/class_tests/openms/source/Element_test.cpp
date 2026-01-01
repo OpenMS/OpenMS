@@ -17,6 +17,9 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CHEMISTRY/ElementDB.h>
 
+#include <unordered_set>
+#include <unordered_map>
+
 
 using namespace OpenMS;
 using namespace std;
@@ -144,6 +147,53 @@ END_SECTION
 
 
 delete e_ptr;
+
+/////////////////////////////////////////////////////////////
+// Hash tests
+/////////////////////////////////////////////////////////////
+
+START_SECTION(([EXTRA] std::hash<Element>))
+{
+  // Test that equal objects have equal hashes
+  IsotopeDistribution dist1;
+  dist1.insert(12.0, 0.989);
+  dist1.insert(13.003355, 0.011);
+
+  Element e1("Carbon", "C", 6, 12.0107, 12.0, dist1);
+  Element e2("Carbon", "C", 6, 12.0107, 12.0, dist1);
+
+  std::hash<Element> hasher;
+  TEST_EQUAL(e1 == e2, true)
+  TEST_EQUAL(hasher(e1), hasher(e2))
+
+  // Test that different objects (likely) have different hashes
+  Element e3("Nitrogen", "N", 7, 14.0067, 14.003074, IsotopeDistribution());
+  TEST_EQUAL(e1 == e3, false)
+  // Note: Different objects should have different hashes (with very high probability)
+  TEST_NOT_EQUAL(hasher(e1), hasher(e3))
+
+  // Test consistency: same object hashes to same value
+  TEST_EQUAL(hasher(e1), hasher(e1))
+
+  // Test use in unordered_set
+  std::unordered_set<Element> element_set;
+  element_set.insert(e1);
+  element_set.insert(e2); // Should not increase size (duplicate)
+  element_set.insert(e3);
+  TEST_EQUAL(element_set.size(), 2)
+  TEST_EQUAL(element_set.count(e1), 1)
+  TEST_EQUAL(element_set.count(e3), 1)
+
+  // Test use in unordered_map
+  std::unordered_map<Element, std::string> element_map;
+  element_map[e1] = "first carbon";
+  element_map[e2] = "second carbon"; // Should overwrite
+  element_map[e3] = "nitrogen";
+  TEST_EQUAL(element_map.size(), 2)
+  TEST_EQUAL(element_map[e1], "second carbon")
+  TEST_EQUAL(element_map[e3], "nitrogen")
+}
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

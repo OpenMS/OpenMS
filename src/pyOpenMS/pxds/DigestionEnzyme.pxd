@@ -7,10 +7,12 @@ from String cimport *
 cdef extern from "<OpenMS/CHEMISTRY/DigestionEnzyme.h>" namespace "OpenMS":
     
     cdef cppclass DigestionEnzyme "OpenMS::DigestionEnzyme":
+        # wrap-hash:
+        #  std
         # wrap-doc:
         #    Base class for digestion enzymes
 
-        DigestionEnzyme(DigestionEnzyme &) except + nogil 
+        DigestionEnzyme(DigestionEnzyme &) except + nogil
 
         DigestionEnzyme(const String & name, const String & cleavage_regex, libcpp_set[ String ] & synonyms, String regex_description) except + nogil 
 

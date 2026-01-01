@@ -12,6 +12,8 @@
 ///////////////////////////
 #include <OpenMS/METADATA/SpectrumSettings.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
+#include <unordered_set>
+#include <unordered_map>
 ///////////////////////////
 
 using namespace OpenMS;
@@ -428,6 +430,127 @@ START_SECTION((static StringList getAllNamesOfSpectrumType()))
   TEST_EQUAL(names.size(), SpectrumSettings::SIZE_OF_SPECTRUMTYPE);
   TEST_EQUAL(names[SpectrumSettings::CENTROID], "Centroid");
   TEST_EQUAL(names[SpectrumSettings::PROFILE], "Profile");
+END_SECTION
+
+START_SECTION([EXTRA] std::hash<SpectrumSettings>)
+{
+  // Test 1: Equal objects have equal hashes
+  SpectrumSettings s1, s2;
+  s1.setNativeID("scan=1");
+  s1.setComment("test comment");
+  s1.setType(SpectrumSettings::CENTROID);
+
+  // Set up instrument settings
+  InstrumentSettings is;
+  is.setScanMode(InstrumentSettings::MSNSPECTRUM);
+  is.setZoomScan(true);
+  ScanWindow sw;
+  sw.begin = 100.0;
+  sw.end = 2000.0;
+  is.getScanWindows().push_back(sw);
+  s1.setInstrumentSettings(is);
+
+  // Set up acquisition info
+  AcquisitionInfo ai;
+  ai.setMethodOfCombination("sum");
+  Acquisition acq;
+  acq.setIdentifier("acq_1");
+  ai.push_back(acq);
+  s1.setAcquisitionInfo(ai);
+
+  // Set up source file
+  SourceFile sf;
+  sf.setNameOfFile("test.mzML");
+  sf.setPathToFile("/data/");
+  sf.setFileType("mzML");
+  s1.setSourceFile(sf);
+
+  // Set up precursors
+  Precursor prec;
+  prec.setMZ(500.5);
+  prec.setIntensity(1000.0f);
+  prec.setCharge(2);
+  prec.setActivationEnergy(35.0);
+  prec.setIsolationWindowLowerOffset(1.5);
+  prec.setIsolationWindowUpperOffset(1.5);
+  s1.getPrecursors().push_back(prec);
+
+  // Set up products
+  Product prod;
+  prod.setMZ(250.25);
+  s1.getProducts().push_back(prod);
+
+  // Set up data processing
+  DataProcessingPtr dp = std::make_shared<DataProcessing>();
+  Software soft;
+  soft.setName("TestTool");
+  soft.setVersion("1.0");
+  dp->setSoftware(soft);
+  dp->getProcessingActions().insert(DataProcessing::PEAK_PICKING);
+  s1.getDataProcessing().push_back(dp);
+
+  // Set meta values
+  s1.setMetaValue("key1", "value1");
+  s1.setMetaValue("key2", 42);
+
+  // Copy to s2
+  s2 = s1;
+
+  // Verify equality
+  TEST_TRUE(s1 == s2);
+
+  // Test hash equality for equal objects
+  std::hash<SpectrumSettings> hasher;
+  TEST_EQUAL(hasher(s1), hasher(s2));
+
+  // Test 2: Default constructed objects have equal hashes
+  SpectrumSettings empty1, empty2;
+  TEST_EQUAL(hasher(empty1), hasher(empty2));
+
+  // Test 3: Different objects should (likely) have different hashes
+  SpectrumSettings diff;
+  diff.setNativeID("scan=999");
+  diff.setComment("different comment");
+  diff.setType(SpectrumSettings::PROFILE);
+  // Note: We don't guarantee different hashes for different objects (collisions are allowed)
+  // but we verify the hash function runs without error
+  std::size_t h1 = hasher(s1);
+  std::size_t h2 = hasher(diff);
+  // Just verify they compute (hash collisions are theoretically possible but unlikely here)
+  TEST_NOT_EQUAL(h1, 0); // Basic sanity check
+  (void)h2; // Suppress unused warning
+
+  // Test 4: Use in unordered_set
+  std::unordered_set<SpectrumSettings> settings_set;
+  settings_set.insert(s1);
+  settings_set.insert(empty1);
+  settings_set.insert(diff);
+  TEST_EQUAL(settings_set.size(), 3);
+
+  // Insert duplicate
+  settings_set.insert(s2); // s2 == s1
+  TEST_EQUAL(settings_set.size(), 3); // Should still be 3
+
+  // Test 5: Use in unordered_map
+  std::unordered_map<SpectrumSettings, std::string> settings_map;
+  settings_map[s1] = "first";
+  settings_map[empty1] = "empty";
+  settings_map[diff] = "different";
+  TEST_EQUAL(settings_map.size(), 3);
+  TEST_EQUAL(settings_map[s1], "first");
+  TEST_EQUAL(settings_map[s2], "first"); // s2 == s1, should get same value
+
+  // Test 6: Modifying a field changes the hash
+  SpectrumSettings modified = s1;
+  modified.setComment("modified comment");
+  TEST_FALSE(s1 == modified);
+  // Hash should likely differ (not guaranteed, but extremely likely)
+  std::size_t h_orig = hasher(s1);
+  std::size_t h_mod = hasher(modified);
+  // We just verify both compute; collisions are technically possible
+  (void)h_orig;
+  (void)h_mod;
+}
 END_SECTION
 
 /////////////////////////////////////////////////////////////

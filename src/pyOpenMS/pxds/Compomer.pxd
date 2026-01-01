@@ -5,8 +5,10 @@ from StringList cimport *
 cdef extern from "<OpenMS/DATASTRUCTURES/Compomer.h>" namespace "OpenMS":
 
     cdef cppclass Compomer:
-  
-        Compomer() except + nogil 
+        # wrap-hash:
+        #  std
+
+        Compomer() except + nogil
         Compomer(Compomer &) except + nogil 
   
         void add(Adduct & a, UInt side) except + nogil 

@@ -9,8 +9,11 @@
 #pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/CONCEPT/HashUtils.h>
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
+
 #include <iosfwd>
+#include <functional>
 
 namespace OpenMS
 {
@@ -195,3 +198,18 @@ namespace OpenMS
   OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const MobilityPeak1D& point);
 
 } // namespace OpenMS
+
+// Hash function specialization for MobilityPeak1D
+namespace std
+{
+  template<>
+  struct hash<OpenMS::MobilityPeak1D>
+  {
+    std::size_t operator()(const OpenMS::MobilityPeak1D& p) const noexcept
+    {
+      std::size_t seed = OpenMS::hash_float(p.getMobility());
+      OpenMS::hash_combine(seed, OpenMS::hash_float(p.getIntensity()));
+      return seed;
+    }
+  };
+} // namespace std

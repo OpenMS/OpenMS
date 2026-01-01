@@ -11,6 +11,8 @@
 
 ///////////////////////////
 #include <string>
+#include <unordered_set>
+#include <unordered_map>
 
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
@@ -499,6 +501,90 @@ START_SECTION((void setBaseName(const String& base_name)))
   TEST_FALSE(id.empty())
   id.setBaseName("");
   TEST_TRUE(id.empty())
+END_SECTION
+
+START_SECTION((std::hash<PeptideIdentification>))
+{
+  // Test 1: Equal objects have equal hashes
+  PeptideIdentification id1, id2;
+  id1.setRT(123.456);
+  id1.setMZ(789.012);
+  id1.setIdentifier("test_id");
+  id1.setScoreType("Mascot");
+  id1.setHigherScoreBetter(true);
+  id1.setSignificanceThreshold(0.05);
+
+  id2.setRT(123.456);
+  id2.setMZ(789.012);
+  id2.setIdentifier("test_id");
+  id2.setScoreType("Mascot");
+  id2.setHigherScoreBetter(true);
+  id2.setSignificanceThreshold(0.05);
+
+  TEST_EQUAL(id1 == id2, true)
+  TEST_EQUAL(std::hash<PeptideIdentification>{}(id1), std::hash<PeptideIdentification>{}(id2))
+
+  // Test 2: Different objects have different hashes (most likely)
+  PeptideIdentification id3;
+  id3.setRT(999.999);
+  id3.setMZ(111.111);
+  id3.setIdentifier("different_id");
+
+  TEST_EQUAL(id1 == id3, false)
+  TEST_NOT_EQUAL(std::hash<PeptideIdentification>{}(id1), std::hash<PeptideIdentification>{}(id3))
+
+  // Test 3: Can use in unordered_set
+  std::unordered_set<PeptideIdentification> id_set;
+  id_set.insert(id1);
+  id_set.insert(id2); // Should not increase size (equal to id1)
+  id_set.insert(id3);
+  TEST_EQUAL(id_set.size(), 2)
+
+  // Test 4: Can use in unordered_map
+  std::unordered_map<PeptideIdentification, std::string> id_map;
+  id_map[id1] = "first";
+  id_map[id3] = "third";
+  TEST_EQUAL(id_map[id1], "first")
+  TEST_EQUAL(id_map[id2], "first") // id2 == id1
+  TEST_EQUAL(id_map[id3], "third")
+
+  // Test 5: PeptideIdentification with peptide hits
+  PeptideIdentification id4, id5;
+  PeptideHit hit1;
+  hit1.setScore(50.0);
+  hit1.setSequence(AASequence::fromString("PEPTIDE"));
+  hit1.setCharge(2);
+
+  PeptideHit hit2;
+  hit2.setScore(50.0);
+  hit2.setSequence(AASequence::fromString("PEPTIDE"));
+  hit2.setCharge(2);
+
+  id4.insertHit(hit1);
+  id5.insertHit(hit2);
+
+  TEST_EQUAL(id4 == id5, true)
+  TEST_EQUAL(std::hash<PeptideIdentification>{}(id4), std::hash<PeptideIdentification>{}(id5))
+
+  // Test 6: Different peptide hits produce different hashes
+  PeptideIdentification id6;
+  PeptideHit hit3;
+  hit3.setScore(99.0);
+  hit3.setSequence(AASequence::fromString("DIFFERENT"));
+  hit3.setCharge(3);
+  id6.insertHit(hit3);
+
+  TEST_EQUAL(id4 == id6, false)
+  TEST_NOT_EQUAL(std::hash<PeptideIdentification>{}(id4), std::hash<PeptideIdentification>{}(id6))
+
+  // Test 7: NaN handling - both NaN should be equal and have same hash
+  PeptideIdentification id7, id8;
+  // RT and MZ are NaN by default
+  TEST_EQUAL(id7.hasRT(), false)
+  TEST_EQUAL(id7.hasMZ(), false)
+  TEST_EQUAL(id7 == id8, true)
+  TEST_EQUAL(std::hash<PeptideIdentification>{}(id7), std::hash<PeptideIdentification>{}(id8))
+}
 END_SECTION
 
 END_TEST

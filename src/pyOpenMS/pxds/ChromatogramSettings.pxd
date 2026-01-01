@@ -14,7 +14,8 @@ cdef extern from "<OpenMS/METADATA/ChromatogramSettings.h>" namespace "OpenMS":
     cdef cppclass ChromatogramSettings(MetaInfoInterface):
         # wrap-inherits:
         #   MetaInfoInterface
-        #
+        # wrap-hash:
+        #  std
         # wrap-doc:
         #  Description of the chromatogram settings, provides meta-information
         #  about a single chromatogram.
