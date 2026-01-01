@@ -163,7 +163,7 @@ public:
       std::size_t operator()(const PeptideHit& hit) const noexcept
       {
         std::size_t seed = std::hash<AASequence>{}(hit.getSequence());
-        hash_combine(seed, hash_int(hit.getCharge()));
+        OpenMS::hash_combine(seed, OpenMS::hash_int(hit.getCharge()));
         return seed;
       }
     };
@@ -381,6 +381,14 @@ private:
 // Hash function specialization for PeptideHit::PeakAnnotation
 namespace std
 {
+  /**
+   * @brief Hash function for OpenMS::PeptideHit::PeakAnnotation.
+   *
+   * Computes a hash by combining annotation (via fnv1a_hash_string),
+   * charge, mz, and intensity fields using hash_combine.
+   *
+   * @note Hash is consistent with operator==.
+   */
   template<>
   struct hash<OpenMS::PeptideHit::PeakAnnotation>
   {

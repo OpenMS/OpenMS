@@ -79,7 +79,7 @@ public:
     /// accessor for the outer points
     const PointArrayType& getHullPoints() const;
 
-    /// accessor for the internal map representation (RT -> m/z bounding box)
+    /// @brief Accessor for the internal map representation (RT -> m/z bounding box)
     const HullPointType& getMapPoints() const { return map_points_; }
 
     /// accessor for the outer(!) points (no checking is performed if this is actually a convex hull)
