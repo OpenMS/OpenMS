@@ -113,12 +113,12 @@ END_SECTION
 
 START_SECTION((bool operator()(const SpectrumType& s) const))
 	HasScanMode<MSSpectrum> r(InstrumentSettings::SIM,false);
-	HasScanMode<MSSpectrum> r2(InstrumentSettings::MASSSPECTRUM,true);
+	HasScanMode<MSSpectrum> r2(InstrumentSettings::ScanMode::MASSSPECTRUM,true);
 	MSSpectrum s;
 	s.getInstrumentSettings().setScanMode(InstrumentSettings::SIM);
 	TEST_EQUAL(r(s), true);
 	TEST_EQUAL(r2(s), true);
-	s.getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
+	s.getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::MASSSPECTRUM);
 	TEST_EQUAL(r(s), false);
 	TEST_EQUAL(r2(s), false);
 END_SECTION
@@ -418,12 +418,12 @@ START_SECTION(([EXTRA]~HasScanPolarity()))
 END_SECTION
 
 START_SECTION((bool operator()(const SpectrumType& s) const))
-  HasScanPolarity<MSSpectrum> s(IonSource::POSITIVE);
-  HasScanPolarity<MSSpectrum> s2(IonSource::POSITIVE, true);
+  HasScanPolarity<MSSpectrum> s(IonSource::Polarity::POSITIVE);
+  HasScanPolarity<MSSpectrum> s2(IonSource::Polarity::POSITIVE, true);
   MSSpectrum spec;
   TEST_EQUAL(s(spec), false);
   TEST_EQUAL(s2(spec), true);
-  spec.getInstrumentSettings().setPolarity(IonSource::POSITIVE);
+  spec.getInstrumentSettings().setPolarity(IonSource::Polarity::POSITIVE);
   TEST_EQUAL(s(spec), true);
   TEST_EQUAL(s2(spec), false);
 END_SECTION

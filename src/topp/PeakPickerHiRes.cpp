@@ -119,7 +119,7 @@ protected:
     {
       if (ms_levels_.empty()) //auto mode
       {
-        if (s.getType() == SpectrumSettings::CENTROID)
+        if (s.getType() == SpectrumSettings::SpectrumType::CENTROID)
         {
           return;
         }

@@ -45,13 +45,13 @@ END_SECTION
 
 START_SECTION((Type getType() const))
   IonDetector tmp;
-  TEST_EQUAL(tmp.getType(),IonDetector::TYPENULL);
+  TEST_EQUAL(tmp.getType(),IonDetector::Type::TYPENULL);
 END_SECTION
 
 START_SECTION((void setType(Type type)))
   IonDetector tmp;
-  tmp.setType(IonDetector::ELECTRONMULTIPLIER);
-  TEST_EQUAL(tmp.getType(),IonDetector::ELECTRONMULTIPLIER);
+  tmp.setType(IonDetector::Type::ELECTRONMULTIPLIER);
+  TEST_EQUAL(tmp.getType(),IonDetector::Type::ELECTRONMULTIPLIER);
 END_SECTION
 
 START_SECTION((double getADCSamplingFrequency() const ))
@@ -78,21 +78,21 @@ END_SECTION
 
 START_SECTION((AcquisitionMode getAcquisitionMode() const))
   IonDetector tmp;
-  TEST_EQUAL(tmp.getAcquisitionMode(),IonDetector::ACQMODENULL);
+  TEST_EQUAL(tmp.getAcquisitionMode(),IonDetector::AcquisitionMode::ACQMODENULL);
 END_SECTION
 
 START_SECTION((void setAcquisitionMode(AcquisitionMode acquisition_mode)))
   IonDetector tmp;
-  tmp.setAcquisitionMode(IonDetector::PULSECOUNTING);
-  TEST_EQUAL(tmp.getAcquisitionMode(),IonDetector::PULSECOUNTING);
+  tmp.setAcquisitionMode(IonDetector::AcquisitionMode::PULSECOUNTING);
+  TEST_EQUAL(tmp.getAcquisitionMode(),IonDetector::AcquisitionMode::PULSECOUNTING);
 END_SECTION
 
 START_SECTION((IonDetector(const IonDetector& source)))
  	IonDetector tmp;
   tmp.setResolution(47.11);
   tmp.setADCSamplingFrequency(47.21);
-  tmp.setAcquisitionMode(IonDetector::PULSECOUNTING);
-  tmp.setType(IonDetector::ELECTRONMULTIPLIER);
+  tmp.setAcquisitionMode(IonDetector::AcquisitionMode::PULSECOUNTING);
+  tmp.setType(IonDetector::Type::ELECTRONMULTIPLIER);
   tmp.setMetaValue("label",String("label"));
   tmp.setOrder(45);
   
@@ -100,8 +100,8 @@ START_SECTION((IonDetector(const IonDetector& source)))
   TEST_EQUAL((String)(tmp2.getMetaValue("label")), "label");
   TEST_REAL_SIMILAR(tmp2.getResolution(),47.11);
   TEST_REAL_SIMILAR(tmp2.getADCSamplingFrequency(),47.21);
-  TEST_EQUAL(tmp2.getAcquisitionMode(),IonDetector::PULSECOUNTING);
-  TEST_EQUAL(tmp2.getType(),IonDetector::ELECTRONMULTIPLIER);
+  TEST_EQUAL(tmp2.getAcquisitionMode(),IonDetector::AcquisitionMode::PULSECOUNTING);
+  TEST_EQUAL(tmp2.getType(),IonDetector::Type::ELECTRONMULTIPLIER);
 	TEST_EQUAL(tmp2.getOrder(),45)
 END_SECTION
 
@@ -109,8 +109,8 @@ START_SECTION((IonDetector& operator= (const IonDetector& source)))
  	IonDetector tmp;
   tmp.setResolution(47.11);
   tmp.setADCSamplingFrequency(47.21);
-  tmp.setAcquisitionMode(IonDetector::PULSECOUNTING);
-  tmp.setType(IonDetector::ELECTRONMULTIPLIER);
+  tmp.setAcquisitionMode(IonDetector::AcquisitionMode::PULSECOUNTING);
+  tmp.setType(IonDetector::Type::ELECTRONMULTIPLIER);
   tmp.setMetaValue("label",String("label"));
   tmp.setOrder(45);
   
@@ -119,16 +119,16 @@ START_SECTION((IonDetector& operator= (const IonDetector& source)))
   TEST_EQUAL((String)(tmp2.getMetaValue("label")), "label");
   TEST_REAL_SIMILAR(tmp2.getResolution(),47.11);
   TEST_REAL_SIMILAR(tmp2.getADCSamplingFrequency(),47.21);
-  TEST_EQUAL(tmp2.getAcquisitionMode(),IonDetector::PULSECOUNTING);
-  TEST_EQUAL(tmp2.getType(),IonDetector::ELECTRONMULTIPLIER);
+  TEST_EQUAL(tmp2.getAcquisitionMode(),IonDetector::AcquisitionMode::PULSECOUNTING);
+  TEST_EQUAL(tmp2.getType(),IonDetector::Type::ELECTRONMULTIPLIER);
 	TEST_EQUAL(tmp2.getOrder(),45)
 
   tmp2 = IonDetector();	
   TEST_EQUAL(tmp2.getMetaValue("label").isEmpty(), true);
   TEST_REAL_SIMILAR(tmp2.getResolution(),0.0);
   TEST_REAL_SIMILAR(tmp2.getADCSamplingFrequency(),0.0);
-  TEST_EQUAL(tmp2.getAcquisitionMode(),IonDetector::ACQMODENULL);
-  TEST_EQUAL(tmp2.getType(),IonDetector::TYPENULL);
+  TEST_EQUAL(tmp2.getAcquisitionMode(),IonDetector::AcquisitionMode::ACQMODENULL);
+  TEST_EQUAL(tmp2.getType(),IonDetector::Type::TYPENULL);
 	TEST_EQUAL(tmp2.getOrder(),0)
 END_SECTION
 
@@ -145,11 +145,11 @@ START_SECTION((bool operator== (const IonDetector& rhs) const))
   TEST_EQUAL(edit==empty,false);
   
   edit = empty;
-  edit.setAcquisitionMode(IonDetector::PULSECOUNTING);
+  edit.setAcquisitionMode(IonDetector::AcquisitionMode::PULSECOUNTING);
   TEST_EQUAL(edit==empty,false);
   
   edit = empty;
-  edit.setType(IonDetector::ELECTRONMULTIPLIER);
+  edit.setType(IonDetector::Type::ELECTRONMULTIPLIER);
   TEST_EQUAL(edit==empty,false);
   
   edit = empty;
@@ -174,11 +174,11 @@ START_SECTION((bool operator!= (const IonDetector& rhs) const))
   TEST_EQUAL(edit!=empty,true);
   
   edit = empty;
-  edit.setAcquisitionMode(IonDetector::PULSECOUNTING);
+  edit.setAcquisitionMode(IonDetector::AcquisitionMode::PULSECOUNTING);
   TEST_EQUAL(edit!=empty,true);
   
   edit = empty;
-  edit.setType(IonDetector::ELECTRONMULTIPLIER);
+  edit.setType(IonDetector::Type::ELECTRONMULTIPLIER);
   TEST_EQUAL(edit!=empty,true);
   
   edit = empty;
@@ -196,13 +196,13 @@ END_SECTION
 START_SECTION((static StringList getAllNamesOfType()))
   StringList names = IonDetector::getAllNamesOfType();
   TEST_EQUAL(names.size(), IonDetector::SIZE_OF_TYPE);
-  TEST_EQUAL(names[IonDetector::ELECTRONMULTIPLIER], "Electron multiplier");
+  TEST_EQUAL(names[IonDetector::Type::ELECTRONMULTIPLIER], "Electron multiplier");
 END_SECTION
 
 START_SECTION((static StringList getAllNamesOfAcquisitionMode()))
   StringList names = IonDetector::getAllNamesOfAcquisitionMode();
   TEST_EQUAL(names.size(), IonDetector::SIZE_OF_ACQUISITIONMODE);
-  TEST_EQUAL(names[IonDetector::PULSECOUNTING], "Pulse counting");
+  TEST_EQUAL(names[IonDetector::AcquisitionMode::PULSECOUNTING], "Pulse counting");
 END_SECTION
 
 /////////////////////////////////////////////////////////////

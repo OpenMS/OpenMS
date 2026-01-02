@@ -27,7 +27,7 @@ cdef extern from "<OpenMS/METADATA/InstrumentSettings.h>" namespace "OpenMS":
 cdef extern from "<OpenMS/METADATA/InstrumentSettings.h>" namespace "OpenMS::InstrumentSettings":
 
     # scan mode
-    cdef enum ScanMode:
+    cdef enum class ScanMode "OpenMS::InstrumentSettings::ScanMode":
       # wrap-attach:
       #    InstrumentSettings
       UNKNOWN,                #< Unknown scan method

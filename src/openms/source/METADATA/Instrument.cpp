@@ -17,7 +17,7 @@ namespace OpenMS
 
   Instrument::Instrument() :
     MetaInfoInterface(),
-    ion_optics_(UNKNOWN)
+    ion_optics_(IonOpticsType::UNKNOWN)
   {
 
   }
@@ -156,8 +156,8 @@ namespace OpenMS
   StringList Instrument::getAllNamesOfIonOpticsType()
   {
     StringList names;
-    names.reserve(SIZE_OF_IONOPTICSTYPE);
-    for (size_t i = 0; i < SIZE_OF_IONOPTICSTYPE; ++i)
+    names.reserve(static_cast<size_t>(IonOpticsType::SIZE_OF_IONOPTICSTYPE));
+    for (size_t i = 0; i < static_cast<size_t>(IonOpticsType::SIZE_OF_IONOPTICSTYPE); ++i)
     {
       names.push_back(NamesOfIonOpticsType[i]);
     }

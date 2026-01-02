@@ -434,7 +434,7 @@ protected:
     registerFlag_("spectra:remove_zoom", "Remove zoom (enhanced resolution) scans");
 
     registerStringOption_("spectra:remove_mode", "<mode>", "", "Remove scans by scan mode", false);
-    setValidStrings_("spectra:remove_mode", InstrumentSettings::NamesOfScanMode, (int)InstrumentSettings::SIZE_OF_SCANMODE);
+    setValidStrings_("spectra:remove_mode", InstrumentSettings::NamesOfScanMode, (int)static_cast<size_t>(InstrumentSettings::ScanMode::SIZE_OF_SCANMODE));
 
     addEmptyLine_();
     registerStringOption_("spectra:remove_activation", "<activation>", "", "Remove MSn scans where any of its precursors features a certain activation method", false);
@@ -446,7 +446,7 @@ protected:
     addEmptyLine_();
     registerFlag_("spectra:select_zoom", "Select zoom (enhanced resolution) scans");
     registerStringOption_("spectra:select_mode", "<mode>", "", "Selects scans by scan mode\n", false);
-    setValidStrings_("spectra:select_mode", InstrumentSettings::NamesOfScanMode, (int)InstrumentSettings::SIZE_OF_SCANMODE);
+    setValidStrings_("spectra:select_mode", InstrumentSettings::NamesOfScanMode, (int)static_cast<size_t>(InstrumentSettings::ScanMode::SIZE_OF_SCANMODE));
     registerStringOption_("spectra:select_activation", "<activation>", "", "Retain MSn scans where any of its precursors features a certain activation method", false);
     setValidStrings_("spectra:select_activation", Precursor::NamesOfActivationMethod, (int)Precursor::ActivationMethod::SIZE_OF_ACTIVATIONMETHOD);
     registerStringOption_("spectra:select_collision_energy", "[min]:[max]", ":", "Select MSn scans with a collision energy in the given interval", false);
@@ -454,7 +454,7 @@ protected:
 
     addEmptyLine_();
     registerStringOption_("spectra:select_polarity", "<polarity>", "", "Retain MSn scans with a certain scan polarity", false);
-    setValidStrings_("spectra:select_polarity", IonSource::NamesOfPolarity, (int)IonSource::SIZE_OF_POLARITY);
+    setValidStrings_("spectra:select_polarity", IonSource::NamesOfPolarity, (int)static_cast<size_t>(IonSource::Polarity::SIZE_OF_POLARITY));
 
     registerTOPPSubsection_("spectra:blackorwhitelist", "Black or white listing of of MS2 spectra by spectral similarity");
     registerInputFile_("spectra:blackorwhitelist:file", "<file>", "",   "Input file containing MS2 spectra that should be retained or removed from the mzML file!\n"
@@ -885,11 +885,11 @@ protected:
       if (!remove_mode.empty())
       {
         writeDebug_("Removing mode: " + remove_mode, 3);
-        for (Size i = 0; i < InstrumentSettings::SIZE_OF_SCANMODE; ++i)
+        for (Size i = 0; i < static_cast<size_t>(InstrumentSettings::ScanMode::SIZE_OF_SCANMODE); ++i)
         {
           if (InstrumentSettings::NamesOfScanMode[i] == remove_mode)
           {
-            std::erase_if(exp.getSpectra(), HasScanMode<MapType::SpectrumType>((InstrumentSettings::ScanMode)i));
+            std::erase_if(exp.getSpectra(), HasScanMode<MapType::SpectrumType>(static_cast<Int>(i)));
           }
         }
       }
@@ -899,11 +899,11 @@ protected:
       if (!select_mode.empty())
       {
         writeDebug_("Selecting mode: " + select_mode, 3);
-        for (Size i = 0; i < InstrumentSettings::SIZE_OF_SCANMODE; ++i)
+        for (Size i = 0; i < static_cast<size_t>(InstrumentSettings::ScanMode::SIZE_OF_SCANMODE); ++i)
         {
           if (InstrumentSettings::NamesOfScanMode[i] == select_mode)
           {
-            std::erase_if(exp.getSpectra(), HasScanMode<MapType::SpectrumType>((InstrumentSettings::ScanMode)i, true));
+            std::erase_if(exp.getSpectra(), HasScanMode<MapType::SpectrumType>(static_cast<Int>(i), true));
           }
         }
       }
@@ -941,11 +941,11 @@ protected:
       if (!select_polarity.empty())
       {
         writeDebug_("Selecting polarity: " + select_polarity, 3);
-        for (Size i = 0; i < IonSource::SIZE_OF_POLARITY; ++i)
+        for (Size i = 0; i < static_cast<size_t>(IonSource::Polarity::SIZE_OF_POLARITY); ++i)
         {
           if (IonSource::NamesOfPolarity[i] == select_polarity)
           {
-            exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), HasScanPolarity<MapType::SpectrumType>((IonSource::Polarity)i, true)), exp.end());
+            exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), HasScanPolarity<MapType::SpectrumType>(static_cast<Int>(i), true)), exp.end());
           }
         }
       }

@@ -49,7 +49,7 @@ cdef extern from "<OpenMS/METADATA/SpectrumSettings.h>" namespace "OpenMS":
 
 cdef extern from "<OpenMS/METADATA/SpectrumSettings.h>" namespace "OpenMS::SpectrumSettings":
 
-    cdef enum SpectrumType:
+    cdef enum class SpectrumType "OpenMS::SpectrumSettings::SpectrumType":
         # wrap-attach:
         #    SpectrumSettings
         UNKNOWN, CENTROID, PROFILE, SIZE_OF_SPECTRUMTYPE

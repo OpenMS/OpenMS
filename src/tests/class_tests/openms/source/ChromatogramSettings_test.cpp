@@ -43,7 +43,7 @@ START_SECTION((ChromatogramSettings(const ChromatogramSettings &source)))
   tmp.getInstrumentSettings().getScanWindows().resize(1);
   tmp.getPrecursor().setMZ(0.11);
   tmp.getProduct().setMZ(0.12);
-  tmp.setChromatogramType(ChromatogramSettings::SELECTED_REACTION_MONITORING_CHROMATOGRAM);
+  tmp.setChromatogramType(ChromatogramSettings::ChromatogramType::SELECTED_REACTION_MONITORING_CHROMATOGRAM);
   tmp.setComment("bla");
   tmp.setNativeID("nid");
   tmp.getDataProcessing().resize(1);
@@ -52,7 +52,7 @@ START_SECTION((ChromatogramSettings(const ChromatogramSettings &source)))
   ChromatogramSettings tmp2;
   tmp2 = tmp;
   TEST_EQUAL(tmp2.getComment(), "bla");
-  TEST_EQUAL(tmp2.getChromatogramType(), ChromatogramSettings::SELECTED_REACTION_MONITORING_CHROMATOGRAM);
+  TEST_EQUAL(tmp2.getChromatogramType(), ChromatogramSettings::ChromatogramType::SELECTED_REACTION_MONITORING_CHROMATOGRAM);
   TEST_REAL_SIMILAR(tmp2.getPrecursor().getMZ(), 0.11);
   TEST_REAL_SIMILAR(tmp2.getProduct().getMZ(), 0.12);
   TEST_EQUAL(tmp2.getInstrumentSettings()==InstrumentSettings(), false);  
@@ -65,7 +65,7 @@ START_SECTION((ChromatogramSettings(const ChromatogramSettings &source)))
 
   tmp2 = ChromatogramSettings();
   TEST_EQUAL(tmp2.getComment(), "");
-  TEST_EQUAL(tmp2.getChromatogramType(), ChromatogramSettings::MASS_CHROMATOGRAM);
+  TEST_EQUAL(tmp2.getChromatogramType(), ChromatogramSettings::ChromatogramType::MASS_CHROMATOGRAM);
   TEST_REAL_SIMILAR(tmp2.getPrecursor().getMZ(), 0.0);
   TEST_REAL_SIMILAR(tmp2.getProduct().getMZ(), 0.0);
   TEST_EQUAL(tmp2.getInstrumentSettings()==InstrumentSettings(), true);
@@ -85,14 +85,14 @@ START_SECTION((ChromatogramSettings& operator=(const ChromatogramSettings &sourc
   tmp.getInstrumentSettings().getScanWindows().resize(1);
   tmp.getPrecursor().setMZ(0.13);
   tmp.getProduct().setMZ(0.14);
-  tmp.setChromatogramType(ChromatogramSettings::SELECTED_REACTION_MONITORING_CHROMATOGRAM);
+  tmp.setChromatogramType(ChromatogramSettings::ChromatogramType::SELECTED_REACTION_MONITORING_CHROMATOGRAM);
   tmp.setComment("bla");
   tmp.setNativeID("nid");
   tmp.getDataProcessing().resize(1);
 
   ChromatogramSettings tmp2(tmp);
   TEST_EQUAL(tmp2.getComment(), "bla");
-  TEST_EQUAL(tmp2.getChromatogramType(), ChromatogramSettings::SELECTED_REACTION_MONITORING_CHROMATOGRAM);
+  TEST_EQUAL(tmp2.getChromatogramType(), ChromatogramSettings::ChromatogramType::SELECTED_REACTION_MONITORING_CHROMATOGRAM);
   TEST_REAL_SIMILAR(tmp2.getPrecursor().getMZ(), 0.13);
   TEST_REAL_SIMILAR(tmp2.getProduct().getMZ(), 0.14);
   TEST_EQUAL(tmp2.getInstrumentSettings()==InstrumentSettings(), false);
@@ -130,7 +130,7 @@ START_SECTION((bool operator==(const ChromatogramSettings &rhs) const ))
   TEST_EQUAL(edit==empty, false);
 
   edit = empty;
-  edit.setChromatogramType(ChromatogramSettings::SELECTED_REACTION_MONITORING_CHROMATOGRAM);
+  edit.setChromatogramType(ChromatogramSettings::ChromatogramType::SELECTED_REACTION_MONITORING_CHROMATOGRAM);
   TEST_EQUAL(edit==empty, false);
 
   edit = empty;
@@ -179,7 +179,7 @@ START_SECTION((bool operator!=(const ChromatogramSettings &rhs) const ))
   TEST_FALSE(edit == empty)
 
   edit = empty;
-  edit.setChromatogramType(ChromatogramSettings::SELECTED_REACTION_MONITORING_CHROMATOGRAM);
+  edit.setChromatogramType(ChromatogramSettings::ChromatogramType::SELECTED_REACTION_MONITORING_CHROMATOGRAM);
   TEST_FALSE(edit == empty);
 
   edit = empty;
@@ -398,15 +398,15 @@ END_SECTION
 START_SECTION((ChromatogramType getChromatogramType() const ))
 {
   ChromatogramSettings tmp;
-  TEST_EQUAL(tmp.getChromatogramType(), ChromatogramSettings::MASS_CHROMATOGRAM)
+  TEST_EQUAL(tmp.getChromatogramType(), ChromatogramSettings::ChromatogramType::MASS_CHROMATOGRAM)
 }
 END_SECTION
 
 START_SECTION((void setChromatogramType(ChromatogramType type)))
 {
   ChromatogramSettings tmp;
-  tmp.setChromatogramType(ChromatogramSettings::SELECTED_REACTION_MONITORING_CHROMATOGRAM);
-  TEST_EQUAL(tmp.getChromatogramType(), ChromatogramSettings::SELECTED_REACTION_MONITORING_CHROMATOGRAM)
+  tmp.setChromatogramType(ChromatogramSettings::ChromatogramType::SELECTED_REACTION_MONITORING_CHROMATOGRAM);
+  TEST_EQUAL(tmp.getChromatogramType(), ChromatogramSettings::ChromatogramType::SELECTED_REACTION_MONITORING_CHROMATOGRAM)
 }
 END_SECTION
 
@@ -415,8 +415,8 @@ START_SECTION([EXTRA](ENUMs))
 {
   // extra stuff tested here:
   TEST_EQUAL(ChromatogramSettings::SIZE_OF_CHROMATOGRAM_TYPE+1, sizeof( ChromatogramSettings::ChromatogramNames ) / sizeof( char* ))
-  TEST_EQUAL(String(ChromatogramSettings::ChromatogramNames[ChromatogramSettings::MASS_CHROMATOGRAM]), String("mass chromatogram"))
-  TEST_EQUAL(String(ChromatogramSettings::ChromatogramNames[ChromatogramSettings::EMISSION_CHROMATOGRAM]), String("emission chromatogram"))
+  TEST_EQUAL(String(ChromatogramSettings::ChromatogramNames[ChromatogramSettings::ChromatogramType::MASS_CHROMATOGRAM]), String("mass chromatogram"))
+  TEST_EQUAL(String(ChromatogramSettings::ChromatogramNames[ChromatogramSettings::ChromatogramType::EMISSION_CHROMATOGRAM]), String("emission chromatogram"))
   TEST_EQUAL(String(ChromatogramSettings::ChromatogramNames[ChromatogramSettings::SIZE_OF_CHROMATOGRAM_TYPE]), String("unknown chromatogram")) // should be the last entry
 }
 END_SECTION

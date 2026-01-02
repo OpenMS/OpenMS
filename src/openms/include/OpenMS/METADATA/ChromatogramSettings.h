@@ -38,7 +38,7 @@ public:
 
     /// List of chromatogram names, e.g., SELECTED_REACTION_MONITORING_CHROMATOGRAM.
     /// Actual names can be accessed using the ChromatogramNames[] array
-    enum ChromatogramType
+    enum class ChromatogramType
     {
       MASS_CHROMATOGRAM = 0,
       TOTAL_ION_CURRENT_CHROMATOGRAM,
@@ -53,7 +53,7 @@ public:
     };
 
     /// Names of chromatogram types corresponding to enum ChromatogramType
-    static const char * const ChromatogramNames[SIZE_OF_CHROMATOGRAM_TYPE+1]; // avoid string[], since it gets copied onto heap on initialization
+    static const char * const ChromatogramNames[static_cast<size_t>(ChromatogramType::SIZE_OF_CHROMATOGRAM_TYPE)+1]; // avoid string[], since it gets copied onto heap on initialization
 
     /// Constructor
     ChromatogramSettings();

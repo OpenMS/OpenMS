@@ -43,7 +43,7 @@ public:
     typedef float WidthType;
 
     /// state of identification, use getAnnotationState() to query it
-    enum AnnotationState
+    enum class AnnotationState
     {
       FEATURE_ID_NONE,
       FEATURE_ID_SINGLE,
@@ -52,7 +52,7 @@ public:
       SIZE_OF_ANNOTATIONSTATE
     };
 
-    static const std::string NamesOfAnnotationState[SIZE_OF_ANNOTATIONSTATE];
+    static const std::string NamesOfAnnotationState[static_cast<size_t>(AnnotationState::SIZE_OF_ANNOTATIONSTATE)];
     ///@}
 
     /// @name Constructors and Destructor

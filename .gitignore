@@ -163,4 +163,6 @@ github_token*
 
 # Claude/AI tokens
 .claude_token
-.anthropic_key
+.anthropic_keymigrate_enums.py
+fix_enum_refs.sh
+migrate_enums_interactive.sh

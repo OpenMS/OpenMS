@@ -299,7 +299,7 @@ using namespace OpenMS;
     search_params.digestion_enzyme = *(ProteaseDB::getInstance()->getEnzyme(enzyme_name_));
     search_params.fixed_modifications = fixedModNames_;
     search_params.variable_modifications = varModNames_;
-    search_params.mass_type = ProteinIdentification::MONOISOTOPIC;
+    search_params.mass_type = ProteinIdentification::PeakMassType::MONOISOTOPIC;
     search_params.missed_cleavages = missed_cleavages_;
     search_params.fragment_mass_tolerance = fragment_mass_tolerance_;
     search_params.fragment_mass_tolerance_ppm =  fragment_mass_tolerance_unit_ppm_;

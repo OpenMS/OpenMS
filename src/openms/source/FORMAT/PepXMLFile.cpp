@@ -439,7 +439,7 @@ namespace OpenMS
     f << "\t<search_summary base_name=\"" << base_name;
     f << "\" search_engine=\"" << search_engine_name;
     f << "\" precursor_mass_type=\"";
-    if (search_params.mass_type == ProteinIdentification::MONOISOTOPIC)
+    if (search_params.mass_type == ProteinIdentification::PeakMassType::MONOISOTOPIC)
     {
       f << "monoisotopic";
     }
@@ -448,7 +448,7 @@ namespace OpenMS
       f << "average";
     }
     f << "\" fragment_mass_type=\"";
-    if (search_params.mass_type == ProteinIdentification::MONOISOTOPIC)
+    if (search_params.mass_type == ProteinIdentification::PeakMassType::MONOISOTOPIC)
     {
       f << "monoisotopic";
     }
@@ -1861,13 +1861,13 @@ namespace OpenMS
       mass_type = attributeAsString_(attributes, "fragment_mass_type");
       if (mass_type == "monoisotopic")
       {
-        params_.mass_type = ProteinIdentification::MONOISOTOPIC;
+        params_.mass_type = ProteinIdentification::PeakMassType::MONOISOTOPIC;
       }
       else
       {
         if (mass_type == "average")
         {
-          params_.mass_type = ProteinIdentification::AVERAGE;
+          params_.mass_type = ProteinIdentification::PeakMassType::AVERAGE;
         }
         else
         {

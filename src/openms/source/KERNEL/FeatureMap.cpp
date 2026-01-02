@@ -46,7 +46,7 @@ namespace OpenMS
   }
 
   AnnotationStatistics::AnnotationStatistics() :
-    states(BaseFeature::SIZE_OF_ANNOTATIONSTATE, 0) // initialize all with 0
+    states(static_cast<size_t>(BaseFeature::AnnotationState::SIZE_OF_ANNOTATIONSTATE), 0) // initialize all with 0
   {
   }
 

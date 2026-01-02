@@ -23,7 +23,7 @@ namespace OpenMS
   {
 public:
     /// Detector type
-    enum Type
+    enum class Type
     {
       TYPENULL,                                  ///< Unknown
       ELECTRONMULTIPLIER,                        ///< Electron multiplier
@@ -50,10 +50,10 @@ public:
       SIZE_OF_TYPE
     };
     /// Names of detector types
-    static const std::string NamesOfType[SIZE_OF_TYPE];
+    static const std::string NamesOfType[static_cast<size_t>(Type::SIZE_OF_TYPE)];
 
     /// Acquisition mode
-    enum AcquisitionMode
+    enum class AcquisitionMode
     {
       ACQMODENULL,             ///< Unknown
       PULSECOUNTING,           ///< Pulse counting
@@ -63,7 +63,7 @@ public:
       SIZE_OF_ACQUISITIONMODE
     };
     /// Names of acquisition modes
-    static const std::string NamesOfAcquisitionMode[SIZE_OF_ACQUISITIONMODE];
+    static const std::string NamesOfAcquisitionMode[static_cast<size_t>(AcquisitionMode::SIZE_OF_ACQUISITIONMODE)];
 
     /// returns all detector type names known to OpenMS
     static StringList getAllNamesOfType();

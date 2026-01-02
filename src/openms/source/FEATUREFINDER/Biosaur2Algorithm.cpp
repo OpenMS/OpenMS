@@ -819,7 +819,7 @@ void Biosaur2Algorithm::centroidProfileSpectra_(MSExperiment& exp) const
     total_peaks_before += exp[i].size();
     MSSpectrum centroided_spectrum;
 
-    if (exp[i].getType() == SpectrumSettings::CENTROID)
+    if (exp[i].getType() == SpectrumSettings::SpectrumType::CENTROID)
     {
       centroided_spectrum = exp[i];
     }
@@ -828,7 +828,7 @@ void Biosaur2Algorithm::centroidProfileSpectra_(MSExperiment& exp) const
       picker.pick(exp[i], centroided_spectrum);
       centroided_spectrum.setRT(exp[i].getRT());
       centroided_spectrum.setMSLevel(exp[i].getMSLevel());
-      centroided_spectrum.setType(SpectrumSettings::CENTROID);
+      centroided_spectrum.setType(SpectrumSettings::SpectrumType::CENTROID);
       if (exp[i].getDriftTime() >= 0)
       {
         centroided_spectrum.setDriftTime(exp[i].getDriftTime());

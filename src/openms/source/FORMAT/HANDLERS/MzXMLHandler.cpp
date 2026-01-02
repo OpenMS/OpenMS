@@ -143,7 +143,7 @@ namespace OpenMS::Internal
         SourceFile sf;
         sf.setNameOfFile(attributeAsString_(attributes, s_filename_));
         sf.setFileType(attributeAsString_(attributes, s_filetype_));
-        sf.setChecksum(attributeAsString_(attributes, s_filesha1_), SourceFile::SHA1);
+        sf.setChecksum(attributeAsString_(attributes, s_filesha1_), SourceFile::ChecksumType::SHA1);
         exp_->getSourceFiles().push_back(sf);
       }
       else if (tag == "software")
@@ -335,56 +335,56 @@ namespace OpenMS::Internal
         else if (type == "zoom")
         {
           spectrum_data_.back().spectrum.getInstrumentSettings().setZoomScan(true);
-          spectrum_data_.back().spectrum.getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
+          spectrum_data_.back().spectrum.getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::MASSSPECTRUM);
         }
         else if (type == "Full")
         {
           if (ms_level > 1)
           {
-            spectrum_data_.back().spectrum.getInstrumentSettings().setScanMode(InstrumentSettings::MSNSPECTRUM);
+            spectrum_data_.back().spectrum.getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::MSNSPECTRUM);
           }
           else
           {
-            spectrum_data_.back().spectrum.getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
+            spectrum_data_.back().spectrum.getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::MASSSPECTRUM);
           }
         }
         else if (type == "SIM")
         {
-          spectrum_data_.back().spectrum.getInstrumentSettings().setScanMode(InstrumentSettings::SIM);
+          spectrum_data_.back().spectrum.getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::SIM);
         }
         else if (type == "SRM" || type == "MRM")
         {
-          spectrum_data_.back().spectrum.getInstrumentSettings().setScanMode(InstrumentSettings::SRM);
+          spectrum_data_.back().spectrum.getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::SRM);
         }
         else if (type == "CRM")
         {
-          spectrum_data_.back().spectrum.getInstrumentSettings().setScanMode(InstrumentSettings::CRM);
+          spectrum_data_.back().spectrum.getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::CRM);
         }
         else if (type == "Q1")
         {
-          spectrum_data_.back().spectrum.getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
+          spectrum_data_.back().spectrum.getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::MASSSPECTRUM);
         }
         else if (type == "Q3")
         {
-          spectrum_data_.back().spectrum.getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
+          spectrum_data_.back().spectrum.getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::MASSSPECTRUM);
         }
         else if (type == "EMS") //Non-standard type: Enhanced MS (ABI - Sashimi converter)
         {
-          spectrum_data_.back().spectrum.getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
+          spectrum_data_.back().spectrum.getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::MASSSPECTRUM);
         }
         else if (type == "EPI") //Non-standard type: Enhanced Product Ion (ABI - Sashimi converter)
         {
-          spectrum_data_.back().spectrum.getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
+          spectrum_data_.back().spectrum.getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::MASSSPECTRUM);
           spectrum_data_.back().spectrum.setMSLevel(2);
         }
         else if (type == "ER") // Non-standard type: Enhanced Resolution (ABI - Sashimi converter)
         {
           spectrum_data_.back().spectrum.getInstrumentSettings().setZoomScan(true);
-          spectrum_data_.back().spectrum.getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
+          spectrum_data_.back().spectrum.getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::MASSSPECTRUM);
         }
         else
         {
-          spectrum_data_.back().spectrum.getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
+          spectrum_data_.back().spectrum.getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::MASSSPECTRUM);
           warning(LOAD, String("Unknown scan mode '") + type + "'. Assuming full scan");
         }
       } // END OF <scan>
@@ -672,7 +672,7 @@ namespace OpenMS::Internal
           }
           //Sha1 checksum must have 40 characters => create a fake if it is unknown
           os << "\" fileSha1=\"";
-          if (sf.getChecksum().size() != 40 || sf.getChecksumType() != SourceFile::SHA1)
+          if (sf.getChecksum().size() != 40 || sf.getChecksumType() != SourceFile::ChecksumType::SHA1)
           {
             os << "0000000000000000000000000000000000000000";
           }
@@ -703,37 +703,37 @@ namespace OpenMS::Internal
           << "\t\t\t<msManufacturer category=\"msManufacturer\" value=\"" << manufacturer << "\"/>\n"
           << "\t\t\t<msModel category=\"msModel\" value=\"" << inst.getModel() << "\"/>\n";
 
-        if (inst.getIonSources().empty() || !inst.getIonSources()[0].getIonizationMethod() || cv_terms_[2][inst.getIonSources()[0].getIonizationMethod()].empty())
+        if (inst.getIonSources().empty() || cv_terms_[2][static_cast<size_t>(inst.getIonSources()[0].getIonizationMethod())].empty())
         { // can be empty for MaxQuant
           os << "\t\t\t<msIonisation category=\"msIonisation\" value=\"\"/>\n";
         }
         else
         {
-          os << "\t\t\t<msIonisation category=\"msIonisation\" value=\"" << cv_terms_[2][inst.getIonSources()[0].getIonizationMethod()] << "\"/>\n";
+          os << "\t\t\t<msIonisation category=\"msIonisation\" value=\"" << cv_terms_[2][static_cast<size_t>(inst.getIonSources()[0].getIonizationMethod())] << "\"/>\n";
         }
         
         const std::vector<MassAnalyzer>& analyzers = inst.getMassAnalyzers();
-        if (analyzers.empty() || cv_terms_[3][analyzers[0].getType()].empty())
+        if (analyzers.empty() || cv_terms_[3][static_cast<size_t>(analyzers[0].getType())].empty())
         { // can be empty for MaxQuant
           os << "\t\t\t<msMassAnalyzer category=\"msMassAnalyzer\" value=\"\"/>\n";
         }
         else
         {
-          os << "\t\t\t<msMassAnalyzer category=\"msMassAnalyzer\" value=\"" << cv_terms_[3][analyzers[0].getType()] << "\"/>\n";
+          os << "\t\t\t<msMassAnalyzer category=\"msMassAnalyzer\" value=\"" << cv_terms_[3][static_cast<size_t>(analyzers[0].getType())] << "\"/>\n";
         }
 
-        if (inst.getIonDetectors().empty() || !inst.getIonDetectors()[0].getType() || cv_terms_[4][inst.getIonDetectors()[0].getType()].empty())
+        if (inst.getIonDetectors().empty() || cv_terms_[4][static_cast<size_t>(inst.getIonDetectors()[0].getType())].empty())
         { // can be empty for MaxQuant
           os << "\t\t\t<msDetector category=\"msDetector\" value=\"\"/>\n";
         }
         else
         {
-          os << "\t\t\t<msDetector category=\"msDetector\" value=\"" << cv_terms_[4][inst.getIonDetectors()[0].getType()] << "\"/>\n";
+          os << "\t\t\t<msDetector category=\"msDetector\" value=\"" << cv_terms_[4][static_cast<size_t>(inst.getIonDetectors()[0].getType())] << "\"/>\n";
         }
         os << "\t\t\t<software type=\"acquisition\" name=\"" << inst.getSoftware().getName() << "\" version=\"" << inst.getSoftware().getVersion() << "\"/>\n";
-        if (!(analyzers.empty() || !analyzers[0].getResolutionMethod() || cv_terms_[5][analyzers[0].getResolutionMethod()].empty()))
+        if (!(analyzers.empty() || cv_terms_[5][static_cast<size_t>(analyzers[0].getResolutionMethod())].empty()))
         { // must not be empty, otherwise MaxQuant crashes upon loading mzXML
-          os << "\t\t\t<msResolution category=\"msResolution\" value=\"" << cv_terms_[5][analyzers[0].getResolutionMethod()] << "\"/>\n";
+          os << "\t\t\t<msResolution category=\"msResolution\" value=\"" << cv_terms_[5][static_cast<size_t>(analyzers[0].getResolutionMethod())] << "\"/>\n";
         }
 
         if (!cexp_->getContacts().empty())
@@ -891,11 +891,11 @@ namespace OpenMS::Internal
           << " msLevel=\"" << ms_level << "\""
           << " peaksCount=\"" << spec.size() << "\""
           << " polarity=\"";
-        if (spec.getInstrumentSettings().getPolarity() == IonSource::POSITIVE)
+        if (spec.getInstrumentSettings().getPolarity() == IonSource::Polarity::POSITIVE)
         {
           os << "+";
         }
-        else if (spec.getInstrumentSettings().getPolarity() == IonSource::NEGATIVE)
+        else if (spec.getInstrumentSettings().getPolarity() == IonSource::Polarity::NEGATIVE)
         {
           os << "-";
         }
@@ -908,25 +908,25 @@ namespace OpenMS::Internal
         String type;
         switch (spec.getInstrumentSettings().getScanMode())
         {
-        case InstrumentSettings::UNKNOWN:
+        case InstrumentSettings::ScanMode::UNKNOWN:
           break;
-        case InstrumentSettings::MASSSPECTRUM:
-        case InstrumentSettings::MS1SPECTRUM:
-        case InstrumentSettings::MSNSPECTRUM:
+        case InstrumentSettings::ScanMode::MASSSPECTRUM:
+        case InstrumentSettings::ScanMode::MS1SPECTRUM:
+        case InstrumentSettings::ScanMode::MSNSPECTRUM:
           type = (spec.getInstrumentSettings().getZoomScan() ? "zoom" : "Full");
           break;
-        case InstrumentSettings::SIM:
+        case InstrumentSettings::ScanMode::SIM:
           type = "SIM";
           break;
-        case InstrumentSettings::SRM:
+        case InstrumentSettings::ScanMode::SRM:
           type = "SRM";
           break;
-        case InstrumentSettings::CRM:
+        case InstrumentSettings::ScanMode::CRM:
           type = "CRM";
           break;
         default:
           type = "Full";
-          warning(STORE, String("Scan type '") + InstrumentSettings::NamesOfScanMode[spec.getInstrumentSettings().getScanMode()] + "' not supported by mzXML. Using 'Full' scan mode!");
+          warning(STORE, String("Scan type '") + InstrumentSettings::NamesOfScanMode[static_cast<size_t>(spec.getInstrumentSettings().getScanMode())] + "' not supported by mzXML. Using 'Full' scan mode!");
         }
         if (type.empty() && options_.getForceMQCompatability())
         {
@@ -1279,19 +1279,19 @@ namespace OpenMS::Internal
 
       //Ionization method
       String(";ESI;EI;CI;FAB;;;;;;;;;;;;;APCI;;;NSI;;SELDI;;;MALDI").split(';', cv_terms_[2]);
-      cv_terms_[2].resize(IonSource::SIZE_OF_IONIZATIONMETHOD);
+      cv_terms_[2].resize(static_cast<size_t>(IonSource::IonizationMethod::SIZE_OF_IONIZATIONMETHOD));
 
       //Mass analyzer
       String(";Quadrupole;Quadrupole Ion Trap;;;TOF;Magnetic Sector;FT-ICR;;;;;;FTMS").split(';', cv_terms_[3]);
-      cv_terms_[3].resize(MassAnalyzer::SIZE_OF_ANALYZERTYPE);
+      cv_terms_[3].resize(static_cast<size_t>(MassAnalyzer::AnalyzerType::SIZE_OF_ANALYZERTYPE));
 
       //Detector
       String(";EMT;;;Faraday Cup;;;;;Channeltron;Daly;Microchannel plate").split(';', cv_terms_[4]);
-      cv_terms_[4].resize(IonDetector::SIZE_OF_TYPE);
+      cv_terms_[4].resize(static_cast<size_t>(IonDetector::Type::SIZE_OF_TYPE));
 
       //Resolution method
       String(";FWHM;TenPercentValley;Baseline").split(';', cv_terms_[5]);
-      cv_terms_[5].resize(MassAnalyzer::SIZE_OF_RESOLUTIONMETHOD);
+      cv_terms_[5].resize(static_cast<size_t>(MassAnalyzer::ResolutionMethod::SIZE_OF_RESOLUTIONMETHOD));
     }
 } //namespace OpenMS //namespace Internal
 

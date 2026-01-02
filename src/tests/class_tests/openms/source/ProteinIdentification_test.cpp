@@ -740,8 +740,8 @@ END_SECTION
 START_SECTION((static StringList getAllNamesOfPeakMassType()))
   StringList names = ProteinIdentification::getAllNamesOfPeakMassType();
   TEST_EQUAL(names.size(), ProteinIdentification::SIZE_OF_PEAKMASSTYPE);
-  TEST_EQUAL(names[ProteinIdentification::MONOISOTOPIC], "Monoisotopic");
-  TEST_EQUAL(names[ProteinIdentification::AVERAGE], "Average");
+  TEST_EQUAL(names[ProteinIdentification::PeakMassType::MONOISOTOPIC], "Monoisotopic");
+  TEST_EQUAL(names[ProteinIdentification::PeakMassType::AVERAGE], "Average");
 END_SECTION
 
 

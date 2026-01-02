@@ -65,7 +65,7 @@ cdef extern from "<OpenMS/METADATA/ChromatogramSettings.h>" namespace "OpenMS":
 
 cdef extern from "<OpenMS/METADATA/ChromatogramSettings.h>" namespace "OpenMS::ChromatogramSettings":
 
-    cdef enum ChromatogramType:
+    cdef enum class ChromatogramType "OpenMS::ChromatogramSettings::ChromatogramType":
         # wrap-attach:
         #    ChromatogramSettings
 

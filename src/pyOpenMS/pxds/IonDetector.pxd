@@ -64,7 +64,7 @@ cdef extern from "<OpenMS/METADATA/IonDetector.h>" namespace "OpenMS::IonDetecto
           SIZE_OF_TYPE
 
         # Acquisition mode
-        cdef enum AcquisitionMode:
+        cdef enum class AcquisitionMode "OpenMS::IonDetector::AcquisitionMode":
           # wrap-attach:
           #    IonDetector
           ACQMODENULL,                          #< Unknown

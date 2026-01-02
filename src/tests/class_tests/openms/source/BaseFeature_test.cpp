@@ -386,23 +386,23 @@ START_SECTION((AnnotationState getAnnotationState() const))
   PeptideIdentificationList vec;
   PeptideIdentificationList& ids = tmp.getPeptideIdentifications();
 
-  TEST_EQUAL(tmp.getAnnotationState(), BaseFeature::FEATURE_ID_NONE);
+  TEST_EQUAL(tmp.getAnnotationState(), BaseFeature::AnnotationState::FEATURE_ID_NONE);
   ids.resize(1);
-  TEST_EQUAL(tmp.getAnnotationState(), BaseFeature::FEATURE_ID_NONE);
+  TEST_EQUAL(tmp.getAnnotationState(), BaseFeature::AnnotationState::FEATURE_ID_NONE);
 
   PeptideHit hit;
   hit.setSequence(AASequence::fromString("ABCDE"));
   ids[0].setHits(std::vector<PeptideHit>(1, hit));
-  TEST_EQUAL(tmp.getAnnotationState(), BaseFeature::FEATURE_ID_SINGLE);
+  TEST_EQUAL(tmp.getAnnotationState(), BaseFeature::AnnotationState::FEATURE_ID_SINGLE);
 
   ids.resize(2);
   ids[1].setHits(std::vector<PeptideHit>(1, hit)); // same as first hit
   //tmp.setPeptideIdentifications(ids);
-  TEST_EQUAL(tmp.getAnnotationState(), BaseFeature::FEATURE_ID_MULTIPLE_SAME);
+  TEST_EQUAL(tmp.getAnnotationState(), BaseFeature::AnnotationState::FEATURE_ID_MULTIPLE_SAME);
 
   hit.setSequence(AASequence::fromString("KRGH"));
   ids[1].setHits(std::vector<PeptideHit>(1, hit)); // different to first hit
-  TEST_EQUAL(tmp.getAnnotationState(), BaseFeature::FEATURE_ID_MULTIPLE_DIVERGENT);
+  TEST_EQUAL(tmp.getAnnotationState(), BaseFeature::AnnotationState::FEATURE_ID_MULTIPLE_DIVERGENT);
 END_SECTION
 
 START_SECTION((sortPeptideIdentifications()))

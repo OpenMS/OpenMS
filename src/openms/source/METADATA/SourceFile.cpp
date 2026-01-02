@@ -126,8 +126,8 @@ namespace OpenMS
   StringList SourceFile::getAllNamesOfChecksumType()
   {
     StringList names;
-    names.reserve(SIZE_OF_CHECKSUMTYPE);
-    for (size_t i = 0; i < SIZE_OF_CHECKSUMTYPE; ++i)
+    names.reserve(static_cast<size_t>(ChecksumType::SIZE_OF_CHECKSUMTYPE));
+    for (size_t i = 0; i < static_cast<size_t>(ChecksumType::SIZE_OF_CHECKSUMTYPE); ++i)
     {
       names.push_back(NamesOfChecksumType[i]);
     }

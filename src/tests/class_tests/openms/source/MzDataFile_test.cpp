@@ -104,7 +104,7 @@ START_SECTION((template <typename MapType> void load(const String &filename, Map
   TEST_STRING_EQUAL(e[0].getNativeID(), "spectrum=10")
   TEST_STRING_EQUAL(e[1].getNativeID(), "spectrum=11")
   TEST_STRING_EQUAL(e[2].getNativeID(), "spectrum=12")
-  TEST_EQUAL(e[0].getType(), SpectrumSettings::UNKNOWN)
+  TEST_EQUAL(e[0].getType(), SpectrumSettings::SpectrumType::UNKNOWN)
 
   //---------------------------------------------------------------------------
   //meta data array meta data
@@ -166,12 +166,12 @@ START_SECTION((template <typename MapType> void load(const String &filename, Map
   TEST_EQUAL(e[0].getInstrumentSettings().getMetaValue("SpecComment"), "Spectrum 1")
   TEST_EQUAL(e[1].getInstrumentSettings().getMetaValue("SpecComment"), "Spectrum 2")
   TEST_EQUAL(e[2].getInstrumentSettings().metaValueExists("SpecComment"), false)
-  TEST_EQUAL(e[0].getInstrumentSettings().getScanMode(), InstrumentSettings::MASSSPECTRUM)
-  TEST_EQUAL(e[1].getInstrumentSettings().getScanMode(), InstrumentSettings::MASSSPECTRUM)
+  TEST_EQUAL(e[0].getInstrumentSettings().getScanMode(), InstrumentSettings::ScanMode::MASSSPECTRUM)
+  TEST_EQUAL(e[1].getInstrumentSettings().getScanMode(), InstrumentSettings::ScanMode::MASSSPECTRUM)
   TEST_EQUAL(e[2].getInstrumentSettings().getScanMode(), InstrumentSettings::SIM)
-  TEST_EQUAL(e[0].getInstrumentSettings().getPolarity(), IonSource::POSITIVE)
-  TEST_EQUAL(e[1].getInstrumentSettings().getPolarity(), IonSource::POSITIVE)
-  TEST_EQUAL(e[2].getInstrumentSettings().getPolarity(), IonSource::NEGATIVE)
+  TEST_EQUAL(e[0].getInstrumentSettings().getPolarity(), IonSource::Polarity::POSITIVE)
+  TEST_EQUAL(e[1].getInstrumentSettings().getPolarity(), IonSource::Polarity::POSITIVE)
+  TEST_EQUAL(e[2].getInstrumentSettings().getPolarity(), IonSource::Polarity::NEGATIVE)
   TEST_EQUAL(e[0].getInstrumentSettings().getScanWindows().size(), 0)
   TEST_EQUAL(e[1].getInstrumentSettings().getScanWindows().size(), 1)
   TEST_REAL_SIMILAR(e[1].getInstrumentSettings().getScanWindows()[0].begin, 110)
@@ -188,7 +188,7 @@ START_SECTION((template <typename MapType> void load(const String &filename, Map
   TEST_EQUAL(e[1].getAcquisitionInfo().size(), 2)
 
   ABORT_IF(e[1].getAcquisitionInfo().size() != 2);
-  TEST_EQUAL(e[1].getType(), SpectrumSettings::PROFILE)
+  TEST_EQUAL(e[1].getType(), SpectrumSettings::SpectrumType::PROFILE)
   TEST_EQUAL(e[1].getAcquisitionInfo().getMethodOfCombination(), "sum")
   TEST_EQUAL(e[1].getAcquisitionInfo()[0].getIdentifier(), "501")
   TEST_EQUAL(e[1].getAcquisitionInfo()[1].getIdentifier(), "502")
@@ -199,7 +199,7 @@ START_SECTION((template <typename MapType> void load(const String &filename, Map
 
   TEST_EQUAL(e[2].getAcquisitionInfo().size(), 1)
   ABORT_IF(e[2].getAcquisitionInfo().size() != 1);
-  TEST_EQUAL(e[2].getType(), SpectrumSettings::CENTROID)
+  TEST_EQUAL(e[2].getType(), SpectrumSettings::SpectrumType::CENTROID)
   TEST_EQUAL(e[2].getAcquisitionInfo().getMethodOfCombination(), "average")
   TEST_EQUAL(e[2].getAcquisitionInfo()[0].getIdentifier(), "601")
 
@@ -335,7 +335,7 @@ START_SECTION((template <typename MapType> void load(const String &filename, Map
   TEST_STRING_EQUAL(e.getSourceFiles()[0].getPathToFile(), "/share/data/");
   TEST_STRING_EQUAL(e.getSourceFiles()[0].getFileType(), "MS");
   TEST_STRING_EQUAL(e.getSourceFiles()[0].getChecksum(), "");
-  TEST_EQUAL(e.getSourceFiles()[0].getChecksumType(), SourceFile::UNKNOWN_CHECKSUM);
+  TEST_EQUAL(e.getSourceFiles()[0].getChecksumType(), SourceFile::ChecksumType::UNKNOWN_CHECKSUM);
 
   //---------------------------------------------------------------------------
   // conteact list
@@ -376,26 +376,26 @@ START_SECTION((template <typename MapType> void load(const String &filename, Map
   TEST_EQUAL(inst.getMetaValue("URL"), "www.open-ms.de")
   TEST_EQUAL(inst.getMetaValue("AdditionalComment"), "Additional")
   TEST_EQUAL(inst.getIonSources().size(), 1)
-  TEST_EQUAL(inst.getIonSources()[0].getIonizationMethod(), IonSource::ESI)
-  TEST_EQUAL(inst.getIonSources()[0].getInletType(), IonSource::DIRECT)
-  TEST_EQUAL(inst.getIonSources()[0].getPolarity(), IonSource::NEGATIVE)
+  TEST_EQUAL(inst.getIonSources()[0].getIonizationMethod(), IonSource::IonizationMethod::ESI)
+  TEST_EQUAL(inst.getIonSources()[0].getInletType(), IonSource::InletType::DIRECT)
+  TEST_EQUAL(inst.getIonSources()[0].getPolarity(), IonSource::Polarity::NEGATIVE)
   TEST_EQUAL(inst.getIonSources()[0].getMetaValue("URL"), "www.open-ms.de")
   TEST_EQUAL(inst.getIonSources()[0].getMetaValue("SourceComment"), "Source")
   TEST_EQUAL(inst.getIonDetectors().size(), 1)
-  TEST_EQUAL(inst.getIonDetectors()[0].getType(), IonDetector::FARADAYCUP)
-  TEST_EQUAL(inst.getIonDetectors()[0].getAcquisitionMode(), IonDetector::TDC)
+  TEST_EQUAL(inst.getIonDetectors()[0].getType(), IonDetector::Type::FARADAYCUP)
+  TEST_EQUAL(inst.getIonDetectors()[0].getAcquisitionMode(), IonDetector::AcquisitionMode::TDC)
   TEST_EQUAL(inst.getIonDetectors()[0].getResolution(), 0.815)
   TEST_EQUAL(inst.getIonDetectors()[0].getADCSamplingFrequency(), 11.22)
   TEST_EQUAL(inst.getIonDetectors()[0].getMetaValue("URL"), "www.open-ms.de")
   TEST_EQUAL(inst.getIonDetectors()[0].getMetaValue("DetectorComment"), "Detector")
   TEST_EQUAL(inst.getMassAnalyzers().size(), 2)
   ABORT_IF(inst.getMassAnalyzers().size() != 2);
-  TEST_EQUAL(inst.getMassAnalyzers()[0].getType(), MassAnalyzer::PAULIONTRAP)
-  TEST_EQUAL(inst.getMassAnalyzers()[0].getResolutionMethod(), MassAnalyzer::FWHM)
-  TEST_EQUAL(inst.getMassAnalyzers()[0].getResolutionType(), MassAnalyzer::CONSTANT)
-  TEST_EQUAL(inst.getMassAnalyzers()[0].getScanDirection(), MassAnalyzer::UP)
-  TEST_EQUAL(inst.getMassAnalyzers()[0].getScanLaw(), MassAnalyzer::LINEAR)
-  TEST_EQUAL(inst.getMassAnalyzers()[0].getReflectronState(), MassAnalyzer::OFF)
+  TEST_EQUAL(inst.getMassAnalyzers()[0].getType(), MassAnalyzer::AnalyzerType::PAULIONTRAP)
+  TEST_EQUAL(inst.getMassAnalyzers()[0].getResolutionMethod(), MassAnalyzer::ResolutionMethod::FWHM)
+  TEST_EQUAL(inst.getMassAnalyzers()[0].getResolutionType(), MassAnalyzer::ResolutionType::CONSTANT)
+  TEST_EQUAL(inst.getMassAnalyzers()[0].getScanDirection(), MassAnalyzer::ScanDirection::UP)
+  TEST_EQUAL(inst.getMassAnalyzers()[0].getScanLaw(), MassAnalyzer::ScanLaw::LINEAR)
+  TEST_EQUAL(inst.getMassAnalyzers()[0].getReflectronState(), MassAnalyzer::ReflectronState::OFF)
   TEST_EQUAL(inst.getMassAnalyzers()[0].getResolution(), 22.33)
   TEST_EQUAL(inst.getMassAnalyzers()[0].getAccuracy(), 33.44)
   TEST_EQUAL(inst.getMassAnalyzers()[0].getScanRate(), 44.55)
@@ -406,12 +406,12 @@ START_SECTION((template <typename MapType> void load(const String &filename, Map
   TEST_EQUAL(inst.getMassAnalyzers()[0].getMagneticFieldStrength(), 88.99)
   TEST_EQUAL(inst.getMassAnalyzers()[0].getMetaValue("URL"), "www.open-ms.de")
   TEST_EQUAL(inst.getMassAnalyzers()[0].getMetaValue("AnalyzerComment"), "Analyzer 1")
-  TEST_EQUAL(inst.getMassAnalyzers()[1].getType(), MassAnalyzer::QUADRUPOLE)
-  TEST_EQUAL(inst.getMassAnalyzers()[1].getResolutionMethod(), MassAnalyzer::BASELINE)
-  TEST_EQUAL(inst.getMassAnalyzers()[1].getResolutionType(), MassAnalyzer::PROPORTIONAL)
-  TEST_EQUAL(inst.getMassAnalyzers()[1].getScanDirection(), MassAnalyzer::DOWN)
-  TEST_EQUAL(inst.getMassAnalyzers()[1].getScanLaw(), MassAnalyzer::EXPONENTIAL)
-  TEST_EQUAL(inst.getMassAnalyzers()[1].getReflectronState(), MassAnalyzer::ON)
+  TEST_EQUAL(inst.getMassAnalyzers()[1].getType(), MassAnalyzer::AnalyzerType::QUADRUPOLE)
+  TEST_EQUAL(inst.getMassAnalyzers()[1].getResolutionMethod(), MassAnalyzer::ResolutionMethod::BASELINE)
+  TEST_EQUAL(inst.getMassAnalyzers()[1].getResolutionType(), MassAnalyzer::ResolutionType::PROPORTIONAL)
+  TEST_EQUAL(inst.getMassAnalyzers()[1].getScanDirection(), MassAnalyzer::ScanDirection::DOWN)
+  TEST_EQUAL(inst.getMassAnalyzers()[1].getScanLaw(), MassAnalyzer::ScanLaw::EXPONENTIAL)
+  TEST_EQUAL(inst.getMassAnalyzers()[1].getReflectronState(), MassAnalyzer::ReflectronState::ON)
   TEST_EQUAL(inst.getMassAnalyzers()[1].getResolution(), 12.3)
   TEST_EQUAL(inst.getMassAnalyzers()[1].getAccuracy(), 13.4)
   TEST_EQUAL(inst.getMassAnalyzers()[1].getScanRate(), 14.5)

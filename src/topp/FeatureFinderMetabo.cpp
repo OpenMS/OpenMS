@@ -293,7 +293,7 @@ protected:
     // determine type of spectral data (profile or centroided)
     SpectrumSettings::SpectrumType spectrum_type = ms_peakmap[0].getType();
 
-    if (spectrum_type == SpectrumSettings::PROFILE)
+    if (spectrum_type == SpectrumSettings::SpectrumType::PROFILE)
     {
       if (!getFlag_("force"))
       {
@@ -428,7 +428,7 @@ protected:
       StringList sl_pols;
       for (const auto& pol : polarities)
       {
-        sl_pols.push_back(String(IonSource::NamesOfPolarity[pol]));
+        sl_pols.push_back(String(IonSource::NamesOfPolarity[static_cast<size_t>(pol)]));
       }
       feat_map[0].setMetaValue("scan_polarity", ListUtils::concatenate(sl_pols, ";"));
     }

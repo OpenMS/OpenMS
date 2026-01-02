@@ -720,7 +720,7 @@ protected:
 
     search_parameters.charges = "2:5"; // probably hard-coded in sage https://github.com/lazear/sage/blob/master/crates/sage/src/scoring.rs#L301
 
-    search_parameters.mass_type = ProteinIdentification::MONOISOTOPIC;
+    search_parameters.mass_type = ProteinIdentification::PeakMassType::MONOISOTOPIC;
     search_parameters.fixed_modifications = getStringList_("fixed_modifications");
     search_parameters.variable_modifications = getStringList_("variable_modifications");
     search_parameters.missed_cleavages = getIntOption_("missed_cleavages");

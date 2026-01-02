@@ -232,7 +232,7 @@ namespace OpenMS
     spectrum.setMSLevel(2);
 
     // set spectrum type
-    spectrum.setType(MSSpectrum::SpectrumSettings::CENTROID);
+    spectrum.setType(MSSpectrum::SpectrumSettings::SpectrumType::CENTROID);
 
     // set precursor
     Precursor prec;

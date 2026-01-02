@@ -120,7 +120,7 @@ namespace OpenMS
       }
       chromatogram.setNativeID(String(feature_id) + "_" + String(mt_idx));
       chromatogram.setName(String(feature_id) + "_" + String(mt_idx));
-      chromatogram.setChromatogramType(ChromatogramSettings::BASEPEAK_CHROMATOGRAM);
+      chromatogram.setChromatogramType(ChromatogramSettings::ChromatogramType::BASEPEAK_CHROMATOGRAM);
       chromatogram.setPrecursor(prec);
       chromatogram.sortByPosition();
 

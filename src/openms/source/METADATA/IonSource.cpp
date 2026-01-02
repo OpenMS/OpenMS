@@ -15,15 +15,15 @@ namespace OpenMS
 
   const std::string IonSource::NamesOfInletType[] = {"Unknown", "Direct", "Batch", "Chromatography", "Particle beam", "Membrane sparator", "Open split", "Jet separator", "Septum", "Reservoir", "Moving belt", "Moving wire", "Flow injection analysis", "Electro spray", "Thermo spray", "Infusion", "Continuous flow fast atom bombardment", "Inductively coupled plasma", "Membrane inlet", "Nanospray inlet"};
 
-  const std::string IonSource::NamesOfIonizationMethod[] = {"Unknown", "Electrospray ionisation", "Electron ionization", "Chemical ionisation", "Fast atom bombardment", "Thermospray", "Laser desorption", "Field desorption", "Flame ionization", "Plasma desorption", "Secondary ion MS", "Thermal ionization", "Atmospheric pressure ionisation", "ISI", "Collsion induced decomposition", "Collsiona activated decomposition", "HN", "Atmospheric pressure chemical ionization", "Atmospheric pressure photo ionization", "Inductively coupled plasma", "Nano electrospray ionization", "Micro electrospray ionization", "Surface enhanced laser desorption ionization", "Surface enhanced neat desorption", "Fast ion bombardment", "Matrix-assisted laser desorption ionization", "Multiphoton ionization", "Desorption ionization", "Flowing afterglow", "Field ionization", "Glow discharge ionization", "Negative ion chemical ionization", "Neutralization reionization mass spectrometry", "Photoionization", "Pyrolysis mass spectrometry", "Resonance enhanced multiphoton ionization", "Adiabatic ionization", "Associative ionization", "Autodetachment", "Autoionization", "Charge exchange ionization", "Chemi-ionization", "Dissociative ionization", "Liquid secondary ionization", "Penning ionization", "Soft ionization", "Spark ionization", "Surface ionization", "Vertical ionization", "Atmospheric pressure matrix-assisted laser desorption ionization", "Desorption/ionization on silicon", "Surface-assisted laser desorption ionization"};
+  const std::string IonSource::NamesOfIonizationMethod[] = {"Unknown", "Electrospray ionisation", "Electron ionization", "Chemical ionisation", "Fast atom bombardment", "Thermospray", "Laser desorption", "Field desorption", "Flame ionization", "Plasma desorption", "Secondary ion MS", "Thermal ionization", "Atmospheric pressure ionisation", "IonizationMethod::ISI", "Collsion induced decomposition", "Collsiona activated decomposition", "IonizationMethod::HN", "Atmospheric pressure chemical ionization", "Atmospheric pressure photo ionization", "Inductively coupled plasma", "Nano electrospray ionization", "Micro electrospray ionization", "Surface enhanced laser desorption ionization", "Surface enhanced neat desorption", "Fast ion bombardment", "Matrix-assisted laser desorption ionization", "Multiphoton ionization", "Desorption ionization", "Flowing afterglow", "Field ionization", "Glow discharge ionization", "Negative ion chemical ionization", "Neutralization reionization mass spectrometry", "Photoionization", "Pyrolysis mass spectrometry", "Resonance enhanced multiphoton ionization", "Adiabatic ionization", "Associative ionization", "Autodetachment", "Autoionization", "Charge exchange ionization", "Chemi-ionization", "Dissociative ionization", "Liquid secondary ionization", "Penning ionization", "Soft ionization", "Spark ionization", "Surface ionization", "Vertical ionization", "Atmospheric pressure matrix-assisted laser desorption ionization", "Desorption/ionization on silicon", "Surface-assisted laser desorption ionization"};
 
   const std::string IonSource::NamesOfPolarity[] = {"unknown", "positive", "negative"};
 
   IonSource::IonSource() :
     MetaInfoInterface(),
-    inlet_type_(INLETNULL),
-    ionization_method_(IONMETHODNULL),
-    polarity_(POLNULL),
+    inlet_type_(InletType::INLETNULL),
+    ionization_method_(IonizationMethod::IONMETHODNULL),
+    polarity_(Polarity::POLNULL),
     order_(0)
   {
   }
@@ -87,8 +87,8 @@ namespace OpenMS
   StringList IonSource::getAllNamesOfInletType()
   {
     StringList names;
-    names.reserve(SIZE_OF_INLETTYPE);
-    for (size_t i = 0; i < SIZE_OF_INLETTYPE; ++i)
+    names.reserve(static_cast<size_t>(InletType::SIZE_OF_INLETTYPE));
+    for (size_t i = 0; i < static_cast<size_t>(InletType::SIZE_OF_INLETTYPE); ++i)
     {
       names.push_back(NamesOfInletType[i]);
     }
@@ -98,8 +98,8 @@ namespace OpenMS
   StringList IonSource::getAllNamesOfIonizationMethod()
   {
     StringList names;
-    names.reserve(SIZE_OF_IONIZATIONMETHOD);
-    for (size_t i = 0; i < SIZE_OF_IONIZATIONMETHOD; ++i)
+    names.reserve(static_cast<size_t>(IonizationMethod::SIZE_OF_IONIZATIONMETHOD));
+    for (size_t i = 0; i < static_cast<size_t>(IonizationMethod::SIZE_OF_IONIZATIONMETHOD); ++i)
     {
       names.push_back(NamesOfIonizationMethod[i]);
     }
@@ -109,8 +109,8 @@ namespace OpenMS
   StringList IonSource::getAllNamesOfPolarity()
   {
     StringList names;
-    names.reserve(SIZE_OF_POLARITY);
-    for (size_t i = 0; i < SIZE_OF_POLARITY; ++i)
+    names.reserve(static_cast<size_t>(Polarity::SIZE_OF_POLARITY));
+    for (size_t i = 0; i < static_cast<size_t>(Polarity::SIZE_OF_POLARITY); ++i)
     {
       names.push_back(NamesOfPolarity[i]);
     }

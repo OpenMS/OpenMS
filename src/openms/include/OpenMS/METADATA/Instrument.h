@@ -42,7 +42,7 @@ namespace OpenMS
 public:
 
     /// ion optics type
-    enum IonOpticsType
+    enum class IonOpticsType
     {
       UNKNOWN,                  ///< unknown
       MAGNETIC_DEFLECTION,      ///< magnetic deflection
@@ -60,7 +60,7 @@ public:
     };
 
     /// Names of inlet types
-    static const std::string NamesOfIonOpticsType[SIZE_OF_IONOPTICSTYPE];
+    static const std::string NamesOfIonOpticsType[static_cast<size_t>(IonOpticsType::SIZE_OF_IONOPTICSTYPE)];
 
     /// returns all ion optics type names known to OpenMS
     static StringList getAllNamesOfIonOpticsType();

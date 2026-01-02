@@ -27,12 +27,12 @@ namespace OpenMS
 
   MassAnalyzer::MassAnalyzer() :
     MetaInfoInterface(),
-    type_(ANALYZERNULL),
-    resolution_method_(RESMETHNULL),
-    resolution_type_(RESTYPENULL),
-    scan_direction_(SCANDIRNULL),
-    scan_law_(SCANLAWNULL),
-    reflectron_state_(REFLSTATENULL),
+    type_(AnalyzerType::ANALYZERNULL),
+    resolution_method_(ResolutionMethod::RESMETHNULL),
+    resolution_type_(ResolutionType::RESTYPENULL),
+    scan_direction_(ScanDirection::SCANDIRNULL),
+    scan_law_(ScanLaw::SCANLAWNULL),
+    reflectron_state_(ReflectronState::REFLSTATENULL),
     resolution_(0.0),
     accuracy_(0.0),
     scan_rate_(0.0),
@@ -226,8 +226,8 @@ namespace OpenMS
   StringList MassAnalyzer::getAllNamesOfAnalyzerType()
   {
     StringList names;
-    names.reserve(SIZE_OF_ANALYZERTYPE);
-    for (size_t i = 0; i < SIZE_OF_ANALYZERTYPE; ++i)
+    names.reserve(static_cast<size_t>(AnalyzerType::SIZE_OF_ANALYZERTYPE));
+    for (size_t i = 0; i < static_cast<size_t>(AnalyzerType::SIZE_OF_ANALYZERTYPE); ++i)
     {
       names.push_back(NamesOfAnalyzerType[i]);
     }
@@ -237,8 +237,8 @@ namespace OpenMS
   StringList MassAnalyzer::getAllNamesOfResolutionMethod()
   {
     StringList names;
-    names.reserve(SIZE_OF_RESOLUTIONMETHOD);
-    for (size_t i = 0; i < SIZE_OF_RESOLUTIONMETHOD; ++i)
+    names.reserve(static_cast<size_t>(ResolutionMethod::SIZE_OF_RESOLUTIONMETHOD));
+    for (size_t i = 0; i < static_cast<size_t>(ResolutionMethod::SIZE_OF_RESOLUTIONMETHOD); ++i)
     {
       names.push_back(NamesOfResolutionMethod[i]);
     }
@@ -248,8 +248,8 @@ namespace OpenMS
   StringList MassAnalyzer::getAllNamesOfResolutionType()
   {
     StringList names;
-    names.reserve(SIZE_OF_RESOLUTIONTYPE);
-    for (size_t i = 0; i < SIZE_OF_RESOLUTIONTYPE; ++i)
+    names.reserve(static_cast<size_t>(ResolutionType::SIZE_OF_RESOLUTIONTYPE));
+    for (size_t i = 0; i < static_cast<size_t>(ResolutionType::SIZE_OF_RESOLUTIONTYPE); ++i)
     {
       names.push_back(NamesOfResolutionType[i]);
     }
@@ -259,8 +259,8 @@ namespace OpenMS
   StringList MassAnalyzer::getAllNamesOfScanDirection()
   {
     StringList names;
-    names.reserve(SIZE_OF_SCANDIRECTION);
-    for (size_t i = 0; i < SIZE_OF_SCANDIRECTION; ++i)
+    names.reserve(static_cast<size_t>(ScanDirection::SIZE_OF_SCANDIRECTION));
+    for (size_t i = 0; i < static_cast<size_t>(ScanDirection::SIZE_OF_SCANDIRECTION); ++i)
     {
       names.push_back(NamesOfScanDirection[i]);
     }
@@ -270,8 +270,8 @@ namespace OpenMS
   StringList MassAnalyzer::getAllNamesOfScanLaw()
   {
     StringList names;
-    names.reserve(SIZE_OF_SCANLAW);
-    for (size_t i = 0; i < SIZE_OF_SCANLAW; ++i)
+    names.reserve(static_cast<size_t>(ScanLaw::SIZE_OF_SCANLAW));
+    for (size_t i = 0; i < static_cast<size_t>(ScanLaw::SIZE_OF_SCANLAW); ++i)
     {
       names.push_back(NamesOfScanLaw[i]);
     }
@@ -281,8 +281,8 @@ namespace OpenMS
   StringList MassAnalyzer::getAllNamesOfReflectronState()
   {
     StringList names;
-    names.reserve(SIZE_OF_REFLECTRONSTATE);
-    for (size_t i = 0; i < SIZE_OF_REFLECTRONSTATE; ++i)
+    names.reserve(static_cast<size_t>(ReflectronState::SIZE_OF_REFLECTRONSTATE));
+    for (size_t i = 0; i < static_cast<size_t>(ReflectronState::SIZE_OF_REFLECTRONSTATE); ++i)
     {
       names.push_back(NamesOfReflectronState[i]);
     }

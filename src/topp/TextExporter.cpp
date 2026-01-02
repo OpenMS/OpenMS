@@ -294,7 +294,7 @@ namespace OpenMS
   {
     String param_line = "db=" + sp.db + ", db_version=" +   sp.db_version +
                         ", taxonomy=" + sp.taxonomy + ", charges=" + sp.charges + ", mass_type=";
-    if (sp.mass_type == ProteinIdentification::MONOISOTOPIC)
+    if (sp.mass_type == ProteinIdentification::PeakMassType::MONOISOTOPIC)
     {
       param_line += "monoisotopic";
     }
@@ -1515,7 +1515,7 @@ protected:
 
           for (vector<MSChromatogram >::const_iterator it = exp.getChromatograms().begin(); it != exp.getChromatograms().end(); ++it)
           {
-            if (it->getChromatogramType() == ChromatogramSettings::SELECTED_REACTION_MONITORING_CHROMATOGRAM)
+            if (it->getChromatogramType() == ChromatogramSettings::ChromatogramType::SELECTED_REACTION_MONITORING_CHROMATOGRAM)
             {
               ++output_count;
               output << "MRM Q1=" << String(it->getPrecursor().getMZ()) << " Q3=" << String(it->getProduct().getMZ()) << nl;

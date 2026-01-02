@@ -19,8 +19,8 @@ namespace OpenMS
 
   IonDetector::IonDetector() :
     MetaInfoInterface(),
-    type_(TYPENULL),
-    acquisition_mode_(ACQMODENULL),
+    type_(Type::TYPENULL),
+    acquisition_mode_(AcquisitionMode::ACQMODENULL),
     resolution_(0.0),
     ADC_sampling_frequency_(0.0),
     order_(0)
@@ -98,8 +98,8 @@ namespace OpenMS
   StringList IonDetector::getAllNamesOfType()
   {
     StringList names;
-    names.reserve(SIZE_OF_TYPE);
-    for (size_t i = 0; i < SIZE_OF_TYPE; ++i)
+    names.reserve(static_cast<size_t>(Type::SIZE_OF_TYPE));
+    for (size_t i = 0; i < static_cast<size_t>(Type::SIZE_OF_TYPE); ++i)
     {
       names.push_back(NamesOfType[i]);
     }
@@ -109,8 +109,8 @@ namespace OpenMS
   StringList IonDetector::getAllNamesOfAcquisitionMode()
   {
     StringList names;
-    names.reserve(SIZE_OF_ACQUISITIONMODE);
-    for (size_t i = 0; i < SIZE_OF_ACQUISITIONMODE; ++i)
+    names.reserve(static_cast<size_t>(AcquisitionMode::SIZE_OF_ACQUISITIONMODE));
+    for (size_t i = 0; i < static_cast<size_t>(AcquisitionMode::SIZE_OF_ACQUISITIONMODE); ++i)
     {
       names.push_back(NamesOfAcquisitionMode[i]);
     }

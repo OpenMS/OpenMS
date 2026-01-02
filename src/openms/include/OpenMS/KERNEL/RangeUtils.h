@@ -192,7 +192,7 @@ public:
     inline bool operator()(const SpectrumType& s) const
     {
       // XOR(^): same as 'if (rev_) return !(test) else return test;' where (test) is the condition;   Speed: XOR is about 25% faster in VS10
-      return reverse_ ^ (s.getInstrumentSettings().getScanMode() == mode_);
+      return reverse_ ^ (static_cast<Int>(s.getInstrumentSettings().getScanMode()) == mode_);
     }
 
 protected:
@@ -226,7 +226,7 @@ public:
     inline bool operator()(const SpectrumType& s) const
     {
       // XOR(^): same as 'if (rev_) return !(test) else return test;' where (test) is the condition;   Speed: XOR is about 25% faster in VS10
-      return reverse_ ^ (s.getInstrumentSettings().getPolarity() == polarity_);
+      return reverse_ ^ (static_cast<Int>(s.getInstrumentSettings().getPolarity()) == polarity_);
     }
 
 protected:

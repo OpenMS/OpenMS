@@ -49,7 +49,7 @@ START_SECTION(template <typename ExperimentType> void convertChromatogramsToSpec
 {
   PeakMap exp;
 	MSChromatogram chrom1, chrom2;
-	chrom1.setChromatogramType(ChromatogramSettings::SELECTED_REACTION_MONITORING_CHROMATOGRAM);
+	chrom1.setChromatogramType(ChromatogramSettings::ChromatogramType::SELECTED_REACTION_MONITORING_CHROMATOGRAM);
 	Precursor pre1, pre2;
 	pre1.setMZ(100.1);
 	pre2.setMZ(100.2);
@@ -64,7 +64,7 @@ START_SECTION(template <typename ExperimentType> void convertChromatogramsToSpec
 	chrom2.setPrecursor(pre2);
 	chrom2.setProduct(pro2);		
 
-	chrom2.setChromatogramType(ChromatogramSettings::SELECTED_REACTION_MONITORING_CHROMATOGRAM);
+	chrom2.setChromatogramType(ChromatogramSettings::ChromatogramType::SELECTED_REACTION_MONITORING_CHROMATOGRAM);
 	ChromatogramPeak peak1, peak2, peak3;
 	peak1.setRT(0.1);
 	peak2.setRT(0.2);
@@ -95,11 +95,11 @@ END_SECTION
 START_SECTION(template <typename ExperimentType> void convertSpectraToChromatograms(ExperimentType& exp, bool remove_spectra = false))
 {
   PeakSpectrum spec1, spec2, spec3, spec4, spec5;
-	spec1.getInstrumentSettings().setScanMode(InstrumentSettings::SRM);
-	spec2.getInstrumentSettings().setScanMode(InstrumentSettings::SRM);
-	spec3.getInstrumentSettings().setScanMode(InstrumentSettings::SRM);
-	spec4.getInstrumentSettings().setScanMode(InstrumentSettings::SRM);
-	spec5.getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
+	spec1.getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::SRM);
+	spec2.getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::SRM);
+	spec3.getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::SRM);
+	spec4.getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::SRM);
+	spec5.getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::MASSSPECTRUM);
 
 	Precursor prec1, prec2;
 	prec1.setMZ(500.1);

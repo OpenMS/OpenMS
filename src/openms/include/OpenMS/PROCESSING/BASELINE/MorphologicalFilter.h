@@ -261,7 +261,7 @@ namespace OpenMS
     void filter(MSSpectrum& spectrum)
     {
       // make sure the right peak type is set
-      spectrum.setType(SpectrumSettings::PROFILE);
+      spectrum.setType(SpectrumSettings::SpectrumType::PROFILE);
 
       // Abort if there is nothing to do
       if (spectrum.size() <= 1)

@@ -1278,10 +1278,10 @@ namespace OpenMS::Internal
           }
           /* this is too hot (could be SRM as well? -- check!):
           // correct spectrum type if possible (i.e., make it more specific)
-          if (spec_.getInstrumentSettings().getScanMode() == InstrumentSettings::MASSSPECTRUM)
+          if (spec_.getInstrumentSettings().getScanMode() == InstrumentSettings::ScanMode::MASSSPECTRUM)
           {
-          if (spec_.getMSLevel() <= 1) spec_.getInstrumentSettings().setScanMode(InstrumentSettings::MS1SPECTRUM);
-          else                         spec_.getInstrumentSettings().setScanMode(InstrumentSettings::MSNSPECTRUM);
+          if (spec_.getMSLevel() <= 1) spec_.getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::MS1SPECTRUM);
+          else                         spec_.getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::MSNSPECTRUM);
           }
           */
 
@@ -1448,72 +1448,72 @@ namespace OpenMS::Internal
         //spectrum type
         if (accession == "MS:1000294") //mass spectrum
         {
-          spec_.getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
+          spec_.getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::MASSSPECTRUM);
         }
         else if (accession == "MS:1000579") //MS1 spectrum
         {
-          spec_.getInstrumentSettings().setScanMode(InstrumentSettings::MS1SPECTRUM);
+          spec_.getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::MS1SPECTRUM);
         }
         else if (accession == "MS:1000580") //MSn spectrum
         {
-          spec_.getInstrumentSettings().setScanMode(InstrumentSettings::MSNSPECTRUM);
+          spec_.getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::MSNSPECTRUM);
         }
         else if (accession == "MS:1000581") //CRM spectrum
         {
-          spec_.getInstrumentSettings().setScanMode(InstrumentSettings::CRM);
+          spec_.getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::CRM);
         }
         else if (accession == "MS:1000582") //SIM spectrum
         {
-          spec_.getInstrumentSettings().setScanMode(InstrumentSettings::SIM);
+          spec_.getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::SIM);
         }
         else if (accession == "MS:1000583") //SRM spectrum
         {
-          spec_.getInstrumentSettings().setScanMode(InstrumentSettings::SRM);
+          spec_.getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::SRM);
         }
         else if (accession == "MS:1000804") //electromagnetic radiation spectrum
         {
-          spec_.getInstrumentSettings().setScanMode(InstrumentSettings::EMR);
+          spec_.getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::EMR);
         }
         else if (accession == "MS:1000805") //emission spectrum
         {
-          spec_.getInstrumentSettings().setScanMode(InstrumentSettings::EMISSION);
+          spec_.getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::EMISSION);
         }
         else if (accession == "MS:1000806") //absorption spectrum
         {
-          spec_.getInstrumentSettings().setScanMode(InstrumentSettings::ABSORPTION);
+          spec_.getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::ABSORPTION);
         }
         else if (accession == "MS:1000325") //constant neutral gain spectrum
         {
-          spec_.getInstrumentSettings().setScanMode(InstrumentSettings::CNG);
+          spec_.getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::CNG);
         }
         else if (accession == "MS:1000326") //constant neutral loss spectrum
         {
-          spec_.getInstrumentSettings().setScanMode(InstrumentSettings::CNL);
+          spec_.getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::CNL);
         }
         else if (accession == "MS:1000341") //precursor ion spectrum
         {
-          spec_.getInstrumentSettings().setScanMode(InstrumentSettings::PRECURSOR);
+          spec_.getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::PRECURSOR);
         }
         else if (accession == "MS:1000789") //enhanced multiply charged spectrum
         {
-          spec_.getInstrumentSettings().setScanMode(InstrumentSettings::EMC);
+          spec_.getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::EMC);
         }
         else if (accession == "MS:1000790") //time-delayed fragmentation spectrum
         {
-          spec_.getInstrumentSettings().setScanMode(InstrumentSettings::TDF);
+          spec_.getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::TDF);
         }
         //spectrum representation
         else if (accession == "MS:1000127") //centroid spectrum
         {
-          spec_.setType(SpectrumSettings::CENTROID);
+          spec_.setType(SpectrumSettings::SpectrumType::CENTROID);
         }
         else if (accession == "MS:1000128") //profile spectrum
         {
-          spec_.setType(SpectrumSettings::PROFILE);
+          spec_.setType(SpectrumSettings::SpectrumType::PROFILE);
         }
         else if (accession == "MS:1000525") //spectrum representation
         {
-          spec_.setType(SpectrumSettings::UNKNOWN);
+          spec_.setType(SpectrumSettings::SpectrumType::UNKNOWN);
         }
         else if (accession == "MS:1003441") //ion mobility centroid frame
         {
@@ -1607,11 +1607,11 @@ namespace OpenMS::Internal
         //scan polarity
         else if (accession == "MS:1000129") //negative scan
         {
-          spec_.getInstrumentSettings().setPolarity(IonSource::NEGATIVE);
+          spec_.getInstrumentSettings().setPolarity(IonSource::Polarity::NEGATIVE);
         }
         else if (accession == "MS:1000130") //positive scan
         {
-          spec_.getInstrumentSettings().setPolarity(IonSource::POSITIVE);
+          spec_.getInstrumentSettings().setPolarity(IonSource::Polarity::POSITIVE);
         }
         else
           warning(LOAD, String("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
@@ -2301,11 +2301,11 @@ namespace OpenMS::Internal
       {
         if (accession == "MS:1000569") //SHA-1 checksum
         {
-          source_files_[current_id_].setChecksum(value, SourceFile::SHA1);
+          source_files_[current_id_].setChecksum(value, SourceFile::ChecksumType::SHA1);
         }
         else if (accession == "MS:1000568") //MD5 checksum
         {
-          source_files_[current_id_].setChecksum(value, SourceFile::MD5);
+          source_files_[current_id_].setChecksum(value, SourceFile::ChecksumType::MD5);
         }
         else if (cv_.isChildOf(accession, "MS:1000560")) //source file type as string
         {
@@ -2415,47 +2415,47 @@ namespace OpenMS::Internal
         //ion optics type
         else if (accession == "MS:1000246") //delayed extraction
         {
-          instruments_[current_id_].setIonOptics(Instrument::DELAYED_EXTRACTION);
+          instruments_[current_id_].setIonOptics(Instrument::IonOpticsType::DELAYED_EXTRACTION);
         }
         else if (accession == "MS:1000221") //magnetic deflection
         {
-          instruments_[current_id_].setIonOptics(Instrument::MAGNETIC_DEFLECTION);
+          instruments_[current_id_].setIonOptics(Instrument::IonOpticsType::MAGNETIC_DEFLECTION);
         }
         else if (accession == "MS:1000275") //collision quadrupole
         {
-          instruments_[current_id_].setIonOptics(Instrument::COLLISION_QUADRUPOLE);
+          instruments_[current_id_].setIonOptics(Instrument::IonOpticsType::COLLISION_QUADRUPOLE);
         }
         else if (accession == "MS:1000281") //selected ion flow tube
         {
-          instruments_[current_id_].setIonOptics(Instrument::SELECTED_ION_FLOW_TUBE);
+          instruments_[current_id_].setIonOptics(Instrument::IonOpticsType::SELECTED_ION_FLOW_TUBE);
         }
         else if (accession == "MS:1000286") //time lag focusing
         {
-          instruments_[current_id_].setIonOptics(Instrument::TIME_LAG_FOCUSING);
+          instruments_[current_id_].setIonOptics(Instrument::IonOpticsType::TIME_LAG_FOCUSING);
         }
         else if (accession == "MS:1000300") //reflectron
         {
-          instruments_[current_id_].setIonOptics(Instrument::REFLECTRON);
+          instruments_[current_id_].setIonOptics(Instrument::IonOpticsType::REFLECTRON);
         }
         else if (accession == "MS:1000307") //einzel lens
         {
-          instruments_[current_id_].setIonOptics(Instrument::EINZEL_LENS);
+          instruments_[current_id_].setIonOptics(Instrument::IonOpticsType::EINZEL_LENS);
         }
         else if (accession == "MS:1000309") //first stability region
         {
-          instruments_[current_id_].setIonOptics(Instrument::FIRST_STABILITY_REGION);
+          instruments_[current_id_].setIonOptics(Instrument::IonOpticsType::FIRST_STABILITY_REGION);
         }
         else if (accession == "MS:1000310") //fringing field
         {
-          instruments_[current_id_].setIonOptics(Instrument::FRINGING_FIELD);
+          instruments_[current_id_].setIonOptics(Instrument::IonOpticsType::FRINGING_FIELD);
         }
         else if (accession == "MS:1000311") //kinetic energy analyzer
         {
-          instruments_[current_id_].setIonOptics(Instrument::KINETIC_ENERGY_ANALYZER);
+          instruments_[current_id_].setIonOptics(Instrument::IonOpticsType::KINETIC_ENERGY_ANALYZER);
         }
         else if (accession == "MS:1000320") //static field
         {
-          instruments_[current_id_].setIonOptics(Instrument::STATIC_FIELD);
+          instruments_[current_id_].setIonOptics(Instrument::IonOpticsType::STATIC_FIELD);
         }
         //ion optics attribute
         else if (accession == "MS:1000304") //accelerating voltage
@@ -2486,260 +2486,260 @@ namespace OpenMS::Internal
         //inlet type
         if (accession == "MS:1000055") //continuous flow fast atom bombardment
         {
-          instruments_[current_id_].getIonSources().back().setInletType(IonSource::CONTINUOUSFLOWFASTATOMBOMBARDMENT);
+          instruments_[current_id_].getIonSources().back().setInletType(IonSource::InletType::CONTINUOUSFLOWFASTATOMBOMBARDMENT);
         }
         else if (accession == "MS:1000056") //direct inlet
         {
-          instruments_[current_id_].getIonSources().back().setInletType(IonSource::DIRECT);
+          instruments_[current_id_].getIonSources().back().setInletType(IonSource::InletType::DIRECT);
         }
         else if (accession == "MS:1000057") //electrospray inlet
         {
-          instruments_[current_id_].getIonSources().back().setInletType(IonSource::ELECTROSPRAYINLET);
+          instruments_[current_id_].getIonSources().back().setInletType(IonSource::InletType::ELECTROSPRAYINLET);
         }
         else if (accession == "MS:1000058") //flow injection analysis
         {
-          instruments_[current_id_].getIonSources().back().setInletType(IonSource::FLOWINJECTIONANALYSIS);
+          instruments_[current_id_].getIonSources().back().setInletType(IonSource::InletType::FLOWINJECTIONANALYSIS);
         }
         else if (accession == "MS:1000059") //inductively coupled plasma
         {
-          instruments_[current_id_].getIonSources().back().setInletType(IonSource::INDUCTIVELYCOUPLEDPLASMA);
+          instruments_[current_id_].getIonSources().back().setInletType(IonSource::InletType::INDUCTIVELYCOUPLEDPLASMA);
         }
         else if (accession == "MS:1000060") //infusion
         {
-          instruments_[current_id_].getIonSources().back().setInletType(IonSource::INFUSION);
+          instruments_[current_id_].getIonSources().back().setInletType(IonSource::InletType::INFUSION);
         }
         else if (accession == "MS:1000061") //jet separator
         {
-          instruments_[current_id_].getIonSources().back().setInletType(IonSource::JETSEPARATOR);
+          instruments_[current_id_].getIonSources().back().setInletType(IonSource::InletType::JETSEPARATOR);
         }
         else if (accession == "MS:1000062") //membrane separator
         {
-          instruments_[current_id_].getIonSources().back().setInletType(IonSource::MEMBRANESEPARATOR);
+          instruments_[current_id_].getIonSources().back().setInletType(IonSource::InletType::MEMBRANESEPARATOR);
         }
         else if (accession == "MS:1000063") //moving belt
         {
-          instruments_[current_id_].getIonSources().back().setInletType(IonSource::MOVINGBELT);
+          instruments_[current_id_].getIonSources().back().setInletType(IonSource::InletType::MOVINGBELT);
         }
         else if (accession == "MS:1000064") //moving wire
         {
-          instruments_[current_id_].getIonSources().back().setInletType(IonSource::MOVINGWIRE);
+          instruments_[current_id_].getIonSources().back().setInletType(IonSource::InletType::MOVINGWIRE);
         }
         else if (accession == "MS:1000065") //open split
         {
-          instruments_[current_id_].getIonSources().back().setInletType(IonSource::OPENSPLIT);
+          instruments_[current_id_].getIonSources().back().setInletType(IonSource::InletType::OPENSPLIT);
         }
         else if (accession == "MS:1000066") //particle beam
         {
-          instruments_[current_id_].getIonSources().back().setInletType(IonSource::PARTICLEBEAM);
+          instruments_[current_id_].getIonSources().back().setInletType(IonSource::InletType::PARTICLEBEAM);
         }
         else if (accession == "MS:1000067") //reservoir
         {
-          instruments_[current_id_].getIonSources().back().setInletType(IonSource::RESERVOIR);
+          instruments_[current_id_].getIonSources().back().setInletType(IonSource::InletType::RESERVOIR);
         }
         else if (accession == "MS:1000068") //septum
         {
-          instruments_[current_id_].getIonSources().back().setInletType(IonSource::SEPTUM);
+          instruments_[current_id_].getIonSources().back().setInletType(IonSource::InletType::SEPTUM);
         }
         else if (accession == "MS:1000069") //thermospray inlet
         {
-          instruments_[current_id_].getIonSources().back().setInletType(IonSource::THERMOSPRAYINLET);
+          instruments_[current_id_].getIonSources().back().setInletType(IonSource::InletType::THERMOSPRAYINLET);
         }
         else if (accession == "MS:1000248") //direct insertion probe
         {
-          instruments_[current_id_].getIonSources().back().setInletType(IonSource::BATCH);
+          instruments_[current_id_].getIonSources().back().setInletType(IonSource::InletType::BATCH);
         }
         else if (accession == "MS:1000249") //direct liquid introduction
         {
-          instruments_[current_id_].getIonSources().back().setInletType(IonSource::CHROMATOGRAPHY);
+          instruments_[current_id_].getIonSources().back().setInletType(IonSource::InletType::CHROMATOGRAPHY);
         }
         else if (accession == "MS:1000396") //membrane inlet
         {
-          instruments_[current_id_].getIonSources().back().setInletType(IonSource::MEMBRANE);
+          instruments_[current_id_].getIonSources().back().setInletType(IonSource::InletType::MEMBRANE);
         }
         else if (accession == "MS:1000485") //nanospray inlet
         {
-          instruments_[current_id_].getIonSources().back().setInletType(IonSource::NANOSPRAY);
+          instruments_[current_id_].getIonSources().back().setInletType(IonSource::InletType::NANOSPRAY);
         }
         //ionization type
         else if (accession == "MS:1000071") //chemical ionization
         {
-          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::CI);
+          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::CI);
         }
         else if (accession == "MS:1000073") //electrospray ionization
         {
-          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::ESI);
+          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::ESI);
         }
         else if (accession == "MS:1000074") //fast atom bombardment ionization
         {
-          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::FAB);
+          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::FAB);
         }
         else if (accession == "MS:1000227") //multiphoton ionization
         {
-          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::MPI);
+          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::MPI);
         }
         else if (accession == "MS:1000240") //atmospheric pressure ionization
         {
-          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::API);
+          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::API);
         }
         else if (accession == "MS:1000247") //desorption ionization
         {
-          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::DI);
+          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::DI);
         }
         else if (accession == "MS:1000255") //flowing afterglow
         {
-          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::FA);
+          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::FA);
         }
         else if (accession == "MS:1000258") //field ionization
         {
-          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::FII);
+          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::FII);
         }
         else if (accession == "MS:1000259") //glow discharge ionization
         {
-          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::GD_MS);
+          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::GD_MS);
         }
         else if (accession == "MS:1000271") //Negative ion chemical ionization
         {
-          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::NICI);
+          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::NICI);
         }
         else if (accession == "MS:1000272") //neutralization reionization mass spectrometry
         {
-          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::NRMS);
+          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::NRMS);
         }
         else if (accession == "MS:1000273") //photoionization
         {
-          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::PI);
+          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::PI);
         }
         else if (accession == "MS:1000274") //pyrolysis mass spectrometry
         {
-          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::PYMS);
+          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::PYMS);
         }
         else if (accession == "MS:1000276") //resonance enhanced multiphoton ionization
         {
-          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::REMPI);
+          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::REMPI);
         }
         else if (accession == "MS:1000380") //adiabatic ionization
         {
-          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::AI);
+          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::AI);
         }
         else if (accession == "MS:1000381") //associative ionization
         {
-          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::ASI);
+          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::ASI);
         }
         else if (accession == "MS:1000383") //autodetachment
         {
-          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::AD);
+          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::AD);
         }
         else if (accession == "MS:1000384") //autoionization
         {
-          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::AUI);
+          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::AUI);
         }
         else if (accession == "MS:1000385") //charge exchange ionization
         {
-          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::CEI);
+          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::CEI);
         }
         else if (accession == "MS:1000386") //chemi-ionization
         {
-          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::CHEMI);
+          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::CHEMI);
         }
         else if (accession == "MS:1000388") //dissociative ionization
         {
-          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::DISSI);
+          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::DISSI);
         }
         else if (accession == "MS:1000389") //electron ionization
         {
-          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::EI);
+          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::EI);
         }
         else if (accession == "MS:1000395") //liquid secondary ionization
         {
-          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::LSI);
+          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::LSI);
         }
         else if (accession == "MS:1000399") //penning ionization
         {
-          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::PEI);
+          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::PEI);
         }
         else if (accession == "MS:1000400") //plasma desorption ionization
         {
-          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::PD);
+          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::PD);
         }
         else if (accession == "MS:1000402") //secondary ionization
         {
-          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::SI);
+          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::SI);
         }
         else if (accession == "MS:1000403") //soft ionization
         {
-          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::SOI);
+          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::SOI);
         }
         else if (accession == "MS:1000404") //spark ionization
         {
-          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::SPI);
+          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::SPI);
         }
         else if (accession == "MS:1000406") //surface ionization
         {
-          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::SUI);
+          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::SUI);
         }
         else if (accession == "MS:1000407") //thermal ionization
         {
-          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::TI);
+          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::TI);
         }
         else if (accession == "MS:1000408") //vertical ionization
         {
-          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::VI);
+          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::VI);
         }
         else if (accession == "MS:1000446") //fast ion bombardment
         {
-          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::FIB);
+          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::FIB);
         }
         else if (accession == "MS:1000070") //atmospheric pressure chemical ionization
         {
-          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::APCI);
+          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::APCI);
         }
         else if (accession == "MS:1000239") //atmospheric pressure matrix-assisted laser desorption ionization
         {
-          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::AP_MALDI);
+          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::AP_MALDI);
         }
         else if (accession == "MS:1000382") //atmospheric pressure photoionization
         {
-          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::APPI);
+          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::APPI);
         }
         else if (accession == "MS:1000075") //matrix-assisted laser desorption ionization
         {
-          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::MALDI);
+          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::MALDI);
         }
         else if (accession == "MS:1000257") //field desorption
         {
-          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::FD);
+          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::FD);
         }
         else if (accession == "MS:1000387") //desorption/ionization on silicon
         {
-          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::SILI);
+          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::SILI);
         }
         else if (accession == "MS:1000393") //laser desorption ionization
         {
-          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::LD);
+          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::LD);
         }
         else if (accession == "MS:1000405") //surface-assisted laser desorption ionization
         {
-          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::SALDI);
+          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::SALDI);
         }
         else if (accession == "MS:1000397") //microelectrospray
         {
-          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::MESI);
+          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::MESI);
         }
         else if (accession == "MS:1000398") //nanoelectrospray
         {
-          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::NESI);
+          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::NESI);
         }
         else if (accession == "MS:1000278") //surface enhanced laser desorption ionization
         {
-          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::SELDI);
+          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::SELDI);
         }
         else if (accession == "MS:1000279") //surface enhanced neat desorption
         {
-          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::SEND);
+          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::SEND);
         }
         else if (accession == "MS:1000008") //ionization type (base term)
         {
-          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IONMETHODNULL);
+          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::IONMETHODNULL);
         }
         //source attribute
         else if (accession == "MS:1000392") //ionization efficiency
@@ -2864,59 +2864,59 @@ namespace OpenMS::Internal
         //mass analyzer type
         if (accession == "MS:1000079") //fourier transform ion cyclotron resonance mass spectrometer
         {
-          instruments_[current_id_].getMassAnalyzers().back().setType(MassAnalyzer::FOURIERTRANSFORM);
+          instruments_[current_id_].getMassAnalyzers().back().setType(MassAnalyzer::AnalyzerType::FOURIERTRANSFORM);
         }
         else if (accession == "MS:1000080") //magnetic sector
         {
-          instruments_[current_id_].getMassAnalyzers().back().setType(MassAnalyzer::SECTOR);
+          instruments_[current_id_].getMassAnalyzers().back().setType(MassAnalyzer::AnalyzerType::SECTOR);
         }
         else if (accession == "MS:1000081") //quadrupole
         {
-          instruments_[current_id_].getMassAnalyzers().back().setType(MassAnalyzer::QUADRUPOLE);
+          instruments_[current_id_].getMassAnalyzers().back().setType(MassAnalyzer::AnalyzerType::QUADRUPOLE);
         }
         else if (accession == "MS:1000084") //time-of-flight
         {
-          instruments_[current_id_].getMassAnalyzers().back().setType(MassAnalyzer::TOF);
+          instruments_[current_id_].getMassAnalyzers().back().setType(MassAnalyzer::AnalyzerType::TOF);
         }
         else if (accession == "MS:1000254") //electrostatic energy analyzer
         {
-          instruments_[current_id_].getMassAnalyzers().back().setType(MassAnalyzer::ESA);
+          instruments_[current_id_].getMassAnalyzers().back().setType(MassAnalyzer::AnalyzerType::ESA);
         }
         else if (accession == "MS:1000264") //ion trap
         {
-          instruments_[current_id_].getMassAnalyzers().back().setType(MassAnalyzer::IT);
+          instruments_[current_id_].getMassAnalyzers().back().setType(MassAnalyzer::AnalyzerType::IT);
         }
         else if (accession == "MS:1000284") //stored waveform inverse fourier transform
         {
-          instruments_[current_id_].getMassAnalyzers().back().setType(MassAnalyzer::SWIFT);
+          instruments_[current_id_].getMassAnalyzers().back().setType(MassAnalyzer::AnalyzerType::SWIFT);
         }
         else if (accession == "MS:1000288") //cyclotron
         {
-          instruments_[current_id_].getMassAnalyzers().back().setType(MassAnalyzer::CYCLOTRON);
+          instruments_[current_id_].getMassAnalyzers().back().setType(MassAnalyzer::AnalyzerType::CYCLOTRON);
         }
         else if (accession == "MS:1000484") //orbitrap
         {
-          instruments_[current_id_].getMassAnalyzers().back().setType(MassAnalyzer::ORBITRAP);
+          instruments_[current_id_].getMassAnalyzers().back().setType(MassAnalyzer::AnalyzerType::ORBITRAP);
         }
         else if (accession == "MS:1000078") //axial ejection linear ion trap
         {
-          instruments_[current_id_].getMassAnalyzers().back().setType(MassAnalyzer::AXIALEJECTIONLINEARIONTRAP);
+          instruments_[current_id_].getMassAnalyzers().back().setType(MassAnalyzer::AnalyzerType::AXIALEJECTIONLINEARIONTRAP);
         }
         else if (accession == "MS:1000082") //quadrupole ion trap
         {
-          instruments_[current_id_].getMassAnalyzers().back().setType(MassAnalyzer::PAULIONTRAP);
+          instruments_[current_id_].getMassAnalyzers().back().setType(MassAnalyzer::AnalyzerType::PAULIONTRAP);
         }
         else if (accession == "MS:1000083") //radial ejection linear ion trap
         {
-          instruments_[current_id_].getMassAnalyzers().back().setType(MassAnalyzer::RADIALEJECTIONLINEARIONTRAP);
+          instruments_[current_id_].getMassAnalyzers().back().setType(MassAnalyzer::AnalyzerType::RADIALEJECTIONLINEARIONTRAP);
         }
         else if (accession == "MS:1000291") //linear ion trap
         {
-          instruments_[current_id_].getMassAnalyzers().back().setType(MassAnalyzer::LIT);
+          instruments_[current_id_].getMassAnalyzers().back().setType(MassAnalyzer::AnalyzerType::LIT);
         }
         else if (accession == "MS:1000443") //mass analyzer type (base term)
         {
-          instruments_[current_id_].getMassAnalyzers().back().setType(MassAnalyzer::ANALYZERNULL);
+          instruments_[current_id_].getMassAnalyzers().back().setType(MassAnalyzer::AnalyzerType::ANALYZERNULL);
         }
         //mass analyzer attribute
         else if (accession == "MS:1000014") //accuracy (ppm)
@@ -2937,11 +2937,11 @@ namespace OpenMS::Internal
         }
         else if (accession == "MS:1000105") //reflectron off
         {
-          instruments_[current_id_].getMassAnalyzers().back().setReflectronState(MassAnalyzer::OFF);
+          instruments_[current_id_].getMassAnalyzers().back().setReflectronState(MassAnalyzer::ReflectronState::OFF);
         }
         else if (accession == "MS:1000106") //reflectron on
         {
-          instruments_[current_id_].getMassAnalyzers().back().setReflectronState(MassAnalyzer::ON);
+          instruments_[current_id_].getMassAnalyzers().back().setReflectronState(MassAnalyzer::ReflectronState::ON);
         }
         else
           warning(LOAD, String("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
@@ -2951,87 +2951,87 @@ namespace OpenMS::Internal
         //detector type
         if (accession == "MS:1000107") //channeltron
         {
-          instruments_[current_id_].getIonDetectors().back().setType(IonDetector::CHANNELTRON);
+          instruments_[current_id_].getIonDetectors().back().setType(IonDetector::Type::CHANNELTRON);
         }
         else if (accession == "MS:1000110") //daly detector
         {
-          instruments_[current_id_].getIonDetectors().back().setType(IonDetector::DALYDETECTOR);
+          instruments_[current_id_].getIonDetectors().back().setType(IonDetector::Type::DALYDETECTOR);
         }
         else if (accession == "MS:1000112") //faraday cup
         {
-          instruments_[current_id_].getIonDetectors().back().setType(IonDetector::FARADAYCUP);
+          instruments_[current_id_].getIonDetectors().back().setType(IonDetector::Type::FARADAYCUP);
         }
         else if (accession == "MS:1000114") //microchannel plate detector
         {
-          instruments_[current_id_].getIonDetectors().back().setType(IonDetector::MICROCHANNELPLATEDETECTOR);
+          instruments_[current_id_].getIonDetectors().back().setType(IonDetector::Type::MICROCHANNELPLATEDETECTOR);
         }
         else if (accession == "MS:1000115") //multi-collector
         {
-          instruments_[current_id_].getIonDetectors().back().setType(IonDetector::MULTICOLLECTOR);
+          instruments_[current_id_].getIonDetectors().back().setType(IonDetector::Type::MULTICOLLECTOR);
         }
         else if (accession == "MS:1000116") //photomultiplier
         {
-          instruments_[current_id_].getIonDetectors().back().setType(IonDetector::PHOTOMULTIPLIER);
+          instruments_[current_id_].getIonDetectors().back().setType(IonDetector::Type::PHOTOMULTIPLIER);
         }
         else if (accession == "MS:1000253") //electron multiplier
         {
-          instruments_[current_id_].getIonDetectors().back().setType(IonDetector::ELECTRONMULTIPLIER);
+          instruments_[current_id_].getIonDetectors().back().setType(IonDetector::Type::ELECTRONMULTIPLIER);
         }
         else if (accession == "MS:1000345") //array detector
         {
-          instruments_[current_id_].getIonDetectors().back().setType(IonDetector::ARRAYDETECTOR);
+          instruments_[current_id_].getIonDetectors().back().setType(IonDetector::Type::ARRAYDETECTOR);
         }
         else if (accession == "MS:1000346") //conversion dynode
         {
-          instruments_[current_id_].getIonDetectors().back().setType(IonDetector::CONVERSIONDYNODE);
+          instruments_[current_id_].getIonDetectors().back().setType(IonDetector::Type::CONVERSIONDYNODE);
         }
         else if (accession == "MS:1000347") //dynode
         {
-          instruments_[current_id_].getIonDetectors().back().setType(IonDetector::DYNODE);
+          instruments_[current_id_].getIonDetectors().back().setType(IonDetector::Type::DYNODE);
         }
         else if (accession == "MS:1000348") //focal plane collector
         {
-          instruments_[current_id_].getIonDetectors().back().setType(IonDetector::FOCALPLANECOLLECTOR);
+          instruments_[current_id_].getIonDetectors().back().setType(IonDetector::Type::FOCALPLANECOLLECTOR);
         }
         else if (accession == "MS:1000349") //ion-to-photon detector
         {
-          instruments_[current_id_].getIonDetectors().back().setType(IonDetector::IONTOPHOTONDETECTOR);
+          instruments_[current_id_].getIonDetectors().back().setType(IonDetector::Type::IONTOPHOTONDETECTOR);
         }
         else if (accession == "MS:1000350") //point collector
         {
-          instruments_[current_id_].getIonDetectors().back().setType(IonDetector::POINTCOLLECTOR);
+          instruments_[current_id_].getIonDetectors().back().setType(IonDetector::Type::POINTCOLLECTOR);
         }
         else if (accession == "MS:1000351") //postacceleration detector
         {
-          instruments_[current_id_].getIonDetectors().back().setType(IonDetector::POSTACCELERATIONDETECTOR);
+          instruments_[current_id_].getIonDetectors().back().setType(IonDetector::Type::POSTACCELERATIONDETECTOR);
         }
         else if (accession == "MS:1000621") //photodiode array detector
         {
-          instruments_[current_id_].getIonDetectors().back().setType(IonDetector::PHOTODIODEARRAYDETECTOR);
+          instruments_[current_id_].getIonDetectors().back().setType(IonDetector::Type::PHOTODIODEARRAYDETECTOR);
         }
         else if (accession == "MS:1000624") //inductive detector
         {
-          instruments_[current_id_].getIonDetectors().back().setType(IonDetector::INDUCTIVEDETECTOR);
+          instruments_[current_id_].getIonDetectors().back().setType(IonDetector::Type::INDUCTIVEDETECTOR);
         }
         else if (accession == "MS:1000108") //conversion dynode electron multiplier
         {
-          instruments_[current_id_].getIonDetectors().back().setType(IonDetector::CONVERSIONDYNODEELECTRONMULTIPLIER);
+          instruments_[current_id_].getIonDetectors().back().setType(IonDetector::Type::CONVERSIONDYNODEELECTRONMULTIPLIER);
         }
         else if (accession == "MS:1000109") //conversion dynode photomultiplier
         {
-          instruments_[current_id_].getIonDetectors().back().setType(IonDetector::CONVERSIONDYNODEPHOTOMULTIPLIER);
+          instruments_[current_id_].getIonDetectors().back().setType(IonDetector::Type::CONVERSIONDYNODEPHOTOMULTIPLIER);
         }
         else if (accession == "MS:1000111") //electron multiplier tube
         {
-          instruments_[current_id_].getIonDetectors().back().setType(IonDetector::ELECTRONMULTIPLIERTUBE);
+          instruments_[current_id_].getIonDetectors().back().setType(IonDetector::Type::ELECTRONMULTIPLIERTUBE);
         }
         else if (accession == "MS:1000113") //focal plane array
         {
-          instruments_[current_id_].getIonDetectors().back().setType(IonDetector::FOCALPLANEARRAY);
+          instruments_[current_id_].getIonDetectors().back().setType(IonDetector::Type::FOCALPLANEARRAY);
         }
         else if (accession == "MS:1000026") //detector type (base term)
         {
-          instruments_[current_id_].getIonDetectors().back().setType(IonDetector::TYPENULL);
+          instruments_[current_id_].getIonDetectors().back().setType(IonDetector::Type::TYPENULL);
         }
         //detector attribute
         else if (accession == "MS:1000028") //detector resolution
@@ -3045,19 +3045,19 @@ namespace OpenMS::Internal
         //detector acquisition mode
         else if (accession == "MS:1000117") //analog-digital converter
         {
-          instruments_[current_id_].getIonDetectors().back().setAcquisitionMode(IonDetector::ADC);
+          instruments_[current_id_].getIonDetectors().back().setAcquisitionMode(IonDetector::AcquisitionMode::ADC);
         }
         else if (accession == "MS:1000118") //pulse counting
         {
-          instruments_[current_id_].getIonDetectors().back().setAcquisitionMode(IonDetector::PULSECOUNTING);
+          instruments_[current_id_].getIonDetectors().back().setAcquisitionMode(IonDetector::AcquisitionMode::PULSECOUNTING);
         }
         else if (accession == "MS:1000119") //time-digital converter
         {
-          instruments_[current_id_].getIonDetectors().back().setAcquisitionMode(IonDetector::TDC);
+          instruments_[current_id_].getIonDetectors().back().setAcquisitionMode(IonDetector::AcquisitionMode::TDC);
         }
         else if (accession == "MS:1000120") //transient recorder
         {
-          instruments_[current_id_].getIonDetectors().back().setAcquisitionMode(IonDetector::TRANSIENTRECORDER);
+          instruments_[current_id_].getIonDetectors().back().setAcquisitionMode(IonDetector::AcquisitionMode::TRANSIENTRECORDER);
         }
         else
           warning(LOAD, String("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
@@ -3196,43 +3196,43 @@ namespace OpenMS::Internal
       {
         if (accession == "MS:1000810")
         {
-          chromatogram_.setChromatogramType(ChromatogramSettings::MASS_CHROMATOGRAM);
+          chromatogram_.setChromatogramType(ChromatogramSettings::ChromatogramType::MASS_CHROMATOGRAM);
         }
         else if (accession == "MS:1000235")
         {
-          chromatogram_.setChromatogramType(ChromatogramSettings::TOTAL_ION_CURRENT_CHROMATOGRAM);
+          chromatogram_.setChromatogramType(ChromatogramSettings::ChromatogramType::TOTAL_ION_CURRENT_CHROMATOGRAM);
         }
         else if (accession == "MS:1000627")
         {
-          chromatogram_.setChromatogramType(ChromatogramSettings::SELECTED_ION_CURRENT_CHROMATOGRAM);
+          chromatogram_.setChromatogramType(ChromatogramSettings::ChromatogramType::SELECTED_ION_CURRENT_CHROMATOGRAM);
         }
         else if (accession == "MS:1000628")
         {
-          chromatogram_.setChromatogramType(ChromatogramSettings::BASEPEAK_CHROMATOGRAM);
+          chromatogram_.setChromatogramType(ChromatogramSettings::ChromatogramType::BASEPEAK_CHROMATOGRAM);
         }
         else if (accession == "MS:1001472")
         {
-          chromatogram_.setChromatogramType(ChromatogramSettings::SELECTED_ION_MONITORING_CHROMATOGRAM);
+          chromatogram_.setChromatogramType(ChromatogramSettings::ChromatogramType::SELECTED_ION_MONITORING_CHROMATOGRAM);
         }
         else if (accession == "MS:1001473")
         {
-          chromatogram_.setChromatogramType(ChromatogramSettings::SELECTED_REACTION_MONITORING_CHROMATOGRAM);
+          chromatogram_.setChromatogramType(ChromatogramSettings::ChromatogramType::SELECTED_REACTION_MONITORING_CHROMATOGRAM);
         }
         else if (accession == "MS:1001474")
         {
-          chromatogram_.setChromatogramType(ChromatogramSettings::SELECTED_REACTION_MONITORING_CHROMATOGRAM);
+          chromatogram_.setChromatogramType(ChromatogramSettings::ChromatogramType::SELECTED_REACTION_MONITORING_CHROMATOGRAM);
         }
         else if (accession == "MS:1000811")
         {
-          chromatogram_.setChromatogramType(ChromatogramSettings::ELECTROMAGNETIC_RADIATION_CHROMATOGRAM);
+          chromatogram_.setChromatogramType(ChromatogramSettings::ChromatogramType::ELECTROMAGNETIC_RADIATION_CHROMATOGRAM);
         }
         else if (accession == "MS:1000812")
         {
-          chromatogram_.setChromatogramType(ChromatogramSettings::ABSORPTION_CHROMATOGRAM);
+          chromatogram_.setChromatogramType(ChromatogramSettings::ChromatogramType::ABSORPTION_CHROMATOGRAM);
         }
         else if (accession == "MS:1000813")
         {
-          chromatogram_.setChromatogramType(ChromatogramSettings::EMISSION_CHROMATOGRAM);
+          chromatogram_.setChromatogramType(ChromatogramSettings::ChromatogramType::EMISSION_CHROMATOGRAM);
         }
         else if (accession == "MS:1000809")
         {
@@ -3625,11 +3625,11 @@ namespace OpenMS::Internal
     {
       os << "\t\t\t<sourceFile id=\"" << id << "\" name=\"" << writeXMLEscape(source_file.getNameOfFile()) << "\" location=\"" << writeXMLEscape(source_file.getPathToFile()) << "\">\n";
       //checksum
-      if (source_file.getChecksumType() == SourceFile::SHA1)
+      if (source_file.getChecksumType() == SourceFile::ChecksumType::SHA1)
       {
         os << "\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000569\" name=\"SHA-1\" value=\"" << source_file.getChecksum() << "\" />\n";
       }
-      else if (source_file.getChecksumType() == SourceFile::MD5)
+      else if (source_file.getChecksumType() == SourceFile::ChecksumType::MD5)
       {
         os << "\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000568\" name=\"MD5\" value=\"" << source_file.getChecksum() << "\" />\n";
       }
@@ -4115,63 +4115,63 @@ namespace OpenMS::Internal
       {
         ++file_content[exp[i].getInstrumentSettings().getScanMode()];
       }
-      if (file_content.find(InstrumentSettings::MASSSPECTRUM) != file_content.end())
+      if (file_content.find(InstrumentSettings::ScanMode::MASSSPECTRUM) != file_content.end())
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000294\" name=\"mass spectrum\" />\n";
       }
-      if (file_content.find(InstrumentSettings::MS1SPECTRUM) != file_content.end())
+      if (file_content.find(InstrumentSettings::ScanMode::MS1SPECTRUM) != file_content.end())
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000579\" name=\"MS1 spectrum\" />\n";
       }
-      if (file_content.find(InstrumentSettings::MSNSPECTRUM) != file_content.end())
+      if (file_content.find(InstrumentSettings::ScanMode::MSNSPECTRUM) != file_content.end())
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000580\" name=\"MSn spectrum\" />\n";
       }
-      if (file_content.find(InstrumentSettings::SIM) != file_content.end())
+      if (file_content.find(InstrumentSettings::ScanMode::SIM) != file_content.end())
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000582\" name=\"SIM spectrum\" />\n";
       }
-      if (file_content.find(InstrumentSettings::SRM) != file_content.end())
+      if (file_content.find(InstrumentSettings::ScanMode::SRM) != file_content.end())
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000583\" name=\"SRM spectrum\" />\n";
       }
-      if (file_content.find(InstrumentSettings::CRM) != file_content.end())
+      if (file_content.find(InstrumentSettings::ScanMode::CRM) != file_content.end())
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000581\" name=\"CRM spectrum\" />\n";
       }
-      if (file_content.find(InstrumentSettings::PRECURSOR) != file_content.end())
+      if (file_content.find(InstrumentSettings::ScanMode::PRECURSOR) != file_content.end())
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000341\" name=\"precursor ion spectrum\" />\n";
       }
-      if (file_content.find(InstrumentSettings::CNG) != file_content.end())
+      if (file_content.find(InstrumentSettings::ScanMode::CNG) != file_content.end())
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000325\" name=\"constant neutral gain spectrum\" />\n";
       }
-      if (file_content.find(InstrumentSettings::CNL) != file_content.end())
+      if (file_content.find(InstrumentSettings::ScanMode::CNL) != file_content.end())
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000326\" name=\"constant neutral loss spectrum\" />\n";
       }
-      if (file_content.find(InstrumentSettings::EMR) != file_content.end())
+      if (file_content.find(InstrumentSettings::ScanMode::EMR) != file_content.end())
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000804\" name=\"electromagnetic radiation spectrum\" />\n";
       }
-      if (file_content.find(InstrumentSettings::EMISSION) != file_content.end())
+      if (file_content.find(InstrumentSettings::ScanMode::EMISSION) != file_content.end())
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000805\" name=\"emission spectrum\" />\n";
       }
-      if (file_content.find(InstrumentSettings::ABSORPTION) != file_content.end())
+      if (file_content.find(InstrumentSettings::ScanMode::ABSORPTION) != file_content.end())
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000806\" name=\"absorption spectrum\" />\n";
       }
-      if (file_content.find(InstrumentSettings::EMC) != file_content.end())
+      if (file_content.find(InstrumentSettings::ScanMode::EMC) != file_content.end())
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000789\" name=\"enhanced multiply charged spectrum\" />\n";
       }
-      if (file_content.find(InstrumentSettings::TDF) != file_content.end())
+      if (file_content.find(InstrumentSettings::ScanMode::TDF) != file_content.end())
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000789\" name=\"time-delayed fragmentation spectrum\" />\n";
       }
-      if (file_content.find(InstrumentSettings::UNKNOWN) != file_content.end() || file_content.empty())
+      if (file_content.find(InstrumentSettings::ScanMode::UNKNOWN) != file_content.end() || file_content.empty())
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000294\" name=\"mass spectrum\" />\n";
       }
@@ -4400,47 +4400,47 @@ namespace OpenMS::Internal
       }
 
       //ion optics
-      if (in.getIonOptics() == Instrument::MAGNETIC_DEFLECTION)
+      if (in.getIonOptics() == Instrument::IonOpticsType::MAGNETIC_DEFLECTION)
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000221\" name=\"magnetic deflection\" />\n";
       }
-      else if (in.getIonOptics() == Instrument::DELAYED_EXTRACTION)
+      else if (in.getIonOptics() == Instrument::IonOpticsType::DELAYED_EXTRACTION)
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000246\" name=\"delayed extraction\" />\n";
       }
-      else if (in.getIonOptics() == Instrument::COLLISION_QUADRUPOLE)
+      else if (in.getIonOptics() == Instrument::IonOpticsType::COLLISION_QUADRUPOLE)
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000275\" name=\"collision quadrupole\" />\n";
       }
-      else if (in.getIonOptics() == Instrument::SELECTED_ION_FLOW_TUBE)
+      else if (in.getIonOptics() == Instrument::IonOpticsType::SELECTED_ION_FLOW_TUBE)
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000281\" name=\"selected ion flow tube\" />\n";
       }
-      else if (in.getIonOptics() == Instrument::TIME_LAG_FOCUSING)
+      else if (in.getIonOptics() == Instrument::IonOpticsType::TIME_LAG_FOCUSING)
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000286\" name=\"time lag focusing\" />\n";
       }
-      else if (in.getIonOptics() == Instrument::REFLECTRON)
+      else if (in.getIonOptics() == Instrument::IonOpticsType::REFLECTRON)
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000300\" name=\"reflectron\" />\n";
       }
-      else if (in.getIonOptics() == Instrument::EINZEL_LENS)
+      else if (in.getIonOptics() == Instrument::IonOpticsType::EINZEL_LENS)
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000307\" name=\"einzel lens\" />\n";
       }
-      else if (in.getIonOptics() == Instrument::FIRST_STABILITY_REGION)
+      else if (in.getIonOptics() == Instrument::IonOpticsType::FIRST_STABILITY_REGION)
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000309\" name=\"first stability region\" />\n";
       }
-      else if (in.getIonOptics() == Instrument::FRINGING_FIELD)
+      else if (in.getIonOptics() == Instrument::IonOpticsType::FRINGING_FIELD)
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000310\" name=\"fringing field\" />\n";
       }
-      else if (in.getIonOptics() == Instrument::KINETIC_ENERGY_ANALYZER)
+      else if (in.getIonOptics() == Instrument::IonOpticsType::KINETIC_ENERGY_ANALYZER)
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000311\" name=\"kinetic energy analyzer\" />\n";
       }
-      else if (in.getIonOptics() == Instrument::STATIC_FIELD)
+      else if (in.getIonOptics() == Instrument::IonOpticsType::STATIC_FIELD)
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000320\" name=\"static field\" />\n";
       }
@@ -4458,260 +4458,260 @@ namespace OpenMS::Internal
           const IonSource& so = in.getIonSources()[i];
           os << "\t\t\t\t<source order=\"" << so.getOrder() << "\">\n";
 
-          if (so.getInletType() == IonSource::CONTINUOUSFLOWFASTATOMBOMBARDMENT)
+          if (so.getInletType() == IonSource::InletType::CONTINUOUSFLOWFASTATOMBOMBARDMENT)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000055\" name=\"continuous flow fast atom bombardment\" />\n";
           }
-          else if (so.getInletType() == IonSource::DIRECT)
+          else if (so.getInletType() == IonSource::InletType::DIRECT)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000056\" name=\"direct inlet\" />\n";
           }
-          else if (so.getInletType() == IonSource::ELECTROSPRAYINLET)
+          else if (so.getInletType() == IonSource::InletType::ELECTROSPRAYINLET)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000057\" name=\"electrospray inlet\" />\n";
           }
-          else if (so.getInletType() == IonSource::FLOWINJECTIONANALYSIS)
+          else if (so.getInletType() == IonSource::InletType::FLOWINJECTIONANALYSIS)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000058\" name=\"flow injection analysis\" />\n";
           }
-          else if (so.getInletType() == IonSource::INDUCTIVELYCOUPLEDPLASMA)
+          else if (so.getInletType() == IonSource::InletType::INDUCTIVELYCOUPLEDPLASMA)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000059\" name=\"inductively coupled plasma\" />\n";
           }
-          else if (so.getInletType() == IonSource::INFUSION)
+          else if (so.getInletType() == IonSource::InletType::INFUSION)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000060\" name=\"infusion\" />\n";
           }
-          else if (so.getInletType() == IonSource::JETSEPARATOR)
+          else if (so.getInletType() == IonSource::InletType::JETSEPARATOR)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000061\" name=\"jet separator\" />\n";
           }
-          else if (so.getInletType() == IonSource::MEMBRANESEPARATOR)
+          else if (so.getInletType() == IonSource::InletType::MEMBRANESEPARATOR)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000062\" name=\"membrane separator\" />\n";
           }
-          else if (so.getInletType() == IonSource::MOVINGBELT)
+          else if (so.getInletType() == IonSource::InletType::MOVINGBELT)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000063\" name=\"moving belt\" />\n";
           }
-          else if (so.getInletType() == IonSource::MOVINGWIRE)
+          else if (so.getInletType() == IonSource::InletType::MOVINGWIRE)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000064\" name=\"moving wire\" />\n";
           }
-          else if (so.getInletType() == IonSource::OPENSPLIT)
+          else if (so.getInletType() == IonSource::InletType::OPENSPLIT)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000065\" name=\"open split\" />\n";
           }
-          else if (so.getInletType() == IonSource::PARTICLEBEAM)
+          else if (so.getInletType() == IonSource::InletType::PARTICLEBEAM)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000066\" name=\"particle beam\" />\n";
           }
-          else if (so.getInletType() == IonSource::RESERVOIR)
+          else if (so.getInletType() == IonSource::InletType::RESERVOIR)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000067\" name=\"reservoir\" />\n";
           }
-          else if (so.getInletType() == IonSource::SEPTUM)
+          else if (so.getInletType() == IonSource::InletType::SEPTUM)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000068\" name=\"septum\" />\n";
           }
-          else if (so.getInletType() == IonSource::THERMOSPRAYINLET)
+          else if (so.getInletType() == IonSource::InletType::THERMOSPRAYINLET)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000069\" name=\"thermospray inlet\" />\n";
           }
-          else if (so.getInletType() == IonSource::BATCH)
+          else if (so.getInletType() == IonSource::InletType::BATCH)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000248\" name=\"direct insertion probe\" />\n";
           }
-          else if (so.getInletType() == IonSource::CHROMATOGRAPHY)
+          else if (so.getInletType() == IonSource::InletType::CHROMATOGRAPHY)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000249\" name=\"direct liquid introduction\" />\n";
           }
-          else if (so.getInletType() == IonSource::MEMBRANE)
+          else if (so.getInletType() == IonSource::InletType::MEMBRANE)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000396\" name=\"membrane inlet\" />\n";
           }
-          else if (so.getInletType() == IonSource::NANOSPRAY)
+          else if (so.getInletType() == IonSource::InletType::NANOSPRAY)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000485\" name=\"nanospray inlet\" />\n";
           }
 
-          if (so.getIonizationMethod() == IonSource::APCI)
+          if (so.getIonizationMethod() == IonSource::IonizationMethod::APCI)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000070\" name=\"atmospheric pressure chemical ionization\" />\n";
           }
-          else if (so.getIonizationMethod() == IonSource::CI)
+          else if (so.getIonizationMethod() == IonSource::IonizationMethod::CI)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000071\" name=\"chemical ionization\" />\n";
           }
-          else if (so.getIonizationMethod() == IonSource::ESI)
+          else if (so.getIonizationMethod() == IonSource::IonizationMethod::ESI)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000073\" name=\"electrospray ionization\" />\n";
           }
-          else if (so.getIonizationMethod() == IonSource::FAB)
+          else if (so.getIonizationMethod() == IonSource::IonizationMethod::FAB)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000074\" name=\"fast atom bombardment ionization\" />\n";
           }
-          else if (so.getIonizationMethod() == IonSource::MALDI)
+          else if (so.getIonizationMethod() == IonSource::IonizationMethod::MALDI)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000075\" name=\"matrix-assisted laser desorption ionization\" />\n";
           }
-          else if (so.getIonizationMethod() == IonSource::MPI)
+          else if (so.getIonizationMethod() == IonSource::IonizationMethod::MPI)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000227\" name=\"multiphoton ionization\" />\n";
           }
-          else if (so.getIonizationMethod() == IonSource::AP_MALDI)
+          else if (so.getIonizationMethod() == IonSource::IonizationMethod::AP_MALDI)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000239\" name=\"atmospheric pressure matrix-assisted laser desorption ionization\" />\n";
           }
-          else if (so.getIonizationMethod() == IonSource::API)
+          else if (so.getIonizationMethod() == IonSource::IonizationMethod::API)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000240\" name=\"atmospheric pressure ionization\" />\n";
           }
-          else if (so.getIonizationMethod() == IonSource::DI)
+          else if (so.getIonizationMethod() == IonSource::IonizationMethod::DI)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000247\" name=\"desorption ionization\" />\n";
           }
-          else if (so.getIonizationMethod() == IonSource::FA)
+          else if (so.getIonizationMethod() == IonSource::IonizationMethod::FA)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000255\" name=\"flowing afterglow\" />\n";
           }
-          else if (so.getIonizationMethod() == IonSource::FD)
+          else if (so.getIonizationMethod() == IonSource::IonizationMethod::FD)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000257\" name=\"field desorption\" />\n";
           }
-          else if (so.getIonizationMethod() == IonSource::FI)
+          else if (so.getIonizationMethod() == IonSource::IonizationMethod::FI)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000258\" name=\"field ionization\" />\n";
           }
-          else if (so.getIonizationMethod() == IonSource::GD_MS)
+          else if (so.getIonizationMethod() == IonSource::IonizationMethod::GD_MS)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000259\" name=\"glow discharge ionization\" />\n";
           }
-          else if (so.getIonizationMethod() == IonSource::NICI)
+          else if (so.getIonizationMethod() == IonSource::IonizationMethod::NICI)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000271\" name=\"Negative ion chemical ionization\" />\n";
           }
-          else if (so.getIonizationMethod() == IonSource::NRMS)
+          else if (so.getIonizationMethod() == IonSource::IonizationMethod::NRMS)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000272\" name=\"neutralization reionization mass spectrometry\" />\n";
           }
-          else if (so.getIonizationMethod() == IonSource::PI)
+          else if (so.getIonizationMethod() == IonSource::IonizationMethod::PI)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000273\" name=\"photoionization\" />\n";
           }
-          else if (so.getIonizationMethod() == IonSource::PYMS)
+          else if (so.getIonizationMethod() == IonSource::IonizationMethod::PYMS)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000274\" name=\"pyrolysis mass spectrometry\" />\n";
           }
-          else if (so.getIonizationMethod() == IonSource::REMPI)
+          else if (so.getIonizationMethod() == IonSource::IonizationMethod::REMPI)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000276\" name=\"resonance enhanced multiphoton ionization\" />\n";
           }
-          else if (so.getIonizationMethod() == IonSource::SELDI)
+          else if (so.getIonizationMethod() == IonSource::IonizationMethod::SELDI)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000278\" name=\"surface enhanced laser desorption ionization\" />\n";
           }
-          else if (so.getIonizationMethod() == IonSource::SEND)
+          else if (so.getIonizationMethod() == IonSource::IonizationMethod::SEND)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000279\" name=\"surface enhanced neat desorption\" />\n";
           }
-          else if (so.getIonizationMethod() == IonSource::AI)
+          else if (so.getIonizationMethod() == IonSource::IonizationMethod::AI)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000380\" name=\"adiabatic ionization\" />\n";
           }
-          else if (so.getIonizationMethod() == IonSource::ASI)
+          else if (so.getIonizationMethod() == IonSource::IonizationMethod::ASI)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000381\" name=\"associative ionization\" />\n";
           }
-          else if (so.getIonizationMethod() == IonSource::APPI)
+          else if (so.getIonizationMethod() == IonSource::IonizationMethod::APPI)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000382\" name=\"atmospheric pressure photoionization\" />\n";
           }
-          else if (so.getIonizationMethod() == IonSource::AD)
+          else if (so.getIonizationMethod() == IonSource::IonizationMethod::AD)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000383\" name=\"autodetachment\" />\n";
           }
-          else if (so.getIonizationMethod() == IonSource::AUI)
+          else if (so.getIonizationMethod() == IonSource::IonizationMethod::AUI)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000384\" name=\"autoionization\" />\n";
           }
-          else if (so.getIonizationMethod() == IonSource::CEI)
+          else if (so.getIonizationMethod() == IonSource::IonizationMethod::CEI)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000385\" name=\"charge exchange ionization\" />\n";
           }
-          else if (so.getIonizationMethod() == IonSource::CHEMI)
+          else if (so.getIonizationMethod() == IonSource::IonizationMethod::CHEMI)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000386\" name=\"chemi-ionization\" />\n";
           }
-          else if (so.getIonizationMethod() == IonSource::SILI)
+          else if (so.getIonizationMethod() == IonSource::IonizationMethod::SILI)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000387\" name=\"desorption/ionization on silicon\" />\n";
           }
-          else if (so.getIonizationMethod() == IonSource::DISSI)
+          else if (so.getIonizationMethod() == IonSource::IonizationMethod::DISSI)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000388\" name=\"dissociative ionization\" />\n";
           }
-          else if (so.getIonizationMethod() == IonSource::EI)
+          else if (so.getIonizationMethod() == IonSource::IonizationMethod::EI)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000389\" name=\"electron ionization\" />\n";
           }
-          else if (so.getIonizationMethod() == IonSource::LD)
+          else if (so.getIonizationMethod() == IonSource::IonizationMethod::LD)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000393\" name=\"laser desorption ionization\" />\n";
           }
-          else if (so.getIonizationMethod() == IonSource::LSI)
+          else if (so.getIonizationMethod() == IonSource::IonizationMethod::LSI)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000395\" name=\"liquid secondary ionization\" />\n";
           }
-          else if (so.getIonizationMethod() == IonSource::MESI)
+          else if (so.getIonizationMethod() == IonSource::IonizationMethod::MESI)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000397\" name=\"microelectrospray\" />\n";
           }
-          else if (so.getIonizationMethod() == IonSource::NESI)
+          else if (so.getIonizationMethod() == IonSource::IonizationMethod::NESI)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000398\" name=\"nanoelectrospray\" />\n";
           }
-          else if (so.getIonizationMethod() == IonSource::PEI)
+          else if (so.getIonizationMethod() == IonSource::IonizationMethod::PEI)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000399\" name=\"penning ionization\" />\n";
           }
-          else if (so.getIonizationMethod() == IonSource::PD)
+          else if (so.getIonizationMethod() == IonSource::IonizationMethod::PD)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000400\" name=\"plasma desorption ionization\" />\n";
           }
-          else if (so.getIonizationMethod() == IonSource::SI)
+          else if (so.getIonizationMethod() == IonSource::IonizationMethod::SI)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000402\" name=\"secondary ionization\" />\n";
           }
-          else if (so.getIonizationMethod() == IonSource::SOI)
+          else if (so.getIonizationMethod() == IonSource::IonizationMethod::SOI)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000403\" name=\"soft ionization\" />\n";
           }
-          else if (so.getIonizationMethod() == IonSource::SPI)
+          else if (so.getIonizationMethod() == IonSource::IonizationMethod::SPI)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000404\" name=\"spark ionization\" />\n";
           }
-          else if (so.getIonizationMethod() == IonSource::SALDI)
+          else if (so.getIonizationMethod() == IonSource::IonizationMethod::SALDI)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000405\" name=\"surface-assisted laser desorption ionization\" />\n";
           }
-          else if (so.getIonizationMethod() == IonSource::SUI)
+          else if (so.getIonizationMethod() == IonSource::IonizationMethod::SUI)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000406\" name=\"surface ionization\" />\n";
           }
-          else if (so.getIonizationMethod() == IonSource::TI)
+          else if (so.getIonizationMethod() == IonSource::IonizationMethod::TI)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000407\" name=\"thermal ionization\" />\n";
           }
-          else if (so.getIonizationMethod() == IonSource::VI)
+          else if (so.getIonizationMethod() == IonSource::IonizationMethod::VI)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000408\" name=\"vertical ionization\" />\n";
           }
-          else if (so.getIonizationMethod() == IonSource::FIB)
+          else if (so.getIonizationMethod() == IonSource::IonizationMethod::FIB)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000446\" name=\"fast ion bombardment\" />\n";
           }
-          else if (so.getIonizationMethod() == IonSource::IONMETHODNULL)
+          else if (so.getIonizationMethod() == IonSource::IonizationMethod::IONMETHODNULL)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000008\" name=\"ionization type\" />\n";
           }
@@ -4741,69 +4741,69 @@ namespace OpenMS::Internal
           os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000024\" name=\"final MS exponent\" value=\"" << ma.getFinalMSExponent() << "\" />\n";
           os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000025\" name=\"magnetic field strength\" value=\"" << ma.getMagneticFieldStrength() << "\" unitAccession=\"UO:0000228\" unitName=\"tesla\" unitCvRef=\"UO\" />\n";
 
-          if (ma.getReflectronState() == MassAnalyzer::ON)
+          if (ma.getReflectronState() == MassAnalyzer::ReflectronState::ON)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000106\" name=\"reflectron on\" />\n";
 
           }
-          else if (ma.getReflectronState() == MassAnalyzer::OFF)
+          else if (ma.getReflectronState() == MassAnalyzer::ReflectronState::OFF)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000105\" name=\"reflectron off\" />\n";
           }
 
-          if (ma.getType() == MassAnalyzer::FOURIERTRANSFORM)
+          if (ma.getType() == MassAnalyzer::AnalyzerType::FOURIERTRANSFORM)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000079\" name=\"fourier transform ion cyclotron resonance mass spectrometer\" />\n";
           }
-          else if (ma.getType() == MassAnalyzer::SECTOR)
+          else if (ma.getType() == MassAnalyzer::AnalyzerType::SECTOR)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000080\" name=\"magnetic sector\" />\n";
           }
-          else if (ma.getType() == MassAnalyzer::QUADRUPOLE)
+          else if (ma.getType() == MassAnalyzer::AnalyzerType::QUADRUPOLE)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000081\" name=\"quadrupole\" />\n";
           }
-          else if (ma.getType() == MassAnalyzer::TOF)
+          else if (ma.getType() == MassAnalyzer::AnalyzerType::TOF)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000084\" name=\"time-of-flight\" />\n";
           }
-          else if (ma.getType() == MassAnalyzer::ESA)
+          else if (ma.getType() == MassAnalyzer::AnalyzerType::ESA)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000254\" name=\"electrostatic energy analyzer\" />\n";
           }
-          else if (ma.getType() == MassAnalyzer::IT)
+          else if (ma.getType() == MassAnalyzer::AnalyzerType::IT)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000264\" name=\"ion trap\" />\n";
           }
-          else if (ma.getType() == MassAnalyzer::SWIFT)
+          else if (ma.getType() == MassAnalyzer::AnalyzerType::SWIFT)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000284\" name=\"stored waveform inverse fourier transform\" />\n";
           }
-          else if (ma.getType() == MassAnalyzer::CYCLOTRON)
+          else if (ma.getType() == MassAnalyzer::AnalyzerType::CYCLOTRON)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000288\" name=\"cyclotron\" />\n";
           }
-          else if (ma.getType() == MassAnalyzer::ORBITRAP)
+          else if (ma.getType() == MassAnalyzer::AnalyzerType::ORBITRAP)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000484\" name=\"orbitrap\" />\n";
           }
-          else if (ma.getType() == MassAnalyzer::AXIALEJECTIONLINEARIONTRAP)
+          else if (ma.getType() == MassAnalyzer::AnalyzerType::AXIALEJECTIONLINEARIONTRAP)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000078\" name=\"axial ejection linear ion trap\" />\n";
           }
-          else if (ma.getType() == MassAnalyzer::PAULIONTRAP)
+          else if (ma.getType() == MassAnalyzer::AnalyzerType::PAULIONTRAP)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000082\" name=\"quadrupole ion trap\" />\n";
           }
-          else if (ma.getType() == MassAnalyzer::RADIALEJECTIONLINEARIONTRAP)
+          else if (ma.getType() == MassAnalyzer::AnalyzerType::RADIALEJECTIONLINEARIONTRAP)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000083\" name=\"radial ejection linear ion trap\" />\n";
           }
-          else if (ma.getType() == MassAnalyzer::LIT)
+          else if (ma.getType() == MassAnalyzer::AnalyzerType::LIT)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000291\" name=\"linear ion trap\" />\n";
           }
-          else if (ma.getType() == MassAnalyzer::ANALYZERNULL)
+          else if (ma.getType() == MassAnalyzer::AnalyzerType::ANALYZERNULL)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000443\" name=\"mass analyzer type\" />\n";
           }
@@ -4830,104 +4830,104 @@ namespace OpenMS::Internal
           os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000028\" name=\"detector resolution\" value=\"" << id.getResolution() << "\" />\n";
           os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000029\" name=\"sampling frequency\" value=\"" << id.getADCSamplingFrequency() << "\" unitAccession=\"UO:0000106\" unitName=\"hertz\" unitCvRef=\"UO\" />\n";
 
-          if (id.getAcquisitionMode() == IonDetector::ADC)
+          if (id.getAcquisitionMode() == IonDetector::AcquisitionMode::ADC)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000117\" name=\"analog-digital converter\" />\n";
           }
-          else if (id.getAcquisitionMode() == IonDetector::PULSECOUNTING)
+          else if (id.getAcquisitionMode() == IonDetector::AcquisitionMode::PULSECOUNTING)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000118\" name=\"pulse counting\" />\n";
           }
-          else if (id.getAcquisitionMode() == IonDetector::TDC)
+          else if (id.getAcquisitionMode() == IonDetector::AcquisitionMode::TDC)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000119\" name=\"time-digital converter\" />\n";
           }
-          else if (id.getAcquisitionMode() == IonDetector::TRANSIENTRECORDER)
+          else if (id.getAcquisitionMode() == IonDetector::AcquisitionMode::TRANSIENTRECORDER)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000120\" name=\"transient recorder\" />\n";
           }
 
-          if (id.getType() == IonDetector::CHANNELTRON)
+          if (id.getType() == IonDetector::Type::CHANNELTRON)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000107\" name=\"channeltron\" />\n";
           }
-          else if (id.getType() == IonDetector::DALYDETECTOR)
+          else if (id.getType() == IonDetector::Type::DALYDETECTOR)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000110\" name=\"daly detector\" />\n";
           }
-          else if (id.getType() == IonDetector::FARADAYCUP)
+          else if (id.getType() == IonDetector::Type::FARADAYCUP)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000112\" name=\"faraday cup\" />\n";
           }
-          else if (id.getType() == IonDetector::MICROCHANNELPLATEDETECTOR)
+          else if (id.getType() == IonDetector::Type::MICROCHANNELPLATEDETECTOR)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000114\" name=\"microchannel plate detector\" />\n";
           }
-          else if (id.getType() == IonDetector::MULTICOLLECTOR)
+          else if (id.getType() == IonDetector::Type::MULTICOLLECTOR)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000115\" name=\"multi-collector\" />\n";
           }
-          else if (id.getType() == IonDetector::PHOTOMULTIPLIER)
+          else if (id.getType() == IonDetector::Type::PHOTOMULTIPLIER)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000116\" name=\"photomultiplier\" />\n";
           }
-          else if (id.getType() == IonDetector::ELECTRONMULTIPLIER)
+          else if (id.getType() == IonDetector::Type::ELECTRONMULTIPLIER)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000253\" name=\"electron multiplier\" />\n";
           }
-          else if (id.getType() == IonDetector::ARRAYDETECTOR)
+          else if (id.getType() == IonDetector::Type::ARRAYDETECTOR)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000345\" name=\"array detector\" />\n";
           }
-          else if (id.getType() == IonDetector::CONVERSIONDYNODE)
+          else if (id.getType() == IonDetector::Type::CONVERSIONDYNODE)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000346\" name=\"conversion dynode\" />\n";
           }
-          else if (id.getType() == IonDetector::DYNODE)
+          else if (id.getType() == IonDetector::Type::DYNODE)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000347\" name=\"dynode\" />\n";
           }
-          else if (id.getType() == IonDetector::FOCALPLANECOLLECTOR)
+          else if (id.getType() == IonDetector::Type::FOCALPLANECOLLECTOR)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000348\" name=\"focal plane collector\" />\n";
           }
-          else if (id.getType() == IonDetector::IONTOPHOTONDETECTOR)
+          else if (id.getType() == IonDetector::Type::IONTOPHOTONDETECTOR)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000349\" name=\"ion-to-photon detector\" />\n";
           }
-          else if (id.getType() == IonDetector::POINTCOLLECTOR)
+          else if (id.getType() == IonDetector::Type::POINTCOLLECTOR)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000350\" name=\"point collector\" />\n";
           }
-          else if (id.getType() == IonDetector::POSTACCELERATIONDETECTOR)
+          else if (id.getType() == IonDetector::Type::POSTACCELERATIONDETECTOR)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000351\" name=\"postacceleration detector\" />\n";
           }
-          else if (id.getType() == IonDetector::PHOTODIODEARRAYDETECTOR)
+          else if (id.getType() == IonDetector::Type::PHOTODIODEARRAYDETECTOR)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000621\" name=\"photodiode array detector\" />\n";
           }
-          else if (id.getType() == IonDetector::INDUCTIVEDETECTOR)
+          else if (id.getType() == IonDetector::Type::INDUCTIVEDETECTOR)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000624\" name=\"inductive detector\" />\n";
           }
-          else if (id.getType() == IonDetector::CONVERSIONDYNODEELECTRONMULTIPLIER)
+          else if (id.getType() == IonDetector::Type::CONVERSIONDYNODEELECTRONMULTIPLIER)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000108\" name=\"conversion dynode electron multiplier\" />\n";
           }
-          else if (id.getType() == IonDetector::CONVERSIONDYNODEPHOTOMULTIPLIER)
+          else if (id.getType() == IonDetector::Type::CONVERSIONDYNODEPHOTOMULTIPLIER)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000109\" name=\"conversion dynode photomultiplier\" />\n";
           }
-          else if (id.getType() == IonDetector::ELECTRONMULTIPLIERTUBE)
+          else if (id.getType() == IonDetector::Type::ELECTRONMULTIPLIERTUBE)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000111\" name=\"electron multiplier tube\" />\n";
           }
-          else if (id.getType() == IonDetector::FOCALPLANEARRAY)
+          else if (id.getType() == IonDetector::Type::FOCALPLANEARRAY)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000113\" name=\"focal plane array\" />\n";
           }
-          else if (id.getType() == IonDetector::TYPENULL)
+          else if (id.getType() == IonDetector::Type::TYPENULL)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000026\" name=\"detector type\" />\n";
           }
@@ -5066,11 +5066,11 @@ namespace OpenMS::Internal
       os << ">\n";
 
       //spectrum representation
-      if (spec.getType() == SpectrumSettings::CENTROID)
+      if (spec.getType() == SpectrumSettings::SpectrumType::CENTROID)
       {
         os << "\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000127\" name=\"centroid spectrum\" />\n";
       }
-      else if (spec.getType() == SpectrumSettings::PROFILE)
+      else if (spec.getType() == SpectrumSettings::SpectrumType::PROFILE)
       {
         os << "\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000128\" name=\"profile spectrum\" />\n";
       }
@@ -5092,59 +5092,59 @@ namespace OpenMS::Internal
       }
 
       //spectrum type
-      if (spec.getInstrumentSettings().getScanMode() == InstrumentSettings::MASSSPECTRUM)
+      if (spec.getInstrumentSettings().getScanMode() == InstrumentSettings::ScanMode::MASSSPECTRUM)
       {
         os << "\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000294\" name=\"mass spectrum\" />\n";
       }
-      else if (spec.getInstrumentSettings().getScanMode() == InstrumentSettings::MS1SPECTRUM)
+      else if (spec.getInstrumentSettings().getScanMode() == InstrumentSettings::ScanMode::MS1SPECTRUM)
       {
         os << "\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000579\" name=\"MS1 spectrum\" />\n";
       }
-      else if (spec.getInstrumentSettings().getScanMode() == InstrumentSettings::MSNSPECTRUM)
+      else if (spec.getInstrumentSettings().getScanMode() == InstrumentSettings::ScanMode::MSNSPECTRUM)
       {
         os << "\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000580\" name=\"MSn spectrum\" />\n";
       }
-      else if (spec.getInstrumentSettings().getScanMode() == InstrumentSettings::SIM)
+      else if (spec.getInstrumentSettings().getScanMode() == InstrumentSettings::ScanMode::SIM)
       {
         os << "\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000582\" name=\"SIM spectrum\" />\n";
       }
-      else if (spec.getInstrumentSettings().getScanMode() == InstrumentSettings::SRM)
+      else if (spec.getInstrumentSettings().getScanMode() == InstrumentSettings::ScanMode::SRM)
       {
         os << "\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000583\" name=\"SRM spectrum\" />\n";
       }
-      else if (spec.getInstrumentSettings().getScanMode() == InstrumentSettings::CRM)
+      else if (spec.getInstrumentSettings().getScanMode() == InstrumentSettings::ScanMode::CRM)
       {
         os << "\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000581\" name=\"CRM spectrum\" />\n";
       }
-      else if (spec.getInstrumentSettings().getScanMode() == InstrumentSettings::PRECURSOR)
+      else if (spec.getInstrumentSettings().getScanMode() == InstrumentSettings::ScanMode::PRECURSOR)
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000341\" name=\"precursor ion spectrum\" />\n";
       }
-      else if (spec.getInstrumentSettings().getScanMode() == InstrumentSettings::CNG)
+      else if (spec.getInstrumentSettings().getScanMode() == InstrumentSettings::ScanMode::CNG)
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000325\" name=\"constant neutral gain spectrum\" />\n";
       }
-      else if (spec.getInstrumentSettings().getScanMode() == InstrumentSettings::CNL)
+      else if (spec.getInstrumentSettings().getScanMode() == InstrumentSettings::ScanMode::CNL)
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000326\" name=\"constant neutral loss spectrum\" />\n";
       }
-      else if (spec.getInstrumentSettings().getScanMode() == InstrumentSettings::EMR)
+      else if (spec.getInstrumentSettings().getScanMode() == InstrumentSettings::ScanMode::EMR)
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000804\" name=\"electromagnetic radiation spectrum\" />\n";
       }
-      else if (spec.getInstrumentSettings().getScanMode() == InstrumentSettings::EMISSION)
+      else if (spec.getInstrumentSettings().getScanMode() == InstrumentSettings::ScanMode::EMISSION)
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000805\" name=\"emission spectrum\" />\n";
       }
-      else if (spec.getInstrumentSettings().getScanMode() == InstrumentSettings::ABSORPTION)
+      else if (spec.getInstrumentSettings().getScanMode() == InstrumentSettings::ScanMode::ABSORPTION)
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000806\" name=\"absorption spectrum\" />\n";
       }
-      else if (spec.getInstrumentSettings().getScanMode() == InstrumentSettings::EMC)
+      else if (spec.getInstrumentSettings().getScanMode() == InstrumentSettings::ScanMode::EMC)
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000789\" name=\"enhanced multiply charged spectrum\" />\n";
       }
-      else if (spec.getInstrumentSettings().getScanMode() == InstrumentSettings::TDF)
+      else if (spec.getInstrumentSettings().getScanMode() == InstrumentSettings::ScanMode::TDF)
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000789\" name=\"time-delayed fragmentation spectrum\" />\n";
       }
@@ -5154,11 +5154,11 @@ namespace OpenMS::Internal
       }
 
       //scan polarity
-      if (spec.getInstrumentSettings().getPolarity() == IonSource::NEGATIVE)
+      if (spec.getInstrumentSettings().getPolarity() == IonSource::Polarity::NEGATIVE)
       {
         os << "\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000129\" name=\"negative scan\" />\n";
       }
-      else if (spec.getInstrumentSettings().getPolarity() == IonSource::POSITIVE)
+      else if (spec.getInstrumentSettings().getPolarity() == IonSource::Polarity::POSITIVE)
       {
         os << "\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000130\" name=\"positive scan\" />\n";
       }
@@ -5630,39 +5630,39 @@ namespace OpenMS::Internal
       os << "\t\t\t<chromatogram id=\"" << writeXMLEscape(chromatogram.getNativeID()) << "\" index=\"" << c << "\" defaultArrayLength=\"" << chromatogram.size() << "\">" << "\n";
 
       // write cvParams (chromatogram type)
-      if (chromatogram.getChromatogramType() == ChromatogramSettings::MASS_CHROMATOGRAM)
+      if (chromatogram.getChromatogramType() == ChromatogramSettings::ChromatogramType::MASS_CHROMATOGRAM)
       {
         os << "\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000810\" name=\"ion current chromatogram\" />\n";
       }
-      else if (chromatogram.getChromatogramType() == ChromatogramSettings::TOTAL_ION_CURRENT_CHROMATOGRAM)
+      else if (chromatogram.getChromatogramType() == ChromatogramSettings::ChromatogramType::TOTAL_ION_CURRENT_CHROMATOGRAM)
       {
         os << "\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000235\" name=\"total ion current chromatogram\" />\n";
       }
-      else if (chromatogram.getChromatogramType() == ChromatogramSettings::SELECTED_ION_CURRENT_CHROMATOGRAM)
+      else if (chromatogram.getChromatogramType() == ChromatogramSettings::ChromatogramType::SELECTED_ION_CURRENT_CHROMATOGRAM)
       {
         os << "\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000627\" name=\"selected ion current chromatogram\" />\n";
       }
-      else if (chromatogram.getChromatogramType() == ChromatogramSettings::BASEPEAK_CHROMATOGRAM)
+      else if (chromatogram.getChromatogramType() == ChromatogramSettings::ChromatogramType::BASEPEAK_CHROMATOGRAM)
       {
         os << "\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000628\" name=\"basepeak chromatogram\" />\n";
       }
-      else if (chromatogram.getChromatogramType() == ChromatogramSettings::SELECTED_ION_MONITORING_CHROMATOGRAM)
+      else if (chromatogram.getChromatogramType() == ChromatogramSettings::ChromatogramType::SELECTED_ION_MONITORING_CHROMATOGRAM)
       {
         os << "\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1001472\" name=\"selected ion monitoring chromatogram\" />\n";
       }
-      else if (chromatogram.getChromatogramType() == ChromatogramSettings::SELECTED_REACTION_MONITORING_CHROMATOGRAM)
+      else if (chromatogram.getChromatogramType() == ChromatogramSettings::ChromatogramType::SELECTED_REACTION_MONITORING_CHROMATOGRAM)
       {
         os << "\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1001473\" name=\"selected reaction monitoring chromatogram\" />\n";
       }
-      else if (chromatogram.getChromatogramType() == ChromatogramSettings::ELECTROMAGNETIC_RADIATION_CHROMATOGRAM)
+      else if (chromatogram.getChromatogramType() == ChromatogramSettings::ChromatogramType::ELECTROMAGNETIC_RADIATION_CHROMATOGRAM)
       {
         os << "\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000811\" name=\"electromagnetic radiation chromatogram\" />\n";
       }
-      else if (chromatogram.getChromatogramType() == ChromatogramSettings::ABSORPTION_CHROMATOGRAM)
+      else if (chromatogram.getChromatogramType() == ChromatogramSettings::ChromatogramType::ABSORPTION_CHROMATOGRAM)
       {
         os << "\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000812\" name=\"absorption chromatogram\" />\n";
       }
-      else if (chromatogram.getChromatogramType() == ChromatogramSettings::EMISSION_CHROMATOGRAM)
+      else if (chromatogram.getChromatogramType() == ChromatogramSettings::ChromatogramType::EMISSION_CHROMATOGRAM)
       {
         os << "\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000813\" name=\"emission chromatogram\" />\n";
       }

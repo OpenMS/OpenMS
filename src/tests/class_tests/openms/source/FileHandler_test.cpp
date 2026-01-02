@@ -194,7 +194,7 @@ tmp.getOptions() = PeakFileOptions();
 tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), exp, {FileTypes::MZML}, OpenMS::ProgressLogger::NONE, true, true);
 TEST_EQUAL(exp.size(), 4)
 TEST_STRING_EQUAL(exp.getSourceFiles()[0].getChecksum(), "36007593dbca0ba59a1f4fc32fb970f0e8991fa6")
-TEST_EQUAL(exp.getSourceFiles()[0].getChecksumType(), SourceFile::SHA1)
+TEST_EQUAL(exp.getSourceFiles()[0].getChecksumType(), SourceFile::ChecksumType::SHA1)
 
 tmp.getOptions() = PeakFileOptions();
 tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("DTA2DFile_test_1.dta2d"), exp);
@@ -207,12 +207,12 @@ tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("DTA2DFile_test_1.dta2d"), exp, {Fi
 TEST_REAL_SIMILAR(exp[0][0].getPosition()[0], 430.02)
 TEST_REAL_SIMILAR(exp[0][1].getPosition()[0], 630.02)
 TEST_STRING_EQUAL(exp.getSourceFiles()[0].getChecksum(), "d50d5144cc3805749b9e8d16f3bc8994979d8142")
-TEST_EQUAL(exp.getSourceFiles()[0].getChecksumType(), SourceFile::SHA1)
+TEST_EQUAL(exp.getSourceFiles()[0].getChecksumType(), SourceFile::ChecksumType::SHA1)
 
 // disable hash computation
 tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("DTA2DFile_test_1.dta2d"), exp, {}, ProgressLogger::NONE, true, false);
 TEST_STRING_EQUAL(exp.getSourceFiles()[0].getChecksum(), "")
-TEST_EQUAL(exp.getSourceFiles()[0].getChecksumType(), SourceFile::UNKNOWN_CHECKSUM)
+TEST_EQUAL(exp.getSourceFiles()[0].getChecksumType(), SourceFile::ChecksumType::UNKNOWN_CHECKSUM)
 // Test that we fail if given a known bogus type restriction
 TEST_EXCEPTION(Exception::ParseError, tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("DTA2DFile_test_1.dta2d"), exp, {FileTypes::SIZE_OF_TYPE}, ProgressLogger::NONE, true, false))
 

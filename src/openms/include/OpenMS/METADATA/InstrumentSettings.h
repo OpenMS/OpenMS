@@ -24,7 +24,7 @@ namespace OpenMS
   {
 public:
     /// scan mode
-    enum ScanMode
+    enum class ScanMode
     {
       UNKNOWN,          ///< Unknown scan method
       MASSSPECTRUM,     ///< general spectrum type
@@ -45,7 +45,7 @@ public:
     };
 
     /// Names of scan modes
-    static const std::string NamesOfScanMode[SIZE_OF_SCANMODE];
+    static const std::string NamesOfScanMode[static_cast<size_t>(ScanMode::SIZE_OF_SCANMODE)];
 
     /// returns all scan mode names known to OpenMS
     static StringList getAllNamesOfScanMode();

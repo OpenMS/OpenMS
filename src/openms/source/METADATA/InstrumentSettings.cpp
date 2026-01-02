@@ -18,9 +18,9 @@ namespace OpenMS
 
   InstrumentSettings::InstrumentSettings() :
     MetaInfoInterface(),
-    scan_mode_(UNKNOWN),
+    scan_mode_(ScanMode::UNKNOWN),
     zoom_scan_(false),
-    polarity_(IonSource::POLNULL),
+    polarity_(IonSource::Polarity::POLNULL),
     scan_windows_()
   {
   }
@@ -89,8 +89,8 @@ namespace OpenMS
   StringList InstrumentSettings::getAllNamesOfScanMode()
   {
     StringList names;
-    names.reserve(SIZE_OF_SCANMODE);
-    for (size_t i = 0; i < SIZE_OF_SCANMODE; ++i)
+    names.reserve(static_cast<size_t>(ScanMode::SIZE_OF_SCANMODE));
+    for (size_t i = 0; i < static_cast<size_t>(ScanMode::SIZE_OF_SCANMODE); ++i)
     {
       names.push_back(NamesOfScanMode[i]);
     }

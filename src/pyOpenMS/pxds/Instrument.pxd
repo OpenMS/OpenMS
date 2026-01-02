@@ -49,7 +49,7 @@ cdef extern from "<OpenMS/METADATA/Instrument.h>" namespace "OpenMS":
 
 cdef extern from "<OpenMS/METADATA/Instrument.h>" namespace "OpenMS::Instrument":
 
-    cdef enum IonOpticsType:
+    cdef enum class IonOpticsType "OpenMS::Instrument::IonOpticsType":
         # wrap-attach:
         #    Instrument
         UNKNOWN,                          #< unknown

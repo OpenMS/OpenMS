@@ -664,31 +664,31 @@ START_SECTION((AnnotationStatistics getAnnotationStatistics() const))
 
   fm.push_back(feature1); // single hit
   stats = fm.getAnnotationStatistics();
-  ++res.states[BaseFeature::FEATURE_ID_SINGLE];
+  ++res.states[static_cast<size_t>(BaseFeature::AnnotationState::FEATURE_ID_SINGLE)];
   std::cout << res;
   TEST_TRUE(stats == res)
 
   fm.push_back(feature4); // single hit + no hit
   stats = fm.getAnnotationStatistics();
-  ++res.states[BaseFeature::FEATURE_ID_NONE];
+  ++res.states[static_cast<size_t>(BaseFeature::AnnotationState::FEATURE_ID_NONE)];
   std::cout << res;
   TEST_TRUE(stats == res)
 
   fm.push_back(feature4); // single hit + 2x no hit
   stats = fm.getAnnotationStatistics();
-  ++res.states[BaseFeature::FEATURE_ID_NONE];
+  ++res.states[static_cast<size_t>(BaseFeature::AnnotationState::FEATURE_ID_NONE)];
   std::cout << res;
   TEST_TRUE(stats == res)
 
   fm.push_back(feature2); // single hit + 2x no hit + multi-hit (same)
   stats = fm.getAnnotationStatistics();
-  ++res.states[BaseFeature::FEATURE_ID_MULTIPLE_SAME];
+  ++res.states[static_cast<size_t>(BaseFeature::AnnotationState::FEATURE_ID_MULTIPLE_SAME)];
   std::cout << res;
   TEST_TRUE(stats == res)
 
   fm.push_back(feature3); // single hit + 2x no hit + multi-hit (same) + multi (divergent)
   stats = fm.getAnnotationStatistics();
-  ++res.states[BaseFeature::FEATURE_ID_MULTIPLE_DIVERGENT];
+  ++res.states[static_cast<size_t>(BaseFeature::AnnotationState::FEATURE_ID_MULTIPLE_DIVERGENT)];
   std::cout << res;
   std::cout << stats;
   TEST_TRUE(stats == res)

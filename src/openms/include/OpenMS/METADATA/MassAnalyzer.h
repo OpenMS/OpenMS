@@ -24,7 +24,7 @@ namespace OpenMS
   {
 public:
     /// analyzer type
-    enum AnalyzerType
+    enum class AnalyzerType
     {
       ANALYZERNULL,                 ///< Unknown
       QUADRUPOLE,                   ///< Quadrupole
@@ -44,14 +44,14 @@ public:
       SIZE_OF_ANALYZERTYPE
     };
     /// Names of the analyzer types
-    static const std::string NamesOfAnalyzerType[SIZE_OF_ANALYZERTYPE];
+    static const std::string NamesOfAnalyzerType[static_cast<size_t>(AnalyzerType::SIZE_OF_ANALYZERTYPE)];
 
     /**
         @brief resolution method
 
         Which of the available standard measures is used to define whether two peaks are separate
     */
-    enum ResolutionMethod
+    enum class ResolutionMethod
     {
       RESMETHNULL,                  ///< Unknown
       FWHM,                         ///< Full width at half max
@@ -60,10 +60,10 @@ public:
       SIZE_OF_RESOLUTIONMETHOD
     };
     /// Names of resolution methods
-    static const std::string NamesOfResolutionMethod[SIZE_OF_RESOLUTIONMETHOD];
+    static const std::string NamesOfResolutionMethod[static_cast<size_t>(ResolutionMethod::SIZE_OF_RESOLUTIONMETHOD)];
 
     /// Resolution type
-    enum ResolutionType
+    enum class ResolutionType
     {
       RESTYPENULL,              ///< Unknown
       CONSTANT,                 ///< Constant
@@ -71,10 +71,10 @@ public:
       SIZE_OF_RESOLUTIONTYPE
     };
     /// Names of resolution type
-    static const std::string NamesOfResolutionType[SIZE_OF_RESOLUTIONTYPE];
+    static const std::string NamesOfResolutionType[static_cast<size_t>(ResolutionType::SIZE_OF_RESOLUTIONTYPE)];
 
     /// direction of scanning
-    enum ScanDirection
+    enum class ScanDirection
     {
       SCANDIRNULL,              ///< Unknown
       UP,                       ///< Up
@@ -82,10 +82,10 @@ public:
       SIZE_OF_SCANDIRECTION
     };
     /// Names of direction of scanning
-    static const std::string NamesOfScanDirection[SIZE_OF_SCANDIRECTION];
+    static const std::string NamesOfScanDirection[static_cast<size_t>(ScanDirection::SIZE_OF_SCANDIRECTION)];
 
     ///Scan law
-    enum ScanLaw
+    enum class ScanLaw
     {
       SCANLAWNULL,              ///< Unknown
       EXPONENTIAL,              ///< Unknown
@@ -94,10 +94,10 @@ public:
       SIZE_OF_SCANLAW
     };
     /// Names of scan laws
-    static const std::string NamesOfScanLaw[SIZE_OF_SCANLAW];
+    static const std::string NamesOfScanLaw[static_cast<size_t>(ScanLaw::SIZE_OF_SCANLAW)];
 
     ///Reflectron state
-    enum ReflectronState
+    enum class ReflectronState
     {
       REFLSTATENULL,            ///< Unknown
       ON,                       ///< On
@@ -106,7 +106,7 @@ public:
       SIZE_OF_REFLECTRONSTATE
     };
     /// Names of reflectron states
-    static const std::string NamesOfReflectronState[SIZE_OF_REFLECTRONSTATE];
+    static const std::string NamesOfReflectronState[static_cast<size_t>(ReflectronState::SIZE_OF_REFLECTRONSTATE)];
 
     /// returns all analyzer type names known to OpenMS
     static StringList getAllNamesOfAnalyzerType();
