@@ -34,5 +34,5 @@ cdef extern from "<OpenMS/METADATA/SourceFile.h>" namespace "OpenMS":
         libcpp_vector[String] getAllNamesOfChecksumType() except + nogil  # wrap-doc:Returns all checksum type names known to OpenMS
 
 cdef extern from "<OpenMS/METADATA/SourceFile.h>" namespace "OpenMS::SourceFile":
-    cdef enum ChecksumType:
+    cdef enum class ChecksumType "OpenMS::SourceFile::ChecksumType":
            UNKNOWN_CHECKSUM, SHA1, MD5, SIZE_OF_CHECKSUMTYPE

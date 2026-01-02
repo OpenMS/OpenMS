@@ -63,7 +63,7 @@ END_SECTION
 
 START_SECTION((ScanMode getScanMode() const))
 	InstrumentSettings tmp;
-	TEST_EQUAL(tmp.getScanMode(),InstrumentSettings::UNKNOWN);
+	TEST_EQUAL(tmp.getScanMode(),InstrumentSettings::ScanMode::UNKNOWN);
 END_SECTION
 
 START_SECTION((void setScanMode(ScanMode scan_mode)))
@@ -116,7 +116,7 @@ START_SECTION((InstrumentSettings& operator= (const InstrumentSettings& source))
 	TEST_EQUAL(tmp2.getZoomScan(),true);
   
   tmp2 = InstrumentSettings();
-  TEST_EQUAL(tmp2.getScanMode(),InstrumentSettings::UNKNOWN);
+  TEST_EQUAL(tmp2.getScanMode(),InstrumentSettings::ScanMode::UNKNOWN);
   TEST_EQUAL(tmp2.getScanWindows().size(),0);
   TEST_EQUAL(tmp2.getPolarity(),IonSource::Polarity::POLNULL);  
 	TEST_EQUAL(tmp2.getMetaValue("label").isEmpty(), true);
@@ -176,7 +176,7 @@ END_SECTION
 START_SECTION((static StringList getAllNamesOfScanMode()))
   StringList names = InstrumentSettings::getAllNamesOfScanMode();
   TEST_EQUAL(names.size(), InstrumentSettings::SIZE_OF_SCANMODE);
-  TEST_EQUAL(names[InstrumentSettings::MS1SPECTRUM], "MS1Spectrum");
+  TEST_EQUAL(names[InstrumentSettings::ScanMode::MS1SPECTRUM], "MS1Spectrum");
 END_SECTION
 
 

@@ -55,7 +55,7 @@ namespace OpenMS
 
     if (type_ != rhs.type_)
     {
-      type_ = UNKNOWN;                       // only keep if both are equal
+      type_ = SpectrumType::UNKNOWN;                       // only keep if both are equal
     }
     //native_id_ == rhs.native_id_ // keep
     comment_ += rhs.comment_;        // append
@@ -211,8 +211,8 @@ namespace OpenMS
   StringList SpectrumSettings::getAllNamesOfSpectrumType()
   {
     StringList names;
-    names.reserve(SIZE_OF_SPECTRUMTYPE);
-    for (size_t i = 0; i < SIZE_OF_SPECTRUMTYPE; ++i)
+    names.reserve(static_cast<size_t>(SpectrumType::SIZE_OF_SPECTRUMTYPE));
+    for (size_t i = 0; i < static_cast<size_t>(SpectrumType::SIZE_OF_SPECTRUMTYPE); ++i)
     {
       names.push_back(NamesOfSpectrumType[i]);
     }

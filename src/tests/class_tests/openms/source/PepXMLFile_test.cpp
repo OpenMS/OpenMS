@@ -145,7 +145,7 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
   // search parameters:
   ProteinIdentification::SearchParameters params = proteins[0].getSearchParameters();
   TEST_EQUAL(params.db, "./current.fasta");
-  TEST_EQUAL(params.mass_type, ProteinIdentification::MONOISOTOPIC);
+  TEST_EQUAL(params.mass_type, ProteinIdentification::PeakMassType::MONOISOTOPIC);
   TEST_EQUAL(params.digestion_enzyme.getName(), "Trypsin");
 
   vector<String> fix_mods(params.fixed_modifications), var_mods(params.variable_modifications);

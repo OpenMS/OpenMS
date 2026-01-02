@@ -437,7 +437,7 @@ if (!pi.getHits().empty())
     search_parameters.db = database_name;
     search_parameters.charges = String(precursor_min_charge) + ":" + String(precursor_max_charge);
 
-    ProteinIdentification::PeakMassType mass_type = ProteinIdentification::MONOISOTOPIC;
+    ProteinIdentification::PeakMassType mass_type = ProteinIdentification::PeakMassType::MONOISOTOPIC;
     search_parameters.mass_type = mass_type;
     search_parameters.fixed_modifications = modifications_fixed;
     search_parameters.variable_modifications = modifications_variable;

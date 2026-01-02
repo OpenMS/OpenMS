@@ -1398,13 +1398,13 @@ protected:
         // annotate peak type (profile / centroided) from meta data
         if (level_annotated_picked.count(level) == 0)
         {
-          level_annotated_picked[level] = spectrum.getType(false);
+          level_annotated_picked[level] = static_cast<UInt>(spectrum.getType(false));
         }
 
         // estimate peak type once for every level (take a spectrum with enough peaks for stable estimation)
         if (level_estimated_picked.count(level) == 0 && spectrum.size() > 10)
         {
-          level_estimated_picked[level] = PeakTypeEstimator::estimateType(spectrum.begin(), spectrum.end());
+          level_estimated_picked[level] = static_cast<UInt>(PeakTypeEstimator::estimateType(spectrum.begin(), spectrum.end()));
         }
       }
 
@@ -1527,10 +1527,10 @@ protected:
            << '\n';
         for (std::map<ChromatogramSettings::ChromatogramType, Size>::const_iterator it = chrom_types.begin(); it != chrom_types.end(); ++it)
         {
-          os << String("  ") + ChromatogramSettings::ChromatogramNames[it->first] + ":                         "
+          os << String("  ") + ChromatogramSettings::ChromatogramNames[static_cast<size_t>(it->first)] + ":                         "
              << it->second << '\n';
         }
-        if (getFlag_("d") && chrom_types.find(ChromatogramSettings::SELECTED_REACTION_MONITORING_CHROMATOGRAM) != chrom_types.end())
+        if (getFlag_("d") && chrom_types.find(ChromatogramSettings::ChromatogramType::SELECTED_REACTION_MONITORING_CHROMATOGRAM) != chrom_types.end())
         {
           os << '\n'
              << " -- Detailed chromatogram listing -- "
@@ -1541,7 +1541,7 @@ protected:
              << '\n';
           for (const MSChromatogram& ms : exp.getChromatograms())
           {
-            if (ms.getChromatogramType() == ChromatogramSettings::SELECTED_REACTION_MONITORING_CHROMATOGRAM)
+            if (ms.getChromatogramType() == ChromatogramSettings::ChromatogramType::SELECTED_REACTION_MONITORING_CHROMATOGRAM)
             {
               os << ms.getPrecursor().getMZ() << " " << ms.getProduct().getMZ() << " " << ms.front().getRT() << " " << ms.back().getRT() << " " << ms.getName() << " " << ms.getComment() << '\n';
             }
