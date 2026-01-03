@@ -56,7 +56,7 @@ cdef extern from "<OpenMS/METADATA/SpectrumMetaDataLookup.h>" namespace "OpenMS"
         ###   std::map<Size, double>& precursor_rts
         @staticmethod
         void getSpectrumMetaData(MSSpectrum spectrum,
-                                 SpectrumMetaData& meta) except + nogil
+                                 SpectrumMetaData& meta) except + nogil  # wrap-as:extractSpectrumMetaData
 
         @staticmethod
         bool addMissingRTsToPeptideIDs(PeptideIdentificationList,
