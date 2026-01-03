@@ -54,20 +54,23 @@ cdef extern from "<OpenMS/METADATA/SpectrumMetaDataLookup.h>" namespace "OpenMS"
         ###   TODO: Missing optional parameters:
         ###   boost::regex& scan_regexp
         ###   std::map<Size, double>& precursor_rts
-        @staticmethod
-        void getSpectrumMetaData(MSSpectrum spectrum,
-                                 SpectrumMetaData& meta) except + nogil  # wrap-as:extractSpectrumMetaData
+        # Note: Static getSpectrumMetaData commented out due to name conflict with instance methods.
+        # autowrap cannot handle mixing static and non-static overloads with the same name.
+        # See jpfeuffer's comment on PR #8562.
+        # @staticmethod
+        # void getSpectrumMetaData(MSSpectrum spectrum,
+        #                          SpectrumMetaData& meta) except + nogil
 
         @staticmethod
-        bool addMissingRTsToPeptideIDs(PeptideIdentificationList,
+        bool addMissingRTsToPeptideIDs(PeptideIdentificationList peptides,
                                        MSExperiment exp) except + nogil
 
         @staticmethod
-        bool addMissingIMToPeptideIDs(PeptideIdentificationList,
+        bool addMissingIMToPeptideIDs(PeptideIdentificationList peptides,
                                       MSExperiment exp) except + nogil
 
         @staticmethod
-        bool addMissingSpectrumReferences(PeptideIdentificationList,
+        bool addMissingSpectrumReferences(PeptideIdentificationList peptides,
                                        String filename, bool stop_on_error,
                                        bool override_spectra_data,
                                        bool override_spectra_references,

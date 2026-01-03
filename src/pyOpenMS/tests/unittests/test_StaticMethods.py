@@ -89,7 +89,7 @@ class TestFileStaticMethods(unittest.TestCase):
     def test_basename(self):
         """Test File.basename static method."""
         result = pyopenms.File.basename("/path/to/file.txt")
-        self.assertEqual(result.decode() if isinstance(result, bytes) else str(result), "file.txt")
+        self.assertEqual(str(result), "file.txt")
 
     def test_path(self):
         """Test File.path static method."""
@@ -99,7 +99,7 @@ class TestFileStaticMethods(unittest.TestCase):
     def test_absolutePath(self):
         """Test File.absolutePath static method."""
         result = pyopenms.File.absolutePath(".")
-        self.assertTrue(len(str(result)) > 0)
+        self.assertGreater(len(str(result)), 0)
 
     def test_isDirectory(self):
         """Test File.isDirectory static method."""
@@ -114,12 +114,12 @@ class TestFileStaticMethods(unittest.TestCase):
     def test_getTempDirectory(self):
         """Test File.getTempDirectory static method."""
         result = pyopenms.File.getTempDirectory()
-        self.assertTrue(len(str(result)) > 0)
+        self.assertGreater(len(str(result)), 0)
 
     def test_getUserDirectory(self):
         """Test File.getUserDirectory static method."""
         result = pyopenms.File.getUserDirectory()
-        self.assertTrue(len(str(result)) > 0)
+        self.assertGreater(len(str(result)), 0)
 
     def test_getUniqueName(self):
         """Test File.getUniqueName static method."""
@@ -357,13 +357,14 @@ class TestMRMRTNormalizerConstructors(unittest.TestCase):
             (500.0, 510.0),
         ]
         result = pyopenms.MRMRTNormalizer.removeOutliersIterative(
-            pairs, 0.95, 0.6, True, b"iter_jackknife"
+            pairs, 0.95, 0.6, True, "iter_jackknife"
         )
         self.assertIsNotNone(result)
         self.assertGreater(len(result), 0)
 
     def test_removeOutliersRANSAC(self):
         """Test MRMRTNormalizer.removeOutliersRANSAC static method."""
+        # Signature: pairs, rsq_limit, coverage_limit, max_iterations, max_rt_threshold, sampling_size
         pairs = [
             (100.0, 110.0),
             (200.0, 210.0),
@@ -373,7 +374,7 @@ class TestMRMRTNormalizerConstructors(unittest.TestCase):
             (600.0, 610.0),
         ]
         result = pyopenms.MRMRTNormalizer.removeOutliersRANSAC(
-            pairs, 0.95, 0.6, 10, 0.5, True, b"iter_jackknife"
+            pairs, 0.95, 0.6, 10, 5.0, 3
         )
         self.assertIsNotNone(result)
 
@@ -415,9 +416,6 @@ class TestCachedmzMLStaticMethods(unittest.TestCase):
 
     def test_store_and_load(self):
         """Test CachedmzML.store and CachedmzML.load static methods."""
-        import tempfile
-        import os
-
         # Create a simple MSExperiment
         exp = pyopenms.MSExperiment()
         spectrum = pyopenms.MSSpectrum()
