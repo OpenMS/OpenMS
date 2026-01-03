@@ -168,8 +168,12 @@ build = "cp310-* cp311-* cp312-* cp313-* cp314-*"
 skip = "*-win32 *-musllinux_* pp*"
 
 # Test the wheel after building
+# IMPORTANT: Run pytest from home directory (not from source tree) to force Python to import
+# from the installed wheel in site-packages, not from the source tree.
+# The source tree is missing generated files like _version.py which causes import errors.
+# Using --import-mode=importlib ensures pytest uses standard Python imports.
 test-requires = ["pytest", "numpy", "pandas", "pyarrow"]
-test-command = "pytest {package}/tests/unittests -v --tb=short"
+test-command = "cd ~ && pytest {package}/tests/unittests -v --tb=short --import-mode=importlib"
 
 # Build in isolated environment
 build-verbosity = 1
@@ -214,6 +218,11 @@ repair-wheel-command = [
 [tool.cibuildwheel.macos.environment]
 # Homebrew paths
 CMAKE_PREFIX_PATH = "$(brew --prefix):$(brew --prefix libomp)"
+# TODO we get warnings about mismatch to _PYTHON_HOST_PLATFORM 
+# (which cibuildwheel computes as macos-11.0-arm64) which is probably a default
+# We should fix this, although wheels seem to be produced correctly (with 14.0)
+# This is required because we use brew dependencies which do not set any
+# MACOSX_DEPLOYMENT_TARGET by default (therefore are built for the current OS version)
 MACOSX_DEPLOYMENT_TARGET = "14.0"
 # OpenMS must be built separately and OpenMS_ROOT set in CI
 # OpenMS_ROOT = "$GITHUB_WORKSPACE/openms-build"

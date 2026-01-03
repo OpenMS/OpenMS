@@ -9,6 +9,7 @@
 #pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/CONCEPT/HashUtils.h>
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
 
 #include <iosfwd>
@@ -230,4 +231,19 @@ protected:
   OPENMS_DLLAPI std::ostream & operator<<(std::ostream & os, const ChromatogramPeak & point);
 
 } // namespace OpenMS
+
+// Hash function specialization for ChromatogramPeak
+namespace std
+{
+  template<>
+  struct hash<OpenMS::ChromatogramPeak>
+  {
+    std::size_t operator()(const OpenMS::ChromatogramPeak& p) const noexcept
+    {
+      std::size_t seed = OpenMS::hash_float(p.getRT());
+      OpenMS::hash_combine(seed, OpenMS::hash_float(p.getIntensity()));
+      return seed;
+    }
+  };
+} // namespace std
 

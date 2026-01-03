@@ -15,6 +15,9 @@
 #include <OpenMS/SYSTEM/StopWatch.h>
 #include <OpenMS/CHEMISTRY/Ribonucleotide.h>
 #include <OpenMS/CHEMISTRY/RibonucleotideDB.h>
+#include <unordered_set>
+#include <unordered_map>
+#include <functional>
 
 ///////////////////////////
 
@@ -763,6 +766,78 @@ START_SECTION(([NASequence::Iterator] Iterator& operator=(const Iterator& rhs)))
   {
     TEST_EQUAL((*it).getCode(), result[i]);
   }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] std::hash<NASequence>))
+{
+  // Test that equal sequences have equal hashes
+  NASequence seq1 = NASequence::fromString("AUCG");
+  NASequence seq2 = NASequence::fromString("AUCG");
+
+  std::hash<NASequence> hasher;
+  TEST_EQUAL(hasher(seq1), hasher(seq2))
+
+  // Test that different sequences have different hashes
+  NASequence seq3 = NASequence::fromString("AUCGA");
+  TEST_NOT_EQUAL(hasher(seq1), hasher(seq3))
+
+  // Test sequences with modifications
+  NASequence seq4 = NASequence::fromString("A[m1A]UCG");
+  NASequence seq5 = NASequence::fromString("A[m1A]UCG");
+  NASequence seq6 = NASequence::fromString("AAUCG");  // Same length, different sequence (no modification)
+  TEST_EQUAL(hasher(seq4), hasher(seq5))
+  TEST_NOT_EQUAL(hasher(seq4), hasher(seq6))  // Modification matters
+
+  // Test 5' terminal modifications
+  NASequence seq7 = NASequence::fromString("pAUCG");
+  NASequence seq8 = NASequence::fromString("pAUCG");
+  NASequence seq9 = NASequence::fromString("AUCG");  // No 5' mod
+  TEST_EQUAL(hasher(seq7), hasher(seq8))
+  TEST_NOT_EQUAL(hasher(seq7), hasher(seq9))  // 5' mod matters
+
+  // Test 3' terminal modifications
+  NASequence seq10 = NASequence::fromString("AUCGp");
+  NASequence seq11 = NASequence::fromString("AUCGp");
+  NASequence seq12 = NASequence::fromString("AUCG");  // No 3' mod
+  TEST_EQUAL(hasher(seq10), hasher(seq11))
+  TEST_NOT_EQUAL(hasher(seq10), hasher(seq12))  // 3' mod matters
+
+  // Test both terminal modifications
+  NASequence seq13 = NASequence::fromString("pAUCGp");
+  NASequence seq14 = NASequence::fromString("pAUCGp");
+  TEST_EQUAL(hasher(seq13), hasher(seq14))
+  TEST_NOT_EQUAL(hasher(seq13), hasher(seq7))   // Different 3' mod
+  TEST_NOT_EQUAL(hasher(seq13), hasher(seq10))  // Different 5' mod
+
+  // Test empty sequence
+  NASequence seq_empty1;
+  NASequence seq_empty2;
+  TEST_EQUAL(hasher(seq_empty1), hasher(seq_empty2))
+
+  // Test that sequences work in unordered_set
+  std::unordered_set<NASequence> seq_set;
+  seq_set.insert(seq1);
+  seq_set.insert(seq2);  // Duplicate, should not increase size
+  seq_set.insert(seq3);  // Different sequence
+  seq_set.insert(seq4);  // With modification
+  seq_set.insert(seq7);  // With 5' mod
+  TEST_EQUAL(seq_set.size(), 4)
+  TEST_EQUAL(seq_set.count(seq1), 1)
+  TEST_EQUAL(seq_set.count(NASequence::fromString("AUCG")), 1)
+  TEST_EQUAL(seq_set.count(seq3), 1)
+  TEST_EQUAL(seq_set.count(seq4), 1)
+  TEST_EQUAL(seq_set.count(seq7), 1)
+
+  // Test that sequences work in unordered_map
+  std::unordered_map<NASequence, int> seq_map;
+  seq_map[seq1] = 1;
+  seq_map[seq3] = 2;
+  seq_map[seq7] = 3;
+  TEST_EQUAL(seq_map.size(), 3)
+  TEST_EQUAL(seq_map[NASequence::fromString("AUCG")], 1)
+  TEST_EQUAL(seq_map[NASequence::fromString("AUCGA")], 2)
+  TEST_EQUAL(seq_map[NASequence::fromString("pAUCG")], 3)
 }
 END_SECTION
 

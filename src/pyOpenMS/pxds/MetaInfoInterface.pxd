@@ -6,6 +6,8 @@ from MetaInfoRegistry cimport *
 cdef extern from "<OpenMS/METADATA/MetaInfoInterface.h>" namespace "OpenMS":
 
     cdef cppclass MetaInfoInterface:
+        # wrap-hash:
+        #  std
         # wrap-doc:
         #  Interface for classes that can store arbitrary meta information
         #  (Type-Name-Value tuples).

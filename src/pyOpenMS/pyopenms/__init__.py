@@ -26,7 +26,17 @@ from __future__ import print_function
 import warnings
 
 from ._sysinfo import *  # pylint: disable=wildcard-import; lgtm(py/polluting-import)
-from ._version import version as __version__
+
+try:
+    # Import version from the generated _version.py (old way via CMake/autowrap)
+    from ._version import version as __version__
+except ImportError:
+    # Fallback for source-tree imports before CMake/autowrap generates _version.py
+    try:
+        import importlib.metadata
+        __version__ = importlib.metadata.version("pyopenms")
+    except Exception:
+        __version__ = "0+unknown"
 
 import os
 here = os.path.abspath(os.path.dirname(__file__))
@@ -99,7 +109,7 @@ PYQT has version %s
 This might cause a conflict if both are loaded.  You can test this by importing pyopenms
 first and then import PyQt5.QtCore.
         """ % (info, PyQt5.QtCore.PYQT_VERSION_STR) )
-        
+
         print("Note: when using the Spyder IDE, the usage of PyQt might be circumvented")
         print("by not using the 'Automatic' backend. Please change this in Tools ->")
         print("Preferences -> IPython -> Graphics to 'Inline'.")

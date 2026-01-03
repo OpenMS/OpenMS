@@ -282,7 +282,8 @@ protected:
       @brief Check whether fragment ion are unique ion signatures in vector within threshold and return matching peptidoforms
 
       @param[in] fragment_ion the queried fragment ion
-      @param[in] ions a vector of pairs of fragment ion m/z and peptide sequences which could interfere with fragment_ion
+      @param[in] ions a vector of pairs of fragment ion m/z and peptide sequences which could interfere with fragment_ion.
+                      MUST be sorted by m/z (first element) in ascending order for binary search.
       @param[in] mz_threshold the threshold within which to search for interferences
 
       @return a vector of strings containing all peptidoforms with which fragment_ion overlaps

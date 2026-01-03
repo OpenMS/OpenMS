@@ -7,9 +7,9 @@ cdef extern from "<OpenMS/CHEMISTRY/Residue.h>" namespace "OpenMS":
 
     cdef cppclass Residue:
         # wrap-hash:
-        #  getName().c_str()
+        #  std
 
-        Residue() except + nogil 
+        Residue() except + nogil
         Residue(Residue &) except + nogil 
 
         # detailed constructor

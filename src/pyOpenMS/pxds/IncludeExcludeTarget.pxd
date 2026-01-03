@@ -8,6 +8,9 @@ from TargetedExperimentHelper cimport *
 cdef extern from "<OpenMS/ANALYSIS/TARGETED/IncludeExcludeTarget.h>" namespace "OpenMS":
     
     cdef cppclass IncludeExcludeTarget :
+        # wrap-hash:
+        #  std
+
         IncludeExcludeTarget() except + nogil  # wrap-doc:This class stores a SRM/MRM transition
         IncludeExcludeTarget(IncludeExcludeTarget &) except + nogil  # TODO
         void setName(const String & name) except + nogil  # TODO
