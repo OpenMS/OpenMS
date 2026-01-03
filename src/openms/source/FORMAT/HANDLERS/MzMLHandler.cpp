@@ -3803,6 +3803,8 @@ namespace OpenMS::Internal
       //--------------------------------------------------------------------------------------------
       //isolation window (optional)
       //--------------------------------------------------------------------------------------------
+      const std::vector<double>& lower_offsets = precursor.getIsolationWindowLowerOffsets();
+      const std::vector<double>& upper_offsets = precursor.getIsolationWindowUpperOffsets();
 
       // precursor m/z may come from "selected ion":
       double mz = precursor.getMetaValue("isolation window target m/z",
@@ -3813,13 +3815,13 @@ namespace OpenMS::Internal
       {
         os << "\t\t\t\t\t\t<isolationWindow>\n";
         os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000827\" name=\"isolation window target m/z\" value=\"" << mz << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
-        if (precursor.getIsolationWindowLowerOffset() > 0.0)
+        if (!lower_offsets.empty() && lower_offsets[0] > 0.0)
         {
-          os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000828\" name=\"isolation window lower offset\" value=\"" << precursor.getIsolationWindowLowerOffset() << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
+          os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000828\" name=\"isolation window lower offset\" value=\"" << lower_offsets[0] << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
         }
-        if (precursor.getIsolationWindowUpperOffset() > 0.0)
+        if (!upper_offsets.empty() && upper_offsets[0] > 0.0)
         {
-          os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000829\" name=\"isolation window upper offset\" value=\"" << precursor.getIsolationWindowUpperOffset() << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
+          os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000829\" name=\"isolation window upper offset\" value=\"" << upper_offsets[0] << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
         }
         os << "\t\t\t\t\t\t</isolationWindow>\n";
       }
@@ -3828,55 +3830,43 @@ namespace OpenMS::Internal
       //--------------------------------------------------------------------------------------------
       //selected ion list (optional)
       //--------------------------------------------------------------------------------------------
-      //
-
-      if (options_.getForceTPPCompatability() ||
-          precursor.getCharge() != 0 ||
-          precursor.getIntensity() > 0.0 ||
-          precursor.getDriftTime() >= 0.0 ||
-          precursor.getDriftTimeUnit() == DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE ||
-          !precursor.getPossibleChargeStates().empty() ||
-          precursor.getMZ() > 0.0)
+      const std::vector<Peak1D>& selected_ions = precursor.getSelectedIons();
+      if (!selected_ions.empty())
       {
-        // precursor m/z may come from "isolation window":
-        mz = precursor.getMetaValue("selected ion m/z",
-                                    precursor.getMZ());
-        os << "\t\t\t\t\t\t<selectedIonList count=\"1\">\n";
-        os << "\t\t\t\t\t\t\t<selectedIon>\n";
-        os << "\t\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000744\" name=\"selected ion m/z\" value=\"" << mz << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
-        if (options_.getForceTPPCompatability() || precursor.getCharge() != 0)
+        os << "\t\t\t\t\t\t<selectedIonList count=\"" << selected_ions.size() << "\">\n";
+        for (size_t i = 0; i < selected_ions.size(); ++i)
         {
-          os << "\t\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000041\" name=\"charge state\" value=\"" << precursor.getCharge() << "\" />\n";
-        }
-        if ( precursor.getIntensity() > 0.0)
-        {
-          os << "\t\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000042\" name=\"peak intensity\" value=\"" << precursor.getIntensity() << "\" unitAccession=\"MS:1000132\" unitName=\"percent of base peak\" unitCvRef=\"MS\" />\n";
-        }
-        for (Size j = 0; j < precursor.getPossibleChargeStates().size(); ++j)
-        {
-          os << "\t\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000633\" name=\"possible charge state\" value=\"" << precursor.getPossibleChargeStates()[j] << "\" />\n";
-        }
-
-        if (precursor.getDriftTime() != IMTypes::DRIFTTIME_NOT_SET)
-        {
-          switch (precursor.getDriftTimeUnit())
+          const Peak1D& selected_ion = selected_ions[i];
+          os << "\t\t\t\t\t\t\t<selectedIon>\n";
+          os << "\t\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000744\" name=\"selected ion m/z\" value=\"" << selected_ion.getMZ() << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
+          if (precursor.getCharge() != 0)
           {
-            default:
-              // assume milliseconds, but warn
-              warning(STORE, String("Precursor drift time unit not set, assume milliseconds"));
-              [[fallthrough]];
-            case DriftTimeUnit::MILLISECOND:
-              os << "\t\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1002476\" name=\"ion mobility drift time\" value=\"" << precursor.getDriftTime()
-                  << "\" unitAccession=\"UO:0000028\" unitName=\"millisecond\" unitCvRef=\"UO\" />\n";
-              break;
-            case DriftTimeUnit::VSSC:
-              os << "\t\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1002815\" name=\"inverse reduced ion mobility\" value=\"" << precursor.getDriftTime()
-                  << "\" unitAccession=\"MS:1002814\" unitName=\"volt-second per square centimeter\" unitCvRef=\"MS\" />\n";
-              break;
+            os << "\t\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000041\" name=\"charge state\" value=\"" << precursor.getCharge() << "\" />\n";
           }
+          if (selected_ion.getIntensity() > 0.0)
+          {
+            os << "\t\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000042\" name=\"peak intensity\" value=\"" << selected_ion.getIntensity() << "\" unitAccession=\"MS:1000132\" unitName=\"percent of base peak\" unitCvRef=\"MS\" />\n";
+          }
+          if (precursor.getDriftTime() != IMTypes::DRIFTTIME_NOT_SET)
+          {
+            switch (precursor.getDriftTimeUnit())
+            {
+              default:
+                // assume milliseconds, but warn
+                warning(STORE, String("Precursor drift time unit not set, assume milliseconds"));
+                [[fallthrough]];
+              case DriftTimeUnit::MILLISECOND:
+                os << "\t\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1002476\" name=\"ion mobility drift time\" value=\"" << precursor.getDriftTime()
+                    << "\" unitAccession=\"UO:0000028\" unitName=\"millisecond\" unitCvRef=\"UO\" />\n";
+                break;
+              case DriftTimeUnit::VSSC:
+                os << "\t\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1002815\" name=\"inverse reduced ion mobility\" value=\"" << precursor.getDriftTime()
+                    << "\" unitAccession=\"MS:1002814\" unitName=\"volt-second per square centimeter\" unitCvRef=\"MS\" />\n";
+                break;
+            }
+          }
+          os << "\t\t\t\t\t\t\t</selectedIon>\n";
         }
-        //userParam: no extra object for it => no user parameters
-        os << "\t\t\t\t\t\t\t</selectedIon>\n";
         os << "\t\t\t\t\t\t</selectedIonList>\n";
       }
 

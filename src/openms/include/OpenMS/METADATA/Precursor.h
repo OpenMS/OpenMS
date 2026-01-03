@@ -16,6 +16,7 @@
 
 #include <functional>
 #include <set>
+#include <vector>
 
 namespace OpenMS
 {
@@ -26,7 +27,7 @@ namespace OpenMS
 
         - isolation window
         - activation
-        - selected ion (m/z, intensity, charge, possible charge states)
+        - selected ions (m/z, intensity, charge, possible charge states)
         - ion mobility drift time
 
       @ingroup Metadata
@@ -140,6 +141,20 @@ public:
     /// sets the upper offset from the target m/z
     void setIsolationWindowUpperOffset(double bound);
 
+    /// returns a const reference to the isolation window lower offsets
+    const std::vector<double>& getIsolationWindowLowerOffsets() const;
+    /// returns a mutable reference to the isolation window lower offsets
+    std::vector<double>& getIsolationWindowLowerOffsets();
+    /// sets the isolation window lower offsets
+    void setIsolationWindowLowerOffsets(const std::vector<double>& bounds);
+
+    /// returns a const reference to the isolation window upper offsets
+    const std::vector<double>& getIsolationWindowUpperOffsets() const;
+    /// returns a mutable reference to the isolation window upper offsets
+    std::vector<double>& getIsolationWindowUpperOffsets();
+    /// sets the isolation window upper offsets
+    void setIsolationWindowUpperOffsets(const std::vector<double>& bounds);
+
     /**
       @brief Returns the ion mobility drift time in milliseconds (-1 means it is not set)
 
@@ -195,6 +210,13 @@ public:
     /// Mutable access to the charge
     void setCharge(Int charge);
 
+    /// Returns a const reference to the selected ions
+    const std::vector<Peak1D>& getSelectedIons() const;
+    /// Returns a mutable reference to the selected ions
+    std::vector<Peak1D>& getSelectedIons();
+    /// sets the selected ions
+    void setSelectedIons(const std::vector<Peak1D>& selected_ions);
+
     /// Mutable access to possible charge states
     std::vector<Int>& getPossibleChargeStates();
     /// Non-mutable access to possible charge states
@@ -214,12 +236,13 @@ protected:
 
     std::set<ActivationMethod> activation_methods_;
     double activation_energy_{};
-    double window_low_{};
-    double window_up_{};
+    std::vector<double> window_low_;
+    std::vector<double> window_up_;
     double drift_time_{-1};
     double drift_window_low_{};
     double drift_window_up_{};
     DriftTimeUnit drift_time_unit_{DriftTimeUnit::NONE};
+    std::vector<Peak1D> selected_ions_;
     Int charge_{};
     std::vector<Int> possible_charge_states_;
   };
@@ -247,14 +270,26 @@ namespace std
 
       // Hash double fields
       OpenMS::hash_combine(seed, OpenMS::hash_float(p.getActivationEnergy()));
-      OpenMS::hash_combine(seed, OpenMS::hash_float(p.getIsolationWindowLowerOffset()));
-      OpenMS::hash_combine(seed, OpenMS::hash_float(p.getIsolationWindowUpperOffset()));
+      for (const auto& offset : p.getIsolationWindowLowerOffsets())
+      {
+        OpenMS::hash_combine(seed, OpenMS::hash_float(offset));
+      }
+      for (const auto& offset : p.getIsolationWindowUpperOffsets())
+      {
+        OpenMS::hash_combine(seed, OpenMS::hash_float(offset));
+      }
       OpenMS::hash_combine(seed, OpenMS::hash_float(p.getDriftTime()));
       OpenMS::hash_combine(seed, OpenMS::hash_float(p.getDriftTimeWindowLowerOffset()));
       OpenMS::hash_combine(seed, OpenMS::hash_float(p.getDriftTimeWindowUpperOffset()));
 
       // Hash drift_time_unit_ (enum class)
       OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(p.getDriftTimeUnit())));
+
+      // Hash selected_ions_
+      for (const auto& ion : p.getSelectedIons())
+      {
+        OpenMS::hash_combine(seed, std::hash<OpenMS::Peak1D>{}(ion));
+      }
 
       // Hash charge_
       OpenMS::hash_combine(seed, OpenMS::hash_int(p.getCharge()));
