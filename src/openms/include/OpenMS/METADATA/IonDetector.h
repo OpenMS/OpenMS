@@ -10,6 +10,8 @@
 
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/CONCEPT/HashUtils.h>
+#include <functional>
 
 namespace OpenMS
 {
@@ -132,4 +134,30 @@ protected:
 
   };
 } // namespace OpenMS
+
+namespace std
+{
+  /**
+   * @brief Hash function for OpenMS::IonDetector.
+   *
+   * Hashes type, acquisition mode, resolution, ADC sampling frequency, and order.
+   * Note: MetaInfoInterface base class fields are not included in the hash as
+   * MetaInfoInterface does not yet have a hash implementation. This hash is
+   * consistent with operator== for objects that differ only in the IonDetector-specific
+   * fields.
+   */
+  template<>
+  struct hash<OpenMS::IonDetector>
+  {
+    std::size_t operator()(const OpenMS::IonDetector& d) const noexcept
+    {
+      std::size_t seed = OpenMS::hash_int(static_cast<int>(d.getType()));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(d.getAcquisitionMode())));
+      OpenMS::hash_combine(seed, OpenMS::hash_float(d.getResolution()));
+      OpenMS::hash_combine(seed, OpenMS::hash_float(d.getADCSamplingFrequency()));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(d.getOrder()));
+      return seed;
+    }
+  };
+} // namespace std
 

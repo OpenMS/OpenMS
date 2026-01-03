@@ -13,6 +13,9 @@
 #include <OpenMS/METADATA/IonSource.h>
 ///////////////////////////
 
+#include <unordered_set>
+#include <unordered_map>
+
 using namespace OpenMS;
 using namespace std;
 
@@ -190,6 +193,59 @@ START_SECTION((static StringList getAllNamesOfPolarity()))
   TEST_EQUAL(names[IonSource::Polarity::POLNULL], "unknown");
   TEST_EQUAL(names[IonSource::Polarity::POSITIVE], "positive");
   TEST_EQUAL(names[IonSource::Polarity::NEGATIVE], "negative");
+END_SECTION
+
+START_SECTION(([EXTRA] std::hash<IonSource>))
+{
+  // Test that equal objects have equal hashes
+  IonSource is1, is2;
+  is1.setInletType(IonSource::DIRECT);
+  is1.setIonizationMethod(IonSource::ESI);
+  is1.setPolarity(IonSource::POSITIVE);
+  is1.setOrder(45);
+  is1.setMetaValue("label", String("test"));
+
+  is2.setInletType(IonSource::DIRECT);
+  is2.setIonizationMethod(IonSource::ESI);
+  is2.setPolarity(IonSource::POSITIVE);
+  is2.setOrder(45);
+  is2.setMetaValue("label", String("test"));
+
+  TEST_EQUAL(is1 == is2, true)
+  TEST_EQUAL(std::hash<IonSource>{}(is1), std::hash<IonSource>{}(is2))
+
+  // Test that different objects (likely) have different hashes
+  IonSource is3;
+  is3.setInletType(IonSource::BATCH);
+  is3.setIonizationMethod(IonSource::MALDI);
+  is3.setPolarity(IonSource::NEGATIVE);
+  is3.setOrder(10);
+
+  TEST_EQUAL(is1 == is3, false)
+  // Hash values should differ (not guaranteed but highly likely for different inputs)
+  TEST_NOT_EQUAL(std::hash<IonSource>{}(is1), std::hash<IonSource>{}(is3))
+
+  // Test use in unordered_set
+  std::unordered_set<IonSource> ion_source_set;
+  ion_source_set.insert(is1);
+  ion_source_set.insert(is2);  // Duplicate, should not increase size
+  ion_source_set.insert(is3);
+  TEST_EQUAL(ion_source_set.size(), 2)
+
+  // Test use in unordered_map
+  std::unordered_map<IonSource, int> ion_source_map;
+  ion_source_map[is1] = 1;
+  ion_source_map[is2] = 2;  // Should overwrite is1's value
+  ion_source_map[is3] = 3;
+  TEST_EQUAL(ion_source_map.size(), 2)
+  TEST_EQUAL(ion_source_map[is1], 2)
+  TEST_EQUAL(ion_source_map[is3], 3)
+
+  // Test that default-constructed objects have equal hashes
+  IonSource default1, default2;
+  TEST_EQUAL(default1 == default2, true)
+  TEST_EQUAL(std::hash<IonSource>{}(default1), std::hash<IonSource>{}(default2))
+}
 END_SECTION
 
 /////////////////////////////////////////////////////////////

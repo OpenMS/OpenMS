@@ -10,6 +10,7 @@
 
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/METADATA/CVTerm.h>
+#include <OpenMS/CONCEPT/HashUtils.h>
 #include <map>
 
 namespace OpenMS
@@ -94,4 +95,34 @@ namespace OpenMS
   };
 
 } // namespace OpenMS
+
+// Hash function specialization for CVTermListInterface
+namespace std
+{
+  /**
+   * @brief Hash function for CVTermListInterface.
+   *
+   * Hashes based on all CV terms stored in the interface.
+   * Iterates through the map of accession -> vector<CVTerm>.
+   */
+  template<>
+  struct hash<OpenMS::CVTermListInterface>
+  {
+    std::size_t operator()(const OpenMS::CVTermListInterface& iface) const noexcept
+    {
+      std::size_t seed = 0;
+      for (const auto& entry : iface.getCVTerms())
+      {
+        // Hash the accession string
+        OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(entry.first));
+        // Hash each CV term in the vector
+        for (const auto& term : entry.second)
+        {
+          OpenMS::hash_combine(seed, std::hash<OpenMS::CVTerm>{}(term));
+        }
+      }
+      return seed;
+    }
+  };
+} // namespace std
 

@@ -10,6 +10,8 @@
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
+#include <OpenMS/CONCEPT/HashUtils.h>
+#include <functional>
 #include <iosfwd>
 
 namespace OpenMS
@@ -170,4 +172,46 @@ namespace OpenMS
   /// Dummy nucleotide used to represent 5' and 3' chain ends. Usually, just the phosphates.
   using RibonucleotideChainEnd = Ribonucleotide;
 
-}
+} // namespace OpenMS
+
+// Hash function specialization for Ribonucleotide
+// Placed in std namespace to allow use with std::unordered_map/set
+namespace std
+{
+  /**
+   * @brief Hash function for OpenMS::Ribonucleotide.
+   *
+   * Computes a hash based on all fields used in operator==:
+   * name_, code_, new_code_, html_code_, formula_, origin_,
+   * mono_mass_, avg_mass_, term_spec_, and baseloss_formula_.
+   *
+   * @note Hash is consistent with operator==: equal objects produce equal hashes.
+   */
+  template<>
+  struct hash<OpenMS::Ribonucleotide>
+  {
+    std::size_t operator()(const OpenMS::Ribonucleotide& ribo) const noexcept
+    {
+      std::size_t seed = 0;
+
+      // Hash all fields used in operator==
+      // String fields: name_, code_, new_code_, html_code_
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(ribo.getName()));
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(ribo.getCode()));
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(ribo.getNewCode()));
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(ribo.getHTMLCode()));
+
+      // EmpiricalFormula fields: formula_, baseloss_formula_
+      OpenMS::hash_combine(seed, std::hash<OpenMS::EmpiricalFormula>{}(ribo.getFormula()));
+      OpenMS::hash_combine(seed, std::hash<OpenMS::EmpiricalFormula>{}(ribo.getBaselossFormula()));
+
+      // Primitive fields: origin_ (char), mono_mass_, avg_mass_ (double), term_spec_ (enum)
+      OpenMS::hash_combine(seed, OpenMS::hash_char(ribo.getOrigin()));
+      OpenMS::hash_combine(seed, OpenMS::hash_float(ribo.getMonoMass()));
+      OpenMS::hash_combine(seed, OpenMS::hash_float(ribo.getAvgMass()));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(ribo.getTermSpecificity())));
+
+      return seed;
+    }
+  };
+} // namespace std

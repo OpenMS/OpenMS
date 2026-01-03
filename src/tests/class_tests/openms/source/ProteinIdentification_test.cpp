@@ -12,6 +12,8 @@
 ///////////////////////////
 
 #include <string>
+#include <unordered_set>
+#include <unordered_map>
 
 #include <OpenMS/FORMAT/MascotXMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
@@ -742,6 +744,164 @@ START_SECTION((static StringList getAllNamesOfPeakMassType()))
   TEST_EQUAL(names.size(), ProteinIdentification::SIZE_OF_PEAKMASSTYPE);
   TEST_EQUAL(names[ProteinIdentification::PeakMassType::MONOISOTOPIC], "Monoisotopic");
   TEST_EQUAL(names[ProteinIdentification::PeakMassType::AVERAGE], "Average");
+END_SECTION
+
+
+/////////////////////////////////////////////////////////////
+// Hash function tests
+/////////////////////////////////////////////////////////////
+
+START_SECTION(([EXTRA] std::hash<ProteinIdentification>))
+{
+  // Test that equal ProteinIdentifications have equal hashes
+  ProteinIdentification pi1;
+  pi1.setIdentifier("test_id");
+  pi1.setSearchEngine("Mascot");
+  pi1.setSearchEngineVersion("2.1");
+  pi1.setScoreType("Mascot");
+  pi1.setHigherScoreBetter(true);
+  pi1.setSignificanceThreshold(0.05);
+
+  ProteinHit hit;
+  hit.setAccession("protein1");
+  hit.setScore(100.0);
+  pi1.insertHit(hit);
+
+  ProteinIdentification::ProteinGroup group;
+  group.probability = 0.99;
+  group.accessions.push_back("protein1");
+  pi1.insertProteinGroup(group);
+
+  ProteinIdentification::SearchParameters params;
+  params.db = "SwissProt";
+  params.db_version = "2023.1";
+  params.charges = "2,3";
+  params.missed_cleavages = 2;
+  params.fragment_mass_tolerance = 0.5;
+  params.precursor_mass_tolerance = 10.0;
+  pi1.setSearchParameters(params);
+
+  ProteinIdentification pi2;
+  pi2.setIdentifier("test_id");
+  pi2.setSearchEngine("Mascot");
+  pi2.setSearchEngineVersion("2.1");
+  pi2.setScoreType("Mascot");
+  pi2.setHigherScoreBetter(true);
+  pi2.setSignificanceThreshold(0.05);
+  pi2.insertHit(hit);
+  pi2.insertProteinGroup(group);
+  pi2.setSearchParameters(params);
+
+  // Equal objects must have equal hashes
+  std::hash<ProteinIdentification> hasher;
+  TEST_EQUAL(hasher(pi1), hasher(pi2))
+
+  // Test that hash changes when content changes
+  ProteinIdentification pi3(pi1);
+  pi3.setIdentifier("different_id");
+  TEST_NOT_EQUAL(hasher(pi1), hasher(pi3))
+
+  // Test use in unordered_set
+  std::unordered_set<ProteinIdentification> pi_set;
+  pi_set.insert(pi1);
+  pi_set.insert(pi2); // Should not add duplicate
+  TEST_EQUAL(pi_set.size(), 1)
+
+  pi_set.insert(pi3); // Should add different element
+  TEST_EQUAL(pi_set.size(), 2)
+
+  // Test use in unordered_map
+  std::unordered_map<ProteinIdentification, std::string> pi_map;
+  pi_map[pi1] = "first";
+  pi_map[pi2] = "second"; // Should overwrite
+  TEST_EQUAL(pi_map.size(), 1)
+  TEST_EQUAL(pi_map[pi1], "second")
+
+  pi_map[pi3] = "third";
+  TEST_EQUAL(pi_map.size(), 2)
+}
+END_SECTION
+
+
+START_SECTION(([EXTRA] std::hash<ProteinIdentification::ProteinGroup>))
+{
+  ProteinIdentification::ProteinGroup g1;
+  g1.probability = 0.95;
+  g1.accessions.push_back("protein1");
+  g1.accessions.push_back("protein2");
+
+  ProteinIdentification::ProteinGroup g2;
+  g2.probability = 0.95;
+  g2.accessions.push_back("protein1");
+  g2.accessions.push_back("protein2");
+
+  // Equal groups must have equal hashes
+  std::hash<ProteinIdentification::ProteinGroup> hasher;
+  TEST_EQUAL(hasher(g1), hasher(g2))
+
+  // Test that hash changes when content changes
+  ProteinIdentification::ProteinGroup g3;
+  g3.probability = 0.80;
+  g3.accessions.push_back("protein1");
+  g3.accessions.push_back("protein2");
+  TEST_NOT_EQUAL(hasher(g1), hasher(g3))
+
+  // Test use in unordered_set
+  std::unordered_set<ProteinIdentification::ProteinGroup> group_set;
+  group_set.insert(g1);
+  group_set.insert(g2); // Should not add duplicate
+  TEST_EQUAL(group_set.size(), 1)
+
+  group_set.insert(g3);
+  TEST_EQUAL(group_set.size(), 2)
+}
+END_SECTION
+
+
+START_SECTION(([EXTRA] std::hash<ProteinIdentification::SearchParameters>))
+{
+  ProteinIdentification::SearchParameters sp1;
+  sp1.db = "SwissProt";
+  sp1.db_version = "2023.1";
+  sp1.taxonomy = "Homo sapiens";
+  sp1.charges = "2,3,4";
+  sp1.mass_type = ProteinIdentification::MONOISOTOPIC;
+  sp1.fixed_modifications.push_back("Carbamidomethyl (C)");
+  sp1.variable_modifications.push_back("Oxidation (M)");
+  sp1.missed_cleavages = 2;
+  sp1.fragment_mass_tolerance = 0.5;
+  sp1.precursor_mass_tolerance = 10.0;
+
+  ProteinIdentification::SearchParameters sp2;
+  sp2.db = "SwissProt";
+  sp2.db_version = "2023.1";
+  sp2.taxonomy = "Homo sapiens";
+  sp2.charges = "2,3,4";
+  sp2.mass_type = ProteinIdentification::MONOISOTOPIC;
+  sp2.fixed_modifications.push_back("Carbamidomethyl (C)");
+  sp2.variable_modifications.push_back("Oxidation (M)");
+  sp2.missed_cleavages = 2;
+  sp2.fragment_mass_tolerance = 0.5;
+  sp2.precursor_mass_tolerance = 10.0;
+
+  // Equal parameters must have equal hashes
+  std::hash<ProteinIdentification::SearchParameters> hasher;
+  TEST_EQUAL(hasher(sp1), hasher(sp2))
+
+  // Test that hash changes when content changes
+  ProteinIdentification::SearchParameters sp3(sp1);
+  sp3.db = "TrEMBL";
+  TEST_NOT_EQUAL(hasher(sp1), hasher(sp3))
+
+  // Test use in unordered_set
+  std::unordered_set<ProteinIdentification::SearchParameters> sp_set;
+  sp_set.insert(sp1);
+  sp_set.insert(sp2); // Should not add duplicate
+  TEST_EQUAL(sp_set.size(), 1)
+
+  sp_set.insert(sp3);
+  TEST_EQUAL(sp_set.size(), 2)
+}
 END_SECTION
 
 

@@ -10,6 +10,9 @@
 
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/CONCEPT/HashUtils.h>
+
+#include <functional>
 
 namespace OpenMS
 {
@@ -201,4 +204,26 @@ protected:
   };
 
 } // namespace OpenMS
+
+// Hash function specialization for IonSource
+namespace std
+{
+  template<>
+  struct hash<OpenMS::IonSource>
+  {
+    std::size_t operator()(const OpenMS::IonSource& is) const noexcept
+    {
+      // Hash all fields used in operator==: order_, inlet_type_, ionization_method_, polarity_, and MetaInfoInterface
+      std::size_t seed = OpenMS::hash_int(is.getOrder());
+      OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(is.getInletType())));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(is.getIonizationMethod())));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(is.getPolarity())));
+
+      // Hash MetaInfoInterface base class (handles both UInt and String keys)
+      OpenMS::hash_combine(seed, std::hash<OpenMS::MetaInfoInterface>{}(is));
+
+      return seed;
+    }
+  };
+}
 

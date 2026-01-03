@@ -14,8 +14,10 @@ cdef extern from "<OpenMS/METADATA/SpectrumSettings.h>" namespace "OpenMS":
     cdef cppclass SpectrumSettings(MetaInfoInterface):
         # wrap-inherits:
         #  MetaInfoInterface
+        # wrap-hash:
+        #  std
 
-        SpectrumSettings() except + nogil 
+        SpectrumSettings() except + nogil
         SpectrumSettings(SpectrumSettings &) except + nogil 
 
         void unify(SpectrumSettings) except + nogil 

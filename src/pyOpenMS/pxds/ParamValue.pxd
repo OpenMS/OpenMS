@@ -7,6 +7,8 @@ from libcpp.vector cimport vector as libcpp_vector
 cdef extern from "<OpenMS/DATASTRUCTURES/ParamValue.h>" namespace "OpenMS":
 
     cdef cppclass ParamValue:
+        # wrap-hash:
+        #  std
         # wrap-doc:
             #  Class to hold strings, numeric values, vectors of strings and vectors of numeric values using the stl types
             #  
