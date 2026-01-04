@@ -22,7 +22,7 @@
 #include <OpenMS/KERNEL/OnDiscMSExperiment.h>
 #include <OpenMS/METADATA/Precursor.h>
 #include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/SYSTEM/FileWatcher.h>
+#include <OpenMS/VISUAL/FileWatcher.h>
 #include <OpenMS/VISUAL/AxisWidget.h>
 #include <OpenMS/VISUAL/DataSelectionTabs.h>
 #include <OpenMS/VISUAL/DIALOGS/SpectrumAlignmentDialog.h>
