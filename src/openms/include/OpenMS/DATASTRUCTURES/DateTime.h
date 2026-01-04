@@ -11,11 +11,7 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/OpenMSConfig.h>
 
-#include <memory> // unique_ptr
-#include <string>
-
-// foward declarations
-class QDateTime; 
+#include <string> 
 
 namespace OpenMS
 {
@@ -192,7 +188,12 @@ public:
       void set(const String& date);
 
     private:
-      std::unique_ptr<QDateTime> dt_; // use PImpl, to avoid costly #include
+      UInt year_;
+      UInt month_;
+      UInt day_;
+      UInt hour_;
+      UInt minute_;
+      UInt second_;
   };
 
 } // namespace OPENMS

@@ -96,15 +96,15 @@ namespace OpenMS::Math
       if (output_plots)
       {
         // create output directory (if not already present)
-        QDir dir(String(param_.getValue("out_plot").toString()).toQString());
+        QDir dir(QString::fromStdString(String(param_.getValue("out_plot").toString())));
         if (!dir.cdUp())
         {
-          OPENMS_LOG_ERROR << "Could not navigate to output directory for plots from '" << String(dir.dirName()) << "'." << std::endl;
+          OPENMS_LOG_ERROR << "Could not navigate to output directory for plots from '" << String(dir.dirName().toStdString()) << "'." << std::endl;
           return false;
         }
         if (!dir.exists() && !dir.mkpath("."))
         {
-          OPENMS_LOG_ERROR << "Could not create output directory for plots '" << String(dir.dirName()) << "'." << std::endl;
+          OPENMS_LOG_ERROR << "Could not create output directory for plots '" << String(dir.dirName().toStdString()) << "'." << std::endl;
           return false;
         }
         //
@@ -286,15 +286,15 @@ namespace OpenMS::Math
       if (output_plots)
       {
         // create output directory (if not already present)
-        QDir dir(String(param_.getValue("out_plot").toString()).toQString());
+        QDir dir(QString::fromStdString(String(param_.getValue("out_plot").toString())));
         if (!dir.cdUp())
         {
-          OPENMS_LOG_ERROR << "Could not navigate to output directory for plots from '" << String(dir.dirName()) << "'." << std::endl;
+          OPENMS_LOG_ERROR << "Could not navigate to output directory for plots from '" << String(dir.dirName().toStdString()) << "'." << std::endl;
           return false;
         }
         if (!dir.exists() && !dir.mkpath("."))
         {
-          OPENMS_LOG_ERROR << "Could not create output directory for plots '" << String(dir.dirName()) << "'." << std::endl;
+          OPENMS_LOG_ERROR << "Could not create output directory for plots '" << String(dir.dirName().toStdString()) << "'." << std::endl;
           return false;
         }
         //

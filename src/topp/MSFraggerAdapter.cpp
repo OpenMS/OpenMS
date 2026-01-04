@@ -837,11 +837,12 @@ protected:
       return ILLEGAL_PARAMETERS;
     }
 
-    QStringList process_params; // the actual process is Java, not MSFragger
-    process_params << "-Xmx" + QString::number(this->getIntOption_(java_heapmemory)) + "m"
-        << "-jar" << this->exe.toQString()
-        << this->parameter_file_path.toQString()
-        << input_file;
+    std::vector<String> process_params; // the actual process is Java, not MSFragger
+    process_params.push_back("-Xmx" + String(this->getIntOption_(java_heapmemory)) + "m");
+    process_params.push_back("-jar");
+    process_params.push_back(this->exe);
+    process_params.push_back(this->parameter_file_path);
+    process_params.push_back(String(input_file.toStdString().c_str()));
 
     if (this->debug_level_ >= TOPPMSFraggerAdapter::LOG_LEVEL_VERBOSE)
     {
@@ -854,7 +855,7 @@ protected:
       writeDebug_(command_line, TOPPMSFraggerAdapter::LOG_LEVEL_VERBOSE);
     }
 
-    TOPPBase::ExitCodes exit_code = runExternalProcess_(java_exe.toQString(), process_params, working_directory.getPath().toQString());
+    TOPPBase::ExitCodes exit_code = runExternalProcess_(java_exe, process_params, working_directory.getPath());
     if (exit_code != EXECUTION_OK)
     {
       return exit_code;

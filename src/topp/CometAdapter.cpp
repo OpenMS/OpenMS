@@ -647,8 +647,8 @@ protected:
     File::TempDir tmp_dir(debug_level_ >= 2);
 
     writeDebug_("Comet is writing the default parameter file...", 1);
-    
-    TOPPBase::ExitCodes exit_code = runExternalProcess_(comet_executable.toQString(), QStringList() << "-p", tmp_dir.getPath().toQString());
+
+    TOPPBase::ExitCodes exit_code = runExternalProcess_(comet_executable, std::vector<String>{"-p"}, tmp_dir.getPath());
     if (exit_code != EXECUTION_OK)
     {
       return exit_code; // will do the right thing, since it's correctly mapping TOPPBase exit codes
@@ -725,14 +725,16 @@ protected:
     //-------------------------------------------------------------
     String paramP = "-P" + tmp_file;
     String paramN = "-N" + FileHandler::stripExtension(FileHandler::stripExtension(tmp_pepxml));
-    QStringList arguments;
-    arguments << paramP.toQString() << paramN.toQString() << input_file_with_index.toQString();
+    std::vector<String> arguments;
+    arguments.push_back(paramP);
+    arguments.push_back(paramN);
+    arguments.push_back(input_file_with_index);
 
     //-------------------------------------------------------------
     // run comet
     //-------------------------------------------------------------
     // Comet execution with the executable and the arguments StringList
-    exit_code = runExternalProcess_(comet_executable.toQString(), arguments);
+    exit_code = runExternalProcess_(comet_executable, arguments);
     if (exit_code != EXECUTION_OK)
     {
       return exit_code;

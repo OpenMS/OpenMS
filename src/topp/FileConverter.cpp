@@ -25,8 +25,6 @@
 #include <OpenMS/KERNEL/ChromatogramTools.h>
 #include <OpenMS/KERNEL/ConversionHelper.h>
 
-#include <QStringList>
-
 
 using namespace OpenMS;
 using namespace std;
@@ -271,7 +269,7 @@ protected:
       bool include_noise = getFlag_("RawToMzML:include_noise");
       writeLogInfo_("RawFileReader reading tool. Copyright 2016 by Thermo Fisher Scientific, Inc. All rights reserved");
       String net_executable = getStringOption_("RawToMzML:NET_executable");
-      QStringList arguments;
+      std::vector<String> arguments;
 #ifdef OPENMS_WINDOWSPLATFORM
       if (net_executable.empty())
       { // default on Windows: if NO mono executable is set use the "native" .NET one
@@ -279,30 +277,30 @@ protected:
       }
       else
       { // use e.g., mono
-        arguments << getStringOption_("RawToMzML:ThermoRaw_executable").toQString();
+        arguments.push_back(getStringOption_("RawToMzML:ThermoRaw_executable"));
       }
 #else
       // default on Mac, Linux: use mono
       net_executable = net_executable.empty() ? "mono" : net_executable;
-      arguments << getStringOption_("RawToMzML:ThermoRaw_executable").toQString();
+      arguments.push_back(getStringOption_("RawToMzML:ThermoRaw_executable"));
 #endif
-      arguments << ("--input=" + in).c_str()
-                << ("--output=" + out).c_str()
-                << "-f=2" // indexedMzML
-                << "-e"; // ignore instrument errors
+      arguments.push_back("--input=" + in);
+      arguments.push_back("--output=" + out);
+      arguments.push_back("-f=2"); // indexedMzML
+      arguments.push_back("-e"); // ignore instrument errors
       if (no_peak_picking)
       {
-        arguments << "--noPeakPicking";
+        arguments.push_back("--noPeakPicking");
       }
       if (no_zlib_compression)
       {
-        arguments << "--noZlibCompression";
+        arguments.push_back("--noZlibCompression");
       }
       if (include_noise)
       {
-        arguments << "--noiseData";
+        arguments.push_back("--noiseData");
       }
-      return runExternalProcess_(net_executable.toQString(), arguments);
+      return runExternalProcess_(net_executable, arguments);
     }
     else if (in_type == FileTypes::EDTA)
     {

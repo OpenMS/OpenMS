@@ -1395,7 +1395,7 @@ namespace OpenMS::Internal
         // Flush the remaining data
         populateSpectraWithData_();
         populateChromatogramsWithData_();
-        pg_outer.endProgress(File::fileSize(file_)); // we cannot query the offset within the file when SAX'ing it (Xerces does not support that)
+        pg_outer.endProgress(File::fileSize(file_).value_or(0)); // we cannot query the offset within the file when SAX'ing it (Xerces does not support that)
                                                      // , so we can only report I/O at the very end
       }
     }

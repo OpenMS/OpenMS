@@ -25,7 +25,7 @@ namespace OpenMS
     String findSpectraFile(const String &spec_file, const String &tsv_file, const bool require_spectra_files)
     {
       String result;
-      QFileInfo spectra_file_info(spec_file.toQString());
+      QFileInfo spectra_file_info(QString::fromStdString(spec_file));
       if (spectra_file_info.isRelative())
       {
         // file name is relative, so we need to figure out the correct folder
@@ -33,11 +33,11 @@ namespace OpenMS
         // first check folder relative to folder of design file
         // to allow, for example, a design in ./design.tsv and spectra in ./spectra/a.mzML
         // where ./ is the same folder
-        QFileInfo design_file_info(tsv_file.toQString());
+        QFileInfo design_file_info(QString::fromStdString(tsv_file));
         QString design_file_relative(design_file_info.absolutePath());
-        design_file_relative = design_file_relative + "/" + spec_file.toQString();
+        design_file_relative = design_file_relative + "/" + QString::fromStdString(spec_file);
 
-        if (File::exists(design_file_relative))
+        if (File::exists(design_file_relative.toStdString()))
         {
           result = design_file_relative.toStdString();
         }

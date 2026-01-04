@@ -889,7 +889,7 @@ namespace OpenMS::Internal
     void MzMLSqliteHandler::createTables()
     {
       // delete file if present
-      QFile file (filename_.toQString());
+      QFile file (QString::fromStdString(filename_));
       file.remove();
 
       SqliteConnector conn(filename_);

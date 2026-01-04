@@ -12,7 +12,8 @@
 #include <OpenMS/METADATA/ID/IdentificationData.h>
 #include <OpenMS/FORMAT/OMSFileStore.h>
 
-#include <QtCore/QJsonArray> // for JSON export
+#include <nlohmann/json_fwd.hpp> // forward declaration for JSON export
+#include <iosfwd> // for std::ostream
 
 namespace SQLite
 {
@@ -176,14 +177,14 @@ namespace OpenMS
         Key parent_id);
 
       /// Export the contents of a database table to JSON
-      QJsonArray exportTableToJSON_(const QString& table, const QString& order_by);
+      nlohmann::json exportTableToJSON_(const std::string& table, const std::string& order_by);
 
       /// The database connection (read)
       std::unique_ptr<SQLite::Database> db_;
 
       int version_number_; ///< schema version number
 
-      QString subquery_score_; ///< query for score types used in JSON export
+      std::string subquery_score_; ///< query for score types used in JSON export
 
       // mappings between database keys and loaded data:
       std::unordered_map<Key, IdentificationData::ScoreTypeRef> score_type_refs_;
@@ -198,8 +199,7 @@ namespace OpenMS
       std::unordered_map<Key, IdentificationData::AdductRef> adduct_refs_;
 
       // mapping: table name -> ordering critera (for JSON export)
-      // @TODO: could use 'unordered_map' here, but would need to specify hash function for 'QString'
-      static std::map<QString, QString> export_order_by_;
+      static std::map<std::string, std::string> export_order_by_;
     };
   }
 }

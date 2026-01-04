@@ -29,7 +29,7 @@ namespace OpenMS
   String DimBase::formattedValue(const ValueType value) const
   {
     // hint: QLocale::c().toString adds group separators to better visualize large numbers (e.g. 23.009.646.54,3)
-    return String(this->getDimNameShort()) + ": " + QLocale::c().toString(value, 'f', valuePrecision());
+    return String(this->getDimNameShort()) + ": " + String(QLocale::c().toString(value, 'f', valuePrecision()).toStdString());
   }
 
   String DimBase::formattedValue(const ValueType value, const String& prefix) const

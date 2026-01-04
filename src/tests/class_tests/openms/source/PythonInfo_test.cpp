@@ -14,10 +14,8 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/SYSTEM/PythonInfo.h>
 #include <OpenMS/SYSTEM/File.h>
-            
-#include <fstream>
 
-#include <QDir>
+#include <fstream>
 
 using namespace OpenMS;
 using namespace std;
@@ -37,15 +35,21 @@ START_SECTION((static bool canRun(String& python_executable, String& error_msg))
 
   auto tmp_file = File::getTemporaryFile();
   ofstream f(tmp_file); // create the file
-  f.close(); 
+  f.close();
   TEST_EQUAL(PythonInfo::canRun(tmp_file, error_msg), false)
-  TEST_EQUAL(error_msg.hasSubstring("failed to run"), true)  
+  // Error message should indicate failure (could be "Error executing" or "failed to run")
+  TEST_EQUAL(error_msg.hasSubstring("Error") || error_msg.hasSubstring("failed"), true)  
 
   py = "python";
   if (PythonInfo::canRun(py, error_msg))
-  { 
+  {
     TEST_EQUAL(File::exists(py), true)
-    TEST_EQUAL(QDir::isRelativePath(py.toQString()), false)
+    // After canRun() with File::findExecutable(), py should be absolute path
+#ifdef OPENMS_WINDOWSPLATFORM
+    TEST_EQUAL(py.size() >= 2 && py[1] == ':', true) // Windows: C:\path
+#else
+    TEST_EQUAL(py[0] == '/', true) // Unix/Mac: /path
+#endif
   }
 
 END_SECTION

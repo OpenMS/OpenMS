@@ -12,6 +12,7 @@
 #include <OpenMS/config.h>
 #include <cstdlib>
 #include <mutex>
+#include <optional>
 
 
 namespace OpenMS
@@ -71,8 +72,8 @@ public:
     /// Method used to test if a @p file is executable.
     static bool executable(const String& file);
 
-    /// The filesize in bytes (or -1 on error, e.g. if the file does not exist)
-    static UInt64 fileSize(const String& file);
+    /// The filesize in bytes (or std::nullopt if the file does not exist or on error)
+    static std::optional<UInt64> fileSize(const String& file);
 
     /**
        @brief Rename a file

@@ -122,16 +122,46 @@ namespace OpenMS
     siStartInfo.hStdInput = GetStdHandle(STD_INPUT_HANDLE);
     siStartInfo.dwFlags |= STARTF_USESTDHANDLES;
 
-    // Set environment variables
+    // Set environment variables - merge with parent environment
     char* envBlock = nullptr;
     if (!env.empty())
     {
       std::ostringstream envStream;
+
+      // Get parent environment and merge
+      LPCH parentEnv = GetEnvironmentStrings();
+      if (parentEnv != nullptr)
+      {
+        // Copy parent environment entries
+        LPCH entry = parentEnv;
+        while (*entry)
+        {
+          String entryStr(entry);
+          // Skip entries that will be overridden by env map
+          size_t eqPos = entryStr.find('=');
+          if (eqPos != String::npos)
+          {
+            String key = entryStr.substr(0, eqPos);
+            if (env.find(key) == env.end())
+            {
+              // Not overridden, keep parent value
+              envStream << entryStr << '\0';
+            }
+          }
+          entry += strlen(entry) + 1;
+        }
+        FreeEnvironmentStrings(parentEnv);
+      }
+
+      // Add/override with provided environment variables
       for (const auto& kv : env)
       {
         envStream << kv.first << "=" << kv.second << '\0';
       }
+
+      // Double-null terminate
       envStream << '\0';
+
       String envStr = envStream.str();
       envBlock = new char[envStr.size()];
       memcpy(envBlock, envStr.c_str(), envStr.size());

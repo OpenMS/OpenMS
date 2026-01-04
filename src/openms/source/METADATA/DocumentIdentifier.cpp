@@ -39,7 +39,7 @@ namespace OpenMS
   {
     // only change the path if we need to, otherwise low and upper case might be altered by Qt, making comparison in tests more tricky
     // i.e., a call to this will report unmatched strings
-    if (QDir::isRelativePath(file_name.toQString()))
+    if (QDir::isRelativePath(QString::fromStdString(file_name)))
     {
       file_path_ = File::absolutePath(file_name);
     }

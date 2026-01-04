@@ -21,10 +21,8 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 
 #include <fstream>
-
-#include <QtCore/QString>
-
-#include <QtCore/qcontainerfwd.h> // for QStringList
+#include <vector>
+#include <map>
 
 namespace OpenMS
 {
@@ -879,11 +877,11 @@ protected:
     ///@name External processes (TODO consider creating another AdapterBase class)
     //@{
     /// Runs an external process via ExternalProcess and prints its stderr output on failure or if debug_level > 4
-    ExitCodes runExternalProcess_(const QString& executable, const QStringList& arguments, const QString& workdir = "", const std::map<QString, QString>& env = std::map<QString, QString>()) const;
+    ExitCodes runExternalProcess_(const String& executable, const std::vector<String>& arguments, const String& workdir = "", const std::map<String, String>& env = std::map<String, String>()) const;
 
     /// Runs an external process via ExternalProcess and prints its stderr output on failure or if debug_level > 4
     /// Additionally returns the process' stdout and stderr
-    ExitCodes runExternalProcess_(const QString& executable, const QStringList& arguments, String& proc_stdout, String& proc_stderr, const QString& workdir = "", const std::map<QString, QString>& env = std::map<QString, QString>()) const;
+    ExitCodes runExternalProcess_(const String& executable, const std::vector<String>& arguments, String& proc_stdout, String& proc_stderr, const String& workdir = "", const std::map<String, String>& env = std::map<String, String>()) const;
     //@}
 
     /**

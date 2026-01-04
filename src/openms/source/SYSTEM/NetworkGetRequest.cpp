@@ -17,6 +17,9 @@
 #include <cstdio>
 #include <cstring>
 #include <array>
+#ifndef OPENMS_WINDOWSPLATFORM
+#include <sys/wait.h>
+#endif
 #endif
 
 using namespace std;
@@ -157,16 +160,25 @@ namespace OpenMS
       return;
     }
 
-    // SECURITY: Validate URL doesn't contain shell metacharacters to prevent command injection
-    // We only allow URLs with alphanumeric, :/.-_?&=% characters
+    // SECURITY: Validate URL doesn't contain dangerous shell metacharacters
+    // Allow common URL characters including #, +, ~, @, ;, , etc. but reject shell metacharacters
     for (size_t i = 0; i < url_.size(); ++i)
     {
       char c = url_[i];
-      if (!isalnum(c) && c != ':' && c != '/' && c != '.' && c != '-' &&
-          c != '_' && c != '?' && c != '&' && c != '=' && c != '%')
+      // Reject dangerous shell metacharacters: backtick, pipe, dollar, redirect, etc.
+      // Note: We use single quotes around URL in shell command, so single quote is also dangerous
+      if (c == '`' || c == '|' || c == '$' || c == '<' || c == '>' ||
+          c == '\'' || c == '"' || c == '\\' || c == '\n' || c == '\r')
       {
         has_error_ = true;
-        error_string_ = String("URL contains invalid character: ") + c + ". Only alphanumeric and :/.-_?&=% allowed.";
+        error_string_ = String("URL contains dangerous shell metacharacter: ") + c;
+        return;
+      }
+      // Optionally, ensure it's printable ASCII (0x20-0x7E) to catch other weird characters
+      if (c < 0x20 || c > 0x7E)
+      {
+        has_error_ = true;
+        error_string_ = String("URL contains non-printable character");
         return;
       }
     }
@@ -190,12 +202,36 @@ namespace OpenMS
       response_bytes_.insert(response_bytes_.end(), buffer.data(), buffer.data() + len);
     }
 
-    int exit_code = pclose(pipe);
-    if (exit_code != 0)
+    // Decode pclose return value properly
+    int status = pclose(pipe);
+    if (status == -1)
     {
       has_error_ = true;
-      error_string_ = String("curl command failed with exit code: ") + String(exit_code);
+      error_string_ = "pclose() failed";
     }
+#ifndef OPENMS_WINDOWSPLATFORM
+    else if (WIFEXITED(status))
+    {
+      int exit_code = WEXITSTATUS(status);
+      if (exit_code != 0)
+      {
+        has_error_ = true;
+        error_string_ = String("curl command failed with exit code: ") + String(exit_code);
+      }
+    }
+    else if (WIFSIGNALED(status))
+    {
+      has_error_ = true;
+      error_string_ = String("curl command terminated by signal: ") + String(WTERMSIG(status));
+    }
+#else
+    // On Windows, pclose returns the exit code directly
+    else if (status != 0)
+    {
+      has_error_ = true;
+      error_string_ = String("curl command failed with exit code: ") + String(status);
+    }
+#endif
     #else
     // Windows without curl: error
     has_error_ = true;

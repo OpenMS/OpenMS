@@ -450,7 +450,7 @@ namespace OpenMS
       this->setProgress(i);
       if (experiment[i].getMSLevel() == 2)
       {
-        writeSpectrum(os, experiment[i], filtered_filename, native_id_type_accession);
+        writeSpectrum(os, experiment[i], filtered_filename.toStdString(), native_id_type_accession);
       }
       else if (experiment[i].getMSLevel() == 0)
       {

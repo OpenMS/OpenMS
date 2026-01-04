@@ -4147,40 +4147,40 @@ static void scoreXLIons_(
     writeLogInfo_("RawFileReader reading tool. Copyright 2016 by Thermo Fisher Scientific, Inc. All rights reserved");
     String net_executable = getStringOption_("NET_executable");
     TOPPBase::ExitCodes exit_code;
-    QStringList arguments;
+    std::vector<String> arguments;
     String out = in + ".mzML";
     // check if this file exists and not empty so we can skip further conversions
     if (!File::empty(out)) { return out; }
-#ifdef OPENMS_WINDOWSPLATFORM      
+#ifdef OPENMS_WINDOWSPLATFORM
     if (net_executable.empty())
     { // default on Windows: if no mono executable is set use the "native" .NET one
-      arguments << String("-i=" + in).toQString()
-                << String("--output_file=" + out).toQString()
-                << String("-f=2").toQString() // indexedMzML
-                << String("-e").toQString(); // ignore instrument errors
-      if (no_peak_picking)  { arguments << String("--noPeakPicking").toQString(); }
-      exit_code = runExternalProcess_(getStringOption_("ThermoRaw_executable").toQString(), arguments);
+      arguments.push_back("-i=" + in);
+      arguments.push_back("--output_file=" + out);
+      arguments.push_back("-f=2"); // indexedMzML
+      arguments.push_back("-e"); // ignore instrument errors
+      if (no_peak_picking)  { arguments.push_back("--noPeakPicking"); }
+      exit_code = runExternalProcess_(getStringOption_("ThermoRaw_executable"), arguments);
     }
     else
     { // use e.g., mono
-      arguments << getStringOption_("ThermoRaw_executable").toQString()
-                << String("-i=" + in).toQString()
-                << String("--output_file=" + out).toQString()
-                << String("-f=2").toQString()
-                << String("-e").toQString();
-      if (no_peak_picking)  { arguments << String("--noPeakPicking").toQString(); }
-      exit_code = runExternalProcess_(net_executable.toQString(), arguments);       
-    }      
+      arguments.push_back(getStringOption_("ThermoRaw_executable"));
+      arguments.push_back("-i=" + in);
+      arguments.push_back("--output_file=" + out);
+      arguments.push_back("-f=2");
+      arguments.push_back("-e");
+      if (no_peak_picking)  { arguments.push_back("--noPeakPicking"); }
+      exit_code = runExternalProcess_(net_executable, arguments);
+    }
 #else
     // default on Mac, Linux: use mono
     net_executable = net_executable.empty() ? "mono" : net_executable;
-    arguments << getStringOption_("ThermoRaw_executable").toQString()
-              << String("-i=" + in).toQString()
-              << String("--output_file=" + out).toQString()
-              << String("-f=2").toQString()
-              << String("-e").toQString();
-    if (no_peak_picking)  { arguments << String("--noPeakPicking").toQString(); }
-    exit_code = runExternalProcess_(net_executable.toQString(), arguments);       
+    arguments.push_back(getStringOption_("ThermoRaw_executable"));
+    arguments.push_back("-i=" + in);
+    arguments.push_back("--output_file=" + out);
+    arguments.push_back("-f=2");
+    arguments.push_back("-e");
+    if (no_peak_picking)  { arguments.push_back("--noPeakPicking"); }
+    exit_code = runExternalProcess_(net_executable, arguments);
 #endif
     if (exit_code != ExitCodes::EXECUTION_OK)
     {
@@ -4777,23 +4777,28 @@ static void scoreXLIons_(
           String weights_out = out_idxml;
           weights_out.substitute(".idXML", "_sse_perc.weights");
 
-          QStringList process_params;
-          process_params << "-in" << perc_in.toQString()
-                       << "-out" << perc_out.toQString()
-                       << "-percolator_executable" << percolator_executable.toQString()
-                       << "-train_best_positive" 
-                       << "-score_type" << "q-value"
-                       << "-post_processing_tdc"
-                       << "-weights" << weights_out.toQString()
+          std::vector<String> process_params;
+          process_params.push_back("-in");
+          process_params.push_back(perc_in);
+          process_params.push_back("-out");
+          process_params.push_back(perc_out);
+          process_params.push_back("-percolator_executable");
+          process_params.push_back(percolator_executable);
+          process_params.push_back("-train_best_positive");
+          process_params.push_back("-score_type");
+          process_params.push_back("q-value");
+          process_params.push_back("-post_processing_tdc");
+          process_params.push_back("-weights");
+          process_params.push_back(weights_out);
 //                       << "-nested_xval_bins" << "3"
-                       ;
 
           if (getStringOption_("peptide:enzyme") == "Lys-C")
           {
-            process_params << "-enzyme" << "lys-c";
+            process_params.push_back("-enzyme");
+            process_params.push_back("lys-c");
           }
-                       
-          TOPPBase::ExitCodes exit_code = runExternalProcess_(QString("PercolatorAdapter"), process_params);
+
+          TOPPBase::ExitCodes exit_code = runExternalProcess_(String("PercolatorAdapter"), process_params);
 
           if (exit_code != EXECUTION_OK) 
           { 
@@ -6393,26 +6398,33 @@ static void scoreXLIons_(
         String pin = out_idxml;
         pin.substitute(".idXML", ".tsv");
 
-        QStringList process_params;
-        process_params << "-in" << out_idxml.toQString()
-                       << "-out" << perc_out.toQString()
-                       << "-percolator_executable" << percolator_executable.toQString()
-                       << "-train_best_positive" 
-                       << "-score_type" << "svm"
-                       << "-unitnorm"
-                       << "-post_processing_tdc"
+        std::vector<String> process_params;
+        process_params.push_back("-in");
+        process_params.push_back(out_idxml);
+        process_params.push_back("-out");
+        process_params.push_back(perc_out);
+        process_params.push_back("-percolator_executable");
+        process_params.push_back(percolator_executable);
+        process_params.push_back("-train_best_positive");
+        process_params.push_back("-score_type");
+        process_params.push_back("svm");
+        process_params.push_back("-unitnorm");
+        process_params.push_back("-post_processing_tdc");
 //                       << "-nested_xval_bins" << "3"
-                       << "-weights" << weights_out.toQString()
-                       << "-out_pin" << pin.toQString();
+        process_params.push_back("-weights");
+        process_params.push_back(weights_out);
+        process_params.push_back("-out_pin");
+        process_params.push_back(pin);
 
         if (getStringOption_("peptide:enzyme") == "Lys-C")
         {
-          process_params << "-enzyme" << "lys-c";
+          process_params.push_back("-enzyme");
+          process_params.push_back("lys-c");
         }
 //        process_params << "-out_pout_target" << "merged_target.tab" << "-out_pout_decoy" << "merged_decoy.tab";
 
         OPENMS_LOG_INFO << "Running percolator." << endl;
-        TOPPBase::ExitCodes exit_code = runExternalProcess_(QString("PercolatorAdapter"), process_params);
+        TOPPBase::ExitCodes exit_code = runExternalProcess_(String("PercolatorAdapter"), process_params);
         OPENMS_LOG_INFO << "done." << endl;
 
         if (exit_code != EXECUTION_OK) 

@@ -544,25 +544,27 @@ protected:
     writeConfigurationFile_(conf_file, config_map);
 
     // memory for JVM
-    QString java_memory = "-Xmx" + QString::number(getIntOption_("java_memory")) + "m";
+    String java_memory = "-Xmx" + String(getIntOption_("java_memory")) + "m";
     int java_permgen = getIntOption_("java_permgen");
 
-    QString executable = getStringOption_("executable").toQString();
+    String executable = getStringOption_("executable");
 
-    QStringList process_params; // the actual process is Java, not LuciPHOr2!
-    process_params << java_memory;
-    
+    std::vector<String> process_params; // the actual process is Java, not LuciPHOr2!
+    process_params.push_back(java_memory);
+
     if (java_permgen > 0)
     {
-      process_params << "-XX:MaxPermSize=" + QString::number(java_permgen);
+      process_params.push_back("-XX:MaxPermSize=" + String(java_permgen));
     }
 
-    process_params << "-jar" << executable << conf_file.toQString();
+    process_params.push_back("-jar");
+    process_params.push_back(executable);
+    process_params.push_back(conf_file);
 
     //-------------------------------------------------------------
     // LuciPHOr2
     //-------------------------------------------------------------
-    TOPPBase::ExitCodes exit_code = runExternalProcess_(java_executable.toQString(), process_params);
+    TOPPBase::ExitCodes exit_code = runExternalProcess_(java_executable, process_params);
     if (exit_code != EXECUTION_OK)
     {
       return exit_code;

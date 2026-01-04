@@ -301,7 +301,7 @@ namespace OpenMS
         msspectrum_to_fill.setName(concat_m_ids + suffix);
         String filename = rank_filename.at(i); // rank 1
         double score = rank_score.at(i); // rank 1
-        QFileInfo sirius_result_file(dir,filename.toQString());
+        QFileInfo sirius_result_file(dir,QString::fromStdString(filename));
 
         if (use_exact_mass)
         {

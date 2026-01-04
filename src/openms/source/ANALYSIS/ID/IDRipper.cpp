@@ -74,7 +74,7 @@ namespace OpenMS
               : pep_id.getMetaValue("file_origin").toString();
 
           // Extract the basename, used for output files when --numeric_filenames is not set
-          this->out_basename = QFileInfo(this->origin_fullname.toQString()).completeBaseName().toStdString();
+          this->out_basename = QFileInfo(QString::fromStdString(this->origin_fullname)).completeBaseName().toStdString();
 
           // Drop the identification run identifier if we're not splitting by identification runs
           if (!split_ident_runs)

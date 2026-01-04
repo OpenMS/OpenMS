@@ -779,39 +779,51 @@ protected:
       OSWFile::readToPIN(in_osw, osw_level, pin_output, ipf_max_peakgroup_pep, ipf_max_transition_isotope_overlap, ipf_min_transition_sn);
     }
 
-    QStringList arguments;
+    std::vector<String> arguments;
     // Check all set parameters and get them into arguments StringList
-    {    
+    {
       if (peptide_level_fdrs)
-      { 
-        arguments << "-r" << pout_target_file_peptides.toQString();
-        arguments << "-B" << pout_decoy_file_peptides.toQString();
+      {
+        arguments.push_back("-r");
+        arguments.push_back(pout_target_file_peptides);
+        arguments.push_back("-B");
+        arguments.push_back(pout_decoy_file_peptides);
       }
       else
       {
-        arguments << "-U";
+        arguments.push_back("-U");
       }
-      arguments << "-m" << pout_target_file.toQString();
-      arguments << "-M" << pout_decoy_file.toQString();
-      
+      arguments.push_back("-m");
+      arguments.push_back(pout_target_file);
+      arguments.push_back("-M");
+      arguments.push_back(pout_decoy_file);
+
       if (protein_level_fdrs)
       {
-        arguments << "-l" << pout_target_file_proteins.toQString();
-        arguments << "-L" << pout_decoy_file_proteins.toQString();
-        
+        arguments.push_back("-l");
+        arguments.push_back(pout_target_file_proteins);
+        arguments.push_back("-L");
+        arguments.push_back(pout_decoy_file_proteins);
+
         String fasta_file = getStringOption_("fasta");
         if (fasta_file.empty())
         {
           fasta_file = "auto";
         }
-        arguments << "-f" << fasta_file.toQString();
+        arguments.push_back("-f");
+        arguments.push_back(fasta_file);
 
-        arguments << "-z" << String(enz_str).toQString();
+        arguments.push_back("-z");
+        arguments.push_back(String(enz_str));
 
         String decoy_pattern = getStringOption_("decoy_pattern");
-        if (decoy_pattern != "random") arguments << "-P" << decoy_pattern.toQString();
+        if (decoy_pattern != "random")
+        {
+          arguments.push_back("-P");
+          arguments.push_back(decoy_pattern);
+        }
       }
-      
+
       int cv_threads = getIntOption_("threads"); // pass-through of OpenMS thread parameter
 
       if (cv_threads != 3) // default in percolator is 3
@@ -820,108 +832,122 @@ protected:
         // This ensures that existing workflows (which implicitly used 3 threads) don't slow down
         // if e.g. the OpenMS version and this adapter is updated.
         if (cv_threads > 3 || getFlag_("force"))
-        { 
-          arguments << "--num-threads" << String(cv_threads).toQString();
+        {
+          arguments.push_back("--num-threads");
+          arguments.push_back(String(cv_threads));
         }
       }
-      
+
       double cpos = getDoubleOption_("cpos");
       double cneg = getDoubleOption_("cneg");
       if (cpos != 0.0)
       {
-        arguments << "-p" << String(cpos).toQString();
+        arguments.push_back("-p");
+        arguments.push_back(String(cpos));
       }
       if (cneg != 0.0)
       {
-        arguments << "-n" << String(cneg).toQString();
+        arguments.push_back("-n");
+        arguments.push_back(String(cneg));
       }
       double train_FDR = getDoubleOption_("trainFDR");
       double test_FDR = getDoubleOption_("testFDR");
       if (train_FDR != 0.01)
       {
-        arguments << "-F" << String(train_FDR).toQString();
+        arguments.push_back("-F");
+        arguments.push_back(String(train_FDR));
       }
       if (test_FDR != 0.01)
       {
-        arguments << "-t" << String(test_FDR).toQString();
+        arguments.push_back("-t");
+        arguments.push_back(String(test_FDR));
       }
       Int max_iter = getIntOption_("maxiter");
       if (max_iter != 10)
       {
-        arguments << "-i" << String(max_iter).toQString();
+        arguments.push_back("-i");
+        arguments.push_back(String(max_iter));
       }
       Int subset_max_train = getIntOption_("subset_max_train");
       if (subset_max_train > 0)
       {
-        arguments << "-N" << String(subset_max_train).toQString();
+        arguments.push_back("-N");
+        arguments.push_back(String(subset_max_train));
       }
       if (getFlag_("quick_validation"))
       {
-        arguments << "-x";
+        arguments.push_back("-x");
       }
       if (getFlag_("post_processing_tdc"))
       {
-        arguments << "-Y";
+        arguments.push_back("-Y");
       }
       if (getFlag_("train_best_positive"))
       {
-        arguments << "--train-best-positive";
+        arguments.push_back("--train-best-positive");
       }
       if (getFlag_("static"))
       {
-        arguments << "--static";
+        arguments.push_back("--static");
       }
       Int nested_xval_bins = getIntOption_("nested_xval_bins");
       if (nested_xval_bins > 1)
       {
-        arguments << "--nested-xval-bins" << String(nested_xval_bins).toQString();
+        arguments.push_back("--nested-xval-bins");
+        arguments.push_back(String(nested_xval_bins));
       }
       String weights_file = getStringOption_("weights");
       String init_weights_file = getStringOption_("init_weights");
       String default_search_direction = getStringOption_("default_direction");
       if (!weights_file.empty())
       {
-        arguments << "-w" << weights_file.toQString();
+        arguments.push_back("-w");
+        arguments.push_back(weights_file);
       }
       if (!init_weights_file.empty())
       {
-        arguments << "-W" << init_weights_file.toQString();
+        arguments.push_back("-W");
+        arguments.push_back(init_weights_file);
       }
       if (!default_search_direction.empty())
       {
-        arguments << "-V" << default_search_direction.toQString();
+        arguments.push_back("-V");
+        arguments.push_back(default_search_direction);
       }
       Int verbose_level = getIntOption_("verbose");
       if (verbose_level != 2)
       {
-        arguments << "-v" << String(verbose_level).toQString();
+        arguments.push_back("-v");
+        arguments.push_back(String(verbose_level));
       }
       if (getFlag_("unitnorm"))
       {
-        arguments << "-u";
+        arguments.push_back("-u");
       }
       if (getFlag_("test_each_iteration"))
       {
-        arguments << "-R";
+        arguments.push_back("-R");
       }
       if (getFlag_("override"))
       {
-        arguments << "-O";
+        arguments.push_back("-O");
       }
       Int seed = getIntOption_("seed");
       if (seed != 1)
       {
-        arguments << "-S" << String(seed).toQString();
+        arguments.push_back("-S");
+        arguments.push_back(String(seed));
       }
       if (getFlag_("klammer"))
       {
-        arguments << "-K";
+        arguments.push_back("-K");
       }
       if (description_of_correct != 0)
       {
-        arguments << "-D" << String(description_of_correct).toQString();
+        arguments.push_back("-D");
+        arguments.push_back(String(description_of_correct));
       }
-      arguments << pin_file.toQString();
+      arguments.push_back(pin_file);
     }
     writeLogInfo_("Prepared percolator input.");
 
@@ -929,7 +955,7 @@ protected:
     // run percolator
     //-------------------------------------------------------------
     // Percolator execution with the executable and the arguments StringList
-    TOPPBase::ExitCodes exit_code = runExternalProcess_(percolator_executable.toQString(), arguments);
+    TOPPBase::ExitCodes exit_code = runExternalProcess_(percolator_executable, arguments);
     if (exit_code != EXECUTION_OK)
     {
       return exit_code;

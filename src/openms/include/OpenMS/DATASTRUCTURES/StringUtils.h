@@ -15,13 +15,15 @@
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
 #include <OpenMS/CONCEPT/PrecisionWrapper.h>
 
-#include <QtCore/QString>
 #include <boost/spirit/include/qi.hpp>
 #include <boost/spirit/include/karma.hpp>
 #include <boost/type_traits.hpp>
 
 #include <string>
 #include <vector>
+#include <sstream>
+#include <iomanip>
+#include <locale>
 
 
 namespace OpenMS
@@ -202,13 +204,12 @@ public:
 
     [[maybe_unused]] static String number(double d, UInt n)
     {
-      return QString::number(d, 'f', n);
+      std::ostringstream oss;
+      oss.imbue(std::locale::classic());  
+      oss << std::fixed << std::setprecision(static_cast<int>(n)) << d;
+      return String(oss.str());
     }
 
-    [[maybe_unused]] static QString toQString(const String & this_s) 
-    {
-      return QString(this_s.c_str());
-    }
 
     [[maybe_unused]] static Int32 toInt32(const String & this_s)
     {

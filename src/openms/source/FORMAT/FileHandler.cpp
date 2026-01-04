@@ -585,13 +585,13 @@ namespace OpenMS
   String FileHandler::computeFileHash(const String& filename)
   {
     QCryptographicHash crypto(QCryptographicHash::Sha1);
-    QFile file(filename.toQString());
+    QFile file(QString::fromStdString(filename));
     file.open(QFile::ReadOnly);
     while (!file.atEnd())
     {
       crypto.addData(file.read(8192));
     }
-    return String((QString)crypto.result().toHex());
+    return String(((QString)crypto.result().toHex()).toStdString());
   }
 
   void FileHandler::loadSpectrum(const String& filename, MSSpectrum& spec, const std::vector<FileTypes::Type> allowed_types)

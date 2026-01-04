@@ -325,6 +325,83 @@ START_SECTION((static DateTime now()))
 }
 END_SECTION
 
+START_SECTION((DateTime& addSecs(int s) - backward traversal past year 0))
+{
+  // Test that subtracting seconds that would result in year < 0 throws an exception
+  DateTime date;
+  date.set(1, 1, 1, 0, 0, 0);  // January 1, year 1, 00:00:00
+
+  // Subtracting 1 second should move us to year 0, which should throw
+  TEST_EXCEPTION(Exception::ParseError, date.addSecs(-1))
+
+  // Test with a larger negative offset
+  DateTime date2;
+  date2.set(1, 1, 5, 0, 0, 0);  // January 1, year 5, 00:00:00
+
+  // Subtracting enough seconds to go back more than 5 years should throw
+  int days_to_subtract = 365 * 6;  // More than 5 years
+  int seconds_to_subtract = -1 * days_to_subtract * 24 * 3600;
+  TEST_EXCEPTION(Exception::ParseError, date2.addSecs(seconds_to_subtract))
+}
+END_SECTION
+
+START_SECTION((DateTime& addSecs(int s) - backward traversal near year 0))
+{
+  // Test that we can safely traverse backward to year 1
+  DateTime date;
+  date.set(1, 5, 2, 12, 0, 0);  // January 5, year 2, 12:00:00
+
+  // Subtract 5 days (should be safe)
+  date.addSecs(-5 * 24 * 3600);
+  UInt month, day, year, hour, minute, second;
+  date.get(month, day, year, hour, minute, second);
+  TEST_EQUAL(year, 1)  // Should be in year 1
+  TEST_EQUAL(month, 12)  // December
+  TEST_EQUAL(day, 31)  // December 31
+
+  // Test that we can move to the earliest valid moment (year 1, month 1, day 1)
+  DateTime date2;
+  date2.set(1, 1, 1, 0, 0, 1);  // January 1, year 1, 00:00:01
+  date2.addSecs(-1);  // Go back 1 second to January 1, year 1, 00:00:00
+  date2.get(month, day, year, hour, minute, second);
+  TEST_EQUAL(year, 1)
+  TEST_EQUAL(month, 1)
+  TEST_EQUAL(day, 1)
+  TEST_EQUAL(hour, 0)
+  TEST_EQUAL(minute, 0)
+  TEST_EQUAL(second, 0)
+}
+END_SECTION
+
+START_SECTION((DateTime& addSecs(int s) - forward and backward traversal))
+{
+  // Test normal forward and backward operations still work correctly
+  DateTime date;
+  date.set(6, 15, 2020, 14, 30, 45);  // June 15, 2020, 14:30:45
+
+  // Add 1 day
+  date.addSecs(24 * 3600);
+  TEST_EQUAL(date.get(), "2020-06-16 14:30:45")
+
+  // Subtract 2 days
+  date.addSecs(-2 * 24 * 3600);
+  TEST_EQUAL(date.get(), "2020-06-14 14:30:45")
+
+  // Test month boundary crossing
+  DateTime date2;
+  date2.set(3, 1, 2020, 0, 0, 0);  // March 1, 2020, 00:00:00 (leap year)
+  date2.addSecs(-1);  // Should go to Feb 29, 2020, 23:59:59
+  UInt month, day, year, hour, minute, second;
+  date2.get(month, day, year, hour, minute, second);
+  TEST_EQUAL(year, 2020)
+  TEST_EQUAL(month, 2)
+  TEST_EQUAL(day, 29)  // Leap year
+  TEST_EQUAL(hour, 23)
+  TEST_EQUAL(minute, 59)
+  TEST_EQUAL(second, 59)
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

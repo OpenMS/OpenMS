@@ -191,26 +191,26 @@ namespace OpenMS
         << prefix << "\n"
         << prefix << "Offending lines:\t\t\t(tab_width = " << tab_width_ << ", first_column = " << first_column_ << ")\n"
         << prefix << "\n"
-        << prefix << "in1:  " << QDir::toNativeSeparators(File::absolutePath(input_1_name_).toQString()).toStdString() << "   (line: " << line_num_1_ << ", position/column: " << input_line_1_.line_position_ << '/' << prefix1.line_column << ")\n"
+        << prefix << "in1:  " << QDir::toNativeSeparators(QString::fromStdString(File::absolutePath(input_1_name_))).toStdString() << "   (line: " << line_num_1_ << ", position/column: " << input_line_1_.line_position_ << '/' << prefix1.line_column << ")\n"
         << prefix << prefix1.prefix << "!\n"
         << prefix << prefix1.prefix_whitespaces << OpenMS::String(input_line_1_.line_.str()).suffix(input_line_1_.line_.str().size() - prefix1.prefix.size()) << "\n"
         << prefix <<  "\n"
-        << prefix << "in2:  " << QDir::toNativeSeparators(File::absolutePath(input_2_name_).toQString()).toStdString() << "   (line: " << line_num_2_ << ", position/column: " << input_line_2_.line_position_ << '/' << prefix2.line_column << ")\n"
+        << prefix << "in2:  " << QDir::toNativeSeparators(QString::fromStdString(File::absolutePath(input_2_name_))).toStdString() << "   (line: " << line_num_2_ << ", position/column: " << input_line_2_.line_position_ << '/' << prefix2.line_column << ")\n"
         << prefix << prefix2.prefix << "!\n"
         << prefix << prefix2.prefix_whitespaces << OpenMS::String(input_line_2_.line_.str()).suffix(input_line_2_.line_.str().size() - prefix2.prefix.size()) << "\n"
         << prefix << "\n\n"
         << "Easy Access:" << "\n"
-        << QDir::toNativeSeparators(File::absolutePath(input_1_name_).toQString()).toStdString() << ':' << line_num_1_ << ":" << prefix1.line_column << ":\n"
-        << QDir::toNativeSeparators(File::absolutePath(input_2_name_).toQString()).toStdString() << ':' << line_num_2_ << ":" << prefix2.line_column << ":\n"
+        << QDir::toNativeSeparators(QString::fromStdString(File::absolutePath(input_1_name_))).toStdString() << ':' << line_num_1_ << ":" << prefix1.line_column << ":\n"
+        << QDir::toNativeSeparators(QString::fromStdString(File::absolutePath(input_2_name_))).toStdString() << ':' << line_num_2_ << ":" << prefix2.line_column << ":\n"
         << "\n"
         #ifdef WIN32
         << "TortoiseGitMerge"
-        << " /base:\"" << QDir::toNativeSeparators(File::absolutePath(input_1_name_).toQString()).toStdString() << "\""
-        << " /mine:\"" << QDir::toNativeSeparators(File::absolutePath(input_2_name_).toQString()).toStdString() << "\""
+        << " /base:\"" << QDir::toNativeSeparators(QString::fromStdString(File::absolutePath(input_1_name_))).toStdString() << "\""
+        << " /mine:\"" << QDir::toNativeSeparators(QString::fromStdString(File::absolutePath(input_2_name_))).toStdString() << "\""
         #else
         << "diff"
-        << " " << QDir::toNativeSeparators(File::absolutePath(input_1_name_).toQString()).toStdString()
-        << " " << QDir::toNativeSeparators(File::absolutePath(input_2_name_).toQString()).toStdString()
+        << " " << QDir::toNativeSeparators(QString::fromStdString(File::absolutePath(input_1_name_))).toStdString()
+        << " " << QDir::toNativeSeparators(QString::fromStdString(File::absolutePath(input_2_name_))).toStdString()
         #endif
         << std::endl;
     }

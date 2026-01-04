@@ -1043,7 +1043,7 @@ namespace OpenMS
         }
         else if (cells[i].hasPrefix("search_engine_score["))
         {
-          std::pair<Size, Size> pair = extractIndexPairsFromBrackets_(cells[i].toQString());
+          std::pair<Size, Size> pair = extractIndexPairsFromBrackets_(cells[i]);
           peptide_column_index_to_score_runs_pair[i] = pair;
         }
         else if (cells[i] == "reliability")
@@ -1411,7 +1411,7 @@ namespace OpenMS
         }
         else if (cells[i].hasPrefix("search_engine_score["))
         {
-          std::pair<Size, Size> pair = extractIndexPairsFromBrackets_(cells[i].toQString());
+          std::pair<Size, Size> pair = extractIndexPairsFromBrackets_(cells[i]);
           smallmolecule_column_index_to_score_runs_pair[i] = pair;
         }
         else if (cells[i] == "modifications")

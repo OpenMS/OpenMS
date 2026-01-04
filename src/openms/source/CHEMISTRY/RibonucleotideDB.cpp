@@ -233,7 +233,7 @@ namespace OpenMS
     String full_path = File::find(path);
 
     // the input file is Unicode encoded, so we need Qt to read it:
-    QFile file(full_path.toQString());
+    QFile file(QString::fromStdString(full_path));
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
     {
       throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, full_path);
@@ -245,7 +245,7 @@ namespace OpenMS
     json mod_obj;
     try
     {
-      mod_obj = json::parse(String(source.readAll()));
+      mod_obj = json::parse(String(source.readAll().toStdString()));
     }
     catch (Exception::ParseError& e)
     {
@@ -290,7 +290,7 @@ namespace OpenMS
     String header = "name\tshort_name\tnew_nomenclature\toriginating_base\trnamods_abbrev\thtml_abbrev\tformula\tmonoisotopic_mass\taverage_mass";
 
     // the input file is Unicode encoded, so we need Qt to read it:
-    QFile file(full_path.toQString());
+    QFile file(QString::fromStdString(full_path));
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
     {
       throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, full_path);
@@ -299,10 +299,10 @@ namespace OpenMS
     QTextStream source(&file);
     source.setAutoDetectUnicode(true);
     Size line_count = 1;
-    String line = source.readLine();
+    String line = source.readLine().toStdString();
     while (line[0] == '#') // skip leading comments
     {
-      line = source.readLine();
+      line = source.readLine().toStdString();
       ++line_count;
     }
     if (!line.hasPrefix(header)) // additional columns are allowed

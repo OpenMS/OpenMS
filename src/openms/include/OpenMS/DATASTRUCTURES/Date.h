@@ -12,8 +12,6 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/OpenMSConfig.h>
 
-#include <QtCore/QDate>
-
 namespace OpenMS
 {
   /**
@@ -24,8 +22,7 @@ namespace OpenMS
 
       @ingroup Datastructures
   */
-  class OPENMS_DLLAPI Date :
-    public QDate
+  class OPENMS_DLLAPI Date
   {
 public:
 
@@ -34,18 +31,22 @@ public:
 
         Fills the object with an undefined date: 00/00/0000
     */
-    Date() = default;
+    Date();
+
     /// Copy constructor
     Date(const Date& date) = default;
-    /// Copy constructor from Qt base class
-    Date(const QDate& date);
+
     /// Move constructor
     Date(Date&&) = default;
 
     /// Assignment operator
     Date& operator=(const Date& source) = default;
+
     /// Move assignment operator
     Date& operator=(Date&&) & = default;
+
+    /// equal operator
+    bool operator==(const Date& rhs) const;
 
     /**
         @brief sets data from a string
@@ -86,7 +87,13 @@ public:
     ///Sets the undefined date: 00/00/0000
     void clear();
 
-protected:
+    /// Checks if the date is valid
+    bool isValid() const;
+
+private:
+    UInt year_;
+    UInt month_;
+    UInt day_;
   };
 } // namespace OPENMS
 

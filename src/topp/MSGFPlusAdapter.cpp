@@ -417,7 +417,7 @@ protected:
     id.setHigherScoreBetter(false);
   }
 
-  bool createLockedDBIndex(const String& db_name, const QString java_executable, const QString java_memory, const QString executable)
+  bool createLockedDBIndex(const String& db_name, const String& java_executable, const String& java_memory, const String& executable)
   {
     const String db_indexfile = FileHandler::stripExtension(db_name) + ".canno";
     const QString lockfile = (db_name + ".lock").toQString();
@@ -455,15 +455,18 @@ protected:
     if (!File::exists(db_indexfile))
     {
       OPENMS_LOG_INFO << "\nNo database index found! Creating index while holding a lock ..." << std::endl;
-      QStringList process_params; // the actual process is Java, not MS-GF+!
+      std::vector<String> process_params; // the actual process is Java, not MS-GF+!
       // java -Xmx3500M -cp MSGFPlus.jar edu.ucsd.msjava.msdbsearch.BuildSA -d DatabaseFile
-      process_params << java_memory 
-                     << "-cp" << executable
-                     << "edu.ucsd.msjava.msdbsearch.BuildSA"
-                     << "-d" << db_name.toQString()
-                     << "-tda" << "0"; // do NOT add & index a reverse DB (i.e. '-tda=2'), since this DB may already contain FW+BW,
+      process_params.push_back(java_memory);
+      process_params.push_back("-cp");
+      process_params.push_back(executable);
+      process_params.push_back("edu.ucsd.msjava.msdbsearch.BuildSA");
+      process_params.push_back("-d");
+      process_params.push_back(db_name);
+      process_params.push_back("-tda");
+      process_params.push_back("0"); // do NOT add & index a reverse DB (i.e. '-tda=2'), since this DB may already contain FW+BW,
                                        // and duplicating again will cause MSGF+ to error with 'too many redundant proteins'
-      
+
       // collect all output since MSGF+ might return 'success' even though it did not like the command arguments (e.g. if the version is too old)
       // If no output file is produced, we can print the stderr below.
       String proc_stdout, proc_stderr;
@@ -514,11 +517,11 @@ protected:
       writeLogWarn_("The installation of Java was not checked.");
     }
     
-    const QString java_memory = "-Xmx" + QString::number(getIntOption_("java_memory")) + "m";
-    const QString executable = getStringOption_("executable").toQString();
-    
+    const String java_memory = "-Xmx" + String(getIntOption_("java_memory")) + "m";
+    const String executable = getStringOption_("executable");
+
     const String db_name = getDBFilename();
-    if (!createLockedDBIndex(db_name, java_executable.toQString(), java_memory, executable))
+    if (!createLockedDBIndex(db_name, java_executable, java_memory, executable))
     {
       OPENMS_LOG_ERROR << "Could not create/verify database index. Aborting ..." << std::endl;
       return ExitCodes::INTERNAL_ERROR;
@@ -565,38 +568,61 @@ protected:
     }
     Int tryptic_code = ListUtils::getIndex<String>(tryptic_, getStringOption_("tryptic"));
 
-    QStringList process_params; // the actual process is Java, not MS-GF+!
-    process_params << java_memory
-                   << "-jar" << executable
-                   << "-s" << in.toQString()
-                   << "-o" << mzid_temp.toQString()
-                   << "-d" << db_name.toQString()
-                   << "-t" << QString::number(precursor_mass_tol) + precursor_error_units.toQString()
-                   << "-ti" << getStringOption_("isotope_error_range").toQString()
-                   << "-m" << QString::number(fragment_method_code)
-                   << "-inst" << QString::number(instrument_code)
-                   << "-e" << QString::number(enzyme_code)
-                   << "-protocol" << QString::number(protocol_code)
-                   << "-ntt" << QString::number(tryptic_code)
-                   << "-minLength" << QString::number(getIntOption_("min_peptide_length"))
-                   << "-maxLength" << QString::number(getIntOption_("max_peptide_length"))
-                   << "-minNumPeaks" << QString::number(getIntOption_("min_peaks"))
-                   << "-minCharge" << QString::number(min_precursor_charge)
-                   << "-maxCharge" << QString::number(max_precursor_charge)
-                   << "-maxMissedCleavages" << QString::number(getIntOption_("max_missed_cleavages"))
-                   << "-n" << QString::number(getIntOption_("matches_per_spec"))
-                   << "-addFeatures" << QString::number(int((getParam_().getValue("add_features") == "true")))
-                   << "-tasks" << QString::number(getIntOption_("tasks"))
-                   << "-thread" << QString::number(getIntOption_("threads"));
+    std::vector<String> process_params; // the actual process is Java, not MS-GF+!
+    process_params.push_back(java_memory);
+    process_params.push_back("-jar");
+    process_params.push_back(executable);
+    process_params.push_back("-s");
+    process_params.push_back(in);
+    process_params.push_back("-o");
+    process_params.push_back(mzid_temp);
+    process_params.push_back("-d");
+    process_params.push_back(db_name);
+    process_params.push_back("-t");
+    process_params.push_back(String(precursor_mass_tol) + precursor_error_units);
+    process_params.push_back("-ti");
+    process_params.push_back(getStringOption_("isotope_error_range"));
+    process_params.push_back("-m");
+    process_params.push_back(String(fragment_method_code));
+    process_params.push_back("-inst");
+    process_params.push_back(String(instrument_code));
+    process_params.push_back("-e");
+    process_params.push_back(String(enzyme_code));
+    process_params.push_back("-protocol");
+    process_params.push_back(String(protocol_code));
+    process_params.push_back("-ntt");
+    process_params.push_back(String(tryptic_code));
+    process_params.push_back("-minLength");
+    process_params.push_back(String(getIntOption_("min_peptide_length")));
+    process_params.push_back("-maxLength");
+    process_params.push_back(String(getIntOption_("max_peptide_length")));
+    process_params.push_back("-minNumPeaks");
+    process_params.push_back(String(getIntOption_("min_peaks")));
+    process_params.push_back("-minCharge");
+    process_params.push_back(String(min_precursor_charge));
+    process_params.push_back("-maxCharge");
+    process_params.push_back(String(max_precursor_charge));
+    process_params.push_back("-maxMissedCleavages");
+    process_params.push_back(String(getIntOption_("max_missed_cleavages")));
+    process_params.push_back("-n");
+    process_params.push_back(String(getIntOption_("matches_per_spec")));
+    process_params.push_back("-addFeatures");
+    process_params.push_back(String(int((getParam_().getValue("add_features") == "true"))));
+    process_params.push_back("-tasks");
+    process_params.push_back(String(getIntOption_("tasks")));
+    process_params.push_back("-thread");
+    process_params.push_back(String(getIntOption_("threads")));
     String conf = getStringOption_("conf");
     if (!conf.empty())
     {
-      process_params << "-conf" << conf.toQString();
+      process_params.push_back("-conf");
+      process_params.push_back(conf);
     }
 
     if (!mod_file.empty())
     {
-      process_params << "-mod" << mod_file.toQString();
+      process_params.push_back("-mod");
+      process_params.push_back(mod_file);
     }
 
     //-------------------------------------------------------------
@@ -608,9 +634,9 @@ protected:
     writeLogInfo_("Running MSGFPlus search...");
     // collect all output since MSGF+ might return 'success' even though it did not like the command arguments (e.g. if the version is too old)
     // If no output file is produced, we can print the stderr below.
-    String proc_stdout, proc_stderr; 
-    
-    TOPPBase::ExitCodes exit_code = runExternalProcess_(java_executable.toQString(), process_params, proc_stdout, proc_stderr);
+    String proc_stdout, proc_stderr;
+
+    TOPPBase::ExitCodes exit_code = runExternalProcess_(java_executable, process_params, proc_stdout, proc_stderr);
     if (exit_code != EXECUTION_OK)
     {
       // if there was sth like a segfault, runExternalProcess_ will write a warning about the type of error,
@@ -640,19 +666,26 @@ protected:
         String tsv_out = tmp_dir.getPath() + "msgfplus_converted.tsv";
         int java_permgen = getIntOption_("java_permgen");
         process_params.clear();
-        process_params << java_memory;
+        process_params.push_back(java_memory);
         if (java_permgen > 0)
         {
-          process_params << "-XX:MaxPermSize=" + QString::number(java_permgen) + "m";
+          process_params.push_back("-XX:MaxPermSize=" + String(java_permgen) + "m");
         }
-        process_params << "-cp" << executable << "edu.ucsd.msjava.ui.MzIDToTsv"
-                       << "-i" << mzid_temp.toQString()
-                       << "-o" << tsv_out.toQString()
-                       << "-showQValue" << "1"
-                       << "-showDecoy" << "1"
-                       << "-unroll" << "1";
+        process_params.push_back("-cp");
+        process_params.push_back(executable);
+        process_params.push_back("edu.ucsd.msjava.ui.MzIDToTsv");
+        process_params.push_back("-i");
+        process_params.push_back(mzid_temp);
+        process_params.push_back("-o");
+        process_params.push_back(tsv_out);
+        process_params.push_back("-showQValue");
+        process_params.push_back("1");
+        process_params.push_back("-showDecoy");
+        process_params.push_back("1");
+        process_params.push_back("-unroll");
+        process_params.push_back("1");
         writeLogInfo_("Running MzIDToTSVConverter...");
-        exit_code = runExternalProcess_(java_executable.toQString(), process_params);
+        exit_code = runExternalProcess_(java_executable, process_params);
         if (exit_code != EXECUTION_OK)
         {
           return exit_code;

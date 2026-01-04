@@ -11,8 +11,8 @@
 #include <OpenMS/FORMAT/ToolDescriptionFile.h>
 #include <OpenMS/SYSTEM/File.h>
 
-#include <QStringList>
-#include <QtCore/QDir>
+#include <filesystem>
+#include <algorithm>
 
 namespace OpenMS
 {
@@ -286,12 +286,12 @@ namespace OpenMS
 
   void ToolHandler::loadExternalToolConfig_()
   {
-    QStringList files = getExternalToolConfigFiles_();
-    for (int i = 0; i < files.size(); ++i)
+    std::vector<String> files = getExternalToolConfigFiles_();
+    for (size_t i = 0; i < files.size(); ++i)
     {
       ToolDescriptionFile tdf;
       std::vector<Internal::ToolDescription> tools;
-      tdf.load(String(files[i]), tools);
+      tdf.load(files[i], tools);
       // add every tool from file to list
       for (Size i_t = 0; i_t < tools.size(); ++i_t)
       {
@@ -311,12 +311,12 @@ namespace OpenMS
 
   void ToolHandler::loadInternalToolConfig_()
   {
-    QStringList files = getInternalToolConfigFiles_();
-    for (int i = 0; i < files.size(); ++i)
+    std::vector<String> files = getInternalToolConfigFiles_();
+    for (size_t i = 0; i < files.size(); ++i)
     {
       ToolDescriptionFile tdf;
       std::vector<Internal::ToolDescription> tools;
-      tdf.load(String(files[i]), tools);
+      tdf.load(files[i], tools);
       // add every tool from file to list
       for (Size i_t = 0; i_t < tools.size(); ++i_t)
       {
@@ -326,66 +326,99 @@ namespace OpenMS
     }
   }
 
-  QStringList ToolHandler::getExternalToolConfigFiles_()
+  std::vector<String> ToolHandler::getExternalToolConfigFiles_()
   {
+    namespace fs = std::filesystem;
 
-    QStringList paths;
+    std::vector<String> paths;
     // *.ttd default path
-    paths << getExternalToolsPath().toQString();
+    paths.push_back(getExternalToolsPath());
     // OS-specific path
 #ifdef OPENMS_WINDOWSPLATFORM
-    paths << (getExternalToolsPath() + "/WINDOWS").toQString();
+    paths.push_back(getExternalToolsPath() + "/WINDOWS");
 #else
-    paths << (getExternalToolsPath() + "/LINUX").toQString();
+    paths.push_back(getExternalToolsPath() + "/LINUX");
 #endif
     // additional environment
     if (getenv("OPENMS_TTD_PATH") != nullptr)
     {
-      paths << String(getenv("OPENMS_TTD_PATH")).toQString();
+      paths.push_back(String(getenv("OPENMS_TTD_PATH")));
     }
 
-    QStringList all_files;
-    for (int p = 0; p < paths.size(); ++p)
+    std::vector<String> all_files;
+    for (size_t p = 0; p < paths.size(); ++p)
     {
-      QDir dir(paths[p], "*.ttd");
-      QStringList files = dir.entryList();
-      for (int i = 0; i < files.size(); ++i)
-      {
-        files[i] = dir.absolutePath() + QDir::separator() + files[i];
+      try {
+        fs::path dir_path(paths[p].c_str());
+        if (!fs::exists(dir_path) || !fs::is_directory(dir_path))
+        {
+          continue; // Skip non-existent or non-directory paths
+        }
+
+        // Iterate through directory and find *.ttd files
+        for (const auto& entry : fs::directory_iterator(dir_path))
+        {
+          if (entry.is_regular_file() && entry.path().extension() == ".ttd")
+          {
+            String absolute_path = entry.path().string();
+            // Normalize path separators to forward slashes
+            std::replace(absolute_path.begin(), absolute_path.end(), '\\', '/');
+            all_files.push_back(absolute_path);
+          }
+        }
+      } catch (const std::filesystem::filesystem_error&) {
+        // Skip this directory if unreadable or other filesystem error (matches QDir behavior)
+        continue;
       }
-      all_files << files;
     }
     //StringList list = ListUtils::create<String>(getExternalToolsPath() + "/" + "msconvert.ttd");
     return all_files;
   }
 
-  QStringList ToolHandler::getInternalToolConfigFiles_()
+  std::vector<String> ToolHandler::getInternalToolConfigFiles_()
   {
-    QStringList paths;
+    namespace fs = std::filesystem;
+
+    std::vector<String> paths;
     // *.ttd default path
-    paths << getInternalToolsPath().toQString();
+    paths.push_back(getInternalToolsPath());
     // OS-specific path
 #ifdef OPENMS_WINDOWSPLATFORM
-    paths << (getInternalToolsPath() + "/WINDOWS").toQString();
+    paths.push_back(getInternalToolsPath() + "/WINDOWS");
 #else
-    paths << (getInternalToolsPath() + "/LINUX").toQString();
+    paths.push_back(getInternalToolsPath() + "/LINUX");
 #endif
     // additional environment
     if (getenv("OPENMS_TTD_INTERNAL_PATH") != nullptr)
     {
-      paths << String(getenv("OPENMS_TTD_INTERNAL_PATH")).toQString();
+      paths.push_back(String(getenv("OPENMS_TTD_INTERNAL_PATH")));
     }
 
-    QStringList all_files;
-    for (int p = 0; p < paths.size(); ++p)
+    std::vector<String> all_files;
+    for (size_t p = 0; p < paths.size(); ++p)
     {
-      QDir dir(paths[p], "*.ttd");
-      QStringList files = dir.entryList();
-      for (int i = 0; i < files.size(); ++i)
-      {
-        files[i] = dir.absolutePath() + QDir::separator() + files[i];
+      try {
+        fs::path dir_path(paths[p].c_str());
+        if (!fs::exists(dir_path) || !fs::is_directory(dir_path))
+        {
+          continue; // Skip non-existent or non-directory paths
+        }
+
+        // Iterate through directory and find *.ttd files
+        for (const auto& entry : fs::directory_iterator(dir_path))
+        {
+          if (entry.is_regular_file() && entry.path().extension() == ".ttd")
+          {
+            String absolute_path = entry.path().string();
+            // Normalize path separators to forward slashes
+            std::replace(absolute_path.begin(), absolute_path.end(), '\\', '/');
+            all_files.push_back(absolute_path);
+          }
+        }
+      } catch (const std::filesystem::filesystem_error&) {
+        // Skip this directory if unreadable or other filesystem error (matches QDir behavior)
+        continue;
       }
-      all_files << files;
     }
     return all_files;
   }

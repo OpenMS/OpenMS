@@ -173,9 +173,9 @@ protected:
     // determine the executable
     //-------------------------------------------------------------
     const String java_executable = getStringOption_("java_executable");
-    QString java_memory = "-Xmx" + QString::number(getIntOption_("java_memory")) + "m";
+    String java_memory = "-Xmx" + String(getIntOption_("java_memory")) + "m";
 
-    QString executable = getStringOption_("executable").toQString();   
+    String executable = getStringOption_("executable");   
 
     if (executable.isEmpty())
     {
@@ -248,17 +248,20 @@ protected:
 
     String tmp_out = tmp_dir.getPath() + "tmp_out_novor.csv";
 
-    QStringList process_params;
-    process_params << java_memory
-                   << "-jar" << executable
-                   << "-f" 
-                   << "-o" << tmp_out.toQString()               
-                   << "-p" << tmp_param.toQString()
-                   << tmp_mgf.toQString();
+    std::vector<String> process_params;
+    process_params.push_back(java_memory);
+    process_params.push_back("-jar");
+    process_params.push_back(executable);
+    process_params.push_back("-f");
+    process_params.push_back("-o");
+    process_params.push_back(tmp_out);
+    process_params.push_back("-p");
+    process_params.push_back(tmp_param);
+    process_params.push_back(tmp_mgf);
 
 
     // print novor command line
-    TOPPBase::ExitCodes exit_code = runExternalProcess_(java_executable.toQString(), process_params, path_to_executable);
+    TOPPBase::ExitCodes exit_code = runExternalProcess_(java_executable, process_params, path_to_executable);
     if (exit_code != EXECUTION_OK)
     {
       return exit_code;

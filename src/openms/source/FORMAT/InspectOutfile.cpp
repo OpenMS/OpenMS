@@ -1206,14 +1206,14 @@ namespace OpenMS
     protein_identification.setSearchEngine("InsPecT");
     protein_identification.setSearchEngineVersion("unknown");
     // searching for something like this: InsPecT version 20060907, InsPecT version 20100331
-    QString response(cmd_output.toQString());
+    QString response(QString::fromStdString(cmd_output));
     QRegularExpression rx("InsPecT (version|vesrion) (\\d+)"); // older versions of InsPecT have typo...
     auto match = rx.match(response);
     if (!match.hasMatch())
     {
       return false;
     }
-    protein_identification.setSearchEngineVersion(match.captured(2));
+    protein_identification.setSearchEngineVersion(match.captured(2).toStdString());
     return true;
   }
 

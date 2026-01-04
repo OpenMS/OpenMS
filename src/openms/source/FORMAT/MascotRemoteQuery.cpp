@@ -146,7 +146,7 @@ namespace OpenMS
     QUrl url = buildUrl_(server_path_ + "/cgi/login.pl");
     QNetworkRequest request(url);
 
-    QByteArray boundary = boundary_.toQString().toUtf8();
+    QByteArray boundary = QString::fromStdString(boundary_).toUtf8();
     request.setHeader(QNetworkRequest::ContentTypeHeader, "multipart/form-data, boundary=" + boundary);
 
     // header
@@ -161,13 +161,13 @@ namespace OpenMS
     loginbytes.append("Content-Disposition: ");
     loginbytes.append("form-data; name=\"username\"\r\n");
     loginbytes.append("\r\n");
-    loginbytes.append(String(param_.getValue("username").toString()).toQString().toUtf8());
+    loginbytes.append(QString::fromStdString(String(param_.getValue("username").toString())).toUtf8());
     loginbytes.append("\r\n");
     loginbytes.append(boundary_string);
     loginbytes.append("Content-Disposition: ");
     loginbytes.append("form-data; name=\"password\"\r\n");
     loginbytes.append("\r\n");
-    loginbytes.append(String(param_.getValue("password").toString()).toQString().toUtf8());
+    loginbytes.append(QString::fromStdString(String(param_.getValue("password").toString())).toUtf8());
     loginbytes.append("\r\n");
     loginbytes.append(boundary_string);
     loginbytes.append("Content-Disposition: ");
@@ -315,7 +315,7 @@ namespace OpenMS
 #endif
     QNetworkRequest request(url);
 
-    QByteArray boundary = boundary_.toQString().toUtf8();
+    QByteArray boundary = QString::fromStdString(boundary_).toUtf8();
     request.setHeader(QNetworkRequest::ContentTypeHeader, "multipart/form-data, boundary=" + boundary);
 
     // header
@@ -403,7 +403,7 @@ namespace OpenMS
 
     if (status >= 400)
     {
-      error_message_ = String("MascotRemoteQuery: The server returned an error status code '") + status + "': " + reply->attribute( QNetworkRequest::HttpReasonPhraseAttribute ).toString() + "\nTry accessing the server\n  " + host_name_ + server_path_ + "\n from your browser and check if it works fine.";
+      error_message_ = String("MascotRemoteQuery: The server returned an error status code '") + status + "': " + String(reply->attribute( QNetworkRequest::HttpReasonPhraseAttribute ).toString().toStdString()) + "\nTry accessing the server\n  " + host_name_ + server_path_ + "\n from your browser and check if it works fine.";
       endRun_();
     }
 
@@ -535,7 +535,7 @@ namespace OpenMS
       QRegularExpression rx(R"(file=(.+/\d+/\w+\.dat))");
       rx.setPatternOptions(QRegularExpression::InvertedGreedinessOption);
       dat_file_path_ = rx.match(response).captured(1);
-      search_identifier_ = getSearchIdentifierFromFilePath(dat_file_path_);
+      search_identifier_ = getSearchIdentifierFromFilePath(dat_file_path_.toStdString());
 
       if (param_.exists("skip_export") &&
           (param_.getValue("skip_export") == "true"))
@@ -545,7 +545,7 @@ namespace OpenMS
       }
 
       QString results_path("");
-      results_path.append(server_path_.toQString());
+      results_path.append(QString::fromStdString(server_path_));
       results_path.append("/cgi/export_dat_2.pl?file=");
       results_path.append(dat_file_path_);
 
@@ -558,8 +558,8 @@ namespace OpenMS
     // TODO: check that export_params don't contain _show_decoy_report=1. This would add <decoy> at the top of the XML document and we can't easily distinguish the two files (target/decoy) from the search results later.
       String adjustable_params = param_.getValue("export_params").toString();
 
-      results_path.append(required_params.toQString() + "&" +
-                          adjustable_params.toQString());
+      results_path.append(QString::fromStdString(required_params) + "&" +
+                          QString::fromStdString(adjustable_params));
       // results_path.append("&show_same_sets=1&show_unassigned=1&show_queries=1&do_export=1&export_format=XML&pep_rank=1&_sigthreshold=0.99&_showsubsets=1&show_header=1&prot_score=1&pep_exp_z=1&pep_score=1&pep_seq=1&pep_homol=1&pep_ident=1&show_mods=1&pep_var_mod=1&protein_master=1&search_master=1&show_params=1&pep_scan_title=1&query_qualifiers=1&query_peaks=1&query_raw=1&query_title=1&pep_expect=1&peptide_master=1&generate_file=1&group_family=1");
 
       // Finished search, fire off results retrieval
@@ -605,7 +605,7 @@ namespace OpenMS
         else
         {
           OPENMS_LOG_ERROR << "Error code: " << match.captured().toStdString() << std::endl;
-          error_message_ = response_text;
+          error_message_ = response_text.toStdString();
         }
         endRun_();
       }
@@ -628,15 +628,15 @@ namespace OpenMS
           if (export_decoys_)
           {
             QString results_path("");
-            results_path.append(server_path_.toQString());
+            results_path.append(QString::fromStdString(server_path_));
             results_path.append("/cgi/export_dat_2.pl?file=");
             results_path.append(dat_file_path_); // export again from dat file (now decoys)        
             // see http://www.matrixscience.com/help/export_help.html for parameter documentation
             String required_params = "&do_export=1&export_format=XML&generate_file=1&group_family=1&peptide_master=1&protein_master=1&search_master=1&show_unassigned=1&show_mods=1&show_header=1&show_params=1&prot_score=1&pep_exp_z=1&pep_score=1&pep_seq=1&pep_homol=1&pep_ident=1&pep_expect=1&pep_var_mod=1&pep_scan_title=1&query_qualifiers=1&query_peaks=1&query_raw=1&query_title=1";
             // TODO: check that export_params don't contain _show_decoy_report=1. This would add <decoy> at the top of the XML document and we can't easily distinguish the two files (target/decoy) from the search results later.
             String adjustable_params = param_.getValue("export_params").toString();
-            results_path.append(required_params.toQString() + "&" +
-                            adjustable_params.toQString() + "&_show_decoy_report=1&show_decoy=1"); // request 
+            results_path.append(QString::fromStdString(required_params) + "&" +
+                            QString::fromStdString(adjustable_params) + "&_show_decoy_report=1&show_decoy=1"); // request 
 
             getResults(results_path); 
           }
@@ -727,17 +727,17 @@ namespace OpenMS
       QNetworkProxy proxy;
       proxy.setType(QNetworkProxy::Socks5Proxy);
       String proxy_host(param_.getValue("proxy_host").toString());
-      proxy.setHostName(proxy_host.toQString());
+      proxy.setHostName(QString::fromStdString(proxy_host));
       String proxy_port(param_.getValue("proxy_port").toString());
       proxy.setPort(proxy_port.toInt());
 
       String proxy_password(param_.getValue("proxy_password").toString());
-      proxy.setPassword(proxy_password.toQString());
+      proxy.setPassword(QString::fromStdString(proxy_password));
 
       String proxy_username(param_.getValue("proxy_username").toString());
       if (!proxy_username.empty())
       {
-        proxy.setUser(proxy_username.toQString());
+        proxy.setUser(QString::fromStdString(proxy_username));
       }
 
       QNetworkProxy::setApplicationProxy(proxy);
@@ -754,7 +754,7 @@ namespace OpenMS
     else if (url.startsWith("https://"))
       url.remove("https://");
 
-    if (!url.startsWith(host_name_.toQString()))
+    if (!url.startsWith(QString::fromStdString(host_name_)))
     {
       OPENMS_LOG_ERROR << "Invalid location returned by mascot! Abort." << std::endl;
       endRun_();
@@ -763,8 +763,8 @@ namespace OpenMS
     
     // makes sure that only the first occurrence in the String is replaced,
     // in case of an equal server_name_
-    url.replace(url.indexOf(host_name_.toQString()),
-                          host_name_.toQString().size(), QString(""));
+    url.replace(url.indexOf(QString::fromStdString(host_name_)),
+                          QString::fromStdString(host_name_).size(), QString(""));
 
     // ensure path starts with /
     if (url[0] != '/') url.prepend('/');

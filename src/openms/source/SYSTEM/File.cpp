@@ -154,12 +154,14 @@ namespace OpenMS
 #endif
   }
 
-  UInt64 File::fileSize(const String& file)
+  std::optional<UInt64> File::fileSize(const String& file)
   {
     std::error_code ec;
     std::filesystem::path p(file.c_str());
-    if (!std::filesystem::exists(p, ec)) return -1;
-    return std::filesystem::file_size(p, ec);
+    if (!std::filesystem::exists(p, ec)) return std::nullopt;
+    auto size = std::filesystem::file_size(p, ec);
+    if (ec) return std::nullopt;
+    return size;
   }
 
   bool File::rename(const String& from, const String& to, bool overwrite_existing, bool verbose)
@@ -363,7 +365,8 @@ namespace OpenMS
       return false;
     }
 
-    return removed > 0;
+    // Success if either removed > 0 OR the path doesn't exist (nothing to remove)
+    return removed > 0 || !std::filesystem::exists(dir_path);
   }
 
   String File::absolutePath(const String& file)
