@@ -11,10 +11,12 @@
 #include <OpenMS/CONCEPT/Macros.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/PrecisionWrapper.h>
+#include <OpenMS/CONCEPT/HashUtils.h>
 
 #include <algorithm>
 #include <array>
 #include <cmath>  // for std::abs on integrals and floats
+#include <functional>
 #include <limits>
 #include <ostream>
 
@@ -418,4 +420,22 @@ protected:
   }
 
 } // namespace OpenMS
+
+// Hash function specialization for DPosition
+namespace std
+{
+  template<OpenMS::UInt D, typename TCoordinateType>
+  struct hash<OpenMS::DPosition<D, TCoordinateType>>
+  {
+    std::size_t operator()(const OpenMS::DPosition<D, TCoordinateType>& pos) const noexcept
+    {
+      std::size_t seed = 0;
+      for (OpenMS::UInt i = 0; i < D; ++i)
+      {
+        OpenMS::hash_combine(seed, OpenMS::hash_float(pos[i]));
+      }
+      return seed;
+    }
+  };
+} // namespace std
 

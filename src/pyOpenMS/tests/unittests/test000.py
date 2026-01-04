@@ -3236,9 +3236,9 @@ def testMSExperiment():
     assert exp.get_df(ms_levels=[1]).shape == (3, 4)
     assert exp.get_df(ms_levels=[2]).shape == (2, 4)
 
-    assert exp.get_df(long=True).shape == (10, 4)
-    assert exp.get_df(long = True, ms_levels=[1]).shape == (6, 4)
-    assert exp.get_df(long=True, ms_levels=[2]).shape == (4, 4)
+    assert exp.get_df(long_format=True).shape == (10, 4)
+    assert exp.get_df(long_format=True, ms_levels=[1]).shape == (6, 4)
+    assert exp.get_df(long_format=True, ms_levels=[2]).shape == (4, 4)
 
     pyopenms.MzMLFile().load(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'BSA1_F1.mzML'), exp)
 

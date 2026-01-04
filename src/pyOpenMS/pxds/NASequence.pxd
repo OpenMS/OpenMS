@@ -11,8 +11,7 @@ cdef extern from "<OpenMS/CHEMISTRY/NASequence.h>" namespace "OpenMS":
 
     cdef cppclass NASequence "OpenMS::NASequence":
         # wrap-hash:
-        #  toString().c_str()
-        #
+        #  std
         # wrap-doc:
         #  Representation of an RNA sequence
         #  This class represents nucleic acid sequences in OpenMS. An NASequence

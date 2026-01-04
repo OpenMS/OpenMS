@@ -23,6 +23,8 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <iostream>
+#include <unordered_set>
+#include <functional>
 #include <OpenMS/SYSTEM/StopWatch.h>
 
 using namespace OpenMS;
@@ -1579,6 +1581,56 @@ START_SECTION([EXTRA] multithreaded example)
     test += aa.size();
   }
   TEST_EQUAL(test, nr_iterations*11)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] std::hash<AASequence>))
+{
+  // Test that equal sequences have equal hashes
+  AASequence seq1 = AASequence::fromString("PEPTIDE");
+  AASequence seq2 = AASequence::fromString("PEPTIDE");
+
+  std::hash<AASequence> hasher;
+  TEST_EQUAL(hasher(seq1), hasher(seq2))
+
+  // Test that different sequences have different hashes
+  AASequence seq3 = AASequence::fromString("PEPTIDER");
+  TEST_NOT_EQUAL(hasher(seq1), hasher(seq3))
+
+  // Test sequences with modifications
+  AASequence seq4 = AASequence::fromString("PEPTM(Oxidation)IDE");
+  AASequence seq5 = AASequence::fromString("PEPTM(Oxidation)IDE");
+  AASequence seq6 = AASequence::fromString("PEPTMIDE");  // Same sequence, no modification
+  TEST_EQUAL(hasher(seq4), hasher(seq5))
+  TEST_NOT_EQUAL(hasher(seq4), hasher(seq6))  // Modification matters
+
+  // Test terminal modifications
+  AASequence seq7 = AASequence::fromString(".(Acetyl)PEPTIDE");
+  AASequence seq8 = AASequence::fromString(".(Acetyl)PEPTIDE");
+  AASequence seq9 = AASequence::fromString("PEPTIDE");  // No N-term mod
+  TEST_EQUAL(hasher(seq7), hasher(seq8))
+  TEST_NOT_EQUAL(hasher(seq7), hasher(seq9))  // N-term mod matters
+
+  AASequence seq10 = AASequence::fromString("PEPTIDE.(Amidated)");
+  AASequence seq11 = AASequence::fromString("PEPTIDE");  // No C-term mod
+  TEST_NOT_EQUAL(hasher(seq10), hasher(seq11))  // C-term mod matters
+
+  // Test empty sequence
+  AASequence seq_empty1;
+  AASequence seq_empty2;
+  TEST_EQUAL(hasher(seq_empty1), hasher(seq_empty2))
+
+  // Test that sequences work in unordered_set
+  std::unordered_set<AASequence> seq_set;
+  seq_set.insert(seq1);
+  seq_set.insert(seq2);  // Duplicate, should not increase size
+  seq_set.insert(seq3);  // Different sequence
+  seq_set.insert(seq4);  // With modification
+  TEST_EQUAL(seq_set.size(), 3)
+  TEST_EQUAL(seq_set.count(seq1), 1)
+  TEST_EQUAL(seq_set.count(AASequence::fromString("PEPTIDE")), 1)
+  TEST_EQUAL(seq_set.count(seq3), 1)
+  TEST_EQUAL(seq_set.count(seq4), 1)
 }
 END_SECTION
 

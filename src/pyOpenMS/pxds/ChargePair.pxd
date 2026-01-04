@@ -6,8 +6,10 @@ from Compomer cimport *
 cdef extern from "<OpenMS/DATASTRUCTURES/ChargePair.h>" namespace "OpenMS":
 
     cdef cppclass ChargePair:
-  
-        ChargePair() except + nogil 
+        # wrap-hash:
+        #  std
+
+        ChargePair() except + nogil
         ChargePair(ChargePair &) except + nogil 
   
         ChargePair(Size index0,

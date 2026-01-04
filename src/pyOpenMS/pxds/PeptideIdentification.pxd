@@ -12,6 +12,8 @@ cdef extern from "<OpenMS/METADATA/PeptideIdentification.h>" namespace "OpenMS":
     cdef cppclass PeptideIdentification(MetaInfoInterface):
         # wrap-inherits:
         #   MetaInfoInterface
+        # wrap-hash:
+        #  std
         # wrap-doc:
         #  Represents peptide identification results for a single spectrum or feature
         #  

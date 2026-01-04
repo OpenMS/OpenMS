@@ -11,7 +11,9 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/METADATA/CVTermList.h>
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>
+#include <OpenMS/CONCEPT/HashUtils.h>
 
+#include <functional>
 #include <vector>
 
 namespace OpenMS
@@ -144,5 +146,71 @@ protected:
     RetentionTime rts_;
 
   };
-}
+} // namespace OpenMS
+
+namespace std
+{
+  /// std::hash specialization for OpenMS::IncludeExcludeTarget
+  template <>
+  struct hash<OpenMS::IncludeExcludeTarget>
+  {
+    std::size_t operator()(const OpenMS::IncludeExcludeTarget& t) const noexcept
+    {
+      std::size_t seed = 0;
+
+      // Hash CVTermList base class
+      OpenMS::hash_combine(seed, OpenMS::hashCVTermList(t));
+
+      // Hash name_
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(t.getName()));
+
+      // Hash precursor_mz_ and precursor_cv_terms_
+      OpenMS::hash_combine(seed, OpenMS::hash_float(t.getPrecursorMZ()));
+      OpenMS::hash_combine(seed, OpenMS::hashCVTermList(t.getPrecursorCVTermList()));
+
+      // Hash product_mz_ and product_cv_terms_
+      OpenMS::hash_combine(seed, OpenMS::hash_float(t.getProductMZ()));
+      OpenMS::hash_combine(seed, OpenMS::hashCVTermList(t.getProductCVTermList()));
+
+      // Hash interpretation_list_
+      for (const auto& interp : t.getInterpretations())
+      {
+        OpenMS::hash_combine(seed, OpenMS::hashCVTermList(interp));
+      }
+
+      // Hash peptide_ref_ and compound_ref_
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(t.getPeptideRef()));
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(t.getCompoundRef()));
+
+      // Hash configurations_
+      for (const auto& config : t.getConfigurations())
+      {
+        OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(config.contact_ref));
+        OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(config.instrument_ref));
+        OpenMS::hash_combine(seed, OpenMS::hashCVTermList(config));
+        for (const auto& validation : config.validations)
+        {
+          OpenMS::hash_combine(seed, OpenMS::hashCVTermList(validation));
+        }
+      }
+
+      // Hash prediction_
+      OpenMS::hash_combine(seed, OpenMS::hashCVTermList(t.getPrediction()));
+
+      // Hash rts_ (RetentionTime)
+      const auto& rt = t.getRetentionTime();
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(rt.software_ref));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(rt.retention_time_unit)));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(rt.retention_time_type)));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(rt.isRTset() ? 1 : 0));
+      if (rt.isRTset())
+      {
+        OpenMS::hash_combine(seed, OpenMS::hash_float(rt.getRT()));
+      }
+      OpenMS::hash_combine(seed, OpenMS::hashCVTermListInterface(rt));
+
+      return seed;
+    }
+  };
+} // namespace std
 
