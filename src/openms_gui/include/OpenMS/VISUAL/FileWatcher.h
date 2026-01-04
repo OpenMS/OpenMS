@@ -34,9 +34,9 @@ namespace OpenMS
       Normally QFileSystemWatcher emits a signal every time a file is changed.
       This causes several signals for large files (one for each flush of the buffer).
 
-      @ingroup System
+      @ingroup VISUAL
   */
-  class OPENMS_DLLAPI FileWatcher :
+  class OPENMS_GUI_DLLAPI FileWatcher :
     public QFileSystemWatcher       //find out why ICC requires public instead of protected
   {
     Q_OBJECT
