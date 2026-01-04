@@ -21,10 +21,9 @@
 #include <sys/stat.h>
 
 #include <OpenMS/SYSTEM/NetworkGetRequest.h>
-#include <QtCore/QDir>
-#include <QtCore/QCoreApplication>
-#include <QtCore/QDateTime>
-#include <QtCore/QTimer>
+#include <OpenMS/DATASTRUCTURES/DateTime.h>
+
+#include <fstream>
 
 #include <OpenMS/CONCEPT/VersionInfo.h>
 
@@ -34,7 +33,8 @@ namespace OpenMS
 {
   void UpdateCheck::run(const String& tool_name, const String& version, int debug_level)
   {
-    String architecture = QSysInfo::WordSize == 32 ? "32" : "64";
+    // Determine architecture: sizeof(void*) is 4 on 32-bit, 8 on 64-bit
+    String architecture = (sizeof(void*) == 8) ? "64" : "32";
 
     // if the revision info is meaningful, show it as well
     String revision("UNKNOWN");
@@ -83,28 +83,30 @@ namespace OpenMS
     if (!File::exists(version_file_name) || !File::readable(version_file_name))
     {
       // create OpenMS folder for .ver files
-      QDir dir(config_path.toQString());
-
-      if (!dir.exists())
+      if (!File::exists(config_path))
       {
-        dir.mkpath(".");
+        File::makeDir(config_path);
       }
 
       // touch file to create it and set initial modification time stamp
-      QFile f;
-      f.setFileName(version_file_name.toQString());
-      f.open(QIODevice::WriteOnly);
+      std::ofstream f(version_file_name);
       f.close();
       first_run = true;
     }
 
     if (File::readable(version_file_name))
     {
-      QDateTime last_modified_dt = QFileInfo(version_file_name.toQString()).lastModified();
-      QDateTime current_dt = QDateTime::currentDateTime();
+      // Get last modified time using stat
+      struct stat file_stat;
+      if (stat(version_file_name.c_str(), &file_stat) != 0)
+      {
+        return; // Cannot stat file
+      }
+      time_t last_modified_time = file_stat.st_mtime;
+      time_t current_time = time(nullptr);
 
-      // check if at least one day passed since last request
-      if (first_run || current_dt > last_modified_dt.addDays(1))
+      // check if at least one day passed since last request (86400 seconds = 1 day)
+      if (first_run || (current_time - last_modified_time) >= 86400)
       {
         // update modification time stamp
         struct stat old_stat;
@@ -121,25 +123,19 @@ namespace OpenMS
           OPENMS_LOG_INFO << "setting the environmental variable OPENMS_DISABLE_UPDATE_CHECK to ON." << endl;
         }
       
-        // We need to use a QCoreApplication to fire up the  QEventLoop to process the signals and slots.
-        char const * argv2[] = { "dummyname", nullptr };
-        int argc = 1;
-        QCoreApplication event_loop(argc, const_cast<char**>(argv2));
-        NetworkGetRequest* query = new NetworkGetRequest(&event_loop);
-        query->setUrl(QUrl(QString("http://openms-update.cs.uni-tuebingen.de/check/") + tool_version_string.toQString()));
-        QObject::connect(query, SIGNAL(done()), &event_loop, SLOT(quit()));
-        QTimer::singleShot(1000, query, SLOT(run()));          
-        QTimer::singleShot(5000, query, SLOT(timeOut()));
-        event_loop.exec();
+        NetworkGetRequest query;
+        query.setUrl("http://openms-update.cs.uni-tuebingen.de/check/" + tool_version_string);
+        query.setTimeout(5000); // 5 seconds timeout
+        query.run();
 
-        if (!query->hasError())
+        if (!query.hasError())
         {
           if (debug_level > 0)
           {
             OPENMS_LOG_INFO << "Connecting to REST server successful. " << endl;
           }
 
-          QString response = query->getResponse();
+          String response = query.getResponse();
           VersionInfo::VersionDetails server_version = VersionInfo::VersionDetails::create(response);
           if (server_version != VersionInfo::VersionDetails::EMPTY)
           {
@@ -154,11 +150,9 @@ namespace OpenMS
           if (debug_level > 0)
           {
             OPENMS_LOG_INFO << "Connecting to REST server failed. Skipping update check." << endl;
-            OPENMS_LOG_INFO << "Error: " << String(query->getErrorString()) << endl;
+            OPENMS_LOG_INFO << "Error: " << query.getErrorString() << endl;
           }
         }
-        delete query;
-        event_loop.quit();
       }
     }
   }

@@ -11,15 +11,83 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/SYSTEM/File.h>
 
-#include <QtCore/QProcess>
-#include <QtCore/QDir>
-
+#include <cstdio>
+#include <array>
 #include <sstream>
+
+#ifdef OPENMS_WINDOWSPLATFORM
+#include <io.h>
+#define popen _popen
+#define pclose _pclose
+#else
+#include <sys/wait.h>
+#endif
 
 using namespace std;
 
 namespace OpenMS
 {
+  namespace
+  {
+    // Helper function to check if a path is relative
+    bool isRelativePath(const String& path)
+    {
+      if (path.empty()) return true;
+
+#ifdef OPENMS_WINDOWSPLATFORM
+      // Windows: absolute paths start with drive letter (C:) or UNC path (\\)
+      if (path.size() >= 2 && path[1] == ':') return false; // C:\path
+      if (path.size() >= 2 && path[0] == '\\' && path[1] == '\\') return false; // \\server\path
+      return true;
+#else
+      // Unix/Mac: absolute paths start with /
+      return path[0] != '/';
+#endif
+    }
+
+    // Helper function to execute a command and capture output
+    bool executeCommand(const String& command, String& output, int& exit_code)
+    {
+      std::array<char, 128> buffer;
+      output.clear();
+
+      FILE* pipe = popen(command.c_str(), "r");
+      if (!pipe)
+      {
+        return false; // Failed to start
+      }
+
+      // Read output
+      while (fgets(buffer.data(), buffer.size(), pipe) != nullptr)
+      {
+        output += buffer.data();
+      }
+
+      int status = pclose(pipe);
+      if (status == -1)
+      {
+        exit_code = -1; // pclose failed
+        return false;
+      }
+
+#ifdef OPENMS_WINDOWSPLATFORM
+      // On Windows, pclose returns the exit code directly
+      exit_code = status;
+#else
+      // On Unix, decode waitpid-style status
+      if (WIFEXITED(status))
+      {
+        exit_code = WEXITSTATUS(status);
+      }
+      else
+      {
+        exit_code = -1; // Process did not exit normally
+      }
+#endif
+      return true;
+    }
+  }
+
   bool PythonInfo::canRun(String& python_executable, String& error_msg)
   {
     stringstream ss;
@@ -28,12 +96,12 @@ namespace OpenMS
     {
       ss << "  Python not found at '" << python_executable << "'!\n"
          << "  Make sure Python is installed and this location is correct.\n";
-      if (QDir::isRelativePath(python_executable.toQString()))
+      if (isRelativePath(python_executable))
       {
         static String path;
         if (path.empty())
         {
-          path = getenv("PATH");
+          path = getenv("PATH") ? getenv("PATH") : "";
         }
         ss << "  You might need to add the Python binary to your PATH variable\n"
            << "  or use an absolute path+filename pointing to Python.\n"
@@ -51,25 +119,24 @@ namespace OpenMS
       ss << "Python executable ('" << py_original << "') resolved to '" << python_executable << "'\n";
     }
 
-    QProcess qp;
-    qp.start(python_executable.toQString(), QStringList() << "--version", QIODevice::ReadOnly);
-    bool success = qp.waitForFinished();
+    String command = python_executable + " --version 2>&1";
+    String output;
+    int exit_code = 0;
+    bool started = executeCommand(command, output, exit_code);
+    bool success = started && exit_code == 0;
+
     if (!success)
     {
-      if (qp.error() == QProcess::Timedout)
-      {
-        ss << "  Python was found at '" << python_executable << "' but the process timed out (can happen on very busy systems).\n"
-           << "  Please free some resources or if you want to run the TOPP tool nevertheless set the TOPP tools 'force' flag in order to avoid this check.\n";
-      }
-      else if (qp.error() == QProcess::FailedToStart)
+      if (!started)
       {
         ss << "  Python found at '" << python_executable << "' but failed to run!\n"
            << "  Make sure you have the rights to execute this binary file.\n";
       }
-      else
+      else if (exit_code != 0)
       {
         ss << "  Error executing '" << python_executable << "'!\n"
-           << "  Error description: '" << qp.errorString().toStdString() << "'.\n";
+           << "  Exit code: " << exit_code << "\n"
+           << "  Output: " << output << "\n";
       }
     }
 
@@ -79,25 +146,26 @@ namespace OpenMS
 
   bool PythonInfo::isPackageInstalled(const String& python_executable, const String& package_name)
   {
-    QProcess qp;
-    qp.start(python_executable.toQString(), QStringList() << "-c" << (String("import ") + package_name).c_str(), QIODevice::ReadOnly);
-    bool success = qp.waitForFinished();
-    return (success && qp.exitStatus() == QProcess::ExitStatus::NormalExit && qp.exitCode() == 0);
+    String command = python_executable + " -c \"import " + package_name + "\" 2>&1";
+    String output;
+    int exit_code = 0;
+    bool started = executeCommand(command, output, exit_code);
+    return (started && exit_code == 0);
   }
 
   String PythonInfo::getVersion(const String& python_executable)
   {
-    String v;
-    QProcess qp;
-    qp.start(python_executable.toQString(), QStringList() << "--version", QIODevice::ReadOnly);
-    bool success = qp.waitForFinished();
-    if (success && qp.exitStatus() == QProcess::ExitStatus::NormalExit && qp.exitCode() == 0)
+    String command = python_executable + " --version 2>&1";
+    String output;
+    int exit_code = 0;
+    bool started = executeCommand(command, output, exit_code);
+
+    if (started && exit_code == 0)
     {
-      v = qp.readAllStandardOutput().toStdString(); // some pythons report is on stdout
-      v += qp.readAllStandardError().toStdString();  // ... some on stderr
-      v.trim(); // remove '\n'
+      output.trim(); // remove '\n'
+      return output;
     }
-    return v;
+    return "";
   }
 
 } // namespace OpenMS

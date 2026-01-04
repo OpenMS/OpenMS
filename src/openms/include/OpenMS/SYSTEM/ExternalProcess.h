@@ -11,20 +11,15 @@
 // OpenMS_GUI config
 #include <OpenMS/DATASTRUCTURES/String.h>
 
-#include <QtCore/QObject>
-
 #include <functional> // for std::function
 #include <map> // for std::map
-
-class QProcess; // forward declare to avoid header include
-class QString;
-#include <QtCore/qcontainerfwd.h> // for QStringList
+#include <vector> // for std::vector
 
 namespace OpenMS
 {
 
   /**
-    @brief A wrapper around QProcess to conveniently start an external program and forward its outputs
+    @brief A wrapper to conveniently start an external program and forward its outputs
 
     Use the custom Ctor to provide callback functions for stdout/stderr output or set them via setCallbacks().
 
@@ -35,9 +30,7 @@ namespace OpenMS
 
   */
   class OPENMS_DLLAPI ExternalProcess
-    : public QObject
   {
-    Q_OBJECT
 
   public:
     /// result of calling an external executable
@@ -65,7 +58,7 @@ namespace OpenMS
     ExternalProcess(std::function<void(const String&)> callbackStdOut, std::function<void(const String&)> callbackStdErr);
 
     /// D'tor
-    ~ExternalProcess() override ;
+    ~ExternalProcess();
 
     /// re-wire the callbacks used during run()
     void setCallbacks(std::function<void(const String&)> callbackStdOut, std::function<void(const String&)> callbackStdErr);
@@ -82,19 +75,14 @@ namespace OpenMS
       @param[in] env Additional environment variables to pass to the process (key-value pairs). These will be added to the system environment.
       @return Did the external program succeed (SUCCESS) or did something go wrong?
     */
-    RETURNSTATE run(const QString& exe, const QStringList& args, const QString& working_dir, const bool verbose, String& error_msg, IO_MODE io_mode = IO_MODE::READ_WRITE, const std::map<QString, QString>& env = std::map<QString, QString>());
-    
+    RETURNSTATE run(const String& exe, const std::vector<String>& args, const String& working_dir, const bool verbose, String& error_msg, IO_MODE io_mode = IO_MODE::READ_WRITE, const std::map<String, String>& env = std::map<String, String>());
+
     /**
       @brief Same as other overload, just without a returned error message
      */
-    ExternalProcess::RETURNSTATE run(const QString& exe, const QStringList& args, const QString& working_dir, const bool verbose, IO_MODE io_mode = IO_MODE::READ_WRITE, const std::map<QString, QString>& env = std::map<QString, QString>());
-
-  private slots:
-    void processStdOut_();
-    void processStdErr_();
+    ExternalProcess::RETURNSTATE run(const String& exe, const std::vector<String>& args, const String& working_dir, const bool verbose, IO_MODE io_mode = IO_MODE::READ_WRITE, const std::map<String, String>& env = std::map<String, String>());
 
   private:
-    QProcess* qp_; ///< pointer to avoid including the QProcess header here (it's huge)
     std::function<void(const String&)> callbackStdOut_;
     std::function<void(const String&)> callbackStdErr_;
   };

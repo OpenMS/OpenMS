@@ -12,8 +12,6 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/OpenMSConfig.h>
 
-#include <QtCore/qcontainerfwd.h> // for QStringList
-
 namespace OpenMS
 {
 
@@ -37,9 +35,6 @@ public:
     /// Non-mutable reverse iterator
     typedef std::vector<String>::const_reverse_iterator ConstReverseIterator;
     //@}
-
-    /// Creates a StringList from a QStringList
-    static StringList fromQStringList(const QStringList& rhs);
 
     ///@name Search methods
     //@{

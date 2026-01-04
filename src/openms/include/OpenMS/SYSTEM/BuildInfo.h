@@ -11,11 +11,17 @@
 #include <OpenMS/build_config.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
-#include <QtCore/QSysInfo>
-#include <QtCore/QString>
-
 #ifdef _OPENMP
   #include "omp.h"
+#endif
+
+// Platform-specific includes for OS version
+#ifdef _WIN32
+  #include <windows.h>
+#elif defined(__APPLE__)
+  #include <sys/sysctl.h>
+#else
+  #include <sys/utsname.h>
 #endif
 
 namespace OpenMS
@@ -89,17 +95,86 @@ namespace OpenMS
         info.os_ = OS_LINUX;
         #endif // else stays unknown
 
-        // returns something meaningful for basically all important platforms
-        info.os_version_ = QSysInfo::productVersion();
+        // Get OS version using platform-specific APIs
+        #ifdef _WIN32
+        // Windows version - use RtlGetVersion for accurate Windows 10+ reporting
+        typedef LONG (WINAPI* RtlGetVersionPtr)(PRTL_OSVERSIONINFOW);
+        HMODULE hNtdll = GetModuleHandleA("ntdll.dll");
+        RtlGetVersionPtr RtlGetVersion = nullptr;
+        bool version_obtained = false;
 
-        // identify architecture
-        if (QSysInfo::WordSize == 32)
+        if (hNtdll)
         {
-          info.arch_ = ARCH_32BIT;
+          RtlGetVersion = (RtlGetVersionPtr)GetProcAddress(hNtdll, "RtlGetVersion");
+          if (RtlGetVersion)
+          {
+            RTL_OSVERSIONINFOW osvi;
+            ZeroMemory(&osvi, sizeof(RTL_OSVERSIONINFOW));
+            osvi.dwOSVersionInfoSize = sizeof(RTL_OSVERSIONINFOW);
+            if (RtlGetVersion(&osvi) == 0) // STATUS_SUCCESS
+            {
+              info.os_version_ = std::to_string(osvi.dwMajorVersion) + "." + std::to_string(osvi.dwMinorVersion);
+              version_obtained = true;
+            }
+          }
+        }
+
+        // Fallback to GetVersionEx if RtlGetVersion unavailable
+        if (!version_obtained)
+        {
+          OSVERSIONINFOEX osvi;
+          ZeroMemory(&osvi, sizeof(OSVERSIONINFOEX));
+          osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEX);
+          #pragma warning(push)
+          #pragma warning(disable: 4996)
+          if (GetVersionEx((OSVERSIONINFO*)&osvi))
+          {
+            info.os_version_ = std::to_string(osvi.dwMajorVersion) + "." + std::to_string(osvi.dwMinorVersion);
+          }
+          else
+          {
+            info.os_version_ = "unknown";
+          }
+          #pragma warning(pop)
+        }
+        #elif defined(__APPLE__)
+        // macOS version
+        char version[256];
+        size_t size = sizeof(version);
+        if (sysctlbyname("kern.osproductversion", version, &size, NULL, 0) == 0)
+        {
+          info.os_version_ = version;
         }
         else
         {
+          info.os_version_ = "unknown";
+        }
+        #else
+        // Linux version
+        struct utsname uts;
+        if (uname(&uts) == 0)
+        {
+          info.os_version_ = uts.release;
+        }
+        else
+        {
+          info.os_version_ = "unknown";
+        }
+        #endif
+
+        // Identify architecture using sizeof(size_t)
+        size_t word_size = sizeof(size_t);
+        if (word_size == 4)
+        {
+          info.arch_ = ARCH_32BIT;
+        }
+        else if (word_size == 8)
+        {
           info.arch_ = ARCH_64BIT;
+        }
+        else
+        {
+          info.arch_ = ARCH_UNKNOWN;
         }
 
         return info;

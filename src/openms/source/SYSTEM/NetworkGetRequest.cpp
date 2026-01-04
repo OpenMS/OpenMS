@@ -10,85 +10,198 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 
-#include <QtNetwork/QNetworkRequest>
-#include <QtGui/QTextDocument>
+#ifdef OPENMS_HAS_CURL
+#include <curl/curl.h>
+#else
+// Fallback implementation without libcurl
+#include <cstdio>
+#include <cstring>
+#include <array>
+#endif
 
 using namespace std;
 
 namespace OpenMS
 {
 
-  NetworkGetRequest::NetworkGetRequest(QObject* parent) :
-    QObject(parent), reply_(nullptr)
+#ifdef OPENMS_HAS_CURL
+  // Callback function for libcurl to write received data
+  static size_t WriteCallback(void* contents, size_t size, size_t nmemb, void* userp)
   {
-    manager_ = new QNetworkAccessManager(this);
+    size_t totalSize = size * nmemb;
+    std::vector<char>* buffer = static_cast<std::vector<char>*>(userp);
+    buffer->insert(buffer->end(), static_cast<char*>(contents), static_cast<char*>(contents) + totalSize);
+    return totalSize;
+  }
+#endif
+
+  NetworkGetRequest::NetworkGetRequest() :
+    response_bytes_(),
+    url_(),
+    error_string_(),
+    has_error_(false),
+    timeout_ms_(10000)
+  {
   }
 
   NetworkGetRequest::~NetworkGetRequest() = default;
 
-  void NetworkGetRequest::setUrl(const QUrl& url)
+  void NetworkGetRequest::setUrl(const String& url)
   {
     url_ = url;
   }
 
-  void NetworkGetRequest::run()
+  String NetworkGetRequest::getResponse() const
   {
-    if (reply_ == nullptr)
+    if (response_bytes_.empty())
     {
-      error_ = QNetworkReply::NoError;
-      error_string_ = "";
-      QNetworkRequest request;
-      request.setUrl(url_);
-      request.setHeader(QNetworkRequest::ContentTypeHeader, "text/plain");
-      connect(manager_, SIGNAL(finished(QNetworkReply*)), this, SLOT(replyFinished(QNetworkReply*)));
-      reply_ = manager_->get(request);
+      return "";
     }
+    return String(response_bytes_.data(), response_bytes_.size());
   }
 
-  void NetworkGetRequest::replyFinished(QNetworkReply* reply)
-  {
-    if (reply_ != nullptr)
-    {
-      error_ = reply->error();
-      error_string_ = error_ != QNetworkReply::NoError ? reply->errorString() : "";
-      response_bytes_ = reply->readAll(); // in case of error this will just read the error html from the server
-      reply->close();
-      reply->deleteLater();;
-    }
-    emit done();
-  }
-
-  void NetworkGetRequest::timeOut()
-  {
-    if (reply_ != nullptr)
-    {
-      error_ = QNetworkReply::TimeoutError;
-      error_string_ = "TimeoutError: the connection to the remote server timed out";
-      reply_->abort();
-      reply_->close();
-      reply_->deleteLater();
-    }
-    emit done();
-  }
-
-  const QByteArray& NetworkGetRequest::getResponseBinary() const
+  const std::vector<char>& NetworkGetRequest::getResponseBinary() const
   {
     return response_bytes_;
   }
 
-  QString NetworkGetRequest::getResponse() const
-  {
-    return QString(response_bytes_);
-  }  
-
   bool NetworkGetRequest::hasError() const
   {
-    return error_ != QNetworkReply::NoError;
+    return has_error_;
   }
 
-  QString NetworkGetRequest::getErrorString() const
+  String NetworkGetRequest::getErrorString() const
   {
     return error_string_;
   }
 
-}
+  void NetworkGetRequest::setTimeout(int timeout_ms)
+  {
+    timeout_ms_ = timeout_ms;
+  }
+
+  void NetworkGetRequest::run()
+  {
+    response_bytes_.clear();
+    error_string_.clear();
+    has_error_ = false;
+
+#ifdef OPENMS_HAS_CURL
+    CURL* curl = curl_easy_init();
+    if (!curl)
+    {
+      has_error_ = true;
+      error_string_ = "Failed to initialize libcurl";
+      return;
+    }
+
+    // Set URL
+    curl_easy_setopt(curl, CURLOPT_URL, url_.c_str());
+
+    // Set write callback
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response_bytes_);
+
+    // Follow redirects
+    curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+
+    // Set timeout (in seconds)
+    curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, (long)timeout_ms_);
+
+    // Set user agent
+    curl_easy_setopt(curl, CURLOPT_USERAGENT, "OpenMS");
+
+    // Perform the request
+    CURLcode res = curl_easy_perform(curl);
+
+    if (res != CURLE_OK)
+    {
+      has_error_ = true;
+      error_string_ = String("libcurl error: ") + curl_easy_strerror(res);
+    }
+    else
+    {
+      // Check HTTP response code
+      long response_code = 0;
+      curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
+      if (response_code >= 400)
+      {
+        has_error_ = true;
+        error_string_ = String("HTTP error: ") + String(response_code);
+      }
+    }
+
+    curl_easy_cleanup(curl);
+
+#else
+    // Fallback: No libcurl available - use platform-specific approach
+    // For Unix/Mac: use curl command line if available
+    #ifndef OPENMS_WINDOWSPLATFORM
+
+    // First check if curl command exists
+    FILE* check_curl = popen("command -v curl 2>/dev/null", "r");
+    if (!check_curl)
+    {
+      has_error_ = true;
+      error_string_ = "curl command not available. Please install curl or build OpenMS with libcurl support.";
+      return;
+    }
+    char curl_path[256];
+    bool curl_exists = (fgets(curl_path, sizeof(curl_path), check_curl) != nullptr);
+    pclose(check_curl);
+
+    if (!curl_exists)
+    {
+      has_error_ = true;
+      error_string_ = "curl command not found in PATH. Please install curl or build OpenMS with libcurl support.";
+      return;
+    }
+
+    // SECURITY: Validate URL doesn't contain shell metacharacters to prevent command injection
+    // We only allow URLs with alphanumeric, :/.-_?&=% characters
+    for (size_t i = 0; i < url_.size(); ++i)
+    {
+      char c = url_[i];
+      if (!isalnum(c) && c != ':' && c != '/' && c != '.' && c != '-' &&
+          c != '_' && c != '?' && c != '&' && c != '=' && c != '%')
+      {
+        has_error_ = true;
+        error_string_ = String("URL contains invalid character: ") + c + ". Only alphanumeric and :/.-_?&=% allowed.";
+        return;
+      }
+    }
+
+    // Build curl command with safe URL
+    // Ensure timeout is at least 1 second to avoid 0 for sub-second values
+    int timeout_seconds = std::max(1, timeout_ms_ / 1000);
+    String command = "curl -s -m " + String(timeout_seconds) + " '" + url_ + "' 2>&1";
+    std::array<char, 128> buffer;
+    FILE* pipe = popen(command.c_str(), "r");
+    if (!pipe)
+    {
+      has_error_ = true;
+      error_string_ = "Failed to execute curl command";
+      return;
+    }
+
+    while (fgets(buffer.data(), buffer.size(), pipe) != nullptr)
+    {
+      size_t len = strlen(buffer.data());
+      response_bytes_.insert(response_bytes_.end(), buffer.data(), buffer.data() + len);
+    }
+
+    int exit_code = pclose(pipe);
+    if (exit_code != 0)
+    {
+      has_error_ = true;
+      error_string_ = String("curl command failed with exit code: ") + String(exit_code);
+    }
+    #else
+    // Windows without curl: error
+    has_error_ = true;
+    error_string_ = "Network requests require libcurl on Windows. Please build OpenMS with libcurl support.";
+    #endif
+#endif
+  }
+
+} // namespace OpenMS

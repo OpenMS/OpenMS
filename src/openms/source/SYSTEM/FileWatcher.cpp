@@ -7,73 +7,202 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/SYSTEM/FileWatcher.h>
-#include <QtCore/QTimer>
+#include <OpenMS/CONCEPT/LogStream.h>
+
+#include <sys/stat.h>
+#include <ctime>
+#include <cerrno>
+#include <cstring>
+#include <vector>
 
 using namespace std;
 
 namespace OpenMS
 {
-  FileWatcher::FileWatcher(QObject * parent) :
-    QFileSystemWatcher(parent),
-    timers_(),
-    delay_in_seconds_(1.0)
+  FileWatcher::FileWatcher() :
+    watched_files_(),
+    pending_timers_(),
+    next_timer_id_(0),
+    delay_in_seconds_(1.0),
+    callback_(),
+    monitor_thread_(),
+    timer_thread_(),
+    stop_monitoring_(false),
+    mutex_()
   {
-    // Connect the slot for monitoring file changes
-    connect(this, &FileWatcher::fileChanged, [this](const String& s) { monitorFileChanged_(s.toQString()); });
+    // Start monitoring thread
+    monitor_thread_ = std::make_unique<std::thread>(&FileWatcher::monitorFiles_, this);
+
+    // Start timer processing thread
+    timer_thread_ = std::make_unique<std::thread>(&FileWatcher::processTimers_, this);
   }
 
-  FileWatcher::~FileWatcher() = default;
-
-  void FileWatcher::monitorFileChanged_(const QString & name)
+  FileWatcher::~FileWatcher()
   {
-    //cout << "File changed: " << String(name) << endl;
-    // Look up if there is already a timer for this file
-    QTimer * timer = nullptr;
-    for (map<QString, QString>::const_iterator it = timers_.begin(); it != timers_.end(); ++it)
-    {
-      if (it->second == name)     //we found the timer name and id
-      {
-        //cout << " - Found timer name: " << String(it->second) << endl;
-        //search for the timer instance with the corresponding Id
-        timer = findChild<QTimer *>(it->first);
-      }
-    }
+    // Signal threads to stop
+    stop_monitoring_ = true;
 
-    //timer does not exist => create and start a new one
-    if (!timer)
+    // Wait for threads to finish
+    if (monitor_thread_ && monitor_thread_->joinable())
     {
-      //static timer counter
-      static int timer_id = 0;
-      //cout << " - no timer found => creating a new one with name: ";
-      timer = new QTimer(this);
-      timer->setInterval((int)(1000.0 * delay_in_seconds_));
-      timer->setSingleShot(true);
-      timer->setObjectName(QString::number(++timer_id));
-      connect(timer, SIGNAL(timeout()), this, SLOT(timerTriggered_()));
-      timer->start();
-      timers_[QString::number(timer_id)] = name;
-      //cout << timer_id << endl;
-
+      monitor_thread_->join();
     }
-    //timer exists => restart it as the file changed another time
+    if (timer_thread_ && timer_thread_->joinable())
+    {
+      timer_thread_->join();
+    }
+  }
+
+  void FileWatcher::setDelayInSeconds(double delay)
+  {
+    std::lock_guard<std::mutex> lock(mutex_);
+    delay_in_seconds_ = delay;
+  }
+
+  bool FileWatcher::addFile(const String& path)
+  {
+    std::lock_guard<std::mutex> lock(mutex_);
+
+    // Get initial modification time
+    struct stat file_stat;
+    if (stat(path.c_str(), &file_stat) == 0)
+    {
+      watched_files_[path.c_str()] = file_stat.st_mtime;
+      return true;
+    }
     else
     {
-      //cout << " - timer found => resetting" << endl;
-      timer->start();
+      // stat() failed - capture errno immediately before it can be overwritten
+      int err = errno;
+      OPENMS_LOG_ERROR << "FileWatcher: Failed to add file '" << path
+                       << "': " << std::strerror(err)
+                       << " (errno=" << err << ")" << std::endl;
+      return false;
     }
   }
 
-  void FileWatcher::timerTriggered_()
+  void FileWatcher::removeFile(const String& path)
   {
-    //cout << "Timer activated" << endl;
-    //get the timer instance
-    QTimer * timer = qobject_cast<QTimer *>(sender());
-    //emit the final for the file corresponding to the timer name
-    //cout << " - timer name: " << String(timer->objectName()) << endl;
-    //cout << " - timer file: " << String(timers_[timer->objectName()]) << endl;
-    emit fileChanged(String(timers_[timer->objectName()]));
-    //erase the timer name from the list
-    timers_.erase(timer->objectName());
+    std::lock_guard<std::mutex> lock(mutex_);
+    watched_files_.erase(path.c_str());
+  }
+
+  void FileWatcher::setCallback(FileChangeCallback callback)
+  {
+    std::lock_guard<std::mutex> lock(mutex_);
+    callback_ = callback;
+  }
+
+  void FileWatcher::monitorFiles_()
+  {
+    while (!stop_monitoring_)
+    {
+      {
+        std::lock_guard<std::mutex> lock(mutex_);
+
+        // Read delay_in_seconds_ under mutex to avoid data race
+        int delay_ms = static_cast<int>(delay_in_seconds_ * 1000);
+
+        // Check each watched file for changes
+        for (auto& entry : watched_files_)
+        {
+          const std::string& file_path = entry.first;
+          std::time_t& last_mtime = entry.second;
+
+          struct stat file_stat;
+          if (stat(file_path.c_str(), &file_stat) == 0)
+          {
+            // Check if file was modified
+            if (file_stat.st_mtime != last_mtime)
+            {
+              last_mtime = file_stat.st_mtime;
+
+              // Look for existing timer for this file
+              int existing_timer_id = -1;
+              for (auto& timer_entry : pending_timers_)
+              {
+                if (timer_entry.second.file_path == file_path && timer_entry.second.active)
+                {
+                  existing_timer_id = timer_entry.first;
+                  break;
+                }
+              }
+
+              // Create new timer or reset existing one
+              if (existing_timer_id == -1)
+              {
+                // Create new timer
+                PendingTimer timer;
+                timer.file_path = file_path;
+                timer.trigger_time = std::chrono::steady_clock::now() +
+                                    std::chrono::milliseconds(delay_ms);
+                timer.active = true;
+                pending_timers_[next_timer_id_++] = timer;
+              }
+              else
+              {
+                // Reset existing timer
+                pending_timers_[existing_timer_id].trigger_time =
+                    std::chrono::steady_clock::now() +
+                    std::chrono::milliseconds(delay_ms);
+              }
+            }
+          }
+        }
+      }
+
+      // Sleep for a short interval (100ms) to avoid excessive CPU usage
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+  }
+
+  void FileWatcher::processTimers_()
+  {
+    while (!stop_monitoring_)
+    {
+      // Collect expired timers to invoke outside the lock
+      std::vector<std::string> expired_files;
+      FileChangeCallback callback_copy;
+
+      {
+        std::lock_guard<std::mutex> lock(mutex_);
+
+        auto now = std::chrono::steady_clock::now();
+
+        // Copy callback under lock
+        callback_copy = callback_;
+
+        // Check for expired timers and collect them
+        for (auto it = pending_timers_.begin(); it != pending_timers_.end(); )
+        {
+          if (it->second.active && now >= it->second.trigger_time)
+          {
+            // Timer expired - collect file path
+            expired_files.push_back(it->second.file_path);
+
+            // Remove timer
+            it = pending_timers_.erase(it);
+          }
+          else
+          {
+            ++it;
+          }
+        }
+      }
+      // mutex_ is now released
+
+      // Invoke callbacks outside the lock to avoid deadlock
+      if (callback_copy)
+      {
+        for (const auto& file_path : expired_files)
+        {
+          callback_copy(file_path);
+        }
+      }
+
+      // Sleep for a short interval (50ms) to check timers frequently
+      std::this_thread::sleep_for(std::chrono::milliseconds(50));
+    }
   }
 
   //OPENMS_DLLAPI FileWatcher myFileWatcher_instance; // required, such that the moc file get generated during building OpenMS.dll, not later during OpenMS_GUI.dll as DLL flags are wrong then

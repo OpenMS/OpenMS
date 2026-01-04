@@ -107,7 +107,7 @@ public:
        @return True on success
     */
     enum class CopyOptions {OVERWRITE,SKIP,CANCEL};
-    static bool copyDirRecursively(const QString &from_dir, const QString &to_dir, File::CopyOptions option = CopyOptions::OVERWRITE);
+    static bool copyDirRecursively(const String &from_dir, const String &to_dir, File::CopyOptions option = CopyOptions::OVERWRITE);
 
     /// Copy a file (if it exists). Returns true if successful.
     static bool copy(const String& from, const String& to);
@@ -123,7 +123,7 @@ public:
     static bool removeDirRecursively(const String& dir_name);
 
     /// Removes the directory and all subdirectories (absolute path).
-    static bool removeDir(const QString& dir_name);
+    static bool removeDir(const String& dir_name);
 
     /// Creates a directory (absolute path or relative to the current working dir), even if subdirectories do not exist. Returns true if successful.
     /// If the path already exists when this function is called, it will return true.
