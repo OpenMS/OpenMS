@@ -97,55 +97,70 @@ namespace OpenMS
   {
     while (!stop_monitoring_)
     {
+      // Copy watched files map to reduce lock contention
+      // (stat() calls can be slow on network filesystems)
+      std::map<std::string, std::time_t> files_snapshot;
+      int delay_ms;
+
       {
         std::lock_guard<std::mutex> lock(mutex_);
+        files_snapshot = watched_files_;
+        delay_ms = static_cast<int>(delay_in_seconds_ * 1000);
+      }
 
-        // Read delay_in_seconds_ under mutex to avoid data race
-        int delay_ms = static_cast<int>(delay_in_seconds_ * 1000);
+      // Check each watched file for changes (without holding lock)
+      for (auto& entry : files_snapshot)
+      {
+        const std::string& file_path = entry.first;
+        std::time_t snapshot_mtime = entry.second;
 
-        // Check each watched file for changes
-        for (auto& entry : watched_files_)
+        struct stat file_stat;
+        if (stat(file_path.c_str(), &file_stat) == 0)
         {
-          const std::string& file_path = entry.first;
-          std::time_t& last_mtime = entry.second;
-
-          struct stat file_stat;
-          if (stat(file_path.c_str(), &file_stat) == 0)
+          // Check if file was modified
+          if (file_stat.st_mtime != snapshot_mtime)
           {
-            // Check if file was modified
-            if (file_stat.st_mtime != last_mtime)
+            // File changed - update under lock
+            std::lock_guard<std::mutex> lock(mutex_);
+
+            // Check if file is still being watched (might have been removed)
+            auto it = watched_files_.find(file_path);
+            if (it == watched_files_.end())
             {
-              last_mtime = file_stat.st_mtime;
+              continue; // File was removed while we were checking
+            }
 
-              // Look for existing timer for this file
-              int existing_timer_id = -1;
-              for (auto& timer_entry : pending_timers_)
-              {
-                if (timer_entry.second.file_path == file_path && timer_entry.second.active)
-                {
-                  existing_timer_id = timer_entry.first;
-                  break;
-                }
-              }
+            // Update last modification time
+            it->second = file_stat.st_mtime;
 
-              // Create new timer or reset existing one
-              if (existing_timer_id == -1)
+            // Look for existing timer for this file
+            int existing_timer_id = -1;
+            for (auto& timer_entry : pending_timers_)
+            {
+              if (timer_entry.second.file_path == file_path && timer_entry.second.active)
               {
-                // Create new timer
-                PendingTimer timer;
-                timer.file_path = file_path;
-                timer.trigger_time = std::chrono::steady_clock::now() +
-                                    std::chrono::milliseconds(delay_ms);
-                timer.active = true;
-                pending_timers_[next_timer_id_++] = timer;
+                existing_timer_id = timer_entry.first;
+                break;
               }
-              else
-              {
-                // Reset existing timer
-                pending_timers_[existing_timer_id].trigger_time =
-                    std::chrono::steady_clock::now() +
-                    std::chrono::milliseconds(delay_ms);
-              }
+            }
+
+            // Create new timer or reset existing one
+            if (existing_timer_id == -1)
+            {
+              // Create new timer
+              PendingTimer timer;
+              timer.file_path = file_path;
+              timer.trigger_time = std::chrono::steady_clock::now() +
+                                  std::chrono::milliseconds(delay_ms);
+              timer.active = true;
+              pending_timers_[next_timer_id_++] = timer;
+            }
+            else
+            {
+              // Reset existing timer
+              pending_timers_[existing_timer_id].trigger_time =
+                  std::chrono::steady_clock::now() +
+                  std::chrono::milliseconds(delay_ms);
             }
           }
         }

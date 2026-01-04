@@ -214,17 +214,38 @@ namespace OpenMS
 
     // Get canonical paths to check for same directory
     std::filesystem::path canonical_source = std::filesystem::canonical(source_path, ec);
+    bool source_canonical_ok = !ec;
     if (ec) canonical_source = source_path;
     ec.clear();
     std::filesystem::path canonical_target = std::filesystem::canonical(target_path, ec);
+    bool target_canonical_ok = !ec;
     if (ec) canonical_target = target_path;
     ec.clear();
 
-    // check canonical path
-    if (canonical_source == canonical_target)
+    // Check if source and target are the same
+    if (source_canonical_ok && target_canonical_ok)
     {
-      OPENMS_LOG_ERROR << "Error: Could not copy " << from_dir << " to " << to_dir << ". Same path given." << std::endl;
-      return false;
+      // Both canonical paths available - use them for comparison
+      if (canonical_source == canonical_target)
+      {
+        OPENMS_LOG_ERROR << "Error: Could not copy " << from_dir << " to " << to_dir << ". Same path given (canonical)." << std::endl;
+        return false;
+      }
+    }
+    else
+    {
+      // Canonicalization failed - warn and do string comparison as fallback
+      if (!source_canonical_ok || !target_canonical_ok)
+      {
+        OPENMS_LOG_WARN << "Could not canonicalize paths for comparison (source_ok=" << source_canonical_ok
+                       << ", target_ok=" << target_canonical_ok << ")" << std::endl;
+      }
+      // Do string comparison as fallback
+      if (source_path == target_path)
+      {
+        OPENMS_LOG_ERROR << "Error: Could not copy " << from_dir << " to " << to_dir << ". Same path given." << std::endl;
+        return false;
+      }
     }
 
     // make directory if not present

@@ -146,6 +146,25 @@ namespace OpenMS
 
   bool PythonInfo::isPackageInstalled(const String& python_executable, const String& package_name)
   {
+    // Validate package name to prevent command injection
+    // Python package names can contain: letters, digits, underscore, dot, hyphen
+    if (package_name.empty())
+    {
+      OPENMS_LOG_ERROR << "Package name cannot be empty" << std::endl;
+      return false;
+    }
+
+    for (size_t i = 0; i < package_name.size(); ++i)
+    {
+      char c = package_name[i];
+      if (!isalnum(c) && c != '_' && c != '.' && c != '-')
+      {
+        OPENMS_LOG_ERROR << "Invalid package name '" << package_name
+                        << "': contains invalid character '" << c << "'" << std::endl;
+        return false;
+      }
+    }
+
     String command = python_executable + " -c \"import " + package_name + "\" 2>&1";
     String output;
     int exit_code = 0;

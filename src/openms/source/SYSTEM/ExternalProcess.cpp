@@ -68,12 +68,57 @@ namespace OpenMS
   {
     error_msg.clear();
 
-    // Build command line
+    // Helper lambda to quote a command-line argument for Windows CreateProcess
+    // Follows Microsoft's escaping rules for argv parsing
+    auto quoteArgument = [](const String& arg) -> String {
+      // If argument contains no special characters, return as-is
+      if (arg.find_first_of(" \t\n\v\"") == String::npos)
+      {
+        return arg;
+      }
+
+      // Quote the argument
+      String result = "\"";
+      for (size_t i = 0; i < arg.size(); ++i)
+      {
+        size_t num_backslashes = 0;
+
+        // Count consecutive backslashes
+        while (i < arg.size() && arg[i] == '\\')
+        {
+          ++i;
+          ++num_backslashes;
+        }
+
+        if (i == arg.size())
+        {
+          // Backslashes at end of string - escape them before closing quote
+          result.append(num_backslashes * 2, '\\');
+          break;
+        }
+        else if (arg[i] == '"')
+        {
+          // Backslashes before quote - escape both the backslashes and the quote
+          result.append(num_backslashes * 2 + 1, '\\');
+          result += '"';
+        }
+        else
+        {
+          // Normal backslashes - don't escape
+          result.append(num_backslashes, '\\');
+          result += arg[i];
+        }
+      }
+      result += '"';
+      return result;
+    };
+
+    // Build command line with proper quoting for Windows
     std::ostringstream cmd_stream;
-    cmd_stream << exe;
+    cmd_stream << quoteArgument(exe);
     for (const auto& arg : args)
     {
-      cmd_stream << " " << arg;
+      cmd_stream << " " << quoteArgument(arg);
     }
     String full_cmd = cmd_stream.str();
 
@@ -123,6 +168,12 @@ namespace OpenMS
     siStartInfo.dwFlags |= STARTF_USESTDHANDLES;
 
     // Set environment variables - merge with parent environment
+    // Use unique_ptr with custom deleter for automatic cleanup
+    std::unique_ptr<char[], std::function<void(char*)>> envBlock_guard(
+      nullptr,
+      [](char* p) { delete[] p; }
+    );
+
     char* envBlock = nullptr;
     if (!env.empty())
     {
@@ -139,7 +190,7 @@ namespace OpenMS
           String entryStr(entry);
           // Skip entries that will be overridden by env map
           size_t eqPos = entryStr.find('=');
-          if (eqPos != String::npos)
+          if (eqPos != String::npos && eqPos > 0)  // Ensure key is not empty
           {
             String key = entryStr.substr(0, eqPos);
             if (env.find(key) == env.end())
@@ -165,6 +216,7 @@ namespace OpenMS
       String envStr = envStream.str();
       envBlock = new char[envStr.size()];
       memcpy(envBlock, envStr.c_str(), envStr.size());
+      envBlock_guard.reset(envBlock);  // Take ownership for automatic cleanup
     }
 
     // Set working directory
@@ -186,7 +238,7 @@ namespace OpenMS
       &piProcInfo
     );
 
-    delete[] envBlock;
+    // envBlock automatically cleaned up by unique_ptr when it goes out of scope
 
     if (!bSuccess)
     {
@@ -218,6 +270,11 @@ namespace OpenMS
       {
         if (ReadFile(hChildStdOutRd, buffer, BUFSIZE - 1, &dwRead, NULL) && dwRead > 0)
         {
+          // Defensive check: ensure we don't overflow buffer
+          if (dwRead >= BUFSIZE)
+          {
+            dwRead = BUFSIZE - 1;
+          }
           buffer[dwRead] = '\0';
           callbackStdOut_(String(buffer));
         }
@@ -230,6 +287,11 @@ namespace OpenMS
       {
         if (ReadFile(hChildStdErrRd, buffer, BUFSIZE - 1, &dwRead, NULL) && dwRead > 0)
         {
+          // Defensive check: ensure we don't overflow buffer
+          if (dwRead >= BUFSIZE)
+          {
+            dwRead = BUFSIZE - 1;
+          }
           buffer[dwRead] = '\0';
           callbackStdErr_(String(buffer));
         }
@@ -241,11 +303,21 @@ namespace OpenMS
     // Final read to get any remaining output
     while (ReadFile(hChildStdOutRd, buffer, BUFSIZE - 1, &dwRead, NULL) && dwRead > 0)
     {
+      // Defensive check: ensure we don't overflow buffer
+      if (dwRead >= BUFSIZE)
+      {
+        dwRead = BUFSIZE - 1;
+      }
       buffer[dwRead] = '\0';
       callbackStdOut_(String(buffer));
     }
     while (ReadFile(hChildStdErrRd, buffer, BUFSIZE - 1, &dwRead, NULL) && dwRead > 0)
     {
+      // Defensive check: ensure we don't overflow buffer
+      if (dwRead >= BUFSIZE)
+      {
+        dwRead = BUFSIZE - 1;
+      }
       buffer[dwRead] = '\0';
       callbackStdErr_(String(buffer));
     }

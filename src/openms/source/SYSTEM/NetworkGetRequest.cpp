@@ -151,12 +151,25 @@ namespace OpenMS
     }
     char curl_path[256];
     bool curl_exists = (fgets(curl_path, sizeof(curl_path), check_curl) != nullptr);
-    pclose(check_curl);
+    int close_status = pclose(check_curl);
+    if (close_status == -1)
+    {
+      // Log warning but continue - this is just a check
+      OPENMS_LOG_WARN << "pclose() failed while checking for curl, but continuing" << std::endl;
+    }
 
     if (!curl_exists)
     {
       has_error_ = true;
       error_string_ = "curl command not found in PATH. Please install curl or build OpenMS with libcurl support.";
+      return;
+    }
+
+    // SECURITY: Validate URL structure - must start with http:// or https://
+    if (!url_.hasPrefix("http://") && !url_.hasPrefix("https://"))
+    {
+      has_error_ = true;
+      error_string_ = "URL must start with http:// or https://";
       return;
     }
 

@@ -438,8 +438,20 @@ namespace OpenMS
 
   DateTime& DateTime::addSecs(int s)
   {
-    // Convert to total seconds since start of day
-    int total_seconds = hour_ * 3600 + minute_ * 60 + second_ + s;
+    // Use int64_t to prevent overflow in arithmetic
+    int64_t total_seconds = static_cast<int64_t>(hour_) * 3600 +
+                           static_cast<int64_t>(minute_) * 60 +
+                           static_cast<int64_t>(second_) +
+                           static_cast<int64_t>(s);
+
+    // Validate that offset is within reasonable bounds
+    const int64_t MAX_SECONDS = static_cast<int64_t>(INT_MAX) * 24LL * 3600LL;
+    if (total_seconds > MAX_SECONDS || total_seconds < -MAX_SECONDS)
+    {
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                "Seconds offset too large: " + String(s),
+                                "Would cause overflow in date arithmetic");
+    }
 
     // Handle negative values and days overflow
     int days_offset = 0;
@@ -454,14 +466,22 @@ namespace OpenMS
       days_offset++;
     }
 
-    // Update time
-    hour_ = total_seconds / 3600;
-    minute_ = (total_seconds % 3600) / 60;
-    second_ = total_seconds % 60;
+    // Update time (total_seconds is now guaranteed to fit in int range 0..86399)
+    hour_ = static_cast<UInt>(total_seconds / 3600);
+    minute_ = static_cast<UInt>((total_seconds % 3600) / 60);
+    second_ = static_cast<UInt>(total_seconds % 60);
 
     // Update date with proper month/year overflow handling
     if (days_offset != 0)
     {
+      // Validate that day_ is within safe range for signed conversion
+      if (day_ > static_cast<UInt>(INT_MAX))
+      {
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                  "Day value too large for arithmetic: " + String(day_),
+                                  "Internal error in date calculations");
+      }
+
       // Use signed arithmetic to properly handle negative day values
       int day_signed = static_cast<int>(day_) + days_offset;
 
