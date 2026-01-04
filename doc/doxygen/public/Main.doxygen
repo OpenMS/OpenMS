@@ -69,6 +69,11 @@
           <LI> @subpage external_code
         </UL>
 
+        Algorithm Tutorials:
+        <UL>
+          <LI> @subpage TargetedQuantitation_Tutorial - MRM/SRM and SWATH/DIA quantitation workflow
+        </UL>
+
       </TD>
 
     </TR>

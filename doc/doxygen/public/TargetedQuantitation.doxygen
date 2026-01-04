@@ -1,0 +1,370 @@
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
+//
+// --------------------------------------------------------------------------
+// $Maintainer: Douglas McCloskey, Pasquale Domenico Colaianni $
+// $Authors: Douglas McCloskey, Pasquale Domenico Colaianni $
+// --------------------------------------------------------------------------
+
+/**
+  @page TargetedQuantitation_Tutorial Targeted Quantitation Tutorial
+
+  @tableofcontents
+
+  @section TQ_intro Introduction
+
+  This tutorial explains how to use the OpenMS Targeted Quantitation module for processing
+  MRM/SRM and SWATH/DIA mass spectrometry data. These algorithms provide a complete workflow
+  from raw chromatograms to absolutely quantified concentrations, and form the computational
+  foundation for tools like SmartPeaks.
+
+  @section TQ_overview Workflow Overview
+
+  The targeted quantitation workflow consists of four main stages:
+
+  @dot
+  digraph TargetedWorkflow {
+    rankdir=TB;
+    node [shape=box, style=filled];
+
+    subgraph cluster_input {
+      label="Input Data";
+      style=filled;
+      fillcolor=lightgray;
+      raw [label="Raw mzML", fillcolor=white];
+      traml [label="Transition List\n(TraML/TSV)", fillcolor=white];
+      stds [label="Standards\n(known concentrations)", fillcolor=white];
+    }
+
+    subgraph cluster_picking {
+      label="1. Peak Picking & Integration";
+      style=filled;
+      fillcolor=lightblue;
+      picker [label="MRMTransitionGroupPicker", fillcolor=white];
+      integrator [label="PeakIntegrator", fillcolor=white];
+      emg [label="EmgGradientDescent\n(optional)", fillcolor=white];
+    }
+
+    subgraph cluster_qc {
+      label="2. Quality Control";
+      style=filled;
+      fillcolor=lightyellow;
+      qc [label="MRMFeatureQC", fillcolor=white];
+      filter [label="MRMFeatureFilter", fillcolor=white];
+    }
+
+    subgraph cluster_selection {
+      label="3. Feature Selection";
+      style=filled;
+      fillcolor=lightgreen;
+      selector [label="MRMFeatureSelector\n(QMIP or Score)", fillcolor=white];
+      batch [label="MRMBatchFeatureSelector", fillcolor=white];
+    }
+
+    subgraph cluster_quant {
+      label="4. Absolute Quantitation";
+      style=filled;
+      fillcolor=lightpink;
+      method [label="AbsoluteQuantitationMethod", fillcolor=white];
+      quant [label="AbsoluteQuantitation", fillcolor=white];
+    }
+
+    raw -> picker;
+    traml -> picker;
+    picker -> integrator;
+    integrator -> emg [style=dashed];
+    emg -> filter;
+    integrator -> filter;
+    qc -> filter;
+    filter -> selector;
+    selector -> batch [style=dashed];
+    batch -> quant;
+    selector -> quant;
+    stds -> quant;
+    method -> quant;
+
+    results [label="Quantified Results\n(FeatureMap)", shape=ellipse, fillcolor=white];
+    quant -> results;
+  }
+  @enddot
+
+  @section TQ_stage1 Stage 1: Peak Picking and Integration
+
+  @subsection TQ_picking Peak Picking with MRMTransitionGroupPicker
+
+  The @ref OpenMS::MRMTransitionGroupPicker "MRMTransitionGroupPicker" identifies peaks across
+  multiple chromatograms belonging to the same precursor. It uses a consensus approach to find
+  consistent peak boundaries.
+
+  @code{.cpp}
+  #include <OpenMS/ANALYSIS/OPENSWATH/MRMTransitionGroupPicker.h>
+
+  // Create and configure the picker
+  MRMTransitionGroupPicker picker;
+  Param params = picker.getDefaults();
+  params.setValue("PeakPickerChromatogram:method", "corrected");
+  params.setValue("background_subtraction", "exact");
+  params.setValue("recalculate_peaks", "true");
+  picker.setParameters(params);
+
+  // Pick peaks in the transition group
+  MRMTransitionGroup<MSChromatogram, ReactionMonitoringTransition> transition_group;
+  // ... populate transition_group with chromatograms ...
+  picker.pickTransitionGroup(transition_group);
+
+  // Access the picked features
+  for (const auto& feature : transition_group.getFeatures())
+  {
+    std::cout << "Peak at RT: " << feature.getRT()
+              << " Intensity: " << feature.getIntensity() << std::endl;
+  }
+  @endcode
+
+  @subsection TQ_integration Peak Integration with PeakIntegrator
+
+  The @ref OpenMS::PeakIntegrator "PeakIntegrator" computes peak areas using various methods:
+
+  @code{.cpp}
+  #include <OpenMS/ANALYSIS/OPENSWATH/PeakIntegrator.h>
+
+  PeakIntegrator pi;
+  Param params = pi.getDefaults();
+  params.setValue("integration_type", "trapezoid");  // or "intensity_sum", "simpson"
+  params.setValue("baseline_type", "base_to_base");  // or "vertical_division_min/max"
+  pi.setParameters(params);
+
+  // Integrate a peak between left and right boundaries
+  MSChromatogram chrom;
+  // ... populate chromatogram ...
+  double left_boundary = 100.0;  // RT in seconds
+  double right_boundary = 120.0;
+
+  PeakIntegrator::PeakArea pa = pi.integratePeak(chrom, left_boundary, right_boundary);
+  std::cout << "Peak area: " << pa.area << std::endl;
+  std::cout << "Peak height: " << pa.height << std::endl;
+  std::cout << "Apex position: " << pa.apex_pos << std::endl;
+
+  // Get peak shape metrics
+  PeakIntegrator::PeakShapeMetrics psm = pi.calculatePeakShapeMetrics(
+    chrom, left_boundary, right_boundary, pa.height, pa.apex_pos);
+  std::cout << "FWHM: " << psm.width_at_50 << std::endl;
+  std::cout << "Tailing factor: " << psm.tailing_factor << std::endl;
+  @endcode
+
+  @subsection TQ_emg EMG Peak Fitting for Saturated/Cutoff Peaks
+
+  The @ref OpenMS::EmgGradientDescent "EmgGradientDescent" class fits peaks to an Exponentially
+  Modified Gaussian model, useful for reconstructing saturated or cutoff peaks:
+
+  @code{.cpp}
+  #include <OpenMS/MATH/MISC/EmgGradientDescent.h>
+
+  EmgGradientDescent emg;
+  MSChromatogram input_peak, fitted_peak;
+  // ... populate input_peak ...
+
+  // Fit EMG model
+  emg.fitEMGPeakModel(input_peak, fitted_peak);
+
+  // Access fitted parameters from metadata
+  const auto& emg_params = fitted_peak.getFloatDataArrays()[0];
+  double h = emg_params[0];     // amplitude
+  double mu = emg_params[1];    // mean
+  double sigma = emg_params[2]; // standard deviation
+  double tau = emg_params[3];   // exponential relaxation time
+  @endcode
+
+  @section TQ_stage2 Stage 2: Quality Control
+
+  @subsection TQ_qc_setup Setting Up QC Criteria
+
+  The @ref OpenMS::MRMFeatureQC "MRMFeatureQC" class defines quality control criteria:
+
+  @code{.cpp}
+  #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureQC.h>
+
+  MRMFeatureQC qc;
+
+  // Component-level QC (individual transitions)
+  MRMFeatureQC::ComponentQCs comp_qc;
+  comp_qc.component_name = "glucose_quantifier";
+  comp_qc.retention_time_l = 5.0;   // Lower RT bound
+  comp_qc.retention_time_u = 7.0;   // Upper RT bound
+  comp_qc.intensity_l = 1000.0;     // Minimum intensity
+  comp_qc.intensity_u = 1e9;        // Maximum intensity
+  comp_qc.overall_quality_l = 0.5;  // Minimum quality score
+  qc.component_qcs.push_back(comp_qc);
+
+  // Component group QC (transition groups)
+  MRMFeatureQC::ComponentGroupQCs group_qc;
+  group_qc.component_group_name = "glucose";
+  group_qc.n_heavy_l = 1;  // Require at least 1 heavy-labeled transition
+  group_qc.n_light_l = 1;  // Require at least 1 light transition
+  // Ion ratio QC (qualifier/quantifier ratio)
+  group_qc.ion_ratio_pair_name_1 = "glucose_qualifier";
+  group_qc.ion_ratio_pair_name_2 = "glucose_quantifier";
+  group_qc.ion_ratio_l = 0.3;
+  group_qc.ion_ratio_u = 0.5;
+  qc.component_group_qcs.push_back(group_qc);
+  @endcode
+
+  @subsection TQ_filtering Applying QC Filters
+
+  The @ref OpenMS::MRMFeatureFilter "MRMFeatureFilter" applies QC criteria to features:
+
+  @code{.cpp}
+  #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFilter.h>
+
+  MRMFeatureFilter filter;
+  Param params = filter.getDefaults();
+  params.setValue("flag_or_filter", "filter");  // "flag" to mark, "filter" to remove
+  filter.setParameters(params);
+
+  FeatureMap features;
+  // ... populate features ...
+
+  // Apply QC filtering
+  filter.FilterFeatureMap(features, qc, targeted_exp);
+
+  // For pooled QC samples, filter by %RSD
+  std::vector<FeatureMap> qc_samples;
+  // ... load pooled QC samples ...
+  filter.FilterFeatureMapPercRSD(features, qc_samples, params);
+
+  // For blank samples, filter by background interference
+  FeatureMap blank_sample;
+  // ... load blank sample ...
+  filter.FilterFeatureMapBackgroundInterference(features, blank_sample, params);
+  @endcode
+
+  @section TQ_stage3 Stage 3: Feature Selection with Linear Programming
+
+  The @ref OpenMS::MRMFeatureSelector "MRMFeatureSelector" uses linear programming to optimally
+  select features while maintaining retention time consistency:
+
+  @code{.cpp}
+  #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureSelector.h>
+
+  // Configure selection parameters
+  MRMFeatureSelector::SelectorParameters params;
+  params.nn_threshold = 4;              // Number of nearest neighbors
+  params.segment_window_length = 8;     // Sliding window size
+  params.segment_step_length = 4;       // Step between windows
+  params.variable_type = MRMFeatureSelector::VariableType::INTEGER;  // Exact solution
+  params.optimal_threshold = 0.5;       // Selection cutoff
+
+  // Score-based selection
+  params.score_weights = {
+    {"peak_apex_int", MRMFeatureSelector::LambdaScore::LINEAR},
+    {"sn_ratio", MRMFeatureSelector::LambdaScore::LOG}
+  };
+
+  FeatureMap features, selected_features;
+  // ... populate features ...
+
+  MRMFeatureSelectorScore selector;
+  selector.selectMRMFeature(features, selected_features, params);
+  @endcode
+
+  For iterative refinement, use @ref OpenMS::MRMBatchFeatureSelector "MRMBatchFeatureSelector":
+
+  @code{.cpp}
+  #include <OpenMS/ANALYSIS/OPENSWATH/MRMBatchFeatureSelector.h>
+
+  std::vector<MRMFeatureSelector::SelectorParameters> params_list;
+  // ... add multiple parameter sets for iterative refinement ...
+
+  FeatureMap features, selected;
+  MRMBatchFeatureSelector::batchMRMFeaturesScore(features, selected, params_list);
+  @endcode
+
+  @section TQ_stage4 Stage 4: Absolute Quantitation
+
+  @subsection TQ_calibration Setting Up Calibration
+
+  The @ref OpenMS::AbsoluteQuantitationMethod "AbsoluteQuantitationMethod" defines how each
+  component should be quantified:
+
+  @code{.cpp}
+  #include <OpenMS/ANALYSIS/QUANTITATION/AbsoluteQuantitationMethod.h>
+
+  AbsoluteQuantitationMethod method;
+  method.setComponentName("glucose");
+  method.setFeatureName("peak_apex_int");        // Which feature to use
+  method.setISName("glucose_13C6");              // Internal standard
+  method.setConcentrationUnits("uM");
+  method.setTransformationModel("linear");       // or "b_spline"
+
+  // Set quantitation limits
+  method.setLLOD(0.1);   // Lower Limit of Detection
+  method.setULOD(1000);  // Upper Limit of Detection
+  method.setLLOQ(1.0);   // Lower Limit of Quantitation
+  method.setULOQ(500);   // Upper Limit of Quantitation
+  @endcode
+
+  @subsection TQ_quantify Performing Quantitation
+
+  @code{.cpp}
+  #include <OpenMS/ANALYSIS/QUANTITATION/AbsoluteQuantitation.h>
+
+  AbsoluteQuantitation aq;
+
+  // Set up methods for all components
+  std::vector<AbsoluteQuantitationMethod> methods;
+  // ... populate methods ...
+  aq.setQuantMethods(methods);
+
+  // Prepare standards with known concentrations
+  std::map<String, std::vector<AbsoluteQuantitationStandards::featureConcentration>> components_to_concentrations;
+  // ... populate from standard samples ...
+
+  // Fit calibration curves (with optional outlier removal)
+  Param params = aq.getDefaults();
+  params.setValue("outlier_detection_method", "iter_jackknife");  // or "iter_residual"
+  params.setValue("use_chauvenet", "true");
+  params.setValue("optimization_method", "iterative");
+  aq.setParameters(params);
+
+  aq.optimizeCalibrationCurves(components_to_concentrations);
+
+  // Get the fitted methods (now with calibration parameters)
+  std::vector<AbsoluteQuantitationMethod> fitted_methods = aq.getQuantMethods();
+  for (const auto& m : fitted_methods)
+  {
+    std::cout << m.getComponentName() << " R=" << m.getCorrelationCoefficient() << std::endl;
+  }
+
+  // Quantify unknown samples
+  FeatureMap unknowns;
+  // ... load unknown sample features ...
+  aq.quantifyComponents(unknowns);
+
+  // Results are stored as metavalues
+  for (const auto& f : unknowns)
+  {
+    if (f.metaValueExists("calculated_concentration"))
+    {
+      std::cout << f.getMetaValue("PeptideRef") << ": "
+                << f.getMetaValue("calculated_concentration")
+                << f.getMetaValue("concentration_units") << std::endl;
+    }
+  }
+  @endcode
+
+  @section TQ_topp TOPP Tools
+
+  The following TOPP tools utilize these algorithms:
+
+  - @ref TOPP_MRMTransitionGroupPicker - Peak picking in MRM chromatograms
+  - @ref TOPP_OpenSwathWorkflow - Complete OpenSWATH/DIA analysis pipeline
+
+  @section TQ_references References
+
+  - McCloskey D, et al. "SmartPeaks: An Open Source Tool for Automated Processing of
+    LC-MS Metabolomics and Fluxomics Data" (2020)
+  - Kalambet Y, et al. "Reconstruction of chromatographic peaks using the exponentially
+    modified Gaussian function" Journal of Chemometrics (2011) 25:352-356
+
+  @see @ref TargetedQuantitation for module overview
+
+*/
