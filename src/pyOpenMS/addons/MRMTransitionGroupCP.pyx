@@ -128,22 +128,23 @@ import numpy as np
                 "Please install it with: pip install pandas"
             )
         # Common meta value types for numpy type mapping
+        # Note: 'object' is used for string types with np.fromiter since lengths aren't known upfront
         common_meta_value_types = {
-            b'label': 'U50',
+            b'label': 'object',
             b'spectrum_index': 'i',
             b'score_fit': 'f',
             b'score_correlation': 'f',
             b'FWHM': 'f',
-            b'spectrum_native_id': 'U100',
+            b'spectrum_native_id': 'object',
             b'max_height': 'f',
             b'num_of_masstraces': 'i',
             b'masstrace_intensity': 'f',
-            b'Group': 'U50',
+            b'Group': 'object',
             b'is_ungrouped_monoisotopic': 'i',
             b'leftWidth': 'f',
             b'rightWidth': 'f',
             b'total_xic': 'f',
-            b'PeptideRef': 'U100',
+            b'PeptideRef': 'object',
             b'peak_apices_sum': 'f'
         }
 
@@ -186,9 +187,9 @@ import numpy as np
             # Add meta_values to mddtypes
             for meta_value in meta_values_list:
                 if meta_value in common_meta_value_types:
-                    mddtypes.append((meta_value.decode() if isinstance(meta_value, bytes) else meta_value, common_meta_value_types.get(meta_value, 'U50')))
+                    mddtypes.append((meta_value.decode() if isinstance(meta_value, bytes) else meta_value, common_meta_value_types.get(meta_value, 'object')))
                 else:
-                    mddtypes.append((meta_value.decode() if isinstance(meta_value, bytes) else meta_value, 'U50'))
+                    mddtypes.append((meta_value.decode() if isinstance(meta_value, bytes) else meta_value, 'object'))
         else:
             meta_values_list = []
 

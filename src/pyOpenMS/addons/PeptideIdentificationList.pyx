@@ -126,7 +126,7 @@ import numpy as np
             # Use type() to get Python types since 'bool' conflicts with C bool in Cython
             default_missing_values = {type(True): False, type(1): -9999, type(1.0): np.nan, type(''): ''}
 
-        switchDict = {type(True): '?', type(1): 'i', type(1.0): 'f', type(''): 'U100'}
+        switchDict = {type(True): '?', type(1): 'i', type(1.0): 'f', type(''): 'object'}
 
         # filter out PeptideIdentifications without PeptideHits if export_unidentified == False
         count = self.size()
@@ -176,27 +176,28 @@ import numpy as np
             clearMVs = decodedMVs
 
         clearcols = ["id", "rt", "mz", mainscorename, "charge", "protein_accession", "start", "end", "P_ID", "PSM_ID"] + clearMVs
-        coltypes = ['U100', 'f', 'f', 'f', 'i','U1000', 'U1000', 'U1000', 'i', 'i'] + types
+        # Use 'object' dtype for string columns - memory efficient and safe (no truncation)
+        coltypes = ['object', 'f', 'f', 'f', 'i', 'object', 'object', 'object', 'i', 'i'] + types
         dt = list(zip(clearcols, coltypes))
 
         def extract(pep, pep_idx):
             hits = pep.getHits()
             if not hits:
                 if export_unidentified:
-                    return (pep.getIdentifier().encode('utf-8'), pep.getRT(), pep.getMZ(), default_missing_values[float], default_missing_values[int],
+                    return (pep.getIdentifier(), pep.getRT(), pep.getMZ(), default_missing_values[float], default_missing_values[int],
                             default_missing_values[str], default_missing_values[str], default_missing_values[str], pep_idx, default_missing_values[int], *dmv)
                 else:
-                    return
+                    return None
 
             besthit = hits[0]
-            ret = [pep.getIdentifier().encode('utf-8'), pep.getRT(), pep.getMZ(), besthit.getScore(), besthit.getCharge()]
+            ret = [pep.getIdentifier(), pep.getRT(), pep.getMZ(), besthit.getScore(), besthit.getCharge()]
             # add accession, start and end positions of peptide evidences as comma separated str (like in mzTab)
             evs = besthit.getPeptideEvidences()
             ret += [','.join(v) if v else default_missing_values[str] for v in ([e.getProteinAccession() for e in evs],
                                                                                 [str(e.getStart()) for e in evs],
                                                                                 [str(e.getEnd()) for e in evs])]
 
-            ret += [str(pep_idx), 0]  # we currently only export the first hit
+            ret += [pep_idx, 0]  # we currently only export the first hit
 
             for idx, k in enumerate(metavals):
                 if besthit.metaValueExists(k):

@@ -163,7 +163,7 @@ import numpy as np
         if want('ms_level'):
             data_dict['ms_level'] = np.full(cnt, self.getMSLevel(), dtype=np.uint16)
         if want('native_id'):
-            data_dict['native_id'] = np.full(cnt, self.getNativeID(), dtype='U100')
+            data_dict['native_id'] = np.full(cnt, self.getNativeID(), dtype='object')
 
         # Ion mobility handling - only compute if requested
         if want('ion_mobility') or want('ion_mobility_unit'):
@@ -184,7 +184,7 @@ import numpy as np
                     data_dict['ion_mobility_unit'] = np.full(
                         cnt,
                         self.getDriftTimeUnitAsString(),
-                        dtype='U50'
+                        dtype='object'
                     )
             else:
                 # No IM data - only add columns if explicitly requested
@@ -192,7 +192,7 @@ import numpy as np
                     if want('ion_mobility'):
                         data_dict['ion_mobility'] = np.full(cnt, np.nan, dtype=np.float64)
                     if want('ion_mobility_unit'):
-                        data_dict['ion_mobility_unit'] = np.full(cnt, '', dtype='U1')
+                        data_dict['ion_mobility_unit'] = np.full(cnt, '', dtype='object')
 
         # Precursor Info - only compute if requested
         if want('precursor_mz') or want('precursor_charge'):
@@ -213,13 +213,11 @@ import numpy as np
 
         # Ion annotations from StringDataArray named 'IonNames'
         if want('ion_annotation'):
-            ion_annotations = np.full(cnt, '', dtype='U1')
+            ion_annotations = np.full(cnt, '', dtype='object')
             for sda in self.getStringDataArrays():
                 if sda.getName() == 'IonNames':
                     if len(sda) == cnt:
-                        annotations = [s for s in sda]
-                        max_len = max((len(s) for s in annotations), default=1)
-                        ion_annotations = np.array(annotations, dtype=f'U{max_len}')
+                        ion_annotations = np.array([s for s in sda], dtype='object')
                     break
             # Only add if data present or explicitly requested
             if requested is not None or any(ion_annotations != ''):
@@ -245,7 +243,7 @@ import numpy as np
                     elif isinstance(v, float):
                         data_dict[k_str] = np.full(cnt, v, dtype=np.float64)
                     elif isinstance(v, str):
-                        data_dict[k_str] = np.full(cnt, v, dtype=f"U{max(len(v), 1)}")
+                        data_dict[k_str] = np.full(cnt, v, dtype='object')
                     else:
                         data_dict[k_str] = np.full(cnt, str(v), dtype='object')
                 except Exception:
@@ -268,7 +266,7 @@ import numpy as np
                             elif isinstance(v, float):
                                 data_dict[col] = np.full(cnt, v, dtype=np.float64)
                             elif isinstance(v, str):
-                                data_dict[col] = np.full(cnt, v, dtype=f"U{max(len(v), 1)}")
+                                data_dict[col] = np.full(cnt, v, dtype='object')
                             else:
                                 data_dict[col] = np.full(cnt, str(v), dtype='object')
                         except Exception:
@@ -309,11 +307,9 @@ import numpy as np
                 col_name = f'string_array:{name}'
                 if col_name in requested:
                     if len(sda) == cnt:
-                        strings = [s for s in sda]
-                        max_len = max((len(s) for s in strings), default=1)
-                        data_dict[col_name] = np.array(strings, dtype=f'U{max_len}')
+                        data_dict[col_name] = np.array([s for s in sda], dtype='object')
                     else:
-                        data_dict[col_name] = np.full(cnt, '', dtype='U1')
+                        data_dict[col_name] = np.full(cnt, '', dtype='object')
 
         return data_dict
 

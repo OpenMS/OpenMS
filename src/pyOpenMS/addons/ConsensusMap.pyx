@@ -260,7 +260,7 @@ from collections import defaultdict as _defaultdict
                 labels[0] = "intensity"
 
             dtypes = [('id', np.dtype('uint64'))] + list(zip(labels, ['f'] * len(labels)))
-            dtypes.append(('file', 'U300'))
+            dtypes.append(('file', 'object'))
 
             # Count actual rows: one row per file per feature (not one per feature)
             total_rows = sum(len(extract_row_blocks_channel_wide_file_long(f)[1]) for f in self)
@@ -332,7 +332,7 @@ from collections import defaultdict as _defaultdict
 
         cnt = self.size()
 
-        mddtypes = [('id', np.dtype('uint64')), ('sequence', 'U200'), ('charge', 'i4'),
+        mddtypes = [('id', np.dtype('uint64')), ('sequence', 'object'), ('charge', 'i4'),
                     ('rt', np.dtype('double')), ('mz', np.dtype('double')), ('quality', 'f')]
 
         mdarr = np.fromiter(iter=gen(self, extract_meta_data), dtype=mddtypes, count=cnt)

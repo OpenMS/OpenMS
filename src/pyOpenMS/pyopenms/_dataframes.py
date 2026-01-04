@@ -37,29 +37,29 @@ else:
 
 
 # Common meta value types for numpy type mapping
+# String types use 'object' dtype - memory efficient and safe (no truncation risk)
 common_meta_value_types = {
-    b'label': 'U50',
+    b'label': 'object',
     b'spectrum_index': 'i',
     b'score_fit': 'f',
     b'score_correlation': 'f',
     b'FWHM': 'f',
-    b'spectrum_native_id': 'U100',
+    b'spectrum_native_id': 'object',
     b'max_height': 'f',
     b'num_of_masstraces': 'i',
     b'masstrace_intensity': 'f',
-    b'Group': 'U50',
+    b'Group': 'object',
     b'is_ungrouped_monoisotopic': 'i',
     b'leftWidth': 'f',
     b'rightWidth': 'f',
     b'total_xic': 'f',
-    b'PeptideRef': 'U100',
+    b'PeptideRef': 'object',
     b'peak_apices_sum': 'f'
 }
 """Global dict to define which autoconversion to numpy types is tried for certain metavalues.
 
 This can be changed to your liking but only affects future exports of any OpenMS datastructure to dataframes.
-Especially string lengths (i.e., U types) benefit from adaption to save memory. The default type is currently
-hardcoded to U50 (i.e., 50 unicode characters)
+String types use 'object' dtype for memory efficiency (no fixed-width waste) and safety (no truncation).
 """
 
 
@@ -130,15 +130,15 @@ def _add_meta_values(df: _pd.DataFrame, object: Any) -> _pd.DataFrame:
                 dtype = "int64"
             elif isinstance(dv, str):
                 value = dv
-                dtype = f"U{max(1, len(value))}"
+                dtype = "object"
             elif isinstance(dv, bytes):
                 value = dv.decode()
-                dtype = f"U{max(1, len(value))}"
+                dtype = "object"
             # Handle DataValue objects (if ever returned)
             elif hasattr(dv, 'valueType'):
                 if dv.valueType() == _DataValue.STRING_VALUE:
                     value = dv.toString().decode()
-                    dtype = f"U{max(1, len(value))}"
+                    dtype = "object"
                 elif dv.valueType() == _DataValue.INT_VALUE:
                     value = dv.toInt()
                     dtype = "int32"
