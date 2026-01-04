@@ -3440,10 +3440,10 @@ def testMSExperiment():
     # Apply the settings to the MSExperiment
     exp_with_settings.setExperimentalSettings(settings)
     
-    # Verify the settings were applied
-    assert exp_with_settings.getComment() == "Test comment for setExperimentalSettings"
-    assert exp_with_settings.getFractionIdentifier() == "fraction_123"
-    assert exp_with_settings.getSample().getName() == "Test Sample"
+    # Verify the settings were applied (access through getExperimentalSettings)
+    assert exp_with_settings.getExperimentalSettings().getComment() == "Test comment for setExperimentalSettings"
+    assert exp_with_settings.getExperimentalSettings().getFractionIdentifier() == "fraction_123"
+    assert exp_with_settings.getExperimentalSettings().getSample().getName() == "Test Sample"
     
     # Test that setExperimentalSettings doesn't affect spectra
     spec_for_settings = pyopenms.MSSpectrum()
@@ -3457,7 +3457,7 @@ def testMSExperiment():
     settings2.setComment("New comment")
     exp_with_settings.setExperimentalSettings(settings2)
     
-    assert exp_with_settings.getComment() == "New comment"
+    assert exp_with_settings.getExperimentalSettings().getComment() == "New comment"
     assert exp_with_settings.getNrSpectra() == 1  # spectra should still be there
 
 

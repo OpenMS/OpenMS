@@ -25,7 +25,7 @@ namespace OpenMS
 {
   /// Constructor
   MSExperiment::MSExperiment() :
-    ExperimentalSettings(),
+    experimental_settings_(),
     spectrum_ranges_(),
     chromatogram_ranges_(),
     combined_ranges_()
@@ -41,7 +41,7 @@ namespace OpenMS
     {
       return *this;
     }
-    ExperimentalSettings::operator=(source);
+    experimental_settings_ = source.experimental_settings_;
 
     chromatograms_ = source.chromatograms_;
     spectra_ = source.spectra_;
@@ -54,19 +54,12 @@ namespace OpenMS
     return *this;
   }
 
-  /// Assignment operator
-  MSExperiment& MSExperiment::operator=(const ExperimentalSettings & source)
-  {
-    ExperimentalSettings::operator=(source);
-    return *this;
-  }
-
   MSExperiment::~MSExperiment() = default;
 
   /// Equality operator
   bool MSExperiment::operator==(const MSExperiment & rhs) const
   {
-    return ExperimentalSettings::operator==(rhs) &&
+    return experimental_settings_ == rhs.experimental_settings_ &&
       chromatograms_ == rhs.chromatograms_ &&
       spectra_ == rhs.spectra_;
   }
@@ -597,7 +590,7 @@ namespace OpenMS
   {
     spectra_.clear();           //remove data
     clearRanges(); // reset all ranges
-    ExperimentalSettings::operator=(ExperimentalSettings());           //reset meta info
+    experimental_settings_ = ExperimentalSettings();           //reset meta info
   }
 
   /**
@@ -629,24 +622,24 @@ namespace OpenMS
   /// returns the meta information of this experiment (const access)
   const ExperimentalSettings& MSExperiment::getExperimentalSettings() const
   {
-    return *this;
+    return experimental_settings_;
   }
 
   /// returns the meta information of this experiment (mutable access)
   ExperimentalSettings& MSExperiment::getExperimentalSettings()
   {
-    return *this;
+    return experimental_settings_;
   }
 
   void MSExperiment::setExperimentalSettings(const ExperimentalSettings& experimental_settings)
   {
-    ExperimentalSettings::operator=(experimental_settings);
+    experimental_settings_ = experimental_settings;
   }
 
   /// get the file path to the first MS run
   void MSExperiment::getPrimaryMSRunPath(StringList& toFill) const
   {
-    std::vector<SourceFile> sfs(this->getSourceFiles());
+    std::vector<SourceFile> sfs(experimental_settings_.getSourceFiles());
     for (const SourceFile& ss : sfs)
     {
       // assemble a single location string from the URI (path to file) and file name
@@ -813,10 +806,7 @@ namespace OpenMS
     std::swap(combined_ranges_, from.combined_ranges_);
 
     // Swap experimental settings
-    ExperimentalSettings tmp;
-    tmp.ExperimentalSettings::operator=(*this);
-    this->ExperimentalSettings::operator=(from);
-    from.ExperimentalSettings::operator=(tmp);
+    std::swap(experimental_settings_, from.experimental_settings_);
 
     // Swap chromatograms
     std::swap(chromatograms_, from.chromatograms_);
@@ -1011,7 +1001,7 @@ namespace OpenMS
     if (clear_meta_data)
     {
       clearRanges(); // reset all ranges
-      this->ExperimentalSettings::operator=(ExperimentalSettings());             // no "clear" method
+      experimental_settings_ = ExperimentalSettings();             // no "clear" method
     }
   }
 
@@ -1098,7 +1088,7 @@ namespace OpenMS
     os << "-- MSEXPERIMENT BEGIN --" << std::endl;
 
     //experimental settings
-    os << static_cast<const ExperimentalSettings &>(exp);
+    os << exp.getExperimentalSettings();
 
     //spectra
     for (const MSSpectrum& spec : exp.getSpectra())

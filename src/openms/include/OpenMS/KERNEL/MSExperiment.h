@@ -34,7 +34,7 @@ namespace OpenMS
     of spectra and chromatograms and provides an in-memory representation of
     popular mass-spectrometric file formats such as mzXML or mzML. The
     meta-data associated with an experiment is contained in
-    ExperimentalSettings (by inheritance) while the raw data (as well as
+    ExperimentalSettings (by composition) while the raw data (as well as
     spectra and chromatogram level meta data) is stored in objects of type
     MSSpectrum and MSChromatogram, which are accessible through the getSpectrum
     and getChromatogram functions.
@@ -45,7 +45,7 @@ namespace OpenMS
 
     @ingroup Kernel
   */
-  class OPENMS_DLLAPI MSExperiment final : public ExperimentalSettings
+  class OPENMS_DLLAPI MSExperiment final
   {
 
 public:
@@ -112,11 +112,8 @@ public:
     /// Move assignment operator
     MSExperiment& operator=(MSExperiment&&) & = default;
 
-    /// Assignment operator
-    MSExperiment & operator=(const ExperimentalSettings & source);
-
     /// D'tor
-    ~MSExperiment() override;
+    ~MSExperiment();
 
     /// Equality operator
     bool operator==(const MSExperiment & rhs) const;
@@ -1214,6 +1211,8 @@ std::vector<MSChromatogram> extractXICs(
     bool isIMFrame() const;
 
   protected:
+    /// experimental settings (meta-data)
+    ExperimentalSettings experimental_settings_;
     /// chromatograms
     std::vector<MSChromatogram > chromatograms_;
     /// spectra
