@@ -578,6 +578,7 @@ protected:
       channel_extractor.registerChannelsInOutputMap(cmap, mz_file);
 
       // Collect peptide IDs without corresponding MS3 spectra (thread-safe collection)
+      // Note: unassigned_pep_ids is shared across threads; push_back is protected by critical section
       std::vector<PeptideIdentification> unassigned_pep_ids;
 
       #pragma omp parallel for /*num_threads(inner_threads)*/
