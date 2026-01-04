@@ -107,7 +107,7 @@ TopDownIsobaricQuantification::TopDownIsobaricQuantification() : DefaultParamHan
     int pre_scan = 0;
     for (auto it = exp.begin(); it != exp.end(); ++it)
     {
-      int scan_number = exp.getSourceFiles().empty() ? -1 : SpectrumLookup::extractScanNumber(it->getNativeID(), exp.getSourceFiles()[0].getNativeIDTypeAccession());
+      int scan_number = exp.getExperimentalSettings().getSourceFiles().empty() ? -1 : SpectrumLookup::extractScanNumber(it->getNativeID(), exp.getExperimentalSettings().getSourceFiles()[0].getNativeIDTypeAccession());
 
       if (scan_number < 0)
       {

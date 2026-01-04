@@ -238,9 +238,9 @@ int FLASHDeconvAlgorithm::getScanNumber(const MSExperiment& map, Size index)
   native_id_str.split(",", native_ids);
   String type_accession = "MS:1000768";
 
-  if (!map.getSourceFiles().empty())
+  if (!map.getExperimentalSettings().getSourceFiles().empty())
   {
-    type_accession = map.getSourceFiles()[0].getNativeIDTypeAccession();
+    type_accession = map.getExperimentalSettings().getSourceFiles()[0].getNativeIDTypeAccession();
     if (type_accession.empty()) type_accession = "MS:1000768";
   }
   int scan_number = SpectrumLookup::extractScanNumber(native_ids.back(), type_accession);

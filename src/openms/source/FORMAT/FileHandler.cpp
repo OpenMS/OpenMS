@@ -773,17 +773,17 @@ namespace OpenMS
     if (rewrite_source_file)
     {
       SourceFile src_file;
-      if (exp.getSourceFiles().empty()) // copy settings like native ID format
+      if (exp.getExperimentalSettings().getSourceFiles().empty()) // copy settings like native ID format
       {
         OPENMS_LOG_WARN << "No source file annotated." << endl;
       }
       else
       {
-        if (exp.getSourceFiles().size() > 1)
+        if (exp.getExperimentalSettings().getSourceFiles().size() > 1)
         {
-          OPENMS_LOG_WARN << "Expecting a single source file in mzML. Found " << exp.getSourceFiles().size() << " will take only first one for rewriting." << endl;
+          OPENMS_LOG_WARN << "Expecting a single source file in mzML. Found " << exp.getExperimentalSettings().getSourceFiles().size() << " will take only first one for rewriting." << endl;
         }
-        src_file = exp.getSourceFiles()[0];
+        src_file = exp.getExperimentalSettings().getSourceFiles()[0];
       }
 
       src_file.setNameOfFile(File::basename(filename));
@@ -801,8 +801,8 @@ namespace OpenMS
         src_file.setChecksum(computeFileHash(filename), SourceFile::SHA1);
       }
 
-      exp.getSourceFiles().clear();
-      exp.getSourceFiles().push_back(src_file);
+      exp.getExperimentalSettings().getSourceFiles().clear();
+      exp.getExperimentalSettings().getSourceFiles().push_back(src_file);
     }
   }
 

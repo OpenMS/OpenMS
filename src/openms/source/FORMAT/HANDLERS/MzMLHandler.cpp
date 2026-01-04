@@ -4190,14 +4190,14 @@ namespace OpenMS::Internal
           ++sf_sp_count;
         }
       }
-      if (!exp.getSourceFiles().empty() || sf_sp_count > 0)
+      if (!exp.getExperimentalSettings().getSourceFiles().empty() || sf_sp_count > 0)
       {
-        os << "\t\t<sourceFileList count=\"" << exp.getSourceFiles().size() + sf_sp_count << "\">\n";
+        os << "\t\t<sourceFileList count=\"" << exp.getExperimentalSettings().getSourceFiles().size() + sf_sp_count << "\">\n";
 
         //write source file of run
-        for (Size i = 0; i < exp.getSourceFiles().size(); ++i)
+        for (Size i = 0; i < exp.getExperimentalSettings().getSourceFiles().size(); ++i)
         {
-          writeSourceFile_(os, String("sf_ru_") + String(i), exp.getSourceFiles()[i], validator);
+          writeSourceFile_(os, String("sf_ru_") + String(i), exp.getExperimentalSettings().getSourceFiles()[i], validator);
         }
 
         // write source files of spectra
@@ -4219,9 +4219,9 @@ namespace OpenMS::Internal
       //--------------------------------------------------------------------------------------------
       // contacts
       //--------------------------------------------------------------------------------------------
-      for (Size i = 0; i < exp.getContacts().size(); ++i)
+      for (Size i = 0; i < exp.getExperimentalSettings().getContacts().size(); ++i)
       {
-        const ContactPerson& cp = exp.getContacts()[i];
+        const ContactPerson& cp = exp.getExperimentalSettings().getContacts()[i];
         os << "\t\t<contact>\n";
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000586\" name=\"contact name\" value=\"" << writeXMLEscape(cp.getLastName()) << ", " << writeXMLEscape(cp.getFirstName()) << "\" />\n";
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000590\" name=\"contact affiliation\" value=\"" << writeXMLEscape(cp.getInstitution()) << "\" />\n";
@@ -4250,7 +4250,7 @@ namespace OpenMS::Internal
       //--------------------------------------------------------------------------------------------
       // sample
       //--------------------------------------------------------------------------------------------
-      const Sample& sa = exp.getSample();
+      const Sample& sa = exp.getExperimentalSettings().getSample();
       os << "\t<sampleList count=\"1\">\n";
       os << "\t\t<sample id=\"sa_0\" name=\"" << writeXMLEscape(sa.getName()) << "\">\n";
       if (!sa.getNumber().empty())
@@ -4350,7 +4350,7 @@ namespace OpenMS::Internal
       os << "\t<softwareList count=\"" << num_software + num_bi_software << "\">\n";
 
       // write instrument software
-      writeSoftware_(os, "so_in_0", exp.getInstrument().getSoftware(), validator);
+      writeSoftware_(os, "so_in_0", exp.getExperimentalSettings().getInstrument().getSoftware(), validator);
 
       // write fallback software
       writeSoftware_(os, "so_default", Software(), validator);
@@ -4381,7 +4381,7 @@ namespace OpenMS::Internal
       //--------------------------------------------------------------------------------------------
       // instrument configuration (enclosing ion source, mass analyzer and detector)
       //--------------------------------------------------------------------------------------------
-      const Instrument& in = exp.getInstrument();
+      const Instrument& in = exp.getExperimentalSettings().getInstrument();
       os << "\t<instrumentConfigurationList count=\"1\">\n";
       os << "\t\t<instrumentConfiguration id=\"ic_0\">\n";
       ControlledVocabulary::CVTerm in_term = getChildWithName_("MS:1000031", in.getName());
@@ -5002,20 +5002,20 @@ namespace OpenMS::Internal
       // run
       //--------------------------------------------------------------------------------------------
       os << "\t<run id=\"ru_0\" defaultInstrumentConfigurationRef=\"ic_0\" sampleRef=\"sa_0\"";
-      if (exp.getDateTime().isValid())
+      if (exp.getExperimentalSettings().getDateTime().isValid())
       {
-        os << " startTimeStamp=\"" << exp.getDateTime().get().substitute(' ', 'T') << "\"";
+        os << " startTimeStamp=\"" << exp.getExperimentalSettings().getDateTime().get().substitute(' ', 'T') << "\"";
       }
-      if (!exp.getSourceFiles().empty())
+      if (!exp.getExperimentalSettings().getSourceFiles().empty())
       {
         os << " defaultSourceFileRef=\"sf_ru_0\"";
       }
       os << ">\n";
 
       //run attributes
-      if (!exp.getFractionIdentifier().empty())
+      if (!exp.getExperimentalSettings().getFractionIdentifier().empty())
       {
-        os << "\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000858\" name=\"fraction identifier\" value=\"" << exp.getFractionIdentifier() << "\" />\n";
+        os << "\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000858\" name=\"fraction identifier\" value=\"" << exp.getExperimentalSettings().getFractionIdentifier() << "\" />\n";
       }
 
       writeUserParam_(os, exp, 2, "/mzML/run/cvParam/@accession", validator);

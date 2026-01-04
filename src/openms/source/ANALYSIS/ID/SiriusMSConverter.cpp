@@ -449,19 +449,19 @@ namespace OpenMS
     AccessionInfo ainfo;
 
     // sourcefile
-    if (spectra.getSourceFiles().empty())
+    if (spectra.getExperimentalSettings().getSourceFiles().empty())
     {
       throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __FUNCTION__, "Error: The SourceFile was annotated correctly in the provided mzML. Please run the OpenMS::FileConverter convert the files again from mzML to mzML.");
     }
     else
     {
-      ainfo.sf_path = spectra.getSourceFiles()[0].getPathToFile();
-      ainfo.sf_filename = spectra.getSourceFiles()[0].getNameOfFile();
-      ainfo.sf_type = spectra.getSourceFiles()[0].getFileType();
+      ainfo.sf_path = spectra.getExperimentalSettings().getSourceFiles()[0].getPathToFile();
+      ainfo.sf_filename = spectra.getExperimentalSettings().getSourceFiles()[0].getNameOfFile();
+      ainfo.sf_type = spectra.getExperimentalSettings().getSourceFiles()[0].getFileType();
 
       // native_id
-      ainfo.native_id_accession = spectra.getSourceFiles()[0].getNativeIDTypeAccession();
-      ainfo.native_id_type = spectra.getSourceFiles()[0].getNativeIDType();
+      ainfo.native_id_accession = spectra.getExperimentalSettings().getSourceFiles()[0].getNativeIDTypeAccession();
+      ainfo.native_id_type = spectra.getExperimentalSettings().getSourceFiles()[0].getNativeIDType();
     }
  
     // extract accession by name

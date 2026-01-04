@@ -1088,7 +1088,7 @@ namespace OpenMS
       qp.id = base_name + "_instrument_name"; ///< Identifier
       qp.cvRef = "MS"; ///< cv reference
       qp.cvAcc = "MS:1000031";
-      qp.value = exp.getInstrument().getName();
+      qp.value = exp.getExperimentalSettings().getInstrument().getName();
       addRunQualityParameter(base_name, qp);    
 
       qp = QcMLFile::QualityParameter();
@@ -1096,7 +1096,7 @@ namespace OpenMS
       qp.id = base_name + "_date"; ///< Identifier
       qp.cvRef = "MS"; ///< cv reference
       qp.cvAcc = "MS:1000747";
-      qp.value = exp.getDateTime().getDate();
+      qp.value = exp.getExperimentalSettings().getDateTime().getDate();
       addRunQualityParameter(base_name, qp);
 
       //---precursors and SN

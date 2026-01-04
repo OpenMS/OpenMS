@@ -226,7 +226,7 @@ namespace OpenMS
                       {
                         {"accession", "MS:1000747"},
                         {"name", "completion time"},
-                        {"value", String(exp.getDateTime().getDate() + "T" + exp.getDateTime().getTime()).c_str()}
+                        {"value", String(exp.getExperimentalSettings().getDateTime().getDate() + "T" + exp.getExperimentalSettings().getDateTime().getTime()).c_str()}
                       },
                       {
                         {"accession", "MS:1000569"},
@@ -236,7 +236,7 @@ namespace OpenMS
                       {
                         {"accession", "MS:1000031"},
                         {"name", "instrument model"},
-                        {"value", String(exp.getInstrument().getName()).c_str()}
+                        {"value", String(exp.getExperimentalSettings().getInstrument().getName()).c_str()}
                       }
                     }
                   }
