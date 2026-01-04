@@ -27,7 +27,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMBatchFeatureSelector.h>" namespa
         #       FeatureXMLFile().load("features.featureXML", features)
         #
         #       # Configure parameters
-        #       params = MRMFeatureSelector.SelectorParameters()
+        #       params = SelectorParameters()
         #       params.nn_threshold = 4
         #       params.optimal_threshold = 0.5
         #
