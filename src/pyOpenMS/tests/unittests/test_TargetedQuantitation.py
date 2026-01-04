@@ -16,7 +16,6 @@ Classes covered:
 """
 
 import unittest
-import os
 
 import pyopenms as oms
 

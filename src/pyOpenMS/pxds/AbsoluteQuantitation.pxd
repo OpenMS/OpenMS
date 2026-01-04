@@ -93,7 +93,7 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/AbsoluteQuantitation.h>" namespa
             libcpp_vector[AQS_featureConcentration] & component_concentrations,
             const String & feature_name,
             const String & transformation_model,
-            Param transformation_model_params
+            const Param & transformation_model_params
         ) except + nogil
             # wrap-doc:
             #   Fit a calibration curve to standard concentrations
@@ -108,7 +108,7 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/AbsoluteQuantitation.h>" namespa
             libcpp_vector[AQS_featureConcentration] & component_concentrations,
             const String & feature_name,
             const String & transformation_model,
-            Param & transformation_model_params,
+            const Param & transformation_model_params,
             libcpp_vector[double] & biases,
             double & correlation_coefficient
         ) except + nogil
