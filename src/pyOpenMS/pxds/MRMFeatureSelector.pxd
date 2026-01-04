@@ -4,7 +4,6 @@ from Feature cimport *
 from FeatureMap cimport *
 from libcpp.map cimport map as libcpp_map
 from libcpp.vector cimport vector as libcpp_vector
-from libcpp.pair cimport pair as libcpp_pair
 
 cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMFeatureSelector.h>" namespace "OpenMS":
 

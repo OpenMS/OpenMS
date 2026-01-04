@@ -118,7 +118,7 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/AbsoluteQuantitation.h>" namespa
             #   :param component_concentrations: Standards with known concentrations
             #   :param feature_name: Feature to use
             #   :param transformation_model: Model type
-            #   :param transformation_model_params: Model parameters (updated in place)
+            #   :param transformation_model_params: Model parameters
             #   :param biases: Output vector of bias values for each standard
             #   :param correlation_coefficient: Output Pearson R correlation
 

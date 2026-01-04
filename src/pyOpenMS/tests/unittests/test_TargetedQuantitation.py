@@ -15,6 +15,7 @@ Classes covered:
 - TargetedSpectraExtractor
 """
 
+import math
 import unittest
 
 import pyopenms as oms
@@ -228,7 +229,6 @@ class TestPeakIntegrator(unittest.TestCase):
 
         # Create a simple Gaussian-like chromatogram
         chrom = oms.MSChromatogram()
-        import math
 
         # Generate Gaussian peak centered at RT=10
         for i in range(20):
@@ -253,7 +253,6 @@ class TestPeakIntegrator(unittest.TestCase):
 
         # Create a chromatogram
         chrom = oms.MSChromatogram()
-        import math
 
         for i in range(40):
             rt = 5.0 + i * 0.25
@@ -349,7 +348,6 @@ class TestTargetedSpectraExtractor(unittest.TestCase):
 
         # Create a simple spectrum
         spectrum = oms.MSSpectrum()
-        import math
 
         for i in range(100):
             mz = 100.0 + i * 1.0
