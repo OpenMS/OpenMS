@@ -133,7 +133,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFilter.h>" namespace "Ope
             #   :param filter_template: MRMFeatureQC to populate with interference values
             #   :param transitions: TargetedExperiment with transition information
 
-        double calculateIonRatio(Feature & component_1, Feature & component_2, String & feature_name) except + nogil
+        double calculateIonRatio(const Feature & component_1, const Feature & component_2, const String & feature_name) except + nogil
             # wrap-doc:
             #   Calculate the ion ratio between two features
             #
@@ -154,9 +154,9 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFilter.h>" namespace "Ope
             # wrap-doc:
             #   Calculate the chromatographic resolution between two features
             #
-            #   Resolution is calculated as: 2 * (RT2 - RT1) / (W1 + W2)
-            #   where W is the peak width at base.
+            #   Resolution is calculated as: 2 * |RT2 - RT1| / (W1 + W2)
+            #   where W is the peak width at base (estimated from FWHM if available).
             #
             #   :param component_1: First feature
             #   :param component_2: Second feature
-            #   :returns: The resolution value
+            #   :returns: The resolution value (0 if peak widths are not available)

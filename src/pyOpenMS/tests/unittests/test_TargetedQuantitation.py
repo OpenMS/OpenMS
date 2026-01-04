@@ -5,7 +5,8 @@ This module demonstrates the usage of the SmartPeaks-derived algorithms
 for MRM/SRM and SWATH/DIA quantitation workflows.
 
 Classes covered:
-- MRMFeatureSelector, MRMFeatureSelectorScore, MRMFeatureSelectorQMIP
+- MRMFeatureSelectorScore, MRMFeatureSelectorQMIP
+- SelectorParameters
 - MRMBatchFeatureSelector
 - MRMFeatureFilter, MRMFeatureQC
 - AbsoluteQuantitation, AbsoluteQuantitationMethod
@@ -37,7 +38,8 @@ class TestMRMFeatureQC(unittest.TestCase):
         comp_qc.overall_quality_l = 0.5
         comp_qc.overall_quality_u = 1.0
 
-        qc.component_qcs.append(comp_qc)
+        # Note: For pyOpenMS vectors, you need to assign the whole list
+        qc.component_qcs = [comp_qc]
 
         self.assertEqual(len(qc.component_qcs), 1)
         self.assertEqual(qc.component_qcs[0].component_name, "glucose_quantifier")
@@ -56,7 +58,8 @@ class TestMRMFeatureQC(unittest.TestCase):
         group_qc.ion_ratio_l = 0.3
         group_qc.ion_ratio_u = 0.5
 
-        qc.component_group_qcs.append(group_qc)
+        # Note: For pyOpenMS vectors, you need to assign the whole list
+        qc.component_group_qcs = [group_qc]
 
         self.assertEqual(len(qc.component_group_qcs), 1)
         self.assertEqual(qc.component_group_qcs[0].component_group_name, "glucose")
@@ -73,7 +76,8 @@ class TestMRMFeatureQC(unittest.TestCase):
         pair_qc.rt_diff_l = 0.0
         pair_qc.rt_diff_u = 0.5
 
-        qc.component_group_pair_qcs.append(pair_qc)
+        # Note: For pyOpenMS vectors, you need to assign the whole list
+        qc.component_group_pair_qcs = [pair_qc]
 
         self.assertEqual(len(qc.component_group_pair_qcs), 1)
 
@@ -102,6 +106,40 @@ class TestMRMFeatureFilter(unittest.TestCase):
 
         ratio = filter_obj.calculateIonRatio(f1, f2, "peak_apex_int")
         self.assertAlmostEqual(ratio, 2.0, places=5)
+
+    def test_calculate_rt_difference(self):
+        """Test RT difference calculation between features."""
+        filter_obj = oms.MRMFeatureFilter()
+
+        # Create two features at different RTs
+        f1 = oms.Feature()
+        f1.setRT(100.0)
+
+        f2 = oms.Feature()
+        f2.setRT(105.5)
+
+        rt_diff = filter_obj.calculateRTDifference(f1, f2)
+        self.assertAlmostEqual(rt_diff, 5.5, places=5)
+
+    def test_calculate_resolution(self):
+        """Test chromatographic resolution calculation."""
+        filter_obj = oms.MRMFeatureFilter()
+
+        # Create two features with RT and width info
+        f1 = oms.Feature()
+        f1.setRT(100.0)
+        f1.setMetaValue("width_at_50", 2.0)  # FWHM
+
+        f2 = oms.Feature()
+        f2.setRT(106.0)
+        f2.setMetaValue("width_at_50", 2.0)  # FWHM
+
+        # Resolution = 2 * |RT2 - RT1| / (W1 + W2)
+        # where W = FWHM * 1.7 (width at base)
+        # Resolution = 2 * 6 / (3.4 + 3.4) = 12 / 6.8 ≈ 1.76
+        resolution = filter_obj.calculateResolution(f1, f2)
+        self.assertGreater(resolution, 1.5)
+        self.assertLess(resolution, 2.0)
 
 
 class TestAbsoluteQuantitationMethod(unittest.TestCase):
@@ -252,11 +290,11 @@ class TestEmgGradientDescent(unittest.TestCase):
         self.assertTrue(params.exists("max_gd_iter"))
 
 
-class TestMRMFeatureSelector(unittest.TestCase):
-    """Test MRMFeatureSelector LP-based selection."""
+class TestSelectorParameters(unittest.TestCase):
+    """Test SelectorParameters configuration."""
 
-    def test_selector_parameters(self):
-        """Test SelectorParameters configuration."""
+    def test_default_parameters(self):
+        """Test SelectorParameters default values."""
         params = oms.SelectorParameters()
 
         # Check default values
@@ -265,6 +303,10 @@ class TestMRMFeatureSelector(unittest.TestCase):
         self.assertEqual(params.segment_step_length, 4)
         self.assertAlmostEqual(params.optimal_threshold, 0.5)
 
+    def test_modify_parameters(self):
+        """Test modifying SelectorParameters."""
+        params = oms.SelectorParameters()
+
         # Modify parameters
         params.nn_threshold = 6
         params.optimal_threshold = 0.7
@@ -272,6 +314,11 @@ class TestMRMFeatureSelector(unittest.TestCase):
 
         self.assertEqual(params.nn_threshold, 6)
         self.assertAlmostEqual(params.optimal_threshold, 0.7)
+        self.assertFalse(params.select_transition_group)
+
+
+class TestMRMFeatureSelector(unittest.TestCase):
+    """Test MRMFeatureSelector LP-based selection."""
 
     def test_score_selector(self):
         """Test MRMFeatureSelectorScore instantiation."""
@@ -351,7 +398,7 @@ def example_targeted_quantitation_workflow():
     comp_qc.retention_time_u = 7.0
     comp_qc.intensity_l = 1000.0
     comp_qc.intensity_u = 1e9
-    qc.component_qcs.append(comp_qc)
+    qc.component_qcs = [comp_qc]  # Assign list directly
     print(f"  Added QC for: {comp_qc.component_name}")
 
     # Step 2: Configure quantitation method
@@ -399,7 +446,7 @@ def example_targeted_quantitation_workflow():
     print("  1. Load your mzML/featureXML data")
     print("  2. Run MRMTransitionGroupPicker for peak picking")
     print("  3. Apply MRMFeatureFilter with your QC criteria")
-    print("  4. Use MRMFeatureSelector for optimal feature selection")
+    print("  4. Use MRMFeatureSelectorScore or MRMFeatureSelectorQMIP")
     print("  5. Call aq.quantifyComponents() on your unknowns")
 
 

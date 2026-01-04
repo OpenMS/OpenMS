@@ -142,16 +142,8 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/AbsoluteQuantitation.h>" namespa
             #   :param optimized_params: Output optimized parameters
             #   :returns: True if optimization succeeded
 
-        void optimizeCalibrationCurves(
-            libcpp_map[String, libcpp_vector[AQS_featureConcentration]] & components_concentrations
-        ) except + nogil
-            # wrap-doc:
-            #   Optimize calibration curves for all components
-            #
-            #   Fits and optimizes calibration curves for all components in the map.
-            #   Results are stored in the internal quantitation methods.
-            #
-            #   :param components_concentrations: Map of component names to their standards
+        # Note: optimizeCalibrationCurves taking map<String, vector<featureConcentration>>
+        # is not wrapped due to complex nested container type. Use optimizeSingleCalibrationCurve instead.
 
         void optimizeSingleCalibrationCurve(
             const String & component_name,

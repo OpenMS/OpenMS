@@ -242,50 +242,9 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/TargetedSpectraExtractor.h>" namesp
             #   :param fmap_input: Input feature map
             #   :param fmap_output: Output feature map (modified in place)
 
-        void matchSpectrum(
-            MSSpectrum & input_spectrum,
-            TSE_Comparator & cmp,
-            libcpp_vector[TSE_Match] & matches
-        ) except + nogil
-            # wrap-doc:
-            #   Match a spectrum against a spectral library
-            #
-            #   Uses the provided comparator to score the spectrum against
-            #   all library spectra and returns matches above threshold.
-            #
-            #   :param input_spectrum: Query spectrum
-            #   :param cmp: Comparator with initialized library
-            #   :param matches: Output matches with scores
-
-        void targetedMatching(
-            libcpp_vector[MSSpectrum] & spectra,
-            TSE_Comparator & cmp,
-            FeatureMap & features
-        ) except + nogil
-            # wrap-doc:
-            #   Perform targeted matching of spectra against a library
-            #
-            #   Matches annotated spectra against the library and stores
-            #   results in the feature map.
-            #
-            #   :param spectra: Annotated spectra to match
-            #   :param cmp: Comparator with initialized library
-            #   :param features: Feature map to update with matches
-
-        void untargetedMatching(
-            libcpp_vector[MSSpectrum] & spectra,
-            TSE_Comparator & cmp,
-            FeatureMap & features
-        ) except + nogil
-            # wrap-doc:
-            #   Perform untargeted matching of spectra against a library
-            #
-            #   Matches all spectra against the library without requiring
-            #   prior annotation.
-            #
-            #   :param spectra: Spectra to match
-            #   :param cmp: Comparator with initialized library
-            #   :param features: Feature map to populate with matches
+        # Note: matchSpectrum, targetedMatching, and untargetedMatching methods
+        # that use TSE_Comparator are not wrapped due to type conversion issues.
+        # Use the extractSpectra pipeline methods instead.
 
 
 cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/TargetedSpectraExtractor.h>" namespace "OpenMS::TargetedSpectraExtractor":
@@ -301,61 +260,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/TargetedSpectraExtractor.h>" namesp
         MSSpectrum spectrum
         double score
 
-    cdef cppclass TSE_Comparator "OpenMS::TargetedSpectraExtractor::Comparator":
-        # wrap-doc:
-        #   Base class for spectral library comparators
-        #
-        #   Derived classes implement specific comparison algorithms
-        #   for matching query spectra against a library.
-
-        # Note: This is an abstract base class
-        void generateScores(
-            MSSpectrum & spec,
-            libcpp_vector[libcpp_pair[Size, double]] & scores,
-            double min_score
-        ) except + nogil
-            # wrap-doc:
-            #   Generate similarity scores against the library
-            #
-            #   :param spec: Query spectrum
-            #   :param scores: Output pairs of (library_index, score)
-            #   :param min_score: Minimum score threshold
-
-        void init(
-            libcpp_vector[MSSpectrum] & library,
-            libcpp_map[String, DataValue] & options
-        ) except + nogil
-            # wrap-doc:
-            #   Initialize the comparator with a spectral library
-            #
-            #   :param library: Vector of library spectra
-            #   :param options: Configuration options
-
-        libcpp_vector[MSSpectrum] getLibrary() except + nogil
-            # wrap-doc:
-            #   Get the spectral library
-            #
-            #   :returns: Vector of library spectra
-
-    cdef cppclass TSE_BinnedSpectrumComparator "OpenMS::TargetedSpectraExtractor::BinnedSpectrumComparator" (TSE_Comparator):
-        # wrap-inherits:
-        #   TSE_Comparator
-        # wrap-doc:
-        #   Spectral library comparator using binned spectral contrast angle
-        #
-        #   Bins spectra and computes the spectral contrast angle for comparison.
-        #   This is efficient for large libraries and tolerant to mass shifts.
-
-        TSE_BinnedSpectrumComparator() except + nogil
-        TSE_BinnedSpectrumComparator(TSE_BinnedSpectrumComparator &) except + nogil
-
-        void generateScores(
-            MSSpectrum & spec,
-            libcpp_vector[libcpp_pair[Size, double]] & scores,
-            double min_score
-        ) except + nogil
-
-        void init(
-            libcpp_vector[MSSpectrum] & library,
-            libcpp_map[String, DataValue] & options
-        ) except + nogil
+    # Note: TSE_Comparator and TSE_BinnedSpectrumComparator are not wrapped
+    # due to type conversion issues with vector<pair<Size, double>> parameters.
+    # The matchSpectrum and targetedMatching/untargetedMatching methods that
+    # use these comparators are also not wrapped for this reason.
