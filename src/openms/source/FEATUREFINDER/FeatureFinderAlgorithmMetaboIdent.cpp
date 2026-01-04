@@ -107,7 +107,7 @@ namespace OpenMS
 
     defaults_.setValue("EMGScoring:max_iteration", 100, "Maximum number of iterations for EMG fitting.");
     defaults_.setMinInt("EMGScoring:max_iteration", 1);
-    defaults_.setValue("EMGScoring:init_mom", "false", "Alternative initial parameters for fitting through method of moments.");
+    defaults_.setValue("EMGScoring:init_mom", "true", "Alternative initial parameters for fitting through method of moments.");
     defaults_.setValidStrings("EMGScoring:init_mom", {"true","false"});
 
     defaults_.setSectionDescription("EMGScoring", "Parameters for fitting exp. mod. Gaussians to mass traces.");
