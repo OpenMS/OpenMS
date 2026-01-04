@@ -34,7 +34,6 @@
 #include <OpenMS/FORMAT/MzTabFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
-#include <algorithm>
 #include <string>
 #include <vector>
 
@@ -579,7 +578,7 @@ protected:
 
       // Collect peptide IDs without corresponding MS3 spectra (thread-safe collection)
       // Note: unassigned_pep_ids is shared across threads; push_back is protected by critical section
-      std::vector<PeptideIdentification> unassigned_pep_ids;
+      PeptideIdentificationList unassigned_pep_ids;
 
       #pragma omp parallel for /*num_threads(inner_threads)*/
       for (int64_t pep_idx = 0; pep_idx < static_cast<int64_t>(pep_ids.size()); ++pep_idx)
@@ -598,14 +597,14 @@ protected:
             // Check if MS3 spectrum is missing for MS2 spectrum
             if (has_ms3 && quant_spec_idx == -1)
             {
-              OPENMS_LOG_WARN << "MS2 spectrum " << spec_ref << " at index " << ms2spec_it->second 
-                              << " does not have a corresponding MS3 spectrum. Skipping quantification and adding to unassigned." << std::endl;
               // Store peptide ID with file association for unassigned IDs
               PeptideIdentification unassigned_pep = pep;
               unassigned_pep.setIdentifier(ID_RUN_NAME_);
               unassigned_pep.setMetaValue(Constants::UserParam::ID_MERGE_INDEX, i);
-              #pragma omp critical
+              #pragma omp critical(unassigned_pep_ids_collection)
               {
+                OPENMS_LOG_WARN << "MS2 spectrum " << spec_ref << " at index " << ms2spec_it->second 
+                                << " does not have a corresponding MS3 spectrum. Skipping quantification and adding to unassigned." << std::endl;
                 unassigned_pep_ids.push_back(std::move(unassigned_pep));
               }
               continue;
@@ -665,12 +664,6 @@ protected:
       //  or init the normalizer from the quantifier settings.
       // But honestly, most downstream software can do it better, so I would not bother. Just export to mzTab and do it in R/python.
       //IsobaricNormalizer::normalize(cur_cmap);
-
-      // Remove empty consensus features (from spectra without MS3 or spectra not found)
-      // A ConsensusFeature is considered empty if it has no sub-features (size() == 0)
-      cur_cmap.erase(std::remove_if(cur_cmap.begin(), cur_cmap.end(),
-                                     [](const ConsensusFeature& cf) { return cf.empty(); }),
-                     cur_cmap.end());
 
       // TODO cleanup, reset?
 
