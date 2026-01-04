@@ -202,14 +202,13 @@ namespace OpenMS
       response_bytes_.insert(response_bytes_.end(), buffer.data(), buffer.data() + len);
     }
 
-    // Decode pclose return value properly
+    // Decode pclose return value properly (Unix only - already inside #ifndef OPENMS_WINDOWSPLATFORM)
     int status = pclose(pipe);
     if (status == -1)
     {
       has_error_ = true;
       error_string_ = "pclose() failed";
     }
-#ifndef OPENMS_WINDOWSPLATFORM
     else if (WIFEXITED(status))
     {
       int exit_code = WEXITSTATUS(status);
@@ -224,14 +223,6 @@ namespace OpenMS
       has_error_ = true;
       error_string_ = String("curl command terminated by signal: ") + String(WTERMSIG(status));
     }
-#else
-    // On Windows, pclose returns the exit code directly
-    else if (status != 0)
-    {
-      has_error_ = true;
-      error_string_ = String("curl command failed with exit code: ") + String(status);
-    }
-#endif
     #else
     // Windows without curl: error
     has_error_ = true;

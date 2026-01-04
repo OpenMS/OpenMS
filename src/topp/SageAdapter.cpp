@@ -625,10 +625,10 @@ protected:
 
     // Set RAYON_NUM_THREADS environment variable to control Sage's thread usage
     // Only set if threads > 0; if threads == 0, let Rayon auto-detect (use all CPUs)
-    std::map<QString, QString> sage_env;
+    std::map<String, String> sage_env;
     if (threads > 0)
     {
-      sage_env["RAYON_NUM_THREADS"] = String(threads).toQString();
+      sage_env["RAYON_NUM_THREADS"] = String(threads);
     }
 
     // Sage execution with the executable and the arguments StringList
