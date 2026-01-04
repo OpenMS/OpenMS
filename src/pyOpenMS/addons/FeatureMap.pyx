@@ -274,7 +274,7 @@ import numpy as np
 
         cnt = self.size()
 
-        mddtypes = [('feature_id', 'object')]
+        mddtypes = [('feature_id', np.dtype('uint64'))]
         if need_pep_ids:
             mddtypes += [('peptide_sequence', 'object'), ('peptide_score', 'f'), ('ID_filename', 'object'), ('ID_native_id', 'object')]
         mddtypes += [('charge', 'i4'), ('rt', np.dtype('double')), ('mz', np.dtype('double')), ('rt_start', np.dtype('double')), ('rt_end', np.dtype('double')),
