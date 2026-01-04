@@ -603,8 +603,8 @@ protected:
               unassigned_pep.setMetaValue(Constants::UserParam::ID_MERGE_INDEX, i);
               #pragma omp critical(unassigned_pep_ids_collection)
               {
-                OPENMS_LOG_WARN << "MS2 spectrum " << spec_ref << " at index " << ms2spec_it->second 
-                                << " does not have a corresponding MS3 spectrum. Skipping quantification and adding to unassigned." << std::endl;
+                OpenMS_Log_warn << "MS2 spectrum " << spec_ref << " at index " << ms2spec_it->second 
+                                << " does not have a corresponding MS3 spectrum. Skipping quantification and adding to unassigned.\n";
                 unassigned_pep_ids.push_back(std::move(unassigned_pep));
               }
               continue;
