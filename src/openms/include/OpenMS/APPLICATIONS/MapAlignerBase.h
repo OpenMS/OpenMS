@@ -22,6 +22,8 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 
+#include <vector>
+
 //-------------------------------------------------------------
 // Doxygen docu
 //-------------------------------------------------------------
@@ -211,7 +213,7 @@ protected:
 
   void transformSpectraFiles_(const StringList& in_spectra_files, 
                              const StringList& out_spectra_files,
-                             const vector<TransformationDescription>& transformations,
+                             const std::vector<TransformationDescription>& transformations,
                              bool store_original_rt)
   {
     if (in_spectra_files.empty() || out_spectra_files.empty())
