@@ -10,6 +10,8 @@ from MSSpectrum cimport *
 cdef extern from "<OpenMS/METADATA/AnnotatedMSRun.h>" namespace "OpenMS":
     
     cdef cppclass AnnotatedMSRun:
+        # wrap-hash:
+        #  std
         # wrap-doc:
         #  Class for storing MS run data with peptide and protein identifications
         #

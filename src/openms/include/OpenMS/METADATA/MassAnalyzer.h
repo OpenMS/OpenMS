@@ -9,8 +9,11 @@
 #pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/CONCEPT/HashUtils.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+
+#include <functional>
 
 namespace OpenMS
 {
@@ -246,4 +249,52 @@ protected:
     Int order_;
   };
 } // namespace OpenMS
+
+namespace std
+{
+  /**
+   * @brief Hash function for OpenMS::MassAnalyzer.
+   *
+   * Computes a hash based on all fields compared in operator==:
+   * - All enum fields (type, resolution_method, resolution_type, scan_direction, scan_law, reflectron_state)
+   * - All double fields (resolution, accuracy, scan_rate, scan_time, TOF_total_path_length, isolation_width, magnetic_field_strength)
+   * - All integer fields (final_MS_exponent, order)
+   *
+   * @note MetaInfoInterface is included in operator== but excluded from hash computation
+   *       since meta info is typically auxiliary data that varies frequently. This satisfies
+   *       the hash contract: if hash(a) != hash(b), then a != b. The reverse implication
+   *       (equal hashes imply equal objects) is not required for hash functions.
+   */
+  template<>
+  struct hash<OpenMS::MassAnalyzer>
+  {
+    std::size_t operator()(const OpenMS::MassAnalyzer& ma) const noexcept
+    {
+      std::size_t seed = 0;
+
+      // Hash enum fields (cast to underlying integer type)
+      OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(ma.getType())));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(ma.getResolutionMethod())));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(ma.getResolutionType())));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(ma.getScanDirection())));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(ma.getScanLaw())));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(ma.getReflectronState())));
+
+      // Hash double fields
+      OpenMS::hash_combine(seed, OpenMS::hash_float(ma.getResolution()));
+      OpenMS::hash_combine(seed, OpenMS::hash_float(ma.getAccuracy()));
+      OpenMS::hash_combine(seed, OpenMS::hash_float(ma.getScanRate()));
+      OpenMS::hash_combine(seed, OpenMS::hash_float(ma.getScanTime()));
+      OpenMS::hash_combine(seed, OpenMS::hash_float(ma.getTOFTotalPathLength()));
+      OpenMS::hash_combine(seed, OpenMS::hash_float(ma.getIsolationWidth()));
+      OpenMS::hash_combine(seed, OpenMS::hash_float(ma.getMagneticFieldStrength()));
+
+      // Hash integer fields
+      OpenMS::hash_combine(seed, OpenMS::hash_int(ma.getFinalMSExponent()));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(ma.getOrder()));
+
+      return seed;
+    }
+  };
+} // namespace std
 

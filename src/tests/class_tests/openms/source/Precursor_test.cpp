@@ -13,6 +13,9 @@
 #include <OpenMS/METADATA/Precursor.h>
 ///////////////////////////
 
+#include <unordered_set>
+#include <unordered_map>
+
 using namespace OpenMS;
 using namespace std;
 
@@ -441,6 +444,75 @@ START_SECTION(double getUnchargedMass() const)
   tmp.setMZ(123);
   tmp.setCharge(13);
   TEST_REAL_SIMILAR(tmp.getUnchargedMass(), 1585.90540593198);
+END_SECTION
+
+/////////////////////////////////////////////////////////////
+// Hash function tests
+/////////////////////////////////////////////////////////////
+
+START_SECTION(([EXTRA] std::hash<Precursor>))
+{
+  // Test that equal objects produce equal hashes
+  Precursor p1;
+  p1.setMZ(500.5);
+  p1.setIntensity(1000.0);
+  p1.setCharge(2);
+  p1.setActivationEnergy(35.0);
+  p1.setIsolationWindowLowerOffset(1.0);
+  p1.setIsolationWindowUpperOffset(1.0);
+  p1.setDriftTime(10.5);
+  p1.setDriftTimeUnit(DriftTimeUnit::MILLISECOND);
+  p1.setDriftTimeWindowLowerOffset(0.5);
+  p1.setDriftTimeWindowUpperOffset(0.5);
+  p1.getActivationMethods().insert(Precursor::ActivationMethod::CID);
+  p1.getPossibleChargeStates().push_back(2);
+  p1.getPossibleChargeStates().push_back(3);
+  p1.setMetaValue("test_key", "test_value");
+
+  Precursor p2(p1); // Copy
+
+  std::hash<Precursor> hasher;
+  TEST_EQUAL(hasher(p1), hasher(p2))
+
+  // Test that different objects can have different hashes
+  Precursor p3;
+  p3.setMZ(600.6);
+  p3.setCharge(3);
+
+  // Different objects should (likely) have different hashes
+  // Note: This is not guaranteed but highly probable
+  TEST_NOT_EQUAL(hasher(p1), hasher(p3))
+
+  // Test use in unordered_set
+  std::unordered_set<Precursor> precursor_set;
+  precursor_set.insert(p1);
+  precursor_set.insert(p2); // Same as p1, should not increase size
+  precursor_set.insert(p3);
+  TEST_EQUAL(precursor_set.size(), 2)
+  TEST_EQUAL(precursor_set.count(p1), 1)
+  TEST_EQUAL(precursor_set.count(p3), 1)
+
+  // Test use in unordered_map
+  std::unordered_map<Precursor, std::string> precursor_map;
+  precursor_map[p1] = "first";
+  precursor_map[p3] = "third";
+  TEST_EQUAL(precursor_map.size(), 2)
+  TEST_EQUAL(precursor_map[p1], "first")
+  TEST_EQUAL(precursor_map[p2], "first") // p2 == p1
+  TEST_EQUAL(precursor_map[p3], "third")
+
+  // Test hash consistency - same object should always produce same hash
+  size_t hash1 = hasher(p1);
+  size_t hash2 = hasher(p1);
+  TEST_EQUAL(hash1, hash2)
+
+  // Test that modifying a field changes the hash
+  Precursor p4(p1);
+  size_t original_hash = hasher(p4);
+  p4.setCharge(5);
+  size_t modified_hash = hasher(p4);
+  TEST_NOT_EQUAL(original_hash, modified_hash)
+}
 END_SECTION
 
 /////////////////////////////////////////////////////////////

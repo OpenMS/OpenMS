@@ -8,6 +8,8 @@ cdef extern from "<OpenMS/ANALYSIS/MRM/ReactionMonitoringTransition.h>" namespac
     cdef cppclass ReactionMonitoringTransition(CVTermList):
         # wrap-inherits:
         #   CVTermList
+        # wrap-hash:
+        #  std
         # wrap-doc:
         #  This class stores a SRM/MRM transition
         #  

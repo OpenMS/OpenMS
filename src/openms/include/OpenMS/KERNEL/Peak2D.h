@@ -9,6 +9,7 @@
 #pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/CONCEPT/HashUtils.h>
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
 
 #include <iosfwd>
@@ -324,4 +325,20 @@ protected:
   OPENMS_DLLAPI std::ostream & operator<<(std::ostream & os, const Peak2D & point);
 
 } // namespace OpenMS
+
+// Hash function specialization for Peak2D
+namespace std
+{
+  template<>
+  struct hash<OpenMS::Peak2D>
+  {
+    std::size_t operator()(const OpenMS::Peak2D& p) const noexcept
+    {
+      std::size_t seed = OpenMS::hash_float(p.getRT());
+      OpenMS::hash_combine(seed, OpenMS::hash_float(p.getMZ()));
+      OpenMS::hash_combine(seed, OpenMS::hash_float(p.getIntensity()));
+      return seed;
+    }
+  };
+} // namespace std
 

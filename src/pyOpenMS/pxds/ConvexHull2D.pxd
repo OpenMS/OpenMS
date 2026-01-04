@@ -8,8 +8,10 @@ from DBoundingBox cimport *
 cdef extern from "<OpenMS/DATASTRUCTURES/ConvexHull2D.h>" namespace "OpenMS":
 
     cdef cppclass ConvexHull2D:
+        # wrap-hash:
+        #  std
 
-        ConvexHull2D() except + nogil 
+        ConvexHull2D() except + nogil
         ConvexHull2D(ConvexHull2D &) except + nogil 
 
         bool operator==(ConvexHull2D) except + nogil 

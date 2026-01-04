@@ -8,6 +8,8 @@ cdef extern from "<OpenMS/METADATA/IonSource.h>" namespace "OpenMS":
     cdef cppclass IonSource(MetaInfoInterface):
         # wrap-inherits:
         #   MetaInfoInterface
+        # wrap-hash:
+        #  std
 
         IonSource() except + nogil  # wrap-doc:Description of an ion source (part of a MS Instrument)
         IonSource(IonSource &) except + nogil 

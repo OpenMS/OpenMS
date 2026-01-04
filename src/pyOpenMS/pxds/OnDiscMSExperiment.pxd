@@ -4,6 +4,7 @@ from ExperimentalSettings cimport *
 from MSSpectrum cimport *
 from MSChromatogram cimport *
 from InterfaceDataStructures cimport *
+from PeakFileOptions cimport *
 
 cdef extern from "<OpenMS/KERNEL/OnDiscMSExperiment.h>" namespace "OpenMS":
 
@@ -63,4 +64,7 @@ cdef extern from "<OpenMS/KERNEL/OnDiscMSExperiment.h>" namespace "OpenMS":
         shared_ptr[Chromatogram] getChromatogramById(int id_) except + nogil  # wrap-doc:Returns a single chromatogram
 
         void setSkipXMLChecks(bool skip) except + nogil  # wrap-doc:Sets whether to skip some XML checks and be fast instead
+
+        PeakFileOptions getOptions() except + nogil  # wrap-doc:Returns the options for loading/storing
+        void setOptions(PeakFileOptions) except + nogil  # wrap-doc:Sets the options for loading/storing
 

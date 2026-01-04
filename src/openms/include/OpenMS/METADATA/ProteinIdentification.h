@@ -17,8 +17,10 @@
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 #include <OpenMS/METADATA/DataArrays.h>
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/CONCEPT/HashUtils.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
+#include <functional>
 #include <set>
 
 namespace OpenMS
@@ -507,3 +509,100 @@ protected:
 
 
 } //namespace OpenMS
+
+// Hash function specializations
+namespace std
+{
+  /// std::hash specialization for ProteinIdentification::ProteinGroup
+  template<>
+  struct hash<OpenMS::ProteinIdentification::ProteinGroup>
+  {
+    std::size_t operator()(const OpenMS::ProteinIdentification::ProteinGroup& pg) const noexcept
+    {
+      std::size_t seed = OpenMS::hash_float(pg.probability);
+      for (const auto& acc : pg.accessions)
+      {
+        OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(acc));
+      }
+      return seed;
+    }
+  };
+
+  /// std::hash specialization for ProteinIdentification::SearchParameters
+  template<>
+  struct hash<OpenMS::ProteinIdentification::SearchParameters>
+  {
+    std::size_t operator()(const OpenMS::ProteinIdentification::SearchParameters& sp) const noexcept
+    {
+      std::size_t seed = OpenMS::fnv1a_hash_string(sp.db);
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(sp.db_version));
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(sp.taxonomy));
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(sp.charges));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(sp.mass_type)));
+      // Hash fixed_modifications
+      for (const auto& mod : sp.fixed_modifications)
+      {
+        OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(mod));
+      }
+      // Hash variable_modifications
+      for (const auto& mod : sp.variable_modifications)
+      {
+        OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(mod));
+      }
+      OpenMS::hash_combine(seed, OpenMS::hash_int(sp.missed_cleavages));
+      OpenMS::hash_combine(seed, OpenMS::hash_float(sp.fragment_mass_tolerance));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(sp.fragment_mass_tolerance_ppm)));
+      OpenMS::hash_combine(seed, OpenMS::hash_float(sp.precursor_mass_tolerance));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(sp.precursor_mass_tolerance_ppm)));
+      // Hash digestion_enzyme using the base class hash
+      OpenMS::hash_combine(seed, std::hash<OpenMS::DigestionEnzyme>{}(sp.digestion_enzyme));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(sp.enzyme_term_specificity)));
+      // Hash MetaInfoInterface base class
+      OpenMS::hash_combine(seed, std::hash<OpenMS::MetaInfoInterface>{}(sp));
+      return seed;
+    }
+  };
+
+  /// std::hash specialization for ProteinIdentification
+  template<>
+  struct hash<OpenMS::ProteinIdentification>
+  {
+    std::size_t operator()(const OpenMS::ProteinIdentification& pi) const noexcept
+    {
+      // Hash identifier and search engine info
+      std::size_t seed = OpenMS::fnv1a_hash_string(pi.getIdentifier());
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(pi.getSearchEngine()));
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(pi.getSearchEngineVersion()));
+      // Hash SearchParameters
+      OpenMS::hash_combine(seed, std::hash<OpenMS::ProteinIdentification::SearchParameters>{}(pi.getSearchParameters()));
+      // Hash DateTime
+      OpenMS::hash_combine(seed, std::hash<OpenMS::DateTime>{}(pi.getDateTime()));
+      // Hash protein_hits
+      for (const auto& hit : pi.getHits())
+      {
+        OpenMS::hash_combine(seed, OpenMS::hash_float(hit.getScore()));
+        OpenMS::hash_combine(seed, OpenMS::hash_int(hit.getRank()));
+        OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(hit.getAccession()));
+        OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(hit.getSequence()));
+        OpenMS::hash_combine(seed, OpenMS::hash_float(hit.getCoverage()));
+      }
+      // Hash protein_groups
+      for (const auto& group : pi.getProteinGroups())
+      {
+        OpenMS::hash_combine(seed, std::hash<OpenMS::ProteinIdentification::ProteinGroup>{}(group));
+      }
+      // Hash indistinguishable_proteins
+      for (const auto& group : pi.getIndistinguishableProteins())
+      {
+        OpenMS::hash_combine(seed, std::hash<OpenMS::ProteinIdentification::ProteinGroup>{}(group));
+      }
+      // Hash score type and threshold
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(pi.getScoreType()));
+      OpenMS::hash_combine(seed, OpenMS::hash_float(pi.getSignificanceThreshold()));
+      OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(pi.isHigherScoreBetter())));
+      // Hash MetaInfoInterface base class
+      OpenMS::hash_combine(seed, std::hash<OpenMS::MetaInfoInterface>{}(pi));
+      return seed;
+    }
+  };
+} // namespace std

@@ -9,17 +9,19 @@
 #pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/CONCEPT/HashUtils.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/OpenMSConfig.h>
 
+#include <functional>
 #include <memory> // unique_ptr
 #include <string>
 
 // foward declarations
-class QDateTime; 
+class QDateTime;
 
 namespace OpenMS
 {
-  class String;
 
   /**
       @brief DateTime Class.
@@ -195,4 +197,21 @@ public:
       std::unique_ptr<QDateTime> dt_; // use PImpl, to avoid costly #include
   };
 
-} // namespace OPENMS
+} // namespace OpenMS
+
+// Hash function specialization for DateTime
+namespace std
+{
+  template<>
+  struct hash<OpenMS::DateTime>
+  {
+    std::size_t operator()(const OpenMS::DateTime& dt) const noexcept
+    {
+      // Hash the date/time components including milliseconds to match operator==
+      // (which compares the underlying QDateTime including milliseconds)
+      // Use toString with millisecond format and convert to std::string for hashing
+      std::string datetime_str = dt.toString("yyyy-MM-ddThh:mm:ss.zzz");
+      return OpenMS::fnv1a_hash_string(datetime_str);
+    }
+  };
+} // namespace std
