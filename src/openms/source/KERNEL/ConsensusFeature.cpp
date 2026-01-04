@@ -396,10 +396,10 @@ namespace OpenMS
 
     for (ConsensusFeature::HandleSetType::const_iterator it = cons.begin(); it != cons.end(); ++it)
     {
-      os << " - Map index: " << it->getMapIndex() << std::endl
-         << "   Feature id: " << it->getUniqueId() << std::endl
-         << "   RT: " << precisionWrapper(it->getRT()) << std::endl
-         << "   m/z: " << precisionWrapper(it->getMZ()) << std::endl
+      os << " - Map index: " << it->getMapIndex() << '\n'
+         << "   Feature id: " << it->getUniqueId() << '\n'
+         << "   RT: " << precisionWrapper(it->getRT()) << '\n'
+         << "   m/z: " << precisionWrapper(it->getMZ()) << '\n'
          << "   Intensity: " << precisionWrapper(it->getIntensity()) << '\n';
     }
 

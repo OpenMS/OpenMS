@@ -10,6 +10,7 @@
 #include <OpenMS/FORMAT/HANDLERS/XQuestResultXMLHandler.h>
 #include <OpenMS/FORMAT/Base64.h>
 #include <OpenMS/MATH/MathFunctions.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <fstream>
 #include <OpenMS/ANALYSIS/XLMS/OPXLHelper.h>
 
@@ -78,7 +79,7 @@ namespace OpenMS
   {
     // XML Header
     std::ofstream spec_xml_file;
-    std::cout << "Writing spec.xml to " << out_file << '\n';
+    OPENMS_LOG_INFO << "Writing spec.xml to " << out_file << std::endl;
     spec_xml_file.open(out_file.c_str(), std::ios::trunc); // ios::app = append to file, ios::trunc = overwrites file
     // TODO write actual data
     spec_xml_file << R"(<?xml version="1.0" encoding="UTF-8"?><xquest_spectra author="Eugen Netz" deffile="xquest.def" >)" << '\n';
@@ -148,7 +149,7 @@ namespace OpenMS
     // String spec_xml_filename = base_name + "_matched.spec.xml";
     // XML Header
     std::ofstream spec_xml_file;
-    std::cout << "Writing spec.xml to " << out_file << '\n';
+    OPENMS_LOG_INFO << "Writing spec.xml to " << out_file << std::endl;
     spec_xml_file.open(out_file.c_str(), std::ios::trunc); // ios::app = append to file, ios::trunc = overwrites file
     // TODO write actual data
     spec_xml_file << R"(<?xml version="1.0" encoding="UTF-8"?><xquest_spectra author="Eugen Netz" deffile="xquest.def" >)" << '\n';

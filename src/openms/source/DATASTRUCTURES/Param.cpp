@@ -758,7 +758,7 @@ namespace OpenMS
       const auto& n = root_.findEntry(entry.name);
       if (n == root_.entries.end())
       {
-        OPENMS_LOG_WARN << "Warning: Trying to copy non-existent parameter entry " << entry.name << '\n';
+        OPENMS_LOG_WARN << "Warning: Trying to copy non-existent parameter entry " << entry.name << std::endl;
       }
       else
       {
@@ -771,7 +771,7 @@ namespace OpenMS
       const auto& n = root_.findNode(node.name);
       if (n == root_.nodes.end())
       {
-        OPENMS_LOG_WARN << "Warning: Trying to copy non-existent parameter node " << node.name << '\n';
+        OPENMS_LOG_WARN << "Warning: Trying to copy non-existent parameter node " << node.name << std::endl;
       }
       else
       {
@@ -1087,7 +1087,7 @@ namespace OpenMS
         {
           OPENMS_LOG_WARN << " in '" << prefix2 << "'";
         }
-        OPENMS_LOG_WARN << "!" << '\n';
+        OPENMS_LOG_WARN << "!" << std::endl;
       }
 
       //different types
