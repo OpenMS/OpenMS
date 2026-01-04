@@ -666,6 +666,7 @@ protected:
       //IsobaricNormalizer::normalize(cur_cmap);
 
       // Remove empty consensus features (from spectra without MS3 or spectra not found)
+      // A ConsensusFeature is considered empty if it has no sub-features (size() == 0)
       cur_cmap.erase(std::remove_if(cur_cmap.begin(), cur_cmap.end(),
                                      [](const ConsensusFeature& cf) { return cf.empty(); }),
                      cur_cmap.end());
