@@ -9,7 +9,7 @@
 // OpenMS
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimator.h>
-#include <OpenMS/SYSTEM/FileWatcher.h>
+#include <OpenMS/VISUAL/FileWatcher.h>
 #include <OpenMS/VISUAL/AxisWidget.h>
 #include <OpenMS/VISUAL/LayerData1DChrom.h>
 #include <OpenMS/VISUAL/LayerData1DPeak.h>

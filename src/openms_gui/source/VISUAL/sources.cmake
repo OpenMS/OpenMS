@@ -12,6 +12,7 @@ DIATreeTab.cpp
 EnhancedTabBar.cpp
 EnhancedTabBarWidgetInterface.cpp
 EnhancedWorkspace.cpp
+FileWatcher.cpp
 FilterList.cpp
 FilterList.ui
 GUIProgressLoggerImpl.cpp
