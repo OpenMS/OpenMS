@@ -147,6 +147,7 @@ execute_process(COMMAND ${QT_QMAKE_EXECUTABLE} -v OUTPUT_VARIABLE QT_QMAKE_VERSI
 #------------------------------------------------------------------------------
 # OpenMP support (optional)
 #------------------------------------------------------------------------------
+#TODO THIS DEPENDS ON HOW OPENMS WAS BUILT. pyopenms should not need it
 if(MT_ENABLE_OPENMP)
   find_package(OpenMP COMPONENTS CXX)
 endif()
@@ -162,6 +163,7 @@ set(PYOPENMS_INCLUDE_DIRS
 )
 list(REMOVE_DUPLICATES PYOPENMS_INCLUDE_DIRS)
 
+# TODO should not be necessary
 if(OpenMP_FOUND)
   list(APPEND PYOPENMS_INCLUDE_DIRS ${OpenMP_CXX_INCLUDE_DIR})
 endif()
