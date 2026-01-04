@@ -9,7 +9,7 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 
-#include <OpenMS/SYSTEM/FileWatcher.h>
+#include <OpenMS/VISUAL/FileWatcher.h>
 
 /////////////////////////////////////////////////////////////
 

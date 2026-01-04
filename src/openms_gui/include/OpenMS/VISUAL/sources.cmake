@@ -12,6 +12,7 @@ DIATreeTab.h
 EnhancedTabBar.h
 EnhancedTabBarWidgetInterface.h
 EnhancedWorkspace.h
+FileWatcher.h
 FilterList.h
 GUIProgressLoggerImpl.h
 HistogramWidget.h
