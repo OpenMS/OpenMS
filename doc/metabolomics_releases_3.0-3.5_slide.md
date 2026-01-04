@@ -4,8 +4,8 @@
 
 | Version | Highlights |
 |---------|------------|
-| **3.0** | FLASHDeconv (ultra-fast deconvolution), TOPPView isotope patterns for metabolites |
 | **3.2** | SiriusExport, AssayGeneratorMetaboSirius, IonMobilityBinning |
+| **3.3** | FeatureFinderMetabo: `report_smoothed_intensities` parameter |
 | **3.5** | PeakPickerIM (TimsTOF), FAIMS support across FeatureFinders |
 
 ## Ion Mobility & FAIMS Support (3.5)
@@ -22,10 +22,9 @@
 - **DataFrame API**: `get_df()` with snake_case columns (`'MZ'`→`'mz'`, `'RT'`→`'rt'`)
 - **Parquet export** for high-performance data handling (3.5)
 - **Drift time accessors** on MSSpectrum (3.5)
-- **arm64 Linux wheels** + Python 3.14 support (3.5)
 
 ## Workflow Improvements
 
 - **AssayGeneratorMetabo** split into heuristic + SIRIUS-based workflows (3.2)
-- **OpenSwath**: IM scoring, mobilogram peak-picking, automated iRT calibration
-- **FLASHDeconv**: FDR estimation, isobaric quantification (3.5)
+- **MetaboliteAdductDecharger**: Fixed column headers for multi-map output (3.5)
+- **mzTab-M**: Fixed validation errors for metabolomics metadata (3.5)
