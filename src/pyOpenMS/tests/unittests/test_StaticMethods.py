@@ -138,7 +138,7 @@ class TestFileStaticMethods(unittest.TestCase):
     def test_getTemporaryFile(self):
         """Test File.getTemporaryFile static method."""
         result = pyopenms.File.getTemporaryFile("")
-        self.assertTrue(len(str(result)) > 0)
+        self.assertGreater(len(str(result)), 0)
 
     @unittest.skip("File.stripExtension not exposed as static method")
     def test_stripExtension(self):
@@ -186,7 +186,7 @@ class TestVersionInfoStaticMethods(unittest.TestCase):
     def test_getVersion(self):
         """Test VersionInfo.getVersion static method."""
         version = pyopenms.VersionInfo.getVersion()
-        self.assertTrue(len(str(version)) > 0)
+        self.assertGreater(len(str(version)), 0)
 
     def test_getRevision(self):
         """Test VersionInfo.getRevision static method."""
@@ -214,7 +214,7 @@ class TestDateTimeStaticMethods(unittest.TestCase):
         self.assertIsNotNone(dt)
         # Check that the returned DateTime has valid date
         date_str = dt.getDate()
-        self.assertTrue(len(str(date_str)) > 0)
+        self.assertGreater(len(str(date_str)), 0)
 
 
 class TestDeisotoperStaticMethods(unittest.TestCase):

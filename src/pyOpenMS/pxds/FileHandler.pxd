@@ -77,26 +77,66 @@ cdef extern from "<OpenMS/FORMAT/FileHandler.h>" namespace "OpenMS":
 
         @staticmethod
         int getType(const String& filename) except + nogil
+            # wrap-doc:
+            #  Determines the file type based on the file name and/or content
+            #
+            #  :param filename: Path to the file
+            #  :returns: Integer representation of the file type
 
         @staticmethod
         FileType getTypeByFileName(const String & filename) except + nogil
+            # wrap-doc:
+            #  Determines the file type based on the file extension
+            #
+            #  :param filename: Path to the file
+            #  :returns: The file type based on the extension
 
         @staticmethod
         FileType getTypeByContent(const String & filename) except + nogil
+            # wrap-doc:
+            #  Determines the file type based on the file content
+            #
+            #  :param filename: Path to the file
+            #  :returns: The file type based on file content analysis
 
         @staticmethod
         String computeFileHash(const String & filename) except + nogil
+            # wrap-doc:
+            #  Computes a SHA-1 hash of the file content
+            #
+            #  :param filename: Path to the file
+            #  :returns: SHA-1 hash string of the file content
 
         @staticmethod
         bool isSupported(FileType type_) except + nogil
+            # wrap-doc:
+            #  Checks whether the given file type is supported
+            #
+            #  :param type_: The file type to check
+            #  :returns: True if the file type is supported
 
         @staticmethod
         bool hasValidExtension(const String & filename, FileType type_) except + nogil
+            # wrap-doc:
+            #  Checks whether the file has a valid extension for the given type
+            #
+            #  :param filename: Path to the file
+            #  :param type_: The expected file type
+            #  :returns: True if the extension matches the file type
 
-        # Returns the file name without the extension
         @staticmethod
         String stripExtension(String file) except + nogil
+            # wrap-doc:
+            #  Returns the file name without the extension
+            #
+            #  :param file: Path to the file
+            #  :returns: File path without extension
 
-        # Removes the current extension (if any) and adds a new one
         @staticmethod
         String swapExtension(String filename, FileType new_type) except + nogil
+            # wrap-doc:
+            #  Removes the current extension (if any) and adds a new one
+            #
+            #  :param filename: Path to the file
+            #  :param new_type: The new file type whose extension should be used
+            #  :returns: File path with the new extension
