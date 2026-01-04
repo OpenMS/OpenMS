@@ -83,7 +83,7 @@ public:
     /// Adds a peak map
     void add(PeakMap & exp)
     {
-      add(static_cast<ExperimentalSettings &>(exp));
+      add(exp.getExperimentalSettings());
       treeview_->expandItem(treeview_->findItems(QString::number(0), Qt::MatchExactly, 1).first());
     }
 

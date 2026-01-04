@@ -372,7 +372,7 @@ public:
       output.clear(true);
 
       // copy experimental settings
-      static_cast<ExperimentalSettings&>(output) = input;
+      output.setExperimentalSettings(input.getExperimentalSettings());
 
       // resize output with respect to input
       output.resize(input.size());

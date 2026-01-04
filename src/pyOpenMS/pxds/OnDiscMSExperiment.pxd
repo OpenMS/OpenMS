@@ -7,7 +7,7 @@ from InterfaceDataStructures cimport *
 
 cdef extern from "<OpenMS/KERNEL/OnDiscMSExperiment.h>" namespace "OpenMS":
 
-    cdef cppclass OnDiscMSExperiment(ExperimentalSettings):
+    cdef cppclass OnDiscMSExperiment:
         # wrap-doc:
         #  Representation of a mass spectrometry experiment on disk.
         OnDiscMSExperiment() except + nogil 

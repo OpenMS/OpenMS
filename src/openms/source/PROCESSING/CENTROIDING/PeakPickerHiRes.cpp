@@ -459,7 +459,7 @@ namespace OpenMS
     output.clear(true);
 
     // copy experimental settings
-    static_cast<ExperimentalSettings &>(output) = input;
+    output.setExperimentalSettings(input.getExperimentalSettings());
 
     // resize output with respect to input
     output.resize(input.size());
@@ -542,7 +542,7 @@ namespace OpenMS
     output.clear(true);
 
     // copy experimental settings
-    static_cast<ExperimentalSettings &>(output) = *input.getExperimentalSettings();
+    output.setExperimentalSettings(*input.getExperimentalSettings());
 
     Size progress = 0;
     startProgress(0, input.size() + input.getNrChromatograms(), "picking peaks");

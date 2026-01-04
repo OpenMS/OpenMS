@@ -857,7 +857,7 @@ namespace OpenMS::Internal
         // copy experimental settings
         meta.reserveSpaceSpectra(exp.getNrSpectra());
         meta.reserveSpaceChromatograms(exp.getNrChromatograms());
-        static_cast<ExperimentalSettings &>(meta) = exp;
+        meta.setExperimentalSettings(exp.getExperimentalSettings());
         for (Size k = 0; k < exp.getNrSpectra(); k++)
         {
           MSSpectrum s = exp.getSpectra()[k];

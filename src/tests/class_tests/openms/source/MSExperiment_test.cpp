@@ -1126,11 +1126,11 @@ START_SECTION((ExperimentalSettings& getExperimentalSettings()))
 }
 END_SECTION
 
-START_SECTION((MSExperiment& operator=(const ExperimentalSettings &source)))
+START_SECTION((void setExperimentalSettings(const ExperimentalSettings &experimental_settings)))
 {
   PeakMap exp,exp2;
   exp.getExperimentalSettings().setComment("test");
-  exp2 = exp.getExperimentalSettings();
+  exp2.setExperimentalSettings(exp.getExperimentalSettings());
   TEST_EQUAL(exp2.getExperimentalSettings().getComment(),"test");
 }
 END_SECTION
