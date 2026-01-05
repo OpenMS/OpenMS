@@ -1,0 +1,428 @@
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
+//
+// --------------------------------------------------------------------------
+// $Maintainer: Timo Sachsenberg $
+// $Authors: Timo Sachsenberg $
+// --------------------------------------------------------------------------
+
+#include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/test_config.h>
+
+///////////////////////////
+#include <OpenMS/FORMAT/ArrowExport.h>
+///////////////////////////
+
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/MSChromatogram.h>
+#include <OpenMS/METADATA/Precursor.h>
+
+#include <arrow/api.h>
+#include <arrow/type.h>
+
+using namespace OpenMS;
+using namespace std;
+
+/////////////////////////////////////////////////////////////
+// Helper function to create a test MSExperiment
+/////////////////////////////////////////////////////////////
+
+MSExperiment createTestExperiment()
+{
+  MSExperiment exp;
+
+  // Create MS1 spectrum with 3 peaks
+  MSSpectrum ms1;
+  ms1.setRT(100.0);
+  ms1.setMSLevel(1);
+  ms1.setNativeID("spectrum=0");
+  ms1.push_back(Peak1D(100.0, 1000.0));
+  ms1.push_back(Peak1D(200.0, 2000.0));
+  ms1.push_back(Peak1D(300.0, 3000.0));
+  exp.addSpectrum(ms1);
+
+  // Create MS2 spectrum with precursor info
+  MSSpectrum ms2;
+  ms2.setRT(110.0);
+  ms2.setMSLevel(2);
+  ms2.setNativeID("spectrum=1");
+
+  Precursor prec;
+  prec.setMZ(500.0);
+  prec.setCharge(2);
+  prec.setIntensity(50000.0);
+  prec.setIsolationWindowLowerOffset(1.5);
+  prec.setIsolationWindowUpperOffset(1.5);
+  ms2.setPrecursors({prec});
+
+  ms2.push_back(Peak1D(150.0, 500.0));
+  ms2.push_back(Peak1D(250.0, 750.0));
+  exp.addSpectrum(ms2);
+
+  // Create another MS1 spectrum
+  MSSpectrum ms1_2;
+  ms1_2.setRT(200.0);
+  ms1_2.setMSLevel(1);
+  ms1_2.setNativeID("spectrum=2");
+  ms1_2.push_back(Peak1D(150.0, 1500.0));
+  ms1_2.push_back(Peak1D(250.0, 2500.0));
+  exp.addSpectrum(ms1_2);
+
+  return exp;
+}
+
+MSExperiment createEmptyExperiment()
+{
+  return MSExperiment();
+}
+
+/////////////////////////////////////////////////////////////
+
+START_TEST(ArrowExport, "$Id$")
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+
+START_SECTION(exportSpectraToArrow - empty experiment)
+{
+  MSExperiment exp = createEmptyExperiment();
+  ArrowSpectraExportConfig config;
+
+  auto table = exportSpectraToArrow(exp, config);
+
+  TEST_NOT_EQUAL(table, nullptr)
+  TEST_EQUAL(table->num_rows(), 0)
+  // Schema should still be present
+  TEST_EQUAL(table->num_columns() > 0, true)
+}
+END_SECTION
+
+START_SECTION(exportSpectraToArrow - long format basic)
+{
+  MSExperiment exp = createTestExperiment();
+  ArrowSpectraExportConfig config;
+  config.format = ArrowExportFormat::Long;
+
+  auto table = exportSpectraToArrow(exp, config);
+
+  TEST_NOT_EQUAL(table, nullptr)
+  // Total peaks: 3 (MS1) + 2 (MS2) + 2 (MS1) = 7
+  TEST_EQUAL(table->num_rows(), 7)
+
+  // Check schema
+  auto schema = table->schema();
+  TEST_EQUAL(schema->GetFieldIndex("mz") >= 0, true)
+  TEST_EQUAL(schema->GetFieldIndex("intensity") >= 0, true)
+  TEST_EQUAL(schema->GetFieldIndex("rt") >= 0, true)
+  TEST_EQUAL(schema->GetFieldIndex("spectrum_index") >= 0, true)
+  TEST_EQUAL(schema->GetFieldIndex("ms_level") >= 0, true)
+  TEST_EQUAL(schema->GetFieldIndex("native_id") >= 0, true)
+  TEST_EQUAL(schema->GetFieldIndex("precursor_mz") >= 0, true)
+  TEST_EQUAL(schema->GetFieldIndex("precursor_charge") >= 0, true)
+
+  // Check mz column type
+  auto mz_field = schema->GetFieldByName("mz");
+  TEST_EQUAL(mz_field->type()->id(), arrow::Type::DOUBLE)
+
+  // Check intensity column type
+  auto intensity_field = schema->GetFieldByName("intensity");
+  TEST_EQUAL(intensity_field->type()->id(), arrow::Type::FLOAT)
+
+  // Check ms_level column type
+  auto ms_level_field = schema->GetFieldByName("ms_level");
+  TEST_EQUAL(ms_level_field->type()->id(), arrow::Type::UINT8)
+}
+END_SECTION
+
+START_SECTION(exportSpectraToArrow - long format with MS level filter)
+{
+  MSExperiment exp = createTestExperiment();
+  ArrowSpectraExportConfig config;
+  config.format = ArrowExportFormat::Long;
+  config.ms_levels = {1}; // Only MS1
+
+  auto table = exportSpectraToArrow(exp, config);
+
+  TEST_NOT_EQUAL(table, nullptr)
+  // Only MS1 peaks: 3 + 2 = 5
+  TEST_EQUAL(table->num_rows(), 5)
+}
+END_SECTION
+
+START_SECTION(exportSpectraToArrow - long format with RT filter)
+{
+  MSExperiment exp = createTestExperiment();
+  ArrowSpectraExportConfig config;
+  config.format = ArrowExportFormat::Long;
+  config.min_rt = 100.0;
+  config.max_rt = 110.0;
+
+  auto table = exportSpectraToArrow(exp, config);
+
+  TEST_NOT_EQUAL(table, nullptr)
+  // Spectra in RT range: ms1 (3 peaks) + ms2 (2 peaks) = 5
+  TEST_EQUAL(table->num_rows(), 5)
+}
+END_SECTION
+
+START_SECTION(exportSpectraToArrow - long format with m/z filter)
+{
+  MSExperiment exp = createTestExperiment();
+  ArrowSpectraExportConfig config;
+  config.format = ArrowExportFormat::Long;
+  config.min_mz = 150.0;
+  config.max_mz = 250.0;
+
+  auto table = exportSpectraToArrow(exp, config);
+
+  TEST_NOT_EQUAL(table, nullptr)
+  // Peaks in m/z range: 200.0 (ms1), 150.0+250.0 (ms2), 150.0+250.0 (ms1_2) = 5
+  TEST_EQUAL(table->num_rows(), 5)
+}
+END_SECTION
+
+START_SECTION(exportSpectraToArrow - long format with column selection)
+{
+  MSExperiment exp = createTestExperiment();
+  ArrowSpectraExportConfig config;
+  config.format = ArrowExportFormat::Long;
+  config.columns = {"mz", "intensity", "rt"};
+
+  auto table = exportSpectraToArrow(exp, config);
+
+  TEST_NOT_EQUAL(table, nullptr)
+  TEST_EQUAL(table->num_columns(), 3)
+  TEST_EQUAL(table->schema()->GetFieldIndex("mz") >= 0, true)
+  TEST_EQUAL(table->schema()->GetFieldIndex("intensity") >= 0, true)
+  TEST_EQUAL(table->schema()->GetFieldIndex("rt") >= 0, true)
+  TEST_EQUAL(table->schema()->GetFieldIndex("spectrum_index"), -1)
+}
+END_SECTION
+
+START_SECTION(exportSpectraToArrow - long format no precursor info)
+{
+  MSExperiment exp = createTestExperiment();
+  ArrowSpectraExportConfig config;
+  config.format = ArrowExportFormat::Long;
+  config.include_precursor_info = false;
+
+  auto table = exportSpectraToArrow(exp, config);
+
+  TEST_NOT_EQUAL(table, nullptr)
+  auto schema = table->schema();
+  TEST_EQUAL(schema->GetFieldIndex("precursor_mz"), -1)
+  TEST_EQUAL(schema->GetFieldIndex("precursor_charge"), -1)
+  TEST_EQUAL(schema->GetFieldIndex("isolation_lower"), -1)
+}
+END_SECTION
+
+START_SECTION(exportSpectraToArrow - semi-wide format basic)
+{
+  MSExperiment exp = createTestExperiment();
+  ArrowSpectraExportConfig config;
+  config.format = ArrowExportFormat::SemiWide;
+
+  auto table = exportSpectraToArrow(exp, config);
+
+  TEST_NOT_EQUAL(table, nullptr)
+  // One row per spectrum
+  TEST_EQUAL(table->num_rows(), 3)
+
+  // Check schema - mz and intensity should be list types
+  auto schema = table->schema();
+  auto mz_field = schema->GetFieldByName("mz");
+  TEST_EQUAL(mz_field->type()->id(), arrow::Type::LIST)
+
+  auto intensity_field = schema->GetFieldByName("intensity");
+  TEST_EQUAL(intensity_field->type()->id(), arrow::Type::LIST)
+
+  // Scalar columns should be regular types
+  auto rt_field = schema->GetFieldByName("rt");
+  TEST_EQUAL(rt_field->type()->id(), arrow::Type::FLOAT)
+}
+END_SECTION
+
+START_SECTION(exportSpectraToArrow - semi-wide format with MS level filter)
+{
+  MSExperiment exp = createTestExperiment();
+  ArrowSpectraExportConfig config;
+  config.format = ArrowExportFormat::SemiWide;
+  config.ms_levels = {2}; // Only MS2
+
+  auto table = exportSpectraToArrow(exp, config);
+
+  TEST_NOT_EQUAL(table, nullptr)
+  TEST_EQUAL(table->num_rows(), 1)
+}
+END_SECTION
+
+START_SECTION(getSpectraArrowColumns - long format)
+{
+  MSExperiment exp = createTestExperiment();
+  ArrowSpectraExportConfig config;
+  config.format = ArrowExportFormat::Long;
+
+  auto columns = getSpectraArrowColumns(exp, config);
+
+  // Check required columns are present
+  TEST_EQUAL(std::find(columns.begin(), columns.end(), "mz") != columns.end(), true)
+  TEST_EQUAL(std::find(columns.begin(), columns.end(), "intensity") != columns.end(), true)
+  TEST_EQUAL(std::find(columns.begin(), columns.end(), "rt") != columns.end(), true)
+  TEST_EQUAL(std::find(columns.begin(), columns.end(), "spectrum_index") != columns.end(), true)
+  TEST_EQUAL(std::find(columns.begin(), columns.end(), "ms_level") != columns.end(), true)
+  TEST_EQUAL(std::find(columns.begin(), columns.end(), "precursor_mz") != columns.end(), true)
+}
+END_SECTION
+
+START_SECTION(getSpectraArrowColumns - with column filter)
+{
+  MSExperiment exp = createTestExperiment();
+  ArrowSpectraExportConfig config;
+  config.columns = {"mz", "intensity"};
+
+  auto columns = getSpectraArrowColumns(exp, config);
+
+  TEST_EQUAL(columns.size(), 2)
+  TEST_EQUAL(std::find(columns.begin(), columns.end(), "mz") != columns.end(), true)
+  TEST_EQUAL(std::find(columns.begin(), columns.end(), "intensity") != columns.end(), true)
+}
+END_SECTION
+
+/////////////////////////////////////////////////////////////
+// Chromatogram export tests
+/////////////////////////////////////////////////////////////
+
+START_SECTION(exportChromatogramsToArrow - empty chromatograms)
+{
+  MSExperiment exp;
+  ArrowChromatogramExportConfig config;
+
+  auto table = exportChromatogramsToArrow(exp, config);
+
+  TEST_NOT_EQUAL(table, nullptr)
+  TEST_EQUAL(table->num_rows(), 0)
+}
+END_SECTION
+
+START_SECTION(exportChromatogramsToArrow - long format)
+{
+  MSExperiment exp;
+
+  // Create a simple chromatogram
+  MSChromatogram chrom;
+  chrom.setNativeID("TIC");
+  chrom.getPrecursor().setMZ(500.0);
+  chrom.getProduct().setMZ(200.0);
+  chrom.push_back(ChromatogramPeak(10.0, 100.0));
+  chrom.push_back(ChromatogramPeak(20.0, 200.0));
+  chrom.push_back(ChromatogramPeak(30.0, 150.0));
+  exp.addChromatogram(chrom);
+
+  // Add another chromatogram
+  MSChromatogram chrom2;
+  chrom2.setNativeID("XIC_1");
+  chrom2.getPrecursor().setMZ(600.0);
+  chrom2.getProduct().setMZ(300.0);
+  chrom2.push_back(ChromatogramPeak(15.0, 50.0));
+  chrom2.push_back(ChromatogramPeak(25.0, 75.0));
+  exp.addChromatogram(chrom2);
+
+  ArrowChromatogramExportConfig config;
+  config.format = ArrowExportFormat::Long;
+
+  auto table = exportChromatogramsToArrow(exp, config);
+
+  TEST_NOT_EQUAL(table, nullptr)
+  // Total points: 3 + 2 = 5
+  TEST_EQUAL(table->num_rows(), 5)
+
+  auto schema = table->schema();
+  TEST_EQUAL(schema->GetFieldIndex("rt") >= 0, true)
+  TEST_EQUAL(schema->GetFieldIndex("intensity") >= 0, true)
+  TEST_EQUAL(schema->GetFieldIndex("chromatogram_index") >= 0, true)
+  TEST_EQUAL(schema->GetFieldIndex("precursor_mz") >= 0, true)
+  TEST_EQUAL(schema->GetFieldIndex("product_mz") >= 0, true)
+}
+END_SECTION
+
+START_SECTION(exportChromatogramsToArrow - semi-wide format)
+{
+  MSExperiment exp;
+
+  MSChromatogram chrom;
+  chrom.setNativeID("TIC");
+  chrom.push_back(ChromatogramPeak(10.0, 100.0));
+  chrom.push_back(ChromatogramPeak(20.0, 200.0));
+  exp.addChromatogram(chrom);
+
+  ArrowChromatogramExportConfig config;
+  config.format = ArrowExportFormat::SemiWide;
+
+  auto table = exportChromatogramsToArrow(exp, config);
+
+  TEST_NOT_EQUAL(table, nullptr)
+  TEST_EQUAL(table->num_rows(), 1) // One row per chromatogram
+
+  auto schema = table->schema();
+  auto rt_field = schema->GetFieldByName("rt");
+  TEST_EQUAL(rt_field->type()->id(), arrow::Type::LIST)
+}
+END_SECTION
+
+START_SECTION(exportChromatogramsToArrow - with RT filter)
+{
+  MSExperiment exp;
+
+  MSChromatogram chrom;
+  chrom.setNativeID("TIC");
+  chrom.push_back(ChromatogramPeak(10.0, 100.0));
+  chrom.push_back(ChromatogramPeak(20.0, 200.0));
+  chrom.push_back(ChromatogramPeak(30.0, 150.0));
+  exp.addChromatogram(chrom);
+
+  ArrowChromatogramExportConfig config;
+  config.format = ArrowExportFormat::Long;
+  config.min_rt = 15.0;
+  config.max_rt = 25.0;
+
+  auto table = exportChromatogramsToArrow(exp, config);
+
+  TEST_NOT_EQUAL(table, nullptr)
+  // Only point at RT=20.0 should be included
+  TEST_EQUAL(table->num_rows(), 1)
+}
+END_SECTION
+
+/////////////////////////////////////////////////////////////
+// Config struct tests
+/////////////////////////////////////////////////////////////
+
+START_SECTION(ArrowSpectraExportConfig - default values)
+{
+  ArrowSpectraExportConfig config;
+
+  TEST_EQUAL(config.format == ArrowExportFormat::Long, true)
+  TEST_EQUAL(config.ms_levels.empty(), true)
+  TEST_REAL_SIMILAR(config.min_rt, 0.0)
+  TEST_REAL_SIMILAR(config.max_rt, 0.0)
+  TEST_REAL_SIMILAR(config.min_mz, 0.0)
+  TEST_REAL_SIMILAR(config.max_mz, 0.0)
+  TEST_EQUAL(config.columns.empty(), true)
+  TEST_EQUAL(config.include_precursor_info, true)
+  TEST_EQUAL(config.include_ion_mobility, true)
+}
+END_SECTION
+
+START_SECTION(ArrowChromatogramExportConfig - default values)
+{
+  ArrowChromatogramExportConfig config;
+
+  TEST_EQUAL(config.format == ArrowExportFormat::Long, true)
+  TEST_REAL_SIMILAR(config.min_rt, 0.0)
+  TEST_REAL_SIMILAR(config.max_rt, 0.0)
+  TEST_EQUAL(config.columns.empty(), true)
+}
+END_SECTION
+
+END_TEST

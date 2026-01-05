@@ -112,7 +112,11 @@ ZlibCompression.h
 )
 
 if (WITH_HDF5)
-  list(APPEND sources_list_h HDF5Connector.h)  
+  list(APPEND sources_list_h HDF5Connector.h)
+endif()
+
+if (WITH_PARQUET)
+  list(APPEND sources_list_h ArrowExport.h)
 endif()
 
 if (WITH_PARQUET)

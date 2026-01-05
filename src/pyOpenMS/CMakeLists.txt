@@ -521,6 +521,77 @@ else()
     COMMENT "Fixing typing information for pyopenms")
 endif()
 
+#------------------------------------------------------------------------------
+# Arrow zerocopy module (only when WITH_PARQUET is enabled)
+#------------------------------------------------------------------------------
+if(WITH_PARQUET)
+  message(STATUS "Building Arrow zerocopy module for pyOpenMS")
+
+  # Get Arrow include directories from the target
+  get_target_property(ARROW_INCLUDE_DIRS ${OPENMS_ARROW_TARGET} INTERFACE_INCLUDE_DIRECTORIES)
+  if(NOT ARROW_INCLUDE_DIRS)
+    # Fallback: try to find Arrow headers
+    find_path(ARROW_INCLUDE_DIRS arrow/api.h)
+  endif()
+
+  # Copy the .pyx source file to build directory
+  configure_file(
+    ${PROJECT_SOURCE_DIR}/pyopenms/_arrow_zerocopy.pyx
+    ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/_arrow_zerocopy.pyx
+    COPYONLY
+  )
+
+  # Run Cython to generate C++ code
+  add_custom_command(
+    OUTPUT ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/_arrow_zerocopy.cpp
+    COMMAND ${Python_EXECUTABLE} -m cython --cplus
+      ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/_arrow_zerocopy.pyx
+      -o ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/_arrow_zerocopy.cpp
+    DEPENDS ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/_arrow_zerocopy.pyx
+    COMMENT "Cythonizing _arrow_zerocopy.pyx"
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS
+  )
+
+  # Build the _arrow_zerocopy module
+  Python_add_library(arrow_zerocopy MODULE
+    ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/_arrow_zerocopy.cpp
+  )
+  target_link_libraries(arrow_zerocopy PRIVATE OpenMS ${OPENMS_ARROW_TARGET})
+  target_compile_definitions(arrow_zerocopy PRIVATE
+    NPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION
+    WITH_PARQUET=1
+  )
+  target_include_directories(arrow_zerocopy SYSTEM PUBLIC
+    ${PYOPENMS_INCLUDE_DIRS}
+    ${PYTHON_INCLUDE_DIRS}
+    ${NUMPY_INCLUDE_DIR}
+    ${AUTOWRAP_INCLUDE_DIR}
+    ${ARROW_INCLUDE_DIRS}
+  )
+  target_compile_options(arrow_zerocopy PRIVATE ${EXTRA_WARNINGS})
+  set_target_properties(arrow_zerocopy PROPERTIES
+    OUTPUT_NAME _arrow_zerocopy
+    PREFIX ""
+    SUFFIX ${PYTHON_EXT_SUFFIX}
+    CXX_VISIBILITY_PRESET ${VIS_PRESET}
+    VISIBILITY_INLINES_HIDDEN ${INLINES_HIDDEN}
+    INSTALL_RPATH "${PY_RPATH}"
+    BUILD_WITH_INSTALL_RPATH 1
+    BUILD_WITH_INSTALL_NAME_DIR 1
+    ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms"
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms"
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms"
+    ARCHIVE_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms"
+    LIBRARY_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms"
+    RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms"
+    ARCHIVE_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms"
+    LIBRARY_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms"
+    RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms"
+  )
+  add_dependencies(arrow_zerocopy compile_pxds)
+  add_dependencies(pyopenms_compile arrow_zerocopy)
+endif()
+
 ## use no-binary=pyopenms since we built the binaries already with cmake
 IF(LINUX AND PY_NO_OUTPUT)
     add_custom_target(pyopenms
@@ -602,6 +673,7 @@ set(pyopenms_unittest_testfiles
   test_MzXMLConsumer.py
   test_AcquisitionInfo.py
   test_FLASHDeconv.py
+  test_dataframe_columns.py
 )
 
 # Please add your test here when you decide to write a new testfile in the tests/integration_tests folder
