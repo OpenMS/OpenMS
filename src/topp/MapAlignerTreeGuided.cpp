@@ -229,6 +229,12 @@ private:
     // store transformations
     storeTransformationDescriptions_(transformations, out_trafos);
 
+    // Transform optional spectra files
+    // Note: MapAlignerTreeGuided does not support store_original_rt flag
+    StringList in_spectra_files = getStringList_("in_spectra_files");
+    StringList out_spectra_files = getStringList_("out_spectra_files");
+    transformSpectraFiles_(in_spectra_files, out_spectra_files, transformations, false);
+
     return EXECUTION_OK;
   }
 };
