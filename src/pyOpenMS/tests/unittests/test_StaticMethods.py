@@ -463,6 +463,8 @@ class TestCachedmzMLStaticMethods(unittest.TestCase):
             cached = pyopenms.CachedmzML()
             pyopenms.CachedmzML.load(temp_path, cached)
             self.assertIsNotNone(cached)
+            # Delete cached object to release file handles (required for Windows cleanup)
+            del cached
         finally:
             # Clean up - remove both the mzML and any cache files
             if os.path.exists(temp_path):
