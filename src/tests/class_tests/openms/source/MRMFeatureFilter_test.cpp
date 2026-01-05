@@ -3137,8 +3137,44 @@ END_SECTION
 START_SECTION(double calculateRTDifference(Feature & component_1, Feature & component_2))
 {
   MRMFeatureFilter mrmff;
-  //TODO
 
+  Feature f1, f2;
+  f1.setRT(100.0);
+  f2.setRT(105.5);
+
+  double rt_diff = mrmff.calculateRTDifference(f1, f2);
+  TEST_REAL_SIMILAR(rt_diff, 5.5);
+
+  // Test with reversed order (should give same absolute difference)
+  rt_diff = mrmff.calculateRTDifference(f2, f1);
+  TEST_REAL_SIMILAR(rt_diff, 5.5);
+}
+END_SECTION
+
+START_SECTION(double calculateResolution(Feature & component_1, Feature & component_2))
+{
+  MRMFeatureFilter mrmff;
+
+  Feature f1, f2;
+  f1.setRT(100.0);
+  f1.setMetaValue("width_at_50", 2.0);  // FWHM = 2.0
+
+  f2.setRT(106.0);
+  f2.setMetaValue("width_at_50", 2.0);  // FWHM = 2.0
+
+  // Resolution = 2 * |RT2 - RT1| / (W1 + W2)
+  // where W = FWHM * 1.7 (width at base)
+  // Resolution = 2 * 6 / (3.4 + 3.4) = 12 / 6.8 ≈ 1.7647
+  double resolution = mrmff.calculateResolution(f1, f2);
+  TEST_REAL_SIMILAR(resolution, 1.7647);
+
+  // Test with zero width (should return 0)
+  Feature f3, f4;
+  f3.setRT(100.0);
+  f4.setRT(106.0);
+  // No width_at_50 metavalue and default width is 0
+  resolution = mrmff.calculateResolution(f3, f4);
+  TEST_REAL_SIMILAR(resolution, 0.0);
 }
 END_SECTION
 
