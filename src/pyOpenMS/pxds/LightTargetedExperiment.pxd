@@ -115,6 +115,6 @@ cdef extern from "<OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>" name
         libcpp_vector[LightCompound] getCompounds() except + nogil 
         libcpp_vector[LightProtein] getProteins() except + nogil 
 
-        LightCompound getCompoundByRef(libcpp_utf8_string & ref) except + nogil 
+        LightCompound getCompoundByRef(libcpp_utf8_string & ref) except + nogil
         LightCompound getPeptideByRef(libcpp_utf8_string & ref) except + nogil 
 

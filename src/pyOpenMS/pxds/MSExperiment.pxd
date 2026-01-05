@@ -1,5 +1,4 @@
 from libcpp.vector cimport vector as libcpp_vector
-from libcpp.string cimport string as libcpp_utf8_string
 from MSSpectrum cimport *
 from MSChromatogram cimport *
 from DataValue cimport *
@@ -13,6 +12,7 @@ from RangeManager cimport *
 from Matrix cimport *
 from SpectrumRangeManager cimport *
 from ChromatogramRangeManager cimport *
+from libcpp.string cimport string as libcpp_utf8_string
 
 # this class has addons, see the ./addons folder
 

@@ -15,8 +15,8 @@ cdef extern from "<OpenMS/CHEMISTRY/RibonucleotideDB.h>" namespace "OpenMS":
         # deleted
         RibonucleotideDB(RibonucleotideDB) except + nogil  #wrap-ignore
 
-        const Ribonucleotide * getRibonucleotide(const libcpp_utf8_string& code) except + nogil 
-        const Ribonucleotide * getRibonucleotidePrefix(const libcpp_utf8_string& code) except + nogil 
+        const Ribonucleotide * getRibonucleotide(const libcpp_utf8_string& code) except + nogil
+        const Ribonucleotide * getRibonucleotidePrefix(const libcpp_utf8_string& code) except + nogil
         libcpp_pair[const Ribonucleotide *, const Ribonucleotide *] getRibonucleotideAlternatives(const libcpp_utf8_string& code) except + nogil  # wrap-ignore
 
 # COMMENT: wrap static methods

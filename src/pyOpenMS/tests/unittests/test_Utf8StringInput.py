@@ -101,12 +101,12 @@ class TestIMTypesStringInput(unittest.TestCase):
         unit = pyopenms.IMTypes.toDriftTimeUnit(b"ms")
         self.assertEqual(unit, pyopenms.DriftTimeUnit.MILLISECOND)
 
-    @unittest.skip("toString overloading between DriftTimeUnit and IMFormat has issues")
+    @unittest.skip("toString overloading issue - see https://github.com/OpenMS/OpenMS/issues/8603")
     def test_toString_DriftTimeUnit_returns_str(self):
         """Test toString returns str for DriftTimeUnit."""
         # Note: toString overloading between DriftTimeUnit and IMFormat
         # doesn't work correctly - both enums are ints, so the wrong
-        # overload may be called
+        # overload may be called. See issue #8603 for fix.
         result = pyopenms.IMTypes.toString(pyopenms.DriftTimeUnit.MILLISECOND)
         self.assertIsInstance(result, str)
         self.assertEqual(result, "ms")

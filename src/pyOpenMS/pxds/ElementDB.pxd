@@ -1,9 +1,9 @@
 from Types cimport *
 from libcpp cimport bool
-from libcpp.string cimport string as libcpp_utf8_string
 from String cimport *
 from Element cimport *
 from IsotopeDistribution cimport *
+from libcpp.string cimport string as libcpp_utf8_string
 
 cdef extern from "<OpenMS/CHEMISTRY/ElementDB.h>" namespace "OpenMS":
     
