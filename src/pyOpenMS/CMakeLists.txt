@@ -217,7 +217,8 @@ _copy_assets("${PROJECT_SOURCE_DIR}/extra_includes/" "*" ${PYOPENMS_BUILD_DIR}/e
 # In that case, share data should be included separately or installed system-wide
 if(NOT NO_SHARE AND DEFINED OPENMS_SHARE_DIR AND EXISTS "${OPENMS_SHARE_DIR}")
   file(MAKE_DIRECTORY ${PYOPENMS_BUILD_DIR}/pyopenms/share)
-  file(COPY ${OPENMS_SHARE_DIR} DESTINATION ${PYOPENMS_BUILD_DIR}/pyopenms/share)
+  file(COPY ${OPENMS_SHARE_DIR} DESTINATION ${PYOPENMS_BUILD_DIR}/pyopenms/share
+       PATTERN "examples" EXCLUDE)
 endif()
 
 #------------------------------------------------------------------------------

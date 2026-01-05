@@ -279,11 +279,11 @@ jobs:
           CIBW_BEFORE_BUILD: "pip install delocate"
           # Use build directory directly - libraries have absolute paths to Homebrew dependencies
           # This allows delocate to find and bundle all dependencies correctly
-          CIBW_ENVIRONMENT: "OpenMS_ROOT=${{ github.workspace }}/build CMAKE_PREFIX_PATH=/opt/homebrew:/opt/homebrew/opt/libomp:${{ github.workspace }}/build DYLD_LIBRARY_PATH=${{ github.workspace }}/build/lib MACOSX_DEPLOYMENT_TARGET=14.0 CMAKE_BUILD_PARALLEL_LEVEL=2 PY_BUILD_CMAKE_VERBOSE=1"
+          CIBW_ENVIRONMENT: "OpenMS_ROOT=${{ github.workspace }}/build CMAKE_PREFIX_PATH=/opt/homebrew:/opt/homebrew/opt/libomp:${{ github.workspace }}/build MACOSX_DEPLOYMENT_TARGET=14.0 CMAKE_BUILD_PARALLEL_LEVEL=2 PY_BUILD_CMAKE_VERBOSE=1"
           # delocate finds libraries via absolute paths embedded in the extension modules
           CIBW_REPAIR_WHEEL_COMMAND: "delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel}"
           CIBW_BUILD_VERBOSITY: 1
-          CIBW_TEST_SKIP: "*"
+          #CIBW_TEST_SKIP: "*"
 
       - uses: actions/upload-artifact@v4
         with:
@@ -359,6 +359,17 @@ jobs:
           sed -i "s/^version = .*/version = \"${VERSION}\"/" src/pyOpenMS/pyproject.toml
           grep "^version" src/pyOpenMS/pyproject.toml
 
+      - name: Normalize paths for CMake (Windows)
+        shell: bash
+        run: |
+          # Convert Windows backslashes to forward slashes for CMake compatibility
+          OPENMS_ROOT_CMAKE=$(echo "${{ github.workspace }}/build" | sed 's|\\|/|g')
+          CONTRIB_CMAKE=$(echo "${{ github.workspace }}/contrib" | sed 's|\\|/|g')
+          QT_CMAKE=$(echo "${{ env.QT_ROOT_DIR }}" | sed 's|\\|/|g')
+          echo "OPENMS_ROOT_CMAKE=${OPENMS_ROOT_CMAKE}" >> $GITHUB_ENV
+          echo "CONTRIB_CMAKE=${CONTRIB_CMAKE}" >> $GITHUB_ENV
+          echo "QT_CMAKE=${QT_CMAKE}" >> $GITHUB_ENV
+
       - name: Build wheels with cibuildwheel
         uses: pypa/cibuildwheel@v2.22
         with:
@@ -368,8 +379,8 @@ jobs:
           CIBW_BUILD: ${{ needs.setup.outputs.cibw-build-windows-x64 }}
           CIBW_BEFORE_BUILD: "pip install delvewheel"
           CIBW_ENVIRONMENT: >-
-            OpenMS_ROOT="${{ github.workspace }}\build"
-            CMAKE_PREFIX_PATH="${{ env.QT_ROOT_DIR }}\lib\cmake;${{ env.QT_ROOT_DIR }};${{ github.workspace }}\contrib;${{ github.workspace }}\build"
+            OpenMS_ROOT="${{ env.OPENMS_ROOT_CMAKE }}"
+            CMAKE_PREFIX_PATH="${{ env.QT_CMAKE }}/lib/cmake;${{ env.QT_CMAKE }};${{ env.CONTRIB_CMAKE }};${{ env.OPENMS_ROOT_CMAKE }}"
             CMAKE_BUILD_PARALLEL_LEVEL=2
             PY_BUILD_CMAKE_VERBOSE=1
           CIBW_REPAIR_WHEEL_COMMAND: "delvewheel repair -w {dest_dir} {wheel}"
