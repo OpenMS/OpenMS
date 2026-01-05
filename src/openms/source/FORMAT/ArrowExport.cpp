@@ -16,6 +16,9 @@
 #include <arrow/api.h>
 #include <arrow/builder.h>
 #include <arrow/c/bridge.h>
+#include <arrow/io/file.h>
+#include <parquet/arrow/writer.h>
+#include <parquet/properties.h>
 
 #include <algorithm>
 #include <unordered_set>
@@ -1202,6 +1205,148 @@ bool exportChromatogramsToArrowCDataInterface(
 
   return true;
 }
+
+
+namespace // anonymous namespace for Parquet helpers
+{
+
+/// Convert our compression enum to Arrow compression type
+arrow::Compression::type toArrowCompression(ParquetWriteConfig::Compression compression)
+{
+  switch (compression)
+  {
+    case ParquetWriteConfig::Compression::NONE:
+      return arrow::Compression::UNCOMPRESSED;
+    case ParquetWriteConfig::Compression::SNAPPY:
+      return arrow::Compression::SNAPPY;
+    case ParquetWriteConfig::Compression::GZIP:
+      return arrow::Compression::GZIP;
+    case ParquetWriteConfig::Compression::LZ4:
+      return arrow::Compression::LZ4;
+    case ParquetWriteConfig::Compression::ZSTD:
+      return arrow::Compression::ZSTD;
+    default:
+      return arrow::Compression::ZSTD;
+  }
+}
+
+
+/// Write an Arrow table to a Parquet file
+bool writeTableToParquet(
+  const std::shared_ptr<arrow::Table>& table,
+  const String& filename,
+  const ParquetWriteConfig& config)
+{
+  // Open output file
+  auto file_result = arrow::io::FileOutputStream::Open(filename);
+  if (!file_result.ok())
+  {
+    OPENMS_LOG_ERROR << "ParquetExport: Failed to open file for writing: "
+                     << filename << " - " << file_result.status().ToString() << std::endl;
+    return false;
+  }
+  auto outfile = file_result.ValueOrDie();
+
+  // Configure Parquet writer properties
+  auto builder = parquet::WriterProperties::Builder();
+  builder.compression(toArrowCompression(config.compression));
+
+  // Set compression level for algorithms that support it
+  if (config.compression == ParquetWriteConfig::Compression::ZSTD ||
+      config.compression == ParquetWriteConfig::Compression::GZIP)
+  {
+    builder.compression_level(config.compression_level);
+  }
+
+  // Configure data page size
+  builder.data_pagesize(config.data_page_size);
+
+  // Enable/disable statistics
+  if (config.write_statistics)
+  {
+    builder.enable_statistics();
+  }
+  else
+  {
+    builder.disable_statistics();
+  }
+
+  auto writer_properties = builder.build();
+
+  // Configure Arrow writer properties (row group size)
+  auto arrow_properties = parquet::ArrowWriterProperties::Builder()
+    .store_schema()  // Store Arrow schema for better type fidelity
+    ->build();
+
+  // Write the table
+  auto status = parquet::arrow::WriteTable(
+    *table,
+    arrow::default_memory_pool(),
+    outfile,
+    config.row_group_size,
+    writer_properties,
+    arrow_properties
+  );
+
+  if (!status.ok())
+  {
+    OPENMS_LOG_ERROR << "ParquetExport: Failed to write Parquet file: "
+                     << status.ToString() << std::endl;
+    return false;
+  }
+
+  // Close the file
+  auto close_status = outfile->Close();
+  if (!close_status.ok())
+  {
+    OPENMS_LOG_ERROR << "ParquetExport: Failed to close file: "
+                     << close_status.ToString() << std::endl;
+    return false;
+  }
+
+  return true;
+}
+
+} // anonymous namespace
+
+
+bool exportSpectraToParquet(
+  const MSExperiment& exp,
+  const String& filename,
+  const ArrowSpectraExportConfig& config,
+  const ParquetWriteConfig& parquet_config)
+{
+  // Build Arrow table
+  auto table = exportSpectraToArrow(exp, config);
+  if (!table)
+  {
+    OPENMS_LOG_ERROR << "ParquetExport: Failed to create Arrow table for spectra" << std::endl;
+    return false;
+  }
+
+  // Write to Parquet file
+  return writeTableToParquet(table, filename, parquet_config);
+}
+
+
+bool exportChromatogramsToParquet(
+  const MSExperiment& exp,
+  const String& filename,
+  const ArrowChromatogramExportConfig& config,
+  const ParquetWriteConfig& parquet_config)
+{
+  // Build Arrow table
+  auto table = exportChromatogramsToArrow(exp, config);
+  if (!table)
+  {
+    OPENMS_LOG_ERROR << "ParquetExport: Failed to create Arrow table for chromatograms" << std::endl;
+    return false;
+  }
+
+  // Write to Parquet file
+  return writeTableToParquet(table, filename, parquet_config);
+}
+
 
 } // namespace OpenMS
 

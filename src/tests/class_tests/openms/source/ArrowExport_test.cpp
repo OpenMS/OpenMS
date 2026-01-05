@@ -17,6 +17,7 @@
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/METADATA/Precursor.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <arrow/api.h>
 #include <arrow/type.h>
@@ -422,6 +423,137 @@ START_SECTION(ArrowChromatogramExportConfig - default values)
   TEST_REAL_SIMILAR(config.min_rt, 0.0)
   TEST_REAL_SIMILAR(config.max_rt, 0.0)
   TEST_EQUAL(config.columns.empty(), true)
+}
+END_SECTION
+
+START_SECTION(ParquetWriteConfig - default values)
+{
+  ParquetWriteConfig config;
+
+  TEST_EQUAL(config.compression == ParquetWriteConfig::Compression::ZSTD, true)
+  TEST_EQUAL(config.compression_level, 3)
+  TEST_EQUAL(config.row_group_size, 128 * 1024 * 1024)
+  TEST_EQUAL(config.write_statistics, true)
+  TEST_EQUAL(config.data_page_size, 1024 * 1024)
+}
+END_SECTION
+
+START_SECTION(exportSpectraToParquet - basic export)
+{
+  MSExperiment exp = createTestExperiment();
+
+  // Export to temp file
+  String filename = File::getTempDirectory() + "/test_spectra.parquet";
+
+  bool success = exportSpectraToParquet(exp, filename);
+  TEST_EQUAL(success, true)
+
+  // Verify file was created
+  TEST_EQUAL(File::exists(filename), true)
+  TEST_EQUAL(File::empty(filename), false)
+
+  // Clean up
+  File::remove(filename);
+}
+END_SECTION
+
+START_SECTION(exportSpectraToParquet - with compression options)
+{
+  MSExperiment exp = createTestExperiment();
+
+  String filename = File::getTempDirectory() + "/test_spectra_compressed.parquet";
+
+  // Test with different compression settings
+  ParquetWriteConfig pq_config;
+  pq_config.compression = ParquetWriteConfig::Compression::ZSTD;
+  pq_config.compression_level = 9;
+  pq_config.row_group_size = 1024 * 1024; // 1MB for testing
+
+  bool success = exportSpectraToParquet(exp, filename, ArrowSpectraExportConfig{}, pq_config);
+  TEST_EQUAL(success, true)
+
+  // Verify file was created
+  TEST_EQUAL(File::exists(filename), true)
+
+  // Clean up
+  File::remove(filename);
+}
+END_SECTION
+
+START_SECTION(exportSpectraToParquet - with filtering)
+{
+  MSExperiment exp = createTestExperiment();
+
+  String filename = File::getTempDirectory() + "/test_spectra_filtered.parquet";
+
+  // Export only MS2
+  ArrowSpectraExportConfig config;
+  config.ms_levels = {2};
+
+  bool success = exportSpectraToParquet(exp, filename, config);
+  TEST_EQUAL(success, true)
+
+  // Verify file was created
+  TEST_EQUAL(File::exists(filename), true)
+
+  // Clean up
+  File::remove(filename);
+}
+END_SECTION
+
+START_SECTION(exportSpectraToParquet - empty experiment)
+{
+  MSExperiment exp;
+
+  String filename = File::getTempDirectory() + "/test_spectra_empty.parquet";
+
+  bool success = exportSpectraToParquet(exp, filename);
+  TEST_EQUAL(success, true)
+
+  // Verify file was created (even for empty data)
+  TEST_EQUAL(File::exists(filename), true)
+
+  // Clean up
+  File::remove(filename);
+}
+END_SECTION
+
+START_SECTION(exportChromatogramsToParquet - basic export)
+{
+  MSExperiment exp = createTestExperiment();
+
+  String filename = File::getTempDirectory() + "/test_chromatograms.parquet";
+
+  bool success = exportChromatogramsToParquet(exp, filename);
+  TEST_EQUAL(success, true)
+
+  // Verify file was created
+  TEST_EQUAL(File::exists(filename), true)
+  TEST_EQUAL(File::empty(filename), false)
+
+  // Clean up
+  File::remove(filename);
+}
+END_SECTION
+
+START_SECTION(exportChromatogramsToParquet - with compression options)
+{
+  MSExperiment exp = createTestExperiment();
+
+  String filename = File::getTempDirectory() + "/test_chromatograms_snappy.parquet";
+
+  // Test with SNAPPY compression
+  ParquetWriteConfig pq_config;
+  pq_config.compression = ParquetWriteConfig::Compression::SNAPPY;
+
+  bool success = exportChromatogramsToParquet(exp, filename, ArrowChromatogramExportConfig{}, pq_config);
+  TEST_EQUAL(success, true)
+
+  // Verify file was created
+  TEST_EQUAL(File::exists(filename), true)
+
+  // Clean up
+  File::remove(filename);
 }
 END_SECTION
 
