@@ -170,7 +170,75 @@
 /**
 	@defgroup Quantitation Quantitation
 
-	@brief Quantitation-related classes 
+	@brief Quantitation-related classes
+
+	@ingroup Analysis
+*/
+
+/**
+	@defgroup TargetedQuantitation Targeted Quantitation (MRM/SRM)
+
+	@brief Classes for targeted quantitation workflows using MRM/SRM and SWATH/DIA data.
+
+	This module provides a comprehensive set of algorithms for processing targeted mass spectrometry
+	data, including Multiple Reaction Monitoring (MRM), Selected Reaction Monitoring (SRM), and
+	SWATH/DIA acquisitions. These classes form the computational foundation used by tools like
+	SmartPeaks for automated metabolomics and fluxomics data processing.
+
+	<h2>Workflow Overview</h2>
+
+	The typical targeted quantitation workflow proceeds through these stages:
+
+	@dot
+	digraph TargetedWorkflow {
+		rankdir=TB;
+		node [shape=box, style=filled, fillcolor=lightblue];
+
+		raw [label="Raw Data\n(mzML)"];
+		picking [label="Peak Picking\nMRMTransitionGroupPicker\nPeakIntegrator"];
+		filtering [label="Quality Filtering\nMRMFeatureFilter\nMRMFeatureQC"];
+		selection [label="Feature Selection\nMRMFeatureSelector\nMRMBatchFeatureSelector"];
+		quant [label="Absolute Quantitation\nAbsoluteQuantitation\nAbsoluteQuantitationMethod"];
+		results [label="Quantified Results"];
+
+		raw -> picking -> filtering -> selection -> quant -> results;
+	}
+	@enddot
+
+	<h2>Core Components</h2>
+
+	<h3>Peak Detection and Integration</h3>
+	- @ref OpenMS::MRMTransitionGroupPicker "MRMTransitionGroupPicker" - Consensus peak picking across multiple chromatograms
+	- @ref OpenMS::PeakIntegrator "PeakIntegrator" - Peak area calculation with multiple integration methods (trapezoid, Simpson's rule)
+	- @ref OpenMS::EmgGradientDescent "EmgGradientDescent" - Exponentially Modified Gaussian peak fitting for saturated/cutoff peaks
+
+	<h3>Quality Control</h3>
+	- @ref OpenMS::MRMFeatureQC "MRMFeatureQC" - Data structure for QC criteria at component, component group, and pair levels
+	- @ref OpenMS::MRMFeatureFilter "MRMFeatureFilter" - Filters features based on QC criteria, %RSD, and background interference
+	- @ref OpenMS::MRMFeatureQCFile "MRMFeatureQCFile" - File I/O for QC parameters
+
+	<h3>Feature Selection (Linear Programming)</h3>
+	- @ref OpenMS::MRMFeatureSelector "MRMFeatureSelector" - Base class for LP-based feature selection
+	- @ref OpenMS::MRMFeatureSelectorQMIP "MRMFeatureSelectorQMIP" - Quadratic Mixed Integer Programming selector
+	- @ref OpenMS::MRMFeatureSelectorScore "MRMFeatureSelectorScore" - Score-weighted linear programming selector
+	- @ref OpenMS::MRMBatchFeatureSelector "MRMBatchFeatureSelector" - Iterative batch processing
+
+	<h3>Absolute Quantitation</h3>
+	- @ref OpenMS::AbsoluteQuantitation "AbsoluteQuantitation" - Calibration curve fitting and concentration calculation
+	- @ref OpenMS::AbsoluteQuantitationMethod "AbsoluteQuantitationMethod" - Method parameters (LOD, LOQ, transformation model)
+	- @ref OpenMS::AbsoluteQuantitationStandards "AbsoluteQuantitationStandards" - Standard concentration management
+
+	<h3>Spectrum Extraction</h3>
+	- @ref OpenMS::TargetedSpectraExtractor "TargetedSpectraExtractor" - Extract and score spectra from DDA experiments
+
+	<h2>References</h2>
+
+	These algorithms are described in:
+	- McCloskey D, et al. "SmartPeaks: An Open Source Tool for Automated Processing of
+	  LC-MS Metabolomics and Fluxomics Data" (2020)
+
+	@see @ref TOPP_MRMTransitionGroupPicker
+	@see @ref TOPP_OpenSwathWorkflow
 
 	@ingroup Analysis
 */

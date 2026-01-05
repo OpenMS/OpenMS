@@ -3,6 +3,8 @@ from MZTrafoModel cimport *
 from RANSAC cimport *
 from String cimport *
 from CalibrationData cimport *
+from libcpp.string cimport string as libcpp_utf8_string
+from libcpp.string cimport string as libcpp_utf8_output_string
 
 cdef extern from "<OpenMS/PROCESSING/CALIBRATION/MZTrafoModel.h>" namespace "OpenMS":
 
@@ -115,8 +117,27 @@ cdef extern from "<OpenMS/PROCESSING/CALIBRATION/MZTrafoModel.h>" namespace "Ope
                 #  :param slope: The slope
                 #  :param power: The x*x coefficient (for quadratic models)
 
-        String toString() except + nogil 
-        
+        String toString() except + nogil
+
+        # static members
+        @staticmethod
+        MZTrafoModel_MODELTYPE nameToEnum(libcpp_utf8_string name) except + nogil
+
+        @staticmethod
+        libcpp_utf8_output_string enumToName(MZTrafoModel_MODELTYPE mt) except + nogil
+
+        @staticmethod
+        void setRANSACParams(RANSACParam p) except + nogil
+
+        @staticmethod
+        void setCoefficientLimits(double offset, double scale, double power) except + nogil
+
+        @staticmethod
+        bool isValidModel(MZTrafoModel& trafo) except + nogil
+
+        @staticmethod
+        Size findNearest(libcpp_vector[MZTrafoModel]& tms, double rt) except + nogil
+
 cdef extern from "<OpenMS/PROCESSING/CALIBRATION/MZTrafoModel.h>" namespace "OpenMS::MZTrafoModel":
 
     cdef enum MZTrafoModel_MODELTYPE "OpenMS::MZTrafoModel::MODELTYPE":
@@ -125,13 +146,3 @@ cdef extern from "<OpenMS/PROCESSING/CALIBRATION/MZTrafoModel.h>" namespace "Ope
         QUADRATIC
         QUADRATIC_WEIGHTED
         SIZE_OF_MODELTYPE
-    
-    # static members
-    # libcpp_string names_of_modeltype[] except + nogil 
-    MZTrafoModel_MODELTYPE nameToEnum(libcpp_string name) except + nogil  # wrap-attach:MZTrafoModel
-    libcpp_string enumToName(MZTrafoModel_MODELTYPE mt) except + nogil  # wrap-attach:MZTrafoModel
-    void setRANSACParams(RANSACParam p) except + nogil  # wrap-attach:MZTrafoModel
-    void setCoefficientLimits(double offset, double scale, double power) except + nogil  # wrap-attach:MZTrafoModel
-    bool isValidModel(MZTrafoModel& trafo) except + nogil  # wrap-attach:MZTrafoModel
-    Size findNearest(libcpp_vector[MZTrafoModel]& tms, double rt) except + nogil  # wrap-attach:MZTrafoModel
-    

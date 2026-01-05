@@ -16,9 +16,35 @@
 namespace OpenMS
 {
   /**
-    Class used to batch multiple calls to `MRMFeatureSelector`'s methods.
-    The class offers a generic batch method (where the user is supposed to pass
-    a `MRMFeatureSelector` derived object) and two specialized versions (Score and QMIP).
+    @brief Batch processing wrapper for MRMFeatureSelector.
+
+    This class enables iterative refinement of feature selection by applying
+    MRMFeatureSelector multiple times with different parameter sets. Each iteration
+    uses the output of the previous iteration as input, allowing for progressive
+    filtering and optimization.
+
+    @section MRMBatchFeatureSelector_usage Usage
+
+    @code
+    FeatureMap features, selected;
+    std::vector<MRMFeatureSelector::SelectorParameters> params_list;
+
+    // First pass: relaxed parameters
+    params_list.push_back(MRMFeatureSelector::SelectorParameters());
+
+    // Second pass: stricter parameters
+    MRMFeatureSelector::SelectorParameters strict;
+    strict.optimal_threshold = 0.8;
+    params_list.push_back(strict);
+
+    MRMBatchFeatureSelector::batchMRMFeaturesScore(features, selected, params_list);
+    @endcode
+
+    @see MRMFeatureSelector for single-pass feature selection
+    @see MRMFeatureSelectorQMIP for QMIP-based selection
+    @see MRMFeatureSelectorScore for score-based selection
+
+    @ingroup TargetedQuantitation
   */
   class OPENMS_DLLAPI MRMBatchFeatureSelector
   {
