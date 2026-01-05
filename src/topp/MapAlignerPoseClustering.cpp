@@ -200,6 +200,10 @@ protected:
     ProgressLogger plog;
     plog.setLogType(log_type_);
 
+    // Collect transformations for optional spectra files
+    // Pre-allocated for thread-safe access in OpenMP parallel loop
+    vector<TransformationDescription> transformations(in_files.size());
+
     plog.startProgress(0, in_files.size(), "Aligning input maps");
     Size progress(0); // thread-safe progress
     // TODO: it should all work on featureXML files, since we might need them for output anyway. Converting to consensusXML is just wasting memory!
@@ -264,6 +268,9 @@ protected:
         }
       }
 
+      // Store transformation for this file
+      transformations[i] = trafo;
+
       if (!out_trafos.empty())
       {
         FileHandler().storeTransformations(out_trafos[i], trafo, {FileTypes::TRANSFORMATIONXML});
@@ -278,6 +285,13 @@ protected:
     }
 
     plog.endProgress();
+    
+    // Transform optional spectra files
+    // Note: MapAlignerPoseClustering does not support store_original_rt flag
+    StringList in_spectra_files = getStringList_("in_spectra_files");
+    StringList out_spectra_files = getStringList_("out_spectra_files");
+    transformSpectraFiles_(in_spectra_files, out_spectra_files, transformations, false);
+    
     return EXECUTION_OK;
   }
 

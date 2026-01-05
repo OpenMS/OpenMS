@@ -23,12 +23,22 @@ namespace OpenMS
   class AbsoluteQuantitationMethod;
 
   /**
-
     @brief The MRMFeatureFilter either flags components and/or transitions that do not pass the QC criteria or filters out
       components and/or transitions that do not pass the QC criteria.
 
+    This class provides comprehensive quality control filtering for MRM/SRM features. It can:
+    - Filter based on retention time, intensity, and quality bounds
+    - Filter based on ion ratios between transitions
+    - Filter based on %RSD from pooled QC samples
+    - Filter based on background interference from blank samples
+    - Estimate default QC values from standard samples
+
     @htmlinclude OpenMS_MRMFeatureFilter.parameters
 
+    @see MRMFeatureQC for QC parameter structure
+    @see AbsoluteQuantitation for downstream quantitation
+
+    @ingroup TargetedQuantitation
   */
   class OPENMS_DLLAPI MRMFeatureFilter :
     public DefaultParamHandler

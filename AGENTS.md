@@ -190,7 +190,7 @@ END_TEST
 
 ## Coding Conventions
 
-- Indentation: 2 spaces, no tabs; Unix line endings.
+- Indentation: 2 spaces for C++/headers, 4 spaces for Python/Cython (PEP 8); no tabs; Unix line endings.
 - Spacing: after keywords (`if`, `for`) and around binary operators.
 - Braces: opening/closing braces align; use braces even for single-line blocks (trivial one-liners may stay single-line).
 - File names: class name matches file name; one class per file; always pair `.h` with `.cpp`.
@@ -435,8 +435,8 @@ void MyClass::process(const MSSpectrum& spectrum)
 - Run `tools/checker.php` and/or `ENABLE_STYLE_TESTING` for local checks.
 
 **Commit message example:**
-**Formatting rules:**
-- 2 spaces indentation, no tabs
+**Formatting rules (C++):**
+- 2 spaces indentation, no tabs (Python/Cython uses 4 spaces per PEP 8)
 - Unix line endings (LF)
 - Braces on their own lines, aligned
 - Space after keywords (`if`, `for`, `while`)
