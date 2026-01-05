@@ -11,13 +11,9 @@ cdef extern from "<OpenMS/FORMAT/PercolatorInfile.h>" namespace "OpenMS":
         # wrap-doc:
             #  Class for storing Percolator tab-delimited input files
 
-        PercolatorInfile() except + nogil 
-        PercolatorInfile(PercolatorInfile &) except + nogil  
+        PercolatorInfile() except + nogil
+        PercolatorInfile(PercolatorInfile &) except + nogil
 
-
-# COMMENT: wrap static methods
-cdef extern from "<OpenMS/FORMAT/PercolatorInfile.h>" namespace "OpenMS::PercolatorInfile":
-        
         # static members
-        void store(String pin_file, PeptideIdentificationList peptide_ids, StringList feature_set, libcpp_string, int min_charge, int max_charge) except + nogil   # wrap-attach:PercolatorInfile
-        
+        @staticmethod
+        void store(String pin_file, PeptideIdentificationList peptide_ids, StringList feature_set, libcpp_string enz, int min_charge, int max_charge) except + nogil
