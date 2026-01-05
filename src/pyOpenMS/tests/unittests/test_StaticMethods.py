@@ -489,6 +489,168 @@ class TestExperimentalDesignStaticMethods(unittest.TestCase):
         result = pyopenms.ExperimentalDesign.fromConsensusMap(cm)
         self.assertIsNotNone(result)
 
+    def test_fromIdentifications(self):
+        """Test ExperimentalDesign.fromIdentifications static method."""
+        proteins = []
+        result = pyopenms.ExperimentalDesign.fromIdentifications(proteins)
+        self.assertIsNotNone(result)
+
+
+class TestAASequenceStaticMethods(unittest.TestCase):
+    """Test AASequence static methods."""
+
+    def test_fromString(self):
+        """Test AASequence.fromString static method (deprecated but still exposed)."""
+        seq = pyopenms.AASequence.fromString("PEPTIDE")
+        self.assertIsNotNone(seq)
+        self.assertEqual(seq.toString(), b"PEPTIDE")
+
+    def test_fromStringPermissive(self):
+        """Test AASequence.fromStringPermissive static method."""
+        seq = pyopenms.AASequence.fromStringPermissive("PEPTIDE", True)
+        self.assertIsNotNone(seq)
+        self.assertEqual(seq.toString(), b"PEPTIDE")
+
+
+class TestNASequenceStaticMethods(unittest.TestCase):
+    """Test NASequence static methods."""
+
+    def test_fromString(self):
+        """Test NASequence.fromString static method."""
+        # Use a simple RNA sequence
+        seq = pyopenms.NASequence.fromString("ACGU")
+        self.assertIsNotNone(seq)
+
+
+class TestFileHandlerAdditionalStaticMethods(unittest.TestCase):
+    """Test additional FileHandler static methods."""
+
+    def test_getType(self):
+        """Test FileHandler.getType static method."""
+        file_type = pyopenms.FileHandler.getType("test.mzML")
+        self.assertIsNotNone(file_type)
+        # Should return an integer (enum value)
+        self.assertIsInstance(file_type, int)
+
+    def test_getTypeByContent(self):
+        """Test FileHandler.getTypeByContent static method with a real file."""
+        # Create a minimal mzML file
+        exp = pyopenms.MSExperiment()
+        with tempfile.NamedTemporaryFile(suffix=".mzML", delete=False) as f:
+            temp_path = f.name
+        try:
+            pyopenms.MzMLFile().store(temp_path, exp)
+            file_type = pyopenms.FileHandler.getTypeByContent(temp_path)
+            self.assertIsNotNone(file_type)
+        finally:
+            if os.path.exists(temp_path):
+                os.unlink(temp_path)
+
+    def test_computeFileHash(self):
+        """Test FileHandler.computeFileHash static method."""
+        with tempfile.NamedTemporaryFile(delete=False, mode='w') as f:
+            f.write("test content")
+            temp_path = f.name
+        try:
+            hash_val = pyopenms.FileHandler.computeFileHash(temp_path)
+            self.assertIsNotNone(hash_val)
+            self.assertGreater(len(str(hash_val)), 0)
+        finally:
+            os.unlink(temp_path)
+
+    def test_stripExtension(self):
+        """Test FileHandler.stripExtension static method."""
+        result = pyopenms.FileHandler.stripExtension("/path/to/file.mzML")
+        self.assertIn("file", str(result))
+        self.assertNotIn(".mzML", str(result))
+
+    def test_swapExtension(self):
+        """Test FileHandler.swapExtension static method."""
+        result = pyopenms.FileHandler.swapExtension("test.mzML", pyopenms.FileType.FEATUREXML)
+        self.assertIn("featureXML", str(result))
+
+
+class TestMRMRTNormalizerAdditionalStaticMethods(unittest.TestCase):
+    """Test additional MRMRTNormalizer static methods."""
+
+    def test_chauvenet_probability(self):
+        """Test MRMRTNormalizer.chauvenet_probability static method."""
+        residuals = [0.1, 0.2, 0.15, 0.12, 0.18]
+        prob = pyopenms.MRMRTNormalizer.chauvenet_probability(residuals, 0)
+        self.assertIsNotNone(prob)
+        self.assertIsInstance(prob, float)
+
+    def test_chauvenet(self):
+        """Test MRMRTNormalizer.chauvenet static method."""
+        residuals = [0.1, 0.2, 0.15, 0.12, 0.18]
+        result = pyopenms.MRMRTNormalizer.chauvenet(residuals, 0)
+        self.assertIsInstance(result, bool)
+
+    def test_computeBinnedCoverage(self):
+        """Test MRMRTNormalizer.computeBinnedCoverage static method."""
+        rt_range = [0.0, 1000.0]
+        pairs = [[100.0, 110.0], [200.0, 210.0], [300.0, 310.0], [400.0, 410.0], [500.0, 510.0]]
+        result = pyopenms.MRMRTNormalizer.computeBinnedCoverage(rt_range, pairs, 5, 1, 3)
+        self.assertIsInstance(result, bool)
+
+
+class TestTransformationDescriptionStaticMethods(unittest.TestCase):
+    """Test TransformationDescription static methods."""
+
+    def test_getModelTypes(self):
+        """Test TransformationDescription.getModelTypes static method."""
+        result = []
+        pyopenms.TransformationDescription.getModelTypes(result)
+        self.assertIsInstance(result, list)
+        self.assertGreater(len(result), 0)
+
+
+class TestFLASHDeconvStaticMethods(unittest.TestCase):
+    """Test FLASHDeconv static methods."""
+
+    def test_FLASHDeconvAlgorithm_getScanNumber(self):
+        """Test FLASHDeconvAlgorithm.getScanNumber static method."""
+        exp = pyopenms.MSExperiment()
+        spectrum = pyopenms.MSSpectrum()
+        exp.addSpectrum(spectrum)
+        scan_num = pyopenms.FLASHDeconvAlgorithm.getScanNumber(exp, 0)
+        self.assertIsInstance(scan_num, int)
+
+    def test_FLASHDeconvMass_getLogMz(self):
+        """Test FLASHDeconvMass.getLogMz static method."""
+        log_mz = pyopenms.FLASHDeconvMass.getLogMz(500.0, True)
+        self.assertIsInstance(log_mz, float)
+        self.assertGreater(log_mz, 0)
+
+    def test_FLASHDeconvMass_getChargeMass(self):
+        """Test FLASHDeconvMass.getChargeMass static method."""
+        charge_mass = pyopenms.FLASHDeconvMass.getChargeMass(True)
+        self.assertIsInstance(charge_mass, float)
+
+
+class TestSpectrumMetaDataLookupStaticMethods(unittest.TestCase):
+    """Test SpectrumMetaDataLookup static methods."""
+
+    def test_addMissingRTsToPeptideIDs(self):
+        """Test SpectrumMetaDataLookup.addMissingRTsToPeptideIDs static method."""
+        peptides = pyopenms.PeptideIdentificationList()
+        exp = pyopenms.MSExperiment()
+        filename = "test.mzML"
+        result = pyopenms.SpectrumMetaDataLookup.addMissingRTsToPeptideIDs(
+            peptides, filename, exp
+        )
+        self.assertIsInstance(result, bool)
+
+    def test_addMissingSpectrumReferences(self):
+        """Test SpectrumMetaDataLookup.addMissingSpectrumReferences static method."""
+        peptides = pyopenms.PeptideIdentificationList()
+        exp = pyopenms.MSExperiment()
+        filename = "test.mzML"
+        result = pyopenms.SpectrumMetaDataLookup.addMissingSpectrumReferences(
+            peptides, filename, exp
+        )
+        self.assertIsInstance(result, bool)
+
 
 if __name__ == '__main__':
     unittest.main()
