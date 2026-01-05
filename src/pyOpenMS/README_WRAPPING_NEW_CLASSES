@@ -248,6 +248,65 @@ Use "# wrap-ignore" on constructors when:
   3. The class should not be instantiated from Python
   4. The copy constructor is explicitly deleted (e.g., for non-copyable classes)
 
-Always add a comment explaining why the constructor is ignored (e.g., "# private", 
+Always add a comment explaining why the constructor is ignored (e.g., "# private",
 "# deleted", "# singleton pattern", "# deleted in base class").
+
+= String handling in pxd files
+
+When wrapping C++ functions with std::string parameters, use the appropriate string
+type alias to provide a Pythonic interface:
+
+== String type aliases
+
+- **libcpp_string**: Basic C++ std::string mapping. In Python, accepts only bytes.
+  Use for member variables and internal data storage.
+
+- **libcpp_utf8_string**: For function INPUT parameters. Accepts both Python str
+  and bytes, automatically encoding str to UTF-8. More Pythonic for user-facing APIs.
+
+- **libcpp_utf8_output_string**: For function RETURN values. Converts C++ std::string
+  to Python str (instead of bytes). More Pythonic for user-facing APIs.
+
+== Import syntax
+
+    from libcpp.string cimport string as libcpp_string
+    from libcpp.string cimport string as libcpp_utf8_string
+    from libcpp.string cimport string as libcpp_utf8_output_string
+
+== Guidelines
+
+1. Use **libcpp_utf8_string** for function parameters that users pass in:
+
+    void setName(libcpp_utf8_string name) except + nogil   # accepts str or bytes
+
+2. Use **libcpp_utf8_output_string** for return values that users receive:
+
+    libcpp_utf8_output_string getName() except + nogil     # returns str
+
+3. Keep **libcpp_string** for:
+   - Member variables (internal data storage)
+   - Return types in containers (e.g., libcpp_vector[libcpp_string])
+   - Cases where raw bytes are semantically correct
+
+== Example
+
+Before (bytes-only):
+    void processFile(libcpp_string filename) except + nogil
+    # Python: obj.processFile(b"/path/to/file")  # bytes required
+
+After (str and bytes):
+    void processFile(libcpp_utf8_string filename) except + nogil
+    # Python: obj.processFile("/path/to/file")   # str works
+    # Python: obj.processFile(b"/path/to/file")  # bytes still works
+
+== Manual addon wrappers
+
+When wrapping functions manually (with wrap-ignore), implement the same behavior:
+
+    def myMethod(self, code):
+        """Accepts str or bytes."""
+        assert isinstance(code, (bytes, str)), 'arg code wrong type'
+        if isinstance(code, str):
+            code = code.encode('utf-8')
+        # ... call C++ function with bytes ...
 
