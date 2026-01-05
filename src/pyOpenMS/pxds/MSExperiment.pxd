@@ -1,4 +1,5 @@
 from libcpp.vector cimport vector as libcpp_vector
+from libcpp.string cimport string as libcpp_utf8_string
 from MSSpectrum cimport *
 from MSChromatogram cimport *
 from DataValue cimport *
@@ -64,8 +65,8 @@ cdef extern from "<OpenMS/KERNEL/MSExperiment.h>" namespace "OpenMS":
         void get2DPeakDataIM(double min_rt, double max_rt, double min_mz, double max_mz, unsigned int ms_level, libcpp_vector[float] & rt, libcpp_vector[float] & mz, libcpp_vector[float] & intensity, libcpp_vector[float] & ion_mobility) except + nogil  # wrap-ignore
         void get2DPeakDataPerSpectrum(double min_rt, double max_rt, double min_mz, double max_mz, unsigned int ms_level, libcpp_vector[float] & rt, libcpp_vector[libcpp_vector[float]] & mz, libcpp_vector[libcpp_vector[float]] & intensity) except + nogil  # wrap-ignore
         void get2DPeakDataIMPerSpectrum(double min_rt, double max_rt, double min_mz, double max_mz, unsigned int ms_level, libcpp_vector[float] & rt, libcpp_vector[libcpp_vector[float]] & mz, libcpp_vector[libcpp_vector[float]] & intensity, libcpp_vector[libcpp_vector[float]] & ion_mobility) except + nogil  # wrap-ignore
-        libcpp_vector[libcpp_vector[double]] aggregateFromMatrix(Matrix[double] & ranges, unsigned int ms_level, libcpp_string mz_agg) except + nogil # wrap-doc:Aggregates intensity values for multiple m/z and RT ranges specified in a matrix
-        libcpp_vector[MSChromatogram] extractXICsFromMatrix(Matrix[double] & ranges, unsigned int ms_level, libcpp_string mz_agg) except + nogil # wrap-doc:Extracts XIC chromatograms for multiple m/z and RT ranges specified in a matrix
+        libcpp_vector[libcpp_vector[double]] aggregateFromMatrix(Matrix[double] & ranges, unsigned int ms_level, libcpp_utf8_string mz_agg) except + nogil # wrap-doc:Aggregates intensity values for multiple m/z and RT ranges specified in a matrix
+        libcpp_vector[MSChromatogram] extractXICsFromMatrix(Matrix[double] & ranges, unsigned int ms_level, libcpp_utf8_string mz_agg) except + nogil # wrap-doc:Extracts XIC chromatograms for multiple m/z and RT ranges specified in a matrix
 
         # COMMENT: Chromatogram functions
         MSChromatogram getChromatogram(Size id_) except + nogil  # wrap-ignore

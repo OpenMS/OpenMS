@@ -1,6 +1,7 @@
 from Types cimport *
 from libcpp.vector cimport vector as libcpp_vector
 from libcpp.string cimport string as libcpp_string
+from libcpp.string cimport string as libcpp_utf8_string
 
 cdef extern from "<OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>" namespace "OpenSwath":
 
@@ -43,7 +44,7 @@ cdef extern from "<OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>" name
 
         # Fragment type getter/setter (string interface for backward compatibility)
         libcpp_string getFragmentType() except + nogil
-        void setFragmentType(libcpp_string s) except + nogil
+        void setFragmentType(libcpp_utf8_string s) except + nogil
 
         # Annotation reconstruction (computed from fragment_type, fragment_nr, fragment_charge)
         libcpp_string getAnnotation() except + nogil
@@ -114,6 +115,6 @@ cdef extern from "<OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>" name
         libcpp_vector[LightCompound] getCompounds() except + nogil 
         libcpp_vector[LightProtein] getProteins() except + nogil 
 
-        LightCompound getCompoundByRef(libcpp_string & ref) except + nogil 
-        LightCompound getPeptideByRef(libcpp_string & ref) except + nogil 
+        LightCompound getCompoundByRef(libcpp_utf8_string & ref) except + nogil 
+        LightCompound getPeptideByRef(libcpp_utf8_string & ref) except + nogil 
 

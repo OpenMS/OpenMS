@@ -1,4 +1,5 @@
 from Types cimport *
+from libcpp.string cimport string as libcpp_utf8_string
 
 cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMRTNormalizer.h>" namespace "OpenMS":
 
@@ -13,7 +14,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMRTNormalizer.h>" namespace "Open
                 double rsq_limit,
                 double coverage_limit,
                 bool use_chauvenet,
-                libcpp_string outlier_detection_method
+                libcpp_utf8_string outlier_detection_method
                 ) except + nogil
 
         @staticmethod

@@ -1,5 +1,6 @@
 from Types cimport *
 from libcpp cimport bool
+from libcpp.string cimport string as libcpp_utf8_string
 from Types cimport *
 from String cimport *
 from InterfaceDataStructures cimport *
@@ -25,9 +26,9 @@ cdef extern from "<OpenMS/FORMAT/HANDLERS/IndexedMzMLHandler.h>" namespace "Open
         shared_ptr[Chromatogram] getChromatogramById(int id_) except + nogil 
 
         MSSpectrum getMSSpectrumById(int id_) except + nogil 
-        void getMSSpectrumByNativeId(libcpp_string id_, MSSpectrum& spec) except + nogil 
+        void getMSSpectrumByNativeId(libcpp_utf8_string id_, MSSpectrum& spec) except + nogil 
         MSChromatogram getMSChromatogramById(int id_) except + nogil 
-        void getMSChromatogramByNativeId(libcpp_string id_, MSChromatogram& chrom) except + nogil 
+        void getMSChromatogramByNativeId(libcpp_utf8_string id_, MSChromatogram& chrom) except + nogil 
 
         void setSkipXMLChecks(bool skip) except + nogil 
 
