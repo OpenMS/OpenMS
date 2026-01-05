@@ -259,8 +259,6 @@ protected:
 
     // Prepare algorithm parameters
     auto tool_parameter = getParam_().copySubset(FeatureFinderAlgorithmMetaboIdent().getDefaults());
-    tool_parameter.setValue("EMGScoring:init_mom", "true"); // overwrite defaults
-    tool_parameter.setValue("EMGScoring:max_iteration", 100); // overwrite defaults
     tool_parameter.setValue("debug", debug_level_); // pass down debug level
 
     OPENMS_LOG_INFO << "Loading input LC-MS data..." << endl;
