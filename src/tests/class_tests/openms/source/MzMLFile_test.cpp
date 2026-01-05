@@ -271,79 +271,79 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
   file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"),exp);
 
   //test DocumentIdentifier addition
-  TEST_STRING_EQUAL(exp.getLoadedFilePath(), OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"));
-  TEST_STRING_EQUAL(FileTypes::typeToName(exp.getLoadedFileType()),"mzML");
+  TEST_STRING_EQUAL(exp.getExperimentalSettings().getLoadedFilePath(), OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"));
+  TEST_STRING_EQUAL(FileTypes::typeToName(exp.getExperimentalSettings().getLoadedFileType()),"mzML");
 
   //-------------------------- general information --------------------------
 
   TEST_EQUAL(exp.size(),4)
   //run
-  TEST_EQUAL(exp.getIdentifier(),"document_accession")
-  TEST_EQUAL(exp.getFractionIdentifier(),"the_best_fraction_ever")
-  TEST_EQUAL(exp.getDateTime().get(),"2007-06-27 15:23:45")
+  TEST_EQUAL(exp.getExperimentalSettings().getIdentifier(),"document_accession")
+  TEST_EQUAL(exp.getExperimentalSettings().getFractionIdentifier(),"the_best_fraction_ever")
+  TEST_EQUAL(exp.getExperimentalSettings().getDateTime().get(),"2007-06-27 15:23:45")
   //contacts
-  TEST_EQUAL(exp.getContacts().size(),2)
-  TEST_STRING_EQUAL(exp.getContacts()[0].getFirstName(),"William")
-  TEST_STRING_EQUAL(exp.getContacts()[0].getLastName(),"Pennington")
-  TEST_STRING_EQUAL(exp.getContacts()[0].getEmail(),"wpennington@higglesworth.edu")
-  TEST_STRING_EQUAL(exp.getContacts()[0].getURL(),"http://www.higglesworth.edu/")
-  TEST_STRING_EQUAL(exp.getContacts()[0].getAddress(),"Higglesworth University, 12 Higglesworth Avenue, 12045, HI, USA")
-  TEST_STRING_EQUAL(exp.getContacts()[1].getFirstName(),"Guybrush")
-  TEST_STRING_EQUAL(exp.getContacts()[1].getLastName(),"Threepwood")
-  TEST_STRING_EQUAL(exp.getContacts()[1].getEmail(),"")
-  TEST_STRING_EQUAL(exp.getContacts()[1].getURL(),"")
-  TEST_STRING_EQUAL(exp.getContacts()[1].getAddress(),"")
+  TEST_EQUAL(exp.getExperimentalSettings().getContacts().size(),2)
+  TEST_STRING_EQUAL(exp.getExperimentalSettings().getContacts()[0].getFirstName(),"William")
+  TEST_STRING_EQUAL(exp.getExperimentalSettings().getContacts()[0].getLastName(),"Pennington")
+  TEST_STRING_EQUAL(exp.getExperimentalSettings().getContacts()[0].getEmail(),"wpennington@higglesworth.edu")
+  TEST_STRING_EQUAL(exp.getExperimentalSettings().getContacts()[0].getURL(),"http://www.higglesworth.edu/")
+  TEST_STRING_EQUAL(exp.getExperimentalSettings().getContacts()[0].getAddress(),"Higglesworth University, 12 Higglesworth Avenue, 12045, HI, USA")
+  TEST_STRING_EQUAL(exp.getExperimentalSettings().getContacts()[1].getFirstName(),"Guybrush")
+  TEST_STRING_EQUAL(exp.getExperimentalSettings().getContacts()[1].getLastName(),"Threepwood")
+  TEST_STRING_EQUAL(exp.getExperimentalSettings().getContacts()[1].getEmail(),"")
+  TEST_STRING_EQUAL(exp.getExperimentalSettings().getContacts()[1].getURL(),"")
+  TEST_STRING_EQUAL(exp.getExperimentalSettings().getContacts()[1].getAddress(),"")
   //source files
-  TEST_EQUAL(exp.getSourceFiles().size(),5);
-  TEST_STRING_EQUAL(exp.getSourceFiles()[0].getNameOfFile(),"tiny1.RAW")
-  TEST_STRING_EQUAL(exp.getSourceFiles()[0].getPathToFile(),"file:///F:/data/Exp01")
-  TEST_STRING_EQUAL(exp.getSourceFiles()[0].getChecksum(),"71be39fb2700ab2f3c8b2234b91274968b6899b1")
-  TEST_EQUAL(exp.getSourceFiles()[0].getChecksumType(),SourceFile::SHA1)
-  TEST_STRING_EQUAL(exp.getSourceFiles()[0].getFileType(),"Thermo RAW format")
-  TEST_STRING_EQUAL(exp.getSourceFiles()[0].getNativeIDType(),"multiple peak list nativeID format")
+  TEST_EQUAL(exp.getExperimentalSettings().getSourceFiles().size(),5);
+  TEST_STRING_EQUAL(exp.getExperimentalSettings().getSourceFiles()[0].getNameOfFile(),"tiny1.RAW")
+  TEST_STRING_EQUAL(exp.getExperimentalSettings().getSourceFiles()[0].getPathToFile(),"file:///F:/data/Exp01")
+  TEST_STRING_EQUAL(exp.getExperimentalSettings().getSourceFiles()[0].getChecksum(),"71be39fb2700ab2f3c8b2234b91274968b6899b1")
+  TEST_EQUAL(exp.getExperimentalSettings().getSourceFiles()[0].getChecksumType(),SourceFile::SHA1)
+  TEST_STRING_EQUAL(exp.getExperimentalSettings().getSourceFiles()[0].getFileType(),"Thermo RAW format")
+  TEST_STRING_EQUAL(exp.getExperimentalSettings().getSourceFiles()[0].getNativeIDType(),"multiple peak list nativeID format")
   //sample
-  TEST_STRING_EQUAL(exp.getSample().getName(),"Sample1")
-  TEST_REAL_SIMILAR(exp.getSample().getMass(),11.7)
-  TEST_STRING_EQUAL(exp.getSample().getNumber(),"5")
-  TEST_REAL_SIMILAR(exp.getSample().getVolume(),3.1)
-  TEST_REAL_SIMILAR(exp.getSample().getConcentration(),5.5)
-  TEST_EQUAL(exp.getSample().getState(),Sample::SUSPENSION)
+  TEST_STRING_EQUAL(exp.getExperimentalSettings().getSample().getName(),"Sample1")
+  TEST_REAL_SIMILAR(exp.getExperimentalSettings().getSample().getMass(),11.7)
+  TEST_STRING_EQUAL(exp.getExperimentalSettings().getSample().getNumber(),"5")
+  TEST_REAL_SIMILAR(exp.getExperimentalSettings().getSample().getVolume(),3.1)
+  TEST_REAL_SIMILAR(exp.getExperimentalSettings().getSample().getConcentration(),5.5)
+  TEST_EQUAL(exp.getExperimentalSettings().getSample().getState(),Sample::SUSPENSION)
   //instrument (general)
-  TEST_STRING_EQUAL(exp.getInstrument().getName(),"LCQ Deca")
-  TEST_STRING_EQUAL(exp.getInstrument().getCustomizations(),"Umbau")
+  TEST_STRING_EQUAL(exp.getExperimentalSettings().getInstrument().getName(),"LCQ Deca")
+  TEST_STRING_EQUAL(exp.getExperimentalSettings().getInstrument().getCustomizations(),"Umbau")
   //ion sources
-  TEST_EQUAL(exp.getInstrument().getIonSources().size(),2)
-  TEST_EQUAL(exp.getInstrument().getIonSources()[0].getOrder(),101)
-  TEST_EQUAL(exp.getInstrument().getIonSources()[0].getInletType(),IonSource::DIRECT)
-  TEST_EQUAL(exp.getInstrument().getIonSources()[0].getIonizationMethod(),IonSource::ESI)
-  TEST_EQUAL(exp.getInstrument().getIonSources()[1].getOrder(),102)
-  TEST_EQUAL(exp.getInstrument().getIonSources()[1].getInletType(),IonSource::DIRECT)
-  TEST_EQUAL(exp.getInstrument().getIonSources()[1].getIonizationMethod(),IonSource::FAB)
+  TEST_EQUAL(exp.getExperimentalSettings().getInstrument().getIonSources().size(),2)
+  TEST_EQUAL(exp.getExperimentalSettings().getInstrument().getIonSources()[0].getOrder(),101)
+  TEST_EQUAL(exp.getExperimentalSettings().getInstrument().getIonSources()[0].getInletType(),IonSource::DIRECT)
+  TEST_EQUAL(exp.getExperimentalSettings().getInstrument().getIonSources()[0].getIonizationMethod(),IonSource::ESI)
+  TEST_EQUAL(exp.getExperimentalSettings().getInstrument().getIonSources()[1].getOrder(),102)
+  TEST_EQUAL(exp.getExperimentalSettings().getInstrument().getIonSources()[1].getInletType(),IonSource::DIRECT)
+  TEST_EQUAL(exp.getExperimentalSettings().getInstrument().getIonSources()[1].getIonizationMethod(),IonSource::FAB)
   //mass analyzers
-  TEST_EQUAL(exp.getInstrument().getMassAnalyzers().size(),2)
-  TEST_EQUAL(exp.getInstrument().getMassAnalyzers()[0].getOrder(),201)
-  TEST_EQUAL(exp.getInstrument().getMassAnalyzers()[0].getType(),MassAnalyzer::PAULIONTRAP)
-  TEST_REAL_SIMILAR(exp.getInstrument().getMassAnalyzers()[0].getAccuracy(),10.5)
-  TEST_REAL_SIMILAR(exp.getInstrument().getMassAnalyzers()[0].getMagneticFieldStrength(),14.56)
-  TEST_REAL_SIMILAR(exp.getInstrument().getMassAnalyzers()[0].getTOFTotalPathLength(),11.1)
-  TEST_EQUAL(exp.getInstrument().getMassAnalyzers()[1].getOrder(),202)
-  TEST_EQUAL(exp.getInstrument().getMassAnalyzers()[1].getType(),MassAnalyzer::LIT)
-  TEST_REAL_SIMILAR(exp.getInstrument().getMassAnalyzers()[1].getMagneticFieldStrength(),1414.14)
+  TEST_EQUAL(exp.getExperimentalSettings().getInstrument().getMassAnalyzers().size(),2)
+  TEST_EQUAL(exp.getExperimentalSettings().getInstrument().getMassAnalyzers()[0].getOrder(),201)
+  TEST_EQUAL(exp.getExperimentalSettings().getInstrument().getMassAnalyzers()[0].getType(),MassAnalyzer::PAULIONTRAP)
+  TEST_REAL_SIMILAR(exp.getExperimentalSettings().getInstrument().getMassAnalyzers()[0].getAccuracy(),10.5)
+  TEST_REAL_SIMILAR(exp.getExperimentalSettings().getInstrument().getMassAnalyzers()[0].getMagneticFieldStrength(),14.56)
+  TEST_REAL_SIMILAR(exp.getExperimentalSettings().getInstrument().getMassAnalyzers()[0].getTOFTotalPathLength(),11.1)
+  TEST_EQUAL(exp.getExperimentalSettings().getInstrument().getMassAnalyzers()[1].getOrder(),202)
+  TEST_EQUAL(exp.getExperimentalSettings().getInstrument().getMassAnalyzers()[1].getType(),MassAnalyzer::LIT)
+  TEST_REAL_SIMILAR(exp.getExperimentalSettings().getInstrument().getMassAnalyzers()[1].getMagneticFieldStrength(),1414.14)
   //detectors
-  TEST_EQUAL(exp.getInstrument().getIonDetectors().size(),2)
-  TEST_EQUAL(exp.getInstrument().getIonDetectors()[0].getOrder(),301)
-  TEST_EQUAL(exp.getInstrument().getIonDetectors()[0].getType(),IonDetector::ELECTRONMULTIPLIER)
-  TEST_EQUAL(exp.getInstrument().getIonDetectors()[0].getAcquisitionMode(),IonDetector::TDC)
-  TEST_REAL_SIMILAR(exp.getInstrument().getIonDetectors()[0].getResolution(),5.1)
-  TEST_REAL_SIMILAR(exp.getInstrument().getIonDetectors()[0].getADCSamplingFrequency(),1.1)
-  TEST_EQUAL(exp.getInstrument().getIonDetectors()[1].getOrder(),302)
-  TEST_EQUAL(exp.getInstrument().getIonDetectors()[1].getType(),IonDetector::ELECTRONMULTIPLIER)
-  TEST_EQUAL(exp.getInstrument().getIonDetectors()[1].getAcquisitionMode(),IonDetector::TDC)
-  TEST_REAL_SIMILAR(exp.getInstrument().getIonDetectors()[1].getResolution(),6.1)
-  TEST_REAL_SIMILAR(exp.getInstrument().getIonDetectors()[1].getADCSamplingFrequency(),1.1)
+  TEST_EQUAL(exp.getExperimentalSettings().getInstrument().getIonDetectors().size(),2)
+  TEST_EQUAL(exp.getExperimentalSettings().getInstrument().getIonDetectors()[0].getOrder(),301)
+  TEST_EQUAL(exp.getExperimentalSettings().getInstrument().getIonDetectors()[0].getType(),IonDetector::ELECTRONMULTIPLIER)
+  TEST_EQUAL(exp.getExperimentalSettings().getInstrument().getIonDetectors()[0].getAcquisitionMode(),IonDetector::TDC)
+  TEST_REAL_SIMILAR(exp.getExperimentalSettings().getInstrument().getIonDetectors()[0].getResolution(),5.1)
+  TEST_REAL_SIMILAR(exp.getExperimentalSettings().getInstrument().getIonDetectors()[0].getADCSamplingFrequency(),1.1)
+  TEST_EQUAL(exp.getExperimentalSettings().getInstrument().getIonDetectors()[1].getOrder(),302)
+  TEST_EQUAL(exp.getExperimentalSettings().getInstrument().getIonDetectors()[1].getType(),IonDetector::ELECTRONMULTIPLIER)
+  TEST_EQUAL(exp.getExperimentalSettings().getInstrument().getIonDetectors()[1].getAcquisitionMode(),IonDetector::TDC)
+  TEST_REAL_SIMILAR(exp.getExperimentalSettings().getInstrument().getIonDetectors()[1].getResolution(),6.1)
+  TEST_REAL_SIMILAR(exp.getExperimentalSettings().getInstrument().getIonDetectors()[1].getADCSamplingFrequency(),1.1)
   //instrument software
-  TEST_EQUAL(exp.getInstrument().getSoftware().getName(),"Bioworks")
-  TEST_EQUAL(exp.getInstrument().getSoftware().getVersion(),"3.3.1 sp1")
+  TEST_EQUAL(exp.getExperimentalSettings().getInstrument().getSoftware().getName(),"Bioworks")
+  TEST_EQUAL(exp.getExperimentalSettings().getInstrument().getSoftware().getVersion(),"3.3.1 sp1")
 
   //-------------------------- spectrum 0 --------------------------
   {
@@ -583,32 +583,32 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 
   //-------------------------- userParam --------------------------
   //run
-  TEST_STRING_EQUAL(exp.getMetaValue("mzml_id"),"document_id")
-  TEST_EQUAL(exp.getMetaValue("flag").valueType(),DataValue::STRING_VALUE)
-  TEST_STRING_EQUAL((String)exp.getMetaValue("flag"),"")
-  TEST_EQUAL(exp.getMetaValue("string").valueType(),DataValue::STRING_VALUE)
-  TEST_STRING_EQUAL((String)exp.getMetaValue("string"),"bla")
-  TEST_EQUAL(exp.getMetaValue("float").valueType(),DataValue::DOUBLE_VALUE)
-  TEST_REAL_SIMILAR((double)exp.getMetaValue("float"),5.11)
-  TEST_EQUAL(exp.getMetaValue("int").valueType(),DataValue::INT_VALUE)
-  TEST_EQUAL((Int)exp.getMetaValue("int"),5)
+  TEST_STRING_EQUAL(exp.getExperimentalSettings().getMetaValue("mzml_id"),"document_id")
+  TEST_EQUAL(exp.getExperimentalSettings().getMetaValue("flag").valueType(),DataValue::STRING_VALUE)
+  TEST_STRING_EQUAL((String)exp.getExperimentalSettings().getMetaValue("flag"),"")
+  TEST_EQUAL(exp.getExperimentalSettings().getMetaValue("string").valueType(),DataValue::STRING_VALUE)
+  TEST_STRING_EQUAL((String)exp.getExperimentalSettings().getMetaValue("string"),"bla")
+  TEST_EQUAL(exp.getExperimentalSettings().getMetaValue("float").valueType(),DataValue::DOUBLE_VALUE)
+  TEST_REAL_SIMILAR((double)exp.getExperimentalSettings().getMetaValue("float"),5.11)
+  TEST_EQUAL(exp.getExperimentalSettings().getMetaValue("int").valueType(),DataValue::INT_VALUE)
+  TEST_EQUAL((Int)exp.getExperimentalSettings().getMetaValue("int"),5)
   //instrumentConfiguration
-  TEST_EQUAL(exp.getInstrument().getIonOptics(),Instrument::MAGNETIC_DEFLECTION)
-  TEST_STRING_EQUAL((String)exp.getInstrument().getMetaValue("name"),"instrumentConfiguration")
-  TEST_STRING_EQUAL((String)exp.getInstrument().getIonSources()[0].getMetaValue("name"),"source1")
-  TEST_STRING_EQUAL((String)exp.getInstrument().getIonSources()[1].getMetaValue("name"),"source2")
-  TEST_STRING_EQUAL((String)exp.getInstrument().getMassAnalyzers()[0].getMetaValue("name"),"analyzer1")
-  TEST_STRING_EQUAL((String)exp.getInstrument().getMassAnalyzers()[1].getMetaValue("name"),"analyzer2")
-  TEST_STRING_EQUAL((String)exp.getInstrument().getIonDetectors()[0].getMetaValue("name"),"detector1")
-  TEST_STRING_EQUAL((String)exp.getInstrument().getIonDetectors()[1].getMetaValue("name"),"detector2")
+  TEST_EQUAL(exp.getExperimentalSettings().getInstrument().getIonOptics(),Instrument::MAGNETIC_DEFLECTION)
+  TEST_STRING_EQUAL((String)exp.getExperimentalSettings().getInstrument().getMetaValue("name"),"instrumentConfiguration")
+  TEST_STRING_EQUAL((String)exp.getExperimentalSettings().getInstrument().getIonSources()[0].getMetaValue("name"),"source1")
+  TEST_STRING_EQUAL((String)exp.getExperimentalSettings().getInstrument().getIonSources()[1].getMetaValue("name"),"source2")
+  TEST_STRING_EQUAL((String)exp.getExperimentalSettings().getInstrument().getMassAnalyzers()[0].getMetaValue("name"),"analyzer1")
+  TEST_STRING_EQUAL((String)exp.getExperimentalSettings().getInstrument().getMassAnalyzers()[1].getMetaValue("name"),"analyzer2")
+  TEST_STRING_EQUAL((String)exp.getExperimentalSettings().getInstrument().getIonDetectors()[0].getMetaValue("name"),"detector1")
+  TEST_STRING_EQUAL((String)exp.getExperimentalSettings().getInstrument().getIonDetectors()[1].getMetaValue("name"),"detector2")
   //sample
-  TEST_STRING_EQUAL((String)exp.getSample().getMetaValue("name"),"sample")
-  TEST_STRING_EQUAL((String)exp.getSample().getMetaValue("brenda source tissue"),"cardiac muscle")
-  TEST_STRING_EQUAL((String)exp.getSample().getMetaValue("GO cellular component"),"nucleus")
-  TEST_STRING_EQUAL((String)exp.getSample().getMetaValue("cellular quality"),"11.11")
+  TEST_STRING_EQUAL((String)exp.getExperimentalSettings().getSample().getMetaValue("name"),"sample")
+  TEST_STRING_EQUAL((String)exp.getExperimentalSettings().getSample().getMetaValue("brenda source tissue"),"cardiac muscle")
+  TEST_STRING_EQUAL((String)exp.getExperimentalSettings().getSample().getMetaValue("GO cellular component"),"nucleus")
+  TEST_STRING_EQUAL((String)exp.getExperimentalSettings().getSample().getMetaValue("cellular quality"),"11.11")
   //contact
-  TEST_STRING_EQUAL((String)exp.getContacts()[0].getMetaValue("name"),"contact1")
-  TEST_STRING_EQUAL((String)exp.getContacts()[1].getMetaValue("name"),"Pirate")
+  TEST_STRING_EQUAL((String)exp.getExperimentalSettings().getContacts()[0].getMetaValue("name"),"contact1")
+  TEST_STRING_EQUAL((String)exp.getExperimentalSettings().getContacts()[1].getMetaValue("name"),"Pirate")
   //spectrum
   TEST_STRING_EQUAL((String)exp[0].getMetaValue("sdname"),"spectrumdescription1")
   TEST_STRING_EQUAL((String)exp[1].getMetaValue("sdname"),"spectrumdescription2")
@@ -629,7 +629,7 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
   TEST_STRING_EQUAL((String)exp[0].getAcquisitionInfo()[0].getMetaValue("name"),"acquisition1")
   TEST_STRING_EQUAL((String)exp[0].getAcquisitionInfo()[1].getMetaValue("name"),"acquisition2")
   //source file
-  TEST_STRING_EQUAL((String)exp.getSourceFiles()[0].getMetaValue("name"),"sourcefile1")
+  TEST_STRING_EQUAL((String)exp.getExperimentalSettings().getSourceFiles()[0].getMetaValue("name"),"sourcefile1")
   TEST_STRING_EQUAL((String)exp[1].getSourceFile().getMetaValue("name"),"sourcefile4")
   //data processing
   TEST_STRING_EQUAL(exp[0].getDataProcessing()[0]->getMetaValue("p1").toString(),"value1")
@@ -652,7 +652,7 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
   TEST_STRING_EQUAL((String)exp[0].getInstrumentSettings().getScanWindows()[0].getMetaValue("name"),"scanwindow1")
   //-------------------------- cvParam (but no member => meta data)--------------------------
   //general
-  TEST_STRING_EQUAL((String)exp.getSample().getMetaValue("sample batch"),"4.4")
+  TEST_STRING_EQUAL((String)exp.getExperimentalSettings().getSample().getMetaValue("sample batch"),"4.4")
   //spectrum 1
   TEST_REAL_SIMILAR((double)exp[0].getMetaValue("elution time (seconds)"),55.11)
   TEST_REAL_SIMILAR((double)exp[0].getMetaValue("lowest observed m/z"),400.39)
@@ -880,10 +880,10 @@ START_SECTION([EXTRA] load only meta data)
   file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"),exp);
 
   TEST_EQUAL(exp.size(),0)
-  TEST_EQUAL(exp.getIdentifier(),"document_accession");
-  TEST_EQUAL(exp.getContacts().size(),2)
-  TEST_EQUAL(exp.getSourceFiles().size(),5);
-  TEST_EQUAL(exp.getInstrument().getMassAnalyzers().size(),2)
+  TEST_EQUAL(exp.getExperimentalSettings().getIdentifier(),"document_accession");
+  TEST_EQUAL(exp.getExperimentalSettings().getContacts().size(),2)
+  TEST_EQUAL(exp.getExperimentalSettings().getSourceFiles().size(),5);
+  TEST_EQUAL(exp.getExperimentalSettings().getInstrument().getMassAnalyzers().size(),2)
 }
 END_SECTION
 
@@ -988,7 +988,7 @@ START_SECTION((template <typename MapType> void store(const String& filename, co
     TEST_TRUE(exp == exp_original)
     //NOTE: If it does not work, use this code to find out where the difference is
     TEST_EQUAL(exp.size() == exp_original.size(), true)
-    TEST_EQUAL(exp.ExperimentalSettings::operator==(exp_original), true)
+    TEST_EQUAL(exp.getExperimentalSettings() == exp_original.getExperimentalSettings(), true)
     TEST_EQUAL(exp[0].SpectrumSettings::operator==(exp_original[0]), true)
     TEST_EQUAL(exp[0] == exp_original[0], true)
     TEST_EQUAL(exp[1].SpectrumSettings::operator==(exp_original[1]), true)

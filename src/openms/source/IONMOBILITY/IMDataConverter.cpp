@@ -220,7 +220,7 @@ namespace OpenMS
     }
     for (auto& result : results)
     {
-      result.ExperimentalSettings::operator=(in);
+      result.setExperimentalSettings(in.getExperimentalSettings());
       result.updateRanges();
     }
     return {std::move(results), std::move(bins)};

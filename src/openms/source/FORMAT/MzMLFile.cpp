@@ -143,8 +143,8 @@ namespace OpenMS
     map.reset();
 
     //set DocumentIdentifier
-    map.setLoadedFileType(filename);
-    map.setLoadedFilePath(filename);
+    map.getExperimentalSettings().setLoadedFileType(filename);
+    map.getExperimentalSettings().setLoadedFilePath(filename);
 
     Internal::MzMLHandler handler(map, filename, getVersion(), *this);
     handler.setOptions(options_);
@@ -227,7 +227,7 @@ namespace OpenMS
     // After parsing, collect information
     handler.getCounts(scount, ccount);
     consumer->setExpectedSize(scount, ccount);
-    consumer->setExperimentalSettings(experimental_settings);
+    consumer->setExperimentalSettings(experimental_settings.getExperimentalSettings());
   }
 
   std::map<UInt, MzMLFile::SpecInfo> MzMLFile::getCentroidInfo(const String& filename, const Size first_n_spectra_only)

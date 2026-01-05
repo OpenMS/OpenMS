@@ -751,12 +751,12 @@ protected:
       m.setOptions(opts);
       m.load(mzml, exp);
       String nIDType = "";
-      if (!exp.getSourceFiles().empty())
+      if (!exp.getExperimentalSettings().getSourceFiles().empty())
       {
         // TODO we could also guess the regex from the first nativeID if it is not stored here
         //  but I refuse to link to Boost::regex just for this
         //  Someone has to rework the API first!
-        nIDType = exp.getSourceFiles()[0].getNativeIDTypeAccession();
+        nIDType = exp.getExperimentalSettings().getSourceFiles()[0].getNativeIDTypeAccession();
       }
 
       for (const auto& spec : exp)

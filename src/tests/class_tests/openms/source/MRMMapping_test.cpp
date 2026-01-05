@@ -42,8 +42,8 @@ START_SECTION(void mapExperiment(const OpenMS::PeakMap& input_chromatograms, con
   MRMMapping m;
 
   MSExperiment exp;
-  exp.setComment("comment1");
-  MSChromatogram c; 
+  exp.getExperimentalSettings().setComment("comment1");
+  MSChromatogram c;
   exp.addChromatogram(c);
 
   TEST_EQUAL(exp.getNrChromatograms(), 1)
@@ -63,10 +63,10 @@ START_SECTION(void mapExperiment(const OpenMS::PeakMap& input_chromatograms, con
 
     m.mapExperiment(exp, targ, out);
     TEST_EQUAL(out.getNrChromatograms(), 1) // both transition and chromatogram have zero m/z
-    TEST_EQUAL(out.getComment(), "comment1") // should preserve the meta data
+    TEST_EQUAL(out.getExperimentalSettings().getComment(), "comment1") // should preserve the meta data
   }
 
-  exp.setComment("comment2");
+  exp.getExperimentalSettings().setComment("comment2");
   {
     Param p = m.getDefaults();
     p.setValue("map_multiple_assays", "true");
@@ -76,7 +76,7 @@ START_SECTION(void mapExperiment(const OpenMS::PeakMap& input_chromatograms, con
 
     m.mapExperiment(exp, targ, out);
     TEST_EQUAL(out.getNrChromatograms(), 1)
-    TEST_EQUAL(out.getComment(), "comment2") // should preserve the meta data
+    TEST_EQUAL(out.getExperimentalSettings().getComment(), "comment2") // should preserve the meta data
   }
 
   // Now set some precursor and fragment ion values, and check whether we can map one chromatogram to two transitions

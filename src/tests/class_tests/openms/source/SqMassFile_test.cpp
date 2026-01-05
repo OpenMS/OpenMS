@@ -166,7 +166,7 @@ START_SECTION(void load(const String& filename, MapType& map))
   cmpDataRT(exp, exp2, 0.05, 1.000001);  // max 0.05 seconds error in RT
 
   // mapping of experimental settings ...
-  TEST_EQUAL(exp.getExperimentalSettings() == (OpenMS::ExperimentalSettings)exp2, true)
+  TEST_EQUAL(exp.getExperimentalSettings() == exp2.getExperimentalSettings(), true)
   TEST_EQUAL(exp.getSqlRunID(), exp2.getSqlRunID())
 
 }
@@ -227,7 +227,7 @@ START_SECTION(void store(const String& filename, MapType& map))
   cmpDataRT(exp, exp2, 1e-8, 1.00000001); 
 
   // no 1:1 mapping of experimental settings ...
-  TEST_EQUAL(exp.getExperimentalSettings() == (OpenMS::ExperimentalSettings)exp2, false)
+  TEST_EQUAL(exp.getExperimentalSettings() == exp2.getExperimentalSettings(), false)
 }
 END_SECTION
 
@@ -328,7 +328,7 @@ START_SECTION([EXTRA_LOSSY] void store(const String& filename, MapType& map))
   MSExperiment exp2 = exp_orig;
 
   // should not give 1:1 mapping of experimental settings ...
-  TEST_EQUAL(exp.getExperimentalSettings() == (OpenMS::ExperimentalSettings)exp2, false)
+  TEST_EQUAL(exp.getExperimentalSettings() == exp2.getExperimentalSettings(), false)
 
   // Logic of comparison: if the absolute difference criterion is fulfilled,
   // the relative one does not matter. If the absolute difference is larger
@@ -443,7 +443,7 @@ START_SECTION([EXTRA_FULL_META] void store(const String& filename, MapType& map)
   MSExperiment exp2 = exp_orig;
 
   // using full meta should give 1:1 mapping of experimental settings ...
-  TEST_EQUAL(exp.getExperimentalSettings() == (OpenMS::ExperimentalSettings)exp2, true)
+  TEST_EQUAL(exp.getExperimentalSettings() == exp2.getExperimentalSettings(), true)
   TEST_EQUAL(exp.getSqlRunID(), exp2.getSqlRunID())
 
   // Logic of comparison: if the absolute difference criterion is fulfilled,

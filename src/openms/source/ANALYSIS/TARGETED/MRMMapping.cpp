@@ -41,12 +41,12 @@ namespace OpenMS
     error_on_unmapped_ = (bool)param_.getValue("error_on_unmapped").toBool();
   }
 
-  void MRMMapping::mapExperiment(const OpenMS::PeakMap& chromatogram_map, 
+  void MRMMapping::mapExperiment(const OpenMS::PeakMap& chromatogram_map,
       const OpenMS::TargetedExperiment& targeted_exp,
       OpenMS::PeakMap& output) const
   {
     // copy all meta data from old MSExperiment
-    output = (ExperimentalSettings)chromatogram_map;
+    output.setExperimentalSettings(chromatogram_map.getExperimentalSettings());
     output.clear(false);
     std::vector<MSChromatogram > empty_chromats;
     output.setChromatograms(empty_chromats);

@@ -1346,8 +1346,8 @@ protected:
 
       os << '\n';
 
-      os << "Instrument: " << exp.getInstrument().getName() << '\n';
-      for (const auto& ma : exp.getInstrument().getMassAnalyzers())
+      os << "Instrument: " << exp.getExperimentalSettings().getInstrument().getName() << '\n';
+      for (const auto& ma : exp.getExperimentalSettings().getInstrument().getMassAnalyzers())
       {
         os << "  Mass Analyzer: " << MassAnalyzer::NamesOfAnalyzerType[ma.getType()] << " (resolution: " << ma.getResolution() << ")\n";
       }
@@ -1758,78 +1758,78 @@ protected:
       }
       else //peaks
       {
-        os << "Document ID:        " << exp.getIdentifier() << '\n'
-           << "Date:               " << exp.getDateTime().get() << '\n';
+        os << "Document ID:        " << exp.getExperimentalSettings().getIdentifier() << '\n'
+           << "Date:               " << exp.getExperimentalSettings().getDateTime().get() << '\n';
         os_tsv << "document id"
-               << '\t' << exp.getIdentifier() << '\n'
+               << '\t' << exp.getExperimentalSettings().getIdentifier() << '\n'
                << "date"
-               << '\t' << exp.getDateTime().get() << '\n';
+               << '\t' << exp.getExperimentalSettings().getDateTime().get() << '\n';
 
         //basic info
         os << '\n'
            << "Sample:"
            << '\n'
-           << "  name:             " << exp.getSample().getName() << '\n'
-           << "  organism:         " << exp.getSample().getOrganism() << '\n'
-           << "  comment:          " << exp.getSample().getComment() << '\n';
+           << "  name:             " << exp.getExperimentalSettings().getSample().getName() << '\n'
+           << "  organism:         " << exp.getExperimentalSettings().getSample().getOrganism() << '\n'
+           << "  comment:          " << exp.getExperimentalSettings().getSample().getComment() << '\n';
         os_tsv << "sample name"
-               << '\t' << exp.getSample().getName() << '\n'
+               << '\t' << exp.getExperimentalSettings().getSample().getName() << '\n'
                << "sample organism"
-               << '\t' << exp.getSample().getOrganism() << '\n'
+               << '\t' << exp.getExperimentalSettings().getSample().getOrganism() << '\n'
                << "sample comment"
-               << '\t' << exp.getSample().getComment() << '\n';
+               << '\t' << exp.getExperimentalSettings().getSample().getComment() << '\n';
 
         //instrument info
         os << '\n'
            << "Instrument:"
            << '\n'
-           << "  name:             " << exp.getInstrument().getName() << '\n'
-           << "  model:            " << exp.getInstrument().getModel() << '\n'
-           << "  vendor:           " << exp.getInstrument().getVendor() << '\n'
+           << "  name:             " << exp.getExperimentalSettings().getInstrument().getName() << '\n'
+           << "  model:            " << exp.getExperimentalSettings().getInstrument().getModel() << '\n'
+           << "  vendor:           " << exp.getExperimentalSettings().getInstrument().getVendor() << '\n'
            << "  ion source(s):    ";
         os_tsv << "instrument name"
-               << '\t' << exp.getInstrument().getName() << '\n'
+               << '\t' << exp.getExperimentalSettings().getInstrument().getName() << '\n'
                << "instrument model"
-               << '\t' << exp.getInstrument().getModel() << '\n'
+               << '\t' << exp.getExperimentalSettings().getInstrument().getModel() << '\n'
                << "instrument vendor"
-               << '\t' << exp.getInstrument().getVendor() << '\n';
-        for (Size i = 0; i < exp.getInstrument().getIonSources().size(); ++i)
+               << '\t' << exp.getExperimentalSettings().getInstrument().getVendor() << '\n';
+        for (Size i = 0; i < exp.getExperimentalSettings().getInstrument().getIonSources().size(); ++i)
         {
-          os << IonSource::NamesOfIonizationMethod[exp.getInstrument().getIonSources()[i].getIonizationMethod()];
-          if (i != exp.getInstrument().getIonSources().size() - 1)
+          os << IonSource::NamesOfIonizationMethod[exp.getExperimentalSettings().getInstrument().getIonSources()[i].getIonizationMethod()];
+          if (i != exp.getExperimentalSettings().getInstrument().getIonSources().size() - 1)
           {
             os << ", ";
           }
         }
         os << '\n'
            << "  mass analyzer(s): ";
-        for (Size i = 0; i < exp.getInstrument().getMassAnalyzers().size(); ++i)
+        for (Size i = 0; i < exp.getExperimentalSettings().getInstrument().getMassAnalyzers().size(); ++i)
         {
-          os << MassAnalyzer::NamesOfAnalyzerType[exp.getInstrument().getMassAnalyzers()[i].getType()];
-          if (i != exp.getInstrument().getMassAnalyzers().size() - 1)
+          os << MassAnalyzer::NamesOfAnalyzerType[exp.getExperimentalSettings().getInstrument().getMassAnalyzers()[i].getType()];
+          if (i != exp.getExperimentalSettings().getInstrument().getMassAnalyzers().size() - 1)
           {
             os << ", ";
           }
         }
         os << '\n'
            << "  detector(s):      ";
-        for (Size i = 0; i < exp.getInstrument().getIonDetectors().size(); ++i)
+        for (Size i = 0; i < exp.getExperimentalSettings().getInstrument().getIonDetectors().size(); ++i)
         {
-          os << IonDetector::NamesOfType[exp.getInstrument().getIonDetectors()[i].getType()];
-          if (i != exp.getInstrument().getIonDetectors().size() - 1)
+          os << IonDetector::NamesOfType[exp.getExperimentalSettings().getInstrument().getIonDetectors()[i].getType()];
+          if (i != exp.getExperimentalSettings().getInstrument().getIonDetectors().size() - 1)
             os << ", ";
         }
         os << '\n'
            << '\n';
 
         //contact persons
-        for (Size i = 0; i < exp.getContacts().size(); ++i)
+        for (Size i = 0; i < exp.getExperimentalSettings().getContacts().size(); ++i)
         {
           os << "Contact person:"
              << '\n'
-             << "  first name:     " << exp.getContacts()[i].getFirstName() << '\n'
-             << "  last name:      " << exp.getContacts()[i].getLastName() << '\n'
-             << "  email:          " << exp.getContacts()[i].getEmail() << '\n'
+             << "  first name:     " << exp.getExperimentalSettings().getContacts()[i].getFirstName() << '\n'
+             << "  last name:      " << exp.getExperimentalSettings().getContacts()[i].getLastName() << '\n'
+             << "  email:          " << exp.getExperimentalSettings().getContacts()[i].getEmail() << '\n'
              << '\n';
         }
       }

@@ -91,7 +91,7 @@ START_SECTION(bool load(const String& filename, OnDiscPeakMap& exp))
     TEST_EQUAL(exp.getChromatogram(i) == exp2.getChromatograms()[i], true)
   }
 
-  TEST_EQUAL(*exp.getExperimentalSettings() == (OpenMS::ExperimentalSettings)exp2, true)
+  TEST_EQUAL(*exp.getExperimentalSettings() == exp2.getExperimentalSettings(), true)
 }
 END_SECTION
 
@@ -139,7 +139,7 @@ START_SECTION(void store(const String& filename, OnDiscPeakMap& exp))
     TEST_EQUAL(exp.getChromatogram(i) == exp2.getChromatograms()[i], true)
   }
 
-  TEST_EQUAL(*exp.getExperimentalSettings() == (OpenMS::ExperimentalSettings)exp2, true)
+  TEST_EQUAL(*exp.getExperimentalSettings() == exp2.getExperimentalSettings(), true)
 }
 END_SECTION
 
@@ -173,7 +173,7 @@ START_SECTION(void store(const String& filename, PeakMap& exp))
     TEST_EQUAL(exp.getChromatogram(i) == exp2.getChromatograms()[i], true)
   }
 
-  TEST_EQUAL(*exp.getExperimentalSettings() == (OpenMS::ExperimentalSettings)exp2, true)
+  TEST_EQUAL(*exp.getExperimentalSettings() == exp2.getExperimentalSettings(), true)
 }
 END_SECTION
 

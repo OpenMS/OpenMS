@@ -144,7 +144,7 @@ namespace OpenMS::Internal
         sf.setNameOfFile(attributeAsString_(attributes, s_filename_));
         sf.setFileType(attributeAsString_(attributes, s_filetype_));
         sf.setChecksum(attributeAsString_(attributes, s_filesha1_), SourceFile::SHA1);
-        exp_->getSourceFiles().push_back(sf);
+        exp_->getExperimentalSettings().getSourceFiles().push_back(sf);
       }
       else if (tag == "software")
       {
@@ -161,8 +161,8 @@ namespace OpenMS::Internal
         }
         else if (parent_tag == "msInstrument")
         {
-          exp_->getInstrument().getSoftware().setVersion(attributeAsString_(attributes, s_version_));
-          exp_->getInstrument().getSoftware().setName(attributeAsString_(attributes, s_name_));
+          exp_->getExperimentalSettings().getInstrument().getSoftware().setVersion(attributeAsString_(attributes, s_version_));
+          exp_->getExperimentalSettings().getInstrument().getSoftware().setName(attributeAsString_(attributes, s_name_));
         }
       }
       else if (tag == "peaks")
@@ -390,51 +390,51 @@ namespace OpenMS::Internal
       } // END OF <scan>
       else if (tag == "operator")
       {
-        exp_->getContacts().resize(1);
-        exp_->getContacts().back().setFirstName(attributeAsString_(attributes, s_first_));
-        exp_->getContacts().back().setLastName(attributeAsString_(attributes, s_last_));
+        exp_->getExperimentalSettings().getContacts().resize(1);
+        exp_->getExperimentalSettings().getContacts().back().setFirstName(attributeAsString_(attributes, s_first_));
+        exp_->getExperimentalSettings().getContacts().back().setLastName(attributeAsString_(attributes, s_last_));
 
         String tmp = "";
         optionalAttributeAsString_(tmp, attributes, s_email_);
-        exp_->getContacts().back().setEmail(tmp);
+        exp_->getExperimentalSettings().getContacts().back().setEmail(tmp);
 
         tmp = "";
         optionalAttributeAsString_(tmp, attributes, s_phone_);
         if (!tmp.empty())
         {
-          exp_->getContacts().back().setMetaValue("#phone", tmp);
+          exp_->getExperimentalSettings().getContacts().back().setMetaValue("#phone", tmp);
         }
 
         tmp = "";
         optionalAttributeAsString_(tmp, attributes, s_uri_);
-        exp_->getContacts().back().setURL(tmp);
+        exp_->getExperimentalSettings().getContacts().back().setURL(tmp);
       }
       else if (tag == "msManufacturer")
       {
-        exp_->getInstrument().setVendor(attributeAsString_(attributes, s_value_));
+        exp_->getExperimentalSettings().getInstrument().setVendor(attributeAsString_(attributes, s_value_));
       }
       else if (tag == "msModel")
       {
-        exp_->getInstrument().setModel(attributeAsString_(attributes, s_value_));
+        exp_->getExperimentalSettings().getInstrument().setModel(attributeAsString_(attributes, s_value_));
       }
       else if (tag == "msIonisation")
       {
-        exp_->getInstrument().getIonSources().resize(1);
-        exp_->getInstrument().getIonSources()[0].setIonizationMethod((IonSource::IonizationMethod) cvStringToEnum_(2, attributeAsString_(attributes, s_value_), "msIonization"));
+        exp_->getExperimentalSettings().getInstrument().getIonSources().resize(1);
+        exp_->getExperimentalSettings().getInstrument().getIonSources()[0].setIonizationMethod((IonSource::IonizationMethod) cvStringToEnum_(2, attributeAsString_(attributes, s_value_), "msIonization"));
       }
       else if (tag == "msMassAnalyzer")
       {
-        exp_->getInstrument().getMassAnalyzers().resize(1);
-        exp_->getInstrument().getMassAnalyzers()[0].setType((MassAnalyzer::AnalyzerType) cvStringToEnum_(3, attributeAsString_(attributes, s_value_), "msMassAnalyzer"));
+        exp_->getExperimentalSettings().getInstrument().getMassAnalyzers().resize(1);
+        exp_->getExperimentalSettings().getInstrument().getMassAnalyzers()[0].setType((MassAnalyzer::AnalyzerType) cvStringToEnum_(3, attributeAsString_(attributes, s_value_), "msMassAnalyzer"));
       }
       else if (tag == "msDetector")
       {
-        exp_->getInstrument().getIonDetectors().resize(1);
-        exp_->getInstrument().getIonDetectors()[0].setType((IonDetector::Type) cvStringToEnum_(4, attributeAsString_(attributes, s_value_), "msDetector"));
+        exp_->getExperimentalSettings().getInstrument().getIonDetectors().resize(1);
+        exp_->getExperimentalSettings().getInstrument().getIonDetectors()[0].setType((IonDetector::Type) cvStringToEnum_(4, attributeAsString_(attributes, s_value_), "msDetector"));
       }
       else if (tag == "msResolution")
       {
-        exp_->getInstrument().getMassAnalyzers()[0].setResolutionMethod((MassAnalyzer::ResolutionMethod) cvStringToEnum_(5, attributeAsString_(attributes, s_value_), "msResolution"));
+        exp_->getExperimentalSettings().getInstrument().getMassAnalyzers()[0].setResolutionMethod((MassAnalyzer::ResolutionMethod) cvStringToEnum_(5, attributeAsString_(attributes, s_value_), "msResolution"));
       }
       else if (tag == "dataProcessing")
       {
@@ -483,7 +483,7 @@ namespace OpenMS::Internal
 
         if (parent_tag == "msInstrument")
         {
-          exp_->getInstrument().setMetaValue(name, value);
+          exp_->getExperimentalSettings().getInstrument().setMetaValue(name, value);
         }
         else if (parent_tag == "scan")
         {
@@ -595,7 +595,7 @@ namespace OpenMS::Internal
 
         if (parent_tag == "msInstrument")
         {
-          exp_->getInstrument().setMetaValue("#comment", transcoded_chars);
+          exp_->getExperimentalSettings().getInstrument().setMetaValue("#comment", transcoded_chars);
         }
         else if (parent_tag == "dataProcessing")
         {
@@ -651,15 +651,15 @@ namespace OpenMS::Internal
       //----------------------------------------------------------------------------------------
       // parent files
       //----------------------------------------------------------------------------------------
-      if (cexp_->getSourceFiles().empty())
+      if (cexp_->getExperimentalSettings().getSourceFiles().empty())
       {
         os << "\t\t<parentFile fileName=\"\" fileType=\"processedData\" fileSha1=\"0000000000000000000000000000000000000000\"/>\n";
       }
       else
       {
-        for (Size i = 0; i < cexp_->getSourceFiles().size(); ++i)
+        for (Size i = 0; i < cexp_->getExperimentalSettings().getSourceFiles().size(); ++i)
         {
-          const SourceFile& sf = cexp_->getSourceFiles()[i];
+          const SourceFile& sf = cexp_->getExperimentalSettings().getSourceFiles()[i];
           os << "\t\t<parentFile fileName=\"" << sf.getNameOfFile() << "\" fileType=\"";
           //file type is an enum in mzXML => search for 'raw' string
           if (String(sf.getFileType()).toLower().hasSubstring("raw"))
@@ -687,9 +687,9 @@ namespace OpenMS::Internal
       //----------------------------------------------------------------------------------------
       //instrument
       //----------------------------------------------------------------------------------------
-      if (cexp_->getInstrument() != Instrument() || !cexp_->getContacts().empty())
+      if (cexp_->getExperimentalSettings().getInstrument() != Instrument() || !cexp_->getExperimentalSettings().getContacts().empty())
       {
-        const Instrument& inst = cexp_->getInstrument();
+        const Instrument& inst = cexp_->getExperimentalSettings().getInstrument();
         // the Instrument Manufacturer is paramount for some downstream tools
         // Since the .getVendor() is usually empty, we infer this via the Acquisition Software, which is unique to Thermo
         String manufacturer = inst.getVendor();
@@ -736,9 +736,9 @@ namespace OpenMS::Internal
           os << "\t\t\t<msResolution category=\"msResolution\" value=\"" << cv_terms_[5][analyzers[0].getResolutionMethod()] << "\"/>\n";
         }
 
-        if (!cexp_->getContacts().empty())
+        if (!cexp_->getExperimentalSettings().getContacts().empty())
         {
-          const ContactPerson& cont = cexp_->getContacts()[0];
+          const ContactPerson& cont = cexp_->getExperimentalSettings().getContacts()[0];
 
           os << "\t\t\t<operator first=\"" << cont.getFirstName() << "\" last=\"" << cont.getLastName() << "\"";
 

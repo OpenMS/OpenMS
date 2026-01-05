@@ -110,7 +110,7 @@ public:
     ~FullSwathFileConsumer() override {}
 
     void setExpectedSize(Size, Size) override {}
-    void setExperimentalSettings(const ExperimentalSettings& exp) override {settings_ = exp; }
+    void setExperimentalSettings(const ExperimentalSettings& exp) override {settings_.setExperimentalSettings(exp); }
 
     /**
      * @brief Populate the vector of swath maps after consuming all spectra.

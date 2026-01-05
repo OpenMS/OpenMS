@@ -112,8 +112,8 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
     file.load(OPENMS_GET_TEST_DATA_PATH("MzXMLFile_1.mzXML"),e);
 
   //test DocumentIdentifier addition
-  TEST_STRING_EQUAL(e.getLoadedFilePath(), OPENMS_GET_TEST_DATA_PATH("MzXMLFile_1.mzXML"));
-  TEST_STRING_EQUAL(FileTypes::typeToName(e.getLoadedFileType()),"mzXML");
+  TEST_STRING_EQUAL(e.getExperimentalSettings().getLoadedFilePath(), OPENMS_GET_TEST_DATA_PATH("MzXMLFile_1.mzXML"));
+  TEST_STRING_EQUAL(FileTypes::typeToName(e.getExperimentalSettings().getLoadedFileType()),"mzXML");
 
   //---------------------------------------------------------------------------
   // actual peak data
@@ -161,17 +161,17 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
     //---------------------------------------------------------------------------
     // source file
     //---------------------------------------------------------------------------
-    TEST_EQUAL(e.getSourceFiles().size(),2)
-    TEST_STRING_EQUAL(e.getSourceFiles()[0].getNameOfFile(), "File_test_1.raw");
-  TEST_STRING_EQUAL(e.getSourceFiles()[0].getPathToFile(), "");
-  TEST_STRING_EQUAL(e.getSourceFiles()[0].getFileType(), "RAWData");
-  TEST_STRING_EQUAL(e.getSourceFiles()[0].getChecksum(), "2fd4e1c67a2d28fced849ee1bb76e7391b93eb12");
-  TEST_EQUAL(e.getSourceFiles()[0].getChecksumType(),SourceFile::SHA1)
-    TEST_STRING_EQUAL(e.getSourceFiles()[1].getNameOfFile(), "File_test_2.raw");
-  TEST_STRING_EQUAL(e.getSourceFiles()[1].getPathToFile(), "");
-  TEST_STRING_EQUAL(e.getSourceFiles()[1].getFileType(), "processedData");
-  TEST_STRING_EQUAL(e.getSourceFiles()[1].getChecksum(), "2fd4e1c67a2d28fced849ee1bb76e7391b93eb13");
-  TEST_EQUAL(e.getSourceFiles()[1].getChecksumType(),SourceFile::SHA1)
+    TEST_EQUAL(e.getExperimentalSettings().getSourceFiles().size(),2)
+    TEST_STRING_EQUAL(e.getExperimentalSettings().getSourceFiles()[0].getNameOfFile(), "File_test_1.raw");
+  TEST_STRING_EQUAL(e.getExperimentalSettings().getSourceFiles()[0].getPathToFile(), "");
+  TEST_STRING_EQUAL(e.getExperimentalSettings().getSourceFiles()[0].getFileType(), "RAWData");
+  TEST_STRING_EQUAL(e.getExperimentalSettings().getSourceFiles()[0].getChecksum(), "2fd4e1c67a2d28fced849ee1bb76e7391b93eb12");
+  TEST_EQUAL(e.getExperimentalSettings().getSourceFiles()[0].getChecksumType(),SourceFile::SHA1)
+    TEST_STRING_EQUAL(e.getExperimentalSettings().getSourceFiles()[1].getNameOfFile(), "File_test_2.raw");
+  TEST_STRING_EQUAL(e.getExperimentalSettings().getSourceFiles()[1].getPathToFile(), "");
+  TEST_STRING_EQUAL(e.getExperimentalSettings().getSourceFiles()[1].getFileType(), "processedData");
+  TEST_STRING_EQUAL(e.getExperimentalSettings().getSourceFiles()[1].getChecksum(), "2fd4e1c67a2d28fced849ee1bb76e7391b93eb13");
+  TEST_EQUAL(e.getExperimentalSettings().getSourceFiles()[1].getChecksumType(),SourceFile::SHA1)
 
     //---------------------------------------------------------------------------
     // data processing (assigned to each spectrum)
@@ -203,7 +203,7 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
   //---------------------------------------------------------------------------
   // instrument
   //---------------------------------------------------------------------------
-  const Instrument& inst = e.getInstrument();
+  const Instrument& inst = e.getExperimentalSettings().getInstrument();
   TEST_EQUAL(inst.getVendor(), "MS-Vendor")
     TEST_EQUAL(inst.getModel(), "MS 1")
     TEST_EQUAL(inst.getMetaValue("URL1"), "www.open-ms.de")
@@ -241,7 +241,7 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
     //---------------------------------------------------------------------------
     // contact persons
     //---------------------------------------------------------------------------
-    const vector<ContactPerson>& contacts = e.getContacts();
+    const vector<ContactPerson>& contacts = e.getExperimentalSettings().getContacts();
   TEST_EQUAL(contacts.size(),1)
     TEST_STRING_EQUAL(contacts[0].getFirstName(),"FirstName")
     TEST_STRING_EQUAL(contacts[0].getLastName(),"LastName")
@@ -253,12 +253,12 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
     //---------------------------------------------------------------------------
     // sample
     //---------------------------------------------------------------------------
-    TEST_EQUAL(e.getSample().getName(), "")
-    TEST_EQUAL(e.getSample().getNumber(), "")
-    TEST_EQUAL(e.getSample().getState(), Sample::SAMPLENULL)
-    TEST_EQUAL(e.getSample().getMass(), 0.0f)
-    TEST_EQUAL(e.getSample().getVolume(), 0.0f)
-    TEST_EQUAL(e.getSample().getConcentration(), 0.0f)
+    TEST_EQUAL(e.getExperimentalSettings().getSample().getName(), "")
+    TEST_EQUAL(e.getExperimentalSettings().getSample().getNumber(), "")
+    TEST_EQUAL(e.getExperimentalSettings().getSample().getState(), Sample::SAMPLENULL)
+    TEST_EQUAL(e.getExperimentalSettings().getSample().getMass(), 0.0f)
+    TEST_EQUAL(e.getExperimentalSettings().getSample().getVolume(), 0.0f)
+    TEST_EQUAL(e.getExperimentalSettings().getSample().getConcentration(), 0.0f)
 
     //---------------------------------------------------------------------------
     // precursors
@@ -360,14 +360,14 @@ START_SECTION(([EXTRA] load with metadata only flag))
   file.load(OPENMS_GET_TEST_DATA_PATH("MzXMLFile_1.mzXML"),e);
 
   TEST_EQUAL(e.size(),0)
-    TEST_EQUAL(e.getSourceFiles().size(),2)
-    TEST_STRING_EQUAL(e.getSourceFiles()[0].getNameOfFile(), "File_test_1.raw");
-  TEST_STRING_EQUAL(e.getSourceFiles()[0].getPathToFile(), "");
-  TEST_EQUAL(e.getContacts().size(),1)
-    TEST_STRING_EQUAL(e.getContacts()[0].getFirstName(),"FirstName")
-    TEST_STRING_EQUAL( e.getContacts()[0].getLastName(),"LastName")
-    TEST_STRING_EQUAL(e.getSample().getName(), "")
-    TEST_STRING_EQUAL(e.getSample().getNumber(), "")
+    TEST_EQUAL(e.getExperimentalSettings().getSourceFiles().size(),2)
+    TEST_STRING_EQUAL(e.getExperimentalSettings().getSourceFiles()[0].getNameOfFile(), "File_test_1.raw");
+  TEST_STRING_EQUAL(e.getExperimentalSettings().getSourceFiles()[0].getPathToFile(), "");
+  TEST_EQUAL(e.getExperimentalSettings().getContacts().size(),1)
+    TEST_STRING_EQUAL(e.getExperimentalSettings().getContacts()[0].getFirstName(),"FirstName")
+    TEST_STRING_EQUAL( e.getExperimentalSettings().getContacts()[0].getLastName(),"LastName")
+    TEST_STRING_EQUAL(e.getExperimentalSettings().getSample().getName(), "")
+    TEST_STRING_EQUAL(e.getExperimentalSettings().getSample().getNumber(), "")
 }
 END_SECTION
 

@@ -150,7 +150,7 @@ public:
     {
       if (exp.empty() || exp[0].getPrecursors().empty())
       {
-        std::cerr << "WARNING: File " << exp.getLoadedFilePath()
+        std::cerr << "WARNING: File " << exp.getExperimentalSettings().getLoadedFilePath()
                   << " does not have any experiments or any precursors. Is it a SWATH map? "
                   << "I will move to the next map."
                   << std::endl;
@@ -161,7 +161,7 @@ public:
       OpenSwathHelper::selectSwathTransitions(targeted_exp, selected_transitions, min_upper_edge_dist, lower, upper);
       if (selected_transitions.getTransitions().size() == 0)
       {
-        std::cerr << "WARNING: For File " << exp.getLoadedFilePath()
+        std::cerr << "WARNING: For File " << exp.getExperimentalSettings().getLoadedFilePath()
                   << " no transition were within the precursor window of " << lower << " to " << upper
                   << std::endl;
         return false;

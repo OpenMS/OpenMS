@@ -31,7 +31,7 @@ namespace OpenMS
     flush();
 
     // Write run level information into the file (e.g. run id, run name and mzML structure)
-    peak_meta_.setLoadedFilePath(filename_);
+    peak_meta_.getExperimentalSettings().setLoadedFilePath(filename_);
     handler_->writeRunLevelInformation(peak_meta_, full_meta_);
 
     delete handler_;

@@ -53,11 +53,11 @@ namespace OpenMS
       TextFile::getLine(ifs, line);
       if (boost::regex_match(line, m, re_injection))
       {
-        experiment.setMetaValue("mzml_id", m.str(1));
+        experiment.getExperimentalSettings().setMetaValue("mzml_id", m.str(1));
       }
       else if (boost::regex_match(line, m, re_channel))
       {
-        experiment.setMetaValue("acq_method_name", m.str(1));
+        experiment.getExperimentalSettings().setMetaValue("acq_method_name", m.str(1));
       }
       else if (boost::regex_match(line, m, re_processing_method))
       {
@@ -69,27 +69,27 @@ namespace OpenMS
       }
       else if (boost::regex_match(line, m, re_injection_date))
       {
-        experiment.setMetaValue("injection_date", m.str(1));
+        experiment.getExperimentalSettings().setMetaValue("injection_date", m.str(1));
       }
       else if (boost::regex_match(line, m, re_injection_time))
       {
-        experiment.setMetaValue("injection_time", m.str(1));
+        experiment.getExperimentalSettings().setMetaValue("injection_time", m.str(1));
       }
       else if (boost::regex_match(line, m, re_detector))
       {
-        experiment.setMetaValue("detector", m.str(1));
+        experiment.getExperimentalSettings().setMetaValue("detector", m.str(1));
       }
       else if (boost::regex_match(line, m, re_signal_quantity))
       {
-        experiment.setMetaValue("signal_quantity", m.str(1));
+        experiment.getExperimentalSettings().setMetaValue("signal_quantity", m.str(1));
       }
       else if (boost::regex_match(line, m, re_signal_unit))
       {
-        experiment.setMetaValue("signal_unit", m.str(1));
+        experiment.getExperimentalSettings().setMetaValue("signal_unit", m.str(1));
       }
       else if (boost::regex_match(line, m, re_signal_info))
       {
-        experiment.setMetaValue("signal_info", m.str(1));
+        experiment.getExperimentalSettings().setMetaValue("signal_info", m.str(1));
       }
       else if (boost::regex_match(line, m, re_raw_data) ||
                boost::regex_match(line, m, re_chromatogram_data))

@@ -43,7 +43,7 @@ namespace OpenMS
     bool is_cached = SimpleOpenMSSpectraFactory::isExperimentCached(exp);
     if (is_cached)
     {
-      OpenSwath::SpectrumAccessPtr experiment(new OpenMS::SpectrumAccessOpenMSCached(exp->getLoadedFilePath()));
+      OpenSwath::SpectrumAccessPtr experiment(new OpenMS::SpectrumAccessOpenMSCached(exp->getExperimentalSettings().getLoadedFilePath()));
       return experiment;
     }
     else

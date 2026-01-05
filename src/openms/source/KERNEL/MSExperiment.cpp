@@ -499,16 +499,16 @@ namespace OpenMS
 
   UInt64 MSExperiment::getSqlRunID() const
   {
-    if (metaValueExists(sqMassRunID))
+    if (experimental_settings_.metaValueExists(sqMassRunID))
     {
-      return getMetaValue(sqMassRunID);
+      return experimental_settings_.getMetaValue(sqMassRunID);
     }
     return 0;
   }
 
   void MSExperiment::setSqlRunID(UInt64 id)
   {
-    setMetaValue(sqMassRunID, id);
+    experimental_settings_.setMetaValue(sqMassRunID, id);
   }
 
   ///@}

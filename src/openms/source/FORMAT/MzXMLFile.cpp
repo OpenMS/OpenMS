@@ -41,8 +41,8 @@ namespace OpenMS
     map.reset();
 
     //set DocumentIdentifier
-    map.setLoadedFileType(filename);
-    map.setLoadedFilePath(filename);
+    map.getExperimentalSettings().setLoadedFileType(filename);
+    map.getExperimentalSettings().setLoadedFilePath(filename);
 
     Internal::MzXMLHandler handler(map, filename, schema_version_, *this);
     handler.setOptions(options_);
@@ -105,7 +105,7 @@ namespace OpenMS
     // After parsing, collect information
     scount = handler.getScanCount();
     consumer->setExpectedSize(scount, ccount);
-    consumer->setExperimentalSettings(experimental_settings);
+    consumer->setExperimentalSettings(experimental_settings.getExperimentalSettings());
   }
 
 } // namespace OpenMS

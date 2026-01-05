@@ -74,7 +74,7 @@ namespace OpenMS
       // We also need to modify the map and add this dummy spectrum in
       // order to write the header correctly
       MapType dummy;
-      dummy = settings_;
+      dummy.setExperimentalSettings(settings_);
       dummy.addSpectrum(scpy);
 
       //--------------------------------------------------------------------
@@ -120,7 +120,7 @@ namespace OpenMS
       // We also need to modify the map and add this dummy chromatogram in
       // order to write the header correctly
       MapType dummy;
-      dummy = settings_;
+      dummy.setExperimentalSettings(settings_);
       dummy.addChromatogram(ccpy);
 
       //--------------------------------------------------------------------

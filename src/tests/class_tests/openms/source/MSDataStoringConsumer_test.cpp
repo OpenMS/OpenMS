@@ -113,7 +113,7 @@ START_SECTION((void setExperimentalSettings(const ExperimentalSettings&)))
 
   TEST_EQUAL(storing_consumer->getData().getNrSpectra(), 1)
   TEST_EQUAL(storing_consumer->getData().getNrChromatograms(), 1)
-  TEST_EQUAL(storing_consumer->getData().getComment(), "mySettings")
+  TEST_EQUAL(storing_consumer->getData().getExperimentalSettings().getComment(), "mySettings")
 
   delete storing_consumer;
 }

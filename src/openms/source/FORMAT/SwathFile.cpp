@@ -60,7 +60,8 @@ namespace OpenMS
       // Populate meta-data
       if (i == 0)
       {
-        exp_meta = populateMetaData_(file_list[i]);
+        auto peakmap = populateMetaData_(file_list[i]);
+        exp_meta = std::make_shared<ExperimentalSettings>(peakmap->getExperimentalSettings());
       }
 
       if (readoptions == "normal")
@@ -129,7 +130,7 @@ namespace OpenMS
 
     startProgress(0, 1, "Loading metadata file " + file);
     std::shared_ptr<PeakMap> exp_stripped = populateMetaData_(file);
-    exp_meta = exp_stripped;
+    exp_meta = std::make_shared<ExperimentalSettings>(exp_stripped->getExperimentalSettings());
 
     // First pass through the file -> get the meta data
     std::cout << "Will analyze the metadata first to determine the number of SWATH windows and the window sizes." << std::endl;
@@ -202,7 +203,7 @@ namespace OpenMS
     f.getOptions().setAlwaysAppendData(true);
     f.getOptions().setFillData(false);
     f.loadExperiment(file, *experiment_metadata, {FileTypes::MZXML});
-    exp_meta = experiment_metadata;
+    exp_meta = std::make_shared<ExperimentalSettings>(experiment_metadata->getExperimentalSettings());
 
     // First pass through the file -> get the meta data
     std::cout << "Will analyze the metadata first to determine the number of SWATH windows and the window sizes." << std::endl;

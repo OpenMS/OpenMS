@@ -18,7 +18,7 @@ namespace OpenMS
 
   void MSDataStoringConsumer::setExperimentalSettings(const ExperimentalSettings & settings)
   {
-    exp_ = settings; // only override the settings, keep the data
+    exp_.setExperimentalSettings(settings); // only override the settings, keep the data
   }
 
   void MSDataStoringConsumer::setExpectedSize(Size s_size, Size c_size)

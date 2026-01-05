@@ -69,8 +69,8 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
   file.load(OPENMS_GET_TEST_DATA_PATH("DTA2DFile_test_1.dta2d"),e);
 
   //test DocumentIdentifier addition
-  TEST_STRING_EQUAL(e.getLoadedFilePath(), OPENMS_GET_TEST_DATA_PATH("DTA2DFile_test_1.dta2d"));
-  TEST_STRING_EQUAL(FileTypes::typeToName(e.getLoadedFileType()),"dta2d");
+  TEST_STRING_EQUAL(e.getExperimentalSettings().getLoadedFilePath(), OPENMS_GET_TEST_DATA_PATH("DTA2DFile_test_1.dta2d"));
+  TEST_STRING_EQUAL(FileTypes::typeToName(e.getExperimentalSettings().getLoadedFileType()),"dta2d");
 
   TEST_EQUAL(e.size(), 9);
   ABORT_IF(e.size() != 9)

@@ -368,7 +368,7 @@ private:
     // reload with data and corrected rt range
     f.getOptions().setRTRange(DRange<1>(first_spec->getRT(), rt_u_new));
     f.getOptions().setFillData(true);
-    auto filename = exp.getLoadedFilePath();
+    auto filename = exp.getExperimentalSettings().getLoadedFilePath();
     f.loadExperiment(filename, exp);
   }
 

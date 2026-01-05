@@ -42,7 +42,7 @@ namespace OpenMS
     consumer->setExpectedSize(sql_mass.getNrSpectra(), sql_mass.getNrChromatograms());
     MSExperiment experimental_settings;
     sql_mass.readExperiment(experimental_settings, true);
-    consumer->setExperimentalSettings(experimental_settings);
+    consumer->setExperimentalSettings(experimental_settings.getExperimentalSettings());
 
     {
       int batch_size = 500;

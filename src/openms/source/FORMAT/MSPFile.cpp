@@ -71,8 +71,8 @@ namespace OpenMS
     exp.reset();
 
     //set DocumentIdentifier
-    exp.setLoadedFileType(filename);
-    exp.setLoadedFilePath(filename);
+    exp.getExperimentalSettings().setLoadedFileType(filename);
+    exp.getExperimentalSettings().setLoadedFilePath(filename);
 
     String line;
     ifstream is(filename.c_str());

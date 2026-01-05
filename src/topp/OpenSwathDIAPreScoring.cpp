@@ -117,7 +117,7 @@ protected:
       FileHandler().loadExperiment(file_list[i], *swath_map, {FileTypes::MZML}, log_type_);
       if (swath_map->empty() || (*swath_map)[0].getPrecursors().empty())
       {
-        std::cerr << "WARNING: File " << swath_map->getLoadedFilePath()
+        std::cerr << "WARNING: File " << swath_map->getExperimentalSettings().getLoadedFilePath()
                   << " does not have any experiments or any precursors. Is it a SWATH map?"
                   << std::endl;
         continue;
@@ -132,7 +132,7 @@ protected:
                                               min_upper_edge_dist, lower, upper);
       if (transition_exp_used.getTransitions().empty())
       {
-        std::cerr << "WARNING: For file " << swath_map->getLoadedFilePath()
+        std::cerr << "WARNING: For file " << swath_map->getExperimentalSettings().getLoadedFilePath()
                   << " there are no transitions to extract." << std::endl;
         continue;
       }

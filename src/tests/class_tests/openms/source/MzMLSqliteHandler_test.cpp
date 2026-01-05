@@ -167,7 +167,7 @@ START_SECTION(void readExperiment(MSExperiment & exp, bool meta_only = false) co
     {
       TEST_EQUAL(exp.getChromatogram(i).size(), 0)
     }
-    TEST_EQUAL(exp.getExperimentalSettings() == (OpenMS::ExperimentalSettings)exp_orig, true)
+    TEST_EQUAL(exp.getExperimentalSettings() == exp_orig.getExperimentalSettings(), true)
     TEST_EQUAL(exp.getSqlRunID(), 12345)
   } 
   // read in all data
@@ -188,7 +188,7 @@ START_SECTION(void readExperiment(MSExperiment & exp, bool meta_only = false) co
     cmpDataRT(exp, exp_orig, 0.05, 1.000001); // max 0.05 seconds error in RT
 
     // 1:1 mapping of experimental settings ...
-    TEST_EQUAL(exp.getExperimentalSettings() == (OpenMS::ExperimentalSettings)exp_orig, true)
+    TEST_EQUAL(exp.getExperimentalSettings() == exp_orig.getExperimentalSettings(), true)
     TEST_EQUAL(exp.getSqlRunID(), 12345)
   }
 }
@@ -483,7 +483,7 @@ START_SECTION(void writeExperiment(const MSExperiment & exp))
     {
       TEST_EQUAL(exp.getChromatogram(i).size(), 0)
     }
-    TEST_EQUAL(exp.getExperimentalSettings() == (OpenMS::ExperimentalSettings)exp_orig, true)
+    TEST_EQUAL(exp.getExperimentalSettings() == exp_orig.getExperimentalSettings(), true)
   }
 
   MSExperiment exp;
@@ -502,7 +502,7 @@ START_SECTION(void writeExperiment(const MSExperiment & exp))
   cmpDataRT(exp, exp_orig, 0.05, 1.000001); // max 0.05 seconds error in RT
 
   // 1:1 mapping of experimental settings ...
-  TEST_EQUAL(exp.getExperimentalSettings() == (OpenMS::ExperimentalSettings)exp_orig, true)
+  TEST_EQUAL(exp.getExperimentalSettings() == exp_orig.getExperimentalSettings(), true)
 }
 END_SECTION
 

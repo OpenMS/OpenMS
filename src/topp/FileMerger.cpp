@@ -442,8 +442,8 @@ protected:
         // if we have only one spectrum, we can annotate it directly, for more spectra, we just name the source file leaving the spectra unannotated (to avoid a long and redundant list of sourceFiles)
         if (in.size() == 1)
         {
-          in[0].setSourceFile(in.getSourceFiles()[0]);
-          in.getSourceFiles().clear(); // delete source file annotated from source file (it's in the spectrum anyways)
+          in[0].setSourceFile(in.getExperimentalSettings().getSourceFiles()[0]);
+          in.getExperimentalSettings().getSourceFiles().clear(); // delete source file annotated from source file (it's in the spectrum anyways)
         }
 
         if (rt_gap_ > 0.0) // concatenate in RT
@@ -467,11 +467,11 @@ protected:
         // copy experimental settings from first file
         if (i == 0)
         {
-          out.ExperimentalSettings::operator=(in);
+          out.setExperimentalSettings(in.getExperimentalSettings());
         }
         else // otherwise append
         {
-          out.getSourceFiles().insert(out.getSourceFiles().end(), in.getSourceFiles().begin(), in.getSourceFiles().end()); // could be emtpty if spectrum was annotated above, but that's ok then
+          out.getExperimentalSettings().getSourceFiles().insert(out.getExperimentalSettings().getSourceFiles().end(), in.getExperimentalSettings().getSourceFiles().begin(), in.getExperimentalSettings().getSourceFiles().end()); // could be emtpty if spectrum was annotated above, but that's ok then
         }
       }
 

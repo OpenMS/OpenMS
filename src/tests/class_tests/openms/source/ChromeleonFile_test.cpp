@@ -45,16 +45,16 @@ START_SECTION(void load(const String& filename, MSExperiment& experiment) const)
   MSExperiment experiment;
   ChromeleonFile cf;
   cf.load(input_filepath, experiment);
-  TEST_EQUAL(experiment.getMetaValue("acq_method_name"), "UV_VIS_2")
-  TEST_EQUAL(experiment.getMetaValue("mzml_id"), "20171013_C61_ISO_P1_GA1")
+  TEST_EQUAL(experiment.getExperimentalSettings().getMetaValue("acq_method_name"), "UV_VIS_2")
+  TEST_EQUAL(experiment.getExperimentalSettings().getMetaValue("mzml_id"), "20171013_C61_ISO_P1_GA1")
   TEST_EQUAL(experiment.getExperimentalSettings().getInstrument().getName(), "HM_metode_ZorBax_0,02%_Acetic_acid_ver6")
   TEST_EQUAL(experiment.getExperimentalSettings().getInstrument().getSoftware().getName(), "New ProcMethod")
-  TEST_EQUAL(experiment.getMetaValue("injection_date"), "10/13/2017")
-  TEST_EQUAL(experiment.getMetaValue("injection_time"), "6:28:26 PM")
-  TEST_EQUAL(experiment.getMetaValue("detector"), "UV")
-  TEST_EQUAL(experiment.getMetaValue("signal_quantity"), "Absorbance")
-  TEST_EQUAL(experiment.getMetaValue("signal_unit"), "mAU")
-  TEST_EQUAL(experiment.getMetaValue("signal_info"), "WVL:280 nm")
+  TEST_EQUAL(experiment.getExperimentalSettings().getMetaValue("injection_date"), "10/13/2017")
+  TEST_EQUAL(experiment.getExperimentalSettings().getMetaValue("injection_time"), "6:28:26 PM")
+  TEST_EQUAL(experiment.getExperimentalSettings().getMetaValue("detector"), "UV")
+  TEST_EQUAL(experiment.getExperimentalSettings().getMetaValue("signal_quantity"), "Absorbance")
+  TEST_EQUAL(experiment.getExperimentalSettings().getMetaValue("signal_unit"), "mAU")
+  TEST_EQUAL(experiment.getExperimentalSettings().getMetaValue("signal_info"), "WVL:280 nm")
   const vector<MSChromatogram> chromatograms = experiment.getChromatograms();
   TEST_EQUAL(chromatograms.size(), 1);
   TEST_EQUAL(chromatograms[0].size(), 3301);
@@ -102,16 +102,16 @@ START_SECTION(load_with_new_raw_data_header)
   MSExperiment experiment;
   ChromeleonFile cf;
   cf.load(input_filepath, experiment);
-  TEST_EQUAL(experiment.getMetaValue("acq_method_name"), "RID_Signal")
-  TEST_EQUAL(experiment.getMetaValue("mzml_id"), "S1")
+  TEST_EQUAL(experiment.getExperimentalSettings().getMetaValue("acq_method_name"), "RID_Signal")
+  TEST_EQUAL(experiment.getExperimentalSettings().getMetaValue("mzml_id"), "S1")
   TEST_EQUAL(experiment.getExperimentalSettings().getInstrument().getName(), "SUGARS_MP.M")
   TEST_EQUAL(experiment.getExperimentalSettings().getInstrument().getSoftware().getName(), "SUGARS_CAL")
-  TEST_EQUAL(experiment.getMetaValue("injection_date"), "13/06/2019")
-  TEST_EQUAL(experiment.getMetaValue("injection_time"), "12:11:41 AM")
-  TEST_EQUAL(experiment.getMetaValue("detector"), "LCSystem")
-  TEST_EQUAL(experiment.getMetaValue("signal_quantity"), "")
-  TEST_EQUAL(experiment.getMetaValue("signal_unit"), "nRIU")
-  TEST_EQUAL(experiment.getMetaValue("signal_info"), "")
+  TEST_EQUAL(experiment.getExperimentalSettings().getMetaValue("injection_date"), "13/06/2019")
+  TEST_EQUAL(experiment.getExperimentalSettings().getMetaValue("injection_time"), "12:11:41 AM")
+  TEST_EQUAL(experiment.getExperimentalSettings().getMetaValue("detector"), "LCSystem")
+  TEST_EQUAL(experiment.getExperimentalSettings().getMetaValue("signal_quantity"), "")
+  TEST_EQUAL(experiment.getExperimentalSettings().getMetaValue("signal_unit"), "nRIU")
+  TEST_EQUAL(experiment.getExperimentalSettings().getMetaValue("signal_info"), "")
   const vector<MSChromatogram> chromatograms = experiment.getChromatograms();
   TEST_EQUAL(chromatograms.size(), 1);
   TEST_EQUAL(chromatograms[0].size(), 10);
@@ -155,16 +155,16 @@ START_SECTION(load_file_with_comma_thousands_separator)
   MSExperiment experiment;
   ChromeleonFile cf;
   cf.load(input_filepath, experiment);
-  TEST_EQUAL(experiment.getMetaValue("acq_method_name"), "RID_Signal")
-  TEST_EQUAL(experiment.getMetaValue("mzml_id"), "S2")
+  TEST_EQUAL(experiment.getExperimentalSettings().getMetaValue("acq_method_name"), "RID_Signal")
+  TEST_EQUAL(experiment.getExperimentalSettings().getMetaValue("mzml_id"), "S2")
   TEST_EQUAL(experiment.getExperimentalSettings().getInstrument().getName(), "SUGARS_MP.M")
   TEST_EQUAL(experiment.getExperimentalSettings().getInstrument().getSoftware().getName(), "SUGARS_CAL")
-  TEST_EQUAL(experiment.getMetaValue("injection_date"), "12/06/2019")
-  TEST_EQUAL(experiment.getMetaValue("injection_time"), "11:49:36 PM")
-  TEST_EQUAL(experiment.getMetaValue("detector"), "LCSystem")
-  TEST_EQUAL(experiment.getMetaValue("signal_quantity"), "")
-  TEST_EQUAL(experiment.getMetaValue("signal_unit"), "nRIU")
-  TEST_EQUAL(experiment.getMetaValue("signal_info"), "")
+  TEST_EQUAL(experiment.getExperimentalSettings().getMetaValue("injection_date"), "12/06/2019")
+  TEST_EQUAL(experiment.getExperimentalSettings().getMetaValue("injection_time"), "11:49:36 PM")
+  TEST_EQUAL(experiment.getExperimentalSettings().getMetaValue("detector"), "LCSystem")
+  TEST_EQUAL(experiment.getExperimentalSettings().getMetaValue("signal_quantity"), "")
+  TEST_EQUAL(experiment.getExperimentalSettings().getMetaValue("signal_unit"), "nRIU")
+  TEST_EQUAL(experiment.getExperimentalSettings().getMetaValue("signal_info"), "")
   const vector<MSChromatogram> chromatograms = experiment.getChromatograms();
   TEST_EQUAL(chromatograms.size(), 1);
   TEST_EQUAL(chromatograms[0].size(), 8);

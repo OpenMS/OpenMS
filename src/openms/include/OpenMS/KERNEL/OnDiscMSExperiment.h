@@ -169,7 +169,9 @@ public:
     /// returns the meta information of this experiment (const access)
     std::shared_ptr<const ExperimentalSettings> getExperimentalSettings() const
     {
-      return std::static_pointer_cast<const ExperimentalSettings>(meta_ms_experiment_);
+      // Use aliasing constructor to return a shared_ptr to the ExperimentalSettings member
+      // while sharing ownership with meta_ms_experiment_
+      return std::shared_ptr<const ExperimentalSettings>(meta_ms_experiment_, &(meta_ms_experiment_->getExperimentalSettings()));
     }
 
     std::shared_ptr<PeakMap> getMetaData() const

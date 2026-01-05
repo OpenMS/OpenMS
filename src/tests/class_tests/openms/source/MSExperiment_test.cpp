@@ -74,13 +74,13 @@ END_SECTION
 START_SECTION((MSExperiment(const MSExperiment& source)))
 {
   PeakMap tmp;
-  tmp.getContacts().resize(1);
-  tmp.getContacts()[0].setFirstName("Name");
+  tmp.getExperimentalSettings().getContacts().resize(1);
+  tmp.getExperimentalSettings().getContacts()[0].setFirstName("Name");
   tmp.resize(1);
 
   PeakMap tmp2(tmp);
-  TEST_EQUAL(tmp2.getContacts().size(),1);
-  TEST_EQUAL(tmp2.getContacts()[0].getFirstName(),"Name");
+  TEST_EQUAL(tmp2.getExperimentalSettings().getContacts().size(),1);
+  TEST_EQUAL(tmp2.getExperimentalSettings().getContacts()[0].getFirstName(),"Name");
   TEST_EQUAL(tmp2.size(),1);
 }
 END_SECTION
@@ -94,16 +94,16 @@ START_SECTION((MSExperiment(const MSExperiment&& source)))
   TEST_EQUAL(noexcept(MSExperiment(std::declval<MSExperiment&&>())), true)
 #endif
   PeakMap tmp;
-  tmp.getContacts().resize(1);
-  tmp.getContacts()[0].setFirstName("Name");
+  tmp.getExperimentalSettings().getContacts().resize(1);
+  tmp.getExperimentalSettings().getContacts()[0].setFirstName("Name");
   tmp.resize(1);
 
   //copy tmp so we can move one of them
   PeakMap orig = tmp;
   PeakMap tmp2(std::move(tmp));
 
-  TEST_EQUAL(tmp2.getContacts().size(),1);
-  TEST_EQUAL(tmp2.getContacts()[0].getFirstName(),"Name");
+  TEST_EQUAL(tmp2.getExperimentalSettings().getContacts().size(),1);
+  TEST_EQUAL(tmp2.getExperimentalSettings().getContacts()[0].getFirstName(),"Name");
   TEST_EQUAL(tmp2.size(),1);
 
   // test move
@@ -114,8 +114,8 @@ END_SECTION
 START_SECTION((MSExperiment& operator= (const MSExperiment& source)))
 {
   PeakMap tmp;
-  tmp.getContacts().resize(1);
-  tmp.getContacts()[0].setFirstName("Name");
+  tmp.getExperimentalSettings().getContacts().resize(1);
+  tmp.getExperimentalSettings().getContacts()[0].setFirstName("Name");
   tmp.resize(1);
   Peak1D p;
   p.setMZ(5.0);
@@ -126,14 +126,14 @@ START_SECTION((MSExperiment& operator= (const MSExperiment& source)))
 
   PeakMap tmp2;
   tmp2 = tmp;
-  TEST_EQUAL(tmp2.getContacts().size(),1);
-  TEST_EQUAL(tmp2.getContacts()[0].getFirstName(),"Name");
+  TEST_EQUAL(tmp2.getExperimentalSettings().getContacts().size(),1);
+  TEST_EQUAL(tmp2.getExperimentalSettings().getContacts()[0].getFirstName(),"Name");
   TEST_EQUAL(tmp2.size(),1);
   TEST_REAL_SIMILAR(tmp2.getMinMZ(),5.0);
   TEST_REAL_SIMILAR(tmp2.getMaxMZ(),10.0);
 
   tmp2 = PeakMap();
-  TEST_EQUAL(tmp2.getContacts().size(),0);
+  TEST_EQUAL(tmp2.getExperimentalSettings().getContacts().size(),0);
   TEST_EQUAL(tmp2.size(),0);
 }
 END_SECTION
@@ -141,8 +141,8 @@ END_SECTION
 START_SECTION((MSExperiment& operator= (const MSExperiment&& source)))
 {
   PeakMap tmp;
-  tmp.getContacts().resize(1);
-  tmp.getContacts()[0].setFirstName("Name");
+  tmp.getExperimentalSettings().getContacts().resize(1);
+  tmp.getExperimentalSettings().getContacts()[0].setFirstName("Name");
   tmp.resize(1);
   Peak1D p;
   p.setMZ(5.0);
@@ -157,8 +157,8 @@ START_SECTION((MSExperiment& operator= (const MSExperiment&& source)))
 
   TEST_EQUAL(tmp2, orig); // should be equal to the original
 
-  TEST_EQUAL(tmp2.getContacts().size(),1);
-  TEST_EQUAL(tmp2.getContacts()[0].getFirstName(),"Name");
+  TEST_EQUAL(tmp2.getExperimentalSettings().getContacts().size(),1);
+  TEST_EQUAL(tmp2.getExperimentalSettings().getContacts()[0].getFirstName(),"Name");
   TEST_EQUAL(tmp2.size(),1);
   TEST_REAL_SIMILAR(tmp2.getMinMZ(),5.0);
   TEST_REAL_SIMILAR(tmp2.getMaxMZ(),10.0);
@@ -167,7 +167,7 @@ START_SECTION((MSExperiment& operator= (const MSExperiment&& source)))
   TEST_EQUAL(tmp.size(),0);
 
   tmp2 = PeakMap(); // use rvalue assignment
-  TEST_EQUAL(tmp2.getContacts().size(),0);
+  TEST_EQUAL(tmp2.getExperimentalSettings().getContacts().size(),0);
   TEST_EQUAL(tmp2.size(),0);
 }
 END_SECTION
@@ -178,7 +178,7 @@ START_SECTION((bool operator== (const MSExperiment& rhs) const))
 
   TEST_TRUE(edit == empty);
 
-  edit.getContacts().resize(1);
+  edit.getExperimentalSettings().getContacts().resize(1);
   TEST_EQUAL(edit==empty, false);
 
   edit = empty;
@@ -193,7 +193,7 @@ START_SECTION((bool operator!= (const MSExperiment& rhs) const))
 
   TEST_EQUAL(edit!=empty, false);
 
-  edit.getContacts().resize(1);
+  edit.getExperimentalSettings().getContacts().resize(1);
   TEST_FALSE(edit == empty);
 
   edit = empty;
@@ -1113,7 +1113,7 @@ END_SECTION
 START_SECTION((const ExperimentalSettings& getExperimentalSettings() const))
 {
   PeakMap exp;
-  exp.setComment("test");
+  exp.getExperimentalSettings().setComment("test");
   TEST_EQUAL(exp.getExperimentalSettings().getComment(),"test");
 }
 END_SECTION
@@ -1345,7 +1345,7 @@ END_SECTION
 START_SECTION((void swap(MSExperiment &from)))
 {
   PeakMap exp1, exp2;
-  exp1.setComment("stupid comment");
+  exp1.getExperimentalSettings().setComment("stupid comment");
   exp1.resize(1);
   exp1[0].setMSLevel(2);
   exp1[0].resize(2);
@@ -1355,13 +1355,13 @@ START_SECTION((void swap(MSExperiment &from)))
 
   exp1.swap(exp2);
 
-  TEST_EQUAL(exp1.getComment(),"")
+  TEST_EQUAL(exp1.getExperimentalSettings().getComment(),"")
   TEST_EQUAL(exp1.size(),0)
   TEST_EQUAL(exp1.combinedRanges().hasRange() == HasRangeType::NONE, true)
   TEST_EQUAL(exp1.getMSLevels().size(),0)
   TEST_EQUAL(exp1.getSize(),0);
 
-  TEST_EQUAL(exp2.getComment(),"stupid comment")
+  TEST_EQUAL(exp2.getExperimentalSettings().getComment(),"stupid comment")
   TEST_EQUAL(exp2.size(),1)
   TEST_REAL_SIMILAR(exp2.getMinIntensity(), 0.5)
   TEST_EQUAL(exp2.getMSLevels().size(),1)
@@ -1372,10 +1372,10 @@ END_SECTION
 START_SECTION(void clear(bool clear_meta_data))
 {
   PeakMap edit;
-  edit.getSample().setName("bla");
+  edit.getExperimentalSettings().getSample().setName("bla");
   edit.resize(5);
   edit.updateRanges();
-  edit.setMetaValue("label",String("bla"));
+  edit.getExperimentalSettings().setMetaValue("label",String("bla"));
   vector<MSChromatogram > tmp;
   tmp.resize(5);
   edit.setChromatograms(tmp);
@@ -1630,8 +1630,8 @@ END_SECTION
 START_SECTION( std::ostream& operator<<(std::ostream& os, const MSExperiment& chrom)) 
 {
   PeakMap tmp;
-  tmp.getContacts().resize(1);
-  tmp.getContacts()[0].setFirstName("Name");
+  tmp.getExperimentalSettings().getContacts().resize(1);
+  tmp.getExperimentalSettings().getContacts()[0].setFirstName("Name");
   tmp.resize(1);
   Peak1D p;
   p.setMZ(5.0);

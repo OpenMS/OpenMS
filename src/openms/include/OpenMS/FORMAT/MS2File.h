@@ -63,8 +63,8 @@ public:
       exp.reset();
 
       //set DocumentIdentifier
-      exp.setLoadedFileType(filename);
-      exp.setLoadedFilePath(filename);
+      exp.getExperimentalSettings().setLoadedFileType(filename);
+      exp.getExperimentalSettings().setLoadedFilePath(filename);
 
       std::ifstream in(filename.c_str());
 

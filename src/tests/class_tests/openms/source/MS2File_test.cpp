@@ -46,8 +46,8 @@ PeakMap exp;
 file.load(OPENMS_GET_TEST_DATA_PATH("MS2File_test_spectra.ms2"), exp);
 
 //test DocumentIdentifier addition
-TEST_STRING_EQUAL(exp.getLoadedFilePath(), OPENMS_GET_TEST_DATA_PATH("MS2File_test_spectra.ms2"));
-TEST_STRING_EQUAL(FileTypes::typeToName(exp.getLoadedFileType()), "ms2");
+TEST_STRING_EQUAL(exp.getExperimentalSettings().getLoadedFilePath(), OPENMS_GET_TEST_DATA_PATH("MS2File_test_spectra.ms2"));
+TEST_STRING_EQUAL(FileTypes::typeToName(exp.getExperimentalSettings().getLoadedFileType()), "ms2");
 
 TEST_EQUAL(exp.size(), 2)
 

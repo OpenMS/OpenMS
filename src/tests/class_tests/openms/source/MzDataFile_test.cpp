@@ -88,8 +88,8 @@ START_SECTION((template <typename MapType> void load(const String &filename, Map
   file.load(OPENMS_GET_TEST_DATA_PATH("MzDataFile_1.mzData"), e);
 
   //test DocumentIdentifier addition
-  TEST_STRING_EQUAL(e.getLoadedFilePath(), OPENMS_GET_TEST_DATA_PATH("MzDataFile_1.mzData"));
-  TEST_STRING_EQUAL(FileTypes::typeToName(e.getLoadedFileType()), "mzData");
+  TEST_STRING_EQUAL(e.getExperimentalSettings().getLoadedFilePath(), OPENMS_GET_TEST_DATA_PATH("MzDataFile_1.mzData"));
+  TEST_STRING_EQUAL(FileTypes::typeToName(e.getExperimentalSettings().getLoadedFileType()), "mzData");
 
   //---------------------------------------------------------------------------
   // ms-level, RT, native ID
@@ -325,31 +325,31 @@ START_SECTION((template <typename MapType> void load(const String &filename, Map
   //---------------------------------------------------------------------------
   // accession number
   //---------------------------------------------------------------------------
-  TEST_EQUAL(e.getIdentifier(), "lsid");
+  TEST_EQUAL(e.getExperimentalSettings().getIdentifier(), "lsid");
 
   //---------------------------------------------------------------------------
   // source file
   //---------------------------------------------------------------------------
-  TEST_EQUAL(e.getSourceFiles().size(), 1)
-  TEST_STRING_EQUAL(e.getSourceFiles()[0].getNameOfFile(), "MzDataFile_test_1.raw");
-  TEST_STRING_EQUAL(e.getSourceFiles()[0].getPathToFile(), "/share/data/");
-  TEST_STRING_EQUAL(e.getSourceFiles()[0].getFileType(), "MS");
-  TEST_STRING_EQUAL(e.getSourceFiles()[0].getChecksum(), "");
-  TEST_EQUAL(e.getSourceFiles()[0].getChecksumType(), SourceFile::UNKNOWN_CHECKSUM);
+  TEST_EQUAL(e.getExperimentalSettings().getSourceFiles().size(), 1)
+  TEST_STRING_EQUAL(e.getExperimentalSettings().getSourceFiles()[0].getNameOfFile(), "MzDataFile_test_1.raw");
+  TEST_STRING_EQUAL(e.getExperimentalSettings().getSourceFiles()[0].getPathToFile(), "/share/data/");
+  TEST_STRING_EQUAL(e.getExperimentalSettings().getSourceFiles()[0].getFileType(), "MS");
+  TEST_STRING_EQUAL(e.getExperimentalSettings().getSourceFiles()[0].getChecksum(), "");
+  TEST_EQUAL(e.getExperimentalSettings().getSourceFiles()[0].getChecksumType(), SourceFile::UNKNOWN_CHECKSUM);
 
   //---------------------------------------------------------------------------
   // conteact list
   //---------------------------------------------------------------------------
-  TEST_EQUAL(e.getContacts().size(), 2);
-  ABORT_IF(e.getContacts().size() != 2);
-  TEST_EQUAL(e.getContacts()[0].getFirstName(), "John");
-  TEST_EQUAL(e.getContacts()[0].getLastName(), "Doe");
-  TEST_EQUAL(e.getContacts()[0].getInstitution(), "department 1");
-  TEST_EQUAL(e.getContacts()[0].getContactInfo(), "www.john.doe");
-  TEST_EQUAL(e.getContacts()[1].getFirstName(), "Jane");
-  TEST_EQUAL(e.getContacts()[1].getLastName(), "Doe");
-  TEST_EQUAL(e.getContacts()[1].getInstitution(), "department 2");
-  TEST_EQUAL(e.getContacts()[1].getContactInfo(), "www.jane.doe");
+  TEST_EQUAL(e.getExperimentalSettings().getContacts().size(), 2);
+  ABORT_IF(e.getExperimentalSettings().getContacts().size() != 2);
+  TEST_EQUAL(e.getExperimentalSettings().getContacts()[0].getFirstName(), "John");
+  TEST_EQUAL(e.getExperimentalSettings().getContacts()[0].getLastName(), "Doe");
+  TEST_EQUAL(e.getExperimentalSettings().getContacts()[0].getInstitution(), "department 1");
+  TEST_EQUAL(e.getExperimentalSettings().getContacts()[0].getContactInfo(), "www.john.doe");
+  TEST_EQUAL(e.getExperimentalSettings().getContacts()[1].getFirstName(), "Jane");
+  TEST_EQUAL(e.getExperimentalSettings().getContacts()[1].getLastName(), "Doe");
+  TEST_EQUAL(e.getExperimentalSettings().getContacts()[1].getInstitution(), "department 2");
+  TEST_EQUAL(e.getExperimentalSettings().getContacts()[1].getContactInfo(), "www.jane.doe");
 
   //---------------------------------------------------------------------------
   // data processing
@@ -368,7 +368,7 @@ START_SECTION((template <typename MapType> void load(const String &filename, Map
   //---------------------------------------------------------------------------
   // instrument
   //---------------------------------------------------------------------------
-  const Instrument& inst = e.getInstrument();
+  const Instrument& inst = e.getExperimentalSettings().getInstrument();
   TEST_EQUAL(inst.getName(), "MS-Instrument")
   TEST_EQUAL(inst.getVendor(), "MS-Vendor")
   TEST_EQUAL(inst.getModel(), "MS 1")
@@ -426,14 +426,14 @@ START_SECTION((template <typename MapType> void load(const String &filename, Map
   //---------------------------------------------------------------------------
   // sample
   //---------------------------------------------------------------------------
-  TEST_EQUAL(e.getSample().getName(), "MS-Sample")
-  TEST_EQUAL(e.getSample().getNumber(), "0-815")
-  TEST_EQUAL(e.getSample().getState(), Sample::GAS)
-  TEST_EQUAL(e.getSample().getMass(), 1.01)
-  TEST_EQUAL(e.getSample().getVolume(), 2.02)
-  TEST_EQUAL(e.getSample().getConcentration(), 3.03)
-  TEST_EQUAL(e.getSample().getMetaValue("URL"), "www.open-ms.de")
-  TEST_EQUAL(e.getSample().getMetaValue("SampleComment"), "Sample")
+  TEST_EQUAL(e.getExperimentalSettings().getSample().getName(), "MS-Sample")
+  TEST_EQUAL(e.getExperimentalSettings().getSample().getNumber(), "0-815")
+  TEST_EQUAL(e.getExperimentalSettings().getSample().getState(), Sample::GAS)
+  TEST_EQUAL(e.getExperimentalSettings().getSample().getMass(), 1.01)
+  TEST_EQUAL(e.getExperimentalSettings().getSample().getVolume(), 2.02)
+  TEST_EQUAL(e.getExperimentalSettings().getSample().getConcentration(), 3.03)
+  TEST_EQUAL(e.getExperimentalSettings().getSample().getMetaValue("URL"), "www.open-ms.de")
+  TEST_EQUAL(e.getExperimentalSettings().getSample().getMetaValue("SampleComment"), "Sample")
 
   /////////////////////// TESTING SPECIAL CASES ///////////////////////
 
@@ -457,7 +457,7 @@ START_SECTION((template <typename MapType> void load(const String &filename, Map
   //load with 64 bit precision and endian conversion
   PeakMap e5;
   file.load(OPENMS_GET_TEST_DATA_PATH("MzDataFile_4_64bit.mzData"), e5);
-  TEST_EQUAL(e5.getIdentifier(), "");
+  TEST_EQUAL(e5.getExperimentalSettings().getIdentifier(), "");
   TEST_EQUAL(e5.size(), 1)
   TEST_EQUAL(e5[0].size(), 3)
   TEST_REAL_SIMILAR(e5[0][0].getPosition()[0], 110)
@@ -510,15 +510,15 @@ START_SECTION(([EXTRA] load with metadata - only flag))
   //check number of scans
   TEST_EQUAL(e.size(), 0)
 
-  TEST_EQUAL(e.getSourceFiles().size(), 1)
-  TEST_STRING_EQUAL(e.getSourceFiles()[0].getNameOfFile(), "MzDataFile_test_1.raw");
-  TEST_EQUAL(e.getContacts().size(), 2);
-  TEST_EQUAL(e.getContacts()[0].getFirstName(), "John");
-  TEST_EQUAL(e.getContacts()[0].getLastName(), "Doe");
-  TEST_EQUAL(e.getInstrument().getName(), "MS-Instrument")
-  TEST_EQUAL(e.getInstrument().getVendor(), "MS-Vendor")
-  TEST_EQUAL(e.getSample().getName(), "MS-Sample")
-  TEST_EQUAL(e.getSample().getNumber(), "0-815")
+  TEST_EQUAL(e.getExperimentalSettings().getSourceFiles().size(), 1)
+  TEST_STRING_EQUAL(e.getExperimentalSettings().getSourceFiles()[0].getNameOfFile(), "MzDataFile_test_1.raw");
+  TEST_EQUAL(e.getExperimentalSettings().getContacts().size(), 2);
+  TEST_EQUAL(e.getExperimentalSettings().getContacts()[0].getFirstName(), "John");
+  TEST_EQUAL(e.getExperimentalSettings().getContacts()[0].getLastName(), "Doe");
+  TEST_EQUAL(e.getExperimentalSettings().getInstrument().getName(), "MS-Instrument")
+  TEST_EQUAL(e.getExperimentalSettings().getInstrument().getVendor(), "MS-Vendor")
+  TEST_EQUAL(e.getExperimentalSettings().getSample().getName(), "MS-Sample")
+  TEST_EQUAL(e.getExperimentalSettings().getSample().getNumber(), "0-815")
 }
 END_SECTION
 
@@ -657,7 +657,7 @@ START_SECTION((template <typename MapType> void store(const String &filename, co
   NEW_TMP_FILE(tmp_filename);
   f.store(tmp_filename, e1);
   f.load(tmp_filename, e2);
-  TEST_EQUAL(e2.getIdentifier(), "lsid");
+  TEST_EQUAL(e2.getExperimentalSettings().getIdentifier(), "lsid");
   e2[0].getDataProcessing()[0]->getSoftware().setMetaValue("comment", String("SoftwareComment"));
   e2[1].getDataProcessing()[0]->getSoftware().setMetaValue("comment", String("SoftwareComment"));
   e2[2].getDataProcessing()[0]->getSoftware().setMetaValue("comment", String("SoftwareComment"));

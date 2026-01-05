@@ -1070,19 +1070,19 @@ namespace OpenMS::Internal
         String accession;
         if (optionalAttributeAsString_(accession, attributes, s_accession))
         {
-          exp_->setIdentifier(accession);
+          exp_->getExperimentalSettings().setIdentifier(accession);
         }
         //handle file id
         String id;
         if (optionalAttributeAsString_(id, attributes, s_id))
         {
-          exp_->setMetaValue("mzml_id", id);
+          exp_->getExperimentalSettings().setMetaValue("mzml_id", id);
         }
         pg_outer.startProgress(0, 1, "loading mzML");
       }
       else if (tag == "contact")
       {
-        exp_->getContacts().emplace_back();
+        exp_->getExperimentalSettings().getContacts().emplace_back();
       }
       else if (tag == "sample")
       {
@@ -1099,23 +1099,23 @@ namespace OpenMS::Internal
         String sample_ref;
         if (optionalAttributeAsString_(sample_ref, attributes, s_sample_ref))
         {
-          exp_->setSample(samples_[sample_ref]);
+          exp_->getExperimentalSettings().setSample(samples_[sample_ref]);
         }
         //instrument
         String instrument_ref = attributeAsString_(attributes, s_default_instrument_configuration_ref);
-        exp_->setInstrument(instruments_[instrument_ref]);
+        exp_->getExperimentalSettings().setInstrument(instruments_[instrument_ref]);
         //start time
         String start_time;
         if (optionalAttributeAsString_(start_time, attributes, s_start_time_stamp))
         {
-          exp_->setDateTime(asDateTime_(start_time));
+          exp_->getExperimentalSettings().setDateTime(asDateTime_(start_time));
         }
         /*
         //defaultSourceFileRef
         String default_source_file_ref;
         if (optionalAttributeAsString_(default_source_file_ref, attributes, s_default_source_file_ref))
         {
-          exp_->getSourceFiles().push_back(source_files_[default_source_file_ref]);
+          exp_->getExperimentalSettings().getSourceFiles().push_back(source_files_[default_source_file_ref]);
         } 
         */       
       }
@@ -1374,11 +1374,11 @@ namespace OpenMS::Internal
       {        
         for (auto const& ref_sourcefile : source_files_)
         {
-          auto& sfs = exp_->getSourceFiles();
+          auto& sfs = exp_->getExperimentalSettings().getSourceFiles();
           // only store source files once
           if (std::find(sfs.begin(), sfs.end(), ref_sourcefile.second) == sfs.end())
           {
-            exp_->getSourceFiles().push_back(ref_sourcefile.second);
+            exp_->getExperimentalSettings().getSourceFiles().push_back(ref_sourcefile.second);
           }
         }
       }
@@ -1418,7 +1418,7 @@ namespace OpenMS::Internal
         //MS:1000857 ! run attribute
         if (accession == "MS:1000858") //fraction identifier
         {
-          exp_->setFractionIdentifier(value);
+          exp_->getExperimentalSettings().setFractionIdentifier(value);
         }
         else
         {
@@ -2275,23 +2275,23 @@ namespace OpenMS::Internal
       {
         if (accession == "MS:1000586") //contact name
         {
-          exp_->getContacts().back().setName(value);
+          exp_->getExperimentalSettings().getContacts().back().setName(value);
         }
         else if (accession == "MS:1000587") //contact address
         {
-          exp_->getContacts().back().setAddress(value);
+          exp_->getExperimentalSettings().getContacts().back().setAddress(value);
         }
         else if (accession == "MS:1000588") //contact URL
         {
-          exp_->getContacts().back().setURL(value);
+          exp_->getExperimentalSettings().getContacts().back().setURL(value);
         }
         else if (accession == "MS:1000589") //contact email
         {
-          exp_->getContacts().back().setEmail(value);
+          exp_->getExperimentalSettings().getContacts().back().setEmail(value);
         }
         else if (accession == "MS:1000590") //contact organization
         {
-          exp_->getContacts().back().setInstitution(value);
+          exp_->getExperimentalSettings().getContacts().back().setInstitution(value);
         }
         else
           warning(LOAD, String("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
@@ -3163,12 +3163,12 @@ namespace OpenMS::Internal
         if (cv_.isChildOf(accession, "MS:1000524")) //data file content
         {
           //ignored
-          //exp_->setMetaValue(name, termValue);
+          //exp_->getExperimentalSettings().setMetaValue(name, termValue);
         }
         else if (cv_.isChildOf(accession, "MS:1000525")) //spectrum representation
         {
           //ignored
-          //exp_->setMetaValue(name, termValue);
+          //exp_->getExperimentalSettings().setMetaValue(name, termValue);
         }
         else
           warning(LOAD, String("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
@@ -3280,7 +3280,7 @@ namespace OpenMS::Internal
       //find the right MetaInfoInterface
       if (parent_tag == "run")
       {
-        exp_->setMetaValue(name, data_value);
+        exp_->getExperimentalSettings().setMetaValue(name, data_value);
       }
       else if (parent_tag == "instrumentConfiguration")
       {
@@ -3308,7 +3308,7 @@ namespace OpenMS::Internal
       }
       else if (parent_tag == "contact")
       {
-        exp_->getContacts().back().setMetaValue(name, data_value);
+        exp_->getExperimentalSettings().getContacts().back().setMetaValue(name, data_value);
       }
       else if (parent_tag == "sourceFile")
       {
@@ -3398,7 +3398,7 @@ namespace OpenMS::Internal
       }
       else if (parent_tag == "fileContent")
       {
-        //exp_->setMetaValue(name, data_value);
+        //exp_->getExperimentalSettings().setMetaValue(name, data_value);
       }
       else
       {
@@ -4094,7 +4094,7 @@ namespace OpenMS::Internal
       {
         os << "<indexedmzML xmlns=\"http://psi.hupo.org/ms/mzml\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://psi.hupo.org/ms/mzml http://psidev.info/files/ms/mzML/xsd/mzML1.1.0_idx.xsd\">\n";
       }
-      os << R"(<mzML xmlns="http://psi.hupo.org/ms/mzml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://psi.hupo.org/ms/mzml http://psidev.info/files/ms/mzML/xsd/mzML1.1.0.xsd" accession=")" << writeXMLEscape(exp.getIdentifier()) << "\" version=\"" << version_ << "\">\n";
+      os << R"(<mzML xmlns="http://psi.hupo.org/ms/mzml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://psi.hupo.org/ms/mzml http://psidev.info/files/ms/mzML/xsd/mzML1.1.0.xsd" accession=")" << writeXMLEscape(exp.getExperimentalSettings().getIdentifier()) << "\" version=\"" << version_ << "\">\n";
       //--------------------------------------------------------------------------------------------
       // CV list
       //--------------------------------------------------------------------------------------------
@@ -5018,7 +5018,7 @@ namespace OpenMS::Internal
         os << "\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000858\" name=\"fraction identifier\" value=\"" << exp.getExperimentalSettings().getFractionIdentifier() << "\" />\n";
       }
 
-      writeUserParam_(os, exp, 2, "/mzML/run/cvParam/@accession", validator);
+      writeUserParam_(os, exp.getExperimentalSettings(), 2, "/mzML/run/cvParam/@accession", validator);
 
     }
 

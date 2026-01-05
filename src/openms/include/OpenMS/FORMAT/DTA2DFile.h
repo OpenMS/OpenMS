@@ -94,8 +94,8 @@ public:
       map.reset();
 
       //set DocumentIdentifier
-      map.setLoadedFileType(filename);
-      map.setLoadedFilePath(filename);
+      map.getExperimentalSettings().setLoadedFileType(filename);
+      map.getExperimentalSettings().setLoadedFilePath(filename);
 
       // temporary variables to store the data in
       std::vector<String> strings(3);

@@ -102,11 +102,11 @@ namespace OpenMS::Internal
 
       if (current_tag == "sampleName")
       {
-        exp_->getSample().setName(sm_.convert(chars));
+        exp_->getExperimentalSettings().getSample().setName(sm_.convert(chars));
       }
       else if (current_tag == "instrumentName")
       {
-        exp_->getInstrument().setName(sm_.convert(chars));
+        exp_->getExperimentalSettings().getInstrument().setName(sm_.convert(chars));
       }
       else if (current_tag == "version")
       {
@@ -114,15 +114,15 @@ namespace OpenMS::Internal
       }
       else if (current_tag == "institution")
       {
-        exp_->getContacts().back().setInstitution(sm_.convert(chars));
+        exp_->getExperimentalSettings().getContacts().back().setInstitution(sm_.convert(chars));
       }
       else if (current_tag == "contactInfo")
       {
-        exp_->getContacts().back().setContactInfo(sm_.convert(chars));
+        exp_->getExperimentalSettings().getContacts().back().setContactInfo(sm_.convert(chars));
       }
       else if (current_tag == "name" && parent_tag == "contact")
       {
-        exp_->getContacts().back().setName(sm_.convert(chars));
+        exp_->getExperimentalSettings().getContacts().back().setName(sm_.convert(chars));
       }
       else if (current_tag == "name" && parent_tag == "software")
       {
@@ -147,7 +147,7 @@ namespace OpenMS::Internal
       }
       else if (current_tag == "nameOfFile" && parent_tag == "sourceFile")
       {
-        exp_->getSourceFiles().back().setNameOfFile(sm_.convert(chars));
+        exp_->getExperimentalSettings().getSourceFiles().back().setNameOfFile(sm_.convert(chars));
       }
       else if (current_tag == "nameOfFile" && parent_tag == "supSourceFile")
       {
@@ -155,7 +155,7 @@ namespace OpenMS::Internal
       }
       else if (current_tag == "pathToFile" && parent_tag == "sourceFile")
       {
-        exp_->getSourceFiles().back().setPathToFile(sm_.convert(chars));
+        exp_->getExperimentalSettings().getSourceFiles().back().setPathToFile(sm_.convert(chars));
       }
       else if (current_tag == "pathToFile" && parent_tag == "supSourceFile")
       {
@@ -163,7 +163,7 @@ namespace OpenMS::Internal
       }
       else if (current_tag == "fileType" && parent_tag == "sourceFile")
       {
-        exp_->getSourceFiles().back().setFileType(sm_.convert(chars));
+        exp_->getExperimentalSettings().getSourceFiles().back().setFileType(sm_.convert(chars));
       }
       else if (current_tag == "fileType" && parent_tag == "supSourceFile")
       {
@@ -219,23 +219,23 @@ namespace OpenMS::Internal
       // Do something depending on the tag
       if (tag == "sourceFile")
       {
-        exp_->getSourceFiles().emplace_back();
+        exp_->getExperimentalSettings().getSourceFiles().emplace_back();
       }
       if (tag == "contact")
       {
-        exp_->getContacts().resize(exp_->getContacts().size() + 1);
+        exp_->getExperimentalSettings().getContacts().resize(exp_->getExperimentalSettings().getContacts().size() + 1);
       }
       else if (tag == "source")
       {
-        exp_->getInstrument().getIonSources().resize(1);
+        exp_->getExperimentalSettings().getInstrument().getIonSources().resize(1);
       }
       else if (tag == "detector")
       {
-        exp_->getInstrument().getIonDetectors().resize(1);
+        exp_->getExperimentalSettings().getInstrument().getIonDetectors().resize(1);
       }
       else if (tag == "analyzer")
       {
-        exp_->getInstrument().getMassAnalyzers().resize(exp_->getInstrument().getMassAnalyzers().size() + 1);
+        exp_->getExperimentalSettings().getInstrument().getMassAnalyzers().resize(exp_->getExperimentalSettings().getInstrument().getMassAnalyzers().size() + 1);
       }
       else if (tag == "software")
       {
@@ -292,23 +292,23 @@ namespace OpenMS::Internal
         }
         else if (parent_tag == "detector")
         {
-          exp_->getInstrument().getIonDetectors().back().setMetaValue(name, value);
+          exp_->getExperimentalSettings().getInstrument().getIonDetectors().back().setMetaValue(name, value);
         }
         else if (parent_tag == "source")
         {
-          exp_->getInstrument().getIonSources().back().setMetaValue(name, value);
+          exp_->getExperimentalSettings().getInstrument().getIonSources().back().setMetaValue(name, value);
         }
         else if (parent_tag == "sampleDescription")
         {
-          exp_->getSample().setMetaValue(name, value);
+          exp_->getExperimentalSettings().getSample().setMetaValue(name, value);
         }
         else if (parent_tag == "analyzer")
         {
-          exp_->getInstrument().getMassAnalyzers().back().setMetaValue(name, value);
+          exp_->getExperimentalSettings().getInstrument().getMassAnalyzers().back().setMetaValue(name, value);
         }
         else if (parent_tag == "additional")
         {
-          exp_->getInstrument().setMetaValue(name, value);
+          exp_->getExperimentalSettings().getInstrument().setMetaValue(name, value);
         }
         else if (parent_tag == "processingMethod")
         {
@@ -356,7 +356,7 @@ namespace OpenMS::Internal
       else if (tag == "mzData")
       {
         //handle file id
-        exp_->setIdentifier(attributeAsString_(attributes, s_accessionnumber));
+        exp_->getExperimentalSettings().setIdentifier(attributeAsString_(attributes, s_accessionnumber));
       }
       else if (tag == "acqSpecification")
       {
@@ -580,11 +580,11 @@ namespace OpenMS::Internal
       logger_.startProgress(0, cexp_->size(), "storing mzData file");
 
       os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n"
-         << R"(<mzData version="1.05" accessionNumber=")" << cexp_->getIdentifier() << "\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:noNamespaceSchemaLocation=\"http://psidev.sourceforge.net/ms/xml/mzdata/mzdata.xsd\">\n";
+         << R"(<mzData version="1.05" accessionNumber=")" << cexp_->getExperimentalSettings().getIdentifier() << "\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:noNamespaceSchemaLocation=\"http://psidev.sourceforge.net/ms/xml/mzdata/mzdata.xsd\">\n";
 
       //---------------------------------------------------------------------------------------------------
       //DESCRIPTION
-      const Sample & sm = cexp_->getSample();
+      const Sample & sm = cexp_->getExperimentalSettings().getSample();
       os << "\t<description>\n"
          << "\t\t<admin>\n"
          << "\t\t\t<sampleName>"
@@ -599,35 +599,35 @@ namespace OpenMS::Internal
         writeCVS_(os, sm.getMass(), "1000004", "SampleMass");
         writeCVS_(os, sm.getVolume(), "1000005", "SampleVolume");
         writeCVS_(os, sm.getConcentration(), "1000006", "SampleConcentration");
-        writeUserParam_(os, cexp_->getSample());
+        writeUserParam_(os, cexp_->getExperimentalSettings().getSample());
         os << "\t\t\t</sampleDescription>\n";
       }
 
-      if (!cexp_->getSourceFiles().empty())
+      if (!cexp_->getExperimentalSettings().getSourceFiles().empty())
       {
         os << "\t\t\t<sourceFile>\n"
-           << "\t\t\t\t<nameOfFile>" << cexp_->getSourceFiles()[0].getNameOfFile() << "</nameOfFile>\n"
-           << "\t\t\t\t<pathToFile>" << cexp_->getSourceFiles()[0].getPathToFile() << "</pathToFile>\n";
-        if (!cexp_->getSourceFiles()[0].getFileType().empty())
-          os << "\t\t\t\t<fileType>" << cexp_->getSourceFiles()[0].getFileType() << "</fileType>\n";
+           << "\t\t\t\t<nameOfFile>" << cexp_->getExperimentalSettings().getSourceFiles()[0].getNameOfFile() << "</nameOfFile>\n"
+           << "\t\t\t\t<pathToFile>" << cexp_->getExperimentalSettings().getSourceFiles()[0].getPathToFile() << "</pathToFile>\n";
+        if (!cexp_->getExperimentalSettings().getSourceFiles()[0].getFileType().empty())
+          os << "\t\t\t\t<fileType>" << cexp_->getExperimentalSettings().getSourceFiles()[0].getFileType() << "</fileType>\n";
         os << "\t\t\t</sourceFile>\n";
       }
-      if (cexp_->getSourceFiles().size() > 1)
+      if (cexp_->getExperimentalSettings().getSourceFiles().size() > 1)
       {
         warning(STORE, "The MzData format can store only one source file. Only the first one is stored!");
       }
 
-      for (Size i = 0; i < cexp_->getContacts().size(); ++i)
+      for (Size i = 0; i < cexp_->getExperimentalSettings().getContacts().size(); ++i)
       {
         os << "\t\t\t<contact>\n"
-           << "\t\t\t\t<name>" << cexp_->getContacts()[i].getFirstName() << " " << cexp_->getContacts()[i].getLastName() << "</name>\n"
-           << "\t\t\t\t<institution>" << cexp_->getContacts()[i].getInstitution() << "</institution>\n";
-        if (!cexp_->getContacts()[i].getContactInfo().empty())
-          os << "\t\t\t\t<contactInfo>" << cexp_->getContacts()[i].getContactInfo() << "</contactInfo>\n";
+           << "\t\t\t\t<name>" << cexp_->getExperimentalSettings().getContacts()[i].getFirstName() << " " << cexp_->getExperimentalSettings().getContacts()[i].getLastName() << "</name>\n"
+           << "\t\t\t\t<institution>" << cexp_->getExperimentalSettings().getContacts()[i].getInstitution() << "</institution>\n";
+        if (!cexp_->getExperimentalSettings().getContacts()[i].getContactInfo().empty())
+          os << "\t\t\t\t<contactInfo>" << cexp_->getExperimentalSettings().getContacts()[i].getContactInfo() << "</contactInfo>\n";
         os << "\t\t\t</contact>\n";
       }
       //no contacts given => add empty entry as there must be a contact entry
-      if (cexp_->getContacts().empty())
+      if (cexp_->getExperimentalSettings().getContacts().empty())
       {
         os << "\t\t\t<contact>\n"
            << "\t\t\t\t<name></name>\n"
@@ -636,7 +636,7 @@ namespace OpenMS::Internal
       }
 
       os << "\t\t</admin>\n";
-      const Instrument & inst = cexp_->getInstrument();
+      const Instrument & inst = cexp_->getExperimentalSettings().getInstrument();
       os << "\t\t<instrument>\n"
          << "\t\t\t<instrumentName>" << inst.getName() << "</instrumentName>\n"
          << "\t\t\t<source>\n";
@@ -1248,19 +1248,19 @@ namespace OpenMS::Internal
       {
         if (accession == "PSI:1000026")
         {
-          exp_->getInstrument().getIonDetectors().back().setType((IonDetector::Type)cvStringToEnum_(13, value, "detector type"));
+          exp_->getExperimentalSettings().getInstrument().getIonDetectors().back().setType((IonDetector::Type)cvStringToEnum_(13, value, "detector type"));
         }
         else if (accession == "PSI:1000028")
         {
-          exp_->getInstrument().getIonDetectors().back().setResolution(asDouble_(value));
+          exp_->getExperimentalSettings().getInstrument().getIonDetectors().back().setResolution(asDouble_(value));
         }
         else if (accession == "PSI:1000029")
         {
-          exp_->getInstrument().getIonDetectors().back().setADCSamplingFrequency(asDouble_(value));
+          exp_->getExperimentalSettings().getInstrument().getIonDetectors().back().setADCSamplingFrequency(asDouble_(value));
         }
         else if (accession == "PSI:1000027")
         {
-          exp_->getInstrument().getIonDetectors().back().setAcquisitionMode((IonDetector::AcquisitionMode)cvStringToEnum_(9, value, "acquisition mode"));
+          exp_->getExperimentalSettings().getInstrument().getIonDetectors().back().setAcquisitionMode((IonDetector::AcquisitionMode)cvStringToEnum_(9, value, "acquisition mode"));
         }
         else
         {
@@ -1271,15 +1271,15 @@ namespace OpenMS::Internal
       {
         if (accession == "PSI:1000008")
         {
-          exp_->getInstrument().getIonSources().back().setIonizationMethod((IonSource::IonizationMethod)cvStringToEnum_(10, value, "ion source"));
+          exp_->getExperimentalSettings().getInstrument().getIonSources().back().setIonizationMethod((IonSource::IonizationMethod)cvStringToEnum_(10, value, "ion source"));
         }
         else if (accession == "PSI:1000007")
         {
-          exp_->getInstrument().getIonSources().back().setInletType((IonSource::InletType)cvStringToEnum_(11, value, "inlet type"));
+          exp_->getExperimentalSettings().getInstrument().getIonSources().back().setInletType((IonSource::InletType)cvStringToEnum_(11, value, "inlet type"));
         }
         else if (accession == "PSI:1000009")
         {
-          exp_->getInstrument().getIonSources().back().setPolarity((IonSource::Polarity)cvStringToEnum_(1, value, "polarity"));
+          exp_->getExperimentalSettings().getInstrument().getIonSources().back().setPolarity((IonSource::Polarity)cvStringToEnum_(1, value, "polarity"));
         }
         else
         {
@@ -1290,23 +1290,23 @@ namespace OpenMS::Internal
       {
         if (accession == "PSI:1000001")
         {
-          exp_->getSample().setNumber(value);
+          exp_->getExperimentalSettings().getSample().setNumber(value);
         }
         else if (accession == "PSI:1000003")
         {
-          exp_->getSample().setState((Sample::SampleState)cvStringToEnum_(0, value, "sample state"));
+          exp_->getExperimentalSettings().getSample().setState((Sample::SampleState)cvStringToEnum_(0, value, "sample state"));
         }
         else if (accession == "PSI:1000004")
         {
-          exp_->getSample().setMass(asDouble_(value));
+          exp_->getExperimentalSettings().getSample().setMass(asDouble_(value));
         }
         else if (accession == "PSI:1000005")
         {
-          exp_->getSample().setVolume(asDouble_(value));
+          exp_->getExperimentalSettings().getSample().setVolume(asDouble_(value));
         }
         else if (accession == "PSI:1000006")
         {
-          exp_->getSample().setConcentration(asDouble_(value));
+          exp_->getExperimentalSettings().getSample().setConcentration(asDouble_(value));
         }
         else
         {
@@ -1317,39 +1317,39 @@ namespace OpenMS::Internal
       {
         if (accession == "PSI:1000010")
         {
-          exp_->getInstrument().getMassAnalyzers().back().setType((MassAnalyzer::AnalyzerType)cvStringToEnum_(14, value, "analyzer type"));
+          exp_->getExperimentalSettings().getInstrument().getMassAnalyzers().back().setType((MassAnalyzer::AnalyzerType)cvStringToEnum_(14, value, "analyzer type"));
         }
         else if (accession == "PSI:1000011")
         {
-          exp_->getInstrument().getMassAnalyzers().back().setResolution(asDouble_(value));
+          exp_->getExperimentalSettings().getInstrument().getMassAnalyzers().back().setResolution(asDouble_(value));
         }
         else if (accession == "PSI:1000012")
         {
-          exp_->getInstrument().getMassAnalyzers().back().setResolutionMethod((MassAnalyzer::ResolutionMethod)cvStringToEnum_(2, value, "resolution method"));
+          exp_->getExperimentalSettings().getInstrument().getMassAnalyzers().back().setResolutionMethod((MassAnalyzer::ResolutionMethod)cvStringToEnum_(2, value, "resolution method"));
         }
         else if (accession == "PSI:1000013")
         {
-          exp_->getInstrument().getMassAnalyzers().back().setResolutionType((MassAnalyzer::ResolutionType)cvStringToEnum_(3, value, "resolution type"));
+          exp_->getExperimentalSettings().getInstrument().getMassAnalyzers().back().setResolutionType((MassAnalyzer::ResolutionType)cvStringToEnum_(3, value, "resolution type"));
         }
         else if (accession == "PSI:1000014")
         {
-          exp_->getInstrument().getMassAnalyzers().back().setAccuracy(asDouble_(value));
+          exp_->getExperimentalSettings().getInstrument().getMassAnalyzers().back().setAccuracy(asDouble_(value));
         }
         else if (accession == "PSI:1000015")
         {
-          exp_->getInstrument().getMassAnalyzers().back().setScanRate(asDouble_(value));
+          exp_->getExperimentalSettings().getInstrument().getMassAnalyzers().back().setScanRate(asDouble_(value));
         }
         else if (accession == "PSI:1000016")
         {
-          exp_->getInstrument().getMassAnalyzers().back().setScanTime(asDouble_(value));
+          exp_->getExperimentalSettings().getInstrument().getMassAnalyzers().back().setScanTime(asDouble_(value));
         }
         else if (accession == "PSI:1000018")
         {
-          exp_->getInstrument().getMassAnalyzers().back().setScanDirection((MassAnalyzer::ScanDirection)cvStringToEnum_(5, value, "scan direction"));
+          exp_->getExperimentalSettings().getInstrument().getMassAnalyzers().back().setScanDirection((MassAnalyzer::ScanDirection)cvStringToEnum_(5, value, "scan direction"));
         }
         else if (accession == "PSI:1000019")
         {
-          exp_->getInstrument().getMassAnalyzers().back().setScanLaw((MassAnalyzer::ScanLaw)cvStringToEnum_(6, value, "scan law"));
+          exp_->getExperimentalSettings().getInstrument().getMassAnalyzers().back().setScanLaw((MassAnalyzer::ScanLaw)cvStringToEnum_(6, value, "scan law"));
         }
         else if (accession == "PSI:1000020")
         {
@@ -1357,23 +1357,23 @@ namespace OpenMS::Internal
         }
         else if (accession == "PSI:1000021")
         {
-          exp_->getInstrument().getMassAnalyzers().back().setReflectronState((MassAnalyzer::ReflectronState)cvStringToEnum_(8, value, "reflectron state"));
+          exp_->getExperimentalSettings().getInstrument().getMassAnalyzers().back().setReflectronState((MassAnalyzer::ReflectronState)cvStringToEnum_(8, value, "reflectron state"));
         }
         else if (accession == "PSI:1000022")
         {
-          exp_->getInstrument().getMassAnalyzers().back().setTOFTotalPathLength(asDouble_(value));
+          exp_->getExperimentalSettings().getInstrument().getMassAnalyzers().back().setTOFTotalPathLength(asDouble_(value));
         }
         else if (accession == "PSI:1000023")
         {
-          exp_->getInstrument().getMassAnalyzers().back().setIsolationWidth(asDouble_(value));
+          exp_->getExperimentalSettings().getInstrument().getMassAnalyzers().back().setIsolationWidth(asDouble_(value));
         }
         else if (accession == "PSI:1000024")
         {
-          exp_->getInstrument().getMassAnalyzers().back().setFinalMSExponent(asInt_(value));
+          exp_->getExperimentalSettings().getInstrument().getMassAnalyzers().back().setFinalMSExponent(asInt_(value));
         }
         else if (accession == "PSI:1000025")
         {
-          exp_->getInstrument().getMassAnalyzers().back().setMagneticFieldStrength(asDouble_(value));
+          exp_->getExperimentalSettings().getInstrument().getMassAnalyzers().back().setMagneticFieldStrength(asDouble_(value));
         }
         else if (accession == "PSI:1000017")
         {
@@ -1388,15 +1388,15 @@ namespace OpenMS::Internal
       {
         if (accession == "PSI:1000030")
         {
-          exp_->getInstrument().setVendor(value);
+          exp_->getExperimentalSettings().getInstrument().setVendor(value);
         }
         else if (accession == "PSI:1000031")
         {
-          exp_->getInstrument().setModel(value);
+          exp_->getExperimentalSettings().getInstrument().setModel(value);
         }
         else if (accession == "PSI:1000032")
         {
-          exp_->getInstrument().setCustomizations(value);
+          exp_->getExperimentalSettings().getInstrument().setCustomizations(value);
         }
         else
         {
