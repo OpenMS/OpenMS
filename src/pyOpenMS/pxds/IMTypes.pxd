@@ -34,9 +34,9 @@ cdef extern from "<OpenMS/IONMOBILITY/IMTypes.h>" namespace "OpenMS":
         
     # static fxn
     DriftTimeUnit toDriftTimeUnit(const libcpp_utf8_string& dtu_string) except + nogil  # wrap-attach:IMTypes
-    libcpp_utf8_output_string toString(const DriftTimeUnit value) except + nogil  # wrap-attach:IMTypes
+    libcpp_utf8_output_string driftTimeUnitToString(const DriftTimeUnit value) except + nogil  # wrap-attach:IMTypes
 
     IMFormat toIMFormat(const libcpp_utf8_string& IM_format) except + nogil  # wrap-attach:IMTypes
-    libcpp_utf8_output_string toString(const IMFormat value) except + nogil  # wrap-attach:IMTypes
+    libcpp_utf8_output_string imFormatToString(const IMFormat value) except + nogil  # wrap-attach:IMTypes
 
 

@@ -239,7 +239,7 @@ namespace OpenMS
          term = &cv.getTerm("MS:1003008");
         break;
       default:
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unit cannot be converted into CV term.", toString(unit));
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unit cannot be converted into CV term.", driftTimeUnitToString(unit));
     }
     fda.setName(term->name);
   }
@@ -323,7 +323,7 @@ namespace OpenMS
       default:
         // invalid enum ...
         // There is no CV term which can be used to describe the FDA
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unit is not a valid IM unit for float data arrays", toString(unit));
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unit is not a valid IM unit for float data arrays", driftTimeUnitToString(unit));
     }
   }
 

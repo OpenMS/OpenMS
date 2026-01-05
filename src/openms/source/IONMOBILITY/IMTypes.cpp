@@ -31,7 +31,7 @@ namespace OpenMS
     return DriftTimeUnit(it - first);
   }
 
-  const std::string& toString(const DriftTimeUnit value)
+  const std::string& driftTimeUnitToString(const DriftTimeUnit value)
   {
     if (value == DriftTimeUnit::SIZE_OF_DRIFTTIMEUNIT)
     {
@@ -52,7 +52,7 @@ namespace OpenMS
     return IMFormat(it - first);
   }
 
-  const std::string& toString(const IMFormat value)
+  const std::string& imFormatToString(const IMFormat value)
   {
     if (value == IMFormat::SIZE_OF_IMFORMAT)
     {
@@ -136,7 +136,7 @@ namespace OpenMS
       case DriftTimeUnit::VSSC:
         return DIM_UNIT::IM_VSSC;
       default:
-        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Cannot convert from " + toString(from) + " to a DIM_UNIT.");
+        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Cannot convert from " + driftTimeUnitToString(from) + " to a DIM_UNIT.");
     }
   }
 }// namespace OpenMS
