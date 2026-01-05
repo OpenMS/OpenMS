@@ -951,6 +951,51 @@ namespace OpenMS
     return ratio;
   }
 
+  double MRMFeatureFilter::calculateRTDifference(Feature& component_1, Feature& component_2) const
+  {
+    return std::abs(component_1.getRT() - component_2.getRT());
+  }
+
+  double MRMFeatureFilter::calculateResolution(Feature& component_1, Feature& component_2) const
+  {
+    // Resolution = 2 * |RT2 - RT1| / (W1 + W2)
+    // where W is the peak width at base
+    // For Gaussian peaks: width at base ≈ 1.7 * FWHM
+
+    double rt_diff = std::abs(component_1.getRT() - component_2.getRT());
+
+    // Try to get width from metavalues (width_at_50 is FWHM)
+    double width_1 = 0.0;
+    double width_2 = 0.0;
+
+    if (component_1.metaValueExists("width_at_50"))
+    {
+      width_1 = static_cast<double>(component_1.getMetaValue("width_at_50")) * 1.7;
+    }
+    else
+    {
+      // Fall back to using the feature's bounding box width
+      width_1 = component_1.getWidth();
+    }
+
+    if (component_2.metaValueExists("width_at_50"))
+    {
+      width_2 = static_cast<double>(component_2.getMetaValue("width_at_50")) * 1.7;
+    }
+    else
+    {
+      width_2 = component_2.getWidth();
+    }
+
+    double width_sum = width_1 + width_2;
+    if (width_sum <= 0.0)
+    {
+      return 0.0;
+    }
+
+    return 2.0 * rt_diff / width_sum;
+  }
+
   bool MRMFeatureFilter::checkMetaValue(
     const Feature& component,
     const String& meta_value_key,

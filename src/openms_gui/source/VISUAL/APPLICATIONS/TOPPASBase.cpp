@@ -129,16 +129,16 @@ namespace OpenMS
     // File menu
     QMenu* file = new QMenu("&File", this);
     menuBar()->addMenu(file);
-    file->addAction("&New", Qt::CTRL | Qt::Key_N, this, &TOPPASBase::newPipeline);
-    file->addAction("&Open", Qt::CTRL | Qt::Key_O, this, &TOPPASBase::openFilesByDialog);
-    file->addAction("Open &example file", Qt::CTRL | Qt::Key_E, this, &TOPPASBase::openExampleDialog);
-    file->addAction("&Include", Qt::CTRL | Qt::Key_I, this, &TOPPASBase::includePipeline);
-    //file->addAction("Online &Repository", Qt::CTRL | Qt::Key_R, this, &TOPPASBase::openOnlinePipelineRepository);
-    file->addAction("&Save", Qt::CTRL | Qt::Key_S, this, &TOPPASBase::savePipeline);
-    file->addAction("Save &As", Qt::CTRL | Qt::SHIFT | Qt::Key_S, this, &TOPPASBase::saveCurrentPipelineAs);
+    file->addAction("&New", this, &TOPPASBase::newPipeline)->setShortcut(Qt::CTRL | Qt::Key_N);
+    file->addAction("&Open", this, &TOPPASBase::openFilesByDialog)->setShortcut(Qt::CTRL | Qt::Key_O);
+    file->addAction("Open &example file", this, &TOPPASBase::openExampleDialog)->setShortcut(Qt::CTRL | Qt::Key_E);
+    file->addAction("&Include", this, &TOPPASBase::includePipeline)->setShortcut(Qt::CTRL | Qt::Key_I);
+    //file->addAction("Online &Repository", this, &TOPPASBase::openOnlinePipelineRepository)->setShortcut(Qt::CTRL | Qt::Key_R);
+    file->addAction("&Save", this, &TOPPASBase::savePipeline)->setShortcut(Qt::CTRL | Qt::Key_S);
+    file->addAction("Save &As", this, &TOPPASBase::saveCurrentPipelineAs)->setShortcut(Qt::CTRL | Qt::SHIFT | Qt::Key_S);
     file->addAction("E&xport as image", this, &TOPPASBase::exportAsImage);
-    file->addAction("Refresh &parameters", Qt::CTRL | Qt::SHIFT | Qt::Key_P, this, &TOPPASBase::refreshParameters);
-    file->addAction("&Close pipeline", Qt::CTRL | Qt::Key_W, this, &TOPPASBase::closeFile);
+    file->addAction("Refresh &parameters", this, &TOPPASBase::refreshParameters)->setShortcut(Qt::CTRL | Qt::SHIFT | Qt::Key_P);
+    file->addAction("&Close pipeline", this, &TOPPASBase::closeFile)->setShortcut(Qt::CTRL | Qt::Key_W);
 
     file->addSeparator();
     // Recent files
@@ -166,7 +166,8 @@ namespace OpenMS
     menuBar()->addMenu(help);
     QAction* action = help->addAction("OpenMS website", this, &TOPPASBase::showURL);
     action->setData("http://www.OpenMS.de");
-    action = help->addAction("TOPPAS tutorial", Qt::Key_F1, this, &TOPPASBase::showURL);
+    action = help->addAction("TOPPAS tutorial", this, &TOPPASBase::showURL);
+    action->setShortcut(Qt::Key_F1);
     action->setData(String("html/TOPPAS_tutorial.html").toQString());
 
     help->addSeparator();
