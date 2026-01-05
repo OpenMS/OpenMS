@@ -363,10 +363,7 @@ jobs:
           CIBW_BEFORE_BUILD: "pip install delvewheel"
           # Use build directory directly - libraries have absolute paths
           # Multiple environment variables must be on separate lines for Windows
-          CIBW_ENVIRONMENT: >
-            OpenMS_ROOT=${{ github.workspace }}/build
-            CMAKE_PREFIX_PATH=${{ env.QT_ROOT_DIR }}/lib/cmake;${{ env.QT_ROOT_DIR }};${{ github.workspace }}/contrib;${{ github.workspace }}/build
-            CMAKE_BUILD_PARALLEL_LEVEL=2
+          CIBW_ENVIRONMENT: OpenMS_ROOT="${{ github.workspace }}\\build" CMAKE_PREFIX_PATH="${{ env.QT_ROOT_DIR }}\\lib\\cmake;${{ env.QT_ROOT_DIR }};${{ github.workspace }}\\contrib;${{ github.workspace }}\\build" CMAKE_BUILD_PARALLEL_LEVEL=2
           CIBW_REPAIR_WHEEL_COMMAND: "delvewheel repair -w {dest_dir} {wheel}"
           CIBW_BUILD_VERBOSITY: 1
 
