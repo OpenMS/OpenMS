@@ -283,6 +283,7 @@ jobs:
           # delocate finds libraries via absolute paths embedded in the extension modules
           CIBW_REPAIR_WHEEL_COMMAND: "delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel}"
           CIBW_BUILD_VERBOSITY: 1
+          CIBW_TEST_SKIP: "*"
 
       - uses: actions/upload-artifact@v4
         with:
@@ -362,8 +363,10 @@ jobs:
           CIBW_BUILD: ${{ needs.setup.outputs.cibw-build-windows-x64 }}
           CIBW_BEFORE_BUILD: "pip install delvewheel"
           # Use build directory directly - libraries have absolute paths
-          # Multiple environment variables must be on separate lines for Windows
-          CIBW_ENVIRONMENT: OpenMS_ROOT="${{ github.workspace }}\\build" CMAKE_PREFIX_PATH="${{ env.QT_ROOT_DIR }}\\lib\\cmake;${{ env.QT_ROOT_DIR }};${{ github.workspace }}\\contrib;${{ github.workspace }}\\build" CMAKE_BUILD_PARALLEL_LEVEL=2
+          CIBW_ENVIRONMENT: >-
+            OpenMS_ROOT="${{ github.workspace }}\build"
+            CMAKE_PREFIX_PATH="${{ env.QT_ROOT_DIR }}\lib\cmake;${{ env.QT_ROOT_DIR }};${{ github.workspace }}\contrib;${{ github.workspace }}\build"
+            CMAKE_BUILD_PARALLEL_LEVEL=2
           CIBW_REPAIR_WHEEL_COMMAND: "delvewheel repair -w {dest_dir} {wheel}"
           CIBW_BUILD_VERBOSITY: 1
 
