@@ -80,6 +80,25 @@ message(STATUS "Number of submodules: ${PY_NUM_MODULES}")
 message(STATUS "Number of concurrent threads: ${PY_NUM_THREADS}")
 
 #------------------------------------------------------------------------------
+# Check share directory
+# OPENMS_SHARE_DIR should be set by find_package(OpenMS) from OpenMSConfig.cmake
+# If not set, fall back to relative path from source tree (for cibuildwheel builds)
+#------------------------------------------------------------------------------
+if(DEFINED OPENMS_SHARE_DIR AND EXISTS "${OPENMS_SHARE_DIR}")
+  message(STATUS "OpenMS share directory from config: ${OPENMS_SHARE_DIR}")
+else()
+  # Try relative path from pyOpenMS source directory (../../share/OpenMS)
+  get_filename_component(_POTENTIAL_SHARE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../share/OpenMS" ABSOLUTE)
+  if(EXISTS "${_POTENTIAL_SHARE_DIR}")
+    set(OPENMS_SHARE_DIR "${_POTENTIAL_SHARE_DIR}")
+    message(STATUS "Using relative OpenMS share directory: ${OPENMS_SHARE_DIR}")
+  else()
+    unset(OPENMS_SHARE_DIR)
+    message(WARNING "OPENMS_SHARE_DIR not found - share data will not be included in wheel")
+  endif()
+endif()
+
+#------------------------------------------------------------------------------
 # Windows compiler check
 #------------------------------------------------------------------------------
 if(WIN32)
@@ -472,8 +491,9 @@ enable_testing()
 file(MAKE_DIRECTORY ${PYOPENMS_BUILD_DIR}/tests/unittests)
 file(MAKE_DIRECTORY ${PYOPENMS_BUILD_DIR}/tests/memoryleaktests)
 file(MAKE_DIRECTORY ${PYOPENMS_BUILD_DIR}/tests/integration_tests)
-_copy_assets("${PROJECT_SOURCE_DIR}/tests/unittests/" "*" ${PYOPENMS_BUILD_DIR}/tests/unittests)
+_copy_assets("${PROJECT_SOURCE_DIR}/tests/" "*.py" ${PYOPENMS_BUILD_DIR}/tests)
 _copy_assets("${PROJECT_SOURCE_DIR}/tests/" "*.mzXML" ${PYOPENMS_BUILD_DIR}/tests)
+_copy_assets("${PROJECT_SOURCE_DIR}/tests/unittests/" "*" ${PYOPENMS_BUILD_DIR}/tests/unittests)
 _copy_assets("${PROJECT_SOURCE_DIR}/tests/memoryleaktests/" "*" ${PYOPENMS_BUILD_DIR}/tests/memoryleaktests)
 _copy_assets("${PROJECT_SOURCE_DIR}/tests/integration_tests/" "*" ${PYOPENMS_BUILD_DIR}/tests/integration_tests)
 

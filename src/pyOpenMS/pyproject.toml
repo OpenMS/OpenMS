@@ -126,6 +126,7 @@ include = [
 
 [tool.py-build-cmake.cmake]
 # CMake build configuration
+generator = "Ninja"
 build_type = "Release"
 source_path = "."
 # Do NOT pass -j here! It would override CMAKE_BUILD_PARALLEL_LEVEL env var.
@@ -146,16 +147,10 @@ install_components = ["python_modules"]
 # Defaults are conservative for CI (~7GB RAM). Local builds with more RAM can increase:
 #   pip install . --config-settings=cmake.options.PY_NUM_THREADS=4
 PY_NUM_MODULES = "8"
-PY_NUM_THREADS = "1"
+PY_NUM_THREADS = "2"
 # Skip dependency bundling - wheel repair tools will handle this
 NO_DEPENDENCIES = "ON"
 
-[tool.py-build-cmake.cmake.env]
-# Pass environment variables to CMake subprocess
-# CMAKE_PREFIX_PATH is used by CMake to find dependencies (OpenMS, Eigen3, Qt6, etc.)
-CMAKE_PREFIX_PATH = "${CMAKE_PREFIX_PATH}"
-# OpenMS_ROOT can also be set via environment
-OpenMS_ROOT = "${OpenMS_ROOT}"
 
 #------------------------------------------------------------------------------
 # cibuildwheel configuration
@@ -206,7 +201,7 @@ archs = ["arm64"]
 
 # Install dependencies via Homebrew
 before-all = [
-    "brew install cmake ninja boost eigen xerces-c sqlite coinutils cbc cgl clp qt@6 apache-arrow libomp",
+    "brew install cmake ninja boost eigen xerces-c sqlite coinutils cbc cgl clp qtbase qtsvg apache-arrow libomp",
 ]
 
 # Use delocate to bundle shared libraries

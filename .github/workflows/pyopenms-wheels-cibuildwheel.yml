@@ -283,7 +283,7 @@ jobs:
           # delocate finds libraries via absolute paths embedded in the extension modules
           CIBW_REPAIR_WHEEL_COMMAND: "delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel}"
           CIBW_BUILD_VERBOSITY: 1
-          CIBW_TEST_SKIP: "*"
+          #CIBW_TEST_SKIP: "*"
 
       - uses: actions/upload-artifact@v4
         with:
@@ -334,7 +334,7 @@ jobs:
         run: |
           mkdir build && cd build
           cmake .. \
-            -G "Visual Studio 17 2022" -A x64 \
+            -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_PREFIX_PATH="$QT_ROOT_DIR/lib/cmake;$QT_ROOT_DIR" \
             -DOPENMS_CONTRIB_LIBS="$GITHUB_WORKSPACE/contrib" \
@@ -343,7 +343,7 @@ jobs:
             -DENABLE_TUTORIALS=OFF \
             -DENABLE_DOCS=OFF \
             -DWITH_PARQUET=ON
-          cmake --build . --config Release --target OpenMS OpenSwathAlgo
+          cmake --build . --target OpenMS OpenSwathAlgo
 
       - name: Set pyOpenMS version
         shell: bash
