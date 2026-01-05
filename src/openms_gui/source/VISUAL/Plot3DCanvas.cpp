@@ -10,7 +10,7 @@
 #include <OpenMS/VISUAL/Plot3DCanvas.h>
 
 #include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/SYSTEM/FileWatcher.h>
+#include <OpenMS/VISUAL/FileWatcher.h>
 #include <OpenMS/VISUAL/ColorSelector.h>
 #include <OpenMS/VISUAL/DIALOGS/Plot3DPrefDialog.h>
 #include <OpenMS/VISUAL/MISC/GUIHelpers.h>
