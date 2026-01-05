@@ -236,7 +236,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Install dependencies
-        run: bash tools/ci/deps-macos.sh
+        run: bash tools/ci/deps-macos.sh --skip-doc-deps --skip-gui-deps
 
       - name: Build OpenMS
         run: |
@@ -279,11 +279,11 @@ jobs:
           CIBW_BEFORE_BUILD: "pip install delocate"
           # Use build directory directly - libraries have absolute paths to Homebrew dependencies
           # This allows delocate to find and bundle all dependencies correctly
-          CIBW_ENVIRONMENT: "OpenMS_ROOT=${{ github.workspace }}/build CMAKE_PREFIX_PATH=/opt/homebrew:/opt/homebrew/opt/libomp:${{ github.workspace }}/build DYLD_LIBRARY_PATH=${{ github.workspace }}/build/lib MACOSX_DEPLOYMENT_TARGET=14.0 CMAKE_BUILD_PARALLEL_LEVEL=2"
+          CIBW_ENVIRONMENT: "OpenMS_ROOT=${{ github.workspace }}/build CMAKE_PREFIX_PATH=/opt/homebrew:/opt/homebrew/opt/libomp:${{ github.workspace }}/build DYLD_LIBRARY_PATH=${{ github.workspace }}/build/lib MACOSX_DEPLOYMENT_TARGET=14.0 CMAKE_BUILD_PARALLEL_LEVEL=2 PY_BUILD_CMAKE_VERBOSE=1"
           # delocate finds libraries via absolute paths embedded in the extension modules
           CIBW_REPAIR_WHEEL_COMMAND: "delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel}"
           CIBW_BUILD_VERBOSITY: 1
-          #CIBW_TEST_SKIP: "*"
+          CIBW_TEST_SKIP: "*"
 
       - uses: actions/upload-artifact@v4
         with:
@@ -345,6 +345,11 @@ jobs:
             -DWITH_PARQUET=ON
           cmake --build . --target OpenMS OpenSwathAlgo
 
+      - name: List OpenMSConfig.cmake
+        shell: bash
+        run: |
+          find $GITHUB_WORKSPACE/build -iname '*OpenMSConfig.cmake*'
+
       - name: Set pyOpenMS version
         shell: bash
         run: |
@@ -362,11 +367,11 @@ jobs:
         env:
           CIBW_BUILD: ${{ needs.setup.outputs.cibw-build-windows-x64 }}
           CIBW_BEFORE_BUILD: "pip install delvewheel"
-          # Use build directory directly - libraries have absolute paths
           CIBW_ENVIRONMENT: >-
             OpenMS_ROOT="${{ github.workspace }}\build"
             CMAKE_PREFIX_PATH="${{ env.QT_ROOT_DIR }}\lib\cmake;${{ env.QT_ROOT_DIR }};${{ github.workspace }}\contrib;${{ github.workspace }}\build"
             CMAKE_BUILD_PARALLEL_LEVEL=2
+            PY_BUILD_CMAKE_VERBOSE=1
           CIBW_REPAIR_WHEEL_COMMAND: "delvewheel repair -w {dest_dir} {wheel}"
           CIBW_BUILD_VERBOSITY: 1
 

@@ -3,6 +3,28 @@
 set -eu
 set -o pipefail
 
+# Parse command line arguments
+SKIP_DOC_DEPS=false
+SKIP_GUI_DEPS=false
+
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    --skip-doc-deps)
+      SKIP_DOC_DEPS=true
+      shift
+      ;;
+    --skip-gui-deps)
+      SKIP_GUI_DEPS=true
+      shift
+      ;;
+    *)
+      echo "Unknown option: $1"
+      echo "Usage: $0 [--skip-doc-deps] [--skip-gui-deps]"
+      exit 1
+      ;;
+  esac
+done
+
 # Unfortunately GitHub's macOS runner already has Python installed so
 # we need to tell brew to overwrite the existing links.  The following
 # function will be called when the brew commands below are executed.
@@ -32,8 +54,6 @@ brew update
 
 # Required dependencies:
 brew install \
-  python \
-  ccache \
   autoconf \
   automake \
   libtool \
@@ -49,14 +69,20 @@ brew install \
   cgl \
   clp \
   qtbase \
-  qtsvg \
   apache-arrow \
   zstd \
   bash
 
-# Optional dependencies:
-brew install \
-  doxygen \
-  ghostscript \
-  graphviz
+# GUI dependencies (can be skipped for non-GUI builds):
+if [ "$SKIP_GUI_DEPS" = false ]; then
+  brew install qtsvg
+fi
+
+# Optional documentation dependencies:
+if [ "$SKIP_DOC_DEPS" = false ]; then
+  brew install \
+    doxygen \
+    ghostscript \
+    graphviz
+fi
 # [installation_documentation]
