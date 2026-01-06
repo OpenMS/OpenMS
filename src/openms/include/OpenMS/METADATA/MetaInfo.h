@@ -11,10 +11,12 @@
 #include <vector>
 
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/CONCEPT/HashUtils.h>
 #include <OpenMS/METADATA/MetaInfoRegistry.h>
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
 
 #include <boost/container/flat_map.hpp>
+#include <functional>
 
 namespace OpenMS
 {
@@ -119,7 +121,30 @@ private:
 
     /// The actual mapping of indexes to values
     MapType index_to_value_;
+
+    // Grant access to hash implementation
+    friend struct std::hash<MetaInfo>;
   };
 
 } // namespace OpenMS
+
+// Hash function specialization for MetaInfo
+namespace std
+{
+  template<>
+  struct hash<OpenMS::MetaInfo>
+  {
+    std::size_t operator()(const OpenMS::MetaInfo& mi) const noexcept
+    {
+      std::size_t seed = 0;
+      // Hash each key-value pair in sorted order (flat_map is already sorted by key)
+      for (const auto& [key, value] : mi.index_to_value_)
+      {
+        OpenMS::hash_combine(seed, OpenMS::hash_int(key));
+        OpenMS::hash_combine(seed, std::hash<OpenMS::DataValue>{}(value));
+      }
+      return seed;
+    }
+  };
+} // namespace std
 

@@ -12,8 +12,10 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/CONCEPT/HashUtils.h>
 #include <boost/range/combine.hpp>
 
+#include <functional>
 #include <vector>
 
 namespace OpenMS
@@ -61,6 +63,20 @@ namespace OpenMS
 
     /// Destructor
     ~AnnotatedMSRun() = default;
+
+    /// Equality operator
+    bool operator==(const AnnotatedMSRun& rhs) const
+    {
+      return data == rhs.data &&
+             peptide_ids_ == rhs.peptide_ids_ &&
+             protein_ids_ == rhs.protein_ids_;
+    }
+
+    /// Inequality operator
+    bool operator!=(const AnnotatedMSRun& rhs) const
+    {
+      return !(*this == rhs);
+    }
 
     /**
      * @brief Get the protein identification
@@ -337,4 +353,61 @@ namespace OpenMS
     std::vector<ProteinIdentification> protein_ids_;
     MSExperiment data;
   };
-}
+} // namespace OpenMS
+
+// Hash function specialization for AnnotatedMSRun
+namespace std
+{
+  /**
+   * @brief Hash function for OpenMS::AnnotatedMSRun.
+   *
+   * Hashes all fields used in operator==: data (MSExperiment), peptide_ids_, and protein_ids_.
+   * Since the component types don't have std::hash specializations, this hash uses
+   * identifying properties (sizes and identifiers) to create a fast, consistent hash.
+   */
+  template<>
+  struct hash<OpenMS::AnnotatedMSRun>
+  {
+    std::size_t operator()(const OpenMS::AnnotatedMSRun& run) const noexcept
+    {
+      // Start with hash of the MSExperiment size (number of spectra)
+      std::size_t seed = OpenMS::hash_int(run.getMSExperiment().size());
+
+      // Hash the number of chromatograms
+      OpenMS::hash_combine(seed, OpenMS::hash_int(run.getMSExperiment().getChromatograms().size()));
+
+      // Hash the number of peptide identifications
+      OpenMS::hash_combine(seed, OpenMS::hash_int(run.getPeptideIdentifications().size()));
+
+      // Hash the number of protein identifications
+      OpenMS::hash_combine(seed, OpenMS::hash_int(run.getProteinIdentifications().size()));
+
+      // Hash identifying properties from protein identifications
+      for (const auto& prot_id : run.getProteinIdentifications())
+      {
+        OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(prot_id.getIdentifier()));
+        OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(prot_id.getSearchEngine()));
+        OpenMS::hash_combine(seed, OpenMS::hash_int(prot_id.getHits().size()));
+      }
+
+      // Hash identifying properties from peptide identifications
+      for (const auto& pep_id : run.getPeptideIdentifications())
+      {
+        OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(pep_id.getIdentifier()));
+        OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(pep_id.getScoreType()));
+        OpenMS::hash_combine(seed, OpenMS::hash_int(pep_id.getHits().size()));
+        OpenMS::hash_combine(seed, OpenMS::hash_float(pep_id.getSignificanceThreshold()));
+      }
+
+      // Hash identifying properties from spectra
+      for (const auto& spectrum : run.getMSExperiment().getSpectra())
+      {
+        OpenMS::hash_combine(seed, OpenMS::hash_float(spectrum.getRT()));
+        OpenMS::hash_combine(seed, OpenMS::hash_int(spectrum.getMSLevel()));
+        OpenMS::hash_combine(seed, OpenMS::hash_int(spectrum.size()));
+      }
+
+      return seed;
+    }
+  };
+} // namespace std

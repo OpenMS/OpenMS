@@ -929,8 +929,6 @@ protected:
 
       Param ffi_param = getParam_().copy("PeptideQuantification:", true);
       ffi_param.setValue("detect:peak_width", 5.0 * median_fwhm);
-      ffi_param.setValue("EMGScoring:init_mom", "true");   // overwrite default settings
-      ffi_param.setValue("EMGScoring:max_iteration", 100); // overwrite default settings
       ffi_param.setValue("debug", debug_level_); // pass down debug level
 
       double feature_with_id_min_score = getDoubleOption_("feature_with_id_min_score");

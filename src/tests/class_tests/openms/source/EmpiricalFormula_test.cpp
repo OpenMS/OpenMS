@@ -21,6 +21,8 @@
 
 #include <sstream>
 #include <map>
+#include <unordered_set>
+#include <functional>
 
 using namespace OpenMS;
 using namespace std;
@@ -612,6 +614,46 @@ START_SECTION((static EmpiricalFormula hydrogen(int n_atoms = 1)))
   EmpiricalFormula f("H2O");
   EmpiricalFormula w = EmpiricalFormula::water();
   TEST_EQUAL(f, w);
+}
+END_SECTION
+
+START_SECTION(([EXTRA] std::hash<EmpiricalFormula>))
+{
+  // Test that equal formulas have equal hashes
+  EmpiricalFormula ef1("C6H12O6");
+  EmpiricalFormula ef2("C6H12O6");
+  EmpiricalFormula ef3("H12C6O6");  // Same formula, different order
+
+  std::hash<EmpiricalFormula> hasher;
+  TEST_EQUAL(hasher(ef1), hasher(ef2))
+  TEST_EQUAL(hasher(ef1), hasher(ef3))  // Order shouldn't matter
+
+  // Test that different formulas have different hashes (most likely)
+  EmpiricalFormula ef4("C6H12O7");  // Different formula
+  TEST_NOT_EQUAL(hasher(ef1), hasher(ef4))
+
+  // Test formulas with charges
+  EmpiricalFormula ef5("C6H12O6+");
+  EmpiricalFormula ef6("C6H12O6+");
+  EmpiricalFormula ef7("C6H12O6-");
+  TEST_EQUAL(hasher(ef5), hasher(ef6))
+  TEST_NOT_EQUAL(hasher(ef5), hasher(ef7))  // Different charge
+  TEST_NOT_EQUAL(hasher(ef1), hasher(ef5))  // Same formula, different charge
+
+  // Test empty formula
+  EmpiricalFormula ef_empty1;
+  EmpiricalFormula ef_empty2;
+  TEST_EQUAL(hasher(ef_empty1), hasher(ef_empty2))
+
+  // Test that formulas work in unordered_set
+  std::unordered_set<EmpiricalFormula> formula_set;
+  formula_set.insert(ef1);
+  formula_set.insert(ef2);  // Duplicate, should not increase size
+  formula_set.insert(ef4);  // Different formula
+  TEST_EQUAL(formula_set.size(), 2)
+  TEST_EQUAL(formula_set.count(ef1), 1)
+  TEST_EQUAL(formula_set.count(ef3), 1)  // Same as ef1
+  TEST_EQUAL(formula_set.count(ef4), 1)
 }
 END_SECTION
 

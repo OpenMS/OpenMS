@@ -9,7 +9,10 @@
 #pragma once
 
 #include <OpenMS/DATASTRUCTURES/DIntervalBase.h>
+#include <OpenMS/CONCEPT/HashUtils.h>
 #include <OpenMS/CONCEPT/Types.h>
+
+#include <functional>
 
 namespace OpenMS
 {
@@ -195,4 +198,31 @@ public:
   }
 
 } // namespace OpenMS
+
+// Hash function specialization for DBoundingBox
+namespace std
+{
+  template<OpenMS::UInt D>
+  struct hash<OpenMS::DBoundingBox<D>>
+  {
+    std::size_t operator()(const OpenMS::DBoundingBox<D>& bb) const noexcept
+    {
+      // Hash both min_ and max_ positions (fields used in operator==)
+      std::size_t seed = 0;
+      // Hash minPosition
+      const auto& min_pos = bb.minPosition();
+      for (OpenMS::UInt i = 0; i < D; ++i)
+      {
+        OpenMS::hash_combine(seed, OpenMS::hash_float(min_pos[i]));
+      }
+      // Hash maxPosition
+      const auto& max_pos = bb.maxPosition();
+      for (OpenMS::UInt i = 0; i < D; ++i)
+      {
+        OpenMS::hash_combine(seed, OpenMS::hash_float(max_pos[i]));
+      }
+      return seed;
+    }
+  };
+} // namespace std
 

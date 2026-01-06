@@ -392,7 +392,7 @@ protected:
     registerStringOption_("out_type", "<type>", "", "Output file type -- default: determined from file extension or content", false);
     setValidStrings_("out_type", formats);
 
-    registerStringOption_("rt", "[min]:[max]", ":", "Retention time range to extract", false);
+    registerStringOption_("rt", "[min]:[max]", ":", "Retention time range to extract [s]", false);
     registerStringOption_("rt_block_mode", "<mode>", RT_BLOCK_MODE_NAMES[(int)RTBlockMode::AS_IS], String("RT filtering mode: '") + RT_BLOCK_MODE_NAMES[(int)RTBlockMode::AS_IS] + "' uses RT range as given in '-rt'; '" + RT_BLOCK_MODE_NAMES[(int)RTBlockMode::FULL_CYCLE_EXTEND] + "' extends RT range to keep complete spectrum blocks intact, '" + RT_BLOCK_MODE_NAMES[(int)RTBlockMode::FULL_CYCLE_SHRINK] + "' only keeps complete blocks within the given RT range", false);
     setValidStrings_("rt_block_mode", StringList(RT_BLOCK_MODE_NAMES.begin(), RT_BLOCK_MODE_NAMES.end()));
     registerStringOption_("mz", "[min]:[max]", ":", "m/z range to extract (applies to ALL ms levels!)", false);

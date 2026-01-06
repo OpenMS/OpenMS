@@ -9,6 +9,8 @@ cdef extern from "<OpenMS/METADATA/Precursor.h>" namespace "OpenMS":
         # wrap-inherits:
         #   Peak1D
         #   CVTermList
+        # wrap-hash:
+        #  std
         # wrap-doc:
         #  Precursor meta information
         #  

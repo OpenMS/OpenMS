@@ -15,7 +15,8 @@
 
 /////////////////////////////////////////////////////////////
 
-
+#include <unordered_set>
+#include <unordered_map>
 #include <sstream>
 
 using namespace OpenMS;
@@ -321,6 +322,59 @@ START_SECTION((template <UInt D> std::ostream & operator<<(std::ostream &os, con
 		"MIN --> 2.0\n"
 		"MAX --> 5.0\n"
 		"--DBOUNDINGBOX END--\n");
+}
+END_SECTION
+
+START_SECTION(([EXTRA] std::hash<DBoundingBox<D>>))
+{
+  // Test that equal bounding boxes have equal hashes
+  BB2 bb1(DPosition<2>(1.0, 2.0), DPosition<2>(3.0, 4.0));
+  BB2 bb2(DPosition<2>(1.0, 2.0), DPosition<2>(3.0, 4.0));
+  BB2 bb3(DPosition<2>(5.0, 6.0), DPosition<2>(7.0, 8.0));
+
+  std::hash<BB2> hasher;
+
+  // Equal objects must have equal hashes
+  TEST_EQUAL(bb1 == bb2, true)
+  TEST_EQUAL(hasher(bb1), hasher(bb2))
+
+  // Different objects should (likely) have different hashes
+  TEST_EQUAL(bb1 == bb3, false)
+  TEST_NOT_EQUAL(hasher(bb1), hasher(bb3))
+
+  // Test 1D bounding box hash
+  BB1 bb1d_a(DPosition<1>(1.0), DPosition<1>(5.0));
+  BB1 bb1d_b(DPosition<1>(1.0), DPosition<1>(5.0));
+  BB1 bb1d_c(DPosition<1>(2.0), DPosition<1>(6.0));
+
+  std::hash<BB1> hasher1d;
+  TEST_EQUAL(bb1d_a == bb1d_b, true)
+  TEST_EQUAL(hasher1d(bb1d_a), hasher1d(bb1d_b))
+  TEST_NOT_EQUAL(hasher1d(bb1d_a), hasher1d(bb1d_c))
+
+  // Test use in unordered_set
+  std::unordered_set<BB2> bb_set;
+  bb_set.insert(bb1);
+  bb_set.insert(bb2); // Should not be inserted (equal to bb1)
+  bb_set.insert(bb3);
+  TEST_EQUAL(bb_set.size(), 2)
+  TEST_EQUAL(bb_set.count(bb1), 1)
+  TEST_EQUAL(bb_set.count(bb3), 1)
+
+  // Test use in unordered_map
+  std::unordered_map<BB2, std::string> bb_map;
+  bb_map[bb1] = "first";
+  bb_map[bb2] = "second"; // Should overwrite bb1's value
+  bb_map[bb3] = "third";
+  TEST_EQUAL(bb_map.size(), 2)
+  TEST_EQUAL(bb_map[bb1], "second")
+  TEST_EQUAL(bb_map[bb3], "third")
+
+  // Test hash consistency with default-constructed (empty) bounding boxes
+  BB2 default1;
+  BB2 default2;
+  TEST_EQUAL(default1 == default2, true)
+  TEST_EQUAL(hasher(default1), hasher(default2))
 }
 END_SECTION
 

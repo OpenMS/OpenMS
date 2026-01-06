@@ -9,16 +9,20 @@
 #pragma once
 
 #include <iosfwd>
+#include <algorithm>
 #include <map>
 #include <set>
 #include <string>
+#include <functional>
+#include <vector>
 
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/CONCEPT/HashUtils.h>
+#include <OpenMS/CHEMISTRY/Element.h>
 
 namespace OpenMS
 {
   class String;
-  class Element;
   class ElementDB;
   class IsotopeDistribution;
   class IsotopePatternGenerator;
@@ -311,3 +315,54 @@ protected:
   OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const EmpiricalFormula& formula);
 
 } // namespace OpenMS
+
+// Hash function specialization for EmpiricalFormula
+// Placed in std namespace to allow use with std::unordered_map/set
+namespace std
+{
+  /**
+   * @brief Hash function for OpenMS::EmpiricalFormula.
+   *
+   * Computes a hash based on element symbols and their counts,
+   * plus the charge. The hash is consistent with operator==.
+   *
+   * Design decisions:
+   * - Uses element symbols (not pointers) to distinguish isotopes like (13)C vs C
+   * - Sorts elements by symbol for reproducible hash across runs
+   * - FNV-1a based combining for good distribution
+   *
+   * @note Hash is reproducible across process runs on the same platform.
+   */
+  template<>
+  struct hash<OpenMS::EmpiricalFormula>
+  {
+    std::size_t operator()(const OpenMS::EmpiricalFormula& ef) const noexcept
+    {
+      // Collect elements with symbols for deterministic ordering
+      // (map iteration order depends on pointer addresses which vary across runs)
+      // Use symbols instead of atomic numbers to distinguish isotopes like (13)C vs C
+      // Typical formulas have only 4-6 elements, so no need to reserve
+      std::vector<std::pair<std::string, OpenMS::SignedSize>> elements;
+      for (const auto& [element_ptr, count] : ef)
+      {
+        elements.emplace_back(element_ptr->getSymbol(), count);
+      }
+
+      // Sort by symbol for reproducible hash
+      std::sort(elements.begin(), elements.end());
+
+      // Hash in sorted order
+      std::size_t seed = 0;
+      for (const auto& [symbol, count] : elements)
+      {
+        OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(symbol));
+        OpenMS::hash_combine(seed, OpenMS::hash_int(count));
+      }
+
+      // Hash the charge
+      OpenMS::hash_combine(seed, OpenMS::hash_int(ef.getCharge()));
+
+      return seed;
+    }
+  };
+} // namespace std
