@@ -6,6 +6,19 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
+// TODO: The pattern used here for enum-to-string conversion (e.g., driftTimeUnitToString(),
+//       toDriftTimeUnit()) avoids function overloading issues in Python/Cython bindings.
+//       Other classes with enums should adopt this pattern by adding similar static methods:
+//       - Precursor: activationMethodToString(), activationMethodToShortString(), toActivationMethod()
+//       - InstrumentSettings: scanModeToString(), toScanMode()
+//       - SpectrumSettings: spectrumTypeToString(), toSpectrumType()
+//       - MassAnalyzer: analyzerTypeToString(), toAnalyzerType() (and other enums)
+//       - DataProcessing: processingActionToString(), toProcessingAction()
+//       - IonSource: inletTypeToString(), ionizationMethodToString(), polarityToString()
+//       - IonDetector: detectorTypeToString(), acquisitionModeToString()
+//       - Sample: sampleStateToString(), toSampleState()
+//       See issue https://github.com/OpenMS/OpenMS/issues/8603
+
 #pragma once
 
 #include <OpenMS/CONCEPT/CommonEnums.h>
