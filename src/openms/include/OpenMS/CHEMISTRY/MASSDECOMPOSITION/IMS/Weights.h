@@ -62,8 +62,8 @@ public:
       /**
         Constructor with double values and precision.
 
-        @param masses Original double values to be scaled.
-        @param precision Precision to scale double values.
+        @param[in] masses Original double values to be scaled.
+        @param[in] precision Precision to scale double values.
       */
       Weights(const alphabet_masses_type & masses, alphabet_mass_type precision) :
         alphabet_masses_(masses),
@@ -75,7 +75,7 @@ public:
       /**
         Copy constructor.
 
-        @param other Weights to be copied.
+        @param[in] other Weights to be copied.
       */
       Weights(const Weights & other) :
         alphabet_masses_(other.alphabet_masses_),
@@ -85,7 +85,7 @@ public:
       /**
         Assignment operator.
 
-        @param other Weights to be assigned.
+        @param[in] other Weights to be assigned.
         @return Reference to this object.
       */
       Weights & operator=(const Weights & other);
@@ -103,7 +103,7 @@ public:
       /**
         Gets a scaled integer weight by index.
 
-        @param i An index to access weights.
+        @param[in] i An index to access weights.
         @return An integer weight.
       */
       weight_type getWeight(size_type i) const
@@ -114,7 +114,7 @@ public:
       /**
         Sets a new precision to scale double values to integer.
 
-        @param precision A new precision.
+        @param[in] precision A new precision.
       */
       void setPrecision(alphabet_mass_type precision);
 
@@ -131,7 +131,7 @@ public:
       /**
         Operator to access weights by index.
 
-        @param i An index to access weights.
+        @param[in] i An index to access weights.
         @return An integer weight.
 
         @see getWeight(size_type i)
@@ -154,7 +154,7 @@ public:
       /**
         Gets an original (double) alphabet mass by index.
 
-        @param i An index to access alphabet masses.
+        @param[in] i An index to access alphabet masses.
         @return A double alphabet mass.
       */
       alphabet_mass_type getAlphabetMass(size_type i) const
@@ -170,8 +170,8 @@ public:
       /**
         Exchanges weight and mass at index1 with weight and mass at index2.
 
-        @param index1 Index of weight and mass to be exchanged.
-        @param index2 Index of weight and mass to be exchanged.
+        @param[in,out] index1 Index of weight and mass to be exchanged.
+        @param[in,out] index2 Index of weight and mass to be exchanged.
       */
       void swap(size_type index1, size_type index2);
 
@@ -212,8 +212,8 @@ private:
     /**
       Prints weights to the stream @c os.
 
-      @param os Output stream to which weights are written.
-      @param weights Weights to be written.
+      @param[out] os Output stream to which weights are written.
+      @param[out] weights Weights to be written.
     */
     OPENMS_DLLAPI std::ostream & operator<<(std::ostream & os, const Weights & weights);
 

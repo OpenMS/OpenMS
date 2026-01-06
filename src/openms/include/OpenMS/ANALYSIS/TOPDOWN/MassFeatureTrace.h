@@ -52,10 +52,10 @@ namespace OpenMS
 
     /**
        @brief Find mass features.
-       @param averagine precalculated averagine for cosine calculation
-       @param deconvolved_spectra the spectra on which features are found
-       @param ms_level ms level to process
-       @param is_decoy if set, only process decoy spectra. otherwise only target spectra
+       @param[in] averagine precalculated averagine for cosine calculation
+       @param[in] deconvolved_spectra the spectra on which features are found
+       @param[in] ms_level ms level to process
+       @param[out] is_decoy if set, only process decoy spectra. otherwise only target spectra
        */
     std::vector<FLASHHelperClasses::MassFeature> findFeaturesAndUpdateQscore2D(const PrecalculatedAveragine& averagine, std::vector<DeconvolvedSpectrum>& deconvolved_spectra, int ms_level = 1,
                                                                                      bool is_decoy = false);

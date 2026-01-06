@@ -112,13 +112,13 @@ public:
     /**
      * @brief initialises all data structures
      * 
-     * @param metric Metric for measuring the distance between points in the 2D plane
-     * @param data_x    x-coordinates of points to be clustered
-     * @param data_y    y-coordinates of points to be clustered
-     * @param properties_A    property A of points (same in each cluster)
-     * @param properties_B    property B of points (different in each cluster)
-     * @param grid_spacing_x    grid spacing in x-direction
-     * @param grid_spacing_y    grid spacing in y-direction
+     * @param[in] metric Metric for measuring the distance between points in the 2D plane
+     * @param[in] data_x    x-coordinates of points to be clustered
+     * @param[in] data_y    y-coordinates of points to be clustered
+     * @param[in] properties_A    property A of points (same in each cluster)
+     * @param[in] properties_B    property B of points (different in each cluster)
+     * @param[in] grid_spacing_x    grid spacing in x-direction
+     * @param[in] grid_spacing_y    grid spacing in y-direction
      */
     GridBasedClustering(Metric metric, const std::vector<double>& data_x,
                         const std::vector<double>& data_y, const std::vector<int>& properties_A,
@@ -133,11 +133,11 @@ public:
     /**
      * @brief initialises all data structures
      *
-     * @param metric Metric for measuring the distance between points in the 2D plane
-     * @param data_x    x-coordinates of points to be clustered
-     * @param data_y    y-coordinates of points to be clustered
-     * @param grid_spacing_x    grid spacing in x-direction
-     * @param grid_spacing_y    grid spacing in y-direction
+     * @param[in] metric Metric for measuring the distance between points in the 2D plane
+     * @param[in] data_x    x-coordinates of points to be clustered
+     * @param[in] data_y    y-coordinates of points to be clustered
+     * @param[in] grid_spacing_x    grid spacing in x-direction
+     * @param[in] grid_spacing_y    grid spacing in y-direction
      */
     GridBasedClustering(Metric metric, const std::vector<double>& data_x,
                         const std::vector<double>& data_y, std::vector<double> grid_spacing_x,
@@ -394,7 +394,7 @@ public:
 
     /**
      * @brief removes clusters with bounding box dimension in y-direction below certain threshold
-     * @param threshold_y    minimal dimension of the cluster bounding box
+     * @param[in] threshold_y    minimal dimension of the cluster bounding box
      */
     void removeSmallClustersY(double threshold_y)
     {
@@ -467,10 +467,10 @@ private:
     /**
      * @brief initialises all data structures
      *
-     * @param data_x    x-coordinates of points to be clustered
-     * @param data_y    y-coordinates of points to be clustered
-     * @param properties_A    property A of points (same in each cluster)
-     * @param properties_B    property B of points (different in each cluster)
+     * @param[in] data_x    x-coordinates of points to be clustered
+     * @param[in] data_y    y-coordinates of points to be clustered
+     * @param[in] properties_A    property A of points (same in each cluster)
+     * @param[in] properties_B    property B of points (different in each cluster)
      */
     void init_(const std::vector<double>& data_x, const std::vector<double>& data_y,
                const std::vector<int>& properties_A, const std::vector<int>& properties_B)
@@ -521,8 +521,8 @@ private:
     * Properties A need to be the same, properties B need to differ in each cluster.
     * Methods checks if this is violated in the merged cluster.
     *
-    * @param c1    cluster 1
-    * @param c2    cluster 2
+    * @param[in] c1    cluster 1
+    * @param[in] c2    cluster 2
     *
     * @return    veto for merging clusters
     * true -> clusters can be merged
@@ -569,8 +569,8 @@ private:
      * @note If two clusters cannot be merged (merge veto), they are no
      * viable nearest neighbours.
      *
-     * @param cluster    cluster for which the nearest neighbour should be found
-     * @param cluster_index    index of cluster
+     * @param[in] cluster    cluster for which the nearest neighbour should be found
+     * @param[in] cluster_index    index of cluster
      *
      * @return Should the cluster be removed from the cluster list?
      */
@@ -639,7 +639,7 @@ private:
      * corresponding data from the auxiliary data structures reverse_nns_ and
      * distance_it_for_cluster_idx_.
      *
-     * @param it    Iterator of distance to be removed from distances_
+     * @param[in] it    Iterator of distance to be removed from distances_
      */
     void eraseMinDistance_(const std::multiset<MinimumDistance>::const_iterator it)
     {

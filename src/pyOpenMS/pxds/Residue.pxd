@@ -7,9 +7,9 @@ cdef extern from "<OpenMS/CHEMISTRY/Residue.h>" namespace "OpenMS":
 
     cdef cppclass Residue:
         # wrap-hash:
-        #  getName().c_str()
+        #  std
 
-        Residue() except + nogil 
+        Residue() except + nogil
         Residue(Residue &) except + nogil 
 
         # detailed constructor
@@ -156,6 +156,8 @@ cdef extern from "<OpenMS/CHEMISTRY/Residue.h>" namespace "OpenMS":
         bool isInResidueSet(String residue_set) except + nogil  # wrap-doc:True if the residue is contained in the set
 
         String residueTypeToIonLetter(ResidueType res_type) except + nogil  # wrap-doc:Helper for mapping residue types to letters for Text annotations and labels
+
+        String toString() except + nogil  # wrap-doc:Returns the residue as string (one letter code with optional modification)
 
 cdef extern from "<OpenMS/CHEMISTRY/Residue.h>" namespace "OpenMS::Residue":
 

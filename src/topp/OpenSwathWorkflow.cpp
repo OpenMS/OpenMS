@@ -474,7 +474,7 @@ protected:
     Parsing is case-insensitive and tolerant of surrounding whitespace.
     Unknown tokens or an empty/malformed value raise an exception.
 
-    @param estimate_windows_option_str  The option string (e.g. "all", "none", "rt,mz").
+    @param[in] estimate_windows_option_str  The option string (e.g. "all", "none", "rt,mz").
     @return An @c EstimateWindowsChoice with the requested flags set.
     @throws Exception::InvalidParameter
             If the string is empty/malformed or contains unknown tokens.
@@ -533,8 +533,8 @@ protected:
       - m/z window: ppm
       - IM window: native instrument units
 
-    @param v            The candidate window value.
-    @param min_positive Minimum strictly-positive threshold (default: 1e-9).
+    @param[in] v            The candidate window value.
+    @param[in] min_positive Minimum strictly-positive threshold (default: 1e-9).
                          Estimates <= this threshold are deemed invalid.
     @return True if the window is usable; false otherwise.
   */
@@ -558,13 +558,13 @@ protected:
       - MS1 m/z window (ppm)
       - IM window (1/k0), only when applicable (e.g., PASEF/IM data)
 
-    @param label       Human-readable label used in logs (e.g., "RT", "MS2 m/z (ppm)", "MS1 ion mobility (1/k0)").
-    @param estimate    Auto-estimated window value to consider.
-    @param dst_param   Destination parameter to update on success (by reference).
-    @param user_value  The current/user-specified value (reported in logs).
-    @param applicable  Whether this window is applicable for the current run/config.
+    @param[in] label       Human-readable label used in logs (e.g., "RT", "MS2 m/z (ppm)", "MS1 ion mobility (1/k0)").
+    @param[in] estimate    Auto-estimated window value to consider.
+    @param[out] dst_param   Destination parameter to update on success (by reference).
+    @param[in] user_value  The current/user-specified value (reported in logs).
+    @param[in] applicable  Whether this window is applicable for the current run/config.
                        If false, the value is not applied and a note is logged.
-    @param commit      Whether to apply the estimate. If false, only logs the estimate vs. user value.
+    @param[in] commit      Whether to apply the estimate. If false, only logs the estimate vs. user value.
                        Default: true (backwards compatible).
   */
   void apply_window(const char* label,

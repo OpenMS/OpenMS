@@ -16,6 +16,7 @@
 
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/CONCEPT/Constants.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -173,6 +174,93 @@ START_SECTION((void store(const String &filename, const PeakMap &experiment, boo
   TEST_EQUAL(exp.begin()->size() == exp2.begin()->size(), true)
   TEST_REAL_SIMILAR(exp.begin()->getRT(), exp2.begin()->getRT())
   TEST_REAL_SIMILAR(exp.begin()->getPrecursors().begin()->getMZ(), exp2.begin()->getPrecursors().begin()->getMZ())
+}
+END_SECTION
+
+START_SECTION((COMPOUND_NAME to Metabolite_Name mapping))
+{
+  // Test that COMPOUND_NAME in MGF is correctly mapped to Constants::UserParam::MSM_METABOLITE_NAME
+  String mgf_content = "BEGIN IONS\n"
+                       "TITLE=Test spectrum\n"
+                       "PEPMASS=500.0\n"
+                       "CHARGE=1\n"
+                       "COMPOUND_NAME=Caffeine\n"
+                       "100.0 1000.0\n"
+                       "200.0 2000.0\n"
+                       "END IONS\n";
+
+  stringstream mgf_stream(mgf_content);
+  
+  PeakMap exp;
+  MascotGenericFile mgf_file;
+  
+  // Create a temporary file to test the loading functionality
+  String tmp_name("test_compound_name.mgf");
+  NEW_TMP_FILE(tmp_name)
+  
+  // Write MGF content to temporary file
+  std::ofstream ofs(tmp_name.c_str());
+  ofs << mgf_content;
+  ofs.close();
+  
+  // Load the MGF file
+  mgf_file.load(tmp_name, exp);
+  
+  // Test that we have one spectrum
+  TEST_EQUAL(exp.size(), 1)
+  
+  // Test that the spectrum has the correct metabolite name metadata
+  TEST_EQUAL(exp[0].metaValueExists(Constants::UserParam::MSM_METABOLITE_NAME), true)
+  TEST_EQUAL(String(exp[0].getMetaValue(Constants::UserParam::MSM_METABOLITE_NAME)), "Caffeine")
+  
+  // Test that other expected properties are also parsed correctly
+  TEST_EQUAL(exp[0].size(), 2) // Two peaks
+  TEST_REAL_SIMILAR(exp[0].getPrecursors()[0].getMZ(), 500.0)
+  TEST_EQUAL(exp[0].getPrecursors()[0].getCharge(), 1)
+}
+END_SECTION
+
+START_SECTION((GNPS MGF file - 3-Des-Microcystein_LR))
+{
+  // Test loading a real GNPS library spectrum with COMPOUND_NAME and SPECTRUMID metadata
+  PeakMap exp;
+  MascotGenericFile mgf_file;
+  
+  // Load the GNPS MGF file
+  mgf_file.load(OPENMS_GET_TEST_DATA_PATH("MascotGenericFile_GNPS.mgf"), exp);
+  
+  // Test that we have one spectrum
+  TEST_EQUAL(exp.size(), 1)
+  
+  // Test that SPECTRUMID was correctly parsed and stored as GNPS_Spectrum_ID
+  TEST_EQUAL(exp[0].metaValueExists("GNPS_Spectrum_ID"), true)
+  TEST_EQUAL(String(exp[0].getMetaValue("GNPS_Spectrum_ID")), "CCMSLIB00000001547")
+  
+  // Test that COMPOUND_NAME was correctly mapped to MSM_METABOLITE_NAME
+  TEST_EQUAL(exp[0].metaValueExists(Constants::UserParam::MSM_METABOLITE_NAME), true)
+  TEST_EQUAL(String(exp[0].getMetaValue(Constants::UserParam::MSM_METABOLITE_NAME)), "3-Des-Microcystein_LR")
+  
+  // Test precursor m/z
+  TEST_REAL_SIMILAR(exp[0].getPrecursors()[0].getMZ(), 981.54)
+  
+  // Test charge state
+  TEST_EQUAL(exp[0].getPrecursors()[0].getCharge(), 1)
+  
+  // Test that we have the expected number of peaks (43 peaks in the file)
+  TEST_EQUAL(exp[0].size(), 43)
+  
+  // Test the base peak (m/z 599.352783 with intensity 764523.0)
+  bool found_base_peak = false;
+  for (Size i = 0; i < exp[0].size(); ++i)
+  {
+    if (std::abs(exp[0][i].getMZ() - 599.352783) < 0.001)
+    {
+      found_base_peak = true;
+      TEST_REAL_SIMILAR(exp[0][i].getIntensity(), 764523.0)
+      break;
+    }
+  }
+  TEST_EQUAL(found_base_peak, true)
 }
 END_SECTION
 

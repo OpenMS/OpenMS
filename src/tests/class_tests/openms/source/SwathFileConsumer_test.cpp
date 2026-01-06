@@ -11,6 +11,7 @@
 ///////////////////////////
 
 #include <OpenMS/FORMAT/DATAACCESS/SwathFileConsumer.h>
+#include <OpenMS/SYSTEM/File.h>
 
 ///////////////////////////
 
@@ -423,7 +424,7 @@ CachedSwathFileConsumer* cached_sfc_ptr = nullptr;
 CachedSwathFileConsumer* cached_sfc_nullPointer = nullptr;
 
 START_SECTION(([EXTRA] CachedSwathFileConsumer()))
-  cached_sfc_ptr = new CachedSwathFileConsumer("./", "tmp_osw_cached", 0, std::vector<int>());
+  cached_sfc_ptr = new CachedSwathFileConsumer(File::getTempDirectory() + "/", "tmp_osw_cached", 0, std::vector<int>());
   TEST_NOT_EQUAL(cached_sfc_ptr, cached_sfc_nullPointer)
 END_SECTION
 
@@ -437,7 +438,7 @@ START_SECTION(([EXTRA] consumeAndRetrieve))
   //int nr_swath = 1;
   int nr_swath = 2;
   std::vector<int> nr_ms2_spectra(nr_swath,1);
-  cached_sfc_ptr = new CachedSwathFileConsumer("./", "tmp_osw_cached", 1, nr_ms2_spectra);
+  cached_sfc_ptr = new CachedSwathFileConsumer(File::getTempDirectory() + "/", "tmp_osw_cached", 1, nr_ms2_spectra);
   PeakMap exp;
   getSwathFile(exp, nr_swath);
   // Consume all the spectra
@@ -475,7 +476,7 @@ START_SECTION(([EXTRA] consumeAndRetrieve_noMS1))
   // 2 SWATH should be sufficient for the test
   int nr_swath = 2;
   std::vector<int> nr_ms2_spectra(nr_swath,1);
-  cached_sfc_ptr = new CachedSwathFileConsumer("./", "tmp_osw_cached", 1, nr_ms2_spectra);
+  cached_sfc_ptr = new CachedSwathFileConsumer(File::getTempDirectory() + "/", "tmp_osw_cached", 1, nr_ms2_spectra);
   PeakMap exp;
   getSwathFile(exp, nr_swath, false);
   // Consume all the spectra
@@ -507,7 +508,7 @@ START_SECTION(([EXTRA] consumeAndRetrieve_noMS2))
 {
   int nr_swath = 0;
   std::vector<int> nr_ms2_spectra(nr_swath,1);
-  cached_sfc_ptr = new CachedSwathFileConsumer("./", "tmp_osw_cached", 1, nr_ms2_spectra);
+  cached_sfc_ptr = new CachedSwathFileConsumer(File::getTempDirectory() + "/", "tmp_osw_cached", 1, nr_ms2_spectra);
   PeakMap exp;
   getSwathFile(exp, nr_swath, true);
   // Consume all the spectra

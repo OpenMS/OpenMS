@@ -12,6 +12,8 @@
 ///////////////////////////
 #include <OpenMS/METADATA/IonDetector.h>
 ///////////////////////////
+#include <unordered_set>
+#include <unordered_map>
 
 using namespace OpenMS;
 using namespace std;
@@ -203,6 +205,83 @@ START_SECTION((static StringList getAllNamesOfAcquisitionMode()))
   StringList names = IonDetector::getAllNamesOfAcquisitionMode();
   TEST_EQUAL(names.size(), IonDetector::SIZE_OF_ACQUISITIONMODE);
   TEST_EQUAL(names[IonDetector::PULSECOUNTING], "Pulse counting");
+END_SECTION
+
+START_SECTION(([EXTRA] std::hash<IonDetector>))
+{
+  // Test that equal detectors have equal hashes
+  IonDetector d1, d2;
+  d1.setType(IonDetector::ELECTRONMULTIPLIER);
+  d1.setAcquisitionMode(IonDetector::PULSECOUNTING);
+  d1.setResolution(47.11);
+  d1.setADCSamplingFrequency(47.21);
+  d1.setOrder(45);
+
+  d2.setType(IonDetector::ELECTRONMULTIPLIER);
+  d2.setAcquisitionMode(IonDetector::PULSECOUNTING);
+  d2.setResolution(47.11);
+  d2.setADCSamplingFrequency(47.21);
+  d2.setOrder(45);
+
+  std::hash<IonDetector> hasher;
+  TEST_EQUAL(hasher(d1), hasher(d2))
+
+  // Test that hash changes when values change
+  IonDetector d3;
+  d3.setType(IonDetector::PHOTOMULTIPLIER);
+  d3.setAcquisitionMode(IonDetector::PULSECOUNTING);
+  d3.setResolution(47.11);
+  d3.setADCSamplingFrequency(47.21);
+  d3.setOrder(45);
+  TEST_NOT_EQUAL(hasher(d1), hasher(d3))
+
+  IonDetector d4;
+  d4.setType(IonDetector::ELECTRONMULTIPLIER);
+  d4.setAcquisitionMode(IonDetector::ADC);
+  d4.setResolution(47.11);
+  d4.setADCSamplingFrequency(47.21);
+  d4.setOrder(45);
+  TEST_NOT_EQUAL(hasher(d1), hasher(d4))
+
+  IonDetector d5;
+  d5.setType(IonDetector::ELECTRONMULTIPLIER);
+  d5.setAcquisitionMode(IonDetector::PULSECOUNTING);
+  d5.setResolution(100.0);
+  d5.setADCSamplingFrequency(47.21);
+  d5.setOrder(45);
+  TEST_NOT_EQUAL(hasher(d1), hasher(d5))
+
+  IonDetector d6;
+  d6.setType(IonDetector::ELECTRONMULTIPLIER);
+  d6.setAcquisitionMode(IonDetector::PULSECOUNTING);
+  d6.setResolution(47.11);
+  d6.setADCSamplingFrequency(100.0);
+  d6.setOrder(45);
+  TEST_NOT_EQUAL(hasher(d1), hasher(d6))
+
+  IonDetector d7;
+  d7.setType(IonDetector::ELECTRONMULTIPLIER);
+  d7.setAcquisitionMode(IonDetector::PULSECOUNTING);
+  d7.setResolution(47.11);
+  d7.setADCSamplingFrequency(47.21);
+  d7.setOrder(100);
+  TEST_NOT_EQUAL(hasher(d1), hasher(d7))
+
+  // Test use in unordered_set
+  std::unordered_set<IonDetector> detector_set;
+  detector_set.insert(d1);
+  TEST_EQUAL(detector_set.size(), 1)
+  detector_set.insert(d2); // same as d1
+  TEST_EQUAL(detector_set.size(), 1) // should not increase
+  detector_set.insert(d3);
+  TEST_EQUAL(detector_set.size(), 2)
+
+  // Test use in unordered_map
+  std::unordered_map<IonDetector, int> detector_map;
+  detector_map[d1] = 42;
+  TEST_EQUAL(detector_map[d1], 42)
+  TEST_EQUAL(detector_map[d2], 42) // d2 == d1, should return same value
+}
 END_SECTION
 
 /////////////////////////////////////////////////////////////

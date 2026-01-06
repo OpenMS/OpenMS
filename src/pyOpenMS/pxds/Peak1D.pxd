@@ -5,7 +5,9 @@ from DPosition cimport *
 cdef extern from "<OpenMS/KERNEL/Peak1D.h>" namespace "OpenMS":
 
     cdef cppclass Peak1D:
-        Peak1D() except + nogil 
+        # wrap-hash:
+        #  std
+        Peak1D() except + nogil
         Peak1D(Peak1D &) except + nogil 
 
         # We will not catch C++ exceptions for get/set methods for performance

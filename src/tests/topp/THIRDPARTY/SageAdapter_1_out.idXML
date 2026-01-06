@@ -63,6 +63,16 @@
 				<UserParam type="string" name="SageAdapter:1:allow_nterm_protein_cleavage" value="true"/>
 				<UserParam type="string" name="SageAdapter:1:name" value="auto"/>
 				<UserParam type="string" name="SageAdapter:1:specificity" value="auto"/>
+				<UserParam type="string" name="PeptideIndexer:decoy_string" value="DECOY_"/>
+				<UserParam type="string" name="PeptideIndexer:decoy_string_position" value="prefix"/>
+				<UserParam type="string" name="PeptideIndexer:enzyme" value="Trypsin"/>
+				<UserParam type="string" name="PeptideIndexer:enzyme_specificity" value="full"/>
+				<UserParam type="int" name="PeptideIndexer:aaa_max" value="3"/>
+				<UserParam type="int" name="PeptideIndexer:mismatches_max" value="0"/>
+				<UserParam type="string" name="PeptideIndexer:IL_equivalent" value="false"/>
+				<UserParam type="string" name="PeptideIndexer:allow_nterm_protein_cleavage" value="true"/>
+				<UserParam type="string" name="PeptideIndexer:unmatched_action" value="error"/>
+				<UserParam type="string" name="PeptideIndexer:missing_decoy_action" value="warn"/>
 				<UserParam name="EnzymeTermSpecificity" type="string" value="full" />
 	</SearchParameters>
 	<IdentificationRun date="2024-10-24T09:46:46" search_engine="Sage" search_engine_version="0.14.6" search_parameters_ref="SP_0" >

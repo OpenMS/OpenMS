@@ -8,8 +8,10 @@ cdef extern from "<OpenMS/METADATA/MassAnalyzer.h>" namespace "OpenMS":
     cdef cppclass MassAnalyzer(MetaInfoInterface):
         # wrap-inherits:
         #   MetaInfoInterface
+        # wrap-hash:
+        #  std
 
-        MassAnalyzer() except + nogil 
+        MassAnalyzer() except + nogil
         MassAnalyzer(MassAnalyzer &) except + nogil 
 
         AnalyzerType getType() except + nogil  # wrap-doc:Returns the analyzer type

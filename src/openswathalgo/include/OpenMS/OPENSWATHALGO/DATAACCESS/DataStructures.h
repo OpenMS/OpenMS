@@ -142,7 +142,7 @@ public:
     }
 
     /// set all binary data arrays
-    /// @param val Vector of binary data arrays to be set
+    /// @param[in] val Vector of binary data arrays to be set
     void setDataArrays(std::vector<BinaryDataArrayPtr>& val)
     {
       binaryDataArrayPtrs = val;
@@ -279,7 +279,7 @@ public:
     }
 
     /// set all binary data arrays
-    /// @param val Vector of binary data arrays to be set
+    /// @param[in] val Vector of binary data arrays to be set
     void setDataArrays(std::vector<BinaryDataArrayPtr>& val)
     {
       binaryDataArrayPtrs = val;

@@ -6,7 +6,6 @@ set(sources_list
 BuildInfo.cpp
 ExternalProcess.cpp
 File.cpp
-FileWatcher.cpp
 JavaInfo.cpp
 NetworkGetRequest.cpp
 PythonInfo.cpp

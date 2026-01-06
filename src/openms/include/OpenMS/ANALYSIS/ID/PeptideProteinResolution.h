@@ -80,16 +80,16 @@ namespace OpenMS
     
   public:
     /// Constructor
-    /// @param statistics Specifies if the class stores/outputs info about statistics    
+    /// @param[in] statistics Specifies if the class stores/outputs info about statistics
     PeptideProteinResolution(bool statistics = false);
 
 
     /// A peptide-centric reimplementation of the resolution process. Can be used statically
     /// without building a bipartite graph first.
-    /// @param protein ProteinIdentification object storing IDs and groups
-    /// @param peptides vector of ProteinIdentifications with links to the proteins
-    /// @param resolve_ties If ties should be resolved or multiple best groups reported
-    /// @param targets_first If target groups should get picked first no matter the posterior
+    /// @param[in,out] protein ProteinIdentification object storing IDs and groups
+    /// @param[in,out] peptides vector of ProteinIdentifications with links to the proteins
+    /// @param[in] resolve_ties If ties should be resolved or multiple best groups reported
+    /// @param[in] targets_first If target groups should get picked first no matter the posterior
     /// @todo warning: all peptides are used (not filtered for matching protein ID run yet).
     static void resolve(ProteinIdentification& protein,
                         PeptideIdentificationList& peptides,
@@ -98,33 +98,33 @@ namespace OpenMS
 
     /// Convenience function that performs graph building and group resolution.
     /// After resolution, all unreferenced proteins are removed and groups updated.
-    /// @param inferred_protein_id ProteinIdentification object storing IDs and groups
-    /// @param inferred_peptide_ids Vector of ProteinIdentifications with links to the proteins
-    static void run(std::vector<ProteinIdentification>& inferred_protein_id, 
+    /// @param[in,out] inferred_protein_id ProteinIdentification object storing IDs and groups
+    /// @param[in,out] inferred_peptide_ids Vector of ProteinIdentifications with links to the proteins
+    static void run(std::vector<ProteinIdentification>& inferred_protein_id,
                     PeptideIdentificationList& inferred_peptide_ids);
 
     /// Initialize and store the graph (= maps), needs sorted groups for
     /// correct functionality. Therefore sorts the indist. protein groups
     /// if not skipped.
-    /// @param protein ProteinIdentification object storing IDs and groups
-    /// @param peptides vector of ProteinIdentifications with links to the proteins
-    /// @param skip_sort Skips sorting of groups, nothing is modified then.
+    /// @param[in,out] protein ProteinIdentification object storing IDs and groups
+    /// @param[in] peptides vector of ProteinIdentifications with links to the proteins
+    /// @param[in] skip_sort Skips sorting of groups, nothing is modified then.
     void buildGraph(ProteinIdentification& protein,
                     const PeptideIdentificationList& peptides,
                     bool skip_sort = false);
-      
+
     /// Applies resolveConnectedComponent to every component of the graph and
     /// is able to write statistics when specified. Parameters will
     /// both be mutated in this method.
-    /// @param protein ProteinIdentification object storing IDs and groups
-    /// @param peptides vector of ProteinIdentifications with links to the proteins
+    /// @param[in,out] protein ProteinIdentification object storing IDs and groups
+    /// @param[in,out] peptides vector of ProteinIdentifications with links to the proteins
     /// @todo warning: all peptides are used (not filtered for matching protein ID run yet).
     void resolveGraph(ProteinIdentification& protein,
                       PeptideIdentificationList& peptides);
-    
+
     /// Does a BFS on the two maps (= two parts of the graph; indist. prot. groups
     /// and peptides), switching from one to the other in each step.
-    /// @param root_prot_grp Starts the BFS at this protein group index
+    /// @param[in,out] root_prot_grp Starts the BFS at this protein group index
     /// @return Returns a Connected Component as set of group and peptide indices.
     ConnectedComponent findConnectedComponent(Size& root_prot_grp);
     
@@ -138,9 +138,9 @@ namespace OpenMS
       PeptideIDs and iterating until each peptide is uniquely assigned.
       In accordance with Fido only the best hit (PSM) for an ID is considered.
       Probability ties resolved by taking protein with largest number of peptides.
-      @param conn_comp The component to be resolved
-      @param protein ProteinIdentification object storing IDs and groups
-      @param peptides vector of ProteinIdentifications with links to the proteins
+      @param[in,out] conn_comp The component to be resolved
+      @param[in,out] protein ProteinIdentification object storing IDs and groups
+      @param[in,out] peptides vector of ProteinIdentifications with links to the proteins
      */
     void resolveConnectedComponent(ConnectedComponent& conn_comp,
                                     ProteinIdentification& protein,

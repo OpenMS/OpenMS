@@ -45,10 +45,9 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>" nam
                 #  :param do_apply: Get deviations after applying the model?
                 #  :param do_sort: Sort `diffs` before returning?
 
-        TransformationStatistics getStatistics() except + nogil 
+        TransformationStatistics getStatistics() except + nogil
 
-        # NAMESPACE # void printSummary(std::ostream & os) except + nogil 
+        # NAMESPACE # void printSummary(std::ostream & os) except + nogil
 
-cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>" namespace "OpenMS::TransformationDescription":
-
-    void getModelTypes(StringList result) except + nogil  # wrap-attach:TransformationDescription
+        @staticmethod
+        void getModelTypes(StringList result) except + nogil

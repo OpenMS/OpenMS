@@ -3,6 +3,8 @@
 
     def __str__(self):
         """
+        __str__(self: EmpiricalFormula) -> str
+        
         Return the formula string (e.g., 'C6H12O6').
         This is the expected format for printing in equations/expressions.
         """
@@ -10,6 +12,8 @@
 
     def __repr__(self):
         """
+        __repr__(self: EmpiricalFormula) -> str
+        
         Return a string representation of the EmpiricalFormula object.
 
         Returns key properties in a readable format:

@@ -56,9 +56,9 @@ namespace OpenMS
 
     /**
       @brief main deconvolution function that generates the deconvolved target and dummy spectrum based on the original spectrum.
-      @param spec the original spectrum
-      @param scan_number scan number from input spectrum.
-      @param precursor_peak_group precursor peak group
+      @param[in] spec the original spectrum
+      @param[in] scan_number scan number from input spectrum.
+      @param[in] precursor_peak_group precursor peak group
     */
     void performSpectrumDeconvolution(const MSSpectrum& spec, int scan_number, const PeakGroup& precursor_peak_group);
 
@@ -72,13 +72,13 @@ namespace OpenMS
     void setAveragine(const PrecalculatedAveragine& avg);
 
     /** @brief set targeted or excluded masses for targeted deconvolution. Masses are targeted or excluded in all ms levels.
-     *  @param masses target masses to set
-        @param exclude if set, masses are excluded.
+     *  @param[out] masses target masses to set
+        @param[in] exclude if set, masses are excluded.
      */
     void setTargetMasses(const std::vector<double>& masses, bool exclude = false);
 
     /** @brief precalculate averagine (for predefined mass bins) to speed up averagine generation
-        @param use_RNA_averagine if set, averagine for RNA (nucleotides) is calculated
+        @param[in] use_RNA_averagine if set, averagine for RNA (nucleotides) is calculated
        */
     void calculateAveragine(bool use_RNA_averagine);
 
@@ -92,24 +92,24 @@ namespace OpenMS
     static int getNominalMass(double mass);
 
     /** calculate cosine between two vectors a and b with additional parameters for fast calculation
-     * @param a vector a
-     * @param a_start non zero start index of a
-     * @param a_end non zero end index of a (exclusive)
-     * @param b vector b
-     * @param offset element index offset between a and b
-     * @param min_iso_len minimum isotope size. If isotope size is less than this, return 0
+     * @param[in] a vector a
+     * @param[in] a_start non zero start index of a
+     * @param[in] a_end non zero end index of a (exclusive)
+     * @param[in] b vector b
+     * @param[out] offset element index offset between a and b
+     * @param[in] min_iso_len minimum isotope size. If isotope size is less than this, return 0
      */
     static float getCosine(const std::vector<float>& a, int a_start, int a_end, const IsotopeDistribution& b, int offset, int min_iso_len);
 
 
     /** @brief Examine intensity distribution over isotope indices. Also determines the most plausible isotope index or, monoisotopic mono_mass
-        @param mono_mass monoisotopic mass
-        @param per_isotope_intensities vector of intensities associated with each isotope - aggregated through charges
-        @param offset output offset between input monoisotopic mono_mass and determined monoisotopic mono_mass
-        @param avg precalculated averagine
-        @param iso_int_shift isotope shift in per_isotope_intensities.
-        @param window_width isotope offset value range. If -1, set automatically.
-        @param excluded_masses masses not considered in the calculation.
+        @param[in] mono_mass monoisotopic mass
+        @param[in] per_isotope_intensities vector of intensities associated with each isotope - aggregated through charges
+        @param[in] offset output offset between input monoisotopic mono_mass and determined monoisotopic mono_mass
+        @param[in] avg precalculated averagine
+        @param[in] iso_int_shift isotope shift in per_isotope_intensities.
+        @param[in] window_width isotope offset value range. If -1, set automatically.
+        @param[in] excluded_masses masses not considered in the calculation.
         @return calculated cosine similarity score
      */
     static float getIsotopeCosineAndIsoOffset(double mono_mass, const std::vector<float>& per_isotope_intensities, int& offset,
@@ -118,8 +118,8 @@ namespace OpenMS
 
     /**
      *  set target dummy type for the SpectralDeconvolution run. All masses from the target SpectralDeconvolution run will have the target_decoy_type_.
-     * @param target_decoy_type  This target_decoy_type_ specifies if a PeakGroup is a target (0), charge dummy (1), noise dummy (2), or isotope dummy (3)
-     * @param target_dspec_for_decoy_calcualtion target masses from normal deconvolution
+     * @param[out] target_decoy_type  This target_decoy_type_ specifies if a PeakGroup is a target (0), charge dummy (1), noise dummy (2), or isotope dummy (3)
+     * @param[out] target_dspec_for_decoy_calcualtion target masses from normal deconvolution
      */
     void setTargetDecoyType(PeakGroup::TargetDecoyType target_decoy_type, const DeconvolvedSpectrum& target_dspec_for_decoy_calcualtion);
 
@@ -220,17 +220,17 @@ namespace OpenMS
     double max_mass_dalton_tolerance_ = .16;
 
     /** @brief static function that converts bin to value
-        @param bin bin number
-        @param min_value minimum value (corresponding to bin number = 0)
-        @param bin_mul_factor bin multiplication factor: bin_value = (min_value + bin_number/ bin_mul_factors_)
+        @param[in] bin bin number
+        @param[in] min_value minimum value (corresponding to bin number = 0)
+        @param[in] bin_mul_factor bin multiplication factor: bin_value = (min_value + bin_number/ bin_mul_factors_)
         @return value corresponding to bin
      */
     static double getBinValue_(Size bin, double min_value, double bin_mul_factor);
 
     /** @brief static function that converts value to bin
-        @param value value
-        @param min_value minimum value (corresponding to bin number = 0)
-        @param bin_mul_factor bin multiplication factor: bin_number = (bin_value * bin_mul_factors_ - min_value)
+        @param[in] value value
+        @param[in] min_value minimum value (corresponding to bin number = 0)
+        @param[in] bin_mul_factor bin multiplication factor: bin_number = (bin_value * bin_mul_factors_ - min_value)
         @return bin corresponding to value
      */
     static Size getBinNumber_(double value, double min_value, double bin_mul_factor);
@@ -239,8 +239,8 @@ namespace OpenMS
     void updateLogMzPeaks_();
 
     /** @brief generate mz bins and intensity per mz bin from log mz peaks
-        @param bin_number number of mz bins
-        @param binned_log_mz_peak_intensities intensity per mz bin
+        @param[in] bin_number number of mz bins
+        @param[in] binned_log_mz_peak_intensities intensity per mz bin
      */
     void binLogMzPeaks_(Size bin_number, std::vector<float>& binned_log_mz_peak_intensities);
 
@@ -257,25 +257,25 @@ namespace OpenMS
     static void removeOverlappingPeakGroups_(DeconvolvedSpectrum& dspec, double tol, PeakGroup::TargetDecoyType target_decoy_type = PeakGroup::TargetDecoyType::target);
 
     /** @brief Update binned_log_masses_. It select candidate mass bins using the universal pattern, eliminate possible harmonic masses. This function does not perform deisotoping
-        @param mz_intensities per mz bin intensity
+        @param[in] mz_intensities per mz bin intensity
         @return a matrix containing charge ranges for all found masses
      */
     Matrix<int> updateMassBins_(const std::vector<float>& mz_intensities);
 
     /** @brief Subfunction of updateMassBins_.
-        @param mass_intensities per mass bin intensity
+        @param[in,out] mass_intensities per mass bin intensity
         @return a matrix containing charge ranges for all found masses
      */
     Matrix<int> filterMassBins_(const std::vector<float>& mass_intensities);
 
     /** @brief Subfunction of updateMassBins_. It select candidate masses and update binned_log_masses_ using the universal pattern, eliminate possible harmonic masses
-        @param mass_intensities mass bin intensities which are updated in this function
-        @param mz_intensities mz bin intensities
+        @param[in] mass_intensities mass bin intensities which are updated in this function
+        @param[in] mz_intensities mz bin intensities
      */
     void updateCandidateMassBins_(std::vector<float>& mass_intensities, const std::vector<float>& mz_intensities);
 
     /** @brief For selected masses in binned_log_masses_, select the peaks from the original spectrum. Also isotopic peaks are clustered in this function.
-        @param per_mass_abs_charge_ranges charge range per mass
+        @param[in] per_mass_abs_charge_ranges charge range per mass
      */
     void getCandidatePeakGroups_(const Matrix<int>& per_mass_abs_charge_ranges);
 

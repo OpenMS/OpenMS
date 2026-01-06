@@ -299,7 +299,7 @@ namespace OpenMS
   }
 
   // TODO write version where you look up in a specific run (e.g. first inference run)
-  void IDFilter::updateProteinReferences(ConsensusMap& cmap, bool remove_peptides_without_reference)
+  void IDFilter::removeDanglingProteinReferences(ConsensusMap& cmap, bool remove_peptides_without_reference)
   {
     vector<ProteinIdentification>& proteins = cmap.getProteinIdentifications();
     // collect valid protein accessions for each ID run:
@@ -336,7 +336,7 @@ namespace OpenMS
     cmap.applyFunctionOnPeptideIDs(check_prots_avail);
   }
 
-  void IDFilter::updateProteinReferences(ConsensusMap& cmap, const ProteinIdentification& ref_run, bool remove_peptides_without_reference)
+  void IDFilter::removeDanglingProteinReferences(ConsensusMap& cmap, const ProteinIdentification& ref_run, bool remove_peptides_without_reference)
   {
     // collect valid protein accessions for each ID run:
     unordered_set<String> accessions_avail;
@@ -369,7 +369,7 @@ namespace OpenMS
     cmap.applyFunctionOnPeptideIDs(check_prots_avail);
   }
 
-  void IDFilter::updateProteinReferences(PeptideIdentificationList& peptides, const vector<ProteinIdentification>& proteins, bool remove_peptides_without_reference)
+  void IDFilter::removeDanglingProteinReferences(PeptideIdentificationList& peptides, const vector<ProteinIdentification>& proteins, bool remove_peptides_without_reference)
   {
     // collect valid protein accessions for each ID run:
     map<String, unordered_set<String>> run_to_accessions;

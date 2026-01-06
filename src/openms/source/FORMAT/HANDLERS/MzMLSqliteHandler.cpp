@@ -36,7 +36,7 @@ namespace OpenMS::Internal
     /*
      * @brief Helper function to concatenate integers with ","
      *
-     * @param The integers to concatenate
+     * @param[in] The integers to concatenate
      * 
      */
     String integerConcatenateHelper(const std::vector<int> & indices)

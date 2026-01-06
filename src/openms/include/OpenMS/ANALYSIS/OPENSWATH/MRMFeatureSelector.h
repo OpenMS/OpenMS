@@ -16,10 +16,37 @@
 namespace OpenMS
 {
 
-  /** @class MRMFeatureSelector
+  /**
+    @brief A base class for selection of MRM Features through Linear Programming optimization.
 
-    A Base class (it contains a pure virtual function named `optimize()`) for
-    selection of MRM Features through Linear Programming.
+    This class provides the framework for optimal feature selection in MRM/SRM experiments
+    using Linear Programming (LP). The key idea is to select the best peak for each transition
+    while maintaining consistency with neighboring transitions based on retention time relationships.
+
+    Two derived implementations are provided:
+    - @ref MRMFeatureSelectorQMIP - Uses Quadratic Mixed Integer Programming based on relative RT
+    - @ref MRMFeatureSelectorScore - Uses score-weighted linear programming
+
+    @section MRMFeatureSelector_algorithm Algorithm Overview
+
+    1. Features are sorted by retention time
+    2. The RT range is divided into overlapping segments (sliding window)
+    3. For each segment, an LP problem is formulated and solved
+    4. Solutions from segments are merged to produce final selection
+
+    @section MRMFeatureSelector_params Key Parameters
+
+    - `nn_threshold`: Number of nearest neighbors to include in optimization
+    - `segment_window_length`: Size of sliding window
+    - `segment_step_length`: Step size between windows
+    - `variable_type`: INTEGER (exact) or CONTINUOUS (relaxed) LP
+    - `optimal_threshold`: Cutoff for considering a feature as selected (0-1)
+    - `score_weights`: Weights for different scoring functions (LINEAR, LOG, INVERSE, etc.)
+
+    @see MRMBatchFeatureSelector for iterative batch processing
+    @see LPWrapper for the underlying LP solver interface
+
+    @ingroup TargetedQuantitation
   */
   class OPENMS_DLLAPI MRMFeatureSelector
   {

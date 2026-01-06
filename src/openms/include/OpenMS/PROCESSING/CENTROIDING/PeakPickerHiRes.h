@@ -75,18 +75,18 @@ public:
       @brief Applies the peak-picking algorithm to a single spectrum
       (MSSpectrum). The resulting picked peaks are written to the output
       spectrum.
-     
-      @param input  input spectrum in profile mode
-      @param output  output spectrum with picked peaks
+
+      @param[in] input  input spectrum in profile mode
+      @param[out] output  output spectrum with picked peaks
      */
     void pick(const MSSpectrum& input, MSSpectrum& output) const;
 
      /**
       @brief Applies the peak-picking algorithm to a single chromatogram
       (MSChromatogram). The resulting picked peaks are written to the output chromatogram.
-     
-      @param input  input chromatogram in profile mode
-      @param output  output chromatogram with picked peaks
+
+      @param[in] input  input chromatogram in profile mode
+      @param[out] output  output chromatogram with picked peaks
      */
     void pick(const MSChromatogram& input, MSChromatogram& output) const;
 
@@ -99,33 +99,33 @@ public:
       @brief Applies the peak-picking algorithm to a single spectrum
       (MSSpectrum). The resulting picked peaks are written to the output
       spectrum. Peak boundaries are written to a separate structure.
-     
-      @param input  input spectrum in profile mode
-      @param output  output spectrum with picked peaks
-      @param boundaries  boundaries of the picked peaks
-      @param check_spacings  check spacing constraints? (yes for spectra, no for chromatograms)
+
+      @param[in] input  input spectrum in profile mode
+      @param[out] output  output spectrum with picked peaks
+      @param[out] boundaries  boundaries of the picked peaks
+      @param[in] check_spacings  check spacing constraints? (yes for spectra, no for chromatograms)
      */
     void pick(const MSSpectrum& input, MSSpectrum& output, std::vector<PeakBoundary>& boundaries, bool check_spacings = true) const;
 
     /**
       @brief Applies the peak-picking algorithm to a single chromatogram
       (MSChromatogram). The resulting picked peaks are written to the output chromatogram.
-     
-      @param input  input chromatogram in profile mode
-      @param output  output chromatogram with picked peaks
-      @param boundaries  boundaries of the picked peaks
-      @param check_spacings  check spacing constraints? (yes for spectra, no for chromatograms)
+
+      @param[in] input  input chromatogram in profile mode
+      @param[out] output  output chromatogram with picked peaks
+      @param[out] boundaries  boundaries of the picked peaks
+      @param[in] check_spacings  check spacing constraints? (yes for spectra, no for chromatograms)
      */
     void pick(const MSChromatogram& input, MSChromatogram& output, std::vector<PeakBoundary>& boundaries, bool check_spacings = false) const;
 
     /**
       @brief Applies the peak-picking algorithm to a single mobilogram
       (Mobilogram). The resulting picked peaks are written to the output mobilogram.
-     
-      @param input  input mobilogram in profile mode
-      @param output  output mobilogram with picked peaks
-      @param boundaries  boundaries of the picked peaks
-      @param check_spacings  check spacing constraints? (yes for spectra, no for chromatogram and mobilogram)
+
+      @param[in] input  input mobilogram in profile mode
+      @param[out] output  output mobilogram with picked peaks
+      @param[out] boundaries  boundaries of the picked peaks
+      @param[in] check_spacings  check spacing constraints? (yes for spectra, no for chromatogram and mobilogram)
      */
     void pick(const Mobilogram& input, Mobilogram& output, std::vector<PeakBoundary>& boundaries, bool check_spacings = false) const;
 
@@ -133,10 +133,10 @@ public:
       @brief Applies the peak-picking algorithm to a map (MSExperiment). This
       method picks peaks for each scan in the map consecutively. The resulting
       picked peaks are written to the output map.
-     
-      @param input  input map in profile mode
-      @param output  output map with picked peaks
-      @param check_spectrum_type  if set, checks spectrum type and throws an exception if a centroided spectrum is passed 
+
+      @param[in] input  input map in profile mode
+      @param[out] output  output map with picked peaks
+      @param[in] check_spectrum_type  if set, checks spectrum type and throws an exception if a centroided spectrum is passed
      */
     void pickExperiment(const PeakMap& input, PeakMap& output, const bool check_spectrum_type = true) const;
 
@@ -144,12 +144,12 @@ public:
       @brief Applies the peak-picking algorithm to a map (MSExperiment). This
       method picks peaks for each scan in the map consecutively. The resulting
       picked peaks are written to the output map.
-     
-      @param input  input map in profile mode
-      @param output  output map with picked peaks
-      @param boundaries_spec  boundaries of the picked peaks in spectra
-      @param boundaries_chrom  boundaries of the picked peaks in chromatograms
-      @param check_spectrum_type  if set, checks spectrum type and throws an exception if a centroided spectrum is passed 
+
+      @param[in] input  input map in profile mode
+      @param[out] output  output map with picked peaks
+      @param[out] boundaries_spec  boundaries of the picked peaks in spectra
+      @param[out] boundaries_chrom  boundaries of the picked peaks in chromatograms
+      @param[in] check_spectrum_type  if set, checks spectrum type and throws an exception if a centroided spectrum is passed
      */
     void pickExperiment(const PeakMap& input,
                         PeakMap& output,

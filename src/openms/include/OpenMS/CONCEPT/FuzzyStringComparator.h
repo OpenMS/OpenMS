@@ -190,8 +190,8 @@ public:
       difference.
 
       where
-      @param filename_1 first input file
-      @param filename_2 second input file
+      @param[in] filename_1 first input file
+      @param[in] filename_2 second input file
       @return true in case of no differences found
 
       @sa ratio_max_allowed_

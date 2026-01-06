@@ -8,6 +8,8 @@
 
 #include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/Qvalue.h>
+#include <OpenMS/DATASTRUCTURES/MatrixEigen.h>
+#include <Eigen/QR>
 
 namespace OpenMS
 {
@@ -105,12 +107,12 @@ namespace OpenMS
         left.setValue(r, 0, score_dist_noise_decoy.getValue(r, 0));
       }
 
-      auto calculated_vec = left.completeOrthogonalDecomposition().pseudoInverse() * score_dist_target;
+      auto calculated_vec = eigenView(left).completeOrthogonalDecomposition().pseudoInverse() * eigenView(score_dist_target);
       noise_weight = calculated_vec.row(0)[0];
 
       if (calculated_vec.row(1)[0] < 0)
       {
-        auto calculated_vec_non_negative = score_dist_noise_decoy.completeOrthogonalDecomposition().pseudoInverse() * score_dist_target;
+        auto calculated_vec_non_negative = eigenView(score_dist_noise_decoy).completeOrthogonalDecomposition().pseudoInverse() * eigenView(score_dist_target);
         noise_weight = calculated_vec_non_negative.row(0)[0];
       }
 

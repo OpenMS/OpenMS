@@ -510,7 +510,7 @@ namespace OpenMS
         fragment_window_->resizeRowsToContents();
         fragment_window_->show();
         fragment_window_->setFocus(Qt::ActiveWindowFocusReason);
-        QApplication::setActiveWindow(fragment_window_);
+        fragment_window_->activateWindow();
       }
     } // PeakAnnotation cell clicked
 

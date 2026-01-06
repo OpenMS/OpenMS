@@ -8,6 +8,8 @@
 
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/CONCEPT/HashUtils.h>
+#include <OpenMS/DATASTRUCTURES/DataValue.h>
 #include <algorithm>
 #include <ostream>
 #include <tuple>

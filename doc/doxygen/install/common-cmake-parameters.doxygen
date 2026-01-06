@@ -96,6 +96,21 @@ The most important CMake variables are:
     <td>Create Python bindings, see also <code>pyOpenMS</code> (Default: Off)</td>
   </tr>
   <tr>
+    <th valign="top">USE_EXTERNAL_SQLITECPP=Off/On</td>
+    <td>Use external SQLiteCpp library from system instead of vendored version. 
+    Recommended for Linux distributions to avoid file conflicts. (Default: Off, On for Ubuntu in CI)</td>
+  </tr>
+  <tr>
+    <th valign="top">USE_EXTERNAL_JSON=Off/On</td>
+    <td>Use external nlohmann-json library from system instead of vendored version. 
+    Required on Ubuntu due to Apache Arrow bundling. (Default: Off, On for Ubuntu in CI)</td>
+  </tr>
+  <tr>
+    <th valign="top">USE_EXTERNAL_SIMDE=Off/On</td>
+    <td>Use external SIMDe library from system instead of vendored version. 
+    Recommended for Linux distributions. (Default: Off, On for Ubuntu in CI)</td>
+  </tr>
+  <tr>
     <th valign="top">CMAKE_INSTALL_PREFIX</td>
     <td>the path where the bin/ and lib/ directories should be installed to
         (when <pre>sudo make install</pre> is wished for a system-wide

@@ -534,6 +534,12 @@ private:
       storeTransformationDescriptions_(transformations, trafo_files);
     }
 
+    // Transform optional spectra files
+    StringList in_spectra_files = getStringList_("in_spectra_files");
+    StringList out_spectra_files = getStringList_("out_spectra_files");
+    bool store_original_rt = getFlag_("store_original_rt");
+    transformSpectraFiles_(in_spectra_files, out_spectra_files, transformations, store_original_rt);
+
     return EXECUTION_OK;
   }
 

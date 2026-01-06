@@ -321,7 +321,7 @@ public:
 
     /**
       @brief Sort the spectrum, but uses the fact, that certain chunks are presorted
-      @param chunks a Chunk is an object that contains the start and end of a sublist of peaks in the spectrum, that is or isn't sorted yet (is_sorted member)
+      @param[in] chunks a Chunk is an object that contains the start and end of a sublist of peaks in the spectrum, that is or isn't sorted yet (is_sorted member)
     */
     void sortByPositionPresorted(const std::vector<Chunk>& chunks);
 
@@ -373,7 +373,7 @@ public:
     /**
       @brief Binary search for the peak nearest to a specific m/z
 
-      @param mz The searched for mass-to-charge ratio searched
+      @param[in] mz The searched for mass-to-charge ratio searched
       @return Returns the index of the peak.
 
       @note Make sure the spectrum is sorted with respect to m/z! Otherwise the result is undefined.
@@ -385,8 +385,8 @@ public:
     /**
       @brief Binary search for the peak nearest to a specific m/z given a +/- tolerance windows in Th
 
-      @param mz The searched for mass-to-charge ratio searched
-      @param tolerance The non-negative tolerance applied to both sides of mz
+      @param[in] mz The searched for mass-to-charge ratio searched
+      @param[in] tolerance The non-negative tolerance applied to both sides of mz
 
       @return Returns the index of the peak or -1 if no peak present in tolerance window or if spectrum is empty
 
@@ -398,9 +398,9 @@ public:
     /**
       @brief Search for the peak nearest to a specific m/z given two +/- tolerance windows in Th
 
-      @param mz The searched for mass-to-charge ratio searched
-      @param tolerance_left The non-negative tolerance applied left of mz
-      @param tolerance_right The non-negative tolerance applied right of mz
+      @param[in] mz The searched for mass-to-charge ratio searched
+      @param[in] tolerance_left The non-negative tolerance applied left of mz
+      @param[in] tolerance_right The non-negative tolerance applied right of mz
 
       @return Returns the index of the peak or -1 if no peak present in tolerance window or if spectrum is empty
 
@@ -413,9 +413,9 @@ public:
     /**
       @brief Search for the peak with highest intensity among the peaks near to a specific m/z given two +/- tolerance windows in Th
 
-      @param mz The searched for mass-to-charge ratio searched
-      @param tolerance_left The non-negative tolerance applied left of mz
-      @param tolerance_right The non-negative tolerance applied right of mz
+      @param[in] mz The searched for mass-to-charge ratio searched
+      @param[in] tolerance_left The non-negative tolerance applied left of mz
+      @param[in] tolerance_right The non-negative tolerance applied right of mz
       @return Returns the index of the peak or -1 if no peak present in tolerance window or if spectrum is empty
 
       @note Make sure the spectrum is sorted with respect to m/z! Otherwise the result is undefined.
@@ -585,14 +585,14 @@ public:
       also all meta data (such as RT, drift time, ms level etc) will be
       deleted.
 
-      @param clear_meta_data If @em true, all meta data is cleared in addition to the data.
+      @param[in] clear_meta_data If @em true, all meta data is cleared in addition to the data.
     */
     void clear(bool clear_meta_data);
 
     /*
       @brief Select a (subset of) spectrum and its data_arrays, only retaining the indices given in @p indices
 
-      @param indices Vector of indices to keep
+      @param[in] indices Vector of indices to keep
       @return Reference to this MSSpectrum
 
     */

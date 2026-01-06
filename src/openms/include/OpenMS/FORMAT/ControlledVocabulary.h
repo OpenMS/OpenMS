@@ -116,6 +116,9 @@ public:
     /**
         @brief Loads the CV from an OBO file
 
+        @param[in] name The CV name
+        @param[in] filename The OBO file path
+
         @exception Exception::FileNotFound is thrown if the file could not be opened
         @exception Exception::ParseError is thrown if an error occurs during parsing
     */
@@ -150,15 +153,18 @@ public:
 
         If parent has child this method writes them recursively into the term object
 
+        @param[out] terms Output set of child term IDs
+        @param[in] parent_id The parent term ID
+
         @exception Exception::InvalidValue is thrown if the term is not present
     */
     void getAllChildTerms(std::set<String>& terms, const String& parent_id) const;
 
     /**
         @brief Iterates over all children (incl. subchildren etc) of parent recursively, i.e. the whole subtree.
-        
-        @param parent_id Id of parent (to be passed to getTerm(), to obtain its children).
-        @param lbd Function that gets the child-Ids passed. Must return bool.
+
+        @param[in] parent_id Id of parent (to be passed to getTerm(), to obtain its children).
+        @param[in] lbd Function that gets the child-Ids passed. Must return bool.
                  Used for comparisons and / or to set captured variables.
                  If the lambda returns true, the iteration is exited prematurely.
                  E.g. if you have found your search, you don't need to continue searching.
@@ -179,12 +185,17 @@ public:
     /**
         @brief Searches the existing terms for the given @p name
 
+        @param[in] name The term name to search for
+
         @return const Pointer to found term. When term is not found, returns nullptr
     */
     const ControlledVocabulary::CVTerm* checkAndGetTermByName(const OpenMS::String& name) const;
 
     /**
         @brief Returns if @p child is a child of @p parent
+
+        @param[in] child_id The child term ID
+        @param[in] parent_id The parent term ID
 
         @exception Exception::InvalidValue is thrown if one of the terms is not present
     */

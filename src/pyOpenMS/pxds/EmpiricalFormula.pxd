@@ -6,6 +6,8 @@ from IsotopeDistribution cimport *
 cdef extern from "<OpenMS/CHEMISTRY/EmpiricalFormula.h>" namespace "OpenMS":
 
     cdef cppclass EmpiricalFormula:
+        # wrap-hash:
+        #  std
 
         EmpiricalFormula() except + nogil  # wrap-doc:Representation of an empirical formula
         EmpiricalFormula(EmpiricalFormula &) except + nogil 

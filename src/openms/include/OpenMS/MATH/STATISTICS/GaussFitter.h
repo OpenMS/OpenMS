@@ -88,7 +88,7 @@ public:
       /**
           @brief Fits a Gaussian distribution to the given data points
 
-          @param points the data points used for the Gaussian fitting
+          @param[in,out] points the data points used for the Gaussian fitting
 
           @exception Exception::UnableToFit is thrown if fitting cannot be performed
       */

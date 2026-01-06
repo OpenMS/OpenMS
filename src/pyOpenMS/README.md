@@ -61,6 +61,24 @@ Build instructions
    ```
 
    "-R" to restrict to pyopenms* tests. If running out of the OpenMS build tree, this should not be necessary.
+   
+   **Alternative: Running tests directly with pytest**
+   
+   For development and debugging, you can run tests directly with pytest:
+   
+   ```bash
+   cd <build-dir>/pyOpenMS
+   python -m pytest tests/unittests
+   python -m pytest tests/integration_tests
+   ```
+   
+   Tests automatically locate test data files using the `conftest.py` configuration. If test data
+   is in a non-standard location, set the `OPENMS_TEST_DATA_PATH` environment variable:
+   
+   ```bash
+   export OPENMS_TEST_DATA_PATH=/path/to/OpenMS/src/tests/topp
+   python -m pytest tests/
+   ```
 
 6. Install locally (and in-place for live edits [option -e]) into current Python with
 
@@ -86,26 +104,34 @@ Use **lowercase snake_case** for all Python-facing names to follow PEP 8:
 **Note**: C++ OpenMS uses camelCase (e.g., `getPrecursorMZ()`), but Python convenience methods
 and DataFrame columns should use snake_case for Pythonic consistency.
 
-### DataFrame Export Pattern (get_data_dict → get_df)
+### DataFrame Export Pattern (get_data_dict + get_df)
 
-To add DataFrame export to a class while keeping pandas as an **optional dependency**:
+To add DataFrame export to a class, implement both methods directly in the Cython addon file:
 
-1. **Cython addon** (`addons/<Class>.pyx`): Implement `get_data_dict(columns=None)` returning a dict of numpy arrays
-2. **Python wrapper** (`pyopenms/_dataframes.py`): Create `_<Class>DF` wrapper that adds `get_df()` calling `get_data_dict()`
+1. **`get_df_columns()`**: Returns list of available column names (for discovery)
+2. **`get_data_dict(columns=None)`**: Returns dict of numpy arrays (works without pandas)
+3. **`get_df(columns=None)`**: Returns pandas DataFrame (imports pandas lazily)
 
-This two-layer pattern ensures:
+This pattern ensures:
 - Users without pandas can still access data via `get_data_dict()`
-- Pandas import only happens when `get_df()` is called
 - Column selection happens at the data extraction level for efficiency
+- All DataFrame logic is in one place (the Cython addon)
 
 **Example addon** (`addons/MyClass.pyx`):
 ```cython
 cimport numpy as np
 import numpy as np
+import pandas as pd
+
+    def get_df_columns(self, columns='default'):
+        """Returns list of column names that get_df() would produce."""
+        cols = ['mz', 'intensity']
+        if columns == 'all':
+            cols.append('extra_data')
+        return cols
 
     def get_data_dict(self, columns=None):
         """Returns dict of numpy arrays for DataFrame conversion."""
-        # Determine which columns to include
         if columns is not None:
             requested = set(columns)
         else:
@@ -120,17 +146,15 @@ import numpy as np
         if want('intensity'):
             data['intensity'] = self.get_intensity_array()
         return data
-```
 
-**Example wrapper** (`pyopenms/_dataframes.py`):
-```python
-class _MyClassDF(_MyClass):
     def get_df(self, columns=None):
         """Returns pandas DataFrame."""
-        return _pd.DataFrame(self.get_data_dict(columns=columns))
-
-MyClass = _MyClassDF
+        return pd.DataFrame(self.get_data_dict(columns=columns))
 ```
+
+**Standalone utility functions** are kept in `pyopenms/_dataframes.py`:
+- `peptide_identifications_to_df()`: Convert PeptideIdentification list to DataFrame
+- `update_scores_from_df()`: Update scores in PeptideIdentifications from DataFrame
 
 ### Adding Pythonic Methods
 
@@ -150,3 +174,42 @@ After modifying addon `.pyx` files, force regeneration:
 rm OpenMS-build/pyOpenMS/.cpp_extension_generated
 cmake --build OpenMS-build --target pyopenms -j4
 ```
+
+### Writing Tests
+
+Tests are located in `src/pyOpenMS/tests/`:
+- `unittests/` - Unit tests for individual components
+- `integration_tests/` - Integration tests requiring test data files
+- `memoryleaktests/` - Memory leak detection tests
+
+**Accessing test data files:**
+
+Tests automatically find test data through the `openms_test_data_dir` pytest fixture defined in `conftest.py`:
+
+```python
+import pytest
+import os
+
+class TestMyFeature(unittest.TestCase):
+    
+    @pytest.fixture(autouse=True)
+    def setup_test_data(self, openms_test_data_dir):
+        """Setup test with test data directory."""
+        self.test_file = os.path.join(openms_test_data_dir, "my_test_file.mzML")
+    
+    def test_something(self):
+        # Use self.test_file here
+        pass
+```
+
+The fixture automatically locates test data using multiple strategies:
+1. `OPENMS_TEST_DATA_PATH` environment variable (for custom locations)
+2. Relative path from source tree (works in development)
+3. CMake-configured env.py (backwards compatibility)
+
+To override test data location:
+```bash
+export OPENMS_TEST_DATA_PATH=/path/to/OpenMS/src/tests/topp
+python -m pytest tests/
+```
+

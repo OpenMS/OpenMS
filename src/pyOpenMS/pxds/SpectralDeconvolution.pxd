@@ -57,17 +57,20 @@ cdef extern from "<OpenMS/ANALYSIS/TOPDOWN/SpectralDeconvolution.h>" namespace "
         void setTargetDecoyType(TargetDecoyType target_decoy_type, DeconvolvedSpectrum & target_dspec) except + nogil
         # wrap-doc:Set target decoy type for the SpectralDeconvolution run
 
+        @staticmethod
+        int getNominalMass(double mass) except + nogil
+        # wrap-doc:Convert double mass to nominal mass (integer)
+
+        @staticmethod
+        float getCosine(libcpp_vector[float] & a, int a_start, int a_end, IsotopeDistribution & b, int offset, int min_iso_len) except + nogil
+        # wrap-doc:Calculate cosine between two vectors with optimization parameters
+
+        @staticmethod
+        float getIsotopeCosineAndIsoOffset(double mono_mass, libcpp_vector[float] & per_isotope_intensities, int & offset, PrecalAveragine & avg, int iso_int_shift, int window_width, libcpp_vector[double] & excluded_masses) except + nogil
+        # wrap-doc:Examine intensity distribution over isotope indices and determine most plausible isotope index
+
 
 cdef extern from "<OpenMS/ANALYSIS/TOPDOWN/SpectralDeconvolution.h>" namespace "OpenMS::SpectralDeconvolution":
 
-    int getNominalMass(double mass) except + nogil  # wrap-attach:SpectralDeconvolution
-    # wrap-doc:Convert double mass to nominal mass (integer)
-
-    float getCosine(libcpp_vector[float] & a, int a_start, int a_end, IsotopeDistribution & b, int offset, int min_iso_len) except + nogil  # wrap-attach:SpectralDeconvolution
-    # wrap-doc:Calculate cosine between two vectors with optimization parameters
-
-    float getIsotopeCosineAndIsoOffset(double mono_mass, libcpp_vector[float] & per_isotope_intensities, int & offset, PrecalAveragine & avg, int iso_int_shift, int window_width, libcpp_vector[double] & excluded_masses) except + nogil  # wrap-attach:SpectralDeconvolution
-    # wrap-doc:Examine intensity distribution over isotope indices and determine most plausible isotope index
-
-    int min_iso_size  # wrap-attach:SpectralDeconvolution
+    int min_iso_size
     # wrap-doc:Minimum isotopologue count in a peak group (=2)

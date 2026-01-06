@@ -12,8 +12,10 @@
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/CONCEPT/HashUtils.h>
 #include <OpenMS/FEATUREFINDER/MassTraceDetection.h>
 #include <boost/dynamic_bitset.hpp>
+#include <functional>
 
 namespace OpenMS
 {
@@ -70,12 +72,12 @@ namespace OpenMS
 
       /**
        @brief constructor with parameters such as mass ranges and bin size.
-       @param min_mass the averagine distributions will be calculated from this min_mass
-       @param max_mass to the max_mass
-       @param delta with the bin size delta
-       @param generator this generates (calculates) the distributions
-       @param use_RNA_averagine if set, nucleotide-based isotope patters are calculated
-       @param decoy_iso_distance if set to a positive value, nonsensical isotope patterns are generated - the distance between isotope = decoy_iso_distance * normal distance.
+       @param[in] min_mass the averagine distributions will be calculated from this min_mass
+       @param[in] max_mass to the max_mass
+       @param[in] delta with the bin size delta
+       @param[in] generator this generates (calculates) the distributions
+       @param[in] use_RNA_averagine if set, nucleotide-based isotope patters are calculated
+       @param[in] decoy_iso_distance if set to a positive value, nonsensical isotope patterns are generated - the distance between isotope = decoy_iso_distance * normal distance.
     */
       PrecalculatedAveragine(double min_mass, double max_mass, double delta, CoarseIsotopePatternGenerator& generator, bool use_RNA_averagine, double decoy_iso_distance = -1);
 
@@ -206,8 +208,8 @@ namespace OpenMS
 
       /**
         @brief constructor from Peak1D.
-        @param peak the original spectral peak
-        @param positive determines the charge carrier mass. Can be obtained by getChargeMass(true) for positive mode (Constants::PROTON_MASS_U) and
+        @param[in] peak the original spectral peak
+        @param[in] positive determines the charge carrier mass. Can be obtained by getChargeMass(true) for positive mode (Constants::PROTON_MASS_U) and
         getChargeMass(false) for negative mode
         (-Constants::PROTON_MASS_U)
       */
@@ -231,15 +233,42 @@ namespace OpenMS
 
     /**
        @brief calculate log mzs from mzs
-       @param mz mz
-       @param positive determines the charge carrier mass
+       @param[in] mz mz
+       @param[in] positive determines the charge carrier mass
      */
     static double getLogMz(double mz, bool positive);
 
     /**
        @brief get charge carrier mass : positive mode mass of (Constants\::PROTON_MASS_U) and negative mode mass of (-Constants\::PROTON_MASS_U)
-       @param positive_ioniziation_mode Determines the charge carrier mass (true = positive or false = negative)
+       @param[in] positive_ioniziation_mode Determines the charge carrier mass (true = positive or false = negative)
     */
     static float getChargeMass(bool positive_ioniziation_mode);
   };
 } // namespace OpenMS
+
+namespace std
+{
+  /// @brief Hash specialization for FLASHHelperClasses::MassFeature
+  template<>
+  struct hash<OpenMS::FLASHHelperClasses::MassFeature>
+  {
+    std::size_t operator()(const OpenMS::FLASHHelperClasses::MassFeature& mf) const noexcept
+    {
+      // Hash based on avg_mass (the field used in operator==)
+      return OpenMS::hash_float(mf.avg_mass);
+    }
+  };
+
+  /// @brief Hash specialization for FLASHHelperClasses::LogMzPeak
+  template<>
+  struct hash<OpenMS::FLASHHelperClasses::LogMzPeak>
+  {
+    std::size_t operator()(const OpenMS::FLASHHelperClasses::LogMzPeak& peak) const noexcept
+    {
+      // Hash based on logMz and intensity (the fields used in operator==)
+      std::size_t seed = OpenMS::hash_float(peak.logMz);
+      OpenMS::hash_combine(seed, OpenMS::hash_float(peak.intensity));
+      return seed;
+    }
+  };
+} // namespace std

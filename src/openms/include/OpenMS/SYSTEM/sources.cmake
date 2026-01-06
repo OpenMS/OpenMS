@@ -3,7 +3,6 @@ set(directory include/OpenMS/SYSTEM)
 
 ### list all MOC filenames of the directory here
 set(sources_list
-FileWatcher.h
 NetworkGetRequest.h
 )
 
@@ -22,7 +21,6 @@ set(sources_list_h
 BuildInfo.h
 ExternalProcess.h
 File.h
-FileWatcher.h
 JavaInfo.h
 NetworkGetRequest.h
 PythonInfo.h

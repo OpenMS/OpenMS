@@ -1181,7 +1181,14 @@ namespace OpenMS::Internal
       {
         if (accession == "PSI:1000040")       //m/z
         {
-          spec_.getPrecursors().back().setMZ(asDouble_(value));
+          double mz = asDouble_(value);
+          spec_.getPrecursors().back().setMZ(mz);
+          // Check if precursor m/z is within specified range
+          if (options_.hasPrecursorMZRange() &&
+              !options_.getPrecursorMZRange().encloses(DPosition<1>(mz)))
+          {
+            skip_spectrum_ = true;
+          }
         }
         else if (accession == "PSI:1000041")       //Charge
         {

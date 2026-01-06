@@ -85,6 +85,20 @@ ProteomicsLFQ has different methods to extract features: ID-based (targeted only
   2. The second method adds untargeted feature detection to obtain quantities from unidentified features.
      Transfer of Ids (match between runs) is performed by transfering feature identifications to coeluting, unidentified features with similar mass and RT in other runs.
 
+@b FAIMS (Field Asymmetric Ion Mobility Spectrometry): @n
+FAIMS data is automatically detected based on compensation voltage (CV) annotations in the mzML file.
+The data is split by CV and processed separately for each voltage group during feature detection.
+Features representing the same analyte detected at different CV values are merged automatically.
+The merged features are then aligned and linked across runs based on RT and m/z.
+No special preparation of the input mzML file is required.
+
+Normalization: @n
+  - For feature-intensity-based quantification with multiple runs, ProteomicsLFQ automatically applies median normalization
+    to the consensus features (using simple median scaling).
+  - Normalization is DISABLED when MSstats output (-out_msstats) or Triqler output (-out_triqler) is requested,
+    as these tools perform their own normalization.
+  - Normalization is also DISABLED for spectral counting quantification.
+
 Output:
   - mzTab file with analysis results
   - MSstats file with analysis results for statistical downstream analysis in MSstats
@@ -862,6 +876,10 @@ protected:
         if (e != EXECUTION_OK) return e;
       }
 
+      // Annotate peptide IDs with FAIMS CV from spectrum data (required for proper per-CV filtering in FFI)
+      // Safe to call on non-FAIMS data - returns false and does nothing if no FAIMS data present
+      SpectrumMetaDataLookup::addMissingFAIMSToPeptideIDs(peptide_ids, ms_centroided);
+
       StringList id_msfile_ref;
       protein_ids[0].getPrimaryMSRunPath(id_msfile_ref);
       id_MS_run_ref.push_back(id_msfile_ref[0]);
@@ -911,8 +929,6 @@ protected:
 
       Param ffi_param = getParam_().copy("PeptideQuantification:", true);
       ffi_param.setValue("detect:peak_width", 5.0 * median_fwhm);
-      ffi_param.setValue("EMGScoring:init_mom", "true");   // overwrite default settings
-      ffi_param.setValue("EMGScoring:max_iteration", 100); // overwrite default settings
       ffi_param.setValue("debug", debug_level_); // pass down debug level
 
       double feature_with_id_min_score = getDoubleOption_("feature_with_id_min_score");
@@ -1199,8 +1215,14 @@ protected:
     IDConflictResolverAlgorithm::resolve(consensus_fraction, true);
 
     //-------------------------------------------------------------
-    // ConsensusMap normalization (basic)
+    // ConsensusMap normalization (basic median scaling)
     //-------------------------------------------------------------
+    // Note: This normalization is applied automatically for feature-intensity-based quantification
+    // when multiple runs are provided. It uses simple median scaling to make sample medians equal.
+    // Normalization is DISABLED when MSstats or Triqler output is requested, as these tools
+    // perform their own normalization.
+    // This is independent of the -ProteinQuantification:consensus:normalize parameter, which
+    // controls an additional normalization step at the peptide quantification level (default: false).
     if (getStringOption_("out_msstats").empty() 
     && getStringOption_("out_triqler").empty())  // only normalize if no MSstats/Triqler output is generated
     {
@@ -1230,13 +1252,13 @@ protected:
     bool bayesian = getStringOption_("protein_inference") == "bayesian";
     bool greedy_group_resolution = getStringOption_("protein_quantification") == "shared_peptides";
 
+    // Study-wide inference operates on a single merged ID run.
+    ConsensusMapMergerAlgorithm cmerge;
+    // The following will result in a SINGLE protein run for the whole consensusMap.
+    cmerge.mergeAllIDRuns(consensus);
+
     if (!bayesian) // simple aggregation
     {
-      ConsensusMapMergerAlgorithm cmerge;
-      // The following will result in a SINGLE protein run for the whole consensusMap,
-      // but I think the information about which protein was in which run, is not important
-      cmerge.mergeAllIDRuns(consensus);
-
       BasicProteinInferenceAlgorithm bpia;
       auto bpiaparams = bpia.getParameters();
       bpiaparams.setValue("annotate_indistinguishable_groups", groups ? "true" : "false");
@@ -1254,6 +1276,7 @@ protected:
       // In theory, if none is needed we can save memory. For quantification,
       // we basically discard peptide+PSM information from inference and use the info from the cMaps.
       bayesparams.setValue("keep_best_PSM_only", "false");
+      bayes.setParameters(bayesparams);
       //bayesian inference automatically annotates groups, therefore remove them later
       bayes.inferPosteriorProbabilities(consensus, greedy_group_resolution);
       if (!groups)
@@ -1312,7 +1335,7 @@ protected:
 
     if (!getFlag_("PeptideQuantification:quantify_decoys"))
     { // FDR filtering removed all decoy proteins -> update references and remove all unreferenced (decoy) PSMs
-      IDFilter::updateProteinReferences(consensus, true);
+      IDFilter::removeDanglingProteinReferences(consensus, true);
       IDFilter::removeUnreferencedProteins(consensus, true); // if we don't filter peptides for now, we don't need this
       IDFilter::updateProteinGroups(overall_proteins.getIndistinguishableProteins(),
                                     overall_proteins.getHits());
@@ -1337,7 +1360,7 @@ protected:
 
     if (max_fdr < 1. || !getFlag_("PeptideQuantification:quantify_decoys"))
     {
-      IDFilter::updateProteinReferences(consensus, true);
+      IDFilter::removeDanglingProteinReferences(consensus, true);
     }
 
     if (max_psm_fdr < 1.)

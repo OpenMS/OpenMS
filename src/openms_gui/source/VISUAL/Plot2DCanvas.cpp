@@ -14,7 +14,7 @@
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/MATH/MathFunctions.h>
-#include <OpenMS/SYSTEM/FileWatcher.h>
+#include <OpenMS/VISUAL/FileWatcher.h>
 #include <OpenMS/VISUAL/ColorSelector.h>
 #include <OpenMS/VISUAL/DIALOGS/FeatureEditDialog.h>
 #include <OpenMS/VISUAL/DIALOGS/Plot2DPrefDialog.h>

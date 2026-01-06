@@ -61,17 +61,17 @@ public:
     /**
      * @brief Extract chromatograms at the m/z and RT defined by the ExtractionCoordinates.
      *
-     * @param input Input spectral map
-     * @param output Output chromatograms (XICs)
-     * @param extraction_coordinates Extracts around these coordinates (from
+     * @param[in] input Input spectral map
+     * @param[out] output Output chromatograms (XICs)
+     * @param[in] extraction_coordinates Extracts around these coordinates (from
      *   rt_start to rt_end in seconds - extracts the whole chromatogram if
      *   rt_end - rt_start < 0).
-     * @param mz_extraction_window Extracts a window of this size in m/z
+     * @param[in] mz_extraction_window Extracts a window of this size in m/z
      * dimension in Th or ppm (e.g. a window of 50 ppm means an extraction of
      * 25 ppm on either side)
-     * @param ppm Whether mz_extraction_window is in ppm or in Th
-     * @param im_extraction_window Full window width (i.e. twice the tolerance) for IM extraction. Must be positive.
-     * @param filter Which function to apply in m/z space (currently "tophat" only)
+     * @param[in] ppm Whether mz_extraction_window is in ppm or in Th
+     * @param[in] im_extraction_window Full window width (i.e. twice the tolerance) for IM extraction. Must be positive.
+     * @param[in] filter Which function to apply in m/z space (currently "tophat" only)
      *
     */
     void extractChromatograms(const OpenSwath::SpectrumAccessPtr& input,
@@ -89,16 +89,16 @@ public:
      * mass-to-charge. It will extract around mz +/- mz_extract_window / 2.0
      * and add the result to integrated_intensity.
      *
-     * @param mz_start Start of the spectrum (m/z coordinates)
-     * @param mz_it Current m/z position (will be modified)
-     * @param mz_end End of the spectrum (m/z coordinates)
-     * @param int_it Current intensity position (will be modified)
-     * @param mz Target m/z for the current ion
-     * @param integrated_intensity Resulting intensity (will be overwritten)
-     * @param mz_extraction_window Extracts a window of this size in m/z
+     * @param[out] mz_start Start of the spectrum (m/z coordinates)
+     * @param[in,out] mz_it Current m/z position (will be modified)
+     * @param[in] mz_end End of the spectrum (m/z coordinates)
+     * @param[in,out] int_it Current intensity position (will be modified)
+     * @param[out] mz Target m/z for the current ion
+     * @param[out] integrated_intensity Resulting intensity (will be overwritten)
+     * @param[in] mz_extraction_window Extracts a window of this size in m/z
      * dimension (e.g. a window of 50 ppm means an extraction of 25 ppm on
      * either side)
-     * @param ppm Whether the parameter mz_extraction_window is given in ppm or Th
+     * @param[in] ppm Whether the parameter mz_extraction_window is given in ppm or Th
      *
      * @note This function will change the position of the iterators mz_it and
      * int_it and it can *not* extract any data if the mz-iterator is already
@@ -123,19 +123,19 @@ public:
      * mz_extract_window / 2.0 and im +/- im_extraction_window / 2.0 and add
      * the result to integrated_intensity.
      *
-     * @param mz_start Start of the spectrum (m/z coordinates)
-     * @param mz_it Current m/z position (will be modified)
-     * @param mz_end End of the spectrum (m/z coordinates)
-     * @param int_it Current intensity position (will be modified)
-     * @param im_it Current ion mobility position (will be modified)
-     * @param mz Target m/z for the current ion
-     * @param im Target ion mobility for the current ion
-     * @param integrated_intensity Resulting intensity (will be overwritten)
-     * @param mz_extraction_window Extracts a window of this size in m/z
+     * @param[in] mz_start Start of the spectrum (m/z coordinates)
+     * @param[in,out] mz_it Current m/z position (will be modified)
+     * @param[in] mz_end End of the spectrum (m/z coordinates)
+     * @param[in,out] int_it Current intensity position (will be modified)
+     * @param[out] im_it Current ion mobility position (will be modified)
+     * @param[out] mz Target m/z for the current ion
+     * @param[out] im Target ion mobility for the current ion
+     * @param[out] integrated_intensity Resulting intensity (will be overwritten)
+     * @param[in] mz_extraction_window Extracts a window of this size in m/z
      * dimension (e.g. a window of 50 ppm means an extraction of 25 ppm on
      * either side)
-     * @param im_extraction_window Extracts a window of this size in ion mobility dimension.
-     * @param ppm Whether the parameter mz_extraction_window is given in ppm or Th
+     * @param[in] im_extraction_window Extracts a window of this size in ion mobility dimension.
+     * @param[in] ppm Whether the parameter mz_extraction_window is given in ppm or Th
      *
      * @note This function will change the position of the iterators mz_it,
      * int_it and im_it and it can *not* extract any data if the mz-iterator is

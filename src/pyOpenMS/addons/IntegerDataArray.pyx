@@ -3,6 +3,11 @@
 
 
     def __getitem__(self,  in_0 ):
+        """
+        __getitem__(self: IntegerDataArray, in_0: int) -> int
+        
+        Get element at index in_0.
+        """
         assert isinstance(in_0, int), 'arg in_0 wrong type'
         assert in_0 >= 0, 'arg in_0 cannot be negative'
 
@@ -15,6 +20,11 @@
         return py_result
 
     def __setitem__(self, key, value):
+        """
+        __setitem__(self: IntegerDataArray, key: int, value: int) -> None
+        
+        Set element at index key to value.
+        """
         assert isinstance(key, int), 'arg key wrong type'
         assert isinstance(value, int), 'arg value wrong type'
         assert key >= 0, 'arg key cannot be negative'
@@ -28,6 +38,8 @@
 
     def get_data(self):
         """
+        get_data(self: IntegerDataArray) -> np.ndarray
+        
         Gets a copy of the data as a numpy array (safe).
 
         This method creates a copy of the underlying data, so it's safe to use
@@ -62,6 +74,8 @@
 
     def get_data_mv(self):
         """
+        get_data_mv(self: IntegerDataArray) -> Optional[np.ndarray]
+        
         Gets the raw data for the integer data array as a memory view (no copy).
 
         This method provides direct access to the underlying data without copying,
@@ -108,6 +122,8 @@
 
     def set_data(self, np.ndarray[int, ndim=1, mode="c"] data not None):
         """
+        set_data(self: IntegerDataArray, data: np.ndarray) -> None
+        
         Sets the raw data for the integer data array
 
         Example usage: 
@@ -128,6 +144,31 @@
             ida_.push_back(data[i])
 
     def __len__(self):
-        """Return the number of elements in the array."""
+        """
+        __len__(self: IntegerDataArray) -> int
+        
+        Return the number of elements in the array.
+        """
         return self.inst.get().size()
 
+    def __repr__(self):
+        """
+        __repr__(self: IntegerDataArray) -> str
+        
+        Return a string representation of the IntegerDataArray object.
+
+        Returns key properties in a readable format:
+        IntegerDataArray(name='charge_state', size=100)
+        """
+        cdef unsigned int n = self.inst.get().size()
+        
+        parts = []
+        
+        # Get name from MetaInfoDescription
+        name = self.getName()
+        if name:
+            parts.append(f"name='{name}'")
+        
+        parts.append(f"size={n}")
+        
+        return f"IntegerDataArray({', '.join(parts)})"

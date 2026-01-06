@@ -297,11 +297,11 @@ private:
 
   /**
    * @brief Apply RT filtering with block-aware modes
-   * @param exp The MSExperiment to filter; will be reloaded with actual data
-   * @param f The filehandler with filtering options
-   * @param rt_l Lower RT bound
-   * @param rt_u Upper RT bound
-   * @param rt_block_mode The RT cutting mode (RTBlockMode enum)
+   * @param[in] exp The MSExperiment to filter; will be reloaded with actual data
+   * @param[in] f The filehandler with filtering options
+   * @param[in] rt_l Lower RT bound
+   * @param[in] rt_u Upper RT bound
+   * @param[in] rt_block_mode The RT cutting mode (RTBlockMode enum)
    */
   void applyRTBlockFiltering(PeakMap& exp, FileHandler& f, double rt_l, double rt_u, RTBlockMode rt_block_mode)
   {
@@ -392,7 +392,7 @@ protected:
     registerStringOption_("out_type", "<type>", "", "Output file type -- default: determined from file extension or content", false);
     setValidStrings_("out_type", formats);
 
-    registerStringOption_("rt", "[min]:[max]", ":", "Retention time range to extract", false);
+    registerStringOption_("rt", "[min]:[max]", ":", "Retention time range to extract [s]", false);
     registerStringOption_("rt_block_mode", "<mode>", RT_BLOCK_MODE_NAMES[(int)RTBlockMode::AS_IS], String("RT filtering mode: '") + RT_BLOCK_MODE_NAMES[(int)RTBlockMode::AS_IS] + "' uses RT range as given in '-rt'; '" + RT_BLOCK_MODE_NAMES[(int)RTBlockMode::FULL_CYCLE_EXTEND] + "' extends RT range to keep complete spectrum blocks intact, '" + RT_BLOCK_MODE_NAMES[(int)RTBlockMode::FULL_CYCLE_SHRINK] + "' only keeps complete blocks within the given RT range", false);
     setValidStrings_("rt_block_mode", StringList(RT_BLOCK_MODE_NAMES.begin(), RT_BLOCK_MODE_NAMES.end()));
     registerStringOption_("mz", "[min]:[max]", ":", "m/z range to extract (applies to ALL ms levels!)", false);

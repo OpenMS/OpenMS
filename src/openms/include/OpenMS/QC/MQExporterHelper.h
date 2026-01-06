@@ -95,8 +95,8 @@ static OpenMS::String extractGeneName(const OpenMS::String& prot_description);
       be used as a protein ID in the MaxQuant output files (in lack of a proper
       proteingroup ID which maps to proteinGroups.txt)
 
-   @param database A map from accession to ID (which can be augmented by this function)
-   @param protein_accession The protein accession which needs translation to an ID
+   @param[in,out] database A map from accession to ID (which can be augmented by this function)
+   @param[in] protein_accession The protein accession which needs translation to an ID
 
    @return The ID for the @p protein_accession
 
@@ -109,7 +109,7 @@ static OpenMS::String extractGeneName(const OpenMS::String& prot_description);
 
     @throw Exception::Precondition if FeatureHandle exists twice in ConsensusMap
 
-    @param cmap ConsensusMap that includes ConsensusFeatures
+    @param[in] cmap ConsensusMap that includes ConsensusFeatures
 
     @return Returns map, the index is a FeatureID, the value is the index of the ConsensusFeature
     in the vector of ConsensusMap
@@ -122,10 +122,10 @@ static OpenMS::String extractGeneName(const OpenMS::String& prot_description);
       If there are no PeptideIdentifications or the best hit of the Feature cannot be found in corresponding ConsensusFeature,
       the functions returns false to show that something went wrong.
 
-    @param f Feature to extract PeptideIdentifications
-    @param c_feature_number Index of corresponding ConsensusFeature in ConsensusMap
-    @param UIDs UIDs of all PeptideIdentifications of the ConsensusMap
-    @param mp_f Mapping between the FeatureMap and ProteinIdentifications for the UID
+    @param[in] f Feature to extract PeptideIdentifications
+    @param[in] c_feature_number Index of corresponding ConsensusFeature in ConsensusMap
+    @param[in] UIDs UIDs of all PeptideIdentifications of the ConsensusMap
+    @param[in] mp_f Mapping between the FeatureMap and ProteinIdentifications for the UID
 
     @return Returns true if the PeptideIdentifications exist and are valid
   */
@@ -141,7 +141,7 @@ static OpenMS::String extractGeneName(const OpenMS::String& prot_description);
     If there are no PeptideIdentifications,
     the functions returns false to show that something went wrong.
 
-    @param cf is used to extract PeptideIdentifications
+    @param[in] cf is used to extract PeptideIdentifications
 
     @return Returns true if the ConsensusFeature has any PepIDs; otherwise false
   */

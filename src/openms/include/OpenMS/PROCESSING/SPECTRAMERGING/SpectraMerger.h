@@ -288,10 +288,10 @@ public:
     /**
      * @brief check if the first and second mzs might be from the same mass
      *
-     * @param mz1 the first m/z value
-     * @param mz2 the second m/z value
-     * @param tol_ppm tolerance in ppm
-     * @param max_c maximum possible charge value
+     * @param[in] mz1 the first m/z value
+     * @param[in] mz2 the second m/z value
+     * @param[in] tol_ppm tolerance in ppm
+     * @param[in] max_c maximum possible charge value
      */
     static bool areMassesMatched(double mz1, double mz2, double tol_ppm, int max_c)
     {
@@ -340,9 +340,9 @@ public:
     /**
      * @brief average over neighbouring spectra
      *
-     * @param exp experimental data to be averaged
-     * @param average_type averaging type to be used ("gaussian" or "tophat")
-     * @param ms_level target MS level. If it is -1, ms_level will be determined by the '&lt;average_type&gt;ms_level' parameter of the DefaultParamHandler
+     * @param[in,out] exp experimental data to be averaged
+     * @param[in] average_type averaging type to be used ("gaussian" or "tophat")
+     * @param[in] ms_level target MS level. If it is -1, ms_level will be determined by the '&lt;average_type&gt;ms_level' parameter of the DefaultParamHandler
      */
     template <typename MapType>
     void average(MapType& exp, const String& average_type, int ms_level = -1)
@@ -774,9 +774,9 @@ protected:
      * original spectra. The exact m/z position is not crucial, since not the
      * original intensities but the spline-interpolated intensities are used.
      *
-     * @param exp   experimental data to be averaged
-     * @param spectra_to_average_over    mapping of spectral index to set of spectra to average over with corresponding weights
-     * @param ms_level    MS level of spectra to be averaged
+     * @param[in,out] exp   experimental data to be averaged
+     * @param[in] spectra_to_average_over    mapping of spectral index to set of spectra to average over with corresponding weights
+     * @param[in] ms_level    MS level of spectra to be averaged
      */
     template <typename MapType>
     void averageProfileSpectra_(MapType& exp, const AverageBlocks& spectra_to_average_over, const UInt ms_level)
@@ -883,9 +883,9 @@ protected:
      * (2) m/z positions closer than mz_binning_width are combined to a single
      *     peak. The m/z are averaged and the corresponding intensities summed.
      *
-     * @param exp   experimental data to be averaged
-     * @param spectra_to_average_over    mapping of spectral index to set of spectra to average over with corresponding weights
-     * @param ms_level    MS level of spectra to be averaged
+     * @param[in,out] exp   experimental data to be averaged
+     * @param[in] spectra_to_average_over    mapping of spectral index to set of spectra to average over with corresponding weights
+     * @param[in] ms_level    MS level of spectra to be averaged
      */
     template <typename MapType>
     void averageCentroidSpectra_(MapType& exp, const AverageBlocks& spectra_to_average_over, const UInt ms_level)

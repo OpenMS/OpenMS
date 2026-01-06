@@ -38,12 +38,12 @@ namespace OpenMS
 
     /**
      * @brief Find mass features and write features in TopFD format files.
-     * @param deconvolved_spectra deconvolved spectra - feature indices are updated only for TopFD and TopPIC outputs
-     * @param mass_features mass features to be written
-     * @param scan_rt_map scan number to retention time map
-     * @param file_name input spectrum file name
-     * @param os output stream
-     * @param ms_level ms level
+     * @param[in,out] deconvolved_spectra deconvolved spectra - feature indices are updated only for TopFD and TopPIC outputs
+     * @param[out] mass_features mass features to be written
+     * @param[in] scan_rt_map scan number to retention time map
+     * @param[in] file_name input spectrum file name
+     * @param[out] os output stream
+     * @param[in] ms_level ms level
      */
 
     static void writeTopFDFeatures(std::vector<DeconvolvedSpectrum>& deconvolved_spectra, const std::vector<FLASHHelperClasses::MassFeature>& mass_features,

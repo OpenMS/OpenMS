@@ -5,22 +5,26 @@ import numpy as np
 
 
     def get_df_columns(self, columns='default', export_meta_values=True):
-        """Returns a list of column names that get_df() would produce for this spectrum.
+        """
+        get_df_columns(self: MSSpectrum, columns: str = 'default', export_meta_values: bool = True) -> List[str]
+        
+        Returns a list of column names that get_df() would produce for this spectrum.
 
         Useful for discovering available columns before export, especially when
         selecting specific columns for performance optimization.
 
-        Args:
-            columns (str): 'default' for standard columns, 'all' for all available
-                          columns including non-default ones (ion_mobility_unit,
-                          custom data arrays).
-            export_meta_values (bool): Whether to include meta value column names.
-                                       Defaults to True.
+        :param columns: 'default' for standard columns, 'all' for all available
+                        columns including non-default ones (ion_mobility_unit,
+                        custom data arrays).
+        :type columns: str
+        :param export_meta_values: Whether to include meta value column names.
+                                   Defaults to True.
+        :type export_meta_values: bool
+        :return: List of column name strings.
+        :rtype: list
 
-        Returns:
-            list: List of column name strings.
+        Example::
 
-        Example:
             >>> # See default columns
             >>> cols = spectrum.get_df_columns()
             ['mz', 'intensity', 'rt', ...]
@@ -81,40 +85,44 @@ import numpy as np
         return cols
 
     def get_data_dict(self, columns=None, export_meta_values=True):
-        """Returns a dictionary of NumPy arrays with m/z, intensities, and metadata.
+        """
+        get_data_dict(self: MSSpectrum, columns: Optional[List[str]] = None, export_meta_values: bool = True) -> Dict[str, np.ndarray]
+        
+        Returns a dictionary of NumPy arrays with m/z, intensities, and metadata.
 
         This method extracts spectrum data including peaks, retention time, MS level,
         ion mobility data (if present), precursor information, and optional meta values
         into a dictionary format suitable for conversion to a pandas DataFrame.
 
-        Args:
-            columns (list or None): List of column names to include. If None, includes
-                                   all default columns. Use get_df_columns('all') to see
-                                   all available columns including custom data arrays.
-            export_meta_values (bool): Whether to include meta values in the output.
-                                       Only applies when columns=None. Defaults to True.
+        :param columns: List of column names to include. If None, includes
+                        all default columns. Use get_df_columns('all') to see
+                        all available columns including custom data arrays.
+        :type columns: Optional[List[str]]
+        :param export_meta_values: Whether to include meta values in the output.
+                                   Only applies when columns=None. Defaults to True.
+        :type export_meta_values: bool
+        :return: Dictionary with requested columns as keys and numpy arrays as values.
+                 Default columns include:
+                 - 'mz': numpy array of m/z values (float64)
+                 - 'intensity': numpy array of intensity values (float32)
+                 - 'rt': numpy array of retention time values (float64)
+                 - 'ms_level': numpy array of MS level values (uint16)
+                 - 'native_id': numpy array of native ID strings
+                 - 'ion_mobility': ion mobility values (if IM data present)
+                 - 'precursor_mz': precursor m/z (if precursor present)
+                 - 'precursor_charge': precursor charge (if precursor present)
+                 - 'ion_annotation': ion annotations (if IonNames StringDataArray present)
+                 - Additional meta value columns (if export_meta_values=True)
 
-        Returns:
-            dict: Dictionary with requested columns as keys and numpy arrays as values.
-                  Default columns include:
-                - 'mz': numpy array of m/z values (float64)
-                - 'intensity': numpy array of intensity values (float32)
-                - 'rt': numpy array of retention time values (float64)
-                - 'ms_level': numpy array of MS level values (uint16)
-                - 'native_id': numpy array of native ID strings
-                - 'ion_mobility': ion mobility values (if IM data present)
-                - 'precursor_mz': precursor m/z (if precursor present)
-                - 'precursor_charge': precursor charge (if precursor present)
-                - 'ion_annotation': ion annotations (if IonNames StringDataArray present)
-                - Additional meta value columns (if export_meta_values=True)
+                 Non-default columns (must be explicitly requested):
+                 - 'ion_mobility_unit': ion mobility unit string
+                 - 'float_array:<name>': custom FloatDataArray values
+                 - 'int_array:<name>': custom IntegerDataArray values
+                 - 'string_array:<name>': custom StringDataArray values
+        :rtype: dict
 
-                Non-default columns (must be explicitly requested):
-                - 'ion_mobility_unit': ion mobility unit string
-                - 'float_array:<name>': custom FloatDataArray values
-                - 'int_array:<name>': custom IntegerDataArray values
-                - 'string_array:<name>': custom StringDataArray values
+        Example::
 
-        Example:
             >>> # Get all columns (default)
             >>> data = spectrum.get_data_dict()
 
@@ -309,10 +317,112 @@ import numpy as np
 
         return data_dict
 
+    def get_df(self, columns=None, export_meta_values=True):
+        """
+        get_df(self: MSSpectrum, columns: Optional[List[str]] = None, export_meta_values: bool = True) -> pd.DataFrame
+
+        Returns a pandas DataFrame representation of the MSSpectrum.
+
+        This method converts the spectrum data (peaks, metadata, precursor info,
+        ion mobility) into a pandas DataFrame format.
+
+        :param columns: List of column names to include. If None,
+                        includes all default columns. Use get_df_columns()
+                        to discover available columns.
+        :type columns: Optional[List[str]]
+
+        :param export_meta_values: Whether to include meta values. Only applies
+                                   when columns=None. Defaults to True.
+        :type export_meta_values: bool
+
+        :return: DataFrame with requested columns. Default columns include:
+                 mz, intensity, rt, ms_level, native_id, ion_mobility (if IM data present),
+                 precursor_mz, precursor_charge (if precursor present),
+                 ion_annotation (if IonNames present), and additional meta value columns
+                 (if export_meta_values=True).
+        :rtype: pd.DataFrame
+
+        :raises ImportError: If pandas is not installed
+
+        Example::
+
+            # Get all default columns
+            df = spectrum.get_df()
+
+            # Discover available columns
+            print(spectrum.get_df_columns())
+
+            # Get only specific columns (faster)
+            df = spectrum.get_df(columns=['mz', 'intensity'])
+
+            # Get all columns including non-defaults like ion_mobility_unit
+            cols = spectrum.get_df_columns()
+            cols.append('ion_mobility_unit')
+            df = spectrum.get_df(columns=cols)
+        """
+        try:
+            import pandas as pd
+        except ImportError:
+            raise ImportError(
+                "pandas is required for get_df(). "
+                "Please install it with: pip install pandas"
+            )
+        data_dict = self.get_data_dict(columns=columns, export_meta_values=export_meta_values)
+        return pd.DataFrame(data_dict)
+
+    def to_arrow(self, columns=None, export_meta_values=True):
+        """
+        to_arrow(self: MSSpectrum, columns: Optional[List[str]] = None, export_meta_values: bool = True) -> pa.Table
+
+        Returns an Apache Arrow Table representation of the MSSpectrum.
+
+        This method converts the spectrum data (peaks, metadata, precursor info,
+        ion mobility) into an Arrow Table format for efficient data interchange.
+
+        :param columns: List of column names to include. If None,
+                        includes all default columns. Use get_df_columns()
+                        to discover available columns.
+        :type columns: Optional[List[str]]
+
+        :param export_meta_values: Whether to include meta values. Only applies
+                                   when columns=None. Defaults to True.
+        :type export_meta_values: bool
+
+        :return: Arrow Table with requested columns.
+        :rtype: pyarrow.Table
+
+        :raises ImportError: If pyarrow is not installed
+
+        Example::
+
+            # Get all default columns
+            table = spectrum.to_arrow()
+
+            # Get only specific columns (faster)
+            table = spectrum.to_arrow(columns=['mz', 'intensity'])
+
+            # Convert to pandas (zero-copy with pandas 2.0+)
+            df = table.to_pandas()
+
+            # Convert to polars
+            import polars as pl
+            df = pl.from_arrow(table)
+        """
+        try:
+            import pyarrow as pa
+        except ImportError:
+            raise ImportError(
+                "pyarrow is required for to_arrow(). "
+                "Please install it with: pip install pyarrow"
+            )
+        data_dict = self.get_data_dict(columns=columns, export_meta_values=export_meta_values)
+        return pa.Table.from_pydict(data_dict)
 
 
     def get_mz_array(MSSpectrum self):
         """
+        get_mz_array(self: MSSpectrum) -> np.ndarray
+        
         Get the m/z values of the spectrum as a numpy array.
 
         Returns:
@@ -339,6 +449,8 @@ import numpy as np
 
     def get_intensity_array(MSSpectrum self):
         """
+        get_intensity_array(self: MSSpectrum) -> np.ndarray
+        
         Get the intensity values of the spectrum as a numpy array.
 
         Returns:
@@ -364,7 +476,10 @@ import numpy as np
         return intensities
 
     def get_peaks(self):
-        """Cython signature: numpy_vector, numpy_vector get_peaks()
+        """
+        get_peaks(self: MSSpectrum) -> Tuple[np.ndarray, np.ndarray]
+        
+        Cython signature: numpy_vector, numpy_vector get_peaks()
 
         Will return a tuple of two numpy arrays (m/z, intensity) corresponding
         to the peaks in the MSSpectrum. Provides fast access to peaks.
@@ -398,7 +513,10 @@ import numpy as np
         return mzs, intensities
 
     def set_peaks(self, peaks):
-        """Cython signature: set_peaks((numpy_vector, numpy_vector))
+        """
+        set_peaks(self: MSSpectrum, peaks: Union[Tuple[np.ndarray, np.ndarray], Tuple[List, List]]) -> None
+        
+        Cython signature: set_peaks((numpy_vector, numpy_vector))
 
         Takes a tuple or list of two arrays (m/z, intensity) and populates the
         MSSpectrum. The arrays can be numpy arrays (faster).
@@ -426,7 +544,11 @@ import numpy as np
 
 
     def _set_peaks_fast_dd(self, np.ndarray[double, ndim=1, mode="c"] data_mz not None, np.ndarray[double, ndim=1, mode="c"] data_i not None):
-
+        """
+        _set_peaks_fast_dd(self: MSSpectrum, data_mz: np.ndarray, data_i: np.ndarray) -> None
+        
+        Internal method to set peaks from double/double numpy arrays.
+        """
         cdef _MSSpectrum * spec_ = self.inst.get()
 
         spec_.resize(0) # empty vector, keep meta data and data arrays
@@ -448,7 +570,11 @@ import numpy as np
 
 
     def _set_peaks_fast_df(self, np.ndarray[double, ndim=1, mode="c"] data_mz not None, np.ndarray[float, ndim=1, mode="c"] data_i not None):
-
+        """
+        _set_peaks_fast_df(self: MSSpectrum, data_mz: np.ndarray, data_i: np.ndarray) -> None
+        
+        Internal method to set peaks from double/float numpy arrays.
+        """
         cdef _MSSpectrum * spec_ = self.inst.get()
 
         spec_.resize(0) # empty vector, keep meta data and data arrays
@@ -470,8 +596,11 @@ import numpy as np
 
 
     def _set_peaks_orig(self, mzs, intensities):
-
-
+        """
+        _set_peaks_orig(self: MSSpectrum, mzs: Union[List, np.ndarray], intensities: Union[List, np.ndarray]) -> None
+        
+        Internal method to set peaks from generic lists or arrays.
+        """
         cdef _MSSpectrum * spec_ = self.inst.get()
 
         spec_.resize(0) # empty vector, keep meta data and data arrays
@@ -492,7 +621,11 @@ import numpy as np
         spec_.updateRanges()
 
     def intensityInRange(self, float mzmin, float mzmax):
-
+        """
+        intensityInRange(self: MSSpectrum, mzmin: float, mzmax: float) -> float
+        
+        Get the total intensity in the m/z range [mzmin, mzmax].
+        """
         cdef double I
 
         cdef _MSSpectrum * spec_ = self.inst.get()
@@ -514,6 +647,8 @@ import numpy as np
 
     def getIMData(self):
         """
+        getIMData(self: MSSpectrum) -> Tuple[int, int]
+        
         Get the position of ion mobility data array and its unit.
 
         Returns:
@@ -537,6 +672,8 @@ import numpy as np
 
     def get_drift_time_array(self):
         """
+        get_drift_time_array(self: MSSpectrum) -> Optional[np.ndarray]
+        
         Get the ion mobility drift time array as a numpy array (copy).
 
         This is a convenience method that retrieves the ion mobility data
@@ -574,6 +711,8 @@ import numpy as np
 
     def get_drift_time_array_mv(self):
         """
+        get_drift_time_array_mv(self: MSSpectrum) -> Optional[memoryview]
+        
         Get the ion mobility drift time array as a memory view (no copy).
 
         This method provides direct access to the underlying drift time data
@@ -613,6 +752,8 @@ import numpy as np
 
     def get_drift_time_unit(self):
         """
+        get_drift_time_unit(self: MSSpectrum) -> Optional[int]
+        
         Get the drift time unit for ion mobility data.
 
         Returns:
@@ -631,11 +772,17 @@ import numpy as np
         return <int>r.second
 
     def __len__(self):
-        """Return the number of peaks in the spectrum."""
+        """
+        __len__(self: MSSpectrum) -> int
+        
+        Return the number of peaks in the spectrum.
+        """
         return self.inst.get().size()
 
     def __str__(self):
         """
+        __str__(self: MSSpectrum) -> str
+        
         Return a string representation of the MSSpectrum object.
         Delegates to __repr__ for consistency.
         """
@@ -643,6 +790,8 @@ import numpy as np
 
     def __repr__(self):
         """
+        __repr__(self: MSSpectrum) -> str
+        
         Return a string representation of the MSSpectrum object.
 
         Returns key properties in a readable format:

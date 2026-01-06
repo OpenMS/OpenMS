@@ -143,7 +143,7 @@ message('\${sign_check_out}')" COMPONENT Applications)
 
 				if("${PACKAGE_TYPE}" STREQUAL "dmg")
 				 install(CODE "
-execute_process(COMMAND ${OPENMS_HOST_DIRECTORY}/cmake/MacOSX/notarize_app.sh \${CMAKE_INSTALL_PREFIX}/${_name}.app de.openms.${_name} ${SIGNING_EMAIL} CODESIGNPW ${OPENMS_HOST_BINARY_DIRECTORY} OUTPUT_VARIABLE notarize_out ERROR_VARIABLE notarize_out)
+execute_process(COMMAND ${OPENMS_HOST_DIRECTORY}/cmake/MacOSX/notarize.sh \${CMAKE_INSTALL_PREFIX}/${_name}.app de.openms.${_name} ${SIGNING_EMAIL} APPLE_APP_SPECIFIC_NOTARIZATION_PASSWORD ${OPENMS_HOST_BINARY_DIRECTORY} OUTPUT_VARIABLE notarize_out ERROR_VARIABLE notarize_out)
 message('\${notarize_out}')" COMPONENT Applications)
 
 				 install(CODE "

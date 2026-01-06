@@ -247,6 +247,7 @@ namespace OpenMS
 
   void MRMFeatureFinderScoring::prepareProteinPeptideMaps_(const OpenSwath::LightTargetedExperiment& transition_exp)
   {
+    PeptideRefMap_.reserve(transition_exp.getCompounds().size());
     for (Size i = 0; i < transition_exp.getCompounds().size(); i++)
     {
       PeptideRefMap_[transition_exp.getCompounds()[i].id] = &transition_exp.getCompounds()[i];
@@ -286,7 +287,7 @@ namespace OpenMS
     {
       if (tr_it->isIdentifyingTransition())
       {
-        if (tr_it->decoy)
+        if (tr_it->getDecoy())
         {
           identifying_transitions_decoy.push_back(tr_it->getNativeID());
         }

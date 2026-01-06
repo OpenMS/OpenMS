@@ -9,6 +9,7 @@
 #pragma once
 
 #include <OpenMS/DATASTRUCTURES/Matrix.h>
+#include <cmath>
 
 namespace OpenMS
 {
@@ -506,7 +507,7 @@ public:
       /// Returns \c true if getData() is empty.
       bool empty() const
       {
-        return data_.getEigenMatrix().size() == 0;
+        return data_.empty();
       }
 
       //@}

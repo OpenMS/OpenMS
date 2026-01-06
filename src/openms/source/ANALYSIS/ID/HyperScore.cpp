@@ -323,6 +323,11 @@ namespace OpenMS
 
     double dot_product = 0.0;
     const Size N = intensity_sum.size(); // length of peptide
+    if (N == 0 || N > 100000) // peptides longer than 100k residues are unreasonable
+    {
+      std::cout << "Error: HyperScore: intensity_sum has invalid size: " << N << std::endl;
+      return 0.0;
+    }
     std::vector<double> b_ions(N, 0.0);
     std::vector<double> y_ions(N, 0.0);
 
