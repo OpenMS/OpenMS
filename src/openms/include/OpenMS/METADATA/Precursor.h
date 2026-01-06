@@ -89,6 +89,16 @@ public:
     /// returns all activation method abbreviations (e.g., "CID") known to OpenMS
     static StringList getAllShortNamesOfActivationMethods();
 
+    /// convert an ActivationMethod enum to its full name string
+    /// @throws Exception::InvalidValue if @p m is SIZE_OF_ACTIVATIONMETHOD
+    static const std::string& activationMethodToString(ActivationMethod m);
+    /// convert an ActivationMethod enum to its short (abbreviated) name string
+    /// @throws Exception::InvalidValue if @p m is SIZE_OF_ACTIVATIONMETHOD
+    static const std::string& activationMethodToShortString(ActivationMethod m);
+    /// convert a string (full name or short name) to an ActivationMethod enum
+    /// @throws Exception::InvalidValue if @p name is not found in NamesOfActivationMethod or NamesOfActivationMethodShort
+    static ActivationMethod toActivationMethod(const std::string& name);
+
     /// Equality operator
     bool operator==(const Precursor & rhs) const;
     /// Equality operator

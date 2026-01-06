@@ -7,6 +7,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/METADATA/IonDetector.h>
+#include <OpenMS/CONCEPT/Exception.h>
+#include <algorithm>
 
 using namespace std;
 
@@ -115,6 +117,48 @@ namespace OpenMS
       names.push_back(NamesOfAcquisitionMode[i]);
     }
     return names;
+  }
+
+  const std::string& IonDetector::typeToString(Type type)
+  {
+    if (type == SIZE_OF_TYPE)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value not allowed", "SIZE_OF_TYPE");
+    }
+    return NamesOfType[static_cast<size_t>(type)];
+  }
+
+  IonDetector::Type IonDetector::toType(const std::string& name)
+  {
+    auto first = &NamesOfType[0];
+    auto last = &NamesOfType[SIZE_OF_TYPE];
+    const auto it = std::find(first, last, name);
+    if (it == last)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value unknown", name);
+    }
+    return static_cast<Type>(it - first);
+  }
+
+  const std::string& IonDetector::acquisitionModeToString(AcquisitionMode mode)
+  {
+    if (mode == SIZE_OF_ACQUISITIONMODE)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value not allowed", "SIZE_OF_ACQUISITIONMODE");
+    }
+    return NamesOfAcquisitionMode[static_cast<size_t>(mode)];
+  }
+
+  IonDetector::AcquisitionMode IonDetector::toAcquisitionMode(const std::string& name)
+  {
+    auto first = &NamesOfAcquisitionMode[0];
+    auto last = &NamesOfAcquisitionMode[SIZE_OF_ACQUISITIONMODE];
+    const auto it = std::find(first, last, name);
+    if (it == last)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value unknown", name);
+    }
+    return static_cast<AcquisitionMode>(it - first);
   }
 
 }

@@ -35,6 +35,18 @@ cdef extern from "<OpenMS/METADATA/IonDetector.h>" namespace "OpenMS":
         @staticmethod
         libcpp_vector[String] getAllNamesOfAcquisitionMode() except + nogil  # wrap-doc:Returns all acquisition mode names known to OpenMS
 
+        @staticmethod
+        const String& typeToString(Type_IonDetector type_) except + nogil  # wrap-doc:Convert a Type enum to its string representation. Throws Exception::InvalidValue if type is SIZE_OF_TYPE
+
+        @staticmethod
+        Type_IonDetector toType(const String& name) except + nogil  # wrap-doc:Convert a string to a Type enum. Throws Exception::InvalidValue if name is not found
+
+        @staticmethod
+        const String& acquisitionModeToString(AcquisitionMode mode) except + nogil  # wrap-doc:Convert an AcquisitionMode enum to its string representation. Throws Exception::InvalidValue if mode is SIZE_OF_ACQUISITIONMODE
+
+        @staticmethod
+        AcquisitionMode toAcquisitionMode(const String& name) except + nogil  # wrap-doc:Convert a string to an AcquisitionMode enum. Throws Exception::InvalidValue if name is not found
+
 cdef extern from "<OpenMS/METADATA/IonDetector.h>" namespace "OpenMS::IonDetector":
 
         # Detector type

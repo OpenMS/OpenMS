@@ -7,6 +7,9 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/METADATA/IonSource.h>
+#include <OpenMS/CONCEPT/Exception.h>
+
+#include <algorithm>
 
 using namespace std;
 
@@ -115,6 +118,69 @@ namespace OpenMS
       names.push_back(NamesOfPolarity[i]);
     }
     return names;
+  }
+
+  const std::string& IonSource::inletTypeToString(InletType type)
+  {
+    if (type == SIZE_OF_INLETTYPE)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value not allowed", "SIZE_OF_INLETTYPE");
+    }
+    return NamesOfInletType[static_cast<size_t>(type)];
+  }
+
+  IonSource::InletType IonSource::toInletType(const std::string& name)
+  {
+    auto first = &NamesOfInletType[0];
+    auto last = &NamesOfInletType[SIZE_OF_INLETTYPE];
+    const auto it = std::find(first, last, name);
+    if (it == last)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value unknown", name);
+    }
+    return static_cast<InletType>(it - first);
+  }
+
+  const std::string& IonSource::ionizationMethodToString(IonizationMethod method)
+  {
+    if (method == SIZE_OF_IONIZATIONMETHOD)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value not allowed", "SIZE_OF_IONIZATIONMETHOD");
+    }
+    return NamesOfIonizationMethod[static_cast<size_t>(method)];
+  }
+
+  IonSource::IonizationMethod IonSource::toIonizationMethod(const std::string& name)
+  {
+    auto first = &NamesOfIonizationMethod[0];
+    auto last = &NamesOfIonizationMethod[SIZE_OF_IONIZATIONMETHOD];
+    const auto it = std::find(first, last, name);
+    if (it == last)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value unknown", name);
+    }
+    return static_cast<IonizationMethod>(it - first);
+  }
+
+  const std::string& IonSource::polarityToString(Polarity polarity)
+  {
+    if (polarity == SIZE_OF_POLARITY)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value not allowed", "SIZE_OF_POLARITY");
+    }
+    return NamesOfPolarity[static_cast<size_t>(polarity)];
+  }
+
+  IonSource::Polarity IonSource::toPolarity(const std::string& name)
+  {
+    auto first = &NamesOfPolarity[0];
+    auto last = &NamesOfPolarity[SIZE_OF_POLARITY];
+    const auto it = std::find(first, last, name);
+    if (it == last)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value unknown", name);
+    }
+    return static_cast<Polarity>(it - first);
   }
 
 }

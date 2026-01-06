@@ -72,6 +72,22 @@ public:
     /// returns all acquisition mode names known to OpenMS
     static StringList getAllNamesOfAcquisitionMode();
 
+    /// Convert a Type enum to its string representation
+    /// @throws Exception::InvalidValue if @p type is SIZE_OF_TYPE
+    static const std::string& typeToString(Type type);
+
+    /// Convert a string to a Type enum
+    /// @throws Exception::InvalidValue if @p name is not found in NamesOfType
+    static Type toType(const std::string& name);
+
+    /// Convert an AcquisitionMode enum to its string representation
+    /// @throws Exception::InvalidValue if @p mode is SIZE_OF_ACQUISITIONMODE
+    static const std::string& acquisitionModeToString(AcquisitionMode mode);
+
+    /// Convert a string to an AcquisitionMode enum
+    /// @throws Exception::InvalidValue if @p name is not found in NamesOfAcquisitionMode
+    static AcquisitionMode toAcquisitionMode(const std::string& name);
+
     /// Constructor
     IonDetector();
     /// Copy constructor

@@ -124,6 +124,48 @@ public:
     /// returns all reflectron state names known to OpenMS
     static StringList getAllNamesOfReflectronState();
 
+    /// Convert AnalyzerType enum to string
+    /// @throws Exception::InvalidValue if @p type is SIZE_OF_ANALYZERTYPE
+    static const std::string& analyzerTypeToString(AnalyzerType type);
+    /// Convert string to AnalyzerType enum
+    /// @throws Exception::InvalidValue if @p name is not a valid analyzer type name
+    static AnalyzerType toAnalyzerType(const std::string& name);
+
+    /// Convert ResolutionMethod enum to string
+    /// @throws Exception::InvalidValue if @p method is SIZE_OF_RESOLUTIONMETHOD
+    static const std::string& resolutionMethodToString(ResolutionMethod method);
+    /// Convert string to ResolutionMethod enum
+    /// @throws Exception::InvalidValue if @p name is not a valid resolution method name
+    static ResolutionMethod toResolutionMethod(const std::string& name);
+
+    /// Convert ResolutionType enum to string
+    /// @throws Exception::InvalidValue if @p type is SIZE_OF_RESOLUTIONTYPE
+    static const std::string& resolutionTypeToString(ResolutionType type);
+    /// Convert string to ResolutionType enum
+    /// @throws Exception::InvalidValue if @p name is not a valid resolution type name
+    static ResolutionType toResolutionType(const std::string& name);
+
+    /// Convert ScanDirection enum to string
+    /// @throws Exception::InvalidValue if @p direction is SIZE_OF_SCANDIRECTION
+    static const std::string& scanDirectionToString(ScanDirection direction);
+    /// Convert string to ScanDirection enum
+    /// @throws Exception::InvalidValue if @p name is not a valid scan direction name
+    static ScanDirection toScanDirection(const std::string& name);
+
+    /// Convert ScanLaw enum to string
+    /// @throws Exception::InvalidValue if @p law is SIZE_OF_SCANLAW
+    static const std::string& scanLawToString(ScanLaw law);
+    /// Convert string to ScanLaw enum
+    /// @throws Exception::InvalidValue if @p name is not a valid scan law name
+    static ScanLaw toScanLaw(const std::string& name);
+
+    /// Convert ReflectronState enum to string
+    /// @throws Exception::InvalidValue if @p state is SIZE_OF_REFLECTRONSTATE
+    static const std::string& reflectronStateToString(ReflectronState state);
+    /// Convert string to ReflectronState enum
+    /// @throws Exception::InvalidValue if @p name is not a valid reflectron state name
+    static ReflectronState toReflectronState(const std::string& name);
+
     /// Constructor
     MassAnalyzer();
     /// Copy constructor

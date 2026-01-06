@@ -8,6 +8,8 @@
 
 #include <OpenMS/METADATA/Sample.h>
 
+#include <algorithm>
+
 using namespace std;
 
 namespace OpenMS
@@ -183,6 +185,27 @@ namespace OpenMS
       names.push_back(NamesOfSampleState[i]);
     }
     return names;
+  }
+
+  const std::string& Sample::sampleStateToString(SampleState state)
+  {
+    if (state == SIZE_OF_SAMPLESTATE)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value not allowed", "SIZE_OF_SAMPLESTATE");
+    }
+    return NamesOfSampleState[static_cast<size_t>(state)];
+  }
+
+  Sample::SampleState Sample::toSampleState(const std::string& name)
+  {
+    auto first = &NamesOfSampleState[0];
+    auto last = &NamesOfSampleState[SIZE_OF_SAMPLESTATE];
+    const auto it = std::find(first, last, name);
+    if (it == last)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value unknown", name);
+    }
+    return static_cast<SampleState>(it - first);
   }
 
 }

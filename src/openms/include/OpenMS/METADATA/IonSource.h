@@ -141,11 +141,35 @@ public:
     static StringList getAllNamesOfIonizationMethod();
     /**
      @brief Returns all polarity names known to OpenMS
-     
+
      @note For performance-critical code that repeatedly accesses these names,
      cache the returned list to avoid repeated allocations.
     */
     static StringList getAllNamesOfPolarity();
+
+    /// Convert an InletType enum to its string representation
+    /// @throws Exception::InvalidValue if @p type is SIZE_OF_INLETTYPE
+    static const std::string& inletTypeToString(InletType type);
+
+    /// Convert a string to an InletType enum
+    /// @throws Exception::InvalidValue if @p name is not contained in NamesOfInletType[]
+    static InletType toInletType(const std::string& name);
+
+    /// Convert an IonizationMethod enum to its string representation
+    /// @throws Exception::InvalidValue if @p method is SIZE_OF_IONIZATIONMETHOD
+    static const std::string& ionizationMethodToString(IonizationMethod method);
+
+    /// Convert a string to an IonizationMethod enum
+    /// @throws Exception::InvalidValue if @p name is not contained in NamesOfIonizationMethod[]
+    static IonizationMethod toIonizationMethod(const std::string& name);
+
+    /// Convert a Polarity enum to its string representation
+    /// @throws Exception::InvalidValue if @p polarity is SIZE_OF_POLARITY
+    static const std::string& polarityToString(Polarity polarity);
+
+    /// Convert a string to a Polarity enum
+    /// @throws Exception::InvalidValue if @p name is not contained in NamesOfPolarity[]
+    static Polarity toPolarity(const std::string& name);
 
     /// Constructor
     IonSource();

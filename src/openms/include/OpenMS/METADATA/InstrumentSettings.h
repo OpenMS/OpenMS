@@ -50,6 +50,14 @@ public:
     /// returns all scan mode names known to OpenMS
     static StringList getAllNamesOfScanMode();
 
+    /// convert a ScanMode enum to String
+    /// @throws Exception::InvalidValue if @p value is SIZE_OF_SCANMODE
+    static const std::string& scanModeToString(ScanMode mode);
+
+    /// convert an entry in NamesOfScanMode[] to ScanMode enum
+    /// @throws Exception::InvalidValue if @p name is not contained in NamesOfScanMode[]
+    static ScanMode toScanMode(const std::string& name);
+
     /// Constructor
     InstrumentSettings();
     /// Copy constructor

@@ -1,4 +1,6 @@
 from libcpp.map cimport map as libcpp_map
+from libcpp.string cimport string as libcpp_utf8_string
+from libcpp.string cimport string as libcpp_utf8_output_string
 from Types cimport *
 from CVTermList cimport *
 from Peak1D cimport *
@@ -108,3 +110,14 @@ cdef extern from "<OpenMS/METADATA/Precursor.h>" namespace "OpenMS::Precursor":
       INSOURCE,
       LIFT,
       SIZE_OF_ACTIVATIONMETHOD
+
+# COMMENT: wrap static methods for ActivationMethod enum conversion
+cdef extern from "<OpenMS/METADATA/Precursor.h>" namespace "OpenMS::Precursor":
+
+    # static fxn
+    @staticmethod
+    libcpp_utf8_output_string activationMethodToString(ActivationMethod m) except + nogil  # wrap-attach:Precursor wrap-doc:Convert an ActivationMethod enum to its full name string
+    @staticmethod
+    libcpp_utf8_output_string activationMethodToShortString(ActivationMethod m) except + nogil  # wrap-attach:Precursor wrap-doc:Convert an ActivationMethod enum to its short (abbreviated) name string
+    @staticmethod
+    ActivationMethod toActivationMethod(const libcpp_utf8_string& name) except + nogil  # wrap-attach:Precursor wrap-doc:Convert a string (full name or short name) to an ActivationMethod enum

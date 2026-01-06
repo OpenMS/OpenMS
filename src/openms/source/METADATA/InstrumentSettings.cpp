@@ -8,6 +8,9 @@
 
 #include <OpenMS/METADATA/InstrumentSettings.h>
 
+#include <OpenMS/CONCEPT/Exception.h>
+
+#include <algorithm>
 #include <utility>
 
 using namespace std;
@@ -95,6 +98,27 @@ namespace OpenMS
       names.push_back(NamesOfScanMode[i]);
     }
     return names;
+  }
+
+  const std::string& InstrumentSettings::scanModeToString(ScanMode mode)
+  {
+    if (mode == SIZE_OF_SCANMODE)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value not allowed", "SIZE_OF_SCANMODE");
+    }
+    return NamesOfScanMode[static_cast<size_t>(mode)];
+  }
+
+  InstrumentSettings::ScanMode InstrumentSettings::toScanMode(const std::string& name)
+  {
+    auto first = &NamesOfScanMode[0];
+    auto last = &NamesOfScanMode[SIZE_OF_SCANMODE];
+    const auto it = std::find(first, last, name);
+    if (it == last)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value unknown", name);
+    }
+    return static_cast<ScanMode>(it - first);
   }
 
 }

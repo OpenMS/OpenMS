@@ -45,6 +45,24 @@ cdef extern from "<OpenMS/METADATA/IonSource.h>" namespace "OpenMS":
         @staticmethod
         libcpp_vector[String] getAllNamesOfPolarity() except + nogil  # wrap-doc:Returns all polarity names known to OpenMS
 
+        @staticmethod
+        const String& inletTypeToString(InletType type) except + nogil  # wrap-doc:Convert an InletType enum to its string representation
+
+        @staticmethod
+        InletType toInletType(const String& name) except + nogil  # wrap-doc:Convert a string to an InletType enum
+
+        @staticmethod
+        const String& ionizationMethodToString(IonizationMethod method) except + nogil  # wrap-doc:Convert an IonizationMethod enum to its string representation
+
+        @staticmethod
+        IonizationMethod toIonizationMethod(const String& name) except + nogil  # wrap-doc:Convert a string to an IonizationMethod enum
+
+        @staticmethod
+        const String& polarityToString(Polarity polarity) except + nogil  # wrap-doc:Convert a Polarity enum to its string representation
+
+        @staticmethod
+        Polarity toPolarity(const String& name) except + nogil  # wrap-doc:Convert a string to a Polarity enum
+
 cdef extern from "<OpenMS/METADATA/IonSource.h>" namespace "OpenMS::IonSource":
 
     cdef enum Polarity:
