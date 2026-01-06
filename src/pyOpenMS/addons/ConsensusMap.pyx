@@ -332,7 +332,7 @@ from collections import defaultdict as _defaultdict
 
         cnt = self.size()
 
-        mddtypes = [('id', np.dtype('uint64')), ('sequence', 'U200'), ('charge', 'i4'),
+        mddtypes = [('id', np.dtype('uint64')), ('sequence', 'object'), ('charge', 'i4'),
                     ('rt', np.dtype('double')), ('mz', np.dtype('double')), ('quality', 'f')]
 
         mdarr = np.fromiter(iter=gen(self, extract_meta_data), dtype=mddtypes, count=cnt)

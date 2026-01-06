@@ -134,7 +134,7 @@ import numpy as np
 
         # Identifier
         if want('native_id'):
-            data_dict['native_id'] = np.full(cnt, self.getNativeID(), dtype='U100')
+            data_dict['native_id'] = np.full(cnt, self.getNativeID(), dtype='object')
 
         # Non-default columns (only if explicitly requested)
         if want_explicit('chromatogram_type'):
@@ -152,10 +152,10 @@ import numpy as np
                 8: 'EMISSION_CHROMATOGRAM'
             }
             type_name = type_names.get(chrom_type, f'UNKNOWN_{chrom_type}')
-            data_dict['chromatogram_type'] = np.full(cnt, type_name, dtype='U100')
+            data_dict['chromatogram_type'] = np.full(cnt, type_name, dtype='object')
 
         if want_explicit('comment'):
-            data_dict['comment'] = np.full(cnt, self.getComment(), dtype='U100')
+            data_dict['comment'] = np.full(cnt, self.getComment(), dtype='object')
 
         # Meta values handling
         if requested is None and export_meta_values:

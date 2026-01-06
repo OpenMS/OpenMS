@@ -126,7 +126,7 @@ import numpy as np
             # Use type() to get Python types since 'bool' conflicts with C bool in Cython
             default_missing_values = {type(True): False, type(1): -9999, type(1.0): np.nan, type(''): ''}
 
-        switchDict = {type(True): '?', type(1): 'i', type(1.0): 'f', type(''): 'U100'}
+        switchDict = {type(True): '?', type(1): 'i', type(1.0): 'f', type(''): 'object'}
 
         # filter out PeptideIdentifications without PeptideHits if export_unidentified == False
         count = self.size()
@@ -176,7 +176,7 @@ import numpy as np
             clearMVs = decodedMVs
 
         clearcols = ["id", "rt", "mz", mainscorename, "charge", "protein_accession", "start", "end", "P_ID", "PSM_ID"] + clearMVs
-        coltypes = ['U100', 'f', 'f', 'f', 'i','U1000', 'U1000', 'U1000', 'i', 'i'] + types
+        coltypes = ['object', 'f', 'f', 'f', 'i','object', 'object', 'object', 'i', 'i'] + types
         dt = list(zip(clearcols, coltypes))
 
         def extract(pep, pep_idx):

@@ -163,7 +163,7 @@ import numpy as np
         if want('ms_level'):
             data_dict['ms_level'] = np.full(cnt, self.getMSLevel(), dtype=np.uint16)
         if want('native_id'):
-            data_dict['native_id'] = np.full(cnt, self.getNativeID(), dtype='U100')
+            data_dict['native_id'] = np.full(cnt, self.getNativeID(), dtype='object')
 
         # Ion mobility handling - only compute if requested
         if want('ion_mobility') or want('ion_mobility_unit'):

@@ -134,7 +134,7 @@ import numpy as np
             b'score_fit': 'f',
             b'score_correlation': 'f',
             b'FWHM': 'f',
-            b'spectrum_native_id': 'U100',
+            b'spectrum_native_id': 'object',
             b'max_height': 'f',
             b'num_of_masstraces': 'i',
             b'masstrace_intensity': 'f',
@@ -143,7 +143,7 @@ import numpy as np
             b'leftWidth': 'f',
             b'rightWidth': 'f',
             b'total_xic': 'f',
-            b'PeptideRef': 'U100',
+            b'PeptideRef': 'object',
             b'peak_apices_sum': 'f'
         }
 
