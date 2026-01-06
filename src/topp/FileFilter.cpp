@@ -941,13 +941,8 @@ protected:
       if (!select_polarity.empty())
       {
         writeDebug_("Selecting polarity: " + select_polarity, 3);
-        for (size_t i = 0; i < static_cast<size_t>(IonSource::Polarity::SIZE_OF_POLARITY); ++i)
-        {
-          if (IonSource::NamesOfPolarity[i] == select_polarity)
-          {
-            exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), HasScanPolarity<MapType::SpectrumType>(static_cast<IonSource::Polarity>(i), true)), exp.end());
-          }
-        }
+        IonSource::Polarity pol = IonSource::toPolarity(select_polarity);
+        exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), HasScanPolarity<MapType::SpectrumType>(pol, true)), exp.end());
       }
 
       //remove zoom scans (might be a lot of spectra)
