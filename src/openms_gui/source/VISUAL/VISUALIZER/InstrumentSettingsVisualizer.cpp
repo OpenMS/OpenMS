@@ -38,7 +38,7 @@ namespace OpenMS
     if (!isEditable())
     {
       fillComboBox_(instrumentsettings_scan_mode_, &temp_.NamesOfScanMode[temp_.getScanMode()], 1);
-      fillComboBox_(instrumentsettings_polarity_, &IonSource::NamesOfPolarity[temp_.getPolarity()], 1);
+      fillComboBox_(instrumentsettings_polarity_, &IonSource::NamesOfPolarity[static_cast<size_t>(temp_.getPolarity())], 1);
 
     }
     else

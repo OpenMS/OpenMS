@@ -39,9 +39,9 @@ namespace OpenMS
   {
     if (!isEditable())
     {
-      fillComboBox_(inlet_type_, &temp_.NamesOfInletType[temp_.getInletType()], 1);
-      fillComboBox_(ionization_method_, &temp_.NamesOfIonizationMethod[temp_.getIonizationMethod()], 1);
-      fillComboBox_(polarity_, &temp_.NamesOfPolarity[temp_.getPolarity()], 1);
+      fillComboBox_(inlet_type_, &temp_.NamesOfInletType[static_cast<size_t>(temp_.getInletType())], 1);
+      fillComboBox_(ionization_method_, &temp_.NamesOfIonizationMethod[static_cast<size_t>(temp_.getIonizationMethod())], 1);
+      fillComboBox_(polarity_, &temp_.NamesOfPolarity[static_cast<size_t>(temp_.getPolarity())], 1);
     }
     else
     {

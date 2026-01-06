@@ -41,8 +41,8 @@ namespace OpenMS
   {
     if (!isEditable())
     {
-      fillComboBox_(type_, &temp_.NamesOfType[temp_.getType()], 1);
-      fillComboBox_(ac_mode_, &temp_.NamesOfAcquisitionMode[temp_.getAcquisitionMode()], 1);
+      fillComboBox_(type_, &temp_.NamesOfType[static_cast<size_t>(temp_.getType())], 1);
+      fillComboBox_(ac_mode_, &temp_.NamesOfAcquisitionMode[static_cast<size_t>(temp_.getAcquisitionMode())], 1);
     }
     else
     {
