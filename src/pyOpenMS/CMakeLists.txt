@@ -386,6 +386,15 @@ if("${PY_NUM_MODULES}" GREATER "1")
           BUILD_WITH_INSTALL_RPATH 1
           BUILD_WITH_INSTALL_NAME_DIR 1
         )
+      else()
+        # Explicitly disable all RPATH settings for wheel repair tools
+        set_target_properties(pyopenms_${nr} PROPERTIES
+          SKIP_BUILD_RPATH TRUE
+          SKIP_INSTALL_RPATH TRUE
+          BUILD_WITH_INSTALL_RPATH FALSE
+          INSTALL_RPATH ""
+          INSTALL_NAME_DIR ""
+        )
       endif()
       add_dependencies(pyopenms_${nr} compile_pxds)
       add_dependencies(pyopenms_compile pyopenms_${nr})
@@ -420,12 +429,25 @@ else()
       SUFFIX ${PYTHON_EXT_SUFFIX}
       CXX_VISIBILITY_PRESET ${VIS_PRESET}
       VISIBILITY_INLINES_HIDDEN ${INLINES_HIDDEN}
-      INSTALL_RPATH "${PY_RPATH}"
-      BUILD_WITH_INSTALL_RPATH 1
-      BUILD_WITH_INSTALL_NAME_DIR 1
       LIBRARY_OUTPUT_DIRECTORY "${PYOPENMS_BUILD_DIR}/pyopenms"
       RUNTIME_OUTPUT_DIRECTORY "${PYOPENMS_BUILD_DIR}/pyopenms"
     )
+    if(NOT PYOPENMS_DISABLE_RPATH)
+      set_target_properties(pyopenms_compile PROPERTIES
+        INSTALL_RPATH "${PY_RPATH}"
+        BUILD_WITH_INSTALL_RPATH 1
+        BUILD_WITH_INSTALL_NAME_DIR 1
+      )
+    else()
+      # Explicitly disable all RPATH settings for wheel repair tools
+      set_target_properties(pyopenms_compile PROPERTIES
+        SKIP_BUILD_RPATH TRUE
+        SKIP_INSTALL_RPATH TRUE
+        BUILD_WITH_INSTALL_RPATH FALSE
+        INSTALL_RPATH ""
+        INSTALL_NAME_DIR ""
+      )
+    endif()
     add_dependencies(pyopenms_compile compile_pxds)
 
     # TODO: Check if fix_pyi_imports.py is really necessary

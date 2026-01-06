@@ -387,7 +387,7 @@ jobs:
             PY_BUILD_CMAKE_VERBOSE=1
           # Disable RPATH so delvewheel can handle DLL bundling
           CIBW_CONFIG_SETTINGS: "override=cmake.options.PYOPENMS_DISABLE_RPATH=ON"
-          CIBW_REPAIR_WHEEL_COMMAND: "delvewheel repair --add-path '${{ env.OPENMS_ROOT_CMAKE }}/lib;${{ env.QT_CMAKE }}/bin;${{ env.CONTRIB_CMAKE }}/lib' -w {dest_dir} {wheel}"
+          CIBW_REPAIR_WHEEL_COMMAND: "delvewheel repair --add-path ${{ env.OPENMS_ROOT_CMAKE }}/lib;${{ env.QT_CMAKE }}/bin;${{ env.CONTRIB_CMAKE }}/lib -w {dest_dir} {wheel}"
           CIBW_BUILD_VERBOSITY: 1
 
       - uses: actions/upload-artifact@v4
