@@ -61,8 +61,16 @@ cdef extern from "<OpenMS/METADATA/Precursor.h>" namespace "OpenMS":
 
         double getUnchargedMass() except + nogil  # wrap-doc:Returns the uncharged mass of the precursor, if charge is unknown, i.e. 0 best guess is its doubly charged
 
-        bool operator==(Precursor)  except + nogil 
-        bool operator!=(Precursor)  except + nogil 
+        bool operator==(Precursor)  except + nogil
+        bool operator!=(Precursor)  except + nogil
+
+        # static methods for ActivationMethod enum conversion
+        @staticmethod
+        libcpp_utf8_output_string activationMethodToString(ActivationMethod m) except + nogil  # wrap-doc:Convert an ActivationMethod enum to its full name string
+        @staticmethod
+        libcpp_utf8_output_string activationMethodToShortString(ActivationMethod m) except + nogil  # wrap-doc:Convert an ActivationMethod enum to its short (abbreviated) name string
+        @staticmethod
+        ActivationMethod toActivationMethod(const libcpp_utf8_string& name) except + nogil  # wrap-doc:Convert a string (full name or short name) to an ActivationMethod enum
 
 cdef extern from "<OpenMS/METADATA/Precursor.h>" namespace "OpenMS::Precursor":
     cdef enum class ActivationMethod "OpenMS::Precursor::ActivationMethod":
@@ -111,13 +119,3 @@ cdef extern from "<OpenMS/METADATA/Precursor.h>" namespace "OpenMS::Precursor":
       LIFT,
       SIZE_OF_ACTIVATIONMETHOD
 
-# COMMENT: wrap static methods for ActivationMethod enum conversion
-cdef extern from "<OpenMS/METADATA/Precursor.h>" namespace "OpenMS::Precursor":
-
-    # static fxn
-    @staticmethod
-    libcpp_utf8_output_string activationMethodToString(ActivationMethod m) except + nogil  # wrap-attach:Precursor wrap-doc:Convert an ActivationMethod enum to its full name string
-    @staticmethod
-    libcpp_utf8_output_string activationMethodToShortString(ActivationMethod m) except + nogil  # wrap-attach:Precursor wrap-doc:Convert an ActivationMethod enum to its short (abbreviated) name string
-    @staticmethod
-    ActivationMethod toActivationMethod(const libcpp_utf8_string& name) except + nogil  # wrap-attach:Precursor wrap-doc:Convert a string (full name or short name) to an ActivationMethod enum
