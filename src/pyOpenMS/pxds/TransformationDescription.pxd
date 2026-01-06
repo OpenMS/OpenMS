@@ -50,4 +50,4 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>" nam
         # NAMESPACE # void printSummary(std::ostream & os) except + nogil
 
         @staticmethod
-        void getModelTypes(StringList result) except + nogil
+        void getModelTypes(StringList& result) except + nogil
