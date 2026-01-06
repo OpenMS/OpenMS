@@ -131,7 +131,9 @@ jobs:
                 -DWITH_PARQUET=ON
               ninja OpenMS OpenSwathAlgo
               cmake --install . --component library --strip
-              cmake --install . --component headers
+              cmake --install . --component OpenMS_headers
+              cmake --install . --component OpenSwathAlgo_headers
+              cmake --install . --component thirdparty_headers
               cmake --install . --component share
               cmake --install . --component cmake
             '
@@ -206,7 +208,9 @@ jobs:
                 -DWITH_PARQUET=ON
               ninja OpenMS OpenSwathAlgo
               cmake --install . --component library --strip
-              cmake --install . --component headers
+              cmake --install . --component OpenMS_headers
+              cmake --install . --component OpenSwathAlgo_headers
+              cmake --install . --component thirdparty_headers
               cmake --install . --component share
               cmake --install . --component cmake
             '
@@ -270,7 +274,9 @@ jobs:
             -DWITH_PARQUET=ON
           ninja OpenMS OpenSwathAlgo
           cmake --install . --component library --strip
-          cmake --install . --component headers
+          cmake --install . --component OpenMS_headers
+          cmake --install . --component OpenSwathAlgo_headers
+          cmake --install . --component thirdparty_headers
           cmake --install . --component share
           cmake --install . --component cmake
 
@@ -362,7 +368,9 @@ jobs:
             -DWITH_PARQUET=ON
           cmake --build . --target OpenMS OpenSwathAlgo
           cmake --install . --component library --strip
-          cmake --install . --component headers
+          cmake --install . --component OpenMS_headers
+          cmake --install . --component OpenSwathAlgo_headers
+          cmake --install . --component thirdparty_headers
           cmake --install . --component cmake
           cmake --install . --component share
 
