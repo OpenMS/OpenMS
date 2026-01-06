@@ -119,10 +119,6 @@ if (WITH_PARQUET)
   list(APPEND sources_list_h ArrowExport.h)
 endif()
 
-if (WITH_PARQUET)
-  list(APPEND sources_list_h ArrowExport.h)
-endif()
-
 ### add path to the filenames
 set(sources_h)
 foreach(i ${sources_list_h})
