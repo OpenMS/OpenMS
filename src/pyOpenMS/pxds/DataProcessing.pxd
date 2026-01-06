@@ -28,10 +28,10 @@ cdef extern from "<OpenMS/METADATA/DataProcessing.h>" namespace "OpenMS":
         libcpp_vector[String] getAllNamesOfProcessingAction() except + nogil  # wrap-doc:Returns all processing action names known to OpenMS
 
         @staticmethod
-        String processingActionToString(ProcessingAction action) except + nogil  # wrap-doc:Convert a ProcessingAction enum to String. Throws Exception::InvalidValue if action is SIZE_OF_PROCESSINGACTION
+        libcpp_utf8_output_string processingActionToString(ProcessingAction action) except + nogil  # wrap-doc:Convert a ProcessingAction enum to String. Throws Exception::InvalidValue if action is SIZE_OF_PROCESSINGACTION
 
         @staticmethod
-        ProcessingAction toProcessingAction(const String& name) except + nogil  # wrap-doc:Convert a string to ProcessingAction enum. Throws Exception::InvalidValue if name is not found
+        ProcessingAction toProcessingAction(const libcpp_utf8_string& name) except + nogil  # wrap-doc:Convert a string to ProcessingAction enum. Throws Exception::InvalidValue if name is not found
 
     ctypedef shared_ptr[DataProcessing] DataProcessingPtr
 

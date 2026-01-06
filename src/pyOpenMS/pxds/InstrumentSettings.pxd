@@ -25,7 +25,7 @@ cdef extern from "<OpenMS/METADATA/InstrumentSettings.h>" namespace "OpenMS":
         libcpp_vector[String] getAllNamesOfScanMode() except + nogil  # wrap-doc:Returns all scan mode names known to OpenMS
 
         @staticmethod
-        libcpp_utf8_string scanModeToString(ScanMode mode) except + nogil  # wrap-doc:Convert a ScanMode enum to String. Throws Exception::InvalidValue if value is SIZE_OF_SCANMODE
+        libcpp_utf8_output_string scanModeToString(ScanMode mode) except + nogil  # wrap-doc:Convert a ScanMode enum to String. Throws Exception::InvalidValue if value is SIZE_OF_SCANMODE
 
         @staticmethod
         ScanMode toScanMode(const libcpp_utf8_string& name) except + nogil  # wrap-doc:Convert a string to ScanMode enum. Throws Exception::InvalidValue if name is not a valid scan mode
