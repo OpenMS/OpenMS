@@ -1607,11 +1607,11 @@ namespace OpenMS::Internal
         //scan polarity
         else if (accession == "MS:1000129") //negative scan
         {
-          spec_.getInstrumentSettings().setPolarity(IonSource::NEGATIVE);
+          spec_.getInstrumentSettings().setPolarity(IonSource::Polarity::NEGATIVE);
         }
         else if (accession == "MS:1000130") //positive scan
         {
-          spec_.getInstrumentSettings().setPolarity(IonSource::POSITIVE);
+          spec_.getInstrumentSettings().setPolarity(IonSource::Polarity::POSITIVE);
         }
         else
           warning(LOAD, String("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
@@ -2486,260 +2486,260 @@ namespace OpenMS::Internal
         //inlet type
         if (accession == "MS:1000055") //continuous flow fast atom bombardment
         {
-          instruments_[current_id_].getIonSources().back().setInletType(IonSource::CONTINUOUSFLOWFASTATOMBOMBARDMENT);
+          instruments_[current_id_].getIonSources().back().setInletType(IonSource::InletType::CONTINUOUSFLOWFASTATOMBOMBARDMENT);
         }
         else if (accession == "MS:1000056") //direct inlet
         {
-          instruments_[current_id_].getIonSources().back().setInletType(IonSource::DIRECT);
+          instruments_[current_id_].getIonSources().back().setInletType(IonSource::InletType::DIRECT);
         }
         else if (accession == "MS:1000057") //electrospray inlet
         {
-          instruments_[current_id_].getIonSources().back().setInletType(IonSource::ELECTROSPRAYINLET);
+          instruments_[current_id_].getIonSources().back().setInletType(IonSource::InletType::ELECTROSPRAYINLET);
         }
         else if (accession == "MS:1000058") //flow injection analysis
         {
-          instruments_[current_id_].getIonSources().back().setInletType(IonSource::FLOWINJECTIONANALYSIS);
+          instruments_[current_id_].getIonSources().back().setInletType(IonSource::InletType::FLOWINJECTIONANALYSIS);
         }
         else if (accession == "MS:1000059") //inductively coupled plasma
         {
-          instruments_[current_id_].getIonSources().back().setInletType(IonSource::INDUCTIVELYCOUPLEDPLASMA);
+          instruments_[current_id_].getIonSources().back().setInletType(IonSource::InletType::INDUCTIVELYCOUPLEDPLASMA);
         }
         else if (accession == "MS:1000060") //infusion
         {
-          instruments_[current_id_].getIonSources().back().setInletType(IonSource::INFUSION);
+          instruments_[current_id_].getIonSources().back().setInletType(IonSource::InletType::INFUSION);
         }
         else if (accession == "MS:1000061") //jet separator
         {
-          instruments_[current_id_].getIonSources().back().setInletType(IonSource::JETSEPARATOR);
+          instruments_[current_id_].getIonSources().back().setInletType(IonSource::InletType::JETSEPARATOR);
         }
         else if (accession == "MS:1000062") //membrane separator
         {
-          instruments_[current_id_].getIonSources().back().setInletType(IonSource::MEMBRANESEPARATOR);
+          instruments_[current_id_].getIonSources().back().setInletType(IonSource::InletType::MEMBRANESEPARATOR);
         }
         else if (accession == "MS:1000063") //moving belt
         {
-          instruments_[current_id_].getIonSources().back().setInletType(IonSource::MOVINGBELT);
+          instruments_[current_id_].getIonSources().back().setInletType(IonSource::InletType::MOVINGBELT);
         }
         else if (accession == "MS:1000064") //moving wire
         {
-          instruments_[current_id_].getIonSources().back().setInletType(IonSource::MOVINGWIRE);
+          instruments_[current_id_].getIonSources().back().setInletType(IonSource::InletType::MOVINGWIRE);
         }
         else if (accession == "MS:1000065") //open split
         {
-          instruments_[current_id_].getIonSources().back().setInletType(IonSource::OPENSPLIT);
+          instruments_[current_id_].getIonSources().back().setInletType(IonSource::InletType::OPENSPLIT);
         }
         else if (accession == "MS:1000066") //particle beam
         {
-          instruments_[current_id_].getIonSources().back().setInletType(IonSource::PARTICLEBEAM);
+          instruments_[current_id_].getIonSources().back().setInletType(IonSource::InletType::PARTICLEBEAM);
         }
         else if (accession == "MS:1000067") //reservoir
         {
-          instruments_[current_id_].getIonSources().back().setInletType(IonSource::RESERVOIR);
+          instruments_[current_id_].getIonSources().back().setInletType(IonSource::InletType::RESERVOIR);
         }
         else if (accession == "MS:1000068") //septum
         {
-          instruments_[current_id_].getIonSources().back().setInletType(IonSource::SEPTUM);
+          instruments_[current_id_].getIonSources().back().setInletType(IonSource::InletType::SEPTUM);
         }
         else if (accession == "MS:1000069") //thermospray inlet
         {
-          instruments_[current_id_].getIonSources().back().setInletType(IonSource::THERMOSPRAYINLET);
+          instruments_[current_id_].getIonSources().back().setInletType(IonSource::InletType::THERMOSPRAYINLET);
         }
         else if (accession == "MS:1000248") //direct insertion probe
         {
-          instruments_[current_id_].getIonSources().back().setInletType(IonSource::BATCH);
+          instruments_[current_id_].getIonSources().back().setInletType(IonSource::InletType::BATCH);
         }
         else if (accession == "MS:1000249") //direct liquid introduction
         {
-          instruments_[current_id_].getIonSources().back().setInletType(IonSource::CHROMATOGRAPHY);
+          instruments_[current_id_].getIonSources().back().setInletType(IonSource::InletType::CHROMATOGRAPHY);
         }
         else if (accession == "MS:1000396") //membrane inlet
         {
-          instruments_[current_id_].getIonSources().back().setInletType(IonSource::MEMBRANE);
+          instruments_[current_id_].getIonSources().back().setInletType(IonSource::InletType::MEMBRANE);
         }
         else if (accession == "MS:1000485") //nanospray inlet
         {
-          instruments_[current_id_].getIonSources().back().setInletType(IonSource::NANOSPRAY);
+          instruments_[current_id_].getIonSources().back().setInletType(IonSource::InletType::NANOSPRAY);
         }
         //ionization type
         else if (accession == "MS:1000071") //chemical ionization
         {
-          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::CI);
+          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::CI);
         }
         else if (accession == "MS:1000073") //electrospray ionization
         {
-          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::ESI);
+          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::ESI);
         }
         else if (accession == "MS:1000074") //fast atom bombardment ionization
         {
-          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::FAB);
+          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::FAB);
         }
         else if (accession == "MS:1000227") //multiphoton ionization
         {
-          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::MPI);
+          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::MPI);
         }
         else if (accession == "MS:1000240") //atmospheric pressure ionization
         {
-          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::API);
+          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::API);
         }
         else if (accession == "MS:1000247") //desorption ionization
         {
-          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::DI);
+          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::DI);
         }
         else if (accession == "MS:1000255") //flowing afterglow
         {
-          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::FA);
+          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::FA);
         }
         else if (accession == "MS:1000258") //field ionization
         {
-          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::FII);
+          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::FII);
         }
         else if (accession == "MS:1000259") //glow discharge ionization
         {
-          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::GD_MS);
+          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::GD_MS);
         }
         else if (accession == "MS:1000271") //Negative ion chemical ionization
         {
-          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::NICI);
+          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::NICI);
         }
         else if (accession == "MS:1000272") //neutralization reionization mass spectrometry
         {
-          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::NRMS);
+          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::NRMS);
         }
         else if (accession == "MS:1000273") //photoionization
         {
-          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::PI);
+          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::PI);
         }
         else if (accession == "MS:1000274") //pyrolysis mass spectrometry
         {
-          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::PYMS);
+          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::PYMS);
         }
         else if (accession == "MS:1000276") //resonance enhanced multiphoton ionization
         {
-          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::REMPI);
+          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::REMPI);
         }
         else if (accession == "MS:1000380") //adiabatic ionization
         {
-          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::AI);
+          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::AI);
         }
         else if (accession == "MS:1000381") //associative ionization
         {
-          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::ASI);
+          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::ASI);
         }
         else if (accession == "MS:1000383") //autodetachment
         {
-          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::AD);
+          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::AD);
         }
         else if (accession == "MS:1000384") //autoionization
         {
-          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::AUI);
+          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::AUI);
         }
         else if (accession == "MS:1000385") //charge exchange ionization
         {
-          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::CEI);
+          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::CEI);
         }
         else if (accession == "MS:1000386") //chemi-ionization
         {
-          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::CHEMI);
+          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::CHEMI);
         }
         else if (accession == "MS:1000388") //dissociative ionization
         {
-          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::DISSI);
+          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::DISSI);
         }
         else if (accession == "MS:1000389") //electron ionization
         {
-          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::EI);
+          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::EI);
         }
         else if (accession == "MS:1000395") //liquid secondary ionization
         {
-          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::LSI);
+          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::LSI);
         }
         else if (accession == "MS:1000399") //penning ionization
         {
-          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::PEI);
+          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::PEI);
         }
         else if (accession == "MS:1000400") //plasma desorption ionization
         {
-          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::PD);
+          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::PD);
         }
         else if (accession == "MS:1000402") //secondary ionization
         {
-          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::SI);
+          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::SI);
         }
         else if (accession == "MS:1000403") //soft ionization
         {
-          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::SOI);
+          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::SOI);
         }
         else if (accession == "MS:1000404") //spark ionization
         {
-          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::SPI);
+          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::SPI);
         }
         else if (accession == "MS:1000406") //surface ionization
         {
-          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::SUI);
+          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::SUI);
         }
         else if (accession == "MS:1000407") //thermal ionization
         {
-          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::TI);
+          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::TI);
         }
         else if (accession == "MS:1000408") //vertical ionization
         {
-          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::VI);
+          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::VI);
         }
         else if (accession == "MS:1000446") //fast ion bombardment
         {
-          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::FIB);
+          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::FIB);
         }
         else if (accession == "MS:1000070") //atmospheric pressure chemical ionization
         {
-          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::APCI);
+          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::APCI);
         }
         else if (accession == "MS:1000239") //atmospheric pressure matrix-assisted laser desorption ionization
         {
-          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::AP_MALDI);
+          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::AP_MALDI);
         }
         else if (accession == "MS:1000382") //atmospheric pressure photoionization
         {
-          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::APPI);
+          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::APPI);
         }
         else if (accession == "MS:1000075") //matrix-assisted laser desorption ionization
         {
-          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::MALDI);
+          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::MALDI);
         }
         else if (accession == "MS:1000257") //field desorption
         {
-          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::FD);
+          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::FD);
         }
         else if (accession == "MS:1000387") //desorption/ionization on silicon
         {
-          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::SILI);
+          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::SILI);
         }
         else if (accession == "MS:1000393") //laser desorption ionization
         {
-          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::LD);
+          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::LD);
         }
         else if (accession == "MS:1000405") //surface-assisted laser desorption ionization
         {
-          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::SALDI);
+          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::SALDI);
         }
         else if (accession == "MS:1000397") //microelectrospray
         {
-          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::MESI);
+          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::MESI);
         }
         else if (accession == "MS:1000398") //nanoelectrospray
         {
-          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::NESI);
+          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::NESI);
         }
         else if (accession == "MS:1000278") //surface enhanced laser desorption ionization
         {
-          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::SELDI);
+          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::SELDI);
         }
         else if (accession == "MS:1000279") //surface enhanced neat desorption
         {
-          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::SEND);
+          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::SEND);
         }
         else if (accession == "MS:1000008") //ionization type (base term)
         {
-          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IONMETHODNULL);
+          instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::IonizationMethod::IONMETHODNULL);
         }
         //source attribute
         else if (accession == "MS:1000392") //ionization efficiency
@@ -2951,87 +2951,87 @@ namespace OpenMS::Internal
         //detector type
         if (accession == "MS:1000107") //channeltron
         {
-          instruments_[current_id_].getIonDetectors().back().setType(IonDetector::CHANNELTRON);
+          instruments_[current_id_].getIonDetectors().back().setType(IonDetector::Type::CHANNELTRON);
         }
         else if (accession == "MS:1000110") //daly detector
         {
-          instruments_[current_id_].getIonDetectors().back().setType(IonDetector::DALYDETECTOR);
+          instruments_[current_id_].getIonDetectors().back().setType(IonDetector::Type::DALYDETECTOR);
         }
         else if (accession == "MS:1000112") //faraday cup
         {
-          instruments_[current_id_].getIonDetectors().back().setType(IonDetector::FARADAYCUP);
+          instruments_[current_id_].getIonDetectors().back().setType(IonDetector::Type::FARADAYCUP);
         }
         else if (accession == "MS:1000114") //microchannel plate detector
         {
-          instruments_[current_id_].getIonDetectors().back().setType(IonDetector::MICROCHANNELPLATEDETECTOR);
+          instruments_[current_id_].getIonDetectors().back().setType(IonDetector::Type::MICROCHANNELPLATEDETECTOR);
         }
         else if (accession == "MS:1000115") //multi-collector
         {
-          instruments_[current_id_].getIonDetectors().back().setType(IonDetector::MULTICOLLECTOR);
+          instruments_[current_id_].getIonDetectors().back().setType(IonDetector::Type::MULTICOLLECTOR);
         }
         else if (accession == "MS:1000116") //photomultiplier
         {
-          instruments_[current_id_].getIonDetectors().back().setType(IonDetector::PHOTOMULTIPLIER);
+          instruments_[current_id_].getIonDetectors().back().setType(IonDetector::Type::PHOTOMULTIPLIER);
         }
         else if (accession == "MS:1000253") //electron multiplier
         {
-          instruments_[current_id_].getIonDetectors().back().setType(IonDetector::ELECTRONMULTIPLIER);
+          instruments_[current_id_].getIonDetectors().back().setType(IonDetector::Type::ELECTRONMULTIPLIER);
         }
         else if (accession == "MS:1000345") //array detector
         {
-          instruments_[current_id_].getIonDetectors().back().setType(IonDetector::ARRAYDETECTOR);
+          instruments_[current_id_].getIonDetectors().back().setType(IonDetector::Type::ARRAYDETECTOR);
         }
         else if (accession == "MS:1000346") //conversion dynode
         {
-          instruments_[current_id_].getIonDetectors().back().setType(IonDetector::CONVERSIONDYNODE);
+          instruments_[current_id_].getIonDetectors().back().setType(IonDetector::Type::CONVERSIONDYNODE);
         }
         else if (accession == "MS:1000347") //dynode
         {
-          instruments_[current_id_].getIonDetectors().back().setType(IonDetector::DYNODE);
+          instruments_[current_id_].getIonDetectors().back().setType(IonDetector::Type::DYNODE);
         }
         else if (accession == "MS:1000348") //focal plane collector
         {
-          instruments_[current_id_].getIonDetectors().back().setType(IonDetector::FOCALPLANECOLLECTOR);
+          instruments_[current_id_].getIonDetectors().back().setType(IonDetector::Type::FOCALPLANECOLLECTOR);
         }
         else if (accession == "MS:1000349") //ion-to-photon detector
         {
-          instruments_[current_id_].getIonDetectors().back().setType(IonDetector::IONTOPHOTONDETECTOR);
+          instruments_[current_id_].getIonDetectors().back().setType(IonDetector::Type::IONTOPHOTONDETECTOR);
         }
         else if (accession == "MS:1000350") //point collector
         {
-          instruments_[current_id_].getIonDetectors().back().setType(IonDetector::POINTCOLLECTOR);
+          instruments_[current_id_].getIonDetectors().back().setType(IonDetector::Type::POINTCOLLECTOR);
         }
         else if (accession == "MS:1000351") //postacceleration detector
         {
-          instruments_[current_id_].getIonDetectors().back().setType(IonDetector::POSTACCELERATIONDETECTOR);
+          instruments_[current_id_].getIonDetectors().back().setType(IonDetector::Type::POSTACCELERATIONDETECTOR);
         }
         else if (accession == "MS:1000621") //photodiode array detector
         {
-          instruments_[current_id_].getIonDetectors().back().setType(IonDetector::PHOTODIODEARRAYDETECTOR);
+          instruments_[current_id_].getIonDetectors().back().setType(IonDetector::Type::PHOTODIODEARRAYDETECTOR);
         }
         else if (accession == "MS:1000624") //inductive detector
         {
-          instruments_[current_id_].getIonDetectors().back().setType(IonDetector::INDUCTIVEDETECTOR);
+          instruments_[current_id_].getIonDetectors().back().setType(IonDetector::Type::INDUCTIVEDETECTOR);
         }
         else if (accession == "MS:1000108") //conversion dynode electron multiplier
         {
-          instruments_[current_id_].getIonDetectors().back().setType(IonDetector::CONVERSIONDYNODEELECTRONMULTIPLIER);
+          instruments_[current_id_].getIonDetectors().back().setType(IonDetector::Type::CONVERSIONDYNODEELECTRONMULTIPLIER);
         }
         else if (accession == "MS:1000109") //conversion dynode photomultiplier
         {
-          instruments_[current_id_].getIonDetectors().back().setType(IonDetector::CONVERSIONDYNODEPHOTOMULTIPLIER);
+          instruments_[current_id_].getIonDetectors().back().setType(IonDetector::Type::CONVERSIONDYNODEPHOTOMULTIPLIER);
         }
         else if (accession == "MS:1000111") //electron multiplier tube
         {
-          instruments_[current_id_].getIonDetectors().back().setType(IonDetector::ELECTRONMULTIPLIERTUBE);
+          instruments_[current_id_].getIonDetectors().back().setType(IonDetector::Type::ELECTRONMULTIPLIERTUBE);
         }
         else if (accession == "MS:1000113") //focal plane array
         {
-          instruments_[current_id_].getIonDetectors().back().setType(IonDetector::FOCALPLANEARRAY);
+          instruments_[current_id_].getIonDetectors().back().setType(IonDetector::Type::FOCALPLANEARRAY);
         }
         else if (accession == "MS:1000026") //detector type (base term)
         {
-          instruments_[current_id_].getIonDetectors().back().setType(IonDetector::TYPENULL);
+          instruments_[current_id_].getIonDetectors().back().setType(IonDetector::Type::TYPENULL);
         }
         //detector attribute
         else if (accession == "MS:1000028") //detector resolution
@@ -3045,19 +3045,19 @@ namespace OpenMS::Internal
         //detector acquisition mode
         else if (accession == "MS:1000117") //analog-digital converter
         {
-          instruments_[current_id_].getIonDetectors().back().setAcquisitionMode(IonDetector::ADC);
+          instruments_[current_id_].getIonDetectors().back().setAcquisitionMode(IonDetector::AcquisitionMode::ADC);
         }
         else if (accession == "MS:1000118") //pulse counting
         {
-          instruments_[current_id_].getIonDetectors().back().setAcquisitionMode(IonDetector::PULSECOUNTING);
+          instruments_[current_id_].getIonDetectors().back().setAcquisitionMode(IonDetector::AcquisitionMode::PULSECOUNTING);
         }
         else if (accession == "MS:1000119") //time-digital converter
         {
-          instruments_[current_id_].getIonDetectors().back().setAcquisitionMode(IonDetector::TDC);
+          instruments_[current_id_].getIonDetectors().back().setAcquisitionMode(IonDetector::AcquisitionMode::TDC);
         }
         else if (accession == "MS:1000120") //transient recorder
         {
-          instruments_[current_id_].getIonDetectors().back().setAcquisitionMode(IonDetector::TRANSIENTRECORDER);
+          instruments_[current_id_].getIonDetectors().back().setAcquisitionMode(IonDetector::AcquisitionMode::TRANSIENTRECORDER);
         }
         else
           warning(LOAD, String("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
@@ -4458,260 +4458,260 @@ namespace OpenMS::Internal
           const IonSource& so = in.getIonSources()[i];
           os << "\t\t\t\t<source order=\"" << so.getOrder() << "\">\n";
 
-          if (so.getInletType() == IonSource::CONTINUOUSFLOWFASTATOMBOMBARDMENT)
+          if (so.getInletType() == IonSource::InletType::CONTINUOUSFLOWFASTATOMBOMBARDMENT)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000055\" name=\"continuous flow fast atom bombardment\" />\n";
           }
-          else if (so.getInletType() == IonSource::DIRECT)
+          else if (so.getInletType() == IonSource::InletType::DIRECT)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000056\" name=\"direct inlet\" />\n";
           }
-          else if (so.getInletType() == IonSource::ELECTROSPRAYINLET)
+          else if (so.getInletType() == IonSource::InletType::ELECTROSPRAYINLET)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000057\" name=\"electrospray inlet\" />\n";
           }
-          else if (so.getInletType() == IonSource::FLOWINJECTIONANALYSIS)
+          else if (so.getInletType() == IonSource::InletType::FLOWINJECTIONANALYSIS)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000058\" name=\"flow injection analysis\" />\n";
           }
-          else if (so.getInletType() == IonSource::INDUCTIVELYCOUPLEDPLASMA)
+          else if (so.getInletType() == IonSource::InletType::INDUCTIVELYCOUPLEDPLASMA)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000059\" name=\"inductively coupled plasma\" />\n";
           }
-          else if (so.getInletType() == IonSource::INFUSION)
+          else if (so.getInletType() == IonSource::InletType::INFUSION)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000060\" name=\"infusion\" />\n";
           }
-          else if (so.getInletType() == IonSource::JETSEPARATOR)
+          else if (so.getInletType() == IonSource::InletType::JETSEPARATOR)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000061\" name=\"jet separator\" />\n";
           }
-          else if (so.getInletType() == IonSource::MEMBRANESEPARATOR)
+          else if (so.getInletType() == IonSource::InletType::MEMBRANESEPARATOR)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000062\" name=\"membrane separator\" />\n";
           }
-          else if (so.getInletType() == IonSource::MOVINGBELT)
+          else if (so.getInletType() == IonSource::InletType::MOVINGBELT)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000063\" name=\"moving belt\" />\n";
           }
-          else if (so.getInletType() == IonSource::MOVINGWIRE)
+          else if (so.getInletType() == IonSource::InletType::MOVINGWIRE)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000064\" name=\"moving wire\" />\n";
           }
-          else if (so.getInletType() == IonSource::OPENSPLIT)
+          else if (so.getInletType() == IonSource::InletType::OPENSPLIT)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000065\" name=\"open split\" />\n";
           }
-          else if (so.getInletType() == IonSource::PARTICLEBEAM)
+          else if (so.getInletType() == IonSource::InletType::PARTICLEBEAM)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000066\" name=\"particle beam\" />\n";
           }
-          else if (so.getInletType() == IonSource::RESERVOIR)
+          else if (so.getInletType() == IonSource::InletType::RESERVOIR)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000067\" name=\"reservoir\" />\n";
           }
-          else if (so.getInletType() == IonSource::SEPTUM)
+          else if (so.getInletType() == IonSource::InletType::SEPTUM)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000068\" name=\"septum\" />\n";
           }
-          else if (so.getInletType() == IonSource::THERMOSPRAYINLET)
+          else if (so.getInletType() == IonSource::InletType::THERMOSPRAYINLET)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000069\" name=\"thermospray inlet\" />\n";
           }
-          else if (so.getInletType() == IonSource::BATCH)
+          else if (so.getInletType() == IonSource::InletType::BATCH)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000248\" name=\"direct insertion probe\" />\n";
           }
-          else if (so.getInletType() == IonSource::CHROMATOGRAPHY)
+          else if (so.getInletType() == IonSource::InletType::CHROMATOGRAPHY)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000249\" name=\"direct liquid introduction\" />\n";
           }
-          else if (so.getInletType() == IonSource::MEMBRANE)
+          else if (so.getInletType() == IonSource::InletType::MEMBRANE)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000396\" name=\"membrane inlet\" />\n";
           }
-          else if (so.getInletType() == IonSource::NANOSPRAY)
+          else if (so.getInletType() == IonSource::InletType::NANOSPRAY)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000485\" name=\"nanospray inlet\" />\n";
           }
 
-          if (so.getIonizationMethod() == IonSource::APCI)
+          if (so.getIonizationMethod() == IonSource::IonizationMethod::APCI)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000070\" name=\"atmospheric pressure chemical ionization\" />\n";
           }
-          else if (so.getIonizationMethod() == IonSource::CI)
+          else if (so.getIonizationMethod() == IonSource::IonizationMethod::CI)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000071\" name=\"chemical ionization\" />\n";
           }
-          else if (so.getIonizationMethod() == IonSource::ESI)
+          else if (so.getIonizationMethod() == IonSource::IonizationMethod::ESI)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000073\" name=\"electrospray ionization\" />\n";
           }
-          else if (so.getIonizationMethod() == IonSource::FAB)
+          else if (so.getIonizationMethod() == IonSource::IonizationMethod::FAB)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000074\" name=\"fast atom bombardment ionization\" />\n";
           }
-          else if (so.getIonizationMethod() == IonSource::MALDI)
+          else if (so.getIonizationMethod() == IonSource::IonizationMethod::MALDI)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000075\" name=\"matrix-assisted laser desorption ionization\" />\n";
           }
-          else if (so.getIonizationMethod() == IonSource::MPI)
+          else if (so.getIonizationMethod() == IonSource::IonizationMethod::MPI)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000227\" name=\"multiphoton ionization\" />\n";
           }
-          else if (so.getIonizationMethod() == IonSource::AP_MALDI)
+          else if (so.getIonizationMethod() == IonSource::IonizationMethod::AP_MALDI)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000239\" name=\"atmospheric pressure matrix-assisted laser desorption ionization\" />\n";
           }
-          else if (so.getIonizationMethod() == IonSource::API)
+          else if (so.getIonizationMethod() == IonSource::IonizationMethod::API)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000240\" name=\"atmospheric pressure ionization\" />\n";
           }
-          else if (so.getIonizationMethod() == IonSource::DI)
+          else if (so.getIonizationMethod() == IonSource::IonizationMethod::DI)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000247\" name=\"desorption ionization\" />\n";
           }
-          else if (so.getIonizationMethod() == IonSource::FA)
+          else if (so.getIonizationMethod() == IonSource::IonizationMethod::FA)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000255\" name=\"flowing afterglow\" />\n";
           }
-          else if (so.getIonizationMethod() == IonSource::FD)
+          else if (so.getIonizationMethod() == IonSource::IonizationMethod::FD)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000257\" name=\"field desorption\" />\n";
           }
-          else if (so.getIonizationMethod() == IonSource::FI)
+          else if (so.getIonizationMethod() == IonSource::IonizationMethod::FI)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000258\" name=\"field ionization\" />\n";
           }
-          else if (so.getIonizationMethod() == IonSource::GD_MS)
+          else if (so.getIonizationMethod() == IonSource::IonizationMethod::GD_MS)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000259\" name=\"glow discharge ionization\" />\n";
           }
-          else if (so.getIonizationMethod() == IonSource::NICI)
+          else if (so.getIonizationMethod() == IonSource::IonizationMethod::NICI)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000271\" name=\"Negative ion chemical ionization\" />\n";
           }
-          else if (so.getIonizationMethod() == IonSource::NRMS)
+          else if (so.getIonizationMethod() == IonSource::IonizationMethod::NRMS)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000272\" name=\"neutralization reionization mass spectrometry\" />\n";
           }
-          else if (so.getIonizationMethod() == IonSource::PI)
+          else if (so.getIonizationMethod() == IonSource::IonizationMethod::PI)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000273\" name=\"photoionization\" />\n";
           }
-          else if (so.getIonizationMethod() == IonSource::PYMS)
+          else if (so.getIonizationMethod() == IonSource::IonizationMethod::PYMS)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000274\" name=\"pyrolysis mass spectrometry\" />\n";
           }
-          else if (so.getIonizationMethod() == IonSource::REMPI)
+          else if (so.getIonizationMethod() == IonSource::IonizationMethod::REMPI)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000276\" name=\"resonance enhanced multiphoton ionization\" />\n";
           }
-          else if (so.getIonizationMethod() == IonSource::SELDI)
+          else if (so.getIonizationMethod() == IonSource::IonizationMethod::SELDI)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000278\" name=\"surface enhanced laser desorption ionization\" />\n";
           }
-          else if (so.getIonizationMethod() == IonSource::SEND)
+          else if (so.getIonizationMethod() == IonSource::IonizationMethod::SEND)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000279\" name=\"surface enhanced neat desorption\" />\n";
           }
-          else if (so.getIonizationMethod() == IonSource::AI)
+          else if (so.getIonizationMethod() == IonSource::IonizationMethod::AI)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000380\" name=\"adiabatic ionization\" />\n";
           }
-          else if (so.getIonizationMethod() == IonSource::ASI)
+          else if (so.getIonizationMethod() == IonSource::IonizationMethod::ASI)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000381\" name=\"associative ionization\" />\n";
           }
-          else if (so.getIonizationMethod() == IonSource::APPI)
+          else if (so.getIonizationMethod() == IonSource::IonizationMethod::APPI)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000382\" name=\"atmospheric pressure photoionization\" />\n";
           }
-          else if (so.getIonizationMethod() == IonSource::AD)
+          else if (so.getIonizationMethod() == IonSource::IonizationMethod::AD)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000383\" name=\"autodetachment\" />\n";
           }
-          else if (so.getIonizationMethod() == IonSource::AUI)
+          else if (so.getIonizationMethod() == IonSource::IonizationMethod::AUI)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000384\" name=\"autoionization\" />\n";
           }
-          else if (so.getIonizationMethod() == IonSource::CEI)
+          else if (so.getIonizationMethod() == IonSource::IonizationMethod::CEI)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000385\" name=\"charge exchange ionization\" />\n";
           }
-          else if (so.getIonizationMethod() == IonSource::CHEMI)
+          else if (so.getIonizationMethod() == IonSource::IonizationMethod::CHEMI)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000386\" name=\"chemi-ionization\" />\n";
           }
-          else if (so.getIonizationMethod() == IonSource::SILI)
+          else if (so.getIonizationMethod() == IonSource::IonizationMethod::SILI)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000387\" name=\"desorption/ionization on silicon\" />\n";
           }
-          else if (so.getIonizationMethod() == IonSource::DISSI)
+          else if (so.getIonizationMethod() == IonSource::IonizationMethod::DISSI)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000388\" name=\"dissociative ionization\" />\n";
           }
-          else if (so.getIonizationMethod() == IonSource::EI)
+          else if (so.getIonizationMethod() == IonSource::IonizationMethod::EI)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000389\" name=\"electron ionization\" />\n";
           }
-          else if (so.getIonizationMethod() == IonSource::LD)
+          else if (so.getIonizationMethod() == IonSource::IonizationMethod::LD)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000393\" name=\"laser desorption ionization\" />\n";
           }
-          else if (so.getIonizationMethod() == IonSource::LSI)
+          else if (so.getIonizationMethod() == IonSource::IonizationMethod::LSI)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000395\" name=\"liquid secondary ionization\" />\n";
           }
-          else if (so.getIonizationMethod() == IonSource::MESI)
+          else if (so.getIonizationMethod() == IonSource::IonizationMethod::MESI)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000397\" name=\"microelectrospray\" />\n";
           }
-          else if (so.getIonizationMethod() == IonSource::NESI)
+          else if (so.getIonizationMethod() == IonSource::IonizationMethod::NESI)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000398\" name=\"nanoelectrospray\" />\n";
           }
-          else if (so.getIonizationMethod() == IonSource::PEI)
+          else if (so.getIonizationMethod() == IonSource::IonizationMethod::PEI)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000399\" name=\"penning ionization\" />\n";
           }
-          else if (so.getIonizationMethod() == IonSource::PD)
+          else if (so.getIonizationMethod() == IonSource::IonizationMethod::PD)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000400\" name=\"plasma desorption ionization\" />\n";
           }
-          else if (so.getIonizationMethod() == IonSource::SI)
+          else if (so.getIonizationMethod() == IonSource::IonizationMethod::SI)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000402\" name=\"secondary ionization\" />\n";
           }
-          else if (so.getIonizationMethod() == IonSource::SOI)
+          else if (so.getIonizationMethod() == IonSource::IonizationMethod::SOI)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000403\" name=\"soft ionization\" />\n";
           }
-          else if (so.getIonizationMethod() == IonSource::SPI)
+          else if (so.getIonizationMethod() == IonSource::IonizationMethod::SPI)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000404\" name=\"spark ionization\" />\n";
           }
-          else if (so.getIonizationMethod() == IonSource::SALDI)
+          else if (so.getIonizationMethod() == IonSource::IonizationMethod::SALDI)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000405\" name=\"surface-assisted laser desorption ionization\" />\n";
           }
-          else if (so.getIonizationMethod() == IonSource::SUI)
+          else if (so.getIonizationMethod() == IonSource::IonizationMethod::SUI)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000406\" name=\"surface ionization\" />\n";
           }
-          else if (so.getIonizationMethod() == IonSource::TI)
+          else if (so.getIonizationMethod() == IonSource::IonizationMethod::TI)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000407\" name=\"thermal ionization\" />\n";
           }
-          else if (so.getIonizationMethod() == IonSource::VI)
+          else if (so.getIonizationMethod() == IonSource::IonizationMethod::VI)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000408\" name=\"vertical ionization\" />\n";
           }
-          else if (so.getIonizationMethod() == IonSource::FIB)
+          else if (so.getIonizationMethod() == IonSource::IonizationMethod::FIB)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000446\" name=\"fast ion bombardment\" />\n";
           }
-          else if (so.getIonizationMethod() == IonSource::IONMETHODNULL)
+          else if (so.getIonizationMethod() == IonSource::IonizationMethod::IONMETHODNULL)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000008\" name=\"ionization type\" />\n";
           }
@@ -4830,104 +4830,104 @@ namespace OpenMS::Internal
           os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000028\" name=\"detector resolution\" value=\"" << id.getResolution() << "\" />\n";
           os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000029\" name=\"sampling frequency\" value=\"" << id.getADCSamplingFrequency() << "\" unitAccession=\"UO:0000106\" unitName=\"hertz\" unitCvRef=\"UO\" />\n";
 
-          if (id.getAcquisitionMode() == IonDetector::ADC)
+          if (id.getAcquisitionMode() == IonDetector::AcquisitionMode::ADC)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000117\" name=\"analog-digital converter\" />\n";
           }
-          else if (id.getAcquisitionMode() == IonDetector::PULSECOUNTING)
+          else if (id.getAcquisitionMode() == IonDetector::AcquisitionMode::PULSECOUNTING)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000118\" name=\"pulse counting\" />\n";
           }
-          else if (id.getAcquisitionMode() == IonDetector::TDC)
+          else if (id.getAcquisitionMode() == IonDetector::AcquisitionMode::TDC)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000119\" name=\"time-digital converter\" />\n";
           }
-          else if (id.getAcquisitionMode() == IonDetector::TRANSIENTRECORDER)
+          else if (id.getAcquisitionMode() == IonDetector::AcquisitionMode::TRANSIENTRECORDER)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000120\" name=\"transient recorder\" />\n";
           }
 
-          if (id.getType() == IonDetector::CHANNELTRON)
+          if (id.getType() == IonDetector::Type::CHANNELTRON)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000107\" name=\"channeltron\" />\n";
           }
-          else if (id.getType() == IonDetector::DALYDETECTOR)
+          else if (id.getType() == IonDetector::Type::DALYDETECTOR)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000110\" name=\"daly detector\" />\n";
           }
-          else if (id.getType() == IonDetector::FARADAYCUP)
+          else if (id.getType() == IonDetector::Type::FARADAYCUP)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000112\" name=\"faraday cup\" />\n";
           }
-          else if (id.getType() == IonDetector::MICROCHANNELPLATEDETECTOR)
+          else if (id.getType() == IonDetector::Type::MICROCHANNELPLATEDETECTOR)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000114\" name=\"microchannel plate detector\" />\n";
           }
-          else if (id.getType() == IonDetector::MULTICOLLECTOR)
+          else if (id.getType() == IonDetector::Type::MULTICOLLECTOR)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000115\" name=\"multi-collector\" />\n";
           }
-          else if (id.getType() == IonDetector::PHOTOMULTIPLIER)
+          else if (id.getType() == IonDetector::Type::PHOTOMULTIPLIER)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000116\" name=\"photomultiplier\" />\n";
           }
-          else if (id.getType() == IonDetector::ELECTRONMULTIPLIER)
+          else if (id.getType() == IonDetector::Type::ELECTRONMULTIPLIER)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000253\" name=\"electron multiplier\" />\n";
           }
-          else if (id.getType() == IonDetector::ARRAYDETECTOR)
+          else if (id.getType() == IonDetector::Type::ARRAYDETECTOR)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000345\" name=\"array detector\" />\n";
           }
-          else if (id.getType() == IonDetector::CONVERSIONDYNODE)
+          else if (id.getType() == IonDetector::Type::CONVERSIONDYNODE)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000346\" name=\"conversion dynode\" />\n";
           }
-          else if (id.getType() == IonDetector::DYNODE)
+          else if (id.getType() == IonDetector::Type::DYNODE)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000347\" name=\"dynode\" />\n";
           }
-          else if (id.getType() == IonDetector::FOCALPLANECOLLECTOR)
+          else if (id.getType() == IonDetector::Type::FOCALPLANECOLLECTOR)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000348\" name=\"focal plane collector\" />\n";
           }
-          else if (id.getType() == IonDetector::IONTOPHOTONDETECTOR)
+          else if (id.getType() == IonDetector::Type::IONTOPHOTONDETECTOR)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000349\" name=\"ion-to-photon detector\" />\n";
           }
-          else if (id.getType() == IonDetector::POINTCOLLECTOR)
+          else if (id.getType() == IonDetector::Type::POINTCOLLECTOR)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000350\" name=\"point collector\" />\n";
           }
-          else if (id.getType() == IonDetector::POSTACCELERATIONDETECTOR)
+          else if (id.getType() == IonDetector::Type::POSTACCELERATIONDETECTOR)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000351\" name=\"postacceleration detector\" />\n";
           }
-          else if (id.getType() == IonDetector::PHOTODIODEARRAYDETECTOR)
+          else if (id.getType() == IonDetector::Type::PHOTODIODEARRAYDETECTOR)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000621\" name=\"photodiode array detector\" />\n";
           }
-          else if (id.getType() == IonDetector::INDUCTIVEDETECTOR)
+          else if (id.getType() == IonDetector::Type::INDUCTIVEDETECTOR)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000624\" name=\"inductive detector\" />\n";
           }
-          else if (id.getType() == IonDetector::CONVERSIONDYNODEELECTRONMULTIPLIER)
+          else if (id.getType() == IonDetector::Type::CONVERSIONDYNODEELECTRONMULTIPLIER)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000108\" name=\"conversion dynode electron multiplier\" />\n";
           }
-          else if (id.getType() == IonDetector::CONVERSIONDYNODEPHOTOMULTIPLIER)
+          else if (id.getType() == IonDetector::Type::CONVERSIONDYNODEPHOTOMULTIPLIER)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000109\" name=\"conversion dynode photomultiplier\" />\n";
           }
-          else if (id.getType() == IonDetector::ELECTRONMULTIPLIERTUBE)
+          else if (id.getType() == IonDetector::Type::ELECTRONMULTIPLIERTUBE)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000111\" name=\"electron multiplier tube\" />\n";
           }
-          else if (id.getType() == IonDetector::FOCALPLANEARRAY)
+          else if (id.getType() == IonDetector::Type::FOCALPLANEARRAY)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000113\" name=\"focal plane array\" />\n";
           }
-          else if (id.getType() == IonDetector::TYPENULL)
+          else if (id.getType() == IonDetector::Type::TYPENULL)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000026\" name=\"detector type\" />\n";
           }
@@ -5154,11 +5154,11 @@ namespace OpenMS::Internal
       }
 
       //scan polarity
-      if (spec.getInstrumentSettings().getPolarity() == IonSource::NEGATIVE)
+      if (spec.getInstrumentSettings().getPolarity() == IonSource::Polarity::NEGATIVE)
       {
         os << "\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000129\" name=\"negative scan\" />\n";
       }
-      else if (spec.getInstrumentSettings().getPolarity() == IonSource::POSITIVE)
+      else if (spec.getInstrumentSettings().getPolarity() == IonSource::Polarity::POSITIVE)
       {
         os << "\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000130\" name=\"positive scan\" />\n";
       }

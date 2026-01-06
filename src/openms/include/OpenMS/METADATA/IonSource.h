@@ -27,7 +27,7 @@ namespace OpenMS
   {
 public:
     /// inlet type
-    enum InletType
+    enum class InletType
     {
       INLETNULL,                           ///< Unknown
       DIRECT,                              ///< Direct
@@ -52,10 +52,10 @@ public:
       SIZE_OF_INLETTYPE
     };
     /// Names of inlet types
-    static const std::string NamesOfInletType[SIZE_OF_INLETTYPE];
+    static const std::string NamesOfInletType[static_cast<size_t>(InletType::SIZE_OF_INLETTYPE)];
 
     /// ionization method
-    enum IonizationMethod
+    enum class IonizationMethod
     {
       IONMETHODNULL,           ///< Unknown
       ESI,                     ///< electrospray ionisation
@@ -112,10 +112,10 @@ public:
       SIZE_OF_IONIZATIONMETHOD
     };
     /// Names of ionization methods
-    static const std::string NamesOfIonizationMethod[SIZE_OF_IONIZATIONMETHOD];
+    static const std::string NamesOfIonizationMethod[static_cast<size_t>(IonizationMethod::SIZE_OF_IONIZATIONMETHOD)];
 
     /// Polarity of the ion source
-    enum Polarity
+    enum class Polarity
     {
       POLNULL,          ///< Unknown
       POSITIVE,         ///< Positive polarity
@@ -123,7 +123,7 @@ public:
       SIZE_OF_POLARITY
     };
     /// Names of polarity of the ion source
-    static const std::string NamesOfPolarity[SIZE_OF_POLARITY];
+    static const std::string NamesOfPolarity[static_cast<size_t>(Polarity::SIZE_OF_POLARITY)];
 
     /**
      @brief Returns all inlet type names known to OpenMS

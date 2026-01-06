@@ -44,12 +44,12 @@ namespace OpenMS
     else
     {
       fillComboBox_(instrumentsettings_scan_mode_, InstrumentSettings::NamesOfScanMode, InstrumentSettings::SIZE_OF_SCANMODE);
-      fillComboBox_(instrumentsettings_polarity_, IonSource::NamesOfPolarity, IonSource::SIZE_OF_POLARITY);
+      fillComboBox_(instrumentsettings_polarity_, IonSource::NamesOfPolarity, static_cast<int>(IonSource::Polarity::SIZE_OF_POLARITY));
 
 
       instrumentsettings_scan_mode_->setCurrentIndex(temp_.getScanMode());
       zoom_scan_->setCurrentIndex(temp_.getZoomScan());
-      instrumentsettings_polarity_->setCurrentIndex(temp_.getPolarity());
+      instrumentsettings_polarity_->setCurrentIndex(static_cast<int>(temp_.getPolarity()));
     }
   }
 

@@ -703,13 +703,13 @@ namespace OpenMS::Internal
           << "\t\t\t<msManufacturer category=\"msManufacturer\" value=\"" << manufacturer << "\"/>\n"
           << "\t\t\t<msModel category=\"msModel\" value=\"" << inst.getModel() << "\"/>\n";
 
-        if (inst.getIonSources().empty() || !inst.getIonSources()[0].getIonizationMethod() || cv_terms_[2][inst.getIonSources()[0].getIonizationMethod()].empty())
+        if (inst.getIonSources().empty() || inst.getIonSources()[0].getIonizationMethod() == IonSource::IonizationMethod::IONMETHODNULL || cv_terms_[2][static_cast<size_t>(inst.getIonSources()[0].getIonizationMethod())].empty())
         { // can be empty for MaxQuant
           os << "\t\t\t<msIonisation category=\"msIonisation\" value=\"\"/>\n";
         }
         else
         {
-          os << "\t\t\t<msIonisation category=\"msIonisation\" value=\"" << cv_terms_[2][inst.getIonSources()[0].getIonizationMethod()] << "\"/>\n";
+          os << "\t\t\t<msIonisation category=\"msIonisation\" value=\"" << cv_terms_[2][static_cast<size_t>(inst.getIonSources()[0].getIonizationMethod())] << "\"/>\n";
         }
         
         const std::vector<MassAnalyzer>& analyzers = inst.getMassAnalyzers();
@@ -722,13 +722,13 @@ namespace OpenMS::Internal
           os << "\t\t\t<msMassAnalyzer category=\"msMassAnalyzer\" value=\"" << cv_terms_[3][analyzers[0].getType()] << "\"/>\n";
         }
 
-        if (inst.getIonDetectors().empty() || !inst.getIonDetectors()[0].getType() || cv_terms_[4][inst.getIonDetectors()[0].getType()].empty())
+        if (inst.getIonDetectors().empty() || inst.getIonDetectors()[0].getType() == IonDetector::Type::TYPENULL || cv_terms_[4][static_cast<size_t>(inst.getIonDetectors()[0].getType())].empty())
         { // can be empty for MaxQuant
           os << "\t\t\t<msDetector category=\"msDetector\" value=\"\"/>\n";
         }
         else
         {
-          os << "\t\t\t<msDetector category=\"msDetector\" value=\"" << cv_terms_[4][inst.getIonDetectors()[0].getType()] << "\"/>\n";
+          os << "\t\t\t<msDetector category=\"msDetector\" value=\"" << cv_terms_[4][static_cast<size_t>(inst.getIonDetectors()[0].getType())] << "\"/>\n";
         }
         os << "\t\t\t<software type=\"acquisition\" name=\"" << inst.getSoftware().getName() << "\" version=\"" << inst.getSoftware().getVersion() << "\"/>\n";
         if (!(analyzers.empty() || !analyzers[0].getResolutionMethod() || cv_terms_[5][analyzers[0].getResolutionMethod()].empty()))
@@ -891,11 +891,11 @@ namespace OpenMS::Internal
           << " msLevel=\"" << ms_level << "\""
           << " peaksCount=\"" << spec.size() << "\""
           << " polarity=\"";
-        if (spec.getInstrumentSettings().getPolarity() == IonSource::POSITIVE)
+        if (spec.getInstrumentSettings().getPolarity() == IonSource::Polarity::POSITIVE)
         {
           os << "+";
         }
-        else if (spec.getInstrumentSettings().getPolarity() == IonSource::NEGATIVE)
+        else if (spec.getInstrumentSettings().getPolarity() == IonSource::Polarity::NEGATIVE)
         {
           os << "-";
         }
@@ -1279,7 +1279,7 @@ namespace OpenMS::Internal
 
       //Ionization method
       String(";ESI;EI;CI;FAB;;;;;;;;;;;;;APCI;;;NSI;;SELDI;;;MALDI").split(';', cv_terms_[2]);
-      cv_terms_[2].resize(IonSource::SIZE_OF_IONIZATIONMETHOD);
+      cv_terms_[2].resize(static_cast<size_t>(IonSource::IonizationMethod::SIZE_OF_IONIZATIONMETHOD));
 
       //Mass analyzer
       String(";Quadrupole;Quadrupole Ion Trap;;;TOF;Magnetic Sector;FT-ICR;;;;;;FTMS").split(';', cv_terms_[3]);
@@ -1287,7 +1287,7 @@ namespace OpenMS::Internal
 
       //Detector
       String(";EMT;;;Faraday Cup;;;;;Channeltron;Daly;Microchannel plate").split(';', cv_terms_[4]);
-      cv_terms_[4].resize(IonDetector::SIZE_OF_TYPE);
+      cv_terms_[4].resize(static_cast<size_t>(IonDetector::Type::SIZE_OF_TYPE));
 
       //Resolution method
       String(";FWHM;TenPercentValley;Baseline").split(';', cv_terms_[5]);

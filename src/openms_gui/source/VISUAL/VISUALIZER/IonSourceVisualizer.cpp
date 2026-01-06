@@ -45,13 +45,13 @@ namespace OpenMS
     }
     else
     {
-      fillComboBox_(inlet_type_, temp_.NamesOfInletType, IonSource::SIZE_OF_INLETTYPE);
-      fillComboBox_(ionization_method_, temp_.NamesOfIonizationMethod, IonSource::SIZE_OF_IONIZATIONMETHOD);
-      fillComboBox_(polarity_, temp_.NamesOfPolarity, IonSource::SIZE_OF_POLARITY);
+      fillComboBox_(inlet_type_, temp_.NamesOfInletType, static_cast<int>(IonSource::InletType::SIZE_OF_INLETTYPE));
+      fillComboBox_(ionization_method_, temp_.NamesOfIonizationMethod, static_cast<int>(IonSource::IonizationMethod::SIZE_OF_IONIZATIONMETHOD));
+      fillComboBox_(polarity_, temp_.NamesOfPolarity, static_cast<int>(IonSource::Polarity::SIZE_OF_POLARITY));
 
-      inlet_type_->setCurrentIndex(temp_.getInletType());
-      ionization_method_->setCurrentIndex(temp_.getIonizationMethod());
-      polarity_->setCurrentIndex(temp_.getPolarity());
+      inlet_type_->setCurrentIndex(static_cast<int>(temp_.getInletType()));
+      ionization_method_->setCurrentIndex(static_cast<int>(temp_.getIonizationMethod()));
+      polarity_->setCurrentIndex(static_cast<int>(temp_.getPolarity()));
     }
 
     order_->setText(String(temp_.getOrder()).c_str());

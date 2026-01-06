@@ -23,7 +23,7 @@ namespace OpenMS
     MetaInfoInterface(),
     scan_mode_(UNKNOWN),
     zoom_scan_(false),
-    polarity_(IonSource::POLNULL),
+    polarity_(IonSource::Polarity::POLNULL),
     scan_windows_()
   {
   }

@@ -24,9 +24,9 @@ namespace OpenMS
 
   IonSource::IonSource() :
     MetaInfoInterface(),
-    inlet_type_(INLETNULL),
-    ionization_method_(IONMETHODNULL),
-    polarity_(POLNULL),
+    inlet_type_(InletType::INLETNULL),
+    ionization_method_(IonizationMethod::IONMETHODNULL),
+    polarity_(Polarity::POLNULL),
     order_(0)
   {
   }
@@ -90,8 +90,8 @@ namespace OpenMS
   StringList IonSource::getAllNamesOfInletType()
   {
     StringList names;
-    names.reserve(SIZE_OF_INLETTYPE);
-    for (size_t i = 0; i < SIZE_OF_INLETTYPE; ++i)
+    names.reserve(static_cast<size_t>(InletType::SIZE_OF_INLETTYPE));
+    for (size_t i = 0; i < static_cast<size_t>(InletType::SIZE_OF_INLETTYPE); ++i)
     {
       names.push_back(NamesOfInletType[i]);
     }
@@ -101,8 +101,8 @@ namespace OpenMS
   StringList IonSource::getAllNamesOfIonizationMethod()
   {
     StringList names;
-    names.reserve(SIZE_OF_IONIZATIONMETHOD);
-    for (size_t i = 0; i < SIZE_OF_IONIZATIONMETHOD; ++i)
+    names.reserve(static_cast<size_t>(IonizationMethod::SIZE_OF_IONIZATIONMETHOD));
+    for (size_t i = 0; i < static_cast<size_t>(IonizationMethod::SIZE_OF_IONIZATIONMETHOD); ++i)
     {
       names.push_back(NamesOfIonizationMethod[i]);
     }
@@ -112,8 +112,8 @@ namespace OpenMS
   StringList IonSource::getAllNamesOfPolarity()
   {
     StringList names;
-    names.reserve(SIZE_OF_POLARITY);
-    for (size_t i = 0; i < SIZE_OF_POLARITY; ++i)
+    names.reserve(static_cast<size_t>(Polarity::SIZE_OF_POLARITY));
+    for (size_t i = 0; i < static_cast<size_t>(Polarity::SIZE_OF_POLARITY); ++i)
     {
       names.push_back(NamesOfPolarity[i]);
     }
@@ -122,7 +122,7 @@ namespace OpenMS
 
   const std::string& IonSource::inletTypeToString(InletType type)
   {
-    if (type == SIZE_OF_INLETTYPE)
+    if (type == InletType::SIZE_OF_INLETTYPE)
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value not allowed", "SIZE_OF_INLETTYPE");
     }
@@ -132,7 +132,7 @@ namespace OpenMS
   IonSource::InletType IonSource::toInletType(const std::string& name)
   {
     auto first = &NamesOfInletType[0];
-    auto last = &NamesOfInletType[SIZE_OF_INLETTYPE];
+    auto last = &NamesOfInletType[static_cast<size_t>(InletType::SIZE_OF_INLETTYPE)];
     const auto it = std::find(first, last, name);
     if (it == last)
     {
@@ -143,7 +143,7 @@ namespace OpenMS
 
   const std::string& IonSource::ionizationMethodToString(IonizationMethod method)
   {
-    if (method == SIZE_OF_IONIZATIONMETHOD)
+    if (method == IonizationMethod::SIZE_OF_IONIZATIONMETHOD)
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value not allowed", "SIZE_OF_IONIZATIONMETHOD");
     }
@@ -153,7 +153,7 @@ namespace OpenMS
   IonSource::IonizationMethod IonSource::toIonizationMethod(const std::string& name)
   {
     auto first = &NamesOfIonizationMethod[0];
-    auto last = &NamesOfIonizationMethod[SIZE_OF_IONIZATIONMETHOD];
+    auto last = &NamesOfIonizationMethod[static_cast<size_t>(IonizationMethod::SIZE_OF_IONIZATIONMETHOD)];
     const auto it = std::find(first, last, name);
     if (it == last)
     {
@@ -164,7 +164,7 @@ namespace OpenMS
 
   const std::string& IonSource::polarityToString(Polarity polarity)
   {
-    if (polarity == SIZE_OF_POLARITY)
+    if (polarity == Polarity::SIZE_OF_POLARITY)
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value not allowed", "SIZE_OF_POLARITY");
     }
@@ -174,7 +174,7 @@ namespace OpenMS
   IonSource::Polarity IonSource::toPolarity(const std::string& name)
   {
     auto first = &NamesOfPolarity[0];
-    auto last = &NamesOfPolarity[SIZE_OF_POLARITY];
+    auto last = &NamesOfPolarity[static_cast<size_t>(Polarity::SIZE_OF_POLARITY)];
     const auto it = std::find(first, last, name);
     if (it == last)
     {

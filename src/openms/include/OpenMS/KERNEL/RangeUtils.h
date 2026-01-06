@@ -13,6 +13,7 @@
 #include <vector>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/METADATA/Precursor.h>
+#include <OpenMS/METADATA/IonSource.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
@@ -218,7 +219,7 @@ public:
       @param[in] reverse if @p reverse is true, operator() returns true if the spectrum has a different
       scan polarity
     */
-    HasScanPolarity(Int polarity, bool reverse = false) :
+    HasScanPolarity(IonSource::Polarity polarity, bool reverse = false) :
       polarity_(polarity),
       reverse_(reverse)
     {}
@@ -230,7 +231,7 @@ public:
     }
 
 protected:
-    Int polarity_;
+    IonSource::Polarity polarity_;
     bool reverse_;
   };
 

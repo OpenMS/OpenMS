@@ -408,8 +408,8 @@ END_SECTION
 
 HasScanPolarity<MSSpectrum>* ptr51 = nullptr;
 HasScanPolarity<MSSpectrum>* nullPointer51 = nullptr;
-START_SECTION((HasScanPolarity(Int polarity,bool reverse = false)))
-  ptr51 = new HasScanPolarity<MSSpectrum>(0);
+START_SECTION((HasScanPolarity(IonSource::Polarity polarity,bool reverse = false)))
+  ptr51 = new HasScanPolarity<MSSpectrum>(IonSource::Polarity::POLNULL);
   TEST_NOT_EQUAL(ptr48, nullPointer51)
 END_SECTION
 
@@ -418,12 +418,12 @@ START_SECTION(([EXTRA]~HasScanPolarity()))
 END_SECTION
 
 START_SECTION((bool operator()(const SpectrumType& s) const))
-  HasScanPolarity<MSSpectrum> s(IonSource::POSITIVE);
-  HasScanPolarity<MSSpectrum> s2(IonSource::POSITIVE, true);
+  HasScanPolarity<MSSpectrum> s(IonSource::Polarity::POSITIVE);
+  HasScanPolarity<MSSpectrum> s2(IonSource::Polarity::POSITIVE, true);
   MSSpectrum spec;
   TEST_EQUAL(s(spec), false);
   TEST_EQUAL(s2(spec), true);
-  spec.getInstrumentSettings().setPolarity(IonSource::POSITIVE);
+  spec.getInstrumentSettings().setPolarity(IonSource::Polarity::POSITIVE);
   TEST_EQUAL(s(spec), true);
   TEST_EQUAL(s2(spec), false);
 END_SECTION

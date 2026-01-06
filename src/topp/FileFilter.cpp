@@ -454,7 +454,7 @@ protected:
 
     addEmptyLine_();
     registerStringOption_("spectra:select_polarity", "<polarity>", "", "Retain MSn scans with a certain scan polarity", false);
-    setValidStrings_("spectra:select_polarity", IonSource::NamesOfPolarity, (int)IonSource::SIZE_OF_POLARITY);
+    setValidStrings_("spectra:select_polarity", IonSource::NamesOfPolarity, static_cast<int>(IonSource::Polarity::SIZE_OF_POLARITY));
 
     registerTOPPSubsection_("spectra:blackorwhitelist", "Black or white listing of of MS2 spectra by spectral similarity");
     registerInputFile_("spectra:blackorwhitelist:file", "<file>", "",   "Input file containing MS2 spectra that should be retained or removed from the mzML file!\n"
@@ -941,11 +941,11 @@ protected:
       if (!select_polarity.empty())
       {
         writeDebug_("Selecting polarity: " + select_polarity, 3);
-        for (Size i = 0; i < IonSource::SIZE_OF_POLARITY; ++i)
+        for (size_t i = 0; i < static_cast<size_t>(IonSource::Polarity::SIZE_OF_POLARITY); ++i)
         {
           if (IonSource::NamesOfPolarity[i] == select_polarity)
           {
-            exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), HasScanPolarity<MapType::SpectrumType>((IonSource::Polarity)i, true)), exp.end());
+            exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), HasScanPolarity<MapType::SpectrumType>(static_cast<IonSource::Polarity>(i), true)), exp.end());
           }
         }
       }
