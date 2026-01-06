@@ -173,26 +173,26 @@ END_SECTION
 
 START_SECTION((static StringList getAllNamesOfInletType()))
   StringList names = IonSource::getAllNamesOfInletType();
-  TEST_EQUAL(names.size(), IonSource::SIZE_OF_INLETTYPE);
-  TEST_EQUAL(names[IonSource::InletType::INLETNULL], "Unknown");
-  TEST_EQUAL(names[IonSource::InletType::DIRECT], "Direct");
-  TEST_EQUAL(names[IonSource::InletType::NANOSPRAY], "Nanospray inlet");
+  TEST_EQUAL(names.size(), static_cast<size_t>(IonSource::InletType::SIZE_OF_INLETTYPE));
+  TEST_EQUAL(names[static_cast<size_t>(IonSource::InletType::INLETNULL)], "Unknown");
+  TEST_EQUAL(names[static_cast<size_t>(IonSource::InletType::DIRECT)], "Direct");
+  TEST_EQUAL(names[static_cast<size_t>(IonSource::InletType::NANOSPRAY)], "Nanospray inlet");
 END_SECTION
 
 START_SECTION((static StringList getAllNamesOfIonizationMethod()))
   StringList names = IonSource::getAllNamesOfIonizationMethod();
-  TEST_EQUAL(names.size(), IonSource::SIZE_OF_IONIZATIONMETHOD);
-  TEST_EQUAL(names[IonSource::IonizationMethod::IONMETHODNULL], "Unknown");
-  TEST_EQUAL(names[IonSource::IonizationMethod::ESI], "Electrospray ionisation");
-  TEST_EQUAL(names[IonSource::IonizationMethod::MALDI], "Matrix-assisted laser desorption ionization");
+  TEST_EQUAL(names.size(), static_cast<size_t>(IonSource::IonizationMethod::SIZE_OF_IONIZATIONMETHOD));
+  TEST_EQUAL(names[static_cast<size_t>(IonSource::IonizationMethod::IONMETHODNULL)], "Unknown");
+  TEST_EQUAL(names[static_cast<size_t>(IonSource::IonizationMethod::ESI)], "Electrospray ionisation");
+  TEST_EQUAL(names[static_cast<size_t>(IonSource::IonizationMethod::MALDI)], "Matrix-assisted laser desorption ionization");
 END_SECTION
 
 START_SECTION((static StringList getAllNamesOfPolarity()))
   StringList names = IonSource::getAllNamesOfPolarity();
-  TEST_EQUAL(names.size(), IonSource::SIZE_OF_POLARITY);
-  TEST_EQUAL(names[IonSource::Polarity::POLNULL], "unknown");
-  TEST_EQUAL(names[IonSource::Polarity::POSITIVE], "positive");
-  TEST_EQUAL(names[IonSource::Polarity::NEGATIVE], "negative");
+  TEST_EQUAL(names.size(), static_cast<size_t>(IonSource::Polarity::SIZE_OF_POLARITY));
+  TEST_EQUAL(names[static_cast<size_t>(IonSource::Polarity::POLNULL)], "unknown");
+  TEST_EQUAL(names[static_cast<size_t>(IonSource::Polarity::POSITIVE)], "positive");
+  TEST_EQUAL(names[static_cast<size_t>(IonSource::Polarity::NEGATIVE)], "negative");
 END_SECTION
 
 START_SECTION(([EXTRA] std::hash<IonSource>))

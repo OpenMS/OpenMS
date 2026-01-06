@@ -409,7 +409,7 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
     }
     //general info
     TEST_EQUAL(spec.getMSLevel(),2)
-    TEST_EQUAL(spec.getInstrumentSettings().getScanMode(),InstrumentSettings::MSNSPECTRUM)
+    TEST_EQUAL(spec.getInstrumentSettings().getScanMode(),InstrumentSettings::ScanMode::MSNSPECTRUM)
     TEST_EQUAL(spec.getType(),SpectrumSettings::SpectrumType::CENTROID)
     TEST_REAL_SIMILAR(spec.getRT(),5.2)
     // in the mzML, drift time is stored in precursor only but we still create a spectrum attribute for convenience

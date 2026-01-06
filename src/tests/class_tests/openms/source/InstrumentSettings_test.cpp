@@ -68,8 +68,8 @@ END_SECTION
 
 START_SECTION((void setScanMode(ScanMode scan_mode)))
 	InstrumentSettings tmp;
-	tmp.setScanMode(InstrumentSettings::SIM);
-	TEST_EQUAL(tmp.getScanMode(),InstrumentSettings::SIM);
+	tmp.setScanMode(InstrumentSettings::ScanMode::SIM);
+	TEST_EQUAL(tmp.getScanMode(),InstrumentSettings::ScanMode::SIM);
 END_SECTION
 
 START_SECTION((bool getZoomScan() const))
@@ -85,14 +85,14 @@ END_SECTION
 
 START_SECTION((InstrumentSettings(const InstrumentSettings& source)))
   InstrumentSettings tmp;
-  tmp.setScanMode(InstrumentSettings::SIM);
+  tmp.setScanMode(InstrumentSettings::ScanMode::SIM);
   tmp.getScanWindows().resize(1);
   tmp.setPolarity(IonSource::Polarity::NEGATIVE);
   tmp.setMetaValue("label",String("label"));
 	tmp.setZoomScan(true);
-  
+
   InstrumentSettings tmp2(tmp);
-  TEST_EQUAL(tmp2.getScanMode(),InstrumentSettings::SIM);
+  TEST_EQUAL(tmp2.getScanMode(),InstrumentSettings::ScanMode::SIM);
   TEST_EQUAL(tmp2.getScanWindows().size(),1);
   TEST_EQUAL(tmp2.getPolarity(),IonSource::Polarity::NEGATIVE);  
 	TEST_EQUAL((String)(tmp2.getMetaValue("label")), "label");  
@@ -101,15 +101,15 @@ END_SECTION
 
 START_SECTION((InstrumentSettings& operator= (const InstrumentSettings& source)))
   InstrumentSettings tmp;
-  tmp.setScanMode(InstrumentSettings::SIM);
+  tmp.setScanMode(InstrumentSettings::ScanMode::SIM);
   tmp.getScanWindows().resize(1);
   tmp.setPolarity(IonSource::Polarity::NEGATIVE);
   tmp.setMetaValue("label",String("label"));
 	tmp.setZoomScan(true);
-  
+
   InstrumentSettings tmp2;
   tmp2 = tmp;
-  TEST_EQUAL(tmp2.getScanMode(),InstrumentSettings::SIM);
+  TEST_EQUAL(tmp2.getScanMode(),InstrumentSettings::ScanMode::SIM);
   TEST_EQUAL(tmp2.getScanWindows().size(),1);
   TEST_EQUAL(tmp2.getPolarity(),IonSource::Polarity::NEGATIVE);  
   TEST_EQUAL((String)(tmp2.getMetaValue("label")), "label");
@@ -127,8 +127,8 @@ START_SECTION((bool operator== (const InstrumentSettings& rhs) const))
   InstrumentSettings edit, empty;
   
   TEST_EQUAL(edit==empty,true);
-  
-  edit.setScanMode(InstrumentSettings::SIM);
+
+  edit.setScanMode(InstrumentSettings::ScanMode::SIM);
   TEST_EQUAL(edit==empty,false);
   
   edit = empty; 
@@ -152,8 +152,8 @@ START_SECTION((bool operator!= (const InstrumentSettings& rhs) const))
   InstrumentSettings edit, empty;
   
   TEST_EQUAL(edit!=empty,false);
-  
-  edit.setScanMode(InstrumentSettings::SIM);
+
+  edit.setScanMode(InstrumentSettings::ScanMode::SIM);
   TEST_EQUAL(edit!=empty,true);
   
   edit = empty;	
@@ -175,8 +175,8 @@ END_SECTION
 
 START_SECTION((static StringList getAllNamesOfScanMode()))
   StringList names = InstrumentSettings::getAllNamesOfScanMode();
-  TEST_EQUAL(names.size(), InstrumentSettings::SIZE_OF_SCANMODE);
-  TEST_EQUAL(names[InstrumentSettings::ScanMode::MS1SPECTRUM], "MS1Spectrum");
+  TEST_EQUAL(names.size(), static_cast<size_t>(InstrumentSettings::ScanMode::SIZE_OF_SCANMODE));
+  TEST_EQUAL(names[static_cast<size_t>(InstrumentSettings::ScanMode::MS1SPECTRUM)], "MS1Spectrum");
 END_SECTION
 
 

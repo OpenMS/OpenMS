@@ -417,10 +417,10 @@ END_SECTION
 START_SECTION([EXTRA](ENUMs))
 {
   // extra stuff tested here:
-  TEST_EQUAL(ChromatogramSettings::SIZE_OF_CHROMATOGRAM_TYPE+1, sizeof( ChromatogramSettings::ChromatogramNames ) / sizeof( char* ))
-  TEST_EQUAL(String(ChromatogramSettings::ChromatogramNames[ChromatogramSettings::ChromatogramType::MASS_CHROMATOGRAM]), String("mass chromatogram"))
-  TEST_EQUAL(String(ChromatogramSettings::ChromatogramNames[ChromatogramSettings::ChromatogramType::EMISSION_CHROMATOGRAM]), String("emission chromatogram"))
-  TEST_EQUAL(String(ChromatogramSettings::ChromatogramNames[ChromatogramSettings::SIZE_OF_CHROMATOGRAM_TYPE]), String("unknown chromatogram")) // should be the last entry
+  TEST_EQUAL(static_cast<size_t>(ChromatogramSettings::ChromatogramType::SIZE_OF_CHROMATOGRAM_TYPE)+1, sizeof( ChromatogramSettings::ChromatogramNames ) / sizeof( char* ))
+  TEST_EQUAL(String(ChromatogramSettings::ChromatogramNames[static_cast<size_t>(ChromatogramSettings::ChromatogramType::MASS_CHROMATOGRAM)]), String("mass chromatogram"))
+  TEST_EQUAL(String(ChromatogramSettings::ChromatogramNames[static_cast<size_t>(ChromatogramSettings::ChromatogramType::EMISSION_CHROMATOGRAM)]), String("emission chromatogram"))
+  TEST_EQUAL(String(ChromatogramSettings::ChromatogramNames[static_cast<size_t>(ChromatogramSettings::ChromatogramType::SIZE_OF_CHROMATOGRAM_TYPE)]), String("unknown chromatogram")) // should be the last entry
 }
 END_SECTION
 

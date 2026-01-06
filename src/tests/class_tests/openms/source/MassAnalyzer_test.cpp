@@ -430,39 +430,39 @@ END_SECTION
 
 START_SECTION((static StringList getAllNamesOfAnalyzerType()))
   StringList names = MassAnalyzer::getAllNamesOfAnalyzerType();
-  TEST_EQUAL(names.size(), MassAnalyzer::SIZE_OF_ANALYZERTYPE);
-  TEST_EQUAL(names[MassAnalyzer::AnalyzerType::QUADRUPOLE], "Quadrupole");
-  TEST_EQUAL(names[MassAnalyzer::AnalyzerType::ORBITRAP], "Orbitrap");
+  TEST_EQUAL(names.size(), static_cast<size_t>(MassAnalyzer::AnalyzerType::SIZE_OF_ANALYZERTYPE));
+  TEST_EQUAL(names[static_cast<size_t>(MassAnalyzer::AnalyzerType::QUADRUPOLE)], "Quadrupole");
+  TEST_EQUAL(names[static_cast<size_t>(MassAnalyzer::AnalyzerType::ORBITRAP)], "Orbitrap");
 END_SECTION
 
 START_SECTION((static StringList getAllNamesOfResolutionMethod()))
   StringList names = MassAnalyzer::getAllNamesOfResolutionMethod();
-  TEST_EQUAL(names.size(), MassAnalyzer::SIZE_OF_RESOLUTIONMETHOD);
-  TEST_EQUAL(names[MassAnalyzer::ResolutionMethod::FWHM], "Full width at half max");
+  TEST_EQUAL(names.size(), static_cast<size_t>(MassAnalyzer::ResolutionMethod::SIZE_OF_RESOLUTIONMETHOD));
+  TEST_EQUAL(names[static_cast<size_t>(MassAnalyzer::ResolutionMethod::FWHM)], "Full width at half max");
 END_SECTION
 
 START_SECTION((static StringList getAllNamesOfResolutionType()))
   StringList names = MassAnalyzer::getAllNamesOfResolutionType();
-  TEST_EQUAL(names.size(), MassAnalyzer::SIZE_OF_RESOLUTIONTYPE);
-  TEST_EQUAL(names[MassAnalyzer::ResolutionType::CONSTANT], "Constant");
+  TEST_EQUAL(names.size(), static_cast<size_t>(MassAnalyzer::ResolutionType::SIZE_OF_RESOLUTIONTYPE));
+  TEST_EQUAL(names[static_cast<size_t>(MassAnalyzer::ResolutionType::CONSTANT)], "Constant");
 END_SECTION
 
 START_SECTION((static StringList getAllNamesOfScanDirection()))
   StringList names = MassAnalyzer::getAllNamesOfScanDirection();
-  TEST_EQUAL(names.size(), MassAnalyzer::SIZE_OF_SCANDIRECTION);
-  TEST_EQUAL(names[MassAnalyzer::ScanDirection::UP], "Up");
+  TEST_EQUAL(names.size(), static_cast<size_t>(MassAnalyzer::ScanDirection::SIZE_OF_SCANDIRECTION));
+  TEST_EQUAL(names[static_cast<size_t>(MassAnalyzer::ScanDirection::UP)], "Up");
 END_SECTION
 
 START_SECTION((static StringList getAllNamesOfScanLaw()))
   StringList names = MassAnalyzer::getAllNamesOfScanLaw();
-  TEST_EQUAL(names.size(), MassAnalyzer::SIZE_OF_SCANLAW);
-  TEST_EQUAL(names[MassAnalyzer::ScanLaw::LINEAR], "Linar");
+  TEST_EQUAL(names.size(), static_cast<size_t>(MassAnalyzer::ScanLaw::SIZE_OF_SCANLAW));
+  TEST_EQUAL(names[static_cast<size_t>(MassAnalyzer::ScanLaw::LINEAR)], "Linar");
 END_SECTION
 
 START_SECTION((static StringList getAllNamesOfReflectronState()))
   StringList names = MassAnalyzer::getAllNamesOfReflectronState();
-  TEST_EQUAL(names.size(), MassAnalyzer::SIZE_OF_REFLECTRONSTATE);
-  TEST_EQUAL(names[MassAnalyzer::ReflectronState::ON], "On");
+  TEST_EQUAL(names.size(), static_cast<size_t>(MassAnalyzer::ReflectronState::SIZE_OF_REFLECTRONSTATE));
+  TEST_EQUAL(names[static_cast<size_t>(MassAnalyzer::ReflectronState::ON)], "On");
 END_SECTION
 
 START_SECTION(([EXTRA] std::hash<MassAnalyzer>))

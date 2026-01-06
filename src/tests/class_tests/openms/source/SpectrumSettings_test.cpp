@@ -427,9 +427,9 @@ END_SECTION
 
 START_SECTION((static StringList getAllNamesOfSpectrumType()))
   StringList names = SpectrumSettings::getAllNamesOfSpectrumType();
-  TEST_EQUAL(names.size(), SpectrumSettings::SIZE_OF_SPECTRUMTYPE);
-  TEST_EQUAL(names[SpectrumSettings::SpectrumType::CENTROID], "Centroid");
-  TEST_EQUAL(names[SpectrumSettings::SpectrumType::PROFILE], "Profile");
+  TEST_EQUAL(names.size(), static_cast<size_t>(SpectrumSettings::SpectrumType::SIZE_OF_SPECTRUMTYPE));
+  TEST_EQUAL(names[static_cast<size_t>(SpectrumSettings::SpectrumType::CENTROID)], "Centroid");
+  TEST_EQUAL(names[static_cast<size_t>(SpectrumSettings::SpectrumType::PROFILE)], "Profile");
 END_SECTION
 
 START_SECTION([EXTRA] std::hash<SpectrumSettings>)

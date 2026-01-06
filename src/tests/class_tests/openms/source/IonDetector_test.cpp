@@ -197,14 +197,14 @@ END_SECTION
 
 START_SECTION((static StringList getAllNamesOfType()))
   StringList names = IonDetector::getAllNamesOfType();
-  TEST_EQUAL(names.size(), IonDetector::SIZE_OF_TYPE);
-  TEST_EQUAL(names[IonDetector::Type::ELECTRONMULTIPLIER], "Electron multiplier");
+  TEST_EQUAL(names.size(), static_cast<size_t>(IonDetector::Type::SIZE_OF_TYPE));
+  TEST_EQUAL(names[static_cast<size_t>(IonDetector::Type::ELECTRONMULTIPLIER)], "Electron multiplier");
 END_SECTION
 
 START_SECTION((static StringList getAllNamesOfAcquisitionMode()))
   StringList names = IonDetector::getAllNamesOfAcquisitionMode();
-  TEST_EQUAL(names.size(), IonDetector::SIZE_OF_ACQUISITIONMODE);
-  TEST_EQUAL(names[IonDetector::AcquisitionMode::PULSECOUNTING], "Pulse counting");
+  TEST_EQUAL(names.size(), static_cast<size_t>(IonDetector::AcquisitionMode::SIZE_OF_ACQUISITIONMODE));
+  TEST_EQUAL(names[static_cast<size_t>(IonDetector::AcquisitionMode::PULSECOUNTING)], "Pulse counting");
 END_SECTION
 
 START_SECTION(([EXTRA] std::hash<IonDetector>))

@@ -321,8 +321,8 @@ END_SECTION
 
 START_SECTION((static StringList getAllNamesOfIonOpticsType()))
   StringList names = Instrument::getAllNamesOfIonOpticsType();
-  TEST_EQUAL(names.size(), Instrument::SIZE_OF_IONOPTICSTYPE);
-  TEST_EQUAL(names[Instrument::IonOpticsType::REFLECTRON], "reflectron");
+  TEST_EQUAL(names.size(), static_cast<size_t>(Instrument::IonOpticsType::SIZE_OF_IONOPTICSTYPE));
+  TEST_EQUAL(names[static_cast<size_t>(Instrument::IonOpticsType::REFLECTRON)], "reflectron");
 END_SECTION
 
 
