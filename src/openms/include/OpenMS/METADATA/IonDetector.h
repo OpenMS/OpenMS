@@ -67,25 +67,54 @@ public:
     /// Names of acquisition modes
     static const std::string NamesOfAcquisitionMode[static_cast<size_t>(AcquisitionMode::SIZE_OF_ACQUISITIONMODE)];
 
-    /// returns all detector type names known to OpenMS
+    /**
+     @brief Returns all detector type names known to OpenMS
+
+     @return List of all detector type names
+    */
     static StringList getAllNamesOfType();
-    /// returns all acquisition mode names known to OpenMS
+
+    /**
+     @brief Returns all acquisition mode names known to OpenMS
+
+     @return List of all acquisition mode names
+    */
     static StringList getAllNamesOfAcquisitionMode();
 
-    /// Convert a Type enum to its string representation
-    /// @throws Exception::InvalidValue if @p type is SIZE_OF_TYPE
+    /**
+     @brief Convert a Type enum to its string representation
+
+     @param type The detector type enum value to convert
+     @return Reference to the string representation
+     @throws Exception::InvalidValue if @p type is SIZE_OF_TYPE
+    */
     static const std::string& typeToString(Type type);
 
-    /// Convert a string to a Type enum
-    /// @throws Exception::InvalidValue if @p name is not found in NamesOfType
+    /**
+     @brief Convert a string to a Type enum
+
+     @param name The string name to convert
+     @return The corresponding Type enum value
+     @throws Exception::InvalidValue if @p name is not found in NamesOfType[]
+    */
     static Type toType(const std::string& name);
 
-    /// Convert an AcquisitionMode enum to its string representation
-    /// @throws Exception::InvalidValue if @p mode is SIZE_OF_ACQUISITIONMODE
+    /**
+     @brief Convert an AcquisitionMode enum to its string representation
+
+     @param mode The acquisition mode enum value to convert
+     @return Reference to the string representation
+     @throws Exception::InvalidValue if @p mode is SIZE_OF_ACQUISITIONMODE
+    */
     static const std::string& acquisitionModeToString(AcquisitionMode mode);
 
-    /// Convert a string to an AcquisitionMode enum
-    /// @throws Exception::InvalidValue if @p name is not found in NamesOfAcquisitionMode
+    /**
+     @brief Convert a string to an AcquisitionMode enum
+
+     @param name The string name to convert
+     @return The corresponding AcquisitionMode enum value
+     @throws Exception::InvalidValue if @p name is not found in NamesOfAcquisitionMode[]
+    */
     static AcquisitionMode toAcquisitionMode(const std::string& name);
 
     /// Constructor
