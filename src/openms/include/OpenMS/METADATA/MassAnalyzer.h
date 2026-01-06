@@ -111,59 +111,154 @@ public:
     /// Names of reflectron states
     static const std::string NamesOfReflectronState[SIZE_OF_REFLECTRONSTATE];
 
-    /// returns all analyzer type names known to OpenMS
+    /**
+     @brief Returns all analyzer type names known to OpenMS
+
+     @return List of all analyzer type names
+    */
     static StringList getAllNamesOfAnalyzerType();
-    /// returns all resolution method names known to OpenMS
+
+    /**
+     @brief Returns all resolution method names known to OpenMS
+
+     @return List of all resolution method names
+    */
     static StringList getAllNamesOfResolutionMethod();
-    /// returns all resolution type names known to OpenMS
+
+    /**
+     @brief Returns all resolution type names known to OpenMS
+
+     @return List of all resolution type names
+    */
     static StringList getAllNamesOfResolutionType();
-    /// returns all scan direction names known to OpenMS
+
+    /**
+     @brief Returns all scan direction names known to OpenMS
+
+     @return List of all scan direction names
+    */
     static StringList getAllNamesOfScanDirection();
-    /// returns all scan law names known to OpenMS
+
+    /**
+     @brief Returns all scan law names known to OpenMS
+
+     @return List of all scan law names
+    */
     static StringList getAllNamesOfScanLaw();
-    /// returns all reflectron state names known to OpenMS
+
+    /**
+     @brief Returns all reflectron state names known to OpenMS
+
+     @return List of all reflectron state names
+    */
     static StringList getAllNamesOfReflectronState();
 
-    /// Convert AnalyzerType enum to string
-    /// @throws Exception::InvalidValue if @p type is SIZE_OF_ANALYZERTYPE
+    /**
+     @brief Convert an AnalyzerType enum to its string representation
+
+     @param type The analyzer type enum value to convert
+     @return Reference to the string representation
+     @throws Exception::InvalidValue if @p type is SIZE_OF_ANALYZERTYPE
+    */
     static const std::string& analyzerTypeToString(AnalyzerType type);
-    /// Convert string to AnalyzerType enum
-    /// @throws Exception::InvalidValue if @p name is not a valid analyzer type name
+
+    /**
+     @brief Convert a string to an AnalyzerType enum
+
+     @param name The string name to convert
+     @return The corresponding AnalyzerType enum value
+     @throws Exception::InvalidValue if @p name is not found in NamesOfAnalyzerType[]
+    */
     static AnalyzerType toAnalyzerType(const std::string& name);
 
-    /// Convert ResolutionMethod enum to string
-    /// @throws Exception::InvalidValue if @p method is SIZE_OF_RESOLUTIONMETHOD
+    /**
+     @brief Convert a ResolutionMethod enum to its string representation
+
+     @param method The resolution method enum value to convert
+     @return Reference to the string representation
+     @throws Exception::InvalidValue if @p method is SIZE_OF_RESOLUTIONMETHOD
+    */
     static const std::string& resolutionMethodToString(ResolutionMethod method);
-    /// Convert string to ResolutionMethod enum
-    /// @throws Exception::InvalidValue if @p name is not a valid resolution method name
+
+    /**
+     @brief Convert a string to a ResolutionMethod enum
+
+     @param name The string name to convert
+     @return The corresponding ResolutionMethod enum value
+     @throws Exception::InvalidValue if @p name is not found in NamesOfResolutionMethod[]
+    */
     static ResolutionMethod toResolutionMethod(const std::string& name);
 
-    /// Convert ResolutionType enum to string
-    /// @throws Exception::InvalidValue if @p type is SIZE_OF_RESOLUTIONTYPE
+    /**
+     @brief Convert a ResolutionType enum to its string representation
+
+     @param type The resolution type enum value to convert
+     @return Reference to the string representation
+     @throws Exception::InvalidValue if @p type is SIZE_OF_RESOLUTIONTYPE
+    */
     static const std::string& resolutionTypeToString(ResolutionType type);
-    /// Convert string to ResolutionType enum
-    /// @throws Exception::InvalidValue if @p name is not a valid resolution type name
+
+    /**
+     @brief Convert a string to a ResolutionType enum
+
+     @param name The string name to convert
+     @return The corresponding ResolutionType enum value
+     @throws Exception::InvalidValue if @p name is not found in NamesOfResolutionType[]
+    */
     static ResolutionType toResolutionType(const std::string& name);
 
-    /// Convert ScanDirection enum to string
-    /// @throws Exception::InvalidValue if @p direction is SIZE_OF_SCANDIRECTION
+    /**
+     @brief Convert a ScanDirection enum to its string representation
+
+     @param direction The scan direction enum value to convert
+     @return Reference to the string representation
+     @throws Exception::InvalidValue if @p direction is SIZE_OF_SCANDIRECTION
+    */
     static const std::string& scanDirectionToString(ScanDirection direction);
-    /// Convert string to ScanDirection enum
-    /// @throws Exception::InvalidValue if @p name is not a valid scan direction name
+
+    /**
+     @brief Convert a string to a ScanDirection enum
+
+     @param name The string name to convert
+     @return The corresponding ScanDirection enum value
+     @throws Exception::InvalidValue if @p name is not found in NamesOfScanDirection[]
+    */
     static ScanDirection toScanDirection(const std::string& name);
 
-    /// Convert ScanLaw enum to string
-    /// @throws Exception::InvalidValue if @p law is SIZE_OF_SCANLAW
+    /**
+     @brief Convert a ScanLaw enum to its string representation
+
+     @param law The scan law enum value to convert
+     @return Reference to the string representation
+     @throws Exception::InvalidValue if @p law is SIZE_OF_SCANLAW
+    */
     static const std::string& scanLawToString(ScanLaw law);
-    /// Convert string to ScanLaw enum
-    /// @throws Exception::InvalidValue if @p name is not a valid scan law name
+
+    /**
+     @brief Convert a string to a ScanLaw enum
+
+     @param name The string name to convert
+     @return The corresponding ScanLaw enum value
+     @throws Exception::InvalidValue if @p name is not found in NamesOfScanLaw[]
+    */
     static ScanLaw toScanLaw(const std::string& name);
 
-    /// Convert ReflectronState enum to string
-    /// @throws Exception::InvalidValue if @p state is SIZE_OF_REFLECTRONSTATE
+    /**
+     @brief Convert a ReflectronState enum to its string representation
+
+     @param state The reflectron state enum value to convert
+     @return Reference to the string representation
+     @throws Exception::InvalidValue if @p state is SIZE_OF_REFLECTRONSTATE
+    */
     static const std::string& reflectronStateToString(ReflectronState state);
-    /// Convert string to ReflectronState enum
-    /// @throws Exception::InvalidValue if @p name is not a valid reflectron state name
+
+    /**
+     @brief Convert a string to a ReflectronState enum
+
+     @param name The string name to convert
+     @return The corresponding ReflectronState enum value
+     @throws Exception::InvalidValue if @p name is not found in NamesOfReflectronState[]
+    */
     static ReflectronState toReflectronState(const std::string& name);
 
     /// Constructor
