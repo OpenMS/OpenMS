@@ -47,15 +47,29 @@ public:
     /// Names of scan modes
     static const std::string NamesOfScanMode[SIZE_OF_SCANMODE];
 
-    /// returns all scan mode names known to OpenMS
+    /**
+     @brief Returns all scan mode names known to OpenMS
+
+     @return List of all scan mode names
+    */
     static StringList getAllNamesOfScanMode();
 
-    /// convert a ScanMode enum to String
-    /// @throws Exception::InvalidValue if @p value is SIZE_OF_SCANMODE
+    /**
+     @brief Convert a ScanMode enum to its string representation
+
+     @param mode The scan mode enum value to convert
+     @return Reference to the string representation
+     @throws Exception::InvalidValue if @p mode is SIZE_OF_SCANMODE
+    */
     static const std::string& scanModeToString(ScanMode mode);
 
-    /// convert an entry in NamesOfScanMode[] to ScanMode enum
-    /// @throws Exception::InvalidValue if @p name is not contained in NamesOfScanMode[]
+    /**
+     @brief Convert a string to a ScanMode enum
+
+     @param name The string name to convert
+     @return The corresponding ScanMode enum value
+     @throws Exception::InvalidValue if @p name is not found in NamesOfScanMode[]
+    */
     static ScanMode toScanMode(const std::string& name);
 
     /// Constructor
