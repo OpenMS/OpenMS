@@ -108,9 +108,9 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build OpenMS in container
+      - name: Build and install OpenMS in container
         run: |
-          # Build OpenMS on host (not in job container) so cibuildwheel can mount workspace
+          # Build and install OpenMS so libraries are stripped and paths are clean
           docker run --rm \
             -v $GITHUB_WORKSPACE:/project \
             -w /project \
@@ -121,6 +121,7 @@ jobs:
               cmake .. \
                 -G Ninja \
                 -DCMAKE_BUILD_TYPE=Release \
+                -DCMAKE_INSTALL_PREFIX=/project/install \
                 -DCMAKE_PREFIX_PATH=/contrib-build \
                 -DOPENMS_CONTRIB_LIBS=/contrib-build \
                 -DPYOPENMS=OFF \
@@ -129,6 +130,9 @@ jobs:
                 -DENABLE_DOCS=OFF \
                 -DWITH_PARQUET=ON
               ninja OpenMS OpenSwathAlgo
+              cmake --install . --component library --strip
+              cmake --install . --component share
+              cmake --install . --component cmake
             '
 
       - name: Set pyOpenMS version
@@ -148,8 +152,8 @@ jobs:
           CIBW_BUILD: ${{ needs.setup.outputs.cibw-build-linux-x64 }}
           CIBW_MANYLINUX_X86_64_IMAGE: ghcr.io/openms/contrib_manylinux_2_34:latest-amd64
           CIBW_BEFORE_ALL: "yum install -y cmake ninja-build"
-          # Use build directory directly - libraries have absolute paths
-          CIBW_ENVIRONMENT: "OpenMS_ROOT=/project/build CMAKE_PREFIX_PATH=/contrib-build:/project/build LD_LIBRARY_PATH=/project/build/lib CMAKE_BUILD_PARALLEL_LEVEL=2"
+          # Use install directory with stripped libraries
+          CIBW_ENVIRONMENT: "OpenMS_ROOT=/project/install CMAKE_PREFIX_PATH=/contrib-build:/project/install CMAKE_BUILD_PARALLEL_LEVEL=2"
           CIBW_REPAIR_WHEEL_COMMAND: "auditwheel repair -w {dest_dir} {wheel}"
           CIBW_BUILD_VERBOSITY: 1
 
@@ -178,9 +182,9 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build OpenMS in container
+      - name: Build and install OpenMS in container
         run: |
-          # Build OpenMS on host (not in job container) so cibuildwheel can mount workspace
+          # Build and install OpenMS so libraries are stripped and paths are clean
           docker run --rm \
             -v $GITHUB_WORKSPACE:/project \
             -w /project \
@@ -191,6 +195,7 @@ jobs:
               cmake .. \
                 -G Ninja \
                 -DCMAKE_BUILD_TYPE=Release \
+                -DCMAKE_INSTALL_PREFIX=/project/install \
                 -DCMAKE_PREFIX_PATH=/contrib-build \
                 -DOPENMS_CONTRIB_LIBS=/contrib-build \
                 -DPYOPENMS=OFF \
@@ -199,6 +204,9 @@ jobs:
                 -DENABLE_DOCS=OFF \
                 -DWITH_PARQUET=ON
               ninja OpenMS OpenSwathAlgo
+              cmake --install . --component library --strip
+              cmake --install . --component share
+              cmake --install . --component cmake
             '
 
       - name: Set pyOpenMS version
@@ -218,8 +226,7 @@ jobs:
           CIBW_BUILD: ${{ needs.setup.outputs.cibw-build-linux-arm64 }}
           CIBW_MANYLINUX_AARCH64_IMAGE: ghcr.io/openms/contrib_manylinux_2_34:latest-arm64
           CIBW_BEFORE_ALL: "yum install -y cmake ninja-build"
-          # Use build directory directly - libraries have absolute paths
-          CIBW_ENVIRONMENT: "OpenMS_ROOT=/project/build CMAKE_PREFIX_PATH=/contrib-build:/project/build LD_LIBRARY_PATH=/project/build/lib CMAKE_BUILD_PARALLEL_LEVEL=2"
+          CIBW_ENVIRONMENT: "OpenMS_ROOT=/project/install CMAKE_PREFIX_PATH=/contrib-build:/project/install CMAKE_BUILD_PARALLEL_LEVEL=2"
           CIBW_REPAIR_WHEEL_COMMAND: "auditwheel repair -w {dest_dir} {wheel}"
           CIBW_BUILD_VERBOSITY: 1
 
@@ -235,19 +242,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install dependencies
-        run: bash tools/ci/deps-macos.sh --skip-doc-deps --skip-gui-deps
-
-      - name: Build OpenMS
+      - name: Build and install OpenMS
         run: |
           mkdir build && cd build
           # Note: CMAKE_PREFIX_PATH uses semicolons as list separators when passed via -D
           # BOOST_USE_STATIC=OFF works around Boost's incomplete find_dependency calls
           # ARROW_USE_STATIC=OFF since static Arrow still links to shared abseil libs anyway
-          # Build in the build directory (don't install) to preserve absolute library paths
+          # Install OpenMS so libraries are stripped and use proper install names
           cmake .. \
             -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/install \
             -DCMAKE_PREFIX_PATH="$(brew --prefix);$(brew --prefix libomp)" \
             -DOpenMP_ROOT=$(brew --prefix libomp) \
             -DBOOST_USE_STATIC=OFF \
@@ -259,6 +264,9 @@ jobs:
             -DMT_ENABLE_OPENMP=ON \
             -DWITH_PARQUET=ON
           ninja OpenMS OpenSwathAlgo
+          cmake --install . --component library --strip
+          cmake --install . --component share
+          cmake --install . --component cmake
 
       - name: Set pyOpenMS version
         run: |
@@ -277,9 +285,9 @@ jobs:
           CIBW_BUILD: ${{ needs.setup.outputs.cibw-build-macos-arm64 }}
           CIBW_ARCHS_MACOS: "arm64"
           CIBW_BEFORE_BUILD: "pip install delocate"
-          # Use build directory directly - libraries have absolute paths to Homebrew dependencies
+          # Use install directory with stripped libraries and proper install names
           # This allows delocate to find and bundle all dependencies correctly
-          CIBW_ENVIRONMENT: "OpenMS_ROOT=${{ github.workspace }}/build CMAKE_PREFIX_PATH=/opt/homebrew:/opt/homebrew/opt/libomp:${{ github.workspace }}/build MACOSX_DEPLOYMENT_TARGET=14.0 CMAKE_BUILD_PARALLEL_LEVEL=2 PY_BUILD_CMAKE_VERBOSE=1"
+          CIBW_ENVIRONMENT: "OpenMS_ROOT=${{ github.workspace }}/install CMAKE_PREFIX_PATH=/opt/homebrew:/opt/homebrew/opt/libomp:${{ github.workspace }}/install MACOSX_DEPLOYMENT_TARGET=14.0 CMAKE_BUILD_PARALLEL_LEVEL=2 PY_BUILD_CMAKE_VERBOSE=1"
           # Disable RPATH so delocate can handle library paths instead
           CIBW_CONFIG_SETTINGS: "override=cmake.options.PYOPENMS_DISABLE_RPATH=ON"
           # delocate finds libraries via absolute paths embedded in the extension modules
@@ -328,7 +336,7 @@ jobs:
         with:
           arch: x64
 
-      - name: Build OpenMS
+      - name: Build and install OpenMS
         shell: bash
         env:
           # Workaround for MSVC constexpr mutex constructor bug
@@ -338,6 +346,7 @@ jobs:
           cmake .. \
             -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX="$GITHUB_WORKSPACE/install" \
             -DCMAKE_PREFIX_PATH="$QT_ROOT_DIR/lib/cmake;$QT_ROOT_DIR" \
             -DOPENMS_CONTRIB_LIBS="$GITHUB_WORKSPACE/contrib" \
             -DPYOPENMS=OFF \
@@ -346,11 +355,9 @@ jobs:
             -DENABLE_DOCS=OFF \
             -DWITH_PARQUET=ON
           cmake --build . --target OpenMS OpenSwathAlgo
-
-      - name: List OpenMSConfig.cmake
-        shell: bash
-        run: |
-          find $GITHUB_WORKSPACE/build -iname '*OpenMSConfig.cmake*'
+          cmake --install . --component library --strip
+          cmake --install . --component cmake
+          cmake --install . --component share
 
       - name: Set pyOpenMS version
         shell: bash
@@ -365,7 +372,7 @@ jobs:
         shell: bash
         run: |
           # Convert Windows backslashes to forward slashes for CMake compatibility
-          OPENMS_ROOT_CMAKE=$(echo "${{ github.workspace }}/build" | sed 's|\\|/|g')
+          OPENMS_ROOT_CMAKE=$(echo "${{ github.workspace }}/install" | sed 's|\\|/|g')
           CONTRIB_CMAKE=$(echo "${{ github.workspace }}/contrib" | sed 's|\\|/|g')
           QT_CMAKE=$(echo "${{ env.QT_ROOT_DIR }}" | sed 's|\\|/|g')
           echo "OPENMS_ROOT_CMAKE=${OPENMS_ROOT_CMAKE}" >> $GITHUB_ENV
@@ -387,7 +394,7 @@ jobs:
             PY_BUILD_CMAKE_VERBOSE=1
           # Disable RPATH so delvewheel can handle DLL bundling
           CIBW_CONFIG_SETTINGS: "override=cmake.options.PYOPENMS_DISABLE_RPATH=ON"
-          CIBW_REPAIR_WHEEL_COMMAND: "delvewheel repair --add-path ${{ env.OPENMS_ROOT_CMAKE }}/lib;${{ env.QT_CMAKE }}/bin;${{ env.CONTRIB_CMAKE }}/lib -w {dest_dir} {wheel}"
+          CIBW_REPAIR_WHEEL_COMMAND: "delvewheel repair --add-path ${{ env.OPENMS_ROOT_CMAKE }}/bin;${{ env.OPENMS_ROOT_CMAKE }}/lib;${{ env.QT_CMAKE }}/bin;${{ env.CONTRIB_CMAKE }}/lib -w {dest_dir} {wheel}"
           CIBW_BUILD_VERBOSITY: 1
 
       - uses: actions/upload-artifact@v4
