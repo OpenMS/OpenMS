@@ -145,23 +145,6 @@ class TestRibonucleotideDBStringInput(unittest.TestCase):
         ribo = db.getRibonucleotidePrefix("A")
         self.assertIsNotNone(ribo)
 
-    @unittest.skip("getRibonucleotideAlternatives requires ambiguous codes not in standard database")
-    def test_getRibonucleotideAlternatives_with_str(self):
-        """Test getRibonucleotideAlternatives accepts str (manual addon)."""
-        db = pyopenms.RibonucleotideDB()
-        # Use a code that has alternatives
-        alternatives = db.getRibonucleotideAlternatives("Y")
-        self.assertIsNotNone(alternatives)
-        self.assertEqual(len(alternatives), 2)
-
-    @unittest.skip("getRibonucleotideAlternatives requires ambiguous codes not in standard database")
-    def test_getRibonucleotideAlternatives_with_bytes(self):
-        """Test getRibonucleotideAlternatives still accepts bytes."""
-        db = pyopenms.RibonucleotideDB()
-        alternatives = db.getRibonucleotideAlternatives(b"Y")
-        self.assertIsNotNone(alternatives)
-        self.assertEqual(len(alternatives), 2)
-
 
 class TestIndexedMzMLHandlerStringInput(unittest.TestCase):
     """Test IndexedMzMLHandler native ID methods accept str and bytes."""
