@@ -657,5 +657,165 @@ class TestSpectrumMetaDataLookupStaticMethods(unittest.TestCase):
             self.assertTrue(hasattr(pyopenms.SpectrumMetaDataLookup, 'addMissingSpectrumReferences'))
 
 
+class TestPrecursorEnumStaticMethods(unittest.TestCase):
+    """Test Precursor enum-to-string static methods."""
+
+    def test_activationMethodToString(self):
+        """Test Precursor.activationMethodToString static method."""
+        result = pyopenms.Precursor.activationMethodToString(
+            pyopenms.Precursor.ActivationMethod.CID
+        )
+        self.assertIsNotNone(result)
+        self.assertIn("Collision-induced dissociation", result)
+
+    def test_activationMethodToShortString(self):
+        """Test Precursor.activationMethodToShortString static method."""
+        result = pyopenms.Precursor.activationMethodToShortString(
+            pyopenms.Precursor.ActivationMethod.CID
+        )
+        self.assertIsNotNone(result)
+        self.assertEqual(result, "CID")
+
+    def test_toActivationMethod(self):
+        """Test Precursor.toActivationMethod static method."""
+        # Test with full name
+        result = pyopenms.Precursor.toActivationMethod("Collision-induced dissociation")
+        self.assertEqual(result, pyopenms.Precursor.ActivationMethod.CID)
+
+        # Test with short name
+        result = pyopenms.Precursor.toActivationMethod("CID")
+        self.assertEqual(result, pyopenms.Precursor.ActivationMethod.CID)
+
+    def test_activationMethod_roundtrip(self):
+        """Test that conversion to string and back produces the same enum."""
+        for method in [
+            pyopenms.Precursor.ActivationMethod.CID,
+            pyopenms.Precursor.ActivationMethod.HCD,
+            pyopenms.Precursor.ActivationMethod.ETD,
+        ]:
+            full_name = pyopenms.Precursor.activationMethodToString(method)
+            short_name = pyopenms.Precursor.activationMethodToShortString(method)
+            self.assertEqual(pyopenms.Precursor.toActivationMethod(full_name), method)
+            self.assertEqual(pyopenms.Precursor.toActivationMethod(short_name), method)
+
+
+class TestIonSourceEnumStaticMethods(unittest.TestCase):
+    """Test IonSource enum-to-string static methods."""
+
+    def test_inletTypeToString(self):
+        """Test IonSource.inletTypeToString static method."""
+        result = pyopenms.IonSource.inletTypeToString(
+            pyopenms.IonSource.InletType.DIRECT
+        )
+        self.assertIsNotNone(result)
+        self.assertEqual(result, "Direct")
+
+    def test_toInletType(self):
+        """Test IonSource.toInletType static method."""
+        result = pyopenms.IonSource.toInletType("Direct")
+        self.assertEqual(result, pyopenms.IonSource.InletType.DIRECT)
+
+    def test_ionizationMethodToString(self):
+        """Test IonSource.ionizationMethodToString static method."""
+        result = pyopenms.IonSource.ionizationMethodToString(
+            pyopenms.IonSource.IonizationMethod.ESI
+        )
+        self.assertIsNotNone(result)
+        self.assertEqual(result, "Electrospray ionisation")
+
+    def test_toIonizationMethod(self):
+        """Test IonSource.toIonizationMethod static method."""
+        result = pyopenms.IonSource.toIonizationMethod("Electrospray ionisation")
+        self.assertEqual(result, pyopenms.IonSource.IonizationMethod.ESI)
+
+    def test_polarityToString(self):
+        """Test IonSource.polarityToString static method."""
+        result = pyopenms.IonSource.polarityToString(
+            pyopenms.IonSource.Polarity.POSITIVE
+        )
+        self.assertIsNotNone(result)
+        self.assertEqual(result, "positive")
+
+    def test_toPolarity(self):
+        """Test IonSource.toPolarity static method."""
+        result = pyopenms.IonSource.toPolarity("positive")
+        self.assertEqual(result, pyopenms.IonSource.Polarity.POSITIVE)
+
+    def test_inletType_roundtrip(self):
+        """Test that conversion to string and back produces the same enum."""
+        for inlet in [
+            pyopenms.IonSource.InletType.DIRECT,
+            pyopenms.IonSource.InletType.NANOSPRAY,
+        ]:
+            name = pyopenms.IonSource.inletTypeToString(inlet)
+            self.assertEqual(pyopenms.IonSource.toInletType(name), inlet)
+
+    def test_ionizationMethod_roundtrip(self):
+        """Test that conversion to string and back produces the same enum."""
+        for method in [
+            pyopenms.IonSource.IonizationMethod.ESI,
+            pyopenms.IonSource.IonizationMethod.MALDI,
+        ]:
+            name = pyopenms.IonSource.ionizationMethodToString(method)
+            self.assertEqual(pyopenms.IonSource.toIonizationMethod(name), method)
+
+    def test_polarity_roundtrip(self):
+        """Test that conversion to string and back produces the same enum."""
+        for polarity in [
+            pyopenms.IonSource.Polarity.POSITIVE,
+            pyopenms.IonSource.Polarity.NEGATIVE,
+        ]:
+            name = pyopenms.IonSource.polarityToString(polarity)
+            self.assertEqual(pyopenms.IonSource.toPolarity(name), polarity)
+
+
+class TestIonDetectorEnumStaticMethods(unittest.TestCase):
+    """Test IonDetector enum-to-string static methods."""
+
+    def test_typeToString(self):
+        """Test IonDetector.typeToString static method."""
+        result = pyopenms.IonDetector.typeToString(
+            pyopenms.IonDetector.Type_IonDetector.ELECTRONMULTIPLIER
+        )
+        self.assertIsNotNone(result)
+        self.assertEqual(result, "Electron multiplier")
+
+    def test_toType(self):
+        """Test IonDetector.toType static method."""
+        result = pyopenms.IonDetector.toType("Electron multiplier")
+        self.assertEqual(result, pyopenms.IonDetector.Type_IonDetector.ELECTRONMULTIPLIER)
+
+    def test_acquisitionModeToString(self):
+        """Test IonDetector.acquisitionModeToString static method."""
+        result = pyopenms.IonDetector.acquisitionModeToString(
+            pyopenms.IonDetector.AcquisitionMode.ADC
+        )
+        self.assertIsNotNone(result)
+        self.assertEqual(result, "Analog-digital converter")
+
+    def test_toAcquisitionMode(self):
+        """Test IonDetector.toAcquisitionMode static method."""
+        result = pyopenms.IonDetector.toAcquisitionMode("Analog-digital converter")
+        self.assertEqual(result, pyopenms.IonDetector.AcquisitionMode.ADC)
+
+    def test_type_roundtrip(self):
+        """Test that conversion to string and back produces the same enum."""
+        for detector_type in [
+            pyopenms.IonDetector.Type_IonDetector.ELECTRONMULTIPLIER,
+            pyopenms.IonDetector.Type_IonDetector.PHOTOMULTIPLIER,
+        ]:
+            name = pyopenms.IonDetector.typeToString(detector_type)
+            self.assertEqual(pyopenms.IonDetector.toType(name), detector_type)
+
+    def test_acquisitionMode_roundtrip(self):
+        """Test that conversion to string and back produces the same enum."""
+        for mode in [
+            pyopenms.IonDetector.AcquisitionMode.ADC,
+            pyopenms.IonDetector.AcquisitionMode.TDC,
+        ]:
+            name = pyopenms.IonDetector.acquisitionModeToString(mode)
+            self.assertEqual(pyopenms.IonDetector.toAcquisitionMode(name), mode)
+
+
 if __name__ == '__main__':
     unittest.main()
