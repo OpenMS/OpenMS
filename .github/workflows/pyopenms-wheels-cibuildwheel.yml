@@ -280,6 +280,8 @@ jobs:
           # Use build directory directly - libraries have absolute paths to Homebrew dependencies
           # This allows delocate to find and bundle all dependencies correctly
           CIBW_ENVIRONMENT: "OpenMS_ROOT=${{ github.workspace }}/build CMAKE_PREFIX_PATH=/opt/homebrew:/opt/homebrew/opt/libomp:${{ github.workspace }}/build MACOSX_DEPLOYMENT_TARGET=14.0 CMAKE_BUILD_PARALLEL_LEVEL=2 PY_BUILD_CMAKE_VERBOSE=1"
+          # Disable RPATH so delocate can handle library paths instead
+          CIBW_CONFIG_SETTINGS: "override=cmake.options.PYOPENMS_DISABLE_RPATH=ON"
           # delocate finds libraries via absolute paths embedded in the extension modules
           CIBW_REPAIR_WHEEL_COMMAND: "delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel}"
           CIBW_BUILD_VERBOSITY: 1
@@ -383,7 +385,9 @@ jobs:
             CMAKE_PREFIX_PATH="${{ env.QT_CMAKE }}/lib/cmake;${{ env.QT_CMAKE }};${{ env.CONTRIB_CMAKE }};${{ env.OPENMS_ROOT_CMAKE }}"
             CMAKE_BUILD_PARALLEL_LEVEL=2
             PY_BUILD_CMAKE_VERBOSE=1
-          CIBW_REPAIR_WHEEL_COMMAND: "delvewheel repair -w {dest_dir} {wheel}"
+          # Disable RPATH so delvewheel can handle DLL bundling
+          CIBW_CONFIG_SETTINGS: "override=cmake.options.PYOPENMS_DISABLE_RPATH=ON"
+          CIBW_REPAIR_WHEEL_COMMAND: "delvewheel repair --add-path '${{ env.OPENMS_ROOT_CMAKE }}/lib;${{ env.QT_CMAKE }}/bin;${{ env.CONTRIB_CMAKE }}/lib' -w {dest_dir} {wheel}"
           CIBW_BUILD_VERBOSITY: 1
 
       - uses: actions/upload-artifact@v4

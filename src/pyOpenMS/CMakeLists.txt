@@ -50,7 +50,6 @@ endif()
 #------------------------------------------------------------------------------
 option(NO_DEPENDENCIES "Do not bundle dependencies (use wheel repair tools instead)" ON)
 option(NO_SHARE "Do not bundle share data into wheel" OFF)
-option(PY_NO_OPTIMIZATION "Disable optimization for faster compile time" OFF)
 option(PY_NO_OUTPUT "Suppress output on Linux" OFF)
 option(PY_MEMLEAK_DISABLE "Disable memory leak tests" OFF)
 
@@ -143,6 +142,7 @@ endif()
 message(STATUS "Autowrap include dir: ${AUTOWRAP_INCLUDE_DIR}")
 
 # Python extension suffix
+# TODO this can be done with WITH_SOABI now
 execute_process(
     COMMAND ${Python_EXECUTABLE} -c "import sysconfig; print(sysconfig.get_config_var('EXT_SUFFIX'))"
     OUTPUT_VARIABLE PYTHON_EXT_SUFFIX
@@ -319,10 +319,22 @@ add_custom_target(compile_pxds DEPENDS ${PYCPPFILES} ${PYPYXFILES})
 #------------------------------------------------------------------------------
 # Compiler settings
 #------------------------------------------------------------------------------
-set(PY_RPATH ${CMAKE_INSTALL_RPATH})
-if(APPLE)
-  # TODO: Maybe we need a similar rpath for Linux too (e.g., $ORIGIN)
-  list(APPEND PY_RPATH "@loader_path/")
+
+# Option to skip RPATHs - required for wheel repair tools (delocate, auditwheel, delvewheel)
+option(PYOPENMS_DISABLE_RPATH "Disable RPATH settings for wheel repair compatibility" OFF)
+# TODO find something better. Maybe just specify the CMAKE_INSTALL_RPATH and
+# CMAKE_INSTALL_NAME_DIR etc. directly from outside?
+
+if(NOT PYOPENMS_DISABLE_RPATH)
+  set(PY_RPATH ${CMAKE_INSTALL_RPATH})
+  if(APPLE)
+    # TODO: Maybe we need a similar rpath for Linux too (e.g., $ORIGIN)
+    list(APPEND PY_RPATH "@loader_path/")
+  endif()
+else()
+  # When building wheels, let the repair tools handle library paths
+  set(PY_RPATH "")
+  message(STATUS "RPATH disabled for wheel repair tool compatibility")
 endif()
 
 # Visibility settings
@@ -365,12 +377,16 @@ if("${PY_NUM_MODULES}" GREATER "1")
         SUFFIX ${PYTHON_EXT_SUFFIX}
         CXX_VISIBILITY_PRESET ${VIS_PRESET}
         VISIBILITY_INLINES_HIDDEN ${INLINES_HIDDEN}
-        INSTALL_RPATH "${PY_RPATH}"
-        BUILD_WITH_INSTALL_RPATH 1
-        BUILD_WITH_INSTALL_NAME_DIR 1
         LIBRARY_OUTPUT_DIRECTORY "${PYOPENMS_BUILD_DIR}/pyopenms"
         RUNTIME_OUTPUT_DIRECTORY "${PYOPENMS_BUILD_DIR}/pyopenms"
       )
+      if(NOT PYOPENMS_DISABLE_RPATH)
+        set_target_properties(pyopenms_${nr} PROPERTIES
+          INSTALL_RPATH "${PY_RPATH}"
+          BUILD_WITH_INSTALL_RPATH 1
+          BUILD_WITH_INSTALL_NAME_DIR 1
+        )
+      endif()
       add_dependencies(pyopenms_${nr} compile_pxds)
       add_dependencies(pyopenms_compile pyopenms_${nr})
 
@@ -397,6 +413,7 @@ else()
       ${AUTOWRAP_INCLUDE_DIR}
     )
     target_compile_options(pyopenms_compile PRIVATE ${EXTRA_WARNINGS})
+    # TODO use WITH_SOABI instead of SUFFIX
     set_target_properties(pyopenms_compile PROPERTIES
       OUTPUT_NAME _pyopenms
       PREFIX ""
@@ -475,7 +492,7 @@ if(NOT NO_DEPENDENCIES)
     endif()
 endif()
 
-# Legacy wheel packaging target (not used by py-build-cmake)
+# LEGACY wheel packaging target (not used by py-build-cmake)
 add_custom_target(pyopenms_wheel
   COMMAND ${Python_EXECUTABLE} -m pip wheel -w dist --no-deps --no-build-isolation .
   COMMENT "Packaging pyopenms wheel (legacy target)"
@@ -484,7 +501,7 @@ add_custom_target(pyopenms_wheel
 )
 
 #------------------------------------------------------------------------------
-# Testing
+# Testing via CMake/CTest (Note: our new CI uses pytest directly)
 #------------------------------------------------------------------------------
 enable_testing()
 

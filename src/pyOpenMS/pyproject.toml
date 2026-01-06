@@ -34,7 +34,7 @@ readme = "README.rst"
 license = {text = "BSD-3-Clause"}
 requires-python = ">=3.10"
 authors = [
-    {name = "OpenMS team", email = "webmaster@openms.de"},
+    {name = "The OpenMS team", email = "webmaster@openms.de"},
 ]
 maintainers = [
     {name = "The OpenMS team", email = "open-ms-general@lists.sourceforge.net"},
@@ -235,8 +235,6 @@ before-build = "pip install delvewheel"
 repair-wheel-command = [
     "delvewheel repair -w {dest_dir} {wheel}",
 ]
-
-
 
 #------------------------------------------------------------------------------
 # pytest configuration
