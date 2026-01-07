@@ -94,7 +94,7 @@ end
 ###############################################################################
 def handleDependencies(otool_out, targetPath, currentLib, rpaths)
   rpath = %x[otool -l #{currentLib} | grep -A2 LC_RPATH | grep path | sed -n "s/^.*path\\s*\\(.*\\)(offset.*\$/\\1/p"]
-  rpaths += rpath.split(/\n/)
+  rpaths += rpath.split(/\n/).map(&:strip)
 
   for index in 0 ... otool_out.size
     fix_lib=cleanOtoolEntry(otool_out[index])

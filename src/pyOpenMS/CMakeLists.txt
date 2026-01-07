@@ -343,6 +343,8 @@ if(NOT PYOPENMS_PREPARE_WHEEL_REPAIR)
     # TODO: Maybe we need a similar rpath for Linux too (e.g., $ORIGIN)
     list(APPEND PY_RPATH "@loader_path/")
   endif()
+  message(STATUS "pyOpenMS: PY_RPATH = '${PY_RPATH}'")
+  message(STATUS "pyOpenMS: CMAKE_INSTALL_RPATH was = '${CMAKE_INSTALL_RPATH}'")
 else()
   # When building wheels, use INSTALL_RPATH_USE_LINK_PATH to automatically embed
   # absolute paths to linked libraries (OpenMS), which repair tools will follow
@@ -493,6 +495,23 @@ if(NOT NO_SHARE AND EXISTS "${PYOPENMS_BUILD_DIR}/pyopenms/share")
   )
 endif()
 
+#------------------------------------------------------------------------------
+# Define dependencies list (used by legacy and py-build-cmake paths)
+#------------------------------------------------------------------------------
+if(NOT NO_DEPENDENCIES)
+  set(PYOPENMS_DEPENDENCIES OpenMS OpenSwathAlgo)
+endif()
+
+# Install OpenMS libraries to staging directory for py-build-cmake (before fix_dependencies.rb runs)
+if(APPLE AND NOT NO_DEPENDENCIES)
+  foreach(PYOPENMS_DEPENDENCY ${PYOPENMS_DEPENDENCIES})
+    install(FILES $<TARGET_FILE:${PYOPENMS_DEPENDENCY}>
+      DESTINATION pyopenms
+      COMPONENT python_modules
+    )
+  endforeach()
+endif()
+
 # On macOS with NO_DEPENDENCIES=OFF, fix install_names in installed files
 if(APPLE AND NOT NO_DEPENDENCIES)
   install(CODE "
@@ -526,7 +545,7 @@ endif()
 #------------------------------------------------------------------------------
 if(NOT NO_DEPENDENCIES)
     add_custom_target(prepare_pyopenms_libs DEPENDS OpenMS)
-    set(PYOPENMS_DEPENDENCIES OpenMS OpenSwathAlgo)
+    # PYOPENMS_DEPENDENCIES already defined above
 
     # Copy all dependencies first
     foreach(PYOPENMS_DEPENDENCY ${PYOPENMS_DEPENDENCIES})
