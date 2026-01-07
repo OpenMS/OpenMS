@@ -6,7 +6,7 @@ from ProteinIdentification cimport *
 from StringList cimport *
 
 cdef extern from "<OpenMS/FORMAT/PercolatorInfile.h>" namespace "OpenMS":
-    
+
     cdef cppclass PercolatorInfile "OpenMS::PercolatorInfile":
         # wrap-doc:
             #  Class for storing Percolator tab-delimited input files
@@ -16,4 +16,4 @@ cdef extern from "<OpenMS/FORMAT/PercolatorInfile.h>" namespace "OpenMS":
 
         # static members
         @staticmethod
-        void store(String pin_file, PeptideIdentificationList peptide_ids, StringList feature_set, libcpp_string enz, int min_charge, int max_charge) except + nogil
+        void store(String pin_file, PeptideIdentificationList peptide_ids, StringList feature_set, libcpp_utf8_string enz, int min_charge, int max_charge) except + nogil

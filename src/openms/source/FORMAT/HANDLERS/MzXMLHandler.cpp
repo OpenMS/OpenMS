@@ -703,7 +703,7 @@ namespace OpenMS::Internal
           << "\t\t\t<msManufacturer category=\"msManufacturer\" value=\"" << manufacturer << "\"/>\n"
           << "\t\t\t<msModel category=\"msModel\" value=\"" << inst.getModel() << "\"/>\n";
 
-        if (inst.getIonSources().empty() || cv_terms_[2][static_cast<size_t>(inst.getIonSources()[0].getIonizationMethod())].empty())
+        if (inst.getIonSources().empty() || inst.getIonSources()[0].getIonizationMethod() == IonSource::IonizationMethod::IONMETHODNULL || cv_terms_[2][static_cast<size_t>(inst.getIonSources()[0].getIonizationMethod())].empty())
         { // can be empty for MaxQuant
           os << "\t\t\t<msIonisation category=\"msIonisation\" value=\"\"/>\n";
         }
@@ -722,7 +722,7 @@ namespace OpenMS::Internal
           os << "\t\t\t<msMassAnalyzer category=\"msMassAnalyzer\" value=\"" << cv_terms_[3][static_cast<size_t>(analyzers[0].getType())] << "\"/>\n";
         }
 
-        if (inst.getIonDetectors().empty() || cv_terms_[4][static_cast<size_t>(inst.getIonDetectors()[0].getType())].empty())
+        if (inst.getIonDetectors().empty() || inst.getIonDetectors()[0].getType() == IonDetector::Type::TYPENULL || cv_terms_[4][static_cast<size_t>(inst.getIonDetectors()[0].getType())].empty())
         { // can be empty for MaxQuant
           os << "\t\t\t<msDetector category=\"msDetector\" value=\"\"/>\n";
         }

@@ -4579,7 +4579,7 @@ namespace OpenMS::Internal
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000257\" name=\"field desorption\" />\n";
           }
-          else if (so.getIonizationMethod() == IonSource::IonizationMethod::FI)
+          else if (so.getIonizationMethod() == IonSource::IonizationMethod::FII)
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000258\" name=\"field ionization\" />\n";
           }

@@ -408,8 +408,8 @@ END_SECTION
 
 HasScanPolarity<MSSpectrum>* ptr51 = nullptr;
 HasScanPolarity<MSSpectrum>* nullPointer51 = nullptr;
-START_SECTION((HasScanPolarity(Int polarity,bool reverse = false)))
-  ptr51 = new HasScanPolarity<MSSpectrum>(0);
+START_SECTION((HasScanPolarity(IonSource::Polarity polarity,bool reverse = false)))
+  ptr51 = new HasScanPolarity<MSSpectrum>(IonSource::Polarity::POLNULL);
   TEST_NOT_EQUAL(ptr48, nullPointer51)
 END_SECTION
 

@@ -199,15 +199,15 @@ START_SECTION(([EXTRA] std::hash<IonSource>))
 {
   // Test that equal objects have equal hashes
   IonSource is1, is2;
-  is1.setInletType(IonSource::DIRECT);
-  is1.setIonizationMethod(IonSource::ESI);
-  is1.setPolarity(IonSource::POSITIVE);
+  is1.setInletType(IonSource::InletType::DIRECT);
+  is1.setIonizationMethod(IonSource::IonizationMethod::ESI);
+  is1.setPolarity(IonSource::Polarity::POSITIVE);
   is1.setOrder(45);
   is1.setMetaValue("label", String("test"));
 
-  is2.setInletType(IonSource::DIRECT);
-  is2.setIonizationMethod(IonSource::ESI);
-  is2.setPolarity(IonSource::POSITIVE);
+  is2.setInletType(IonSource::InletType::DIRECT);
+  is2.setIonizationMethod(IonSource::IonizationMethod::ESI);
+  is2.setPolarity(IonSource::Polarity::POSITIVE);
   is2.setOrder(45);
   is2.setMetaValue("label", String("test"));
 
@@ -216,9 +216,9 @@ START_SECTION(([EXTRA] std::hash<IonSource>))
 
   // Test that different objects (likely) have different hashes
   IonSource is3;
-  is3.setInletType(IonSource::BATCH);
-  is3.setIonizationMethod(IonSource::MALDI);
-  is3.setPolarity(IonSource::NEGATIVE);
+  is3.setInletType(IonSource::InletType::BATCH);
+  is3.setIonizationMethod(IonSource::IonizationMethod::MALDI);
+  is3.setPolarity(IonSource::Polarity::NEGATIVE);
   is3.setOrder(10);
 
   TEST_EQUAL(is1 == is3, false)

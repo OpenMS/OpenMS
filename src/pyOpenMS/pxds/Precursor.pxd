@@ -1,4 +1,6 @@
 from libcpp.map cimport map as libcpp_map
+from libcpp.string cimport string as libcpp_utf8_string
+from libcpp.string cimport string as libcpp_utf8_output_string
 from Types cimport *
 from CVTermList cimport *
 from Peak1D cimport *
@@ -59,8 +61,16 @@ cdef extern from "<OpenMS/METADATA/Precursor.h>" namespace "OpenMS":
 
         double getUnchargedMass() except + nogil  # wrap-doc:Returns the uncharged mass of the precursor, if charge is unknown, i.e. 0 best guess is its doubly charged
 
-        bool operator==(Precursor)  except + nogil 
-        bool operator!=(Precursor)  except + nogil 
+        bool operator==(Precursor)  except + nogil
+        bool operator!=(Precursor)  except + nogil
+
+        # static methods for ActivationMethod enum conversion
+        @staticmethod
+        libcpp_utf8_output_string activationMethodToString(ActivationMethod m) except + nogil  # wrap-doc:Convert an ActivationMethod enum to its full name string
+        @staticmethod
+        libcpp_utf8_output_string activationMethodToShortString(ActivationMethod m) except + nogil  # wrap-doc:Convert an ActivationMethod enum to its short (abbreviated) name string
+        @staticmethod
+        ActivationMethod toActivationMethod(const libcpp_utf8_string& name) except + nogil  # wrap-doc:Convert a string (full name or short name) to an ActivationMethod enum
 
 cdef extern from "<OpenMS/METADATA/Precursor.h>" namespace "OpenMS::Precursor":
     cdef enum class ActivationMethod "OpenMS::Precursor::ActivationMethod":
@@ -108,3 +118,4 @@ cdef extern from "<OpenMS/METADATA/Precursor.h>" namespace "OpenMS::Precursor":
       INSOURCE,
       LIFT,
       SIZE_OF_ACTIVATIONMETHOD
+

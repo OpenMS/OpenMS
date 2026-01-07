@@ -141,11 +141,65 @@ public:
     static StringList getAllNamesOfIonizationMethod();
     /**
      @brief Returns all polarity names known to OpenMS
-     
+
      @note For performance-critical code that repeatedly accesses these names,
      cache the returned list to avoid repeated allocations.
     */
     static StringList getAllNamesOfPolarity();
+
+    /**
+     @brief Convert an InletType enum to its string representation
+
+     @param type The inlet type enum value to convert
+     @return Reference to the string representation
+     @throws Exception::InvalidValue if @p type is SIZE_OF_INLETTYPE
+    */
+    static const std::string& inletTypeToString(InletType type);
+
+    /**
+     @brief Convert a string to an InletType enum
+
+     @param name The string name to convert
+     @return The corresponding InletType enum value
+     @throws Exception::InvalidValue if @p name is not found in NamesOfInletType[]
+    */
+    static InletType toInletType(const std::string& name);
+
+    /**
+     @brief Convert an IonizationMethod enum to its string representation
+
+     @param method The ionization method enum value to convert
+     @return Reference to the string representation
+     @throws Exception::InvalidValue if @p method is SIZE_OF_IONIZATIONMETHOD
+    */
+    static const std::string& ionizationMethodToString(IonizationMethod method);
+
+    /**
+     @brief Convert a string to an IonizationMethod enum
+
+     @param name The string name to convert
+     @return The corresponding IonizationMethod enum value
+     @throws Exception::InvalidValue if @p name is not found in NamesOfIonizationMethod[]
+    */
+    static IonizationMethod toIonizationMethod(const std::string& name);
+
+    /**
+     @brief Convert a Polarity enum to its string representation
+
+     @param polarity The polarity enum value to convert
+     @return Reference to the string representation
+     @throws Exception::InvalidValue if @p polarity is SIZE_OF_POLARITY
+    */
+    static const std::string& polarityToString(Polarity polarity);
+
+    /**
+     @brief Convert a string to a Polarity enum
+
+     @param name The string name to convert
+     @return The corresponding Polarity enum value
+     @throws Exception::InvalidValue if @p name is not found in NamesOfPolarity[]
+    */
+    static Polarity toPolarity(const std::string& name);
 
     /// Constructor
     IonSource();

@@ -410,7 +410,23 @@ void MyClass::process(const MSSpectrum& spectrum)
 - Do not add Python-only methods to `.pxd`; use addons or `_dataframes.py` wrappers.
 - DataFrame pattern: `get_data_dict()` in addon returns numpy arrays; `get_df()` in `src/pyOpenMS/pyopenms/_dataframes.py` wraps with pandas.
 - Type converters: implement in `src/pyOpenMS/converters/special_autowrap_conversionproviders.py`, register in `src/pyOpenMS/converters/__init__.py`.
-- Gotchas: autowrap returns Python strings; do not `.decode()`. Avoid `cdef` for autowrap string returns. Avoid `cdef` typed variables for autowrap return values inside `def` methods; use Python type checks. Keep addons minimal; avoid redundant aliases. `# wrap-doc:` indentation is strict.
+- Gotchas: autowrap returns Python strings; do not `.decode()`. Avoid `cdef` for autowrap string returns. Avoid `cdef` typed variables for autowrap return values inside `def` methods; use Python type checks. Keep addons minimal; avoid redundant aliases.
+- **CRITICAL: `wrap-doc:` formatting** - The autowrap parser (`PXDParser.py`) requires exactly `#  ` (hash + 2 spaces) for all documentation continuation lines. Changing to `#` or `# ` will break parsing:
+  ```python
+  # CORRECT format:
+  void myMethod() except + nogil
+      # wrap-doc:
+      #  This is the documentation.    <- hash + 2 spaces + text
+      #                                 <- hash + 2 spaces (for blank lines)
+      #  :param x: Description          <- hash + 2 spaces + text
+
+  # WRONG format (will cause ValueError):
+  void myMethod() except + nogil
+      # wrap-doc:
+      # This is the documentation.     <- only 1 space after hash - BREAKS!
+      #                                <- just hash - BREAKS!
+  ```
+  The parser uses `line.startswith("#  ")` to validate and continue parsing. Any deviation causes immediate failure.
 - Regenerate after addon changes:
   ```bash
   rm OpenMS-build/pyOpenMS/.cpp_extension_generated

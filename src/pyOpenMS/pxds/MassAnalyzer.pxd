@@ -2,6 +2,8 @@ from String cimport *
 from Software cimport *
 from MetaInfoInterface cimport *
 from libcpp.vector cimport vector as libcpp_vector
+from libcpp.string cimport string as libcpp_utf8_string
+from libcpp.string cimport string as libcpp_utf8_output_string
 
 cdef extern from "<OpenMS/METADATA/MassAnalyzer.h>" namespace "OpenMS":
 
@@ -86,6 +88,36 @@ cdef extern from "<OpenMS/METADATA/MassAnalyzer.h>" namespace "OpenMS":
 
         @staticmethod
         libcpp_vector[String] getAllNamesOfReflectronState() except + nogil  # wrap-doc:Returns all reflectron state names known to OpenMS
+
+        @staticmethod
+        libcpp_utf8_output_string analyzerTypeToString(AnalyzerType type) except + nogil  # wrap-doc:Convert AnalyzerType enum to string
+        @staticmethod
+        AnalyzerType toAnalyzerType(const libcpp_utf8_string& name) except + nogil  # wrap-doc:Convert string to AnalyzerType enum
+
+        @staticmethod
+        libcpp_utf8_output_string resolutionMethodToString(ResolutionMethod method) except + nogil  # wrap-doc:Convert ResolutionMethod enum to string
+        @staticmethod
+        ResolutionMethod toResolutionMethod(const libcpp_utf8_string& name) except + nogil  # wrap-doc:Convert string to ResolutionMethod enum
+
+        @staticmethod
+        libcpp_utf8_output_string resolutionTypeToString(ResolutionType type) except + nogil  # wrap-doc:Convert ResolutionType enum to string
+        @staticmethod
+        ResolutionType toResolutionType(const libcpp_utf8_string& name) except + nogil  # wrap-doc:Convert string to ResolutionType enum
+
+        @staticmethod
+        libcpp_utf8_output_string scanDirectionToString(ScanDirection direction) except + nogil  # wrap-doc:Convert ScanDirection enum to string
+        @staticmethod
+        ScanDirection toScanDirection(const libcpp_utf8_string& name) except + nogil  # wrap-doc:Convert string to ScanDirection enum
+
+        @staticmethod
+        libcpp_utf8_output_string scanLawToString(ScanLaw law) except + nogil  # wrap-doc:Convert ScanLaw enum to string
+        @staticmethod
+        ScanLaw toScanLaw(const libcpp_utf8_string& name) except + nogil  # wrap-doc:Convert string to ScanLaw enum
+
+        @staticmethod
+        libcpp_utf8_output_string reflectronStateToString(ReflectronState state) except + nogil  # wrap-doc:Convert ReflectronState enum to string
+        @staticmethod
+        ReflectronState toReflectronState(const libcpp_utf8_string& name) except + nogil  # wrap-doc:Convert string to ReflectronState enum
 
 cdef extern from "<OpenMS/METADATA/MassAnalyzer.h>" namespace "OpenMS::MassAnalyzer":
 

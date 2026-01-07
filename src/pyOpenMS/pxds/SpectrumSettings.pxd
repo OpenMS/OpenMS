@@ -8,6 +8,8 @@ from DataProcessing cimport *
 from Product cimport *
 from AcquisitionInfo cimport *
 from MetaInfoInterface cimport *
+from libcpp.string cimport string as libcpp_utf8_string
+from libcpp.string cimport string as libcpp_utf8_output_string
 
 cdef extern from "<OpenMS/METADATA/SpectrumSettings.h>" namespace "OpenMS":
 
@@ -55,3 +57,8 @@ cdef extern from "<OpenMS/METADATA/SpectrumSettings.h>" namespace "OpenMS::Spect
         # wrap-attach:
         #    SpectrumSettings
         UNKNOWN, CENTROID, PROFILE, SIZE_OF_SPECTRUMTYPE
+
+    # Static methods for enum-to-string conversion
+    libcpp_utf8_output_string spectrumTypeToString(SpectrumType type) except + nogil  # wrap-attach:SpectrumSettings wrap-doc:Convert a SpectrumType enum to String. Throws Exception::InvalidValue if type is SIZE_OF_SPECTRUMTYPE
+
+    SpectrumType toSpectrumType(const libcpp_utf8_string& name) except + nogil  # wrap-attach:SpectrumSettings wrap-doc:Convert a string to SpectrumType enum. Throws Exception::InvalidValue if name is not a valid spectrum type

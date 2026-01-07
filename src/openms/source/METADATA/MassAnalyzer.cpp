@@ -7,6 +7,9 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/METADATA/MassAnalyzer.h>
+#include <OpenMS/CONCEPT/Exception.h>
+
+#include <algorithm>
 
 using namespace std;
 
@@ -287,6 +290,132 @@ namespace OpenMS
       names.push_back(NamesOfReflectronState[i]);
     }
     return names;
+  }
+
+  const std::string& MassAnalyzer::analyzerTypeToString(AnalyzerType type)
+  {
+    if (type == SIZE_OF_ANALYZERTYPE)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value not allowed", "SIZE_OF_ANALYZERTYPE");
+    }
+    return NamesOfAnalyzerType[static_cast<size_t>(type)];
+  }
+
+  MassAnalyzer::AnalyzerType MassAnalyzer::toAnalyzerType(const std::string& name)
+  {
+    auto first = &NamesOfAnalyzerType[0];
+    auto last = &NamesOfAnalyzerType[SIZE_OF_ANALYZERTYPE];
+    const auto it = std::find(first, last, name);
+    if (it == last)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value unknown", name);
+    }
+    return static_cast<AnalyzerType>(it - first);
+  }
+
+  const std::string& MassAnalyzer::resolutionMethodToString(ResolutionMethod method)
+  {
+    if (method == SIZE_OF_RESOLUTIONMETHOD)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value not allowed", "SIZE_OF_RESOLUTIONMETHOD");
+    }
+    return NamesOfResolutionMethod[static_cast<size_t>(method)];
+  }
+
+  MassAnalyzer::ResolutionMethod MassAnalyzer::toResolutionMethod(const std::string& name)
+  {
+    auto first = &NamesOfResolutionMethod[0];
+    auto last = &NamesOfResolutionMethod[SIZE_OF_RESOLUTIONMETHOD];
+    const auto it = std::find(first, last, name);
+    if (it == last)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value unknown", name);
+    }
+    return static_cast<ResolutionMethod>(it - first);
+  }
+
+  const std::string& MassAnalyzer::resolutionTypeToString(ResolutionType type)
+  {
+    if (type == SIZE_OF_RESOLUTIONTYPE)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value not allowed", "SIZE_OF_RESOLUTIONTYPE");
+    }
+    return NamesOfResolutionType[static_cast<size_t>(type)];
+  }
+
+  MassAnalyzer::ResolutionType MassAnalyzer::toResolutionType(const std::string& name)
+  {
+    auto first = &NamesOfResolutionType[0];
+    auto last = &NamesOfResolutionType[SIZE_OF_RESOLUTIONTYPE];
+    const auto it = std::find(first, last, name);
+    if (it == last)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value unknown", name);
+    }
+    return static_cast<ResolutionType>(it - first);
+  }
+
+  const std::string& MassAnalyzer::scanDirectionToString(ScanDirection direction)
+  {
+    if (direction == SIZE_OF_SCANDIRECTION)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value not allowed", "SIZE_OF_SCANDIRECTION");
+    }
+    return NamesOfScanDirection[static_cast<size_t>(direction)];
+  }
+
+  MassAnalyzer::ScanDirection MassAnalyzer::toScanDirection(const std::string& name)
+  {
+    auto first = &NamesOfScanDirection[0];
+    auto last = &NamesOfScanDirection[SIZE_OF_SCANDIRECTION];
+    const auto it = std::find(first, last, name);
+    if (it == last)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value unknown", name);
+    }
+    return static_cast<ScanDirection>(it - first);
+  }
+
+  const std::string& MassAnalyzer::scanLawToString(ScanLaw law)
+  {
+    if (law == SIZE_OF_SCANLAW)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value not allowed", "SIZE_OF_SCANLAW");
+    }
+    return NamesOfScanLaw[static_cast<size_t>(law)];
+  }
+
+  MassAnalyzer::ScanLaw MassAnalyzer::toScanLaw(const std::string& name)
+  {
+    auto first = &NamesOfScanLaw[0];
+    auto last = &NamesOfScanLaw[SIZE_OF_SCANLAW];
+    const auto it = std::find(first, last, name);
+    if (it == last)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value unknown", name);
+    }
+    return static_cast<ScanLaw>(it - first);
+  }
+
+  const std::string& MassAnalyzer::reflectronStateToString(ReflectronState state)
+  {
+    if (state == SIZE_OF_REFLECTRONSTATE)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value not allowed", "SIZE_OF_REFLECTRONSTATE");
+    }
+    return NamesOfReflectronState[static_cast<size_t>(state)];
+  }
+
+  MassAnalyzer::ReflectronState MassAnalyzer::toReflectronState(const std::string& name)
+  {
+    auto first = &NamesOfReflectronState[0];
+    auto last = &NamesOfReflectronState[SIZE_OF_REFLECTRONSTATE];
+    const auto it = std::find(first, last, name);
+    if (it == last)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value unknown", name);
+    }
+    return static_cast<ReflectronState>(it - first);
   }
 
 }
