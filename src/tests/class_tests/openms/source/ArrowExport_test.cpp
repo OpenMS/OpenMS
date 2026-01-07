@@ -90,7 +90,7 @@ START_SECTION(exportSpectraToArrow - empty experiment)
   MSExperiment exp = createEmptyExperiment();
   ArrowSpectraExportConfig config;
 
-  auto table = exportSpectraToArrow(exp, config);
+  auto table = ArrowExport::exportSpectraToArrow(exp, config);
 
   TEST_NOT_EQUAL(table, nullptr)
   TEST_EQUAL(table->num_rows(), 0)
@@ -105,7 +105,7 @@ START_SECTION(exportSpectraToArrow - long format basic)
   ArrowSpectraExportConfig config;
   config.format = ArrowExportFormat::Long;
 
-  auto table = exportSpectraToArrow(exp, config);
+  auto table = ArrowExport::exportSpectraToArrow(exp, config);
 
   TEST_NOT_EQUAL(table, nullptr)
   // Total peaks: 3 (MS1) + 2 (MS2) + 2 (MS1) = 7
@@ -143,7 +143,7 @@ START_SECTION(exportSpectraToArrow - long format with MS level filter)
   config.format = ArrowExportFormat::Long;
   config.ms_levels = {1}; // Only MS1
 
-  auto table = exportSpectraToArrow(exp, config);
+  auto table = ArrowExport::exportSpectraToArrow(exp, config);
 
   TEST_NOT_EQUAL(table, nullptr)
   // Only MS1 peaks: 3 + 2 = 5
@@ -159,7 +159,7 @@ START_SECTION(exportSpectraToArrow - long format with RT filter)
   config.min_rt = 100.0;
   config.max_rt = 110.0;
 
-  auto table = exportSpectraToArrow(exp, config);
+  auto table = ArrowExport::exportSpectraToArrow(exp, config);
 
   TEST_NOT_EQUAL(table, nullptr)
   // Spectra in RT range: ms1 (3 peaks) + ms2 (2 peaks) = 5
@@ -175,7 +175,7 @@ START_SECTION(exportSpectraToArrow - long format with m/z filter)
   config.min_mz = 150.0;
   config.max_mz = 250.0;
 
-  auto table = exportSpectraToArrow(exp, config);
+  auto table = ArrowExport::exportSpectraToArrow(exp, config);
 
   TEST_NOT_EQUAL(table, nullptr)
   // Peaks in m/z range: 200.0 (ms1), 150.0+250.0 (ms2), 150.0+250.0 (ms1_2) = 5
@@ -190,7 +190,7 @@ START_SECTION(exportSpectraToArrow - long format with column selection)
   config.format = ArrowExportFormat::Long;
   config.columns = {"mz", "intensity", "rt"};
 
-  auto table = exportSpectraToArrow(exp, config);
+  auto table = ArrowExport::exportSpectraToArrow(exp, config);
 
   TEST_NOT_EQUAL(table, nullptr)
   TEST_EQUAL(table->num_columns(), 3)
@@ -208,7 +208,7 @@ START_SECTION(exportSpectraToArrow - long format no precursor info)
   config.format = ArrowExportFormat::Long;
   config.include_precursor_info = false;
 
-  auto table = exportSpectraToArrow(exp, config);
+  auto table = ArrowExport::exportSpectraToArrow(exp, config);
 
   TEST_NOT_EQUAL(table, nullptr)
   auto schema = table->schema();
@@ -224,7 +224,7 @@ START_SECTION(exportSpectraToArrow - semi-wide format basic)
   ArrowSpectraExportConfig config;
   config.format = ArrowExportFormat::SemiWide;
 
-  auto table = exportSpectraToArrow(exp, config);
+  auto table = ArrowExport::exportSpectraToArrow(exp, config);
 
   TEST_NOT_EQUAL(table, nullptr)
   // One row per spectrum
@@ -251,7 +251,7 @@ START_SECTION(exportSpectraToArrow - semi-wide format with MS level filter)
   config.format = ArrowExportFormat::SemiWide;
   config.ms_levels = {2}; // Only MS2
 
-  auto table = exportSpectraToArrow(exp, config);
+  auto table = ArrowExport::exportSpectraToArrow(exp, config);
 
   TEST_NOT_EQUAL(table, nullptr)
   TEST_EQUAL(table->num_rows(), 1)
@@ -264,7 +264,7 @@ START_SECTION(getSpectraArrowColumns - long format)
   ArrowSpectraExportConfig config;
   config.format = ArrowExportFormat::Long;
 
-  auto columns = getSpectraArrowColumns(exp, config);
+  auto columns = ArrowExport::getSpectraArrowColumns(exp, config);
 
   // Check required columns are present
   TEST_EQUAL(std::find(columns.begin(), columns.end(), "mz") != columns.end(), true)
@@ -282,7 +282,7 @@ START_SECTION(getSpectraArrowColumns - with column filter)
   ArrowSpectraExportConfig config;
   config.columns = {"mz", "intensity"};
 
-  auto columns = getSpectraArrowColumns(exp, config);
+  auto columns = ArrowExport::getSpectraArrowColumns(exp, config);
 
   TEST_EQUAL(columns.size(), 2)
   TEST_EQUAL(std::find(columns.begin(), columns.end(), "mz") != columns.end(), true)
@@ -299,7 +299,7 @@ START_SECTION(exportChromatogramsToArrow - empty chromatograms)
   MSExperiment exp;
   ArrowChromatogramExportConfig config;
 
-  auto table = exportChromatogramsToArrow(exp, config);
+  auto table = ArrowExport::exportChromatogramsToArrow(exp, config);
 
   TEST_NOT_EQUAL(table, nullptr)
   TEST_EQUAL(table->num_rows(), 0)
@@ -332,7 +332,7 @@ START_SECTION(exportChromatogramsToArrow - long format)
   ArrowChromatogramExportConfig config;
   config.format = ArrowExportFormat::Long;
 
-  auto table = exportChromatogramsToArrow(exp, config);
+  auto table = ArrowExport::exportChromatogramsToArrow(exp, config);
 
   TEST_NOT_EQUAL(table, nullptr)
   // Total points: 3 + 2 = 5
@@ -360,7 +360,7 @@ START_SECTION(exportChromatogramsToArrow - semi-wide format)
   ArrowChromatogramExportConfig config;
   config.format = ArrowExportFormat::SemiWide;
 
-  auto table = exportChromatogramsToArrow(exp, config);
+  auto table = ArrowExport::exportChromatogramsToArrow(exp, config);
 
   TEST_NOT_EQUAL(table, nullptr)
   TEST_EQUAL(table->num_rows(), 1) // One row per chromatogram
@@ -387,7 +387,7 @@ START_SECTION(exportChromatogramsToArrow - with RT filter)
   config.min_rt = 15.0;
   config.max_rt = 25.0;
 
-  auto table = exportChromatogramsToArrow(exp, config);
+  auto table = ArrowExport::exportChromatogramsToArrow(exp, config);
 
   TEST_NOT_EQUAL(table, nullptr)
   // Only point at RT=20.0 should be included
@@ -445,7 +445,7 @@ START_SECTION(exportSpectraToParquet - basic export)
   // Export to temp file
   String filename = File::getTempDirectory() + "/test_spectra.parquet";
 
-  bool success = exportSpectraToParquet(exp, filename);
+  bool success = ArrowExport::exportSpectraToParquet(exp, filename);
   TEST_EQUAL(success, true)
 
   // Verify file was created
@@ -469,7 +469,7 @@ START_SECTION(exportSpectraToParquet - with compression options)
   pq_config.compression_level = 9;
   pq_config.row_group_size = 1024 * 1024; // 1MB for testing
 
-  bool success = exportSpectraToParquet(exp, filename, ArrowSpectraExportConfig{}, pq_config);
+  bool success = ArrowExport::exportSpectraToParquet(exp, filename, ArrowSpectraExportConfig{}, pq_config);
   TEST_EQUAL(success, true)
 
   // Verify file was created
@@ -490,7 +490,7 @@ START_SECTION(exportSpectraToParquet - with filtering)
   ArrowSpectraExportConfig config;
   config.ms_levels = {2};
 
-  bool success = exportSpectraToParquet(exp, filename, config);
+  bool success = ArrowExport::exportSpectraToParquet(exp, filename, config);
   TEST_EQUAL(success, true)
 
   // Verify file was created
@@ -507,7 +507,7 @@ START_SECTION(exportSpectraToParquet - empty experiment)
 
   String filename = File::getTempDirectory() + "/test_spectra_empty.parquet";
 
-  bool success = exportSpectraToParquet(exp, filename);
+  bool success = ArrowExport::exportSpectraToParquet(exp, filename);
   TEST_EQUAL(success, true)
 
   // Verify file was created (even for empty data)
@@ -524,7 +524,7 @@ START_SECTION(exportChromatogramsToParquet - basic export)
 
   String filename = File::getTempDirectory() + "/test_chromatograms.parquet";
 
-  bool success = exportChromatogramsToParquet(exp, filename);
+  bool success = ArrowExport::exportChromatogramsToParquet(exp, filename);
   TEST_EQUAL(success, true)
 
   // Verify file was created
@@ -546,7 +546,7 @@ START_SECTION(exportChromatogramsToParquet - with compression options)
   ParquetWriteConfig pq_config;
   pq_config.compression = ParquetWriteConfig::Compression::SNAPPY;
 
-  bool success = exportChromatogramsToParquet(exp, filename, ArrowChromatogramExportConfig{}, pq_config);
+  bool success = ArrowExport::exportChromatogramsToParquet(exp, filename, ArrowChromatogramExportConfig{}, pq_config);
   TEST_EQUAL(success, true)
 
   // Verify file was created
