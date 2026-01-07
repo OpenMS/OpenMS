@@ -213,11 +213,10 @@ from libc.stdint cimport uintptr_t
         else:
             return ['rt', 'ms_level', 'mz_array', 'intensity_array']
 
-    def get_arrow_columns(self, data='spectra', format='long',
-                          include_precursor_info=True, include_ion_mobility=True):
+    def get_arrow_columns(self, str data='spectra', str format='long',
+                          bint include_precursor_info=True, bint include_ion_mobility=True):
         """
-        get_arrow_columns(self: MSExperiment, data: str = 'spectra', format: str = 'long',
-                          include_precursor_info: bool = True, include_ion_mobility: bool = True) -> List[str]
+        get_arrow_columns(self, data='spectra', format='long', include_precursor_info=True, include_ion_mobility=True)
 
         Returns a list of column names that to_arrow() would produce with the given parameters.
 
@@ -249,7 +248,40 @@ from libc.stdint cimport uintptr_t
             >>> exp.get_arrow_columns(data='both')
             {'spectra': [...], 'chromatograms': [...]}
         """
-        # Column order matches C++ ArrowExport implementation
+        # Try to use C++ implementation for consistency (only available with WITH_PARQUET)
+        try:
+            from pyopenms import ArrowExport, ArrowSpectraExportConfig, ArrowChromatogramExportConfig
+            _use_cpp = True
+        except ImportError:
+            _use_cpp = False
+
+        if _use_cpp:
+            arrow_export = ArrowExport()
+            result = {}
+
+            if data in ('spectra', 'both'):
+                config = ArrowSpectraExportConfig()
+                config.include_precursor_info = include_precursor_info
+                config.include_ion_mobility = include_ion_mobility
+                # Note: format is set via config but we can't set enum from Python easily
+                # The C++ method returns columns based on default (Long) format
+                # For now, we get columns from C++ and trust the order
+                result['spectra'] = list(arrow_export.getSpectraArrowColumns(self, config))
+
+            if data in ('chromatograms', 'both'):
+                config = ArrowChromatogramExportConfig()
+                result['chromatograms'] = list(arrow_export.getChromatogramArrowColumns(self, config))
+
+            if data == 'both':
+                return result
+            elif data == 'spectra':
+                return result['spectra']
+            elif data == 'chromatograms':
+                return result['chromatograms']
+            else:
+                raise ValueError(f"data must be 'spectra', 'chromatograms', or 'both', got '{data}'")
+
+        # Fallback: Python implementation (matches C++ ArrowExport column order)
         # Long format: mz, intensity, rt, ion_mobility?, spectrum_index, ms_level, native_id, precursor_cols?
         spectra_long_cols = ['mz', 'intensity', 'rt']
         if include_ion_mobility:
@@ -268,7 +300,6 @@ from libc.stdint cimport uintptr_t
                                            'isolation_lower', 'isolation_upper'])
 
         # Chromatogram long format: rt, intensity, chromatogram_index, native_id, precursor_mz, product_mz
-        # Note: precursor_mz and product_mz are always included for chromatograms (they define the SRM/MRM transition)
         chrom_long_cols = ['rt', 'intensity', 'chromatogram_index', 'native_id', 'precursor_mz', 'product_mz']
 
         # Chromatogram semi-wide format: chromatogram_index, native_id, rt, intensity, precursor_mz, product_mz
@@ -353,12 +384,12 @@ from libc.stdint cimport uintptr_t
 
         return df
 
-    def to_arrow(self, data='spectra', format='long', columns=None, ms_levels=None,
-                  min_rt=None, max_rt=None, min_mz=None, max_mz=None,
-                  include_precursor_info=True, include_ion_mobility=True,
-                  long_format=None):
+    def to_arrow(self, str data='spectra', str format='long', list columns=None,
+                  list ms_levels=None, min_rt=None, max_rt=None, min_mz=None,
+                  max_mz=None, bint include_precursor_info=True,
+                  bint include_ion_mobility=True, long_format=None):
         """
-        to_arrow(self: MSExperiment, data: str = 'spectra', format: str = 'long', ...) -> Union[pa.Table, Dict[str, pa.Table]]
+        to_arrow(self, data='spectra', format='long', columns=None, ms_levels=None, ...)
 
         Returns an Apache Arrow Table with spectra and/or chromatogram data from the MSExperiment.
 

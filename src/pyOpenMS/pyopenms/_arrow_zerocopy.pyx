@@ -101,40 +101,38 @@ cdef extern from "<OpenMS/FORMAT/ArrowExport.h>" namespace "OpenMS":
         ) except + nogil
 
 
-def spectra_to_arrow(exp, format='long', ms_levels=None,
-                     min_rt=0.0, max_rt=0.0, min_mz=0.0, max_mz=0.0,
-                     columns=None, include_precursor_info=True,
-                     include_ion_mobility=True):
-    """
-    Export spectra to Arrow Table using zero-copy C Data Interface.
+def spectra_to_arrow(exp, str format='long', list ms_levels=None,
+                     double min_rt=0.0, double max_rt=0.0,
+                     double min_mz=0.0, double max_mz=0.0,
+                     list columns=None, bint include_precursor_info=True,
+                     bint include_ion_mobility=True):
+    """Export spectra to Arrow Table using zero-copy C Data Interface.
 
     .. warning::
-        **EXPERIMENTAL API**: This function is experimental and may change in future versions.
-        The table schema, column names, column order, and data types are subject to modification.
+        **EXPERIMENTAL API**: This function is experimental and may change.
 
-    Parameters
-    ----------
-    exp : MSExperiment
-        The experiment to export.
-    format : str
-        'long' (one row per peak) or 'semi_wide' (one row per spectrum).
-    ms_levels : list of int, optional
-        MS levels to include. None means all levels.
-    min_rt, max_rt : float
-        RT range filter. 0 means no filter.
-    min_mz, max_mz : float
-        m/z range filter. 0 means no filter.
-    columns : list of str, optional
-        Columns to include. None means all columns.
-    include_precursor_info : bool
-        Include precursor columns.
-    include_ion_mobility : bool
-        Include ion mobility column.
-
-    Returns
-    -------
-    pyarrow.Table
-        Arrow table with spectrum data (zero-copy from C++).
+    :param exp: The MSExperiment to export
+    :type exp: MSExperiment
+    :param format: 'long' (one row per peak) or 'semi_wide' (one row per spectrum)
+    :type format: str
+    :param ms_levels: MS levels to include (None = all levels)
+    :type ms_levels: list[int] or None
+    :param min_rt: Minimum RT filter (0 = no filter)
+    :type min_rt: float
+    :param max_rt: Maximum RT filter (0 = no filter)
+    :type max_rt: float
+    :param min_mz: Minimum m/z filter (0 = no filter)
+    :type min_mz: float
+    :param max_mz: Maximum m/z filter (0 = no filter)
+    :type max_mz: float
+    :param columns: Columns to include (None = all columns)
+    :type columns: list[str] or None
+    :param include_precursor_info: Include precursor columns
+    :type include_precursor_info: bool
+    :param include_ion_mobility: Include ion mobility column
+    :type include_ion_mobility: bool
+    :return: Arrow table with spectrum data (zero-copy from C++)
+    :rtype: pyarrow.Table
     """
     # Validate format parameter
     format_lower = format.lower()
@@ -220,29 +218,25 @@ def spectra_to_arrow(exp, format='long', ms_levels=None,
     return pa.Table.from_batches([batch])
 
 
-def chromatograms_to_arrow(exp, format='long', min_rt=0.0, max_rt=0.0, columns=None):
-    """
-    Export chromatograms to Arrow Table using zero-copy C Data Interface.
+def chromatograms_to_arrow(exp, str format='long', double min_rt=0.0,
+                           double max_rt=0.0, list columns=None):
+    """Export chromatograms to Arrow Table using zero-copy C Data Interface.
 
     .. warning::
-        **EXPERIMENTAL API**: This function is experimental and may change in future versions.
-        The table schema, column names, column order, and data types are subject to modification.
+        **EXPERIMENTAL API**: This function is experimental and may change.
 
-    Parameters
-    ----------
-    exp : MSExperiment
-        The experiment to export.
-    format : str
-        'long' (one row per point) or 'semi_wide' (one row per chromatogram).
-    min_rt, max_rt : float
-        RT range filter. 0 means no filter.
-    columns : list of str, optional
-        Columns to include. None means all columns.
-
-    Returns
-    -------
-    pyarrow.Table
-        Arrow table with chromatogram data (zero-copy from C++).
+    :param exp: The MSExperiment to export
+    :type exp: MSExperiment
+    :param format: 'long' (one row per point) or 'semi_wide' (one row per chromatogram)
+    :type format: str
+    :param min_rt: Minimum RT filter (0 = no filter)
+    :type min_rt: float
+    :param max_rt: Maximum RT filter (0 = no filter)
+    :type max_rt: float
+    :param columns: Columns to include (None = all columns)
+    :type columns: list[str] or None
+    :return: Arrow table with chromatogram data (zero-copy from C++)
+    :rtype: pyarrow.Table
     """
     # Validate format parameter
     format_lower = format.lower()
