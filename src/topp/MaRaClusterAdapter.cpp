@@ -15,6 +15,7 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/METADATA/SpectrumMetaDataLookup.h>
 #include <OpenMS/SYSTEM/File.h>
 
 #include <iostream>
@@ -455,6 +456,44 @@ protected:
       writeLogInfo_("Prepared maracluster-consensus command.");
 
       //-------------------------------------------------------------
+      // Build spectrum lookup for each input file to retrieve original native IDs
+      //-------------------------------------------------------------
+      std::vector<SpectrumMetaDataLookup> file_lookups(in_list.size());
+      for (Size f_idx = 0; f_idx < in_list.size(); ++f_idx)
+      {
+        PeakMap input_exp;
+        FileHandler fh_in;
+        FileTypes::Type input_type = fh_in.getType(in_list[f_idx]);
+        fh_in.loadExperiment(in_list[f_idx], input_exp, {input_type}, log_type_, false, false);
+        file_lookups[f_idx].readSpectra(input_exp.getSpectra());
+      }
+
+      //-------------------------------------------------------------
+      // Create reverse mapping: cluster_id -> list of (file_origin, original_native_id)
+      //-------------------------------------------------------------
+      std::map<Int, std::vector<std::pair<String, String>>> clusterid_to_original_refs;
+      for (const auto& entry : specid_to_clusterid_map)
+      {
+        Int cluster_id = entry.second;
+        const MaRaClusterResult& res = entry.first;
+        String file_origin = in_list[res.file_idx];
+        String original_native_id;
+        try
+        {
+          Size spectrum_idx = file_lookups[res.file_idx].findByScanNumber(res.scan_nr);
+          SpectrumMetaDataLookup::SpectrumMetaData meta;
+          file_lookups[res.file_idx].getSpectrumMetaData(spectrum_idx, meta);
+          original_native_id = meta.native_id;
+        }
+        catch (Exception::ElementNotFound&)
+        {
+          // Fallback if scan number not found in lookup
+          original_native_id = "scan=" + String(res.scan_nr);
+        }
+        clusterid_to_original_refs[cluster_id].push_back(std::make_pair(file_origin, original_native_id));
+      }
+
+      //-------------------------------------------------------------
       // run MaRaCluster for consensus output
       //-------------------------------------------------------------
       // MaRaCluster execution with the executable and the arguments StringList
@@ -471,6 +510,37 @@ protected:
       PeakMap exp;
       fh.loadExperiment(FileHandler::stripExtension(consensus_out) + ".part1." + FileTypes::typeToName(in_type), exp, {in_type}, log_type_, true, true);
       exp.sortSpectra();
+
+      //-------------------------------------------------------------
+      // Annotate consensus spectra with original native IDs
+      // The cluster ID corresponds to the scan number in the consensus spectrum's native ID
+      //-------------------------------------------------------------
+      for (Size i = 0; i < exp.size(); ++i)
+      {
+        // Extract cluster ID from the consensus spectrum's native ID (e.g., "scan=0" -> cluster_id=0)
+        Int cluster_id = getScanNumber_(exp[i].getNativeID());
+        if (clusterid_to_original_refs.count(cluster_id))
+        {
+          const auto& refs = clusterid_to_original_refs[cluster_id];
+          // Build comma-separated list of original native IDs
+          String original_native_ids;
+          String original_file_origins;
+          for (Size j = 0; j < refs.size(); ++j)
+          {
+            if (j > 0)
+            {
+              original_native_ids += ",";
+              original_file_origins += ",";
+            }
+            original_file_origins += refs[j].first;
+            original_native_ids += refs[j].second;
+          }
+          exp[i].setMetaValue("maracluster_original_native_ids", original_native_ids);
+          exp[i].setMetaValue("maracluster_original_file_origins", original_file_origins);
+          exp[i].setMetaValue("maracluster_cluster_size", static_cast<Int>(refs.size()));
+        }
+      }
+
       fh.storeExperiment(consensus_out, exp, {FileTypes::MZML}, log_type_);
     }
 
