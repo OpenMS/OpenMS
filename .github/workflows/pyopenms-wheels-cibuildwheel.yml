@@ -305,14 +305,13 @@ jobs:
           CIBW_BUILD: ${{ needs.setup.outputs.cibw-build-macos-arm64 }}
           CIBW_ARCHS_MACOS: "arm64"
           CIBW_BEFORE_BUILD: "pip install delocate"
-          # Use install directory with stripped libraries and proper install names
-          # INSTALL_RPATH_USE_LINK_PATH embeds OpenMS library paths for delocate to follow
+          # Use old mechanism: copy libraries and use @loader_path
+          # NO_DEPENDENCIES=OFF enables legacy library copying for macOS (with our fix_dependencies script)
           CIBW_ENVIRONMENT: "OpenMS_ROOT=${{ github.workspace }}/install CMAKE_PREFIX_PATH=/opt/homebrew:/opt/homebrew/opt/libomp:${{ github.workspace }}/install MACOSX_DEPLOYMENT_TARGET=14.0 CMAKE_BUILD_PARALLEL_LEVEL=2 PY_BUILD_CMAKE_VERBOSE=1"
-          # Prepare modules for wheel repair (embeds linked library paths)
-          CIBW_CONFIG_SETTINGS: "override=cmake.options.PYOPENMS_PREPARE_WHEEL_REPAIR=ON"
-          # TODO: Remove debug inspection after verifying INSTALL_RPATH_USE_LINK_PATH works
-          # delocate finds libraries via RPATH/install names embedded in the extension modules
-          CIBW_REPAIR_WHEEL_COMMAND: "sh -c 'echo \"===== Inspecting wheel BEFORE repair =====\" && unzip -j {wheel} \"pyopenms/_pyopenms_1.*.so\" -d /tmp/inspect_wheel && otool -L /tmp/inspect_wheel/_pyopenms_1.*.so | head -20 && echo \"===== Running delocate-wheel repair =====\" && delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel}'"
+          # Disable NO_DEPENDENCIES for macOS to use old library bundling approach
+          CIBW_CONFIG_SETTINGS: "override=cmake.options.NO_DEPENDENCIES=OFF"
+          # DELOCATE IS TOO STUPID TO FIGURE OUT PATHS ON ITS OWN. WE NEED TO USE OUR OWN SCRIPT WHICH IS MORE RELIABLE THAN A YEARS-OLD BROKEN TOOL.
+          CIBW_REPAIR_WHEEL_COMMAND: ""
           CIBW_BUILD_VERBOSITY: 1
           #CIBW_TEST_SKIP: "*"
 
