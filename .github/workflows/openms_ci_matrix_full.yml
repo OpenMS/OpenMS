@@ -253,6 +253,12 @@ jobs:
         # Some output for debugging:
         echo "CONDA_ENV_PREFIX=$CONDA_ENV_PREFIX"
 
+        # Disable conda auto-activation to prevent race conditions during parallel
+        # CMake builds. See https://github.com/conda/conda/issues/8733
+        # The paths are already added to GITHUB_PATH above, so conda activation
+        # is no longer needed for subsequent steps.
+        conda init --reverse bash
+
     - name: Install Qt (Windows)
       if: startsWith(matrix.os, 'windows')
       uses: jurplel/install-qt-action@v4
