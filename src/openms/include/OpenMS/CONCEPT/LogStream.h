@@ -9,6 +9,7 @@
 #pragma once
 
 #include <OpenMS/CONCEPT/Macros.h>
+#include <OpenMS/CONCEPT/ThreadLogContext.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <sstream>
@@ -433,36 +434,109 @@ private:
 
   } // namespace Logger
 
-  /// Macro to be used if fatal error are reported (processing stops)
-#define OPENMS_LOG_FATAL_ERROR \
+  //
+  // Thread-Local Logging Macros
+  //
+  // These macros use thread-local LogStream instances, eliminating all data races
+  // that exist in the global logger approach. Each thread gets its own buffers,
+  // caches, and incomplete_line_ state.
+  //
+  // See GitHub Issue #8596 for details on the race conditions this fixes.
+  //
+
+  /// Thread-local macro for fatal errors (processing stops)
+#define OPENMS_LOG_FATAL_ERROR_TL \
+  OpenMS::ThreadLogContext::fatal() << __FILE__ << "(" << __LINE__ << "): "
+
+  /// Thread-local macro for non-fatal errors (processing continues)
+#define OPENMS_LOG_ERROR_TL \
+  OpenMS::ThreadLogContext::error()
+
+  /// Thread-local macro for warnings
+#define OPENMS_LOG_WARN_TL \
+  OpenMS::ThreadLogContext::warn()
+
+  /// Thread-local macro for information/status messages
+#define OPENMS_LOG_INFO_TL \
+  OpenMS::ThreadLogContext::info()
+
+  /// Thread-local macro for debug information
+#define OPENMS_LOG_DEBUG_TL \
+  OpenMS::ThreadLogContext::debug() << past_last_slash(__FILE__) << "(" << __LINE__ << "): "
+
+  /// Thread-local macro for debug information (without file info)
+#define OPENMS_LOG_DEBUG_NOFILE_TL \
+  OpenMS::ThreadLogContext::debug()
+
+  //
+  // Legacy Global Logging Macros (deprecated - have data race bugs)
+  //
+  // These macros use global LogStream instances protected by OpenMP critical sections.
+  // However, the critical section only protects the << operations, NOT the sync()
+  // method called by endl/flush. This leads to data races on:
+  //   - static char buf[] in syncLF_()
+  //   - incomplete_line_ member
+  //   - log_cache_ and log_time_cache_ members
+  //
+  // Use OPENMS_THREADLOCAL_LOGGING to enable the thread-safe versions.
+  //
+
+  /// Legacy macro for fatal errors - has data race bugs, use OPENMS_LOG_FATAL_ERROR_TL instead
+#define OPENMS_LOG_FATAL_ERROR_LEGACY \
   OPENMS_THREAD_CRITICAL(LOGSTREAM) \
   OpenMS_Log_fatal << __FILE__ << "(" << __LINE__ << "): "
 
-  /// Macro to be used if non-fatal error are reported (processing continues)
-#define OPENMS_LOG_ERROR \
+  /// Legacy macro for non-fatal errors - has data race bugs
+#define OPENMS_LOG_ERROR_LEGACY \
   OPENMS_THREAD_CRITICAL(LOGSTREAM) \
   OpenMS_Log_error
 
-  /// Macro if a warning, a piece of information which should be read by the user, should be logged
-#define OPENMS_LOG_WARN \
+  /// Legacy macro for warnings - has data race bugs
+#define OPENMS_LOG_WARN_LEGACY \
   OPENMS_THREAD_CRITICAL(LOGSTREAM) \
   OpenMS_Log_warn
 
-  /// Macro if a information, e.g. a status should be reported
-#define OPENMS_LOG_INFO \
+  /// Legacy macro for information - has data race bugs
+#define OPENMS_LOG_INFO_LEGACY \
   OPENMS_THREAD_CRITICAL(LOGSTREAM) \
   OpenMS_Log_info
 
-  /// Macro for general debugging information
-#define OPENMS_LOG_DEBUG \
+  /// Legacy macro for debug - has data race bugs
+#define OPENMS_LOG_DEBUG_LEGACY \
   OPENMS_THREAD_CRITICAL(LOGSTREAM) \
   OpenMS_Log_debug << past_last_slash(__FILE__) << "(" << __LINE__ << "): "
 
-  /// Macro for general debugging information (without information on file)
-#define OPENMS_LOG_DEBUG_NOFILE \
+  /// Legacy macro for debug (no file) - has data race bugs
+#define OPENMS_LOG_DEBUG_NOFILE_LEGACY \
   OPENMS_THREAD_CRITICAL(LOGSTREAM) \
   OpenMS_Log_debug
 
+  //
+  // Feature flag to select between thread-local and legacy logging
+  //
+  // Set OPENMS_THREADLOCAL_LOGGING=OFF in CMake to disable thread-safe logging.
+  // Default is ON to prevent data races in multi-threaded logging (see issue #8596).
+  //
+
+#ifdef OPENMS_THREADLOCAL_LOGGING
+  // Thread-safe logging enabled - use thread-local macros
+  #define OPENMS_LOG_FATAL_ERROR OPENMS_LOG_FATAL_ERROR_TL
+  #define OPENMS_LOG_ERROR       OPENMS_LOG_ERROR_TL
+  #define OPENMS_LOG_WARN        OPENMS_LOG_WARN_TL
+  #define OPENMS_LOG_INFO        OPENMS_LOG_INFO_TL
+  #define OPENMS_LOG_DEBUG       OPENMS_LOG_DEBUG_TL
+  #define OPENMS_LOG_DEBUG_NOFILE OPENMS_LOG_DEBUG_NOFILE_TL
+#else
+  // Legacy logging (default for backwards compatibility)
+  #define OPENMS_LOG_FATAL_ERROR OPENMS_LOG_FATAL_ERROR_LEGACY
+  #define OPENMS_LOG_ERROR       OPENMS_LOG_ERROR_LEGACY
+  #define OPENMS_LOG_WARN        OPENMS_LOG_WARN_LEGACY
+  #define OPENMS_LOG_INFO        OPENMS_LOG_INFO_LEGACY
+  #define OPENMS_LOG_DEBUG       OPENMS_LOG_DEBUG_LEGACY
+  #define OPENMS_LOG_DEBUG_NOFILE OPENMS_LOG_DEBUG_NOFILE_LEGACY
+#endif
+
+  // Global LogStream instances (used by legacy macros, also available for direct access)
   OPENMS_DLLAPI extern Logger::LogStream OpenMS_Log_fatal; ///< Global static instance of a LogStream to capture messages classified as fatal errors. By default it is bound to @b cerr.
   OPENMS_DLLAPI extern Logger::LogStream OpenMS_Log_error; ///< Global static instance of a LogStream to capture messages classified as errors. By default it is bound to @b cerr.
   OPENMS_DLLAPI extern Logger::LogStream OpenMS_Log_warn;  ///< Global static instance of a LogStream to capture messages classified as warnings. By default it is bound to @b cout.

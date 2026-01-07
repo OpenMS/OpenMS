@@ -60,6 +60,7 @@ option(WITH_HDF5 "Build HDF5 parts of OpenMS." OFF)
 option(WITH_PARQUET "Build Parquet parts of OpenMS." OFF)
 option(ENABLE_TDL "Load dependency and compile against TDL (required for CWL file support)." ON)
 option(ENABLE_CWL_GENERATION "Build and validate the CWL description files for all TOPP tools (Requires ENABLE_TDL=ON)." OFF)
+option(OPENMS_THREADLOCAL_LOGGING "Enable thread-local logging to fix data races in LogStream (see issue #8596)." ON)
 
 if(ENABLE_CWL_GENERATION AND NOT ENABLE_TDL)
     message(FATAL_ERROR "ENABLE_CWL_GENERATION requires ENABLE_TDL to be ON.")

@@ -14,6 +14,7 @@ Init.cpp
 LogConfigHandler.cpp
 LogStream.cpp
 PrecisionWrapper.cpp
+ThreadLogContext.cpp
 ProgressLogger.cpp
 RAIICleanup.cpp
 StreamHandler.cpp

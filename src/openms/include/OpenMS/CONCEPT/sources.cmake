@@ -16,6 +16,7 @@ Init.h
 LogConfigHandler.h
 LogStream.h
 Macros.h
+ThreadLogContext.h
 MacrosTest.h
 PrecisionWrapper.h
 ProgressLogger.h

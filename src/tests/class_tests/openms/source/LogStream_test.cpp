@@ -374,15 +374,28 @@ END_SECTION
 
 START_SECTION(([EXTRA] Macro test - OPENMS_LOG_FATAL_ERROR))
 {
-  // remove cout/cerr streams from global instances
+  // remove cout/cerr streams from the appropriate logger
   // and append trackable ones
-  OpenMS_Log_fatal.remove(cerr);
+  // NOTE: clearCache() outputs cached messages, so call it BEFORE inserting test stream
   ostringstream stream_by_logger;
   {
+#ifdef OPENMS_THREADLOCAL_LOGGING
+    // Thread-local mode: manipulate the thread-local logger
+    ThreadLogContext::fatal().rdbuf()->clearCache();  // outputs to old streams, then clears
+    ThreadLogContext::fatal().removeAllStreams();
+    ThreadLogContext::fatal().insert(stream_by_logger);
+#else
+    // Legacy mode: manipulate the global logger
+    OpenMS_Log_fatal.remove(cerr);
     OpenMS_Log_fatal.insert(stream_by_logger);
+#endif
 
     OPENMS_LOG_FATAL_ERROR << "1\n";
     OPENMS_LOG_FATAL_ERROR << "2" << endl;
+
+#ifdef OPENMS_THREADLOCAL_LOGGING
+    ThreadLogContext::fatal().remove(stream_by_logger);
+#endif
   }
 
   StringList to_validate_list = ListUtils::create<String>(String(stream_by_logger.str()),'\n');
@@ -398,17 +411,28 @@ END_SECTION
 
 START_SECTION(([EXTRA] Macro test - OPENMS_LOG_ERROR))
 {
-  // remove cout/cerr streams from global instances
+  // remove cout/cerr streams from the appropriate logger
   // and append trackable ones
-  OpenMS_Log_error.remove(cerr);
+  // NOTE: clearCache() outputs cached messages, so call it BEFORE inserting test stream
   String filename;
   NEW_TMP_FILE(filename)
   ofstream s(filename.c_str(), std::ios::out);
   {
+#ifdef OPENMS_THREADLOCAL_LOGGING
+    ThreadLogContext::error().rdbuf()->clearCache();  // outputs to old streams, then clears
+    ThreadLogContext::error().removeAllStreams();
+    ThreadLogContext::error().insert(s);
+#else
+    OpenMS_Log_error.remove(cerr);
     OpenMS_Log_error.insert(s);
+#endif
 
     OPENMS_LOG_ERROR << "1\n";
     OPENMS_LOG_ERROR << "2" << endl;
+
+#ifdef OPENMS_THREADLOCAL_LOGGING
+    ThreadLogContext::error().remove(s);
+#endif
   }
   TEST_FILE_EQUAL(filename.c_str(), OPENMS_GET_TEST_DATA_PATH("LogStream_test_general_red.txt"))
 }
@@ -416,17 +440,28 @@ END_SECTION
 
 START_SECTION(([EXTRA] Macro test - OPENMS_LOG_WARN))
 {
-  // remove cout/cerr streams from global instances
+  // remove cout/cerr streams from the appropriate logger
   // and append trackable ones
-  OpenMS_Log_warn.remove(cout);
+  // NOTE: clearCache() outputs cached messages, so call it BEFORE inserting test stream
   String filename;
   NEW_TMP_FILE(filename)
   ofstream s(filename.c_str(), std::ios::out);
   {
+#ifdef OPENMS_THREADLOCAL_LOGGING
+    ThreadLogContext::warn().rdbuf()->clearCache();  // outputs to old streams, then clears
+    ThreadLogContext::warn().removeAllStreams();
+    ThreadLogContext::warn().insert(s);
+#else
+    OpenMS_Log_warn.remove(cout);
     OpenMS_Log_warn.insert(s);
+#endif
 
     OPENMS_LOG_WARN << "1\n";
     OPENMS_LOG_WARN << "2" << endl;
+
+#ifdef OPENMS_THREADLOCAL_LOGGING
+    ThreadLogContext::warn().remove(s);
+#endif
   }
   TEST_FILE_EQUAL(filename.c_str(), OPENMS_GET_TEST_DATA_PATH("LogStream_test_general_yellow.txt"))
 }
@@ -434,22 +469,29 @@ END_SECTION
 
 START_SECTION(([EXTRA] Macro test - OPENMS_LOG_INFO))
 {
-  // remove cout/cerr streams from global instances
+  // remove cout/cerr streams from the appropriate logger
   // and append trackable ones
-  OpenMS_Log_info.remove(cout);
-
-  // clear cache to avoid pollution of the test output
-  // by previous tests
-  OpenMS_Log_info.rdbuf()->clearCache();
-
+  // NOTE: clearCache() outputs cached messages, so call it BEFORE inserting test stream
   String filename;
   NEW_TMP_FILE(filename)
   ofstream s(filename.c_str(), std::ios::out);
   {
+#ifdef OPENMS_THREADLOCAL_LOGGING
+    ThreadLogContext::info().rdbuf()->clearCache();  // outputs to old streams, then clears
+    ThreadLogContext::info().removeAllStreams();
+    ThreadLogContext::info().insert(s);
+#else
+    OpenMS_Log_info.rdbuf()->clearCache();
+    OpenMS_Log_info.remove(cout);
     OpenMS_Log_info.insert(s);
+#endif
 
     OPENMS_LOG_INFO << "1\n";
     OPENMS_LOG_INFO << "2" << endl;
+
+#ifdef OPENMS_THREADLOCAL_LOGGING
+    ThreadLogContext::info().remove(s);
+#endif
   }
   TEST_FILE_EQUAL(filename.c_str(), OPENMS_GET_TEST_DATA_PATH("LogStream_test_general.txt"))
 }
@@ -457,20 +499,27 @@ END_SECTION
 
 START_SECTION(([EXTRA] Macro test - OPENMS_LOG_DEBUG))
 {
-  // remove cout/cerr streams from global instances
+  // remove cout/cerr streams from the appropriate logger
   // and append trackable ones
-  OpenMS_Log_debug.remove(cout);
-
-  // clear cache to avoid pollution of the test output
-  // by previous tests
-  OpenMS_Log_debug.rdbuf()->clearCache();
-
+  // NOTE: clearCache() outputs cached messages, so call it BEFORE inserting test stream
   ostringstream stream_by_logger;
   {
+#ifdef OPENMS_THREADLOCAL_LOGGING
+    ThreadLogContext::debug().rdbuf()->clearCache();  // outputs to old streams, then clears
+    ThreadLogContext::debug().removeAllStreams();
+    ThreadLogContext::debug().insert(stream_by_logger);
+#else
+    OpenMS_Log_debug.rdbuf()->clearCache();
+    OpenMS_Log_debug.remove(cout);
     OpenMS_Log_debug.insert(stream_by_logger);
+#endif
 
     OPENMS_LOG_DEBUG << "1\n";
     OPENMS_LOG_DEBUG << "2" << endl;
+
+#ifdef OPENMS_THREADLOCAL_LOGGING
+    ThreadLogContext::debug().remove(stream_by_logger);
+#endif
   }
 
   StringList to_validate_list = ListUtils::create<String>(String(stream_by_logger.str()),'\n');
