@@ -624,9 +624,27 @@ namespace OpenMS
 
     double tr1_length(tr1.getFWHM());
     double tr2_length(tr2.getFWHM());
-    double max_length = (tr1_length > tr2_length) ? tr1_length : tr2_length;
+    double min_length = (tr1_length < tr2_length) ? tr1_length : tr2_length;
 
-    // std::cout << "tr1 " << tr1_length << " tr2 " << tr2_length << std::endl;
+    // Identify the longer (more intense) trace and the shorter (less intense) trace
+    // The apex of the more intense trace should fall within the shorter trace's RT range
+    const MassTrace& longer_trace = (tr1_length >= tr2_length) ? tr1 : tr2;
+    const MassTrace& shorter_trace = (tr1_length < tr2_length) ? tr1 : tr2;
+    std::pair<Size, Size> shorter_fwhm_idx = (tr1_length < tr2_length) ? tr1_fwhm_idx : tr2_fwhm_idx;
+
+    // Get apex RT of the longer (more intense) trace
+    Size longer_apex_idx = longer_trace.findMaxByIntPeak(false);
+    double longer_apex_rt = longer_trace[longer_apex_idx].getRT();
+
+    // Get RT range of the shorter trace (within FWHM)
+    double shorter_start_rt = shorter_trace[shorter_fwhm_idx.first].getRT();
+    double shorter_end_rt = shorter_trace[shorter_fwhm_idx.second].getRT();
+
+    // Check if the apex of the longer trace falls within the shorter trace's RT range
+    if (longer_apex_rt < shorter_start_rt || longer_apex_rt > shorter_end_rt)
+    {
+      return 0.0;
+    }
 
     // Extract peak shape between FWHM borders for both peaks
     for (Size i = tr1_fwhm_idx.first; i <= tr1_fwhm_idx.second; ++i)
@@ -638,7 +656,7 @@ namespace OpenMS
       coinciding_rts[tr2[i].getRT()].push_back(tr2[i].getIntensity());
     }
 
-    // Look at peaks at the same RT 
+    // Look at peaks at the same RT
     // TODO: this only works if both traces are sampled with equal rate at the same RT
     std::vector<double> x, y, overlap_rts;
     for (std::map<double, std::vector<double> >::const_iterator m_it = coinciding_rts.begin(); m_it != coinciding_rts.end(); ++m_it)
@@ -651,17 +669,6 @@ namespace OpenMS
       }
     }
 
-    //    if (x.size() < std::floor(0.8*max_length))
-    //        {
-    //            return 0.0;
-    //        }
-    // double rt_range(0.0)
-    // if (coinciding_rts.size() > 0)
-    // {
-    //     rt_range = std::fabs(coinciding_rts.rbegin()->first - coinciding_rts.begin()->first);
-    // }
-
-
     double overlap(0.0);
     if (!overlap_rts.empty())
     {
@@ -669,8 +676,9 @@ namespace OpenMS
       overlap = std::fabs(end_rt - start_rt);
     }
 
-    double proportion(overlap / max_length);
-    if (proportion < 0.7)
+    // The shorter trace should lie substantially (95%) within the longer trace
+    double proportion(overlap / min_length);
+    if (proportion < 0.95)
     {
       return 0.0;
     }

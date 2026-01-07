@@ -393,15 +393,19 @@ namespace OpenMS
 
         if (!(f1.getConvexHull().getBoundingBox().isEmpty() || f2.getConvexHull().getBoundingBox().isEmpty()))
         {
-          double f_start1 = std::min(f1.getConvexHull().getBoundingBox().minX(), f2.getConvexHull().getBoundingBox().minX());
           double f_start2 = std::max(f1.getConvexHull().getBoundingBox().minX(), f2.getConvexHull().getBoundingBox().minX());
           double f_end1 = std::min(f1.getConvexHull().getBoundingBox().maxX(), f2.getConvexHull().getBoundingBox().maxX());
-          double f_end2 = std::max(f1.getConvexHull().getBoundingBox().maxX(), f2.getConvexHull().getBoundingBox().maxX());
 
-          double union_length = f_end2 - f_start1;
           double intersect_length = std::max(0., f_end1 - f_start2);
 
-          if (intersect_length / union_length < rt_min_overlap)
+          // Calculate the length of each feature's RT span
+          double f1_length = f1.getConvexHull().getBoundingBox().maxX() - f1.getConvexHull().getBoundingBox().minX();
+          double f2_length = f2.getConvexHull().getBoundingBox().maxX() - f2.getConvexHull().getBoundingBox().minX();
+          double shorter_length = std::min(f1_length, f2_length);
+
+          // Use shorter trace length for overlap calculation to avoid penalizing
+          // weak signals that naturally produce shorter traces
+          if (shorter_length > 0 && intersect_length / shorter_length < rt_min_overlap)
             continue;
         }
 
