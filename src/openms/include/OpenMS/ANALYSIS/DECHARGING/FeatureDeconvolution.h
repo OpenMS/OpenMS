@@ -36,7 +36,7 @@ namespace OpenMS
   {
 public:
 
-    enum CHARGEMODE {QFROMFEATURE = 1, QHEURISTIC, QALL};
+    enum class CHARGEMODE {QFROMFEATURE = 1, QHEURISTIC, QALL};
 
     typedef DPosition<2> ClusterPointType;
     typedef Feature::CoordinateType CoordinateType;

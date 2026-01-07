@@ -155,13 +155,13 @@ START_SECTION((ExitCodes run(std::vector<FASTAFile::FASTAEntry>& proteins, std::
   proteins = toFASTAVec(QStringList());
   pep_ids = toPepVec(QStringList() << "SOME" << "PEPTIDES");
   r = pi.run(proteins, prot_ids, pep_ids);
-  TEST_EQUAL(r, PeptideIndexing::DATABASE_EMPTY);
+  TEST_EQUAL(r, PeptideIndexing::ExitCodes::DATABASE_EMPTY);
 
   // empty idXML (peptides) --> FAIL
   proteins = toFASTAVec(QStringList("PROTEINSEQ"));
   pep_ids = toPepVec(QStringList());
   r = pi.run(proteins, prot_ids, pep_ids);
-  TEST_EQUAL(r, PeptideIndexing::PEPTIDE_IDS_EMPTY);
+  TEST_EQUAL(r, PeptideIndexing::ExitCodes::PEPTIDE_IDS_EMPTY);
 
   // duplicate accession -- will not be detected and the peptide will have two protein hits.
   // However, extractProteinAccessionsSet() returns a set<>, i.e. only one hit.
@@ -374,7 +374,7 @@ START_SECTION((Test PeptideIndexer settings stored as metavalues in SearchParame
   }
 
   PeptideIndexing::ExitCodes r = pi.run(proteins, prot_ids, pep_ids);
-  TEST_EQUAL(r, PeptideIndexing::EXECUTION_OK);
+  TEST_EQUAL(r, PeptideIndexing::ExitCodes::EXECUTION_OK);
 
   // Check that metavalues are set correctly in SearchParameters
   const ProteinIdentification::SearchParameters& search_params = prot_ids[0].getSearchParameters();

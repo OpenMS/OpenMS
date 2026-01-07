@@ -23,7 +23,7 @@ cdef extern from "<OpenMS/METADATA/SpectrumSettings.h>" namespace "OpenMS":
         SpectrumSettings(SpectrumSettings &) except + nogil 
 
         void unify(SpectrumSettings) except + nogil 
-        int  getType() except + nogil  # wrap-doc:Returns the spectrum type (centroided (PEAKS) or profile data (RAW))
+        SpectrumType getType() except + nogil  # wrap-doc:Returns the spectrum type (centroided (PEAKS) or profile data (RAW))
         void setType(SpectrumType) except + nogil  # wrap-doc:Sets the spectrum type
         String getNativeID() except + nogil  # wrap-doc:Returns the native identifier for the spectrum, used by the acquisition software
         void setNativeID(String) except + nogil  # wrap-doc:Sets the native identifier for the spectrum, used by the acquisition software

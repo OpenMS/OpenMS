@@ -713,14 +713,14 @@ if (!pi.getHits().empty())
 
     PeptideIndexing::ExitCodes indexer_exit = indexer.run(fasta_db, protein_ids, peptide_ids);
 
-    if ((indexer_exit != PeptideIndexing::EXECUTION_OK) &&
-        (indexer_exit != PeptideIndexing::PEPTIDE_IDS_EMPTY))
+    if ((indexer_exit != PeptideIndexing::ExitCodes::EXECUTION_OK) &&
+        (indexer_exit != PeptideIndexing::ExitCodes::PEPTIDE_IDS_EMPTY))
     {
-      if (indexer_exit == PeptideIndexing::DATABASE_EMPTY)
+      if (indexer_exit == PeptideIndexing::ExitCodes::DATABASE_EMPTY)
       {
-        return ExitCodes::INPUT_FILE_EMPTY;       
+        return ExitCodes::INPUT_FILE_EMPTY;
       }
-      else if (indexer_exit == PeptideIndexing::UNEXPECTED_RESULT)
+      else if (indexer_exit == PeptideIndexing::ExitCodes::UNEXPECTED_RESULT)
       {
         return ExitCodes::UNEXPECTED_RESULT;
       }

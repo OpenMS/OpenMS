@@ -172,16 +172,16 @@ END_SECTION
 
 START_SECTION(([ControlledVocabulary::CVTerm] static String getXRefTypeName(XRefType type)))
 {
-  TEST_STRING_EQUAL(ControlledVocabulary::CVTerm::getXRefTypeName(ControlledVocabulary::CVTerm::XSD_STRING), "xsd:string")
-  TEST_STRING_EQUAL(ControlledVocabulary::CVTerm::getXRefTypeName(ControlledVocabulary::CVTerm::XSD_INTEGER), "xsd:integer")
-  TEST_STRING_EQUAL(ControlledVocabulary::CVTerm::getXRefTypeName(ControlledVocabulary::CVTerm::XSD_DECIMAL), "xsd:decimal")
-  TEST_STRING_EQUAL(ControlledVocabulary::CVTerm::getXRefTypeName(ControlledVocabulary::CVTerm::XSD_NEGATIVE_INTEGER), "xsd:negativeInteger")
-  TEST_STRING_EQUAL(ControlledVocabulary::CVTerm::getXRefTypeName(ControlledVocabulary::CVTerm::XSD_POSITIVE_INTEGER), "xsd:positiveInteger")
-  TEST_STRING_EQUAL(ControlledVocabulary::CVTerm::getXRefTypeName(ControlledVocabulary::CVTerm::XSD_NON_NEGATIVE_INTEGER), "xsd:nonNegativeInteger")
-  TEST_STRING_EQUAL(ControlledVocabulary::CVTerm::getXRefTypeName(ControlledVocabulary::CVTerm::XSD_NON_POSITIVE_INTEGER), "xsd:nonPositiveInteger")
-  TEST_STRING_EQUAL(ControlledVocabulary::CVTerm::getXRefTypeName(ControlledVocabulary::CVTerm::XSD_BOOLEAN), "xsd:boolean")
-  TEST_STRING_EQUAL(ControlledVocabulary::CVTerm::getXRefTypeName(ControlledVocabulary::CVTerm::XSD_DATE), "xsd:date")
-  TEST_STRING_EQUAL(ControlledVocabulary::CVTerm::getXRefTypeName(ControlledVocabulary::CVTerm::XSD_ANYURI), "xsd:anyURI")
+  TEST_STRING_EQUAL(ControlledVocabulary::CVTerm::getXRefTypeName(ControlledVocabulary::CVTerm::XRefType::XSD_STRING), "xsd:string")
+  TEST_STRING_EQUAL(ControlledVocabulary::CVTerm::getXRefTypeName(ControlledVocabulary::CVTerm::XRefType::XSD_INTEGER), "xsd:integer")
+  TEST_STRING_EQUAL(ControlledVocabulary::CVTerm::getXRefTypeName(ControlledVocabulary::CVTerm::XRefType::XSD_DECIMAL), "xsd:decimal")
+  TEST_STRING_EQUAL(ControlledVocabulary::CVTerm::getXRefTypeName(ControlledVocabulary::CVTerm::XRefType::XSD_NEGATIVE_INTEGER), "xsd:negativeInteger")
+  TEST_STRING_EQUAL(ControlledVocabulary::CVTerm::getXRefTypeName(ControlledVocabulary::CVTerm::XRefType::XSD_POSITIVE_INTEGER), "xsd:positiveInteger")
+  TEST_STRING_EQUAL(ControlledVocabulary::CVTerm::getXRefTypeName(ControlledVocabulary::CVTerm::XRefType::XSD_NON_NEGATIVE_INTEGER), "xsd:nonNegativeInteger")
+  TEST_STRING_EQUAL(ControlledVocabulary::CVTerm::getXRefTypeName(ControlledVocabulary::CVTerm::XRefType::XSD_NON_POSITIVE_INTEGER), "xsd:nonPositiveInteger")
+  TEST_STRING_EQUAL(ControlledVocabulary::CVTerm::getXRefTypeName(ControlledVocabulary::CVTerm::XRefType::XSD_BOOLEAN), "xsd:boolean")
+  TEST_STRING_EQUAL(ControlledVocabulary::CVTerm::getXRefTypeName(ControlledVocabulary::CVTerm::XRefType::XSD_DATE), "xsd:date")
+  TEST_STRING_EQUAL(ControlledVocabulary::CVTerm::getXRefTypeName(ControlledVocabulary::CVTerm::XRefType::XSD_ANYURI), "xsd:anyURI")
 }
 END_SECTION
 

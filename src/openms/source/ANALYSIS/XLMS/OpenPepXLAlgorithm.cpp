@@ -198,7 +198,7 @@ using namespace OpenMS;
     {
       OPENMS_LOG_WARN << "The given file does not contain any conventional peak data, but might"
                   " contain chromatograms. This tool currently cannot handle them, sorry." << endl;
-      return INCOMPATIBLE_INPUT_DATA;
+      return ExitCodes::INCOMPATIBLE_INPUT_DATA;
     }
 
     //check if spectra are sorted
@@ -207,7 +207,7 @@ using namespace OpenMS;
       if (!unprocessed_spectra[i].isSorted())
       {
         OPENMS_LOG_WARN << "Error: Not all spectra are sorted according to peak m/z positions. Use FileFilter to sort the input!" << endl;
-        return INCOMPATIBLE_INPUT_DATA;
+        return ExitCodes::INCOMPATIBLE_INPUT_DATA;
       }
     }
 

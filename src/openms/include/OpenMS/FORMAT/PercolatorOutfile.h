@@ -30,13 +30,13 @@ namespace OpenMS
   public:
 
     /// Types of Percolator scores
-    enum ScoreType { QVALUE, POSTERRPROB, SCORE, SIZE_OF_SCORETYPE };
+    enum class ScoreType { QVALUE, POSTERRPROB, SCORE, SIZE_OF_SCORETYPE };
 
     /// Names of Percolator scores (to match ScoreType)
-    static const std::string score_type_names[SIZE_OF_SCORETYPE];
+    static const std::string score_type_names[static_cast<size_t>(ScoreType::SIZE_OF_SCORETYPE)];
 
     /// Return a score type given its name
-    static enum ScoreType getScoreType(String score_type_name);
+    static ScoreType getScoreType(String score_type_name);
 
     /// Constructor
     PercolatorOutfile();
@@ -45,7 +45,7 @@ namespace OpenMS
     void load(const String& filename, ProteinIdentification& proteins,
               PeptideIdentificationList& peptides,
               SpectrumMetaDataLookup& lookup,
-              enum ScoreType output_score = QVALUE);
+              ScoreType output_score = ScoreType::QVALUE);
 
   private:
     /// Converts the peptide string to an 'AASequence' instance
