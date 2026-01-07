@@ -102,7 +102,7 @@ namespace OpenMS
 
   const std::string& InstrumentSettings::scanModeToString(ScanMode mode)
   {
-    if (mode == SIZE_OF_SCANMODE)
+    if (mode == ScanMode::SIZE_OF_SCANMODE)
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value not allowed", "SIZE_OF_SCANMODE");
     }
@@ -112,7 +112,7 @@ namespace OpenMS
   InstrumentSettings::ScanMode InstrumentSettings::toScanMode(const std::string& name)
   {
     auto first = &NamesOfScanMode[0];
-    auto last = &NamesOfScanMode[SIZE_OF_SCANMODE];
+    auto last = &NamesOfScanMode[static_cast<size_t>(ScanMode::SIZE_OF_SCANMODE)];
     const auto it = std::find(first, last, name);
     if (it == last)
     {

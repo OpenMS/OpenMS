@@ -189,7 +189,7 @@ namespace OpenMS
 
   const std::string& Sample::sampleStateToString(SampleState state)
   {
-    if (state == SIZE_OF_SAMPLESTATE)
+    if (state == SampleState::SIZE_OF_SAMPLESTATE)
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value not allowed", "SIZE_OF_SAMPLESTATE");
     }
@@ -199,7 +199,7 @@ namespace OpenMS
   Sample::SampleState Sample::toSampleState(const std::string& name)
   {
     auto first = &NamesOfSampleState[0];
-    auto last = &NamesOfSampleState[SIZE_OF_SAMPLESTATE];
+    auto last = &NamesOfSampleState[static_cast<size_t>(SampleState::SIZE_OF_SAMPLESTATE)];
     const auto it = std::find(first, last, name);
     if (it == last)
     {

@@ -294,7 +294,7 @@ namespace OpenMS
 
   const std::string& MassAnalyzer::analyzerTypeToString(AnalyzerType type)
   {
-    if (type == SIZE_OF_ANALYZERTYPE)
+    if (type == AnalyzerType::SIZE_OF_ANALYZERTYPE)
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value not allowed", "SIZE_OF_ANALYZERTYPE");
     }
@@ -304,7 +304,7 @@ namespace OpenMS
   MassAnalyzer::AnalyzerType MassAnalyzer::toAnalyzerType(const std::string& name)
   {
     auto first = &NamesOfAnalyzerType[0];
-    auto last = &NamesOfAnalyzerType[SIZE_OF_ANALYZERTYPE];
+    auto last = &NamesOfAnalyzerType[static_cast<size_t>(AnalyzerType::SIZE_OF_ANALYZERTYPE)];
     const auto it = std::find(first, last, name);
     if (it == last)
     {
@@ -315,7 +315,7 @@ namespace OpenMS
 
   const std::string& MassAnalyzer::resolutionMethodToString(ResolutionMethod method)
   {
-    if (method == SIZE_OF_RESOLUTIONMETHOD)
+    if (method == ResolutionMethod::SIZE_OF_RESOLUTIONMETHOD)
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value not allowed", "SIZE_OF_RESOLUTIONMETHOD");
     }
@@ -325,7 +325,7 @@ namespace OpenMS
   MassAnalyzer::ResolutionMethod MassAnalyzer::toResolutionMethod(const std::string& name)
   {
     auto first = &NamesOfResolutionMethod[0];
-    auto last = &NamesOfResolutionMethod[SIZE_OF_RESOLUTIONMETHOD];
+    auto last = &NamesOfResolutionMethod[static_cast<size_t>(ResolutionMethod::SIZE_OF_RESOLUTIONMETHOD)];
     const auto it = std::find(first, last, name);
     if (it == last)
     {
@@ -336,7 +336,7 @@ namespace OpenMS
 
   const std::string& MassAnalyzer::resolutionTypeToString(ResolutionType type)
   {
-    if (type == SIZE_OF_RESOLUTIONTYPE)
+    if (type == ResolutionType::SIZE_OF_RESOLUTIONTYPE)
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value not allowed", "SIZE_OF_RESOLUTIONTYPE");
     }
@@ -346,7 +346,7 @@ namespace OpenMS
   MassAnalyzer::ResolutionType MassAnalyzer::toResolutionType(const std::string& name)
   {
     auto first = &NamesOfResolutionType[0];
-    auto last = &NamesOfResolutionType[SIZE_OF_RESOLUTIONTYPE];
+    auto last = &NamesOfResolutionType[static_cast<size_t>(ResolutionType::SIZE_OF_RESOLUTIONTYPE)];
     const auto it = std::find(first, last, name);
     if (it == last)
     {
@@ -357,7 +357,7 @@ namespace OpenMS
 
   const std::string& MassAnalyzer::scanDirectionToString(ScanDirection direction)
   {
-    if (direction == SIZE_OF_SCANDIRECTION)
+    if (direction == ScanDirection::SIZE_OF_SCANDIRECTION)
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value not allowed", "SIZE_OF_SCANDIRECTION");
     }
@@ -367,7 +367,7 @@ namespace OpenMS
   MassAnalyzer::ScanDirection MassAnalyzer::toScanDirection(const std::string& name)
   {
     auto first = &NamesOfScanDirection[0];
-    auto last = &NamesOfScanDirection[SIZE_OF_SCANDIRECTION];
+    auto last = &NamesOfScanDirection[static_cast<size_t>(ScanDirection::SIZE_OF_SCANDIRECTION)];
     const auto it = std::find(first, last, name);
     if (it == last)
     {
@@ -378,7 +378,7 @@ namespace OpenMS
 
   const std::string& MassAnalyzer::scanLawToString(ScanLaw law)
   {
-    if (law == SIZE_OF_SCANLAW)
+    if (law == ScanLaw::SIZE_OF_SCANLAW)
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value not allowed", "SIZE_OF_SCANLAW");
     }
@@ -388,7 +388,7 @@ namespace OpenMS
   MassAnalyzer::ScanLaw MassAnalyzer::toScanLaw(const std::string& name)
   {
     auto first = &NamesOfScanLaw[0];
-    auto last = &NamesOfScanLaw[SIZE_OF_SCANLAW];
+    auto last = &NamesOfScanLaw[static_cast<size_t>(ScanLaw::SIZE_OF_SCANLAW)];
     const auto it = std::find(first, last, name);
     if (it == last)
     {
@@ -399,7 +399,7 @@ namespace OpenMS
 
   const std::string& MassAnalyzer::reflectronStateToString(ReflectronState state)
   {
-    if (state == SIZE_OF_REFLECTRONSTATE)
+    if (state == ReflectronState::SIZE_OF_REFLECTRONSTATE)
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value not allowed", "SIZE_OF_REFLECTRONSTATE");
     }
@@ -409,7 +409,7 @@ namespace OpenMS
   MassAnalyzer::ReflectronState MassAnalyzer::toReflectronState(const std::string& name)
   {
     auto first = &NamesOfReflectronState[0];
-    auto last = &NamesOfReflectronState[SIZE_OF_REFLECTRONSTATE];
+    auto last = &NamesOfReflectronState[static_cast<size_t>(ReflectronState::SIZE_OF_REFLECTRONSTATE)];
     const auto it = std::find(first, last, name);
     if (it == last)
     {

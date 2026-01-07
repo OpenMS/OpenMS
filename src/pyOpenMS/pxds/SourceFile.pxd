@@ -35,4 +35,6 @@ cdef extern from "<OpenMS/METADATA/SourceFile.h>" namespace "OpenMS":
 
 cdef extern from "<OpenMS/METADATA/SourceFile.h>" namespace "OpenMS::SourceFile":
     cdef enum class ChecksumType "OpenMS::SourceFile::ChecksumType":
-           UNKNOWN_CHECKSUM, SHA1, MD5, SIZE_OF_CHECKSUMTYPE
+        # wrap-attach:
+        #    SourceFile
+        UNKNOWN_CHECKSUM, SHA1, MD5, SIZE_OF_CHECKSUMTYPE
