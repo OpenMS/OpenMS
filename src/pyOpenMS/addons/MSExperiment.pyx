@@ -620,10 +620,8 @@ from libc.stdint cimport uintptr_t
         elif max_mz is None:
             max_mz = float('inf')
 
-        # Handle ms_levels default
-        if ms_levels is None:
-            ms_levels = self.getMSLevels() if num_spectra > 0 else []
-        elif not ms_levels:
+        # Handle ms_levels default (None or empty list -> all levels)
+        if not ms_levels:
             ms_levels = self.getMSLevels() if num_spectra > 0 else []
 
         result = {}
