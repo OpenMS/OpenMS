@@ -158,10 +158,22 @@ endif()
 #------------------------------------------------------------------------------
 find_package(Qt6 COMPONENTS Core Network REQUIRED)
 get_target_property(QT_QMAKE_EXECUTABLE Qt6::qmake IMPORTED_LOCATION)
-execute_process(COMMAND ${QT_QMAKE_EXECUTABLE} -query QT_INSTALL_HEADERS OUTPUT_VARIABLE QT_INCLUDE_DIR OUTPUT_STRIP_TRAILING_WHITESPACE)
-execute_process(COMMAND ${QT_QMAKE_EXECUTABLE} -query QT_INSTALL_LIBS OUTPUT_VARIABLE QT_INSTALL_LIBS OUTPUT_STRIP_TRAILING_WHITESPACE)
-execute_process(COMMAND ${QT_QMAKE_EXECUTABLE} -query QT_INSTALL_BINS OUTPUT_VARIABLE QT_INSTALL_BINS OUTPUT_STRIP_TRAILING_WHITESPACE)
-execute_process(COMMAND ${QT_QMAKE_EXECUTABLE} -v OUTPUT_VARIABLE QT_QMAKE_VERSION_INFO OUTPUT_STRIP_TRAILING_WHITESPACE)
+execute_process(COMMAND ${QT_QMAKE_EXECUTABLE} -query QT_INSTALL_HEADERS OUTPUT_VARIABLE QT_INCLUDE_DIR OUTPUT_STRIP_TRAILING_WHITESPACE RESULT_VARIABLE QT_QMAKE_HEADERS_RESULT)
+if(QT_QMAKE_HEADERS_RESULT OR NOT QT_INCLUDE_DIR)
+  message(FATAL_ERROR "Failed to query QT_INSTALL_HEADERS from qmake: ${QT_QMAKE_EXECUTABLE}")
+endif()
+execute_process(COMMAND ${QT_QMAKE_EXECUTABLE} -query QT_INSTALL_LIBS OUTPUT_VARIABLE QT_INSTALL_LIBS OUTPUT_STRIP_TRAILING_WHITESPACE RESULT_VARIABLE QT_QMAKE_LIBS_RESULT)
+if(QT_QMAKE_LIBS_RESULT OR NOT QT_INSTALL_LIBS)
+  message(FATAL_ERROR "Failed to query QT_INSTALL_LIBS from qmake: ${QT_QMAKE_EXECUTABLE}")
+endif()
+execute_process(COMMAND ${QT_QMAKE_EXECUTABLE} -query QT_INSTALL_BINS OUTPUT_VARIABLE QT_INSTALL_BINS OUTPUT_STRIP_TRAILING_WHITESPACE RESULT_VARIABLE QT_QMAKE_BINS_RESULT)
+if(QT_QMAKE_BINS_RESULT OR NOT QT_INSTALL_BINS)
+  message(FATAL_ERROR "Failed to query QT_INSTALL_BINS from qmake: ${QT_QMAKE_EXECUTABLE}")
+endif()
+execute_process(COMMAND ${QT_QMAKE_EXECUTABLE} -v OUTPUT_VARIABLE QT_QMAKE_VERSION_INFO OUTPUT_STRIP_TRAILING_WHITESPACE RESULT_VARIABLE QT_QMAKE_VERSION_RESULT)
+if(QT_QMAKE_VERSION_RESULT OR NOT QT_QMAKE_VERSION_INFO)
+  message(FATAL_ERROR "Failed to query version from qmake: ${QT_QMAKE_EXECUTABLE}")
+endif()
 
 #------------------------------------------------------------------------------
 # OpenMP support (optional)
@@ -431,28 +443,26 @@ else()
       LIBRARY_OUTPUT_DIRECTORY "${PYOPENMS_BUILD_DIR}/pyopenms"
       RUNTIME_OUTPUT_DIRECTORY "${PYOPENMS_BUILD_DIR}/pyopenms"
     )
-    if(NOT PYOPENMS_DISABLE_RPATH)
+    if(NOT PYOPENMS_PREPARE_WHEEL_REPAIR)
       set_target_properties(pyopenms_compile PROPERTIES
         INSTALL_RPATH "${PY_RPATH}"
         BUILD_WITH_INSTALL_RPATH 1
         BUILD_WITH_INSTALL_NAME_DIR 1
       )
     else()
-      # Explicitly disable all RPATH settings for wheel repair tools
+      # For wheel repair: use INSTALL_RPATH_USE_LINK_PATH to auto-embed library paths
+      # Repair tools will follow these paths to bundle libs, then rewrite to relative paths
       set_target_properties(pyopenms_compile PROPERTIES
-        SKIP_BUILD_RPATH TRUE
-        SKIP_INSTALL_RPATH TRUE
-        BUILD_WITH_INSTALL_RPATH FALSE
-        INSTALL_RPATH ""
+        INSTALL_RPATH_USE_LINK_PATH TRUE
         INSTALL_NAME_DIR ""
       )
     endif()
     add_dependencies(pyopenms_compile compile_pxds)
 
-    # TODO: Check if fix_pyi_imports.py is really necessary
+    # Fix .pyi imports (single-module case uses _pyopenms.pyi)
     add_custom_command(TARGET pyopenms_compile POST_BUILD
-      COMMAND ${Python_EXECUTABLE} ${PYOPENMS_BUILD_DIR}/fix_pyi_imports.py ${PYOPENMS_BUILD_DIR}/pyopenms/pyopenms.pyi
-      COMMENT "Fixing typing information for pyopenms"
+      COMMAND ${Python_EXECUTABLE} ${PYOPENMS_BUILD_DIR}/fix_pyi_imports.py ${PYOPENMS_BUILD_DIR}/pyopenms/_pyopenms.pyi
+      COMMENT "Fixing typing information for _pyopenms"
     )
 
     install(TARGETS pyopenms_compile

@@ -170,7 +170,7 @@ skip = "*-win32 *-musllinux_* pp*"
 # The source tree is missing generated files like _version.py which causes import errors.
 # Using --import-mode=importlib ensures pytest uses standard Python imports.
 test-requires = ["pytest", "numpy", "pandas", "pyarrow"]
-test-command = "cd ~ && pytest {package}/tests/unittests -v --tb=short --import-mode=importlib"
+test-command = "cd \"$HOME\" && pytest \"{package}/tests/unittests\" -v --tb=short --import-mode=importlib"
 
 # Build in isolated environment
 build-verbosity = 1

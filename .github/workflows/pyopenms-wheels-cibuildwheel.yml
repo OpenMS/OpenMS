@@ -269,8 +269,9 @@ jobs:
             -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/install \
-            -DCMAKE_PREFIX_PATH="$(brew --prefix);$            -DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON \            -DOpenMP_ROOT=$(brew --prefix libomp) \
+            -DCMAKE_PREFIX_PATH="$(brew --prefix);$(brew --prefix libomp)" \
             -DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON \
+            -DOpenMP_ROOT=$(brew --prefix libomp) \
             -DBOOST_USE_STATIC=OFF \
             -DARROW_USE_STATIC=OFF \
             -DPYOPENMS=OFF \
