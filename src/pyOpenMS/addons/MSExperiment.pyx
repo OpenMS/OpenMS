@@ -1,6 +1,18 @@
 cimport numpy as np
 import numpy as np
+from libc.stdint cimport uintptr_t
 
+
+    def _get_cpp_pointer(self):
+        """Return the address of the underlying C++ MSExperiment object.
+
+        This is an internal method used by _arrow_zerocopy for zero-copy export.
+
+        :return: Integer address of the C++ object
+        :rtype: int
+        """
+        cdef _MSExperiment * exp_ = self.inst.get()
+        return <uintptr_t>exp_
 
     def get2DPeakData(MSExperiment self, float min_rt, float max_rt, float min_mz, float max_mz, unsigned int ms_level):
         """Cython signature: tuple[np.array[float] rt, np.array[float] mz, np.array[float] inty] get2DPeakData(float min_rt, float max_rt, float min_mz, float max_mz, unsigned int ms_level)"""
