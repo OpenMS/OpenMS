@@ -642,9 +642,9 @@ namespace OpenMS::Internal
          << "\t\t\t<source>\n";
       if (!inst.getIonSources().empty())
       {
-        writeCVS_(os, inst.getIonSources()[0].getInletType(), 11, "1000007", "InletType");
-        writeCVS_(os, inst.getIonSources()[0].getIonizationMethod(), 10, "1000008", "IonizationType");
-        writeCVS_(os, inst.getIonSources()[0].getPolarity(), 1, "1000009", "IonizationMode");
+        writeCVS_(os, static_cast<UInt>(inst.getIonSources()[0].getInletType()), 11, "1000007", "InletType");
+        writeCVS_(os, static_cast<UInt>(inst.getIonSources()[0].getIonizationMethod()), 10, "1000008", "IonizationType");
+        writeCVS_(os, static_cast<UInt>(inst.getIonSources()[0].getPolarity()), 1, "1000009", "IonizationMode");
         writeUserParam_(os, inst.getIonSources()[0]);
       }
       if (inst.getIonSources().size() > 1)
@@ -690,8 +690,8 @@ namespace OpenMS::Internal
       os << "\t\t\t<detector>\n";
       if (!inst.getIonDetectors().empty())
       {
-        writeCVS_(os, inst.getIonDetectors()[0].getType(), 13, "1000026", "DetectorType");
-        writeCVS_(os, inst.getIonDetectors()[0].getAcquisitionMode(), 9, "1000027", "DetectorAcquisitionMode");
+        writeCVS_(os, static_cast<UInt>(inst.getIonDetectors()[0].getType()), 13, "1000026", "DetectorType");
+        writeCVS_(os, static_cast<UInt>(inst.getIonDetectors()[0].getAcquisitionMode()), 9, "1000027", "DetectorAcquisitionMode");
         writeCVS_(os, inst.getIonDetectors()[0].getResolution(), "1000028", "DetectorResolution");
         writeCVS_(os, inst.getIonDetectors()[0].getADCSamplingFrequency(), "1000029", "SamplingFrequency");
         writeUserParam_(os, inst.getIonDetectors()[0]);
@@ -933,11 +933,11 @@ namespace OpenMS::Internal
           }
 
           //scan polarity
-          if (spec.getInstrumentSettings().getPolarity() == IonSource::POSITIVE)
+          if (spec.getInstrumentSettings().getPolarity() == IonSource::Polarity::POSITIVE)
           {
             os << String(6, '\t') << "<cvParam cvLabel=\"psi\" accession=\"PSI:1000037\" name=\"Polarity\" value=\"Positive\"/>\n";
           }
-          else if (spec.getInstrumentSettings().getPolarity() == IonSource::NEGATIVE)
+          else if (spec.getInstrumentSettings().getPolarity() == IonSource::Polarity::NEGATIVE)
           {
             os << String(6, '\t') << "<cvParam cvLabel=\"psi\" accession=\"PSI:1000037\" name=\"Polarity\" value=\"Negative\"/>\n";
           }
@@ -1161,11 +1161,11 @@ namespace OpenMS::Internal
         {
           if (value == "Positive" || value == "positive" || value == "+")     //be flexible here, actually only the first one is correct
           {
-            spec_.getInstrumentSettings().setPolarity(IonSource::POSITIVE);
+            spec_.getInstrumentSettings().setPolarity(IonSource::Polarity::POSITIVE);
           }
           else if (value == "Negative" || value == "negative" || value == "-")     //be flexible here, actually only the first one is correct
           {
-            spec_.getInstrumentSettings().setPolarity(IonSource::NEGATIVE);
+            spec_.getInstrumentSettings().setPolarity(IonSource::Polarity::NEGATIVE);
           }
           else
           {

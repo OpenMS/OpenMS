@@ -101,13 +101,9 @@ class TestIMTypesStringInput(unittest.TestCase):
         unit = pyopenms.IMTypes.toDriftTimeUnit(b"ms")
         self.assertEqual(unit, pyopenms.DriftTimeUnit.MILLISECOND)
 
-    @unittest.skip("toString overloading issue - see https://github.com/OpenMS/OpenMS/issues/8603")
-    def test_toString_DriftTimeUnit_returns_str(self):
-        """Test toString returns str for DriftTimeUnit."""
-        # Note: toString overloading between DriftTimeUnit and IMFormat
-        # doesn't work correctly - both enums are ints, so the wrong
-        # overload may be called. See issue #8603 for fix.
-        result = pyopenms.IMTypes.toString(pyopenms.DriftTimeUnit.MILLISECOND)
+    def test_driftTimeUnitToString_returns_str(self):
+        """Test IMTypes.driftTimeUnitToString returns str."""
+        result = pyopenms.IMTypes.driftTimeUnitToString(pyopenms.DriftTimeUnit.MILLISECOND)
         self.assertIsInstance(result, str)
         self.assertEqual(result, "ms")
 
@@ -121,9 +117,9 @@ class TestIMTypesStringInput(unittest.TestCase):
         fmt = pyopenms.IMTypes.toIMFormat(b"concatenated")
         self.assertEqual(fmt, pyopenms.IMFormat.CONCATENATED)
 
-    def test_toString_IMFormat_returns_str(self):
-        """Test toString returns str for IMFormat."""
-        result = pyopenms.IMTypes.toString(pyopenms.IMFormat.CONCATENATED)
+    def test_imFormatToString_returns_str(self):
+        """Test IMTypes.imFormatToString returns str."""
+        result = pyopenms.IMTypes.imFormatToString(pyopenms.IMFormat.CONCATENATED)
         self.assertIsInstance(result, str)
         self.assertEqual(result, "concatenated")
 
@@ -148,23 +144,6 @@ class TestRibonucleotideDBStringInput(unittest.TestCase):
         db = pyopenms.RibonucleotideDB()
         ribo = db.getRibonucleotidePrefix("A")
         self.assertIsNotNone(ribo)
-
-    @unittest.skip("getRibonucleotideAlternatives requires ambiguous codes not in standard database")
-    def test_getRibonucleotideAlternatives_with_str(self):
-        """Test getRibonucleotideAlternatives accepts str (manual addon)."""
-        db = pyopenms.RibonucleotideDB()
-        # Use a code that has alternatives
-        alternatives = db.getRibonucleotideAlternatives("Y")
-        self.assertIsNotNone(alternatives)
-        self.assertEqual(len(alternatives), 2)
-
-    @unittest.skip("getRibonucleotideAlternatives requires ambiguous codes not in standard database")
-    def test_getRibonucleotideAlternatives_with_bytes(self):
-        """Test getRibonucleotideAlternatives still accepts bytes."""
-        db = pyopenms.RibonucleotideDB()
-        alternatives = db.getRibonucleotideAlternatives(b"Y")
-        self.assertIsNotNone(alternatives)
-        self.assertEqual(len(alternatives), 2)
 
 
 class TestIndexedMzMLHandlerStringInput(unittest.TestCase):
