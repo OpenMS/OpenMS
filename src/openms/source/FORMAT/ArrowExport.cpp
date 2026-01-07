@@ -346,11 +346,7 @@ std::shared_ptr<arrow::Table> buildLongFormatTable(
           if (!status.ok()) { OPENMS_LOG_ERROR << "Arrow isolation_upper_builder AppendNull failed: " << status.ToString() << std::endl; return nullptr; }
         }
       }
-
-      ++peak_idx;
     }
-
-    ++spectrum_idx;
   }
 
   // Build schema and arrays
