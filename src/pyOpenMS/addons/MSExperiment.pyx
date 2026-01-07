@@ -221,6 +221,10 @@ from libc.stdint cimport uintptr_t
 
         Returns a list of column names that to_arrow() would produce with the given parameters.
 
+        .. warning::
+            **EXPERIMENTAL API**: This method is experimental and may change in future versions.
+            The column names and their order are subject to modification.
+
         Useful for discovering available columns before export, especially for column selection.
 
         :param data: Type of data to export: 'spectra', 'chromatograms', or 'both'.
@@ -355,6 +359,11 @@ from libc.stdint cimport uintptr_t
         to_arrow(self: MSExperiment, data: str = 'spectra', format: str = 'long', ...) -> Union[pa.Table, Dict[str, pa.Table]]
 
         Returns an Apache Arrow Table with spectra and/or chromatogram data from the MSExperiment.
+
+        .. warning::
+            **EXPERIMENTAL API**: This method is experimental and may change in future versions.
+            The table schema, column names, column order, and data types are subject to
+            modification based on user feedback and evolving requirements.
 
         This is a unified interface that supports exporting both spectra and chromatograms
         in either long format (one row per peak/point) or semi-wide format (one row per

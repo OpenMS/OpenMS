@@ -15,12 +15,15 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
+#include <cstdint>
 #include <memory>
 #include <vector>
 #include <string>
 
-// Arrow C Data Interface types
-#include <arrow/c/abi.h>
+// Forward declarations for Arrow C Data Interface structs (opaque pointers only)
+// Full definitions are in <arrow/c/abi.h>, included only in ArrowExport.cpp
+struct ArrowSchema;
+struct ArrowArray;
 
 // Forward declarations - avoid exposing Arrow types in header
 namespace arrow
@@ -175,6 +178,10 @@ struct OPENMS_DLLAPI ParquetWriteConfig
 
   This class provides static methods to export MSExperiment spectra and
   chromatograms to Apache Arrow Tables and Parquet files.
+
+  @experimental This API is experimental and may change in future versions.
+                The table schema, column names, and data types are subject to
+                modification based on user feedback and evolving requirements.
 
   @ingroup FileIO
 */
@@ -391,7 +398,6 @@ public:
     const String& filename,
     const ArrowChromatogramExportConfig& config = ArrowChromatogramExportConfig{},
     const ParquetWriteConfig& parquet_config = ParquetWriteConfig{});
-
 }; // class ArrowExport
 
 } // namespace OpenMS

@@ -7,6 +7,11 @@ This module provides zero-copy export of MS data to Apache Arrow format
 using the Arrow C Data Interface. It is only available when OpenMS is
 built with WITH_PARQUET=ON.
 
+.. warning::
+    **EXPERIMENTAL API**: This module is experimental and may change in future versions.
+    The table schema, column names, column order, and data types are subject to
+    modification based on user feedback and evolving requirements.
+
 Usage:
     from pyopenms._arrow_zerocopy import spectra_to_arrow, chromatograms_to_arrow
 
@@ -102,6 +107,10 @@ def spectra_to_arrow(exp, format='long', ms_levels=None,
                      include_ion_mobility=True):
     """
     Export spectra to Arrow Table using zero-copy C Data Interface.
+
+    .. warning::
+        **EXPERIMENTAL API**: This function is experimental and may change in future versions.
+        The table schema, column names, column order, and data types are subject to modification.
 
     Parameters
     ----------
@@ -208,6 +217,10 @@ def spectra_to_arrow(exp, format='long', ms_levels=None,
 def chromatograms_to_arrow(exp, format='long', min_rt=0.0, max_rt=0.0, columns=None):
     """
     Export chromatograms to Arrow Table using zero-copy C Data Interface.
+
+    .. warning::
+        **EXPERIMENTAL API**: This function is experimental and may change in future versions.
+        The table schema, column names, column order, and data types are subject to modification.
 
     Parameters
     ----------

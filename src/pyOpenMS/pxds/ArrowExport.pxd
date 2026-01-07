@@ -46,6 +46,9 @@ cdef extern from "<OpenMS/FORMAT/ArrowExport.h>" namespace "OpenMS":
         #
         #  This class provides static methods to export MSExperiment spectra and
         #  chromatograms to Apache Arrow Tables and Parquet files.
+        #
+        #  EXPERIMENTAL: This API is experimental and may change in future versions.
+        #  The table schema, column names, and data types are subject to modification.
         ArrowExport() except + nogil
 
         # Column discovery - these are static methods but declared as instance methods for autowrap
