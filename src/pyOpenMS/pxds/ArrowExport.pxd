@@ -10,44 +10,16 @@ from libcpp.string cimport string as libcpp_string
 from libcpp cimport bool
 from libc.stdint cimport int64_t, uint8_t
 
-# Arrow C Data Interface structs (from arrow/c/abi.h)
-cdef extern from "<arrow/c/abi.h>" nogil:
-    cdef struct ArrowSchema:
-        const char* format
-        const char* name
-        const char* metadata
-        int64_t flags
-        int64_t n_children
-        ArrowSchema** children
-        ArrowSchema* dictionary
-        void (*release)(ArrowSchema*)
-        void* private_data
-
-    cdef struct ArrowArray:
-        int64_t length
-        int64_t null_count
-        int64_t offset
-        int64_t n_buffers
-        int64_t n_children
-        const void** buffers
-        ArrowArray** children
-        ArrowArray* dictionary
-        void (*release)(ArrowArray*)
-        void* private_data
-
-
 # OpenMS ArrowExport declarations (only available when WITH_PARQUET is enabled)
 cdef extern from "<OpenMS/FORMAT/ArrowExport.h>" namespace "OpenMS":
 
-    cdef cppclass ArrowExportFormat:
-        pass
-
-    ArrowExportFormat ArrowExportFormat_Long "OpenMS::ArrowExportFormat::Long"
-    ArrowExportFormat ArrowExportFormat_SemiWide "OpenMS::ArrowExportFormat::SemiWide"
-
     cdef cppclass ArrowSpectraExportConfig:
+        # wrap-doc:
+        #  Configuration for Arrow export of spectra data.
+        #
+        #  Allows filtering by MS level, RT range, m/z range, and column selection.
         ArrowSpectraExportConfig() except + nogil
-        ArrowExportFormat format
+        # ArrowExportFormat format  # wrap-ignore (enum class not supported)
         libcpp_vector[unsigned int] ms_levels
         double min_rt
         double max_rt
@@ -58,34 +30,42 @@ cdef extern from "<OpenMS/FORMAT/ArrowExport.h>" namespace "OpenMS":
         bool include_ion_mobility
 
     cdef cppclass ArrowChromatogramExportConfig:
+        # wrap-doc:
+        #  Configuration for Arrow export of chromatogram data.
         ArrowChromatogramExportConfig() except + nogil
-        ArrowExportFormat format
+        # ArrowExportFormat format  # wrap-ignore (enum class not supported)
         double min_rt
         double max_rt
         libcpp_vector[libcpp_string] columns
 
-    # Column discovery functions
-    libcpp_vector[libcpp_string] getSpectraArrowColumns(
-        _MSExperiment& exp,
-        ArrowSpectraExportConfig& config
-    ) except + nogil  # wrap-doc:Get available column names for spectra Arrow export
+    cdef cppclass ArrowExport:
+        # wrap-doc:
+        #  Export MSExperiment data to Apache Arrow format.
+        #
+        #  This class provides static methods to export MSExperiment spectra and
+        #  chromatograms to Apache Arrow Tables and Parquet files.
+        ArrowExport() except + nogil
 
-    libcpp_vector[libcpp_string] getChromatogramArrowColumns(
-        _MSExperiment& exp,
-        ArrowChromatogramExportConfig& config
-    ) except + nogil  # wrap-doc:Get available column names for chromatogram Arrow export
+        # Column discovery - these are static methods but declared as instance methods for autowrap
+        libcpp_vector[libcpp_string] getSpectraArrowColumns(
+            MSExperiment& exp,
+            ArrowSpectraExportConfig& config
+        ) except + nogil  # wrap-doc:Get available column names for spectra Arrow export
 
-    # C Data Interface export functions (zero-copy to Python)
-    bool exportSpectraToArrowCDataInterface(
-        _MSExperiment& exp,
-        ArrowSpectraExportConfig& config,
-        ArrowSchema* out_schema,
-        ArrowArray* out_array
-    ) except + nogil  # wrap-doc:Export spectra to Arrow via C Data Interface
+        libcpp_vector[libcpp_string] getChromatogramArrowColumns(
+            MSExperiment& exp,
+            ArrowChromatogramExportConfig& config
+        ) except + nogil  # wrap-doc:Get available column names for chromatogram Arrow export
 
-    bool exportChromatogramsToArrowCDataInterface(
-        _MSExperiment& exp,
-        ArrowChromatogramExportConfig& config,
-        ArrowSchema* out_schema,
-        ArrowArray* out_array
-    ) except + nogil  # wrap-doc:Export chromatograms to Arrow via C Data Interface
+        # Parquet export - these are static methods but declared as instance methods for autowrap
+        bool exportSpectraToParquet(
+            MSExperiment& exp,
+            const String& filename,
+            ArrowSpectraExportConfig& config
+        ) except + nogil  # wrap-doc:Export spectra to Parquet file
+
+        bool exportChromatogramsToParquet(
+            MSExperiment& exp,
+            const String& filename,
+            ArrowChromatogramExportConfig& config
+        ) except + nogil  # wrap-doc:Export chromatograms to Parquet file

@@ -524,8 +524,9 @@ endif()
 
 #------------------------------------------------------------------------------
 # Arrow zerocopy module (only when WITH_PARQUET is enabled)
+# TODO: Re-enable after fixing MSExperiment imports in standalone Cython module
 #------------------------------------------------------------------------------
-if(WITH_PARQUET)
+if(FALSE AND WITH_PARQUET)
   message(STATUS "Building Arrow zerocopy module for pyOpenMS")
 
   # Get Arrow include directories from the target

@@ -743,7 +743,7 @@ std::shared_ptr<arrow::Table> buildSemiWideFormatTable(
 } // anonymous namespace
 
 
-std::shared_ptr<arrow::Table> exportSpectraToArrow(
+std::shared_ptr<arrow::Table> ArrowExport::exportSpectraToArrow(
   const MSExperiment& exp,
   const ArrowSpectraExportConfig& config)
 {
@@ -762,7 +762,7 @@ std::shared_ptr<arrow::Table> exportSpectraToArrow(
 }
 
 
-std::vector<std::string> getSpectraArrowColumns(
+std::vector<std::string> ArrowExport::getSpectraArrowColumns(
   const MSExperiment& exp,
   const ArrowSpectraExportConfig& config)
 {
@@ -824,7 +824,7 @@ std::vector<std::string> getSpectraArrowColumns(
 }
 
 
-std::shared_ptr<arrow::Table> exportChromatogramsToArrow(
+std::shared_ptr<arrow::Table> ArrowExport::exportChromatogramsToArrow(
   const MSExperiment& exp,
   const ArrowChromatogramExportConfig& config)
 {
@@ -1072,7 +1072,7 @@ std::shared_ptr<arrow::Table> exportChromatogramsToArrow(
 }
 
 
-std::vector<std::string> getChromatogramArrowColumns(
+std::vector<std::string> ArrowExport::getChromatogramArrowColumns(
   const MSExperiment& /* exp */,
   const ArrowChromatogramExportConfig& config)
 {
@@ -1105,7 +1105,7 @@ std::vector<std::string> getChromatogramArrowColumns(
 }
 
 
-bool exportSpectraToArrowCDataInterface(
+bool ArrowExport::exportSpectraToArrowCDataInterface(
   const MSExperiment& exp,
   const ArrowSpectraExportConfig& config,
   ::ArrowSchema* out_schema,
@@ -1156,7 +1156,7 @@ bool exportSpectraToArrowCDataInterface(
 }
 
 
-bool exportChromatogramsToArrowCDataInterface(
+bool ArrowExport::exportChromatogramsToArrowCDataInterface(
   const MSExperiment& exp,
   const ArrowChromatogramExportConfig& config,
   ::ArrowSchema* out_schema,
@@ -1310,7 +1310,7 @@ bool writeTableToParquet(
 } // anonymous namespace
 
 
-bool exportSpectraToParquet(
+bool ArrowExport::exportSpectraToParquet(
   const MSExperiment& exp,
   const String& filename,
   const ArrowSpectraExportConfig& config,
@@ -1329,7 +1329,7 @@ bool exportSpectraToParquet(
 }
 
 
-bool exportChromatogramsToParquet(
+bool ArrowExport::exportChromatogramsToParquet(
   const MSExperiment& exp,
   const String& filename,
   const ArrowChromatogramExportConfig& config,
