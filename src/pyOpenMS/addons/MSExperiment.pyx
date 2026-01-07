@@ -268,14 +268,11 @@ from libc.stdint cimport uintptr_t
                                            'isolation_lower', 'isolation_upper'])
 
         # Chromatogram long format: rt, intensity, chromatogram_index, native_id, precursor_mz, product_mz
-        chrom_long_cols = ['rt', 'intensity', 'chromatogram_index', 'native_id']
-        if include_precursor_info:
-            chrom_long_cols.extend(['precursor_mz', 'product_mz'])
+        # Note: precursor_mz and product_mz are always included for chromatograms (they define the SRM/MRM transition)
+        chrom_long_cols = ['rt', 'intensity', 'chromatogram_index', 'native_id', 'precursor_mz', 'product_mz']
 
         # Chromatogram semi-wide format: chromatogram_index, native_id, rt, intensity, precursor_mz, product_mz
-        chrom_semi_wide_cols = ['chromatogram_index', 'native_id', 'rt', 'intensity']
-        if include_precursor_info:
-            chrom_semi_wide_cols.extend(['precursor_mz', 'product_mz'])
+        chrom_semi_wide_cols = ['chromatogram_index', 'native_id', 'rt', 'intensity', 'precursor_mz', 'product_mz']
 
         if data == 'spectra':
             return spectra_long_cols if format == 'long' else spectra_semi_wide_cols

@@ -511,7 +511,25 @@ END_SECTION
 
 START_SECTION(exportChromatogramsToParquet - basic export)
 {
-  MSExperiment exp = createTestExperiment();
+  MSExperiment exp;
+
+  // Create SRM/MRM chromatograms with precursor and product m/z
+  MSChromatogram chrom1;
+  chrom1.setNativeID("TIC");
+  chrom1.getPrecursor().setMZ(500.0);
+  chrom1.getProduct().setMZ(200.0);
+  chrom1.push_back(ChromatogramPeak(10.0, 100.0));
+  chrom1.push_back(ChromatogramPeak(20.0, 200.0));
+  chrom1.push_back(ChromatogramPeak(30.0, 150.0));
+  exp.addChromatogram(chrom1);
+
+  MSChromatogram chrom2;
+  chrom2.setNativeID("XIC_1");
+  chrom2.getPrecursor().setMZ(600.0);
+  chrom2.getProduct().setMZ(300.0);
+  chrom2.push_back(ChromatogramPeak(15.0, 50.0));
+  chrom2.push_back(ChromatogramPeak(25.0, 75.0));
+  exp.addChromatogram(chrom2);
 
   String filename;
   NEW_TMP_FILE(filename);
@@ -527,7 +545,17 @@ END_SECTION
 
 START_SECTION(exportChromatogramsToParquet - with compression options)
 {
-  MSExperiment exp = createTestExperiment();
+  MSExperiment exp;
+
+  // Create SRM/MRM chromatogram
+  MSChromatogram chrom;
+  chrom.setNativeID("SRM_transition_1");
+  chrom.getPrecursor().setMZ(450.0);
+  chrom.getProduct().setMZ(175.0);
+  chrom.push_back(ChromatogramPeak(5.0, 500.0));
+  chrom.push_back(ChromatogramPeak(10.0, 1000.0));
+  chrom.push_back(ChromatogramPeak(15.0, 750.0));
+  exp.addChromatogram(chrom);
 
   String filename;
   NEW_TMP_FILE(filename);
