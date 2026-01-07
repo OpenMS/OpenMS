@@ -43,35 +43,54 @@ bool shouldIncludeColumn(const std::string& col_name,
          != requested_columns.end();
 }
 
-/// Check if spectrum passes filter criteria
-bool passesFilter(const MSSpectrum& spec,
-                  const ArrowSpectraExportConfig& config,
-                  const std::unordered_set<UInt>& ms_levels_set)
+/// Check if spectrum passes MS level filter only (RT filtering is done via binary search)
+bool passesMSLevelFilter(const MSSpectrum& spec,
+                         const std::unordered_set<UInt>& ms_levels_set)
 {
-  // Check MS level filter
-  if (!ms_levels_set.empty() && ms_levels_set.find(spec.getMSLevel()) == ms_levels_set.end())
-  {
-    return false;
-  }
-
-  // Check RT range filter
-  double rt = spec.getRT();
-  if (config.min_rt != 0 || config.max_rt != 0)
-  {
-    if (config.min_rt != 0 && rt < config.min_rt) return false;
-    if (config.max_rt != 0 && rt > config.max_rt) return false;
-  }
-
-  return true;
+  if (ms_levels_set.empty()) return true;
+  return ms_levels_set.find(spec.getMSLevel()) != ms_levels_set.end();
 }
 
-/// Check if a peak passes m/z filter
-inline bool peakPassesMzFilter(double mz, double min_mz, double max_mz)
+/// Get iterator range for RT-filtered spectra using binary search
+/// Returns pair of (begin, end) iterators for spectra in RT range
+std::pair<MSExperiment::ConstIterator, MSExperiment::ConstIterator>
+getRTFilteredRange(const MSExperiment& exp, const ArrowSpectraExportConfig& config)
 {
-  if (min_mz == 0 && max_mz == 0) return true;
-  if (min_mz != 0 && mz < min_mz) return false;
-  if (max_mz != 0 && mz > max_mz) return false;
-  return true;
+  MSExperiment::ConstIterator begin_it = exp.begin();
+  MSExperiment::ConstIterator end_it = exp.end();
+
+  // Use binary search for RT filtering if specified
+  if (config.min_rt != 0)
+  {
+    begin_it = exp.RTBegin(config.min_rt);
+  }
+  if (config.max_rt != 0)
+  {
+    end_it = exp.RTEnd(config.max_rt);
+  }
+
+  return {begin_it, end_it};
+}
+
+/// Get iterator range for m/z-filtered peaks using binary search
+/// Returns pair of (begin, end) iterators for peaks in m/z range
+std::pair<MSSpectrum::ConstIterator, MSSpectrum::ConstIterator>
+getMZFilteredRange(const MSSpectrum& spec, double min_mz, double max_mz)
+{
+  MSSpectrum::ConstIterator begin_it = spec.begin();
+  MSSpectrum::ConstIterator end_it = spec.end();
+
+  // Use binary search for m/z filtering if specified
+  if (min_mz != 0)
+  {
+    begin_it = spec.MZBegin(min_mz);
+  }
+  if (max_mz != 0)
+  {
+    end_it = spec.MZEnd(max_mz);
+  }
+
+  return {begin_it, end_it};
 }
 
 /// Check if any spectrum in the experiment has ion mobility data
@@ -79,10 +98,11 @@ bool experimentHasIMData(const MSExperiment& exp,
                          const std::unordered_set<UInt>& ms_levels_set,
                          const ArrowSpectraExportConfig& config)
 {
-  for (const auto& spec : exp)
+  auto [begin_it, end_it] = getRTFilteredRange(exp, config);
+  for (auto it = begin_it; it != end_it; ++it)
   {
-    if (!passesFilter(spec, config, ms_levels_set)) continue;
-    if (spec.containsIMData()) return true;
+    if (!passesMSLevelFilter(*it, ms_levels_set)) continue;
+    if (it->containsIMData()) return true;
   }
   return false;
 }
@@ -95,24 +115,20 @@ Size countTotalPeaks(const MSExperiment& exp,
   Size total = 0;
   bool filter_mz = (config.min_mz != 0 || config.max_mz != 0);
 
-  for (const auto& spec : exp)
+  auto [begin_it, end_it] = getRTFilteredRange(exp, config);
+  for (auto it = begin_it; it != end_it; ++it)
   {
-    if (!passesFilter(spec, config, ms_levels_set)) continue;
+    if (!passesMSLevelFilter(*it, ms_levels_set)) continue;
 
     if (filter_mz)
     {
-      // Need to count peaks in m/z range
-      for (const auto& peak : spec)
-      {
-        if (peakPassesMzFilter(peak.getMZ(), config.min_mz, config.max_mz))
-        {
-          ++total;
-        }
-      }
+      // Use binary search to count peaks in m/z range
+      auto [mz_begin, mz_end] = getMZFilteredRange(*it, config.min_mz, config.max_mz);
+      total += std::distance(mz_begin, mz_end);
     }
     else
     {
-      total += spec.size();
+      total += it->size();
     }
   }
   return total;
@@ -124,9 +140,10 @@ Size countFilteredSpectra(const MSExperiment& exp,
                           const std::unordered_set<UInt>& ms_levels_set)
 {
   Size count = 0;
-  for (const auto& spec : exp)
+  auto [begin_it, end_it] = getRTFilteredRange(exp, config);
+  for (auto it = begin_it; it != end_it; ++it)
   {
-    if (passesFilter(spec, config, ms_levels_set)) ++count;
+    if (passesMSLevelFilter(*it, ms_levels_set)) ++count;
   }
   return count;
 }
@@ -189,16 +206,18 @@ std::shared_ptr<arrow::Table> buildLongFormatTable(
   if (inc_isolation_lower) { status = isolation_lower_builder.Reserve(total_peaks); if (!status.ok()) { OPENMS_LOG_ERROR << "Arrow isolation_lower_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; } }
   if (inc_isolation_upper) { status = isolation_upper_builder.Reserve(total_peaks); if (!status.ok()) { OPENMS_LOG_ERROR << "Arrow isolation_upper_builder Reserve failed: " << status.ToString() << std::endl; return nullptr; } }
 
-  // m/z filter flags
-  bool filter_mz = (config.min_mz != 0 || config.max_mz != 0);
+  // Use binary search for RT range filtering
+  auto [rt_begin, rt_end] = getRTFilteredRange(exp, config);
 
-  // Iterate through spectra
-  UInt32 spectrum_idx = 0;
-  for (const auto& spec : exp)
+  // Iterate through RT-filtered spectra
+  UInt32 spectrum_idx = static_cast<UInt32>(std::distance(exp.begin(), rt_begin));
+  for (auto spec_it = rt_begin; spec_it != rt_end; ++spec_it, ++spectrum_idx)
   {
-    if (!passesFilter(spec, config, ms_levels_set))
+    const auto& spec = *spec_it;
+
+    // Check MS level filter only (RT already filtered by binary search)
+    if (!passesMSLevelFilter(spec, ms_levels_set))
     {
-      ++spectrum_idx;
       continue;
     }
 
@@ -224,22 +243,19 @@ std::shared_ptr<arrow::Table> buildLongFormatTable(
       im_data_ptr = im_array.data();
     }
 
-    // Iterate through peaks
-    Size peak_idx = 0;
-    for (const auto& peak : spec)
-    {
-      double mz = peak.getMZ();
+    // Use binary search for m/z range filtering
+    auto [mz_begin, mz_end] = getMZFilteredRange(spec, config.min_mz, config.max_mz);
 
-      // Apply m/z filter
-      if (filter_mz && !peakPassesMzFilter(mz, config.min_mz, config.max_mz))
-      {
-        ++peak_idx;
-        continue;
-      }
+    // Iterate through m/z-filtered peaks
+    for (auto peak_it = mz_begin; peak_it != mz_end; ++peak_it)
+    {
+      double mz = peak_it->getMZ();
+      // Calculate peak index for ion mobility array access
+      Size peak_idx = static_cast<Size>(std::distance(spec.begin(), peak_it));
 
       // Append peak data using UnsafeAppend (we already reserved capacity)
       if (inc_mz) mz_builder.UnsafeAppend(mz);
-      if (inc_intensity) intensity_builder.UnsafeAppend(static_cast<float>(peak.getIntensity()));
+      if (inc_intensity) intensity_builder.UnsafeAppend(static_cast<float>(peak_it->getIntensity()));
       if (inc_rt) rt_builder.UnsafeAppend(rt);
       if (inc_spectrum_index) spectrum_index_builder.UnsafeAppend(spectrum_idx);
       if (inc_ms_level) ms_level_builder.UnsafeAppend(ms_level);
@@ -506,16 +522,18 @@ std::shared_ptr<arrow::Table> buildSemiWideFormatTable(
   if (inc_isolation_lower) { status = isolation_lower_builder.Reserve(num_spectra); if (!status.ok()) { OPENMS_LOG_ERROR << "Arrow Reserve failed: " << status.ToString() << std::endl; return nullptr; } }
   if (inc_isolation_upper) { status = isolation_upper_builder.Reserve(num_spectra); if (!status.ok()) { OPENMS_LOG_ERROR << "Arrow Reserve failed: " << status.ToString() << std::endl; return nullptr; } }
 
-  // m/z filter flags
-  bool filter_mz = (config.min_mz != 0 || config.max_mz != 0);
+  // Use binary search for RT range filtering
+  auto [rt_begin, rt_end] = getRTFilteredRange(exp, config);
 
-  // Iterate through spectra
-  UInt32 spectrum_idx = 0;
-  for (const auto& spec : exp)
+  // Iterate through RT-filtered spectra
+  UInt32 spectrum_idx = static_cast<UInt32>(std::distance(exp.begin(), rt_begin));
+  for (auto spec_it = rt_begin; spec_it != rt_end; ++spec_it, ++spectrum_idx)
   {
-    if (!passesFilter(spec, config, ms_levels_set))
+    const auto& spec = *spec_it;
+
+    // Check MS level filter only (RT already filtered by binary search)
+    if (!passesMSLevelFilter(spec, ms_levels_set))
     {
-      ++spectrum_idx;
       continue;
     }
 
@@ -572,22 +590,19 @@ std::shared_ptr<arrow::Table> buildSemiWideFormatTable(
       im_data_ptr = im_array.data();
     }
 
+    // Use binary search to get m/z-filtered peak range
+    auto [mz_begin, mz_end] = getMZFilteredRange(spec, config.min_mz, config.max_mz);
+
     // Append list columns (mz, intensity, ion_mobility arrays)
     if (inc_mz)
     {
       status = mz_list_builder.Append();
       if (!status.ok()) { OPENMS_LOG_ERROR << "Arrow list Append failed: " << status.ToString() << std::endl; return nullptr; }
 
-      Size peak_idx = 0;
-      for (const auto& peak : spec)
+      for (auto peak_it = mz_begin; peak_it != mz_end; ++peak_it)
       {
-        double mz = peak.getMZ();
-        if (!filter_mz || peakPassesMzFilter(mz, config.min_mz, config.max_mz))
-        {
-          status = mz_value_builder->Append(mz);
-          if (!status.ok()) { OPENMS_LOG_ERROR << "Arrow value Append failed: " << status.ToString() << std::endl; return nullptr; }
-        }
-        ++peak_idx;
+        status = mz_value_builder->Append(peak_it->getMZ());
+        if (!status.ok()) { OPENMS_LOG_ERROR << "Arrow value Append failed: " << status.ToString() << std::endl; return nullptr; }
       }
     }
 
@@ -596,13 +611,10 @@ std::shared_ptr<arrow::Table> buildSemiWideFormatTable(
       status = intensity_list_builder.Append();
       if (!status.ok()) { OPENMS_LOG_ERROR << "Arrow list Append failed: " << status.ToString() << std::endl; return nullptr; }
 
-      for (const auto& peak : spec)
+      for (auto peak_it = mz_begin; peak_it != mz_end; ++peak_it)
       {
-        if (!filter_mz || peakPassesMzFilter(peak.getMZ(), config.min_mz, config.max_mz))
-        {
-          status = intensity_value_builder->Append(static_cast<float>(peak.getIntensity()));
-          if (!status.ok()) { OPENMS_LOG_ERROR << "Arrow value Append failed: " << status.ToString() << std::endl; return nullptr; }
-        }
+        status = intensity_value_builder->Append(static_cast<float>(peak_it->getIntensity()));
+        if (!status.ok()) { OPENMS_LOG_ERROR << "Arrow value Append failed: " << status.ToString() << std::endl; return nullptr; }
       }
     }
 
@@ -613,15 +625,12 @@ std::shared_ptr<arrow::Table> buildSemiWideFormatTable(
         status = im_list_builder.Append();
         if (!status.ok()) { OPENMS_LOG_ERROR << "Arrow list Append failed: " << status.ToString() << std::endl; return nullptr; }
 
-        Size peak_idx = 0;
-        for (const auto& peak : spec)
+        for (auto peak_it = mz_begin; peak_it != mz_end; ++peak_it)
         {
-          if (!filter_mz || peakPassesMzFilter(peak.getMZ(), config.min_mz, config.max_mz))
-          {
-            status = im_value_builder->Append(im_data_ptr[peak_idx]);
-            if (!status.ok()) { OPENMS_LOG_ERROR << "Arrow value Append failed: " << status.ToString() << std::endl; return nullptr; }
-          }
-          ++peak_idx;
+          // Calculate peak index for ion mobility array access
+          Size peak_idx = static_cast<Size>(std::distance(spec.begin(), peak_it));
+          status = im_value_builder->Append(im_data_ptr[peak_idx]);
+          if (!status.ok()) { OPENMS_LOG_ERROR << "Arrow value Append failed: " << status.ToString() << std::endl; return nullptr; }
         }
       }
       else
@@ -630,8 +639,6 @@ std::shared_ptr<arrow::Table> buildSemiWideFormatTable(
         if (!status.ok()) { OPENMS_LOG_ERROR << "Arrow AppendNull failed: " << status.ToString() << std::endl; return nullptr; }
       }
     }
-
-    ++spectrum_idx;
   }
 
   // Build schema and arrays
