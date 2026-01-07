@@ -221,7 +221,7 @@ namespace OpenMS
 
   const std::string& SpectrumSettings::spectrumTypeToString(SpectrumType type)
   {
-    if (type == SIZE_OF_SPECTRUMTYPE)
+    if (type == SpectrumType::SIZE_OF_SPECTRUMTYPE)
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value not allowed", "SIZE_OF_SPECTRUMTYPE");
     }
@@ -231,7 +231,7 @@ namespace OpenMS
   SpectrumSettings::SpectrumType SpectrumSettings::toSpectrumType(const std::string& name)
   {
     auto first = &NamesOfSpectrumType[0];
-    auto last = &NamesOfSpectrumType[SIZE_OF_SPECTRUMTYPE];
+    auto last = &NamesOfSpectrumType[static_cast<size_t>(SpectrumType::SIZE_OF_SPECTRUMTYPE)];
     const auto it = std::find(first, last, name);
     if (it == last)
     {
