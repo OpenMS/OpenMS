@@ -4169,7 +4169,7 @@ namespace OpenMS::Internal
       }
       if (file_content.find(InstrumentSettings::TDF) != file_content.end())
       {
-        os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000789\" name=\"time-delayed fragmentation spectrum\" />\n";
+        os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000790\" name=\"time-delayed fragmentation spectrum\" />\n";
       }
       if (file_content.find(InstrumentSettings::UNKNOWN) != file_content.end() || file_content.empty())
       {
@@ -5146,7 +5146,7 @@ namespace OpenMS::Internal
       }
       else if (spec.getInstrumentSettings().getScanMode() == InstrumentSettings::TDF)
       {
-        os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000789\" name=\"time-delayed fragmentation spectrum\" />\n";
+        os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000790\" name=\"time-delayed fragmentation spectrum\" />\n";
       }
       else   //FORCED
       {
