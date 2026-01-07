@@ -344,7 +344,7 @@ jobs:
     - name: Setup ccache cache
       uses: actions/cache@v4
       with:
-        path: .ccache
+        path: ${{ github.workspace }}/.ccache
         key: ${{ runner.os }}-${{ runner.arch }}-${{ matrix.compiler }}-${{ matrix.compiler_ver }}-ccache-${{ steps.extract_branch.outputs.RUN_NAME }}-${{ github.run_number }}
         # Restoring: From current branch/PR, otherwise from nightly, otherwise from any branch.
         restore-keys: |
