@@ -981,12 +981,12 @@ std::shared_ptr<arrow::Table> ArrowExport::exportChromatogramsToArrow(
     std::vector<std::shared_ptr<arrow::Array>> arrays;
     std::shared_ptr<arrow::Array> arr;
 
-    if (inc_rt) { status = rt_builder.Finish(&arr); if (!status.ok()) return nullptr; fields.push_back(arrow::field("rt", arrow::float64())); arrays.push_back(arr); }
-    if (inc_intensity) { status = intensity_builder.Finish(&arr); if (!status.ok()) return nullptr; fields.push_back(arrow::field("intensity", arrow::float32())); arrays.push_back(arr); }
-    if (inc_chrom_index) { status = chrom_index_builder.Finish(&arr); if (!status.ok()) return nullptr; fields.push_back(arrow::field("chromatogram_index", arrow::uint32())); arrays.push_back(arr); }
-    if (inc_native_id) { status = native_id_builder.Finish(&arr); if (!status.ok()) return nullptr; fields.push_back(arrow::field("native_id", arrow::utf8())); arrays.push_back(arr); }
-    if (inc_precursor_mz) { status = precursor_mz_builder.Finish(&arr); if (!status.ok()) return nullptr; fields.push_back(arrow::field("precursor_mz", arrow::float64())); arrays.push_back(arr); }
-    if (inc_product_mz) { status = product_mz_builder.Finish(&arr); if (!status.ok()) return nullptr; fields.push_back(arrow::field("product_mz", arrow::float64())); arrays.push_back(arr); }
+    if (inc_rt) { status = rt_builder.Finish(&arr); if (!status.ok()) { OPENMS_LOG_ERROR << "Arrow rt_builder Finish failed: " << status.ToString() << std::endl; return nullptr; } fields.push_back(arrow::field("rt", arrow::float64())); arrays.push_back(arr); }
+    if (inc_intensity) { status = intensity_builder.Finish(&arr); if (!status.ok()) { OPENMS_LOG_ERROR << "Arrow intensity_builder Finish failed: " << status.ToString() << std::endl; return nullptr; } fields.push_back(arrow::field("intensity", arrow::float32())); arrays.push_back(arr); }
+    if (inc_chrom_index) { status = chrom_index_builder.Finish(&arr); if (!status.ok()) { OPENMS_LOG_ERROR << "Arrow chrom_index_builder Finish failed: " << status.ToString() << std::endl; return nullptr; } fields.push_back(arrow::field("chromatogram_index", arrow::uint32())); arrays.push_back(arr); }
+    if (inc_native_id) { status = native_id_builder.Finish(&arr); if (!status.ok()) { OPENMS_LOG_ERROR << "Arrow native_id_builder Finish failed: " << status.ToString() << std::endl; return nullptr; } fields.push_back(arrow::field("native_id", arrow::utf8())); arrays.push_back(arr); }
+    if (inc_precursor_mz) { status = precursor_mz_builder.Finish(&arr); if (!status.ok()) { OPENMS_LOG_ERROR << "Arrow precursor_mz_builder Finish failed: " << status.ToString() << std::endl; return nullptr; } fields.push_back(arrow::field("precursor_mz", arrow::float64())); arrays.push_back(arr); }
+    if (inc_product_mz) { status = product_mz_builder.Finish(&arr); if (!status.ok()) { OPENMS_LOG_ERROR << "Arrow product_mz_builder Finish failed: " << status.ToString() << std::endl; return nullptr; } fields.push_back(arrow::field("product_mz", arrow::float64())); arrays.push_back(arr); }
 
     auto schema = arrow::schema(fields);
     return arrow::Table::Make(schema, arrays);
@@ -1005,9 +1005,9 @@ std::shared_ptr<arrow::Table> ArrowExport::exportChromatogramsToArrow(
     arrow::ListBuilder intensity_list_builder(pool, intensity_value_builder);
 
     Size num_chroms = chroms.size();
-    if (inc_chrom_index) { status = chrom_index_builder.Reserve(num_chroms); if (!status.ok()) return nullptr; }
-    if (inc_precursor_mz) { status = precursor_mz_builder.Reserve(num_chroms); if (!status.ok()) return nullptr; }
-    if (inc_product_mz) { status = product_mz_builder.Reserve(num_chroms); if (!status.ok()) return nullptr; }
+    if (inc_chrom_index) { status = chrom_index_builder.Reserve(num_chroms); if (!status.ok()) { OPENMS_LOG_ERROR << "Arrow Reserve failed: " << status.ToString() << std::endl; return nullptr; } }
+    if (inc_precursor_mz) { status = precursor_mz_builder.Reserve(num_chroms); if (!status.ok()) { OPENMS_LOG_ERROR << "Arrow Reserve failed: " << status.ToString() << std::endl; return nullptr; } }
+    if (inc_product_mz) { status = product_mz_builder.Reserve(num_chroms); if (!status.ok()) { OPENMS_LOG_ERROR << "Arrow Reserve failed: " << status.ToString() << std::endl; return nullptr; } }
 
     UInt32 chrom_idx = 0;
     for (const auto& chrom : chroms)
@@ -1017,7 +1017,7 @@ std::shared_ptr<arrow::Table> ArrowExport::exportChromatogramsToArrow(
       if (inc_native_id)
       {
         status = native_id_builder.Append(chrom.getNativeID());
-        if (!status.ok()) return nullptr;
+        if (!status.ok()) { OPENMS_LOG_ERROR << "Arrow Append failed: " << status.ToString() << std::endl; return nullptr; }
       }
 
       if (inc_precursor_mz) precursor_mz_builder.UnsafeAppend(chrom.getPrecursor().getMZ());
@@ -1026,7 +1026,7 @@ std::shared_ptr<arrow::Table> ArrowExport::exportChromatogramsToArrow(
       if (inc_rt)
       {
         status = rt_list_builder.Append();
-        if (!status.ok()) return nullptr;
+        if (!status.ok()) { OPENMS_LOG_ERROR << "Arrow list Append failed: " << status.ToString() << std::endl; return nullptr; }
 
         for (const auto& point : chrom)
         {
@@ -1035,14 +1035,14 @@ std::shared_ptr<arrow::Table> ArrowExport::exportChromatogramsToArrow(
           if (config.max_rt != 0 && rt > config.max_rt) continue;
 
           status = rt_value_builder->Append(rt);
-          if (!status.ok()) return nullptr;
+          if (!status.ok()) { OPENMS_LOG_ERROR << "Arrow value Append failed: " << status.ToString() << std::endl; return nullptr; }
         }
       }
 
       if (inc_intensity)
       {
         status = intensity_list_builder.Append();
-        if (!status.ok()) return nullptr;
+        if (!status.ok()) { OPENMS_LOG_ERROR << "Arrow list Append failed: " << status.ToString() << std::endl; return nullptr; }
 
         for (const auto& point : chrom)
         {
@@ -1051,7 +1051,7 @@ std::shared_ptr<arrow::Table> ArrowExport::exportChromatogramsToArrow(
           if (config.max_rt != 0 && rt > config.max_rt) continue;
 
           status = intensity_value_builder->Append(static_cast<float>(point.getIntensity()));
-          if (!status.ok()) return nullptr;
+          if (!status.ok()) { OPENMS_LOG_ERROR << "Arrow value Append failed: " << status.ToString() << std::endl; return nullptr; }
         }
       }
 
@@ -1062,12 +1062,12 @@ std::shared_ptr<arrow::Table> ArrowExport::exportChromatogramsToArrow(
     std::vector<std::shared_ptr<arrow::Array>> arrays;
     std::shared_ptr<arrow::Array> arr;
 
-    if (inc_chrom_index) { status = chrom_index_builder.Finish(&arr); if (!status.ok()) return nullptr; fields.push_back(arrow::field("chromatogram_index", arrow::uint32())); arrays.push_back(arr); }
-    if (inc_native_id) { status = native_id_builder.Finish(&arr); if (!status.ok()) return nullptr; fields.push_back(arrow::field("native_id", arrow::utf8())); arrays.push_back(arr); }
-    if (inc_rt) { status = rt_list_builder.Finish(&arr); if (!status.ok()) return nullptr; fields.push_back(arrow::field("rt", arrow::list(arrow::float64()))); arrays.push_back(arr); }
-    if (inc_intensity) { status = intensity_list_builder.Finish(&arr); if (!status.ok()) return nullptr; fields.push_back(arrow::field("intensity", arrow::list(arrow::float32()))); arrays.push_back(arr); }
-    if (inc_precursor_mz) { status = precursor_mz_builder.Finish(&arr); if (!status.ok()) return nullptr; fields.push_back(arrow::field("precursor_mz", arrow::float64())); arrays.push_back(arr); }
-    if (inc_product_mz) { status = product_mz_builder.Finish(&arr); if (!status.ok()) return nullptr; fields.push_back(arrow::field("product_mz", arrow::float64())); arrays.push_back(arr); }
+    if (inc_chrom_index) { status = chrom_index_builder.Finish(&arr); if (!status.ok()) { OPENMS_LOG_ERROR << "Arrow Finish failed: " << status.ToString() << std::endl; return nullptr; } fields.push_back(arrow::field("chromatogram_index", arrow::uint32())); arrays.push_back(arr); }
+    if (inc_native_id) { status = native_id_builder.Finish(&arr); if (!status.ok()) { OPENMS_LOG_ERROR << "Arrow Finish failed: " << status.ToString() << std::endl; return nullptr; } fields.push_back(arrow::field("native_id", arrow::utf8())); arrays.push_back(arr); }
+    if (inc_rt) { status = rt_list_builder.Finish(&arr); if (!status.ok()) { OPENMS_LOG_ERROR << "Arrow Finish failed: " << status.ToString() << std::endl; return nullptr; } fields.push_back(arrow::field("rt", arrow::list(arrow::float64()))); arrays.push_back(arr); }
+    if (inc_intensity) { status = intensity_list_builder.Finish(&arr); if (!status.ok()) { OPENMS_LOG_ERROR << "Arrow Finish failed: " << status.ToString() << std::endl; return nullptr; } fields.push_back(arrow::field("intensity", arrow::list(arrow::float32()))); arrays.push_back(arr); }
+    if (inc_precursor_mz) { status = precursor_mz_builder.Finish(&arr); if (!status.ok()) { OPENMS_LOG_ERROR << "Arrow Finish failed: " << status.ToString() << std::endl; return nullptr; } fields.push_back(arrow::field("precursor_mz", arrow::float64())); arrays.push_back(arr); }
+    if (inc_product_mz) { status = product_mz_builder.Finish(&arr); if (!status.ok()) { OPENMS_LOG_ERROR << "Arrow Finish failed: " << status.ToString() << std::endl; return nullptr; } fields.push_back(arrow::field("product_mz", arrow::float64())); arrays.push_back(arr); }
 
     auto schema = arrow::schema(fields);
     return arrow::Table::Make(schema, arrays);
