@@ -418,9 +418,12 @@ jobs:
             python -m pip install -r $GITHUB_WORKSPACE/OpenMS/src/pyOpenMS/requirements_bld.txt
           fi
 
+          # Create ccache directory if it doesn't exist
+          mkdir -p ${{ github.workspace }}/.ccache
+
           # Display ccache statistics before build
           echo "::group::ccache statistics before build"
-          ccache -s || true
+          CCACHE_DIR=${{ github.workspace }}/.ccache ccache -s || true
           echo "::endgroup::"
 
           mkdir $GITHUB_WORKSPACE/OpenMS/bld/
@@ -430,7 +433,7 @@ jobs:
           
           # Display ccache statistics after build
           echo "::group::ccache statistics after build"
-          ccache -s || true
+          CCACHE_DIR=${{ github.workspace }}/.ccache ccache -s || true
           echo "::endgroup::"
           
           if [ $retVal -ne 0 ]; then
@@ -468,7 +471,8 @@ jobs:
           COMPILE_PXDS: ${{ (startsWith(matrix.os, 'ubuntu') && github.event_name == 'pull_request' && github.event.pull_request.base.ref == 'develop' && runner.arch == 'arm64') && 'ON' || 'OFF' }}
           #  BUILD_FLAGS: "-p:CL_MPCount=2" # For VS Generator and MSBuild
           BUILD_FLAGS: "-j${{ steps.cpu-cores.outputs.count }}" # Ninja will otherwise use all cores (doesn't go well in GHA).
-          CMAKE_CCACHE_EXE: "ccache"
+          CMAKE_CXX_COMPILER_LAUNCHER: "ccache"
+          CMAKE_C_COMPILER_LAUNCHER: "ccache"
           CCACHE_BASEDIR: ${{ github.workspace }}
           CCACHE_DIR: ${{ github.workspace }}/.ccache
           CCACHE_COMPRESS: true
