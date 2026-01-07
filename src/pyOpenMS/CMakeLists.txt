@@ -320,21 +320,22 @@ add_custom_target(compile_pxds DEPENDS ${PYCPPFILES} ${PYPYXFILES})
 # Compiler settings
 #------------------------------------------------------------------------------
 
-# Option to skip RPATHs - required for wheel repair tools (delocate, auditwheel, delvewheel)
-option(PYOPENMS_DISABLE_RPATH "Disable RPATH settings for wheel repair compatibility" OFF)
-# TODO find something better. Maybe just specify the CMAKE_INSTALL_RPATH and
-# CMAKE_INSTALL_NAME_DIR etc. directly from outside?
+# Option to prepare modules for wheel repair tools (delocate, auditwheel, delvewheel)
+# Uses INSTALL_RPATH_USE_LINK_PATH to automatically embed library paths that repair tools can follow
+option(PYOPENMS_PREPARE_WHEEL_REPAIR "Prepare modules for wheel repair tool compatibility" OFF)
+# TODO remove once we disable the old way of building wheels and just use CMAKE_INSTALL_RPATH_USE_LINK_PATH
 
-if(NOT PYOPENMS_DISABLE_RPATH)
+if(NOT PYOPENMS_PREPARE_WHEEL_REPAIR)
   set(PY_RPATH ${CMAKE_INSTALL_RPATH})
   if(APPLE)
     # TODO: Maybe we need a similar rpath for Linux too (e.g., $ORIGIN)
     list(APPEND PY_RPATH "@loader_path/")
   endif()
 else()
-  # When building wheels, let the repair tools handle library paths
+  # When building wheels, use INSTALL_RPATH_USE_LINK_PATH to automatically embed
+  # absolute paths to linked libraries (OpenMS), which repair tools will follow
   set(PY_RPATH "")
-  message(STATUS "RPATH disabled for wheel repair tool compatibility")
+  message(STATUS "Preparing modules for wheel repair: INSTALL_RPATH_USE_LINK_PATH enabled")
 endif()
 
 # Visibility settings
@@ -380,19 +381,17 @@ if("${PY_NUM_MODULES}" GREATER "1")
         LIBRARY_OUTPUT_DIRECTORY "${PYOPENMS_BUILD_DIR}/pyopenms"
         RUNTIME_OUTPUT_DIRECTORY "${PYOPENMS_BUILD_DIR}/pyopenms"
       )
-      if(NOT PYOPENMS_DISABLE_RPATH)
+      if(NOT PYOPENMS_PREPARE_WHEEL_REPAIR)
         set_target_properties(pyopenms_${nr} PROPERTIES
           INSTALL_RPATH "${PY_RPATH}"
           BUILD_WITH_INSTALL_RPATH 1
           BUILD_WITH_INSTALL_NAME_DIR 1
         )
       else()
-        # Explicitly disable all RPATH settings for wheel repair tools
+        # For wheel repair: use INSTALL_RPATH_USE_LINK_PATH to auto-embed library paths
+        # Repair tools will follow these paths to bundle libs, then rewrite to relative paths
         set_target_properties(pyopenms_${nr} PROPERTIES
-          SKIP_BUILD_RPATH TRUE
-          SKIP_INSTALL_RPATH TRUE
-          BUILD_WITH_INSTALL_RPATH FALSE
-          INSTALL_RPATH ""
+          INSTALL_RPATH_USE_LINK_PATH TRUE
           INSTALL_NAME_DIR ""
         )
       endif()
