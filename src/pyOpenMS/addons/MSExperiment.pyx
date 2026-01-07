@@ -250,27 +250,32 @@ from libc.stdint cimport uintptr_t
             {'spectra': [...], 'chromatograms': [...]}
         """
         # Column order matches C++ ArrowExport implementation
+        # Long format: mz, intensity, rt, ion_mobility?, spectrum_index, ms_level, native_id, precursor_cols?
         spectra_long_cols = ['mz', 'intensity', 'rt']
-        spectra_semi_wide_cols = ['mz', 'intensity', 'rt']
-
-        # ion_mobility comes after rt in C++ (before spectrum_index)
         if include_ion_mobility:
             spectra_long_cols.append('ion_mobility')
-            spectra_semi_wide_cols.append('ion_mobility')
-
         spectra_long_cols.extend(['spectrum_index', 'ms_level', 'native_id'])
-        spectra_semi_wide_cols.extend(['spectrum_index', 'ms_level', 'native_id'])
-
         if include_precursor_info:
-            precursor_cols = ['precursor_mz', 'precursor_charge', 'precursor_intensity',
-                              'isolation_lower', 'isolation_upper']
-            spectra_long_cols.extend(precursor_cols)
-            spectra_semi_wide_cols.extend(precursor_cols)
+            spectra_long_cols.extend(['precursor_mz', 'precursor_charge', 'precursor_intensity',
+                                      'isolation_lower', 'isolation_upper'])
 
-        chrom_long_cols = ['rt', 'intensity', 'chromatogram_index', 'native_id',
-                          'precursor_mz', 'product_mz']
-        chrom_semi_wide_cols = ['rt', 'intensity', 'chromatogram_index', 'native_id',
-                               'precursor_mz', 'product_mz']
+        # Semi-wide format: spectrum_index, rt, ms_level, native_id, mz, intensity, ion_mobility?, precursor_cols?
+        spectra_semi_wide_cols = ['spectrum_index', 'rt', 'ms_level', 'native_id', 'mz', 'intensity']
+        if include_ion_mobility:
+            spectra_semi_wide_cols.append('ion_mobility')
+        if include_precursor_info:
+            spectra_semi_wide_cols.extend(['precursor_mz', 'precursor_charge', 'precursor_intensity',
+                                           'isolation_lower', 'isolation_upper'])
+
+        # Chromatogram long format: rt, intensity, chromatogram_index, native_id, precursor_mz, product_mz
+        chrom_long_cols = ['rt', 'intensity', 'chromatogram_index', 'native_id']
+        if include_precursor_info:
+            chrom_long_cols.extend(['precursor_mz', 'product_mz'])
+
+        # Chromatogram semi-wide format: chromatogram_index, native_id, rt, intensity, precursor_mz, product_mz
+        chrom_semi_wide_cols = ['chromatogram_index', 'native_id', 'rt', 'intensity']
+        if include_precursor_info:
+            chrom_semi_wide_cols.extend(['precursor_mz', 'product_mz'])
 
         if data == 'spectra':
             return spectra_long_cols if format == 'long' else spectra_semi_wide_cols

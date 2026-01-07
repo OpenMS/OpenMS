@@ -442,8 +442,8 @@ START_SECTION(exportSpectraToParquet - basic export)
 {
   MSExperiment exp = createTestExperiment();
 
-  // Export to temp file
-  String filename = File::getTempDirectory() + "/test_spectra.parquet";
+  String filename;
+  NEW_TMP_FILE(filename);
 
   bool success = ArrowExport::exportSpectraToParquet(exp, filename);
   TEST_EQUAL(success, true)
@@ -451,9 +451,6 @@ START_SECTION(exportSpectraToParquet - basic export)
   // Verify file was created
   TEST_EQUAL(File::exists(filename), true)
   TEST_EQUAL(File::empty(filename), false)
-
-  // Clean up
-  File::remove(filename);
 }
 END_SECTION
 
@@ -461,7 +458,8 @@ START_SECTION(exportSpectraToParquet - with compression options)
 {
   MSExperiment exp = createTestExperiment();
 
-  String filename = File::getTempDirectory() + "/test_spectra_compressed.parquet";
+  String filename;
+  NEW_TMP_FILE(filename);
 
   // Test with different compression settings
   ParquetWriteConfig pq_config;
@@ -474,9 +472,6 @@ START_SECTION(exportSpectraToParquet - with compression options)
 
   // Verify file was created
   TEST_EQUAL(File::exists(filename), true)
-
-  // Clean up
-  File::remove(filename);
 }
 END_SECTION
 
@@ -484,7 +479,8 @@ START_SECTION(exportSpectraToParquet - with filtering)
 {
   MSExperiment exp = createTestExperiment();
 
-  String filename = File::getTempDirectory() + "/test_spectra_filtered.parquet";
+  String filename;
+  NEW_TMP_FILE(filename);
 
   // Export only MS2
   ArrowSpectraExportConfig config;
@@ -495,9 +491,6 @@ START_SECTION(exportSpectraToParquet - with filtering)
 
   // Verify file was created
   TEST_EQUAL(File::exists(filename), true)
-
-  // Clean up
-  File::remove(filename);
 }
 END_SECTION
 
@@ -505,16 +498,14 @@ START_SECTION(exportSpectraToParquet - empty experiment)
 {
   MSExperiment exp;
 
-  String filename = File::getTempDirectory() + "/test_spectra_empty.parquet";
+  String filename;
+  NEW_TMP_FILE(filename);
 
   bool success = ArrowExport::exportSpectraToParquet(exp, filename);
   TEST_EQUAL(success, true)
 
   // Verify file was created (even for empty data)
   TEST_EQUAL(File::exists(filename), true)
-
-  // Clean up
-  File::remove(filename);
 }
 END_SECTION
 
@@ -522,7 +513,8 @@ START_SECTION(exportChromatogramsToParquet - basic export)
 {
   MSExperiment exp = createTestExperiment();
 
-  String filename = File::getTempDirectory() + "/test_chromatograms.parquet";
+  String filename;
+  NEW_TMP_FILE(filename);
 
   bool success = ArrowExport::exportChromatogramsToParquet(exp, filename);
   TEST_EQUAL(success, true)
@@ -530,9 +522,6 @@ START_SECTION(exportChromatogramsToParquet - basic export)
   // Verify file was created
   TEST_EQUAL(File::exists(filename), true)
   TEST_EQUAL(File::empty(filename), false)
-
-  // Clean up
-  File::remove(filename);
 }
 END_SECTION
 
@@ -540,7 +529,8 @@ START_SECTION(exportChromatogramsToParquet - with compression options)
 {
   MSExperiment exp = createTestExperiment();
 
-  String filename = File::getTempDirectory() + "/test_chromatograms_snappy.parquet";
+  String filename;
+  NEW_TMP_FILE(filename);
 
   // Test with SNAPPY compression
   ParquetWriteConfig pq_config;
@@ -551,9 +541,6 @@ START_SECTION(exportChromatogramsToParquet - with compression options)
 
   // Verify file was created
   TEST_EQUAL(File::exists(filename), true)
-
-  // Clean up
-  File::remove(filename);
 }
 END_SECTION
 

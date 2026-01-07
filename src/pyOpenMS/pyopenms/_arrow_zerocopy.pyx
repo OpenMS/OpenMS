@@ -136,6 +136,12 @@ def spectra_to_arrow(exp, format='long', ms_levels=None,
     pyarrow.Table
         Arrow table with spectrum data (zero-copy from C++).
     """
+    # Validate format parameter
+    format_lower = format.lower()
+    if format_lower not in ('long', 'semi_wide'):
+        raise ValueError(f"format must be 'long' or 'semi_wide', got '{format}'")
+    format = format_lower
+
     import pyarrow as pa
 
     # Get the C++ MSExperiment pointer from the Python wrapper
@@ -238,6 +244,12 @@ def chromatograms_to_arrow(exp, format='long', min_rt=0.0, max_rt=0.0, columns=N
     pyarrow.Table
         Arrow table with chromatogram data (zero-copy from C++).
     """
+    # Validate format parameter
+    format_lower = format.lower()
+    if format_lower not in ('long', 'semi_wide'):
+        raise ValueError(f"format must be 'long' or 'semi_wide', got '{format}'")
+    format = format_lower
+
     import pyarrow as pa
 
     # Get the C++ MSExperiment pointer from the Python wrapper
