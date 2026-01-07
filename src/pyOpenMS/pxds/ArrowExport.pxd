@@ -19,6 +19,7 @@ cdef extern from "<OpenMS/FORMAT/ArrowExport.h>" namespace "OpenMS":
         #
         #  Allows filtering by MS level, RT range, m/z range, and column selection.
         ArrowSpectraExportConfig() except + nogil
+        ArrowSpectraExportConfig(ArrowSpectraExportConfig&) except + nogil  # copy constructor
         # ArrowExportFormat format  # wrap-ignore (enum class not supported)
         libcpp_vector[unsigned int] ms_levels
         double min_rt
@@ -33,6 +34,7 @@ cdef extern from "<OpenMS/FORMAT/ArrowExport.h>" namespace "OpenMS":
         # wrap-doc:
         #  Configuration for Arrow export of chromatogram data.
         ArrowChromatogramExportConfig() except + nogil
+        ArrowChromatogramExportConfig(ArrowChromatogramExportConfig&) except + nogil  # copy constructor
         # ArrowExportFormat format  # wrap-ignore (enum class not supported)
         double min_rt
         double max_rt

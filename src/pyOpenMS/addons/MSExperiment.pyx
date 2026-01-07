@@ -514,40 +514,71 @@ from libc.stdint cimport uintptr_t
 
         if num_spectra == 0 and num_chromatograms == 0:
             # Return empty tables for empty experiment with full schema
-            # Column order matches C++ ArrowExport implementation
+            # Column order and types match C++ ArrowExport implementation
             result = {}
             if data in ('spectra', 'both'):
-                spectra_dict = {
-                    'mz': pa.array([], type=pa.float64()),
-                    'intensity': pa.array([], type=pa.float32()),
-                    'rt': pa.array([], type=pa.float32()),
-                }
-                # ion_mobility comes after rt (before spectrum_index) to match C++
-                if include_ion_mobility:
-                    spectra_dict['ion_mobility'] = pa.array([], type=pa.float32())
-                spectra_dict['spectrum_index'] = pa.array([], type=pa.uint32())
-                spectra_dict['ms_level'] = pa.array([], type=pa.uint8())
-                spectra_dict['native_id'] = pa.array([], type=pa.utf8())
-                if include_precursor_info:
-                    spectra_dict['precursor_mz'] = pa.array([], type=pa.float64())
-                    spectra_dict['precursor_charge'] = pa.array([], type=pa.int16())
-                    spectra_dict['precursor_intensity'] = pa.array([], type=pa.float32())
-                    spectra_dict['isolation_lower'] = pa.array([], type=pa.float64())
-                    spectra_dict['isolation_upper'] = pa.array([], type=pa.float64())
+                if format == 'long':
+                    # Long format: scalar types, order: mz, intensity, rt, ion_mobility, spectrum_index, ...
+                    spectra_dict = {
+                        'mz': pa.array([], type=pa.float64()),
+                        'intensity': pa.array([], type=pa.float32()),
+                        'rt': pa.array([], type=pa.float32()),
+                    }
+                    if include_ion_mobility:
+                        spectra_dict['ion_mobility'] = pa.array([], type=pa.float32())
+                    spectra_dict['spectrum_index'] = pa.array([], type=pa.uint32())
+                    spectra_dict['ms_level'] = pa.array([], type=pa.uint8())
+                    spectra_dict['native_id'] = pa.array([], type=pa.utf8())
+                    if include_precursor_info:
+                        spectra_dict['precursor_mz'] = pa.array([], type=pa.float64())
+                        spectra_dict['precursor_charge'] = pa.array([], type=pa.int16())
+                        spectra_dict['precursor_intensity'] = pa.array([], type=pa.float32())
+                        spectra_dict['isolation_lower'] = pa.array([], type=pa.float64())
+                        spectra_dict['isolation_upper'] = pa.array([], type=pa.float64())
+                else:
+                    # Semi-wide format: list types for peak data, order: spectrum_index, rt, ms_level, native_id, mz, intensity, ...
+                    spectra_dict = {
+                        'spectrum_index': pa.array([], type=pa.uint32()),
+                        'rt': pa.array([], type=pa.float32()),
+                        'ms_level': pa.array([], type=pa.uint8()),
+                        'native_id': pa.array([], type=pa.utf8()),
+                        'mz': pa.array([], type=pa.list_(pa.float64())),
+                        'intensity': pa.array([], type=pa.list_(pa.float32())),
+                    }
+                    if include_ion_mobility:
+                        spectra_dict['ion_mobility'] = pa.array([], type=pa.list_(pa.float32()))
+                    if include_precursor_info:
+                        spectra_dict['precursor_mz'] = pa.array([], type=pa.float64())
+                        spectra_dict['precursor_charge'] = pa.array([], type=pa.int16())
+                        spectra_dict['precursor_intensity'] = pa.array([], type=pa.float32())
+                        spectra_dict['isolation_lower'] = pa.array([], type=pa.float64())
+                        spectra_dict['isolation_upper'] = pa.array([], type=pa.float64())
                 # Filter columns if requested
                 if columns is not None:
                     spectra_dict = {k: v for k, v in spectra_dict.items() if k in columns}
                 result['spectra'] = pa.Table.from_pydict(spectra_dict)
 
             if data in ('chromatograms', 'both'):
-                chrom_dict = {
-                    'rt': pa.array([], type=pa.float64()),
-                    'intensity': pa.array([], type=pa.float32()),
-                    'chromatogram_index': pa.array([], type=pa.uint32()),
-                    'native_id': pa.array([], type=pa.utf8()),
-                    'precursor_mz': pa.array([], type=pa.float64()),
-                    'product_mz': pa.array([], type=pa.float64()),
-                }
+                if format == 'long':
+                    # Long format: scalar types, order: rt, intensity, chromatogram_index, native_id, ...
+                    chrom_dict = {
+                        'rt': pa.array([], type=pa.float64()),
+                        'intensity': pa.array([], type=pa.float32()),
+                        'chromatogram_index': pa.array([], type=pa.uint32()),
+                        'native_id': pa.array([], type=pa.utf8()),
+                        'precursor_mz': pa.array([], type=pa.float64()),
+                        'product_mz': pa.array([], type=pa.float64()),
+                    }
+                else:
+                    # Semi-wide format: list types, order: chromatogram_index, native_id, rt, intensity, ...
+                    chrom_dict = {
+                        'chromatogram_index': pa.array([], type=pa.uint32()),
+                        'native_id': pa.array([], type=pa.utf8()),
+                        'rt': pa.array([], type=pa.list_(pa.float64())),
+                        'intensity': pa.array([], type=pa.list_(pa.float32())),
+                        'precursor_mz': pa.array([], type=pa.float64()),
+                        'product_mz': pa.array([], type=pa.float64()),
+                    }
                 # Filter columns if requested
                 if columns is not None:
                     chrom_dict = {k: v for k, v in chrom_dict.items() if k in columns}
@@ -794,18 +825,17 @@ from libc.stdint cimport uintptr_t
                         # Use None for null list (spectrum has no IM data)
                         all_ion_mobility.append(None)
 
-            # Build data dict with list columns - order matches C++ ArrowExport
-            data_dict['mz'] = all_mz
-            data_dict['intensity'] = all_intensity
-            data_dict['rt'] = np.array(all_rt, dtype=np.float32)
-
-            # ion_mobility comes after rt (before spectrum_index) to match C++
-            if include_ion_mobility:
-                data_dict['ion_mobility'] = all_ion_mobility
-
+            # Build data dict with list columns - order matches C++ ArrowExport semi-wide:
+            # spectrum_index, rt, ms_level, native_id, mz, intensity, ion_mobility, precursor_*
             data_dict['spectrum_index'] = np.array(all_spectrum_index, dtype=np.uint32)
+            data_dict['rt'] = np.array(all_rt, dtype=np.float32)
             data_dict['ms_level'] = np.array(all_ms_level, dtype=np.uint8)
             data_dict['native_id'] = all_native_id
+            data_dict['mz'] = all_mz
+            data_dict['intensity'] = all_intensity
+
+            if include_ion_mobility:
+                data_dict['ion_mobility'] = all_ion_mobility
 
             if include_precursor_info:
                 # Use pa.array with explicit types for proper null handling
@@ -889,11 +919,12 @@ from libc.stdint cimport uintptr_t
                 all_precursor_mz.append(chrom.getPrecursor().getMZ())
                 all_product_mz.append(chrom.getProduct().getMZ())
 
-            # Build data dict with list columns
-            data_dict['rt'] = all_rt
-            data_dict['intensity'] = all_intensity
+            # Build data dict with list columns - order matches C++ ArrowExport semi-wide:
+            # chromatogram_index, native_id, rt, intensity, precursor_mz, product_mz
             data_dict['chromatogram_index'] = np.array(all_chrom_index, dtype=np.uint32)
             data_dict['native_id'] = all_native_id
+            data_dict['rt'] = all_rt
+            data_dict['intensity'] = all_intensity
             data_dict['precursor_mz'] = np.array(all_precursor_mz, dtype=np.float64)
             data_dict['product_mz'] = np.array(all_product_mz, dtype=np.float64)
 
