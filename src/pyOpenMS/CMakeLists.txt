@@ -423,16 +423,6 @@ if("${PY_NUM_MODULES}" GREATER "1")
         RUNTIME DESTINATION pyopenms
       )
     endforeach()
-
-    # On macOS with NO_DEPENDENCIES=OFF, run fix_dependencies.rb after all modules are built
-    if(APPLE AND NOT NO_DEPENDENCIES)
-      add_custom_command(TARGET pyopenms_compile POST_BUILD
-        COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/../../cmake/MacOSX/fix_dependencies.rb -l ${PYOPENMS_BUILD_DIR}/pyopenms -e "@rpath/" -f -v
-        COMMAND codesign --force --sign "-" ${PYOPENMS_BUILD_DIR}/pyopenms/Qt* || true
-        COMMAND codesign --force --sign "-" ${PYOPENMS_BUILD_DIR}/pyopenms/*.dylib
-        COMMENT "Fixing install_names and codesigning libraries on macOS"
-      )
-    endif()
 else()
     Python_add_library(pyopenms_compile MODULE "${PYOPENMS_BUILD_DIR}/pyopenms/_pyopenms.cpp")
     target_link_libraries(pyopenms_compile PRIVATE OpenMS)
@@ -475,25 +465,12 @@ else()
       COMMENT "Fixing typing information for _pyopenms"
     )
 
-    # On macOS with NO_DEPENDENCIES=OFF, run fix_dependencies.rb after module is built
-    if(APPLE AND NOT NO_DEPENDENCIES)
-      add_custom_command(TARGET pyopenms_compile POST_BUILD
-        COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/../../cmake/MacOSX/fix_dependencies.rb -l ${PYOPENMS_BUILD_DIR}/pyopenms -e "@rpath/" -f -v
-        COMMAND codesign --force --sign "-" ${PYOPENMS_BUILD_DIR}/pyopenms/Qt* || true
-        COMMAND codesign --force --sign "-" ${PYOPENMS_BUILD_DIR}/pyopenms/*.dylib
-        COMMENT "Fixing install_names and codesigning libraries on macOS"
-      )
-    endif()
-
     install(TARGETS pyopenms_compile
       COMPONENT python_modules
       LIBRARY DESTINATION pyopenms
       RUNTIME DESTINATION pyopenms
     )
 endif()
-
-# Create pyopenms alias target for CI compatibility (cibuild.cmake expects this target)
-add_custom_target(pyopenms DEPENDS pyopenms_compile)
 
 #------------------------------------------------------------------------------
 # Install Python files for py-build-cmake
@@ -513,6 +490,33 @@ if(NOT NO_SHARE AND EXISTS "${PYOPENMS_BUILD_DIR}/pyopenms/share")
   install(DIRECTORY ${PYOPENMS_BUILD_DIR}/pyopenms/share
     DESTINATION pyopenms
     COMPONENT python_modules
+  )
+endif()
+
+# On macOS with NO_DEPENDENCIES=OFF, fix install_names in installed files
+if(APPLE AND NOT NO_DEPENDENCIES)
+  install(CODE "
+    execute_process(
+      COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/../../cmake/MacOSX/fix_dependencies.rb -l \"\${CMAKE_INSTALL_PREFIX}/pyopenms\" -e \"@rpath/\" -f -v
+      RESULT_VARIABLE _fix_result
+    )
+    if(_fix_result)
+      message(WARNING \"fix_dependencies.rb failed with code \${_fix_result}\")
+    endif()
+    # Codesign the libraries
+    execute_process(
+      COMMAND codesign --force --sign \"-\" \"\${CMAKE_INSTALL_PREFIX}/pyopenms/Qt*\"
+      ERROR_QUIET
+    )
+    execute_process(
+      COMMAND /bin/sh -c \"codesign --force --sign '-' \\\"\${CMAKE_INSTALL_PREFIX}/pyopenms\\\"/*.dylib\"
+      RESULT_VARIABLE _codesign_result
+    )
+    if(_codesign_result)
+      message(STATUS \"Codesigning completed (some files may have been skipped)\")
+    endif()
+  "
+  COMPONENT python_modules
   )
 endif()
 
@@ -542,22 +546,11 @@ if(NOT NO_DEPENDENCIES)
         )
       endforeach()
     endif()
-
-    # Ensure the Python extension modules are built after the dependencies have been copied.
-    if(TARGET pyopenms_compile)
-      add_dependencies(pyopenms_compile prepare_pyopenms_libs)
-    endif()
 endif()
 
 # LEGACY wheel packaging target (not used by py-build-cmake)
 # On macOS with NO_DEPENDENCIES=OFF, use mac_fix_dependencies.rb to fix install_names
-if(LINUX AND PY_NO_OUTPUT)
-    add_custom_target(pyopenms
-            COMMAND ${Python_EXECUTABLE} -m pip wheel -w dist --no-deps --no-binary=pyopenms --no-build-isolation .
-            COMMENT "Packaging pyopenms wheel."
-            DEPENDS prepare_pyopenms_libs pyopenms_compile
-            WORKING_DIRECTORY ${PYOPENMS_BUILD_DIR} )
-elseif(APPLE AND NOT NO_DEPENDENCIES)
+if(APPLE AND NOT NO_DEPENDENCIES)
     add_custom_target(pyopenms
         COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/../../cmake/MacOSX/fix_dependencies.rb -l ${PYOPENMS_BUILD_DIR}/pyopenms -e "@rpath/" -f -v
         # ad hoc signature is represented by a dash
@@ -568,6 +561,12 @@ elseif(APPLE AND NOT NO_DEPENDENCIES)
         COMMENT "Packaging pyopenms wheel."
         DEPENDS prepare_pyopenms_libs pyopenms_compile
         WORKING_DIRECTORY ${PYOPENMS_BUILD_DIR} )
+elseif(NOT NO_DEPENDENCIES)
+    add_custom_target(pyopenms
+            COMMAND ${Python_EXECUTABLE} -m pip wheel -w dist --no-deps --no-binary=pyopenms --no-build-isolation .
+            COMMENT "Packaging pyopenms wheel."
+            DEPENDS prepare_pyopenms_libs pyopenms_compile
+            WORKING_DIRECTORY ${PYOPENMS_BUILD_DIR} )
 else()
     add_custom_target(pyopenms
             COMMAND ${Python_EXECUTABLE} -m pip wheel -w dist --no-deps --no-binary=pyopenms --no-build-isolation .
@@ -575,13 +574,6 @@ else()
             DEPENDS pyopenms_compile
             WORKING_DIRECTORY ${PYOPENMS_BUILD_DIR} )
 endif()
-
-add_custom_target(pyopenms_wheel
-  COMMAND ${Python_EXECUTABLE} -m pip wheel -w dist --no-deps --no-build-isolation .
-  COMMENT "Packaging pyopenms wheel (legacy target)"
-  DEPENDS pyopenms_compile
-  WORKING_DIRECTORY ${PYOPENMS_BUILD_DIR}
-)
 
 #------------------------------------------------------------------------------
 # Testing via CMake/CTest (Note: our new CI uses pytest directly)
