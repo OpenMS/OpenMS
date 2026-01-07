@@ -423,6 +423,16 @@ if("${PY_NUM_MODULES}" GREATER "1")
         RUNTIME DESTINATION pyopenms
       )
     endforeach()
+
+    # On macOS with NO_DEPENDENCIES=OFF, run fix_dependencies.rb after all modules are built
+    if(APPLE AND NOT NO_DEPENDENCIES)
+      add_custom_command(TARGET pyopenms_compile POST_BUILD
+        COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/../../cmake/MacOSX/fix_dependencies.rb -l ${PYOPENMS_BUILD_DIR}/pyopenms -e "@rpath/" -f -v
+        COMMAND codesign --force --sign "-" ${PYOPENMS_BUILD_DIR}/pyopenms/Qt* || true
+        COMMAND codesign --force --sign "-" ${PYOPENMS_BUILD_DIR}/pyopenms/*.dylib
+        COMMENT "Fixing install_names and codesigning libraries on macOS"
+      )
+    endif()
 else()
     Python_add_library(pyopenms_compile MODULE "${PYOPENMS_BUILD_DIR}/pyopenms/_pyopenms.cpp")
     target_link_libraries(pyopenms_compile PRIVATE OpenMS)
@@ -465,6 +475,16 @@ else()
       COMMENT "Fixing typing information for _pyopenms"
     )
 
+    # On macOS with NO_DEPENDENCIES=OFF, run fix_dependencies.rb after module is built
+    if(APPLE AND NOT NO_DEPENDENCIES)
+      add_custom_command(TARGET pyopenms_compile POST_BUILD
+        COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/../../cmake/MacOSX/fix_dependencies.rb -l ${PYOPENMS_BUILD_DIR}/pyopenms -e "@rpath/" -f -v
+        COMMAND codesign --force --sign "-" ${PYOPENMS_BUILD_DIR}/pyopenms/Qt* || true
+        COMMAND codesign --force --sign "-" ${PYOPENMS_BUILD_DIR}/pyopenms/*.dylib
+        COMMENT "Fixing install_names and codesigning libraries on macOS"
+      )
+    endif()
+
     install(TARGETS pyopenms_compile
       COMPONENT python_modules
       LIBRARY DESTINATION pyopenms
@@ -504,6 +524,7 @@ if(NOT NO_DEPENDENCIES)
     add_custom_target(prepare_pyopenms_libs DEPENDS OpenMS)
     set(PYOPENMS_DEPENDENCIES OpenMS OpenSwathAlgo)
 
+    # Copy all dependencies first
     foreach(PYOPENMS_DEPENDENCY ${PYOPENMS_DEPENDENCIES})
       add_custom_command(TARGET prepare_pyopenms_libs POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${PYOPENMS_DEPENDENCY}> ${PYOPENMS_BUILD_DIR}/pyopenms
@@ -521,9 +542,40 @@ if(NOT NO_DEPENDENCIES)
         )
       endforeach()
     endif()
+
+    # Ensure the Python extension modules are built after the dependencies have been copied.
+    if(TARGET pyopenms_compile)
+      add_dependencies(pyopenms_compile prepare_pyopenms_libs)
+    endif()
 endif()
 
 # LEGACY wheel packaging target (not used by py-build-cmake)
+# On macOS with NO_DEPENDENCIES=OFF, use mac_fix_dependencies.rb to fix install_names
+if(LINUX AND PY_NO_OUTPUT)
+    add_custom_target(pyopenms
+            COMMAND ${Python_EXECUTABLE} -m pip wheel -w dist --no-deps --no-binary=pyopenms --no-build-isolation .
+            COMMENT "Packaging pyopenms wheel."
+            DEPENDS prepare_pyopenms_libs pyopenms_compile
+            WORKING_DIRECTORY ${PYOPENMS_BUILD_DIR} )
+elseif(APPLE AND NOT NO_DEPENDENCIES)
+    add_custom_target(pyopenms
+        COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/../../cmake/MacOSX/fix_dependencies.rb -l ${PYOPENMS_BUILD_DIR}/pyopenms -e "@rpath/" -f -v
+        # ad hoc signature is represented by a dash
+        # https://developer.apple.com/documentation/security/seccodesignatureflags/kseccodesignatureadhoc
+        COMMAND codesign --force --sign "-" ${PYOPENMS_BUILD_DIR}/pyopenms/Qt* || true
+        COMMAND codesign --force --sign "-" ${PYOPENMS_BUILD_DIR}/pyopenms/*.dylib
+        COMMAND ${Python_EXECUTABLE} -m pip wheel -w dist --no-deps --no-binary=pyopenms --no-build-isolation .
+        COMMENT "Packaging pyopenms wheel."
+        DEPENDS prepare_pyopenms_libs pyopenms_compile
+        WORKING_DIRECTORY ${PYOPENMS_BUILD_DIR} )
+else()
+    add_custom_target(pyopenms
+            COMMAND ${Python_EXECUTABLE} -m pip wheel -w dist --no-deps --no-binary=pyopenms --no-build-isolation .
+            COMMENT "Packaging pyopenms wheel."
+            DEPENDS pyopenms_compile
+            WORKING_DIRECTORY ${PYOPENMS_BUILD_DIR} )
+endif()
+
 add_custom_target(pyopenms_wheel
   COMMAND ${Python_EXECUTABLE} -m pip wheel -w dist --no-deps --no-build-isolation .
   COMMENT "Packaging pyopenms wheel (legacy target)"
