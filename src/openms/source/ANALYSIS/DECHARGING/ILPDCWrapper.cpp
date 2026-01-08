@@ -465,7 +465,7 @@ namespace OpenMS
     if (verbose_level > 2)
       OPENMS_LOG_INFO << "Active edges: " << active_edges << " of overall " << pairs.size() << std::endl;
 
-    for (std::map<String, Size>::const_iterator it = count_cmp.begin(); it != count_cmp.end(); ++it)
+    for (std::unordered_map<String, Size>::const_iterator it = count_cmp.begin(); it != count_cmp.end(); ++it)
     {
       //std::cout << "Cmp " << it->first << " x " << it->second << "\n";
     }
