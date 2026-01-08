@@ -7,7 +7,7 @@ cdef extern from "<OpenMS/CHEMISTRY/Ribonucleotide.h>" namespace "OpenMS::Ribonu
 
     cdef enum TermSpecificityNuc:
       # wrap-attach:
-      # Ribonucleotide
+      #  Ribonucleotide
       ANYWHERE = 0,
       FIVE_PRIME,
       THREE_PRIME,

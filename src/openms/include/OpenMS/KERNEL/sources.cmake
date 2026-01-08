@@ -5,6 +5,7 @@ set(directory include/OpenMS/KERNEL)
 set(sources_list_h
 AreaIterator.h
 BaseFeature.h
+BinnedSpectrum.h
 ChromatogramPeak.h
 ChromatogramTools.h
 ConsensusFeature.h
@@ -32,8 +33,9 @@ PeakIndex.h
 RangeManager.h
 RangeUtils.h
 RichPeak2D.h
+SpectrumRangeManager.h
+ChromatogramRangeManager.h
 StandardTypes.h
-StandardDeclarations.h
 SpectrumHelper.h
 )
 

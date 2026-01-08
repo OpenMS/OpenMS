@@ -19,7 +19,7 @@ cdef extern from "<OpenMS/FORMAT/InspectOutfile.h>" namespace "OpenMS":
         bool operator==(InspectOutfile & inspect_outfile) except + nogil 
 
         libcpp_vector[ size_t ] load(const String & result_filename, 
-                                     libcpp_vector[ PeptideIdentification ] & peptide_identifications,
+                                     PeptideIdentificationList & peptide_identifications,
                                      ProteinIdentification & protein_identification, double
                                      p_value_threshold, const String & database_filename) except + nogil 
             # wrap-doc:
@@ -67,7 +67,7 @@ cdef extern from "<OpenMS/FORMAT/InspectOutfile.h>" namespace "OpenMS":
         # TODO mixed, nested STL
         void getPrecursorRTandMZ(
             libcpp_vector[ libcpp_pair[ String, libcpp_vector[ libcpp_pair[ size_t, size_t ] ] ] ] & files_and_peptide_identification_with_scan_number,
-            libcpp_vector[ PeptideIdentification ] & ids) except + nogil  # wrap-ignore
+            PeptideIdentificationList & ids) except + nogil  # wrap-ignore
 
         void getLabels(const String & source_database_filename,
                        String & ac_label,

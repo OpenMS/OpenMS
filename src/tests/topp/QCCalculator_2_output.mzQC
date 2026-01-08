@@ -1,6 +1,6 @@
 {
   "mzQC": {
-    "creationDate": "2021-07-13T18:11:15",
+    "creationDate": "2025-05-16T14:22:42",
     "version": "1.0.0",
     "contactName": "name",
     "contactAddress": "address",
@@ -11,7 +11,7 @@
           "label": "label",
           "inputFiles": [
             {
-              "location": "/home/axel/dev/OpenMS/src/tests/topp/QCCalculator_input.mzML",
+              "location": "/home/sachsenb/Development/OpenMS/src/tests/topp/QCCalculator_input.mzML",
               "name": "QCCalculator_input.mzML",
               "fileFormat": {
                 "accession": "MS:10000584",
@@ -40,7 +40,7 @@
             {
               "accession": "MS:1009001",
               "name": "QCCalculator",
-              "version": "2.6.0",
+              "version": "3.5.0",
               "uri": "https://www.openms.de"
             }
           ]
@@ -71,7 +71,7 @@
             "name": "MZ acquisition range",
             "value": [
               0,
-              678
+              18
             ]
           },
           {
@@ -192,8 +192,8 @@
       },
       {
         "name": "Proteomics Standards Initiative Mass Spectrometry Ontology",
-        "uri": "https://raw.githubusercontent.com/HUPO-PSI/psi-ms-CV/master/psi-ms.obo",
-        "version": "4.1.56"
+        "uri": "http://purl.obolibrary.org/obo/ms/psi-ms.obo",
+        "version": "4.1.155"
       }
     ]
   }

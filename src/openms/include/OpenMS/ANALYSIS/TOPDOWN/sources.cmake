@@ -13,7 +13,7 @@ set(sources_list_h
         FLASHTnTAlgorithm.h
         MassFeatureTrace.h
         PeakGroup.h
-        Qscore.h
+        PeakGroupScoring.h
         Qvalue.h
         TopDownIsobaricQuantification.h
         FLASHTaggerAlgorithm.h

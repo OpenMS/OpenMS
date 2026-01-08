@@ -10,7 +10,9 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithm.h>" name
         # wrap-inherits:
         #   DefaultParamHandler
         # wrap-ignore
-        # Abstract Class
+        # ABSTRACT class
+        # no-pxd-import
+        
         void transferSubelements(libcpp_vector[ConsensusMap] maps,
                                  ConsensusMap & out
                                 ) except + nogil  # wrap-doc:Transfers subelements (grouped features) from input consensus maps to the result consensus map

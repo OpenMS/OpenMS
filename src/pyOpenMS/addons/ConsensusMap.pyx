@@ -25,7 +25,7 @@ from UniqueIdInterface cimport setUniqueId as _setUniqueId
         return py_result
 
     def setColumnHeaders(self, dict in_0 ):
-        assert isinstance(in_0, dict) and all(isinstance(k, (int, long)) for k in in_0.keys()) and all(isinstance(v, ColumnHeader) for v in in_0.values()), 'arg in_0 wrong type'
+        assert isinstance(in_0, dict) and all(isinstance(k, int) for k in in_0.keys()) and all(isinstance(v, ColumnHeader) for v in in_0.values()), 'arg in_0 wrong type'
         cdef ColumnHeaders v0
         for key, value in in_0.items():
            v0[<UInt64> key] = deref((<ColumnHeader>value).inst.get())

@@ -13,7 +13,7 @@ set(sources_list
         FLASHTnTAlgorithm.cpp
         MassFeatureTrace.cpp
         PeakGroup.cpp
-        Qscore.cpp
+        PeakGroupScoring.cpp
         Qvalue.cpp
         TopDownIsobaricQuantification.cpp
         FLASHTaggerAlgorithm.cpp

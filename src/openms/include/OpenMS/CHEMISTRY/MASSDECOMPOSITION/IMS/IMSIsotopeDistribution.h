@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -12,6 +12,7 @@
 #include <algorithm> // std::min
 #include <vector>
 #include <iosfwd>
+#include <algorithm>
 
 #include <OpenMS/config.h>
 
@@ -78,13 +79,7 @@ public:
           mass(local_mass), abundance(local_abundance)
         {}
 
-        bool operator==(const Peak & peak) const
-        {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wfloat-equal"
-          return peak.mass == mass && peak.abundance == abundance;
-#pragma clang diagnostic pop
-        }
+        bool operator==(const Peak& peak) const = default;
 
         mass_type mass;
         abundance_type abundance;

@@ -85,16 +85,52 @@ def testResidueTutorial():
     lys.getPka()
 
 @report
+def testAASequenceLen():
+    """Test the __len__() method implementation for AASequence"""
+    
+    # Test basic len() functionality
+    seq = AASequence.fromString("PEPTIDE")
+    assert len(seq) == 7
+    assert len(seq) == seq.size()
+    
+    # Test with different sequences
+    short_seq = AASequence.fromString("PEP")
+    assert len(short_seq) == 3
+    
+    long_seq = AASequence.fromString("PEPTIDESEQUENCE")
+    assert len(long_seq) == 15
+    
+    # Test with modified sequences
+    modified_seq = AASequence.fromString("PEPTIDEM(Oxidation)")
+    assert len(modified_seq) == 8  # Modification doesn't change sequence length
+    
+    # Test with empty sequence (if possible)
+    empty_seq = AASequence.fromString("")
+    assert len(empty_seq) == 0
+    
+    print("All len() tests passed!")
+
+@report
 def testAASequenceTutorial():
 
     seq = AASequence.fromString("DFPIANGER")
+    # Test the new len() functionality
+    assert len(seq) == 9  # "DFPIANGER" has 9 amino acids
+    assert len(seq) == seq.size()  # len() should return same as size()
+    
     prefix = seq.getPrefix(4)
     suffix = seq.getSuffix(5)
     concat = seq + seq
+    
+    # Test len() with different sequences
+    assert len(prefix) == 4
+    assert len(suffix) == 5
+    assert len(concat) == 18  # concatenated sequence should be 2 * 9
 
     print(seq)
     print(concat)
     print(suffix)
+    print("len(seq) =", len(seq), ", seq.size() =", seq.size())
     seq.getMonoWeight() # weight of M
     seq.getMonoWeight(Residue.ResidueType.Full, 2) # weight of M+2H
     mz = seq.getMonoWeight(Residue.ResidueType.Full, 2) / 2.0 # m/z of M+2H

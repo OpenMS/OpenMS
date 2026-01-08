@@ -14,7 +14,7 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmKD.h>" na
         FeatureGroupingAlgorithmKD() except + nogil  # wrap-doc:A feature grouping algorithm for unlabeled data
         # private
         FeatureGroupingAlgorithmKD(FeatureGroupingAlgorithmKD &) except + nogil  # wrap-ignore
-        void group(libcpp_vector[ FeatureMap ] & maps, ConsensusMap & out) except + nogil 
-        void group(libcpp_vector[ ConsensusMap ] & maps, ConsensusMap & out) except + nogil 
+        void group(const libcpp_vector[ FeatureMap ] & maps, ConsensusMap & out) except + nogil 
+        void group(const libcpp_vector[ ConsensusMap ] & maps, ConsensusMap & out) except + nogil 
         # POINTER # FeatureGroupingAlgorithm * create() except + nogil 
       

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -448,10 +448,9 @@ namespace OpenMS::Internal
       pep_id_.setScoreType(attributeAsString_(attributes, "score_type"));
 
       //optional significance threshold
-      if (double thresh; optionalAttributeAsDouble_(thresh, attributes, "significance_threshold"))
-      {
-        pep_id_.setSignificanceThreshold(thresh);
-      }
+      double tmp = 0.0;
+      optionalAttributeAsDouble_(tmp, attributes, "significance_threshold");
+      if (tmp != 0.0) pep_id_.setSignificanceThreshold(tmp);
 
       //score orientation
       pep_id_.setHigherScoreBetter(asBool_(attributeAsString_(attributes, "higher_score_better")));
@@ -902,9 +901,10 @@ namespace OpenMS::Internal
       os << indent << "\t</PeptideHit>\n";
     }
 
-    // do not write "spectrum_reference" since it is written as attribute already
+    // do not write "spectrum_reference" and Constants::UserParam::SIGNIFICANCE_THRESHOLD since it is written as attribute already
     MetaInfoInterface tmp = id;
     tmp.removeMetaValue("spectrum_reference");
+    tmp.removeMetaValue(Constants::UserParam::SIGNIFICANCE_THRESHOLD);
     writeUserParam_("UserParam", os, tmp, indentation_level + 1);
     os << indent << "</" << tag_name << ">\n";
   }

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -63,6 +63,18 @@ public:
     bool operator==(const MetaInfo& rhs) const;
     /// Equality operator
     bool operator!=(const MetaInfo& rhs) const;
+
+    /// Add all entries from @p rhs to this MetaInfo.
+    /// If an entry with the same index/name already exists, it will be overwritten.
+    MetaInfo& operator+=(const MetaInfo& rhs)
+    {
+      // index_to_value_.insert(rhs.index_to_value_.begin(), rhs.index_to_value_.end()); // does not overwrite existing data
+      for (const auto& kv : rhs.index_to_value_)
+      {
+        index_to_value_[kv.first] = kv.second;
+      }
+      return *this;
+    }
 
     /// Returns the value corresponding to a string, or a default value (default: DataValue::EMPTY) if not found
     const DataValue& getValue(const String& name, const DataValue& default_value = DataValue::EMPTY) const;

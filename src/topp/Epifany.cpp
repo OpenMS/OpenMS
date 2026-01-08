@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -7,7 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/FILTERING/ID/IDFilter.h>
+#include <OpenMS/PROCESSING/ID/IDFilter.h>
 #include <OpenMS/FORMAT/ExperimentalDesignFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
@@ -159,7 +159,7 @@ protected:
     return BayesianProteinInferenceAlgorithm().getParameters();
   }
 
-  pair<double,double> checkExtremePSMScores_(vector<PeptideIdentification>& mergedpeps)
+  pair<double,double> checkExtremePSMScores_(PeptideIdentificationList& mergedpeps)
   {
     double minscore = 2.;
     double maxscore = -1.;
@@ -182,7 +182,7 @@ protected:
     return {minscore, maxscore};
   }
 
-  void convertPSMScores_(vector<PeptideIdentification>& mergedpeps)
+  void convertPSMScores_(PeptideIdentificationList& mergedpeps)
   {
     //convert all scores to PPs
     for (auto& pep_id : mergedpeps)
@@ -214,7 +214,7 @@ protected:
     }
   }
 
-  void removeExtremeValues_(vector<PeptideIdentification>& mergedpeps, double minscore, double maxscore)
+  void removeExtremeValues_(PeptideIdentificationList& mergedpeps, double minscore, double maxscore)
   {
     //convert all scores to PPs
     for (auto& pep_id : mergedpeps)
@@ -340,13 +340,13 @@ protected:
       IDMergerAlgorithm merger{};
       OPENMS_LOG_INFO << "Loading input..." << std::endl;
       vector<ProteinIdentification> mergedprots{1};
-      vector<PeptideIdentification> mergedpeps;
+      PeptideIdentificationList mergedpeps;
       if (files.size() > 1)
       {
         for (String& file : files)
         {
           vector<ProteinIdentification> prots;
-          vector<PeptideIdentification> peps;
+          PeptideIdentificationList peps;
           FileHandler().loadIdentifications(file, prots, peps, {FileTypes::IDXML});
           //TODO merger does not support groups yet, so clear them here right away.
           // Not so easy to implement at first sight. Merge groups whenever one protein overlaps?

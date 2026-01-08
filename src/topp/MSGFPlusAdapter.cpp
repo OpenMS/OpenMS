@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -8,6 +8,7 @@
 
 #include <OpenMS/APPLICATIONS/SearchEngineBase.h>
 
+#include <OpenMS/ANALYSIS/ID/PercolatorFeatureSetHelper.h>
 #include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
@@ -15,6 +16,7 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/FORMAT/CsvFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/SpectrumMetaDataLookup.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -504,7 +506,7 @@ protected:
       if (!JavaInfo::canRun(java_executable))
       {
         writeLogError_("Fatal error: Java is needed to run MS-GF+!");
-        return EXTERNAL_PROGRAM_ERROR;
+        return EXTERNAL_PROGRAM_NOTFOUND;
       }
     }
     else
@@ -630,7 +632,7 @@ protected:
       }
 
       vector<ProteinIdentification> protein_ids;
-      vector<PeptideIdentification> peptide_ids;
+      PeptideIdentificationList peptide_ids;
 
       if (getFlag_("legacy_conversion"))
       {
@@ -834,8 +836,12 @@ protected:
           switchScores_(pep);
         }
 
-
-        SpectrumMetaDataLookup::addMissingRTsToPeptideIDs(peptide_ids, in, false);         
+        // add missing RTs to peptide IDs
+        MSExperiment exp;
+        MzMLFile mzml_file{};
+        mzml_file.getOptions().setMetadataOnly(true);
+    		mzml_file.load(in, exp); 
+        SpectrumMetaDataLookup::addMissingRTsToPeptideIDs(peptide_ids, exp);
       }
 
       // use OpenMS meta value key
@@ -858,6 +864,11 @@ protected:
 
       // if "reindex" parameter is set to true will perform reindexing
       if (auto ret = reindex_(protein_ids, peptide_ids); ret != EXECUTION_OK) return ret;
+
+      // get feature set used in percolator
+      StringList feature_set;
+      PercolatorFeatureSetHelper::addMSGFFeatures(peptide_ids, feature_set);
+      protein_ids.front().getSearchParameters().setMetaValue("extra_features", ListUtils::concatenate(feature_set, ","));
 
       FileHandler().storeIdentifications(out, protein_ids, peptide_ids, {FileTypes::IDXML});
     }

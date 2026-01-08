@@ -14,5 +14,5 @@ cdef extern from "<OpenMS/FORMAT/XTandemXMLFile.h>" namespace "OpenMS":
         XTandemXMLFile(XTandemXMLFile &) except + nogil  # wrap-ignore
 
         void load(String filename, ProteinIdentification & protein_identification,
-                  libcpp_vector[PeptideIdentification] & id_data,
+                  PeptideIdentificationList & id_data,
                   ModificationDefinitionsSet& mod_def_set) except + nogil 

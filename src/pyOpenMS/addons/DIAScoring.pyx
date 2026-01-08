@@ -4,7 +4,7 @@
         assert isinstance(spectrum, list) and all(isinstance(elemt_rec, OSSpectrum) for elemt_rec in spectrum), 'arg spectrum wrong type'
         assert isinstance(sequence, AASequence), 'arg sequence wrong type'
         assert isinstance(im_range, RangeMobility), 'arg sequence wrong type'
-        assert isinstance(charge, (int, long)), 'arg charge wrong type'
+        assert isinstance(charge, int), 'arg charge wrong type'
         assert isinstance(bseries_score, float), 'arg bseries_score wrong type'
         assert isinstance(yseries_score, float), 'arg yseries_score wrong type'
 

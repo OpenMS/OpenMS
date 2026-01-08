@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -59,7 +59,7 @@ using namespace OpenMS;
     max_score_ = arg_minscore_;
   }
 
-  XFDRAlgorithm::ExitCodes XFDRAlgorithm::run(std::vector<PeptideIdentification>& peptide_ids, ProteinIdentification& protein_id)
+  XFDRAlgorithm::ExitCodes XFDRAlgorithm::run(PeptideIdentificationList& peptide_ids, ProteinIdentification& protein_id)
   {
     writeArgumentsLog_();
     std::cout << "Initializing data structures..." << std::endl;
@@ -266,7 +266,7 @@ using namespace OpenMS;
     return EXECUTION_OK;
   }
 
-  void XFDRAlgorithm::initDataStructures_(std::vector<PeptideIdentification>& peptide_ids, ProteinIdentification& protein_id)
+  void XFDRAlgorithm::initDataStructures_(PeptideIdentificationList& peptide_ids, ProteinIdentification& protein_id)
   {
     const String prot_identifier = protein_id.getIdentifier();
 
@@ -486,7 +486,7 @@ using namespace OpenMS;
     }
   }
 
-  void XFDRAlgorithm::findTopUniqueHits_(std::vector<PeptideIdentification>& peptide_ids)
+  void XFDRAlgorithm::findTopUniqueHits_(PeptideIdentificationList& peptide_ids)
   {
     for (PeptideIdentification& pep_id : peptide_ids)
     {

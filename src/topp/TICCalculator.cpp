@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -129,7 +129,9 @@ class TOPPTICCalculator :
 {
 public:
   TOPPTICCalculator() :
-    TOPPBase("TICCalculator", "Calculates the TIC from a mass spectrometric raw file (useful for benchmarking).", false)
+    TOPPBase("TICCalculator", 
+    "Calculates the TIC from a mass spectrometric raw file (useful for benchmarking).", 
+    true)
   {
   }
 

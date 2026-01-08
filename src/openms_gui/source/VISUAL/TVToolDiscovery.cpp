@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -141,7 +141,7 @@ namespace OpenMS
     // Spawning a thread for all tools is no problem (if std::async decides to do so)
     // but spawning that many processes failed with not enough file handles on machines with large number of cores.
     // Restricting the number of running processes solves that issue.
-    while (running_processes >= 6)
+    while (running_processes >= 6) 
     { 
       std::this_thread::sleep_for(std::chrono::milliseconds(10));
       QCoreApplication::processEvents();

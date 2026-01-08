@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -169,10 +169,10 @@ namespace OpenMS
 
 
   void MapAlignmentTransformer::transformRetentionTimes(
-    vector<PeptideIdentification>& pep_ids,
+    PeptideIdentificationList& pep_ids,
     const TransformationDescription& trafo, bool store_original_rt)
   {
-    for (vector<PeptideIdentification>::iterator pep_it = pep_ids.begin();
+    for (PeptideIdentificationList::iterator pep_it = pep_ids.begin();
          pep_it != pep_ids.end(); ++pep_it)
     {
       if (pep_it->hasRT())

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -79,7 +79,7 @@ namespace OpenMS
      */
     static void replace(std::string& replace_in, char to_replace, const std::string& replace_with);
 
-    const std::string schema_location_ = "/SCHEMAS/Param_1_7_0.xsd";
-    const std::string schema_version_ = "1.7.0";
+    const std::string schema_location_ = "/SCHEMAS/Param_1_8_0.xsd";
+    const std::string schema_version_ = "1.8.0";
   };
 }

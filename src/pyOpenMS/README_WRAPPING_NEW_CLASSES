@@ -32,8 +32,8 @@ cdef extern from "<OpenMS/path/to/header.h>" namespace "OpenMS":
         # wrap-inherits:
         #    DefaultParamHandler
 
-        ClassName() nogil except +
-        ClassName(ClassName) nogil except +
+        ClassName() except + nogil 
+        ClassName(ClassName) except + nogil 
 
 
 - make sure to use "ClassName:" instead of "ClassName(DefaultParamHandler)" to

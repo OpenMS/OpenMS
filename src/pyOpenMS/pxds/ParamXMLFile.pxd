@@ -10,7 +10,7 @@ cdef extern from "<OpenMS/FORMAT/ParamXMLFile.h>" namespace "OpenMS":
         ParamXMLFile() except + nogil 
         ParamXMLFile(ParamXMLFile &) except + nogil  # compiler
 
-        void load(String, Param &) except + nogil
+        void load(String filename, Param& param) except + nogil
             # wrap-doc:
                 #  Read XML file
                 #  
@@ -22,7 +22,7 @@ cdef extern from "<OpenMS/FORMAT/ParamXMLFile.h>" namespace "OpenMS":
                 #  :raises:
                 #    Exception: ParseError is thrown if an error occurs during parsing
 
-        void store(String, Param &) except + nogil
+        void store(String filename, Param& param) except + nogil
             # wrap-doc:
                 #  Write XML file
                 #  

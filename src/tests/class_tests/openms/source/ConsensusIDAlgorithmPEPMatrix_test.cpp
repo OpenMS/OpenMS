@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -39,7 +39,7 @@ START_SECTION(~ConsensusIDAlgorithmPEPMatrix())
 END_SECTION
 
 
-START_SECTION(void apply(std::vector<PeptideIdentification>& ids))
+START_SECTION(void apply(PeptideIdentificationList& ids))
 {
   NOT_TESTABLE // tested by ConsensusID TOPP tool tests
 }

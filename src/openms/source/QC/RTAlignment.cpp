@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -58,7 +58,7 @@ namespace OpenMS
     compute(features.getUnassignedPeptideIdentifications(), trafo);
   }
 
-  void RTAlignment::compute(std::vector<PeptideIdentification>& ids, const TransformationDescription& trafo) const
+  void RTAlignment::compute(PeptideIdentificationList& ids, const TransformationDescription& trafo) const
   {
     // set meta values for all unasssigned PeptideIdentifications
     for (PeptideIdentification& id : ids)

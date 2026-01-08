@@ -75,6 +75,8 @@ cdef extern from "<OpenMS/DATASTRUCTURES/Param.h>" namespace "OpenMS":
          void checkDefaults(libcpp_utf8_string name, Param defaults, libcpp_utf8_string prefix) except + nogil 
          void checkDefaults(libcpp_utf8_string name, Param defaults) except + nogil 
 
+         libcpp_vector[libcpp_utf8_string] getValidStrings(libcpp_utf8_string key) except + nogil
+
          void setValidStrings(libcpp_utf8_string key, libcpp_vector[libcpp_utf8_string] strings) except + nogil 
          void setMinInt(libcpp_utf8_string key, int min) except + nogil 
          void setMaxInt(libcpp_utf8_string key, int max) except + nogil 

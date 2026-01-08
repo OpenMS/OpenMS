@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -8,11 +8,11 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
-#include <OpenMS/FILTERING/TRANSFORMERS/LinearResampler.h>
+#include <OpenMS/PROCESSING/RESAMPLING/LinearResampler.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/RangeUtils.h>
-#include <OpenMS/MATH/MISC/BilinearInterpolation.h>
+#include <OpenMS/ML/INTERPOLATION/BilinearInterpolation.h>
 #include <OpenMS/VISUAL/MultiGradient.h>
 
 
@@ -269,11 +269,12 @@ protected:
       exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), predicate),
                              exp.end());
     }
-    exp.updateRanges(1);
+    exp.updateRanges();
 
     Size rows = getIntOption_("height"), cols = getIntOption_("width");
     if (rows == 0) rows = exp.size();
-    if (cols == 0) cols = UInt(ceil(exp.getMaxMZ() - exp.getMinMZ()));
+    if (cols == 0) cols = UInt(ceil(
+      exp.spectrumRanges().byMSLevel(1).getMaxMZ() - exp.spectrumRanges().byMSLevel(1).getMinMZ()));
 
     //----------------------------------------------------------------
     //Do the actual resampling
@@ -284,9 +285,9 @@ protected:
     if (!getFlag_("transpose"))
     {
       // scans run bottom-up:
-      bilip.setMapping_0(0, exp.getMaxRT(), rows - 1, exp.getMinRT());
+      bilip.setMapping_0(0, exp.spectrumRanges().byMSLevel(1).getMaxRT(), rows - 1, exp.spectrumRanges().byMSLevel(1).getMinRT());
       // peaks run left-right:
-      bilip.setMapping_1(0, exp.getMinMZ(), cols - 1, exp.getMaxMZ());
+      bilip.setMapping_1(0, exp.spectrumRanges().byMSLevel(1).getMinMZ(), cols - 1, exp.spectrumRanges().byMSLevel(1).getMaxMZ());
 
       for (PeakMap::Iterator spec_iter = exp.begin();
            spec_iter != exp.end(); ++spec_iter)

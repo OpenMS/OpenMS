@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -58,7 +58,7 @@ namespace OpenMS
      * @brief Run FLASHDeconv algorithm for @p map and store @p deconvolved_spectra and @p deconvolved_feature
      * @param map the dataset
      * @param deconvolved_spectra the deconvolved spectra will be stored in here
-     * @param deconvolved_feature tje deconvolved features wll be strored in here
+     * @param deconvolved_feature the deconvolved features wll be strored in here
      */
     void run(MSExperiment& map, std::vector<DeconvolvedSpectrum>& deconvolved_spectra, std::vector<FLASHHelperClasses::MassFeature>& deconvolved_feature);
 
@@ -67,7 +67,6 @@ namespace OpenMS
 
     /// get calculated decoy averagine. Call after calculateAveragine is called.
     const FLASHHelperClasses::PrecalculatedAveragine& getDecoyAveragine();
-
 
     /// get noise decoy weight
     double getNoiseDecoyWeight() const
@@ -100,7 +99,7 @@ namespace OpenMS
     UInt current_min_ms_level_ = 0;
 
     /// the number of preceding full scans from which MS2 precursor mass will be searched.
-    int precursor_MS1_window_ = 0;
+    //int precursor_MS1_window_ = 0;
 
     /// FLASHIda log file name
     String ida_log_file_;
@@ -121,8 +120,12 @@ namespace OpenMS
     double noise_decoy_weight_ = 1;
     /// FLASHIda parsing information is stored here: MS1 scan - information
     std::map<int, std::vector<std::vector<float>>> precursor_map_for_ida_;
+    /// a map from native ID to precursor peak
+    std::map<String, Precursor> native_id_precursor_peak_map_;
     /// a map from native ID to precursor peak group
     std::map<String, PeakGroup> native_id_precursor_peak_group_map_;
+    /// a map from native ID to precursor mass - intensity pair (within isolation window)
+    std::map<String, std::vector<std::tuple<double, double>>> native_id_precursor_mass_intensity_map_;
 
     /// read dataset to update ms level information
     void updateMSLevels_(MSExperiment& map);

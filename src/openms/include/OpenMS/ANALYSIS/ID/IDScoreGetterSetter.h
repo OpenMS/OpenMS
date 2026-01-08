@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -11,6 +11,7 @@
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/METADATA/ID/IdentificationData.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 
@@ -91,7 +92,7 @@ namespace OpenMS
 
     static void fillPeptideScoreMap_(
       std::unordered_map<String, ScoreToTgtDecLabelPair>& seq_to_score_labels,
-      std::vector<PeptideIdentification> const& ids);
+      PeptideIdentificationList const& ids);
 
     static void fillPeptideScoreMap_(
       std::unordered_map<String, ScoreToTgtDecLabelPair>& seq_to_score_labels,
@@ -120,7 +121,7 @@ namespace OpenMS
     template<class ...Args>
     static void getScores_(
         ScoreToTgtDecLabelPairs &scores_labels,
-        const std::vector<PeptideIdentification> &ids,
+        const PeptideIdentificationList &ids,
         Args &&... args)
     {
       for (const PeptideIdentification &id : ids)
@@ -595,7 +596,7 @@ namespace OpenMS
     }
 
     static void setPeptideScoresFromMap_(std::unordered_map<String, ScoreToTgtDecLabelPair> const& seq_to_fdr,
-                                         std::vector<PeptideIdentification>& ids,
+                                         PeptideIdentificationList& ids,
                                          std::string const& score_type,
                                          bool keep_decoys);
 

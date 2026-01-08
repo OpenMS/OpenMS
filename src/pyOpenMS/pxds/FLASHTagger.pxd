@@ -20,4 +20,6 @@ cdef extern from "<OpenMS/ANALYSIS/TOPDOWN/FLASHTaggerAlgorithm.h>" namespace "O
         
         void run(DeconvolvedSpectrum & deconvolved_spectrum, double ppm) except + nogil
 
+        # Get generated tags
+        void fillTags(libcpp_vector[Tag] & tags, int tag_length) except + nogil
 

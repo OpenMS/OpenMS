@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -20,6 +20,7 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 
 namespace OpenMS
@@ -46,7 +47,7 @@ namespace OpenMS
          
           Appends a vector of PeptideIdentification to another and prepares Percolator features in MetaInfo (With the respective key "CONCAT:" + search_engine).
          */
-        static void concatMULTISEPeptideIds(std::vector<PeptideIdentification>& all_peptide_ids, std::vector<PeptideIdentification>& new_peptide_ids, const String& search_engine);
+        static void concatMULTISEPeptideIds(PeptideIdentificationList& all_peptide_ids, PeptideIdentificationList& new_peptide_ids, const String& search_engine);
 
         /**
           @brief mergeMULTISEPeptideIds
@@ -56,7 +57,7 @@ namespace OpenMS
          
           Merges a vector of PeptideIdentification into another and prepares the merged MetaInfo and scores for collection in addMULTISEFeatures for feature registration.
          */
-        static void mergeMULTISEPeptideIds(std::vector<PeptideIdentification>& all_peptide_ids, std::vector<PeptideIdentification>& new_peptide_ids, const String& search_engine);
+        static void mergeMULTISEPeptideIds(PeptideIdentificationList& all_peptide_ids, PeptideIdentificationList& new_peptide_ids, const String& search_engine);
 
         /**
           @brief mergeMULTISEProteinIds
@@ -75,7 +76,7 @@ namespace OpenMS
          
           Creates and adds MSGF+ specific Percolator features and registers them in feature_set. MSGF+ should be run with the addFeatures flag enabled.
          */
-        static void addMSGFFeatures(std::vector<PeptideIdentification>& peptide_ids, StringList& feature_set);
+        static void addMSGFFeatures(PeptideIdentificationList& peptide_ids, StringList& feature_set);
 
         /**
           @brief addXTANDEMFeatures
@@ -84,7 +85,7 @@ namespace OpenMS
          
           Creates and adds X!Tandem specific Percolator features and registers them in feature_set
          */
-        static void addXTANDEMFeatures(std::vector<PeptideIdentification>& peptide_ids, StringList& feature_set);
+        static void addXTANDEMFeatures(PeptideIdentificationList& peptide_ids, StringList& feature_set);
 
         /**
           @brief addCOMETFeatures
@@ -93,7 +94,7 @@ namespace OpenMS
          
           Creates and adds Comet specific Percolator features and registers them in feature_set
          */
-        static void addCOMETFeatures(std::vector<PeptideIdentification>& peptide_ids, StringList& feature_set);
+        static void addCOMETFeatures(PeptideIdentificationList& peptide_ids, StringList& feature_set);
 
         /**
           @brief addMASCOTFeatures
@@ -102,7 +103,7 @@ namespace OpenMS
          
           Creates and adds Mascot specific Percolator features and registers them in feature_set
          */
-        static void addMASCOTFeatures(std::vector<PeptideIdentification>& peptide_ids, StringList& feature_set);
+        static void addMASCOTFeatures(PeptideIdentificationList& peptide_ids, StringList& feature_set);
 
         /**
           @brief addMULTISEFeatures
@@ -114,7 +115,7 @@ namespace OpenMS
          
           Adds multiple search engine specific Percolator features and registers them in feature_set
          */
-        static void addMULTISEFeatures(std::vector<PeptideIdentification>& peptide_ids, StringList& search_engines_used, StringList& feature_set, bool complete_only = true, bool limits_imputation = false);
+        static void addMULTISEFeatures(PeptideIdentificationList& peptide_ids, StringList& search_engines_used, StringList& feature_set, bool complete_only = true, bool limits_imputation = false);
 
         /**
           @brief addCONCATSEFeatures
@@ -124,7 +125,7 @@ namespace OpenMS
          
           Adds multiple search engine specific Percolator features and registers them in feature_set
         */
-        static void addCONCATSEFeatures(std::vector<PeptideIdentification>& peptide_id_list, StringList& search_engines_used, StringList& feature_set);
+        static void addCONCATSEFeatures(PeptideIdentificationList& peptide_id_list, StringList& search_engines_used, StringList& feature_set);
 
         /**
           @brief checkExtraFeatures
@@ -152,7 +153,7 @@ namespace OpenMS
         static void assignDeltaScore_(std::vector<PeptideHit>& hits, const String& score_ref, const String& output_ref);
 
         /// gets the scan identifier to merge by
-        static String getScanMergeKey_(std::vector<PeptideIdentification>::iterator it, std::vector<PeptideIdentification>::iterator start);
+        static String getScanMergeKey_(PeptideIdentificationList::iterator it, PeptideIdentificationList::iterator start);
 
         /// For accession dependent sorting of ProteinHits
         struct lq_ProteinHit

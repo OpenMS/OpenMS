@@ -16,7 +16,7 @@ cdef extern from "<OpenMS/FORMAT/MascotXMLFile.h>" namespace "OpenMS":
 
         void load(const String & filename,
                   ProteinIdentification & protein_identification,
-                  libcpp_vector[ PeptideIdentification ] & id_data,
+                  PeptideIdentificationList & id_data,
                   SpectrumMetaDataLookup & rt_mapping) except + nogil 
             # wrap-doc:
                 #  Loads data from a Mascot XML file
@@ -34,7 +34,7 @@ cdef extern from "<OpenMS/FORMAT/MascotXMLFile.h>" namespace "OpenMS":
         # TODO fix
         # void load(const String & filename,
         #          ProteinIdentification & protein_identification,
-        #          libcpp_vector[ PeptideIdentification ] & id_data,
+        #          PeptideIdentificationList & id_data,
         #          libcpp_map[ String, libcpp_vector[ AASequence ] ] & peptides,
         #          SpectrumMetaDataLookup & rt_mapping) except + nogil 
 

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -12,7 +12,7 @@
 
 ///////////////////////////
 
-#include <OpenMS/FILTERING/TRANSFORMERS/SpectraMerger.h>
+#include <OpenMS/PROCESSING/SPECTRAMERGING/SpectraMerger.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -118,6 +118,15 @@ START_SECTION((template < typename MapType > void mergeSpectraPrecursors(MapType
     TEST_EQUAL(exp[i].getMSLevel (), exp2[i].getMSLevel ())
   }
 
+END_SECTION
+
+START_SECTION((bool areMassesMatched(double mz1, double mz2, double tol_ppm, int max_c)))
+  SpectraMerger merger;
+  bool non_matched = merger.areMassesMatched(100, 1000, 10, 5);
+  bool matched = merger.areMassesMatched(1000, 1000.001, 10, 5);
+
+  TEST_EQUAL(non_matched, false);
+  TEST_EQUAL(matched, true);
 END_SECTION
 
 START_SECTION((template < typename MapType > void averageGaussian(MapType &exp)))

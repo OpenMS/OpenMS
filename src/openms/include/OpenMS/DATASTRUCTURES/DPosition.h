@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -13,6 +13,7 @@
 #include <OpenMS/CONCEPT/PrecisionWrapper.h>
 
 #include <algorithm>
+#include <array>
 #include <cmath>  // for std::abs on integrals and floats
 #include <limits>
 #include <ostream>
@@ -25,225 +26,193 @@ namespace OpenMS
     @ingroup Datastructures
   */
   template <UInt D, typename TCoordinateType = double>
-  class DPosition
-  {
+class DPosition
+{
 public:
+  /// Coordinate type
+  using CoordinateType =  TCoordinateType;
 
-    /// Coordinate type
-    typedef TCoordinateType CoordinateType;
-    /// Mutable iterator
-    typedef CoordinateType* Iterator;
-    /// Non-mutable iterator
-    typedef const CoordinateType* ConstIterator;
-    /// Dimensions
-    enum
+  using DataType = std::array<CoordinateType, D>;
+
+  /// Dimensions
+  enum
+  {
+    DIMENSION = D
+  };
+  /**
+    @name STL compatibility type definitions
+  */
+  //@{
+  typedef CoordinateType value_type;
+  typedef CoordinateType& reference;
+  typedef CoordinateType* pointer;
+  typedef CoordinateType* iterator;
+  typedef const CoordinateType* const_iterator;
+  //@}
+
+  /**
+    @name Constructors and Destructor
+  */
+  //@{
+  /**
+    @brief Default constructor.
+
+    Creates a position with all coordinates zero.
+  */
+  DPosition() = default;
+
+  /// Constructor that fills all dimensions with the value @p x
+  DPosition(CoordinateType x)
+  {
+    std::fill(coordinate_.begin(), coordinate_.end(), x);
+  }
+
+  /// Constructor only for DPosition<2> that takes two Coordinates.
+  DPosition(CoordinateType x, CoordinateType y)
+  {
+    static_assert(D == 2, "DPosition<D, TCoordinateType>:DPosition(x,y): index overflow!");
+    coordinate_[0] = x;
+    coordinate_[1] = y;
+  }
+
+  /// Constructor only for DPosition<3> that takes three Coordinates.
+  DPosition(CoordinateType x, CoordinateType y, CoordinateType z)
+  {
+    static_assert(D == 3, "DPosition<D, TCoordinateType>:DPosition(x,y,z): index overflow!");
+    coordinate_[0] = x;
+    coordinate_[1] = y;
+    coordinate_[2] = z;
+  }
+
+  /// Copy constructor
+  DPosition(const DPosition& pos) = default;
+
+  /// Move constructor
+  DPosition(DPosition&& rhs) noexcept = default;
+
+  /// Assignment operator
+  DPosition& operator=(const DPosition& source) = default;
+
+  /// Move Assignment operator
+  DPosition& operator=(DPosition&& source) noexcept = default;
+
+  /// Destructor (not-virtual as this will save a lot of space!)
+  ~DPosition() noexcept = default;
+
+  //@}
+
+  /// Swap the two objects
+  void swap(DPosition& rhs) noexcept
+  {
+    std::swap(coordinate_, rhs.coordinate_);
+  }
+
+  /// Make all dimension values positive
+  DPosition& abs() noexcept
+  {
+    for (Size i = 0; i < D; ++i)
     {
-      DIMENSION = D
-    };
-    /**
-      @name STL compatibility type definitions
-    */
-    //@{
-    typedef CoordinateType value_type;
-    typedef CoordinateType& reference;
-    typedef CoordinateType* pointer;
-    typedef CoordinateType* iterator;
-    typedef const CoordinateType* const_iterator;
-    //@}
-
-    /**
-      @name Constructors and Destructor
-    */
-    //@{
-    /**
-      @brief Default constructor.
-
-      Creates a position with all coordinates zero.
-    */
-    DPosition() = default;
-
-    /// Constructor that fills all dimensions with the value @p x
-    DPosition(CoordinateType x)
-    {
-      std::fill(&(coordinate_[0]), &(coordinate_[D]), x);
+      coordinate_[i] = std::abs(coordinate_[i]);
     }
+    return *this;
+  }
 
-    /// Constructor only for DPosition<2> that takes two Coordinates.
-    DPosition(CoordinateType x, CoordinateType y)
+  /**@name Accessors */
+  //@{
+
+  /// Const accessor for the dimensions
+  CoordinateType operator[](Size index) const
+  {
+    OPENMS_PRECONDITION(index < D, "DPosition<D,TCoordinateType>:operator [] (Position): index overflow!");
+    return coordinate_[index];
+  }
+
+  /// Accessor for the dimensions
+  CoordinateType& operator[](Size index)
+  {
+    OPENMS_PRECONDITION(index < D, "DPosition<D,TCoordinateType>:operator [] (Position): index overflow!");
+    return coordinate_[index];
+  }
+
+  /// Name accessor for the first dimension. Only for DPosition<2>, for visualization.
+  CoordinateType getX() const
+  {
+    OPENMS_PRECONDITION(D == 2, "DPosition<D,TCoordinateType>:getX(): index overflow!");
+    return coordinate_[0];
+  }
+
+  /// Name accessor for the second dimension. Only for DPosition<2>, for visualization.
+  CoordinateType getY() const
+  {
+    OPENMS_PRECONDITION(D == 2, "DPosition<D,TCoordinateType>:getY(): index overflow!");
+    return coordinate_[1];
+  }
+
+  /// Name mutator for the first dimension. Only for DPosition<2>, for visualization.
+  void setX(CoordinateType c)
+  {
+    OPENMS_PRECONDITION(D == 2, "DPosition<D,TCoordinateType>:setX(): index overflow!");
+    coordinate_[0] = c;
+  }
+
+  /// Name mutator for the second dimension. Only for DPosition<2>, for visualization.
+  void setY(CoordinateType c)
+  {
+    OPENMS_PRECONDITION(D == 2, "DPosition<D,TCoordinateType>:setY(): index overflow!");
+    coordinate_[1] = c;
+  }
+
+  /// Equality operator
+  bool operator==(const DPosition& point) const = default;
+
+  /// Equality operator
+  bool operator!=(const DPosition& point) const = default;
+  /**
+    @brief Lexicographical less than operator.
+    Lexicographical comparison from dimension 0 to dimension D-1 is done.
+  */
+  bool operator<(const DPosition& point) const
+  {
+    return coordinate_ < point.coordinate_;
+  }
+
+  /// Lexicographical greater less or equal operator.
+  bool operator<=(const DPosition& point) const
+  {
+    return coordinate_ <= point.coordinate_;
+  }
+
+  /// Spatially (geometrically) less or equal operator. All coordinates must be "<=".
+  bool spatiallyLessEqual(const DPosition& point) const
+  {
+    for (Size i = 0; i < D; i++)
     {
-      static_assert(D == 2, "DPosition<D, TCoordinateType>:DPosition(x,y): index overflow!");
-      coordinate_[0] = x;
-      coordinate_[1] = y;
+      if (coordinate_[i] > point.coordinate_[i]) return false;
     }
+    return true;
+  }
 
-    /// Constructor only for DPosition<3> that takes three Coordinates.
-    DPosition(CoordinateType x, CoordinateType y, CoordinateType z)
+  /// Spatially (geometrically) greater or equal operator. All coordinates must be ">=".
+  bool spatiallyGreaterEqual(const DPosition& point) const
+  {
+    for (Size i = 0; i < D; i++)
     {
-      static_assert(D == 3, "DPosition<D, TCoordinateType>:DPosition(x,y,z): index overflow!");
-      coordinate_[0] = x;
-      coordinate_[1] = y;
-      coordinate_[2] = z;
+      if (coordinate_[i] < point.coordinate_[i]) return false;
     }
+    return true;
+  }
 
-    /// Copy constructor
-    DPosition(const DPosition& pos) = default;
+  /// Lexicographical greater than operator.
+  bool operator>(const DPosition& point) const
+  {
+    return coordinate_ > point.coordinate_;
+  }
 
-    /// Move constructor
-    DPosition(DPosition&& rhs) noexcept = default;
-
-    /// Assignment operator
-    DPosition& operator=(const DPosition& source) = default;
-
-    /// Move Assignment operator
-    DPosition& operator=(DPosition&& source) noexcept = default;
-
-    /// Destructor (not-virtual as this will save a lot of space!)
-    ~DPosition() noexcept = default;
-
-    //@}
-
-    /// Swap the two objects
-    void swap(DPosition& rhs) noexcept
-    {
-      for (Size i = 0; i < D; ++i)
-      {
-        std::swap(coordinate_[i], rhs.coordinate_[i]);
-      }
-    }
-
-    /// Make all dimension values positive
-    DPosition& abs() noexcept
-    {
-      for (Size i = 0; i < D; ++i)
-      {
-        coordinate_[i] = std::abs(coordinate_[i]);
-      }
-      return *this;
-    }
-
-    /**@name Accessors */
-    //@{
-
-    ///Const accessor for the dimensions
-    CoordinateType operator[](Size index) const
-    {
-      OPENMS_PRECONDITION(index < D, "DPosition<D,TCoordinateType>:operator [] (Position): index overflow!");
-      return coordinate_[index];
-    }
-
-    ///Accessor for the dimensions
-    CoordinateType& operator[](Size index)
-    {
-      OPENMS_PRECONDITION(index < D, "DPosition<D,TCoordinateType>:operator [] (Position): index overflow!");
-      return coordinate_[index];
-    }
-
-    ///Name accessor for the first dimension. Only for DPosition<2>, for visualization.
-    CoordinateType getX() const
-    {
-      OPENMS_PRECONDITION(D == 2, "DPosition<D,TCoordinateType>:getX(): index overflow!");
-      return coordinate_[0];
-    }
-
-    ///Name accessor for the second dimension. Only for DPosition<2>, for visualization.
-    CoordinateType getY() const
-    {
-      OPENMS_PRECONDITION(D == 2, "DPosition<D,TCoordinateType>:getY(): index overflow!");
-      return coordinate_[1];
-    }
-
-    ///Name mutator for the first dimension. Only for DPosition<2>, for visualization.
-    void setX(CoordinateType c)
-    {
-      OPENMS_PRECONDITION(D == 2, "DPosition<D,TCoordinateType>:setX(): index overflow!");
-      coordinate_[0] = c;
-    }
-
-    ///Name mutator for the second dimension. Only for DPosition<2>, for visualization.
-    void setY(CoordinateType c)
-    {
-      OPENMS_PRECONDITION(D == 2, "DPosition<D,TCoordinateType>:setY(): index overflow!");
-      coordinate_[1] = c;
-    }
-
-    /// Equality operator
-    bool operator==(const DPosition& point) const
-    {
-      for (Size i = 0; i < D; i++)
-      {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wfloat-equal"
-        if (coordinate_[i] != point.coordinate_[i]) return false;
-
-#pragma clang diagnostic pop
-      }
-      return true;
-    }
-
-    /// Equality operator
-    bool operator!=(const DPosition& point) const
-    {
-      return !(operator==(point));
-    }
-
-    /**
-      @brief Lexicographical less than operator.
-      Lexicographical comparison from dimension 0 to dimension D-1 is done.
-    */
-    bool operator<(const DPosition& point) const
-    {
-      for (Size i = 0; i < D; i++)
-      {
-        if (coordinate_[i] < point.coordinate_[i]) return true;
-
-        if (coordinate_[i] > point.coordinate_[i]) return false;
-      }
-      return false;
-    }
-
-    /// Lexicographical greater less or equal operator.
-    bool operator<=(const DPosition& point) const
-    {
-      for (Size i = 0; i < D; i++)
-      {
-        if (coordinate_[i] < point.coordinate_[i]) return true;
-
-        if (coordinate_[i] > point.coordinate_[i]) return false;
-      }
-      return true;
-    }
-
-    /// Spatially (geometrically) less or equal operator. All coordinates must be "<=".
-    bool spatiallyLessEqual(const DPosition& point) const
-    {
-      for (Size i = 0; i < D; i++)
-      {
-        if (coordinate_[i] > point.coordinate_[i]) return false;
-      }
-      return true;
-    }
-
-    /// Spatially (geometrically) greater or equal operator. All coordinates must be ">=".
-    bool spatiallyGreaterEqual(const DPosition& point) const
-    {
-      for (Size i = 0; i < D; i++)
-      {
-        if (coordinate_[i] < point.coordinate_[i]) return false;
-      }
-      return true;
-    }
-
-    /// Lexicographical greater than operator.
-    bool operator>(const DPosition& point) const
-    {
-      return !(operator<=(point));
-    }
-
-    /// Lexicographical greater or equal operator.
-    bool operator>=(const DPosition& point) const
-    {
-      return !operator<(point);
-    }
+  /// Lexicographical greater or equal operator.
+  bool operator>=(const DPosition& point) const
+  {
+    return coordinate_ >= point.coordinate_;
+  }
 
     /// Addition (a bit inefficient)
     DPosition operator+(const DPosition& point) const
@@ -338,10 +307,7 @@ public:
     /// Set all dimensions to zero
     void clear()
     {
-      for (Size i = 0; i < D; ++i)
-      {
-        coordinate_[i] = static_cast<CoordinateType>(0);
-      }
+      coordinate_.fill(0);
     }
 
     //@}
@@ -377,33 +343,33 @@ public:
     /** @name Iteration */
     //@{
     /// Non-mutable begin iterator
-    ConstIterator begin() const
+    const_iterator begin() const
     {
-      return &(coordinate_[0]);
+      return &coordinate_[0];
     }
 
     /// Non-mutable end iterator
-    ConstIterator end() const
+    const_iterator end() const
     {
-      return &(coordinate_[0]) + D;
+      return &coordinate_[0] + D;
     }
 
     /// Mutable begin iterator
-    Iterator begin()
+    iterator begin()
     {
-      return &(coordinate_[0]);
+      return &coordinate_[0];
     }
 
     /// Mutable end iterator
-    Iterator end()
+    iterator end()
     {
-      return &(coordinate_[0]) + D;
+      return &coordinate_[0] + D;
     }
 
     //@}
 
 protected:
-    CoordinateType coordinate_[D]{};
+    DataType coordinate_{};
   }; // DPosition
 
   /// Scalar multiplication (a bit inefficient)

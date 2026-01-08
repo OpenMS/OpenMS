@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -30,7 +30,7 @@ using namespace std;
 XTandemXMLFile* ptr;
 XTandemXMLFile* nullPointer = nullptr;
 ProteinIdentification protein_identification;
-vector<PeptideIdentification> peptide_identifications;
+PeptideIdentificationList peptide_identifications;
 
 START_SECTION((XTandemXMLFile()))
 	ptr = new XTandemXMLFile();
@@ -43,7 +43,7 @@ END_SECTION
 
 XTandemXMLFile xml_file;
 
-START_SECTION(void load(const String& filename, ProteinIdentification& protein_identification, std::vector<PeptideIdentification>& id_data, ModificationDefinitionsSet& mod_def_set))
+START_SECTION(void load(const String& filename, ProteinIdentification& protein_identification, PeptideIdentificationList& id_data, ModificationDefinitionsSet& mod_def_set))
 {
 	ModificationDefinitionsSet mod_set(ListUtils::create<String>(""), ListUtils::create<String>("Carbamidomethyl (C),Oxidation (M),Carboxymethyl (C)"));
 

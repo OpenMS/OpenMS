@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -207,7 +207,7 @@ protected:
   }
 
   //   replace with PercolatorAdapter function
-  String getScanIdentifier_(vector<PeptideIdentification>::iterator it, vector<PeptideIdentification>::iterator start)
+  String getScanIdentifier_(PeptideIdentificationList::iterator it, PeptideIdentificationList::iterator start)
   {
     // MSGF+ uses this field, is empty if not specified
     String scan_identifier = it->getSpectrumReference();
@@ -373,15 +373,15 @@ protected:
     if (!out.empty())
     {
       const StringList id_in = getStringList_("id_in");
-      vector<PeptideIdentification> all_peptide_ids;
+      PeptideIdentificationList all_peptide_ids;
       vector<ProteinIdentification> all_protein_ids;
       if (!id_in.empty())
       {
         for (const String& ss : id_in) {
-          vector<PeptideIdentification> peptide_ids;
+          PeptideIdentificationList peptide_ids;
           vector<ProteinIdentification> protein_ids;
           FileHandler().loadIdentifications(ss, protein_ids, peptide_ids, {FileTypes::IDXML});
-          for (vector<PeptideIdentification>::iterator it = peptide_ids.begin(); it != peptide_ids.end(); ++it) {
+          for (PeptideIdentificationList::iterator it = peptide_ids.begin(); it != peptide_ids.end(); ++it) {
             String scan_identifier = getScanIdentifier_(it, peptide_ids.begin());
             Int scan_number = getScanNumber_(scan_identifier);
             MaRaClusterResult res(file_idx, scan_number);

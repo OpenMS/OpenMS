@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -11,8 +11,8 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/VISUAL/MultiGradient.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/LinearResamplerAlign.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/ThresholdMower.h>
+#include <OpenMS/PROCESSING/RESAMPLING/LinearResamplerAlign.h>
+#include <OpenMS/PROCESSING/FILTERING/ThresholdMower.h>
 
 #include <QtGui/QImage>
 
@@ -116,15 +116,15 @@ protected:
         lin_resampler.raster(exp[i]);
       }
     }
-    else if(!exp.RangeRT::isEmpty())
+    else if(!exp.spectrumRanges().RangeRT::isEmpty())
     {
       // start with even position
-      auto start_pos = floor(exp.getMinRT());
+      auto start_pos = floor(exp.spectrumRanges().getMinRT());
 
       // resample every scan
       for (Size i = 0; i < exp.size(); ++i)
       {
-        lin_resampler.raster_align(exp[i], start_pos, exp.getMaxRT());
+        lin_resampler.raster_align(exp[i], start_pos, exp.spectrumRanges().getMaxRT());
       }
     }
 

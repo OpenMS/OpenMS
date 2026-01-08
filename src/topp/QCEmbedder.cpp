@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -51,7 +51,7 @@ using namespace std;
     <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_QCMerger </td>
     </tr>
     <tr>
-    <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_XTandemAdapter </td>
+    <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_CometAdapter </td>
     <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_QCShrinker </td>
     </tr>
   </table>
@@ -165,7 +165,7 @@ protected:
     {
       QByteArray ba = f.readAll();
       f.close();
-      plot_b64 = String(QString(ba.toBase64()));
+      plot_b64 = String(ba.toBase64().toStdString());
     }
 
     QcMLFile::Attachment at;

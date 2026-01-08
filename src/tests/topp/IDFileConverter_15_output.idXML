@@ -18,8 +18,8 @@
 				<UserParam type="string" name="TargetDecoyApproach" value="false"/>
 				<UserParam name="EnzymeTermSpecificity" type="string" value="full" />
 	</SearchParameters>
-	<IdentificationRun date="2023-10-27T10:31:41" search_engine="MS-GF+" search_engine_version="Release (v2020.03.14)" search_parameters_ref="SP_0" >
-		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
+	<IdentificationRun date="2025-05-12T15:36:06" search_engine="MS-GF+" search_engine_version="Release (v2020.03.14)" search_parameters_ref="SP_0" >
+		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0.0" >
 			<ProteinHit id="PH_0" accession="BSA3" score="0.0" sequence="" >
 				<UserParam type="string" name="isDecoy" value="false"/>
 			</ProteinHit>

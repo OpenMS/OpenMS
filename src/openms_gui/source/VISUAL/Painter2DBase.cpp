@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -10,7 +10,7 @@
 #include <OpenMS/VISUAL/Painter2DBase.h>
 
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/MATH/MathFunctions.h>
 
 #include <OpenMS/VISUAL/LayerDataChrom.h>
 #include <OpenMS/VISUAL/LayerDataConsensus.h>
@@ -42,7 +42,6 @@ namespace OpenMS
     ConvexHull2D::PointArrayType ch_points = hull.getHullPoints();
     points.resize((int)ch_points.size());
     UInt index = 0;
-    QPoint pos;
     // iterate over hull points
     for (ConvexHull2D::PointArrayType::const_iterator it = ch_points.begin(); it != ch_points.end(); ++it, ++index)
     {
@@ -124,7 +123,7 @@ namespace OpenMS
   void Painter2DPeak::paint(QPainter* painter, Plot2DCanvas* canvas, int layer_index)
   {
     // renaming some values for readability
-    const auto& peak_map = *layer_->getPeakData();
+    const auto& peak_map = layer_->getPeakData()->getMSExperiment();
 
     // skip empty peak maps
     if (peak_map.empty())
@@ -242,7 +241,7 @@ namespace OpenMS
     QVector<QPolygon> coloredPoints((int)layer_->gradient.precalculatedSize());
 
     const double snap_factor = canvas->snap_factors_[layer_index];
-    const auto& map = *layer_->getPeakData();
+    const auto& map = layer_->getPeakData()->getMSExperiment();;
     const auto& area = canvas->visible_area_.getAreaUnit();
     const auto end_area = map.areaEndConst();
     // for IM data, use whatever is there. For RT/mz data, use MSlevel 1
@@ -344,7 +343,7 @@ namespace OpenMS
     // set painter to black (we operate directly on the pixels for all colored data)
     painter.setPen(Qt::black);
     const double snap_factor = canvas->snap_factors_[layer_index];
-    const auto& map = *layer_->getPeakData();
+    const auto& map = layer_->getPeakData()->getMSExperiment();
     const auto& area = canvas->visible_area_.getAreaUnit();
 
     // for IM data, use whatever is there. For RT/mz data, use MSlevel 1
@@ -451,7 +450,7 @@ namespace OpenMS
 
   void Painter2DPeak::paintPrecursorPeaks_(QPainter& painter, Plot2DCanvas* canvas)
   {
-    const auto& peak_map = *layer_->getPeakData();
+    const auto& peak_map = layer_->getPeakData()->getMSExperiment();
 
     QPen p;
     p.setColor(Qt::black);
@@ -510,7 +509,7 @@ namespace OpenMS
 
   void Painter2DChrom::paint(QPainter* painter, Plot2DCanvas* canvas, int /*layer_index*/)
   {
-    const PeakMap& exp = *layer_->getChromatogramData();
+    const PeakMap& exp = layer_->getChromatogramData()->getMSExperiment();
     // TODO CHROM implement layer filters
 
     // paint chromatogram rt start and end as line

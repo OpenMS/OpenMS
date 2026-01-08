@@ -19,7 +19,7 @@ cdef extern from "<OpenMS/FORMAT/PercolatorOutfile.h>" namespace "OpenMS":
         PercolatorOutfile_ScoreType getScoreType(String score_type_name) except + nogil  # wrap-doc:Returns a score type given its name
 
         void load(const String & filename, ProteinIdentification & proteins,
-                  libcpp_vector[ PeptideIdentification ] & peptides,
+                  PeptideIdentificationList & peptides,
                   SpectrumMetaDataLookup & lookup, 
                   PercolatorOutfile_ScoreType output_score) except + nogil  # wrap-doc:Loads a Percolator output file
 

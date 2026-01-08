@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -36,7 +36,7 @@ namespace OpenMS
     writeResults_(peptide_identification_counter, ms2_level_counter);
   }
 
-  void Ms2IdentificationRate::compute(const std::vector<PeptideIdentification>& pep_ids, const MSExperiment& exp, bool assume_all_target)
+  void Ms2IdentificationRate::compute(const PeptideIdentificationList& pep_ids, const MSExperiment& exp, bool assume_all_target)
   {
     // count ms2 spectra
     Size ms2_level_counter = getMS2Count_(exp);
@@ -118,13 +118,12 @@ namespace OpenMS
     {
       return true;
     }
-    if (!(id.getHits()[0].metaValueExists("target_decoy")))
+    if (id.getHits()[0].getTargetDecoyType() == PeptideHit::TargetDecoyType::UNKNOWN)
     {
       throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No target/decoy annotation found. If you want to continue regardless use -MS2_id_rate:assume_all_target");
     }
     // check for 'target' information, also allow "target+decoy" value
-    String td_info(id.getHits()[0].getMetaValue("target_decoy"));
-    return (td_info.find("target") == 0);
+    return !id.getHits()[0].isDecoy();
   }
 
   void Ms2IdentificationRate::writeResults_(Size pep_ids_count, Size ms2_spectra_count)

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -57,8 +57,8 @@ START_SECTION(compute(const MSExperiment& exp, FeatureMap& features, const QCBas
   // Valid FeatureMap
   FeatureMap fmap;
   PeptideIdentification peptide_ID;
-  vector<PeptideIdentification> identifications;
-  vector<PeptideIdentification> unassignedIDs;
+  PeptideIdentificationList identifications;
+  PeptideIdentificationList unassignedIDs;
   Feature f1;
   peptide_ID.setSpectrumReference( "XTandem::0");
   identifications.push_back(peptide_ID);
@@ -161,7 +161,7 @@ START_SECTION(compute(const MSExperiment& exp, FeatureMap& features, const QCBas
   QCBase::SpectraMap map_to_spectrum(exp);
 
   Ms2SpectrumStats top;
-  vector<PeptideIdentification> new_unassigned_pep_ids;
+  PeptideIdentificationList new_unassigned_pep_ids;
   new_unassigned_pep_ids = top.compute(exp, fmap, map_to_spectrum);
 
   // test features

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 // 
 // --------------------------------------------------------------------------
@@ -265,6 +265,405 @@ START_SECTION((void setPeakAnnotations(const vector<PeptideHit::PeakAnnotation> 
   TEST_EQUAL(hit.getPeakAnnotations()[1].annotation == "second test string", true)
   TEST_EQUAL(hit.getPeakAnnotations()[1].mz == 89.1, true)
 END_SECTION
+
+START_SECTION((void setAnalysisResults(std::vector<PepXMLAnalysisResult> aresult)))
+{
+  PeptideHit hit;
+  
+  // Create some analysis results
+  std::vector<PeptideHit::PepXMLAnalysisResult> results;
+  
+  PeptideHit::PepXMLAnalysisResult ar1;
+  ar1.score_type = "peptideprophet";
+  ar1.higher_is_better = true;
+  ar1.main_score = 0.95;
+  ar1.sub_scores["fval"] = 0.7114;
+  ar1.sub_scores["ntt"] = 2.0;
+  
+  PeptideHit::PepXMLAnalysisResult ar2;
+  ar2.score_type = "interprophet";
+  ar2.higher_is_better = true;
+  ar2.main_score = 0.98;
+  ar2.sub_scores["nss"] = 0.0;
+  ar2.sub_scores["nrs"] = 10.2137;
+  
+  results.push_back(ar1);
+  results.push_back(ar2);
+  
+  // Set the analysis results
+  hit.setAnalysisResults(results);
+  
+  // Check that the analysis results were set correctly
+  TEST_EQUAL(hit.getAnalysisResults().size(), 2);
+  
+  TEST_EQUAL(hit.getAnalysisResults()[0].score_type, "peptideprophet");
+  TEST_EQUAL(hit.getAnalysisResults()[0].higher_is_better, true);
+  TEST_REAL_SIMILAR(hit.getAnalysisResults()[0].main_score, 0.95);
+  TEST_REAL_SIMILAR(hit.getAnalysisResults()[0].sub_scores.at("fval"), 0.7114);
+  TEST_REAL_SIMILAR(hit.getAnalysisResults()[0].sub_scores.at("ntt"), 2.0);
+  
+  TEST_EQUAL(hit.getAnalysisResults()[1].score_type, "interprophet");
+  TEST_EQUAL(hit.getAnalysisResults()[1].higher_is_better, true);
+  TEST_REAL_SIMILAR(hit.getAnalysisResults()[1].main_score, 0.98);
+  TEST_REAL_SIMILAR(hit.getAnalysisResults()[1].sub_scores.at("nss"), 0.0);
+  TEST_REAL_SIMILAR(hit.getAnalysisResults()[1].sub_scores.at("nrs"), 10.2137);
+  
+  // Check that the analysis results are stored as meta values
+  TEST_EQUAL(hit.metaValueExists("_ar_0_score_type"), true);
+  TEST_EQUAL(hit.metaValueExists("_ar_0_score"), true);
+  TEST_EQUAL(hit.metaValueExists("_ar_0_higher_is_better"), true);
+  TEST_EQUAL(hit.metaValueExists("_ar_0_subscore_fval"), true);
+  TEST_EQUAL(hit.metaValueExists("_ar_0_subscore_ntt"), true);
+  
+  TEST_EQUAL(hit.metaValueExists("_ar_1_score_type"), true);
+  TEST_EQUAL(hit.metaValueExists("_ar_1_score"), true);
+  TEST_EQUAL(hit.metaValueExists("_ar_1_higher_is_better"), true);
+  TEST_EQUAL(hit.metaValueExists("_ar_1_subscore_nss"), true);
+  TEST_EQUAL(hit.metaValueExists("_ar_1_subscore_nrs"), true);
+  
+  TEST_EQUAL(hit.getMetaValue("_ar_0_score_type").toString(), "peptideprophet");
+  TEST_REAL_SIMILAR(hit.getMetaValue("_ar_0_score"), 0.95);
+  TEST_EQUAL(hit.getMetaValue("_ar_0_higher_is_better").toBool(), true);
+  TEST_REAL_SIMILAR(hit.getMetaValue("_ar_0_subscore_fval"), 0.7114);
+  TEST_REAL_SIMILAR(hit.getMetaValue("_ar_0_subscore_ntt"), 2.0);
+  
+  TEST_EQUAL(hit.getMetaValue("_ar_1_score_type").toString(), "interprophet");
+  TEST_REAL_SIMILAR(hit.getMetaValue("_ar_1_score"), 0.98);
+  TEST_EQUAL(hit.getMetaValue("_ar_1_higher_is_better").toBool(), true);
+  TEST_REAL_SIMILAR(hit.getMetaValue("_ar_1_subscore_nss"), 0.0);
+  TEST_REAL_SIMILAR(hit.getMetaValue("_ar_1_subscore_nrs"), 10.2137);
+  
+  // Test overwriting existing analysis results
+  PeptideHit::PepXMLAnalysisResult ar3;
+  ar3.score_type = "mascot";
+  ar3.higher_is_better = true;
+  ar3.main_score = 100.0;
+  
+  std::vector<PeptideHit::PepXMLAnalysisResult> new_results;
+  new_results.push_back(ar3);
+  
+  hit.setAnalysisResults(new_results);
+  
+  TEST_EQUAL(hit.getAnalysisResults().size(), 1);
+  TEST_EQUAL(hit.getAnalysisResults()[0].score_type, "mascot");
+  TEST_EQUAL(hit.getAnalysisResults()[0].higher_is_better, true);
+  TEST_REAL_SIMILAR(hit.getAnalysisResults()[0].main_score, 100.0);
+  
+  // Check that the old meta values are gone
+  TEST_EQUAL(hit.metaValueExists("_ar_0_score_type"), true);
+  TEST_EQUAL(hit.metaValueExists("_ar_1_score_type"), false);
+  
+  TEST_EQUAL(hit.getMetaValue("_ar_0_score_type").toString(), "mascot");
+  TEST_REAL_SIMILAR(hit.getMetaValue("_ar_0_score"), 100.0);
+  TEST_EQUAL(hit.getMetaValue("_ar_0_higher_is_better").toBool(), true);
+}
+END_SECTION
+
+START_SECTION((void addAnalysisResults(const PepXMLAnalysisResult& aresult)))
+{
+  PeptideHit hit;
+  
+  // Add first analysis result
+  PeptideHit::PepXMLAnalysisResult ar1;
+  ar1.score_type = "peptideprophet";
+  ar1.higher_is_better = true;
+  ar1.main_score = 0.95;
+  ar1.sub_scores["fval"] = 0.7114;
+  
+  hit.addAnalysisResults(ar1);
+  
+  TEST_EQUAL(hit.getAnalysisResults().size(), 1);
+  TEST_EQUAL(hit.getAnalysisResults()[0].score_type, "peptideprophet");
+  TEST_REAL_SIMILAR(hit.getAnalysisResults()[0].main_score, 0.95);
+  
+  // Add second analysis result
+  PeptideHit::PepXMLAnalysisResult ar2;
+  ar2.score_type = "interprophet";
+  ar2.higher_is_better = true;
+  ar2.main_score = 0.98;
+  ar2.sub_scores["nrs"] = 10.2137;
+  
+  hit.addAnalysisResults(ar2);
+  
+  TEST_EQUAL(hit.getAnalysisResults().size(), 2);
+  TEST_EQUAL(hit.getAnalysisResults()[1].score_type, "interprophet");
+  TEST_REAL_SIMILAR(hit.getAnalysisResults()[1].main_score, 0.98);
+  
+  // Check meta values
+  TEST_EQUAL(hit.metaValueExists("_ar_0_score_type"), true);
+  TEST_EQUAL(hit.metaValueExists("_ar_1_score_type"), true);
+  
+  TEST_EQUAL(hit.getMetaValue("_ar_0_score_type").toString(), "peptideprophet");
+  TEST_EQUAL(hit.getMetaValue("_ar_1_score_type").toString(), "interprophet");
+}
+END_SECTION
+
+START_SECTION((const std::vector<PepXMLAnalysisResult>& getAnalysisResults() const))
+{
+  PeptideHit hit;
+  
+  // Test empty analysis results
+  TEST_EQUAL(hit.getAnalysisResults().size(), 0);
+  
+  // Add analysis results
+  PeptideHit::PepXMLAnalysisResult ar1;
+  ar1.score_type = "peptideprophet";
+  ar1.higher_is_better = true;
+  ar1.main_score = 0.95;
+  
+  hit.addAnalysisResults(ar1);
+  
+  TEST_EQUAL(hit.getAnalysisResults().size(), 1);
+  TEST_EQUAL(hit.getAnalysisResults()[0].score_type, "peptideprophet");
+  TEST_REAL_SIMILAR(hit.getAnalysisResults()[0].main_score, 0.95);
+}
+END_SECTION
+
+START_SECTION((PeptideHit(const PeptideHit& source) - with analysis results))
+{
+  PeptideHit source;
+  
+  // Add analysis results to source
+  PeptideHit::PepXMLAnalysisResult ar1;
+  ar1.score_type = "peptideprophet";
+  ar1.higher_is_better = true;
+  ar1.main_score = 0.95;
+  ar1.sub_scores["fval"] = 0.7114;
+  
+  source.addAnalysisResults(ar1);
+  
+  // Copy construct
+  PeptideHit hit(source);
+  
+  // Check that analysis results were copied
+  TEST_EQUAL(hit.getAnalysisResults().size(), 1);
+  TEST_EQUAL(hit.getAnalysisResults()[0].score_type, "peptideprophet");
+  TEST_REAL_SIMILAR(hit.getAnalysisResults()[0].main_score, 0.95);
+  TEST_REAL_SIMILAR(hit.getAnalysisResults()[0].sub_scores.at("fval"), 0.7114);
+  
+  // Check meta values
+  TEST_EQUAL(hit.metaValueExists("_ar_0_score_type"), true);
+  TEST_EQUAL(hit.getMetaValue("_ar_0_score_type").toString(), "peptideprophet");
+}
+END_SECTION
+
+START_SECTION((PeptideHit& operator=(const PeptideHit& source) - with analysis results))
+{
+  PeptideHit source;
+  
+  // Add analysis results to source
+  PeptideHit::PepXMLAnalysisResult ar1;
+  ar1.score_type = "peptideprophet";
+  ar1.higher_is_better = true;
+  ar1.main_score = 0.95;
+  ar1.sub_scores["fval"] = 0.7114;
+  
+  source.addAnalysisResults(ar1);
+  
+  // Assignment
+  PeptideHit hit;
+  hit = source;
+  
+  // Check that analysis results were copied
+  TEST_EQUAL(hit.getAnalysisResults().size(), 1);
+  TEST_EQUAL(hit.getAnalysisResults()[0].score_type, "peptideprophet");
+  TEST_REAL_SIMILAR(hit.getAnalysisResults()[0].main_score, 0.95);
+  TEST_REAL_SIMILAR(hit.getAnalysisResults()[0].sub_scores.at("fval"), 0.7114);
+  
+  // Check meta values
+  TEST_EQUAL(hit.metaValueExists("_ar_0_score_type"), true);
+  TEST_EQUAL(hit.getMetaValue("_ar_0_score_type").toString(), "peptideprophet");
+}
+END_SECTION
+
+START_SECTION((bool operator==(const PeptideHit& rhs) const - with analysis results))
+{
+  PeptideHit hit1, hit2;
+  
+  // Empty hits should be equal
+  TEST_EQUAL(hit1 == hit2, true);
+  
+  // Add analysis results to hit1
+  PeptideHit::PepXMLAnalysisResult ar1;
+  ar1.score_type = "peptideprophet";
+  ar1.higher_is_better = true;
+  ar1.main_score = 0.95;
+  
+  hit1.addAnalysisResults(ar1);
+  
+  // Now they should be different
+  TEST_EQUAL(hit1 == hit2, false);
+  
+  // Add same analysis results to hit2
+  hit2.addAnalysisResults(ar1);
+  
+  // Now they should be equal again
+  TEST_EQUAL(hit1 == hit2, true);
+  
+  // Add different analysis results to hit2
+  PeptideHit::PepXMLAnalysisResult ar2;
+  ar2.score_type = "interprophet";
+  ar2.higher_is_better = true;
+  ar2.main_score = 0.98;
+  
+  hit2.addAnalysisResults(ar2);
+  
+  // Now they should be different again
+  TEST_EQUAL(hit1 == hit2, false);
+}
+END_SECTION
+
+START_SECTION((PeptideHit(PeptideHit&& source) noexcept - with analysis results))
+{
+  PeptideHit source;
+  
+  // Add analysis results to source
+  PeptideHit::PepXMLAnalysisResult ar1;
+  ar1.score_type = "peptideprophet";
+  ar1.higher_is_better = true;
+  ar1.main_score = 0.95;
+  ar1.sub_scores["fval"] = 0.7114;
+  
+  source.addAnalysisResults(ar1);
+  
+  // Move construct
+  PeptideHit hit(std::move(source));
+  
+  // Check that analysis results were moved
+  TEST_EQUAL(hit.getAnalysisResults().size(), 1);
+  TEST_EQUAL(hit.getAnalysisResults()[0].score_type, "peptideprophet");
+  TEST_REAL_SIMILAR(hit.getAnalysisResults()[0].main_score, 0.95);
+  TEST_REAL_SIMILAR(hit.getAnalysisResults()[0].sub_scores.at("fval"), 0.7114);
+  
+  // Check meta values
+  TEST_EQUAL(hit.metaValueExists("_ar_0_score_type"), true);
+  TEST_EQUAL(hit.getMetaValue("_ar_0_score_type").toString(), "peptideprophet");
+  
+  // Source should have no meta values after move
+  TEST_EQUAL(source.metaValueExists("_ar_0_score_type"), false);
+  TEST_EQUAL(source.getAnalysisResults().size(), 0);
+}
+END_SECTION
+
+START_SECTION((PeptideHit& operator=(PeptideHit&& source) noexcept - with analysis results))
+{
+  PeptideHit source;
+  
+  // Add analysis results to source
+  PeptideHit::PepXMLAnalysisResult ar1;
+  ar1.score_type = "peptideprophet";
+  ar1.higher_is_better = true;
+  ar1.main_score = 0.95;
+  ar1.sub_scores["fval"] = 0.7114;
+  
+  source.addAnalysisResults(ar1);
+  
+  // Move assignment
+  PeptideHit hit;
+  hit = std::move(source);
+  
+  // Check that analysis results were moved
+  TEST_EQUAL(hit.getAnalysisResults().size(), 1);
+  TEST_EQUAL(hit.getAnalysisResults()[0].score_type, "peptideprophet");
+  TEST_REAL_SIMILAR(hit.getAnalysisResults()[0].main_score, 0.95);
+  TEST_REAL_SIMILAR(hit.getAnalysisResults()[0].sub_scores.at("fval"), 0.7114);
+  
+  // Check meta values
+  TEST_EQUAL(hit.metaValueExists("_ar_0_score_type"), true);
+  TEST_EQUAL(hit.getMetaValue("_ar_0_score_type").toString(), "peptideprophet");
+  
+  // Source should have no meta values after move
+  TEST_EQUAL(source.metaValueExists("_ar_0_score_type"), false);
+  TEST_EQUAL(source.getAnalysisResults().size(), 0);
+}
+END_SECTION
+
+START_SECTION((bool isDecoy() const))
+{
+  PeptideHit hit;
+  
+  // Test default behavior (no target_decoy meta value set)
+  // Should return false since default is "target"
+  TEST_EQUAL(hit.isDecoy(), false);
+  
+  // Test with explicit "target" value
+  hit.setMetaValue("target_decoy", "target");
+  TEST_EQUAL(hit.isDecoy(), false);
+  
+  // Test with "decoy" value
+  hit.setMetaValue("target_decoy", "decoy");
+  TEST_EQUAL(hit.isDecoy(), true);
+  
+  // Test with "DECOY" (case insensitive)
+  hit.setMetaValue("target_decoy", "DECOY");
+  TEST_EQUAL(hit.isDecoy(), true);
+  
+  // Test with other values
+  hit.setMetaValue("target_decoy", "target+decoy");
+  TEST_EQUAL(hit.isDecoy(), false);
+}
+END_SECTION
+
+START_SECTION((void setTargetDecoyType(TargetDecoyType type)))
+{
+  PeptideHit hit;
+  
+  // Test setting TARGET
+  hit.setTargetDecoyType(PeptideHit::TargetDecoyType::TARGET);
+  TEST_EQUAL(hit.getMetaValue("target_decoy"), "target");
+  
+  // Test setting DECOY
+  hit.setTargetDecoyType(PeptideHit::TargetDecoyType::DECOY);
+  TEST_EQUAL(hit.getMetaValue("target_decoy"), "decoy");
+  
+  // Test setting TARGET_DECOY
+  hit.setTargetDecoyType(PeptideHit::TargetDecoyType::TARGET_DECOY);
+  TEST_EQUAL(hit.getMetaValue("target_decoy"), "target+decoy");
+  
+  // Test setting UNKNOWN (should remove meta value)
+  hit.setTargetDecoyType(PeptideHit::TargetDecoyType::UNKNOWN);
+  TEST_EQUAL(hit.metaValueExists("target_decoy"), false);
+  TEST_EQUAL(hit.getTargetDecoyType(), PeptideHit::TargetDecoyType::UNKNOWN);
+}
+END_SECTION
+
+START_SECTION((TargetDecoyType getTargetDecoyType() const))
+{
+  PeptideHit hit;
+  
+  // Test default behavior (should return UNKNOWN when meta value doesn't exist)
+  TEST_EQUAL(hit.getTargetDecoyType(), PeptideHit::TargetDecoyType::UNKNOWN);
+  
+  // Test with explicit "target" value
+  hit.setMetaValue("target_decoy", "target");
+  TEST_EQUAL(hit.getTargetDecoyType(), PeptideHit::TargetDecoyType::TARGET);
+  
+  // Test with "decoy" value
+  hit.setMetaValue("target_decoy", "decoy");
+  TEST_EQUAL(hit.getTargetDecoyType(), PeptideHit::TargetDecoyType::DECOY);
+  
+  // Test with "DECOY" (case insensitive)
+  hit.setMetaValue("target_decoy", "DECOY");
+  TEST_EQUAL(hit.getTargetDecoyType(), PeptideHit::TargetDecoyType::DECOY);
+  
+  // Test with "target+decoy" value
+  hit.setMetaValue("target_decoy", "target+decoy");
+  TEST_EQUAL(hit.getTargetDecoyType(), PeptideHit::TargetDecoyType::TARGET_DECOY);
+  
+  // Test with "TARGET+DECOY" (case insensitive)
+  hit.setMetaValue("target_decoy", "TARGET+DECOY");
+  TEST_EQUAL(hit.getTargetDecoyType(), PeptideHit::TargetDecoyType::TARGET_DECOY);
+  
+  // Test with unrecognized value (should throw InvalidValue exception)
+  hit.setMetaValue("target_decoy", "unrecognized_value");
+  TEST_EXCEPTION(Exception::InvalidValue, hit.getTargetDecoyType());
+  
+  // Test after removing meta value (should return UNKNOWN)
+  hit.removeMetaValue("target_decoy");
+  TEST_EQUAL(hit.getTargetDecoyType(), PeptideHit::TargetDecoyType::UNKNOWN);
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 

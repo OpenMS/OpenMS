@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -199,6 +199,22 @@ START_SECTION((bool operator!= (const MetaInfo& rhs) const))
 	i2.setValue("label",String("test"));
 	TEST_EQUAL(i!=i2,false)
 	TEST_EQUAL(i2!=i,false)
+END_SECTION
+
+START_SECTION((MetaInfo & operator+=(const MetaInfo& rhs)))
+  MetaInfo m_new, m_base;
+
+  m_base.setValue("label", String("old"));
+  m_base.setValue("exists_no_overwrite", 5.2);
+  
+  m_new.setValue("label", String("new")); // will be overwritten
+  m_new.setValue("icon", 4.3);            // will be added
+  
+  m_base += m_new;
+
+  TEST_EQUAL(m_base.getValue("label"), String("new"));
+  TEST_EQUAL(m_base.getValue("icon"), 4.3);
+  TEST_EQUAL(m_base.getValue("exists_no_overwrite"), 5.2);
 END_SECTION
 
 START_SECTION((void removeValue(UInt index)))

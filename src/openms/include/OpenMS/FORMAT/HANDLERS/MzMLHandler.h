@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -205,15 +205,6 @@ protected:
           multiple threads if available) and append them to the result.
       */
       void populateChromatogramsWithData_();
-
-      /**
-          @brief Add extra data arrays to a spectrum
-
-          Add the float, integer and string data arrays to a spectrum.
-      */
-      void addSpectrumMetaData_(const std::vector<MzMLHandlerHelper::BinaryData>& input_data,
-                                const Size n,
-                                SpectrumType& spectrum) const;
 
       /**
           @brief Fill a single spectrum with data from input

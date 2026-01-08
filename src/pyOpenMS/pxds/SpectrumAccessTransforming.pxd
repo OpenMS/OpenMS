@@ -10,8 +10,11 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessTransformi
     cdef cppclass SpectrumAccessTransforming(ISpectrumAccess) :
         # wrap-inherits:
         #  ISpectrumAccess
+        
         # wrap-ignore
         # ABSTRACT class
+        # no-pxd-import
+
 
         SpectrumAccessTransforming(SpectrumAccessTransforming) except + nogil  # wrap-ignore
 

@@ -3,7 +3,7 @@
  * @ingroup SQLiteCpp
  * @brief   Encapsulation of a Column in a row of the result pointed by the prepared SQLite::Statement.
  *
- * Copyright (c) 2012-2022 Sebastien Rombauts (sebastien.rombauts@gmail.com)
+ * Copyright (c) 2012-2025 Sebastien Rombauts (sebastien.rombauts@gmail.com)
  *
  * Distributed under the MIT License (MIT) (See accompanying file LICENSE.txt
  * or copy at http://opensource.org/licenses/MIT)
@@ -13,7 +13,6 @@
 #include <sqlite3.h>
 
 #include <iostream>
-
 
 namespace SQLite
 {
@@ -92,6 +91,9 @@ std::string Column::getString() const
 {
     // Note: using sqlite3_column_blob and not sqlite3_column_text
     // - no need for sqlite3_column_text to add a \0 on the end, as we're getting the bytes length directly
+    //   however, we need to call sqlite3_column_bytes() to ensure correct format. It's a noop on a BLOB
+    //   or a TEXT value with the correct encoding (UTF-8). Otherwise it'll do a conversion to TEXT (UTF-8).
+    (void)sqlite3_column_bytes(mStmtPtr.get(), mIndex);
     auto data = static_cast<const char *>(sqlite3_column_blob(mStmtPtr.get(), mIndex));
 
     // SQLite docs: "The safest policy is to invoke… sqlite3_column_blob() followed by sqlite3_column_bytes()"
@@ -117,6 +119,5 @@ std::ostream& operator<<(std::ostream& aStream, const Column& aColumn)
     aStream.write(aColumn.getText(), aColumn.getBytes());
     return aStream;
 }
-
 
 }  // namespace SQLite

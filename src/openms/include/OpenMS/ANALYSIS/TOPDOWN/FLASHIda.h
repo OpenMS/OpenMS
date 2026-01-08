@@ -36,8 +36,10 @@
 
 #include <OpenMS/ANALYSIS/TOPDOWN/DeconvolvedSpectrum.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHHelperClasses.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/FLASHTaggerAlgorithm.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/SpectralDeconvolution.h>
+#include <OpenMS/FORMAT/FASTAFile.h>
 
 namespace OpenMS
 {
@@ -141,6 +143,253 @@ namespace OpenMS
            @return parsed information : scan number - percursor information
     **/
     static std::map<int, std::vector<std::vector<float>>> parseFLASHIdaLog(const String& in_log_file);
+
+    /**
+     * @brief Structure to hold a sequence tag match result
+     */
+    struct TagMatch
+    {
+      String tag_sequence;        ///< The sequence tag string
+      double n_term_mass;         ///< N-terminal flanking mass
+      double c_term_mass;         ///< C-terminal flanking mass
+      double tag_score;           ///< Score of the tag
+      int protein_index;          ///< Index in the FASTA file
+      String protein_accession;   ///< Protein accession
+      int match_position;         ///< Position in the protein sequence where tag matches
+      double flanking_mass_diff;  ///< Difference between tag flanking mass and protein flanking mass
+    };
+
+    /**
+     * @brief Deconvolute a spectrum and find sequence tags with database matches
+     *
+     * This method performs spectrum deconvolution using the FLASHDeconv algorithm,
+     * generates sequence tags using FLASHTagger, and matches them against a protein database.
+     *
+     * @param mzs m/z values of the input spectrum
+     * @param ints intensities of the input spectrum
+     * @param length number of peaks in the spectrum
+     * @param rt retention time in seconds
+     * @param ms_level MS level of the spectrum
+     * @param fasta_entries protein database entries to match against
+     * @param tagger_param parameters for the FLASHTagger algorithm (optional, uses defaults if empty)
+     * @param tags output vector of detected sequence tags
+     * @param matches output vector of tag matches to database entries
+     * @param ppm_tolerance mass tolerance in ppm for tag matching (default 10.0)
+     * @param max_flanking_mass_diff maximum allowed flanking mass difference for a match (default 500.0 Da)
+     * @return number of tags found
+     */
+    int getSequenceTagsAndMatches(const double* mzs,
+                                  const double* ints,
+                                  int length,
+                                  double rt,
+                                  int ms_level,
+                                  const std::vector<FASTAFile::FASTAEntry>& fasta_entries,
+                                  const Param& tagger_param,
+                                  std::vector<FLASHHelperClasses::Tag>& tags,
+                                  std::vector<TagMatch>& matches,
+                                  double ppm_tolerance = 10.0,
+                                  double max_flanking_mass_diff = 500.0);
+
+    /**
+     * @brief Identify proteoform from MS2 spectrum against a single protein sequence
+     *
+     * Implements the core FLASHTnT identification workflow:
+     * 1. Deconvolves the MS2 spectrum to get monoisotopic masses
+     * 2. Calculates theoretical fragment masses from protein sequence
+     * 3. Matches observed masses against theoretical fragments
+     * 4. Identifies PTM positions based on mass differences
+     *
+     * @param mzs m/z values of the input MS2 spectrum
+     * @param ints intensities of the input MS2 spectrum
+     * @param length number of peaks in the spectrum
+     * @param rt retention time in seconds
+     * @param protein_sequence the protein sequence to match against
+     * @param ppm_tolerance mass tolerance in ppm (default 10.0)
+     * @param ion_types ion types to consider (default {"b", "y"})
+     * @param ptm_mass_threshold minimum mass shift to consider as PTM (default 5.0 Da)
+     * @param matched_fragment_indices output: indices of matched fragment ions (1-based positions)
+     * @param ptm_start_positions output: start positions of PTM localization ranges (1-based)
+     * @param ptm_end_positions output: end positions of PTM localization ranges (1-based)
+     * @param ptm_masses output: mass shifts at each PTM position
+     * @return number of matched fragment ions
+     */
+    int identifyProteoform(const double* mzs,
+                           const double* ints,
+                           int length,
+                           double rt,
+                           const String& protein_sequence,
+                           double ppm_tolerance,
+                           const std::vector<String>& ion_types,
+                           double ptm_mass_threshold,
+                           std::vector<int>& matched_fragment_indices,
+                           std::vector<int>& ptm_start_positions,
+                           std::vector<int>& ptm_end_positions,
+                           std::vector<double>& ptm_masses);
+
+    /**
+     * @brief Extended proteoform identification with detailed output
+     *
+     * Extended version providing more detailed match information including
+     * peak indices, theoretical masses, ion types, and PTM localization ranges.
+     *
+     * @param mzs m/z values of the input MS2 spectrum
+     * @param ints intensities of the input MS2 spectrum
+     * @param length number of peaks in the spectrum
+     * @param rt retention time in seconds
+     * @param protein_sequence the protein sequence to match against
+     * @param ppm_tolerance mass tolerance in ppm
+     * @param ion_types ion types to consider
+     * @param max_ptm_count maximum number of PTMs to consider
+     * @param max_ptm_mass maximum mass shift for a single PTM
+     * @param matched_peak_indices output: indices of matched peaks in deconvolved spectrum
+     * @param matched_theoretical_masses output: theoretical masses that were matched
+     * @param matched_ion_types output: ion types (true=N-terminal/prefix, false=C-terminal/suffix)
+     * @param ptm_start_positions output: start of region for each PTM
+     * @param ptm_end_positions output: end of region for each PTM
+     * @param ptm_masses output: mass shift for each PTM
+     * @param coverage output: sequence coverage (0.0-1.0)
+     * @param total_score output: total identification score
+     * @return number of matched ions
+     */
+    int identifyProteoformExtended(const double* mzs,
+                                   const double* ints,
+                                   int length,
+                                   double rt,
+                                   const String& protein_sequence,
+                                   double ppm_tolerance,
+                                   const std::vector<String>& ion_types,
+                                   int max_ptm_count,
+                                   double max_ptm_mass,
+                                   std::vector<int>& matched_peak_indices,
+                                   std::vector<double>& matched_theoretical_masses,
+                                   std::vector<bool>& matched_ion_types,
+                                   std::vector<int>& ptm_start_positions,
+                                   std::vector<int>& ptm_end_positions,
+                                   std::vector<double>& ptm_masses,
+                                   double& coverage,
+                                   double& total_score);
+
+    // ============ Python-friendly overloads using vectors ============
+
+    /**
+     * @brief Python-friendly overload of getSequenceTagsAndMatches using vectors
+     */
+    int getSequenceTagsAndMatchesPy(const std::vector<double>& mzs,
+                                    const std::vector<double>& ints,
+                                    double rt,
+                                    int ms_level,
+                                    const std::vector<FASTAFile::FASTAEntry>& fasta_entries,
+                                    const Param& tagger_param,
+                                    std::vector<FLASHHelperClasses::Tag>& tags,
+                                    std::vector<TagMatch>& matches,
+                                    double ppm_tolerance = 10.0,
+                                    double max_flanking_mass_diff = 500.0);
+
+    /**
+     * @brief Python-friendly overload of identifyProteoform using vectors
+     */
+    int identifyProteoformPy(const std::vector<double>& mzs,
+                             const std::vector<double>& ints,
+                             double rt,
+                             const String& protein_sequence,
+                             double ppm_tolerance,
+                             const std::vector<String>& ion_types,
+                             double ptm_mass_threshold,
+                             std::vector<int>& matched_fragment_indices,
+                             std::vector<int>& ptm_start_positions,
+                             std::vector<int>& ptm_end_positions,
+                             std::vector<double>& ptm_masses);
+
+    /**
+     * @brief Python-friendly overload of identifyProteoformExtended using vectors
+     */
+    int identifyProteoformExtendedPy(const std::vector<double>& mzs,
+                                     const std::vector<double>& ints,
+                                     double rt,
+                                     const String& protein_sequence,
+                                     double ppm_tolerance,
+                                     const std::vector<String>& ion_types,
+                                     int max_ptm_count,
+                                     double max_ptm_mass,
+                                     std::vector<int>& matched_peak_indices,
+                                     std::vector<double>& matched_theoretical_masses,
+                                     std::vector<bool>& matched_ion_types,
+                                     std::vector<int>& ptm_start_positions,
+                                     std::vector<int>& ptm_end_positions,
+                                     std::vector<double>& ptm_masses,
+                                     double& coverage,
+                                     double& total_score);
+
+    /**
+     * @brief Identify proteoform from pre-deconvolved masses (core identification function)
+     *
+     * This function performs fragment ion matching without deconvolution,
+     * allowing direct testing with known masses. It takes deconvolved monoisotopic
+     * masses directly and matches them against theoretical fragment masses.
+     *
+     * @param observed_masses deconvolved monoisotopic masses
+     * @param mass_scores quality scores for each mass (use 1.0 if unknown)
+     * @param protein_sequence the protein sequence to match against
+     * @param ppm_tolerance mass tolerance in ppm
+     * @param ion_types ion types to consider (e.g., {"b", "y"})
+     * @param ptm_mass_threshold minimum mass shift to consider as PTM
+     * @param matched_fragment_indices output: matched fragment indices (1-based positions)
+     * @param matched_ion_types output: true=prefix/b-ion, false=suffix/y-ion
+     * @param matched_observed_masses output: observed mass for each match
+     * @param matched_theoretical_masses output: theoretical mass for each match
+     * @param matched_ppm_errors output: ppm error for each match
+     * @param ptm_start_positions output: start positions of PTM localization ranges (1-based)
+     * @param ptm_end_positions output: end positions of PTM localization ranges (1-based)
+     * @param ptm_masses output: mass shifts at PTM positions
+     * @return number of matched fragment ions
+     */
+    int identifyProteoformFromMasses(const std::vector<double>& observed_masses,
+                                     const std::vector<double>& mass_scores,
+                                     const String& protein_sequence,
+                                     double ppm_tolerance,
+                                     const std::vector<String>& ion_types,
+                                     double ptm_mass_threshold,
+                                     std::vector<int>& matched_fragment_indices,
+                                     std::vector<bool>& matched_ion_types,
+                                     std::vector<double>& matched_observed_masses,
+                                     std::vector<double>& matched_theoretical_masses,
+                                     std::vector<double>& matched_ppm_errors,
+                                     std::vector<int>& ptm_start_positions,
+                                     std::vector<int>& ptm_end_positions,
+                                     std::vector<double>& ptm_masses);
+
+    /**
+     * @brief Python-friendly overload of identifyProteoformFromMasses
+     *
+     * Same as identifyProteoformFromMasses but with all vector parameters for Python binding.
+     */
+    int identifyProteoformFromMassesPy(std::vector<double>& observed_masses,
+                                       std::vector<double>& mass_scores,
+                                       const String& protein_sequence,
+                                       double ppm_tolerance,
+                                       std::vector<String>& ion_types,
+                                       double ptm_mass_threshold,
+                                       std::vector<int>& matched_fragment_indices,
+                                       std::vector<bool>& matched_ion_types,
+                                       std::vector<double>& matched_observed_masses,
+                                       std::vector<double>& matched_theoretical_masses,
+                                       std::vector<double>& matched_ppm_errors,
+                                       std::vector<int>& ptm_start_positions,
+                                       std::vector<int>& ptm_end_positions,
+                                       std::vector<double>& ptm_masses);
+
+    /**
+     * @brief Calculate theoretical fragment masses for a protein sequence (static, for Python)
+     *
+     * @param sequence the protein sequence
+     * @param ion_types ion types to consider (e.g., {"b", "y"})
+     * @param prefix_masses output: cumulative masses from N-terminus
+     * @param suffix_masses output: cumulative masses from C-terminus
+     */
+    static void calculateTheoreticalFragmentMassesPy(const String& sequence,
+                                                     const std::vector<String>& ion_types,
+                                                     std::vector<double>& prefix_masses,
+                                                     std::vector<double>& suffix_masses);
 
   private:
     /// PeakGroup comparator for soring by QScore

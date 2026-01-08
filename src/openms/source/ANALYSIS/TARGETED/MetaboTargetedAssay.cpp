@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -9,12 +9,12 @@
 #include <OpenMS/ANALYSIS/TARGETED/MetaboTargetedAssay.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmQT.h>
 
-#include <OpenMS/COMPARISON/SPECTRA/BinnedSpectrum.h>
-#include <OpenMS/COMPARISON/SPECTRA/BinnedSpectralContrastAngle.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/SpectraMerger.h>
+#include <OpenMS/KERNEL/BinnedSpectrum.h>
+#include <OpenMS/COMPARISON/BinnedSpectralContrastAngle.h>
+#include <OpenMS/PROCESSING/SPECTRAMERGING/SpectraMerger.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/MATH/MathFunctions.h>
 
 #include <regex>
 
@@ -773,7 +773,7 @@ namespace OpenMS
       f.setUniqueId();
       f.ensureUniqueId();
       PeptideIdentification pep;
-      vector<PeptideIdentification> v_pep;
+      PeptideIdentificationList v_pep;
 
       // check - no target and decoy available
       if (it.second.target_mz == 0.0 && it.second.decoy_mz == 0.0)
@@ -843,7 +843,7 @@ namespace OpenMS
     for (const auto& c_it : c_map)
     {
       vector <PeptideIdentification> v_pep;
-      v_pep = c_it.getPeptideIdentifications();
+      v_pep = c_it.getPeptideIdentifications().getData();
       vector <MetaboTargetedAssay> ambi_group;
       for (const auto& p_it : v_pep)
       {

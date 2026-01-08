@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -11,8 +11,6 @@
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
 #include <OpenMS/DATASTRUCTURES/CVMappingRule.h>
 #include <OpenMS/DATASTRUCTURES/CVMappingTerm.h>
-
-#include <QtCore/QRegExp>
 #include <map>
 
 using namespace xercesc;
@@ -515,10 +513,8 @@ namespace OpenMS::Internal
             }
           }
           else if (type == ControlledVocabulary::CVTerm::XSD_ANYURI)
-          {
-            QRegExp rx("*:*"); // according to RFC 2396 this is there must be a colon (looked only 2 minutes on it)
-            rx.setPatternSyntax(QRegExp::Wildcard);
-            if (!rx.exactMatch(value.c_str()))
+          { // according to RFC 2396 this is there must be a colon (looked only 2 minutes on it)
+            if (!value.has(':'))
             {
               errors_.push_back(String("Value-type of CV term wrong, should be xsd:anyURI (at least a colon is needed): '") + parsed_term.accession + " - " + parsed_term.name + "' value=" + value + "' at element '" + getPath_(1) + "'");
             }

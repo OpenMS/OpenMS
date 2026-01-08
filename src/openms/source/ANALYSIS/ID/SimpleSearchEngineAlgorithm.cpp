@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -15,25 +15,25 @@
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
-#include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
+#include <OpenMS/COMPARISON/SpectrumAlignment.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/DATASTRUCTURES/StringView.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/Deisotoper.h>
-#include <OpenMS/FILTERING/ID/IDFilter.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/NLargest.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/ThresholdMower.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/WindowMower.h>
+#include <OpenMS/PROCESSING/DEISOTOPING/Deisotoper.h>
+#include <OpenMS/PROCESSING/ID/IDFilter.h>
+#include <OpenMS/PROCESSING/FILTERING/NLargest.h>
+#include <OpenMS/PROCESSING/SCALING/Normalizer.h>
+#include <OpenMS/PROCESSING/FILTERING/ThresholdMower.h>
+#include <OpenMS/PROCESSING/FILTERING/WindowMower.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
-#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+#include <OpenMS/MATH/MathFunctions.h>
+#include <OpenMS/MATH/StatisticFunctions.h>
 #include <OpenMS/METADATA/SpectrumSettings.h>
 
 #include <algorithm>
@@ -57,7 +57,7 @@ namespace OpenMS
     precursor_mass_tolerance_unit_valid_strings.emplace_back("ppm");
     precursor_mass_tolerance_unit_valid_strings.emplace_back("Da");
 
-    defaults_.setValue("precursor:mass_tolerance_unit", "ppm", "Unit of precursor mass tolerance.");
+    defaults_.setValue("precursor:mass_tolerance_unit", "ppm", "Unit of precursor mass tolerance +/- to the theoretical one.");
     defaults_.setValidStrings("precursor:mass_tolerance_unit", precursor_mass_tolerance_unit_valid_strings);
 
     defaults_.setValue("precursor:min_charge", 2, "Minimum precursor charge to be considered.");
@@ -69,7 +69,7 @@ namespace OpenMS
     IntList isotopes = {0, 1};
     defaults_.setValue("precursor:isotopes", isotopes, "Corrects for mono-isotopic peak misassignments. (E.g.: 1 = prec. may be misassigned to first isotopic peak)");
 
-    defaults_.setValue("fragment:mass_tolerance", 10.0, "Fragment mass tolerance");
+    defaults_.setValue("fragment:mass_tolerance", 10.0, "Fragment mass tolerance +/- to the theoretical one");
 
     std::vector<std::string> fragment_mass_tolerance_unit_valid_strings;
     fragment_mass_tolerance_unit_valid_strings.emplace_back("ppm");
@@ -218,7 +218,7 @@ namespace OpenMS
 void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp, 
       std::vector<std::vector<SimpleSearchEngineAlgorithm::AnnotatedHit_> >& annotated_hits, 
       std::vector<ProteinIdentification>& protein_ids, 
-      std::vector<PeptideIdentification>& peptide_ids, 
+      PeptideIdentificationList& peptide_ids, 
       Size top_hits,
       const ModifiedPeptideGenerator::MapToResidueType& fixed_modifications,
       const ModifiedPeptideGenerator::MapToResidueType& variable_modifications,
@@ -270,7 +270,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
         PeptideIdentification pi{};
         pi.setSpectrumReference( spec.getNativeID());
         pi.setMetaValue("scan_index", static_cast<unsigned int>(scan_index));
-        pi.setScoreType("hyperscore");
+        pi.setScoreType("ln(hyperscore)");
         pi.setHigherScoreBetter(true);
         double mz = spec.getPrecursors()[0].getMZ();
         pi.setRT(spec.getRT());
@@ -283,6 +283,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
         {
           PeptideHit ph;
           ph.setCharge(charge);
+          ph.setMetaValue("isotope_error", ah.isotope_error);
 
           // get unmodified string
           AASequence aas = AASequence::fromString(ah.sequence.getString());
@@ -320,7 +321,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
           if (annotation_precursor_error_ppm)
           {
             double theo_mz = fixed_and_variable_modified_peptide.getMZ(charge);
-            double ppm_difference = Math::getPPM(mz, theo_mz);
+            double ppm_difference = Math::getPPM(mz - (double)ah.isotope_error * Constants::PROTON_MASS_U / (double)charge, theo_mz);
             ph.setMetaValue(Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM, ppm_difference);
           }
 
@@ -338,7 +339,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
           phs.push_back(ph);
         }
         pi.setHits(phs);
-        pi.assignRanks();
+        pi.sort();
 
 #pragma omp critical (peptide_ids_access)
         {
@@ -386,18 +387,60 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
     search_parameters.digestion_enzyme = *ProteaseDB::getInstance()->getEnzyme(enzyme);
 
     // add additional percolator features or post-processing
-    StringList feature_set{"score"};
+    StringList feature_set{"score", "isotope_error"};
     if (annotation_fragment_error_ppm) feature_set.push_back(Constants::UserParam::FRAGMENT_ERROR_MEDIAN_PPM_USERPARAM);
     if (annotation_prefix_fraction) feature_set.push_back(Constants::UserParam::MATCHED_PREFIX_IONS_FRACTION);
     if (annotation_suffix_fraction) feature_set.push_back(Constants::UserParam::MATCHED_SUFFIX_IONS_FRACTION);
-    // note: precursor error is calculated by percolator itself
+
     search_parameters.setMetaValue("extra_features", ListUtils::concatenate(feature_set, ","));
 
     search_parameters.enzyme_term_specificity = EnzymaticDigestion::SPEC_FULL;
     protein_ids[0].setSearchParameters(std::move(search_parameters));
   }
 
-  SimpleSearchEngineAlgorithm::ExitCodes SimpleSearchEngineAlgorithm::search(const String& in_mzML, const String& in_db, vector<ProteinIdentification>& protein_ids, vector<PeptideIdentification>& peptide_ids) const
+
+  multimap<double, pair<Size, int>> mapPrecursorMassesToScans(
+                                 const Int min_precursor_charge,
+                                 const Int max_precursor_charge,
+                                 const IntList &precursor_isotopes,
+                                 const Size peptide_min_size,
+                                 const PeakMap & spectra)
+  {
+    multimap<double, pair<Size, int>> multimap_mass_2_scan_index;
+    for (MSExperiment::ConstIterator s_it = spectra.begin(); s_it != spectra.end(); ++s_it)
+    {
+      int scan_index = s_it - spectra.begin();
+      vector<Precursor> precursor = s_it->getPrecursors();
+
+      // there should only one precursor and MS2 should contain at least a few peaks to be considered (e.g. at least a peak for every AA in the peptide)
+      if (precursor.size() == 1 && s_it->size() >= peptide_min_size)
+      {
+        int precursor_charge = precursor[0].getCharge();
+
+        if (precursor_charge < min_precursor_charge
+         || precursor_charge > max_precursor_charge)
+        {
+          continue;
+        }
+
+        double precursor_mz = precursor[0].getMZ();
+
+        // map (corrected) precursor mass to spectra
+        for (int i : precursor_isotopes)
+        {
+          double precursor_mass = (double) precursor_charge * precursor_mz - (double) precursor_charge * Constants::PROTON_MASS_U;
+
+          // corrected for monoisotopic misassignments of the precursor annotation
+          if (i != 0) { precursor_mass -= i * Constants::C13C12_MASSDIFF_U; }
+
+          multimap_mass_2_scan_index.insert(make_pair(precursor_mass, make_pair(scan_index, i)));
+        }
+      }
+    }
+    return multimap_mass_2_scan_index;
+  }
+
+  SimpleSearchEngineAlgorithm::ExitCodes SimpleSearchEngineAlgorithm::search(const String& in_mzML, const String& in_db, vector<ProteinIdentification>& protein_ids, PeptideIdentificationList& peptide_ids) const
   {
     boost::regex peptide_motif_regex(peptide_motif_);
 
@@ -424,37 +467,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
     endProgress();
 
     // build multimap of precursor mass to scan index
-    multimap<double, Size> multimap_mass_2_scan_index;
-    for (PeakMap::ConstIterator s_it = spectra.begin(); s_it != spectra.end(); ++s_it)
-    {
-      int scan_index = s_it - spectra.begin();
-      vector<Precursor> precursor = s_it->getPrecursors();
-
-      // there should only one precursor and MS2 should contain at least a few peaks to be considered (e.g. at least for every AA in the peptide)
-      if (precursor.size() == 1 && s_it->size() >= peptide_min_size_)
-      {
-        Size precursor_charge = precursor[0].getCharge();
-
-        if (precursor_charge < precursor_min_charge_ 
-         || precursor_charge > precursor_max_charge_)
-        {
-          continue;
-        }
-
-        double precursor_mz = precursor[0].getMZ();
-
-        // calculate precursor mass (optionally corrected for misassignment) and map it to MS scan index
-        for (int isotope_number : precursor_isotopes_)
-        {
-          double precursor_mass = (double) precursor_charge * precursor_mz - (double) precursor_charge * Constants::PROTON_MASS_U;
-
-          // correct for monoisotopic misassignments of the precursor annotation
-          if (isotope_number != 0) { precursor_mass -= isotope_number * Constants::C13C12_MASSDIFF_U; }
-
-          multimap_mass_2_scan_index.insert(make_pair(precursor_mass, scan_index));
-        }
-      }
-    }
+    auto multimap_mass_2_scan_index = mapPrecursorMassesToScans(precursor_min_charge_, precursor_max_charge_, precursor_isotopes_, peptide_min_size_, spectra);
 
     // create spectrum generator
     TheoreticalSpectrumGenerator spectrum_generator;
@@ -576,8 +589,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
           double current_peptide_mass = candidate.getMonoWeight();
 
           // determine MS2 precursors that match to the current peptide mass
-          multimap<double, Size>::const_iterator low_it;
-          multimap<double, Size>::const_iterator up_it;
+          multimap<double, pair<Size, int>>::const_iterator low_it, up_it;
 
           if (precursor_mass_tolerance_unit_ppm) // ppm
           {
@@ -607,7 +619,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
 
           for (; low_it != up_it; ++low_it)
           {
-            const Size& scan_index = low_it->second;
+            const Size scan_index = low_it->second.first;
             const PeakSpectrum& exp_spectrum = spectra[scan_index];
             // const int& charge = exp_spectrum.getPrecursors()[0].getCharge();
             HyperScore::PSMDetail detail;
@@ -625,6 +637,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
             ah.prefix_fraction = (double)detail.matched_b_ions/(double)c.size();
             ah.suffix_fraction = (double)detail.matched_y_ions/(double)c.size();
             ah.mean_error = detail.mean_error;
+            ah.isotope_error = low_it->second.second;
 
 #ifdef _OPENMP
             omp_set_lock(&(annotated_hits_lock[scan_index]));

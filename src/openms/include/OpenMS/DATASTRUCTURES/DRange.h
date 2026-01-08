@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -141,7 +141,7 @@ public:
     }
 
     /**
-         @brief Checks whether this range contains a certain point.
+         @brief Checks whether this range (half open interval!) contains a certain point.
 
          @param position The point's position.
          @returns true if point lies inside this area.

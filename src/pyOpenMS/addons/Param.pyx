@@ -77,4 +77,4 @@
         return str(list(zip([k.decode() for k in self.keys()], self.values(), self.descriptions())))
 
     def __repr__(self):
-        return __str__(self)
+        return self.__str__()

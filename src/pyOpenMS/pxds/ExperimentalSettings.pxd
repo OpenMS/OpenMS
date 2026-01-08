@@ -58,12 +58,6 @@ cdef extern from "<OpenMS/METADATA/ExperimentalSettings.h>" namespace "OpenMS":
         String getComment() except + nogil  # wrap-doc:Returns the free-text comment
         
         void setComment(String comment) except + nogil  # wrap-doc:Sets the free-text comment
-
-        
-        libcpp_vector[ProteinIdentification] getProteinIdentifications() except + nogil  # wrap-doc:Returns a reference to the protein ProteinIdentification vector
-        
-        void setProteinIdentifications(libcpp_vector[ProteinIdentification] protein_identifications) except + nogil  # wrap-doc:Sets the protein ProteinIdentification vector
-
         
         String getFractionIdentifier() except + nogil  # wrap-doc:Returns fraction identifier
         

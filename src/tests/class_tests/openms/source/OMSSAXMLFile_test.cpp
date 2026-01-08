@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -32,8 +32,8 @@ OMSSAXMLFile xml_file;
 OMSSAXMLFile* ptr;
 OMSSAXMLFile* nullPointer = nullptr;
 ProteinIdentification protein_identification;
-vector<PeptideIdentification> peptide_identifications;
-vector<PeptideIdentification> peptide_identifications2;
+PeptideIdentificationList peptide_identifications;
+PeptideIdentificationList peptide_identifications2;
 String date_string_1;
 String date_string_2;
 PeptideHit peptide_hit;
@@ -55,7 +55,7 @@ START_SECTION(void setModificationDefinitionsSet(const ModificationDefinitionsSe
 	NOT_TESTABLE
 END_SECTION
 
-START_SECTION(void load(const String& filename, ProteinIdentification& protein_identification, std::vector<PeptideIdentification>& id_data, bool load_proteins=true, bool load_empty_hits = true))
+START_SECTION(void load(const String& filename, ProteinIdentification& protein_identification, PeptideIdentificationList& id_data, bool load_proteins=true, bool load_empty_hits = true))
   // two spectra, first with some hits (mapping to 4 proteins), second is empty
 	xml_file.load(OPENMS_GET_TEST_DATA_PATH("OMSSAXMLFile_test_1.xml"),	protein_identification, peptide_identifications);
 

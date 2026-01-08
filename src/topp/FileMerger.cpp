@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -41,7 +41,7 @@ using namespace std;
 </tr>
 <tr>
 <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any tool/instrument producing mergeable files </td>
-<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any tool operating merged files (e.g. @ref TOPP_XTandemAdapter for mzML, @ref TOPP_ProteinQuantifier for consensusXML) </td>
+<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any tool operating merged files (e.g. @ref TOPP_CometAdapter for mzML, @ref TOPP_ProteinQuantifier for consensusXML) </td>
 </tr>
 </table>
 </center>
@@ -121,7 +121,7 @@ protected:
     TransformationDescription trafo;
     if (first_file) // no transformation necessary
     {
-      rt_offset_ = map.getMaxRT() + rt_gap_;
+      rt_offset_ = map.getMaxRT() + rt_gap_; // overall range for all spectra
       trafo.fitModel("identity");
     }
     else // subsequent file -> apply transformation
@@ -170,7 +170,14 @@ protected:
     bool append_rows = false;
     bool append_cols = false;
     String append_method = getStringOption_("append_method");
-    append_method == "append_rows" ? append_rows = true : append_cols = true; 
+    if (append_method == "append_rows")
+    {
+      append_rows = true;
+    }
+    else
+    {
+      append_cols = true;
+    } 
    
     bool annotate_file_origin =  getFlag_("annotate_file_origin");
     rt_gap_ = getDoubleOption_("rt_concat:gap");

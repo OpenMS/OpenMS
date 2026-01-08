@@ -5,7 +5,7 @@ from MSSpectrum cimport *
 from Peak1D cimport *
 from ChromatogramPeak cimport *
 
-cdef extern from "<OpenMS/FILTERING/SMOOTHING/SavitzkyGolayFilter.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/PROCESSING/SMOOTHING/SavitzkyGolayFilter.h>" namespace "OpenMS":
 
     cdef cppclass SavitzkyGolayFilter(DefaultParamHandler,ProgressLogger):
         # wrap-inherits:

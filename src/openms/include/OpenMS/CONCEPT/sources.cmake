@@ -19,6 +19,7 @@ Macros.h
 MacrosTest.h
 PrecisionWrapper.h
 ProgressLogger.h
+Qt5Port.h
 RAIICleanup.h
 StreamHandler.h
 Types.h

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -591,10 +591,7 @@ namespace OpenMS::Internal
          << sm.getName()
          << "</sampleName>\n";
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wconversion"
-      if (!sm.getNumber().empty() || sm.getState() || sm.getMass() || sm.getVolume() || sm.getConcentration()  || !sm.isMetaEmpty())
-#pragma clang diagnostic pop
+      if (! sm.getNumber().empty() || sm.getState() != Sample::SAMPLENULL || sm.getMass() || sm.getVolume() || sm.getConcentration() || ! sm.isMetaEmpty())
       {
         os << "\t\t\t<sampleDescription>\n";
         writeCVS_(os, sm.getNumber(), "1000001", "SampleNumber");

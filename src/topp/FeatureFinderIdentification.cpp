@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -13,7 +13,7 @@
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderIdentificationAlgorithm.h>
+#include <OpenMS/FEATUREFINDER/FeatureFinderIdentificationAlgorithm.h>
 #include <cstdlib>  // for "rand"
 #include <ctime>    // for "time" (seeding of random number generator)
 #include <iterator> // for "inserter", "back_inserter"
@@ -205,7 +205,7 @@ protected:
       mzml.getOptions().addMSLevel(1);
       mzml.loadExperiment(in, ffid_algo.getMSData(), {FileTypes::MZML}, log_type_);
 
-      vector<PeptideIdentification> peptides, peptides_ext;
+      PeptideIdentificationList peptides, peptides_ext;
       vector<ProteinIdentification> proteins, proteins_ext;
 
       // "internal" IDs:

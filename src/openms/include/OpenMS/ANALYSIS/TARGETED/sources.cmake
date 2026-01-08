@@ -7,7 +7,6 @@ IncludeExcludeTarget.h
 MRMMapping.h
 MetaboTargetedAssay.h
 MetaboTargetedTargetDecoy.h
-PSProteinInference.h
 TargetedExperiment.h
 TargetedExperimentHelper.h
 )

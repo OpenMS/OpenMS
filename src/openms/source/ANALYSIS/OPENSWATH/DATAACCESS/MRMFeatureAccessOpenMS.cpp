@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -113,6 +113,11 @@ namespace OpenMS
   double MRMFeatureOpenMS::getRT() const
   {
     return mrmfeature_.getRT();
+  }
+
+  double MRMFeatureOpenMS::getMetaValue(std::string name) const
+  {
+    return mrmfeature_.getMetaValue(name);
   }
 
   size_t MRMFeatureOpenMS::size() const

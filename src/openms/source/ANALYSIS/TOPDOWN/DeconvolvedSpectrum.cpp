@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -191,6 +191,12 @@ namespace OpenMS
     return precursor_peak_;
   }
 
+  const Precursor& DeconvolvedSpectrum::getDeconvolvedPrecursor() const
+  {
+    return deconvolved_precursor_peak_;
+  }
+
+
   int DeconvolvedSpectrum::getScanNumber() const
   {
     return scan_number_;
@@ -210,6 +216,17 @@ namespace OpenMS
   {
     precursor_peak_ = precursor;
   }
+
+  void DeconvolvedSpectrum::setDeconvolvedPrecursor(const Precursor& precursor)
+  {
+    deconvolved_precursor_peak_ = precursor;
+  }
+
+  void DeconvolvedSpectrum::setPrecursorMassIntensityMap(const std::vector<std::tuple<double, double>>& map)
+  {
+    precursor_mass_intensity_map_ = map;
+  }
+
 
   void DeconvolvedSpectrum::setActivationMethod(const Precursor::ActivationMethod& method)
   {
@@ -326,7 +343,7 @@ namespace OpenMS
     return false;
   }
 
-  FLASHHelperClasses::IsobaricQuantities DeconvolvedSpectrum::getQuantities() const
+  const FLASHHelperClasses::IsobaricQuantities DeconvolvedSpectrum::getQuantities() const
   {
     return quantities_;
   }
@@ -336,7 +353,7 @@ namespace OpenMS
     quantities_ = quantities;
   }
 
-  void DeconvolvedSpectrum::setPeakGroups(std::vector<PeakGroup>& x)
+  void DeconvolvedSpectrum::setPeakGroups(const std::vector<PeakGroup>& x)
   {
     std::vector<PeakGroup>().swap(peak_groups_);
     peak_groups_ = x;

@@ -19,5 +19,5 @@ cdef extern from "<OpenMS/FORMAT/PercolatorInfile.h>" namespace "OpenMS":
 cdef extern from "<OpenMS/FORMAT/PercolatorInfile.h>" namespace "OpenMS::PercolatorInfile":
         
         # static members
-        void store(String pin_file, libcpp_vector[PeptideIdentification] peptide_ids, StringList feature_set, libcpp_string, int min_charge, int max_charge) except + nogil   # wrap-attach:PercolatorInfile
+        void store(String pin_file, PeptideIdentificationList peptide_ids, StringList feature_set, libcpp_string, int min_charge, int max_charge) except + nogil   # wrap-attach:PercolatorInfile
         
