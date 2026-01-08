@@ -44,7 +44,7 @@ using namespace std;
 <tr>
 <td VALIGN="middle" ALIGN = "center"> featureXML </td>
 <td VALIGN="middle" ALIGN = "center"> featureXML </td>
-<td VALIGN="middle" ALIGN = "left"> Features from multiple files are combined </td>
+<td VALIGN="middle" ALIGN = "left"> Features from multiple files are merged by simple concatenation into a single output file. Peptide and protein identifications are appended; conflicting unique IDs are updated to maintain consistency </td>
 </tr>
 <tr>
 <td VALIGN="middle" ALIGN = "center"> consensusXML </td>
