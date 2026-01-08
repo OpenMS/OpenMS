@@ -16,6 +16,8 @@
 
 #include <sstream>
 #include <iostream>
+#include <unordered_set>
+#include <unordered_map>
 
 // we ignore the -Wunused-value warning here, since we do not want the compiler
 // to report problems like
@@ -795,6 +797,92 @@ START_TEST(ParamValue, "$Id$")
                     ParamValue a("v");
                     a = v;
                     TEST_EQUAL((unsigned long long)a, 2)
+                }
+        END_SECTION
+
+        START_SECTION(([EXTRA] std::hash<ParamValue>))
+                {
+                    std::hash<ParamValue> hasher;
+
+                    // Test that equal objects have equal hashes
+                    // Empty values
+                    ParamValue empty1, empty2;
+                    TEST_EQUAL(hasher(empty1), hasher(empty2))
+
+                    // String values
+                    ParamValue str1("hello"), str2("hello"), str3("world");
+                    TEST_EQUAL(hasher(str1), hasher(str2))
+                    TEST_NOT_EQUAL(hasher(str1), hasher(str3))
+
+                    // Int values
+                    ParamValue int1(42), int2(42), int3(-17);
+                    TEST_EQUAL(hasher(int1), hasher(int2))
+                    TEST_NOT_EQUAL(hasher(int1), hasher(int3))
+
+                    // Double values
+                    ParamValue dbl1(3.14159), dbl2(3.14159), dbl3(2.71828);
+                    TEST_EQUAL(hasher(dbl1), hasher(dbl2))
+                    TEST_NOT_EQUAL(hasher(dbl1), hasher(dbl3))
+
+                    // String list values
+                    ParamValue sl1(vector<string>{"a", "b", "c"});
+                    ParamValue sl2(vector<string>{"a", "b", "c"});
+                    ParamValue sl3(vector<string>{"x", "y"});
+                    TEST_EQUAL(hasher(sl1), hasher(sl2))
+                    TEST_NOT_EQUAL(hasher(sl1), hasher(sl3))
+
+                    // Int list values
+                    ParamValue il1(vector<int>{1, 2, 3});
+                    ParamValue il2(vector<int>{1, 2, 3});
+                    ParamValue il3(vector<int>{4, 5});
+                    TEST_EQUAL(hasher(il1), hasher(il2))
+                    TEST_NOT_EQUAL(hasher(il1), hasher(il3))
+
+                    // Double list values
+                    ParamValue dl1(vector<double>{1.1, 2.2, 3.3});
+                    ParamValue dl2(vector<double>{1.1, 2.2, 3.3});
+                    ParamValue dl3(vector<double>{4.4, 5.5});
+                    TEST_EQUAL(hasher(dl1), hasher(dl2))
+                    TEST_NOT_EQUAL(hasher(dl1), hasher(dl3))
+
+                    // Different types should have different hashes
+                    ParamValue pv_int(5);
+                    ParamValue pv_dbl(5.0);
+                    ParamValue pv_str("5");
+                    TEST_NOT_EQUAL(hasher(pv_int), hasher(pv_dbl))
+                    TEST_NOT_EQUAL(hasher(pv_int), hasher(pv_str))
+                    TEST_NOT_EQUAL(hasher(pv_dbl), hasher(pv_str))
+
+                    // Test use in unordered_set
+                    std::unordered_set<ParamValue> pv_set;
+                    pv_set.insert(ParamValue("test"));
+                    pv_set.insert(ParamValue(42));
+                    pv_set.insert(ParamValue(3.14));
+                    pv_set.insert(ParamValue(vector<string>{"a", "b"}));
+                    pv_set.insert(ParamValue(vector<int>{1, 2, 3}));
+                    pv_set.insert(ParamValue(vector<double>{1.1, 2.2}));
+                    pv_set.insert(ParamValue()); // empty value
+                    TEST_EQUAL(pv_set.size(), 7)
+
+                    // Inserting duplicate should not increase size
+                    pv_set.insert(ParamValue("test"));
+                    pv_set.insert(ParamValue(42));
+                    TEST_EQUAL(pv_set.size(), 7)
+
+                    // Test lookup
+                    TEST_EQUAL(pv_set.count(ParamValue("test")), 1)
+                    TEST_EQUAL(pv_set.count(ParamValue(42)), 1)
+                    TEST_EQUAL(pv_set.count(ParamValue("not_present")), 0)
+
+                    // Test use in unordered_map
+                    std::unordered_map<ParamValue, std::string> pv_map;
+                    pv_map[ParamValue("key1")] = "value1";
+                    pv_map[ParamValue(123)] = "value2";
+                    pv_map[ParamValue(4.56)] = "value3";
+                    TEST_EQUAL(pv_map.size(), 3)
+                    TEST_EQUAL(pv_map[ParamValue("key1")], "value1")
+                    TEST_EQUAL(pv_map[ParamValue(123)], "value2")
+                    TEST_EQUAL(pv_map[ParamValue(4.56)], "value3")
                 }
         END_SECTION
 

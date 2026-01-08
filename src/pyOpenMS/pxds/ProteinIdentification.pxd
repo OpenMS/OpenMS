@@ -15,8 +15,10 @@ cdef extern from "<OpenMS/METADATA/ProteinIdentification.h>" namespace "OpenMS":
     cdef cppclass ProteinIdentification(MetaInfoInterface):
         # wrap-inherits:
         #   MetaInfoInterface
+        # wrap-hash:
+        #  std
 
-        ProteinIdentification() except + nogil 
+        ProteinIdentification() except + nogil
         ProteinIdentification(ProteinIdentification &) except + nogil 
 
         bool operator==(ProteinIdentification) except + nogil 

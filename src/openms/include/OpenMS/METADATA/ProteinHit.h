@@ -15,6 +15,7 @@
 #include <map>
 
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
+#include <OpenMS/CONCEPT/HashUtils.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
@@ -214,4 +215,47 @@ protected:
   OPENMS_DLLAPI std::ostream& operator<< (std::ostream& stream, const ProteinHit& hit);
 
 } // namespace OpenMS
+
+// Hash function specialization for ProteinHit
+namespace std
+{
+  /**
+   * @brief Hash function for OpenMS::ProteinHit.
+   *
+   * Computes a hash based on all fields used in operator==:
+   * - score (double)
+   * - rank (UInt)
+   * - accession (String)
+   * - sequence (String)
+   * - coverage (double)
+   * - modifications (set of position-modification pairs)
+   *
+   * @note MetaInfoInterface is not included in the hash for performance reasons.
+   *       This means two ProteinHit objects that differ only in meta values will
+   *       have the same hash but compare unequal with operator==. This is valid
+   *       as the hash contract only requires that equal objects have equal hashes.
+   */
+  template<>
+  struct hash<OpenMS::ProteinHit>
+  {
+    std::size_t operator()(const OpenMS::ProteinHit& hit) const noexcept
+    {
+      std::size_t seed = OpenMS::hash_float(hit.getScore());
+      OpenMS::hash_combine(seed, OpenMS::hash_int(hit.getRank()));
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(hit.getAccession()));
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(hit.getSequence()));
+      OpenMS::hash_combine(seed, OpenMS::hash_float(hit.getCoverage()));
+
+      // Hash modifications (set of pairs: position + ResidueModification)
+      for (const auto& mod_pair : hit.getModifications())
+      {
+        OpenMS::hash_combine(seed, OpenMS::hash_int(mod_pair.first)); // position (Size)
+        // Use getFullId() for the modification, consistent with AASequence hashing
+        OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(mod_pair.second.getFullId()));
+      }
+
+      return seed;
+    }
+  };
+} // namespace std
 

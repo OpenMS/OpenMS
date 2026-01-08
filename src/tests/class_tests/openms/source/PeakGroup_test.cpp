@@ -11,6 +11,7 @@
 ///////////////////////////
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHHelperClasses.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
+#include <unordered_set>
 ///////////////////////////
 
 using namespace OpenMS;
@@ -350,6 +351,36 @@ START_SECTION((bool operator==(const PeakGroup &a) const))
 }
 END_SECTION
 
+START_SECTION(([EXTRA] std::hash<PeakGroup>))
+{
+  std::hash<PeakGroup> hasher;
+
+  // Test that equal PeakGroups have equal hashes
+  PeakGroup pg_copy(sample_pg);
+  TEST_EQUAL(hasher(sample_pg), hasher(pg_copy));
+
+  // Test that the hash is consistent (same object hashes the same)
+  std::size_t hash1 = hasher(sample_pg);
+  std::size_t hash2 = hasher(sample_pg);
+  TEST_EQUAL(hash1, hash2);
+
+  // Test that different PeakGroups have different hashes (with high probability)
+  // sample_pg2 has different mass/intensity than sample_pg
+  std::size_t hash_pg1 = hasher(sample_pg);
+  std::size_t hash_pg2 = hasher(sample_pg2);
+  TEST_NOT_EQUAL(hash_pg1, hash_pg2);
+
+  // Test usability in unordered_set
+  std::unordered_set<PeakGroup> pg_set;
+  pg_set.insert(sample_pg);
+  pg_set.insert(sample_pg2);
+  TEST_EQUAL(pg_set.size(), 2);
+
+  // Inserting equal element should not change size
+  pg_set.insert(pg_copy);
+  TEST_EQUAL(pg_set.size(), 2);
+}
+END_SECTION
 
 /// TODOs
 /// - updateIsotopeCosineAndQscore, recruitAllPeaksInSpectrum, isSignalMZ, setTargeted, getIsotopeIntensities

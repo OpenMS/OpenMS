@@ -11,8 +11,7 @@ cdef extern from "<OpenMS/CHEMISTRY/NASequence.h>" namespace "OpenMS":
 
     cdef cppclass NASequence "OpenMS::NASequence":
         # wrap-hash:
-        #  toString().c_str()
-        #
+        #  std
         # wrap-doc:
         #  Representation of an RNA sequence
         #  This class represents nucleic acid sequences in OpenMS. An NASequence
@@ -64,13 +63,9 @@ cdef extern from "<OpenMS/CHEMISTRY/NASequence.h>" namespace "OpenMS":
 
         NASequence getSubsequence(Size start, Size length) except + nogil  # wrap-doc:Returns a peptide sequence of number residues, beginning at position index
 
-
-# COMMENT: wrap static methods
-cdef extern from "<OpenMS/CHEMISTRY/NASequence.h>" namespace "OpenMS::NASequence":
-        
-        
         # static members
-        NASequence fromString(const String & s) except + nogil   # wrap-attach:NASequence
+        @staticmethod
+        NASequence fromString(const String & s) except + nogil
 
 cdef extern from "<OpenMS/CHEMISTRY/NASequence.h>" namespace "OpenMS::NASequence":
     cdef enum NASFragmentType "OpenMS::NASequence::NASFragmentType":

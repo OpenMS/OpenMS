@@ -11,8 +11,9 @@
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/METADATA/ProteinHit.h>
+#include <OpenMS/CONCEPT/HashUtils.h>
 
-
+#include <functional>
 #include <string>
 #include <map>
 
@@ -209,4 +210,74 @@ protected:
   };
 
 } //namespace OpenMS
+
+// Hash function specialization for PeptideIdentification
+namespace std
+{
+  /**
+   * @brief Hash function for OpenMS::PeptideIdentification.
+   *
+   * Computes a hash consistent with operator==, which compares:
+   * - MetaInfoInterface (all meta values)
+   * - id_ (string identifier)
+   * - hits_ (vector of PeptideHit)
+   * - getSignificanceThreshold() (stored as meta value)
+   * - score_type_ (string)
+   * - higher_score_better_ (bool)
+   * - getExperimentLabel() (stored as meta value)
+   * - getBaseName() (stored as meta value)
+   * - mz_ (double, with NaN handling)
+   * - rt_ (double, with NaN handling)
+   *
+   * @note Hash is consistent with operator==.
+   */
+  template<>
+  struct hash<OpenMS::PeptideIdentification>
+  {
+    std::size_t operator()(const OpenMS::PeptideIdentification& pi) const noexcept
+    {
+      // Start with MetaInfoInterface hash (includes significance_threshold, experiment_label, base_name)
+      std::size_t seed = std::hash<OpenMS::MetaInfoInterface>{}(pi);
+
+      // Hash identifier
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(pi.getIdentifier()));
+
+      // Hash all peptide hits
+      for (const auto& hit : pi.getHits())
+      {
+        OpenMS::hash_combine(seed, std::hash<OpenMS::PeptideHit>{}(hit));
+      }
+
+      // Hash score type
+      OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(pi.getScoreType()));
+
+      // Hash higher_score_better
+      OpenMS::hash_combine(seed, OpenMS::hash_int(static_cast<int>(pi.isHigherScoreBetter())));
+
+      // Hash mz (with NaN handling - NaN values hash to same value)
+      if (pi.hasMZ())
+      {
+        OpenMS::hash_combine(seed, OpenMS::hash_float(pi.getMZ()));
+      }
+      else
+      {
+        // Hash a sentinel value for NaN (consistent with operator== which treats NaN==NaN as true)
+        OpenMS::hash_combine(seed, OpenMS::hash_int(0xDEADBEEF));
+      }
+
+      // Hash rt (with NaN handling)
+      if (pi.hasRT())
+      {
+        OpenMS::hash_combine(seed, OpenMS::hash_float(pi.getRT()));
+      }
+      else
+      {
+        // Hash a different sentinel value for NaN RT
+        OpenMS::hash_combine(seed, OpenMS::hash_int(0xCAFEBABE));
+      }
+
+      return seed;
+    }
+  };
+} // namespace std
 

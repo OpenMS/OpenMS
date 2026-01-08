@@ -105,15 +105,15 @@ public:
 
       if (acqus.getParam(".IONIZATION MODE") == "LD+")
       {
-        instrument_settings.setPolarity(IonSource::POSITIVE);
+        instrument_settings.setPolarity(IonSource::Polarity::POSITIVE);
       }
       else if (acqus.getParam(".IONIZATION MODE") == "LD-")
       {
-        instrument_settings.setPolarity(IonSource::NEGATIVE);
+        instrument_settings.setPolarity(IonSource::Polarity::NEGATIVE);
       }
       else
       {
-        instrument_settings.setPolarity(IonSource::POLNULL);
+        instrument_settings.setPolarity(IonSource::Polarity::POLNULL);
       }
       spectrum.setInstrumentSettings(instrument_settings);
 
@@ -179,24 +179,24 @@ public:
       ionSourceList.resize(1);
       if (acqus.getParam(".INLET") == "DIRECT")
       {
-        ionSourceList[0].setInletType(IonSource::DIRECT);
+        ionSourceList[0].setInletType(IonSource::InletType::DIRECT);
       }
       else
       {
-        ionSourceList[0].setInletType(IonSource::INLETNULL);
-        ionSourceList[0].setIonizationMethod(IonSource::MALDI);
+        ionSourceList[0].setInletType(IonSource::InletType::INLETNULL);
+        ionSourceList[0].setIonizationMethod(IonSource::IonizationMethod::MALDI);
       }
       if (acqus.getParam(".IONIZATION MODE") == "LD+")
       {
-        ionSourceList[0].setPolarity(IonSource::POSITIVE);
+        ionSourceList[0].setPolarity(IonSource::Polarity::POSITIVE);
       }
       else if (acqus.getParam(".IONIZATION MODE") == "LD-")
       {
-        ionSourceList[0].setPolarity(IonSource::NEGATIVE);
+        ionSourceList[0].setPolarity(IonSource::Polarity::NEGATIVE);
       }
       else
       {
-        ionSourceList[0].setPolarity(IonSource::POLNULL);
+        ionSourceList[0].setPolarity(IonSource::Polarity::POLNULL);
       }
       ionSourceList[0].setMetaValue("MALDI target reference", DataValue(acqus.getParam("$TgIDS").remove('<').remove('>')));
       ionSourceList[0].setOrder(0);

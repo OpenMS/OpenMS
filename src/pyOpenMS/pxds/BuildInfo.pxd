@@ -6,31 +6,31 @@ cdef extern from "<OpenMS/SYSTEM/BuildInfo.h>" namespace "OpenMS::Internal":
 
     cdef cppclass OpenMSOSInfo:
 
-        OpenMSOSInfo() except + nogil 
+        OpenMSOSInfo() except + nogil
         OpenMSOSInfo(OpenMSOSInfo &) except + nogil  # compiler
-        String getOSAsString() except + nogil 
-        String getArchAsString() except + nogil 
-        String getOSVersionAsString() except + nogil 
+        String getOSAsString() except + nogil
+        String getArchAsString() except + nogil
+        String getOSVersionAsString() except + nogil
+
+        @staticmethod
+        OpenMSOSInfo getOSInfo() except + nogil
+
+        @staticmethod
+        String getBinaryArchitecture() except + nogil
 
     cdef cppclass OpenMSBuildInfo:
 
-        OpenMSBuildInfo() except + nogil 
+        OpenMSBuildInfo() except + nogil
         OpenMSBuildInfo(OpenMSBuildInfo &) except + nogil  # compiler
 
+        @staticmethod
+        bool isOpenMPEnabled() except + nogil
 
-cdef extern from "<OpenMS/SYSTEM/BuildInfo.h>" namespace "OpenMS::Internal::OpenMSOSInfo":
+        @staticmethod
+        String getBuildType() except + nogil
 
-    OpenMSOSInfo getOSInfo() except + nogil  # wrap-attach:OpenMSOSInfo
+        @staticmethod
+        Size getOpenMPMaxNumThreads() except + nogil
 
-    String getBinaryArchitecture() except + nogil  # wrap-attach:OpenMSOSInfo
-
-
-cdef extern from "<OpenMS/SYSTEM/BuildInfo.h>" namespace "OpenMS::Internal::OpenMSBuildInfo":
-
-    bool isOpenMPEnabled() except + nogil  # wrap-attach:OpenMSBuildInfo
-
-    String getBuildType() except + nogil  # wrap-attach:OpenMSBuildInfo
-
-    Size getOpenMPMaxNumThreads() except + nogil  # wrap-attach:OpenMSBuildInfo
-
-    void setOpenMPNumThreads(Int num_threads) except + nogil  # wrap-attach:OpenMSBuildInfo
+        @staticmethod
+        void setOpenMPNumThreads(Int num_threads) except + nogil

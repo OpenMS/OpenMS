@@ -16,7 +16,7 @@
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/VISUAL/EnhancedTabBar.h>
 #include <OpenMS/VISUAL/EnhancedWorkspace.h>
-#include <OpenMS/SYSTEM/FileWatcher.h>
+#include <OpenMS/VISUAL/FileWatcher.h>
 #include <OpenMS/VISUAL/FilterList.h>
 #include <OpenMS/VISUAL/RecentFilesMenu.h>
 #include <OpenMS/VISUAL/PlotCanvas.h>

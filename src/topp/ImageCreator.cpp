@@ -197,7 +197,7 @@ protected:
     registerStringOption_("out_type", "<file type>", "", "The image format. Set this if you want to force a format not reflected by the 'out' filename.", false);
     setValidStrings_("out_type", out_formats_);
 
-    registerStringOption_("rt", "[min]:[max]", ":", "Retention time range to extract", false);
+    registerStringOption_("rt", "[min]:[max]", ":", "Retention time range to extract [s]", false);
     registerStringOption_("mz", "[min]:[max]", ":", "Mass-to-charge range to extract", false);
 
     registerIntOption_("width", "<number>", 1024, "Number of pixels in m/z dimension.\nIf 0, one pixel per Th.", false);

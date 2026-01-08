@@ -2,13 +2,17 @@ from String cimport *
 from Software cimport *
 from MetaInfoInterface cimport *
 from libcpp.vector cimport vector as libcpp_vector
+from libcpp.string cimport string as libcpp_utf8_string
+from libcpp.string cimport string as libcpp_utf8_output_string
 
 cdef extern from "<OpenMS/METADATA/IonDetector.h>" namespace "OpenMS":
 
     cdef cppclass IonDetector(MetaInfoInterface):
         # wrap-inherits:
         #   MetaInfoInterface
-        
+        # wrap-hash:
+        #  std
+
         IonDetector() except + nogil  # wrap-doc:Description of a ion detector (part of a MS Instrument)
         IonDetector(IonDetector &) except + nogil  
 
@@ -32,6 +36,18 @@ cdef extern from "<OpenMS/METADATA/IonDetector.h>" namespace "OpenMS":
 
         @staticmethod
         libcpp_vector[String] getAllNamesOfAcquisitionMode() except + nogil  # wrap-doc:Returns all acquisition mode names known to OpenMS
+
+        @staticmethod
+        libcpp_utf8_output_string typeToString(Type_IonDetector type_) except + nogil  # wrap-doc:Convert a Type enum to its string representation. Throws Exception::InvalidValue if type is SIZE_OF_TYPE
+
+        @staticmethod
+        Type_IonDetector toType(const libcpp_utf8_string& name) except + nogil  # wrap-doc:Convert a string to a Type enum. Throws Exception::InvalidValue if name is not found
+
+        @staticmethod
+        libcpp_utf8_output_string acquisitionModeToString(AcquisitionMode mode) except + nogil  # wrap-doc:Convert an AcquisitionMode enum to its string representation. Throws Exception::InvalidValue if mode is SIZE_OF_ACQUISITIONMODE
+
+        @staticmethod
+        AcquisitionMode toAcquisitionMode(const libcpp_utf8_string& name) except + nogil  # wrap-doc:Convert a string to an AcquisitionMode enum. Throws Exception::InvalidValue if name is not found
 
 cdef extern from "<OpenMS/METADATA/IonDetector.h>" namespace "OpenMS::IonDetector":
 
