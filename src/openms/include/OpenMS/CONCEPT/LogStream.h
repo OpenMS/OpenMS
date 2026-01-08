@@ -103,6 +103,18 @@ public:
       LogStreamBuf(const std::string& log_level = UNKNOWN_LOG_LEVEL, Colorizer* col = nullptr);
 
       /**
+        Create a LogStreamBuf that copies the stream_list_ configuration from another LogStreamBuf.
+
+        This constructor is used for thread-local logging where each thread has its own
+        buffer and stream configuration (for thread safety), but starts with the same
+        initial configuration as the global LogStream instances.
+
+        @param[in] source_buf The LogStreamBuf whose stream_list_ should be copied
+        @param[in] col If messages should be colored, provide a colorizer here
+      */
+      LogStreamBuf(LogStreamBuf* source_buf, Colorizer* col = nullptr);
+
+      /**
         Destruct the buffer and free all stored messages strings.
       */
       ~LogStreamBuf() override;
@@ -185,9 +197,13 @@ protected:
       /// Interpret the prefix format string and return the expanded prefix.
       std::string expandPrefix_(const std::string & prefix, time_t time) const;
 
+      /// Returns the stream list (owned or shared)
+      std::list<StreamStruct>& getStreamList_();
+      const std::list<StreamStruct>& getStreamList_() const;
+
       char * pbuf_ = nullptr;
       std::string             level_;
-      std::list<StreamStruct> stream_list_;
+      std::list<StreamStruct> stream_list_;  ///< Stream list for this buffer
       std::string             incomplete_line_;
       Colorizer* colorizer_ = nullptr; ///< optional Colorizer to color the output to stdout/stdcerr (if attached)
       /// @name Caching
@@ -415,6 +431,14 @@ public:
 
       ///
       void flush();
+
+      /**
+        Flush any incomplete line (text not terminated by newline) to all streams.
+
+        This is useful for thread-local logging where the buffer needs to be
+        flushed before streams are reconfigured globally.
+      */
+      void flushIncomplete();
       //@}
 private:
 

@@ -11,6 +11,7 @@
 
 ///////////////////////////
 #include <OpenMS/CONCEPT/LogConfigHandler.h>
+#include <OpenMS/CONCEPT/ThreadLogContext.h>
 ///////////////////////////
 
 #include <boost/regex.hpp>
@@ -67,6 +68,10 @@ START_SECTION((void configure(const Param &param)))
   p.setValue(LogConfigHandler::PARAM_NAME, settings, "List of all settings that should be applied to the current Logging Configuration");
 
   LogConfigHandler::getInstance()->configure(p);
+  // Reset thread-local streams to pick up the new configuration
+#ifdef OPENMS_THREADLOCAL_LOGGING
+  ThreadLogContext::reset();
+#endif
 
   OPENMS_LOG_INFO << "1" << endl;
   OPENMS_LOG_INFO << "2" << endl;
@@ -78,6 +83,9 @@ START_SECTION((void configure(const Param &param)))
   p.setValue(LogConfigHandler::PARAM_NAME, settings, "List of all settings that should be applied to the current Logging Configuration");
 
   LogConfigHandler::getInstance()->configure(p);
+#ifdef OPENMS_THREADLOCAL_LOGGING
+  ThreadLogContext::reset();
+#endif
 
   // this should go into nowhere
   OPENMS_LOG_WARN << "5" << endl;
@@ -123,6 +131,9 @@ START_SECTION((ostream& getStream(const String &stream_name)))
   p.setValue(LogConfigHandler::PARAM_NAME, settings, "List of all settings that should be applied to the current Logging Configuration");
 
   LogConfigHandler::getInstance()->configure(p);
+#ifdef OPENMS_THREADLOCAL_LOGGING
+  ThreadLogContext::reset();
+#endif
 
   OPENMS_LOG_INFO << "getStream 1" << endl;
 
@@ -159,19 +170,28 @@ START_SECTION((void setLogLevel(const String &log_level) - restoring streams))
   Param p;
   p.setValue(LogConfigHandler::PARAM_NAME, settings, "List of all settings that should be applied to the current Logging Configuration");
   LogConfigHandler::getInstance()->configure(p);
-  
+#ifdef OPENMS_THREADLOCAL_LOGGING
+  ThreadLogContext::reset();
+#endif
+
   // Write a message at INFO level - should appear
   OPENMS_LOG_INFO << "message1" << endl;
-  
+
   // Set log level to ERROR (should remove INFO streams)
   LogConfigHandler::getInstance()->setLogLevel("ERROR");
-  
+#ifdef OPENMS_THREADLOCAL_LOGGING
+  ThreadLogContext::reset();
+#endif
+
   // Write a message at INFO level - should NOT appear
   OPENMS_LOG_INFO << "message2" << endl;
-  
+
   // Lower log level back to INFO (should restore INFO streams)
   LogConfigHandler::getInstance()->setLogLevel("INFO");
-  
+#ifdef OPENMS_THREADLOCAL_LOGGING
+  ThreadLogContext::reset();
+#endif
+
   // Write a message at INFO level - should appear again
   OPENMS_LOG_INFO << "message3" << endl;
   
@@ -199,7 +219,10 @@ START_SECTION((removeAllStreams flushes buffers))
   Param p;
   p.setValue(LogConfigHandler::PARAM_NAME, settings, "List of all settings that should be applied to the current Logging Configuration");
   LogConfigHandler::getInstance()->configure(p);
-  
+#ifdef OPENMS_THREADLOCAL_LOGGING
+  ThreadLogContext::reset();
+#endif
+
   // Write without endl (no flush yet)
   OPENMS_LOG_WARN << "unflushed_message";
   
@@ -228,21 +251,30 @@ START_SECTION((void setLogLevel(const String &log_level) - NONE level))
   Param p;
   p.setValue(LogConfigHandler::PARAM_NAME, settings, "List of all settings that should be applied to the current Logging Configuration");
   LogConfigHandler::getInstance()->configure(p);
-  
+#ifdef OPENMS_THREADLOCAL_LOGGING
+  ThreadLogContext::reset();
+#endif
+
   // Write messages - should appear
   OPENMS_LOG_INFO << "before_none_info" << endl;
   OPENMS_LOG_ERROR << "before_none_error" << endl;
-  
+
   // Set log level to NONE (should remove all streams)
   LogConfigHandler::getInstance()->setLogLevel("NONE");
-  
+#ifdef OPENMS_THREADLOCAL_LOGGING
+  ThreadLogContext::reset();
+#endif
+
   // Write messages - should NOT appear
   OPENMS_LOG_INFO << "during_none_info" << endl;
   OPENMS_LOG_ERROR << "during_none_error" << endl;
-  
+
   // Restore log level to INFO (should restore INFO and higher streams)
   LogConfigHandler::getInstance()->setLogLevel("INFO");
-  
+#ifdef OPENMS_THREADLOCAL_LOGGING
+  ThreadLogContext::reset();
+#endif
+
   // Write messages - should appear again
   OPENMS_LOG_INFO << "after_none_info" << endl;
   OPENMS_LOG_ERROR << "after_none_error" << endl;

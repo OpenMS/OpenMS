@@ -16,12 +16,20 @@
 namespace OpenMS
 {
 
+// Forward declarations to access global LogStream instances
+extern Logger::LogStream OpenMS_Log_fatal;
+extern Logger::LogStream OpenMS_Log_error;
+extern Logger::LogStream OpenMS_Log_warn;
+extern Logger::LogStream OpenMS_Log_info;
+extern Logger::LogStream OpenMS_Log_debug;
+
 namespace
 {
   /// Internal structure holding thread-local log streams (implementation detail)
   struct ThreadLogStreamsImpl
   {
-    /// Each thread gets its own set of LogStream instances
+    /// Each thread gets its own set of LogStream instances with thread-local buffers
+    /// but shared stream_list_ with the global LogStream instances
     std::unique_ptr<Logger::LogStream> fatal;
     std::unique_ptr<Logger::LogStream> error;
     std::unique_ptr<Logger::LogStream> warn;
@@ -42,29 +50,31 @@ namespace
 
     void initialize()
     {
-      // Create LogStreamBuf with same configuration as the global streams
-      // Each thread gets its own buffer, cache, and incomplete_line_ state
+      // Create LogStreamBuf with thread-local buffers but shared stream_list_
+      // This way each thread has its own buffer/cache (for thread safety)
+      // but shares the output stream configuration with the global LogStreams
       fatal = std::make_unique<Logger::LogStream>(
-          new Logger::LogStreamBuf("FATAL_ERROR", &red), true, &std::cerr);
+          new Logger::LogStreamBuf(OpenMS_Log_fatal.rdbuf(), &red), true);
       error = std::make_unique<Logger::LogStream>(
-          new Logger::LogStreamBuf("ERROR", &red), true, &std::cerr);
+          new Logger::LogStreamBuf(OpenMS_Log_error.rdbuf(), &red), true);
       warn = std::make_unique<Logger::LogStream>(
-          new Logger::LogStreamBuf("WARNING", &yellow), true, &std::cout);
+          new Logger::LogStreamBuf(OpenMS_Log_warn.rdbuf(), &yellow), true);
       info = std::make_unique<Logger::LogStream>(
-          new Logger::LogStreamBuf("INFO", nullptr), true, &std::cout);
-      // Debug is disabled by default (no stream attached), same as global
+          new Logger::LogStreamBuf(OpenMS_Log_info.rdbuf(), nullptr), true);
       debug = std::make_unique<Logger::LogStream>(
-          new Logger::LogStreamBuf("DEBUG", &magenta), false);
+          new Logger::LogStreamBuf(OpenMS_Log_debug.rdbuf(), &magenta), true);
       initialized = true;
     }
 
     void flushAll()
     {
-      if (fatal) fatal->flush();
-      if (error) error->flush();
-      if (warn) warn->flush();
-      if (info) info->flush();
-      if (debug) debug->flush();
+      // Use flushIncomplete() to ensure incomplete lines (text not terminated by newline)
+      // are also flushed to the streams
+      if (fatal) fatal->flushIncomplete();
+      if (error) error->flushIncomplete();
+      if (warn) warn->flushIncomplete();
+      if (info) info->flushIncomplete();
+      if (debug) debug->flushIncomplete();
     }
 
     void reset()

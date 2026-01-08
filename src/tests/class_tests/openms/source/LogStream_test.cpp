@@ -18,6 +18,7 @@
 
 ///////////////////////////
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/CONCEPT/ThreadLogContext.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <fstream>
@@ -55,12 +56,10 @@ START_TEST(LogStream, "$Id$")
 START_SECTION(([EXTRA] OpenMP - test))
 {
   // just see if this crashes with OpenMP
-  ostringstream stream_by_logger;
-  OpenMS_Log_debug.insert(stream_by_logger);
-  OpenMS_Log_debug.remove(cout);
-  OpenMS_Log_info.insert(stream_by_logger);
-  OpenMS_Log_info.remove(cout);
-
+  // Note: We don't attach custom streams because with thread-local logging,
+  // each OpenMP thread gets its own thread-local streams which would hold
+  // references to the custom stream that may outlive it.
+  // Instead, we just test that logging doesn't crash with OpenMP.
   {
     // create a long string that is of similar length as the buffer length to
     // ensure buffering and flushing works correctly LogStream.cpp even in a
@@ -74,16 +73,20 @@ START_SECTION(([EXTRA] OpenMP - test))
     #endif
     for (int i=0;i<10000;++i)
     {
+#ifdef OPENMS_THREADLOCAL_LOGGING
+      // Use thread-local macros with OpenMP for thread safety
+      OPENMS_LOG_DEBUG_TL << long_str << "1\n";
+      OPENMS_LOG_DEBUG_TL << "2" << endl;
+      OPENMS_LOG_INFO_TL << "1\n";
+      OPENMS_LOG_INFO_TL << "2" << endl;
+#else
       OPENMS_LOG_DEBUG << long_str << "1\n";
       OPENMS_LOG_DEBUG << "2" << endl;
       OPENMS_LOG_INFO << "1\n";
       OPENMS_LOG_INFO << "2" << endl;
+#endif
     }
   }
-
-  // remove logger after testing
-  OpenMS_Log_debug.remove(stream_by_logger);
-  OpenMS_Log_info.remove(stream_by_logger);
 
   NOT_TESTABLE;
 }

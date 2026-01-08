@@ -39,13 +39,37 @@ namespace OpenMS
     const time_t LogStreamBuf::MAX_TIME = numeric_limits<time_t>::max();
     const std::string LogStreamBuf::UNKNOWN_LOG_LEVEL = "UNKNOWN_LOG_LEVEL";
 
-    LogStreamBuf::LogStreamBuf(const std::string& log_level, Colorizer* col) 
+    LogStreamBuf::LogStreamBuf(const std::string& log_level, Colorizer* col)
       : std::streambuf(),
         level_(log_level),
         colorizer_(col)
     {
       pbuf_ = new char[BUFFER_LENGTH];
       std::streambuf::setp(pbuf_, pbuf_ + BUFFER_LENGTH - 1);
+    }
+
+    LogStreamBuf::LogStreamBuf(LogStreamBuf* source_buf, Colorizer* col)
+      : std::streambuf(),
+        level_(source_buf ? source_buf->level_ : UNKNOWN_LOG_LEVEL),
+        colorizer_(col)
+    {
+      pbuf_ = new char[BUFFER_LENGTH];
+      std::streambuf::setp(pbuf_, pbuf_ + BUFFER_LENGTH - 1);
+      // Copy the stream_list_ from the source buffer
+      if (source_buf)
+      {
+        stream_list_ = source_buf->stream_list_;
+      }
+    }
+
+    std::list<LogStreamBuf::StreamStruct>& LogStreamBuf::getStreamList_()
+    {
+      return stream_list_;
+    }
+
+    const std::list<LogStreamBuf::StreamStruct>& LogStreamBuf::getStreamList_() const
+    {
+      return stream_list_;
     }
 
     LogStreamBuf::~LogStreamBuf()
@@ -556,6 +580,20 @@ namespace OpenMS
     void LogStream::flush()
     {
       std::ostream::flush();
+    }
+
+    void LogStream::flushIncomplete()
+    {
+      if (!bound_())
+        return;
+
+      rdbuf()->sync();
+      // Distribute any incomplete line (text not terminated by newline)
+      if (!rdbuf()->incomplete_line_.empty())
+      {
+        rdbuf()->distribute_(rdbuf()->incomplete_line_);
+        rdbuf()->incomplete_line_.clear();
+      }
     }
 
   }   // namespace Logger
