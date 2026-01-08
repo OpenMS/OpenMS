@@ -14,7 +14,7 @@
 #include <OpenMS/DATASTRUCTURES/MassExplainer.h>
 #include <OpenMS/SYSTEM/StopWatch.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
-
+#include <unordered_map>
 #include <fstream>
 #include <map>
 
@@ -443,7 +443,7 @@ namespace OpenMS
 
     // variable values
     UInt active_edges = 0;
-    std::map<String, Size> count_cmp;
+    std::unordered_map<String, Size> count_cmp;
 
     for (Int iColumn = 0; iColumn < build.getNumberOfColumns(); ++iColumn)
     {
