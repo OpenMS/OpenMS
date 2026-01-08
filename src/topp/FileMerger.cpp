@@ -32,6 +32,55 @@ using namespace std;
 
 @brief Merges several files. Multiple output formats supported, depending on the input format.
 
+<B>Supported input/output file type combinations:</B>
+
+<center>
+<table>
+<tr>
+<th ALIGN = "center"> Input file type(s) </th>
+<th ALIGN = "center"> Output file type </th>
+<th ALIGN = "center"> Notes </th>
+</tr>
+<tr>
+<td VALIGN="middle" ALIGN = "center"> featureXML </td>
+<td VALIGN="middle" ALIGN = "center"> featureXML </td>
+<td VALIGN="middle" ALIGN = "left"> Features from multiple files are combined </td>
+</tr>
+<tr>
+<td VALIGN="middle" ALIGN = "center"> consensusXML </td>
+<td VALIGN="middle" ALIGN = "center"> consensusXML </td>
+<td VALIGN="middle" ALIGN = "left"> See append_method parameter (append_rows or append_cols) </td>
+</tr>
+<tr>
+<td VALIGN="middle" ALIGN = "center"> traML </td>
+<td VALIGN="middle" ALIGN = "center"> traML </td>
+<td VALIGN="middle" ALIGN = "left"> Targeted experiment transitions are combined </td>
+</tr>
+<tr>
+<td VALIGN="middle" ALIGN = "center"> fasta </td>
+<td VALIGN="middle" ALIGN = "center"> fasta </td>
+<td VALIGN="middle" ALIGN = "left"> Protein/peptide sequences are combined; warnings for duplicates </td>
+</tr>
+<tr>
+<td VALIGN="middle" ALIGN = "center"> mzML, mzXML, mzData </td>
+<td VALIGN="middle" ALIGN = "center"> mzML </td>
+<td VALIGN="middle" ALIGN = "left"> Raw MS data formats merge to mzML </td>
+</tr>
+<tr>
+<td VALIGN="middle" ALIGN = "center"> dta, dta2d </td>
+<td VALIGN="middle" ALIGN = "center"> mzML </td>
+<td VALIGN="middle" ALIGN = "left"> DTA formats merge to mzML; RT handling via raw:* parameters </td>
+</tr>
+<tr>
+<td VALIGN="middle" ALIGN = "center"> mgf, fid </td>
+<td VALIGN="middle" ALIGN = "center"> mzML </td>
+<td VALIGN="middle" ALIGN = "left"> Other raw data formats merge to mzML </td>
+</tr>
+</table>
+</center>
+
+@note All input files for a single merge operation must be of the same type (or compatible raw data types that all output to mzML).
+
 <center>
 <table>
 <tr>
