@@ -9,7 +9,6 @@ set(concept_executables_list
   VersionInfo_test
   LogConfigHandler_test
   LogStream_test
-  ThreadLogContext_test
   Multithreading_test
   UniqueIdGenerator_test
   UniqueIdIndexer_test
@@ -646,7 +645,6 @@ set(Boost_dependent_tests
   FASTAContainer_test
   LogConfigHandler_test
   LogStream_test
-  ThreadLogContext_test
   MRMDecoy_test
   MRMFeatureFinderScoring_test
   MRMTransitionGroupPicker_test

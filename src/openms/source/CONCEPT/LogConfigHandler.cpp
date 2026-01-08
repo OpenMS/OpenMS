@@ -10,7 +10,6 @@
 #include <algorithm>
 
 #include <OpenMS/CONCEPT/LogConfigHandler.h>
-#include <OpenMS/CONCEPT/ThreadLogContext.h>
 
 using std::cout;
 using std::cerr;
@@ -225,12 +224,6 @@ namespace OpenMS
 
   void LogConfigHandler::setLogLevel(const String & log_level)
   {
-    // Flush any pending data in thread-local buffers before reconfiguring
-    // This ensures data written without endl gets flushed before streams are removed
-#ifdef OPENMS_THREADLOCAL_LOGGING
-    ThreadLogContext::flushAll();
-#endif
-
     // Special case: "NONE" means disable all logging
     if (log_level == "NONE")
     {

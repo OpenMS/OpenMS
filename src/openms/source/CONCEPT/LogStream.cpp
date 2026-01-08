@@ -610,4 +610,39 @@ namespace OpenMS
   // OPENMS_LOG_DEBUG is disabled by default, but will be enabled in TOPPAS.cpp or TOPPBase.cpp if started in debug mode (--debug or -debug X)
   OPENMS_DLLAPI Logger::LogStream OpenMS_Log_debug(new Logger::LogStreamBuf("DEBUG", &magenta), false); // last param should be 'true', but segfaults...
 
+  //
+  // Thread-local log stream accessors
+  // Each thread gets its own LogStream instance with a private buffer,
+  // but shares the stream_list_ (output destinations) with the global instance.
+  //
+  Logger::LogStream& getThreadLocalLogFatal()
+  {
+    thread_local Logger::LogStream tls(new Logger::LogStreamBuf(OpenMS_Log_fatal.rdbuf(), &red), true);
+    return tls;
+  }
+
+  Logger::LogStream& getThreadLocalLogError()
+  {
+    thread_local Logger::LogStream tls(new Logger::LogStreamBuf(OpenMS_Log_error.rdbuf(), &red), true);
+    return tls;
+  }
+
+  Logger::LogStream& getThreadLocalLogWarn()
+  {
+    thread_local Logger::LogStream tls(new Logger::LogStreamBuf(OpenMS_Log_warn.rdbuf(), &yellow), true);
+    return tls;
+  }
+
+  Logger::LogStream& getThreadLocalLogInfo()
+  {
+    thread_local Logger::LogStream tls(new Logger::LogStreamBuf(OpenMS_Log_info.rdbuf(), nullptr), true);
+    return tls;
+  }
+
+  Logger::LogStream& getThreadLocalLogDebug()
+  {
+    thread_local Logger::LogStream tls(new Logger::LogStreamBuf(OpenMS_Log_debug.rdbuf(), &magenta), true);
+    return tls;
+  }
+
 } // namespace OpenMS

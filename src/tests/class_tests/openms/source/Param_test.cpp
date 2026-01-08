@@ -13,7 +13,6 @@
 
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/CONCEPT/ThreadLogContext.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h> // for "ParameterInformation"
 
@@ -1629,14 +1628,9 @@ END_SECTION
 ostringstream os;
 // checkDefaults sends its warnings to OPENMS_LOG_WARN so we register our own
 // listener here to check the output.
-// With thread-local logging, we need to configure the thread-local stream.
-#ifdef OPENMS_THREADLOCAL_LOGGING
-ThreadLogContext::warn().remove(cout);
-ThreadLogContext::warn().insert(os);
-#else
-OpenMS_Log_warn.remove(cout);
-OpenMS_Log_warn.insert(os);
-#endif
+// Configure the thread-local warn stream
+getThreadLocalLogWarn().remove(cout);
+getThreadLocalLogWarn().insert(os);
 
 START_SECTION((void checkDefaults(const std::string &name, const Param &defaults, const std::string& prefix="") const))
     Param p,d;

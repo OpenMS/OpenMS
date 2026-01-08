@@ -156,9 +156,4 @@ static constexpr cstr past_last_slash(cstr str)
 //       but currently we need this information for the ToolHandler.
 #cmakedefine WITH_GUI 1
 
-// Thread-local logging to fix data races in LogStream (see issue #8596)
-// When enabled, OPENMS_LOG_* macros use thread-local LogStream instances
-// instead of global ones protected by OpenMP critical sections.
-#cmakedefine OPENMS_THREADLOCAL_LOGGING 1
-
 #endif // OPENMS_CONFIG_H
