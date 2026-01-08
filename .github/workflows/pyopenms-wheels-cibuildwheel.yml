@@ -148,7 +148,7 @@ jobs:
           grep "^version" src/pyOpenMS/pyproject.toml
 
       - name: Build wheels with cibuildwheel
-        uses: pypa/cibuildwheel@v2.22
+        uses: pypa/cibuildwheel@v3.3
         with:
           package-dir: src/pyOpenMS
           output-dir: wheelhouse
@@ -229,7 +229,7 @@ jobs:
           grep "^version" src/pyOpenMS/pyproject.toml
 
       - name: Build wheels with cibuildwheel
-        uses: pypa/cibuildwheel@v2.22
+        uses: pypa/cibuildwheel@v3.3
         with:
           package-dir: src/pyOpenMS
           output-dir: wheelhouse
@@ -297,7 +297,7 @@ jobs:
           grep "^version" src/pyOpenMS/pyproject.toml
 
       - name: Build wheels with cibuildwheel
-        uses: pypa/cibuildwheel@v2.22
+        uses: pypa/cibuildwheel@v3.3
         with:
           package-dir: src/pyOpenMS
           output-dir: wheelhouse
@@ -403,7 +403,7 @@ jobs:
           echo "QT_CMAKE=${QT_CMAKE}" >> $GITHUB_ENV
 
       - name: Build wheels with cibuildwheel
-        uses: pypa/cibuildwheel@v2.22
+        uses: pypa/cibuildwheel@v3.3
         with:
           package-dir: src/pyOpenMS
           output-dir: wheelhouse
