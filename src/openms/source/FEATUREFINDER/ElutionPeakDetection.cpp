@@ -264,12 +264,12 @@ namespace OpenMS
 
         // out debug info
 #ifdef DEBUG_EPD
-        std::cout << "findLocalExtrema: Identified potential minimum " << std::endl;
+        std::cout << "findLocalExtrema: Identified potential minimum " << '\n';
         std::cout << "    " << tr.getLabel() << ": left_idx,right_idx " << left_idx << "," << right_idx << 
           ":" << left_max_int << " min: " << min_int << " " << right_max_int << 
-          " l " << left_rt << " r " << right_rt << " m " << mid_rt << std::endl;
-        std::cout << "    Int: min " << min_int << ", left: " << left_max_int << ", right: " << right_max_int << std::endl;
-        std::cout << "    Distance: min " << min_dist << ", left: " << left_dist << ", right: " << right_dist << std::endl;
+          " l " << left_rt << " r " << right_rt << " m " << mid_rt << '\n';
+        std::cout << "    Int: min " << min_int << ", left: " << left_max_int << ", right: " << right_max_int << '\n';
+        std::cout << "    Distance: min " << min_dist << ", left: " << left_dist << ", right: " << right_dist << '\n';
 #endif
 
         // 2.4 Decide whether to split the masstrace (introduce a minimum):
@@ -282,7 +282,7 @@ namespace OpenMS
         {
 #ifdef DEBUG_EPD
         std::cout << "    -> add new minima " << ": left_idx,right_idx " << left_idx << "," << right_idx << 
-          " l " << left_rt << " r " << right_rt << " m " << mid_rt << std::endl;
+          " l " << left_rt << " r " << right_rt << " m " << mid_rt << '\n';
 #endif
 
           chrom_mins.push_back(min_rt);
@@ -366,13 +366,13 @@ namespace OpenMS
     {
       if (count_mt >= lower_quartile_idx && count_mt <= upper_quartile_idx)
       {
-        // std::cout << "pw added " << width_pair.first << std::endl;
+        // std::cout << "pw added " << width_pair.first << '\n';
         filt_mtraces.push_back(mt_vec[width_pair.second]);
       }
       ++count_mt;
     }
 
-    std::cout << "pw low: " << filt_mtraces[0].estimateFWHM(true) << " " << " pw high: " << filt_mtraces[filt_mtraces.size() - 1].estimateFWHM(true) << std::endl;
+    std::cout << "pw low: " << filt_mtraces[0].estimateFWHM(true) << " " << " pw high: " << filt_mtraces[filt_mtraces.size() - 1].estimateFWHM(true) << '\n';
 
     return;
   }
@@ -392,16 +392,16 @@ namespace OpenMS
 
 #ifdef DEBUG_EPD
     Size i = 0;
-    std::cout << "*****" << std::endl;
-    std::cout << "   finding elution peaks in mass traces RT "  << mt.getCentroidRT()  << " / mz " << mt.getCentroidMZ() << std::endl;
-    std::cout << "   used for smoothing: win_size "  << win_size << " FWHM scan num " /* << mt.getFWHMScansNum() */ << std::endl;
-    std::cout << "*****" << std::endl;
+    std::cout << "*****" << '\n';
+    std::cout << "   finding elution peaks in mass traces RT "  << mt.getCentroidRT()  << " / mz " << mt.getCentroidMZ() << '\n';
+    std::cout << "   used for smoothing: win_size "  << win_size << " FWHM scan num " /* << mt.getFWHMScansNum() */ << '\n';
+    std::cout << "*****" << '\n';
     for (const auto& peak : mt)
     {
-      // std::cout << peak.getIntensity() << " " << mt.getSmoothedIntensities()[i] << std::endl;
+      // std::cout << peak.getIntensity() << " " << mt.getSmoothedIntensities()[i] << '\n';
       ++i;
     }
-    std::cout << "*****" << std::endl;
+    std::cout << "*****" << '\n';
 #endif
 
     // *********************************************************************
@@ -411,7 +411,7 @@ namespace OpenMS
     findLocalExtrema(mt, win_size / 2, maxes, mins);
 
 #ifdef DEBUG_EPD
-    std::cout << "findLocalExtrema returned: maxima " << maxes.size() << " / minima " << mins.size() << std::endl;
+    std::cout << "findLocalExtrema returned: maxima " << maxes.size() << " / minima " << mins.size() << '\n';
 #endif
 
     // *********************************************************************
@@ -593,7 +593,7 @@ namespace OpenMS
     mt.setSmoothedIntensities(smoothed_intensities);
     //alternative end
 
-    // std::cout << "win_size elution: " << scan_time << " " << win_size << std::endl;
+    // std::cout << "win_size elution: " << scan_time << " " << win_size << '\n';
 
     // if there is no previous FWHM estimation... do it now
     //    if (win_size == 0)

@@ -91,12 +91,12 @@ namespace OpenMS
         mobi_peak.setIntensity(0.0);
         mobi_peak.setMobility(im_grid[k]);
       }
-      // OPENMS_LOG_DEBUG << "grid position " << im_grid[k] << " profile position " << pr_it->first << std::endl;
+      // OPENMS_LOG_DEBUG << "grid position " << im_grid[k] << " profile position " << pr_it->first << '\n';
 
       // check that we did not advance past
       if (pr_it != profile.end() && (im_grid[k] - pr_it->getMobility()) > eps*10)
       {
-        std::cout << " This should never happen, pr_it has advanced past the master container: " << im_grid[k]  << "  / " <<  pr_it->getMobility()  << std::endl;
+        std::cout << " This should never happen, pr_it has advanced past the master container: " << im_grid[k]  << "  / " <<  pr_it->getMobility()  << '\n';
         throw Exception::OutOfRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
       }
 
@@ -269,7 +269,7 @@ namespace OpenMS
     {
       if (s->getDriftTimeArray() == nullptr)
       {
-        OPENMS_LOG_DEBUG << " ERROR: Drift time is missing in ion mobility spectrum!" << std::endl;
+        OPENMS_LOG_DEBUG << " ERROR: Drift time is missing in ion mobility spectrum!" << '\n';
         return;
       }
     }
@@ -278,7 +278,7 @@ namespace OpenMS
     {
       if (s->getDriftTimeArray() == nullptr)
       {
-        OPENMS_LOG_DEBUG << " ERROR: Drift time is missing in MS1 ion mobility spectrum!" << std::endl;
+        OPENMS_LOG_DEBUG << " ERROR: Drift time is missing in MS1 ion mobility spectrum!" << '\n';
         return;
       }
     }
@@ -341,7 +341,7 @@ namespace OpenMS
       OpenSwath::MRMScoring mrmscore_;
       mrmscore_.initializeXCorrPrecursorContrastMatrix({ms1_int_values}, aligned_int_vec);
       OPENMS_LOG_DEBUG << "all-all: Contrast Scores : coelution precursor : " << mrmscore_.calcXcorrPrecursorContrastCoelutionScore() << " / shape  precursor " <<
-        mrmscore_.calcXcorrPrecursorContrastShapeScore() << std::endl;
+        mrmscore_.calcXcorrPrecursorContrastShapeScore() << '\n';
       scores.im_ms1_contrast_coelution = mrmscore_.calcXcorrPrecursorContrastCoelutionScore();
       scores.im_ms1_contrast_shape = mrmscore_.calcXcorrPrecursorContrastShapeScore();
     }
@@ -361,7 +361,7 @@ namespace OpenMS
     // horribly broken: provides vector of length 1, but expects at least length 2 in calcXcorrPrecursorContrastCoelutionScore()
     mrmscore_.initializeXCorrPrecursorContrastMatrix({ms1_int_values}, {fragment_values});
     OPENMS_LOG_DEBUG << "Contrast Scores : coelution precursor : " << mrmscore_.calcXcorrPrecursorContrastSumFragCoelutionScore() << " / shape  precursor " <<
-       mrmscore_.calcXcorrPrecursorContrastSumFragShapeScore() << std::endl;
+       mrmscore_.calcXcorrPrecursorContrastSumFragShapeScore() << '\n';
 
     // in order to prevent assertion error call calcXcorrPrecursorContrastSumFragCoelutionScore, same as calcXcorrPrecursorContrastCoelutionScore() however different assertion
     scores.im_ms1_sum_contrast_coelution = mrmscore_.calcXcorrPrecursorContrastSumFragCoelutionScore();
@@ -385,7 +385,7 @@ namespace OpenMS
     for (auto s:spectra){
       if (s->getDriftTimeArray() == nullptr)
       {
-        OPENMS_LOG_DEBUG << " ERROR: Drift time is missing in ion mobility spectrum!" << std::endl;
+        OPENMS_LOG_DEBUG << " ERROR: Drift time is missing in ion mobility spectrum!" << '\n';
         return;
       }
     }
@@ -420,7 +420,7 @@ namespace OpenMS
     {
       if (s->getDriftTimeArray() == nullptr)
       {
-        OPENMS_LOG_DEBUG << " ERROR: Drift time is missing in ion mobility spectrum!" << std::endl;
+        OPENMS_LOG_DEBUG << " ERROR: Drift time is missing in ion mobility spectrum!" << '\n';
         return;
       }
     }
@@ -459,7 +459,7 @@ namespace OpenMS
 
       delta_drift_abs += fabs(drift_target - im);
       delta_drift += drift_target - im;
-      OPENMS_LOG_DEBUG << "  -- have delta drift time " << fabs(drift_target -im ) << " with im " << im << std::endl;
+      OPENMS_LOG_DEBUG << "  -- have delta drift time " << fabs(drift_target -im ) << " with im " << im << '\n';
       computed_im += im;
       computed_im_weighted += im * intensity;
       sum_intensity += intensity;
@@ -482,8 +482,8 @@ namespace OpenMS
       computed_im_weighted = -1;
     }
 
-    OPENMS_LOG_DEBUG << " Scoring delta drift time " << delta_drift << std::endl;
-    OPENMS_LOG_DEBUG << " Scoring weighted delta drift time " << computed_im_weighted << " -> get difference " << std::fabs(computed_im_weighted - drift_target)<< std::endl;
+    OPENMS_LOG_DEBUG << " Scoring delta drift time " << delta_drift << '\n';
+    OPENMS_LOG_DEBUG << " Scoring weighted delta drift time " << computed_im_weighted << " -> get difference " << std::fabs(computed_im_weighted - drift_target)<< '\n';
     scores.im_delta_score = delta_drift_abs;
     scores.im_delta = delta_drift;
     scores.im_drift = computed_im;
@@ -562,7 +562,7 @@ namespace OpenMS
 
       // if (spectrum->getDriftTimeArray() == nullptr)
       // {
-      //   OPENMS_LOG_DEBUG << " ERROR: Drift time is missing in ion mobility spectrum!" << std::endl;
+      //   OPENMS_LOG_DEBUG << " ERROR: Drift time is missing in ion mobility spectrum!" << '\n';
       //   return;
       // }
 
@@ -571,7 +571,7 @@ namespace OpenMS
       {
         if (s->getDriftTimeArray() == nullptr)
         {
-          OPENMS_LOG_DEBUG << " ERROR: Drift time is missing in ion mobility spectrum!" << std::endl;
+          OPENMS_LOG_DEBUG << " ERROR: Drift time is missing in ion mobility spectrum!" << '\n';
           return;
         }
       }
@@ -593,7 +593,7 @@ namespace OpenMS
       scores.im_delta = drift_target - im;
 
       scores.im_log_intensity = std::log1p(intensity);
-      OPENMS_LOG_DEBUG << "Identification Transition IM Scoring for " << transition[0].transition_name << " range (" << im_range.getMin() << " - " << im_range.getMax() << ") IM = " << im << " im_delta = " << drift_target - im << " int = " << intensity << " log int = " << std::log(intensity+1) << std::endl;
+      OPENMS_LOG_DEBUG << "Identification Transition IM Scoring for " << transition[0].transition_name << " range (" << im_range.getMin() << " - " << im_range.getMax() << ") IM = " << im << " im_delta = " << drift_target - im << " int = " << intensity << " log int = " << std::log(intensity+1) << '\n';
 
       // Cross-Correlation of Identification against Detection Mobilogram Features
 
@@ -687,7 +687,7 @@ namespace OpenMS
           OPENMS_LOG_DEBUG << "all-all: Contrast Scores : coelution identification transition : "
                            << mrmscore_.calcXcorrPrecursorContrastCoelutionScore()
                            << " / shape  identification transition " <<
-                           mrmscore_.calcXcorrPrecursorContrastShapeScore() << std::endl;
+                           mrmscore_.calcXcorrPrecursorContrastShapeScore() << '\n';
           scores.im_ind_contrast_coelution = mrmscore_.calcXcorrPrecursorContrastCoelutionScore();
           scores.im_ind_contrast_shape = mrmscore_.calcXcorrPrecursorContrastShapeScore();
         }
@@ -709,7 +709,7 @@ namespace OpenMS
         OPENMS_LOG_DEBUG << "Contrast Scores : coelution identification transition : "
                          << mrmscore_.calcXcorrPrecursorContrastSumFragCoelutionScore()
                          << " / shape  identification transition " <<
-                         mrmscore_.calcXcorrPrecursorContrastSumFragShapeScore() << std::endl;
+                         mrmscore_.calcXcorrPrecursorContrastSumFragShapeScore() << '\n';
 
         // in order to prevent assertion error call calcXcorrPrecursorContrastSumFragCoelutionScore, same as calcXcorrPrecursorContrastCoelutionScore() however different assertion
         scores.im_ind_sum_contrast_coelution = mrmscore_.calcXcorrPrecursorContrastSumFragCoelutionScore();
@@ -717,7 +717,7 @@ namespace OpenMS
         // in order to prevent assertion error call calcXcorrPrecursorContrastSumFragShapeScore(), same as calcXcorrPrecursorContrastShapeScore() however different assertion.
         scores.im_ind_sum_contrast_shape = mrmscore_.calcXcorrPrecursorContrastSumFragShapeScore();
       } else {
-        OPENMS_LOG_DEBUG << "Identification Transition IM Scoring for " << transition[0].transition_name << " was -1. There was most likely no drift spectrum for the transition, setting cross-correlation scores to 0!" << std::endl;
+        OPENMS_LOG_DEBUG << "Identification Transition IM Scoring for " << transition[0].transition_name << " was -1. There was most likely no drift spectrum for the transition, setting cross-correlation scores to 0!" << '\n';
         scores.im_ind_contrast_coelution = 0;
         scores.im_ind_contrast_shape = 0;
         scores.im_ind_sum_contrast_coelution = 0;

@@ -246,7 +246,7 @@ namespace OpenMS
       if (min_diff < max_precursor_isotope_deviation_)
       {
 #ifdef ISOBARIC_CHANNEL_EXTRACTOR_DEBUG
-        std::cerr << "Mark peak as isotopic peak POS: " << precursor_spec[min_idx] << " (diff: " << min_diff << " vs " << max_precursor_isotope_deviation_ << ")" << std::endl;
+        std::cerr << "Mark peak as isotopic peak POS: " << precursor_spec[min_idx] << " (diff: " << min_diff << " vs " << max_precursor_isotope_deviation_ << ")" << '\n';
 #endif
         if (np_it->getMZ() > strict_lower_mz)
         {
@@ -265,7 +265,7 @@ namespace OpenMS
       else
       {
 #ifdef ISOBARIC_CHANNEL_EXTRACTOR_DEBUG
-        std::cerr << "No matching isotopic peak for expected pos: " << expected_next_mz << " (min reached diff: " << min_diff << " vs " << max_precursor_isotope_deviation_ << ")" << std::endl;
+        std::cerr << "No matching isotopic peak for expected pos: " << expected_next_mz << " (min reached diff: " << min_diff << " vs " << max_precursor_isotope_deviation_ << ")" << '\n';
 #endif
         // update expected_next_mz with theoretical position
         expected_next_mz -= charge_dist;
@@ -304,7 +304,7 @@ namespace OpenMS
       if (min_diff < max_precursor_isotope_deviation_)
       {
 #ifdef ISOBARIC_CHANNEL_EXTRACTOR_DEBUG
-        std::cerr << "Mark peak as isotopic peak POS: " << precursor_spec[min_idx] << " (diff: " << min_diff << " vs " << max_precursor_isotope_deviation_ << ")" << std::endl;
+        std::cerr << "Mark peak as isotopic peak POS: " << precursor_spec[min_idx] << " (diff: " << min_diff << " vs " << max_precursor_isotope_deviation_ << ")" << '\n';
 #endif
         if (np_it->getMZ() < strict_upper_mz)
         {
@@ -323,7 +323,7 @@ namespace OpenMS
       else
       {
 #ifdef ISOBARIC_CHANNEL_EXTRACTOR_DEBUG
-        std::cerr << "No matching isotopic peak for expected pos: " << expected_next_mz << " (min reached diff: " << min_diff << " vs " << max_precursor_isotope_deviation_ << ")" << std::endl;
+        std::cerr << "No matching isotopic peak for expected pos: " << expected_next_mz << " (min reached diff: " << min_diff << " vs " << max_precursor_isotope_deviation_ << ")" << '\n';
 #endif
         // update expected_next_mz with theoretical position
         expected_next_mz += charge_dist;
@@ -377,7 +377,7 @@ namespace OpenMS
     else
     {
 #ifdef ISOBARIC_CHANNEL_EXTRACTOR_DEBUG
-      std::cerr << "------------------ analyzing " << ms2_spec->getNativeID() << std::endl;
+      std::cerr << "------------------ analyzing " << ms2_spec->getNativeID() << '\n';
 #endif
 
       // compute purity of preceding ms1 scan
@@ -422,7 +422,7 @@ namespace OpenMS
     consensus_map.setExperimentType("labeled_MS2");
 
     // create predicate for spectrum checking
-    OPENMS_LOG_INFO << "Selecting scans with activation mode: " << selected_activation_ << std::endl;
+    OPENMS_LOG_INFO << "Selecting scans with activation mode: " << selected_activation_ << '\n';
     
     // Select the two possible HCD activation modes according to PSI-MS ontology: HCID and HCD
     if (selected_activation_ == "auto") 
@@ -453,7 +453,7 @@ namespace OpenMS
       {
         OPENMS_LOG_WARN << "  mode " << (it->first.empty() ? "<none>" : it->first) << ": " << it->second << " scans\n";
       }
-      OPENMS_LOG_WARN << "Result will be empty!" << std::endl;
+      OPENMS_LOG_WARN << "Result will be empty!" << '\n';
       return;
     }
     OPENMS_LOG_INFO << "Filtering by MS/MS(/MS) and activation mode:\n";
@@ -462,7 +462,7 @@ namespace OpenMS
       OPENMS_LOG_INFO << "  level " << it->first << ": " << it->second << " scans\n";
     }
     UInt quant_ms_level = ms_level.rbegin()->first;
-    OPENMS_LOG_INFO << "Using MS-level " << quant_ms_level << " for quantification." << std::endl;
+    OPENMS_LOG_INFO << "Using MS-level " << quant_ms_level << " for quantification." << '\n';
 
     // now we have picked data
     // --> assign peaks to channels
@@ -499,7 +499,7 @@ namespace OpenMS
       // check precursor constraints
       if (!isValidPrecursor_(it->getPrecursors()[0]))
       {
-        OPENMS_LOG_DEBUG << "Skip spectrum " << it->getNativeID() << ": Precursor doesn't fulfill all constraints." << std::endl;
+        OPENMS_LOG_DEBUG << "Skip spectrum " << it->getNativeID() << ": Precursor doesn't fulfill all constraints." << '\n';
         continue;
       }
 
@@ -511,13 +511,13 @@ namespace OpenMS
         // check if purity is high enough
         if (precursor_purity < min_precursor_purity_)
         {
-          OPENMS_LOG_DEBUG << "Skip spectrum " << it->getNativeID() << ": Precursor purity is below the threshold. [purity = " << precursor_purity << "]" << std::endl;
+          OPENMS_LOG_DEBUG << "Skip spectrum " << it->getNativeID() << ": Precursor purity is below the threshold. [purity = " << precursor_purity << "]" << '\n';
           continue;
         }
       }
       else
       {
-        OPENMS_LOG_INFO << "No precursor available for spectrum: " << it->getNativeID() << std::endl;
+        OPENMS_LOG_INFO << "No precursor available for spectrum: " << it->getNativeID() << '\n';
       }
 
       if (it->getMSLevel() == 3)
@@ -693,7 +693,7 @@ namespace OpenMS
 
       if (quant_spec.empty())
       {
-        OPENMS_LOG_WARN << "Quant. spectrum " << quant_spec.getNativeID() << " is empty. Skipping extraction." << std::endl;
+        OPENMS_LOG_WARN << "Quant. spectrum " << quant_spec.getNativeID() << " is empty. Skipping extraction." << '\n';
         return result;
       }
 
@@ -702,13 +702,13 @@ namespace OpenMS
       /*const auto& reporter_region_end = ++quant_spec.MZEnd(quant_method_->getChannelInformation().back().center + qc_dist_mz);
 
       const auto& reporter_region_start = quant_spec.MZBegin(quant_spec.begin(), quant_method_->getChannelInformation().front().center - qc_dist_mz, reporter_region_end);
-      std::cout << "reporter_region_start: " << reporter_region_start->getMZ() << std::endl;
+      std::cout << "reporter_region_start: " << reporter_region_start->getMZ() << '\n';
 
       if (reporter_region_end != quant_spec.end())
       {
-        std::cout << "reporter_region_end: " << reporter_region_end->getMZ() << std::endl;
+        std::cout << "reporter_region_end: " << reporter_region_end->getMZ() << '\n';
       } else {
-        std::cout << "reporter_region_end: " << "end" << std::endl;
+        std::cout << "reporter_region_end: " << "end" << '\n';
         return result;
       }*/
 
@@ -753,7 +753,7 @@ namespace OpenMS
           // pass user threshold
           if (fabs(mz_delta) < reporter_mass_shift_)
           {
-            //std::cout << "reporter_mz: " << reporter_mz << std::endl;
+            //std::cout << "reporter_mz: " << reporter_mz << '\n';
             result[map_index] = idx_nearest->getIntensity();
           }
         }
@@ -808,7 +808,7 @@ namespace OpenMS
     }
     if (impurities_found) OPENMS_LOG_INFO << "\nImpurities within the allowed reporter mass shift " << reporter_mass_shift_ << " Th have been found." 
                                    << "They can be ignored if the spectra are m/z calibrated (see above), since only the peak closest to the theoretical position is used for quantification!";
-    OPENMS_LOG_INFO << std::endl;
+    OPENMS_LOG_INFO << '\n';
   }
 
   void IsobaricChannelExtractor::printStatsWithMissing(std::vector<ChannelQC>& stats) const
@@ -859,7 +859,7 @@ namespace OpenMS
     }
     if (impurities_found) OPENMS_LOG_INFO << "\nImpurities within the allowed reporter mass shift " << reporter_mass_shift_ << " m/z have been found." 
                                    << "They can be ignored if the spectra are m/z calibrated (see above), since only the peak closest to the theoretical position is used for quantification!";
-    OPENMS_LOG_INFO << std::endl;
+    OPENMS_LOG_INFO << '\n';
   }
 
   /**

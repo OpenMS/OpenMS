@@ -209,7 +209,7 @@ namespace OpenMS
             }
             error_string += ")";
           }
-          OPENMS_LOG_ERROR << error_string << std::endl;
+          OPENMS_LOG_ERROR << error_string << '\n';
         }
 
         // check target scores
@@ -229,7 +229,7 @@ namespace OpenMS
             }
             error_string += ")";
           }
-          OPENMS_LOG_ERROR << error_string << std::endl;
+          OPENMS_LOG_ERROR << error_string << '\n';
         }
 
         if (target_scores.empty() || decoy_scores.empty())
@@ -1397,7 +1397,7 @@ namespace OpenMS
     std::sort(scores_labels.rbegin(), scores_labels.rend());
     double diff = diffEstimatedEmpirical(scores_labels, pepCutoff);
     double auc = rocN(scores_labels, fpCutoff);
-    OPENMS_LOG_INFO << "Evaluation of protein probabilities: Difference estimated vs. T-D FDR = " << diff << " and roc" << fpCutoff << " = " << auc << std::endl;
+    OPENMS_LOG_INFO << "Evaluation of protein probabilities: Difference estimated vs. T-D FDR = " << diff << " and roc" << fpCutoff << " = " << auc << '\n';
     // we want the score to get higher the lesser the difference. Subtract from one.
     // Then convex combination with the AUC.
     return (1.0 - diff) * (1.0 - diffWeight) + auc * diffWeight;
@@ -1408,7 +1408,7 @@ namespace OpenMS
     std::sort(scores_labels.rbegin(), scores_labels.rend());
     double diff = diffEstimatedEmpirical(scores_labels, pepCutoff);
     double auc = rocN(scores_labels, fpCutoff);
-    OPENMS_LOG_INFO << "Evaluation of protein probabilities: Difference estimated vs. T-D FDR = " << diff << " and roc" << fpCutoff << " = " << auc << std::endl;
+    OPENMS_LOG_INFO << "Evaluation of protein probabilities: Difference estimated vs. T-D FDR = " << diff << " and roc" << fpCutoff << " = " << auc << '\n';
     // we want the score to get higher the lesser the difference. Subtract from one.
     // Then convex combination with the AUC.
     return (1.0 - diff) * (1.0 - diffWeight) + auc * diffWeight;
@@ -1434,12 +1434,12 @@ namespace OpenMS
         r.is_prefix = true;
         r.name = "DECOY_";
         OPENMS_LOG_WARN << "Unable to determine decoy string automatically (not enough decoys were detected)! Using default " << (r.is_prefix ? "prefix" : "suffix") << " decoy string '" << r.name << "'\n"
-        << "If you think that this is incorrect, please provide a decoy_string and its position manually!" << std::endl;
+        << "If you think that this is incorrect, please provide a decoy_string and its position manually!" << '\n';
       }
       prefix = r.is_prefix;
       decoy_string = r.name;
       // decoy string and position was extracted successfully
-      OPENMS_LOG_INFO << "Using " << (prefix ? "prefix" : "suffix") << " decoy string '" << decoy_string << "'" << std::endl;
+      OPENMS_LOG_INFO << "Using " << (prefix ? "prefix" : "suffix") << " decoy string '" << decoy_string << "'" << '\n';
     }
 
     ScoreToTgtDecLabelPairs scores_labels;
@@ -1479,7 +1479,7 @@ namespace OpenMS
     bool conservative = param_.getValue("conservative").toBool();
     if (scores_labels.empty())
     {
-     OPENMS_LOG_WARN << "Warning: No scores extracted for FDR calculation. Skipping. Do you have target-decoy annotated Hits?" << std::endl;
+     OPENMS_LOG_WARN << "Warning: No scores extracted for FDR calculation. Skipping. Do you have target-decoy annotated Hits?" << '\n';
       return 1.0;
     }
 
@@ -1540,7 +1540,7 @@ namespace OpenMS
   {
     if (scores_labels.empty())
     {
-     OPENMS_LOG_WARN << "Warning: No scores extracted for FDR calculation. Skipping. Do you have target-decoy annotated Hits?" << std::endl;
+     OPENMS_LOG_WARN << "Warning: No scores extracted for FDR calculation. Skipping. Do you have target-decoy annotated Hits?" << '\n';
       return 0.0;
     }
 
@@ -1606,7 +1606,7 @@ namespace OpenMS
   {
     if (scores_labels.empty())
     {
-     OPENMS_LOG_WARN << "Warning: No scores extracted for FDR calculation. Skipping. Do you have target-decoy annotated Hits?" << std::endl;
+     OPENMS_LOG_WARN << "Warning: No scores extracted for FDR calculation. Skipping. Do you have target-decoy annotated Hits?" << '\n';
       return;
     }
 
@@ -1672,7 +1672,7 @@ namespace OpenMS
     bool conservative = param_.getValue("conservative").toBool();
     if (scores_labels.empty())
     {
-      OPENMS_LOG_WARN << "Warning: No scores extracted for FDR calculation. Skipping. Do you have target-decoy annotated Hits?" << std::endl;
+      OPENMS_LOG_WARN << "Warning: No scores extracted for FDR calculation. Skipping. Do you have target-decoy annotated Hits?" << '\n';
       return;
     }
 
@@ -1696,7 +1696,7 @@ namespace OpenMS
       if (std::abs(scores_labels[j].first - last_score) > 1e-12)
       {
         #ifdef FALSE_DISCOVERY_RATE_DEBUG
-        std::cerr << "Recording score: " << last_score << " with " << decoys << " decoys at index+1 = " << (j+1) << " -> fdr: " << decoys/(j+1.0) << std::endl;
+        std::cerr << "Recording score: " << last_score << " with " << decoys << " decoys at index+1 = " << (j+1) << " -> fdr: " << decoys/(j+1.0) << '\n';
         #endif
         //we are using the conservative formula (Decoy + 1) / (Tgts)
         if (conservative)
@@ -1740,7 +1740,7 @@ namespace OpenMS
         for (auto&& rit = scores_to_FDR.begin(); rit != scores_to_FDR.end(); ++rit)
         {
         #ifdef FALSE_DISCOVERY_RATE_DEBUG
-          std::cerr << "Comparing " << rit->second << " to " << cummin << std::endl;
+          std::cerr << "Comparing " << rit->second << " to " << cummin << '\n';
         #endif
           cummin = std::min(rit->second, cummin);
           rit->second = cummin;
@@ -1751,7 +1751,7 @@ namespace OpenMS
         for (auto&& rit = scores_to_FDR.rbegin(); rit != scores_to_FDR.rend(); ++rit)
         {
         #ifdef FALSE_DISCOVERY_RATE_DEBUG
-          std::cerr << "Comparing " << rit->second << " to " << cummin << std::endl;
+          std::cerr << "Comparing " << rit->second << " to " << cummin << '\n';
         #endif
           cummin = std::min(rit->second, cummin);
           rit->second = cummin;
@@ -1835,20 +1835,20 @@ namespace OpenMS
     // DEBUG ONLY: print counts of found decoys
     for (auto &a : decoy_count)
     {
-      OPENMS_LOG_DEBUG << a.first << "\t" << a.second.first << "\t" << a.second.second << std::endl;
+      OPENMS_LOG_DEBUG << a.first << "\t" << a.second.first << "\t" << a.second.second << '\n';
     }
 
     // less than 30% of proteins are decoys -> won't be able to determine a decoy string and its position
     // return default values
     if (static_cast<double>(all_prefix_occur + all_suffix_occur) < 0.3 * static_cast<double>(all_proteins_count))
     {
-      OPENMS_LOG_ERROR << "Unable to determine decoy string (not enough occurrences; <30%)!" << std::endl;
+      OPENMS_LOG_ERROR << "Unable to determine decoy string (not enough occurrences; <30%)!" << '\n';
       return {false, "?", true};
     }
 
     if (all_prefix_occur == all_suffix_occur)
     {
-      OPENMS_LOG_ERROR << "Unable to determine decoy string (prefix and suffix occur equally often)!" << std::endl;
+      OPENMS_LOG_ERROR << "Unable to determine decoy string (prefix and suffix occur equally often)!" << '\n';
       return {false, "?", true};
     }
 
@@ -1864,8 +1864,8 @@ namespace OpenMS
       {
         if (prefix_suffix_counts.first != all_prefix_occur)
         {
-          OPENMS_LOG_WARN << "More than one decoy prefix observed!" << std::endl;
-          OPENMS_LOG_WARN << "Using most frequent decoy prefix (" << (int)(freq_prefix * 100) << "%)" << std::endl;
+          OPENMS_LOG_WARN << "More than one decoy prefix observed!" << '\n';
+          OPENMS_LOG_WARN << "Using most frequent decoy prefix (" << (int)(freq_prefix * 100) << "%)" << '\n';
         }
 
         return { true, decoy_case_sensitive[case_insensitive_decoy_string], true};
@@ -1884,15 +1884,15 @@ namespace OpenMS
       {
         if (prefix_suffix_counts.second != all_suffix_occur)
         {
-          OPENMS_LOG_WARN << "More than one decoy suffix observed!" << std::endl;
-          OPENMS_LOG_WARN << "Using most frequent decoy suffix (" << (int)(freq_suffix * 100) << "%)" << std::endl;
+          OPENMS_LOG_WARN << "More than one decoy suffix observed!" << '\n';
+          OPENMS_LOG_WARN << "Using most frequent decoy suffix (" << (int)(freq_suffix * 100) << "%)" << '\n';
         }
 
         return { true, decoy_case_sensitive[case_insensitive_decoy_string], false};
       }
     }
 
-    OPENMS_LOG_ERROR << "Unable to determine decoy string and its position. Please provide a decoy string and its position as parameters." << std::endl;
+    OPENMS_LOG_ERROR << "Unable to determine decoy string and its position. Please provide a decoy string and its position as parameters." << '\n';
     return {false, "?", true};
   }
 

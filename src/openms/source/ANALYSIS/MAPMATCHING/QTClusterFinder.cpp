@@ -147,7 +147,7 @@ namespace OpenMS
         {
           std::cout << rt << ", ";
         }
-        std::cout << std::endl;
+        std::cout << '\n';
         #endif
 
         auto& rts = id_rts.second;
@@ -178,7 +178,7 @@ namespace OpenMS
       double min_tolerance = 20;
       double tol, q2, q3;
       OPENMS_LOG_INFO << "Calculating RT linking tolerance bins...\n";
-      OPENMS_LOG_INFO << "RT_bin_start, Tolerance" << std::endl;
+      OPENMS_LOG_INFO << "RT_bin_start, Tolerance" << '\n';
 
       // For every pair of median RT and differences, collect
       // differences until min_nr_diffs_per_bin_ is reached, then add the
@@ -200,14 +200,14 @@ namespace OpenMS
           tol = max(min_tolerance, q2 + 2. * 1.4826 * (q3-q2));
           bin_tolerances_.insert(make_pair(start_rt, tol));
 
-          OPENMS_LOG_INFO << start_rt << ", " << tol << std::endl;
+          OPENMS_LOG_INFO << start_rt << ", " << tol << '\n';
           #ifdef DEBUG_QTCLUSTERFINDER_IDS
           std::cout << "Differences used: ";
           for (const auto& diff : tmp_diffs)
           {
             std::cout << diff << ", ";
           }
-          std::cout << std::endl;
+          std::cout << '\n';
           #endif
           std::swap(tmp_diffs, last_tmp_diffs);
           tmp_diffs.clear();
@@ -231,18 +231,18 @@ namespace OpenMS
         tol = max(min_tolerance, q2 + 2. * 1.4826 * (q3-q2));
         bin_tolerances_.insert(make_pair(start_rt, tol));
 
-        OPENMS_LOG_INFO << start_rt << ", " << tol << std::endl;
+        OPENMS_LOG_INFO << start_rt << ", " << tol << '\n';
         #ifdef DEBUG_QTCLUSTERFINDER_IDS
         std::cout << "Differences used: ";
         for (const auto& diff : last_and_before_diffs)
         {
           std::cout << diff << ", ";
         }
-        std::cout << std::endl;
+        std::cout << '\n';
         #endif
 
         #ifdef DEBUG_QTCLUSTERFINDER_IDS
-        std::cout << "size of last bin: " << last_and_before_diffs.size() << std::endl;
+        std::cout << "size of last bin: " << last_and_before_diffs.size() << '\n';
         #endif
       }
       last_and_before_diffs.clear();
@@ -372,7 +372,7 @@ namespace OpenMS
     setParameters_(max_intensity, max_mz);
 
     // create the hash grid and fill it with features:
-    // std::cout << "Hashing..." << std::endl;
+    // std::cout << "Hashing..." << '\n';
     list<OpenMS::GridFeature> grid_features;
     Grid grid(Grid::ClusterCenter(max_diff_rt_, max_diff_mz_));
     for (Size map_index = 0; map_index < num_maps_; ++map_index)
@@ -396,7 +396,7 @@ namespace OpenMS
     }
 
     // compute QT clustering:
-    // std::cout << "Clustering..." << std::endl;
+    // std::cout << "Clustering..." << '\n';
 
     // "hot" cluster heads, we can extract the best efficiently 
     Heap cluster_heads;
@@ -425,7 +425,7 @@ namespace OpenMS
 
     while (!cluster_heads.empty())
     {
-      // std::cout << "Clusters: " << clustering.size() << std::endl;
+      // std::cout << "Clusters: " << clustering.size() << '\n';
 
       ConsensusFeature consensus_feature;
       // pops heap until a valid best cluster or empty, makes a consensusFeature and updates
@@ -465,17 +465,17 @@ namespace OpenMS
 
 #ifdef DEBUG_QTCLUSTERFINDER
     std::cout << "Elements: " << elements.size() << " with best "
-         << best->getQuality() << " invalid " << best->isInvalid() << std::endl;
+         << best->getQuality() << " invalid " << best->isInvalid() << '\n';
 #endif
 
     createConsensusFeature_(feature, best.getCurrentQuality(), elements);
 
 #ifdef DEBUG_QTCLUSTERFINDER
-    std::cout << " create new consensus feature " << feature.getRT() << " " << feature.getMZ() << " from " << best->getCenterPoint()->getFeature().getUniqueId() << std::endl;
+    std::cout << " create new consensus feature " << feature.getRT() << " " << feature.getMZ() << " from " << best->getCenterPoint()->getFeature().getUniqueId() << '\n';
     for (OpenMSBoost::unordered_map<Size, OpenMS::GridFeature*>::const_iterator
          it = elements.begin(); it != elements.end(); ++it)
     {
-      std::cout << "   = element id : " << it->second->getFeature().getUniqueId() << std::endl;
+      std::cout << "   = element id : " << it->second->getFeature().getUniqueId() << '\n';
     }
 #endif
 
@@ -658,11 +658,11 @@ void QTClusterFinder::createConsensusFeature_(ConsensusFeature& feature,
     cluster.initializeCluster();
 
 #ifdef DEBUG_QTCLUSTERFINDER
-    std::cout << " Compute Clustering: "<< x << " " << y << " with id " << center_feature->getFeature().getUniqueId() << std::endl;
+    std::cout << " Compute Clustering: "<< x << " " << y << " with id " << center_feature->getFeature().getUniqueId() << '\n';
     std::set<AASequence> a = cluster.getAnnotations();
     std::cout << " with annotations: ";
     for (std::set<AASequence>::iterator it = a.begin(); it != a.end(); ++it) std::cout << " " << *it;
-    std::cout << std::endl;
+    std::cout << '\n';
 #endif
 
     const int x = cluster.getXCoord(); 
@@ -685,7 +685,7 @@ void QTClusterFinder::createConsensusFeature_(ConsensusFeature& feature,
             OpenMS::GridFeature* neighbor_feature = it_cell->second;
 
 #ifdef DEBUG_QTCLUSTERFINDER
-            std::cout << " considering to add feature " << neighbor_feature->getFeature().getUniqueId() << " to cluster " <<  center_feature->getFeature().getUniqueId()<< std::endl;
+            std::cout << " considering to add feature " << neighbor_feature->getFeature().getUniqueId() << " to cluster " <<  center_feature->getFeature().getUniqueId()<< '\n';
 #endif
 
             // Skip features that we have already used -> we cannot add them to
@@ -725,18 +725,18 @@ void QTClusterFinder::createConsensusFeature_(ConsensusFeature& feature,
 
 #ifdef DEBUG_QTCLUSTERFINDER
     QTCluster::Elements elements = cluster.getElements();
-    std::cout << " Done with cluster -> get quality " << cluster.getQuality() << " and nr elements " << elements.size() << std::endl;
+    std::cout << " Done with cluster -> get quality " << cluster.getQuality() << " and nr elements " << elements.size() << '\n';
     for (OpenMSBoost::unordered_map<Size, OpenMS::GridFeature*>::const_iterator
          it = elements.begin(); it != elements.end(); ++it)
     {
-      std::cout << "   = element id : " << it->second->getFeature().getUniqueId() << std::endl;
+      std::cout << "   = element id : " << it->second->getFeature().getUniqueId() << '\n';
     }
 
     {
       std::set<AASequence> ax = cluster.getAnnotations();
       std::cout << " FINAL with annotations: ";
       for (std::set<AASequence>::iterator it = ax.begin(); it != ax.end(); ++it) std::cout << " " << *it;
-      std::cout << std::endl;
+      std::cout << '\n';
     }
 #endif
 

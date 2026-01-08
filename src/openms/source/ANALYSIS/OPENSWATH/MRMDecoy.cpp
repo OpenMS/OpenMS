@@ -138,7 +138,7 @@ namespace OpenMS
     const int max_attempts) const
   {
 #ifdef DEBUG_MRMDECOY
-    std::cout << " shuffle peptide " << peptide.sequence << std::endl;
+    std::cout << " shuffle peptide " << peptide.sequence << '\n';
     seed = 41;
 #endif
     // Delegate to light implementation
@@ -152,7 +152,7 @@ namespace OpenMS
 #ifdef DEBUG_MRMDECOY
     for (Size j = 0; j < peptide.mods.size(); j++)
     {
-      std::cout << " position after shuffling " << peptide.mods[j].location << " mass difference " << peptide.mods[j].mono_mass_delta << std::endl;
+      std::cout << " position after shuffling " << peptide.mods[j].location << " mass difference " << peptide.mods[j].mono_mass_delta << '\n';
     }
 #endif
 
@@ -566,7 +566,7 @@ namespace OpenMS
         // exclude peptide if it has C/N terminal modifications because we can't do a (partial) reverse
         if (MRMDecoy::hasCNterminalMods_(peptide, do_switchKR))
         {
-          OPENMS_LOG_DEBUG << "[peptide] Skipping " << peptide.id << " due to C/N-terminal modifications" << std::endl;
+          OPENMS_LOG_DEBUG << "[peptide] Skipping " << peptide.id << " due to C/N-terminal modifications" << '\n';
           exclusion_peptides.insert(peptide.id);
         }
         else
@@ -580,7 +580,7 @@ namespace OpenMS
         // exclude peptide if it has C/N terminal modifications because we can't do a (partial) reverse
         if (MRMDecoy::hasCNterminalMods_(peptide, false))
         {
-          OPENMS_LOG_DEBUG << "[peptide] Skipping " << peptide.id << " due to C/N-terminal modifications" << std::endl;
+          OPENMS_LOG_DEBUG << "[peptide] Skipping " << peptide.id << " due to C/N-terminal modifications" << '\n';
           exclusion_peptides.insert(peptide.id);
         }
         else
@@ -593,7 +593,7 @@ namespace OpenMS
         peptide = MRMDecoy::shufflePeptide(peptide, identity_threshold, -1, max_attempts);
         if (do_switchKR && MRMDecoy::hasCNterminalMods_(peptide, do_switchKR))
         {
-          OPENMS_LOG_DEBUG << "[peptide] Skipping " << peptide.id << " due to C/N-terminal modifications" << std::endl;
+          OPENMS_LOG_DEBUG << "[peptide] Skipping " << peptide.id << " due to C/N-terminal modifications" << '\n';
           exclusion_peptides.insert(peptide.id);
         }
         else if (do_switchKR) { switchKR(peptide); }
@@ -604,13 +604,13 @@ namespace OpenMS
       const std::string peptide_key = MRMDecoy::getModifiedPeptideSequence_(peptide) + String(peptide.getChargeState());
       if (allPeptideSequences.find(peptide_key) != allPeptideSequences.end())
       {
-        OPENMS_LOG_DEBUG << "[peptide] Skipping " << peptide.id << " since decoy peptide is also a target peptide or this decoy peptide is already present" << std::endl;
+        OPENMS_LOG_DEBUG << "[peptide] Skipping " << peptide.id << " since decoy peptide is also a target peptide or this decoy peptide is already present" << '\n';
         exclusion_peptides.insert(peptide.id);
       }
       else
       {
         // Since this decoy will be added, add it to the precursor map so that the same decoy is not added twice
-        OPENMS_LOG_DEBUG << "[peptide] adding " << peptide.id << " to master list of peptides " << std::endl;
+        OPENMS_LOG_DEBUG << "[peptide] adding " << peptide.id << " to master list of peptides " << '\n';
         allPeptideSequences[peptide_key] = peptide.id;
       }
 
@@ -701,7 +701,7 @@ namespace OpenMS
         {
           // transition could not be annotated, remove whole peptide
           exclusion_peptides.insert(decoy_tr.getPeptideRef());
-          OPENMS_LOG_DEBUG << "[peptide] Skipping " << decoy_tr.getPeptideRef() << " due to missing annotation" << std::endl;
+          OPENMS_LOG_DEBUG << "[peptide] Skipping " << decoy_tr.getPeptideRef() << " due to missing annotation" << '\n';
         }
       } // end loop over transitions
 
@@ -731,7 +731,7 @@ namespace OpenMS
       }
       else
       {
-        OPENMS_LOG_DEBUG << "[peptide] Skipping " << peptide.id << " due to missing transitions" << std::endl;
+        OPENMS_LOG_DEBUG << "[peptide] Skipping " << peptide.id << " due to missing transitions" << '\n';
       }
     }
 
@@ -745,7 +745,7 @@ namespace OpenMS
       }
       else
       {
-        OPENMS_LOG_DEBUG << "[protein] Skipping " << protein.id << " due to missing peptides" << std::endl;
+        OPENMS_LOG_DEBUG << "[protein] Skipping " << protein.id << " due to missing peptides" << '\n';
       }
     }
 
@@ -868,7 +868,7 @@ namespace OpenMS
       }
       catch (Exception::InvalidValue&)
       {
-        OPENMS_LOG_DEBUG << "[peptide] Skipping " << decoy_compound.id << " - cannot parse sequence" << std::endl;
+        OPENMS_LOG_DEBUG << "[peptide] Skipping " << decoy_compound.id << " - cannot parse sequence" << '\n';
         exclusion_peptides.insert(decoy_compound.id);
         continue;
       }
@@ -885,7 +885,7 @@ namespace OpenMS
       {
         if (hasCNterminalModsLight_(decoy_compound.modifications, unmodified_sequence.size(), do_switchKR))
         {
-          OPENMS_LOG_DEBUG << "[peptide] Skipping " << decoy_compound.id << " due to C/N-terminal modifications" << std::endl;
+          OPENMS_LOG_DEBUG << "[peptide] Skipping " << decoy_compound.id << " due to C/N-terminal modifications" << '\n';
           exclusion_peptides.insert(decoy_compound.id);
           continue;
         }
@@ -898,7 +898,7 @@ namespace OpenMS
       {
         if (hasCNterminalModsLight_(decoy_compound.modifications, unmodified_sequence.size(), false))
         {
-          OPENMS_LOG_DEBUG << "[peptide] Skipping " << decoy_compound.id << " due to C/N-terminal modifications" << std::endl;
+          OPENMS_LOG_DEBUG << "[peptide] Skipping " << decoy_compound.id << " due to C/N-terminal modifications" << '\n';
           exclusion_peptides.insert(decoy_compound.id);
           continue;
         }
@@ -915,7 +915,7 @@ namespace OpenMS
         decoy_mods = result.second;
         if (do_switchKR && hasCNterminalModsLight_(decoy_mods, decoy_sequence.size(), do_switchKR))
         {
-          OPENMS_LOG_DEBUG << "[peptide] Skipping " << decoy_compound.id << " due to C/N-terminal modifications" << std::endl;
+          OPENMS_LOG_DEBUG << "[peptide] Skipping " << decoy_compound.id << " due to C/N-terminal modifications" << '\n';
           exclusion_peptides.insert(decoy_compound.id);
           continue;
         }
@@ -957,12 +957,12 @@ namespace OpenMS
       std::string decoy_key = full_decoy_sequence + String(decoy_compound.charge);
       if (allPeptideSequences.find(decoy_key) != allPeptideSequences.end())
       {
-        OPENMS_LOG_DEBUG << "[peptide] Skipping " << decoy_compound.id << " since decoy peptide is also a target peptide or this decoy peptide is already present" << std::endl;
+        OPENMS_LOG_DEBUG << "[peptide] Skipping " << decoy_compound.id << " since decoy peptide is also a target peptide or this decoy peptide is already present" << '\n';
         exclusion_peptides.insert(decoy_compound.id);
         continue;
       }
       // Add to map with modified sequence (matching Heavy path line 612)
-      OPENMS_LOG_DEBUG << "[peptide] adding " << decoy_compound.id << " to master list of peptides" << std::endl;
+      OPENMS_LOG_DEBUG << "[peptide] adding " << decoy_compound.id << " to master list of peptides" << '\n';
       allPeptideSequences[decoy_key] = decoy_compound.id;
 
       // Update modifications
@@ -1034,7 +1034,7 @@ namespace OpenMS
       }
       catch (Exception::InvalidValue&)
       {
-        OPENMS_LOG_DEBUG << "[transition] Skipping transitions for " << peptide_ref << " - cannot parse sequence" << std::endl;
+        OPENMS_LOG_DEBUG << "[transition] Skipping transitions for " << peptide_ref << " - cannot parse sequence" << '\n';
         continue;
       }
 
@@ -1112,7 +1112,7 @@ namespace OpenMS
         else
         {
           // Transition could not be annotated, exclude whole peptide (matching Heavy path behavior)
-          OPENMS_LOG_DEBUG << "[peptide] Skipping " << decoy_peptide_ref << " due to missing annotation" << std::endl;
+          OPENMS_LOG_DEBUG << "[peptide] Skipping " << decoy_peptide_ref << " due to missing annotation" << '\n';
           exclusion_peptides.insert(decoy_peptide_ref);
         }
       }
