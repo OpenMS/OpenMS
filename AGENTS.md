@@ -190,7 +190,7 @@ END_TEST
 
 ## Coding Conventions
 
-- Indentation: 2 spaces, no tabs; Unix line endings.
+- Indentation: 2 spaces for C++/headers, 4 spaces for Python/Cython (PEP 8); no tabs; Unix line endings.
 - Spacing: after keywords (`if`, `for`) and around binary operators.
 - Braces: opening/closing braces align; use braces even for single-line blocks (trivial one-liners may stay single-line).
 - File names: class name matches file name; one class per file; always pair `.h` with `.cpp`.
@@ -410,7 +410,23 @@ void MyClass::process(const MSSpectrum& spectrum)
 - Do not add Python-only methods to `.pxd`; use addons or `_dataframes.py` wrappers.
 - DataFrame pattern: `get_data_dict()` in addon returns numpy arrays; `get_df()` in `src/pyOpenMS/pyopenms/_dataframes.py` wraps with pandas.
 - Type converters: implement in `src/pyOpenMS/converters/special_autowrap_conversionproviders.py`, register in `src/pyOpenMS/converters/__init__.py`.
-- Gotchas: autowrap returns Python strings; do not `.decode()`. Avoid `cdef` for autowrap string returns. Avoid `cdef` typed variables for autowrap return values inside `def` methods; use Python type checks. Keep addons minimal; avoid redundant aliases. `# wrap-doc:` indentation is strict.
+- Gotchas: autowrap returns Python strings; do not `.decode()`. Avoid `cdef` for autowrap string returns. Avoid `cdef` typed variables for autowrap return values inside `def` methods; use Python type checks. Keep addons minimal; avoid redundant aliases.
+- **CRITICAL: `wrap-doc:` formatting** - The autowrap parser (`PXDParser.py`) requires exactly `#  ` (hash + 2 spaces) for all documentation continuation lines. Changing to `#` or `# ` will break parsing:
+  ```python
+  # CORRECT format:
+  void myMethod() except + nogil
+      # wrap-doc:
+      #  This is the documentation.    <- hash + 2 spaces + text
+      #                                 <- hash + 2 spaces (for blank lines)
+      #  :param x: Description          <- hash + 2 spaces + text
+
+  # WRONG format (will cause ValueError):
+  void myMethod() except + nogil
+      # wrap-doc:
+      # This is the documentation.     <- only 1 space after hash - BREAKS!
+      #                                <- just hash - BREAKS!
+  ```
+  The parser uses `line.startswith("#  ")` to validate and continue parsing. Any deviation causes immediate failure.
 - Regenerate after addon changes:
   ```bash
   rm OpenMS-build/pyOpenMS/.cpp_extension_generated
@@ -435,8 +451,8 @@ void MyClass::process(const MSSpectrum& spectrum)
 - Run `tools/checker.php` and/or `ENABLE_STYLE_TESTING` for local checks.
 
 **Commit message example:**
-**Formatting rules:**
-- 2 spaces indentation, no tabs
+**Formatting rules (C++):**
+- 2 spaces indentation, no tabs (Python/Cython uses 4 spaces per PEP 8)
 - Unix line endings (LF)
 - Braces on their own lines, aligned
 - Space after keywords (`if`, `for`, `while`)

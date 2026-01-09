@@ -132,11 +132,9 @@ cdef extern from "<OpenMS/CHEMISTRY/AASequence.h>" namespace "OpenMS":
         # returns true if any of the residues or termini are modified
         bool isModified() except + nogil  # wrap-doc:Returns true if any of the residues or termini are modified
 
-# COMMENT: wrap static methods
-cdef extern from "<OpenMS/CHEMISTRY/AASequence.h>" namespace "OpenMS::AASequence":
-        
         # static members
-        AASequence fromString(String s, bool permissive) except + nogil   # wrap-attach:AASequence wrap-as:fromStringPermissive wrap-doc:deprecated. Use AASequence(String, bool) instead.
-        
-        # static members
-        AASequence fromString(String s) except + nogil   # wrap-attach:AASequence wrap-doc:deprecated. Use AASequence(String) instead.
+        @staticmethod
+        AASequence fromString(String s, bool permissive) except + nogil   # wrap-as:fromStringPermissive wrap-doc:deprecated. Use AASequence(String, bool) instead.
+
+        @staticmethod
+        AASequence fromString(String s) except + nogil   # wrap-doc:deprecated. Use AASequence(String) instead.

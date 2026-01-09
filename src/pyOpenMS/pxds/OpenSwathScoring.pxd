@@ -3,6 +3,7 @@ from Types cimport *
 from OpenSwathDataStructures cimport *
 from SpectrumAccessOpenMS cimport *
 from LightTargetedExperiment cimport LightTransition
+from libcpp.string cimport string as libcpp_utf8_string
 
 cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OpenSwathScoring.h>" namespace "OpenMS":
 
@@ -17,8 +18,8 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OpenSwathScoring.h>" namespace "Ope
                         double merge_spectra_by_peak_width_fraction,
                         double drift_extra,
                         OpenSwath_Scores_Usage su,
-                        libcpp_string spectrum_addition_method,
-                        libcpp_string spectrum_merge_method_type,
+                        libcpp_utf8_string spectrum_addition_method,
+                        libcpp_utf8_string spectrum_merge_method_type,
                         bool use_ms1_ion_mobility,
                         bool apply_im_peak_picking) except + nogil
             # wrap-doc:
