@@ -58,7 +58,7 @@ cdef extern from "<OpenMS/FORMAT/ArrowExport.h>" namespace "OpenMS":
         #  EXPERIMENTAL: This API is experimental and may change in future versions.
         #  The table schema, column names, and data types are subject to modification.
         ArrowExport() except + nogil
-
+        ArrowExport(const ArrowExport&) except + nogil  # copy constructor
         # Column discovery - these are static methods but declared as instance methods for autowrap
         libcpp_vector[libcpp_string] getSpectraArrowColumns(
             const MSExperiment& exp,
