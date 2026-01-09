@@ -63,13 +63,9 @@ cdef extern from "<OpenMS/CHEMISTRY/NASequence.h>" namespace "OpenMS":
 
         NASequence getSubsequence(Size start, Size length) except + nogil  # wrap-doc:Returns a peptide sequence of number residues, beginning at position index
 
-
-# COMMENT: wrap static methods
-cdef extern from "<OpenMS/CHEMISTRY/NASequence.h>" namespace "OpenMS::NASequence":
-        
-        
         # static members
-        NASequence fromString(const String & s) except + nogil   # wrap-attach:NASequence
+        @staticmethod
+        NASequence fromString(const String & s) except + nogil
 
 cdef extern from "<OpenMS/CHEMISTRY/NASequence.h>" namespace "OpenMS::NASequence":
     cdef enum NASFragmentType "OpenMS::NASequence::NASFragmentType":

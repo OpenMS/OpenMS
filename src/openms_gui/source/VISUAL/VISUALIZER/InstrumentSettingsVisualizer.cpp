@@ -38,18 +38,18 @@ namespace OpenMS
     if (!isEditable())
     {
       fillComboBox_(instrumentsettings_scan_mode_, &temp_.NamesOfScanMode[temp_.getScanMode()], 1);
-      fillComboBox_(instrumentsettings_polarity_, &IonSource::NamesOfPolarity[temp_.getPolarity()], 1);
+      fillComboBox_(instrumentsettings_polarity_, &IonSource::NamesOfPolarity[static_cast<size_t>(temp_.getPolarity())], 1);
 
     }
     else
     {
       fillComboBox_(instrumentsettings_scan_mode_, InstrumentSettings::NamesOfScanMode, InstrumentSettings::SIZE_OF_SCANMODE);
-      fillComboBox_(instrumentsettings_polarity_, IonSource::NamesOfPolarity, IonSource::SIZE_OF_POLARITY);
+      fillComboBox_(instrumentsettings_polarity_, IonSource::NamesOfPolarity, static_cast<int>(IonSource::Polarity::SIZE_OF_POLARITY));
 
 
       instrumentsettings_scan_mode_->setCurrentIndex(temp_.getScanMode());
       zoom_scan_->setCurrentIndex(temp_.getZoomScan());
-      instrumentsettings_polarity_->setCurrentIndex(temp_.getPolarity());
+      instrumentsettings_polarity_->setCurrentIndex(static_cast<int>(temp_.getPolarity()));
     }
   }
 

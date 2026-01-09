@@ -28,7 +28,6 @@ cdef extern from "<OpenMS/DATASTRUCTURES/CalibrationData.h>" namespace "OpenMS":
         CalibrationData median(double, double) except + nogil  # wrap-doc:Compute the median in the given RT range for every peak group
         void sortByRT() except + nogil  # wrap-doc:Sort calibration points by RT, to allow for valid RT chunking
 
-cdef extern from "<OpenMS/DATASTRUCTURES/CalibrationData.h>" namespace "OpenMS::CalibrationData":
-
         # static members
-        StringList getMetaValues() except + nogil  # wrap-attach:CalibrationData
+        @staticmethod
+        StringList getMetaValues() except + nogil

@@ -8,7 +8,10 @@
 
 #include <OpenMS/METADATA/SpectrumSettings.h>
 
+#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/Helpers.h>
+
+#include <algorithm>
 
 using namespace std;
 
@@ -214,6 +217,27 @@ namespace OpenMS
       names.push_back(NamesOfSpectrumType[i]);
     }
     return names;
+  }
+
+  const std::string& SpectrumSettings::spectrumTypeToString(SpectrumType type)
+  {
+    if (type == SIZE_OF_SPECTRUMTYPE)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value not allowed", "SIZE_OF_SPECTRUMTYPE");
+    }
+    return NamesOfSpectrumType[static_cast<size_t>(type)];
+  }
+
+  SpectrumSettings::SpectrumType SpectrumSettings::toSpectrumType(const std::string& name)
+  {
+    auto first = &NamesOfSpectrumType[0];
+    auto last = &NamesOfSpectrumType[SIZE_OF_SPECTRUMTYPE];
+    const auto it = std::find(first, last, name);
+    if (it == last)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value unknown", name);
+    }
+    return static_cast<SpectrumType>(it - first);
   }
 
 }

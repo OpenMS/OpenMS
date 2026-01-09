@@ -1349,7 +1349,7 @@ protected:
       os << "Instrument: " << exp.getInstrument().getName() << '\n';
       for (const auto& ma : exp.getInstrument().getMassAnalyzers())
       {
-        os << "  Mass Analyzer: " << MassAnalyzer::NamesOfAnalyzerType[ma.getType()] << " (resolution: " << ma.getResolution() << ")\n";
+        os << "  Mass Analyzer: " << MassAnalyzer::NamesOfAnalyzerType[static_cast<size_t>(ma.getType())] << " (resolution: " << ma.getResolution() << ")\n";
       }
       os << '\n';
 
@@ -1563,7 +1563,7 @@ protected:
              << "Spectrum " << count << ":"
              << '\n'
              << "  mslevel:    " << spectrum.getMSLevel() << '\n'
-             << "  scanMode:   " << InstrumentSettings::NamesOfScanMode[spectrum.getInstrumentSettings().getScanMode()] << '\n'
+             << "  scanMode:   " << InstrumentSettings::NamesOfScanMode[static_cast<size_t>(spectrum.getInstrumentSettings().getScanMode())] << '\n'
              << "  peaks:      " << spectrum.size() << '\n'
              << "  RT:         " << spectrum.getRT() << '\n'
              << "  m/z:        ";
@@ -1795,7 +1795,7 @@ protected:
                << '\t' << exp.getInstrument().getVendor() << '\n';
         for (Size i = 0; i < exp.getInstrument().getIonSources().size(); ++i)
         {
-          os << IonSource::NamesOfIonizationMethod[exp.getInstrument().getIonSources()[i].getIonizationMethod()];
+          os << IonSource::NamesOfIonizationMethod[static_cast<size_t>(exp.getInstrument().getIonSources()[i].getIonizationMethod())];
           if (i != exp.getInstrument().getIonSources().size() - 1)
           {
             os << ", ";
@@ -1805,7 +1805,7 @@ protected:
            << "  mass analyzer(s): ";
         for (Size i = 0; i < exp.getInstrument().getMassAnalyzers().size(); ++i)
         {
-          os << MassAnalyzer::NamesOfAnalyzerType[exp.getInstrument().getMassAnalyzers()[i].getType()];
+          os << MassAnalyzer::NamesOfAnalyzerType[static_cast<size_t>(exp.getInstrument().getMassAnalyzers()[i].getType())];
           if (i != exp.getInstrument().getMassAnalyzers().size() - 1)
           {
             os << ", ";
@@ -1815,7 +1815,7 @@ protected:
            << "  detector(s):      ";
         for (Size i = 0; i < exp.getInstrument().getIonDetectors().size(); ++i)
         {
-          os << IonDetector::NamesOfType[exp.getInstrument().getIonDetectors()[i].getType()];
+          os << IonDetector::NamesOfType[static_cast<size_t>(exp.getInstrument().getIonDetectors()[i].getType())];
           if (i != exp.getInstrument().getIonDetectors().size() - 1)
             os << ", ";
         }

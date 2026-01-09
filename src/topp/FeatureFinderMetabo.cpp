@@ -428,7 +428,7 @@ protected:
       StringList sl_pols;
       for (const auto& pol : polarities)
       {
-        sl_pols.push_back(String(IonSource::NamesOfPolarity[pol]));
+        sl_pols.push_back(IonSource::polarityToString(pol));
       }
       feat_map[0].setMetaValue("scan_polarity", ListUtils::concatenate(sl_pols, ";"));
     }

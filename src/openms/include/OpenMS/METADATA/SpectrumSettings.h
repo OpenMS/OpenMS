@@ -59,6 +59,14 @@ public:
     /// returns all spectrum type names known to OpenMS
     static StringList getAllNamesOfSpectrumType();
 
+    /// Convert a SpectrumType enum to String
+    /// @throws Exception::InvalidValue if @p type is SIZE_OF_SPECTRUMTYPE
+    static const std::string& spectrumTypeToString(SpectrumType type);
+
+    /// Convert an entry in NamesOfSpectrumType[] to SpectrumType enum
+    /// @throws Exception::InvalidValue if @p name is not contained in NamesOfSpectrumType[]
+    static SpectrumType toSpectrumType(const std::string& name);
+
     /// Constructor
     SpectrumSettings() = default;
     /// Copy constructor

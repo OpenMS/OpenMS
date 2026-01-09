@@ -48,12 +48,13 @@ namespace OpenMS
     m_file->setToolTipsVisible(true);
     parent->menuBar()->addMenu(m_file);
 
-    m_file->addAction( // we explicitly pass an empty Path here using a Lambda, since using the default `..., parent, &TOPPViewBase::openFilesByDialog, ...`)
-                       // passes a "0" as argument (Qt bug?)
-      "&Open file", Qt::CTRL | Qt::Key_O, [parent]() { parent->openFilesByDialog(""); });
-    m_file->addAction("Open &example file", Qt::CTRL | Qt::Key_E, [parent]() { parent->openFilesByDialog(File::getOpenMSDataPath() + "/examples/"); });
-    addAction_(m_file->addAction("&Close tab", Qt::CTRL | Qt::Key_W, parent, &TOPPViewBase::closeTab),
-               TV_STATUS::HAS_CANVAS);
+    // we explicitly pass an empty Path here using a Lambda, since using the default `..., parent, &TOPPViewBase::openFilesByDialog, ...`)
+    // passes a "0" as argument (Qt bug?)
+    m_file->addAction("&Open file", parent, [parent]() { parent->openFilesByDialog(""); })->setShortcut(Qt::CTRL | Qt::Key_O);
+    m_file->addAction("Open &example file", parent, [parent]() { parent->openFilesByDialog(File::getOpenMSDataPath() + "/examples/"); })->setShortcut(Qt::CTRL | Qt::Key_E);
+    action = m_file->addAction("&Close tab", parent, &TOPPViewBase::closeTab);
+    action->setShortcut(Qt::CTRL | Qt::Key_W);
+    addAction_(action, TV_STATUS::HAS_CANVAS);
     m_file->addSeparator();
 
     // Meta data
@@ -83,34 +84,42 @@ namespace OpenMS
     QMenu* m_tools = new QMenu("&Tools", parent);
     m_tools->setToolTipsVisible(true);
     parent->menuBar()->addMenu(m_tools);
-    addAction_(m_tools->addAction("&Select data range", Qt::CTRL | Qt::Key_G, parent, &TOPPViewBase::showGoToDialog),
-      TV_STATUS::HAS_LAYER);
-    addAction_(m_tools->addAction("&Edit meta data", Qt::CTRL | Qt::Key_M, parent, &TOPPViewBase::editMetadata),
-      TV_STATUS::HAS_LAYER);
+    action = m_tools->addAction("&Select data range", parent, &TOPPViewBase::showGoToDialog);
+    action->setShortcut(Qt::CTRL | Qt::Key_G);
+    addAction_(action, TV_STATUS::HAS_LAYER);
+    action = m_tools->addAction("&Edit meta data", parent, &TOPPViewBase::editMetadata);
+    action->setShortcut(Qt::CTRL | Qt::Key_M);
+    addAction_(action, TV_STATUS::HAS_LAYER);
     addAction_(m_tools->addAction("&Statistics", parent, &TOPPViewBase::layerStatistics),
       TV_STATUS::HAS_LAYER);
     m_tools->addSeparator();
-    action = addAction_(m_tools->addAction("Apply TOPP tool (whole layer)", Qt::CTRL | Qt::Key_T, parent, &TOPPViewBase::showTOPPDialog),
-        TV_STATUS::HAS_LAYER + TV_STATUS::TOPP_IDLE);
+    action = m_tools->addAction("Apply TOPP tool (whole layer)", parent, &TOPPViewBase::showTOPPDialog);
+    action->setShortcut(Qt::CTRL | Qt::Key_T);
     action->setData(false);
-    action = addAction_(m_tools->addAction("Apply TOPP tool (visible layer data)", Qt::CTRL | Qt::SHIFT | Qt::Key_T, parent, &TOPPViewBase::showTOPPDialog),
-      TV_STATUS::HAS_LAYER + TV_STATUS::TOPP_IDLE);
+    addAction_(action, TV_STATUS::HAS_LAYER + TV_STATUS::TOPP_IDLE);
+    action = m_tools->addAction("Apply TOPP tool (visible layer data)", parent, &TOPPViewBase::showTOPPDialog);
+    action->setShortcut(Qt::CTRL | Qt::SHIFT | Qt::Key_T);
     action->setData(true);
-    addAction_(m_tools->addAction("Rerun TOPP tool", Qt::Key_F4, parent, &TOPPViewBase::rerunTOPPTool),
-      TV_STATUS::HAS_LAYER + TV_STATUS::TOPP_IDLE);
+    addAction_(action, TV_STATUS::HAS_LAYER + TV_STATUS::TOPP_IDLE);
+    action = m_tools->addAction("Rerun TOPP tool", parent, &TOPPViewBase::rerunTOPPTool);
+    action->setShortcut(Qt::Key_F4);
+    addAction_(action, TV_STATUS::HAS_LAYER + TV_STATUS::TOPP_IDLE);
     m_tools->addSeparator();
-    
-    action = addAction_(m_tools->addAction("&Annotate with AccurateMassSearch results", Qt::CTRL | Qt::Key_A, parent, &TOPPViewBase::annotateWithAMS),
-      TV_STATUS::HAS_LAYER, FS_LAYER(LayerDataBase::DT_PEAK));
-    action->setToolTip("Annotate Peak layer with a featureXML from the AccurateMassSearch tool");
-    
-    action = addAction_(m_tools->addAction("&Annotate with peptide identifications", Qt::CTRL | Qt::Key_I, parent, &TOPPViewBase::annotateWithID),
-      TV_STATUS::HAS_LAYER, LayerDataBase::DT_PEAK + LayerDataBase::DT_FEATURE + LayerDataBase::DT_CONSENSUS);
-    action->setToolTip("Annotate a Peak or Feature or Consensus layer with peptide identifications");
 
-    action = addAction_(m_tools->addAction("&Annotate with OpenSwath transitions", Qt::CTRL | Qt::Key_P, parent, &TOPPViewBase::annotateWithOSW),
-      TV_STATUS::HAS_LAYER, FS_LAYER(LayerDataBase::DT_CHROMATOGRAM));
+    action = m_tools->addAction("&Annotate with AccurateMassSearch results", parent, &TOPPViewBase::annotateWithAMS);
+    action->setShortcut(Qt::CTRL | Qt::Key_A);
+    action->setToolTip("Annotate Peak layer with a featureXML from the AccurateMassSearch tool");
+    addAction_(action, TV_STATUS::HAS_LAYER, FS_LAYER(LayerDataBase::DT_PEAK));
+
+    action = m_tools->addAction("&Annotate with peptide identifications", parent, &TOPPViewBase::annotateWithID);
+    action->setShortcut(Qt::CTRL | Qt::Key_I);
+    action->setToolTip("Annotate a Peak or Feature or Consensus layer with peptide identifications");
+    addAction_(action, TV_STATUS::HAS_LAYER, LayerDataBase::DT_PEAK + LayerDataBase::DT_FEATURE + LayerDataBase::DT_CONSENSUS);
+
+    action = m_tools->addAction("&Annotate with OpenSwath transitions", parent, &TOPPViewBase::annotateWithOSW);
+    action->setShortcut(Qt::CTRL | Qt::Key_P);
     action->setToolTip("Annotate Chromatogram layer with OSW transition id data from OpenSwathWorkflow or pyProphet");
+    addAction_(action, TV_STATUS::HAS_LAYER, FS_LAYER(LayerDataBase::DT_CHROMATOGRAM));
     
     action = addAction_(m_tools->addAction("Align spectra", parent, &TOPPViewBase::showSpectrumAlignmentDialog),
       TV_STATUS::HAS_MIRROR_MODE);
@@ -122,15 +131,19 @@ namespace OpenMS
     QMenu* m_layer = new QMenu("&Layer", parent);
     m_layer->setToolTipsVisible(true);
     parent->menuBar()->addMenu(m_layer);
-    addAction_(m_layer->addAction("Save all data", Qt::CTRL | Qt::Key_S, parent, &TOPPViewBase::saveLayerAll),
-      TV_STATUS::HAS_LAYER);
-    addAction_(m_layer->addAction("Save visible data", Qt::CTRL | Qt::SHIFT | Qt::Key_S, parent, &TOPPViewBase::saveLayerVisible),
-      TV_STATUS::HAS_LAYER);
+    action = m_layer->addAction("Save all data", parent, &TOPPViewBase::saveLayerAll);
+    action->setShortcut(Qt::CTRL | Qt::Key_S);
+    addAction_(action, TV_STATUS::HAS_LAYER);
+    action = m_layer->addAction("Save visible data", parent, &TOPPViewBase::saveLayerVisible);
+    action->setShortcut(Qt::CTRL | Qt::SHIFT | Qt::Key_S);
+    addAction_(action, TV_STATUS::HAS_LAYER);
     m_layer->addSeparator();
-    addAction_(m_layer->addAction("Show/hide grid lines", Qt::CTRL | Qt::Key_R, parent, &TOPPViewBase::toggleGridLines),
-      TV_STATUS::HAS_LAYER);
-    addAction_(m_layer->addAction("Show/hide axis legends", Qt::CTRL | Qt::Key_L, parent, &TOPPViewBase::toggleAxisLegends),
-      TV_STATUS::HAS_CANVAS);
+    action = m_layer->addAction("Show/hide grid lines", parent, &TOPPViewBase::toggleGridLines);
+    action->setShortcut(Qt::CTRL | Qt::Key_R);
+    addAction_(action, TV_STATUS::HAS_LAYER);
+    action = m_layer->addAction("Show/hide axis legends", parent, &TOPPViewBase::toggleAxisLegends);
+    action->setShortcut(Qt::CTRL | Qt::Key_L);
+    addAction_(action, TV_STATUS::HAS_CANVAS);
     action = addAction_(m_layer->addAction("Show/hide automated m/z annotations", parent, &TOPPViewBase::toggleInterestingMZs),
       TV_STATUS::IS_1D_VIEW);
     action->setToolTip("Only available in 1D View");
@@ -160,7 +173,7 @@ namespace OpenMS
     m_help->addAction(QWhatsThis::createAction(m_help));
     m_help->addSeparator();
     m_help->addAction("OpenMS website", []() { GUIHelpers::openURL("http://www.OpenMS.de"); });
-    m_help->addAction("Tutorials and documentation", Qt::Key_F1, []() { GUIHelpers::openURL("html/index.html"); });
+    m_help->addAction("Tutorials and documentation", []() { GUIHelpers::openURL("html/index.html"); })->setShortcut(Qt::Key_F1);
 
     m_help->addSeparator();
 
