@@ -262,7 +262,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Install dependencies
-        run: bash tools/ci/deps-macos.sh --skip-doc-deps --skip-gui-deps
+        run: bash tools/ci/deps-macos.sh --skip-doc-deps --skip-gui-deps && brew install ccache
 
       - name: Build and install OpenMS
         run: |
@@ -419,7 +419,6 @@ jobs:
             OpenMS_ROOT="${{ env.OPENMS_ROOT_CMAKE }}"
             CMAKE_PREFIX_PATH="${{ env.QT_CMAKE }}/lib/cmake;${{ env.QT_CMAKE }};${{ env.CONTRIB_CMAKE }};${{ env.OPENMS_ROOT_CMAKE }}"
             CMAKE_BUILD_PARALLEL_LEVEL=2
-            PY_BUILD_CMAKE_VERBOSE=1
           # Disable RPATH so delvewheel can handle DLL bundling
           CIBW_CONFIG_SETTINGS: "override=cmake.options.PYOPENMS_DISABLE_RPATH=ON"
           CIBW_REPAIR_WHEEL_COMMAND: "delvewheel repair --add-path ${{ env.OPENMS_ROOT_CMAKE }}/bin;${{ env.OPENMS_ROOT_CMAKE }}/lib;${{ env.QT_CMAKE }}/bin;${{ env.CONTRIB_CMAKE }}/lib -w {dest_dir} {wheel}"

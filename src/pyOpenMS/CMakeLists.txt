@@ -264,9 +264,10 @@ Boost_MINOR_VERSION = ''
 MSVS_RTLIBS = ''
 ")
 
-# Copy create_cpp_extension.py
+# Copy create_cpp_extension.py and pyproject.toml
 configure_file(${PROJECT_SOURCE_DIR}/create_cpp_extension.py ${PYOPENMS_BUILD_DIR}/create_cpp_extension.py COPYONLY)
 configure_file(${PROJECT_SOURCE_DIR}/fix_pyi_imports.py ${PYOPENMS_BUILD_DIR}/fix_pyi_imports.py COPYONLY)
+configure_file(${PROJECT_SOURCE_DIR}/pyproject.toml ${PYOPENMS_BUILD_DIR}/pyproject.toml COPYONLY)
 
 #------------------------------------------------------------------------------
 # Define generated files
