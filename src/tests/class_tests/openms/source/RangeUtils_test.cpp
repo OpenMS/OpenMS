@@ -112,8 +112,8 @@ START_SECTION(([EXTRA]~HasScanMode()))
 END_SECTION
 
 START_SECTION((bool operator()(const SpectrumType& s) const))
-	HasScanMode<MSSpectrum> r(InstrumentSettings::ScanMode::SIM,false);
-	HasScanMode<MSSpectrum> r2(InstrumentSettings::ScanMode::MASSSPECTRUM,true);
+	HasScanMode<MSSpectrum> r(static_cast<Int>(InstrumentSettings::ScanMode::SIM),false);
+	HasScanMode<MSSpectrum> r2(static_cast<Int>(InstrumentSettings::ScanMode::MASSSPECTRUM),true);
 	MSSpectrum s;
 	s.getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::SIM);
 	TEST_EQUAL(r(s), true);

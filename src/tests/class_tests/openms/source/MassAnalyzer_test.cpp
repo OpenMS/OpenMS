@@ -475,12 +475,12 @@ START_SECTION(([EXTRA] std::hash<MassAnalyzer>))
   TEST_EQUAL(hasher(ma1), hasher(ma2))
 
   // Set all fields to the same values
-  ma1.setType(MassAnalyzer::QUADRUPOLE);
-  ma1.setResolutionMethod(MassAnalyzer::FWHM);
-  ma1.setResolutionType(MassAnalyzer::CONSTANT);
-  ma1.setScanDirection(MassAnalyzer::UP);
-  ma1.setScanLaw(MassAnalyzer::LINEAR);
-  ma1.setReflectronState(MassAnalyzer::ON);
+  ma1.setType(MassAnalyzer::AnalyzerType::QUADRUPOLE);
+  ma1.setResolutionMethod(MassAnalyzer::ResolutionMethod::FWHM);
+  ma1.setResolutionType(MassAnalyzer::ResolutionType::CONSTANT);
+  ma1.setScanDirection(MassAnalyzer::ScanDirection::UP);
+  ma1.setScanLaw(MassAnalyzer::ScanLaw::LINEAR);
+  ma1.setReflectronState(MassAnalyzer::ReflectronState::ON);
   ma1.setResolution(47.14);
   ma1.setAccuracy(47.11);
   ma1.setScanRate(47.15);
@@ -491,12 +491,12 @@ START_SECTION(([EXTRA] std::hash<MassAnalyzer>))
   ma1.setFinalMSExponent(47);
   ma1.setOrder(45);
 
-  ma2.setType(MassAnalyzer::QUADRUPOLE);
-  ma2.setResolutionMethod(MassAnalyzer::FWHM);
-  ma2.setResolutionType(MassAnalyzer::CONSTANT);
-  ma2.setScanDirection(MassAnalyzer::UP);
-  ma2.setScanLaw(MassAnalyzer::LINEAR);
-  ma2.setReflectronState(MassAnalyzer::ON);
+  ma2.setType(MassAnalyzer::AnalyzerType::QUADRUPOLE);
+  ma2.setResolutionMethod(MassAnalyzer::ResolutionMethod::FWHM);
+  ma2.setResolutionType(MassAnalyzer::ResolutionType::CONSTANT);
+  ma2.setScanDirection(MassAnalyzer::ScanDirection::UP);
+  ma2.setScanLaw(MassAnalyzer::ScanLaw::LINEAR);
+  ma2.setReflectronState(MassAnalyzer::ReflectronState::ON);
   ma2.setResolution(47.14);
   ma2.setAccuracy(47.11);
   ma2.setScanRate(47.15);
@@ -513,7 +513,7 @@ START_SECTION(([EXTRA] std::hash<MassAnalyzer>))
 
   // Test that different objects have different hashes (not guaranteed but highly likely)
   MassAnalyzer ma3;
-  ma3.setType(MassAnalyzer::TOF);
+  ma3.setType(MassAnalyzer::AnalyzerType::TOF);
   TEST_NOT_EQUAL(hasher(ma1), hasher(ma3))
 
   // Test use in unordered_set

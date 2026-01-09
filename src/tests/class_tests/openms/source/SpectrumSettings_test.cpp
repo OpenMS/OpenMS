@@ -438,11 +438,11 @@ START_SECTION([EXTRA] std::hash<SpectrumSettings>)
   SpectrumSettings s1, s2;
   s1.setNativeID("scan=1");
   s1.setComment("test comment");
-  s1.setType(SpectrumSettings::CENTROID);
+  s1.setType(SpectrumSettings::SpectrumType::CENTROID);
 
   // Set up instrument settings
   InstrumentSettings is;
-  is.setScanMode(InstrumentSettings::MSNSPECTRUM);
+  is.setScanMode(InstrumentSettings::ScanMode::MSNSPECTRUM);
   is.setZoomScan(true);
   ScanWindow sw;
   sw.begin = 100.0;
@@ -511,7 +511,7 @@ START_SECTION([EXTRA] std::hash<SpectrumSettings>)
   SpectrumSettings diff;
   diff.setNativeID("scan=999");
   diff.setComment("different comment");
-  diff.setType(SpectrumSettings::PROFILE);
+  diff.setType(SpectrumSettings::SpectrumType::PROFILE);
   // Note: We don't guarantee different hashes for different objects (collisions are allowed)
   // but we verify the hash function runs without error
   std::size_t h1 = hasher(s1);

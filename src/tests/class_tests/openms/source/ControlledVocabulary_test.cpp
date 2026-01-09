@@ -227,7 +227,7 @@ START_SECTION(([ControlledVocabulary::CVTerm] CVTerm(const CVTerm &rhs)))
   a.description = "test_description";
   a.synonyms = ListUtils::create<String>("test,synonyms");
   a.unparsed = ListUtils::create<String>("test,unparsed");
-  a.xref_type = ControlledVocabulary::CVTerm::XSD_DECIMAL;
+  a.xref_type = ControlledVocabulary::CVTerm::XRefType::XSD_DECIMAL;
   a.xref_binary = ListUtils::create<String>("test,xref_binary");
   a.units.insert("units");
 
@@ -259,7 +259,7 @@ START_SECTION(([ControlledVocabulary::CVTerm] CVTerm& operator=(const CVTerm &rh
   a.description = "test_description";
   a.synonyms = ListUtils::create<String>("test,synonyms");
   a.unparsed = ListUtils::create<String>("test,unparsed");
-  a.xref_type = ControlledVocabulary::CVTerm::XSD_DECIMAL;
+  a.xref_type = ControlledVocabulary::CVTerm::XRefType::XSD_DECIMAL;
   a.xref_binary = ListUtils::create<String>("test,xref_binary");
   a.units.insert("units");
 

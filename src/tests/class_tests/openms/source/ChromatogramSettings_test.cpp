@@ -436,7 +436,7 @@ START_SECTION([EXTRA] std::hash<ChromatogramSettings>)
   // Test with populated objects
   cs1.setNativeID("native_id_1");
   cs1.setComment("test comment");
-  cs1.setChromatogramType(ChromatogramSettings::SELECTED_REACTION_MONITORING_CHROMATOGRAM);
+  cs1.setChromatogramType(ChromatogramSettings::ChromatogramType::SELECTED_REACTION_MONITORING_CHROMATOGRAM);
   cs1.getPrecursor().setMZ(500.5);
   cs1.getProduct().setMZ(200.2);
   cs1.getAcquisitionInfo().setMethodOfCombination("sum");
@@ -446,7 +446,7 @@ START_SECTION([EXTRA] std::hash<ChromatogramSettings>)
 
   cs2.setNativeID("native_id_1");
   cs2.setComment("test comment");
-  cs2.setChromatogramType(ChromatogramSettings::SELECTED_REACTION_MONITORING_CHROMATOGRAM);
+  cs2.setChromatogramType(ChromatogramSettings::ChromatogramType::SELECTED_REACTION_MONITORING_CHROMATOGRAM);
   cs2.getPrecursor().setMZ(500.5);
   cs2.getProduct().setMZ(200.2);
   cs2.getAcquisitionInfo().setMethodOfCombination("sum");

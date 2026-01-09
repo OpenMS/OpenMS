@@ -1051,7 +1051,7 @@ namespace OpenMS
     table_widget_->setAtBottomRow(spectrum.getRT(), Clmn::RT, background_color);
 
     // scan mode
-    table_widget_->setAtBottomRow(QString::fromStdString(spectrum.getInstrumentSettings().NamesOfScanMode[spectrum.getInstrumentSettings().getScanMode()]), Clmn::SCANTYPE, background_color);
+    table_widget_->setAtBottomRow(QString::fromStdString(spectrum.getInstrumentSettings().NamesOfScanMode[static_cast<size_t>(spectrum.getInstrumentSettings().getScanMode())]), Clmn::SCANTYPE, background_color);
 
     // zoom scan
     table_widget_->setAtBottomRow(spectrum.getInstrumentSettings().getZoomScan() ? "yes" : "no", Clmn::ZOOM, background_color);
