@@ -10,6 +10,7 @@
 #include <OpenMS/PROCESSING/BASELINE/MorphologicalFilter.h>
 #include <OpenMS/MATH/STATISTICS/BasicStatistics.h>
 #include <OpenMS/ML/INTERPOLATION/LinearInterpolation.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
 #include <boost/math/special_functions/fpclassify.hpp> // isnan
 

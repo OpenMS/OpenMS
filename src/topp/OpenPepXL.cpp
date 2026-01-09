@@ -203,7 +203,7 @@ protected:
     OpenPepXLAlgorithm search_algorithm;
     Param this_param = getParam_();
     Param algo_param = search_algorithm.getParameters();
-    algo_param.update(this_param, false, false, false, false, OpenMS_Log_debug); // suppress param. update message
+    algo_param.update(this_param, false, false, false, false, getGlobalLogDebug()); // suppress param. update message
     search_algorithm.setParameters(algo_param);
     search_algorithm.setLogType(this->log_type_);
 

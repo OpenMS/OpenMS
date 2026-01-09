@@ -696,11 +696,6 @@ namespace OpenMS
           "Unknown correction type " + corr_type);
     }
 
-    printf("# mz regression parameters: Y = %g + %g X + %g X^2\n",
-           regression_params[0],
-           regression_params[1],
-           regression_params[2]);
-
     OPENMS_LOG_DEBUG << "# mz regression parameters: Y = " << regression_params[0] << " + " <<
       regression_params[1] << " X + " << regression_params[2] << " X^2\n";
 

@@ -368,10 +368,10 @@ namespace OpenMS
               << " chromatogram(s)." << endl;
 
     OPENMS_LOG_INFO << "Detecting chromatographic peaks..." << endl;
-    OpenMS_Log_info.remove(cout); // suppress status output from OpenSWATH
+    getGlobalLogInfo().remove(cout); // suppress status output from OpenSWATH
     feat_finder_.pickExperiment(chrom_data_, features, library_,
                                 TransformationDescription(), ms_data_);
-    OpenMS_Log_info.insert(cout);
+    getGlobalLogInfo().insert(cout);
     OPENMS_LOG_INFO << "Found " << features.size()
                     << " feature candidates in total." << endl;
     ms_data_.reset(); // not needed anymore, free up the memory

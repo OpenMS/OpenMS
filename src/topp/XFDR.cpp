@@ -111,7 +111,7 @@ protected:
     XFDRAlgorithm fdr_algorithm;
     Param this_param = getParam_().copy("", true);
     Param algo_param = fdr_algorithm.getParameters();
-    algo_param.update(this_param, false, OpenMS_Log_debug); // suppress param. update message
+    algo_param.update(this_param, false, getGlobalLogDebug()); // suppress param. update message
     fdr_algorithm.setParameters(algo_param);
     fdr_algorithm.setLogType(this->log_type_);
 

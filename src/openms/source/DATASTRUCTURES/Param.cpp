@@ -47,7 +47,7 @@ namespace OpenMS
     //check name
     if (name.find(':') != std::string::npos)
     {
-      std::cerr << "Error ParamEntry name must not contain ':' characters!" << std::endl;
+      OPENMS_LOG_ERROR << "Error ParamEntry name must not contain ':' characters!" << std::endl;
     }
   }
 
@@ -1202,7 +1202,7 @@ namespace OpenMS
 
   bool Param::update(const Param& p_outdated, const bool add_unknown)
   {
-    return update(p_outdated, add_unknown, OpenMS_Log_warn);
+    return update(p_outdated, add_unknown, getGlobalLogWarn());
   }
 
   bool Param::update(const Param& p_outdated, const bool add_unknown, Logger::LogStream& stream)

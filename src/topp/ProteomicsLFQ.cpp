@@ -424,7 +424,7 @@ protected:
         {
           t.fitModel(model_type, model_params);
         }
-        t.printSummary(OpenMS_Log_debug);
+        t.printSummary(getGlobalLogDebug());
         alignment_stats.emplace_back(t.getStatistics());
       }
 

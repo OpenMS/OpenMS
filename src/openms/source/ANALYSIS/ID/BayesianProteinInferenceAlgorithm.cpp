@@ -443,15 +443,14 @@ namespace OpenMS
 
           // Graph builder needs to build otherwise it leaks memory.
           bigb.to_graph();
-          std::cout << "Warning: Loopy belief propagation encountered a problem in a connected component. Skipping"
-                      "inference there.\n";
+          OPENMS_LOG_WARN << "Warning: Loopy belief propagation encountered a problem in a connected component. Skipping inference there.\n";
           return 0;
         }
         //TODO we could write out the posteriors here, so we can easily read them for the best params of the grid search
       }
       else
       {
-        std::cout << "Skipped cc with only one type (proteins or peptides)\n";
+        OPENMS_LOG_WARN << "Skipped cc with only one type (proteins or peptides)\n";
         return 0;
       }
     }

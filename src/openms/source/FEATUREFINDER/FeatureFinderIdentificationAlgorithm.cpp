@@ -825,13 +825,13 @@ namespace OpenMS
       // suppress status output from OpenSWATH, unless in debug mode:
       if (debug_level_ < 1)
       {
-        OpenMS_Log_info.remove(cout);
+        getGlobalLogInfo().remove(cout);
       }
       feat_finder_.pickExperiment(chrom_data_, features, library_,
                                   TransformationDescription(), ms_data_);
       if (debug_level_ < 1)
       {
-        OpenMS_Log_info.insert(cout); // revert logging change
+        getGlobalLogInfo().insert(cout); // revert logging change
       }
       chrom_data_.clear(true);
       // Accumulate library entries for output before clearing

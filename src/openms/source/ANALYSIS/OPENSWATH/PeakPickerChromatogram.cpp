@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/OPENSWATH/PeakPickerChromatogram.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
 namespace OpenMS
 {
@@ -301,7 +302,7 @@ namespace OpenMS
         // assert that the peaks are now not overlapping any more ...
         if (new_left_border < new_right_border)
         {
-          std::cerr << "Something went wrong, peaks are still overlapping!" << " - new left border " << new_left_border << " vs " << new_right_border << " -- will take the mean\n";
+          OPENMS_LOG_ERROR << "Something went wrong, peaks are still overlapping!" << " - new left border " << new_left_border << " vs " << new_right_border << " -- will take the mean\n";
           new_left_border = (new_left_border + new_right_border) / 2;
           new_right_border = (new_left_border + new_right_border) / 2;
 

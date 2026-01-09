@@ -536,12 +536,4 @@ private:
   OPENMS_DLLAPI Logger::LogStream& getGlobalLogDebug();
   ///@}
 
-  // Backward compatibility aliases - DEPRECATED, use getGlobalLog*() instead
-  // These are kept for API compatibility but should not be used for logging (not thread-safe)
-  #define OpenMS_Log_fatal OpenMS::getGlobalLogFatal()
-  #define OpenMS_Log_error OpenMS::getGlobalLogError()
-  #define OpenMS_Log_warn  OpenMS::getGlobalLogWarn()
-  #define OpenMS_Log_info  OpenMS::getGlobalLogInfo()
-  #define OpenMS_Log_debug OpenMS::getGlobalLogDebug()
-
 } // namespace OpenMS
