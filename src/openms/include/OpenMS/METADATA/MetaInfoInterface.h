@@ -13,12 +13,12 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/HashUtils.h>
 #include <OpenMS/METADATA/MetaInfoRegistry.h>
+#include <OpenMS/METADATA/MetaInfo.h>
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
 
 namespace OpenMS
 {
   class String;
-  class MetaInfo;
 
   /**
     @brief Interface for classes that can store arbitrary meta information
@@ -35,6 +35,13 @@ namespace OpenMS
   class OPENMS_DLLAPI MetaInfoInterface
   {
 public:
+    /**
+     * @brief Const iterator type for iterating over meta info entries.
+     *
+     * Dereferences to std::pair<UInt, DataValue> where the first element is
+     * the registry index and the second is the associated DataValue.
+     */
+    using MetaInfoConstIterator = MetaInfo::const_iterator;
 
     /// Constructor
     MetaInfoInterface() = default;
@@ -104,6 +111,38 @@ public:
     /// Removes all meta values
     void clearMetaInfo();
 
+    /// @name Iterator access for meta info
+    /// @brief Provides read-only iterator access to the underlying meta info entries.
+    /// Iterators dereference to std::pair<UInt, DataValue> where the first element
+    /// is the registry index and the second is the associated value.
+    /// If no meta info exists (null internal pointer), an empty range is returned.
+    ///@{
+
+    /**
+     * @brief Returns a const iterator to the beginning of the meta info entries.
+     *
+     * If no meta info exists (object was never assigned any meta values),
+     * returns an iterator equal to metaEnd() (empty range).
+     *
+     * @return MetaInfoConstIterator pointing to the first index-value pair.
+     */
+    MetaInfoConstIterator metaBegin() const;
+
+    /**
+     * @brief Returns a const iterator to the end of the meta info entries.
+     *
+     * @return MetaInfoConstIterator pointing past the last index-value pair.
+     */
+    MetaInfoConstIterator metaEnd() const;
+
+    /**
+     * @brief Returns the number of meta info entries.
+     *
+     * @return The count of meta value entries, or 0 if no meta info exists.
+     */
+    Size metaSize() const;
+    ///@}
+
 protected:
 
     /// Creates the MetaInfo object if it does not exist
@@ -122,41 +161,25 @@ namespace std
    * @brief Hash function for MetaInfoInterface.
    *
    * Hashes based on all meta info key-value pairs using order-independent
-   * accumulation. This handles both String keys (names) and UInt keys (indices).
+   * accumulation. Uses direct iterator access for O(n) complexity without
+   * allocating intermediate vectors.
    *
-   * @note Uses additive accumulation (commutative) instead of sorting for O(n)
-   *       complexity. Each key-value pair produces a hash that is added to the
-   *       total, ensuring equal MetaInfoInterface objects produce equal hashes
-   *       regardless of internal storage order.
+   * @note Uses additive accumulation (commutative) so equal MetaInfoInterface
+   *       objects produce equal hashes regardless of internal storage order.
    */
   template<>
   struct hash<OpenMS::MetaInfoInterface>
   {
     std::size_t operator()(const OpenMS::MetaInfoInterface& meta) const noexcept
     {
-      // Use additive accumulation for order-independent hashing (O(n) vs O(n log n))
       std::size_t hash = 0;
-
-      // Hash String keys (names)
-      std::vector<OpenMS::String> str_keys;
-      meta.getKeys(str_keys);
-      for (const auto& key : str_keys)
+      // Iterate directly over the underlying flat_map entries
+      for (auto it = meta.metaBegin(); it != meta.metaEnd(); ++it)
       {
-        std::size_t pair_hash = OpenMS::fnv1a_hash_string(key);
-        OpenMS::hash_combine(pair_hash, std::hash<OpenMS::DataValue>{}(meta.getMetaValue(key)));
+        std::size_t pair_hash = OpenMS::hash_int(static_cast<int64_t>(it->first));
+        OpenMS::hash_combine(pair_hash, std::hash<OpenMS::DataValue>{}(it->second));
         hash += pair_hash;  // Order-independent accumulation
       }
-
-      // Hash UInt keys (indices) - critical for correctness
-      std::vector<OpenMS::UInt> uint_keys;
-      meta.getKeys(uint_keys);
-      for (const auto& key : uint_keys)
-      {
-        std::size_t pair_hash = OpenMS::hash_int(static_cast<int64_t>(key));
-        OpenMS::hash_combine(pair_hash, std::hash<OpenMS::DataValue>{}(meta.getMetaValue(key)));
-        hash += pair_hash;  // Order-independent accumulation
-      }
-
       return hash;
     }
   };
