@@ -157,7 +157,10 @@ jobs:
           CIBW_MANYLINUX_X86_64_IMAGE: ghcr.io/openms/contrib_manylinux_2_34:latest-amd64
           CIBW_BEFORE_ALL: "yum install -y cmake ninja-build"
           # Use install directory with stripped libraries
-          CIBW_ENVIRONMENT: "OpenMS_ROOT=/project/install CMAKE_PREFIX_PATH=/contrib-build:/project/install CMAKE_BUILD_PARALLEL_LEVEL=2"
+          CIBW_ENVIRONMENT: >-
+            OpenMS_ROOT=/project/install
+            CMAKE_PREFIX_PATH=/contrib-build:/project/install
+            CMAKE_BUILD_PARALLEL_LEVEL=2"
           CIBW_CONFIG_SETTINGS: "override=cmake.options.PYOPENMS_PREPARE_WHEEL_REPAIR=ON"
           CIBW_REPAIR_WHEEL_COMMAND: "auditwheel repair -w {dest_dir} {wheel}"
           # TODO: Remove after verifying INSTALL_RPATH_USE_LINK_PATH works
@@ -237,7 +240,10 @@ jobs:
           CIBW_BUILD: ${{ needs.setup.outputs.cibw-build-linux-arm64 }}
           CIBW_MANYLINUX_AARCH64_IMAGE: ghcr.io/openms/contrib_manylinux_2_34:latest-arm64
           CIBW_BEFORE_ALL: "yum install -y cmake ninja-build"
-          CIBW_ENVIRONMENT: "OpenMS_ROOT=/project/install CMAKE_PREFIX_PATH=/contrib-build:/project/install CMAKE_BUILD_PARALLEL_LEVEL=2"
+          CIBW_ENVIRONMENT: >-
+            OpenMS_ROOT=/project/install
+            CMAKE_PREFIX_PATH=/contrib-build:/project/install
+            CMAKE_BUILD_PARALLEL_LEVEL=2
           CIBW_CONFIG_SETTINGS: "override=cmake.options.PYOPENMS_PREPARE_WHEEL_REPAIR=ON"
           # TODO: Remove debug inspection after verifying INSTALL_RPATH_USE_LINK_PATH works
           CIBW_REPAIR_WHEEL_COMMAND: "sh -c 'echo \"===== Inspecting wheel BEFORE repair =====\" && unzip -j {wheel} \"pyopenms/_pyopenms_1.*.so\" -d /tmp/inspect_wheel && readelf -d /tmp/inspect_wheel/_pyopenms_1.*.so | grep -E \"RPATH|RUNPATH|NEEDED\" && echo \"===== Running auditwheel repair =====\" && auditwheel repair -w {dest_dir} {wheel}'"
@@ -307,7 +313,11 @@ jobs:
           CIBW_BEFORE_BUILD: "pip install delocate"
           # Use old mechanism: copy libraries and use @loader_path
           # NO_DEPENDENCIES=OFF enables legacy library copying for macOS (with our fix_dependencies script)
-          CIBW_ENVIRONMENT: "OpenMS_ROOT=${{ github.workspace }}/install CMAKE_PREFIX_PATH=/opt/homebrew:/opt/homebrew/opt/libomp:${{ github.workspace }}/install MACOSX_DEPLOYMENT_TARGET=14.0 CMAKE_BUILD_PARALLEL_LEVEL=2 PY_BUILD_CMAKE_VERBOSE=1"
+          CIBW_ENVIRONMENT: >-
+            OpenMS_ROOT="${{ github.workspace }}/install"
+            CMAKE_PREFIX_PATH="/opt/homebrew:/opt/homebrew/opt/libomp:${{ github.workspace }}/install"
+            MACOSX_DEPLOYMENT_TARGET=14.0
+            CMAKE_BUILD_PARALLEL_LEVEL=2
           # Disable NO_DEPENDENCIES for macOS to use old library bundling approach
           CIBW_CONFIG_SETTINGS: "override=cmake.options.NO_DEPENDENCIES=OFF"
           # DELOCATE IS TOO STUPID TO FIGURE OUT PATHS ON ITS OWN. WE NEED TO USE OUR OWN SCRIPT WHICH IS MORE RELIABLE THAN A YEARS-OLD BROKEN TOOL.
@@ -326,11 +336,6 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Setup cmake
-        uses: jwlawson/actions-setup-cmake@v2
-        with:
-          cmake-version: '3.25.x'
 
       - name: Install Qt
         uses: jurplel/install-qt-action@v4

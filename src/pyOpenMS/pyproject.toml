@@ -130,10 +130,9 @@ generator = "Ninja"
 build_type = "Release"
 source_path = "."
 install_args = ["--strip"]
-args = ["--debug-find"]
-# Do NOT pass -j here! It would override CMAKE_BUILD_PARALLEL_LEVEL env var.
-# CMake docs: "CMAKE_BUILD_PARALLEL_LEVEL specifies a default parallel level
-# when this option [--parallel/-j] is not given."
+# Use args e.g. for debugging
+#args = ["--debug-find"]
+# Avoid passing -j here if you use the CMAKE_BUILD_PARALLEL_LEVEL env var. It would override it.
 # CI sets CMAKE_BUILD_PARALLEL_LEVEL=2 to prevent OOM on limited-memory runners.
 # Local builds will use Ninja's default (all cores) when env var is not set.
 build_args = []
@@ -150,7 +149,7 @@ install_components = ["python_modules"]
 #   pip install . --config-settings=cmake.options.PY_NUM_THREADS=4
 PY_NUM_MODULES = "8"
 PY_NUM_THREADS = "2"
-# Skip dependency bundling - wheel repair tools will handle this
+# Skip dependency bundling - wheel repair tools will usually handle this
 NO_DEPENDENCIES = "ON"
 
 
@@ -159,7 +158,7 @@ NO_DEPENDENCIES = "ON"
 #------------------------------------------------------------------------------
 
 [tool.cibuildwheel]
-# Build for Python 3.10-3.14
+# Build for Python 3.10-3.14 (usually overwritten by GitHub Actions)
 build = "cp310-* cp311-* cp312-* cp313-* cp314-*"
 # Skip 32-bit, musllinux, and PyPy builds
 skip = "*-win32 *-musllinux_* pp*"
@@ -172,8 +171,6 @@ skip = "*-win32 *-musllinux_* pp*"
 # TODO check if import-mode is enough and fix the missing file issue (ideally by not relying on them at all).
 test-requires = ["pytest", "numpy", "pandas", "pyarrow"]
 test-command = "mkdir temp_test_dir && cd temp_test_dir && pytest \"{package}/tests/unittests\" -v --tb=short --import-mode=importlib"
-
-# Build in isolated environment
 build-verbosity = 1
 
 [tool.cibuildwheel.linux]
