@@ -160,7 +160,7 @@ jobs:
           CIBW_ENVIRONMENT: >-
             OpenMS_ROOT=/project/install
             CMAKE_PREFIX_PATH=/contrib-build:/project/install
-            CMAKE_BUILD_PARALLEL_LEVEL=2"
+            CMAKE_BUILD_PARALLEL_LEVEL=2
           CIBW_CONFIG_SETTINGS: "override=cmake.options.PYOPENMS_PREPARE_WHEEL_REPAIR=ON"
           CIBW_REPAIR_WHEEL_COMMAND: "auditwheel repair -w {dest_dir} {wheel}"
           # TODO: Remove after verifying INSTALL_RPATH_USE_LINK_PATH works
