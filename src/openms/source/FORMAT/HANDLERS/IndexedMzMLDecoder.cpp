@@ -110,7 +110,7 @@ namespace OpenMS
     // catch case where not enough memory is available
     if (buffer == nullptr)
     {
-      // Warning: Index takes up more than 10 % of the whole file, please check your input file." << '\n';
+      // Warning: Index takes up more than 10 % of the whole file, please check your input file.\n";
       std::cerr << "IndexedMzMLDecoder::parseOffsets Could not allocate enough memory to read in index of indexedMzML" << std::endl;
       std::cerr << "IndexedMzMLDecoder::parseOffsets calculated index offset " << indexoffset << " and file length " << length <<
         ", consequently tried to read into memory " << readl << " bytes." << std::endl;

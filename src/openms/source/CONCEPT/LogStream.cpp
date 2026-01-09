@@ -602,13 +602,29 @@ namespace OpenMS
   // global StreamHandler
   OPENMS_DLLAPI StreamHandler STREAM_HANDLER;
 
-  // global default logstream
-  OPENMS_DLLAPI Logger::LogStream OpenMS_Log_fatal(new Logger::LogStreamBuf("FATAL_ERROR", &red), true, &cerr);
-  OPENMS_DLLAPI Logger::LogStream OpenMS_Log_error(new Logger::LogStreamBuf("ERROR", &red), true, &cerr);
-  OPENMS_DLLAPI Logger::LogStream OpenMS_Log_warn(new Logger::LogStreamBuf("WARNING", &yellow), true, &cout);
-  OPENMS_DLLAPI Logger::LogStream OpenMS_Log_info(new Logger::LogStreamBuf("INFO", nullptr), true, &cout);
-  // OPENMS_LOG_DEBUG is disabled by default, but will be enabled in TOPPAS.cpp or TOPPBase.cpp if started in debug mode (--debug or -debug X)
-  OPENMS_DLLAPI Logger::LogStream OpenMS_Log_debug(new Logger::LogStreamBuf("DEBUG", &magenta), false); // last param should be 'true', but segfaults...
+  // Internal (static) global log streams - not directly accessible from outside this file.
+  // Use getGlobalLog*() accessor functions for configuration purposes.
+  // Use OPENMS_LOG_* macros (which use thread-local streams) for actual logging.
+  namespace
+  {
+    Logger::LogStream g_log_fatal(new Logger::LogStreamBuf("FATAL_ERROR", &red), true, &cerr);
+    Logger::LogStream g_log_error(new Logger::LogStreamBuf("ERROR", &red), true, &cerr);
+    Logger::LogStream g_log_warn(new Logger::LogStreamBuf("WARNING", &yellow), true, &cout);
+    Logger::LogStream g_log_info(new Logger::LogStreamBuf("INFO", nullptr), true, &cout);
+    // OPENMS_LOG_DEBUG is disabled by default, but will be enabled in TOPPAS.cpp or TOPPBase.cpp if started in debug mode (--debug or -debug X)
+    Logger::LogStream g_log_debug(new Logger::LogStreamBuf("DEBUG", &magenta), false); // last param should be 'true', but segfaults...
+  }
+
+  //
+  // Global log stream accessor functions (for configuration purposes)
+  // WARNING: Direct logging to these streams is NOT thread-safe.
+  // Use OPENMS_LOG_* macros for actual logging.
+  //
+  Logger::LogStream& getGlobalLogFatal() { return g_log_fatal; }
+  Logger::LogStream& getGlobalLogError() { return g_log_error; }
+  Logger::LogStream& getGlobalLogWarn() { return g_log_warn; }
+  Logger::LogStream& getGlobalLogInfo() { return g_log_info; }
+  Logger::LogStream& getGlobalLogDebug() { return g_log_debug; }
 
   //
   // Thread-local log stream accessors
@@ -617,31 +633,31 @@ namespace OpenMS
   //
   Logger::LogStream& getThreadLocalLogFatal()
   {
-    thread_local Logger::LogStream tls(new Logger::LogStreamBuf(OpenMS_Log_fatal.rdbuf(), &red), true);
+    thread_local Logger::LogStream tls(new Logger::LogStreamBuf(g_log_fatal.rdbuf(), &red), true);
     return tls;
   }
 
   Logger::LogStream& getThreadLocalLogError()
   {
-    thread_local Logger::LogStream tls(new Logger::LogStreamBuf(OpenMS_Log_error.rdbuf(), &red), true);
+    thread_local Logger::LogStream tls(new Logger::LogStreamBuf(g_log_error.rdbuf(), &red), true);
     return tls;
   }
 
   Logger::LogStream& getThreadLocalLogWarn()
   {
-    thread_local Logger::LogStream tls(new Logger::LogStreamBuf(OpenMS_Log_warn.rdbuf(), &yellow), true);
+    thread_local Logger::LogStream tls(new Logger::LogStreamBuf(g_log_warn.rdbuf(), &yellow), true);
     return tls;
   }
 
   Logger::LogStream& getThreadLocalLogInfo()
   {
-    thread_local Logger::LogStream tls(new Logger::LogStreamBuf(OpenMS_Log_info.rdbuf(), nullptr), true);
+    thread_local Logger::LogStream tls(new Logger::LogStreamBuf(g_log_info.rdbuf(), nullptr), true);
     return tls;
   }
 
   Logger::LogStream& getThreadLocalLogDebug()
   {
-    thread_local Logger::LogStream tls(new Logger::LogStreamBuf(OpenMS_Log_debug.rdbuf(), &magenta), true);
+    thread_local Logger::LogStream tls(new Logger::LogStreamBuf(g_log_debug.rdbuf(), &magenta), true);
     return tls;
   }
 

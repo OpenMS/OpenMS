@@ -51,7 +51,7 @@ namespace OpenMS
     bool pasef,
     bool load_into_memory)
   {
-    OPENMS_LOG_DEBUG << "performRTNormalization method starting" << '\n';
+    OPENMS_LOG_DEBUG << "performRTNormalization method starting\n";
     std::vector< OpenMS::MSChromatogram > irt_chromatograms;
     TransformationDescription trafo; // dummy
     this->simpleExtractChromatograms_(swath_maps, irt_transitions, irt_chromatograms, trafo, cp_irt, pasef, load_into_memory);
@@ -100,13 +100,13 @@ namespace OpenMS
     const Param& calibration_param,
     const bool pasef)
   {
-    OPENMS_LOG_DEBUG << "Start of doDataNormalization_ method" << '\n';
+    OPENMS_LOG_DEBUG << "Start of doDataNormalization_ method\n";
     this->startProgress(0, 1, "Retention time normalization");
 
     bool estimateBestPeptides = irt_detection_param.getValue("estimateBestPeptides").toBool();
     if (estimateBestPeptides)
     {
-      OPENMS_LOG_DEBUG << "Activated the 'estimateBestPeptides' option." << '\n';
+      OPENMS_LOG_DEBUG << "Activated the 'estimateBestPeptides' option.\n";
     }
 
     // 1. Estimate the retention time range of the iRT peptides over all assays
@@ -281,13 +281,13 @@ namespace OpenMS
     String model_type = irt_detection_param.getValue("alignmentMethod").toString();
     trafo_out.fitModel(model_type, model_params);
 
-    OPENMS_LOG_DEBUG << "Final RT mapping:" << '\n';
+    OPENMS_LOG_DEBUG << "Final RT mapping:\n";
     for (Size i = 0; i < pairs_corrected.size(); i++)
     {
       OPENMS_LOG_DEBUG << pairs_corrected[i].first << " " <<  pairs_corrected[i].second << '\n';
     }
 
-    OPENMS_LOG_DEBUG << "End of doDataNormalization_ method" << '\n';
+    OPENMS_LOG_DEBUG << "End of doDataNormalization_ method\n";
 
     this->endProgress();
     return trafo_out;
@@ -399,7 +399,7 @@ namespace OpenMS
           {
             int nr_empty_chromatograms = 0;
             OPENMS_LOG_DEBUG << "[simple] Extracted "  << tmp_chromatograms.size() << " chromatograms from SWATH map " <<
-              map_idx << " with m/z " << swath_maps[map_idx].lower << " to " << swath_maps[map_idx].upper << ":" << '\n';
+              map_idx << " with m/z " << swath_maps[map_idx].lower << " to " << swath_maps[map_idx].upper << ":\n";
             for (Size chrom_idx = 0; chrom_idx < tmp_chromatograms.size(); chrom_idx++)
             {
               // Check TIC and remove empty chromatograms (can happen if the
@@ -417,14 +417,14 @@ namespace OpenMS
               else
               {
                 OPENMS_LOG_DEBUG << " - Warning: Empty chromatogram " << coordinates[chrom_idx].id <<
-                  " detected. Will skip it!" << '\n';
+                  " detected. Will skip it!\n";
                 nr_empty_chromatograms++;
               }
             }
 
             if (nr_empty_chromatograms > 0)
             {
-              std::cerr << " - Warning: Detected " << nr_empty_chromatograms << " empty chromatograms. Will skip them!" << '\n';
+              std::cerr << " - Warning: Detected " << nr_empty_chromatograms << " empty chromatograms. Will skip them!\n";
             }
           }
         }
@@ -519,7 +519,7 @@ namespace OpenMS
     TransformationDescription trafo_inverse = trafo;
     trafo_inverse.invert();
 
-    std::cout << "Will analyze " << transition_exp.transitions.size() << " transitions in total." << '\n';
+    std::cout << "Will analyze " << transition_exp.transitions.size() << " transitions in total.\n";
     int progress = 0;
     this->startProgress(0, swath_maps.size(), "Extracting and scoring transitions");
 
@@ -561,7 +561,7 @@ namespace OpenMS
     //
     // currently not supported to do PASEF and PRM
     if (prm_ & pasef_) {
-      std::cerr << "Setting -pasef and -matching_window_only flags simultaneously is not currently supported." << '\n';
+      std::cerr << "Setting -pasef and -matching_window_only flags simultaneously is not currently supported.\n";
       throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
     else if (prm_)
@@ -653,7 +653,7 @@ namespace OpenMS
     }
     else
     {
-      std::cout << "Use non-nested loop with " << total_nr_threads << " threads." << '\n';
+      std::cout << "Use non-nested loop with " << total_nr_threads << " threads.\n";
     }
 #endif
 #pragma omp parallel for schedule(dynamic,1)
@@ -773,7 +773,7 @@ namespace OpenMS
 #endif
               "will analyze " << transition_exp_used_all.getCompounds().size() <<  " compounds and "
               << transition_exp_used_all.getTransitions().size() <<  " transitions "
-              "from SWATH " << i << " (batch " << pep_idx << " out of " << nr_batches << ")" << '\n';
+              "from SWATH " << i << " (batch " << pep_idx << " out of " << nr_batches << ")\n";
             }
 
             // Create the new, batch-size transition experiment
@@ -936,7 +936,7 @@ namespace OpenMS
     }
     else if (use_ms1_traces_ && !ms1_map_)
     {
-      OPENMS_LOG_WARN << "WARNING: Attempted to use MS1 traces but no MS1 map was provided: Will not use MS1 signal!" << '\n';
+      OPENMS_LOG_WARN << "WARNING: Attempted to use MS1 traces but no MS1 map was provided: Will not use MS1 signal!\n";
     }
 
     // If use_total_mi_score is defined, we need to instruct MRMTransitionGroupPicker to compute the score

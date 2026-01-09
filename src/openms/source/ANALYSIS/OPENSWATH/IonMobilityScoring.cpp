@@ -96,7 +96,7 @@ namespace OpenMS
       // check that we did not advance past
       if (pr_it != profile.end() && (im_grid[k] - pr_it->getMobility()) > eps*10)
       {
-        std::cout << " This should never happen, pr_it has advanced past the master container: " << im_grid[k]  << "  / " <<  pr_it->getMobility()  << '\n';
+        OPENMS_LOG_ERROR << "This should never happen, pr_it has advanced past the master container: " << im_grid[k]  << " / " <<  pr_it->getMobility()  << '\n';
         throw Exception::OutOfRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
       }
 
@@ -269,7 +269,7 @@ namespace OpenMS
     {
       if (s->getDriftTimeArray() == nullptr)
       {
-        OPENMS_LOG_DEBUG << " ERROR: Drift time is missing in ion mobility spectrum!" << '\n';
+        OPENMS_LOG_DEBUG << " ERROR: Drift time is missing in ion mobility spectrum!\n";
         return;
       }
     }
@@ -278,7 +278,7 @@ namespace OpenMS
     {
       if (s->getDriftTimeArray() == nullptr)
       {
-        OPENMS_LOG_DEBUG << " ERROR: Drift time is missing in MS1 ion mobility spectrum!" << '\n';
+        OPENMS_LOG_DEBUG << " ERROR: Drift time is missing in MS1 ion mobility spectrum!\n";
         return;
       }
     }
@@ -385,7 +385,7 @@ namespace OpenMS
     for (auto s:spectra){
       if (s->getDriftTimeArray() == nullptr)
       {
-        OPENMS_LOG_DEBUG << " ERROR: Drift time is missing in ion mobility spectrum!" << '\n';
+        OPENMS_LOG_DEBUG << " ERROR: Drift time is missing in ion mobility spectrum!\n";
         return;
       }
     }
@@ -420,7 +420,7 @@ namespace OpenMS
     {
       if (s->getDriftTimeArray() == nullptr)
       {
-        OPENMS_LOG_DEBUG << " ERROR: Drift time is missing in ion mobility spectrum!" << '\n';
+        OPENMS_LOG_DEBUG << " ERROR: Drift time is missing in ion mobility spectrum!\n";
         return;
       }
     }
@@ -562,7 +562,7 @@ namespace OpenMS
 
       // if (spectrum->getDriftTimeArray() == nullptr)
       // {
-      //   OPENMS_LOG_DEBUG << " ERROR: Drift time is missing in ion mobility spectrum!" << '\n';
+      //   OPENMS_LOG_DEBUG << " ERROR: Drift time is missing in ion mobility spectrum!\n";
       //   return;
       // }
 
@@ -571,7 +571,7 @@ namespace OpenMS
       {
         if (s->getDriftTimeArray() == nullptr)
         {
-          OPENMS_LOG_DEBUG << " ERROR: Drift time is missing in ion mobility spectrum!" << '\n';
+          OPENMS_LOG_DEBUG << " ERROR: Drift time is missing in ion mobility spectrum!\n";
           return;
         }
       }
@@ -717,7 +717,7 @@ namespace OpenMS
         // in order to prevent assertion error call calcXcorrPrecursorContrastSumFragShapeScore(), same as calcXcorrPrecursorContrastShapeScore() however different assertion.
         scores.im_ind_sum_contrast_shape = mrmscore_.calcXcorrPrecursorContrastSumFragShapeScore();
       } else {
-        OPENMS_LOG_DEBUG << "Identification Transition IM Scoring for " << transition[0].transition_name << " was -1. There was most likely no drift spectrum for the transition, setting cross-correlation scores to 0!" << '\n';
+        OPENMS_LOG_DEBUG << "Identification Transition IM Scoring for " << transition[0].transition_name << " was -1. There was most likely no drift spectrum for the transition, setting cross-correlation scores to 0!\n";
         scores.im_ind_contrast_coelution = 0;
         scores.im_ind_contrast_shape = 0;
         scores.im_ind_sum_contrast_coelution = 0;

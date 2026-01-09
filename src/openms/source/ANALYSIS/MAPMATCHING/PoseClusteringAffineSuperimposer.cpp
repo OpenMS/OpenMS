@@ -444,7 +444,7 @@ namespace OpenMS
 
     if (do_dump_buckets)
     {
-      dump_buckets_file << "# EOF" << '\n';
+      dump_buckets_file << "# EOF\n";
       dump_buckets_file.close();
     }
   }
@@ -683,9 +683,9 @@ namespace OpenMS
     }
     if (do_dump_buckets)
     {
-      dump_buckets_low_file << "# EOF" << '\n';
+      dump_buckets_low_file << "# EOF\n";
       dump_buckets_low_file.close();
-      dump_buckets_high_file << "# EOF" << '\n';
+      dump_buckets_high_file << "# EOF\n";
       dump_buckets_high_file.close();
     }
   }
@@ -829,21 +829,21 @@ namespace OpenMS
       double shift = std::fabs(model_minrt - scene_minrt);
       double slope = (model_maxrt - model_minrt) / (scene_maxrt - scene_minrt);
 
-      if ( (double)param_.getValue("max_scaling") < slope * 1.2 || 
+      if ( (double)param_.getValue("max_scaling") < slope * 1.2 ||
            1.0 / (double)param_.getValue("max_scaling") > slope / 1.2)
       {
-        std::cout << "WARNING: your map likely has a scaling around " << slope
+        OPENMS_LOG_WARN << "WARNING: your map likely has a scaling around " << slope
           << " but your parameters only allow for a maximal scaling of " <<
           param_.getValue("max_scaling") << '\n';
-        std::cout << "It is strongly advised to adjust your max_scaling factor" << '\n';
+        OPENMS_LOG_WARN << "It is strongly advised to adjust your max_scaling factor\n";
       }
 
       if ( (double)param_.getValue("max_shift") < shift * 1.2)
       {
-        std::cout << "WARNING: your map likely has a shift around " << shift
+        OPENMS_LOG_WARN << "WARNING: your map likely has a shift around " << shift
           << " but your parameters only allow for a maximal shift of " <<
           param_.getValue("max_shift") << '\n';
-        std::cout << "It is strongly advised to adjust your max_shift factor" << '\n';
+        OPENMS_LOG_WARN << "It is strongly advised to adjust your max_shift factor\n";
       }
 
     }

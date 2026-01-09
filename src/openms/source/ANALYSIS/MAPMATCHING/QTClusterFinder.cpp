@@ -178,7 +178,7 @@ namespace OpenMS
       double min_tolerance = 20;
       double tol, q2, q3;
       OPENMS_LOG_INFO << "Calculating RT linking tolerance bins...\n";
-      OPENMS_LOG_INFO << "RT_bin_start, Tolerance" << '\n';
+      OPENMS_LOG_INFO << "RT_bin_start, Tolerance\n";
 
       // For every pair of median RT and differences, collect
       // differences until min_nr_diffs_per_bin_ is reached, then add the
@@ -372,7 +372,7 @@ namespace OpenMS
     setParameters_(max_intensity, max_mz);
 
     // create the hash grid and fill it with features:
-    // std::cout << "Hashing..." << '\n';
+    // std::cout << "Hashing...\n";
     list<OpenMS::GridFeature> grid_features;
     Grid grid(Grid::ClusterCenter(max_diff_rt_, max_diff_mz_));
     for (Size map_index = 0; map_index < num_maps_; ++map_index)
@@ -396,7 +396,7 @@ namespace OpenMS
     }
 
     // compute QT clustering:
-    // std::cout << "Clustering..." << '\n';
+    // std::cout << "Clustering...\n";
 
     // "hot" cluster heads, we can extract the best efficiently 
     Heap cluster_heads;

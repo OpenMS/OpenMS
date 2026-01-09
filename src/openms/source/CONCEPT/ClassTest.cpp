@@ -241,7 +241,7 @@ namespace OpenMS::Internal::ClassTest
       bool
       validate(const std::vector<std::string>& file_names)
       {
-        std::cout << "checking (created temporary files)..." << '\n';
+        std::cout << "checking (created temporary files)...\n";
         bool passed_all = true;
         for (Size i = 0; i < file_names.size(); ++i)
         {
@@ -256,14 +256,14 @@ namespace OpenMS::Internal::ClassTest
             {
               if (!MzMLFile().isValid(file_names[i]))
               {
-                std::cout << " - Error: mzML file does not validate against XML schema '" << file_names[i] << "'" << '\n';
+                std::cout << " - Error: mzML file does not validate against XML schema '" << file_names[i] << "'\n";
                 passed_single = false;
               }
               StringList errors, warnings;
               if (!MzMLFile().isSemanticallyValid(file_names[i], errors,
                                                   warnings))
               {
-                std::cout << " - Error: mzML file semantically invalid '" << file_names[i] << "'" << '\n';
+                std::cout << " - Error: mzML file semantically invalid '" << file_names[i] << "'\n";
                 for (Size j = 0; j < errors.size(); ++j)
                 {
                   std::cout << "Error - " << errors[j] << '\n';
@@ -276,7 +276,7 @@ namespace OpenMS::Internal::ClassTest
             case FileTypes::MZDATA:
               if (!MzDataFile().isValid(file_names[i], std::cerr))
               {
-                std::cout << " - Error: Invalid mzData file '" << file_names[i] << "'" << '\n';
+                std::cout << " - Error: Invalid mzData file '" << file_names[i] << "'\n";
                 passed_single = false;
               }
               break;
@@ -284,7 +284,7 @@ namespace OpenMS::Internal::ClassTest
             case FileTypes::MZXML:
               if (!MzXMLFile().isValid(file_names[i], std::cerr))
               {
-                std::cout << " - Error: Invalid mzXML file '" << file_names[i] << "'" << '\n';
+                std::cout << " - Error: Invalid mzXML file '" << file_names[i] << "'\n";
                 passed_single = false;
               }
               break;
@@ -292,7 +292,7 @@ namespace OpenMS::Internal::ClassTest
             case FileTypes::FEATUREXML:
               if (!FeatureXMLFile().isValid(file_names[i], std::cerr))
               {
-                std::cout << " - Error: Invalid featureXML file '" << file_names[i] << "'" << '\n';
+                std::cout << " - Error: Invalid featureXML file '" << file_names[i] << "'\n";
                 passed_single = false;
               }
               break;
@@ -300,7 +300,7 @@ namespace OpenMS::Internal::ClassTest
             case FileTypes::IDXML:
               if (!IdXMLFile().isValid(file_names[i], std::cerr))
               {
-                std::cout << " - Error: Invalid idXML file '" << file_names[i] << "'" << '\n';
+                std::cout << " - Error: Invalid idXML file '" << file_names[i] << "'\n";
                 passed_single = false;
               }
               break;
@@ -308,7 +308,7 @@ namespace OpenMS::Internal::ClassTest
             case FileTypes::CONSENSUSXML:
               if (!ConsensusXMLFile().isValid(file_names[i], std::cerr))
               {
-                std::cout << " - Error: Invalid consensusXML file '" << file_names[i] << "'" << '\n';
+                std::cout << " - Error: Invalid consensusXML file '" << file_names[i] << "'\n";
                 passed_single = false;
               }
               break;
@@ -316,7 +316,7 @@ namespace OpenMS::Internal::ClassTest
             case FileTypes::INI:
               if (!ParamXMLFile().isValid(file_names[i], std::cerr))
               {
-                std::cout << " - Error: Invalid Param file '" << file_names[i] << "'" << '\n';
+                std::cout << " - Error: Invalid Param file '" << file_names[i] << "'\n";
                 passed_single = false;
               }
               break;
@@ -336,16 +336,16 @@ namespace OpenMS::Internal::ClassTest
             //output for single file
             if (skipped)
             {
-              std::cout << " +  skipped file '" << file_names[i] << "' (type: " << FileTypes::typeToName(type) << ")" << '\n';
+              std::cout << " +  skipped file '" << file_names[i] << "' (type: " << FileTypes::typeToName(type) << ")\n";
             }
             else if (passed_single)
             {
-              std::cout << " +  valid file '" << file_names[i] << "' (type: " << FileTypes::typeToName(type) << ")" << '\n';
+              std::cout << " +  valid file '" << file_names[i] << "' (type: " << FileTypes::typeToName(type) << ")\n";
             }
             else
             {
               passed_all = false;
-              std::cout << " -  invalid file '" << file_names[i] << "' (type: " << FileTypes::typeToName(type) << ")" << '\n';
+              std::cout << " -  invalid file '" << file_names[i] << "' (type: " << FileTypes::typeToName(type) << ")\n";
             }
           }
         }
@@ -424,7 +424,7 @@ namespace OpenMS::Internal::ClassTest
                         << " (absolute: " << TEST::absdiff << " ["
                         << TEST::absdiff_max_allowed << "], relative: "
                         << TEST::ratio << " [" << TEST::ratio_max_allowed
-                        << "], message: \"" << TEST::fuzzy_message << "\"" << '\n';
+                        << "], message: \"" << TEST::fuzzy_message << "\"\n";
               failed_lines_list.push_back(line);
             }
           }
@@ -577,7 +577,7 @@ namespace OpenMS::Internal::ClassTest
             stdcout << " +  line " << line << ":  TEST_STRING_EQUAL("
                     << string_1_stringified << ',' << string_2_stringified
                     << "): got \"" << string_1 << "\", expected \"" << string_2
-                    << "\"" << '\n';            
+                    << "\"\n";            
             }
           }
           else
@@ -585,7 +585,7 @@ namespace OpenMS::Internal::ClassTest
             stdcout << " -  line " << line << ":  TEST_STRING_EQUAL("
                       << string_1_stringified << ',' << string_2_stringified
                       << "): got \"" << string_1 << "\", expected \"" << string_2
-                      << "\"" << '\n';
+                      << "\"\n";
             failed_lines_list.push_back(line);
           }
         }
@@ -718,7 +718,7 @@ namespace OpenMS::Internal::ClassTest
           TEST::all_tests = false;
           {
             TEST::initialNewline();
-            out << "Error: Caught unidentified and unexpected exception - No message." << '\n';
+            out << "Error: Caught unidentified and unexpected exception - No message.\n";
           }
         }
       }
@@ -732,7 +732,7 @@ namespace OpenMS::Internal::ClassTest
         }
         if (TEST::verbose == 0)
         {
-          out << "Output of successful tests were suppressed. Set the environment variable 'OPENMS_TEST_VERBOSE=True' to enable them." << '\n';
+          out << "Output of successful tests were suppressed. Set the environment variable 'OPENMS_TEST_VERBOSE=True' to enable them.\n";
         } /* check for exit code */
         if (!TEST::all_tests)
         {

@@ -295,13 +295,13 @@ namespace OpenMS
             //TODO print graph with peptide probabilities to see which evidences cause problems with which params
           }
           OPENMS_LOG_WARN << "Warning: Loopy belief propagation encountered a problem in a connected component. Skipping"
-                      " inference there." << '\n';
+                      " inference there.\n";
           return 0;
         }
       }
       else
       {
-        OPENMS_LOG_WARN << "Skipped cc with only one type (proteins or peptides)" << '\n';
+        OPENMS_LOG_WARN << "Skipped cc with only one type (proteins or peptides)\n";
         return 0;
       }
     }
@@ -444,14 +444,14 @@ namespace OpenMS
           // Graph builder needs to build otherwise it leaks memory.
           bigb.to_graph();
           std::cout << "Warning: Loopy belief propagation encountered a problem in a connected component. Skipping"
-                      "inference there." << '\n';
+                      "inference there.\n";
           return 0;
         }
         //TODO we could write out the posteriors here, so we can easily read them for the best params of the grid search
       }
       else
       {
-        std::cout << "Skipped cc with only one type (proteins or peptides)" << '\n';
+        std::cout << "Skipped cc with only one type (proteins or peptides)\n";
         return 0;
       }
     }
@@ -474,7 +474,7 @@ namespace OpenMS
       OPENMS_LOG_INFO << "Evaluating: " << alpha << " " << beta << " " << gamma << '\n';
       if (beta - alpha >= 0.3 && alpha + beta <= 1.0)
       {
-        OPENMS_LOG_INFO << "Skipping improbable parameter combination.. " << '\n';
+        OPENMS_LOG_INFO << "Skipping improbable parameter combination.. \n";
         return 0.;
       }
       param_.setValue("model_parameters:prot_prior", gamma);
@@ -888,19 +888,19 @@ namespace OpenMS
     //TODO think about running grid search on the small CCs only (maybe it's enough)
     if (gs.getNrCombos() > 1)
     {
-      OPENMS_LOG_INFO << "Testing " << gs.getNrCombos() << " param combinations." << '\n';
+      OPENMS_LOG_INFO << "Testing " << gs.getNrCombos() << " param combinations.\n";
       gs.evaluate(GridSearchEvaluator(param_, ibg, debug_lvl_), -1.0, bestParams);
     }
     else
     {
-      OPENMS_LOG_INFO << "Only one combination specified: Skipping grid search." << '\n';
+      OPENMS_LOG_INFO << "Only one combination specified: Skipping grid search.\n";
     }
 
     double bestGamma = gamma_search[bestParams[2]];
     double bestBeta = beta_search[bestParams[1]];
     double bestAlpha = alpha_search[bestParams[0]];
     OPENMS_LOG_INFO << "Best params found at a=" << bestAlpha << ", b=" << bestBeta << ", g=" << bestGamma << '\n';
-    OPENMS_LOG_INFO << "Running with best parameters:" << '\n';
+    OPENMS_LOG_INFO << "Running with best parameters:\n";
     param_.setValue("model_parameters:prot_prior", bestGamma);
     param_.setValue("model_parameters:pep_emission", bestAlpha);
     param_.setValue("model_parameters:pep_spurious_emission", bestBeta);
@@ -1011,7 +1011,7 @@ namespace OpenMS
     if (proteinIDs.size() > 1)
     {
       OPENMS_LOG_WARN << "Warning: more than one protein identification run provided for inference. Only "
-                         "the first will be processed for now." << '\n';
+                         "the first will be processed for now.\n";
     }
 
     // groups will be reannotated

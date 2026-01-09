@@ -159,7 +159,7 @@ namespace OpenMS
     {
       std::cout.precision(16);
       os_im.open(debug_im_file_);
-      os_im << "mz" << "\t" << "im" << "\t" << "theo_im" << "\t" << "RT" << "\t" << "intensity" << '\n';
+      os_im << "mz" << "\t" << "im" << "\t" << "theo_im" << "\t" << "RT" << "\t" << "intensity\n";
       os_im.precision(writtenDigits(double()));
     }
 
@@ -399,8 +399,8 @@ namespace OpenMS
     im_regression_params.push_back(lr.getSlope());
     im_regression_params.push_back(0.0);
 
-    std::cout << "# im regression parameters: Y = " << im_regression_params[0] << " + " <<
-      im_regression_params[1] << " X + " << im_regression_params[2] << " X^2" << '\n';
+    OPENMS_LOG_DEBUG << "# im regression parameters: Y = " << im_regression_params[0] << " + " <<
+      im_regression_params[1] << " X + " << im_regression_params[2] << " X^2\n";
 
     // store IM transformation, using the selected model
     im_trafo.setDataPoints(data_im);
@@ -432,7 +432,7 @@ namespace OpenMS
       setPrecursorImWindow(precursor_im_window);
     }
 
-    OPENMS_LOG_DEBUG << "SwathMapMassCorrection::correctIM done." << '\n';
+    OPENMS_LOG_DEBUG << "SwathMapMassCorrection::correctIM done.\n";
   }
 
   void SwathMapMassCorrection::correctMZ(
@@ -463,7 +463,7 @@ namespace OpenMS
     {
       std::cout.precision(16);
       os.open(debug_mz_file_);
-      os << "mz" << "\t" << "theo_mz" << "\t" << "drift_time" << "\t" << "diff_ppm" << "\t" << "log_intensity" << "\t" << "RT" << '\n';
+      os << "mz" << "\t" << "theo_mz" << "\t" << "drift_time" << "\t" << "diff_ppm" << "\t" << "log_intensity" << "\t" << "RT\n";
       os.precision(writtenDigits(double()));
     }
 
@@ -702,7 +702,7 @@ namespace OpenMS
            regression_params[2]);
 
     OPENMS_LOG_DEBUG << "# mz regression parameters: Y = " << regression_params[0] << " + " <<
-      regression_params[1] << " X + " << regression_params[2] << " X^2" << '\n';
+      regression_params[1] << " X + " << regression_params[2] << " X^2\n";
 
     if (!debug_mz_file_.empty()) {os.close();}
 
@@ -722,7 +722,7 @@ namespace OpenMS
       s_ppm_before += std::fabs(ppm_before);
       s_ppm_after += std::fabs(ppm_after);
     }
-    std::cout <<" sum residual sq ppm before " << s_ppm_before << " / after " << s_ppm_after << '\n';
+    OPENMS_LOG_DEBUG << "sum residual sq ppm before " << s_ppm_before << " / after " << s_ppm_after << '\n';
 #endif
 
     // Replace the swath files with a transforming wrapper.
@@ -733,7 +733,7 @@ namespace OpenMS
           regression_params[0], regression_params[1], regression_params[2], is_ppm));
     }
 
-    OPENMS_LOG_DEBUG << "SwathMapMassCorrection::correctMZ done." << '\n';
+    OPENMS_LOG_DEBUG << "SwathMapMassCorrection::correctMZ done.\n";
   }
 
   double SwathMapMassCorrection::estimateWindow(std::vector<double> residuals, double quantile, bool full_width, double padding_factor)

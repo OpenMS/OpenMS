@@ -514,12 +514,34 @@ private:
 #define OPENMS_LOG_DEBUG_NOFILE \
   OpenMS::getThreadLocalLogDebug()
 
-  // Global LogStream instances - used as templates for thread-local stream configuration
-  // These can also be accessed directly for configuration purposes
-  OPENMS_DLLAPI extern Logger::LogStream OpenMS_Log_fatal; ///< Global static instance of a LogStream to capture messages classified as fatal errors. By default it is bound to @b cerr.
-  OPENMS_DLLAPI extern Logger::LogStream OpenMS_Log_error; ///< Global static instance of a LogStream to capture messages classified as errors. By default it is bound to @b cerr.
-  OPENMS_DLLAPI extern Logger::LogStream OpenMS_Log_warn;  ///< Global static instance of a LogStream to capture messages classified as warnings. By default it is bound to @b cout.
-  OPENMS_DLLAPI extern Logger::LogStream OpenMS_Log_info;  ///< Global static instance of a LogStream to capture messages classified as information. By default it is bound to @b cout.
-  OPENMS_DLLAPI extern Logger::LogStream OpenMS_Log_debug; ///< Global static instance of a LogStream to capture messages classified as debug output. By default it is not bound to any output stream. TOPP(AS)Base will connect cout, iff 0 < debug-level
+  /**
+    @name Global LogStream accessor functions
+
+    These functions provide access to global LogStream instances for configuration purposes
+    (e.g., adding/removing output streams). For actual logging, use the OPENMS_LOG_* macros
+    which use thread-local streams to avoid data races.
+
+    @warning Direct logging to global streams is NOT thread-safe. Use OPENMS_LOG_* macros instead.
+  */
+  ///@{
+  /// Returns the global fatal error log stream (for configuration only - use OPENMS_LOG_FATAL_ERROR for logging)
+  OPENMS_DLLAPI Logger::LogStream& getGlobalLogFatal();
+  /// Returns the global error log stream (for configuration only - use OPENMS_LOG_ERROR for logging)
+  OPENMS_DLLAPI Logger::LogStream& getGlobalLogError();
+  /// Returns the global warning log stream (for configuration only - use OPENMS_LOG_WARN for logging)
+  OPENMS_DLLAPI Logger::LogStream& getGlobalLogWarn();
+  /// Returns the global info log stream (for configuration only - use OPENMS_LOG_INFO for logging)
+  OPENMS_DLLAPI Logger::LogStream& getGlobalLogInfo();
+  /// Returns the global debug log stream (for configuration only - use OPENMS_LOG_DEBUG for logging)
+  OPENMS_DLLAPI Logger::LogStream& getGlobalLogDebug();
+  ///@}
+
+  // Backward compatibility aliases - DEPRECATED, use getGlobalLog*() instead
+  // These are kept for API compatibility but should not be used for logging (not thread-safe)
+  #define OpenMS_Log_fatal OpenMS::getGlobalLogFatal()
+  #define OpenMS_Log_error OpenMS::getGlobalLogError()
+  #define OpenMS_Log_warn  OpenMS::getGlobalLogWarn()
+  #define OpenMS_Log_info  OpenMS::getGlobalLogInfo()
+  #define OpenMS_Log_debug OpenMS::getGlobalLogDebug()
 
 } // namespace OpenMS

@@ -321,7 +321,7 @@ namespace OpenMS
 
   void EGHTraceFitter::setInitialParameters_(FeatureFinderAlgorithmPickedHelperStructs::MassTraces& traces)
   {
-    OPENMS_LOG_DEBUG << "EGHTraceFitter->setInitialParameters(...)" << '\n';
+    OPENMS_LOG_DEBUG << "EGHTraceFitter->setInitialParameters(...)\n";
     OPENMS_LOG_DEBUG << "Number of traces: " << traces.size() << '\n';
 
     // aggregate data; some peaks (where intensity is zero) can be missing!

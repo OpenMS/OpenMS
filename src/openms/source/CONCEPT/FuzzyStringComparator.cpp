@@ -401,7 +401,7 @@ namespace OpenMS
                     if (ratio > ratio_max_allowed_)
                     {
 #ifdef DEBUG_FUZZY
-                      std::cout << "Ratio test failed: is larger than ratio_max " << '\n';
+                      std::cout << "Ratio test failed: is larger than ratio_max \n";
 #endif
                       if (!is_absdiff_small_)
                       {

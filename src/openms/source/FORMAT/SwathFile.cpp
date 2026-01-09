@@ -90,7 +90,7 @@ namespace OpenMS
       }
       if (exp->getSpectra()[0].getPrecursors().empty())
       {
-        std::cout << "NOTE: File " << file_list[i] << "\n does not have any precursors - I will assume it is the MS1 scan." << '\n';
+        std::cout << "NOTE: File " << file_list[i] << "\n does not have any precursors - I will assume it is the MS1 scan.\n";
         ms1 = true;
       }
       else
@@ -132,14 +132,14 @@ namespace OpenMS
     exp_meta = exp_stripped;
 
     // First pass through the file -> get the meta data
-    std::cout << "Will analyze the metadata first to determine the number of SWATH windows and the window sizes." << '\n';
+    std::cout << "Will analyze the metadata first to determine the number of SWATH windows and the window sizes.\n";
     std::vector<int> swath_counter;
     int nr_ms1_spectra;
     std::vector<OpenSwath::SwathMap> known_window_boundaries;
 
     countScansInSwath_(exp_stripped->getSpectra(), swath_counter, nr_ms1_spectra, known_window_boundaries);
     std::cout << "Determined there to be " << swath_counter.size()
-              << " SWATH windows and in total " << nr_ms1_spectra << " MS1 spectra" << '\n';
+              << " SWATH windows and in total " << nr_ms1_spectra << " MS1 spectra\n";
     endProgress();
 
     std::shared_ptr<FullSwathFileConsumer> dataConsumer;
@@ -180,7 +180,7 @@ namespace OpenMS
     MSDataChainingConsumer chaining_consumer(consumer_list);
     MzMLFile().transform(file, &chaining_consumer, false, true); // we do not need to reload metadata, it has already been loaded
 
-    OPENMS_LOG_DEBUG << "Finished parsing Swath file " << '\n';
+    OPENMS_LOG_DEBUG << "Finished parsing Swath file \n";
     std::vector<OpenSwath::SwathMap> swath_maps;
     dataConsumer->retrieveSwathMaps(swath_maps);
     endProgress();
@@ -205,13 +205,13 @@ namespace OpenMS
     exp_meta = experiment_metadata;
 
     // First pass through the file -> get the meta data
-    std::cout << "Will analyze the metadata first to determine the number of SWATH windows and the window sizes." << '\n';
+    std::cout << "Will analyze the metadata first to determine the number of SWATH windows and the window sizes.\n";
     std::vector<int> swath_counter;
     int nr_ms1_spectra;
     std::vector<OpenSwath::SwathMap> known_window_boundaries;
     countScansInSwath_(experiment_metadata->getSpectra(), swath_counter, nr_ms1_spectra, known_window_boundaries);
     std::cout << "Determined there to be " << swath_counter.size() <<
-      " SWATH windows and in total " << nr_ms1_spectra << " MS1 spectra" << '\n';
+      " SWATH windows and in total " << nr_ms1_spectra << " MS1 spectra\n";
     endProgress();
 
     FullSwathFileConsumer* dataConsumer;
@@ -236,7 +236,7 @@ namespace OpenMS
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
         "Unknown or unsupported option " + readoptions);
     }
-    OPENMS_LOG_DEBUG << "Finished parsing Swath file " << '\n';
+    OPENMS_LOG_DEBUG << "Finished parsing Swath file \n";
     std::vector<OpenSwath::SwathMap> swath_maps;
     dataConsumer->retrieveSwathMaps(swath_maps);
     delete dataConsumer;
@@ -271,7 +271,7 @@ namespace OpenMS
     endProgress();
 
     std::cout << "Determined there to be " << swath_maps.size() <<
-      " SWATH windows and in total " << indices.size() << " MS1 spectra" << '\n';
+      " SWATH windows and in total " << indices.size() << " MS1 spectra\n";
 
     return swath_maps;
   }
@@ -376,6 +376,6 @@ namespace OpenMS
     nr_ms1_spectra = ms1_counter;
 
     std::cout << "Determined there to be " << swath_counter.size() <<
-      " SWATH windows and in total " << nr_ms1_spectra << " MS1 spectra" << '\n';
+      " SWATH windows and in total " << nr_ms1_spectra << " MS1 spectra\n";
   }
 }

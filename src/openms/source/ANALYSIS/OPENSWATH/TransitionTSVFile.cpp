@@ -460,7 +460,7 @@ namespace OpenMS
 
     if (spectrast_legacy && retentionTimeInterpretation_ == "iRT")
     {
-      std::cout << "Warning: SpectraST was not run in RT normalization mode but the converted list was interpreted to have iRT units. Check whether you need to adapt the parameter -algorithm:retentionTimeInterpretation. You can ignore this warning if you used a legacy SpectraST 4.0 file." << '\n';
+      std::cout << "Warning: SpectraST was not run in RT normalization mode but the converted list was interpreted to have iRT units. Check whether you need to adapt the parameter -algorithm:retentionTimeInterpretation. You can ignore this warning if you used a legacy SpectraST 4.0 file.\n";
 
     }
   }
@@ -905,13 +905,13 @@ namespace OpenMS
           if (override_group_label_check_)
           {
             OPENMS_LOG_WARN << "Warning: Found multiple peptide sequences for peptide label group " << effective_label <<
-              ". Since 'override_group_label_check' is on, nothing will be changed." << '\n';
+              ". Since 'override_group_label_check' is on, nothing will be changed.\n";
           }
           else
           {
             OPENMS_LOG_WARN << "Warning: Found multiple peptide sequences for peptide label group " << effective_label <<
               ". This is most likely an error and to fix this, a new peptide label group will be inferred - " <<
-              "to override this decision, please use the override_group_label_check parameter." << '\n';
+              "to override this decision, please use the override_group_label_check parameter.\n";
             effective_label = mytransition.group_id;
           }
         }
@@ -1064,14 +1064,14 @@ namespace OpenMS
           {
             // We wont fix it but give out a warning
             OPENMS_LOG_WARN << "Warning: Found multiple peptide sequences for peptide label group " << pep_it.first << 
-              ". Since 'override_group_label_check' is on, nothing will be changed." << '\n';
+              ". Since 'override_group_label_check' is on, nothing will be changed.\n";
           }
           else
           {
             // Lets fix it and inform the user
             OPENMS_LOG_WARN << "Warning: Found multiple peptide sequences for peptide label group " << pep_it.first << 
               ". This is most likely an error and to fix this, a new peptide label group will be inferred - " << 
-              "to override this decision, please use the override_group_label_check parameter." << '\n';
+              "to override this decision, please use the override_group_label_check parameter.\n";
             tr_it->peptide_group_label = tr_it->group_id;
           }
         }
@@ -1381,12 +1381,12 @@ namespace OpenMS
       if (force_invalid_mods_)
       {
         // fallback: parse the "naked" peptide sequence which should always work
-        OPENMS_LOG_DEBUG << "Invalid sequence when parsing '" << tr_it->FullPeptideName << "'" << '\n';
+        OPENMS_LOG_DEBUG << "Invalid sequence when parsing '" << tr_it->FullPeptideName << "'\n";
         aa_sequence = AASequence::fromString(tr_it->PeptideSequence);
       }
       else
       {
-        OPENMS_LOG_DEBUG << "Invalid sequence when parsing '" << tr_it->FullPeptideName << "'" << '\n';
+        OPENMS_LOG_DEBUG << "Invalid sequence when parsing '" << tr_it->FullPeptideName << "'\n";
         std::cerr << "Error while reading file (use 'force_invalid_mods' parameter to override): " << e.what() << '\n';
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
             "Invalid input, cannot parse: " + tr_it->FullPeptideName);
@@ -1404,8 +1404,8 @@ namespace OpenMS
         return;
       }
       OPENMS_LOG_WARN << "Warning: The peptide sequence " << peptide.sequence << " and the full peptide name " << aa_sequence << 
-        " are not equal. Please check your input." << '\n';
-      OPENMS_LOG_WARN << "(use force_invalid_mods to override)" << '\n';
+        " are not equal. Please check your input.\n";
+      OPENMS_LOG_WARN << "(use force_invalid_mods to override)\n";
     }
 
     // Unfortunately, we cannot store an AASequence here but have to work with

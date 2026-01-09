@@ -54,11 +54,46 @@ START_TEST(LogStream, "$Id$")
 
 START_SECTION(([EXTRA] OpenMP - test))
 {
-  // just see if this crashes with OpenMP
-  // Note: We don't attach custom streams because with thread-local logging,
-  // each OpenMP thread gets its own thread-local streams which would hold
-  // references to the custom stream that may outlive it.
-  // Instead, we just test that logging doesn't crash with OpenMP.
+  // Test thread-local logging with OpenMP by attaching a custom stream to the
+  // global logger, running parallel logging, and verifying output is captured.
+  {
+    // Create a stringstream to capture output
+    std::ostringstream capture_stream;
+
+    // Add the capture stream to the global info logger BEFORE threads start.
+    // Thread-local loggers copy the stream_list_ from global when first initialized.
+    OpenMS_Log_info.insert(capture_stream);
+
+    const int num_iterations = 100;
+
+    #ifdef _OPENMP
+    omp_set_num_threads(4);
+    #pragma omp parallel for
+    #endif
+    for (int i = 0; i < num_iterations; ++i)
+    {
+      // Use global logger directly (thread-local macros may have been initialized
+      // before we added our capture stream)
+      OpenMS_Log_info << "iteration_" << i << endl;
+    }
+
+    // Remove our capture stream from the global logger
+    OpenMS_Log_info.remove(capture_stream);
+
+    // Verify that we captured output - each iteration should have produced a line
+    std::string captured = capture_stream.str();
+    int line_count = 0;
+    for (char c : captured)
+    {
+      if (c == '\n') line_count++;
+    }
+
+    // We should have captured at least num_iterations lines
+    // (may have more due to timestamps/prefixes on separate lines)
+    TEST_EQUAL(line_count >= num_iterations, true)
+  }
+
+  // Also test that high-volume logging doesn't crash with thread-local streams
   {
     // create a long string that is of similar length as the buffer length to
     // ensure buffering and flushing works correctly LogStream.cpp even in a
@@ -78,8 +113,6 @@ START_SECTION(([EXTRA] OpenMP - test))
       OPENMS_LOG_INFO << "2" << endl;
     }
   }
-
-  NOT_TESTABLE;
 }
 END_SECTION
 

@@ -200,7 +200,7 @@ namespace OpenMS
               OPENMS_LOG_DEBUG << "[addModificationsSequences_] Skipping addition of N-Term " << OpenMS::String((*modifiable_nterm.begin())->getId()) <<
                                    " to last residue (" << temp_sequence[temp_sequence.size() - 1].getOneLetterCode() << ") of peptide " << temp_sequence.toUniModString() << 
                                    " , because it does not match viable N-Term residue specificity (" <<
-                                   OpenMS::String((*modifiable_nterm.begin())->getOrigin()) << ") in ModificationDB." << '\n';
+                                   OpenMS::String((*modifiable_nterm.begin())->getOrigin()) << ") in ModificationDB.\n";
               skip_invalid_mod_seq = true;
             }
           }
@@ -216,7 +216,7 @@ namespace OpenMS
               OPENMS_LOG_DEBUG << "[addModificationsSequences_] Skipping addition of C-Term " << OpenMS::String((*modifiable_cterm.begin())->getId()) <<
                                    " to last residue (" << temp_sequence.toUnmodifiedString().back() << ") of peptide " << temp_sequence.toUniModString() << 
                                    " , because it does not match viable C-Term residue specificity (" <<
-                                   OpenMS::String((*modifiable_cterm.begin())->getOrigin()) << ") in ModificationDB." << '\n';
+                                   OpenMS::String((*modifiable_cterm.begin())->getOrigin()) << ") in ModificationDB.\n";
               skip_invalid_mod_seq = true;
             }
           }
@@ -1231,7 +1231,7 @@ namespace OpenMS
       // Check if decoy was filtered
       if (std::find(single_decoy_id.begin(), single_decoy_id.end(), it.id) != single_decoy_id.end())
       {
-        OPENMS_LOG_DEBUG << "The decoy " << it.id << " was filtered due to missing a respective target." << '\n';
+        OPENMS_LOG_DEBUG << "The decoy " << it.id << " was filtered due to missing a respective target.\n";
       }
       else
       {
@@ -1247,7 +1247,7 @@ namespace OpenMS
       if (std::find(single_decoy_id.begin(), single_decoy_id.end(), it.getCompoundRef()) != single_decoy_id.end())
       {
         OPENMS_LOG_DEBUG << "The decoy " << it.getCompoundRef()
-                         << " was filtered due to missing a respective target." << '\n';
+                         << " was filtered due to missing a respective target.\n";
       }
       else
       {

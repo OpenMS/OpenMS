@@ -392,7 +392,7 @@ namespace OpenMS
     os << "Position: " << cons.getPosition() << '\n';
     os << "Intensity " << precisionWrapper(cons.getIntensity()) << '\n';
     os << "Quality " << precisionWrapper(cons.getQuality()) << '\n';
-    os << "Grouped features: " << '\n';
+    os << "Grouped features: \n";
 
     for (ConsensusFeature::HandleSetType::const_iterator it = cons.begin(); it != cons.end(); ++it)
     {
@@ -403,14 +403,14 @@ namespace OpenMS
          << "   Intensity: " << precisionWrapper(it->getIntensity()) << '\n';
     }
 
-    os << "Meta information: " << '\n';
+    os << "Meta information: \n";
     std::vector<String> keys;
     cons.getKeys(keys);
     for (const String& it : keys)
     {
       os << "   " << (it) << ": " << cons.getMetaValue(it) << '\n';
     }
-    os << "---------- CONSENSUS ELEMENT END ----------------- " << '\n';
+    os << "---------- CONSENSUS ELEMENT END ----------------- \n";
 
     return os;
   }

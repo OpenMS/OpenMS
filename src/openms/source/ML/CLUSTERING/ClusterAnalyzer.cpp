@@ -264,14 +264,14 @@ namespace OpenMS
           std::cout << " | ";
       }
       std::cout << '\n';
-      std::cout << "---------" << '\n';
+      std::cout << "---------\n";
       for (Size z = 0; z < original.dimensionsize(); ++z)
       {
           std::cout << interdist_i[z] << " , " << intradist_i[z] << " , " << cluster_with_interdist[z] << " , ";
           std::cout << ((interdist_i[z] - intradist_i[z]) / std::max(interdist_i[z],intradist_i[z])) << '\n';
 
       }
-      std::cout << "---------" << '\n';
+      std::cout << "---------\n";
       */
 
       //calculate average silhouette width for clusters and then overall average silhouette width for cluster step
@@ -301,7 +301,7 @@ namespace OpenMS
           {
               std::cout << "s(" <<  (i) << ") = " << silhouettes[i] << '\n';
           }
-          std::cout << "---------" << '\n';
+          std::cout << "---------\n";
       */
       average_silhouette_widths.push_back(average_overall_silhouette / (float)(tree.size() + 1));
     }

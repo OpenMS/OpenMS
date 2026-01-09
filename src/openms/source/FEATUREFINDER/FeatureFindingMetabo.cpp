@@ -312,7 +312,7 @@ namespace OpenMS
     bool use_smoothed = param_.getValue("use_smoothed_intensities").toBool();
     bool report_smoothed = param_.getValue("report_smoothed_intensities").toBool();
     if (report_smoothed && !use_smoothed) {
-      OPENMS_LOG_WARN << "Warning: 'report_smoothed_intensities' is set to true, but 'use_smoothed_intensities' is false. Ignoring 'report_smoothed_intensities'." << '\n';
+      OPENMS_LOG_WARN << "Warning: 'report_smoothed_intensities' is set to true, but 'use_smoothed_intensities' is false. Ignoring 'report_smoothed_intensities'.\n";
       report_smoothed = false;
     }
     use_smoothed_intensities_ = use_smoothed;
@@ -873,12 +873,12 @@ namespace OpenMS
     // *********************************************************** //
     if (isotope_filtering_model_ == "metabolites (2% RMS)")
     {
-      OPENMS_LOG_INFO << "Loading metabolite isotope model with 2% RMS error" << '\n';
+      OPENMS_LOG_INFO << "Loading metabolite isotope model with 2% RMS error\n";
       loadIsotopeModel_("MetaboliteIsoModelNoised2");
     }
     else if (isotope_filtering_model_ == "metabolites (5% RMS)")
     {
-      OPENMS_LOG_INFO << "Loading metabolite isotope model with 5% RMS error" << '\n';
+      OPENMS_LOG_INFO << "Loading metabolite isotope model with 5% RMS error\n";
       loadIsotopeModel_("MetaboliteIsoModelNoised5");
     }
 
@@ -923,7 +923,7 @@ namespace OpenMS
         double diff_rt = std::fabs(input_mtraces[ext_idx].getCentroidRT() - ref_trace_rt);
         if (diff_rt <= local_rt_range_)
         {
-          // std::cout << " accepted!" << '\n';
+          // std::cout << " accepted!\n";
           local_traces.push_back(&input_mtraces[ext_idx]);
         }
       }

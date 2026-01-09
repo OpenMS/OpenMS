@@ -69,7 +69,7 @@ namespace OpenMS
           "No indistinguishable Groups annotated. Currently this class only resolves across groups.");
     }
 
-    OPENMS_LOG_INFO << "Resolving peptides between " << protein.getHits().size() << " proteins in " << groups.size() << " indistinguishable groups." << '\n';
+    OPENMS_LOG_INFO << "Resolving peptides between " << protein.getHits().size() << " proteins in " << groups.size() << " indistinguishable groups.\n";
 
     // I don't think we need to assume sortedness here
     //if (!skip_sort) sort(groups.begin(), groups.end());
@@ -208,7 +208,7 @@ namespace OpenMS
           evToKeep = grpIdxToEvIdx[*toResolve->begin()];
           if (toResolve->size() > 1)
           {
-           OPENMS_LOG_INFO << "Resolution: Peptide " << pep.getHits()[0].getSequence().toString() << " had groups:" << '\n';
+           OPENMS_LOG_INFO << "Resolution: Peptide " << pep.getHits()[0].getSequence().toString() << " had groups:\n";
 
            OPENMS_LOG_INFO << "tgt: ";
             for (const auto& g : bestNonDecoyGrpTie)
@@ -243,7 +243,7 @@ namespace OpenMS
       }
       else
       {
-       OPENMS_LOG_WARN << "Warning PeptideProteinResolution: Skipping spectrum without hits." << '\n';
+       OPENMS_LOG_WARN << "Warning PeptideProteinResolution: Skipping spectrum without hits.\n";
       }
     }
   }
@@ -264,7 +264,7 @@ namespace OpenMS
           "No indistinguishable Groups annotated. Currently this class only resolves across groups.");
     }
 
-   OPENMS_LOG_INFO << "Resolving peptides between " << protein.getHits().size() << " proteins in " << groups.size() << " indistinguishable groups." << '\n';
+   OPENMS_LOG_INFO << "Resolving peptides between " << protein.getHits().size() << " proteins in " << groups.size() << " indistinguishable groups.\n";
 
 
     if (!skip_sort) sort(groups.begin(), groups.end());
@@ -330,7 +330,7 @@ namespace OpenMS
       }
       else
       {
-       OPENMS_LOG_WARN << "Warning PeptideProteinResolution: Skipping spectrum without hits." << '\n';
+       OPENMS_LOG_WARN << "Warning PeptideProteinResolution: Skipping spectrum without hits.\n";
       }
     }
   }
@@ -530,7 +530,7 @@ namespace OpenMS
        OPENMS_LOG_FATAL_ERROR << "Something went terribly wrong. "
                            "Group with index " << *grp_it << "doesn't exist. "
                                                              " ProteinPeptideResolution: Groups changed"
-                                                             " after building data structures." << '\n';
+                                                             " after building data structures.\n";
       }
 
       vector<String> accessions = origin_groups[*grp_it].accessions;
@@ -550,7 +550,7 @@ namespace OpenMS
           {
            OPENMS_LOG_DEBUG << s << ", ";
           }
-         OPENMS_LOG_DEBUG << " steals " << indist_prot_grp_to_pep_[*grp_it].size() << " peptides for itself." << '\n';
+         OPENMS_LOG_DEBUG << " steals " << indist_prot_grp_to_pep_[*grp_it].size() << " peptides for itself.\n";
         }
         // Update all the peptides the current best point to
         for (set<Size>::iterator pepid_it =
@@ -600,7 +600,7 @@ namespace OpenMS
            OPENMS_LOG_FATAL_ERROR << "Something went terribly wrong. "
                                "Group with index " << *grp_it << "doesn't exist. "
                                                                  " ProteinPeptideResolution: Groups changed"
-                                                                 " after building data structures." << '\n';
+                                                                 " after building data structures.\n";
           }
 
           vector<String> accessions = origin_groups[*grp_it].accessions;
@@ -620,7 +620,7 @@ namespace OpenMS
               {
                OPENMS_LOG_DEBUG << s << ", ";
               }
-             OPENMS_LOG_DEBUG << " steals " << indist_prot_grp_to_pep_[*grp_it].size() << " peptides for itself." << '\n';
+             OPENMS_LOG_DEBUG << " steals " << indist_prot_grp_to_pep_[*grp_it].size() << " peptides for itself.\n";
             }
 
             // Update all the peptides the current best point to
@@ -710,7 +710,7 @@ namespace OpenMS
        OPENMS_LOG_FATAL_ERROR << "Something went terribly wrong. "
                               << "Group with index " << *grp_it << "doesn't exist. "
                               << " ProteinPeptideResolution: Groups changed"
-                              << " after building data structures." << '\n';
+                              << " after building data structures.\n";
       }
 
       const vector<String>& accessions = origin_groups[*grp_it].accessions;
@@ -727,7 +727,7 @@ namespace OpenMS
         {
           OPENMS_LOG_DEBUG << s << ", ";
         }
-        OPENMS_LOG_DEBUG << " steals " << indist_prot_grp_to_pep_[*grp_it].size() << " peptides for itself." << '\n';
+        OPENMS_LOG_DEBUG << " steals " << indist_prot_grp_to_pep_[*grp_it].size() << " peptides for itself.\n";
       }
 
       // Update all the peptides the current best point to

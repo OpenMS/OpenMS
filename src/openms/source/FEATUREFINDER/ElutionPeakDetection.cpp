@@ -264,7 +264,7 @@ namespace OpenMS
 
         // out debug info
 #ifdef DEBUG_EPD
-        std::cout << "findLocalExtrema: Identified potential minimum " << '\n';
+        std::cout << "findLocalExtrema: Identified potential minimum \n";
         std::cout << "    " << tr.getLabel() << ": left_idx,right_idx " << left_idx << "," << right_idx << 
           ":" << left_max_int << " min: " << min_int << " " << right_max_int << 
           " l " << left_rt << " r " << right_rt << " m " << mid_rt << '\n';
@@ -392,16 +392,16 @@ namespace OpenMS
 
 #ifdef DEBUG_EPD
     Size i = 0;
-    std::cout << "*****" << '\n';
+    std::cout << "*****\n";
     std::cout << "   finding elution peaks in mass traces RT "  << mt.getCentroidRT()  << " / mz " << mt.getCentroidMZ() << '\n';
     std::cout << "   used for smoothing: win_size "  << win_size << " FWHM scan num " /* << mt.getFWHMScansNum() */ << '\n';
-    std::cout << "*****" << '\n';
+    std::cout << "*****\n";
     for (const auto& peak : mt)
     {
       // std::cout << peak.getIntensity() << " " << mt.getSmoothedIntensities()[i] << '\n';
       ++i;
     }
-    std::cout << "*****" << '\n';
+    std::cout << "*****\n";
 #endif
 
     // *********************************************************************

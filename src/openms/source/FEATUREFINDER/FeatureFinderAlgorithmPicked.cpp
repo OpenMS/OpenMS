@@ -238,7 +238,7 @@ namespace OpenMS
     // Step 1:
     // Precalculate intensity scores for peaks
     //---------------------------------------------------------------------------
-    if (debug_) log_ << "Precalculating intensity thresholds ..." << '\n';
+    if (debug_) log_ << "Precalculating intensity thresholds ...\n";
     //new scope to make local variables disappear
     {
       startProgress(0, intensity_bins_ * intensity_bins_, "Precalculating intensity scores");
@@ -573,7 +573,7 @@ namespace OpenMS
       }
 
       endProgress();
-      std::cout << "Found " << seeds.size() << " seeds for charge " << c << "." << '\n';
+      std::cout << "Found " << seeds.size() << " seeds for charge " << c << ".\n";
 
       //------------------------------------------------------------------
       // Step 3.3:
@@ -611,7 +611,7 @@ namespace OpenMS
 
           if (debug_)
           {
-            log_ << '\n' << "Seed " << i << ":" << '\n';
+            log_ << '\n' << "Seed " << i << ":\n";
             //If the intensity is zero this seed is already uses in another feature
             log_ << " - Int: " << peak.getIntensity() << '\n';
             log_ << " - RT: " << spectrum.getRT() << '\n';
@@ -854,7 +854,7 @@ namespace OpenMS
       }
 
       IF_MASTERTHREAD endProgress();
-      std::cout << "Found " << feature_candidates << " feature candidates for charge " << c << "." << '\n';
+      std::cout << "Found " << feature_candidates << " feature candidates for charge " << c << ".\n";
     }
     // END OPENMP
 
@@ -863,7 +863,7 @@ namespace OpenMS
     //Resolve contradicting and overlapping features
     //------------------------------------------------------------------
     startProgress(0, features_->size() * features_->size(), "Resolving overlapping features");
-    if (debug_) log_ << "Resolving intersecting features (" << features_->size() << " candidates)" << '\n';
+    if (debug_) log_ << "Resolving intersecting features (" << features_->size() << " candidates)\n";
     //sort features according to m/z in order to speed up the resolution
     features_->sortByMZ();
     //precalculate BBs and maximum mz span
@@ -977,7 +977,7 @@ namespace OpenMS
         }
       }
     }
-    OPENMS_LOG_INFO << "Removed " << removed << " overlapping features." << '\n';
+    OPENMS_LOG_INFO << "Removed " << removed << " overlapping features.\n";
     // finally remove features with intensity 0
     FeatureMap tmp;
     tmp.reserve(features_->size());
@@ -1001,7 +1001,7 @@ namespace OpenMS
       OPENMS_LOG_INFO << " - " << reason.first << ": " << reason.second << " times\n";
     }
 
-    OPENMS_LOG_INFO << "\n" << features_->size() << " features found." << '\n';
+    OPENMS_LOG_INFO << "\n" << features_->size() << " features found.\n";
 
     if (debug_)
     {
@@ -1058,7 +1058,7 @@ namespace OpenMS
       //Check if the peaks are sorted according to m/z
       if (!input_map.isSorted(true))
       {
-        OPENMS_LOG_WARN << "Input map is not sorted by RT and m/z! This is done now, before applying the algorithm!" << '\n';
+        OPENMS_LOG_WARN << "Input map is not sorted by RT and m/z! This is done now, before applying the algorithm!\n";
         input_map.sortSpectra(true);
         input_map.sortChromatograms(true);
       }
@@ -1209,13 +1209,13 @@ namespace OpenMS
   {
     if (debug_)
     {
-      log_ << "Testing isotope patterns for charge " << charge << ": " << '\n';
+      log_ << "Testing isotope patterns for charge " << charge << ": \n";
     }
     const SpectrumType& spectrum = map_[center.spectrum];
     const TheoreticalIsotopePattern& isotopes = getIsotopeDistribution_(spectrum[center.peak].getMZ() * charge);
     if (debug_)
     {
-      log_ << " - Seed: " << center.peak << " (mz:" << spectrum[center.peak].getMZ() << ")" << '\n';
+      log_ << " - Seed: " << center.peak << " (mz:" << spectrum[center.peak].getMZ() << ")\n";
     }
     //Find m/z boundaries of search space (linear search as this is local and we have the center already)
     double mass_window = (double)(isotopes.size() + 1) / (double)charge;
@@ -1241,11 +1241,11 @@ namespace OpenMS
     ++begin;
     if (debug_)
     {
-      log_ << " - Begin: " << begin << " (mz:" << spectrum[begin].getMZ() << ")" << '\n';
+      log_ << " - Begin: " << begin << " (mz:" << spectrum[begin].getMZ() << ")\n";
     }
     if (debug_)
     {
-      log_ << " - End: " << end << " (mz:" << spectrum[end].getMZ() << ")" << '\n';
+      log_ << " - End: " << end << " (mz:" << spectrum[end].getMZ() << ")\n";
     }
     //fit isotope distribution to peaks
     double max_score = 0.0;
@@ -1256,7 +1256,7 @@ namespace OpenMS
       IsotopePattern pattern(isotopes.size());
       if (debug_)
       {
-        log_ << " - Fitting at " << start << " (mz:" << spectrum[start].getMZ() << ")" << '\n';
+        log_ << " - Fitting at " << start << " (mz:" << spectrum[start].getMZ() << ")\n";
       }
       for (Size iso = 0; iso < isotopes.size(); ++iso)
       {
@@ -1278,7 +1278,7 @@ namespace OpenMS
       {
         if (debug_)
         {
-          log_ << "   - aborting: seed is not contained!" << '\n';
+          log_ << "   - aborting: seed is not contained!\n";
         }
         continue;
       }
@@ -1300,7 +1300,7 @@ namespace OpenMS
       {
         if (debug_)
         {
-          log_ << "   - aborting: seed was removed during isotope fit!" << '\n';
+          log_ << "   - aborting: seed was removed during isotope fit!\n";
         }
         continue;
       }
@@ -1348,11 +1348,11 @@ namespace OpenMS
     double start_rt = map_[start_index].getRT();
     if (debug_)
     {
-      log_ << " - Trace " << max_trace_index << " (maximum intensity)" << '\n';
+      log_ << " - Trace " << max_trace_index << " (maximum intensity)\n";
     }
     if (debug_)
     {
-      log_ << "   - extending from: " << map_[start_index].getRT() << " / " << start_mz << " (int: " << start_peak->getIntensity() << ")" << '\n';
+      log_ << "   - extending from: " << map_[start_index].getRT() << " / " << start_mz << " (int: " << start_peak->getIntensity() << ")\n";
     }
     //initialize the trace and extend
     MassTrace max_trace;
@@ -1371,7 +1371,7 @@ namespace OpenMS
     {
       if (debug_)
       {
-        log_ << "   - could not extend trace with maximum intensity => abort" << '\n';
+        log_ << "   - could not extend trace with maximum intensity => abort\n";
       }
       return;
     }
@@ -1385,7 +1385,7 @@ namespace OpenMS
       {
         if (debug_)
         {
-          log_ << "   - previously extended maximum trace" << '\n';
+          log_ << "   - previously extended maximum trace\n";
         }
         traces.push_back(std::move(max_trace));
         traces.back().theoretical_int = pattern.theoretical_pattern.intensity[p];
@@ -1399,7 +1399,7 @@ namespace OpenMS
       {
         if (debug_)
         {
-          log_ << "   - removed during isotope fit" << '\n';
+          log_ << "   - removed during isotope fit\n";
         }
         continue;
       }
@@ -1407,12 +1407,12 @@ namespace OpenMS
       {
         if (debug_)
         {
-          log_ << "   - missing" << '\n';
+          log_ << "   - missing\n";
         }
         continue;
       }
       starting_peak.intensity = map_[starting_peak.spectrum][starting_peak.peak].getIntensity();
-      if (debug_) log_ << "   - trace seed: " << map_[starting_peak.spectrum].getRT() << " / " << map_[starting_peak.spectrum][starting_peak.peak].getMZ() << " (int: " << map_[starting_peak.spectrum][starting_peak.peak].getIntensity() << ")" << '\n';
+      if (debug_) log_ << "   - trace seed: " << map_[starting_peak.spectrum].getRT() << " / " << map_[starting_peak.spectrum][starting_peak.peak].getMZ() << " (int: " << map_[starting_peak.spectrum][starting_peak.peak].getIntensity() << ")\n";
 
       //search for nearby maximum of the mass trace as the extension assumes that it starts at the maximum
       Size begin = std::max((Size)0, starting_peak.spectrum - min_spectra_);
@@ -1442,7 +1442,7 @@ namespace OpenMS
       }
       if (debug_)
       {
-        log_ << "   - extending from: " << map_[starting_peak.spectrum].getRT() << " / " << map_[starting_peak.spectrum][starting_peak.peak].getMZ() << " (int: " << map_[starting_peak.spectrum][starting_peak.peak].getIntensity() << ")" << '\n';
+        log_ << "   - extending from: " << map_[starting_peak.spectrum].getRT() << " / " << map_[starting_peak.spectrum][starting_peak.peak].getMZ() << " (int: " << map_[starting_peak.spectrum][starting_peak.peak].getIntensity() << ")\n";
       }
       //------------------------------------------------------------------
       //Extend seed to a mass trace
@@ -1458,7 +1458,7 @@ namespace OpenMS
       {
         if (debug_)
         {
-          log_ << "   - could not extend trace " << '\n';
+          log_ << "   - could not extend trace \n";
         }
         //Missing traces in the middle of a pattern are not acceptable => fix this
         if (p < traces.max_trace)
@@ -1577,7 +1577,7 @@ namespace OpenMS
     }
     if (debug_)
     {
-      log_ << "   - Added " << (trace.peaks.size() - peaks_before_extension) << " peaks (abort: " << abort_reason << ")" << '\n';
+      log_ << "   - Added " << (trace.peaks.size() - peaks_before_extension) << " peaks (abort: " << abort_reason << ")\n";
     }
   }
 
@@ -1678,7 +1678,7 @@ namespace OpenMS
     {
       if (debug_)
       {
-        log_ << " missing" << '\n';
+        log_ << " missing\n";
       }
       pattern.peak[pattern_index] = -1;
       pattern.mz_score[pattern_index] = 0.0;
@@ -1712,7 +1712,7 @@ namespace OpenMS
   /// Calculates a score between 0 and 1 for the correlation between theoretical and found isotope pattern
   double FeatureFinderAlgorithmPicked::isotopeScore_(const TheoreticalIsotopePattern& isotopes, IsotopePattern& pattern, bool consider_mz_distances) const
   {
-    if (debug_) log_ << "   - fitting " << pattern.intensity.size() << " peaks" << '\n';
+    if (debug_) log_ << "   - fitting " << pattern.intensity.size() << " peaks\n";
     //Abort if a core peak is missing
     for (Size iso = 0 + isotopes.optional_begin; iso < pattern.peak.size() - isotopes.optional_end; ++iso)
     {
@@ -1720,7 +1720,7 @@ namespace OpenMS
       {
         if (debug_)
         {
-          log_ << "   - aborting: core peak is missing" << '\n';
+          log_ << "   - aborting: core peak is missing\n";
         }
         return 0.0;
       }
@@ -1896,13 +1896,13 @@ namespace OpenMS
     // choose fitter
     if (param_.getValue("feature:rt_shape") == "asymmetric")
     {
-      OPENMS_LOG_DEBUG << "use asymmetric rt peak shape" << '\n';
+      OPENMS_LOG_DEBUG << "use asymmetric rt peak shape\n";
       tau = -1.0;
       return std::make_unique<EGHTraceFitter>();
     }
     else // if (param_.getValue("feature:rt_shape") == "symmetric")
     {
-      OPENMS_LOG_DEBUG << "use symmetric rt peak shape" << '\n';
+      OPENMS_LOG_DEBUG << "use symmetric rt peak shape\n";
       return std::make_unique<GaussTraceFitter>();
     }
   }
@@ -1963,7 +1963,7 @@ namespace OpenMS
       const MassTrace& trace = traces[t];
       if (debug_)
       {
-        log_ << "   - Trace " << t << ": (" << trace.theoretical_int << ")" << '\n';
+        log_ << "   - Trace " << t << ": (" << trace.theoretical_int << ")\n";
       }
       MassTrace new_trace;
       //compute average relative deviation and correlation
@@ -2005,7 +2005,7 @@ namespace OpenMS
           new_traces = MassTraces();
           if (debug_)
           {
-            log_ << "     - removed this and previous traces due to bad fit" << '\n';
+            log_ << "     - removed this and previous traces due to bad fit\n";
           }
           new_traces.clear(); //remove earlier traces
           continue;
@@ -2015,7 +2015,7 @@ namespace OpenMS
           new_traces = MassTraces();
           if (debug_)
           {
-            log_ << "     - aborting (max trace was removed)" << '\n';
+            log_ << "     - aborting (max trace was removed)\n";
           }
           break;
         }
@@ -2023,7 +2023,7 @@ namespace OpenMS
         {
           if (debug_)
           {
-            log_ << "     - removed due to bad fit => omitting the rest" << '\n';
+            log_ << "     - removed due to bad fit => omitting the rest\n";
           }
           break; //no more traces are possible
         }
@@ -2106,7 +2106,7 @@ namespace OpenMS
       //quality output
       if (debug_)
       {
-        log_ << "Quality estimation:" << '\n';
+        log_ << "Quality estimation:\n";
         log_ << " - relative deviation: " << fit_score << '\n';
         log_ << " - correlation: " << correlation << '\n';
         log_ << " => final score: " << final_score << '\n';

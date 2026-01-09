@@ -185,9 +185,9 @@ namespace OpenMS
     entries(),
     nodes()
   {
-      if (name.find(':') != std::string::npos) 
+      if (name.find(':') != std::string::npos)
       {
-        std::cerr << "Error ParamNode name must not contain ':' characters!" << '\n';
+        OPENMS_LOG_WARN << "Error ParamNode name must not contain ':' characters!\n";
       }
   }
 
@@ -250,7 +250,7 @@ namespace OpenMS
         size_t pos = local_name.find(':');
         std::string prefix = local_name.substr(0, pos);
 
-        //cout << " - Prefix: '" << prefix << "'" << '\n';
+        //cout << " - Prefix: '" << prefix << "'\n";
         NodeIterator it = findNode(prefix);
         if (it == nodes.end()) //subnode not found
         {
@@ -258,7 +258,7 @@ namespace OpenMS
         }
         //recursively call findNode for the rest of the path
         std::string new_name = local_name.substr(it->name.size() + 1);
-        //cout << " - Next name: '" << new_name << "'" << '\n';
+        //cout << " - Next name: '" << new_name << "'\n";
         return it->findParentOf(new_name);
     }
     else // we are in the right child
@@ -301,7 +301,7 @@ namespace OpenMS
 
   void Param::ParamNode::insert(const ParamNode& node, const std::string& prefix)
   {
-    //std::cerr << "INSERT NODE  " << node.name << " (" << prefix << ")" << '\n';
+    //std::cerr << "INSERT NODE  " << node.name << " (" << prefix << ")\n";
     std::string prefix2 = prefix + node.name;
 
     ParamNode* insert_node = this;
@@ -363,7 +363,7 @@ namespace OpenMS
 
   void Param::ParamNode::insert(const ParamEntry& entry, const std::string& prefix)
   {
-    //std::cerr << "INSERT ENTRY " << entry.name << " (" << prefix << ")" << '\n';
+    //std::cerr << "INSERT ENTRY " << entry.name << " (" << prefix << ")\n";
     std::string prefix2 = prefix + entry.name;
     //std::cerr << " - inserting: " << prefix2 << '\n';
 
@@ -566,7 +566,7 @@ namespace OpenMS
 
   void Param::insert(const std::string& prefix, const Param& param)
   {
-    //std::cerr << "INSERT PARAM (" << prefix << ")" << '\n';
+    //std::cerr << "INSERT PARAM (" << prefix << ")\n";
     for (Param::ParamNode::NodeIterator it = param.root_.nodes.begin(); it != param.root_.nodes.end(); ++it)
     {
       root_.insert(*it, prefix);
@@ -594,7 +594,7 @@ namespace OpenMS
       if (!exists(prefix2 + it.getName()))
       {
         if (showMessage)
-          std::cerr << "Setting " << prefix2 + it.getName() << " to " << it->value << '\n';
+          OPENMS_LOG_WARN << "Setting " << prefix2 + it.getName() << " to " << it->value << '\n';
         std::string name = prefix2 + it.getName();
         root_.insert(ParamEntry("", it->value, it->description), name);
         //copy tags
@@ -878,7 +878,7 @@ namespace OpenMS
       {
         arg1_is_option = true;
       }
-      //cout << "Parse: '"<< arg << "' '" << arg1 << "'" << '\n';
+      //cout << "Parse: '"<< arg << "' '" << arg1 << "'\n";
 
       //flag (option without text argument)
       if (arg_is_option && arg1_is_option)
@@ -1274,7 +1274,7 @@ OPENMS_THREAD_CRITICAL(LOGSTREAM)
           if (this->findNext(l1_entry.name, it_match) == this->end())
           {
 OPENMS_THREAD_CRITICAL(LOGSTREAM)
-            stream << "Found '" << it.getName() << "' as '" << it_match.getName() << "' in new param." << '\n';
+            stream << "Found '" << it.getName() << "' as '" << it_match.getName() << "' in new param.\n";
             new_entry = this->getEntry(it_match.getName());
             target_name = it_match.getName();
           }
@@ -1285,13 +1285,13 @@ OPENMS_THREAD_CRITICAL(LOGSTREAM)
           if (fail_on_unknown_parameters)
           {
 OPENMS_THREAD_CRITICAL(LOGSTREAM)
-            stream << "Unknown (or deprecated) Parameter '" << it.getName() << "' given in outdated parameter file!" << '\n';
+            stream << "Unknown (or deprecated) Parameter '" << it.getName() << "' given in outdated parameter file!\n";
             is_update_success = false;
           }
           else if (add_unknown)
           {
 OPENMS_THREAD_CRITICAL(LOGSTREAM)
-            stream << "Unknown (or deprecated) Parameter '" << it.getName() << "' given in outdated parameter file! Adding to current set." << '\n';
+            stream << "Unknown (or deprecated) Parameter '" << it.getName() << "' given in outdated parameter file! Adding to current set.\n";
             Param::ParamEntry local_entry = p_outdated.getEntry(it.getName());
             std::string prefix = "";
             if (it.getName().find(':') != std::string::npos)
@@ -1303,7 +1303,7 @@ OPENMS_THREAD_CRITICAL(LOGSTREAM)
           else if (verbose)
           {
 OPENMS_THREAD_CRITICAL(LOGSTREAM)
-            stream << "Unknown (or deprecated) Parameter '" << it.getName() << "' given in outdated parameter file! Ignoring parameter. " << '\n';
+            stream << "Unknown (or deprecated) Parameter '" << it.getName() << "' given in outdated parameter file! Ignoring parameter. \n";
           }
           continue;
         }
@@ -1324,7 +1324,7 @@ OPENMS_THREAD_CRITICAL(LOGSTREAM)
             if (verbose) 
             {
 OPENMS_THREAD_CRITICAL(LOGSTREAM)
-                stream << "Default-Parameter '" << target_name << "' overridden: '" << default_value << "' --> '" << it->value << "'!" << '\n';
+                stream << "Default-Parameter '" << target_name << "' overridden: '" << default_value << "' --> '" << it->value << "'!\n";
             }
             this->setValue(target_name, it->value, new_entry.description, this->getTags(target_name));
           }
@@ -1335,13 +1335,13 @@ OPENMS_THREAD_CRITICAL(LOGSTREAM)
             if (fail_on_invalid_values)
             {
 OPENMS_THREAD_CRITICAL(LOGSTREAM)
-              stream << " Updating failed!" << '\n';
+              stream << " Updating failed!\n";
               is_update_success = false;
             }
             else
             {
 OPENMS_THREAD_CRITICAL(LOGSTREAM)
-              stream << " Ignoring invalid value (using new default '" << default_value << "')!" << '\n';
+              stream << " Ignoring invalid value (using new default '" << default_value << "')!\n";
               new_entry.value = default_value;
             }
           }
@@ -1358,13 +1358,13 @@ OPENMS_THREAD_CRITICAL(LOGSTREAM)
         if (fail_on_invalid_values)
         {
 OPENMS_THREAD_CRITICAL(LOGSTREAM)
-          stream << " Updating failed!" << '\n';
+          stream << " Updating failed!\n";
           is_update_success = false;
         } 
         else
         {
 OPENMS_THREAD_CRITICAL(LOGSTREAM)
-          stream << " Ignoring invalid value (using new default)!" << '\n';
+          stream << " Ignoring invalid value (using new default)!\n";
         }
       }
 
@@ -1399,12 +1399,12 @@ OPENMS_THREAD_CRITICAL(LOGSTREAM)
       {
         if (traceIt->opened)
         {
-          OPENMS_LOG_DEBUG << "[Param::merge] extending param trace " << traceIt->name << " (" << pathname << ")" << '\n';
+          OPENMS_LOG_DEBUG << "[Param::merge] extending param trace " << traceIt->name << " (" << pathname << ")\n";
           pathname += traceIt->name + ":";
         }
         else
         {
-          OPENMS_LOG_DEBUG << "[Param::merge] reducing param trace " << traceIt->name << " (" << pathname << ")" << '\n';
+          OPENMS_LOG_DEBUG << "[Param::merge] reducing param trace " << traceIt->name << " (" << pathname << ")\n";
           std::string suffix = traceIt->name + ":";
           if (suffix.size() <= pathname.size() && pathname.compare(pathname.size() - suffix.size(), suffix.size(), suffix) == 0)
             pathname.resize(pathname.size() - traceIt->name.size() - 1);
@@ -1516,7 +1516,7 @@ OPENMS_THREAD_CRITICAL(LOGSTREAM)
       //check if there is a next entry in the current node
       if (current_ + 1 < (int)node->entries.size())
       {
-        //std::cout << " - next entry" << '\n';
+        //std::cout << " - next entry\n";
         ++current_;
         return *this;
       }
@@ -1543,7 +1543,7 @@ OPENMS_THREAD_CRITICAL(LOGSTREAM)
           //we have reached the end
           if (stack_.empty())
           {
-            //std::cout << " - reached the end" << '\n';
+            //std::cout << " - reached the end\n";
             root_ = nullptr;
             return *this;
           }
