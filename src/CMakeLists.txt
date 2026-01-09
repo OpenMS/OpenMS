@@ -49,7 +49,11 @@ if(PYOPENMS)
   # Optional: Package pyOpenMS wheel from already-built modules
   # Usage: cmake --build . --target pyopenms_wheel
   add_custom_target(pyopenms_wheel
-    COMMAND uv build --wheel --out-dir ${CMAKE_BINARY_DIR}/pyopenms_wheels
+    COMMAND uv build --wheel
+      --out-dir ${CMAKE_BINARY_DIR}/pyopenms_wheels
+      --config-setting=override=cmake.0.build_path=${CMAKE_BINARY_DIR}/py-build-cmake_cache/pyopenms
+      --config-setting=override=cmake.0.options.PYOPENMS_USE_PREBUILT=ON
+      --config-setting=override=cmake.0.options.PYOPENMS_PREBUILT_DIR=${CMAKE_BINARY_DIR}/pyOpenMS
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/src/pyOpenMS
     DEPENDS pyopenms_compile
     COMMENT "Packaging pyOpenMS wheel from existing build"

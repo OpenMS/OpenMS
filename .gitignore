@@ -43,6 +43,10 @@ moc_*.cxx*
 # NB: this is the build dir not src/pyOpenMS which is tracked
 /pyOpenMS
 
+# .venv/venv everywhere
+**/.venv
+**/venv
+
 qrc_resources.cxx
 resources.qrc.depends
 
