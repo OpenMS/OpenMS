@@ -524,16 +524,85 @@ private:
     @warning Direct logging to global streams is NOT thread-safe. Use OPENMS_LOG_* macros instead.
   */
   ///@{
-  /// Returns the global fatal error log stream (for configuration only - use OPENMS_LOG_FATAL_ERROR for logging)
+
+  /**
+    @brief Get the global fatal error log stream for configuration purposes.
+
+    Returns a reference to the global fatal error LogStream instance. Use this function
+    to configure the stream (e.g., adding/removing output destinations with insert()/remove()).
+
+    @warning Do NOT use this for logging messages directly - it is not thread-safe.
+             Use the OPENMS_LOG_FATAL_ERROR macro instead.
+
+    @return Reference to the global fatal error log stream
+
+    @see OPENMS_LOG_FATAL_ERROR
+  */
   OPENMS_DLLAPI Logger::LogStream& getGlobalLogFatal();
-  /// Returns the global error log stream (for configuration only - use OPENMS_LOG_ERROR for logging)
+
+  /**
+    @brief Get the global error log stream for configuration purposes.
+
+    Returns a reference to the global error LogStream instance. Use this function
+    to configure the stream (e.g., adding/removing output destinations with insert()/remove()).
+
+    @warning Do NOT use this for logging messages directly - it is not thread-safe.
+             Use the OPENMS_LOG_ERROR macro instead.
+
+    @return Reference to the global error log stream
+
+    @see OPENMS_LOG_ERROR
+  */
   OPENMS_DLLAPI Logger::LogStream& getGlobalLogError();
-  /// Returns the global warning log stream (for configuration only - use OPENMS_LOG_WARN for logging)
+
+  /**
+    @brief Get the global warning log stream for configuration purposes.
+
+    Returns a reference to the global warning LogStream instance. Use this function
+    to configure the stream (e.g., adding/removing output destinations with insert()/remove()).
+
+    @warning Do NOT use this for logging messages directly - it is not thread-safe.
+             Use the OPENMS_LOG_WARN macro instead.
+
+    @return Reference to the global warning log stream
+
+    @see OPENMS_LOG_WARN
+  */
   OPENMS_DLLAPI Logger::LogStream& getGlobalLogWarn();
-  /// Returns the global info log stream (for configuration only - use OPENMS_LOG_INFO for logging)
+
+  /**
+    @brief Get the global info log stream for configuration purposes.
+
+    Returns a reference to the global info LogStream instance. Use this function
+    to configure the stream (e.g., adding/removing output destinations with insert()/remove()).
+
+    @warning Do NOT use this for logging messages directly - it is not thread-safe.
+             Use the OPENMS_LOG_INFO macro instead.
+
+    @return Reference to the global info log stream
+
+    @see OPENMS_LOG_INFO
+  */
   OPENMS_DLLAPI Logger::LogStream& getGlobalLogInfo();
-  /// Returns the global debug log stream (for configuration only - use OPENMS_LOG_DEBUG for logging)
+
+  /**
+    @brief Get the global debug log stream for configuration purposes.
+
+    Returns a reference to the global debug LogStream instance. Use this function
+    to configure the stream (e.g., adding/removing output destinations with insert()/remove()).
+
+    @note The debug stream is disabled by default. It is enabled in TOPPBase when
+          running with --debug flag.
+
+    @warning Do NOT use this for logging messages directly - it is not thread-safe.
+             Use the OPENMS_LOG_DEBUG macro instead.
+
+    @return Reference to the global debug log stream
+
+    @see OPENMS_LOG_DEBUG
+  */
   OPENMS_DLLAPI Logger::LogStream& getGlobalLogDebug();
+
   ///@}
 
 } // namespace OpenMS
