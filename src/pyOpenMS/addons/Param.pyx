@@ -55,9 +55,11 @@
         """
         to_dict(self: Param) -> dict
 
-        Convert the Param object to a Python dictionary.
+        Convert the Param object to a Python dictionary with string keys.
 
-        This is a PEP 8 compliant alias for asDict().
+        This is the Pythonic way to convert a Param to a dict. Unlike asDict()
+        which returns bytes keys for backward compatibility, this method returns
+        string keys for easier manipulation.
 
         Returns:
             Dictionary with string keys and parameter values
@@ -68,8 +70,10 @@
             >>> d = p.to_dict()
             >>> print(d)
             {'threshold': 0.5}
+            >>> d["threshold"] = 0.75  # Modify with string key
+            >>> p.update(d)            # Write back
         """
-        return self.asDict()
+        return {k.decode('utf-8'): v for k, v in self.items()}
 
     def keys(self):
         """

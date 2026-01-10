@@ -1697,14 +1697,23 @@ def testParamPythonicInterface():
     assert p2["str_param1"] == 100
     assert p2[b"str_param1"] == 100  # bytes key also works
 
-    # Test to_dict() method (PEP 8 alias)
+    # Test to_dict() returns string keys
     d_out = p.to_dict()
     assert isinstance(d_out, dict)
     assert len(d_out) == 3
-    assert d_out[b"param1"] == 42
+    assert "param1" in d_out  # String key, not bytes
+    assert d_out["param1"] == 42
 
-    # Test to_dict() equals asDict()
-    assert p.to_dict() == p.asDict()
+    # Test asDict() still returns bytes keys (backward compatibility)
+    d_bytes = p.asDict()
+    assert b"param1" in d_bytes
+    assert d_bytes[b"param1"] == 42
+
+    # Verify to_dict() and asDict() have same values but different key types
+    assert len(p.to_dict()) == len(p.asDict())
+    for str_key, value in p.to_dict().items():
+        assert isinstance(str_key, str)
+        assert p.asDict()[str_key.encode('utf-8')] == value
 
     # Test __len__()
     assert len(p) == 3
@@ -1750,14 +1759,23 @@ def testParamPythonicInterface():
     assert p.get(b"nonexistent") is None
     assert p.get(b"nonexistent", 123) == 123
 
-    # Test round-trip: dict -> Param -> dict
+    # Test round-trip: dict -> Param -> dict (now with string keys!)
     original = {"a": 1, "b": 2.5, "c": "test"}
     p3 = pyopenms.Param.from_dict(original)
     result = p3.to_dict()
-    # Keys come back as bytes, so we need to compare values
+    # Keys come back as strings, so direct comparison works
     assert len(result) == len(original)
-    for key, value in original.items():
-        assert p3[key] == value
+    assert result == original  # Direct equality now works!
+
+    # Test round-trip workflow: fetch, modify, write back
+    p4 = pyopenms.Param.from_dict({"threshold": 0.5, "iterations": 10})
+    d = p4.to_dict()
+    d["threshold"] = 0.75  # Modify with string key
+    d["new_key"] = "added"  # Add new key
+    p4.update(d)
+    assert p4["threshold"] == 0.75
+    assert p4["iterations"] == 10
+    assert p4["new_key"] == "added"
 
     # Test empty Param
     p_empty = pyopenms.Param()
