@@ -178,8 +178,8 @@ build-verbosity = 1
 
 # Override cmake options for wheel building with repair tools
 [tool.cibuildwheel.config-settings]
-"override.cmake.options.NO_DEPENDENCIES" = "ON"
-"override.cmake.options.PYOPENMS_PREPARE_WHEEL_REPAIR" = "ON"
+"override" = "cmake.options.NO_DEPENDENCIES=ON"
+"override" = "cmake.options.PYOPENMS_PREPARE_WHEEL_REPAIR=ON"
 
 [tool.cibuildwheel.linux]
 # Use OpenMS manylinux containers with pre-built dependencies
