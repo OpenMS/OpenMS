@@ -84,6 +84,9 @@ build = [
     "autowrap>=0.24.0",
     "Cython>=3.1.0",
     "numpy>=2.0",
+    "auditwheel; sys_platform == 'linux'",
+    "delocate; sys_platform == 'darwin'",
+    "delvewheel; sys_platform == 'win32'",
 ]
 test = [
     "pytest",
@@ -173,6 +176,11 @@ test-requires = ["pytest", "numpy", "pandas", "pyarrow"]
 test-command = "mkdir temp_test_dir && cd temp_test_dir && pytest \"{package}/tests/unittests\" -v --tb=short --import-mode=importlib"
 build-verbosity = 1
 
+# Override cmake options for wheel building with repair tools
+[tool.cibuildwheel.config-settings]
+"override.cmake.options.NO_DEPENDENCIES" = "ON"
+"override.cmake.options.PYOPENMS_PREPARE_WHEEL_REPAIR" = "ON"
+
 [tool.cibuildwheel.linux]
 # Use OpenMS manylinux containers with pre-built dependencies
 archs = ["x86_64", "aarch64"]
@@ -207,7 +215,6 @@ before-all = [
 
 # Use delocate to bundle shared libraries
 repair-wheel-command = [
-    "pip install delocate",
     "delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel}",
 ]
 
@@ -225,9 +232,6 @@ MACOSX_DEPLOYMENT_TARGET = "14.0"
 
 [tool.cibuildwheel.windows]
 archs = ["AMD64"]
-
-# Install delvewheel for DLL bundling
-before-build = "pip install delvewheel"
 
 # Bundle DLLs into wheel
 repair-wheel-command = [

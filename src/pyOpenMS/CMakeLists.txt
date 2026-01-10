@@ -36,10 +36,16 @@ if(NOT PY_NUM_MODULES)
   set(PY_NUM_MODULES 8)
 endif()
 
+# Set default build directory (may be overridden by PYOPENMS_USE_PREBUILT)
+if(NOT DEFINED PYOPENMS_BUILD_DIR OR "${PYOPENMS_BUILD_DIR}" STREQUAL "")
+  set(PYOPENMS_BUILD_DIR "${CMAKE_BINARY_DIR}/pyOpenMS")
+endif()
+
 if(PYOPENMS_USE_PREBUILT)
   if(NOT PYOPENMS_PREBUILT_DIR)
     message(FATAL_ERROR "PYOPENMS_PREBUILT_DIR must be set when PYOPENMS_USE_PREBUILT=ON")
   endif()
+  # Override build dir to use prebuilt location
   set(PYOPENMS_BUILD_DIR "${PYOPENMS_PREBUILT_DIR}")
 
   # Provide a stub target so dependent targets remain satisfied
@@ -90,6 +96,11 @@ else()
   message(STATUS "Building pyOpenMS against OpenMS ${CF_OPENMS_PACKAGE_VERSION}")
   message(STATUS "Number of submodules: ${PY_NUM_MODULES}")
   message(STATUS "Number of concurrent threads: ${PY_NUM_THREADS}")
+  if(NO_DEPENDENCIES)
+    message(STATUS "pyOpenMS will be built WITHOUT bundling dependencies (NO_DEPENDENCIES=ON)")
+  else()
+    message(STATUS "pyOpenMS will be built WITH dependencies bundled (NO_DEPENDENCIES=OFF)")
+  endif()
 
   #------------------------------------------------------------------------------
   # Check share directory
@@ -144,7 +155,6 @@ else()
   #------------------------------------------------------------------------------
   # Setup build directories
   #------------------------------------------------------------------------------
-  set(PYOPENMS_BUILD_DIR "${CMAKE_BINARY_DIR}/pyOpenMS")
   file(MAKE_DIRECTORY ${PYOPENMS_BUILD_DIR})
   file(MAKE_DIRECTORY ${PYOPENMS_BUILD_DIR}/pyopenms)
   file(MAKE_DIRECTORY ${PYOPENMS_BUILD_DIR}/extra_includes)
@@ -251,15 +261,7 @@ QT_QMAKE_VERSION_INFO = '''${QT_QMAKE_VERSION_INFO}'''
 
   add_custom_target(compile_pxds DEPENDS ${PYCPPFILES} ${PYPYXFILES})
 
-endif() # PYOPENMS_USE_PREBUILT
-
-# Ensure a build dir is defined for downstream install steps (prebuilt sets it above)
-if(NOT DEFINED PYOPENMS_BUILD_DIR OR "${PYOPENMS_BUILD_DIR}" STREQUAL "")
-  set(PYOPENMS_BUILD_DIR "${CMAKE_BINARY_DIR}/pyOpenMS")
-endif()
-
-#------------------------------------------------------------------------------
-if(NOT PYOPENMS_USE_PREBUILT)
+  #------------------------------------------------------------------------------
   # Compiler settings
   #------------------------------------------------------------------------------
 
@@ -382,6 +384,7 @@ if(NOT PYOPENMS_USE_PREBUILT)
           BUILD_WITH_INSTALL_NAME_DIR 1
         )
       else()
+        message(STATUS "Using wheel repair mode")
         # For wheel repair: use INSTALL_RPATH_USE_LINK_PATH to auto-embed library paths
         # Repair tools will follow these paths to bundle libs, then rewrite to relative paths
         set_target_properties(pyopenms_compile PROPERTIES
@@ -403,20 +406,40 @@ if(NOT PYOPENMS_USE_PREBUILT)
         RUNTIME DESTINATION pyopenms
       )
   endif()
-endif()
 
-#------------------------------------------------------------------------------
-# macOS dependency fixing in build dir
-#------------------------------------------------------------------------------
-if(APPLE AND NOT NO_DEPENDENCIES)
-  add_custom_target(pyopenms_fix_deps ALL
-    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/../../cmake/MacOSX/fix_dependencies.rb -l "${PYOPENMS_BUILD_DIR}/pyopenms" -e "@rpath/" -f -v
-    COMMAND /bin/sh -c "codesign --force --sign '-' \"${PYOPENMS_BUILD_DIR}/pyopenms\"/Qt* 2>/dev/null || true"
-    COMMAND /bin/sh -c "codesign --force --sign '-' \"${PYOPENMS_BUILD_DIR}/pyopenms\"/*.dylib 2>/dev/null"
-    COMMENT "Fixing deps and codesigning pyopenms binaries in build dir"
+  #------------------------------------------------------------------------------
+  # macOS dependency fixing in build dir
+  #------------------------------------------------------------------------------
+  if(APPLE AND NOT NO_DEPENDENCIES)
+    # Copy dependencies to build dir first
+    add_custom_target(pyopenms_copy_deps ALL
+      COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:OpenMS> "${PYOPENMS_BUILD_DIR}/pyopenms/"
+      COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:OpenSwathAlgo> "${PYOPENMS_BUILD_DIR}/pyopenms/"
+      COMMENT "Copying OpenMS dependencies to build dir"
+    )
+    add_dependencies(pyopenms_copy_deps pyopenms_compile)
+    
+    # Fix dependencies and codesign after copying
+    add_custom_target(pyopenms_fix_deps ALL
+      COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/../../cmake/MacOSX/fix_dependencies.rb -l "${PYOPENMS_BUILD_DIR}/pyopenms" -e "@rpath/" -f -v
+      COMMAND codesign --force --sign - ${PYOPENMS_BUILD_DIR}/pyopenms/Qt* || true
+      COMMAND codesign --force --sign - ${PYOPENMS_BUILD_DIR}/pyopenms/*.dylib || true
+      COMMENT "Fixing deps and codesigning pyopenms binaries in build dir"
+    )
+    add_dependencies(pyopenms_fix_deps pyopenms_copy_deps)
+  endif()
+
+  install(DIRECTORY ${PYOPENMS_BUILD_DIR}/pyopenms/
+    DESTINATION pyopenms
+    COMPONENT python_modules
+    FILES_MATCHING
+    PATTERN "*.py"
+    PATTERN "*.pyi"
+    PATTERN "py.typed"
+    PATTERN "Qt*" 
+    PATTERN "__pycache__" EXCLUDE
   )
-  add_dependencies(pyopenms_fix_deps pyopenms_compile)
-endif()
+endif() # PYOPENMS_USE_PREBUILT
 
 #------------------------------------------------------------------------------
 # Install Python files for py-build-cmake
@@ -432,16 +455,7 @@ if(PYOPENMS_USE_PREBUILT)
     PATTERN "*.so"
     PATTERN "*.dylib"
     PATTERN "*.pyd"
-    PATTERN "__pycache__" EXCLUDE
-  )
-else()
-  install(DIRECTORY ${PYOPENMS_BUILD_DIR}/pyopenms/
-    DESTINATION pyopenms
-    COMPONENT python_modules
-    FILES_MATCHING
-    PATTERN "*.py"
-    PATTERN "*.pyi"
-    PATTERN "py.typed"
+    PATTERN "Qt*" 
     PATTERN "__pycache__" EXCLUDE
   )
 endif()
@@ -455,18 +469,35 @@ if(NOT NO_SHARE AND EXISTS "${PYOPENMS_BUILD_DIR}/pyopenms/share")
 endif()
 
 #------------------------------------------------------------------------------
-# Define dependencies list (used by legacy and py-build-cmake paths)
+# Unified pyopenms target
 #------------------------------------------------------------------------------
-if(NOT NO_DEPENDENCIES)
-  set(PYOPENMS_DEPENDENCIES OpenMS OpenSwathAlgo)
+# This target ensures all build steps are complete (compile + optional deps)
+if(NOT PYOPENMS_USE_PREBUILT)
+  if(APPLE AND NOT NO_DEPENDENCIES)
+    # With dependencies: compile → copy → fix
+    add_custom_target(pyopenms ALL)
+    add_dependencies(pyopenms pyopenms_fix_deps)
+  else()
+    # Without dependencies: just compile
+    add_custom_target(pyopenms ALL)
+    add_dependencies(pyopenms pyopenms_compile)
+  endif()
+else()
+  # Prebuilt mode: just the stub
+  add_custom_target(pyopenms ALL)
+  add_dependencies(pyopenms pyopenms_compile)
 endif()
 
-# Install OpenMS libraries to staging directory for py-build-cmake (before fix_dependencies.rb runs)
-if(APPLE AND NOT NO_DEPENDENCIES)
-  foreach(PYOPENMS_DEPENDENCY ${PYOPENMS_DEPENDENCIES})
-    install(FILES $<TARGET_FILE:${PYOPENMS_DEPENDENCY}>
-      DESTINATION pyopenms
-      COMPONENT python_modules
-    )
-  endforeach()
+# Only add tests if building as part of OpenMS (not standalone with py-build-cmake)
+# py-build-cmake has its own test mechanism configured in pyproject.toml
+if(TARGET OpenMS)
+  # Copy tests to build directory so pytest doesn't import from source tree
+  file(COPY ${PROJECT_SOURCE_DIR}/tests DESTINATION ${PYOPENMS_BUILD_DIR})
+  
+  enable_testing()
+  add_test(
+    NAME pyopenms_tests
+    COMMAND ${Python_EXECUTABLE} -m pytest tests
+    WORKING_DIRECTORY ${PYOPENMS_BUILD_DIR}
+  )
 endif()

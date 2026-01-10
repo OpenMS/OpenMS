@@ -310,7 +310,6 @@ jobs:
         env:
           CIBW_BUILD: ${{ needs.setup.outputs.cibw-build-macos-arm64 }}
           CIBW_ARCHS_MACOS: "arm64"
-          CIBW_BEFORE_BUILD: "pip install delocate"
           # Use old mechanism: copy libraries and use @loader_path
           # NO_DEPENDENCIES=OFF enables legacy library copying for macOS (with our fix_dependencies script)
           CIBW_ENVIRONMENT: >-
@@ -414,7 +413,6 @@ jobs:
           output-dir: wheelhouse
         env:
           CIBW_BUILD: ${{ needs.setup.outputs.cibw-build-windows-x64 }}
-          CIBW_BEFORE_BUILD: "pip install delvewheel"
           CIBW_ENVIRONMENT: >-
             OpenMS_ROOT="${{ env.OPENMS_ROOT_CMAKE }}"
             CMAKE_PREFIX_PATH="${{ env.QT_CMAKE }}/lib/cmake;${{ env.QT_CMAKE }};${{ env.CONTRIB_CMAKE }};${{ env.OPENMS_ROOT_CMAKE }}"
