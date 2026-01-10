@@ -31,7 +31,7 @@ if(PYOPENMS)
   # Install only build dependencies (not pyOpenMS itself)
   message(STATUS "Installing pyOpenMS build dependencies with uv...")
   execute_process(
-    COMMAND uv sync --only-group build
+    COMMAND uv sync --only-group dev
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/src/pyOpenMS
     RESULT_VARIABLE _uv_install_result
     ERROR_VARIABLE _uv_install_error
@@ -55,7 +55,7 @@ if(PYOPENMS)
       --config-setting=override=cmake.0.options.PYOPENMS_USE_PREBUILT=ON
       --config-setting=override=cmake.0.options.PYOPENMS_PREBUILT_DIR=${CMAKE_BINARY_DIR}/pyOpenMS
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/src/pyOpenMS
-    DEPENDS pyopenms_compile
+    DEPENDS pyopenms
     COMMENT "Packaging pyOpenMS wheel from existing build"
   )
 endif()

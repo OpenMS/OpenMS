@@ -161,9 +161,6 @@ jobs:
             OpenMS_ROOT=/project/install
             CMAKE_PREFIX_PATH=/contrib-build:/project/install
             CMAKE_BUILD_PARALLEL_LEVEL=2
-          CIBW_CONFIG_SETTINGS: "override=cmake.options.PYOPENMS_PREPARE_WHEEL_REPAIR=ON"
-          CIBW_REPAIR_WHEEL_COMMAND: "auditwheel repair -w {dest_dir} {wheel}"
-          # TODO: Remove after verifying INSTALL_RPATH_USE_LINK_PATH works
           CIBW_BEFORE_TEST: "readelf -d {package}/pyopenms/_pyopenms_*.so | grep -E 'RPATH|RUNPATH|NEEDED' || true"
           CIBW_BUILD_VERBOSITY: 1
 
@@ -244,7 +241,6 @@ jobs:
             OpenMS_ROOT=/project/install
             CMAKE_PREFIX_PATH=/contrib-build:/project/install
             CMAKE_BUILD_PARALLEL_LEVEL=2
-          CIBW_CONFIG_SETTINGS: "override=cmake.options.PYOPENMS_PREPARE_WHEEL_REPAIR=ON"
           # TODO: Remove debug inspection after verifying INSTALL_RPATH_USE_LINK_PATH works
           CIBW_REPAIR_WHEEL_COMMAND: "sh -c 'echo \"===== Inspecting wheel BEFORE repair =====\" && unzip -j {wheel} \"pyopenms/_pyopenms_1.*.so\" -d /tmp/inspect_wheel && readelf -d /tmp/inspect_wheel/_pyopenms_1.*.so | grep -E \"RPATH|RUNPATH|NEEDED\" && echo \"===== Running auditwheel repair =====\" && auditwheel repair -w {dest_dir} {wheel}'"
           CIBW_BUILD_VERBOSITY: 1
@@ -317,10 +313,6 @@ jobs:
             CMAKE_PREFIX_PATH="/opt/homebrew:/opt/homebrew/opt/libomp:${{ github.workspace }}/install"
             MACOSX_DEPLOYMENT_TARGET=14.0
             CMAKE_BUILD_PARALLEL_LEVEL=2
-          # Disable NO_DEPENDENCIES for macOS to use old library bundling approach
-          CIBW_CONFIG_SETTINGS: "override=cmake.options.NO_DEPENDENCIES=OFF"
-          # DELOCATE IS TOO STUPID TO FIGURE OUT PATHS ON ITS OWN. WE NEED TO USE OUR OWN SCRIPT WHICH IS MORE RELIABLE THAN A YEARS-OLD BROKEN TOOL.
-          CIBW_REPAIR_WHEEL_COMMAND: ""
           CIBW_BUILD_VERBOSITY: 1
           #CIBW_TEST_SKIP: "*"
 
@@ -417,8 +409,6 @@ jobs:
             OpenMS_ROOT="${{ env.OPENMS_ROOT_CMAKE }}"
             CMAKE_PREFIX_PATH="${{ env.QT_CMAKE }}/lib/cmake;${{ env.QT_CMAKE }};${{ env.CONTRIB_CMAKE }};${{ env.OPENMS_ROOT_CMAKE }}"
             CMAKE_BUILD_PARALLEL_LEVEL=2
-          # Disable RPATH so delvewheel can handle DLL bundling
-          CIBW_CONFIG_SETTINGS: "override=cmake.options.PYOPENMS_DISABLE_RPATH=ON"
           CIBW_REPAIR_WHEEL_COMMAND: "delvewheel repair --add-path ${{ env.OPENMS_ROOT_CMAKE }}/bin;${{ env.OPENMS_ROOT_CMAKE }}/lib;${{ env.QT_CMAKE }}/bin;${{ env.CONTRIB_CMAKE }}/lib -w {dest_dir} {wheel}"
           CIBW_BUILD_VERBOSITY: 1
 
