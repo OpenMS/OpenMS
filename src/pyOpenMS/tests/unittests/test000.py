@@ -1672,6 +1672,103 @@ def _testParam(p):
     assert p1.get(b"abcde", 7) == 7
 
 
+@report
+def testParamPythonicInterface():
+    """
+    @tests: Param
+     Param.from_dict
+     Param.to_dict
+     Param.__iter__
+     Param.__len__
+     Param.__contains__
+    """
+    # Test from_dict() class method
+    d = {b"param1": 42, b"param2": 3.14, b"param3": "hello"}
+    p = pyopenms.Param.from_dict(d)
+    assert p.size() == 3
+    assert p[b"param1"] == 42
+    assert abs(p[b"param2"] - 3.14) < 0.001
+    assert p[b"param3"] == "hello"
+
+    # Test from_dict() with string keys
+    d_str = {"str_param1": 100, "str_param2": 2.718}
+    p2 = pyopenms.Param.from_dict(d_str)
+    assert p2.size() == 2
+    assert p2["str_param1"] == 100
+    assert p2[b"str_param1"] == 100  # bytes key also works
+
+    # Test to_dict() method (PEP 8 alias)
+    d_out = p.to_dict()
+    assert isinstance(d_out, dict)
+    assert len(d_out) == 3
+    assert d_out[b"param1"] == 42
+
+    # Test to_dict() equals asDict()
+    assert p.to_dict() == p.asDict()
+
+    # Test __len__()
+    assert len(p) == 3
+    assert len(p) == p.size()
+
+    # Test __iter__()
+    keys_from_iter = list(p)
+    keys_from_method = p.keys()
+    assert keys_from_iter == keys_from_method
+    assert len(keys_from_iter) == 3
+
+    # Test iteration in for loop
+    count = 0
+    for key in p:
+        assert p[key] is not None
+        count += 1
+    assert count == 3
+
+    # Test __contains__() with bytes key
+    assert b"param1" in p
+    assert b"nonexistent" not in p
+
+    # Test __contains__() with string key
+    assert "param1" in p
+    assert "nonexistent" not in p
+
+    # Test __getitem__() with string key
+    assert p["param1"] == 42
+    assert p["param2"] == p[b"param2"]
+
+    # Test __setitem__() with string key
+    p["new_param"] = 999
+    assert p["new_param"] == 999
+    assert p[b"new_param"] == 999
+
+    # Test get() with string key
+    assert p.get("param1") == 42
+    assert p.get("nonexistent") is None
+    assert p.get("nonexistent", "default") == "default"
+
+    # Test get() with bytes key (backward compatibility)
+    assert p.get(b"param1") == 42
+    assert p.get(b"nonexistent") is None
+    assert p.get(b"nonexistent", 123) == 123
+
+    # Test round-trip: dict -> Param -> dict
+    original = {"a": 1, "b": 2.5, "c": "test"}
+    p3 = pyopenms.Param.from_dict(original)
+    result = p3.to_dict()
+    # Keys come back as bytes, so we need to compare values
+    assert len(result) == len(original)
+    for key, value in original.items():
+        assert p3[key] == value
+
+    # Test empty Param
+    p_empty = pyopenms.Param()
+    assert len(p_empty) == 0
+    assert list(p_empty) == []
+    assert "anything" not in p_empty
+    assert p_empty.to_dict() == {}
+
+    # Test from_dict() with empty dict
+    p_from_empty = pyopenms.Param.from_dict({})
+    assert len(p_from_empty) == 0
 
 
 @report
