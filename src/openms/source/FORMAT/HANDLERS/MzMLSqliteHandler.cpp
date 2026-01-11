@@ -796,11 +796,11 @@ namespace OpenMS::Internal
           int pol = sqlite3_column_int(stmt, 14);
           if (pol == 0)
           {
-            spec.getInstrumentSettings().setPolarity(IonSource::NEGATIVE);
+            spec.getInstrumentSettings().setPolarity(IonSource::Polarity::NEGATIVE);
           }
           else 
           {
-            spec.getInstrumentSettings().setPolarity(IonSource::POSITIVE);
+            spec.getInstrumentSettings().setPolarity(IonSource::Polarity::POSITIVE);
           }
         }
         if (sqlite3_column_type(stmt, 15) != SQLITE_NULL && sqlite3_column_int(stmt, 15) != -1
@@ -1094,7 +1094,7 @@ namespace OpenMS::Internal
       for (Size k = 0; k < spectra.size(); k++)
       {
         const MSSpectrum& spec = spectra[k];
-        int polarity = (spec.getInstrumentSettings().getPolarity() == IonSource::POSITIVE); // 1 = positive
+        int polarity = (spec.getInstrumentSettings().getPolarity() == IonSource::Polarity::POSITIVE); // 1 = positive
         insert_spectra_sql << "INSERT INTO SPECTRUM(ID, RUN_ID, NATIVE_ID, MSLEVEL, RETENTION_TIME, SCAN_POLARITY) VALUES (" <<
           spec_id_ << "," <<
           run_id_ << ",'" <<
