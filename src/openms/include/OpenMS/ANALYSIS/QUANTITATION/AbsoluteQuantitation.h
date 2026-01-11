@@ -41,19 +41,57 @@ namespace OpenMS
     @brief AbsoluteQuantitation is a class to support absolute or relative quantitation for targeted or untargeted
     quantitation workflows (e.g., Isotope Dilution Mass Spectrometry).
 
-    Method:
-    A transformation model where y = ratio (analyte/IS) corresponding to peak height or peak area and
-      x = ratio (analyte/IS) corresponding to concentration is used to fit a series of runs
-      with standards of known concentrations that span the detection range of the instrument.  
-      The fitted transformation model can then be used to quantify the concentration of an analyte
-      in an unknown sample given the analyte peak height or area, IS peak height or area, and 
-      IS concentration.
+    @section AbsoluteQuantitation_method Method
 
-    Terms:
-    component: A protein, peptide, or compound fragment, transition, or whole species that is measured by e.g.,
+    A transformation model where y = ratio (analyte/IS) corresponding to peak height or peak area and
+    x = ratio (analyte/IS) corresponding to concentration is used to fit a series of runs
+    with standards of known concentrations that span the detection range of the instrument.
+    The fitted transformation model can then be used to quantify the concentration of an analyte
+    in an unknown sample given the analyte peak height or area, IS peak height or area, and
+    IS concentration.
+
+    @section AbsoluteQuantitation_terms Terms
+
+    - **Component**: A protein, peptide, or compound fragment, transition, or whole species measured by
       LC-MS, LC-MS/MS, GC-MS, GC-MS/MS, LC-MS-TOF, HPLC-UV, HPLC-IR, etc.
-    calibration curve:  A series of standards that are used to correlate instrument measurements to
-      actual concentrations
+    - **Calibration curve**: A series of standards used to correlate instrument measurements to actual concentrations
+    - **LLOQ/ULOQ**: Lower/Upper Limit of Quantitation - the concentration range where quantitation is reliable
+    - **LLOD/ULOD**: Lower/Upper Limit of Detection - the concentration range where detection is possible
+
+    @section AbsoluteQuantitation_workflow Workflow
+
+    1. Prepare standards with known concentrations spanning the expected range
+    2. Measure standards and extract features (peaks)
+    3. Call fitCalibration() or optimizeCalibrationCurves() to fit the calibration model
+    4. Call quantifyComponents() to calculate concentrations for unknown samples
+
+    @section AbsoluteQuantitation_example Example
+
+    @code
+    AbsoluteQuantitation aq;
+
+    // Set quantitation methods for each component
+    std::vector<AbsoluteQuantitationMethod> methods;
+    // ... populate methods ...
+    aq.setQuantMethods(methods);
+
+    // Optimize calibration curves from standards
+    std::map<String, std::vector<AbsoluteQuantitationStandards::featureConcentration>> standards;
+    // ... populate standards ...
+    aq.optimizeCalibrationCurves(standards);
+
+    // Quantify unknowns
+    FeatureMap unknowns;
+    // ... load unknown samples ...
+    aq.quantifyComponents(unknowns);
+    // Results are stored as "calculated_concentration" metavalue
+    @endcode
+
+    @see AbsoluteQuantitationMethod for method parameters
+    @see AbsoluteQuantitationStandards for standard concentration data
+    @see MRMFeatureFilter for upstream QC filtering
+
+    @ingroup TargetedQuantitation
   */
   class OPENMS_DLLAPI AbsoluteQuantitation :
     public DefaultParamHandler

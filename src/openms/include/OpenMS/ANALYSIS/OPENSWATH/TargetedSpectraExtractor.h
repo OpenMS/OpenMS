@@ -33,12 +33,38 @@ namespace OpenMS
     One spectrum is chosen for each of those transitions for which at least one
     valid spectrum was found and matched.
 
-    The user can decide to use only extractSpectra(), otherwise run the methods
-    in the following order:
-    annotateSpectra()
-    pickSpectrum() (called once for each annotated spectrum)
-    scoreSpectra()
-    selectSpectra()
+    @section TargetedSpectraExtractor_workflow Workflow
+
+    The user can decide to use only extractSpectra() for the full pipeline, or run
+    the methods individually in the following order:
+
+    1. annotateSpectra() - Match spectra to targets by precursor MZ and RT
+    2. pickSpectrum() - Smooth and pick peaks (called for each spectrum)
+    3. scoreSpectra() - Score by TIC, FWHM, SNR with configurable weights
+    4. selectSpectra() - Choose the best spectrum per transition
+
+    @section TargetedSpectraExtractor_library Spectral Library Matching
+
+    The class also provides spectral library matching capabilities:
+    - matchSpectrum() - Compare against a spectral library
+    - targetedMatching() - Bulk library search for targeted spectra
+    - untargetedMatching() - Bulk library search for unprocessed spectra
+
+    @section TargetedSpectraExtractor_params Key Parameters
+
+    | Parameter | Description |
+    |-----------|-------------|
+    | rt_window | Retention time tolerance for matching |
+    | mz_tolerance | Precursor m/z tolerance |
+    | peak_height_min/max | Peak intensity bounds |
+    | fwhm_threshold | Minimum peak width |
+    | tic_weight, fwhm_weight, snr_weight | Scoring weights |
+    | min_select_score | Minimum score for selection |
+
+    @see MRMFeatureFilter for downstream QC filtering
+    @see AbsoluteQuantitation for downstream quantitation
+
+    @ingroup TargetedQuantitation
   */
   class OPENMS_DLLAPI TargetedSpectraExtractor :
     public DefaultParamHandler

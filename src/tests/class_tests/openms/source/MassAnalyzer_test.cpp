@@ -13,6 +13,9 @@
 #include <OpenMS/METADATA/MassAnalyzer.h>
 ///////////////////////////
 
+#include <unordered_set>
+#include <unordered_map>
+
 using namespace OpenMS;
 using namespace std;
 
@@ -462,7 +465,78 @@ START_SECTION((static StringList getAllNamesOfReflectronState()))
   TEST_EQUAL(names[MassAnalyzer::ON], "On");
 END_SECTION
 
+START_SECTION(([EXTRA] std::hash<MassAnalyzer>))
+{
+  // Test that equal objects have equal hashes
+  MassAnalyzer ma1, ma2;
+  std::hash<MassAnalyzer> hasher;
 
+  // Default constructed objects should have equal hashes
+  TEST_EQUAL(hasher(ma1), hasher(ma2))
+
+  // Set all fields to the same values
+  ma1.setType(MassAnalyzer::QUADRUPOLE);
+  ma1.setResolutionMethod(MassAnalyzer::FWHM);
+  ma1.setResolutionType(MassAnalyzer::CONSTANT);
+  ma1.setScanDirection(MassAnalyzer::UP);
+  ma1.setScanLaw(MassAnalyzer::LINEAR);
+  ma1.setReflectronState(MassAnalyzer::ON);
+  ma1.setResolution(47.14);
+  ma1.setAccuracy(47.11);
+  ma1.setScanRate(47.15);
+  ma1.setScanTime(47.16);
+  ma1.setTOFTotalPathLength(47.17);
+  ma1.setIsolationWidth(47.12);
+  ma1.setMagneticFieldStrength(47.13);
+  ma1.setFinalMSExponent(47);
+  ma1.setOrder(45);
+
+  ma2.setType(MassAnalyzer::QUADRUPOLE);
+  ma2.setResolutionMethod(MassAnalyzer::FWHM);
+  ma2.setResolutionType(MassAnalyzer::CONSTANT);
+  ma2.setScanDirection(MassAnalyzer::UP);
+  ma2.setScanLaw(MassAnalyzer::LINEAR);
+  ma2.setReflectronState(MassAnalyzer::ON);
+  ma2.setResolution(47.14);
+  ma2.setAccuracy(47.11);
+  ma2.setScanRate(47.15);
+  ma2.setScanTime(47.16);
+  ma2.setTOFTotalPathLength(47.17);
+  ma2.setIsolationWidth(47.12);
+  ma2.setMagneticFieldStrength(47.13);
+  ma2.setFinalMSExponent(47);
+  ma2.setOrder(45);
+
+  // Equal objects should have equal hashes
+  TEST_EQUAL(ma1 == ma2, true)
+  TEST_EQUAL(hasher(ma1), hasher(ma2))
+
+  // Test that different objects have different hashes (not guaranteed but highly likely)
+  MassAnalyzer ma3;
+  ma3.setType(MassAnalyzer::TOF);
+  TEST_NOT_EQUAL(hasher(ma1), hasher(ma3))
+
+  // Test use in unordered_set
+  std::unordered_set<MassAnalyzer> ma_set;
+  ma_set.insert(ma1);
+  ma_set.insert(ma2); // Should not add a duplicate
+  ma_set.insert(ma3);
+  TEST_EQUAL(ma_set.size(), 2) // ma1 and ma2 are equal, so only 2 elements
+
+  // Test use in unordered_map
+  std::unordered_map<MassAnalyzer, int> ma_map;
+  ma_map[ma1] = 1;
+  ma_map[ma2] = 2; // Should overwrite ma1's value since they're equal
+  ma_map[ma3] = 3;
+  TEST_EQUAL(ma_map.size(), 2)
+  TEST_EQUAL(ma_map[ma1], 2) // Value should be 2 since ma2 overwrote ma1
+
+  // Test hash consistency (same object should produce same hash)
+  std::size_t hash1 = hasher(ma1);
+  std::size_t hash2 = hasher(ma1);
+  TEST_EQUAL(hash1, hash2)
+}
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

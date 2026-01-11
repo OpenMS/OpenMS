@@ -92,6 +92,13 @@ Features representing the same analyte detected at different CV values are merge
 The merged features are then aligned and linked across runs based on RT and m/z.
 No special preparation of the input mzML file is required.
 
+Normalization: @n
+  - For feature-intensity-based quantification with multiple runs, ProteomicsLFQ automatically applies median normalization
+    to the consensus features (using simple median scaling).
+  - Normalization is DISABLED when MSstats output (-out_msstats) or Triqler output (-out_triqler) is requested,
+    as these tools perform their own normalization.
+  - Normalization is also DISABLED for spectral counting quantification.
+
 Output:
   - mzTab file with analysis results
   - MSstats file with analysis results for statistical downstream analysis in MSstats
@@ -922,8 +929,6 @@ protected:
 
       Param ffi_param = getParam_().copy("PeptideQuantification:", true);
       ffi_param.setValue("detect:peak_width", 5.0 * median_fwhm);
-      ffi_param.setValue("EMGScoring:init_mom", "true");   // overwrite default settings
-      ffi_param.setValue("EMGScoring:max_iteration", 100); // overwrite default settings
       ffi_param.setValue("debug", debug_level_); // pass down debug level
 
       double feature_with_id_min_score = getDoubleOption_("feature_with_id_min_score");
@@ -1210,8 +1215,14 @@ protected:
     IDConflictResolverAlgorithm::resolve(consensus_fraction, true);
 
     //-------------------------------------------------------------
-    // ConsensusMap normalization (basic)
+    // ConsensusMap normalization (basic median scaling)
     //-------------------------------------------------------------
+    // Note: This normalization is applied automatically for feature-intensity-based quantification
+    // when multiple runs are provided. It uses simple median scaling to make sample medians equal.
+    // Normalization is DISABLED when MSstats or Triqler output is requested, as these tools
+    // perform their own normalization.
+    // This is independent of the -ProteinQuantification:consensus:normalize parameter, which
+    // controls an additional normalization step at the peptide quantification level (default: false).
     if (getStringOption_("out_msstats").empty() 
     && getStringOption_("out_triqler").empty())  // only normalize if no MSstats/Triqler output is generated
     {

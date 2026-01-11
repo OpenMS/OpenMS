@@ -67,6 +67,7 @@
         <UL>
           <LI> <a class="el" href="https://pyopenms.readthedocs.io/en/latest/index.html" target="_blank">Developer Python Guide (online)</a>
           <LI> @subpage external_code
+          <LI> @ref TargetedQuantitation_Tutorial - MRM/SRM and SWATH/DIA quantitation workflow
         </UL>
 
       </TD>

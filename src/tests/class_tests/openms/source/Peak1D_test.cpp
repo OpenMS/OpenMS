@@ -13,6 +13,9 @@
 
 #include <OpenMS/KERNEL/Peak1D.h>
 
+#include <unordered_set>
+#include <unordered_map>
+
 ///////////////////////////
 
 START_TEST(Peak1D, "$Id$")
@@ -331,6 +334,48 @@ START_SECTION(([Peak1D::PositionLess] bool operator()(const PositionType &left, 
   TEST_EQUAL(Peak1D::PositionLess()(p2.getPosition(),p1.getPosition()), false)
   TEST_EQUAL(Peak1D::PositionLess()(p2.getPosition(),p2.getPosition()), false)
 
+END_SECTION
+
+/////////////////////////////////////////////////////////////
+// Hash function tests
+/////////////////////////////////////////////////////////////
+
+START_SECTION(([EXTRA] std::hash<Peak1D>))
+{
+  // Test that equal peaks have equal hashes
+  Peak1D p1, p2;
+  p1.setMZ(100.5);
+  p1.setIntensity(1000.0f);
+  p2.setMZ(100.5);
+  p2.setIntensity(1000.0f);
+
+  std::hash<Peak1D> hasher;
+  TEST_EQUAL(hasher(p1), hasher(p2))
+
+  // Test that hash changes when values change
+  Peak1D p3;
+  p3.setMZ(200.5);
+  p3.setIntensity(1000.0f);
+  TEST_NOT_EQUAL(hasher(p1), hasher(p3))
+
+  // Test use in unordered_set
+  std::unordered_set<Peak1D> peak_set;
+  peak_set.insert(p1);
+  TEST_EQUAL(peak_set.size(), 1)
+  peak_set.insert(p2); // same as p1
+  TEST_EQUAL(peak_set.size(), 1) // should not increase
+  peak_set.insert(p3);
+  TEST_EQUAL(peak_set.size(), 2)
+
+  // Test use in unordered_map
+  std::unordered_map<Peak1D, int> peak_map;
+  peak_map[p1] = 42;
+  TEST_EQUAL(peak_map[p1], 42)
+  TEST_EQUAL(peak_map[p2], 42) // p2 == p1, should get same value
+  peak_map[p3] = 99;
+  TEST_EQUAL(peak_map[p3], 99)
+  TEST_EQUAL(peak_map.size(), 2)
+}
 END_SECTION
 
 /////////////////////////////////////////////////////////////

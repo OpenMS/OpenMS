@@ -2,12 +2,16 @@ from String cimport *
 from Software cimport *
 from MetaInfoInterface cimport *
 from libcpp.vector cimport vector as libcpp_vector
+from libcpp.string cimport string as libcpp_utf8_string
+from libcpp.string cimport string as libcpp_utf8_output_string
 
 cdef extern from "<OpenMS/METADATA/IonSource.h>" namespace "OpenMS":
 
     cdef cppclass IonSource(MetaInfoInterface):
         # wrap-inherits:
         #   MetaInfoInterface
+        # wrap-hash:
+        #  std
 
         IonSource() except + nogil  # wrap-doc:Description of an ion source (part of a MS Instrument)
         IonSource(IonSource &) except + nogil 
@@ -42,6 +46,24 @@ cdef extern from "<OpenMS/METADATA/IonSource.h>" namespace "OpenMS":
 
         @staticmethod
         libcpp_vector[String] getAllNamesOfPolarity() except + nogil  # wrap-doc:Returns all polarity names known to OpenMS
+
+        @staticmethod
+        libcpp_utf8_output_string inletTypeToString(InletType type) except + nogil  # wrap-doc:Convert an InletType enum to its string representation
+
+        @staticmethod
+        InletType toInletType(const libcpp_utf8_string& name) except + nogil  # wrap-doc:Convert a string to an InletType enum
+
+        @staticmethod
+        libcpp_utf8_output_string ionizationMethodToString(IonizationMethod method) except + nogil  # wrap-doc:Convert an IonizationMethod enum to its string representation
+
+        @staticmethod
+        IonizationMethod toIonizationMethod(const libcpp_utf8_string& name) except + nogil  # wrap-doc:Convert a string to an IonizationMethod enum
+
+        @staticmethod
+        libcpp_utf8_output_string polarityToString(Polarity polarity) except + nogil  # wrap-doc:Convert a Polarity enum to its string representation
+
+        @staticmethod
+        Polarity toPolarity(const libcpp_utf8_string& name) except + nogil  # wrap-doc:Convert a string to a Polarity enum
 
 cdef extern from "<OpenMS/METADATA/IonSource.h>" namespace "OpenMS::IonSource":
 

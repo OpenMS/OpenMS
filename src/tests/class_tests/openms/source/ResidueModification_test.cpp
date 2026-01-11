@@ -17,6 +17,9 @@
 #include <OpenMS/CHEMISTRY/Residue.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 
+#include <unordered_set>
+#include <unordered_map>
+
 
 using namespace OpenMS;
 using namespace std;
@@ -509,5 +512,130 @@ START_SECTION(static String getMonoMassWithBracket(const double mono_mass))
 END_SECTION
 
 delete ptr;
+
+/////////////////////////////////////////////////////////////
+// Hash function tests
+/////////////////////////////////////////////////////////////
+
+START_SECTION(([EXTRA] std::hash<ResidueModification>))
+{
+  // Test that equal objects have equal hashes
+  ResidueModification mod1, mod2;
+  std::hash<ResidueModification> hasher;
+
+  // Default-constructed objects should have equal hashes
+  TEST_EQUAL(hasher(mod1), hasher(mod2))
+
+  // Set various fields and verify equal objects still have equal hashes
+  mod1.setId("TestId");
+  mod2.setId("TestId");
+  TEST_EQUAL(hasher(mod1), hasher(mod2))
+
+  mod1.setFullName("TestFullName");
+  mod2.setFullName("TestFullName");
+  TEST_EQUAL(hasher(mod1), hasher(mod2))
+
+  mod1.setName("TestName");
+  mod2.setName("TestName");
+  TEST_EQUAL(hasher(mod1), hasher(mod2))
+
+  mod1.setTermSpecificity(ResidueModification::N_TERM);
+  mod2.setTermSpecificity(ResidueModification::N_TERM);
+  TEST_EQUAL(hasher(mod1), hasher(mod2))
+
+  mod1.setOrigin('M');
+  mod2.setOrigin('M');
+  TEST_EQUAL(hasher(mod1), hasher(mod2))
+
+  mod1.setSourceClassification(ResidueModification::NATURAL);
+  mod2.setSourceClassification(ResidueModification::NATURAL);
+  TEST_EQUAL(hasher(mod1), hasher(mod2))
+
+  mod1.setAverageMass(15.9994);
+  mod2.setAverageMass(15.9994);
+  TEST_EQUAL(hasher(mod1), hasher(mod2))
+
+  mod1.setMonoMass(15.994915);
+  mod2.setMonoMass(15.994915);
+  TEST_EQUAL(hasher(mod1), hasher(mod2))
+
+  mod1.setDiffAverageMass(15.9994);
+  mod2.setDiffAverageMass(15.9994);
+  TEST_EQUAL(hasher(mod1), hasher(mod2))
+
+  mod1.setDiffMonoMass(15.994915);
+  mod2.setDiffMonoMass(15.994915);
+  TEST_EQUAL(hasher(mod1), hasher(mod2))
+
+  mod1.setFormula("O");
+  mod2.setFormula("O");
+  TEST_EQUAL(hasher(mod1), hasher(mod2))
+
+  mod1.setDiffFormula(EmpiricalFormula("O"));
+  mod2.setDiffFormula(EmpiricalFormula("O"));
+  TEST_EQUAL(hasher(mod1), hasher(mod2))
+
+  mod1.addSynonym("Syn1");
+  mod2.addSynonym("Syn1");
+  TEST_EQUAL(hasher(mod1), hasher(mod2))
+
+  vector<EmpiricalFormula> nl_formulas;
+  nl_formulas.push_back(EmpiricalFormula("H2O"));
+  mod1.setNeutralLossDiffFormulas(nl_formulas);
+  mod2.setNeutralLossDiffFormulas(nl_formulas);
+  TEST_EQUAL(hasher(mod1), hasher(mod2))
+
+  vector<double> nl_mono_masses;
+  nl_mono_masses.push_back(18.01056);
+  mod1.setNeutralLossMonoMasses(nl_mono_masses);
+  mod2.setNeutralLossMonoMasses(nl_mono_masses);
+  TEST_EQUAL(hasher(mod1), hasher(mod2))
+
+  vector<double> nl_avg_masses;
+  nl_avg_masses.push_back(18.0153);
+  mod1.setNeutralLossAverageMasses(nl_avg_masses);
+  mod2.setNeutralLossAverageMasses(nl_avg_masses);
+  TEST_EQUAL(hasher(mod1), hasher(mod2))
+
+  // Verify that different objects have different hashes
+  ResidueModification mod3;
+  mod3.setId("DifferentId");
+  TEST_NOT_EQUAL(hasher(mod1), hasher(mod3))
+
+  // Test use in unordered_set
+  std::unordered_set<ResidueModification> mod_set;
+  mod_set.insert(mod1);
+  mod_set.insert(mod2); // Should not add duplicate
+  TEST_EQUAL(mod_set.size(), 1)
+
+  mod_set.insert(mod3);
+  TEST_EQUAL(mod_set.size(), 2)
+
+  TEST_EQUAL(mod_set.count(mod1), 1)
+  TEST_EQUAL(mod_set.count(mod3), 1)
+
+  // Test use in unordered_map
+  std::unordered_map<ResidueModification, int> mod_map;
+  mod_map[mod1] = 1;
+  mod_map[mod3] = 3;
+  TEST_EQUAL(mod_map.size(), 2)
+  TEST_EQUAL(mod_map[mod1], 1)
+  TEST_EQUAL(mod_map[mod2], 1) // mod2 equals mod1
+  TEST_EQUAL(mod_map[mod3], 3)
+
+  // Test with modifications from database
+  const ResidueModification* phospho = mod_DB->getModification("Phospho (S)");
+  const ResidueModification* oxidation = mod_DB->getModification("Oxidation (M)");
+  TEST_NOT_EQUAL(phospho, nullPointer)
+  TEST_NOT_EQUAL(oxidation, nullPointer)
+
+  // Same modification should have same hash
+  ResidueModification phospho_copy(*phospho);
+  TEST_EQUAL(hasher(phospho_copy), hasher(*phospho))
+
+  // Different modifications should have different hashes
+  TEST_NOT_EQUAL(hasher(*phospho), hasher(*oxidation))
+}
+END_SECTION
 
 END_TEST

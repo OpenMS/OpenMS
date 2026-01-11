@@ -61,6 +61,24 @@ Build instructions
    ```
 
    "-R" to restrict to pyopenms* tests. If running out of the OpenMS build tree, this should not be necessary.
+   
+   **Alternative: Running tests directly with pytest**
+   
+   For development and debugging, you can run tests directly with pytest:
+   
+   ```bash
+   cd <build-dir>/pyOpenMS
+   python -m pytest tests/unittests
+   python -m pytest tests/integration_tests
+   ```
+   
+   Tests automatically locate test data files using the `conftest.py` configuration. If test data
+   is in a non-standard location, set the `OPENMS_TEST_DATA_PATH` environment variable:
+   
+   ```bash
+   export OPENMS_TEST_DATA_PATH=/path/to/OpenMS/src/tests/topp
+   python -m pytest tests/
+   ```
 
 6. Install locally (and in-place for live edits [option -e]) into current Python with
 
@@ -156,3 +174,42 @@ After modifying addon `.pyx` files, force regeneration:
 rm OpenMS-build/pyOpenMS/.cpp_extension_generated
 cmake --build OpenMS-build --target pyopenms -j4
 ```
+
+### Writing Tests
+
+Tests are located in `src/pyOpenMS/tests/`:
+- `unittests/` - Unit tests for individual components
+- `integration_tests/` - Integration tests requiring test data files
+- `memoryleaktests/` - Memory leak detection tests
+
+**Accessing test data files:**
+
+Tests automatically find test data through the `openms_test_data_dir` pytest fixture defined in `conftest.py`:
+
+```python
+import pytest
+import os
+
+class TestMyFeature(unittest.TestCase):
+    
+    @pytest.fixture(autouse=True)
+    def setup_test_data(self, openms_test_data_dir):
+        """Setup test with test data directory."""
+        self.test_file = os.path.join(openms_test_data_dir, "my_test_file.mzML")
+    
+    def test_something(self):
+        # Use self.test_file here
+        pass
+```
+
+The fixture automatically locates test data using multiple strategies:
+1. `OPENMS_TEST_DATA_PATH` environment variable (for custom locations)
+2. Relative path from source tree (works in development)
+3. CMake-configured env.py (backwards compatibility)
+
+To override test data location:
+```bash
+export OPENMS_TEST_DATA_PATH=/path/to/OpenMS/src/tests/topp
+python -m pytest tests/
+```
+

@@ -15,6 +15,8 @@
 #include <OpenMS/CHEMISTRY/Residue.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
+#include <unordered_set>
+#include <unordered_map>
 
 using namespace OpenMS;
 using namespace std;
@@ -747,6 +749,104 @@ START_SECTION((static String getResidueTypeName(const ResidueType res_type)))
 END_SECTION
 
 delete e_ptr;
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+// Hash tests
+/////////////////////////////////////////////////////////////
+
+START_SECTION(([EXTRA] std::hash<Residue>))
+{
+  // Test 1: Equal objects have equal hashes
+  Residue r1;
+  r1.setName("TestResidue");
+  r1.setThreeLetterCode("TST");
+  r1.setOneLetterCode("T");
+  r1.setFormula(EmpiricalFormula("C4H8N2O3"));
+  r1.setAverageWeight(132.0);
+  r1.setMonoWeight(132.05);
+  r1.setPka(2.1);
+  r1.setPkb(9.0);
+  r1.setPkc(4.5);
+  r1.setSideChainBasicity(200.0);
+  r1.setBackboneBasicityLeft(100.0);
+  r1.setBackboneBasicityRight(110.0);
+
+  Residue r2;
+  r2.setName("TestResidue");
+  r2.setThreeLetterCode("TST");
+  r2.setOneLetterCode("T");
+  r2.setFormula(EmpiricalFormula("C4H8N2O3"));
+  r2.setAverageWeight(132.0);
+  r2.setMonoWeight(132.05);
+  r2.setPka(2.1);
+  r2.setPkb(9.0);
+  r2.setPkc(4.5);
+  r2.setSideChainBasicity(200.0);
+  r2.setBackboneBasicityLeft(100.0);
+  r2.setBackboneBasicityRight(110.0);
+
+  TEST_EQUAL(r1 == r2, true)
+  TEST_EQUAL(std::hash<Residue>{}(r1), std::hash<Residue>{}(r2))
+
+  // Test 2: Different objects may have different hashes (not guaranteed, but highly likely)
+  Residue r3;
+  r3.setName("DifferentResidue");
+  r3.setThreeLetterCode("DIF");
+  r3.setOneLetterCode("D");
+  r3.setFormula(EmpiricalFormula("C5H9N1O4"));
+
+  TEST_EQUAL(r1 == r3, false)
+  // Different residues should likely have different hashes (not guaranteed by hash contract)
+  TEST_NOT_EQUAL(std::hash<Residue>{}(r1), std::hash<Residue>{}(r3))
+
+  // Test 3: Use in unordered_set
+  std::unordered_set<Residue> residue_set;
+  residue_set.insert(r1);
+  residue_set.insert(r2); // Should not increase size (equal to r1)
+  residue_set.insert(r3);
+
+  TEST_EQUAL(residue_set.size(), 2)
+  TEST_EQUAL(residue_set.count(r1), 1)
+  TEST_EQUAL(residue_set.count(r2), 1)
+  TEST_EQUAL(residue_set.count(r3), 1)
+
+  // Test 4: Use in unordered_map
+  std::unordered_map<Residue, int> residue_map;
+  residue_map[r1] = 1;
+  residue_map[r2] = 2; // Should overwrite r1's value
+  residue_map[r3] = 3;
+
+  TEST_EQUAL(residue_map.size(), 2)
+  TEST_EQUAL(residue_map[r1], 2)
+  TEST_EQUAL(residue_map[r2], 2)
+  TEST_EQUAL(residue_map[r3], 3)
+
+  // Test 5: Residues from ResidueDB
+  ResidueDB* rdb = ResidueDB::getInstance();
+  const Residue* ala = rdb->getResidue("Ala");
+  const Residue* gly = rdb->getResidue("Gly");
+  const Residue* ala2 = rdb->getResidue("Alanine"); // Same as Ala
+
+  // Same residue retrieved differently should have equal hash
+  TEST_EQUAL(*ala == *ala2, true)
+  TEST_EQUAL(std::hash<Residue>{}(*ala), std::hash<Residue>{}(*ala2))
+
+  // Different residues should likely have different hashes
+  TEST_EQUAL(*ala == *gly, false)
+  TEST_NOT_EQUAL(std::hash<Residue>{}(*ala), std::hash<Residue>{}(*gly))
+
+  // Test 6: Copy has same hash
+  Residue r1_copy(r1);
+  TEST_EQUAL(r1 == r1_copy, true)
+  TEST_EQUAL(std::hash<Residue>{}(r1), std::hash<Residue>{}(r1_copy))
+
+  // Test 7: Hash changes when fields change
+  std::size_t original_hash = std::hash<Residue>{}(r1_copy);
+  r1_copy.setName("ChangedName");
+  TEST_NOT_EQUAL(std::hash<Residue>{}(r1_copy), original_hash)
+}
+END_SECTION
 
 END_TEST
 

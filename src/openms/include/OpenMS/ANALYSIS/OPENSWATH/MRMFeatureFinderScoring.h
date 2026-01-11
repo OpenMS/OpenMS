@@ -28,6 +28,8 @@
 
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/SwathMap.h>
 
+#include <unordered_map>
+
 #ifdef _OPENMP
 #include <omp.h>
 #endif
@@ -288,8 +290,8 @@ private:
 
     double im_extra_drift_;
 
-    // members
-    std::map<OpenMS::String, const PeptideType*> PeptideRefMap_;
+    // members (unordered_map for O(1) lookup performance)
+    std::unordered_map<OpenMS::String, const PeptideType*> PeptideRefMap_;
     OpenSwath_Scores_Usage su_;
     OpenMS::DIAScoring diascoring_;
     OpenMS::EmgScoring emgscoring_;

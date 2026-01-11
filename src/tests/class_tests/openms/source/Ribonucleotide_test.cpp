@@ -13,6 +13,8 @@
 ///////////////////////////
 
 #include <OpenMS/CHEMISTRY/Ribonucleotide.h>
+#include <unordered_set>
+#include <unordered_map>
 
 using namespace OpenMS;
 using namespace std;
@@ -169,6 +171,56 @@ START_SECTION(bool isModified() const)
   TEST_EQUAL(test_ribo.isModified(), false);
   test_ribo.setCode("Tm");
   TEST_EQUAL(test_ribo.isModified(), true);
+END_SECTION
+
+START_SECTION(([EXTRA] std::hash<Ribonucleotide>))
+{
+  // Test that equal objects have equal hashes
+  Ribonucleotide ribo1("adenosine", "A", "A", "A", EmpiricalFormula("C10H13N5O4"), 'A', 267.0968, 267.24, Ribonucleotide::ANYWHERE, EmpiricalFormula("C5H10O5"));
+  Ribonucleotide ribo2("adenosine", "A", "A", "A", EmpiricalFormula("C10H13N5O4"), 'A', 267.0968, 267.24, Ribonucleotide::ANYWHERE, EmpiricalFormula("C5H10O5"));
+  TEST_EQUAL(ribo1 == ribo2, true)
+  TEST_EQUAL(std::hash<Ribonucleotide>{}(ribo1), std::hash<Ribonucleotide>{}(ribo2))
+
+  // Test that different objects (likely) have different hashes
+  Ribonucleotide ribo3("guanosine", "G", "G", "G", EmpiricalFormula("C10H13N5O5"), 'G', 283.0917, 283.24, Ribonucleotide::ANYWHERE, EmpiricalFormula("C5H10O5"));
+  TEST_NOT_EQUAL(ribo1 == ribo3, true)
+  // Note: Different objects may have same hash (collision), but this is unlikely for well-designed hashes
+  TEST_NOT_EQUAL(std::hash<Ribonucleotide>{}(ribo1), std::hash<Ribonucleotide>{}(ribo3))
+
+  // Test that copies have equal hashes
+  Ribonucleotide ribo_copy(ribo1);
+  TEST_EQUAL(std::hash<Ribonucleotide>{}(ribo1), std::hash<Ribonucleotide>{}(ribo_copy))
+
+  // Test use in unordered_set
+  std::unordered_set<Ribonucleotide> ribo_set;
+  ribo_set.insert(ribo1);
+  ribo_set.insert(ribo2); // Should not increase size (duplicate)
+  ribo_set.insert(ribo3);
+  TEST_EQUAL(ribo_set.size(), 2)
+  TEST_EQUAL(ribo_set.count(ribo1), 1)
+  TEST_EQUAL(ribo_set.count(ribo3), 1)
+
+  // Test use in unordered_map
+  std::unordered_map<Ribonucleotide, std::string> ribo_map;
+  ribo_map[ribo1] = "first";
+  ribo_map[ribo3] = "third";
+  TEST_EQUAL(ribo_map.size(), 2)
+  TEST_EQUAL(ribo_map[ribo1], "first")
+  TEST_EQUAL(ribo_map[ribo3], "third")
+  ribo_map[ribo2] = "second"; // Should overwrite ribo1's value
+  TEST_EQUAL(ribo_map.size(), 2)
+  TEST_EQUAL(ribo_map[ribo1], "second")
+
+  // Test default-constructed ribonucleotide hash consistency
+  Ribonucleotide default1;
+  Ribonucleotide default2;
+  TEST_EQUAL(std::hash<Ribonucleotide>{}(default1), std::hash<Ribonucleotide>{}(default2))
+
+  // Test that different term specificities produce different hashes
+  Ribonucleotide five_prime("adenosine", "A", "A", "A", EmpiricalFormula("C10H13N5O4"), 'A', 267.0968, 267.24, Ribonucleotide::FIVE_PRIME, EmpiricalFormula("C5H10O5"));
+  Ribonucleotide three_prime("adenosine", "A", "A", "A", EmpiricalFormula("C10H13N5O4"), 'A', 267.0968, 267.24, Ribonucleotide::THREE_PRIME, EmpiricalFormula("C5H10O5"));
+  TEST_NOT_EQUAL(std::hash<Ribonucleotide>{}(five_prime), std::hash<Ribonucleotide>{}(three_prime))
+}
 END_SECTION
 
 END_TEST

@@ -14,7 +14,7 @@
 #include <OpenMS/DATASTRUCTURES/MassExplainer.h>
 #include <OpenMS/SYSTEM/StopWatch.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
-
+#include <unordered_map>
 #include <fstream>
 #include <map>
 
@@ -443,7 +443,7 @@ namespace OpenMS
 
     // variable values
     UInt active_edges = 0;
-    std::map<String, Size> count_cmp;
+    std::unordered_map<String, Size> count_cmp;
 
     for (Int iColumn = 0; iColumn < build.getNumberOfColumns(); ++iColumn)
     {
@@ -465,7 +465,7 @@ namespace OpenMS
     if (verbose_level > 2)
       OPENMS_LOG_INFO << "Active edges: " << active_edges << " of overall " << pairs.size() << std::endl;
 
-    for (std::map<String, Size>::const_iterator it = count_cmp.begin(); it != count_cmp.end(); ++it)
+    for (std::unordered_map<String, Size>::const_iterator it = count_cmp.begin(); it != count_cmp.end(); ++it)
     {
       //std::cout << "Cmp " << it->first << " x " << it->second << "\n";
     }

@@ -599,8 +599,10 @@ namespace OpenMS
         else if (do_switchKR) { switchKR(peptide); }
       }
 
-      // Check that the decoy precursor does not happen to be a target precursor AND is not already present
-      if (allPeptideSequences.find(peptide.sequence + String((peptide.getChargeState()))) != allPeptideSequences.end())
+      // Check that the decoy precursor does not happen to be a target precursor AND is not already present.
+      // Use getModifiedPeptideSequence_ to match the key format used when populating allPeptideSequences above.
+      const std::string peptide_key = MRMDecoy::getModifiedPeptideSequence_(peptide) + String(peptide.getChargeState());
+      if (allPeptideSequences.find(peptide_key) != allPeptideSequences.end())
       {
         OPENMS_LOG_DEBUG << "[peptide] Skipping " << peptide.id << " since decoy peptide is also a target peptide or this decoy peptide is already present" << std::endl;
         exclusion_peptides.insert(peptide.id);
@@ -609,7 +611,7 @@ namespace OpenMS
       {
         // Since this decoy will be added, add it to the precursor map so that the same decoy is not added twice
         OPENMS_LOG_DEBUG << "[peptide] adding " << peptide.id << " to master list of peptides " << std::endl;
-        allPeptideSequences[MRMDecoy::getModifiedPeptideSequence_(peptide) + String(peptide.getChargeState())] = peptide.id;
+        allPeptideSequences[peptide_key] = peptide.id;
       }
 
       for (Size prot_idx = 0; prot_idx < peptide.protein_refs.size(); ++prot_idx)
@@ -883,6 +885,7 @@ namespace OpenMS
       {
         if (hasCNterminalModsLight_(decoy_compound.modifications, unmodified_sequence.size(), do_switchKR))
         {
+          OPENMS_LOG_DEBUG << "[peptide] Skipping " << decoy_compound.id << " due to C/N-terminal modifications" << std::endl;
           exclusion_peptides.insert(decoy_compound.id);
           continue;
         }
@@ -895,6 +898,7 @@ namespace OpenMS
       {
         if (hasCNterminalModsLight_(decoy_compound.modifications, unmodified_sequence.size(), false))
         {
+          OPENMS_LOG_DEBUG << "[peptide] Skipping " << decoy_compound.id << " due to C/N-terminal modifications" << std::endl;
           exclusion_peptides.insert(decoy_compound.id);
           continue;
         }
@@ -911,6 +915,7 @@ namespace OpenMS
         decoy_mods = result.second;
         if (do_switchKR && hasCNterminalModsLight_(decoy_mods, decoy_sequence.size(), do_switchKR))
         {
+          OPENMS_LOG_DEBUG << "[peptide] Skipping " << decoy_compound.id << " due to C/N-terminal modifications" << std::endl;
           exclusion_peptides.insert(decoy_compound.id);
           continue;
         }
@@ -925,16 +930,8 @@ namespace OpenMS
         decoy_mods = decoy_compound.modifications;
       }
 
-      // Check for duplicates
-      std::string decoy_key = decoy_sequence + std::to_string(decoy_compound.charge);
-      if (allPeptideSequences.find(decoy_key) != allPeptideSequences.end())
-      {
-        exclusion_peptides.insert(decoy_compound.id);
-        continue;
-      }
-      allPeptideSequences[decoy_key] = decoy_compound.id;
-
-      // Build modified sequence string with UniMod notation
+      // Build modified sequence string with UniMod notation (must be done before duplicate check)
+      // This matches the Heavy path which uses getModifiedPeptideSequence_() for duplicate detection
       String full_decoy_sequence;
       for (int loc = -1; loc <= static_cast<int>(decoy_sequence.size()); loc++)
       {
@@ -952,6 +949,21 @@ namespace OpenMS
         }
       }
       decoy_compound.sequence = full_decoy_sequence;
+
+      // Check for duplicates using MODIFIED sequence + charge (matching Heavy path behavior)
+      // The Heavy path uses getModifiedPeptideSequence_(peptide) + charge for storing decoys,
+      // which includes UniMod annotations. This ensures peptides with the same unmodified
+      // sequence but different modifications are NOT considered duplicates.
+      std::string decoy_key = full_decoy_sequence + String(decoy_compound.charge);
+      if (allPeptideSequences.find(decoy_key) != allPeptideSequences.end())
+      {
+        OPENMS_LOG_DEBUG << "[peptide] Skipping " << decoy_compound.id << " since decoy peptide is also a target peptide or this decoy peptide is already present" << std::endl;
+        exclusion_peptides.insert(decoy_compound.id);
+        continue;
+      }
+      // Add to map with modified sequence (matching Heavy path line 612)
+      OPENMS_LOG_DEBUG << "[peptide] adding " << decoy_compound.id << " to master list of peptides" << std::endl;
+      allPeptideSequences[decoy_key] = decoy_compound.id;
 
       // Update modifications
       decoy_compound.modifications = decoy_mods;
@@ -1099,6 +1111,8 @@ namespace OpenMS
         }
         else
         {
+          // Transition could not be annotated, exclude whole peptide (matching Heavy path behavior)
+          OPENMS_LOG_DEBUG << "[peptide] Skipping " << decoy_peptide_ref << " due to missing annotation" << std::endl;
           exclusion_peptides.insert(decoy_peptide_ref);
         }
       }

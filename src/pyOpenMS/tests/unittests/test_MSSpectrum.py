@@ -170,5 +170,38 @@ class TestMSSpectrum(unittest.TestCase):
         data_view = fda.get_data_mv()
         self.assertIsNone(data_view)
 
+    def testGetTypeWithQueryData(self):
+        """Test getType(bool) method with query_data parameter"""
+        spec = pyopenms.MSSpectrum()
+        
+        # Empty spectrum - should return UNKNOWN
+        spec_type = spec.getType(False)
+        self.assertIn(spec_type, [
+            pyopenms.SpectrumSettings.SpectrumType.UNKNOWN,
+            pyopenms.SpectrumSettings.SpectrumType.CENTROID,
+            pyopenms.SpectrumSettings.SpectrumType.PROFILE
+        ])
+        
+        # Set type explicitly
+        spec.setType(pyopenms.SpectrumSettings.SpectrumType.CENTROID)
+        spec_type = spec.getType(False)
+        self.assertEqual(spec_type, pyopenms.SpectrumSettings.SpectrumType.CENTROID)
+        
+        # Test with query_data=True on spectrum with peaks
+        spec2 = pyopenms.MSSpectrum()
+        spec2.set_peaks(([100.0, 200.0, 300.0], [1000.0, 2000.0, 500.0]))
+        
+        # Without setting type, getType(False) should return UNKNOWN
+        spec_type_no_query = spec2.getType(False)
+        self.assertEqual(spec_type_no_query, pyopenms.SpectrumSettings.SpectrumType.UNKNOWN)
+        
+        # With query_data=True, it may estimate the type based on peak data
+        spec_type_with_query = spec2.getType(True)
+        self.assertIn(spec_type_with_query, [
+            pyopenms.SpectrumSettings.SpectrumType.UNKNOWN,
+            pyopenms.SpectrumSettings.SpectrumType.CENTROID,
+            pyopenms.SpectrumSettings.SpectrumType.PROFILE
+        ])
+
 if __name__ == '__main__':
     unittest.main()
