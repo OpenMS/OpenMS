@@ -202,8 +202,13 @@
             >>> param["threshold"] = 0.5
         """
         key = self._to_bytes_key(key)
-        tags = self.getTags(key)
-        desc = self.getDescription(key)
+        # Preserve existing tags and description if key exists, otherwise use defaults
+        if self.exists(key):
+            tags = self.getTags(key)
+            desc = self.getDescription(key)
+        else:
+            tags = []
+            desc = b""
         self.setValue(key, value, desc, tags)
 
     def __iter__(self):
