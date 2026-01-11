@@ -23,6 +23,7 @@ cdef extern from "<OpenMS/METADATA/PeptideIdentificationList.h>" namespace "Open
         bool empty() except + nogil  # wrap-doc:Returns true if the container is empty
         void clear() except + nogil  # wrap-doc:Removes all peptide identifications from the container
         void push_back(PeptideIdentification) except + nogil  # wrap-doc:Adds a peptide identification to the end of the container
+        void pop_back() except + nogil  # wrap-doc:Removes the last peptide identification from the container
         
         # Element access
         PeptideIdentification & operator[](size_t)      except + nogil  #wrap-upper-limit:size()

@@ -53,6 +53,99 @@ import numpy as np
         else:
             raise TypeError("extend() argument must be iterable or another PeptideIdentificationList")
 
+    def pop(self, index=None):
+        """
+        pop(self: PeptideIdentificationList, index: Optional[int] = None) -> PeptideIdentification
+
+        Remove and return the peptide identification at the given index.
+
+        If no index is specified, removes and returns the last item.
+        This method provides a Pythonic interface similar to list.pop().
+
+        :param index: The index of the item to remove. If None, removes the last item.
+        :type index: Optional[int]
+        :return: The removed PeptideIdentification object.
+        :rtype: PeptideIdentification
+        :raises IndexError: If the list is empty or index is out of range.
+
+        Example::
+
+            peps = PeptideIdentificationList()
+            # ... add some peptide identifications ...
+            last_pep = peps.pop()       # Remove and return last item
+            first_pep = peps.pop(0)     # Remove and return first item
+        """
+        if self.size() == 0:
+            raise IndexError("pop from empty PeptideIdentificationList")
+        
+        if index is None:
+            # Pop from end (most efficient)
+            item = self.back()
+            self.pop_back()
+            return item
+        else:
+            # Handle negative indices
+            if index < 0:
+                index = self.size() + index
+            
+            if index < 0 or index >= self.size():
+                raise IndexError("pop index out of range")
+            
+            # Get the item at index
+            item = self[index]
+            
+            # Shift elements to remove the item at index
+            # We need to manually shift elements since we don't have erase exposed
+            for i in range(index, self.size() - 1):
+                self[i] = self[i + 1]
+            
+            # Remove the last element (which is now a duplicate)
+            self.pop_back()
+            
+            return item
+
+    def insert(self, index, PeptideIdentification item):
+        """
+        insert(self: PeptideIdentificationList, index: int, item: PeptideIdentification) -> None
+
+        Insert a peptide identification at the given index.
+
+        All items at and after the index are shifted to the right.
+        This method provides a Pythonic interface similar to list.insert().
+
+        :param index: The index at which to insert the item.
+        :type index: int
+        :param item: The PeptideIdentification object to insert.
+        :type item: PeptideIdentification
+
+        Example::
+
+            peps = PeptideIdentificationList()
+            pep1 = PeptideIdentification()
+            pep2 = PeptideIdentification()
+            peps.append(pep1)
+            peps.insert(0, pep2)  # Insert at beginning
+        """
+        # Handle negative indices
+        if index < 0:
+            index = max(0, self.size() + index)
+        
+        # Clamp index to valid range (Python list.insert allows out-of-range indices)
+        if index >= self.size():
+            # If index is beyond the end, just append
+            self.push_back(item)
+            return
+        
+        # Make room by adding a placeholder at the end
+        self.push_back(self.back())
+        
+        # Shift elements from the end towards the insertion point
+        for i in range(self.size() - 2, index, -1):
+            self[i] = self[i - 1]
+        
+        # Insert the item at the specified index
+        self[index] = item
+
     def __str__(self):
         """
         __str__(self: PeptideIdentificationList) -> str

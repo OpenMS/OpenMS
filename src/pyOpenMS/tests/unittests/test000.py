@@ -5330,6 +5330,9 @@ def testPeptideIdentificationList():
      PeptideIdentificationList.clear
      PeptideIdentificationList.empty
      PeptideIdentificationList.extend
+     PeptideIdentificationList.insert
+     PeptideIdentificationList.pop
+     PeptideIdentificationList.pop_back
      PeptideIdentificationList.push_back
      PeptideIdentificationList.size
     """
@@ -5441,6 +5444,126 @@ def testPeptideIdentificationList():
     assert len(pil_len) == 4
     assert pil_len[3].getRT() == 400.0
     assert pil_len[3].getIdentifier() == "test_append_4"
+
+    # Test pop_back
+    pil_pop = pyopenms.PeptideIdentificationList()
+    pi_pop1 = pyopenms.PeptideIdentification()
+    pi_pop1.setRT(100.0)
+    pi_pop1.setIdentifier("pop_test_1")
+    pi_pop2 = pyopenms.PeptideIdentification()
+    pi_pop2.setRT(200.0)
+    pi_pop2.setIdentifier("pop_test_2")
+    
+    pil_pop.push_back(pi_pop1)
+    pil_pop.push_back(pi_pop2)
+    assert len(pil_pop) == 2
+    
+    pil_pop.pop_back()
+    assert len(pil_pop) == 1
+    assert pil_pop[0].getIdentifier() == "pop_test_1"
+
+    # Test pop() without index (removes last element)
+    pil_pop2 = pyopenms.PeptideIdentificationList()
+    pi_a = pyopenms.PeptideIdentification()
+    pi_a.setRT(100.0)
+    pi_a.setIdentifier("pi_a")
+    pi_b = pyopenms.PeptideIdentification()
+    pi_b.setRT(200.0)
+    pi_b.setIdentifier("pi_b")
+    pi_c = pyopenms.PeptideIdentification()
+    pi_c.setRT(300.0)
+    pi_c.setIdentifier("pi_c")
+    
+    pil_pop2.append(pi_a)
+    pil_pop2.append(pi_b)
+    pil_pop2.append(pi_c)
+    assert len(pil_pop2) == 3
+    
+    popped = pil_pop2.pop()
+    assert popped.getIdentifier() == "pi_c"
+    assert len(pil_pop2) == 2
+    assert pil_pop2[0].getIdentifier() == "pi_a"
+    assert pil_pop2[1].getIdentifier() == "pi_b"
+
+    # Test pop() with index
+    popped_first = pil_pop2.pop(0)
+    assert popped_first.getIdentifier() == "pi_a"
+    assert len(pil_pop2) == 1
+    assert pil_pop2[0].getIdentifier() == "pi_b"
+
+    # Test pop() with negative index
+    pil_pop3 = pyopenms.PeptideIdentificationList()
+    for idx, name in enumerate(["x", "y", "z"]):
+        pi = pyopenms.PeptideIdentification()
+        pi.setRT(idx * 100.0)
+        pi.setIdentifier(name)
+        pil_pop3.append(pi)
+    
+    popped_neg = pil_pop3.pop(-2)  # Should pop "y"
+    assert popped_neg.getIdentifier() == "y"
+    assert len(pil_pop3) == 2
+    assert pil_pop3[0].getIdentifier() == "x"
+    assert pil_pop3[1].getIdentifier() == "z"
+
+    # Test pop() from empty list raises IndexError
+    pil_empty = pyopenms.PeptideIdentificationList()
+    try:
+        pil_empty.pop()
+        assert False, "Expected IndexError"
+    except IndexError:
+        pass
+
+    # Test insert() at beginning
+    pil_insert = pyopenms.PeptideIdentificationList()
+    pi_first = pyopenms.PeptideIdentification()
+    pi_first.setRT(100.0)
+    pi_first.setIdentifier("first")
+    pi_second = pyopenms.PeptideIdentification()
+    pi_second.setRT(200.0)
+    pi_second.setIdentifier("second")
+    pi_inserted = pyopenms.PeptideIdentification()
+    pi_inserted.setRT(50.0)
+    pi_inserted.setIdentifier("inserted")
+    
+    pil_insert.append(pi_first)
+    pil_insert.append(pi_second)
+    assert len(pil_insert) == 2
+    
+    pil_insert.insert(0, pi_inserted)  # Insert at beginning
+    assert len(pil_insert) == 3
+    assert pil_insert[0].getIdentifier() == "inserted"
+    assert pil_insert[1].getIdentifier() == "first"
+    assert pil_insert[2].getIdentifier() == "second"
+
+    # Test insert() in middle
+    pi_middle = pyopenms.PeptideIdentification()
+    pi_middle.setRT(150.0)
+    pi_middle.setIdentifier("middle")
+    
+    pil_insert.insert(2, pi_middle)  # Insert in middle
+    assert len(pil_insert) == 4
+    assert pil_insert[0].getIdentifier() == "inserted"
+    assert pil_insert[1].getIdentifier() == "first"
+    assert pil_insert[2].getIdentifier() == "middle"
+    assert pil_insert[3].getIdentifier() == "second"
+
+    # Test insert() at end (beyond range acts like append)
+    pi_end = pyopenms.PeptideIdentification()
+    pi_end.setRT(999.0)
+    pi_end.setIdentifier("end")
+    
+    pil_insert.insert(100, pi_end)  # Index beyond range
+    assert len(pil_insert) == 5
+    assert pil_insert[4].getIdentifier() == "end"
+
+    # Test insert() with negative index
+    pi_neg = pyopenms.PeptideIdentification()
+    pi_neg.setRT(75.0)
+    pi_neg.setIdentifier("neg_insert")
+    
+    pil_insert.insert(-3, pi_neg)  # Insert at position len-3
+    assert len(pil_insert) == 6
+    assert pil_insert[2].getIdentifier() == "neg_insert"
 
 
 @report
