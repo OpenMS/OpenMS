@@ -313,3 +313,279 @@ import numpy as np
             stacklevel=2
         )
         return self.to_df(*args, **kwargs)
+
+    def get_psm_df(self, export_all_hits=True, include_modifications=True, include_peak_annotations=False, decode_ontology=True):
+        """
+        get_psm_df(self: PeptideIdentificationList, export_all_hits: bool = True, include_modifications: bool = True, include_peak_annotations: bool = False, decode_ontology: bool = True) -> pd.DataFrame
+
+        Export PSMs as a DataFrame following the QPX PSM schema.
+
+        Unlike get_df() which exports only the top hit, this method exports
+        all hits (PSMs) with proper ranking information.
+
+        :param export_all_hits: If True, export all hits per identification.
+                                If False, only export rank 0 (best hit).
+                                Default True.
+        :type export_all_hits: bool
+
+        :param include_modifications: Include detailed modification list column
+                                      with name, position, and mass for each mod.
+                                      Default True.
+        :type include_modifications: bool
+
+        :param include_peak_annotations: Include fragment ion annotations
+                                         (mz_array, intensity_array, charge_array,
+                                         annotation_array). Default False as these
+                                         can be large.
+        :type include_peak_annotations: bool
+
+        :param decode_ontology: Decode meta value names using the PSI-MS ontology.
+                                Default True. (Currently unused, for future compatibility)
+        :type decode_ontology: bool
+
+        :return: DataFrame with QPX PSM schema columns including:
+                 sequence, peptidoform, precursor_charge, observed_mz, calculated_mz,
+                 rt, scan, spectrum_reference, is_decoy, score, score_type, rank,
+                 protein_accessions, P_ID, modifications, posterior_error_probability,
+                 additional_scores, ion_mobility, and optionally peak annotation arrays
+        :rtype: pd.DataFrame
+
+        :raises ImportError: If pandas is not installed
+
+        Example::
+
+            peps = feature_map.get_assigned_peptide_identifications()
+            df = peps.get_psm_df()
+
+            # Export only top hit per spectrum
+            df = peps.get_psm_df(export_all_hits=False)
+
+            # Without modification details
+            df = peps.get_psm_df(include_modifications=False)
+        """
+        try:
+            import pandas as pd
+        except ImportError:
+            raise ImportError(
+                "pandas is required for get_psm_df(). "
+                "Please install it with: pip install pandas"
+            )
+        import re
+
+        rows = []
+        for pep_idx, pep_id in enumerate(self):
+            rt = pep_id.getRT()
+            observed_mz = pep_id.getMZ()
+            # Spectrum reference is stored as metavalue with key "spectrum_reference"
+            spec_ref = ""
+            if pep_id.metaValueExists(b"spectrum_reference"):
+                spec_ref = pep_id.getMetaValue(b"spectrum_reference")
+                if isinstance(spec_ref, bytes):
+                    spec_ref = spec_ref.decode("utf-8")
+            score_type = pep_id.getScoreType()
+
+            # Ion mobility from metavalue
+            ion_mobility = None
+            if pep_id.metaValueExists(b"ion_mobility"):
+                ion_mobility = pep_id.getMetaValue(b"ion_mobility")
+            elif pep_id.metaValueExists(b"IM"):
+                ion_mobility = pep_id.getMetaValue(b"IM")
+
+            # Parse scan number from spectrum reference
+            scan = None
+            scan_match = re.search(r'scan=(\d+)', spec_ref)
+            if scan_match:
+                scan = int(scan_match.group(1))
+
+            hits = pep_id.getHits()
+            if not hits:
+                continue  # Skip empty identifications
+
+            num_hits = len(hits) if export_all_hits else min(1, len(hits))
+
+            for rank in range(num_hits):
+                hit = hits[rank]
+                seq = hit.getSequence()
+                charge = hit.getCharge()
+
+                # Extract modifications
+                modifications = []
+                if include_modifications and seq.isModified():
+                    # N-terminal modification
+                    if seq.hasNTerminalModification():
+                        mod = seq.getNTerminalModification()
+                        modifications.append({
+                            "name": seq.getNTerminalModificationName(),
+                            "position": 0,
+                            "mass": mod.getDiffMonoMass() if mod else 0.0
+                        })
+                    # Residue modifications
+                    for pos, residue in enumerate(seq):
+                        if residue.isModified():
+                            res_mod = residue.getModification()
+                            modifications.append({
+                                "name": residue.getModificationName(),
+                                "position": pos + 1,
+                                "mass": res_mod.getDiffMonoMass() if res_mod else 0.0
+                            })
+                    # C-terminal modification
+                    if seq.hasCTerminalModification():
+                        mod = seq.getCTerminalModification()
+                        modifications.append({
+                            "name": seq.getCTerminalModificationName(),
+                            "position": seq.size() + 1,
+                            "mass": mod.getDiffMonoMass() if mod else 0.0
+                        })
+
+                # Determine is_decoy
+                is_decoy = None
+                if hit.metaValueExists(b"target_decoy"):
+                    td = hit.getMetaValue(b"target_decoy")
+                    if isinstance(td, bytes):
+                        is_decoy = td.startswith(b"decoy")
+                    else:
+                        is_decoy = str(td).startswith("decoy")
+
+                # Extract protein accessions
+                evidences = hit.getPeptideEvidences()
+                protein_accessions = [ev.getProteinAccession() for ev in evidences]
+
+                # Build additional scores dict from metavalues
+                additional_scores = {}
+                keys = []
+                hit.getKeys(keys)
+                for key in keys:
+                    if key != b"target_decoy":
+                        val = hit.getMetaValue(key)
+                        if isinstance(val, (int, float)):
+                            key_str = key.decode("utf-8") if isinstance(key, bytes) else str(key)
+                            additional_scores[key_str] = float(val)
+
+                # Calculate m/z from sequence
+                calculated_mz = None
+                if charge > 0:
+                    try:
+                        calculated_mz = seq.getMZ(charge)
+                    except:
+                        pass
+
+                row = {
+                    "sequence": seq.toUnmodifiedString(),
+                    "peptidoform": seq.toString(),
+                    "precursor_charge": charge,
+                    "observed_mz": observed_mz,
+                    "calculated_mz": calculated_mz,
+                    "rt": rt,
+                    "scan": scan,
+                    "spectrum_reference": spec_ref,
+                    "is_decoy": is_decoy,
+                    "score": hit.getScore(),
+                    "score_type": score_type,
+                    "rank": rank,
+                    "protein_accessions": protein_accessions,
+                    "P_ID": pep_idx,
+                    "ion_mobility": ion_mobility,
+                }
+
+                if include_modifications:
+                    row["modifications"] = modifications
+
+                # Add posterior_error_probability if available
+                score_type_lower = score_type.lower() if score_type else ""
+                if "pep" in score_type_lower or "posterior" in score_type_lower:
+                    row["posterior_error_probability"] = hit.getScore()
+                elif hit.metaValueExists(b"MS:1001493"):  # PSI-MS term for PEP
+                    row["posterior_error_probability"] = hit.getMetaValue(b"MS:1001493")
+
+                row["additional_scores"] = additional_scores
+
+                # Add fragment ion peak annotations if requested
+                if include_peak_annotations:
+                    peak_annotations = hit.getPeakAnnotations()
+                    if peak_annotations:
+                        row["mz_array"] = [pa.mz for pa in peak_annotations]
+                        row["intensity_array"] = [pa.intensity for pa in peak_annotations]
+                        row["charge_array"] = [pa.charge for pa in peak_annotations]
+                        row["annotation_array"] = [pa.annotation.decode("utf-8") if isinstance(pa.annotation, bytes) else pa.annotation for pa in peak_annotations]
+                    else:
+                        row["mz_array"] = []
+                        row["intensity_array"] = []
+                        row["charge_array"] = []
+                        row["annotation_array"] = []
+
+                rows.append(row)
+
+        return pd.DataFrame(rows)
+
+    def psm_to_arrow(self, **kwargs):
+        """
+        psm_to_arrow(self: PeptideIdentificationList, **kwargs) -> pa.Table
+
+        Export PSMs as Apache Arrow Table following QPX schema.
+
+        Accepts same parameters as get_psm_df().
+
+        :return: Arrow Table with PSM data.
+        :rtype: pyarrow.Table
+
+        :raises ImportError: If pyarrow is not installed
+
+        Example::
+
+            table = peps.psm_to_arrow()
+
+            # Convert to polars
+            import polars as pl
+            df = pl.from_arrow(table)
+        """
+        try:
+            import pyarrow as pa
+        except ImportError:
+            raise ImportError(
+                "pyarrow is required for psm_to_arrow(). "
+                "Please install it with: pip install pyarrow"
+            )
+        df = self.get_psm_df(**kwargs)
+        return pa.Table.from_pandas(df)
+
+    @staticmethod
+    def get_psm_columns():
+        """
+        get_psm_columns() -> list
+
+        Return list of column names that get_psm_df() produces.
+
+        Useful for discovering available columns before export.
+
+        :return: List of column name strings.
+        :rtype: list
+
+        Example::
+
+            >>> PeptideIdentificationList.get_psm_columns()
+            ['sequence', 'peptidoform', 'precursor_charge', ...]
+        """
+        return [
+            "sequence",
+            "peptidoform",
+            "precursor_charge",
+            "observed_mz",
+            "calculated_mz",
+            "rt",
+            "scan",
+            "spectrum_reference",
+            "is_decoy",
+            "score",
+            "score_type",
+            "rank",
+            "protein_accessions",
+            "P_ID",
+            "ion_mobility",
+            "modifications",
+            "posterior_error_probability",
+            "additional_scores",
+            "mz_array",
+            "intensity_array",
+            "charge_array",
+            "annotation_array",
+        ]
