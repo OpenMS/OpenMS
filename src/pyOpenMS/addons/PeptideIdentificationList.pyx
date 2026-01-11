@@ -314,9 +314,9 @@ import numpy as np
         )
         return self.to_df(*args, **kwargs)
 
-    def get_psm_df(self, export_all_hits=True, include_modifications=True, include_peak_annotations=False, decode_ontology=True):
+    def get_psm_df(self, export_all_hits=True, include_modifications=True, include_peak_annotations=False, decode_ontology=True, reference_file_name=""):
         """
-        get_psm_df(self: PeptideIdentificationList, export_all_hits: bool = True, include_modifications: bool = True, include_peak_annotations: bool = False, decode_ontology: bool = True) -> pd.DataFrame
+        get_psm_df(self: PeptideIdentificationList, export_all_hits: bool = True, include_modifications: bool = True, include_peak_annotations: bool = False, decode_ontology: bool = True, reference_file_name: str = "") -> pd.DataFrame
 
         Export PSMs as a DataFrame following the QPX PSM schema.
 
@@ -335,7 +335,7 @@ import numpy as np
 
         :param include_peak_annotations: Include fragment ion annotations
                                          (mz_array, intensity_array, charge_array,
-                                         annotation_array). Default False as these
+                                         ion_type_array). Default False as these
                                          can be large.
         :type include_peak_annotations: bool
 
@@ -343,11 +343,17 @@ import numpy as np
                                 Default True. (Currently unused, for future compatibility)
         :type decode_ontology: bool
 
+        :param reference_file_name: Source file name for the QPX schema.
+                                    Default empty string.
+        :type reference_file_name: str
+
         :return: DataFrame with QPX PSM schema columns including:
-                 sequence, peptidoform, precursor_charge, observed_mz, calculated_mz,
-                 rt, scan, spectrum_reference, is_decoy, score, score_type, rank,
-                 protein_accessions, P_ID, modifications, posterior_error_probability,
-                 additional_scores, ion_mobility, and optionally peak annotation arrays
+                 sequence, peptidoform, modifications, precursor_charge,
+                 posterior_error_probability, is_decoy, calculated_mz, observed_mz,
+                 additional_scores, protein_accessions, predicted_rt, reference_file_name,
+                 cv_params, scan, rt, ion_mobility, number_peaks, mz_array, intensity_array,
+                 charge_array, ion_type_array, ion_mobility_array
+                 Plus OpenMS-specific: spectrum_reference, score, score_type, rank, P_ID
         :rtype: pd.DataFrame
 
         :raises ImportError: If pandas is not installed
@@ -469,80 +475,113 @@ import numpy as np
                     except:
                         pass
 
+                # Get predicted RT if available
+                predicted_rt = None
+                if hit.metaValueExists(b"predicted_RT"):
+                    predicted_rt = hit.getMetaValue(b"predicted_RT")
+                elif hit.metaValueExists(b"predicted_rt"):
+                    predicted_rt = hit.getMetaValue(b"predicted_rt")
+
+                # Build posterior_error_probability
+                pep_value = None
+                score_type_lower = score_type.lower() if score_type else ""
+                if "pep" in score_type_lower or "posterior" in score_type_lower:
+                    pep_value = hit.getScore()
+                elif hit.metaValueExists(b"MS:1001493"):  # PSI-MS term for PEP
+                    pep_value = hit.getMetaValue(b"MS:1001493")
+
+                # Build row with QPX schema fields in order
                 row = {
+                    # QPX schema fields (in schema order)
                     "sequence": seq.toUnmodifiedString(),
                     "peptidoform": seq.toString(),
+                    "modifications": modifications if include_modifications else None,
                     "precursor_charge": charge,
-                    "observed_mz": observed_mz,
+                    "posterior_error_probability": pep_value,
+                    "is_decoy": 1 if is_decoy else 0 if is_decoy is not None else None,  # QPX uses int32
                     "calculated_mz": calculated_mz,
+                    "observed_mz": observed_mz,
+                    "additional_scores": additional_scores,
+                    "protein_accessions": protein_accessions,
+                    "predicted_rt": predicted_rt,
+                    "reference_file_name": reference_file_name,  # QPX required field
+                    "cv_params": None,  # QPX optional field (not populated from OpenMS)
+                    "scan": str(scan) if scan is not None else None,  # QPX uses string
                     "rt": rt,
-                    "scan": scan,
+                    "ion_mobility": ion_mobility,
+                    # OpenMS-specific fields (not in QPX)
                     "spectrum_reference": spec_ref,
-                    "is_decoy": is_decoy,
                     "score": hit.getScore(),
                     "score_type": score_type,
                     "rank": rank,
-                    "protein_accessions": protein_accessions,
                     "P_ID": pep_idx,
-                    "ion_mobility": ion_mobility,
                 }
 
-                if include_modifications:
-                    row["modifications"] = modifications
-
-                # Add posterior_error_probability if available
-                score_type_lower = score_type.lower() if score_type else ""
-                if "pep" in score_type_lower or "posterior" in score_type_lower:
-                    row["posterior_error_probability"] = hit.getScore()
-                elif hit.metaValueExists(b"MS:1001493"):  # PSI-MS term for PEP
-                    row["posterior_error_probability"] = hit.getMetaValue(b"MS:1001493")
-
-                row["additional_scores"] = additional_scores
-
-                # Add fragment ion peak annotations if requested
+                # Add fragment ion peak annotations if requested (QPX schema fields)
                 if include_peak_annotations:
                     peak_annotations = hit.getPeakAnnotations()
                     if peak_annotations:
+                        row["number_peaks"] = len(peak_annotations)
                         row["mz_array"] = [pa.mz for pa in peak_annotations]
                         row["intensity_array"] = [pa.intensity for pa in peak_annotations]
                         row["charge_array"] = [pa.charge for pa in peak_annotations]
-                        row["annotation_array"] = [pa.annotation.decode("utf-8") if isinstance(pa.annotation, bytes) else pa.annotation for pa in peak_annotations]
+                        row["ion_type_array"] = [pa.annotation.decode("utf-8") if isinstance(pa.annotation, bytes) else pa.annotation for pa in peak_annotations]
+                        row["ion_mobility_array"] = None  # QPX field, not available from OpenMS peak annotations
                     else:
+                        row["number_peaks"] = 0
                         row["mz_array"] = []
                         row["intensity_array"] = []
                         row["charge_array"] = []
-                        row["annotation_array"] = []
+                        row["ion_type_array"] = []
+                        row["ion_mobility_array"] = None
 
                 rows.append(row)
 
         return pd.DataFrame(rows)
 
-    def psm_to_arrow(self, **kwargs):
+    def to_qpx(self, **kwargs):
         """
-        psm_to_arrow(self: PeptideIdentificationList, **kwargs) -> pa.Table
+        to_qpx(self: PeptideIdentificationList, **kwargs) -> pa.Table
 
-        Export PSMs as Apache Arrow Table following QPX schema.
+        Export PSMs as Apache Arrow Table following QPX PSM schema.
+
+        The QPX (Quantitative Proteomics Exchange) schema defines a standard
+        format for PSM data exchange. This method exports data with all QPX
+        schema fields, plus additional OpenMS-specific fields.
+
+        QPX Schema Fields:
+            sequence, peptidoform, modifications, precursor_charge,
+            posterior_error_probability, is_decoy, calculated_mz, observed_mz,
+            additional_scores, protein_accessions, predicted_rt, reference_file_name,
+            cv_params, scan, rt, ion_mobility, number_peaks, mz_array,
+            intensity_array, charge_array, ion_type_array, ion_mobility_array
+
+        OpenMS-specific Fields (not in QPX):
+            spectrum_reference, score, score_type, rank, P_ID
 
         Accepts same parameters as get_psm_df().
 
-        :return: Arrow Table with PSM data.
+        :return: Arrow Table with PSM data following QPX schema.
         :rtype: pyarrow.Table
 
         :raises ImportError: If pyarrow is not installed
 
         Example::
 
-            table = peps.psm_to_arrow()
+            table = peps.to_qpx()
 
             # Convert to polars
             import polars as pl
             df = pl.from_arrow(table)
+
+            # Convert to pandas
+            df = table.to_pandas()
         """
         try:
             import pyarrow as pa
         except ImportError:
             raise ImportError(
-                "pyarrow is required for psm_to_arrow(). "
+                "pyarrow is required for to_qpx(). "
                 "Please install it with: pip install pyarrow"
             )
         df = self.get_psm_df(**kwargs)
@@ -553,7 +592,10 @@ import numpy as np
         """
         get_psm_columns() -> list
 
-        Return list of column names that get_psm_df() produces.
+        Return list of column names that get_psm_df() and to_qpx() produce.
+
+        The columns follow the QPX PSM schema order, with additional
+        OpenMS-specific fields appended.
 
         Useful for discovering available columns before export.
 
@@ -563,29 +605,36 @@ import numpy as np
         Example::
 
             >>> PeptideIdentificationList.get_psm_columns()
-            ['sequence', 'peptidoform', 'precursor_charge', ...]
+            ['sequence', 'peptidoform', 'modifications', ...]
         """
         return [
+            # QPX schema fields (in schema order)
             "sequence",
             "peptidoform",
-            "precursor_charge",
-            "observed_mz",
-            "calculated_mz",
-            "rt",
-            "scan",
-            "spectrum_reference",
-            "is_decoy",
-            "score",
-            "score_type",
-            "rank",
-            "protein_accessions",
-            "P_ID",
-            "ion_mobility",
             "modifications",
+            "precursor_charge",
             "posterior_error_probability",
+            "is_decoy",
+            "calculated_mz",
+            "observed_mz",
             "additional_scores",
+            "protein_accessions",
+            "predicted_rt",
+            "reference_file_name",
+            "cv_params",
+            "scan",
+            "rt",
+            "ion_mobility",
+            "number_peaks",
             "mz_array",
             "intensity_array",
             "charge_array",
-            "annotation_array",
+            "ion_type_array",
+            "ion_mobility_array",
+            # OpenMS-specific fields (not in QPX)
+            "spectrum_reference",
+            "score",
+            "score_type",
+            "rank",
+            "P_ID",
         ]

@@ -1,7 +1,7 @@
 """
 Unit tests for PSM DataFrame export from PeptideIdentificationList.
 
-Tests the get_psm_df(), psm_to_arrow(), and get_psm_columns() methods
+Tests the get_psm_df(), to_qpx(), and get_psm_columns() methods
 that follow the QPX PSM schema.
 """
 
@@ -101,25 +101,25 @@ def test_psm_df_scan_parsing():
     pep_ids = create_test_data()
     df = pep_ids.get_psm_df()
 
-    # First two PSMs from first identification with scan=1234
-    assert df.iloc[0]["scan"] == 1234
-    assert df.iloc[1]["scan"] == 1234
+    # First two PSMs from first identification with scan=1234 (QPX uses string)
+    assert df.iloc[0]["scan"] == "1234"
+    assert df.iloc[1]["scan"] == "1234"
 
     # Third PSM from second identification with scan=5678
-    assert df.iloc[2]["scan"] == 5678
+    assert df.iloc[2]["scan"] == "5678"
 
 
 def test_psm_df_decoy_detection():
-    """Test is_decoy field extraction."""
+    """Test is_decoy field extraction (QPX uses int: 0=target, 1=decoy)."""
     pep_ids = create_test_data()
     df = pep_ids.get_psm_df()
 
-    # First two are targets
-    assert df.iloc[0]["is_decoy"] == False
-    assert df.iloc[1]["is_decoy"] == False
+    # First two are targets (0)
+    assert df.iloc[0]["is_decoy"] == 0
+    assert df.iloc[1]["is_decoy"] == 0
 
-    # Third is decoy
-    assert df.iloc[2]["is_decoy"] == True
+    # Third is decoy (1)
+    assert df.iloc[2]["is_decoy"] == 1
 
 
 def test_psm_df_pep_score():
@@ -190,7 +190,9 @@ def test_psm_df_no_modifications():
     pep_ids = create_test_data()
     df = pep_ids.get_psm_df(include_modifications=False)
 
-    assert "modifications" not in df.columns
+    # When disabled, modifications column is still present but contains None
+    assert "modifications" in df.columns
+    assert df.iloc[0]["modifications"] is None
 
 
 def test_psm_df_calculated_mz():
@@ -237,28 +239,43 @@ def test_psm_df_empty_identifications():
     assert df.iloc[0]["P_ID"] == 1  # Second identification
 
 
-def test_psm_to_arrow():
-    """Test Arrow export."""
+def test_to_qpx():
+    """Test to_qpx Arrow export."""
     pa = pytest.importorskip("pyarrow")
 
     pep_ids = create_test_data()
-    table = pep_ids.psm_to_arrow()
+    table = pep_ids.to_qpx()
 
     assert isinstance(table, pa.Table)
     assert table.num_rows == 3
+    # QPX schema fields
     assert "sequence" in table.schema.names
     assert "peptidoform" in table.schema.names
     assert "precursor_charge" in table.schema.names
+    assert "reference_file_name" in table.schema.names
+    assert "cv_params" in table.schema.names
 
 
-def test_psm_to_arrow_with_params():
-    """Test Arrow export with parameters."""
+def test_to_qpx_with_params():
+    """Test to_qpx Arrow export with parameters."""
     pa = pytest.importorskip("pyarrow")
 
     pep_ids = create_test_data()
-    table = pep_ids.psm_to_arrow(export_all_hits=False)
+    table = pep_ids.to_qpx(export_all_hits=False)
 
     assert table.num_rows == 2
+
+
+def test_to_qpx_with_reference_file():
+    """Test to_qpx with reference_file_name parameter."""
+    pa = pytest.importorskip("pyarrow")
+
+    pep_ids = create_test_data()
+    table = pep_ids.to_qpx(reference_file_name="test.mzML")
+
+    # All rows should have the reference_file_name
+    df = table.to_pandas()
+    assert all(df["reference_file_name"] == "test.mzML")
 
 
 def test_get_psm_columns():
@@ -268,11 +285,49 @@ def test_get_psm_columns():
     columns = oms.PeptideIdentificationList.get_psm_columns()
 
     assert isinstance(columns, list)
+    # QPX schema fields (in schema order)
     assert "sequence" in columns
     assert "peptidoform" in columns
-    assert "precursor_charge" in columns
     assert "modifications" in columns
+    assert "precursor_charge" in columns
+    assert "posterior_error_probability" in columns
+    assert "is_decoy" in columns
+    assert "calculated_mz" in columns
+    assert "observed_mz" in columns
     assert "additional_scores" in columns
+    assert "protein_accessions" in columns
+    assert "predicted_rt" in columns
+    assert "reference_file_name" in columns  # QPX required
+    assert "cv_params" in columns  # QPX optional
+    assert "scan" in columns
+    assert "rt" in columns
+    assert "ion_mobility" in columns
+    assert "number_peaks" in columns
+    assert "mz_array" in columns
+    assert "intensity_array" in columns
+    assert "charge_array" in columns
+    assert "ion_type_array" in columns  # QPX naming
+    assert "ion_mobility_array" in columns  # QPX field
+    # OpenMS-specific fields
+    assert "P_ID" in columns
+    assert "rank" in columns
+    assert "spectrum_reference" in columns
+    assert "score" in columns
+    assert "score_type" in columns
+
+
+def test_psm_df_qpx_columns():
+    """Test QPX schema columns are present."""
+    pep_ids = create_test_data()
+    df = pep_ids.get_psm_df(reference_file_name="test.mzML")
+
+    # Check QPX required columns
+    assert "reference_file_name" in df.columns
+    assert df.iloc[0]["reference_file_name"] == "test.mzML"
+
+    # Check cv_params column (always None from OpenMS)
+    assert "cv_params" in df.columns
+    assert df.iloc[0]["cv_params"] is None
 
 
 def test_psm_df_spectrum_reference():
