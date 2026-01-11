@@ -5565,6 +5565,27 @@ def testPeptideIdentificationList():
     assert len(pil_insert) == 6
     assert pil_insert[2].getIdentifier() == "neg_insert"
 
+    # Test insert() into empty list
+    pil_insert_empty = pyopenms.PeptideIdentificationList()
+    pi_empty_insert = pyopenms.PeptideIdentification()
+    pi_empty_insert.setRT(42.0)
+    pi_empty_insert.setIdentifier("empty_insert")
+    pil_insert_empty.insert(0, pi_empty_insert)
+    assert len(pil_insert_empty) == 1
+    assert pil_insert_empty[0].getIdentifier() == "empty_insert"
+
+    # Test insert() with very negative index (should insert at beginning)
+    pil_very_neg = pyopenms.PeptideIdentificationList()
+    pi_vn1 = pyopenms.PeptideIdentification()
+    pi_vn1.setIdentifier("vn1")
+    pi_vn2 = pyopenms.PeptideIdentification()
+    pi_vn2.setIdentifier("vn2")
+    pil_very_neg.append(pi_vn1)
+    pil_very_neg.insert(-100, pi_vn2)  # Very negative index
+    assert len(pil_very_neg) == 2
+    assert pil_very_neg[0].getIdentifier() == "vn2"  # Inserted at beginning
+    assert pil_very_neg[1].getIdentifier() == "vn1"
+
 
 @report
 def testPolarity():

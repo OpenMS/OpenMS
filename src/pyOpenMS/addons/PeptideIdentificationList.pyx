@@ -126,9 +126,17 @@ import numpy as np
             peps.append(pep1)
             peps.insert(0, pep2)  # Insert at beginning
         """
-        # Handle negative indices
+        # Handle empty list case - just append
+        if self.size() == 0:
+            self.push_back(item)
+            return
+        
+        # Handle negative indices (Python-style)
         if index < 0:
-            index = max(0, self.size() + index)
+            index = self.size() + index
+            # Very negative values should clamp to 0
+            if index < 0:
+                index = 0
         
         # Clamp index to valid range (Python list.insert allows out-of-range indices)
         if index >= self.size():
