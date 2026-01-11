@@ -68,12 +68,17 @@ import numpy as np
         :rtype: PeptideIdentification
         :raises IndexError: If the list is empty or index is out of range.
 
+        Note:
+            Popping from the end (without an index) is O(1), but popping from
+            other positions requires O(n) element shifting. For frequent removals
+            at arbitrary positions, consider using a different data structure.
+
         Example::
 
             peps = PeptideIdentificationList()
             # ... add some peptide identifications ...
-            last_pep = peps.pop()       # Remove and return last item
-            first_pep = peps.pop(0)     # Remove and return first item
+            last_pep = peps.pop()       # Remove and return last item (O(1))
+            first_pep = peps.pop(0)     # Remove and return first item (O(n))
         """
         if self.size() == 0:
             raise IndexError("pop from empty PeptideIdentificationList")
@@ -118,13 +123,19 @@ import numpy as np
         :param item: The PeptideIdentification object to insert.
         :type item: PeptideIdentification
 
+        Note:
+            Inserting at the end (or beyond) is O(1), but inserting at other
+            positions requires O(n) element shifting. For frequent insertions
+            at arbitrary positions, consider using append() and sorting if order
+            matters, or a different data structure.
+
         Example::
 
             peps = PeptideIdentificationList()
             pep1 = PeptideIdentification()
             pep2 = PeptideIdentification()
             peps.append(pep1)
-            peps.insert(0, pep2)  # Insert at beginning
+            peps.insert(0, pep2)  # Insert at beginning (O(n))
         """
         # Handle empty list case - just append
         if self.size() == 0:
@@ -144,7 +155,8 @@ import numpy as np
             self.push_back(item)
             return
         
-        # Make room by adding a placeholder at the end
+        # Make room by duplicating the last element at the end
+        # (this creates a temporary duplicate which will be overwritten during shifting)
         self.push_back(self.back())
         
         # Shift elements from the end towards the insertion point
