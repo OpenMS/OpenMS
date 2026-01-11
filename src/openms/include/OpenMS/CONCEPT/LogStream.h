@@ -455,6 +455,56 @@ private:
 
     }; //LogStream
 
+    /**
+      @brief RAII guard that temporarily removes a stream from a LogStream and re-inserts it on scope exit.
+
+      This class provides exception-safe temporary removal of output streams from LogStream objects.
+      Use this when you need to temporarily suppress logging to a specific stream (e.g., cout)
+      during operations that may throw exceptions.
+
+      Example usage:
+      @code
+      getGlobalLogInfo().remove(cout);
+      LogSinkGuard guard(getGlobalLogInfo(), cout); // Will re-insert cout on scope exit
+      some_operation_that_may_throw();
+      // cout is automatically re-inserted when guard goes out of scope
+      @endcode
+
+      @ingroup Concept
+    */
+    class OPENMS_DLLAPI LogSinkGuard
+    {
+    public:
+      /**
+        @brief Construct a guard that will re-insert the given stream into the LogStream on destruction.
+
+        @param log_stream The LogStream to re-insert the stream into
+        @param stream The stream to re-insert (e.g., std::cout)
+
+        @note This constructor does NOT remove the stream - call LogStream::remove() before constructing the guard.
+      */
+      LogSinkGuard(LogStream& log_stream, std::ostream& stream)
+        : log_stream_(log_stream), stream_(stream)
+      {
+      }
+
+      /// Destructor re-inserts the stream
+      ~LogSinkGuard()
+      {
+        log_stream_.insert(stream_);
+      }
+
+      // Non-copyable and non-movable
+      LogSinkGuard(const LogSinkGuard&) = delete;
+      LogSinkGuard& operator=(const LogSinkGuard&) = delete;
+      LogSinkGuard(LogSinkGuard&&) = delete;
+      LogSinkGuard& operator=(LogSinkGuard&&) = delete;
+
+    private:
+      LogStream& log_stream_;
+      std::ostream& stream_;
+    };
+
   } // namespace Logger
 
   //

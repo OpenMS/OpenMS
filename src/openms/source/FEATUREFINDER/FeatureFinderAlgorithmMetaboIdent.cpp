@@ -369,9 +369,9 @@ namespace OpenMS
 
     OPENMS_LOG_INFO << "Detecting chromatographic peaks..." << endl;
     getGlobalLogInfo().remove(cout); // suppress status output from OpenSWATH
+    Logger::LogSinkGuard log_guard(getGlobalLogInfo(), cout); // RAII: re-inserts cout on scope exit (exception-safe)
     feat_finder_.pickExperiment(chrom_data_, features, library_,
                                 TransformationDescription(), ms_data_);
-    getGlobalLogInfo().insert(cout);
     OPENMS_LOG_INFO << "Found " << features.size()
                     << " feature candidates in total." << endl;
     ms_data_.reset(); // not needed anymore, free up the memory

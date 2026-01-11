@@ -200,6 +200,76 @@ START_SECTION((void remove(std::ostream &s)))
 }
 END_SECTION
 
+START_SECTION(([EXTRA] LogSinkGuard - RAII re-insertion on scope exit))
+{
+  // Test 1: Normal scope exit - stream should be re-inserted
+  {
+    LogStream l1(new LogStreamBuf());
+    ostringstream s;
+    l1.insert(s);
+    l1 << "before_remove" << endl;
+    TEST_EQUAL(s.str(), "before_remove\n")
+
+    l1.remove(s);
+    l1 << "while_removed" << endl;
+    TEST_EQUAL(s.str(), "before_remove\n") // no change, stream was removed
+
+    {
+      LogSinkGuard guard(l1, s); // guard will re-insert on scope exit
+      l1 << "still_removed" << endl;
+      TEST_EQUAL(s.str(), "before_remove\n") // still removed within guard scope
+    } // guard destructor re-inserts s
+
+    l1 << "after_guard" << endl;
+    TEST_EQUAL(s.str(), "before_remove\nafter_guard\n") // stream is back
+  }
+
+  // Test 2: Exception safety - stream should be re-inserted even on exception
+  {
+    LogStream l1(new LogStreamBuf());
+    ostringstream s;
+    l1.insert(s);
+
+    l1.remove(s);
+    l1 << "removed" << endl;
+
+    try
+    {
+      LogSinkGuard guard(l1, s);
+      l1 << "in_try" << endl;
+      throw std::runtime_error("test exception");
+    }
+    catch (const std::exception&)
+    {
+      // guard destructor should have run, re-inserting s
+    }
+
+    l1 << "after_exception" << endl;
+    TEST_EQUAL(s.str(), "after_exception\n") // stream was re-inserted despite exception
+  }
+
+  // Test 3: Multiple guards on same stream (nested removal/insertion)
+  {
+    LogStream l1(new LogStreamBuf());
+    ostringstream s;
+    l1.insert(s);
+
+    l1.remove(s);
+    {
+      LogSinkGuard guard1(l1, s);
+      l1.remove(s); // remove again
+      {
+        LogSinkGuard guard2(l1, s);
+        l1 << "deeply_removed" << endl;
+      } // guard2 re-inserts
+      l1 << "once_reinserted" << endl;
+    } // guard1 re-inserts (stream already present, should be safe)
+    l1 << "final" << endl;
+    TEST_EQUAL(s.str(), "once_reinserted\nfinal\n")
+  }
+}
+END_SECTION
+
 START_SECTION((void insertNotification(std::ostream &s, LogStreamNotifier &target)))
 {
   LogStream l1(new LogStreamBuf());
