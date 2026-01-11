@@ -7,7 +7,9 @@ import os
 
 from pyopenms import String as s
 from pyopenms import *
-from test_helpers import report
+
+# Import shared test helpers from conftest.py
+from conftest import report
 
 try:
     long

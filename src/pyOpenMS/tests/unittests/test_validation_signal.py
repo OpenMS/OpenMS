@@ -14,7 +14,9 @@ Tests: 14 total
 """
 
 import pyopenms as oms
-from test_helpers import report, _testParam, _testProgressLogger
+
+# Import shared test helpers from conftest.py
+from conftest import (report, _testParam, _testProgressLogger)
 
 
 @report

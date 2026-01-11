@@ -11,8 +11,8 @@ import pyopenms
 import copy
 import numpy as np
 
-# Import shared test helper functions
-from test_helpers import report
+# Import shared test helpers from conftest.py
+from conftest import report
 
 
 @report

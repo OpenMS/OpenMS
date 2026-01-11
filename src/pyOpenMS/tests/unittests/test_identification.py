@@ -9,8 +9,8 @@
 from __future__ import print_function
 import pyopenms
 
-# Import shared test helper functions
-from test_helpers import report, _testMetaInfoInterface, _testParam, _testStrOutput, _testUniqueIdInterface
+# Import shared test helpers from conftest.py
+from conftest import (report, _testMetaInfoInterface, _testParam, _testStrOutput, _testUniqueIdInterface)
 
 
 @report

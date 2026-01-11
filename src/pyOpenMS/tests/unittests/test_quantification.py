@@ -10,8 +10,8 @@ from __future__ import print_function
 import pyopenms
 import os
 
-# Import shared test helper functions
-from test_helpers import report, _testParam
+# Import shared test helpers from conftest.py
+from conftest import (report, _testParam)
 
 
 @report
