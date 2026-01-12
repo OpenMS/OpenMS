@@ -393,6 +393,22 @@ import numpy as np
                     continue
             return None
 
+        # Known PEP score type names (from IDScoreSwitcherAlgorithm::type_to_str_)
+        _PEP_SCORE_NAMES = {
+            "Posterior Error Probability", "pep", "PEP",
+            "posterior_error_probability", "MS:1001493"
+        }
+
+        def _is_pep_score_type(score_type_name):
+            """Check if score type is PEP, matching IDScoreSwitcherAlgorithm::isScoreType logic."""
+            if not score_type_name:
+                return False
+            # Strip _score suffix like IDScoreSwitcherAlgorithm does
+            chopped = score_type_name
+            if chopped.endswith("_score"):
+                chopped = chopped[:-6]
+            return chopped in _PEP_SCORE_NAMES
+
         rows = []
         for pep_idx, pep_id in enumerate(self):
             rt = pep_id.getRT()
@@ -420,6 +436,9 @@ import numpy as np
                 continue  # Skip empty identifications
 
             num_hits = len(hits) if export_all_hits else min(1, len(hits))
+
+            # Determine if main score is PEP (check once per PeptideIdentification)
+            is_main_score_pep = _is_pep_score_type(score_type)
 
             for rank in range(num_hits):
                 hit = hits[rank]
@@ -495,13 +514,17 @@ import numpy as np
                 elif hit.metaValueExists(b"predicted_rt"):
                     predicted_rt = hit.getMetaValue(b"predicted_rt")
 
-                # Build posterior_error_probability
+                # Build posterior_error_probability using ScoreType logic from IDScoreSwitcherAlgorithm
                 pep_value = None
-                score_type_lower = score_type.lower() if score_type else ""
-                if "pep" in score_type_lower or "posterior" in score_type_lower:
+                if is_main_score_pep:
                     pep_value = hit.getScore()
-                elif hit.metaValueExists(b"MS:1001493"):  # PSI-MS term for PEP
-                    pep_value = hit.getMetaValue(b"MS:1001493")
+                else:
+                    # Search for PEP in metavalues (matching IDScoreSwitcherAlgorithm::findScoreType)
+                    for pep_name in _PEP_SCORE_NAMES:
+                        pep_name_bytes = pep_name.encode("utf-8") if isinstance(pep_name, str) else pep_name
+                        if hit.metaValueExists(pep_name_bytes):
+                            pep_value = hit.getMetaValue(pep_name_bytes)
+                            break
 
                 # Build row with QPX schema fields in order
                 row = {
@@ -550,7 +573,22 @@ import numpy as np
 
                 rows.append(row)
 
-        return pd.DataFrame(rows)
+        # Build DataFrame with proper schema even when empty
+        if rows:
+            return pd.DataFrame(rows)
+        else:
+            # Return empty DataFrame with correct column schema
+            columns = [
+                "sequence", "peptidoform", "modifications", "precursor_charge",
+                "posterior_error_probability", "is_decoy", "calculated_mz", "observed_mz",
+                "additional_scores", "protein_accessions", "predicted_rt", "reference_file_name",
+                "cv_params", "scan", "rt", "ion_mobility",
+                "spectrum_reference", "score", "score_type", "rank", "P_ID",
+            ]
+            if include_peak_annotations:
+                columns.extend(["number_peaks", "mz_array", "intensity_array",
+                               "charge_array", "ion_type_array", "ion_mobility_array"])
+            return pd.DataFrame(columns=columns)
 
     def to_qpx(self, **kwargs):
         """

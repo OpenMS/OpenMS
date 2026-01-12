@@ -297,7 +297,7 @@ def test_to_qpx_with_params():
 
 def test_to_qpx_with_reference_file():
     """Test to_qpx with reference_file_name parameter."""
-    pa = pytest.importorskip("pyarrow")
+    pytest.importorskip("pyarrow")
 
     pep_ids = create_test_data()
     table = pep_ids.to_qpx(reference_file_name="test.mzML")
@@ -523,7 +523,10 @@ def test_psm_df_empty_list():
 
     assert len(df) == 0
     # Columns should still be defined even with no data
-    assert "sequence" in df.columns or len(df.columns) == 0
+    assert "sequence" in df.columns
+    assert "peptidoform" in df.columns
+    assert "precursor_charge" in df.columns
+    assert "P_ID" in df.columns
 
 
 def test_psm_df_non_pep_score_type():
