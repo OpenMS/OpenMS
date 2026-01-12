@@ -365,6 +365,8 @@ import numpy as np
                 "Please install it with: pip install pandas"
             )
         from . import SpectrumLookup as _SpectrumLookup
+        from . import IDScoreSwitcherAlgorithm as _IDScoreSwitcherAlgorithm
+        from . import ScoreType as _ScoreType
 
         # Native ID type accessions to try for scan number extraction
         # See SpectrumLookup.cpp for the full list of supported formats
@@ -393,21 +395,8 @@ import numpy as np
                     continue
             return None
 
-        # Known PEP score type names (from IDScoreSwitcherAlgorithm::type_to_str_)
-        _PEP_SCORE_NAMES = {
-            "Posterior Error Probability", "pep", "PEP",
-            "posterior_error_probability", "MS:1001493"
-        }
-
-        def _is_pep_score_type(score_type_name):
-            """Check if score type is PEP, matching IDScoreSwitcherAlgorithm::isScoreType logic."""
-            if not score_type_name:
-                return False
-            # Strip _score suffix like IDScoreSwitcherAlgorithm does
-            chopped = score_type_name
-            if chopped.endswith("_score"):
-                chopped = chopped[:-6]
-            return chopped in _PEP_SCORE_NAMES
+        # Create IDScoreSwitcherAlgorithm instance for score type checking
+        _score_switcher = _IDScoreSwitcherAlgorithm()
 
         rows = []
         for pep_idx, pep_id in enumerate(self):
@@ -437,8 +426,11 @@ import numpy as np
 
             num_hits = len(hits) if export_all_hits else min(1, len(hits))
 
-            # Determine if main score is PEP (check once per PeptideIdentification)
-            is_main_score_pep = _is_pep_score_type(score_type)
+            # Use native IDScoreSwitcherAlgorithm::findScoreType to find PEP score
+            # This checks main score type AND searches metavalues if needed
+            pep_search_result = _score_switcher.findScoreType(pep_id, _ScoreType.PEP)
+            is_main_score_pep = pep_search_result.is_main_score_type
+            pep_metavalue_name = pep_search_result.score_name if not is_main_score_pep else None
 
             for rank in range(num_hits):
                 hit = hits[rank]
@@ -514,17 +506,15 @@ import numpy as np
                 elif hit.metaValueExists(b"predicted_rt"):
                     predicted_rt = hit.getMetaValue(b"predicted_rt")
 
-                # Build posterior_error_probability using ScoreType logic from IDScoreSwitcherAlgorithm
+                # Build posterior_error_probability using IDScoreSwitcherAlgorithm::findScoreType result
                 pep_value = None
                 if is_main_score_pep:
                     pep_value = hit.getScore()
-                else:
-                    # Search for PEP in metavalues (matching IDScoreSwitcherAlgorithm::findScoreType)
-                    for pep_name in _PEP_SCORE_NAMES:
-                        pep_name_bytes = pep_name.encode("utf-8") if isinstance(pep_name, str) else pep_name
-                        if hit.metaValueExists(pep_name_bytes):
-                            pep_value = hit.getMetaValue(pep_name_bytes)
-                            break
+                elif pep_metavalue_name:
+                    # findScoreType found PEP in metavalues - use the name it found
+                    pep_name_bytes = pep_metavalue_name.encode("utf-8") if isinstance(pep_metavalue_name, str) else pep_metavalue_name
+                    if hit.metaValueExists(pep_name_bytes):
+                        pep_value = hit.getMetaValue(pep_name_bytes)
 
                 # Build row with QPX schema fields in order
                 row = {
