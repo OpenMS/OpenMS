@@ -10,6 +10,7 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/METADATA/NativeIDParser.h>
 
 #include <boost/regex.hpp>
 
@@ -181,22 +182,49 @@ namespace OpenMS
        @throw Exception::ParseError if the scan number could not be extracted (unless @p no_error is set)
 
        @return Scan number of the spectrum (or -1 on failure to extract)
+
+       @deprecated Use NativeIDParser::extractScanNumber() instead for better discoverability.
+       @see NativeIDParser::extractScanNumber()
     */
     static Int extractScanNumber(const String& native_id,
                                  const boost::regex& scan_regexp,
                                  bool no_error = false);
 
+    /**
+       @brief Extract the scan number from the native ID using a CV accession
+
+       @param[in] native_id Spectrum native ID
+       @param[in] native_id_type_accession CV accession specifying the native ID format
+
+       @return Scan number of the spectrum (or -1 on failure to extract)
+
+       @deprecated Use NativeIDParser::extractScanNumber() instead for better discoverability.
+       @see NativeIDParser::extractScanNumber()
+    */
     static Int extractScanNumber(const String& native_id,
                                  const String& native_id_type_accession);
+
    /**
        @brief Determine the RegEx string to extract scan/index number from native IDs. Can be used for extractScanNumber
 
-       @param[in] native_id RegEx string
+       @param[in] native_id Native ID string to analyze
+
+       @return Regular expression string with named group
+
+       @deprecated Use NativeIDParser::getRegExFromNativeID() instead for better discoverability.
+       @see NativeIDParser::getRegExFromNativeID()
    */
     static std::string getRegExFromNativeID(const String& native_id);
 
     /**
        @brief Simple prefix check if a spectrum identifier @p id is a nativeID from a vendor file.
+
+       @param[in] id Spectrum identifier to check
+
+       @return True if the string matches a known native ID prefix pattern
+
+       @deprecated Use NativeIDParser::isNativeID() instead for better discoverability.
+       @see NativeIDParser::isNativeID()
     */
     static bool isNativeID(const String& id);
 

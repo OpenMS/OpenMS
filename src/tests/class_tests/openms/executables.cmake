@@ -105,6 +105,7 @@ set(metadata_executables_list
   MetaInfoInterfaceUtils_test
   MetaInfoRegistry_test
   MetaInfo_test
+  NativeIDParser_test
   PeptideEvidence_test
   PeptideHit_test
   PeptideIdentification_test
@@ -654,6 +655,7 @@ set(Boost_dependent_tests
   OpenSwathSpectrumAccessOpenMS_test
   PeakPickerChromatogram_test
   PeakPickerMobilogram_test
+  NativeIDParser_test
   SpectrumLookup_test
   SpectrumMetaDataLookup_test
   StatisticFunctions_test
