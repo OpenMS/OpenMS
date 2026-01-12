@@ -1129,7 +1129,7 @@ namespace OpenMS::Internal
           String value = cv_term.getValue().toString();
           if (!value.empty())
           {
-            if (term.xref_type == ControlledVocabulary::CVTerm::NONE)
+            if (term.xref_type == ControlledVocabulary::CVTerm::XRefType::NONE)
             {
               //Quality CV does not state value type :(
               if (!accession.hasPrefix("PATO:"))
@@ -1142,15 +1142,15 @@ namespace OpenMS::Internal
               switch (term.xref_type)
               {
               //string value can be anything
-              case ControlledVocabulary::CVTerm::XSD_STRING:
+              case ControlledVocabulary::CVTerm::XRefType::XSD_STRING:
                 break;
 
               //int value => try casting
-              case ControlledVocabulary::CVTerm::XSD_INTEGER:
-              case ControlledVocabulary::CVTerm::XSD_NEGATIVE_INTEGER:
-              case ControlledVocabulary::CVTerm::XSD_POSITIVE_INTEGER:
-              case ControlledVocabulary::CVTerm::XSD_NON_NEGATIVE_INTEGER:
-              case ControlledVocabulary::CVTerm::XSD_NON_POSITIVE_INTEGER:
+              case ControlledVocabulary::CVTerm::XRefType::XSD_INTEGER:
+              case ControlledVocabulary::CVTerm::XRefType::XSD_NEGATIVE_INTEGER:
+              case ControlledVocabulary::CVTerm::XRefType::XSD_POSITIVE_INTEGER:
+              case ControlledVocabulary::CVTerm::XRefType::XSD_NON_NEGATIVE_INTEGER:
+              case ControlledVocabulary::CVTerm::XRefType::XSD_NON_POSITIVE_INTEGER:
                 try
                 {
                   value.toInt();
@@ -1163,7 +1163,7 @@ namespace OpenMS::Internal
                 break;
 
               //double value => try casting
-              case ControlledVocabulary::CVTerm::XSD_DECIMAL:
+              case ControlledVocabulary::CVTerm::XRefType::XSD_DECIMAL:
                 try
                 {
                   value.toDouble();
@@ -1176,7 +1176,7 @@ namespace OpenMS::Internal
                 break;
 
               //date string => try conversion
-              case ControlledVocabulary::CVTerm::XSD_DATE:
+              case ControlledVocabulary::CVTerm::XRefType::XSD_DATE:
                 try
                 {
                   DateTime tmp;
@@ -1196,7 +1196,7 @@ namespace OpenMS::Internal
             }
           }
           //no value, although there should be a numerical value
-          else if (term.xref_type != ControlledVocabulary::CVTerm::NONE && term.xref_type != ControlledVocabulary::CVTerm::XSD_STRING)
+          else if (term.xref_type != ControlledVocabulary::CVTerm::XRefType::NONE && term.xref_type != ControlledVocabulary::CVTerm::XRefType::XSD_STRING)
           {
             warning(LOAD, String("The CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "' should have a numerical value. The value is '" + value + "'.");
             return;

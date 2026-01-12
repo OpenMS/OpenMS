@@ -61,7 +61,7 @@ END_SECTION
 
 START_SECTION((SampleState getState() const))
 	Sample s;
-	TEST_EQUAL(s.getState(),Sample::SAMPLENULL)
+	TEST_EQUAL(s.getState(),Sample::SampleState::SAMPLENULL)
 END_SECTION
 
 START_SECTION((double getMass() const ))
@@ -105,8 +105,8 @@ END_SECTION
 
 START_SECTION((void setState(SampleState state)))
 	Sample s;
-	s.setState(Sample::LIQUID);
-	TEST_EQUAL(s.getState(),Sample::LIQUID)
+	s.setState(Sample::SampleState::LIQUID);
+	TEST_EQUAL(s.getState(),Sample::SampleState::LIQUID)
 END_SECTION
 
 START_SECTION((void setMass(double mass)))
@@ -162,7 +162,7 @@ START_SECTION((Sample(const Sample& source)))
 	s.setName("TTEST");
 	s.setNumber("Sample4711");
 	s.setComment("Sample Description");
-	s.setState(Sample::LIQUID);
+	s.setState(Sample::SampleState::LIQUID);
 	s.setMass(4711.2);
 	s.setVolume(4711.3);
 	s.setConcentration(4711.4);
@@ -184,7 +184,7 @@ START_SECTION((Sample(const Sample& source)))
 	TEST_EQUAL(s2.getName(),"TTEST")
 	TEST_EQUAL(s2.getNumber(),"Sample4711")
 	TEST_EQUAL(s2.getComment(),"Sample Description")
-	TEST_EQUAL(s2.getState(),Sample::LIQUID)
+	TEST_EQUAL(s2.getState(),Sample::SampleState::LIQUID)
 	TEST_REAL_SIMILAR(s2.getMass(),4711.2)
 	TEST_REAL_SIMILAR(s2.getVolume(),4711.3)
 	TEST_REAL_SIMILAR(s2.getConcentration(),4711.4)
@@ -206,7 +206,7 @@ START_SECTION((Sample& operator= (const Sample& source)))
 	s.setOrganism("TTEST2");
 	s.setNumber("Sample4711");
 	s.setComment("Sample Description");
-	s.setState(Sample::LIQUID);
+	s.setState(Sample::SampleState::LIQUID);
 	s.setMass(4711.2);
 	s.setVolume(4711.3);
 	s.setConcentration(4711.4);
@@ -230,7 +230,7 @@ START_SECTION((Sample& operator= (const Sample& source)))
 	TEST_EQUAL(s2.getNumber(),"Sample4711")
 	TEST_EQUAL(s2.getComment(),"Sample Description")
 	TEST_EQUAL(s2.getOrganism(),"TTEST2")
-	TEST_EQUAL(s2.getState(),Sample::LIQUID)
+	TEST_EQUAL(s2.getState(),Sample::SampleState::LIQUID)
 	TEST_REAL_SIMILAR(s2.getMass(),4711.2)
 	TEST_REAL_SIMILAR(s2.getVolume(),4711.3)
 	TEST_REAL_SIMILAR(s2.getConcentration(),4711.4)
@@ -268,7 +268,7 @@ START_SECTION((bool operator== (const Sample& rhs) const))
 	edit = empty;
 	TEST_EQUAL(edit==empty,true)
 
-	edit.setState(Sample::LIQUID);
+	edit.setState(Sample::SampleState::LIQUID);
 	TEST_EQUAL(edit==empty,false)
 	edit = empty;
 	TEST_EQUAL(edit==empty,true)
@@ -301,9 +301,9 @@ END_SECTION
 
 START_SECTION((static StringList getAllNamesOfSampleState()))
   StringList names = Sample::getAllNamesOfSampleState();
-  TEST_EQUAL(names.size(), Sample::SIZE_OF_SAMPLESTATE);
-  TEST_EQUAL(names[Sample::LIQUID], "liquid");
-  TEST_EQUAL(names[Sample::SOLID], "solid");
+  TEST_EQUAL(names.size(), static_cast<size_t>(Sample::SampleState::SIZE_OF_SAMPLESTATE));
+  TEST_EQUAL(names[static_cast<size_t>(Sample::SampleState::LIQUID)], "liquid");
+  TEST_EQUAL(names[static_cast<size_t>(Sample::SampleState::SOLID)], "solid");
 END_SECTION
 
 /////////////////////////////////////////////////////////////

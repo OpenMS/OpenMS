@@ -42,7 +42,7 @@ namespace OpenMS
   public:
 
     /// Exit codes
-    enum ExitCodes
+    enum class ExitCodes
     {
       EXECUTION_OK,
       ILLEGAL_PARAMETERS,

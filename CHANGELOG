@@ -16,7 +16,17 @@ PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
 ----                                OpenMS 3.6.0     (under development)              ----
 ------------------------------------------------------------------------------------------
 
- 
+General:
+ - Added SpectrumNativeIDParser class for parsing spectrum native IDs (#8633)
+   Native ID parsing functionality (extractScanNumber, getRegExFromNativeID, isNativeID) is now
+   available in a dedicated, easily discoverable class. The methods in SpectrumLookup remain
+   available for backward compatibility but delegate to SpectrumNativeIDParser.
+
+PyOpenMS:
+ - New Python bindings for SpectrumNativeIDParser with static methods for native ID parsing (#8633)
+   Example: SpectrumNativeIDParser.extractScanNumber("scan=42", "MS:1000768")
+
+
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 3.5.0     (Released December 2025)         ----
 ------------------------------------------------------------------------------------------

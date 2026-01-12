@@ -374,7 +374,7 @@ PeptideIndexing::ExitCodes PeptideIndexing::run_(FASTAContainer<T>& proteins, st
   if (proteins.empty()) // we do not allow an empty database
   {
     OPENMS_LOG_ERROR << "Error: An empty database was provided. Mapping makes no sense. Aborting...\n";
-    return DATABASE_EMPTY;
+    return ExitCodes::DATABASE_EMPTY;
   }
 
   if (pep_ids.empty()) // Aho-Corasick requires non-empty input; but we allow this case, since the TOPP tool should not crash when encountering a bad raw file (with no PSMs)
@@ -389,7 +389,7 @@ PeptideIndexing::ExitCodes PeptideIndexing::run_(FASTAContainer<T>& proteins, st
         it->getHits().clear();
       }
     }
-    return PEPTIDE_IDS_EMPTY;
+    return ExitCodes::PEPTIDE_IDS_EMPTY;
   }
 
   FoundProteinFunctor func(enzyme, xtandem_fix_parameters); // store the matches
@@ -431,7 +431,7 @@ PeptideIndexing::ExitCodes PeptideIndexing::run_(FASTAContainer<T>& proteins, st
     if (ac_trie.getNeedleCount() == 0)
     { // Aho-Corasick will crash if given empty needles as input
       OPENMS_LOG_WARN << "Warning: Peptide identifications have no hits inside! Output will be empty as well.\n";
-      return PEPTIDE_IDS_EMPTY;
+      return ExitCodes::PEPTIDE_IDS_EMPTY;
     }
     s.start();
     OPENMS_LOG_INFO << "Compressing trie to BFS format ...\n";
@@ -900,9 +900,9 @@ PeptideIndexing::ExitCodes PeptideIndexing::run_(FASTAContainer<T>& proteins, st
   if (has_error)
   {
     OPENMS_LOG_ERROR << "Result files will be written, but PeptideIndexer will exit with an error code.\n";
-    return UNEXPECTED_RESULT;
+    return ExitCodes::UNEXPECTED_RESULT;
   }
-  return EXECUTION_OK;
+  return ExitCodes::EXECUTION_OK;
 }
 
 /// @endcond

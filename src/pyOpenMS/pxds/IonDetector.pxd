@@ -16,8 +16,8 @@ cdef extern from "<OpenMS/METADATA/IonDetector.h>" namespace "OpenMS":
         IonDetector() except + nogil  # wrap-doc:Description of a ion detector (part of a MS Instrument)
         IonDetector(IonDetector &) except + nogil  
 
-        Type_IonDetector getType() except + nogil  # wrap-doc:Returns the detector type
-        void setType(Type_IonDetector type_) except + nogil  # wrap-doc:Sets the detector type
+        Type getType() except + nogil  # wrap-doc:Returns the detector type
+        void setType(Type type_) except + nogil  # wrap-doc:Sets the detector type
 
         AcquisitionMode getAcquisitionMode() except + nogil  # wrap-doc:Returns the acquisition mode
         void setAcquisitionMode(AcquisitionMode acquisition_mode) except + nogil  # wrap-doc:Sets the acquisition mode
@@ -38,10 +38,10 @@ cdef extern from "<OpenMS/METADATA/IonDetector.h>" namespace "OpenMS":
         libcpp_vector[String] getAllNamesOfAcquisitionMode() except + nogil  # wrap-doc:Returns all acquisition mode names known to OpenMS
 
         @staticmethod
-        libcpp_utf8_output_string typeToString(Type_IonDetector type_) except + nogil  # wrap-doc:Convert a Type enum to its string representation. Throws Exception::InvalidValue if type is SIZE_OF_TYPE
+        libcpp_utf8_output_string typeToString(Type type_) except + nogil  # wrap-doc:Convert a Type enum to its string representation. Throws Exception::InvalidValue if type is SIZE_OF_TYPE
 
         @staticmethod
-        Type_IonDetector toType(const libcpp_utf8_string& name) except + nogil  # wrap-doc:Convert a string to a Type enum. Throws Exception::InvalidValue if name is not found
+        Type toType(const libcpp_utf8_string& name) except + nogil  # wrap-doc:Convert a string to a Type enum. Throws Exception::InvalidValue if name is not found
 
         @staticmethod
         libcpp_utf8_output_string acquisitionModeToString(AcquisitionMode mode) except + nogil  # wrap-doc:Convert an AcquisitionMode enum to its string representation. Throws Exception::InvalidValue if mode is SIZE_OF_ACQUISITIONMODE
@@ -52,7 +52,7 @@ cdef extern from "<OpenMS/METADATA/IonDetector.h>" namespace "OpenMS":
 cdef extern from "<OpenMS/METADATA/IonDetector.h>" namespace "OpenMS::IonDetector":
 
         # Detector type
-        cdef enum Type_IonDetector "OpenMS::IonDetector::Type":
+        cdef enum class Type "OpenMS::IonDetector::Type":
           # wrap-attach:
           #    IonDetector
           TYPENULL,                                                                 #< Unknown
@@ -80,7 +80,7 @@ cdef extern from "<OpenMS/METADATA/IonDetector.h>" namespace "OpenMS::IonDetecto
           SIZE_OF_TYPE
 
         # Acquisition mode
-        cdef enum AcquisitionMode:
+        cdef enum class AcquisitionMode "OpenMS::IonDetector::AcquisitionMode":
           # wrap-attach:
           #    IonDetector
           ACQMODENULL,                          #< Unknown

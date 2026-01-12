@@ -223,9 +223,9 @@ protected:
     // run algorithm
     OpenPepXLAlgorithm::ExitCodes exit_code = search_algorithm.run(unprocessed_spectra, cfeatures, fasta_db, protein_ids, peptide_ids, preprocessed_pair_spectra, spectrum_pairs, all_top_csms, spectra);
 
-    if (exit_code != OpenPepXLAlgorithm::EXECUTION_OK)
+    if (exit_code != OpenPepXLAlgorithm::ExitCodes::EXECUTION_OK)
     {
-      if (exit_code == OpenPepXLAlgorithm::ILLEGAL_PARAMETERS)
+      if (exit_code == OpenPepXLAlgorithm::ExitCodes::ILLEGAL_PARAMETERS)
       {
         return ILLEGAL_PARAMETERS;
       }

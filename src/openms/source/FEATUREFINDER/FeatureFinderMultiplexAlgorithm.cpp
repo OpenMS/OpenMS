@@ -932,7 +932,7 @@ namespace OpenMS
     {
       spectrum_type = exp[0].getType(true);
       // The following means that UNKNOWN will be handled as profile.
-      centroided_ = (spectrum_type == SpectrumSettings::CENTROID);
+      centroided_ = (spectrum_type == SpectrumSettings::SpectrumType::CENTROID);
     }
     else if (param_.getValue("algorithm:spectrum_type") == "centroid")
     {

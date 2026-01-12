@@ -76,13 +76,13 @@ public:
           spec.setSourceFile(it->getSourceFile());
 
           // TODO implement others
-          if (it->getChromatogramType() == ChromatogramSettings::SELECTED_REACTION_MONITORING_CHROMATOGRAM)
+          if (it->getChromatogramType() == ChromatogramSettings::ChromatogramType::SELECTED_REACTION_MONITORING_CHROMATOGRAM)
           {
-            spec.getInstrumentSettings().setScanMode(InstrumentSettings::SRM);
+            spec.getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::SRM);
           }
-          if (it->getChromatogramType() == ChromatogramSettings::SELECTED_ION_MONITORING_CHROMATOGRAM)
+          if (it->getChromatogramType() == ChromatogramSettings::ChromatogramType::SELECTED_ION_MONITORING_CHROMATOGRAM)
           {
-            spec.getInstrumentSettings().setScanMode(InstrumentSettings::SIM);
+            spec.getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::SIM);
           }
 
           // new spec contains one peak, with product m/z and intensity
@@ -115,7 +115,7 @@ public:
       for (typename ExperimentType::ConstIterator it = exp.begin(); it != exp.end(); ++it)
       {
         // TODO other types
-        if (it->getInstrumentSettings().getScanMode() == InstrumentSettings::SRM || force_conversion)
+        if (it->getInstrumentSettings().getScanMode() == InstrumentSettings::ScanMode::SRM || force_conversion)
         {
           // exactly one precursor and one product ion
           if (it->getPrecursors().size() == 1 && it->size() == 1)
@@ -203,14 +203,14 @@ public:
           }
 
           chrom.setNativeID("chromatogram=" + it2->second.begin()->getNativeID());               // TODO native id?
-          chrom.setChromatogramType(ChromatogramSettings::SELECTED_REACTION_MONITORING_CHROMATOGRAM);
+          chrom.setChromatogramType(ChromatogramSettings::ChromatogramType::SELECTED_REACTION_MONITORING_CHROMATOGRAM);
           exp.addChromatogram(chrom);
         }
       }
 
       if (remove_spectra)
       {
-        exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), HasScanMode<SpectrumType>(InstrumentSettings::SRM)), exp.end());
+        exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), HasScanMode<SpectrumType>(static_cast<Int>(InstrumentSettings::ScanMode::SRM))), exp.end());
       }
     }
 

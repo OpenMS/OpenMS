@@ -79,7 +79,7 @@ namespace OpenMS
   {
     // copy meta data of the input spectrum
     copySpectrumMeta(input, output);
-    output.setType(SpectrumSettings::CENTROID);
+    output.setType(SpectrumSettings::SpectrumType::CENTROID);
 
     int im_data_index = -1;
     if (input.containsIMData())
@@ -479,7 +479,7 @@ namespace OpenMS
         if (ms_levels_.empty()) 
         {
           SpectrumSettings::SpectrumType spectrum_type = input[scan_idx].getType(true); // uses meta-info and inspects data if needed
-          if (spectrum_type == SpectrumSettings::CENTROID)
+          if (spectrum_type == SpectrumSettings::SpectrumType::CENTROID)
           {
             output[scan_idx] = input[scan_idx];
           }
@@ -500,7 +500,7 @@ namespace OpenMS
         {
           std::vector<PeakBoundary> boundaries_s; // peak boundaries of a single spectrum
           SpectrumSettings::SpectrumType spectrum_type = input[scan_idx].getType(true); // uses meta-info and inspects data if needed
-          if (spectrum_type == SpectrumSettings::CENTROID && check_spectrum_type)
+          if (spectrum_type == SpectrumSettings::SpectrumType::CENTROID && check_spectrum_type)
           {
             throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __FUNCTION__, "Error: Centroided data provided but profile spectra expected.");
           }
@@ -561,7 +561,7 @@ namespace OpenMS
 
           // determine type of spectral data (profile or centroided)
           SpectrumSettings::SpectrumType spectrumType = s.getType();
-          if (spectrumType == SpectrumSettings::CENTROID)
+          if (spectrumType == SpectrumSettings::SpectrumType::CENTROID)
           {
             output[scan_idx] = input[scan_idx];
           }
@@ -582,7 +582,7 @@ namespace OpenMS
           // determine type of spectral data (profile or centroided)
           SpectrumSettings::SpectrumType spectrum_type = s.getType();
 
-          if (spectrum_type == SpectrumSettings::CENTROID && check_spectrum_type)
+          if (spectrum_type == SpectrumSettings::SpectrumType::CENTROID && check_spectrum_type)
           {
             throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __FUNCTION__, "Error: Centroided data provided but profile spectra expected.");
           }

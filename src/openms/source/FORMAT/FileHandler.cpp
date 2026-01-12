@@ -798,7 +798,7 @@ namespace OpenMS
 
       if (compute_hash)
       {
-        src_file.setChecksum(computeFileHash(filename), SourceFile::SHA1);
+        src_file.setChecksum(computeFileHash(filename), SourceFile::ChecksumType::SHA1);
       }
 
       exp.getSourceFiles().clear();
