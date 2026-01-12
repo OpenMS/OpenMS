@@ -9,7 +9,19 @@ import pytest
 
 
 def create_test_data():
-    """Create test PeptideIdentifications with multiple hits."""
+    """
+    Create a PeptideIdentificationList populated with sample identifications and hits for unit tests.
+    
+    The returned list contains two PeptideIdentification entries:
+    - First identification: RT 100.5, MZ 500.25, score type "Posterior Error Probability", spectrum_reference "controllerType=0 controllerNumber=1 scan=1234", and two hits:
+      - "PEPTIDE" (charge 2, score 0.01, target_decoy "target", additional meta "some_score" = 42.5) associated with protein accession "PROT0".
+      - "PEPTIDER" (charge 2, score 0.05, target_decoy "target") associated with protein accession "PROT1".
+    - Second identification: RT 200.0, MZ 600.0, score type "PEP", spectrum_reference "scan=5678", and one hit:
+      - "TESTPEPTIDE" (charge 3, score 0.001, target_decoy "decoy").
+    
+    Returns:
+        pep_ids (PeptideIdentificationList): A PyOpenMS PeptideIdentificationList containing the two identifications described above.
+    """
     import pyopenms as oms
 
     pep_ids = oms.PeptideIdentificationList()
@@ -287,7 +299,7 @@ def test_to_qpx():
 
 def test_to_qpx_with_params():
     """Test to_qpx Arrow export with parameters."""
-    pytest.importorskip("pyarrow")
+    pa = pytest.importorskip("pyarrow")
 
     pep_ids = create_test_data()
     table = pep_ids.to_qpx(export_all_hits=False)
