@@ -203,13 +203,6 @@ repair-wheel-command = [
     "auditwheel repair -w {dest_dir} {wheel}",
 ]
 
-# TODO remove? Shouldnt this be confifured from outside in the GitHub Actions?
-[tool.cibuildwheel.linux.environment]
-# OpenMS is pre-built in the container at /contrib-build
-OpenMS_ROOT = "/openms-build"
-CMAKE_PREFIX_PATH = "/contrib-build"
-LD_LIBRARY_PATH = "/openms-build/lib:$LD_LIBRARY_PATH"
-
 [tool.cibuildwheel.macos]
 # Build for Apple Silicon (ARM64) only - x86_64 would need separate OpenMS build
 archs = ["arm64"]

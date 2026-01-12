@@ -221,8 +221,7 @@ if __name__ == '__main__':
           fp.write("from .%s import *  # pylint: disable=wildcard-import; lgtm(py/polluting-import)\n" % modname)
 
 
-  # create version information
-  version = OPEN_MS_VERSION
-
-  print("version=%r\n" % version, file=open("pyopenms/_version.py", "w"))
-  print("info=%r\n" % QT_QMAKE_VERSION_INFO, file=open("pyopenms/_qt_version_info.py", "w"))
+# create version and dependency information in a single file
+with open("pyopenms/_dependency_version_info.py", "w") as f:
+        f.write(f"openms_version = {repr(OPEN_MS_VERSION)}\n")
+        f.write(f"qt_version = {repr(QT_QMAKE_VERSION_INFO)}\n")

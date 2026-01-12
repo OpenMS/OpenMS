@@ -72,8 +72,12 @@ jobs:
           BASE_VERSION="${MAJOR}.${MINOR}.${PATCH}"
           echo "Base OpenMS version: $BASE_VERSION"
 
-          # For nightly builds (develop, nightly, py_nightly_test branches), append .devYYYYMMDD
-          if [[ "${{ github.ref_name }}" == "develop" || "${{ github.ref_name }}" == "nightly" || "${{ github.ref_name }}" == "py_nightly_test" ]]; then
+          # For nightly builds (develop, nightly, py_nightly_test branches or PRs targeting those), append .devYYYYMMDD
+          BRANCH_NAME="${{ github.ref_name }}"
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            BRANCH_NAME="${{ github.base_ref }}"
+          fi
+          if [[ "$BRANCH_NAME" == "develop" || "$BRANCH_NAME" == "nightly" || "$BRANCH_NAME" == "py_nightly_test" ]]; then
             DATE_SUFFIX=$(date +%Y%m%d)
             PYOPENMS_VERSION="${BASE_VERSION}.dev${DATE_SUFFIX}"
             echo "is-nightly=true" >> $GITHUB_OUTPUT
@@ -472,8 +476,8 @@ jobs:
         run: ls -la dist/
 
       - name: Publish to nightly PyPI
-        # Publish to nightly on develop/nightly branches, or Release tags without pypi flag
-        if: github.ref_name == 'develop' || github.ref_name == 'nightly' || github.ref_name == 'py_nightly_test' || (startsWith(github.ref, 'refs/tags/Release') && !inputs.upload-to-pypi)
+        # Publish to nightly only for branch pushes (develop, nightly, py_nightly_test) or workflow_dispatch
+        if: (github.event_name == 'push' && (startsWith(github.ref, 'refs/heads/develop') || startsWith(github.ref, 'refs/heads/nightly') || startsWith(github.ref, 'refs/heads/py_nightly_test'))) || github.event_name == 'workflow_dispatch'
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           repository-url: https://pypi.cs.uni-tuebingen.de/

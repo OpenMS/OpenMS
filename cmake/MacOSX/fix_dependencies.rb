@@ -360,7 +360,7 @@ def handleBinary(binaryPath)
   debug "Fixing binary #{binaryPath}"
 
   rpath = %x[otool -l #{binaryPath} | grep -A2 LC_RPATH | grep path | sed -n "s/^.*path\\s*\\(.*\\)(offset.*\$/\\1/p"]
-  rpaths = rpath.split(/\n/)
+  rpaths = rpath.split(/\n/).map(&:strip)
 
   # no copy, no id change; juts run otool
   otool_out=`otool -L #{binaryPath}`.strip.split(/\n/)

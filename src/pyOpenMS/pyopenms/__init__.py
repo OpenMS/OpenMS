@@ -81,42 +81,43 @@ try:
     # export capabilities
     from ._dataframes import *  # pylint: disable=wildcard-import; lgtm(py/polluting-import)
 except Exception as e:
-    print("")
-    print("="*70)
-    print("Error when loading pyOpenMS libraries!")
-    print("Libraries could not be found / could not be loaded.")
-    print("")
-    print("To debug this error, please run ldd (on linux), otool -L (on macOS) or dependency walker (on windows) on ")
-    print("")
-    print(os.path.join(here, "pyopenms*.so"))
-    print("")
-    print("="*70)
+    print(f"""
+======================================================================
+Error when loading pyOpenMS libraries!
+Libraries could not be found / could not be loaded.
+
+To debug this error, please run ldd (on linux), otool -L (on macOS) or dependency walker (on windows) on
+
+{os.path.join(here, "pyopenms*.so")}
+
+======================================================================
+""")
 
     try:
-        import PyQt5.QtCore
+        import PyQt6.QtCore
     except:
         pass
     else:
-        from ._qt_version_info import info
+        from ._dependency_version_info import qt_version
 
-        info = "\n    ".join(info.split("\n"))
+        info = "\n    ".join(qt_version.split("\n"))
 
-        print("""PyQt5 was found to be installed. When building pyopenms qmake said:
+        warnings.warn(
+            f"""PyQt6 was found to be installed.
+    pyopenms was built with Qt version: {info}
+    PyQt6 version detected: {PyQt6.QtCore.PYQT_VERSION_STR}
 
-    %s
-PYQT has version %s
+    This may cause a conflict if both are loaded. To test for issues, try importing pyopenms
+    first, then import PyQt6.QtCore.
 
-This might cause a conflict if both are loaded.  You can test this by importing pyopenms
-first and then import PyQt5.QtCore.
-        """ % (info, PyQt5.QtCore.PYQT_VERSION_STR) )
+    Note: If you are using the Spyder IDE, you can avoid PyQt conflicts by setting
+    the graphics backend to 'Inline' (Tools → Preferences → IPython Console → Graphics).
+    In general, ensure all dependencies are installed within the same environment (e.g., via conda)
+    to guarantee compatible Qt versions.
 
-        print("Note: when using the Spyder IDE, the usage of PyQt might be circumvented")
-        print("by not using the 'Automatic' backend. Please change this in Tools ->")
-        print("Preferences -> IPython -> Graphics to 'Inline'.")
-        print("In general, try to install everything with conda in the same environment to make sure Qt is used in the same version.")
-        print("")
-        print("="*70)
-        print("\n")
+    {"="*70}
+    """
+        )
     raise e
 
 del os, here, sys
