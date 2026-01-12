@@ -19,6 +19,7 @@
 #include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <OpenMS/SYSTEM/File.h>
 
+#include <algorithm>
 #include <numeric>
 
 namespace OpenMS
@@ -334,17 +335,71 @@ namespace OpenMS
       throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Ion mode cannot be set to '") + ion_mode + "'. Must be 'positive' or 'negative'!");
     }
 
+    // If a specific adduct is provided, find it and process only that one
+    // This optimization avoids iterating through all adducts when use_feature_adducts is set
+    if (observed_adduct != EmpiricalFormula())
+    {
+      // Find the matching adduct
+      std::vector<AdductInfo>::const_iterator it = std::find_if(it_s, it_e, 
+        [&observed_adduct](const AdductInfo& adduct) {
+          return adduct.getEmpiricalFormula() == observed_adduct;
+        });
+      
+      // If the adduct is not found, return early (no results)
+      if (it == it_e)
+      {
+        // if result is empty, add a 'not-found' indicator if empty hits should be stored
+        if (keep_unidentified_masses_)
+        {
+          AccurateMassSearchResult ams_result;
+          ams_result.setObservedMZ(observed_mz);
+          ams_result.setCalculatedMZ(std::numeric_limits<double>::quiet_NaN());
+          ams_result.setQueryMass(std::numeric_limits<double>::quiet_NaN());
+          ams_result.setFoundMass(std::numeric_limits<double>::quiet_NaN());
+          ams_result.setCharge(observed_charge);
+          ams_result.setMZErrorPPM(std::numeric_limits<double>::quiet_NaN());
+          ams_result.setMatchingIndex(-1); // this is checked to identify 'not-found'
+          ams_result.setFoundAdduct("null");
+          ams_result.setEmpiricalFormula("");
+          ams_result.setMatchingHMDBids(std::vector<String>(1, "null"));
+          results.push_back(ams_result);
+        }
+        return;
+      }
+      
+      // Check charge compatibility
+      if (observed_charge != 0 && (std::abs(observed_charge) != std::abs(it->getCharge())))
+      {
+        // Charge mismatch - return early
+        if (keep_unidentified_masses_)
+        {
+          AccurateMassSearchResult ams_result;
+          ams_result.setObservedMZ(observed_mz);
+          ams_result.setCalculatedMZ(std::numeric_limits<double>::quiet_NaN());
+          ams_result.setQueryMass(std::numeric_limits<double>::quiet_NaN());
+          ams_result.setFoundMass(std::numeric_limits<double>::quiet_NaN());
+          ams_result.setCharge(observed_charge);
+          ams_result.setMZErrorPPM(std::numeric_limits<double>::quiet_NaN());
+          ams_result.setMatchingIndex(-1); // this is checked to identify 'not-found'
+          ams_result.setFoundAdduct("null");
+          ams_result.setEmpiricalFormula("");
+          ams_result.setMatchingHMDBids(std::vector<String>(1, "null"));
+          results.push_back(ams_result);
+        }
+        return;
+      }
+      
+      // Process only this specific adduct
+      it_s = it;
+      it_e = it + 1;
+    }
+
     std::pair<Size, Size> hit_idx;
     for (std::vector<AdductInfo>::const_iterator it = it_s; it != it_e; ++it)
     {
       if (observed_charge != 0 && (std::abs(observed_charge) != std::abs(it->getCharge())))
       { // charge of evidence and adduct must match in absolute terms (absolute, since any FeatureFinder gives only positive charges, even for negative-mode spectra)
         // observed_charge==0 will pass, since we basically do not know its real charge (apparently, no isotopes were found)
-        continue;
-      }
-
-      if ((observed_adduct != EmpiricalFormula()) && (observed_adduct != it->getEmpiricalFormula()))
-      { // If feature has no adduct annotation, method call defaults to empty EF(). If feature is annotated with an adduct, it must match.
         continue;
       }
 
