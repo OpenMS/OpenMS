@@ -78,7 +78,7 @@ namespace OpenMS
         {
           error_message += String(" The error occurred in the spectrum with retention time ") + spectrum.getRT() + ".";
         }
-        OPENMS_LOG_DEBUG << error_message << std::endl;
+        OPENMS_LOG_WARN << error_message << std::endl;
       }
     }
     else
@@ -127,7 +127,7 @@ namespace OpenMS
         {
           error_message += String(" The error occurred in the chromatogram with m/z ratio ") + chromatogram.getMZ() + ".";
         }
-        OPENMS_LOG_DEBUG << error_message << std::endl;
+        OPENMS_LOG_ERROR << error_message << std::endl;
       }
     }
     else
@@ -176,7 +176,7 @@ namespace OpenMS
         {
           error_message += String(" The error occurred in the mobilogram with RT ") + mobilogram.getRT() + ".";
         }
-        OPENMS_LOG_DEBUG << error_message << std::endl;
+        OPENMS_LOG_ERROR << error_message << std::endl;
       }
     }
     else
