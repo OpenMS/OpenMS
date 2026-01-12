@@ -7,7 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/METADATA/SpectrumLookup.h>
-#include <OpenMS/METADATA/NativeIDParser.h>
+#include <OpenMS/METADATA/SpectrumNativeIDParser.h>
 #include <boost/regex.hpp>
 
 using namespace std;
@@ -204,25 +204,25 @@ namespace OpenMS
 
   bool SpectrumLookup::isNativeID(const String& id)
   {
-    return NativeIDParser::isNativeID(id);
+    return SpectrumNativeIDParser::isNativeID(id);
   }
 
   std::string SpectrumLookup::getRegExFromNativeID(const String& id)
   {
-    return NativeIDParser::getRegExFromNativeID(id);
+    return SpectrumNativeIDParser::getRegExFromNativeID(id);
   }
 
   Int SpectrumLookup::extractScanNumber(const String& native_id,
                                         const boost::regex& scan_regexp,
                                         bool no_error)
   {
-    return NativeIDParser::extractScanNumber(native_id, scan_regexp, no_error);
+    return SpectrumNativeIDParser::extractScanNumber(native_id, scan_regexp, no_error);
   }
 
   Int SpectrumLookup::extractScanNumber(const String& native_id,
                                         const String& native_id_type_accession)
   {
-    return NativeIDParser::extractScanNumber(native_id, native_id_type_accession);
+    return SpectrumNativeIDParser::extractScanNumber(native_id, native_id_type_accession);
   } 
 
   void SpectrumLookup::addEntry_(Size index, double rt, Int scan_number,

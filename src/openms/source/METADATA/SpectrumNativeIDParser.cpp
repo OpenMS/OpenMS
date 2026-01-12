@@ -6,7 +6,7 @@
 // $Authors: Hendrik Weisser, Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/METADATA/NativeIDParser.h>
+#include <OpenMS/METADATA/SpectrumNativeIDParser.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Exception.h>
 
@@ -17,14 +17,14 @@ using namespace std;
 
 namespace OpenMS
 {
-  bool NativeIDParser::isNativeID(const String& id)
+  bool SpectrumNativeIDParser::isNativeID(const String& id)
   {
     return id.hasPrefix("scan=") || id.hasPrefix("scanID=") || id.hasPrefix("controllerType=")
         || id.hasPrefix("function=") || id.hasPrefix("sample=") || id.hasPrefix("index=")
         || id.hasPrefix("spectrum=");
   }
 
-  std::string NativeIDParser::getRegExFromNativeID(const String& id)
+  std::string SpectrumNativeIDParser::getRegExFromNativeID(const String& id)
   {
     // "scan=NUMBER" e.g. Bruker/Agilent
     // "controllerType=0 controllerNumber=1 scan=NUMBER" for Thermo
@@ -49,7 +49,7 @@ namespace OpenMS
     return std::string(R"((?<GROUP>\d+))");
   }
 
-  Int NativeIDParser::extractScanNumber(const String& native_id,
+  Int SpectrumNativeIDParser::extractScanNumber(const String& native_id,
                                         const boost::regex& scan_regexp,
                                         bool no_error)
   {
@@ -77,7 +77,7 @@ namespace OpenMS
     return -1;
   }
 
-  Int NativeIDParser::extractScanNumber(const String& native_id,
+  Int SpectrumNativeIDParser::extractScanNumber(const String& native_id,
                                         const String& native_id_type_accession)
   {
     // check accession for data type to extract (e.g. MS:1000768 - Thermo nativeID format - scan=xsd:positiveInteger)

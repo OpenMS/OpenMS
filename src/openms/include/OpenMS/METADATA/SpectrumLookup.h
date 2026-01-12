@@ -10,7 +10,7 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
-#include <OpenMS/METADATA/NativeIDParser.h>
+#include <OpenMS/METADATA/SpectrumNativeIDParser.h>
 
 #include <boost/regex.hpp>
 
@@ -183,8 +183,8 @@ namespace OpenMS
 
        @return Scan number of the spectrum (or -1 on failure to extract)
 
-       @deprecated Use NativeIDParser::extractScanNumber() instead for better discoverability.
-       @see NativeIDParser::extractScanNumber()
+       @deprecated Use SpectrumNativeIDParser::extractScanNumber() instead for better discoverability.
+       @see SpectrumNativeIDParser::extractScanNumber()
     */
     static Int extractScanNumber(const String& native_id,
                                  const boost::regex& scan_regexp,
@@ -198,8 +198,8 @@ namespace OpenMS
 
        @return Scan number of the spectrum (or -1 on failure to extract)
 
-       @deprecated Use NativeIDParser::extractScanNumber() instead for better discoverability.
-       @see NativeIDParser::extractScanNumber()
+       @deprecated Use SpectrumNativeIDParser::extractScanNumber() instead for better discoverability.
+       @see SpectrumNativeIDParser::extractScanNumber()
     */
     static Int extractScanNumber(const String& native_id,
                                  const String& native_id_type_accession);
@@ -211,8 +211,8 @@ namespace OpenMS
 
        @return Regular expression string with named group
 
-       @deprecated Use NativeIDParser::getRegExFromNativeID() instead for better discoverability.
-       @see NativeIDParser::getRegExFromNativeID()
+       @deprecated Use SpectrumNativeIDParser::getRegExFromNativeID() instead for better discoverability.
+       @see SpectrumNativeIDParser::getRegExFromNativeID()
    */
     static std::string getRegExFromNativeID(const String& native_id);
 
@@ -223,8 +223,8 @@ namespace OpenMS
 
        @return True if the string matches a known native ID prefix pattern
 
-       @deprecated Use NativeIDParser::isNativeID() instead for better discoverability.
-       @see NativeIDParser::isNativeID()
+       @deprecated Use SpectrumNativeIDParser::isNativeID() instead for better discoverability.
+       @see SpectrumNativeIDParser::isNativeID()
     */
     static bool isNativeID(const String& id);
 

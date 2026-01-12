@@ -46,18 +46,18 @@ namespace OpenMS
 
     @code
     // Extract scan number using CV accession
-    Int scan = NativeIDParser::extractScanNumber("scan=42", "MS:1000768");  // returns 42
+    Int scan = SpectrumNativeIDParser::extractScanNumber("scan=42", "MS:1000768");  // returns 42
 
     // Get regex pattern from native ID format
-    String regex = NativeIDParser::getRegExFromNativeID("scan=123");  // returns "scan=(?<GROUP>\d+)"
+    String regex = SpectrumNativeIDParser::getRegExFromNativeID("scan=123");  // returns "scan=(?<GROUP>\d+)"
 
     // Check if string is a native ID
-    bool is_native = NativeIDParser::isNativeID("scan=123");  // returns true
+    bool is_native = SpectrumNativeIDParser::isNativeID("scan=123");  // returns true
     @endcode
 
     @see SpectrumLookup
   */
-  class OPENMS_DLLAPI NativeIDParser
+  class OPENMS_DLLAPI SpectrumNativeIDParser
   {
   public:
     /**

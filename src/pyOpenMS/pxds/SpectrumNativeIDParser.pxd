@@ -1,21 +1,21 @@
 from Types cimport *
 from String cimport *
 
-cdef extern from "<OpenMS/METADATA/NativeIDParser.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/METADATA/SpectrumNativeIDParser.h>" namespace "OpenMS":
 
-    cdef cppclass NativeIDParser:
+    cdef cppclass SpectrumNativeIDParser:
 
-        # NativeIDParser is a utility class with only static methods
+        # SpectrumNativeIDParser is a utility class with only static methods
         # No constructor needed for Python binding since we only need static methods
 
         pass
 
 # Static methods exposed at module level
-cdef extern from "<OpenMS/METADATA/NativeIDParser.h>" namespace "OpenMS::NativeIDParser":
+cdef extern from "<OpenMS/METADATA/SpectrumNativeIDParser.h>" namespace "OpenMS::SpectrumNativeIDParser":
 
     Int extractScanNumber(const String& native_id, const String& native_id_type_accession) except + nogil
     # wrap-attach:
-    #   NativeIDParser
+    #   SpectrumNativeIDParser
     # wrap-doc:
     #   Extract the scan number from the native ID using a CV accession
     #
@@ -32,18 +32,18 @@ cdef extern from "<OpenMS/METADATA/NativeIDParser.h>" namespace "OpenMS::NativeI
     #     - MS:1000777: spectrum=NUMBER format
     #     - MS:1001530: plain NUMBER format
 
-    String getRegExFromNativeID "OpenMS::NativeIDParser::getRegExFromNativeID" (const String& native_id) except + nogil
+    String getRegExFromNativeID "OpenMS::SpectrumNativeIDParser::getRegExFromNativeID" (const String& native_id) except + nogil
     # wrap-attach:
-    #   NativeIDParser
+    #   SpectrumNativeIDParser
     # wrap-doc:
     #   Determine the regular expression to extract scan/index numbers from native IDs
     #
     #   :param native_id: A native ID string to analyze
     #   :returns: Regular expression string with named group that matches the scan or index number
 
-    bool isNativeID "OpenMS::NativeIDParser::isNativeID" (const String& id) except + nogil
+    bool isNativeID "OpenMS::SpectrumNativeIDParser::isNativeID" (const String& id) except + nogil
     # wrap-attach:
-    #   NativeIDParser
+    #   SpectrumNativeIDParser
     # wrap-doc:
     #   Check if a spectrum identifier is a native ID from a vendor file
     #
