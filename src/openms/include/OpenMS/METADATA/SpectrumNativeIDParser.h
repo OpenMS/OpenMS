@@ -105,7 +105,7 @@ namespace OpenMS
        regular expression pattern:
        - `scan=`, `controllerType=`, `function=` → `scan=(?<GROUP>\d+)`
        - `index=` → `index=(?<GROUP>\d+)`
-       - `scanId=` → `scanId=(?<GROUP>\d+)`
+       - `scanId=`, `scanID=` → `scanId=(?<GROUP>\d+)` or `scanID=(?<GROUP>\d+)`
        - `spectrum=` → `spectrum=(?<GROUP>\d+)`
        - `file=` → `file=(?<GROUP>\d+)`
        - Plain number → `(?<GROUP>\d+)`
@@ -119,7 +119,7 @@ namespace OpenMS
 
        @return True if the string matches a known native ID prefix pattern
 
-       Recognized prefixes: scan=, scanID=, controllerType=, function=, sample=, index=, spectrum=
+       Recognized prefixes: scan=, scanId=, scanID=, controllerType=, function=, sample=, index=, spectrum=, file=
     */
     static bool isNativeID(const String& id);
 

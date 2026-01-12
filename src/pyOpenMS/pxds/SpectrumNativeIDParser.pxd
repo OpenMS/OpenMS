@@ -50,4 +50,4 @@ cdef extern from "<OpenMS/METADATA/SpectrumNativeIDParser.h>" namespace "OpenMS:
     #   :param id: Spectrum identifier string to check
     #   :returns: True if the string matches a known native ID prefix pattern
     #
-    #   Recognized prefixes: scan=, scanID=, controllerType=, function=, sample=, index=, spectrum=
+    #   Recognized prefixes: scan=, scanId=, scanID=, controllerType=, function=, sample=, index=, spectrum=, file=

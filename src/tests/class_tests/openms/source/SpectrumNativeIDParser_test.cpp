@@ -25,17 +25,17 @@ START_SECTION((static bool isNativeID(const String& id)))
 {
   // Test recognized native ID prefixes
   TEST_EQUAL(SpectrumNativeIDParser::isNativeID("scan=123"), true);
-  TEST_EQUAL(SpectrumNativeIDParser::isNativeID("scanID=456"), true);
+  TEST_EQUAL(SpectrumNativeIDParser::isNativeID("scanId=456"), true);
+  TEST_EQUAL(SpectrumNativeIDParser::isNativeID("scanID=456"), true);  // both cases supported
   TEST_EQUAL(SpectrumNativeIDParser::isNativeID("controllerType=0 controllerNumber=1 scan=100"), true);
   TEST_EQUAL(SpectrumNativeIDParser::isNativeID("function=2 process=1 scan=100"), true);
   TEST_EQUAL(SpectrumNativeIDParser::isNativeID("sample=1 period=1 cycle=42 experiment=1"), true);
   TEST_EQUAL(SpectrumNativeIDParser::isNativeID("index=789"), true);
   TEST_EQUAL(SpectrumNativeIDParser::isNativeID("spectrum=101112"), true);
+  TEST_EQUAL(SpectrumNativeIDParser::isNativeID("file=42"), true);
 
   // Test non-native IDs
   TEST_EQUAL(SpectrumNativeIDParser::isNativeID("123"), false);
-  TEST_EQUAL(SpectrumNativeIDParser::isNativeID("file=42"), false);  // file= is not a recognized prefix for isNativeID
-  TEST_EQUAL(SpectrumNativeIDParser::isNativeID("scanId=42"), false);  // case-sensitive: scanId != scanID
   TEST_EQUAL(SpectrumNativeIDParser::isNativeID(""), false);
   TEST_EQUAL(SpectrumNativeIDParser::isNativeID("some_random_string"), false);
   TEST_EQUAL(SpectrumNativeIDParser::isNativeID("SCAN=123"), false);  // case-sensitive
@@ -57,8 +57,9 @@ START_SECTION((static std::string getRegExFromNativeID(const String& native_id))
   // Test index format: "index=NUMBER"
   TEST_EQUAL(SpectrumNativeIDParser::getRegExFromNativeID("index=456"), R"(index=(?<GROUP>\d+))");
 
-  // Test Agilent MassHunter format: "scanId=NUMBER"
+  // Test Agilent MassHunter format: "scanId=NUMBER" or "scanID=NUMBER"
   TEST_EQUAL(SpectrumNativeIDParser::getRegExFromNativeID("scanId=789"), R"(scanId=(?<GROUP>\d+))");
+  TEST_EQUAL(SpectrumNativeIDParser::getRegExFromNativeID("scanID=789"), R"(scanID=(?<GROUP>\d+))");
 
   // Test spectrum format: "spectrum=NUMBER"
   TEST_EQUAL(SpectrumNativeIDParser::getRegExFromNativeID("spectrum=101112"), R"(spectrum=(?<GROUP>\d+))");

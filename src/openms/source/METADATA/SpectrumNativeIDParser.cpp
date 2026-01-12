@@ -19,9 +19,9 @@ namespace OpenMS
 {
   bool SpectrumNativeIDParser::isNativeID(const String& id)
   {
-    return id.hasPrefix("scan=") || id.hasPrefix("scanID=") || id.hasPrefix("controllerType=")
-        || id.hasPrefix("function=") || id.hasPrefix("sample=") || id.hasPrefix("index=")
-        || id.hasPrefix("spectrum=");
+    return id.hasPrefix("scan=") || id.hasPrefix("scanId=") || id.hasPrefix("scanID=")
+        || id.hasPrefix("controllerType=") || id.hasPrefix("function=") || id.hasPrefix("sample=")
+        || id.hasPrefix("index=") || id.hasPrefix("spectrum=") || id.hasPrefix("file=");
   }
 
   std::string SpectrumNativeIDParser::getRegExFromNativeID(const String& id)
@@ -36,8 +36,9 @@ namespace OpenMS
     // "index=NUMBER"
     if (id.hasPrefix("index=")) return std::string(R"(index=(?<GROUP>\d+))");
 
-    // "scanId=NUMBER" - MS_Agilent_MassHunter_nativeID_format
+    // "scanId=NUMBER" or "scanID=NUMBER" - MS_Agilent_MassHunter_nativeID_format
     if (id.hasPrefix("scanId=")) return std::string(R"(scanId=(?<GROUP>\d+))");
+    if (id.hasPrefix("scanID=")) return std::string(R"(scanID=(?<GROUP>\d+))");
 
     // "spectrum=NUMBER"
     if (id.hasPrefix("spectrum=")) return std::string(R"(spectrum=(?<GROUP>\d+))");

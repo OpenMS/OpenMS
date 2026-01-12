@@ -4,20 +4,21 @@ def testSpectrumNativeIDParser():
     """Test the SpectrumNativeIDParser class for parsing spectrum native IDs."""
 
     # Test isNativeID - recognized native ID prefixes
-    assert pyopenms.SpectrumNativeIDParser.isNativeID("scan=123") == True
-    assert pyopenms.SpectrumNativeIDParser.isNativeID("scanID=456") == True
-    assert pyopenms.SpectrumNativeIDParser.isNativeID("controllerType=0 controllerNumber=1 scan=100") == True
-    assert pyopenms.SpectrumNativeIDParser.isNativeID("function=2 process=1 scan=100") == True
-    assert pyopenms.SpectrumNativeIDParser.isNativeID("sample=1 period=1 cycle=42 experiment=1") == True
-    assert pyopenms.SpectrumNativeIDParser.isNativeID("index=789") == True
-    assert pyopenms.SpectrumNativeIDParser.isNativeID("spectrum=101112") == True
+    assert pyopenms.SpectrumNativeIDParser.isNativeID("scan=123")
+    assert pyopenms.SpectrumNativeIDParser.isNativeID("scanId=456")
+    assert pyopenms.SpectrumNativeIDParser.isNativeID("scanID=456")  # both cases supported
+    assert pyopenms.SpectrumNativeIDParser.isNativeID("controllerType=0 controllerNumber=1 scan=100")
+    assert pyopenms.SpectrumNativeIDParser.isNativeID("function=2 process=1 scan=100")
+    assert pyopenms.SpectrumNativeIDParser.isNativeID("sample=1 period=1 cycle=42 experiment=1")
+    assert pyopenms.SpectrumNativeIDParser.isNativeID("index=789")
+    assert pyopenms.SpectrumNativeIDParser.isNativeID("spectrum=101112")
+    assert pyopenms.SpectrumNativeIDParser.isNativeID("file=42")
 
     # Test isNativeID - non-native IDs
-    assert pyopenms.SpectrumNativeIDParser.isNativeID("123") == False
-    assert pyopenms.SpectrumNativeIDParser.isNativeID("file=42") == False  # file= is not recognized
-    assert pyopenms.SpectrumNativeIDParser.isNativeID("") == False
-    assert pyopenms.SpectrumNativeIDParser.isNativeID("some_random_string") == False
-    assert pyopenms.SpectrumNativeIDParser.isNativeID("SCAN=123") == False  # case-sensitive
+    assert not pyopenms.SpectrumNativeIDParser.isNativeID("123")
+    assert not pyopenms.SpectrumNativeIDParser.isNativeID("")
+    assert not pyopenms.SpectrumNativeIDParser.isNativeID("some_random_string")
+    assert not pyopenms.SpectrumNativeIDParser.isNativeID("SCAN=123")  # case-sensitive
 
     # Test getRegExFromNativeID
     assert pyopenms.SpectrumNativeIDParser.getRegExFromNativeID("scan=123") == "scan=(?<GROUP>\\d+)"
@@ -25,6 +26,7 @@ def testSpectrumNativeIDParser():
     assert pyopenms.SpectrumNativeIDParser.getRegExFromNativeID("function=2 scan=100") == "scan=(?<GROUP>\\d+)"
     assert pyopenms.SpectrumNativeIDParser.getRegExFromNativeID("index=456") == "index=(?<GROUP>\\d+)"
     assert pyopenms.SpectrumNativeIDParser.getRegExFromNativeID("scanId=789") == "scanId=(?<GROUP>\\d+)"
+    assert pyopenms.SpectrumNativeIDParser.getRegExFromNativeID("scanID=789") == "scanID=(?<GROUP>\\d+)"
     assert pyopenms.SpectrumNativeIDParser.getRegExFromNativeID("spectrum=101") == "spectrum=(?<GROUP>\\d+)"
     assert pyopenms.SpectrumNativeIDParser.getRegExFromNativeID("file=42") == "file=(?<GROUP>\\d+)"
     assert pyopenms.SpectrumNativeIDParser.getRegExFromNativeID("123") == "(?<GROUP>\\d+)"
