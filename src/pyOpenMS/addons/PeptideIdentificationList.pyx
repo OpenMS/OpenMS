@@ -364,7 +364,33 @@ import numpy as np
                 "pandas is required for get_psm_df(). "
                 "Please install it with: pip install pandas"
             )
-        import re
+        from . import SpectrumLookup as _SpectrumLookup
+
+        # Native ID type accessions to try for scan number extraction
+        # See SpectrumLookup.cpp for the full list of supported formats
+        _native_id_accessions = [
+            "MS:1000768",  # Thermo nativeID format (scan=)
+            "MS:1000769",  # Waters nativeID format (scan=)
+            "MS:1000771",  # Bruker/Agilent nativeID format (scan=)
+            "MS:1001508",  # Agilent MassHunter nativeID format (scanId=)
+            "MS:1000774",  # index= format
+            "MS:1000777",  # spectrum= format
+            "MS:1001530",  # plain number format
+        ]
+
+        def _extract_scan_number(native_id):
+            """Extract scan number using OpenMS SpectrumLookup logic."""
+            if not native_id:
+                return None
+            sl = _SpectrumLookup()
+            for accession in _native_id_accessions:
+                try:
+                    scan_num = sl.extractScanNumber(native_id, accession)
+                    if scan_num >= 0:
+                        return scan_num
+                except:
+                    continue
+            return None
 
         rows = []
         for pep_idx, pep_id in enumerate(self):
@@ -385,11 +411,8 @@ import numpy as np
             elif pep_id.metaValueExists(b"IM"):
                 ion_mobility = pep_id.getMetaValue(b"IM")
 
-            # Parse scan number from spectrum reference
-            scan = None
-            scan_match = re.search(r'scan=(\d+)', spec_ref)
-            if scan_match:
-                scan = int(scan_match.group(1))
+            # Extract scan number using OpenMS SpectrumLookup
+            scan = _extract_scan_number(spec_ref)
 
             hits = pep_id.getHits()
             if not hits:

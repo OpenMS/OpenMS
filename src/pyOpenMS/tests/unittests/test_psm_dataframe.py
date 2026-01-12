@@ -109,6 +109,35 @@ def test_psm_df_scan_parsing():
     assert df.iloc[2]["scan"] == "5678"
 
 
+def test_psm_df_scan_parsing_native_id_formats():
+    """Test scan extraction from various native ID formats using SpectrumLookup."""
+    import pyopenms as oms
+
+    test_cases = [
+        # (spectrum_reference, expected_scan)
+        ("controllerType=0 controllerNumber=1 scan=1234", "1234"),  # Thermo
+        ("scan=5678", "5678"),  # Simple scan format
+        ("function=1 process=0 scan=999", "999"),  # Waters
+        ("index=42", "43"),  # index format (0-based, so scan = index+1)
+        ("scanId=100", "100"),  # Agilent MassHunter
+        ("spectrum=200", "200"),  # spectrum format
+    ]
+
+    for spec_ref, expected_scan in test_cases:
+        pep_ids = oms.PeptideIdentificationList()
+        pep_id = oms.PeptideIdentification()
+        pep_id.setMetaValue("spectrum_reference", spec_ref)
+
+        hit = oms.PeptideHit()
+        hit.setSequence(oms.AASequence.fromString("PEPTIDE"))
+        hit.setCharge(2)
+        pep_id.setHits([hit])
+        pep_ids.append(pep_id)
+
+        df = pep_ids.get_psm_df()
+        assert df.iloc[0]["scan"] == expected_scan, f"Failed for '{spec_ref}': expected {expected_scan}, got {df.iloc[0]['scan']}"
+
+
 def test_psm_df_decoy_detection():
     """Test is_decoy field extraction (QPX uses int: 0=target, 1=decoy)."""
     pep_ids = create_test_data()
