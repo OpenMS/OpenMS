@@ -37,7 +37,21 @@ namespace OpenMS
     Reference formats are registered via addReferenceFormat().
     Several possible formats can be added and will be tried in order by the function findByReference().
 
-    @see SpectrumMetaDataLookup
+    @par Native ID Parsing
+    For standalone parsing of spectrum native IDs (without spectrum lookup), use SpectrumNativeIDParser directly:
+    @code
+    // Extract scan number from native ID using CV accession
+    Int scan = SpectrumNativeIDParser::extractScanNumber("scan=42", "MS:1000768");
+
+    // Check if a string is a native ID
+    if (SpectrumNativeIDParser::isNativeID(spectrum_id))
+    {
+      String regex = SpectrumNativeIDParser::getRegExFromNativeID(spectrum_id);
+      // use regex for further processing...
+    }
+    @endcode
+
+    @see SpectrumMetaDataLookup, SpectrumNativeIDParser
   */
   class OPENMS_DLLAPI SpectrumLookup
   {
