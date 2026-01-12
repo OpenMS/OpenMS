@@ -1624,12 +1624,13 @@ END_SECTION
 
 // warnings for unknown parameters
 // keep outside the scope of a single test to avoid destruction, leaving
-// OpenMS_Log_warn in an undefined state
+// the log stream in an undefined state
 ostringstream os;
 // checkDefaults sends its warnings to OPENMS_LOG_WARN so we register our own
-// listener here to check the output
-OpenMS_Log_warn.remove(cout);
-OpenMS_Log_warn.insert(os);
+// listener here to check the output.
+// Configure the thread-local warn stream
+getThreadLocalLogWarn().remove(cout);
+getThreadLocalLogWarn().insert(os);
 
 START_SECTION((void checkDefaults(const std::string &name, const Param &defaults, const std::string& prefix="") const))
     Param p,d;

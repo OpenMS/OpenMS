@@ -255,7 +255,7 @@ protected:
   ExitCodes main_(int, const char**) override
   {
     String out = getStringOption_("out");
-    return outputTo_(OpenMS_Log_info, out);
+    return outputTo_(getGlobalLogInfo(), out);
   }
 
 };
