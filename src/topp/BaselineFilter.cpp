@@ -108,7 +108,7 @@ protected:
       return INCOMPATIBLE_INPUT_DATA;
     }
     // check for peak type (raw data required)
-    if (ms_exp[0].getType(true) == SpectrumSettings::CENTROID)
+    if (ms_exp[0].getType(true) == SpectrumSettings::SpectrumType::CENTROID)
     {
       writeLogWarn_("Warning: OpenMS peak type estimation indicates that this is not raw data!");
     }

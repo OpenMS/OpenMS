@@ -73,16 +73,16 @@ class TestMZTrafoModelStringInput(unittest.TestCase):
     def test_nameToEnum_with_str(self):
         """Test nameToEnum accepts str."""
         enum_val = pyopenms.MZTrafoModel.nameToEnum("linear")
-        self.assertEqual(enum_val, pyopenms.MZTrafoModel_MODELTYPE.LINEAR)
+        self.assertEqual(enum_val, pyopenms.MZTrafoModel.MODELTYPE.LINEAR)
 
     def test_nameToEnum_with_bytes(self):
         """Test nameToEnum still accepts bytes (backward compatible)."""
         enum_val = pyopenms.MZTrafoModel.nameToEnum(b"linear")
-        self.assertEqual(enum_val, pyopenms.MZTrafoModel_MODELTYPE.LINEAR)
+        self.assertEqual(enum_val, pyopenms.MZTrafoModel.MODELTYPE.LINEAR)
 
     def test_enumToName_returns_str(self):
         """Test enumToName returns str (not bytes)."""
-        name = pyopenms.MZTrafoModel.enumToName(pyopenms.MZTrafoModel_MODELTYPE.LINEAR)
+        name = pyopenms.MZTrafoModel.enumToName(pyopenms.MZTrafoModel.MODELTYPE.LINEAR)
         self.assertIsInstance(name, str)
         self.assertEqual(name, "linear")
 

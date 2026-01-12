@@ -50,7 +50,7 @@ namespace OpenMS
   void GaussFilter::filter(MSSpectrum & spectrum)
   {
     // make sure the right data type is set
-    spectrum.setType(SpectrumSettings::PROFILE);
+    spectrum.setType(SpectrumSettings::SpectrumType::PROFILE);
     bool found_signal = false;
     const Size data_size = spectrum.size();
     std::vector<double> mz_in(data_size), int_in(data_size), mz_out(data_size), int_out(data_size);
@@ -78,7 +78,7 @@ namespace OpenMS
         {
           error_message += String(" The error occurred in the spectrum with retention time ") + spectrum.getRT() + ".";
         }
-        OPENMS_LOG_WARN << error_message << std::endl;
+        OPENMS_LOG_DEBUG << error_message << std::endl;
       }
     }
     else
@@ -127,7 +127,7 @@ namespace OpenMS
         {
           error_message += String(" The error occurred in the chromatogram with m/z ratio ") + chromatogram.getMZ() + ".";
         }
-        OPENMS_LOG_ERROR << error_message << std::endl;
+        OPENMS_LOG_DEBUG << error_message << std::endl;
       }
     }
     else
@@ -176,7 +176,7 @@ namespace OpenMS
         {
           error_message += String(" The error occurred in the mobilogram with RT ") + mobilogram.getRT() + ".";
         }
-        OPENMS_LOG_ERROR << error_message << std::endl;
+        OPENMS_LOG_DEBUG << error_message << std::endl;
       }
     }
     else

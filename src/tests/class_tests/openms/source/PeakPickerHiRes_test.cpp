@@ -60,7 +60,7 @@ MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("PeakPickerHiRes_orbitrap_sn1_out.mzML
 //set data type (this is not stored correctly in mzData)
 for (Size scan_idx = 0; scan_idx < output.size(); ++scan_idx)
 {
-  output[scan_idx].setType(SpectrumSettings::CENTROID);
+  output[scan_idx].setType(SpectrumSettings::SpectrumType::CENTROID);
 }
 
 // PeakPickerHiRes config
@@ -220,7 +220,7 @@ MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("PeakPickerHiRes_orbitrap_sn4_out.mzML
 //set data type (this is not stored correctly in mzData)
 for (Size scan_idx = 0; scan_idx < output.size(); ++scan_idx)
 {
-  output[scan_idx].setType(SpectrumSettings::CENTROID);
+  output[scan_idx].setType(SpectrumSettings::SpectrumType::CENTROID);
 }
 
 //set up PeakPicker
@@ -288,7 +288,7 @@ MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("PeakPickerHiRes_ftms_sn1_out.mzML"),o
 //set data type (this is not stored correctly in mzML)
 for (Size scan_idx = 0; scan_idx < output.size(); ++scan_idx)
 {
-  output[scan_idx].setType(SpectrumSettings::CENTROID);
+  output[scan_idx].setType(SpectrumSettings::SpectrumType::CENTROID);
 }
 
 // PeakPickerHiRes config
@@ -328,7 +328,7 @@ MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("PeakPickerHiRes_ftms_sn4_out.mzML"),o
 //set data type (this is not stored correctly in mzML)
 for (Size scan_idx = 0; scan_idx < output.size(); ++scan_idx)
 {
-  output[scan_idx].setType(SpectrumSettings::CENTROID);
+  output[scan_idx].setType(SpectrumSettings::SpectrumType::CENTROID);
 }
 
 //set up PeakPicker

@@ -105,7 +105,7 @@ namespace OpenMS
   {
     SpectrumSettings::SpectrumType t = SpectrumSettings::getType();
     // easy case: type is known
-    if (t != SpectrumSettings::UNKNOWN)
+    if (t != SpectrumSettings::SpectrumType::UNKNOWN)
     {
       return t;
     }
@@ -115,7 +115,7 @@ namespace OpenMS
     {
       if (dp->getProcessingActions().count(DataProcessing::PEAK_PICKING) == 1)
       {
-        return SpectrumSettings::CENTROID;
+        return SpectrumSettings::SpectrumType::CENTROID;
       }
     }
 
@@ -123,7 +123,7 @@ namespace OpenMS
     {
       return PeakTypeEstimator::estimateType(begin(), end());
     }
-    return SpectrumSettings::UNKNOWN;
+    return SpectrumSettings::SpectrumType::UNKNOWN;
   }
 
   MSSpectrum::ConstIterator MSSpectrum::getBasePeak() const

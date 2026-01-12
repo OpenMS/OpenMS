@@ -44,7 +44,7 @@ cdef extern from "<OpenMS/PROCESSING/CALIBRATION/MZTrafoModel.h>" namespace "Ope
                 #  :param mz: The uncalibrated m/z value
                 #  :return: The calibrated m/z value
 
-        bool train(CalibrationData cd, MZTrafoModel_MODELTYPE md, bool use_RANSAC, double rt_left, double rt_right) except + nogil 
+        bool train(CalibrationData cd, MODELTYPE md, bool use_RANSAC, double rt_left, double rt_right) except + nogil 
             # wrap-doc:
                 #  Train a model using calibrant data
                 #  
@@ -66,7 +66,7 @@ cdef extern from "<OpenMS/PROCESSING/CALIBRATION/MZTrafoModel.h>" namespace "Ope
                 #  :param rt_right: Filter 'cd' by RT; all calibrants with RT > 'rt_right' are removed
                 #  :return: True if model was build, false otherwise
                 
-        bool train(libcpp_vector[double] error_mz, libcpp_vector[double] theo_mz, libcpp_vector[double] weights, MZTrafoModel_MODELTYPE md, bool use_RANSAC) except + nogil 
+        bool train(libcpp_vector[double] error_mz, libcpp_vector[double] theo_mz, libcpp_vector[double] weights, MODELTYPE md, bool use_RANSAC) except + nogil 
             # wrap-doc:
                 #  Train a model using calibrant data
                 #  
@@ -121,10 +121,10 @@ cdef extern from "<OpenMS/PROCESSING/CALIBRATION/MZTrafoModel.h>" namespace "Ope
 
         # static members
         @staticmethod
-        MZTrafoModel_MODELTYPE nameToEnum(libcpp_utf8_string name) except + nogil
+        MODELTYPE nameToEnum(libcpp_utf8_string name) except + nogil
 
         @staticmethod
-        libcpp_utf8_output_string enumToName(MZTrafoModel_MODELTYPE mt) except + nogil
+        libcpp_utf8_output_string enumToName(MODELTYPE mt) except + nogil
 
         @staticmethod
         void setRANSACParams(RANSACParam p) except + nogil
@@ -140,7 +140,9 @@ cdef extern from "<OpenMS/PROCESSING/CALIBRATION/MZTrafoModel.h>" namespace "Ope
 
 cdef extern from "<OpenMS/PROCESSING/CALIBRATION/MZTrafoModel.h>" namespace "OpenMS::MZTrafoModel":
 
-    cdef enum MZTrafoModel_MODELTYPE "OpenMS::MZTrafoModel::MODELTYPE":
+    cdef enum class MODELTYPE "OpenMS::MZTrafoModel::MODELTYPE":
+        # wrap-attach:
+        #    MZTrafoModel
         LINEAR
         LINEAR_WEIGHTED
         QUADRATIC
