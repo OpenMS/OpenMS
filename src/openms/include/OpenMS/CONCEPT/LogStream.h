@@ -464,8 +464,7 @@ private:
 
       Example usage:
       @code
-      getGlobalLogInfo().remove(cout);
-      LogSinkGuard guard(getGlobalLogInfo(), cout); // Will re-insert cout on scope exit
+      LogSinkGuard guard(getGlobalLogInfo(), cout); // Removes cout, will re-insert on scope exit
       some_operation_that_may_throw();
       // cout is automatically re-inserted when guard goes out of scope
       @endcode
@@ -476,16 +475,15 @@ private:
     {
     public:
       /**
-        @brief Construct a guard that will re-insert the given stream into the LogStream on destruction.
+        @brief Construct a guard that removes the stream and re-inserts it on destruction.
 
-        @param log_stream The LogStream to re-insert the stream into
-        @param stream The stream to re-insert (e.g., std::cout)
-
-        @note This constructor does NOT remove the stream - call LogStream::remove() before constructing the guard.
+        @param log_stream The LogStream to remove the stream from (and re-insert into on destruction)
+        @param stream The stream to temporarily remove (e.g., std::cout)
       */
       LogSinkGuard(LogStream& log_stream, std::ostream& stream)
         : log_stream_(log_stream), stream_(stream)
       {
+        log_stream_.remove(stream_);
       }
 
       /// Destructor re-inserts the stream

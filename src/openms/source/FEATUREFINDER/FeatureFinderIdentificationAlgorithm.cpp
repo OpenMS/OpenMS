@@ -827,7 +827,6 @@ namespace OpenMS
       std::optional<Logger::LogSinkGuard> log_guard; // RAII: re-inserts cout on scope exit (exception-safe)
       if (debug_level_ < 1)
       {
-        getGlobalLogInfo().remove(cout);
         log_guard.emplace(getGlobalLogInfo(), cout);
       }
       feat_finder_.pickExperiment(chrom_data_, features, library_,

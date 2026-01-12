@@ -200,28 +200,24 @@ START_SECTION((void remove(std::ostream &s)))
 }
 END_SECTION
 
-START_SECTION(([EXTRA] LogSinkGuard - RAII re-insertion on scope exit))
+START_SECTION(([EXTRA] LogSinkGuard - RAII removal and re-insertion))
 {
-  // Test 1: Normal scope exit - stream should be re-inserted
+  // Test 1: Normal scope exit - guard removes on construction, re-inserts on destruction
   {
     LogStream l1(new LogStreamBuf());
     ostringstream s;
     l1.insert(s);
-    l1 << "before_remove" << endl;
-    TEST_EQUAL(s.str(), "before_remove\n")
-
-    l1.remove(s);
-    l1 << "while_removed" << endl;
-    TEST_EQUAL(s.str(), "before_remove\n") // no change, stream was removed
+    l1 << "before_guard" << endl;
+    TEST_EQUAL(s.str(), "before_guard\n")
 
     {
-      LogSinkGuard guard(l1, s); // guard will re-insert on scope exit
-      l1 << "still_removed" << endl;
-      TEST_EQUAL(s.str(), "before_remove\n") // still removed within guard scope
+      LogSinkGuard guard(l1, s); // guard removes s immediately
+      l1 << "while_guarded" << endl;
+      TEST_EQUAL(s.str(), "before_guard\n") // no change, stream was removed by guard
     } // guard destructor re-inserts s
 
     l1 << "after_guard" << endl;
-    TEST_EQUAL(s.str(), "before_remove\nafter_guard\n") // stream is back
+    TEST_EQUAL(s.str(), "before_guard\nafter_guard\n") // stream is back
   }
 
   // Test 2: Exception safety - stream should be re-inserted even on exception
@@ -230,12 +226,9 @@ START_SECTION(([EXTRA] LogSinkGuard - RAII re-insertion on scope exit))
     ostringstream s;
     l1.insert(s);
 
-    l1.remove(s);
-    l1 << "removed" << endl;
-
     try
     {
-      LogSinkGuard guard(l1, s);
+      LogSinkGuard guard(l1, s); // guard removes s
       l1 << "in_try" << endl;
       throw std::runtime_error("test exception");
     }
@@ -254,16 +247,14 @@ START_SECTION(([EXTRA] LogSinkGuard - RAII re-insertion on scope exit))
     ostringstream s;
     l1.insert(s);
 
-    l1.remove(s);
     {
-      LogSinkGuard guard1(l1, s);
-      l1.remove(s); // remove again
+      LogSinkGuard guard1(l1, s); // guard1 removes s
       {
-        LogSinkGuard guard2(l1, s);
+        LogSinkGuard guard2(l1, s); // guard2 removes s (already removed - no-op)
         l1 << "deeply_removed" << endl;
-      } // guard2 re-inserts
+      } // guard2 re-inserts s
       l1 << "once_reinserted" << endl;
-    } // guard1 re-inserts (stream already present, should be safe)
+    } // guard1 re-inserts s (already present - safe/idempotent)
     l1 << "final" << endl;
     TEST_EQUAL(s.str(), "once_reinserted\nfinal\n")
   }
