@@ -210,7 +210,7 @@ namespace OpenMS
     }
     
     if (normalized_feature.getSubordinates().size() != fragment_isotopomer_measured.size() || fragment_isotopomer_measured.empty()) {
-      OpenMS_Log_fatal << "Missing values for the Measured Isotopomer Fragment, Please make sure the Subordinates are accordingly updated." << std::endl;
+      OPENMS_LOG_FATAL_ERROR << "Missing values for the Measured Isotopomer Fragment, Please make sure the Subordinates are accordingly updated." << std::endl;
     }
     
     // Generate theoretical values with the exact same length as fragment_isotopomer_measured
