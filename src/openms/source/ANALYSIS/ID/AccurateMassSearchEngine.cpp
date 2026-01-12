@@ -317,84 +317,69 @@ namespace OpenMS
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "AccurateMassSearchEngine::init() was not called!");
     }
 
-    // Depending on ion_mode_internal_, either positive or negative adducts are used
-    std::vector<AdductInfo>::const_iterator it_s, it_e;
+    // Select adduct list based on ion mode
+    const std::vector<AdductInfo>* adducts_ptr = nullptr;
     if (ion_mode == "positive")
     {
-      it_s = pos_adducts_.begin();
-      it_e = pos_adducts_.end();
+      adducts_ptr = &pos_adducts_;
     }
     else if (ion_mode == "negative")
     {
-      it_s = neg_adducts_.begin();
-      it_e = neg_adducts_.end();
+      adducts_ptr = &neg_adducts_;
     }
     else
     {
       throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Ion mode cannot be set to '") + ion_mode + "'. Must be 'positive' or 'negative'!");
     }
+    const std::vector<AdductInfo>& adducts = *adducts_ptr;
 
-    std::pair<Size, Size> hit_idx;
-    for (std::vector<AdductInfo>::const_iterator it = it_s; it != it_e; ++it)
+    // Helper lambda to process a single adduct and add matching results
+    auto processAdduct = [&](const AdductInfo& adduct)
     {
-      if (observed_charge != 0 && (std::abs(observed_charge) != std::abs(it->getCharge())))
-      { // charge of evidence and adduct must match in absolute terms (absolute, since any FeatureFinder gives only positive charges, even for negative-mode spectra)
-        // observed_charge==0 will pass, since we basically do not know its real charge (apparently, no isotopes were found)
-        continue;
+      // Check charge compatibility: charge of evidence and adduct must match in absolute terms
+      // (absolute, since any FeatureFinder gives only positive charges, even for negative-mode spectra)
+      // observed_charge==0 will pass, since we basically do not know its real charge (apparently, no isotopes were found)
+      if (observed_charge != 0 && (std::abs(observed_charge) != std::abs(adduct.getCharge())))
+      {
+        return;
       }
 
-      if ((observed_adduct != EmpiricalFormula()) && (observed_adduct != it->getEmpiricalFormula()))
-      { // If feature has no adduct annotation, method call defaults to empty EF(). If feature is annotated with an adduct, it must match.
-        continue;
-      }
-
-      // get potential hits as indices in masskey_table
-      double neutral_mass = it->getNeutralMass(observed_mz); // calculate mass of uncharged small molecule without adduct mass
+      // Calculate mass of uncharged small molecule without adduct mass
+      double neutral_mass = adduct.getNeutralMass(observed_mz);
 
       // Our database is just a set of neutral masses (i.e., without adducts)
       // However, given is either an absolute m/z tolerance or a ppm tolerance for the observed m/z
       // We now need an upper bound on the absolute allowed mass difference, given the above tolerance in m/z.
-      // The selected candidates then have an mass tolerance which corresponds to the user's m/z tolerance.
+      // The selected candidates then have a mass tolerance which corresponds to the user's m/z tolerance.
       // (the other approach is to pre-compute m/z values for all combinations of adducts, charges and DB entries -- too much)
-      double diff_mz;
-      // check if mass error window is given in ppm or Da
-      if (mass_error_unit_ == "ppm")
-      {
-        // convert ppm to absolute m/z tolerance for the current candidate
-        diff_mz = (observed_mz / 1e6) * mass_error_value_;
-      }
-      else
-      {
-        diff_mz = mass_error_value_;
-      }
-      // convert absolute m/z diff to absolute mass diff
+      double diff_mz = (mass_error_unit_ == "ppm")
+        ? (observed_mz / 1e6) * mass_error_value_  // convert ppm to absolute m/z tolerance
+        : mass_error_value_;
+
+      // Convert absolute m/z diff to absolute mass diff
       // What about the adduct?
       // absolute mass error: the adduct itself is irrelevant here since its a constant for both the theoretical and observed mass
       //       ppm tolerance: the diff_mz accounts for it already (heavy adducts lead to larger m/z tolerance)
-
       // The adduct mass multiplier has to be taken into account when calculating the diff_mass (observed = 228 Da; Multiplier = 2M; theoretical mass = 114 Da)
       // if not the allowed mass error will be the one from 228 Da instead of 114 Da (in this example twice as high).
+      double diff_mass = (diff_mz * std::abs(adduct.getCharge())) / adduct.getMolMultiplier();
 
-      double diff_mass = (diff_mz * std::abs(it->getCharge())) / it->getMolMultiplier(); // do not use observed charge (could be 0=unknown)
-
+      std::pair<Size, Size> hit_idx;
       searchMass_(neutral_mass, diff_mass, hit_idx);
 
-      //std::cerr << ion_mode_internal_ << " adduct: " << adduct_name << ", " << adduct_mass << " Da, " << query_mass << " qm(against DB), " << charge << " q\n";
-
-      // store information from query hits in AccurateMassSearchResult objects
+      // Store information from query hits in AccurateMassSearchResult objects
       for (Size i = hit_idx.first; i < hit_idx.second; ++i)
       {
-        // check if DB entry is compatible to the adduct
-        if (!it->isCompatible(EmpiricalFormula(mass_mappings_[i].formula)))
+        // Check if DB entry is compatible to the adduct
+        if (!adduct.isCompatible(EmpiricalFormula(mass_mappings_[i].formula)))
         {
-          // only written if TOPP tool has --debug
-          OPENMS_LOG_DEBUG << "'" << mass_mappings_[i].formula << "' cannot have adduct '" << it->getName() << "'. Omitting.\n";
+          OPENMS_LOG_DEBUG << "'" << mass_mappings_[i].formula << "' cannot have adduct '" << adduct.getName() << "'. Omitting.\n";
           continue;
         }
 
-        // compute ppm errors
+        // Compute ppm errors
         double db_mass = mass_mappings_[i].mass;
-        double theoretical_mz = it->getMZ(db_mass);
+        double theoretical_mz = adduct.getMZ(db_mass);
         double error_ppm_mz = Math::getPPM(observed_mz, theoretical_mz); // negative values are allowed!
 
         AccurateMassSearchResult ams_result;
@@ -402,19 +387,39 @@ namespace OpenMS
         ams_result.setCalculatedMZ(theoretical_mz);
         ams_result.setQueryMass(neutral_mass);
         ams_result.setFoundMass(db_mass);
-        ams_result.setCharge(std::abs(it->getCharge())); // use theoretical adducts charge (is always valid); native charge might be zero
+        ams_result.setCharge(std::abs(adduct.getCharge())); // use theoretical adduct's charge (is always valid); native charge might be zero
         ams_result.setMZErrorPPM(error_ppm_mz);
         ams_result.setMatchingIndex(i);
-        ams_result.setFoundAdduct(it->getName());
+        ams_result.setFoundAdduct(adduct.getName());
         ams_result.setEmpiricalFormula(mass_mappings_[i].formula);
         ams_result.setMatchingHMDBids(mass_mappings_[i].massIDs);
 
         results.push_back(ams_result);
       }
+    };
 
+    // When a specific adduct is provided, only process that one (O(1) after lookup)
+    // Otherwise, process all adducts (O(n))
+    if (observed_adduct != EmpiricalFormula())
+    {
+      for (const auto& adduct : adducts)
+      {
+        if (adduct.getEmpiricalFormula() == observed_adduct)
+        {
+          processAdduct(adduct);
+          break; // Found the target adduct, no need to continue
+        }
+      }
+    }
+    else
+    {
+      for (const auto& adduct : adducts)
+      {
+        processAdduct(adduct);
+      }
     }
 
-    // if result is empty, add a 'not-found' indicator if empty hits should be stored
+    // If result is empty, add a 'not-found' indicator if empty hits should be stored
     if (results.empty() && keep_unidentified_masses_)
     {
       AccurateMassSearchResult ams_result;
@@ -430,8 +435,6 @@ namespace OpenMS
       ams_result.setMatchingHMDBids(std::vector<String>(1, "null"));
       results.push_back(ams_result);
     }
-
-    return;
   }
 
   void AccurateMassSearchEngine::queryByFeature(const Feature& feature, const Size& feature_index, const String& ion_mode, std::vector<AccurateMassSearchResult>& results) const
