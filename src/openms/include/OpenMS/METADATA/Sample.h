@@ -30,9 +30,9 @@ namespace OpenMS
   {
 public:
     ///state of aggregation of the sample
-    enum SampleState {SAMPLENULL, SOLID, LIQUID, GAS, SOLUTION, EMULSION, SUSPENSION, SIZE_OF_SAMPLESTATE};
+    enum class SampleState {SAMPLENULL, SOLID, LIQUID, GAS, SOLUTION, EMULSION, SUSPENSION, SIZE_OF_SAMPLESTATE};
     /// Names of sample states
-    static const std::string NamesOfSampleState[SIZE_OF_SAMPLESTATE];
+    static const std::string NamesOfSampleState[static_cast<size_t>(SampleState::SIZE_OF_SAMPLESTATE)];
 
     /// returns all sample state names known to OpenMS
     static StringList getAllNamesOfSampleState();

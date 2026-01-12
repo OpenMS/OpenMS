@@ -1,0 +1,177 @@
+cff-version: 1.2.0
+message: "If you use OpenMS in your research, please cite us using the metadata from this file."
+title: "OpenMS"
+type: software
+url: "https://github.com/OpenMS/OpenMS"
+repository-code: "https://github.com/OpenMS/OpenMS"
+license: BSD-3-Clause
+preferred-citation:
+  type: article
+  title: "OpenMS 3 enables reproducible analysis of large-scale mass spectrometry data"
+  authors:
+    - family-names: Pfeuffer
+      given-names: Julianus
+    - family-names: Bielow
+      given-names: Chris
+    - family-names: Wein
+      given-names: Samuel
+    - family-names: Jeong
+      given-names: Kyowon
+    - family-names: Netz
+      given-names: Eugen
+    - family-names: Walter
+      given-names: Axel
+    - family-names: Alka
+      given-names: Oliver
+    - family-names: Nilse
+      given-names: Lars
+    - family-names: Colaianni
+      given-names: Pasquale Domenico
+    - family-names: McCloskey
+      given-names: Douglas
+    - family-names: Kim
+      given-names: Jihyung
+    - family-names: Rosenberger
+      given-names: George
+    - family-names: Bichmann
+      given-names: Leon
+    - family-names: Walzer
+      given-names: Mathias
+    - family-names: Veit
+      given-names: Johannes
+    - family-names: Boudaud
+      given-names: Bertrand
+    - family-names: Bernt
+      given-names: Matthias
+    - family-names: Patikas
+      given-names: Nikolaos
+    - family-names: Pilz
+      given-names: Matteo
+    - family-names: Startek
+      given-names: "Micha\u0142 Piotr"
+    - family-names: Kutuzova
+      given-names: Svetlana
+    - family-names: Heumos
+      given-names: Lukas
+    - family-names: Charkow
+      given-names: Joshua
+    - family-names: Sing
+      given-names: Justin Cyril
+    - family-names: Feroz
+      given-names: Ayesha
+    - family-names: Siraj
+      given-names: Arslan
+    - family-names: Weisser
+      given-names: Hendrik
+    - family-names: Dijkstra
+      given-names: Tjeerd M. H.
+    - family-names: "P\xe9rez-Riverol"
+      given-names: Yasset
+    - family-names: "R\xf6st"
+      given-names: Hannes
+    - family-names: Kohlbacher
+      given-names: Oliver
+    - family-names: Sachsenberg
+      given-names: Timo
+  journal: "Nature Methods"
+  volume: 21
+  issue: 3
+  start: 365
+  end: 367
+  year: 2024
+  doi: "10.1038/s41592-024-02197-7"
+references:
+  - type: article
+    title: "OpenMS: a flexible open-source software platform for mass spectrometry data analysis"
+    authors:
+      - family-names: "R\xf6st"
+        given-names: Hannes L.
+      - family-names: Sachsenberg
+        given-names: Timo
+      - family-names: Aiche
+        given-names: Stephan
+      - family-names: Bielow
+        given-names: Chris
+      - family-names: Weisser
+        given-names: Hendrik
+      - family-names: Aicheler
+        given-names: Fabian
+      - family-names: Andreotti
+        given-names: Sandro
+      - family-names: Ehrlich
+        given-names: Hans-Christian
+      - family-names: Gutenbrunner
+        given-names: Petra
+      - family-names: Kenar
+        given-names: Erhan
+      - family-names: Liang
+        given-names: Xiao
+      - family-names: Nahnsen
+        given-names: Sven
+      - family-names: Nilse
+        given-names: Lars
+      - family-names: Pfeuffer
+        given-names: Julianus
+      - family-names: Rosenberger
+        given-names: George
+      - family-names: Rurik
+        given-names: Marc
+      - family-names: Schmitt
+        given-names: Uwe
+      - family-names: Veit
+        given-names: Johannes
+      - family-names: Walzer
+        given-names: Mathias
+      - family-names: Wojnar
+        given-names: David
+      - family-names: Wolski
+        given-names: Witold E.
+      - family-names: Schilling
+        given-names: Oliver
+      - family-names: Choudhary
+        given-names: Jyoti S.
+      - family-names: "Malmstr\xf6m"
+        given-names: Lars
+      - family-names: Aebersold
+        given-names: Ruedi
+      - family-names: Reinert
+        given-names: Knut
+      - family-names: Kohlbacher
+        given-names: Oliver
+    journal: "Nature Methods"
+    volume: 13
+    issue: 9
+    start: 741
+    end: 748
+    year: 2016
+    doi: "10.1038/nmeth.3959"
+  - type: article
+    title: "OpenMS - an open-source software framework for mass spectrometry"
+    authors:
+      - family-names: Sturm
+        given-names: Marc
+      - family-names: Bertsch
+        given-names: Andreas
+      - family-names: "Gr\xf6pl"
+        given-names: Clemens
+      - family-names: Hildebrandt
+        given-names: Andreas
+      - family-names: Hussong
+        given-names: Rene
+      - family-names: Lange
+        given-names: Eva
+      - family-names: Pfeifer
+        given-names: Nico
+      - family-names: Schulz-Trieglaff
+        given-names: Ole
+      - family-names: Zerck
+        given-names: Alexandra
+      - family-names: Reinert
+        given-names: Knut
+      - family-names: Kohlbacher
+        given-names: Oliver
+    journal: "BMC Bioinformatics"
+    volume: 9
+    start: 163
+    year: 2008
+    doi: "10.1186/1471-2105-9-163"

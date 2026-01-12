@@ -281,7 +281,7 @@ namespace OpenMS
       item->setData(ClmnPeak::PRECURSOR_MZ, Qt::DisplayRole, precursor_mz);
     }
 
-    item->setText(ClmnPeak::SCANTYPE, QString::fromStdString(spec.getInstrumentSettings().NamesOfScanMode[spec.getInstrumentSettings().getScanMode()]));
+    item->setText(ClmnPeak::SCANTYPE, QString::fromStdString(spec.getInstrumentSettings().NamesOfScanMode[static_cast<size_t>(spec.getInstrumentSettings().getScanMode())]));
     item->setText(ClmnPeak::ZOOM, (spec.getInstrumentSettings().getZoomScan() ? "yes" : "no"));
   }
 
@@ -552,7 +552,7 @@ namespace OpenMS
             sub_item->setData(ClmnChrom::RT_END, Qt::DisplayRole, current_chromatogram.back().getRT());
           }
 
-          sub_item->setText(ClmnChrom::CHROM_TYPE, MSChromatogram::ChromatogramNames[current_chromatogram.getChromatogramType()]);
+          sub_item->setText(ClmnChrom::CHROM_TYPE, MSChromatogram::ChromatogramNames[static_cast<size_t>(current_chromatogram.getChromatogramType())]);
         }
         if (one_selected && multiple_select)
         {
