@@ -388,7 +388,8 @@ import numpy as np
                     scan_num = sl.extractScanNumber(native_id, accession)
                     if scan_num >= 0:
                         return scan_num
-                except:
+                except (RuntimeError, ValueError, Exception):
+                    # SpectrumLookup may throw for invalid native ID formats
                     continue
             return None
 
@@ -483,7 +484,8 @@ import numpy as np
                 if charge > 0:
                     try:
                         calculated_mz = seq.getMZ(charge)
-                    except:
+                    except (RuntimeError, ValueError):
+                        # getMZ may fail for invalid sequences
                         pass
 
                 # Get predicted RT if available

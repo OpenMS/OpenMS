@@ -389,3 +389,250 @@ def test_psm_df_sequence_formats():
 
     # peptidoform should contain modification
     assert "Oxidation" in df.iloc[0]["peptidoform"]
+
+
+def test_psm_df_terminal_modifications():
+    """Test N-terminal and C-terminal modification extraction."""
+    import pyopenms as oms
+
+    pep_ids = oms.PeptideIdentificationList()
+    pep_id = oms.PeptideIdentification()
+
+    hit = oms.PeptideHit()
+    # Create sequence with N-terminal acetylation
+    hit.setSequence(oms.AASequence.fromString(".(Acetyl)PEPTIDE"))
+    hit.setCharge(2)
+    pep_id.setHits([hit])
+    pep_ids.append(pep_id)
+
+    df = pep_ids.get_psm_df(include_modifications=True)
+
+    mods = df.iloc[0]["modifications"]
+    assert len(mods) >= 1
+    # N-terminal mod should have position 0
+    n_term_mods = [m for m in mods if m["position"] == 0]
+    assert len(n_term_mods) == 1
+    assert "Acetyl" in n_term_mods[0]["name"]
+
+
+def test_psm_df_ion_mobility():
+    """Test ion mobility extraction from metavalues."""
+    import pyopenms as oms
+
+    pep_ids = oms.PeptideIdentificationList()
+    pep_id = oms.PeptideIdentification()
+    pep_id.setMetaValue("ion_mobility", 0.95)
+
+    hit = oms.PeptideHit()
+    hit.setSequence(oms.AASequence.fromString("PEPTIDE"))
+    hit.setCharge(2)
+    pep_id.setHits([hit])
+    pep_ids.append(pep_id)
+
+    df = pep_ids.get_psm_df()
+
+    assert "ion_mobility" in df.columns
+    assert df.iloc[0]["ion_mobility"] == pytest.approx(0.95)
+
+
+def test_psm_df_ion_mobility_im_key():
+    """Test ion mobility extraction using IM metavalue key."""
+    import pyopenms as oms
+
+    pep_ids = oms.PeptideIdentificationList()
+    pep_id = oms.PeptideIdentification()
+    pep_id.setMetaValue("IM", 1.25)  # Alternative key
+
+    hit = oms.PeptideHit()
+    hit.setSequence(oms.AASequence.fromString("PEPTIDE"))
+    hit.setCharge(2)
+    pep_id.setHits([hit])
+    pep_ids.append(pep_id)
+
+    df = pep_ids.get_psm_df()
+
+    assert df.iloc[0]["ion_mobility"] == pytest.approx(1.25)
+
+
+def test_psm_df_predicted_rt():
+    """Test predicted_rt extraction from metavalues."""
+    import pyopenms as oms
+
+    pep_ids = oms.PeptideIdentificationList()
+    pep_id = oms.PeptideIdentification()
+
+    hit = oms.PeptideHit()
+    hit.setSequence(oms.AASequence.fromString("PEPTIDE"))
+    hit.setCharge(2)
+    hit.setMetaValue("predicted_RT", 150.5)
+    pep_id.setHits([hit])
+    pep_ids.append(pep_id)
+
+    df = pep_ids.get_psm_df()
+
+    assert "predicted_rt" in df.columns
+    assert df.iloc[0]["predicted_rt"] == pytest.approx(150.5)
+
+
+def test_psm_df_missing_target_decoy():
+    """Test is_decoy is None when target_decoy metavalue is missing."""
+    import pyopenms as oms
+
+    pep_ids = oms.PeptideIdentificationList()
+    pep_id = oms.PeptideIdentification()
+
+    hit = oms.PeptideHit()
+    hit.setSequence(oms.AASequence.fromString("PEPTIDE"))
+    hit.setCharge(2)
+    # Note: NOT setting target_decoy metavalue
+    pep_id.setHits([hit])
+    pep_ids.append(pep_id)
+
+    df = pep_ids.get_psm_df()
+
+    assert df.iloc[0]["is_decoy"] is None
+
+
+def test_psm_df_charge_zero():
+    """Test calculated_mz is None when charge is 0."""
+    import pyopenms as oms
+
+    pep_ids = oms.PeptideIdentificationList()
+    pep_id = oms.PeptideIdentification()
+
+    hit = oms.PeptideHit()
+    hit.setSequence(oms.AASequence.fromString("PEPTIDE"))
+    hit.setCharge(0)  # Zero charge
+    pep_id.setHits([hit])
+    pep_ids.append(pep_id)
+
+    df = pep_ids.get_psm_df()
+
+    assert df.iloc[0]["calculated_mz"] is None
+    assert df.iloc[0]["precursor_charge"] == 0
+
+
+def test_psm_df_empty_list():
+    """Test handling of completely empty PeptideIdentificationList."""
+    import pyopenms as oms
+
+    pep_ids = oms.PeptideIdentificationList()
+    # No identifications added
+
+    df = pep_ids.get_psm_df()
+
+    assert len(df) == 0
+    # Columns should still be defined even with no data
+    assert "sequence" in df.columns or len(df.columns) == 0
+
+
+def test_psm_df_non_pep_score_type():
+    """Test posterior_error_probability is None when score type is not PEP."""
+    import pyopenms as oms
+
+    pep_ids = oms.PeptideIdentificationList()
+    pep_id = oms.PeptideIdentification()
+    pep_id.setScoreType("Hyperscore")  # Not a PEP score type
+
+    hit = oms.PeptideHit()
+    hit.setSequence(oms.AASequence.fromString("PEPTIDE"))
+    hit.setCharge(2)
+    hit.setScore(100.0)
+    pep_id.setHits([hit])
+    pep_ids.append(pep_id)
+
+    df = pep_ids.get_psm_df()
+
+    assert df.iloc[0]["posterior_error_probability"] is None
+    assert df.iloc[0]["score"] == pytest.approx(100.0)
+    assert df.iloc[0]["score_type"] == "Hyperscore"
+
+
+def test_psm_df_multiple_protein_accessions():
+    """Test multiple protein accessions for a single hit."""
+    import pyopenms as oms
+
+    pep_ids = oms.PeptideIdentificationList()
+    pep_id = oms.PeptideIdentification()
+
+    hit = oms.PeptideHit()
+    hit.setSequence(oms.AASequence.fromString("PEPTIDE"))
+    hit.setCharge(2)
+
+    ev1 = oms.PeptideEvidence()
+    ev1.setProteinAccession("PROT1")
+    ev2 = oms.PeptideEvidence()
+    ev2.setProteinAccession("PROT2")
+    ev3 = oms.PeptideEvidence()
+    ev3.setProteinAccession("PROT3")
+    hit.setPeptideEvidences([ev1, ev2, ev3])
+    pep_id.setHits([hit])
+    pep_ids.append(pep_id)
+
+    df = pep_ids.get_psm_df()
+
+    assert df.iloc[0]["protein_accessions"] == ["PROT1", "PROT2", "PROT3"]
+
+
+def test_psm_df_peak_annotations():
+    """Test include_peak_annotations parameter."""
+    import pyopenms as oms
+
+    pep_ids = oms.PeptideIdentificationList()
+    pep_id = oms.PeptideIdentification()
+
+    hit = oms.PeptideHit()
+    hit.setSequence(oms.AASequence.fromString("PEPTIDE"))
+    hit.setCharge(2)
+
+    # Add peak annotations
+    pa1 = oms.PeptideHit_PeakAnnotation()
+    pa1.mz = 100.5
+    pa1.intensity = 1000.0
+    pa1.charge = 1
+    pa1.annotation = "y1"
+
+    pa2 = oms.PeptideHit_PeakAnnotation()
+    pa2.mz = 200.5
+    pa2.intensity = 2000.0
+    pa2.charge = 1
+    pa2.annotation = "y2"
+
+    hit.setPeakAnnotations([pa1, pa2])
+    pep_id.setHits([hit])
+    pep_ids.append(pep_id)
+
+    df = pep_ids.get_psm_df(include_peak_annotations=True)
+
+    assert "number_peaks" in df.columns
+    assert "mz_array" in df.columns
+    assert "intensity_array" in df.columns
+    assert "charge_array" in df.columns
+    assert "ion_type_array" in df.columns
+
+    assert df.iloc[0]["number_peaks"] == 2
+    assert df.iloc[0]["mz_array"] == [100.5, 200.5]
+    assert df.iloc[0]["intensity_array"] == [1000.0, 2000.0]
+    assert df.iloc[0]["charge_array"] == [1, 1]
+    assert df.iloc[0]["ion_type_array"] == ["y1", "y2"]
+
+
+def test_psm_df_peak_annotations_empty():
+    """Test include_peak_annotations with no annotations."""
+    import pyopenms as oms
+
+    pep_ids = oms.PeptideIdentificationList()
+    pep_id = oms.PeptideIdentification()
+
+    hit = oms.PeptideHit()
+    hit.setSequence(oms.AASequence.fromString("PEPTIDE"))
+    hit.setCharge(2)
+    # No peak annotations set
+    pep_id.setHits([hit])
+    pep_ids.append(pep_id)
+
+    df = pep_ids.get_psm_df(include_peak_annotations=True)
+
+    assert df.iloc[0]["number_peaks"] == 0
+    assert df.iloc[0]["mz_array"] == []
+    assert df.iloc[0]["intensity_array"] == []
