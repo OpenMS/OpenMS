@@ -177,7 +177,7 @@ skip = "*-win32 *-musllinux_* pp*"
 # Using --import-mode=importlib ensures pytest uses standard Python imports.
 # TODO check if import-mode is enough and fix the missing file issue (ideally by not relying on them at all).
 test-requires = ["pytest", "numpy", "pandas", "pyarrow"]
-test-command = "mkdir temp_test_dir && cd temp_test_dir && pytest \"{package}/tests/unittests\" -v --tb=short --import-mode=importlib"
+test-command = "pytest \"{package}/tests\" --import-mode=importlib"
 build-verbosity = 1
 
 # Override cmake options for wheel building with repair tools
@@ -238,7 +238,8 @@ MACOSX_DEPLOYMENT_TARGET = "14.0"
 
 [tool.cibuildwheel.windows]
 archs = ["AMD64"]
-
+# apparently cibuildwheel gives a sh1t about build requirements in the repair step
+before-build = "pip install delvewheel"
 # Bundle DLLs into wheel
 repair-wheel-command = [
     "delvewheel repair -w {dest_dir} {wheel}",
