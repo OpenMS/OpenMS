@@ -28,6 +28,7 @@ MetaInfo.cpp
 MetaInfoDescription.cpp
 MetaInfoInterface.cpp
 MetaInfoRegistry.cpp
+SpectrumNativeIDParser.cpp
 PeptideEvidence.cpp
 PeptideHit.cpp
 PeptideIdentification.cpp
