@@ -404,6 +404,7 @@ jobs:
           # On Linux we always build pyOpenMS
           if [[ "${{ matrix.os }}" == ubuntu-* ]]; then
             export PYOPENMS=ON
+            export NO_DEPENDENCIES=OFF
           fi
 
           # Generate the CWL descriptors if we are going to build a package
