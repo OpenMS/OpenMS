@@ -95,12 +95,12 @@ public:
       spectrum.setRT(0.0);
       spectrum.setMSLevel(1);
       spectrum.setName("Xmass analysis file " + acqus.getParam("$ID_raw"));
-      spectrum.setType(SpectrumSettings::PROFILE);
+      spectrum.setType(SpectrumSettings::SpectrumType::PROFILE);
       spectrum.setNativeID("spectrum=xsd:" + acqus.getParam("$ID_raw").remove('<').remove('>'));
       spectrum.setComment("no comment");
 
       InstrumentSettings instrument_settings;
-      instrument_settings.setScanMode(InstrumentSettings::MASSSPECTRUM);
+      instrument_settings.setScanMode(InstrumentSettings::ScanMode::MASSSPECTRUM);
       instrument_settings.setZoomScan(false);
 
       if (acqus.getParam(".IONIZATION MODE") == "LD+")
@@ -206,11 +206,11 @@ public:
       massAnalyzerList.resize(1);
       if (acqus.getParam(".SPECTROMETER TYPE") == "TOF")
       {
-        massAnalyzerList[0].setType(MassAnalyzer::TOF);
+        massAnalyzerList[0].setType(MassAnalyzer::AnalyzerType::TOF);
       }
       else
       {
-        massAnalyzerList[0].setType(MassAnalyzer::ANALYZERNULL);
+        massAnalyzerList[0].setType(MassAnalyzer::AnalyzerType::ANALYZERNULL);
       }
 
       DateTime date;

@@ -117,7 +117,7 @@ protected:
 
     // TODO use this code? or just run the function?
     XFDRAlgorithm::ExitCodes class_arg_validation_code = fdr_algorithm.validateClassArguments();
-    if (class_arg_validation_code == XFDRAlgorithm::ILLEGAL_PARAMETERS)
+    if (class_arg_validation_code == XFDRAlgorithm::ExitCodes::ILLEGAL_PARAMETERS)
     {
       logFatal("Invalid input parameters!");
       return ILLEGAL_PARAMETERS;

@@ -93,7 +93,7 @@ public:
     static char const* const AUTO_MODE; /* = 'auto' */
 
     /// Exit codes
-    enum ExitCodes
+    enum class ExitCodes
     {
       EXECUTION_OK,
       DATABASE_EMPTY,

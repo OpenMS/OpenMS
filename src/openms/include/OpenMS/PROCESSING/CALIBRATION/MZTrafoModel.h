@@ -68,8 +68,8 @@ namespace OpenMS
     */
     MZTrafoModel(bool ppm_model);
 
-    enum MODELTYPE { LINEAR, LINEAR_WEIGHTED, QUADRATIC, QUADRATIC_WEIGHTED, SIZE_OF_MODELTYPE };
-    static const std::string names_of_modeltype[]; ///< strings corresponding to enum MODELTYPE
+    enum class MODELTYPE { LINEAR, LINEAR_WEIGHTED, QUADRATIC, QUADRATIC_WEIGHTED, SIZE_OF_MODELTYPE };
+    static const std::string names_of_modeltype[]; ///< strings corresponding to enum class MODELTYPE
     /**
       @brief Convert string to enum
 

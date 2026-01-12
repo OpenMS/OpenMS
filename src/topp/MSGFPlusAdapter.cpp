@@ -666,7 +666,7 @@ protected:
         ProteinIdentification::SearchParameters search_parameters;
         search_parameters.db = db_name;
         search_parameters.charges = "+" + String(min_precursor_charge) + "-+" + String(max_precursor_charge);
-        search_parameters.mass_type = ProteinIdentification::MONOISOTOPIC;
+        search_parameters.mass_type = ProteinIdentification::PeakMassType::MONOISOTOPIC;
         search_parameters.fixed_modifications = fixed_mods;
         search_parameters.variable_modifications = variable_mods;
         search_parameters.precursor_mass_tolerance = precursor_mass_tol;

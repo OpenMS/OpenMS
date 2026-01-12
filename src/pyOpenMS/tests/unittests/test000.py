@@ -733,10 +733,10 @@ def testChecksumType():
      ChecksumType.SIZE_OF_CHECKSUMTYPE
      ChecksumType.UNKNOWN_CHECKSUM
     """
-    assert isinstance(pyopenms.ChecksumType.MD5, int)
-    assert isinstance(pyopenms.ChecksumType.SHA1, int)
-    assert isinstance(pyopenms.ChecksumType.SIZE_OF_CHECKSUMTYPE, int)
-    assert isinstance(pyopenms.ChecksumType.UNKNOWN_CHECKSUM, int)
+    assert isinstance(pyopenms.SourceFile.ChecksumType.MD5, int)
+    assert isinstance(pyopenms.SourceFile.ChecksumType.SHA1, int)
+    assert isinstance(pyopenms.SourceFile.ChecksumType.SIZE_OF_CHECKSUMTYPE, int)
+    assert isinstance(pyopenms.SourceFile.ChecksumType.UNKNOWN_CHECKSUM, int)
 
 
 @report
@@ -2913,8 +2913,8 @@ def testIonDetector():
 
     # Test getAllNamesOf methods
     type_names = pyopenms.IonDetector.getAllNamesOfType()
-    assert len(type_names) == pyopenms.IonDetector.Type_IonDetector.SIZE_OF_TYPE
-    assert type_names[pyopenms.IonDetector.Type_IonDetector.ELECTRONMULTIPLIER].decode() == "Electron multiplier"
+    assert len(type_names) == pyopenms.IonDetector.Type.SIZE_OF_TYPE
+    assert type_names[pyopenms.IonDetector.Type.ELECTRONMULTIPLIER].decode() == "Electron multiplier"
 
     acq_mode_names = pyopenms.IonDetector.getAllNamesOfAcquisitionMode()
     assert len(acq_mode_names) == pyopenms.IonDetector.AcquisitionMode.SIZE_OF_ACQUISITIONMODE
@@ -5967,18 +5967,18 @@ def testSourceFile():
     assert sf.getPathToFile() == "file.txt"
     sf.setFileType(".txt")
     assert sf.getFileType() == ".txt"
-    sf.setChecksum("abcde000", pyopenms.ChecksumType.UNKNOWN_CHECKSUM)
+    sf.setChecksum("abcde000", pyopenms.SourceFile.ChecksumType.UNKNOWN_CHECKSUM)
     assert sf.getChecksum() == "abcde000"
 
-    assert sf.getChecksumType() in (pyopenms.ChecksumType.UNKNOWN_CHECKSUM,
-                                    pyopenms.ChecksumType.SHA1,
-                                    pyopenms.ChecksumType.MD5)
+    assert sf.getChecksumType() in (pyopenms.SourceFile.ChecksumType.UNKNOWN_CHECKSUM,
+                                    pyopenms.SourceFile.ChecksumType.SHA1,
+                                    pyopenms.SourceFile.ChecksumType.MD5)
 
     # Test getAllNamesOf method
     checksum_names = pyopenms.SourceFile.getAllNamesOfChecksumType()
-    assert len(checksum_names) == pyopenms.ChecksumType.SIZE_OF_CHECKSUMTYPE
-    assert checksum_names[pyopenms.ChecksumType.SHA1].decode() == "SHA-1"
-    assert checksum_names[pyopenms.ChecksumType.MD5].decode() == "MD5"
+    assert len(checksum_names) == pyopenms.SourceFile.ChecksumType.SIZE_OF_CHECKSUMTYPE
+    assert checksum_names[pyopenms.SourceFile.ChecksumType.SHA1].decode() == "SHA-1"
+    assert checksum_names[pyopenms.SourceFile.ChecksumType.MD5].decode() == "MD5"
 
 @report
 def testSpectrumSetting(s=pyopenms.SpectrumSettings()):
