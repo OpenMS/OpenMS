@@ -283,6 +283,8 @@ QT_QMAKE_VERSION_INFO = '''${QT_QMAKE_VERSION_INFO}'''
     if(APPLE)
       # TODO: Maybe we need a similar rpath for Linux too (e.g., $ORIGIN)
       list(APPEND PY_RPATH "@loader_path/")
+    elseif(LINUX)
+      list(APPEND PY_RPATH "$ORIGIN/")
     endif()
     message(STATUS "pyOpenMS: PY_RPATH = '${PY_RPATH}'")
     message(STATUS "pyOpenMS: CMAKE_INSTALL_RPATH was = '${CMAKE_INSTALL_RPATH}'")
