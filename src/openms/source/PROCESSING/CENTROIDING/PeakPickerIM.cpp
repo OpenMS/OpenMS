@@ -1176,6 +1176,11 @@ namespace OpenMS
       } // End main loop (for intensity_sorted_indices)
 
       // 9. Update spectrum (same logic as before)
+      // Clear DataArrays that won't be valid after averaging (StringDataArrays and IntegerDataArrays
+      // don't correspond to the new averaged peaks, so they must be cleared to maintain consistency)
+      spectrum.getStringDataArrays().clear();
+      spectrum.getIntegerDataArrays().clear();
+
       spectrum.resize(averaged_points.size());
       spectrum.shrink_to_fit();
       im_data.resize(averaged_points.size());
@@ -1264,6 +1269,11 @@ namespace OpenMS
       output_mt.clear();
 
       // copy mass traces centroids back to peaks
+      // Clear DataArrays that won't be valid after peak detection (StringDataArrays and IntegerDataArrays
+      // don't correspond to the new detected peaks, so they must be cleared to maintain consistency)
+      input.getStringDataArrays().clear();
+      input.getIntegerDataArrays().clear();
+
       input.resize(split_mtraces.size());
       input.shrink_to_fit();
 

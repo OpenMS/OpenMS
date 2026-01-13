@@ -456,25 +456,22 @@ namespace OpenMS
     pp.setParameters(pepi_param);
     pp.pick(smoothed_spectrum, picked_spectrum);
 
-    std::vector<Int> peaks_pos_to_erase;
+    // Build indices of peaks to keep (properly handles all DataArrays via select())
+    std::vector<Size> indices_to_keep;
     const double fwhm_threshold = mz_unit_is_Da_ ? fwhm_threshold_ : fwhm_threshold_ / 1e6;
-    for (Int i = picked_spectrum.size() - 1; i >= 0; --i)
+    for (Size i = 0; i < picked_spectrum.size(); ++i)
     {
-      if (picked_spectrum[i].getIntensity() < peak_height_min_ ||
-          picked_spectrum[i].getIntensity() > peak_height_max_ ||
-          picked_spectrum.getFloatDataArrays()[0][i] < fwhm_threshold)
+      if (picked_spectrum[i].getIntensity() >= peak_height_min_ &&
+          picked_spectrum[i].getIntensity() <= peak_height_max_ &&
+          picked_spectrum.getFloatDataArrays()[0][i] >= fwhm_threshold)
       {
-        peaks_pos_to_erase.push_back(i);
+        indices_to_keep.push_back(i);
       }
     }
 
-    if (peaks_pos_to_erase.size() != picked_spectrum.size()) // if not all peaks are to be removed
+    if (!indices_to_keep.empty())
     {
-      for (Int i : peaks_pos_to_erase) // then keep only the valid peaks (and fwhm)
-      {
-        picked_spectrum.erase(picked_spectrum.begin() + i);
-        picked_spectrum.getFloatDataArrays()[0].erase(picked_spectrum.getFloatDataArrays()[0].begin() + i);
-      }
+      picked_spectrum.select(indices_to_keep);
     }
     else // otherwise output an empty picked_spectrum
     {
@@ -1061,22 +1058,24 @@ namespace OpenMS
       {
         continue;
       }
-      // if peak mz higher than precursor mz set intensity to zero
+      // Remove peaks with mz higher than precursor mz AND remove zero-intensity peaks
+      // (properly handles DataArrays via select())
       double prec_mz = spectrum.getPrecursors()[0].getMZ();
       double mass_diff = Math::ppmToMass(max_precursor_mass_threashold_, prec_mz);
-      for (auto& spec : spectrum)
+      std::vector<Size> indices_to_keep;
+      indices_to_keep.reserve(spectrum.size());
+      for (Size i = 0; i < spectrum.size(); ++i)
       {
-        if (spec.getMZ() > prec_mz + mass_diff)
+        // Keep peaks that are within mass threshold AND have intensity >= 1
+        if (spectrum[i].getMZ() <= prec_mz + mass_diff && spectrum[i].getIntensity() >= 1)
         {
-          spec.setIntensity(0);
+          indices_to_keep.push_back(i);
         }
       }
-      spectrum.erase(remove_if(spectrum.begin(),
-                               spectrum.end(),
-                               InIntensityRange<PeakMap::PeakType>(1,
-                                                                   std::numeric_limits<PeakMap::PeakType::IntensityType>::max(),
-                                                                   true)),
-                     spectrum.end());
+      if (indices_to_keep.size() != spectrum.size())
+      {
+        spectrum.select(indices_to_keep);
+      }
     }
   }
 
