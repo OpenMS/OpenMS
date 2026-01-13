@@ -90,9 +90,14 @@ namespace OpenMS
     Peptidoform pf;
 
     // Parse global modifications: <...>
-    if (check_(ProFormaTokenizer::TokenType::LANGLE))
+    // There can be multiple consecutive blocks like <13C><15N>
+    while (check_(ProFormaTokenizer::TokenType::LANGLE))
     {
-      pf.global_mods = parseGlobalMods_();
+      auto mods = parseGlobalMods_();
+      for (auto& m : mods)
+      {
+        pf.global_mods.push_back(std::move(m));
+      }
     }
 
     // Parse unlocalised modifications: [mod]? or [mod]^2?
@@ -475,8 +480,9 @@ namespace OpenMS
         std::string_view text = tok.text;
         advance_(); // consume identifier
 
-        for (char c : text)
+        for (size_t i = 0; i < text.size(); ++i)
         {
+          char c = text[i];
           if (!isAminoAcid_(c))
           {
             errorAt_(ProFormaErrorCode::INVALID_AMINO_ACID, tok.position,
@@ -486,8 +492,9 @@ namespace OpenMS
           SequenceElement elem;
           elem.amino_acid = c;
 
-          // Check for modifications on this amino acid
-          if (check_(ProFormaTokenizer::TokenType::LBRACKET))
+          // Only the last character can have modifications attached
+          // E.g., "EM[mod]" means M has the modification, not E
+          if (i == text.size() - 1 && check_(ProFormaTokenizer::TokenType::LBRACKET))
           {
             elem.modifications = parseModificationList_();
           }
@@ -535,9 +542,42 @@ namespace OpenMS
     expect_(ProFormaTokenizer::TokenType::QUESTION, "'?' for ambiguous region");
 
     // Parse amino acids until )
+    // The tokenizer combines consecutive letters into one identifier,
+    // so we need to iterate through multi-letter identifiers (e.g., "DQ" -> D, Q)
     while (!check_(ProFormaTokenizer::TokenType::RPAREN) && !isAtEnd_())
     {
-      region.elements.push_back(parseSequenceElement_());
+      ProFormaTokenizer::Token tok = current_();
+
+      if (tok.type == ProFormaTokenizer::TokenType::IDENTIFIER)
+      {
+        std::string_view text = tok.text;
+        advance_();
+
+        for (size_t i = 0; i < text.size(); ++i)
+        {
+          char c = text[i];
+          if (!isAminoAcid_(c))
+          {
+            errorAt_(ProFormaErrorCode::INVALID_AMINO_ACID, tok.position,
+                     "Invalid amino acid in ambiguous region");
+          }
+
+          SequenceElement elem;
+          elem.amino_acid = c;
+
+          // Only the last character can have modifications attached
+          if (i == text.size() - 1 && check_(ProFormaTokenizer::TokenType::LBRACKET))
+          {
+            elem.modifications = parseModificationList_();
+          }
+
+          region.elements.push_back(elem);
+        }
+      }
+      else
+      {
+        break;
+      }
     }
 
     expect_(ProFormaTokenizer::TokenType::RPAREN, "')'");
@@ -642,6 +682,18 @@ namespace OpenMS
 
   std::pair<ModificationTag, std::optional<Label>> ProFormaParser::parseModificationTagWithLabel_()
   {
+    // ProForma allows label-only modifications like [#XL1] that reference
+    // earlier defined cross-links. Check for this case first.
+    if (check_(ProFormaTokenizer::TokenType::HASH))
+    {
+      // Label-only modification - no tag, just a reference
+      Label label = parseLabel_();
+      // Use empty InfoTag as placeholder for the tag
+      InfoTag empty_tag;
+      empty_tag.text = "";
+      return {std::move(empty_tag), std::move(label)};
+    }
+
     ModificationTag tag = parseModificationTag_();
     std::optional<Label> label;
 
@@ -687,11 +739,44 @@ namespace OpenMS
       expect_(ProFormaTokenizer::TokenType::COLON, "':' after Glycan");
       return parseGlycanComposition_();
     }
-    else if (id == "INFO")
+    else if (id == "INFO" || id == "info" || id == "Info")
     {
       advance_();
       expect_(ProFormaTokenizer::TokenType::COLON, "':' after INFO");
       return parseInfoTag_();
+    }
+    else if (id == "Cation")
+    {
+      // Cation tag like Cation:Mg[II]
+      // Parse as a NamedMod but include any bracketed charge notation
+      advance_();
+      expect_(ProFormaTokenizer::TokenType::COLON, "':' after Cation");
+
+      NamedMod nm;
+      std::string cation_str;
+
+      // Parse element name
+      if (check_(ProFormaTokenizer::TokenType::IDENTIFIER))
+      {
+        ProFormaTokenizer::Token elem = advance_();
+        cation_str = std::string(elem.text);
+      }
+
+      // Parse optional charge notation like [II], [III]
+      if (match_(ProFormaTokenizer::TokenType::LBRACKET))
+      {
+        cation_str += "[";
+        while (!check_(ProFormaTokenizer::TokenType::RBRACKET) && !isAtEnd_())
+        {
+          ProFormaTokenizer::Token tok = advance_();
+          cation_str += std::string(tok.text);
+        }
+        expect_(ProFormaTokenizer::TokenType::RBRACKET, "']' for cation charge");
+        cation_str += "]";
+      }
+
+      nm.name = "Cation:" + cation_str;
+      return nm;
     }
     else if (id == "Obs")
     {
@@ -755,17 +840,71 @@ namespace OpenMS
     NamedMod nm;
     nm.cv_hint = std::nullopt;
 
-    ProFormaTokenizer::Token tok = expect_(ProFormaTokenizer::TokenType::IDENTIFIER, "modification name");
-    nm.name = String(tok.text);
+    // Named mods can contain letters, numbers, and certain characters
+    // E.g., TMT6plex, iTRAQ4plex, half cystine, L-methionine sulfoxide
+    // Tokenizer splits at letter/digit boundaries, so we concatenate tokens
+    std::string name;
 
+    while (!isAtEnd_())
+    {
+      ProFormaTokenizer::Token tok = current_();
+
+      if (tok.type == ProFormaTokenizer::TokenType::IDENTIFIER)
+      {
+        name += std::string(tok.text);
+        advance_();
+      }
+      else if (tok.type == ProFormaTokenizer::TokenType::NUMBER)
+      {
+        name += std::string(tok.text);
+        advance_();
+      }
+      else if (tok.type == ProFormaTokenizer::TokenType::MINUS)
+      {
+        // Hyphens can be part of names like "L-methionine" or "a-type-ion"
+        // But we need to be careful - hyphens at end might be structural
+        // Peek ahead to see if next token is part of the name
+        ProFormaTokenizer lookahead = tokenizer_;
+        ProFormaTokenizer::Token next = lookahead.peek();
+        if (next.type == ProFormaTokenizer::TokenType::IDENTIFIER ||
+            next.type == ProFormaTokenizer::TokenType::NUMBER)
+        {
+          name += "-";
+          advance_();
+        }
+        else
+        {
+          break;
+        }
+      }
+      else if (tok.text == " ")
+      {
+        // Space can be part of names like "half cystine"
+        // but we can't see spaces in the tokenizer - they're not tokenized
+        break;
+      }
+      else
+      {
+        break;
+      }
+    }
+
+    if (name.empty())
+    {
+      error_(ProFormaErrorCode::UNEXPECTED_CHARACTER, "Expected modification name");
+    }
+
+    nm.name = String(name);
     return nm;
   }
 
   // Helper overload for when we already know the CV hint
   NamedMod ProFormaParser::parseNamedMod_(char cv_hint)
   {
-    NamedMod nm;
+    // Parse the name using the same logic as the no-hint version
+    NamedMod nm = parseNamedMod_();
 
+    // Set the CV hint
     switch (cv_hint)
     {
       case 'U': nm.cv_hint = CvDatabase::UNIMOD; break;
@@ -774,9 +913,6 @@ namespace OpenMS
       case 'X': nm.cv_hint = CvDatabase::XLMOD; break;
       case 'G': nm.cv_hint = CvDatabase::GNO; break;
     }
-
-    ProFormaTokenizer::Token tok = expect_(ProFormaTokenizer::TokenType::IDENTIFIER, "modification name");
-    nm.name = String(tok.text);
 
     return nm;
   }
@@ -816,11 +952,11 @@ namespace OpenMS
 
     expect_(ProFormaTokenizer::TokenType::COLON, "':' after CV prefix");
 
-    // GNO accessions can be alphanumeric (e.g., G59626AS)
-    // Other accessions are numeric
-    if (cv.database == CvDatabase::GNO)
+    // GNO and RESID accessions can be alphanumeric (e.g., G59626AS, AA0581)
+    // UNIMOD, MOD, XLMOD accessions are numeric
+    if (cv.database == CvDatabase::GNO || cv.database == CvDatabase::RESID)
     {
-      // Parse GNO accession which may have letters and numbers
+      // Parse alphanumeric accession (letters and numbers)
       std::string accession;
       while (!isAtEnd_())
       {
@@ -838,7 +974,7 @@ namespace OpenMS
       }
       if (accession.empty())
       {
-        error_(ProFormaErrorCode::INVALID_CV_ACCESSION, "Expected GNO accession");
+        error_(ProFormaErrorCode::INVALID_CV_ACCESSION, "Expected accession");
       }
       cv.accession = accession;
     }
@@ -903,9 +1039,11 @@ namespace OpenMS
   {
     FormulaTag ft;
 
-    // Parse formula string: can contain letters, numbers, and parentheses
-    // We'll collect tokens until we hit something that's not part of a formula
+    // Parse formula string: can contain letters, numbers, parentheses, and
+    // square brackets for isotope notation like [13C2][12C-2]H2N
+    // Also handles minus sign inside brackets for negative counts
     std::string formula;
+    int bracket_depth = 0;  // Track square bracket depth for isotope notation
 
     while (!isAtEnd_())
     {
@@ -930,6 +1068,48 @@ namespace OpenMS
       {
         formula += ")";
         advance_();
+      }
+      else if (tok.type == ProFormaTokenizer::TokenType::LBRACKET)
+      {
+        // Square bracket for isotope notation like [13C2]
+        formula += "[";
+        bracket_depth++;
+        advance_();
+      }
+      else if (tok.type == ProFormaTokenizer::TokenType::RBRACKET)
+      {
+        if (bracket_depth > 0)
+        {
+          // Closing isotope bracket
+          formula += "]";
+          bracket_depth--;
+          advance_();
+        }
+        else
+        {
+          // This is the closing bracket of the modification, not part of formula
+          break;
+        }
+      }
+      else if (tok.type == ProFormaTokenizer::TokenType::MINUS)
+      {
+        // Minus can be:
+        // 1. Inside isotope bracket for negative counts like [12C-2]
+        // 2. Outside brackets for negative element counts like H-1C-1O-2
+        // Peek ahead to see if followed by a number
+        ProFormaTokenizer lookahead = tokenizer_;
+        ProFormaTokenizer::Token next = lookahead.peek();
+        if (bracket_depth > 0 || next.type == ProFormaTokenizer::TokenType::NUMBER)
+        {
+          // Minus is part of the formula
+          formula += "-";
+          advance_();
+        }
+        else
+        {
+          // Minus not part of formula (e.g., C-terminal delimiter)
+          break;
+        }
       }
       else if (tok.type == ProFormaTokenizer::TokenType::COLON)
       {
@@ -1048,8 +1228,37 @@ namespace OpenMS
 
     expect_(ProFormaTokenizer::TokenType::HASH, "'#'");
 
-    ProFormaTokenizer::Token id = expect_(ProFormaTokenizer::TokenType::IDENTIFIER, "label identifier");
-    label.identifier = String(id.text);
+    // Labels can be alphanumeric (XL1, g1, s1) or just identifiers (BRANCH)
+    // Tokenizer splits at letter/digit boundaries, so we need to combine tokens
+    // E.g., "XL1" becomes IDENTIFIER("XL") + NUMBER("1")
+    // Also handle pure numeric labels like "#1" for ambiguous modifications
+
+    std::string label_str;
+
+    if (check_(ProFormaTokenizer::TokenType::IDENTIFIER))
+    {
+      ProFormaTokenizer::Token id = advance_();
+      label_str = std::string(id.text);
+
+      // Check if followed by a number (e.g., XL1, g1)
+      if (check_(ProFormaTokenizer::TokenType::NUMBER))
+      {
+        ProFormaTokenizer::Token num = advance_();
+        label_str += std::string(num.text);
+      }
+    }
+    else if (check_(ProFormaTokenizer::TokenType::NUMBER))
+    {
+      // Pure numeric label (e.g., #1, #2)
+      ProFormaTokenizer::Token num = advance_();
+      label_str = std::string(num.text);
+    }
+    else
+    {
+      error_(ProFormaErrorCode::UNEXPECTED_CHARACTER, "Expected label identifier");
+    }
+
+    label.identifier = String(label_str);
 
     // Determine label type based on identifier
     if (label.identifier == "BRANCH")

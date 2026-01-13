@@ -68,7 +68,7 @@ namespace OpenMS
     position_(error_position)
   {
     extractContext_(input, error_position);
-    GlobalExceptionHandler::getInstance().setMessage(what());
+    Exception::GlobalExceptionHandler::getInstance().setMessage(what());
   }
 
   void ProFormaParseError::extractContext_(const String& input, size_t pos)
