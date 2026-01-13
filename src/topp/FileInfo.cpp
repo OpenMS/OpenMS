@@ -984,8 +984,13 @@ protected:
         size_t len_min = sequence_lengths.front();
         size_t len_max = sequence_lengths.back();
         double len_median = Math::median(sequence_lengths.begin(), sequence_lengths.end(), true);
-        double len_q1 = Math::quantile1st(sequence_lengths.begin(), sequence_lengths.end(), true);
-        double len_q3 = Math::quantile3rd(sequence_lengths.begin(), sequence_lengths.end(), true);
+        double len_q1 = static_cast<double>(len_min);
+        double len_q3 = static_cast<double>(len_max);
+        if (sequence_lengths.size() >= 3)
+        {
+          len_q1 = Math::quantile1st(sequence_lengths.begin(), sequence_lengths.end(), true);
+          len_q3 = Math::quantile3rd(sequence_lengths.begin(), sequence_lengths.end(), true);
+        }
 
         os << "Sequence length distribution:\n";
         os << "  Minimum : " << len_min << '\n';

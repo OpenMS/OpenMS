@@ -469,13 +469,13 @@ namespace OpenMS
       }
     }
 
-    if (!indices_to_keep.empty())
-    {
-      picked_spectrum.select(indices_to_keep);
-    }
-    else // otherwise output an empty picked_spectrum
+    if (indices_to_keep.empty()) // otherwise output an empty picked_spectrum
     {
       picked_spectrum.clear(true);
+    }
+    else if (indices_to_keep.size() != picked_spectrum.size())
+    {
+      picked_spectrum.select(indices_to_keep);
     }
 
     OPENMS_LOG_DEBUG << "pickSpectrum(): " << spectrum.getName() << " (input size: " <<
