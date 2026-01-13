@@ -1,0 +1,16 @@
+# ProForma modGlobal positive test cases
+# Extracted from HUPO-PSI/ProForma grammar/test.toml
+# Last synced: 2026-01-13
+# Upstream commit: 1859bf10 (2025-07-11)
+#
+# Total test cases: 6
+#
+# Format: One ProForma string per line
+# Lines starting with '#' are comments
+#
+<[TMT6plex]@K,N-term>
+<[TMT6plex]@K,N-terM>
+<[TMT6plex]@K,n-terM>
+<[TMT6plex]@K,n-tErM>
+<[TMT6plex]@K,N-term:A>
+<[TMT6plex]@K,N-term:A,N-term:B>

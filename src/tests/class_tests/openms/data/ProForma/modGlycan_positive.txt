@@ -1,0 +1,13 @@
+# ProForma modGlycan positive test cases
+# Extracted from HUPO-PSI/ProForma grammar/test.toml
+# Last synced: 2026-01-13
+# Upstream commit: 1859bf10 (2025-07-11)
+#
+# Total test cases: 3
+#
+# Format: One ProForma string per line
+# Lines starting with '#' are comments
+#
+Glycan:Hex2HexNAc
+Glycan:{C8H14N1O5:z+1}1Hex2
+Glycan:{C8H13[15N1]O5}1Hex2

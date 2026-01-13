@@ -1,0 +1,14 @@
+# ProForma adductIon negative test cases
+# Extracted from HUPO-PSI/ProForma grammar/test.toml
+# Last synced: 2026-01-13
+# Upstream commit: 1859bf10 (2025-07-11)
+#
+# Total test cases: 4
+#
+# Format: One ProForma string per line
+# Lines starting with '#' are comments
+#
+Na:z--1
+Na
+Naz+1
+Na^1
