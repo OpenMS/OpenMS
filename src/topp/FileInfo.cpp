@@ -2276,7 +2276,7 @@ protected:
 
     if (out.empty())
     {
-      os_filt.push(OpenMS_Log_info);
+      os_filt.push(getGlobalLogInfo());
     }
     else
     {

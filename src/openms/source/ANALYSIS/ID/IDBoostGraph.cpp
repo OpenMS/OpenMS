@@ -1142,7 +1142,7 @@ namespace OpenMS
           "No connected components annotated. Run computeConnectedComponents first!");
     }
 
-    #pragma omp parallel for schedule(dynamic) default(none) shared(chargeRange, OpenMS_Log_info)
+    #pragma omp parallel for schedule(dynamic) default(none) shared(chargeRange)
     for (int i = 0; i < static_cast<int>(ccs_.size()); i += 1)
     {
       Graph& curr_cc = ccs_[i];
