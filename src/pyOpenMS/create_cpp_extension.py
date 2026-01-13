@@ -222,5 +222,5 @@ if __name__ == '__main__':
 
   # create version and dependency information in a single file
   with open("pyopenms/_dependency_version_info.py", "w") as f:
-          f.write(f"openms_version = {repr(OPEN_MS_VERSION)}\n")
-          f.write(f"qt_version = {repr(QT_QMAKE_VERSION_INFO)}\n")
+    f.write(f"openms_version = {OPEN_MS_VERSION!r}\n")
+    f.write(f"qt_version = {QT_QMAKE_VERSION_INFO!r}\n")
