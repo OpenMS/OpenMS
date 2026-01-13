@@ -1020,7 +1020,7 @@ namespace OpenMS
               "Error, did not find chromatogram for transition " + transition->getNativeID() );
         }
 
-        // Convert chromatogram to MSChromatogram and filter
+        // Convert chromatogram to MSChromatogram and filter (properly handles DataArrays via select())
         auto chromatogram = ms2_chromatograms[ chromatogram_map[transition->getNativeID()] ];
         chromatogram.setNativeID(transition->getNativeID());
         if (rt_extraction_window > 0)
@@ -1028,10 +1028,20 @@ namespace OpenMS
           double de_normalized_experimental_rt = trafo_inv.apply(expected_rt);
           double rt_max = de_normalized_experimental_rt + rt_extraction_window;
           double rt_min = de_normalized_experimental_rt - rt_extraction_window;
-          chromatogram.erase(std::remove_if(chromatogram.begin(), chromatogram.end(),
-                                            [rt_min, rt_max](const ChromatogramPeak& chr)
-                                            { return chr.getRT() > rt_max || chr.getRT() < rt_min; })
-                             , chromatogram.end());
+          std::vector<Size> indices_to_keep;
+          indices_to_keep.reserve(chromatogram.size());
+          for (Size i = 0; i < chromatogram.size(); ++i)
+          {
+            double rt = chromatogram[i].getRT();
+            if (rt >= rt_min && rt <= rt_max)
+            {
+              indices_to_keep.push_back(i);
+            }
+          }
+          if (indices_to_keep.size() != chromatogram.size())
+          {
+            chromatogram.select(indices_to_keep);
+          }
         }
 
         // Add the transition and the chromatogram to the MRMTransitionGroup
