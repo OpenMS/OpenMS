@@ -424,16 +424,17 @@ QT_QMAKE_VERSION_INFO = '''${QT_QMAKE_VERSION_INFO}'''
     # Define common dependencies to copy
     set(PYOPENMS_DEPENDENCIES OpenMS OpenSwathAlgo)
     
+    # Step 1: Copy main OpenMS libraries (all platforms)
+    add_custom_target(pyopenms_copy_deps ALL
+      COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:OpenMS> "${PYOPENMS_BUILD_DIR}/pyopenms/"
+      COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:OpenSwathAlgo> "${PYOPENMS_BUILD_DIR}/pyopenms/"
+      COMMENT "Copying OpenMS dependencies to build dir"
+    )
+    add_dependencies(pyopenms_copy_deps pyopenms_compile)
+    
+    # Step 2: Platform-specific transitive dependency handling
     if(APPLE)
-      # macOS: Copy dependencies to build dir first
-      add_custom_target(pyopenms_copy_deps ALL
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:OpenMS> "${PYOPENMS_BUILD_DIR}/pyopenms/"
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:OpenSwathAlgo> "${PYOPENMS_BUILD_DIR}/pyopenms/"
-        COMMENT "Copying OpenMS dependencies to build dir"
-      )
-      add_dependencies(pyopenms_copy_deps pyopenms_compile)
-      
-      # Fix dependencies and codesign after copying
+      # macOS: Fix dependencies and codesign after copying
       add_custom_target(pyopenms_fix_deps ALL
         COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/../../cmake/MacOSX/fix_dependencies.rb -l "${PYOPENMS_BUILD_DIR}/pyopenms" -e "@rpath/" -f -v
         COMMAND codesign --force --sign - ${PYOPENMS_BUILD_DIR}/pyopenms/Qt* || true
@@ -442,15 +443,12 @@ QT_QMAKE_VERSION_INFO = '''${QT_QMAKE_VERSION_INFO}'''
       )
       add_dependencies(pyopenms_fix_deps pyopenms_copy_deps)
     else()
-      # Linux/Windows: Use cmake script to recursively copy dependencies
-      add_custom_target(pyopenms_copy_deps ALL)
-      add_dependencies(pyopenms_copy_deps pyopenms_compile)
-      
+      # Linux/Windows: Copy transitive dependencies (Qt, contrib libs, etc.)
       foreach(PYOPENMS_DEPENDENCY ${PYOPENMS_DEPENDENCIES})
         add_custom_command(
           TARGET pyopenms_copy_deps POST_BUILD
           COMMAND ${CMAKE_COMMAND} -DDEPS="$<TARGET_FILE:${PYOPENMS_DEPENDENCY}>" -DTARGET="${PYOPENMS_BUILD_DIR}/pyopenms/" -DLOOKUP_DIRS="${OPENMS_CONTRIB_LIBS}/lib\;${OPENMS_CONTRIB_LIBS}/lib64\;${QT_INSTALL_BINS}\;${QT_INSTALL_LIBS}" -P ${PROJECT_SOURCE_DIR}/pyopenms_copy_deps.cmake
-          COMMENT "Copying ${PYOPENMS_DEPENDENCY} and dependencies"
+          COMMENT "Copying ${PYOPENMS_DEPENDENCY} transitive dependencies"
         )
       endforeach()
       
