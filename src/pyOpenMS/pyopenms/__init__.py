@@ -21,24 +21,18 @@ Please cite:
     Proteomics. 2014 Jan;14(1):74-7. doi: 10.1002/pmic.201300246.
 
 """
-from __future__ import print_function
-
+import os
+import sys
 import warnings
 
 from ._sysinfo import *  # pylint: disable=wildcard-import; lgtm(py/polluting-import)
 
 try:
-    # Import version from the generated _version.py (old way via CMake/autowrap)
-    from ._version import version as __version__
-except ImportError:
-    # Fallback for source-tree imports before CMake/autowrap generates _version.py
-    try:
-        import importlib.metadata
-        __version__ = importlib.metadata.version("pyopenms")
-    except Exception:
-        __version__ = "0+unknown"
+    import importlib.metadata
+    __version__ = importlib.metadata.version("pyopenms")
+except Exception:
+    __version__ = "0+unknown"
 
-import os
 here = os.path.abspath(os.path.dirname(__file__))
 
 default_openms_data_path = os.path.join(here, "share", "OpenMS")
@@ -62,7 +56,8 @@ else:
             "Some functionality might not work as expected."
         )
 
-import sys
+
+
 # on conda the libs will be installed to the general conda lib path which is available during load.
 # try to skip this loading if we do not ship the libraries in the package (e.g. as wheel via pip)
 # TODO check if this can be completely removed by now or e.g. by baking in an RPATH into the pyopenms*.so's
@@ -76,10 +71,10 @@ if sys.platform.startswith("linux") and os.path.exists(os.path.join(here, "libOp
 
 try:
     from ._all_modules import *  # pylint: disable=wildcard-import; lgtm(py/polluting-import)
-    from ._python_extras import *  # pylint: disable=wildcard-import; lgtm(py/polluting-import)
     # This has to be imported after all_modules so it can augment the core datastructures with dataframe
     # export capabilities
     from ._dataframes import *  # pylint: disable=wildcard-import; lgtm(py/polluting-import)
+    from ._python_extras import *  # pylint: disable=wildcard-import; lgtm(py/polluting-import)
 except Exception as e:
     print(f"""
 ======================================================================
