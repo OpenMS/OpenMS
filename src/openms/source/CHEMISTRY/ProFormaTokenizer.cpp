@@ -266,14 +266,6 @@ namespace OpenMS
     return Token{TokenType::IDENTIFIER, input_.substr(start_pos, length), start_pos};
   }
 
-  void ProFormaTokenizer::skipWhitespace_()
-  {
-    while (!isAtEnd_() && isWhitespace_(current_()))
-    {
-      advance_();
-    }
-  }
-
   bool ProFormaTokenizer::isAtEnd_() const
   {
     return pos_ >= input_.size();

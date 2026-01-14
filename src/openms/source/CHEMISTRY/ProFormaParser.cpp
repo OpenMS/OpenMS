@@ -411,7 +411,14 @@ namespace OpenMS
       if (match_(ProFormaTokenizer::TokenType::CARET))
       {
         ProFormaTokenizer::Token num = expect_(ProFormaTokenizer::TokenType::NUMBER, "occurrence count");
-        um.occurrence = std::stoi(std::string(num.text));
+        try
+        {
+          um.occurrence = std::stoi(std::string(num.text));
+        }
+        catch (const std::exception&)
+        {
+          errorAt_(ProFormaErrorCode::INVALID_MASS_VALUE, num.position, "Invalid occurrence count");
+        }
       }
 
       expect_(ProFormaTokenizer::TokenType::QUESTION, "'?' for unlocalised modification");
@@ -1139,7 +1146,14 @@ namespace OpenMS
           }
 
           ProFormaTokenizer::Token num = expect_(ProFormaTokenizer::TokenType::NUMBER, "charge value");
-          ft.charge = sign * std::stoi(std::string(num.text));
+          try
+          {
+            ft.charge = sign * std::stoi(std::string(num.text));
+          }
+          catch (const std::exception&)
+          {
+            errorAt_(ProFormaErrorCode::INVALID_CHARGE, num.position, "Invalid charge value");
+          }
           break;
         }
         else
@@ -1185,7 +1199,14 @@ namespace OpenMS
       if (check_(ProFormaTokenizer::TokenType::NUMBER))
       {
         ProFormaTokenizer::Token num = advance_();
-        count = std::stoi(std::string(num.text));
+        try
+        {
+          count = std::stoi(std::string(num.text));
+        }
+        catch (const std::exception&)
+        {
+          errorAt_(ProFormaErrorCode::INVALID_MASS_VALUE, num.position, "Invalid monosaccharide count");
+        }
       }
 
       gc.components.emplace_back(String(mono_name), count);
@@ -1283,7 +1304,14 @@ namespace OpenMS
     if (match_(ProFormaTokenizer::TokenType::LPAREN))
     {
       ProFormaTokenizer::Token score_tok = expect_(ProFormaTokenizer::TokenType::NUMBER, "score value");
-      label.score = std::stod(std::string(score_tok.text));
+      try
+      {
+        label.score = std::stod(std::string(score_tok.text));
+      }
+      catch (const std::exception&)
+      {
+        errorAt_(ProFormaErrorCode::INVALID_MASS_VALUE, score_tok.position, "Invalid score value");
+      }
       expect_(ProFormaTokenizer::TokenType::RPAREN, "')'");
     }
 
@@ -1325,7 +1353,15 @@ namespace OpenMS
 
       if (tok.type == ProFormaTokenizer::TokenType::NUMBER)
       {
-        int charge = sign * std::stoi(std::string(tok.text));
+        int charge;
+        try
+        {
+          charge = sign * std::stoi(std::string(tok.text));
+        }
+        catch (const std::exception&)
+        {
+          errorAt_(ProFormaErrorCode::INVALID_CHARGE, tok.position, "Invalid charge value");
+        }
         advance_();
         return charge;
       }
@@ -1378,14 +1414,28 @@ namespace OpenMS
       sign = -1;
     }
 
-    ProFormaTokenizer::Token charge = expect_(ProFormaTokenizer::TokenType::NUMBER, "charge value");
-    adduct.charge = sign * std::stoi(std::string(charge.text));
+    ProFormaTokenizer::Token charge_tok = expect_(ProFormaTokenizer::TokenType::NUMBER, "charge value");
+    try
+    {
+      adduct.charge = sign * std::stoi(std::string(charge_tok.text));
+    }
+    catch (const std::exception&)
+    {
+      errorAt_(ProFormaErrorCode::INVALID_CHARGE, charge_tok.position, "Invalid adduct charge value");
+    }
 
     // Check for occurrence ^N
     if (match_(ProFormaTokenizer::TokenType::CARET))
     {
       ProFormaTokenizer::Token occ = expect_(ProFormaTokenizer::TokenType::NUMBER, "occurrence count");
-      adduct.occurrence = std::stoi(std::string(occ.text));
+      try
+      {
+        adduct.occurrence = std::stoi(std::string(occ.text));
+      }
+      catch (const std::exception&)
+      {
+        errorAt_(ProFormaErrorCode::INVALID_MASS_VALUE, occ.position, "Invalid adduct occurrence count");
+      }
     }
 
     return adduct;

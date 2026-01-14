@@ -252,11 +252,8 @@ namespace OpenMS
           }
         }
       }, component.first);
-      // Only write count if > 1
-      if (component.second != 1)
-      {
-        os << component.second;
-      }
+      // ProForma v2 spec requires explicit counts for all monosaccharides
+      os << component.second;
     }
   }
 

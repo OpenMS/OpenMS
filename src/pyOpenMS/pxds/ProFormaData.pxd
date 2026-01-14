@@ -138,6 +138,12 @@ cdef extern from "<OpenMS/CHEMISTRY/ProFormaData.h>" namespace "OpenMS":
         #   Represents a complete peptide chain including global modifications,
         #   unlocalised modifications, labile modifications, terminal modifications,
         #   and the amino acid sequence with modifications.
+        #
+        #   Note: The following fields are intentionally not exposed and should be
+        #   accessed via the ProForma parser/writer API functions:
+        #   - name: optional peptidoform name (v2.1 extension)
+        #   - sequence: the amino acid sequence with modifications (complex type)
+        #   - global_mods: global modifications like isotope labels (complex type)
         Peptidoform() except + nogil
         Peptidoform(Peptidoform &) except + nogil
         libcpp_vector[UnlocalisedMod] unlocalised_mods
@@ -148,6 +154,11 @@ cdef extern from "<OpenMS/CHEMISTRY/ProFormaData.h>" namespace "OpenMS":
     cdef cppclass PeptidoformIon "OpenMS::PeptidoformIon":
         # wrap-doc:
         #   A peptidoform ion (one or more chains with optional charge)
+        #
+        #   Note: The following fields are intentionally not exposed and should be
+        #   accessed via the ProForma parser/writer API functions:
+        #   - name: optional ion name (v2.1 extension)
+        #   - charge: charge state specification (complex variant type)
         PeptidoformIon() except + nogil
         PeptidoformIon(PeptidoformIon &) except + nogil
         libcpp_vector[Peptidoform] chains

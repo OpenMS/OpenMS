@@ -30,8 +30,8 @@ namespace OpenMS
     - Identifiers: letter sequences (e.g., "UNIMOD", "Oxidation", "PEPTIDE")
     - End of input marker
 
-    @note The tokenizer does not skip whitespace by default. Call skipWhitespace()
-          explicitly if whitespace should be ignored in a particular parsing context.
+    @note The tokenizer does not skip whitespace - ProForma strings should not contain
+          whitespace according to the specification.
 
     @note The input string must remain valid for the lifetime of the tokenizer
           since tokens reference slices of the input.
@@ -185,9 +185,6 @@ namespace OpenMS
 
     /// Scan an identifier token (letter sequence)
     Token scanIdentifier_();
-
-    /// Skip whitespace characters
-    void skipWhitespace_();
 
     /// Check if we have reached the end of input
     bool isAtEnd_() const;
