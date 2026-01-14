@@ -110,6 +110,26 @@ protected:
       @return An isotope correction matrix as Matrix<double>.
     */
     Matrix<double> stringListToIsotopeCorrectionMatrix_(const std::vector<String>& stringlist) const;
+
+    /**
+      @brief Helper function to update channel descriptions from parameters.
+
+      Iterates through all channels and updates their descriptions from the corresponding
+      parameter values (channel_<name>_description).
+
+      @param[in,out] channels The channel list to update.
+    */
+    void updateChannelDescriptions_(IsobaricChannelList& channels) const;
+
+    /**
+      @brief Helper function to set default channel description parameters.
+
+      Creates parameter entries for all channel descriptions in the format
+      "channel_<name>_description".
+
+      @param[in] channels The channel list containing channel names.
+    */
+    void setDefaultChannelDescriptions_(const IsobaricChannelList& channels);
   };
 } // namespace
 

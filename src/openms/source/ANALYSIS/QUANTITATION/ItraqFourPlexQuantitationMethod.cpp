@@ -35,10 +35,7 @@ namespace OpenMS
 
   void ItraqFourPlexQuantitationMethod::setDefaultParams_()
   {
-    defaults_.setValue("channel_114_description", "", "Description for the content of the 114 channel.");
-    defaults_.setValue("channel_115_description", "", "Description for the content of the 115 channel.");
-    defaults_.setValue("channel_116_description", "", "Description for the content of the 116 channel.");
-    defaults_.setValue("channel_117_description", "", "Description for the content of the 117 channel.");
+    setDefaultChannelDescriptions_(channels_);
     defaults_.setValue("reference_channel", 114, "Number of the reference channel (114-117).");
     defaults_.setMinInt("reference_channel", 114);
     defaults_.setMaxInt("reference_channel", 117);
@@ -58,10 +55,7 @@ namespace OpenMS
 
   void ItraqFourPlexQuantitationMethod::updateMembers_()
   {
-    channels_[0].description = param_.getValue("channel_114_description").toString();
-    channels_[1].description = param_.getValue("channel_115_description").toString();
-    channels_[2].description = param_.getValue("channel_116_description").toString();
-    channels_[3].description = param_.getValue("channel_117_description").toString();
+    updateChannelDescriptions_(channels_);
 
     // compute the index of the reference channel
     reference_channel_ = ((Int) param_.getValue("reference_channel")) - 114;

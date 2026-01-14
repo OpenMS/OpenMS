@@ -62,14 +62,7 @@ namespace OpenMS
 
   void ItraqEightPlexQuantitationMethod::setDefaultParams_()
   {
-    defaults_.setValue("channel_113_description", "", "Description for the content of the 113 channel.");
-    defaults_.setValue("channel_114_description", "", "Description for the content of the 114 channel.");
-    defaults_.setValue("channel_115_description", "", "Description for the content of the 115 channel.");
-    defaults_.setValue("channel_116_description", "", "Description for the content of the 116 channel.");
-    defaults_.setValue("channel_117_description", "", "Description for the content of the 117 channel.");
-    defaults_.setValue("channel_118_description", "", "Description for the content of the 118 channel.");
-    defaults_.setValue("channel_119_description", "", "Description for the content of the 119 channel.");
-    defaults_.setValue("channel_121_description", "", "Description for the content of the 121 channel.");
+    setDefaultChannelDescriptions_(channels_);
     defaults_.setValue("reference_channel", 113, "Number of the reference channel (113-121). Please note that 120 is not valid.");
     defaults_.setMinInt("reference_channel", 113);
     defaults_.setMaxInt("reference_channel", 121);
@@ -97,14 +90,7 @@ namespace OpenMS
 
   void ItraqEightPlexQuantitationMethod::updateMembers_()
   {
-    channels_[0].description = param_.getValue("channel_113_description").toString();
-    channels_[1].description = param_.getValue("channel_114_description").toString();
-    channels_[2].description = param_.getValue("channel_115_description").toString();
-    channels_[3].description = param_.getValue("channel_116_description").toString();
-    channels_[4].description = param_.getValue("channel_117_description").toString();
-    channels_[5].description = param_.getValue("channel_118_description").toString();
-    channels_[6].description = param_.getValue("channel_119_description").toString();
-    channels_[7].description = param_.getValue("channel_121_description").toString();
+    updateChannelDescriptions_(channels_);
 
     // compute the index of the reference channel
     Int ref_ch = param_.getValue("reference_channel");

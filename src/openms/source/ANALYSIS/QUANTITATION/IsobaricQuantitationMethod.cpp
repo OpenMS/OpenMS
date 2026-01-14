@@ -87,4 +87,23 @@ namespace OpenMS
     return channel_frequency;
   }
 
+  void IsobaricQuantitationMethod::updateChannelDescriptions_(IsobaricChannelList& channels) const
+  {
+    for (Size i = 0; i < channels.size(); ++i)
+    {
+      String param_name = "channel_" + channels[i].name + "_description";
+      channels[i].description = param_.getValue(param_name).toString();
+    }
+  }
+
+  void IsobaricQuantitationMethod::setDefaultChannelDescriptions_(const IsobaricChannelList& channels)
+  {
+    for (const auto& channel : channels)
+    {
+      String param_name = "channel_" + channel.name + "_description";
+      String description = "Description for the content of the " + channel.name + " channel.";
+      defaults_.setValue(param_name, "", description);
+    }
+  }
+
 } // namespace

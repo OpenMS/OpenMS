@@ -35,12 +35,7 @@ namespace OpenMS
 
   void TMTSixPlexQuantitationMethod::setDefaultParams_()
   {
-    defaults_.setValue("channel_126_description", "", "Description for the content of the 126 channel.");
-    defaults_.setValue("channel_127_description", "", "Description for the content of the 127 channel.");
-    defaults_.setValue("channel_128_description", "", "Description for the content of the 128 channel.");
-    defaults_.setValue("channel_129_description", "", "Description for the content of the 129 channel.");
-    defaults_.setValue("channel_130_description", "", "Description for the content of the 130 channel.");
-    defaults_.setValue("channel_131_description", "", "Description for the content of the 131 channel.");
+    setDefaultChannelDescriptions_(channels_);
     defaults_.setValue("reference_channel", 126, "Number of the reference channel (126-131).");
     defaults_.setMinInt("reference_channel", 126);
     defaults_.setMaxInt("reference_channel", 131);
@@ -61,12 +56,7 @@ namespace OpenMS
 
   void TMTSixPlexQuantitationMethod::updateMembers_()
   {
-    channels_[0].description = param_.getValue("channel_126_description").toString();
-    channels_[1].description = param_.getValue("channel_127_description").toString();
-    channels_[2].description = param_.getValue("channel_128_description").toString();
-    channels_[3].description = param_.getValue("channel_129_description").toString();
-    channels_[4].description = param_.getValue("channel_130_description").toString();
-    channels_[5].description = param_.getValue("channel_131_description").toString();
+    updateChannelDescriptions_(channels_);
 
     // compute the index of the reference channel
     reference_channel_ = ((Int) param_.getValue("reference_channel")) - 126;

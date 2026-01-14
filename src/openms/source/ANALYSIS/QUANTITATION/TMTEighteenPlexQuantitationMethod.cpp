@@ -52,24 +52,7 @@ TMTEighteenPlexQuantitationMethod::TMTEighteenPlexQuantitationMethod()
 
 void TMTEighteenPlexQuantitationMethod::setDefaultParams_()
 {
-    defaults_.setValue("channel_126_description", "", "Description for the content of the 126 channel.");
-    defaults_.setValue("channel_127N_description", "", "Description for the content of the 127N channel.");
-    defaults_.setValue("channel_127C_description", "", "Description for the content of the 127C channel.");
-    defaults_.setValue("channel_128N_description", "", "Description for the content of the 128N channel.");
-    defaults_.setValue("channel_128C_description", "", "Description for the content of the 128C channel.");
-    defaults_.setValue("channel_129N_description", "", "Description for the content of the 129N channel.");
-    defaults_.setValue("channel_129C_description", "", "Description for the content of the 129C channel.");
-    defaults_.setValue("channel_130N_description", "", "Description for the content of the 130N channel.");
-    defaults_.setValue("channel_130C_description", "", "Description for the content of the 130C channel.");
-    defaults_.setValue("channel_131N_description", "", "Description for the content of the 131N channel.");
-    defaults_.setValue("channel_131C_description", "", "Description for the content of the 131C channel.");
-    defaults_.setValue("channel_132N_description", "", "Description for the content of the 132N channel.");
-    defaults_.setValue("channel_132C_description", "", "Description for the content of the 132C channel.");
-    defaults_.setValue("channel_133N_description", "", "Description for the content of the 133N channel.");
-    defaults_.setValue("channel_133C_description", "", "Description for the content of the 133C channel.");
-    defaults_.setValue("channel_134N_description", "", "Description for the content of the 134N channel.");
-    defaults_.setValue("channel_134C_description", "", "Description for the content of the 134C channel.");
-    defaults_.setValue("channel_135N_description", "", "Description for the content of the 135N channel.");
+    setDefaultChannelDescriptions_(channels_);
 
     defaults_.setValue("reference_channel", "126", "The reference channel (126, 127N, 127C, 128N, 128C, 129N, 129C, 130N, 130C, 131N, 131C, 132N, 132C, 133N, 133C, 134N, 134C, 135N).");
     defaults_.setValidStrings("reference_channel", TMTEighteenPlexQuantitationMethod::channel_names_);
@@ -103,24 +86,7 @@ void TMTEighteenPlexQuantitationMethod::setDefaultParams_()
 
 void TMTEighteenPlexQuantitationMethod::updateMembers_()
 {
-    channels_[0].description = param_.getValue("channel_126_description").toString();
-    channels_[1].description = param_.getValue("channel_127N_description").toString();
-    channels_[2].description = param_.getValue("channel_127C_description").toString();
-    channels_[3].description = param_.getValue("channel_128N_description").toString();
-    channels_[4].description = param_.getValue("channel_128C_description").toString();
-    channels_[5].description = param_.getValue("channel_129N_description").toString();
-    channels_[6].description = param_.getValue("channel_129C_description").toString();
-    channels_[7].description = param_.getValue("channel_130N_description").toString();
-    channels_[8].description = param_.getValue("channel_130C_description").toString();
-    channels_[9].description = param_.getValue("channel_131N_description").toString();
-    channels_[10].description = param_.getValue("channel_131C_description").toString();
-    channels_[11].description = param_.getValue("channel_132N_description").toString();
-    channels_[12].description = param_.getValue("channel_132C_description").toString();
-    channels_[13].description = param_.getValue("channel_133N_description").toString();
-    channels_[14].description = param_.getValue("channel_133C_description").toString();
-    channels_[15].description = param_.getValue("channel_134N_description").toString();
-    channels_[16].description = param_.getValue("channel_134C_description").toString();
-    channels_[17].description = param_.getValue("channel_135N_description").toString();
+    updateChannelDescriptions_(channels_);
 
     // compute the index of the reference channel
     std::vector<std::string>::const_iterator t_it = std::find(TMTEighteenPlexQuantitationMethod::channel_names_.begin(),

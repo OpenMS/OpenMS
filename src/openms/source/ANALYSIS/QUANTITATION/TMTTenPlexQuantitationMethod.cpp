@@ -52,16 +52,7 @@ TMTTenPlexQuantitationMethod::TMTTenPlexQuantitationMethod()
 
 void TMTTenPlexQuantitationMethod::setDefaultParams_()
 {
-    defaults_.setValue("channel_126_description", "", "Description for the content of the 126 channel.");
-    defaults_.setValue("channel_127N_description", "", "Description for the content of the 127N channel.");
-    defaults_.setValue("channel_127C_description", "", "Description for the content of the 127C channel.");
-    defaults_.setValue("channel_128N_description", "", "Description for the content of the 128N channel.");
-    defaults_.setValue("channel_128C_description", "", "Description for the content of the 128C channel.");
-    defaults_.setValue("channel_129N_description", "", "Description for the content of the 129N channel.");
-    defaults_.setValue("channel_129C_description", "", "Description for the content of the 129C channel.");
-    defaults_.setValue("channel_130N_description", "", "Description for the content of the 130N channel.");
-    defaults_.setValue("channel_130C_description", "", "Description for the content of the 130C channel.");
-    defaults_.setValue("channel_131_description", "", "Description for the content of the 131 channel.");
+    setDefaultChannelDescriptions_(channels_);
 
     defaults_.setValue("reference_channel", "126", "The reference channel (126, 127N, 127C, 128N, 128C, 129N, 129C, 130N, 130C, 131).");
     defaults_.setValidStrings("reference_channel", TMTTenPlexQuantitationMethod::channel_names_);
@@ -83,16 +74,7 @@ void TMTTenPlexQuantitationMethod::setDefaultParams_()
 
 void TMTTenPlexQuantitationMethod::updateMembers_()
 {
-    channels_[0].description = param_.getValue("channel_126_description").toString();
-    channels_[1].description = param_.getValue("channel_127N_description").toString();
-    channels_[2].description = param_.getValue("channel_127C_description").toString();
-    channels_[3].description = param_.getValue("channel_128N_description").toString();
-    channels_[4].description = param_.getValue("channel_128C_description").toString();
-    channels_[5].description = param_.getValue("channel_129N_description").toString();
-    channels_[6].description = param_.getValue("channel_129C_description").toString();
-    channels_[7].description = param_.getValue("channel_130N_description").toString();
-    channels_[8].description = param_.getValue("channel_130C_description").toString();
-    channels_[9].description = param_.getValue("channel_131_description").toString();
+    updateChannelDescriptions_(channels_);
 
     // compute the index of the reference channel
     std::vector<std::string>::const_iterator t_it = std::find(TMTTenPlexQuantitationMethod::channel_names_.begin(),
