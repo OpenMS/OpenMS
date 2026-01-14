@@ -114,7 +114,8 @@ namespace OpenMS
     OPENMS_LOG_DEBUG << "Detected retention time range from " << RTRange.first << " to " << RTRange.second << '\n';
 
     // 2. Store the peptide retention times in an intermediate map
-    std::map<OpenMS::String, double> PeptideRTMap;
+    std::unordered_map<OpenMS::String, double> PeptideRTMap;
+    PeptideRTMap.reserve(targeted_exp.getCompounds().size());
     for (Size i = 0; i < targeted_exp.getCompounds().size(); i++)
     {
       PeptideRTMap[targeted_exp.getCompounds()[i].id] = targeted_exp.getCompounds()[i].rt;
@@ -172,9 +173,10 @@ namespace OpenMS
     for (std::map<std::string, double>::iterator it = best_features.begin(); it != best_features.end(); ++it)
     {
       pairs.emplace_back(it->second, PeptideRTMap[it->first]); // pair<exp_rt, theor_rt>
-      if (transition_group_map.find(it->first) != transition_group_map.end())
+      auto tg_it = transition_group_map.find(it->first);
+      if (tg_it != transition_group_map.end())
       {
-        trgrmap_allpeaks[ it->first ] = &transition_group_map[ it->first];
+        trgrmap_allpeaks[it->first] = &tg_it->second;
       }
     }
 
@@ -950,7 +952,6 @@ namespace OpenMS
     featureFinder.setParameters(feature_finder_param);
     featureFinder.prepareProteinPeptideMaps_(transition_exp);
 
-    // Map ms1 chromatogram id to sequence number (unordered for O(1) lookup)
     std::unordered_map<String, int> ms1_chromatogram_map;
     ms1_chromatogram_map.reserve(ms1_chromatograms.size());
     for (Size i = 0; i < ms1_chromatograms.size(); i++)
@@ -958,14 +959,12 @@ namespace OpenMS
       ms1_chromatogram_map[ms1_chromatograms[i].getNativeID()] = boost::numeric_cast<int>(i);
     }
 
-    // Map chromatogram id to sequence number (unordered for O(1) lookup)
     std::unordered_map<String, int> chromatogram_map;
     chromatogram_map.reserve(ms2_chromatograms.size());
     for (Size i = 0; i < ms2_chromatograms.size(); i++)
     {
       chromatogram_map[ms2_chromatograms[i].getNativeID()] = boost::numeric_cast<int>(i);
     }
-    // Map peptide id to sequence number (unordered for O(1) lookup)
     std::unordered_map<String, int> assay_peptide_map;
     assay_peptide_map.reserve(transition_exp.getCompounds().size());
     for (Size i = 0; i < transition_exp.getCompounds().size(); i++)
