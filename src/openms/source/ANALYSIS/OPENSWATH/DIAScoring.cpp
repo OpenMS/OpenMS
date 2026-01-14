@@ -102,7 +102,7 @@ namespace OpenMS
   {
     isotope_corr = 0;
     isotope_overlap = 0;
-    // first compute a map of relative intensities from the feature, then compute the score (unordered for O(1) lookup)
+    // first compute a map of relative intensities from the feature, then compute the score
     std::unordered_map<std::string, double> intensities;
     intensities.reserve(transitions.size());
     getFirstIsotopeRelativeIntensities_(transitions, mrmfeature, intensities);

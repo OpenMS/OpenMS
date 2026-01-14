@@ -107,7 +107,6 @@ namespace OpenMS
                                                   const bool ms1,
                                                   const int ms1_isotopes)
   {
-    // hash of the peptide reference containing all transitions (unordered for O(1) lookup)
     std::unordered_map<String, std::vector<const OpenSwath::LightTransition*> > pep2tr;
     for (Size i = 0; i < transition_exp_used.getTransitions().size(); i++)
     {
@@ -192,7 +191,6 @@ namespace OpenMS
                                                   const bool ms1,
                                                   const int ms1_isotopes)
   {
-    // hash of the peptide reference containing all transitions (unordered for O(1) lookup)
     typedef std::unordered_map<String, std::vector<const ReactionMonitoringTransition*> > PeptideTransitionMapType;
     PeptideTransitionMapType pep2tr;
     for (Size i = 0; i < transition_exp_used.getTransitions().size(); i++)

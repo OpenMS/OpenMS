@@ -113,7 +113,7 @@ namespace OpenMS
     std::pair<double,double> RTRange = OpenSwathHelper::estimateRTRange(targeted_exp);
     OPENMS_LOG_DEBUG << "Detected retention time range from " << RTRange.first << " to " << RTRange.second << '\n';
 
-    // 2. Store the peptide retention times in an intermediate map (unordered for O(1) lookup)
+    // 2. Store the peptide retention times in an intermediate map
     std::unordered_map<OpenMS::String, double> PeptideRTMap;
     PeptideRTMap.reserve(targeted_exp.getCompounds().size());
     for (Size i = 0; i < targeted_exp.getCompounds().size(); i++)
@@ -952,7 +952,6 @@ namespace OpenMS
     featureFinder.setParameters(feature_finder_param);
     featureFinder.prepareProteinPeptideMaps_(transition_exp);
 
-    // Map ms1 chromatogram id to sequence number (unordered for O(1) lookup)
     std::unordered_map<String, int> ms1_chromatogram_map;
     ms1_chromatogram_map.reserve(ms1_chromatograms.size());
     for (Size i = 0; i < ms1_chromatograms.size(); i++)
@@ -960,14 +959,12 @@ namespace OpenMS
       ms1_chromatogram_map[ms1_chromatograms[i].getNativeID()] = boost::numeric_cast<int>(i);
     }
 
-    // Map chromatogram id to sequence number (unordered for O(1) lookup)
     std::unordered_map<String, int> chromatogram_map;
     chromatogram_map.reserve(ms2_chromatograms.size());
     for (Size i = 0; i < ms2_chromatograms.size(); i++)
     {
       chromatogram_map[ms2_chromatograms[i].getNativeID()] = boost::numeric_cast<int>(i);
     }
-    // Map peptide id to sequence number (unordered for O(1) lookup)
     std::unordered_map<String, int> assay_peptide_map;
     assay_peptide_map.reserve(transition_exp.getCompounds().size());
     for (Size i = 0; i < transition_exp.getCompounds().size(); i++)
