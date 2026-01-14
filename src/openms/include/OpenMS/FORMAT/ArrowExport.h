@@ -104,6 +104,11 @@ struct OPENMS_DLLAPI ArrowSpectraExportConfig
 
 /**
   @brief Configuration for Arrow export of chromatogram data
+
+  Allows filtering by RT range and column selection.
+
+  @note When columns is empty, all available columns are exported.
+  @note RT ranges of (0, 0) indicate no filtering.
 */
 struct OPENMS_DLLAPI ArrowChromatogramExportConfig
 {
