@@ -287,7 +287,7 @@ def test_to_qpx():
 
 def test_to_qpx_with_params():
     """Test to_qpx Arrow export with parameters."""
-    pa = pytest.importorskip("pyarrow")
+    pytest.importorskip("pyarrow")
 
     pep_ids = create_test_data()
     table = pep_ids.to_qpx(export_all_hits=False)
@@ -297,7 +297,7 @@ def test_to_qpx_with_params():
 
 def test_to_qpx_with_reference_file():
     """Test to_qpx with reference_file_name parameter."""
-    pa = pytest.importorskip("pyarrow")
+    pytest.importorskip("pyarrow")
 
     pep_ids = create_test_data()
     table = pep_ids.to_qpx(reference_file_name="test.mzML")
