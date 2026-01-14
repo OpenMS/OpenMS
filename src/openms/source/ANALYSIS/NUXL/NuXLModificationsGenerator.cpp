@@ -128,12 +128,12 @@ NuXLModificationMassesResult NuXLModificationsGenerator::initModificationMassesN
 
     if (sit->second.size() == 1 && source == first_target) // trivial case e.g. A->A... no substitution needed
     {
-      map_source_to_targets.erase(sit++);
+      sit = map_source_to_targets.erase(sit);
     }
     else if (sit->second.size() == 1 && source != first_target) // simple rename e.g. A->X... simply substitute all in restriction sequence
     {
       sequence_restriction.substitute(source, first_target);
-      map_source_to_targets.erase(sit++);
+      sit = map_source_to_targets.erase(sit);
     }
     else // multiple targets
     {
@@ -429,11 +429,11 @@ NuXLModificationMassesResult NuXLModificationsGenerator::initModificationMassesN
     if (mcit->second.empty())
     {
       result.formula2mass.erase(mcit->first); // remove from mod masses
-      result.mod_combinations.erase(mcit++); // don't change precedence !
+      mcit = result.mod_combinations.erase(mcit);
     }
     else
     {
-      ++mcit;   // don't change precedence !
+      ++mcit;
     }
   }
 
