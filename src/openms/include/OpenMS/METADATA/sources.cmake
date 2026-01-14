@@ -29,6 +29,7 @@ MetaInfoDescription.h
 MetaInfoInterface.h
 MetaInfoInterfaceUtils.h
 MetaInfoRegistry.h
+SpectrumNativeIDParser.h
 PeptideEvidence.h
 PeptideHit.h
 PeptideIdentification.h

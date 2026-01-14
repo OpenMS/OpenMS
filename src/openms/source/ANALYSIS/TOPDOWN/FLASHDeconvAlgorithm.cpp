@@ -141,7 +141,7 @@ void FLASHDeconvAlgorithm::filterLowPeaks_(MSExperiment& map)
   {
     auto& it = map[i];
     if (it.empty()) continue;
-    Size count = it.getType(false) == SpectrumSettings::CENTROID ? max_peak_count_for_centroid_ : max_peak_count_for_profile_;
+    Size count = it.getType(false) == SpectrumSettings::SpectrumType::CENTROID ? max_peak_count_for_centroid_ : max_peak_count_for_profile_;
     it.sortByIntensity(true);
     double threshold = it.size() < count ? 0 : it[count].getIntensity();
     threshold = std::max(threshold, (double)it.begin()->getIntensity() / 1000);

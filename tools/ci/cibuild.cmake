@@ -93,18 +93,6 @@ if("$ENV{ENABLE_STYLE_TESTING}" STREQUAL "OFF")
     math(EXPR _build_errors "${_build_errors} + ${_py_build_errors}")
   endif()
 
-  # Only build compile_pxds if PYOPENMS is not ON (since it's already a subtarget of pyopenms)
-  if("$ENV{COMPILE_PXDS}" STREQUAL "ON" AND "$ENV{PYOPENMS}" STREQUAL "OFF")
-    ctest_build(BUILD "${CTEST_BINARY_DIRECTORY}" TARGET "compile_pxds" APPEND NUMBER_ERRORS _pdxs_build_errors)
-    ctest_submit(PARTS Build
-                 RETURN_VALUE _this_submit_ret
-                 CAPTURE_CMAKE_ERROR _this_submit_cmake_err)
-    if(NOT _this_submit_ret EQUAL 0 OR NOT _this_submit_cmake_err EQUAL 0)
-      set(_any_submit_failed 1)
-    endif()
-    math(EXPR _build_errors "${_build_errors} + ${_pdxs_build_errors}")
-  endif()
-
   # Generate and validate the CWL files if "ENABLE_CWL_GENERATION" is set
   if("$ENV{ENABLE_CWL_GENERATION}" STREQUAL "ON")
     ctest_build(BUILD "${CTEST_BINARY_DIRECTORY}" TARGET "generate_cwl_files" APPEND NUMBER_ERRORS _cwl_build_errors)

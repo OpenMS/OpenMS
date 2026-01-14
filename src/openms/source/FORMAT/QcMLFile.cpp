@@ -1266,7 +1266,7 @@ namespace OpenMS
       {
         for (Size t = 0; t < chroms.size(); ++t)
         {
-          if (chroms[t].getChromatogramType() == ChromatogramSettings::TOTAL_ION_CURRENT_CHROMATOGRAM)
+          if (chroms[t].getChromatogramType() == ChromatogramSettings::ChromatogramType::TOTAL_ION_CURRENT_CHROMATOGRAM)
           {
             for (Size i = 0; i < chroms[t].size(); ++i)
             {

@@ -107,8 +107,8 @@ namespace OpenMS
   StringList DataProcessing::getAllNamesOfProcessingAction()
   {
     StringList names;
-    names.reserve(SIZE_OF_PROCESSINGACTION);
-    for (size_t i = 0; i < SIZE_OF_PROCESSINGACTION; ++i)
+    names.reserve(static_cast<size_t>(ProcessingAction::SIZE_OF_PROCESSINGACTION));
+    for (size_t i = 0; i < static_cast<size_t>(ProcessingAction::SIZE_OF_PROCESSINGACTION); ++i)
     {
       names.push_back(NamesOfProcessingAction[i]);
     }
@@ -117,7 +117,7 @@ namespace OpenMS
 
   const std::string& DataProcessing::processingActionToString(ProcessingAction action)
   {
-    if (action == SIZE_OF_PROCESSINGACTION)
+    if (action == ProcessingAction::SIZE_OF_PROCESSINGACTION)
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value not allowed", "SIZE_OF_PROCESSINGACTION");
     }
@@ -127,7 +127,7 @@ namespace OpenMS
   DataProcessing::ProcessingAction DataProcessing::toProcessingAction(const std::string& name)
   {
     auto first = &NamesOfProcessingAction[0];
-    auto last = &NamesOfProcessingAction[SIZE_OF_PROCESSINGACTION];
+    auto last = &NamesOfProcessingAction[static_cast<size_t>(ProcessingAction::SIZE_OF_PROCESSINGACTION)];
     const auto it = std::find(first, last, name);
     if (it == last)
     {

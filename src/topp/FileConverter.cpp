@@ -473,7 +473,7 @@ protected:
       {
         for (auto & s : exp)
         {
-          s.getInstrumentSettings().setScanMode(InstrumentSettings::SRM);
+          s.getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::SRM);
         }
       }
 
