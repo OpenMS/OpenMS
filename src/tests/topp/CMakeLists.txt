@@ -472,6 +472,11 @@ add_test("TOPP_FileConverter_29_back" ${TOPP_BIN_PATH}/FileConverter -test -in $
 set_tests_properties("TOPP_FileConverter_29_out" PROPERTIES DEPENDS "TOPP_FileConverter_29")
 set_tests_properties("TOPP_FileConverter_29_back" PROPERTIES DEPENDS "TOPP_FileConverter_29")
 
+# MSP file format tests (issue #5048)
+set(DATA_DIR_CLASS_TESTS ${OPENMS_HOST_DIRECTORY}/src/tests/class_tests/openms/data)
+add_test("TOPP_FileConverter_30" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_DIR_CLASS_TESTS}/MSPGenericFile_input.msp -out ${TESTS_TEMP_DIR}/FileConverter_30.tmp.mzML -out_type mzML)
+add_test("TOPP_FileConverter_31" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_DIR_CLASS_TESTS}/MSPGenericFile_input.msp -out ${TESTS_TEMP_DIR}/FileConverter_31.tmp.msp -out_type msp)
+
 #------------------------------------------------------------------------------
 # FileFilter tests
 add_test("TOPP_FileFilter_1" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_1_input.mzML -out ${TESTS_TEMP_DIR}/FileFilter_1.tmp.mzML -rt :30 -mz :1000 -int :20000 -in_type mzML -out_type mzML)
