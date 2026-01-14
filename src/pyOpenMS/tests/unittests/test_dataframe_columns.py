@@ -836,7 +836,7 @@ class TestMSExperimentUnifiedToArrow:
             assert isinstance(table, pa.Table)
             assert table.num_rows == 0
         except RuntimeError as e:
-            if "Empty or uninitalized range" in str(e):
+            if "Empty or uninitialized range" in str(e):
                 pytest.skip("Empty experiment handling requires rebuild with fixed addon")
 
     def test_to_arrow_invalid_data_param(self, experiment_with_data):
