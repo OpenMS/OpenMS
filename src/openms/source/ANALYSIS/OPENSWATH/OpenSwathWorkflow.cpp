@@ -113,8 +113,9 @@ namespace OpenMS
     std::pair<double,double> RTRange = OpenSwathHelper::estimateRTRange(targeted_exp);
     OPENMS_LOG_DEBUG << "Detected retention time range from " << RTRange.first << " to " << RTRange.second << '\n';
 
-    // 2. Store the peptide retention times in an intermediate map
-    std::map<OpenMS::String, double> PeptideRTMap;
+    // 2. Store the peptide retention times in an intermediate map (unordered for O(1) lookup)
+    std::unordered_map<OpenMS::String, double> PeptideRTMap;
+    PeptideRTMap.reserve(targeted_exp.getCompounds().size());
     for (Size i = 0; i < targeted_exp.getCompounds().size(); i++)
     {
       PeptideRTMap[targeted_exp.getCompounds()[i].id] = targeted_exp.getCompounds()[i].rt;
@@ -172,9 +173,10 @@ namespace OpenMS
     for (std::map<std::string, double>::iterator it = best_features.begin(); it != best_features.end(); ++it)
     {
       pairs.emplace_back(it->second, PeptideRTMap[it->first]); // pair<exp_rt, theor_rt>
-      if (transition_group_map.find(it->first) != transition_group_map.end())
+      auto tg_it = transition_group_map.find(it->first);
+      if (tg_it != transition_group_map.end())
       {
-        trgrmap_allpeaks[ it->first ] = &transition_group_map[ it->first];
+        trgrmap_allpeaks[it->first] = &tg_it->second;
       }
     }
 

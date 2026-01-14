@@ -12,6 +12,8 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
+#include <unordered_map>
+
 #define IMPLIES(a, b) !(a) || (b)
 
 namespace OpenMS
@@ -105,14 +107,15 @@ namespace OpenMS
                                                   const bool ms1,
                                                   const int ms1_isotopes)
   {
-    // hash of the peptide reference containing all transitions
-    std::map<String, std::vector<const OpenSwath::LightTransition*> > pep2tr;
+    // hash of the peptide reference containing all transitions (unordered for O(1) lookup)
+    std::unordered_map<String, std::vector<const OpenSwath::LightTransition*> > pep2tr;
     for (Size i = 0; i < transition_exp_used.getTransitions().size(); i++)
     {
       String ref = transition_exp_used.getTransitions()[i].getPeptideRef();
       pep2tr[ref].push_back(&transition_exp_used.getTransitions()[i]);
     }
-    std::map<String, const OpenSwath::LightCompound*> tr2pep;
+    std::unordered_map<String, const OpenSwath::LightCompound*> tr2pep;
+    tr2pep.reserve(transition_exp_used.getCompounds().size());
     for (const auto & p : transition_exp_used.getCompounds()) {tr2pep[p.id] = &p;}
 
     // Determine iteration size:
@@ -189,8 +192,8 @@ namespace OpenMS
                                                   const bool ms1,
                                                   const int ms1_isotopes)
   {
-    // hash of the peptide reference containing all transitions
-    typedef std::map<String, std::vector<const ReactionMonitoringTransition*> > PeptideTransitionMapType;
+    // hash of the peptide reference containing all transitions (unordered for O(1) lookup)
+    typedef std::unordered_map<String, std::vector<const ReactionMonitoringTransition*> > PeptideTransitionMapType;
     PeptideTransitionMapType pep2tr;
     for (Size i = 0; i < transition_exp_used.getTransitions().size(); i++)
     {

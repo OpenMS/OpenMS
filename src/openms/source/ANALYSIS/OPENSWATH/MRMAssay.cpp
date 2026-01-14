@@ -903,13 +903,8 @@ namespace OpenMS
     // Generate a map of peptides to transitions for easy access
     for (Size i = 0; i < exp.getTransitions().size(); ++i)
     {
-      ReactionMonitoringTransition tr = exp.getTransitions()[i];
-
-      if (TransitionsMap.find(tr.getPeptideRef()) == TransitionsMap.end())
-      {
-        TransitionsMap[tr.getPeptideRef()];
-      }
-
+      const ReactionMonitoringTransition& tr = exp.getTransitions()[i];
+      // operator[] creates empty vector if key doesn't exist, avoiding redundant find() calls
       TransitionsMap[tr.getPeptideRef()].push_back(tr);
     }
 
@@ -1089,13 +1084,8 @@ namespace OpenMS
     // Generate a map of compounds to transitions for easy access
     for (Size i = 0; i < exp.getTransitions().size(); ++i)
     {
-      ReactionMonitoringTransition tr = exp.getTransitions()[i];
-
-      if (TransitionsMap.find(tr.getCompoundRef()) == TransitionsMap.end())
-      {
-        TransitionsMap[tr.getCompoundRef()];
-      }
-
+      const ReactionMonitoringTransition& tr = exp.getTransitions()[i];
+      // operator[] creates empty vector if key doesn't exist, avoiding redundant find() calls
       TransitionsMap[tr.getCompoundRef()].push_back(tr);
     }
 
