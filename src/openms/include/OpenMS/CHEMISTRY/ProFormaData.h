@@ -21,6 +21,77 @@
 namespace OpenMS
 {
 
+  // Forward declaration for resolved modification pointer
+  class ResidueModification;
+
+  /**
+    @brief Conversion policy for transforming Peptidoform to AASequence
+
+    Controls how the conversion handles modifications that cannot be directly
+    represented in AASequence (e.g., unlocalised, labile, or ambiguous modifications).
+
+    @ingroup Chemistry
+  */
+  enum class AASequenceConversionPolicy
+  {
+    STRICT,            ///< Fail if any modification cannot be fully represented
+    DROP_UNLOCALISED,  ///< Drop unlocalised, labile, and global modifications
+    BEST_EFFORT        ///< Try to convert as much as possible, skip unsupported
+  };
+
+
+  /**
+    @brief Issue type for AASequence conversion problems
+
+    @ingroup Chemistry
+  */
+  enum class ConversionIssueType
+  {
+    UNRESOLVED_MOD,      ///< Modification could not be found in ModificationsDB
+    UNLOCALISED_MOD,     ///< Modification has no specific position
+    LABILE_MOD,          ///< Labile modification (lost during fragmentation)
+    GLOBAL_MOD,          ///< Global modification (applies to multiple sites)
+    AMBIGUOUS_MOD,       ///< Ambiguously localized modification
+    AMBIGUOUS_REGION,    ///< Ambiguous amino acid region
+    MODIFIED_RANGE,      ///< Modified range (position uncertain)
+    CROSS_LINK,          ///< Cross-link between chains
+    MULTIPLE_CHAINS,     ///< Multiple peptide chains
+    ALTERNATIVE_MODS,    ///< Multiple alternative modifications (|)
+    UNSUPPORTED_FEATURE  ///< Other unsupported ProForma feature
+  };
+
+
+  /**
+    @brief Description of a conversion issue from Peptidoform to AASequence
+
+    Records problems encountered when attempting to convert a ProForma
+    Peptidoform to an OpenMS AASequence representation.
+
+    @ingroup Chemistry
+  */
+  struct OPENMS_DLLAPI ConversionIssue
+  {
+    ConversionIssueType type;   ///< The type of issue
+    String description;         ///< Human-readable description
+    size_t position;            ///< Position in sequence (SIZE_MAX if not position-specific)
+  };
+
+
+  /**
+    @brief Write mode for ProForma string serialization
+
+    Controls whether the output preserves original formatting (LOSSLESS) or
+    produces a normalized, deterministic output (CANONICAL).
+
+    @ingroup Chemistry
+  */
+  enum class ProFormaWriteMode
+  {
+    LOSSLESS,   ///< Preserve original spelling/formatting where possible (e.g., mass delta text)
+    CANONICAL   ///< Normalized output: uppercase CV prefixes, sorted mods, 4 decimal places for masses
+  };
+
+
   /**
     @brief Controlled vocabulary database prefix for modification accessions
 
@@ -206,12 +277,19 @@ namespace OpenMS
 
     Example: K[Phospho|+79.97] has two alternatives
 
+    The resolved_mod field is populated by resolveModifications() and points
+    to the ResidueModification in ModificationsDB (for the first/primary alternative).
+
     @ingroup Chemistry
   */
   struct OPENMS_DLLAPI Modification
   {
     /// Each alternative is a (tag, optional_label) pair
     std::vector<std::pair<ModificationTag, std::optional<Label>>> alternatives;
+
+    /// Resolved modification pointer (populated by resolveModifications)
+    /// Points to the ResidueModification for the first alternative, if found
+    const ResidueModification* resolved_mod = nullptr;
   };
 
 

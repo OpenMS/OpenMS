@@ -7,6 +7,11 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CHEMISTRY/ProFormaParser.h>
+#include <OpenMS/CHEMISTRY/ProFormaWriter.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/CHEMISTRY/ResidueModification.h>
+#include <OpenMS/CONCEPT/Exception.h>
 
 #include <cstdlib>
 #include <sstream>
@@ -1479,6 +1484,568 @@ namespace OpenMS
            tok.type == ProFormaTokenizer::TokenType::NUMBER ||
            tok.type == ProFormaTokenizer::TokenType::PLUS ||
            tok.type == ProFormaTokenizer::TokenType::MINUS;
+  }
+
+  // ============================================================================
+  // ToString methods (delegate to ProFormaWriter)
+  // ============================================================================
+
+  String ProFormaParser::toString(const Peptidoform& pf, ProFormaWriteMode mode)
+  {
+    return ProFormaWriter::toString(pf, mode);
+  }
+
+  String ProFormaParser::toString(const PeptidoformIon& pfi, ProFormaWriteMode mode)
+  {
+    return ProFormaWriter::toString(pfi, mode);
+  }
+
+  // ============================================================================
+  // AASequence Conversion Methods
+  // ============================================================================
+
+  namespace
+  {
+    // Helper to resolve a single modification tag to a ResidueModification
+    const ResidueModification* resolveModificationTag_(
+      const ModificationTag& tag,
+      char residue = '\0',
+      ResidueModification::TermSpecificity term_spec = ResidueModification::NUMBER_OF_TERM_SPECIFICITY)
+    {
+      // Need non-const pointer because getBestModificationByDiffMonoMass is non-const
+      ModificationsDB* mod_db = ModificationsDB::getInstance();
+
+      return std::visit([&](auto&& arg) -> const ResidueModification* {
+        using T = std::decay_t<decltype(arg)>;
+
+        if constexpr (std::is_same_v<T, CvAccession>)
+        {
+          // Look up by CV accession
+          String full_accession;
+          switch (arg.database)
+          {
+            case CvDatabase::UNIMOD:
+              full_accession = "UNIMOD:" + arg.accession;
+              break;
+            case CvDatabase::MOD:
+              full_accession = "MOD:" + arg.accession;
+              break;
+            case CvDatabase::RESID:
+              full_accession = "RESID:" + arg.accession;
+              break;
+            case CvDatabase::XLMOD:
+              full_accession = "XLMOD:" + arg.accession;
+              break;
+            case CvDatabase::GNO:
+              full_accession = "GNO:" + arg.accession;
+              break;
+          }
+
+          try
+          {
+            return mod_db->getModification(full_accession);
+          }
+          catch (const Exception::ElementNotFound&)
+          {
+            return nullptr;
+          }
+        }
+        else if constexpr (std::is_same_v<T, NamedMod>)
+        {
+          // Look up by name using searchModificationsFast
+          bool multiple_matches = false;
+          String residue_str = (residue != '\0') ? String(1, residue) : "";
+          return mod_db->searchModificationsFast(arg.name, multiple_matches, residue_str, term_spec);
+        }
+        else if constexpr (std::is_same_v<T, MassDelta>)
+        {
+          // Look up by mass delta
+          String residue_str = (residue != '\0') ? String(1, residue) : "";
+          return mod_db->getBestModificationByDiffMonoMass(
+            arg.mass, 0.01, residue_str, term_spec);
+        }
+        else if constexpr (std::is_same_v<T, FormulaTag>)
+        {
+          // Calculate mass from formula and look up
+          // For now, we don't resolve formulas - they're used as-is
+          return nullptr;
+        }
+        else if constexpr (std::is_same_v<T, GlycanComposition>)
+        {
+          // Glycans are complex and typically not in ModificationsDB
+          return nullptr;
+        }
+        else if constexpr (std::is_same_v<T, InfoTag>)
+        {
+          // Info tags have no associated modification
+          return nullptr;
+        }
+        else
+        {
+          return nullptr;
+        }
+      }, tag);
+    }
+
+    // Helper to resolve a modification (taking first alternative)
+    void resolveModification_(Modification& mod, char residue, ResidueModification::TermSpecificity term_spec)
+    {
+      if (mod.alternatives.empty())
+      {
+        return;
+      }
+
+      // Try to resolve the first (primary) alternative
+      const auto& [tag, label] = mod.alternatives[0];
+      mod.resolved_mod = resolveModificationTag_(tag, residue, term_spec);
+    }
+  }
+
+  void ProFormaParser::resolveModifications(Peptidoform& pf)
+  {
+    // Resolve sequence modifications
+    for (auto& section : pf.sequence)
+    {
+      if (auto* elem = std::get_if<SequenceElement>(&section))
+      {
+        for (auto& mod : elem->modifications)
+        {
+          resolveModification_(mod, elem->amino_acid, ResidueModification::NUMBER_OF_TERM_SPECIFICITY);
+        }
+      }
+      else if (auto* region = std::get_if<AmbiguousRegion>(&section))
+      {
+        for (auto& elem : region->elements)
+        {
+          for (auto& mod : elem.modifications)
+          {
+            resolveModification_(mod, elem.amino_acid, ResidueModification::NUMBER_OF_TERM_SPECIFICITY);
+          }
+        }
+      }
+      else if (auto* range = std::get_if<ModifiedRange>(&section))
+      {
+        for (auto& mod : range->modifications)
+        {
+          // Range modifications don't have a specific residue
+          resolveModification_(mod, '\0', ResidueModification::NUMBER_OF_TERM_SPECIFICITY);
+        }
+      }
+    }
+
+    // Resolve N-terminal modifications
+    for (auto& mod : pf.n_term_mods)
+    {
+      resolveModification_(mod, '\0', ResidueModification::N_TERM);
+    }
+
+    // Resolve C-terminal modifications
+    for (auto& mod : pf.c_term_mods)
+    {
+      resolveModification_(mod, '\0', ResidueModification::C_TERM);
+    }
+
+    // Resolve unlocalised modifications
+    for (auto& um : pf.unlocalised_mods)
+    {
+      for (auto& mod : um.modifications)
+      {
+        resolveModification_(mod, '\0', ResidueModification::NUMBER_OF_TERM_SPECIFICITY);
+      }
+    }
+
+    // Resolve labile modifications
+    for (auto& lm : pf.labile_mods)
+    {
+      resolveModification_(lm.modification, '\0', ResidueModification::NUMBER_OF_TERM_SPECIFICITY);
+    }
+
+    // Resolve global modifications
+    for (auto& entry : pf.global_mods)
+    {
+      if (auto* gm = std::get_if<GlobalModification>(&entry))
+      {
+        resolveModification_(gm->modification, '\0', ResidueModification::NUMBER_OF_TERM_SPECIFICITY);
+      }
+    }
+  }
+
+  std::vector<ConversionIssue> ProFormaParser::getAASequenceConversionIssues(const Peptidoform& pf)
+  {
+    std::vector<ConversionIssue> issues;
+
+    // Make a copy to resolve modifications (don't modify original)
+    Peptidoform pf_copy = pf;
+    resolveModifications(pf_copy);
+
+    // Check for unlocalised modifications
+    if (!pf_copy.unlocalised_mods.empty())
+    {
+      issues.push_back({
+        ConversionIssueType::UNLOCALISED_MOD,
+        "Peptidoform contains unlocalised modifications that cannot be represented in AASequence",
+        SIZE_MAX
+      });
+    }
+
+    // Check for labile modifications
+    if (!pf_copy.labile_mods.empty())
+    {
+      issues.push_back({
+        ConversionIssueType::LABILE_MOD,
+        "Peptidoform contains labile modifications that cannot be represented in AASequence",
+        SIZE_MAX
+      });
+    }
+
+    // Check for global modifications
+    for (const auto& entry : pf_copy.global_mods)
+    {
+      if (std::holds_alternative<GlobalModification>(entry))
+      {
+        issues.push_back({
+          ConversionIssueType::GLOBAL_MOD,
+          "Peptidoform contains global modifications that cannot be represented in AASequence",
+          SIZE_MAX
+        });
+        break;
+      }
+    }
+
+    // Check sequence sections for issues
+    size_t position = 0;
+    for (const auto& section : pf_copy.sequence)
+    {
+      if (std::holds_alternative<AmbiguousRegion>(section))
+      {
+        issues.push_back({
+          ConversionIssueType::AMBIGUOUS_REGION,
+          "Peptidoform contains ambiguous amino acid region at position " + std::to_string(position),
+          position
+        });
+      }
+      else if (std::holds_alternative<ModifiedRange>(section))
+      {
+        issues.push_back({
+          ConversionIssueType::MODIFIED_RANGE,
+          "Peptidoform contains modified range at position " + std::to_string(position),
+          position
+        });
+      }
+      else if (const auto* elem = std::get_if<SequenceElement>(&section))
+      {
+        for (const auto& mod : elem->modifications)
+        {
+          // Check for unresolved modifications
+          if (mod.resolved_mod == nullptr && !mod.alternatives.empty())
+          {
+            // Check if the first alternative is a meaningful tag (not empty InfoTag)
+            const auto& [tag, label] = mod.alternatives[0];
+            bool is_empty_info = std::holds_alternative<InfoTag>(tag) &&
+                                 std::get<InfoTag>(tag).text.empty();
+            if (!is_empty_info)
+            {
+              issues.push_back({
+                ConversionIssueType::UNRESOLVED_MOD,
+                "Modification at position " + std::to_string(position) + " could not be resolved",
+                position
+              });
+            }
+          }
+
+          // Check for alternative modifications
+          if (mod.alternatives.size() > 1)
+          {
+            issues.push_back({
+              ConversionIssueType::ALTERNATIVE_MODS,
+              "Modification at position " + std::to_string(position) + " has multiple alternatives",
+              position
+            });
+          }
+
+          // Check for cross-links
+          for (const auto& [tag, label] : mod.alternatives)
+          {
+            if (label.has_value() && label->type == Label::Type::CROSSLINK)
+            {
+              issues.push_back({
+                ConversionIssueType::CROSS_LINK,
+                "Modification at position " + std::to_string(position) + " is part of a cross-link",
+                position
+              });
+              break;
+            }
+          }
+        }
+      }
+
+      position++;
+    }
+
+    // Check N-terminal modifications
+    for (const auto& mod : pf_copy.n_term_mods)
+    {
+      if (mod.resolved_mod == nullptr && !mod.alternatives.empty())
+      {
+        const auto& [tag, label] = mod.alternatives[0];
+        bool is_empty_info = std::holds_alternative<InfoTag>(tag) &&
+                             std::get<InfoTag>(tag).text.empty();
+        if (!is_empty_info)
+        {
+          issues.push_back({
+            ConversionIssueType::UNRESOLVED_MOD,
+            "N-terminal modification could not be resolved",
+            SIZE_MAX
+          });
+        }
+      }
+      if (mod.alternatives.size() > 1)
+      {
+        issues.push_back({
+          ConversionIssueType::ALTERNATIVE_MODS,
+          "N-terminal modification has multiple alternatives",
+          SIZE_MAX
+        });
+      }
+    }
+
+    // Check C-terminal modifications
+    for (const auto& mod : pf_copy.c_term_mods)
+    {
+      if (mod.resolved_mod == nullptr && !mod.alternatives.empty())
+      {
+        const auto& [tag, label] = mod.alternatives[0];
+        bool is_empty_info = std::holds_alternative<InfoTag>(tag) &&
+                             std::get<InfoTag>(tag).text.empty();
+        if (!is_empty_info)
+        {
+          issues.push_back({
+            ConversionIssueType::UNRESOLVED_MOD,
+            "C-terminal modification could not be resolved",
+            SIZE_MAX
+          });
+        }
+      }
+      if (mod.alternatives.size() > 1)
+      {
+        issues.push_back({
+          ConversionIssueType::ALTERNATIVE_MODS,
+          "C-terminal modification has multiple alternatives",
+          SIZE_MAX
+        });
+      }
+    }
+
+    return issues;
+  }
+
+  bool ProFormaParser::isRepresentableAsAASequence(const Peptidoform& pf)
+  {
+    return getAASequenceConversionIssues(pf).empty();
+  }
+
+  AASequence ProFormaParser::toAASequence(
+    const Peptidoform& pf,
+    AASequenceConversionPolicy policy)
+  {
+    // Get conversion issues
+    std::vector<ConversionIssue> issues = getAASequenceConversionIssues(pf);
+
+    // Check policy
+    if (policy == AASequenceConversionPolicy::STRICT && !issues.empty())
+    {
+      std::string error_msg = "Cannot convert Peptidoform to AASequence: ";
+      for (const auto& issue : issues)
+      {
+        error_msg += issue.description + "; ";
+      }
+      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, error_msg);
+    }
+
+    // Make a copy and resolve modifications
+    Peptidoform pf_copy = pf;
+    resolveModifications(pf_copy);
+
+    // Build unmodified sequence string
+    std::string unmod_seq;
+    for (const auto& section : pf_copy.sequence)
+    {
+      if (const auto* elem = std::get_if<SequenceElement>(&section))
+      {
+        unmod_seq += elem->amino_acid;
+      }
+      else if (const auto* region = std::get_if<AmbiguousRegion>(&section))
+      {
+        // For ambiguous regions, use the first amino acid
+        if (!region->elements.empty())
+        {
+          unmod_seq += region->elements[0].amino_acid;
+        }
+      }
+      else if (const auto* range = std::get_if<ModifiedRange>(&section))
+      {
+        // Add all amino acids from the range
+        for (const auto& elem : range->elements)
+        {
+          unmod_seq += elem.amino_acid;
+        }
+      }
+    }
+
+    // Create AASequence from unmodified string
+    AASequence seq = AASequence::fromString(unmod_seq);
+
+    // Apply modifications
+    size_t seq_pos = 0;
+    for (const auto& section : pf_copy.sequence)
+    {
+      if (const auto* elem = std::get_if<SequenceElement>(&section))
+      {
+        for (const auto& mod : elem->modifications)
+        {
+          if (mod.resolved_mod != nullptr)
+          {
+            seq.setModification(seq_pos, mod.resolved_mod);
+          }
+          else if (policy == AASequenceConversionPolicy::STRICT)
+          {
+            // Already checked above, but double-check
+            throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+              "Unresolved modification at position " + std::to_string(seq_pos));
+          }
+          // For BEST_EFFORT and DROP_UNLOCALISED, skip unresolved
+        }
+        seq_pos++;
+      }
+      else if (std::holds_alternative<AmbiguousRegion>(section))
+      {
+        seq_pos++; // Counted as one position above
+      }
+      else if (const auto* range = std::get_if<ModifiedRange>(&section))
+      {
+        // Skip modifications for ranges in non-STRICT mode
+        seq_pos += range->elements.size();
+      }
+    }
+
+    // Apply N-terminal modifications (use the first one if multiple)
+    if (!pf_copy.n_term_mods.empty() && pf_copy.n_term_mods[0].resolved_mod != nullptr)
+    {
+      seq.setNTerminalModification(pf_copy.n_term_mods[0].resolved_mod);
+    }
+
+    // Apply C-terminal modifications (use the first one if multiple)
+    if (!pf_copy.c_term_mods.empty() && pf_copy.c_term_mods[0].resolved_mod != nullptr)
+    {
+      seq.setCTerminalModification(pf_copy.c_term_mods[0].resolved_mod);
+    }
+
+    return seq;
+  }
+
+  Peptidoform ProFormaParser::fromAASequence(const AASequence& seq)
+  {
+    Peptidoform pf;
+
+    // Build sequence
+    for (Size i = 0; i < seq.size(); ++i)
+    {
+      SequenceElement elem;
+      elem.amino_acid = seq[i].getOneLetterCode()[0];
+
+      // Check for modifications on this residue
+      if (seq[i].isModified())
+      {
+        const ResidueModification* mod = seq[i].getModification();
+        if (mod != nullptr)
+        {
+          Modification proforma_mod;
+
+          // Prefer UNIMOD accession if available
+          String unimod_acc = mod->getUniModAccession();
+          if (!unimod_acc.empty() && unimod_acc.hasPrefix("UniMod:"))
+          {
+            CvAccession cv;
+            cv.database = CvDatabase::UNIMOD;
+            cv.accession = unimod_acc.substr(7); // Remove "UniMod:" prefix
+            proforma_mod.alternatives.emplace_back(std::move(cv), std::nullopt);
+          }
+          else
+          {
+            // Use modification name
+            NamedMod nm;
+            nm.name = mod->getId();
+            nm.cv_hint = std::nullopt;
+            proforma_mod.alternatives.emplace_back(std::move(nm), std::nullopt);
+          }
+
+          proforma_mod.resolved_mod = mod;
+          elem.modifications.push_back(std::move(proforma_mod));
+        }
+      }
+
+      pf.sequence.push_back(std::move(elem));
+    }
+
+    // Check for N-terminal modification
+    if (seq.hasNTerminalModification())
+    {
+      const ResidueModification* mod = seq.getNTerminalModification();
+      if (mod != nullptr)
+      {
+        Modification proforma_mod;
+
+        String unimod_acc = mod->getUniModAccession();
+        if (!unimod_acc.empty() && unimod_acc.hasPrefix("UniMod:"))
+        {
+          CvAccession cv;
+          cv.database = CvDatabase::UNIMOD;
+          cv.accession = unimod_acc.substr(7);
+          proforma_mod.alternatives.emplace_back(std::move(cv), std::nullopt);
+        }
+        else
+        {
+          NamedMod nm;
+          nm.name = mod->getId();
+          nm.cv_hint = std::nullopt;
+          proforma_mod.alternatives.emplace_back(std::move(nm), std::nullopt);
+        }
+
+        proforma_mod.resolved_mod = mod;
+        pf.n_term_mods.push_back(std::move(proforma_mod));
+      }
+    }
+
+    // Check for C-terminal modification
+    if (seq.hasCTerminalModification())
+    {
+      const ResidueModification* mod = seq.getCTerminalModification();
+      if (mod != nullptr)
+      {
+        Modification proforma_mod;
+
+        String unimod_acc = mod->getUniModAccession();
+        if (!unimod_acc.empty() && unimod_acc.hasPrefix("UniMod:"))
+        {
+          CvAccession cv;
+          cv.database = CvDatabase::UNIMOD;
+          cv.accession = unimod_acc.substr(7);
+          proforma_mod.alternatives.emplace_back(std::move(cv), std::nullopt);
+        }
+        else
+        {
+          NamedMod nm;
+          nm.name = mod->getId();
+          nm.cv_hint = std::nullopt;
+          proforma_mod.alternatives.emplace_back(std::move(nm), std::nullopt);
+        }
+
+        proforma_mod.resolved_mod = mod;
+        pf.c_term_mods.push_back(std::move(proforma_mod));
+      }
+    }
+
+    return pf;
   }
 
 } // namespace OpenMS

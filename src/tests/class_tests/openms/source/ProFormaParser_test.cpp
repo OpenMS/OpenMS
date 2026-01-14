@@ -16,6 +16,7 @@
 #include <OpenMS/CHEMISTRY/ProFormaTokenizer.h>
 #include <OpenMS/CHEMISTRY/ProFormaError.h>
 #include <OpenMS/CHEMISTRY/ProFormaData.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
 
 #include <fstream>
 #include <string>
@@ -1154,6 +1155,321 @@ START_SECTION(JSON serialization - PeptidoformIon)
   // Deserialize back
   PeptidoformIon ion2 = peptidoformIonFromJSON(json);
   TEST_EQUAL(ion2.chains.size(), ion.chains.size())
+}
+END_SECTION
+
+/////////////////////////////////////////////////////////////
+// WriteMode tests (lossless vs canonical)
+/////////////////////////////////////////////////////////////
+
+START_SECTION(WriteMode - lossless preserves original mass format)
+{
+  // Parse a mass delta with specific formatting
+  Peptidoform pf = ProFormaParser::parse("EM[+15.99]K");
+
+  // Lossless mode should preserve the original text
+  String lossless = ProFormaParser::toString(pf, ProFormaWriteMode::LOSSLESS);
+  TEST_EQUAL(lossless, "EM[+15.99]K")
+}
+END_SECTION
+
+START_SECTION(WriteMode - canonical uses fixed precision)
+{
+  // Parse a mass delta with specific formatting
+  Peptidoform pf = ProFormaParser::parse("EM[+15.99]K");
+
+  // Canonical mode should use fixed 4 decimal places
+  String canonical = ProFormaParser::toString(pf, ProFormaWriteMode::CANONICAL);
+  TEST_EQUAL(canonical, "EM[+15.9900]K")
+}
+END_SECTION
+
+START_SECTION(WriteMode - canonical normalizes mass precision)
+{
+  // Parse with many decimal places
+  Peptidoform pf = ProFormaParser::parse("EM[+15.99491234]K");
+
+  // Canonical mode should normalize to 4 decimal places
+  String canonical = ProFormaParser::toString(pf, ProFormaWriteMode::CANONICAL);
+  TEST_EQUAL(canonical, "EM[+15.9949]K")
+}
+END_SECTION
+
+START_SECTION(WriteMode - CV accessions in both modes)
+{
+  // CV accessions should be the same in both modes
+  Peptidoform pf = ProFormaParser::parse("EM[UNIMOD:35]K");
+
+  String lossless = ProFormaParser::toString(pf, ProFormaWriteMode::LOSSLESS);
+  String canonical = ProFormaParser::toString(pf, ProFormaWriteMode::CANONICAL);
+
+  // Both should produce the same output for CV accessions
+  TEST_EQUAL(lossless, "EM[UNIMOD:35]K")
+  TEST_EQUAL(canonical, "EM[UNIMOD:35]K")
+}
+END_SECTION
+
+START_SECTION(WriteMode - named modifications in both modes)
+{
+  // Named modifications should be the same in both modes
+  Peptidoform pf = ProFormaParser::parse("EM[Oxidation]K");
+
+  String lossless = ProFormaParser::toString(pf, ProFormaWriteMode::LOSSLESS);
+  String canonical = ProFormaParser::toString(pf, ProFormaWriteMode::CANONICAL);
+
+  // Both should produce the same output for named mods
+  TEST_EQUAL(lossless, "EM[Oxidation]K")
+  TEST_EQUAL(canonical, "EM[Oxidation]K")
+}
+END_SECTION
+
+START_SECTION(WriteMode - default is LOSSLESS)
+{
+  // Default mode should be lossless
+  Peptidoform pf = ProFormaParser::parse("EM[+15.99]K");
+
+  String default_output = ProFormaParser::toString(pf);
+  String lossless = ProFormaParser::toString(pf, ProFormaWriteMode::LOSSLESS);
+
+  TEST_EQUAL(default_output, lossless)
+}
+END_SECTION
+
+/////////////////////////////////////////////////////////////
+// AASequence Conversion Tests
+/////////////////////////////////////////////////////////////
+
+START_SECTION(resolveModifications - UNIMOD lookup)
+{
+  // Parse a ProForma string with UNIMOD modification
+  Peptidoform pf = ProFormaParser::parse("EM[UNIMOD:35]K");
+
+  // Resolve modifications
+  ProFormaParser::resolveModifications(pf);
+
+  // Check that the modification was resolved
+  TEST_EQUAL(pf.sequence.size(), 3)
+
+  // The second element (M) should have a resolved modification
+  const SequenceElement* m_elem = std::get_if<SequenceElement>(&pf.sequence[1]);
+  TEST_NOT_EQUAL(m_elem, nullptr)
+  TEST_EQUAL(m_elem->modifications.size(), 1)
+
+  // Check that resolved_mod is not null (UNIMOD:35 = Oxidation)
+  TEST_NOT_EQUAL(m_elem->modifications[0].resolved_mod, nullptr)
+}
+END_SECTION
+
+START_SECTION(resolveModifications - named modification lookup)
+{
+  // Parse a ProForma string with named modification
+  Peptidoform pf = ProFormaParser::parse("EM[Oxidation]K");
+
+  // Resolve modifications
+  ProFormaParser::resolveModifications(pf);
+
+  // The second element (M) should have a resolved modification
+  const SequenceElement* m_elem = std::get_if<SequenceElement>(&pf.sequence[1]);
+  TEST_NOT_EQUAL(m_elem, nullptr)
+  TEST_EQUAL(m_elem->modifications.size(), 1)
+
+  // Oxidation should be resolved
+  TEST_NOT_EQUAL(m_elem->modifications[0].resolved_mod, nullptr)
+}
+END_SECTION
+
+START_SECTION(isRepresentableAsAASequence - simple sequence)
+{
+  // Simple unmodified sequence should be representable
+  Peptidoform pf = ProFormaParser::parse("PEPTIDE");
+  TEST_EQUAL(ProFormaParser::isRepresentableAsAASequence(pf), true)
+
+  // Sequence with UNIMOD modification should be representable
+  Peptidoform pf2 = ProFormaParser::parse("EM[UNIMOD:35]K");
+  TEST_EQUAL(ProFormaParser::isRepresentableAsAASequence(pf2), true)
+}
+END_SECTION
+
+START_SECTION(isRepresentableAsAASequence - unsupported features)
+{
+  // Unlocalised modification is not representable
+  Peptidoform pf_unloc = ProFormaParser::parse("[Phospho]?PEPTIDE");
+  TEST_EQUAL(ProFormaParser::isRepresentableAsAASequence(pf_unloc), false)
+
+  // Labile modification is not representable
+  Peptidoform pf_labile = ProFormaParser::parse("{Glycan:Hex}PEPTIDE");
+  TEST_EQUAL(ProFormaParser::isRepresentableAsAASequence(pf_labile), false)
+
+  // Ambiguous region is not representable
+  Peptidoform pf_ambig = ProFormaParser::parse("PEP(?DQ)IDE");
+  TEST_EQUAL(ProFormaParser::isRepresentableAsAASequence(pf_ambig), false)
+}
+END_SECTION
+
+START_SECTION(getAASequenceConversionIssues)
+{
+  // Test that conversion issues are properly reported
+
+  // Unlocalised modification
+  Peptidoform pf_unloc = ProFormaParser::parse("[Phospho]?PEPTIDE");
+  auto issues_unloc = ProFormaParser::getAASequenceConversionIssues(pf_unloc);
+  TEST_EQUAL(issues_unloc.empty(), false)
+  bool found_unloc_issue = false;
+  for (const auto& issue : issues_unloc)
+  {
+    if (issue.type == ConversionIssueType::UNLOCALISED_MOD)
+    {
+      found_unloc_issue = true;
+      break;
+    }
+  }
+  TEST_EQUAL(found_unloc_issue, true)
+
+  // Labile modification
+  Peptidoform pf_labile = ProFormaParser::parse("{Glycan:Hex}PEPTIDE");
+  auto issues_labile = ProFormaParser::getAASequenceConversionIssues(pf_labile);
+  TEST_EQUAL(issues_labile.empty(), false)
+  bool found_labile_issue = false;
+  for (const auto& issue : issues_labile)
+  {
+    if (issue.type == ConversionIssueType::LABILE_MOD)
+    {
+      found_labile_issue = true;
+      break;
+    }
+  }
+  TEST_EQUAL(found_labile_issue, true)
+}
+END_SECTION
+
+START_SECTION(toAASequence - simple sequence)
+{
+  // Convert simple unmodified sequence
+  Peptidoform pf = ProFormaParser::parse("PEPTIDE");
+  AASequence seq = ProFormaParser::toAASequence(pf);
+
+  TEST_EQUAL(seq.toUnmodifiedString(), "PEPTIDE")
+  TEST_EQUAL(seq.size(), 7)
+}
+END_SECTION
+
+START_SECTION(toAASequence - with UNIMOD modification)
+{
+  // Convert sequence with UNIMOD modification (Oxidation on M)
+  Peptidoform pf = ProFormaParser::parse("EM[UNIMOD:35]K");
+  AASequence seq = ProFormaParser::toAASequence(pf);
+
+  TEST_EQUAL(seq.toUnmodifiedString(), "EMK")
+  TEST_EQUAL(seq.size(), 3)
+
+  // Check that M is modified
+  TEST_EQUAL(seq[1].isModified(), true)
+}
+END_SECTION
+
+START_SECTION(toAASequence - with N-terminal modification)
+{
+  // Convert sequence with N-terminal acetylation
+  Peptidoform pf = ProFormaParser::parse("[UNIMOD:1]-PEPTIDE");
+  AASequence seq = ProFormaParser::toAASequence(pf);
+
+  TEST_EQUAL(seq.toUnmodifiedString(), "PEPTIDE")
+  TEST_EQUAL(seq.hasNTerminalModification(), true)
+}
+END_SECTION
+
+START_SECTION(toAASequence - STRICT policy throws on unsupported)
+{
+  // STRICT policy should throw on unlocalised modifications
+  Peptidoform pf = ProFormaParser::parse("[Phospho]?PEPTIDE");
+
+  TEST_EXCEPTION(Exception::ConversionError,
+    ProFormaParser::toAASequence(pf, AASequenceConversionPolicy::STRICT))
+}
+END_SECTION
+
+START_SECTION(toAASequence - BEST_EFFORT policy ignores unsupported)
+{
+  // BEST_EFFORT policy should not throw
+  Peptidoform pf = ProFormaParser::parse("[Phospho]?PEPTIDE");
+
+  AASequence seq = ProFormaParser::toAASequence(pf, AASequenceConversionPolicy::BEST_EFFORT);
+  TEST_EQUAL(seq.toUnmodifiedString(), "PEPTIDE")
+}
+END_SECTION
+
+START_SECTION(fromAASequence - simple sequence)
+{
+  // Create AASequence and convert to Peptidoform
+  AASequence seq = AASequence::fromString("PEPTIDE");
+  Peptidoform pf = ProFormaParser::fromAASequence(seq);
+
+  TEST_EQUAL(pf.sequence.size(), 7)
+
+  // Check amino acids
+  for (size_t i = 0; i < 7; ++i)
+  {
+    const SequenceElement* elem = std::get_if<SequenceElement>(&pf.sequence[i]);
+    TEST_NOT_EQUAL(elem, nullptr)
+  }
+}
+END_SECTION
+
+START_SECTION(fromAASequence - with modification)
+{
+  // Create AASequence with oxidation
+  AASequence seq = AASequence::fromString("EM(Oxidation)K");
+  Peptidoform pf = ProFormaParser::fromAASequence(seq);
+
+  TEST_EQUAL(pf.sequence.size(), 3)
+
+  // Check that M has a modification
+  const SequenceElement* m_elem = std::get_if<SequenceElement>(&pf.sequence[1]);
+  TEST_NOT_EQUAL(m_elem, nullptr)
+  TEST_EQUAL(m_elem->amino_acid, 'M')
+  TEST_EQUAL(m_elem->modifications.empty(), false)
+}
+END_SECTION
+
+START_SECTION(fromAASequence - roundtrip)
+{
+  // Test roundtrip: AASequence -> Peptidoform -> toString -> parse -> toAASequence
+  AASequence orig = AASequence::fromString("EM(Oxidation)K");
+
+  // Convert to Peptidoform
+  Peptidoform pf = ProFormaParser::fromAASequence(orig);
+
+  // Convert to string
+  String proforma_str = ProFormaParser::toString(pf);
+
+  // Parse back
+  Peptidoform pf2 = ProFormaParser::parse(proforma_str);
+
+  // Convert back to AASequence
+  AASequence result = ProFormaParser::toAASequence(pf2);
+
+  // Compare
+  TEST_EQUAL(result.toUnmodifiedString(), orig.toUnmodifiedString())
+  TEST_EQUAL(result.size(), orig.size())
+}
+END_SECTION
+
+START_SECTION(ProForma to AASequence roundtrip)
+{
+  // Test roundtrip: ProForma -> Peptidoform -> AASequence -> Peptidoform -> ProForma
+  String orig = "EM[UNIMOD:35]K";
+
+  // Parse
+  Peptidoform pf = ProFormaParser::parse(orig);
+
+  // Convert to AASequence
+  AASequence seq = ProFormaParser::toAASequence(pf);
+
+  // Convert back to Peptidoform
+  Peptidoform pf2 = ProFormaParser::fromAASequence(seq);
+
+  // The result should be similar (may use different notation for the same mod)
+  TEST_EQUAL(pf2.sequence.size(), pf.sequence.size())
 }
 END_SECTION
 

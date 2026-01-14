@@ -68,9 +68,11 @@ namespace OpenMS
       but without charge state information.
 
       @param peptidoform The peptidoform to serialize
+      @param mode Write mode: LOSSLESS preserves original formatting, CANONICAL produces normalized output
       @return The ProForma string representation
     */
-    static String toString(const Peptidoform& peptidoform);
+    static String toString(const Peptidoform& peptidoform,
+                           ProFormaWriteMode mode = ProFormaWriteMode::LOSSLESS);
 
     /**
       @brief Convert a PeptidoformIon to a ProForma string
@@ -79,9 +81,11 @@ namespace OpenMS
       Multiple chains are separated by "//".
 
       @param ion The peptidoform ion to serialize
+      @param mode Write mode: LOSSLESS preserves original formatting, CANONICAL produces normalized output
       @return The ProForma string representation including charge if present
     */
-    static String toString(const PeptidoformIon& ion);
+    static String toString(const PeptidoformIon& ion,
+                           ProFormaWriteMode mode = ProFormaWriteMode::LOSSLESS);
 
   private:
 
@@ -92,8 +96,9 @@ namespace OpenMS
 
       @param os Output stream
       @param mods Vector of global modification entries
+      @param mode Write mode
     */
-    static void writeGlobalMods_(std::ostream& os, const std::vector<GlobalModEntry>& mods);
+    static void writeGlobalMods_(std::ostream& os, const std::vector<GlobalModEntry>& mods, ProFormaWriteMode mode);
 
     /**
       @brief Write an isotope replacement to stream
@@ -112,8 +117,9 @@ namespace OpenMS
 
       @param os Output stream
       @param mod The global modification
+      @param mode Write mode
     */
-    static void writeGlobalModification_(std::ostream& os, const GlobalModification& mod);
+    static void writeGlobalModification_(std::ostream& os, const GlobalModification& mod, ProFormaWriteMode mode);
 
     /**
       @brief Write a modification (with alternatives) to stream
@@ -123,8 +129,9 @@ namespace OpenMS
 
       @param os Output stream
       @param mod The modification with its alternatives
+      @param mode Write mode
     */
-    static void writeModification_(std::ostream& os, const Modification& mod);
+    static void writeModification_(std::ostream& os, const Modification& mod, ProFormaWriteMode mode);
 
     /**
       @brief Write a modification tag (variant) to stream
@@ -134,8 +141,9 @@ namespace OpenMS
 
       @param os Output stream
       @param tag The modification tag variant
+      @param mode Write mode
     */
-    static void writeModificationTag_(std::ostream& os, const ModificationTag& tag);
+    static void writeModificationTag_(std::ostream& os, const ModificationTag& tag, ProFormaWriteMode mode);
 
     /**
       @brief Write a CV accession to stream
@@ -160,13 +168,14 @@ namespace OpenMS
     /**
       @brief Write a mass delta to stream
 
-      Uses original_text if available for lossless roundtrip.
-      Otherwise formats as +/-MASS, e.g., +15.9949, -17.03
+      In LOSSLESS mode, uses original_text if available.
+      In CANONICAL mode, formats with 4 decimal places.
 
       @param os Output stream
       @param delta The mass delta
+      @param mode Write mode
     */
-    static void writeMassDelta_(std::ostream& os, const MassDelta& delta);
+    static void writeMassDelta_(std::ostream& os, const MassDelta& delta, ProFormaWriteMode mode);
 
     /**
       @brief Write a formula tag to stream
@@ -205,8 +214,9 @@ namespace OpenMS
 
       @param os Output stream
       @param label The label
+      @param mode Write mode
     */
-    static void writeLabel_(std::ostream& os, const Label& label);
+    static void writeLabel_(std::ostream& os, const Label& label, ProFormaWriteMode mode);
 
     /**
       @brief Write unlocalised modifications to stream
@@ -215,8 +225,9 @@ namespace OpenMS
 
       @param os Output stream
       @param mods Vector of unlocalised modifications
+      @param mode Write mode
     */
-    static void writeUnlocalisedMods_(std::ostream& os, const std::vector<UnlocalisedMod>& mods);
+    static void writeUnlocalisedMods_(std::ostream& os, const std::vector<UnlocalisedMod>& mods, ProFormaWriteMode mode);
 
     /**
       @brief Write labile modifications to stream
@@ -225,8 +236,9 @@ namespace OpenMS
 
       @param os Output stream
       @param mods Vector of labile modifications
+      @param mode Write mode
     */
-    static void writeLabileModifications_(std::ostream& os, const std::vector<LabileModification>& mods);
+    static void writeLabileModifications_(std::ostream& os, const std::vector<LabileModification>& mods, ProFormaWriteMode mode);
 
     /**
       @brief Write N-terminal modifications to stream
@@ -235,8 +247,9 @@ namespace OpenMS
 
       @param os Output stream
       @param mods Vector of N-terminal modifications
+      @param mode Write mode
     */
-    static void writeNTermMods_(std::ostream& os, const std::vector<Modification>& mods);
+    static void writeNTermMods_(std::ostream& os, const std::vector<Modification>& mods, ProFormaWriteMode mode);
 
     /**
       @brief Write C-terminal modifications to stream
@@ -245,8 +258,9 @@ namespace OpenMS
 
       @param os Output stream
       @param mods Vector of C-terminal modifications
+      @param mode Write mode
     */
-    static void writeCTermMods_(std::ostream& os, const std::vector<Modification>& mods);
+    static void writeCTermMods_(std::ostream& os, const std::vector<Modification>& mods, ProFormaWriteMode mode);
 
     /**
       @brief Write the sequence with modifications to stream
@@ -255,8 +269,9 @@ namespace OpenMS
 
       @param os Output stream
       @param seq Vector of sequence sections
+      @param mode Write mode
     */
-    static void writeSequence_(std::ostream& os, const std::vector<SequenceSection>& seq);
+    static void writeSequence_(std::ostream& os, const std::vector<SequenceSection>& seq, ProFormaWriteMode mode);
 
     /**
       @brief Write a single sequence element to stream
@@ -265,8 +280,9 @@ namespace OpenMS
 
       @param os Output stream
       @param elem The sequence element
+      @param mode Write mode
     */
-    static void writeSequenceElement_(std::ostream& os, const SequenceElement& elem);
+    static void writeSequenceElement_(std::ostream& os, const SequenceElement& elem, ProFormaWriteMode mode);
 
     /**
       @brief Write an ambiguous region to stream
@@ -275,8 +291,9 @@ namespace OpenMS
 
       @param os Output stream
       @param region The ambiguous region
+      @param mode Write mode
     */
-    static void writeAmbiguousRegion_(std::ostream& os, const AmbiguousRegion& region);
+    static void writeAmbiguousRegion_(std::ostream& os, const AmbiguousRegion& region, ProFormaWriteMode mode);
 
     /**
       @brief Write a modified range to stream
@@ -285,8 +302,9 @@ namespace OpenMS
 
       @param os Output stream
       @param range The modified range
+      @param mode Write mode
     */
-    static void writeModifiedRange_(std::ostream& os, const ModifiedRange& range);
+    static void writeModifiedRange_(std::ostream& os, const ModifiedRange& range, ProFormaWriteMode mode);
 
     /**
       @brief Write a charge state to stream

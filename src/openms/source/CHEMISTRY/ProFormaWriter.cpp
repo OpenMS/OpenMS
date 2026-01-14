@@ -16,29 +16,32 @@
 namespace OpenMS
 {
 
-  String ProFormaWriter::toString(const Peptidoform& peptidoform)
+  String ProFormaWriter::toString(const Peptidoform& peptidoform, ProFormaWriteMode mode)
   {
     std::ostringstream os;
 
+    // Write global modifications first: <13C> or <[Oxidation]@M>
+    writeGlobalMods_(os, peptidoform.global_mods, mode);
+
     // Write unlocalised modifications: [Phospho]? or [Phospho]^2?
-    writeUnlocalisedMods_(os, peptidoform.unlocalised_mods);
+    writeUnlocalisedMods_(os, peptidoform.unlocalised_mods, mode);
 
     // Write labile modifications: {Glycan:Hex}
-    writeLabileModifications_(os, peptidoform.labile_mods);
+    writeLabileModifications_(os, peptidoform.labile_mods, mode);
 
     // Write N-terminal modifications: [Acetyl]-
-    writeNTermMods_(os, peptidoform.n_term_mods);
+    writeNTermMods_(os, peptidoform.n_term_mods, mode);
 
     // Write the sequence with modifications
-    writeSequence_(os, peptidoform.sequence);
+    writeSequence_(os, peptidoform.sequence, mode);
 
     // Write C-terminal modifications: -[Amidated]
-    writeCTermMods_(os, peptidoform.c_term_mods);
+    writeCTermMods_(os, peptidoform.c_term_mods, mode);
 
     return String(os.str());
   }
 
-  String ProFormaWriter::toString(const PeptidoformIon& ion)
+  String ProFormaWriter::toString(const PeptidoformIon& ion, ProFormaWriteMode mode)
   {
     std::ostringstream os;
 
@@ -56,7 +59,7 @@ namespace OpenMS
         os << "//";
       }
       first = false;
-      os << toString(chain);
+      os << toString(chain, mode);
     }
 
     // Write charge state if present
@@ -68,11 +71,11 @@ namespace OpenMS
     return String(os.str());
   }
 
-  void ProFormaWriter::writeGlobalMods_(std::ostream& os, const std::vector<GlobalModEntry>& mods)
+  void ProFormaWriter::writeGlobalMods_(std::ostream& os, const std::vector<GlobalModEntry>& mods, ProFormaWriteMode mode)
   {
     for (const auto& entry : mods)
     {
-      std::visit([&os](auto&& arg)
+      std::visit([&os, mode](auto&& arg)
       {
         using T = std::decay_t<decltype(arg)>;
         if constexpr (std::is_same_v<T, IsotopeReplacement>)
@@ -81,7 +84,7 @@ namespace OpenMS
         }
         else if constexpr (std::is_same_v<T, GlobalModification>)
         {
-          ProFormaWriter::writeGlobalModification_(os, arg);
+          ProFormaWriter::writeGlobalModification_(os, arg, mode);
         }
       }, entry);
     }
@@ -92,10 +95,10 @@ namespace OpenMS
     os << '<' << isotope.isotope << '>';
   }
 
-  void ProFormaWriter::writeGlobalModification_(std::ostream& os, const GlobalModification& mod)
+  void ProFormaWriter::writeGlobalModification_(std::ostream& os, const GlobalModification& mod, ProFormaWriteMode mode)
   {
     os << '<';
-    writeModification_(os, mod.modification);
+    writeModification_(os, mod.modification, mode);
     if (!mod.locations.empty())
     {
       os << '@';
@@ -113,7 +116,7 @@ namespace OpenMS
     os << '>';
   }
 
-  void ProFormaWriter::writeModification_(std::ostream& os, const Modification& mod)
+  void ProFormaWriter::writeModification_(std::ostream& os, const Modification& mod, ProFormaWriteMode mode)
   {
     os << '[';
     bool first = true;
@@ -126,20 +129,20 @@ namespace OpenMS
       first = false;
 
       // Write the modification tag
-      writeModificationTag_(os, alt.first);
+      writeModificationTag_(os, alt.first, mode);
 
       // Write the label if present
       if (alt.second.has_value())
       {
-        writeLabel_(os, alt.second.value());
+        writeLabel_(os, alt.second.value(), mode);
       }
     }
     os << ']';
   }
 
-  void ProFormaWriter::writeModificationTag_(std::ostream& os, const ModificationTag& tag)
+  void ProFormaWriter::writeModificationTag_(std::ostream& os, const ModificationTag& tag, ProFormaWriteMode mode)
   {
-    std::visit([&os](auto&& arg)
+    std::visit([&os, mode](auto&& arg)
     {
       using T = std::decay_t<decltype(arg)>;
       if constexpr (std::is_same_v<T, CvAccession>)
@@ -152,7 +155,7 @@ namespace OpenMS
       }
       else if constexpr (std::is_same_v<T, MassDelta>)
       {
-        ProFormaWriter::writeMassDelta_(os, arg);
+        ProFormaWriter::writeMassDelta_(os, arg, mode);
       }
       else if constexpr (std::is_same_v<T, FormulaTag>)
       {
@@ -183,7 +186,7 @@ namespace OpenMS
     os << named.name;
   }
 
-  void ProFormaWriter::writeMassDelta_(std::ostream& os, const MassDelta& delta)
+  void ProFormaWriter::writeMassDelta_(std::ostream& os, const MassDelta& delta, ProFormaWriteMode mode)
   {
     // Write source prefix if present
     if (delta.source != MassDelta::Source::NONE)
@@ -191,20 +194,19 @@ namespace OpenMS
       os << massSourceToString_(delta.source) << ':';
     }
 
-    // Use original_text if available for lossless roundtrip
-    if (!delta.original_text.empty())
+    if (mode == ProFormaWriteMode::LOSSLESS && !delta.original_text.empty())
     {
+      // Lossless mode: use original_text for exact roundtrip
       os << delta.original_text;
     }
     else
     {
-      // Format the mass value with sign
+      // Canonical mode or no original_text: use fixed 4 decimal places
       if (delta.mass >= 0)
       {
         os << '+';
       }
-      // Use enough precision to preserve the value
-      os << std::setprecision(6) << delta.mass;
+      os << std::fixed << std::setprecision(4) << delta.mass;
     }
   }
 
@@ -263,22 +265,31 @@ namespace OpenMS
     os << "INFO:" << info.text;
   }
 
-  void ProFormaWriter::writeLabel_(std::ostream& os, const Label& label)
+  void ProFormaWriter::writeLabel_(std::ostream& os, const Label& label, ProFormaWriteMode mode)
   {
     os << '#' << label.identifier;
     if (label.score.has_value())
     {
-      os << '(' << label.score.value() << ')';
+      if (mode == ProFormaWriteMode::CANONICAL)
+      {
+        // Canonical: use fixed 2 decimal places for score
+        os << '(' << std::fixed << std::setprecision(2) << label.score.value() << ')';
+      }
+      else
+      {
+        // Lossless: use default formatting
+        os << '(' << label.score.value() << ')';
+      }
     }
   }
 
-  void ProFormaWriter::writeUnlocalisedMods_(std::ostream& os, const std::vector<UnlocalisedMod>& mods)
+  void ProFormaWriter::writeUnlocalisedMods_(std::ostream& os, const std::vector<UnlocalisedMod>& mods, ProFormaWriteMode mode)
   {
     for (const auto& unloc : mods)
     {
       for (const auto& mod : unloc.modifications)
       {
-        writeModification_(os, mod);
+        writeModification_(os, mod, mode);
       }
       if (unloc.occurrence.has_value())
       {
@@ -288,7 +299,7 @@ namespace OpenMS
     }
   }
 
-  void ProFormaWriter::writeLabileModifications_(std::ostream& os, const std::vector<LabileModification>& mods)
+  void ProFormaWriter::writeLabileModifications_(std::ostream& os, const std::vector<LabileModification>& mods, ProFormaWriteMode mode)
   {
     for (const auto& labile : mods)
     {
@@ -302,93 +313,93 @@ namespace OpenMS
           os << '|';
         }
         first = false;
-        writeModificationTag_(os, alt.first);
+        writeModificationTag_(os, alt.first, mode);
         if (alt.second.has_value())
         {
-          writeLabel_(os, alt.second.value());
+          writeLabel_(os, alt.second.value(), mode);
         }
       }
       os << '}';
     }
   }
 
-  void ProFormaWriter::writeNTermMods_(std::ostream& os, const std::vector<Modification>& mods)
+  void ProFormaWriter::writeNTermMods_(std::ostream& os, const std::vector<Modification>& mods, ProFormaWriteMode mode)
   {
     if (!mods.empty())
     {
       for (const auto& mod : mods)
       {
-        writeModification_(os, mod);
+        writeModification_(os, mod, mode);
       }
       os << '-';
     }
   }
 
-  void ProFormaWriter::writeCTermMods_(std::ostream& os, const std::vector<Modification>& mods)
+  void ProFormaWriter::writeCTermMods_(std::ostream& os, const std::vector<Modification>& mods, ProFormaWriteMode mode)
   {
     if (!mods.empty())
     {
       os << '-';
       for (const auto& mod : mods)
       {
-        writeModification_(os, mod);
+        writeModification_(os, mod, mode);
       }
     }
   }
 
-  void ProFormaWriter::writeSequence_(std::ostream& os, const std::vector<SequenceSection>& seq)
+  void ProFormaWriter::writeSequence_(std::ostream& os, const std::vector<SequenceSection>& seq, ProFormaWriteMode mode)
   {
     for (const auto& section : seq)
     {
-      std::visit([&os](auto&& arg)
+      std::visit([&os, mode](auto&& arg)
       {
         using T = std::decay_t<decltype(arg)>;
         if constexpr (std::is_same_v<T, SequenceElement>)
         {
-          ProFormaWriter::writeSequenceElement_(os, arg);
+          ProFormaWriter::writeSequenceElement_(os, arg, mode);
         }
         else if constexpr (std::is_same_v<T, AmbiguousRegion>)
         {
-          ProFormaWriter::writeAmbiguousRegion_(os, arg);
+          ProFormaWriter::writeAmbiguousRegion_(os, arg, mode);
         }
         else if constexpr (std::is_same_v<T, ModifiedRange>)
         {
-          ProFormaWriter::writeModifiedRange_(os, arg);
+          ProFormaWriter::writeModifiedRange_(os, arg, mode);
         }
       }, section);
     }
   }
 
-  void ProFormaWriter::writeSequenceElement_(std::ostream& os, const SequenceElement& elem)
+  void ProFormaWriter::writeSequenceElement_(std::ostream& os, const SequenceElement& elem, ProFormaWriteMode mode)
   {
     os << elem.amino_acid;
     for (const auto& mod : elem.modifications)
     {
-      writeModification_(os, mod);
+      writeModification_(os, mod, mode);
     }
   }
 
-  void ProFormaWriter::writeAmbiguousRegion_(std::ostream& os, const AmbiguousRegion& region)
+  void ProFormaWriter::writeAmbiguousRegion_(std::ostream& os, const AmbiguousRegion& region, ProFormaWriteMode mode)
   {
     os << "(?";
     for (const auto& elem : region.elements)
     {
-      writeSequenceElement_(os, elem);
+      writeSequenceElement_(os, elem, mode);
     }
     os << ')';
   }
 
-  void ProFormaWriter::writeModifiedRange_(std::ostream& os, const ModifiedRange& range)
+  void ProFormaWriter::writeModifiedRange_(std::ostream& os, const ModifiedRange& range, ProFormaWriteMode mode)
   {
     os << '(';
     for (const auto& elem : range.elements)
     {
-      writeSequenceElement_(os, elem);
+      writeSequenceElement_(os, elem, mode);
     }
     os << ')';
     for (const auto& mod : range.modifications)
     {
-      writeModification_(os, mod);
+      writeModification_(os, mod, mode);
     }
   }
 
@@ -400,15 +411,7 @@ namespace OpenMS
       using T = std::decay_t<decltype(arg)>;
       if constexpr (std::is_same_v<T, int>)
       {
-        // Simple integer charge
-        if (arg >= 0)
-        {
-          os << arg;
-        }
-        else
-        {
-          os << arg;
-        }
+        os << arg;
       }
       else if constexpr (std::is_same_v<T, std::vector<AdductIon>>)
       {

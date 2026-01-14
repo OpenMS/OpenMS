@@ -16,9 +16,13 @@
 
 #include <string>
 #include <string_view>
+#include <vector>
 
 namespace OpenMS
 {
+
+  // Forward declaration
+  class AASequence;
 
   /**
     @brief Recursive descent parser for ProForma v2 peptidoform notation
@@ -79,6 +83,86 @@ namespace OpenMS
       @throws ProFormaParseError if the input is invalid
     */
     static PeptidoformIon parseIon(const String& input);
+
+    /**
+      @brief Convert a Peptidoform AST back to ProForma string notation
+
+      @param pf The Peptidoform to convert
+      @param mode Write mode: LOSSLESS preserves original formatting, CANONICAL produces normalized output
+      @return The ProForma string representation
+    */
+    static String toString(const Peptidoform& pf,
+                           ProFormaWriteMode mode = ProFormaWriteMode::LOSSLESS);
+
+    /**
+      @brief Convert a PeptidoformIon AST back to ProForma string notation
+
+      @param pfi The PeptidoformIon to convert
+      @param mode Write mode: LOSSLESS preserves original formatting, CANONICAL produces normalized output
+      @return The ProForma string representation
+    */
+    static String toString(const PeptidoformIon& pfi,
+                           ProFormaWriteMode mode = ProFormaWriteMode::LOSSLESS);
+
+    // ---- AASequence Conversion Methods ----
+
+    /**
+      @brief Resolve all modifications in a Peptidoform using ModificationsDB
+
+      Looks up each modification tag (CV accession, named mod, mass delta) in
+      ModificationsDB and stores the resolved ResidueModification pointer.
+
+      @param pf The Peptidoform to resolve (modified in place)
+      @note Modifications that cannot be resolved will have resolved_mod = nullptr
+    */
+    static void resolveModifications(Peptidoform& pf);
+
+    /**
+      @brief Convert a Peptidoform to an OpenMS AASequence
+
+      @param pf The Peptidoform to convert
+      @param policy How to handle unconvertible modifications
+      @return The equivalent AASequence
+      @throws Exception::ConversionError if STRICT policy and conversion not possible
+
+      @note Call resolveModifications() first, or this will resolve automatically
+    */
+    static AASequence toAASequence(
+      const Peptidoform& pf,
+      AASequenceConversionPolicy policy = AASequenceConversionPolicy::STRICT);
+
+    /**
+      @brief Create a Peptidoform from an OpenMS AASequence
+
+      Converts an AASequence with modifications to ProForma notation.
+      Uses CV accessions (UNIMOD) where available, otherwise named modifications.
+
+      @param seq The AASequence to convert
+      @return The equivalent Peptidoform AST
+    */
+    static Peptidoform fromAASequence(const AASequence& seq);
+
+    /**
+      @brief Check if a Peptidoform can be fully represented as an AASequence
+
+      Returns true if all modifications can be resolved and there are no
+      unsupported features (ambiguous regions, cross-links, etc.)
+
+      @param pf The Peptidoform to check
+      @return True if conversion is possible without issues
+    */
+    static bool isRepresentableAsAASequence(const Peptidoform& pf);
+
+    /**
+      @brief Get a list of all issues that would arise during AASequence conversion
+
+      Returns detailed information about every aspect of the Peptidoform that
+      cannot be represented in an AASequence.
+
+      @param pf The Peptidoform to analyze
+      @return Vector of conversion issues (empty if fully convertible)
+    */
+    static std::vector<ConversionIssue> getAASequenceConversionIssues(const Peptidoform& pf);
 
   private:
 
