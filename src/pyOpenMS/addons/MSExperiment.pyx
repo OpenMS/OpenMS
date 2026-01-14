@@ -761,7 +761,7 @@ from libc.stdint cimport uintptr_t
                     if spec.containsIMData():
                         im_idx, _ = spec.getIMData()
                         im_arr = spec.getFloatDataArrays()[im_idx]
-                        im_data = np.array([im_arr[i] for i in range(len(im_arr))])
+                        im_data = np.asarray(im_arr.get_data())
                         # Apply same m/z filter mask if it was created (numpy boolean indexing)
                         if mz_mask is not None and len(im_data) == original_len:
                             im_data = im_data[mz_mask]

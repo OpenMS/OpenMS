@@ -444,6 +444,7 @@ START_SECTION(exportSpectraToParquet - basic export)
 
   String filename;
   NEW_TMP_FILE(filename);
+  filename += ".parquet";
 
   bool success = ArrowExport::exportSpectraToParquet(exp, filename);
   TEST_EQUAL(success, true)
@@ -460,6 +461,7 @@ START_SECTION(exportSpectraToParquet - with compression options)
 
   String filename;
   NEW_TMP_FILE(filename);
+  filename += ".parquet";
 
   // Test with different compression settings
   ParquetWriteConfig pq_config;
@@ -481,6 +483,7 @@ START_SECTION(exportSpectraToParquet - with filtering)
 
   String filename;
   NEW_TMP_FILE(filename);
+  filename += ".parquet";
 
   // Export only MS2
   ArrowSpectraExportConfig config;
@@ -500,6 +503,7 @@ START_SECTION(exportSpectraToParquet - empty experiment)
 
   String filename;
   NEW_TMP_FILE(filename);
+  filename += ".parquet";
 
   bool success = ArrowExport::exportSpectraToParquet(exp, filename);
   TEST_EQUAL(success, true)
@@ -533,6 +537,7 @@ START_SECTION(exportChromatogramsToParquet - basic export)
 
   String filename;
   NEW_TMP_FILE(filename);
+  filename += ".parquet";
 
   bool success = ArrowExport::exportChromatogramsToParquet(exp, filename);
   TEST_EQUAL(success, true)
@@ -559,6 +564,7 @@ START_SECTION(exportChromatogramsToParquet - with compression options)
 
   String filename;
   NEW_TMP_FILE(filename);
+  filename += ".parquet";
 
   // Test with SNAPPY compression
   ParquetWriteConfig pq_config;
