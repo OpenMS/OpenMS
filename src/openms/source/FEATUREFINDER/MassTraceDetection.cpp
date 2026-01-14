@@ -200,6 +200,7 @@ namespace OpenMS
 
       Size total_peak_count(0);
       std::vector<Size> spec_offsets;
+      spec_offsets.reserve(input_exp.size() + 1); // Pre-allocate for performance
       spec_offsets.push_back(0);
 
       Size spectra_count(0);
