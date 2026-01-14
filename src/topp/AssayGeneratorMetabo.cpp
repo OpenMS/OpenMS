@@ -243,7 +243,7 @@ protected:
       {
         SpectrumSettings::SpectrumType spectrum_type = spectra[0].getType();
 
-        if (spectrum_type == SpectrumSettings::PROFILE)
+        if (spectrum_type == SpectrumSettings::SpectrumType::PROFILE)
         {
           if (!getFlag_("force"))
           {

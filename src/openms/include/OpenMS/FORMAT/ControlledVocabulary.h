@@ -49,7 +49,7 @@ public:
     struct OPENMS_DLLAPI CVTerm
     {
       /// define xsd types allowed in cv term to specify their value-type
-      enum XRefType
+      enum class XRefType
       {
         XSD_STRING = 0, // xsd:string A string
         XSD_INTEGER, // xsd:integer Any integer

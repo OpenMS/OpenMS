@@ -129,11 +129,11 @@ namespace OpenMS
     map_label_[0] = String(param_.getValue("default_map_label").toString());
 
     if (param_.getValue("q_try") == "feature")
-      q_try_ = QFROMFEATURE;
+      q_try_ = CHARGEMODE::QFROMFEATURE;
     else if (param_.getValue("q_try") == "heuristic")
-      q_try_ = QHEURISTIC;
+      q_try_ = CHARGEMODE::QHEURISTIC;
     else
-      q_try_ = QALL;
+      q_try_ = CHARGEMODE::QALL;
 
 
     StringList potential_adducts_s = ListUtils::toStringList<std::string>(param_.getValue("potential_adducts"));
@@ -1199,11 +1199,11 @@ namespace OpenMS
     }
 
     // if no charge given or all-charges is selected. Assume no charge detected -> charge 0
-    if ((feature_charge == 0) || (q_try_ == QALL))
+    if ((feature_charge == 0) || (q_try_ == CHARGEMODE::QALL))
     {
       return true;
     }
-    else if (q_try_ == QHEURISTIC)
+    else if (q_try_ == CHARGEMODE::QHEURISTIC)
     {
       // do not allow two charges to change at the same time
       if (!other_unchanged && feature_charge != putative_charge)
@@ -1220,7 +1220,7 @@ namespace OpenMS
 
       return false;
     }
-    else if (q_try_ == QFROMFEATURE)
+    else if (q_try_ == CHARGEMODE::QFROMFEATURE)
     {
       return feature_charge == putative_charge;
     }

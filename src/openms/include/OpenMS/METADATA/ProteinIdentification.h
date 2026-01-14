@@ -235,7 +235,7 @@ public:
     };
 
     /// Peak mass type
-    enum PeakMassType
+    enum class PeakMassType
     {
       MONOISOTOPIC,
       AVERAGE,
@@ -243,7 +243,7 @@ public:
     };
 
     /// Names corresponding to peak mass types
-    static const std::string NamesOfPeakMassType[SIZE_OF_PEAKMASSTYPE];
+    static const std::string NamesOfPeakMassType[static_cast<size_t>(PeakMassType::SIZE_OF_PEAKMASSTYPE)];
 
     /// returns all peak mass type names known to OpenMS
     static StringList getAllNamesOfPeakMassType();

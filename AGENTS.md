@@ -8,8 +8,6 @@ This file provides context and instructions for AI coding agents working on Open
 - Build the project unless explicitly asked (extremely resource-intensive)
 - Modify files in `src/openms/extern/` (third-party vendored code)
 - Commit secrets, credentials, or `.env` files
-- Use `std::cout`/`std::cerr` directly (use OpenMS logging macros)
-- Use `std::endl` (use `\n` for performance)
 - Add `using namespace` or `using std::...` in header files
 - Modify the contrib tree or third-party dependencies
 - Skip tests when making code changes
