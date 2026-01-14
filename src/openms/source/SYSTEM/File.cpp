@@ -138,7 +138,7 @@ namespace OpenMS
   bool File::empty(const String& file)
   {
     QFileInfo fi(file.toQString());
-    return !fi.exists() || fi.size() == 0;
+    return !fi.exists() || fi.size() == 0; // Note: QFileInfo::size() returns qint64, keeping original logic
   }
 
   bool File::executable(const String& file)
