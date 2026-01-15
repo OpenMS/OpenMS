@@ -332,9 +332,12 @@ type alias to provide a Pythonic interface:
 
     libcpp_utf8_output_string getName() except + nogil     # returns str
 
+   This also works for return types in containers:
+
+    libcpp_vector[libcpp_utf8_output_string] getNames() except + nogil  # returns list of str
+
 3. Keep **libcpp_string** for:
    - Member variables (internal data storage)
-   - Return types in containers (e.g., libcpp_vector[libcpp_string])
    - Cases where raw bytes are semantically correct
 
 == Example
