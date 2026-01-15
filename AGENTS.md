@@ -63,14 +63,9 @@ OpenMS/
 - Out-of-tree build expected in `OpenMS-build/`; build in place for development (install prefixes are for system installs).
 - Use `CMAKE_BUILD_TYPE=Debug` for development to keep assertions/pre/post-conditions.
 - Dependencies via distro packages or the contrib tree; set `OPENMS_CONTRIB_LIBS` and `CMAKE_PREFIX_PATH` as needed (Qt, contrib).
-- pyOpenMS build deps: `src/pyOpenMS/requirements_bld.txt`; enable with `-DPYOPENMS=ON` and optional `-DPY_NUM_THREADS`/`-DPY_NUM_MODULES`.
+- pyOpenMS build deps: install via `uv sync --only-group build` or `pip install -e .[dev]` (see `src/pyOpenMS/pyproject.toml`); enable with `-DPYOPENMS=ON` and optional `-DPY_NUM_THREADS`/`-DPY_NUM_MODULES`.
 - Style checks: `ENABLE_STYLE_TESTING=ON` runs cpplint at `src/tests/coding/cpplint.py`.
 
-<<<<<<< HEAD
-## Known build workarounds
-- **Boost static libs on macOS**: Boost's CMake config has incomplete `find_dependency()` calls for transitive dependencies. Use `-DBOOST_USE_STATIC_LIBS=OFF` to avoid linker errors. This is a 5+ year old upstream issue.
-- **CMAKE_PREFIX_PATH separators** (per [CMake docs](https://cmake.org/cmake/help/latest/variable/CMAKE_PREFIX_PATH.html)): When passing via `-D` option, use semicolons (`;`) as list separators (e.g., `-DCMAKE_PREFIX_PATH="/path/one;/path/two"`). Environment variables use OS-native separators (`:` on Unix, `;` on Windows).
-=======
 **Required dependencies:**
 - XercesC, Boost (date_time, regex, iostreams), Eigen3 (3.4.0+), libSVM (2.91+), COIN-OR or GLPK, ZLIB, BZip2, Qt6 (6.1.0+)
 
@@ -119,7 +114,6 @@ OpenMS/
 ### Common CMake Issues
 - **CMAKE_SIZEOF_VOID_P bug**: Variable vanishes on CMake version updates → delete `CMakeFiles/` and `CMakeCache.txt`, rerun cmake
 - **Eigen3 version detection**: Build system handles CMake's version checking quirks with Eigen3 4.0+ automatically
->>>>>>> upstream/develop
 
 ## Testing
 
