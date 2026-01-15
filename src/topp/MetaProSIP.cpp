@@ -434,7 +434,7 @@ public:
 
     QProcess p;
     QStringList env = QProcess::systemEnvironment();
-    env << QString("R_LIBS=") + tmp_path.toQString();
+    env << QString("R_LIBS=") + QString::fromStdString(tmp_path);
     p.setEnvironment(env);
 
     QStringList qparam;
@@ -443,7 +443,7 @@ public:
     {
       qparam << "--quiet";
     }
-    qparam << "--slave" << "--file=" + QString(tmp_path.toQString() + "/" + script_filename.toQString());
+    qparam << "--slave" << "--file=" + QString::fromStdString(tmp_path + "/" + script_filename);
     p.start(executable, qparam);
     p.waitForFinished(-1);
     int status = p.exitCode();
@@ -455,11 +455,11 @@ public:
     }
     else
     {
-      QFile(QString(tmp_path.toQString() + "/" + filename.toQString())).copy(output_dir.toQString() + "/heatmap" + file_suffix.toQString() + "." + file_extension.toQString());
+      QFile(QString::fromStdString(tmp_path + "/" + filename)).copy(QString::fromStdString(output_dir + "/heatmap" + file_suffix + "." + file_extension));
       if (debug_level < 1)
       {
-        QFile(QString(tmp_path.toQString() + "/" + script_filename.toQString())).remove();
-        QFile(QString(tmp_path.toQString() + "/" + filename.toQString())).remove();
+        QFile(QString::fromStdString(tmp_path + "/" + script_filename)).remove();
+        QFile(QString::fromStdString(tmp_path + "/" + filename)).remove();
       }
     }
   }
@@ -517,11 +517,11 @@ public:
 
       QProcess p;
       QStringList env = QProcess::systemEnvironment();
-      env << QString("R_LIBS=") + tmp_path.toQString();
+      env << QString("R_LIBS=") + QString::fromStdString(tmp_path);
       p.setEnvironment(env);
 
       QStringList qparam;
-      qparam << "--vanilla" << "--quiet" << "--slave" << "--file=" + QString(tmp_path.toQString() + "/" + script_filename.toQString());
+      qparam << "--vanilla" << "--quiet" << "--slave" << "--file=" + QString::fromStdString(tmp_path + "/" + script_filename);
       p.start(executable, qparam);
       p.waitForFinished(-1);
       int status = p.exitCode();
@@ -532,11 +532,11 @@ public:
       }
       else
       {
-        QFile(QString(tmp_path.toQString() + "/" + filename.toQString())).copy(output_dir.toQString() + "/spectrum" + file_suffix.toQString() + "_rt_" + String(sip_peptides[i].feature_rt).toQString() + "." + file_extension.toQString());
+        QFile(QString::fromStdString(tmp_path + "/" + filename)).copy(QString::fromStdString(output_dir + "/spectrum" + file_suffix + "_rt_" + String(sip_peptides[i].feature_rt) + "." + file_extension));
         if (debug_level < 1)
         {
-          QFile(QString(tmp_path.toQString() + "/" + script_filename.toQString())).remove();
-          QFile(QString(tmp_path.toQString() + "/" + filename.toQString())).remove();
+          QFile(QString::fromStdString(tmp_path + "/" + script_filename)).remove();
+          QFile(QString::fromStdString(tmp_path + "/" + filename)).remove();
         }
       }
     }
@@ -660,7 +660,7 @@ public:
       current_script.addLine("<p> <img src=\"" + score_filename + R"(" alt="graphic"></p>)");
     }
     current_script.addLine("\n</body>\n</html>");
-    current_script.store(qc_output_directory.toQString() + "/index" + file_suffix.toQString() + ".html");
+    current_script.store(qc_output_directory + "/index" + file_suffix + ".html");
   }
 
   static void plotScoresAndWeights(const String& output_dir, const String& tmp_path, const String& file_suffix, const String& file_extension, const vector<SIPPeptide>& sip_peptides, double score_plot_yaxis_min, Size debug_level = 0, const QString& executable = QString("R"))
@@ -738,11 +738,11 @@ public:
 
       QProcess p;
       QStringList env = QProcess::systemEnvironment();
-      env << QString("R_LIBS=") + tmp_path.toQString();
+      env << QString("R_LIBS=") + QString::fromStdString(tmp_path);
       p.setEnvironment(env);
 
       QStringList qparam;
-      qparam << "--vanilla" << "--quiet" << "--slave" << "--file=" + QString(tmp_path.toQString() + "/" + script_filename.toQString());
+      qparam << "--vanilla" << "--quiet" << "--slave" << "--file=" + QString::fromStdString(tmp_path + "/" + script_filename);
       p.start(executable, qparam);
       p.waitForFinished(-1);
       int status = p.exitCode();
@@ -753,11 +753,11 @@ public:
       }
       else
       {
-        QFile(QString(tmp_path.toQString() + "/" + score_filename.toQString())).copy(output_dir.toQString() + "/scores" + file_suffix.toQString() + "_rt_" + String(sip_peptides[i].feature_rt).toQString() + "." + file_extension.toQString());
+        QFile(QString::fromStdString(tmp_path + "/" + score_filename)).copy(QString::fromStdString(output_dir + "/scores" + file_suffix + "_rt_" + String(sip_peptides[i].feature_rt) + "." + file_extension));
         if (debug_level < 1)
         {
-          QFile(QString(tmp_path.toQString() + "/" + script_filename.toQString())).remove();
-          QFile(QString(tmp_path.toQString() + "/" + score_filename.toQString())).remove();
+          QFile(QString::fromStdString(tmp_path + "/" + script_filename)).remove();
+          QFile(QString::fromStdString(tmp_path + "/" + score_filename)).remove();
         }
       }
     }
@@ -1952,11 +1952,11 @@ public:
       QProcess p;
       p.setProcessChannelMode(QProcess::MergedChannels);
       QStringList env = QProcess::systemEnvironment();
-      env << QString("R_LIBS=") + tmp_path.toQString();
+      env << QString("R_LIBS=") + QString::fromStdString(tmp_path);
       p.setEnvironment(env);
 
       QStringList checkRinPathQParam;
-      checkRinPathQParam << "--vanilla" << "--quiet" << "--slave" << "--file=" + script_filename.toQString();
+      checkRinPathQParam << "--vanilla" << "--quiet" << "--slave" << "--file=" + QString::fromStdString(script_filename);
       p.start(executable, checkRinPathQParam);
       p.waitForFinished(-1);
 
@@ -1996,11 +1996,11 @@ public:
     QProcess p;
     p.setProcessChannelMode(QProcess::MergedChannels);
     QStringList env = QProcess::systemEnvironment();
-    env << QString("R_LIBS=") + tmp_path.toQString();
+    env << QString("R_LIBS=") + QString::fromStdString(tmp_path);
     p.setEnvironment(env);
 
     QStringList qparam;
-    qparam << "--vanilla" << "--quiet" << "--slave" << "--file=" + script_filename.toQString();
+    qparam << "--vanilla" << "--quiet" << "--slave" << "--file=" + QString::fromStdString(script_filename);
     p.start(executable, qparam);
     p.waitForFinished(-1);
     int status = p.exitCode();
@@ -2943,15 +2943,15 @@ protected:
     // Do we want to create a qc report?
     if (!qc_output_directory.empty())
     {
-      QString executable = getStringOption_("r_executable").toQString();
+      QString executable = QString::fromStdString(getStringOption_("r_executable"));
       // convert path to absolute path
-      QDir qc_dir(qc_output_directory.toQString());
-      qc_output_directory = String(qc_dir.absolutePath());
+      QDir qc_dir(QString::fromStdString(qc_output_directory));
+      qc_output_directory = String(qc_dir.absolutePath().toStdString());
 
       // trying to create qc_output_directory if not present
       if (!qc_dir.exists())
       {
-        qc_dir.mkpath(qc_output_directory.toQString());
+        qc_dir.mkpath(QString::fromStdString(qc_output_directory));
       }
       // check if R and dependencies are installed
       StringList package_names;
@@ -3159,7 +3159,7 @@ protected:
     vector<MapRateToScoreType> normalized_weight_maps;
     vector<MapRateToScoreType> correlation_maps;
 
-    String file_suffix = "_" + String(QFileInfo(in_mzml.toQString()).baseName()) + "_" + String::random(4);
+    String file_suffix = "_" + String(QFileInfo(QString::fromStdString(in_mzml)).baseName().toStdString()) + "_" + String::random(4);
 
     vector<SIPPeptide> sip_peptides;
 
@@ -3616,7 +3616,7 @@ protected:
     // quality report
     if (!qc_output_directory.empty())
     {
-      QString executable = getStringOption_("r_executable").toQString();
+      QString executable = QString::fromStdString(getStringOption_("r_executable"));
       // TODO plot merged is now passed as false
       MetaProSIPReporting::createQualityReport(tmp_path, qc_output_directory, file_suffix, file_extension_, sippeptide_clusters, n_heatmap_bins, score_plot_y_axis_min, report_natural_peptides, executable);
     }

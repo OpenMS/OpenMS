@@ -420,7 +420,7 @@ protected:
   bool createLockedDBIndex(const String& db_name, const String& java_executable, const String& java_memory, const String& executable)
   {
     const String db_indexfile = FileHandler::stripExtension(db_name) + ".canno";
-    const QString lockfile = (db_name + ".lock").toQString();
+    const QString lockfile = QString::fromStdString(db_name + ".lock");
     QLockFile lock_db(lockfile);
     OPENMS_LOG_DEBUG << "Checking for db index, using a lock file ..." << std::endl;
     if (!lock_db.lock())

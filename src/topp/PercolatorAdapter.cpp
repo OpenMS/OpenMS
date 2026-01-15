@@ -980,11 +980,11 @@ protected:
       // copy file in tmp folder to output
       if (!pout_target.empty())
       {
-        QFile::copy(pout_target_file_peptides.toQString(), pout_target.toQString());
+        QFile::copy(QString::fromStdString(pout_target_file_peptides), QString::fromStdString(pout_target));
       }
       if (!pout_decoy.empty())
       {
-        QFile::copy(pout_decoy_file_peptides.toQString(), pout_decoy.toQString());
+        QFile::copy(QString::fromStdString(pout_decoy_file_peptides), QString::fromStdString(pout_decoy));
       }
     }
     else
@@ -995,14 +995,14 @@ protected:
       // copy file in tmp folder to output
       if (!pout_target.empty())
       {
-        QFile::copy(pout_target_file.toQString(), pout_target.toQString());
+        QFile::copy(QString::fromStdString(pout_target_file), QString::fromStdString(pout_target));
       }
       if (!pout_decoy.empty())
       {
-        QFile::copy(pout_decoy_file.toQString(), pout_decoy.toQString());
+        QFile::copy(QString::fromStdString(pout_decoy_file), QString::fromStdString(pout_decoy));
       }
     }
-    
+
     map<String, PercolatorProteinResult> protein_map;
     if (protein_level_fdrs)
     {
@@ -1012,11 +1012,11 @@ protected:
       // copy file in tmp folder to output filename
       if (!pout_target_proteins.empty())
       {
-        QFile::copy(pout_target_file_proteins.toQString(), pout_target_proteins.toQString());
+        QFile::copy(QString::fromStdString(pout_target_file_proteins), QString::fromStdString(pout_target_proteins));
       }
       if (!pout_decoy_proteins.empty())
       {
-        QFile::copy(pout_target_file_proteins.toQString(), pout_decoy_proteins.toQString());
+        QFile::copy(QString::fromStdString(pout_target_file_proteins), QString::fromStdString(pout_decoy_proteins));
       }
     }
 

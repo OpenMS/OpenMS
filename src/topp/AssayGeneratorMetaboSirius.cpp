@@ -191,7 +191,7 @@ protected:
     // Get all subdirectories within the SIRIUS project directory
     //-------------------------------------------------------------
     std::vector<String> subdirs;
-    QDirIterator it(sirius_project_directory.toQString(), QDir::Dirs | QDir::NoDotAndDotDot, QDirIterator::NoIteratorFlags);
+    QDirIterator it(QString::fromStdString(sirius_project_directory), QDir::Dirs | QDir::NoDotAndDotDot, QDirIterator::NoIteratorFlags);
     while (it.hasNext())
     {
       subdirs.emplace_back(it.next());
