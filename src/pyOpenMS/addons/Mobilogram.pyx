@@ -183,11 +183,11 @@ import numpy as np
 
         return f"Mobilogram({', '.join(parts)})"
 
-    def get_df_column_names(self, columns='default'):
+    def df_columns(self, columns='default'):
         """
-        get_df_column_names(self: Mobilogram, columns: str = 'default') -> List[str]
-        
-        Returns a list of column names that get_df() would produce for this mobilogram.
+        df_columns(self: Mobilogram, columns: str = 'default') -> List[str]
+
+        Returns a list of column names that to_df() would produce for this mobilogram.
 
         Useful for discovering available columns before export.
 
@@ -199,7 +199,7 @@ import numpy as np
 
         Example::
 
-            >>> cols = mobilogram.get_df_column_names()
+            >>> cols = mobilogram.df_columns()
             ['mobility', 'intensity', 'rt', 'drift_time_unit']
         """
         # Default columns (Mobilogram doesn't support meta values)
@@ -215,7 +215,7 @@ import numpy as np
         into a dictionary format suitable for conversion to a pandas DataFrame.
 
         :param columns: List of column names to include. If None, includes
-                        all default columns. Use get_df_column_names() to see
+                        all default columns. Use df_columns() to see
                         all available columns.
         :type columns: Optional[List[str]]
         :return: Dictionary with requested columns as keys and numpy arrays as values.
@@ -266,9 +266,9 @@ import numpy as np
 
         return data_dict
 
-    def get_df(self, columns=None):
+    def to_df(self, columns=None):
         """
-        get_df(self: Mobilogram, columns: Optional[List[str]] = None) -> pd.DataFrame
+        to_df(self: Mobilogram, columns: Optional[List[str]] = None) -> pd.DataFrame
 
         Returns a pandas DataFrame representation of the Mobilogram.
 
@@ -278,7 +278,7 @@ import numpy as np
         Note: Mobilogram does not support meta values (no MetaInfoInterface).
 
         :param columns: List of column names to include. If None,
-                        includes all default columns. Use get_df_column_names()
+                        includes all default columns. Use df_columns()
                         to discover available columns.
         :type columns: Optional[List[str]]
 
@@ -291,19 +291,19 @@ import numpy as np
         Example::
 
             # Get all default columns
-            df = mobilogram.get_df()
+            df = mobilogram.to_df()
 
             # Discover available columns
-            print(mobilogram.get_df_column_names())
+            print(mobilogram.df_columns())
 
             # Get only specific columns (faster)
-            df = mobilogram.get_df(columns=['mobility', 'intensity'])
+            df = mobilogram.to_df(columns=['mobility', 'intensity'])
         """
         try:
             import pandas as pd
         except ImportError:
             raise ImportError(
-                "pandas is required for get_df(). "
+                "pandas is required for to_df(). "
                 "Please install it with: pip install pandas"
             )
         data_dict = self.get_data_dict(columns=columns)
@@ -321,7 +321,7 @@ import numpy as np
         Note: Mobilogram does not support meta values (no MetaInfoInterface).
 
         :param columns: List of column names to include. If None,
-                        includes all default columns. Use get_df_column_names()
+                        includes all default columns. Use df_columns()
                         to discover available columns.
         :type columns: Optional[List[str]]
 

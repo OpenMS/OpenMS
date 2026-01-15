@@ -167,11 +167,11 @@ from collections import defaultdict as _defaultdict
         in_0.clear()
         in_0.update(replace_in_0)
 
-    def get_df_column_names(self, columns='default'):
+    def df_columns(self, columns='default'):
         """
-        get_df_column_names(self: ConsensusMap, columns: str = 'default') -> List[str]
+        df_columns(self: ConsensusMap, columns: str = 'default') -> List[str]
 
-        Returns a list of column names that get_df() would produce.
+        Returns a list of column names that to_df() would produce.
 
         Useful for discovering available columns before export.
 
@@ -182,7 +182,7 @@ from collections import defaultdict as _defaultdict
 
         Example::
 
-            >>> cmap.get_df_column_names()
+            >>> cmap.df_columns()
             ['sequence', 'charge', 'rt', 'mz', 'quality', 'intensity_file1', ...]
         """
         # Metadata columns
@@ -339,14 +339,14 @@ from collections import defaultdict as _defaultdict
 
         return pd.DataFrame(mdarr).set_index('id')
 
-    def get_df(self, columns=None):
+    def to_df(self, columns=None):
         """
-        get_df(self: ConsensusMap, columns: Optional[List[str]] = None) -> pd.DataFrame
+        to_df(self: ConsensusMap, columns: Optional[List[str]] = None) -> pd.DataFrame
 
         Generates a pandas DataFrame with both consensus feature meta data and intensities from each sample.
 
         :param columns: List of column names to include. If None,
-                        includes all columns. Use get_df_column_names()
+                        includes all columns. Use df_columns()
                         to discover available columns.
         :type columns: Optional[List[str]]
 
@@ -358,19 +358,19 @@ from collections import defaultdict as _defaultdict
         Example::
 
             # Get all columns
-            df = consensusmap.get_df()
+            df = consensusmap.to_df()
 
             # Discover available columns
-            print(consensusmap.get_df_column_names())
+            print(consensusmap.df_columns())
 
             # Get only specific columns
-            df = consensusmap.get_df(columns=['sequence', 'mz', 'intensity'])
+            df = consensusmap.to_df(columns=['sequence', 'mz', 'intensity'])
         """
         try:
             import pandas as pd
         except ImportError:
             raise ImportError(
-                "pandas is required for get_df(). "
+                "pandas is required for to_df(). "
                 "Please install it with: pip install pandas"
             )
         if columns is None:
@@ -423,7 +423,7 @@ from collections import defaultdict as _defaultdict
         Returns an Apache Arrow Table with consensus feature meta data and intensities.
 
         :param columns: List of column names to include. If None,
-                        includes all columns. Use get_df_column_names()
+                        includes all columns. Use df_columns()
                         to discover available columns.
         :type columns: Optional[List[str]]
 
@@ -451,5 +451,5 @@ from collections import defaultdict as _defaultdict
                 "pyarrow is required for to_arrow(). "
                 "Please install it with: pip install pyarrow"
             )
-        df = self.get_df(columns=columns)
+        df = self.to_df(columns=columns)
         return pa.Table.from_pandas(df)

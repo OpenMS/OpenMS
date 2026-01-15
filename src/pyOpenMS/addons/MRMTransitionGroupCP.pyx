@@ -4,11 +4,11 @@ import numpy as np
 
 
 
-    def get_chromatogram_df_column_names(self, columns='default', export_meta_values=True):
+    def chromatogram_df_columns(self, columns='default', export_meta_values=True):
         """
-        get_chromatogram_df_column_names(self: MRMTransitionGroupCP, columns: str = 'default', export_meta_values: bool = True) -> List[str]
+        chromatogram_df_columns(self: MRMTransitionGroupCP, columns: str = 'default', export_meta_values: bool = True) -> List[str]
 
-        Returns a list of column names that get_chromatogram_df() would produce.
+        Returns a list of column names that to_chromatogram_df() would produce.
 
         :param columns: 'default' for standard columns, 'all' for all available columns.
         :type columns: str
@@ -20,14 +20,14 @@ import numpy as np
         # Use the first chromatogram to get columns (all should have same structure)
         chroms = self.getChromatograms()
         if chroms:
-            return chroms[0].get_df_column_names(columns=columns, export_meta_values=export_meta_values)
+            return chroms[0].df_columns(columns=columns, export_meta_values=export_meta_values)
         return ['rt', 'intensity', 'precursor_mz', 'precursor_charge', 'product_mz', 'native_id']
 
-    def get_feature_df_column_names(self, columns='default'):
+    def feature_df_columns(self, columns='default'):
         """
-        get_feature_df_column_names(self: MRMTransitionGroupCP, columns: str = 'default') -> List[str]
+        feature_df_columns(self: MRMTransitionGroupCP, columns: str = 'default') -> List[str]
 
-        Returns a list of column names that get_feature_df() would produce.
+        Returns a list of column names that to_feature_df() would produce.
 
         :param columns: 'default' for core columns, 'all' to include all meta values.
         :type columns: str
@@ -47,9 +47,9 @@ import numpy as np
 
         return cols
 
-    def get_chromatogram_df(self, columns=None, export_meta_values=True):
+    def to_chromatogram_df(self, columns=None, export_meta_values=True):
         """
-        get_chromatogram_df(self: MRMTransitionGroupCP, columns: Optional[List[str]] = None, export_meta_values: bool = True) -> pd.DataFrame
+        to_chromatogram_df(self: MRMTransitionGroupCP, columns: Optional[List[str]] = None, export_meta_values: bool = True) -> pd.DataFrame
 
         Returns a DataFrame representation of the Chromatograms stored in MRMTransitionGroupCP.
 
@@ -69,35 +69,35 @@ import numpy as np
         Example::
 
             # Get all default columns
-            df = mrm.get_chromatogram_df()
+            df = mrm.to_chromatogram_df()
 
             # Discover available columns
-            print(mrm.get_chromatogram_df_column_names())
+            print(mrm.chromatogram_df_columns())
 
             # Get only specific columns
-            df = mrm.get_chromatogram_df(columns=['rt', 'intensity'])
+            df = mrm.to_chromatogram_df(columns=['rt', 'intensity'])
         """
         try:
             import pandas as pd
         except ImportError:
             raise ImportError(
-                "pandas is required for get_chromatogram_df(). "
+                "pandas is required for to_chromatogram_df(). "
                 "Please install it with: pip install pandas"
             )
         chroms = self.getChromatograms()
-        out = [c.get_df(columns=columns, export_meta_values=export_meta_values) for c in chroms]
+        out = [c.to_df(columns=columns, export_meta_values=export_meta_values) for c in chroms]
         if out:
             return pd.concat(out, ignore_index=True)
         return pd.DataFrame()
 
-    def get_feature_df(self, columns=None, meta_values=None):
+    def to_feature_df(self, columns=None, meta_values=None):
         """
-        get_feature_df(self: MRMTransitionGroupCP, columns: Optional[List[str]] = None, meta_values: Optional[Union[List[str], str]] = None) -> pd.DataFrame
+        to_feature_df(self: MRMTransitionGroupCP, columns: Optional[List[str]] = None, meta_values: Optional[Union[List[str], str]] = None) -> pd.DataFrame
 
         Returns a DataFrame representation of the Features stored in MRMTransitionGroupCP.
 
         :param columns: List of column names to include. If None,
-                        includes all columns. Use get_feature_df_column_names()
+                        includes all columns. Use feature_df_columns()
                         to discover available columns.
         :type columns: Optional[List[str]]
 
@@ -112,19 +112,19 @@ import numpy as np
         Example::
 
             # Get all columns
-            df = mrm.get_feature_df()
+            df = mrm.to_feature_df()
 
             # Discover available columns
-            print(mrm.get_feature_df_column_names())
+            print(mrm.feature_df_columns())
 
             # Get only specific columns
-            df = mrm.get_feature_df(columns=['feature_id', 'rt', 'intensity'])
+            df = mrm.to_feature_df(columns=['feature_id', 'rt', 'intensity'])
         """
         try:
             import pandas as pd
         except ImportError:
             raise ImportError(
-                "pandas is required for get_feature_df(). "
+                "pandas is required for to_feature_df(). "
                 "Please install it with: pip install pandas"
             )
         # Common meta value types for numpy type mapping
@@ -235,7 +235,7 @@ import numpy as np
                 "pyarrow is required for chromatograms_to_arrow(). "
                 "Please install it with: pip install pyarrow"
             )
-        df = self.get_chromatogram_df(columns=columns, export_meta_values=export_meta_values)
+        df = self.to_chromatogram_df(columns=columns, export_meta_values=export_meta_values)
         return pa.Table.from_pandas(df)
 
     def features_to_arrow(self, columns=None, meta_values=None):
@@ -268,5 +268,5 @@ import numpy as np
                 "pyarrow is required for features_to_arrow(). "
                 "Please install it with: pip install pyarrow"
             )
-        df = self.get_feature_df(columns=columns, meta_values=meta_values)
+        df = self.to_feature_df(columns=columns, meta_values=meta_values)
         return pa.Table.from_pandas(df)
