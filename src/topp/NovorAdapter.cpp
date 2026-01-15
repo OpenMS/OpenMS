@@ -177,7 +177,7 @@ protected:
 
     String executable = getStringOption_("executable");   
 
-    if (executable.isEmpty())
+    if (executable.empty())
     {
       const char* novor_path_env = getenv("NOVOR_PATH");
       if (novor_path_env == nullptr || strlen(novor_path_env) == 0)
@@ -189,11 +189,11 @@ protected:
     }
 
     // Normalize file path
-    QFileInfo file_info(executable);
-    executable = file_info.canonicalFilePath();
+    QFileInfo file_info(QString::fromStdString(executable));
+    executable = file_info.canonicalFilePath().toStdString();
 
     writeLogInfo_("Executable is: " + executable);
-    const QString path_to_executable = QString::fromStdString(File::path(executable));
+    const String path_to_executable = File::path(executable);
     
     //-------------------------------------------------------------
     // reading input

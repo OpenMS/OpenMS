@@ -145,7 +145,6 @@ protected:
       String out = QDir::toNativeSeparators(output.append(QString("/")).append(QString::fromStdString(out_fname))).toStdString();
       OPENMS_LOG_INFO << "Storing file: '" << out << "'." << std::endl;
 
-      QDir dir(QString::fromStdString(output_directory));
       FileHandler().storeIdentifications(out, rfc.prot_idents, rfc.pep_idents, {FileTypes::IDXML});
     }
     return EXECUTION_OK;

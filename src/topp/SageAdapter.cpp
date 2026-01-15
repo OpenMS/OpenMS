@@ -580,8 +580,6 @@ protected:
       debug_config_stream.close();     
     }
 
-    String annotation_check;
-
     std::vector<String> arguments;
 
   if ( (getStringOption_("annotate_matches").compare("true")) == 0)

@@ -1016,7 +1016,7 @@ protected:
       }
       if (!pout_decoy_proteins.empty())
       {
-        QFile::copy(QString::fromStdString(pout_target_file_proteins), QString::fromStdString(pout_decoy_proteins));
+        QFile::copy(QString::fromStdString(pout_decoy_file_proteins), QString::fromStdString(pout_decoy_proteins));
       }
     }
 
