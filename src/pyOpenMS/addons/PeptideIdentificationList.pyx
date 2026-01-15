@@ -311,6 +311,9 @@ import numpy as np
         Unlike get_df() which exports only the top hit, this method exports
         all hits (PSMs) with proper ranking information.
 
+        .. warning::
+            This API is experimental and subject to change in future versions.
+
         :param export_all_hits: If True, export all hits per identification.
                                 If False, only export rank 0 (best hit).
                                 Default True.
@@ -613,6 +616,9 @@ import numpy as np
         format for PSM data exchange. This method exports data with all QPX
         schema fields, plus additional OpenMS-specific fields.
 
+        .. warning::
+            This API is experimental and subject to change in future versions.
+
         QPX Schema Fields:
             sequence, peptidoform, modifications, precursor_charge,
             posterior_error_probability, is_decoy, calculated_mz, observed_mz,
@@ -660,6 +666,9 @@ import numpy as np
 
         The columns follow the QPX PSM schema order, with additional
         OpenMS-specific fields appended.
+
+        .. warning::
+            This API is experimental and subject to change in future versions.
 
         Useful for discovering available columns before export.
 
