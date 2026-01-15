@@ -958,7 +958,7 @@ class TestToArrowMethods:
         assert 'intensity' in table.column_names
 
     def test_experiment_to_arrow_long_format(self):
-        """Test MSExperiment.to_arrow() with long_format=True."""
+        """Test MSExperiment.to_arrow() with long_format=True (deprecated parameter)."""
         pytest.importorskip('pyarrow')
         import pyarrow as pa
 
@@ -1285,7 +1285,7 @@ class TestMSExperimentDFColumnSelection:
     """Tests for MSExperiment.df_columns() method."""
 
     def test_df_columns_long_format(self):
-        """Test df_columns() for long format."""
+        """Test df_columns() with long_format=True (deprecated parameter)."""
         exp = pyopenms.MSExperiment()
         cols = exp.df_columns(long_format=True)
 
@@ -1295,7 +1295,7 @@ class TestMSExperimentDFColumnSelection:
         assert 'ms_level' in cols
 
     def test_df_columns_compact_format(self):
-        """Test df_columns() for compact format."""
+        """Test df_columns() with long_format=False (deprecated parameter)."""
         exp = pyopenms.MSExperiment()
         cols = exp.df_columns(long_format=False)
 

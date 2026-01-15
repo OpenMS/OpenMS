@@ -633,22 +633,15 @@ from libc.stdint cimport uintptr_t
             else:
                 return result['chromatograms']
 
-        # Set default RT/MZ ranges for Python path
-        if min_rt is None and num_spectra > 0:
-            min_rt = self.getMinRT()
-        elif min_rt is None:
+        # Set default RT/MZ ranges for Python path (None means "no filter")
+        # Use sentinel values: min -> 0.0, max -> inf (consistent with C++ ArrowExport)
+        if min_rt is None:
             min_rt = 0.0
-        if max_rt is None and num_spectra > 0:
-            max_rt = self.getMaxRT()
-        elif max_rt is None:
+        if max_rt is None:
             max_rt = float('inf')
-        if min_mz is None and num_spectra > 0:
-            min_mz = self.getMinMZ()
-        elif min_mz is None:
+        if min_mz is None:
             min_mz = 0.0
-        if max_mz is None and num_spectra > 0:
-            max_mz = self.getMaxMZ()
-        elif max_mz is None:
+        if max_mz is None:
             max_mz = float('inf')
 
         # Handle ms_levels default (None or empty list -> all levels)
@@ -856,7 +849,7 @@ from libc.stdint cimport uintptr_t
                     if spec.containsIMData():
                         im_idx, _ = spec.getIMData()
                         im_arr = spec.getFloatDataArrays()[im_idx]
-                        im_data = [im_arr[i] for i in range(len(im_arr))]
+                        im_data = np.asarray(im_arr.get_data()).tolist()
                         # Apply same m/z filter mask if it was created
                         if mz_mask is not None and len(im_data) == original_len:
                             im_data = [im_data[i] for i in range(len(mz_mask)) if mz_mask[i]]
