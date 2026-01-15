@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/DATAACCESS/S3InputSource.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <aws/core/Aws.h>
 #include <aws/s3/S3Client.h>
 #include <aws/s3/model/GetObjectRequest.h>
@@ -16,7 +17,7 @@ namespace OpenMS {
 
     S3InputSource::S3InputSource(const std::string& s3uri)
     {
-        initializeAwsSdk_();
+        AwsSdkHelper::initializeAwsSdk();
         parseS3Uri_(s3uri);
     }
 
@@ -65,7 +66,7 @@ namespace OpenMS {
                     }
                 } else {
                     // Handle error here
-                    std::cerr << "Error: AWS SDK GetObject for magic bytes: " <<
+                    OPENMS_LOG_ERROR << "Error: AWS SDK GetObject for magic bytes: " <<
                         firstOutcome.GetError().GetExceptionName() << " " <<
                         firstOutcome.GetError().GetMessage() << std::endl;
                     return nullptr;
@@ -73,7 +74,7 @@ namespace OpenMS {
             }
         } else {
             // Handle error here
-            std::cerr << "Error: AWS SDK HeadObject: " <<
+            OPENMS_LOG_ERROR << "Error: AWS SDK HeadObject: " <<
                 outcome.GetError().GetExceptionName() << " " <<
                 outcome.GetError().GetMessage() << std::endl;
             return nullptr;
@@ -82,41 +83,17 @@ namespace OpenMS {
         Aws::S3::Model::GetObjectRequest getObjectRequest;
         getObjectRequest.WithBucket(m_bucketName).WithKey(m_objectKey);
 
-        auto getObjectOutcome = new Aws::S3::Model::GetObjectOutcome(s3Client.GetObject(getObjectRequest));
+        auto getObjectOutcome = std::make_shared<Aws::S3::Model::GetObjectOutcome>(s3Client.GetObject(getObjectRequest));
         if (getObjectOutcome->IsSuccess()) {
             if (encoding == "gzip") {
-                // The object is gzipped
-                std::cout << "The file is gzip compressed" << std::endl;
-                return new S3GzipBinInputStream(std::shared_ptr<Aws::S3::Model::GetObjectOutcome>(getObjectOutcome));
+                return new S3GzipBinInputStream(getObjectOutcome);
             } else if (encoding == "bzip2") {
-                // The object is bzipped
-                std::cout << "The file is bzip compressed" << std::endl;
-                return new S3Bzip2BinInputStream(std::shared_ptr<Aws::S3::Model::GetObjectOutcome>(getObjectOutcome));
+                return new S3Bzip2BinInputStream(getObjectOutcome);
             } else {
-                // The object is not compressed, or it is compressed with a different format
-                std::cout << "The file is uncompressed" << std::endl;
-                return new S3BinInputStream(std::shared_ptr<Aws::S3::Model::GetObjectOutcome>(getObjectOutcome));
+                return new S3BinInputStream(getObjectOutcome);
             }
-            /* Reading magic bytes does not work since it consumes the stream -.-
-            // Read the first few bytes of the file
-            unsigned char buffer[3];
-            getObjectOutcome->GetResult().GetBody().read(reinterpret_cast<char*>(buffer), sizeof(buffer));
-            if (buffer[0] == 0x1F && buffer[1] == 0x8B) {
-                // The file is gzip compressed
-                std::cout << "The file is gzip compressed" << std::endl;
-                return new S3GzipBinInputStream(std::shared_ptr<Aws::S3::Model::GetObjectOutcome>(getObjectOutcome));
-            } else if (buffer[0] == 'B' && buffer[1] == 'Z' && buffer[2] == 'h') {
-                // The file is bzip2 compressed
-                std::cout << "The file is bzip2 compressed" << std::endl;
-                return new S3Bzip2BinInputStream(std::shared_ptr<Aws::S3::Model::GetObjectOutcome>(getObjectOutcome));
-            } else {
-                std::cout << "The file is uncompressed" << std::endl;
-                return new S3BinInputStream(std::shared_ptr<Aws::S3::Model::GetObjectOutcome>(getObjectOutcome));
-            }
-            */
         } else {
-            // Handle error here
-            std::cerr << "Error: AWS SDK GetObject: " <<
+            OPENMS_LOG_ERROR << "Error: AWS SDK GetObject: " <<
                 getObjectOutcome->GetError().GetExceptionName() << " " <<
                 getObjectOutcome->GetError().GetMessage() << std::endl;
             return nullptr;
@@ -124,12 +101,11 @@ namespace OpenMS {
     }
 
     void S3InputSource::initializeAwsSdk_() {
-        Aws::SDKOptions options;
-        Aws::InitAPI(options);
+        AwsSdkHelper::initializeAwsSdk();
     }
 
     void S3InputSource::cleanupAwsSdk_() {
-        Aws::ShutdownAPI(Aws::SDKOptions());
+        // Cleanup is handled automatically via atexit in AwsSdkHelper
     }
 
     void S3InputSource::parseS3Uri_(std::string s3Uri) {
@@ -141,13 +117,15 @@ namespace OpenMS {
         // Find the first occurrence of '/' character
         size_t slashPos = s3Uri.find('/');
         if (slashPos == std::string::npos) {
-            // Invalid S3 URI format
-            // Handle error
-            return;
+            throw std::runtime_error("Invalid S3 URI format: missing '/' after bucket name in '" + s3Uri + "'");
         }
 
         m_bucketName = s3Uri.substr(0, slashPos);
         m_objectKey = s3Uri.substr(slashPos + 1);
+
+        if (m_bucketName.empty() || m_objectKey.empty()) {
+            throw std::runtime_error("Invalid S3 URI: bucket name or object key is empty");
+        }
     }
 
     /*
@@ -198,7 +176,7 @@ namespace OpenMS {
         int windowBits = 15 + 16; // Default windowBits for gzip
         if (inflateInit2(&m_zStream, windowBits) != Z_OK) {
             // Handle error
-            throw new std::runtime_error("Error occurred during decompression. Zlib error message: " + std::string(m_zStream.msg));
+            throw std::runtime_error("Error occurred during decompression. Zlib error message: " + std::string(m_zStream.msg ? m_zStream.msg : "unknown"));
         }
         
     }
@@ -233,7 +211,7 @@ namespace OpenMS {
                 } else if (result != Z_OK) {
                     // Error occurred during decompression
                     // Handle error
-                    std::cerr << "Error occurred during decompression. Zlib error message: " + std::string(m_zStream.msg) << std::endl;
+                    OPENMS_LOG_ERROR << "Error occurred during decompression. Zlib error message: " << (m_zStream.msg ? m_zStream.msg : "unknown") << std::endl;
                     return 0;
                 }
             }
@@ -254,7 +232,7 @@ namespace OpenMS {
         m_bzStream.next_in = NULL;
 
         if (BZ2_bzDecompressInit(&m_bzStream, 0, 0) != BZ_OK) {
-            throw new std::runtime_error("Error occurred during decompression");
+            throw std::runtime_error("Error occurred during bzip2 decompression initialization");
         }
     }
 
@@ -282,7 +260,7 @@ namespace OpenMS {
             if (result == BZ_STREAM_END) {
                 break;
             } else if (result != BZ_OK) {
-                std::cerr << "Error occurred during decompression" << std::endl;
+                OPENMS_LOG_ERROR << "Error occurred during bzip2 decompression" << std::endl;
                 return 0;
             }
         }

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -7,6 +7,9 @@
 // --------------------------------------------------------------------------
 
 #pragma once
+
+#ifdef WITH_S3
+
 #include <xercesc/sax/InputSource.hpp>
 #include <xercesc/util/BinInputStream.hpp>
 #include <aws/core/utils/memory/stl/AWSStreamFwd.h>
@@ -18,9 +21,23 @@
 #include <bzlib.h>
 
 #include <string>
-
+#include <cstdlib>
+#include <mutex>
 
 namespace OpenMS {
+
+    /// @brief Helper to ensure AWS SDK is initialized exactly once across all translation units
+    namespace AwsSdkHelper {
+        inline void initializeAwsSdk() {
+            static std::once_flag flag;
+            static Aws::SDKOptions options;
+            std::call_once(flag, []() {
+                Aws::InitAPI(options);
+                std::atexit([]() { Aws::ShutdownAPI(options); });
+            });
+        }
+    }
+
     class S3InputSource : public xercesc::InputSource {
     public:
         S3InputSource(const std::string& s3uri);
@@ -89,4 +106,6 @@ namespace OpenMS {
         char m_buffer[1024];  // Decompressing buffer for reading from the stream
         XMLFilePos m_position;
     };
-}
+} // namespace OpenMS
+
+#endif // WITH_S3

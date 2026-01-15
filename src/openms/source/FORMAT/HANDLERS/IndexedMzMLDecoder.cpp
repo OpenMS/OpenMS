@@ -10,10 +10,12 @@
 
 #include <OpenMS/SYSTEM/File.h>
 
+#ifdef WITH_S3
 #include <aws/core/Aws.h>
 #include <aws/s3/S3Client.h>
 #include <aws/s3/model/GetObjectRequest.h>
 #include <aws/s3/model/HeadObjectRequest.h>
+#endif
 
 #include <boost/regex.hpp>
 #include <boost/lexical_cast.hpp>

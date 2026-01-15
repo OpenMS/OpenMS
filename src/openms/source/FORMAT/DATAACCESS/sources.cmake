@@ -13,11 +13,16 @@ set(sources_list
   MSDataTransformingConsumer.cpp
   MSDataWritingConsumer.cpp
   NoopMSDataConsumer.cpp
-  S3InputSource.cpp
-  S3ChunkedInputSource.cpp
   SiriusFragmentAnnotation.cpp
   SwathFileConsumer.cpp
 )
+
+if(WITH_S3)
+  list(APPEND sources_list
+    S3InputSource.cpp
+    S3ChunkedInputSource.cpp
+  )
+endif()
 
 ### add path to the filenames
 set(sources)

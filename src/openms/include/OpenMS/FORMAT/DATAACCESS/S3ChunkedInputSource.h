@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -7,6 +7,9 @@
 // --------------------------------------------------------------------------
 
 #pragma once
+
+#ifdef WITH_S3
+
 #include <xercesc/sax/InputSource.hpp>
 #include <xercesc/util/BinInputStream.hpp>
 #include <aws/s3/model/GetObjectResult.h>
@@ -17,7 +20,6 @@
 #include <bzlib.h>
 
 #include <string>
-
 
 namespace OpenMS {
     class S3ChunkedInputSource : public xercesc::InputSource {
@@ -113,6 +115,8 @@ namespace OpenMS {
         unsigned long m_totalSize; ///< Total size of the object to download/stream
         Aws::S3::Model::GetObjectResult m_currentChunk; ///< Current chunk of the object as returned by S3
         XMLByte m_decompressedBuffer[1024]; ///< Current decompressed buffer
-        bz_stream m_bzStream; ///< zlib stream for decompression
+        bz_stream m_bzStream; ///< bzip2 stream for decompression
     };
-}
+} // namespace OpenMS
+
+#endif // WITH_S3

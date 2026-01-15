@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -8,17 +8,17 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/DATAACCESS/S3ChunkedInputSource.h>
+#include <OpenMS/FORMAT/DATAACCESS/S3InputSource.h>  // For AwsSdkHelper
 #include <aws/core/Aws.h>
 #include <aws/s3/S3Client.h>
 #include <aws/s3/model/GetObjectRequest.h>
 #include <aws/s3/model/HeadObjectRequest.h>
 
-
 namespace OpenMS {
 
     S3ChunkedInputSource::S3ChunkedInputSource(const std::string& s3uri)
     {
-        initializeAwsSdk_();
+        AwsSdkHelper::initializeAwsSdk();
         parseS3Uri_(s3uri);
     }
 
@@ -75,31 +75,23 @@ namespace OpenMS {
         Aws::S3::Model::GetObjectRequest getObjectRequest;
         getObjectRequest.WithBucket(m_bucketName).WithKey(m_objectKey);
 
-        auto getObjectOutcome = new Aws::S3::Model::GetObjectOutcome(s3Client.GetObject(getObjectRequest));
-        if (getObjectOutcome->IsSuccess()) {
-            if (encoding == "gzip") {
-                return new S3ChunkedGzipBinInputStream(s3Client, getObjectRequest);
-            } else if (encoding == "bzip2") {
-                return new S3ChunkedBzip2BinInputStream(s3Client, getObjectRequest);
-            } else {
-                // The object is not compressed, or it is compressed with a different format
-                return new S3ChunkedBinInputStream(s3Client, getObjectRequest);
-            }
+        // HeadObject already verified accessibility, create the appropriate stream directly
+        // The stream constructors will handle their own initial chunk fetching
+        if (encoding == "gzip") {
+            return new S3ChunkedGzipBinInputStream(s3Client, getObjectRequest);
+        } else if (encoding == "bzip2") {
+            return new S3ChunkedBzip2BinInputStream(s3Client, getObjectRequest);
         } else {
-            OPENMS_LOG_ERROR << "Error: AWS SDK GetObject: " <<
-                getObjectOutcome->GetError().GetExceptionName() << " " <<
-                getObjectOutcome->GetError().GetMessage() << std::endl;
-            return nullptr;
+            return new S3ChunkedBinInputStream(s3Client, getObjectRequest);
         }
     }
 
     void S3ChunkedInputSource::initializeAwsSdk_() {
-        Aws::SDKOptions options;
-        Aws::InitAPI(options);
+        AwsSdkHelper::initializeAwsSdk();
     }
 
     void S3ChunkedInputSource::cleanupAwsSdk_() {
-        Aws::ShutdownAPI(Aws::SDKOptions());
+        // Cleanup is handled automatically via atexit in AwsSdkHelper
     }
 
     void S3ChunkedInputSource::parseS3Uri_(std::string s3Uri) {
@@ -111,13 +103,15 @@ namespace OpenMS {
         // Find the first occurrence of '/' character
         size_t slashPos = s3Uri.find('/');
         if (slashPos == std::string::npos) {
-            // Invalid S3 URI format
-            // Handle error
-            return;
+            throw std::runtime_error("Invalid S3 URI format: missing '/' after bucket name in '" + s3Uri + "'");
         }
 
         m_bucketName = s3Uri.substr(0, slashPos);
         m_objectKey = s3Uri.substr(slashPos + 1);
+
+        if (m_bucketName.empty() || m_objectKey.empty()) {
+            throw std::runtime_error("Invalid S3 URI: bucket name or object key is empty");
+        }
     }
 
     S3ChunkedBinInputStream::S3ChunkedBinInputStream(const Aws::S3::S3Client& client, const Aws::S3::Model::GetObjectRequest& req, unsigned long chunkSize)
@@ -201,7 +195,7 @@ namespace OpenMS {
         int windowBits = 15 + 16; // Default windowBits for gzip
         if (inflateInit2(&m_zStream, windowBits) != Z_OK) {
             // Handle error
-            throw new std::runtime_error("Error occurred during initializing Gzip stream. Zlib error message: " + std::string(m_zStream.msg));
+            throw std::runtime_error("Error occurred during initializing Gzip stream. Zlib error message: " + std::string(m_zStream.msg ? m_zStream.msg : "unknown"));
         }
 
         // load first chunk
@@ -210,7 +204,7 @@ namespace OpenMS {
         if (outcome.IsSuccess()) {
             m_currentChunk = outcome.GetResultWithOwnership();
         } else {
-            throw new std::runtime_error("Error getting chunk. AWS SDK error message: " + outcome.GetError().GetMessage());
+            throw std::runtime_error("Error getting chunk. AWS SDK error message: " + outcome.GetError().GetMessage());
         }
         m_currentChunkEnd = m_chunkSize - 1;
         std::string contentRange = m_currentChunk.GetContentRange();
@@ -221,7 +215,7 @@ namespace OpenMS {
             std::string totalSizeStr = contentRange.substr(slashPos + 1);
             m_totalSize = std::stoull(totalSizeStr);
         } else {
-            throw new std::runtime_error("Error: AWS SDK GetObject: Invalid ContentRange header: " + contentRange);
+            throw std::runtime_error("Error: AWS SDK GetObject: Invalid ContentRange header: " + contentRange);
         }
     }
 
@@ -338,7 +332,7 @@ namespace OpenMS {
     S3ChunkedBzip2BinInputStream::S3ChunkedBzip2BinInputStream(const Aws::S3::S3Client& client, const Aws::S3::Model::GetObjectRequest& req, unsigned long chunkSize)
         : m_req(req), m_client(client), m_position(0), m_chunkSize(chunkSize), m_decompressedBuffer(), m_bzStream()
     {
-        // Create a GZIP decompression stream
+        // Create a bzip2 decompression stream
         m_bzStream.bzalloc = NULL;
         m_bzStream.bzfree = NULL;
         m_bzStream.opaque = NULL;
@@ -346,7 +340,7 @@ namespace OpenMS {
         m_bzStream.next_in = NULL;
 
         if (BZ2_bzDecompressInit(&m_bzStream, 0, 0) != BZ_OK) {
-            throw new std::runtime_error("Error occurred during bzip decompression");
+            throw std::runtime_error("Error occurred during bzip2 decompression initialization");
         }
 
         // load first chunk
@@ -355,7 +349,7 @@ namespace OpenMS {
         if (outcome.IsSuccess()) {
             m_currentChunk = outcome.GetResultWithOwnership();
         } else {
-            throw new std::runtime_error("Error getting chunk. AWS SDK error message: " + outcome.GetError().GetMessage());
+            throw std::runtime_error("Error getting chunk. AWS SDK error message: " + outcome.GetError().GetMessage());
         }
         m_currentChunkEnd = m_chunkSize - 1;
         std::string contentRange = m_currentChunk.GetContentRange();
@@ -366,7 +360,7 @@ namespace OpenMS {
             std::string totalSizeStr = contentRange.substr(slashPos + 1);
             m_totalSize = std::stoull(totalSizeStr);
         } else {
-            throw new std::runtime_error("Error: AWS SDK GetObject: Invalid ContentRange header: " + contentRange);
+            throw std::runtime_error("Error: AWS SDK GetObject: Invalid ContentRange header: " + contentRange);
         }
     }
 
@@ -390,7 +384,7 @@ namespace OpenMS {
                     m_bzStream.next_out = reinterpret_cast<char*>(toFill + totalBytesRead);
 
                     if (m_bzStream.avail_in == 0)
-                    { // no bytes from last call in the zlib buffer anymore.
+                    { // no bytes from last call in the bzip2 buffer anymore.
                         // Read more from current chunk if available
                         if (currentBodyStream->good()) {
                             currentBodyStream->read(reinterpret_cast<char*>(m_decompressedBuffer), 1024);
@@ -428,12 +422,12 @@ namespace OpenMS {
                 // if the end of the current chunk was already behind the total size, loading a new chunk is not necessary
                 if (m_currentChunkEnd >= m_totalSize)
                 {
-                    // We've reached the end of the file, but there might still be data in the zlib buffer.
+                    // We've reached the end of the file, but there might still be data in the bzip2 buffer.
                     m_bzStream.avail_out = remainingBytes;
                     m_bzStream.next_out = reinterpret_cast<char*>(toFill + totalBytesRead);
 
                     int ret;
-                    do { // emptying remaining data in zlib buffer
+                    do { // emptying remaining data in bzip2 buffer
                         ret = BZ2_bzDecompress(&m_bzStream);
                         if (ret == BZ_STREAM_END) {
                             // Reached end of compressed data
@@ -452,7 +446,7 @@ namespace OpenMS {
                             break;
                         }
                         else if (ret != BZ_OK && ret != BZ_STREAM_END) {
-                            OPENMS_LOG_ERROR << "Error occurred during decompression. Bzib2 error code: " << ret << std::endl;
+                            OPENMS_LOG_ERROR << "Error occurred during decompression. Bzip2 error code: " << ret << std::endl;
                             break;
                         }
                     } while (true);

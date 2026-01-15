@@ -11,7 +11,9 @@
 #include <OpenMS/CONCEPT/Macros.h>
 
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
+#ifdef WITH_S3
 #include <OpenMS/FORMAT/DATAACCESS/S3ChunkedInputSource.h>
+#endif
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/FORMAT/VALIDATORS/XMLValidator.h>
 
@@ -115,7 +117,11 @@ private:
 
       StringManager sm;
       //try to open file
-      if (!filename.hasPrefix("http:") && !filename.hasPrefix("https:") && !filename.hasPrefix("ftp:") && !filename.hasPrefix("s3:") && !File::readable(filename))
+      if (!filename.hasPrefix("http:") && !filename.hasPrefix("https:") && !filename.hasPrefix("ftp:")
+#ifdef WITH_S3
+          && !filename.hasPrefix("s3:")
+#endif
+          && !File::readable(filename))
       {
         throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
       }
@@ -141,10 +147,12 @@ private:
         // TODO implement CompressedURLInputSource that wraps URLInputSource for decompressing on the fly.
         // See S3ChunkedInputSource for an example.
       }
+#ifdef WITH_S3
       else if (filename.hasPrefix("s3:"))
       {
         source.reset(new S3ChunkedInputSource(filename));
       }
+#endif
       else
       {
         // peak ahead into the file: is it bzip2 or gzip compressed?
