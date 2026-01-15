@@ -47,10 +47,10 @@ START_SECTION((static bool empty(const String &file)))
   TEST_EQUAL(File::empty(OPENMS_GET_TEST_DATA_PATH("File_test_text.txt")), false)
 END_SECTION
 
-START_SECTION((static std::optional<UInt64> fileSize(const String& file)))
-  TEST_FALSE(File::fileSize("does_not_exists.txt").has_value())
-  TEST_EQUAL(File::fileSize(OPENMS_GET_TEST_DATA_PATH("File_test_empty.txt")).value_or(999), 0)
-  TEST_EQUAL(File::fileSize(OPENMS_GET_TEST_DATA_PATH("File_test_text.txt")).value_or(999), 15)
+START_SECTION((static UInt64 fileSize(const String& file)))
+  TEST_EQUAL(File::fileSize("does_not_exists.txt"), -1)
+  TEST_EQUAL(File::fileSize(OPENMS_GET_TEST_DATA_PATH("File_test_empty.txt")), 0)
+  TEST_EQUAL(File::fileSize(OPENMS_GET_TEST_DATA_PATH("File_test_text.txt")), 15)
 END_SECTION
 
 START_SECTION((static bool remove(const String &file)))
@@ -156,50 +156,51 @@ END_SECTION
 
 // make source directory and copy it to new location
 // check copy function and if file exists in target path
-START_SECTION(static bool copyDirRecursively(const String &fromDir, const String &toDir,File::CopyOptions option = CopyOptions::OVERWRITE))
-  // folder OpenMS/src/tests/class_tests/openms/data/XMassFile_test
+START_SECTION(static bool copyDirRecursively(const QString &fromDir, const QString &toDir,File::CopyOptions option = CopyOptions::OVERWRITE))
+  // folder OpenMS/src/tests/class_tests/openms/data/XMassFile_test 
   String source_name = OPENMS_GET_TEST_DATA_PATH("XMassFile_test");
-  String target_name = File::getTempDirectory() + "/" + File::getUniqueName() + "/";
+  String target_name = File::getTempDirectory() + "/" + File::getUniqueName() + "/"; 
   // test canonical path
-  TEST_EQUAL(File::copyDirRecursively(source_name, source_name),false)
+  TEST_EQUAL(File::copyDirRecursively(source_name.toQString(),source_name.toQString()),false)
   // test default
-  TEST_EQUAL(File::copyDirRecursively(source_name, target_name),true)
+  TEST_EQUAL(File::copyDirRecursively(source_name.toQString(),target_name.toQString()),true)
   TEST_EQUAL(File::exists(target_name + "/pdata/1/proc"),true);
-  // overwrite file content
+  // overwrite file content 
   std::ofstream ow_ofs;
   ow_ofs.open(target_name + "/pdata/1/proc");
   ow_ofs << "This line can be used to test the overwrite option";
   ow_ofs.close();
-  // check file size
+  // check file size 
   std::ifstream infile;
-  infile.open(target_name + "/pdata/1/proc");
+  infile.open(target_name + "/pdata/1/proc"); 
   infile.seekg(0,infile.end);
   long file_size = infile.tellg();
   infile.close();
   TEST_EQUAL(file_size,50)
   // test option skip
-  TEST_EQUAL(File::copyDirRecursively(source_name, target_name, File::CopyOptions::SKIP),true)
-  infile.open(target_name + "/pdata/1/proc");
+  TEST_EQUAL(File::copyDirRecursively(source_name.toQString(),target_name.toQString(), File::CopyOptions::SKIP),true)
+  infile.open(target_name + "/pdata/1/proc"); 
   infile.seekg(0,infile.end);
   file_size = infile.tellg();
   infile.close();
   TEST_EQUAL(file_size,50)
   // test option overwrite
-  TEST_EQUAL(File::copyDirRecursively(source_name, target_name, File::CopyOptions::OVERWRITE),true)
-  infile.open(target_name + "/pdata/1/proc");
+  TEST_EQUAL(File::copyDirRecursively(source_name.toQString(),target_name.toQString(), File::CopyOptions::OVERWRITE),true)
+  infile.open(target_name + "/pdata/1/proc"); 
   infile.seekg(0,infile.end);
   file_size = infile.tellg();
   infile.close();
   TEST_EQUAL(file_size,3558)
-  // test option cancel
-  TEST_EQUAL(File::copyDirRecursively(source_name, target_name, File::CopyOptions::CANCEL),false)
+  // test option cancel 
+  TEST_EQUAL(File::copyDirRecursively(source_name.toQString(),target_name.toQString(), File::CopyOptions::CANCEL),false)
   // remove temporary directory after testing
   File::removeDirRecursively(target_name);
 END_SECTION
 
 START_SECTION(static bool removeDirRecursively(const String &dir_name))
+  QDir d;
   String dirname = File::getTempDirectory() + "/" + File::getUniqueName() + "/" + File::getUniqueName() + "/";
-  TEST_TRUE(File::makeDir(dirname));
+  TEST_TRUE(d.mkpath(dirname.toQString()));
   TextFile tf;
   tf.store(dirname + "test.txt");
   TEST_EQUAL(File::removeDirRecursively(dirname), true)
@@ -235,8 +236,9 @@ START_SECTION(static String getUserDirectory())
 
   // set user directory to a path set by environmental variable and test that
   // it is correctly set (no changes on the file system occur)
+  QDir d;
   String dirname = File::getTempDirectory() + "/" + File::getUniqueName() + "/";
-  TEST_EQUAL(File::makeDir(dirname), true);
+  TEST_EQUAL(d.mkpath(dirname.toQString()), true);
 #ifdef OPENMS_WINDOWSPLATFORM
   _putenv_s("OPENMS_HOME_PATH", dirname.c_str());  
 #else
@@ -323,14 +325,14 @@ START_SECTION(File::~TempDir())
     TEST_EQUAL(File::exists(path), 1)
   }
   TEST_EQUAL(File::exists(path), 0)
-  if (File::exists(path)) File::removeDir(path);
+  if (File::exists(path)) File::removeDir(path.toQString());
   {
     File::TempDir dir2(true);
     path = dir2.getPath();
     TEST_EQUAL(File::exists(path), 1)
   }
   TEST_EQUAL(File::exists(path), 1)
-  if (File::exists(path)) File::removeDir(path);
+  if (File::exists(path)) File::removeDir(path.toQString());
 }
 END_SECTION
 
@@ -345,7 +347,7 @@ START_SECTION(File::download(std::string url, std::string filename))
   TEST_EQUAL(File::exists(output_file_path), 1);
   if (File::exists(output_file_path))
   {
-    File::remove(output_file_path);
+    File::removeDir(QString(output_file_path.c_str()));
   }
 }
 END_SECTION
