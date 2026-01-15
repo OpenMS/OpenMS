@@ -2589,14 +2589,18 @@ namespace OpenMS
           
           // Check for duplicate parameters
           // Note: This is intentionally allowed to support nextflow workflows where ${ext.args} 
-          // can be appended to command lines to allow users to override default arguments
+          // can be appended to command lines to allow users to override default arguments.
+          // Since we parse in reverse order, we only keep the first occurrence we encounter,
+          // which is the LAST occurrence on the command line.
           if (cmd_params.exists(pos->second->name))
           {
-            ParamValue old_value = cmd_params.getValue(pos->second->name);
-            writeLogWarn_(String("Warning: Duplicate parameter '") + arg + "' given. Using last occurrence with value '" + value.toString() + "' (was '" + old_value.toString() + "').");
+            ParamValue existing_value = cmd_params.getValue(pos->second->name);
+            writeLogWarn_(String("Warning: Duplicate parameter '") + arg + "' given. Using last occurrence with value '" + existing_value.toString() + "' (ignoring '" + value.toString() + "').");
           }
-          
-          cmd_params.setValue(pos->second->name, value);
+          else
+          {
+            cmd_params.setValue(pos->second->name, value);
+          }
         }
         else // unknown argument -> append to "unknown" list
         {
