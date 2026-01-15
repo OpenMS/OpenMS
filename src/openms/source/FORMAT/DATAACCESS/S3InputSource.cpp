@@ -220,7 +220,7 @@ namespace OpenMS {
             return bytesRead;
         }
 
-    const XMLCh* S3GzipBinInputStream::getContentType() const {return nullptr;};
+    const XMLCh* S3GzipBinInputStream::getContentType() const {return nullptr;}
 
     S3Bzip2BinInputStream::S3Bzip2BinInputStream(std::shared_ptr<Aws::S3::Model::GetObjectOutcome> getObjectOutcome)
         : m_getObjectOutcome(getObjectOutcome), m_stream(&getObjectOutcome->GetResult().GetBody()), m_bzStream(), m_position(0)
@@ -271,4 +271,4 @@ namespace OpenMS {
 
     const XMLCh* S3Bzip2BinInputStream::getContentType() const {return nullptr;}
 
-}; // namespace OpenMS
+} // namespace OpenMS

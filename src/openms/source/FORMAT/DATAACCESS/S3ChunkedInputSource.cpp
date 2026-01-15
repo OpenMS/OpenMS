@@ -123,7 +123,7 @@ namespace OpenMS {
         if (outcome.IsSuccess()) {
             m_currentChunk = outcome.GetResultWithOwnership();
         } else {
-            OPENMS_LOG_ERROR << "Error: AWS SDK GetObject: " << outcome.GetError().GetExceptionName() << ": " << outcome.GetError().GetMessage() << std::endl;
+            throw std::runtime_error("Error getting chunk. AWS SDK error message: " + outcome.GetError().GetMessage());
         }
         m_currentChunkEnd = m_chunkSize - 1;
         std::string contentRange = m_currentChunk.GetContentRange();
@@ -134,7 +134,7 @@ namespace OpenMS {
             std::string totalSizeStr = contentRange.substr(slashPos + 1);
             m_totalSize = std::stoull(totalSizeStr);
         } else {
-            OPENMS_LOG_ERROR << "Error: AWS SDK GetObject: Invalid ContentRange header" << std::endl;
+            throw std::runtime_error("Error: AWS SDK GetObject: Invalid ContentRange header: " + contentRange);
         }
     }
 
@@ -243,7 +243,7 @@ namespace OpenMS {
                         // Read more from current chunk if available
                         if (currentBodyStream->good()) {
                             currentBodyStream->read(reinterpret_cast<char*>(m_decompressedBuffer), 1024);
-                            m_zStream.avail_in = currentBodyStream->gcount();
+                            m_zStream.avail_in = static_cast<uInt>(currentBodyStream->gcount());
                             m_zStream.next_in = reinterpret_cast<Bytef*>(m_decompressedBuffer);
                         }
                         else {
@@ -331,7 +331,7 @@ namespace OpenMS {
         return static_cast<XMLSize_t>(totalBytesRead);
     }
 
-    const XMLCh* S3ChunkedGzipBinInputStream::getContentType() const {return nullptr;};
+    const XMLCh* S3ChunkedGzipBinInputStream::getContentType() const {return nullptr;}
 
     S3ChunkedBzip2BinInputStream::S3ChunkedBzip2BinInputStream(const Aws::S3::S3Client& client, const Aws::S3::Model::GetObjectRequest& req, unsigned long chunkSize)
         : m_req(req), m_client(client), m_position(0), m_chunkSize(chunkSize), m_decompressedBuffer(), m_bzStream()
@@ -392,7 +392,7 @@ namespace OpenMS {
                         // Read more from current chunk if available
                         if (currentBodyStream->good()) {
                             currentBodyStream->read(reinterpret_cast<char*>(m_decompressedBuffer), 1024);
-                            m_bzStream.avail_in = currentBodyStream->gcount();
+                            m_bzStream.avail_in = static_cast<unsigned int>(currentBodyStream->gcount());
                             m_bzStream.next_in = reinterpret_cast<char*>(m_decompressedBuffer);
                         }
                         else {
@@ -477,6 +477,6 @@ namespace OpenMS {
         return static_cast<XMLSize_t>(totalBytesRead);
     }
 
-    const XMLCh* S3ChunkedBzip2BinInputStream::getContentType() const {return nullptr;};
+    const XMLCh* S3ChunkedBzip2BinInputStream::getContentType() const {return nullptr;}
 
-}; // namespace OpenMS
+} // namespace OpenMS

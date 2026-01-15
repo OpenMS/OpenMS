@@ -8,6 +8,7 @@
 
 #include <OpenMS/FORMAT/HANDLERS/IndexedMzMLDecoder.h>
 
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/SYSTEM/File.h>
 
 #ifdef WITH_S3
@@ -119,8 +120,8 @@ namespace OpenMS
       }
       catch (boost::bad_lexical_cast&)
       {
-        std::cerr << "Trying to convert corrupted / unreadable value to std::streampos : " << s << std::endl;
-        std::cerr << "This can also happen if the value exceeds 63 bits, please check your input." << std::endl;
+        OPENMS_LOG_ERROR << "Trying to convert corrupted / unreadable value to std::streampos: " << s << std::endl;
+        OPENMS_LOG_ERROR << "This can also happen if the value exceeds 63 bits, please check your input." << std::endl;
         throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
             String("Could not convert string '") + s + "' to a 64 bit integer.");
       }
@@ -128,7 +129,7 @@ namespace OpenMS
       // Check if the value can fit into std::streampos
       if ( std::abs( boost::lexical_cast< long double >(s) - res) > 0.1)
       {
-        std::cerr << "Your system may not support addressing a file of this size,"
+        OPENMS_LOG_ERROR << "Your system may not support addressing a file of this size,"
           << " only addresses that fit into a " << sizeof(std::streamsize)*8 <<
           " bit integer are supported on your system." << std::endl;
         throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
@@ -163,7 +164,7 @@ namespace OpenMS
 
       if (indexoffset < 0 || indexoffset > length)
       {
-        std::cerr << "IndexedMzMLDecoder::parseOffsets Error: Offset was " <<
+        OPENMS_LOG_ERROR << "IndexedMzMLDecoder::parseOffsets Error: Offset was " <<
           indexoffset << " (not between 0 and " << length << ")." << std::endl;
         return -1;
       }
@@ -200,7 +201,7 @@ namespace OpenMS
 
       if (indexoffset < 0 || indexoffset > length)
       {
-        std::cerr << "IndexedMzMLDecoder::parseOffsets Error: Offset was " <<
+        OPENMS_LOG_ERROR << "IndexedMzMLDecoder::parseOffsets Error: Offset was " <<
           indexoffset << " (not between 0 and " << length << ")." << std::endl;
         return -1;
       }
@@ -217,8 +218,8 @@ namespace OpenMS
       // catch case where not enough memory is available
       if (buffer == nullptr)
       {
-        std::cerr << "IndexedMzMLDecoder::parseOffsets Could not allocate enough memory to read in index of indexedMzML" << std::endl;
-        std::cerr << "IndexedMzMLDecoder::parseOffsets calculated index offset " << indexoffset << " and file length " << length <<
+        OPENMS_LOG_ERROR << "IndexedMzMLDecoder::parseOffsets Could not allocate enough memory to read in index of indexedMzML" << std::endl;
+        OPENMS_LOG_ERROR << "IndexedMzMLDecoder::parseOffsets calculated index offset " << indexoffset << " and file length " << length <<
           ", consequently tried to read into memory " << readl << " bytes." << std::endl;
         return -1;
       }
@@ -250,6 +251,7 @@ namespace OpenMS
 #ifdef WITH_S3
     //-------------------------------------------------------------
     // Handle S3 URIs
+    // TODO: Consider caching the S3 client for repeated operations on the same file
     //-------------------------------------------------------------
     if (filename.hasPrefix("s3://"))
     {
@@ -321,14 +323,14 @@ namespace OpenMS
       }
       catch (Exception::ConversionError& /*e*/)
       {
-        std::cerr << "Corrupted / unreadable value in <indexListOffset> : " << thismatch << std::endl;
+        OPENMS_LOG_ERROR << "Corrupted / unreadable value in <indexListOffset>: " << thismatch << std::endl;
         // free resources and re-throw
         throw;  // re-throw conversion error
       }
     }
     else
     {
-      std::cerr << "IndexedMzMLDecoder::findIndexListOffset Error: Could not find element indexListOffset in the last "
+      OPENMS_LOG_ERROR << "IndexedMzMLDecoder::findIndexListOffset Error: Could not find element indexListOffset in the last "
                 << buffersize << " bytes. Maybe this is not an indexedMzML." << std::endl;
     }
 
@@ -376,7 +378,7 @@ namespace OpenMS
     xercesc::DOMElement* elementRoot = doc->getDocumentElement();
     if (!elementRoot)
     {
-      std::cerr << "IndexedMzMLDecoder::domParseIndexedEnd Error: " <<
+      OPENMS_LOG_ERROR << "IndexedMzMLDecoder::domParseIndexedEnd Error: " <<
         "No root element found:" << std::endl << std::endl << in << std::endl;
       return -1;
     }
@@ -387,7 +389,7 @@ namespace OpenMS
     xercesc::XMLString::release(&x_tag);
     if (li->getLength() != 1)
     {
-      std::cerr << "IndexedMzMLDecoder::domParseIndexedEnd Error: "
+      OPENMS_LOG_ERROR << "IndexedMzMLDecoder::domParseIndexedEnd Error: "
         << "no indexList element found:" << std::endl << std::endl << in << std::endl;
       return -1;
     }
@@ -456,7 +458,7 @@ namespace OpenMS
         }
         else
         {
-          std::cerr << "IndexedMzMLDecoder::domParseIndexedEnd Error: expected only " <<
+          OPENMS_LOG_ERROR << "IndexedMzMLDecoder::domParseIndexedEnd Error: expected only " <<
             "'spectrum' or 'chromatogram' below indexList but found instead '" <<
             name << "'." << std::endl;
           xercesc::XMLString::release(&x_idref_tag);
