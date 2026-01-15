@@ -48,6 +48,20 @@ cdef extern from "<OpenMS/FORMAT/ArrowExport.h>" namespace "OpenMS":
         double max_rt
         libcpp_vector[libcpp_string] columns
 
+    cdef cppclass ParquetWriteConfig:
+        # wrap-doc:
+        #  Configuration for Parquet file writing.
+        #
+        #  Controls compression, row group size, and other Parquet-specific settings.
+        #  Default settings use ZSTD compression with 128MB row groups.
+        ParquetWriteConfig() except + nogil
+        ParquetWriteConfig(const ParquetWriteConfig&) except + nogil  # copy constructor
+        # Compression compression  # wrap-ignore (enum class not supported, defaults to ZSTD)
+        int compression_level
+        int64_t row_group_size
+        bool write_statistics
+        int64_t data_page_size
+
     cdef cppclass ArrowExport:
         # wrap-doc:
         #  Export MSExperiment data to Apache Arrow format.
@@ -84,7 +98,8 @@ cdef extern from "<OpenMS/FORMAT/ArrowExport.h>" namespace "OpenMS":
         bool exportSpectraToParquet(
             const MSExperiment& exp,
             const String& filename,
-            const ArrowSpectraExportConfig& config
+            const ArrowSpectraExportConfig& config,
+            const ParquetWriteConfig& parquet_config
         ) except + nogil
         # wrap-doc:
         #  Export spectra to Parquet file. Parquet provides columnar storage with
@@ -95,7 +110,8 @@ cdef extern from "<OpenMS/FORMAT/ArrowExport.h>" namespace "OpenMS":
         bool exportChromatogramsToParquet(
             const MSExperiment& exp,
             const String& filename,
-            const ArrowChromatogramExportConfig& config
+            const ArrowChromatogramExportConfig& config,
+            const ParquetWriteConfig& parquet_config
         ) except + nogil
         # wrap-doc:
         #  Export chromatograms to Parquet file. Similar to exportSpectraToParquet
