@@ -3,7 +3,7 @@ from libcpp cimport bool
 from libcpp.vector cimport vector as libcpp_vector
 from DPosition cimport *
 
-cdef extern from "<OpenMS/COMPARISON/CLUSTERING/ClusteringGrid.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/ML/CLUSTERING/ClusteringGrid.h>" namespace "OpenMS":
     
     cdef cppclass ClusteringGrid "OpenMS::ClusteringGrid":
         ClusteringGrid(libcpp_vector[ double ] & grid_spacing_x, libcpp_vector[ double ] & grid_spacing_y) except + nogil 

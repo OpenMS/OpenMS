@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -95,7 +95,7 @@ namespace OpenMS
   {
     insert(FeatureHandle(map_index, element));
     // annotate map index to peptide identification
-    std::vector<PeptideIdentification> ids(element.getPeptideIdentifications());
+    PeptideIdentificationList ids(element.getPeptideIdentifications());
     for (PeptideIdentification& it : ids)
     {
       it.setMetaValue("map_index", map_index);

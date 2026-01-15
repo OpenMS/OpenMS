@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -91,6 +91,8 @@ START_SECTION((static Type nameToType(const String& name)))
   TEST_EQUAL(FileTypes::EDTA, FileTypes::nameToType("edta"));
   TEST_EQUAL(FileTypes::CSV, FileTypes::nameToType("csv"));
   TEST_EQUAL(FileTypes::TXT, FileTypes::nameToType("txt"));
+  TEST_EQUAL(FileTypes::PARQUET, FileTypes::nameToType("parquet"));
+  TEST_EQUAL(FileTypes::PARQUET, FileTypes::nameToType("pqt")); // Test alternate extension
 
   TEST_EQUAL(FileTypes::UNKNOWN, FileTypes::nameToType("somethingunknown"));
 }

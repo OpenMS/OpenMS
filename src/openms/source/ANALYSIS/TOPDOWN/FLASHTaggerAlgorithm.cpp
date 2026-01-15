@@ -80,7 +80,7 @@ void FLASHTaggerAlgorithm::updateEdgeMasses_()
   for (const auto& aa : aas_)
   {
     double aa_mass = aa->getMonoWeight(Residue::Internal);
-    if (aa_mass_map_.find(aa_mass) == aa_mass_map_.end()) aa_mass_map_[aa_mass] = std::vector<Residue>();
+    //if (aa_mass_map_.find(aa_mass) == aa_mass_map_.end()) aa_mass_map_[aa_mass] = std::vector<Residue>();
     aa_mass_map_[aa_mass].push_back(*aa);
   }
 
@@ -94,8 +94,8 @@ void FLASHTaggerAlgorithm::updateEdgeMasses_()
       {
         for (const auto& current : aa_mass_map_)
         {
-          if (gap_mass_map_.find(prev.first + current.first) == gap_mass_map_.end())
-            gap_mass_map_[prev.first + current.first] = std::vector<std::vector<Residue>>();
+          //if (gap_mass_map_.find(prev.first + current.first) == gap_mass_map_.end())
+          //  gap_mass_map_[prev.first + current.first] = std::vector<std::vector<Residue>>();
 
           for (const auto& aa_vec : prev.second)
           {
@@ -197,7 +197,7 @@ void FLASHTaggerAlgorithm::constructDAG_(FLASHHelperClasses::DAG& dag,
             if (gaps.empty()) continue;
           }
           // end_index, current_index to amino acid strings.
-          if (edge_aa_map_.find(end_index) == edge_aa_map_.end()) { edge_aa_map_[end_index] = std::map<int, std::vector<String>>(); }
+          //if (edge_aa_map_.find(end_index) == edge_aa_map_.end()) { edge_aa_map_[end_index] = std::map<int, std::vector<String>>(); }
           auto& e = edge_aa_map_[end_index];
 
           if (e.find(current_index) == e.end()) { e[current_index] = std::vector<String>(); }
@@ -555,7 +555,7 @@ void FLASHTaggerAlgorithm::getScoreAndMatchCount_(const std::vector<int>& spec_v
 {
   max_score = 0;
   int match_cntr = 0;
-  int max_pro_vec_value = *std::max_element(pro_vec.begin(), pro_vec.end());
+
   for (int d : spec_pro_diffs)
   {
     int score = 0;
@@ -563,17 +563,14 @@ void FLASHTaggerAlgorithm::getScoreAndMatchCount_(const std::vector<int>& spec_v
     for (Size i = 0; i < spec_vec.size(); i++)
     {
       int index = d + spec_vec[i];
-      //std::cout<<d << " " << spec_vec[i] << " " << index<<std::endl;
-      if (index > max_pro_vec_value) break;
       if (pro_vec.find(index) == pro_vec.end()) continue;
-
-      cntr++;
       score += spec_scores[i];
+      cntr++;
     }
-    if (cntr >= match_cntr)
+    if (cntr > match_cntr)
     {
-      max_score = std::max(max_score, score);
       match_cntr = cntr;
+      max_score = std::max(max_score, score);
     }
   }
 }
@@ -680,25 +677,21 @@ Size FLASHTaggerAlgorithm::find_with_X_(const std::string_view& A, const String&
 
 // Make output struct containing all information about matched entries and tags, coverage, score etc.
 void FLASHTaggerAlgorithm::runMatching(std::vector<ProteinHit>& hits,
+                                       const DeconvolvedSpectrum& deconvolved_spectrum,
+                                       const std::vector<int> spec_vec,
                                        const std::vector<std::unordered_set<int>>& vec_pro,
                                        const std::vector<std::unordered_set<int>>& rev_vec_pro,
-                                       const DeconvolvedSpectrum& deconvolved_spectrum,
                                        const double max_mod_mass)
 {
   int scan = deconvolved_spectrum.getScanNumber();
 
-  std::vector<int> spec_vec;
   std::vector<int> spec_scores;
 
-  spec_vec.reserve(deconvolved_spectrum.size() + 1);
   spec_scores.reserve(deconvolved_spectrum.size() + 1);
-
-  spec_vec.push_back(0);
   spec_scores.push_back(1);
   for (const auto& pg : deconvolved_spectrum)
   {
     int mn = int(round(pg.getMonoMass()));
-    spec_vec.push_back(mn);
     spec_scores.push_back(FLASHTaggerAlgorithm::getNodeScore(pg));
   }
 
@@ -717,9 +710,7 @@ void FLASHTaggerAlgorithm::runMatching(std::vector<ProteinHit>& hits,
 
     if (! n_spec_pro_diffs.empty()) { getScoreAndMatchCount_(spec_vec, vec_pro[index], n_spec_pro_diffs, spec_scores, match_score1); }
     if (! c_spec_pro_diffs.empty()) { getScoreAndMatchCount_(spec_vec, rev_vec_pro[index], c_spec_pro_diffs, spec_scores, match_score2); }
-    //std::cout << hit.getScore();
     hit.setScore(std::max(match_score1, match_score2));
-    //std::cout<< " " << hit.getScore()<<std::endl;
   }
 }
 

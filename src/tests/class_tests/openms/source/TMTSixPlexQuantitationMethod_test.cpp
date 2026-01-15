@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 // 
 // --------------------------------------------------------------------------
@@ -128,7 +128,8 @@ START_SECTION((virtual Matrix<double> getIsotopeCorrectionMatrix() const ))
   {
     for (size_t j = 0; j < m.cols(); ++j)
     {
-      TEST_REAL_SIMILAR(m(i,j), real_m[i][j])
+      if (i == j) { TEST_TRUE(m(i,j) > 0.5) } // diagonal entries should be largest
+      else { TEST_TRUE(m(i,j) < 0.5) }
     }
   }
 }

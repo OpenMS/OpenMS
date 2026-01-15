@@ -17,10 +17,10 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/KDTreeFeatureMaps.h>" namespace 
         # wrap-inherits:
         #  DefaultParamHandler
         KDTreeFeatureMaps() except + nogil  # wrap-doc:Stores a set of features, together with a 2D tree for fast search
-        KDTreeFeatureMaps(libcpp_vector[ FeatureMap ] & maps, Param & param) except + nogil 
-        KDTreeFeatureMaps(libcpp_vector[ ConsensusMap ] & maps, Param & param) except + nogil 
-        void addMaps(libcpp_vector[ FeatureMap ] & maps) except + nogil  # wrap-doc:Add `maps` and balance kd-tree
-        void addMaps(libcpp_vector[ ConsensusMap ] & maps) except + nogil 
+        KDTreeFeatureMaps(const libcpp_vector[ FeatureMap ] & maps, const Param & param) except + nogil 
+        KDTreeFeatureMaps(const libcpp_vector[ ConsensusMap ] & maps, const Param & param) except + nogil 
+        void addMaps(const libcpp_vector[ FeatureMap ] & maps) except + nogil  # wrap-doc:Add `maps` and balance kd-tree
+        void addMaps(const libcpp_vector[ ConsensusMap ] & maps) except + nogil 
         # POINTER # void addFeature(Size mt_map_index, BaseFeature * feature) except + nogil 
         # POINTER # BaseFeature * feature(Size i) except + nogil 
         double rt(Size i) except + nogil 
@@ -41,5 +41,5 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/KDTreeFeatureMaps.h>" namespace 
                              bool include_features_from_same_map,
                              double max_pairwise_log_fc) except + nogil  # wrap-doc:Fill `result` with indices of all features compatible (wrt. RT, m/z, map index) to the feature with `index`
         void queryRegion(double rt_low, double rt_high, double mz_low, double mz_high, libcpp_vector[ size_t ] & result_indices, Size ignored_map_index) except + nogil 
-        # void applyTransformations(libcpp_vector[ TransformationModelLowess * ] & trafos) except + nogil 
+        void applyTransformations(const libcpp_vector[ TransformationModelLowess * ] & trafos) except + nogil 
 

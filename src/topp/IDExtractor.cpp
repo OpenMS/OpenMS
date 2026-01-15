@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -12,7 +12,7 @@
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/MATH/MathFunctions.h>
 
 #include <algorithm>
 #include <iostream>
@@ -84,18 +84,18 @@ protected:
   {
     vector<ProteinIdentification> protein_identifications;
     vector<ProteinIdentification> chosen_protein_identifications;
-    vector<PeptideIdentification> identifications;
-    vector<PeptideIdentification> chosen_identifications;
+    PeptideIdentificationList identifications;
+    PeptideIdentificationList chosen_identifications;
     vector<Size> indices;
     vector<PeptideHit> temp_peptide_hits;
     vector<ProteinHit> temp_protein_hits;
     vector<ProteinHit> chosen_protein_hits;
-    map<String, vector<PeptideIdentification> > identifiers;
+    map<String, PeptideIdentificationList > identifiers;
     PeptideIdentification temp_identification;
     vector<String> chosen_ids;
     vector<pair<double, PeptideIdentification> > identifications_with_scores;
     vector<pair<double, PeptideIdentification> >::iterator it = identifications_with_scores.begin();
-    vector<PeptideIdentification> temp_identifications;
+    PeptideIdentificationList temp_identifications;
 
 
     protein_identifications.push_back(ProteinIdentification());

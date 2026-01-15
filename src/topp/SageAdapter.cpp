@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -9,10 +9,12 @@
 #include <OpenMS/APPLICATIONS/SearchEngineBase.h>
 
 #include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
+#include <OpenMS/ANALYSIS/ID/OpenSearchModificationAnalysis.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/PepXMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/ControlledVocabulary.h>
 #include <OpenMS/FORMAT/PercolatorInfile.h>
 #include <OpenMS/FORMAT/HANDLERS/IndexedMzMLDecoder.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
@@ -21,7 +23,7 @@
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h>
-#include <OpenMS/FILTERING/ID/IDFilter.h>
+#include <OpenMS/PROCESSING/ID/IDFilter.h>
 
 #include <OpenMS/SYSTEM/File.h>
 
@@ -29,9 +31,18 @@
 #include <regex>
 
 #include <QStringList>
+#include <chrono>
+#include <map>
+#include <vector>
+#include <algorithm>
+#include <cmath>
+#include <numeric>
+
+#include <boost/math/distributions/normal.hpp>
 
 using namespace OpenMS;
 using namespace std;
+using boost::math::normal;
 
 //-------------------------------------------------------------
 //Doxygen docu
@@ -72,8 +83,9 @@ because of limitations in OpenMS' data structures and file formats.
 /// @cond TOPPCLASSES
 
 
-/*
-*/
+#define CHRONOSET
+
+
 
 class TOPPSageAdapter :
   public SearchEngineBase
@@ -89,6 +101,9 @@ public:
              })
   {
   }
+
+  // Note: Modification analysis functionality has been moved to OpenSearchModificationAnalysis class
+
 
 protected:
   // create a template-based configuration file for sage
@@ -141,7 +156,7 @@ protected:
     },
     "max_variable_mods": ##max_variable_mods##,
     "generate_decoys": false,
-    "decoy_tag": "##decoy_tag##"
+    "decoy_tag": "##decoy_prefix##"
   },
   "precursor_tol": {
     "##precursor_tol_unit##": [
@@ -161,14 +176,14 @@ protected:
   "isotope_errors": [
     ##isotope_errors##
   ],
-  "deisotope": false,
-  "chimera": false,
-  "wide_window": false,
-  "predict_rt": false,
+  "deisotope": ##deisotope##,
+  "chimera": ##chimera##,
+  "predict_rt": ##predict_rt##,
   "min_peaks": ##min_peaks##,
   "max_peaks": ##max_peaks##,
   "min_matched_peaks": ##min_matched_peaks##,
-  "report_psms": ##report_psms##
+  "report_psms": ##report_psms##, 
+  "wide_window": ##wide_window##
 }
 )";
 
@@ -177,7 +192,7 @@ protected:
   {
     String origin;
     if (mod->getTermSpecificity() == ResidueModification::N_TERM)
-    {
+    { 
       origin += "^";
     }
     else if (mod->getTermSpecificity() == ResidueModification::C_TERM)
@@ -244,7 +259,14 @@ protected:
     config_file.substitute("##min_peaks##", String(getIntOption_("min_peaks")));
     config_file.substitute("##max_peaks##", String(getIntOption_("max_peaks")));
     config_file.substitute("##report_psms##", String(getIntOption_("report_psms")));
-    config_file.substitute("##decoy_tag##", String(getStringOption_("decoy_prefix")));
+    config_file.substitute("##deisotope##", getStringOption_("deisotope")); 
+    config_file.substitute("##chimera##", getStringOption_("chimera")); 
+    config_file.substitute("##predict_rt##", getStringOption_("predict_rt")); 
+    config_file.substitute("##decoy_prefix##", getStringOption_("decoy_prefix")); 
+    config_file.substitute("##wide_window##", getStringOption_("wide_window")); 
+
+    
+    //Look at decoy handling 
 
     String enzyme = getStringOption_("enzyme");
     String enzyme_details;
@@ -320,16 +342,30 @@ protected:
     {
       enzyme_details = 
    R"("cleave_at": "")";
-    }           
+    }
+    else if (enzyme == "glutamyl endopeptidase")
+    {
+      enzyme_details =
+   R"("cleave_at": "E",
+      "restrict": "E",
+      "c_terminal":true)";
+    }
+    else if (enzyme == "leukocyte elastase")
+    {
+      enzyme_details =
+   R"("cleave_at": "ALIV",
+      "restrict": null,
+      "c_terminal":true)";
+    }
 
     config_file.substitute("##enzyme_details##", enzyme_details);
 
+    
     auto fixed_mods = getStringList_("fixed_modifications");
     set<String> fixed_unique(fixed_mods.begin(), fixed_mods.end());
     fixed_mods.assign(fixed_unique.begin(), fixed_unique.end());   
     ModifiedPeptideGenerator::MapToResidueType fixed_mod_map = ModifiedPeptideGenerator::getModifications(fixed_mods); // std::unordered_map<const ResidueModification*, const Residue*> val;
     String static_mods_details = getModDetailsString(fixed_mod_map);
-    config_file.substitute("##static_mods##", static_mods_details);
 
     auto variable_mods = getStringList_("variable_modifications");
     set<String> variable_unique(variable_mods.begin(), variable_mods.end());
@@ -337,7 +373,34 @@ protected:
     ModifiedPeptideGenerator::MapToResidueType variable_mod_map = ModifiedPeptideGenerator::getModifications(variable_mods);
     String variable_mods_details = getModDetailsString(variable_mod_map);
 
-    config_file.substitute("##variable_mods##", variable_mods_details);
+    //Treat variables as list for sage v0.15 and beyond 
+    StringList static_mods_details_list; 
+    StringList variable_mods_details_list; 
+
+    String static_mods_details_split = static_mods_details; 
+    String variable_mods_details_split = variable_mods_details; 
+    static_mods_details_split.split(",", static_mods_details_list); 
+    variable_mods_details_split.split(",", variable_mods_details_list); 
+
+    String temp_String_var; 
+    for (auto& x : variable_mods_details_list)
+    {
+      StringList temp_split; 
+      x.split(":", temp_split); 
+      
+      temp_split.insert(temp_split.begin()+1, ":["); 
+      temp_split.insert(temp_split.end(), "]"); 
+      String temp_split_Str = ""; 
+
+      for (auto& y : temp_split)
+      {
+        temp_split_Str = temp_split_Str + y; 
+      } 
+      temp_String_var = temp_String_var + "," + temp_split_Str ; 
+    } 
+    String temp_String_var_Fin = temp_String_var.substr(1, temp_String_var.size()-1); 
+    config_file.substitute("##static_mods##", static_mods_details);
+    config_file.substitute("##variable_mods##", temp_String_var_Fin);
 
     return config_file;
   }
@@ -373,38 +436,38 @@ protected:
       #endif
       "The Sage executable. Provide a full or relative path, or make sure it can be found in your PATH environment.", true, false, {"is_executable"});
 
-    registerStringOption_("decoy_prefix", "<prefix>", "DECOY_", "Prefix on protein accession used to distinguish decoy from target proteins. NOTE: Decoy suffix is currently not supported by sage.", false, false);
-    registerIntOption_("batch_size", "<int>", 0, "Number of files to load and search in parallel (default = # of CPUs/2)", false, false);
+    registerStringOption_("decoy_prefix", "<prefix>", "DECOY_", "Prefix on protein accession used to distinguish decoy from target proteins. Decoy proteins in the FASTA file should have this prefix in their accession. NOTE: Decoy suffix is currently not supported by Sage.", false, false);
+    registerIntOption_("batch_size", "<int>", 0, "Number of files to load and search in parallel. Setting this to 0 (default) uses an automatic value (typically number of CPUs/2). Default: 0", false, false);
     
-    registerDoubleOption_("precursor_tol_left", "<double>", -6.0, "Start (left side) of the precursor tolerance window w.r.t. precursor location. Usually used with negative values smaller or equal to the 'right' counterpart.", false, false);
-    registerDoubleOption_("precursor_tol_right", "<double>", 6.0, "End (right side) of the precursor tolerance window w.r.t. precursor location. Usually used with positive values larger or equal to the 'left' counterpart.", false, false);
+    registerDoubleOption_("precursor_tol_left", "<double>", -6.0, "Start (left side) of the precursor tolerance window w.r.t. precursor location. This value is relative to the experimental precursor mass and used to define the lower bound of the search window. Must be negative (e.g., -6 ppm means 6 ppm below the observed mass).", false, false);
+    registerDoubleOption_("precursor_tol_right", "<double>", 6.0, "End (right side) of the precursor tolerance window w.r.t. precursor location. This value is added to the experimental precursor mass to define the upper bound of the search window. Must be positive (e.g., 6 ppm means 6 ppm above the observed mass).", false, false);
     registerStringOption_("precursor_tol_unit", "<unit>", "ppm", "Unit of precursor tolerance (ppm or Da)", false, false);
     setValidStrings_("precursor_tol_unit", ListUtils::create<String>("ppm,Da"));
 
-    registerDoubleOption_("fragment_tol_left", "<double>", -20.0, "Start (left side) of the fragment tolerance window w.r.t. precursor location. Usually used with negative values smaller or equal to the 'right' counterpart.", false, false);
-    registerDoubleOption_("fragment_tol_right", "<double>", 20.0, "End (right side) of the fragment tolerance window w.r.t. precursor location. Usually used with positive values larger or equal to the 'left' counterpart.", false, false);
+    registerDoubleOption_("fragment_tol_left", "<double>", -20.0, "Start (left side) of the fragment tolerance window w.r.t. fragment location. This value reduces the experimental fragment mass to define the lower bound of the search window. Must be negative (e.g., -20 ppm means 20 ppm below the observed mass).", false, false);
+    registerDoubleOption_("fragment_tol_right", "<double>", 20.0, "End (right side) of the fragment tolerance window w.r.t. fragment location. This value is added to the experimental fragment mass to define the upper bound of the search window. Must be positive (e.g., 20 ppm means 20 ppm above the observed mass).", false, false);
     registerStringOption_("fragment_tol_unit", "<unit>", "ppm", "Unit of fragment tolerance (ppm or Da)", false, false);
     setValidStrings_("fragment_tol_unit", ListUtils::create<String>("ppm,Da"));
 
     // add advanced options
-    registerIntOption_("min_matched_peaks", "<int>", min_matched_peaks, "Minimum number of b+y ions required to match for PSM to be reported", false, true);
-    registerIntOption_("min_peaks", "<int>", min_peaks, "Minimum number of peaks required for a spectrum to be considered", false, true);
-    registerIntOption_("max_peaks", "<int>", max_peaks, "Take the top N most intense MS2 peaks only for matching", false, true);
-    registerIntOption_("report_psms", "<int>", report_psms, "Number of hits (PSMs) to report for each spectrum", false, true);
-    registerIntOption_("bucket_size", "<int>", bucket_size, "How many fragments are in each internal mass bucket (default: 8192 for hi-res data). Try increasing it to 32k or 64k for low-res. See also: fragment_tol_*", false, true);
-    registerIntOption_("min_len", "<int>", min_len, "Minimum peptide length", false, true);
-    registerIntOption_("max_len", "<int>", max_len, "Maximum peptide length", false, true);
-    registerIntOption_("missed_cleavages", "<int>", missed_cleavages, "Number of missed cleavages", false, true);
-    registerDoubleOption_("fragment_min_mz", "<double>", fragment_min_mz, "Minimum fragment m/z", false, true);
-    registerDoubleOption_("fragment_max_mz", "<double>", fragment_max_mz, "Maximum fragment m/z", false, true);
-    registerDoubleOption_("peptide_min_mass", "<double>", peptide_min_mass, "Minimum monoisotopic peptide mass to consider a peptide from the DB", false, true);
-    registerDoubleOption_("peptide_max_mass", "<double>", peptide_max_mass, "Maximum monoisotopic peptide mass to consider a peptide from the DB", false, true);
-    registerIntOption_("min_ion_index", "<int>", min_ion_index, "Minimum ion index to consider for preliminary scoring. Default = 2 to skip b1/y1 AND (sic) b2/y2 ions that are often missing.", false, true);
-    registerIntOption_("max_variable_mods", "<int>", max_variable_mods, "Maximum number of variable modifications", false, true);  
-    registerStringOption_("isotope_error_range", "<start,end>", isotope_errors, "Range of (C13) isotope errors to consider for precursor."
-      "Can be negative. E.g. '-1,3' for considering '-1/0/1/2/3'", false, true);
-    registerStringOption_("charges", "<start,end>", charges_if_not_annotated, "Range of precursor charges to consider if not annotated in the file."
+    registerIntOption_("min_matched_peaks", "<int>", min_matched_peaks, "Minimum number of b+y ions required to match for PSM to be reported. Default: 6", false, true);
+    registerIntOption_("min_peaks", "<int>", min_peaks, "Minimum number of peaks required for a spectrum to be considered. Spectra with fewer peaks will be ignored. Default: 15", false, true);
+    registerIntOption_("max_peaks", "<int>", max_peaks, "Take the top N most intense MS2 peaks to search. Default: 150", false, true);
+    registerIntOption_("report_psms", "<int>", report_psms, "Number of peptide-spectrum matches (PSMs) to report for each spectrum. The top N scoring PSMs will be reported. Values higher than 1 can be useful for chimeric spectra but may affect downstream statistical analysis. Default: 1", false, true);
+    registerIntOption_("bucket_size", "<int>", bucket_size, "How many fragments are in each internal mass bucket. Default: 8192 (optimal for high-resolution data). Try increasing it to 32768 or 65536 for low-resolution data. See also: fragment_tol_*", false, true);
+    registerIntOption_("min_len", "<int>", min_len, "Minimum peptide length (in amino acids). Default: 5", false, true);
+    registerIntOption_("max_len", "<int>", max_len, "Maximum peptide length (in amino acids). Default: 50", false, true);
+    registerIntOption_("missed_cleavages", "<int>", missed_cleavages, "Maximum number of missed enzymatic cleavages to allow in peptide generation. Default: 2", false, true);
+    registerDoubleOption_("fragment_min_mz", "<double>", fragment_min_mz, "Minimum fragment m/z to consider. Fragment ions below this m/z will be ignored. Default: 200.0", false, true);
+    registerDoubleOption_("fragment_max_mz", "<double>", fragment_max_mz, "Maximum fragment m/z to consider. Fragment ions above this m/z will be ignored. Default: 2000.0", false, true);
+    registerDoubleOption_("peptide_min_mass", "<double>", peptide_min_mass, "Minimum monoisotopic peptide mass to consider for in silico digestion. Peptides below this mass will be excluded from the search database. Default: 500.0", false, true);
+    registerDoubleOption_("peptide_max_mass", "<double>", peptide_max_mass, "Maximum monoisotopic peptide mass to consider for in silico digestion. Peptides above this mass will be excluded from the search database. Default: 5000.0", false, true);
+    registerIntOption_("min_ion_index", "<int>", min_ion_index, "Minimum ion index to consider for preliminary scoring. This parameter controls which fragment ions are used in preliminary scoring. Default: 2 (skips b1/b2/y1/y2 ions, which are often missing or unreliable). Setting this to 1 would only skip b1/y1 ions. Does not affect the final scoring of PSMs.", false, true);
+    registerIntOption_("max_variable_mods", "<int>", max_variable_mods, "Maximum number of variable modifications allowed per peptide. Default: 2", false, true);  
+    registerStringOption_("isotope_error_range", "<start,end>", isotope_errors, "Range of C13 isotope errors to consider for precursor matching, specified as 'start,end' (e.g., '-1,3'). For a range of '-1,3', Sage will consider all isotope errors from -1 to +3 (i.e., -1, 0, 1, 2, 3). This is useful when the monoisotopic peak may not be selected. Can include negative values. Default: '-1,3'. Note: Searching with isotope errors is slower than using a wider precursor tolerance.", false, true);
+    registerStringOption_("charges", "<start,end>", charges_if_not_annotated, "Range of precursor charge states to consider if not annotated in the file, specified as 'start,end' (e.g., '2,5'). For a range of '2,5', Sage will consider charge states 2, 3, 4, and 5. This is only used when charge state information is missing from the input file. Default: '2,5'"
       , false, true);
+    
 
     //Search Enzyme
     vector<String> all_enzymes;
@@ -420,10 +483,20 @@ protected:
     registerStringList_("variable_modifications", "<mods>", ListUtils::create<String>("Oxidation (M)", ','), "Variable modifications, specified using Unimod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
     setValidStrings_("variable_modifications", all_mods);
 
+    //FDR and misc 
+
+    registerDoubleOption_("q_value_threshold", "<double>", 1, "The FDR (False Discovery Rate) threshold for filtering peptides. PSMs with q-values above this threshold will be excluded. Default: 1 (no filtering)", false, false); 
+    registerStringOption_("annotate_matches", "<bool>", "true", "Whether fragment ion matches should be annotated in the output. This provides additional information about which theoretical ions matched experimental peaks. Default: true", false, false); 
+    registerStringOption_("deisotope", "<bool>", "false", "Perform deisotoping and charge state deconvolution on MS2 spectra. Recommended for high-resolution MS2 data. May interfere with TMT-MS2 quantification. Default: false", false, false ); 
+    registerStringOption_("chimera", "<bool>", "false", "Enable chimeric spectra search mode. When enabled, multiple peptide identifications can be reported for each MS2 scan, useful for co-fragmenting peptides. Default: false", false, false  ); 
+    registerStringOption_("predict_rt",  "<bool>", "false", "Use retention time prediction model as a feature for machine learning scoring. Note: This is incompatible with label-free quantification (LFQ). Default: false", false, false ); 
+    registerStringOption_("wide_window", "<bool>", "false", "Enable wide-window/DIA search mode. When enabled, the precursor_tol parameter is ignored and a dynamic precursor tolerance is used. Default: false", false, false);
+    registerStringOption_("smoothing", "<bool>", "true", "Whether to smooth the PTM (post-translational modification) mass histogram and pick local maxima. If false, uses raw histogram data. Default: true", false, false);  
+    registerIntOption_("threads", "<int>", 1, "Amount of threads available to the program", false, false); 
+
     // register peptide indexing parameter (with defaults for this search engine)
     registerPeptideIndexingParameter_(PeptideIndexing().getParameters());
   }
-
 
 
   ExitCodes main_(int, const char**) override
@@ -432,10 +505,48 @@ protected:
     // parsing parameters
     //-------------------------------------------------------------
 
+    // Validate tolerance parameters
+    double precursor_tol_left = getDoubleOption_("precursor_tol_left");
+    double precursor_tol_right = getDoubleOption_("precursor_tol_right");
+    double fragment_tol_left = getDoubleOption_("fragment_tol_left");
+    double fragment_tol_right = getDoubleOption_("fragment_tol_right");
+
+    // Warn if tolerance parameters seem incorrect
+    if (precursor_tol_left > 0)
+    {
+      OPENMS_LOG_WARN << "WARNING: precursor_tol_left is positive (" << precursor_tol_left << "). "
+                      << "This parameter is used to reduce the experimental mass, so it should typically be negative. "
+                      << "A positive value will likely produce an incorrect search window." << std::endl;
+    }
+    if (precursor_tol_right < 0)
+    {
+      OPENMS_LOG_WARN << "WARNING: precursor_tol_right is negative (" << precursor_tol_right << "). "
+                      << "This parameter is ADDED to the experimental mass, so it should typically be positive. "
+                      << "A negative value will likely produce an incorrect search window." << std::endl;
+    }
+    if (fragment_tol_left > 0)
+    {
+      OPENMS_LOG_WARN << "WARNING: fragment_tol_left is positive (" << fragment_tol_left << "). "
+                      << "This parameter is used to reduce the experimental mass, so it should typically be negative. "
+                      << "A positive value will likely produce an incorrect search window." << std::endl;
+    }
+    if (fragment_tol_right < 0)
+    {
+      OPENMS_LOG_WARN << "WARNING: fragment_tol_right is negative (" << fragment_tol_right << "). "
+                      << "This parameter is ADDED to the experimental mass, so it should typically be positive. "
+                      << "A negative value will likely produce an incorrect search window." << std::endl;
+    }
+
     // do this early, to see if Sage is installed
     String sage_executable = getStringOption_("sage_executable");
+    std::cout << sage_executable << " sage executable" << std::endl; 
     String proc_stdout, proc_stderr;
     TOPPBase::ExitCodes exit_code = runExternalProcess_(sage_executable.toQString(), QStringList() << "--help", proc_stdout, proc_stderr, "");
+    if (exit_code != EXECUTION_OK)
+    {
+      return exit_code;
+    }
+
     auto major_minor_patch = getVersionNumber_(proc_stdout);
     String sage_version = std::get<0>(major_minor_patch) + "." + std::get<1>(major_minor_patch) + "." + std::get<2>(major_minor_patch);
     
@@ -447,6 +558,7 @@ protected:
     String output_folder = File::path(output_file);
     String fasta_file = getStringOption_("database");
     int batch = getIntOption_("batch_size");
+    int threads = getIntOption_("threads");
     String decoy_prefix = getStringOption_("decoy_prefix");
 
     // create config
@@ -469,18 +581,48 @@ protected:
       debug_config_stream.close();     
     }
 
+    String annotation_check;    
+
     QStringList arguments;
+
+  if ( (getStringOption_("annotate_matches").compare("true")) == 0)
+  {
     arguments << config_file.toQString() 
               << "-f" << fasta_file.toQString() 
               << "-o" << output_folder.toQString() 
-              << "--write-pin";
-    if (batch >= 1) arguments << "--batch-size" << QString(batch);
+              << "--annotate-matches"
+              << "--write-pin"; 
+  }
+  else
+  {
+    arguments << config_file.toQString() 
+              << "-f" << fasta_file.toQString() 
+              << "-o" << output_folder.toQString() 
+              << "--write-pin"; 
+  }
+
+    if (batch >= 1) arguments << "--batch-size" << String(batch).toQString();
+    
     for (auto s : input_files) arguments << s.toQString();
 
     OPENMS_LOG_INFO << "Sage command line: " << sage_executable << " " << arguments.join(' ').toStdString() << std::endl;
+    
+    //std::chrono lines for testing/writing purposes only! 
 
+    std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+    
+    // Set RAYON_NUM_THREADS environment variable to control Sage's thread usage
+    std::map<QString, QString> sage_env;
+    sage_env["RAYON_NUM_THREADS"] = String(threads).toQString();
+    
     // Sage execution with the executable and the arguments StringList
-    exit_code = runExternalProcess_(sage_executable.toQString(), arguments);
+    exit_code = runExternalProcess_(sage_executable.toQString(), arguments, "", sage_env);
+    
+    std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+    #ifdef CHRONOSET
+    std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::seconds>(end - begin).count() << "[s]" << std::endl;
+    #endif
+
     if (exit_code != EXECUTION_OK)
     {
       return exit_code;
@@ -495,16 +637,19 @@ protected:
     StringList filenames;
     StringList extra_scores = {"ln(-poisson)", "ln(delta_best)", "ln(delta_next)", 
       "ln(matched_intensity_pct)", "longest_b", "longest_y", 
-      "longest_y_pct", "matched_peaks", "scored_candidates"};
-    vector<PeptideIdentification> peptide_identifications = PercolatorInfile::load(
+      "longest_y_pct", "matched_peaks", "scored_candidates"}; 
+    double FDR_threshhold = getDoubleOption_("q_value_threshold"); 
+
+    PeptideIdentificationList peptide_identifications = PercolatorInfile::load(
       output_folder + "/results.sage.pin",
       true,
-      "ln(hyperscore)",
+      "ln(hyperscore)", //TODO can we get sage's "sage_discriminant_score" out of the pin? Probably not. Suboptimal!
       extra_scores,
       filenames,
-      decoy_prefix);
+      decoy_prefix, 
+      FDR_threshhold, 
+      true);
 
-    // rename SAGE subscores to have prefix "SAGE:"
     for (auto& id : peptide_identifications)
     {
       auto& hits = id.getHits();
@@ -515,18 +660,30 @@ protected:
           if (h.metaValueExists(meta))
           {
             h.setMetaValue("SAGE:" + meta, h.getMetaValue(meta));
-            h.removeMetaValue(meta);        
-          }          
+            h.removeMetaValue(meta);    
+          }
         }
       }
     }
+    
+    String smoothing_string = getStringOption_("smoothing"); 
+    bool smoothing = !(smoothing_string.compare("true")); 
 
+    // Use shared modification analysis functionality
+    OpenSearchModificationAnalysis mod_analyzer;
+    auto modification_summaries = mod_analyzer.analyzeModifications(
+      peptide_identifications,
+      0.01, // precursor_mass_tolerance
+      false, // precursor_mass_tolerance_unit_ppm (0.01 Da)
+      smoothing,
+      output_file
+    );
     // remove hits without charge state assigned or charge outside of default range (fix for downstream bugs). TODO: remove if all charges annotated in sage
     IDFilter::filterPeptidesByCharge(peptide_identifications, 2, numeric_limits<int>::max());
     
     if (filenames.empty()) filenames = getStringList_("in");
 
-    // TODO: split / merge results and create idXMLs
+    // TODO: allow optional split and create multiple idXMLs one per input file
     vector<ProteinIdentification> protein_identifications(1, ProteinIdentification());
 
     writeDebug_("write idXMLFile", 1);    
@@ -542,7 +699,7 @@ protected:
     for (auto & pid : peptide_identifications) 
     { 
       pid.setIdentifier(identifier);
-      pid.setScoreType("hyperscore");
+      pid.setScoreType("ln(hyperscore)");
       pid.setHigherScoreBetter(true);
     }
 
@@ -564,8 +721,8 @@ protected:
     search_parameters.fixed_modifications = getStringList_("fixed_modifications");
     search_parameters.variable_modifications = getStringList_("variable_modifications");
     search_parameters.missed_cleavages = getIntOption_("missed_cleavages");
-    search_parameters.fragment_mass_tolerance = (getDoubleOption_("fragment_tol_left") + getDoubleOption_("fragment_tol_right")) * 0.5;
-    search_parameters.precursor_mass_tolerance = (getDoubleOption_("precursor_tol_left") + getDoubleOption_("precursor_tol_right")) * 0.5;
+    search_parameters.fragment_mass_tolerance = (std::fabs(getDoubleOption_("fragment_tol_left")) + std::fabs(getDoubleOption_("fragment_tol_right"))) * 0.5;
+    search_parameters.precursor_mass_tolerance = (std::fabs(getDoubleOption_("precursor_tol_left")) + std::fabs(getDoubleOption_("precursor_tol_right"))) * 0.5;
     search_parameters.precursor_mass_tolerance_ppm = getStringOption_("precursor_tol_unit") == "ppm";
     search_parameters.fragment_mass_tolerance_ppm = getStringOption_("fragment_tol_unit") == "ppm";
 
@@ -611,7 +768,6 @@ protected:
             it->second.emplace(nr,nID);
           }
         }
-
       }
     }
 
@@ -639,12 +795,9 @@ protected:
       {
       }
     }
-
     IdXMLFile().store(output_file, protein_identifications, peptide_identifications);
-
     return EXECUTION_OK;
   }
-
 };
 
 

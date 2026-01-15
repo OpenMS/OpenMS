@@ -68,7 +68,7 @@ cdef extern from "<OpenMS/METADATA/ExperimentalDesign.h>" namespace "OpenMS::Exp
         ExperimentalDesign fromFeatureMap(FeatureMap f) except + nogil  #wrap-attach:ExperimentalDesign
 
         # Extract experimental design from identifications
-        ExperimentalDesign fromIdentifications(libcpp_vector[ProteinIdentification] & proteins) except + nogil  #wrap-attach:ExperimentalDesign
+        ExperimentalDesign fromIdentifications(const libcpp_vector[ProteinIdentification] & proteins) except + nogil  #wrap-attach:ExperimentalDesign
 
 cdef extern from "<OpenMS/METADATA/ExperimentalDesign.h>" namespace "OpenMS::ExperimentalDesign":
     

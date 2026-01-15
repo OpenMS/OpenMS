@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -193,10 +193,7 @@ namespace OpenMS
     /// Equality operator
     bool operator==(const MobilityPeak2D & rhs) const
     {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wfloat-equal"
-      return intensity_ == rhs.intensity_ && position_ == rhs.position_;
-#pragma clang diagnostic pop
+      return std::tie(intensity_, position_) == std::tie(rhs.intensity_, rhs.position_);
     }
 
     /// Equality operator

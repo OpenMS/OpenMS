@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -66,7 +66,7 @@ public:
     void mergeIntoLayer(Size i, const ConsensusMapSharedPtrType& map);
 
     /// Merges the peptide identifications in @p peptides into the peptide layer @p i
-    void mergeIntoLayer(Size i, std::vector<PeptideIdentification>& peptides);
+    void mergeIntoLayer(Size i, PeptideIdentificationList& peptides);
 
     /// recalculates the dot gradient of the active layer
     void recalculateCurrentLayerDotGradient();
@@ -109,8 +109,8 @@ protected:
     // Docu in base class
     bool finishAdding_() override;
 
-    /// Collects fragment ion scans in the indicated RT/mz area and adds them to the indicated action
-    bool collectFragmentScansInArea_(const RangeType& range, QAction* a, QMenu* msn_scans, QMenu* msn_meta);
+    /// Collects fragment ion scans in the indicated RT/mz area and adds them to the menus
+    bool collectFragmentScansInArea_(const RangeType& range, QMenu* msn_scans, QMenu* msn_meta);
 
     /// Draws the coordinates (or coordinate deltas) to the widget's upper left corner
     void drawCoordinates_(QPainter& painter, const PeakIndex& peak);

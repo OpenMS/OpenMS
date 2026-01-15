@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -9,13 +9,12 @@
 #pragma once
 
 #include <OpenMS/config.h>
-#include <OpenMS/FORMAT/GzipIfstream.h>
 
 #include <xercesc/util/BinInputStream.hpp>
-#include <xercesc/util/PlatformUtils.hpp>
 
 namespace OpenMS
 {
+  class GzipIfstream;
   class String;
 
   /**
@@ -83,11 +82,6 @@ private:
   inline XMLFilePos GzipInputStream::curPos() const
   {
     return file_current_index_;
-  }
-
-  inline bool GzipInputStream::getIsOpen() const
-  {
-    return gzip_->isOpen();
   }
 
 } // namespace OpenMS

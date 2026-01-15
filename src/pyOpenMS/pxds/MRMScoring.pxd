@@ -19,7 +19,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMScoring.h>" namespace "OpenSwath
         # XCorrMatrixType  getXCorrMatrix() except + nogil 
         # NAMESPACE # # POINTER # void initializeXCorrMatrix(OpenSwath::IMRMFeature * mrmfeature, OpenSwath::ITransitionGroup * transition_group, bool normalize) except + nogil 
         double calcXcorrCoelutionScore() except + nogil  # wrap-doc:Calculate the cross-correlation coelution score. The score is a distance where zero indicates perfect coelution
-        double calcXcorrCoelutionWeightedScore(libcpp_vector[ double ] & normalized_library_intensity) except + nogil 
+        double calcXcorrCoelutionWeightedScore(const libcpp_vector[ double ] & normalized_library_intensity) except + nogil 
             # wrap-doc:
                 #  Calculate the weighted cross-correlation coelution score
                 #  
@@ -41,7 +41,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMScoring.h>" namespace "OpenSwath
                 #  The score is a correlation measure where 1 indicates perfect correlation
                 #  and 0 means no correlation.
 
-        double calcXcorrShapeWeightedScore(libcpp_vector[ double ] & normalized_library_intensity) except + nogil 
+        double calcXcorrShapeWeightedScore(const libcpp_vector[ double ] & normalized_library_intensity) except + nogil 
             # wrap-doc:
                 #  Calculate the weighted cross-correlation shape score
                 #  

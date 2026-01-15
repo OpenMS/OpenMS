@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -27,22 +27,7 @@ namespace OpenMS
 
   DefaultParamHandler::DefaultParamHandler(const DefaultParamHandler& rhs) = default;
 
-  DefaultParamHandler& DefaultParamHandler::operator=(const DefaultParamHandler& rhs)
-  {
-    if (&rhs == this)
-    {
-      return *this;
-    }
-    //copy members
-    param_ = rhs.param_;
-    defaults_ = rhs.defaults_;
-    subsections_ = rhs.subsections_;
-    error_name_ = rhs.error_name_;
-    check_defaults_ = rhs.check_defaults_;
-    warn_empty_defaults_ = rhs.warn_empty_defaults_;
-
-    return *this;
-  }
+  DefaultParamHandler& DefaultParamHandler::operator=(const DefaultParamHandler& rhs) = default;
 
   bool DefaultParamHandler::operator==(const DefaultParamHandler& rhs) const
   {

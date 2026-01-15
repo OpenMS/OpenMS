@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -12,9 +12,7 @@
 
 #include <OpenMS/FORMAT/XMLFile.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
-
-#include <QtCore/QProcess>
-#include <QDir>
+#include <OpenMS/SYSTEM/ExternalProcess.h>
 
 #include <iostream>
 #include <fstream>
@@ -185,16 +183,15 @@ void convertINI2HTML(const Param& p, ostream& os)
 
 bool generate(const ToolListType& tools, const String& prefix, const String& binary_directory)
 {
+  // Add an environment variable (used by each TOPP tool to determine width of help text (see TOPPBase))
+  qputenv("COLUMNS", "110"); 
+  // Add Global environment variable to suppress stty errors
+  qputenv("TERM", "dumb");
+  qputenv("STTY", "/bin/true"); 
+  
   bool errors_occured = false;
   for (ToolListType::const_iterator it = tools.begin(); it != tools.end(); ++it)
   {
-    //start process
-    QProcess process;
-    process.setProcessChannelMode(QProcess::MergedChannels);
-    QStringList env = QProcess::systemEnvironment();
-    env << String("COLUMNS=110").toQString(); // Add an environment variable (used by each TOPP tool to determine width of help text (see TOPPBase))
-    process.setEnvironment(env);
-
     String command = binary_directory + it->first;
 #if defined(__APPLE__)
     if (it->first == "TOPPView" || it->first == "TOPPAS")
@@ -220,27 +217,23 @@ bool generate(const ToolListType& tools, const String& prefix, const String& bin
     }
     else
     {
-      process.start(String(command + " --help").toQString());
-      process.waitForFinished();
-
-      std::string lines = QString(process.readAll()).toStdString();
-      if (process.error() != QProcess::UnknownError)
-      {
-        // error while generation cli docu
+      ExternalProcess ep([&](const String& s) { f << s; }, 
+                         [&](const String& s) { f << s; });
+      String error_msg;
+      if (ep.run(command.toQString(), QStringList() << "--help", "", false, error_msg, ExternalProcess::IO_MODE::READ_WRITE)
+            != ExternalProcess::RETURNSTATE::SUCCESS)
+      { // error while generation cli docu
         stringstream ss;
         ss << "Errors occurred while generating the command line documentation for " << it->first << "!" << endl;
-        ss << "Output was: \n" << lines << endl;
-        ss << "Command line was: \n " << command << endl;
+        ss << "Output was: \n";
+        ep.setCallbacks([&](const String& s) { ss << s; }, [&](const String& s) { ss << s; });
+        ep.run(command.toQString(), QStringList() << "--help", "", false, error_msg, ExternalProcess::IO_MODE::READ_WRITE);
+        ss << "\nCommand line was: \n " << command << endl;
         f << ss.str();
         cerr << ss.str();
         errors_occured = true;
         f.close();
         continue;
-      }
-      else
-      {
-        // write output
-        f << lines;
       }
     }
     f.close();
@@ -253,20 +246,17 @@ bool generate(const ToolListType& tools, const String& prefix, const String& bin
         it->first != "TOPPAS")
     {
       String tmp_file = File::getTempDirectory() + "/" + File::getUniqueName() + "_" + it->first + ".ini";
-      String ini_command = command + " -write_ini " + tmp_file;
-      process.start(ini_command.toQString());
-      process.waitForFinished();
-
-      if (process.error() != QProcess::UnknownError || !File::exists(tmp_file))
-      {
-        std::string lines = QString(process.readAll()).toStdString();
-
-        // error while generation cli docu
-        stringstream ss;
-        ss << "Errors occurred while writing ini file for " << it->first << "!" << endl;
-        ss << "Output was: \n" << lines << endl;
-        ss << "Command line was: \n " << ini_command << endl;
-        cerr << ss.str();
+      const auto ini_command_args = QStringList() << "-write_ini" << tmp_file.toQString();
+      
+      ExternalProcess ep([&](const String& s) { f << s; }, [&](const String& s) { f << s; });
+      String error_msg;
+      if (ep.run(command.toQString(), ini_command_args, "", false, error_msg,
+                 ExternalProcess::IO_MODE::READ_WRITE)
+            != ExternalProcess::RETURNSTATE::SUCCESS
+          || ! File::exists(tmp_file))
+      { // error while generation cli docu
+        std::cerr << "Errors occurred while writing ini file for " << it->first << "!" << std::endl;
+        std::cerr << "Command line was: \n " << command << ini_command_args.join(" ").toStdString() << std::endl;
         errors_occured = true;
         continue;
       }

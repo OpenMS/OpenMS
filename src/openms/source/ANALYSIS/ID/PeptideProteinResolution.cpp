@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -6,7 +6,7 @@
 // $Authors: Julianus Pfeuffer $
 // --------------------------------------------------------------------------
 #include <OpenMS/ANALYSIS/ID/PeptideProteinResolution.h>
-#include <OpenMS/FILTERING/ID/IDFilter.h>
+#include <OpenMS/PROCESSING/ID/IDFilter.h>
 
 #include <queue>
 #include <unordered_set>
@@ -51,7 +51,7 @@ namespace OpenMS
   }
 
   void PeptideProteinResolution::resolve(ProteinIdentification& protein,
-                                            vector<PeptideIdentification>& peptides,
+                                            PeptideIdentificationList& peptides,
                                             bool resolve_ties,
                                             bool targets_first)
   {
@@ -77,7 +77,7 @@ namespace OpenMS
     std::unordered_set<std::string> decoy_accs;
     for (const ProteinHit& p : protein.getHits())
     {
-      if (p.metaValueExists("target_decoy") && p.getMetaValue("target_decoy") == "decoy")
+      if (p.isDecoy())
       {
         decoy_accs.insert(p.getAccession());
       }
@@ -251,7 +251,7 @@ namespace OpenMS
 
   // Initialization of global variables (= graph)
   void PeptideProteinResolution::buildGraph(ProteinIdentification& protein,
-                      const vector<PeptideIdentification>& peptides, bool skip_sort)
+                      const PeptideIdentificationList& peptides, bool skip_sort)
   {
     vector<ProteinIdentification::ProteinGroup>& groups = protein.getIndistinguishableProteins();
 
@@ -273,7 +273,7 @@ namespace OpenMS
     std::unordered_set<std::string> decoy_accs;
     for (const ProteinHit& p : protein.getHits())
     {
-      if (p.metaValueExists("target_decoy") && p.getMetaValue("target_decoy") == "decoy")
+      if (p.isDecoy())
       {
         decoy_accs.insert(p.getAccession());
       }
@@ -294,7 +294,7 @@ namespace OpenMS
     }
     
     // Go through PeptideIDs and construct a bidirectional mapping
-    for (vector<PeptideIdentification>::const_iterator pep_it = peptides.begin();
+    for (PeptideIdentificationList::const_iterator pep_it = peptides.begin();
          pep_it != peptides.end();
          ++pep_it)
     {
@@ -337,7 +337,7 @@ namespace OpenMS
 
   // "Main" function
   void PeptideProteinResolution::resolveGraph(ProteinIdentification& protein,
-                  vector<PeptideIdentification>& peptides)
+                  PeptideIdentificationList& peptides)
   {
     //Debugging
     Size old_size = indist_prot_grp_to_pep_.size();
@@ -506,7 +506,7 @@ namespace OpenMS
 /*  void PeptideProteinResolution::resolveConnectedComponentTargetsFirst(
       ConnectedComponent& conn_comp,
       ProteinIdentification& protein,
-      vector<PeptideIdentification>& peptides,
+      PeptideIdentificationList& peptides,
       bool targets_first)
   {
     // Nothing to resolve in a singleton group (will not be added to output though)
@@ -671,7 +671,7 @@ namespace OpenMS
   void PeptideProteinResolution::resolveConnectedComponent(
       ConnectedComponent& conn_comp,
       ProteinIdentification& protein,
-      vector<PeptideIdentification>& peptides)
+      PeptideIdentificationList& peptides)
   {
     // TODO think about ignoring decoy proteins (at least when resolving ties!)
 
@@ -780,7 +780,7 @@ namespace OpenMS
 
 
   void PeptideProteinResolution::run(vector<ProteinIdentification>& inferred_protein_ids, 
-    vector<PeptideIdentification>& inferred_peptide_ids)
+    PeptideIdentificationList& inferred_peptide_ids)
   {
     PeptideProteinResolution ppr;
     ppr.buildGraph(inferred_protein_ids[0], inferred_peptide_ids);

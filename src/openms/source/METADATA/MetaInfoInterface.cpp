@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -247,15 +247,17 @@ namespace OpenMS
     }
   }
 
-  //TODO get a MetaValue list to copy only those that have been set
   void MetaInfoInterface::addMetaValues(const MetaInfoInterface& from)
   {
-    std::vector<String> keys;
-    from.getKeys(keys);
-    for (String& key : keys)
+    if (from.meta_ == nullptr)
     {
-      this->setMetaValue(key, from.getMetaValue(key));
+      return; // nothing to copy
     }
+    if (meta_ == nullptr)
+    {
+      meta_ = new MetaInfo();
+    }
+    *meta_ += *from.meta_;
   }
 
 } //namespace

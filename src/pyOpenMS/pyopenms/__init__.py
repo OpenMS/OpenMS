@@ -3,7 +3,7 @@
 """Python bindings to the OpenMS C++ library.
 
 The pyOpenMS package contains Python bindings for a large part of the OpenMS
-library (http://www.open-ms.de) for mass spectrometry based proteomics. It thus
+library (https://openms.de) for mass spectrometry based proteomics. It thus
 provides providing facile access to a feature-rich, open-source algorithm
 library for mass-spectrometry based proteomics analysis. These Python bindings
 allow raw access to the data-structures and algorithms implemented in OpenMS,
@@ -31,15 +31,16 @@ from ._version import version as __version__
 import os
 here = os.path.abspath(os.path.dirname(__file__))
 
-default_openms_data_path = os.path.join(here, "share/OpenMS")
+default_openms_data_path = os.path.join(here, "share", "OpenMS")
 env_openms_data_path = os.environ.get("OPENMS_DATA_PATH")
 
 if os.path.exists(default_openms_data_path):
     if not env_openms_data_path:
         os.environ["OPENMS_DATA_PATH"] = default_openms_data_path
-    else:
+    elif os.path.abspath(env_openms_data_path) != os.path.abspath(default_openms_data_path):
         warnings.warn(
-            "Warning: OPENMS_DATA_PATH environment variable already exists. "
+            "Warning: OPENMS_DATA_PATH environment exists and points to a different location "
+            "than the default share directory. "
             "pyOpenMS will use it ({env}) to locate data in the OpenMS share folder "
             "(e.g., the unimod database), instead of the default ({default})."
             .format(env=env_openms_data_path, default=default_openms_data_path)

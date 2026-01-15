@@ -2,7 +2,7 @@
 # from BasicStatistics cimport *
 from String cimport *
 
-cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/BiGaussFitter1D.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/FEATUREFINDER/BiGaussFitter1D.h>" namespace "OpenMS":
     
     cdef cppclass BiGaussFitter1D "OpenMS::BiGaussFitter1D":
         BiGaussFitter1D() except + nogil 

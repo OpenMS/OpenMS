@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -334,16 +334,16 @@ namespace OpenMS
       std::vector<QTreeWidgetItem *> parent_stack;
       parent_stack.push_back(nullptr);
       bool fail = false;
-      last_peakmap_ = &(*cl.getPeakData());
+      last_peakmap_ = &(cl.getPeakData()->getMSExperiment());
       spectra_treewidget_->setHeaders(ClmnPeak::HEADER_NAMES);
 
-      for (Size i = 0; i < cl.getPeakData()->size(); ++i)
+      for (Size i = 0; i < cl.getPeakData()->getMSExperiment().size(); ++i)
       {
-        const MSSpectrum& current_spec = (*cl.getPeakData())[i];
+        const MSSpectrum& current_spec = cl.getPeakData()->getMSExperiment()[i];
 
         if (i > 0)
         {
-          const MSSpectrum& prev_spec = (*cl.getPeakData())[i-1];
+          const MSSpectrum& prev_spec = cl.getPeakData()->getMSExperiment()[i-1];
           // current MS level = previous MS level + 1 (e.g. current: MS2, previous: MS1)
           if (current_spec.getMSLevel() == prev_spec.getMSLevel() + 1)
           {
@@ -412,9 +412,9 @@ namespace OpenMS
         spectra_treewidget_->clear();
         toplevel_items.clear();
         selected_item = nullptr;
-        for (Size i = 0; i < cl.getPeakData()->size(); ++i)
+        for (Size i = 0; i < cl.getPeakData()->getMSExperiment().size(); ++i)
         {
-          const MSSpectrum& current_spec = (*cl.getPeakData())[i];
+          const MSSpectrum& current_spec = cl.getPeakData()->getMSExperiment()[i];
           toplevel_item = new QTreeWidgetItem();
           
           populatePeakDataRow_(toplevel_item, i, current_spec);
@@ -438,9 +438,9 @@ namespace OpenMS
         spectra_treewidget_->setCurrentItem(selected_item);
         spectra_treewidget_->scrollToItem(selected_item);
       }
-      if (cl.getPeakData()->size() > 1)
+      if (cl.getPeakData()->getMSExperiment().size() > 1)
       {
-        more_than_one_spectrum = false;
+        more_than_one_spectrum = false; // why is this false if > 1???????
       }
     }
     // Branch if the current layer is a chromatogram (either indicated by its
@@ -450,13 +450,13 @@ namespace OpenMS
       const auto cl = *lp;
       LayerDataBase::ConstExperimentSharedPtrType exp = cl.getChromatogramData();
       
-      if (last_peakmap_ == exp.get())
+      if (last_peakmap_ == &exp->getMSExperiment())
       { // underlying data did not change (which is ALWAYS the chromatograms, never peakdata!)
         // --> Do not update (could be many 10k entries for sqMass data and the lag would be unbearable ...)
         return;
       }
       
-      last_peakmap_ = exp.get();
+      last_peakmap_ = &exp->getMSExperiment();
       spectra_treewidget_->clear();
       // New data:
       // We need to redraw the whole Widget because the we have changed all the layers.
@@ -464,22 +464,23 @@ namespace OpenMS
       // whether multiple ones are selected.
       bool multiple_select = false;
       int this_selected_item = -1;
-      if (!cl.getChromatogramData()->empty())
+      const MSExperiment& chrom_data = cl.getChromatogramData()->getMSExperiment();
+      if (!chrom_data.empty())
       {
-        if (cl.getChromatogramData()->metaValueExists("multiple_select"))
+        if (chrom_data.metaValueExists("multiple_select"))
         {
-          multiple_select = cl.getChromatogramData()->getMetaValue("multiple_select").toBool();
+          multiple_select = chrom_data.getMetaValue("multiple_select").toBool();
         }
-        if (cl.getChromatogramData()->metaValueExists("selected_chromatogram"))
+        if (chrom_data.metaValueExists("selected_chromatogram"))
         {
-          this_selected_item = (int)cl.getChromatogramData()->getMetaValue("selected_chromatogram");
+          this_selected_item = (int)chrom_data.getMetaValue("selected_chromatogram");
         }
       }
       
       // create a header list
       spectra_treewidget_->setHeaders(ClmnChrom::HEADER_NAMES);
            
-      if (exp->getChromatograms().size() > 1)
+      if (exp->getMSExperiment().getChromatograms().size() > 1)
       {
         more_than_one_spectrum = false;
       }
@@ -491,9 +492,9 @@ namespace OpenMS
       std::map<Precursor, std::vector<Size>, Precursor::MZLess>& map_precursor_to_chrom_idx = map_precursor_to_chrom_idx_cache_[(size_t)(exp.get())];
       if (!was_cached)
       { // create cache: collect all precursor that fall into the mz rt window
-        for (auto it = exp->getChromatograms().cbegin(); it != exp->getChromatograms().cend(); ++it)
+        for (auto it = exp->getMSExperiment().getChromatograms().cbegin(); it != exp->getMSExperiment().getChromatograms().cend(); ++it)
         {
-          map_precursor_to_chrom_idx[it->getPrecursor()].push_back(it - exp->getChromatograms().begin());
+          map_precursor_to_chrom_idx[it->getPrecursor()].push_back(it - exp->getMSExperiment().getChromatograms().begin());
         }
       }
 
@@ -525,7 +526,7 @@ namespace OpenMS
         // Show single chromatogram: iterate over all chromatograms corresponding to the current precursor and add action for the single chromatogram
         for (const Size chrom_idx : indx)
         {
-          const MSChromatogram& current_chromatogram = exp->getChromatograms()[chrom_idx];
+          const MSChromatogram& current_chromatogram = exp->getMSExperiment().getChromatograms()[chrom_idx];
 
           // Children chromatogram entry
           QTreeWidgetItem* sub_item = new QTreeWidgetItem(toplevel_item);

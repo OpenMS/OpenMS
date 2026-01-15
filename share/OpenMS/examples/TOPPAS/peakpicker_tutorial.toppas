@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <PARAMETERS version="1.7.0" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/Param_1_7_0.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <NODE name="info" description="">
-    <ITEM name="version" value="3.1.0-pre-disabled-20231206" type="string" description="" required="false" advanced="false" />
+    <ITEM name="version" value="3.1.0-pre-disabled-20240603" type="string" description="" required="false" advanced="false" />
     <ITEM name="num_vertices" value="5" type="int" description="" required="false" advanced="false" />
     <ITEM name="num_edges" value="4" type="int" description="" required="false" advanced="false" />
     <ITEM name="description" value="&lt;![CDATA[&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
@@ -9,28 +9,30 @@
 p, li { white-space: pre-wrap; }
 &lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:&apos;Arial&apos;; font-size:12pt; font-weight:400; font-style:normal;&quot;&gt;
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt; &lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt; &lt;/p&gt;
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; color:#000000;&quot;&gt;Basic peak picking pipeline using PeakPickerHiRes.&lt;/span&gt;&lt;/p&gt;
 &lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; color:#000000;&quot;&gt;&lt;br /&gt;&lt;/p&gt;
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; color:#000000;&quot;&gt;The fist steps are NoiseFilterSGolay (assuming low-res data) and BaselineFilter (for MALDI data) to smooth the data and remove a baseline.&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; color:#000000;&quot;&gt;Depending on your data, either of the two filters may be removed or reconfigured with other parameters.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;]]&gt;" type="string" description="" required="false" advanced="false" />
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; color:#000000;&quot;&gt;Depending on your data, either of the two filters may be removed or reconfigured with other parameters.&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; color:#000000;&quot;&gt;As a last step, PeakPickerHiRes will convert profile peaks into centroided peaks and store the result in Node #5 as mzML file.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;]]&gt;" type="string" description="" required="false" advanced="false" />
   </NODE>
   <NODE name="vertices" description="">
     <NODE name="0" description="">
-      <ITEM name="recycle_output" value="false" type="string" description="" required="false" advanced="false" />
       <ITEM name="toppas_type" value="input file list" type="string" description="" required="false" advanced="false" />
+      <ITEM name="x_pos" value="-320.0" type="double" description="" required="false" advanced="false" />
+      <ITEM name="y_pos" value="0.0" type="double" description="" required="false" advanced="false" />
+      <ITEM name="recycle_output" value="false" type="string" description="" required="false" advanced="false" />
       <ITEMLIST name="file_names" type="string" description="" required="false" advanced="false">
         <LISTITEM value="../peakpicker_tutorial_1.mzML"/>
       </ITEMLIST>
-      <ITEM name="x_pos" value="-320.0" type="double" description="" required="false" advanced="false" />
-      <ITEM name="y_pos" value="0.0" type="double" description="" required="false" advanced="false" />
     </NODE>
     <NODE name="1" description="">
-      <ITEM name="recycle_output" value="false" type="string" description="" required="false" advanced="false" />
       <ITEM name="toppas_type" value="tool" type="string" description="" required="false" advanced="false" />
-      <ITEM name="tool_name" value="NoiseFilterSGolay" type="string" description="" required="false" advanced="false" />
-      <ITEM name="tool_type" value="" type="string" description="" required="false" advanced="false" />
       <ITEM name="x_pos" value="-140.0" type="double" description="" required="false" advanced="false" />
       <ITEM name="y_pos" value="0.0" type="double" description="" required="false" advanced="false" />
+      <ITEM name="recycle_output" value="false" type="string" description="" required="false" advanced="false" />
+      <ITEM name="tool_name" value="NoiseFilterSGolay" type="string" description="" required="false" advanced="false" />
+      <ITEM name="tool_type" value="" type="string" description="" required="false" advanced="false" />
       <NODE name="parameters" description="">
         <ITEM name="in" value="" type="input-file" description="input raw data file " required="true" advanced="false" supported_formats="*.mzML" />
         <ITEM name="out" value="" type="output-file" description="output raw data file " required="true" advanced="false" supported_formats="*.mzML" />
@@ -46,12 +48,12 @@ p, li { white-space: pre-wrap; }
       </NODE>
     </NODE>
     <NODE name="2" description="">
-      <ITEM name="recycle_output" value="false" type="string" description="" required="false" advanced="false" />
       <ITEM name="toppas_type" value="tool" type="string" description="" required="false" advanced="false" />
-      <ITEM name="tool_name" value="BaselineFilter" type="string" description="" required="false" advanced="false" />
-      <ITEM name="tool_type" value="" type="string" description="" required="false" advanced="false" />
       <ITEM name="x_pos" value="40.0" type="double" description="" required="false" advanced="false" />
       <ITEM name="y_pos" value="0.0" type="double" description="" required="false" advanced="false" />
+      <ITEM name="recycle_output" value="false" type="string" description="" required="false" advanced="false" />
+      <ITEM name="tool_name" value="BaselineFilter" type="string" description="" required="false" advanced="false" />
+      <ITEM name="tool_type" value="" type="string" description="" required="false" advanced="false" />
       <NODE name="parameters" description="">
         <ITEM name="in" value="" type="input-file" description="input raw data file " required="true" advanced="false" supported_formats="*.mzML" />
         <ITEM name="out" value="" type="output-file" description="output raw data file " required="true" advanced="false" supported_formats="*.mzML" />
@@ -66,12 +68,12 @@ p, li { white-space: pre-wrap; }
       </NODE>
     </NODE>
     <NODE name="3" description="">
-      <ITEM name="recycle_output" value="false" type="string" description="" required="false" advanced="false" />
       <ITEM name="toppas_type" value="tool" type="string" description="" required="false" advanced="false" />
-      <ITEM name="tool_name" value="PeakPickerHiRes" type="string" description="" required="false" advanced="false" />
-      <ITEM name="tool_type" value="" type="string" description="" required="false" advanced="false" />
       <ITEM name="x_pos" value="220.0" type="double" description="" required="false" advanced="false" />
       <ITEM name="y_pos" value="0.0" type="double" description="" required="false" advanced="false" />
+      <ITEM name="recycle_output" value="false" type="string" description="" required="false" advanced="false" />
+      <ITEM name="tool_name" value="PeakPickerHiRes" type="string" description="" required="false" advanced="false" />
+      <ITEM name="tool_type" value="" type="string" description="" required="false" advanced="false" />
       <NODE name="parameters" description="">
         <ITEM name="in" value="" type="input-file" description="input profile data file " required="true" advanced="false" supported_formats="*.mzML" />
         <ITEM name="out" value="" type="output-file" description="output peak file " required="true" advanced="false" supported_formats="*.mzML" />
@@ -106,10 +108,10 @@ p, li { white-space: pre-wrap; }
       </NODE>
     </NODE>
     <NODE name="4" description="">
-      <ITEM name="recycle_output" value="false" type="string" description="" required="false" advanced="false" />
       <ITEM name="toppas_type" value="output file list" type="string" description="" required="false" advanced="false" />
       <ITEM name="x_pos" value="400.0" type="double" description="" required="false" advanced="false" />
       <ITEM name="y_pos" value="0.0" type="double" description="" required="false" advanced="false" />
+      <ITEM name="recycle_output" value="false" type="string" description="" required="false" advanced="false" />
       <ITEM name="output_folder_name" value="" type="string" description="" required="false" advanced="false" />
     </NODE>
   </NODE>

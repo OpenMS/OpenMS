@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -39,9 +39,9 @@ START_SECTION(virtual ~XFDRAlgorithm())
 }
 END_SECTION
 
-START_SECTION(ExitCodes run(std::vector<PeptideIdentification>& peptide_ids, ProteinIdentification& protein_id))
+START_SECTION(ExitCodes run(PeptideIdentificationList& peptide_ids, ProteinIdentification& protein_id))
 
-std::vector<PeptideIdentification> peptide_ids;
+PeptideIdentificationList peptide_ids;
 std::vector<ProteinIdentification> protein_ids;
 ProteinIdentification protein_id;
 

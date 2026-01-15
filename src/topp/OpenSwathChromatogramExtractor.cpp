@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 // 
 // --------------------------------------------------------------------------
@@ -221,7 +221,7 @@ protected:
       // Find the transitions to extract and extract them
       MapType tmp_out;
       OpenMS::TargetedExperiment transition_exp_used;
-      FileHandler().loadExperiment(file_list[i], *exp, {FileTypes::MZML});
+      FileHandler().loadExperiment(file_list[i], *exp, {FileTypes::MZML}, log_type_);
       if (exp->empty())
       { 
         continue; // if empty, go on

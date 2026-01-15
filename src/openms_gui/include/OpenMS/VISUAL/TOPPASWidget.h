@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -72,7 +72,7 @@ protected:
     void keyPressEvent(QKeyEvent * e) override;
     void keyReleaseEvent(QKeyEvent * e) override;
     void leaveEvent(QEvent * e) override;
-    void enterEvent(QEvent * e) override;
+    void enterEvent(QEnterEvent * e) override;
     void dragEnterEvent(QDragEnterEvent * event) override;
     void dragMoveEvent(QDragMoveEvent * event) override;
     void dropEvent(QDropEvent * event) override;

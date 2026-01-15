@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -277,10 +277,10 @@ namespace OpenMS
         OPENMS_LOG_DEBUG << "                   -- with  " << i + 1 << " : " << next_left_idx << " " << next_right_idx << std::endl;
 
         // Find the peak width and best RT
-        double central_peak_mz = picked_chrom[i].getMZ();
-        double next_peak_mz = picked_chrom[i + 1].getMZ();
-        current_peak = findClosestPeak_(chromatogram, central_peak_mz, current_peak);
-        Size next_peak = findClosestPeak_(chromatogram, next_peak_mz, current_peak);
+        double central_peak_rt = picked_chrom[i].getPos();
+        double next_peak_rt = picked_chrom[i + 1].getPos();
+        current_peak = findClosestPeak_(chromatogram, central_peak_rt, current_peak);
+        Size next_peak = findClosestPeak_(chromatogram, next_peak_rt, current_peak);
 
         // adjust the right border of the current and left border of next
         Size k = 1;
@@ -307,8 +307,12 @@ namespace OpenMS
 
         }
 
-        OPENMS_LOG_DEBUG << "New peak l: " << chromatogram[current_left_idx].getMZ() << " " << chromatogram[new_right_border].getMZ() << " int " << integrated_intensities_[i] << std::endl;
-        OPENMS_LOG_DEBUG << "New peak r: " << chromatogram[new_left_border].getMZ() << " " << chromatogram[next_right_idx].getMZ() << " int " << integrated_intensities_[i + 1] << std::endl;
+        OPENMS_LOG_DEBUG << "New peak l: " << chromatogram[current_left_idx].getPos() 
+          << " " << chromatogram[new_right_border].getPos() 
+          << " int " << integrated_intensities_[i] << std::endl;
+        OPENMS_LOG_DEBUG << "New peak r: " << chromatogram[new_left_border].getPos() 
+          << " " << chromatogram[next_right_idx].getPos() 
+          << " int " << integrated_intensities_[i + 1] << std::endl;
 
 
         right_width_[i] = new_right_border;

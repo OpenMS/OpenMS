@@ -21,7 +21,7 @@ cdef extern from "<OpenMS/ANALYSIS/XLMS/OpenPepXLAlgorithm.h>" namespace "OpenMS
                                          ConsensusMap& cfeatures,
                                          libcpp_vector[ FASTAEntry ]& fasta_db,
                                          libcpp_vector[ ProteinIdentification ]& protein_ids,
-                                         libcpp_vector[ PeptideIdentification ]& peptide_ids,
+                                         PeptideIdentificationList& peptide_ids,
                                          OPXL_PreprocessedPairSpectra& preprocessed_pair_spectra,
                                          libcpp_vector[libcpp_pair[ size_t, size_t ] ]& spectrum_pairs,
                                          libcpp_vector[ libcpp_vector[ CrossLinkSpectrumMatch ] ]& all_top_csms,

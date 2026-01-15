@@ -3,7 +3,7 @@ from Types cimport *
 from libcpp cimport bool
 from MSSpectrum cimport *
 
-cdef extern from "<OpenMS/COMPARISON/SPECTRA/BinnedSpectrum.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/KERNEL/BinnedSpectrum.h>" namespace "OpenMS":
 
     cdef cppclass BinnedSpectrum:
         BinnedSpectrum() except + nogil 

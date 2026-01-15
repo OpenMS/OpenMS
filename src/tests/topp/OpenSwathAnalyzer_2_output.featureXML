@@ -67,7 +67,7 @@
 			<UserParam type="float" name="leftWidth" value="3096.280029296875"/>
 			<UserParam type="float" name="rightWidth" value="3147.679931640625"/>
 			<UserParam type="float" name="peak_apices_sum" value="747.118576049804688"/>
-			<UserParam type="floatList" name="masserror_ppm" value="[628.434999999999945, 0.795655307308668, 654.379999999999995, 0.601388001638662]"/>
+			<UserParam type="floatList" name="masserror_ppm" value="[0.795655307308668, 0.601388001638662]"/>
 			<UserParam type="float" name="var_xcorr_coelution" value="0.0"/>
 			<UserParam type="float" name="var_xcorr_coelution_weighted" value="0.0"/>
 			<UserParam type="float" name="var_xcorr_shape" value="0.998183460545928"/>
@@ -174,7 +174,7 @@
 			<UserParam type="float" name="leftWidth" value="3044.8798828125"/>
 			<UserParam type="float" name="rightWidth" value="3065.43994140625"/>
 			<UserParam type="float" name="peak_apices_sum" value="56.754840955138207"/>
-			<UserParam type="floatList" name="masserror_ppm" value="[618.309999999999945, 0.284853767623738, 651.299999999999955, 3.835779412404737]"/>
+			<UserParam type="floatList" name="masserror_ppm" value="[0.284853767623738, -1.0, 3.835779412404737]"/>
 			<UserParam type="float" name="var_xcorr_coelution" value="1.699462225655311"/>
 			<UserParam type="float" name="var_xcorr_coelution_weighted" value="0.430576988219353"/>
 			<UserParam type="float" name="var_xcorr_shape" value="0.801773648038466"/>
@@ -281,7 +281,7 @@
 			<UserParam type="float" name="leftWidth" value="3099.699951171875"/>
 			<UserParam type="float" name="rightWidth" value="3147.679931640625"/>
 			<UserParam type="float" name="peak_apices_sum" value="202.503543853759766"/>
-			<UserParam type="floatList" name="masserror_ppm" value="[618.309999999999945, 0.172578584832479, 628.434999999999945, 0.795655307308668, 651.299999999999955, 3.354918813861108]"/>
+			<UserParam type="floatList" name="masserror_ppm" value="[0.172578584832479, 0.795655307308668, 3.354918813861108]"/>
 			<UserParam type="float" name="var_xcorr_coelution" value="2.264911064067352"/>
 			<UserParam type="float" name="var_xcorr_coelution_weighted" value="0.904813880838571"/>
 			<UserParam type="float" name="var_xcorr_shape" value="0.724571355831169"/>

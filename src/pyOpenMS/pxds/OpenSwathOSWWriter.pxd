@@ -7,7 +7,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OpenSwathOSWWriter.h>" namespace "O
     
     cdef cppclass OpenSwathOSWWriter "OpenMS::OpenSwathOSWWriter":
 
-        OpenSwathOSWWriter(String output_filename, UInt64 run_id, String input_filename, bool ms1_scores, bool sonar, bool uis_scores) except + nogil 
+        OpenSwathOSWWriter(String output_filename, UInt64 run_id, String input_filename, bool uis_scores) except + nogil 
         OpenSwathOSWWriter(OpenSwathOSWWriter &) except + nogil  # compiler
 
         bool isActive() except + nogil 

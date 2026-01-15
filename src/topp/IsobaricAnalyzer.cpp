@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -195,12 +195,14 @@ protected:
     }
     else
     {
-      const auto it = quant_methods_.find(section);
-      if (it == quant_methods_.end())
+      if (const auto it = quant_methods_.find(section); it == quant_methods_.end())
       { // should not happen
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid subsection " + section);
       }
-      return it->second->getParameters();
+      else
+      {
+        return it->second->getParameters();
+      }
     }
   }
 

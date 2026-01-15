@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -140,6 +140,49 @@ START_SECTION((void getParameters(Param& params) const))
              p_in.getValue("num_iterations"));
 }
 END_SECTION
+
+// auto-span selection via CV test
+START_SECTION((auto span selection chooses larger span on tie and persists params))
+{
+  using OpenMS::TransformationModel;
+  using OpenMS::TransformationModelLowess;
+  using OpenMS::Param;
+
+  // Create perfectly linear anchors: y = 2x + 1  (deterministic; LOO CV with n=11)
+  TransformationModel::DataPoints data;
+  for (int i = 0; i <= 10; ++i)
+  {
+    const double x = static_cast<double>(i);
+    data.push_back(std::make_pair(x, 2.0 * x + 1.0));
+  }
+
+  // Params: enable auto-span, provide a small grid, keep everything deterministic
+  Param p;
+  TransformationModelLowess::getDefaultParameters(p);
+  p.setValue("span", 0.0);                       // trigger auto when auto_span=true
+  p.setValue("auto_span", "true");
+  p.setValue("auto_span_grid", "0.3,0.8");       // two candidates
+  p.setValue("auto_metric", "mae");              // MAE on a perfect line → tie
+  p.setValue("num_iterations", 0);               // deterministic LOWESS (no robust loops)
+  p.setValue("delta", -1.0);                     // auto delta
+  p.setValue("interpolation_type", "cspline");
+  p.setValue("extrapolation_type", "four-point-linear");
+
+  TransformationModelLowess tm(data, p);
+
+  // 1) The selected span should be the larger one (tie broken by preferring larger span)
+  Param used = tm.getParameters();
+  TEST_EQUAL(used.getValue("auto_span").toString(), "false"); // auto turned off after selection
+  const double chosen_span = static_cast<double>(used.getValue("span"));
+  TEST_REAL_SIMILAR(chosen_span, 0.8);
+
+  // 2) The fitted model should reproduce the linear mapping (LOWESS reproduces degree-1 exactly)
+  TEST_REAL_SIMILAR(tm.evaluate(0.0),  1.0);
+  TEST_REAL_SIMILAR(tm.evaluate(5.0), 11.0);
+  TEST_REAL_SIMILAR(tm.evaluate(10.0), 21.0);
+}
+END_SECTION
+
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

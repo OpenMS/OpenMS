@@ -1,10 +1,13 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
+
+#include <OpenMS/config.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
 #include <OpenMS/KERNEL/MSSpectrum.h>
 
@@ -339,6 +342,19 @@ namespace OpenMS
     return (max_intensity_it - this->begin());
   }
 
+  void MSSpectrum::sortByIonMobility()
+  {
+    // can throw if IM float data array is missing
+    const auto [im_data_index, im_unit] = getIMData();
+    // Capture IM array by Ref, because .getIMData() is expensive to call for every peak!
+    const auto& im_data = getFloatDataArrays()[im_data_index];
+
+    // check if data is sorted by IM... if not, sort
+    if (! std::is_sorted(im_data.begin(), im_data.end()))
+    { // sorts the spectrum (and its binary data arrays) according to IM
+      this->sort([&im_data](const Size i1, const Size i2) { return im_data[i1] < im_data[i2]; });
+    }
+  }
 
   void MSSpectrum::sortByPositionPresorted(const std::vector<Chunk>& chunks)
   {
@@ -448,13 +464,20 @@ namespace OpenMS
     return std::is_sorted(ContainerType::begin(), ContainerType::end(), PeakType::PositionLess());
   }
 
+  bool MSSpectrum::isSortedByIM() const
+  {
+    auto [im_data_index, D] = getIMData(); // may throw
+    const auto& im_data = getFloatDataArrays()[im_data_index];
+    // check if data is sorted by IM
+    return std::is_sorted(im_data.begin(), im_data.end());
+  }
+
   bool MSSpectrum::operator==(const MSSpectrum &rhs) const
   {
-    //name_ can differ => it is not checked
+    //name_ can differ => it is not checked, range is not checked
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wfloat-equal"
     return std::operator==(*this, rhs) &&
-           RangeManagerType::operator==(rhs) &&
            SpectrumSettings::operator==(rhs) &&
            retention_time_ == rhs.retention_time_ &&
            drift_time_ == rhs.drift_time_ &&
@@ -474,8 +497,8 @@ namespace OpenMS
       return *this;
     }
     ContainerType::operator=(source);
-    RangeManagerType::operator=(source);
     SpectrumSettings::operator=(source);
+    RangeManagerType::operator=(source);
 
     retention_time_ = source.retention_time_;
     drift_time_ = source.drift_time_;
@@ -489,19 +512,12 @@ namespace OpenMS
     return *this;
   }
 
-  MSSpectrum::MSSpectrum() :
-    ContainerType(),
-    RangeManagerContainerType(),
-    SpectrumSettings(),
-    retention_time_(-1),
-    drift_time_(-1),
-    drift_time_unit_(DriftTimeUnit::NONE),
-    ms_level_(1),
-    name_(),
-    float_data_arrays_(),
-    string_data_arrays_(),
-    integer_data_arrays_()
-  {}
+  MSSpectrum::MSSpectrum() = default;
+
+  MSSpectrum::MSSpectrum(const std::initializer_list<Peak1D>& init)
+    : ContainerType(init)
+  {
+  }
 
   MSSpectrum::MSSpectrum(const MSSpectrum &source) = default;
 
@@ -513,12 +529,52 @@ namespace OpenMS
 
   void MSSpectrum::updateRanges()
   {
+    #ifdef OPENMS_ASSERTIONS
+      double im_min = RangeMobility::isEmpty() ? 0 : getMinMobility();
+      double im_max = RangeMobility::isEmpty() ? 0 : getMaxMobility();
+      double mz_min = RangeMZ::isEmpty() ? 0 : getMinMZ();
+      double mz_max = RangeMZ::isEmpty() ? 0 : getMaxMZ();
+      double int_min = RangeIntensity::isEmpty() ? 0 : getMinIntensity();
+      double int_max = RangeIntensity::isEmpty() ? 0 : getMaxIntensity();
+    #endif
+
     clearRanges();
     for (const auto& peak : (ContainerType&)*this)
     {
       extendMZ(peak.getMZ()); 
       extendIntensity(peak.getIntensity());
     }
+    // IM
+    // if this is an ion mobility frame, consider the binary data array as well
+    if (this->containsIMData())
+    {
+      auto [im_array_index, im_unit] = getIMData();
+      const auto& im_data = getFloatDataArrays()[im_array_index];
+      for (const auto& im : im_data)
+      {
+        this->extendMobility(im);
+      }
+    }
+    else if (getDriftTime() != IMTypes::DRIFTTIME_NOT_SET) // != -1
+    { 
+      this->extendMobility(getDriftTime());
+    }
+    #ifdef OPENMS_ASSERTIONS
+      double im_min_new = RangeMobility::isEmpty() ? 0 : getMinMobility();
+      double im_max_new = RangeMobility::isEmpty() ? 0 : getMaxMobility();
+      double mz_min_new = RangeMZ::isEmpty() ? 0 : getMinMZ();
+      double mz_max_new = RangeMZ::isEmpty() ? 0 : getMaxMZ();
+      double int_min_new = RangeIntensity::isEmpty() ? 0 : getMinIntensity();
+      double int_max_new = RangeIntensity::isEmpty() ? 0 : getMaxIntensity();
+
+      // check if all are equal and no update range was necessary
+      if (im_min_new == im_min && im_max_new == im_max
+        && int_min_new == int_min && int_max_new == int_max
+        && mz_min_new == mz_min && mz_max_new == mz_max)
+      {
+        OPENMS_LOG_WARN << "Update ranges was called but ranges were already up-to-date" << std::endl;
+      }      
+    #endif
   }
 
   double MSSpectrum::getRT() const
@@ -740,6 +796,19 @@ namespace OpenMS
     }
 
     return {index, unit };
+  }
+
+  std::pair<DriftTimeUnit, std::vector<float>> MSSpectrum::maybeGetIMData() const
+  {
+    Size index;
+    DriftTimeUnit unit = DriftTimeUnit::NONE;
+    bool has_IM = getIonMobilityArray__(this->getFloatDataArrays(), index, unit);
+
+    if (!has_IM)
+    {
+      return {unit, {}}; // empty vector
+    }
+    return {unit, this->getFloatDataArrays()[index]};
   }
   
 } // namespace OpenMS

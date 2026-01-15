@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -264,7 +264,7 @@ START_SECTION(OpenSwath::ChromatogramPtr getChromatogramById(int id))
     MSChromatogram chrom;
 
     ChromatogramPeak p;
-    p.setMZ(20.0);
+    p.setRT(20.0);
     p.setIntensity(22.0);
     chrom.push_back(p);
 

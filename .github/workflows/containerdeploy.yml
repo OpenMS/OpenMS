@@ -1,4 +1,4 @@
-name: deploy-container-images
+name: Deploy container images
 on:
   workflow_dispatch:
   push:
@@ -6,11 +6,24 @@ on:
       - nightly
     tags:
       - "Release*"
+      - "Release/*"
 
 jobs:
-  DeployDocker:
+  deploy-docker:
     runs-on: ubuntu-latest
+    outputs:
+      tag_name: ${{ steps.tag_name.outputs.tag }}
+      downcase_repo: ${{ steps.downcase_repo.outputs.repo }}
     steps:
+      - name: Free up space on the runner
+        run: |
+          # see: https://github.com/actions/runner-images/issues/2840
+          df -h
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf "/usr/local/share/boost"
+          sudo rm -rf "/opt/ghc"
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+          df -h
       - name: Extract branch name
         shell: bash
         run: echo "branch=${GITHUB_REF#refs/heads/}" >> $GITHUB_OUTPUT
@@ -30,144 +43,108 @@ jobs:
       - name: Downcase REPO
         run: echo "repo=${GITHUB_REPOSITORY,,}" >> $GITHUB_OUTPUT
         id: downcase_repo
-      - name: Checkout repository because we need to build contrib
-        uses: actions/checkout@v3
-        with:
-          submodules: true
-        if: startsWith(steps.extract_branch.outputs.branch, 'release/')
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}        
-      - name: Build contrib container using the correct submodule hash
-        uses: docker/build-push-action@v3
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Checkout repository
+        uses: actions/checkout@v4
         with:
-          push: true
-          context: contrib
-          file: contrib/dockerfiles/Dockerfile
-          tags: |
-            ghcr.io/openms/contrib:${{ steps.tag_name.outputs.tag }}
-        if: startsWith(steps.extract_branch.outputs.branch, 'release/')        
-      - name: Checkout Library and Executable Dockerfiles
-        shell: bash # uses git bash on windows
-        run: |
-            git clone https://github.com/OpenMS/dockerfiles
-            cd dockerfiles
-            ## for release, try to checkout the specific release branch in the dockerfiles repo first
-            if [[ "${{ steps.extract_branch.outputs.branch }}" == "release/"* ]]
-            then
-              git checkout ${{ steps.extract_branch.outputs.branch }} || git checkout master
-            fi
-      - name: Build and Push Docker Library Image
-        uses: docker/build-push-action@v3
+          fetch-depth: 1
+      - name: Test docker build in runtime base
+        uses: docker/build-push-action@v5
+        with:
+          load: true # so other build steps can make use of cache layers from this build
+          file: dockerfiles/Dockerfile
+          target: test
+          build-args: |
+            NUM_BUILD_CORES=4
+            BUILDKIT_CONTEXT_KEEP_GIT_DIR=1
+            OPENMS_VERSION_TAG=${{ steps.tag_name.outputs.tag }}
+          # cache-from: type=gha
+          # cache-to: type=gha,mode=max
+      - name: Build and push library image
+        uses: docker/build-push-action@v5
         with:
           push: true # Will only build if this is not here
-          context: dockerfiles/library
+          file: dockerfiles/Dockerfile
+          target: library
           build-args: |
-            OPENMS_TAG=latest
-            OPENMS_BRANCH=${{ steps.extract_branch.outputs.branch }}
+            NUM_BUILD_CORES=4
+            BUILDKIT_CONTEXT_KEEP_GIT_DIR=1
+            OPENMS_VERSION_TAG=${{ steps.tag_name.outputs.tag }}
           tags: |
             ghcr.io/${{ steps.downcase_repo.outputs.repo }}-library:${{ steps.tag_name.outputs.tag }}
-      - name: Build and Push Docker Tools Image
-        uses: docker/build-push-action@v3
+          # cache-from: type=gha
+          # cache-to: type=gha,mode=max
+      - name: Build and push tools image
+        uses: docker/build-push-action@v6
         with:
           push: true # Will only build if this is not here
-          context: dockerfiles/executables
+          file: dockerfiles/Dockerfile
+          target: tools
           build-args: |
-            OPENMS_TAG=latest
-            OPENMS_BRANCH=${{ steps.extract_branch.outputs.branch }}
+            NUM_BUILD_CORES=4
+            BUILDKIT_CONTEXT_KEEP_GIT_DIR=1
+            OPENMS_VERSION_TAG=${{ steps.tag_name.outputs.tag }}
           tags: |
             ghcr.io/${{ steps.downcase_repo.outputs.repo }}-executables:${{ steps.tag_name.outputs.tag }}
-
-  DeploySingularity:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Extract branch name
-        shell: bash
-        run: echo "branch=${GITHUB_REF#refs/heads/}" >> $GITHUB_OUTPUT
-        id: extract_branch
-      - name: Define tag name
-        shell: bash
-        run: |
-            BRANCH=${{ steps.extract_branch.outputs.branch }}
-            ## use latest to follow docker conventions
-            if [[ "$BRANCH" == "develop" || "$BRANCH" == "nightly" || "$BRANCH" == "feat/singularity" ]]
-            then 
-              BRANCH="latest"
-            fi
-            ## Remove release/ from release branch name
-            echo "tag=${BRANCH#release/}" >> $GITHUB_OUTPUT
-        id: tag_name
-      - name: Downcase REPO
-        shell: bash
-        run: echo "repo=${GITHUB_REPOSITORY,,}" >> $GITHUB_OUTPUT
-        id: downcase_repo
-      - name: Checkout repository because we need to build contrib
-        uses: actions/checkout@v3
+            ghcr.io/${{ steps.downcase_repo.outputs.repo }}-tools:${{ steps.tag_name.outputs.tag }}
+          # cache-from: type=gha
+          # cache-to: type=gha,mode=max
+      - name: Build and push tools + thirdparty image
+        uses: docker/build-push-action@v5
         with:
-          submodules: true
-        if: startsWith(steps.extract_branch.outputs.branch, 'release/')
+          push: true # Will only build if this is not here
+          file: dockerfiles/Dockerfile
+          target: tools-thirdparty
+          build-args: |
+            NUM_BUILD_CORES=4
+            BUILDKIT_CONTEXT_KEEP_GIT_DIR=1
+            OPENMS_VERSION_TAG=${{ steps.tag_name.outputs.tag }}
+          tags: |
+            ghcr.io/${{ steps.downcase_repo.outputs.repo }}-tools-thirdparty:${{ steps.tag_name.outputs.tag }}
+          # cache-from: type=gha
+          # cache-to: type=gha,mode=max
+  deploy-singularity:
+    runs-on: ubuntu-latest
+    needs: deploy-docker
+    steps:
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}        
-      - name: Build contrib container using the correct submodule hash
-        uses: docker/build-push-action@v3
-        with:
-          push: true
-          context: contrib
-          file: contrib/dockerfiles/Dockerfile
-          tags: |
-            ghcr.io/openms/contrib:${{ steps.tag_name.outputs.tag }}
-        if: startsWith(steps.extract_branch.outputs.branch, 'release/')                
-      - name: Checkout Dockerfiles
-        shell: bash
+          password: ${{ secrets.GITHUB_TOKEN }}
+      # install glib2.0 development package needed by singularity
+      - name: Install Dependencies
         run: |
-            git clone https://github.com/OpenMS/dockerfiles
-            cd dockerfiles
-            ## for release, try to checkout the specific release branch in the dockerfiles repo first
-            if [[ "${{ steps.extract_branch.outputs.branch }}" == "release/"* ]]
-            then
-              git checkout ${{ steps.extract_branch.outputs.branch }} || git checkout master
-            fi
-
+          sudo apt-get update
+          sudo apt-get install -y libglib2.0-dev          
       - name: Singularity install with defaults
         uses: singularityhub/install-singularity@main
         with:
-          singularity-version: 3.11.0
-            
-      - name: Install spython for conversion
-        shell: bash
-        run: |
-            python3 -m pip install spython
-            
+          singularity-version: '3.11.5'
       - name: Build Singularity library image
         shell: bash
         run: |
-            spython recipe dockerfiles/library/Dockerfile &> dockerfiles/library/Singularity.def
-            sed -E -i "s/(^From:.*:)(.*)/\1${{ steps.tag_name.outputs.tag }}/" dockerfiles/library/Singularity.def
-            sed -E -i "s%(^OPENMS_BRANCH=)(.*)%\1${{ steps.extract_branch.outputs.branch }}%" dockerfiles/library/Singularity.def
-            sed -E -i "s/(^OPENMS_TAG=)(.*)/\1${{ steps.tag_name.outputs.tag }}/" dockerfiles/library/Singularity.def
-            cat dockerfiles/library/Singularity.def
-            sudo singularity build library.sif dockerfiles/library/Singularity.def
-            
+            sudo singularity build library.sif docker://ghcr.io/${{ needs.deploy-docker.outputs.downcase_repo }}-library:${{ needs.deploy-docker.outputs.tag_name }}
       - name: Build Singularity tools image
         shell: bash
         run: |
-            spython recipe dockerfiles/executables/Dockerfile &> dockerfiles/executables/Singularity.def
-            sed -E -i "s%^From:.*%From: $(pwd)/library.sif%" dockerfiles/executables/Singularity.def
-            sed -E -i "s/^Bootstrap:.*/Bootstrap: localimage/" dockerfiles/executables/Singularity.def
-            cat dockerfiles/executables/Singularity.def
-            sudo singularity build executables.sif dockerfiles/executables/Singularity.def
-            
-      - name: Upload images to ghcr.io
+            sudo singularity build executables.sif docker://ghcr.io/${{ needs.deploy-docker.outputs.downcase_repo }}-executables:${{ needs.deploy-docker.outputs.tag_name }}
+      - name: Build Singularity tools + thirdparty image
+        shell: bash
+        run: |
+            sudo singularity build executables-thirdparty.sif docker://ghcr.io/${{ needs.deploy-docker.outputs.downcase_repo }}-tools-thirdparty:${{ needs.deploy-docker.outputs.tag_name }}
+      - name: Upload Singularity images to ghcr.io
         shell: bash
         run: |
             echo ${{ secrets.GITHUB_TOKEN }} | singularity remote login -u jpfeuffer --password-stdin oras://ghcr.io
-            singularity push library.sif oras://ghcr.io/${{ steps.downcase_repo.outputs.repo }}-library-sif:${{ steps.tag_name.outputs.tag }}
-            echo ${{ secrets.GITHUB_TOKEN }} | singularity remote login -u jpfeuffer --password-stdin oras://ghcr.io
-            singularity push executables.sif oras://ghcr.io/${{ steps.downcase_repo.outputs.repo }}-executables-sif:${{ steps.tag_name.outputs.tag }}
+            singularity push library.sif oras://ghcr.io/${{ needs.deploy-docker.outputs.downcase_repo }}-library-sif:${{ needs.deploy-docker.outputs.tag_name }}
+            singularity push executables.sif oras://ghcr.io/${{ needs.deploy-docker.outputs.downcase_repo }}-executables-sif:${{ needs.deploy-docker.outputs.tag_name }}
+            singularity push executables-thirdparty.sif oras://ghcr.io/${{ needs.deploy-docker.outputs.downcase_repo }}-tools-thirdparty-sif:${{ needs.deploy-docker.outputs.tag_name }}

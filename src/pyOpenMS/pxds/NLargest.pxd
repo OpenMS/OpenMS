@@ -5,7 +5,7 @@ from ChromatogramPeak cimport *
 from Peak1D cimport *
 from DefaultParamHandler cimport *
 
-cdef extern from "<OpenMS/FILTERING/TRANSFORMERS/NLargest.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/PROCESSING/FILTERING/NLargest.h>" namespace "OpenMS":
 
     cdef cppclass NLargest(DefaultParamHandler):
         # wrap-inherits:

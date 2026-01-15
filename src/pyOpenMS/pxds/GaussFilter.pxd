@@ -6,7 +6,7 @@ from MSChromatogram cimport *
 from Peak1D cimport *
 from ChromatogramPeak cimport *
 
-cdef extern from "<OpenMS/FILTERING/SMOOTHING/GaussFilter.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/PROCESSING/SMOOTHING/GaussFilter.h>" namespace "OpenMS":
 
     cdef cppclass GaussFilter(DefaultParamHandler,ProgressLogger):
         # wrap-inherits:

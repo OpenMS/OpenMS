@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 // 
 // --------------------------------------------------------------------------
@@ -45,7 +45,7 @@
 
   @brief Various statistical functions
 
-	These functions are defined in OpenMS/MATH/STATISTICS/StatisticFunctions.h .
+	These functions are defined in OpenMS/MATH/StatisticFunctions.h .
 
 	@ingroup Math
 */
@@ -55,7 +55,7 @@
 
   @brief Math functions
 
-	These functions are defined in OpenMS/MATH/MISC/MathFunctions.h .
+	These functions are defined in OpenMS/MATH/MathFunctions.h .
 
 	@ingroup Math
 */

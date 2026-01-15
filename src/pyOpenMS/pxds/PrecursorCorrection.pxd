@@ -9,7 +9,7 @@ from FeatureMap cimport *
 from Precursor cimport *
 
 
-cdef extern from "<OpenMS/FILTERING/CALIBRATION/PrecursorCorrection.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/PROCESSING/CALIBRATION/PrecursorCorrection.h>" namespace "OpenMS":
 
     cdef cppclass PrecursorCorrection:
 
@@ -18,7 +18,7 @@ cdef extern from "<OpenMS/FILTERING/CALIBRATION/PrecursorCorrection.h>" namespac
 
 
 # COMMENT: wrap static methods
-cdef extern from "<OpenMS/FILTERING/CALIBRATION/PrecursorCorrection.h>" namespace "OpenMS::PrecursorCorrection":
+cdef extern from "<OpenMS/PROCESSING/CALIBRATION/PrecursorCorrection.h>" namespace "OpenMS::PrecursorCorrection":
     
     void getPrecursors(MSExperiment & exp, libcpp_vector[ Precursor ] & precursors, libcpp_vector[ double ] & precursors_rt, libcpp_vector[ size_t ] & precursor_scan_index) except + nogil  # wrap-attach:PrecursorCorrection
 

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -9,6 +9,7 @@
 #include <cstdio>
 #include <cstdlib>
 
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
@@ -116,24 +117,23 @@ namespace OpenMS
 
     // text
     QString text = QString("<BR>"
-      "<FONT size=+3>%1</font><BR>"
-      "<BR>"
-      "Version %2 %3"
-      "<BR>"
-      "OpenMS and TOPP is free software available under the<BR>"
-      "BSD 3-Clause License (BSD-new)<BR>"
-      "<BR>"
-      "<BR>"
-      "<BR>"
-      "<BR>"
-      "<BR>"
-      "Any published work based on TOPP and OpenMS shall cite these papers:<BR>"
-      "Roest, Sachsenberg, Aiche, Bielow, Weisser et al., Nat Methods (2016), 13(9):741-748<BR>"
-      "Kohlbacher et al., Bioinformatics (2007), 23:e191-e197<BR>")
+                           "<FONT size=+3>%1</font><BR>"
+                           "<BR>"
+                           "Version %2 %3"
+                           "<BR>"
+                           "OpenMS and TOPP is free software available under the<BR>"
+                           "BSD 3-Clause License (BSD-new)<BR>"
+                           "<BR>"
+                           "<BR>"
+                           "<BR>"
+                           "<BR>"
+                           "<BR>"
+                           "Any published work based on TOPP and OpenMS shall cite:<BR>%4")
     .arg(toolname)
     .arg(VersionInfo::getVersion().toQString())
     .arg( // if we have a revision, embed it also into the shown version number
-      VersionInfo::getRevision().empty() ? "" : QString(" (") + VersionInfo::getRevision().toQString() + ")");
+      VersionInfo::getRevision().empty() ? "" : QString(" (") + VersionInfo::getRevision().toQString() + ")")
+    .arg((TOPPBase::cite_openms.title + "<BR>" + TOPPBase::cite_openms.when_where + "<BR>doi:" + TOPPBase::cite_openms.doi).c_str());
 
     label = new QLabel(text, dlg);
 

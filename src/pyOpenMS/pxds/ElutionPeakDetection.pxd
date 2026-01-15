@@ -11,7 +11,7 @@ from Types cimport *
 
 from libcpp.vector cimport vector as libcpp_vector
 
-cdef extern from "<OpenMS/FILTERING/DATAREDUCTION/ElutionPeakDetection.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/FEATUREFINDER/ElutionPeakDetection.h>" namespace "OpenMS":
 
     cdef cppclass ElutionPeakDetection(ProgressLogger, DefaultParamHandler):
         # wrap-inherits:

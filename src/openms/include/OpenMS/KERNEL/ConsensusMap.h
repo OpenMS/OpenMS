@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -16,6 +16,8 @@
 
 #include <OpenMS/METADATA/DocumentIdentifier.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ID/IdentificationData.h>
 
 #include <OpenMS/CONCEPT/Types.h>
@@ -229,13 +231,13 @@ public:
     void setProteinIdentifications(std::vector<ProteinIdentification>&& protein_identifications);
 
     /// non-mutable access to the unassigned peptide identifications
-    const std::vector<PeptideIdentification>& getUnassignedPeptideIdentifications() const;
+    const PeptideIdentificationList& getUnassignedPeptideIdentifications() const;
 
     /// mutable access to the unassigned peptide identifications
-    std::vector<PeptideIdentification>& getUnassignedPeptideIdentifications();
+    PeptideIdentificationList& getUnassignedPeptideIdentifications();
 
     /// sets the unassigned peptide identifications
-    void setUnassignedPeptideIdentifications(const std::vector<PeptideIdentification>& unassigned_peptide_identifications);
+    void setUnassignedPeptideIdentifications(const PeptideIdentificationList& unassigned_peptide_identifications);
 
     /// returns a const reference to the description of the applied data processing
     const std::vector<DataProcessing>& getDataProcessing() const;
@@ -360,7 +362,7 @@ public:
     std::vector<ProteinIdentification> protein_identifications_;
 
     /// unassigned peptide identifications (without feature)
-    std::vector<PeptideIdentification> unassigned_peptide_identifications_;
+    PeptideIdentificationList unassigned_peptide_identifications_;
 
     /// applied data processing
     std::vector<DataProcessing> data_processing_;

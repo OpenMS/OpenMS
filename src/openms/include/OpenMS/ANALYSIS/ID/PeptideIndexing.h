@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -16,6 +16,7 @@
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 
 namespace OpenMS
@@ -127,7 +128,7 @@ public:
     ~PeptideIndexing() override;
 
     /// forward for old interface and pyOpenMS; use other run() methods for more control
-    ExitCodes run(std::vector<FASTAFile::FASTAEntry>& proteins, std::vector<ProteinIdentification>& prot_ids, std::vector<PeptideIdentification>& pep_ids);
+    ExitCodes run(std::vector<FASTAFile::FASTAEntry>& proteins, std::vector<ProteinIdentification>& prot_ids, PeptideIdentificationList& pep_ids);
 
     /**
     @brief Re-index peptide identifications honoring enzyme cutting rules, ambiguous amino acids and target/decoy hits.
@@ -164,10 +165,10 @@ public:
     @return Exit status codes.
 
     */
-    ExitCodes run(FASTAContainer<TFI_File>& proteins, std::vector<ProteinIdentification>& prot_ids, std::vector<PeptideIdentification>& pep_ids);
+    ExitCodes run(FASTAContainer<TFI_File>& proteins, std::vector<ProteinIdentification>& prot_ids, PeptideIdentificationList& pep_ids);
 
     /// Same as run() with TFI_File, but for proteins which are already in memory
-    ExitCodes run(FASTAContainer<TFI_Vector>& proteins, std::vector<ProteinIdentification>& prot_ids, std::vector<PeptideIdentification>& pep_ids);
+    ExitCodes run(FASTAContainer<TFI_Vector>& proteins, std::vector<ProteinIdentification>& prot_ids, PeptideIdentificationList& pep_ids);
 
     /// Which string is used to determine if a protein is a decoy or not
     const String& getDecoyString() const;
@@ -178,7 +179,7 @@ public:
  protected:
     void updateMembers_() override;
 
-    template<typename T> ExitCodes run_(FASTAContainer<T>& proteins, std::vector<ProteinIdentification>& prot_ids, std::vector<PeptideIdentification>& pep_ids);
+    template<typename T> ExitCodes run_(FASTAContainer<T>& proteins, std::vector<ProteinIdentification>& prot_ids, PeptideIdentificationList& pep_ids);
 
     String decoy_string_{};
     bool prefix_{ false };

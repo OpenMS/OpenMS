@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -66,7 +66,7 @@ namespace OpenMS
     @ingroup Metadata
   */
 
-  /// Remove elements from a set (or ordered multi_index_container) if they fulfill a predicate (TODO: deprecate and use std::erase_if with C++20 adoption)
+  /// Remove elements from a set (or ordered multi_index_container) if they fulfill a predicate (manual loop required for non-standard containers that don't support std::erase_if)
   template <typename ContainerType, typename PredicateType>
   static void removeFromSetIf_(ContainerType& container, PredicateType predicate)
   {

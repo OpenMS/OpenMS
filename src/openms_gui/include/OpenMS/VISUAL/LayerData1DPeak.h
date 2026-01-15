@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -34,7 +34,7 @@ namespace OpenMS
 
     bool hasIndex(Size index) const override
     {
-      return index < peak_map_->size();
+      return index < peak_map_->getMSExperiment().size();
     }
 
     RangeAllType getRangeForArea(const RangeAllType partial_range) const override

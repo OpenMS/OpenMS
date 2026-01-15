@@ -30,7 +30,7 @@
 			<overallquality>0.933987</overallquality>
 			<charge>4</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -41,7 +41,7 @@
 				<param name="MZ:Statistics:mean" value="904.998"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1284.77"></param>
 				<param name="RT:BoundingBox:min" value="1262.84"></param>
 				<param name="RT:Statistics:mean" value="1273.27"></param>
@@ -96,7 +96,7 @@
 			<overallquality>0.923391</overallquality>
 			<charge>4</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -107,7 +107,7 @@
 				<param name="MZ:Statistics:mean" value="897.973"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1259.77"></param>
 				<param name="RT:BoundingBox:min" value="1235.53"></param>
 				<param name="RT:Statistics:mean" value="1248.33"></param>
@@ -198,14 +198,14 @@
 			<overallquality>0.907311</overallquality>
 			<charge>0</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="GaussModel"></param>
+				<param name="MZ:MZ" value="GaussModel"></param>
 				<param name="MZ:BoundingBox:max" value="930.07"></param>
 				<param name="MZ:BoundingBox:min" value="926.256"></param>
 				<param name="MZ:Statistics:mean" value="927.693"></param>
 				<param name="MZ:Statistics:variance" value="0.0914537"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1365.67"></param>
 				<param name="RT:BoundingBox:min" value="1339.53"></param>
 				<param name="RT:Statistics:mean" value="1352.31"></param>
@@ -248,7 +248,7 @@
 			<overallquality>0.933036</overallquality>
 			<charge>4</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -259,7 +259,7 @@
 				<param name="MZ:Statistics:mean" value="973.992"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1223.01"></param>
 				<param name="RT:BoundingBox:min" value="1198.91"></param>
 				<param name="RT:Statistics:mean" value="1210.55"></param>
@@ -314,7 +314,7 @@
 			<overallquality>0.929923</overallquality>
 			<charge>4</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -325,7 +325,7 @@
 				<param name="MZ:Statistics:mean" value="953.925"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1197.32"></param>
 				<param name="RT:BoundingBox:min" value="1172.44"></param>
 				<param name="RT:Statistics:mean" value="1184.46"></param>
@@ -408,7 +408,7 @@
 			<overallquality>0.896036</overallquality>
 			<charge>4</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -419,7 +419,7 @@
 				<param name="MZ:Statistics:mean" value="777.557"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1207.96"></param>
 				<param name="RT:BoundingBox:min" value="1180.92"></param>
 				<param name="RT:Statistics:mean" value="1194.82"></param>
@@ -470,7 +470,7 @@
 			<overallquality>0.921661</overallquality>
 			<charge>4</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -481,7 +481,7 @@
 				<param name="MZ:Statistics:mean" value="897.973"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1249.75"></param>
 				<param name="RT:BoundingBox:min" value="1229.55"></param>
 				<param name="RT:Statistics:mean" value="1239.64"></param>
@@ -540,14 +540,14 @@
 			<overallquality>0.903586</overallquality>
 			<charge>0</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="GaussModel"></param>
+				<param name="MZ:MZ" value="GaussModel"></param>
 				<param name="MZ:BoundingBox:max" value="964.56"></param>
 				<param name="MZ:BoundingBox:min" value="961.177"></param>
 				<param name="MZ:Statistics:mean" value="962.752"></param>
 				<param name="MZ:Statistics:variance" value="0.109229"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1310.96"></param>
 				<param name="RT:BoundingBox:min" value="1284.8"></param>
 				<param name="RT:Statistics:mean" value="1298.06"></param>
@@ -618,14 +618,14 @@
 			<overallquality>0.851632</overallquality>
 			<charge>0</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="GaussModel"></param>
+				<param name="MZ:MZ" value="GaussModel"></param>
 				<param name="MZ:BoundingBox:max" value="964.76"></param>
 				<param name="MZ:BoundingBox:min" value="961.152"></param>
 				<param name="MZ:Statistics:mean" value="962.75"></param>
 				<param name="MZ:Statistics:variance" value="0.112044"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1300.05"></param>
 				<param name="RT:BoundingBox:min" value="1271.32"></param>
 				<param name="RT:Statistics:mean" value="1285.19"></param>
@@ -700,7 +700,7 @@
 			<overallquality>0.892062</overallquality>
 			<charge>4</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -711,7 +711,7 @@
 				<param name="MZ:Statistics:mean" value="839.876"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1166.54"></param>
 				<param name="RT:BoundingBox:min" value="1139.71"></param>
 				<param name="RT:Statistics:mean" value="1152.83"></param>
@@ -790,7 +790,7 @@
 			<overallquality>0.933473</overallquality>
 			<charge>4</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -801,7 +801,7 @@
 				<param name="MZ:Statistics:mean" value="956.854"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1322.02"></param>
 				<param name="RT:BoundingBox:min" value="1303.92"></param>
 				<param name="RT:Statistics:mean" value="1312.98"></param>
@@ -856,7 +856,7 @@
 			<overallquality>0.901498</overallquality>
 			<charge>4</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -867,7 +867,7 @@
 				<param name="MZ:Statistics:mean" value="937.953"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1177.28"></param>
 				<param name="RT:BoundingBox:min" value="1148.82"></param>
 				<param name="RT:Statistics:mean" value="1162.56"></param>
@@ -946,7 +946,7 @@
 			<overallquality>0.904885</overallquality>
 			<charge>4</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -957,7 +957,7 @@
 				<param name="MZ:Statistics:mean" value="849.247"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1151.35"></param>
 				<param name="RT:BoundingBox:min" value="1121.76"></param>
 				<param name="RT:Statistics:mean" value="1136.52"></param>
@@ -1008,14 +1008,14 @@
 			<overallquality>0.896514</overallquality>
 			<charge>0</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="GaussModel"></param>
+				<param name="MZ:MZ" value="GaussModel"></param>
 				<param name="MZ:BoundingBox:max" value="797.47"></param>
 				<param name="MZ:BoundingBox:min" value="793.864"></param>
 				<param name="MZ:Statistics:mean" value="795.38"></param>
 				<param name="MZ:Statistics:variance" value="0.0906399"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1365.52"></param>
 				<param name="RT:BoundingBox:min" value="1339.79"></param>
 				<param name="RT:Statistics:mean" value="1352.62"></param>
@@ -1070,7 +1070,7 @@
 			<overallquality>0.882345</overallquality>
 			<charge>4</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -1081,7 +1081,7 @@
 				<param name="MZ:Statistics:mean" value="839.881"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1173.95"></param>
 				<param name="RT:BoundingBox:min" value="1150.65"></param>
 				<param name="RT:Statistics:mean" value="1161.71"></param>
@@ -1164,7 +1164,7 @@
 			<overallquality>0.898193</overallquality>
 			<charge>4</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -1175,7 +1175,7 @@
 				<param name="MZ:Statistics:mean" value="752.3"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="985.078"></param>
 				<param name="RT:BoundingBox:min" value="958.711"></param>
 				<param name="RT:Statistics:mean" value="972.55"></param>
@@ -1218,14 +1218,14 @@
 			<overallquality>0.7895</overallquality>
 			<charge>0</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="GaussModel"></param>
+				<param name="MZ:MZ" value="GaussModel"></param>
 				<param name="MZ:BoundingBox:max" value="1000.39"></param>
 				<param name="MZ:BoundingBox:min" value="996.477"></param>
 				<param name="MZ:Statistics:mean" value="998.224"></param>
 				<param name="MZ:Statistics:variance" value="0.124048"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1312.54"></param>
 				<param name="RT:BoundingBox:min" value="1284.36"></param>
 				<param name="RT:Statistics:mean" value="1297.6"></param>
@@ -1304,7 +1304,7 @@
 			<overallquality>0.858526</overallquality>
 			<charge>4</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -1315,7 +1315,7 @@
 				<param name="MZ:Statistics:mean" value="777.541"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1198.62"></param>
 				<param name="RT:BoundingBox:min" value="1173.42"></param>
 				<param name="RT:Statistics:mean" value="1186.54"></param>
@@ -1358,7 +1358,7 @@
 			<overallquality>0.917019</overallquality>
 			<charge>4</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -1369,7 +1369,7 @@
 				<param name="MZ:Statistics:mean" value="777.587"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1187.3"></param>
 				<param name="RT:BoundingBox:min" value="1162.69"></param>
 				<param name="RT:Statistics:mean" value="1174.57"></param>
@@ -1424,7 +1424,7 @@
 			<overallquality>0.889263</overallquality>
 			<charge>4</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -1435,7 +1435,7 @@
 				<param name="MZ:Statistics:mean" value="752.297"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="993.501"></param>
 				<param name="RT:BoundingBox:min" value="969.169"></param>
 				<param name="RT:Statistics:mean" value="980.666"></param>
@@ -1510,7 +1510,7 @@
 			<overallquality>0.917184</overallquality>
 			<charge>4</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -1521,7 +1521,7 @@
 				<param name="MZ:Statistics:mean" value="777.556"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1208.84"></param>
 				<param name="RT:BoundingBox:min" value="1195.75"></param>
 				<param name="RT:Statistics:mean" value="1202.21"></param>
@@ -1596,14 +1596,14 @@
 			<overallquality>0.932223</overallquality>
 			<charge>0</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="GaussModel"></param>
+				<param name="MZ:MZ" value="GaussModel"></param>
 				<param name="MZ:BoundingBox:max" value="929.5"></param>
 				<param name="MZ:BoundingBox:min" value="926.188"></param>
 				<param name="MZ:Statistics:mean" value="927.737"></param>
 				<param name="MZ:Statistics:variance" value="0.101577"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1368.05"></param>
 				<param name="RT:BoundingBox:min" value="1353.24"></param>
 				<param name="RT:Statistics:mean" value="1359.36"></param>
@@ -1694,7 +1694,7 @@
 			<overallquality>0.91303</overallquality>
 			<charge>4</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -1705,7 +1705,7 @@
 				<param name="MZ:Statistics:mean" value="849.288"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1155.87"></param>
 				<param name="RT:BoundingBox:min" value="1132.07"></param>
 				<param name="RT:Statistics:mean" value="1143.76"></param>
@@ -1792,7 +1792,7 @@
 			<overallquality>0.913846</overallquality>
 			<charge>4</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -1803,7 +1803,7 @@
 				<param name="MZ:Statistics:mean" value="937.929"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1181.24"></param>
 				<param name="RT:BoundingBox:min" value="1162.38"></param>
 				<param name="RT:Statistics:mean" value="1171.2"></param>
@@ -1894,7 +1894,7 @@
 			<overallquality>0.946862</overallquality>
 			<charge>3</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -1905,7 +1905,7 @@
 				<param name="MZ:Statistics:mean" value="953.957"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1201.95"></param>
 				<param name="RT:BoundingBox:min" value="1184.34"></param>
 				<param name="RT:Statistics:mean" value="1191.11"></param>
@@ -1988,14 +1988,14 @@
 			<overallquality>0.939299</overallquality>
 			<charge>0</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="GaussModel"></param>
+				<param name="MZ:MZ" value="GaussModel"></param>
 				<param name="MZ:BoundingBox:max" value="1000.19"></param>
 				<param name="MZ:BoundingBox:min" value="996.542"></param>
 				<param name="MZ:Statistics:mean" value="998.26"></param>
 				<param name="MZ:Statistics:variance" value="0.116473"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1298.97"></param>
 				<param name="RT:BoundingBox:min" value="1281.4"></param>
 				<param name="RT:Statistics:mean" value="1291.62"></param>
@@ -2050,7 +2050,7 @@
 			<overallquality>0.888017</overallquality>
 			<charge>4</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -2061,7 +2061,7 @@
 				<param name="MZ:Statistics:mean" value="644.226"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="915.804"></param>
 				<param name="RT:BoundingBox:min" value="892.585"></param>
 				<param name="RT:Statistics:mean" value="903.484"></param>
@@ -2132,7 +2132,7 @@
 			<overallquality>0.923347</overallquality>
 			<charge>4</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -2143,7 +2143,7 @@
 				<param name="MZ:Statistics:mean" value="890.597"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1290.84"></param>
 				<param name="RT:BoundingBox:min" value="1267.79"></param>
 				<param name="RT:Statistics:mean" value="1279.18"></param>
@@ -2198,7 +2198,7 @@
 			<overallquality>0.900707</overallquality>
 			<charge>3</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -2209,7 +2209,7 @@
 				<param name="MZ:Statistics:mean" value="805.841"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1285.12"></param>
 				<param name="RT:BoundingBox:min" value="1263.08"></param>
 				<param name="RT:Statistics:mean" value="1273.21"></param>
@@ -2268,7 +2268,7 @@
 			<overallquality>0.949542</overallquality>
 			<charge>4</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -2279,7 +2279,7 @@
 				<param name="MZ:Statistics:mean" value="943.015"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1060.45"></param>
 				<param name="RT:BoundingBox:min" value="1035.2"></param>
 				<param name="RT:Statistics:mean" value="1047.96"></param>
@@ -2334,14 +2334,14 @@
 			<overallquality>0.901119</overallquality>
 			<charge>0</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="GaussModel"></param>
+				<param name="MZ:MZ" value="GaussModel"></param>
 				<param name="MZ:BoundingBox:max" value="994.31"></param>
 				<param name="MZ:BoundingBox:min" value="989.181"></param>
 				<param name="MZ:Statistics:mean" value="991.286"></param>
 				<param name="MZ:Statistics:variance" value="0.177643"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1380.48"></param>
 				<param name="RT:BoundingBox:min" value="1361.38"></param>
 				<param name="RT:Statistics:mean" value="1369.07"></param>
@@ -2408,7 +2408,7 @@
 			<overallquality>0.979168</overallquality>
 			<charge>4</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -2419,7 +2419,7 @@
 				<param name="MZ:Statistics:mean" value="835.81"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1298.51"></param>
 				<param name="RT:BoundingBox:min" value="1278.75"></param>
 				<param name="RT:Statistics:mean" value="1288.09"></param>
@@ -2486,7 +2486,7 @@
 			<overallquality>0.883614</overallquality>
 			<charge>3</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -2497,7 +2497,7 @@
 				<param name="MZ:Statistics:mean" value="798.861"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1260.46"></param>
 				<param name="RT:BoundingBox:min" value="1234.43"></param>
 				<param name="RT:Statistics:mean" value="1247.82"></param>
@@ -2552,7 +2552,7 @@
 			<overallquality>0.968875</overallquality>
 			<charge>4</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -2563,7 +2563,7 @@
 				<param name="MZ:Statistics:mean" value="974.018"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1227.83"></param>
 				<param name="RT:BoundingBox:min" value="1206.71"></param>
 				<param name="RT:Statistics:mean" value="1216.06"></param>
@@ -2618,14 +2618,14 @@
 			<overallquality>0.947934</overallquality>
 			<charge>0</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="GaussModel"></param>
+				<param name="MZ:MZ" value="GaussModel"></param>
 				<param name="MZ:BoundingBox:max" value="843.01"></param>
 				<param name="MZ:BoundingBox:min" value="837.311"></param>
 				<param name="MZ:Statistics:mean" value="839.897"></param>
 				<param name="MZ:Statistics:variance" value="0.266737"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1177.86"></param>
 				<param name="RT:BoundingBox:min" value="1160.38"></param>
 				<param name="RT:Statistics:mean" value="1168.3"></param>
@@ -2684,7 +2684,7 @@
 			<overallquality>0.965078</overallquality>
 			<charge>4</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -2695,7 +2695,7 @@
 				<param name="MZ:Statistics:mean" value="940.452"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="948.378"></param>
 				<param name="RT:BoundingBox:min" value="928.946"></param>
 				<param name="RT:Statistics:mean" value="937.406"></param>
@@ -2754,7 +2754,7 @@
 			<overallquality>0.854717</overallquality>
 			<charge>4</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -2765,7 +2765,7 @@
 				<param name="MZ:Statistics:mean" value="959.664"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1371.91"></param>
 				<param name="RT:BoundingBox:min" value="1346.44"></param>
 				<param name="RT:Statistics:mean" value="1360.14"></param>
@@ -2828,7 +2828,7 @@
 			<overallquality>0.905665</overallquality>
 			<charge>4</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -2839,7 +2839,7 @@
 				<param name="MZ:Statistics:mean" value="603.701"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1284.94"></param>
 				<param name="RT:BoundingBox:min" value="1262.15"></param>
 				<param name="RT:Statistics:mean" value="1273.21"></param>
@@ -2890,7 +2890,7 @@
 			<overallquality>0.935755</overallquality>
 			<charge>3</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -2901,7 +2901,7 @@
 				<param name="MZ:Statistics:mean" value="690.379"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1251.79"></param>
 				<param name="RT:BoundingBox:min" value="1231.9"></param>
 				<param name="RT:Statistics:mean" value="1242.43"></param>
@@ -2968,14 +2968,14 @@
 			<overallquality>0.93327</overallquality>
 			<charge>0</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="GaussModel"></param>
+				<param name="MZ:MZ" value="GaussModel"></param>
 				<param name="MZ:BoundingBox:max" value="768.02"></param>
 				<param name="MZ:BoundingBox:min" value="763.814"></param>
 				<param name="MZ:Statistics:mean" value="765.703"></param>
 				<param name="MZ:Statistics:variance" value="0.135126"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1321.84"></param>
 				<param name="RT:BoundingBox:min" value="1304.61"></param>
 				<param name="RT:Statistics:mean" value="1313.09"></param>
@@ -3034,7 +3034,7 @@
 			<overallquality>0.857453</overallquality>
 			<charge>4</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -3045,7 +3045,7 @@
 				<param name="MZ:Statistics:mean" value="953.398"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1029.39"></param>
 				<param name="RT:BoundingBox:min" value="1002.32"></param>
 				<param name="RT:Statistics:mean" value="1015.53"></param>
@@ -3128,7 +3128,7 @@
 			<overallquality>0.912741</overallquality>
 			<charge>4</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -3139,7 +3139,7 @@
 				<param name="MZ:Statistics:mean" value="795.567"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1368.02"></param>
 				<param name="RT:BoundingBox:min" value="1352.53"></param>
 				<param name="RT:Statistics:mean" value="1359.05"></param>
@@ -3238,7 +3238,7 @@
 			<overallquality>0.884012</overallquality>
 			<charge>4</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -3249,7 +3249,7 @@
 				<param name="MZ:Statistics:mean" value="701.771"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="913.743"></param>
 				<param name="RT:BoundingBox:min" value="900.308"></param>
 				<param name="RT:Statistics:mean" value="906.726"></param>
@@ -3308,7 +3308,7 @@
 			<overallquality>0.906496</overallquality>
 			<charge>3</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -3319,7 +3319,7 @@
 				<param name="MZ:Statistics:mean" value="817.443"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1024.18"></param>
 				<param name="RT:BoundingBox:min" value="1000"></param>
 				<param name="RT:Statistics:mean" value="1011.91"></param>
@@ -3374,7 +3374,7 @@
 			<overallquality>0.928546</overallquality>
 			<charge>4</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -3385,7 +3385,7 @@
 				<param name="MZ:Statistics:mean" value="818.515"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1393.82"></param>
 				<param name="RT:BoundingBox:min" value="1385.64"></param>
 				<param name="RT:Statistics:mean" value="1389.35"></param>
@@ -3436,7 +3436,7 @@
 			<overallquality>0.87673</overallquality>
 			<charge>3</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -3447,7 +3447,7 @@
 				<param name="MZ:Statistics:mean" value="873.036"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1129.09"></param>
 				<param name="RT:BoundingBox:min" value="1112.18"></param>
 				<param name="RT:Statistics:mean" value="1119.66"></param>
@@ -3506,14 +3506,14 @@
 			<overallquality>0.893199</overallquality>
 			<charge>0</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="GaussModel"></param>
+				<param name="MZ:MZ" value="GaussModel"></param>
 				<param name="MZ:BoundingBox:max" value="912.73"></param>
 				<param name="MZ:BoundingBox:min" value="906.287"></param>
 				<param name="MZ:Statistics:mean" value="909.011"></param>
 				<param name="MZ:Statistics:variance" value="0.329252"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1243.56"></param>
 				<param name="RT:BoundingBox:min" value="1225.8"></param>
 				<param name="RT:Statistics:mean" value="1233.5"></param>
@@ -3580,7 +3580,7 @@
 			<overallquality>0.89391</overallquality>
 			<charge>4</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -3591,7 +3591,7 @@
 				<param name="MZ:Statistics:mean" value="644.229"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="923.139"></param>
 				<param name="RT:BoundingBox:min" value="900.941"></param>
 				<param name="RT:Statistics:mean" value="911.204"></param>
@@ -3634,7 +3634,7 @@
 			<overallquality>0.961979</overallquality>
 			<charge>4</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -3645,7 +3645,7 @@
 				<param name="MZ:Statistics:mean" value="942.037"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1023.3"></param>
 				<param name="RT:BoundingBox:min" value="1000.75"></param>
 				<param name="RT:Statistics:mean" value="1011.73"></param>
@@ -3704,14 +3704,14 @@
 			<overallquality>0.887812</overallquality>
 			<charge>0</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="GaussModel"></param>
+				<param name="MZ:MZ" value="GaussModel"></param>
 				<param name="MZ:BoundingBox:max" value="772.96"></param>
 				<param name="MZ:BoundingBox:min" value="766.042"></param>
 				<param name="MZ:Statistics:mean" value="768.913"></param>
 				<param name="MZ:Statistics:variance" value="0.384071"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1098.95"></param>
 				<param name="RT:BoundingBox:min" value="1075.64"></param>
 				<param name="RT:Statistics:mean" value="1087.32"></param>
@@ -3766,7 +3766,7 @@
 			<overallquality>0.958446</overallquality>
 			<charge>4</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -3777,7 +3777,7 @@
 				<param name="MZ:Statistics:mean" value="805.368"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1312.64"></param>
 				<param name="RT:BoundingBox:min" value="1299.22"></param>
 				<param name="RT:Statistics:mean" value="1305.67"></param>
@@ -3840,7 +3840,7 @@
 			<overallquality>0.869007</overallquality>
 			<charge>4</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -3851,7 +3851,7 @@
 				<param name="MZ:Statistics:mean" value="770.561"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1311.33"></param>
 				<param name="RT:BoundingBox:min" value="1285.06"></param>
 				<param name="RT:Statistics:mean" value="1298.02"></param>
@@ -3910,7 +3910,7 @@
 			<overallquality>0.872583</overallquality>
 			<charge>4</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -3921,7 +3921,7 @@
 				<param name="MZ:Statistics:mean" value="937.517"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1053.06"></param>
 				<param name="RT:BoundingBox:min" value="1026.17"></param>
 				<param name="RT:Statistics:mean" value="1040.46"></param>
@@ -3976,7 +3976,7 @@
 			<overallquality>0.859922</overallquality>
 			<charge>3</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -3987,7 +3987,7 @@
 				<param name="MZ:Statistics:mean" value="798.863"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1247.23"></param>
 				<param name="RT:BoundingBox:min" value="1229.97"></param>
 				<param name="RT:Statistics:mean" value="1239.69"></param>
@@ -4042,14 +4042,14 @@
 			<overallquality>0.930214</overallquality>
 			<charge>0</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="GaussModel"></param>
+				<param name="MZ:MZ" value="GaussModel"></param>
 				<param name="MZ:BoundingBox:max" value="953.28"></param>
 				<param name="MZ:BoundingBox:min" value="946.802"></param>
 				<param name="MZ:Statistics:mean" value="949.806"></param>
 				<param name="MZ:Statistics:variance" value="0.336017"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1082.11"></param>
 				<param name="RT:BoundingBox:min" value="1055.47"></param>
 				<param name="RT:Statistics:mean" value="1067.75"></param>
@@ -4104,7 +4104,7 @@
 			<overallquality>0.968682</overallquality>
 			<charge>4</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -4115,7 +4115,7 @@
 				<param name="MZ:Statistics:mean" value="947.444"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="953.002"></param>
 				<param name="RT:BoundingBox:min" value="930.71"></param>
 				<param name="RT:Statistics:mean" value="941.522"></param>
@@ -4198,7 +4198,7 @@
 			<overallquality>0.846213</overallquality>
 			<charge>4</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -4209,7 +4209,7 @@
 				<param name="MZ:Statistics:mean" value="799.012"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1309.16"></param>
 				<param name="RT:BoundingBox:min" value="1280.45"></param>
 				<param name="RT:Statistics:mean" value="1294.77"></param>
@@ -4268,7 +4268,7 @@
 			<overallquality>0.964521</overallquality>
 			<charge>4</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -4279,7 +4279,7 @@
 				<param name="MZ:Statistics:mean" value="960.329"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1321.42"></param>
 				<param name="RT:BoundingBox:min" value="1310.31"></param>
 				<param name="RT:Statistics:mean" value="1317.77"></param>
@@ -4350,7 +4350,7 @@
 			<overallquality>0.832984</overallquality>
 			<charge>3</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -4361,7 +4361,7 @@
 				<param name="MZ:Statistics:mean" value="743.981"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1309.41"></param>
 				<param name="RT:BoundingBox:min" value="1292.5"></param>
 				<param name="RT:Statistics:mean" value="1303.86"></param>
@@ -4420,7 +4420,7 @@
 			<overallquality>0.854592</overallquality>
 			<charge>4</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -4431,7 +4431,7 @@
 				<param name="MZ:Statistics:mean" value="855.344"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1284.93"></param>
 				<param name="RT:BoundingBox:min" value="1262.81"></param>
 				<param name="RT:Statistics:mean" value="1273.28"></param>
@@ -4482,14 +4482,14 @@
 			<overallquality>0.948409</overallquality>
 			<charge>0</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="GaussModel"></param>
+				<param name="MZ:MZ" value="GaussModel"></param>
 				<param name="MZ:BoundingBox:max" value="964.82"></param>
 				<param name="MZ:BoundingBox:min" value="961.048"></param>
 				<param name="MZ:Statistics:mean" value="962.762"></param>
 				<param name="MZ:Statistics:variance" value="0.131003"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1293.34"></param>
 				<param name="RT:BoundingBox:min" value="1289.93"></param>
 				<param name="RT:Statistics:mean" value="1291.96"></param>
@@ -4528,7 +4528,7 @@
 			<overallquality>0.925872</overallquality>
 			<charge>4</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -4539,7 +4539,7 @@
 				<param name="MZ:Statistics:mean" value="959.27"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1287.27"></param>
 				<param name="RT:BoundingBox:min" value="1266.94"></param>
 				<param name="RT:Statistics:mean" value="1277.27"></param>
@@ -4598,7 +4598,7 @@
 			<overallquality>0.929135</overallquality>
 			<charge>3</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -4609,7 +4609,7 @@
 				<param name="MZ:Statistics:mean" value="839.886"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1199.06"></param>
 				<param name="RT:BoundingBox:min" value="1175.94"></param>
 				<param name="RT:Statistics:mean" value="1187.71"></param>
@@ -4708,7 +4708,7 @@
 			<overallquality>0.879633</overallquality>
 			<charge>4</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -4719,7 +4719,7 @@
 				<param name="MZ:Statistics:mean" value="881.608"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1377.68"></param>
 				<param name="RT:BoundingBox:min" value="1362.64"></param>
 				<param name="RT:Statistics:mean" value="1369.01"></param>
@@ -4790,7 +4790,7 @@
 			<overallquality>0.939599</overallquality>
 			<charge>3</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -4801,7 +4801,7 @@
 				<param name="MZ:Statistics:mean" value="742.881"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1153.81"></param>
 				<param name="RT:BoundingBox:min" value="1128.87"></param>
 				<param name="RT:Statistics:mean" value="1141.34"></param>
@@ -4888,7 +4888,7 @@
 			<overallquality>0.842574</overallquality>
 			<charge>3</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -4899,7 +4899,7 @@
 				<param name="MZ:Statistics:mean" value="763.203"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="987.427"></param>
 				<param name="RT:BoundingBox:min" value="959.707"></param>
 				<param name="RT:Statistics:mean" value="973.657"></param>
@@ -4970,14 +4970,14 @@
 			<overallquality>0.808338</overallquality>
 			<charge>0</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="GaussModel"></param>
+				<param name="MZ:MZ" value="GaussModel"></param>
 				<param name="MZ:BoundingBox:max" value="956.75"></param>
 				<param name="MZ:BoundingBox:min" value="948.73"></param>
 				<param name="MZ:Statistics:mean" value="952.299"></param>
 				<param name="MZ:Statistics:variance" value="0.592841"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1013.7"></param>
 				<param name="RT:BoundingBox:min" value="988.041"></param>
 				<param name="RT:Statistics:mean" value="1000.81"></param>
@@ -5048,14 +5048,14 @@
 			<overallquality>0.921582</overallquality>
 			<charge>0</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="GaussModel"></param>
+				<param name="MZ:MZ" value="GaussModel"></param>
 				<param name="MZ:BoundingBox:max" value="742.01"></param>
 				<param name="MZ:BoundingBox:min" value="735.723"></param>
 				<param name="MZ:Statistics:mean" value="738.328"></param>
 				<param name="MZ:Statistics:variance" value="0.300078"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1132.32"></param>
 				<param name="RT:BoundingBox:min" value="1110.39"></param>
 				<param name="RT:Statistics:mean" value="1121.01"></param>
@@ -5118,7 +5118,7 @@
 			<overallquality>0.852708</overallquality>
 			<charge>2</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -5129,7 +5129,7 @@
 				<param name="MZ:Statistics:mean" value="964.884"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1198.53"></param>
 				<param name="RT:BoundingBox:min" value="1171.89"></param>
 				<param name="RT:Statistics:mean" value="1185.04"></param>
@@ -5188,14 +5188,14 @@
 			<overallquality>0.793859</overallquality>
 			<charge>0</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="GaussModel"></param>
+				<param name="MZ:MZ" value="GaussModel"></param>
 				<param name="MZ:BoundingBox:max" value="854.16"></param>
 				<param name="MZ:BoundingBox:min" value="845.92"></param>
 				<param name="MZ:Statistics:mean" value="849.846"></param>
 				<param name="MZ:Statistics:variance" value="0.65074"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1160.83"></param>
 				<param name="RT:BoundingBox:min" value="1140.35"></param>
 				<param name="RT:Statistics:mean" value="1149.52"></param>
@@ -5254,14 +5254,14 @@
 			<overallquality>0.90556</overallquality>
 			<charge>0</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="GaussModel"></param>
+				<param name="MZ:MZ" value="GaussModel"></param>
 				<param name="MZ:BoundingBox:max" value="957.65"></param>
 				<param name="MZ:BoundingBox:min" value="950.083"></param>
 				<param name="MZ:Statistics:mean" value="953.905"></param>
 				<param name="MZ:Statistics:variance" value="0.394147"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1220.5"></param>
 				<param name="RT:BoundingBox:min" value="1200.13"></param>
 				<param name="RT:Statistics:mean" value="1210.22"></param>
@@ -5324,14 +5324,14 @@
 			<overallquality>0.838437</overallquality>
 			<charge>0</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="GaussModel"></param>
+				<param name="MZ:MZ" value="GaussModel"></param>
 				<param name="MZ:BoundingBox:max" value="809.12"></param>
 				<param name="MZ:BoundingBox:min" value="800.674"></param>
 				<param name="MZ:Statistics:mean" value="804.615"></param>
 				<param name="MZ:Statistics:variance" value="0.454727"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1027.21"></param>
 				<param name="RT:BoundingBox:min" value="1000.62"></param>
 				<param name="RT:Statistics:mean" value="1014.04"></param>
@@ -5386,7 +5386,7 @@
 			<overallquality>0.949656</overallquality>
 			<charge>4</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -5397,7 +5397,7 @@
 				<param name="MZ:Statistics:mean" value="752.317"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="997.579"></param>
 				<param name="RT:BoundingBox:min" value="980.546"></param>
 				<param name="RT:Statistics:mean" value="986.768"></param>
@@ -5448,7 +5448,7 @@
 			<overallquality>0.83822</overallquality>
 			<charge>2</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -5459,7 +5459,7 @@
 				<param name="MZ:Statistics:mean" value="848.434"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1260.89"></param>
 				<param name="RT:BoundingBox:min" value="1235.77"></param>
 				<param name="RT:Statistics:mean" value="1248.07"></param>
@@ -5522,7 +5522,7 @@
 			<overallquality>0.87417</overallquality>
 			<charge>2</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -5533,7 +5533,7 @@
 				<param name="MZ:Statistics:mean" value="984.961"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1222.81"></param>
 				<param name="RT:BoundingBox:min" value="1198.13"></param>
 				<param name="RT:Statistics:mean" value="1210.53"></param>
@@ -5584,7 +5584,7 @@
 			<overallquality>0.979325</overallquality>
 			<charge>3</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -5595,7 +5595,7 @@
 				<param name="MZ:Statistics:mean" value="937.934"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1160.91"></param>
 				<param name="RT:BoundingBox:min" value="1150.94"></param>
 				<param name="RT:Statistics:mean" value="1157.07"></param>
@@ -5642,7 +5642,7 @@
 			<overallquality>0.832898</overallquality>
 			<charge>4</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -5653,7 +5653,7 @@
 				<param name="MZ:Statistics:mean" value="887.269"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1370.41"></param>
 				<param name="RT:BoundingBox:min" value="1343.38"></param>
 				<param name="RT:Statistics:mean" value="1356.77"></param>
@@ -5712,14 +5712,14 @@
 			<overallquality>0.96401</overallquality>
 			<charge>0</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="GaussModel"></param>
+				<param name="MZ:MZ" value="GaussModel"></param>
 				<param name="MZ:BoundingBox:max" value="767.18"></param>
 				<param name="MZ:BoundingBox:min" value="759.782"></param>
 				<param name="MZ:Statistics:mean" value="763.169"></param>
 				<param name="MZ:Statistics:variance" value="0.489633"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1232.67"></param>
 				<param name="RT:BoundingBox:min" value="1217.22"></param>
 				<param name="RT:Statistics:mean" value="1224.97"></param>
@@ -5778,7 +5778,7 @@
 			<overallquality>0.887711</overallquality>
 			<charge>4</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -5789,7 +5789,7 @@
 				<param name="MZ:Statistics:mean" value="770.625"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1296.76"></param>
 				<param name="RT:BoundingBox:min" value="1271.79"></param>
 				<param name="RT:Statistics:mean" value="1283.75"></param>
@@ -5844,7 +5844,7 @@
 			<overallquality>0.90085</overallquality>
 			<charge>3</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -5855,7 +5855,7 @@
 				<param name="MZ:Statistics:mean" value="953.537"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1035.3"></param>
 				<param name="RT:BoundingBox:min" value="1013.22"></param>
 				<param name="RT:Statistics:mean" value="1023.07"></param>
@@ -5906,14 +5906,14 @@
 			<overallquality>0.792922</overallquality>
 			<charge>0</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="GaussModel"></param>
+				<param name="MZ:MZ" value="GaussModel"></param>
 				<param name="MZ:BoundingBox:max" value="902.91"></param>
 				<param name="MZ:BoundingBox:min" value="895.594"></param>
 				<param name="MZ:Statistics:mean" value="898.61"></param>
 				<param name="MZ:Statistics:variance" value="0.42599"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1377.41"></param>
 				<param name="RT:BoundingBox:min" value="1360.22"></param>
 				<param name="RT:Statistics:mean" value="1367.46"></param>
@@ -5980,14 +5980,14 @@
 			<overallquality>0.926638</overallquality>
 			<charge>0</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="GaussModel"></param>
+				<param name="MZ:MZ" value="GaussModel"></param>
 				<param name="MZ:BoundingBox:max" value="964.17"></param>
 				<param name="MZ:BoundingBox:min" value="957.113"></param>
 				<param name="MZ:Statistics:mean" value="960.184"></param>
 				<param name="MZ:Statistics:variance" value="0.457191"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1089.97"></param>
 				<param name="RT:BoundingBox:min" value="1066.95"></param>
 				<param name="RT:Statistics:mean" value="1078.81"></param>
@@ -6046,7 +6046,7 @@
 			<overallquality>0.84493</overallquality>
 			<charge>2</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -6057,7 +6057,7 @@
 				<param name="MZ:Statistics:mean" value="763.328"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="994.864"></param>
 				<param name="RT:BoundingBox:min" value="970.958"></param>
 				<param name="RT:Statistics:mean" value="982.123"></param>
@@ -6144,7 +6144,7 @@
 			<overallquality>0.825355</overallquality>
 			<charge>2</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -6155,7 +6155,7 @@
 				<param name="MZ:Statistics:mean" value="852.9"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1197.23"></param>
 				<param name="RT:BoundingBox:min" value="1172.54"></param>
 				<param name="RT:Statistics:mean" value="1184.63"></param>
@@ -6206,14 +6206,14 @@
 			<overallquality>0.56073</overallquality>
 			<charge>0</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="GaussModel"></param>
+				<param name="MZ:MZ" value="GaussModel"></param>
 				<param name="MZ:BoundingBox:max" value="700.83"></param>
 				<param name="MZ:BoundingBox:min" value="690.113"></param>
 				<param name="MZ:Statistics:mean" value="695.389"></param>
 				<param name="MZ:Statistics:variance" value="1.32885"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1362.55"></param>
 				<param name="RT:BoundingBox:min" value="1340.55"></param>
 				<param name="RT:Statistics:mean" value="1351.07"></param>
@@ -6272,7 +6272,7 @@
 			<overallquality>0.895449</overallquality>
 			<charge>4</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -6283,7 +6283,7 @@
 				<param name="MZ:Statistics:mean" value="910.836"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1397.76"></param>
 				<param name="RT:BoundingBox:min" value="1381.45"></param>
 				<param name="RT:Statistics:mean" value="1390.05"></param>
@@ -6346,7 +6346,7 @@
 			<overallquality>0.98733</overallquality>
 			<charge>4</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -6357,7 +6357,7 @@
 				<param name="MZ:Statistics:mean" value="962.876"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1281.95"></param>
 				<param name="RT:BoundingBox:min" value="1275.84"></param>
 				<param name="RT:Statistics:mean" value="1280.14"></param>
@@ -6408,7 +6408,7 @@
 			<overallquality>0.933368</overallquality>
 			<charge>3</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -6419,7 +6419,7 @@
 				<param name="MZ:Statistics:mean" value="937.947"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1210.51"></param>
 				<param name="RT:BoundingBox:min" value="1190.24"></param>
 				<param name="RT:Statistics:mean" value="1200.39"></param>
@@ -6478,7 +6478,7 @@
 			<overallquality>0.889293</overallquality>
 			<charge>3</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -6489,7 +6489,7 @@
 				<param name="MZ:Statistics:mean" value="905.123"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1285.79"></param>
 				<param name="RT:BoundingBox:min" value="1267.45"></param>
 				<param name="RT:Statistics:mean" value="1275"></param>
@@ -6556,7 +6556,7 @@
 			<overallquality>0.956963</overallquality>
 			<charge>3</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -6567,7 +6567,7 @@
 				<param name="MZ:Statistics:mean" value="840.04"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1160.72"></param>
 				<param name="RT:BoundingBox:min" value="1139.9"></param>
 				<param name="RT:Statistics:mean" value="1150.08"></param>
@@ -6634,7 +6634,7 @@
 			<overallquality>0.555372</overallquality>
 			<charge>2</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -6645,7 +6645,7 @@
 				<param name="MZ:Statistics:mean" value="652.741"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="925.279"></param>
 				<param name="RT:BoundingBox:min" value="898.047"></param>
 				<param name="RT:Statistics:mean" value="911.082"></param>
@@ -6696,14 +6696,14 @@
 			<overallquality>0.705601</overallquality>
 			<charge>0</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="GaussModel"></param>
+				<param name="MZ:MZ" value="GaussModel"></param>
 				<param name="MZ:BoundingBox:max" value="837.55"></param>
 				<param name="MZ:BoundingBox:min" value="827.532"></param>
 				<param name="MZ:Statistics:mean" value="832.461"></param>
 				<param name="MZ:Statistics:variance" value="0.940302"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1298.59"></param>
 				<param name="RT:BoundingBox:min" value="1273.31"></param>
 				<param name="RT:Statistics:mean" value="1286.73"></param>
@@ -6762,7 +6762,7 @@
 			<overallquality>0.798333</overallquality>
 			<charge>3</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -6773,7 +6773,7 @@
 				<param name="MZ:Statistics:mean" value="937.732"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1058.7"></param>
 				<param name="RT:BoundingBox:min" value="1038.12"></param>
 				<param name="RT:Statistics:mean" value="1047.56"></param>
@@ -6860,7 +6860,7 @@
 			<overallquality>0.733558</overallquality>
 			<charge>4</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -6871,7 +6871,7 @@
 				<param name="MZ:Statistics:mean" value="931.416"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1366.96"></param>
 				<param name="RT:BoundingBox:min" value="1338.97"></param>
 				<param name="RT:Statistics:mean" value="1352.57"></param>
@@ -6926,7 +6926,7 @@
 			<overallquality>0.809904</overallquality>
 			<charge>2</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -6937,7 +6937,7 @@
 				<param name="MZ:Statistics:mean" value="915.943"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1285.45"></param>
 				<param name="RT:BoundingBox:min" value="1261.76"></param>
 				<param name="RT:Statistics:mean" value="1272.8"></param>
@@ -6984,7 +6984,7 @@
 			<overallquality>0.651278</overallquality>
 			<charge>4</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -6995,7 +6995,7 @@
 				<param name="MZ:Statistics:mean" value="793.027"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1364.17"></param>
 				<param name="RT:BoundingBox:min" value="1340.15"></param>
 				<param name="RT:Statistics:mean" value="1351.68"></param>
@@ -7062,14 +7062,14 @@
 			<overallquality>0.850199</overallquality>
 			<charge>0</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="GaussModel"></param>
+				<param name="MZ:MZ" value="GaussModel"></param>
 				<param name="MZ:BoundingBox:max" value="906.14"></param>
 				<param name="MZ:BoundingBox:min" value="893.039"></param>
 				<param name="MZ:Statistics:mean" value="898.22"></param>
 				<param name="MZ:Statistics:variance" value="0.967146"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1262.16"></param>
 				<param name="RT:BoundingBox:min" value="1231.55"></param>
 				<param name="RT:Statistics:mean" value="1248.43"></param>
@@ -7128,7 +7128,7 @@
 			<overallquality>0.823363</overallquality>
 			<charge>3</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -7139,7 +7139,7 @@
 				<param name="MZ:Statistics:mean" value="908.942"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1259.89"></param>
 				<param name="RT:BoundingBox:min" value="1234.6"></param>
 				<param name="RT:Statistics:mean" value="1248.04"></param>
@@ -7210,7 +7210,7 @@
 			<overallquality>0.950427</overallquality>
 			<charge>4</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -7221,7 +7221,7 @@
 				<param name="MZ:Statistics:mean" value="890.601"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1294.57"></param>
 				<param name="RT:BoundingBox:min" value="1277.23"></param>
 				<param name="RT:Statistics:mean" value="1285.26"></param>
@@ -7280,7 +7280,7 @@
 			<overallquality>0.863555</overallquality>
 			<charge>2</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -7291,7 +7291,7 @@
 				<param name="MZ:Statistics:mean" value="848.454"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1249.79"></param>
 				<param name="RT:BoundingBox:min" value="1229.49"></param>
 				<param name="RT:Statistics:mean" value="1240.2"></param>
@@ -7346,7 +7346,7 @@
 			<overallquality>0.898207</overallquality>
 			<charge>3</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -7357,7 +7357,7 @@
 				<param name="MZ:Statistics:mean" value="797.448"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="944.217"></param>
 				<param name="RT:BoundingBox:min" value="931.703"></param>
 				<param name="RT:Statistics:mean" value="936.949"></param>
@@ -7416,14 +7416,14 @@
 			<overallquality>0.927412</overallquality>
 			<charge>0</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="GaussModel"></param>
+				<param name="MZ:MZ" value="GaussModel"></param>
 				<param name="MZ:BoundingBox:max" value="665.21"></param>
 				<param name="MZ:BoundingBox:min" value="659.661"></param>
 				<param name="MZ:Statistics:mean" value="662.06"></param>
 				<param name="MZ:Statistics:variance" value="0.275419"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1228.78"></param>
 				<param name="RT:BoundingBox:min" value="1213.96"></param>
 				<param name="RT:Statistics:mean" value="1219.81"></param>
@@ -7522,7 +7522,7 @@
 			<overallquality>0.828605</overallquality>
 			<charge>4</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -7533,7 +7533,7 @@
 				<param name="MZ:Statistics:mean" value="822.805"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1371.24"></param>
 				<param name="RT:BoundingBox:min" value="1345.71"></param>
 				<param name="RT:Statistics:mean" value="1358.82"></param>
@@ -7592,7 +7592,7 @@
 			<overallquality>0.900876</overallquality>
 			<charge>3</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -7603,7 +7603,7 @@
 				<param name="MZ:Statistics:mean" value="849.249"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1188.44"></param>
 				<param name="RT:BoundingBox:min" value="1162.61"></param>
 				<param name="RT:Statistics:mean" value="1175.52"></param>
@@ -7662,14 +7662,14 @@
 			<overallquality>0.796384</overallquality>
 			<charge>0</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="GaussModel"></param>
+				<param name="MZ:MZ" value="GaussModel"></param>
 				<param name="MZ:BoundingBox:max" value="853.59"></param>
 				<param name="MZ:BoundingBox:min" value="846.501"></param>
 				<param name="MZ:Statistics:mean" value="849.772"></param>
 				<param name="MZ:Statistics:variance" value="0.377996"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1139.87"></param>
 				<param name="RT:BoundingBox:min" value="1120.69"></param>
 				<param name="RT:Statistics:mean" value="1129.95"></param>
@@ -7724,7 +7724,7 @@
 			<overallquality>0.900301</overallquality>
 			<charge>4</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -7735,7 +7735,7 @@
 				<param name="MZ:Statistics:mean" value="937.65"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1043.57"></param>
 				<param name="RT:BoundingBox:min" value="1021.8"></param>
 				<param name="RT:Statistics:mean" value="1033.04"></param>
@@ -7786,7 +7786,7 @@
 			<overallquality>0.593488</overallquality>
 			<charge>2</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -7797,7 +7797,7 @@
 				<param name="MZ:Statistics:mean" value="906.964"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1279.05"></param>
 				<param name="RT:BoundingBox:min" value="1261.13"></param>
 				<param name="RT:Statistics:mean" value="1266.76"></param>
@@ -7836,7 +7836,7 @@
 			<overallquality>0.787089</overallquality>
 			<charge>1</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -7847,7 +7847,7 @@
 				<param name="MZ:Statistics:mean" value="913.997"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1223.92"></param>
 				<param name="RT:BoundingBox:min" value="1198.67"></param>
 				<param name="RT:Statistics:mean" value="1211.17"></param>
@@ -7898,7 +7898,7 @@
 			<overallquality>0.786948</overallquality>
 			<charge>4</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -7909,7 +7909,7 @@
 				<param name="MZ:Statistics:mean" value="894.084"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1297.99"></param>
 				<param name="RT:BoundingBox:min" value="1274.29"></param>
 				<param name="RT:Statistics:mean" value="1285.62"></param>
@@ -7964,7 +7964,7 @@
 			<overallquality>0.924737</overallquality>
 			<charge>3</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -7975,7 +7975,7 @@
 				<param name="MZ:Statistics:mean" value="817.465"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1029.61"></param>
 				<param name="RT:BoundingBox:min" value="1007.93"></param>
 				<param name="RT:Statistics:mean" value="1017.81"></param>
@@ -8066,7 +8066,7 @@
 			<overallquality>0.633495</overallquality>
 			<charge>4</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -8077,7 +8077,7 @@
 				<param name="MZ:Statistics:mean" value="835.8"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1312.8"></param>
 				<param name="RT:BoundingBox:min" value="1288.38"></param>
 				<param name="RT:Statistics:mean" value="1301.02"></param>
@@ -8136,14 +8136,14 @@
 			<overallquality>0.601057</overallquality>
 			<charge>0</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="GaussModel"></param>
+				<param name="MZ:MZ" value="GaussModel"></param>
 				<param name="MZ:BoundingBox:max" value="966.36"></param>
 				<param name="MZ:BoundingBox:min" value="950.178"></param>
 				<param name="MZ:Statistics:mean" value="956.883"></param>
 				<param name="MZ:Statistics:variance" value="2.34191"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1327.25"></param>
 				<param name="RT:BoundingBox:min" value="1302.12"></param>
 				<param name="RT:Statistics:mean" value="1316.31"></param>
@@ -8206,14 +8206,14 @@
 			<overallquality>0.959303</overallquality>
 			<charge>0</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="GaussModel"></param>
+				<param name="MZ:MZ" value="GaussModel"></param>
 				<param name="MZ:BoundingBox:max" value="941.57"></param>
 				<param name="MZ:BoundingBox:min" value="934.911"></param>
 				<param name="MZ:Statistics:mean" value="937.942"></param>
 				<param name="MZ:Statistics:variance" value="0.371886"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1260.96"></param>
 				<param name="RT:BoundingBox:min" value="1254.04"></param>
 				<param name="RT:Statistics:mean" value="1257.62"></param>
@@ -8260,7 +8260,7 @@
 			<overallquality>0.872093</overallquality>
 			<charge>4</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -8271,7 +8271,7 @@
 				<param name="MZ:Statistics:mean" value="953.38"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1013.22"></param>
 				<param name="RT:BoundingBox:min" value="1001.69"></param>
 				<param name="RT:Statistics:mean" value="1009.21"></param>
@@ -8338,14 +8338,14 @@
 			<overallquality>0.922415</overallquality>
 			<charge>0</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="GaussModel"></param>
+				<param name="MZ:MZ" value="GaussModel"></param>
 				<param name="MZ:BoundingBox:max" value="960.82"></param>
 				<param name="MZ:BoundingBox:min" value="948.922"></param>
 				<param name="MZ:Statistics:mean" value="954.234"></param>
 				<param name="MZ:Statistics:variance" value="1.1728"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1332.11"></param>
 				<param name="RT:BoundingBox:min" value="1317.64"></param>
 				<param name="RT:Statistics:mean" value="1325.91"></param>
@@ -8412,7 +8412,7 @@
 			<overallquality>0.843656</overallquality>
 			<charge>2</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -8423,7 +8423,7 @@
 				<param name="MZ:Statistics:mean" value="953.896"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1207.52"></param>
 				<param name="RT:BoundingBox:min" value="1182.8"></param>
 				<param name="RT:Statistics:mean" value="1194.94"></param>
@@ -8478,7 +8478,7 @@
 			<overallquality>0.863691</overallquality>
 			<charge>4</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -8489,7 +8489,7 @@
 				<param name="MZ:Statistics:mean" value="963.052"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1310.66"></param>
 				<param name="RT:BoundingBox:min" value="1286.09"></param>
 				<param name="RT:Statistics:mean" value="1300.78"></param>
@@ -8556,7 +8556,7 @@
 			<overallquality>0.917456</overallquality>
 			<charge>4</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -8567,7 +8567,7 @@
 				<param name="MZ:Statistics:mean" value="799.002"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1309"></param>
 				<param name="RT:BoundingBox:min" value="1297.99"></param>
 				<param name="RT:Statistics:mean" value="1302.11"></param>
@@ -8622,7 +8622,7 @@
 			<overallquality>0.861542</overallquality>
 			<charge>3</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -8633,7 +8633,7 @@
 				<param name="MZ:Statistics:mean" value="910.479"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1315.7"></param>
 				<param name="RT:BoundingBox:min" value="1299.26"></param>
 				<param name="RT:Statistics:mean" value="1308.31"></param>
@@ -8692,14 +8692,14 @@
 			<overallquality>0.647108</overallquality>
 			<charge>0</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="GaussModel"></param>
+				<param name="MZ:MZ" value="GaussModel"></param>
 				<param name="MZ:BoundingBox:max" value="906.45"></param>
 				<param name="MZ:BoundingBox:min" value="896.999"></param>
 				<param name="MZ:Statistics:mean" value="901.333"></param>
 				<param name="MZ:Statistics:variance" value="0.951014"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1280.53"></param>
 				<param name="RT:BoundingBox:min" value="1265.57"></param>
 				<param name="RT:Statistics:mean" value="1272.35"></param>
@@ -8754,7 +8754,7 @@
 			<overallquality>0.989456</overallquality>
 			<charge>4</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -8765,7 +8765,7 @@
 				<param name="MZ:Statistics:mean" value="777.63"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1181.82"></param>
 				<param name="RT:BoundingBox:min" value="1175.49"></param>
 				<param name="RT:Statistics:mean" value="1180"></param>
@@ -8804,14 +8804,14 @@
 			<overallquality>0.710222</overallquality>
 			<charge>0</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="GaussModel"></param>
+				<param name="MZ:MZ" value="GaussModel"></param>
 				<param name="MZ:BoundingBox:max" value="983.45"></param>
 				<param name="MZ:BoundingBox:min" value="967.181"></param>
 				<param name="MZ:Statistics:mean" value="974.323"></param>
 				<param name="MZ:Statistics:variance" value="1.99239"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1220.98"></param>
 				<param name="RT:BoundingBox:min" value="1197.27"></param>
 				<param name="RT:Statistics:mean" value="1209.05"></param>
@@ -8890,7 +8890,7 @@
 			<overallquality>0.839516</overallquality>
 			<charge>3</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -8901,7 +8901,7 @@
 				<param name="MZ:Statistics:mean" value="655.168"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="909.242"></param>
 				<param name="RT:BoundingBox:min" value="895.679"></param>
 				<param name="RT:Statistics:mean" value="902.001"></param>
@@ -8956,14 +8956,14 @@
 			<overallquality>0.892953</overallquality>
 			<charge>0</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="GaussModel"></param>
+				<param name="MZ:MZ" value="GaussModel"></param>
 				<param name="MZ:BoundingBox:max" value="903.6"></param>
 				<param name="MZ:BoundingBox:min" value="895.649"></param>
 				<param name="MZ:Statistics:mean" value="899.185"></param>
 				<param name="MZ:Statistics:variance" value="0.433705"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1383.15"></param>
 				<param name="RT:BoundingBox:min" value="1366.57"></param>
 				<param name="RT:Statistics:mean" value="1375.86"></param>
@@ -9066,7 +9066,7 @@
 			<overallquality>0.953838</overallquality>
 			<charge>4</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -9077,7 +9077,7 @@
 				<param name="MZ:Statistics:mean" value="819.211"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1312.43"></param>
 				<param name="RT:BoundingBox:min" value="1304.32"></param>
 				<param name="RT:Statistics:mean" value="1308.44"></param>
@@ -9136,14 +9136,14 @@
 			<overallquality>0.708221</overallquality>
 			<charge>0</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="GaussModel"></param>
+				<param name="MZ:MZ" value="GaussModel"></param>
 				<param name="MZ:BoundingBox:max" value="758.76"></param>
 				<param name="MZ:BoundingBox:min" value="750.92"></param>
 				<param name="MZ:Statistics:mean" value="754.631"></param>
 				<param name="MZ:Statistics:variance" value="0.453466"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1262"></param>
 				<param name="RT:BoundingBox:min" value="1241.36"></param>
 				<param name="RT:Statistics:mean" value="1254.65"></param>
@@ -9206,7 +9206,7 @@
 			<overallquality>0.846128</overallquality>
 			<charge>4</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -9217,7 +9217,7 @@
 				<param name="MZ:Statistics:mean" value="644.425"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="929.79"></param>
 				<param name="RT:BoundingBox:min" value="907.605"></param>
 				<param name="RT:Statistics:mean" value="917.595"></param>
@@ -9268,14 +9268,14 @@
 			<overallquality>0.85092</overallquality>
 			<charge>0</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="GaussModel"></param>
+				<param name="MZ:MZ" value="GaussModel"></param>
 				<param name="MZ:BoundingBox:max" value="773.23"></param>
 				<param name="MZ:BoundingBox:min" value="768.558"></param>
 				<param name="MZ:Statistics:mean" value="770.583"></param>
 				<param name="MZ:Statistics:variance" value="0.198318"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1296.95"></param>
 				<param name="RT:BoundingBox:min" value="1286.3"></param>
 				<param name="RT:Statistics:mean" value="1291.3"></param>
@@ -9318,14 +9318,14 @@
 			<overallquality>0.963894</overallquality>
 			<charge>0</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="GaussModel"></param>
+				<param name="MZ:MZ" value="GaussModel"></param>
 				<param name="MZ:BoundingBox:max" value="922.96"></param>
 				<param name="MZ:BoundingBox:min" value="914.219"></param>
 				<param name="MZ:Statistics:mean" value="918.397"></param>
 				<param name="MZ:Statistics:variance" value="0.572712"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1266.89"></param>
 				<param name="RT:BoundingBox:min" value="1255.74"></param>
 				<param name="RT:Statistics:mean" value="1260.45"></param>
@@ -9376,7 +9376,7 @@
 			<overallquality>0.888838</overallquality>
 			<charge>3</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -9387,7 +9387,7 @@
 				<param name="MZ:Statistics:mean" value="953.953"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1196.13"></param>
 				<param name="RT:BoundingBox:min" value="1175.1"></param>
 				<param name="RT:Statistics:mean" value="1183.3"></param>
@@ -9438,14 +9438,14 @@
 			<overallquality>0.827663</overallquality>
 			<charge>0</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="GaussModel"></param>
+				<param name="MZ:MZ" value="GaussModel"></param>
 				<param name="MZ:BoundingBox:max" value="686.39"></param>
 				<param name="MZ:BoundingBox:min" value="679.255"></param>
 				<param name="MZ:Statistics:mean" value="682.361"></param>
 				<param name="MZ:Statistics:variance" value="0.387601"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1395.49"></param>
 				<param name="RT:BoundingBox:min" value="1383.49"></param>
 				<param name="RT:Statistics:mean" value="1389.2"></param>
@@ -9512,14 +9512,14 @@
 			<overallquality>0.920422</overallquality>
 			<charge>0</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="GaussModel"></param>
+				<param name="MZ:MZ" value="GaussModel"></param>
 				<param name="MZ:BoundingBox:max" value="756.9"></param>
 				<param name="MZ:BoundingBox:min" value="749.8"></param>
 				<param name="MZ:Statistics:mean" value="752.749"></param>
 				<param name="MZ:Statistics:variance" value="0.466923"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="969.854"></param>
 				<param name="RT:BoundingBox:min" value="962.709"></param>
 				<param name="RT:Statistics:mean" value="967.201"></param>
@@ -9574,7 +9574,7 @@
 			<overallquality>0.914835</overallquality>
 			<charge>1</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -9585,7 +9585,7 @@
 				<param name="MZ:Statistics:mean" value="745.932"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="916.288"></param>
 				<param name="RT:BoundingBox:min" value="905.426"></param>
 				<param name="RT:Statistics:mean" value="910.533"></param>
@@ -9676,7 +9676,7 @@
 			<overallquality>0.449039</overallquality>
 			<charge>3</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -9687,7 +9687,7 @@
 				<param name="MZ:Statistics:mean" value="957.753"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1325.18"></param>
 				<param name="RT:BoundingBox:min" value="1299.37"></param>
 				<param name="RT:Statistics:mean" value="1312.61"></param>
@@ -9750,7 +9750,7 @@
 			<overallquality>0.611727</overallquality>
 			<charge>4</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -9761,7 +9761,7 @@
 				<param name="MZ:Statistics:mean" value="927.716"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1368.23"></param>
 				<param name="RT:BoundingBox:min" value="1333.53"></param>
 				<param name="RT:Statistics:mean" value="1354.43"></param>
@@ -9840,7 +9840,7 @@
 			<overallquality>0.806414</overallquality>
 			<charge>2</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -9851,7 +9851,7 @@
 				<param name="MZ:Statistics:mean" value="676.338"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1254.15"></param>
 				<param name="RT:BoundingBox:min" value="1234.63"></param>
 				<param name="RT:Statistics:mean" value="1245.22"></param>
@@ -9910,7 +9910,7 @@
 			<overallquality>0.846864</overallquality>
 			<charge>4</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -9921,7 +9921,7 @@
 				<param name="MZ:Statistics:mean" value="605.691"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1552.27"></param>
 				<param name="RT:BoundingBox:min" value="1530.35"></param>
 				<param name="RT:Statistics:mean" value="1541.69"></param>
@@ -9980,7 +9980,7 @@
 			<overallquality>0.886744</overallquality>
 			<charge>4</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -9991,7 +9991,7 @@
 				<param name="MZ:Statistics:mean" value="942.968"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1056.16"></param>
 				<param name="RT:BoundingBox:min" value="1033.27"></param>
 				<param name="RT:Statistics:mean" value="1044.56"></param>
@@ -10046,7 +10046,7 @@
 			<overallquality>0.865663</overallquality>
 			<charge>3</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -10057,7 +10057,7 @@
 				<param name="MZ:Statistics:mean" value="768.781"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1323.02"></param>
 				<param name="RT:BoundingBox:min" value="1309.12"></param>
 				<param name="RT:Statistics:mean" value="1317.94"></param>
@@ -10128,7 +10128,7 @@
 			<overallquality>0.879447</overallquality>
 			<charge>3</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -10139,7 +10139,7 @@
 				<param name="MZ:Statistics:mean" value="799.167"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1298.91"></param>
 				<param name="RT:BoundingBox:min" value="1279.67"></param>
 				<param name="RT:Statistics:mean" value="1289.56"></param>
@@ -10194,7 +10194,7 @@
 			<overallquality>0.934572</overallquality>
 			<charge>3</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -10205,7 +10205,7 @@
 				<param name="MZ:Statistics:mean" value="943.117"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1062.88"></param>
 				<param name="RT:BoundingBox:min" value="1042.52"></param>
 				<param name="RT:Statistics:mean" value="1053.12"></param>
@@ -10272,7 +10272,7 @@
 			<overallquality>0.910792</overallquality>
 			<charge>3</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -10283,7 +10283,7 @@
 				<param name="MZ:Statistics:mean" value="763.219"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="970.904"></param>
 				<param name="RT:BoundingBox:min" value="964.208"></param>
 				<param name="RT:Statistics:mean" value="968.075"></param>
@@ -10326,7 +10326,7 @@
 			<overallquality>0.895444</overallquality>
 			<charge>1</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -10337,7 +10337,7 @@
 				<param name="MZ:Statistics:mean" value="785.941"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="921.215"></param>
 				<param name="RT:BoundingBox:min" value="903.57"></param>
 				<param name="RT:Statistics:mean" value="912.659"></param>
@@ -10388,7 +10388,7 @@
 			<overallquality>0.875486</overallquality>
 			<charge>3</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"></param>
+				<param name="MZ:MZ" value="IsotopeModel"></param>
 				<param name="MZ:Averagines:averagine_C" value="0.0443"></param>
 				<param name="MZ:Averagines:averagine_H" value="0"></param>
 				<param name="MZ:Averagines:averagine_N" value="0.0037"></param>
@@ -10399,7 +10399,7 @@
 				<param name="MZ:Statistics:mean" value="897.421"></param>
 				<param name="MZ:cutoff" value="0"></param>
 				<param name="MZ:interpolation_step" value="0.03"></param>
-				<param name="RT" value="BiGaussModel"></param>
+				<param name="RT:RT" value="BiGaussModel"></param>
 				<param name="RT:BoundingBox:max" value="1255.77"></param>
 				<param name="RT:BoundingBox:min" value="1233.36"></param>
 				<param name="RT:Statistics:mean" value="1245.02"></param>

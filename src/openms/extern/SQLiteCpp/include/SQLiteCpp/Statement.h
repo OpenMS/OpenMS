@@ -3,16 +3,18 @@
  * @ingroup SQLiteCpp
  * @brief   A prepared SQLite Statement is a compiled SQL query ready to be executed, pointing to a row of result.
  *
- * Copyright (c) 2012-2022 Sebastien Rombauts (sebastien.rombauts@gmail.com)
+ * Copyright (c) 2012-2025 Sebastien Rombauts (sebastien.rombauts@gmail.com)
  *
  * Distributed under the MIT License (MIT) (See accompanying file LICENSE.txt
  * or copy at http://opensource.org/licenses/MIT)
  */
 #pragma once
 
+#include <SQLiteCpp/SQLiteCppExport.h>
 #include <SQLiteCpp/Exception.h>
 #include <SQLiteCpp/Utils.h> // SQLITECPP_PURE_FUNC
 
+#include <cstdint>
 #include <string>
 #include <map>
 #include <memory>
@@ -21,16 +23,14 @@
 struct sqlite3;
 struct sqlite3_stmt;
 
-
 namespace SQLite
 {
-
 
 // Forward declaration
 class Database;
 class Column;
 
-extern const int OK; ///< SQLITE_OK
+SQLITECPP_API extern const int OK; ///< SQLITE_OK
 
 /**
  * @brief RAII encapsulation of a prepared SQLite Statement.
@@ -49,7 +49,7 @@ extern const int OK; ///< SQLITE_OK
  *    because of the way it shares the underling SQLite precompiled statement
  *    in a custom shared pointer (See the inner class "Statement::Ptr").
  */
-class Statement
+class SQLITECPP_API Statement
 {
 public:
     /**
@@ -78,15 +78,18 @@ public:
     Statement(const Statement&) = delete;
     Statement& operator=(const Statement&) = delete;
 
-    // TODO: Change Statement move constructor to default
+    // Statement is movable
     Statement(Statement&& aStatement) noexcept;
-    Statement& operator=(Statement&& aStatement) noexcept = default;
+    Statement& operator=(Statement&& aStatement) = default;
 
     /// Finalize and unregister the SQL query from the SQLite Database Connection.
     /// The finalization will be done by the destructor of the last shared pointer
     ~Statement() = default;
 
-    /// Reset the statement to make it ready for a new execution. Throws an exception on error.
+    /// Reset the statement to make it ready for a new execution by calling sqlite3_reset.
+    /// Throws an exception on error.
+    /// Call this function before any news calls to bind() if the statement was already executed before.
+    /// Calling reset() does not clear the bindings (see clearBindings()).
     void reset();
 
     /// Reset the statement. Returns the sqlite result code instead of throwing an exception on error.
@@ -176,6 +179,11 @@ public:
      * @warning Uses the SQLITE_STATIC flag, avoiding a copy of the data. The string must remains unchanged while executing the statement.
      */
     void bindNoCopy(const int aIndex, const void*           apValue, const int aSize);
+    /**
+     * @brief Deleted, because the value's lifetime could not be guaranteed. Use bind().
+     */
+    void bindNoCopy(const int aIndex, std::string&& aValue) = delete;
+
     /**
      * @brief Bind a NULL value to a parameter "?", "?NNN", ":VVV", "@VVV" or "$VVV" in the SQL prepared statement (aIndex >= 1)
      *
@@ -269,6 +277,10 @@ public:
     {
         bindNoCopy(getIndex(apName), apValue, aSize);
     }
+    /**
+     * @brief Deleted, because the value's lifetime could not be guaranteed. Use bind().
+     */
+    void bindNoCopy(const char* apName, std::string&& aValue) = delete;
     /**
      * @brief Bind a NULL value to a named parameter "?NNN", ":VVV", "@VVV" or "$VVV" in the SQL prepared statement (aIndex >= 1)
      *
@@ -366,6 +378,10 @@ public:
     {
         bindNoCopy(aName.c_str(), apValue, aSize);
     }
+    /**
+     * @brief Deleted, because the value's lifetime could not be guaranteed. Use bind().
+     */
+    void bindNoCopy(const std::string& aName, std::string&& aValue) = delete;
     /**
      * @brief Bind a NULL value to a named parameter "?NNN", ":VVV", "@VVV" or "$VVV" in the SQL prepared statement (aIndex >= 1)
      *
@@ -705,6 +721,5 @@ private:
     /// Map of columns index by name (mutable so getColumnIndex can be const)
     mutable std::map<std::string, int>  mColumnNames;
 };
-
 
 }  // namespace SQLite

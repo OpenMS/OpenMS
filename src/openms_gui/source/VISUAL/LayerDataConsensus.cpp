@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -80,7 +80,7 @@ namespace OpenMS
     return make_unique<LayerStatisticsConsensusMap>(*consensus_map_);
   }
 
-  bool LayerDataConsensus::annotate(const vector<PeptideIdentification>& identifications, const vector<ProteinIdentification>& protein_identifications)
+  bool LayerDataConsensus::annotate(const PeptideIdentificationList& identifications, const vector<ProteinIdentification>& protein_identifications)
   {
     IDMapper mapper;
     mapper.annotate(*getConsensusMap(), identifications, protein_identifications);

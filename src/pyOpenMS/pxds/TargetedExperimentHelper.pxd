@@ -39,11 +39,17 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>" namespa
         String contact_ref
         String instrument_ref
         libcpp_vector[ CVTermList ] validations
+        bool operator==(Configuration & rhs) except + nogil 
+        bool operator!=(Configuration & rhs) except + nogil
+
 
 
     cdef cppclass CV:
-        CV(CV &) except + nogil 
-        CV(String new_id, String new_fullname, String new_version, String new_URI)  except + nogil 
+        CV(CV &) except + nogil
+        CV(String new_id, String new_fullname, String new_version, String new_URI)  except + nogil
+
+        bool operator==(CV & rhs) except + nogil
+        bool operator!=(CV & rhs) except + nogil
 
         String id
         String fullname
@@ -59,6 +65,9 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>" namespa
 
         String id
         String sequence
+        
+        bool operator==(Protein & rhs) except + nogil
+        bool operator!=(Protein & rhs) except + nogil
 
 
     cdef cppclass RetentionTime(CVTermList):
@@ -76,6 +85,10 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>" namespa
         void setRT(double rt) except + nogil 
         double getRT() except + nogil 
 
+        bool operator==(RetentionTime & rhs) except + nogil 
+        bool operator!=(RetentionTime & rhs) except + nogil
+
+
     cdef cppclass Compound(CVTermList):
         # wrap-inherits:
         #   CVTermList
@@ -83,6 +96,7 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>" namespa
         Compound() except + nogil 
         Compound(Compound &) except + nogil 
         bool operator==(Compound & rhs) except + nogil 
+        bool operator!=(Compound & rhs) except + nogil
 
         String id
         String molecular_formula
@@ -102,8 +116,11 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>" namespa
         # wrap-inherits:
         #   CVTermList
 
-        Peptide() except + nogil 
-        Peptide(Peptide &) except + nogil 
+        Peptide() except + nogil
+        Peptide(Peptide &) except + nogil
+
+        bool operator==(Peptide & rhs) except + nogil
+        bool operator!=(Peptide & rhs) except + nogil
 
         # members
         libcpp_vector[RetentionTime] rts
@@ -131,7 +148,8 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>" namespa
         Contact() except + nogil 
         Contact(Contact &) except + nogil  # compiler
         String id
-        bool operator==(Contact & rhs) except + nogil 
+        bool operator==(Contact & rhs) except + nogil
+        bool operator!=(Contact & rhs) except + nogil
 
     cdef cppclass Publication(CVTermList):
         # wrap-inherits:
@@ -140,14 +158,17 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>" namespa
         Publication() except + nogil 
         Publication(Publication &) except + nogil  # compiler
         String id
-        bool operator==(Publication & rhs) except + nogil 
+        bool operator==(Publication & rhs) except + nogil
+        bool operator!=(Publication & rhs) except + nogil
 
 
     cdef cppclass TargetedExperiment_Instrument "OpenMS::TargetedExperimentHelper::Instrument":
         TargetedExperiment_Instrument() except + nogil 
         TargetedExperiment_Instrument(TargetedExperiment_Instrument &) except + nogil  # compiler
         String id
-        bool operator==(TargetedExperiment_Instrument & rhs) except + nogil 
+        bool operator==(TargetedExperiment_Instrument & rhs) except + nogil
+        bool operator!=(TargetedExperiment_Instrument & rhs) except + nogil
+
 
         # CVTermList:
         void setCVTerms(libcpp_vector[CVTerm] & terms)  except + nogil 
@@ -181,15 +202,19 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>" namespa
 
         Prediction() except + nogil 
         Prediction(Prediction &) except + nogil  # compiler
-        bool operator==(Prediction & rhs) except + nogil 
+        bool operator==(Prediction & rhs) except + nogil
+        bool operator!=(Prediction & rhs) except + nogil
 
         String software_ref
         String contact_ref
 
 
     cdef cppclass TargetedExperiment_Interpretation "OpenMS::TargetedExperimentHelper::Interpretation":
-        TargetedExperiment_Interpretation() except + nogil 
+        TargetedExperiment_Interpretation() except + nogil
         TargetedExperiment_Interpretation(TargetedExperiment_Interpretation &) except + nogil  # compiler
+
+        bool operator==(TargetedExperiment_Interpretation & rhs) except + nogil
+        bool operator!=(TargetedExperiment_Interpretation & rhs) except + nogil
 
         unsigned char ordinal
         unsigned char rank
@@ -227,7 +252,8 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>" namespa
 
         TraMLProduct() except + nogil 
         TraMLProduct(TraMLProduct &) except + nogil  # compiler
-        bool operator==(TraMLProduct & rhs) except + nogil 
+        bool operator==(TraMLProduct & rhs) except + nogil
+        bool operator!=(TraMLProduct & rhs) except + nogil
 
         void setMZ(double mz) except + nogil 
         double getMZ() except + nogil 
@@ -246,8 +272,11 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>" namespa
 cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>" namespace "OpenMS::TargetedExperimentHelper::Peptide":
 
     cdef cppclass TargetedExperiment_Modification "OpenMS::TargetedExperimentHelper::Peptide::Modification":
-        TargetedExperiment_Modification() except + nogil 
-        TargetedExperiment_Modification(TargetedExperiment_Modification &) except + nogil 
+        TargetedExperiment_Modification() except + nogil
+        TargetedExperiment_Modification(TargetedExperiment_Modification &) except + nogil
+
+        bool operator==(TargetedExperiment_Modification & rhs) except + nogil
+        bool operator!=(TargetedExperiment_Modification & rhs) except + nogil
 
         # members
         double avg_mass_delta

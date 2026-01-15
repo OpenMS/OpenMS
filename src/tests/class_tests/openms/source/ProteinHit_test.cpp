@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 // 
 // --------------------------------------------------------------------------
@@ -259,6 +259,75 @@ START_SECTION(([ProteinHit::ScoreMore] template < typename Arg > bool operator()
   TEST_EQUAL(ProteinHit::ScoreMore().operator()(a,b), true)
   TEST_EQUAL(ProteinHit::ScoreMore().operator()(b,a), false)
   TEST_EQUAL(ProteinHit::ScoreMore().operator()(a,a), false)
+}
+END_SECTION
+
+START_SECTION((bool isDecoy() const))
+{
+  ProteinHit hit;
+  
+  // Test default behavior (no target_decoy meta value set)
+  TEST_EQUAL(hit.isDecoy(), false);
+  
+  // Test with explicit "target" value
+  hit.setMetaValue("target_decoy", "target");
+  TEST_EQUAL(hit.isDecoy(), false);
+  
+  // Test with "decoy" value
+  hit.setMetaValue("target_decoy", "decoy");
+  TEST_EQUAL(hit.isDecoy(), true);
+  
+  // Test with "DECOY" (case insensitive)
+  hit.setMetaValue("target_decoy", "DECOY");
+  TEST_EQUAL(hit.isDecoy(), true);
+  
+  // Test after removing meta value
+  hit.removeMetaValue("target_decoy");
+  TEST_EQUAL(hit.isDecoy(), false);
+}
+END_SECTION
+
+START_SECTION((void setTargetDecoyType(TargetDecoyType type)))
+{
+  ProteinHit hit;
+  
+  // Test setting TARGET
+  hit.setTargetDecoyType(ProteinHit::TargetDecoyType::TARGET);
+  TEST_EQUAL(hit.getMetaValue("target_decoy"), "target");
+  
+  // Test setting DECOY
+  hit.setTargetDecoyType(ProteinHit::TargetDecoyType::DECOY);
+  TEST_EQUAL(hit.getMetaValue("target_decoy"), "decoy");
+  
+  // Test setting UNKNOWN (should remove meta value)
+  hit.setTargetDecoyType(ProteinHit::TargetDecoyType::UNKNOWN);
+  TEST_EQUAL(hit.metaValueExists("target_decoy"), false);
+  TEST_EQUAL(hit.getTargetDecoyType(), ProteinHit::TargetDecoyType::UNKNOWN);
+}
+END_SECTION
+
+START_SECTION((TargetDecoyType getTargetDecoyType() const))
+{
+  ProteinHit hit;
+  
+  // Test default behavior (should return UNKNOWN when meta value doesn't exist)
+  TEST_EQUAL(hit.getTargetDecoyType(), ProteinHit::TargetDecoyType::UNKNOWN);
+  
+  // Test with explicit "target" value
+  hit.setMetaValue("target_decoy", "target");
+  TEST_EQUAL(hit.getTargetDecoyType(), ProteinHit::TargetDecoyType::TARGET);
+  
+  // Test with "decoy" value
+  hit.setMetaValue("target_decoy", "decoy");
+  TEST_EQUAL(hit.getTargetDecoyType(), ProteinHit::TargetDecoyType::DECOY);
+  
+  // Test with "DECOY" (case insensitive)
+  hit.setMetaValue("target_decoy", "DECOY");
+  TEST_EQUAL(hit.getTargetDecoyType(), ProteinHit::TargetDecoyType::DECOY);
+  
+  // Test after removing meta value (should return UNKNOWN)
+  hit.removeMetaValue("target_decoy");
+  TEST_EQUAL(hit.getTargetDecoyType(), ProteinHit::TargetDecoyType::UNKNOWN);
 }
 END_SECTION
 

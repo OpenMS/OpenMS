@@ -4,7 +4,7 @@ from MSExperiment cimport *
 from PeakPickerHiRes cimport *
 from ProgressLogger cimport *
 
-cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/PeakWidthEstimator.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/FEATUREFINDER/PeakWidthEstimator.h>" namespace "OpenMS":
     
     cdef cppclass PeakWidthEstimator "OpenMS::PeakWidthEstimator":
         # wrap-doc:

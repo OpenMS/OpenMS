@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -640,9 +640,9 @@ namespace OpenMS
           return ParamValue(v);
         }
       default:
-        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Type of DataValue is unkown!");    
+        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Type of DataValue is unknown!");
     }
-    throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Type of DataValue is unkown!");
+    throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Type of DataValue is unknown!");
   }
 
   DataValue::operator std::string() const
@@ -900,4 +900,29 @@ namespace OpenMS
     unit_ = unit;
   }
 
-} //namespace
+  DataValue::DataType DataValue::valueType() const
+  {
+    return value_type_;
+  }
+
+  bool DataValue::isEmpty() const
+  {
+    return value_type_ == EMPTY_VALUE;
+  }
+
+  DataValue::UnitType DataValue::getUnitType() const
+  {
+    return unit_type_;
+  }
+
+  void DataValue::setUnitType(const DataValue::UnitType & u)
+  {
+    unit_type_ = u;
+  }
+
+  bool DataValue::hasUnit() const
+  {
+    return unit_ != -1;
+  }
+
+} // namespace OpenMS

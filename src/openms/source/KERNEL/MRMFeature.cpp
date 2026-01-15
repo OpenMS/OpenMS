@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -146,6 +146,8 @@ namespace OpenMS
     setMetaValue(id + "intensity_score", idscores.ind_intensity_score);
     setMetaValue(id + "intensity_ratio_score", idscores.ind_intensity_ratio);
     setMetaValue(id + "apex_intensity", idscores.ind_apex_intensity);
+    setMetaValue(id + "peak_apex_position", idscores.ind_apex_position);
+    setMetaValue(id + "width_at_50", idscores.ind_fwhm);
     setMetaValue(id + "total_mi", idscores.ind_total_mi);
     setMetaValue(id + "transition_names", idscores.ind_transition_names);
     setMetaValue(id + "ind_log_intensity", idscores.ind_log_intensity);
@@ -157,6 +159,35 @@ namespace OpenMS
     setMetaValue(id + "ind_massdev_score", idscores.ind_massdev_score);
     setMetaValue(id + "ind_mi_score", idscores.ind_mi_score);
     setMetaValue(id + "ind_mi_ratio_score", idscores.ind_mi_ratio);
+
+    // Ion mobility scores
+    setMetaValue(id + "ind_im_drift", idscores.ind_im_drift);
+    setMetaValue(id + "ind_im_drift_left", idscores.ind_im_drift_left);
+    setMetaValue(id + "ind_im_drift_right", idscores.ind_im_drift_right);
+    setMetaValue(id + "ind_im_delta", idscores.ind_im_delta);
+    setMetaValue(id + "ind_im_delta_score", idscores.ind_im_delta_score);
+    setMetaValue(id + "ind_im_log_intensity", idscores.ind_im_log_intensity);
+    setMetaValue(id + "ind_im_contrast_coelution", idscores.ind_im_contrast_coelution);
+    setMetaValue(id + "ind_im_contrast_shape", idscores.ind_im_contrast_shape);
+    setMetaValue(id + "ind_im_sum_contrast_coelution", idscores.ind_im_sum_contrast_coelution);
+    setMetaValue(id + "ind_im_sum_contrast_shape", idscores.ind_im_sum_contrast_shape);
+
+    // peak shape metrics
+    setMetaValue(id + "ind_start_position_at_5", idscores.ind_start_position_at_5);
+    setMetaValue(id + "ind_end_position_at_5", idscores.ind_end_position_at_5);
+    setMetaValue(id + "ind_start_position_at_10", idscores.ind_start_position_at_10);
+    setMetaValue(id + "ind_end_position_at_10", idscores.ind_end_position_at_10);
+    setMetaValue(id + "ind_start_position_at_50", idscores.ind_start_position_at_50);
+    setMetaValue(id + "ind_end_position_at_50", idscores.ind_end_position_at_50);
+    setMetaValue(id + "ind_total_width", idscores.ind_total_width);
+    setMetaValue(id + "ind_tailing_factor", idscores.ind_tailing_factor);
+    setMetaValue(id + "ind_asymmetry_factor", idscores.ind_asymmetry_factor);
+    setMetaValue(id + "ind_slope_of_baseline", idscores.ind_slope_of_baseline);
+    setMetaValue(id + "ind_baseline_delta_2_height", idscores.ind_baseline_delta_2_height);
+    setMetaValue(id + "ind_points_across_baseline", idscores.ind_points_across_baseline);
+    setMetaValue(id + "ind_points_across_half_height", idscores.ind_points_across_half_height);
+
+
   }
 }
 

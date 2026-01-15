@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -54,7 +54,7 @@ public:
     static ModificationsDB* getInstance();
 
     /// Initializes the modification DB with non-default modification files (can only be done once)
-    static ModificationsDB* initializeModificationsDB(OpenMS::String unimod_file = "CHEMISTRY/unimod.xml", OpenMS::String psimod_file = "CHEMISTRY/PSI-MOD.obo", OpenMS::String xlmod_file = "CHEMISTRY/XLMOD.obo");
+    static ModificationsDB* initializeModificationsDB(OpenMS::String unimod_file = "CHEMISTRY/unimod.xml", OpenMS::String custommod_file = "CHEMISTRY/custom_mods.xml", OpenMS::String psimod_file = "CHEMISTRY/PSI-MOD.obo", OpenMS::String xlmod_file = "CHEMISTRY/XLMOD.obo");
 
     /// Check whether ModificationsDB was instantiated before
     static bool isInstantiated();
@@ -248,7 +248,7 @@ private:
 
      */
     //@{
-    explicit ModificationsDB(const OpenMS::String& unimod_file = "CHEMISTRY/unimod.xml", const OpenMS::String& psimod_file = "CHEMISTRY/PSI-MOD.obo", const OpenMS::String& xlmod_file = "CHEMISTRY/XLMOD.obo");
+    explicit ModificationsDB(const OpenMS::String& unimod_file = "CHEMISTRY/unimod.xml", const OpenMS::String& custommod_file = "CHEMISTRY/custom_mods.xml", const OpenMS::String& psimod_file = "CHEMISTRY/PSI-MOD.obo", const OpenMS::String& xlmod_file = "CHEMISTRY/XLMOD.obo");
 
     /// Copy constructor
     ModificationsDB(const ModificationsDB& residue_db);

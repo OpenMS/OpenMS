@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -166,35 +166,35 @@ protected:
       if (in_type == FileTypes::MZML)
       {
         PeakMap map;
-        FileHandler().loadExperiment(in, map, {FileTypes::MZML});
+        FileHandler().loadExperiment(in, map, {FileTypes::MZML}, log_type_);
         applyTransformation_( trafo, map);
-        FileHandler().storeExperiment(out, map, {FileTypes::MZML});
+        FileHandler().storeExperiment(out, map, {FileTypes::MZML}, log_type_);
 
       }
       else if (in_type == FileTypes::FEATUREXML)
       {
         FeatureMap map;
-        FileHandler().loadFeatures(in, map, {FileTypes::FEATUREXML});
+        FileHandler().loadFeatures(in, map, {FileTypes::FEATUREXML}, log_type_);
         applyTransformation_( trafo, map);
-        FileHandler().storeFeatures(out, map, {FileTypes::FEATUREXML});
+        FileHandler().storeFeatures(out, map, {FileTypes::FEATUREXML}, log_type_);
       }
       else if (in_type == FileTypes::CONSENSUSXML)
       {
         ConsensusMap map;
-        FileHandler().loadConsensusFeatures(in, map, {FileTypes::CONSENSUSXML});
+        FileHandler().loadConsensusFeatures(in, map, {FileTypes::CONSENSUSXML}, log_type_);
         applyTransformation_( trafo, map);
-        FileHandler().storeConsensusFeatures(out, map, {FileTypes::CONSENSUSXML});
+        FileHandler().storeConsensusFeatures(out, map, {FileTypes::CONSENSUSXML}, log_type_);
       }
       else if (in_type == FileTypes::IDXML)
       {
         vector<ProteinIdentification> proteins;
-        vector<PeptideIdentification> peptides;
-        FileHandler().loadIdentifications(in, proteins, peptides, {FileTypes::IDXML});
+        PeptideIdentificationList peptides;
+        FileHandler().loadIdentifications(in, proteins, peptides, {FileTypes::IDXML}, log_type_);
         bool store_original_rt = getFlag_("store_original_rt");
         MapAlignmentTransformer::transformRetentionTimes(peptides, trafo,
                                                          store_original_rt);
         // no "data processing" section in idXML
-        FileHandler().storeIdentifications(out, proteins, peptides, {FileTypes::IDXML});
+        FileHandler().storeIdentifications(out, proteins, peptides, {FileTypes::IDXML}, log_type_);
       }
     }
 

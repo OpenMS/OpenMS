@@ -6,7 +6,7 @@ from Peak1D cimport *
 from ChromatogramPeak cimport *
 from libcpp.vector cimport vector as libcpp_vector
 
-cdef extern from "<OpenMS/FILTERING/SMOOTHING/LowessSmoothing.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/PROCESSING/SMOOTHING/LowessSmoothing.h>" namespace "OpenMS":
 
     cdef cppclass LowessSmoothing(DefaultParamHandler):
         # wrap-inherits:

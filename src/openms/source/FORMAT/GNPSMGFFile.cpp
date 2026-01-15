@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -9,9 +9,9 @@
 //
 
 #include <OpenMS/FORMAT/GNPSMGFFile.h>
-#include <OpenMS/COMPARISON/SPECTRA/BinnedSpectralContrastAngle.h>
+#include <OpenMS/COMPARISON/BinnedSpectralContrastAngle.h>
 #include <OpenMS/CONCEPT/UniqueIdInterface.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/SpectraMerger.h>
+#include <OpenMS/PROCESSING/SPECTRAMERGING/SpectraMerger.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/KERNEL/OnDiscMSExperiment.h>
@@ -215,7 +215,7 @@ namespace OpenMS
     for (pair<int,double>& element_pair : sorted_element_maps)
     {
       int element_map = element_pair.first;
-      vector<PeptideIdentification> feature_pepts = feature.getPeptideIdentifications();
+      PeptideIdentificationList feature_pepts = feature.getPeptideIdentifications();
       for (PeptideIdentification& pept_id : feature_pepts)
       {
         if (pept_id.metaValueExists("spectrum_index") && pept_id.metaValueExists("map_index")
@@ -228,7 +228,7 @@ namespace OpenMS
         }
       }
     }
-    // return will be reformatted vector<PeptideIdentification> pepts passed in by value
+    // return will be reformatted PeptideIdentificationList pepts passed in by value
   }
 
   void GNPSMGFFile::store(const String& consensus_file_path, const StringList& mzml_file_paths, const String& out) const

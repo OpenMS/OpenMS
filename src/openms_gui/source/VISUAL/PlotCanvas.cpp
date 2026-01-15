@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -8,7 +8,7 @@
 
 // OpenMS
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimator.h>
+#include <OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimator.h>
 #include <OpenMS/SYSTEM/FileWatcher.h>
 #include <OpenMS/VISUAL/AxisWidget.h>
 #include <OpenMS/VISUAL/LayerData1DChrom.h>
@@ -84,6 +84,12 @@ namespace OpenMS
 #endif
   }
 
+  
+  void PlotCanvas::initFilters(const DataFilters& filters)
+  {
+    layers_.getCurrentLayer().filters = filters;
+  }
+
   void PlotCanvas::setFilters(const DataFilters& filters)
   {
     // set filters
@@ -129,8 +135,14 @@ namespace OpenMS
 
   void PlotCanvas::changeVisibleArea_(VisibleArea new_area, bool repaint, bool add_to_stack)
   {
-    // make sure we stay inside the overall data range
-    new_area.pushInto(overall_data_range_);
+    auto data_range = getDataRange(); // getDataRange() is virtual, since its special for 1D (0-based intensity)
+    if (intensity_mode_ == IM_PERCENTAGE)
+    { // new_area will have [0, 100], and we don't want to make that any smaller if the data only goes up to, say 50
+    }
+    else
+    { // make sure we stay inside the overall data range
+      new_area.pushInto(data_range);
+    }
 
     // store old zoom state
     if (add_to_stack)
@@ -144,14 +156,12 @@ namespace OpenMS
       zoomAdd_(new_area);
     }
 
-    if (new_area != visible_area_)
-    {
-      visible_area_ = new_area;
-      updateScrollbars_();
-      recalculateSnapFactor_();
-      emit visibleAreaChanged(new_area); // calls PlotWidget::updateAxes, which calls Plot(1D/2D/3D)Widget::recalculateAxes_
-      emit layerZoomChanged(this); // calls TOPPViewBase::zoomOtherWindows (for linked windows)
-    }
+    // always update, even if the area did not change, since the intensity mode might have changed
+    visible_area_ = new_area;
+    updateScrollbars_();
+    recalculateSnapFactor_();
+    emit visibleAreaChanged(new_area); // calls PlotWidget::updateAxes, which calls Plot(1D/2D/3D)Widget::recalculateAxes_
+    emit layerZoomChanged(this); // calls TOPPViewBase::zoomOtherWindows (for linked windows)
 
     if (repaint)
     {
@@ -166,13 +176,7 @@ namespace OpenMS
 
   void PlotCanvas::wheelEvent(QWheelEvent* e)
   {
-     /* Supressed warning int QWheelEvent::x() const and y() deprecated
-     * Use position() instead, from Qt 5.14; CONTRIB_UPDATE_Qt_5.14
-     */
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-    zoom_(e->x(), e->y(), e->delta() > 0);
-#pragma GCC diagnostic pop
+    zoom_(e->position().x(), e->position().y(), e->angleDelta().y() > 0);
     e->accept();
   }
 
@@ -392,24 +396,35 @@ namespace OpenMS
   }
 
 
-  void setBaseLayerParameters(LayerDataBase* new_layer, const Param& param, const String& filename)
+  void setBaseLayerParameters(LayerDataBase* new_layer, const Param& param, const String& filename, const String& caption)
   {
     new_layer->param = param;
     new_layer->filename = filename;
-    new_layer->setName(QFileInfo(filename.toQString()).completeBaseName());
+    if (! caption.empty())
+    {
+      new_layer->setName(caption);
+    }
+    else 
+    {
+      new_layer->setName(QFileInfo(filename.toQString()).completeBaseName());
+    }
   }
 
   bool PlotCanvas::addLayer(std::unique_ptr<LayerData1DBase> new_layer)
   {
-    setBaseLayerParameters(new_layer.get(), param_, new_layer->filename);
+    setBaseLayerParameters(new_layer.get(), param_, new_layer->filename, new_layer->getName());
     layers_.addLayer(std::move(new_layer));
 
     return finishAdding_();
   }
 
-  bool PlotCanvas::addPeakLayer(const ExperimentSharedPtrType& map, ODExperimentSharedPtrType od_map, const String& filename, const bool use_noise_cutoff)
+  bool PlotCanvas::addPeakLayer(const ExperimentSharedPtrType& map,
+                                ODExperimentSharedPtrType od_map,
+                                const String& filename,
+                                const String& caption,
+                                const bool use_noise_cutoff)
   {
-    if (map->getSpectra().empty())
+    if (map->getMSExperiment().getSpectra().empty())
     {
       auto msg = "Your input data contains no spectra. Not adding layer.";
       OPENMS_LOG_WARN << msg << std::endl;
@@ -425,24 +440,24 @@ namespace OpenMS
     new_layer->setPeakData(map);
     new_layer->setOnDiscPeakData(std::move(od_map));
 
-    setBaseLayerParameters(new_layer.get(), param_, filename);
+    setBaseLayerParameters(new_layer.get(), param_, filename, caption);
     layers_.addLayer(std::move(new_layer));
 
     // calculate noise
     if (use_noise_cutoff)
     {
-      auto cutoff = estimateNoiseFromRandomScans(*map, 1, 10, 5); // 5% of low intensity data is considered noise
+      auto cutoff = estimateNoiseFromRandomScans(map->getMSExperiment(), 1, 10, 5); // 5% of low intensity data is considered noise
       DataFilters filters;
       filters.add(DataFilters::DataFilter(DataFilters::INTENSITY, DataFilters::GREATER_EQUAL, cutoff));
-      setFilters(filters);
+      initFilters(filters);
     }
     else // no mower, hide zeros if wanted
     {
-      if (map->hasZeroIntensities(1))
+      if (map->getMSExperiment().hasZeroIntensities(1))
       {
         DataFilters filters;
         filters.add(DataFilters::DataFilter(DataFilters::INTENSITY, DataFilters::GREATER_EQUAL, 0.001));
-        setFilters(filters);
+        initFilters(filters);
       }
     }
 
@@ -450,9 +465,9 @@ namespace OpenMS
   }
 
   
-  bool PlotCanvas::addChromLayer(const ExperimentSharedPtrType& map, ODExperimentSharedPtrType od_map, const String& filename)
+  bool PlotCanvas::addChromLayer(const ExperimentSharedPtrType& map, ODExperimentSharedPtrType od_map, const String& filename, const String& caption)
   {
-    if (map->getChromatograms().empty())
+    if (map->getMSExperiment().getChromatograms().empty())
     {
       auto msg = "Your input data contains no chromatograms. Not adding layer.";
       OPENMS_LOG_WARN << msg << std::endl;
@@ -468,36 +483,36 @@ namespace OpenMS
     new_layer->setChromData(map);
     new_layer->setOnDiscPeakData(std::move(od_map));
 
-    setBaseLayerParameters(new_layer.get(), param_, filename);
+    setBaseLayerParameters(new_layer.get(), param_, filename, caption);
     layers_.addLayer(std::move(new_layer));
 
     return finishAdding_();
   }
 
-  bool PlotCanvas::addLayer(FeatureMapSharedPtrType map, const String& filename)
+  bool PlotCanvas::addLayer(FeatureMapSharedPtrType map, const String& filename, const String& caption)
   {
     LayerDataFeatureUPtr new_layer(new LayerDataFeature);
     new_layer->getFeatureMap() = std::move(map);
 
-    setBaseLayerParameters(new_layer.get(), param_, filename);
+    setBaseLayerParameters(new_layer.get(), param_, filename, caption);
     layers_.addLayer(std::move(new_layer));
     return finishAdding_();
   }
 
-  bool PlotCanvas::addLayer(ConsensusMapSharedPtrType map, const String& filename)
+  bool PlotCanvas::addLayer(ConsensusMapSharedPtrType map, const String& filename, const String& caption)
   {
     LayerDataBaseUPtr new_layer(new LayerDataConsensus(map));
 
-    setBaseLayerParameters(new_layer.get(), param_, filename);
+    setBaseLayerParameters(new_layer.get(), param_, filename, caption);
     layers_.addLayer(std::move(new_layer));
     return finishAdding_();
   }
 
-  bool PlotCanvas::addLayer(vector<PeptideIdentification>& peptides, const String& filename)
+  bool PlotCanvas::addLayer(PeptideIdentificationList& peptides, const String& filename, const String& caption)
   {
     LayerDataIdent* new_layer(new LayerDataIdent); // ownership will be transferred to unique_ptr below; no need to delete
     new_layer->setPeptideIds(std::move(peptides));
-    setBaseLayerParameters(new_layer, param_, filename);
+    setBaseLayerParameters(new_layer, param_, filename, caption);
     layers_.addLayer(LayerDataBaseUPtr(new_layer));
     return finishAdding_();
   }
@@ -621,7 +636,7 @@ namespace OpenMS
     releaseKeyboard();
   }
 
-  void PlotCanvas::enterEvent(QEvent* /*e*/)
+  void PlotCanvas::enterEvent(QEnterEvent* /*e*/)
   {
     // grab keyboard, as we need to handle key presses
     grabKeyboard();
@@ -732,11 +747,11 @@ namespace OpenMS
     {
       if (auto lp = dynamic_cast<LayerDataPeak*>(&layer))
       {
-        dlg.add(*lp->getPeakDataMuteable());
+        dlg.add(lp->getPeakDataMuteable()->getMSExperiment());
         // Exception for Plot1DCanvas, here we add the meta data of the one spectrum
         if (auto lp1 = dynamic_cast<LayerData1DPeak*>(&layer))
         {
-          dlg.add((*lp1->getPeakDataMuteable())[lp1->getCurrentIndex()]);
+          dlg.add(lp1->getPeakDataMuteable()->getMSExperiment()[lp1->getCurrentIndex()]);
         }
       }
       if (auto lp = dynamic_cast<LayerDataFeature*>(&layer))
@@ -760,7 +775,7 @@ namespace OpenMS
     {
       if (auto lp = dynamic_cast<LayerDataPeak*>(&layer))
       {
-        dlg.add((*lp->getPeakDataMuteable())[index]);
+        dlg.add(lp->getPeakDataMuteable()->getMSExperiment()[index]);
       }
       else if (auto lp = dynamic_cast<LayerDataFeature*>(&layer))
       {

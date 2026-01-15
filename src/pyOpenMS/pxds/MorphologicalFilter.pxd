@@ -5,7 +5,7 @@ from MSSpectrum cimport *
 from Peak1D cimport *
 from ChromatogramPeak cimport *
 
-cdef extern from "<OpenMS/FILTERING/BASELINE/MorphologicalFilter.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/PROCESSING/BASELINE/MorphologicalFilter.h>" namespace "OpenMS":
 
     cdef cppclass MorphologicalFilter(DefaultParamHandler,ProgressLogger):
         # wrap-inherits:

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -147,8 +147,11 @@ namespace OpenMS
      * 
      * @param rhs The matrix to be compared.
      * @return True if matrices are equal, false otherwise.
+     * 
+     * @throw Exception::Precondition if matrices have different dimensions (Debug mode only)
      */
     bool operator==(const Matrix& rhs) const { 
+      OPENMS_PRECONDITION(this->rows() == rhs.rows() && this->cols() == rhs.cols(), "Matrices must have the same dimensions for comparison.");
       return EigenMatrixType::operator==(rhs);
     }
 

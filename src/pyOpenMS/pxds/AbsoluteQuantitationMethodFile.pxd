@@ -9,4 +9,4 @@ cdef extern from "<OpenMS/FORMAT/AbsoluteQuantitationMethodFile.h>" namespace "O
         AbsoluteQuantitationMethodFile(AbsoluteQuantitationMethodFile &) except + nogil  # compiler
 
         void load(const String& filename, libcpp_vector[ AbsoluteQuantitationMethod ]& aqm_list) except + nogil 
-        void store(const String& filename, libcpp_vector[ AbsoluteQuantitationMethod ]& aqm_list) except + nogil 
+        void store(const String& filename, const libcpp_vector[ AbsoluteQuantitationMethod ]& aqm_list) except + nogil 

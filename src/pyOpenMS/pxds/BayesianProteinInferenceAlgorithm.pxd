@@ -63,7 +63,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/BayesianProteinInferenceAlgorithm.h>" name
         BayesianProteinInferenceAlgorithm(unsigned int debug_lvl) except + nogil 
 
         void inferPosteriorProbabilities(libcpp_vector[ ProteinIdentification ] & proteinIDs, 
-                                         libcpp_vector[ PeptideIdentification ] & peptideIDs,
+                                         PeptideIdentificationList & peptideIDs,
                                          bool greedy_group_resolution) except + nogil 
           # wrap-doc:
           #  Optionally adds indistinguishable protein groups with separate scores, too
@@ -75,7 +75,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/BayesianProteinInferenceAlgorithm.h>" name
           #  :return: Writes its results into protein and (optionally also) peptide hits (as new score)
 
         void inferPosteriorProbabilities(libcpp_vector[ ProteinIdentification ] & proteinIDs, 
-                                         libcpp_vector[ PeptideIdentification ] & peptideIDs,
+                                         PeptideIdentificationList & peptideIDs,
                                          bool greedy_group_resolution,
                                          ExperimentalDesign exp_des) except + nogil 
           # wrap-doc:

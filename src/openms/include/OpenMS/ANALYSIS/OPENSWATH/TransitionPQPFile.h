@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -244,7 +244,12 @@ public:
     */
     void convertPQPToTargetedExperiment(const char* filename, OpenSwath::LightTargetedExperiment& targeted_exp, bool legacy_traml_id = false);
 
+    /** @brief Creates an undordered map between the traml_id and the pqp id
+     * 
+     * @param filename The input file
+     * @param tableName The name of the table (can be "PRECURSOR" or "TRANSITION" since theses are the only tables that have a TRAML_ID)
+     */
+    std::unordered_map<std::string, std::string> getPQPIDToTraMLIDMap(const char* filename, std::string tableName);
+
   };
 }
-
-

@@ -1,38 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8  -*-
 """
---------------------------------------------------------------------------
-                  OpenMS -- Open-Source Mass Spectrometry
---------------------------------------------------------------------------
-Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-ETH Zurich, and Freie Universitaet Berlin 2002-2023.
-
-This software is released under a three-clause BSD license:
- * Redistributions of source code must retain the above copyright
-   notice, this list of conditions and the following disclaimer.
- * Redistributions in binary form must reproduce the above copyright
-   notice, this list of conditions and the following disclaimer in the
-   documentation and/or other materials provided with the distribution.
- * Neither the name of any author or any participating institution
-   may be used to endorse or promote products derived from this software
-   without specific prior written permission.
-For a full list of authors, refer to the file AUTHORS.
---------------------------------------------------------------------------
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
---------------------------------------------------------------------------
-$Maintainer: Hannes Roest$
-$Authors: Hannes Roest$
---------------------------------------------------------------------------
+# Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+# SPDX-License-Identifier: BSD-3-Clause
+# 
+# --------------------------------------------------------------------------
+# $Maintainer: Hannes Roest$
+# $Authors: Hannes Roest$
+# --------------------------------------------------------------------------
 """
 from __future__ import print_function
 
@@ -196,7 +171,7 @@ def handle_member_definition(mdef, pxd_class, cnt):
                     tres.setMessage("Renamed constructor")
                 else:
                     tres.setPassed(False)
-                    tres.setMessage(" -- TODO missing constructor in PXD: %s nogil except +" % mdef.format_definition_for_cython())
+                    tres.setMessage(" -- TODO missing constructor in PXD: %s except + nogil " % mdef.format_definition_for_cython())
 
             elif (mdef.name.find("operator") != -1 or
                   mdef.name.find("begin") != -1 or
@@ -206,7 +181,7 @@ def handle_member_definition(mdef, pxd_class, cnt):
                 tres.setMessage("Cannot wrap method with iterator/operator %s" % mdef.name)
             else:
                 tres.setPassed(False)
-                tres.setMessage(" -- TODO missing function in PXD: %s nogil except +" % mdef.format_definition_for_cython())
+                tres.setMessage(" -- TODO missing function in PXD: %s except + nogil " % mdef.format_definition_for_cython())
     else:
         # It is neither public function/enum/variable
         tres.setPassed(True)
@@ -486,10 +461,10 @@ class DoxygenXMLFile(object):
                     # assignment operator, cannot be overriden in Python
                     continue
                 if mdef.definition.find("static") != -1:
-                    methods += "        # TODO: static # %s nogil except +\n" % declaration
-                    static_methods += "        %s nogil except + # wrap-attach:%s\n" % (declaration, preferred_classname)
+                    methods += "        # TODO: static # %s except + nogil \n" % declaration
+                    static_methods += "        %s except + nogil  # wrap-attach:%s\n" % (declaration, preferred_classname)
                     continue
-                methods += "        %s nogil except +\n" % declaration
+                methods += "        %s except + nogil \n" % declaration
 
         # Build up the whole file
         res  = DoxygenCppFunction.generate_imports(imports_needed) # add default cimport
@@ -498,11 +473,11 @@ class DoxygenXMLFile(object):
         # We need to create a default ctor in any case, however we do not need
         # to *wrap* the copy constructor even though we need to have one for Cython
         if True: # not default_ctor:
-            res += "        %s() nogil except +\n" % comp_name.split("::")[-1]
+            res += "        %s() except + nogil \n" % comp_name.split("::")[-1]
         if not copy_ctor:
-            res += "        %s(%s) nogil except + #wrap-ignore\n" % (comp_name.split("::")[-1], comp_name.split("::")[-1])
+            res += "        %s(%s) except + nogil  #wrap-ignore\n" % (comp_name.split("::")[-1], comp_name.split("::")[-1])
         else:
-            res += "        %s(%s) nogil except +\n" % (comp_name.split("::")[-1], comp_name.split("::")[-1])
+            res += "        %s(%s) except + nogil \n" % (comp_name.split("::")[-1], comp_name.split("::")[-1])
         res += methods
         res += enum
         res += "\n"
@@ -645,8 +620,8 @@ class DoxygenCppFunction(object):
 
         # Add nogil
         if replace_nogil:
-            cpp_def = cpp_def.replace(";", "nogil except +")
-            cpp_def = cpp_def.replace("const;", "nogil except +")
+            cpp_def = cpp_def.replace(";", "except + nogil ")
+            cpp_def = cpp_def.replace("const;", "except + nogil ")
         else:
             cpp_def = cpp_def.replace("const;", "")
             cpp_def = cpp_def.replace(";", "")
@@ -1145,7 +1120,7 @@ def checkPythonPxdHeader(src_path, bin_path, ignorefilename, pxds_out, print_pxd
         elif comp_name.startswith("KDTree::"):
             # KD Tree namespace
             continue
-        elif not (comp_name.startswith("OpenMS") or comp_name.startswith("OpenSwath") or comp_name.startswith("RNPxl") ):
+        elif not (comp_name.startswith("OpenMS") or comp_name.startswith("OpenSwath") or comp_name.startswith("OpenNuXL") ):
             # Continue without checking or generating a testreport
             print ("Unknown namespace", comp_name)
             continue

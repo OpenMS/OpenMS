@@ -42,7 +42,6 @@ cdef extern from "<OpenMS/FORMAT/FileTypes.h>" namespace "OpenMS::FileTypes":
           PEPXML,             # < TPP pepXML file (.pepXML)
           PROTXML,            # < TPP protXML file (.protXML)
           MZIDENTML,          # < mzIdentML (HUPO PSI AnalysisXML followup format) (.mzid)
-          MZQUANTML,          # < mzQuantML (HUPO PSI AnalysisXML followup format) (.mzq)
           QCML,               # < qcML (will undergo standardisation maybe) (.qcml)
           GELML,              # < GelML (HUPO PSI format) (.gelML)
           TRAML,              # < TraML (HUPO PSI format) for transitions (.traML)

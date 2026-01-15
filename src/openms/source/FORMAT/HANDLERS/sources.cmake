@@ -14,7 +14,6 @@ set(sources_list
   MzDataHandler.cpp
   MzIdentMLHandler.cpp
   MzIdentMLDOMHandler.cpp
-  MzQuantMLHandler.cpp
   MzMLHandler.cpp
   MzMLHandlerHelper.cpp
   MzMLSpectrumDecoder.cpp

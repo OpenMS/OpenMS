@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -12,6 +12,7 @@
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/ExperimentalDesign.h>
 
@@ -36,11 +37,11 @@ public:
     /// Quantitative and associated data for a peptide
     struct PeptideData
     {
-      /// mapping: fraction -> charge -> sample -> abundance
-      std::map<Int, std::map<Int, SampleAbundances>> abundances;
+      /// mapping: fraction -> filename -> charge -> channel/label -> abundance
+      std::map<Int, std::map<String, std::map<Int, std::map<Int, double>>>> abundances;
 
-      /// mapping: fraction -> charge -> sample -> abundance
-      std::map<Int, std::map<Int, SampleAbundances>> psm_counts;
+      /// mapping: fraction -> filename -> charge -> abundance
+      std::map<Int, std::map<String, std::map<Int, UInt64>>> psm_counts;
 
       /// mapping: sample -> total abundance
       SampleAbundances total_abundances;
@@ -65,9 +66,15 @@ public:
     struct ProteinData
     {
       /// mapping: peptide (unmodified) -> sample -> abundance
-      std::map<String, SampleAbundances> abundances;
+      std::map<String, SampleAbundances> peptide_abundances;
 
-      std::map<String, SampleAbundances> psm_counts;
+      std::map<String, SampleAbundances> peptide_psm_counts;
+
+      /// mapping: filename -> channel/label -> abundance
+      std::map<String, std::map<Int, double>> channel_level_abundances;
+
+      /// mapping: filename -> PSM counts
+      std::map<String, UInt64> file_level_psm_counts;
 
       /// mapping: sample -> total abundance
       SampleAbundances total_abundances;
@@ -142,7 +149,7 @@ public:
          Parameters should be set before using this method, as setting parameters will clear all results.
     */
     void readQuantData(std::vector<ProteinIdentification>& proteins,
-                       std::vector<PeptideIdentification>& peptides,
+                       PeptideIdentificationList& peptides,
                        const ExperimentalDesign& ed);
 
     /**
@@ -154,17 +161,21 @@ public:
 
          Optional (peptide-level) protein inference information (e.g. from Fido or ProteinProphet) can be supplied via @p peptides. In that case, peptide-to-protein associations - the basis for protein-level quantification - will also be read from @p peptides!
     */
-    void quantifyPeptides(const std::vector<PeptideIdentification>& peptides =
-                          std::vector<PeptideIdentification>());
+    void quantifyPeptides(const PeptideIdentificationList& peptides =
+                          PeptideIdentificationList());
 
 
     /**
          @brief Compute protein abundances.
 
-         Peptide abundances must be computed first with quantifyPeptides(). Optional protein inference information (e.g. from Fido or ProteinProphet) can be supplied via @p proteins.
+         Peptide abundances must be computed first with quantifyPeptides(). Optional protein inference information (e.g. BasicProteinInference or Epifany) can be supplied via @p proteins.
+         
+         @param proteins Optional protein inference information
     */
-    void quantifyProteins(const ProteinIdentification& proteins = 
-                          ProteinIdentification());
+    void quantifyProteins(const ProteinIdentification& proteins = ProteinIdentification());
+
+
+    std::map<OpenMS::String, OpenMS::String> mapAccessionToLeader(const OpenMS::ProteinIdentification& proteins) const;
 
     /// Get summary statistics
     const Statistics& getStatistics();
@@ -192,6 +203,9 @@ private:
     /// Protein quantification data
     ProteinQuant prot_quant_;
 
+    /// Experimental design for filename/channel to sample mapping
+    ExperimentalDesign experimental_design_;
+
 
     /**
          @brief Get the "canonical" annotation (a single peptide hit) of a feature/consensus feature from the associated list of peptide identifications.
@@ -199,31 +213,33 @@ private:
          Only the best-scoring peptide hit of each ID in @p peptides is taken into account. The hits of each ID must already be sorted! If there's more than one ID and the best hits are not identical by sequence, or if there's no peptide ID, an empty peptide hit (for "ambiguous/no annotation") is returned.
          Protein accessions from identical peptide hits are accumulated.
     */
-    PeptideHit getAnnotation_(std::vector<PeptideIdentification>& peptides);
+    PeptideHit getAnnotation_(PeptideIdentificationList& peptides);
 
     /**
          @brief Gather quantitative information from a feature.
 
-         Store quantitative information from @p feature in member @p pep_quant_, based on the peptide annotation in @p hit. 
+         Store quantitative information from @p feature in member @p pep_quant_, based on the peptide annotation in @p hit.
          @p fraction, use 0 for first fraction (or if no fractionation was performed)
-         @p sample, use 0 for first sample, 1 for second, ... 
+         @p filename, the base filename (without path/extension) from which the feature originates
+         @p channel_or_label, the channel/label identifier (e.g., TMT channel, typically 1 for LFQ)
          If @p hit is empty ("ambiguous/no annotation"), nothing is stored.
     */
-    void quantifyFeature_(const FeatureHandle& feature, 
-      size_t fraction, 
-      size_t sample, 
-      const PeptideHit& hit);
+    void quantifyFeature_(const FeatureHandle& feature,
+      size_t fraction,
+      const String& filename,
+      const PeptideHit& hit,
+      Int channel_or_label);
 
     /**
-     *   @brief Determine fraction and charge state of a peptide with the highest
+     *   @brief Determine fraction, filename, charge state, and channel of a peptide with the highest
      *   number of abundances.
-     *   @param peptide_abundances Const input map fraction -> charge -> SampleAbundances
-     *   @param best Will additionally return the best fraction and charge state
+     *   @param peptide_abundances Const input map fraction -> filename -> charge -> channel -> abundance
+     *   @param best Will additionally return the best fraction, filename, charge state, and channel
      *   @return true if at least one abundance was found, false otherwise
-     */ 
+     */
     bool getBest_(
-      const std::map<Int, std::map<Int, SampleAbundances>> & peptide_abundances, 
-      std::pair<size_t, size_t> & best);
+      const std::map<Int, std::map<String, std::map<Int, std::map<Int, double>>>> & peptide_abundances,
+      std::tuple<size_t, String, size_t, Int> & best);
 
     /**
          @brief Order keys (charges/peptides for peptide/protein quantification) according to how many samples they allow to quantify, breaking ties by total abundance.
@@ -265,6 +281,76 @@ private:
     void normalizePeptides_();
 
     /**
+         @brief Transfer peptide-level quantitative data to protein-level data structures.
+         
+         This method populates prot_quant_ with peptide abundance and PSM count data.
+         
+         @param proteins Protein identification information
+    */
+    void transferPeptideDataToProteins_(const ProteinIdentification& proteins);
+
+    /**
+         @brief Select peptides for protein quantification based on filtering criteria.
+         
+         @param protein_accession The protein accession to select peptides for
+         @param top_n Maximum number of peptides to select (0 = no limit)
+         @param fix_peptides Whether to use consistent peptides across samples
+         @return Vector of selected peptide sequences
+    */
+    std::vector<String> selectPeptidesForQuantification_(const String& protein_accession,
+                                                        Size top_n,
+                                                        bool fix_peptides);
+
+    /**
+         @brief Aggregate abundances using the specified mathematical method.
+         
+         @param abundances Vector of abundance values to aggregate
+         @param method Aggregation method ("median", "mean", "weighted_mean", "sum")
+         @return Aggregated abundance value
+    */
+    double aggregateAbundances_(const std::vector<double>& abundances,
+                               const String& method) const;
+
+    /**
+         @brief Calculate protein abundances for a single protein using selected peptides.
+         
+         @param protein_accession The protein accession
+         @param selected_peptides Vector of peptide sequences to use for quantification
+         @param aggregate_method Method to aggregate peptide abundances
+         @param top_n Maximum number of peptides to use per sample
+         @param include_all Whether to include proteins with insufficient peptides
+    */
+    void calculateProteinAbundances_(const String& protein_accession,
+                                    const std::vector<String>& selected_peptides,
+                                    const String& aggregate_method,
+                                    Size top_n,
+                                    bool include_all);
+
+    /**
+         @brief Calculate detailed protein abundances at channel level using selected peptides.
+         
+         @param protein_accession The protein accession
+         @param selected_peptides Vector of peptide sequences to use for quantification
+         @param aggregate_method Method to aggregate peptide abundances
+         @param top_n Maximum number of peptides to use per sample
+         @param include_all Whether to include proteins with insufficient peptides
+         @param accession_to_leader Map for resolving protein group leaders
+    */
+    void calculateFileAndChannelLevelProteinAbundances_(const String& protein_accession,
+                                           const std::vector<String>& selected_peptides,
+                                           const String& aggregate_method,
+                                           Size top_n,
+                                           bool include_all,
+                                           const std::map<String, String>& accession_to_leader);
+
+    /**
+         @brief Perform iBAQ normalization on protein abundances.
+         
+         @param proteins Protein identification information containing sequences
+    */
+    void performIbaqNormalization_(const ProteinIdentification& proteins);
+
+    /**
          @brief Get the "canonical" protein accession from the list of protein accessions of a peptide.
 
          @param pep_accessions Protein accessions of a peptide
@@ -277,14 +363,26 @@ private:
          If there is no canonical accession, the empty string is returned.
     */
     String getAccession_(const std::set<String>& pep_accessions,
-                         std::map<String, String>& accession_to_leader);
+                         const std::map<String, String>& accession_to_leader) const;
 
     /**
          @brief Count the number of identifications (best hits only) of each peptide sequence.
 
          The peptide hits in @p peptides are sorted by score in the process.
     */
-    void countPeptides_(std::vector<PeptideIdentification>& peptides);
+    void countPeptides_(PeptideIdentificationList& peptides);
+
+    /**
+         @brief Map (filename, channel) to sample using ExperimentalDesign.
+         
+         @param filename The base filename (without path/extension)
+         @param channel_or_label The channel/label identifier
+         @param ed The experimental design containing the mapping information
+         @return The sample ID corresponding to the filename and channel
+    */
+    size_t getSampleIDFromFilenameAndChannel_(const String& filename,
+                                           Int channel_or_label,
+                                           const ExperimentalDesign& ed) const;
 
     /// Clear all data when parameters are set
     void updateMembers_() override;
@@ -292,4 +390,3 @@ private:
   };   // class
 
 } // namespace
-

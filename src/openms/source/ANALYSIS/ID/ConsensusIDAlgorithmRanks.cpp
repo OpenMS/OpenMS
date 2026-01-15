@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -22,7 +22,7 @@ namespace OpenMS
 
 
   void ConsensusIDAlgorithmRanks::preprocess_(
-    vector<PeptideIdentification>& ids)
+    PeptideIdentificationList& ids)
   {
     // The idea here is that each peptide hit (sequence) gets assigned a score
     // from each ID run, based on its rank in the list of search results.
@@ -38,15 +38,17 @@ namespace OpenMS
     current_considered_hits_ = considered_hits_;
     bool set_considered_hits = (considered_hits_ == 0);
 
-    for (vector<PeptideIdentification>::iterator pep_it = ids.begin();
+    for (PeptideIdentificationList::iterator pep_it = ids.begin();
          pep_it != ids.end(); ++pep_it)
     {
-      pep_it->assignRanks();
+      pep_it->sort();
+      Size rank = 1;
       for (vector<PeptideHit>::iterator hit_it = pep_it->getHits().begin();
-           hit_it != pep_it->getHits().end(); ++hit_it)
+           hit_it != pep_it->getHits().end(); ++hit_it, ++rank)
       {
         // give each hit a score based on the search rank (counting from 0):
-        hit_it->setScore(hit_it->getRank() - 1);
+        
+        hit_it->setScore(rank - 1);
       }
       pep_it->setScoreType("ConsensusID_ranks");
       pep_it->setHigherScoreBetter(true); // not true now, but after normalizing

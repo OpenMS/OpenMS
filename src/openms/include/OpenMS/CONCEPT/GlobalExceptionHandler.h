@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -59,16 +59,7 @@ private:
 public:
 
       /// The accessor for the singleton. It also serves as a replacement for the constructor.
-      static GlobalExceptionHandler & getInstance()
-      {
-        static GlobalExceptionHandler * globalExceptionHandler_;
-
-        if (globalExceptionHandler_ == nullptr)
-        {
-          globalExceptionHandler_ = new GlobalExceptionHandler;
-        }
-        return *globalExceptionHandler_;
-      }
+      static GlobalExceptionHandler & getInstance();
 
       /**	@name	Accessors
       */
@@ -124,64 +115,19 @@ protected:
       //@{
 
       /// wrapper for static member file_
-      static std::string & file_()
-      {
-        static std::string * file_ = nullptr;
-        if (file_ == nullptr)
-        {
-          file_  = new std::string;
-          *file_ = "unknown";
-        }
-        return *file_;
-      }
+      static std::string & file_();
 
       /// wrapper for static member line_
-      static int & line_()
-      {
-        static int * line_ = nullptr;
-        if (line_ == nullptr)
-        {
-          line_  = new int;
-          *line_ = -1;
-        }
-        return *line_;
-      }
+      static int & line_();
 
       /// wrapper for static member function_
-      static std::string & function_()
-      {
-        static std::string * function_ = nullptr;
-        if (function_ == nullptr)
-        {
-          function_  = new std::string;
-          *function_ = "unknown";
-        }
-        return *function_;
-      }
+      static std::string & function_();
 
       /// wrapper for static member name_
-      static std::string & name_()
-      {
-        static std::string * name_ = nullptr;
-        if (name_ == nullptr)
-        {
-          name_  = new std::string;
-          *name_ = "unknown exception";
-        }
-        return *name_;
-      }
+      static std::string & name_();
 
       /// wrapper for static member what_
-      static std::string & what_()
-      {
-        static std::string * what_ = nullptr;
-        if (what_ == nullptr)
-        {
-          what_  = new std::string;
-          *what_ = " - ";
-        }
-        return *what_;
-      }
+      static std::string & what_();
 
       //@}
     };

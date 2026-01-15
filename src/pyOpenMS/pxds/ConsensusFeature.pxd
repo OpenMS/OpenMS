@@ -63,7 +63,7 @@ cdef extern from "<OpenMS/KERNEL/ConsensusFeature.h>" namespace "OpenMS":
 
 cdef extern from "<OpenMS/KERNEL/ConsensusFeature.h>" namespace "OpenMS::ConsensusFeature":
 
-    # slim struct to feed the need for systematically storing of ratios ( @see MSQuantifications ).
+    # slim struct to feed the need for systematically storing of ratios .
     cdef cppclass Ratio:
 
       Ratio() except + nogil 

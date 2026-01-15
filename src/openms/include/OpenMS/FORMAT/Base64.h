@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -20,8 +20,6 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/FORMAT/ZlibCompression.h>
-
-#include <QtCore/QByteArray>
 
 #include <algorithm>
 #include <array>
@@ -119,13 +117,13 @@ public:
     static void decodeStrings(const String & in, std::vector<String> & out, bool zlib_compression = false);
 
     /**
-        @brief Decodes a Base64 string to a QByteArray
+        @brief Decodes a Base64 string
 
-        @param in A String containing the Base64 encoded data
-        @param base64_uncompressed A ByteArray containing the decoded data
-        @param zlib_compression Whether the data should be decompressed with zlib after decoding in Base64
+        @param[in] in A String containing the Base64 encoded data
+        @param[out] out A String containing the decoded data
+        @param[in] zlib_compression Should the data be decompressed with zlib after decoding in Base64?
     */
-    static void decodeSingleString(const String& in, QByteArray& base64_uncompressed, bool zlib_compression);
+    static void decodeSingleString(const String& in, String& out, bool zlib_compression);
 
 private:
 
@@ -275,43 +273,22 @@ private:
 
 
   template <typename ToType>
-  void Base64::decodeCompressed_(const String & in, ByteOrder from_byte_order, std::vector<ToType> & out)
+  void Base64::decodeCompressed_(const String& in, ByteOrder from_byte_order, std::vector<ToType>& out)
   {
     out.clear();
-    if (in.empty()) return;
-
-    constexpr Size element_size = sizeof(ToType);
+    if (in.empty())
+    {
+      return;
+    }
 
     String decompressed;
+    Base64::decodeSingleString(in, decompressed, true);
 
-    String s;
-    stringSimdDecoder_(in, s);
-    QByteArray bazip = QByteArray::fromRawData(s.c_str(), (int) s.size());
-
-   /////////////////////////////////////////////////////////////////////////////////////if faster: first encode then call fromRawData
-   // QByteArray qt_byte_array = QByteArray::fromRawData(in.c_str(), (int) in.size());
-   // QByteArray bazip = QByteArray::fromBase64(qt_byte_array);
-    QByteArray czip;
-    czip.resize(4);
-    czip[0] = (bazip.size() & 0xff000000) >> 24;
-    czip[1] = (bazip.size() & 0x00ff0000) >> 16;
-    czip[2] = (bazip.size() & 0x0000ff00) >> 8;
-    czip[3] = (bazip.size() & 0x000000ff);
-    czip += bazip;
-    QByteArray base64_uncompressed = qUncompress(czip);
-
-    if (base64_uncompressed.isEmpty())
-    {
-      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Decompression error?");
-    }
-    decompressed.resize(base64_uncompressed.size());
-
-    std::copy(base64_uncompressed.begin(), base64_uncompressed.end(), decompressed.begin());
-
-    void* byte_buffer = reinterpret_cast<void *>(&decompressed[0]);
+    void* byte_buffer = reinterpret_cast<void*>(&decompressed[0]);
     Size buffer_size = decompressed.size();
 
     const ToType * float_buffer = reinterpret_cast<const ToType *>(byte_buffer);
+    constexpr Size element_size = sizeof(ToType);
     if (buffer_size % element_size != 0)
     {
       throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Bad BufferCount?");
@@ -436,32 +413,17 @@ private:
     if (in.empty())
       return;
 
-    void * byte_buffer;
-    Size buffer_size;
     constexpr Size element_size = sizeof(ToType);
 
     String decompressed;
-
-    QByteArray qt_byte_array = QByteArray::fromRawData(in.c_str(), (int) in.size());
-    QByteArray bazip = QByteArray::fromBase64(qt_byte_array);
-    QByteArray czip;
-    czip.resize(4);
-    czip[0] = (bazip.size() & 0xff000000) >> 24;
-    czip[1] = (bazip.size() & 0x00ff0000) >> 16;
-    czip[2] = (bazip.size() & 0x0000ff00) >> 8;
-    czip[3] = (bazip.size() & 0x000000ff);
-    czip += bazip;
-    QByteArray base64_uncompressed = qUncompress(czip);
-    if (base64_uncompressed.isEmpty())
+    Base64::decodeSingleString(in, decompressed, true);
+    if (decompressed.empty())
     {
       throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Decompression error?");
     }
-    decompressed.resize(base64_uncompressed.size());
 
-    std::copy(base64_uncompressed.begin(), base64_uncompressed.end(), decompressed.begin());
-
-    byte_buffer = reinterpret_cast<void *>(&decompressed[0]);
-    buffer_size = decompressed.size();
+    void* byte_buffer = reinterpret_cast<void*>(&decompressed[0]);
+    Size buffer_size = decompressed.size();
 
     // change endianness if necessary
     if ((OPENMS_IS_BIG_ENDIAN && from_byte_order == Base64::BYTEORDER_LITTLEENDIAN) || (!OPENMS_IS_BIG_ENDIAN && from_byte_order == Base64::BYTEORDER_BIGENDIAN))

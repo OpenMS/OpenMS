@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -28,6 +28,11 @@ namespace OpenMS
   GzipInputStream::~GzipInputStream()
   {
     delete gzip_;
+  }
+
+  bool GzipInputStream::getIsOpen() const
+  {
+    return gzip_->isOpen();
   }
 
   XMLSize_t GzipInputStream::readBytes(XMLByte * const to_fill, const XMLSize_t max_to_read)

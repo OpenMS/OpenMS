@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -583,31 +583,8 @@ namespace OpenMS
     }
   }
 
-  void ProteinIdentification::assignRanks()
-  {
-    if (protein_hits_.empty())
-    {
-      return;
-    }
-    UInt rank = 1;
-    sort();
-    vector<ProteinHit>::iterator lit = protein_hits_.begin();
-    double tmpscore = lit->getScore();
-    while (lit != protein_hits_.end())
-    {
-      lit->setRank(rank);
-      ++lit;
-      if (lit != protein_hits_.end() && lit->getScore() != tmpscore)
-      {
-        ++rank;
-        tmpscore = lit->getScore();
-      }
-    }
-  }
-
-
   void ProteinIdentification::fillEvidenceMapping_(unordered_map<String, set<PeptideEvidence> >& map_acc_2_evidence,
-                                                   const std::vector<PeptideIdentification>& pep_ids) const
+                                                   const PeptideIdentificationList& pep_ids) const
   {
     //TODO check matching identifiers?
     for (const auto & peptide_id : pep_ids)
@@ -626,7 +603,7 @@ namespace OpenMS
     }
   }
 
-  void ProteinIdentification::computeCoverage(const std::vector<PeptideIdentification>& pep_ids)
+  void ProteinIdentification::computeCoverage(const PeptideIdentificationList& pep_ids)
   {
     // map protein accession to the corresponding peptide evidence
     unordered_map<String, set<PeptideEvidence> > map_acc_2_evidence;
@@ -695,7 +672,7 @@ namespace OpenMS
   }
 
   void ProteinIdentification::computeModifications(
-    const std::vector<PeptideIdentification>& pep_ids,
+    const PeptideIdentificationList& pep_ids,
     const StringList& skip_modifications)
   {
     // map protein accession to observed position,modifications pairs
@@ -737,7 +714,7 @@ namespace OpenMS
     }
   }
 
-  void ProteinIdentification::fillModMapping_(const vector<PeptideIdentification>& pep_ids, const StringList& skip_modifications,
+  void ProteinIdentification::fillModMapping_(const PeptideIdentificationList& pep_ids, const StringList& skip_modifications,
                                               unordered_map<String, set<pair<Size, ResidueModification>>>& prot2mod) const
   {
     for (const auto & peptide_id : pep_ids)

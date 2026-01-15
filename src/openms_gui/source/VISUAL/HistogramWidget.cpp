@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -92,14 +92,14 @@ namespace OpenMS
       //left
       Int p = margin_ + UInt(((left_splitter_ - dist_.minBound()) / (dist_.maxBound() - dist_.minBound())) * (width() - 2 * margin_));
       //cout << "Mouse: " << e->x() << " p: " << p << " splitter: " << left_splitter_ << endl;
-      if (e->x() >= p && e->x() <= p + 5)
+      if (e->position().x() >= p && e->position().x() <= p + 5)
       {
         moving_splitter_ = 1;
       }
 
       //right
       p = margin_ + UInt(((right_splitter_ - dist_.minBound()) / (dist_.maxBound() - dist_.minBound())) * (width() - 2 * margin_));
-      if (e->x() <= p && e->x() >= p - 5)
+      if (e->position().x() <= p && e->position().x() >= p - 5)
       {
         moving_splitter_ = 2;
       }
@@ -117,7 +117,7 @@ namespace OpenMS
       //left
       if (moving_splitter_ == 1)
       {
-        left_splitter_ = double(Int(e->x()) - Int(margin_)) / (width() - 2 * margin_) * (dist_.maxBound() - dist_.minBound()) + dist_.minBound();
+        left_splitter_ = double(Int(e->position().x()) - Int(margin_)) / (width() - 2 * margin_) * (dist_.maxBound() - dist_.minBound()) + dist_.minBound();
         //upper bound
         if (left_splitter_ > right_splitter_ - (dist_.maxBound() - dist_.minBound()) / 50.0)
         {
@@ -135,7 +135,7 @@ namespace OpenMS
       if (moving_splitter_ == 2)
       {
 
-        right_splitter_ = double(Int(e->x()) - Int(margin_)) / (width() - 2 * margin_ + 2) * (dist_.maxBound() - dist_.minBound()) + dist_.minBound();
+        right_splitter_ = double(Int(e->position().x()) - Int(margin_)) / (width() - 2 * margin_ + 2) * (dist_.maxBound() - dist_.minBound()) + dist_.minBound();
         //upper bound
         if (right_splitter_ < left_splitter_ + (dist_.maxBound() - dist_.minBound()) / 50.0)
         {

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -120,19 +120,7 @@ public:
 
         @throws Exception::InvalidParameter if compression is unknown.
       */
-      void setCompression(const std::string& compression)
-      {
-        const std::string* match = std::find(NamesOfNumpressCompression,
-                                             NamesOfNumpressCompression + SIZE_OF_NUMPRESSCOMPRESSION, compression);
-
-        if (match == NamesOfNumpressCompression + SIZE_OF_NUMPRESSCOMPRESSION) // == end()
-        {
-          throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                            "Value '" + compression + "' is not a valid Numpress compression scheme.");
-        }
-
-        np_compression = (NumpressCompression)std::distance(NamesOfNumpressCompression, match);
-      }
+      void setCompression(const std::string& compression);
 
     };
 
