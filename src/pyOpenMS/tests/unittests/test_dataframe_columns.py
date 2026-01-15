@@ -1148,3 +1148,158 @@ class TestBugFixes:
         assert df.iloc[0]['ID_native_id'] == 'scan=100'
         # Second feature should have 'None' string (numpy converts None to string due to U100 dtype)
         assert df.iloc[1]['ID_native_id'] == 'None'
+
+
+class TestFeatureMapColumnSelection:
+    """Tests for FeatureMap.get_df_column_names() method."""
+
+    @pytest.fixture
+    def feature_map_with_data(self):
+        """Create a FeatureMap with features."""
+        fmap = pyopenms.FeatureMap()
+
+        f = pyopenms.Feature()
+        f.setRT(100.0)
+        f.setMZ(500.0)
+        f.setIntensity(1000.0)
+        f.setCharge(2)
+        f.setMetaValue('custom_score', 0.95)
+        fmap.push_back(f)
+
+        return fmap
+
+    def test_get_df_column_names_default(self, feature_map_with_data):
+        """Test get_df_column_names() returns expected default columns."""
+        cols = feature_map_with_data.get_df_column_names()
+
+        # Core columns
+        assert 'feature_id' in cols
+        assert 'charge' in cols
+        assert 'rt' in cols
+        assert 'mz' in cols
+        assert 'intensity' in cols
+        assert 'quality' in cols
+
+        # Peptide ID columns (default)
+        assert 'peptide_sequence' in cols
+        assert 'peptide_score' in cols
+
+    def test_get_df_column_names_no_peptide_ids(self, feature_map_with_data):
+        """Test get_df_column_names() without peptide identification columns."""
+        cols = feature_map_with_data.get_df_column_names(export_peptide_identifications=False)
+
+        assert 'feature_id' in cols
+        assert 'rt' in cols
+        assert 'peptide_sequence' not in cols
+        assert 'peptide_score' not in cols
+
+    def test_get_df_column_names_all(self, feature_map_with_data):
+        """Test get_df_column_names('all') includes meta values."""
+        cols = feature_map_with_data.get_df_column_names(columns='all')
+
+        assert 'feature_id' in cols
+        assert 'custom_score' in cols
+
+
+class TestConsensusMapColumnSelection:
+    """Tests for ConsensusMap.get_df_column_names() method."""
+
+    @pytest.fixture
+    def consensus_map_with_data(self):
+        """Create a ConsensusMap with consensus features."""
+        cmap = pyopenms.ConsensusMap()
+
+        # Set up column headers for 2 files
+        headers = {0: pyopenms.ColumnHeader(), 1: pyopenms.ColumnHeader()}
+        headers[0].filename = 'file1.mzML'
+        headers[0].label = 'sample1'
+        headers[1].filename = 'file2.mzML'
+        headers[1].label = 'sample2'
+        cmap.setColumnHeaders(headers)
+
+        # Add a consensus feature
+        cf = pyopenms.ConsensusFeature()
+        cf.setRT(100.0)
+        cf.setMZ(500.0)
+        cf.setIntensity(1000.0)
+        cf.setCharge(2)
+        cmap.push_back(cf)
+
+        return cmap
+
+    def test_get_df_column_names_default(self, consensus_map_with_data):
+        """Test get_df_column_names() returns expected columns."""
+        cols = consensus_map_with_data.get_df_column_names()
+
+        # Core columns
+        assert 'sequence' in cols
+        assert 'charge' in cols
+        assert 'rt' in cols
+        assert 'mz' in cols
+        assert 'quality' in cols
+
+
+class TestMRMTransitionGroupCPColumnSelection:
+    """Tests for MRMTransitionGroupCP column name methods."""
+
+    @pytest.fixture
+    def mrm_group_with_data(self):
+        """Create an MRMTransitionGroupCP with chromatograms and features."""
+        group = pyopenms.MRMTransitionGroupCP()
+
+        # Add a chromatogram
+        chrom = pyopenms.MSChromatogram()
+        chrom.setNativeID('trans_1')
+        rts = np.array([10.0, 20.0, 30.0], dtype=np.float64)
+        ints = np.array([100.0, 200.0, 150.0], dtype=np.float32)
+        chrom.set_peaks([rts, ints])
+        group.addChromatogram(chrom, 'trans_1')
+
+        # Add a feature
+        feature = pyopenms.MRMFeature()
+        feature.setRT(20.0)
+        feature.setIntensity(500.0)
+        group.addFeature(feature)
+
+        return group
+
+    def test_get_chromatogram_df_column_names(self, mrm_group_with_data):
+        """Test get_chromatogram_df_column_names() returns expected columns."""
+        cols = mrm_group_with_data.get_chromatogram_df_column_names()
+
+        assert 'rt' in cols
+        assert 'intensity' in cols
+        assert 'native_id' in cols
+
+    def test_get_feature_df_column_names(self, mrm_group_with_data):
+        """Test get_feature_df_column_names() returns expected columns."""
+        cols = mrm_group_with_data.get_feature_df_column_names()
+
+        assert 'feature_id' in cols
+        assert 'rt' in cols
+        assert 'intensity' in cols
+        assert 'quality' in cols
+
+
+class TestMSExperimentDFColumnSelection:
+    """Tests for MSExperiment.get_df_column_names() method."""
+
+    def test_get_df_column_names_long_format(self):
+        """Test get_df_column_names() for long format."""
+        exp = pyopenms.MSExperiment()
+        cols = exp.get_df_column_names(long_format=True)
+
+        assert 'rt' in cols
+        assert 'mz' in cols
+        assert 'intensity' in cols
+        assert 'ms_level' in cols
+
+    def test_get_df_column_names_compact_format(self):
+        """Test get_df_column_names() for compact format."""
+        exp = pyopenms.MSExperiment()
+        cols = exp.get_df_column_names(long_format=False)
+
+        assert 'rt' in cols
+        assert 'ms_level' in cols
+        assert 'mz_array' in cols
+        assert 'intensity_array' in cols
