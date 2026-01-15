@@ -10,33 +10,17 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 
-#ifdef OPENMS_HAS_CURL
-#include <curl/curl.h>
-#else
-// Fallback implementation without libcurl
 #include <cstdio>
 #include <cstring>
 #include <array>
 #ifndef OPENMS_WINDOWSPLATFORM
 #include <sys/wait.h>
 #endif
-#endif
 
 using namespace std;
 
 namespace OpenMS
 {
-
-#ifdef OPENMS_HAS_CURL
-  // Callback function for libcurl to write received data
-  static size_t WriteCallback(void* contents, size_t size, size_t nmemb, void* userp)
-  {
-    size_t totalSize = size * nmemb;
-    std::vector<char>* buffer = static_cast<std::vector<char>*>(userp);
-    buffer->insert(buffer->end(), static_cast<char*>(contents), static_cast<char*>(contents) + totalSize);
-    return totalSize;
-  }
-#endif
 
   NetworkGetRequest::NetworkGetRequest() :
     response_bytes_(),
@@ -89,64 +73,15 @@ namespace OpenMS
     error_string_.clear();
     has_error_ = false;
 
-#ifdef OPENMS_HAS_CURL
-    CURL* curl = curl_easy_init();
-    if (!curl)
-    {
-      has_error_ = true;
-      error_string_ = "Failed to initialize libcurl";
-      return;
-    }
-
-    // Set URL
-    curl_easy_setopt(curl, CURLOPT_URL, url_.c_str());
-
-    // Set write callback
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response_bytes_);
-
-    // Follow redirects
-    curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
-
-    // Set timeout (in seconds)
-    curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, (long)timeout_ms_);
-
-    // Set user agent
-    curl_easy_setopt(curl, CURLOPT_USERAGENT, "OpenMS");
-
-    // Perform the request
-    CURLcode res = curl_easy_perform(curl);
-
-    if (res != CURLE_OK)
-    {
-      has_error_ = true;
-      error_string_ = String("libcurl error: ") + curl_easy_strerror(res);
-    }
-    else
-    {
-      // Check HTTP response code
-      long response_code = 0;
-      curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
-      if (response_code >= 400)
-      {
-        has_error_ = true;
-        error_string_ = String("HTTP error: ") + String(response_code);
-      }
-    }
-
-    curl_easy_cleanup(curl);
-
-#else
-    // Fallback: No libcurl available - use platform-specific approach
-    // For Unix/Mac: use curl command line if available
-    #ifndef OPENMS_WINDOWSPLATFORM
+#ifndef OPENMS_WINDOWSPLATFORM
+    // Unix/Mac: use curl command line
 
     // First check if curl command exists
     FILE* check_curl = popen("command -v curl 2>/dev/null", "r");
     if (!check_curl)
     {
       has_error_ = true;
-      error_string_ = "curl command not available. Please install curl or build OpenMS with libcurl support.";
+      error_string_ = "curl command not available. Please install curl.";
       return;
     }
     char curl_path[256];
@@ -155,13 +90,13 @@ namespace OpenMS
     if (close_status == -1)
     {
       // Log warning but continue - this is just a check
-      OPENMS_LOG_WARN << "pclose() failed while checking for curl, but continuing" << std::endl;
+      OPENMS_LOG_WARN << "pclose() failed while checking for curl, but continuing\n";
     }
 
     if (!curl_exists)
     {
       has_error_ = true;
-      error_string_ = "curl command not found in PATH. Please install curl or build OpenMS with libcurl support.";
+      error_string_ = "curl command not found in PATH. Please install curl.";
       return;
     }
 
@@ -175,7 +110,7 @@ namespace OpenMS
 
     // SECURITY: Validate URL doesn't contain dangerous shell metacharacters
     // Allow common URL characters including #, +, ~, @, ;, , etc. but reject shell metacharacters
-    for (size_t i = 0; i < url_.size(); ++i)
+    for (Size i = 0; i < url_.size(); ++i)
     {
       char c = url_[i];
       // Reject dangerous shell metacharacters: backtick, pipe, dollar, redirect, etc.
@@ -211,11 +146,11 @@ namespace OpenMS
 
     while (fgets(buffer.data(), buffer.size(), pipe) != nullptr)
     {
-      size_t len = strlen(buffer.data());
+      Size len = strlen(buffer.data());
       response_bytes_.insert(response_bytes_.end(), buffer.data(), buffer.data() + len);
     }
 
-    // Decode pclose return value properly (Unix only - already inside #ifndef OPENMS_WINDOWSPLATFORM)
+    // Decode pclose return value properly
     int status = pclose(pipe);
     if (status == -1)
     {
@@ -236,11 +171,10 @@ namespace OpenMS
       has_error_ = true;
       error_string_ = String("curl command terminated by signal: ") + String(WTERMSIG(status));
     }
-    #else
-    // Windows without curl: error
+#else
+    // Windows: error - no curl command line fallback
     has_error_ = true;
-    error_string_ = "Network requests require libcurl on Windows. Please build OpenMS with libcurl support.";
-    #endif
+    error_string_ = "Network requests are not supported on Windows in this build.";
 #endif
   }
 

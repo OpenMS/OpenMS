@@ -45,7 +45,7 @@ namespace OpenMS
     {
       if (month < 1 || month > 12)
       {
-        throw std::out_of_range("Month must be in range 1-12, got: " + std::to_string(month));
+        return 0; // Invalid month, caller should validate via isValidDate()
       }
       static const UInt days[] = {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
       if (month == 2 && isLeapYear(year))

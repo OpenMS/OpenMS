@@ -89,7 +89,15 @@ namespace OpenMS
   bool JavaInfo::canRun(const String& java_executable, bool verbose_on_error)
   {
     // Build command: java_executable -version
-    String command = java_executable + " -version 2>&1"; // Redirect stderr to stdout
+    // Quote the executable to handle paths with spaces
+#ifdef OPENMS_WINDOWSPLATFORM
+    String command = "\"" + java_executable + "\" -version 2>&1";
+#else
+    // Escape single quotes in the path and wrap in single quotes for Unix
+    String escaped = java_executable;
+    escaped.substitute("'", "'\\''");
+    String command = "'" + escaped + "' -version 2>&1";
+#endif
 
     String output;
     int exit_code = 0;

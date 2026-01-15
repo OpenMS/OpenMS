@@ -119,7 +119,14 @@ namespace OpenMS
       ss << "Python executable ('" << py_original << "') resolved to '" << python_executable << "'\n";
     }
 
-    String command = python_executable + " --version 2>&1";
+    // Quote the executable to handle paths with spaces
+#ifdef OPENMS_WINDOWSPLATFORM
+    String command = "\"" + python_executable + "\" --version 2>&1";
+#else
+    String escaped = python_executable;
+    escaped.substitute("'", "'\\''");
+    String command = "'" + escaped + "' --version 2>&1";
+#endif
     String output;
     int exit_code = 0;
     bool started = executeCommand(command, output, exit_code);
@@ -150,22 +157,29 @@ namespace OpenMS
     // Python package names can contain: letters, digits, underscore, dot, hyphen
     if (package_name.empty())
     {
-      OPENMS_LOG_ERROR << "Package name cannot be empty" << std::endl;
+      OPENMS_LOG_ERROR << "Package name cannot be empty\n";
       return false;
     }
 
-    for (size_t i = 0; i < package_name.size(); ++i)
+    for (Size i = 0; i < package_name.size(); ++i)
     {
       char c = package_name[i];
       if (!isalnum(c) && c != '_' && c != '.' && c != '-')
       {
         OPENMS_LOG_ERROR << "Invalid package name '" << package_name
-                        << "': contains invalid character '" << c << "'" << std::endl;
+                        << "': contains invalid character '" << c << "'\n";
         return false;
       }
     }
 
-    String command = python_executable + " -c \"import " + package_name + "\" 2>&1";
+    // Quote the executable to handle paths with spaces
+#ifdef OPENMS_WINDOWSPLATFORM
+    String command = "\"" + python_executable + "\" -c \"import " + package_name + "\" 2>&1";
+#else
+    String escaped = python_executable;
+    escaped.substitute("'", "'\\''");
+    String command = "'" + escaped + "' -c \"import " + package_name + "\" 2>&1";
+#endif
     String output;
     int exit_code = 0;
     bool started = executeCommand(command, output, exit_code);
@@ -174,7 +188,14 @@ namespace OpenMS
 
   String PythonInfo::getVersion(const String& python_executable)
   {
-    String command = python_executable + " --version 2>&1";
+    // Quote the executable to handle paths with spaces
+#ifdef OPENMS_WINDOWSPLATFORM
+    String command = "\"" + python_executable + "\" --version 2>&1";
+#else
+    String escaped = python_executable;
+    escaped.substitute("'", "'\\''");
+    String command = "'" + escaped + "' --version 2>&1";
+#endif
     String output;
     int exit_code = 0;
     bool started = executeCommand(command, output, exit_code);
