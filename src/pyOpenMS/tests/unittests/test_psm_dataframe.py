@@ -1,8 +1,12 @@
 """
 Unit tests for PSM DataFrame export from PeptideIdentificationList.
 
-Tests the get_psm_df(), to_qpx(), and get_psm_columns() methods
-that follow the QPX PSM schema.
+Tests the PSM export methods:
+- to_psm_df(): Export all PSMs as DataFrame
+- to_psm_arrow(): Export all PSMs as Arrow Table
+- to_parquet(): Export all PSMs to Parquet file
+- to_qpx(): Export as QPX format (dict with file_metadata and psms)
+- psm_columns(): List available columns
 """
 
 import pytest
@@ -64,7 +68,7 @@ def create_test_data():
 def test_psm_df_basic():
     """Test basic PSM DataFrame export."""
     pep_ids = create_test_data()
-    df = pep_ids.get_psm_df()
+    df = pep_ids.to_psm_df()
 
     # Should have 3 rows (2 hits from first ID + 1 from second)
     assert len(df) == 3
@@ -88,18 +92,31 @@ def test_psm_df_basic():
 def test_psm_df_top_hit_only():
     """Test exporting only top hit."""
     pep_ids = create_test_data()
-    df = pep_ids.get_psm_df(export_all_hits=False)
+    df = pep_ids.to_psm_df(export_all_hits=False)
 
     # Should have 2 rows (1 per identification)
     assert len(df) == 2
     assert list(df["rank"]) == [0, 0]
-    assert list(df["P_ID"]) == [0, 1]
+
+
+def test_psm_df_columns_filter():
+    """Test filtering to specific columns."""
+    pep_ids = create_test_data()
+    df = pep_ids.to_psm_df(columns=['sequence', 'precursor_charge', 'score'])
+
+    # Should only have requested columns
+    assert list(df.columns) == ['sequence', 'precursor_charge', 'score']
+    assert len(df) == 3
+
+    # Verify data is correct
+    assert df.iloc[0]["sequence"] == "PEPTIDE"
+    assert df.iloc[0]["precursor_charge"] == 2
 
 
 def test_psm_df_scan_parsing():
     """Test scan number extraction from spectrum reference."""
     pep_ids = create_test_data()
-    df = pep_ids.get_psm_df()
+    df = pep_ids.to_psm_df()
 
     # First two PSMs from first identification with scan=1234 (QPX uses string)
     assert df.iloc[0]["scan"] == "1234"
@@ -134,14 +151,14 @@ def test_psm_df_scan_parsing_native_id_formats():
         pep_id.setHits([hit])
         pep_ids.append(pep_id)
 
-        df = pep_ids.get_psm_df()
+        df = pep_ids.to_psm_df()
         assert df.iloc[0]["scan"] == expected_scan, f"Failed for '{spec_ref}': expected {expected_scan}, got {df.iloc[0]['scan']}"
 
 
 def test_psm_df_decoy_detection():
     """Test is_decoy field extraction (QPX uses int: 0=target, 1=decoy)."""
     pep_ids = create_test_data()
-    df = pep_ids.get_psm_df()
+    df = pep_ids.to_psm_df()
 
     # First two are targets (0)
     assert df.iloc[0]["is_decoy"] == 0
@@ -154,7 +171,7 @@ def test_psm_df_decoy_detection():
 def test_psm_df_pep_score():
     """Test posterior_error_probability extraction."""
     pep_ids = create_test_data()
-    df = pep_ids.get_psm_df()
+    df = pep_ids.to_psm_df()
 
     # All should have PEP since score types contain "PEP"
     assert "posterior_error_probability" in df.columns
@@ -167,7 +184,7 @@ def test_psm_df_pep_score():
 def test_psm_df_protein_accessions():
     """Test protein accession extraction."""
     pep_ids = create_test_data()
-    df = pep_ids.get_psm_df()
+    df = pep_ids.to_psm_df()
 
     # Check protein accessions are lists
     assert df.iloc[0]["protein_accessions"] == ["PROT0"]
@@ -177,7 +194,7 @@ def test_psm_df_protein_accessions():
 def test_psm_df_additional_scores():
     """Test additional scores extraction from metavalues (QPX array format)."""
     pep_ids = create_test_data()
-    df = pep_ids.get_psm_df()
+    df = pep_ids.to_psm_df()
 
     # First hit has some_score metavalue
     scores = df.iloc[0]["additional_scores"]
@@ -213,7 +230,7 @@ def test_psm_df_modifications():
     pep_id.setHits([hit])
     pep_ids.append(pep_id)
 
-    df = pep_ids.get_psm_df(include_modifications=True)
+    df = pep_ids.to_psm_df(include_modifications=True)
 
     assert len(df) == 1
     assert "modifications" in df.columns
@@ -237,7 +254,7 @@ def test_psm_df_modifications():
 def test_psm_df_no_modifications():
     """Test with modifications disabled."""
     pep_ids = create_test_data()
-    df = pep_ids.get_psm_df(include_modifications=False)
+    df = pep_ids.to_psm_df(include_modifications=False)
 
     # When disabled, modifications column is still present but contains None
     assert "modifications" in df.columns
@@ -247,7 +264,7 @@ def test_psm_df_no_modifications():
 def test_psm_df_calculated_mz():
     """Test calculated m/z computation."""
     pep_ids = create_test_data()
-    df = pep_ids.get_psm_df()
+    df = pep_ids.to_psm_df()
 
     # Check calculated_mz is present and reasonable
     assert "calculated_mz" in df.columns
@@ -281,7 +298,7 @@ def test_psm_df_empty_identifications():
     pep_id2.setHits([hit])
     pep_ids.append(pep_id2)
 
-    df = pep_ids.get_psm_df()
+    df = pep_ids.to_psm_df()
 
     # Should only have 1 row (empty identification skipped)
     assert len(df) == 1
@@ -338,21 +355,40 @@ def test_to_qpx_with_reference_file():
         assert psm["reference_file_name"] == "test.mzML"
 
 
-def test_to_qpx_arrow():
-    """Test to_qpx_arrow Arrow Table export."""
+def test_to_psm_arrow():
+    """Test to_psm_arrow Arrow Table export."""
     pa = pytest.importorskip("pyarrow")
 
     pep_ids = create_test_data()
-    table = pep_ids.to_qpx_arrow()
+    table = pep_ids.to_psm_arrow()
 
     assert isinstance(table, pa.Table)
     assert table.num_rows == 3
-    # QPX schema fields
+    # Check expected columns
     assert "sequence" in table.schema.names
     assert "peptidoform" in table.schema.names
     assert "precursor_charge" in table.schema.names
     assert "reference_file_name" in table.schema.names
     assert "cv_params" in table.schema.names
+
+
+def test_to_parquet(tmp_path):
+    """Test to_parquet Parquet file export."""
+    pytest.importorskip("pyarrow")
+    import pandas as pd
+
+    pep_ids = create_test_data()
+    parquet_path = tmp_path / "psms.parquet"
+
+    pep_ids.to_parquet(str(parquet_path))
+
+    # Verify file exists and can be read back
+    assert parquet_path.exists()
+    df = pd.read_parquet(parquet_path)
+    assert len(df) == 3
+    assert "sequence" in df.columns
+    assert "peptidoform" in df.columns
+    assert "precursor_charge" in df.columns
 
 
 def test_to_qpx_file_metadata_params():
@@ -372,11 +408,10 @@ def test_to_qpx_file_metadata_params():
     assert metadata["scan_format"] == "nativeId"
 
 
-def test_get_psm_columns():
-    """Test get_psm_columns static method."""
-    import pyopenms as oms
-
-    columns = oms.PeptideIdentificationList.get_psm_columns()
+def test_psm_columns():
+    """Test psm_columns instance method."""
+    pep_ids = create_test_data()
+    columns = pep_ids.psm_columns()
 
     assert isinstance(columns, list)
     # QPX schema fields (in schema order)
@@ -413,7 +448,7 @@ def test_get_psm_columns():
 def test_psm_df_qpx_columns():
     """Test QPX schema columns are present."""
     pep_ids = create_test_data()
-    df = pep_ids.get_psm_df(reference_file_name="test.mzML")
+    df = pep_ids.to_psm_df(reference_file_name="test.mzML")
 
     # Check QPX required columns
     assert "reference_file_name" in df.columns
@@ -427,7 +462,7 @@ def test_psm_df_qpx_columns():
 def test_psm_df_spectrum_reference():
     """Test spectrum reference preservation."""
     pep_ids = create_test_data()
-    df = pep_ids.get_psm_df()
+    df = pep_ids.to_psm_df()
 
     assert "spectrum_reference" in df.columns
     assert df.iloc[0]["spectrum_reference"] == "controllerType=0 controllerNumber=1 scan=1234"
@@ -447,7 +482,7 @@ def test_psm_df_sequence_formats():
     pep_id.setHits([hit])
     pep_ids.append(pep_id)
 
-    df = pep_ids.get_psm_df()
+    df = pep_ids.to_psm_df()
 
     # sequence should be unmodified
     assert df.iloc[0]["sequence"] == "PEPTMIDE"

@@ -73,9 +73,9 @@ import numpy as np
         """
         return f"PeptideIdentificationList(size={self.size()})"
 
-    def to_df(self, decode_ontology=True, default_missing_values=None, export_unidentified=True):
+    def to_df(self, decode_ontology=True, default_missing_values=None, export_unidentified=True, columns=None):
         """
-        to_df(self: PeptideIdentificationList, decode_ontology: bool = True, default_missing_values: dict = None, export_unidentified: bool = True) -> pd.DataFrame
+        to_df(self: PeptideIdentificationList, decode_ontology: bool = True, default_missing_values: dict = None, export_unidentified: bool = True, columns: list = None) -> pd.DataFrame
 
         Converts the peptide identifications to a pandas DataFrame.
 
@@ -90,6 +90,10 @@ import numpy as np
         :param export_unidentified: Export PeptideIdentifications without PeptideHit.
                                     Default True.
         :type export_unidentified: bool
+
+        :param columns: List of column names to include. If None, includes all columns.
+                        Use df_columns() to discover available columns.
+        :type columns: list
 
         :return: DataFrame with peptide identification information including:
                  id, rt, mz, score (column name from score type), charge,
@@ -111,6 +115,9 @@ import numpy as np
 
             # Custom missing values (use Python type objects)
             df = peps.to_df(default_missing_values={bool: False, int: 0, float: 0.0, str: 'NA'})
+
+            # Export only specific columns
+            df = peps.to_df(columns=['id', 'rt', 'mz', 'charge'])
         """
         try:
             import pandas as pd
@@ -212,11 +219,73 @@ import numpy as np
                     ret.append(dmv[idx])  # Use precomputed default for this metavalue's type
             return tuple(ret)
 
-        return pd.DataFrame(np.fromiter((extract(pep, pep_idx) for pep_idx, pep in enumerate(self)), dtype=dt, count=count))
+        df = pd.DataFrame(np.fromiter((extract(pep, pep_idx) for pep_idx, pep in enumerate(self)), dtype=dt, count=count))
 
-    def to_arrow(self, decode_ontology=True, default_missing_values=None, export_unidentified=True):
+        # Filter columns if specified
+        if columns is not None:
+            available = set(df.columns)
+            requested = [c for c in columns if c in available]
+            df = df[requested]
+
+        return df
+
+    def df_columns(self, decode_ontology=True):
         """
-        to_arrow(self: PeptideIdentificationList, decode_ontology: bool = True, default_missing_values: dict = None, export_unidentified: bool = True) -> pa.Table
+        df_columns(self: PeptideIdentificationList, decode_ontology: bool = True) -> list
+
+        Returns a list of column names that to_df() would produce.
+
+        Useful for discovering available columns before export, especially
+        for column selection with the `columns` parameter.
+
+        Note: Column names depend on the data (metavalues from PeptideHits),
+        so this method inspects the actual data.
+
+        :param decode_ontology: Decode meta value names using the PSI-MS ontology.
+                                Default True. Should match the parameter used in to_df().
+        :type decode_ontology: bool
+
+        :return: List of column name strings.
+        :rtype: list
+
+        Example::
+
+            peps = feature_map.get_assigned_peptide_identifications()
+            print(peps.df_columns())
+
+            # Use for column selection
+            df = peps.to_df(columns=peps.df_columns()[:5])
+        """
+        from . import ControlledVocabulary as _ControlledVocabulary
+        from . import File as _File
+
+        # Get all possible metavalues and main score name
+        metavals = []
+        mainscorename = "score"
+        for pep in self:
+            hits = pep.getHits()
+            if hits:
+                mvs = []
+                hits[0].getKeys(mvs)
+                metavals += mvs
+                mainscorename = pep.getScoreType()
+
+        metavals = list(set(metavals))
+
+        # Decode metavalue names if requested
+        decodedMVs = [m.decode("utf-8") for m in metavals]
+        if decode_ontology:
+            cv = _ControlledVocabulary()
+            cv.loadFromOBO("psims", _File.getOpenMSDataPath() + "/CV/psi-ms.obo")
+            clearMVs = [cv.getTerm(m).name if m.startswith("MS:") else m for m in decodedMVs]
+        else:
+            clearMVs = decodedMVs
+
+        return ["id", "rt", "mz", mainscorename, "charge", "protein_accession", "start", "end", "P_ID", "PSM_ID"] + clearMVs
+
+    def to_arrow(self, decode_ontology=True, default_missing_values=None, export_unidentified=True, columns=None):
+        """
+        to_arrow(self: PeptideIdentificationList, decode_ontology: bool = True, default_missing_values: dict = None, export_unidentified: bool = True, columns: list = None) -> pa.Table
 
         Returns an Apache Arrow Table with peptide identification information.
 
@@ -232,6 +301,10 @@ import numpy as np
                                     Default True.
         :type export_unidentified: bool
 
+        :param columns: List of column names to include. If None, includes all columns.
+                        Use df_columns() to discover available columns.
+        :type columns: list
+
         :return: Arrow Table with peptide identification data.
         :rtype: pyarrow.Table
 
@@ -245,6 +318,9 @@ import numpy as np
             # Convert to polars
             import polars as pl
             df = pl.from_arrow(table)
+
+            # Export only specific columns
+            table = peps.to_arrow(columns=['id', 'rt', 'mz', 'charge'])
         """
         try:
             import pyarrow as pa
@@ -255,7 +331,8 @@ import numpy as np
             )
         df = self.to_df(decode_ontology=decode_ontology,
                         default_missing_values=default_missing_values,
-                        export_unidentified=export_unidentified)
+                        export_unidentified=export_unidentified,
+                        columns=columns)
         return pa.Table.from_pandas(df)
 
     def update_scores_from_df(self, df, main_score_name):
@@ -314,16 +391,17 @@ import numpy as np
         )
         return self.to_df(*args, **kwargs)
 
-    def get_psm_df(self, export_all_hits=True, include_modifications=True, include_peak_annotations=False, decode_ontology=True, reference_file_name=""):
+    def to_psm_df(self, export_all_hits=True, include_modifications=True, include_peak_annotations=False, decode_ontology=True, reference_file_name="", columns=None):
         """
-        get_psm_df(self: PeptideIdentificationList, export_all_hits: bool = True, include_modifications: bool = True, include_peak_annotations: bool = False, decode_ontology: bool = True, reference_file_name: str = "") -> pd.DataFrame
+        to_psm_df(self: PeptideIdentificationList, export_all_hits: bool = True, include_modifications: bool = True, include_peak_annotations: bool = False, decode_ontology: bool = True, reference_file_name: str = "", columns: list = None) -> pd.DataFrame
 
         **EXPERIMENTAL**: This method is experimental and subject to change.
 
-        Export PSMs as a DataFrame following the QPX PSM schema.
+        Export all PSMs (Peptide-Spectrum Matches) as a DataFrame.
 
-        Unlike get_df() which exports only the top hit, this method exports
-        all hits (PSMs) with proper ranking information.
+        Unlike to_df() which exports only the top hit per spectrum, this method
+        exports all hits with proper ranking information, modifications, and
+        additional scores.
 
         :param export_all_hits: If True, export all hits per identification.
                                 If False, only export rank 0 (best hit).
@@ -331,8 +409,8 @@ import numpy as np
         :type export_all_hits: bool
 
         :param include_modifications: Include detailed modification list column
-                                      following QPX schema with name, accession,
-                                      and positions array. Default True.
+                                      with name, accession, and positions array.
+                                      Default True.
         :type include_modifications: bool
 
         :param include_peak_annotations: Include fragment ion annotations
@@ -345,17 +423,21 @@ import numpy as np
                                 Default True. (Currently unused, for future compatibility)
         :type decode_ontology: bool
 
-        :param reference_file_name: Source file name for the QPX schema.
+        :param reference_file_name: Source file name to include in each row.
                                     Default empty string.
         :type reference_file_name: str
 
-        :return: DataFrame with QPX PSM schema columns including:
-                 sequence, peptidoform, modifications, precursor_charge,
-                 posterior_error_probability, is_decoy, calculated_mz, observed_mz,
-                 additional_scores, protein_accessions, predicted_rt, reference_file_name,
-                 cv_params, scan, rt, ion_mobility, number_peaks, mz_array, intensity_array,
-                 charge_array, ion_type_array, ion_mobility_array
-                 Plus OpenMS-specific: spectrum_reference, score, score_type, rank, P_ID
+        :param columns: List of column names to include. If None, includes all columns.
+                        Use psm_columns() to discover available columns.
+        :type columns: list
+
+        :return: DataFrame with columns: sequence, peptidoform, modifications,
+                 precursor_charge, posterior_error_probability, is_decoy,
+                 calculated_mz, observed_mz, additional_scores, protein_accessions,
+                 predicted_rt, reference_file_name, cv_params, scan, rt, ion_mobility,
+                 spectrum_reference, score, score_type, rank, P_ID.
+                 When include_peak_annotations=True: number_peaks, mz_array,
+                 intensity_array, charge_array, ion_type_array, ion_mobility_array.
         :rtype: pd.DataFrame
 
         :raises ImportError: If pandas is not installed
@@ -363,19 +445,22 @@ import numpy as np
         Example::
 
             peps = feature_map.get_assigned_peptide_identifications()
-            df = peps.get_psm_df()
+            df = peps.to_psm_df()
 
             # Export only top hit per spectrum
-            df = peps.get_psm_df(export_all_hits=False)
+            df = peps.to_psm_df(export_all_hits=False)
 
             # Without modification details
-            df = peps.get_psm_df(include_modifications=False)
+            df = peps.to_psm_df(include_modifications=False)
+
+            # Export only specific columns
+            df = peps.to_psm_df(columns=['sequence', 'precursor_charge', 'score'])
         """
         try:
             import pandas as pd
         except ImportError:
             raise ImportError(
-                "pandas is required for get_psm_df(). "
+                "pandas is required for to_psm_df(). "
                 "Please install it with: pip install pandas"
             )
         from . import SpectrumLookup as _SpectrumLookup
@@ -600,7 +685,7 @@ import numpy as np
                 }
 
                 # Add fragment ion peak annotations (QPX schema fields)
-                # Always include these columns for schema consistency with get_psm_columns()
+                # Always include these columns for schema consistency with psm_columns()
                 if include_peak_annotations:
                     peak_annotations = hit.getPeakAnnotations()
                     if peak_annotations:
@@ -628,7 +713,15 @@ import numpy as np
 
                 rows.append(row)
 
-        return pd.DataFrame(rows)
+        df = pd.DataFrame(rows)
+
+        # Filter columns if specified
+        if columns is not None:
+            available = set(df.columns)
+            requested = [c for c in columns if c in available]
+            df = df[requested]
+
+        return df
 
     def to_qpx(self, qpx_version="1.0", creator="pyOpenMS", software_provider="OpenMS",
                 scan_format="scan", **kwargs):
@@ -668,7 +761,7 @@ import numpy as np
                             Default "scan".
         :type scan_format: str
 
-        Additional kwargs are passed to get_psm_df().
+        Additional kwargs are passed to to_psm_df().
 
         :return: Dict with 'file_metadata' and 'psms' keys following QPX schema.
         :rtype: dict
@@ -693,7 +786,7 @@ import numpy as np
         import uuid as _uuid
         from datetime import datetime as _datetime
 
-        df = self.get_psm_df(**kwargs)
+        df = self.to_psm_df(**kwargs)
 
         # Build file_metadata
         file_metadata = {
@@ -714,18 +807,18 @@ import numpy as np
             "psms": psms
         }
 
-    def to_qpx_arrow(self, **kwargs):
+    def to_psm_arrow(self, **kwargs):
         """
-        to_qpx_arrow(self: PeptideIdentificationList, **kwargs) -> pa.Table
+        to_psm_arrow(self: PeptideIdentificationList, **kwargs) -> pa.Table
 
         **EXPERIMENTAL**: This method is experimental and subject to change.
 
-        Export PSMs as Apache Arrow Table (PSMs only, without file metadata).
+        Export all PSMs as Apache Arrow Table.
 
-        This is a convenience method for direct Arrow export of PSM records.
-        For full QPX format with file metadata, use to_qpx().
+        This is the Arrow equivalent of to_psm_df(), exporting all hits
+        (not just top hit) with full PSM information.
 
-        Accepts same parameters as get_psm_df().
+        Accepts same parameters as to_psm_df().
 
         :return: Arrow Table with PSM data.
         :rtype: pyarrow.Table
@@ -734,7 +827,7 @@ import numpy as np
 
         Example::
 
-            table = peps.to_qpx_arrow()
+            table = peps.to_psm_arrow()
 
             # Convert to polars
             import polars as pl
@@ -742,38 +835,85 @@ import numpy as np
 
             # Convert to pandas
             df = table.to_pandas()
+
+            # Write to Parquet
+            import pyarrow.parquet as pq
+            pq.write_table(table, "psms.parquet")
         """
         try:
             import pyarrow as pa
         except ImportError:
             raise ImportError(
-                "pyarrow is required for to_qpx_arrow(). "
+                "pyarrow is required for to_psm_arrow(). "
                 "Please install it with: pip install pyarrow"
             )
-        df = self.get_psm_df(**kwargs)
+        df = self.to_psm_df(**kwargs)
         return pa.Table.from_pandas(df)
 
-    @staticmethod
-    def get_psm_columns():
+    def to_parquet(self, path, **kwargs):
         """
-        get_psm_columns() -> list
+        to_parquet(self: PeptideIdentificationList, path: str, **kwargs) -> None
 
         **EXPERIMENTAL**: This method is experimental and subject to change.
 
-        Return list of column names that get_psm_df() and to_qpx() produce.
+        Export all PSMs to a Parquet file.
 
-        The columns follow the QPX PSM schema order, with additional
-        OpenMS-specific fields appended.
+        This is a convenience method that exports PSM data directly to Parquet format,
+        which is efficient for large datasets and widely supported by data analysis tools.
 
-        Useful for discovering available columns before export.
+        Accepts same parameters as to_psm_df().
+
+        :param path: Path to the output Parquet file.
+        :type path: str
+
+        :raises ImportError: If pyarrow is not installed
+
+        Example::
+
+            peps.to_parquet("psms.parquet")
+
+            # With options
+            peps.to_parquet("psms.parquet", include_peak_annotations=True)
+
+            # Read back with pandas
+            import pandas as pd
+            df = pd.read_parquet("psms.parquet")
+
+            # Read back with polars
+            import polars as pl
+            df = pl.read_parquet("psms.parquet")
+        """
+        try:
+            import pyarrow.parquet as pq
+        except ImportError:
+            raise ImportError(
+                "pyarrow is required for to_parquet(). "
+                "Please install it with: pip install pyarrow"
+            )
+        table = self.to_psm_arrow(**kwargs)
+        pq.write_table(table, path)
+
+    def psm_columns(self):
+        """
+        psm_columns(self: PeptideIdentificationList) -> list
+
+        **EXPERIMENTAL**: This method is experimental and subject to change.
+
+        Return list of column names that to_psm_df() and to_qpx() produce.
+
+        Useful for discovering available columns before export, especially
+        for column selection with the `columns` parameter.
 
         :return: List of column name strings.
         :rtype: list
 
         Example::
 
-            >>> PeptideIdentificationList.get_psm_columns()
-            ['sequence', 'peptidoform', 'modifications', ...]
+            peps = feature_map.get_assigned_peptide_identifications()
+            print(peps.psm_columns())
+
+            # Use for column selection
+            df = peps.to_psm_df(columns=peps.psm_columns()[:5])
         """
         return [
             # QPX schema fields (in schema order)
