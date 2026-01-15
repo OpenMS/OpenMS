@@ -193,7 +193,7 @@ protected:
     bool report_FWHM_as_ppm_;
 
     /// allow peaks without flanking data points on both sides (for TimsTOF data)
-    bool one_sided_;
+    bool allow_missing_flank_;
 
     // docu in base class
     void updateMembers_() override;
