@@ -258,13 +258,13 @@ START_SECTION(exportSpectraToArrow - semi-wide format with MS level filter)
 }
 END_SECTION
 
-START_SECTION(getSpectraArrowColumns - long format)
+START_SECTION(getSpectraArrowColumnNames - long format)
 {
   MSExperiment exp = createTestExperiment();
   ArrowSpectraExportConfig config;
   config.format = ArrowExportFormat::Long;
 
-  auto columns = ArrowExport::getSpectraArrowColumns(exp, config);
+  auto columns = ArrowExport::getSpectraArrowColumnNames(exp, config);
 
   // Check required columns are present
   TEST_EQUAL(std::find(columns.begin(), columns.end(), "mz") != columns.end(), true)
@@ -276,13 +276,13 @@ START_SECTION(getSpectraArrowColumns - long format)
 }
 END_SECTION
 
-START_SECTION(getSpectraArrowColumns - with column filter)
+START_SECTION(getSpectraArrowColumnNames - with column filter)
 {
   MSExperiment exp = createTestExperiment();
   ArrowSpectraExportConfig config;
   config.columns = {"mz", "intensity"};
 
-  auto columns = ArrowExport::getSpectraArrowColumns(exp, config);
+  auto columns = ArrowExport::getSpectraArrowColumnNames(exp, config);
 
   TEST_EQUAL(columns.size(), 2)
   TEST_EQUAL(std::find(columns.begin(), columns.end(), "mz") != columns.end(), true)
