@@ -301,3 +301,15 @@ import numpy as np
             self[pid_index] = pi
 
         return self
+
+    # Deprecated alias for backward compatibility
+    def get_df(self, *args, **kwargs):
+        """Deprecated: Use to_df() instead."""
+        import warnings
+        warnings.warn(
+            "get_df() is deprecated and will be removed in a future version. "
+            "Use to_df() instead.",
+            DeprecationWarning,
+            stacklevel=2
+        )
+        return self.to_df(*args, **kwargs)

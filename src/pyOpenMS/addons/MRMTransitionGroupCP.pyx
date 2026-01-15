@@ -270,3 +270,48 @@ import numpy as np
             )
         df = self.to_feature_df(columns=columns, meta_values=meta_values)
         return pa.Table.from_pandas(df)
+
+    # Deprecated aliases for backward compatibility with pyopenms 3.5.0
+    def get_chromatogram_df(self, *args, **kwargs):
+        """Deprecated: Use to_chromatogram_df() instead."""
+        import warnings
+        warnings.warn(
+            "get_chromatogram_df() is deprecated and will be removed in a future version. "
+            "Use to_chromatogram_df() instead.",
+            DeprecationWarning,
+            stacklevel=2
+        )
+        return self.to_chromatogram_df(*args, **kwargs)
+
+    def get_chromatogram_df_columns(self, *args, **kwargs):
+        """Deprecated: Use chromatogram_df_columns() instead."""
+        import warnings
+        warnings.warn(
+            "get_chromatogram_df_columns() is deprecated and will be removed in a future version. "
+            "Use chromatogram_df_columns() instead.",
+            DeprecationWarning,
+            stacklevel=2
+        )
+        return self.chromatogram_df_columns(*args, **kwargs)
+
+    def get_feature_df(self, *args, **kwargs):
+        """Deprecated: Use to_feature_df() instead."""
+        import warnings
+        warnings.warn(
+            "get_feature_df() is deprecated and will be removed in a future version. "
+            "Use to_feature_df() instead.",
+            DeprecationWarning,
+            stacklevel=2
+        )
+        return self.to_feature_df(*args, **kwargs)
+
+    def get_feature_df_columns(self, *args, **kwargs):
+        """Deprecated: Use feature_df_columns() instead."""
+        import warnings
+        warnings.warn(
+            "get_feature_df_columns() is deprecated and will be removed in a future version. "
+            "Use feature_df_columns() instead.",
+            DeprecationWarning,
+            stacklevel=2
+        )
+        return self.feature_df_columns(*args, **kwargs)

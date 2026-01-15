@@ -1,11 +1,11 @@
 """DataFrame export utilities for pyOpenMS.
 
 This module provides utility functions for converting OpenMS data structures to pandas DataFrames.
-The get_df() methods are now implemented directly in the Cython classes (MSSpectrum, MSChromatogram,
+The to_df() methods are now implemented directly in the Cython classes (MSSpectrum, MSChromatogram,
 Mobilogram, MSExperiment, ConsensusMap, FeatureMap, MRMTransitionGroupCP, PeptideIdentificationList).
 
 This module provides backwards-compatible function aliases:
-- peptide_identifications_to_df: Calls PeptideIdentificationList.get_df()
+- peptide_identifications_to_df: Calls PeptideIdentificationList.to_df()
 - update_scores_from_df: Calls PeptideIdentificationList.update_scores_from_df()
 
 And utility functions:
@@ -68,8 +68,8 @@ def peptide_identifications_to_df(peps: _PeptideIdentificationList, decode_ontol
                                   export_unidentified: bool = True):
     """Converts a list of peptide identifications to a pandas DataFrame.
 
-    This is a backwards-compatible wrapper that calls PeptideIdentificationList.get_df().
-    For new code, prefer calling peps.get_df() directly.
+    This is a backwards-compatible wrapper that calls PeptideIdentificationList.to_df().
+    For new code, prefer calling peps.to_df() directly.
 
     :param peps: list of PeptideIdentification objects
     :type peps: PeptideIdentificationList
@@ -82,9 +82,9 @@ def peptide_identifications_to_df(peps: _PeptideIdentificationList, decode_ontol
     :return: peptide identifications in a DataFrame
     :rtype: pandas.DataFrame
     """
-    return peps.get_df(decode_ontology=decode_ontology,
-                       default_missing_values=default_missing_values,
-                       export_unidentified=export_unidentified)
+    return peps.to_df(decode_ontology=decode_ontology,
+                      default_missing_values=default_missing_values,
+                      export_unidentified=export_unidentified)
 
 
 def update_scores_from_df(peps: _PeptideIdentificationList, df: _pd.DataFrame, main_score_name: str):

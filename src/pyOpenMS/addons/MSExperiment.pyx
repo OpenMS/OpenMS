@@ -1164,3 +1164,26 @@ from libc.stdint cimport uintptr_t
             ms2_df = pd.DataFrame(columns=dtypes.keys()).astype(dtypes)
 
         return ms1_df, ms2_df
+
+    # Deprecated aliases for backward compatibility with pyopenms 3.5.0
+    def get_df(self, *args, **kwargs):
+        """Deprecated: Use to_df() instead."""
+        import warnings
+        warnings.warn(
+            "get_df() is deprecated and will be removed in a future version. "
+            "Use to_df() instead.",
+            DeprecationWarning,
+            stacklevel=2
+        )
+        return self.to_df(*args, **kwargs)
+
+    def get_df_columns(self, *args, **kwargs):
+        """Deprecated: Use df_columns() instead."""
+        import warnings
+        warnings.warn(
+            "get_df_columns() is deprecated and will be removed in a future version. "
+            "Use df_columns() instead.",
+            DeprecationWarning,
+            stacklevel=2
+        )
+        return self.df_columns(*args, **kwargs)
