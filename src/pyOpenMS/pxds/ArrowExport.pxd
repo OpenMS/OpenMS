@@ -7,6 +7,7 @@ from Types cimport *
 from MSExperiment cimport *
 from libcpp.vector cimport vector as libcpp_vector
 from libcpp.string cimport string as libcpp_string
+from libcpp.string cimport string as libcpp_utf8_output_string
 from libcpp cimport bool
 from libc.stdint cimport int64_t, uint8_t
 
@@ -60,7 +61,7 @@ cdef extern from "<OpenMS/FORMAT/ArrowExport.h>" namespace "OpenMS":
         ArrowExport() except + nogil
         ArrowExport(const ArrowExport&) except + nogil  # copy constructor
         # Column discovery - these are static methods but declared as instance methods for autowrap
-        libcpp_vector[libcpp_string] getSpectraArrowColumns(
+        libcpp_vector[libcpp_utf8_output_string] getSpectraArrowColumns(
             const MSExperiment& exp,
             const ArrowSpectraExportConfig& config
         ) except + nogil
@@ -70,7 +71,7 @@ cdef extern from "<OpenMS/FORMAT/ArrowExport.h>" namespace "OpenMS":
         #  be included in the export based on the configuration. Useful for discovering
         #  columns before calling to_arrow() or for column selection.
 
-        libcpp_vector[libcpp_string] getChromatogramArrowColumns(
+        libcpp_vector[libcpp_utf8_output_string] getChromatogramArrowColumns(
             const MSExperiment& exp,
             const ArrowChromatogramExportConfig& config
         ) except + nogil

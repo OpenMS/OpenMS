@@ -266,11 +266,11 @@ from libc.stdint cimport uintptr_t
                 # Note: format is set via config but we can't set enum from Python easily
                 # The C++ method returns columns based on default (Long) format
                 # For now, we get columns from C++ and trust the order
-                result['spectra'] = [col.decode('utf-8') for col in arrow_export.getSpectraArrowColumns(self, config)]
+                result['spectra'] = list(arrow_export.getSpectraArrowColumns(self, config))
 
             if data in ('chromatograms', 'both'):
                 config = ArrowChromatogramExportConfig()
-                result['chromatograms'] = [col.decode('utf-8') for col in arrow_export.getChromatogramArrowColumns(self, config)]
+                result['chromatograms'] = list(arrow_export.getChromatogramArrowColumns(self, config))
 
             if data == 'both':
                 return result
