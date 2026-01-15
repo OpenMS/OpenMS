@@ -250,7 +250,7 @@ from libc.stdint cimport uintptr_t
         """
         # Try to use C++ implementation for consistency (only available with WITH_PARQUET)
         try:
-            from pyopenms import ArrowExport, ArrowSpectraExportConfig, ArrowChromatogramExportConfig
+            from pyopenms import ArrowExport, ArrowSpectraExportConfig, ArrowChromatogramExportConfig, ArrowExportFormat
             _use_cpp = True
         except ImportError:
             _use_cpp = False
@@ -259,17 +259,19 @@ from libc.stdint cimport uintptr_t
             arrow_export = ArrowExport()
             result = {}
 
+            # Map Python format string to C++ enum
+            cpp_format = ArrowExportFormat.SemiWide if format == 'semi_wide' else ArrowExportFormat.Long
+
             if data in ('spectra', 'both'):
                 config = ArrowSpectraExportConfig()
+                config.format = cpp_format
                 config.include_precursor_info = include_precursor_info
                 config.include_ion_mobility = include_ion_mobility
-                # Note: format is set via config but we can't set enum from Python easily
-                # The C++ method returns columns based on default (Long) format
-                # For now, we get columns from C++ and trust the order
                 result['spectra'] = list(arrow_export.getSpectraArrowColumnNames(self, config))
 
             if data in ('chromatograms', 'both'):
                 config = ArrowChromatogramExportConfig()
+                config.format = cpp_format
                 result['chromatograms'] = list(arrow_export.getChromatogramArrowColumnNames(self, config))
 
             if data == 'both':

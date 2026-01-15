@@ -14,6 +14,16 @@ from libc.stdint cimport int64_t, uint8_t
 # OpenMS ArrowExport declarations (only available when WITH_PARQUET is enabled)
 cdef extern from "<OpenMS/FORMAT/ArrowExport.h>" namespace "OpenMS":
 
+    cdef enum class ArrowExportFormat "OpenMS::ArrowExportFormat":
+        # wrap-attach:
+        #    ArrowSpectraExportConfig
+        # wrap-doc:
+        #  Export format for Arrow tables.
+        #  Long: One row per peak (default, suitable for most analyses)
+        #  SemiWide: One row per spectrum with list arrays for mz/intensity
+        Long,       # One row per peak (default)
+        SemiWide    # One row per spectrum with list arrays
+
     cdef cppclass ArrowSpectraExportConfig:
         # wrap-doc:
         #  Configuration for Arrow export of spectra data.
@@ -24,7 +34,7 @@ cdef extern from "<OpenMS/FORMAT/ArrowExport.h>" namespace "OpenMS":
         #  Set columns to export specific columns (empty = all columns).
         ArrowSpectraExportConfig() except + nogil
         ArrowSpectraExportConfig(const ArrowSpectraExportConfig&) except + nogil  # copy constructor
-        # ArrowExportFormat format  # wrap-ignore (enum class not supported)
+        ArrowExportFormat format
         libcpp_vector[unsigned int] ms_levels
         double min_rt
         double max_rt
@@ -43,7 +53,7 @@ cdef extern from "<OpenMS/FORMAT/ArrowExport.h>" namespace "OpenMS":
         #  Set columns to export specific columns (empty = all columns).
         ArrowChromatogramExportConfig() except + nogil
         ArrowChromatogramExportConfig(const ArrowChromatogramExportConfig&) except + nogil  # copy constructor
-        # ArrowExportFormat format  # wrap-ignore (enum class not supported)
+        ArrowExportFormat format
         double min_rt
         double max_rt
         libcpp_vector[libcpp_string] columns
