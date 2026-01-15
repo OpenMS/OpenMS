@@ -331,8 +331,8 @@ import numpy as np
         :type export_all_hits: bool
 
         :param include_modifications: Include detailed modification list column
-                                      with name, position, and mass for each mod.
-                                      Default True.
+                                      following QPX schema with name, accession,
+                                      and positions array. Default True.
         :type include_modifications: bool
 
         :param include_peak_annotations: Include fragment ion annotations
@@ -404,7 +404,7 @@ import numpy as np
                     scan_num = sl.extractScanNumber(native_id, accession)
                     if scan_num >= 0:
                         return scan_num
-                except:
+                except Exception:
                     continue
             return None
 
@@ -522,20 +522,22 @@ import numpy as np
 
                 # Build additional scores as array of records (QPX schema)
                 # Format: [{"score_name", "score_value", "higher_better"}]
+                # Exclude metavalues that are handled as dedicated columns
+                _excluded_metavalues = {b"target_decoy", b"predicted_RT", b"predicted_rt"}
                 additional_scores = []
                 keys = []
                 hit.getKeys(keys)
                 for key in keys:
-                    if key != b"target_decoy":
+                    if key not in _excluded_metavalues:
                         val = hit.getMetaValue(key)
                         if isinstance(val, (int, float)):
                             key_str = key.decode("utf-8") if isinstance(key, bytes) else str(key)
                             # Determine higher_better using IDScoreSwitcherAlgorithm if possible
                             higher_better = None
                             try:
-                                score_type_enum = idsa.toScoreTypeEnum(key_str)
+                                score_type_enum = _IDScoreSwitcherAlgorithm.toScoreTypeEnum(key_str)
                                 higher_better = idsa.isScoreTypeHigherBetter(score_type_enum)
-                            except:
+                            except Exception:
                                 pass  # Unknown score type, leave as None
                             additional_scores.append({
                                 "score_name": key_str,
@@ -548,7 +550,7 @@ import numpy as np
                 if charge > 0:
                     try:
                         calculated_mz = seq.getMZ(charge)
-                    except:
+                    except Exception:
                         pass
 
                 # Get predicted RT if available
@@ -602,10 +604,10 @@ import numpy as np
                     peak_annotations = hit.getPeakAnnotations()
                     if peak_annotations:
                         row["number_peaks"] = len(peak_annotations)
-                        row["mz_array"] = [pa.mz for pa in peak_annotations]
-                        row["intensity_array"] = [pa.intensity for pa in peak_annotations]
-                        row["charge_array"] = [pa.charge for pa in peak_annotations]
-                        row["ion_type_array"] = [pa.annotation.decode("utf-8") if isinstance(pa.annotation, bytes) else pa.annotation for pa in peak_annotations]
+                        row["mz_array"] = [ann.mz for ann in peak_annotations]
+                        row["intensity_array"] = [ann.intensity for ann in peak_annotations]
+                        row["charge_array"] = [ann.charge for ann in peak_annotations]
+                        row["ion_type_array"] = [ann.annotation.decode("utf-8") if isinstance(ann.annotation, bytes) else ann.annotation for ann in peak_annotations]
                         row["ion_mobility_array"] = None  # QPX field, not available from OpenMS peak annotations
                     else:
                         row["number_peaks"] = 0

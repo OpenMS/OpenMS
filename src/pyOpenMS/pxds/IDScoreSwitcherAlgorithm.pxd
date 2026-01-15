@@ -3,9 +3,6 @@ from libcpp cimport bool
 from libcpp.vector cimport vector as libcpp_vector
 from String cimport *
 from DefaultParamHandler cimport *
-from PeptideIdentification cimport *
-from PeptideIdentificationList cimport *
-from ConsensusMap cimport *
 
 cdef extern from "<OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h>" namespace "OpenMS":
 
