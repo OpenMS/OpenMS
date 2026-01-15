@@ -136,7 +136,7 @@ namespace OpenMS
         size_t idx_rt = &it_rt - &exp_centroided_white_[0];
         
         // skip empty spectra
-        if (it_rt.empty() || boundaries_[idx_rt].empty() || exp_spline_profile_[idx_rt].empty())
+        if (it_rt.empty() || boundaries_[idx_rt].empty() || exp_spline_profile_[idx_rt].size() == 0)
         {
           continue;
         }
