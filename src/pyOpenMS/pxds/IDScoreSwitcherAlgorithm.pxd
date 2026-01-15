@@ -68,7 +68,9 @@ cdef extern from "<OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h>" namespace "Op
 
 cdef extern from "<OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h>" namespace "OpenMS::IDScoreSwitcherAlgorithm":
 
-    cdef enum ScoreType "OpenMS::IDScoreSwitcherAlgorithm::ScoreType":
+    cdef enum class ScoreType "OpenMS::IDScoreSwitcherAlgorithm::ScoreType":
+        # wrap-attach:
+        #    IDScoreSwitcherAlgorithm
         # wrap-doc:
         #  Score type hierarchy for MS identification scores.
         #
@@ -79,9 +81,6 @@ cdef extern from "<OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h>" namespace "Op
         #  - PEP: Posterior Error Probability
         #  - FDR: False Discovery Rate
         #  - QVAL: Q-value
-
-        # wrap-attach:
-        #  IDScoreSwitcherAlgorithm
 
         RAW  # wrap-doc:Raw score (e.g., hyperscore, XTandem)
         RAW_EVAL  # wrap-doc:Raw score with E-value (e.g., expect score)

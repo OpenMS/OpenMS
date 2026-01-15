@@ -380,7 +380,7 @@ import numpy as np
             )
         from . import SpectrumLookup as _SpectrumLookup
         from . import IDScoreSwitcherAlgorithm as _IDScoreSwitcherAlgorithm
-        from . import ScoreType as _ScoreType
+        _ScoreType = _IDScoreSwitcherAlgorithm.ScoreType
 
         # Native ID type accessions to try for scan number extraction
         # See SpectrumLookup.cpp for the full list of supported formats
