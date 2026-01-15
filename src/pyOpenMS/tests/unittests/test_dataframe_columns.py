@@ -2,7 +2,7 @@
 Tests for DataFrame column selection feature in MSSpectrum and MSChromatogram.
 
 Tests cover:
-- get_df_columns() discovery method
+- get_df_column_names() discovery method
 - Column selection via get_df(columns=[...])
 - Default behavior (backward compatibility)
 - Non-default columns (ion_mobility_unit, chromatogram_type, comment)
@@ -71,9 +71,9 @@ class TestMSSpectrumColumnSelection:
 
         return spec
 
-    def test_get_df_columns_full_spectrum(self, spectrum_with_data):
-        """Test get_df_columns() returns all expected columns for full spectrum."""
-        cols = spectrum_with_data.get_df_columns()
+    def test_get_df_column_names_full_spectrum(self, spectrum_with_data):
+        """Test get_df_column_names() returns all expected columns for full spectrum."""
+        cols = spectrum_with_data.get_df_column_names()
 
         # Should have core columns
         assert 'mz' in cols
@@ -99,9 +99,9 @@ class TestMSSpectrumColumnSelection:
         # Should NOT have non-default columns
         assert 'ion_mobility_unit' not in cols
 
-    def test_get_df_columns_simple_spectrum(self, simple_spectrum):
-        """Test get_df_columns() for simple MS1 spectrum."""
-        cols = simple_spectrum.get_df_columns()
+    def test_get_df_column_names_simple_spectrum(self, simple_spectrum):
+        """Test get_df_column_names() for simple MS1 spectrum."""
+        cols = simple_spectrum.get_df_column_names()
 
         # Should have core columns
         assert 'mz' in cols
@@ -115,9 +115,9 @@ class TestMSSpectrumColumnSelection:
         # Should NOT have IM columns (no IM data)
         assert 'ion_mobility' not in cols
 
-    def test_get_df_columns_no_meta_values(self, spectrum_with_data):
-        """Test get_df_columns() with export_meta_values=False."""
-        cols = spectrum_with_data.get_df_columns(export_meta_values=False)
+    def test_get_df_column_names_no_meta_values(self, spectrum_with_data):
+        """Test get_df_column_names() with export_meta_values=False."""
+        cols = spectrum_with_data.get_df_column_names(export_meta_values=False)
 
         assert 'mz' in cols
         assert 'total_ion_current' not in cols
@@ -191,7 +191,7 @@ class TestMSSpectrumColumnSelection:
     def test_get_df_all_columns(self, spectrum_with_data):
         """Test get_df() requesting all available columns including non-defaults."""
         # Get all default columns
-        cols = spectrum_with_data.get_df_columns()
+        cols = spectrum_with_data.get_df_column_names()
         # Add non-default columns
         cols.append('ion_mobility_unit')
 
@@ -216,10 +216,10 @@ class TestMSSpectrumColumnSelection:
 
         assert len(df) == 0
 
-    def test_get_df_columns_empty_spectrum(self):
-        """Test get_df_columns() with empty spectrum."""
+    def test_get_df_column_names_empty_spectrum(self):
+        """Test get_df_column_names() with empty spectrum."""
         spec = pyopenms.MSSpectrum()
-        cols = spec.get_df_columns()
+        cols = spec.get_df_column_names()
 
         # Should still have core columns
         assert 'mz' in cols
@@ -255,9 +255,9 @@ class TestMSChromatogramColumnSelection:
 
         return chrom
 
-    def test_get_df_columns(self, chromatogram_with_data):
-        """Test get_df_columns() returns expected columns."""
-        cols = chromatogram_with_data.get_df_columns()
+    def test_get_df_column_names(self, chromatogram_with_data):
+        """Test get_df_column_names() returns expected columns."""
+        cols = chromatogram_with_data.get_df_column_names()
 
         # Default columns
         assert 'rt' in cols
@@ -275,9 +275,9 @@ class TestMSChromatogramColumnSelection:
         assert 'chromatogram_type' not in cols
         assert 'comment' not in cols
 
-    def test_get_df_columns_all(self, chromatogram_with_data):
-        """Test get_df_columns('all') returns all columns including non-defaults."""
-        cols = chromatogram_with_data.get_df_columns('all')
+    def test_get_df_column_names_all(self, chromatogram_with_data):
+        """Test get_df_column_names('all') returns all columns including non-defaults."""
+        cols = chromatogram_with_data.get_df_column_names('all')
 
         # Default columns should be present
         assert 'rt' in cols
@@ -332,7 +332,7 @@ class TestMSChromatogramColumnSelection:
     def test_get_df_all_columns(self, chromatogram_with_data):
         """Test get_df() with all columns including non-defaults using 'all' parameter."""
         # Use the cleaner API with 'all' parameter
-        cols = chromatogram_with_data.get_df_columns('all')
+        cols = chromatogram_with_data.get_df_column_names('all')
         df = chromatogram_with_data.get_df(columns=cols)
 
         # Should have all columns
@@ -358,9 +358,9 @@ class TestMobilogramColumnSelection:
 
         return mob
 
-    def test_get_df_columns(self, mobilogram_with_data):
-        """Test get_df_columns() returns expected columns."""
-        cols = mobilogram_with_data.get_df_columns()
+    def test_get_df_column_names(self, mobilogram_with_data):
+        """Test get_df_column_names() returns expected columns."""
+        cols = mobilogram_with_data.get_df_column_names()
 
         assert 'mobility' in cols
         assert 'intensity' in cols
@@ -853,9 +853,9 @@ class TestMSExperimentUnifiedToArrow:
         with pytest.raises(ValueError, match="format must be"):
             experiment_with_data.to_arrow(format='invalid')
 
-    def test_get_arrow_columns_spectra(self, experiment_with_data):
-        """Test get_arrow_columns() for spectra."""
-        cols = experiment_with_data.get_arrow_columns(data='spectra', format='long')
+    def test_get_arrow_column_names_spectra(self, experiment_with_data):
+        """Test get_arrow_column_names() for spectra."""
+        cols = experiment_with_data.get_arrow_column_names(data='spectra', format='long')
 
         assert 'mz' in cols
         assert 'intensity' in cols
@@ -863,9 +863,9 @@ class TestMSExperimentUnifiedToArrow:
         assert 'spectrum_index' in cols
         assert 'precursor_mz' in cols
 
-    def test_get_arrow_columns_chromatograms(self, experiment_with_data):
-        """Test get_arrow_columns() for chromatograms."""
-        cols = experiment_with_data.get_arrow_columns(data='chromatograms', format='long')
+    def test_get_arrow_column_names_chromatograms(self, experiment_with_data):
+        """Test get_arrow_column_names() for chromatograms."""
+        cols = experiment_with_data.get_arrow_column_names(data='chromatograms', format='long')
 
         assert 'rt' in cols
         assert 'intensity' in cols
@@ -873,9 +873,9 @@ class TestMSExperimentUnifiedToArrow:
         assert 'precursor_mz' in cols
         assert 'product_mz' in cols
 
-    def test_get_arrow_columns_both(self, experiment_with_data):
-        """Test get_arrow_columns() for both."""
-        cols = experiment_with_data.get_arrow_columns(data='both')
+    def test_get_arrow_column_names_both(self, experiment_with_data):
+        """Test get_arrow_column_names() for both."""
+        cols = experiment_with_data.get_arrow_column_names(data='both')
 
         assert isinstance(cols, dict)
         assert 'spectra' in cols

@@ -183,9 +183,9 @@ import numpy as np
 
         return f"Mobilogram({', '.join(parts)})"
 
-    def get_df_columns(self, columns='default'):
+    def get_df_column_names(self, columns='default'):
         """
-        get_df_columns(self: Mobilogram, columns: str = 'default') -> List[str]
+        get_df_column_names(self: Mobilogram, columns: str = 'default') -> List[str]
         
         Returns a list of column names that get_df() would produce for this mobilogram.
 
@@ -199,7 +199,7 @@ import numpy as np
 
         Example::
 
-            >>> cols = mobilogram.get_df_columns()
+            >>> cols = mobilogram.get_df_column_names()
             ['mobility', 'intensity', 'rt', 'drift_time_unit']
         """
         # Default columns (Mobilogram doesn't support meta values)
@@ -215,7 +215,7 @@ import numpy as np
         into a dictionary format suitable for conversion to a pandas DataFrame.
 
         :param columns: List of column names to include. If None, includes
-                        all default columns. Use get_df_columns() to see
+                        all default columns. Use get_df_column_names() to see
                         all available columns.
         :type columns: Optional[List[str]]
         :return: Dictionary with requested columns as keys and numpy arrays as values.
@@ -278,7 +278,7 @@ import numpy as np
         Note: Mobilogram does not support meta values (no MetaInfoInterface).
 
         :param columns: List of column names to include. If None,
-                        includes all default columns. Use get_df_columns()
+                        includes all default columns. Use get_df_column_names()
                         to discover available columns.
         :type columns: Optional[List[str]]
 
@@ -294,7 +294,7 @@ import numpy as np
             df = mobilogram.get_df()
 
             # Discover available columns
-            print(mobilogram.get_df_columns())
+            print(mobilogram.get_df_column_names())
 
             # Get only specific columns (faster)
             df = mobilogram.get_df(columns=['mobility', 'intensity'])
@@ -321,7 +321,7 @@ import numpy as np
         Note: Mobilogram does not support meta values (no MetaInfoInterface).
 
         :param columns: List of column names to include. If None,
-                        includes all default columns. Use get_df_columns()
+                        includes all default columns. Use get_df_column_names()
                         to discover available columns.
         :type columns: Optional[List[str]]
 

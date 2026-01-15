@@ -61,7 +61,7 @@ cdef extern from "<OpenMS/FORMAT/ArrowExport.h>" namespace "OpenMS":
         ArrowExport() except + nogil
         ArrowExport(const ArrowExport&) except + nogil  # copy constructor
         # Column discovery - these are static methods but declared as instance methods for autowrap
-        libcpp_vector[libcpp_utf8_output_string] getSpectraArrowColumns(
+        libcpp_vector[libcpp_utf8_output_string] getSpectraArrowColumnNames(
             const MSExperiment& exp,
             const ArrowSpectraExportConfig& config
         ) except + nogil
@@ -71,7 +71,7 @@ cdef extern from "<OpenMS/FORMAT/ArrowExport.h>" namespace "OpenMS":
         #  be included in the export based on the configuration. Useful for discovering
         #  columns before calling to_arrow() or for column selection.
 
-        libcpp_vector[libcpp_utf8_output_string] getChromatogramArrowColumns(
+        libcpp_vector[libcpp_utf8_output_string] getChromatogramArrowColumnNames(
             const MSExperiment& exp,
             const ArrowChromatogramExportConfig& config
         ) except + nogil

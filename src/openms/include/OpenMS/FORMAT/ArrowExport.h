@@ -248,7 +248,7 @@ public:
     @param[in] config Export configuration
     @return Vector of available column names
   */
-  static std::vector<std::string> getSpectraArrowColumns(
+  static std::vector<std::string> getSpectraArrowColumnNames(
     const MSExperiment& exp,
     const ArrowSpectraExportConfig& config = ArrowSpectraExportConfig{});
 
@@ -290,7 +290,7 @@ public:
     @param[in] config Export configuration
     @return Vector of available column names
   */
-  static std::vector<std::string> getChromatogramArrowColumns(
+  static std::vector<std::string> getChromatogramArrowColumnNames(
     const MSExperiment& exp,
     const ArrowChromatogramExportConfig& config = ArrowChromatogramExportConfig{});
 

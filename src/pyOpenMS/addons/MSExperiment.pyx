@@ -186,9 +186,9 @@ from libc.stdint cimport uintptr_t
 
         return f"MSExperiment({', '.join(parts)})"
 
-    def get_df_columns(self, long_format=False):
+    def get_df_column_names(self, long_format=False):
         """
-        get_df_columns(self: MSExperiment, long_format: bool = False) -> List[str]
+        get_df_column_names(self: MSExperiment, long_format: bool = False) -> List[str]
 
         Returns a list of column names that get_df() would produce.
 
@@ -202,10 +202,10 @@ from libc.stdint cimport uintptr_t
 
         Example::
 
-            >>> exp.get_df_columns(long_format=True)
+            >>> exp.get_df_column_names(long_format=True)
             ['rt', 'mz', 'intensity', 'ms_level']
 
-            >>> exp.get_df_columns(long_format=False)
+            >>> exp.get_df_column_names(long_format=False)
             ['rt', 'ms_level', 'mz_array', 'intensity_array']
         """
         if long_format:
@@ -213,10 +213,10 @@ from libc.stdint cimport uintptr_t
         else:
             return ['rt', 'ms_level', 'mz_array', 'intensity_array']
 
-    def get_arrow_columns(self, str data='spectra', str format='long',
+    def get_arrow_column_names(self, str data='spectra', str format='long',
                           bint include_precursor_info=True, bint include_ion_mobility=True):
         """
-        get_arrow_columns(self, data='spectra', format='long', include_precursor_info=True, include_ion_mobility=True)
+        get_arrow_column_names(self, data='spectra', format='long', include_precursor_info=True, include_ion_mobility=True)
 
         Returns a list of column names that to_arrow() would produce with the given parameters.
 
@@ -239,13 +239,13 @@ from libc.stdint cimport uintptr_t
 
         Example::
 
-            >>> exp.get_arrow_columns(data='spectra', format='long')
+            >>> exp.get_arrow_column_names(data='spectra', format='long')
             ['mz', 'intensity', 'rt', 'spectrum_index', 'ms_level', 'native_id', ...]
 
-            >>> exp.get_arrow_columns(data='chromatograms', format='semi_wide')
+            >>> exp.get_arrow_column_names(data='chromatograms', format='semi_wide')
             ['rt', 'intensity', 'chromatogram_index', 'native_id', ...]
 
-            >>> exp.get_arrow_columns(data='both')
+            >>> exp.get_arrow_column_names(data='both')
             {'spectra': [...], 'chromatograms': [...]}
         """
         # Try to use C++ implementation for consistency (only available with WITH_PARQUET)
@@ -266,11 +266,11 @@ from libc.stdint cimport uintptr_t
                 # Note: format is set via config but we can't set enum from Python easily
                 # The C++ method returns columns based on default (Long) format
                 # For now, we get columns from C++ and trust the order
-                result['spectra'] = list(arrow_export.getSpectraArrowColumns(self, config))
+                result['spectra'] = list(arrow_export.getSpectraArrowColumnNames(self, config))
 
             if data in ('chromatograms', 'both'):
                 config = ArrowChromatogramExportConfig()
-                result['chromatograms'] = list(arrow_export.getChromatogramArrowColumns(self, config))
+                result['chromatograms'] = list(arrow_export.getChromatogramArrowColumnNames(self, config))
 
             if data == 'both':
                 return result
@@ -324,7 +324,7 @@ from libc.stdint cimport uintptr_t
         Generates a pandas DataFrame with all peaks in the MSExperiment
 
         :param columns: List of column names to include. If None,
-                        includes all columns. Use get_df_columns() to discover available columns.
+                        includes all columns. Use get_df_column_names() to discover available columns.
         :type columns: Optional[List[str]]
 
         :param ms_levels: Get only spectra with the given MS levels. Default is an empty list,
@@ -347,7 +347,7 @@ from libc.stdint cimport uintptr_t
             df = exp.get_df()
 
             # Discover available columns
-            print(exp.get_df_columns())
+            print(exp.get_df_column_names())
 
             # Get only specific columns
             df = exp.get_df(columns=['rt', 'mz', 'intensity'], long_format=True)
@@ -414,7 +414,7 @@ from libc.stdint cimport uintptr_t
         :type format: str
 
         :param columns: List of column names to include. If None, includes all available columns.
-                        Use get_arrow_columns() to discover available columns.
+                        Use get_arrow_column_names() to discover available columns.
         :type columns: Optional[List[str]]
 
         :param ms_levels: Filter spectra by MS levels. Default None includes all levels.

@@ -83,9 +83,9 @@ import numpy as np
         else:
             raise TypeError("extend() argument must be iterable or another FeatureMap")
 
-    def get_df_columns(self, columns='default', export_peptide_identifications=True):
+    def get_df_column_names(self, columns='default', export_peptide_identifications=True):
         """
-        get_df_columns(self: FeatureMap, columns: str = 'default', export_peptide_identifications: bool = True) -> List[str]
+        get_df_column_names(self: FeatureMap, columns: str = 'default', export_peptide_identifications: bool = True) -> List[str]
 
         Returns a list of column names that get_df() would produce.
 
@@ -100,7 +100,7 @@ import numpy as np
 
         Example::
 
-            >>> fmap.get_df_columns()
+            >>> fmap.get_df_column_names()
             ['feature_id', 'peptide_sequence', 'charge', 'rt', 'mz', ...]
         """
         cols = ['feature_id']
@@ -150,7 +150,7 @@ import numpy as np
         Optionally the feature meta values and information for the assigned PeptideHit can be exported.
 
         :param columns: List of column names to include. If None,
-                        includes all columns. Use get_df_columns() to discover available columns.
+                        includes all columns. Use get_df_column_names() to discover available columns.
         :type columns: Optional[List[str]]
 
         :param meta_values: Meta values to include (None, [custom list of meta value names] or 'all')
@@ -177,7 +177,7 @@ import numpy as np
             df = fmap.get_df()
 
             # Discover available columns
-            print(fmap.get_df_columns())
+            print(fmap.get_df_column_names())
 
             # Get only specific columns
             df = fmap.get_df(columns=['feature_id', 'mz', 'rt', 'intensity'])
@@ -307,7 +307,7 @@ import numpy as np
         Returns an Apache Arrow Table with feature information.
 
         :param columns: List of column names to include. If None,
-                        includes all columns. Use get_df_columns() to discover available columns.
+                        includes all columns. Use get_df_column_names() to discover available columns.
         :type columns: Optional[List[str]]
 
         :param meta_values: Meta values to include (None, [custom list of meta value names] or 'all').

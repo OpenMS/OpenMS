@@ -4,9 +4,9 @@ import numpy as np
 
 
 
-    def get_chromatogram_df_columns(self, columns='default', export_meta_values=True):
+    def get_chromatogram_df_column_names(self, columns='default', export_meta_values=True):
         """
-        get_chromatogram_df_columns(self: MRMTransitionGroupCP, columns: str = 'default', export_meta_values: bool = True) -> List[str]
+        get_chromatogram_df_column_names(self: MRMTransitionGroupCP, columns: str = 'default', export_meta_values: bool = True) -> List[str]
 
         Returns a list of column names that get_chromatogram_df() would produce.
 
@@ -20,12 +20,12 @@ import numpy as np
         # Use the first chromatogram to get columns (all should have same structure)
         chroms = self.getChromatograms()
         if chroms:
-            return chroms[0].get_df_columns(columns=columns, export_meta_values=export_meta_values)
+            return chroms[0].get_df_column_names(columns=columns, export_meta_values=export_meta_values)
         return ['rt', 'intensity', 'precursor_mz', 'precursor_charge', 'product_mz', 'native_id']
 
-    def get_feature_df_columns(self, columns='default'):
+    def get_feature_df_column_names(self, columns='default'):
         """
-        get_feature_df_columns(self: MRMTransitionGroupCP, columns: str = 'default') -> List[str]
+        get_feature_df_column_names(self: MRMTransitionGroupCP, columns: str = 'default') -> List[str]
 
         Returns a list of column names that get_feature_df() would produce.
 
@@ -72,7 +72,7 @@ import numpy as np
             df = mrm.get_chromatogram_df()
 
             # Discover available columns
-            print(mrm.get_chromatogram_df_columns())
+            print(mrm.get_chromatogram_df_column_names())
 
             # Get only specific columns
             df = mrm.get_chromatogram_df(columns=['rt', 'intensity'])
@@ -97,7 +97,7 @@ import numpy as np
         Returns a DataFrame representation of the Features stored in MRMTransitionGroupCP.
 
         :param columns: List of column names to include. If None,
-                        includes all columns. Use get_feature_df_columns()
+                        includes all columns. Use get_feature_df_column_names()
                         to discover available columns.
         :type columns: Optional[List[str]]
 
@@ -115,7 +115,7 @@ import numpy as np
             df = mrm.get_feature_df()
 
             # Discover available columns
-            print(mrm.get_feature_df_columns())
+            print(mrm.get_feature_df_column_names())
 
             # Get only specific columns
             df = mrm.get_feature_df(columns=['feature_id', 'rt', 'intensity'])

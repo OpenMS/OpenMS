@@ -4,9 +4,9 @@ import numpy as np
 
 
 
-    def get_df_columns(self, columns='default', export_meta_values=True):
+    def get_df_column_names(self, columns='default', export_meta_values=True):
         """
-        get_df_columns(self: MSChromatogram, columns: str = 'default', export_meta_values: bool = True) -> List[str]
+        get_df_column_names(self: MSChromatogram, columns: str = 'default', export_meta_values: bool = True) -> List[str]
         
         Returns a list of column names that get_df() would produce for this chromatogram.
 
@@ -25,15 +25,15 @@ import numpy as np
         Example::
 
             >>> # See default columns
-            >>> cols = chrom.get_df_columns()
+            >>> cols = chrom.get_df_column_names()
             ['rt', 'intensity', 'precursor_mz', ...]
 
             >>> # See ALL available columns
-            >>> cols = chrom.get_df_columns('all')
+            >>> cols = chrom.get_df_column_names('all')
             ['rt', 'intensity', ..., 'chromatogram_type', 'comment']
 
             >>> # Export everything
-            >>> df = chrom.get_df(columns=chrom.get_df_columns('all'))
+            >>> df = chrom.get_df(columns=chrom.get_df_column_names('all'))
         """
         # Default columns (chromatogram_type and comment NOT included by default)
         cols = ['rt', 'intensity', 'precursor_mz', 'precursor_charge',
@@ -63,7 +63,7 @@ import numpy as np
         a pandas DataFrame.
 
         :param columns: List of column names to include. If None, includes
-                        all default columns. Use get_df_columns('all') to see
+                        all default columns. Use get_df_column_names('all') to see
                         all available columns.
         :type columns: Optional[List[str]]
         :param export_meta_values: Whether to include meta values in the output.
@@ -93,7 +93,7 @@ import numpy as np
             >>> data = chrom.get_data_dict(columns=['rt', 'intensity'])
 
             >>> # Get all available columns including non-defaults
-            >>> all_cols = chrom.get_df_columns('all')
+            >>> all_cols = chrom.get_df_column_names('all')
             >>> data = chrom.get_data_dict(columns=all_cols)
         """
         # Get peak data using existing optimized method
@@ -217,7 +217,7 @@ import numpy as np
         into a pandas DataFrame format.
 
         :param columns: List of column names to include. If None,
-                        includes all default columns. Use get_df_columns()
+                        includes all default columns. Use get_df_column_names()
                         to discover available columns.
         :type columns: Optional[List[str]]
 
@@ -239,13 +239,13 @@ import numpy as np
             df = chrom.get_df()
 
             # Discover available columns
-            print(chrom.get_df_columns())
+            print(chrom.get_df_column_names())
 
             # Get only specific columns (faster)
             df = chrom.get_df(columns=['rt', 'intensity'])
 
             # Get all columns including non-defaults
-            cols = chrom.get_df_columns('all')
+            cols = chrom.get_df_column_names('all')
             df = chrom.get_df(columns=cols)
         """
         try:
@@ -268,7 +268,7 @@ import numpy as np
         into an Arrow Table format for efficient data interchange.
 
         :param columns: List of column names to include. If None,
-                        includes all default columns. Use get_df_columns()
+                        includes all default columns. Use get_df_column_names()
                         to discover available columns.
         :type columns: Optional[List[str]]
 

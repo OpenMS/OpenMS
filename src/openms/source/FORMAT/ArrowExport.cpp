@@ -765,7 +765,7 @@ std::shared_ptr<arrow::Table> ArrowExport::exportSpectraToArrow(
 }
 
 
-std::vector<std::string> ArrowExport::getSpectraArrowColumns(
+std::vector<std::string> ArrowExport::getSpectraArrowColumnNames(
   const MSExperiment& exp,
   const ArrowSpectraExportConfig& config)
 {
@@ -832,87 +832,6 @@ std::shared_ptr<arrow::Table> ArrowExport::exportChromatogramsToArrow(
   const ArrowChromatogramExportConfig& config)
 {
   const auto& chroms = exp.getChromatograms();
-
-  if (chroms.empty())
-  {
-    // Return empty table with schema
-    std::vector<std::shared_ptr<arrow::Field>> fields;
-    if (config.format == ArrowExportFormat::Long)
-    {
-      fields = {
-        arrow::field("rt", arrow::float64()),
-        arrow::field("intensity", arrow::float32()),
-        arrow::field("chromatogram_index", arrow::uint32()),
-        arrow::field("native_id", arrow::utf8()),
-        arrow::field("precursor_mz", arrow::float64()),
-        arrow::field("product_mz", arrow::float64())
-      };
-    }
-    else
-    {
-      fields = {
-        arrow::field("chromatogram_index", arrow::uint32()),
-        arrow::field("native_id", arrow::utf8()),
-        arrow::field("rt", arrow::list(arrow::float64())),
-        arrow::field("intensity", arrow::list(arrow::float32())),
-        arrow::field("precursor_mz", arrow::float64()),
-        arrow::field("product_mz", arrow::float64())
-      };
-    }
-    auto schema = arrow::schema(fields);
-    std::vector<std::shared_ptr<arrow::Array>> empty_arrays;
-    for (size_t i = 0; i < fields.size(); ++i)
-    {
-      std::shared_ptr<arrow::Array> empty_arr;
-      arrow::Status status;
-
-      if (fields[i]->type()->id() == arrow::Type::FLOAT)
-      {
-        arrow::FloatBuilder builder;
-        status = builder.Finish(&empty_arr);
-      }
-      else if (fields[i]->type()->id() == arrow::Type::DOUBLE)
-      {
-        arrow::DoubleBuilder builder;
-        status = builder.Finish(&empty_arr);
-      }
-      else if (fields[i]->type()->id() == arrow::Type::UINT32)
-      {
-        arrow::UInt32Builder builder;
-        status = builder.Finish(&empty_arr);
-      }
-      else if (fields[i]->type()->id() == arrow::Type::STRING)
-      {
-        arrow::StringBuilder builder;
-        status = builder.Finish(&empty_arr);
-      }
-      else if (fields[i]->type()->id() == arrow::Type::LIST)
-      {
-        auto inner_type = std::static_pointer_cast<arrow::ListType>(fields[i]->type())->value_type();
-        if (inner_type->id() == arrow::Type::DOUBLE)
-        {
-          auto val_builder = std::make_shared<arrow::DoubleBuilder>();
-          arrow::ListBuilder list_builder(arrow::default_memory_pool(), val_builder);
-          status = list_builder.Finish(&empty_arr);
-        }
-        else
-        {
-          auto val_builder = std::make_shared<arrow::FloatBuilder>();
-          arrow::ListBuilder list_builder(arrow::default_memory_pool(), val_builder);
-          status = list_builder.Finish(&empty_arr);
-        }
-      }
-
-      if (!status.ok())
-      {
-        OPENMS_LOG_ERROR << "Arrow builder Finish failed: " << status.ToString() << std::endl;
-        return nullptr;
-      }
-      empty_arrays.push_back(empty_arr);
-    }
-    return arrow::Table::Make(schema, empty_arrays);
-  }
-
   const auto& cols = config.columns;
   bool inc_rt = shouldIncludeColumn("rt", cols);
   bool inc_intensity = shouldIncludeColumn("intensity", cols);
@@ -1075,7 +994,7 @@ std::shared_ptr<arrow::Table> ArrowExport::exportChromatogramsToArrow(
 }
 
 
-std::vector<std::string> ArrowExport::getChromatogramArrowColumns(
+std::vector<std::string> ArrowExport::getChromatogramArrowColumnNames(
   const MSExperiment& /* exp */,
   const ArrowChromatogramExportConfig& config)
 {

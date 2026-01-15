@@ -167,9 +167,9 @@ from collections import defaultdict as _defaultdict
         in_0.clear()
         in_0.update(replace_in_0)
 
-    def get_df_columns(self, columns='default'):
+    def get_df_column_names(self, columns='default'):
         """
-        get_df_columns(self: ConsensusMap, columns: str = 'default') -> List[str]
+        get_df_column_names(self: ConsensusMap, columns: str = 'default') -> List[str]
 
         Returns a list of column names that get_df() would produce.
 
@@ -182,7 +182,7 @@ from collections import defaultdict as _defaultdict
 
         Example::
 
-            >>> cmap.get_df_columns()
+            >>> cmap.get_df_column_names()
             ['sequence', 'charge', 'rt', 'mz', 'quality', 'intensity_file1', ...]
         """
         # Metadata columns
@@ -346,7 +346,7 @@ from collections import defaultdict as _defaultdict
         Generates a pandas DataFrame with both consensus feature meta data and intensities from each sample.
 
         :param columns: List of column names to include. If None,
-                        includes all columns. Use get_df_columns()
+                        includes all columns. Use get_df_column_names()
                         to discover available columns.
         :type columns: Optional[List[str]]
 
@@ -361,7 +361,7 @@ from collections import defaultdict as _defaultdict
             df = consensusmap.get_df()
 
             # Discover available columns
-            print(consensusmap.get_df_columns())
+            print(consensusmap.get_df_column_names())
 
             # Get only specific columns
             df = consensusmap.get_df(columns=['sequence', 'mz', 'intensity'])
@@ -423,7 +423,7 @@ from collections import defaultdict as _defaultdict
         Returns an Apache Arrow Table with consensus feature meta data and intensities.
 
         :param columns: List of column names to include. If None,
-                        includes all columns. Use get_df_columns()
+                        includes all columns. Use get_df_column_names()
                         to discover available columns.
         :type columns: Optional[List[str]]
 

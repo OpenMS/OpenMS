@@ -236,7 +236,7 @@ and DataFrame columns should use snake_case for Pythonic consistency.
 
 To add DataFrame export to a class, implement both methods directly in the Cython addon file:
 
-1. **`get_df_columns()`**: Returns list of available column names (for discovery)
+1. **`get_df_column_names()`**: Returns list of available column names (for discovery)
 2. **`get_data_dict(columns=None)`**: Returns dict of numpy arrays (works without pandas)
 3. **`get_df(columns=None)`**: Returns pandas DataFrame (imports pandas lazily)
 
@@ -253,7 +253,7 @@ cimport numpy as np
 import numpy as np
 import pandas as pd
 
-    def get_df_columns(self, columns='default'):
+    def get_df_column_names(self, columns='default'):
         """Returns list of column names that get_df() would produce."""
         cols = ['mz', 'intensity']
         if columns == 'all':
