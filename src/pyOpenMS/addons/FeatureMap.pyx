@@ -366,7 +366,7 @@ import numpy as np
             for pep in f.getPeptideIdentifications():
                 hits = []
                 for hit in pep.getHits():
-                    hit.setMetaValue('feature_id', str(f.getUniqueId()))
+                    hit.setMetaValue('feature_id', f.getUniqueId())
                     hit.setMetaValue('ID_filename', self._get_prot_id_filename_from_pep_id(pep))
                     if f.metaValueExists('spectrum_native_id'):
                         hit.setMetaValue('ID_native_id', f.getMetaValue('spectrum_native_id'))
