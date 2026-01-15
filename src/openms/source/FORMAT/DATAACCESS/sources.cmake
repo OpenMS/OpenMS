@@ -3,8 +3,6 @@ set(directory source/FORMAT/DATAACCESS)
 
 ### list all filenames of the directory here
 set(sources_list
-  MSDataWritingConsumer.cpp
-  MSDataTransformingConsumer.cpp
   MSDataAggregatingConsumer.cpp
   MSDataCachedConsumer.cpp
   MSDataChainingConsumer.cpp

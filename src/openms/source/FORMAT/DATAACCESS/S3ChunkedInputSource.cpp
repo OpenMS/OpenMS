@@ -300,7 +300,11 @@ namespace OpenMS {
                             remainingBytes = m_zStream.avail_out;
                             break;
                         }
-                        else if (ret != Z_BUF_ERROR) {
+                        else if (ret == Z_BUF_ERROR) {
+                            // No progress possible - no more input data available
+                            break;
+                        }
+                        else {
                             OPENMS_LOG_ERROR << "Error occurred during decompression. Zlib error code: " << ret << std::endl;
                             break;
                         }
@@ -445,7 +449,8 @@ namespace OpenMS {
                             remainingBytes = m_bzStream.avail_out;
                             break;
                         }
-                        else if (ret != BZ_OK && ret != BZ_STREAM_END) {
+                        else {
+                            // Error occurred during decompression
                             OPENMS_LOG_ERROR << "Error occurred during decompression. Bzip2 error code: " << ret << std::endl;
                             break;
                         }

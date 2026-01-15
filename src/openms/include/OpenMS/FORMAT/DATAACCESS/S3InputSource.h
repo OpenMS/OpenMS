@@ -95,9 +95,9 @@ namespace OpenMS {
         S3Bzip2BinInputStream(std::shared_ptr<Aws::S3::Model::GetObjectOutcome> getObjectOutcome);
         ~S3Bzip2BinInputStream();
 
-        XMLFilePos curPos() const;
-        XMLSize_t readBytes(XMLByte* const toFill, const XMLSize_t maxToRead);
-        const XMLCh* getContentType() const;
+        XMLFilePos curPos() const override;
+        XMLSize_t readBytes(XMLByte* const toFill, const XMLSize_t maxToRead) override;
+        const XMLCh* getContentType() const override;
 
     private:
         std::shared_ptr<Aws::S3::Model::GetObjectOutcome> m_getObjectOutcome;
