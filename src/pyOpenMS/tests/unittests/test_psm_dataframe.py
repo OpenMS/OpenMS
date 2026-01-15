@@ -175,18 +175,29 @@ def test_psm_df_protein_accessions():
 
 
 def test_psm_df_additional_scores():
-    """Test additional scores extraction from metavalues."""
+    """Test additional scores extraction from metavalues (QPX array format)."""
     pep_ids = create_test_data()
     df = pep_ids.get_psm_df()
 
     # First hit has some_score metavalue
     scores = df.iloc[0]["additional_scores"]
-    assert "some_score" in scores
-    assert scores["some_score"] == pytest.approx(42.5)
+    assert isinstance(scores, list)
+
+    # Find some_score in the list
+    some_score_entry = None
+    for entry in scores:
+        if entry["score_name"] == "some_score":
+            some_score_entry = entry
+            break
+
+    assert some_score_entry is not None
+    assert some_score_entry["score_value"] == pytest.approx(42.5)
+    # higher_better should be None for unknown score types
+    assert "higher_better" in some_score_entry
 
 
 def test_psm_df_modifications():
-    """Test modification extraction."""
+    """Test modification extraction (QPX schema format)."""
     import pyopenms as oms
 
     pep_ids = oms.PeptideIdentificationList()
@@ -209,9 +220,18 @@ def test_psm_df_modifications():
 
     mods = df.iloc[0]["modifications"]
     assert len(mods) == 1
-    assert mods[0]["name"] == "Oxidation"
-    assert mods[0]["position"] == 5  # M is at position 5 (1-indexed)
-    assert mods[0]["mass"] == pytest.approx(15.9949, abs=0.01)
+
+    # QPX format: {"name", "accession", "positions": [{"position": "{AA}.{pos}", "scores"}]}
+    mod = mods[0]
+    assert mod["name"] == "Oxidation"
+    assert "accession" in mod  # Should be UNIMOD:35 or None
+    assert "positions" in mod
+    assert len(mod["positions"]) == 1
+
+    # Position format: "{AA}.{position}" where position is 1-indexed
+    pos_entry = mod["positions"][0]
+    assert pos_entry["position"] == "M.5"  # M is at position 5 (1-indexed)
+    assert pos_entry["scores"] is None  # No localization scores
 
 
 def test_psm_df_no_modifications():
@@ -269,11 +289,61 @@ def test_psm_df_empty_identifications():
 
 
 def test_to_qpx():
-    """Test to_qpx Arrow export."""
+    """Test to_qpx dict export with file_metadata and psms."""
+    pep_ids = create_test_data()
+    qpx_data = pep_ids.to_qpx()
+
+    # Check structure
+    assert isinstance(qpx_data, dict)
+    assert "file_metadata" in qpx_data
+    assert "psms" in qpx_data
+
+    # Check file_metadata
+    metadata = qpx_data["file_metadata"]
+    assert "qpx_version" in metadata
+    assert "creator" in metadata
+    assert "file_type" in metadata
+    assert metadata["file_type"] == "psm"
+    assert "creation_date" in metadata
+    assert "uuid" in metadata
+    assert "scan_format" in metadata
+    assert "software_provider" in metadata
+
+    # Check psms
+    psms = qpx_data["psms"]
+    assert len(psms) == 3
+    # QPX schema fields
+    assert "sequence" in psms[0]
+    assert "peptidoform" in psms[0]
+    assert "precursor_charge" in psms[0]
+    assert "reference_file_name" in psms[0]
+    assert "cv_params" in psms[0]
+
+
+def test_to_qpx_with_params():
+    """Test to_qpx with parameters."""
+    pep_ids = create_test_data()
+    qpx_data = pep_ids.to_qpx(export_all_hits=False)
+
+    assert len(qpx_data["psms"]) == 2
+
+
+def test_to_qpx_with_reference_file():
+    """Test to_qpx with reference_file_name parameter."""
+    pep_ids = create_test_data()
+    qpx_data = pep_ids.to_qpx(reference_file_name="test.mzML")
+
+    # All PSMs should have the reference_file_name
+    for psm in qpx_data["psms"]:
+        assert psm["reference_file_name"] == "test.mzML"
+
+
+def test_to_qpx_arrow():
+    """Test to_qpx_arrow Arrow Table export."""
     pa = pytest.importorskip("pyarrow")
 
     pep_ids = create_test_data()
-    table = pep_ids.to_qpx()
+    table = pep_ids.to_qpx_arrow()
 
     assert isinstance(table, pa.Table)
     assert table.num_rows == 3
@@ -285,26 +355,21 @@ def test_to_qpx():
     assert "cv_params" in table.schema.names
 
 
-def test_to_qpx_with_params():
-    """Test to_qpx Arrow export with parameters."""
-    pytest.importorskip("pyarrow")
-
+def test_to_qpx_file_metadata_params():
+    """Test to_qpx file_metadata customization."""
     pep_ids = create_test_data()
-    table = pep_ids.to_qpx(export_all_hits=False)
+    qpx_data = pep_ids.to_qpx(
+        qpx_version="2.0",
+        creator="TestCreator",
+        software_provider="TestProvider",
+        scan_format="nativeId"
+    )
 
-    assert table.num_rows == 2
-
-
-def test_to_qpx_with_reference_file():
-    """Test to_qpx with reference_file_name parameter."""
-    pytest.importorskip("pyarrow")
-
-    pep_ids = create_test_data()
-    table = pep_ids.to_qpx(reference_file_name="test.mzML")
-
-    # All rows should have the reference_file_name
-    df = table.to_pandas()
-    assert all(df["reference_file_name"] == "test.mzML")
+    metadata = qpx_data["file_metadata"]
+    assert metadata["qpx_version"] == "2.0"
+    assert metadata["creator"] == "TestCreator"
+    assert metadata["software_provider"] == "TestProvider"
+    assert metadata["scan_format"] == "nativeId"
 
 
 def test_get_psm_columns():

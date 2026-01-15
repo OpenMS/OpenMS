@@ -318,6 +318,8 @@ import numpy as np
         """
         get_psm_df(self: PeptideIdentificationList, export_all_hits: bool = True, include_modifications: bool = True, include_peak_annotations: bool = False, decode_ontology: bool = True, reference_file_name: str = "") -> pd.DataFrame
 
+        **EXPERIMENTAL**: This method is experimental and subject to change.
+
         Export PSMs as a DataFrame following the QPX PSM schema.
 
         Unlike get_df() which exports only the top hit, this method exports
@@ -377,6 +379,8 @@ import numpy as np
                 "Please install it with: pip install pandas"
             )
         from . import SpectrumLookup as _SpectrumLookup
+        from . import IDScoreSwitcherAlgorithm as _IDScoreSwitcherAlgorithm
+        from . import ScoreType as _ScoreType
 
         # Native ID type accessions to try for scan number extraction
         # See SpectrumLookup.cpp for the full list of supported formats
@@ -405,6 +409,24 @@ import numpy as np
             return None
 
         rows = []
+        # Create IDScoreSwitcherAlgorithm instance once for PEP detection
+        idsa = _IDScoreSwitcherAlgorithm()
+
+        # Known PEP score names from IDScoreSwitcherAlgorithm::type_to_str_
+        # These are used to search metavalues when main score is not PEP
+        _pep_metavalue_names = [
+            b"Posterior Error Probability",
+            b"pep",
+            b"PEP",
+            b"posterior_error_probability",
+            b"MS:1001493",
+            # Also check with _score suffix
+            b"Posterior Error Probability_score",
+            b"pep_score",
+            b"PEP_score",
+            b"posterior_error_probability_score",
+        ]
+
         for pep_idx, pep_id in enumerate(self):
             rt = pep_id.getRT()
             observed_mz = pep_id.getMZ()
@@ -432,39 +454,58 @@ import numpy as np
 
             num_hits = len(hits) if export_all_hits else min(1, len(hits))
 
+            # Detect PEP score type once per PeptideIdentification (applies to all hits)
+            # Use isScoreType to check if main score is PEP type
+            is_main_score_pep = idsa.isScoreType(score_type, _ScoreType.PEP) if score_type else False
+
             for rank in range(num_hits):
                 hit = hits[rank]
                 seq = hit.getSequence()
                 charge = hit.getCharge()
 
-                # Extract modifications
+                # Extract modifications in QPX schema format
+                # QPX format: [{"name", "accession", "positions": [{"position": "{AA}.{pos}", "scores"}]}]
                 modifications = []
                 if include_modifications and seq.isModified():
+                    # Track modifications by name to combine same modifications at different positions
+                    mod_dict = {}
+
                     # N-terminal modification
                     if seq.hasNTerminalModification():
                         mod = seq.getNTerminalModification()
-                        modifications.append({
-                            "name": seq.getNTerminalModificationName(),
-                            "position": 0,
-                            "mass": mod.getDiffMonoMass() if mod else 0.0
-                        })
+                        mod_name = seq.getNTerminalModificationName()
+                        accession = mod.getUniModRecordId() if mod else None
+                        accession_str = f"UNIMOD:{accession}" if accession and accession > 0 else None
+                        position_str = "N-term.0"
+                        if mod_name not in mod_dict:
+                            mod_dict[mod_name] = {"name": mod_name, "accession": accession_str, "positions": []}
+                        mod_dict[mod_name]["positions"].append({"position": position_str, "scores": None})
+
                     # Residue modifications
                     for pos, residue in enumerate(seq):
                         if residue.isModified():
                             res_mod = residue.getModification()
-                            modifications.append({
-                                "name": residue.getModificationName(),
-                                "position": pos + 1,
-                                "mass": res_mod.getDiffMonoMass() if res_mod else 0.0
-                            })
+                            mod_name = residue.getModificationName()
+                            accession = res_mod.getUniModRecordId() if res_mod else None
+                            accession_str = f"UNIMOD:{accession}" if accession and accession > 0 else None
+                            aa_code = residue.getOneLetterCode()
+                            position_str = f"{aa_code}.{pos + 1}"
+                            if mod_name not in mod_dict:
+                                mod_dict[mod_name] = {"name": mod_name, "accession": accession_str, "positions": []}
+                            mod_dict[mod_name]["positions"].append({"position": position_str, "scores": None})
+
                     # C-terminal modification
                     if seq.hasCTerminalModification():
                         mod = seq.getCTerminalModification()
-                        modifications.append({
-                            "name": seq.getCTerminalModificationName(),
-                            "position": seq.size() + 1,
-                            "mass": mod.getDiffMonoMass() if mod else 0.0
-                        })
+                        mod_name = seq.getCTerminalModificationName()
+                        accession = mod.getUniModRecordId() if mod else None
+                        accession_str = f"UNIMOD:{accession}" if accession and accession > 0 else None
+                        position_str = f"C-term.{seq.size() + 1}"
+                        if mod_name not in mod_dict:
+                            mod_dict[mod_name] = {"name": mod_name, "accession": accession_str, "positions": []}
+                        mod_dict[mod_name]["positions"].append({"position": position_str, "scores": None})
+
+                    modifications = list(mod_dict.values())
 
                 # Determine is_decoy
                 is_decoy = None
@@ -479,8 +520,9 @@ import numpy as np
                 evidences = hit.getPeptideEvidences()
                 protein_accessions = [ev.getProteinAccession() for ev in evidences]
 
-                # Build additional scores dict from metavalues
-                additional_scores = {}
+                # Build additional scores as array of records (QPX schema)
+                # Format: [{"score_name", "score_value", "higher_better"}]
+                additional_scores = []
                 keys = []
                 hit.getKeys(keys)
                 for key in keys:
@@ -488,7 +530,18 @@ import numpy as np
                         val = hit.getMetaValue(key)
                         if isinstance(val, (int, float)):
                             key_str = key.decode("utf-8") if isinstance(key, bytes) else str(key)
-                            additional_scores[key_str] = float(val)
+                            # Determine higher_better using IDScoreSwitcherAlgorithm if possible
+                            higher_better = None
+                            try:
+                                score_type_enum = idsa.toScoreTypeEnum(key_str)
+                                higher_better = idsa.isScoreTypeHigherBetter(score_type_enum)
+                            except:
+                                pass  # Unknown score type, leave as None
+                            additional_scores.append({
+                                "score_name": key_str,
+                                "score_value": float(val),
+                                "higher_better": higher_better
+                            })
 
                 # Calculate m/z from sequence
                 calculated_mz = None
@@ -505,13 +558,17 @@ import numpy as np
                 elif hit.metaValueExists(b"predicted_rt"):
                     predicted_rt = hit.getMetaValue(b"predicted_rt")
 
-                # Build posterior_error_probability
+                # Build posterior_error_probability using IDScoreSwitcherAlgorithm
+                # is_main_score_pep was computed once per pep_id above using isScoreType()
                 pep_value = None
-                score_type_lower = score_type.lower() if score_type else ""
-                if "pep" in score_type_lower or "posterior" in score_type_lower:
+                if is_main_score_pep:
                     pep_value = hit.getScore()
-                elif hit.metaValueExists(b"MS:1001493"):  # PSI-MS term for PEP
-                    pep_value = hit.getMetaValue(b"MS:1001493")
+                else:
+                    # Search metavalues for known PEP score names
+                    for pep_name in _pep_metavalue_names:
+                        if hit.metaValueExists(pep_name):
+                            pep_value = hit.getMetaValue(pep_name)
+                            break
 
                 # Build row with QPX schema fields in order
                 row = {
@@ -562,36 +619,111 @@ import numpy as np
 
         return pd.DataFrame(rows)
 
-    def to_qpx(self, **kwargs):
+    def to_qpx(self, qpx_version="1.0", creator="pyOpenMS", software_provider="OpenMS",
+                scan_format="scan", **kwargs):
         """
-        to_qpx(self: PeptideIdentificationList, **kwargs) -> pa.Table
+        to_qpx(self: PeptideIdentificationList, qpx_version: str = "1.0", creator: str = "pyOpenMS", software_provider: str = "OpenMS", scan_format: str = "scan", **kwargs) -> dict
 
-        Export PSMs as Apache Arrow Table following QPX PSM schema.
+        **EXPERIMENTAL**: This method is experimental and subject to change.
+
+        Export PSMs as QPX format structure with file metadata and PSMs array.
 
         The QPX (Quantitative Proteomics Exchange) schema defines a standard
-        format for PSM data exchange. This method exports data with all QPX
-        schema fields, plus additional OpenMS-specific fields.
+        format for PSM data exchange. This method exports data as a dict with:
+        - file_metadata: File-level metadata (qpx_version, creator, etc.)
+        - psms: List of PSM records
 
-        QPX Schema Fields:
+        QPX PSM Schema Fields:
             sequence, peptidoform, modifications, precursor_charge,
             posterior_error_probability, is_decoy, calculated_mz, observed_mz,
             additional_scores, protein_accessions, predicted_rt, reference_file_name,
             cv_params, scan, rt, ion_mobility, number_peaks, mz_array,
             intensity_array, charge_array, ion_type_array, ion_mobility_array
 
-        OpenMS-specific Fields (not in QPX):
+        OpenMS-specific Fields (appended to each PSM):
             spectrum_reference, score, score_type, rank, P_ID
+
+        :param qpx_version: Version of the QPX format. Default "1.0".
+        :type qpx_version: str
+
+        :param creator: Name of the tool or person who created the file.
+                        Default "pyOpenMS".
+        :type creator: str
+
+        :param software_provider: Name of the software provider. Default "OpenMS".
+        :type software_provider: str
+
+        :param scan_format: Format of scan identifiers: "scan", "index", or "nativeId".
+                            Default "scan".
+        :type scan_format: str
+
+        Additional kwargs are passed to get_psm_df().
+
+        :return: Dict with 'file_metadata' and 'psms' keys following QPX schema.
+        :rtype: dict
+
+        Example::
+
+            qpx_data = peps.to_qpx(reference_file_name="sample.mzML")
+
+            # Access file metadata
+            print(qpx_data["file_metadata"]["qpx_version"])
+
+            # Access PSMs as DataFrame
+            import pandas as pd
+            psms_df = pd.DataFrame(qpx_data["psms"])
+
+            # Write to Parquet with pyarrow
+            import pyarrow as pa
+            import pyarrow.parquet as pq
+            table = pa.Table.from_pylist(qpx_data["psms"])
+            pq.write_table(table, "psms.parquet")
+        """
+        import uuid as _uuid
+        from datetime import datetime as _datetime
+
+        df = self.get_psm_df(**kwargs)
+
+        # Build file_metadata
+        file_metadata = {
+            "qpx_version": qpx_version,
+            "creator": creator,
+            "file_type": "psm",
+            "creation_date": _datetime.now().isoformat(),
+            "uuid": str(_uuid.uuid4()),
+            "scan_format": scan_format,
+            "software_provider": software_provider,
+        }
+
+        # Convert DataFrame to list of dicts for psms array
+        psms = df.to_dict(orient="records")
+
+        return {
+            "file_metadata": file_metadata,
+            "psms": psms
+        }
+
+    def to_qpx_arrow(self, **kwargs):
+        """
+        to_qpx_arrow(self: PeptideIdentificationList, **kwargs) -> pa.Table
+
+        **EXPERIMENTAL**: This method is experimental and subject to change.
+
+        Export PSMs as Apache Arrow Table (PSMs only, without file metadata).
+
+        This is a convenience method for direct Arrow export of PSM records.
+        For full QPX format with file metadata, use to_qpx().
 
         Accepts same parameters as get_psm_df().
 
-        :return: Arrow Table with PSM data following QPX schema.
+        :return: Arrow Table with PSM data.
         :rtype: pyarrow.Table
 
         :raises ImportError: If pyarrow is not installed
 
         Example::
 
-            table = peps.to_qpx()
+            table = peps.to_qpx_arrow()
 
             # Convert to polars
             import polars as pl
@@ -604,7 +736,7 @@ import numpy as np
             import pyarrow as pa
         except ImportError:
             raise ImportError(
-                "pyarrow is required for to_qpx(). "
+                "pyarrow is required for to_qpx_arrow(). "
                 "Please install it with: pip install pyarrow"
             )
         df = self.get_psm_df(**kwargs)
@@ -614,6 +746,8 @@ import numpy as np
     def get_psm_columns():
         """
         get_psm_columns() -> list
+
+        **EXPERIMENTAL**: This method is experimental and subject to change.
 
         Return list of column names that get_psm_df() and to_qpx() produce.
 
