@@ -96,7 +96,12 @@ Only the OpenMS C++ library targets are available. No pyOpenMS-related targets e
 
    ```bash
    cd src/pyOpenMS
-   pip install -r requirements_bld.txt
+   # Option 1: Using uv (recommended)
+   pip install uv
+   uv sync --only-group build
+   
+   # Option 2: Using pip with development dependencies
+   pip install -e .[dev]
    ```
 
 3. **Configure and build:**
