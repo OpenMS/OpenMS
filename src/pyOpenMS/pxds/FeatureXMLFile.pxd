@@ -8,14 +8,14 @@ cdef extern from "<OpenMS/FORMAT/FeatureXMLFile.h>" namespace "OpenMS":
     cdef cppclass FeatureXMLFile:
         # wrap-doc:
         #  File adapter for featureXML files
-        #
+        #  
         #  Provides methods to load and store feature maps in featureXML format.
         #  FeatureXML files store LC-MS features with their convex hulls, intensities, and metadata.
-        #
+        #  
         #  Usage:
-        #
+        #  
         #  .. code-block:: python
-        #
+        #  
         #    fm = FeatureMap()
         #    FeatureXMLFile().load("test.featureXML", fm)
         #    for feature in fm:
