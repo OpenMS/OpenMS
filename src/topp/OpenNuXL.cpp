@@ -4659,13 +4659,13 @@ static void scoreXLIons_(
     if (!extra_output_directory.empty())
     {
       // convert path to absolute path
-      QDir extra_dir(extra_output_directory.toQString());
-      extra_output_directory = String(extra_dir.absolutePath());
+      QDir extra_dir(QString::fromStdString(extra_output_directory));
+      extra_output_directory = String(extra_dir.absolutePath().toStdString());
 
       // trying to create directory if not present
       if (!extra_dir.exists())
       {
-        extra_dir.mkpath(extra_output_directory.toQString());
+        extra_dir.mkpath(QString::fromStdString(extra_output_directory));
       }
     }
 
@@ -6357,7 +6357,7 @@ static void scoreXLIons_(
         // copy XL results (with highest threshold=little filtering) to output
         if (!out_xl_idxml.empty())
         {
-          QFile::copy(String(original_PSM_output_filename + String::number(xl_fdr_max, 4) + "_XLs.idXML").toQString(), out_xl_idxml.toQString());
+          QFile::copy(QString::fromStdString(original_PSM_output_filename + String::number(xl_fdr_max, 4) + "_XLs.idXML"), QString::fromStdString(out_xl_idxml));
         }
       }
       else
@@ -6366,7 +6366,7 @@ static void scoreXLIons_(
 
         fdr.calculatePeptideAndXLQValueAndFilterAtPSMLevel(protein_ids,
           peptide_ids,
-          pep_pi, 
+          pep_pi,
           peptide_FDR,
           peptide_FDR, // for now we choose same peptide-level FDR = PSM-level FDR for non-cross-links
           xl_pi,
@@ -6377,7 +6377,7 @@ static void scoreXLIons_(
         // copy XL results (with highest threshold=little filtering) to output
         if (!out_xl_idxml.empty())
         {
-          QFile::copy(String(b + String::number(xl_fdr_max, 4) + "_XLs.idXML").toQString(), out_xl_idxml.toQString());
+          QFile::copy(QString::fromStdString(b + String::number(xl_fdr_max, 4) + "_XLs.idXML"), QString::fromStdString(out_xl_idxml));
         }
       }
 
@@ -6478,16 +6478,16 @@ static void scoreXLIons_(
             // copy XL results (with highest threshold=little filtering) to outut TODO: first copy would not be needed
             if (!out_xl_idxml.empty())
             {
-              QFile::copy(String(percolator_PSM_output_filename + String::number(xl_fdr_max, 4) + "_XLs.idXML").toQString(), out_xl_idxml.toQString());
+              QFile::copy(QString::fromStdString(percolator_PSM_output_filename + String::number(xl_fdr_max, 4) + "_XLs.idXML"), QString::fromStdString(out_xl_idxml));
             }
           }
           else
           { // use output_folder
             String b = extra_output_directory + "/" + File::basename(out_idxml).substitute(".idXML", "_perc_");
-            
+
             fdr.calculatePeptideAndXLQValueAndFilterAtPSMLevel(protein_ids,
               peptide_ids,
-              pep_pi, 
+              pep_pi,
               peptide_FDR,
               peptide_FDR, // for now we choose same peptide-level FDR = PSM-level FDR for non-cross-links
               xl_pi,
@@ -6500,7 +6500,7 @@ static void scoreXLIons_(
             // copy XL results (with highest threshold=little filtering) to output TODO: first copy would not be needed if percolator succeeds
             if (!out_xl_idxml.empty())
             {
-              QFile::copy(String(b + String::number(xl_fdr_max, 4) + "_XLs.idXML").toQString(), out_xl_idxml.toQString());
+              QFile::copy(QString::fromStdString(b + String::number(xl_fdr_max, 4) + "_XLs.idXML"), QString::fromStdString(out_xl_idxml));
             }
           }
           OPENMS_LOG_INFO << "done." << endl;

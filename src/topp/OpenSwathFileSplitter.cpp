@@ -96,8 +96,8 @@ protected:
     // (do not use QDir::separator(), since its platform specific (/ or \) while absolutePath() will always use '/')
     String tmp_dir = String(QDir(getStringOption_("outputDirectory").c_str()).absolutePath()).ensureLastChar('/');
 
-    QFileInfo fi(file_in.toQString());
-    String tmp = tmp_dir + String(fi.baseName());
+    QFileInfo fi(QString::fromStdString(file_in));
+    String tmp = tmp_dir + String(fi.baseName().toStdString());
 
     String out_qc = getStringOption_("out_qc");
 

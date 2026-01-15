@@ -287,11 +287,11 @@ protected:
      }
 
      // Copy the output files to the specified location
-     QDir temp_dir_qt = QDir(temp_dir.toQString());
+     QDir temp_dir_qt = QDir(QString::fromStdString(temp_dir));
      for (size_t i = 0; i < spectra_files.size(); i++)
      {
         String spectra_file = spectra_files[i];
-        QString actual_path = temp_dir_qt.filePath(FileHandler::stripExtension(File::basename(spectra_file)).toQString().append(".").append(outputFormat.toQString()));
+        QString actual_path = temp_dir_qt.filePath(QString::fromStdString(FileHandler::stripExtension(File::basename(spectra_file)) + "." + outputFormat));
 
         std::ifstream ifs(actual_path.toStdString().c_str(), std::ios::in | std::ios::binary);
         std::ofstream ofs(output_files[i].c_str(), std::ios::out | std::ios::binary);
