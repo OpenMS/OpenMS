@@ -12,13 +12,15 @@
 //OpenMS
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <map>
-
-//Qt
-#include <QtCore/QFileSystemWatcher>
 
 //STL
 #include <map>
+#include <functional>
+#include <thread>
+#include <mutex>
+#include <atomic>
+#include <chrono>
+#include <memory>
 
 namespace OpenMS
 {
@@ -27,60 +29,75 @@ namespace OpenMS
   /**
       @brief Watcher that monitors file changes.
 
-      This class can be used similar to QFileSystemWatcher.
-      Additionally it offers a delayed fileChanged signal.
-
-      This behaviour is required for the following reason:
-      Normally QFileSystemWatcher emits a signal every time a file is changed.
-      This causes several signals for large files (one for each flush of the buffer).
+      This class monitors files for changes with a delayed callback mechanism.
+      The delay prevents multiple callbacks for large files that are written in chunks.
 
       @ingroup System
   */
-  class OPENMS_DLLAPI FileWatcher :
-    public QFileSystemWatcher       //find out why ICC requires public instead of protected
+  class OPENMS_DLLAPI FileWatcher
   {
-    Q_OBJECT
-
 public:
+    /// Callback type for file change notifications
+    using FileChangeCallback = std::function<void(const String&)>;
+
     /// Constructor
-    FileWatcher(QObject * parent = nullptr);
+    FileWatcher();
 
     /// Destructor
-    ~FileWatcher() override;
+    ~FileWatcher();
 
-    ///Sets the delay in seconds (default: 1s)
-    inline void setDelayInSeconds(double delay)
-    {
-      delay_in_seconds_ = delay;
-    }
+    /// Sets the delay in seconds (default: 1s)
+    void setDelayInSeconds(double delay);
 
-    ///Adds a file to the watcher
-    inline void addFile(const String & path)
-    {
-      QFileSystemWatcher::addPath(path.toQString());
-    }
+    /// Adds a file to the watcher
+    /// @return true if the file was successfully added, false otherwise
+    bool addFile(const String& path);
 
-    ///removes a file from the watcher
-    inline void removeFile(const String & path)
-    {
-      QFileSystemWatcher::removePath(path.toQString());
-    }
+    /// Removes a file from the watcher
+    void removeFile(const String& path);
 
-signals:
-    ///Delayed file change signal
-    void fileChanged(const String &);
-
-protected slots:
-    /// Slot that is connected to the fileChanged signal in order to track the changes
-    void monitorFileChanged_(const QString & name);
-    /// Slot that is called when the delay is over
-    void timerTriggered_();
+    /// Sets the callback function to be called when a file changes
+    void setCallback(FileChangeCallback callback);
 
 protected:
-    /// A map that links timer name and file
-    std::map<QString, QString> timers_;
+    /// Structure to track pending file change notifications
+    struct PendingTimer
+    {
+      std::string file_path;
+      std::chrono::steady_clock::time_point trigger_time;
+      bool active;
+    };
+
+    /// Monitors file changes (platform-specific implementation)
+    void monitorFiles_();
+
+    /// Processes pending timers
+    void processTimers_();
+
+    /// Map of watched files to their last modification time
+    std::map<std::string, std::time_t> watched_files_;
+
+    /// Pending timers for delayed notifications
+    std::map<int, PendingTimer> pending_timers_;
+    int next_timer_id_;
+
     /// Delay (seconds)
     double delay_in_seconds_;
+
+    /// Callback for file changes
+    FileChangeCallback callback_;
+
+    /// Monitoring thread
+    std::unique_ptr<std::thread> monitor_thread_;
+
+    /// Timer processing thread
+    std::unique_ptr<std::thread> timer_thread_;
+
+    /// Flag to stop threads
+    std::atomic<bool> stop_monitoring_;
+
+    /// Mutex for thread safety
+    std::mutex mutex_;
   };
 
   // OPENMS_DLLAPI extern FileWatcher myFileWatcher_instance;
