@@ -599,7 +599,8 @@ import numpy as np
                     "P_ID": pep_idx,
                 }
 
-                # Add fragment ion peak annotations if requested (QPX schema fields)
+                # Add fragment ion peak annotations (QPX schema fields)
+                # Always include these columns for schema consistency with get_psm_columns()
                 if include_peak_annotations:
                     peak_annotations = hit.getPeakAnnotations()
                     if peak_annotations:
@@ -616,6 +617,14 @@ import numpy as np
                         row["charge_array"] = []
                         row["ion_type_array"] = []
                         row["ion_mobility_array"] = None
+                else:
+                    # Set to None when not requested, but always include for consistent schema
+                    row["number_peaks"] = None
+                    row["mz_array"] = None
+                    row["intensity_array"] = None
+                    row["charge_array"] = None
+                    row["ion_type_array"] = None
+                    row["ion_mobility_array"] = None
 
                 rows.append(row)
 
