@@ -317,7 +317,7 @@ START_SECTION(void readChromatograms(std::vector<MSChromatogram> & exp, const st
     NEW_TMP_FILE(tmp_filename);
 
     // delete file if present
-    QFile file (String(tmp_filename).toQString());
+    QFile file (QString::fromStdString(tmp_filename));
     file.remove();
 
     auto chroms = exp_orig.getChromatograms();
@@ -442,7 +442,7 @@ START_SECTION(void writeExperiment(const MSExperiment & exp))
   NEW_TMP_FILE(tmp_filename);
 
   // delete file if present
-  QFile file (String(tmp_filename).toQString());
+  QFile file (QString::fromStdString(tmp_filename));
   file.remove();
 
   {
@@ -515,7 +515,7 @@ START_SECTION(void writeSpectra(const std::vector<MSSpectrum>& spectra))
   NEW_TMP_FILE(tmp_filename);
 
   // delete file if present
-  QFile file (String(tmp_filename).toQString());
+  QFile file (QString::fromStdString(tmp_filename));
   file.remove();
 
   {
@@ -564,7 +564,7 @@ START_SECTION(void writeChromatograms(const std::vector<MSChromatogram>& chroms)
   NEW_TMP_FILE(tmp_filename);
 
   // delete file if present
-  QFile file (String(tmp_filename).toQString());
+  QFile file (QString::fromStdString(tmp_filename));
   file.remove();
 
   {

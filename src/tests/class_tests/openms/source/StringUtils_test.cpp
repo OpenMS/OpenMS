@@ -248,13 +248,6 @@ START_SECTION((static bool split_quoted(const String &this_s, const String &spli
 }
 END_SECTION
 
-START_SECTION((static QString toQString(const String &this_s)))
-{
-  NOT_TESTABLE // tested in String_test.cpp
-}
-END_SECTION
-
-
 START_SECTION((static Int32 toInt32(const String &this_s)))
 {
   // easy case

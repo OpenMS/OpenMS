@@ -45,7 +45,7 @@ START_SECTION((void load(const String &filename, std::vector< Internal::ToolDesc
   ToolDescriptionFile f;
   std::vector< Internal::ToolDescription > tds;
   QStringList list;
-  QDir dir( ToolHandler::getExternalToolsPath().toQString(), "*.ttd");
+  QDir dir( QString::fromStdString(ToolHandler::getExternalToolsPath()), "*.ttd");
   QStringList files = dir.entryList();
   for (int i=0;i<files.size();++i)
   {
