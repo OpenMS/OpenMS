@@ -151,6 +151,9 @@ import numpy as np
         for k in metavals:
             if k == b"target_decoy":
                 types.append('?')
+            # Special case: feature_id must be uint64 for merge compatibility with FeatureMap.get_df()
+            elif k == b"feature_id":
+                types.append(np.dtype('uint64'))
             else:
                 for p in self:
                     hits = p.getHits()
@@ -162,6 +165,9 @@ import numpy as np
 
         # get default value for each type in types to append if there are no hits in a PeptideIdentification
         def get_key(val):
+            # Handle numpy dtypes (like uint64 for feature_id)
+            if isinstance(val, np.dtype):
+                return type(1)  # Use int default for numeric numpy dtypes
             for key, value in switchDict.items():
                 if val == value:
                     return key
