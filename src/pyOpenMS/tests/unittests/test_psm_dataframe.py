@@ -175,14 +175,29 @@ def test_psm_df_protein_accessions():
 
 
 def test_psm_df_additional_scores():
-    """Test additional scores extraction from metavalues."""
+    """Test additional scores extraction in QPX format with higher_better."""
     pep_ids = create_test_data()
     df = pep_ids.get_psm_df()
 
-    # First hit has some_score metavalue
+    # additional_scores is now a list of dicts with score_name, score_value, higher_better
     scores = df.iloc[0]["additional_scores"]
-    assert "some_score" in scores
-    assert scores["some_score"] == pytest.approx(42.5)
+    assert isinstance(scores, list)
+    assert len(scores) >= 1  # At least the main score
+
+    # Main score should be first
+    main_score = scores[0]
+    assert "score_name" in main_score
+    assert "score_value" in main_score
+    assert "higher_better" in main_score
+    assert main_score["score_name"] == "Posterior Error Probability"
+    assert main_score["score_value"] == pytest.approx(0.01)
+    assert main_score["higher_better"] is False  # PEP is lower-better
+
+    # Check that some_score metavalue is included
+    score_names = [s["score_name"] for s in scores]
+    assert "some_score" in score_names
+    some_score = next(s for s in scores if s["score_name"] == "some_score")
+    assert some_score["score_value"] == pytest.approx(42.5)
 
 
 def test_psm_df_modifications():
@@ -639,3 +654,47 @@ def test_psm_df_peak_annotations_empty():
     assert df.iloc[0]["number_peaks"] == 0
     assert df.iloc[0]["mz_array"] == []
     assert df.iloc[0]["intensity_array"] == []
+
+
+def test_psm_df_higher_score_better():
+    """Test higher_score_better column from PeptideIdentification."""
+    import pyopenms as oms
+
+    pep_ids = oms.PeptideIdentificationList()
+
+    # Create PeptideIdentification with PEP score (lower is better)
+    pep_id1 = oms.PeptideIdentification()
+    pep_id1.setScoreType("Posterior Error Probability")
+    pep_id1.setHigherScoreBetter(False)
+    hit1 = oms.PeptideHit()
+    hit1.setSequence(oms.AASequence.fromString("PEPTIDE"))
+    hit1.setCharge(2)
+    hit1.setScore(0.01)
+    pep_id1.setHits([hit1])
+    pep_ids.append(pep_id1)
+
+    # Create PeptideIdentification with raw score (higher is better)
+    pep_id2 = oms.PeptideIdentification()
+    pep_id2.setScoreType("XTandem")
+    pep_id2.setHigherScoreBetter(True)
+    hit2 = oms.PeptideHit()
+    hit2.setSequence(oms.AASequence.fromString("TESTPEPTIDE"))
+    hit2.setCharge(3)
+    hit2.setScore(50.0)
+    pep_id2.setHits([hit2])
+    pep_ids.append(pep_id2)
+
+    df = pep_ids.get_psm_df()
+
+    # Check higher_score_better column exists and has correct values
+    assert "higher_score_better" in df.columns
+    assert not df.iloc[0]["higher_score_better"]  # PEP: lower is better
+    assert df.iloc[1]["higher_score_better"]  # XTandem: higher is better
+
+
+def test_psm_df_get_psm_columns_includes_higher_score_better():
+    """Test that get_psm_columns includes higher_score_better."""
+    import pyopenms as oms
+
+    columns = oms.PeptideIdentificationList.get_psm_columns()
+    assert "higher_score_better" in columns

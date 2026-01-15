@@ -341,7 +341,7 @@ import numpy as np
                  additional_scores, protein_accessions, predicted_rt, reference_file_name,
                  cv_params, scan, rt, ion_mobility, number_peaks, mz_array, intensity_array,
                  charge_array, ion_type_array, ion_mobility_array
-                 Plus OpenMS-specific: spectrum_reference, score, score_type, rank, P_ID
+                 Plus OpenMS-specific: spectrum_reference, score, score_type, higher_score_better, rank, P_ID
         :rtype: pd.DataFrame
 
         :raises ImportError: If pandas is not installed
@@ -409,6 +409,7 @@ import numpy as np
                 if isinstance(spec_ref, bytes):
                     spec_ref = spec_ref.decode("utf-8")
             score_type = pep_id.getScoreType()
+            higher_score_better = pep_id.isHigherScoreBetter()
 
             # Ion mobility from metavalue
             ion_mobility = None
@@ -479,8 +480,18 @@ import numpy as np
                 evidences = hit.getPeptideEvidences()
                 protein_accessions = [ev.getProteinAccession() for ev in evidences]
 
-                # Build additional scores dict from metavalues
-                additional_scores = {}
+                # Build additional scores list in QPX format with higher_better field
+                # Main score is listed first, then metavalue scores
+                additional_scores = []
+
+                # Add the main score first
+                additional_scores.append({
+                    "score_name": score_type if score_type else "score",
+                    "score_value": float(hit.getScore()),
+                    "higher_better": higher_score_better
+                })
+
+                # Add scores from metavalues
                 keys = []
                 hit.getKeys(keys)
                 for key in keys:
@@ -488,7 +499,18 @@ import numpy as np
                         val = hit.getMetaValue(key)
                         if isinstance(val, (int, float)):
                             key_str = key.decode("utf-8") if isinstance(key, bytes) else str(key)
-                            additional_scores[key_str] = float(val)
+                            # Determine higher_better for this score using IDScoreSwitcherAlgorithm
+                            score_hb = True  # Default to higher is better
+                            for st in [_ScoreType.PEP, _ScoreType.QVAL, _ScoreType.FDR,
+                                       _ScoreType.PP, _ScoreType.RAW_EVAL, _ScoreType.RAW]:
+                                if _score_switcher.isScoreType(key_str, st):
+                                    score_hb = _score_switcher.isScoreTypeHigherBetter(st)
+                                    break
+                            additional_scores.append({
+                                "score_name": key_str,
+                                "score_value": float(val),
+                                "higher_better": score_hb
+                            })
 
                 # Calculate m/z from sequence
                 calculated_mz = None
@@ -539,6 +561,7 @@ import numpy as np
                     "spectrum_reference": spec_ref,
                     "score": hit.getScore(),
                     "score_type": score_type,
+                    "higher_score_better": higher_score_better,
                     "rank": rank,
                     "P_ID": pep_idx,
                 }
@@ -598,7 +621,7 @@ import numpy as np
             intensity_array, charge_array, ion_type_array, ion_mobility_array
 
         OpenMS-specific Fields (not in QPX):
-            spectrum_reference, score, score_type, rank, P_ID
+            spectrum_reference, score, score_type, higher_score_better, rank, P_ID
 
         Accepts same parameters as get_psm_df().
 
@@ -676,6 +699,7 @@ import numpy as np
             "spectrum_reference",
             "score",
             "score_type",
+            "higher_score_better",
             "rank",
             "P_ID",
         ]
