@@ -2505,6 +2505,20 @@ namespace OpenMS
           if (pos->second->type == ParameterInformation::FLAG) // flag
           {
             value = "true";
+            // Check if there are trailing arguments after the flag
+            if (!queue.empty())
+            {
+              // Collect the trailing arguments for the warning message
+              String trailing_args;
+              for (list<String>::const_iterator it = queue.begin(); it != queue.end(); ++it)
+              {
+                if (it != queue.begin()) trailing_args += " ";
+                trailing_args += *it;
+              }
+              writeLogWarn_(String("Warning: Ignoring '") + trailing_args + "' because " + arg + " is a flag and does not take arguments.");
+              // Clear the queue so these arguments don't end up in "misc"
+              queue.clear();
+            }
           }
           else // option with argument(s)
           {
@@ -2572,6 +2586,16 @@ namespace OpenMS
               queue.pop_front(); // argument was already used
           }
           OPENMS_LOG_DEBUG << "Command line: setting parameter value: '" << pos->second->name << "' to '" << value << "'" << std::endl;
+          
+          // Check for duplicate parameters
+          // Note: This is intentionally allowed to support nextflow workflows where ${ext.args} 
+          // can be appended to command lines to allow users to override default arguments
+          if (cmd_params.exists(pos->second->name))
+          {
+            ParamValue old_value = cmd_params.getValue(pos->second->name);
+            writeLogWarn_(String("Warning: Duplicate parameter '") + arg + "' given. Using last occurrence with value '" + value.toString() + "' (was '" + old_value.toString() + "').");
+          }
+          
           cmd_params.setValue(pos->second->name, value);
         }
         else // unknown argument -> append to "unknown" list
