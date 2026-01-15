@@ -5,10 +5,13 @@ from ResidueModification cimport *
 
 # see ../addons/ModificationsDB.pyx
 cdef extern from "<OpenMS/CHEMISTRY/ModificationsDB.h>" namespace "OpenMS":
-    
+
     cdef cppclass ModificationsDB "OpenMS::ModificationsDB":
         # wrap-manual-memory:
         #  cdef AutowrapPtrHolder[_ModificationsDB] inst
+        # wrap-doc:
+        #  Database of modifications (amino acid modifications). This is a singleton class.
+        #  The modifications are read from the unimod.xml file on construction.
 
         # private
         ModificationsDB() except + nogil  # wrap-ignore
@@ -20,10 +23,10 @@ cdef extern from "<OpenMS/CHEMISTRY/ModificationsDB.h>" namespace "OpenMS":
         void searchModifications(libcpp_set[ const ResidueModification * ] & mods,
                                  const String& mod_name,
                                  const String& residue,
-                                 TermSpecificity term_spec) except + nogil 
+                                 TermSpecificity term_spec) except + nogil
             # wrap-doc:
                 #  Collects all modifications which have the given name as synonym
-                #  
+                #
                 #  If `residue` is set, only modifications with matching residue of origin are considered
                 #  If `term_spec` is set, only modifications with matching term specificity are considered
                 #  The resulting set of modifications will be empty if no modification exists that fulfills the criteria
@@ -36,10 +39,10 @@ cdef extern from "<OpenMS/CHEMISTRY/ModificationsDB.h>" namespace "OpenMS":
                                             const String & residue,
                                             TermSpecificity term_spec) except + nogil  # wrap-doc:Returns the modification with the given arguments
 
-        bool has(String modification) except + nogil  # wrap-doc:Returns true if the modification exists
+        bool has(String modification) except + nogil  # wrap-doc:Returns True if the modification exists
 
         # unique_ptrs do not have a conversion provider in autowrap yet. Also, we would probably make a copy to not steal memory from the python object, defeating the purpose.
-        #void addModification(libcpp_unique_ptr[ResidueModification] new_mod) except + nogil 
+        #void addModification(libcpp_unique_ptr[ResidueModification] new_mod) except + nogil
 
         # TODO also do a function with bool return type to save a copy?
         const ResidueModification * addModification(const ResidueModification & new_mod) except + nogil  # wrap-doc:Add a new modification to ModificationsDB. If the modification already exists (based on its fullID) it is not added. Returns the modification in the ModificationDB (which can differ from input if mod was already present).
@@ -51,21 +54,21 @@ cdef extern from "<OpenMS/CHEMISTRY/ModificationsDB.h>" namespace "OpenMS":
 
 
         const ResidueModification* getBestModificationByDiffMonoMass(double mass, double max_error,
-                                                                     const String& residue, TermSpecificity term_spec) except + nogil 
+                                                                     const String& residue, TermSpecificity term_spec) except + nogil
             # wrap-doc:
                 #  Returns the best matching modification for the given delta mass and residue
-                #  
+                #
                 #  Query the modifications DB to get the best matching modification with
                 #  the given delta mass at the given residue (NULL pointer means no result,
                 #  maybe the maximal error tolerance needs to be increased). Possible
                 #  input for CAM modification would be a delta mass of 57 and a residue
                 #  of "C".
-                #  
+                #
                 #  Note: If there are multiple possible matches with equal masses, it
                 #  will choose the _first_ match which defaults to the first matching
                 #  UniMod entry.
-                #  
-                #  
+                #
+                #
                 #  :param residue: The residue at which the modifications occurs
                 #  :param mass: The monoisotopic mass of the residue including the mass of the modification
                 #  :param max_error: The maximal mass error in the modification search
@@ -77,10 +80,10 @@ cdef extern from "<OpenMS/CHEMISTRY/ModificationsDB.h>" namespace "OpenMS":
 
 ## wrap static methods
 cdef extern from "<OpenMS/CHEMISTRY/ModificationsDB.h>" namespace "OpenMS::ModificationsDB":
-    
+
     ModificationsDB* getInstance() except + nogil  # wrap-ignore
-    
-    ModificationsDB* getInstance(String unimod_file, 
+
+    ModificationsDB* getInstance(String unimod_file,
                                  String psimod_file,
                                  String xlmod_file) except + nogil  # wrap-ignore
 

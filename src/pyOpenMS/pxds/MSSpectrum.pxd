@@ -21,22 +21,22 @@ cdef extern from "<OpenMS/KERNEL/MSSpectrum.h>" namespace "OpenMS":
         #  Iterations yields access to underlying peak objects but is slower
         #  Extra data arrays can be accessed through getFloatDataArrays / getIntegerDataArrays / getStringDataArrays
         #  See help(SpectrumSettings) for information about meta-information
-        #  
+        #
         #  Usage:
-        #  
+        #
         #  .. code-block:: python
-        #  
+        #
         #    ms_level = spectrum.getMSLevel()
         #    rt = spectrum.getRT()
         #    mz, intensities = spectrum.get_peaks()
-        #  
-        #  
+        #
+        #
         #  Usage:
-        #  
+        #
         #  .. code-block:: python
-        #  
+        #
         #    from pyopenms import *
-        #    
+        #
         #    spectrum = MSSpectrum()
         #    spectrum.setDriftTime(25) # 25 ms
         #    spectrum.setRT(205.2) # 205.2 s
@@ -48,10 +48,10 @@ cdef extern from "<OpenMS/KERNEL/MSSpectrum.h>" namespace "OpenMS":
         #    p.setActivationEnergy(40) # 40 eV
         #    p.setCharge(4) # 4+ ion
         #    spectrum.setPrecursors( [p] )
-        #    
+        #
         #    # Add raw data to spectrum
         #    spectrum.set_peaks( ([401.5], [900]) )
-        #    
+        #
         #    # Additional data arrays / peak annotations
         #    fda = FloatDataArray()
         #    fda.setName("Signal to Noise Array")
@@ -61,54 +61,54 @@ cdef extern from "<OpenMS/KERNEL/MSSpectrum.h>" namespace "OpenMS":
         #    sda.push_back("y15++")
         #    spectrum.setFloatDataArrays( [fda] )
         #    spectrum.setStringDataArrays( [sda] )
-        #    
+        #
         #    # Add spectrum to MSExperiment
         #    exp = MSExperiment()
         #    exp.addSpectrum(spectrum)
-        #    
+        #
         #    # Add second spectrum and store as mzML file
         #    spectrum2 = MSSpectrum()
         #    spectrum2.set_peaks( ([1, 2], [1, 2]) )
         #    exp.addSpectrum(spectrum2)
-        #    
+        #
         #    MzMLFile().store("testfile.mzML", exp)
-        #  
-        #  
-        MSSpectrum() except + nogil
-        MSSpectrum(MSSpectrum &) except + nogil
+        #
+        #
+        MSSpectrum() except + nogil  # wrap-doc:Constructor
+        MSSpectrum(MSSpectrum &) except + nogil  # wrap-doc:Copy constructor
 
         double getRT() except + nogil  # wrap-doc:Returns the absolute retention time (in seconds)
         void setRT(double) except + nogil   # wrap-doc:Sets the absolute retention time (in seconds)
 
         double getDriftTime() except + nogil  # wrap-doc:Returns the drift time (-1 if not set)
         void setDriftTime(double) except + nogil  # wrap-doc:Sets the drift time (-1 if not set)
-        DriftTimeUnit getDriftTimeUnit() except + nogil 
-        String getDriftTimeUnitAsString() except + nogil 
-        void setDriftTimeUnit(DriftTimeUnit dt) except + nogil
+        DriftTimeUnit getDriftTimeUnit() except + nogil  # wrap-doc:Returns the ion mobility drift time unit
+        String getDriftTimeUnitAsString() except + nogil  # wrap-doc:Returns the ion mobility drift time unit as string
+        void setDriftTimeUnit(DriftTimeUnit dt) except + nogil  # wrap-doc:Sets the ion mobility drift time unit
 
         IMFormat getIMFormat() except + nogil  # wrap-doc:Returns the ion mobility format
         void setIMFormat(IMFormat im_format) except + nogil  # wrap-doc:Sets the ion mobility format
 
-        bool containsIMData() except + nogil
+        bool containsIMData() except + nogil  # wrap-doc:Returns whether the spectrum contains ion mobility data
         libcpp_pair[Size, DriftTimeUnit] getIMData() except + nogil  # wrap-ignore wrap-doc:Returns position of ion mobility float data array and drift time unit
 
         unsigned int getMSLevel() except + nogil  # wrap-doc:Returns the MS level
         void setMSLevel(unsigned int) except + nogil  # wrap-doc:Sets the MS level
 
-        String getName() except + nogil 
-        void setName(String) except + nogil 
+        String getName() except + nogil  # wrap-doc:Returns the name of the spectrum
+        void setName(String) except + nogil  # wrap-doc:Sets the name of the spectrum
 
         Size size() except + nogil  # wrap-doc:Returns the number of peaks in the spectrum
-        void reserve(size_t n) except + nogil  
-        void resize(size_t n) except + nogil  # wrap-doc:Resize the peak array 
+        void reserve(size_t n) except + nogil  # wrap-doc:Reserves space for n peaks in the underlying container
+        void resize(size_t n) except + nogil  # wrap-doc:Resize the peak array
 
         Peak1D& operator[](size_t) except + nogil  # wrap-upper-limit:size()
 
-        void updateRanges() except + nogil 
-        void clear(bool clear_meta_data) except + nogil  # wrap-doc:Clears all data (and meta data if clear_meta_data is true)
+        void updateRanges() except + nogil  # wrap-doc:Recalculates the m/z and intensity ranges of the spectrum
+        void clear(bool clear_meta_data) except + nogil  # wrap-doc:Clears all data (and meta data if clear_meta_data is True)
         void push_back(Peak1D)  except + nogil  # wrap-doc:Append a peak
 
-        bool isSorted() except + nogil  # wrap-doc:Returns true if the spectrum is sorte by m/z
+        bool isSorted() except + nogil  # wrap-doc:Returns True if the spectrum is sorted by m/z
 
         int findNearest(double mz) except + nogil  # wrap-doc:Returns the index of the closest peak in m/z
         int findNearest(double mz, double tolerance) except + nogil  # wrap-doc:Returns the index of the closest peak in the provided +/- m/z tolerance window (-1 if none match)
@@ -123,11 +123,11 @@ cdef extern from "<OpenMS/KERNEL/MSSpectrum.h>" namespace "OpenMS":
 
         double calculateTIC() except + nogil  # wrap-doc:Returns the total ion current (=sum) of peak intensities in the spectrum
 
-        bool operator==(MSSpectrum) except + nogil 
-        bool operator!=(MSSpectrum) except + nogil 
+        bool operator==(MSSpectrum) except + nogil  # wrap-doc:Equality operator
+        bool operator!=(MSSpectrum) except + nogil  # wrap-doc:Inequality operator
 
-        void sortByIntensity(bool reverse) except + nogil 
-        void sortByPosition() except + nogil 
+        void sortByIntensity(bool reverse) except + nogil  # wrap-doc:Sorts the peaks by intensity (ascending if reverse is False, descending if True)
+        void sortByPosition() except + nogil  # wrap-doc:Sorts the peaks by m/z position
 
         libcpp_vector[FloatDataArray] getFloatDataArrays() except + nogil  # wrap-doc:Returns the additional float data arrays to store e.g. meta data
         libcpp_vector[IntegerDataArray] getIntegerDataArrays() except + nogil  # wrap-doc:Returns the additional int data arrays to store e.g. meta data

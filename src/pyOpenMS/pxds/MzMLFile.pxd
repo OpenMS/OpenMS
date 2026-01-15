@@ -14,17 +14,17 @@ cdef extern from "<OpenMS/FORMAT/MzMLFile.h>" namespace "OpenMS":
         #
         # wrap-doc:
         #  File adapter for MzML files
-        #  
+        #
         #  Provides methods to load and store MzML files.
         #  PeakFileOptions allow to load a reduced subset of the data into an MSExperiment.
-        #  
+        #
         #  See help(MSExperiment) how data is stored after loading.
         #  See help(PeakFileOptions) for available options.
-        #  
+        #
         #  Usage:
-        #  
+        #
         #  .. code-block:: python
-        #  
+        #
         #    exp = MSExperiment()
         #    MzMLFile().load("test.mzML", exp)
         #    spec = []
@@ -33,28 +33,28 @@ cdef extern from "<OpenMS/FORMAT/MzMLFile.h>" namespace "OpenMS":
         #        spec.append(s)
         #    exp.setSpectra(spec)
         #    MzMLFile().store("filtered.mzML", exp)
-        #          
+        #
 
-        MzMLFile() except + nogil 
-        MzMLFile(MzMLFile &) except + nogil 
+        MzMLFile() except + nogil
+        MzMLFile(MzMLFile &) except + nogil
 
         void load(const String& filename, MSExperiment &) except + nogil # wrap-doc:Loads from an MzML file. Spectra and chromatograms are sorted by default (this can be disabled using PeakFileOptions)
         void store(const String& filename, MSExperiment &) except + nogil # wrap-doc:Stores a MSExperiment in an MzML file
 
         # COMMENT: store/load XML structure to/from a string
-        void storeBuffer(String & output, MSExperiment exp) except + nogil 
+        void storeBuffer(String & output, MSExperiment exp) except + nogil
             # wrap-doc:
                 #  Stores a map in an output string
-                #  
-                #  
+                #
+                #
                 #  :param output: An empty string to store the result
                 #  :param exp: Has to be an MSExperiment
 
-        void loadBuffer(const String& input, MSExperiment & exp) except + nogil 
+        void loadBuffer(const String& input, MSExperiment & exp) except + nogil
             # wrap-doc:
                 #  Loads a map from a MzML file stored in a buffer (in memory)
-                #  
-                #  
+                #
+                #
                 #  :param buffer: The buffer with the data (i.e. string with content of an mzML file)
                 #  :param exp: Is an MSExperiment
                 #  :raises:
@@ -68,7 +68,14 @@ cdef extern from "<OpenMS/FORMAT/MzMLFile.h>" namespace "OpenMS":
         void transform(const String&, IMSDataConsumer[Peak1D, ChromatogramPeak] *, MSExperiment& e,
                        bool skip_full_count, bool skip_first_pass) except + nogil  # wrap-ignore
 
-        PeakFileOptions getOptions() except + nogil 
+        PeakFileOptions getOptions() except + nogil  # wrap-doc:Returns the options for loading/storing
         void setOptions(PeakFileOptions) except + nogil  # wrap-doc:Set PeakFileOptions to perform filtering during loading. E.g., to load only MS1 spectra or meta data only
 
-        bool isSemanticallyValid(const String & filename, StringList & errors, StringList & warnings) except + nogil 
+        bool isSemanticallyValid(const String & filename, StringList & errors, StringList & warnings) except + nogil
+            # wrap-doc:
+            #  Checks if a file is valid with respect to the mapping file and the controlled vocabulary
+            #
+            #  :param filename: File name of the file to be checked
+            #  :param errors: Errors during the validation are returned in this output parameter
+            #  :param warnings: Warnings during the validation are returned in this output parameter
+            #  :returns: True if the file is valid, False otherwise
