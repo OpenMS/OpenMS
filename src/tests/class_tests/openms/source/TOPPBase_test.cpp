@@ -873,7 +873,7 @@ START_SECTION(([EXTRA] test flag with trailing arguments))
   TOPPBase::ExitCodes ec_flag = tmp_flag.main(4, string_cl_flag);
   TEST_EQUAL(ec_flag, TOPPBase::EXECUTION_OK)
   // Flag should still be set
-  TEST_EQUAL(tmp_flag.getParam_().getValue("flag"), "true");
+  TEST_EQUAL(tmp_flag.getFlag("flag"), true);
 }
 END_SECTION
 
