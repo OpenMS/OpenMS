@@ -1,4 +1,6 @@
-if (window.location.hostname.includes("abibuilder")) {
+if (window.location.hostname.includes("github.io")) {
+  urlrootdir = "/OpenMS/docs"
+} else if (window.location.hostname.includes("abibuilder")) {
   urlrootdir = "/archive/openms/Documentation"
 } else {
   urlrootdir = "/doxygen"
@@ -13,34 +15,62 @@ $('.dropbtn').html(thisvers);
 console.log(thisvers)
 
 // https://stackoverflow.com/questions/30622369
-$.get(urlrootdir + '/release', function(html) {
-//console.log(html)
-let ret = parseDirectoryListing(html);
-console.log("PARSED")
-$('.dropdown-content').append(ret.join(''));
+// For GitHub Pages, use versions.json instead of directory listing
+if (window.location.hostname.includes("github.io")) {
+  $.getJSON(urlrootdir + '/versions.json', function(data) {
+    let ret = buildVersionLinks(data.versions);
+    $('.dropdown-content').append(ret.join(''));
+    checkLinksExist();
+  });
+} else {
+  $.get(urlrootdir + '/release', function(html) {
+    //console.log(html)
+    let ret = parseDirectoryListing(html);
+    console.log("PARSED")
+    $('.dropdown-content').append(ret.join(''));
+    checkLinksExist();
+  });
+}
 
-// Now check which links actually exist, and remove the href for those
-// that don't.
-$('.dropdown-content')
-    .find('.verslink')
-    .each(function () {
-    var el = $(this);
-    var request = new XMLHttpRequest();
-    request.open('HEAD', el.attr('href'), true);
-    request.onreadystatechange = function () {
-        if (request.readyState === 4) {
-        if (request.status === 404) {
-            el.removeAttr('href');
-            el.css({
-            'color': "gray",
-            'text-decoration': 'line-through'
-            });
-        }
-        }
-    };
-    request.send();
+function checkLinksExist() {
+  // Now check which links actually exist, and remove the href for those
+  // that don't.
+  $('.dropdown-content')
+      .find('.verslink')
+      .each(function () {
+      var el = $(this);
+      var request = new XMLHttpRequest();
+      request.open('HEAD', el.attr('href'), true);
+      request.onreadystatechange = function () {
+          if (request.readyState === 4) {
+          if (request.status === 404) {
+              el.removeAttr('href');
+              el.css({
+              'color': "gray",
+              'text-decoration': 'line-through'
+              });
+          }
+          }
+      };
+      request.send();
+      });
+}
+
+function buildVersionLinks(versions) {
+    // Build links for GitHub Pages hosted documentation
+    let docs = versions.filter(function (line) {
+        // suppress link to current version
+        return line != thisvers;
     });
-});
+
+    docs = docs.map((x) => '<a class="verslink" href="'
+        + urlrootdir
+        + '/' + x + '/html/' + patharr[patharr.length - 1] + '">'
+        + x
+        + '</a>');
+
+    return docs;
+}
 
 function parseDirectoryListing(stringOfHtml) {
     stringOfHtml = stringOfHtml.substring(stringOfHtml.indexOf("body") - 1);

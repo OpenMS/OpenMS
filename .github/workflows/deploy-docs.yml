@@ -1,0 +1,213 @@
+name: Deploy Documentation to GitHub Pages
+
+on:
+  push:
+    branches:
+      - develop
+      - nightly
+    tags:
+      - 'release/*'
+  workflow_dispatch:
+    inputs:
+      version_name:
+        description: 'Version name for the documentation (e.g., v3.2.0, nightly, develop)'
+        required: false
+        default: 'develop'
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Allow only one concurrent deployment
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build-docs:
+    runs-on: ubuntu-latest
+    outputs:
+      version_name: ${{ steps.version.outputs.version_name }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            doxygen \
+            graphviz \
+            cmake \
+            libxerces-c-dev \
+            libboost-all-dev \
+            libeigen3-dev \
+            libsvm-dev \
+            libglpk-dev \
+            libzip-dev \
+            zlib1g-dev \
+            libsqlite3-dev \
+            libbz2-dev \
+            qt6-base-dev \
+            libqt6core6 \
+            libqt6network6
+
+      - name: Determine version name
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            VERSION_NAME="${{ github.event.inputs.version_name }}"
+          elif [ "${{ github.ref_name }}" == "nightly" ]; then
+            VERSION_NAME="nightly"
+          elif [ "${{ github.ref_name }}" == "develop" ]; then
+            VERSION_NAME="develop"
+          elif [[ "${{ github.ref }}" == refs/tags/release/* ]]; then
+            VERSION_NAME=$(echo "${{ github.ref_name }}" | sed 's/release\///')
+          else
+            VERSION_NAME="${{ github.ref_name }}"
+          fi
+          echo "version_name=$VERSION_NAME" >> $GITHUB_OUTPUT
+          echo "Building documentation for version: $VERSION_NAME"
+
+      - name: Configure CMake
+        run: |
+          mkdir -p build
+          cd build
+          cmake .. \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DENABLE_DOCS=ON \
+            -DOPENMS_COVERAGE=OFF \
+            -DBOOST_USE_STATIC=OFF \
+            -DHAS_XSERVER=OFF \
+            -DWITH_GUI=OFF \
+            -DENABLE_TUTORIALS=OFF \
+            -DENABLE_UPDATE_CHECK=OFF
+
+      - name: Build Doxygen documentation
+        run: |
+          cd build
+          cmake --build . --target doc_minimal
+
+      - name: Prepare documentation for deployment
+        run: |
+          VERSION="${{ steps.version.outputs.version_name }}"
+
+          # Create deployment directory structure
+          mkdir -p deploy_docs/$VERSION
+
+          # Copy generated documentation
+          if [ -d "build/doc/doxygen/html" ]; then
+            cp -r build/doc/doxygen/html deploy_docs/$VERSION/
+          elif [ -d "build/doc/html" ]; then
+            cp -r build/doc/html deploy_docs/$VERSION/
+          else
+            echo "Error: Documentation not found!"
+            find build/doc -type d
+            exit 1
+          fi
+
+          echo "Documentation prepared for version: $VERSION"
+
+      - name: Upload documentation artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: documentation-${{ steps.version.outputs.version_name }}
+          path: deploy_docs/
+          retention-days: 7
+
+  deploy-to-pages:
+    needs: build-docs
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Download documentation artifact
+        uses: actions/download-artifact@v4
+        with:
+          pattern: documentation-*
+          merge-multiple: true
+          path: ./docs
+
+      - name: Debug - Check downloaded files
+        run: |
+          echo "=== Current directory contents ==="
+          ls -la
+          echo ""
+          echo "=== Docs directory contents ==="
+          ls -la docs/ || echo "docs directory not found!"
+          echo ""
+          echo "=== First 20 files in docs ==="
+          find docs -type f | head -20 || echo "No files found"
+          echo ""
+          echo "=== Looking for index.html in docs ==="
+          find docs -name "index.html" | head -5
+
+      - name: Create index page
+        run: |
+          cat > index.html <<EOF
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+              <meta charset="UTF-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+              <meta http-equiv="refresh" content="0; url=./docs/develop/html/index.html">
+              <title>OpenMS Documentation</title>
+              <style>
+                  body {
+                      font-family: Arial, sans-serif;
+                      max-width: 800px;
+                      margin: 100px auto;
+                      padding: 20px;
+                      text-align: center;
+                  }
+                  h1 { color: #2c3e50; }
+                  .version-links { margin-top: 30px; }
+                  .version-links a {
+                      display: inline-block;
+                      margin: 10px;
+                      padding: 10px 20px;
+                      background-color: #3498db;
+                      color: white;
+                      text-decoration: none;
+                      border-radius: 5px;
+                  }
+                  .version-links a:hover { background-color: #2980b9; }
+              </style>
+          </head>
+          <body>
+              <h1>OpenMS Documentation</h1>
+              <p>Redirecting to the latest documentation...</p>
+              <div class="version-links">
+                  <a href="./docs/develop/html/index.html">Develop</a>
+              </div>
+          </body>
+          </html>
+          EOF
+          touch .nojekyll
+
+      - name: Create versions.json for version selector
+        run: |
+          # List all version directories and create versions.json
+          cd docs
+          VERSIONS=$(ls -d */ 2>/dev/null | sed 's#/##' | jq -R -s -c 'split("\n")[:-1]')
+          echo "{\"versions\": $VERSIONS}" > versions.json
+          cat versions.json
+          cd ..
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload to GitHub Pages
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
