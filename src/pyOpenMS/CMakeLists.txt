@@ -324,6 +324,79 @@ QT_QMAKE_VERSION_INFO = '''${QT_QMAKE_VERSION_INFO}'''
   endif()
 
   #------------------------------------------------------------------------------
+  # Arrow zerocopy module (only when WITH_PARQUET is enabled)
+  #------------------------------------------------------------------------------
+  if(WITH_PARQUET)
+    message(STATUS "Building Arrow zerocopy module for pyOpenMS")
+
+    # Get Arrow include directories from the target
+    get_target_property(ARROW_INCLUDE_DIRS ${OPENMS_ARROW_TARGET} INTERFACE_INCLUDE_DIRECTORIES)
+    if(NOT ARROW_INCLUDE_DIRS)
+      # Fallback: try to find Arrow headers
+      find_path(ARROW_INCLUDE_DIRS arrow/api.h)
+    endif()
+
+    # Copy the .pyx source file to build directory
+    configure_file(
+      ${PROJECT_SOURCE_DIR}/pyopenms/_arrow_zerocopy.pyx
+      ${PYOPENMS_BUILD_DIR}/pyopenms/_arrow_zerocopy.pyx
+      COPYONLY
+    )
+
+    # Run Cython to generate C++ code
+    add_custom_command(
+      OUTPUT ${PYOPENMS_BUILD_DIR}/pyopenms/_arrow_zerocopy.cpp
+      COMMAND ${Python_EXECUTABLE} -m cython --cplus
+        ${PYOPENMS_BUILD_DIR}/pyopenms/_arrow_zerocopy.pyx
+        -o ${PYOPENMS_BUILD_DIR}/pyopenms/_arrow_zerocopy.cpp
+      DEPENDS ${PYOPENMS_BUILD_DIR}/pyopenms/_arrow_zerocopy.pyx
+      COMMENT "Cythonizing _arrow_zerocopy.pyx"
+      WORKING_DIRECTORY ${PYOPENMS_BUILD_DIR}
+    )
+
+    # Build the _arrow_zerocopy module
+    Python_add_library(arrow_zerocopy MODULE
+      ${PYOPENMS_BUILD_DIR}/pyopenms/_arrow_zerocopy.cpp
+      WITH_SOABI
+    )
+    target_link_libraries(arrow_zerocopy PRIVATE OpenMS ${OPENMS_ARROW_TARGET} Python::NumPy)
+    target_compile_definitions(arrow_zerocopy PRIVATE
+      NPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION
+      WITH_PARQUET=1
+    )
+    target_include_directories(arrow_zerocopy SYSTEM PRIVATE
+      ${AUTOWRAP_INCLUDE_DIR}
+      ${PYOPENMS_BUILD_DIR}/extra_includes
+      ${ARROW_INCLUDE_DIRS}
+    )
+    target_compile_options(arrow_zerocopy PRIVATE ${EXTRA_WARNINGS})
+    set_target_properties(arrow_zerocopy PROPERTIES
+      OUTPUT_NAME _arrow_zerocopy
+      LIBRARY_OUTPUT_DIRECTORY "${PYOPENMS_BUILD_DIR}/pyopenms"
+      RUNTIME_OUTPUT_DIRECTORY "${PYOPENMS_BUILD_DIR}/pyopenms"
+    )
+    if(NOT PYOPENMS_PREPARE_WHEEL_REPAIR)
+      set_target_properties(arrow_zerocopy PROPERTIES
+        INSTALL_RPATH "${PY_RPATH}"
+        BUILD_WITH_INSTALL_RPATH 1
+        BUILD_WITH_INSTALL_NAME_DIR 1
+      )
+    else()
+      set_target_properties(arrow_zerocopy PROPERTIES
+        INSTALL_RPATH_USE_LINK_PATH TRUE
+        INSTALL_NAME_DIR ""
+      )
+    endif()
+    add_dependencies(arrow_zerocopy compile_pxds)
+
+    install(TARGETS arrow_zerocopy
+      COMPONENT python_modules
+      LIBRARY DESTINATION pyopenms
+      RUNTIME DESTINATION pyopenms
+    )
+  endif()
+
+  #------------------------------------------------------------------------------
   # Build extension modules
   #------------------------------------------------------------------------------
 
