@@ -68,8 +68,8 @@ def peptide_identifications_to_df(peps: _PeptideIdentificationList, decode_ontol
                                   export_unidentified: bool = True):
     """Converts a list of peptide identifications to a pandas DataFrame.
 
-    This is a backwards-compatible wrapper that calls PeptideIdentificationList.get_df().
-    For new code, prefer calling peps.get_df() directly.
+    .. deprecated::
+        Use ``peps.to_df()`` instead.
 
     :param peps: list of PeptideIdentification objects
     :type peps: PeptideIdentificationList
@@ -82,23 +82,37 @@ def peptide_identifications_to_df(peps: _PeptideIdentificationList, decode_ontol
     :return: peptide identifications in a DataFrame
     :rtype: pandas.DataFrame
     """
-    return peps.get_df(decode_ontology=decode_ontology,
-                       default_missing_values=default_missing_values,
-                       export_unidentified=export_unidentified)
+    import warnings
+    warnings.warn(
+        "peptide_identifications_to_df() is deprecated and will be removed in a future version. "
+        "Use peps.to_df() instead.",
+        DeprecationWarning,
+        stacklevel=2
+    )
+    return peps.to_df(decode_ontology=decode_ontology,
+                      default_missing_values=default_missing_values,
+                      export_unidentified=export_unidentified)
 
 
 def update_scores_from_df(peps: _PeptideIdentificationList, df: _pd.DataFrame, main_score_name: str):
     """
     Updates the scores in PeptideIdentification objects using a pandas dataframe.
 
-    This is a backwards-compatible wrapper that calls PeptideIdentificationList.update_scores_from_df().
-    For new code, prefer calling peps.update_scores_from_df(df, main_score_name) directly.
+    .. deprecated::
+        Use ``peps.update_scores_from_df(df, main_score_name)`` instead.
 
     :param peps: list of PeptideIdentification objects
     :param df: pandas dataframe obtained by converting peps to a dataframe. Minimum required: P_ID column and column with name passed by main_score_name
     :param main_score_name: name of the score column
     :return: the updated list of peptide identifications
     """
+    import warnings
+    warnings.warn(
+        "update_scores_from_df() is deprecated and will be removed in a future version. "
+        "Use peps.update_scores_from_df(df, main_score_name) instead.",
+        DeprecationWarning,
+        stacklevel=2
+    )
     return peps.update_scores_from_df(df, main_score_name)
 
 

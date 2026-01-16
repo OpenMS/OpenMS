@@ -96,7 +96,12 @@ Only the OpenMS C++ library targets are available. No pyOpenMS-related targets e
 
    ```bash
    cd src/pyOpenMS
-   pip install -r requirements_bld.txt
+   # Option 1: Using uv (recommended)
+   pip install uv
+   uv sync --only-group build
+   
+   # Option 2: Using pip with development dependencies
+   pip install -e .[dev]
    ```
 
 3. **Configure and build:**
@@ -139,7 +144,7 @@ The build process involves several steps that transform C++ code into a Python e
 
 - **Input:** Manual additions in `src/pyOpenMS/addons/` (`.pyx` files)
 - **Output:** Addons are merged into `pyopenms.pyx` or split `.pyx` files
-- **What happens:** Python-specific convenience methods (like `get_df()`, `__repr__()`) are injected into the generated wrapper code
+- **What happens:** Python-specific convenience methods (like `to_df()`, `__repr__()`) are injected into the generated wrapper code
 
 ### Step 3: Cython Compilation (part of `pyopenms_compile`)
 
@@ -221,7 +226,7 @@ Use **lowercase snake_case** for all Python-facing names to follow PEP 8:
 | Type | Convention | Examples |
 |------|------------|----------|
 | DataFrame columns | `snake_case` | `precursor_mz`, `native_id`, `ion_mobility` |
-| Method names | `snake_case` | `get_peaks()`, `get_data_dict()`, `get_df()` |
+| Method names | `snake_case` | `get_peaks()`, `get_data_dict()`, `to_df()` |
 | Variables | `snake_case` | `peak_count`, `meta_values` |
 
 **Note**: C++ OpenMS uses camelCase (e.g., `getPrecursorMZ()`), but Python convenience methods
@@ -231,7 +236,7 @@ and DataFrame columns should use snake_case for Pythonic consistency.
 
 To add DataFrame export to a class, implement both methods directly in the Cython addon file:
 
-1. **`get_df_columns()`**: Returns list of available column names (for discovery)
+1. **`df_columns()`**: Returns list of available column names (for discovery)
 2. **`get_data_dict(columns=None)`**: Returns dict of numpy arrays (works without pandas)
 3. **`get_df(columns=None)`**: Returns pandas DataFrame (imports pandas lazily)
 
@@ -248,8 +253,8 @@ cimport numpy as np
 import numpy as np
 import pandas as pd
 
-    def get_df_columns(self, columns='default'):
-        """Returns list of column names that get_df() would produce."""
+    def df_columns(self, columns='default'):
+        """Returns list of column names that to_df() would produce."""
         cols = ['mz', 'intensity']
         if columns == 'all':
             cols.append('extra_data')

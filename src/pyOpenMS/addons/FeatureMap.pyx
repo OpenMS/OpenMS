@@ -83,11 +83,11 @@ import numpy as np
         else:
             raise TypeError("extend() argument must be iterable or another FeatureMap")
 
-    def get_df_columns(self, columns='default', export_peptide_identifications=True):
+    def df_columns(self, columns='default', export_peptide_identifications=True):
         """
-        get_df_columns(self: FeatureMap, columns: str = 'default', export_peptide_identifications: bool = True) -> List[str]
+        df_columns(self: FeatureMap, columns: str = 'default', export_peptide_identifications: bool = True) -> List[str]
 
-        Returns a list of column names that get_df() would produce.
+        Returns a list of column names that to_df() would produce.
 
         Useful for discovering available columns before export.
 
@@ -100,7 +100,7 @@ import numpy as np
 
         Example::
 
-            >>> fmap.get_df_columns()
+            >>> fmap.df_columns()
             ['feature_id', 'peptide_sequence', 'charge', 'rt', 'mz', ...]
         """
         cols = ['feature_id']
@@ -141,16 +141,16 @@ import numpy as np
                     return filenames[0]
         return 'unknown'
 
-    def get_df(self, columns=None, meta_values=None, export_peptide_identifications=True):
+    def to_df(self, columns=None, meta_values=None, export_peptide_identifications=True):
         """
-        get_df(self: FeatureMap, columns: Optional[List[str]] = None, meta_values: Optional[Union[List[str], str]] = None, export_peptide_identifications: bool = True) -> pd.DataFrame
+        to_df(self: FeatureMap, columns: Optional[List[str]] = None, meta_values: Optional[Union[List[str], str]] = None, export_peptide_identifications: bool = True) -> pd.DataFrame
 
         Generates a pandas DataFrame with information contained in the FeatureMap.
 
         Optionally the feature meta values and information for the assigned PeptideHit can be exported.
 
         :param columns: List of column names to include. If None,
-                        includes all columns. Use get_df_columns() to discover available columns.
+                        includes all columns. Use df_columns() to discover available columns.
         :type columns: Optional[List[str]]
 
         :param meta_values: Meta values to include (None, [custom list of meta value names] or 'all')
@@ -174,19 +174,19 @@ import numpy as np
         Example::
 
             # Get all columns
-            df = fmap.get_df()
+            df = fmap.to_df()
 
             # Discover available columns
-            print(fmap.get_df_columns())
+            print(fmap.df_columns())
 
             # Get only specific columns
-            df = fmap.get_df(columns=['feature_id', 'mz', 'rt', 'intensity'])
+            df = fmap.to_df(columns=['feature_id', 'mz', 'rt', 'intensity'])
         """
         try:
             import pandas as pd
         except ImportError:
             raise ImportError(
-                "pandas is required for get_df(). "
+                "pandas is required for to_df(). "
                 "Please install it with: pip install pandas"
             )
         # Common meta value types for numpy type mapping
@@ -313,7 +313,7 @@ import numpy as np
         Returns an Apache Arrow Table with feature information.
 
         :param columns: List of column names to include. If None,
-                        includes all columns. Use get_df_columns() to discover available columns.
+                        includes all columns. Use df_columns() to discover available columns.
         :type columns: Optional[List[str]]
 
         :param meta_values: Meta values to include (None, [custom list of meta value names] or 'all').
@@ -347,7 +347,7 @@ import numpy as np
                 "pyarrow is required for to_arrow(). "
                 "Please install it with: pip install pyarrow"
             )
-        df = self.get_df(columns=columns, meta_values=meta_values,
+        df = self.to_df(columns=columns, meta_values=meta_values,
                         export_peptide_identifications=export_peptide_identifications)
         return pa.Table.from_pandas(df)
 
@@ -382,3 +382,26 @@ import numpy as np
                 pep.setHits(hits)
                 result.push_back(pep)
         return result
+
+    # Deprecated aliases for backward compatibility with pyopenms 3.5.0
+    def get_df(self, *args, **kwargs):
+        """Deprecated: Use to_df() instead."""
+        import warnings
+        warnings.warn(
+            "get_df() is deprecated and will be removed in a future version. "
+            "Use to_df() instead.",
+            DeprecationWarning,
+            stacklevel=2
+        )
+        return self.to_df(*args, **kwargs)
+
+    def get_df_columns(self, *args, **kwargs):
+        """Deprecated: Use df_columns() instead."""
+        import warnings
+        warnings.warn(
+            "get_df_columns() is deprecated and will be removed in a future version. "
+            "Use df_columns() instead.",
+            DeprecationWarning,
+            stacklevel=2
+        )
+        return self.df_columns(*args, **kwargs)

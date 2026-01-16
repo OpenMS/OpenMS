@@ -72,7 +72,7 @@ namespace OpenMS
           m.imUpper >= transition_group.getTransitions()[0].precursor_im)
       {
         // if no other windows at this position just add it
-        if (used_maps.size() == 0)
+        if (used_maps.empty())
         {
           used_maps.push_back(m);
         }

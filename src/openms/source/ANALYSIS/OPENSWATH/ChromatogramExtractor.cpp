@@ -130,6 +130,11 @@ namespace OpenMS
       itersize = transition_exp_used.getTransitions().size();
     }
 
+    // Pre-allocate vectors for better performance
+    Size expected_size = itersize * (1 + (ms1 && ms1_isotopes > 0 ? ms1_isotopes : 0));
+    output_chromatograms.reserve(output_chromatograms.size() + expected_size);
+    coordinates.reserve(coordinates.size() + expected_size);
+
     for (Size i = 0; i < itersize; i++)
     {
       OpenSwath::ChromatogramPtr s(new OpenSwath::Chromatogram);
@@ -223,6 +228,11 @@ namespace OpenMS
     {
       itersize = transition_exp_used.getTransitions().size();
     }
+
+    // Pre-allocate vectors for better performance
+    Size expected_size = itersize * (1 + (ms1 && ms1_isotopes > 0 ? ms1_isotopes : 0));
+    output_chromatograms.reserve(output_chromatograms.size() + expected_size);
+    coordinates.reserve(coordinates.size() + expected_size);
 
     for (Size i = 0; i < itersize; i++)
     {

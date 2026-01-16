@@ -271,12 +271,12 @@ namespace OpenMS
         const double pc_mz = exp[scan].getPrecursors()[0].getMZ();
         const double mz_tolerance_da = ppm ? pc_mz * mz_tolerance * 1e-6  : mz_tolerance;
 
-        // Note: This is the "delete while iterating" pattern so mind the pre- and postincrement
+        // Note: This is the "delete while iterating" pattern
         for (set<Size>::iterator sit = it->second.begin(); sit != it->second.end(); )
         {
           if (!compatible_(features[*sit], pc_mz, mz_tolerance_da, max_trace))
           {
-            it->second.erase(sit++);
+            sit = it->second.erase(sit);
           }
           else
           {
@@ -286,12 +286,12 @@ namespace OpenMS
       }
 
       // remove entries with no compatible features (empty sets).
-      // Note: This is the "delete while iterating" pattern so mind the pre- and postincrement
+      // Note: This is the "delete while iterating" pattern
       for (map<Size, set<Size> >::iterator it = scan_idx_to_feature_idx.begin(); it != scan_idx_to_feature_idx.end(); )
       {
         if (it->second.empty())
         {
-          scan_idx_to_feature_idx.erase(it++);
+          it = scan_idx_to_feature_idx.erase(it);
         }
         else
         {
@@ -327,12 +327,12 @@ namespace OpenMS
           }
 
           // delete all except the nearest/best feature
-          // Note: This is the "delete while iterating" pattern so mind the pre- and postincrement
+          // Note: This is the "delete while iterating" pattern
           for (set<Size>::iterator sit = it->second.begin(); sit != it->second.end(); )
           {
             if (sit != best_feature)
             {
-              it->second.erase(sit++);
+              sit = it->second.erase(sit);
             }
             else
             {

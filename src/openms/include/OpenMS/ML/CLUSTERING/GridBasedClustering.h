@@ -404,7 +404,7 @@ public:
         Rectangle box = it->second.getBoundingBox();
         if (box.maxY() - box.minY() < threshold_y)
         {
-          clusters_final_.erase(it++);
+          it = clusters_final_.erase(it);
         }
         else
         {
@@ -506,7 +506,7 @@ private:
           // remove from grid
           grid_.removeCluster(grid_.getIndex(cluster.getCentre()), cluster_index);
           // remove from cluster list
-          clusters_.erase(iterator++);
+          iterator = clusters_.erase(iterator);
         }
         else
         {
