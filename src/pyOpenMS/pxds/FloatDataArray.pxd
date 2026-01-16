@@ -15,20 +15,21 @@ cdef extern from "<OpenMS/METADATA/DataArrays.h>" namespace "OpenMS::DataArrays"
 
         # wrap-doc:
         #  The representation of extra float data attached to a spectrum or chromatogram.
-        #  Raw data access is proved by `get_peaks` and `set_peaks`, which yields numpy arrays
+        #  Raw data access is provided by `get_peaks` and `set_peaks`, which yields numpy arrays.
+        #  Commonly used for storing ion mobility values or other per-peak float annotations.
 
-        FloatDataArray() except + nogil
-        FloatDataArray(FloatDataArray &) except + nogil  # compiler
+        FloatDataArray() except + nogil  # wrap-doc:Default constructor
+        FloatDataArray(FloatDataArray &) except + nogil  # wrap-doc:Copy constructor
 
-        bool operator==(FloatDataArray) except + nogil
-        bool operator!=(FloatDataArray) except + nogil
+        bool operator==(FloatDataArray) except + nogil  # wrap-doc:Equality operator
+        bool operator!=(FloatDataArray) except + nogil  # wrap-doc:Inequality operator
 
-        Size size() except + nogil
-        void resize(size_t n) except + nogil 
-        void reserve(size_t n) except + nogil 
+        Size size() except + nogil  # wrap-doc:Returns the number of elements in the array
+        void resize(size_t n) except + nogil  # wrap-doc:Resizes the array to contain n elements
+        void reserve(size_t n) except + nogil  # wrap-doc:Reserves space for n elements to avoid repeated memory allocation
         float& operator[](size_t) except + nogil  # wrap-ignore
-        void clear() except + nogil 
-        void push_back(float) except + nogil 
+        void clear() except + nogil  # wrap-doc:Removes all elements from the array
+        void push_back(float) except + nogil  # wrap-doc:Adds a float value to the end of the array
 
         libcpp_vector[float].iterator begin() nogil # wrap-ignore
         libcpp_vector[float].iterator end()   nogil # wrap-ignore
