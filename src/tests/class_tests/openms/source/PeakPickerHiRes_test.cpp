@@ -675,6 +675,9 @@ START_SECTION([EXTRA] test allow_missing_flank parameter)
     TEST_EQUAL(out.getFloatDataArrays().size(), 1)
     TEST_EQUAL(out.getFloatDataArrays()[0].getName(), "Ion Mobility")
     // IM should be weighted average of valid neighbors only (central + right)
+    // Expected: weighted average of central (450 @ 1.2) and right (250 @ 1.3)
+    // = (450*1.2 + 250*1.3) / (450 + 250) = (540 + 325) / 700 = 1.2357...
+    TEST_REAL_SIMILAR(out.getFloatDataArrays()[0][0], 1.2357)
   }
 }
 END_SECTION
