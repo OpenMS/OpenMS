@@ -17,7 +17,7 @@ cdef extern from "<OpenMS/KERNEL/ConsensusFeature.h>" namespace "OpenMS":
         # wrap-inherits:
         #   UniqueIdInterface
         #   BaseFeature
-        #
+        #  
         # wrap-doc:
         #  A consensus feature spanning multiple LC-MS/MS experiments.
         #  
@@ -28,46 +28,47 @@ cdef extern from "<OpenMS/KERNEL/ConsensusFeature.h>" namespace "OpenMS":
         #  
         #  Get access to the underlying features through getFeatureList()
 
-        ConsensusFeature() except + nogil 
-        ConsensusFeature(ConsensusFeature &) except + nogil 
-        ConsensusFeature(UInt64, Peak2D, UInt64) except + nogil 
-        ConsensusFeature(UInt64, BaseFeature) except + nogil 
-        ConsensusFeature(UInt64, ConsensusFeature) except + nogil 
+        ConsensusFeature() except + nogil  # wrap-doc:Default constructor creating an empty consensus feature
+        ConsensusFeature(ConsensusFeature &) except + nogil  # wrap-doc:Copy constructor
+        ConsensusFeature(UInt64, Peak2D, UInt64) except + nogil  # wrap-doc:Constructor with map index, peak, and element index for a singleton consensus feature
+        ConsensusFeature(UInt64, BaseFeature) except + nogil  # wrap-doc:Constructor with map index and base feature for a singleton consensus feature
+        ConsensusFeature(UInt64, ConsensusFeature) except + nogil  # wrap-doc:Constructor with map index from another consensus feature
 
         void computeConsensus()    except + nogil  # wrap-doc:Computes and updates the consensus position, intensity, and charge
         void computeMonoisotopicConsensus()    except + nogil  # wrap-doc:Computes and updates the consensus position, intensity, and charge
         void computeDechargeConsensus(FeatureMap, bool)    except + nogil  # wrap-doc:Computes the uncharged parent RT & mass, assuming the handles are charge variants
 
-        void insert(UInt64 map_idx, Peak2D, UInt64 element_idx) except + nogil 
-        void insert(UInt64 map_idx, BaseFeature) except + nogil 
-        void insert(UInt64 map_idx, ConsensusFeature) except + nogil 
+        void insert(UInt64 map_idx, Peak2D, UInt64 element_idx) except + nogil  # wrap-doc:Inserts a feature handle from a peak with map index and element index
+        void insert(UInt64 map_idx, BaseFeature) except + nogil  # wrap-doc:Inserts a feature handle from a base feature with map index
+        void insert(UInt64 map_idx, ConsensusFeature) except + nogil  # wrap-doc:Inserts all feature handles from another consensus feature with map index
 
-        libcpp_vector[FeatureHandle] getFeatureList() except + nogil 
+        libcpp_vector[FeatureHandle] getFeatureList() except + nogil  # wrap-doc:Returns a list of all contained feature handles
 
-        Size size() except + nogil 
+        Size size() except + nogil  # wrap-doc:Returns the number of feature handles in this consensus feature
 
-        bool operator==(ConsensusFeature) except + nogil 
-        bool operator!=(ConsensusFeature) except + nogil 
+        bool operator==(ConsensusFeature) except + nogil
+        bool operator!=(ConsensusFeature) except + nogil
 
         void addRatio(Ratio r) except + nogil  # wrap-doc:Connects a ratio to the ConsensusFeature.
         void setRatios(libcpp_vector[Ratio] rs) except + nogil  # wrap-doc:Connects the ratios to the ConsensusFeature.
         libcpp_vector[Ratio] getRatios() except + nogil  # wrap-doc:Get the ratio vector.
 
-        void clear() except + nogil 
-        bool empty() except + nogil 
+        void clear() except + nogil  # wrap-doc:Clears all feature handles from this consensus feature
+        bool empty() except + nogil  # wrap-doc:Returns True if this consensus feature contains no feature handles
 
         # # Returns the position range of the contained elements
-        # DRange2 getPositionRange() except + nogil 
+        # DRange2 getPositionRange() except + nogil
         # # Returns the intensity range of the contained elements
-        # DRange1 getIntensityRange() except + nogil 
+        # DRange1 getIntensityRange() except + nogil
 
 cdef extern from "<OpenMS/KERNEL/ConsensusFeature.h>" namespace "OpenMS::ConsensusFeature":
 
     # slim struct to feed the need for systematically storing of ratios .
     cdef cppclass Ratio:
+        # wrap-doc:A simple struct for storing ratio information between features
 
-      Ratio() except + nogil 
-      Ratio(Ratio rhs) except + nogil 
+      Ratio() except + nogil  # wrap-doc:Default constructor
+      Ratio(Ratio rhs) except + nogil  # wrap-doc:Copy constructor
 
       double ratio_value_
       String denominator_ref_
