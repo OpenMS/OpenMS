@@ -51,5 +51,5 @@ cdef extern from "<OpenMS/COMPARISON/SpectraSTSimilarityScore.h>" namespace "Ope
                 #  :param dot_bias: the bias
                 #  :returns: The SpectraST similarity score
 
-        # POINTER # MSSpectrumCompareFunctor * create() except + nogil 
+        #  POINTER # MSSpectrumCompareFunctor * create() except + nogil
      

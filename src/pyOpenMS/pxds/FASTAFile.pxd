@@ -60,7 +60,7 @@ cdef extern from "<OpenMS/FORMAT/FASTAFile.h>" namespace "OpenMS":
             #      Exception:FileNotFound is thrown if the file does not exists
             #  :raises:
             #      Exception:ParseError is thrown if the file does not suit to the standard
-        # NAMESPACE # std::streampos position() except + nogil
+            #  NAMESPACE # std::streampos position() except + nogil
         bool atEnd() except + nogil  # wrap-doc:Boolean function to check if streams is at end of file
         # NAMESPACE # bool setPosition(const std::streampos & pos) except + nogil
         void writeStart(const String & filename) except + nogil
