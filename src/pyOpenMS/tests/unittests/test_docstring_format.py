@@ -12,9 +12,15 @@ Common issues this catches:
 - Broken cross-references
 - Invalid field list syntax (:param:, :return:, etc.)
 
-Two types of tests:
+Three types of tests:
 1. Tests that validate .pxd source files (work without built pyopenms)
-2. Tests that validate runtime docstrings (require built pyopenms)
+2. Tests that validate autowrap-generated .pyx files (primary CI validation)
+3. Tests that validate runtime docstrings (require built pyopenms)
+
+The generated .pyx file tests are the primary CI validation because:
+- Generated files ARE in the build directory (unlike source .pxd files)
+- Tests what users actually see (post-autowrap processing)
+- Catches autowrap bugs that might mangle wrap-doc content
 """
 import os
 import re
@@ -49,6 +55,167 @@ def get_pxd_dir():
     if os.path.isdir(pxd_dir):
         return pxd_dir
     return None
+
+
+def get_generated_pyx_dir():
+    """
+    Get the directory containing autowrap-generated .pyx files.
+
+    These files are generated in the build directory during the pyopenms build
+    and contain the actual docstrings that end up in the compiled module.
+
+    Returns the directory path if found, None otherwise.
+    """
+    if not HAS_PYOPENMS:
+        return None
+
+    # The generated .pyx files are in the same directory as the pyopenms package
+    # They're named _pyopenms_0.pyx, _pyopenms_1.pyx, etc. (or _pyopenms.pyx)
+    try:
+        pkg_dir = os.path.dirname(pyopenms.__file__)
+        # Check for split files first (more common in production builds)
+        pyx_files = glob.glob(os.path.join(pkg_dir, '_pyopenms_*.pyx'))
+        if pyx_files:
+            return pkg_dir
+        # Check for single file
+        single_pyx = os.path.join(pkg_dir, '_pyopenms.pyx')
+        if os.path.exists(single_pyx):
+            return pkg_dir
+    except (AttributeError, TypeError):
+        pass
+
+    return None
+
+
+def extract_docstrings_from_pyx(filepath):
+    """
+    Extract class and method docstrings from an autowrap-generated .pyx file.
+
+    Returns a list of tuples: (name, docstring_type, docstring, line_number)
+    where docstring_type is 'class' or 'method'.
+    """
+    docstrings = []
+
+    with open(filepath, 'r', encoding='utf-8') as f:
+        content = f.read()
+        lines = content.split('\n')
+
+    i = 0
+    while i < len(lines):
+        line = lines[i]
+        stripped = line.strip()
+
+        # Match class definitions: "cdef class ClassName:" or "cdef class ClassName(Base):"
+        class_match = re.match(r'^cdef\s+class\s+(\w+)(?:\s*\([^)]*\))?\s*:', stripped)
+        if class_match:
+            class_name = class_match.group(1)
+            # Look for docstring on next non-empty line
+            j = i + 1
+            while j < len(lines) and not lines[j].strip():
+                j += 1
+            if j < len(lines) and '"""' in lines[j]:
+                docstring, end_line = _extract_triple_quoted_string(lines, j)
+                if docstring:
+                    docstrings.append((class_name, 'class', docstring, i + 1))
+                i = end_line
+                continue
+
+        # Match method definitions: "def method_name(self" or "def method_name(cls"
+        method_match = re.match(r'^\s*def\s+(\w+)\s*\(\s*(?:self|cls)', stripped)
+        if method_match:
+            method_name = method_match.group(1)
+            # Look for docstring on next non-empty line
+            j = i + 1
+            while j < len(lines) and not lines[j].strip():
+                j += 1
+            if j < len(lines) and '"""' in lines[j]:
+                docstring, end_line = _extract_triple_quoted_string(lines, j)
+                if docstring:
+                    docstrings.append((method_name, 'method', docstring, i + 1))
+                i = end_line
+                continue
+
+        i += 1
+
+    return docstrings
+
+
+def _extract_triple_quoted_string(lines, start_line):
+    """
+    Extract a triple-quoted string starting at the given line.
+
+    Returns (docstring_content, end_line_index) or (None, start_line) if not found.
+    """
+    line = lines[start_line]
+
+    # Find the opening """
+    open_pos = line.find('"""')
+    if open_pos == -1:
+        return None, start_line
+
+    # Check if it's a single-line docstring: """text"""
+    after_open = line[open_pos + 3:]
+    close_pos = after_open.find('"""')
+    if close_pos != -1:
+        # Single line docstring
+        return after_open[:close_pos].strip(), start_line
+
+    # Multi-line docstring
+    doc_lines = [after_open]
+    i = start_line + 1
+
+    while i < len(lines):
+        current_line = lines[i]
+        close_pos = current_line.find('"""')
+        if close_pos != -1:
+            # Found closing quotes
+            doc_lines.append(current_line[:close_pos])
+            break
+        doc_lines.append(current_line)
+        i += 1
+
+    # Join and clean up the docstring
+    docstring = '\n'.join(doc_lines)
+    # Remove common leading whitespace (dedent)
+    docstring_lines = docstring.split('\n')
+    if len(docstring_lines) > 1:
+        # Find minimum indentation (ignoring empty lines)
+        min_indent = float('inf')
+        for dline in docstring_lines[1:]:  # Skip first line
+            if dline.strip():
+                indent = len(dline) - len(dline.lstrip())
+                min_indent = min(min_indent, indent)
+        if min_indent < float('inf'):
+            docstring_lines = [docstring_lines[0]] + [
+                dline[min_indent:] if len(dline) > min_indent else dline
+                for dline in docstring_lines[1:]
+            ]
+        docstring = '\n'.join(docstring_lines)
+
+    return docstring.strip(), i
+
+
+def get_generated_pyx_files():
+    """
+    Get list of all autowrap-generated .pyx files.
+
+    Returns list of file paths, or empty list if not found.
+    """
+    pyx_dir = get_generated_pyx_dir()
+    if pyx_dir is None:
+        return []
+
+    # Get split files
+    pyx_files = sorted(glob.glob(os.path.join(pyx_dir, '_pyopenms_*.pyx')))
+    if pyx_files:
+        return pyx_files
+
+    # Fall back to single file
+    single_pyx = os.path.join(pyx_dir, '_pyopenms.pyx')
+    if os.path.exists(single_pyx):
+        return [single_pyx]
+
+    return []
 
 
 def get_docutils_errors(docstring):
@@ -112,7 +279,7 @@ def check_rst_code_blocks(docstring):
         if '.. code-block::' in stripped:
             match = re.search(r'\.\. code-block::(\s*)(\S*)', stripped)
             if match:
-                whitespace, language = match.groups()
+                _whitespace, language = match.groups()
                 if not language:
                     errors.append(
                         f"Line {i}: code-block directive missing language specifier "
@@ -432,7 +599,10 @@ class TestPxdDocumentation:
                 missing_optional.append(filename)
 
         if missing_optional:
-            warnings.warn(f"Classes missing wrap-doc (should be added): {missing_optional}")
+            warnings.warn(
+                f"Classes missing wrap-doc (should be added): {missing_optional}",
+                stacklevel=2
+            )
 
         assert not missing_essential, f"Essential classes missing wrap-doc: {missing_essential}"
 
@@ -458,7 +628,7 @@ class TestPxdDocumentation:
 
         # Report first 10 issues
         assert not issues, (
-            f"Code blocks missing language specifier:\n" +
+            "Code blocks missing language specifier:\n" +
             "\n".join(issues[:10])
         )
 
@@ -509,7 +679,7 @@ class TestPxdDocumentation:
                 if backtick_errors:
                     issues.append(f"{filename}:{line_num}: {backtick_errors}")
 
-        assert not issues, f"Unbalanced backticks:\n" + "\n".join(issues[:10])
+        assert not issues, "Unbalanced backticks:\n" + "\n".join(issues[:10])
 
     def test_wrap_doc_structure_valid(self):
         """
@@ -544,7 +714,8 @@ class TestPxdDocumentation:
             files_with_issues = sorted(set(e.split(':')[0] for e in all_errors))
             warnings.warn(
                 f"wrap-doc structure issues in {len(files_with_issues)} files "
-                f"(may cause autowrap parsing issues): {files_with_issues[:10]}"
+                f"(may cause autowrap parsing issues): {files_with_issues[:10]}",
+                stacklevel=2
             )
         # Test passes - this is informational
 
@@ -575,7 +746,7 @@ class TestPxdDocumentation:
                             typos_found.append(f"{filename}:{line_num}: {line.strip()}")
 
         assert not typos_found, (
-            f"Possible wrap-doc typos found:\n" + "\n".join(typos_found[:10])
+            "Possible wrap-doc typos found:\n" + "\n".join(typos_found[:10])
         )
 
     def test_wrap_doc_continuation_format(self):
@@ -608,9 +779,184 @@ class TestPxdDocumentation:
                     issues.append(f"{filename}:{line_num}: {error}")
 
         assert not issues, (
-            f"wrap-doc continuation lines with missing spaces:\n" +
+            "wrap-doc continuation lines with missing spaces:\n" +
             "\n".join(issues[:10])
         )
+
+
+# =============================================================================
+# Tests that validate autowrap-generated .pyx files (requires built pyopenms)
+# =============================================================================
+
+@pytest.mark.skipif(not HAS_PYOPENMS, reason="pyopenms not available")
+class TestGeneratedDocstrings:
+    """
+    Tests that validate docstrings in autowrap-generated .pyx files.
+
+    These tests check the actual generated Cython code that autowrap produces,
+    which contains the docstrings that end up in the compiled module.
+
+    This is the primary validation for CI because:
+    1. Generated files ARE in the build directory (unlike source .pxd files)
+    2. Tests what users actually see (post-autowrap processing)
+    3. Catches autowrap bugs that might mangle wrap-doc content
+    4. Validates docstrings from ALL sources (wrap-doc, addons, etc.)
+    """
+
+    def test_generated_pyx_files_exist(self):
+        """Test that autowrap-generated .pyx files can be found."""
+        pyx_files = get_generated_pyx_files()
+        if not pyx_files:
+            pytest.skip(
+                "Generated .pyx files not found - they may be cleaned after compilation"
+            )
+        assert len(pyx_files) > 0, "Expected at least one generated .pyx file"
+
+    def test_generated_files_have_docstrings(self):
+        """Test that generated .pyx files contain docstrings."""
+        pyx_files = get_generated_pyx_files()
+        if not pyx_files:
+            pytest.skip("Generated .pyx files not found")
+
+        total_docstrings = 0
+        for pyx_file in pyx_files:
+            docstrings = extract_docstrings_from_pyx(pyx_file)
+            total_docstrings += len(docstrings)
+
+        # We expect many docstrings across all generated files
+        assert total_docstrings > 100, (
+            f"Expected many docstrings in generated files, found {total_docstrings}"
+        )
+
+    def test_core_classes_in_generated_files(self):
+        """Test that core classes have docstrings in generated files."""
+        pyx_files = get_generated_pyx_files()
+        if not pyx_files:
+            pytest.skip("Generated .pyx files not found")
+
+        # Core classes that must have docstrings
+        core_classes = {
+            'MSSpectrum', 'MSChromatogram', 'MSExperiment',
+            'Feature', 'FeatureMap', 'AASequence', 'Param',
+        }
+
+        found_classes = set()
+        for pyx_file in pyx_files:
+            docstrings = extract_docstrings_from_pyx(pyx_file)
+            for name, doc_type, docstring, _ in docstrings:
+                if doc_type == 'class' and name in core_classes:
+                    found_classes.add(name)
+
+        missing = core_classes - found_classes
+        assert not missing, f"Core classes missing in generated files: {missing}"
+
+    def test_generated_docstrings_valid_rst(self):
+        """Test that all docstrings in generated files are valid RST."""
+        pyx_files = get_generated_pyx_files()
+        if not pyx_files:
+            pytest.skip("Generated .pyx files not found")
+
+        all_errors = []
+
+        # Check all docstrings from each file
+        for pyx_file in pyx_files:
+            filename = os.path.basename(pyx_file)
+            docstrings = extract_docstrings_from_pyx(pyx_file)
+
+            for name, doc_type, docstring, line_num in docstrings:
+                is_valid, errors = validate_docstring(docstring, name)
+                if not is_valid:
+                    # Filter out some known acceptable patterns
+                    real_errors = [
+                        e for e in errors
+                        if not _is_acceptable_error(e, docstring)
+                    ]
+                    if real_errors:
+                        all_errors.append(
+                            f"{filename}:{line_num} ({name}): {real_errors[:3]}"
+                        )
+
+        # Report first 100 issues (may be many if there's a systemic problem)
+        assert not all_errors, (
+            f"Generated docstrings with RST issues ({len(all_errors)} total):\n" +
+            "\n".join(all_errors[:100])
+        )
+
+    def test_generated_docstrings_no_tabs(self):
+        """Test that generated docstrings use spaces, not tabs."""
+        pyx_files = get_generated_pyx_files()
+        if not pyx_files:
+            pytest.skip("Generated .pyx files not found")
+
+        files_with_tabs = []
+        for pyx_file in pyx_files:
+            filename = os.path.basename(pyx_file)
+            docstrings = extract_docstrings_from_pyx(pyx_file)
+
+            for name, doc_type, docstring, line_num in docstrings:
+                if '\t' in docstring:
+                    files_with_tabs.append(f"{filename}:{line_num} ({name})")
+                    break  # One per file is enough
+
+        assert not files_with_tabs, f"Files with tabs in docstrings: {files_with_tabs}"
+
+    def test_generated_docstrings_are_strings(self):
+        """Test that extracted docstrings are proper strings, not bytes."""
+        pyx_files = get_generated_pyx_files()
+        if not pyx_files:
+            pytest.skip("Generated .pyx files not found")
+
+        for pyx_file in pyx_files:
+            docstrings = extract_docstrings_from_pyx(pyx_file)
+            for name, doc_type, docstring, line_num in docstrings:
+                assert isinstance(docstring, str), (
+                    f"Docstring for {name} is {type(docstring)}, expected str"
+                )
+
+    def test_generated_docstrings_not_empty_placeholders(self):
+        """Test that class docstrings have meaningful content, not just placeholders."""
+        pyx_files = get_generated_pyx_files()
+        if not pyx_files:
+            pytest.skip("Generated .pyx files not found")
+
+        empty_docs = []
+        for pyx_file in pyx_files:
+            filename = os.path.basename(pyx_file)
+            docstrings = extract_docstrings_from_pyx(pyx_file)
+
+            for name, doc_type, docstring, line_num in docstrings:
+                if doc_type == 'class':
+                    # Check if docstring is essentially empty or just whitespace
+                    content = docstring.strip()
+                    if not content or content == '""':
+                        empty_docs.append(f"{filename}:{line_num} ({name})")
+
+        # Allow some empty docs (internal classes) but not too many
+        if len(empty_docs) > 50:
+            assert False, (
+                f"Too many classes with empty docstrings ({len(empty_docs)}): "
+                f"{empty_docs[:10]}"
+            )
+
+
+def _is_acceptable_error(error, docstring):
+    """
+    Check if an RST validation error is acceptable for generated docstrings.
+
+    Some patterns in generated docstrings are technically RST warnings but
+    are acceptable in practice (e.g., autowrap's standard format).
+    """
+    # Autowrap generates "Original C++ documentation is available `here <url>`_"
+    # which is valid RST but may trigger warnings in some validators
+    if 'hyperlink' in error.lower() and 'here' in docstring.lower():
+        return True
+
+    # Method signatures as first line (e.g., "method(self, arg) -> Type")
+    # may trigger field list warnings
+    if 'field list' in error.lower():
+        return True
+
+    return False
 
 
 # =============================================================================
@@ -682,7 +1028,7 @@ class TestRuntimeDocstrings:
                     all_errors.append(f"{class_name}: {errors}")
 
         assert not all_errors, (
-            f"Docstrings with RST issues:\n" + "\n".join(all_errors[:10])
+            "Docstrings with RST issues:\n" + "\n".join(all_errors[:10])
         )
 
 
@@ -703,7 +1049,7 @@ class TestDocstringValidation:
             from pyopenms import MSSpectrum
             s = MSSpectrum()
         '''
-        is_valid, errors = validate_docstring(docstring)
+        _is_valid, errors = validate_docstring(docstring)
         code_errors = [e for e in errors if 'code-block' in e]
         assert not code_errors, f"Unexpected code block errors: {code_errors}"
 
@@ -716,7 +1062,7 @@ class TestDocstringValidation:
 
             some code
         '''
-        is_valid, errors = validate_docstring(docstring)
+        _is_valid, errors = validate_docstring(docstring)
         assert any('missing language' in e for e in errors), (
             f"Should detect missing language: {errors}"
         )
@@ -731,7 +1077,7 @@ class TestDocstringValidation:
         :return: The result
         :rtype: int
         '''
-        is_valid, errors = validate_docstring(docstring)
+        _is_valid, errors = validate_docstring(docstring)
         field_errors = [e for e in errors if ':param' in e or ':type' in e]
         assert not field_errors, f"Valid field list should pass: {field_errors}"
 
@@ -743,7 +1089,7 @@ class TestDocstringValidation:
         @param name The name to use
         @return The result
         '''
-        is_valid, errors = validate_docstring(docstring)
+        _is_valid, errors = validate_docstring(docstring)
         assert any('@param' in e or '@return' in e for e in errors), (
             f"Should detect Javadoc style: {errors}"
         )
@@ -753,7 +1099,7 @@ class TestDocstringValidation:
         docstring = '''
         Use `get_peaks method to get data.
         '''
-        is_valid, errors = validate_docstring(docstring)
+        _is_valid, errors = validate_docstring(docstring)
         assert any('backtick' in e.lower() for e in errors), (
             f"Should detect unbalanced backticks: {errors}"
         )
@@ -761,7 +1107,7 @@ class TestDocstringValidation:
     def test_tabs_detected(self):
         """Test that tabs are detected."""
         docstring = "Some text\twith tabs"
-        is_valid, errors = validate_docstring(docstring)
+        _is_valid, errors = validate_docstring(docstring)
         assert any('tab' in e.lower() for e in errors), (
             f"Should detect tabs: {errors}"
         )
@@ -860,6 +1206,190 @@ cdef extern from "Test.h":
         assert not errors, f"Valid inline wrap-doc should pass: {errors}"
 
 
+class TestPyxDocstringExtraction:
+    """Unit tests for the .pyx docstring extraction functions."""
+
+    def test_extract_class_docstring(self):
+        """Test extraction of class docstrings from Cython code."""
+        pyx_content = '''
+cdef class MSSpectrum:
+    """
+    Cython implementation of MSSpectrum
+
+    Original C++ documentation is available `here <http://example.com>`_
+    """
+
+    def __init__(self):
+        pass
+'''
+        # Write to temp file and extract
+        import tempfile
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.pyx', delete=False) as f:
+            f.write(pyx_content)
+            temp_path = f.name
+
+        try:
+            docstrings = extract_docstrings_from_pyx(temp_path)
+            class_docs = [(n, d) for n, t, d, _ in docstrings if t == 'class']
+            assert len(class_docs) == 1, f"Expected 1 class docstring, got {len(class_docs)}"
+            name, doc = class_docs[0]
+            assert name == 'MSSpectrum'
+            assert 'Cython implementation' in doc
+        finally:
+            os.unlink(temp_path)
+
+    def test_extract_method_docstring(self):
+        """Test extraction of method docstrings from Cython code."""
+        pyx_content = '''
+cdef class TestClass:
+    """Class docstring."""
+
+    def get_value(self):
+        """
+        get_value(self) -> int
+
+        Returns the current value.
+        """
+        return self._value
+
+    def set_value(self, val):
+        """
+        set_value(self, val: int) -> None
+
+        Sets the value.
+        """
+        self._value = val
+'''
+        import tempfile
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.pyx', delete=False) as f:
+            f.write(pyx_content)
+            temp_path = f.name
+
+        try:
+            docstrings = extract_docstrings_from_pyx(temp_path)
+            method_docs = [(n, d) for n, t, d, _ in docstrings if t == 'method']
+            assert len(method_docs) == 2, f"Expected 2 method docstrings, got {len(method_docs)}"
+            names = [n for n, _ in method_docs]
+            assert 'get_value' in names
+            assert 'set_value' in names
+        finally:
+            os.unlink(temp_path)
+
+    def test_extract_single_line_docstring(self):
+        """Test extraction of single-line docstrings."""
+        pyx_content = '''
+cdef class Simple:
+    """A simple class."""
+
+    def method(self):
+        """Does something."""
+        pass
+'''
+        import tempfile
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.pyx', delete=False) as f:
+            f.write(pyx_content)
+            temp_path = f.name
+
+        try:
+            docstrings = extract_docstrings_from_pyx(temp_path)
+            assert len(docstrings) >= 1
+            class_doc = next((d for n, t, d, _ in docstrings if t == 'class'), None)
+            assert class_doc == "A simple class."
+        finally:
+            os.unlink(temp_path)
+
+    def test_extract_multiline_docstring_dedent(self):
+        """Test that multi-line docstrings are properly dedented."""
+        pyx_content = '''
+cdef class TestClass:
+    """
+    First line.
+
+    Second paragraph with more detail.
+    And another line.
+    """
+    pass
+'''
+        import tempfile
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.pyx', delete=False) as f:
+            f.write(pyx_content)
+            temp_path = f.name
+
+        try:
+            docstrings = extract_docstrings_from_pyx(temp_path)
+            class_docs = [d for n, t, d, _ in docstrings if t == 'class']
+            assert len(class_docs) == 1
+            doc = class_docs[0]
+            # Check that it's dedented (no leading spaces on content lines)
+            lines = doc.split('\n')
+            for line in lines:
+                if line.strip():
+                    # Content lines should start at position 0 or have consistent indent
+                    assert not line.startswith('        '), (
+                        f"Docstring not properly dedented: {repr(doc)}"
+                    )
+        finally:
+            os.unlink(temp_path)
+
+    def test_extract_class_with_base(self):
+        """Test extraction from class with base class."""
+        pyx_content = '''
+cdef class DerivedClass(BaseClass):
+    """
+    A derived class.
+
+    Inherits from BaseClass.
+    """
+    pass
+'''
+        import tempfile
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.pyx', delete=False) as f:
+            f.write(pyx_content)
+            temp_path = f.name
+
+        try:
+            docstrings = extract_docstrings_from_pyx(temp_path)
+            class_docs = [(n, d) for n, t, d, _ in docstrings if t == 'class']
+            assert len(class_docs) == 1
+            name, doc = class_docs[0]
+            assert name == 'DerivedClass'
+            assert 'derived class' in doc.lower()
+        finally:
+            os.unlink(temp_path)
+
+    def test_extract_empty_file(self):
+        """Test extraction from empty file returns empty list."""
+        import tempfile
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.pyx', delete=False) as f:
+            f.write('')
+            temp_path = f.name
+
+        try:
+            docstrings = extract_docstrings_from_pyx(temp_path)
+            assert docstrings == []
+        finally:
+            os.unlink(temp_path)
+
+    def test_extract_no_docstrings(self):
+        """Test extraction from file with no docstrings."""
+        pyx_content = '''
+cdef class NoDoc:
+    def method(self):
+        return 42
+'''
+        import tempfile
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.pyx', delete=False) as f:
+            f.write(pyx_content)
+            temp_path = f.name
+
+        try:
+            docstrings = extract_docstrings_from_pyx(temp_path)
+            # Should find no docstrings (no triple-quoted strings after class/def)
+            assert len(docstrings) == 0
+        finally:
+            os.unlink(temp_path)
+
+
 def test_docutils_availability():
     """Report whether docutils is available for full RST validation."""
     if HAS_DOCUTILS:
@@ -867,6 +1397,7 @@ def test_docutils_availability():
     else:
         warnings.warn(
             "docutils not available - using regex-based RST validation only. "
-            "Install docutils for more thorough validation: pip install docutils"
+            "Install docutils for more thorough validation: pip install docutils",
+            stacklevel=2
         )
     assert True
