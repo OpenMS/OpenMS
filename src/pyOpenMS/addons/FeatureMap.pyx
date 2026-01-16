@@ -384,7 +384,13 @@ import numpy as np
                     hit.setMetaValue('feature_id', f.getUniqueId())
                     hit.setMetaValue('ID_filename', self._get_prot_id_filename_from_pep_id(pep))
                     if f.metaValueExists('spectrum_native_id'):
-                        hit.setMetaValue('ID_native_id', f.getMetaValue('spectrum_native_id'))
+                        native_id = f.getMetaValue('spectrum_native_id')
+                        # Normalize to string to avoid mixed bytes/str types
+                        if isinstance(native_id, bytes):
+                            native_id = native_id.decode('utf-8')
+                        elif not isinstance(native_id, str):
+                            native_id = str(native_id)
+                        hit.setMetaValue('ID_native_id', native_id)
                     else:
                         hit.setMetaValue('ID_native_id', 'None')
                     hits.append(hit)
