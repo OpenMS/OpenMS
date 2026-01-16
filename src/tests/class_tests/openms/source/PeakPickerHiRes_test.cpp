@@ -674,10 +674,11 @@ START_SECTION([EXTRA] test allow_missing_flank parameter)
     TEST_EQUAL(out.size(), 1)
     TEST_EQUAL(out.getFloatDataArrays().size(), 1)
     TEST_EQUAL(out.getFloatDataArrays()[0].getName(), "Ion Mobility")
-    // IM should be weighted average of valid neighbors only (central + right)
-    // Expected: weighted average of central (450 @ 1.2) and right (250 @ 1.3)
-    // = (450*1.2 + 250*1.3) / (450 + 250) = (540 + 325) / 700 = 1.2357...
-    TEST_REAL_SIMILAR(out.getFloatDataArrays()[0][0], 1.2357)
+    // IM should be weighted average of core (central + right neighbor) plus extended points
+    // Core: central (450 @ 1.2) + right neighbor (250 @ 1.3)
+    // Extension adds rightmost point (200 @ 1.4) since gap (0.01) < spacing_difference_gap * min_spacing
+    // = (450*1.2 + 250*1.3 + 200*1.4) / (450 + 250 + 200) = 1145 / 900 = 1.2722...
+    TEST_REAL_SIMILAR(out.getFloatDataArrays()[0][0], 1.27222)
   }
 }
 END_SECTION
