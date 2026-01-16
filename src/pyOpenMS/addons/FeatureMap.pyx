@@ -289,10 +289,17 @@ import numpy as np
                     ('mz_start', np.dtype('double')), ('mz_end', np.dtype('double')), ('quality', 'f'), ('intensity', 'f')]
 
         for meta_value in meta_values:
-            if meta_value in common_meta_value_types:
-                mddtypes.append((meta_value.decode(), common_meta_value_types[meta_value]))
+            # Handle both bytes (current) and str (future autowrap changes)
+            if isinstance(meta_value, bytes):
+                key = meta_value
+                col_name = meta_value.decode()
             else:
-                mddtypes.append((meta_value.decode(), 'object'))
+                col_name = str(meta_value)
+                key = col_name.encode()
+            if key in common_meta_value_types:
+                mddtypes.append((col_name, common_meta_value_types[key]))
+            else:
+                mddtypes.append((col_name, 'object'))
 
         mdarr = np.fromiter(iter=gen(self, extract_meta_data), dtype=mddtypes, count=cnt)
 
