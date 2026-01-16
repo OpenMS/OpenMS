@@ -51,6 +51,8 @@ brew install \
   apache-arrow
 
 # Install Eigen 3.4.0 from source (Homebrew's eigen is now 5.x which is incompatible)
+# First, remove any Homebrew-installed eigen to avoid version conflicts
+command brew uninstall --ignore-dependencies eigen 2>/dev/null || true
 EIGEN_VERSION="3.4.0"
 curl -L "https://gitlab.com/libeigen/eigen/-/archive/${EIGEN_VERSION}/eigen-${EIGEN_VERSION}.tar.gz" -o /tmp/eigen.tar.gz
 tar -xzf /tmp/eigen.tar.gz -C /tmp
