@@ -363,8 +363,12 @@ namespace OpenMS
         // We have to add a proper peak to peak_spline and have to decide what ion mobility value to assign to it.
 
         // If a neighbor is missing, use central peak mz for spline bisection bounds
-        left_neighbor_mz = (has_left_neighbor) ? left_neighbor_mz : central_peak_mz;
-        right_neighbor_mz = (has_right_neighbor) ? right_neighbor_mz : central_peak_mz;
+        // Only apply when check_spacings is true, otherwise has_left/right_neighbor are uninitialized (false)
+        if (check_spacings)
+        {
+          left_neighbor_mz = (has_left_neighbor) ? left_neighbor_mz : central_peak_mz;
+          right_neighbor_mz = (has_right_neighbor) ? right_neighbor_mz : central_peak_mz;
+        }
 
         double max_peak_mz = central_peak_mz;
         double max_peak_int = central_peak_int;
