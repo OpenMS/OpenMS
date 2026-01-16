@@ -163,7 +163,15 @@ import numpy as np
             Yields:
             tuple: tuple containing feature information and meta values (optional)
             """
-            vals = [f.getMetaValue(m) if f.metaValueExists(m) else np.nan for m in meta_values_list]
+            vals = []
+            for m in meta_values_list:
+                if f.metaValueExists(m):
+                    v = f.getMetaValue(m)
+                    if isinstance(v, (bytes, bytearray)):
+                        v = v.decode('utf-8')
+                    vals.append(v)
+                else:
+                    vals.append(np.nan)
 
             yield tuple((f.getUniqueId(), f.getRT(), f.getIntensity(), f.getOverallQuality(), *vals))
 

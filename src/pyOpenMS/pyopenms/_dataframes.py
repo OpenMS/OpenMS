@@ -132,7 +132,7 @@ def _add_meta_values(df: _pd.DataFrame, object: Any) -> _pd.DataFrame:
 
     for k in mvs:
         dv = object.getMetaValue(k)
-        col_name = k.decode()
+        col_name = k.decode() if isinstance(k, (bytes, bytearray)) else k
 
         try:
             # Handle native Python types (returned by autowrap)

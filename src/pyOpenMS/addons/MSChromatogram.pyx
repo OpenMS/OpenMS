@@ -177,6 +177,8 @@ import numpy as np
                         data_dict[k_str] = np.full(cnt, v, dtype=np.float64)
                     elif isinstance(v, str):
                         data_dict[k_str] = np.full(cnt, v, dtype='object')
+                    elif isinstance(v, (bytes, bytearray)):
+                        data_dict[k_str] = np.full(cnt, v.decode('utf-8'), dtype='object')
                     else:
                         data_dict[k_str] = np.full(cnt, str(v), dtype='object')
                 except Exception:
@@ -200,6 +202,8 @@ import numpy as np
                                 data_dict[col] = np.full(cnt, v, dtype=np.float64)
                             elif isinstance(v, str):
                                 data_dict[col] = np.full(cnt, v, dtype='object')
+                            elif isinstance(v, (bytes, bytearray)):
+                                data_dict[col] = np.full(cnt, v.decode('utf-8'), dtype='object')
                             else:
                                 data_dict[col] = np.full(cnt, str(v), dtype='object')
                         except Exception:

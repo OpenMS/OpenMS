@@ -217,7 +217,10 @@ import numpy as np
             for sda in self.getStringDataArrays():
                 if sda.getName() == 'IonNames':
                     if len(sda) == cnt:
-                        ion_annotations = np.array([s for s in sda], dtype='object')
+                        ion_annotations = np.array(
+                            [s.decode('utf-8') if isinstance(s, (bytes, bytearray)) else s for s in sda],
+                            dtype='object'
+                        )
                     break
             # Only add if data present or explicitly requested
             if requested is not None or any(ion_annotations != ''):
@@ -244,6 +247,8 @@ import numpy as np
                         data_dict[k_str] = np.full(cnt, v, dtype=np.float64)
                     elif isinstance(v, str):
                         data_dict[k_str] = np.full(cnt, v, dtype='object')
+                    elif isinstance(v, (bytes, bytearray)):
+                        data_dict[k_str] = np.full(cnt, v.decode('utf-8'), dtype='object')
                     else:
                         data_dict[k_str] = np.full(cnt, str(v), dtype='object')
                 except Exception:
@@ -267,6 +272,8 @@ import numpy as np
                                 data_dict[col] = np.full(cnt, v, dtype=np.float64)
                             elif isinstance(v, str):
                                 data_dict[col] = np.full(cnt, v, dtype='object')
+                            elif isinstance(v, (bytes, bytearray)):
+                                data_dict[col] = np.full(cnt, v.decode('utf-8'), dtype='object')
                             else:
                                 data_dict[col] = np.full(cnt, str(v), dtype='object')
                         except Exception:
@@ -307,7 +314,10 @@ import numpy as np
                 col_name = f'string_array:{name}'
                 if col_name in requested:
                     if len(sda) == cnt:
-                        data_dict[col_name] = np.array([s for s in sda], dtype='object')
+                        data_dict[col_name] = np.array(
+                            [s.decode('utf-8') if isinstance(s, (bytes, bytearray)) else s for s in sda],
+                            dtype='object'
+                        )
                     else:
                         data_dict[col_name] = np.full(cnt, '', dtype='object')
 
