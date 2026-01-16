@@ -391,8 +391,7 @@ import numpy as np
                         elif not isinstance(native_id, str):
                             native_id = str(native_id)
                         hit.setMetaValue('ID_native_id', native_id)
-                    else:
-                        hit.setMetaValue('ID_native_id', 'None')
+                    # No else clause needed - downstream code handles missing metavalues
                     hits.append(hit)
                 pep.setHits(hits)
                 result.push_back(pep)
