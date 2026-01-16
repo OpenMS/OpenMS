@@ -1121,7 +1121,7 @@ FLASHIda::FLASHIda(char* arg)
                                    const String& protein_sequence,
                                    double ppm_tolerance,
                                    const std::vector<String>& ion_types,
-                                   double ptm_mass_threshold,
+                                   double /* ptm_mass_threshold */,
                                    std::vector<int>& matched_fragment_indices,
                                    std::vector<int>& ptm_start_positions,
                                    std::vector<int>& ptm_end_positions,
