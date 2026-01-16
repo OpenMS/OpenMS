@@ -1893,6 +1893,10 @@ set_tests_properties("TOPP_PeakPickerHiRes_4_out1" PROPERTIES DEPENDS "TOPP_Peak
 add_test("TOPP_PeakPickerHiRes_5" ${TOPP_BIN_PATH}/PeakPickerHiRes -test -in ${DATA_DIR_TOPP}/PeakPickerHiRes_5_input.mzML -out ${TESTS_TEMP_DIR}/PeakPickerHiRes_5.tmp.mzML)
 add_test("TOPP_PeakPickerHiRes_5_out1" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 ${TESTS_TEMP_DIR}/PeakPickerHiRes_5.tmp.mzML -in2 ${DATA_DIR_TOPP}/PeakPickerHiRes_5_output.mzML)
 set_tests_properties("TOPP_PeakPickerHiRes_5_out1" PROPERTIES DEPENDS "TOPP_PeakPickerHiRes_5")
+# peak picking of non-symmetrical profile peaks
+add_test("TOPP_PeakPickerHiRes_6" ${TOPP_BIN_PATH}/PeakPickerHiRes -test -ini ${DATA_DIR_TOPP}/PeakPickerHiRes_6.ini -in ${DATA_DIR_TOPP}/PeakPickerHiRes_6_input.mzML -out ${TESTS_TEMP_DIR}/PeakPickerHiRes_6.tmp.mzML)
+add_test("TOPP_PeakPickerHiRes_6_out1" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 ${TESTS_TEMP_DIR}/PeakPickerHiRes_6.tmp.mzML -in2 ${DATA_DIR_TOPP}/PeakPickerHiRes_6_output.mzML)
+set_tests_properties("TOPP_PeakPickerHiRes_6_out1" PROPERTIES DEPENDS "TOPP_PeakPickerHiRes_6")
 
 #------------------------------------------------------------------------------
 # TOPP_PeakPickerIterative

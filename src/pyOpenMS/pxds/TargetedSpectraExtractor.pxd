@@ -242,9 +242,9 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/TargetedSpectraExtractor.h>" namesp
             #   :param fmap_input: Input feature map
             #   :param fmap_output: Output feature map (modified in place)
 
-        # Note: matchSpectrum, targetedMatching, and untargetedMatching methods
-        # that use TSE_Comparator are not wrapped due to type conversion issues.
-        # Use the extractSpectra pipeline methods instead.
+            #  Note: matchSpectrum, targetedMatching, and untargetedMatching methods
+            #  that use TSE_Comparator are not wrapped due to type conversion issues.
+            #  Use the extractSpectra pipeline methods instead.
 
 
 cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/TargetedSpectraExtractor.h>" namespace "OpenMS::TargetedSpectraExtractor":

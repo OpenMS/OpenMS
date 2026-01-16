@@ -21,7 +21,7 @@ cdef extern from "<OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>" namespace "O
         #    ii) collecting isotopes from the candidate masses and deisotoping - peak groups are defined here
         #    iii) scoring and filter out low scoring masses (i.e., peak groups)
 
-        # Constructors
+        #  Constructors
         FLASHDeconvAlgorithm() except + nogil
         FLASHDeconvAlgorithm(FLASHDeconvAlgorithm &) except + nogil
 
@@ -33,7 +33,7 @@ cdef extern from "<OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>" namespace "O
         #  :param deconvolved_spectra: Output vector to store deconvolved spectra
         #  :param deconvolved_features: Output vector to store mass features
 
-        # Averagine access
+        #  Averagine access
         PrecalAveragine& getAveragine() except + nogil
         # wrap-doc:Get calculated averagine. Call after run() is called.
 

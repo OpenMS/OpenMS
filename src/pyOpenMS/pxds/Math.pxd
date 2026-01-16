@@ -11,9 +11,9 @@ cdef extern from "<OpenMS/MATH/MathFunctions.h>" namespace "OpenMS::Math":
         #  Example usage:
         #    >>> ppm = pyopenms.Math.getPPM(1000.001, 1000.0)  # Returns 1.0 ppm
         #    >>> mass_diff = pyopenms.Math.ppmToMass(5.0, 1000.0)  # Returns 0.005 Da
-        
-        # Dummy class to attach Math namespace functions
-        # This class should not be instantiated directly
+
+        #  Dummy class to attach Math namespace functions
+        #  This class should not be instantiated directly
         Math() except + nogil  # wrap-ignore
         Math(Math &) except + nogil  # wrap-ignore
 

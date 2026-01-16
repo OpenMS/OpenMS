@@ -44,8 +44,8 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h>" namespace "Open
                 #  :param isotope: Precursor isotope number
                 #  :return: Unique precursor identifier
 
-        # static std::map<std::string, double> simpleFindBestFeature(
-        #    OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType & transition_group_map, 
-        #    bool useQualCutoff = false, double qualCutoff = 0.0);
+            #  static std::map<std::string, double> simpleFindBestFeature(
+            #     OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType & transition_group_map,
+            #     bool useQualCutoff = false, double qualCutoff = 0.0);
 
 
