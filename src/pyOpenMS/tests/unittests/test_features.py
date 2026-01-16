@@ -6,7 +6,6 @@
 ## Part of Issue #8567: Split test000.py into modular test files
 ## ----------------------------------------------------------------------------
 
-from __future__ import print_function
 import pyopenms
 import copy
 import numpy as np

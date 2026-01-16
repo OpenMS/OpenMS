@@ -16,8 +16,6 @@ Functions defined here can be imported in test files using:
     from conftest import report, _testParam, etc.
 """
 
-from __future__ import print_function
-
 import pyopenms
 import sys
 import os
@@ -29,28 +27,18 @@ from typing import Tuple
 # Add current directory to sys.path so conftest can be imported as a module
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-# Python 2/3 compatibility
-try:
-  long
-except NameError:
-  long = int
-
 
 def _testStrOutput(input_str):
   """
-  Test helper to validate string output type across Python versions.
+  Test helper to validate string output type.
     
   Args:
     input_str: String to validate
         
   Asserts:
-    - Python 2: input_str is unicode
-    - Python 3: input_str is str
+    input_str is str
   """
-  if sys.version_info[0] < 3:
-    assert isinstance(input_str, unicode)
-  else:
-    assert isinstance(input_str, str)
+  assert isinstance(input_str, str)
 
 
 def report(f):
@@ -147,7 +135,7 @@ def _testUniqueIdInterface(what):
   assert what.hasInvalidUniqueId()
   assert not what.hasValidUniqueId()
   assert what.ensureUniqueId()
-  assert isinstance(what.getUniqueId(), (int, long))
+  assert isinstance(what.getUniqueId(), int)
   assert what.getUniqueId() > 0
   assert not what.hasInvalidUniqueId()
   assert what.hasValidUniqueId()
@@ -158,7 +146,7 @@ def _testUniqueIdInterface(what):
   assert not what.hasValidUniqueId()
 
   assert what.ensureUniqueId()
-  assert isinstance(what.getUniqueId(), (int, long))
+  assert isinstance(what.getUniqueId(), int)
   assert what.getUniqueId() > 0
   assert not what.hasInvalidUniqueId()
   assert what.hasValidUniqueId()

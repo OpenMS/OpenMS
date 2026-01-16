@@ -579,8 +579,10 @@ endif()
 set(pyopenms_unittest_testfiles
   test_ProteaseDigestion.py
   test_algorithms.py
+  test_backward_compatibility.py
   test_chemistry.py
   test_core_structures.py
+  test_dataframe_columns.py
   test_features.py
   test_file_io.py
   test_identification.py
@@ -592,15 +594,23 @@ set(pyopenms_unittest_testfiles
   test_tutorial.py
   test_validation_signal.py
   test_BaselineFiltering.py
+  test_BilinearInterpolation.py
   test_ChromatogramExtractor.py
   test_ChromatogramExtractorAlgorithm.py
   test_Convexhull.py
   testCVTermList.py
+  test_DataProcessing.py
   test_DIAScoring.py
+  test_DRange.py
   test_FileIO.py
+  test_Hash.py
+  test_InstrumentSettings.py
+  test_ISpectrumAccess.py
   test_Isobaric_Quantitation.py
   testLightTargetedExperiment.py
   testLocale.py
+  test_Math.py
+  test_Mobilogram.py
   test_MRMFeatureFinderScoring.py
   test_MSNumpressCoder.py
   test_MSSpectrum.py
@@ -609,7 +619,11 @@ set(pyopenms_unittest_testfiles
   testSpecialCases.py
   test_SpectraFilter.py
   test_SpectrumAccessOpenMS.py
+  test_StandardTypes.py
+  test_StaticMethods.py
+  test_TargetedQuantitation.py
   test_TraML.py
+  test_Utf8StringInput.py
   test_MzMLConsumer.py
   test_MzXMLConsumer.py
   test_AcquisitionInfo.py

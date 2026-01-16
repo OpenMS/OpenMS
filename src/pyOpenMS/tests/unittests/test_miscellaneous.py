@@ -9,7 +9,6 @@
 ## categories: data types, enums, RNA sequences, version info, etc.
 ## ----------------------------------------------------------------------------
 
-from __future__ import print_function
 import pyopenms
 import copy
 import os
