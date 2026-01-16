@@ -164,14 +164,17 @@ import numpy as np
                             break
 
         # get default value for each type in types to append if there are no hits in a PeptideIdentification
-        def get_key(val):
+        def get_default_for_type(val, meta_key):
             # Handle numpy dtypes (like uint64 for feature_id)
             if isinstance(val, np.dtype):
-                return type(1)  # Use int default for numeric numpy dtypes
+                # Use 0 for feature_id (uint64) as -9999 wraps to a huge value
+                # 0 is the safest sentinel for UniqueId-type values
+                return 0
             for key, value in switchDict.items():
                 if val == value:
-                    return key
-        dmv = [default_missing_values[get_key(t)] for t in types]
+                    return default_missing_values[key]
+            return None  # Should not happen
+        dmv = [get_default_for_type(t, metavals[i] if i < len(metavals) else None) for i, t in enumerate(types)]
 
         decodedMVs = [m.decode("utf-8") for m in metavals]
         if decode_ontology:

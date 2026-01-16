@@ -256,9 +256,14 @@ import numpy as np
                 if pep.size() > 0:
                     ID_filename = self._get_prot_id_filename_from_pep_id(pep[0])
                     # Check if spectrum_native_id meta value exists before accessing
-                    spec_id = None
+                    # Use 'None' string (not Python None) for missing values to maintain backward compatibility
                     if f.metaValueExists('spectrum_native_id'):
                         spec_id = f.getMetaValue('spectrum_native_id')
+                        # Ensure bytes are decoded to str to prevent mixed types in DataFrame
+                        if isinstance(spec_id, bytes):
+                            spec_id = spec_id.decode('utf-8')
+                    else:
+                        spec_id = 'None'
                     hits = pep[0].getHits()
                     if len(hits) > 0:
                         besthit = hits[0]
@@ -266,7 +271,8 @@ import numpy as np
                     else:
                         pep_values = (None, None, ID_filename, spec_id)
                 else:
-                    pep_values = (None, None, None, None)
+                    # Use 'None' string for ID_native_id for consistency with object dtype
+                    pep_values = (None, None, None, 'None')
             else:
                 pep_values = ()
 
@@ -371,7 +377,7 @@ import numpy as np
                     if f.metaValueExists('spectrum_native_id'):
                         hit.setMetaValue('ID_native_id', f.getMetaValue('spectrum_native_id'))
                     else:
-                        hit.setMetaValue('ID_native_id', 'unknown')
+                        hit.setMetaValue('ID_native_id', 'None')
                     hits.append(hit)
                 pep.setHits(hits)
                 result.push_back(pep)
