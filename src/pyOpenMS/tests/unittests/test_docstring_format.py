@@ -19,7 +19,6 @@ Two types of tests:
 import os
 import re
 import glob
-import inspect
 import warnings
 import pytest
 
@@ -366,52 +365,6 @@ def validate_wrap_doc_structure(content, filename=""):
     return errors
 
 
-def check_wrap_doc_in_class_context(content, filename=""):
-    """
-    Check that wrap-doc annotations appear in valid locations.
-
-    wrap-doc should appear:
-    - Inside a 'cdef cppclass' block (for class docs)
-    - After a method declaration (for method docs)
-
-    Returns list of (line_number, error_message) tuples.
-    """
-    errors = []
-    lines = content.split('\n')
-
-    in_class = False
-    class_indent = 0
-
-    for i, line in enumerate(lines):
-        line_num = i + 1
-        stripped = line.strip()
-
-        # Track class context
-        if 'cdef cppclass' in line or 'cdef class' in line:
-            in_class = True
-            class_indent = len(line) - len(line.lstrip())
-            continue
-
-        # Detect end of class (line with same or less indent that's not empty/comment)
-        if in_class and stripped and not stripped.startswith('#'):
-            current_indent = len(line) - len(line.lstrip())
-            if current_indent <= class_indent:
-                in_class = False
-
-        # Check for wrap-doc outside class context
-        if '# wrap-doc:' in line:
-            if not in_class:
-                # Check if it's a file-level or module-level doc (unusual but allowed)
-                # For now, just warn - it's likely an error
-                errors.append((
-                    line_num,
-                    "wrap-doc annotation appears outside of class definition "
-                    "(may be orphaned or incorrectly indented)"
-                ))
-
-    return errors
-
-
 # =============================================================================
 # Tests that work without built pyopenms (validate .pxd source files)
 # =============================================================================
@@ -463,7 +416,7 @@ class TestPxdDocumentation:
             filepath = os.path.join(pxd_dir, filename)
             if not os.path.exists(filepath):
                 continue
-            with open(filepath, 'r') as f:
+            with open(filepath, 'r', encoding='utf-8') as f:
                 content = f.read()
             if '# wrap-doc:' not in content:
                 missing_essential.append(filename)
@@ -472,7 +425,7 @@ class TestPxdDocumentation:
             filepath = os.path.join(pxd_dir, filename)
             if not os.path.exists(filepath):
                 continue
-            with open(filepath, 'r') as f:
+            with open(filepath, 'r', encoding='utf-8') as f:
                 content = f.read()
             if '# wrap-doc:' not in content:
                 missing_optional.append(filename)
@@ -493,7 +446,7 @@ class TestPxdDocumentation:
 
         for filepath in pxd_files:
             filename = os.path.basename(filepath)
-            with open(filepath, 'r') as f:
+            with open(filepath, 'r', encoding='utf-8') as f:
                 content = f.read()
 
             docs = extract_wrap_doc_from_pxd(content)
@@ -519,7 +472,7 @@ class TestPxdDocumentation:
 
         for filepath in pxd_files:
             filename = os.path.basename(filepath)
-            with open(filepath, 'r') as f:
+            with open(filepath, 'r', encoding='utf-8') as f:
                 content = f.read()
 
             docs = extract_wrap_doc_from_pxd(content)
@@ -545,7 +498,7 @@ class TestPxdDocumentation:
             if not os.path.exists(filepath):
                 continue
 
-            with open(filepath, 'r') as f:
+            with open(filepath, 'r', encoding='utf-8') as f:
                 content = f.read()
 
             docs = extract_wrap_doc_from_pxd(content)
@@ -576,7 +529,7 @@ class TestPxdDocumentation:
 
         for filepath in pxd_files:
             filename = os.path.basename(filepath)
-            with open(filepath, 'r') as f:
+            with open(filepath, 'r', encoding='utf-8') as f:
                 content = f.read()
 
             errors = validate_wrap_doc_structure(content, filename)
@@ -614,7 +567,7 @@ class TestPxdDocumentation:
 
         for filepath in pxd_files:
             filename = os.path.basename(filepath)
-            with open(filepath, 'r') as f:
+            with open(filepath, 'r', encoding='utf-8') as f:
                 for line_num, line in enumerate(f, 1):
                     for pattern in typo_patterns:
                         if re.search(pattern, line, re.IGNORECASE):
@@ -645,7 +598,7 @@ class TestPxdDocumentation:
             if not os.path.exists(filepath):
                 continue
 
-            with open(filepath, 'r') as f:
+            with open(filepath, 'r', encoding='utf-8') as f:
                 content = f.read()
 
             errors = validate_wrap_doc_structure(content, filename)
