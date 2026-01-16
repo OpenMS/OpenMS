@@ -259,9 +259,11 @@ import numpy as np
                     # Use 'None' string (not Python None) for missing values to maintain backward compatibility
                     if f.metaValueExists('spectrum_native_id'):
                         spec_id = f.getMetaValue('spectrum_native_id')
-                        # Ensure bytes are decoded to str to prevent mixed types in DataFrame
+                        # Handle both bytes (current) and str (future autowrap changes)
                         if isinstance(spec_id, bytes):
                             spec_id = spec_id.decode('utf-8')
+                        elif not isinstance(spec_id, str):
+                            spec_id = str(spec_id)
                     else:
                         spec_id = 'None'
                     hits = pep[0].getHits()
