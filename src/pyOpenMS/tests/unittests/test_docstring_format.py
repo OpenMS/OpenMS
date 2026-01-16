@@ -82,6 +82,8 @@ def get_generated_pyx_dir():
         if os.path.exists(single_pyx):
             return pkg_dir
     except (AttributeError, TypeError):
+        # Some pyopenms packaging configurations may not provide __file__
+        # (e.g., frozen executables, zip imports). Treat as "no generated pyx dir".
         pass
 
     return None
@@ -363,7 +365,8 @@ def validate_docstring(docstring, name=""):
         return True, []
 
     if not isinstance(docstring, str):
-        return False, [f"Docstring is not a string: {type(docstring)}"]
+        prefix = f"{name}: " if name else ""
+        return False, [f"{prefix}Docstring is not a string: {type(docstring)}"]
 
     all_errors = []
     all_errors.extend(check_rst_code_blocks(docstring))
@@ -435,7 +438,7 @@ def extract_wrap_doc_from_pxd(content):
     return docs
 
 
-def validate_wrap_doc_structure(content, filename=""):
+def validate_wrap_doc_structure(content, _filename=""):
     """
     Validate the structural format of wrap-doc annotations.
 
@@ -479,16 +482,16 @@ def validate_wrap_doc_structure(content, filename=""):
                     # Must have same or greater indent as wrap-doc line
                     next_indent = len(next_line) - len(next_line.lstrip())
 
-                    # Check for missing space after # (common mistake)
-                    # Valid: '#  text' or '# text' or '#'
-                    # Invalid: '#text' (no space)
-                    hash_match = re.match(r'\s*#(\S)', next_line)
-                    if hash_match and hash_match.group(1) not in (' ', '\t'):
-                        errors.append((
-                            next_line_num,
-                            f"Missing space after '#' in wrap-doc continuation "
-                            f"(got '#{hash_match.group(1)}', expected '# ' or '#  ')"
-                        ))
+                    # Enforce '#  ' (hash + two spaces) for continuation lines
+                    # Valid: '#' (empty) or '#  text' (hash + 2 spaces)
+                    # Invalid: '# text' (single space) or '#text' (no space)
+                    if not next_stripped.startswith('# wrap-'):
+                        if next_stripped != '#' and not next_stripped.startswith('#  '):
+                            errors.append((
+                                next_line_num,
+                                "wrap-doc continuation lines must start with "
+                                "'#  ' (hash + two spaces)"
+                            ))
 
                     # Check for inconsistent indentation
                     if next_indent < wrap_doc_indent and next_stripped != '#':
@@ -689,7 +692,7 @@ class TestPxdDocumentation:
         - Missing space after '#' in continuation lines
         - Inconsistent indentation in multi-line wrap-doc blocks
 
-        Issues are reported as warnings; the test passes but logs problems.
+        Test fails if any structural issues are found.
         """
         pxd_dir = get_pxd_dir()
         if pxd_dir is None:
@@ -707,17 +710,11 @@ class TestPxdDocumentation:
             for line_num, error in errors:
                 all_errors.append(f"{filename}:{line_num}: {error}")
 
-        # Report issues as warnings (don't fail the test)
-        # This allows CI to pass while developers can still see problems
-        if all_errors:
-            # Deduplicate by file (one error per file max in warning)
-            files_with_issues = sorted(set(e.split(':')[0] for e in all_errors))
-            warnings.warn(
-                f"wrap-doc structure issues in {len(files_with_issues)} files "
-                f"(may cause autowrap parsing issues): {files_with_issues[:10]}",
-                stacklevel=2
-            )
-        # Test passes - this is informational
+        # Fail if any structural issues found
+        assert not all_errors, (
+            f"wrap-doc structure issues in {len(all_errors)} locations:\n" +
+            "\n".join(all_errors[:50])
+        )
 
     def test_wrap_doc_no_typos(self):
         """Test for common wrap-doc typos like 'wrapdoc:', 'wrap_doc:', etc."""
@@ -753,34 +750,29 @@ class TestPxdDocumentation:
         """
         Test that multi-line wrap-doc continuation lines have proper format.
 
-        Autowrap expects continuation lines to start with '#  ' (hash + space + space)
-        or '# ' (hash + space). Lines starting with '#text' (no space) will break parsing.
+        Autowrap expects continuation lines to start with '#  ' (hash + two spaces).
+        Lines starting with '# ' (single space) or '#text' (no space) will break parsing.
         """
         pxd_dir = get_pxd_dir()
         if pxd_dir is None:
             pytest.skip("pxds directory not found")
 
         issues = []
-        # Check core files that commonly have multi-line docs
-        core_files = ['MSSpectrum.pxd', 'MSExperiment.pxd', 'AASequence.pxd',
-                      'Feature.pxd', 'FeatureMap.pxd', 'Param.pxd']
+        pxd_files = glob.glob(os.path.join(pxd_dir, '*.pxd'))
 
-        for filename in core_files:
-            filepath = os.path.join(pxd_dir, filename)
-            if not os.path.exists(filepath):
-                continue
-
+        for filepath in pxd_files:
+            filename = os.path.basename(filepath)
             with open(filepath, 'r', encoding='utf-8') as f:
                 content = f.read()
 
             errors = validate_wrap_doc_structure(content, filename)
             for line_num, error in errors:
-                if 'Missing space' in error:
+                if 'continuation lines must start' in error:
                     issues.append(f"{filename}:{line_num}: {error}")
 
         assert not issues, (
-            "wrap-doc continuation lines with missing spaces:\n" +
-            "\n".join(issues[:10])
+            f"wrap-doc continuation lines with incorrect format ({len(issues)} issues):\n" +
+            "\n".join(issues[:50])
         )
 
 
@@ -843,7 +835,7 @@ class TestGeneratedDocstrings:
         found_classes = set()
         for pyx_file in pyx_files:
             docstrings = extract_docstrings_from_pyx(pyx_file)
-            for name, doc_type, docstring, _ in docstrings:
+            for name, doc_type, _docstring, _ in docstrings:
                 if doc_type == 'class' and name in core_classes:
                     found_classes.add(name)
 
@@ -873,7 +865,7 @@ class TestGeneratedDocstrings:
                     ]
                     if real_errors:
                         all_errors.append(
-                            f"{filename}:{line_num} ({name}): {real_errors[:3]}"
+                            f"{filename}:{line_num} ({doc_type} {name}): {real_errors[:3]}"
                         )
 
         # Report first 100 issues (may be many if there's a systemic problem)
@@ -895,7 +887,7 @@ class TestGeneratedDocstrings:
 
             for name, doc_type, docstring, line_num in docstrings:
                 if '\t' in docstring:
-                    files_with_tabs.append(f"{filename}:{line_num} ({name})")
+                    files_with_tabs.append(f"{filename}:{line_num} ({doc_type} {name})")
                     break  # One per file is enough
 
         assert not files_with_tabs, f"Files with tabs in docstrings: {files_with_tabs}"
@@ -910,7 +902,8 @@ class TestGeneratedDocstrings:
             docstrings = extract_docstrings_from_pyx(pyx_file)
             for name, doc_type, docstring, line_num in docstrings:
                 assert isinstance(docstring, str), (
-                    f"Docstring for {name} is {type(docstring)}, expected str"
+                    f"Docstring for {doc_type} {name} at line {line_num} "
+                    f"is {type(docstring)}, expected str"
                 )
 
     def test_generated_docstrings_not_empty_placeholders(self):
@@ -932,11 +925,10 @@ class TestGeneratedDocstrings:
                         empty_docs.append(f"{filename}:{line_num} ({name})")
 
         # Allow some empty docs (internal classes) but not too many
-        if len(empty_docs) > 50:
-            assert False, (
-                f"Too many classes with empty docstrings ({len(empty_docs)}): "
-                f"{empty_docs[:10]}"
-            )
+        assert len(empty_docs) <= 50, (
+            f"Too many classes with empty docstrings ({len(empty_docs)}): "
+            f"{empty_docs[:10]}"
+        )
 
 
 def _is_acceptable_error(error, docstring):
@@ -1136,7 +1128,7 @@ cdef extern from "Test.h":
         assert not errors, f"Valid wrap-doc should pass: {errors}"
 
     def test_missing_space_after_hash(self):
-        """Test that missing space after # is detected."""
+        """Test that incorrect continuation format is detected."""
         content = '''
 cdef extern from "Test.h":
     cdef cppclass TestClass:
@@ -1145,8 +1137,22 @@ cdef extern from "Test.h":
         TestClass() except + nogil
 '''
         errors = validate_wrap_doc_structure(content, "test.pxd")
-        assert any('Missing space' in e for _, e in errors), (
-            f"Should detect missing space: {errors}"
+        assert any('continuation lines must start' in e for _, e in errors), (
+            f"Should detect incorrect continuation format: {errors}"
+        )
+
+    def test_single_space_after_hash(self):
+        """Test that single space after # (instead of two) is detected."""
+        content = '''
+cdef extern from "Test.h":
+    cdef cppclass TestClass:
+        # wrap-doc:
+        # This line has only one space after hash
+        TestClass() except + nogil
+'''
+        errors = validate_wrap_doc_structure(content, "test.pxd")
+        assert any('continuation lines must start' in e for _, e in errors), (
+            f"Should detect single-space continuation: {errors}"
         )
 
     def test_inline_wrap_doc_valid(self):
