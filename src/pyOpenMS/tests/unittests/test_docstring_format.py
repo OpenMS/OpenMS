@@ -412,20 +412,22 @@ def extract_wrap_doc_from_pxd(content):
             i += 1
             while i < len(lines):
                 next_line = lines[i]
-                # Multi-line wrap-doc continues with '#  ' (hash + 2 spaces)
-                if next_line.strip().startswith('#  ') or next_line.strip() == '#':
-                    # Remove the leading '# ' or '#  '
-                    content_match = re.match(r'\s*#\s?(.*)', next_line)
+                next_stripped = next_line.strip()
+
+                # Multi-line wrap-doc continues with '#  ' (hash + 2 spaces) or '#' (blank)
+                if next_stripped.startswith('#  ') or next_stripped == '#':
+                    # Remove the leading '#  ' (exactly 2 spaces) or '#'
+                    content_match = re.match(r'\s*#\s{2}(.*)', next_line)
                     if content_match:
                         doc_lines.append(content_match.group(1))
+                    elif next_stripped == '#':
+                        doc_lines.append('')  # Blank line in docstring
                     i += 1
-                elif next_line.strip().startswith('# ') and not next_line.strip().startswith('# wrap-'):
-                    # Continuation with single space
-                    content_match = re.match(r'\s*#\s?(.*)', next_line)
-                    if content_match:
-                        doc_lines.append(content_match.group(1))
-                    i += 1
+                elif next_stripped.startswith('# wrap-'):
+                    # Start of another wrap directive - end this block
+                    break
                 else:
+                    # Non-continuation line - end of wrap-doc block
                     break
 
             if doc_lines:
