@@ -467,13 +467,15 @@ def validate_wrap_doc_structure(content, _filename=""):
             i += 1
 
             # Check continuation lines
+            seen_blank = False
             while i < len(lines):
                 next_line = lines[i]
                 next_stripped = next_line.strip()
                 next_line_num = i + 1
 
-                # Empty line or whitespace only - ok
+                # Empty line or whitespace only - mark that we've seen a blank line
                 if not next_stripped:
+                    seen_blank = True
                     i += 1
                     continue
 
@@ -508,6 +510,11 @@ def validate_wrap_doc_structure(content, _filename=""):
                         next_stripped != '#'
                     )
 
+                    # If we've seen a blank line and this is a single-space comment,
+                    # it's likely a separate comment (like "# private"), not a continuation
+                    if seen_blank and is_single_space:
+                        break
+
                     # Flag format issues
                     if is_single_space or is_no_space:
                         errors.append((
@@ -528,6 +535,10 @@ def validate_wrap_doc_structure(content, _filename=""):
                     # Check if this is actually another wrap directive (end of current block)
                     if next_stripped.startswith('# wrap-'):
                         break
+
+                    # Reset blank line flag if we have a valid continuation
+                    if is_valid_continuation:
+                        seen_blank = False
 
                     i += 1
                 else:
