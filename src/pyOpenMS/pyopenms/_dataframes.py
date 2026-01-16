@@ -151,7 +151,7 @@ def _add_meta_values(df: _pd.DataFrame, object: Any) -> _pd.DataFrame:
             # Handle DataValue objects (if ever returned)
             elif hasattr(dv, 'valueType'):
                 if dv.valueType() == _DataValue.STRING_VALUE:
-                    value = dv.toString().decode()
+                    value = dv.toString()  # autowrap already returns str
                     dtype = "object"
                 elif dv.valueType() == _DataValue.INT_VALUE:
                     value = dv.toInt()
