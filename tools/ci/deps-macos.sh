@@ -42,7 +42,6 @@ brew install \
   libsvm \
   xerces-c \
   boost \
-  eigen \
   sqlite \
   coinutils \
   cbc \
@@ -50,6 +49,13 @@ brew install \
   clp \
   qt \
   apache-arrow
+
+# Install Eigen 3.4.0 from source (Homebrew's eigen is now 5.x which is incompatible)
+EIGEN_VERSION="3.4.0"
+curl -L "https://gitlab.com/libeigen/eigen/-/archive/${EIGEN_VERSION}/eigen-${EIGEN_VERSION}.tar.gz" -o /tmp/eigen.tar.gz
+tar -xzf /tmp/eigen.tar.gz -C /tmp
+cmake -S /tmp/eigen-${EIGEN_VERSION} -B /tmp/eigen-build -DCMAKE_INSTALL_PREFIX=/opt/homebrew
+sudo cmake --install /tmp/eigen-build
 
 # Optional dependencies:
 brew install \
