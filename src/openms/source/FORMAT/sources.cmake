@@ -104,7 +104,8 @@ if (WITH_HDF5)
 endif()
 
 if (WITH_PARQUET)
-  list(APPEND sources_list QuantmsIO.cpp)  
+  list(APPEND sources_list QuantmsIO.cpp)
+  list(APPEND sources_list ArrowExport.cpp)
 endif()
 
 ### add path to the filenames
