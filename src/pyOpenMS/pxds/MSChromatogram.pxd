@@ -14,22 +14,22 @@ cdef extern from "<OpenMS/KERNEL/MSChromatogram.h>" namespace "OpenMS":
         # wrap-inherits:
         #  ChromatogramSettings
         #  RangeManagerRtInt
-        #
+        #  
         # wrap-doc:
         #  The representation of a chromatogram.
         #  Raw data access is proved by `get_peaks` and `set_peaks`, which yields numpy arrays
         #  Iterations yields access to underlying peak objects but is slower
         #  Extra data arrays can be accessed through getFloatDataArrays / getIntegerDataArrays / getStringDataArrays
         #  See help(ChromatogramSettings) for information about meta-information
-        #
+        #  
         #  Usage:
-        #
+        #  
         #  .. code-block:: python
-        #
+        #  
         #    precursor = chromatogram.getPrecursor()
         #    product = chromatogram.getProduct()
         #    rt, intensities = chromatogram.get_peaks()
-        #
+        #  
 
         MSChromatogram() except + nogil  # wrap-doc:Constructor
         MSChromatogram(MSChromatogram &) except + nogil  # wrap-doc:Copy constructor
@@ -49,8 +49,8 @@ cdef extern from "<OpenMS/KERNEL/MSChromatogram.h>" namespace "OpenMS":
         void clear(int) except + nogil
             # wrap-doc:
                 #  Clears all data and meta data
-                #
-                #
+                #  
+                #  
                 #  :param clear_meta_data: If true, all meta data is cleared in addition to the data
 
         void push_back(ChromatogramPeak)  except + nogil  # wrap-doc:Append a peak
@@ -60,23 +60,23 @@ cdef extern from "<OpenMS/KERNEL/MSChromatogram.h>" namespace "OpenMS":
         void sortByIntensity(bool reverse) except + nogil
             # wrap-doc:
                 #  Lexicographically sorts the peaks by their intensity
-                #
-                #
+                #  
+                #  
                 #  Sorts the peaks according to ascending intensity. Meta data arrays will be sorted accordingly
 
         void sortByPosition() except + nogil
             # wrap-doc:
                 #  Lexicographically sorts the peaks by their position
-                #
-                #
+                #  
+                #  
                 #  The chromatogram is sorted with respect to position. Meta data arrays will be sorted accordingly
 
         int findNearest(double) except + nogil
             # wrap-doc:
                 #  Binary search for the peak nearest to a specific RT
                 #  :note: Make sure the chromatogram is sorted with respect to RT! Otherwise the result is undefined
-                #
-                #
+                #  
+                #  
                 #  :param rt: The searched for mass-to-charge ratio searched
                 #  :return: Returns the index of the peak.
                 #  :raises:

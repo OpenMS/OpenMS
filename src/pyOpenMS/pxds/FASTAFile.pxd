@@ -13,20 +13,20 @@ cdef extern from "<OpenMS/FORMAT/FASTAFile.h>" namespace "OpenMS":
     cdef cppclass FASTAFile:
         # wrap-doc:
         #  File adapter for FASTA files
-        #
+        #  
         #  Provides methods to load and store protein/peptide sequences in FASTA format.
         #  Supports both batch loading (load/store) and streaming (readStart/readNext/writeStart/writeNext).
-        #
+        #  
         #  Usage:
-        #
+        #  
         #  .. code-block:: python
-        #
+        #  
         #    # Batch loading
         #    entries = []
         #    FASTAFile().load("proteins.fasta", entries)
         #    for entry in entries:
         #      print(entry.identifier, entry.sequence)
-        #
+        #  
         #    # Streaming (memory-efficient for large files)
         #    ff = FASTAFile()
         #    ff.readStart("proteins.fasta")
@@ -44,7 +44,7 @@ cdef extern from "<OpenMS/FORMAT/FASTAFile.h>" namespace "OpenMS":
         void readStart(const String & filename) except + nogil
             # wrap-doc:
             #  Prepares a FASTA file given by 'filename' for streamed reading using readNext()
-            #
+            #  
             #  :raises:
             #      Exception:FileNotFound is thrown if the file does not exists
             #  :raises:
@@ -52,9 +52,9 @@ cdef extern from "<OpenMS/FORMAT/FASTAFile.h>" namespace "OpenMS":
         bool readNext(FASTAEntry & protein) except + nogil
             # wrap-doc:
             #  Reads the next FASTA entry from file
-            #
+            #  
             #  If you want to read all entries in one go, use load()
-            #
+            #  
             #  :return: true if entry was read; false if eof was reached
             #  :raises:
             #      Exception:FileNotFound is thrown if the file does not exists
@@ -66,15 +66,15 @@ cdef extern from "<OpenMS/FORMAT/FASTAFile.h>" namespace "OpenMS":
         void writeStart(const String & filename) except + nogil
             # wrap-doc:
             #  Prepares a FASTA file given by 'filename' for streamed writing using writeNext()
-            #
+            #  
             #  :raises:
             #      Exception:UnableToCreateFile is thrown if the process is not able to write to the file (disk full?)
         void writeNext(const FASTAEntry & protein) except + nogil
             # wrap-doc:
             #  Stores the data given by `protein`. Call writeStart() once before calling writeNext()
-            #
+            #  
             #  Call writeEnd() when done to close the file!
-            #
+            #  
             #  :raises:
             #      Exception:UnableToCreateFile is thrown if the process is not able to write to the file (disk full?)
         void writeEnd() except + nogil  # wrap-doc:Closes the file (flush). Called implicitly when FASTAFile object does out of scope
@@ -84,7 +84,7 @@ cdef extern from "<OpenMS/FORMAT/FASTAFile.h>" namespace "OpenMS::FASTAFile":
     cdef cppclass FASTAEntry:
         # wrap-doc:
         #  Represents a single FASTA entry with identifier, description, and sequence
-        #
+        #  
         #  Attributes:
         #    identifier: The protein/sequence identifier (from FASTA header before first space)
         #    description: The description line (from FASTA header after first space)

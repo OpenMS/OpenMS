@@ -22,7 +22,7 @@ cdef extern from "<OpenMS/KERNEL/ConsensusMap.h>" namespace "OpenMS::ConsensusMa
     cdef cppclass ColumnHeader(MetaInfoInterface):
         # wrap-inherits:
         #  MetaInfoInterface
-        #
+        #  
         # wrap-doc:Describes a column (input file) in a ConsensusMap with filename, label, size, and unique ID
 
         String filename
@@ -47,20 +47,20 @@ cdef extern from "<OpenMS/KERNEL/ConsensusMap.h>" namespace "OpenMS":
         #  DocumentIdentifier
         #  RangeManagerRtMzInt
         #  MetaInfoInterface
-        #
+        #  
         # wrap-doc:
         #  A container for consensus elements.
-        #
+        #  
         #  A ConsensusMap is a container holding 2-dimensional consensus elements
         #  (ConsensusFeature) which in turn represent analytes that have been
         #  quantified across multiple LC-MS/MS experiments. Each analyte in a
         #  ConsensusFeature is linked to its original LC-MS/MS run, the links are
         #  maintained by the ConsensusMap class.
         #  The map is implemented as a vector of elements of type ConsensusFeature.
-        #
+        #  
         #  To be consistent, all maps who are referenced by ConsensusFeature objects
         #  (through a unique id) need to be registered in this class.
-        #
+        #  
         #  This class supports direct iteration in Python.
 
         ConsensusMap() except + nogil  # wrap-doc:Default constructor creating an empty consensus map

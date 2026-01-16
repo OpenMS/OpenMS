@@ -17,15 +17,15 @@ cdef extern from "<OpenMS/KERNEL/ConsensusFeature.h>" namespace "OpenMS":
         # wrap-inherits:
         #   UniqueIdInterface
         #   BaseFeature
-        #
+        #  
         # wrap-doc:
         #  A consensus feature spanning multiple LC-MS/MS experiments.
-        #
+        #  
         #  A ConsensusFeature represents analytes that have been
         #  quantified across multiple LC-MS/MS experiments. Each analyte in a
         #  ConsensusFeature is linked to its original LC-MS/MS run through a
         #  unique identifier.
-        #
+        #  
         #  Get access to the underlying features through getFeatureList()
 
         ConsensusFeature() except + nogil  # wrap-doc:Default constructor creating an empty consensus feature

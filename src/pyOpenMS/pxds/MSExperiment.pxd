@@ -21,10 +21,10 @@ cdef extern from "<OpenMS/KERNEL/MSExperiment.h>" namespace "OpenMS":
     cdef cppclass MSExperiment(ExperimentalSettings):
         # wrap-inherits:
         #  ExperimentalSettings
-        #
+        #  
         # wrap-doc:
         #  In-Memory representation of a mass spectrometry experiment.
-        #
+        #  
         #  Contains the data and metadata of an experiment performed with an MS (or
         #  HPLC and MS). This representation of an MS experiment is organized as list
         #  of spectra and chromatograms and provides an in-memory representation of
@@ -34,21 +34,21 @@ cdef extern from "<OpenMS/KERNEL/MSExperiment.h>" namespace "OpenMS":
         #  spectra and chromatogram level meta data) is stored in objects of type
         #  MSSpectrum and MSChromatogram, which are accessible through the getSpectrum
         #  and getChromatogram functions.
-        #
+        #  
         #  Spectra can be accessed by direct iteration or by getSpectrum(),
         #  while chromatograms are accessed through getChromatogram().
         #  See help(ExperimentalSettings) for information about meta-data.
-        #
+        #  
         #  Usage:
-        #
+        #  
         #  .. code-block:: python
-        #
+        #  
         #    exp = MSExperiment()
         #    MzMLFile().load(path_to_file, exp)
         #    for spectrum in exp:
         #      print(spectrum.size()) # prints number of peaks
         #      mz, intensities = spectrum.get_peaks()
-        #
+        #  
 
         MSExperiment() except + nogil  # wrap-doc:Constructor
         MSExperiment(MSExperiment &) except + nogil  # wrap-doc:Copy constructor
