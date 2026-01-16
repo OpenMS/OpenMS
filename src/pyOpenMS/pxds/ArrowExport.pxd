@@ -104,7 +104,7 @@ cdef extern from "<OpenMS/FORMAT/ArrowExport.h>" namespace "OpenMS":
         #  This is a lightweight operation that returns the list of columns that would
         #  be included in the export based on the configuration.
 
-        # Parquet export - these are static methods but declared as instance methods for autowrap
+        #  Parquet export - these are static methods but declared as instance methods for autowrap
         bool exportSpectraToParquet(
             const MSExperiment& exp,
             const String& filename,

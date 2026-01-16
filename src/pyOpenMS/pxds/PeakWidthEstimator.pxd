@@ -14,8 +14,8 @@ cdef extern from "<OpenMS/FEATUREFINDER/PeakWidthEstimator.h>" namespace "OpenMS
             #  boundaries as reported by the PeakPickerHiRes, the typical peak width is
             #  estimated for arbitrary m/z using a spline interpolation.
 
-        # private
-        # PeakWidthEstimator() except + nogil 
+        #  private
+        #  PeakWidthEstimator() except + nogil
         PeakWidthEstimator(PeakWidthEstimator &) except + nogil  # compiler
         PeakWidthEstimator(MSExperiment exp_picked,
                            libcpp_vector[libcpp_vector[PeakBoundary] ] & boundaries) except + nogil 

@@ -477,23 +477,46 @@ def validate_wrap_doc_structure(content, _filename=""):
                     i += 1
                     continue
 
-                # Check if this is a continuation line (starts with #)
+                # Check if this is a comment line (starts with #)
                 if next_stripped.startswith('#'):
-                    # Must have same or greater indent as wrap-doc line
                     next_indent = len(next_line) - len(next_line.lstrip())
 
-                    # Enforce '#  ' (hash + two spaces) for continuation lines
-                    # Valid: '#' (empty) or '#  text' (hash + 2 spaces)
-                    # Invalid: '# text' (single space) or '#text' (no space)
-                    if not next_stripped.startswith('# wrap-'):
-                        if next_stripped != '#' and not next_stripped.startswith('#  '):
-                            errors.append((
-                                next_line_num,
-                                "wrap-doc continuation lines must start with "
-                                "'#  ' (hash + two spaces)"
-                            ))
+                    # '##' comments are not wrap-doc continuations
+                    if next_stripped.startswith('##'):
+                        break
 
-                    # Check for inconsistent indentation
+                    # If indentation drops significantly (>4 spaces), this is likely
+                    # commented-out code, not a wrap-doc continuation. End the block.
+                    if next_indent < wrap_doc_indent - 4 and next_stripped != '#':
+                        break
+
+                    # Check for valid continuation formats
+                    is_valid_continuation = (
+                        next_stripped == '#' or
+                        next_stripped.startswith('#  ') or
+                        next_stripped.startswith('# wrap-')
+                    )
+
+                    is_single_space = (
+                        next_stripped.startswith('# ') and
+                        not next_stripped.startswith('#  ') and
+                        not next_stripped.startswith('# wrap-')
+                    )
+
+                    is_no_space = (
+                        not next_stripped.startswith('# ') and
+                        next_stripped != '#'
+                    )
+
+                    # Flag format issues
+                    if is_single_space or is_no_space:
+                        errors.append((
+                            next_line_num,
+                            "wrap-doc continuation lines must start with "
+                            "'#  ' (hash + two spaces)"
+                        ))
+
+                    # Check for slight indentation inconsistency (1-4 spaces)
                     if next_indent < wrap_doc_indent and next_stripped != '#':
                         errors.append((
                             next_line_num,
