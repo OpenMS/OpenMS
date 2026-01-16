@@ -2595,7 +2595,7 @@ namespace OpenMS
           if (cmd_params.exists(pos->second->name))
           {
             ParamValue existing_value = cmd_params.getValue(pos->second->name);
-            writeLogWarn_(String("Warning: Duplicate parameter '") + arg + "' given. Using last occurrence with value '" + existing_value.toString() + "' (ignoring '" + value.toString() + "').");
+            writeLogWarn_(String("Warning: Duplicate parameter '") + arg + "' given. Using last occurrence with value '" + String(existing_value.toString()) + "' (ignoring '" + String(value.toString()) + "').");
           }
           else
           {
