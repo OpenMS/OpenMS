@@ -554,7 +554,8 @@ import numpy as np
 
         Unlike to_df() which exports only the top hit per spectrum, this method
         exports all hits with proper ranking information, modifications, and
-        additional scores.
+        additional scores. Results are sorted by retention time (rt), precursor
+        m/z (observed_mz), precursor charge, and rank for consistent ordering.
 
         :param export_all_hits: If True, export all hits per identification.
                                 If False, only export rank 0 (best hit).
@@ -591,6 +592,8 @@ import numpy as np
                  spectrum_reference, score, score_type, rank, P_ID.
                  When include_peak_annotations=True: number_peaks, mz_array,
                  intensity_array, charge_array, ion_type_array, ion_mobility_array.
+                 Results are sorted by rt, observed_mz, precursor_charge, rank.
+                 Empty input returns an empty DataFrame with proper column schema.
         :rtype: pd.DataFrame
 
         :raises ImportError: If pandas is not installed
@@ -867,7 +870,20 @@ import numpy as np
 
                 rows.append(row)
 
+        # Handle empty list case - return DataFrame with proper schema
+        if not rows:
+            all_columns = self.psm_columns()
+            if columns is not None:
+                all_columns = [c for c in columns if c in all_columns]
+            return pd.DataFrame(columns=all_columns)
+
         df = pd.DataFrame(rows)
+
+        # Sort by rt, observed_mz, precursor_charge, rank for consistent ordering
+        sort_cols = ["rt", "observed_mz", "precursor_charge", "rank"]
+        available_sort_cols = [c for c in sort_cols if c in df.columns]
+        if available_sort_cols:
+            df = df.sort_values(by=available_sort_cols, na_position="last").reset_index(drop=True)
 
         # Filter columns if specified
         if columns is not None:
@@ -975,6 +991,8 @@ import numpy as np
         making it more memory-efficient than to_psm_df() for large datasets.
         Complex nested types (modifications, additional_scores) are represented
         as proper Arrow struct and list types, enabling efficient Parquet storage.
+        Results are sorted by retention time (rt), precursor m/z (observed_mz),
+        precursor charge, and rank for consistent ordering.
 
         :param export_all_hits: If True, export all hits per identification.
                                 If False, only export rank 0 (best hit).
@@ -1005,6 +1023,8 @@ import numpy as np
         :type columns: list
 
         :return: Arrow Table with PSM data using native Arrow types.
+                 Results are sorted by rt, observed_mz, precursor_charge, rank.
+                 Empty input returns an empty table with proper schema.
         :rtype: pyarrow.Table
 
         :raises ImportError: If pyarrow is not installed
@@ -1378,7 +1398,17 @@ import numpy as np
         if should_include("P_ID"):
             data_dict["P_ID"] = pa.array(all_p_id, type=pa.int32())
 
-        return pa.Table.from_pydict(data_dict)
+        table = pa.Table.from_pydict(data_dict)
+
+        # Sort by rt, observed_mz, precursor_charge, rank for consistent ordering
+        sort_cols = ["rt", "observed_mz", "precursor_charge", "rank"]
+        available_sort_cols = [(c, "ascending") for c in sort_cols if c in table.column_names]
+        if available_sort_cols and table.num_rows > 0:
+            import pyarrow.compute as pc
+            indices = pc.sort_indices(table, sort_keys=available_sort_cols, null_placement="at_end")
+            table = table.take(indices)
+
+        return table
 
     def to_parquet(self, path, compression='zstd', compression_level=None,
                     row_group_size=None, write_statistics=True,
@@ -1393,7 +1423,9 @@ import numpy as np
         Export all PSMs to a Parquet file using native Arrow construction.
 
         This method exports PSM data directly to Parquet format without pandas
-        intermediate, making it efficient for large datasets. Parquet provides:
+        intermediate, making it efficient for large datasets. Results are sorted
+        by retention time (rt), precursor m/z (observed_mz), precursor charge,
+        and rank for consistent ordering. Parquet provides:
         - Columnar storage optimized for analytical queries
         - Efficient compression (typically 3-5x with ZSTD)
         - Fast partial reads (only requested columns/row groups are loaded)

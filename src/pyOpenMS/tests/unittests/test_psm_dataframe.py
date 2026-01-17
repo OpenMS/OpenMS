@@ -7,6 +7,12 @@ Tests the PSM export methods:
 - to_parquet(): Export all PSMs to Parquet file
 - to_qpx(): Export as QPX format (dict with file_metadata and psms)
 - psm_columns(): List available columns
+
+All PSM export methods return results sorted by:
+1. rt (retention time)
+2. observed_mz (precursor m/z)
+3. precursor_charge
+4. rank (hit rank within identification)
 """
 
 import pytest
@@ -741,6 +747,124 @@ def test_psm_df_peak_annotations_empty():
     assert df.iloc[0]["intensity_array"] == []
 
 
+def test_psm_df_sorting():
+    """Test that PSM DataFrame is sorted by rt, observed_mz, precursor_charge, rank."""
+    import pyopenms as oms
+
+    pep_ids = oms.PeptideIdentificationList()
+
+    # Add identifications in reverse RT order to verify sorting
+    # Third ID: RT=300, MZ=700
+    pep_id3 = oms.PeptideIdentification()
+    pep_id3.setRT(300.0)
+    pep_id3.setMZ(700.0)
+    hit3 = oms.PeptideHit()
+    hit3.setSequence(oms.AASequence.fromString("THIRD"))
+    hit3.setCharge(2)
+    hit3.setScore(0.1)
+    pep_id3.setHits([hit3])
+    pep_ids.append(pep_id3)
+
+    # First ID: RT=100, MZ=500
+    pep_id1 = oms.PeptideIdentification()
+    pep_id1.setRT(100.0)
+    pep_id1.setMZ(500.0)
+    hit1 = oms.PeptideHit()
+    hit1.setSequence(oms.AASequence.fromString("FIRST"))
+    hit1.setCharge(2)
+    hit1.setScore(0.1)
+    pep_id1.setHits([hit1])
+    pep_ids.append(pep_id1)
+
+    # Second ID: RT=200, MZ=600, with two hits (different ranks)
+    pep_id2 = oms.PeptideIdentification()
+    pep_id2.setRT(200.0)
+    pep_id2.setMZ(600.0)
+    hit2a = oms.PeptideHit()
+    hit2a.setSequence(oms.AASequence.fromString("SECONDA"))
+    hit2a.setCharge(2)
+    hit2a.setScore(0.1)  # rank 0
+    hit2b = oms.PeptideHit()
+    hit2b.setSequence(oms.AASequence.fromString("SECONDB"))
+    hit2b.setCharge(2)
+    hit2b.setScore(0.2)  # rank 1
+    pep_id2.setHits([hit2a, hit2b])
+    pep_ids.append(pep_id2)
+
+    df = pep_ids.to_psm_df()
+
+    # Should be sorted by RT first: 100, 200, 200, 300
+    assert list(df["rt"]) == [100.0, 200.0, 200.0, 300.0]
+
+    # For same RT (200), should be sorted by rank: 0, 1
+    assert list(df["sequence"]) == ["FIRST", "SECONDA", "SECONDB", "THIRD"]
+    assert list(df["rank"]) == [0, 0, 1, 0]
+
+
+def test_psm_df_sorting_by_mz():
+    """Test sorting by observed_mz when rt is the same."""
+    import pyopenms as oms
+
+    pep_ids = oms.PeptideIdentificationList()
+
+    # Same RT but different MZ
+    pep_id1 = oms.PeptideIdentification()
+    pep_id1.setRT(100.0)
+    pep_id1.setMZ(700.0)  # Higher MZ
+    hit1 = oms.PeptideHit()
+    hit1.setSequence(oms.AASequence.fromString("HIGHERMZ"))
+    hit1.setCharge(2)
+    pep_id1.setHits([hit1])
+    pep_ids.append(pep_id1)
+
+    pep_id2 = oms.PeptideIdentification()
+    pep_id2.setRT(100.0)
+    pep_id2.setMZ(500.0)  # Lower MZ
+    hit2 = oms.PeptideHit()
+    hit2.setSequence(oms.AASequence.fromString("LOWERMZ"))
+    hit2.setCharge(2)
+    pep_id2.setHits([hit2])
+    pep_ids.append(pep_id2)
+
+    df = pep_ids.to_psm_df()
+
+    # Should be sorted by MZ when RT is same: 500, 700
+    assert list(df["observed_mz"]) == [500.0, 700.0]
+    assert list(df["sequence"]) == ["LOWERMZ", "HIGHERMZ"]
+
+
+def test_psm_df_sorting_by_charge():
+    """Test sorting by precursor_charge when rt and mz are the same."""
+    import pyopenms as oms
+
+    pep_ids = oms.PeptideIdentificationList()
+
+    # Same RT and MZ but different charge
+    pep_id1 = oms.PeptideIdentification()
+    pep_id1.setRT(100.0)
+    pep_id1.setMZ(500.0)
+    hit1 = oms.PeptideHit()
+    hit1.setSequence(oms.AASequence.fromString("CHARGETHREE"))
+    hit1.setCharge(3)
+    pep_id1.setHits([hit1])
+    pep_ids.append(pep_id1)
+
+    pep_id2 = oms.PeptideIdentification()
+    pep_id2.setRT(100.0)
+    pep_id2.setMZ(500.0)
+    hit2 = oms.PeptideHit()
+    hit2.setSequence(oms.AASequence.fromString("CHARGETWO"))
+    hit2.setCharge(2)
+    pep_id2.setHits([hit2])
+    pep_ids.append(pep_id2)
+
+    df = pep_ids.to_psm_df()
+
+    # Should be sorted by charge when RT and MZ are same: 2, 3
+    assert list(df["precursor_charge"]) == [2, 3]
+    assert list(df["sequence"]) == ["CHARGETWO", "CHARGETHREE"]
+
+
 # === Native Arrow Export Tests ===
 
 def test_to_arrow_basic():
@@ -899,6 +1023,40 @@ def test_to_psm_arrow_vs_psm_df_data_equivalence():
     for col in ['sequence', 'precursor_charge', 'observed_mz', 'rt', 'rank']:
         if col in df.columns and col in arrow_df.columns:
             assert list(df[col]) == list(arrow_df[col]), f"Mismatch in column {col}"
+
+
+def test_to_psm_arrow_sorting():
+    """Test that to_psm_arrow sorts by rt, observed_mz, precursor_charge, rank."""
+    pa = pytest.importorskip("pyarrow")
+    import pyopenms as oms
+
+    pep_ids = oms.PeptideIdentificationList()
+
+    # Add identifications in reverse RT order
+    pep_id2 = oms.PeptideIdentification()
+    pep_id2.setRT(200.0)
+    pep_id2.setMZ(600.0)
+    hit2 = oms.PeptideHit()
+    hit2.setSequence(oms.AASequence.fromString("SECOND"))
+    hit2.setCharge(2)
+    pep_id2.setHits([hit2])
+    pep_ids.append(pep_id2)
+
+    pep_id1 = oms.PeptideIdentification()
+    pep_id1.setRT(100.0)
+    pep_id1.setMZ(500.0)
+    hit1 = oms.PeptideHit()
+    hit1.setSequence(oms.AASequence.fromString("FIRST"))
+    hit1.setCharge(2)
+    pep_id1.setHits([hit1])
+    pep_ids.append(pep_id1)
+
+    table = pep_ids.to_psm_arrow()
+    df = table.to_pandas()
+
+    # Should be sorted by RT: 100, 200
+    assert list(df["rt"]) == [100.0, 200.0]
+    assert list(df["sequence"]) == ["FIRST", "SECOND"]
 
 
 def test_to_parquet_compression_options(tmp_path):
