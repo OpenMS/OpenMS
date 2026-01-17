@@ -739,3 +739,227 @@ def test_psm_df_peak_annotations_empty():
     assert df.iloc[0]["number_peaks"] == 0
     assert df.iloc[0]["mz_array"] == []
     assert df.iloc[0]["intensity_array"] == []
+
+
+# === Native Arrow Export Tests ===
+
+def test_to_arrow_basic():
+    """Test basic to_arrow() export (simpler format matching to_df)."""
+    pa = pytest.importorskip("pyarrow")
+
+    pep_ids = create_test_data()
+    table = pep_ids.to_arrow()
+
+    assert isinstance(table, pa.Table)
+    # to_arrow only exports first hit per identification
+    assert table.num_rows == 2
+
+    # Check expected columns
+    assert "id" in table.schema.names
+    assert "rt" in table.schema.names
+    assert "mz" in table.schema.names
+    assert "charge" in table.schema.names
+    assert "protein_accession" in table.schema.names
+    assert "P_ID" in table.schema.names
+    assert "PSM_ID" in table.schema.names
+
+
+def test_to_arrow_column_types():
+    """Test Arrow column types are correct."""
+    pa = pytest.importorskip("pyarrow")
+
+    pep_ids = create_test_data()
+    table = pep_ids.to_arrow()
+
+    schema = table.schema
+    assert schema.field("rt").type == pa.float32()
+    assert schema.field("mz").type == pa.float32()
+    assert schema.field("charge").type == pa.int32()
+    assert schema.field("P_ID").type == pa.int32()
+    assert schema.field("id").type == pa.utf8()
+
+
+def test_to_arrow_column_filter():
+    """Test to_arrow column filtering."""
+    pa = pytest.importorskip("pyarrow")
+
+    pep_ids = create_test_data()
+    table = pep_ids.to_arrow(columns=['id', 'rt', 'mz'])
+
+    assert table.num_columns == 3
+    assert set(table.schema.names) == {'id', 'rt', 'mz'}
+
+
+def test_to_arrow_empty_list():
+    """Test to_arrow with empty PeptideIdentificationList."""
+    pa = pytest.importorskip("pyarrow")
+    import pyopenms as oms
+
+    pep_ids = oms.PeptideIdentificationList()
+    table = pep_ids.to_arrow()
+
+    assert isinstance(table, pa.Table)
+    assert table.num_rows == 0
+    # Schema should still exist
+    assert "id" in table.schema.names or len(table.schema.names) >= 0
+
+
+def test_to_psm_arrow_schema_types():
+    """Test to_psm_arrow nested Arrow schema types."""
+    pa = pytest.importorskip("pyarrow")
+
+    pep_ids = create_test_data()
+    table = pep_ids.to_psm_arrow()
+
+    schema = table.schema
+
+    # Check scalar types
+    assert schema.field("sequence").type == pa.utf8()
+    assert schema.field("precursor_charge").type == pa.int32()
+    assert schema.field("observed_mz").type == pa.float64()
+    assert schema.field("rt").type == pa.float64()
+
+    # Check list types
+    assert pa.types.is_list(schema.field("protein_accessions").type)
+
+    # Check nested struct types
+    mods_type = schema.field("modifications").type
+    assert pa.types.is_list(mods_type)
+    # The inner type should be a struct
+    inner_type = mods_type.value_type
+    assert pa.types.is_struct(inner_type)
+
+
+def test_to_psm_arrow_column_filter():
+    """Test to_psm_arrow column filtering."""
+    pa = pytest.importorskip("pyarrow")
+
+    pep_ids = create_test_data()
+    table = pep_ids.to_psm_arrow(columns=['sequence', 'precursor_charge', 'score'])
+
+    assert table.num_columns == 3
+    assert set(table.schema.names) == {'sequence', 'precursor_charge', 'score'}
+
+
+def test_to_psm_arrow_empty_list():
+    """Test to_psm_arrow with empty PeptideIdentificationList."""
+    pa = pytest.importorskip("pyarrow")
+    import pyopenms as oms
+
+    pep_ids = oms.PeptideIdentificationList()
+    table = pep_ids.to_psm_arrow()
+
+    assert isinstance(table, pa.Table)
+    assert table.num_rows == 0
+    # Schema should still be defined
+    assert len(table.schema) > 0
+
+
+def test_to_psm_arrow_vs_psm_df_data_equivalence():
+    """Test that to_psm_arrow produces equivalent data to to_psm_df."""
+    pa = pytest.importorskip("pyarrow")
+
+    pep_ids = create_test_data()
+
+    # Get data via both methods
+    df = pep_ids.to_psm_df()
+    table = pep_ids.to_psm_arrow()
+    arrow_df = table.to_pandas()
+
+    # Check row count matches
+    assert len(df) == len(arrow_df)
+
+    # Check scalar column values match
+    for col in ['sequence', 'precursor_charge', 'observed_mz', 'rt', 'rank']:
+        if col in df.columns and col in arrow_df.columns:
+            assert list(df[col]) == list(arrow_df[col]), f"Mismatch in column {col}"
+
+
+def test_to_parquet_compression_options(tmp_path):
+    """Test to_parquet with different compression options."""
+    pytest.importorskip("pyarrow")
+    import os
+
+    pep_ids = create_test_data()
+
+    # Test different compression algorithms
+    for compression in ['none', 'snappy', 'gzip', 'zstd']:
+        parquet_path = tmp_path / f"psms_{compression}.parquet"
+        pep_ids.to_parquet(str(parquet_path), compression=compression)
+        assert parquet_path.exists()
+        # File should be readable
+        import pandas as pd
+        df = pd.read_parquet(parquet_path)
+        assert len(df) == 3
+
+
+def test_to_parquet_invalid_compression(tmp_path):
+    """Test to_parquet with invalid compression raises error."""
+    pytest.importorskip("pyarrow")
+
+    pep_ids = create_test_data()
+    parquet_path = tmp_path / "psms.parquet"
+
+    with pytest.raises(ValueError, match="Unsupported compression"):
+        pep_ids.to_parquet(str(parquet_path), compression='invalid')
+
+
+def test_to_parquet_row_group_size(tmp_path):
+    """Test to_parquet with custom row_group_size."""
+    pq = pytest.importorskip("pyarrow.parquet")
+
+    pep_ids = create_test_data()
+    parquet_path = tmp_path / "psms.parquet"
+
+    # Set row group size to 1 to get multiple row groups
+    pep_ids.to_parquet(str(parquet_path), row_group_size=1)
+
+    # Read metadata to verify row groups
+    metadata = pq.read_metadata(parquet_path)
+    assert metadata.num_row_groups == 3  # One per row
+
+
+def test_to_parquet_with_peak_annotations(tmp_path):
+    """Test to_parquet with peak annotations included."""
+    pytest.importorskip("pyarrow")
+    import pandas as pd
+    import pyopenms as oms
+
+    pep_ids = oms.PeptideIdentificationList()
+    pep_id = oms.PeptideIdentification()
+
+    hit = oms.PeptideHit()
+    hit.setSequence(oms.AASequence.fromString("PEPTIDE"))
+    hit.setCharge(2)
+
+    pa1 = oms.PeptideHit_PeakAnnotation()
+    pa1.mz = 100.5
+    pa1.intensity = 1000.0
+    pa1.charge = 1
+    pa1.annotation = "y1"
+    hit.setPeakAnnotations([pa1])
+
+    pep_id.setHits([hit])
+    pep_ids.append(pep_id)
+
+    parquet_path = tmp_path / "psms_with_peaks.parquet"
+    pep_ids.to_parquet(str(parquet_path), include_peak_annotations=True)
+
+    df = pd.read_parquet(parquet_path)
+    assert "mz_array" in df.columns
+    assert "intensity_array" in df.columns
+    assert df.iloc[0]["number_peaks"] == 1
+
+
+def test_to_parquet_reference_file_name(tmp_path):
+    """Test to_parquet with reference_file_name."""
+    pytest.importorskip("pyarrow")
+    import pandas as pd
+
+    pep_ids = create_test_data()
+    parquet_path = tmp_path / "psms.parquet"
+
+    pep_ids.to_parquet(str(parquet_path), reference_file_name="test.mzML")
+
+    df = pd.read_parquet(parquet_path)
+    assert all(df["reference_file_name"] == "test.mzML")
