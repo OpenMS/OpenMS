@@ -41,7 +41,7 @@ namespace OpenMS
 
   std::vector<String> IDScoreSwitcherAlgorithm::getScoreNames()
   {
-    return Scores::getScoreNames();
+    return Scores::getAllIDScoreNames();
   }
 
 

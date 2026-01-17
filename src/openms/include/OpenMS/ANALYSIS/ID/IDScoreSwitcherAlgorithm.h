@@ -46,10 +46,10 @@ namespace OpenMS
     IDScoreSwitcherAlgorithm();
 
     /**
-      @brief Backward compatible typedef for Scores::Type.
-      @deprecated Use Scores::Type directly instead.
+      @brief Backward compatible typedef for Scores::IDType.
+      @deprecated Use Scores::IDType directly instead.
     */
-    using ScoreType = Scores::Type;
+    using ScoreType = Scores::IDType;
 
     /**
       @brief Checks if the given score name corresponds to a specific score type.
@@ -81,7 +81,7 @@ namespace OpenMS
     */
     static ScoreType toScoreTypeEnum(const String& score_type)
     {
-      return Scores::toType(score_type);
+      return Scores::parseIDType(score_type);
     }
 
     /**
@@ -144,7 +144,7 @@ namespace OpenMS
       {
         // Main score is not of the requested type, look for it in meta values
         const auto& first_hit = id.getHits()[0];
-        const std::set<String>& score_types = Scores::getNamesForType(score_type);
+        const std::set<String>& score_types = Scores::getIDNamesForType(score_type);
 
         // Search for scores of the requested type in meta values using the existing score type collection
         for (const String& score_name : score_types)
@@ -402,7 +402,7 @@ namespace OpenMS
       higher_better = pep_ids[0].isHigherScoreBetter();
       
       // look up the score category ("RAW", "PEP", "q-value", etc.) for the given score name
-      if (Scores::findTypeByName(name, score_type))
+      if (Scores::findIDTypeByName(name, score_type))
       {
         OPENMS_LOG_INFO << "Found score type " << name << " to be of type "
           << static_cast<std::underlying_type<ScoreType>::type>(score_type) << std::endl;
@@ -443,7 +443,7 @@ namespace OpenMS
         higher_better = pep_ids[0].isHigherScoreBetter();
 
         // look up the score category ("RAW", "PEP", "q-value", etc.) for the given score name
-        if (Scores::findTypeByName(name, score_type))
+        if (Scores::findIDTypeByName(name, score_type))
         {
           return;
         }
@@ -458,7 +458,7 @@ namespace OpenMS
         higher_better = id.isHigherScoreBetter();
 
         // look up the score category ("RAW", "PEP", "q-value", etc.) for the given score name
-        if (Scores::findTypeByName(name, score_type))
+        if (Scores::findIDTypeByName(name, score_type))
         {
           return;
         }

@@ -23,15 +23,15 @@ cdef extern from "<OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h>" namespace "Op
         IDScoreSwitcherAlgorithm() except + nogil
         IDScoreSwitcherAlgorithm(IDScoreSwitcherAlgorithm &) except + nogil
 
-        bool isScoreType(const String& score_name, IDScoreType type) except + nogil
+        bool isScoreType(const String& score_name, IDType type) except + nogil
             # wrap-doc:
             #  Checks if the given score name corresponds to a specific score type
             #
             #  :param score_name: The name of the score to check
-            #  :param type: The IDScoreType to compare against
-            #  :returns: True if the score name matches the given IDScoreType
+            #  :param type: The IDType to compare against
+            #  :returns: True if the score name matches the given IDType
 
-        ScoreSearchResult findScoreType(PeptideIdentification& id, IDScoreType score_type) except + nogil
+        ScoreSearchResult findScoreType(PeptideIdentification& id, IDType score_type) except + nogil
             # wrap-doc:
             #  Searches for a score type in a PeptideIdentification
             #
@@ -40,21 +40,21 @@ cdef extern from "<OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h>" namespace "Op
             #  meta values of the first hit.
             #
             #  :param id: The PeptideIdentification to analyze
-            #  :param score_type: The IDScoreType to search for (e.g., IDScoreType.PEP)
+            #  :param score_type: The IDType to search for (e.g., IDType.PEP)
             #  :returns: ScoreSearchResult with is_main_score_type and score_name fields
 
         @staticmethod
-        IDScoreType toScoreTypeEnum(String score_type) except + nogil
+        IDType toScoreTypeEnum(String score_type) except + nogil
             # wrap-doc:
-            #  Converts a string representation of a score type to an IDScoreType enum
+            #  Converts a string representation of a score type to an IDType enum
             #
             #  :param score_type: The string representation of the score type
-            #  :returns: The corresponding IDScoreType enum value
+            #  :returns: The corresponding IDType enum value
             #  :raises: Exception::MissingInformation if the score_type string is not recognized
 
-        bool isScoreTypeHigherBetter(IDScoreType score_type) except + nogil
+        bool isScoreTypeHigherBetter(IDType score_type) except + nogil
             # wrap-doc:
-            #  Determines whether a higher score type is better given an IDScoreType enum
+            #  Determines whether a higher score type is better given an IDType enum
             #
             #  :param score_type: The score type to check
             #  :returns: True if a higher score type is better
@@ -65,7 +65,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h>" namespace "Op
             #
             #  :returns: A vector of all score names (e.g., "q-value", "ln(hyperscore)")
 
-        void switchToGeneralScoreType(PeptideIdentificationList& pep_ids, IDScoreType type, Size& counter) except + nogil
+        void switchToGeneralScoreType(PeptideIdentificationList& pep_ids, IDType type, Size& counter) except + nogil
             # wrap-doc:
             #  Switches the score type of a PeptideIdentificationList to a general score type
             #
@@ -73,7 +73,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h>" namespace "Op
             #  :param type: The desired general score type to switch to
             #  :param counter: A reference to a counter that will be incremented for each peptide identification processed
 
-        void switchToGeneralScoreType(ConsensusMap& cmap, IDScoreType type, Size& counter, bool unassigned_peptides_too) except + nogil
+        void switchToGeneralScoreType(ConsensusMap& cmap, IDType type, Size& counter, bool unassigned_peptides_too) except + nogil
             # wrap-doc:
             #  Switches the score type of a ConsensusMap to a general score type
             #
@@ -138,7 +138,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h>" namespace "Op
 
     cdef cppclass ScoreSearchResult "OpenMS::IDScoreSwitcherAlgorithm::ScoreSearchResult":
         # wrap-doc:
-        #  Structure to hold score detection results for any IDScoreType
+        #  Structure to hold score detection results for any IDType
         #
         #  Used by findScoreType() to return whether the main score is of a
         #  requested type and the name of the score (either main score name
@@ -163,8 +163,8 @@ cdef extern from "<OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h>" namespace "Op
 
         String original_score_name
         bool original_score_higher_better
-        IDScoreType original_score_type
+        IDType original_score_type
         bool requested_score_higher_better
-        IDScoreType requested_score_type
+        IDType requested_score_type
         String requested_score_name
         bool score_switched

@@ -21,14 +21,13 @@ namespace OpenMS
 {
 
   /**
-    @brief Utility class for score type handling in identification workflows.
+    @brief Utility class for score type handling in identification and quantification workflows.
 
-    This class provides centralized handling of score types used in peptide and protein
-    identification. It defines the hierarchy of score types (raw scores, E-values,
-    posterior probabilities, etc.) and provides utility methods for score type
-    conversion, comparison, and lookup.
+    This class provides centralized handling of score types used in peptide/protein
+    identification, quantification, and PTM localization. It defines the hierarchy of
+    score types and provides utility methods for score type conversion, comparison, and lookup.
 
-    The score type hierarchy is:
+    The identification score type hierarchy is:
     - RAW: Raw search engine scores (e.g., XTandem hyperscore, Mascot score)
     - RAW_EVAL: E-value based scores (e.g., expect score)
     - PP: Posterior probability
@@ -48,7 +47,7 @@ namespace OpenMS
       ontology hierarchies as soon as e.g. MS-OBO is complete
       and we switched the Metavalues to CV terms.
     */
-    enum class Type
+    enum class IDType
     {
       RAW,      ///< Raw score, e.g., search engine specific scores like hyperscore.
       RAW_EVAL, ///< Raw score with E-value, e.g., search engine specific scores like expect score.
@@ -59,57 +58,57 @@ namespace OpenMS
     };
 
     /**
-      @brief Checks if the given score name corresponds to a specific score type.
+      @brief Checks if the given score name corresponds to a specific ID score type.
 
       This method determines if a given score name, typically derived from an identification
-      object or meta value, matches a specified Type. It performs a case-insensitive comparison
+      object or meta value, matches a specified IDType. It performs a case-insensitive comparison
       and optionally removes the "_score" suffix if present.
 
       @param[in] score_name The name of the score to check.
-      @param[in] type The Type to compare against.
-      @return True if the score name matches the given Type, false otherwise.
+      @param[in] type The IDType to compare against.
+      @return True if the score name matches the given IDType, false otherwise.
     */
-    static bool isScoreType(const String& score_name, Type type);
+    static bool isScoreType(const String& score_name, IDType type);
 
     /**
-      @brief Converts a string representation of a score type to a Type enum.
+      @brief Converts a string representation of an ID score type to an IDType enum.
 
       This method attempts to map a given string, representing a score type, to the corresponding
-      Type enum value. It handles various common representations of score types, including those
+      IDType enum value. It handles various common representations of score types, including those
       with or without the "_score" suffix, and ignores case and special characters like '-', '_', and ' '.
 
       @param[in] score_type The string representation of the score type.
-      @return The corresponding Type enum value.
+      @return The corresponding IDType enum value.
       @throws Exception::MissingInformation If the provided score_type string does not match any known
                                             score type.
     */
-    static Type toType(const String& score_type);
+    static IDType parseIDType(const String& score_type);
 
     /**
-      @brief Determines whether a higher score is better for the given score type.
+      @brief Determines whether a higher score is better for the given ID score type.
 
-      @param[in] type The score type to check.
+      @param[in] type The ID score type to check.
       @return True if a higher score is better, false otherwise.
     */
-    static bool isHigherBetter(Type type);
+    static bool isHigherBetter(IDType type);
 
     /**
-      @brief Gets a vector of all score names that are used in OpenMS.
+      @brief Gets a vector of all ID score names that are used in OpenMS.
 
-      @return A vector of all score names (e.g., "q-value", "ln(hyperscore)").
+      @return A vector of all ID score names (e.g., "q-value", "ln(hyperscore)").
     */
-    static std::vector<String> getScoreNames();
+    static std::vector<String> getAllIDScoreNames();
 
     /**
-      @brief Gets the set of known names for a specific score type.
+      @brief Gets the set of known names for a specific ID score type.
 
-      @param[in] type The score type.
+      @param[in] type The ID score type.
       @return A set of strings representing known names for this score type.
     */
-    static const std::set<String>& getNamesForType(Type type);
+    static const std::set<String>& getIDNamesForType(IDType type);
 
     /**
-      @brief Finds the score type for a given score name.
+      @brief Finds the ID score type for a given score name.
 
       Searches through all known score names to find a matching type.
 
@@ -117,17 +116,17 @@ namespace OpenMS
       @param[out] type Output parameter for the found score type.
       @return True if a matching type was found, false otherwise.
     */
-    static bool findTypeByName(const String& name, Type& type);
+    static bool findIDTypeByName(const String& name, IDType& type);
 
   private:
     /// Initialize static maps (called once)
     static void initializeMaps_();
 
-    /// a map from Type to their names as used around OpenMS
-    static std::map<Type, std::set<String>> type_to_str_;
+    /// a map from IDType to their names as used around OpenMS
+    static std::map<IDType, std::set<String>> id_type_to_str_;
 
-    /// a map from Type to their ordering (higher better or not)
-    static std::map<Type, bool> type_to_better_;
+    /// a map from IDType to their ordering (higher better or not)
+    static std::map<IDType, bool> id_type_to_better_;
 
     /// flag to track initialization
     static bool maps_initialized_;
