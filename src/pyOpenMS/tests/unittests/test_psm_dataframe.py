@@ -19,6 +19,9 @@ import pytest
 import numpy as np
 import pandas as pd
 
+# Skip entire module if pyarrow is not installed (required for PSM export methods)
+pytest.importorskip("pyarrow")
+
 
 def to_list(val):
     """Convert numpy array to list for comparison. Handles Arrow->pandas conversion."""
@@ -863,11 +866,11 @@ def test_psm_df_sorting():
     pep_id2.setRT(200.0)
     pep_id2.setMZ(600.0)
     hit2a = oms.PeptideHit()
-    hit2a.setSequence(oms.AASequence.fromString("SECONDA"))
+    hit2a.setSequence(oms.AASequence.fromString("SECNDA"))
     hit2a.setCharge(2)
     hit2a.setScore(0.1)  # rank 0
     hit2b = oms.PeptideHit()
-    hit2b.setSequence(oms.AASequence.fromString("SECONDB"))
+    hit2b.setSequence(oms.AASequence.fromString("SECNDC"))
     hit2b.setCharge(2)
     hit2b.setScore(0.2)  # rank 1
     pep_id2.setHits([hit2a, hit2b])
@@ -879,7 +882,7 @@ def test_psm_df_sorting():
     assert list(df["rt"]) == [100.0, 200.0, 200.0, 300.0]
 
     # For same RT (200), should be sorted by rank: 0, 1
-    assert list(df["sequence"]) == ["FIRST", "SECONDA", "SECONDB", "THIRD"]
+    assert list(df["sequence"]) == ["FIRST", "SECNDA", "SECNDC", "THIRD"]
     assert list(df["rank"]) == [0, 0, 1, 0]
 
 
@@ -894,7 +897,7 @@ def test_psm_df_sorting_by_mz():
     pep_id1.setRT(100.0)
     pep_id1.setMZ(700.0)  # Higher MZ
     hit1 = oms.PeptideHit()
-    hit1.setSequence(oms.AASequence.fromString("HIGHERMZ"))
+    hit1.setSequence(oms.AASequence.fromString("GAMMAAA"))
     hit1.setCharge(2)
     pep_id1.setHits([hit1])
     pep_ids.append(pep_id1)
@@ -903,7 +906,7 @@ def test_psm_df_sorting_by_mz():
     pep_id2.setRT(100.0)
     pep_id2.setMZ(500.0)  # Lower MZ
     hit2 = oms.PeptideHit()
-    hit2.setSequence(oms.AASequence.fromString("LOWERMZ"))
+    hit2.setSequence(oms.AASequence.fromString("ALPHAAA"))
     hit2.setCharge(2)
     pep_id2.setHits([hit2])
     pep_ids.append(pep_id2)
@@ -912,7 +915,7 @@ def test_psm_df_sorting_by_mz():
 
     # Should be sorted by MZ when RT is same: 500, 700
     assert list(df["observed_mz"]) == [500.0, 700.0]
-    assert list(df["sequence"]) == ["LOWERMZ", "HIGHERMZ"]
+    assert list(df["sequence"]) == ["ALPHAAA", "GAMMAAA"]
 
 
 def test_psm_df_sorting_by_charge():
@@ -935,7 +938,7 @@ def test_psm_df_sorting_by_charge():
     pep_id2.setRT(100.0)
     pep_id2.setMZ(500.0)
     hit2 = oms.PeptideHit()
-    hit2.setSequence(oms.AASequence.fromString("CHARGETWO"))
+    hit2.setSequence(oms.AASequence.fromString("CHARGEAA"))
     hit2.setCharge(2)
     pep_id2.setHits([hit2])
     pep_ids.append(pep_id2)
@@ -944,7 +947,7 @@ def test_psm_df_sorting_by_charge():
 
     # Should be sorted by charge when RT and MZ are same: 2, 3
     assert list(df["precursor_charge"]) == [2, 3]
-    assert list(df["sequence"]) == ["CHARGETWO", "CHARGETHREE"]
+    assert list(df["sequence"]) == ["CHARGEAA", "CHARGETHREE"]
 
 
 # === Native Arrow Export Tests ===
@@ -1119,7 +1122,7 @@ def test_to_psm_arrow_sorting():
     pep_id2.setRT(200.0)
     pep_id2.setMZ(600.0)
     hit2 = oms.PeptideHit()
-    hit2.setSequence(oms.AASequence.fromString("SECOND"))
+    hit2.setSequence(oms.AASequence.fromString("SECNDA"))
     hit2.setCharge(2)
     pep_id2.setHits([hit2])
     pep_ids.append(pep_id2)
@@ -1138,7 +1141,7 @@ def test_to_psm_arrow_sorting():
 
     # Should be sorted by RT: 100, 200
     assert list(df["rt"]) == [100.0, 200.0]
-    assert list(df["sequence"]) == ["FIRST", "SECOND"]
+    assert list(df["sequence"]) == ["FIRST", "SECNDA"]
 
 
 def test_to_parquet_compression_options(tmp_path):
@@ -1274,12 +1277,14 @@ def test_psm_df_spectrum_metavalues():
     # spectrum_reference should be excluded (has dedicated column)
     assert "spectrum_reference" not in mv_names
 
-    # Check values (note: values are stringified in Arrow export)
+    # Check values and value_type (values are stringified in Arrow export)
     for mv in spectrum_mvs:
         if mv["name"] == "custom_spectrum_value":
             assert mv["value"] == "42.5"  # stringified
+            assert mv["value_type"] == "float"
         elif mv["name"] == "spectrum_label":
             assert mv["value"] == "test_spectrum"
+            assert mv["value_type"] == "str"
 
 
 def test_psm_df_psm_metavalues():
@@ -1315,12 +1320,14 @@ def test_psm_df_psm_metavalues():
     assert "target_decoy" not in mv_names
     assert "predicted_RT" not in mv_names
 
-    # Check values (note: values are stringified in Arrow export)
+    # Check values and value_type (values are stringified in Arrow export)
     for mv in psm_mvs:
         if mv["name"] == "custom_property":
             assert mv["value"] == "my_value"
+            assert mv["value_type"] == "str"
         elif mv["name"] == "numeric_property":
             assert mv["value"] == "123"  # stringified
+            assert mv["value_type"] == "int"
 
 
 def test_psm_df_score_vs_metavalue_distinction():
@@ -1412,41 +1419,62 @@ def test_to_psm_arrow_metavalue_columns():
     assert pa.types.is_list(psm_mv_type)
     assert pa.types.is_struct(psm_mv_type.value_type)
 
+    # Check struct has name, value, and value_type fields
+    struct_type = psm_mv_type.value_type
+    field_names = [struct_type.field(i).name for i in range(struct_type.num_fields)]
+    assert "name" in field_names
+    assert "value" in field_names
+    assert "value_type" in field_names
+
     spectrum_mv_type = table.schema.field("spectrum_metavalues").type
     assert pa.types.is_list(spectrum_mv_type)
     assert pa.types.is_struct(spectrum_mv_type.value_type)
 
 
 def test_to_psm_arrow_metavalue_data():
-    """Test to_psm_arrow correctly exports metavalue data."""
+    """Test to_psm_arrow correctly exports metavalue data including value_type."""
     pytest.importorskip("pyarrow")
     import pyopenms as oms
 
     pep_ids = oms.PeptideIdentificationList()
     pep_id = oms.PeptideIdentification()
-    pep_id.setMetaValue("spectrum_custom", "test_value")
+    pep_id.setMetaValue("spectrum_string", "test_value")
+    pep_id.setMetaValue("spectrum_float", 3.14)
+    pep_id.setMetaValue("spectrum_int", 42)
 
     hit = oms.PeptideHit()
     hit.setSequence(oms.AASequence.fromString("PEPTIDE"))
     hit.setCharge(2)
-    hit.setMetaValue("hit_custom", "hit_value")
+    hit.setMetaValue("hit_string", "hit_value")
+    hit.setMetaValue("hit_float", 2.71)
     pep_id.setHits([hit])
     pep_ids.append(pep_id)
 
     table = pep_ids.to_psm_arrow()
     df = table.to_pandas()
 
-    # Check spectrum_metavalues has the custom value
+    # Check spectrum_metavalues has correct values and types
     spectrum_mvs = df.iloc[0]["spectrum_metavalues"]
-    assert len(spectrum_mvs) == 1
-    assert spectrum_mvs[0]["name"] == "spectrum_custom"
-    assert spectrum_mvs[0]["value"] == "test_value"
+    spectrum_mv_dict = {mv["name"]: mv for mv in spectrum_mvs}
 
-    # Check psm_metavalues has the hit value
+    assert spectrum_mv_dict["spectrum_string"]["value"] == "test_value"
+    assert spectrum_mv_dict["spectrum_string"]["value_type"] == "str"
+
+    assert spectrum_mv_dict["spectrum_float"]["value"] == "3.14"
+    assert spectrum_mv_dict["spectrum_float"]["value_type"] == "float"
+
+    assert spectrum_mv_dict["spectrum_int"]["value"] == "42"
+    assert spectrum_mv_dict["spectrum_int"]["value_type"] == "int"
+
+    # Check psm_metavalues has correct values and types
     psm_mvs = df.iloc[0]["psm_metavalues"]
-    assert len(psm_mvs) == 1
-    assert psm_mvs[0]["name"] == "hit_custom"
-    assert psm_mvs[0]["value"] == "hit_value"
+    psm_mv_dict = {mv["name"]: mv for mv in psm_mvs}
+
+    assert psm_mv_dict["hit_string"]["value"] == "hit_value"
+    assert psm_mv_dict["hit_string"]["value_type"] == "str"
+
+    assert psm_mv_dict["hit_float"]["value"] == "2.71"
+    assert psm_mv_dict["hit_float"]["value_type"] == "float"
 
 
 def test_to_parquet_metavalue_columns(tmp_path):
