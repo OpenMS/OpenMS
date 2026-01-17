@@ -118,7 +118,7 @@ namespace OpenMS
        checking if the main score of an identification object is already of the requested score type,
        and if not, searches for scores of that type in the meta values of the first hit.
 
-       @tparam IDType The type of the identification object (e.g., PeptideIdentification, ProteinIdentification)
+       @tparam IdentificationType The type of the identification object (e.g., PeptideIdentification, ProteinIdentification)
        @param[in] id The identification object to analyze for scores
        @param[in] score_type The ScoreType to search for (e.g., ScoreType::PEP, ScoreType::QVAL, etc.)
        @return ScoreSearchResult containing whether main score is of the requested type and its name.
@@ -126,8 +126,8 @@ namespace OpenMS
        @note This method only checks the first hit for meta values, similar to other methods in this class.
        @note Returns empty score_name if no score of the requested type is found.
      */
-    template <typename IDType>
-    ScoreSearchResult findScoreType(const IDType& id, ScoreType score_type) const
+    template <typename IdentificationType>
+    ScoreSearchResult findScoreType(const IdentificationType& id, ScoreType score_type) const
     {
       ScoreSearchResult result;
       
@@ -176,7 +176,7 @@ namespace OpenMS
      * score types share the same name (e.g., "q-value"), the method safeguards the original scores by storing them
      * as meta values with a "~" appended to the old score type. This prevents overwriting the meta value of the new score.
      *
-     * @tparam IDType The type of the identification object, which must support getHits(), getScoreType(),
+     * @tparam IdentificationType The type of the identification object, which must support getHits(), getScoreType(),
      *                setScoreType(), and setHigherScoreBetter() methods, along with the ability to handle meta values.
      * @param[in,out] id An identification object containing hits whose scores are to be switched. The object will
      *                   be modified in place, with updated scores and score type.
@@ -186,10 +186,10 @@ namespace OpenMS
      *                                       in any of the hits, indicating incomplete or incorrect score setup.
      *
      * @note The method assumes that the identification object's hits are properly initialized with all necessary
-     *       meta values. It also relies on the tolerance_ value to determine significant differences between scores.     
-     */ 
-    template <typename IDType>
-    void switchScores(IDType& id, Size& counter)
+     *       meta values. It also relies on the tolerance_ value to determine significant differences between scores.
+     */
+    template <typename IdentificationType>
+    void switchScores(IdentificationType& id, Size& counter)
     {
       for (auto hit_it = id.getHits().begin();
            hit_it != id.getHits().end(); ++hit_it, ++counter)
@@ -237,7 +237,7 @@ namespace OpenMS
      * requested score type, an exception is thrown. The method also adjusts the score direction
      * (higher_better_) based on the specified score type if it's different from the raw score.
      *
-     * @tparam IDType The type of the identification objects contained in the vector. Must have
+     * @tparam IdentificationType The type of the identification objects contained in the vector. Must have
      *                getScoreType() and other relevant methods for score manipulation.
      * @param[in,out] id A vector of identification objects whose score types are to be switched.
      * @param[in] type The desired general score type to switch to. This could be an enum or similar
@@ -253,9 +253,9 @@ namespace OpenMS
      * @note The method assumes that if the first identification object has the correct score type,
      *       all subsequent objects in the vector also have the correct score type. This assumption
      *       might need validation depending on the use case.
-     */    
-    template<class IDType>
-    void switchToGeneralScoreType(std::vector<IDType>& id, ScoreType type, Size& counter)
+     */
+    template<class IdentificationType>
+    void switchToGeneralScoreType(std::vector<IdentificationType>& id, ScoreType type, Size& counter)
     {
       if (id.empty()) return;
 
