@@ -544,9 +544,9 @@ import numpy as np
         )
         return self.to_df(*args, **kwargs)
 
-    def to_psm_df(self, export_all_hits=True, include_modifications=True, include_peak_annotations=False, decode_ontology=True, reference_file_name="", columns=None):
+    def to_psm_df(self, export_all_hits=True, include_modifications=True, include_peak_annotations=False, decode_ontology=True, reference_file_name="", columns=None, additional_score_names=None):
         """
-        to_psm_df(self: PeptideIdentificationList, export_all_hits: bool = True, include_modifications: bool = True, include_peak_annotations: bool = False, decode_ontology: bool = True, reference_file_name: str = "", columns: list = None) -> pd.DataFrame
+        to_psm_df(self: PeptideIdentificationList, export_all_hits: bool = True, include_modifications: bool = True, include_peak_annotations: bool = False, decode_ontology: bool = True, reference_file_name: str = "", columns: list = None, additional_score_names: list = None) -> pd.DataFrame
 
         **EXPERIMENTAL**: This method is experimental and subject to change.
 
@@ -585,6 +585,13 @@ import numpy as np
                         Use psm_columns() to discover available columns.
         :type columns: list
 
+        :param additional_score_names: List of additional metavalue names to treat as scores.
+                                       By default, only known score types (from Scores.getAllIDScoreNames())
+                                       are included in additional_scores. Non-score metavalues go to
+                                       psm_metavalues. Use this parameter to specify custom score names
+                                       that should be treated as scores and included in additional_scores.
+        :type additional_score_names: list
+
         :return: DataFrame with columns: sequence, peptidoform, modifications,
                  precursor_charge, posterior_error_probability, is_decoy,
                  calculated_mz, observed_mz, additional_scores, protein_accessions,
@@ -611,6 +618,9 @@ import numpy as np
 
             # Export only specific columns
             df = peps.to_psm_df(columns=['sequence', 'precursor_charge', 'score'])
+
+            # Include custom scores in additional_scores (instead of psm_metavalues)
+            df = peps.to_psm_df(additional_score_names=['my_custom_score', 'rescoring_score'])
         """
         try:
             import pandas as pd
@@ -654,6 +664,22 @@ import numpy as np
         # Create IDScoreSwitcherAlgorithm instance once for PEP detection
         idsa = _IDScoreSwitcherAlgorithm()
 
+        # Get set of known score names for distinguishing scores from other metavalues
+        # Convert to strings in case the C++ library returns bytes
+        _known_score_names = set(
+            s.decode("utf-8") if isinstance(s, bytes) else s
+            for s in _Scores.getAllIDScoreNames()
+        )
+        # Also add common score name variants with _score suffix
+        _known_score_names_with_suffix = _known_score_names | {s + "_score" for s in _known_score_names}
+
+        # Add user-specified additional score names
+        if additional_score_names:
+            _known_score_names_with_suffix = _known_score_names_with_suffix | set(additional_score_names)
+
+        # Metavalues to exclude from spectrum_metavalues (have dedicated columns)
+        _excluded_spectrum_metavalues = {b"spectrum_reference", b"ion_mobility", b"IM"}
+
         for pep_idx, pep_id in enumerate(self):
             rt = pep_id.getRT()
             observed_mz = pep_id.getMZ()
@@ -674,6 +700,22 @@ import numpy as np
 
             # Extract scan number using OpenMS SpectrumLookup
             scan = _extract_scan_number(spec_ref)
+
+            # Collect spectrum-level metavalues (PeptideIdentification level)
+            spectrum_metavalues = []
+            pep_id_keys = []
+            pep_id.getKeys(pep_id_keys)
+            for key in pep_id_keys:
+                if key not in _excluded_spectrum_metavalues:
+                    val = pep_id.getMetaValue(key)
+                    key_str = key.decode("utf-8") if isinstance(key, bytes) else str(key)
+                    # Convert value to appropriate Python type
+                    if isinstance(val, bytes):
+                        val = val.decode("utf-8")
+                    spectrum_metavalues.append({
+                        "name": key_str,
+                        "value": val
+                    })
 
             hits = pep_id.getHits()
             if not hits:
@@ -748,19 +790,25 @@ import numpy as np
                 evidences = hit.getPeptideEvidences()
                 protein_accessions = [ev.getProteinAccession() for ev in evidences]
 
-                # Build additional scores as array of records (QPX schema)
-                # Format: [{"score_name", "score_value", "higher_better"}]
+                # Build additional_scores and psm_metavalues from PeptideHit metavalues
+                # additional_scores: numeric values where name is a known score type
+                # psm_metavalues: all other metavalues (non-scores)
                 # Exclude metavalues that are handled as dedicated columns
-                _excluded_metavalues = {b"target_decoy", b"predicted_RT", b"predicted_rt"}
+                _excluded_psm_metavalues = {b"target_decoy", b"predicted_RT", b"predicted_rt"}
                 additional_scores = []
+                psm_metavalues = []
                 keys = []
                 hit.getKeys(keys)
                 for key in keys:
-                    if key not in _excluded_metavalues:
+                    if key not in _excluded_psm_metavalues:
                         val = hit.getMetaValue(key)
-                        if isinstance(val, (int, float)):
-                            key_str = key.decode("utf-8") if isinstance(key, bytes) else str(key)
-                            # Determine higher_better using IDScoreSwitcherAlgorithm if possible
+                        key_str = key.decode("utf-8") if isinstance(key, bytes) else str(key)
+
+                        # Check if this is a known score type
+                        is_known_score = key_str in _known_score_names_with_suffix
+
+                        if isinstance(val, (int, float)) and is_known_score:
+                            # Known score - add to additional_scores
                             higher_better = None
                             try:
                                 score_type_enum = _IDScoreSwitcherAlgorithm.toScoreTypeEnum(key_str)
@@ -771,6 +819,14 @@ import numpy as np
                                 "score_name": key_str,
                                 "score_value": float(val),
                                 "higher_better": higher_better
+                            })
+                        else:
+                            # Not a known score - add to psm_metavalues
+                            if isinstance(val, bytes):
+                                val = val.decode("utf-8")
+                            psm_metavalues.append({
+                                "name": key_str,
+                                "value": val
                             })
 
                 # Calculate m/z from sequence
@@ -825,6 +881,9 @@ import numpy as np
                     "score_type": score_type,
                     "rank": rank,
                     "P_ID": pep_idx,
+                    # Metavalues (non-score)
+                    "psm_metavalues": psm_metavalues,  # PeptideHit level
+                    "spectrum_metavalues": spectrum_metavalues,  # PeptideIdentification level
                 }
 
                 # Add fragment ion peak annotations (QPX schema fields)
@@ -969,9 +1028,9 @@ import numpy as np
 
     def to_psm_arrow(self, export_all_hits=True, include_modifications=True,
                       include_peak_annotations=False, decode_ontology=True,
-                      reference_file_name="", columns=None):
+                      reference_file_name="", columns=None, additional_score_names=None):
         """
-        to_psm_arrow(self: PeptideIdentificationList, export_all_hits: bool = True, include_modifications: bool = True, include_peak_annotations: bool = False, decode_ontology: bool = True, reference_file_name: str = "", columns: list = None) -> pa.Table
+        to_psm_arrow(self: PeptideIdentificationList, export_all_hits: bool = True, include_modifications: bool = True, include_peak_annotations: bool = False, decode_ontology: bool = True, reference_file_name: str = "", columns: list = None, additional_score_names: list = None) -> pa.Table
 
         **EXPERIMENTAL**: This method is experimental and subject to change.
 
@@ -1012,6 +1071,12 @@ import numpy as np
                         Use psm_columns() to discover available columns.
         :type columns: list
 
+        :param additional_score_names: List of additional metavalue names to treat as scores.
+                                       By default, only known score types (from Scores.getAllIDScoreNames())
+                                       are included in additional_scores. Non-score metavalues go to
+                                       psm_metavalues. Use this parameter to specify custom score names.
+        :type additional_score_names: list
+
         :return: Arrow Table with PSM data using native Arrow types.
                  Results are sorted by rt, observed_mz, precursor_charge, rank.
                  Empty input returns an empty table with proper schema.
@@ -1033,6 +1098,9 @@ import numpy as np
             # Write to Parquet
             import pyarrow.parquet as pq
             pq.write_table(table, "psms.parquet")
+
+            # Include custom scores in additional_scores
+            table = peps.to_psm_arrow(additional_score_names=['my_custom_score'])
         """
         try:
             import pyarrow as pa
@@ -1067,8 +1135,21 @@ import numpy as np
                     continue
             return None
 
-        # Excluded metavalues from additional_scores
-        _excluded_metavalues = {b"target_decoy", b"predicted_RT", b"predicted_rt"}
+        # Get set of known score names for distinguishing scores from other metavalues
+        # Convert to strings in case the C++ library returns bytes
+        _known_score_names = set(
+            s.decode("utf-8") if isinstance(s, bytes) else s
+            for s in _Scores.getAllIDScoreNames()
+        )
+        _known_score_names_with_suffix = _known_score_names | {s + "_score" for s in _known_score_names}
+
+        # Add user-specified additional score names
+        if additional_score_names:
+            _known_score_names_with_suffix = _known_score_names_with_suffix | set(additional_score_names)
+
+        # Excluded metavalues (have dedicated columns)
+        _excluded_psm_metavalues = {b"target_decoy", b"predicted_RT", b"predicted_rt"}
+        _excluded_spectrum_metavalues = {b"spectrum_reference", b"ion_mobility", b"IM"}
 
         # Initialize column lists
         all_sequence = []
@@ -1101,6 +1182,10 @@ import numpy as np
         all_ion_type_array = []
         all_ion_mobility_array = []
 
+        # Metavalue arrays
+        all_psm_metavalues = []
+        all_spectrum_metavalues = []
+
         # Create IDScoreSwitcherAlgorithm instance
         idsa = _IDScoreSwitcherAlgorithm()
 
@@ -1126,6 +1211,22 @@ import numpy as np
 
             # Extract scan number
             scan = _extract_scan_number(spec_ref)
+
+            # Collect spectrum-level metavalues (PeptideIdentification level)
+            spectrum_metavalues = []
+            pep_id_keys = []
+            pep_id.getKeys(pep_id_keys)
+            for key in pep_id_keys:
+                if key not in _excluded_spectrum_metavalues:
+                    val = pep_id.getMetaValue(key)
+                    key_str = key.decode("utf-8") if isinstance(key, bytes) else str(key)
+                    # Convert value to appropriate Python type
+                    if isinstance(val, bytes):
+                        val = val.decode("utf-8")
+                    spectrum_metavalues.append({
+                        "name": key_str,
+                        "value": val
+                    })
 
             hits = pep_id.getHits()
             if not hits:
@@ -1197,25 +1298,41 @@ import numpy as np
                 evidences = hit.getPeptideEvidences()
                 protein_accessions = [ev.getProteinAccession() for ev in evidences]
 
-                # Additional scores
+                # Build additional_scores and psm_metavalues from PeptideHit metavalues
+                # additional_scores: numeric values where name is a known score type
+                # psm_metavalues: all other metavalues (non-scores)
                 additional_scores = []
+                psm_metavalues = []
                 keys = []
                 hit.getKeys(keys)
                 for key in keys:
-                    if key not in _excluded_metavalues:
+                    if key not in _excluded_psm_metavalues:
                         val = hit.getMetaValue(key)
-                        if isinstance(val, (int, float)):
-                            key_str = key.decode("utf-8") if isinstance(key, bytes) else str(key)
+                        key_str = key.decode("utf-8") if isinstance(key, bytes) else str(key)
+
+                        # Check if this is a known score type
+                        is_known_score = key_str in _known_score_names_with_suffix
+
+                        if isinstance(val, (int, float)) and is_known_score:
+                            # Known score - add to additional_scores
                             higher_better = None
                             try:
                                 score_type_enum = _IDScoreSwitcherAlgorithm.toScoreTypeEnum(key_str)
                                 higher_better = idsa.isScoreTypeHigherBetter(score_type_enum)
                             except Exception:
-                                pass
+                                pass  # Unknown score type, leave as None
                             additional_scores.append({
                                 "score_name": key_str,
                                 "score_value": float(val),
                                 "higher_better": higher_better
+                            })
+                        else:
+                            # Not a known score - add to psm_metavalues
+                            if isinstance(val, bytes):
+                                val = val.decode("utf-8")
+                            psm_metavalues.append({
+                                "name": key_str,
+                                "value": val
                             })
 
                 # Calculate m/z
@@ -1266,6 +1383,10 @@ import numpy as np
                 all_score_type.append(score_type)
                 all_rank.append(rank)
                 all_p_id.append(pep_idx)
+
+                # Metavalues
+                all_psm_metavalues.append(psm_metavalues)
+                all_spectrum_metavalues.append(spectrum_metavalues)
 
                 # Peak annotations
                 if include_peak_annotations:
@@ -1318,6 +1439,12 @@ import numpy as np
             ("score_name", pa.utf8()),
             ("score_value", pa.float64()),
             ("higher_better", pa.bool_())  # nullable
+        ])
+        # Metavalue type for psm_metavalues and spectrum_metavalues
+        # Uses utf8 for value since metavalues can be heterogeneous (int, float, str)
+        metavalue_type = pa.struct([
+            ("name", pa.utf8()),
+            ("value", pa.utf8())  # stringified values for heterogeneous data
         ])
 
         data_dict = {}
@@ -1382,6 +1509,22 @@ import numpy as np
         if should_include("P_ID"):
             data_dict["P_ID"] = pa.array(all_p_id, type=pa.int32())
 
+        # Metavalue columns - stringify values for Arrow compatibility
+        if should_include("psm_metavalues"):
+            # Convert values to strings for Arrow struct
+            all_psm_metavalues_str = [
+                [{"name": mv["name"], "value": str(mv["value"]) if mv["value"] is not None else None}
+                 for mv in mvs] for mvs in all_psm_metavalues
+            ]
+            data_dict["psm_metavalues"] = pa.array(all_psm_metavalues_str, type=pa.list_(metavalue_type))
+        if should_include("spectrum_metavalues"):
+            # Convert values to strings for Arrow struct
+            all_spectrum_metavalues_str = [
+                [{"name": mv["name"], "value": str(mv["value"]) if mv["value"] is not None else None}
+                 for mv in mvs] for mvs in all_spectrum_metavalues
+            ]
+            data_dict["spectrum_metavalues"] = pa.array(all_spectrum_metavalues_str, type=pa.list_(metavalue_type))
+
         table = pa.Table.from_pydict(data_dict)
 
         # Sort by rt, observed_mz, precursor_charge, rank for consistent ordering
@@ -1398,9 +1541,9 @@ import numpy as np
                     row_group_size=None, write_statistics=True,
                     export_all_hits=True, include_modifications=True,
                     include_peak_annotations=False, decode_ontology=True,
-                    reference_file_name="", columns=None):
+                    reference_file_name="", columns=None, additional_score_names=None):
         """
-        to_parquet(self: PeptideIdentificationList, path: str, compression: str = 'zstd', compression_level: int = None, row_group_size: int = None, write_statistics: bool = True, export_all_hits: bool = True, include_modifications: bool = True, include_peak_annotations: bool = False, decode_ontology: bool = True, reference_file_name: str = "", columns: list = None) -> None
+        to_parquet(self: PeptideIdentificationList, path: str, compression: str = 'zstd', compression_level: int = None, row_group_size: int = None, write_statistics: bool = True, export_all_hits: bool = True, include_modifications: bool = True, include_peak_annotations: bool = False, decode_ontology: bool = True, reference_file_name: str = "", columns: list = None, additional_score_names: list = None) -> None
 
         **EXPERIMENTAL**: This method is experimental and subject to change.
 
@@ -1457,6 +1600,10 @@ import numpy as np
         :param columns: Column names to include. None includes all.
         :type columns: list
 
+        :param additional_score_names: List of additional metavalue names to treat as scores.
+                                       See to_psm_df() for details.
+        :type additional_score_names: list
+
         :raises ImportError: If pyarrow is not installed
 
         Example::
@@ -1503,7 +1650,8 @@ import numpy as np
             include_peak_annotations=include_peak_annotations,
             decode_ontology=decode_ontology,
             reference_file_name=reference_file_name,
-            columns=columns
+            columns=columns,
+            additional_score_names=additional_score_names
         )
 
         # Map compression string to pyarrow compression
@@ -1590,4 +1738,7 @@ import numpy as np
             "score_type",
             "rank",
             "P_ID",
+            # Metavalues (non-score) - format: [{"name": str, "value": any}]
+            "psm_metavalues",  # PeptideHit-level metavalues (PSM-specific)
+            "spectrum_metavalues",  # PeptideIdentification-level metavalues (spectrum-wide)
         ]

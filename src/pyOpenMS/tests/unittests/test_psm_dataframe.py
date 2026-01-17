@@ -198,25 +198,64 @@ def test_psm_df_protein_accessions():
 
 
 def test_psm_df_additional_scores():
-    """Test additional scores extraction from metavalues (QPX array format)."""
-    pep_ids = create_test_data()
+    """Test additional scores extraction from metavalues (QPX array format).
+
+    Only known score types (from Scores.getAllIDScoreNames()) go to additional_scores.
+    Unknown numeric metavalues go to psm_metavalues instead.
+    """
+    import pyopenms as oms
+
+    pep_ids = oms.PeptideIdentificationList()
+    pep_id = oms.PeptideIdentification()
+    pep_id.setRT(100.0)
+    pep_id.setMZ(500.0)
+
+    hit = oms.PeptideHit()
+    hit.setSequence(oms.AASequence.fromString("PEPTIDE"))
+    hit.setCharge(2)
+    hit.setScore(0.01)
+    # Known score type - should go to additional_scores
+    hit.setMetaValue("q-value", 0.05)
+    # Unknown score type - should go to psm_metavalues
+    hit.setMetaValue("some_score", 42.5)
+    pep_id.setHits([hit])
+    pep_ids.append(pep_id)
+
     df = pep_ids.to_psm_df()
 
-    # First hit has some_score metavalue
+    # Check additional_scores has known score types
     scores = df.iloc[0]["additional_scores"]
     assert isinstance(scores, list)
 
-    # Find some_score in the list
-    some_score_entry = None
+    # Find q-value in the list (known score type)
+    qvalue_entry = None
     for entry in scores:
-        if entry["score_name"] == "some_score":
+        if entry["score_name"] == "q-value":
+            qvalue_entry = entry
+            break
+
+    assert qvalue_entry is not None, "q-value should be in additional_scores"
+    assert qvalue_entry["score_value"] == pytest.approx(0.05)
+    # q-value is a known score type, so higher_better should be set (False for q-value)
+    assert "higher_better" in qvalue_entry
+
+    # Verify unknown score is NOT in additional_scores
+    some_score_in_scores = any(e["score_name"] == "some_score" for e in scores)
+    assert not some_score_in_scores, "Unknown score should NOT be in additional_scores"
+
+    # Check psm_metavalues has unknown scores
+    psm_mvs = df.iloc[0]["psm_metavalues"]
+    assert isinstance(psm_mvs, list)
+
+    # Find some_score in psm_metavalues
+    some_score_entry = None
+    for entry in psm_mvs:
+        if entry["name"] == "some_score":
             some_score_entry = entry
             break
 
-    assert some_score_entry is not None
-    assert some_score_entry["score_value"] == pytest.approx(42.5)
-    # higher_better should be None for unknown score types
-    assert "higher_better" in some_score_entry
+    assert some_score_entry is not None, "Unknown score should be in psm_metavalues"
+    assert some_score_entry["value"] == 42.5
 
 
 def test_psm_df_modifications():
@@ -1171,3 +1210,320 @@ def test_to_parquet_reference_file_name(tmp_path):
 
     df = pd.read_parquet(parquet_path)
     assert all(df["reference_file_name"] == "test.mzML")
+
+
+# === Metavalue Export Tests ===
+
+def test_psm_df_metavalue_columns_present():
+    """Test that psm_metavalues and spectrum_metavalues columns are present."""
+    pep_ids = create_test_data()
+    df = pep_ids.to_psm_df()
+
+    assert "psm_metavalues" in df.columns
+    assert "spectrum_metavalues" in df.columns
+
+
+def test_psm_df_spectrum_metavalues():
+    """Test spectrum_metavalues (PeptideIdentification-level metavalues)."""
+    import pyopenms as oms
+
+    pep_ids = oms.PeptideIdentificationList()
+    pep_id = oms.PeptideIdentification()
+    pep_id.setRT(100.0)
+    pep_id.setMZ(500.0)
+    # Set some spectrum-level metavalues
+    pep_id.setMetaValue("custom_spectrum_value", 42.5)
+    pep_id.setMetaValue("spectrum_label", "test_spectrum")
+    # spectrum_reference is excluded (has dedicated column)
+    pep_id.setMetaValue("spectrum_reference", "scan=1234")
+
+    hit = oms.PeptideHit()
+    hit.setSequence(oms.AASequence.fromString("PEPTIDE"))
+    hit.setCharge(2)
+    pep_id.setHits([hit])
+    pep_ids.append(pep_id)
+
+    df = pep_ids.to_psm_df()
+
+    spectrum_mvs = df.iloc[0]["spectrum_metavalues"]
+    assert isinstance(spectrum_mvs, list)
+
+    # Should have custom_spectrum_value and spectrum_label
+    mv_names = [mv["name"] for mv in spectrum_mvs]
+    assert "custom_spectrum_value" in mv_names
+    assert "spectrum_label" in mv_names
+    # spectrum_reference should be excluded (has dedicated column)
+    assert "spectrum_reference" not in mv_names
+
+    # Check values
+    for mv in spectrum_mvs:
+        if mv["name"] == "custom_spectrum_value":
+            assert mv["value"] == 42.5
+        elif mv["name"] == "spectrum_label":
+            assert mv["value"] == "test_spectrum"
+
+
+def test_psm_df_psm_metavalues():
+    """Test psm_metavalues (PeptideHit-level non-score metavalues)."""
+    import pyopenms as oms
+
+    pep_ids = oms.PeptideIdentificationList()
+    pep_id = oms.PeptideIdentification()
+
+    hit = oms.PeptideHit()
+    hit.setSequence(oms.AASequence.fromString("PEPTIDE"))
+    hit.setCharge(2)
+    hit.setScore(0.01)
+    # Set various metavalues - some are known scores, some are not
+    hit.setMetaValue("custom_property", "my_value")
+    hit.setMetaValue("numeric_property", 123)
+    hit.setMetaValue("target_decoy", "target")  # excluded - has dedicated column
+    hit.setMetaValue("predicted_RT", 1000.0)  # excluded - has dedicated column
+
+    pep_id.setHits([hit])
+    pep_ids.append(pep_id)
+
+    df = pep_ids.to_psm_df()
+
+    psm_mvs = df.iloc[0]["psm_metavalues"]
+    assert isinstance(psm_mvs, list)
+
+    # Should have custom_property and numeric_property
+    mv_names = [mv["name"] for mv in psm_mvs]
+    assert "custom_property" in mv_names
+    assert "numeric_property" in mv_names
+    # Excluded metavalues should not be present
+    assert "target_decoy" not in mv_names
+    assert "predicted_RT" not in mv_names
+
+    # Check values
+    for mv in psm_mvs:
+        if mv["name"] == "custom_property":
+            assert mv["value"] == "my_value"
+        elif mv["name"] == "numeric_property":
+            assert mv["value"] == 123
+
+
+def test_psm_df_score_vs_metavalue_distinction():
+    """Test that known scores go to additional_scores, others to psm_metavalues."""
+    import pyopenms as oms
+
+    pep_ids = oms.PeptideIdentificationList()
+    pep_id = oms.PeptideIdentification()
+
+    hit = oms.PeptideHit()
+    hit.setSequence(oms.AASequence.fromString("PEPTIDE"))
+    hit.setCharge(2)
+    hit.setScore(0.01)
+
+    # Known score types (should go to additional_scores)
+    hit.setMetaValue("q-value", 0.05)
+    hit.setMetaValue("E-Value", 0.001)
+
+    # Non-score metavalues (should go to psm_metavalues)
+    hit.setMetaValue("custom_metric", 42.0)
+    hit.setMetaValue("string_property", "test")
+
+    pep_id.setHits([hit])
+    pep_ids.append(pep_id)
+
+    df = pep_ids.to_psm_df()
+
+    additional_scores = df.iloc[0]["additional_scores"]
+    psm_metavalues = df.iloc[0]["psm_metavalues"]
+
+    # Known scores should be in additional_scores
+    score_names = [s["score_name"] for s in additional_scores]
+    assert "q-value" in score_names
+    assert "E-Value" in score_names
+
+    # Non-scores should be in psm_metavalues
+    mv_names = [mv["name"] for mv in psm_metavalues]
+    assert "custom_metric" in mv_names
+    assert "string_property" in mv_names
+
+    # Cross-check: known scores should NOT be in psm_metavalues
+    assert "q-value" not in mv_names
+    assert "E-Value" not in mv_names
+
+
+def test_psm_df_metavalues_empty_when_none():
+    """Test metavalue columns are empty lists when no metavalues exist."""
+    import pyopenms as oms
+
+    pep_ids = oms.PeptideIdentificationList()
+    pep_id = oms.PeptideIdentification()
+
+    hit = oms.PeptideHit()
+    hit.setSequence(oms.AASequence.fromString("PEPTIDE"))
+    hit.setCharge(2)
+    # No metavalues set
+    pep_id.setHits([hit])
+    pep_ids.append(pep_id)
+
+    df = pep_ids.to_psm_df()
+
+    assert df.iloc[0]["psm_metavalues"] == []
+    assert df.iloc[0]["spectrum_metavalues"] == []
+
+
+def test_psm_columns_includes_metavalue_columns():
+    """Test psm_columns() includes the new metavalue columns."""
+    import pyopenms as oms
+
+    pep_ids = oms.PeptideIdentificationList()
+    columns = pep_ids.psm_columns()
+
+    assert "psm_metavalues" in columns
+    assert "spectrum_metavalues" in columns
+
+
+def test_to_psm_arrow_metavalue_columns():
+    """Test to_psm_arrow includes metavalue columns with correct types."""
+    pa = pytest.importorskip("pyarrow")
+
+    pep_ids = create_test_data()
+    table = pep_ids.to_psm_arrow()
+
+    assert "psm_metavalues" in table.schema.names
+    assert "spectrum_metavalues" in table.schema.names
+
+    # Check types are list of structs
+    psm_mv_type = table.schema.field("psm_metavalues").type
+    assert pa.types.is_list(psm_mv_type)
+    assert pa.types.is_struct(psm_mv_type.value_type)
+
+    spectrum_mv_type = table.schema.field("spectrum_metavalues").type
+    assert pa.types.is_list(spectrum_mv_type)
+    assert pa.types.is_struct(spectrum_mv_type.value_type)
+
+
+def test_to_psm_arrow_metavalue_data():
+    """Test to_psm_arrow correctly exports metavalue data."""
+    pytest.importorskip("pyarrow")
+    import pyopenms as oms
+
+    pep_ids = oms.PeptideIdentificationList()
+    pep_id = oms.PeptideIdentification()
+    pep_id.setMetaValue("spectrum_custom", "test_value")
+
+    hit = oms.PeptideHit()
+    hit.setSequence(oms.AASequence.fromString("PEPTIDE"))
+    hit.setCharge(2)
+    hit.setMetaValue("hit_custom", "hit_value")
+    pep_id.setHits([hit])
+    pep_ids.append(pep_id)
+
+    table = pep_ids.to_psm_arrow()
+    df = table.to_pandas()
+
+    # Check spectrum_metavalues has the custom value
+    spectrum_mvs = df.iloc[0]["spectrum_metavalues"]
+    assert len(spectrum_mvs) == 1
+    assert spectrum_mvs[0]["name"] == "spectrum_custom"
+    assert spectrum_mvs[0]["value"] == "test_value"
+
+    # Check psm_metavalues has the hit value
+    psm_mvs = df.iloc[0]["psm_metavalues"]
+    assert len(psm_mvs) == 1
+    assert psm_mvs[0]["name"] == "hit_custom"
+    assert psm_mvs[0]["value"] == "hit_value"
+
+
+def test_to_parquet_metavalue_columns(tmp_path):
+    """Test to_parquet correctly exports metavalue columns."""
+    pytest.importorskip("pyarrow")
+    import pandas as pd
+    import pyopenms as oms
+
+    pep_ids = oms.PeptideIdentificationList()
+    pep_id = oms.PeptideIdentification()
+    pep_id.setMetaValue("spectrum_tag", "sample_1")
+
+    hit = oms.PeptideHit()
+    hit.setSequence(oms.AASequence.fromString("PEPTIDE"))
+    hit.setCharge(2)
+    hit.setMetaValue("hit_tag", "annotated")
+    pep_id.setHits([hit])
+    pep_ids.append(pep_id)
+
+    parquet_path = tmp_path / "psms_with_metavalues.parquet"
+    pep_ids.to_parquet(str(parquet_path))
+
+    df = pd.read_parquet(parquet_path)
+    assert "psm_metavalues" in df.columns
+    assert "spectrum_metavalues" in df.columns
+
+    # Verify data survived the roundtrip
+    assert len(df.iloc[0]["spectrum_metavalues"]) == 1
+    assert len(df.iloc[0]["psm_metavalues"]) == 1
+
+
+def test_psm_df_additional_score_names_parameter():
+    """Test additional_score_names parameter moves custom scores to additional_scores."""
+    import pyopenms as oms
+
+    pep_ids = oms.PeptideIdentificationList()
+    pep_id = oms.PeptideIdentification()
+
+    hit = oms.PeptideHit()
+    hit.setSequence(oms.AASequence.fromString("PEPTIDE"))
+    hit.setCharge(2)
+    hit.setScore(0.01)
+    # Custom score - not in known score names
+    hit.setMetaValue("my_custom_score", 0.95)
+    hit.setMetaValue("another_metric", 42.0)
+    pep_id.setHits([hit])
+    pep_ids.append(pep_id)
+
+    # Without additional_score_names: custom score goes to psm_metavalues
+    df_without = pep_ids.to_psm_df()
+    scores_without = df_without.iloc[0]["additional_scores"]
+    psm_mvs_without = df_without.iloc[0]["psm_metavalues"]
+
+    assert not any(s["score_name"] == "my_custom_score" for s in scores_without)
+    assert any(mv["name"] == "my_custom_score" for mv in psm_mvs_without)
+
+    # With additional_score_names: custom score goes to additional_scores
+    df_with = pep_ids.to_psm_df(additional_score_names=["my_custom_score"])
+    scores_with = df_with.iloc[0]["additional_scores"]
+    psm_mvs_with = df_with.iloc[0]["psm_metavalues"]
+
+    # my_custom_score should now be in additional_scores
+    custom_score_entry = None
+    for entry in scores_with:
+        if entry["score_name"] == "my_custom_score":
+            custom_score_entry = entry
+            break
+
+    assert custom_score_entry is not None, "Custom score should be in additional_scores"
+    assert custom_score_entry["score_value"] == pytest.approx(0.95)
+
+    # my_custom_score should NOT be in psm_metavalues
+    assert not any(mv["name"] == "my_custom_score" for mv in psm_mvs_with)
+
+    # another_metric should still be in psm_metavalues (not specified as score)
+    assert any(mv["name"] == "another_metric" for mv in psm_mvs_with)
+
+
+def test_to_psm_arrow_additional_score_names_parameter():
+    """Test additional_score_names parameter works with to_psm_arrow."""
+    pytest.importorskip("pyarrow")
+    import pyopenms as oms
+
+    pep_ids = oms.PeptideIdentificationList()
+    pep_id = oms.PeptideIdentification()
+
+    hit = oms.PeptideHit()
+    hit.setSequence(oms.AASequence.fromString("PEPTIDE"))
+    hit.setCharge(2)
+    hit.setMetaValue("custom_rescore", 0.99)
+    pep_id.setHits([hit])
+    pep_ids.append(pep_id)
+
+    # With additional_score_names
+    table = pep_ids.to_psm_arrow(additional_score_names=["custom_rescore"])
+    df = table.to_pandas()
+
+    scores = df.iloc[0]["additional_scores"]
+    assert any(s["score_name"] == "custom_rescore" for s in scores)
