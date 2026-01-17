@@ -2505,19 +2505,18 @@ namespace OpenMS
           if (pos->second->type == ParameterInformation::FLAG) // flag
           {
             value = "true";
-            // Check if there are trailing arguments after the flag
+            // Check if there are trailing arguments after the flag - this is an error
             if (!queue.empty())
             {
-              // Collect the trailing arguments for the warning message
+              // Collect the trailing arguments for the error message
               String trailing_args;
               for (list<String>::const_iterator it = queue.begin(); it != queue.end(); ++it)
               {
                 if (it != queue.begin()) trailing_args += " ";
                 trailing_args += *it;
               }
-              writeLogWarn_(String("Warning: Ignoring '") + trailing_args + "' because " + arg + " is a flag and does not take arguments.");
-              // Clear the queue so these arguments don't end up in "misc"
-              queue.clear();
+              throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                String("Ignoring '") + trailing_args + "' because " + arg + " is a flag.");
             }
           }
           else // option with argument(s)

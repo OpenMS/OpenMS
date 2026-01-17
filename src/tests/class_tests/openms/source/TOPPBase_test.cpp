@@ -875,21 +875,17 @@ END_SECTION
 
 START_SECTION(([EXTRA] test flag with trailing arguments))
 {
-  // Test flag with trailing argument - should warn but not cause error
+  // Test flag with trailing argument - should cause error
   const char* string_cl_flag[4] = {a1, a11, a12, test}; //command line: "TOPPBaseTest -flag commandline -test"
   TOPPBaseTest tmp_flag;
   TOPPBase::ExitCodes ec_flag = tmp_flag.main(4, string_cl_flag);
-  TEST_EQUAL(ec_flag, TOPPBase::EXECUTION_OK)
-  // Flag should still be set
-  TEST_EQUAL(tmp_flag.getFlag("flag"), true);
-  
+  TEST_EQUAL(ec_flag, TOPPBase::ILLEGAL_PARAMETERS)
+
   // Test flag with multiple trailing arguments
   const char* string_cl_flag2[6] = {a1, a11, a12, a16, a13, test}; //command line: "TOPPBaseTest -flag commandline 4711 4.5 -test"
   TOPPBaseTest tmp_flag2;
   TOPPBase::ExitCodes ec_flag2 = tmp_flag2.main(6, string_cl_flag2);
-  TEST_EQUAL(ec_flag2, TOPPBase::EXECUTION_OK)
-  // Flag should still be set
-  TEST_EQUAL(tmp_flag2.getFlag("flag"), true);
+  TEST_EQUAL(ec_flag2, TOPPBase::ILLEGAL_PARAMETERS)
 }
 END_SECTION
 
