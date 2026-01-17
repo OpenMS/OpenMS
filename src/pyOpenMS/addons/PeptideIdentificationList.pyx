@@ -544,9 +544,11 @@ import numpy as np
         )
         return self.to_df(*args, **kwargs)
 
-    def to_psm_df(self, export_all_hits=True, include_modifications=True, include_peak_annotations=False, decode_ontology=True, reference_file_name="", columns=None, additional_score_names=None):
+    # TODO: Consider adding ontology decoding support (decode_ontology parameter) to PSM export methods
+    # to decode CV term accessions (e.g., MS:1001493 -> "Posterior Error Probability")
+    def to_psm_df(self, export_all_hits=True, include_modifications=True, include_peak_annotations=False, reference_file_name="", columns=None, additional_score_names=None):
         """
-        to_psm_df(self: PeptideIdentificationList, export_all_hits: bool = True, include_modifications: bool = True, include_peak_annotations: bool = False, decode_ontology: bool = True, reference_file_name: str = "", columns: list = None, additional_score_names: list = None) -> pd.DataFrame
+        to_psm_df(self: PeptideIdentificationList, export_all_hits: bool = True, include_modifications: bool = True, include_peak_annotations: bool = False, reference_file_name: str = "", columns: list = None, additional_score_names: list = None) -> pd.DataFrame
 
         **EXPERIMENTAL**: This method is experimental and subject to change.
 
@@ -573,10 +575,6 @@ import numpy as np
                                          can be large.
         :type include_peak_annotations: bool
 
-        :param decode_ontology: Decode meta value names using the PSI-MS ontology.
-                                Default True. (Currently unused, for future compatibility)
-        :type decode_ontology: bool
-
         :param reference_file_name: Source file name to include in each row.
                                     Default empty string.
         :type reference_file_name: str
@@ -596,7 +594,8 @@ import numpy as np
                  precursor_charge, posterior_error_probability, is_decoy,
                  calculated_mz, observed_mz, additional_scores, protein_accessions,
                  predicted_rt, reference_file_name, cv_params, scan, rt, ion_mobility,
-                 spectrum_reference, score, score_type, rank, P_ID.
+                 spectrum_reference, score, score_type, rank, P_ID,
+                 psm_metavalues, spectrum_metavalues.
                  When include_peak_annotations=True: number_peaks, mz_array,
                  intensity_array, charge_array, ion_type_array, ion_mobility_array.
                  Results are sorted by rt, observed_mz, precursor_charge, rank.
@@ -1027,10 +1026,10 @@ import numpy as np
         }
 
     def to_psm_arrow(self, export_all_hits=True, include_modifications=True,
-                      include_peak_annotations=False, decode_ontology=True,
+                      include_peak_annotations=False,
                       reference_file_name="", columns=None, additional_score_names=None):
         """
-        to_psm_arrow(self: PeptideIdentificationList, export_all_hits: bool = True, include_modifications: bool = True, include_peak_annotations: bool = False, decode_ontology: bool = True, reference_file_name: str = "", columns: list = None, additional_score_names: list = None) -> pa.Table
+        to_psm_arrow(self: PeptideIdentificationList, export_all_hits: bool = True, include_modifications: bool = True, include_peak_annotations: bool = False, reference_file_name: str = "", columns: list = None, additional_score_names: list = None) -> pa.Table
 
         **EXPERIMENTAL**: This method is experimental and subject to change.
 
@@ -1058,10 +1057,6 @@ import numpy as np
                                          ion_type_array). Default False as these
                                          can be large.
         :type include_peak_annotations: bool
-
-        :param decode_ontology: Decode meta value names using the PSI-MS ontology.
-                                Default True. (Currently unused, for future compatibility)
-        :type decode_ontology: bool
 
         :param reference_file_name: Source file name to include in each row.
                                     Default empty string.
@@ -1540,10 +1535,10 @@ import numpy as np
     def to_parquet(self, path, compression='zstd', compression_level=None,
                     row_group_size=None, write_statistics=True,
                     export_all_hits=True, include_modifications=True,
-                    include_peak_annotations=False, decode_ontology=True,
+                    include_peak_annotations=False,
                     reference_file_name="", columns=None, additional_score_names=None):
         """
-        to_parquet(self: PeptideIdentificationList, path: str, compression: str = 'zstd', compression_level: int = None, row_group_size: int = None, write_statistics: bool = True, export_all_hits: bool = True, include_modifications: bool = True, include_peak_annotations: bool = False, decode_ontology: bool = True, reference_file_name: str = "", columns: list = None, additional_score_names: list = None) -> None
+        to_parquet(self: PeptideIdentificationList, path: str, compression: str = 'zstd', compression_level: int = None, row_group_size: int = None, write_statistics: bool = True, export_all_hits: bool = True, include_modifications: bool = True, include_peak_annotations: bool = False, reference_file_name: str = "", columns: list = None, additional_score_names: list = None) -> None
 
         **EXPERIMENTAL**: This method is experimental and subject to change.
 
@@ -1590,9 +1585,6 @@ import numpy as np
 
         :param include_peak_annotations: Include fragment ion annotations. Default False.
         :type include_peak_annotations: bool
-
-        :param decode_ontology: Decode meta value names (for future use). Default True.
-        :type decode_ontology: bool
 
         :param reference_file_name: Source file name to include. Default empty.
         :type reference_file_name: str
@@ -1648,7 +1640,6 @@ import numpy as np
             export_all_hits=export_all_hits,
             include_modifications=include_modifications,
             include_peak_annotations=include_peak_annotations,
-            decode_ontology=decode_ontology,
             reference_file_name=reference_file_name,
             columns=columns,
             additional_score_names=additional_score_names
