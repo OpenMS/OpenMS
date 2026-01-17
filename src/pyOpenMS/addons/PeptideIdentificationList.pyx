@@ -844,7 +844,9 @@ import numpy as np
 
         def _get_value_type(val):
             """Determine the type string for a metavalue."""
-            if isinstance(val, bool):
+            # Check bool first using type name (bool is subclass of int in Python)
+            # Note: isinstance(val, bool) doesn't work in Cython as 'bool' is C bint
+            if type(val).__name__ == 'bool':
                 return "bool"
             elif isinstance(val, int):
                 return "int"
