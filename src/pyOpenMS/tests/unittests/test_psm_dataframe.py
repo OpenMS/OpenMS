@@ -747,6 +747,30 @@ def test_psm_df_peak_annotations_empty():
     assert df.iloc[0]["intensity_array"] == []
 
 
+def test_psm_df_peak_annotations_schema_consistency():
+    """Test that peak annotation columns are included even when include_peak_annotations=False.
+
+    This ensures schema consistency between psm_columns() and actual DataFrame columns.
+    """
+    pep_ids = create_test_data()
+
+    # Get DataFrame without peak annotations (default)
+    df = pep_ids.to_psm_df(include_peak_annotations=False)
+
+    # Peak annotation columns should still be present for schema consistency
+    peak_cols = ["number_peaks", "mz_array", "intensity_array",
+                 "charge_array", "ion_type_array", "ion_mobility_array"]
+    for col in peak_cols:
+        assert col in df.columns, f"Column {col} should be present even with include_peak_annotations=False"
+        # Values should be None when not requested
+        assert df.iloc[0][col] is None, f"Column {col} should be None when include_peak_annotations=False"
+
+    # Verify psm_columns() includes these columns
+    expected_cols = pep_ids.psm_columns()
+    for col in peak_cols:
+        assert col in expected_cols, f"Column {col} should be in psm_columns()"
+
+
 def test_psm_df_sorting():
     """Test that PSM DataFrame is sorted by rt, observed_mz, precursor_charge, rank."""
     import pyopenms as oms
@@ -905,7 +929,7 @@ def test_to_arrow_column_types():
 
 def test_to_arrow_column_filter():
     """Test to_arrow column filtering."""
-    pa = pytest.importorskip("pyarrow")
+    pytest.importorskip("pyarrow")
 
     pep_ids = create_test_data()
     table = pep_ids.to_arrow(columns=['id', 'rt', 'mz'])
@@ -966,7 +990,7 @@ def test_to_psm_arrow_schema_types():
 
 def test_to_psm_arrow_column_filter():
     """Test to_psm_arrow column filtering."""
-    pa = pytest.importorskip("pyarrow")
+    pytest.importorskip("pyarrow")
 
     pep_ids = create_test_data()
     table = pep_ids.to_psm_arrow(columns=['sequence', 'precursor_charge', 'score'])
@@ -1007,7 +1031,7 @@ def test_to_psm_arrow_empty_list():
 
 def test_to_psm_arrow_vs_psm_df_data_equivalence():
     """Test that to_psm_arrow produces equivalent data to to_psm_df."""
-    pa = pytest.importorskip("pyarrow")
+    pytest.importorskip("pyarrow")
 
     pep_ids = create_test_data()
 
@@ -1027,7 +1051,7 @@ def test_to_psm_arrow_vs_psm_df_data_equivalence():
 
 def test_to_psm_arrow_sorting():
     """Test that to_psm_arrow sorts by rt, observed_mz, precursor_charge, rank."""
-    pa = pytest.importorskip("pyarrow")
+    pytest.importorskip("pyarrow")
     import pyopenms as oms
 
     pep_ids = oms.PeptideIdentificationList()

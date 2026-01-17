@@ -44,7 +44,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h>" namespace "Op
             #  :returns: ScoreSearchResult with is_main_score_type and score_name fields
 
         @staticmethod
-        IDType toScoreTypeEnum(String score_type) except + nogil
+        IDType toScoreTypeEnum(const String& score_type) except + nogil
             # wrap-doc:
             #  Converts a string representation of a score type to an IDType enum
             #

@@ -654,21 +654,6 @@ import numpy as np
         # Create IDScoreSwitcherAlgorithm instance once for PEP detection
         idsa = _IDScoreSwitcherAlgorithm()
 
-        # Known PEP score names from IDScoreSwitcherAlgorithm::type_to_str_
-        # These are used to search metavalues when main score is not PEP
-        _pep_metavalue_names = [
-            b"Posterior Error Probability",
-            b"pep",
-            b"PEP",
-            b"posterior_error_probability",
-            b"MS:1001493",
-            # Also check with _score suffix
-            b"Posterior Error Probability_score",
-            b"pep_score",
-            b"PEP_score",
-            b"posterior_error_probability_score",
-        ]
-
         for pep_idx, pep_id in enumerate(self):
             rt = pep_id.getRT()
             observed_mz = pep_id.getMZ()
@@ -696,9 +681,10 @@ import numpy as np
 
             num_hits = len(hits) if export_all_hits else min(1, len(hits))
 
-            # Detect PEP score type once per PeptideIdentification (applies to all hits)
-            # Use isScoreType to check if main score is PEP type
-            is_main_score_pep = idsa.isScoreType(score_type, _IDType.PEP) if score_type else False
+            # Detect PEP score type once per PeptideIdentification using findScoreType
+            # This searches both main score and metavalues in one call
+            pep_search_result = idsa.findScoreType(pep_id, _IDType.PEP)
+            pep_score_name = pep_search_result.score_name  # Empty if not found
 
             for rank in range(num_hits):
                 hit = hits[rank]
@@ -802,17 +788,17 @@ import numpy as np
                 elif hit.metaValueExists(b"predicted_rt"):
                     predicted_rt = hit.getMetaValue(b"predicted_rt")
 
-                # Build posterior_error_probability using IDScoreSwitcherAlgorithm
-                # is_main_score_pep was computed once per pep_id above using isScoreType()
+                # Build posterior_error_probability using findScoreType result
+                # pep_search_result was computed once per pep_id above
                 pep_value = None
-                if is_main_score_pep:
-                    pep_value = hit.getScore()
-                else:
-                    # Search metavalues for known PEP score names
-                    for pep_name in _pep_metavalue_names:
-                        if hit.metaValueExists(pep_name):
-                            pep_value = hit.getMetaValue(pep_name)
-                            break
+                if pep_score_name:  # Non-empty means PEP was found
+                    if pep_search_result.is_main_score_type:
+                        pep_value = hit.getScore()
+                    else:
+                        # PEP is in metavalues - use the score_name found by findScoreType
+                        pep_key = pep_score_name.encode('utf-8') if isinstance(pep_score_name, str) else pep_score_name
+                        if hit.metaValueExists(pep_key):
+                            pep_value = hit.getMetaValue(pep_key)
 
                 # Build row with QPX schema fields in order
                 row = {
@@ -959,6 +945,10 @@ import numpy as np
         df = self.to_psm_df(**kwargs)
 
         # Build file_metadata
+        # TODO: scan_format is currently only stored in file_metadata but does not
+        # influence the actual scan values in the PSMs. Consider either:
+        # 1. Passing scan_format to to_psm_df() to transform scan values accordingly
+        # 2. Removing the parameter and documenting the fixed scan format used
         file_metadata = {
             "qpx_version": qpx_version,
             "creator": creator,
@@ -1077,14 +1067,6 @@ import numpy as np
                     continue
             return None
 
-        # Known PEP score names
-        _pep_metavalue_names = [
-            b"Posterior Error Probability", b"pep", b"PEP",
-            b"posterior_error_probability", b"MS:1001493",
-            b"Posterior Error Probability_score", b"pep_score",
-            b"PEP_score", b"posterior_error_probability_score",
-        ]
-
         # Excluded metavalues from additional_scores
         _excluded_metavalues = {b"target_decoy", b"predicted_RT", b"predicted_rt"}
 
@@ -1151,8 +1133,9 @@ import numpy as np
 
             num_hits = len(hits) if export_all_hits else min(1, len(hits))
 
-            # Check if main score is PEP type
-            is_main_score_pep = idsa.isScoreType(score_type, _IDType.PEP) if score_type else False
+            # Detect PEP score type using findScoreType (searches main score and metavalues)
+            pep_search_result = idsa.findScoreType(pep_id, _IDType.PEP)
+            pep_score_name = pep_search_result.score_name  # Empty if not found
 
             for rank in range(num_hits):
                 hit = hits[rank]
@@ -1250,15 +1233,16 @@ import numpy as np
                 elif hit.metaValueExists(b"predicted_rt"):
                     predicted_rt = hit.getMetaValue(b"predicted_rt")
 
-                # PEP value
+                # PEP value using findScoreType result
                 pep_value = None
-                if is_main_score_pep:
-                    pep_value = hit.getScore()
-                else:
-                    for pep_name in _pep_metavalue_names:
-                        if hit.metaValueExists(pep_name):
-                            pep_value = hit.getMetaValue(pep_name)
-                            break
+                if pep_score_name:  # Non-empty means PEP was found
+                    if pep_search_result.is_main_score_type:
+                        pep_value = hit.getScore()
+                    else:
+                        # PEP is in metavalues - use the score_name found by findScoreType
+                        pep_key = pep_score_name.encode('utf-8') if isinstance(pep_score_name, str) else pep_score_name
+                        if hit.metaValueExists(pep_key):
+                            pep_value = hit.getMetaValue(pep_key)
 
                 # Append to column lists
                 all_sequence.append(seq.toUnmodifiedString())
