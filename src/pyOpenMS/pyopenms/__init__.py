@@ -56,7 +56,16 @@ else:
             "Some functionality might not work as expected."
         )
 
-
+# Pre-register pyarrow filesystem handlers before C++ Arrow loads.
+# This prevents "Attempted to register factory for scheme 'file'" errors
+# when both pyarrow (Python) and Arrow C++ (via OpenMS WITH_PARQUET) are present.
+# See: https://github.com/apache/arrow/issues/44696
+try:
+    from pyarrow import fs as _pa_fs
+    _pa_fs.LocalFileSystem()  # Force filesystem handler registration
+    del _pa_fs
+except ImportError:
+    pass  # pyarrow not installed, no conflict possible
 
 # on conda the libs will be installed to the general conda lib path which is available during load.
 # try to skip this loading if we do not ship the libraries in the package (e.g. as wheel via pip)
