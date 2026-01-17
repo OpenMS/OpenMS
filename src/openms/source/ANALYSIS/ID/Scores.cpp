@@ -135,4 +135,29 @@ namespace OpenMS
     return false;
   }
 
+  String Scores::normalizeScoreName(const String& score_name)
+  {
+    String result = score_name;
+    if (result.hasSuffix("_score"))
+    {
+      result = result.chop(6);
+    }
+    return result;
+  }
+
+  bool Scores::isKnownScoreType(const String& score_name)
+  {
+    initializeMaps_();
+    String normalized = normalizeScoreName(score_name);
+
+    for (const auto& [type, names] : id_type_to_str_)
+    {
+      if (names.find(normalized) != names.end())
+      {
+        return true;
+      }
+    }
+    return false;
+  }
+
 } // namespace OpenMS

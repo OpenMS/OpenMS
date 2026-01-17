@@ -663,18 +663,15 @@ import numpy as np
         # Create IDScoreSwitcherAlgorithm instance once for PEP detection
         idsa = _IDScoreSwitcherAlgorithm()
 
-        # Get set of known score names for distinguishing scores from other metavalues
-        # Convert to strings in case the C++ library returns bytes
-        _known_score_names = set(
-            s.decode("utf-8") if isinstance(s, bytes) else s
-            for s in _Scores.getAllIDScoreNames()
-        )
-        # Also add common score name variants with _score suffix
-        _known_score_names_with_suffix = _known_score_names | {s + "_score" for s in _known_score_names}
+        # User-specified additional score names (if any)
+        _additional_score_names_set = set(additional_score_names) if additional_score_names else set()
 
-        # Add user-specified additional score names
-        if additional_score_names:
-            _known_score_names_with_suffix = _known_score_names_with_suffix | set(additional_score_names)
+        def _is_known_score(name):
+            """Check if a name is a known score type (using C++ registry or user-specified)."""
+            if name in _additional_score_names_set:
+                return True
+            # Use the C++ Scores.isKnownScoreType which handles _score suffix normalization
+            return _Scores.isKnownScoreType(name)
 
         # Metavalues to exclude from spectrum_metavalues (have dedicated columns)
         _excluded_spectrum_metavalues = {b"spectrum_reference", b"ion_mobility", b"IM"}
@@ -803,8 +800,8 @@ import numpy as np
                         val = hit.getMetaValue(key)
                         key_str = key.decode("utf-8") if isinstance(key, bytes) else str(key)
 
-                        # Check if this is a known score type
-                        is_known_score = key_str in _known_score_names_with_suffix
+                        # Check if this is a known score type (using C++ registry)
+                        is_known_score = _is_known_score(key_str)
 
                         if isinstance(val, (int, float)) and is_known_score:
                             # Known score - add to additional_scores
@@ -1130,17 +1127,15 @@ import numpy as np
                     continue
             return None
 
-        # Get set of known score names for distinguishing scores from other metavalues
-        # Convert to strings in case the C++ library returns bytes
-        _known_score_names = set(
-            s.decode("utf-8") if isinstance(s, bytes) else s
-            for s in _Scores.getAllIDScoreNames()
-        )
-        _known_score_names_with_suffix = _known_score_names | {s + "_score" for s in _known_score_names}
+        # User-specified additional score names (if any)
+        _additional_score_names_set = set(additional_score_names) if additional_score_names else set()
 
-        # Add user-specified additional score names
-        if additional_score_names:
-            _known_score_names_with_suffix = _known_score_names_with_suffix | set(additional_score_names)
+        def _is_known_score(name):
+            """Check if a name is a known score type (using C++ registry or user-specified)."""
+            if name in _additional_score_names_set:
+                return True
+            # Use the C++ Scores.isKnownScoreType which handles _score suffix normalization
+            return _Scores.isKnownScoreType(name)
 
         # Excluded metavalues (have dedicated columns)
         _excluded_psm_metavalues = {b"target_decoy", b"predicted_RT", b"predicted_rt"}
@@ -1305,8 +1300,8 @@ import numpy as np
                         val = hit.getMetaValue(key)
                         key_str = key.decode("utf-8") if isinstance(key, bytes) else str(key)
 
-                        # Check if this is a known score type
-                        is_known_score = key_str in _known_score_names_with_suffix
+                        # Check if this is a known score type (using C++ registry)
+                        is_known_score = _is_known_score(key_str)
 
                         if isinstance(val, (int, float)) and is_known_score:
                             # Known score - add to additional_scores

@@ -74,5 +74,27 @@ cdef extern from "<OpenMS/ANALYSIS/ID/Scores.h>" namespace "OpenMS":
             #
             #  :returns: A vector of all ID score names (e.g., "q-value", "ln(hyperscore)")
 
+        @staticmethod
+        String normalizeScoreName(const String& score_name) except + nogil
+            # wrap-doc:
+            #  Normalizes a score name by removing the "_score" suffix if present
+            #
+            #  This is useful when checking if a score name matches a known score type,
+            #  as OpenMS conventions allow both "q-value" and "q-value_score" forms.
+            #
+            #  :param score_name: The score name to normalize
+            #  :returns: The normalized score name (without "_score" suffix)
+
+        @staticmethod
+        bool isKnownScoreType(const String& score_name) except + nogil
+            # wrap-doc:
+            #  Checks if a score name is a known score type (after normalization)
+            #
+            #  This method normalizes the score name and checks if it matches any known
+            #  score type in the registry.
+            #
+            #  :param score_name: The score name to check
+            #  :returns: True if the normalized name matches any known score type
+
         # Note: getIDNamesForType and findIDTypeByName are not wrapped as they use std::set
         # which is more complex to wrap and less useful in Python

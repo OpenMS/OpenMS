@@ -118,6 +118,29 @@ namespace OpenMS
     */
     static bool findIDTypeByName(const String& name, IDType& type);
 
+    /**
+      @brief Normalizes a score name by removing the "_score" suffix if present.
+
+      This is useful when checking if a score name matches a known score type,
+      as OpenMS conventions allow both "q-value" and "q-value_score" forms.
+
+      @param[in] score_name The score name to normalize.
+      @return The normalized score name (without "_score" suffix).
+    */
+    static String normalizeScoreName(const String& score_name);
+
+    /**
+      @brief Checks if a score name is a known score type (after normalization).
+
+      This method normalizes the score name and checks if it matches any known
+      score type in the registry. Unlike isScoreType(), this doesn't require
+      specifying which IDType to check - it checks all of them.
+
+      @param[in] score_name The score name to check.
+      @return True if the normalized name matches any known score type.
+    */
+    static bool isKnownScoreType(const String& score_name);
+
   private:
     /// Initialize static maps (called once)
     static void initializeMaps_();
