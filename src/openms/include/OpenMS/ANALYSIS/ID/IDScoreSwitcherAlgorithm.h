@@ -13,6 +13,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/ANALYSIS/ID/Scores.h>
 
 #include <algorithm>
 #include <vector>
@@ -45,21 +46,10 @@ namespace OpenMS
     IDScoreSwitcherAlgorithm();
 
     /**
-      @brief This is a rough hierarchy of possible score types in MS.
-
-      In an ideal case, this should be reimplemented to follow
-      ontology hierarchies as soon as e.g. MS-OBO is complete
-      and we switched the Metavalues to CV terms.
+      @brief Backward compatible typedef for Scores::Type.
+      @deprecated Use Scores::Type directly instead.
     */
-    enum class ScoreType
-    {
-      RAW,      ///< Raw score, e.g., search engine specific scores like hyperscore.
-      RAW_EVAL, ///< Raw score with E-value, e.g., search engine specific scores like expect score.
-      PP,       ///< Posterior probability.
-      PEP,      ///< Posterior error probability.
-      FDR,      ///< False discovery rate.
-      QVAL,     ///< Q-value.
-    };
+    using ScoreType = Scores::Type;
 
     /**
       @brief Checks if the given score name corresponds to a specific score type.
@@ -74,13 +64,7 @@ namespace OpenMS
     */
     bool isScoreType(const String& score_name, const ScoreType& type) const
     {
-      String chopped = score_name;
-      if (chopped.hasSuffix("_score"))
-      {
-        chopped = chopped.chop(6);
-      }
-      const std::set<String>& possible_types = type_to_str_.at(type);
-      return possible_types.find(chopped) != possible_types.end();
+      return Scores::isScoreType(score_name, type);
     }
 
     /**
@@ -90,55 +74,25 @@ namespace OpenMS
       ScoreType enum value. It handles various common representations of score types, including those
       with or without the "_score" suffix, and ignores case and special characters like '-', '_', and ' '.
 
-      @param[out] score_type The string representation of the score type.
+      @param[in] score_type The string representation of the score type.
       @return The corresponding ScoreType enum value.
       @throws Exception::MissingInformation If the provided score_type string does not match any known
                                             score type.
     */
-    static ScoreType toScoreTypeEnum(String score_type)
+    static ScoreType toScoreTypeEnum(const String& score_type)
     {
-      if (score_type.hasSuffix("_score"))
-      {
-        score_type = score_type.chop(6);
-      }
-      score_type.toLower();     
-      score_type.erase(std::remove_if(score_type.begin(), score_type.end(), 
-                [](unsigned char c) { return c == '-' || c == '_' || c == ' '; }), 
-                score_type.end());
-
-      const std::map<String, ScoreType> s_to_type =
-      {
-        {"raw", ScoreType::RAW},
-        {"rawevalue", ScoreType::RAW_EVAL},
-        {"qvalue", ScoreType::QVAL},
-        {"fdr", ScoreType::FDR},
-        {"falsediscoveryrate", ScoreType::FDR},
-        {"pep", ScoreType::PEP},
-        {"posteriorerrorprobability", ScoreType::PEP},
-        {"posteriorprobability", ScoreType::PP},
-        {"pp", ScoreType::PP}
-      };
-
-      if (auto it = s_to_type.find(score_type); it != s_to_type.end())
-      {
-        return it->second;
-      }
-      else
-      {
-        throw Exception::MissingInformation(__FILE__, __LINE__,
-                                            OPENMS_PRETTY_FUNCTION, String("Unknown score type '") + score_type + "'.");
-      }
+      return Scores::toType(score_type);
     }
 
     /**
       @brief Determines whether a higher score type is better given a ScoreType enum.
 
-      @param[out] score_type The score type to check.
+      @param[in] score_type The score type to check.
       @return True if a higher score type is better, false otherwise.
     */
     bool isScoreTypeHigherBetter(ScoreType score_type)
     {
-      return type_to_better_[score_type];
+      return Scores::isHigherBetter(score_type);
     }
 
     /**
@@ -190,8 +144,8 @@ namespace OpenMS
       {
         // Main score is not of the requested type, look for it in meta values
         const auto& first_hit = id.getHits()[0];
-        const std::set<String>& score_types = type_to_str_.at(score_type);
-        
+        const std::set<String>& score_types = Scores::getNamesForType(score_type);
+
         // Search for scores of the requested type in meta values using the existing score type collection
         for (const String& score_name : score_types)
         {
@@ -335,10 +289,10 @@ namespace OpenMS
       }
       new_score_ = t;
 
-      if (higher_better_ != type_to_better_[type])
+      if (higher_better_ != Scores::isHigherBetter(type))
       {
         OPENMS_LOG_WARN << "Requested score type does not match the expected score direction. Correcting!\n";
-        higher_better_ = type_to_better_[type];
+        higher_better_ = Scores::isHigherBetter(type);
       }
       for (auto& i : id)
       {
@@ -412,10 +366,10 @@ namespace OpenMS
       }
       new_score_ = new_type;
 
-      if (higher_better_ != type_to_better_[type])
+      if (higher_better_ != Scores::isHigherBetter(type))
       {
         OPENMS_LOG_WARN << "Requested score type does not match the expected score direction. Correcting!\n";
-        higher_better_ = type_to_better_[type];
+        higher_better_ = Scores::isHigherBetter(type);
       }
 
       const auto switchScoresSingle = [&counter,this](PeptideIdentification& id){switchScores(id,counter);};
@@ -448,15 +402,10 @@ namespace OpenMS
       higher_better = pep_ids[0].isHigherScoreBetter();
       
       // look up the score category ("RAW", "PEP", "q-value", etc.) for the given score name
-      for (auto& [scoretype, names] : type_to_str_)
+      if (Scores::findTypeByName(name, score_type))
       {
-        if (names.find(name) != names.end())
-        {
-          score_type = scoretype;
-          OPENMS_LOG_INFO << "Found score type " << name << " to be of type " 
-            << static_cast<std::underlying_type<ScoreType>::type>(scoretype) << std::endl;
-          return;
-        }
+        OPENMS_LOG_INFO << "Found score type " << name << " to be of type "
+          << static_cast<std::underlying_type<ScoreType>::type>(score_type) << std::endl;
       }
     }
   }
@@ -494,13 +443,9 @@ namespace OpenMS
         higher_better = pep_ids[0].isHigherScoreBetter();
 
         // look up the score category ("RAW", "PEP", "q-value", etc.) for the given score name
-        for (auto& [scoretype, names] : type_to_str_)
+        if (Scores::findTypeByName(name, score_type))
         {
-          if (names.find(name) != names.end())
-          {
-            score_type = scoretype;
-            return;
-          }
+          return;
         }
       }
     }
@@ -512,18 +457,14 @@ namespace OpenMS
         name = id.getScoreType();
         higher_better = id.isHigherScoreBetter();
 
-         // look up the score category ("RAW", "PEP", "q-value", etc.) for the given score name
-        for (auto& [scoretype, names] : type_to_str_)
+        // look up the score category ("RAW", "PEP", "q-value", etc.) for the given score name
+        if (Scores::findTypeByName(name, score_type))
         {
-          if (names.find(name) != names.end())
-          {
-            score_type = scoretype;
-            return;
-          }
-        }        
+          return;
+        }
         return;
       }
-    }    
+    }
   }
 
     /**
@@ -807,33 +748,5 @@ namespace OpenMS
 
     /// will be set according to the algorithm parameters
     bool higher_better_; // for the new scores, are higher ones better?
-
-    /// a map from ScoreType to their names as used around OpenMS
-    std::map<ScoreType, std::set<String>> type_to_str_ =
-        {
-            //TODO introduce real meaningful score names for XTandem, Mascot etc. (e.g., hyperscore)
-            {ScoreType::RAW, {"svm", "MS:1001492", "XTandem", "OMSSA", "SEQUEST:xcorr", "Mascot", "mvh", "hyperscore", "ln(hyperscore)"}},
-            //TODO find out reasonable raw scores for SES that provide E-Values as main score or see below
-            //TODO there is no test for spectraST idXML, so I don't know its score
-            //TODO check if we should combine RAW and RAW_EVAL:
-            // What if a SE does not have an e-value score (spectrast, OMSSA, crux/sequest, myrimatch),
-            // then you need additional if's/try's
-            {ScoreType::RAW_EVAL, {"expect", "SpecEValue", "E-Value", "evalue", "MS:1002053", "MS:1002257"}},
-            {ScoreType::PP, {"Posterior Probability"}},
-            {ScoreType::PEP, {"Posterior Error Probability", "pep", "PEP", "posterior_error_probability", "MS:1001493"}}, // TODO add CV terms
-            {ScoreType::FDR, {"FDR", "fdr", "false discovery rate"}},
-            {ScoreType::QVAL, {"q-value", "qvalue", "MS:1001491", "q-Value", "qval"}}
-        };
-
-    /// a map from ScoreType to their ordering
-    std::map<ScoreType, bool> type_to_better_ =
-        {
-            {ScoreType::RAW, true}, //TODO this might actually not always be true
-            {ScoreType::RAW_EVAL, false},
-            {ScoreType::PP, true},
-            {ScoreType::PEP, false},
-            {ScoreType::FDR, false},
-            {ScoreType::QVAL, false}
-        };        
   };
 } // namespace OpenMS

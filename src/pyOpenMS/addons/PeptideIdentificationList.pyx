@@ -618,7 +618,8 @@ import numpy as np
             )
         from . import SpectrumLookup as _SpectrumLookup
         from . import IDScoreSwitcherAlgorithm as _IDScoreSwitcherAlgorithm
-        _ScoreType = _IDScoreSwitcherAlgorithm.ScoreType
+        from . import Scores as _Scores
+        _IDScoreType = _Scores.IDScoreType
 
         # Native ID type accessions to try for scan number extraction
         # See SpectrumLookup.cpp for the full list of supported formats
@@ -694,7 +695,7 @@ import numpy as np
 
             # Detect PEP score type once per PeptideIdentification (applies to all hits)
             # Use isScoreType to check if main score is PEP type
-            is_main_score_pep = idsa.isScoreType(score_type, _ScoreType.PEP) if score_type else False
+            is_main_score_pep = idsa.isScoreType(score_type, _IDScoreType.PEP) if score_type else False
 
             for rank in range(num_hits):
                 hit = hits[rank]
@@ -1032,7 +1033,8 @@ import numpy as np
             )
         from . import SpectrumLookup as _SpectrumLookup
         from . import IDScoreSwitcherAlgorithm as _IDScoreSwitcherAlgorithm
-        _ScoreType = _IDScoreSwitcherAlgorithm.ScoreType
+        from . import Scores as _Scores
+        _IDScoreType = _Scores.IDScoreType
 
         # Native ID type accessions for scan number extraction
         _native_id_accessions = [
@@ -1130,7 +1132,7 @@ import numpy as np
             num_hits = len(hits) if export_all_hits else min(1, len(hits))
 
             # Check if main score is PEP type
-            is_main_score_pep = idsa.isScoreType(score_type, _ScoreType.PEP) if score_type else False
+            is_main_score_pep = idsa.isScoreType(score_type, _IDScoreType.PEP) if score_type else False
 
             for rank in range(num_hits):
                 hit = hits[rank]

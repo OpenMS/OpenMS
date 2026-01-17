@@ -6,6 +6,7 @@ from DefaultParamHandler cimport *
 from PeptideIdentification cimport *
 from PeptideIdentificationList cimport *
 from ConsensusMap cimport *
+from Scores cimport *
 
 cdef extern from "<OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h>" namespace "OpenMS":
 
@@ -134,23 +135,6 @@ cdef extern from "<OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h>" namespace "Op
 
 
 cdef extern from "<OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h>" namespace "OpenMS::IDScoreSwitcherAlgorithm":
-
-    cdef enum class IDScoreType "OpenMS::IDScoreSwitcherAlgorithm::ScoreType":
-        # wrap-doc:
-        #  Hierarchy of possible score types in MS
-        #
-        #  - RAW: Raw score, e.g., search engine specific scores like hyperscore
-        #  - RAW_EVAL: Raw score with E-value, e.g., expect score
-        #  - PP: Posterior probability
-        #  - PEP: Posterior error probability
-        #  - FDR: False discovery rate
-        #  - QVAL: Q-value
-        RAW,
-        RAW_EVAL,
-        PP,
-        PEP,
-        FDR,
-        QVAL
 
     cdef cppclass ScoreSearchResult "OpenMS::IDScoreSwitcherAlgorithm::ScoreSearchResult":
         # wrap-doc:
