@@ -1040,13 +1040,15 @@ import numpy as np
             "MS:1000774", "MS:1000777", "MS:1001530",
         ]
 
+        # Create SpectrumLookup once for all scan extractions (not per-call)
+        _spectrum_lookup = _SpectrumLookup()
+
         def _extract_scan_number(native_id):
             if not native_id:
                 return None
-            sl = _SpectrumLookup()
             for accession in _native_id_accessions:
                 try:
-                    scan_num = sl.extractScanNumber(native_id, accession)
+                    scan_num = _spectrum_lookup.extractScanNumber(native_id, accession)
                     if scan_num >= 0:
                         return scan_num
                 except Exception:

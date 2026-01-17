@@ -791,7 +791,7 @@ def test_to_arrow_column_filter():
 
 
 def test_to_arrow_empty_list():
-    """Test to_arrow with empty PeptideIdentificationList."""
+    """Test to_arrow with empty PeptideIdentificationList preserves schema."""
     pa = pytest.importorskip("pyarrow")
     import pyopenms as oms
 
@@ -800,8 +800,18 @@ def test_to_arrow_empty_list():
 
     assert isinstance(table, pa.Table)
     assert table.num_rows == 0
-    # Schema should still exist
-    assert "id" in table.schema.names or len(table.schema.names) >= 0
+
+    # Empty tables should still have full schema for consistency
+    # Core columns must be present even with no data
+    expected_columns = ["id", "rt", "mz", "charge", "protein_accession",
+                        "start", "end", "P_ID", "PSM_ID"]
+    for col in expected_columns:
+        assert col in table.schema.names, f"Missing column {col} in empty table schema"
+
+    # Verify types are correct
+    assert table.schema.field("id").type == pa.utf8()
+    assert table.schema.field("rt").type == pa.float32()
+    assert table.schema.field("charge").type == pa.int32()
 
 
 def test_to_psm_arrow_schema_types():
@@ -842,7 +852,7 @@ def test_to_psm_arrow_column_filter():
 
 
 def test_to_psm_arrow_empty_list():
-    """Test to_psm_arrow with empty PeptideIdentificationList."""
+    """Test to_psm_arrow with empty PeptideIdentificationList preserves schema."""
     pa = pytest.importorskip("pyarrow")
     import pyopenms as oms
 
@@ -851,8 +861,24 @@ def test_to_psm_arrow_empty_list():
 
     assert isinstance(table, pa.Table)
     assert table.num_rows == 0
-    # Schema should still be defined
-    assert len(table.schema) > 0
+
+    # Empty tables should have full schema for Parquet compatibility
+    # and consumer code that relies on consistent column structure
+    expected_columns = ["sequence", "peptidoform", "modifications",
+                        "precursor_charge", "posterior_error_probability",
+                        "is_decoy", "observed_mz", "protein_accessions",
+                        "rt", "score", "rank", "P_ID"]
+    for col in expected_columns:
+        assert col in table.schema.names, f"Missing column {col} in empty table schema"
+
+    # Verify nested types are correct even when empty
+    mods_type = table.schema.field("modifications").type
+    assert pa.types.is_list(mods_type)
+    assert pa.types.is_struct(mods_type.value_type)
+
+    scores_type = table.schema.field("additional_scores").type
+    assert pa.types.is_list(scores_type)
+    assert pa.types.is_struct(scores_type.value_type)
 
 
 def test_to_psm_arrow_vs_psm_df_data_equivalence():
