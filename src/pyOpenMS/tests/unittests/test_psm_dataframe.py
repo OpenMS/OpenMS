@@ -16,6 +16,25 @@ All PSM export methods return results sorted by:
 """
 
 import pytest
+import numpy as np
+import pandas as pd
+
+
+def to_list(val):
+    """Convert numpy array to list for comparison. Handles Arrow->pandas conversion."""
+    if hasattr(val, 'tolist'):
+        return val.tolist()
+    return val
+
+
+def is_null(val):
+    """Check if value is null (None or NaN). Handles Arrow->pandas conversion."""
+    if val is None:
+        return True
+    try:
+        return pd.isna(val)
+    except (TypeError, ValueError):
+        return False
 
 
 def create_test_data():
@@ -224,7 +243,7 @@ def test_psm_df_additional_scores():
     df = pep_ids.to_psm_df()
 
     # Check additional_scores has known score types
-    scores = df.iloc[0]["additional_scores"]
+    scores = to_list(df.iloc[0]["additional_scores"])
     assert isinstance(scores, list)
 
     # Find q-value in the list (known score type)
@@ -244,7 +263,7 @@ def test_psm_df_additional_scores():
     assert not some_score_in_scores, "Unknown score should NOT be in additional_scores"
 
     # Check psm_metavalues has unknown scores
-    psm_mvs = df.iloc[0]["psm_metavalues"]
+    psm_mvs = to_list(df.iloc[0]["psm_metavalues"])
     assert isinstance(psm_mvs, list)
 
     # Find some_score in psm_metavalues
@@ -255,7 +274,7 @@ def test_psm_df_additional_scores():
             break
 
     assert some_score_entry is not None, "Unknown score should be in psm_metavalues"
-    assert some_score_entry["value"] == 42.5
+    assert some_score_entry["value"] == "42.5"  # stringified in Arrow export
 
 
 def test_psm_df_modifications():
@@ -635,7 +654,7 @@ def test_psm_df_missing_target_decoy():
 
     df = pep_ids.to_psm_df()
 
-    assert df.iloc[0]["is_decoy"] is None
+    assert is_null(df.iloc[0]["is_decoy"])
 
 
 def test_psm_df_charge_zero():
@@ -653,7 +672,7 @@ def test_psm_df_charge_zero():
 
     df = pep_ids.to_psm_df()
 
-    assert df.iloc[0]["calculated_mz"] is None
+    assert is_null(df.iloc[0]["calculated_mz"])
     assert df.iloc[0]["precursor_charge"] == 0
 
 
@@ -691,7 +710,7 @@ def test_psm_df_non_pep_score_type():
 
     df = pep_ids.to_psm_df()
 
-    assert df.iloc[0]["posterior_error_probability"] is None
+    assert is_null(df.iloc[0]["posterior_error_probability"])
     assert df.iloc[0]["score"] == pytest.approx(100.0)
     assert df.iloc[0]["score_type"] == "Hyperscore"
 
@@ -719,7 +738,7 @@ def test_psm_df_multiple_protein_accessions():
 
     df = pep_ids.to_psm_df()
 
-    assert df.iloc[0]["protein_accessions"] == ["PROT1", "PROT2", "PROT3"]
+    assert to_list(df.iloc[0]["protein_accessions"]) == ["PROT1", "PROT2", "PROT3"]
 
 
 def test_psm_df_peak_annotations():
@@ -759,10 +778,10 @@ def test_psm_df_peak_annotations():
     assert "ion_type_array" in df.columns
 
     assert df.iloc[0]["number_peaks"] == 2
-    assert df.iloc[0]["mz_array"] == [100.5, 200.5]
-    assert df.iloc[0]["intensity_array"] == [1000.0, 2000.0]
-    assert df.iloc[0]["charge_array"] == [1, 1]
-    assert df.iloc[0]["ion_type_array"] == ["y1", "y2"]
+    assert to_list(df.iloc[0]["mz_array"]) == [100.5, 200.5]
+    assert to_list(df.iloc[0]["intensity_array"]) == [1000.0, 2000.0]
+    assert to_list(df.iloc[0]["charge_array"]) == [1, 1]
+    assert to_list(df.iloc[0]["ion_type_array"]) == ["y1", "y2"]
 
 
 def test_psm_df_peak_annotations_empty():
@@ -782,8 +801,8 @@ def test_psm_df_peak_annotations_empty():
     df = pep_ids.to_psm_df(include_peak_annotations=True)
 
     assert df.iloc[0]["number_peaks"] == 0
-    assert df.iloc[0]["mz_array"] == []
-    assert df.iloc[0]["intensity_array"] == []
+    assert len(to_list(df.iloc[0]["mz_array"])) == 0
+    assert len(to_list(df.iloc[0]["intensity_array"])) == 0
 
 
 def test_psm_df_peak_annotations_schema_consistency():
@@ -801,8 +820,8 @@ def test_psm_df_peak_annotations_schema_consistency():
                  "charge_array", "ion_type_array", "ion_mobility_array"]
     for col in peak_cols:
         assert col in df.columns, f"Column {col} should be present even with include_peak_annotations=False"
-        # Values should be None when not requested
-        assert df.iloc[0][col] is None, f"Column {col} should be None when include_peak_annotations=False"
+        # Values should be None/NaN when not requested
+        assert is_null(df.iloc[0][col]), f"Column {col} should be null when include_peak_annotations=False"
 
     # Verify psm_columns() includes these columns
     expected_cols = pep_ids.psm_columns()
@@ -1245,7 +1264,7 @@ def test_psm_df_spectrum_metavalues():
 
     df = pep_ids.to_psm_df()
 
-    spectrum_mvs = df.iloc[0]["spectrum_metavalues"]
+    spectrum_mvs = to_list(df.iloc[0]["spectrum_metavalues"])
     assert isinstance(spectrum_mvs, list)
 
     # Should have custom_spectrum_value and spectrum_label
@@ -1255,10 +1274,10 @@ def test_psm_df_spectrum_metavalues():
     # spectrum_reference should be excluded (has dedicated column)
     assert "spectrum_reference" not in mv_names
 
-    # Check values
+    # Check values (note: values are stringified in Arrow export)
     for mv in spectrum_mvs:
         if mv["name"] == "custom_spectrum_value":
-            assert mv["value"] == 42.5
+            assert mv["value"] == "42.5"  # stringified
         elif mv["name"] == "spectrum_label":
             assert mv["value"] == "test_spectrum"
 
@@ -1285,7 +1304,7 @@ def test_psm_df_psm_metavalues():
 
     df = pep_ids.to_psm_df()
 
-    psm_mvs = df.iloc[0]["psm_metavalues"]
+    psm_mvs = to_list(df.iloc[0]["psm_metavalues"])
     assert isinstance(psm_mvs, list)
 
     # Should have custom_property and numeric_property
@@ -1296,12 +1315,12 @@ def test_psm_df_psm_metavalues():
     assert "target_decoy" not in mv_names
     assert "predicted_RT" not in mv_names
 
-    # Check values
+    # Check values (note: values are stringified in Arrow export)
     for mv in psm_mvs:
         if mv["name"] == "custom_property":
             assert mv["value"] == "my_value"
         elif mv["name"] == "numeric_property":
-            assert mv["value"] == 123
+            assert mv["value"] == "123"  # stringified
 
 
 def test_psm_df_score_vs_metavalue_distinction():
@@ -1329,8 +1348,8 @@ def test_psm_df_score_vs_metavalue_distinction():
 
     df = pep_ids.to_psm_df()
 
-    additional_scores = df.iloc[0]["additional_scores"]
-    psm_metavalues = df.iloc[0]["psm_metavalues"]
+    additional_scores = to_list(df.iloc[0]["additional_scores"])
+    psm_metavalues = to_list(df.iloc[0]["psm_metavalues"])
 
     # Known scores should be in additional_scores
     score_names = [s["score_name"] for s in additional_scores]
@@ -1363,8 +1382,8 @@ def test_psm_df_metavalues_empty_when_none():
 
     df = pep_ids.to_psm_df()
 
-    assert df.iloc[0]["psm_metavalues"] == []
-    assert df.iloc[0]["spectrum_metavalues"] == []
+    assert len(to_list(df.iloc[0]["psm_metavalues"])) == 0
+    assert len(to_list(df.iloc[0]["spectrum_metavalues"])) == 0
 
 
 def test_psm_columns_includes_metavalue_columns():
