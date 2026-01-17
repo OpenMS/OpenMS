@@ -842,6 +842,17 @@ import numpy as np
             # Use the C++ Scores.isKnownScoreType which handles _score suffix normalization
             return _Scores.isKnownScoreType(name)
 
+        def _get_value_type(val):
+            """Determine the type string for a metavalue."""
+            if isinstance(val, bool):
+                return "bool"
+            elif isinstance(val, int):
+                return "int"
+            elif isinstance(val, float):
+                return "float"
+            else:
+                return "str"
+
         # Excluded metavalues (have dedicated columns)
         _excluded_psm_metavalues = {b"target_decoy", b"predicted_RT", b"predicted_rt"}
         _excluded_spectrum_metavalues = {b"spectrum_reference", b"ion_mobility", b"IM"}
@@ -915,12 +926,15 @@ import numpy as np
                 if key not in _excluded_spectrum_metavalues:
                     val = pep_id.getMetaValue(key)
                     key_str = key.decode("utf-8") if isinstance(key, bytes) else str(key)
+                    # Determine type before any conversion
+                    val_type = _get_value_type(val)
                     # Convert value to appropriate Python type
                     if isinstance(val, bytes):
                         val = val.decode("utf-8")
                     spectrum_metavalues.append({
                         "name": key_str,
-                        "value": val
+                        "value": val,
+                        "value_type": val_type
                     })
 
             hits = pep_id.getHits()
@@ -1023,11 +1037,14 @@ import numpy as np
                             })
                         else:
                             # Not a known score - add to psm_metavalues
+                            # Determine type before any conversion
+                            val_type = _get_value_type(val)
                             if isinstance(val, bytes):
                                 val = val.decode("utf-8")
                             psm_metavalues.append({
                                 "name": key_str,
-                                "value": val
+                                "value": val,
+                                "value_type": val_type
                             })
 
                 # Calculate m/z
@@ -1137,9 +1154,11 @@ import numpy as np
         ])
         # Metavalue type for psm_metavalues and spectrum_metavalues
         # Uses utf8 for value since metavalues can be heterogeneous (int, float, str)
+        # value_type field enables consumers to reconstruct typed values
         metavalue_type = pa.struct([
             ("name", pa.utf8()),
-            ("value", pa.utf8())  # stringified values for heterogeneous data
+            ("value", pa.utf8()),      # stringified values for heterogeneous data
+            ("value_type", pa.utf8())  # original type: "int", "float", "str", "bool"
         ])
 
         data_dict = {}
@@ -1206,16 +1225,20 @@ import numpy as np
 
         # Metavalue columns - stringify values for Arrow compatibility
         if should_include("psm_metavalues"):
-            # Convert values to strings for Arrow struct
+            # Convert values to strings for Arrow struct, preserving type info
             all_psm_metavalues_str = [
-                [{"name": mv["name"], "value": str(mv["value"]) if mv["value"] is not None else None}
+                [{"name": mv["name"],
+                  "value": str(mv["value"]) if mv["value"] is not None else None,
+                  "value_type": mv["value_type"]}
                  for mv in mvs] for mvs in all_psm_metavalues
             ]
             data_dict["psm_metavalues"] = pa.array(all_psm_metavalues_str, type=pa.list_(metavalue_type))
         if should_include("spectrum_metavalues"):
-            # Convert values to strings for Arrow struct
+            # Convert values to strings for Arrow struct, preserving type info
             all_spectrum_metavalues_str = [
-                [{"name": mv["name"], "value": str(mv["value"]) if mv["value"] is not None else None}
+                [{"name": mv["name"],
+                  "value": str(mv["value"]) if mv["value"] is not None else None,
+                  "value_type": mv["value_type"]}
                  for mv in mvs] for mvs in all_spectrum_metavalues
             ]
             data_dict["spectrum_metavalues"] = pa.array(all_spectrum_metavalues_str, type=pa.list_(metavalue_type))
