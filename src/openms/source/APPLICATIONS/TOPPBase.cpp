@@ -2516,7 +2516,7 @@ namespace OpenMS
                 trailing_args += *it;
               }
               throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                String("Ignoring '") + trailing_args + "' because " + arg + " is a flag.");
+                String("Command line error: Trailing arguments after flag '") + arg + "': " + trailing_args);
             }
           }
           else // option with argument(s)
