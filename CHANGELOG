@@ -22,6 +22,17 @@ General:
    available in a dedicated, easily discoverable class. The methods in SpectrumLookup remain
    available for backward compatibility but delegate to SpectrumNativeIDParser.
 
+TOPP tools:
+  Changes:
+    all:
+      - BREAKING: Command-line duplicate parameter behavior changed (#8670, fixes #5345)
+        When a parameter is specified multiple times on the command line, the LAST occurrence now wins
+        (previously, the FIRST occurrence was used). This enables the nextflow pattern of using ${ext.args}
+        at the end of commands to override hardcoded defaults. A warning is issued when duplicates are detected.
+        Example: tool -param default -param override  # Now uses 'override' (previously used 'default')
+      - Improved error messages for command-line parameter errors (#8670)
+        Flags with trailing arguments now produce clearer warnings instead of cryptic "trailing text arguments" errors.
+
 PyOpenMS:
  - New Python bindings for SpectrumNativeIDParser with static methods for native ID parsing (#8633)
    Example: SpectrumNativeIDParser.extractScanNumber("scan=42", "MS:1000768")
