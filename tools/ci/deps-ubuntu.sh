@@ -45,15 +45,19 @@ sudo apt-get -qq install -y \
   nlohmann-json3-dev \
   libsimde-dev
 
+  # Install Apache Arrow (pinned to version 22 due to CMake issues with Arrow 23.0.0)
   sudo apt update
   sudo apt-get install -y -V ca-certificates lsb-release wget
   wget https://packages.apache.org/artifactory/arrow/$(lsb_release --id --short | tr 'A-Z' 'a-z')/apache-arrow-apt-source-latest-$(lsb_release --codename --short).deb
   sudo apt update
   sudo apt-get install -y -V ./apache-arrow-apt-source-latest-$(lsb_release --codename --short).deb
   sudo apt update
+  # Pin to Arrow 22.x to avoid CMake configuration issues with Arrow 23.0.0
   sudo apt-get install -y --no-install-recommends \
-        libarrow-dev \
-        libparquet-dev \
+        libarrow-dev=22.0.0-1 \
+        libparquet-dev=22.0.0-1 \
+        libarrow2200=22.0.0-1 \
+        libparquet2200=22.0.0-1 \
 
 # Optional dependencies:
 sudo apt-get -qq install -y \

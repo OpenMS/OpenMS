@@ -2505,6 +2505,19 @@ namespace OpenMS
           if (pos->second->type == ParameterInformation::FLAG) // flag
           {
             value = "true";
+            // Check if there are trailing arguments after the flag - this is an error
+            if (!queue.empty())
+            {
+              // Collect the trailing arguments for the error message
+              String trailing_args;
+              for (list<String>::const_iterator it = queue.begin(); it != queue.end(); ++it)
+              {
+                if (it != queue.begin()) trailing_args += " ";
+                trailing_args += *it;
+              }
+              throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                String("Command line error: Trailing arguments after flag '") + arg + "': " + trailing_args);
+            }
           }
           else // option with argument(s)
           {
@@ -2572,7 +2585,21 @@ namespace OpenMS
               queue.pop_front(); // argument was already used
           }
           OPENMS_LOG_DEBUG << "Command line: setting parameter value: '" << pos->second->name << "' to '" << value << "'" << std::endl;
-          cmd_params.setValue(pos->second->name, value);
+          
+          // Check for duplicate parameters
+          // Note: This is intentionally allowed to support nextflow workflows where ${ext.args} 
+          // can be appended to command lines to allow users to override default arguments.
+          // Since we parse in reverse order, we only keep the first occurrence we encounter,
+          // which is the LAST occurrence on the command line.
+          if (cmd_params.exists(pos->second->name))
+          {
+            ParamValue existing_value = cmd_params.getValue(pos->second->name);
+            writeLogWarn_(String("Warning: Duplicate parameter '") + arg + "' given. Using last occurrence with value '" + String(existing_value.toString()) + "' (ignoring '" + String(value.toString()) + "').");
+          }
+          else
+          {
+            cmd_params.setValue(pos->second->name, value);
+          }
         }
         else // unknown argument -> append to "unknown" list
         {
