@@ -26,6 +26,17 @@ Dependencies:
   - PyOpenMS now depends on Autowrap >= 0.26.0 (#8580, #8616)
   - Eigen minimum version updated from 3.3.4 to 3.4.0 (#8366)
 
+TOPP tools:
+  Changes:
+    all:
+      - BREAKING: Command-line duplicate parameter behavior changed (#8670, fixes #5345)
+        When a parameter is specified multiple times on the command line, the LAST occurrence now wins
+        (previously, the FIRST occurrence was used). This enables the nextflow pattern of using ${ext.args}
+        at the end of commands to override hardcoded defaults. A warning is issued when duplicates are detected.
+        Example: tool -param default -param override  # Now uses 'override' (previously used 'default')
+      - Improved error messages for command-line parameter errors (#8670)
+        Flags with trailing arguments now produce clearer warnings instead of cryptic "trailing text arguments" errors.
+
 PyOpenMS:
   - Pythonic convenience methods added:
     - __len__() for ConsensusMap, FeatureMap (#8510)
