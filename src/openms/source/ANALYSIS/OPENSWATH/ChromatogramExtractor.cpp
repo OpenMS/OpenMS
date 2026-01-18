@@ -12,6 +12,8 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
+#include <unordered_map>
+
 #define IMPLIES(a, b) !(a) || (b)
 
 namespace OpenMS
@@ -105,14 +107,14 @@ namespace OpenMS
                                                   const bool ms1,
                                                   const int ms1_isotopes)
   {
-    // hash of the peptide reference containing all transitions
-    std::map<String, std::vector<const OpenSwath::LightTransition*> > pep2tr;
+    std::unordered_map<String, std::vector<const OpenSwath::LightTransition*> > pep2tr;
     for (Size i = 0; i < transition_exp_used.getTransitions().size(); i++)
     {
       String ref = transition_exp_used.getTransitions()[i].getPeptideRef();
       pep2tr[ref].push_back(&transition_exp_used.getTransitions()[i]);
     }
-    std::map<String, const OpenSwath::LightCompound*> tr2pep;
+    std::unordered_map<String, const OpenSwath::LightCompound*> tr2pep;
+    tr2pep.reserve(transition_exp_used.getCompounds().size());
     for (const auto & p : transition_exp_used.getCompounds()) {tr2pep[p.id] = &p;}
 
     // Determine iteration size:
@@ -127,6 +129,11 @@ namespace OpenMS
     {
       itersize = transition_exp_used.getTransitions().size();
     }
+
+    // Pre-allocate vectors for better performance
+    Size expected_size = itersize * (1 + (ms1 && ms1_isotopes > 0 ? ms1_isotopes : 0));
+    output_chromatograms.reserve(output_chromatograms.size() + expected_size);
+    coordinates.reserve(coordinates.size() + expected_size);
 
     for (Size i = 0; i < itersize; i++)
     {
@@ -189,8 +196,7 @@ namespace OpenMS
                                                   const bool ms1,
                                                   const int ms1_isotopes)
   {
-    // hash of the peptide reference containing all transitions
-    typedef std::map<String, std::vector<const ReactionMonitoringTransition*> > PeptideTransitionMapType;
+    typedef std::unordered_map<String, std::vector<const ReactionMonitoringTransition*> > PeptideTransitionMapType;
     PeptideTransitionMapType pep2tr;
     for (Size i = 0; i < transition_exp_used.getTransitions().size(); i++)
     {
@@ -222,6 +228,11 @@ namespace OpenMS
     {
       itersize = transition_exp_used.getTransitions().size();
     }
+
+    // Pre-allocate vectors for better performance
+    Size expected_size = itersize * (1 + (ms1 && ms1_isotopes > 0 ? ms1_isotopes : 0));
+    output_chromatograms.reserve(output_chromatograms.size() + expected_size);
+    coordinates.reserve(coordinates.size() + expected_size);
 
     for (Size i = 0; i < itersize; i++)
     {

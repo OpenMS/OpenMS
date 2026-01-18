@@ -198,7 +198,7 @@ using namespace OpenMS;
     {
       OPENMS_LOG_WARN << "The given file does not contain any conventional peak data, but might"
                   " contain chromatograms. This tool currently cannot handle them, sorry." << endl;
-      return INCOMPATIBLE_INPUT_DATA;
+      return ExitCodes::INCOMPATIBLE_INPUT_DATA;
     }
 
     //check if spectra are sorted
@@ -207,7 +207,7 @@ using namespace OpenMS;
       if (!unprocessed_spectra[i].isSorted())
       {
         OPENMS_LOG_WARN << "Error: Not all spectra are sorted according to peak m/z positions. Use FileFilter to sort the input!" << endl;
-        return INCOMPATIBLE_INPUT_DATA;
+        return ExitCodes::INCOMPATIBLE_INPUT_DATA;
       }
     }
 
@@ -299,7 +299,7 @@ using namespace OpenMS;
     search_params.digestion_enzyme = *(ProteaseDB::getInstance()->getEnzyme(enzyme_name_));
     search_params.fixed_modifications = fixedModNames_;
     search_params.variable_modifications = varModNames_;
-    search_params.mass_type = ProteinIdentification::MONOISOTOPIC;
+    search_params.mass_type = ProteinIdentification::PeakMassType::MONOISOTOPIC;
     search_params.missed_cleavages = missed_cleavages_;
     search_params.fragment_mass_tolerance = fragment_mass_tolerance_;
     search_params.fragment_mass_tolerance_ppm =  fragment_mass_tolerance_unit_ppm_;

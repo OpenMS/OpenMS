@@ -392,7 +392,7 @@ namespace OpenMS
         // note the copy(getIniLocation_(),..) as we want the param tree without instance
         // information
         param_ = this->getDefaultParameters_().copy(getIniLocation_(), true);
-        if (!param_.update(finalParam, false, false, true, true, OpenMS_Log_warn))
+        if (!param_.update(finalParam, false, false, true, true, getGlobalLogWarn()))
         {
           OPENMS_LOG_ERROR << "Parameters passed to '" << this->tool_name_ << "' are invalid. To prevent usage of wrong defaults, please update/fix the parameters!" << std::endl;
           return ILLEGAL_PARAMETERS;
@@ -448,7 +448,7 @@ namespace OpenMS
       //-------------------------------------------------------------
       debug_level_ = getParamAsInt_("debug", 0);
       writeDebug_(String("Debug level (after ini file): ") + String(debug_level_), 1);
-      if (debug_level_ > 0) OpenMS_Log_debug.insert(cout); // allows to use OPENMS_LOG_DEBUG << "something" << std::endl;
+      if (debug_level_ > 0) getGlobalLogDebug().insert(cout); // allows to use OPENMS_LOG_DEBUG << "something" << std::endl;
 
       //-------------------------------------------------------------
       //progress logging

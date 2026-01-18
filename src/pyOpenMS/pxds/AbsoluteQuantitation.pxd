@@ -142,8 +142,8 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/AbsoluteQuantitation.h>" namespa
             #   :param optimized_params: Output optimized parameters
             #   :returns: True if optimization succeeded
 
-        # Note: optimizeCalibrationCurves taking map<String, vector<featureConcentration>>
-        # is not wrapped due to complex nested container type. Use optimizeSingleCalibrationCurve instead.
+            #  Note: optimizeCalibrationCurves taking map<String, vector<featureConcentration>>
+            #  is not wrapped due to complex nested container type. Use optimizeSingleCalibrationCurve instead.
 
         void optimizeSingleCalibrationCurve(
             const String & component_name,

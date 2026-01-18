@@ -79,6 +79,8 @@ namespace OpenMS
     boost::replace_all(temp_labels_string, "{}", "no_label");
     boost::split(temp_samples, temp_labels_string, boost::is_any_of("[](){}")); // any bracket allowed to separate samples
 
+    samples_labels_.reserve(temp_samples.size()); // Pre-allocate for performance
+
     for (String::size_type i = 0; i < temp_samples.size(); ++i)
     {
       if (!temp_samples[i].empty())

@@ -243,21 +243,29 @@ namespace OpenMS
 
   void MetaInfoInterface::addMetaValues(const MetaInfoInterface& from)
   {
-    // Copy named (String) keys
-    std::vector<String> s_keys;
-    from.getKeys(s_keys);
-    for (const String& key : s_keys)
+    if (from.meta_ == nullptr || from.meta_->empty())
     {
-      this->setMetaValue(key, from.getMetaValue(key));
+      return;
     }
+    createIfNotExists_();
+    *meta_ += *(from.meta_);
+  }
 
-    // Copy indexed (UInt) keys
-    std::vector<UInt> i_keys;
-    from.getKeys(i_keys);
-    for (const UInt key : i_keys)
-    {
-      this->setMetaValue(key, from.getMetaValue(key));
-    }
+  MetaInfoInterface::MetaInfoConstIterator MetaInfoInterface::metaBegin() const
+  {
+    static const MetaInfo empty;
+    return meta_ ? meta_->begin() : empty.begin();
+  }
+
+  MetaInfoInterface::MetaInfoConstIterator MetaInfoInterface::metaEnd() const
+  {
+    static const MetaInfo empty;
+    return meta_ ? meta_->end() : empty.end();
+  }
+
+  Size MetaInfoInterface::metaSize() const
+  {
+    return meta_ ? meta_->size() : 0;
   }
 
 } //namespace

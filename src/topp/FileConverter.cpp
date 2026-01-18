@@ -85,6 +85,7 @@ Some information about the supported input types:
 @ref OpenMS::MzXMLFile "mzXML"
 @ref OpenMS::MzDataFile "mzData"
 @ref OpenMS::MascotGenericFile "mgf"
+@ref OpenMS::MSPGenericFile "msp"
 @ref OpenMS::DTA2DFile "dta2d"
 @ref OpenMS::DTAFile "dta"
 @ref OpenMS::FeatureXMLFile "featureXML"
@@ -140,7 +141,7 @@ protected:
   {
     registerInputFile_("in", "<file>", "", "Input file to convert.");
     registerStringOption_("in_type", "<type>", "", "Input file type -- default: determined from file extension or content\n", false, false); // optional and not advanced (for workflow engines to show this param)
-    vector<String> input_formats = {"mzML", "mzXML", "mgf", "raw", "cachedMzML", "mzData", "dta", "dta2d", "featureXML", "consensusXML", "ms2", "fid", "tsv", "peplist", "kroenik", "edta", "oms"};
+    vector<String> input_formats = {"mzML", "mzXML", "mgf", "msp", "raw", "cachedMzML", "mzData", "dta", "dta2d", "featureXML", "consensusXML", "ms2", "fid", "tsv", "peplist", "kroenik", "edta", "oms"};
     setValidFormats_("in", input_formats);
     setValidStrings_("in_type", input_formats);
 
@@ -148,7 +149,7 @@ protected:
     String method("none,ensure,reassign");
     setValidStrings_("UID_postprocessing", ListUtils::create<String>(method));
 
-    vector<String> output_formats = {"mzML", "mzXML", "cachedMzML", "mgf", "featureXML", "consensusXML", "edta", "mzData", "dta2d", "csv", "sqmass", "oms"};
+    vector<String> output_formats = {"mzML", "mzXML", "cachedMzML", "mgf", "msp", "featureXML", "consensusXML", "edta", "mzData", "dta2d", "csv", "sqmass", "oms"};
     registerOutputFile_("out", "<file>", "", "Output file");
     setValidFormats_("out", output_formats);
     registerStringOption_("out_type", "<type>", "", "Output file type -- default: determined from file extension or content\nNote: that not all conversion paths work or make sense.", false, false); // optional and not advanced (for workflow engines to show this param)
@@ -473,7 +474,7 @@ protected:
       {
         for (auto & s : exp)
         {
-          s.getInstrumentSettings().setScanMode(InstrumentSettings::SRM);
+          s.getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::SRM);
         }
       }
 
@@ -544,6 +545,13 @@ protected:
       MascotGenericFile f;
       f.setLogType(log_type_);
       f.store(out, exp, getFlag_("MGF_compact"));
+    }
+    else if (out_type == FileTypes::MSP)
+    {
+      //add data processing entry
+      addDataProcessing_(exp, getProcessingInfo_(DataProcessing::
+                                                 FORMAT_CONVERSION));
+      FileHandler().storeExperiment(out, exp, {FileTypes::MSP}, log_type_);
     }
     else if (out_type == FileTypes::FEATUREXML)
     {

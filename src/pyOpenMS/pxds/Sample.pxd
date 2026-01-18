@@ -69,7 +69,7 @@ cdef extern from "<OpenMS/METADATA/Sample.h>" namespace "OpenMS":
 
 cdef extern from "<OpenMS/METADATA/Sample.h>" namespace "OpenMS::Sample":
 
-    cdef enum SampleState:
+    cdef enum class SampleState "OpenMS::Sample::SampleState":
         # wrap-attach:
         #    Sample
     

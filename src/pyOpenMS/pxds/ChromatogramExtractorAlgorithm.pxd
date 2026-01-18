@@ -43,7 +43,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractorAlgorithm.h>" 
             #  :param ppm: Whether mz_extraction_window is in ppm or in Th
             #  :param filter: Which function to apply in m/z space (currently "tophat" only)
 
-        # void extract_value_tophat # -> uses iterators
+            #  void extract_value_tophat # -> uses iterators
 
 cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractorAlgorithm.h>" namespace "OpenMS::ChromatogramExtractorAlgorithm":
 

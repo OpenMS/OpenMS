@@ -393,10 +393,10 @@ namespace OpenMS::Internal
         ControlledVocabulary::CVTerm::XRefType type = cv_.getTerm(parsed_term.accession).xref_type;
 
         // get value, if it exists
-        if (parsed_term.has_value && (!parsed_term.value.empty() || type == ControlledVocabulary::CVTerm::XSD_STRING))
+        if (parsed_term.has_value && (!parsed_term.value.empty() || type == ControlledVocabulary::CVTerm::XRefType::XSD_STRING))
         {
           String value = parsed_term.value;
-          if (type == ControlledVocabulary::CVTerm::NONE)
+          if (type == ControlledVocabulary::CVTerm::XRefType::NONE)
           {
             //Quality CV does not state value type :(
             if (!parsed_term.accession.hasPrefix("PATO:"))
@@ -404,11 +404,11 @@ namespace OpenMS::Internal
               errors_.push_back(String("Value of CV term not allowed: '") + parsed_term.accession + " - " + parsed_term.name + "' value='" + value + "' at element '" + getPath_(1) + "'");
             }
           }
-          else if (type == ControlledVocabulary::CVTerm::XSD_STRING)
+          else if (type == ControlledVocabulary::CVTerm::XRefType::XSD_STRING)
           {
             // nothing to check
           }
-          else if (type == ControlledVocabulary::CVTerm::XSD_INTEGER)
+          else if (type == ControlledVocabulary::CVTerm::XRefType::XSD_INTEGER)
           {
             try
             {
@@ -419,7 +419,7 @@ namespace OpenMS::Internal
               errors_.push_back(String("Value-type of CV term wrong, should be xsd:integer: '") + parsed_term.accession + " - " + parsed_term.name + "' value='" + value + "' at element '" + getPath_(1) + "'");
             }
           }
-          else if (type == ControlledVocabulary::CVTerm::XSD_DECIMAL)
+          else if (type == ControlledVocabulary::CVTerm::XRefType::XSD_DECIMAL)
           {
             try
             {
@@ -430,7 +430,7 @@ namespace OpenMS::Internal
               errors_.push_back(String("Value-type of CV term wrong, should be xsd:decimal: '") + parsed_term.accession + " - " + parsed_term.name + "' value='" + value + "' at element '" + getPath_(1) + "'");
             }
           }
-          else if (type == ControlledVocabulary::CVTerm::XSD_NEGATIVE_INTEGER)
+          else if (type == ControlledVocabulary::CVTerm::XRefType::XSD_NEGATIVE_INTEGER)
           {
             try
             {
@@ -445,7 +445,7 @@ namespace OpenMS::Internal
               errors_.push_back(String("Value-type of CV term wrong, should be xsd:negativeInteger: '") + parsed_term.accession + " - " + parsed_term.name + "' value='" + value + "' at element '" + getPath_(1) + "'");
             }
           }
-          else if (type == ControlledVocabulary::CVTerm::XSD_POSITIVE_INTEGER)
+          else if (type == ControlledVocabulary::CVTerm::XRefType::XSD_POSITIVE_INTEGER)
           {
             try
             {
@@ -460,7 +460,7 @@ namespace OpenMS::Internal
               errors_.push_back(String("Value-type of CV term wrong, should be xsd:positiveInteger: '") + parsed_term.accession + " - " + parsed_term.name + "' value='" + value + "' at element '" + getPath_(1) + "'");
             }
           }
-          else if (type == ControlledVocabulary::CVTerm::XSD_NON_NEGATIVE_INTEGER)
+          else if (type == ControlledVocabulary::CVTerm::XRefType::XSD_NON_NEGATIVE_INTEGER)
           {
             try
             {
@@ -475,7 +475,7 @@ namespace OpenMS::Internal
               errors_.push_back(String("Value-type of CV term wrong, should be xsd:nonNegativeInteger: '") + parsed_term.accession + " - " + parsed_term.name + "' value='" + value + "' at element '" + getPath_(1) + "'");
             }
           }
-          else if (type == ControlledVocabulary::CVTerm::XSD_NON_POSITIVE_INTEGER)
+          else if (type == ControlledVocabulary::CVTerm::XRefType::XSD_NON_POSITIVE_INTEGER)
           {
             try
             {
@@ -490,7 +490,7 @@ namespace OpenMS::Internal
               errors_.push_back(String("Value-type of CV term wrong, should be xsd:nonPositiveInteger: '") + parsed_term.accession + " - " + parsed_term.name + "' value='" + value + "' at element '" + getPath_(1) + "'");
             }
           }
-          else if (type == ControlledVocabulary::CVTerm::XSD_BOOLEAN)
+          else if (type == ControlledVocabulary::CVTerm::XRefType::XSD_BOOLEAN)
           {
             String value_copy = value;
             value_copy.trim();
@@ -500,7 +500,7 @@ namespace OpenMS::Internal
               errors_.push_back(String("Value-type of CV term wrong, should be xsd:boolean: '") + parsed_term.accession + " - " + parsed_term.name + "' value='" + value + "' at element '" + getPath_(1) + "'");
             }
           }
-          else if (type == ControlledVocabulary::CVTerm::XSD_DATE)
+          else if (type == ControlledVocabulary::CVTerm::XRefType::XSD_DATE)
           {
             try
             {
@@ -512,7 +512,7 @@ namespace OpenMS::Internal
               errors_.push_back(String("Value-type of CV term wrong, should be xsd:date: '") + parsed_term.accession + " - " + parsed_term.name + "' value='" + value + "' at element '" + getPath_(1) + "'");
             }
           }
-          else if (type == ControlledVocabulary::CVTerm::XSD_ANYURI)
+          else if (type == ControlledVocabulary::CVTerm::XRefType::XSD_ANYURI)
           { // according to RFC 2396 this is there must be a colon (looked only 2 minutes on it)
             if (!value.has(':'))
             {
@@ -521,10 +521,10 @@ namespace OpenMS::Internal
           }
           else
           {
-            errors_.push_back(String("Value-type unknown (type #" + String(type) + "): '") + parsed_term.accession + " - " + parsed_term.name + "' value='" + value + "' at element '" + getPath_(1) + "'");
+            errors_.push_back(String("Value-type unknown (type #" + String(static_cast<int>(type)) + "): '") + parsed_term.accession + " - " + parsed_term.name + "' value='" + value + "' at element '" + getPath_(1) + "'");
           }
         }
-        else if (cv_.getTerm(parsed_term.accession).xref_type != ControlledVocabulary::CVTerm::NONE)
+        else if (cv_.getTerm(parsed_term.accession).xref_type != ControlledVocabulary::CVTerm::XRefType::NONE)
         {
           errors_.push_back(String("Value-type required, but not given (" + ControlledVocabulary::CVTerm::getXRefTypeName(cv_.getTerm(parsed_term.accession).xref_type) + "): '") + parsed_term.accession + " - " + parsed_term.name + "' value='" + parsed_term.value + "' at element '" + getPath_(1) + "'");
         }
