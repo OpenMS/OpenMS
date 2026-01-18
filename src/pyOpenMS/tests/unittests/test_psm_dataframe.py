@@ -1184,10 +1184,7 @@ def test_to_parquet_row_group_size(tmp_path):
     pep_ids.to_parquet(str(parquet_path), row_group_size=1)
 
     # Read metadata to verify row groups
-    # Use file handle to avoid pyarrow LocalFileSystem conflict with
-    # OpenMS Arrow C++ on macOS (double 'file' scheme registration)
-    with open(parquet_path, 'rb') as f:
-        metadata = pq.read_metadata(f)
+    metadata = pq.read_metadata(parquet_path)
     assert metadata.num_row_groups == 3  # One per row
 
 
