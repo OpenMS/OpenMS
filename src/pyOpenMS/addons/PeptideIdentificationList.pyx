@@ -1399,8 +1399,10 @@ import numpy as np
         if row_group_size is not None:
             write_kwargs['row_group_size'] = row_group_size
 
-        # Write Parquet
-        pq.write_table(table, path, **write_kwargs)
+        # Write Parquet - use file handle to avoid pyarrow LocalFileSystem
+        # conflict with OpenMS Arrow C++ on macOS (double 'file' scheme registration)
+        with open(path, 'wb') as f:
+            pq.write_table(table, f, **write_kwargs)
 
     def psm_columns(self):
         """
