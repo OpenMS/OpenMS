@@ -56,16 +56,95 @@ else:
             "Some functionality might not work as expected."
         )
 
-# Pre-register pyarrow filesystem handlers before C++ Arrow loads.
-# This prevents "Attempted to register factory for scheme 'file'" errors
-# when both pyarrow (Python) and Arrow C++ (via OpenMS WITH_PARQUET) are present.
-# See: https://github.com/apache/arrow/issues/44696
-try:
-    from pyarrow import fs as _pa_fs
-    _pa_fs.LocalFileSystem()  # Force filesystem handler registration
-    del _pa_fs
-except ImportError:
-    pass  # pyarrow not installed, no conflict possible
+# Patch pyarrow to handle filesystem registration conflicts with OpenMS Arrow C++.
+# When OpenMS is built with WITH_PARQUET, both pyarrow and C++ Arrow try to register
+# filesystem factories for the 'file' scheme, causing ArrowKeyError.
+# This patch caches LocalFileSystem instances created before C++ loads and reuses them.
+# See: https://github.com/apache/arrow/issues/44696#issuecomment-3532192904
+def _patch_pyarrow_filesystem():
+    try:
+        import pyarrow.fs as _pa_fs
+        from pyarrow._fs import FileSystem, LocalFileSystem
+        from pyarrow.lib import ArrowKeyError
+    except ImportError:
+        return  # pyarrow not installed, no conflict possible
+
+    # Verify required internal APIs exist (may change between pyarrow versions)
+    if not all(hasattr(_pa_fs, attr) for attr in
+               ('_resolve_filesystem_and_path', '_is_path_like', '_stringify_path', '_ensure_filesystem')):
+        return  # Incompatible pyarrow version, skip patching
+
+    # Create cached LocalFileSystem instances BEFORE C++ Arrow loads
+    # This claims the 'file://' scheme registration for pyarrow
+    try:
+        _cached_local_fs = {
+            False: LocalFileSystem(use_mmap=False),
+            True: LocalFileSystem(use_mmap=True),
+        }
+    except ArrowKeyError:
+        # C++ Arrow already registered - too late to cache, patching won't help
+        return
+
+    def _patched_resolve(path, filesystem=None, *, memory_map=False):
+        """Patched version that reuses cached LocalFileSystem instances."""
+        # Handle file-like objects
+        if not _pa_fs._is_path_like(path):
+            if filesystem is not None:
+                raise ValueError(
+                    "'filesystem' passed but the specified path is file-like, so"
+                    " there is nothing to open with 'filesystem'."
+                )
+            return filesystem, path
+
+        # Handle explicit filesystem
+        if filesystem is not None:
+            filesystem = _pa_fs._ensure_filesystem(filesystem, use_mmap=memory_map)
+            if isinstance(filesystem, LocalFileSystem):
+                path = _pa_fs._stringify_path(path)
+            elif not isinstance(path, str):
+                raise TypeError(
+                    "Expected string path; path-like objects are only allowed "
+                    "with a local filesystem"
+                )
+            path = filesystem.normalize_path(path)
+            return filesystem, path
+
+        path = _pa_fs._stringify_path(path)
+
+        # PATCH: Reuse cached LocalFileSystem instead of creating new one
+        # Cache is populated before C++ Arrow loads, so this should always hit
+        filesystem = _cached_local_fs.get(memory_map)
+        if filesystem is None:
+            # Cache miss - create and cache (may fail if C++ already registered)
+            filesystem = LocalFileSystem(use_mmap=memory_map)
+            _cached_local_fs[memory_map] = filesystem
+
+        try:
+            file_info = filesystem.get_file_info(path)
+        except ValueError:
+            file_info = None
+            exists_locally = False
+        else:
+            exists_locally = file_info.type != _pa_fs.FileType.NotFound
+
+        # If file doesn't exist locally, try parsing as URI
+        if not exists_locally:
+            try:
+                filesystem, path = FileSystem.from_uri(path)
+            except ValueError as e:
+                if "empty scheme" in str(e) or "Cannot parse URI" in str(e):
+                    pass  # Neither URI nor local path - will propagate file not found
+                else:
+                    raise
+        else:
+            path = filesystem.normalize_path(path)
+
+        return filesystem, path
+
+    _pa_fs._resolve_filesystem_and_path = _patched_resolve
+
+_patch_pyarrow_filesystem()
+del _patch_pyarrow_filesystem
 
 # on conda the libs will be installed to the general conda lib path which is available during load.
 # try to skip this loading if we do not ship the libraries in the package (e.g. as wheel via pip)
