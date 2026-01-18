@@ -285,11 +285,7 @@ namespace OpenMS
 
   void ProFormaWriter::writePositionConstraint_(std::ostream& os, const PositionConstraint& pc)
   {
-    os << "Position:";
-    for (char c : pc.residues)
-    {
-      os << c;
-    }
+    os << "Position:" << std::string(pc.residues.begin(), pc.residues.end());
   }
 
   void ProFormaWriter::writeLabel_(std::ostream& os, const Label& label, ProFormaWriteMode mode)

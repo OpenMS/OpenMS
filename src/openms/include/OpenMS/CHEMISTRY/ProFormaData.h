@@ -822,23 +822,14 @@ namespace OpenMS
   /// Convert PositionConstraint to JSON object
   inline void to_json(nlohmann::json& j, const PositionConstraint& pc)
   {
-    std::string residue_str;
-    for (char c : pc.residues)
-    {
-      residue_str += c;
-    }
-    j = nlohmann::json{{"residues", residue_str}};
+    j = nlohmann::json{{"residues", std::string(pc.residues.begin(), pc.residues.end())}};
   }
 
   /// Construct PositionConstraint from JSON object
   inline void from_json(const nlohmann::json& j, PositionConstraint& pc)
   {
     std::string residue_str = j.at("residues").get<std::string>();
-    pc.residues.clear();
-    for (char c : residue_str)
-    {
-      pc.residues.push_back(c);
-    }
+    pc.residues.assign(residue_str.begin(), residue_str.end());
   }
 
   /// @}
