@@ -9,15 +9,15 @@ cdef extern from "<OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/MassDecomposer.h>" nam
         # no-pxd-import
         MassDecomposer(MassDecomposer &) except + nogil  # compiler
 
-        bool exist(ValueType mass) except + nogil 
+        bool exist(ValueType mass) except + nogil
             # wrap-doc:
-                #  Returns true if the decomposition for the given `mass` exists, otherwise - false
-                #  
-                #  
-                #  :param mass: Mass to be checked on decomposing
-                #  :return: True, if the decomposition for `mass` exist, otherwise - false
+            #  Returns true if the decomposition for the given `mass` exists, otherwise - false
+            #
+            #
+            #  :param mass: Mass to be checked on decomposing
+            #  :return: True, if the decomposition for `mass` exist, otherwise - false
 
-        # decomposition_type getDecomposition(ValueType mass) except + nogil 
-        # decompositions_type getAllDecompositions(ValueType mass) except + nogil 
+            #  decomposition_type getDecomposition(ValueType mass) except + nogil
+            #  decompositions_type getAllDecompositions(ValueType mass) except + nogil
         DecompositionValueType getNumberOfDecompositions(ValueType mass) except + nogil 
 

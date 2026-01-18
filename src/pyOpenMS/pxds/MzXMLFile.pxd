@@ -11,18 +11,31 @@ cdef extern from "<OpenMS/FORMAT/MzXMLFile.h>" namespace "OpenMS":
     cdef cppclass MzXMLFile(ProgressLogger):
         # wrap-inherits:
         #  ProgressLogger
+        #  
+        # wrap-doc:
+        #  File adapter for MzXML files
+        #  
+        #  Provides methods to load and store MzXML files.
+        #  MzXML is an older format; for new projects consider using MzML instead.
+        #  
+        #  Usage:
+        #  
+        #  .. code-block:: python
+        #  
+        #    exp = MSExperiment()
+        #    MzXMLFile().load("test.mzXML", exp)
 
-        MzXMLFile() except + nogil 
+        MzXMLFile() except + nogil
         MzXMLFile(MzXMLFile &) except + nogil  #compiler
 
-        void load(String filename, MSExperiment & exp) except + nogil  
+        void load(String filename, MSExperiment & exp) except + nogil
             # wrap-doc:
                 #  Loads a MSExperiment from a MzXML file
                 #  
                 #  
                 #  :param exp: MSExperiment
 
-        void store(String filename, MSExperiment & exp) except + nogil 
+        void store(String filename, MSExperiment & exp) except + nogil
             # wrap-doc:
                 #  Stores a MSExperiment in a MzXML file
                 #  
