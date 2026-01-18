@@ -103,7 +103,8 @@ namespace OpenMS
     isotope_corr = 0;
     isotope_overlap = 0;
     // first compute a map of relative intensities from the feature, then compute the score
-    std::map<std::string, double> intensities;
+    std::unordered_map<std::string, double> intensities;
+    intensities.reserve(transitions.size());
     getFirstIsotopeRelativeIntensities_(transitions, mrmfeature, intensities);
     diaIsotopeScoresSub_(transitions, spectrum, intensities, im_range, isotope_corr, isotope_overlap);
   }
@@ -272,18 +273,18 @@ namespace OpenMS
   /// computes a vector of relative intensities for each feature (output to intensities)
   void DIAScoring::getFirstIsotopeRelativeIntensities_(
     const std::vector<TransitionType>& transitions,
-    OpenSwath::IMRMFeature* mrmfeature, std::map<std::string, double>& intensities) const
+    OpenSwath::IMRMFeature* mrmfeature, std::unordered_map<std::string, double>& intensities) const
   {
     for (Size k = 0; k < transitions.size(); k++)
     {
       std::string native_id = transitions[k].getNativeID();
       double rel_intensity = mrmfeature->getFeature(native_id)->getIntensity() / mrmfeature->getIntensity();
-      intensities.insert(std::pair<std::string, double>(native_id, rel_intensity));
+      intensities.emplace(native_id, rel_intensity);
     }
   }
 
   void DIAScoring::diaIsotopeScoresSub_(const std::vector<TransitionType>& transitions, const SpectrumSequence& spectrum,
-                                        std::map<std::string, double>& intensities, //relative intensities
+                                        std::unordered_map<std::string, double>& intensities, //relative intensities
                                         const RangeMobility& im_range,
                                         double& isotope_corr,
                                         double& isotope_overlap) const

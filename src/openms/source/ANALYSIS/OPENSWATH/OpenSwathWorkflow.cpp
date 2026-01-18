@@ -114,7 +114,8 @@ namespace OpenMS
     OPENMS_LOG_DEBUG << "Detected retention time range from " << RTRange.first << " to " << RTRange.second << '\n';
 
     // 2. Store the peptide retention times in an intermediate map
-    std::map<OpenMS::String, double> PeptideRTMap;
+    std::unordered_map<OpenMS::String, double> PeptideRTMap;
+    PeptideRTMap.reserve(targeted_exp.getCompounds().size());
     for (Size i = 0; i < targeted_exp.getCompounds().size(); i++)
     {
       PeptideRTMap[targeted_exp.getCompounds()[i].id] = targeted_exp.getCompounds()[i].rt;
@@ -172,9 +173,10 @@ namespace OpenMS
     for (std::map<std::string, double>::iterator it = best_features.begin(); it != best_features.end(); ++it)
     {
       pairs.emplace_back(it->second, PeptideRTMap[it->first]); // pair<exp_rt, theor_rt>
-      if (transition_group_map.find(it->first) != transition_group_map.end())
+      auto tg_it = transition_group_map.find(it->first);
+      if (tg_it != transition_group_map.end())
       {
-        trgrmap_allpeaks[ it->first ] = &transition_group_map[ it->first];
+        trgrmap_allpeaks[it->first] = &tg_it->second;
       }
     }
 
@@ -950,7 +952,6 @@ namespace OpenMS
     featureFinder.setParameters(feature_finder_param);
     featureFinder.prepareProteinPeptideMaps_(transition_exp);
 
-    // Map ms1 chromatogram id to sequence number (unordered for O(1) lookup)
     std::unordered_map<String, int> ms1_chromatogram_map;
     ms1_chromatogram_map.reserve(ms1_chromatograms.size());
     for (Size i = 0; i < ms1_chromatograms.size(); i++)
@@ -958,14 +959,12 @@ namespace OpenMS
       ms1_chromatogram_map[ms1_chromatograms[i].getNativeID()] = boost::numeric_cast<int>(i);
     }
 
-    // Map chromatogram id to sequence number (unordered for O(1) lookup)
     std::unordered_map<String, int> chromatogram_map;
     chromatogram_map.reserve(ms2_chromatograms.size());
     for (Size i = 0; i < ms2_chromatograms.size(); i++)
     {
       chromatogram_map[ms2_chromatograms[i].getNativeID()] = boost::numeric_cast<int>(i);
     }
-    // Map peptide id to sequence number (unordered for O(1) lookup)
     std::unordered_map<String, int> assay_peptide_map;
     assay_peptide_map.reserve(transition_exp.getCompounds().size());
     for (Size i = 0; i < transition_exp.getCompounds().size(); i++)
@@ -1020,7 +1019,7 @@ namespace OpenMS
               "Error, did not find chromatogram for transition " + transition->getNativeID() );
         }
 
-        // Convert chromatogram to MSChromatogram and filter
+        // Convert chromatogram to MSChromatogram and filter (properly handles DataArrays via select())
         auto chromatogram = ms2_chromatograms[ chromatogram_map[transition->getNativeID()] ];
         chromatogram.setNativeID(transition->getNativeID());
         if (rt_extraction_window > 0)
@@ -1028,10 +1027,20 @@ namespace OpenMS
           double de_normalized_experimental_rt = trafo_inv.apply(expected_rt);
           double rt_max = de_normalized_experimental_rt + rt_extraction_window;
           double rt_min = de_normalized_experimental_rt - rt_extraction_window;
-          chromatogram.erase(std::remove_if(chromatogram.begin(), chromatogram.end(),
-                                            [rt_min, rt_max](const ChromatogramPeak& chr)
-                                            { return chr.getRT() > rt_max || chr.getRT() < rt_min; })
-                             , chromatogram.end());
+          std::vector<Size> indices_to_keep;
+          indices_to_keep.reserve(chromatogram.size());
+          for (Size i = 0; i < chromatogram.size(); ++i)
+          {
+            double rt = chromatogram[i].getRT();
+            if (rt >= rt_min && rt <= rt_max)
+            {
+              indices_to_keep.push_back(i);
+            }
+          }
+          if (indices_to_keep.size() != chromatogram.size())
+          {
+            chromatogram.select(indices_to_keep);
+          }
         }
 
         // Add the transition and the chromatogram to the MRMTransitionGroup

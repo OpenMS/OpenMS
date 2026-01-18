@@ -73,9 +73,9 @@ import numpy as np
         """
         return f"PeptideIdentificationList(size={self.size()})"
 
-    def get_df(self, decode_ontology=True, default_missing_values=None, export_unidentified=True):
+    def to_df(self, decode_ontology=True, default_missing_values=None, export_unidentified=True):
         """
-        get_df(self: PeptideIdentificationList, decode_ontology: bool = True, default_missing_values: dict = None, export_unidentified: bool = True) -> pd.DataFrame
+        to_df(self: PeptideIdentificationList, decode_ontology: bool = True, default_missing_values: dict = None, export_unidentified: bool = True) -> pd.DataFrame
 
         Converts the peptide identifications to a pandas DataFrame.
 
@@ -104,19 +104,19 @@ import numpy as np
         Example::
 
             peps = feature_map.get_assigned_peptide_identifications()
-            df = peps.get_df()
+            df = peps.to_df()
 
             # Skip unidentified entries
-            df = peps.get_df(export_unidentified=False)
+            df = peps.to_df(export_unidentified=False)
 
             # Custom missing values (use Python type objects)
-            df = peps.get_df(default_missing_values={bool: False, int: 0, float: 0.0, str: 'NA'})
+            df = peps.to_df(default_missing_values={bool: False, int: 0, float: 0.0, str: 'NA'})
         """
         try:
             import pandas as pd
         except ImportError:
             raise ImportError(
-                "pandas is required for get_df(). "
+                "pandas is required for to_df(). "
                 "Please install it with: pip install pandas"
             )
         from . import ControlledVocabulary as _ControlledVocabulary
@@ -253,7 +253,7 @@ import numpy as np
                 "pyarrow is required for to_arrow(). "
                 "Please install it with: pip install pyarrow"
             )
-        df = self.get_df(decode_ontology=decode_ontology,
+        df = self.to_df(decode_ontology=decode_ontology,
                         default_missing_values=default_missing_values,
                         export_unidentified=export_unidentified)
         return pa.Table.from_pandas(df)
@@ -281,7 +281,7 @@ import numpy as np
         Example::
 
             >>> # Get DataFrame, compute new scores, update
-            >>> df = peps.get_df()
+            >>> df = peps.to_df()
             >>> df['new_score'] = compute_new_scores(df)
             >>> peps.update_scores_from_df(df, 'new_score')
         """
@@ -301,3 +301,15 @@ import numpy as np
             self[pid_index] = pi
 
         return self
+
+    # Deprecated alias for backward compatibility
+    def get_df(self, *args, **kwargs):
+        """Deprecated: Use to_df() instead."""
+        import warnings
+        warnings.warn(
+            "get_df() is deprecated and will be removed in a future version. "
+            "Use to_df() instead.",
+            DeprecationWarning,
+            stacklevel=2
+        )
+        return self.to_df(*args, **kwargs)

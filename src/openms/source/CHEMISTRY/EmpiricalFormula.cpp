@@ -630,7 +630,7 @@ namespace OpenMS
     {
       if (it->second == 0)
       {
-        ef.erase(it++);   // Note: post increment needed! Otherwise iterator is invalidated
+        it = ef.erase(it);
       }
       else
       {
@@ -648,7 +648,7 @@ namespace OpenMS
     {
       if (it->second == 0)
       {
-        formula_.erase(it++);   // Note: post increment needed! Otherwise iterator is invalidated
+        it = formula_.erase(it);
       }
       else
       {

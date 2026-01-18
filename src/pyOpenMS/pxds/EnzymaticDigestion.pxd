@@ -70,7 +70,7 @@ cdef extern from "<OpenMS/CHEMISTRY/EnzymaticDigestion.h>" namespace "OpenMS::En
         #   EnzymaticDigestion
         SPEC_NONE = 0, # wrap-doc:No requirements on start / end
         SPEC_SEMI = 1, # wrap-doc:Semi specific, i.e., one of the two cleavage sites must fulfill requirements
-        SPEC_FULL = 2, # warp-doc:Fully enzyme specific, e.g., tryptic (ends with KR, AA-before is KR), or peptide is at protein terminal ends
+        SPEC_FULL = 2, # wrap-doc:Fully enzyme specific, e.g., tryptic (ends with KR, AA-before is KR), or peptide is at protein terminal ends
         SPEC_UNKNOWN = 3
         SPEC_NOCTERM = 8, # wrap-doc:No requirements on CTerm (currently not supported in the class)
         SPEC_NONTERM = 9, # wrap-doc:No requirements on NTerm (currently not supported in the class)
