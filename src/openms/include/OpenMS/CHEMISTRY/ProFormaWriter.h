@@ -208,6 +208,16 @@ namespace OpenMS
     static void writeInfoTag_(std::ostream& os, const InfoTag& info);
 
     /**
+      @brief Write a position constraint to stream
+
+      Formats as Position:RESIDUES, e.g., Position:MKC
+
+      @param os Output stream
+      @param pc The position constraint
+    */
+    static void writePositionConstraint_(std::ostream& os, const PositionConstraint& pc);
+
+    /**
       @brief Write a label to stream
 
       Formats as #ID or #ID(SCORE), e.g., #XL1, #g1(0.90), #BRANCH

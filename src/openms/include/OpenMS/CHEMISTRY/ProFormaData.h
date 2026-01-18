@@ -220,6 +220,23 @@ namespace OpenMS
 
 
   /**
+    @brief Position constraint specifying allowed residues for a modification
+
+    Represents a Position: tag in ProForma that constrains where a modification
+    can be localized. This is typically used as an alternative to a modification
+    to indicate its possible sites.
+
+    Example: [Oxidation|Position:M] means Oxidation can only occur at M residues
+
+    @ingroup Chemistry
+  */
+  struct OPENMS_DLLAPI PositionConstraint
+  {
+    std::vector<char> residues;  ///< List of allowed amino acid residues
+  };
+
+
+  /**
     @brief Variant type representing any modification tag content
 
     A ModificationTag can be one of:
@@ -229,6 +246,7 @@ namespace OpenMS
     - FormulaTag: Chemical formula (e.g., Formula:C12H20O2)
     - GlycanComposition: Glycan composition (e.g., Glycan:HexNAc1Hex2)
     - InfoTag: Info annotation (e.g., INFO:comment)
+    - PositionConstraint: Allowed residue positions (e.g., Position:MKC)
 
     @ingroup Chemistry
   */
@@ -238,7 +256,8 @@ namespace OpenMS
     MassDelta,
     FormulaTag,
     GlycanComposition,
-    InfoTag
+    InfoTag,
+    PositionConstraint
   >;
 
 
@@ -494,6 +513,7 @@ namespace OpenMS
     std::vector<Modification> n_term_mods;            ///< N-terminal modifications: [Acetyl]-
     std::vector<SequenceSection> sequence;            ///< The sequence with modifications
     std::vector<Modification> c_term_mods;            ///< C-terminal modifications: -[Amidated]
+    std::optional<ChargeState> charge;                ///< Optional per-chain charge (for chimeric spectra)
   };
 
 
@@ -510,8 +530,9 @@ namespace OpenMS
   struct OPENMS_DLLAPI PeptidoformIon
   {
     std::optional<String> name;           ///< Optional name from (>>name) v2.1 extension
-    std::vector<Peptidoform> chains;      ///< One or more peptide chains (separated by // in ProForma)
+    std::vector<Peptidoform> chains;      ///< One or more peptide chains (separated by // or + in ProForma)
     std::optional<ChargeState> charge;    ///< Optional charge state specification
+    bool is_chimeric = false;             ///< True if chains are chimeric (+ separator), false if cross-linked (//)
   };
 
 
@@ -795,6 +816,34 @@ namespace OpenMS
   /// @}
 
 
+  /// @name PositionConstraint JSON serialization
+  /// @{
+
+  /// Convert PositionConstraint to JSON object
+  inline void to_json(nlohmann::json& j, const PositionConstraint& pc)
+  {
+    std::string residue_str;
+    for (char c : pc.residues)
+    {
+      residue_str += c;
+    }
+    j = nlohmann::json{{"residues", residue_str}};
+  }
+
+  /// Construct PositionConstraint from JSON object
+  inline void from_json(const nlohmann::json& j, PositionConstraint& pc)
+  {
+    std::string residue_str = j.at("residues").get<std::string>();
+    pc.residues.clear();
+    for (char c : residue_str)
+    {
+      pc.residues.push_back(c);
+    }
+  }
+
+  /// @}
+
+
   /// @name ModificationTag variant JSON serialization
   /// @{
 
@@ -827,6 +876,10 @@ namespace OpenMS
       {
         j = nlohmann::json{{"type", "info"}, {"value", arg}};
       }
+      else if constexpr (std::is_same_v<T, PositionConstraint>)
+      {
+        j = nlohmann::json{{"type", "position"}, {"value", arg}};
+      }
     }, tag);
   }
 
@@ -857,6 +910,10 @@ namespace OpenMS
     else if (type == "info")
     {
       tag = j.at("value").get<InfoTag>();
+    }
+    else if (type == "position")
+    {
+      tag = j.at("value").get<PositionConstraint>();
     }
     else
     {
@@ -1310,6 +1367,10 @@ namespace OpenMS
     {
       j["name"] = static_cast<std::string>(pf.name.value());
     }
+    if (pf.charge.has_value())
+    {
+      j["charge"] = pf.charge.value();
+    }
   }
 
   /// Construct Peptidoform from JSON object
@@ -1332,6 +1393,14 @@ namespace OpenMS
     {
       pf.name = std::nullopt;
     }
+    if (j.contains("charge") && !j.at("charge").is_null())
+    {
+      pf.charge = j.at("charge").get<ChargeState>();
+    }
+    else
+    {
+      pf.charge = std::nullopt;
+    }
   }
 
   /// @}
@@ -1343,7 +1412,7 @@ namespace OpenMS
   /// Convert PeptidoformIon to JSON object
   inline void to_json(nlohmann::json& j, const PeptidoformIon& pfi)
   {
-    j = nlohmann::json{{"chains", pfi.chains}};
+    j = nlohmann::json{{"chains", pfi.chains}, {"is_chimeric", pfi.is_chimeric}};
     if (pfi.name.has_value())
     {
       j["name"] = static_cast<std::string>(pfi.name.value());
@@ -1373,6 +1442,14 @@ namespace OpenMS
     else
     {
       pfi.charge = std::nullopt;
+    }
+    if (j.contains("is_chimeric"))
+    {
+      pfi.is_chimeric = j.at("is_chimeric").get<bool>();
+    }
+    else
+    {
+      pfi.is_chimeric = false;
     }
   }
 

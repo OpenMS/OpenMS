@@ -20,6 +20,12 @@ namespace OpenMS
   {
     std::ostringstream os;
 
+    // Write gene/protein prefix if present: (>name)
+    if (peptidoform.name.has_value())
+    {
+      os << "(>" << peptidoform.name.value() << ")";
+    }
+
     // Write global modifications first: <13C> or <[Oxidation]@M>
     writeGlobalMods_(os, peptidoform.global_mods, mode);
 
@@ -50,19 +56,30 @@ namespace OpenMS
     // The AST doesn't have a separate global_mods field in PeptidoformIon,
     // so global mods would need to be handled differently if needed.
 
-    // Write chains separated by //
+    // Determine separator based on whether this is chimeric or cross-linked
+    const char* separator = ion.is_chimeric ? "+" : "//";
+
+    // Write chains separated by // (cross-linked) or + (chimeric)
     bool first = true;
     for (const auto& chain : ion.chains)
     {
       if (!first)
       {
-        os << "//";
+        os << separator;
       }
       first = false;
+
+      // Write the chain content
       os << toString(chain, mode);
+
+      // For chimeric spectra, write per-chain charge if present
+      if (ion.is_chimeric && chain.charge.has_value())
+      {
+        writeChargeState_(os, chain.charge.value());
+      }
     }
 
-    // Write charge state if present
+    // Write ion-level charge state if present (for non-chimeric or overall charge)
     if (ion.charge.has_value())
     {
       writeChargeState_(os, ion.charge.value());
@@ -169,6 +186,10 @@ namespace OpenMS
       {
         ProFormaWriter::writeInfoTag_(os, arg);
       }
+      else if constexpr (std::is_same_v<T, PositionConstraint>)
+      {
+        ProFormaWriter::writePositionConstraint_(os, arg);
+      }
     }, tag);
   }
 
@@ -260,6 +281,15 @@ namespace OpenMS
   void ProFormaWriter::writeInfoTag_(std::ostream& os, const InfoTag& info)
   {
     os << "INFO:" << info.text;
+  }
+
+  void ProFormaWriter::writePositionConstraint_(std::ostream& os, const PositionConstraint& pc)
+  {
+    os << "Position:";
+    for (char c : pc.residues)
+    {
+      os << c;
+    }
   }
 
   void ProFormaWriter::writeLabel_(std::ostream& os, const Label& label, ProFormaWriteMode mode)

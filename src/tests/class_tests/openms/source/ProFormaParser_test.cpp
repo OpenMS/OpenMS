@@ -554,23 +554,42 @@ END_SECTION
 // Chimeric spectra tests
 /////////////////////////////////////////////////////////////
 
-// TODO: Chimeric spectra with + syntax not yet implemented
-// START_SECTION(ProFormaParser::parseIon - chimeric spectra with plus)
-// {
-//   PeptidoformIon ion = ProFormaParser::parseIon("EMEVEESPEK+ELVISLIVER");
-//   TEST_EQUAL(ion.chains.size(), 2)
-//   TEST_EQUAL(ion.chains[0].sequence.size(), 10)
-//   TEST_EQUAL(ion.chains[1].sequence.size(), 10)
-// }
-// END_SECTION
+START_SECTION(ProFormaParser::parseIon - chimeric spectra with plus)
+{
+  PeptidoformIon ion = ProFormaParser::parseIon("EMEVEESPEK+ELVISLIVER");
+  TEST_EQUAL(ion.chains.size(), 2)
+  TEST_EQUAL(ion.is_chimeric, true)
+  TEST_EQUAL(ion.chains[0].sequence.size(), 10)
+  TEST_EQUAL(ion.chains[1].sequence.size(), 10)
 
-// START_SECTION(ProFormaParser::parseIon - chimeric spectra with charges)
-// {
-//   PeptidoformIon ion = ProFormaParser::parseIon("EMEVEESPEK/2+ELVISLIVER/3");
-//   TEST_EQUAL(ion.chains.size(), 2)
-//   // Individual chain charges
-// }
-// END_SECTION
+  // Verify roundtrip
+  String output = ProFormaParser::toString(ion);
+  TEST_EQUAL(output, "EMEVEESPEK+ELVISLIVER")
+}
+END_SECTION
+
+START_SECTION(ProFormaParser::parseIon - chimeric spectra with charges)
+{
+  PeptidoformIon ion = ProFormaParser::parseIon("EMEVEESPEK/2+ELVISLIVER/3");
+  TEST_EQUAL(ion.chains.size(), 2)
+  TEST_EQUAL(ion.is_chimeric, true)
+
+  // Check per-chain charges
+  TEST_EQUAL(ion.chains[0].charge.has_value(), true)
+  auto* charge0 = std::get_if<int>(&ion.chains[0].charge.value());
+  TEST_NOT_EQUAL(charge0, nullptr)
+  TEST_EQUAL(*charge0, 2)
+
+  TEST_EQUAL(ion.chains[1].charge.has_value(), true)
+  auto* charge1 = std::get_if<int>(&ion.chains[1].charge.value());
+  TEST_NOT_EQUAL(charge1, nullptr)
+  TEST_EQUAL(*charge1, 3)
+
+  // Verify roundtrip
+  String output = ProFormaParser::toString(ion);
+  TEST_EQUAL(output, "EMEVEESPEK/2+ELVISLIVER/3")
+}
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 // Adduct/charge notation tests
@@ -618,20 +637,37 @@ END_SECTION
 // Gene/protein prefix tests
 /////////////////////////////////////////////////////////////
 
-// TODO: Gene/protein prefix syntax not yet implemented
-// START_SECTION(ProFormaParser::parseIon - gene prefix)
-// {
-//   PeptidoformIon ion = ProFormaParser::parseIon("(>Trypsin)AANSIPYQVSLNS+(>Keratin)AKEQFERQTA");
-//   TEST_EQUAL(ion.chains.size(), 2)
-//
-//   // Gene/protein prefix is stored in the 'name' field of Peptidoform
-//   TEST_EQUAL(ion.chains[0].name.has_value(), true)
-//   TEST_EQUAL(ion.chains[0].name.value(), "Trypsin")
-//
-//   TEST_EQUAL(ion.chains[1].name.has_value(), true)
-//   TEST_EQUAL(ion.chains[1].name.value(), "Keratin")
-// }
-// END_SECTION
+START_SECTION(ProFormaParser::parseIon - gene prefix)
+{
+  PeptidoformIon ion = ProFormaParser::parseIon("(>Trypsin)AANSIPYQVSLNS+(>Keratin)AKEQFERQTA");
+  TEST_EQUAL(ion.chains.size(), 2)
+  TEST_EQUAL(ion.is_chimeric, true)
+
+  // Gene/protein prefix is stored in the 'name' field of Peptidoform
+  TEST_EQUAL(ion.chains[0].name.has_value(), true)
+  TEST_EQUAL(ion.chains[0].name.value(), "Trypsin")
+
+  TEST_EQUAL(ion.chains[1].name.has_value(), true)
+  TEST_EQUAL(ion.chains[1].name.value(), "Keratin")
+
+  // Verify roundtrip
+  String output = ProFormaParser::toString(ion);
+  TEST_EQUAL(output, "(>Trypsin)AANSIPYQVSLNS+(>Keratin)AKEQFERQTA")
+}
+END_SECTION
+
+START_SECTION(ProFormaParser::parse - gene prefix single chain)
+{
+  Peptidoform pf = ProFormaParser::parse("(>sp|P12345|PROT_HUMAN)PEPTIDE");
+  TEST_EQUAL(pf.name.has_value(), true)
+  TEST_EQUAL(pf.name.value(), "sp|P12345|PROT_HUMAN")
+  TEST_EQUAL(pf.sequence.size(), 7)
+
+  // Verify roundtrip
+  String output = ProFormaParser::toString(pf);
+  TEST_EQUAL(output, "(>sp|P12345|PROT_HUMAN)PEPTIDE")
+}
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 // Cation modification tests
@@ -783,18 +819,64 @@ END_SECTION
 // Position constraint tests
 /////////////////////////////////////////////////////////////
 
-// TODO: Position constraints on modifications not yet implemented
-// START_SECTION(ProFormaParser::parse - position constraints on modifications)
-// {
-//   // Position constraints are part of modification alternatives
-//   Peptidoform pf = ProFormaParser::parse("PEPTI(MERMERMERM)[Oxidation|Position:M][Oxidation|Position:M]DE");
-//   TEST_EQUAL(pf.sequence.size(), 7) // PEPTI + (range) + DE
-//
-//   auto* range = std::get_if<ModifiedRange>(&pf.sequence[5]);
-//   TEST_NOT_EQUAL(range, nullptr)
-//   TEST_EQUAL(range->modifications.size(), 2)
-// }
-// END_SECTION
+START_SECTION(ProFormaParser::parse - position constraints on modifications)
+{
+  // Position constraints are part of modification alternatives
+  Peptidoform pf = ProFormaParser::parse("PEPTI(MERMERMERM)[Oxidation|Position:M][Oxidation|Position:M]DE");
+  TEST_EQUAL(pf.sequence.size(), 8) // PEPTI (5) + (range) (1) + DE (2)
+
+  auto* range = std::get_if<ModifiedRange>(&pf.sequence[5]);
+  TEST_NOT_EQUAL(range, nullptr)
+  TEST_EQUAL(range->modifications.size(), 2)
+
+  // Check that each modification has two alternatives: Oxidation and Position:M
+  for (const auto& mod : range->modifications)
+  {
+    TEST_EQUAL(mod.alternatives.size(), 2)
+
+    // First alternative should be Oxidation (NamedMod)
+    auto* named = std::get_if<NamedMod>(&mod.alternatives[0].first);
+    TEST_NOT_EQUAL(named, nullptr)
+    TEST_EQUAL(named->name, "Oxidation")
+
+    // Second alternative should be Position:M (PositionConstraint)
+    auto* pos = std::get_if<PositionConstraint>(&mod.alternatives[1].first);
+    TEST_NOT_EQUAL(pos, nullptr)
+    TEST_EQUAL(pos->residues.size(), 1)
+    TEST_EQUAL(pos->residues[0], 'M')
+  }
+
+  // Test roundtrip
+  String output = ProFormaParser::toString(pf);
+  TEST_EQUAL(output, "PEPTI(MERMERMERM)[Oxidation|Position:M][Oxidation|Position:M]DE")
+}
+END_SECTION
+
+START_SECTION(ProFormaParser::parse - position constraints with multiple residues)
+{
+  // Position constraint with multiple allowed residues
+  Peptidoform pf = ProFormaParser::parse("PEPTIDE[Phospho|Position:STY]");
+  TEST_EQUAL(pf.sequence.size(), 7)
+
+  // Check modification on the last E
+  auto* elem = std::get_if<SequenceElement>(&pf.sequence[6]);
+  TEST_NOT_EQUAL(elem, nullptr)
+  TEST_EQUAL(elem->modifications.size(), 1)
+  TEST_EQUAL(elem->modifications[0].alternatives.size(), 2)
+
+  // Second alternative should be Position:STY
+  auto* pos = std::get_if<PositionConstraint>(&elem->modifications[0].alternatives[1].first);
+  TEST_NOT_EQUAL(pos, nullptr)
+  TEST_EQUAL(pos->residues.size(), 3)
+  TEST_EQUAL(pos->residues[0], 'S')
+  TEST_EQUAL(pos->residues[1], 'T')
+  TEST_EQUAL(pos->residues[2], 'Y')
+
+  // Test roundtrip
+  String output = ProFormaParser::toString(pf);
+  TEST_EQUAL(output, "PEPTIDE[Phospho|Position:STY]")
+}
+END_SECTION
 
 START_SECTION(ProFormaParser::parse - position constraints on unlocalised)
 {

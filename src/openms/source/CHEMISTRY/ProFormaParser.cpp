@@ -64,20 +64,35 @@ namespace OpenMS
   {
     PeptidoformIon ion;
 
-    // Parse first chain
-    ion.chains.push_back(parsePeptidoform_());
+    // Parse first chain (with optional per-chain charge for chimeric spectra)
+    // First chain doesn't know if it's chimeric yet
+    ion.chains.push_back(parsePeptidoformWithCharge_(false));
 
-    // Parse additional chains separated by //
-    while (match_(ProFormaTokenizer::TokenType::SLASH))
+    // Parse additional chains separated by // (cross-linked) or + (chimeric)
+    while (!isAtEnd_())
     {
-      if (!match_(ProFormaTokenizer::TokenType::SLASH))
+      if (match_(ProFormaTokenizer::TokenType::SLASH))
       {
-        // Single slash - this is charge state
-        ion.charge = parseChargeState_();
+        if (!match_(ProFormaTokenizer::TokenType::SLASH))
+        {
+          // Single slash at top level - this is ion-level charge state
+          ion.charge = parseChargeState_();
+          break;
+        }
+        // Double slash - parse another cross-linked chain
+        ion.chains.push_back(parsePeptidoformWithCharge_(false));
+      }
+      else if (match_(ProFormaTokenizer::TokenType::PLUS))
+      {
+        // Plus sign - parse another chimeric chain
+        ion.is_chimeric = true;
+        // Pass true to indicate chimeric context, so trailing charge is per-chain
+        ion.chains.push_back(parsePeptidoformWithCharge_(true));
+      }
+      else
+      {
         break;
       }
-      // Double slash - parse another chain
-      ion.chains.push_back(parsePeptidoform_());
     }
 
     // Verify we consumed all input
@@ -90,9 +105,112 @@ namespace OpenMS
     return ion;
   }
 
+  Peptidoform ProFormaParser::parsePeptidoformWithCharge_(bool is_chimeric_context)
+  {
+    Peptidoform pf = parsePeptidoform_();
+
+    // Check for per-chain charge state (e.g., PEPTIDE/2 in chimeric context)
+    // This is tricky: / can be per-chain charge OR ion-level charge OR chain separator (//)
+    // We need to look ahead to distinguish:
+    // - /2+ means per-chain charge 2, then chimeric separator
+    // - /2 at end in chimeric context means per-chain charge
+    // - /2 at end in non-chimeric context means ion-level charge (handled by caller)
+    // - // means chain separator (handled by caller)
+    if (check_(ProFormaTokenizer::TokenType::SLASH))
+    {
+      ProFormaTokenizer lookahead = createLookahead_();
+      lookahead.next(); // consume /
+
+      ProFormaTokenizer::Token next = lookahead.peek();
+      if (next.type == ProFormaTokenizer::TokenType::SLASH)
+      {
+        // Double slash - chain separator, don't consume
+        return pf;
+      }
+
+      // Check if this looks like a charge
+      if (next.type == ProFormaTokenizer::TokenType::PLUS ||
+          next.type == ProFormaTokenizer::TokenType::MINUS ||
+          next.type == ProFormaTokenizer::TokenType::NUMBER ||
+          next.type == ProFormaTokenizer::TokenType::LBRACKET)
+      {
+        // Could be charge state - look ahead to see what follows
+        if (next.type == ProFormaTokenizer::TokenType::LBRACKET)
+        {
+          // Adduct list - scan past it
+          int depth = 1;
+          lookahead.next(); // consume [
+          while (lookahead.hasMore() && depth > 0)
+          {
+            ProFormaTokenizer::Token tok = lookahead.next();
+            if (tok.type == ProFormaTokenizer::TokenType::LBRACKET) depth++;
+            else if (tok.type == ProFormaTokenizer::TokenType::RBRACKET) depth--;
+          }
+        }
+        else
+        {
+          // Simple charge - skip +/- and number
+          if (next.type == ProFormaTokenizer::TokenType::PLUS ||
+              next.type == ProFormaTokenizer::TokenType::MINUS)
+          {
+            lookahead.next();
+          }
+          if (lookahead.peek().type == ProFormaTokenizer::TokenType::NUMBER)
+          {
+            lookahead.next();
+          }
+        }
+
+        // Check what follows the charge
+        ProFormaTokenizer::Token after_charge = lookahead.peek();
+        bool followed_by_chimeric = (after_charge.type == ProFormaTokenizer::TokenType::PLUS);
+        bool at_end = (after_charge.type == ProFormaTokenizer::TokenType::END);
+
+        // Parse as per-chain charge if:
+        // - Followed by + (chimeric separator)
+        // - At end AND we're in a chimeric context (this is the last chain in chimeric)
+        if (followed_by_chimeric || (at_end && is_chimeric_context))
+        {
+          advance_(); // consume / in main parser
+          pf.charge = parseChargeState_();
+        }
+        // Otherwise, leave it for the caller to handle as ion-level charge
+      }
+    }
+
+    return pf;
+  }
+
   Peptidoform ProFormaParser::parsePeptidoform_()
   {
     Peptidoform pf;
+
+    // Check for gene/protein prefix: (>name)
+    // This is a v2.1 extension for annotating the source gene/protein
+    if (check_(ProFormaTokenizer::TokenType::LPAREN))
+    {
+      ProFormaTokenizer lookahead = createLookahead_();
+      lookahead.next(); // consume (
+      ProFormaTokenizer::Token next = lookahead.peek();
+
+      // Check for (> which indicates gene/protein prefix
+      if (next.type == ProFormaTokenizer::TokenType::RANGLE)
+      {
+        advance_(); // consume (
+        advance_(); // consume >
+
+        // Parse the name (can be multiple tokens)
+        std::string name;
+        while (!check_(ProFormaTokenizer::TokenType::RPAREN) && !isAtEnd_())
+        {
+          ProFormaTokenizer::Token tok = advance_();
+          name += std::string(tok.text);
+        }
+        expect_(ProFormaTokenizer::TokenType::RPAREN, "')' to close gene/protein prefix");
+
+        pf.name = String(name);
+      }
+    }
 
     // Parse global modifications: <...>
     // There can be multiple consecutive blocks like <13C><15N>
@@ -141,17 +259,18 @@ namespace OpenMS
     return pf;
   }
 
+  ProFormaTokenizer ProFormaParser::createLookahead_() const
+  {
+    // Create a tokenizer positioned at the current logical position
+    // If we have a cached token, use its position; otherwise use the tokenizer's position
+    size_t start_pos = has_current_ ? current_token_.position : tokenizer_.position();
+    return ProFormaTokenizer(input_, start_pos);
+  }
+
   bool ProFormaParser::hasNTerminalModPattern_()
   {
     // Create a lookahead tokenizer at the current position
-    ProFormaTokenizer lookahead(input_);
-
-    // Skip to current position
-    size_t target = has_current_ ? current_token_.position : tokenizer_.position();
-    while (lookahead.position() < target && lookahead.hasMore())
-    {
-      lookahead.next();
-    }
+    ProFormaTokenizer lookahead = createLookahead_();
 
     // Check for [...]- or [...][...]- pattern
     if (lookahead.peek().type != ProFormaTokenizer::TokenType::LBRACKET)
@@ -348,12 +467,7 @@ namespace OpenMS
     while (check_(ProFormaTokenizer::TokenType::LBRACKET))
     {
       // Look ahead to see if this ends with ?
-      ProFormaTokenizer lookahead(input_);
-      size_t target = has_current_ ? current_token_.position : tokenizer_.position();
-      while (lookahead.position() < target && lookahead.hasMore())
-      {
-        lookahead.next();
-      }
+      ProFormaTokenizer lookahead = createLookahead_();
 
       // Scan past the bracket content
       int depth = 0;
@@ -465,12 +579,7 @@ namespace OpenMS
       if (tok.type == ProFormaTokenizer::TokenType::LPAREN)
       {
         // Look ahead to see if this is (?...) or (...)
-        ProFormaTokenizer lookahead(input_);
-        size_t target = tok.position;
-        while (lookahead.position() < target && lookahead.hasMore())
-        {
-          lookahead.next();
-        }
+        ProFormaTokenizer lookahead = createLookahead_();
         lookahead.next(); // consume (
         ProFormaTokenizer::Token after_paren = lookahead.peek();
 
@@ -756,6 +865,12 @@ namespace OpenMS
       advance_();
       expect_(ProFormaTokenizer::TokenType::COLON, "':' after INFO");
       return parseInfoTag_();
+    }
+    else if (id == "Position" || id == "position" || id == "POSITION")
+    {
+      advance_();
+      expect_(ProFormaTokenizer::TokenType::COLON, "':' after Position");
+      return parsePositionConstraint_();
     }
     else if (id == "Cation")
     {
@@ -1246,6 +1361,59 @@ namespace OpenMS
 
     it.text = text;
     return it;
+  }
+
+  PositionConstraint ProFormaParser::parsePositionConstraint_()
+  {
+    PositionConstraint pc;
+
+    // Collect amino acid characters until the next structural delimiter
+    while (!isAtEnd_())
+    {
+      ProFormaTokenizer::Token tok = current_();
+
+      // Stop at structural delimiters
+      if (tok.type == ProFormaTokenizer::TokenType::RBRACKET ||
+          tok.type == ProFormaTokenizer::TokenType::PIPE ||
+          tok.type == ProFormaTokenizer::TokenType::HASH ||
+          tok.type == ProFormaTokenizer::TokenType::COMMA ||
+          tok.type == ProFormaTokenizer::TokenType::RBRACE)
+      {
+        break;
+      }
+
+      // Only accept identifiers (which contain the amino acid letters)
+      if (tok.type == ProFormaTokenizer::TokenType::IDENTIFIER)
+      {
+        for (char c : tok.text)
+        {
+          if (isAminoAcid_(c))
+          {
+            pc.residues.push_back(c);
+          }
+          else
+          {
+            errorAt_(ProFormaErrorCode::INVALID_AMINO_ACID, tok.position,
+                     "Invalid amino acid in position constraint");
+          }
+        }
+      }
+      else
+      {
+        error_(ProFormaErrorCode::UNEXPECTED_CHARACTER,
+               "Expected amino acid residues after Position:");
+      }
+
+      advance_();
+    }
+
+    if (pc.residues.empty())
+    {
+      error_(ProFormaErrorCode::UNEXPECTED_CHARACTER,
+             "Position constraint requires at least one residue");
+    }
+
+    return pc;
   }
 
   Label ProFormaParser::parseLabel_()

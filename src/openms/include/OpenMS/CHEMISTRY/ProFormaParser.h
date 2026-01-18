@@ -177,6 +177,10 @@ namespace OpenMS
     /// Parse a single Peptidoform (one chain)
     Peptidoform parsePeptidoform_();
 
+    /// Parse a Peptidoform with optional per-chain charge (for chimeric spectra)
+    /// @param is_chimeric_context If true, parse trailing charge as per-chain charge
+    Peptidoform parsePeptidoformWithCharge_(bool is_chimeric_context);
+
     /// Parse global modifications: < ... >
     std::vector<GlobalModEntry> parseGlobalMods_();
 
@@ -245,6 +249,9 @@ namespace OpenMS
     /// Parse an info tag: INFO:text
     InfoTag parseInfoTag_();
 
+    /// Parse a position constraint: Position:MKC
+    PositionConstraint parsePositionConstraint_();
+
     /// Parse a label: #XL1, #BRANCH, #g1(0.90)
     Label parseLabel_();
 
@@ -299,6 +306,9 @@ namespace OpenMS
 
     /// Check if current position has N-terminal modification pattern ([mod]-)
     bool hasNTerminalModPattern_();
+
+    /// Create a lookahead tokenizer positioned at the current logical position
+    ProFormaTokenizer createLookahead_() const;
 
     // ---- Member variables ----
 

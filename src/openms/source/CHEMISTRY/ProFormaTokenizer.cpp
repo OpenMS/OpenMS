@@ -13,9 +13,9 @@
 namespace OpenMS
 {
 
-  ProFormaTokenizer::ProFormaTokenizer(std::string_view input)
+  ProFormaTokenizer::ProFormaTokenizer(std::string_view input, size_t start_pos)
     : input_(input),
-      pos_(0),
+      pos_(std::min(start_pos, input.size())),
       peeked_(std::nullopt)
   {
   }
@@ -307,11 +307,6 @@ namespace OpenMS
   bool ProFormaTokenizer::isDigit_(char c)
   {
     return c >= '0' && c <= '9';
-  }
-
-  bool ProFormaTokenizer::isWhitespace_(char c)
-  {
-    return c == ' ' || c == '\t' || c == '\n' || c == '\r';
   }
 
 } // namespace OpenMS

@@ -104,8 +104,10 @@ namespace OpenMS
 
       @param input The ProForma string to tokenize. Must remain valid for
                    the lifetime of this tokenizer.
+      @param start_pos Optional starting position (default 0). Used for efficient
+                       lookahead without re-scanning from the beginning.
     */
-    explicit ProFormaTokenizer(std::string_view input);
+    explicit ProFormaTokenizer(std::string_view input, size_t start_pos = 0);
 
     /// Default destructor
     ~ProFormaTokenizer() = default;
@@ -203,9 +205,6 @@ namespace OpenMS
 
     /// Check if a character is a digit (0-9)
     static bool isDigit_(char c);
-
-    /// Check if a character is whitespace
-    static bool isWhitespace_(char c);
 
     /// The input string (must remain valid for tokenizer lifetime)
     std::string_view input_;
