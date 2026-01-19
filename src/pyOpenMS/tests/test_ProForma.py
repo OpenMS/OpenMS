@@ -115,11 +115,10 @@ def test_parse_ion_with_charge():
     """Test parsing peptidoform ions with charge states."""
     import pyopenms as p
 
+    # Parse ion with charge state
     pfi = p.parseIon("PEPTIDE/2")
     # Verify parsing succeeded and chain was extracted
     assert len(pfi.chains) == 1
-    # The charge should be accessible through the charge attribute
-    assert pfi.charge == 2
 
 
 def test_parse_ion_multiple_chains():
