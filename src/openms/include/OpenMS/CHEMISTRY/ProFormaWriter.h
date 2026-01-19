@@ -92,7 +92,7 @@ namespace OpenMS
     /**
       @brief Write global modification entries to stream
 
-      Handles both IsotopeReplacement (<13C>) and GlobalModification (<[TMT6plex]@K>).
+      Handles both IsotopeReplacement (`<13C>`) and GlobalModification (`<[TMT6plex]@K>`).
 
       @param os Output stream
       @param mods Vector of global modification entries
@@ -103,7 +103,7 @@ namespace OpenMS
     /**
       @brief Write an isotope replacement to stream
 
-      Formats as <ISOTOPE>, e.g., <13C>, <15N>, <D>
+      Formats as `<ISOTOPE>`, e.g., `<13C>`, `<15N>`, `<D>`
 
       @param os Output stream
       @param isotope The isotope replacement
@@ -113,7 +113,7 @@ namespace OpenMS
     /**
       @brief Write a global modification to stream
 
-      Formats as <[MOD]@TARGETS>, e.g., <[TMT6plex]@K,N-term>
+      Formats as `<[MOD]@TARGETS>`, e.g., `<[TMT6plex]@K,N-term>`
 
       @param os Output stream
       @param mod The global modification
@@ -125,7 +125,7 @@ namespace OpenMS
       @brief Write a modification (with alternatives) to stream
 
       Handles single modifications and alternatives separated by |.
-      Includes labels like #XL1 or #g1(0.90) if present.
+      Includes labels like `#XL1` or `#g1(0.90)` if present.
 
       @param os Output stream
       @param mod The modification with its alternatives
@@ -220,7 +220,7 @@ namespace OpenMS
     /**
       @brief Write a label to stream
 
-      Formats as #ID or #ID(SCORE), e.g., #XL1, #g1(0.90), #BRANCH
+      Formats as `#ID` or `#ID(SCORE)`, e.g., `#XL1`, `#g1(0.90)`, `#BRANCH`
 
       @param os Output stream
       @param label The label

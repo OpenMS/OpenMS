@@ -267,9 +267,9 @@ namespace OpenMS
     @brief Label for cross-links, branches, or ambiguous grouping
 
     Labels are used to:
-    - Connect cross-linked sites: [XLMOD:02001#XL1]...[#XL1]
-    - Mark branch points: [#BRANCH]
-    - Group ambiguously localized modifications: [Phospho#g1(0.90)]
+    - Connect cross-linked sites: `[XLMOD:02001#XL1]...[#XL1]`
+    - Mark branch points: `[#BRANCH]`
+    - Group ambiguously localized modifications: `[Phospho#g1(0.90)]`
 
     @ingroup Chemistry
   */
@@ -278,13 +278,13 @@ namespace OpenMS
     /// The type of label
     enum class Type
     {
-      CROSSLINK,  ///< Cross-link label (e.g., #XL1)
-      BRANCH,     ///< Branch point label (#BRANCH)
-      AMBIGUOUS   ///< Ambiguous localization group (e.g., #g1)
+      CROSSLINK,  ///< Cross-link label (e.g., `#XL1`)
+      BRANCH,     ///< Branch point label (`#BRANCH`)
+      AMBIGUOUS   ///< Ambiguous localization group (e.g., `#g1`)
     };
 
     Type type;                        ///< The label type
-    String identifier;                ///< The label identifier (e.g., "XL1", "BRANCH", "g1")
+    String identifier;                ///< The label identifier (e.g., `XL1`, `BRANCH`, `g1`)
     std::optional<double> score;      ///< Optional localization score for ambiguous labels (e.g., 0.90)
   };
 
@@ -417,7 +417,7 @@ namespace OpenMS
     A global modification applies the same modification to all occurrences
     of specified residues or termini throughout the peptide.
 
-    ProForma notation: <[TMT6plex]@K,N-term>
+    ProForma notation: `<[TMT6plex]@K,N-term>`
 
     @ingroup Chemistry
   */
@@ -434,7 +434,7 @@ namespace OpenMS
     Represents global replacement of an element with a specific isotope,
     used for stable isotope labeling experiments.
 
-    ProForma notation: <13C> or <15N> or <D>
+    ProForma notation: `<13C>` or `<15N>` or `<D>`
 
     @ingroup Chemistry
   */
@@ -448,8 +448,8 @@ namespace OpenMS
     @brief Variant type for global modification entries
 
     A GlobalModEntry can be either:
-    - IsotopeReplacement: Global isotope substitution (<13C>)
-    - GlobalModification: Position-specific global mod (<[TMT6plex]@K>)
+    - IsotopeReplacement: Global isotope substitution (`<13C>`)
+    - GlobalModification: Position-specific global mod (`<[TMT6plex]@K>`)
 
     @ingroup Chemistry
   */
@@ -497,7 +497,7 @@ namespace OpenMS
 
     Represents a complete peptide chain including:
     - Optional name identifier (from v2.1 extension)
-    - Global modifications (<13C>, <[TMT6plex]@K>)
+    - Global modifications (`<13C>`, `<[TMT6plex]@K>`)
     - Unlocalised modifications ([Phospho]?)
     - Labile modifications ({Glycan:Hex})
     - N-terminal modifications ([Acetyl]-)
@@ -509,7 +509,7 @@ namespace OpenMS
   struct OPENMS_DLLAPI Peptidoform
   {
     std::optional<String> name;                       ///< Optional name from (>name) v2.1 extension
-    std::vector<GlobalModEntry> global_mods;          ///< Global modifications: <13C>, <[TMT6plex]@K>
+    std::vector<GlobalModEntry> global_mods;          ///< Global modifications: `<13C>`, `<[TMT6plex]@K>`
     std::vector<UnlocalisedMod> unlocalised_mods;     ///< Unlocalised modifications: [Phospho]?
     std::vector<LabileModification> labile_mods;      ///< Labile modifications: {Glycan:Hex}
     std::vector<Modification> n_term_mods;            ///< N-terminal modifications: [Acetyl]-
@@ -544,13 +544,13 @@ namespace OpenMS
     Groups together all sites that share a cross-link label. Each site is
     identified by its chain index and position within that chain.
 
-    Derived during parsing from matching #XL labels.
+    Derived during parsing from matching `#XL` labels.
 
     @ingroup Chemistry
   */
   struct OPENMS_DLLAPI CrossLinkGroup
   {
-    String label;                                     ///< The cross-link label (e.g., "XL1")
+    String label;                                     ///< The cross-link label (e.g., `XL1`)
     std::vector<std::pair<size_t, size_t>> sites;     ///< (chain_index, site_index) pairs
   };
 

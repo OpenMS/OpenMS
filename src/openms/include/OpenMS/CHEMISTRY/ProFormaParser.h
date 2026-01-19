@@ -187,10 +187,10 @@ namespace OpenMS
     /// Parse a single global modification entry
     GlobalModEntry parseGlobalModEntry_();
 
-    /// Parse isotope replacement: <13C>, <15N>, <D>
+    /// Parse isotope replacement: `<13C>`, `<15N>`, `<D>`
     IsotopeReplacement parseIsotopeReplacement_();
 
-    /// Parse global modification with locations: <[mod]@locations>
+    /// Parse global modification with locations: `<[mod]@locations>`
     GlobalModification parseGlobalModification_();
 
     /// Parse unlocalised modifications: [mod]?
@@ -252,7 +252,7 @@ namespace OpenMS
     /// Parse a position constraint: Position:MKC
     PositionConstraint parsePositionConstraint_();
 
-    /// Parse a label: #XL1, #BRANCH, #g1(0.90)
+    /// Parse a label: `#XL1`, `#BRANCH`, `#g1(0.90)`
     Label parseLabel_();
 
     // ---- Charge state parsing ----
