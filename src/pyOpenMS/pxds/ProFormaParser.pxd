@@ -64,7 +64,7 @@ cdef extern from "<OpenMS/CHEMISTRY/ProFormaParser.h>" namespace "OpenMS::ProFor
 
 
 # JSON serialization functions (free functions in OpenMS namespace)
-cdef extern from "<OpenMS/CHEMISTRY/ProFormaData.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/CHEMISTRY/ProFormaDataJson.h>" namespace "OpenMS":
 
     String peptidoformToJSON "OpenMS::toJSON" (const Peptidoform& pf) except + nogil
     # wrap-doc:
