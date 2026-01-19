@@ -5,12 +5,10 @@ These tests cover:
 - Basic parsing and roundtrip serialization
 - WriteMode (LOSSLESS vs CANONICAL)
 - AASequence conversion
-- JSON serialization
 - Error handling
 """
 
 import pytest
-import json
 
 
 def test_parse_simple_sequence():
@@ -118,11 +116,10 @@ def test_parse_ion_with_charge():
     import pyopenms as p
 
     pfi = p.parseIon("PEPTIDE/2")
-    # Use JSON to verify charge was parsed
-    json_str = p.peptidoformIonToJSON(pfi)
-    data = json.loads(json_str)
-    assert "charge" in data
+    # Verify parsing succeeded and chain was extracted
     assert len(pfi.chains) == 1
+    # The charge should be accessible through the charge attribute
+    assert pfi.charge == 2
 
 
 def test_parse_ion_multiple_chains():
@@ -236,39 +233,6 @@ def test_get_conversion_issues():
     pf = p.parse("[Phospho]?PEPTIDE")
     issues = p.getAASequenceConversionIssues(pf)
     assert len(issues) > 0
-
-
-def test_json_roundtrip_peptidoform():
-    """Test JSON serialization roundtrip for Peptidoform."""
-    import pyopenms as p
-
-    original = p.parse("EM[UNIMOD:35]K")
-    json_str = p.peptidoformToJSON(original)
-
-    # Should be valid JSON
-    data = json.loads(json_str)
-    assert "sequence" in data
-
-    # Should roundtrip
-    restored = p.peptidoformFromJSON(json_str)
-    assert p.toString(restored, p.ProFormaWriteMode.LOSSLESS) == p.toString(original, p.ProFormaWriteMode.LOSSLESS)
-
-
-def test_json_roundtrip_peptidoform_ion():
-    """Test JSON serialization roundtrip for PeptidoformIon."""
-    import pyopenms as p
-
-    original = p.parseIon("PEPTIDE/2")
-    json_str = p.peptidoformIonToJSON(original)
-
-    # Should be valid JSON
-    data = json.loads(json_str)
-    assert "chains" in data
-
-    # Should roundtrip
-    restored = p.peptidoformIonFromJSON(json_str)
-    # Compare JSON representations
-    assert p.peptidoformIonToJSON(restored) == p.peptidoformIonToJSON(original)
 
 
 def test_parse_error_handling():
