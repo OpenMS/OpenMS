@@ -69,6 +69,7 @@ brew install \
   cgl \
   clp \
   qtbase \
+  nlohmann-json \
   apache-arrow \
   zstd \
   bash
