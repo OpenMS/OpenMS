@@ -25,6 +25,7 @@ MonosaccharideDB.h
 NASequence.h
 NucleicAcidSpectrumGenerator.h
 ProFormaData.h
+ProFormaDataJson.h
 ProFormaError.h
 ProFormaParser.h
 ProFormaTokenizer.h

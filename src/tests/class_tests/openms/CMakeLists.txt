@@ -90,6 +90,8 @@ if (WITH_PARQUET)
   )
 endif()
 
+# ProFormaParser_test uses ProFormaDataJson.h which requires nlohmann_json
+target_link_libraries(ProFormaParser_test nlohmann_json::nlohmann_json)
 
 #------------------------------------------------------------------------------
 # restore old compiler flags
