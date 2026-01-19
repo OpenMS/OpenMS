@@ -55,7 +55,7 @@ include (${PROJECT_SOURCE_DIR}/includes.cmake)
 
 #------------------------------------------------------------------------------
 # all the dependency libraries are linked into libOpenMS.so
-set(OPENMS_DEP_LIBRARIES LibSVM::LibSVM XercesC::XercesC Qt6::Core Qt6::Network nlohmann_json::nlohmann_json)
+set(OPENMS_DEP_LIBRARIES LibSVM::LibSVM XercesC::XercesC Qt6::Core Qt6::Network)
 
 ## setup the arguments to 'target_link_libraries(OpenMS PRIVATE ${OPENMS_DEP_PRIVATE_LIBRARIES})'
 ## Note: Eigen3::Eigen is PRIVATE because Eigen types are not exposed in the public API
@@ -76,6 +76,7 @@ set(OPENMS_DEP_PRIVATE_LIBRARIES
   SIMDe
   SQLiteCpp
   ZLIB::ZLIB
+  nlohmann_json::nlohmann_json
   )
 if (ENABLE_TDL)
 set(OPENMS_DEP_PRIVATE_LIBRARIES
