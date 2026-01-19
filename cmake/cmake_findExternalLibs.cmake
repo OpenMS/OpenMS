@@ -164,6 +164,9 @@ endif()
 #------------------------------------------------------------------------------
  # Apache Arrow and Parquet
  if (WITH_PARQUET)
+   # Workaround for Arrow 23+ CMake configuration issue where CURL dependency
+   # is not properly exported. See: https://github.com/apache/arrow/issues/48885
+   find_package(CURL QUIET)
    find_package(Arrow CONFIG REQUIRED)
    find_package(Parquet CONFIG REQUIRED)
    
