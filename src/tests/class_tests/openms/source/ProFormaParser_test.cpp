@@ -1564,6 +1564,42 @@ START_SECTION(Positive test cases from fixture file)
   string fixture_path = OPENMS_GET_TEST_DATA_PATH("ProForma/positive_tests.txt");
   vector<string> positive_tests = loadTestCases(fixture_path);
 
+  // Helper to detect if a test case needs parseIon() instead of parse()
+  // Cases with '//', '+', or '/[digit]' need parseIon()
+  auto needsParseIon = [](const std::string& s) -> bool
+  {
+    // Check for multi-chain separator
+    if (s.find("//") != std::string::npos) return true;
+    // Check for chimeric spectra separator (but not inside brackets)
+    // Simple heuristic: '+' not preceded by '[' context
+    size_t pos = 0;
+    int bracket_depth = 0;
+    while (pos < s.size())
+    {
+      if (s[pos] == '[') bracket_depth++;
+      else if (s[pos] == ']') bracket_depth--;
+      else if (s[pos] == '+' && bracket_depth == 0 && pos > 0)
+      {
+        // Check it's not a mass delta like [+1.5]
+        if (pos > 0 && s[pos-1] != '[' && s[pos-1] != ':' && s[pos-1] != '|')
+        {
+          return true;
+        }
+      }
+      else if (s[pos] == '/' && bracket_depth == 0 && pos + 1 < s.size())
+      {
+        // Check for charge state: /[digit] or /+ or /- or /[
+        char next = s[pos + 1];
+        if (std::isdigit(next) || next == '+' || next == '-' || next == '[')
+        {
+          return true;
+        }
+      }
+      pos++;
+    }
+    return false;
+  };
+
   // If fixture file exists, test all cases
   if (!positive_tests.empty())
   {
@@ -1574,7 +1610,14 @@ START_SECTION(Positive test cases from fixture file)
     {
       try
       {
-        Peptidoform pf = ProFormaParser::parse(test_case);
+        if (needsParseIon(test_case))
+        {
+          PeptidoformIon ion = ProFormaParser::parseIon(test_case);
+        }
+        else
+        {
+          Peptidoform pf = ProFormaParser::parse(test_case);
+        }
         passed++;
       }
       catch (const ProFormaParseError& e)
@@ -1582,18 +1625,18 @@ START_SECTION(Positive test cases from fixture file)
         // Some complex cases may not be fully implemented yet
         failed++;
         // Uncomment for debugging:
-        // std::cerr << "Failed to parse: " << test_case << " - " << e.what() << std::endl;
+        // std::cerr << "FAIL (should pass): " << test_case << " - " << e.what() << std::endl;
       }
       catch (const std::exception& e)
       {
         failed++;
+        // Uncomment for debugging:
+        // std::cerr << "FAIL (should pass): " << test_case << " - " << e.what() << std::endl;
       }
     }
 
-    // Report results - expect most to pass
-    TEST_EQUAL(passed > 0, true)
-    // For now, just ensure we can parse some of them
-    // As implementation matures, increase this threshold
+    // All positive test cases must parse successfully
+    TEST_EQUAL(failed, 0)
   }
 }
 END_SECTION
@@ -1616,6 +1659,8 @@ START_SECTION(Negative test cases from fixture file)
         Peptidoform pf = ProFormaParser::parse(test_case);
         // If we get here, parsing succeeded when it shouldn't have
         incorrectly_accepted++;
+        // Uncomment for debugging:
+        // std::cerr << "FAIL (should reject): " << test_case << std::endl;
       }
       catch (const ProFormaParseError&)
       {
@@ -1629,9 +1674,222 @@ START_SECTION(Negative test cases from fixture file)
       }
     }
 
-    // Most negative cases should be rejected
-    TEST_EQUAL(correctly_rejected > 0, true)
+    // All negative test cases must be rejected
+    TEST_EQUAL(incorrectly_accepted, 0)
   }
+}
+END_SECTION
+
+/////////////////////////////////////////////////////////////
+// Component-level grammar tests
+// Tests individual ProForma grammar components extracted from
+// the component test fixture files
+/////////////////////////////////////////////////////////////
+
+START_SECTION(Component-level grammar tests)
+{
+  int passed = 0;
+  int failed = 0;
+
+  // Helper lambda to test that a string parses successfully as peptidoform
+  auto expectPass = [&](const std::string& input, const std::string& context = "")
+  {
+    try
+    {
+      ProFormaParser::parse(input);
+      passed++;
+    }
+    catch (const std::exception& e)
+    {
+      failed++;
+      std::cerr << "FAIL (should parse): " << input;
+      if (!context.empty()) std::cerr << " [" << context << "]";
+      std::cerr << " - " << e.what() << std::endl;
+    }
+  };
+
+  // Helper lambda to test that a string parses successfully as ion (with charge)
+  auto expectPassIon = [&](const std::string& input, const std::string& context = "")
+  {
+    try
+    {
+      ProFormaParser::parseIon(input);
+      passed++;
+    }
+    catch (const std::exception& e)
+    {
+      failed++;
+      std::cerr << "FAIL (should parse): " << input;
+      if (!context.empty()) std::cerr << " [" << context << "]";
+      std::cerr << " - " << e.what() << std::endl;
+    }
+  };
+
+  // Helper lambda to test that a string fails to parse as peptidoform
+  auto expectFail = [&](const std::string& input, const std::string& context = "")
+  {
+    try
+    {
+      ProFormaParser::parse(input);
+      failed++;
+      std::cerr << "FAIL (should reject): " << input;
+      if (!context.empty()) std::cerr << " [" << context << "]";
+      std::cerr << std::endl;
+    }
+    catch (const std::exception&)
+    {
+      passed++;
+    }
+  };
+
+  // Helper lambda to test that a string fails to parse as ion
+  auto expectFailIon = [&](const std::string& input, const std::string& context = "")
+  {
+    try
+    {
+      ProFormaParser::parseIon(input);
+      failed++;
+      std::cerr << "FAIL (should reject): " << input;
+      if (!context.empty()) std::cerr << " [" << context << "]";
+      std::cerr << std::endl;
+    }
+    catch (const std::exception&)
+    {
+      passed++;
+    }
+  };
+
+  // =========================================================
+  // sequenceElement tests - single amino acids and modifications
+  // =========================================================
+  // Positive cases
+  expectPass("A", "sequenceElement: single AA");
+  expectPass("U", "sequenceElement: selenocysteine");
+  expectPass("X", "sequenceElement: unknown AA");
+  expectPass("A[#g1]", "sequenceElement: AA with label");
+
+  // Note: "Asn" now parses as three lowercase amino acids (A-s-n) with lowercase support
+  expectPass("Asn", "sequenceElement: lowercase letters now allowed");
+
+  // Negative cases
+  expectFail("A[#g1", "sequenceElement: unclosed bracket");
+
+  // =========================================================
+  // INT tests - integer parsing in charge context (use parseIon)
+  // =========================================================
+  // Positive cases
+  expectPassIon("A/0", "INT: zero charge");
+  expectPassIon("A/1", "INT: single digit");
+  expectPassIon("A/2", "INT: double charge");
+
+  // Negative cases
+  expectFailIon("A/+1i", "INT: letter in number");
+
+  // =========================================================
+  // peptidoformCharge tests - charge state specifications
+  // =========================================================
+  // Positive cases (use parseIon for charge)
+  expectPassIon("A/1", "charge: simple positive");
+  expectPassIon("A/+1", "charge: explicit positive");
+  expectPassIon("A/-1", "charge: negative");
+  expectPassIon("A/2", "charge: double");
+  expectPassIon("A/+2", "charge: explicit double positive");
+  expectPassIon("A/-10101", "charge: large negative");
+  expectPassIon("A/[Na:z+1]", "charge: single adduct");
+  expectPassIon("A/[Na:z+1^2]", "charge: adduct with count");
+  expectPassIon("A/[Na:z+1,Zn:z+2,H:z+1]", "charge: multiple adducts");
+
+  // Negative cases
+  expectFailIon("A/1/1", "charge: double charge spec");
+
+  // =========================================================
+  // adductIon tests - adduct ion specifications
+  // =========================================================
+  // Positive cases
+  expectPassIon("A/[Na:z+1]", "adduct: basic");
+  expectPassIon("A/[Na:z+1^2]", "adduct: with occurrence");
+
+  // Negative cases
+  expectFailIon("A/[Na^1]", "adduct: missing z");
+
+  // =========================================================
+  // formula tests - chemical formula parsing
+  // =========================================================
+  // Positive cases
+  expectPass("A[Formula:N1H3]", "formula: explicit counts");
+  expectPass("A[Formula:NH3]", "formula: implicit counts");
+  expectPass("A[Formula:C-1O-1]", "formula: negative counts");
+  expectPass("A[Formula:H1H1H1N1]", "formula: repeated elements");
+  expectPass("A[Formula:[15N]H3]", "formula: isotope bracket");
+  expectPass("A[Formula:[15N1]H3]", "formula: isotope with count");
+  expectPass("A[Formula:C12H20O2]", "formula: standard");
+  expectPass("A[Formula:HN-1O2]", "formula: negative in middle");
+  expectPass("A[Formula:[13C2][12C-2]H2N]", "formula: multiple isotopes");
+  expectPass("A[Formula:[13C2]C-2H2N]", "formula: isotope and negative");
+  expectPass("A[Formula:Zn1]", "formula: zinc");
+
+  // Negative cases
+  expectFail("A[Formula:[15NH3]", "formula: unclosed isotope bracket");
+
+  // =========================================================
+  // modFormula tests - formula modifications with charge
+  // =========================================================
+  expectPass("A[Formula:Zn:z+2]", "modFormula: with charge");
+  expectPass("A[Formula:Zn1:z+2]", "modFormula: explicit count with charge");
+  expectPass("A[Formula:Na:z+1]", "modFormula: sodium with charge");
+
+  // =========================================================
+  // modMass tests - mass delta modifications
+  // =========================================================
+  // Positive cases
+  expectPass("A[+23]", "modMass: positive integer");
+  expectPass("A[-23.0]", "modMass: negative decimal");
+  expectPass("A[+23.0]", "modMass: positive decimal");
+  expectPass("A[U:+23]", "modMass: UNIMOD prefix");
+  expectPass("A[Obs:+23]", "modMass: observed prefix");
+
+  // =========================================================
+  // mod tests - general modifications
+  // =========================================================
+  expectPass("A[+1]", "mod: simple mass");
+  expectPass("A[U:+1]", "mod: UNIMOD mass");
+  expectPass("A[+23.092]", "mod: decimal mass");
+  expectPass("A[-23.092]", "mod: negative decimal");
+  expectPass("A[14|Obs:+14|UNIMOD:0034|U:Methyl]", "mod: alternatives");
+  expectPass("A[Formula:C-1O-1]", "mod: formula");
+  expectPass("A[Glycan:Hex1HexNAc2]", "mod: glycan");
+  expectPass("A[Formula:AlH-3:z+1]", "mod: formula with charge");
+  expectPass("A[Formula:H-1:z-1]", "mod: negative charge");
+
+  // =========================================================
+  // modGlobal tests - global modification prefixes
+  // =========================================================
+  expectPass("<[TMT6plex]@K,N-term>A", "modGlobal: K and N-term");
+  expectPass("<[TMT6plex]@K,N-terM>A", "modGlobal: case variation 1");
+  expectPass("<[TMT6plex]@K,n-terM>A", "modGlobal: case variation 2");
+  expectPass("<[TMT6plex]@K,n-tErM>A", "modGlobal: case variation 3");
+  expectPass("<[TMT6plex]@K,N-term:A>AA", "modGlobal: with protein suffix");
+  expectPass("<[TMT6plex]@K,N-term:A,N-term:B>AA", "modGlobal: multiple locations");
+
+  // =========================================================
+  // modGlycan tests - glycan modifications
+  // =========================================================
+  expectPass("A[Glycan:Hex2HexNAc]", "modGlycan: basic");
+  expectPass("A[Glycan:Hex2HexNAc1]", "modGlycan: explicit count");
+
+  // =========================================================
+  // NAMETEXT tests - various name/text patterns
+  // =========================================================
+  // Positive cases (sequences that should parse)
+  expectPass("III", "nametext: multiple I");
+
+  // Negative cases
+  expectFail("(KKK", "nametext: unclosed paren");
+
+  // =========================================================
+  // Summary
+  // =========================================================
+  TEST_EQUAL(failed, 0)
 }
 END_SECTION
 

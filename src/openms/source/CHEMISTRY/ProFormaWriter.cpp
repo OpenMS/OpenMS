@@ -285,7 +285,28 @@ namespace OpenMS
 
   void ProFormaWriter::writePositionConstraint_(std::ostream& os, const PositionConstraint& pc)
   {
-    os << "Position:" << std::string(pc.residues.begin(), pc.residues.end());
+    os << "Position:";
+    bool first = true;
+
+    // Write terminal positions first
+    if (pc.n_term)
+    {
+      os << "N-term";
+      first = false;
+    }
+    if (pc.c_term)
+    {
+      if (!first) os << ',';
+      os << "C-term";
+      first = false;
+    }
+
+    // Write residues
+    if (!pc.residues.empty())
+    {
+      if (!first) os << ',';
+      os << std::string(pc.residues.begin(), pc.residues.end());
+    }
   }
 
   void ProFormaWriter::writeLabel_(std::ostream& os, const Label& label, ProFormaWriteMode mode)

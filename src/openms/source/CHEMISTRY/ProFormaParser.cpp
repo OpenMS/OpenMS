@@ -185,31 +185,77 @@ namespace OpenMS
   {
     Peptidoform pf;
 
-    // Check for gene/protein prefix: (>name)
+    // Check for gene/protein prefix: (>name) or (>>name) or (>>>name)
+    // Multiple consecutive prefixes are allowed: (>>>Org)(>>Sub)(>Name)
     // This is a v2.1 extension for annotating the source gene/protein
-    if (check_(ProFormaTokenizer::TokenType::LPAREN))
+    std::string combined_name;
+    while (check_(ProFormaTokenizer::TokenType::LPAREN))
     {
       ProFormaTokenizer lookahead = createLookahead_();
       lookahead.next(); // consume (
       ProFormaTokenizer::Token next = lookahead.peek();
 
-      // Check for (> which indicates gene/protein prefix
-      if (next.type == ProFormaTokenizer::TokenType::RANGLE)
+      // Check for (> or (>> or (>>> which indicates gene/protein prefix
+      // Multiple > characters indicate hierarchy levels
+      if (next.type != ProFormaTokenizer::TokenType::RANGLE)
       {
-        advance_(); // consume (
-        advance_(); // consume >
-
-        // Parse the name (can be multiple tokens)
-        std::string name;
-        while (!check_(ProFormaTokenizer::TokenType::RPAREN) && !isAtEnd_())
-        {
-          ProFormaTokenizer::Token tok = advance_();
-          name += std::string(tok.text);
-        }
-        expect_(ProFormaTokenizer::TokenType::RPAREN, "')' to close gene/protein prefix");
-
-        pf.name = String(name);
+        break; // Not a gene prefix, might be ambiguous region or modified range
       }
+
+      advance_(); // consume (
+
+      // Consume all > characters (hierarchy level indicator)
+      while (check_(ProFormaTokenizer::TokenType::RANGLE))
+      {
+        advance_(); // consume >
+      }
+
+      // Parse the name (can be multiple tokens, and may contain nested parentheses)
+      std::string name;
+      int paren_depth = 0;
+      while (!isAtEnd_())
+      {
+        ProFormaTokenizer::Token tok = current_();
+
+        if (tok.type == ProFormaTokenizer::TokenType::LPAREN)
+        {
+          paren_depth++;
+          name += std::string(tok.text);
+          advance_();
+        }
+        else if (tok.type == ProFormaTokenizer::TokenType::RPAREN)
+        {
+          if (paren_depth > 0)
+          {
+            paren_depth--;
+            name += std::string(tok.text);
+            advance_();
+          }
+          else
+          {
+            // This is the closing paren of the gene prefix
+            break;
+          }
+        }
+        else
+        {
+          name += std::string(tok.text);
+          advance_();
+        }
+      }
+      expect_(ProFormaTokenizer::TokenType::RPAREN, "')' to close gene/protein prefix");
+
+      // Concatenate with previous prefixes
+      if (!combined_name.empty())
+      {
+        combined_name += " / ";
+      }
+      combined_name += name;
+    }
+
+    if (!combined_name.empty())
+    {
+      pf.name = String(combined_name);
     }
 
     // Parse global modifications: <...>
@@ -254,6 +300,11 @@ namespace OpenMS
     if (match_(ProFormaTokenizer::TokenType::MINUS))
     {
       pf.c_term_mods = parseTerminalMods_();
+      if (pf.c_term_mods.empty())
+      {
+        error_(ProFormaErrorCode::UNEXPECTED_CHARACTER,
+               "Expected modification after '-' for C-terminal modification");
+      }
     }
 
     return pf;
@@ -384,6 +435,16 @@ namespace OpenMS
     gm.modification = parseModification_();
     expect_(ProFormaTokenizer::TokenType::RBRACKET, "']'");
 
+    // Labels are not allowed on global modifications
+    for (const auto& alt : gm.modification.alternatives)
+    {
+      if (alt.second.has_value())
+      {
+        error_(ProFormaErrorCode::UNEXPECTED_CHARACTER,
+               "Labels are not allowed on global modifications");
+      }
+    }
+
     // Parse @locations
     expect_(ProFormaTokenizer::TokenType::AT, "'@' for global modification locations");
 
@@ -461,51 +522,75 @@ namespace OpenMS
   {
     std::vector<UnlocalisedMod> mods;
 
-    // Unlocalised mods look like: [mod]? or [mod]^2?
+    // Unlocalised mods look like: [mod]? or [mod]^2? or [mod1][mod2]?
+    // Multiple consecutive brackets can share a single ?
     // They appear before the sequence and end with ?
 
     while (check_(ProFormaTokenizer::TokenType::LBRACKET))
     {
-      // Look ahead to see if this ends with ?
+      // Look ahead to see if this group ends with ?
+      // A group can be [mod]? or [mod1][mod2]? etc.
       ProFormaTokenizer lookahead = createLookahead_();
 
-      // Scan past the bracket content
-      int depth = 0;
+      // Count how many consecutive [...] groups there are
+      int group_count = 0;
       bool found_question = false;
-      ProFormaTokenizer::Token tok = lookahead.next(); // [
-      depth = 1;
 
-      while (lookahead.hasMore() && depth > 0)
+      while (true)
       {
-        tok = lookahead.next();
-        if (tok.type == ProFormaTokenizer::TokenType::LBRACKET)
+        ProFormaTokenizer::Token tok = lookahead.peek();
+        if (tok.type != ProFormaTokenizer::TokenType::LBRACKET)
         {
-          depth++;
+          break;
         }
-        else if (tok.type == ProFormaTokenizer::TokenType::RBRACKET)
+
+        // Scan past this bracket content
+        int depth = 0;
+        tok = lookahead.next(); // [
+        depth = 1;
+        group_count++;
+
+        while (lookahead.hasMore() && depth > 0)
         {
-          depth--;
+          tok = lookahead.next();
+          if (tok.type == ProFormaTokenizer::TokenType::LBRACKET)
+          {
+            depth++;
+          }
+          else if (tok.type == ProFormaTokenizer::TokenType::RBRACKET)
+          {
+            depth--;
+          }
         }
-      }
 
-      // Check for ^N and/or ?
-      tok = lookahead.peek();
-      std::optional<int> occurrence;
-
-      if (tok.type == ProFormaTokenizer::TokenType::CARET)
-      {
-        lookahead.next(); // consume ^
+        // After ], check what's next
         tok = lookahead.peek();
-        if (tok.type == ProFormaTokenizer::TokenType::NUMBER)
-        {
-          lookahead.next(); // consume number
-          tok = lookahead.peek();
-        }
-      }
 
-      if (tok.type == ProFormaTokenizer::TokenType::QUESTION)
-      {
-        found_question = true;
+        // Check for ^N
+        if (tok.type == ProFormaTokenizer::TokenType::CARET)
+        {
+          lookahead.next(); // consume ^
+          tok = lookahead.peek();
+          if (tok.type == ProFormaTokenizer::TokenType::NUMBER)
+          {
+            lookahead.next(); // consume number
+            tok = lookahead.peek();
+          }
+        }
+
+        // Check for ?
+        if (tok.type == ProFormaTokenizer::TokenType::QUESTION)
+        {
+          found_question = true;
+          break;
+        }
+
+        // If next is another [, continue the group
+        // Otherwise, this is not an unlocalised mod group
+        if (tok.type != ProFormaTokenizer::TokenType::LBRACKET)
+        {
+          break;
+        }
       }
 
       if (!found_question)
@@ -514,30 +599,41 @@ namespace OpenMS
         break;
       }
 
-      // Now actually parse it
-      UnlocalisedMod um;
-
-      expect_(ProFormaTokenizer::TokenType::LBRACKET, "'['");
-      um.modifications.push_back(parseModification_());
-      expect_(ProFormaTokenizer::TokenType::RBRACKET, "']'");
-
-      // Check for occurrence specifier ^N
-      if (match_(ProFormaTokenizer::TokenType::CARET))
+      // Now actually parse the group
+      // Each [mod] or [mod]^N is a separate UnlocalisedMod entry
+      while (check_(ProFormaTokenizer::TokenType::LBRACKET))
       {
-        ProFormaTokenizer::Token num = expect_(ProFormaTokenizer::TokenType::NUMBER, "occurrence count");
-        try
+        UnlocalisedMod um;
+
+        expect_(ProFormaTokenizer::TokenType::LBRACKET, "'['");
+        um.modifications.push_back(parseModification_());
+        expect_(ProFormaTokenizer::TokenType::RBRACKET, "']'");
+
+        // Check for occurrence specifier ^N
+        if (match_(ProFormaTokenizer::TokenType::CARET))
         {
-          um.occurrence = std::stoi(std::string(num.text));
+          ProFormaTokenizer::Token num = expect_(ProFormaTokenizer::TokenType::NUMBER, "occurrence count");
+          try
+          {
+            um.occurrence = std::stoi(std::string(num.text));
+          }
+          catch (const std::exception&)
+          {
+            errorAt_(ProFormaErrorCode::INVALID_MASS_VALUE, num.position, "Invalid occurrence count");
+          }
         }
-        catch (const std::exception&)
+
+        mods.push_back(std::move(um));
+
+        // Continue if next is another [ (more mods in this group before ?)
+        // Break if next is ? (end of unlocalised group)
+        if (check_(ProFormaTokenizer::TokenType::QUESTION))
         {
-          errorAt_(ProFormaErrorCode::INVALID_MASS_VALUE, num.position, "Invalid occurrence count");
+          break;
         }
       }
 
       expect_(ProFormaTokenizer::TokenType::QUESTION, "'?' for unlocalised modification");
-
-      mods.push_back(std::move(um));
     }
 
     return mods;
@@ -552,6 +648,17 @@ namespace OpenMS
     {
       LabileModification lm;
       lm.modification = parseModification_();
+
+      // Labels are not allowed on labile modifications
+      for (const auto& alt : lm.modification.alternatives)
+      {
+        if (alt.second.has_value())
+        {
+          error_(ProFormaErrorCode::UNEXPECTED_CHARACTER,
+                 "Labels are not allowed on labile modifications");
+        }
+      }
+
       expect_(ProFormaTokenizer::TokenType::RBRACE, "'}'");
       mods.push_back(std::move(lm));
     }
@@ -713,6 +820,7 @@ namespace OpenMS
     expect_(ProFormaTokenizer::TokenType::LPAREN, "'('");
 
     // Parse sequence elements until )
+    // Elements can have modifications: (EOC[Carbamidomethyl]FORMS)
     while (!check_(ProFormaTokenizer::TokenType::RPAREN) && !isAtEnd_())
     {
       ProFormaTokenizer::Token tok = current_();
@@ -722,17 +830,41 @@ namespace OpenMS
         std::string_view text = tok.text;
         advance_();
 
-        for (char c : text)
+        for (size_t i = 0; i < text.size(); ++i)
         {
+          char c = text[i];
           if (!isAminoAcid_(c))
           {
-            errorAt_(ProFormaErrorCode::INVALID_AMINO_ACID, tok.position,
+            errorAt_(ProFormaErrorCode::INVALID_AMINO_ACID, tok.position + i,
                      "Invalid amino acid in range");
           }
 
           SequenceElement elem;
           elem.amino_acid = c;
+
+          // Check if this is the last character and there's a modification following
+          if (i == text.size() - 1 && check_(ProFormaTokenizer::TokenType::LBRACKET))
+          {
+            elem.modifications = parseModificationList_();
+          }
+
           range.elements.push_back(elem);
+        }
+      }
+      else if (tok.type == ProFormaTokenizer::TokenType::LBRACKET)
+      {
+        // Modification on the last element (shouldn't happen if IDENTIFIER handled it)
+        if (!range.elements.empty())
+        {
+          auto mods = parseModificationList_();
+          for (auto& m : mods)
+          {
+            range.elements.back().modifications.push_back(std::move(m));
+          }
+        }
+        else
+        {
+          break;
         }
       }
       else
@@ -743,7 +875,13 @@ namespace OpenMS
 
     expect_(ProFormaTokenizer::TokenType::RPAREN, "')'");
 
-    // Parse modifications for the range
+    // Empty ranges are not allowed
+    if (range.elements.empty())
+    {
+      error_(ProFormaErrorCode::UNEXPECTED_CHARACTER, "Empty range is not allowed");
+    }
+
+    // Parse modifications for the range (applied to entire range)
     if (check_(ProFormaTokenizer::TokenType::LBRACKET))
     {
       range.modifications = parseModificationList_();
@@ -914,7 +1052,9 @@ namespace OpenMS
       md.source = MassDelta::Source::OBS;
       return md;
     }
-    else if (id == "UNIMOD" || id == "MOD" || id == "RESID" || id == "XLMOD" || id == "GNO")
+    else if (id == "UNIMOD" || id == "MOD" || id == "RESID" || id == "XLMOD" || id == "GNO" ||
+             id == "unimod" || id == "mod" || id == "resid" || id == "xlmod" || id == "gno" ||
+             id == "xlink")  // xlink is an alias for xlmod
     {
       return parseCvAccession_();
     }
@@ -969,8 +1109,11 @@ namespace OpenMS
 
     // Named mods can contain letters, numbers, and certain characters
     // E.g., TMT6plex, iTRAQ4plex, half cystine, L-methionine sulfoxide
+    // Also: L-cystine (cross-link), Gln->pyro-Glu, dss[138]
     // Tokenizer splits at letter/digit boundaries, so we concatenate tokens
     std::string name;
+    int paren_depth = 0;   // Track parentheses depth for names like "(cross-link)"
+    int bracket_depth = 0; // Track bracket depth for names like "dss[138]"
 
     while (!isAtEnd_())
     {
@@ -989,13 +1132,27 @@ namespace OpenMS
       else if (tok.type == ProFormaTokenizer::TokenType::MINUS)
       {
         // Hyphens can be part of names like "L-methionine" or "a-type-ion"
-        // But we need to be careful - hyphens at end might be structural
-        // Peek ahead to see if next token is part of the name
+        // Also check for arrow: -> (minus followed by RANGLE)
         ProFormaTokenizer lookahead = tokenizer_;
         ProFormaTokenizer::Token next = lookahead.peek();
-        if (next.type == ProFormaTokenizer::TokenType::IDENTIFIER ||
-            next.type == ProFormaTokenizer::TokenType::NUMBER)
+        if (next.type == ProFormaTokenizer::TokenType::RANGLE)
         {
+          // This is an arrow: -> (e.g., Gln->pyro-Glu)
+          name += "->";
+          advance_(); // consume minus
+          advance_(); // consume >
+        }
+        else if (next.type == ProFormaTokenizer::TokenType::IDENTIFIER ||
+                 next.type == ProFormaTokenizer::TokenType::NUMBER ||
+                 next.type == ProFormaTokenizer::TokenType::LPAREN ||
+                 next.type == ProFormaTokenizer::TokenType::LBRACKET)
+        {
+          name += "-";
+          advance_();
+        }
+        else if (paren_depth > 0 || bracket_depth > 0)
+        {
+          // Inside parentheses or brackets, allow hyphen
           name += "-";
           advance_();
         }
@@ -1004,10 +1161,66 @@ namespace OpenMS
           break;
         }
       }
-      else if (tok.text == " ")
+      else if (tok.type == ProFormaTokenizer::TokenType::LPAREN)
       {
-        // Space can be part of names like "half cystine"
-        // but we can't see spaces in the tokenizer - they're not tokenized
+        // Parentheses can be part of names like "L-cystine (cross-link)"
+        // Only if we already have some name content (not at start)
+        if (!name.empty() || paren_depth > 0 || bracket_depth > 0)
+        {
+          name += "(";
+          paren_depth++;
+          advance_();
+        }
+        else
+        {
+          break;
+        }
+      }
+      else if (tok.type == ProFormaTokenizer::TokenType::RPAREN)
+      {
+        if (paren_depth > 0)
+        {
+          name += ")";
+          paren_depth--;
+          advance_();
+        }
+        else
+        {
+          break;
+        }
+      }
+      else if (tok.type == ProFormaTokenizer::TokenType::LBRACKET)
+      {
+        // Brackets can be part of names like "dss[138]" (XLMOD accession formats)
+        // Only if we already have some name content (not at start)
+        if (!name.empty() || paren_depth > 0 || bracket_depth > 0)
+        {
+          name += "[";
+          bracket_depth++;
+          advance_();
+        }
+        else
+        {
+          break;
+        }
+      }
+      else if (tok.type == ProFormaTokenizer::TokenType::RBRACKET)
+      {
+        if (bracket_depth > 0)
+        {
+          name += "]";
+          bracket_depth--;
+          advance_();
+        }
+        else
+        {
+          break;
+        }
+      }
+      else if (tok.type == ProFormaTokenizer::TokenType::RANGLE)
+      {
+        // Check if this is part of an arrow: -> which is handled above with MINUS
+        // Standalone > after name ends the name
         break;
       }
       else
@@ -1051,23 +1264,24 @@ namespace OpenMS
     ProFormaTokenizer::Token prefix_tok = expect_(ProFormaTokenizer::TokenType::IDENTIFIER, "CV prefix");
     std::string_view prefix = prefix_tok.text;
 
-    if (prefix == "UNIMOD")
+    // Handle uppercase and lowercase CV prefixes
+    if (prefix == "UNIMOD" || prefix == "unimod")
     {
       cv.database = CvDatabase::UNIMOD;
     }
-    else if (prefix == "MOD")
+    else if (prefix == "MOD" || prefix == "mod")
     {
       cv.database = CvDatabase::MOD;
     }
-    else if (prefix == "RESID")
+    else if (prefix == "RESID" || prefix == "resid")
     {
       cv.database = CvDatabase::RESID;
     }
-    else if (prefix == "XLMOD")
+    else if (prefix == "XLMOD" || prefix == "xlmod" || prefix == "xlink")
     {
       cv.database = CvDatabase::XLMOD;
     }
-    else if (prefix == "GNO")
+    else if (prefix == "GNO" || prefix == "gno")
     {
       cv.database = CvDatabase::GNO;
     }
@@ -1079,12 +1293,13 @@ namespace OpenMS
 
     expect_(ProFormaTokenizer::TokenType::COLON, "':' after CV prefix");
 
-    // GNO and RESID accessions can be alphanumeric (e.g., G59626AS, AA0581)
-    // UNIMOD, MOD, XLMOD accessions are numeric
-    if (cv.database == CvDatabase::GNO || cv.database == CvDatabase::RESID)
+    // GNO, RESID, and XLMOD accessions can be alphanumeric (e.g., G59626AS, AA0581, dss[138])
+    // UNIMOD and MOD accessions are numeric
+    if (cv.database == CvDatabase::GNO || cv.database == CvDatabase::RESID || cv.database == CvDatabase::XLMOD)
     {
-      // Parse alphanumeric accession (letters and numbers)
+      // Parse alphanumeric accession (letters, numbers, and brackets for XLMOD like dss[138])
       std::string accession;
+      int bracket_depth = 0;
       while (!isAtEnd_())
       {
         ProFormaTokenizer::Token tok = current_();
@@ -1093,6 +1308,26 @@ namespace OpenMS
         {
           accession += std::string(tok.text);
           advance_();
+        }
+        else if (tok.type == ProFormaTokenizer::TokenType::LBRACKET)
+        {
+          // Brackets in accessions like dss[138]
+          accession += "[";
+          bracket_depth++;
+          advance_();
+        }
+        else if (tok.type == ProFormaTokenizer::TokenType::RBRACKET)
+        {
+          if (bracket_depth > 0)
+          {
+            accession += "]";
+            bracket_depth--;
+            advance_();
+          }
+          else
+          {
+            break; // End of accession
+          }
         }
         else
         {
@@ -1367,7 +1602,7 @@ namespace OpenMS
   {
     PositionConstraint pc;
 
-    // Collect amino acid characters until the next structural delimiter
+    // Collect amino acid characters or terminal positions until the next structural delimiter
     while (!isAtEnd_())
     {
       ProFormaTokenizer::Token tok = current_();
@@ -1376,13 +1611,56 @@ namespace OpenMS
       if (tok.type == ProFormaTokenizer::TokenType::RBRACKET ||
           tok.type == ProFormaTokenizer::TokenType::PIPE ||
           tok.type == ProFormaTokenizer::TokenType::HASH ||
-          tok.type == ProFormaTokenizer::TokenType::COMMA ||
           tok.type == ProFormaTokenizer::TokenType::RBRACE)
       {
         break;
       }
 
-      // Only accept identifiers (which contain the amino acid letters)
+      // Check for N-term or C-term (identifier followed by -term)
+      if (tok.type == ProFormaTokenizer::TokenType::IDENTIFIER &&
+          (tok.text == "N" || tok.text == "C"))
+      {
+        // Look ahead for -term pattern
+        ProFormaTokenizer lookahead = createLookahead_();
+        lookahead.next(); // consume N or C
+        ProFormaTokenizer::Token next1 = lookahead.peek();
+        if (next1.type == ProFormaTokenizer::TokenType::MINUS)
+        {
+          lookahead.next(); // consume -
+          ProFormaTokenizer::Token next2 = lookahead.peek();
+          if (next2.type == ProFormaTokenizer::TokenType::IDENTIFIER && next2.text == "term")
+          {
+            // This is N-term or C-term
+            if (tok.text == "N")
+            {
+              pc.n_term = true;
+            }
+            else
+            {
+              pc.c_term = true;
+            }
+            advance_(); // consume N or C
+            advance_(); // consume -
+            advance_(); // consume term
+
+            // Check for comma separator to continue
+            if (check_(ProFormaTokenizer::TokenType::COMMA))
+            {
+              advance_(); // consume comma
+            }
+            continue;
+          }
+        }
+      }
+
+      // Check for comma (separator between positions)
+      if (tok.type == ProFormaTokenizer::TokenType::COMMA)
+      {
+        advance_();
+        continue;
+      }
+
+      // Accept identifiers (which contain the amino acid letters)
       if (tok.type == ProFormaTokenizer::TokenType::IDENTIFIER)
       {
         for (char c : tok.text)
@@ -1397,20 +1675,19 @@ namespace OpenMS
                      "Invalid amino acid in position constraint");
           }
         }
+        advance_();
       }
       else
       {
         error_(ProFormaErrorCode::UNEXPECTED_CHARACTER,
-               "Expected amino acid residues after Position:");
+               "Expected amino acid residues or terminal position after Position:");
       }
-
-      advance_();
     }
 
-    if (pc.residues.empty())
+    if (pc.residues.empty() && !pc.n_term && !pc.c_term)
     {
       error_(ProFormaErrorCode::UNEXPECTED_CHARACTER,
-             "Position constraint requires at least one residue");
+             "Position constraint requires at least one residue or terminal position");
     }
 
     return pc;
@@ -1564,9 +1841,39 @@ namespace OpenMS
   {
     AdductIon adduct;
 
-    // Parse formula (e.g., Na, H, K)
-    ProFormaTokenizer::Token formula = expect_(ProFormaTokenizer::TokenType::IDENTIFIER, "adduct formula");
-    adduct.formula = String(formula.text);
+    // Parse formula (e.g., Na, H, K, Al H-3)
+    // Formula can contain spaces and special chars, continues until :z
+    std::string formula;
+    while (!isAtEnd_())
+    {
+      // Look ahead for :z pattern which ends the formula
+      if (check_(ProFormaTokenizer::TokenType::COLON))
+      {
+        ProFormaTokenizer lookahead = createLookahead_();
+        lookahead.next(); // consume :
+        ProFormaTokenizer::Token next = lookahead.peek();
+        if (next.type == ProFormaTokenizer::TokenType::IDENTIFIER && next.text == "z")
+        {
+          break; // End of formula
+        }
+      }
+
+      // Collect this token as part of formula
+      ProFormaTokenizer::Token tok = current_();
+      if (tok.type == ProFormaTokenizer::TokenType::RBRACKET ||
+          tok.type == ProFormaTokenizer::TokenType::COMMA)
+      {
+        error_(ProFormaErrorCode::UNEXPECTED_CHARACTER, "Unexpected token in adduct formula, expected ':z'");
+      }
+      formula += std::string(tok.text);
+      advance_();
+    }
+
+    if (formula.empty())
+    {
+      error_(ProFormaErrorCode::UNEXPECTED_CHARACTER, "Expected adduct formula");
+    }
+    adduct.formula = String(formula);
 
     // Parse :z+N or :z-N
     expect_(ProFormaTokenizer::TokenType::COLON, "':'");
@@ -1689,10 +1996,11 @@ namespace OpenMS
 
   bool ProFormaParser::isAminoAcid_(char c)
   {
-    // Standard amino acid one-letter codes
+    // Standard amino acid one-letter codes (upper and lower case)
     // A, C, D, E, F, G, H, I, K, L, M, N, P, Q, R, S, T, V, W, Y
     // Plus: U (selenocysteine), O (pyrrolysine), X (unknown), B (Asx), Z (Glx), J (Xle)
-    return (c >= 'A' && c <= 'Z');
+    // ProForma allows lowercase amino acids
+    return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z');
   }
 
   bool ProFormaParser::looksLikeModificationTagContent_()

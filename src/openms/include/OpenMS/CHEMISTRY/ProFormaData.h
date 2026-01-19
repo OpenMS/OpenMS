@@ -233,6 +233,8 @@ namespace OpenMS
   struct OPENMS_DLLAPI PositionConstraint
   {
     std::vector<char> residues;  ///< List of allowed amino acid residues
+    bool n_term = false;         ///< True if modification can be at N-terminus
+    bool c_term = false;         ///< True if modification can be at C-terminus
   };
 
 
@@ -822,7 +824,11 @@ namespace OpenMS
   /// Convert PositionConstraint to JSON object
   inline void to_json(nlohmann::json& j, const PositionConstraint& pc)
   {
-    j = nlohmann::json{{"residues", std::string(pc.residues.begin(), pc.residues.end())}};
+    j = nlohmann::json{
+      {"residues", std::string(pc.residues.begin(), pc.residues.end())},
+      {"n_term", pc.n_term},
+      {"c_term", pc.c_term}
+    };
   }
 
   /// Construct PositionConstraint from JSON object
@@ -830,6 +836,8 @@ namespace OpenMS
   {
     std::string residue_str = j.at("residues").get<std::string>();
     pc.residues.assign(residue_str.begin(), residue_str.end());
+    if (j.contains("n_term")) pc.n_term = j.at("n_term").get<bool>();
+    if (j.contains("c_term")) pc.c_term = j.at("c_term").get<bool>();
   }
 
   /// @}
