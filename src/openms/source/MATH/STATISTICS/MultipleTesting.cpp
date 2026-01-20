@@ -49,7 +49,53 @@ static std::vector<std::size_t> argsort_asc(const std::vector<double>& a)
   return idx;
 }
 
-std::vector<double> qValue(const std::vector<double>& p_values, double pi0, bool pfdr)
+// -------------------------------------------------------------------------
+// MultipleTesting enum conversion functions
+// -------------------------------------------------------------------------
+
+std::string MultipleTesting::pi0MethodToString(Pi0Method m)
+{
+  switch (m)
+  {
+    case Pi0Method::Smoother:  return "smoother";
+    case Pi0Method::Bootstrap: return "bootstrap";
+    default: return "unknown";
+  }
+}
+
+MultipleTesting::Pi0Method MultipleTesting::toPi0Method(const std::string& s)
+{
+  std::string lower = s;
+  std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
+  if (lower == "smoother") return Pi0Method::Smoother;
+  if (lower == "bootstrap") return Pi0Method::Bootstrap;
+  throw std::invalid_argument("toPi0Method: invalid method '" + s + "', expected 'smoother' or 'bootstrap'");
+}
+
+std::string MultipleTesting::lfdrTransformToString(LfdrTransform t)
+{
+  switch (t)
+  {
+    case LfdrTransform::Probit: return "probit";
+    case LfdrTransform::Logit:  return "logit";
+    default: return "unknown";
+  }
+}
+
+MultipleTesting::LfdrTransform MultipleTesting::toLfdrTransform(const std::string& s)
+{
+  std::string lower = s;
+  std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
+  if (lower == "probit") return LfdrTransform::Probit;
+  if (lower == "logit")  return LfdrTransform::Logit;
+  throw std::invalid_argument("toLfdrTransform: invalid transform '" + s + "', expected 'probit' or 'logit'");
+}
+
+// -------------------------------------------------------------------------
+// MultipleTesting static methods
+// -------------------------------------------------------------------------
+
+std::vector<double> MultipleTesting::qValue(const std::vector<double>& p_values, double pi0, bool pfdr)
 {
   const std::size_t m_total = p_values.size();
   if (m_total == 0) return std::vector<double>();
@@ -133,7 +179,7 @@ static double percentile(const std::vector<double>& a, double p)
   return cp[idx];
 }
 
-Pi0Result pi0Est(const std::vector<double>& p_values, const std::vector<double>& lambda_, const std::string& pi0_method, int smooth_df, bool smooth_log_pi0)
+Pi0Result MultipleTesting::pi0Est(const std::vector<double>& p_values, const std::vector<double>& lambda_, Pi0Method method, int smooth_df, bool smooth_log_pi0)
 {
   // filter finite
   std::vector<double> p;
@@ -183,8 +229,8 @@ Pi0Result pi0Est(const std::vector<double>& p_values, const std::vector<double>&
   }
   res.pi0_lambda = pi0s;
 
-  // Choose method: 'smoother' (default) or 'bootstrap'
-  if (pi0_method == "smoother")
+  // Choose method: Smoother (default) or Bootstrap
+  if (method == Pi0Method::Smoother)
   {
     // If too few lambda values for smoothing, fall back to minimum pi0
     if (ll < 4)
@@ -234,7 +280,7 @@ Pi0Result pi0Est(const std::vector<double>& p_values, const std::vector<double>&
     res.pi0_smooth = true;
     return res;
   }
-  else if (pi0_method == "bootstrap")
+  else if (method == Pi0Method::Bootstrap)
   {
     // bootstrap variant as used by pyprophet/qvalue
     double minpi0 = percentile(pi0s, 0.1);
@@ -266,11 +312,11 @@ Pi0Result pi0Est(const std::vector<double>& p_values, const std::vector<double>&
   }
   else
   {
-    throw std::invalid_argument("pi0est: pi0_method must be 'smoother' or 'bootstrap'");
+    throw std::invalid_argument("pi0Est: unknown Pi0Method enum value");
   }
 }
 
-std::vector<double> pNorm(const std::vector<double>& stat, const std::vector<double>& stat0)
+std::vector<double> MultipleTesting::pNorm(const std::vector<double>& stat, const std::vector<double>& stat0)
 {
   const std::size_t n = stat.size();
   std::vector<double> out(n, std::numeric_limits<double>::quiet_NaN());
@@ -331,15 +377,15 @@ std::vector<double> pNorm(const std::vector<double>& stat, const std::vector<dou
 }
 
 // Estimate local FDR / PEP from p-values using probit/logit transform and FFT-grid KDE
-std::vector<double> lfdr(const std::vector<double>& p_values,
-                         double pi0,
-                         bool trunc,
-                         bool monotone,
-                         const std::string& transf,
-                         double adj,
-                         double eps,
-                         std::size_t gridsize,
-                         double cut)
+std::vector<double> MultipleTesting::lfdr(const std::vector<double>& p_values,
+                                          double pi0,
+                                          bool trunc,
+                                          bool monotone,
+                                          LfdrTransform transf,
+                                          double adj,
+                                          double eps,
+                                          std::size_t gridsize,
+                                          double cut)
 {
   const std::size_t m_total = p_values.size();
   std::vector<double> lfdr_out(m_total, std::numeric_limits<double>::quiet_NaN());
@@ -369,7 +415,7 @@ std::vector<double> lfdr(const std::vector<double>& p_values,
   std::vector<double> x(m);
   std::vector<double> y;
 
-  if (transf == "probit")
+  if (transf == LfdrTransform::Probit)
   {
     // clip p to avoid infinities
     for (std::size_t i = 0; i < m; ++i)
@@ -405,7 +451,7 @@ std::vector<double> lfdr(const std::vector<double>& p_values,
     }
     y.swap(lfdr_v); // temporarily store lfdr in y variable
   }
-  else if (transf == "logit")
+  else if (transf == LfdrTransform::Logit)
   {
     for (std::size_t i = 0; i < m; ++i)
     {
@@ -435,7 +481,7 @@ std::vector<double> lfdr(const std::vector<double>& p_values,
   }
   else
   {
-    throw std::invalid_argument("lfdr: invalid transf, expected 'probit' or 'logit'");
+    throw std::invalid_argument("lfdr: unknown LfdrTransform enum value");
   }
 
   // y now holds lfdr for the finite entries in original order
@@ -491,6 +537,34 @@ std::vector<double> lfdr(const std::vector<double>& p_values,
   }
 
   return lfdr_out;
+}
+
+// -------------------------------------------------------------------------
+// Backward-compatible free function wrappers (string-based APIs)
+// -------------------------------------------------------------------------
+
+Pi0Result pi0Est(const std::vector<double>& p_values,
+                 const std::vector<double>& lambda_,
+                 const std::string& pi0_method,
+                 int smooth_df,
+                 bool smooth_log_pi0)
+{
+  MultipleTesting::Pi0Method method = MultipleTesting::toPi0Method(pi0_method);
+  return MultipleTesting::pi0Est(p_values, lambda_, method, smooth_df, smooth_log_pi0);
+}
+
+std::vector<double> lfdr(const std::vector<double>& p_values,
+                         double pi0,
+                         bool trunc,
+                         bool monotone,
+                         const std::string& transf,
+                         double adj,
+                         double eps,
+                         std::size_t gridsize,
+                         double cut)
+{
+  MultipleTesting::LfdrTransform transform = MultipleTesting::toLfdrTransform(transf);
+  return MultipleTesting::lfdr(p_values, pi0, trunc, monotone, transform, adj, eps, gridsize, cut);
 }
 
 } // namespace Math
