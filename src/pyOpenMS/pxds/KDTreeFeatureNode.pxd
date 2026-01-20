@@ -8,7 +8,7 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/KDTreeFeatureNode.h>" namespace 
         #  A node of the kD-tree with pointer to corresponding data and index
         #
 
-        # KDTreeFeatureNode() except + nogil
+        #  KDTreeFeatureNode() except + nogil
         KDTreeFeatureNode(KDTreeFeatureNode &) except + nogil
         KDTreeFeatureNode(KDTreeFeatureMaps * data, Size idx) except + nogil 
         double operator[](Size i) except + nogil 

@@ -56,7 +56,7 @@ const char* tool_name = "FLASHDeconvWizard";
 // description of the usage of this TOPP tool
 //-------------------------------------------------------------
 
-void print_usage(Logger::LogStream& stream = OpenMS_Log_info)
+void print_usage(Logger::LogStream& stream = getGlobalLogInfo())
 {
   stream << "\n"
          << tool_name << " -- An assistant for FLASHDeconv.\n"
@@ -95,7 +95,7 @@ int main(int argc, const char** argv)
   if (param.exists("debug"))
   {
     OPENMS_LOG_INFO << "Debug flag provided. Enabling 'OPENMS_LOG_DEBUG' ..." << std::endl;
-    OpenMS_Log_debug.insert(cout); // allows to use OPENMS_LOG_DEBUG << "something" << std::endl;
+    getGlobalLogDebug().insert(cout); // allows to use OPENMS_LOG_DEBUG << "something" << std::endl;
   }
 
   // test if unknown options were given
@@ -107,7 +107,7 @@ int main(int argc, const char** argv)
     if (!(String(param.getValue("unknown").toString()).hasSubstring("-psn") && !String(param.getValue("unknown").toString()).hasSubstring(", ")))
     {
       OPENMS_LOG_ERROR << "Unknown option(s) '" << param.getValue("unknown").toString() << "' given. Aborting!" << endl;
-      print_usage(OpenMS_Log_error);
+      print_usage(getGlobalLogError());
       return 1;
     }
   }

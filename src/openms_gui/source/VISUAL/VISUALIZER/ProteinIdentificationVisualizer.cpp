@@ -88,12 +88,12 @@ namespace OpenMS
 
     if (!isEditable())
     {
-      fillComboBox_(mass_type_, &ProteinIdentification::NamesOfPeakMassType[temp_.getSearchParameters().mass_type], 1);
+      fillComboBox_(mass_type_, &ProteinIdentification::NamesOfPeakMassType[static_cast<size_t>(temp_.getSearchParameters().mass_type)], 1);
     }
     else
     {
-      fillComboBox_(mass_type_, ProteinIdentification::NamesOfPeakMassType, ProteinIdentification::SIZE_OF_PEAKMASSTYPE);
-      mass_type_->setCurrentIndex(temp_.getSearchParameters().mass_type);
+      fillComboBox_(mass_type_, ProteinIdentification::NamesOfPeakMassType, static_cast<int>(ProteinIdentification::PeakMassType::SIZE_OF_PEAKMASSTYPE));
+      mass_type_->setCurrentIndex(static_cast<int>(temp_.getSearchParameters().mass_type));
     }
   }
 

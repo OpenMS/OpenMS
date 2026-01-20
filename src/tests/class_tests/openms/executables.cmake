@@ -105,6 +105,7 @@ set(metadata_executables_list
   MetaInfoInterfaceUtils_test
   MetaInfoRegistry_test
   MetaInfo_test
+  SpectrumNativeIDParser_test
   PeptideEvidence_test
   PeptideHit_test
   PeptideIdentification_test
@@ -280,7 +281,7 @@ if(WITH_HDF5)
 endif()
 
 if(WITH_PARQUET)
-  list(APPEND format_executables_list Arrow_test QuantmsIO_test)
+  list(APPEND format_executables_list Arrow_test ArrowExport_test QuantmsIO_test)
 endif()
 
 set(math_executables_list
@@ -658,6 +659,7 @@ set(Boost_dependent_tests
   OpenSwathSpectrumAccessOpenMS_test
   PeakPickerChromatogram_test
   PeakPickerMobilogram_test
+  SpectrumNativeIDParser_test
   SpectrumLookup_test
   SpectrumMetaDataLookup_test
   StatisticFunctions_test

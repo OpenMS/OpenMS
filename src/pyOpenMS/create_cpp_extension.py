@@ -47,10 +47,9 @@ def doCythonCompile(arg):
 if __name__ == '__main__':
 
   # import config
-  from env import (QT_QMAKE_VERSION_INFO, OPEN_MS_BUILD_TYPE, PYOPENMS_SRC_DIR,
-                   OPEN_MS_CONTRIB_BUILD_DIRS, OPEN_MS_LIB, OPEN_SWATH_ALGO_LIB,
-                   OPEN_MS_BUILD_DIR, MSVS_RTLIBS, OPEN_MS_VERSION,
-                   Boost_MAJOR_VERSION, Boost_MINOR_VERSION, PY_NUM_THREADS, PY_NUM_MODULES)
+  from env import (QT_QMAKE_VERSION_INFO, OPEN_MS_BUILD_TYPE,
+    PYOPENMS_SRC_DIR, OPEN_MS_VERSION,
+    PY_NUM_THREADS, PY_NUM_MODULES)
 
   IS_DEBUG = OPEN_MS_BUILD_TYPE.upper() == "DEBUG"
 
@@ -221,9 +220,7 @@ if __name__ == '__main__':
       for modname in mnames:
           fp.write("from .%s import *  # pylint: disable=wildcard-import; lgtm(py/polluting-import)\n" % modname)
 
-
-  # create version information
-  version = OPEN_MS_VERSION
-
-  print("version=%r\n" % version, file=open("pyopenms/_version.py", "w"))
-  print("info=%r\n" % QT_QMAKE_VERSION_INFO, file=open("pyopenms/_qt_version_info.py", "w"))
+  # create version and dependency information in a single file
+  with open("pyopenms/_dependency_version_info.py", "w") as f:
+    f.write(f"openms_version = {OPEN_MS_VERSION!r}\n")
+    f.write(f"qt_version = {QT_QMAKE_VERSION_INFO!r}\n")

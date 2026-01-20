@@ -102,7 +102,7 @@ cdef extern from "<OpenMS/PROCESSING/CALIBRATION/InternalCalibration.h>" namespa
 
         bool calibrate(MSExperiment,
                        libcpp_vector[int],
-                       MZTrafoModel_MODELTYPE,
+                       MODELTYPE,
                        double rt_chunk,
                        bool use_RANSAC,
                        double post_ppm_median,

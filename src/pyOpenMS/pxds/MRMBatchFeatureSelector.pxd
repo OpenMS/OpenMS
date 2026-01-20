@@ -41,6 +41,6 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMBatchFeatureSelector.h>" namespa
         #       final_selected = FeatureMap()
         #       selector.selectMRMFeature(selected, final_selected, params)
 
-        # Note: Constructor is deleted in C++
-        # Static methods are not wrapped due to nested type limitations
+        #  Note: Constructor is deleted in C++
+        #  Static methods are not wrapped due to nested type limitations
         pass

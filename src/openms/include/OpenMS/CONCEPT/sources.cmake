@@ -11,6 +11,7 @@ EnumHelpers.h
 Exception.h
 FuzzyStringComparator.h
 GlobalExceptionHandler.h
+HashUtils.h
 Helpers.h
 Init.h
 LogConfigHandler.h

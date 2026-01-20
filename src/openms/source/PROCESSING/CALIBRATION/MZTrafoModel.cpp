@@ -44,14 +44,14 @@ namespace OpenMS
   MZTrafoModel::MODELTYPE MZTrafoModel::nameToEnum(const std::string& name)
   {
     const std::string* qb = names_of_modeltype;
-    const std::string* qe = qb + (int)SIZE_OF_MODELTYPE;
+    const std::string* qe = qb + static_cast<int>(MODELTYPE::SIZE_OF_MODELTYPE);
     const std::string* qm = std::find(qb, qe, name);
-    return (MODELTYPE)std::distance(qb, qm);
+    return static_cast<MODELTYPE>(std::distance(qb, qm));
   }
 
   const std::string& MZTrafoModel::enumToName(MZTrafoModel::MODELTYPE mt)
   {
-    return names_of_modeltype[mt];
+    return names_of_modeltype[static_cast<int>(mt)];
   }
 
   void MZTrafoModel::setRANSACParams(const Math::RANSACParam& p)
@@ -169,7 +169,7 @@ namespace OpenMS
       {
         throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "TrafoModel::train(): no RANSAC parameters were set before calling train(). Internal error!");
       }
-      if (!(md == LINEAR || md == QUADRATIC))
+      if (!(md == MODELTYPE::LINEAR || md == MODELTYPE::QUADRATIC))
       {
         OPENMS_LOG_ERROR << "RANSAC is implemented for LINEAR and QUADRATIC models only! Please disable RANSAC or choose the LINEAR or QUADRATIC model." << std::endl;
         throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
@@ -178,7 +178,7 @@ namespace OpenMS
 
     try
     {
-      if (md == LINEAR)
+      if (md == MODELTYPE::LINEAR)
       {
         if (obs_mz.size() < 2)
         {
@@ -213,7 +213,7 @@ namespace OpenMS
         coeff_.push_back(lr.getSlope());
         coeff_.push_back(0.0);
       }
-      else if (md == LINEAR_WEIGHTED)
+      else if (md == MODELTYPE::LINEAR_WEIGHTED)
       {
         if (obs_mz.size() < 2)
         {
@@ -226,7 +226,7 @@ namespace OpenMS
         coeff_.push_back(lr.getSlope());
         coeff_.push_back(0.0);
       }
-      else if (md == QUADRATIC)
+      else if (md == MODELTYPE::QUADRATIC)
       {
         if (obs_mz.size() < 3)
         {
@@ -257,7 +257,7 @@ namespace OpenMS
         coeff_.push_back(qr.getB());
         coeff_.push_back(qr.getC());
       }
-      else if (md == QUADRATIC_WEIGHTED)
+      else if (md == MODELTYPE::QUADRATIC_WEIGHTED)
       {
         if (obs_mz.size() < 3)
         {

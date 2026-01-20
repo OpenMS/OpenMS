@@ -45,15 +45,19 @@ sudo apt-get -qq install -y \
   nlohmann-json3-dev \
   libsimde-dev
 
-  sudo apt update
-  sudo apt-get install -y -V ca-certificates lsb-release wget
-  wget https://packages.apache.org/artifactory/arrow/$(lsb_release --id --short | tr 'A-Z' 'a-z')/apache-arrow-apt-source-latest-$(lsb_release --codename --short).deb
-  sudo apt update
-  sudo apt-get install -y -V ./apache-arrow-apt-source-latest-$(lsb_release --codename --short).deb
-  sudo apt update
-  sudo apt-get install -y --no-install-recommends \
-        libarrow-dev \
-        libparquet-dev \
+# Install Apache Arrow
+sudo apt update
+sudo apt-get install -y -V ca-certificates lsb-release wget
+wget https://packages.apache.org/artifactory/arrow/$(lsb_release --id --short | tr 'A-Z' 'a-z')/apache-arrow-apt-source-latest-$(lsb_release --codename --short).deb
+sudo apt update
+sudo apt-get install -y -V ./apache-arrow-apt-source-latest-$(lsb_release --codename --short).deb
+sudo apt update
+# Install libcurl-dev as a workaround for Arrow CMake config issue
+# See: https://github.com/apache/arrow/issues/48885
+sudo apt-get install -y --no-install-recommends \
+      libcurl4-openssl-dev \
+      libarrow-dev \
+      libparquet-dev
 
 # Optional dependencies:
 sudo apt-get -qq install -y \

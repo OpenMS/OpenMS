@@ -537,11 +537,11 @@ public:
       }
       else if (spectrum_type == "profile")
       {
-        type = SpectrumSettings::PROFILE;
+        type = SpectrumSettings::SpectrumType::PROFILE;
       }
       else if (spectrum_type == "centroid")
       {
-        type = SpectrumSettings::CENTROID;
+        type = SpectrumSettings::SpectrumType::CENTROID;
       }
       else
       {
@@ -549,7 +549,7 @@ public:
       }
 
       // generate new spectra
-      if (type == SpectrumSettings::CENTROID)
+      if (type == SpectrumSettings::SpectrumType::CENTROID)
       {
         averageCentroidSpectra_(exp, spectra_to_average_over, ms_level);
       }

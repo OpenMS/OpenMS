@@ -122,7 +122,7 @@ cdef extern from "<OpenMS/METADATA/MassAnalyzer.h>" namespace "OpenMS":
 cdef extern from "<OpenMS/METADATA/MassAnalyzer.h>" namespace "OpenMS::MassAnalyzer":
 
     # analyzer type
-    cdef enum AnalyzerType:
+    cdef enum class AnalyzerType "OpenMS::MassAnalyzer::AnalyzerType":
       # wrap-attach:
       #    MassAnalyzer
       ANALYZERNULL,                         #< Unknown
@@ -144,7 +144,7 @@ cdef extern from "<OpenMS/METADATA/MassAnalyzer.h>" namespace "OpenMS::MassAnaly
 
 
     # Which of the available standard measures is used to define whether two peaks are separate
-    cdef enum ResolutionMethod:
+    cdef enum class ResolutionMethod "OpenMS::MassAnalyzer::ResolutionMethod":
       # wrap-attach:
       #    MassAnalyzer
       RESMETHNULL,                  #< Unknown
@@ -154,7 +154,7 @@ cdef extern from "<OpenMS/METADATA/MassAnalyzer.h>" namespace "OpenMS::MassAnaly
       SIZE_OF_RESOLUTIONMETHOD
 
     # Resolution type
-    cdef enum ResolutionType:
+    cdef enum class ResolutionType "OpenMS::MassAnalyzer::ResolutionType":
       # wrap-attach:
       #    MassAnalyzer
       RESTYPENULL,              #< Unknown
@@ -163,7 +163,7 @@ cdef extern from "<OpenMS/METADATA/MassAnalyzer.h>" namespace "OpenMS::MassAnaly
       SIZE_OF_RESOLUTIONTYPE
 
     # direction of scanning
-    cdef enum ScanDirection:
+    cdef enum class ScanDirection "OpenMS::MassAnalyzer::ScanDirection":
       # wrap-attach:
       #    MassAnalyzer
       SCANDIRNULL,              #< Unknown
@@ -172,7 +172,7 @@ cdef extern from "<OpenMS/METADATA/MassAnalyzer.h>" namespace "OpenMS::MassAnaly
       SIZE_OF_SCANDIRECTION
 
     #Scan law
-    cdef enum ScanLaw:
+    cdef enum class ScanLaw "OpenMS::MassAnalyzer::ScanLaw":
       # wrap-attach:
       #    MassAnalyzer
       SCANLAWNULL,              #< Unknown
@@ -182,7 +182,7 @@ cdef extern from "<OpenMS/METADATA/MassAnalyzer.h>" namespace "OpenMS::MassAnaly
       SIZE_OF_SCANLAW
 
     #Reflectron state
-    cdef enum ReflectronState:
+    cdef enum class ReflectronState "OpenMS::MassAnalyzer::ReflectronState":
       # wrap-attach:
       #    MassAnalyzer
       REFLSTATENULL,            #< Unknown

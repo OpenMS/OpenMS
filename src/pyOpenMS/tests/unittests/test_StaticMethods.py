@@ -293,11 +293,11 @@ class TestMZTrafoModelStaticMethods(unittest.TestCase):
     def test_nameToEnum(self):
         """Test MZTrafoModel.nameToEnum static method."""
         enum_val = pyopenms.MZTrafoModel.nameToEnum("linear")
-        self.assertEqual(enum_val, pyopenms.MZTrafoModel_MODELTYPE.LINEAR)
+        self.assertEqual(enum_val, pyopenms.MZTrafoModel.MODELTYPE.LINEAR)
 
     def test_enumToName(self):
         """Test MZTrafoModel.enumToName static method."""
-        name = pyopenms.MZTrafoModel.enumToName(pyopenms.MZTrafoModel_MODELTYPE.LINEAR)
+        name = pyopenms.MZTrafoModel.enumToName(pyopenms.MZTrafoModel.MODELTYPE.LINEAR)
         self.assertEqual(name, "linear")
 
 
@@ -754,7 +754,7 @@ class TestIonDetectorEnumStaticMethods(unittest.TestCase):
     def test_typeToString(self):
         """Test IonDetector.typeToString static method."""
         result = pyopenms.IonDetector.typeToString(
-            pyopenms.IonDetector.Type_IonDetector.ELECTRONMULTIPLIER
+            pyopenms.IonDetector.Type.ELECTRONMULTIPLIER
         )
         self.assertIsNotNone(result)
         self.assertEqual(result, "Electron multiplier")
@@ -762,7 +762,7 @@ class TestIonDetectorEnumStaticMethods(unittest.TestCase):
     def test_toType(self):
         """Test IonDetector.toType static method."""
         result = pyopenms.IonDetector.toType("Electron multiplier")
-        self.assertEqual(result, pyopenms.IonDetector.Type_IonDetector.ELECTRONMULTIPLIER)
+        self.assertEqual(result, pyopenms.IonDetector.Type.ELECTRONMULTIPLIER)
 
     def test_acquisitionModeToString(self):
         """Test IonDetector.acquisitionModeToString static method."""
@@ -780,8 +780,8 @@ class TestIonDetectorEnumStaticMethods(unittest.TestCase):
     def test_type_roundtrip(self):
         """Test that conversion to string and back produces the same enum."""
         for detector_type in [
-            pyopenms.IonDetector.Type_IonDetector.ELECTRONMULTIPLIER,
-            pyopenms.IonDetector.Type_IonDetector.PHOTOMULTIPLIER,
+            pyopenms.IonDetector.Type.ELECTRONMULTIPLIER,
+            pyopenms.IonDetector.Type.PHOTOMULTIPLIER,
         ]:
             name = pyopenms.IonDetector.typeToString(detector_type)
             self.assertEqual(pyopenms.IonDetector.toType(name), detector_type)

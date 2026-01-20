@@ -14,7 +14,7 @@ cdef extern from "<OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>" namespace "OpenMS":
         #  A mass contains multiple (LogMz) peaks of different charges and isotope indices.
         #  PeakGroup is the set of such peaks representing a single monoisotopic mass.
 
-        # Constructors
+        #  Constructors
         PeakGroup() except + nogil
         PeakGroup(PeakGroup &) except + nogil  # copy constructor
         PeakGroup(int min_abs_charge, int max_abs_charge, bool is_positive) except + nogil

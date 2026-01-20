@@ -36,6 +36,7 @@
 #include <fstream>
 #include <algorithm>
 #include <random>
+#include <optional>
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -823,16 +824,13 @@ namespace OpenMS
 
       OPENMS_LOG_DEBUG << "Detecting chromatographic peaks..." << endl;
       // suppress status output from OpenSWATH, unless in debug mode:
+      std::optional<Logger::LogSinkGuard> log_guard; // RAII: re-inserts cout on scope exit (exception-safe)
       if (debug_level_ < 1)
       {
-        OpenMS_Log_info.remove(cout);
+        log_guard.emplace(getGlobalLogInfo(), cout);
       }
       feat_finder_.pickExperiment(chrom_data_, features, library_,
                                   TransformationDescription(), ms_data_);
-      if (debug_level_ < 1)
-      {
-        OpenMS_Log_info.insert(cout); // revert logging change
-      }
       chrom_data_.clear(true);
       // Accumulate library entries for output before clearing
       for (const auto& pep : library_.getPeptides())

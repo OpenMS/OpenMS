@@ -243,7 +243,7 @@ namespace OpenMS
       const int theo_z = theo_charges[i];
 
       #ifdef DEBUG_HYPERSCORE
-        if (exp_z != theo_z) std::cout << "exp_z != theo_z " << exp_z << "\t" << theo_z << std::endl;
+        if (exp_z != theo_z) std::cout << "exp_z != theo_z " << exp_z << "\t" << theo_z << '\n';
       #endif
 
       // found peak match
@@ -255,7 +255,7 @@ namespace OpenMS
         {
           dot_product += exp_spectrum[index].getIntensity() * theo_intensity;
           #ifdef DEBUG_HYPERSCORE
-            std::cout << (*ion_names)[i] << " intensity: " << exp_spectrum[index].getIntensity() << std::endl;
+            std::cout << (*ion_names)[i] << " intensity: " << exp_spectrum[index].getIntensity() << '\n';
           #endif
           ++y_ion_count;
         }
@@ -264,7 +264,7 @@ namespace OpenMS
           dot_product += exp_spectrum[index].getIntensity() * theo_intensity;
 
           #ifdef DEBUG_HYPERSCORE
-            std::cout << (*ion_names)[i] << " intensity: " << exp_spectrum[index].getIntensity() << std::endl;
+            std::cout << (*ion_names)[i] << " intensity: " << exp_spectrum[index].getIntensity() << '\n';
           #endif
           ++b_ion_count;
         }
@@ -277,7 +277,7 @@ namespace OpenMS
     const double bFact = logfactorial_(b_ion_count);
     const double hyperScore = log1p(dot_product) + yFact + bFact;
     #ifdef DEBUG_HYPERSCORE
-      std::cout << "HyperScore/#y/#b: " << hyperScore << "/" << y_ion_count << "/" << b_ion_count << std::endl;
+      std::cout << "HyperScore/#y/#b: " << hyperScore << "/" << y_ion_count << "/" << b_ion_count << '\n';
     #endif
     return hyperScore;    
   } 
@@ -346,7 +346,7 @@ namespace OpenMS
       const int theo_z = theo_charges[i];
 
       #ifdef DEBUG_HYPERSCORE
-        if (exp_z != theo_z) std::cout << "exp_z != theo_z " << exp_z << "\t" << theo_z << std::endl;
+        if (exp_z != theo_z) std::cout << "exp_z != theo_z " << exp_z << "\t" << theo_z << '\n';
       #endif
 
       // found peak match
@@ -364,8 +364,8 @@ namespace OpenMS
 
 
           #ifdef DEBUG_HYPERSCORE
-            std::cout << (*ion_names)[i] << " intensity: " << exp_spectrum[index].getIntensity() << std::endl;
-            std::cout << "N:"  << N << "\t" << ii << "\t" << N-1 - (ii-1) << std::endl;            
+            std::cout << (*ion_names)[i] << " intensity: " << exp_spectrum[index].getIntensity() << '\n';
+            std::cout << "N:"  << N << "\t" << ii << "\t" << N-1 - (ii-1) << '\n';            
           #endif
           // we observed the suffix (N-1-ii, N-1] in 0-based AA coordinates
           y_ions[N-1 - (ii-1)] += exp_spectrum[index].getIntensity();
@@ -379,8 +379,8 @@ namespace OpenMS
           dot_product += exp_spectrum[index].getIntensity() * theo_intensity;
 
           #ifdef DEBUG_HYPERSCORE
-            std::cout << (*ion_names)[i] << " intensity: " << exp_spectrum[index].getIntensity() << std::endl;
-            std::cout << "N:"  << N << "\t" << ii << "\t" << (ii-1) << std::endl;
+            std::cout << (*ion_names)[i] << " intensity: " << exp_spectrum[index].getIntensity() << '\n';
+            std::cout << "N:"  << N << "\t" << ii << "\t" << (ii-1) << '\n';
           #endif
           // we observed the prefix [0, ii) in 0-based AA coordinates
           b_ions[ii - 1] += exp_spectrum[index].getIntensity();
@@ -414,7 +414,7 @@ namespace OpenMS
     const double bFact = logfactorial_(b_ion_count);
     const double hyperScore = log1p(dot_product) + yFact + bFact;
     #ifdef DEBUG_HYPERSCORE
-      std::cout << "HyperScore/#y/#b: " << hyperScore << "/" << y_ion_count << "/" << b_ion_count << std::endl;
+      std::cout << "HyperScore/#y/#b: " << hyperScore << "/" << y_ion_count << "/" << b_ion_count << '\n';
     #endif
     return hyperScore;    
   } 

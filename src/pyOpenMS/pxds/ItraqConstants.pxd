@@ -13,9 +13,9 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/ItraqConstants.h>" namespace "Op
     
     cdef cppclass ItraqConstants "OpenMS::ItraqConstants":
         # wrap-doc:
-                #  Some constants used throughout iTRAQ classes
-                #  
-                #  Constants for iTRAQ experiments and a ChannelInfo structure to store information about a single channel
+        #  Some constants used throughout iTRAQ classes
+        #
+        #  Constants for iTRAQ experiments and a ChannelInfo structure to store information about a single channel
 
         ItraqConstants() except + nogil  # compiler
         ItraqConstants(ItraqConstants &) except + nogil  # compiler
@@ -28,33 +28,33 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/ItraqConstants.h>" namespace "Op
         # double ISOTOPECORRECTIONS_EIGHTPLEX()
         # double ISOTOPECORRECTIONS_TMT_SIXPLEX()
 
-        StringList getIsotopeMatrixAsStringList(int itraq_type, libcpp_vector[Matrix[double] ] & isotope_corrections) except + nogil 
+        StringList getIsotopeMatrixAsStringList(int itraq_type, libcpp_vector[Matrix[double] ] & isotope_corrections) except + nogil
             # wrap-doc:
-                #  Convert isotope correction matrix to stringlist\n
-                #  
-                #  Each line is converted into a string of the format channel:-2Da/-1Da/+1Da/+2Da ; e.g. '114:0/0.3/4/0'
-                #  Useful for creating parameters or debug output
-                #  
-                #  
-                #  :param itraq_type: Which matrix to stringify. Should be of values from enum ITRAQ_TYPES
-                #  :param isotope_corrections: Vector of the two matrices (4plex, 8plex)
+            #  Convert isotope correction matrix to stringlist\n
+            #
+            #  Each line is converted into a string of the format channel:-2Da/-1Da/+1Da/+2Da ; e.g. '114:0/0.3/4/0'
+            #  Useful for creating parameters or debug output
+            #
+            #
+            #  :param itraq_type: Which matrix to stringify. Should be of values from enum ITRAQ_TYPES
+            #  :param isotope_corrections: Vector of the two matrices (4plex, 8plex)
 
-        void updateIsotopeMatrixFromStringList(int itraq_type, StringList & channels, libcpp_vector[Matrix[double] ] & isotope_corrections) except + nogil 
+        void updateIsotopeMatrixFromStringList(int itraq_type, StringList & channels, libcpp_vector[Matrix[double] ] & isotope_corrections) except + nogil
             # wrap-doc:
-                #  Convert strings to isotope correction matrix rows\n
-                #  
-                #  Each string of format channel:-2Da/-1Da/+1Da/+2Da ; e.g. '114:0/0.3/4/0'
-                #  is parsed and the corresponding channel(row) in the matrix is updated
-                #  Not all channels need to be present, missing channels will be left untouched
-                #  Useful to update the matrix with user isotope correction values
-                #  
-                #  
-                #  :param itraq_type: Which matrix to stringify. Should be of values from enum ITRAQ_TYPES
-                #  :param channels: New channel isotope values as strings
-                #  :param isotope_corrections: Vector of the two matrices (4plex, 8plex)
+            #  Convert strings to isotope correction matrix rows\n
+            #
+            #  Each string of format channel:-2Da/-1Da/+1Da/+2Da ; e.g. '114:0/0.3/4/0'
+            #  is parsed and the corresponding channel(row) in the matrix is updated
+            #  Not all channels need to be present, missing channels will be left untouched
+            #  Useful to update the matrix with user isotope correction values
+            #
+            #
+            #  :param itraq_type: Which matrix to stringify. Should be of values from enum ITRAQ_TYPES
+            #  :param channels: New channel isotope values as strings
+            #  :param isotope_corrections: Vector of the two matrices (4plex, 8plex)
 
-        # void initChannelMap(int itraq_type, ChannelMapType & map_) except + nogil 
-        # void updateChannelMap(StringList & active_channels, ChannelMapType & map_) except + nogil 
+            #  void initChannelMap(int itraq_type, ChannelMapType & map_) except + nogil
+            #  void updateChannelMap(StringList & active_channels, ChannelMapType & map_) except + nogil
         Matrix[ double ] translateIsotopeMatrix(int & itraq_type, libcpp_vector[Matrix[double] ] & isotope_corrections) except + nogil 
 
 cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/ItraqConstants.h>" namespace "OpenMS::ItraqConstants":

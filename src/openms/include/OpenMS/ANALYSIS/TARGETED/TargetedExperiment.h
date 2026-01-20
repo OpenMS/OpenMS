@@ -17,6 +17,7 @@
 #include <OpenMS/METADATA/SourceFile.h>
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>
 
+#include <unordered_map>
 #include <vector>
 
 namespace OpenMS
@@ -63,9 +64,9 @@ public:
     typedef ReactionMonitoringTransition Transition;
     typedef Residue IonType; // IonType enum of Interpretation class
 
-    typedef std::map<String, const Protein *> ProteinReferenceMapType;
-    typedef std::map<String, const Peptide *> PeptideReferenceMapType;
-    typedef std::map<String, const Compound *> CompoundReferenceMapType;
+    typedef std::unordered_map<String, const Protein *> ProteinReferenceMapType;
+    typedef std::unordered_map<String, const Peptide *> PeptideReferenceMapType;
+    typedef std::unordered_map<String, const Compound *> CompoundReferenceMapType;
 
     /** @name Constructors and destructors
     */

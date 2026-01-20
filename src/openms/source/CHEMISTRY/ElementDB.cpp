@@ -79,7 +79,7 @@ namespace OpenMS
 
   bool ElementDB::hasElement(const string& name) const
   {
-    return (names_.count(name) == 1)|| (symbols_.count(name) == 1);
+    return (names_.find(name) != names_.end()) || (symbols_.find(name) != symbols_.end());
   }
 
   bool ElementDB::hasElement(unsigned int atomic_number) const

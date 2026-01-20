@@ -24,6 +24,7 @@
 #include <boost/range/adaptor/map.hpp>
 #include <memory>
 #include <boost/foreach.hpp>
+#include <unordered_map>
 
 #define run_identifier "unique_run_identifier"
 
@@ -1096,9 +1097,10 @@ namespace OpenMS
     double rt_min, rt_max, expected_rt;
     trafo.invert();
 
-    std::map<String, int> chromatogram_map;
+    std::unordered_map<String, int> chromatogram_map;
     Size nr_chromatograms = input->getNrChromatograms();
-    for (Size i = 0; i < input->getNrChromatograms(); i++)
+    chromatogram_map.reserve(nr_chromatograms);
+    for (Size i = 0; i < nr_chromatograms; i++)
     {
       chromatogram_map[input->getChromatogramNativeID(i)] = boost::numeric_cast<int>(i);
     }
@@ -1111,7 +1113,8 @@ namespace OpenMS
     {
       // get the current transition and try to find the corresponding chromatogram
       const TransitionType* transition = &transition_exp.getTransitions()[i];
-      if (chromatogram_map.find(transition->getNativeID()) == chromatogram_map.end())
+      auto chrom_it = chromatogram_map.find(transition->getNativeID());
+      if (chrom_it == chromatogram_map.end())
       {
         OPENMS_LOG_DEBUG << "Error: Transition " + transition->getNativeID() + " from group " +
           transition->getPeptideRef() + " does not have a corresponding chromatogram" << std::endl;
@@ -1127,7 +1130,7 @@ namespace OpenMS
       //-----------------------------------
       // Retrieve chromatogram and filter it by the desired RT
       //-----------------------------------
-      OpenSwath::ChromatogramPtr cptr = input->getChromatogramById(chromatogram_map[transition->getNativeID()]);
+      OpenSwath::ChromatogramPtr cptr = input->getChromatogramById(chrom_it->second);
       MSChromatogram chromatogram;
 
       // Get the expected retention time, apply the RT-transformation
