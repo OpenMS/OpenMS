@@ -226,6 +226,8 @@ protected:
     //Modifications
     vector<String> all_mods;
     ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
+    all_mods.push_back(""); // allow empty string for no modifications
+    all_mods.push_back(" "); // allow space for no modifications (will be trimmed)
     registerStringList_("fixed_modifications", "<mods>", ListUtils::create<String>("Carbamidomethyl (C)", ','), "Fixed modifications, specified using Unimod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
     setValidStrings_("fixed_modifications", all_mods);
     registerStringList_("variable_modifications", "<mods>", ListUtils::create<String>("Oxidation (M)", ','), "Variable modifications, specified using Unimod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
@@ -253,11 +255,13 @@ protected:
     // iterate over modification names and add to vector
     for (const auto& modification : modNames)
     {
-      if (modification.empty())
+      String trimmed = modification;
+      trimmed.trim();
+      if (trimmed.empty())
       {
         continue;
       }
-      modifications.push_back(ModificationsDB::getInstance()->getModification(modification));
+      modifications.push_back(ModificationsDB::getInstance()->getModification(trimmed));
     }
 
     return modifications;
