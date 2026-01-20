@@ -164,6 +164,107 @@ namespace OpenMS
     */
     static std::vector<ConversionIssue> getAASequenceConversionIssues(const Peptidoform& pf);
 
+    // ---- Mass Calculation Methods ----
+
+    /**
+      @brief Check if mass can be calculated for a Peptidoform
+
+      Returns true if all components have known masses:
+      - All amino acids are standard residues
+      - All modifications are either resolved or have explicit mass deltas
+      - No ambiguous regions with different possible amino acids
+
+      @param[in] pf The Peptidoform to check (modifications will be resolved if needed)
+      @return True if mass calculation is possible
+    */
+    static bool canCalculateMass(const Peptidoform& pf);
+
+    /**
+      @brief Check if mass can be calculated for a PeptidoformIon
+
+      Returns true if mass can be calculated for all chains.
+      Cross-links are handled correctly (cross-linker mass counted once).
+
+      @param[in] pfi The PeptidoformIon to check
+      @return True if mass calculation is possible
+    */
+    static bool canCalculateMass(const PeptidoformIon& pfi);
+
+    /**
+      @brief Get issues preventing mass calculation for a Peptidoform
+
+      Returns detailed information about components that prevent mass calculation.
+
+      @param[in] pf The Peptidoform to analyze
+      @return Vector of issues (empty if mass can be calculated)
+    */
+    static std::vector<ConversionIssue> getMassCalculationIssues(const Peptidoform& pf);
+
+    /**
+      @brief Get issues preventing mass calculation for a PeptidoformIon
+
+      Returns detailed information about components that prevent mass calculation
+      across all chains.
+
+      @param[in] pfi The PeptidoformIon to analyze
+      @return Vector of issues (empty if mass can be calculated)
+    */
+    static std::vector<ConversionIssue> getMassCalculationIssues(const PeptidoformIon& pfi);
+
+    /**
+      @brief Calculate monoisotopic mass of a Peptidoform
+
+      Calculates the neutral monoisotopic mass including:
+      - Amino acid residue masses
+      - Terminal H2O mass
+      - All modification mass deltas
+      - Unlocalised and labile modifications (included in total)
+      - Global modifications applied to matching residues
+
+      @param[in] pf The Peptidoform to calculate mass for
+      @return Monoisotopic mass in Daltons
+      @throws Exception::InvalidValue if mass cannot be calculated (use canCalculateMass() first)
+
+      @note Modifications are resolved automatically if not already resolved
+    */
+    static double getMonoWeight(const Peptidoform& pf);
+
+    /**
+      @brief Calculate monoisotopic mass of a PeptidoformIon
+
+      Calculates the neutral monoisotopic mass of all chains combined.
+      Cross-linker masses are counted only once per cross-link group.
+
+      For chimeric spectra (is_chimeric=true), returns sum of all chain masses.
+      For cross-linked peptides, properly accounts for cross-linker contribution.
+
+      @param[in] pfi The PeptidoformIon to calculate mass for
+      @return Monoisotopic mass in Daltons
+      @throws Exception::InvalidValue if mass cannot be calculated
+    */
+    static double getMonoWeight(const PeptidoformIon& pfi);
+
+    /**
+      @brief Calculate m/z for a PeptidoformIon at its specified charge state
+
+      Uses the charge state from the PeptidoformIon if present.
+
+      @param[in] pfi The PeptidoformIon with charge state
+      @return m/z value
+      @throws Exception::InvalidValue if mass cannot be calculated or no charge state
+    */
+    static double getMZ(const PeptidoformIon& pfi);
+
+    /**
+      @brief Calculate m/z for a Peptidoform at a given charge state
+
+      @param[in] pf The Peptidoform to calculate m/z for
+      @param[in] charge The charge state (must be non-zero)
+      @return m/z value
+      @throws Exception::InvalidValue if mass cannot be calculated or charge is zero
+    */
+    static double getMZ(const Peptidoform& pf, int charge);
+
   private:
 
     /// Private constructor - use static methods

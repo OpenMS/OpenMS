@@ -11,9 +11,13 @@
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
+#include <OpenMS/CHEMISTRY/ResidueDB.h>
+#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/Constants.h>
 
 #include <cstdlib>
+#include <set>
 #include <sstream>
 
 namespace OpenMS
@@ -2572,6 +2576,642 @@ namespace OpenMS
     }
 
     return pf;
+  }
+
+  // ============================================================================
+  // Mass Calculation Methods
+  // ============================================================================
+
+  namespace
+  {
+    /// Helper to get modification mass from a Modification struct
+    /// Returns pair<bool, double> where first indicates if mass is available
+    std::pair<bool, double> getModificationMass_(const Modification& mod)
+    {
+      // If resolved, use the resolved modification's mass
+      if (mod.resolved_mod != nullptr)
+      {
+        return {true, mod.resolved_mod->getDiffMonoMass()};
+      }
+
+      // Check first alternative for mass delta or formula
+      if (mod.alternatives.empty())
+      {
+        return {false, 0.0};
+      }
+
+      const auto& tag = mod.alternatives[0].first;
+
+      // MassDelta has explicit mass
+      if (const auto* md = std::get_if<MassDelta>(&tag))
+      {
+        return {true, md->mass};
+      }
+
+      // FormulaTag can be converted to mass
+      if (const auto* ft = std::get_if<FormulaTag>(&tag))
+      {
+        try
+        {
+          EmpiricalFormula formula(ft->formula_string);
+          return {true, formula.getMonoWeight()};
+        }
+        catch (...)
+        {
+          return {false, 0.0};
+        }
+      }
+
+      // InfoTag and PositionConstraint don't contribute mass
+      if (std::holds_alternative<InfoTag>(tag) ||
+          std::holds_alternative<PositionConstraint>(tag))
+      {
+        return {true, 0.0};
+      }
+
+      // Other types (CvAccession, NamedMod, GlycanComposition) need resolution
+      return {false, 0.0};
+    }
+
+    /// Helper to check a single modification and collect issues
+    void checkModificationForMass_(const Modification& mod, size_t position,
+                                   std::vector<ConversionIssue>& issues)
+    {
+      auto [has_mass, mass] = getModificationMass_(mod);
+      (void)mass; // unused in check
+
+      if (!has_mass)
+      {
+        issues.push_back({
+          ConversionIssueType::UNRESOLVED_MOD,
+          "Modification at position " + std::to_string(position) + " has no resolvable mass",
+          position
+        });
+      }
+
+      // Check for alternative modifications with different masses
+      if (mod.alternatives.size() > 1)
+      {
+        // Get mass of first alternative
+        double first_mass = 0.0;
+        if (mod.resolved_mod)
+        {
+          first_mass = mod.resolved_mod->getDiffMonoMass();
+        }
+        else if (const auto* md = std::get_if<MassDelta>(&mod.alternatives[0].first))
+        {
+          first_mass = md->mass;
+        }
+
+        // Check if other alternatives have different masses
+        for (size_t i = 1; i < mod.alternatives.size(); ++i)
+        {
+          const auto& alt_tag = mod.alternatives[i].first;
+          double alt_mass = 0.0;
+          bool alt_has_mass = false;
+
+          if (const auto* md = std::get_if<MassDelta>(&alt_tag))
+          {
+            alt_mass = md->mass;
+            alt_has_mass = true;
+          }
+
+          // If we can compare masses and they differ significantly, flag it
+          if (alt_has_mass && std::abs(alt_mass - first_mass) > 0.001)
+          {
+            issues.push_back({
+              ConversionIssueType::ALTERNATIVE_MODS,
+              "Alternative modifications at position " + std::to_string(position) +
+              " have different masses (" + std::to_string(first_mass) + " vs " +
+              std::to_string(alt_mass) + ")",
+              position
+            });
+            break;
+          }
+        }
+      }
+    }
+  } // anonymous namespace
+
+  std::vector<ConversionIssue> ProFormaParser::getMassCalculationIssues(const Peptidoform& pf)
+  {
+    std::vector<ConversionIssue> issues;
+
+    // Make a copy and resolve modifications
+    Peptidoform pf_copy = pf;
+    resolveModifications(pf_copy);
+
+    // Check sequence elements
+    size_t position = 0;
+    for (const auto& section : pf_copy.sequence)
+    {
+      if (const auto* elem = std::get_if<SequenceElement>(&section))
+      {
+        // Check if amino acid is valid
+        const Residue* res = ResidueDB::getInstance()->getResidue(elem->amino_acid);
+        if (res == nullptr)
+        {
+          issues.push_back({
+            ConversionIssueType::UNSUPPORTED_FEATURE,
+            String("Unknown amino acid '") + elem->amino_acid + "' at position " + std::to_string(position),
+            position
+          });
+        }
+
+        // Check modifications
+        for (const auto& mod : elem->modifications)
+        {
+          checkModificationForMass_(mod, position, issues);
+        }
+        ++position;
+      }
+      else if (const auto* region = std::get_if<AmbiguousRegion>(&section))
+      {
+        // Check if all amino acids in ambiguous region have the same mass
+        std::set<double> masses;
+        for (const auto& elem : region->elements)
+        {
+          const Residue* res = ResidueDB::getInstance()->getResidue(elem.amino_acid);
+          if (res != nullptr)
+          {
+            masses.insert(res->getMonoWeight(Residue::Internal));
+          }
+          else
+          {
+            issues.push_back({
+              ConversionIssueType::UNSUPPORTED_FEATURE,
+              String("Unknown amino acid '") + elem.amino_acid + "' in ambiguous region at position " + std::to_string(position),
+              position
+            });
+          }
+        }
+        if (masses.size() > 1)
+        {
+          issues.push_back({
+            ConversionIssueType::AMBIGUOUS_REGION,
+            "Ambiguous region at position " + std::to_string(position) +
+            " contains amino acids with different masses",
+            position
+          });
+        }
+        ++position;
+      }
+      else if (const auto* range = std::get_if<ModifiedRange>(&section))
+      {
+        for (const auto& elem : range->elements)
+        {
+          const Residue* res = ResidueDB::getInstance()->getResidue(elem.amino_acid);
+          if (res == nullptr)
+          {
+            issues.push_back({
+              ConversionIssueType::UNSUPPORTED_FEATURE,
+              String("Unknown amino acid '") + elem.amino_acid + "' in range at position " + std::to_string(position),
+              position
+            });
+          }
+          ++position;
+        }
+        for (const auto& mod : range->modifications)
+        {
+          checkModificationForMass_(mod, position - range->elements.size(), issues);
+        }
+      }
+    }
+
+    // Check terminal modifications
+    for (const auto& mod : pf_copy.n_term_mods)
+    {
+      checkModificationForMass_(mod, 0, issues);
+    }
+    for (const auto& mod : pf_copy.c_term_mods)
+    {
+      checkModificationForMass_(mod, position > 0 ? position - 1 : 0, issues);
+    }
+
+    // Check unlocalised modifications
+    for (const auto& um : pf_copy.unlocalised_mods)
+    {
+      for (const auto& mod : um.modifications)
+      {
+        checkModificationForMass_(mod, SIZE_MAX, issues);
+      }
+    }
+
+    // Check labile modifications
+    for (const auto& lm : pf_copy.labile_mods)
+    {
+      checkModificationForMass_(lm.modification, SIZE_MAX, issues);
+    }
+
+    // Check global modifications
+    for (const auto& entry : pf_copy.global_mods)
+    {
+      if (const auto* gm = std::get_if<GlobalModification>(&entry))
+      {
+        checkModificationForMass_(gm->modification, SIZE_MAX, issues);
+      }
+      // IsotopeReplacement doesn't prevent mass calculation but changes mass
+      // We can handle isotope replacement by adjusting elemental masses
+    }
+
+    return issues;
+  }
+
+  std::vector<ConversionIssue> ProFormaParser::getMassCalculationIssues(const PeptidoformIon& pfi)
+  {
+    std::vector<ConversionIssue> issues;
+
+    for (size_t i = 0; i < pfi.chains.size(); ++i)
+    {
+      auto chain_issues = getMassCalculationIssues(pfi.chains[i]);
+      for (auto& issue : chain_issues)
+      {
+        issue.description = "Chain " + std::to_string(i) + ": " + issue.description;
+        issues.push_back(std::move(issue));
+      }
+    }
+
+    return issues;
+  }
+
+  bool ProFormaParser::canCalculateMass(const Peptidoform& pf)
+  {
+    return getMassCalculationIssues(pf).empty();
+  }
+
+  bool ProFormaParser::canCalculateMass(const PeptidoformIon& pfi)
+  {
+    return getMassCalculationIssues(pfi).empty();
+  }
+
+  double ProFormaParser::getMonoWeight(const Peptidoform& pf)
+  {
+    // Check if mass can be calculated
+    auto issues = getMassCalculationIssues(pf);
+    if (!issues.empty())
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "Cannot calculate mass: " + issues[0].description, "");
+    }
+
+    // Make a copy and resolve modifications
+    Peptidoform pf_copy = pf;
+    resolveModifications(pf_copy);
+
+    double mass = 0.0;
+
+    // Track which cross-link labels we've seen (to avoid double-counting)
+    std::set<String> counted_crosslinks;
+
+    // Helper lambda to add modification mass, handling cross-links
+    auto addModMass = [&](const Modification& mod) {
+      // Check for cross-link label
+      if (!mod.alternatives.empty() && mod.alternatives[0].second.has_value())
+      {
+        const auto& label = mod.alternatives[0].second.value();
+        if (label.type == Label::Type::CROSSLINK)
+        {
+          // Only count cross-linker mass once per label
+          if (counted_crosslinks.count(label.identifier) > 0)
+          {
+            return; // Already counted this cross-linker
+          }
+          counted_crosslinks.insert(label.identifier);
+        }
+      }
+
+      auto [has_mass, mod_mass] = getModificationMass_(mod);
+      if (has_mass)
+      {
+        mass += mod_mass;
+      }
+    };
+
+    // Calculate sequence mass
+    for (const auto& section : pf_copy.sequence)
+    {
+      if (const auto* elem = std::get_if<SequenceElement>(&section))
+      {
+        const Residue* res = ResidueDB::getInstance()->getResidue(elem->amino_acid);
+        mass += res->getMonoWeight(Residue::Internal);
+
+        for (const auto& mod : elem->modifications)
+        {
+          addModMass(mod);
+        }
+      }
+      else if (const auto* region = std::get_if<AmbiguousRegion>(&section))
+      {
+        // Use first amino acid (we've verified they have same mass)
+        if (!region->elements.empty())
+        {
+          const Residue* res = ResidueDB::getInstance()->getResidue(region->elements[0].amino_acid);
+          mass += res->getMonoWeight(Residue::Internal);
+
+          for (const auto& mod : region->elements[0].modifications)
+          {
+            addModMass(mod);
+          }
+        }
+      }
+      else if (const auto* range = std::get_if<ModifiedRange>(&section))
+      {
+        for (const auto& elem : range->elements)
+        {
+          const Residue* res = ResidueDB::getInstance()->getResidue(elem.amino_acid);
+          mass += res->getMonoWeight(Residue::Internal);
+        }
+        for (const auto& mod : range->modifications)
+        {
+          addModMass(mod);
+        }
+      }
+    }
+
+    // Add terminal masses (H at N-term, OH at C-term)
+    mass += EmpiricalFormula("H2O").getMonoWeight();
+
+    // Add N-terminal modifications
+    for (const auto& mod : pf_copy.n_term_mods)
+    {
+      addModMass(mod);
+    }
+
+    // Add C-terminal modifications
+    for (const auto& mod : pf_copy.c_term_mods)
+    {
+      addModMass(mod);
+    }
+
+    // Add unlocalised modifications (with optional occurrence count)
+    for (const auto& um : pf_copy.unlocalised_mods)
+    {
+      int occurrence = um.occurrence.value_or(1);
+      for (const auto& mod : um.modifications)
+      {
+        auto [has_mass, mod_mass] = getModificationMass_(mod);
+        if (has_mass)
+        {
+          mass += mod_mass * occurrence;
+        }
+      }
+    }
+
+    // Add labile modifications
+    for (const auto& lm : pf_copy.labile_mods)
+    {
+      auto [has_mass, mod_mass] = getModificationMass_(lm.modification);
+      if (has_mass)
+      {
+        mass += mod_mass;
+      }
+    }
+
+    // Handle global modifications
+    for (const auto& entry : pf_copy.global_mods)
+    {
+      if (const auto* gm = std::get_if<GlobalModification>(&entry))
+      {
+        auto [has_mass, mod_mass] = getModificationMass_(gm->modification);
+        if (has_mass)
+        {
+          // Count how many times this applies based on locations
+          int count = 0;
+          for (const auto& section : pf_copy.sequence)
+          {
+            if (const auto* elem = std::get_if<SequenceElement>(&section))
+            {
+              // Check if this residue matches any target location
+              for (const String& loc : gm->locations)
+              {
+                // Location can be single residue like "K" or terminal like "N-term"
+                if (loc.size() == 1 && elem->amino_acid == loc[0])
+                {
+                  ++count;
+                  break;
+                }
+              }
+            }
+          }
+          mass += mod_mass * count;
+        }
+      }
+      // Note: IsotopeReplacement would require adjusting elemental masses
+      // which is complex - for now we ignore it for mass calculation
+    }
+
+    return mass;
+  }
+
+  double ProFormaParser::getMonoWeight(const PeptidoformIon& pfi)
+  {
+    // Check if mass can be calculated
+    auto issues = getMassCalculationIssues(pfi);
+    if (!issues.empty())
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "Cannot calculate mass: " + issues[0].description, "");
+    }
+
+    if (pfi.chains.empty())
+    {
+      return 0.0;
+    }
+
+    // For chimeric spectra, chains are independent - sum their masses
+    if (pfi.is_chimeric)
+    {
+      double total = 0.0;
+      for (const auto& chain : pfi.chains)
+      {
+        total += getMonoWeight(chain);
+      }
+      return total;
+    }
+
+    // For cross-linked peptides, we need to handle cross-linker masses carefully
+    // Cross-linkers connect two sites but their mass should only be counted once
+
+    // First pass: collect all cross-link labels and which chain has the modification
+    std::map<String, std::pair<size_t, double>> crosslink_info; // label -> (first_chain_idx, mass)
+
+    double total = 0.0;
+    for (size_t chain_idx = 0; chain_idx < pfi.chains.size(); ++chain_idx)
+    {
+      const auto& chain = pfi.chains[chain_idx];
+      Peptidoform chain_copy = chain;
+      resolveModifications(chain_copy);
+
+      // Track cross-links in this chain
+      std::set<String> chain_crosslinks;
+
+      auto processModForCrosslink = [&](const Modification& mod) -> double {
+        if (!mod.alternatives.empty() && mod.alternatives[0].second.has_value())
+        {
+          const auto& label = mod.alternatives[0].second.value();
+          if (label.type == Label::Type::CROSSLINK)
+          {
+            chain_crosslinks.insert(label.identifier);
+
+            // Check if we've seen this cross-link before
+            auto it = crosslink_info.find(label.identifier);
+            if (it == crosslink_info.end())
+            {
+              // First occurrence - get the mass and record it
+              auto [has_mass, mod_mass] = getModificationMass_(mod);
+              crosslink_info[label.identifier] = {chain_idx, has_mass ? mod_mass : 0.0};
+              return has_mass ? mod_mass : 0.0;
+            }
+            else
+            {
+              // Already seen - don't add mass again
+              // But check if THIS occurrence has a mass (it might be just a label reference)
+              auto [has_mass, mod_mass] = getModificationMass_(mod);
+              if (has_mass && mod_mass > 0.001)
+              {
+                // This site also has mass - only count if not counted before
+                // The cross-linker mass should come from exactly one site
+                if (it->second.second < 0.001)
+                {
+                  // Previous occurrence had no mass, this one does
+                  return mod_mass;
+                }
+              }
+              return 0.0;
+            }
+          }
+        }
+        auto [has_mass, mod_mass] = getModificationMass_(mod);
+        return has_mass ? mod_mass : 0.0;
+      };
+
+      double chain_mass = 0.0;
+
+      // Add amino acid masses
+      for (const auto& section : chain_copy.sequence)
+      {
+        if (const auto* elem = std::get_if<SequenceElement>(&section))
+        {
+          const Residue* res = ResidueDB::getInstance()->getResidue(elem->amino_acid);
+          chain_mass += res->getMonoWeight(Residue::Internal);
+
+          for (const auto& mod : elem->modifications)
+          {
+            chain_mass += processModForCrosslink(mod);
+          }
+        }
+        else if (const auto* region = std::get_if<AmbiguousRegion>(&section))
+        {
+          if (!region->elements.empty())
+          {
+            const Residue* res = ResidueDB::getInstance()->getResidue(region->elements[0].amino_acid);
+            chain_mass += res->getMonoWeight(Residue::Internal);
+          }
+        }
+        else if (const auto* range = std::get_if<ModifiedRange>(&section))
+        {
+          for (const auto& elem : range->elements)
+          {
+            const Residue* res = ResidueDB::getInstance()->getResidue(elem.amino_acid);
+            chain_mass += res->getMonoWeight(Residue::Internal);
+          }
+          for (const auto& mod : range->modifications)
+          {
+            chain_mass += processModForCrosslink(mod);
+          }
+        }
+      }
+
+      // Add terminal H2O
+      chain_mass += EmpiricalFormula("H2O").getMonoWeight();
+
+      // Add terminal modifications
+      for (const auto& mod : chain_copy.n_term_mods)
+      {
+        chain_mass += processModForCrosslink(mod);
+      }
+      for (const auto& mod : chain_copy.c_term_mods)
+      {
+        chain_mass += processModForCrosslink(mod);
+      }
+
+      // Add unlocalised and labile (these shouldn't have cross-links typically)
+      for (const auto& um : chain_copy.unlocalised_mods)
+      {
+        int occurrence = um.occurrence.value_or(1);
+        for (const auto& mod : um.modifications)
+        {
+          auto [has_mass, mod_mass] = getModificationMass_(mod);
+          if (has_mass)
+          {
+            chain_mass += mod_mass * occurrence;
+          }
+        }
+      }
+      for (const auto& lm : chain_copy.labile_mods)
+      {
+        auto [has_mass, mod_mass] = getModificationMass_(lm.modification);
+        if (has_mass)
+        {
+          chain_mass += mod_mass;
+        }
+      }
+
+      total += chain_mass;
+    }
+
+    // For cross-linked peptides, subtract water for each cross-link
+    // (cross-linking typically involves loss of water or similar)
+    // Note: This depends on the specific cross-linker chemistry
+    // For now, we just sum the chain masses - the cross-linker mass already accounts for the linkage
+
+    return total;
+  }
+
+  double ProFormaParser::getMZ(const PeptidoformIon& pfi)
+  {
+    if (!pfi.charge.has_value())
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "Cannot calculate m/z: no charge state specified", "");
+    }
+
+    // ChargeState is a variant: either int or vector<AdductIon>
+    int charge = 0;
+    if (const int* simple_charge = std::get_if<int>(&pfi.charge.value()))
+    {
+      charge = *simple_charge;
+    }
+    else if (const auto* adducts = std::get_if<std::vector<AdductIon>>(&pfi.charge.value()))
+    {
+      // Sum the charges from all adducts
+      for (const auto& adduct : *adducts)
+      {
+        int occurrence = adduct.occurrence.value_or(1);
+        charge += adduct.charge * occurrence;
+      }
+    }
+
+    if (charge == 0)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "Cannot calculate m/z: charge state is zero", "");
+    }
+
+    double mass = getMonoWeight(pfi);
+    return (mass + charge * Constants::PROTON_MASS_U) / std::abs(charge);
+  }
+
+  double ProFormaParser::getMZ(const Peptidoform& pf, int charge)
+  {
+    if (charge == 0)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "Cannot calculate m/z: charge state is zero", "");
+    }
+
+    double mass = getMonoWeight(pf);
+    return (mass + charge * Constants::PROTON_MASS_U) / std::abs(charge);
   }
 
 } // namespace OpenMS
