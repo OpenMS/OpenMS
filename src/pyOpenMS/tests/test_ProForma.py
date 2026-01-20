@@ -440,7 +440,7 @@ def test_conversion_policy_enum():
     """Test AASequenceConversionPolicy enum values."""
     import pyopenms as p
 
-    assert hasattr(p.AASequenceConversionPolicy, 'STRICT')
+    assert hasattr(p.AASequenceConversionPolicy, 'STRICT_MODE')
     assert hasattr(p.AASequenceConversionPolicy, 'DROP_UNLOCALISED')
     assert hasattr(p.AASequenceConversionPolicy, 'BEST_EFFORT')
 
