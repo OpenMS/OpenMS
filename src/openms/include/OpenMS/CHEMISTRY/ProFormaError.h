@@ -43,7 +43,7 @@ namespace OpenMS
   /**
       @brief Convert error code to human-readable string.
 
-      @param code The error code to convert.
+      @param[in] code The error code to convert.
       @return A human-readable string describing the error code.
   */
   OPENMS_DLLAPI const char* proFormaErrorCodeToString(ProFormaErrorCode code);
@@ -82,13 +82,14 @@ namespace OpenMS
     /**
         @brief Constructs a ProFormaParseError with full context information.
 
-        @param file Source file where the exception was thrown (use __FILE__).
-        @param line Source line where the exception was thrown (use __LINE__).
-        @param function Function name where the exception was thrown (use OPENMS_PRETTY_FUNCTION).
-        @param error_code Machine-readable error code categorizing the error.
-        @param error_position Byte position (0-indexed) in the input where the error occurred.
-        @param input The complete input string that was being parsed.
-        @param message Human-readable description of the error.
+        @param[in] file Source file where the exception was thrown (use __FILE__).
+        @param[in] line Source line where the exception was thrown (use __LINE__).
+        @param[in] function Function name where the exception was thrown (use OPENMS_PRETTY_FUNCTION).
+        @param[in] error_code Machine-readable error code categorizing the error.
+        @param[in] error_position Byte position (0-indexed) in the input where the error occurred.
+                                  Will be clamped to input.size() if out of bounds.
+        @param[in] input The complete input string that was being parsed.
+        @param[in] message Human-readable description of the error.
     */
     ProFormaParseError(
       const char* file,
@@ -151,8 +152,8 @@ namespace OpenMS
     /**
         @brief Set expected/found information for more detailed error messages.
 
-        @param expected Description of what was expected at the error position.
-        @param found Description of what was actually found.
+        @param[in] expected Description of what was expected at the error position.
+        @param[in] found Description of what was actually found.
     */
     void setExpectedFound(const String& expected, const String& found);
 
@@ -168,10 +169,11 @@ namespace OpenMS
         @brief Extract context snippets from input around the error position.
 
         Extracts approximately 20 characters before and after the error position
-        for display in error messages.
+        for display in error messages. The position is assumed to be already
+        clamped to input.size().
 
-        @param input The complete input string.
-        @param pos The error position in the input.
+        @param[in] input The complete input string.
+        @param[in] pos The error position in the input (clamped to input.size()).
     */
     void extractContext_(const String& input, size_t pos);
   };

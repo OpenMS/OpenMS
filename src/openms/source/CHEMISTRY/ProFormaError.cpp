@@ -65,9 +65,9 @@ namespace OpenMS
   ) noexcept :
     ParseError(file, line, function, input, message),
     code_(error_code),
-    position_(error_position)
+    position_(std::min(error_position, input.size()))  // Clamp to preserve noexcept safety
   {
-    extractContext_(input, error_position);
+    extractContext_(input, position_);
     Exception::GlobalExceptionHandler::getInstance().setMessage(what());
   }
 

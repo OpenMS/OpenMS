@@ -37,8 +37,10 @@ cdef extern from "<OpenMS/CHEMISTRY/ProFormaParser.h>" namespace "OpenMS::ProFor
 
     PeptidoformIon parseIon(const String& input) except + nogil  # wrap-attach:ProFormaParser wrap-doc:Parse a ProForma string into a PeptidoformIon AST (with charge state)
 
-    # Static toString method for Peptidoform
+    # Static toString methods
     String toString(const Peptidoform& pf, ProFormaWriteMode mode) except + nogil  # wrap-attach:ProFormaParser wrap-doc:Convert a Peptidoform AST back to ProForma string notation with specified mode
+
+    String toStringIon "OpenMS::ProFormaParser::toString" (const PeptidoformIon& pfi, ProFormaWriteMode mode) except + nogil  # wrap-attach:ProFormaParser wrap-doc:Convert a PeptidoformIon AST back to ProForma string notation with specified mode
 
     # Modification resolution
     void resolveModifications(Peptidoform& pf) except + nogil  # wrap-attach:ProFormaParser wrap-doc:Resolve all modifications in a Peptidoform using ModificationsDB
