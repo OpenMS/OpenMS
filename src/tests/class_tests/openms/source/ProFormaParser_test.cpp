@@ -2116,6 +2116,174 @@ START_SECTION(ProFormaParser::getMZ - throws on missing charge)
 }
 END_SECTION
 
+START_SECTION(ProFormaParser::getMonoWeight - reference peptide DFPIANGER)
+{
+  // DFPIANGER is a well-tested reference peptide in OpenMS (AASequence_test.cpp line 384)
+  Peptidoform pf = ProFormaParser::parse("DFPIANGER");
+  TEST_EQUAL(ProFormaParser::canCalculateMass(pf), true)
+
+  double mass = ProFormaParser::getMonoWeight(pf);
+  AASequence aas = AASequence::fromString("DFPIANGER");
+  TEST_REAL_SIMILAR(mass, aas.getMonoWeight())
+  TEST_REAL_SIMILAR(mass, 1017.48796)
+}
+END_SECTION
+
+START_SECTION(ProFormaParser::getMonoWeight - phosphorylation)
+{
+  // Phosphorylation: +79.966331 Da (UNIMOD:21)
+  Peptidoform pf = ProFormaParser::parse("PEPTS[UNIMOD:21]IDE");
+  TEST_EQUAL(ProFormaParser::canCalculateMass(pf), true)
+
+  double mass = ProFormaParser::getMonoWeight(pf);
+  AASequence aas = AASequence::fromString("PEPTS(Phospho)IDE");
+  TEST_REAL_SIMILAR(mass, aas.getMonoWeight())
+
+  // Also test with mass delta notation
+  Peptidoform pf2 = ProFormaParser::parse("PEPTS[+79.966331]IDE");
+  TEST_REAL_SIMILAR(ProFormaParser::getMonoWeight(pf2), mass)
+}
+END_SECTION
+
+START_SECTION(ProFormaParser::getMonoWeight - carbamidomethyl)
+{
+  // Carbamidomethyl on Cysteine: +57.0215 Da (UNIMOD:4)
+  Peptidoform pf = ProFormaParser::parse("PEPTC[UNIMOD:4]IDE");
+  TEST_EQUAL(ProFormaParser::canCalculateMass(pf), true)
+
+  double mass = ProFormaParser::getMonoWeight(pf);
+  AASequence aas = AASequence::fromString("PEPTC(Carbamidomethyl)IDE");
+  TEST_REAL_SIMILAR(mass, aas.getMonoWeight())
+}
+END_SECTION
+
+START_SECTION(ProFormaParser::getMonoWeight - combined terminal mods)
+{
+  // N-term Acetyl (+42.010565) and C-term Amidated (-0.984016)
+  Peptidoform pf = ProFormaParser::parse("[UNIMOD:1]-PEPTIDE-[UNIMOD:2]");
+  TEST_EQUAL(ProFormaParser::canCalculateMass(pf), true)
+
+  double mass = ProFormaParser::getMonoWeight(pf);
+  AASequence aas = AASequence::fromString("(Acetyl)PEPTIDE(Amidated)");
+  TEST_REAL_SIMILAR(mass, aas.getMonoWeight())
+
+  // Verify the mass difference from unmodified
+  Peptidoform pf_unmod = ProFormaParser::parse("PEPTIDE");
+  double unmod_mass = ProFormaParser::getMonoWeight(pf_unmod);
+  // Acetyl adds ~42.01, Amidated subtracts ~0.98, net ~41.03
+  TEST_REAL_SIMILAR(mass - unmod_mass, 42.010565 - 0.984016)
+}
+END_SECTION
+
+START_SECTION(ProFormaParser::getMonoWeight - multiple modifications)
+{
+  // Multiple modifications on same peptide
+  Peptidoform pf = ProFormaParser::parse("[UNIMOD:1]-PEM[UNIMOD:35]PTIDES[UNIMOD:21]K");
+  TEST_EQUAL(ProFormaParser::canCalculateMass(pf), true)
+
+  double mass = ProFormaParser::getMonoWeight(pf);
+  AASequence aas = AASequence::fromString("(Acetyl)PEM(Oxidation)PTIDES(Phospho)K");
+  TEST_REAL_SIMILAR(mass, aas.getMonoWeight())
+}
+END_SECTION
+
+START_SECTION(ProFormaParser::getMonoWeight - formula tag)
+{
+  // Formula:C2H2O adds acetyl-equivalent mass
+  Peptidoform pf = ProFormaParser::parse("[Formula:C2H2O]-PEPTIDE");
+  TEST_EQUAL(ProFormaParser::canCalculateMass(pf), true)
+
+  double mass = ProFormaParser::getMonoWeight(pf);
+
+  // C2H2O has same composition as Acetyl
+  Peptidoform pf_acetyl = ProFormaParser::parse("[UNIMOD:1]-PEPTIDE");
+  TEST_REAL_SIMILAR(mass, ProFormaParser::getMonoWeight(pf_acetyl))
+}
+END_SECTION
+
+START_SECTION(ProFormaParser::getMonoWeight - unlocalised modification)
+{
+  // Unlocalised phosphorylation: [Phospho]?PEPTIDE
+  Peptidoform pf = ProFormaParser::parse("[+79.966331]?PEPTIDE");
+  TEST_EQUAL(ProFormaParser::canCalculateMass(pf), true)
+
+  double mass = ProFormaParser::getMonoWeight(pf);
+  Peptidoform pf_base = ProFormaParser::parse("PEPTIDE");
+  double base_mass = ProFormaParser::getMonoWeight(pf_base);
+
+  // Mass should include the unlocalised phospho
+  TEST_REAL_SIMILAR(mass, base_mass + 79.966331)
+}
+END_SECTION
+
+START_SECTION(ProFormaParser::getMonoWeight - labile modification)
+{
+  // Labile modification: {Glycan:Hex}PEPTIDE
+  // Using mass delta since Glycan may not resolve
+  Peptidoform pf = ProFormaParser::parse("{+162.0528}PEPTIDE");
+  TEST_EQUAL(ProFormaParser::canCalculateMass(pf), true)
+
+  double mass = ProFormaParser::getMonoWeight(pf);
+  Peptidoform pf_base = ProFormaParser::parse("PEPTIDE");
+  double base_mass = ProFormaParser::getMonoWeight(pf_base);
+
+  // Labile mods are included in mass calculation
+  TEST_REAL_SIMILAR(mass, base_mass + 162.0528)
+}
+END_SECTION
+
+START_SECTION(ProFormaParser::getMonoWeight - global modification)
+{
+  // Global Carbamidomethyl on all C residues: <[+57.0215]@C>PEPTCIDECK
+  Peptidoform pf = ProFormaParser::parse("<[+57.0215]@C>PEPTCIDECK");
+  TEST_EQUAL(ProFormaParser::canCalculateMass(pf), true)
+
+  double mass = ProFormaParser::getMonoWeight(pf);
+
+  // Should be equivalent to explicit modifications on both C residues
+  Peptidoform pf_explicit = ProFormaParser::parse("PEPTC[+57.0215]IDEC[+57.0215]K");
+  TEST_REAL_SIMILAR(mass, ProFormaParser::getMonoWeight(pf_explicit))
+
+  // Verify: base + 2 * carbamidomethyl
+  Peptidoform pf_base = ProFormaParser::parse("PEPTCIDECK");
+  double base_mass = ProFormaParser::getMonoWeight(pf_base);
+  TEST_REAL_SIMILAR(mass, base_mass + 2 * 57.0215)
+}
+END_SECTION
+
+START_SECTION(ProFormaParser::getMonoWeight - disulfide cross-link)
+{
+  // Disulfide bond: -2.01565 Da (loss of 2H)
+  // Single chain with intramolecular disulfide
+  Peptidoform pf = ProFormaParser::parse("PEPTC[-2.01565#XL1]IDEC[#XL1]K");
+  TEST_EQUAL(ProFormaParser::canCalculateMass(pf), true)
+
+  double mass = ProFormaParser::getMonoWeight(pf);
+  Peptidoform pf_base = ProFormaParser::parse("PEPTCIDECK");
+  double base_mass = ProFormaParser::getMonoWeight(pf_base);
+
+  // Disulfide removes 2H, counted once
+  TEST_REAL_SIMILAR(mass, base_mass - 2.01565)
+}
+END_SECTION
+
+START_SECTION(ProFormaParser::getMonoWeight - throws on chimeric)
+{
+  // Chimeric spectra have ambiguous mass - must calculate per chain
+  PeptidoformIon ion = ProFormaParser::parseIon("PEPTIDE/2+EDITPEP/3");
+  TEST_EQUAL(ion.is_chimeric, true)
+  TEST_EXCEPTION(Exception::InvalidValue, ProFormaParser::getMonoWeight(ion))
+
+  // Individual chains should work fine
+  TEST_EQUAL(ProFormaParser::canCalculateMass(ion.chains[0]), true)
+  TEST_EQUAL(ProFormaParser::canCalculateMass(ion.chains[1]), true)
+  double mass1 = ProFormaParser::getMonoWeight(ion.chains[0]);
+  double mass2 = ProFormaParser::getMonoWeight(ion.chains[1]);
+  TEST_REAL_SIMILAR(mass1, 799.3599) // PEPTIDE
+  TEST_REAL_SIMILAR(mass2, 799.3599) // EDITPEP (same residues)
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

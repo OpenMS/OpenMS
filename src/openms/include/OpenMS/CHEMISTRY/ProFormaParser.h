@@ -232,15 +232,13 @@ namespace OpenMS
     /**
       @brief Calculate monoisotopic mass of a PeptidoformIon
 
-      Calculates the neutral monoisotopic mass of all chains combined.
+      For cross-linked peptides, calculates the combined mass of all chains.
       Cross-linker masses are counted only once per cross-link group.
-
-      For chimeric spectra (is_chimeric=true), returns sum of all chain masses.
-      For cross-linked peptides, properly accounts for cross-linker contribution.
 
       @param[in] pfi The PeptidoformIon to calculate mass for
       @return Monoisotopic mass in Daltons
       @throws Exception::InvalidValue if mass cannot be calculated
+      @throws Exception::InvalidValue if pfi is chimeric (use getMonoWeight on individual chains)
     */
     static double getMonoWeight(const PeptidoformIon& pfi);
 
