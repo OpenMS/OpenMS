@@ -218,7 +218,7 @@ def error_handling():
 
     for proforma_str, description in invalid_inputs:
         try:
-            pf = oms.parse(proforma_str)
+            _ = oms.parse(proforma_str)  # noqa: F841
             print(f"  '{proforma_str}': Unexpectedly succeeded")
         except Exception as e:
             print(f"  {description}: Caught exception (expected)")

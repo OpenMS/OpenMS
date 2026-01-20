@@ -488,8 +488,8 @@ namespace OpenMS
     {
       // Peek ahead to see if this comma separates locations or global mod entries
       // If the token after comma is [ or a number (isotope), it's a new global mod entry
+      // Note: tokenizer_ is already past the comma (current_() consumed it), so we just peek
       ProFormaTokenizer lookahead = tokenizer_;
-      lookahead.next(); // consume comma
       ProFormaTokenizer::Token after_comma = lookahead.peek();
 
       if (after_comma.type == ProFormaTokenizer::TokenType::LBRACKET ||
