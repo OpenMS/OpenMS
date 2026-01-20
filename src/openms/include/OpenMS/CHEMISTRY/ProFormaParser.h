@@ -442,7 +442,7 @@ namespace OpenMS
     Peptidoform parsePeptidoform_();
 
     /// Parse a Peptidoform with optional per-chain charge (for chimeric spectra)
-    /// @param is_chimeric_context If true, parse trailing charge as per-chain charge
+    /// @param[in] is_chimeric_context If true, parse trailing charge as per-chain charge
     Peptidoform parsePeptidoformWithCharge_(bool is_chimeric_context);
 
     /// Parse global modifications: < ... >
