@@ -41,13 +41,8 @@
         """
         if mode is None:
             mode = ProFormaWriteMode.LOSSLESS
-        # PeptidoformIon needs to convert first chain for toString
-        # Note: This assumes single chain; multi-chain needs different handling
-        if len(self.chains) == 1:
-            return ProFormaParser.toString(self.chains[0], mode)
-        else:
-            # For multi-chain, join with // separator
-            return "//".join(ProFormaParser.toString(c, mode) for c in self.chains)
+        # Use the C++ ProFormaParser::toString(PeptidoformIon, mode) via toStringIon binding
+        return ProFormaParser.toStringIon(self, mode)
 
     def getMonoWeight(self):
         """
