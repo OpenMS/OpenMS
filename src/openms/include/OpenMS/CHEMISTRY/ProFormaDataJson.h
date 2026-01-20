@@ -947,37 +947,8 @@ namespace OpenMS
   /// @}
 
 
-  //--------------------------------------------------------------------------
-  // Convenience methods for JSON string conversion
-  //--------------------------------------------------------------------------
-
-  /// Convert Peptidoform to JSON string
-  inline String toJSON(const Peptidoform& pf)
-  {
-    nlohmann::json j = pf;
-    return String(j.dump());
-  }
-
-  /// Construct Peptidoform from JSON string
-  inline Peptidoform peptidoformFromJSON(const String& json_str)
-  {
-    nlohmann::json j = nlohmann::json::parse(static_cast<std::string>(json_str));
-    return j.get<Peptidoform>();
-  }
-
-  /// Convert PeptidoformIon to JSON string
-  inline String toJSON(const PeptidoformIon& pfi)
-  {
-    nlohmann::json j = pfi;
-    return String(j.dump());
-  }
-
-  /// Construct PeptidoformIon from JSON string
-  inline PeptidoformIon peptidoformIonFromJSON(const String& json_str)
-  {
-    nlohmann::json j = nlohmann::json::parse(static_cast<std::string>(json_str));
-    return j.get<PeptidoformIon>();
-  }
-
+  // Note: The convenience functions toJSON(), peptidoformFromJSON(), peptidoformIonFromJSON()
+  // are declared in ProFormaData.h and implemented in ProFormaDataJson.cpp.
+  // This header provides the nlohmann::json ADL overloads needed by those implementations.
 
 } // namespace OpenMS

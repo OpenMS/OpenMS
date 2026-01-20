@@ -61,3 +61,24 @@ cdef extern from "<OpenMS/CHEMISTRY/ProFormaParser.h>" namespace "OpenMS::ProFor
     libcpp_vector[ConversionIssue] getAASequenceConversionIssues(const Peptidoform& pf) except + nogil
     # wrap-doc:
     #   Get a list of all issues that would arise during AASequence conversion
+
+
+# JSON serialization functions (free functions in OpenMS namespace)
+# These are declared in ProFormaData.h and don't require nlohmann headers
+cdef extern from "<OpenMS/CHEMISTRY/ProFormaData.h>" namespace "OpenMS":
+
+    String peptidoformToJSON "OpenMS::toJSON" (const Peptidoform& pf) except + nogil
+    # wrap-doc:
+    #   Convert Peptidoform to JSON string representation
+
+    Peptidoform peptidoformFromJSON(const String& json_str) except + nogil
+    # wrap-doc:
+    #   Construct Peptidoform from JSON string
+
+    String peptidoformIonToJSON "OpenMS::toJSON" (const PeptidoformIon& pfi) except + nogil
+    # wrap-doc:
+    #   Convert PeptidoformIon to JSON string representation
+
+    PeptidoformIon peptidoformIonFromJSON(const String& json_str) except + nogil
+    # wrap-doc:
+    #   Construct PeptidoformIon from JSON string

@@ -554,4 +554,26 @@ namespace OpenMS
   };
 
 
+  //--------------------------------------------------------------------------
+  // JSON serialization convenience functions (implementations in ProFormaDataJson.cpp)
+  //--------------------------------------------------------------------------
+
+  /// @name JSON serialization
+  /// @{
+
+  /// Convert Peptidoform to JSON string representation
+  OPENMS_DLLAPI String toJSON(const Peptidoform& pf);
+
+  /// Construct Peptidoform from JSON string
+  OPENMS_DLLAPI Peptidoform peptidoformFromJSON(const String& json_str);
+
+  /// Convert PeptidoformIon to JSON string representation
+  OPENMS_DLLAPI String toJSON(const PeptidoformIon& pfi);
+
+  /// Construct PeptidoformIon from JSON string
+  OPENMS_DLLAPI PeptidoformIon peptidoformIonFromJSON(const String& json_str);
+
+  /// @}
+
+
 } // namespace OpenMS

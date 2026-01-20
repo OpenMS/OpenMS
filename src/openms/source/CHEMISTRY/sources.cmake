@@ -24,6 +24,7 @@ MonosaccharideDB.cpp
 ModifiedPeptideGenerator.cpp
 NASequence.cpp
 NucleicAcidSpectrumGenerator.cpp
+ProFormaDataJson.cpp
 ProFormaError.cpp
 ProFormaParser.cpp
 ProFormaTokenizer.cpp

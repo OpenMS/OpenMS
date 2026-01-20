@@ -16,7 +16,7 @@
 #include <OpenMS/CHEMISTRY/ProFormaTokenizer.h>
 #include <OpenMS/CHEMISTRY/ProFormaError.h>
 #include <OpenMS/CHEMISTRY/ProFormaData.h>
-#include <OpenMS/CHEMISTRY/ProFormaDataJson.h>
+
 #include <OpenMS/CHEMISTRY/AASequence.h>
 
 #include <fstream>

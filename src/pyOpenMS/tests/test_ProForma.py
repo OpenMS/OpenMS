@@ -5,9 +5,11 @@ These tests cover:
 - Basic parsing and roundtrip serialization
 - WriteMode (LOSSLESS vs CANONICAL)
 - AASequence conversion
+- JSON serialization
 - Error handling
 """
 
+import json
 import pytest
 
 
@@ -232,6 +234,39 @@ def test_get_conversion_issues():
     pf = p.parse("[Phospho]?PEPTIDE")
     issues = p.getAASequenceConversionIssues(pf)
     assert len(issues) > 0
+
+
+def test_json_roundtrip_peptidoform():
+    """Test JSON serialization roundtrip for Peptidoform."""
+    import pyopenms as p
+
+    original = p.parse("EM[UNIMOD:35]K")
+    json_str = p.peptidoformToJSON(original)
+
+    # Should be valid JSON
+    data = json.loads(json_str)
+    assert "sequence" in data
+
+    # Should roundtrip
+    restored = p.peptidoformFromJSON(json_str)
+    assert p.toString(restored, p.ProFormaWriteMode.LOSSLESS) == p.toString(original, p.ProFormaWriteMode.LOSSLESS)
+
+
+def test_json_roundtrip_peptidoform_ion():
+    """Test JSON serialization roundtrip for PeptidoformIon."""
+    import pyopenms as p
+
+    original = p.parseIon("PEPTIDE/2")
+    json_str = p.peptidoformIonToJSON(original)
+
+    # Should be valid JSON
+    data = json.loads(json_str)
+    assert "chains" in data
+
+    # Should roundtrip
+    restored = p.peptidoformIonFromJSON(json_str)
+    # Compare JSON representations
+    assert p.peptidoformIonToJSON(restored) == p.peptidoformIonToJSON(original)
 
 
 def test_parse_error_handling():
