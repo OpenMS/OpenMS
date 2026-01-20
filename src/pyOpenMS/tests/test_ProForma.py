@@ -346,6 +346,30 @@ def test_peptidoform_ion_class():
     assert len(pfi.chains) > 0
 
 
+def test_peptidoform_ion_to_string():
+    """Test PeptidoformIon toString (toStringIon) method."""
+    import pyopenms as p
+
+    # Simple ion with charge
+    pfi = p.PeptidoformIon.fromString("PEPTIDE/2")
+    result = pfi.toString(p.ProFormaWriteMode.LOSSLESS)
+    assert "PEPTIDE" in result
+    assert "/2" in result
+
+    # Cross-linked chains
+    pfi2 = p.PeptidoformIon.fromString("PEPTIDE//SEQUENCE")
+    result2 = pfi2.toString(p.ProFormaWriteMode.LOSSLESS)
+    assert "PEPTIDE" in result2
+    assert "SEQUENCE" in result2
+    assert "//" in result2
+
+    # Test roundtrip
+    original_str = "EM[UNIMOD:35]K/2"
+    pfi3 = p.PeptidoformIon.fromString(original_str)
+    roundtrip = pfi3.toString(p.ProFormaWriteMode.LOSSLESS)
+    assert roundtrip == original_str
+
+
 def test_write_mode_enum():
     """Test ProFormaWriteMode enum values."""
     import pyopenms as p

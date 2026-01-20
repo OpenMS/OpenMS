@@ -1248,6 +1248,30 @@ START_SECTION(ProFormaParser error handling - invalid global mod)
 }
 END_SECTION
 
+START_SECTION(ProFormaParseError - position clamping for noexcept safety)
+{
+  // Test that ProFormaParseError clamps error_position to input.size()
+  // This ensures noexcept safety when constructing the exception
+  String input = "ABC";
+  size_t out_of_bounds_position = 100; // Way beyond input.size()
+
+  ProFormaParseError err(
+    __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+    ProFormaErrorCode::UNEXPECTED_CHARACTER,
+    out_of_bounds_position,
+    input,
+    "Test error"
+  );
+
+  // Position should be clamped to input.size() (3)
+  TEST_EQUAL(err.getPosition(), input.size())
+
+  // Context extraction should not throw
+  String formatted = err.getFormattedMessage();
+  TEST_EQUAL(formatted.empty(), false)
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 // JSON serialization tests
 /////////////////////////////////////////////////////////////
