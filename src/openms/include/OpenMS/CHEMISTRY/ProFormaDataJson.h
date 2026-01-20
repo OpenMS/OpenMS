@@ -497,9 +497,9 @@ namespace OpenMS
   inline void from_json(const nlohmann::json& j, SequenceElement& se)
   {
     std::string aa = j.at("amino_acid").get<std::string>();
-    if (aa.empty())
+    if (aa.size() != 1)
     {
-      throw std::invalid_argument("amino_acid cannot be empty");
+      throw std::invalid_argument("amino_acid must be exactly 1 character, got length " + std::to_string(aa.size()));
     }
     se.amino_acid = aa[0];
     j.at("modifications").get_to(se.modifications);
