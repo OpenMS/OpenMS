@@ -22,8 +22,9 @@
 namespace OpenMS
 {
 
-  // Forward declaration
+  // Forward declarations
   class AASequence;
+  class MSSpectrum;
 
   /**
     @brief Recursive descent parser for ProForma v2 peptidoform notation
@@ -345,6 +346,87 @@ namespace OpenMS
     */
     static std::optional<double> tryGetMZ(const PeptidoformIon& pfi,
                                            std::vector<ConversionIssue>& issues_out);
+
+    // ---- Theoretical Spectrum Generation ----
+
+    /**
+      @brief Try to generate a theoretical MS/MS spectrum for a Peptidoform
+
+      Converts the Peptidoform to AASequence and uses TheoreticalSpectrumGenerator
+      to generate b/y ions (and optionally other ion types).
+
+      @param[in] pf The Peptidoform to fragment
+      @param[in] min_charge Minimum fragment ion charge state
+      @param[in] max_charge Maximum fragment ion charge state
+      @param[in] add_losses If true, include neutral loss peaks (H2O, NH3)
+      @param[in] add_metainfo If true, include ion annotations in spectrum
+      @return MSSpectrum with theoretical peaks, or std::nullopt if generation fails
+    */
+    static std::optional<MSSpectrum> tryGenerateSpectrum(
+      const Peptidoform& pf,
+      int min_charge = 1,
+      int max_charge = 1,
+      bool add_losses = false,
+      bool add_metainfo = true);
+
+    /**
+      @brief Try to generate a theoretical MS/MS spectrum with diagnostics
+
+      @param[in] pf The Peptidoform to fragment
+      @param[in] min_charge Minimum fragment ion charge state
+      @param[in] max_charge Maximum fragment ion charge state
+      @param[in] add_losses If true, include neutral loss peaks
+      @param[in] add_metainfo If true, include ion annotations
+      @param[out] issues_out Vector to receive any issues (cleared first)
+      @return MSSpectrum with theoretical peaks, or std::nullopt if generation fails
+    */
+    static std::optional<MSSpectrum> tryGenerateSpectrum(
+      const Peptidoform& pf,
+      int min_charge,
+      int max_charge,
+      bool add_losses,
+      bool add_metainfo,
+      std::vector<ConversionIssue>& issues_out);
+
+    /**
+      @brief Try to generate a theoretical MS/MS spectrum for a PeptidoformIon
+
+      For single-chain peptides, uses TheoreticalSpectrumGenerator.
+      For cross-linked peptides (// separator), uses TheoreticalSpectrumGeneratorXLMS.
+      Chimeric spectra are not supported (returns nullopt with issue).
+
+      @param[in] pfi The PeptidoformIon to fragment
+      @param[in] min_charge Minimum fragment ion charge state
+      @param[in] max_charge Maximum fragment ion charge state
+      @param[in] add_losses If true, include neutral loss peaks
+      @param[in] add_metainfo If true, include ion annotations
+      @return MSSpectrum with theoretical peaks, or std::nullopt if generation fails
+    */
+    static std::optional<MSSpectrum> tryGenerateSpectrum(
+      const PeptidoformIon& pfi,
+      int min_charge = 1,
+      int max_charge = 1,
+      bool add_losses = false,
+      bool add_metainfo = true);
+
+    /**
+      @brief Try to generate a theoretical MS/MS spectrum for PeptidoformIon with diagnostics
+
+      @param[in] pfi The PeptidoformIon to fragment
+      @param[in] min_charge Minimum fragment ion charge state
+      @param[in] max_charge Maximum fragment ion charge state
+      @param[in] add_losses If true, include neutral loss peaks
+      @param[in] add_metainfo If true, include ion annotations
+      @param[out] issues_out Vector to receive any issues (cleared first)
+      @return MSSpectrum with theoretical peaks, or std::nullopt if generation fails
+    */
+    static std::optional<MSSpectrum> tryGenerateSpectrum(
+      const PeptidoformIon& pfi,
+      int min_charge,
+      int max_charge,
+      bool add_losses,
+      bool add_metainfo,
+      std::vector<ConversionIssue>& issues_out);
 
   private:
 
