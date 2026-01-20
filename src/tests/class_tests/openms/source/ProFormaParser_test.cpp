@@ -1062,13 +1062,45 @@ END_SECTION
 // Cross-link with multiple chains and XL tests
 /////////////////////////////////////////////////////////////
 
-// TODO: Complex cross-links with + separator not yet implemented
-// START_SECTION(ProFormaParser::parseIon - complex cross-links)
-// {
-//   PeptidoformIon ion = ProFormaParser::parseIon("A[X:DSS#XL1]//B[#XL1]+C[X:DSS#XL1]//D[#XL1]");
-//   TEST_EQUAL(ion.chains.size(), 4)
-// }
-// END_SECTION
+START_SECTION(ProFormaParser::parseIon - complex cross-links with chimeric separator)
+{
+  // Test complex cross-links with + (chimeric) separator combining multiple cross-linked complexes
+  // Complex 1: A[X:DSS#XL1]//B[#XL1] (two chains cross-linked via XL1)
+  // Complex 2: C[X:DSS#XL2]//D[#XL2] (two chains cross-linked via XL2)
+  PeptidoformIon ion = ProFormaParser::parseIon("A[X:DSS#XL1]//B[#XL1]+C[X:DSS#XL2]//D[#XL2]");
+  TEST_EQUAL(ion.chains.size(), 4)
+  TEST_EQUAL(ion.is_chimeric, true)
+
+  // Check chain 0 (A with DSS modification and XL1 label)
+  auto& chain0_elem = std::get<SequenceElement>(ion.chains[0].sequence[0]);
+  TEST_EQUAL(chain0_elem.amino_acid, 'A')
+  TEST_EQUAL(chain0_elem.modifications.size(), 1)
+  auto& mod0_label = chain0_elem.modifications[0].alternatives[0].second;
+  TEST_EQUAL(mod0_label.has_value(), true)
+  TEST_EQUAL(mod0_label->identifier, "XL1")
+
+  // Check chain 1 (B with XL1 label only)
+  auto& chain1_elem = std::get<SequenceElement>(ion.chains[1].sequence[0]);
+  TEST_EQUAL(chain1_elem.amino_acid, 'B')
+  auto& mod1_label = chain1_elem.modifications[0].alternatives[0].second;
+  TEST_EQUAL(mod1_label.has_value(), true)
+  TEST_EQUAL(mod1_label->identifier, "XL1")
+
+  // Check chain 2 (C with DSS modification and XL2 label)
+  auto& chain2_elem = std::get<SequenceElement>(ion.chains[2].sequence[0]);
+  TEST_EQUAL(chain2_elem.amino_acid, 'C')
+  auto& mod2_label = chain2_elem.modifications[0].alternatives[0].second;
+  TEST_EQUAL(mod2_label.has_value(), true)
+  TEST_EQUAL(mod2_label->identifier, "XL2")
+
+  // Check chain 3 (D with XL2 label only)
+  auto& chain3_elem = std::get<SequenceElement>(ion.chains[3].sequence[0]);
+  TEST_EQUAL(chain3_elem.amino_acid, 'D')
+  auto& mod3_label = chain3_elem.modifications[0].alternatives[0].second;
+  TEST_EQUAL(mod3_label.has_value(), true)
+  TEST_EQUAL(mod3_label->identifier, "XL2")
+}
+END_SECTION
 
 START_SECTION(ProFormaParser::parseIon - disulfide cross-links)
 {
