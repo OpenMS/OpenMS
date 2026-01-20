@@ -370,6 +370,64 @@ def test_peptidoform_ion_to_string():
     assert roundtrip == original_str
 
 
+def test_peptidoform_ion_to_string_modes():
+    """Test PeptidoformIon toString with different write modes and default parameter."""
+    import pyopenms as p
+
+    # Test with mass delta to see difference between modes
+    pfi = p.PeptidoformIon.fromString("PEM[+15.99]K/2")
+
+    # LOSSLESS mode preserves original formatting
+    lossless = pfi.toString(p.ProFormaWriteMode.LOSSLESS)
+    assert "+15.99" in lossless  # Original precision preserved
+
+    # CANONICAL mode normalizes to 4 decimal places
+    canonical = pfi.toString(p.ProFormaWriteMode.CANONICAL)
+    assert "+15.9900" in canonical  # Normalized to 4 decimals
+
+    # Test default parameter (should default to LOSSLESS)
+    default_result = pfi.toString()
+    assert default_result == lossless  # Default should match LOSSLESS
+
+
+def test_peptidoform_ion_to_string_exact_format():
+    """Test PeptidoformIon toString preserves exact separator and order."""
+    import pyopenms as p
+
+    # Test that // separator is exactly preserved (not + or other)
+    pfi = p.PeptidoformIon.fromString("ABC//DEF//GHI")
+    result = pfi.toString(p.ProFormaWriteMode.LOSSLESS)
+    # Verify exact format: chains separated by // in order
+    assert result == "ABC//DEF//GHI"
+
+    # Test chain order is preserved
+    pfi2 = p.PeptidoformIon.fromString("FIRST//SECOND")
+    result2 = pfi2.toString(p.ProFormaWriteMode.LOSSLESS)
+    assert result2.index("FIRST") < result2.index("SECOND")
+
+
+def test_peptidoform_ion_mass_integration():
+    """Test PeptidoformIon mass/m/z calculation integration with toString."""
+    import pyopenms as p
+
+    # Create ion with charge
+    pfi = p.PeptidoformIon.fromString("PEPTIDE/2")
+
+    # Verify mass calculation works
+    assert pfi.canCalculateMass() == True
+    mass = pfi.getMonoWeight()
+    assert 799.0 < mass < 800.0  # PEPTIDE ~799.36 Da
+
+    # Verify m/z calculation works (uses charge from ion)
+    mz = pfi.getMZ()
+    expected_mz = (mass + 2 * 1.007276) / 2  # (M + 2H) / 2
+    assert abs(mz - expected_mz) < 0.1
+
+    # Verify toString still works after mass calculations
+    result = pfi.toString(p.ProFormaWriteMode.LOSSLESS)
+    assert result == "PEPTIDE/2"
+
+
 def test_write_mode_enum():
     """Test ProFormaWriteMode enum values."""
     import pyopenms as p

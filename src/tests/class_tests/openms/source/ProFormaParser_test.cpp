@@ -1250,25 +1250,79 @@ END_SECTION
 
 START_SECTION(ProFormaParseError - position clamping for noexcept safety)
 {
-  // Test that ProFormaParseError clamps error_position to input.size()
-  // This ensures noexcept safety when constructing the exception
-  String input = "ABC";
-  size_t out_of_bounds_position = 100; // Way beyond input.size()
+  // Test 1: Position way beyond input.size() should be clamped
+  {
+    String input = "ABC";
+    size_t out_of_bounds_position = 100;
 
-  ProFormaParseError err(
-    __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-    ProFormaErrorCode::UNEXPECTED_CHARACTER,
-    out_of_bounds_position,
-    input,
-    "Test error"
-  );
+    ProFormaParseError err(
+      __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+      ProFormaErrorCode::UNEXPECTED_CHARACTER,
+      out_of_bounds_position,
+      input,
+      "Test error"
+    );
 
-  // Position should be clamped to input.size() (3)
-  TEST_EQUAL(err.getPosition(), input.size())
+    TEST_EQUAL(err.getPosition(), input.size())
+    String formatted = err.getFormattedMessage();
+    TEST_EQUAL(formatted.empty(), false)
+    // Should show end of input marker since position is at end
+    TEST_EQUAL(formatted.hasSubstring("END OF INPUT"), true)
+  }
 
-  // Context extraction should not throw
-  String formatted = err.getFormattedMessage();
-  TEST_EQUAL(formatted.empty(), false)
+  // Test 2: Position exactly at input.size() (boundary case)
+  {
+    String input = "ABCDEF";
+    size_t boundary_position = input.size(); // Position 6, exactly at end
+
+    ProFormaParseError err(
+      __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+      ProFormaErrorCode::UNEXPECTED_END_OF_INPUT,
+      boundary_position,
+      input,
+      "Unexpected end"
+    );
+
+    TEST_EQUAL(err.getPosition(), input.size())
+    TEST_EQUAL(err.getContextBefore(), "ABCDEF")
+    TEST_EQUAL(err.getContextAfter(), "")
+  }
+
+  // Test 3: Empty input with position 0
+  {
+    String input = "";
+    size_t position = 0;
+
+    ProFormaParseError err(
+      __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+      ProFormaErrorCode::EMPTY_SEQUENCE,
+      position,
+      input,
+      "Empty sequence"
+    );
+
+    TEST_EQUAL(err.getPosition(), 0)
+    TEST_EQUAL(err.getContextBefore(), "")
+    TEST_EQUAL(err.getContextAfter(), "")
+  }
+
+  // Test 4: Different error code (verify error code is preserved)
+  {
+    String input = "PEP[";
+    size_t position = 3;
+
+    ProFormaParseError err(
+      __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+      ProFormaErrorCode::UNCLOSED_BRACKET,
+      position,
+      input,
+      "Unclosed bracket"
+    );
+
+    TEST_EQUAL(err.getErrorCode(), ProFormaErrorCode::UNCLOSED_BRACKET)
+    String formatted = err.getFormattedMessage();
+    TEST_EQUAL(formatted.hasSubstring("Unclosed bracket"), true)
+  }
 }
 END_SECTION
 
