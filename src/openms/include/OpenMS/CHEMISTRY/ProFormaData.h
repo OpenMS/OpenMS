@@ -561,16 +561,48 @@ namespace OpenMS
   /// @name JSON serialization
   /// @{
 
-  /// Convert Peptidoform to JSON string representation
+  /**
+    @brief Convert a Peptidoform to JSON string representation
+
+    Serializes the complete Peptidoform AST including all modifications,
+    terminal modifications, global modifications, and labels.
+
+    @param[in] pf The Peptidoform to serialize
+    @return JSON string representation of the Peptidoform
+  */
   OPENMS_DLLAPI String toJSON(const Peptidoform& pf);
 
-  /// Construct Peptidoform from JSON string
+  /**
+    @brief Construct a Peptidoform from JSON string
+
+    Deserializes a JSON string back into a Peptidoform AST.
+
+    @param[in] json_str JSON string representation of a Peptidoform
+    @return The deserialized Peptidoform
+    @throws Exception::ParseError if the JSON is malformed or missing required fields
+  */
   OPENMS_DLLAPI Peptidoform peptidoformFromJSON(const String& json_str);
 
-  /// Convert PeptidoformIon to JSON string representation
+  /**
+    @brief Convert a PeptidoformIon to JSON string representation
+
+    Serializes the complete PeptidoformIon AST including all chains,
+    charge state, adduct ions, and cross-link groups.
+
+    @param[in] pfi The PeptidoformIon to serialize
+    @return JSON string representation of the PeptidoformIon
+  */
   OPENMS_DLLAPI String toJSON(const PeptidoformIon& pfi);
 
-  /// Construct PeptidoformIon from JSON string
+  /**
+    @brief Construct a PeptidoformIon from JSON string
+
+    Deserializes a JSON string back into a PeptidoformIon AST.
+
+    @param[in] json_str JSON string representation of a PeptidoformIon
+    @return The deserialized PeptidoformIon
+    @throws Exception::ParseError if the JSON is malformed or missing required fields
+  */
   OPENMS_DLLAPI PeptidoformIon peptidoformIonFromJSON(const String& json_str);
 
   /// @}

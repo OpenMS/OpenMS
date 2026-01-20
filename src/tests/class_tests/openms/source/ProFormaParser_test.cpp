@@ -33,6 +33,10 @@ vector<string> loadTestCases(const string& filename)
 {
   vector<string> cases;
   ifstream file(filename);
+  if (!file.is_open())
+  {
+    throw std::runtime_error("Failed to open test fixture file: " + filename);
+  }
   string line;
   while (getline(file, line))
   {
@@ -1601,8 +1605,8 @@ START_SECTION(Positive test cases from fixture file)
     return false;
   };
 
-  // If fixture file exists, test all cases
-  if (!positive_tests.empty())
+  // Test all cases (file must exist, loadTestCases throws if it doesn't)
+  if (!positive_tests.empty())  // Handle case where file only contains comments
   {
     int passed = 0;
     int failed = 0;
@@ -1647,8 +1651,8 @@ START_SECTION(Negative test cases from fixture file)
   string fixture_path = OPENMS_GET_TEST_DATA_PATH("ProFormaParser_negative_tests.txt");
   vector<string> negative_tests = loadTestCases(fixture_path);
 
-  // If fixture file exists, test that parsing fails for all cases
-  if (!negative_tests.empty())
+  // Test that parsing fails for all cases (file must exist, loadTestCases throws if it doesn't)
+  if (!negative_tests.empty())  // Handle case where file only contains comments
   {
     int correctly_rejected = 0;
     int incorrectly_accepted = 0;
