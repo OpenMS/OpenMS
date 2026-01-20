@@ -39,11 +39,11 @@ cdef extern from * namespace "OpenMS::Math":
 
     inline std::vector<double> qvalue_c(std::vector<double> p_values, double pi0, bool pfdr) { return qValue(p_values, pi0, pfdr); }
     inline std::vector<double> pnorm_c(std::vector<double> stat, std::vector<double> stat0) { return pNorm(stat, stat0); }
-    inline Pi0Result pi0est_c(std::vector<double> p_values, std::vector<double> lambda_, std::string pi0_method, int smooth_df, bool smooth_log_pi0) { 
-      return pi0Est(p_values, lambda_, pi0_method, smooth_df, smooth_log_pi0); 
+    inline Pi0Result pi0est_c(std::vector<double> p_values, std::vector<double> lambda_, const char* pi0_method, int smooth_df, bool smooth_log_pi0) {
+      return pi0Est(p_values, lambda_, pi0_method, smooth_df, smooth_log_pi0);
     }
-    inline std::vector<double> lfdr_c(std::vector<double> p_values, double pi0, bool trunc, bool monotone, std::string transf, double adj, double eps, size_t gridsize, double cut) { 
-      return lfdr(p_values, pi0, trunc, monotone, transf, adj, eps, gridsize, cut); 
+    inline std::vector<double> lfdr_c(std::vector<double> p_values, double pi0, bool trunc, bool monotone, const char* transf, double adj, double eps, size_t gridsize, double cut) {
+      return lfdr(p_values, pi0, trunc, monotone, transf, adj, eps, gridsize, cut);
     }
 
     }}
