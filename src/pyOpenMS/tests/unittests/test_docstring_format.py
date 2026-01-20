@@ -998,18 +998,6 @@ def _is_acceptable_error(error, docstring):
     if 'unknown directive type "deprecated"' in error_lower:
         return True
 
-    # Inline emphasis warnings from asterisks in C++ pointer types (e.g., "const *")
-    # or method signatures are false positives
-    if 'inline emphasis start-string without end-string' in error_lower:
-        return True
-
-    # Indentation patterns that are technically invalid plain RST but render fine
-    # in Sphinx (e.g., indented lists without blank lines, nested content)
-    if 'unexpected indentation' in error_lower:
-        return True
-    if 'block quote ends without a blank line' in error_lower:
-        return True
-
     return False
 
 

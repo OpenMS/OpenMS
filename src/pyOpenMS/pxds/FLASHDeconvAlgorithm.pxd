@@ -17,9 +17,9 @@ cdef extern from "<OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>" namespace "O
         #  FLASHDeconv algorithm: ultrafast mass deconvolution algorithm for top down mass spectrometry dataset.
         #  From MSSpectrum, this class outputs DeconvolvedSpectrum.
         #  Deconvolution takes three steps:
-        #    i) decharging and select candidate masses - speed up via binning
-        #    ii) collecting isotopes from the candidate masses and deisotoping - peak groups are defined here
-        #    iii) scoring and filter out low scoring masses (i.e., peak groups)
+        #  1) decharging and select candidate masses - speed up via binning
+        #  2) collecting isotopes from the candidate masses and deisotoping - peak groups are defined here
+        #  3) scoring and filter out low scoring masses (i.e., peak groups)
 
         #  Constructors
         FLASHDeconvAlgorithm() except + nogil
