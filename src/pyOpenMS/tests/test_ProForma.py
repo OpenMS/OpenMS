@@ -172,7 +172,7 @@ def test_to_aasequence_strict_fails_on_unsupported():
     # Unlocalised modification cannot be converted
     pf = p.parse("[Phospho]?PEPTIDE")
 
-    with pytest.raises(Exception):
+    with pytest.raises(RuntimeError):
         p.toAASequence(pf, p.AASequenceConversionPolicy.STRICT)
 
 
@@ -274,11 +274,11 @@ def test_parse_error_handling():
     import pyopenms as p
 
     # Unclosed bracket should fail
-    with pytest.raises(Exception):
+    with pytest.raises(RuntimeError):
         p.parse("[Invalid")
 
     # Empty sequence should fail
-    with pytest.raises(Exception):
+    with pytest.raises(RuntimeError):
         p.parse("")
 
 
