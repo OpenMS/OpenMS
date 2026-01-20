@@ -2042,14 +2042,11 @@ START_SECTION(ProFormaParser::getMonoWeight - cross-linked single chain)
   double mass = ProFormaParser::getMonoWeight(pf);
 
   // Calculate expected mass: sequence + one disulfide delta (not two)
-  AASequence seq = AASequence::fromString("EVTSEKCLEMSCEFDA");
-  // Note: We use one extra A to match length, actual mass comparison is just for sanity check
-  TEST_EQUAL(mass > 0, true)
+  // Sequence is EVTSEKCLEMSCEFD (15 amino acids)
+  AASequence unmod_seq = AASequence::fromString("EVTSEKCLEMSCEFD");
+  double expected = unmod_seq.getMonoWeight() - 2.0156;  // One cross-link, not two
 
-  // Verify the cross-link mass is counted only once by checking the total
-  // mass is approximately sequence mass minus 2H (not minus 4H)
-  AASequence unmod_seq = AASequence::fromString("EVTSEKCLEMSCEFDA");
-  // The mass should be close to unmodified - 2.0156 (one cross-link), not - 4.0312 (two)
+  TEST_REAL_SIMILAR(mass, expected)
 }
 END_SECTION
 

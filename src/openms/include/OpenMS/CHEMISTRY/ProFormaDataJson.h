@@ -466,6 +466,7 @@ namespace OpenMS
   inline void from_json(const nlohmann::json& j, Modification& mod)
   {
     mod.alternatives.clear();
+    mod.resolved_mod = nullptr;  // Reset to avoid stale pointers
     for (const auto& item : j)
     {
       ModificationTag tag = item.at("tag").get<ModificationTag>();
@@ -837,6 +838,10 @@ namespace OpenMS
     if (j.contains("global_mods"))
     {
       j.at("global_mods").get_to(pf.global_mods);
+    }
+    else
+    {
+      pf.global_mods.clear();  // Clear when field is omitted
     }
     j.at("unlocalised_mods").get_to(pf.unlocalised_mods);
     j.at("labile_mods").get_to(pf.labile_mods);
