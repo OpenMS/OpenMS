@@ -53,7 +53,6 @@ namespace OpenMS
   class OPENMS_DLLAPI ProFormaTokenizer
   {
   public:
-
     /// Token types produced by the tokenizer
     enum class TokenType
     {
@@ -178,7 +177,6 @@ namespace OpenMS
     static const char* tokenTypeName(TokenType type);
 
   private:
-
     /// Scan and return the next token from the current position
     Token scanToken_();
 

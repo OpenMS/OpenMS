@@ -79,7 +79,6 @@ namespace OpenMS
     public Exception::ParseError
   {
   public:
-
     /**
         @brief Constructs a ProFormaParseError with full context information.
 

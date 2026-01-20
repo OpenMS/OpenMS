@@ -2816,7 +2816,7 @@ namespace OpenMS
         {
           issues.push_back({
             ConversionIssueType::UNSUPPORTED_FEATURE,
-            String("Unknown amino acid '") + elem->amino_acid + "' at position " + std::to_string(position),
+            String("Unknown amino acid '") + elem->amino_acid + "' at position " + String(position),
             position
           });
         }
@@ -2843,7 +2843,7 @@ namespace OpenMS
           {
             issues.push_back({
               ConversionIssueType::UNSUPPORTED_FEATURE,
-              String("Unknown amino acid '") + elem.amino_acid + "' in ambiguous region at position " + std::to_string(position),
+              String("Unknown amino acid '") + elem.amino_acid + "' in ambiguous region at position " + String(position),
               position
             });
           }
@@ -2868,7 +2868,7 @@ namespace OpenMS
           {
             issues.push_back({
               ConversionIssueType::UNSUPPORTED_FEATURE,
-              String("Unknown amino acid '") + elem.amino_acid + "' in range at position " + std::to_string(position),
+              String("Unknown amino acid '") + elem.amino_acid + "' in range at position " + String(position),
               position
             });
           }

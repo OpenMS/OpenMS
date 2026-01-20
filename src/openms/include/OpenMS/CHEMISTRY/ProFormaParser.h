@@ -57,7 +57,6 @@ namespace OpenMS
   class OPENMS_DLLAPI ProFormaParser
   {
   public:
-
     /**
       @brief Parse a ProForma string into a Peptidoform AST
 
@@ -429,7 +428,6 @@ namespace OpenMS
       std::vector<ConversionIssue>& issues_out);
 
   private:
-
     /// Private constructor - use static methods
     explicit ProFormaParser(std::string_view input);
 

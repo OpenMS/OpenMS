@@ -25,8 +25,8 @@ cdef extern from "<OpenMS/CHEMISTRY/ProFormaParser.h>" namespace "OpenMS":
         #    s = ProFormaParser.toString(pf, ProFormaWriteMode.LOSSLESS)
         #    # s is "EM[UNIMOD:35]K"
         #
-        # Dummy class to attach ProFormaParser namespace functions
-        # This class should not be instantiated directly
+        #  Dummy class to attach ProFormaParser namespace functions.
+        #  This class should not be instantiated directly.
         ProFormaParser() except + nogil  # wrap-ignore
         ProFormaParser(ProFormaParser &) except + nogil  # wrap-ignore
 
