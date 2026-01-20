@@ -9,18 +9,21 @@ cdef extern from "<OpenMS/CHEMISTRY/ProFormaParser.h>" namespace "OpenMS":
 
     cdef cppclass ProFormaParser "OpenMS::ProFormaParser":
         # wrap-doc:
-        #   Recursive descent parser for ProForma v2 peptidoform notation
+        #  Recursive descent parser for ProForma v2 peptidoform notation
         #
-        #   This class parses ProForma strings into an Abstract Syntax Tree (AST) representation.
-        #   ProForma is a standard notation for representing peptidoforms (peptides with modifications).
+        #  This class parses ProForma strings into an Abstract Syntax Tree (AST) representation.
+        #  ProForma is a standard notation for representing peptidoforms (peptides with modifications).
         #
-        #   All methods are static. Use ProFormaParser.parse() to parse a ProForma string.
+        #  All methods are static. Use ProFormaParser.parse() to parse a ProForma string.
         #
-        #   Usage example:
-        #       pf = ProFormaParser.parse("EM[UNIMOD:35]K")
-        #       # pf now contains the parsed Peptidoform AST
-        #       s = ProFormaParser.toString(pf)
-        #       # s is "EM[UNIMOD:35]K"
+        #  Usage example:
+        #
+        #  .. code-block:: python
+        #
+        #    pf = ProFormaParser.parse("EM[UNIMOD:35]K")
+        #    # pf now contains the parsed Peptidoform AST
+        #    s = ProFormaParser.toString(pf)
+        #    # s is "EM[UNIMOD:35]K"
         # wrap-ignore
         pass
 
