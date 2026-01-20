@@ -14,6 +14,7 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/OpenMSConfig.h>
 
+#include <optional>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -262,6 +263,88 @@ namespace OpenMS
       @throws Exception::InvalidValue if mass cannot be calculated or charge is zero
     */
     static double getMZ(const Peptidoform& pf, int charge);
+
+    // ---- Non-throwing variants (single-pass, efficient) ----
+
+    /**
+      @brief Try to calculate monoisotopic mass of a Peptidoform (non-throwing)
+
+      Single-pass calculation that resolves modifications and calculates mass.
+      More efficient than calling canCalculateMass() followed by getMonoWeight().
+
+      @param[in] pf The Peptidoform to calculate mass for
+      @return Monoisotopic mass in Daltons, or std::nullopt if calculation not possible
+    */
+    static std::optional<double> tryGetMonoWeight(const Peptidoform& pf);
+
+    /**
+      @brief Try to calculate monoisotopic mass with diagnostic information
+
+      Single-pass calculation that also collects any issues preventing calculation.
+
+      @param[in] pf The Peptidoform to calculate mass for
+      @param[out] issues_out Vector to receive any issues (cleared first)
+      @return Monoisotopic mass in Daltons, or std::nullopt if calculation not possible
+    */
+    static std::optional<double> tryGetMonoWeight(const Peptidoform& pf,
+                                                   std::vector<ConversionIssue>& issues_out);
+
+    /**
+      @brief Try to calculate monoisotopic mass of a PeptidoformIon (non-throwing)
+
+      @param[in] pfi The PeptidoformIon to calculate mass for
+      @return Monoisotopic mass in Daltons, or std::nullopt if calculation not possible
+      @note Returns std::nullopt for chimeric spectra (calculate per-chain instead)
+    */
+    static std::optional<double> tryGetMonoWeight(const PeptidoformIon& pfi);
+
+    /**
+      @brief Try to calculate monoisotopic mass of PeptidoformIon with diagnostics
+
+      @param[in] pfi The PeptidoformIon to calculate mass for
+      @param[out] issues_out Vector to receive any issues (cleared first)
+      @return Monoisotopic mass in Daltons, or std::nullopt if calculation not possible
+    */
+    static std::optional<double> tryGetMonoWeight(const PeptidoformIon& pfi,
+                                                   std::vector<ConversionIssue>& issues_out);
+
+    /**
+      @brief Try to calculate m/z for a Peptidoform (non-throwing)
+
+      @param[in] pf The Peptidoform to calculate m/z for
+      @param[in] charge The charge state (must be non-zero)
+      @return m/z value, or std::nullopt if calculation not possible or charge is zero
+    */
+    static std::optional<double> tryGetMZ(const Peptidoform& pf, int charge);
+
+    /**
+      @brief Try to calculate m/z for a Peptidoform with diagnostics
+
+      @param[in] pf The Peptidoform to calculate m/z for
+      @param[in] charge The charge state (must be non-zero)
+      @param[out] issues_out Vector to receive any issues (cleared first)
+      @return m/z value, or std::nullopt if calculation not possible or charge is zero
+    */
+    static std::optional<double> tryGetMZ(const Peptidoform& pf, int charge,
+                                           std::vector<ConversionIssue>& issues_out);
+
+    /**
+      @brief Try to calculate m/z for a PeptidoformIon (non-throwing)
+
+      @param[in] pfi The PeptidoformIon with charge state
+      @return m/z value, or std::nullopt if calculation not possible or no charge
+    */
+    static std::optional<double> tryGetMZ(const PeptidoformIon& pfi);
+
+    /**
+      @brief Try to calculate m/z for a PeptidoformIon with diagnostics
+
+      @param[in] pfi The PeptidoformIon with charge state
+      @param[out] issues_out Vector to receive any issues (cleared first)
+      @return m/z value, or std::nullopt if calculation not possible or no charge
+    */
+    static std::optional<double> tryGetMZ(const PeptidoformIon& pfi,
+                                           std::vector<ConversionIssue>& issues_out);
 
   private:
 

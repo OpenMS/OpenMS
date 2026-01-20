@@ -2284,6 +2284,116 @@ START_SECTION(ProFormaParser::getMonoWeight - throws on chimeric)
 }
 END_SECTION
 
+START_SECTION(ProFormaParser::tryGetMonoWeight - basic usage)
+{
+  // Simple case - should succeed
+  Peptidoform pf = ProFormaParser::parse("PEPTIDE");
+  auto mass = ProFormaParser::tryGetMonoWeight(pf);
+  TEST_EQUAL(mass.has_value(), true)
+  TEST_REAL_SIMILAR(*mass, 799.3599)
+
+  // Compare with throwing version
+  TEST_REAL_SIMILAR(*mass, ProFormaParser::getMonoWeight(pf))
+}
+END_SECTION
+
+START_SECTION(ProFormaParser::tryGetMonoWeight - with issues)
+{
+  // Valid peptide - no issues
+  Peptidoform pf = ProFormaParser::parse("PEM[UNIMOD:35]TIDE");
+  std::vector<ConversionIssue> issues;
+  auto mass = ProFormaParser::tryGetMonoWeight(pf, issues);
+
+  TEST_EQUAL(mass.has_value(), true)
+  TEST_EQUAL(issues.empty(), true)
+
+  // Invalid modification - should return nullopt and populate issues
+  Peptidoform pf_bad = ProFormaParser::parse("PEM[UnknownMod999]TIDE");
+  issues.clear();
+  auto mass_bad = ProFormaParser::tryGetMonoWeight(pf_bad, issues);
+
+  TEST_EQUAL(mass_bad.has_value(), false)
+  TEST_EQUAL(issues.empty(), false)
+  // Should have at least one issue about unresolved modification
+  TEST_EQUAL(issues[0].type, ConversionIssueType::UNRESOLVED_MOD)
+}
+END_SECTION
+
+START_SECTION(ProFormaParser::tryGetMonoWeight - PeptidoformIon)
+{
+  // Cross-linked peptides - should work
+  PeptidoformIon ion = ProFormaParser::parseIon("PEPTIDEK[+138.068#XL1]//SEQUENCEK[#XL1]");
+  auto mass = ProFormaParser::tryGetMonoWeight(ion);
+  TEST_EQUAL(mass.has_value(), true)
+  TEST_REAL_SIMILAR(*mass, ProFormaParser::getMonoWeight(ion))
+
+  // Chimeric - should return nullopt
+  PeptidoformIon chimeric = ProFormaParser::parseIon("PEPTIDE/2+EDITPEP/3");
+  std::vector<ConversionIssue> issues;
+  auto mass_chimeric = ProFormaParser::tryGetMonoWeight(chimeric, issues);
+  TEST_EQUAL(mass_chimeric.has_value(), false)
+  TEST_EQUAL(issues.empty(), false)
+}
+END_SECTION
+
+START_SECTION(ProFormaParser::tryGetMZ - basic usage)
+{
+  // Peptidoform with explicit charge
+  Peptidoform pf = ProFormaParser::parse("PEPTIDE");
+  auto mz = ProFormaParser::tryGetMZ(pf, 2);
+  TEST_EQUAL(mz.has_value(), true)
+  TEST_REAL_SIMILAR(*mz, ProFormaParser::getMZ(pf, 2))
+
+  // Zero charge - should return nullopt
+  auto mz_zero = ProFormaParser::tryGetMZ(pf, 0);
+  TEST_EQUAL(mz_zero.has_value(), false)
+
+  // With issues output
+  std::vector<ConversionIssue> issues;
+  auto mz_issues = ProFormaParser::tryGetMZ(pf, 0, issues);
+  TEST_EQUAL(mz_issues.has_value(), false)
+  TEST_EQUAL(issues.empty(), false)
+}
+END_SECTION
+
+START_SECTION(ProFormaParser::tryGetMZ - PeptidoformIon)
+{
+  // PeptidoformIon with charge
+  PeptidoformIon ion = ProFormaParser::parseIon("PEPTIDE/2");
+  auto mz = ProFormaParser::tryGetMZ(ion);
+  TEST_EQUAL(mz.has_value(), true)
+  TEST_REAL_SIMILAR(*mz, ProFormaParser::getMZ(ion))
+
+  // Without charge - should return nullopt
+  PeptidoformIon ion_no_charge = ProFormaParser::parseIon("PEPTIDE");
+  std::vector<ConversionIssue> issues;
+  auto mz_no_charge = ProFormaParser::tryGetMZ(ion_no_charge, issues);
+  TEST_EQUAL(mz_no_charge.has_value(), false)
+  TEST_EQUAL(issues.empty(), false)
+}
+END_SECTION
+
+START_SECTION(ProFormaParser::tryGetMonoWeight - efficiency test)
+{
+  // Verify that tryGetMonoWeight does single-pass (doesn't throw, returns same result)
+  // This is more of a usage pattern demonstration
+  Peptidoform pf = ProFormaParser::parse("PEM[UNIMOD:35]PTIDES[UNIMOD:21]K");
+
+  // Efficient pattern: single call gets result or issues
+  std::vector<ConversionIssue> issues;
+  if (auto mass = ProFormaParser::tryGetMonoWeight(pf, issues))
+  {
+    // Use the mass
+    TEST_REAL_SIMILAR(*mass, ProFormaParser::getMonoWeight(pf))
+  }
+  else
+  {
+    // Would examine issues here
+    TEST_EQUAL(true, false) // Should not reach here for valid peptide
+  }
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

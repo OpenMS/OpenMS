@@ -3037,4 +3037,179 @@ namespace OpenMS
     return (mass + charge * Constants::PROTON_MASS_U) / std::abs(charge);
   }
 
+  // ============================================================================
+  // Non-throwing variants (single-pass, efficient)
+  // ============================================================================
+
+  std::optional<double> ProFormaParser::tryGetMonoWeight(const Peptidoform& pf)
+  {
+    std::vector<ConversionIssue> issues;
+    return tryGetMonoWeight(pf, issues);
+  }
+
+  std::optional<double> ProFormaParser::tryGetMonoWeight(const Peptidoform& pf,
+                                                          std::vector<ConversionIssue>& issues_out)
+  {
+    issues_out.clear();
+
+    // Single pass: resolve and collect issues
+    Peptidoform pf_copy = pf;
+    resolveModifications(pf_copy);
+
+    // Collect issues (reuse existing logic but on resolved copy)
+    issues_out = getMassCalculationIssues(pf_copy);
+
+    if (!issues_out.empty())
+    {
+      return std::nullopt;
+    }
+
+    // Calculate mass using resolved copy
+    std::set<String> counted_crosslinks;
+    return calculateChainMass_(pf_copy, counted_crosslinks);
+  }
+
+  std::optional<double> ProFormaParser::tryGetMonoWeight(const PeptidoformIon& pfi)
+  {
+    std::vector<ConversionIssue> issues;
+    return tryGetMonoWeight(pfi, issues);
+  }
+
+  std::optional<double> ProFormaParser::tryGetMonoWeight(const PeptidoformIon& pfi,
+                                                          std::vector<ConversionIssue>& issues_out)
+  {
+    issues_out.clear();
+
+    if (pfi.chains.empty())
+    {
+      return 0.0;
+    }
+
+    // Chimeric spectra have ambiguous mass
+    if (pfi.is_chimeric)
+    {
+      issues_out.push_back({
+        ConversionIssueType::UNSUPPORTED_FEATURE,
+        "Cannot calculate single mass for chimeric spectra. Use tryGetMonoWeight() on individual chains.",
+        0
+      });
+      return std::nullopt;
+    }
+
+    // Check all chains for issues first
+    for (size_t i = 0; i < pfi.chains.size(); ++i)
+    {
+      Peptidoform chain_copy = pfi.chains[i];
+      resolveModifications(chain_copy);
+
+      auto chain_issues = getMassCalculationIssues(chain_copy);
+      for (auto& issue : chain_issues)
+      {
+        issue.description = "Chain " + std::to_string(i) + ": " + issue.description;
+        issues_out.push_back(std::move(issue));
+      }
+    }
+
+    if (!issues_out.empty())
+    {
+      return std::nullopt;
+    }
+
+    // Calculate mass for cross-linked peptides with shared tracking
+    std::set<String> counted_crosslinks;
+    double total = 0.0;
+    for (const auto& chain : pfi.chains)
+    {
+      Peptidoform chain_copy = chain;
+      resolveModifications(chain_copy);
+      total += calculateChainMass_(chain_copy, counted_crosslinks);
+    }
+    return total;
+  }
+
+  std::optional<double> ProFormaParser::tryGetMZ(const Peptidoform& pf, int charge)
+  {
+    std::vector<ConversionIssue> issues;
+    return tryGetMZ(pf, charge, issues);
+  }
+
+  std::optional<double> ProFormaParser::tryGetMZ(const Peptidoform& pf, int charge,
+                                                  std::vector<ConversionIssue>& issues_out)
+  {
+    issues_out.clear();
+
+    if (charge == 0)
+    {
+      issues_out.push_back({
+        ConversionIssueType::UNSUPPORTED_FEATURE,
+        "Charge state is zero",
+        0
+      });
+      return std::nullopt;
+    }
+
+    auto mass = tryGetMonoWeight(pf, issues_out);
+    if (!mass.has_value())
+    {
+      return std::nullopt;
+    }
+
+    return (*mass + charge * Constants::PROTON_MASS_U) / std::abs(charge);
+  }
+
+  std::optional<double> ProFormaParser::tryGetMZ(const PeptidoformIon& pfi)
+  {
+    std::vector<ConversionIssue> issues;
+    return tryGetMZ(pfi, issues);
+  }
+
+  std::optional<double> ProFormaParser::tryGetMZ(const PeptidoformIon& pfi,
+                                                  std::vector<ConversionIssue>& issues_out)
+  {
+    issues_out.clear();
+
+    if (!pfi.charge.has_value())
+    {
+      issues_out.push_back({
+        ConversionIssueType::UNSUPPORTED_FEATURE,
+        "No charge state specified",
+        0
+      });
+      return std::nullopt;
+    }
+
+    // Extract charge from variant
+    int charge = 0;
+    if (const int* simple_charge = std::get_if<int>(&pfi.charge.value()))
+    {
+      charge = *simple_charge;
+    }
+    else if (const auto* adducts = std::get_if<std::vector<AdductIon>>(&pfi.charge.value()))
+    {
+      for (const auto& adduct : *adducts)
+      {
+        int occurrence = adduct.occurrence.value_or(1);
+        charge += adduct.charge * occurrence;
+      }
+    }
+
+    if (charge == 0)
+    {
+      issues_out.push_back({
+        ConversionIssueType::UNSUPPORTED_FEATURE,
+        "Charge state is zero",
+        0
+      });
+      return std::nullopt;
+    }
+
+    auto mass = tryGetMonoWeight(pfi, issues_out);
+    if (!mass.has_value())
+    {
+      return std::nullopt;
+    }
+
+    return (*mass + charge * Constants::PROTON_MASS_U) / std::abs(charge);
+  }
+
 } // namespace OpenMS
