@@ -145,8 +145,21 @@ namespace OpenMS
       }
       first = false;
 
-      // Write the modification tag
-      writeModificationTag_(os, alt.first, mode);
+      // Check for label-only modification (empty InfoTag placeholder with a label)
+      bool is_label_only = false;
+      if (const auto* info = std::get_if<InfoTag>(&alt.first))
+      {
+        if (info->text.empty() && alt.second.has_value())
+        {
+          is_label_only = true;
+        }
+      }
+
+      // Write the modification tag (skip for label-only mods)
+      if (!is_label_only)
+      {
+        writeModificationTag_(os, alt.first, mode);
+      }
 
       // Write the label if present
       if (alt.second.has_value())

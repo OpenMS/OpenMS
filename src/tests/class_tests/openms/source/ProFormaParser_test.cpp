@@ -58,8 +58,6 @@ START_TEST(ProFormaParser, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-ProFormaTokenizer* tok_ptr = nullptr;
-
 START_SECTION(ProFormaTokenizer basic tests)
 {
   // Test simple tokenization
@@ -321,6 +319,10 @@ START_SECTION(ProFormaParser::parse - cross-link labels)
   auto& elem2 = std::get<SequenceElement>(pf.sequence[11]); // K
   TEST_EQUAL(elem2.amino_acid, 'K')
   TEST_EQUAL(elem2.modifications.size(), 1)
+
+  // Verify roundtrip - label-only [#XL1] should be preserved
+  String roundtrip = ProFormaParser::toString(pf);
+  TEST_EQUAL(roundtrip, "EMEVTK[XLMOD:02001#XL1]SESPEK[#XL1]")
 }
 END_SECTION
 
