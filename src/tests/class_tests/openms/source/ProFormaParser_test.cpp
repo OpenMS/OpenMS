@@ -1562,7 +1562,7 @@ END_SECTION
 
 START_SECTION(Positive test cases from fixture file)
 {
-  string fixture_path = OPENMS_GET_TEST_DATA_PATH("ProForma/positive_tests.txt");
+  string fixture_path = OPENMS_GET_TEST_DATA_PATH("ProFormaParser_positive_tests.txt");
   vector<string> positive_tests = loadTestCases(fixture_path);
 
   // Helper to detect if a test case needs parseIon() instead of parse()
@@ -1644,7 +1644,7 @@ END_SECTION
 
 START_SECTION(Negative test cases from fixture file)
 {
-  string fixture_path = OPENMS_GET_TEST_DATA_PATH("ProForma/negative_tests.txt");
+  string fixture_path = OPENMS_GET_TEST_DATA_PATH("ProFormaParser_negative_tests.txt");
   vector<string> negative_tests = loadTestCases(fixture_path);
 
   // If fixture file exists, test that parsing fails for all cases

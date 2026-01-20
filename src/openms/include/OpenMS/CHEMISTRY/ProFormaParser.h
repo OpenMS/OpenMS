@@ -62,7 +62,7 @@ namespace OpenMS
       This is the main entry point for parsing simple peptidoforms without
       charge state information.
 
-      @param input The ProForma string to parse
+      @param[in] input The ProForma string to parse
       @return The parsed Peptidoform AST
       @throws ProFormaParseError if the input is invalid
 
@@ -78,7 +78,7 @@ namespace OpenMS
       - Charge state specification (/2, /+2, /-1)
       - Adduct ion specification (/[Na:z+1,H:z+1])
 
-      @param input The ProForma string to parse
+      @param[in] input The ProForma string to parse
       @return The parsed PeptidoformIon AST
       @throws ProFormaParseError if the input is invalid
     */
@@ -87,8 +87,8 @@ namespace OpenMS
     /**
       @brief Convert a Peptidoform AST back to ProForma string notation
 
-      @param pf The Peptidoform to convert
-      @param mode Write mode: LOSSLESS preserves original formatting, CANONICAL produces normalized output
+      @param[in] pf The Peptidoform to convert
+      @param[in] mode Write mode: LOSSLESS preserves original formatting, CANONICAL produces normalized output
       @return The ProForma string representation
     */
     static String toString(const Peptidoform& pf,
@@ -97,8 +97,8 @@ namespace OpenMS
     /**
       @brief Convert a PeptidoformIon AST back to ProForma string notation
 
-      @param pfi The PeptidoformIon to convert
-      @param mode Write mode: LOSSLESS preserves original formatting, CANONICAL produces normalized output
+      @param[in] pfi The PeptidoformIon to convert
+      @param[in] mode Write mode: LOSSLESS preserves original formatting, CANONICAL produces normalized output
       @return The ProForma string representation
     */
     static String toString(const PeptidoformIon& pfi,
@@ -112,7 +112,7 @@ namespace OpenMS
       Looks up each modification tag (CV accession, named mod, mass delta) in
       ModificationsDB and stores the resolved ResidueModification pointer.
 
-      @param pf The Peptidoform to resolve (modified in place)
+      @param[in,out] pf The Peptidoform to resolve (modified in place)
       @note Modifications that cannot be resolved will have resolved_mod = nullptr
     */
     static void resolveModifications(Peptidoform& pf);
@@ -120,8 +120,8 @@ namespace OpenMS
     /**
       @brief Convert a Peptidoform to an OpenMS AASequence
 
-      @param pf The Peptidoform to convert
-      @param policy How to handle unconvertible modifications
+      @param[in] pf The Peptidoform to convert
+      @param[in] policy How to handle unconvertible modifications
       @return The equivalent AASequence
       @throws Exception::ConversionError if STRICT policy and conversion not possible
 
@@ -137,7 +137,7 @@ namespace OpenMS
       Converts an AASequence with modifications to ProForma notation.
       Uses CV accessions (UNIMOD) where available, otherwise named modifications.
 
-      @param seq The AASequence to convert
+      @param[in] seq The AASequence to convert
       @return The equivalent Peptidoform AST
     */
     static Peptidoform fromAASequence(const AASequence& seq);
@@ -148,7 +148,7 @@ namespace OpenMS
       Returns true if all modifications can be resolved and there are no
       unsupported features (ambiguous regions, cross-links, etc.)
 
-      @param pf The Peptidoform to check
+      @param[in] pf The Peptidoform to check
       @return True if conversion is possible without issues
     */
     static bool isRepresentableAsAASequence(const Peptidoform& pf);
@@ -159,7 +159,7 @@ namespace OpenMS
       Returns detailed information about every aspect of the Peptidoform that
       cannot be represented in an AASequence.
 
-      @param pf The Peptidoform to analyze
+      @param[in] pf The Peptidoform to analyze
       @return Vector of conversion issues (empty if fully convertible)
     */
     static std::vector<ConversionIssue> getAASequenceConversionIssues(const Peptidoform& pf);

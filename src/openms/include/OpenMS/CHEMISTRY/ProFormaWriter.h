@@ -60,15 +60,14 @@ namespace OpenMS
   class OPENMS_DLLAPI ProFormaWriter
   {
   public:
-
     /**
       @brief Convert a Peptidoform to a ProForma string
 
       Serializes a single peptide chain including all modifications,
       but without charge state information.
 
-      @param peptidoform The peptidoform to serialize
-      @param mode Write mode: LOSSLESS preserves original formatting, CANONICAL produces normalized output
+      @param[in] peptidoform The peptidoform to serialize
+      @param[in] mode Write mode: LOSSLESS preserves original formatting, CANONICAL produces normalized output
       @return The ProForma string representation
     */
     static String toString(const Peptidoform& peptidoform,
@@ -80,15 +79,14 @@ namespace OpenMS
       Serializes one or more peptide chains with optional charge state.
       Multiple chains are separated by "//".
 
-      @param ion The peptidoform ion to serialize
-      @param mode Write mode: LOSSLESS preserves original formatting, CANONICAL produces normalized output
+      @param[in] ion The peptidoform ion to serialize
+      @param[in] mode Write mode: LOSSLESS preserves original formatting, CANONICAL produces normalized output
       @return The ProForma string representation including charge if present
     */
     static String toString(const PeptidoformIon& ion,
                            ProFormaWriteMode mode = ProFormaWriteMode::LOSSLESS);
 
   private:
-
     /**
       @brief Write global modification entries to stream
 
