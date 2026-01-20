@@ -9,17 +9,17 @@ cdef extern from "<OpenMS/CHEMISTRY/ProFormaData.h>" namespace "OpenMS":
 
     cdef enum ProFormaWriteMode "OpenMS::ProFormaWriteMode":
         # wrap-doc:
-        #   Write mode for ProForma string serialization.
-        #   LOSSLESS preserves original formatting, CANONICAL produces normalized output.
+        #  Write mode for ProForma string serialization.
+        #  LOSSLESS preserves original formatting, CANONICAL produces normalized output.
         LOSSLESS
         CANONICAL
 
     cdef enum AASequenceConversionPolicy "OpenMS::AASequenceConversionPolicy":
         # wrap-doc:
-        #   Conversion policy for transforming Peptidoform to AASequence.
-        #   STRICT_MODE fails on any unrepresentable construct.
-        #   DROP_UNLOCALISED drops unlocalised/labile/global modifications.
-        #   BEST_EFFORT converts as much as possible, skipping unsupported.
+        #  Conversion policy for transforming Peptidoform to AASequence.
+        #  STRICT_MODE fails on any unrepresentable construct.
+        #  DROP_UNLOCALISED drops unlocalised/labile/global modifications.
+        #  BEST_EFFORT converts as much as possible, skipping unsupported.
         STRICT_MODE
         DROP_UNLOCALISED
         BEST_EFFORT
@@ -39,7 +39,7 @@ cdef extern from "<OpenMS/CHEMISTRY/ProFormaData.h>" namespace "OpenMS":
 
     cdef cppclass ConversionIssue "OpenMS::ConversionIssue":
         # wrap-doc:
-        #   Description of a conversion issue from Peptidoform to AASequence
+        #  Description of a conversion issue from Peptidoform to AASequence
         ConversionIssue() except + nogil
         ConversionIssue(ConversionIssue &) except + nogil
         ConversionIssueType type
@@ -55,7 +55,7 @@ cdef extern from "<OpenMS/CHEMISTRY/ProFormaData.h>" namespace "OpenMS":
 
     cdef cppclass CvAccession "OpenMS::CvAccession":
         # wrap-doc:
-        #   Controlled vocabulary accession for a modification (e.g., UNIMOD:35)
+        #  Controlled vocabulary accession for a modification (e.g., UNIMOD:35)
         CvAccession() except + nogil
         CvAccession(CvAccession &) except + nogil
         CvDatabase database
@@ -63,14 +63,14 @@ cdef extern from "<OpenMS/CHEMISTRY/ProFormaData.h>" namespace "OpenMS":
 
     cdef cppclass NamedMod "OpenMS::NamedMod":
         # wrap-doc:
-        #   Named modification with optional CV prefix hint
+        #  Named modification with optional CV prefix hint
         NamedMod() except + nogil
         NamedMod(NamedMod &) except + nogil
         String name
 
     cdef cppclass MassDelta "OpenMS::MassDelta":
         # wrap-doc:
-        #   Mass delta modification with optional source hint
+        #  Mass delta modification with optional source hint
         MassDelta() except + nogil
         MassDelta(MassDelta &) except + nogil
         double mass
@@ -78,28 +78,28 @@ cdef extern from "<OpenMS/CHEMISTRY/ProFormaData.h>" namespace "OpenMS":
 
     cdef cppclass FormulaTag "OpenMS::FormulaTag":
         # wrap-doc:
-        #   Chemical formula modification tag
+        #  Chemical formula modification tag
         FormulaTag() except + nogil
         FormulaTag(FormulaTag &) except + nogil
         String formula_string
 
     cdef cppclass InfoTag "OpenMS::InfoTag":
         # wrap-doc:
-        #   Info tag for arbitrary text annotations
+        #  Info tag for arbitrary text annotations
         InfoTag() except + nogil
         InfoTag(InfoTag &) except + nogil
         String text
 
     cdef cppclass Label "OpenMS::Label":
         # wrap-doc:
-        #   Label for cross-links, branches, or ambiguous grouping
+        #  Label for cross-links, branches, or ambiguous grouping
         Label() except + nogil
         Label(Label &) except + nogil
         String identifier
 
     cdef cppclass SequenceElement "OpenMS::SequenceElement":
         # wrap-doc:
-        #   A single amino acid with its modifications
+        #  A single amino acid with its modifications
         SequenceElement() except + nogil
         SequenceElement(SequenceElement &) except + nogil
         char amino_acid
@@ -107,43 +107,43 @@ cdef extern from "<OpenMS/CHEMISTRY/ProFormaData.h>" namespace "OpenMS":
 
     cdef cppclass Modification "OpenMS::Modification":
         # wrap-doc:
-        #   A modification with one or more alternative tags
+        #  A modification with one or more alternative tags
         Modification() except + nogil
         Modification(Modification &) except + nogil
 
     cdef cppclass UnlocalisedMod "OpenMS::UnlocalisedMod":
         # wrap-doc:
-        #   Unlocalised modification with optional occurrence count
+        #  Unlocalised modification with optional occurrence count
         UnlocalisedMod() except + nogil
         UnlocalisedMod(UnlocalisedMod &) except + nogil
         libcpp_vector[Modification] modifications
 
     cdef cppclass LabileModification "OpenMS::LabileModification":
         # wrap-doc:
-        #   Labile modification that may be lost during fragmentation
+        #  Labile modification that may be lost during fragmentation
         LabileModification() except + nogil
         LabileModification(LabileModification &) except + nogil
         Modification modification
 
     cdef cppclass IsotopeReplacement "OpenMS::IsotopeReplacement":
         # wrap-doc:
-        #   Isotope replacement for stable isotope labeling
+        #  Isotope replacement for stable isotope labeling
         IsotopeReplacement() except + nogil
         IsotopeReplacement(IsotopeReplacement &) except + nogil
         String isotope
 
     cdef cppclass Peptidoform "OpenMS::Peptidoform":
         # wrap-doc:
-        #   A single peptidoform (one peptide chain) with modifications
-        #   Represents a complete peptide chain including global modifications,
-        #   unlocalised modifications, labile modifications, terminal modifications,
-        #   and the amino acid sequence with modifications.
+        #  A single peptidoform (one peptide chain) with modifications
+        #  Represents a complete peptide chain including global modifications,
+        #  unlocalised modifications, labile modifications, terminal modifications,
+        #  and the amino acid sequence with modifications.
         #
-        #   Note: The following fields are intentionally not exposed and should be
-        #   accessed via the ProForma parser/writer API functions:
-        #   - name: optional peptidoform name (v2.1 extension)
-        #   - sequence: the amino acid sequence with modifications (complex type)
-        #   - global_mods: global modifications like isotope labels (complex type)
+        #  Note: The following fields are intentionally not exposed and should be
+        #  accessed via the ProForma parser/writer API functions:
+        #  - name: optional peptidoform name (v2.1 extension)
+        #  - sequence: the amino acid sequence with modifications (complex type)
+        #  - global_mods: global modifications like isotope labels (complex type)
         Peptidoform() except + nogil
         Peptidoform(Peptidoform &) except + nogil
         libcpp_vector[UnlocalisedMod] unlocalised_mods
@@ -153,12 +153,12 @@ cdef extern from "<OpenMS/CHEMISTRY/ProFormaData.h>" namespace "OpenMS":
 
     cdef cppclass PeptidoformIon "OpenMS::PeptidoformIon":
         # wrap-doc:
-        #   A peptidoform ion (one or more chains with optional charge)
+        #  A peptidoform ion (one or more chains with optional charge)
         #
-        #   Note: The following fields are intentionally not exposed and should be
-        #   accessed via the ProForma parser/writer API functions:
-        #   - name: optional ion name (v2.1 extension)
-        #   - charge: charge state specification (complex variant type)
+        #  Note: The following fields are intentionally not exposed and should be
+        #  accessed via the ProForma parser/writer API functions:
+        #  - name: optional ion name (v2.1 extension)
+        #  - charge: charge state specification (complex variant type)
         PeptidoformIon() except + nogil
         PeptidoformIon(PeptidoformIon &) except + nogil
         libcpp_vector[Peptidoform] chains
