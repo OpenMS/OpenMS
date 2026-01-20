@@ -2388,7 +2388,7 @@ namespace OpenMS
     std::vector<ConversionIssue> issues = getAASequenceConversionIssues(pf);
 
     // Check policy
-    if (policy == AASequenceConversionPolicy::STRICT && !issues.empty())
+    if (policy == AASequenceConversionPolicy::STRICT_MODE && !issues.empty())
     {
       std::string error_msg = "Cannot convert Peptidoform to AASequence: ";
       for (const auto& issue : issues)
@@ -2443,7 +2443,7 @@ namespace OpenMS
           {
             seq.setModification(seq_pos, mod.resolved_mod);
           }
-          else if (policy == AASequenceConversionPolicy::STRICT)
+          else if (policy == AASequenceConversionPolicy::STRICT_MODE)
           {
             // Already checked above, but double-check
             throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
@@ -3258,7 +3258,7 @@ namespace OpenMS
     AASequence seq;
     try
     {
-      seq = toAASequence(pf, AASequenceConversionPolicy::STRICT);
+      seq = toAASequence(pf, AASequenceConversionPolicy::STRICT_MODE);
     }
     catch (const Exception::ConversionError& e)
     {

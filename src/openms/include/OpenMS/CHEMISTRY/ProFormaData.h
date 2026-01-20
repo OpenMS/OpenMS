@@ -33,7 +33,7 @@ namespace OpenMS
   */
   enum class AASequenceConversionPolicy
   {
-    STRICT,            ///< Fail if any modification cannot be fully represented
+    STRICT_MODE,       ///< Fail if any modification cannot be fully represented
     DROP_UNLOCALISED,  ///< Drop unlocalised, labile, and global modifications
     BEST_EFFORT        ///< Try to convert as much as possible, skip unsupported
   };

@@ -150,7 +150,7 @@ def test_to_aasequence_simple():
     import pyopenms as p
 
     pf = p.Peptidoform.fromString("PEPTIDE")
-    aas = pf.toAASequence( p.AASequenceConversionPolicy.STRICT)
+    aas = pf.toAASequence( p.AASequenceConversionPolicy.STRICT_MODE)
     assert aas.toString() == "PEPTIDE"
 
 
@@ -160,7 +160,7 @@ def test_to_aasequence_with_modification():
 
     pf = p.Peptidoform.fromString("EM[UNIMOD:35]K")
     p.ProFormaParser.resolveModifications(pf)
-    aas = pf.toAASequence( p.AASequenceConversionPolicy.STRICT)
+    aas = pf.toAASequence( p.AASequenceConversionPolicy.STRICT_MODE)
     # The AASequence should contain the modification
     assert "Oxidation" in aas.toString() or "(Oxidation)" in aas.toString()
 
@@ -189,15 +189,15 @@ def test_to_aasequence_preserves_residue_with_unimod():
     assert aas.getResidue(1).getOneLetterCode() == "M"
 
 
-def test_to_aasequence_strict_fails_on_unsupported():
-    """Test that STRICT policy raises error for unsupported features."""
+def test_to_aasequence_strict_mode_fails_on_unsupported():
+    """Test that STRICT_MODE policy raises error for unsupported features."""
     import pyopenms as p
 
     # Unlocalised modification cannot be converted
     pf = p.Peptidoform.fromString("[Phospho]?PEPTIDE")
 
     with pytest.raises(RuntimeError):
-        pf.toAASequence( p.AASequenceConversionPolicy.STRICT)
+        pf.toAASequence( p.AASequenceConversionPolicy.STRICT_MODE)
 
 
 def test_to_aasequence_best_effort():
@@ -241,7 +241,7 @@ def test_aasequence_roundtrip():
 
     original = p.AASequence.fromString("PEPTIDE")
     pf = p.Peptidoform.fromAASequence(original)
-    result = pf.toAASequence( p.AASequenceConversionPolicy.STRICT)
+    result = pf.toAASequence( p.AASequenceConversionPolicy.STRICT_MODE)
     assert original.toString() == result.toString()
 
 

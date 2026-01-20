@@ -130,7 +130,7 @@ namespace OpenMS
     */
     static AASequence toAASequence(
       const Peptidoform& pf,
-      AASequenceConversionPolicy policy = AASequenceConversionPolicy::STRICT);
+      AASequenceConversionPolicy policy = AASequenceConversionPolicy::STRICT_MODE);
 
     /**
       @brief Create a Peptidoform from an OpenMS AASequence

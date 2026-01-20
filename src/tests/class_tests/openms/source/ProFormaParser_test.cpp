@@ -1578,13 +1578,13 @@ START_SECTION(toAASequence - with N-terminal modification)
 }
 END_SECTION
 
-START_SECTION(toAASequence - STRICT policy throws on unsupported)
+START_SECTION(toAASequence - STRICT_MODE policy throws on unsupported)
 {
-  // STRICT policy should throw on unlocalised modifications
+  // STRICT_MODE policy should throw on unlocalised modifications
   Peptidoform pf = ProFormaParser::parse("[Phospho]?PEPTIDE");
 
   TEST_EXCEPTION(Exception::ConversionError,
-    ProFormaParser::toAASequence(pf, AASequenceConversionPolicy::STRICT))
+    ProFormaParser::toAASequence(pf, AASequenceConversionPolicy::STRICT_MODE))
 }
 END_SECTION
 

@@ -132,7 +132,7 @@
             'EM(Oxidation)K'
         """
         if policy is None:
-            policy = AASequenceConversionPolicy.STRICT
+            policy = AASequenceConversionPolicy.STRICT_MODE
         return ProFormaParser.toAASequence(self, policy)
 
     def isRepresentableAsAASequence(self):
