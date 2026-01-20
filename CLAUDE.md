@@ -93,12 +93,38 @@ When a C++ type (like `DPosition<1>`) needs to accept Python primitives (like `f
 - Addon `__init__` **overwrites** autowrap's generated one - only do this intentionally
 
 ### Key Gotchas
+- **Autowrap and pure namespaces**: Autowrap can't easily handle pure namespaces, so it's better to introduce a C++ class (even if all members are static) to attach static member functions or enums. Example pattern:
+  ```cython
+  cdef cppclass ProFormaParser "OpenMS::ProFormaParser":
+      # wrap-doc: ...description...
+      # Dummy class to attach namespace functions
+      ProFormaParser() except + nogil  # wrap-ignore
+      ProFormaParser(ProFormaParser &) except + nogil  # wrap-ignore
+
+  # Then in namespace block, attach functions to the class:
+  double getMZ(...) except + nogil  # wrap-attach:ProFormaParser
+  ```
 - **autowrap methods return Python strings** - do NOT use `.decode('utf-8')` on return values from wrapped methods like `toString()`, `getSequence()`, etc.
 - **`cdef` typed variables**: Use `cdef double`, `cdef int`, `cdef float` for C++ types, but NOT for strings returned by autowrap
 - **Don't declare `cdef class ClassName:`** in addon files - methods are just indented code that gets injected into the generated class
 - **Don't add Python-only methods to `.pxd` files** - declarations like `DataFrame get_df() except +` try to wrap non-existent C++ methods
 - **Don't use `cdef` typed variables for autowrap return values** inside `def` methods - use Python type introspection instead (e.g., `isinstance(v, int)` rather than `cdef DataValue dv`)
 - **Autowrap annotation format**: `# wrap-doc:` must be properly indented inside the class block (strict whitespace parsing)
+- **`cdef enum class` vs `cdef enum`** for C++ `enum class` types:
+  - `cdef enum class` generates proper Python `enum.Enum` classes with named members
+  - `cdef enum` generates plain int values (0, 1, ...)
+  - **Caveat**: `cdef enum class` only works for **nested enums inside classes** (e.g., `SpectrumSettings.SpectrumType`, `IonSource.Polarity`). Top-level namespace enums may cause Cython compilation errors with missing .pxd files.
+  ```cython
+  # Works - nested enum class inside a class
+  cdef enum class SpectrumType "OpenMS::SpectrumSettings::SpectrumType":
+      CENTROID
+      PROFILE
+
+  # May fail for top-level enums - use regular enum instead
+  cdef enum ProFormaWriteMode "OpenMS::ProFormaWriteMode":
+      LOSSLESS
+      CANONICAL
+  ```
 - **Rebuilding after addon changes**: Delete `.cpp_extension_generated` stamp file to force regeneration:
   ```bash
   rm OpenMS-build/pyOpenMS/.cpp_extension_generated

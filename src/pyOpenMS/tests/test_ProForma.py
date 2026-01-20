@@ -18,10 +18,10 @@ def test_parse_simple_sequence():
     import pyopenms as p
 
     # Simple sequence without modifications
-    pf = p.parse("PEPTIDE")
+    pf = p.Peptidoform.fromString("PEPTIDE")
     assert pf is not None
 
-    result = p.toString(pf, p.ProFormaWriteMode.LOSSLESS)
+    result = pf.toString( p.ProFormaWriteMode.LOSSLESS)
     assert result == "PEPTIDE"
 
 
@@ -30,13 +30,13 @@ def test_parse_with_unimod_modification():
     import pyopenms as p
 
     # Oxidation on M
-    pf = p.parse("EM[UNIMOD:35]K")
-    result = p.toString(pf, p.ProFormaWriteMode.LOSSLESS)
+    pf = p.Peptidoform.fromString("EM[UNIMOD:35]K")
+    result = pf.toString( p.ProFormaWriteMode.LOSSLESS)
     assert result == "EM[UNIMOD:35]K"
 
     # Phosphorylation on S
-    pf = p.parse("PES[UNIMOD:21]TIDE")
-    result = p.toString(pf, p.ProFormaWriteMode.LOSSLESS)
+    pf = p.Peptidoform.fromString("PES[UNIMOD:21]TIDE")
+    result = pf.toString( p.ProFormaWriteMode.LOSSLESS)
     assert result == "PES[UNIMOD:21]TIDE"
 
 
@@ -44,8 +44,8 @@ def test_parse_with_named_modification():
     """Test parsing sequences with named modifications."""
     import pyopenms as p
 
-    pf = p.parse("EM[Oxidation]K")
-    result = p.toString(pf, p.ProFormaWriteMode.LOSSLESS)
+    pf = p.Peptidoform.fromString("EM[Oxidation]K")
+    result = pf.toString( p.ProFormaWriteMode.LOSSLESS)
     assert result == "EM[Oxidation]K"
 
 
@@ -53,8 +53,8 @@ def test_parse_with_mass_delta():
     """Test parsing sequences with mass delta modifications."""
     import pyopenms as p
 
-    pf = p.parse("EM[+15.9949]K")
-    result = p.toString(pf, p.ProFormaWriteMode.LOSSLESS)
+    pf = p.Peptidoform.fromString("EM[+15.9949]K")
+    result = pf.toString( p.ProFormaWriteMode.LOSSLESS)
     # In lossless mode, the original formatting is preserved
     assert "+15.9949" in result
 
@@ -72,8 +72,8 @@ def test_roundtrip_lossless():
     ]
 
     for original in test_cases:
-        pf = p.parse(original)
-        result = p.toString(pf, p.ProFormaWriteMode.LOSSLESS)
+        pf = p.Peptidoform.fromString(original)
+        result = pf.toString( p.ProFormaWriteMode.LOSSLESS)
         assert result == original, f"Roundtrip failed for {original}: got {result}"
 
 
@@ -82,14 +82,14 @@ def test_write_mode_canonical():
     import pyopenms as p
 
     # Parse with limited precision
-    pf = p.parse("EM[+15.99]K")
+    pf = p.Peptidoform.fromString("EM[+15.99]K")
 
     # Canonical mode should output 4 decimal places
-    canonical = p.toString(pf, p.ProFormaWriteMode.CANONICAL)
+    canonical = pf.toString( p.ProFormaWriteMode.CANONICAL)
     assert "+15.9900" in canonical
 
     # Lossless mode should preserve original
-    lossless = p.toString(pf, p.ProFormaWriteMode.LOSSLESS)
+    lossless = pf.toString( p.ProFormaWriteMode.LOSSLESS)
     assert "+15.99" in lossless
 
 
@@ -98,18 +98,18 @@ def test_terminal_modifications():
     import pyopenms as p
 
     # N-terminal modification
-    pf = p.parse("[Acetyl]-PEPTIDE")
-    result = p.toString(pf, p.ProFormaWriteMode.LOSSLESS)
+    pf = p.Peptidoform.fromString("[Acetyl]-PEPTIDE")
+    result = pf.toString( p.ProFormaWriteMode.LOSSLESS)
     assert result == "[Acetyl]-PEPTIDE"
 
     # C-terminal modification
-    pf = p.parse("PEPTIDE-[Amidated]")
-    result = p.toString(pf, p.ProFormaWriteMode.LOSSLESS)
+    pf = p.Peptidoform.fromString("PEPTIDE-[Amidated]")
+    result = pf.toString( p.ProFormaWriteMode.LOSSLESS)
     assert result == "PEPTIDE-[Amidated]"
 
     # Both terminal modifications
-    pf = p.parse("[Acetyl]-PEPTIDE-[Amidated]")
-    result = p.toString(pf, p.ProFormaWriteMode.LOSSLESS)
+    pf = p.Peptidoform.fromString("[Acetyl]-PEPTIDE-[Amidated]")
+    result = pf.toString( p.ProFormaWriteMode.LOSSLESS)
     assert result == "[Acetyl]-PEPTIDE-[Amidated]"
 
 
@@ -118,7 +118,7 @@ def test_parse_ion_with_charge():
     import pyopenms as p
 
     # Parse ion with charge state
-    pfi = p.parseIon("PEPTIDE/2")
+    pfi = p.PeptidoformIon.fromString("PEPTIDE/2")
     # Verify parsing succeeded and chain was extracted
     assert len(pfi.chains) == 1
 
@@ -127,7 +127,7 @@ def test_parse_ion_multiple_chains():
     """Test parsing multi-chain peptidoforms."""
     import pyopenms as p
 
-    pfi = p.parseIon("PEPTIDE//SEQUENCE")
+    pfi = p.PeptidoformIon.fromString("PEPTIDE//SEQUENCE")
     # Verify multiple chains were parsed
     assert len(pfi.chains) == 2
 
@@ -137,20 +137,20 @@ def test_is_representable_as_aasequence():
     import pyopenms as p
 
     # Simple sequence should be representable
-    pf = p.parse("PEPTIDE")
-    assert p.isRepresentableAsAASequence(pf) == True
+    pf = p.Peptidoform.fromString("PEPTIDE")
+    assert pf.isRepresentableAsAASequence() == True
 
     # Unlocalised modification is not representable
-    pf = p.parse("[Phospho]?PEPTIDE")
-    assert p.isRepresentableAsAASequence(pf) == False
+    pf = p.Peptidoform.fromString("[Phospho]?PEPTIDE")
+    assert pf.isRepresentableAsAASequence() == False
 
 
 def test_to_aasequence_simple():
     """Test converting simple peptidoform to AASequence."""
     import pyopenms as p
 
-    pf = p.parse("PEPTIDE")
-    aas = p.toAASequence(pf, p.AASequenceConversionPolicy.STRICT)
+    pf = p.Peptidoform.fromString("PEPTIDE")
+    aas = pf.toAASequence( p.AASequenceConversionPolicy.STRICT)
     assert aas.toString() == "PEPTIDE"
 
 
@@ -158,11 +158,35 @@ def test_to_aasequence_with_modification():
     """Test converting peptidoform with modification to AASequence."""
     import pyopenms as p
 
-    pf = p.parse("EM[UNIMOD:35]K")
-    p.resolveModifications(pf)
-    aas = p.toAASequence(pf, p.AASequenceConversionPolicy.STRICT)
+    pf = p.Peptidoform.fromString("EM[UNIMOD:35]K")
+    p.ProFormaParser.resolveModifications(pf)
+    aas = pf.toAASequence( p.AASequenceConversionPolicy.STRICT)
     # The AASequence should contain the modification
     assert "Oxidation" in aas.toString() or "(Oxidation)" in aas.toString()
+
+
+def test_to_aasequence_preserves_residue_with_unimod():
+    """Regression test: UNIMOD accession lookup must use residue context.
+
+    Bug: When looking up UNIMOD:35 (Oxidation), the modification database
+    contains variants for different residues (M, D, W, etc.). Without passing
+    the residue context, it would pick the wrong variant (e.g., 'D' instead of 'M'),
+    causing toString() to show wrong residue letters like 'ED(Oxidation)K'
+    instead of 'EM(Oxidation)K'.
+    """
+    import pyopenms as p
+
+    # Test Oxidation on M - should NOT become D
+    pf = p.Peptidoform.fromString("EM[UNIMOD:35]K")
+    aas = pf.toAASequence()
+    result = aas.toString()
+    assert result == "EM(Oxidation)K", f"Expected 'EM(Oxidation)K', got '{result}'"
+
+    # Verify the unmodified sequence is correct
+    assert aas.toUnmodifiedString() == "EMK"
+
+    # Verify residue at position 1 is M, not D
+    assert aas.getResidue(1).getOneLetterCode() == "M"
 
 
 def test_to_aasequence_strict_fails_on_unsupported():
@@ -170,10 +194,10 @@ def test_to_aasequence_strict_fails_on_unsupported():
     import pyopenms as p
 
     # Unlocalised modification cannot be converted
-    pf = p.parse("[Phospho]?PEPTIDE")
+    pf = p.Peptidoform.fromString("[Phospho]?PEPTIDE")
 
     with pytest.raises(RuntimeError):
-        p.toAASequence(pf, p.AASequenceConversionPolicy.STRICT)
+        pf.toAASequence( p.AASequenceConversionPolicy.STRICT)
 
 
 def test_to_aasequence_best_effort():
@@ -181,10 +205,10 @@ def test_to_aasequence_best_effort():
     import pyopenms as p
 
     # Unlocalised modification should be skipped
-    pf = p.parse("[Phospho]?PEPTIDE")
+    pf = p.Peptidoform.fromString("[Phospho]?PEPTIDE")
 
     # Should not raise
-    aas = p.toAASequence(pf, p.AASequenceConversionPolicy.BEST_EFFORT)
+    aas = pf.toAASequence( p.AASequenceConversionPolicy.BEST_EFFORT)
     assert aas.toString() == "PEPTIDE"
 
 
@@ -193,8 +217,8 @@ def test_from_aasequence():
     import pyopenms as p
 
     aas = p.AASequence.fromString("PEPTIDE")
-    pf = p.fromAASequence(aas)
-    result = p.toString(pf, p.ProFormaWriteMode.LOSSLESS)
+    pf = p.Peptidoform.fromAASequence(aas)
+    result = pf.toString( p.ProFormaWriteMode.LOSSLESS)
     assert result == "PEPTIDE"
 
 
@@ -203,8 +227,8 @@ def test_from_aasequence_with_modification():
     import pyopenms as p
 
     aas = p.AASequence.fromString("PEM(Oxidation)TIDE")
-    pf = p.fromAASequence(aas)
-    result = p.toString(pf, p.ProFormaWriteMode.LOSSLESS)
+    pf = p.Peptidoform.fromAASequence(aas)
+    result = pf.toString( p.ProFormaWriteMode.LOSSLESS)
     # Should contain modification info
     assert "M" in result
     # Could be UNIMOD:35 or Oxidation depending on implementation
@@ -216,8 +240,8 @@ def test_aasequence_roundtrip():
     import pyopenms as p
 
     original = p.AASequence.fromString("PEPTIDE")
-    pf = p.fromAASequence(original)
-    result = p.toAASequence(pf, p.AASequenceConversionPolicy.STRICT)
+    pf = p.Peptidoform.fromAASequence(original)
+    result = pf.toAASequence( p.AASequenceConversionPolicy.STRICT)
     assert original.toString() == result.toString()
 
 
@@ -226,13 +250,13 @@ def test_get_conversion_issues():
     import pyopenms as p
 
     # Simple sequence should have no issues
-    pf = p.parse("PEPTIDE")
-    issues = p.getAASequenceConversionIssues(pf)
+    pf = p.Peptidoform.fromString("PEPTIDE")
+    issues = pf.getAASequenceConversionIssues()
     assert len(issues) == 0
 
     # Unlocalised modification should have issues
-    pf = p.parse("[Phospho]?PEPTIDE")
-    issues = p.getAASequenceConversionIssues(pf)
+    pf = p.Peptidoform.fromString("[Phospho]?PEPTIDE")
+    issues = pf.getAASequenceConversionIssues()
     assert len(issues) > 0
 
 
@@ -240,33 +264,33 @@ def test_json_roundtrip_peptidoform():
     """Test JSON serialization roundtrip for Peptidoform."""
     import pyopenms as p
 
-    original = p.parse("EM[UNIMOD:35]K")
-    json_str = p.peptidoformToJSON(original)
+    original = p.Peptidoform.fromString("EM[UNIMOD:35]K")
+    json_str = p.ProFormaParser.peptidoformToJSON(original)
 
     # Should be valid JSON
     data = json.loads(json_str)
     assert "sequence" in data
 
     # Should roundtrip
-    restored = p.peptidoformFromJSON(json_str)
-    assert p.toString(restored, p.ProFormaWriteMode.LOSSLESS) == p.toString(original, p.ProFormaWriteMode.LOSSLESS)
+    restored = p.Peptidoform.fromJSON(json_str)
+    assert p.ProFormaParser.toString(restored, p.ProFormaWriteMode.LOSSLESS) == p.ProFormaParser.toString(original, p.ProFormaWriteMode.LOSSLESS)
 
 
 def test_json_roundtrip_peptidoform_ion():
     """Test JSON serialization roundtrip for PeptidoformIon."""
     import pyopenms as p
 
-    original = p.parseIon("PEPTIDE/2")
-    json_str = p.peptidoformIonToJSON(original)
+    original = p.PeptidoformIon.fromString("PEPTIDE/2")
+    json_str = p.ProFormaParser.peptidoformIonToJSON(original)
 
     # Should be valid JSON
     data = json.loads(json_str)
     assert "chains" in data
 
     # Should roundtrip
-    restored = p.peptidoformIonFromJSON(json_str)
+    restored = p.PeptidoformIon.fromJSON(json_str)
     # Compare JSON representations
-    assert p.peptidoformIonToJSON(restored) == p.peptidoformIonToJSON(original)
+    assert p.ProFormaParser.peptidoformIonToJSON(restored) == p.ProFormaParser.peptidoformIonToJSON(original)
 
 
 def test_parse_error_handling():
@@ -275,11 +299,11 @@ def test_parse_error_handling():
 
     # Unclosed bracket should fail
     with pytest.raises(RuntimeError):
-        p.parse("[Invalid")
+        p.Peptidoform.fromString("[Invalid")
 
     # Empty sequence should fail
     with pytest.raises(RuntimeError):
-        p.parse("")
+        p.Peptidoform.fromString("")
 
 
 def test_complex_proforma():
@@ -287,19 +311,19 @@ def test_complex_proforma():
     import pyopenms as p
 
     # Global isotope label
-    pf = p.parse("<13C>PEPTIDE")
-    assert "13C" in p.toString(pf, p.ProFormaWriteMode.LOSSLESS)
+    pf = p.Peptidoform.fromString("<13C>PEPTIDE")
+    assert "13C" in pf.toString( p.ProFormaWriteMode.LOSSLESS)
 
     # Labile modification
-    pf = p.parse("{Glycan:Hex}PEPTIDE")
-    assert "Glycan" in p.toString(pf, p.ProFormaWriteMode.LOSSLESS)
+    pf = p.Peptidoform.fromString("{Glycan:Hex}PEPTIDE")
+    assert "Glycan" in pf.toString( p.ProFormaWriteMode.LOSSLESS)
 
 
 def test_peptidoform_class():
     """Test Peptidoform class functionality."""
     import pyopenms as p
 
-    pf = p.parse("PEPTIDE")
+    pf = p.Peptidoform.fromString("PEPTIDE")
 
     # Should be a Peptidoform instance
     assert isinstance(pf, p.Peptidoform)
@@ -313,7 +337,7 @@ def test_peptidoform_ion_class():
     """Test PeptidoformIon class functionality."""
     import pyopenms as p
 
-    pfi = p.parseIon("PEPTIDE/2")
+    pfi = p.PeptidoformIon.fromString("PEPTIDE/2")
 
     # Should be a PeptidoformIon instance
     assert isinstance(pfi, p.PeptidoformIon)
@@ -337,6 +361,150 @@ def test_conversion_policy_enum():
     assert hasattr(p.AASequenceConversionPolicy, 'STRICT')
     assert hasattr(p.AASequenceConversionPolicy, 'DROP_UNLOCALISED')
     assert hasattr(p.AASequenceConversionPolicy, 'BEST_EFFORT')
+
+
+def test_peptidoform_mass_calculations():
+    """Test mass calculation methods on Peptidoform."""
+    import pyopenms as p
+
+    # Simple peptide
+    pf = p.Peptidoform.fromString("PEPTIDE")
+    assert pf.canCalculateMass() == True
+    mass = pf.getMonoWeight()
+    assert 799.0 < mass < 800.0  # PEPTIDE ~799.36 Da
+
+    # With modification
+    pf_mod = p.Peptidoform.fromString("EM[UNIMOD:35]K")
+    assert pf_mod.canCalculateMass() == True
+    mass_mod = pf_mod.getMonoWeight()
+    assert 420.0 < mass_mod < 425.0  # ~422.18 Da
+
+    # m/z calculation
+    mz = pf.getMZ(2)  # z=2
+    assert 399.0 < mz < 401.0  # (799.36 + 2*1.007) / 2 ≈ 400.69
+
+
+def test_peptidoform_ion_mass_calculations():
+    """Test mass calculation methods on PeptidoformIon."""
+    import pyopenms as p
+
+    pfi = p.PeptidoformIon.fromString("PEPTIDE/2")
+    assert pfi.canCalculateMass() == True
+
+    mass = pfi.getMonoWeight()
+    assert 799.0 < mass < 800.0
+
+    # getMZ uses embedded charge
+    mz = pfi.getMZ()
+    assert 399.0 < mz < 401.0
+
+
+def test_peptidoform_repr_str():
+    """Test __repr__ and __str__ methods on Peptidoform."""
+    import pyopenms as p
+
+    # Simple sequence
+    pf = p.Peptidoform.fromString("PEPTIDE")
+    repr_str = repr(pf)
+    assert "Peptidoform(" in repr_str
+    assert "sequence=" in repr_str
+    assert "PEPTIDE" in repr_str
+    assert "mono_mass=" in repr_str
+
+    str_str = str(pf)
+    assert str_str == "PEPTIDE"
+
+    # With modification
+    pf_mod = p.Peptidoform.fromString("EM[UNIMOD:35]K")
+    repr_mod = repr(pf_mod)
+    assert "Peptidoform(" in repr_mod
+    assert "EM[UNIMOD:35]K" in repr_mod
+
+    str_mod = str(pf_mod)
+    assert str_mod == "EM[UNIMOD:35]K"
+
+
+def test_peptidoform_ion_repr_str():
+    """Test __repr__ and __str__ methods on PeptidoformIon."""
+    import pyopenms as p
+
+    pfi = p.PeptidoformIon.fromString("PEPTIDE/2")
+    repr_str = repr(pfi)
+    assert "PeptidoformIon(" in repr_str
+    assert "chains=" in repr_str
+
+    str_str = str(pfi)
+    assert "PEPTIDE" in str_str
+
+
+def test_peptidoform_various_modifications():
+    """Test parsing various modification types (similar to AASequence tests)."""
+    import pyopenms as p
+
+    # UNIMOD accession
+    pf1 = p.Peptidoform.fromString("PEPTIDESEKUEM[UNIMOD:35]CER")
+    assert pf1.toString() == "PEPTIDESEKUEM[UNIMOD:35]CER"
+    aas1 = pf1.toAASequence()
+    assert aas1.toString() == "PEPTIDESEKUEM(Oxidation)CER"
+    assert aas1.toUnmodifiedString() == "PEPTIDESEKUEMCER"
+
+    # Named modification
+    pf2 = p.Peptidoform.fromString("PEPTIDESEKUEM[Oxidation]CER")
+    assert pf2.toString() == "PEPTIDESEKUEM[Oxidation]CER"
+
+    # N-terminal modification
+    pf3 = p.Peptidoform.fromString("[UNIMOD:1]-PEPTIDE")
+    assert "[UNIMOD:1]" in pf3.toString()
+    aas3 = pf3.toAASequence()
+    assert "Acetyl" in aas3.toString()
+
+    # C-terminal modification
+    pf4 = p.Peptidoform.fromString("PEPTIDE-[UNIMOD:2]")
+    assert "[UNIMOD:2]" in pf4.toString()
+
+    # Multiple modifications
+    pf5 = p.Peptidoform.fromString("[UNIMOD:1]-EM[UNIMOD:35]K")
+    aas5 = pf5.toAASequence()
+    assert "Acetyl" in aas5.toString()
+    assert "Oxidation" in aas5.toString()
+
+
+def test_peptidoform_aasequence_comparison():
+    """Test that Peptidoform -> AASequence produces equivalent results to direct AASequence parsing."""
+    import pyopenms as p
+
+    test_cases = [
+        ("PEPTIDE", "PEPTIDE"),
+        ("EM[UNIMOD:35]K", "EM(Oxidation)K"),
+        ("EC[UNIMOD:4]K", "EC(Carbamidomethyl)K"),
+        ("[UNIMOD:1]-PEPTIDE", ".(Acetyl)PEPTIDE"),
+    ]
+
+    for proforma, expected_aas in test_cases:
+        pf = p.Peptidoform.fromString(proforma)
+        aas_from_pf = pf.toAASequence()
+        aas_direct = p.AASequence.fromString(expected_aas)
+
+        # Masses should match
+        assert abs(aas_from_pf.getMonoWeight() - aas_direct.getMonoWeight()) < 0.001, \
+            f"Mass mismatch for {proforma}: {aas_from_pf.getMonoWeight()} vs {aas_direct.getMonoWeight()}"
+
+        # Unmodified strings should match
+        assert aas_from_pf.toUnmodifiedString() == aas_direct.toUnmodifiedString(), \
+            f"Unmodified string mismatch for {proforma}"
+
+
+def test_peptidoform_len():
+    """Test PeptidoformIon __len__ method."""
+    import pyopenms as p
+
+    # Single chain
+    pfi1 = p.PeptidoformIon.fromString("PEPTIDE/2")
+    assert len(pfi1) == 1
+
+    # Multiple chains (cross-linked)
+    pfi2 = p.PeptidoformIon.fromString("PEPTIDE//SEQUENCE")
+    assert len(pfi2) == 2
 
 
 if __name__ == "__main__":

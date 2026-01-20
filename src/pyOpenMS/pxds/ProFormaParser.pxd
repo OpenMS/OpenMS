@@ -22,99 +22,62 @@ cdef extern from "<OpenMS/CHEMISTRY/ProFormaParser.h>" namespace "OpenMS":
         #
         #    pf = ProFormaParser.parse("EM[UNIMOD:35]K")
         #    # pf now contains the parsed Peptidoform AST
-        #    s = ProFormaParser.toString(pf)
+        #    s = ProFormaParser.toString(pf, ProFormaWriteMode.LOSSLESS)
         #    # s is "EM[UNIMOD:35]K"
-        # wrap-ignore
-        pass
+        #
+        # Dummy class to attach ProFormaParser namespace functions
+        # This class should not be instantiated directly
+        ProFormaParser() except + nogil  # wrap-ignore
+        ProFormaParser(ProFormaParser &) except + nogil  # wrap-ignore
 
 cdef extern from "<OpenMS/CHEMISTRY/ProFormaParser.h>" namespace "OpenMS::ProFormaParser":
 
     # Static parse methods
-    Peptidoform parse(const String& input) except + nogil
-    # wrap-doc:
-    #  Parse a ProForma string into a Peptidoform AST
+    Peptidoform parse(const String& input) except + nogil  # wrap-attach:ProFormaParser wrap-doc:Parse a ProForma string into a Peptidoform AST
 
-    PeptidoformIon parseIon(const String& input) except + nogil
-    # wrap-doc:
-    #  Parse a ProForma string into a PeptidoformIon AST (with charge state)
+    PeptidoformIon parseIon(const String& input) except + nogil  # wrap-attach:ProFormaParser wrap-doc:Parse a ProForma string into a PeptidoformIon AST (with charge state)
 
     # Static toString method for Peptidoform
-    String toString(const Peptidoform& pf, ProFormaWriteMode mode) except + nogil
-    # wrap-doc:
-    #  Convert a Peptidoform AST back to ProForma string notation with specified mode
+    String toString(const Peptidoform& pf, ProFormaWriteMode mode) except + nogil  # wrap-attach:ProFormaParser wrap-doc:Convert a Peptidoform AST back to ProForma string notation with specified mode
 
     # Modification resolution
-    void resolveModifications(Peptidoform& pf) except + nogil
-    # wrap-doc:
-    #  Resolve all modifications in a Peptidoform using ModificationsDB
+    void resolveModifications(Peptidoform& pf) except + nogil  # wrap-attach:ProFormaParser wrap-doc:Resolve all modifications in a Peptidoform using ModificationsDB
 
     # AASequence conversion
-    AASequence toAASequence(const Peptidoform& pf, AASequenceConversionPolicy policy) except + nogil
-    # wrap-doc:
-    #  Convert a Peptidoform to an OpenMS AASequence
+    AASequence toAASequence(const Peptidoform& pf, AASequenceConversionPolicy policy) except + nogil  # wrap-attach:ProFormaParser wrap-doc:Convert a Peptidoform to an OpenMS AASequence
 
-    Peptidoform fromAASequence(const AASequence& seq) except + nogil
-    # wrap-doc:
-    #  Create a Peptidoform from an OpenMS AASequence
+    Peptidoform fromAASequence(const AASequence& seq) except + nogil  # wrap-attach:ProFormaParser wrap-doc:Create a Peptidoform from an OpenMS AASequence
 
-    bool isRepresentableAsAASequence(const Peptidoform& pf) except + nogil
-    # wrap-doc:
-    #  Check if a Peptidoform can be fully represented as an AASequence
+    bool isRepresentableAsAASequence(const Peptidoform& pf) except + nogil  # wrap-attach:ProFormaParser wrap-doc:Check if a Peptidoform can be fully represented as an AASequence
 
-    libcpp_vector[ConversionIssue] getAASequenceConversionIssues(const Peptidoform& pf) except + nogil
-    # wrap-doc:
-    #  Get a list of all issues that would arise during AASequence conversion
+    libcpp_vector[ConversionIssue] getAASequenceConversionIssues(const Peptidoform& pf) except + nogil  # wrap-attach:ProFormaParser wrap-doc:Get a list of all issues that would arise during AASequence conversion
 
     # Mass calculation methods
-    bool canCalculateMass(const Peptidoform& pf) except + nogil
-    # wrap-doc:
-    #  Check if mass can be calculated for a Peptidoform
+    bool canCalculateMass(const Peptidoform& pf) except + nogil  # wrap-attach:ProFormaParser wrap-doc:Check if mass can be calculated for a Peptidoform
 
-    bool canCalculateMassIon "canCalculateMass" (const PeptidoformIon& pfi) except + nogil
-    # wrap-doc:
-    #  Check if mass can be calculated for a PeptidoformIon
+    bool canCalculateMassIon "OpenMS::ProFormaParser::canCalculateMass" (const PeptidoformIon& pfi) except + nogil  # wrap-attach:ProFormaParser wrap-doc:Check if mass can be calculated for a PeptidoformIon
 
-    libcpp_vector[ConversionIssue] getMassCalculationIssues(const Peptidoform& pf) except + nogil
-    # wrap-doc:
-    #  Get issues preventing mass calculation for a Peptidoform
+    libcpp_vector[ConversionIssue] getMassCalculationIssues(const Peptidoform& pf) except + nogil  # wrap-attach:ProFormaParser wrap-doc:Get issues preventing mass calculation for a Peptidoform
 
-    libcpp_vector[ConversionIssue] getMassCalculationIssuesIon "getMassCalculationIssues" (const PeptidoformIon& pfi) except + nogil
-    # wrap-doc:
-    #  Get issues preventing mass calculation for a PeptidoformIon
+    libcpp_vector[ConversionIssue] getMassCalculationIssuesIon "OpenMS::ProFormaParser::getMassCalculationIssues" (const PeptidoformIon& pfi) except + nogil  # wrap-attach:ProFormaParser wrap-doc:Get issues preventing mass calculation for a PeptidoformIon
 
-    double getMonoWeight(const Peptidoform& pf) except + nogil
-    # wrap-doc:
-    #  Calculate monoisotopic mass of a Peptidoform in Daltons
+    double getMonoWeight(const Peptidoform& pf) except + nogil  # wrap-attach:ProFormaParser wrap-doc:Calculate monoisotopic mass of a Peptidoform in Daltons
 
-    double getMonoWeightIon "getMonoWeight" (const PeptidoformIon& pfi) except + nogil
-    # wrap-doc:
-    #  Calculate monoisotopic mass of a PeptidoformIon in Daltons
+    double getMonoWeightIon "OpenMS::ProFormaParser::getMonoWeight" (const PeptidoformIon& pfi) except + nogil  # wrap-attach:ProFormaParser wrap-doc:Calculate monoisotopic mass of a PeptidoformIon in Daltons
 
-    double getMZ(const PeptidoformIon& pfi) except + nogil
-    # wrap-doc:
-    #  Calculate m/z for a PeptidoformIon using its charge state
+    double getMZ(const PeptidoformIon& pfi) except + nogil  # wrap-attach:ProFormaParser wrap-doc:Calculate m/z for a PeptidoformIon using its charge state
 
-    double getMZCharge "getMZ" (const Peptidoform& pf, int charge) except + nogil
-    # wrap-doc:
-    #  Calculate m/z for a Peptidoform at a given charge state
+    double getMZCharge "OpenMS::ProFormaParser::getMZ" (const Peptidoform& pf, int charge) except + nogil  # wrap-attach:ProFormaParser wrap-doc:Calculate m/z for a Peptidoform at a given charge state
 
 
 # JSON serialization functions (free functions in OpenMS namespace)
 # These are declared in ProFormaData.h and don't require nlohmann headers
 cdef extern from "<OpenMS/CHEMISTRY/ProFormaData.h>" namespace "OpenMS":
 
-    String peptidoformToJSON "OpenMS::toJSON" (const Peptidoform& pf) except + nogil
-    # wrap-doc:
-    #  Convert Peptidoform to JSON string representation
+    String peptidoformToJSON "OpenMS::toJSON" (const Peptidoform& pf) except + nogil  # wrap-attach:ProFormaParser wrap-doc:Convert Peptidoform to JSON string representation
 
-    Peptidoform peptidoformFromJSON(const String& json_str) except + nogil
-    # wrap-doc:
-    #  Construct Peptidoform from JSON string
+    Peptidoform peptidoformFromJSON(const String& json_str) except + nogil  # wrap-attach:ProFormaParser wrap-doc:Construct Peptidoform from JSON string
 
-    String peptidoformIonToJSON "OpenMS::toJSON" (const PeptidoformIon& pfi) except + nogil
-    # wrap-doc:
-    #  Convert PeptidoformIon to JSON string representation
+    String peptidoformIonToJSON "OpenMS::toJSON" (const PeptidoformIon& pfi) except + nogil  # wrap-attach:ProFormaParser wrap-doc:Convert PeptidoformIon to JSON string representation
 
-    PeptidoformIon peptidoformIonFromJSON(const String& json_str) except + nogil
-    # wrap-doc:
-    #  Construct PeptidoformIon from JSON string
+    PeptidoformIon peptidoformIonFromJSON(const String& json_str) except + nogil  # wrap-attach:ProFormaParser wrap-doc:Construct PeptidoformIon from JSON string

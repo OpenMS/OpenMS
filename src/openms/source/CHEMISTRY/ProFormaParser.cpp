@@ -2077,7 +2077,9 @@ namespace OpenMS
 
           try
           {
-            return mod_db->getModification(full_accession);
+            // Pass residue to get correct modification variant (e.g., Oxidation on M vs D)
+            String residue_str = (residue != '\0') ? String(1, residue) : "";
+            return mod_db->getModification(full_accession, residue_str, term_spec);
           }
           catch (const Exception::ElementNotFound&)
           {
