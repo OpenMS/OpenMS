@@ -43,8 +43,6 @@
     "coinutils",
     "eigen3",
     "bzip2",
-    "curl",
-    "nlohmann-json",
     "arrow"
   ]
 }
