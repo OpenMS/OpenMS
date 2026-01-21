@@ -115,15 +115,30 @@
 
     def update(self, *a):
         """
-        update(self: Param, args) -> bool
+        update(self: Param, *args) -> bool
 
         Update parameter values from a dictionary or another Param object.
 
-        Use cases::
+        Accepts the following argument combinations:
 
-            p.update(dict d)
-            p.update(Param p)
-            p.update(Param p, int flag)
+        - dict: Updates parameters from a dictionary mapping keys to values
+        - Param: Updates parameters from another Param object
+        - Param, int: Updates parameters from another Param object with a flag
+
+        Args:
+            *args: Variable number of arguments as described above
+
+        Returns:
+            bool: True on success
+
+        Raises:
+            Exception: If arguments don't match one of the supported combinations
+
+        Examples::
+
+            p.update({'key': 'value'})          # Update from dict
+            p.update(other_param)                # Update from Param
+            p.update(other_param, 1)            # Update from Param with flag
         """
 
         cdef Param p

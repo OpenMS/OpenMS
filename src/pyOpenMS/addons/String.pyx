@@ -15,10 +15,17 @@
     #  functions for typing.
     def __init__(self, *args):
         """
-        __init__(self: String, args) -> None
+        __init__(self: String, *args) -> None
 
         Initialize a String object from various input types.
-        Accepts str, bytes, unicode, or String.
+
+        Accepts zero or one argument:
+        - No argument: creates an empty String
+        - str, bytes, unicode, or String: creates a String from the input
+
+        Raises:
+            Exception: If more than one argument is provided or if the argument
+                       type cannot be converted to String.
         """
         if not args:
              self._init_0(*args)
