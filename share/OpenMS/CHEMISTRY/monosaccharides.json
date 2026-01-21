@@ -1,0 +1,175 @@
+{
+  "_metadata": {
+    "source": "HUPO-PSI/ProForma monosaccharides/mono.obo",
+    "last_synced": "2026-01-13",
+    "description": "Monosaccharide symbols for ProForma glycan notation",
+    "url": "https://raw.githubusercontent.com/HUPO-PSI/ProForma/master/monosaccharides/mono.obo"
+  },
+  "monosaccharides": {
+    "Sug": {
+      "name": "A generic monosaccharide with 2 backbone carbons",
+      "mass": 42.0105646837,
+      "formula": "C2H2O1",
+      "synonyms": []
+    },
+    "Tri": {
+      "name": "A generic monosaccharide with 3 backbone carbons",
+      "mass": 72.0211293674,
+      "formula": "C3H4O2",
+      "synonyms": []
+    },
+    "Tet": {
+      "name": "A generic monosaccharide with 4 backbone carbons",
+      "mass": 102.031694051,
+      "formula": "C4H6O3",
+      "synonyms": []
+    },
+    "Pen": {
+      "name": "A generic monosaccharide with 5 backbone carbons",
+      "mass": 132.042258735,
+      "formula": "C5H8O4",
+      "synonyms": []
+    },
+    "Hex": {
+      "name": "A generic monosaccharide with 6 backbone carbons",
+      "mass": 162.052823418,
+      "formula": "C6H10O5",
+      "synonyms": []
+    },
+    "Hep": {
+      "name": "A generic monosaccharide with 7 backbone carbons",
+      "mass": 192.063388102,
+      "formula": "C7H12O6",
+      "synonyms": []
+    },
+    "Oct": {
+      "name": "A generic monosaccharide with 8 backbone carbons",
+      "mass": 222.073952786,
+      "formula": "C8H14O7",
+      "synonyms": []
+    },
+    "Non": {
+      "name": "A generic monosaccharide with 9 backbone carbons",
+      "mass": 252.08451747,
+      "formula": "C9H16O8",
+      "synonyms": []
+    },
+    "Dec": {
+      "name": "A generic monosaccharide with 10 backbone carbons",
+      "mass": 282.095082153,
+      "formula": "C10H18O9",
+      "synonyms": []
+    },
+    "sulfate": {
+      "name": "sulfate",
+      "mass": 79.9568148587,
+      "formula": "H0O3S1",
+      "synonyms": [
+        "S"
+      ]
+    },
+    "phosphate": {
+      "name": "phosphate",
+      "mass": 79.9663305208,
+      "formula": "H1O3P1",
+      "synonyms": [
+        "P"
+      ]
+    },
+    "d-Hex": {
+      "name": "d-Hex",
+      "mass": 146.057908799,
+      "formula": "C6H10O4",
+      "synonyms": [
+        "dHex"
+      ]
+    },
+    "Fuc": {
+      "name": "Fuc",
+      "mass": 146.057908799,
+      "formula": "C6H10O4",
+      "synonyms": [
+        "Fucose"
+      ]
+    },
+    "en,a-Hex": {
+      "name": "en,a-Hex",
+      "mass": 158.02152329,
+      "formula": "C6H6O5",
+      "synonyms": [
+        "en,aHex",
+        "enHexA"
+      ]
+    },
+    "HexN": {
+      "name": "HexN",
+      "mass": 161.068807836,
+      "formula": "C6H11N1O4",
+      "synonyms": []
+    },
+    "a-Hex": {
+      "name": "a-Hex",
+      "mass": 176.032087974,
+      "formula": "C6H8O6",
+      "synonyms": [
+        "aHex",
+        "HexA"
+      ]
+    },
+    "HexNAc": {
+      "name": "HexNAc",
+      "mass": 203.07937252,
+      "formula": "C8H13N1O5",
+      "synonyms": []
+    },
+    "HexNS": {
+      "name": "HexNS",
+      "mass": 241.025622694,
+      "formula": "C6H11N1O7S1",
+      "synonyms": []
+    },
+    "HexS": {
+      "name": "HexS",
+      "mass": 242.009638277,
+      "formula": "C6H10O8S1",
+      "synonyms": []
+    },
+    "HexP": {
+      "name": "HexP",
+      "mass": 242.019153939,
+      "formula": "C6H11O8P1",
+      "synonyms": []
+    },
+    "Neu": {
+      "name": "Neu",
+      "mass": 249.084851823,
+      "formula": "C9H15N1O7",
+      "synonyms": [
+        "Neuraminic acid"
+      ]
+    },
+    "HexNAc(S)": {
+      "name": "HexNAc(S)",
+      "mass": 283.036187378,
+      "formula": "C8H13N1O8S1",
+      "synonyms": []
+    },
+    "Neu5Ac": {
+      "name": "Neu5Ac",
+      "mass": 291.095416506,
+      "formula": "C11H17N1O8",
+      "synonyms": [
+        "Sialic Acid",
+        "NeuAc"
+      ]
+    },
+    "Neu5Gc": {
+      "name": "Neu5Gc",
+      "mass": 307.090331126,
+      "formula": "C11H17N1O9",
+      "synonyms": [
+        "NeuGc"
+      ]
+    }
+  }
+}

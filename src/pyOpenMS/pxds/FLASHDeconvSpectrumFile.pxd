@@ -11,7 +11,7 @@ cdef extern from "<OpenMS/FORMAT/FLASHDeconvSpectrumFile.h>" namespace "OpenMS":
 
     cdef cppclass FLASHDeconvSpectrumFile:
         # wrap-doc:
-        #  FLASHDeconv Spectrum level output *.tsv, *.msalign (for TopPIC) file formats.
+        #  FLASHDeconv Spectrum level output (.tsv, .msalign for TopPIC) file formats.
         #  This class provides static methods for writing deconvolved spectrum data.
         #  Note: Methods taking std::ostream are not directly exposed. Use file-based workflows.
 

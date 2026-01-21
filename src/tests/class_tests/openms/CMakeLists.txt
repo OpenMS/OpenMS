@@ -90,7 +90,6 @@ if (WITH_PARQUET)
   )
 endif()
 
-
 #------------------------------------------------------------------------------
 # restore old compiler flags
 if (CMAKE_COMPILER_IS_INTELCXX OR CMAKE_COMPILER_IS_GNUCXX OR CMAKE_COMPILER_IS_CLANG)
