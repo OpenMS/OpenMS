@@ -303,5 +303,5 @@
                 parts.append("c_term_mod=True")
 
             return f"Peptidoform({', '.join(parts)})"
-        except:
+        except Exception:
             return "Peptidoform()"

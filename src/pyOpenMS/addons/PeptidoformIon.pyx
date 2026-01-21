@@ -212,9 +212,9 @@
                 try:
                     mz = self.getMZ()
                     parts.append(f"mz={mz:.4f}")
-                except:
+                except Exception:
                     pass
 
             return f"PeptidoformIon({', '.join(parts)})"
-        except:
+        except Exception:
             return "PeptidoformIon()"

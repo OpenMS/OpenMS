@@ -66,8 +66,7 @@ namespace OpenMS
         std::cerr << e.getFormattedMessage() << std::endl;
         // Output:
         // ProForma parse error at position 7: Unclosed bracket
-        // Context: PEPTIDE[Oxidation
-        //                 ^
+        // Context: PEPTIDE>>>[<<<Oxidation
         // Expected: ']'
         // Found: end of input
       }
