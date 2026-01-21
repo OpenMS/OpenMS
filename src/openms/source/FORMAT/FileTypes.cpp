@@ -86,6 +86,7 @@ namespace OpenMS
     TypeNameBinding(FileTypes::MRM, "mrm", "SpectraST MRM list", {PROP::READABLE}),
     TypeNameBinding(FileTypes::SQMASS, "sqMass", "SQLite format for mass and chromatograms", {PROP::READABLE, PROP::WRITEABLE}),
     TypeNameBinding(FileTypes::PQP, "pqp", "pqp file", {PROP::READABLE, PROP::WRITEABLE}),
+    TypeNameBinding(FileTypes::PQPPARQUET, "pqp_parquet", "OpenSwath Peptide Query Parameter (PQP) Parquet library input", {PROP::READABLE}),
     TypeNameBinding(FileTypes::MS, "ms", "SIRIUS file", {}),
     TypeNameBinding(FileTypes::OSW, "osw", "OpenSwath output files", {PROP::READABLE, PROP::WRITEABLE}),
     TypeNameBinding(FileTypes::PSMS, "psms", "Percolator tab-delimited output (PSM level)", {PROP::READABLE}),
