@@ -458,7 +458,7 @@ FLASHIda::FLASHIda(char* arg)
           }
           else if (line.hasPrefix("AllMass"))
           {
-            if (targeting_mode_ == 3)
+            if (targeting_mode_ == 3) // exclusion
             {
               Size st = 8;
               Size ed = line.size();
@@ -584,6 +584,7 @@ FLASHIda::FLASHIda(char* arg)
         }
       }
       std::sort(excluded_masses_.begin(), excluded_masses_.end());
+      fd_.setTargetMasses(excluded_masses_, true); // why not?
     }
 
     selected_peak_groups_.clear();
@@ -709,7 +710,7 @@ FLASHIda::FLASHIda(char* arg)
     const int selection_phase_end = 2; // inclusive
     // When selection_phase == 0, consider only the masses whose tqscore did not exceed total qscore threshold. min_cv_mass to max_cv_mass are preferred
     // when selection_phase == 1, consider all other masses for selection but the same m/z is avoided
-    // when selection_phase == 2, consider all.
+    // when selection_phase == 2, consider all. Not activated for now.
     // for target inclusive masses, qscore precursor snr threshold is not applied.
     // In all phase, for target exclusive mode, all the exclusive masses are excluded. For target inclusive mode, only the target masses are considered.
 
@@ -741,7 +742,7 @@ FLASHIda::FLASHIda(char* arg)
           int nominal_mass = SpectralDeconvolution::getNominalMass(mass);
           bool target_matched = false;
           double snr_threshold = snr_threshold_;
-          double qscore_threshold = qscore_threshold_;
+          //double qscore_threshold = qscore_threshold_;
           double tqscore_factor_for_exclusion = 1.0;
           int integer_mz = (int)round(center_mz);
 
@@ -774,7 +775,7 @@ FLASHIda::FLASHIda(char* arg)
             if (target_matched)
             {
               snr_threshold = 0.0;
-              qscore_threshold = 0.0; // stop exclusion for targets. todo tqscore lowest first? charge change.
+              //qscore_threshold = 0.0; // stop exclusion for targets. todo tqscore lowest first? charge change.
             }
             else { continue; }
           }

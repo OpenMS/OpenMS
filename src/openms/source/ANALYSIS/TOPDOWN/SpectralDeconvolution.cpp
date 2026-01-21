@@ -1154,9 +1154,7 @@ namespace OpenMS
     deconvolved_spectrum_.sort();
 
     removeOverlappingPeakGroups_(deconvolved_spectrum_, tol * 1.2, target_decoy_type_);
-    removeExcludedMasses_(deconvolved_spectrum_, excluded_masses_, tol);
 
-    /// test
     filtered_peak_groups.clear();
     filtered_peak_groups.reserve(deconvolved_spectrum_.size());
 
@@ -1208,6 +1206,7 @@ namespace OpenMS
     }
 
     deconvolved_spectrum_.setPeakGroups(filtered_peak_groups);
+    removeExcludedMasses_(deconvolved_spectrum_, excluded_masses_, tol);
     deconvolved_spectrum_.sort();
   }
 
