@@ -115,15 +115,15 @@
 
     def update(self, *a):
         """
-        update(self: Param, *args: Union[dict, Param, Tuple[Param, int]]) -> bool
-        
-        Update parameter values from a dictionary or another Param object.
-        
-        use cases:
+        update(self: Param, args) -> bool
 
-           p.update(dict d)
-           p.update(Param p)
-           p.update(Param p, int flag)
+        Update parameter values from a dictionary or another Param object.
+
+        Use cases::
+
+            p.update(dict d)
+            p.update(Param p)
+            p.update(Param p, int flag)
         """
 
         cdef Param p

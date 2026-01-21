@@ -102,6 +102,10 @@ TOPP tools:
 
 OpenMS Library:
   Added:
+    - Statistical functions ported from PyProphet (#8524)
+      - KernelDensityEstimation: FFT-based kernel density estimation using Silverman's algorithm
+      - RankData: Rank computation with multiple tie-handling methods (average, min, max, dense, ordinal)
+      - MultipleTesting: FDR control and multiple testing corrections (computeModelFDR, pEmp, qValue, pi0est, lfdr, pNorm)
     - PeakFileOptions: setPrecursorMZRange()/getPrecursorMZRange() for precursor m/z range filtering (#8526)
     - OnDiscMSExperiment: Full PeakFileOptions support with filtering (#8512)
     - ParamIterator: STL-compatible iterator type aliases (iterator_category, value_type, etc.) (#8362)

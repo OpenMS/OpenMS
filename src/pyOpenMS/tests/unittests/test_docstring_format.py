@@ -974,14 +974,28 @@ def _is_acceptable_error(error, docstring):
     Some patterns in generated docstrings are technically RST warnings but
     are acceptable in practice (e.g., autowrap's standard format).
     """
+    error_lower = error.lower()
+
     # Autowrap generates "Original C++ documentation is available `here <url>`_"
     # which is valid RST but may trigger warnings in some validators
-    if 'hyperlink' in error.lower() and 'here' in docstring.lower():
+    if 'hyperlink' in error_lower and 'here' in docstring.lower():
         return True
 
     # Method signatures as first line (e.g., "method(self, arg) -> Type")
     # may trigger field list warnings
-    if 'field list' in error.lower():
+    if 'field list' in error_lower:
+        return True
+
+    # Sphinx-specific roles and directives are valid in Sphinx but not plain RST.
+    # Autowrap generates :py:class:, :py:func:, :py:meth: etc. for inheritance docs.
+    # These are acceptable because pyopenms-docs uses Sphinx for rendering.
+    if 'unknown interpreted text role "py:' in error_lower:
+        return True
+    if 'unknown directive type "py:' in error_lower:
+        return True
+
+    # Sphinx deprecation directive is valid in Sphinx but not plain RST
+    if 'unknown directive type "deprecated"' in error_lower:
         return True
 
     return False
@@ -1053,7 +1067,13 @@ class TestRuntimeDocstrings:
             if cls.__doc__:
                 is_valid, errors = validate_docstring(cls.__doc__, class_name)
                 if not is_valid:
-                    all_errors.append(f"{class_name}: {errors}")
+                    # Filter out acceptable errors (e.g., Sphinx-specific roles)
+                    real_errors = [
+                        e for e in errors
+                        if not _is_acceptable_error(e, cls.__doc__)
+                    ]
+                    if real_errors:
+                        all_errors.append(f"{class_name}: {real_errors}")
 
         assert not all_errors, (
             "Docstrings with RST issues:\n" + "\n".join(all_errors[:10])
