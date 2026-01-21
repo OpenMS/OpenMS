@@ -2472,93 +2472,114 @@ START_SECTION(ProFormaParser::tryGetMonoWeight - efficiency test)
 }
 END_SECTION
 
-START_SECTION(ProFormaParser::tryGenerateSpectrum - basic peptide)
+START_SECTION(ProFormaParser::canGenerateSpectrum - Peptidoform)
+{
+  // Test canGenerateSpectrum for resolved peptide
+  Peptidoform pf = ProFormaParser::parse("PEPTIDE");
+  ProFormaParser::resolveModifications(pf);
+  TEST_EQUAL(ProFormaParser::canGenerateSpectrum(pf), true)
+
+  // Unresolved modification should fail
+  Peptidoform pf_unresolved = ProFormaParser::parse("PEM[UnknownMod999]PTIDE");
+  TEST_EQUAL(ProFormaParser::canGenerateSpectrum(pf_unresolved), false)
+}
+END_SECTION
+
+START_SECTION(ProFormaParser::canGenerateSpectrum - PeptidoformIon)
+{
+  // Single chain should work
+  PeptidoformIon pfi = ProFormaParser::parseIon("PEPTIDE/2");
+  ProFormaParser::resolveModifications(pfi.chains[0]);
+  TEST_EQUAL(ProFormaParser::canGenerateSpectrum(pfi), true)
+
+  // Cross-linked should work
+  PeptidoformIon pfi_xl = ProFormaParser::parseIon("PEPK[+138.068#XL1]IDE//ANOK[#XL1]THER");
+  ProFormaParser::resolveModifications(pfi_xl.chains[0]);
+  ProFormaParser::resolveModifications(pfi_xl.chains[1]);
+  TEST_EQUAL(ProFormaParser::canGenerateSpectrum(pfi_xl), true)
+
+  // Chimeric (no cross-link) should fail
+  PeptidoformIon pfi_chimeric = ProFormaParser::parseIon("PEPTIDE//ANOTHER");
+  TEST_EQUAL(ProFormaParser::canGenerateSpectrum(pfi_chimeric), false)
+}
+END_SECTION
+
+START_SECTION(ProFormaParser::getSpectrumGenerationIssues - Peptidoform)
+{
+  // Resolved peptide should have no issues
+  Peptidoform pf = ProFormaParser::parse("PEPTIDE");
+  ProFormaParser::resolveModifications(pf);
+  auto issues = ProFormaParser::getSpectrumGenerationIssues(pf);
+  TEST_EQUAL(issues.empty(), true)
+
+  // Unresolved modification should have issues
+  Peptidoform pf_unresolved = ProFormaParser::parse("PEM[UnknownMod999]PTIDE");
+  auto issues_unresolved = ProFormaParser::getSpectrumGenerationIssues(pf_unresolved);
+  TEST_EQUAL(issues_unresolved.empty(), false)
+}
+END_SECTION
+
+START_SECTION(ProFormaParser::getSpectrumGenerationIssues - PeptidoformIon)
+{
+  // Chimeric should have issues
+  PeptidoformIon pfi_chimeric = ProFormaParser::parseIon("PEPTIDE//ANOTHER");
+  auto issues = ProFormaParser::getSpectrumGenerationIssues(pfi_chimeric);
+  TEST_EQUAL(issues.empty(), false)
+}
+END_SECTION
+
+START_SECTION(ProFormaParser::generateSpectrum - basic peptide)
 {
   // Test spectrum generation for a simple peptide
   Peptidoform pf = ProFormaParser::parse("PEPTIDE");
   ProFormaParser::resolveModifications(pf);
 
-  auto result = ProFormaParser::tryGenerateSpectrum(pf, 1, 1, false, true);
-  TEST_EQUAL(result.has_value(), true)
-  if (result)
-  {
-    // Should have fragments
-    TEST_EQUAL(result->size() > 0, true)
-    // Should have b and y ions at minimum
-    TEST_EQUAL(result->size() >= 10, true)
-  }
+  MSSpectrum spec = ProFormaParser::generateSpectrum(pf, 1, 1, "by", false, true);
+  // Should have fragments
+  TEST_EQUAL(spec.size() > 0, true)
+  // Should have b and y ions at minimum
+  TEST_EQUAL(spec.size() >= 10, true)
 }
 END_SECTION
 
-START_SECTION(ProFormaParser::tryGenerateSpectrum - with modifications)
+START_SECTION(ProFormaParser::generateSpectrum - with modifications)
 {
   // Test spectrum generation for modified peptide
   Peptidoform pf = ProFormaParser::parse("PEM[UNIMOD:35]PTIDE");
   ProFormaParser::resolveModifications(pf);
 
-  auto result = ProFormaParser::tryGenerateSpectrum(pf, 1, 2, true, true);
-  TEST_EQUAL(result.has_value(), true)
-  if (result)
-  {
-    TEST_EQUAL(result->size() > 0, true)
-  }
+  MSSpectrum spec = ProFormaParser::generateSpectrum(pf, 1, 2, "by", true, true);
+  TEST_EQUAL(spec.size() > 0, true)
 }
 END_SECTION
 
-START_SECTION(ProFormaParser::tryGenerateSpectrum - with issues)
+START_SECTION(ProFormaParser::generateSpectrum - ion types)
 {
-  // Test spectrum generation with issues output
+  // Test different ion types
   Peptidoform pf = ProFormaParser::parse("PEPTIDE");
   ProFormaParser::resolveModifications(pf);
 
-  std::vector<ConversionIssue> issues;
-  auto result = ProFormaParser::tryGenerateSpectrum(pf, 1, 1, false, true, issues);
-  TEST_EQUAL(result.has_value(), true)
-  TEST_EQUAL(issues.empty(), true)
+  // Default by ions
+  MSSpectrum spec_by = ProFormaParser::generateSpectrum(pf, 1, 1, "by", false, true);
+  // With precursor
+  MSSpectrum spec_byM = ProFormaParser::generateSpectrum(pf, 1, 1, "byM", false, true);
+  // Precursor adds peaks
+  TEST_EQUAL(spec_byM.size() >= spec_by.size(), true)
 }
 END_SECTION
 
-START_SECTION(ProFormaParser::tryGenerateSpectrum - unresolved modification fails)
-{
-  // Test that unresolved modifications cause failure
-  Peptidoform pf = ProFormaParser::parse("PEM[UnknownMod999]PTIDE");
-  // Don't resolve - modification will remain unresolved
-
-  std::vector<ConversionIssue> issues;
-  auto result = ProFormaParser::tryGenerateSpectrum(pf, 1, 1, false, true, issues);
-  TEST_EQUAL(result.has_value(), false)
-  TEST_EQUAL(issues.empty(), false)
-}
-END_SECTION
-
-START_SECTION(ProFormaParser::tryGenerateSpectrum - PeptidoformIon single chain)
+START_SECTION(ProFormaParser::generateSpectrum - PeptidoformIon single chain)
 {
   // Test spectrum generation for PeptidoformIon with single chain
   PeptidoformIon pfi = ProFormaParser::parseIon("PEPTIDE/2");
   ProFormaParser::resolveModifications(pfi.chains[0]);
 
-  auto result = ProFormaParser::tryGenerateSpectrum(pfi, 1, 2, false, true);
-  TEST_EQUAL(result.has_value(), true)
-  if (result)
-  {
-    TEST_EQUAL(result->size() > 0, true)
-  }
+  MSSpectrum spec = ProFormaParser::generateSpectrum(pfi, 1, 2, "by", false, true);
+  TEST_EQUAL(spec.size() > 0, true)
 }
 END_SECTION
 
-START_SECTION(ProFormaParser::tryGenerateSpectrum - chimeric fails)
-{
-  // Test that chimeric spectra (multiple chains without cross-link) fail
-  PeptidoformIon pfi = ProFormaParser::parseIon("PEPTIDE//ANOTHER");
-
-  std::vector<ConversionIssue> issues;
-  auto result = ProFormaParser::tryGenerateSpectrum(pfi, 1, 1, false, true, issues);
-  TEST_EQUAL(result.has_value(), false)
-  TEST_EQUAL(issues.empty(), false)
-}
-END_SECTION
-
-START_SECTION(ProFormaParser::tryGenerateSpectrum - cross-linked peptides)
+START_SECTION(ProFormaParser::generateSpectrum - cross-linked peptides)
 {
   // Test spectrum generation for cross-linked peptides
   // DSS cross-linker at +138.068 Da
@@ -2566,14 +2587,21 @@ START_SECTION(ProFormaParser::tryGenerateSpectrum - cross-linked peptides)
   ProFormaParser::resolveModifications(pfi.chains[0]);
   ProFormaParser::resolveModifications(pfi.chains[1]);
 
-  std::vector<ConversionIssue> issues;
-  auto result = ProFormaParser::tryGenerateSpectrum(pfi, 1, 2, false, true, issues);
+  MSSpectrum spec = ProFormaParser::generateSpectrum(pfi, 1, 2, "aby", false, true);
   // Should succeed for properly formed cross-link
-  TEST_EQUAL(result.has_value(), true)
-  if (result)
-  {
-    TEST_EQUAL(result->size() > 0, true)
-  }
+  TEST_EQUAL(spec.size() > 0, true)
+}
+END_SECTION
+
+START_SECTION(ProFormaParser::generateSpectrum - throws on failure)
+{
+  // Test that unresolved modifications throw
+  Peptidoform pf = ProFormaParser::parse("PEM[UnknownMod999]PTIDE");
+  TEST_EXCEPTION(Exception::InvalidValue, ProFormaParser::generateSpectrum(pf, 1, 1, "by", false, true))
+
+  // Chimeric should throw
+  PeptidoformIon pfi = ProFormaParser::parseIon("PEPTIDE//ANOTHER");
+  TEST_EXCEPTION(Exception::InvalidValue, ProFormaParser::generateSpectrum(pfi, 1, 1, "by", false, true))
 }
 END_SECTION
 

@@ -524,15 +524,15 @@ def test_peptidoform_various_modifications():
     import pyopenms as p
 
     # UNIMOD accession
-    pf1 = p.Peptidoform.fromString("PEPTIDESEKUEM[UNIMOD:35]CER")
-    assert pf1.toString() == "PEPTIDESEKUEM[UNIMOD:35]CER"
+    pf1 = p.Peptidoform.fromString("PEPTIDESEKLEM[UNIMOD:35]CER")
+    assert pf1.toString() == "PEPTIDESEKLEM[UNIMOD:35]CER"
     aas1 = pf1.toAASequence()
-    assert aas1.toString() == "PEPTIDESEKUEM(Oxidation)CER"
-    assert aas1.toUnmodifiedString() == "PEPTIDESEKUEMCER"
+    assert aas1.toString() == "PEPTIDESEKLEM(Oxidation)CER"
+    assert aas1.toUnmodifiedString() == "PEPTIDESEKLEMCER"
 
     # Named modification
-    pf2 = p.Peptidoform.fromString("PEPTIDESEKUEM[Oxidation]CER")
-    assert pf2.toString() == "PEPTIDESEKUEM[Oxidation]CER"
+    pf2 = p.Peptidoform.fromString("PEPTIDESEKLEM[Oxidation]CER")
+    assert pf2.toString() == "PEPTIDESEKLEM[Oxidation]CER"
 
     # N-terminal modification
     pf3 = p.Peptidoform.fromString("[UNIMOD:1]-PEPTIDE")
