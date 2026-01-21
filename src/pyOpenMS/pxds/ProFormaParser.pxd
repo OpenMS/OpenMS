@@ -82,9 +82,9 @@ cdef extern from "<OpenMS/CHEMISTRY/ProFormaParser.h>" namespace "OpenMS::ProFor
 
     libcpp_vector[ConversionIssue] getSpectrumGenerationIssuesIon "OpenMS::ProFormaParser::getSpectrumGenerationIssues" (const PeptidoformIon& pfi) except + nogil  # wrap-attach:ProFormaParser wrap-doc:Get issues preventing spectrum generation for a PeptidoformIon
 
-    MSSpectrum generateSpectrum(const Peptidoform& pf, int min_charge, int max_charge, const libcpp_string& ion_types, bool add_losses, bool add_metainfo) except + nogil  # wrap-attach:ProFormaParser wrap-doc:Generate theoretical MS/MS spectrum for a Peptidoform. ion_types: string with chars a,b,c,x,y,z for ion series, M for precursor, I for immonium (e.g. "by" or "abyM")
+    MSSpectrum generateSpectrum(const Peptidoform& pf, int min_charge, int max_charge, const libcpp_string& ion_types, bool add_losses, bool add_metainfo) except + nogil  # wrap-attach:ProFormaParser wrap-doc:Generate theoretical MS/MS spectrum for a Peptidoform. ion_types uses chars a,b,c,x,y,z for ion series, M for precursor, I for immonium (e.g. "by" or "abyM")
 
-    MSSpectrum generateSpectrumIon "OpenMS::ProFormaParser::generateSpectrum" (const PeptidoformIon& pfi, int min_charge, int max_charge, const libcpp_string& ion_types, bool add_losses, bool add_metainfo) except + nogil  # wrap-attach:ProFormaParser wrap-doc:Generate theoretical MS/MS spectrum for a PeptidoformIon (supports cross-linked peptides). ion_types: string with chars a,b,c,x,y,z for ion series, M for precursor, I for immonium
+    MSSpectrum generateSpectrumIon "OpenMS::ProFormaParser::generateSpectrum" (const PeptidoformIon& pfi, int min_charge, int max_charge, const libcpp_string& ion_types, bool add_losses, bool add_metainfo) except + nogil  # wrap-attach:ProFormaParser wrap-doc:Generate theoretical MS/MS spectrum for a PeptidoformIon (supports cross-linked peptides). ion_types uses chars a,b,c,x,y,z for ion series, M for precursor, I for immonium
 
 
 # JSON serialization functions (free functions in OpenMS namespace)
