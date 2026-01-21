@@ -12,6 +12,7 @@
 
 #include <OpenMS/CHEMISTRY/ProFormaParser.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/KERNEL/MSSpectrum.h>
 #include <iostream>
 
 using namespace OpenMS;
@@ -103,7 +104,12 @@ int main()
 
   // Parse with charge state (returns PeptidoformIon)
   PeptidoformIon pfi = ProFormaParser::parseIon("PEPTIDE/2");
-  cout << "Charged ion - chains: " << pfi.chains.size() << ", charge: " << pfi.charge << endl;
+  cout << "Charged ion - chains: " << pfi.chains.size();
+  if (pfi.charge.has_value() && std::holds_alternative<int>(pfi.charge.value()))
+  {
+    cout << ", charge: " << std::get<int>(pfi.charge.value());
+  }
+  cout << endl;
 
   // Cross-linked peptides
   pfi = ProFormaParser::parseIon("PEPK[+138.068#XL1]IDE//ANOK[#XL1]THER/3");
