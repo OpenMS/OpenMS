@@ -37,6 +37,7 @@ set(sources_list
   SpectrumAddition.cpp
   TargetedSpectraExtractor.cpp
   TransitionTSVFile.cpp
+  TransitionParquetFile.cpp
   TransitionPQPFile.cpp
 )
 

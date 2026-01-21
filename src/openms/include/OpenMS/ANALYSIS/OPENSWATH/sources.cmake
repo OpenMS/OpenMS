@@ -37,6 +37,7 @@ set(sources_list_h
   SpectrumAddition.h
   TargetedSpectraExtractor.h
   TransitionTSVFile.h
+  TransitionParquetFile.h
   TransitionPQPFile.h
 )
 
