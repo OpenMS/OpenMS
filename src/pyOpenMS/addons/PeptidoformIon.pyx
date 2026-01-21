@@ -117,6 +117,71 @@
         """
         return ProFormaParser.peptidoformIonFromJSON(json_str)
 
+    def canGenerateSpectrum(self):
+        """
+        canGenerateSpectrum(self) -> bool
+
+        Check if a theoretical spectrum can be generated for this peptidoform ion.
+
+        Returns:
+            bool: True if spectrum generation is possible
+
+        Example:
+            >>> pfi = PeptidoformIon.fromString("PEPTIDE/2")
+            >>> pfi.canGenerateSpectrum()
+            True
+        """
+        return ProFormaParser.canGenerateSpectrumIon(self)
+
+    def getSpectrumGenerationIssues(self):
+        """
+        getSpectrumGenerationIssues(self) -> list[ConversionIssue]
+
+        Get a list of issues preventing spectrum generation.
+
+        Returns:
+            list: List of ConversionIssue objects (empty if spectrum can be generated)
+        """
+        return ProFormaParser.getSpectrumGenerationIssuesIon(self)
+
+    def generateSpectrum(self, int min_charge=1, int max_charge=1, str ion_types="by", bool add_losses=False, bool add_metainfo=True):
+        """
+        generateSpectrum(self, min_charge: int = 1, max_charge: int = 1, ion_types: str = "by", add_losses: bool = False, add_metainfo: bool = True) -> MSSpectrum
+
+        Generate a theoretical MS/MS spectrum for this peptidoform ion.
+
+        For single-chain peptidoforms, uses TheoreticalSpectrumGenerator.
+        For cross-linked peptidoforms (// separator), uses TheoreticalSpectrumGeneratorXLMS.
+
+        Args:
+            min_charge: Minimum fragment ion charge state (default: 1)
+            max_charge: Maximum fragment ion charge state (default: 1)
+            ion_types: String specifying which ion types to generate (default: "by"):
+                       'a','b','c','x','y','z' for ion series,
+                       'M' for precursor peaks, 'I' for immonium ions.
+                       Example: "by" for b/y ions, "abyM" for a/b/y + precursor
+            add_losses: If True, include neutral loss peaks (H2O, NH3) (default: False)
+            add_metainfo: If True, include ion annotations in spectrum (default: True)
+
+        Returns:
+            MSSpectrum: Theoretical spectrum with fragment peaks
+
+        Raises:
+            RuntimeError: If spectrum generation fails
+
+        Example:
+            >>> # Single peptide
+            >>> pfi = PeptidoformIon.fromString("PEPTIDE/2")
+            >>> if pfi.canGenerateSpectrum():
+            ...     spec = pfi.generateSpectrum(1, 2, "by")
+
+            >>> # Cross-linked peptide
+            >>> pfi = PeptidoformIon.fromString("PEPTK[-2.0#XL1]IDE//ANOTHERK[#XL1]PEPTIDE/3")
+            >>> if pfi.canGenerateSpectrum():
+            ...     spec = pfi.generateSpectrum(1, 2, "aby")
+        """
+        return ProFormaParser.generateSpectrumIon(self, min_charge, max_charge, ion_types.encode('utf-8'), add_losses, add_metainfo)
+
     def __len__(self):
         """
         Return the number of chains in this peptidoform ion.

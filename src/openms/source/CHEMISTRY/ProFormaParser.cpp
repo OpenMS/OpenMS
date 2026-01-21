@@ -2388,7 +2388,7 @@ namespace OpenMS
     std::vector<ConversionIssue> issues = getAASequenceConversionIssues(pf);
 
     // Check policy
-    if (policy == AASequenceConversionPolicy::STRICT_MODE && !issues.empty())
+    if (policy == AASequenceConversionPolicy::FAIL_ON_LOSS && !issues.empty())
     {
       std::string error_msg = "Cannot convert Peptidoform to AASequence: ";
       for (const auto& issue : issues)
@@ -2443,7 +2443,7 @@ namespace OpenMS
           {
             seq.setModification(seq_pos, mod.resolved_mod);
           }
-          else if (policy == AASequenceConversionPolicy::STRICT_MODE)
+          else if (policy == AASequenceConversionPolicy::FAIL_ON_LOSS)
           {
             // Already checked above, but double-check
             throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
@@ -3222,148 +3222,12 @@ namespace OpenMS
   // Theoretical Spectrum Generation
   // ============================================================================
 
-  std::optional<MSSpectrum> ProFormaParser::tryGenerateSpectrum(
-    const Peptidoform& pf,
-    int min_charge,
-    int max_charge,
-    bool add_losses,
-    bool add_metainfo)
+  // Anonymous namespace for internal helper functions
+  namespace
   {
-    std::vector<ConversionIssue> issues;
-    return tryGenerateSpectrum(pf, min_charge, max_charge, add_losses, add_metainfo, issues);
-  }
-
-  std::optional<MSSpectrum> ProFormaParser::tryGenerateSpectrum(
-    const Peptidoform& pf,
-    int min_charge,
-    int max_charge,
-    bool add_losses,
-    bool add_metainfo,
-    std::vector<ConversionIssue>& issues_out)
-  {
-    issues_out.clear();
-
-    // Check if convertible to AASequence
-    if (!isRepresentableAsAASequence(pf))
-    {
-      auto conv_issues = getAASequenceConversionIssues(pf);
-      for (auto& issue : conv_issues)
-      {
-        issues_out.push_back(std::move(issue));
-      }
-      return std::nullopt;
-    }
-
-    // Convert to AASequence
-    AASequence seq;
-    try
-    {
-      seq = toAASequence(pf, AASequenceConversionPolicy::STRICT_MODE);
-    }
-    catch (const Exception::ConversionError& e)
-    {
-      issues_out.push_back({
-        ConversionIssueType::UNSUPPORTED_FEATURE,
-        String("AASequence conversion failed: ") + e.what(),
-        0
-      });
-      return std::nullopt;
-    }
-
-    // Configure the generator
-    TheoreticalSpectrumGenerator generator;
-    Param param = generator.getParameters();
-    param.setValue("add_b_ions", "true");
-    param.setValue("add_y_ions", "true");
-    param.setValue("add_losses", add_losses ? "true" : "false");
-    param.setValue("add_metainfo", add_metainfo ? "true" : "false");
-    generator.setParameters(param);
-
-    // Generate spectrum
-    MSSpectrum spectrum;
-    try
-    {
-      generator.getSpectrum(spectrum, seq, min_charge, max_charge);
-    }
-    catch (const Exception::BaseException& e)
-    {
-      issues_out.push_back({
-        ConversionIssueType::UNSUPPORTED_FEATURE,
-        String("Spectrum generation failed: ") + e.what(),
-        0
-      });
-      return std::nullopt;
-    }
-
-    return spectrum;
-  }
-
-  std::optional<MSSpectrum> ProFormaParser::tryGenerateSpectrum(
-    const PeptidoformIon& pfi,
-    int min_charge,
-    int max_charge,
-    bool add_losses,
-    bool add_metainfo)
-  {
-    std::vector<ConversionIssue> issues;
-    return tryGenerateSpectrum(pfi, min_charge, max_charge, add_losses, add_metainfo, issues);
-  }
-
-  std::optional<MSSpectrum> ProFormaParser::tryGenerateSpectrum(
-    const PeptidoformIon& pfi,
-    int min_charge,
-    int max_charge,
-    bool add_losses,
-    bool add_metainfo,
-    std::vector<ConversionIssue>& issues_out)
-  {
-    issues_out.clear();
-
-    if (pfi.chains.empty())
-    {
-      issues_out.push_back({
-        ConversionIssueType::UNSUPPORTED_FEATURE,
-        "No peptide chains to fragment",
-        0
-      });
-      return std::nullopt;
-    }
-
-    // Chimeric spectra not supported
-    if (pfi.is_chimeric)
-    {
-      issues_out.push_back({
-        ConversionIssueType::UNSUPPORTED_FEATURE,
-        "Theoretical spectrum generation not supported for chimeric spectra. Generate spectra for individual chains.",
-        0
-      });
-      return std::nullopt;
-    }
-
-    // Single chain - delegate to Peptidoform version
-    if (pfi.chains.size() == 1)
-    {
-      return tryGenerateSpectrum(pfi.chains[0], min_charge, max_charge, add_losses, add_metainfo, issues_out);
-    }
-
-    // Multiple chains = cross-linked peptides
-    // Need to extract cross-link information
-    if (pfi.chains.size() != 2)
-    {
-      issues_out.push_back({
-        ConversionIssueType::UNSUPPORTED_FEATURE,
-        "Only two-chain cross-links are currently supported for spectrum generation",
-        0
-      });
-      return std::nullopt;
-    }
-
-    // Find cross-link positions and mass in both chains
-    const Peptidoform& alpha_pf = pfi.chains[0];
-    const Peptidoform& beta_pf = pfi.chains[1];
-
     // Helper to find cross-link position and mass in a chain
-    auto findCrossLink = [](const Peptidoform& chain) -> std::tuple<bool, size_t, double, String> {
+    std::tuple<bool, size_t, double, String> findCrossLink(const Peptidoform& chain)
+    {
       size_t position = 0;
       for (const auto& section : chain.sequence)
       {
@@ -3376,7 +3240,6 @@ namespace OpenMS
               const auto& label = mod.alternatives[0].second.value();
               if (label.type == Label::Type::CROSSLINK)
               {
-                // Get the mass
                 double mass = 0.0;
                 if (const auto* md = std::get_if<MassDelta>(&mod.alternatives[0].first))
                 {
@@ -3394,48 +3257,173 @@ namespace OpenMS
         }
       }
       return {false, 0, 0.0, ""};
-    };
+    }
+
+    // Collect issues for Peptidoform spectrum generation
+    std::vector<ConversionIssue> collectPeptidoformSpectrumIssues(const Peptidoform& pf)
+    {
+      std::vector<ConversionIssue> issues;
+      if (!ProFormaParser::isRepresentableAsAASequence(pf))
+      {
+        auto conv_issues = ProFormaParser::getAASequenceConversionIssues(pf);
+        for (auto& issue : conv_issues)
+        {
+          issues.push_back(std::move(issue));
+        }
+      }
+      return issues;
+    }
+
+    // Collect issues for PeptidoformIon spectrum generation
+    std::vector<ConversionIssue> collectPeptidoformIonSpectrumIssues(const PeptidoformIon& pfi)
+    {
+      std::vector<ConversionIssue> issues;
+
+      if (pfi.chains.empty())
+      {
+        issues.push_back({ConversionIssueType::UNSUPPORTED_FEATURE, "No peptide chains to fragment", 0});
+        return issues;
+      }
+
+      if (pfi.is_chimeric)
+      {
+        issues.push_back({ConversionIssueType::UNSUPPORTED_FEATURE,
+          "Theoretical spectrum generation not supported for chimeric spectra. Generate spectra for individual chains.", 0});
+        return issues;
+      }
+
+      if (pfi.chains.size() == 1)
+      {
+        return collectPeptidoformSpectrumIssues(pfi.chains[0]);
+      }
+
+      if (pfi.chains.size() != 2)
+      {
+        issues.push_back({ConversionIssueType::UNSUPPORTED_FEATURE,
+          "Only two-chain cross-links are currently supported for spectrum generation", 0});
+        return issues;
+      }
+
+      // Check cross-link labels
+      auto [alpha_found, alpha_pos, alpha_mass, alpha_label] = findCrossLink(pfi.chains[0]);
+      auto [beta_found, beta_pos, beta_mass, beta_label] = findCrossLink(pfi.chains[1]);
+
+      if (!alpha_found || !beta_found)
+      {
+        issues.push_back({ConversionIssueType::UNSUPPORTED_FEATURE, "Cross-link label not found in both chains", 0});
+        return issues;
+      }
+
+      if (alpha_label != beta_label)
+      {
+        issues.push_back({ConversionIssueType::UNSUPPORTED_FEATURE, "Cross-link labels don't match between chains", 0});
+        return issues;
+      }
+
+      return issues;
+    }
+  } // anonymous namespace
+
+  bool ProFormaParser::canGenerateSpectrum(const Peptidoform& pf)
+  {
+    return collectPeptidoformSpectrumIssues(pf).empty();
+  }
+
+  bool ProFormaParser::canGenerateSpectrum(const PeptidoformIon& pfi)
+  {
+    return collectPeptidoformIonSpectrumIssues(pfi).empty();
+  }
+
+  std::vector<ConversionIssue> ProFormaParser::getSpectrumGenerationIssues(const Peptidoform& pf)
+  {
+    return collectPeptidoformSpectrumIssues(pf);
+  }
+
+  std::vector<ConversionIssue> ProFormaParser::getSpectrumGenerationIssues(const PeptidoformIon& pfi)
+  {
+    return collectPeptidoformIonSpectrumIssues(pfi);
+  }
+
+  MSSpectrum ProFormaParser::generateSpectrum(
+    const Peptidoform& pf,
+    int min_charge,
+    int max_charge,
+    const std::string& ion_types,
+    bool add_losses,
+    bool add_metainfo)
+  {
+    // Check for issues first
+    auto issues = collectPeptidoformSpectrumIssues(pf);
+    if (!issues.empty())
+    {
+      std::string error_msg = "Spectrum generation failed: ";
+      for (const auto& issue : issues)
+      {
+        error_msg += issue.description + "; ";
+      }
+      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, error_msg);
+    }
+
+    // Convert to AASequence
+    AASequence seq = toAASequence(pf, AASequenceConversionPolicy::FAIL_ON_LOSS);
+
+    // Configure the generator based on ion_types string
+    TheoreticalSpectrumGenerator generator;
+    Param param = generator.getParameters();
+    param.setValue("add_a_ions", ion_types.find('a') != std::string::npos ? "true" : "false");
+    param.setValue("add_b_ions", ion_types.find('b') != std::string::npos ? "true" : "false");
+    param.setValue("add_c_ions", ion_types.find('c') != std::string::npos ? "true" : "false");
+    param.setValue("add_x_ions", ion_types.find('x') != std::string::npos ? "true" : "false");
+    param.setValue("add_y_ions", ion_types.find('y') != std::string::npos ? "true" : "false");
+    param.setValue("add_z_ions", ion_types.find('z') != std::string::npos ? "true" : "false");
+    param.setValue("add_precursor_peaks", ion_types.find('M') != std::string::npos ? "true" : "false");
+    param.setValue("add_abundant_immonium_ions", ion_types.find('I') != std::string::npos ? "true" : "false");
+    param.setValue("add_losses", add_losses ? "true" : "false");
+    param.setValue("add_metainfo", add_metainfo ? "true" : "false");
+    generator.setParameters(param);
+
+    // Generate spectrum
+    MSSpectrum spectrum;
+    generator.getSpectrum(spectrum, seq, min_charge, max_charge);
+    return spectrum;
+  }
+
+  MSSpectrum ProFormaParser::generateSpectrum(
+    const PeptidoformIon& pfi,
+    int min_charge,
+    int max_charge,
+    const std::string& ion_types,
+    bool add_losses,
+    bool add_metainfo)
+  {
+    // Check for issues first
+    auto issues = collectPeptidoformIonSpectrumIssues(pfi);
+    if (!issues.empty())
+    {
+      std::string error_msg = "Spectrum generation failed: ";
+      for (const auto& issue : issues)
+      {
+        error_msg += issue.description + "; ";
+      }
+      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, error_msg);
+    }
+
+    // Single chain - delegate to Peptidoform version
+    if (pfi.chains.size() == 1)
+    {
+      return generateSpectrum(pfi.chains[0], min_charge, max_charge, ion_types, add_losses, add_metainfo);
+    }
+
+    // Cross-linked peptides (already validated above that we have exactly 2 chains)
+    const Peptidoform& alpha_pf = pfi.chains[0];
+    const Peptidoform& beta_pf = pfi.chains[1];
 
     auto [alpha_found, alpha_pos, alpha_mass, alpha_label] = findCrossLink(alpha_pf);
     auto [beta_found, beta_pos, beta_mass, beta_label] = findCrossLink(beta_pf);
 
-    if (!alpha_found || !beta_found)
-    {
-      issues_out.push_back({
-        ConversionIssueType::UNSUPPORTED_FEATURE,
-        "Cross-link label not found in both chains",
-        0
-      });
-      return std::nullopt;
-    }
-
-    if (alpha_label != beta_label)
-    {
-      issues_out.push_back({
-        ConversionIssueType::UNSUPPORTED_FEATURE,
-        "Cross-link labels don't match between chains",
-        0
-      });
-      return std::nullopt;
-    }
-
     // Convert both chains to AASequence using BEST_EFFORT to skip cross-link mods
-    // (the cross-linker mass is handled separately via OPXLDataStructs)
-    AASequence alpha_seq, beta_seq;
-    try
-    {
-      alpha_seq = toAASequence(alpha_pf, AASequenceConversionPolicy::BEST_EFFORT);
-      beta_seq = toAASequence(beta_pf, AASequenceConversionPolicy::BEST_EFFORT);
-    }
-    catch (const Exception::ConversionError& e)
-    {
-      issues_out.push_back({
-        ConversionIssueType::UNSUPPORTED_FEATURE,
-        String("AASequence conversion failed: ") + e.what(),
-        0
-      });
-      return std::nullopt;
-    }
+    AASequence alpha_seq = toAASequence(alpha_pf, AASequenceConversionPolicy::BEST_EFFORT);
+    AASequence beta_seq = toAASequence(beta_pf, AASequenceConversionPolicy::BEST_EFFORT);
 
     // Determine cross-linker mass (use the one with mass, typically first chain)
     double linker_mass = (alpha_mass > 0.001) ? alpha_mass : beta_mass;
@@ -3448,37 +3436,25 @@ namespace OpenMS
     crosslink.cross_linker_mass = linker_mass;
     crosslink.cross_linker_name = alpha_label;
 
-    // Configure the XL generator
+    // Configure the XL generator based on ion_types
     TheoreticalSpectrumGeneratorXLMS generator;
     Param param = generator.getParameters();
-    param.setValue("add_b_ions", "true");
-    param.setValue("add_y_ions", "true");
-    param.setValue("add_a_ions", "true");
+    param.setValue("add_a_ions", ion_types.find('a') != std::string::npos ? "true" : "false");
+    param.setValue("add_b_ions", ion_types.find('b') != std::string::npos ? "true" : "false");
+    param.setValue("add_c_ions", ion_types.find('c') != std::string::npos ? "true" : "false");
+    param.setValue("add_x_ions", ion_types.find('x') != std::string::npos ? "true" : "false");
+    param.setValue("add_y_ions", ion_types.find('y') != std::string::npos ? "true" : "false");
+    param.setValue("add_z_ions", ion_types.find('z') != std::string::npos ? "true" : "false");
+    param.setValue("add_precursor_peaks", ion_types.find('M') != std::string::npos ? "true" : "false");
     param.setValue("add_losses", add_losses ? "true" : "false");
     param.setValue("add_metainfo", add_metainfo ? "true" : "false");
-    param.setValue("add_precursor_peaks", "true");
     generator.setParameters(param);
 
     // Generate spectrum
     MSSpectrum spectrum;
-    try
-    {
-      // Generate fragments from alpha chain
-      generator.getXLinkIonSpectrum(spectrum, crosslink, true, min_charge, max_charge);
-      // Generate fragments from beta chain
-      generator.getXLinkIonSpectrum(spectrum, crosslink, false, min_charge, max_charge);
-      // Sort by m/z
-      spectrum.sortByPosition();
-    }
-    catch (const Exception::BaseException& e)
-    {
-      issues_out.push_back({
-        ConversionIssueType::UNSUPPORTED_FEATURE,
-        String("XL spectrum generation failed: ") + e.what(),
-        0
-      });
-      return std::nullopt;
-    }
+    generator.getXLinkIonSpectrum(spectrum, crosslink, true, min_charge, max_charge);
+    generator.getXLinkIonSpectrum(spectrum, crosslink, false, min_charge, max_charge);
+    spectrum.sortByPosition();
 
     return spectrum;
   }

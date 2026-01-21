@@ -17,10 +17,10 @@ cdef extern from "<OpenMS/CHEMISTRY/ProFormaData.h>" namespace "OpenMS":
     cdef enum AASequenceConversionPolicy "OpenMS::AASequenceConversionPolicy":
         # wrap-doc:
         #  Conversion policy for transforming Peptidoform to AASequence.
-        #  STRICT_MODE fails on any unrepresentable construct.
+        #  FAIL_ON_LOSS fails on any unrepresentable construct.
         #  DROP_UNLOCALISED drops unlocalised/labile/global modifications.
         #  BEST_EFFORT converts as much as possible, skipping unsupported.
-        STRICT_MODE
+        FAIL_ON_LOSS
         DROP_UNLOCALISED
         BEST_EFFORT
 

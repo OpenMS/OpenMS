@@ -73,7 +73,7 @@ PyOpenMS:
   - ProForma v2 support: Full Python bindings for ProFormaParser (#8648)
     - Parse ProForma strings: Peptidoform.fromString(), PeptidoformIon.fromString()
     - Serialize back: toString() with LOSSLESS/CANONICAL modes
-    - Convert to/from AASequence with configurable policies (STRICT_MODE, DROP_UNLOCALISED, BEST_EFFORT)
+    - Convert to/from AASequence with configurable policies (FAIL_ON_LOSS, DROP_UNLOCALISED, BEST_EFFORT)
     - Mass calculation: getMonoWeight(), getMZ(), canCalculateMass()
     - JSON serialization: toJSON()/fromJSON() for AST persistence
     - Pythonic API: __str__, __repr__, __len__ on Peptidoform and PeptidoformIon

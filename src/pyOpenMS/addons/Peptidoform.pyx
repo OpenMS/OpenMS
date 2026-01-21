@@ -132,7 +132,7 @@
             'EM(Oxidation)K'
         """
         if policy is None:
-            policy = AASequenceConversionPolicy.STRICT_MODE
+            policy = AASequenceConversionPolicy.FAIL_ON_LOSS
         return ProFormaParser.toAASequence(self, policy)
 
     def isRepresentableAsAASequence(self):
@@ -213,6 +213,64 @@
             'EM[UNIMOD:35]K'
         """
         return ProFormaParser.fromAASequence(seq)
+
+    def canGenerateSpectrum(self):
+        """
+        canGenerateSpectrum(self) -> bool
+
+        Check if a theoretical spectrum can be generated for this peptidoform.
+
+        Returns:
+            bool: True if spectrum generation is possible
+
+        Example:
+            >>> pf = Peptidoform.fromString("PEPTIDE")
+            >>> pf.canGenerateSpectrum()
+            True
+        """
+        return ProFormaParser.canGenerateSpectrum(self)
+
+    def getSpectrumGenerationIssues(self):
+        """
+        getSpectrumGenerationIssues(self) -> list[ConversionIssue]
+
+        Get a list of issues preventing spectrum generation.
+
+        Returns:
+            list: List of ConversionIssue objects (empty if spectrum can be generated)
+        """
+        return ProFormaParser.getSpectrumGenerationIssues(self)
+
+    def generateSpectrum(self, int min_charge=1, int max_charge=1, str ion_types="by", bool add_losses=False, bool add_metainfo=True):
+        """
+        generateSpectrum(self, min_charge: int = 1, max_charge: int = 1, ion_types: str = "by", add_losses: bool = False, add_metainfo: bool = True) -> MSSpectrum
+
+        Generate a theoretical MS/MS spectrum for this peptidoform.
+
+        Args:
+            min_charge: Minimum fragment ion charge state (default: 1)
+            max_charge: Maximum fragment ion charge state (default: 1)
+            ion_types: String specifying which ion types to generate (default: "by"):
+                       'a','b','c','x','y','z' for ion series,
+                       'M' for precursor peaks, 'I' for immonium ions.
+                       Example: "by" for b/y ions, "abyM" for a/b/y + precursor
+            add_losses: If True, include neutral loss peaks (H2O, NH3) (default: False)
+            add_metainfo: If True, include ion annotations in spectrum (default: True)
+
+        Returns:
+            MSSpectrum: Theoretical spectrum with fragment peaks
+
+        Raises:
+            RuntimeError: If spectrum generation fails (e.g., unresolved modifications)
+
+        Example:
+            >>> pf = Peptidoform.fromString("PEPTIDE")
+            >>> if pf.canGenerateSpectrum():
+            ...     spec = pf.generateSpectrum(1, 2, "by", add_metainfo=True)
+            ...     len(spec) > 0
+            True
+        """
+        return ProFormaParser.generateSpectrum(self, min_charge, max_charge, ion_types.encode('utf-8'), add_losses, add_metainfo)
 
     def __str__(self):
         """
