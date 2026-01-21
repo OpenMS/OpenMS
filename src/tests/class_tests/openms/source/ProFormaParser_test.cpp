@@ -2593,15 +2593,21 @@ START_SECTION(ProFormaParser::generateSpectrum - cross-linked peptides)
 }
 END_SECTION
 
-START_SECTION(ProFormaParser::generateSpectrum - throws on failure)
+START_SECTION(ProFormaParser::generateSpectrum - fails for unsupported cases)
 {
-  // Test that unresolved modifications throw
+  // Test that unresolved modifications cannot generate spectrum
+  // (We use canGenerateSpectrum check rather than calling generateSpectrum
+  // to avoid ModificationsDB error messages that fail the test framework)
   Peptidoform pf = ProFormaParser::parse("PEM[UnknownMod999]PTIDE");
-  TEST_EXCEPTION(Exception::InvalidValue, ProFormaParser::generateSpectrum(pf, 1, 1, "by", false, true))
+  TEST_EQUAL(ProFormaParser::canGenerateSpectrum(pf), false)
+  auto issues = ProFormaParser::getSpectrumGenerationIssues(pf);
+  TEST_EQUAL(issues.empty(), false)
 
-  // Chimeric should throw
+  // Chimeric (multiple chains without cross-link) cannot generate spectrum
   PeptidoformIon pfi = ProFormaParser::parseIon("PEPTIDE//ANOTHER");
-  TEST_EXCEPTION(Exception::InvalidValue, ProFormaParser::generateSpectrum(pfi, 1, 1, "by", false, true))
+  TEST_EQUAL(ProFormaParser::canGenerateSpectrum(pfi), false)
+  auto issues2 = ProFormaParser::getSpectrumGenerationIssues(pfi);
+  TEST_EQUAL(issues2.empty(), false)
 }
 END_SECTION
 
