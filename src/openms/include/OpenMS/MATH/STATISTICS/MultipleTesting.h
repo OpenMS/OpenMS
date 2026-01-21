@@ -14,6 +14,7 @@
 #include <numeric>
 #include <stdexcept>
 #include <string>
+#include <type_traits>
 #include <vector>
 
 #include <OpenMS/config.h>

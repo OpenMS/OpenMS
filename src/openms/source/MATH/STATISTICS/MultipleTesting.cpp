@@ -7,12 +7,13 @@
 // --------------------------------------------------------------------------
 
 #include <algorithm>
+#include <cctype>
 #include <cmath>
 #include <complex>
 #include <cstdlib> // for getenv
-#include <iostream>
 #include <iterator>
 #include <limits>
+#include <map>
 #include <numeric>
 #include <stdexcept>
 #include <utility>
@@ -29,6 +30,7 @@ namespace evergreen {
 
 #include <boost/math/distributions/normal.hpp>
 
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/MATH/MISC/BSpline2d.h>
 #include <OpenMS/MATH/MISC/BSplineSmoothingSpline.h>
 #include <OpenMS/MATH/MISC/CubicSpline2d.h>
@@ -66,7 +68,8 @@ std::string MultipleTesting::pi0MethodToString(Pi0Method m)
 MultipleTesting::Pi0Method MultipleTesting::toPi0Method(const std::string& s)
 {
   std::string lower = s;
-  std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
+  std::transform(lower.begin(), lower.end(), lower.begin(),
+                 [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
   if (lower == "smoother") return Pi0Method::Smoother;
   if (lower == "bootstrap") return Pi0Method::Bootstrap;
   throw std::invalid_argument("toPi0Method: invalid method '" + s + "', expected 'smoother' or 'bootstrap'");
@@ -85,7 +88,8 @@ std::string MultipleTesting::lfdrTransformToString(LfdrTransform t)
 MultipleTesting::LfdrTransform MultipleTesting::toLfdrTransform(const std::string& s)
 {
   std::string lower = s;
-  std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
+  std::transform(lower.begin(), lower.end(), lower.begin(),
+                 [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
   if (lower == "probit") return LfdrTransform::Probit;
   if (lower == "logit")  return LfdrTransform::Logit;
   throw std::invalid_argument("toLfdrTransform: invalid transform '" + s + "', expected 'probit' or 'logit'");
@@ -267,12 +271,30 @@ Pi0Result MultipleTesting::pi0Est(const std::vector<double>& p_values, const std
     // with automatic smoothing parameter selection (s = m - sqrt(2*m))
     double max_lambda = *std::max_element(lambda_v.begin(), lambda_v.end());
     OpenMS::Math::BSplineSmoothingSpline spl(xs, ys, -1.0, smooth_df);
+    if (!spl.ok())
+    {
+      res.pi0 = std::min(*std::min_element(pi0s.begin(), pi0s.end()), 1.0);
+      res.pi0_smooth = false;
+      return res;
+    }
     double pred = spl.eval(max_lambda);
+    if (std::isnan(pred) || (!smooth_log_pi0 && !std::isfinite(pred)))
+    {
+      res.pi0 = std::min(*std::min_element(pi0s.begin(), pi0s.end()), 1.0);
+      res.pi0_smooth = false;
+      return res;
+    }
 
     // If working in log-space, exponentiate the result
     if (smooth_log_pi0)
     {
       pred = std::exp(pred);
+    }
+    if (std::isnan(pred))
+    {
+      res.pi0 = std::min(*std::min_element(pi0s.begin(), pi0s.end()), 1.0);
+      res.pi0_smooth = false;
+      return res;
     }
 
     // Clamp to [0, 1] range
@@ -430,13 +452,13 @@ std::vector<double> MultipleTesting::lfdr(const std::vector<double>& p_values,
     boost::math::normal_distribution<double> nd(0.0, 1.0);
     for (std::size_t i = 0; i < m; ++i) x[i] = boost::math::quantile(nd, p[i]);
 
-    double bw = bwNrd0(x) * adj;
-    y = kdeFFTEval(x, bw, gridsize, cut);
+    double bw = KernelDensityEstimation::bwNrd0(x) * adj;
+    y = KernelDensityEstimation::kdeFFTEval(x, bw, gridsize, cut);
 
     // null density f0 = N(0,1)
     y.reserve(y.size());
     std::vector<double> f0(m);
-    const double norm_const = 1.0 / std::sqrt(2.0 * M_PI);
+    const double norm_const = 1.0 / std::sqrt(2.0 * OpenMS::Constants::PI);
     for (std::size_t i = 0; i < m; ++i)
     {
       f0[i] = norm_const * std::exp(-0.5 * x[i] * x[i]);
@@ -459,8 +481,8 @@ std::vector<double> MultipleTesting::lfdr(const std::vector<double>& p_values,
       // use eps to stabilize
       x[i] = std::log((pv + eps) / (1.0 - pv + eps));
     }
-    double bw = bwNrd0(x) * adj;
-    y = kdeFFTEval(x, bw, gridsize, cut);
+    double bw = KernelDensityEstimation::bwNrd0(x) * adj;
+    y = KernelDensityEstimation::kdeFFTEval(x, bw, gridsize, cut);
 
     // dx = exp(x) / (1+exp(x))^2
     std::vector<double> dx(m);

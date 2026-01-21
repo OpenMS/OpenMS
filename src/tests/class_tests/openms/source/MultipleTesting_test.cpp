@@ -113,23 +113,6 @@ START_SECTION("lfdr CSV reference (pyprophet) regression")
     TEST_EQUAL(std::fabs(out_logit[i] - ref_logit[i]) <= tol, true);
     TEST_EQUAL(std::fabs(out_eps[i] - ref_eps[i]) <= tol, true);
   }
-
-  // print results in three lines for regression capture
-  auto print_vec = [&](const std::vector<double>& v)
-  {
-    std::cout << "[";
-    for (std::size_t i = 0; i < v.size(); ++i)
-    {
-      if (i) std::cout << ", ";
-      std::cout << v[i];
-    }
-    std::cout << "]\n";
-  };
-
-  print_vec(out_def);
-  print_vec(out_monofalse);
-  print_vec(out_logit);
-  print_vec(out_eps);
 }
 END_SECTION
 
@@ -172,7 +155,7 @@ END_SECTION
 START_SECTION("bw_nrd0: pyprophet reference value")
 {
   std::vector<double> stat = {0, 1, 3, 2, 0.1, 0.5, 0.6, 0.3, 0.5, 0.6, 0.2, 0.5};
-  double bw = bwNrd0(stat);
+  double bw = KernelDensityEstimation::bwNrd0(stat);
   TEST_REAL_SIMILAR(bw, 0.1736562)
 }
 END_SECTION
@@ -180,8 +163,8 @@ END_SECTION
 START_SECTION("forrt/revrt roundtrip small")
 {
   std::vector<double> x = {0.0, 1.0, 2.0, 3.0};
-  auto Xp = forRt(x, x.size());
-  auto xr = revRt(Xp, x.size());
+  auto Xp = KernelDensityEstimation::forRt(x, x.size());
+  auto xr = KernelDensityEstimation::revRt(Xp, x.size());
   TEST_EQUAL(xr.size(), x.size())
   for (std::size_t i = 0; i < x.size(); ++i)
   {
@@ -236,7 +219,7 @@ END_SECTION
 START_SECTION(double bwNrd0(const std::vector<double>&))
 {
   std::vector<double> x = {0.0, 1.0, 2.0, 3.0, 4.0};
-  double bw = bwNrd0(x);
+  double bw = KernelDensityEstimation::bwNrd0(x);
   // Expected value matching numpy.percentile + statsmodels/pyprophet convention (0.9 factor)
   TEST_REAL_SIMILAR(bw, 0.9735846228506357)
 }
@@ -245,7 +228,7 @@ END_SECTION
 START_SECTION(std::vector<double> linBin(const std::vector<double>&, double, double, std::size_t, const std::vector<double>*))
 {
   std::vector<double> x = {0.1, 0.4, 0.9};
-  auto bins = linBin(x, 0.0, 1.0, 5, nullptr);
+  auto bins = KernelDensityEstimation::linBin(x, 0.0, 1.0, 5, nullptr);
   TEST_EQUAL(bins.size(), 5)
   // width = 0.2 -> indices: 0,2,4
   TEST_REAL_SIMILAR(bins[0], 1.0)
@@ -255,7 +238,7 @@ START_SECTION(std::vector<double> linBin(const std::vector<double>&, double, dou
   TEST_REAL_SIMILAR(bins[4], 1.0)
 
   std::vector<double> w = {2.0, 3.0, 5.0};
-  auto bins_w = linBin(x, 0.0, 1.0, 5, &w);
+  auto bins_w = KernelDensityEstimation::linBin(x, 0.0, 1.0, 5, &w);
   TEST_REAL_SIMILAR(bins_w[0], 2.0)
   TEST_REAL_SIMILAR(bins_w[2], 3.0)
   TEST_REAL_SIMILAR(bins_w[4], 5.0)
@@ -391,7 +374,7 @@ START_SECTION("silvermanKernelFFT properties")
   std::size_t M = 8;
   double bw = 1.0;
   double RANGE = 10.0;
-  auto K = silvermanKernelFFT(bw, M, RANGE);
+  auto K = KernelDensityEstimation::silvermanKernelFFT(bw, M, RANGE);
   TEST_EQUAL(K.size(), M)
   // K[0] should equal 1 (exp(0)/BC with BC==1)
   TEST_REAL_SIMILAR(K[0], 1.0)
@@ -414,8 +397,8 @@ END_SECTION
 START_SECTION("gridKdeFFT basic integration and sizes")
 {
   std::vector<double> x = {0.0, 1.0, 2.0};
-  double bw = bwNrd0(x);
-  auto res = gridKdeFFT(x, bw, 64, 3.0);
+  double bw = KernelDensityEstimation::bwNrd0(x);
+  auto res = KernelDensityEstimation::gridKdeFFT(x, bw, 64, 3.0);
   auto dens = res.first;
   auto grid = res.second;
   TEST_EQUAL(dens.size(), grid.size())
@@ -431,8 +414,8 @@ END_SECTION
 START_SECTION("kdeFFTEval matches spline-interpolated grid density at sample points")
 {
   std::vector<double> x = {0.0, 1.0, 2.0};
-  double bw = bwNrd0(x);
-  auto res = gridKdeFFT(x, bw, 64, 3.0);
+  double bw = KernelDensityEstimation::bwNrd0(x);
+  auto res = KernelDensityEstimation::gridKdeFFT(x, bw, 64, 3.0);
   auto dens = res.first;
   auto grid = res.second;
 
@@ -442,7 +425,7 @@ START_SECTION("kdeFFTEval matches spline-interpolated grid density at sample poi
   for (double xi : x) expected.push_back(spline.eval(xi));
 
   // evaluate KDE at sample points using kdeFFTEval (x used as both data and query)
-  auto y = kdeFFTEval(x, bw, 64, 3.0);
+  auto y = KernelDensityEstimation::kdeFFTEval(x, bw, 64, 3.0);
   TEST_EQUAL(y.size(), expected.size())
   for (std::size_t i = 0; i < expected.size(); ++i) TEST_REAL_SIMILAR(y[i], expected[i]);
 }

@@ -24,6 +24,7 @@ namespace evergreen {
 #include <FFT/FFT.hpp>
 }
 
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/MATH/MISC/CubicSpline2d.h>
 #include <OpenMS/MATH/STATISTICS/KernelDensityEstimation.h>
 #include <OpenMS/MATH/StatisticFunctions.h>
@@ -58,7 +59,7 @@ namespace OpenMS
       return bins;
     }
 
-    double bwNrd0(const std::vector<double>& x)
+    double KernelDensityEstimation::bwNrd0(const std::vector<double>& x)
     {
       // filter finite
       std::vector<double> xf;
@@ -95,7 +96,11 @@ namespace OpenMS
       return bw;
     }
 
-    std::vector<double> linBin(const std::vector<double>& x, double xmin, double xmax, std::size_t nbins, const std::vector<double>* weights)
+    std::vector<double> KernelDensityEstimation::linBin(const std::vector<double>& x,
+                                                        double xmin,
+                                                        double xmax,
+                                                        std::size_t nbins,
+                                                        const std::vector<double>* weights)
     {
       if (nbins == 0) throw std::invalid_argument("linBin: nbins must be > 0");
       std::vector<double> bins(nbins, 0.0);
@@ -122,7 +127,15 @@ namespace OpenMS
       return bins;
     }
 
-    std::vector<double> forRt(const std::vector<double>& X, std::size_t M)
+    std::vector<double> KernelDensityEstimation::linBin(const std::vector<double>& x,
+                                                        double xmin,
+                                                        double xmax,
+                                                        std::size_t nbins)
+    {
+      return KernelDensityEstimation::linBin(x, xmin, xmax, nbins, nullptr);
+    }
+
+    std::vector<double> KernelDensityEstimation::forRt(const std::vector<double>& X, std::size_t M)
     {
       if (M == 0) M = X.size();
       if (M == 0) return std::vector<double>();
@@ -155,7 +168,7 @@ namespace OpenMS
       return out;
     }
 
-    std::vector<double> revRt(const std::vector<double>& Xp, std::size_t M)
+    std::vector<double> KernelDensityEstimation::revRt(const std::vector<double>& Xp, std::size_t M)
     {
       if (M == 0) M = Xp.size();
       if (M == 0) return std::vector<double>();
@@ -188,20 +201,20 @@ namespace OpenMS
       return out;
     }
 
-    std::vector<double> silvermanKernelFFT(double bw, std::size_t M, double RANGE)
+    std::vector<double> KernelDensityEstimation::silvermanKernelFFT(double bw, std::size_t M, double RANGE)
     {
       if (M == 0) return std::vector<double>();
       const std::size_t half = M / 2;
       // J = 0..M/2
       std::vector<double> J(half + 1);
       for (std::size_t k = 0; k <= half; ++k) J[k] = static_cast<double>(k);
-      const double FAC1 = 2.0 * std::pow(M_PI * bw / RANGE, 2);
+      const double FAC1 = 2.0 * std::pow(OpenMS::Constants::PI * bw / RANGE, 2);
       std::vector<double> FAC(half + 1);
       for (std::size_t k = 0; k <= half; ++k)
       {
         double j = J[k];
         double jfac = j * j * FAC1;
-        double BC = 1.0 - (j * (M_PI / static_cast<double>(M))) * (j * (M_PI / static_cast<double>(M))) / 3.0;
+        double BC = 1.0 - (j * (OpenMS::Constants::PI / static_cast<double>(M))) * (j * (OpenMS::Constants::PI / static_cast<double>(M))) / 3.0;
         if (!(BC > 0.0)) BC = std::numeric_limits<double>::min();
         FAC[k] = std::exp(-jfac) / BC;
       }
@@ -218,7 +231,10 @@ namespace OpenMS
       return out;
     }
 
-    std::pair<std::vector<double>, std::vector<double>> gridKdeFFT(const std::vector<double>& x, double bw, std::size_t gridsize, double cut)
+    std::pair<std::vector<double>, std::vector<double>> KernelDensityEstimation::gridKdeFFT(const std::vector<double>& x,
+                                                                                            double bw,
+                                                                                            std::size_t gridsize,
+                                                                                            double cut)
     {
       const std::size_t n = x.size();
 
@@ -254,16 +270,16 @@ namespace OpenMS
       }
 
       // FFT-based convolution using Silverman's algorithm (see gridKdeFFT() documentation)
-      std::vector<double> Y = forRt(binned, M);
+      std::vector<double> Y = KernelDensityEstimation::forRt(binned, M);
 
       // multiply by Silverman kernel FFT
-      std::vector<double> K = silvermanKernelFFT(bw, M, RANGE);
+      std::vector<double> K = KernelDensityEstimation::silvermanKernelFFT(bw, M, RANGE);
       if (K.size() != Y.size()) throw std::runtime_error("gridKdeFFT: internal size mismatch");
       std::vector<double> Z(M);
       for (std::size_t i = 0; i < M; ++i) Z[i] = K[i] * Y[i];
 
       // inverse
-      std::vector<double> dens = revRt(Z, M);
+      std::vector<double> dens = KernelDensityEstimation::revRt(Z, M);
 
       // renormalize to enforce integral 1
       double sum = 0.0;
@@ -277,10 +293,13 @@ namespace OpenMS
       return {dens, grid};
     }
 
-    std::vector<double> kdeFFTEval(const std::vector<double>& x, double bw, std::size_t gridsize, double cut)
+    std::vector<double> KernelDensityEstimation::kdeFFTEval(const std::vector<double>& x,
+                                                            double bw,
+                                                            std::size_t gridsize,
+                                                            double cut)
     {
       // build grid density
-      auto pg = gridKdeFFT(x, bw, gridsize, cut);
+      auto pg = KernelDensityEstimation::gridKdeFFT(x, bw, gridsize, cut);
       const std::vector<double>& dens = pg.first;
       const std::vector<double>& grid = pg.second;
 

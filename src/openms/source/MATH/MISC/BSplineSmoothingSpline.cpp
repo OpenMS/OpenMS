@@ -30,7 +30,7 @@ namespace OpenMS
       const int n = static_cast<int>(x.size());
       if (n < 2 || static_cast<int>(y.size()) != n)
       {
-        OPENMS_LOG_ERROR << "BSplineSmoothingSpline: Invalid input sizes" << std::endl;
+        OPENMS_LOG_ERROR << "BSplineSmoothingSpline: Invalid input sizes\n";
         return;
       }
 
@@ -39,7 +39,7 @@ namespace OpenMS
       {
         if (x[i] <= x[i-1])
         {
-          OPENMS_LOG_ERROR << "BSplineSmoothingSpline: x values must be sorted" << std::endl;
+          OPENMS_LOG_ERROR << "BSplineSmoothingSpline: x values must be sorted\n";
           return;
         }
       }
@@ -185,15 +185,36 @@ namespace OpenMS
         coeffs[i] = sum / XtX[i * m + i];
       }
       
-      // Store coefficients
-      poly_coeffs_ = coeffs;
-      fit_type_ = POLYNOMIAL;
-      
-      // Compute RSS
-      double rss = compute_polynomial_rss(x, y);
+      // Compute RSS without changing member state
+      auto eval_with_coeffs = [&](double x_val) -> double
+      {
+        double result = 0.0;
+        double xpow = 1.0;
+        for (std::size_t i = 0; i < coeffs.size(); ++i)
+        {
+          result += coeffs[i] * xpow;
+          xpow *= x_val;
+        }
+        return result;
+      };
+
+      double rss = 0.0;
+      for (std::size_t i = 0; i < x.size(); ++i)
+      {
+        const double fitted = eval_with_coeffs(x[i]);
+        const double residual = y[i] - fitted;
+        rss += residual * residual;
+      }
       
       // Accept if RSS <= s_target (or close enough)
-      return rss <= s_target * 1.1;  // Allow 10% margin
+      if (rss <= s_target * 1.1)  // Allow 10% margin
+      {
+        poly_coeffs_ = std::move(coeffs);
+        fit_type_ = POLYNOMIAL;
+        spline_.reset();
+        return true;
+      }
+      return false;
     }
 
     double BSplineSmoothingSpline::compute_polynomial_rss(const std::vector<double>& x,
@@ -314,7 +335,7 @@ namespace OpenMS
 
       if (candidates.empty())
       {
-        OPENMS_LOG_ERROR << "BSplineSmoothingSpline: No valid spline configurations found" << std::endl;
+        OPENMS_LOG_ERROR << "BSplineSmoothingSpline: No valid spline configurations found\n";
         return;
       }
 
@@ -341,6 +362,8 @@ namespace OpenMS
       // Use the best candidate
       Candidate& best = candidates[0];
       spline_ = std::move(best.spline);
+      poly_coeffs_.clear();
+      fit_type_ = BSPLINE;
       rss_ = best.rss;
       num_interior_knots_ = best.num_interior_knots;
       ok_ = true;
