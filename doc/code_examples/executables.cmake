@@ -29,6 +29,7 @@ Tutorial_MSExperiment
 Tutorial_MSSpectrum
 Tutorial_Param
 Tutorial_Precursor
+Tutorial_ProForma
 Tutorial_RangeManager
 Tutorial_Residue
 Tutorial_ResidueModification
