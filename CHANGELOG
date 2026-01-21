@@ -70,6 +70,13 @@ PyOpenMS:
   - Fix: getAAFrequencies() loop bug in AASequence addon (#8502)
   - Fix: Duplicate functions removed from IdXMLFile.pxd (#8551)
   - Test: Docstring format validation tests added (#8674)
+  - ProForma v2 support: Full Python bindings for ProFormaParser (#8648)
+    - Parse ProForma strings: Peptidoform.fromString(), PeptidoformIon.fromString()
+    - Serialize back: toString() with LOSSLESS/CANONICAL modes
+    - Convert to/from AASequence with configurable policies (FAIL_ON_LOSS, DROP_UNLOCALISED, BEST_EFFORT)
+    - Mass calculation: getMonoWeight(), getMZ(), canCalculateMass()
+    - JSON serialization: toJSON()/fromJSON() for AST persistence
+    - Pythonic API: __str__, __repr__, __len__ on Peptidoform and PeptidoformIon
 
 TOPP tools:
   Changes:
@@ -104,6 +111,15 @@ OpenMS Library:
     - iRT/CiRT transition files in share/OpenMS/CHEMISTRY/ (#8372)
     - SpectrumNativeIDParser class for parsing spectrum native IDs (extractScanNumber, getRegExFromNativeID, isNativeID) (#8633)
     - ArrowExport helper for exporting MSExperiment to Apache Arrow/Parquet formats with configurable layouts and compression (#8655)
+    - ProFormaParser: Full ProForma v2 notation parser with AST representation (#8648)
+      - Recursive descent parser for peptidoforms with modifications, cross-links, and chimeric spectra
+      - Supports all ProForma v2 features: CV accessions (UNIMOD, MOD, RESID, XLMOD, GNO), mass deltas, formulas, glycans, info tags
+      - Bidirectional conversion: parse() and toString() with LOSSLESS/CANONICAL write modes
+      - AASequence integration: toAASequence()/fromAASequence() with configurable conversion policies
+      - Mass calculation: getMonoWeight(), getMZ() for peptidoforms and ions
+      - JSON serialization for AST persistence and interoperability
+      - Theoretical spectrum generation via tryGenerateSpectrum() for single-chain and cross-linked peptides
+        Uses TheoreticalSpectrumGenerator for linear peptides, TheoreticalSpectrumGeneratorXLMS for cross-links
   Changes:
     - BREAKING: Matrix<T> no longer inherits from Eigen; uses std::vector<T> for storage (#8511)
     - BREAKING: Eigen moved from PUBLIC to PRIVATE linking - downstream users no longer need Eigen headers (#8511)
