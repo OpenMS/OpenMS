@@ -8,13 +8,449 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionParquetFile.h>
 
+#include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
+#include <OpenMS/SYSTEM/File.h>
+
+#ifdef WITH_PARQUET
+#include <arrow/api.h>
+#include <arrow/io/file.h>
+#include <parquet/arrow/reader.h>
+#endif
+
+#include <unordered_map>
+
+namespace
+{
+#ifdef WITH_PARQUET
+  struct PrecursorInfo
+  {
+    double precursor_mz = 0.0;
+    double library_rt = 0.0;
+    double drift_time = -1.0;
+    int charge = 0;
+    bool decoy = false;
+    std::string traml_id;
+    std::string modified_sequence;
+    std::string unmodified_sequence;
+    std::vector<std::string> protein_accessions;
+  };
+
+  std::shared_ptr<arrow::Table> readParquetTable_(const OpenMS::String& filename)
+  {
+    auto infile_result = arrow::io::ReadableFile::Open(filename.toStdString());
+    if (!infile_result.ok())
+    {
+      throw OpenMS::Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                            "Failed to open parquet file", filename);
+    }
+    std::shared_ptr<arrow::io::ReadableFile> infile = *infile_result;
+
+    std::unique_ptr<parquet::arrow::FileReader> reader;
+    auto open_status = parquet::arrow::OpenFile(infile, arrow::default_memory_pool(), &reader);
+    if (!open_status.ok())
+    {
+      throw OpenMS::Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                            "Failed to create parquet reader", filename);
+    }
+
+    std::shared_ptr<arrow::Table> table;
+    auto read_status = reader->ReadTable(&table);
+    if (!read_status.ok())
+    {
+      throw OpenMS::Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                            "Failed to read parquet table", filename);
+    }
+
+    return table;
+  }
+
+  std::shared_ptr<arrow::Array> getColumn_(const std::shared_ptr<arrow::Table>& table,
+                                           const std::string& name)
+  {
+    auto column = table->GetColumnByName(name);
+    if (!column)
+    {
+      throw OpenMS::Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                                  "Missing required column '" + name + "'");
+    }
+    auto combined = column->CombineChunks(arrow::default_memory_pool());
+    if (!combined.ok())
+    {
+      throw OpenMS::Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                            "Failed to combine chunks for column '" + name + "'");
+    }
+    return *combined;
+  }
+
+  std::shared_ptr<arrow::Array> getOptionalColumn_(const std::shared_ptr<arrow::Table>& table,
+                                                   const std::string& name)
+  {
+    auto column = table->GetColumnByName(name);
+    if (!column)
+    {
+      return nullptr;
+    }
+    auto combined = column->CombineChunks(arrow::default_memory_pool());
+    if (!combined.ok())
+    {
+      throw OpenMS::Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                            "Failed to combine chunks for column '" + name + "'");
+    }
+    return *combined;
+  }
+
+  int64_t getInt64_(const std::shared_ptr<arrow::Array>& array, int64_t row, int64_t default_value, bool allow_null)
+  {
+    if (!array)
+    {
+      return default_value;
+    }
+    if (array->IsNull(row))
+    {
+      if (allow_null) return default_value;
+      throw OpenMS::Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                                  "Required integer value is null");
+    }
+    switch (array->type_id())
+    {
+      case arrow::Type::INT64:
+        return std::static_pointer_cast<arrow::Int64Array>(array)->Value(row);
+      case arrow::Type::INT32:
+        return static_cast<int64_t>(std::static_pointer_cast<arrow::Int32Array>(array)->Value(row));
+      case arrow::Type::INT16:
+        return static_cast<int64_t>(std::static_pointer_cast<arrow::Int16Array>(array)->Value(row));
+      case arrow::Type::INT8:
+        return static_cast<int64_t>(std::static_pointer_cast<arrow::Int8Array>(array)->Value(row));
+      case arrow::Type::UINT64:
+        return static_cast<int64_t>(std::static_pointer_cast<arrow::UInt64Array>(array)->Value(row));
+      case arrow::Type::UINT32:
+        return static_cast<int64_t>(std::static_pointer_cast<arrow::UInt32Array>(array)->Value(row));
+      case arrow::Type::UINT16:
+        return static_cast<int64_t>(std::static_pointer_cast<arrow::UInt16Array>(array)->Value(row));
+      case arrow::Type::UINT8:
+        return static_cast<int64_t>(std::static_pointer_cast<arrow::UInt8Array>(array)->Value(row));
+      default:
+        throw OpenMS::Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                              "Unsupported integer column type");
+    }
+  }
+
+  double getDouble_(const std::shared_ptr<arrow::Array>& array, int64_t row, double default_value, bool allow_null)
+  {
+    if (!array)
+    {
+      return default_value;
+    }
+    if (array->IsNull(row))
+    {
+      if (allow_null) return default_value;
+      throw OpenMS::Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                                  "Required numeric value is null");
+    }
+    switch (array->type_id())
+    {
+      case arrow::Type::DOUBLE:
+        return std::static_pointer_cast<arrow::DoubleArray>(array)->Value(row);
+      case arrow::Type::FLOAT:
+        return static_cast<double>(std::static_pointer_cast<arrow::FloatArray>(array)->Value(row));
+      case arrow::Type::INT64:
+      case arrow::Type::INT32:
+      case arrow::Type::INT16:
+      case arrow::Type::INT8:
+      case arrow::Type::UINT64:
+      case arrow::Type::UINT32:
+      case arrow::Type::UINT16:
+      case arrow::Type::UINT8:
+        return static_cast<double>(getInt64_(array, row, 0, false));
+      default:
+        throw OpenMS::Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                              "Unsupported numeric column type");
+    }
+  }
+
+  bool getBool_(const std::shared_ptr<arrow::Array>& array, int64_t row, bool default_value, bool allow_null)
+  {
+    if (!array)
+    {
+      return default_value;
+    }
+    if (array->IsNull(row))
+    {
+      if (allow_null) return default_value;
+      throw OpenMS::Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                                  "Required boolean value is null");
+    }
+    switch (array->type_id())
+    {
+      case arrow::Type::BOOL:
+        return std::static_pointer_cast<arrow::BooleanArray>(array)->Value(row);
+      case arrow::Type::INT8:
+      case arrow::Type::INT16:
+      case arrow::Type::INT32:
+      case arrow::Type::INT64:
+      case arrow::Type::UINT8:
+      case arrow::Type::UINT16:
+      case arrow::Type::UINT32:
+      case arrow::Type::UINT64:
+        return getInt64_(array, row, 0, false) != 0;
+      default:
+        throw OpenMS::Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                              "Unsupported boolean column type");
+    }
+  }
+
+  std::string getString_(const std::shared_ptr<arrow::Array>& array, int64_t row)
+  {
+    if (!array)
+    {
+      return "";
+    }
+    if (array->IsNull(row)) return "";
+    switch (array->type_id())
+    {
+      case arrow::Type::STRING:
+        return std::static_pointer_cast<arrow::StringArray>(array)->GetString(row);
+      case arrow::Type::LARGE_STRING:
+        return std::static_pointer_cast<arrow::LargeStringArray>(array)->GetString(row);
+      default:
+        throw OpenMS::Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                              "Unsupported string column type");
+    }
+  }
+
+  std::vector<std::string> getStringList_(const std::shared_ptr<arrow::Array>& array, int64_t row)
+  {
+    std::vector<std::string> values;
+    if (!array) return values;
+    if (array->IsNull(row)) return values;
+
+    if (array->type_id() == arrow::Type::STRING || array->type_id() == arrow::Type::LARGE_STRING)
+    {
+      OpenMS::String raw = getString_(array, row);
+      if (!raw.empty())
+      {
+        std::vector<OpenMS::String> parts;
+        raw.split(';', parts);
+        values.reserve(parts.size());
+        for (const auto& part : parts)
+        {
+          values.push_back(part);
+        }
+      }
+      return values;
+    }
+
+    if (array->type_id() == arrow::Type::LIST || array->type_id() == arrow::Type::LARGE_LIST)
+    {
+      if (array->type_id() == arrow::Type::LIST)
+      {
+        auto list_array = std::static_pointer_cast<arrow::ListArray>(array);
+        auto values_array = list_array->values();
+        auto start = list_array->value_offset(row);
+        auto end = list_array->value_offset(row + 1);
+        for (int64_t i = start; i < end; ++i)
+        {
+          values.push_back(getString_(values_array, i));
+        }
+        return values;
+      }
+      auto list_array = std::static_pointer_cast<arrow::LargeListArray>(array);
+      auto values_array = list_array->values();
+      auto start = list_array->value_offset(row);
+      auto end = list_array->value_offset(row + 1);
+      for (int64_t i = start; i < end; ++i)
+      {
+        values.push_back(getString_(values_array, i));
+      }
+      return values;
+    }
+
+    throw OpenMS::Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                          "Unsupported list column type");
+  }
+
+  void addModifications_(const std::string& sequence, OpenSwath::LightCompound& compound)
+  {
+    if (sequence.empty()) return;
+    try
+    {
+      OpenMS::AASequence aa_sequence = OpenMS::AASequence::fromString(sequence);
+      if (aa_sequence.hasNTerminalModification())
+      {
+        OpenSwath::LightModification mod;
+        mod.location = -1;
+        mod.unimod_id = aa_sequence.getNTerminalModification()->getUniModRecordId();
+        compound.modifications.push_back(mod);
+      }
+      if (aa_sequence.hasCTerminalModification())
+      {
+        OpenSwath::LightModification mod;
+        mod.location = static_cast<int>(aa_sequence.size());
+        mod.unimod_id = aa_sequence.getCTerminalModification()->getUniModRecordId();
+        compound.modifications.push_back(mod);
+      }
+      for (OpenMS::Size i = 0; i != aa_sequence.size(); i++)
+      {
+        if (aa_sequence[i].isModified())
+        {
+          OpenSwath::LightModification mod;
+          mod.location = static_cast<int>(i);
+          mod.unimod_id = aa_sequence.getResidue(i).getModification()->getUniModRecordId();
+          compound.modifications.push_back(mod);
+        }
+      }
+    }
+    catch (OpenMS::Exception::InvalidValue&)
+    {
+      OPENMS_LOG_DEBUG << "Could not parse modifications from sequence: " << sequence << '\n';
+    }
+  }
+#endif
+} // namespace
 
 namespace OpenMS
 {
   void TransitionParquetFile::convertParquetToTargetedExperiment(
-    const String& /*pqp_parquet_dir*/, OpenSwath::LightTargetedExperiment& /*targeted_exp*/) const
+    const String& pqp_parquet_dir, OpenSwath::LightTargetedExperiment& targeted_exp) const
   {
+#ifdef WITH_PARQUET
+    const String library_dir = pqp_parquet_dir + "/library";
+    const String precursors_path = library_dir + "/precursors.parquet";
+    const String transitions_path = library_dir + "/transitions.parquet";
+
+    if (!File::exists(precursors_path) || !File::exists(transitions_path))
+    {
+      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                          "Missing required parquet files in '" + pqp_parquet_dir + "'");
+    }
+
+    auto precursors_table = readParquetTable_(precursors_path);
+    auto transitions_table = readParquetTable_(transitions_path);
+
+    auto precursor_id_col = getColumn_(precursors_table, "precursor_id");
+    auto precursor_mz_col = getColumn_(precursors_table, "precursor_mz");
+    auto charge_col = getColumn_(precursors_table, "charge");
+    auto library_rt_col = getColumn_(precursors_table, "library_rt");
+    auto drift_time_col = getOptionalColumn_(precursors_table, "library_drift_time");
+    auto traml_id_col = getOptionalColumn_(precursors_table, "traml_id");
+    auto decoy_col = getOptionalColumn_(precursors_table, "decoy");
+    auto modified_sequence_col = getOptionalColumn_(precursors_table, "modified_sequence");
+    auto unmodified_sequence_col = getOptionalColumn_(precursors_table, "unmodified_sequence");
+    auto protein_accessions_col = getOptionalColumn_(precursors_table, "protein_accessions");
+
+    std::unordered_map<int64_t, PrecursorInfo> precursor_map;
+    precursor_map.reserve(precursors_table->num_rows());
+
+    for (int64_t row = 0; row < precursors_table->num_rows(); ++row)
+    {
+      const int64_t precursor_id = getInt64_(precursor_id_col, row, 0, false);
+      PrecursorInfo info;
+      info.precursor_mz = getDouble_(precursor_mz_col, row, 0.0, false);
+      info.charge = static_cast<int>(getInt64_(charge_col, row, 0, false));
+      info.library_rt = getDouble_(library_rt_col, row, 0.0, true);
+      info.drift_time = getDouble_(drift_time_col, row, -1.0, true);
+      info.decoy = getBool_(decoy_col, row, false, true);
+      info.traml_id = getString_(traml_id_col, row);
+      info.modified_sequence = getString_(modified_sequence_col, row);
+      info.unmodified_sequence = getString_(unmodified_sequence_col, row);
+      info.protein_accessions = getStringList_(protein_accessions_col, row);
+
+      precursor_map.emplace(precursor_id, std::move(info));
+    }
+
+    std::unordered_map<std::string, int> compound_map;
+    std::unordered_map<std::string, int> protein_map;
+    compound_map.reserve(precursor_map.size());
+
+    for (const auto& entry : precursor_map)
+    {
+      const int64_t precursor_id = entry.first;
+      const PrecursorInfo& info = entry.second;
+      const String precursor_id_str(precursor_id);
+
+      OpenSwath::LightCompound compound;
+      compound.id = precursor_id_str;
+      compound.drift_time = info.drift_time;
+      compound.rt = info.library_rt;
+      compound.charge = info.charge;
+      compound.sequence = info.modified_sequence.empty() ? info.unmodified_sequence : info.modified_sequence;
+      compound.protein_refs = info.protein_accessions;
+      if (!compound.sequence.empty())
+      {
+        addModifications_(compound.sequence, compound);
+      }
+
+      targeted_exp.compounds.push_back(std::move(compound));
+      compound_map[precursor_id_str] = 0;
+
+      for (const auto& accession : info.protein_accessions)
+      {
+        if (protein_map.find(accession) == protein_map.end())
+        {
+          OpenSwath::LightProtein protein;
+          protein.id = accession;
+          protein.sequence = "";
+          targeted_exp.proteins.push_back(std::move(protein));
+          protein_map[accession] = 0;
+        }
+      }
+    }
+
+    auto transition_id_col = getColumn_(transitions_table, "transition_id");
+    auto transition_traml_id_col = getOptionalColumn_(transitions_table, "traml_id");
+    auto transition_precursor_id_col = getColumn_(transitions_table, "precursor_id");
+    auto product_mz_col = getColumn_(transitions_table, "product_mz");
+    auto fragment_charge_col = getColumn_(transitions_table, "charge");
+    auto fragment_type_col = getColumn_(transitions_table, "type");
+    auto fragment_annotation_col = getOptionalColumn_(transitions_table, "annotation");
+    auto fragment_ordinal_col = getColumn_(transitions_table, "ordinal");
+    auto detecting_col = getColumn_(transitions_table, "detecting");
+    auto identifying_col = getColumn_(transitions_table, "identifying");
+    auto quantifying_col = getColumn_(transitions_table, "quantifying");
+    auto transition_intensity_col = getColumn_(transitions_table, "library_intensity");
+    auto transition_decoy_col = getColumn_(transitions_table, "decoy");
+
+    for (int64_t row = 0; row < transitions_table->num_rows(); ++row)
+    {
+      const int64_t precursor_id = getInt64_(transition_precursor_id_col, row, 0, false);
+      auto precursor_it = precursor_map.find(precursor_id);
+      if (precursor_it == precursor_map.end())
+      {
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                            "Transition references unknown precursor_id");
+      }
+
+      const int64_t transition_id = getInt64_(transition_id_col, row, 0, false);
+      const std::string traml_id = getString_(transition_traml_id_col, row);
+      const std::string transition_name = traml_id.empty() ? String(transition_id) : String(traml_id);
+      const std::string fragment_type = getString_(fragment_type_col, row);
+      const std::string annotation = getString_(fragment_annotation_col, row);
+
+      OpenSwath::LightTransition transition;
+      transition.transition_name = transition_name;
+      transition.peptide_ref = String(precursor_id);
+      transition.library_intensity = getDouble_(transition_intensity_col, row, 0.0, true);
+      transition.precursor_mz = precursor_it->second.precursor_mz;
+      transition.product_mz = getDouble_(product_mz_col, row, 0.0, false);
+      transition.precursor_im = precursor_it->second.drift_time;
+      transition.fragment_charge = static_cast<int8_t>(getInt64_(fragment_charge_col, row, 0, true));
+      transition.fragment_nr = static_cast<int16_t>(getInt64_(fragment_ordinal_col, row, -1, true));
+      transition.setFragmentType(fragment_type.empty() ? annotation : fragment_type);
+      transition.setDecoy(getBool_(transition_decoy_col, row, false, true));
+      transition.setDetectingTransition(getBool_(detecting_col, row, true, true));
+      transition.setIdentifyingTransition(getBool_(identifying_col, row, false, true));
+      transition.setQuantifyingTransition(getBool_(quantifying_col, row, true, true));
+
+      targeted_exp.transitions.push_back(std::move(transition));
+    }
+#else
+    (void)pqp_parquet_dir;
+    (void)targeted_exp;
     throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+#endif
   }
 } // namespace OpenMS

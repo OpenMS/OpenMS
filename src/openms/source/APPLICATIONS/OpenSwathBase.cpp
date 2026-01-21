@@ -14,6 +14,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/SwathWindowLoader.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/TransitionParquetFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathWorkflow.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSDataSqlConsumer.h>
@@ -235,6 +236,12 @@ namespace OpenMS
       TransitionTSVFile tsv_reader;
       tsv_reader.setParameters(tsv_reader_param);
       tsv_reader.convertTSVToTargetedExperiment(tr_file.c_str(), tr_type, transition_exp);
+      progresslogger.endProgress();
+    }
+    else if (tr_type == FileTypes::PQPPARQUET)
+    {
+      progresslogger.startProgress(0, 1, "Load PQP Parquet file");
+      TransitionParquetFile().convertParquetToTargetedExperiment(tr_file, transition_exp);
       progresslogger.endProgress();
     }
     else
