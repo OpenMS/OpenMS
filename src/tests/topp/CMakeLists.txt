@@ -1475,8 +1475,7 @@ if (WITH_PARQUET)
 
   add_test("TOPP_OpenSwathAssayGenerator_parquet" ${TOPP_BIN_PATH}/OpenSwathAssayGenerator -test -in ${DATA_DIR_TOPP}/ConvertTSVToTraML_1_input.tsv -in_type tsv -out ${TESTS_TEMP_DIR}/OpenSwathAssayGenerator_parquet_output.tmp.pqp_parquet -out_type pqp_parquet)
 
-  add_test("TOPP_OpenSwathDecoyGenerator_parquet" ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${TESTS_TEMP_DIR}/TargetedFileConverter_parquet_output.tmp.pqp_parquet -in_type pqp_parquet -out ${TESTS_TEMP_DIR}/OpenSwathDecoyGenerator_parquet_output.tmp.pqp_parquet -out_type pqp_parquet -min_decoy_fraction 0.0 -aim_decoy_fraction 0.0)
-  set_tests_properties("TOPP_OpenSwathDecoyGenerator_parquet" PROPERTIES DEPENDS "TOPP_TargetedFileConverter_parquet_prepare")
+  add_test("TOPP_OpenSwathDecoyGenerator_parquet" ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDecoyGenerator_input.TraML -in_type TraML -out ${TESTS_TEMP_DIR}/OpenSwathDecoyGenerator_parquet_output.tmp.pqp_parquet -out_type pqp_parquet -method pseudo-reverse -separate -switchKR false)
 endif()
 
   # protein group conversion test PQP
