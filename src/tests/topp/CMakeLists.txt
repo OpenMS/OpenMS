@@ -1467,6 +1467,18 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
   add_test("TOPP_TargetedFileConverter_light_path_out1" ${DIFF} -sort -in1 TargetedFileConverter_light_path.tmp.tsv -in2 ${DATA_DIR_TOPP}/TargetedFileConverter_light_path_output.tsv)
   set_tests_properties("TOPP_TargetedFileConverter_light_path_out1" PROPERTIES DEPENDS "TOPP_TargetedFileConverter_light_path")
 
+# Parquet library support (requires WITH_PARQUET and external zip/unzip)
+if (WITH_PARQUET)
+  add_test("TOPP_TargetedFileConverter_parquet_prepare" ${TOPP_BIN_PATH}/TargetedFileConverter -test -in ${DATA_DIR_TOPP}/ConvertTSVToTraML_1_input.tsv -out ${TESTS_TEMP_DIR}/TargetedFileConverter_parquet_output.tmp.pqp_parquet -out_type pqp_parquet)
+  add_test("TOPP_TargetedFileConverter_parquet_roundtrip" ${TOPP_BIN_PATH}/TargetedFileConverter -test -in ${TESTS_TEMP_DIR}/TargetedFileConverter_parquet_output.tmp.pqp_parquet -in_type pqp_parquet -out ${TESTS_TEMP_DIR}/TargetedFileConverter_parquet_output.tmp.tsv -out_type tsv)
+  set_tests_properties("TOPP_TargetedFileConverter_parquet_roundtrip" PROPERTIES DEPENDS "TOPP_TargetedFileConverter_parquet_prepare")
+
+  add_test("TOPP_OpenSwathAssayGenerator_parquet" ${TOPP_BIN_PATH}/OpenSwathAssayGenerator -test -in ${DATA_DIR_TOPP}/ConvertTSVToTraML_1_input.tsv -in_type tsv -out ${TESTS_TEMP_DIR}/OpenSwathAssayGenerator_parquet_output.tmp.pqp_parquet -out_type pqp_parquet)
+
+  add_test("TOPP_OpenSwathDecoyGenerator_parquet" ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${TESTS_TEMP_DIR}/TargetedFileConverter_parquet_output.tmp.pqp_parquet -in_type pqp_parquet -out ${TESTS_TEMP_DIR}/OpenSwathDecoyGenerator_parquet_output.tmp.pqp_parquet -out_type pqp_parquet -min_decoy_fraction 0.0 -aim_decoy_fraction 0.0)
+  set_tests_properties("TOPP_OpenSwathDecoyGenerator_parquet" PROPERTIES DEPENDS "TOPP_TargetedFileConverter_parquet_prepare")
+endif()
+
   # protein group conversion test PQP
   add_test("TOPP_TargetedFileConverter_test_12_prepare" ${TOPP_BIN_PATH}/TargetedFileConverter -algorithm:override_group_label_check -test -in ${DATA_DIR_TOPP}/TargetedFileConverter_12_input.TraML -out ${TESTS_TEMP_DIR}/TargetedFileConverter_12_output.tmp.pqp -out_type pqp)
   add_test("TOPP_TargetedFileConverter_test_12" ${TOPP_BIN_PATH}/TargetedFileConverter -algorithm:override_group_label_check -test -in ${TESTS_TEMP_DIR}/TargetedFileConverter_12_output.tmp.pqp -in_type pqp -out ${TESTS_TEMP_DIR}/TargetedFileConverter_12_output.tmp.TraML -out_type TraML)
