@@ -205,7 +205,9 @@ public:
       @brief Builds a Universal Spectrum Identifier (USI) from the PeptideIdentification.
 
       The USI format follows the PSI-MS specification (MS:1003063):
+      @code
       mzspec:<collection>:<ms_run>:<index_type>:<index>[:interpretation]
+      @endcode
 
       This method uses the spectrum reference (native ID) to extract the scan number.
       If include_interpretation is true and hits are available, the first hit's peptide 
