@@ -25,6 +25,62 @@ namespace OpenMS
       The Parquet library format is a directory container with separate tables for
       precursors and transitions. The MVP reader materializes all rows into
       OpenSwath::LightTargetedExperiment.
+
+      The container layout is:
+      @code
+      <library>.pqp_parquet
+      └── library/
+          ├── metadata.json
+          ├── precursors.parquet
+          └── transitions.parquet
+      @endcode
+
+      The metadata file contains a minimal mzSpecLib-compatible header:
+      @code{.json}
+      {
+        "mzspec_lib": {
+          "format_version": "1.0",
+          "attributes": [
+            {"accession": "MS:1003186", "name": "library format version", "value": "1.0"},
+            {"accession": "MS:1003188", "name": "library name", "value": "<basename>"},
+            {"accession": "MS:1003207", "name": "library creation software", "value": "OpenMS"}
+          ]
+        },
+        "openms": {
+          "schema_version": 1,
+          "generator": "OpenMS TransitionParquetFile"
+        }
+      }
+      @endcode
+
+      Required columns for @c precursors.parquet:
+      - precursor_id (int64)
+      - precursor_mz (float64)
+      - charge (int32)
+      - library_rt (float64)
+      Optional columns:
+      - library_drift_time (float64)
+      - traml_id (string)
+      - decoy (bool)
+      - modified_sequence (string)
+      - unmodified_sequence (string)
+      - protein_accessions (string or list<string>)
+
+      Required columns for @c transitions.parquet:
+      - transition_id (int64)
+      - precursor_id (int64)
+      - product_mz (float64)
+      - charge (int32)
+      - type (string)
+      - ordinal (int32)
+      - detecting (bool)
+      - identifying (bool)
+      - quantifying (bool)
+      - library_intensity (float64)
+      - decoy (bool)
+      Optional columns:
+      - traml_id (string)
+      - annotation (string)
   */
   class OPENMS_DLLAPI TransitionParquetFile
   {

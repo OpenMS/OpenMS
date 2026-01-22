@@ -74,7 +74,7 @@ namespace
     return std::string(joined);
   }
 
-  void writeLibraryMetadata_(const OpenMS::String& library_dir)
+  void writeLibraryMetadata_(const OpenMS::String& library_dir, const OpenMS::String& library_name)
   {
     const OpenMS::String metadata_path = library_dir + "/metadata.json";
     std::ofstream out(metadata_path.c_str(), std::ios::out | std::ios::trunc);
@@ -86,7 +86,11 @@ namespace
     out << "{\n"
         << "  \"mzspec_lib\": {\n"
         << "    \"format_version\": \"1.0\",\n"
-        << "    \"attributes\": []\n"
+        << "    \"attributes\": [\n"
+        << "      {\"accession\": \"MS:1003186\", \"name\": \"library format version\", \"value\": \"1.0\"},\n"
+        << "      {\"accession\": \"MS:1003188\", \"name\": \"library name\", \"value\": \"" << library_name << "\"},\n"
+        << "      {\"accession\": \"MS:1003207\", \"name\": \"library creation software\", \"value\": \"OpenMS\"}\n"
+        << "    ]\n"
         << "  },\n"
         << "  \"openms\": {\n"
         << "    \"schema_version\": 1,\n"
@@ -601,10 +605,25 @@ namespace OpenMS
 
     const String library_dir = base_dir + "/library";
     File::makeDir(library_dir);
-    writeLibraryMetadata_(library_dir);
+    String library_name = File::basename(pqp_parquet_path);
+    if (library_name.empty())
+    {
+      library_name = "openms_library";
+    }
+    writeLibraryMetadata_(library_dir, library_name);
 
     std::unordered_map<std::string, int64_t> compound_to_precursor;
     compound_to_precursor.reserve(targeted_exp.compounds.size());
+
+    std::unordered_map<std::string, bool> compound_decoy;
+    compound_decoy.reserve(targeted_exp.compounds.size());
+    for (const auto& transition : targeted_exp.transitions)
+    {
+      if (transition.getDecoy())
+      {
+        compound_decoy[transition.peptide_ref] = true;
+      }
+    }
 
     int64_t next_precursor_id = 1;
     for (const auto& compound : targeted_exp.compounds)
@@ -655,12 +674,14 @@ namespace OpenMS
     for (const auto& compound : targeted_exp.compounds)
     {
       const int64_t precursor_id = compound_to_precursor[compound.id];
+      const bool is_decoy = compound_decoy[compound.id] ||
+        OpenMS::String(compound.id).hasPrefix("DECOY_");
       appendOrThrow_(precursor_id_builder.Append(precursor_id), "precursor_id");
       appendOrThrow_(precursor_mz_builder.Append(precursor_mz[compound.id]), "precursor_mz");
       appendOrThrow_(precursor_charge_builder.Append(compound.charge), "charge");
       appendOrThrow_(library_rt_builder.Append(compound.rt), "library_rt");
       appendOrThrow_(drift_time_builder.Append(compound.drift_time), "library_drift_time");
-      appendOrThrow_(decoy_builder.Append(false), "decoy");
+      appendOrThrow_(decoy_builder.Append(is_decoy), "decoy");
       appendOrThrow_(traml_id_builder.Append(compound.id), "traml_id");
       appendOrThrow_(modified_sequence_builder.Append(compound.sequence), "modified_sequence");
 
