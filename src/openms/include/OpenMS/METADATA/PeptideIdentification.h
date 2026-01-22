@@ -210,9 +210,15 @@ public:
       @endcode
 
       This method uses the spectrum reference (native ID) to extract the scan number.
-      If include_interpretation is true and hits are available, the first hit's peptide 
-      sequence and charge are included in the USI. For best results when using 
+      If include_interpretation is true and hits are available, the first hit's peptide
+      sequence and charge are included in the USI. For best results when using
       interpretation, call sort() before this method to ensure the best-scoring hit is first.
+
+      @note This method assumes a single MS run context. For merged files (e.g., from
+            ConsensusMap or multi-file workflows), where PeptideIdentifications may
+            originate from different source files, the caller must provide the correct
+            ms_run_name for each identification. The method does not use map_index
+            metadata to resolve the source file automatically.
 
       @param dataset_id ProteomeXchange dataset identifier (e.g., "PXD000561") or spectral library name
       @param ms_run_name Name of the MS run file (e.g., "sample.mzML")
@@ -227,7 +233,8 @@ public:
     /**
       @brief Builds a Universal Spectrum Identifier (USI) string from the PeptideIdentification.
 
-      Convenience method that returns the USI as a string. See buildUSI() for details.
+      Convenience method that returns the USI as a string. See buildUSI() for details
+      including the note about merged file limitations.
 
       @param dataset_id ProteomeXchange dataset identifier (e.g., "PXD000561")
       @param ms_run_name Name of the MS run file
