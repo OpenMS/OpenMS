@@ -12,14 +12,17 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/SqliteConnector.h>
-#include <OpenMS/SYSTEM/ExternalProcess.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
 
 #include <fstream>
 #include <cmath>
+#include <future>
+#include <limits>
 #include <unordered_map>
 #include <vector>
+
+#include <QString>
 
 #ifdef WITH_PARQUET
 #ifdef signals
@@ -96,6 +99,28 @@ namespace OpenMS
       catch (Exception::ConversionError&)
       {
         return false;
+      }
+    }
+
+    void appendFeatureScore_(arrow::DoubleBuilder& builder,
+                             const Feature& feature,
+                             const std::string& key,
+                             const char* column,
+                             double fallback_value = std::numeric_limits<double>::quiet_NaN(),
+                             bool use_fallback = false)
+    {
+      double value = 0.0;
+      if (extractMetaDouble_(feature, key, value))
+      {
+        appendOptionalFloat_(builder, true, value, column);
+      }
+      else if (use_fallback && std::isfinite(fallback_value))
+      {
+        appendOptionalFloat_(builder, true, fallback_value, column);
+      }
+      else
+      {
+        appendOrThrow_(builder.AppendNull(), column);
       }
     }
 
@@ -202,25 +227,6 @@ namespace OpenMS
       }
     }
 
-    void zipParquetDirectory_(const String& directory_path, const String& output_zip)
-    {
-      const String output_zip_abs = File::absolutePath(output_zip);
-      if (File::exists(output_zip_abs))
-      {
-        File::remove(output_zip_abs);
-      }
-
-      ExternalProcess zip_process;
-      QStringList args;
-      args << "-r" << "-q" << output_zip_abs.toQString() << ".";
-      auto status = zip_process.run("zip", args, directory_path.toQString(), false);
-      if (status != ExternalProcess::RETURNSTATE::SUCCESS)
-      {
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      "Failed to zip parquet output", output_zip_abs);
-      }
-    }
-
     String writeMetadata_(const String& base_dir, UInt64 run_id, const String& input_filename)
     {
       const String metadata_path = base_dir + "/metadata.json";
@@ -240,6 +246,14 @@ namespace OpenMS
       return metadata_path;
     }
 
+    void waitForWriteTasks_(std::vector<std::future<void>>& tasks)
+    {
+      for (auto& task : tasks)
+      {
+        task.get();
+      }
+    }
+
 #endif // WITH_PARQUET
   } // namespace
 
@@ -255,13 +269,7 @@ namespace OpenMS
                                     "OpenMS was built without Parquet support");
 #else
     const UInt64 run_id_clean = Internal::SqliteHelper::clearSignBit(run_id);
-    const bool zip_output = output_path.hasSuffix(".osw_parquet");
-    String base_dir = output_path;
-    File::TempDir temp_dir;
-    if (zip_output)
-    {
-      base_dir = temp_dir.getPath() + "/osw_parquet";
-    }
+    const String base_dir = output_path;
 
     if (File::exists(base_dir))
     {
@@ -483,13 +491,13 @@ namespace OpenMS
       appendOptionalFloat_(exp_rt_builder, true, feature.getRT(), "exp_rt");
 
       double value = 0.0;
-      appendOptionalFloat_(exp_im_builder, extractMetaDouble_(feature, "im_drift", value), value, "exp_im");
-      appendOptionalFloat_(norm_rt_builder, extractMetaDouble_(feature, "norm_RT", value), value, "norm_rt");
-      appendOptionalFloat_(delta_rt_builder, extractMetaDouble_(feature, "delta_rt", value), value, "delta_rt");
-      appendOptionalFloat_(left_width_builder, extractMetaDouble_(feature, "leftWidth", value), value, "left_width");
-      appendOptionalFloat_(right_width_builder, extractMetaDouble_(feature, "rightWidth", value), value, "right_width");
-      appendOptionalFloat_(exp_im_left_builder, extractMetaDouble_(feature, "im_drift_left", value), value, "exp_im_leftwidth");
-      appendOptionalFloat_(exp_im_right_builder, extractMetaDouble_(feature, "im_drift_right", value), value, "exp_im_rightwidth");
+      appendFeatureScore_(exp_im_builder, feature, "im_drift", "exp_im");
+      appendFeatureScore_(norm_rt_builder, feature, "norm_RT", "norm_rt", -1.0, true);
+      appendFeatureScore_(delta_rt_builder, feature, "delta_rt", "delta_rt", -1.0, true);
+      appendFeatureScore_(left_width_builder, feature, "leftWidth", "left_width");
+      appendFeatureScore_(right_width_builder, feature, "rightWidth", "right_width");
+      appendFeatureScore_(exp_im_left_builder, feature, "im_drift_left", "exp_im_leftwidth");
+      appendFeatureScore_(exp_im_right_builder, feature, "im_drift_right", "exp_im_rightwidth");
 
       if (feature.metaValueExists("var_ms1_ppm_diff"))
       {
@@ -559,94 +567,92 @@ namespace OpenMS
       for (Size i = 0; i < subordinates.size(); ++i)
       {
         const auto& sub_it = subordinates[i];
-        if (!(sub_it.metaValueExists("FeatureLevel") && sub_it.getMetaValue("FeatureLevel") == "MS2"))
+        if (sub_it.metaValueExists("FeatureLevel") && sub_it.getMetaValue("FeatureLevel") == "MS2")
         {
-          continue;
-        }
-
-        if (!sub_it.metaValueExists("native_id"))
-        {
-          continue;
-        }
-        const String native_id = sub_it.getMetaValue("native_id");
-        int64_t transition_id_value = 0;
-        if (!parseOptionalInt64_(native_id, transition_id_value))
-        {
-          auto it = transition_to_id.find(native_id);
-          if (it == transition_to_id.end())
+          if (!sub_it.metaValueExists("native_id"))
           {
-            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                          "Transition references unknown id", native_id);
+            continue;
           }
-          transition_id_value = it->second;
+          const String native_id = sub_it.getMetaValue("native_id");
+          int64_t transition_id_value = 0;
+          if (!parseOptionalInt64_(native_id, transition_id_value))
+          {
+            auto it = transition_to_id.find(native_id);
+            if (it == transition_to_id.end())
+            {
+              throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                            "Transition references unknown id", native_id);
+            }
+            transition_id_value = it->second;
+          }
+
+          appendOrThrow_(ft_feature_id_builder.Append(feature_id), "feature_id");
+          appendOrThrow_(ft_run_id_builder.Append(run_id_clean), "run_id");
+          appendOrThrow_(ft_transition_id_builder.Append(transition_id_value), "transition_id");
+          appendOptionalFloat_(ft_area_builder, true, sub_it.getIntensity(), "area_intensity");
+          appendOptionalFloat_(ft_total_area_builder, extractMetaDouble_(sub_it, "total_xic", value), value, "total_area_intensity");
+          appendOptionalFloat_(ft_apex_int_builder, extractMetaDouble_(sub_it, "peak_apex_int", value), value, "apex_intensity");
+          appendOptionalFloat_(ft_apex_rt_builder, extractMetaDouble_(sub_it, "peak_apex_position", value), value, "apex_rt");
+          appendOptionalFloat_(ft_rt_fwhm_builder, extractMetaDouble_(sub_it, "width_at_50", value), value, "rt_fwhm");
+          appendOptionalFloatFromList_(ft_masserror_builder, masserror_ppm, i, "masserror_ppm");
+          appendOptionalFloat_(ft_total_mi_builder, extractMetaDouble_(sub_it, "total_mi", value), value, "total_mi");
+          appendOrThrow_(ft_var_intensity_builder.AppendNull(), "var_intensity_score");
+          appendOrThrow_(ft_var_intensity_ratio_builder.AppendNull(), "var_intensity_ratio_score");
+          appendOrThrow_(ft_var_log_intensity_builder.AppendNull(), "var_log_intensity");
+          appendOrThrow_(ft_var_xcorr_coelution_builder.AppendNull(), "var_xcorr_coelution");
+          appendOrThrow_(ft_var_xcorr_shape_builder.AppendNull(), "var_xcorr_shape");
+          appendOrThrow_(ft_var_log_sn_builder.AppendNull(), "var_log_sn_score");
+          appendOrThrow_(ft_var_massdev_builder.AppendNull(), "var_massdev_score");
+          appendOrThrow_(ft_var_mi_builder.AppendNull(), "var_mi_score");
+          appendOrThrow_(ft_var_mi_ratio_builder.AppendNull(), "var_mi_ratio_score");
+          appendOrThrow_(ft_var_isotope_corr_builder.AppendNull(), "var_isotope_correlation_score");
+          appendOrThrow_(ft_var_isotope_overlap_builder.AppendNull(), "var_isotope_overlap_score");
+          appendOrThrow_(ft_exp_im_builder.AppendNull(), "exp_im");
+          appendOrThrow_(ft_exp_im_left_builder.AppendNull(), "exp_im_leftwidth");
+          appendOrThrow_(ft_exp_im_right_builder.AppendNull(), "exp_im_rightwidth");
+          appendOrThrow_(ft_delta_im_builder.AppendNull(), "delta_im");
+          appendOrThrow_(ft_var_im_delta_builder.AppendNull(), "var_im_delta_score");
+          appendOrThrow_(ft_var_im_log_intensity_builder.AppendNull(), "var_im_log_intensity");
+          appendOrThrow_(ft_var_im_xcorr_coelution_contrast_builder.AppendNull(), "var_im_xcorr_coelution_contrast");
+          appendOrThrow_(ft_var_im_xcorr_shape_contrast_builder.AppendNull(), "var_im_xcorr_shape_contrast");
+          appendOrThrow_(ft_var_im_xcorr_coelution_combined_builder.AppendNull(), "var_im_xcorr_coelution_combined");
+          appendOrThrow_(ft_var_im_xcorr_shape_combined_builder.AppendNull(), "var_im_xcorr_shape_combined");
+
+          const bool has_peak_shape = sub_it.metaValueExists("start_position_at_5");
+          appendOptionalFloat_(ft_start_position_at_5_builder, has_peak_shape && extractMetaDouble_(sub_it, "start_position_at_5", value), value, "start_position_at_5");
+          appendOptionalFloat_(ft_end_position_at_5_builder, has_peak_shape && extractMetaDouble_(sub_it, "end_position_at_5", value), value, "end_position_at_5");
+          appendOptionalFloat_(ft_start_position_at_10_builder, has_peak_shape && extractMetaDouble_(sub_it, "start_position_at_10", value), value, "start_position_at_10");
+          appendOptionalFloat_(ft_end_position_at_10_builder, has_peak_shape && extractMetaDouble_(sub_it, "end_position_at_10", value), value, "end_position_at_10");
+          appendOptionalFloat_(ft_start_position_at_50_builder, has_peak_shape && extractMetaDouble_(sub_it, "start_position_at_50", value), value, "start_position_at_50");
+          appendOptionalFloat_(ft_end_position_at_50_builder, has_peak_shape && extractMetaDouble_(sub_it, "end_position_at_50", value), value, "end_position_at_50");
+          appendOptionalFloat_(ft_total_width_builder, has_peak_shape && extractMetaDouble_(sub_it, "total_width", value), value, "total_width");
+          appendOptionalFloat_(ft_tailing_factor_builder, has_peak_shape && extractMetaDouble_(sub_it, "tailing_factor", value), value, "tailing_factor");
+          appendOptionalFloat_(ft_asymmetry_factor_builder, has_peak_shape && extractMetaDouble_(sub_it, "asymmetry_factor", value), value, "asymmetry_factor");
+          appendOptionalFloat_(ft_slope_of_baseline_builder, has_peak_shape && extractMetaDouble_(sub_it, "slope_of_baseline", value), value, "slope_of_baseline");
+          appendOptionalFloat_(ft_baseline_delta_2_height_builder, has_peak_shape && extractMetaDouble_(sub_it, "baseline_delta_2_height", value), value, "baseline_delta_2_height");
+          appendOptionalFloat_(ft_points_across_baseline_builder, has_peak_shape && extractMetaDouble_(sub_it, "points_across_baseline", value), value, "points_across_baseline");
+          appendOptionalFloat_(ft_points_across_half_height_builder, has_peak_shape && extractMetaDouble_(sub_it, "points_across_half_height", value), value, "points_across_half_height");
         }
-
-        appendOrThrow_(ft_feature_id_builder.Append(feature_id), "feature_id");
-        appendOrThrow_(ft_run_id_builder.Append(run_id_clean), "run_id");
-        appendOrThrow_(ft_transition_id_builder.Append(transition_id_value), "transition_id");
-        appendOptionalFloat_(ft_area_builder, true, sub_it.getIntensity(), "area_intensity");
-        appendOptionalFloat_(ft_total_area_builder, extractMetaDouble_(sub_it, "total_xic", value), value, "total_area_intensity");
-        appendOptionalFloat_(ft_apex_int_builder, extractMetaDouble_(sub_it, "peak_apex_int", value), value, "apex_intensity");
-        appendOptionalFloat_(ft_apex_rt_builder, extractMetaDouble_(sub_it, "peak_apex_position", value), value, "apex_rt");
-        appendOptionalFloat_(ft_rt_fwhm_builder, extractMetaDouble_(sub_it, "width_at_50", value), value, "rt_fwhm");
-        appendOptionalFloatFromList_(ft_masserror_builder, masserror_ppm, i, "masserror_ppm");
-        appendOptionalFloat_(ft_total_mi_builder, extractMetaDouble_(sub_it, "total_mi", value), value, "total_mi");
-        appendOrThrow_(ft_var_intensity_builder.AppendNull(), "var_intensity_score");
-        appendOrThrow_(ft_var_intensity_ratio_builder.AppendNull(), "var_intensity_ratio_score");
-        appendOrThrow_(ft_var_log_intensity_builder.AppendNull(), "var_log_intensity");
-        appendOrThrow_(ft_var_xcorr_coelution_builder.AppendNull(), "var_xcorr_coelution");
-        appendOrThrow_(ft_var_xcorr_shape_builder.AppendNull(), "var_xcorr_shape");
-        appendOrThrow_(ft_var_log_sn_builder.AppendNull(), "var_log_sn_score");
-        appendOrThrow_(ft_var_massdev_builder.AppendNull(), "var_massdev_score");
-        appendOrThrow_(ft_var_mi_builder.AppendNull(), "var_mi_score");
-        appendOrThrow_(ft_var_mi_ratio_builder.AppendNull(), "var_mi_ratio_score");
-        appendOrThrow_(ft_var_isotope_corr_builder.AppendNull(), "var_isotope_correlation_score");
-        appendOrThrow_(ft_var_isotope_overlap_builder.AppendNull(), "var_isotope_overlap_score");
-        appendOrThrow_(ft_exp_im_builder.AppendNull(), "exp_im");
-        appendOrThrow_(ft_exp_im_left_builder.AppendNull(), "exp_im_leftwidth");
-        appendOrThrow_(ft_exp_im_right_builder.AppendNull(), "exp_im_rightwidth");
-        appendOrThrow_(ft_delta_im_builder.AppendNull(), "delta_im");
-        appendOrThrow_(ft_var_im_delta_builder.AppendNull(), "var_im_delta_score");
-        appendOrThrow_(ft_var_im_log_intensity_builder.AppendNull(), "var_im_log_intensity");
-        appendOrThrow_(ft_var_im_xcorr_coelution_contrast_builder.AppendNull(), "var_im_xcorr_coelution_contrast");
-        appendOrThrow_(ft_var_im_xcorr_shape_contrast_builder.AppendNull(), "var_im_xcorr_shape_contrast");
-        appendOrThrow_(ft_var_im_xcorr_coelution_combined_builder.AppendNull(), "var_im_xcorr_coelution_combined");
-        appendOrThrow_(ft_var_im_xcorr_shape_combined_builder.AppendNull(), "var_im_xcorr_shape_combined");
-
-        const bool has_peak_shape = sub_it.metaValueExists("start_position_at_5");
-        appendOptionalFloat_(ft_start_position_at_5_builder, has_peak_shape && extractMetaDouble_(sub_it, "start_position_at_5", value), value, "start_position_at_5");
-        appendOptionalFloat_(ft_end_position_at_5_builder, has_peak_shape && extractMetaDouble_(sub_it, "end_position_at_5", value), value, "end_position_at_5");
-        appendOptionalFloat_(ft_start_position_at_10_builder, has_peak_shape && extractMetaDouble_(sub_it, "start_position_at_10", value), value, "start_position_at_10");
-        appendOptionalFloat_(ft_end_position_at_10_builder, has_peak_shape && extractMetaDouble_(sub_it, "end_position_at_10", value), value, "end_position_at_10");
-        appendOptionalFloat_(ft_start_position_at_50_builder, has_peak_shape && extractMetaDouble_(sub_it, "start_position_at_50", value), value, "start_position_at_50");
-        appendOptionalFloat_(ft_end_position_at_50_builder, has_peak_shape && extractMetaDouble_(sub_it, "end_position_at_50", value), value, "end_position_at_50");
-        appendOptionalFloat_(ft_total_width_builder, has_peak_shape && extractMetaDouble_(sub_it, "total_width", value), value, "total_width");
-        appendOptionalFloat_(ft_tailing_factor_builder, has_peak_shape && extractMetaDouble_(sub_it, "tailing_factor", value), value, "tailing_factor");
-        appendOptionalFloat_(ft_asymmetry_factor_builder, has_peak_shape && extractMetaDouble_(sub_it, "asymmetry_factor", value), value, "asymmetry_factor");
-        appendOptionalFloat_(ft_slope_of_baseline_builder, has_peak_shape && extractMetaDouble_(sub_it, "slope_of_baseline", value), value, "slope_of_baseline");
-        appendOptionalFloat_(ft_baseline_delta_2_height_builder, has_peak_shape && extractMetaDouble_(sub_it, "baseline_delta_2_height", value), value, "baseline_delta_2_height");
-        appendOptionalFloat_(ft_points_across_baseline_builder, has_peak_shape && extractMetaDouble_(sub_it, "points_across_baseline", value), value, "points_across_baseline");
-        appendOptionalFloat_(ft_points_across_half_height_builder, has_peak_shape && extractMetaDouble_(sub_it, "points_across_half_height", value), value, "points_across_half_height");
-      }
-      else if (sub_it.metaValueExists("FeatureLevel") && sub_it.getMetaValue("FeatureLevel") == "MS1" && sub_it.getIntensity() > 0.0)
-      {
-        std::vector<String> precursor_id;
-        String(sub_it.getMetaValue("native_id")).split(String("Precursor_i"), precursor_id);
-        if (precursor_id.size() < 2)
+        else if (sub_it.metaValueExists("FeatureLevel") && sub_it.getMetaValue("FeatureLevel") == "MS1" && sub_it.getIntensity() > 0.0)
         {
-          continue;
-        }
-        int64_t isotope_value = 0;
-        if (!parseOptionalInt64_(precursor_id[1], isotope_value))
-        {
-          continue;
-        }
+          std::vector<String> precursor_id;
+          String(sub_it.getMetaValue("native_id")).split(String("Precursor_i"), precursor_id);
+          if (precursor_id.size() < 2)
+          {
+            continue;
+          }
+          int64_t isotope_value = 0;
+          if (!parseOptionalInt64_(precursor_id[1], isotope_value))
+          {
+            continue;
+          }
 
-        appendOrThrow_(fp_feature_id_builder.Append(feature_id), "feature_id");
-        appendOrThrow_(fp_run_id_builder.Append(run_id_clean), "run_id");
-        appendOrThrow_(fp_isotope_builder.Append(static_cast<int32_t>(isotope_value)), "isotope");
-        appendOptionalFloat_(fp_area_builder, true, sub_it.getIntensity(), "area_intensity");
-        appendOptionalFloat_(fp_apex_builder, extractMetaDouble_(sub_it, "peak_apex_int", value), value, "apex_intensity");
+          appendOrThrow_(fp_feature_id_builder.Append(feature_id), "feature_id");
+          appendOrThrow_(fp_run_id_builder.Append(run_id_clean), "run_id");
+          appendOrThrow_(fp_isotope_builder.Append(static_cast<int32_t>(isotope_value)), "isotope");
+          appendOptionalFloat_(fp_area_builder, true, sub_it.getIntensity(), "area_intensity");
+          appendOptionalFloat_(fp_apex_builder, extractMetaDouble_(sub_it, "peak_apex_int", value), value, "apex_intensity");
+        }
       }
 
       if (enable_uis_scoring)
@@ -883,6 +889,7 @@ namespace OpenMS
       }
     }
 
+    std::vector<std::future<void>> write_tasks;
     {
       auto features_schema = arrow::schema({
         arrow::field("feature_id", arrow::int64()),
@@ -910,7 +917,9 @@ namespace OpenMS
         finishArray_(exp_im_left_builder, "exp_im_leftwidth"),
         finishArray_(exp_im_right_builder, "exp_im_rightwidth")
       });
-      writeParquetTable_(features_table, run_path + "/features.parquet");
+      write_tasks.emplace_back(std::async(std::launch::async, [features_table, run_path]() {
+        writeParquetTable_(features_table, run_path + "/features.parquet");
+      }));
     }
 
     if (ms1_feature_id_builder.length() > 0)
@@ -957,7 +966,9 @@ namespace OpenMS
         finishArray_(ms1_var_xcorr_shape_contrast_builder, "var_xcorr_shape_contrast"),
         finishArray_(ms1_var_xcorr_shape_combined_builder, "var_xcorr_shape_combined")
       });
-      writeParquetTable_(ms1_table, run_path + "/feature_ms1.parquet");
+      write_tasks.emplace_back(std::async(std::launch::async, [ms1_table, run_path]() {
+        writeParquetTable_(ms1_table, run_path + "/feature_ms1.parquet");
+      }));
     }
 
     if (fp_feature_id_builder.length() > 0)
@@ -976,7 +987,9 @@ namespace OpenMS
         finishArray_(fp_area_builder, "area_intensity"),
         finishArray_(fp_apex_builder, "apex_intensity")
       });
-      writeParquetTable_(fp_table, run_path + "/feature_precursor.parquet");
+      write_tasks.emplace_back(std::async(std::launch::async, [fp_table, run_path]() {
+        writeParquetTable_(fp_table, run_path + "/feature_precursor.parquet");
+      }));
     }
 
     {
@@ -1062,7 +1075,9 @@ namespace OpenMS
         finishArray_(ms2_var_im_delta_builder, "var_im_delta_score"),
         finishArray_(ms2_var_im_log_intensity_builder, "var_im_log_intensity")
       });
-      writeParquetTable_(ms2_table, run_path + "/feature_ms2.parquet");
+      write_tasks.emplace_back(std::async(std::launch::async, [ms2_table, run_path]() {
+        writeParquetTable_(ms2_table, run_path + "/feature_ms2.parquet");
+      }));
     }
 
     {
@@ -1158,13 +1173,12 @@ namespace OpenMS
         finishArray_(ft_points_across_baseline_builder, "points_across_baseline"),
         finishArray_(ft_points_across_half_height_builder, "points_across_half_height")
       });
-      writeParquetTable_(ft_table, run_path + "/feature_transition.parquet");
+      write_tasks.emplace_back(std::async(std::launch::async, [ft_table, run_path]() {
+        writeParquetTable_(ft_table, run_path + "/feature_transition.parquet");
+      }));
     }
 
-    if (zip_output)
-    {
-      zipParquetDirectory_(base_dir, output_path);
-    }
+    waitForWriteTasks_(write_tasks);
 #endif
   }
 

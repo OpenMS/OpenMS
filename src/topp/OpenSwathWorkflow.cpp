@@ -24,6 +24,9 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathOSWParquetWriter.h>
 #endif
 #include <OpenMS/SYSTEM/File.h>
+#ifdef WITH_PARQUET
+#include <OpenMS/SYSTEM/ExternalProcess.h>
+#endif
 
 // Kernel and implementations
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -60,6 +63,30 @@ using namespace OpenMS;
 
 
 #include <QDir>
+
+#ifdef WITH_PARQUET
+namespace
+{
+  void zipParquetOutput_(const String& directory_path, const String& output_zip)
+  {
+    const String output_zip_abs = File::absolutePath(output_zip);
+    if (File::exists(output_zip_abs))
+    {
+      File::remove(output_zip_abs);
+    }
+
+    ExternalProcess zip_process;
+    QStringList args;
+    args << "-0" << "-r" << "-q" << output_zip_abs.toQString() << ".";
+    auto status = zip_process.run("zip", args, directory_path.toQString(), false);
+    if (status != ExternalProcess::RETURNSTATE::SUCCESS)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                    "Failed to zip parquet output", output_zip_abs);
+    }
+  }
+}
+#endif
 
 //-------------------------------------------------------------
 //Doxygen docu
@@ -1393,7 +1420,18 @@ protected:
     {
 #ifdef WITH_PARQUET
       OpenSwathOSWParquetWriter parquet_writer;
-      parquet_writer.write(out_features, transition_exp, out_featureFile, run_id, file_list[0], enable_uis_scoring);
+      const bool zip_output = out_features.hasSuffix(".osw_parquet");
+      File::TempDir temp_dir;
+      String parquet_dir = out_features;
+      if (zip_output)
+      {
+        parquet_dir = temp_dir.getPath() + "/osw_parquet";
+      }
+      parquet_writer.write(parquet_dir, transition_exp, out_featureFile, run_id, file_list[0], enable_uis_scoring);
+      if (zip_output)
+      {
+        zipParquetOutput_(parquet_dir, out_features);
+      }
 #endif
     }
     else if (out_features_type == FileTypes::FEATUREXML)
