@@ -113,8 +113,9 @@ The assay library (transition list) is provided through the @p -tr parameter and
 
   <ul>
     <li> @ref OpenMS::TraMLFile "TraML" </li>
-    <li> @ref OpenMS::TransitionTSVFile "OpenSWATH TSV transition lists" </li>
-    <li> @ref OpenMS::TransitionPQPFile "OpenSWATH PQP SQLite files" </li>
+  <li> @ref OpenMS::TransitionTSVFile "OpenSWATH TSV transition lists" </li>
+  <li> @ref OpenMS::TransitionPQPFile "OpenSWATH PQP SQLite files" </li>
+  <li> @ref OpenMS::TransitionParquetFile "OpenSWATH Parquet library (.pqp_parquet)" </li>
     <li> SpectraST MRM transition lists </li>
     <li> Skyline transition lists </li>
     <li> Spectronaut transition lists </li>
@@ -201,10 +202,14 @@ protected:
     registerInputFileList_("in", "<files>", StringList(), "Input files separated by blank");
     setValidFormats_("in", ListUtils::create<String>("mzML,mzXML,sqMass"));
 
-    registerInputFile_("tr", "<file>", "", "transition file ('TraML','tsv','pqp')");
-    setValidFormats_("tr", ListUtils::create<String>("traML,tsv,pqp"));
+    registerInputFile_("tr", "<file>", "", "transition file ('TraML','tsv','pqp','pqp_parquet')");
+    StringList tr_formats = {"traML", "tsv", "pqp"};
+#ifdef WITH_PARQUET
+    tr_formats.push_back("pqp_parquet");
+#endif
+    setValidFormats_("tr", tr_formats);
     registerStringOption_("tr_type", "<type>", "", "input file type -- default: determined from file extension or content\n", false);
-    setValidStrings_("tr_type", ListUtils::create<String>("traML,tsv,pqp"));
+    setValidStrings_("tr_type", tr_formats);
 
     // iRT calibration
     registerStringOption_("auto_irt", "<true|false>", "true",
@@ -925,6 +930,37 @@ protected:
           }
 
           // Update transition id
+          auto id = transition_traml_to_pqp.find(tr.transition_name);
+          if (id != transition_traml_to_pqp.end())
+          {
+            tr.transition_name = id->second;
+          }
+        }
+      }
+      else if (tr_type == FileTypes::PQPPARQUET)
+      {
+        // Convert parquet library to .PQP for OSW output
+        TransitionPQPFile().convertLightTargetedExperimentToPQP(out_features.c_str(), transition_exp);
+
+        auto precursor_traml_to_pqp = TransitionPQPFile().getPQPIDToTraMLIDMap(out_features.c_str(), "PRECURSOR");
+        auto transition_traml_to_pqp = TransitionPQPFile().getPQPIDToTraMLIDMap(out_features.c_str(), "TRANSITION");
+
+        for (auto & prec : transition_exp.getCompounds())
+        {
+          if (auto id = precursor_traml_to_pqp.find(prec.id); id != precursor_traml_to_pqp.end())
+          {
+            prec.id = id->second;
+          }
+        }
+
+        for (auto & tr : transition_exp.getTransitions())
+        {
+          auto pep = precursor_traml_to_pqp.find(tr.getPeptideRef());
+          if (pep != precursor_traml_to_pqp.end())
+          {
+            tr.peptide_ref = pep->second;
+          }
+
           auto id = transition_traml_to_pqp.find(tr.transition_name);
           if (id != transition_traml_to_pqp.end())
           {
