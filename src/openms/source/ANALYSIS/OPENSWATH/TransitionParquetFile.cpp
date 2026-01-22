@@ -15,6 +15,7 @@
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
 #include <OpenMS/SYSTEM/File.h>
 
+#include <fstream>
 #ifdef WITH_PARQUET
 #include <arrow/api.h>
 #include <arrow/io/file.h>
@@ -71,6 +72,27 @@ namespace
       joined += accessions[i];
     }
     return std::string(joined);
+  }
+
+  void writeLibraryMetadata_(const OpenMS::String& library_dir)
+  {
+    const OpenMS::String metadata_path = library_dir + "/metadata.json";
+    std::ofstream out(metadata_path.c_str(), std::ios::out | std::ios::trunc);
+    if (!out.is_open())
+    {
+      throw OpenMS::Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, metadata_path);
+    }
+
+    out << "{\n"
+        << "  \"mzspec_lib\": {\n"
+        << "    \"format_version\": \"1.0\",\n"
+        << "    \"attributes\": []\n"
+        << "  },\n"
+        << "  \"openms\": {\n"
+        << "    \"schema_version\": 1,\n"
+        << "    \"generator\": \"OpenMS TransitionParquetFile\"\n"
+        << "  }\n"
+        << "}\n";
   }
 
   struct PrecursorInfo
@@ -579,6 +601,7 @@ namespace OpenMS
 
     const String library_dir = base_dir + "/library";
     File::makeDir(library_dir);
+    writeLibraryMetadata_(library_dir);
 
     std::unordered_map<std::string, int64_t> compound_to_precursor;
     compound_to_precursor.reserve(targeted_exp.compounds.size());
