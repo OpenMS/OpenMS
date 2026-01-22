@@ -13,6 +13,8 @@
 #include <OpenMS/METADATA/USI.h>
 ///////////////////////////
 
+#include <sstream>
+
 using namespace OpenMS;
 using namespace std;
 
@@ -61,10 +63,16 @@ START_SECTION((explicit USI(const String& usi_string)))
   TEST_STRING_EQUAL(usi.getIndex(), "12345");
   TEST_STRING_EQUAL(usi.getInterpretation(), "PEPTIDEK/2");
 
+  // Test USI with ProForma interpretation containing colon (e.g., UNIMOD accessions)
+  USI usi3("mzspec:PXD000561:sample.mzML:scan:12345:EM[UNIMOD:35]K/2");
+  TEST_EQUAL(usi3.isValid(), true);
+  TEST_STRING_EQUAL(usi3.getInterpretation(), "EM[UNIMOD:35]K/2");
+  TEST_STRING_EQUAL(usi3.toString(), "mzspec:PXD000561:sample.mzML:scan:12345:EM[UNIMOD:35]K/2");
+
   // Test USI without interpretation
-  USI usi2("mzspec:PXD000561:sample.mzML:scan:12345");
-  TEST_EQUAL(usi2.isValid(), true);
-  TEST_STRING_EQUAL(usi2.getInterpretation(), "");
+  USI usi4("mzspec:PXD000561:sample.mzML:scan:12345");
+  TEST_EQUAL(usi4.isValid(), true);
+  TEST_STRING_EQUAL(usi4.getInterpretation(), "");
 
   // Test invalid USI
   TEST_EXCEPTION(Exception::ParseError, USI("invalid_usi_string"));
@@ -152,6 +160,7 @@ START_SECTION((static bool isValidUSI(const String& usi_string)))
 {
   TEST_EQUAL(USI::isValidUSI("mzspec:PXD000561:sample.mzML:scan:12345"), true);
   TEST_EQUAL(USI::isValidUSI("mzspec:PXD000561:sample.mzML:scan:12345:PEPTIDEK/2"), true);
+  TEST_EQUAL(USI::isValidUSI("mzspec:PXD000561:sample.mzML:scan:12345:EM[UNIMOD:35]K/2"), true);
   TEST_EQUAL(USI::isValidUSI("invalid_string"), false);
   TEST_EQUAL(USI::isValidUSI("mzspec:PXD000561"), false);
   TEST_EQUAL(USI::isValidUSI(""), false);
@@ -281,16 +290,16 @@ START_SECTION((bool fromString(const String& usi_string)))
 }
 END_SECTION
 
-START_SECTION((static USI createFromScanNumber(const String& dataset_id, const String& filename, int scan_number, const String& peptide_sequence, int charge)))
+START_SECTION((static USI createFromScanNumber(const String& dataset_id, const String& filename, int scan_number, const String& interpretation)))
 {
   USI usi1 = USI::createFromScanNumber("PXD000561", "sample.mzML", 12345);
   TEST_STRING_EQUAL(usi1.toString(), "mzspec:PXD000561:sample.mzML:scan:12345");
-  
-  USI usi2 = USI::createFromScanNumber("PXD000561", "sample.mzML", 12345, "PEPTIDEK", 2);
+
+  USI usi2 = USI::createFromScanNumber("PXD000561", "sample.mzML", 12345, "PEPTIDEK/2");
   TEST_STRING_EQUAL(usi2.toString(), "mzspec:PXD000561:sample.mzML:scan:12345:PEPTIDEK/2");
-  
-  USI usi3 = USI::createFromScanNumber("PXD000561", "sample.mzML", 12345, "PEPTIDEK");
-  TEST_STRING_EQUAL(usi3.toString(), "mzspec:PXD000561:sample.mzML:scan:12345:PEPTIDEK");
+
+  USI usi3 = USI::createFromScanNumber("PXD000561", "sample.mzML", 12345, "EM[UNIMOD:35]K/2");
+  TEST_STRING_EQUAL(usi3.toString(), "mzspec:PXD000561:sample.mzML:scan:12345:EM[UNIMOD:35]K/2");
 }
 END_SECTION
 
@@ -356,15 +365,6 @@ START_SECTION((static IndexType indexTypeFromString(const String& type_string)))
   TEST_EQUAL(USI::indexTypeFromString("NATIVEID"), USI::IndexType::NATIVEID);
   
   TEST_EXCEPTION(Exception::InvalidValue, USI::indexTypeFromString("invalid_type"));
-}
-END_SECTION
-
-START_SECTION((static String buildInterpretation(const String& sequence, int charge)))
-{
-  TEST_STRING_EQUAL(USI::buildInterpretation("PEPTIDEK", 2), "PEPTIDEK/2");
-  TEST_STRING_EQUAL(USI::buildInterpretation("PEPTIDEK", 0), "PEPTIDEK");
-  TEST_STRING_EQUAL(USI::buildInterpretation("PEPTIDEK"), "PEPTIDEK");
-  TEST_STRING_EQUAL(USI::buildInterpretation("", 2), "");
 }
 END_SECTION
 

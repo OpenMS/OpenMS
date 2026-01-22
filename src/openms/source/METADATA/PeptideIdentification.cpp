@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/USI.h>
+#include <OpenMS/CHEMISTRY/ProFormaParser.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/CONCEPT/Constants.h>
 
@@ -325,7 +326,13 @@ namespace OpenMS
     if (include_interpretation && !hits_.empty())
     {
       const PeptideHit& first_hit = hits_.front();
-      interpretation = USI::buildInterpretation(first_hit.getSequence().toString(), first_hit.getCharge());
+      PeptidoformIon ion;
+      ion.chains.emplace_back(ProFormaParser::fromAASequence(first_hit.getSequence()));
+      if (first_hit.getCharge() != 0)
+      {
+        ion.charge = first_hit.getCharge();
+      }
+      interpretation = ProFormaParser::toString(ion);
     }
     
     if (scan_num.has_value())

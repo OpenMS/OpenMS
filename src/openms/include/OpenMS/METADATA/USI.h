@@ -207,15 +207,13 @@ namespace OpenMS
       @param dataset_id ProteomeXchange dataset identifier (e.g., "PXD000561")
       @param filename MS file name (e.g., "sample.mzML")
       @param scan_number Scan number
-      @param peptide_sequence Optional peptide sequence
-      @param charge Optional charge state
+      @param interpretation Optional ProForma interpretation (e.g., "PEPTIDEK/2")
       @return Constructed USI object
     */
     static USI createFromScanNumber(const String& dataset_id,
                                     const String& filename,
                                     int scan_number,
-                                    const String& peptide_sequence = "",
-                                    int charge = 0);
+                                    const String& interpretation = "");
 
     /**
       @brief Create a USI from a native spectrum identifier.
@@ -256,15 +254,6 @@ namespace OpenMS
       @throw Exception::InvalidValue if the string is not a valid index type
     */
     static IndexType indexTypeFromString(const String& type_string);
-
-    /**
-      @brief Build an interpretation string from peptide sequence and charge.
-
-      @param sequence Peptide sequence (can include modifications)
-      @param charge Charge state (0 means unspecified)
-      @return Interpretation string in format "SEQUENCE/CHARGE"
-    */
-    static String buildInterpretation(const String& sequence, int charge = 0);
 
     /**
       @brief Extract basename from a file path (removes directory path).

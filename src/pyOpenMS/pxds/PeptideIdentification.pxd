@@ -6,6 +6,7 @@ from String cimport *
 from Types cimport *
 from MetaInfoInterface cimport *
 from PeptideHit cimport *
+from USI cimport *
 
 cdef extern from "<OpenMS/METADATA/PeptideIdentification.h>" namespace "OpenMS":
 
@@ -125,6 +126,10 @@ cdef extern from "<OpenMS/METADATA/PeptideIdentification.h>" namespace "OpenMS":
             #  
             #  :param identifier: Unique identifier string
 
+        String getSpectrumReference() except + nogil  # wrap-doc:Get the spectrum reference (native ID) for this identification
+
+        void setSpectrumReference(const String& ref) except + nogil  # wrap-doc:Set the spectrum reference (native ID) for this identification
+
         bool       hasMZ() except + nogil 
             # wrap-doc:
             #  Checks if m/z value is set
@@ -172,5 +177,32 @@ cdef extern from "<OpenMS/METADATA/PeptideIdentification.h>" namespace "OpenMS":
 
         libcpp_vector[PeptideHit] getReferencingHits(libcpp_vector[PeptideHit], libcpp_set[String] &) except + nogil  # wrap-doc:Returns all peptide hits which reference to a given protein accession (i.e. filter by protein accession)
 
- 
+        USI buildUSI(const String& dataset_id,
+                     const String& ms_run_name,
+                     bool include_interpretation) except + nogil
+            # wrap-doc:
+            #  Build a Universal Spectrum Identifier (USI) for this identification.
+            #  
+            #  The USI format follows PSI-MS MS:1003063:
+            #    mzspec:<collection>:<ms_run>:<index_type>:<index>[:interpretation]
+            #  
+            #  If include_interpretation is True, the first peptide hit is used
+            #  as ProForma proteoform-ion interpretation (best hit after sort()).
+            #  
+            #  :param dataset_id: ProteomeXchange dataset id or spectral library name
+            #  :param ms_run_name: MS run file name
+            #  :param include_interpretation: Include ProForma interpretation from best hit
+            #  :return: USI object (may be invalid if spectrum reference is missing)
 
+        String buildUSIString(const String& dataset_id,
+                              const String& ms_run_name,
+                              bool include_interpretation) except + nogil
+            # wrap-doc:
+            #  Convenience method returning the USI as a string.
+            #  
+            #  :param dataset_id: ProteomeXchange dataset id or spectral library name
+            #  :param ms_run_name: MS run file name
+            #  :param include_interpretation: Include ProForma interpretation from best hit
+            #  :return: USI string or empty string if USI cannot be constructed
+
+ 

@@ -615,6 +615,22 @@ START_SECTION((USI buildUSI(const String& dataset_id, const String& ms_run_name,
   USI usi2 = id1.buildUSI("PXD000561", "sample.mzML", true);
   TEST_EQUAL(usi2.isValid(), true)
   TEST_STRING_EQUAL(usi2.getInterpretation(), "PEPTIDEK/2")
+
+  // Test USI generation with modified peptide interpretation (ProForma proteoform ion)
+  PeptideIdentification id_mod;
+  id_mod.setSpectrumReference("scan=12345");
+
+  PeptideHit mod_hit;
+  mod_hit.setSequence(AASequence::fromString("EM(Oxidation)K"));
+  mod_hit.setCharge(2);
+  mod_hit.setScore(100.0);
+  id_mod.insertHit(mod_hit);
+  id_mod.sort();
+
+  USI usi_mod = id_mod.buildUSI("PXD000561", "sample.mzML", true);
+  TEST_EQUAL(usi_mod.isValid(), true)
+  TEST_STRING_EQUAL(usi_mod.getInterpretation(), "EM[UNIMOD:35]K/2")
+  TEST_STRING_EQUAL(usi_mod.toString(), "mzspec:PXD000561:sample.mzML:scan:12345:EM[UNIMOD:35]K/2")
   
   // Test USI generation with simple scan= format
   PeptideIdentification id2;

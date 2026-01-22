@@ -237,15 +237,8 @@ namespace OpenMS
   USI USI::createFromScanNumber(const String& dataset_id,
                                 const String& filename,
                                 int scan_number,
-                                const String& peptide_sequence,
-                                int charge)
+                                const String& interpretation)
   {
-    String interpretation;
-    if (!peptide_sequence.empty())
-    {
-      interpretation = buildInterpretation(peptide_sequence, charge);
-    }
-
     return USI(dataset_id, filename, IndexType::SCAN, String(scan_number), interpretation);
   }
 
@@ -348,23 +341,6 @@ namespace OpenMS
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                     "Invalid USI index type", type_string);
-    }
-  }
-
-  String USI::buildInterpretation(const String& sequence, int charge)
-  {
-    if (sequence.empty())
-    {
-      return "";
-    }
-
-    if (charge > 0)
-    {
-      return sequence + "/" + String(charge);
-    }
-    else
-    {
-      return sequence;
     }
   }
 
