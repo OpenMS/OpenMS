@@ -27,9 +27,13 @@
 
 #include <unordered_map>
 #include <memory>
+#include <map>
+#include <sstream>
+#include <cctype>
 
 namespace
 {
+  using OpenMS::Size;
 #ifdef WITH_PARQUET
   void appendOrThrow_(const arrow::Status& status, const std::string& context)
   {
@@ -74,7 +78,71 @@ namespace
     return std::string(joined);
   }
 
-  void writeLibraryMetadata_(const OpenMS::String& library_dir, const OpenMS::String& library_name)
+  struct OpenMSLibraryStats
+  {
+    Size proteins_total = 0;
+    Size proteins_decoy = 0;
+    Size peptides_total = 0;
+    Size peptides_decoy = 0;
+    Size precursors_total = 0;
+    Size precursors_decoy = 0;
+    Size compounds_total = 0;
+    Size compounds_decoy = 0;
+    Size transitions_total = 0;
+    Size transitions_decoy = 0;
+    Size fragment_b_target = 0;
+    Size fragment_b_decoy = 0;
+    Size fragment_y_target = 0;
+    Size fragment_y_decoy = 0;
+    Size fragment_other_target = 0;
+    Size fragment_other_decoy = 0;
+    std::map<int, Size> precursor_charge_counts_target;
+    std::map<int, Size> precursor_charge_counts_decoy;
+    std::map<int, Size> transition_charge_counts_target;
+    std::map<int, Size> transition_charge_counts_decoy;
+  };
+
+  std::string jsonEscape_(const OpenMS::String& value)
+  {
+    std::string out;
+    out.reserve(value.size());
+    for (char c : std::string(value))
+    {
+      if (c == '\\' || c == '"')
+      {
+        out.push_back('\\');
+      }
+      out.push_back(c);
+    }
+    return out;
+  }
+
+  std::string jsonMap_(const std::map<int, Size>& values)
+  {
+    std::ostringstream os;
+    os << "{";
+    bool first = true;
+    for (const auto& entry : values)
+    {
+      if (!first) os << ", ";
+      first = false;
+      os << "\"" << entry.first << "\": " << entry.second;
+    }
+    os << "}";
+    return os.str();
+  }
+
+  std::string jsonMapByClass_(const std::map<int, Size>& target_values,
+                              const std::map<int, Size>& decoy_values)
+  {
+    std::ostringstream os;
+    os << "{\"target\": " << jsonMap_(target_values)
+       << ", \"decoy\": " << jsonMap_(decoy_values) << "}";
+    return os.str();
+  }
+
+  void writeLibraryMetadata_(const OpenMS::String& library_dir, const OpenMS::String& library_name,
+                             const OpenMSLibraryStats& stats)
   {
     const OpenMS::String metadata_path = library_dir + "/metadata.json";
     std::ofstream out(metadata_path.c_str(), std::ios::out | std::ios::trunc);
@@ -83,18 +151,39 @@ namespace
       throw OpenMS::Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, metadata_path);
     }
 
+    const Size proteins_target = stats.proteins_total - stats.proteins_decoy;
+    const Size peptides_target = stats.peptides_total - stats.peptides_decoy;
+    const Size precursors_target = stats.precursors_total - stats.precursors_decoy;
+    const Size compounds_target = stats.compounds_total - stats.compounds_decoy;
+    const Size transitions_target = stats.transitions_total - stats.transitions_decoy;
+
     out << "{\n"
         << "  \"mzspec_lib\": {\n"
         << "    \"format_version\": \"1.0\",\n"
         << "    \"attributes\": [\n"
         << "      {\"accession\": \"MS:1003186\", \"name\": \"library format version\", \"value\": \"1.0\"},\n"
-        << "      {\"accession\": \"MS:1003188\", \"name\": \"library name\", \"value\": \"" << library_name << "\"},\n"
+        << "      {\"accession\": \"MS:1003188\", \"name\": \"library name\", \"value\": \"" << jsonEscape_(library_name) << "\"},\n"
         << "      {\"accession\": \"MS:1003207\", \"name\": \"library creation software\", \"value\": \"OpenMS\"}\n"
         << "    ]\n"
         << "  },\n"
         << "  \"openms\": {\n"
         << "    \"schema_version\": 1,\n"
-        << "    \"generator\": \"OpenMS TransitionParquetFile\"\n"
+        << "    \"generator\": \"OpenMS TransitionParquetFile\",\n"
+        << "    \"counts\": {\n"
+        << "      \"proteins\": {\"total\": " << stats.proteins_total << ", \"target\": " << proteins_target << ", \"decoy\": " << stats.proteins_decoy << "},\n"
+        << "      \"peptides\": {\"total\": " << stats.peptides_total << ", \"target\": " << peptides_target << ", \"decoy\": " << stats.peptides_decoy << "},\n"
+        << "      \"precursors\": {\"total\": " << stats.precursors_total << ", \"target\": " << precursors_target << ", \"decoy\": " << stats.precursors_decoy << "},\n"
+        << "      \"compounds\": {\"total\": " << stats.compounds_total << ", \"target\": " << compounds_target << ", \"decoy\": " << stats.compounds_decoy << "},\n"
+        << "      \"transitions\": {\"total\": " << stats.transitions_total << ", \"target\": " << transitions_target << ", \"decoy\": " << stats.transitions_decoy << "}\n"
+        << "    },\n"
+        << "    \"fragment_type_counts\": {\n"
+        << "      \"target\": {\"b\": " << stats.fragment_b_target << ", \"y\": " << stats.fragment_y_target << ", \"other\": " << stats.fragment_other_target << "},\n"
+        << "      \"decoy\": {\"b\": " << stats.fragment_b_decoy << ", \"y\": " << stats.fragment_y_decoy << ", \"other\": " << stats.fragment_other_decoy << "}\n"
+        << "    },\n"
+        << "    \"charge_counts\": {\n"
+        << "      \"precursor\": " << jsonMapByClass_(stats.precursor_charge_counts_target, stats.precursor_charge_counts_decoy) << ",\n"
+        << "      \"transition\": " << jsonMapByClass_(stats.transition_charge_counts_target, stats.transition_charge_counts_decoy) << "\n"
+        << "    }\n"
         << "  }\n"
         << "}\n";
   }
@@ -610,7 +699,6 @@ namespace OpenMS
     {
       library_name = "openms_library";
     }
-    writeLibraryMetadata_(library_dir, library_name);
 
     std::unordered_map<std::string, int64_t> compound_to_precursor;
     compound_to_precursor.reserve(targeted_exp.compounds.size());
@@ -624,6 +712,8 @@ namespace OpenMS
         compound_decoy[transition.peptide_ref] = true;
       }
     }
+
+    OpenMSLibraryStats stats;
 
     int64_t next_precursor_id = 1;
     for (const auto& compound : targeted_exp.compounds)
@@ -676,6 +766,26 @@ namespace OpenMS
       const int64_t precursor_id = compound_to_precursor[compound.id];
       const bool is_decoy = compound_decoy[compound.id] ||
         OpenMS::String(compound.id).hasPrefix("DECOY_");
+      stats.compounds_total++;
+      stats.precursors_total++;
+      if (compound.isPeptide())
+      {
+        stats.peptides_total++;
+        if (is_decoy) stats.peptides_decoy++;
+      }
+      if (is_decoy)
+      {
+        stats.compounds_decoy++;
+        stats.precursors_decoy++;
+      }
+      if (is_decoy)
+      {
+        stats.precursor_charge_counts_decoy[compound.charge]++;
+      }
+      else
+      {
+        stats.precursor_charge_counts_target[compound.charge]++;
+      }
       appendOrThrow_(precursor_id_builder.Append(precursor_id), "precursor_id");
       appendOrThrow_(precursor_mz_builder.Append(precursor_mz[compound.id]), "precursor_mz");
       appendOrThrow_(precursor_charge_builder.Append(compound.charge), "charge");
@@ -699,6 +809,15 @@ namespace OpenMS
       }
       appendOrThrow_(unmodified_sequence_builder.Append(unmodified_sequence), "unmodified_sequence");
       appendOrThrow_(protein_accessions_builder.Append(joinProteinAccessions_(compound.protein_refs)), "protein_accessions");
+    }
+
+    for (const auto& protein : targeted_exp.proteins)
+    {
+      stats.proteins_total++;
+      if (OpenMS::String(protein.id).hasPrefix("DECOY_"))
+      {
+        stats.proteins_decoy++;
+      }
     }
 
     auto precursor_schema = arrow::schema({
@@ -765,6 +884,35 @@ namespace OpenMS
       appendOrThrow_(quantifying_builder.Append(transition.isQuantifyingTransition()), "quantifying");
       appendOrThrow_(transition_intensity_builder.Append(transition.library_intensity), "library_intensity");
       appendOrThrow_(transition_decoy_builder.Append(transition.getDecoy()), "decoy");
+
+      stats.transitions_total++;
+      const bool transition_decoy = transition.getDecoy();
+      if (transition_decoy) stats.transitions_decoy++;
+      if (transition_decoy)
+      {
+        stats.transition_charge_counts_decoy[transition.fragment_charge]++;
+      }
+      else
+      {
+        stats.transition_charge_counts_target[transition.fragment_charge]++;
+      }
+      std::string fragment_type = transition.getFragmentType();
+      for (auto& c : fragment_type) c = static_cast<char>(std::tolower(c));
+      if (fragment_type == "b")
+      {
+        if (transition_decoy) stats.fragment_b_decoy++;
+        else stats.fragment_b_target++;
+      }
+      else if (fragment_type == "y")
+      {
+        if (transition_decoy) stats.fragment_y_decoy++;
+        else stats.fragment_y_target++;
+      }
+      else
+      {
+        if (transition_decoy) stats.fragment_other_decoy++;
+        else stats.fragment_other_target++;
+      }
     }
 
     auto transition_schema = arrow::schema({
@@ -805,6 +953,8 @@ namespace OpenMS
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                     "Failed to write transitions parquet", transitions_status.ToString());
     }
+
+    writeLibraryMetadata_(library_dir, library_name, stats);
 
     if (!output_is_dir)
     {

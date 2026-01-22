@@ -35,7 +35,8 @@ namespace OpenMS
           └── transitions.parquet
       @endcode
 
-      The metadata file contains a minimal mzSpecLib-compatible header:
+      The metadata file contains a minimal mzSpecLib-compatible header and
+      OpenMS-specific QC counts:
       @code{.json}
       {
         "mzspec_lib": {
@@ -48,7 +49,22 @@ namespace OpenMS
         },
         "openms": {
           "schema_version": 1,
-          "generator": "OpenMS TransitionParquetFile"
+          "generator": "OpenMS TransitionParquetFile",
+          "counts": {
+            "proteins": {"total": 0, "target": 0, "decoy": 0},
+            "peptides": {"total": 0, "target": 0, "decoy": 0},
+            "precursors": {"total": 0, "target": 0, "decoy": 0},
+            "compounds": {"total": 0, "target": 0, "decoy": 0},
+            "transitions": {"total": 0, "target": 0, "decoy": 0}
+          },
+          "fragment_type_counts": {
+            "target": {"b": 0, "y": 0, "other": 0},
+            "decoy": {"b": 0, "y": 0, "other": 0}
+          },
+          "charge_counts": {
+            "precursor": {"target": {"2": 0, "3": 0}, "decoy": {"2": 0, "3": 0}},
+            "transition": {"target": {"1": 0, "2": 0}, "decoy": {"1": 0, "2": 0}}
+          }
         }
       }
       @endcode
