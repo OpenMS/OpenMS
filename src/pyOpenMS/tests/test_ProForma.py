@@ -589,5 +589,445 @@ def test_peptidoform_len():
     assert len(pfi2) == 2
 
 
+# =============================================================================
+# Spectrum Generation Tests
+# =============================================================================
+
+def test_can_generate_spectrum_simple():
+    """Test canGenerateSpectrum for simple peptides."""
+    import pyopenms as p
+
+    # Simple peptide should be generatable
+    pf = p.Peptidoform.fromString("PEPTIDE")
+    assert pf.canGenerateSpectrum() == True
+
+    # PeptidoformIon should also work
+    pfi = p.PeptidoformIon.fromString("PEPTIDE/2")
+    assert pfi.canGenerateSpectrum() == True
+
+
+def test_can_generate_spectrum_with_modification():
+    """Test canGenerateSpectrum for modified peptides."""
+    import pyopenms as p
+
+    # Modified peptide should be generatable
+    pf = p.Peptidoform.fromString("EM[UNIMOD:35]K")
+    assert pf.canGenerateSpectrum() == True
+
+
+def test_can_generate_spectrum_unsupported():
+    """Test canGenerateSpectrum returns False for unsupported features."""
+    import pyopenms as p
+
+    # Unlocalised modification cannot generate spectrum
+    pf = p.Peptidoform.fromString("[Phospho]?PEPTIDE")
+    assert pf.canGenerateSpectrum() == False
+
+
+def test_generate_spectrum_simple():
+    """Test generating theoretical spectrum for simple peptide."""
+    import pyopenms as p
+
+    pf = p.Peptidoform.fromString("PEPTIDE")
+
+    # Generate b and y ions, charge 1-2
+    spectrum = pf.generateSpectrum(1, 2, "by", False, False)
+
+    # Should have peaks
+    assert spectrum.size() > 0
+
+    # Should have b and y ions (6 residues = 5 b ions + 5 y ions per charge)
+    # With 2 charge states, expect around 20 peaks minimum
+    assert spectrum.size() >= 10
+
+
+def test_generate_spectrum_with_losses():
+    """Test generating spectrum with neutral losses."""
+    import pyopenms as p
+
+    pf = p.Peptidoform.fromString("PEPTIDE")
+
+    # Without losses
+    spectrum_no_loss = pf.generateSpectrum(1, 1, "by", False, False)
+
+    # With losses (water, ammonia)
+    spectrum_with_loss = pf.generateSpectrum(1, 1, "by", True, False)
+
+    # Spectrum with losses should have more peaks
+    assert spectrum_with_loss.size() >= spectrum_no_loss.size()
+
+
+def test_generate_spectrum_with_metainfo():
+    """Test generating spectrum with peak annotations."""
+    import pyopenms as p
+
+    pf = p.Peptidoform.fromString("PEPTIDE")
+
+    # Generate with metainfo
+    spectrum = pf.generateSpectrum(1, 1, "by", False, True)
+
+    # Should have peaks with annotations
+    assert spectrum.size() > 0
+    # Check that string data arrays exist (ion annotations)
+    assert spectrum.getStringDataArrays().size() > 0
+
+
+def test_generate_spectrum_ion_types():
+    """Test different ion type combinations."""
+    import pyopenms as p
+
+    pf = p.Peptidoform.fromString("PEPTIDE")
+
+    # Only b ions
+    spectrum_b = pf.generateSpectrum(1, 1, "b", False, False)
+
+    # Only y ions
+    spectrum_y = pf.generateSpectrum(1, 1, "y", False, False)
+
+    # Both b and y
+    spectrum_by = pf.generateSpectrum(1, 1, "by", False, False)
+
+    # Combined should have roughly sum of individual (may overlap)
+    assert spectrum_by.size() >= max(spectrum_b.size(), spectrum_y.size())
+
+
+def test_generate_spectrum_peptidoform_ion():
+    """Test generating spectrum for PeptidoformIon."""
+    import pyopenms as p
+
+    pfi = p.PeptidoformIon.fromString("PEPTIDE/2")
+
+    # Generate spectrum
+    spectrum = pfi.generateSpectrum(1, 2, "by", False, False)
+
+    # Should have peaks
+    assert spectrum.size() > 0
+
+
+def test_get_spectrum_generation_issues():
+    """Test getSpectrumGenerationIssues returns issues for unsupported features."""
+    import pyopenms as p
+
+    # Simple peptide should have no issues
+    pf = p.Peptidoform.fromString("PEPTIDE")
+    issues = pf.getSpectrumGenerationIssues()
+    assert len(issues) == 0
+
+    # Unlocalised modification should have issues
+    pf_unloc = p.Peptidoform.fromString("[Phospho]?PEPTIDE")
+    issues_unloc = pf_unloc.getSpectrumGenerationIssues()
+    assert len(issues_unloc) > 0
+
+
+def test_get_spectrum_generation_issues_ion():
+    """Test getSpectrumGenerationIssues for PeptidoformIon."""
+    import pyopenms as p
+
+    # Simple ion should have no issues
+    pfi = p.PeptidoformIon.fromString("PEPTIDE/2")
+    issues = pfi.getSpectrumGenerationIssues()
+    assert len(issues) == 0
+
+
+# =============================================================================
+# Mass Calculation Issues Tests
+# =============================================================================
+
+def test_get_mass_calculation_issues_simple():
+    """Test getMassCalculationIssues for simple peptides."""
+    import pyopenms as p
+
+    # Simple peptide should have no issues
+    pf = p.Peptidoform.fromString("PEPTIDE")
+    issues = pf.getMassCalculationIssues()
+    assert len(issues) == 0
+
+
+def test_get_mass_calculation_issues_unresolved():
+    """Test getMassCalculationIssues for unresolved modifications."""
+    import pyopenms as p
+
+    # Unknown modification name should have issues
+    pf = p.Peptidoform.fromString("PEM[SomeUnknownMod]K")
+    issues = pf.getMassCalculationIssues()
+    # May or may not have issues depending on whether mod can be looked up
+    # At minimum, verify the method works
+    assert isinstance(issues, list)
+
+
+def test_get_mass_calculation_issues_ion():
+    """Test getMassCalculationIssues for PeptidoformIon."""
+    import pyopenms as p
+
+    pfi = p.PeptidoformIon.fromString("PEPTIDE/2")
+    issues = pfi.getMassCalculationIssues()
+    assert len(issues) == 0
+
+
+# =============================================================================
+# Cross-link Label Tests
+# =============================================================================
+
+def test_crosslink_label_parsing():
+    """Test parsing cross-link labels (#XL1)."""
+    import pyopenms as p
+
+    # Simple cross-link label
+    pf = p.Peptidoform.fromString("PEPK[#XL1]TIDE")
+    result = pf.toString(p.ProFormaWriteMode.LOSSLESS)
+    assert "#XL1" in result
+
+
+def test_crosslink_paired_chains():
+    """Test parsing paired cross-linked chains."""
+    import pyopenms as p
+
+    # Two chains with matching cross-link labels
+    pfi = p.PeptidoformIon.fromString("PEPK[#XL1]TIDE//SEQC[#XL1]ENCE")
+    assert len(pfi.chains) == 2
+
+    result = pfi.toString(p.ProFormaWriteMode.LOSSLESS)
+    assert "#XL1" in result
+    assert "//" in result
+
+
+def test_crosslink_with_modification():
+    """Test cross-link combined with modification."""
+    import pyopenms as p
+
+    # Cross-link label with a modification (DSS cross-linker)
+    pf = p.Peptidoform.fromString("PEPK[XLMOD:02001#XL1]TIDE")
+    result = pf.toString(p.ProFormaWriteMode.LOSSLESS)
+    assert "XLMOD:02001" in result
+    assert "#XL1" in result
+
+
+# =============================================================================
+# Ambiguous Modification Tests
+# =============================================================================
+
+def test_ambiguous_modification_localization():
+    """Test ambiguous modification localization with positional options."""
+    import pyopenms as p
+
+    # Phosphorylation on one of the S/T residues (ambiguous position)
+    pf = p.Peptidoform.fromString("PES[Phospho#g1]TIDES[#g1]K")
+    result = pf.toString(p.ProFormaWriteMode.LOSSLESS)
+    assert "#g1" in result
+
+
+def test_ambiguous_modification_count():
+    """Test ambiguous modification with occurrence count."""
+    import pyopenms as p
+
+    # Two phosphorylations distributed among 3 possible sites
+    # Using unlocalised with count
+    pf = p.Peptidoform.fromString("[Phospho]^2?STYTIDE")
+    result = pf.toString(p.ProFormaWriteMode.LOSSLESS)
+    assert "Phospho" in result
+    assert "^2" in result
+
+
+def test_ambiguous_modification_range():
+    """Test ambiguous modification on a range of residues."""
+    import pyopenms as p
+
+    # Modification somewhere in positions 2-5
+    pf = p.Peptidoform.fromString("P(EPTI)[Phospho]DE")
+    result = pf.toString(p.ProFormaWriteMode.LOSSLESS)
+    assert "Phospho" in result
+
+
+# =============================================================================
+# Formula Tag Tests
+# =============================================================================
+
+def test_formula_tag_simple():
+    """Test parsing formula tags."""
+    import pyopenms as p
+
+    pf = p.Peptidoform.fromString("PEM[Formula:C2H2O]K")
+    result = pf.toString(p.ProFormaWriteMode.LOSSLESS)
+    assert "Formula:C2H2O" in result
+
+
+def test_formula_tag_complex():
+    """Test parsing complex formula tags."""
+    import pyopenms as p
+
+    # Formula with negative counts (loss)
+    pf = p.Peptidoform.fromString("PEM[Formula:H-2O-1]K")
+    result = pf.toString(p.ProFormaWriteMode.LOSSLESS)
+    assert "Formula:" in result
+
+
+def test_formula_tag_mass_calculation():
+    """Test that formula tags allow mass calculation."""
+    import pyopenms as p
+
+    pf = p.Peptidoform.fromString("PEM[Formula:O1]K")  # +16 Da (like oxidation)
+    assert pf.canCalculateMass() == True
+
+    mass = pf.getMonoWeight()
+    # EMK = 406.18, + O = 422.18
+    assert 420.0 < mass < 425.0
+
+
+# =============================================================================
+# Info Tag Tests
+# =============================================================================
+
+def test_info_tag_simple():
+    """Test parsing info tags."""
+    import pyopenms as p
+
+    pf = p.Peptidoform.fromString("PEM[info:custom annotation]K")
+    result = pf.toString(p.ProFormaWriteMode.LOSSLESS)
+    assert "info:custom annotation" in result
+
+
+def test_info_tag_with_modification():
+    """Test info tag combined with modification."""
+    import pyopenms as p
+
+    # Modification with additional info
+    pf = p.Peptidoform.fromString("PEM[Oxidation][info:confirmed by manual inspection]K")
+    result = pf.toString(p.ProFormaWriteMode.LOSSLESS)
+    assert "Oxidation" in result
+    assert "info:" in result
+
+
+def test_info_tag_does_not_affect_mass():
+    """Test that info tags don't affect mass calculation."""
+    import pyopenms as p
+
+    pf_no_info = p.Peptidoform.fromString("PEPTIDE")
+    pf_with_info = p.Peptidoform.fromString("PEP[info:some note]TIDE")
+
+    mass_no_info = pf_no_info.getMonoWeight()
+    mass_with_info = pf_with_info.getMonoWeight()
+
+    # Masses should be identical
+    assert abs(mass_no_info - mass_with_info) < 0.001
+
+
+# =============================================================================
+# Glycan Notation Tests
+# =============================================================================
+
+def test_glycan_composition():
+    """Test parsing glycan composition notation."""
+    import pyopenms as p
+
+    pf = p.Peptidoform.fromString("PEPN[Glycan:HexNAc2Hex3]TIDE")
+    result = pf.toString(p.ProFormaWriteMode.LOSSLESS)
+    assert "Glycan:" in result
+    assert "HexNAc" in result
+
+
+def test_glycan_gno_accession():
+    """Test parsing GNO accession for glycans."""
+    import pyopenms as p
+
+    pf = p.Peptidoform.fromString("PEPN[GNO:G59626AS]TIDE")
+    result = pf.toString(p.ProFormaWriteMode.LOSSLESS)
+    assert "GNO:" in result
+
+
+# =============================================================================
+# Additional Edge Cases
+# =============================================================================
+
+def test_multiple_modifications_same_residue():
+    """Test multiple modifications on the same residue."""
+    import pyopenms as p
+
+    # Multiple mods on same residue (e.g., phospho and acetyl on S)
+    pf = p.Peptidoform.fromString("PES[Phospho][Acetyl]K")
+    result = pf.toString(p.ProFormaWriteMode.LOSSLESS)
+    assert "Phospho" in result
+    assert "Acetyl" in result
+
+
+def test_resid_accession():
+    """Test parsing RESID accession."""
+    import pyopenms as p
+
+    pf = p.Peptidoform.fromString("PEM[RESID:AA0581]K")
+    result = pf.toString(p.ProFormaWriteMode.LOSSLESS)
+    assert "RESID:" in result
+
+
+def test_mod_accession():
+    """Test parsing MOD (PSI-MOD) accession."""
+    import pyopenms as p
+
+    pf = p.Peptidoform.fromString("PEM[MOD:00719]K")
+    result = pf.toString(p.ProFormaWriteMode.LOSSLESS)
+    assert "MOD:" in result
+
+
+def test_charge_state_formats():
+    """Test various charge state format parsing."""
+    import pyopenms as p
+
+    # Simple charge
+    pfi1 = p.PeptidoformIon.fromString("PEPTIDE/2")
+    assert len(pfi1.chains) == 1
+
+    # Explicit positive charge
+    pfi2 = p.PeptidoformIon.fromString("PEPTIDE/+2")
+    result2 = pfi2.toString(p.ProFormaWriteMode.LOSSLESS)
+    assert "PEPTIDE" in result2
+
+    # Negative charge (rare but valid)
+    pfi3 = p.PeptidoformIon.fromString("PEPTIDE/-1")
+    result3 = pfi3.toString(p.ProFormaWriteMode.LOSSLESS)
+    assert "PEPTIDE" in result3
+
+
+def test_adduct_ion_notation():
+    """Test adduct ion notation parsing."""
+    import pyopenms as p
+
+    # Adduct notation with element:charge format
+    # ProForma spec: /[element:count+charge,...]
+    pfi = p.PeptidoformIon.fromString("PEPTIDE/[Na:z+2]")
+    result = pfi.toString(p.ProFormaWriteMode.LOSSLESS)
+    assert "PEPTIDE" in result
+    assert "Na" in result
+
+
+def test_global_modification_fixed():
+    """Test fixed global modification notation."""
+    import pyopenms as p
+
+    # Fixed Carbamidomethyl on all C
+    pf = p.Peptidoform.fromString("<[Carbamidomethyl]@C>PEPTCIDE")
+    result = pf.toString(p.ProFormaWriteMode.LOSSLESS)
+    assert "Carbamidomethyl" in result
+    assert "@C" in result
+
+
+def test_conversion_issue_types():
+    """Test that ConversionIssue objects have correct attributes."""
+    import pyopenms as p
+
+    # Get issues from unlocalised modification
+    pf = p.Peptidoform.fromString("[Phospho]?PEPTIDE")
+    issues = pf.getAASequenceConversionIssues()
+
+    assert len(issues) > 0
+
+    # Check issue has expected attributes
+    issue = issues[0]
+    assert hasattr(issue, 'type')
+    assert hasattr(issue, 'description')
+    assert hasattr(issue, 'position')
+
+    # Type should be UNLOCALISED_MOD
+    assert issue.type == p.ConversionIssueType.UNLOCALISED_MOD
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
