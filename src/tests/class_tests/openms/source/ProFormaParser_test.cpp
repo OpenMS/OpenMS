@@ -1084,26 +1084,26 @@ END_SECTION
 // Writer tests
 /////////////////////////////////////////////////////////////
 
-START_SECTION(ProFormaWriter::toString - simple sequences)
+START_SECTION(ProFormaParser::toString - simple sequences)
 {
   Peptidoform pf = ProFormaParser::parse("PEPTIDE");
-  String result = ProFormaWriter::toString(pf);
+  String result = ProFormaParser::toString(pf);
   TEST_EQUAL(result, "PEPTIDE")
 }
 END_SECTION
 
-START_SECTION(ProFormaWriter::toString - modifications)
+START_SECTION(ProFormaParser::toString - modifications)
 {
   Peptidoform pf = ProFormaParser::parse("EM[UNIMOD:35]K");
-  String result = ProFormaWriter::toString(pf);
+  String result = ProFormaParser::toString(pf);
   TEST_EQUAL(result, "EM[UNIMOD:35]K")
 }
 END_SECTION
 
-START_SECTION(ProFormaWriter::toString - terminal modifications)
+START_SECTION(ProFormaParser::toString - terminal modifications)
 {
   Peptidoform pf = ProFormaParser::parse("[Acetyl]-PEPTIDE-[Amidated]");
-  String result = ProFormaWriter::toString(pf);
+  String result = ProFormaParser::toString(pf);
   TEST_EQUAL(result, "[Acetyl]-PEPTIDE-[Amidated]")
 }
 END_SECTION
@@ -1132,7 +1132,7 @@ START_SECTION(Roundtrip tests from positive fixture)
   for (const auto& test : test_cases)
   {
     Peptidoform pf = ProFormaParser::parse(test);
-    String result = ProFormaWriter::toString(pf);
+    String result = ProFormaParser::toString(pf);
     // Re-parse and compare structure
     Peptidoform pf2 = ProFormaParser::parse(result);
     TEST_EQUAL(pf.sequence.size(), pf2.sequence.size())
