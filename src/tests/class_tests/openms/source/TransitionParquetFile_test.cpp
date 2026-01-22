@@ -27,6 +27,51 @@
 using namespace OpenMS;
 using namespace std;
 
+#ifdef WITH_PARQUET
+namespace
+{
+  template <typename BuilderT, typename ValueT>
+  void appendOk_(BuilderT& builder, const ValueT& value)
+  {
+    TEST_EQUAL(builder.Append(value).ok(), true)
+  }
+
+  template <typename BuilderT>
+  std::shared_ptr<arrow::Array> finishArray_(BuilderT& builder)
+  {
+    auto result = builder.Finish();
+    TEST_EQUAL(result.ok(), true)
+    if (result.ok())
+    {
+      return result.ValueOrDie();
+    }
+    return nullptr;
+  }
+
+  ::arrow::Status writeParquetTable_(const std::shared_ptr<arrow::Table>& table, const String& filename)
+  {
+    auto outfile_result = arrow::io::FileOutputStream::Open(std::string(filename));
+    if (!outfile_result.ok())
+    {
+      return outfile_result.status();
+    }
+    auto outfile = outfile_result.ValueOrDie();
+    return parquet::arrow::WriteTable(*table, arrow::default_memory_pool(), outfile, 1024);
+  }
+
+  std::string joinProteinAccessions_(const std::vector<std::string>& accessions)
+  {
+    String joined;
+    for (Size i = 0; i < accessions.size(); ++i)
+    {
+      if (i > 0) joined += ";";
+      joined += accessions[i];
+    }
+    return std::string(joined);
+  }
+}
+#endif
+
 START_TEST(TransitionParquetFile, "$Id$")
 
 TransitionParquetFile* ptr = nullptr;
@@ -44,28 +89,6 @@ START_SECTION(~TransitionParquetFile())
   delete ptr;
 }
 END_SECTION
-
-#ifdef WITH_PARQUET
-namespace
-{
-  ::arrow::Status writeParquetTable_(const std::shared_ptr<arrow::Table>& table, const String& filename)
-  {
-    ARROW_ASSIGN_OR_RAISE(auto outfile, arrow::io::FileOutputStream::Open(filename.toStdString()));
-    return parquet::arrow::WriteTable(*table, arrow::default_memory_pool(), outfile, 1024);
-  }
-
-  std::string joinProteinAccessions_(const std::vector<std::string>& accessions)
-  {
-    String joined;
-    for (Size i = 0; i < accessions.size(); ++i)
-    {
-      if (i > 0) joined += ";";
-      joined += accessions[i];
-    }
-    return joined;
-  }
-}
-#endif
 
 START_SECTION(void convertParquetToTargetedExperiment(const String& pqp_parquet_dir, OpenSwath::LightTargetedExperiment& targeted_exp) const)
 {
@@ -127,14 +150,14 @@ START_SECTION(void convertParquetToTargetedExperiment(const String& pqp_parquet_
     const String compound_id = compound.id;
     const int64_t id = compound_to_precursor[compound_id];
 
-    precursor_id_builder.Append(id);
-    precursor_mz_builder.Append(precursor_mz[compound_id]);
-    precursor_charge_builder.Append(compound.charge);
-    library_rt_builder.Append(compound.rt);
-    drift_time_builder.Append(compound.drift_time);
-    decoy_builder.Append(false);
-    traml_id_builder.Append(compound.id);
-    modified_sequence_builder.Append(compound.sequence);
+    appendOk_(precursor_id_builder, id);
+    appendOk_(precursor_mz_builder, precursor_mz[compound_id]);
+    appendOk_(precursor_charge_builder, compound.charge);
+    appendOk_(library_rt_builder, compound.rt);
+    appendOk_(drift_time_builder, compound.drift_time);
+    appendOk_(decoy_builder, false);
+    appendOk_(traml_id_builder, std::string(compound.id));
+    appendOk_(modified_sequence_builder, std::string(compound.sequence));
 
     String unmodified_sequence;
     if (!compound.sequence.empty())
@@ -148,31 +171,20 @@ START_SECTION(void convertParquetToTargetedExperiment(const String& pqp_parquet_
         unmodified_sequence = "";
       }
     }
-    unmodified_sequence_builder.Append(unmodified_sequence);
-    protein_accessions_builder.Append(joinProteinAccessions_(compound.protein_refs));
+    appendOk_(unmodified_sequence_builder, std::string(unmodified_sequence));
+    appendOk_(protein_accessions_builder, joinProteinAccessions_(compound.protein_refs));
   }
 
-  std::shared_ptr<arrow::Array> precursor_id_array;
-  std::shared_ptr<arrow::Array> precursor_mz_array;
-  std::shared_ptr<arrow::Array> precursor_charge_array;
-  std::shared_ptr<arrow::Array> library_rt_array;
-  std::shared_ptr<arrow::Array> drift_time_array;
-  std::shared_ptr<arrow::Array> decoy_array;
-  std::shared_ptr<arrow::Array> traml_id_array;
-  std::shared_ptr<arrow::Array> modified_sequence_array;
-  std::shared_ptr<arrow::Array> unmodified_sequence_array;
-  std::shared_ptr<arrow::Array> protein_accessions_array;
-
-  ARROW_ASSIGN_OR_RAISE(precursor_id_array, precursor_id_builder.Finish());
-  ARROW_ASSIGN_OR_RAISE(precursor_mz_array, precursor_mz_builder.Finish());
-  ARROW_ASSIGN_OR_RAISE(precursor_charge_array, precursor_charge_builder.Finish());
-  ARROW_ASSIGN_OR_RAISE(library_rt_array, library_rt_builder.Finish());
-  ARROW_ASSIGN_OR_RAISE(drift_time_array, drift_time_builder.Finish());
-  ARROW_ASSIGN_OR_RAISE(decoy_array, decoy_builder.Finish());
-  ARROW_ASSIGN_OR_RAISE(traml_id_array, traml_id_builder.Finish());
-  ARROW_ASSIGN_OR_RAISE(modified_sequence_array, modified_sequence_builder.Finish());
-  ARROW_ASSIGN_OR_RAISE(unmodified_sequence_array, unmodified_sequence_builder.Finish());
-  ARROW_ASSIGN_OR_RAISE(protein_accessions_array, protein_accessions_builder.Finish());
+  auto precursor_id_array = finishArray_(precursor_id_builder);
+  auto precursor_mz_array = finishArray_(precursor_mz_builder);
+  auto precursor_charge_array = finishArray_(precursor_charge_builder);
+  auto library_rt_array = finishArray_(library_rt_builder);
+  auto drift_time_array = finishArray_(drift_time_builder);
+  auto decoy_array = finishArray_(decoy_builder);
+  auto traml_id_array = finishArray_(traml_id_builder);
+  auto modified_sequence_array = finishArray_(modified_sequence_builder);
+  auto unmodified_sequence_array = finishArray_(unmodified_sequence_builder);
+  auto protein_accessions_array = finishArray_(protein_accessions_builder);
 
   auto precursor_schema = arrow::schema({
     arrow::field("precursor_id", arrow::int64()),
@@ -214,48 +226,34 @@ START_SECTION(void convertParquetToTargetedExperiment(const String& pqp_parquet_
   for (const auto& transition : transitions)
   {
     const int64_t precursor_ref = compound_to_precursor[transition.peptide_ref];
-    transition_id_builder.Append(transition_id++);
-    transition_precursor_id_builder.Append(precursor_ref);
-    transition_traml_id_builder.Append(transition.transition_name);
-    product_mz_builder.Append(transition.product_mz);
-    fragment_charge_builder.Append(transition.fragment_charge);
-    fragment_type_builder.Append(transition.getFragmentType());
-    annotation_builder.Append(transition.getAnnotation());
-    ordinal_builder.Append(transition.fragment_nr);
-    detecting_builder.Append(transition.isDetectingTransition());
-    identifying_builder.Append(transition.isIdentifyingTransition());
-    quantifying_builder.Append(transition.isQuantifyingTransition());
-    transition_intensity_builder.Append(transition.library_intensity);
-    transition_decoy_builder.Append(transition.getDecoy());
+    appendOk_(transition_id_builder, transition_id++);
+    appendOk_(transition_precursor_id_builder, precursor_ref);
+    appendOk_(transition_traml_id_builder, std::string(transition.transition_name));
+    appendOk_(product_mz_builder, transition.product_mz);
+    appendOk_(fragment_charge_builder, transition.fragment_charge);
+    appendOk_(fragment_type_builder, std::string(transition.getFragmentType()));
+    appendOk_(annotation_builder, std::string(transition.getAnnotation()));
+    appendOk_(ordinal_builder, transition.fragment_nr);
+    appendOk_(detecting_builder, transition.isDetectingTransition());
+    appendOk_(identifying_builder, transition.isIdentifyingTransition());
+    appendOk_(quantifying_builder, transition.isQuantifyingTransition());
+    appendOk_(transition_intensity_builder, transition.library_intensity);
+    appendOk_(transition_decoy_builder, transition.getDecoy());
   }
 
-  std::shared_ptr<arrow::Array> transition_id_array;
-  std::shared_ptr<arrow::Array> transition_precursor_id_array;
-  std::shared_ptr<arrow::Array> transition_traml_id_array;
-  std::shared_ptr<arrow::Array> product_mz_array;
-  std::shared_ptr<arrow::Array> fragment_charge_array;
-  std::shared_ptr<arrow::Array> fragment_type_array;
-  std::shared_ptr<arrow::Array> annotation_array;
-  std::shared_ptr<arrow::Array> ordinal_array;
-  std::shared_ptr<arrow::Array> detecting_array;
-  std::shared_ptr<arrow::Array> identifying_array;
-  std::shared_ptr<arrow::Array> quantifying_array;
-  std::shared_ptr<arrow::Array> transition_intensity_array;
-  std::shared_ptr<arrow::Array> transition_decoy_array;
-
-  ARROW_ASSIGN_OR_RAISE(transition_id_array, transition_id_builder.Finish());
-  ARROW_ASSIGN_OR_RAISE(transition_precursor_id_array, transition_precursor_id_builder.Finish());
-  ARROW_ASSIGN_OR_RAISE(transition_traml_id_array, transition_traml_id_builder.Finish());
-  ARROW_ASSIGN_OR_RAISE(product_mz_array, product_mz_builder.Finish());
-  ARROW_ASSIGN_OR_RAISE(fragment_charge_array, fragment_charge_builder.Finish());
-  ARROW_ASSIGN_OR_RAISE(fragment_type_array, fragment_type_builder.Finish());
-  ARROW_ASSIGN_OR_RAISE(annotation_array, annotation_builder.Finish());
-  ARROW_ASSIGN_OR_RAISE(ordinal_array, ordinal_builder.Finish());
-  ARROW_ASSIGN_OR_RAISE(detecting_array, detecting_builder.Finish());
-  ARROW_ASSIGN_OR_RAISE(identifying_array, identifying_builder.Finish());
-  ARROW_ASSIGN_OR_RAISE(quantifying_array, quantifying_builder.Finish());
-  ARROW_ASSIGN_OR_RAISE(transition_intensity_array, transition_intensity_builder.Finish());
-  ARROW_ASSIGN_OR_RAISE(transition_decoy_array, transition_decoy_builder.Finish());
+  auto transition_id_array = finishArray_(transition_id_builder);
+  auto transition_precursor_id_array = finishArray_(transition_precursor_id_builder);
+  auto transition_traml_id_array = finishArray_(transition_traml_id_builder);
+  auto product_mz_array = finishArray_(product_mz_builder);
+  auto fragment_charge_array = finishArray_(fragment_charge_builder);
+  auto fragment_type_array = finishArray_(fragment_type_builder);
+  auto annotation_array = finishArray_(annotation_builder);
+  auto ordinal_array = finishArray_(ordinal_builder);
+  auto detecting_array = finishArray_(detecting_builder);
+  auto identifying_array = finishArray_(identifying_builder);
+  auto quantifying_array = finishArray_(quantifying_builder);
+  auto transition_intensity_array = finishArray_(transition_intensity_builder);
+  auto transition_decoy_array = finishArray_(transition_decoy_builder);
 
   auto transition_schema = arrow::schema({
     arrow::field("transition_id", arrow::int64()),
