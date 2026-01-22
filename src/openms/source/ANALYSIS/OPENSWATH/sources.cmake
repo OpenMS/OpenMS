@@ -26,6 +26,7 @@ set(sources_list
   OpenSwathHelper.cpp
   OpenSwathScores.cpp
   OpenSwathScoring.cpp
+  OpenSwathOSWParquetWriter.cpp
   OpenSwathOSWWriter.cpp
   OpenSwathWorkflow.cpp
   PeakIntegrator.cpp

@@ -26,6 +26,7 @@ set(sources_list_h
   OpenSwathHelper.h
   OpenSwathScores.h
   OpenSwathScoring.h
+  OpenSwathOSWParquetWriter.h
   OpenSwathOSWWriter.h
   OpenSwathWorkflow.h
   PeakIntegrator.h
