@@ -669,7 +669,7 @@ def test_generate_spectrum_with_metainfo():
     # Should have peaks with annotations
     assert spectrum.size() > 0
     # Check that string data arrays exist (ion annotations)
-    assert spectrum.getStringDataArrays().size() > 0
+    assert len(spectrum.getStringDataArrays()) > 0
 
 
 def test_generate_spectrum_ion_types():
@@ -869,8 +869,8 @@ def test_formula_tag_mass_calculation():
     assert pf.canCalculateMass() == True
 
     mass = pf.getMonoWeight()
-    # EMK = 406.18, + O = 422.18
-    assert 420.0 < mass < 425.0
+    # PEMK + O = 519.2363
+    assert abs(mass - 519.2363) < 0.01
 
 
 # =============================================================================
@@ -883,7 +883,8 @@ def test_info_tag_simple():
 
     pf = p.Peptidoform.fromString("PEM[info:custom annotation]K")
     result = pf.toString(p.ProFormaWriteMode.LOSSLESS)
-    assert "info:custom annotation" in result
+    # ProForma 2.0 is case-insensitive; implementation outputs uppercase INFO:
+    assert "info:custom annotation" in result.lower()
 
 
 def test_info_tag_with_modification():
@@ -894,7 +895,8 @@ def test_info_tag_with_modification():
     pf = p.Peptidoform.fromString("PEM[Oxidation][info:confirmed by manual inspection]K")
     result = pf.toString(p.ProFormaWriteMode.LOSSLESS)
     assert "Oxidation" in result
-    assert "info:" in result
+    # ProForma 2.0 is case-insensitive; implementation outputs uppercase INFO:
+    assert "info:" in result.lower()
 
 
 def test_info_tag_does_not_affect_mass():
