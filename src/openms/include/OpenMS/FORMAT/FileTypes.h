@@ -74,6 +74,7 @@ namespace OpenMS
       SQMASS,             ///< SqLite format for mass and chromatograms, see SqMassFile
       PQP,                ///< OpenSWATH Peptide Query Parameter (PQP) SQLite DB, see TransitionPQPFile
       PQPPARQUET,         ///< OpenSWATH PQP Parquet library input
+      OSWPARQUET,         ///< OpenSWATH Parquet feature output
       MS,                 ///< SIRIUS file format (.ms)
       OSW,                ///< OpenSWATH OpenSWATH report (OSW) SQLite DB
       PSMS,               ///< Percolator tab-delimited output (PSM level)

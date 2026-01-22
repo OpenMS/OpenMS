@@ -89,6 +89,7 @@ namespace OpenMS
     TypeNameBinding(FileTypes::PQPPARQUET, "pqp_parquet", "OpenSwath Peptide Query Parameter (PQP) Parquet library input", {PROP::READABLE}),
     TypeNameBinding(FileTypes::MS, "ms", "SIRIUS file", {}),
     TypeNameBinding(FileTypes::OSW, "osw", "OpenSwath output files", {PROP::READABLE, PROP::WRITEABLE}),
+    TypeNameBinding(FileTypes::OSWPARQUET, "osw_parquet", "OpenSwath Parquet output files", {PROP::READABLE, PROP::WRITEABLE}),
     TypeNameBinding(FileTypes::PSMS, "psms", "Percolator tab-delimited output (PSM level)", {PROP::READABLE}),
     TypeNameBinding(FileTypes::PIN, "pin", "Percolator tab-delimited input (PSM level)", {}),
     TypeNameBinding(FileTypes::PARAMXML, "paramXML", "OpenMS internal XML file", {}),
