@@ -23,7 +23,7 @@ namespace OpenMS
       @brief Read OpenSwath Parquet library input (.pqp_parquet) into LightTargetedExperiment.
 
       The Parquet library format is a directory container with separate tables for
-      precursors and transitions. The MVP reader materializes all rows into
+      precursors and transitions. The reader materializes all rows into
       OpenSwath::LightTargetedExperiment.
 
       The container layout is:
