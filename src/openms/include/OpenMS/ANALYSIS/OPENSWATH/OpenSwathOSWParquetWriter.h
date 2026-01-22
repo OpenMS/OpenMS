@@ -23,11 +23,11 @@ namespace OpenMS
   /**
       @brief Write OpenSwathWorkflow output to an OSW Parquet directory (.osw_parquet).
 
-      This writer mirrors the OSW SQLite tables, but stores a simplified schema
-      in Parquet:
+      This writer mirrors the OSW SQLite tables in Parquet:
       - runs.parquet
       - features.parquet
       - feature_ms1.parquet
+      - feature_precursor.parquet
       - feature_ms2.parquet
       - feature_transition.parquet (including UIS rows when present)
 
@@ -43,6 +43,7 @@ namespace OpenMS
           └── run_id=<id>/
               ├── features.parquet
               ├── feature_ms1.parquet
+              ├── feature_precursor.parquet
               ├── feature_ms2.parquet
               └── feature_transition.parquet
       @endcode
