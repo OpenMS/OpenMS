@@ -5,7 +5,7 @@ from libcpp.string cimport string as libcpp_string
 from Types cimport *
 from String cimport *
 
-cdef extern from "<OpenMS/CHEMISTRY/ProFormaData.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/CHEMISTRY/ProForma.h>" namespace "OpenMS":
 
     cdef enum ProFormaWriteMode "OpenMS::ProFormaWriteMode":
         # wrap-doc:

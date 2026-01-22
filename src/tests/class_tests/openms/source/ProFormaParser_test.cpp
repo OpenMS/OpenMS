@@ -11,11 +11,7 @@
 
 ///////////////////////////
 
-#include <OpenMS/CHEMISTRY/ProFormaParser.h>
-#include <OpenMS/CHEMISTRY/ProFormaWriter.h>
-#include <OpenMS/CHEMISTRY/ProFormaTokenizer.h>
-#include <OpenMS/CHEMISTRY/ProFormaError.h>
-#include <OpenMS/CHEMISTRY/ProFormaData.h>
+#include <OpenMS/CHEMISTRY/ProForma.h>
 
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
@@ -56,89 +52,7 @@ vector<string> loadTestCases(const string& filename)
 START_TEST(ProFormaParser, "$Id$")
 
 /////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////
-
-START_SECTION(ProFormaTokenizer basic tests)
-{
-  // Test simple tokenization
-  ProFormaTokenizer tokenizer("EM[UNIMOD:35]K");
-
-  auto tok1 = tokenizer.next();
-  TEST_EQUAL(tok1.type, ProFormaTokenizer::TokenType::IDENTIFIER)
-  TEST_EQUAL(tok1.text, "EM")
-
-  auto tok2 = tokenizer.next();
-  TEST_EQUAL(tok2.type, ProFormaTokenizer::TokenType::LBRACKET)
-
-  auto tok3 = tokenizer.next();
-  TEST_EQUAL(tok3.type, ProFormaTokenizer::TokenType::IDENTIFIER)
-  TEST_EQUAL(tok3.text, "UNIMOD")
-
-  auto tok4 = tokenizer.next();
-  TEST_EQUAL(tok4.type, ProFormaTokenizer::TokenType::COLON)
-
-  auto tok5 = tokenizer.next();
-  TEST_EQUAL(tok5.type, ProFormaTokenizer::TokenType::NUMBER)
-  TEST_EQUAL(tok5.text, "35")
-
-  auto tok6 = tokenizer.next();
-  TEST_EQUAL(tok6.type, ProFormaTokenizer::TokenType::RBRACKET)
-
-  auto tok7 = tokenizer.next();
-  TEST_EQUAL(tok7.type, ProFormaTokenizer::TokenType::IDENTIFIER)
-  TEST_EQUAL(tok7.text, "K")
-
-  auto tok8 = tokenizer.next();
-  TEST_EQUAL(tok8.type, ProFormaTokenizer::TokenType::END)
-}
-END_SECTION
-
-START_SECTION(ProFormaTokenizer number parsing)
-{
-  // Test signed numbers
-  ProFormaTokenizer tokenizer("[+15.9949]");
-
-  tokenizer.next(); // [
-  auto num = tokenizer.next();
-  TEST_EQUAL(num.type, ProFormaTokenizer::TokenType::NUMBER)
-  TEST_EQUAL(num.text, "+15.9949")
-
-  // Test negative numbers
-  ProFormaTokenizer tokenizer2("[-1.5]");
-  tokenizer2.next(); // [
-  auto num2 = tokenizer2.next();
-  TEST_EQUAL(num2.type, ProFormaTokenizer::TokenType::NUMBER)
-  TEST_EQUAL(num2.text, "-1.5")
-}
-END_SECTION
-
-START_SECTION(ProFormaTokenizer special tokens)
-{
-  ProFormaTokenizer tokenizer("<>()[]{}#@|/^?:,-+");
-
-  TEST_EQUAL(tokenizer.next().type, ProFormaTokenizer::TokenType::LANGLE)
-  TEST_EQUAL(tokenizer.next().type, ProFormaTokenizer::TokenType::RANGLE)
-  TEST_EQUAL(tokenizer.next().type, ProFormaTokenizer::TokenType::LPAREN)
-  TEST_EQUAL(tokenizer.next().type, ProFormaTokenizer::TokenType::RPAREN)
-  TEST_EQUAL(tokenizer.next().type, ProFormaTokenizer::TokenType::LBRACKET)
-  TEST_EQUAL(tokenizer.next().type, ProFormaTokenizer::TokenType::RBRACKET)
-  TEST_EQUAL(tokenizer.next().type, ProFormaTokenizer::TokenType::LBRACE)
-  TEST_EQUAL(tokenizer.next().type, ProFormaTokenizer::TokenType::RBRACE)
-  TEST_EQUAL(tokenizer.next().type, ProFormaTokenizer::TokenType::HASH)
-  TEST_EQUAL(tokenizer.next().type, ProFormaTokenizer::TokenType::AT)
-  TEST_EQUAL(tokenizer.next().type, ProFormaTokenizer::TokenType::PIPE)
-  TEST_EQUAL(tokenizer.next().type, ProFormaTokenizer::TokenType::SLASH)
-  TEST_EQUAL(tokenizer.next().type, ProFormaTokenizer::TokenType::CARET)
-  TEST_EQUAL(tokenizer.next().type, ProFormaTokenizer::TokenType::QUESTION)
-  TEST_EQUAL(tokenizer.next().type, ProFormaTokenizer::TokenType::COLON)
-  TEST_EQUAL(tokenizer.next().type, ProFormaTokenizer::TokenType::COMMA)
-  TEST_EQUAL(tokenizer.next().type, ProFormaTokenizer::TokenType::MINUS)
-  TEST_EQUAL(tokenizer.next().type, ProFormaTokenizer::TokenType::PLUS)
-}
-END_SECTION
-
-/////////////////////////////////////////////////////////////
-// Parser tests
+// Parser tests (Tokenizer is now internal to ProForma.cpp)
 /////////////////////////////////////////////////////////////
 
 START_SECTION(ProFormaParser::parse - simple sequences)

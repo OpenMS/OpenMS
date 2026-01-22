@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include <OpenMS/CHEMISTRY/ProFormaData.h>
+#include <OpenMS/CHEMISTRY/ProForma.h>
 #include <nlohmann/json.hpp>
 
 namespace OpenMS

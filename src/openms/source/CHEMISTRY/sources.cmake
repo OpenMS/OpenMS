@@ -24,11 +24,8 @@ MonosaccharideDB.cpp
 ModifiedPeptideGenerator.cpp
 NASequence.cpp
 NucleicAcidSpectrumGenerator.cpp
+ProForma.cpp
 ProFormaDataJson.cpp
-ProFormaError.cpp
-ProFormaParser.cpp
-ProFormaTokenizer.cpp
-ProFormaWriter.cpp
 ProteaseDB.cpp
 ProteaseDigestion.cpp
 Residue.cpp

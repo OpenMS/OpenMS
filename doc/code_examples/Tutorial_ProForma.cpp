@@ -10,7 +10,7 @@
 // ProForma is a standardized notation for proteoforms developed by the
 // HUPO Proteomics Standards Initiative (PSI).
 
-#include <OpenMS/CHEMISTRY/ProFormaParser.h>
+#include <OpenMS/CHEMISTRY/ProForma.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <iostream>

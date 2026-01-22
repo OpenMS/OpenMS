@@ -7,7 +7,7 @@
 // --------------------------------------------------------------------------
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/USI.h>
-#include <OpenMS/CHEMISTRY/ProFormaParser.h>
+#include <OpenMS/CHEMISTRY/ProForma.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/CONCEPT/Constants.h>
 

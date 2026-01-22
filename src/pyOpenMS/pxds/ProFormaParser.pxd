@@ -7,7 +7,7 @@ from ProFormaData cimport *
 from AASequence cimport *
 from MSSpectrum cimport *
 
-cdef extern from "<OpenMS/CHEMISTRY/ProFormaParser.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/CHEMISTRY/ProForma.h>" namespace "OpenMS":
 
     cdef cppclass ProFormaParser "OpenMS::ProFormaParser":
         # wrap-doc:
@@ -32,7 +32,7 @@ cdef extern from "<OpenMS/CHEMISTRY/ProFormaParser.h>" namespace "OpenMS":
         ProFormaParser() except + nogil  # wrap-ignore
         ProFormaParser(ProFormaParser &) except + nogil  # wrap-ignore
 
-cdef extern from "<OpenMS/CHEMISTRY/ProFormaParser.h>" namespace "OpenMS::ProFormaParser":
+cdef extern from "<OpenMS/CHEMISTRY/ProForma.h>" namespace "OpenMS::ProFormaParser":
 
     # Static parse methods
     Peptidoform parse(const String& input) except + nogil  # wrap-attach:ProFormaParser wrap-doc:Parse a ProForma string into a Peptidoform AST
@@ -88,8 +88,8 @@ cdef extern from "<OpenMS/CHEMISTRY/ProFormaParser.h>" namespace "OpenMS::ProFor
 
 
 # JSON serialization functions (free functions in OpenMS namespace)
-# These are declared in ProFormaData.h and don't require nlohmann headers
-cdef extern from "<OpenMS/CHEMISTRY/ProFormaData.h>" namespace "OpenMS":
+# These are declared in ProForma.h and don't require nlohmann headers
+cdef extern from "<OpenMS/CHEMISTRY/ProForma.h>" namespace "OpenMS":
 
     String peptidoformToJSON "OpenMS::toJSON" (const Peptidoform& pf) except + nogil  # wrap-attach:ProFormaParser wrap-doc:Convert Peptidoform to JSON string representation
 
