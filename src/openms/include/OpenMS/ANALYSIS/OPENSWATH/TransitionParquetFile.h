@@ -37,6 +37,9 @@ namespace OpenMS
 
     /// Read a .pqp_parquet library directory and populate a LightTargetedExperiment
     void convertParquetToTargetedExperiment(const String& pqp_parquet_dir, OpenSwath::LightTargetedExperiment& targeted_exp) const;
+
+    /// Write a LightTargetedExperiment to a .pqp_parquet library (zip file or directory)
+    void convertLightTargetedExperimentToParquet(const String& pqp_parquet_path, const OpenSwath::LightTargetedExperiment& targeted_exp) const;
   };
 
 } // namespace OpenMS

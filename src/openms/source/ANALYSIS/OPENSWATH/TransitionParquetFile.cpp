@@ -18,14 +18,61 @@
 #ifdef WITH_PARQUET
 #include <arrow/api.h>
 #include <arrow/io/file.h>
+#include <parquet/arrow/writer.h>
 #include <parquet/arrow/reader.h>
+#include <OpenMS/SYSTEM/ExternalProcess.h>
+#include <QtCore/QStringList>
 #endif
 
 #include <unordered_map>
+#include <memory>
 
 namespace
 {
 #ifdef WITH_PARQUET
+  void appendOrThrow_(const arrow::Status& status, const std::string& context)
+  {
+    if (!status.ok())
+    {
+      throw OpenMS::Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                            "Failed to append value for " + context, status.ToString());
+    }
+  }
+
+  template <typename BuilderT>
+  std::shared_ptr<arrow::Array> finishArray_(BuilderT& builder, const std::string& context)
+  {
+    auto result = builder.Finish();
+    if (!result.ok())
+    {
+      throw OpenMS::Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                            "Failed to finish column for " + context, result.status().ToString());
+    }
+    return result.ValueOrDie();
+  }
+
+  ::arrow::Status writeParquetTable_(const std::shared_ptr<arrow::Table>& table, const OpenMS::String& filename)
+  {
+    auto outfile_result = arrow::io::FileOutputStream::Open(std::string(filename));
+    if (!outfile_result.ok())
+    {
+      return outfile_result.status();
+    }
+    auto outfile = outfile_result.ValueOrDie();
+    return parquet::arrow::WriteTable(*table, arrow::default_memory_pool(), outfile, 1024);
+  }
+
+  std::string joinProteinAccessions_(const std::vector<std::string>& accessions)
+  {
+    OpenMS::String joined;
+    for (OpenMS::Size i = 0; i < accessions.size(); ++i)
+    {
+      if (i > 0) joined += ";";
+      joined += accessions[i];
+    }
+    return std::string(joined);
+  }
+
   struct PrecursorInfo
   {
     double precursor_mz = 0.0;
@@ -107,6 +154,57 @@ namespace
     }
     return column->chunk(0);
   }
+
+#ifdef WITH_PARQUET
+  OpenMS::String prepareParquetDirectory_(const OpenMS::String& input_path,
+                                          std::unique_ptr<OpenMS::File::TempDir>& temp_dir)
+  {
+    if (OpenMS::File::isDirectory(input_path))
+    {
+      return input_path;
+    }
+
+    if (!OpenMS::File::readable(input_path))
+    {
+      throw OpenMS::Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, input_path);
+    }
+
+    temp_dir = std::make_unique<OpenMS::File::TempDir>();
+    const OpenMS::String unpack_dir = temp_dir->getPath() + "/pqp_parquet_unpacked";
+    OpenMS::File::makeDir(unpack_dir);
+
+    OpenMS::ExternalProcess unzip_process;
+    QStringList args;
+    args << "-q" << input_path.toQString() << "-d" << unpack_dir.toQString();
+    auto status = unzip_process.run("unzip", args, "", false);
+    if (status != OpenMS::ExternalProcess::RETURNSTATE::SUCCESS)
+    {
+      throw OpenMS::Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                            "Failed to unzip parquet library", input_path);
+    }
+
+    return unpack_dir;
+  }
+
+  void zipParquetDirectory_(const OpenMS::String& directory_path, const OpenMS::String& output_zip)
+  {
+    const OpenMS::String output_zip_abs = OpenMS::File::absolutePath(output_zip);
+    if (OpenMS::File::exists(output_zip_abs))
+    {
+      OpenMS::File::remove(output_zip_abs);
+    }
+
+    OpenMS::ExternalProcess zip_process;
+    QStringList args;
+    args << "-r" << "-q" << output_zip_abs.toQString() << ".";
+    auto status = zip_process.run("zip", args, directory_path.toQString(), false);
+    if (status != OpenMS::ExternalProcess::RETURNSTATE::SUCCESS)
+    {
+      throw OpenMS::Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                            "Failed to zip parquet library", output_zip_abs);
+    }
+  }
+#endif
 
   int64_t getInt64_(const std::shared_ptr<arrow::Array>& array, int64_t row, int64_t default_value, bool allow_null)
   {
@@ -327,7 +425,9 @@ namespace OpenMS
     const String& pqp_parquet_dir, OpenSwath::LightTargetedExperiment& targeted_exp) const
   {
 #ifdef WITH_PARQUET
-    const String library_dir = pqp_parquet_dir + "/library";
+    std::unique_ptr<File::TempDir> temp_dir;
+    const String base_dir = prepareParquetDirectory_(pqp_parquet_dir, temp_dir);
+    const String library_dir = base_dir + "/library";
     const String precursors_path = library_dir + "/precursors.parquet";
     const String transitions_path = library_dir + "/transitions.parquet";
 
@@ -458,6 +558,216 @@ namespace OpenMS
     }
 #else
     (void)pqp_parquet_dir;
+    (void)targeted_exp;
+    throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+#endif
+  }
+
+  void TransitionParquetFile::convertLightTargetedExperimentToParquet(
+    const String& pqp_parquet_path, const OpenSwath::LightTargetedExperiment& targeted_exp) const
+  {
+#ifdef WITH_PARQUET
+    const bool output_is_dir = File::isDirectory(pqp_parquet_path);
+    std::unique_ptr<File::TempDir> temp_dir;
+    String base_dir = pqp_parquet_path;
+    if (!output_is_dir)
+    {
+      temp_dir = std::make_unique<File::TempDir>();
+      base_dir = temp_dir->getPath() + "/pqp_parquet_output";
+      File::makeDir(base_dir);
+    }
+
+    const String library_dir = base_dir + "/library";
+    File::makeDir(library_dir);
+
+    std::unordered_map<std::string, int64_t> compound_to_precursor;
+    compound_to_precursor.reserve(targeted_exp.compounds.size());
+
+    int64_t next_precursor_id = 1;
+    for (const auto& compound : targeted_exp.compounds)
+    {
+      if (compound_to_precursor.find(compound.id) != compound_to_precursor.end())
+      {
+        continue;
+      }
+
+      int64_t precursor_id = 0;
+      try
+      {
+        precursor_id = OpenMS::String(compound.id).toInt64();
+      }
+      catch (OpenMS::Exception::ConversionError&)
+      {
+        precursor_id = next_precursor_id++;
+      }
+
+      if (precursor_id >= next_precursor_id)
+      {
+        next_precursor_id = precursor_id + 1;
+      }
+
+      compound_to_precursor[compound.id] = precursor_id;
+    }
+
+    std::unordered_map<std::string, double> precursor_mz;
+    for (const auto& transition : targeted_exp.transitions)
+    {
+      if (precursor_mz.find(transition.peptide_ref) == precursor_mz.end())
+      {
+        precursor_mz[transition.peptide_ref] = transition.precursor_mz;
+      }
+    }
+
+    arrow::Int64Builder precursor_id_builder;
+    arrow::DoubleBuilder precursor_mz_builder;
+    arrow::Int32Builder precursor_charge_builder;
+    arrow::DoubleBuilder library_rt_builder;
+    arrow::DoubleBuilder drift_time_builder;
+    arrow::BooleanBuilder decoy_builder;
+    arrow::StringBuilder traml_id_builder;
+    arrow::StringBuilder modified_sequence_builder;
+    arrow::StringBuilder unmodified_sequence_builder;
+    arrow::StringBuilder protein_accessions_builder;
+
+    for (const auto& compound : targeted_exp.compounds)
+    {
+      const int64_t precursor_id = compound_to_precursor[compound.id];
+      appendOrThrow_(precursor_id_builder.Append(precursor_id), "precursor_id");
+      appendOrThrow_(precursor_mz_builder.Append(precursor_mz[compound.id]), "precursor_mz");
+      appendOrThrow_(precursor_charge_builder.Append(compound.charge), "charge");
+      appendOrThrow_(library_rt_builder.Append(compound.rt), "library_rt");
+      appendOrThrow_(drift_time_builder.Append(compound.drift_time), "library_drift_time");
+      appendOrThrow_(decoy_builder.Append(false), "decoy");
+      appendOrThrow_(traml_id_builder.Append(compound.id), "traml_id");
+      appendOrThrow_(modified_sequence_builder.Append(compound.sequence), "modified_sequence");
+
+      std::string unmodified_sequence;
+      if (!compound.sequence.empty())
+      {
+        try
+        {
+          unmodified_sequence = OpenMS::AASequence::fromString(compound.sequence).toUnmodifiedString();
+        }
+        catch (OpenMS::Exception::InvalidValue&)
+        {
+          unmodified_sequence = "";
+        }
+      }
+      appendOrThrow_(unmodified_sequence_builder.Append(unmodified_sequence), "unmodified_sequence");
+      appendOrThrow_(protein_accessions_builder.Append(joinProteinAccessions_(compound.protein_refs)), "protein_accessions");
+    }
+
+    auto precursor_schema = arrow::schema({
+      arrow::field("precursor_id", arrow::int64()),
+      arrow::field("precursor_mz", arrow::float64()),
+      arrow::field("charge", arrow::int32()),
+      arrow::field("library_rt", arrow::float64()),
+      arrow::field("library_drift_time", arrow::float64()),
+      arrow::field("decoy", arrow::boolean()),
+      arrow::field("traml_id", arrow::utf8()),
+      arrow::field("modified_sequence", arrow::utf8()),
+      arrow::field("unmodified_sequence", arrow::utf8()),
+      arrow::field("protein_accessions", arrow::utf8())
+    });
+
+    auto precursors_table = arrow::Table::Make(
+      precursor_schema,
+      {finishArray_(precursor_id_builder, "precursor_id"),
+       finishArray_(precursor_mz_builder, "precursor_mz"),
+       finishArray_(precursor_charge_builder, "charge"),
+       finishArray_(library_rt_builder, "library_rt"),
+       finishArray_(drift_time_builder, "library_drift_time"),
+       finishArray_(decoy_builder, "decoy"),
+       finishArray_(traml_id_builder, "traml_id"),
+       finishArray_(modified_sequence_builder, "modified_sequence"),
+       finishArray_(unmodified_sequence_builder, "unmodified_sequence"),
+       finishArray_(protein_accessions_builder, "protein_accessions")});
+
+    auto precursors_status = writeParquetTable_(precursors_table, library_dir + "/precursors.parquet");
+    if (!precursors_status.ok())
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                    "Failed to write precursors parquet", precursors_status.ToString());
+    }
+
+    arrow::Int64Builder transition_id_builder;
+    arrow::Int64Builder transition_precursor_id_builder;
+    arrow::StringBuilder transition_traml_id_builder;
+    arrow::DoubleBuilder product_mz_builder;
+    arrow::Int32Builder fragment_charge_builder;
+    arrow::StringBuilder fragment_type_builder;
+    arrow::StringBuilder annotation_builder;
+    arrow::Int32Builder ordinal_builder;
+    arrow::BooleanBuilder detecting_builder;
+    arrow::BooleanBuilder identifying_builder;
+    arrow::BooleanBuilder quantifying_builder;
+    arrow::DoubleBuilder transition_intensity_builder;
+    arrow::BooleanBuilder transition_decoy_builder;
+
+    int64_t transition_id = 1;
+    for (const auto& transition : targeted_exp.transitions)
+    {
+      const int64_t precursor_ref = compound_to_precursor[transition.peptide_ref];
+      appendOrThrow_(transition_id_builder.Append(transition_id++), "transition_id");
+      appendOrThrow_(transition_precursor_id_builder.Append(precursor_ref), "precursor_id");
+      appendOrThrow_(transition_traml_id_builder.Append(transition.transition_name), "traml_id");
+      appendOrThrow_(product_mz_builder.Append(transition.product_mz), "product_mz");
+      appendOrThrow_(fragment_charge_builder.Append(static_cast<int32_t>(transition.fragment_charge)), "charge");
+      appendOrThrow_(fragment_type_builder.Append(transition.getFragmentType()), "type");
+      appendOrThrow_(annotation_builder.Append(transition.getAnnotation()), "annotation");
+      appendOrThrow_(ordinal_builder.Append(transition.fragment_nr), "ordinal");
+      appendOrThrow_(detecting_builder.Append(transition.isDetectingTransition()), "detecting");
+      appendOrThrow_(identifying_builder.Append(transition.isIdentifyingTransition()), "identifying");
+      appendOrThrow_(quantifying_builder.Append(transition.isQuantifyingTransition()), "quantifying");
+      appendOrThrow_(transition_intensity_builder.Append(transition.library_intensity), "library_intensity");
+      appendOrThrow_(transition_decoy_builder.Append(transition.getDecoy()), "decoy");
+    }
+
+    auto transition_schema = arrow::schema({
+      arrow::field("transition_id", arrow::int64()),
+      arrow::field("precursor_id", arrow::int64()),
+      arrow::field("traml_id", arrow::utf8()),
+      arrow::field("product_mz", arrow::float64()),
+      arrow::field("charge", arrow::int32()),
+      arrow::field("type", arrow::utf8()),
+      arrow::field("annotation", arrow::utf8()),
+      arrow::field("ordinal", arrow::int32()),
+      arrow::field("detecting", arrow::boolean()),
+      arrow::field("identifying", arrow::boolean()),
+      arrow::field("quantifying", arrow::boolean()),
+      arrow::field("library_intensity", arrow::float64()),
+      arrow::field("decoy", arrow::boolean())
+    });
+
+    auto transitions_table = arrow::Table::Make(
+      transition_schema,
+      {finishArray_(transition_id_builder, "transition_id"),
+       finishArray_(transition_precursor_id_builder, "precursor_id"),
+       finishArray_(transition_traml_id_builder, "traml_id"),
+       finishArray_(product_mz_builder, "product_mz"),
+       finishArray_(fragment_charge_builder, "charge"),
+       finishArray_(fragment_type_builder, "type"),
+       finishArray_(annotation_builder, "annotation"),
+       finishArray_(ordinal_builder, "ordinal"),
+       finishArray_(detecting_builder, "detecting"),
+       finishArray_(identifying_builder, "identifying"),
+       finishArray_(quantifying_builder, "quantifying"),
+       finishArray_(transition_intensity_builder, "library_intensity"),
+       finishArray_(transition_decoy_builder, "decoy")});
+
+    auto transitions_status = writeParquetTable_(transitions_table, library_dir + "/transitions.parquet");
+    if (!transitions_status.ok())
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                    "Failed to write transitions parquet", transitions_status.ToString());
+    }
+
+    if (!output_is_dir)
+    {
+      zipParquetDirectory_(base_dir, pqp_parquet_path);
+    }
+#else
+    (void)pqp_parquet_path;
     (void)targeted_exp;
     throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
 #endif
