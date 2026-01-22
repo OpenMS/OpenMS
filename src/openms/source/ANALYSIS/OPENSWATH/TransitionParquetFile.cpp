@@ -41,7 +41,7 @@ namespace
 
   std::shared_ptr<arrow::Table> readParquetTable_(const OpenMS::String& filename)
   {
-    auto infile_result = arrow::io::ReadableFile::Open(filename.toStdString());
+    auto infile_result = arrow::io::ReadableFile::Open(std::string(filename));
     if (!infile_result.ok())
     {
       throw OpenMS::Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
@@ -49,13 +49,13 @@ namespace
     }
     std::shared_ptr<arrow::io::ReadableFile> infile = *infile_result;
 
-    std::unique_ptr<parquet::arrow::FileReader> reader;
-    auto open_status = parquet::arrow::OpenFile(infile, arrow::default_memory_pool(), &reader);
-    if (!open_status.ok())
+    auto reader_result = parquet::arrow::OpenFile(infile, arrow::default_memory_pool());
+    if (!reader_result.ok())
     {
       throw OpenMS::Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                             "Failed to create parquet reader", filename);
     }
+    std::unique_ptr<parquet::arrow::FileReader> reader = std::move(reader_result.ValueOrDie());
 
     std::shared_ptr<arrow::Table> table;
     auto read_status = reader->ReadTable(&table);
@@ -65,7 +65,14 @@ namespace
                                             "Failed to read parquet table", filename);
     }
 
-    return table;
+    auto combined = table->CombineChunks(arrow::default_memory_pool());
+    if (!combined.ok())
+    {
+      throw OpenMS::Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                            "Failed to combine parquet chunks", filename);
+    }
+
+    return *combined;
   }
 
   std::shared_ptr<arrow::Array> getColumn_(const std::shared_ptr<arrow::Table>& table,
@@ -77,13 +84,12 @@ namespace
       throw OpenMS::Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                                   "Missing required column '" + name + "'");
     }
-    auto combined = column->CombineChunks(arrow::default_memory_pool());
-    if (!combined.ok())
+    if (column->num_chunks() == 0)
     {
       throw OpenMS::Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                            "Failed to combine chunks for column '" + name + "'");
+                                            "Column has no chunks", name);
     }
-    return *combined;
+    return column->chunk(0);
   }
 
   std::shared_ptr<arrow::Array> getOptionalColumn_(const std::shared_ptr<arrow::Table>& table,
@@ -94,13 +100,12 @@ namespace
     {
       return nullptr;
     }
-    auto combined = column->CombineChunks(arrow::default_memory_pool());
-    if (!combined.ok())
+    if (column->num_chunks() == 0)
     {
       throw OpenMS::Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                            "Failed to combine chunks for column '" + name + "'");
+                                            "Optional column has no chunks", name);
     }
-    return *combined;
+    return column->chunk(0);
   }
 
   int64_t getInt64_(const std::shared_ptr<arrow::Array>& array, int64_t row, int64_t default_value, bool allow_null)
@@ -135,8 +140,9 @@ namespace
         return static_cast<int64_t>(std::static_pointer_cast<arrow::UInt8Array>(array)->Value(row));
       default:
         throw OpenMS::Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                              "Unsupported integer column type");
+                                              "Unsupported integer column type", "");
     }
+    return default_value;
   }
 
   double getDouble_(const std::shared_ptr<arrow::Array>& array, int64_t row, double default_value, bool allow_null)
@@ -168,8 +174,9 @@ namespace
         return static_cast<double>(getInt64_(array, row, 0, false));
       default:
         throw OpenMS::Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                              "Unsupported numeric column type");
+                                              "Unsupported numeric column type", "");
     }
+    return default_value;
   }
 
   bool getBool_(const std::shared_ptr<arrow::Array>& array, int64_t row, bool default_value, bool allow_null)
@@ -199,8 +206,9 @@ namespace
         return getInt64_(array, row, 0, false) != 0;
       default:
         throw OpenMS::Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                              "Unsupported boolean column type");
+                                              "Unsupported boolean column type", "");
     }
+    return default_value;
   }
 
   std::string getString_(const std::shared_ptr<arrow::Array>& array, int64_t row)
@@ -218,8 +226,9 @@ namespace
         return std::static_pointer_cast<arrow::LargeStringArray>(array)->GetString(row);
       default:
         throw OpenMS::Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                              "Unsupported string column type");
+                                              "Unsupported string column type", "");
     }
+    return "";
   }
 
   std::vector<std::string> getStringList_(const std::shared_ptr<arrow::Array>& array, int64_t row)
@@ -270,7 +279,7 @@ namespace
     }
 
     throw OpenMS::Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                          "Unsupported list column type");
+                                          "Unsupported list column type", "");
   }
 
   void addModifications_(const std::string& sequence, OpenSwath::LightCompound& compound)
