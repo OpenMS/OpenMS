@@ -20,6 +20,9 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathOSWWriter.h>
+#ifdef WITH_PARQUET
+#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathOSWParquetWriter.h>
+#endif
 #include <OpenMS/SYSTEM/File.h>
 
 // Kernel and implementations
@@ -143,8 +146,9 @@ Gaussian smoothing based on your estimated peak width. Adjusting the signal
 to noise threshold will make the peaks wider or smaller.
 
 <h3>Output: Feature list and chromatograms </h3>
-The output of the OpenSwathWorkflow is a feature list, either as FeatureXML
-or a @ref OpenMS::OSWFile "OpenSWATH SQLite file" (use @p -out_features) while the latter is more memory
+    The output of the OpenSwathWorkflow is a feature list, either as FeatureXML,
+    a @ref OpenMS::OSWFile "OpenSWATH SQLite file", or an OpenSWATH Parquet output
+    (use @p -out_features) while the SQLite output is more memory
 friendly and can be directly used as input to other tools such as pyProphet (a Python
 re-implementation of mProphet) software tool, see Reiter et al (2011, Nature
 Methods).
@@ -225,11 +229,15 @@ protected:
     registerStringOption_("enable_ipf", "<true|false>", "true", "Enable additional scoring of identification assays using IPF (see online documentation)", false, true);
     setValidStrings_("enable_ipf", ListUtils::create<String>("true,false"));
 
-    registerOutputFile_("out_features", "<file>", "", "feature output file, either .osw (PyProphet-compatible SQLite file) or .featureXML", false);
-    setValidFormats_("out_features", ListUtils::create<String>("osw,featureXML"));
+    registerOutputFile_("out_features", "<file>", "", "feature output file, either .osw (PyProphet-compatible SQLite file), .osw_parquet, or .featureXML", false);
+    std::vector<String> out_feature_formats = {"osw", "featureXML"};
+#ifdef WITH_PARQUET
+    out_feature_formats.push_back("osw_parquet");
+#endif
+    setValidFormats_("out_features", out_feature_formats);
 
     registerStringOption_("out_features_type", "<type>", "", "input file type -- default: determined from file extension or content\n", false);
-    setValidStrings_("out_features_type", {"osw","featureXML"});
+    setValidStrings_("out_features_type", out_feature_formats);
 
     registerOutputFile_("out_chrom", "<file>", "", "Also output all computed chromatograms output in mzML (chrom.mzML) or sqMass (SQLite format)", false, true);
     setValidFormats_("out_chrom", ListUtils::create<String>("mzML,sqMass"));
@@ -701,6 +709,13 @@ protected:
       writeLogError_("Error: Could not determine input file type for '-out_features' !");
       return PARSE_ERROR;
     }
+#ifndef WITH_PARQUET
+    if (out_features_type == FileTypes::OSWPARQUET)
+    {
+      writeLogError_("Error: OpenMS was built without Parquet support, cannot write osw_parquet output.");
+      return PARSE_ERROR;
+    }
+#endif
 
     String out_qc = getStringOption_("out_qc");
 
@@ -1365,17 +1380,23 @@ protected:
     ///////////////////////////////////
 
     FeatureMap out_featureFile;
-    // store features if not writing to .featureXML
-    bool store_features = (out_features_type != FileTypes::FEATUREXML);
-    String osw_out_filename = store_features ? out_features : "";
+    bool store_features = (out_features_type == FileTypes::FEATUREXML || out_features_type == FileTypes::OSWPARQUET);
+    String osw_out_filename = (out_features_type == FileTypes::OSW) ? out_features : "";
     OpenSwathOSWWriter oswwriter(osw_out_filename, run_id, file_list[0], enable_uis_scoring);
 
     OpenSwathWorkflow wf(use_ms1_traces, use_ms1_im, prm, pasef, outer_loop_threads);
     wf.setLogType(log_type_);
     wf.performExtraction(swath_maps, trafo_rtnorm, cp, cp_ms1, feature_finder_param, transition_exp,
-        out_featureFile, true, oswwriter, chromatogramConsumer, batchSize, ms1_isotopes, load_into_memory);
+        out_featureFile, store_features, oswwriter, chromatogramConsumer, batchSize, ms1_isotopes, load_into_memory);
 
-    if ( out_features_type == FileTypes::FEATUREXML )
+    if (out_features_type == FileTypes::OSWPARQUET)
+    {
+#ifdef WITH_PARQUET
+      OpenSwathOSWParquetWriter parquet_writer;
+      parquet_writer.write(out_features, transition_exp, out_featureFile, run_id, file_list[0], enable_uis_scoring);
+#endif
+    }
+    else if (out_features_type == FileTypes::FEATUREXML)
     {
       std::cout << "Writing features ..." << std::endl;
       addDataProcessing_(out_featureFile, getProcessingInfo_(DataProcessing::QUANTITATION));
