@@ -64,10 +64,10 @@ namespace OpenMS
     }
 
     // Determine which file to use (default to index 0)
-    size_t merge_index = 0;
+    Size merge_index = 0;
     if (pepid.metaValueExists(Constants::UserParam::ID_MERGE_INDEX))
     {
-      merge_index = static_cast<size_t>(pepid.getMetaValue(Constants::UserParam::ID_MERGE_INDEX));
+      merge_index = static_cast<Size>(pepid.getMetaValue(Constants::UserParam::ID_MERGE_INDEX));
     }
 
     // Check if index is valid
@@ -99,7 +99,7 @@ namespace OpenMS
     return identifier_to_msrunpath_.empty();
   }
 
-  size_t IdentifierMSRunMapper::size() const
+  Size IdentifierMSRunMapper::size() const
   {
     return identifier_to_msrunpath_.size();
   }

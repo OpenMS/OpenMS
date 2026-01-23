@@ -29,13 +29,13 @@ cdef extern from "<OpenMS/METADATA/IdentifierMSRunMapper.h>" namespace "OpenMS":
 
         IdentifierMSRunMapper() except + nogil
         IdentifierMSRunMapper(IdentifierMSRunMapper &) except + nogil
-        IdentifierMSRunMapper(libcpp_vector[ProteinIdentification] & prot_ids) except + nogil
+        IdentifierMSRunMapper(const libcpp_vector[ProteinIdentification] & prot_ids) except + nogil
             # wrap-doc:
             #  Construct mapper from a list of ProteinIdentifications.
             #
             #  :param prot_ids: List of ProteinIdentification objects
 
-        void create(libcpp_vector[ProteinIdentification] & prot_ids) except + nogil
+        void create(const libcpp_vector[ProteinIdentification] & prot_ids) except + nogil
             # wrap-doc:
             #  Create/update mapping from a list of ProteinIdentifications.
             #

@@ -138,11 +138,11 @@ def test_is_representable_as_aasequence():
 
     # Simple sequence should be representable
     pf = p.Peptidoform.fromString("PEPTIDE")
-    assert pf.isRepresentableAsAASequence() == True
+    assert pf.isRepresentableAsAASequence()
 
     # Unlocalised modification is not representable
     pf = p.Peptidoform.fromString("[Phospho]?PEPTIDE")
-    assert pf.isRepresentableAsAASequence() == False
+    assert not pf.isRepresentableAsAASequence()
 
 
 def test_to_aasequence_simple():
@@ -414,7 +414,7 @@ def test_peptidoform_ion_mass_integration():
     pfi = p.PeptidoformIon.fromString("PEPTIDE/2")
 
     # Verify mass calculation works
-    assert pfi.canCalculateMass() == True
+    assert pfi.canCalculateMass()
     mass = pfi.getMonoWeight()
     assert 799.0 < mass < 800.0  # PEPTIDE ~799.36 Da
 
@@ -482,13 +482,13 @@ def test_peptidoform_mass_calculations():
 
     # Simple peptide
     pf = p.Peptidoform.fromString("PEPTIDE")
-    assert pf.canCalculateMass() == True
+    assert pf.canCalculateMass()
     mass = pf.getMonoWeight()
     assert 799.0 < mass < 800.0  # PEPTIDE ~799.36 Da
 
     # With modification
     pf_mod = p.Peptidoform.fromString("EM[UNIMOD:35]K")
-    assert pf_mod.canCalculateMass() == True
+    assert pf_mod.canCalculateMass()
     mass_mod = pf_mod.getMonoWeight()
     assert 420.0 < mass_mod < 425.0  # ~422.18 Da
 
@@ -502,7 +502,7 @@ def test_peptidoform_ion_mass_calculations():
     import pyopenms as p
 
     pfi = p.PeptidoformIon.fromString("PEPTIDE/2")
-    assert pfi.canCalculateMass() == True
+    assert pfi.canCalculateMass()
 
     mass = pfi.getMonoWeight()
     assert 799.0 < mass < 800.0
@@ -897,7 +897,7 @@ def test_formula_tag_mass_calculation():
     import pyopenms as p
 
     pf = p.Peptidoform.fromString("PEM[Formula:O1]K")  # +16 Da (like oxidation)
-    assert pf.canCalculateMass() == True
+    assert pf.canCalculateMass()
 
     mass = pf.getMonoWeight()
     # PEMK + O = 519.2363

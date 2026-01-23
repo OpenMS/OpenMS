@@ -71,7 +71,7 @@ namespace OpenMS
     bool empty() const;
 
     /// Get the number of identifier mappings
-    size_t size() const;
+    Size size() const;
 
     /// Get the MS run paths for a given identifier (returns empty list if not found)
     const StringList& getMSRunPaths(const String& identifier) const;

@@ -127,9 +127,17 @@ cdef extern from "<OpenMS/METADATA/PeptideIdentification.h>" namespace "OpenMS":
             #  
             #  :param identifier: Unique identifier string
 
-        String getSpectrumReference() except + nogil  # wrap-doc:Get the spectrum reference (native ID) for this identification
+        String getSpectrumReference() except + nogil
+            # wrap-doc:
+            #  Get the spectrum reference (native ID) for this identification.
+            #
+            #  :return: Spectrum reference string (native ID)
 
-        void setSpectrumReference(const String& ref) except + nogil  # wrap-doc:Set the spectrum reference (native ID) for this identification
+        void setSpectrumReference(const String& ref) except + nogil
+            # wrap-doc:
+            #  Set the spectrum reference (native ID) for this identification.
+            #
+            #  :param ref: Spectrum reference string (native ID)
 
         bool       hasMZ() except + nogil 
             # wrap-doc:
@@ -206,7 +214,7 @@ cdef extern from "<OpenMS/METADATA/PeptideIdentification.h>" namespace "OpenMS":
             #  :param include_interpretation: Include ProForma interpretation from best hit
             #  :return: USI string or empty string if USI cannot be constructed
 
-        USI buildUSI(IdentifierMSRunMapper & mapping,
+        USI buildUSI(const IdentifierMSRunMapper & mapping,
                      const String& dataset_id,
                      bool include_interpretation) except + nogil
             # wrap-doc:
@@ -226,7 +234,7 @@ cdef extern from "<OpenMS/METADATA/PeptideIdentification.h>" namespace "OpenMS":
             #  :param include_interpretation: Include ProForma interpretation from best hit
             #  :return: USI object (may be invalid if mapping is missing)
 
-        String buildUSIString(IdentifierMSRunMapper & mapping,
+        String buildUSIString(const IdentifierMSRunMapper & mapping,
                               const String& dataset_id,
                               bool include_interpretation) except + nogil
             # wrap-doc:
