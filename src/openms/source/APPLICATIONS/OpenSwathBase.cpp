@@ -11,6 +11,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/SwathFile.h>
+#include <OpenMS/FORMAT/TargetedDataFileLoader.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/SwathWindowLoader.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>
@@ -57,7 +58,8 @@ namespace OpenMS
       FileTypes::Type in_file_type = FileHandler::getTypeByFileName(file_list[0]);
       if (in_file_type == FileTypes::MZML)
       {
-        swath_maps = swath_file.loadMzML(file_list[0], tmp, exp_meta, readoptions, plugin_consumer);
+        // Dispatch to targeted loader which will choose SRM or SWATH path
+        swath_maps = TargetedDataFileLoader::loadFile(file_list[0], tmp, exp_meta, readoptions, plugin_consumer);
       }
       else if (in_file_type == FileTypes::MZXML)
       {
