@@ -266,7 +266,7 @@ namespace OpenMS
     if (MzPAF::isMzPAFFormat("y4^2")) { ... }
     @endcode
 
-    @see MzPAFAnnotation, MzPAFPeakAnnotations, MzPAFWriteMode
+    `@see` MzPAFAnnotation, MzPAFPeakAnnotations
 
     @ingroup Chemistry
   */
