@@ -630,11 +630,11 @@ def test_can_generate_spectrum_simple():
 
     # Simple peptide should be generatable
     pf = p.Peptidoform.fromString("PEPTIDE")
-    assert pf.canGenerateSpectrum() == True
+    assert pf.canGenerateSpectrum()
 
     # PeptidoformIon should also work
     pfi = p.PeptidoformIon.fromString("PEPTIDE/2")
-    assert pfi.canGenerateSpectrum() == True
+    assert pfi.canGenerateSpectrum()
 
 
 def test_can_generate_spectrum_with_modification():
@@ -643,7 +643,7 @@ def test_can_generate_spectrum_with_modification():
 
     # Modified peptide should be generatable
     pf = p.Peptidoform.fromString("EM[UNIMOD:35]K")
-    assert pf.canGenerateSpectrum() == True
+    assert pf.canGenerateSpectrum()
 
 
 def test_can_generate_spectrum_unsupported():
@@ -652,7 +652,7 @@ def test_can_generate_spectrum_unsupported():
 
     # Unlocalised modification cannot generate spectrum
     pf = p.Peptidoform.fromString("[Phospho]?PEPTIDE")
-    assert pf.canGenerateSpectrum() == False
+    assert not pf.canGenerateSpectrum()
 
 
 def test_generate_spectrum_simple():

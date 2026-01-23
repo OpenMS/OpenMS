@@ -11,6 +11,7 @@
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 namespace OpenMS
 {
@@ -34,6 +35,15 @@ namespace OpenMS
       const String& identifier = prot_id.getIdentifier();
 
       identifier_to_msrunpath_[identifier] = ms_run_paths;
+
+      // Check for duplicate ms_run_paths (different identifiers mapping to same paths)
+      const auto it = runpath_to_identifier_.find(ms_run_paths);
+      if (it != runpath_to_identifier_.end())
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "Multiple protein identifications with the same ms-run-path. Check input!",
+          ListUtils::concatenate(ms_run_paths, ","));
+      }
       runpath_to_identifier_[ms_run_paths] = identifier;
     }
   }

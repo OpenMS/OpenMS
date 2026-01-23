@@ -97,4 +97,5 @@ See `pxds/IonSource.pxd` for a working example of nested enum classes.
 
 ## Reference
 
-- Autowrap: https://github.com/OpenMS/autowrap
+- Autowrap: [github.com/OpenMS/autowrap](https://github.com/OpenMS/autowrap)
+- pyopenms and openms can be built with multiple threads
