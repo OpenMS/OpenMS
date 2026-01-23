@@ -124,15 +124,7 @@ OpenMS Library:
       - JSON serialization for AST persistence and interoperability
       - Theoretical spectrum generation via tryGenerateSpectrum() for single-chain and cross-linked peptides
         Uses TheoreticalSpectrumGenerator for linear peptides, TheoreticalSpectrumGeneratorXLMS for cross-links
-    - MzPAF: HUPO-PSI mzPAF (Peak Annotation Format) parser and serializer (#8686)
-      - Parse fragment ion annotations: MzPAF::parse("y4-H2O^2/3.2ppm*0.75")
-      - Supports all ion types: a/b/c/x/y/z, precursor, immonium, internal, reporter, formula, named
-      - Modifiers: neutral losses (-H2O), isotopes (+2i), charge (^2), mass delta (/ppm), confidence (*0.95)
-      - Multi-analyte annotations for chimeric spectra (2@y4)
-      - Bidirectional conversion with CANONICAL/LOSSLESS write modes
-      - PeakAnnotation integration: toPeakAnnotation()/fromPeakAnnotation()
-      - Safe parsing: tryParse() returns std::optional, isMzPAFFormat() for validation
-      - pyOpenMS bindings included
+    - MzPAF: HUPO-PSI mzPAF (Peak Annotation Format) parser and serializer (#8686). Parse fragment ion annotations: MzPAF::parse("y4-H2O^2/3.2ppm*0.75"). pyOpenMS bindings included
   Changes:
     - BREAKING: Matrix<T> no longer inherits from Eigen; uses std::vector<T> for storage (#8511)
     - BREAKING: Eigen moved from PUBLIC to PRIVATE linking - downstream users no longer need Eigen headers (#8511)
