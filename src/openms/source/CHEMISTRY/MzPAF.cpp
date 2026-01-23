@@ -6,7 +6,7 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/CHEMISTRY/MzPAFParser.h>
+#include <OpenMS/CHEMISTRY/MzPAF.h>
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/CHEMISTRY/Residue.h>
@@ -202,7 +202,7 @@ namespace OpenMS
 
   std::ostream& operator<<(std::ostream& os, const MzPAFAnnotation& ann)
   {
-    os << MzPAFParser::toString(ann, MzPAFWriteMode::CANONICAL);
+    os << MzPAF::toString(ann, MzPAFWriteMode::CANONICAL);
     return os;
   }
 
@@ -459,7 +459,7 @@ namespace OpenMS
         if (first == 'a' || first == 'b' || first == 'c' ||
             first == 'x' || first == 'y' || first == 'z')
         {
-          MzPAFParser::charToIonSeries(first, ann.ion_series);
+          MzPAF::charToIonSeries(first, ann.ion_series);
 
           // Check if ordinal is embedded in the identifier (e.g., "y4" as single token)
           if (text.size() > 1 && std::isdigit(text[1]))
@@ -970,10 +970,10 @@ namespace OpenMS
   } // anonymous namespace
 
   //--------------------------------------------------------------------------
-  // MzPAFParser implementation
+  // MzPAF implementation
   //--------------------------------------------------------------------------
 
-  MzPAFAnnotation MzPAFParser::parse(const String& input)
+  MzPAFAnnotation MzPAF::parse(const String& input)
   {
     if (input.empty())
     {
@@ -993,7 +993,7 @@ namespace OpenMS
     return result.annotations[0];
   }
 
-  MzPAFPeakAnnotations MzPAFParser::parseMultiple(const String& input)
+  MzPAFPeakAnnotations MzPAF::parseMultiple(const String& input)
   {
     if (input.empty())
     {
@@ -1005,7 +1005,7 @@ namespace OpenMS
     return parser.parseAll();
   }
 
-  std::optional<MzPAFAnnotation> MzPAFParser::tryParse(const String& input)
+  std::optional<MzPAFAnnotation> MzPAF::tryParse(const String& input)
   {
     try
     {
@@ -1017,7 +1017,7 @@ namespace OpenMS
     }
   }
 
-  std::optional<MzPAFPeakAnnotations> MzPAFParser::tryParseMultiple(const String& input)
+  std::optional<MzPAFPeakAnnotations> MzPAF::tryParseMultiple(const String& input)
   {
     try
     {
@@ -1033,7 +1033,7 @@ namespace OpenMS
   // Writer implementation
   //--------------------------------------------------------------------------
 
-  String MzPAFParser::toString(const MzPAFAnnotation& ann, MzPAFWriteMode mode)
+  String MzPAF::toString(const MzPAFAnnotation& ann, MzPAFWriteMode mode)
   {
     std::ostringstream oss;
 
@@ -1179,7 +1179,7 @@ namespace OpenMS
     return String(oss.str());
   }
 
-  String MzPAFParser::toString(const MzPAFPeakAnnotations& anns, MzPAFWriteMode mode)
+  String MzPAF::toString(const MzPAFPeakAnnotations& anns, MzPAFWriteMode mode)
   {
     if (anns.empty())
     {
@@ -1203,7 +1203,7 @@ namespace OpenMS
   // PeakAnnotation integration
   //--------------------------------------------------------------------------
 
-  PeptideHit::PeakAnnotation MzPAFParser::toPeakAnnotation(
+  PeptideHit::PeakAnnotation MzPAF::toPeakAnnotation(
     const MzPAFAnnotation& mzpaf, double mz, double intensity)
   {
     PeptideHit::PeakAnnotation pa;
@@ -1214,7 +1214,7 @@ namespace OpenMS
     return pa;
   }
 
-  MzPAFPeakAnnotations MzPAFParser::fromPeakAnnotation(
+  MzPAFPeakAnnotations MzPAF::fromPeakAnnotation(
     const PeptideHit::PeakAnnotation& peak_annotation)
   {
     auto result = tryParseMultiple(peak_annotation.annotation);
@@ -1225,7 +1225,7 @@ namespace OpenMS
   // Utilities
   //--------------------------------------------------------------------------
 
-  bool MzPAFParser::isMzPAFFormat(const String& annotation)
+  bool MzPAF::isMzPAFFormat(const String& annotation)
   {
     if (annotation.empty())
     {
@@ -1249,7 +1249,7 @@ namespace OpenMS
     return false;
   }
 
-  std::optional<double> MzPAFParser::calculateTheoreticalMZ(
+  std::optional<double> MzPAF::calculateTheoreticalMZ(
     const MzPAFAnnotation& ann, const AASequence& sequence)
   {
     // Only handle standard fragment ions for now
@@ -1321,7 +1321,7 @@ namespace OpenMS
     return mz;
   }
 
-  char MzPAFParser::ionSeriesToChar(MzPAFIonSeries series)
+  char MzPAF::ionSeriesToChar(MzPAFIonSeries series)
   {
     switch (series)
     {
@@ -1342,7 +1342,7 @@ namespace OpenMS
     }
   }
 
-  bool MzPAFParser::charToIonSeries(char c, MzPAFIonSeries& series)
+  bool MzPAF::charToIonSeries(char c, MzPAFIonSeries& series)
   {
     switch (c)
     {

@@ -271,23 +271,23 @@ namespace OpenMS
     Usage example:
     @code
     // Parse a single annotation
-    MzPAFAnnotation ann = MzPAFParser::parse("y4^2-H2O/0.001*0.75");
+    MzPAFAnnotation ann = MzPAF::parse("y4^2-H2O/0.001*0.75");
 
     // Parse multiple annotations (comma-separated)
-    MzPAFPeakAnnotations anns = MzPAFParser::parseMultiple("b2,y4^2");
+    MzPAFPeakAnnotations anns = MzPAF::parseMultiple("b2,y4^2");
 
     // Convert back to string
-    String s = MzPAFParser::toString(ann, MzPAFWriteMode::CANONICAL);
+    String s = MzPAF::toString(ann, MzPAFWriteMode::CANONICAL);
 
     // Check if a string is mzPAF format
-    if (MzPAFParser::isMzPAFFormat("y4^2")) { ... }
+    if (MzPAF::isMzPAFFormat("y4^2")) { ... }
     @endcode
 
     @see MzPAFAnnotation, MzPAFPeakAnnotations, MzPAFWriteMode
 
     @ingroup Chemistry
   */
-  class OPENMS_DLLAPI MzPAFParser
+  class OPENMS_DLLAPI MzPAF
   {
   public:
     //--------------------------------------------------------------------------
@@ -427,7 +427,7 @@ namespace OpenMS
     static bool charToIonSeries(char c, MzPAFIonSeries& series);
 
   private:
-    MzPAFParser() = delete;  // Static class, no instantiation
+    MzPAF() = delete;  // Static class, no instantiation
   };
 
 } // namespace OpenMS

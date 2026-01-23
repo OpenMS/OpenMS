@@ -8,7 +8,7 @@ from EmpiricalFormula cimport *
 from AASequence cimport *
 from PeptideHit cimport *
 
-cdef extern from "<OpenMS/CHEMISTRY/MzPAFParser.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/CHEMISTRY/MzPAF.h>" namespace "OpenMS":
 
     cdef enum MzPAFIonSeries "OpenMS::MzPAFIonSeries":
         # wrap-doc:
@@ -93,7 +93,7 @@ cdef extern from "<OpenMS/CHEMISTRY/MzPAFParser.h>" namespace "OpenMS":
         size_t size() except + nogil
         bool operator==(MzPAFPeakAnnotations) except + nogil
 
-    cdef cppclass MzPAFParser "OpenMS::MzPAFParser":
+    cdef cppclass MzPAF "OpenMS::MzPAF":
         # wrap-doc:
         #  Parser and writer for mzPAF (Peak Annotation Format) notation.
         #
@@ -105,42 +105,42 @@ cdef extern from "<OpenMS/CHEMISTRY/MzPAFParser.h>" namespace "OpenMS":
         #  .. code-block:: python
         #
         #    # Parse a single annotation
-        #    ann = MzPAFParser.parse("y4^2-H2O/0.001*0.75")
+        #    ann = MzPAF.parse("y4^2-H2O/0.001*0.75")
         #
         #    # Parse multiple comma-separated annotations
-        #    anns = MzPAFParser.parseMultiple("b2,y4^2")
+        #    anns = MzPAF.parseMultiple("b2,y4^2")
         #
         #    # Convert back to string
-        #    s = MzPAFParser.toString(ann, MzPAFWriteMode.CANONICAL)
+        #    s = MzPAF.toString(ann, MzPAFWriteMode.CANONICAL)
         #
         #    # Check if a string is mzPAF format
-        #    if MzPAFParser.isMzPAFFormat("y4^2"):
+        #    if MzPAF.isMzPAFFormat("y4^2"):
         #        print("Valid mzPAF")
         #
-        #  Dummy class to attach MzPAFParser namespace functions.
-        MzPAFParser() except + nogil  # wrap-ignore
-        MzPAFParser(MzPAFParser &) except + nogil  # wrap-ignore
+        #  Dummy class to attach MzPAF namespace functions.
+        MzPAF() except + nogil  # wrap-ignore
+        MzPAF(MzPAF &) except + nogil  # wrap-ignore
 
-cdef extern from "<OpenMS/CHEMISTRY/MzPAFParser.h>" namespace "OpenMS::MzPAFParser":
+cdef extern from "<OpenMS/CHEMISTRY/MzPAF.h>" namespace "OpenMS::MzPAF":
 
     # Static parse methods
-    MzPAFAnnotation parse(const String& input) except + nogil  # wrap-attach:MzPAFParser wrap-doc:Parse an mzPAF string into a single annotation
+    MzPAFAnnotation parse(const String& input) except + nogil  # wrap-attach:MzPAF wrap-doc:Parse an mzPAF string into a single annotation
 
-    MzPAFPeakAnnotations parseMultiple(const String& input) except + nogil  # wrap-attach:MzPAFParser wrap-doc:Parse an mzPAF string with multiple comma-separated annotations
+    MzPAFPeakAnnotations parseMultiple(const String& input) except + nogil  # wrap-attach:MzPAF wrap-doc:Parse an mzPAF string with multiple comma-separated annotations
 
     # Static toString methods
-    String toString(const MzPAFAnnotation& ann, MzPAFWriteMode mode) except + nogil  # wrap-attach:MzPAFParser wrap-doc:Convert an annotation to mzPAF string with specified mode
+    String toString(const MzPAFAnnotation& ann, MzPAFWriteMode mode) except + nogil  # wrap-attach:MzPAF wrap-doc:Convert an annotation to mzPAF string with specified mode
 
-    String toStringMultiple "OpenMS::MzPAFParser::toString" (const MzPAFPeakAnnotations& anns, MzPAFWriteMode mode) except + nogil  # wrap-attach:MzPAFParser wrap-doc:Convert multiple annotations to comma-separated mzPAF string
+    String toStringMultiple "OpenMS::MzPAF::toString" (const MzPAFPeakAnnotations& anns, MzPAFWriteMode mode) except + nogil  # wrap-attach:MzPAF wrap-doc:Convert multiple annotations to comma-separated mzPAF string
 
     # PeakAnnotation integration
-    PeptideHit_PeakAnnotation toPeakAnnotation(const MzPAFAnnotation& mzpaf, double mz, double intensity) except + nogil  # wrap-attach:MzPAFParser wrap-doc:Create a PeptideHit.PeakAnnotation from mzPAF data
+    PeptideHit_PeakAnnotation toPeakAnnotation(const MzPAFAnnotation& mzpaf, double mz, double intensity) except + nogil  # wrap-attach:MzPAF wrap-doc:Create a PeptideHit.PeakAnnotation from mzPAF data
 
-    MzPAFPeakAnnotations fromPeakAnnotation(const PeptideHit_PeakAnnotation& peak_annotation) except + nogil  # wrap-attach:MzPAFParser wrap-doc:Parse mzPAF annotations from a PeptideHit.PeakAnnotation
+    MzPAFPeakAnnotations fromPeakAnnotation(const PeptideHit_PeakAnnotation& peak_annotation) except + nogil  # wrap-attach:MzPAF wrap-doc:Parse mzPAF annotations from a PeptideHit.PeakAnnotation
 
     # Utilities
-    bool isMzPAFFormat(const String& annotation) except + nogil  # wrap-attach:MzPAFParser wrap-doc:Check if a string appears to be in mzPAF format
+    bool isMzPAFFormat(const String& annotation) except + nogil  # wrap-attach:MzPAF wrap-doc:Check if a string appears to be in mzPAF format
 
-    char ionSeriesToChar(MzPAFIonSeries series) except + nogil  # wrap-attach:MzPAFParser wrap-doc:Get the character for an ion series (a, b, c, x, y, z, etc.)
+    char ionSeriesToChar(MzPAFIonSeries series) except + nogil  # wrap-attach:MzPAF wrap-doc:Get the character for an ion series (a, b, c, x, y, z, etc.)
 
     # Note: charToIonSeries not exposed - output reference parameter incompatible with Cython bindings

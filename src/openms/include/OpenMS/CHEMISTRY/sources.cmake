@@ -21,7 +21,7 @@ ModificationDefinitionsSet.h
 ModifiedNASequenceGenerator.h
 ModifiedPeptideGenerator.h
 ModificationsDB.h
-MzPAFParser.h
+MzPAF.h
 MonosaccharideDB.h
 NASequence.h
 NucleicAcidSpectrumGenerator.h
