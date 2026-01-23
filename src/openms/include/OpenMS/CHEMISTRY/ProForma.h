@@ -50,7 +50,6 @@ namespace OpenMS
   class OPENMS_DLLAPI ProForma
   {
   public:
-
     //==========================================================================
     // Enums
     //==========================================================================
@@ -1151,7 +1150,6 @@ namespace OpenMS
       @return A human-readable string describing the error code.
     */
     static const char* errorCodeToString(ErrorCode code);
-
   }; // class ProForma
 
 } // namespace OpenMS
