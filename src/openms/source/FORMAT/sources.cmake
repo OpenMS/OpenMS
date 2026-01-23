@@ -97,6 +97,8 @@ XQuestResultXMLFile.cpp
 XTandemInfile.cpp
 XTandemXMLFile.cpp
 ZlibCompression.cpp
+SRMFile.cpp
+TargetedDataFileLoader.cpp
 )
 
 if (WITH_HDF5)
