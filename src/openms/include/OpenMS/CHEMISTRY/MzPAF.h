@@ -66,31 +66,15 @@ namespace OpenMS
   };
 
   /**
-    @brief Write mode for mzPAF string serialization
-
-    Controls whether output preserves original formatting (LOSSLESS) or
-    produces a normalized, deterministic output (CANONICAL).
-
-    @ingroup Chemistry
-  */
-  enum class MzPAFWriteMode
-  {
-    LOSSLESS,   ///< Preserve original spelling/formatting where possible
-    CANONICAL   ///< Normalized output: sorted, consistent formatting
-  };
-
-  /**
     @brief Neutral loss in an mzPAF annotation
 
     Represents a neutral loss like -H2O or -NH3.
-    Stores both the parsed formula and original text for lossless roundtrip.
 
     @ingroup Chemistry
   */
   struct OPENMS_DLLAPI MzPAFNeutralLoss
   {
     EmpiricalFormula formula;   ///< Parsed chemical formula of the loss
-    String original_text;       ///< Original text for lossless roundtrip (e.g., "H2O", "NH3")
 
     bool operator==(const MzPAFNeutralLoss& other) const;
     bool operator!=(const MzPAFNeutralLoss& other) const { return !(*this == other); }
@@ -108,7 +92,6 @@ namespace OpenMS
   {
     double value = 0.0;         ///< Mass delta value
     MzPAFDeltaUnit unit = MzPAFDeltaUnit::DALTON; ///< Unit (DALTON or PPM)
-    String original_text;       ///< Original text for lossless roundtrip
 
     bool operator==(const MzPAFMassDelta& other) const;
     bool operator!=(const MzPAFMassDelta& other) const { return !(*this == other); }
@@ -339,21 +322,17 @@ namespace OpenMS
       @brief Convert an annotation to mzPAF string
 
       @param[in] ann The annotation to convert
-      @param[in] mode Write mode: LOSSLESS preserves original text, CANONICAL normalizes
       @return The mzPAF string representation
     */
-    static String toString(const MzPAFAnnotation& ann,
-                           MzPAFWriteMode mode = MzPAFWriteMode::LOSSLESS);
+    static String toString(const MzPAFAnnotation& ann);
 
     /**
       @brief Convert multiple annotations to mzPAF string
 
       @param[in] anns The annotations to convert
-      @param[in] mode Write mode: LOSSLESS preserves original text, CANONICAL normalizes
       @return The mzPAF string representation (comma-separated)
     */
-    static String toString(const MzPAFPeakAnnotations& anns,
-                           MzPAFWriteMode mode = MzPAFWriteMode::LOSSLESS);
+    static String toString(const MzPAFPeakAnnotations& anns);
 
     //--------------------------------------------------------------------------
     // PeakAnnotation Integration
@@ -408,6 +387,14 @@ namespace OpenMS
     */
     static std::optional<double> calculateTheoreticalMZ(
       const MzPAFAnnotation& ann, const AASequence& sequence);
+
+    /**
+      @brief Check if ion series is a standard fragment ion (a, b, c, x, y, z)
+
+      @param[in] series The ion series to check
+      @return True if it's a standard fragment ion type
+    */
+    static bool isStandardFragmentIon(MzPAFIonSeries series);
 
     /**
       @brief Get the ion series character for an annotation

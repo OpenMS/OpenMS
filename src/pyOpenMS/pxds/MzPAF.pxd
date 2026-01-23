@@ -35,20 +35,12 @@ cdef extern from "<OpenMS/CHEMISTRY/MzPAF.h>" namespace "OpenMS":
         DALTON
         PPM
 
-    cdef enum MzPAFWriteMode "OpenMS::MzPAFWriteMode":
-        # wrap-doc:
-        #  Write mode for mzPAF serialization.
-        #  LOSSLESS preserves original formatting, CANONICAL normalizes output.
-        LOSSLESS
-        CANONICAL
-
     cdef cppclass MzPAFNeutralLoss "OpenMS::MzPAFNeutralLoss":
         # wrap-doc:
         #  Neutral loss in an mzPAF annotation (e.g., -H2O, -NH3)
         MzPAFNeutralLoss() except + nogil
         MzPAFNeutralLoss(MzPAFNeutralLoss &) except + nogil
         EmpiricalFormula formula
-        String original_text
         bool operator==(MzPAFNeutralLoss) except + nogil
 
     cdef cppclass MzPAFMassDelta "OpenMS::MzPAFMassDelta":
@@ -58,7 +50,6 @@ cdef extern from "<OpenMS/CHEMISTRY/MzPAF.h>" namespace "OpenMS":
         MzPAFMassDelta(MzPAFMassDelta &) except + nogil
         double value
         MzPAFDeltaUnit unit
-        String original_text
         bool operator==(MzPAFMassDelta) except + nogil
 
     cdef cppclass MzPAFAnnotation "OpenMS::MzPAFAnnotation":
@@ -111,7 +102,7 @@ cdef extern from "<OpenMS/CHEMISTRY/MzPAF.h>" namespace "OpenMS":
         #    anns = MzPAF.parseMultiple("b2,y4^2")
         #
         #    # Convert back to string
-        #    s = MzPAF.toString(ann, MzPAFWriteMode.CANONICAL)
+        #    s = MzPAF.toString(ann)
         #
         #    # Check if a string is mzPAF format
         #    if MzPAF.isMzPAFFormat("y4^2"):
@@ -129,9 +120,9 @@ cdef extern from "<OpenMS/CHEMISTRY/MzPAF.h>" namespace "OpenMS::MzPAF":
     MzPAFPeakAnnotations parseMultiple(const String& input) except + nogil  # wrap-attach:MzPAF wrap-doc:Parse an mzPAF string with multiple comma-separated annotations
 
     # Static toString methods
-    String toString(const MzPAFAnnotation& ann, MzPAFWriteMode mode) except + nogil  # wrap-attach:MzPAF wrap-doc:Convert an annotation to mzPAF string with specified mode
+    String toString(const MzPAFAnnotation& ann) except + nogil  # wrap-attach:MzPAF wrap-doc:Convert an annotation to mzPAF string
 
-    String toStringMultiple "OpenMS::MzPAF::toString" (const MzPAFPeakAnnotations& anns, MzPAFWriteMode mode) except + nogil  # wrap-attach:MzPAF wrap-doc:Convert multiple annotations to comma-separated mzPAF string
+    String toStringMultiple "OpenMS::MzPAF::toString" (const MzPAFPeakAnnotations& anns) except + nogil  # wrap-attach:MzPAF wrap-doc:Convert multiple annotations to comma-separated mzPAF string
 
     # PeakAnnotation integration
     PeptideHit_PeakAnnotation toPeakAnnotation(const MzPAFAnnotation& mzpaf, double mz, double intensity) except + nogil  # wrap-attach:MzPAF wrap-doc:Create a PeptideHit.PeakAnnotation from mzPAF data
@@ -139,6 +130,8 @@ cdef extern from "<OpenMS/CHEMISTRY/MzPAF.h>" namespace "OpenMS::MzPAF":
     MzPAFPeakAnnotations fromPeakAnnotation(const PeptideHit_PeakAnnotation& peak_annotation) except + nogil  # wrap-attach:MzPAF wrap-doc:Parse mzPAF annotations from a PeptideHit.PeakAnnotation
 
     # Utilities
+    bool isStandardFragmentIon(MzPAFIonSeries series) except + nogil  # wrap-attach:MzPAF wrap-doc:Check if ion series is a standard fragment ion (a, b, c, x, y, z)
+
     bool isMzPAFFormat(const String& annotation) except + nogil  # wrap-attach:MzPAF wrap-doc:Check if a string appears to be in mzPAF format
 
     char ionSeriesToChar(MzPAFIonSeries series) except + nogil  # wrap-attach:MzPAF wrap-doc:Get the character for an ion series (a, b, c, x, y, z, etc.)
