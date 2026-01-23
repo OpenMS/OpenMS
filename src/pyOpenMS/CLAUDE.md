@@ -34,6 +34,41 @@ To make C++ types accept Python primitives (e.g., `DPosition<1>` from `float`):
 2. Register in `converters/__init__.py`
 3. Remove `wrap-ignore` from methods using that type
 
+## Wrapping C++ `enum class` (scoped enums)
+
+Use `cdef enum class`, NOT `cdef enum`, for C++ `enum class` types:
+
+```cython
+# CORRECT - for C++ enum class
+cdef enum class WriteMode "OpenMS::ProForma::WriteMode":
+    LOSSLESS
+    CANONICAL
+
+# WRONG - this is for C++ enum (unscoped)
+cdef enum WriteMode "OpenMS::ProForma::WriteMode":
+    LOSSLESS
+    CANONICAL
+```
+
+The `wrap-attach` directive nests enums under a class. **Formatting matters** - class name must be on a separate indented line:
+
+```cython
+# CORRECT
+cdef enum class WriteMode "OpenMS::ProForma::WriteMode":
+    # wrap-attach:
+    #    ProForma
+    LOSSLESS
+    CANONICAL
+
+# WRONG - won't attach properly
+cdef enum class WriteMode "OpenMS::ProForma::WriteMode":
+    # wrap-attach:ProForma
+    LOSSLESS
+    CANONICAL
+```
+
+See `pxds/IonSource.pxd` for a working example of nested enum classes.
+
 ## Common Patterns
 
 - `__str__`: short user display
