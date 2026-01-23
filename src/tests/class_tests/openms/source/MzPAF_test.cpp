@@ -85,7 +85,7 @@ START_SECTION(Ion with neutral loss)
   TEST_EQUAL(ann.ion_series, MzPAFIonSeries::B)
   TEST_EQUAL(ann.ordinal.value(), 2)
   TEST_EQUAL(ann.neutral_losses.size(), 1)
-  TEST_EQUAL(ann.neutral_losses[0].original_text, "H2O")
+  TEST_EQUAL(ann.neutral_losses[0].formula.toString(), "H2O1")
 }
 END_SECTION
 
@@ -95,8 +95,8 @@ START_SECTION(Ion with multiple neutral losses)
   TEST_EQUAL(ann.ion_series, MzPAFIonSeries::Y)
   TEST_EQUAL(ann.ordinal.value(), 5)
   TEST_EQUAL(ann.neutral_losses.size(), 2)
-  TEST_EQUAL(ann.neutral_losses[0].original_text, "H2O")
-  TEST_EQUAL(ann.neutral_losses[1].original_text, "NH3")
+  TEST_EQUAL(ann.neutral_losses[0].formula.toString(), "H2O1")
+  TEST_EQUAL(ann.neutral_losses[1].formula.toString(), "H3N1")
 }
 END_SECTION
 
@@ -242,18 +242,18 @@ START_SECTION(tryParse non-throwing)
 }
 END_SECTION
 
-START_SECTION(toString LOSSLESS mode)
+START_SECTION(toString single annotation)
 {
   MzPAFAnnotation ann = MzPAF::parse("y4^2-H2O/0.001*0.75");
-  String s = MzPAF::toString(ann, );
-  TEST_EQUAL(s, "y4-H2O^2/0.001*0.75")
+  String s = MzPAF::toString(ann);
+  TEST_EQUAL(s, "y4-H2O1^2/0.001*0.75")
 }
 END_SECTION
 
-START_SECTION(toString CANONICAL mode)
+START_SECTION(toString simple annotation)
 {
   MzPAFAnnotation ann = MzPAF::parse("y4^2");
-  String s = MzPAF::toString(ann, );
+  String s = MzPAF::toString(ann);
   TEST_EQUAL(s, "y4^2")
 }
 END_SECTION
@@ -261,7 +261,7 @@ END_SECTION
 START_SECTION(toString multiple annotations)
 {
   MzPAFPeakAnnotations anns = MzPAF::parseMultiple("b2,y4^2");
-  String s = MzPAF::toString(anns, );
+  String s = MzPAF::toString(anns);
   TEST_EQUAL(s, "b2,y4^2")
 }
 END_SECTION
@@ -286,7 +286,7 @@ START_SECTION(Roundtrip test)
   for (const auto& input : test_cases)
   {
     auto ann = MzPAF::parse(input);
-    String output = MzPAF::toString(ann, );
+    String output = MzPAF::toString(ann);
     auto reparsed = MzPAF::parse(output);
     TEST_EQUAL(ann, reparsed)
   }
@@ -425,7 +425,7 @@ END_SECTION
 START_SECTION(Roundtrip test with named compound)
 {
   auto ann = MzPAF::parse("_[MyCompound]");
-  String output = MzPAF::toString(ann, );
+  String output = MzPAF::toString(ann);
   auto reparsed = MzPAF::parse(output);
   TEST_EQUAL(ann, reparsed)
 }
