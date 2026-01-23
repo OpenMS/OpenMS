@@ -23,9 +23,6 @@
 namespace OpenMS
 {
 
-  // Forward declaration
-  struct Peptidoform;
-
   //--------------------------------------------------------------------------
   // Data Structures
   //--------------------------------------------------------------------------
@@ -260,13 +257,13 @@ namespace OpenMS
     MzPAFPeakAnnotations anns = MzPAF::parseMultiple("b2,y4^2");
 
     // Convert back to string
-    String s = MzPAF::toString(ann, MzPAFWriteMode::CANONICAL);
+    String s = MzPAF::toString(ann);
 
     // Check if a string is mzPAF format
     if (MzPAF::isMzPAFFormat("y4^2")) { ... }
     @endcode
 
-    `@see` MzPAFAnnotation, MzPAFPeakAnnotations
+    @see MzPAFAnnotation, MzPAFPeakAnnotations
 
     @ingroup Chemistry
   */

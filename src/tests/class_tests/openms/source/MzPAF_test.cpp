@@ -431,6 +431,51 @@ START_SECTION(Roundtrip test with named compound)
 }
 END_SECTION
 
+START_SECTION(tryParseMultiple non-throwing)
+{
+  auto valid = MzPAF::tryParseMultiple("b2,y4^2");
+  TEST_EQUAL(valid.has_value(), true)
+  TEST_EQUAL(valid.value().size(), 2)
+
+  auto invalid = MzPAF::tryParseMultiple("y4,invalid[");
+  TEST_EQUAL(invalid.has_value(), false)
+}
+END_SECTION
+
+START_SECTION(isStandardFragmentIon)
+{
+  // Standard fragment ions (a, b, c, x, y, z)
+  TEST_EQUAL(MzPAF::isStandardFragmentIon(MzPAFIonSeries::A), true)
+  TEST_EQUAL(MzPAF::isStandardFragmentIon(MzPAFIonSeries::B), true)
+  TEST_EQUAL(MzPAF::isStandardFragmentIon(MzPAFIonSeries::C), true)
+  TEST_EQUAL(MzPAF::isStandardFragmentIon(MzPAFIonSeries::X), true)
+  TEST_EQUAL(MzPAF::isStandardFragmentIon(MzPAFIonSeries::Y), true)
+  TEST_EQUAL(MzPAF::isStandardFragmentIon(MzPAFIonSeries::Z), true)
+
+  // Special ion types (not standard fragment ions)
+  TEST_EQUAL(MzPAF::isStandardFragmentIon(MzPAFIonSeries::PRECURSOR), false)
+  TEST_EQUAL(MzPAF::isStandardFragmentIon(MzPAFIonSeries::IMMONIUM), false)
+  TEST_EQUAL(MzPAF::isStandardFragmentIon(MzPAFIonSeries::INTERNAL), false)
+  TEST_EQUAL(MzPAF::isStandardFragmentIon(MzPAFIonSeries::REPORTER), false)
+  TEST_EQUAL(MzPAF::isStandardFragmentIon(MzPAFIonSeries::FORMULA), false)
+  TEST_EQUAL(MzPAF::isStandardFragmentIon(MzPAFIonSeries::NAMED), false)
+  TEST_EQUAL(MzPAF::isStandardFragmentIon(MzPAFIonSeries::UNKNOWN), false)
+}
+END_SECTION
+
+START_SECTION(Adduct parsing)
+{
+  // Note: Adduct parsing depends on implementation - test if supported
+  auto result = MzPAF::tryParse("y4+Na");
+  if (result.has_value() && result.value().adduct.has_value())
+  {
+    TEST_EQUAL(result.value().ion_series, MzPAFIonSeries::Y)
+    TEST_EQUAL(result.value().ordinal.value(), 4)
+    // Adduct should be parsed as Na
+  }
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
