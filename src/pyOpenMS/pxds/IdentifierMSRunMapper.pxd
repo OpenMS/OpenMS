@@ -21,8 +21,8 @@ cdef extern from "<OpenMS/METADATA/IdentifierMSRunMapper.h>" namespace "OpenMS":
         #     # Create mapping from protein identifications
         #     mapper = oms.IdentifierMSRunMapper(protein_ids)
         #
-        #     # Get the source file for a peptide identification
-        #     source_file = mapper.getPrimaryMSRunPath(pep_id)
+        #     # Get MS run paths for a peptide's identifier
+        #     paths = mapper.getMSRunPaths(pep_id.getIdentifier())
         #
         #     # Build a USI using the mapping
         #     usi = pep_id.buildUSI(mapper, "PXD000561", False)
@@ -40,9 +40,6 @@ cdef extern from "<OpenMS/METADATA/IdentifierMSRunMapper.h>" namespace "OpenMS":
             #  Create/update mapping from a list of ProteinIdentifications.
             #
             #  :param prot_ids: List of ProteinIdentification objects
-
-        # getPrimaryMSRunPath takes PeptideIdentification - wrapped via addon
-        # String getPrimaryMSRunPath(PeptideIdentification & pepid) except + nogil
 
         bool hasIdentifier(const String & identifier) except + nogil
             # wrap-doc:
@@ -62,3 +59,10 @@ cdef extern from "<OpenMS/METADATA/IdentifierMSRunMapper.h>" namespace "OpenMS":
             #  Get the number of identifier mappings.
             #
             #  :return: Number of identifiers in the mapping
+
+        StringList getMSRunPaths(const String & identifier) except + nogil
+            # wrap-doc:
+            #  Get the MS run paths for a given identifier.
+            #
+            #  :param identifier: ProteinIdentification identifier
+            #  :return: List of MS run file paths (empty if identifier not found)
