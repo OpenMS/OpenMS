@@ -17,6 +17,7 @@
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/IdentifierMSRunMapper.h>
 #include <OpenMS/METADATA/MetaInfoInterfaceUtils.h>
 #include <OpenMS/QC/Contaminants.h>
 #include <OpenMS/QC/FragmentMassError.h>
@@ -394,12 +395,12 @@ protected:
       //-------------------------------------------------------------
 
       // copy MetaValues of unassigned PepIDs
-      addPepIDMetaValues_(fmap->getUnassignedPeptideIdentifications(), customID_to_cpepID, mp_f.identifier_to_msrunpath, cmap);
+      addPepIDMetaValues_(fmap->getUnassignedPeptideIdentifications(), customID_to_cpepID, mp_f, cmap);
 
       // copy MetaValues of assigned PepIDs
       for (Feature& feature : *fmap)
       {
-        addPepIDMetaValues_(feature.getPeptideIdentifications(), customID_to_cpepID, mp_f.identifier_to_msrunpath, cmap);
+        addPepIDMetaValues_(feature.getPeptideIdentifications(), customID_to_cpepID, mp_f, cmap);
       }
 
       if (MQExporterHelper::isValid(out_txt_dir))
@@ -518,7 +519,7 @@ private:
   void addPepIDMetaValues_(
     const PeptideIdentificationList& f_pep_ids,
     const multimap<String, pair<Size, Size>>& customID_to_cpepID,
-    const map<String, StringList>& fidentifier_to_msrunpath,
+    const IdentifierMSRunMapper& mapping,
     ConsensusMap& cmap) const
   {
     for (const PeptideIdentification& f_pep_id : f_pep_ids)
@@ -528,7 +529,7 @@ private:
       {
         continue;
       }
-      String UID = PeptideIdentification::buildUIDFromPepID(f_pep_id,fidentifier_to_msrunpath);
+      String UID = PeptideIdentification::buildUIDFromPepID(f_pep_id, mapping);
       const auto range = customID_to_cpepID.equal_range(UID);
 
       for (auto it_pep = range.first; it_pep != range.second; ++it_pep) // OMS_CODING_TEST_EXCLUDE

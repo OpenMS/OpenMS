@@ -7,6 +7,7 @@ from Types cimport *
 from MetaInfoInterface cimport *
 from PeptideHit cimport *
 from USI cimport *
+from IdentifierMSRunMapper cimport *
 
 cdef extern from "<OpenMS/METADATA/PeptideIdentification.h>" namespace "OpenMS":
 
@@ -177,32 +178,63 @@ cdef extern from "<OpenMS/METADATA/PeptideIdentification.h>" namespace "OpenMS":
 
         libcpp_vector[PeptideHit] getReferencingHits(libcpp_vector[PeptideHit], libcpp_set[String] &) except + nogil  # wrap-doc:Returns all peptide hits which reference to a given protein accession (i.e. filter by protein accession)
 
-        USI buildUSI(const String& dataset_id,
-                     const String& ms_run_name,
+        USI buildUSI(const String& ms_run_name,
+                     const String& dataset_id,
                      bool include_interpretation) except + nogil
             # wrap-doc:
             #  Build a Universal Spectrum Identifier (USI) for this identification.
-            #  
+            #
             #  The USI format follows PSI-MS MS:1003063:
             #    mzspec:<collection>:<ms_run>:<index_type>:<index>[:interpretation]
-            #  
+            #
             #  If include_interpretation is True, the first peptide hit is used
             #  as ProForma proteoform-ion interpretation (best hit after sort()).
-            #  
-            #  :param dataset_id: ProteomeXchange dataset id or spectral library name
+            #
             #  :param ms_run_name: MS run file name
+            #  :param dataset_id: ProteomeXchange dataset id (default: "local")
             #  :param include_interpretation: Include ProForma interpretation from best hit
             #  :return: USI object (may be invalid if spectrum reference is missing)
 
-        String buildUSIString(const String& dataset_id,
-                              const String& ms_run_name,
+        String buildUSIString(const String& ms_run_name,
+                              const String& dataset_id,
                               bool include_interpretation) except + nogil
             # wrap-doc:
             #  Convenience method returning the USI as a string.
-            #  
-            #  :param dataset_id: ProteomeXchange dataset id or spectral library name
+            #
             #  :param ms_run_name: MS run file name
+            #  :param dataset_id: ProteomeXchange dataset id (default: "local")
             #  :param include_interpretation: Include ProForma interpretation from best hit
             #  :return: USI string or empty string if USI cannot be constructed
 
- 
+        USI buildUSI(IdentifierMSRunMapper & mapping,
+                     const String& dataset_id,
+                     bool include_interpretation) except + nogil
+            # wrap-doc:
+            #  Build USI with automatic source file resolution for merged files.
+            #
+            #  Uses id_merge_index metadata to select the correct file from the mapping.
+            #
+            #  Example:
+            #
+            #  .. code-block:: python
+            #
+            #     mapper = oms.IdentifierMSRunMapper(protein_ids)
+            #     usi = pep_id.buildUSI(mapper, "PXD000561", True)
+            #
+            #  :param mapping: IdentifierMSRunMapper object built from ProteinIdentifications
+            #  :param dataset_id: ProteomeXchange dataset id (default: "local")
+            #  :param include_interpretation: Include ProForma interpretation from best hit
+            #  :return: USI object (may be invalid if mapping is missing)
+
+        String buildUSIString(IdentifierMSRunMapper & mapping,
+                              const String& dataset_id,
+                              bool include_interpretation) except + nogil
+            # wrap-doc:
+            #  Build USI string with automatic source file resolution for merged files.
+            #
+            #  :param mapping: IdentifierMSRunMapper object built from ProteinIdentifications
+            #  :param dataset_id: ProteomeXchange dataset id (default: "local")
+            #  :param include_interpretation: Include ProForma interpretation from best hit
+            #  :return: USI string or empty string if USI cannot be constructed
+
+

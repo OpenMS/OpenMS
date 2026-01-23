@@ -18,6 +18,33 @@ namespace OpenMS
   // JSON Serialization (nlohmann/json ADL pattern)
   //--------------------------------------------------------------------------
 
+  // Type aliases for convenience
+  using CvDatabase = ProForma::CvDatabase;
+  using CvAccession = ProForma::CvAccession;
+  using NamedMod = ProForma::NamedMod;
+  using MassDelta = ProForma::MassDelta;
+  using FormulaTag = ProForma::FormulaTag;
+  using GlycanComposition = ProForma::GlycanComposition;
+  using InfoTag = ProForma::InfoTag;
+  using PositionConstraint = ProForma::PositionConstraint;
+  using ModificationTag = ProForma::ModificationTag;
+  using Label = ProForma::Label;
+  using Modification = ProForma::Modification;
+  using SequenceElement = ProForma::SequenceElement;
+  using AmbiguousRegion = ProForma::AmbiguousRegion;
+  using ModifiedRange = ProForma::ModifiedRange;
+  using SequenceSection = ProForma::SequenceSection;
+  using UnlocalisedMod = ProForma::UnlocalisedMod;
+  using LabileModification = ProForma::LabileModification;
+  using GlobalModification = ProForma::GlobalModification;
+  using IsotopeReplacement = ProForma::IsotopeReplacement;
+  using GlobalModEntry = ProForma::GlobalModEntry;
+  using AdductIon = ProForma::AdductIon;
+  using ChargeState = ProForma::ChargeState;
+  using Peptidoform = ProForma::Peptidoform;
+  using PeptidoformIon = ProForma::PeptidoformIon;
+  using CrossLinkGroup = ProForma::CrossLinkGroup;
+
   /// @name CvDatabase enum JSON serialization
   /// @{
 

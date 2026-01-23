@@ -21,7 +21,7 @@ def test_parse_simple_sequence():
     pf = p.Peptidoform.fromString("PEPTIDE")
     assert pf is not None
 
-    result = pf.toString( p.ProFormaWriteMode.LOSSLESS)
+    result = pf.toString(p.ProForma.WriteMode.LOSSLESS)
     assert result == "PEPTIDE"
 
 
@@ -31,12 +31,12 @@ def test_parse_with_unimod_modification():
 
     # Oxidation on M
     pf = p.Peptidoform.fromString("EM[UNIMOD:35]K")
-    result = pf.toString( p.ProFormaWriteMode.LOSSLESS)
+    result = pf.toString( p.ProForma.WriteMode.LOSSLESS)
     assert result == "EM[UNIMOD:35]K"
 
     # Phosphorylation on S
     pf = p.Peptidoform.fromString("PES[UNIMOD:21]TIDE")
-    result = pf.toString( p.ProFormaWriteMode.LOSSLESS)
+    result = pf.toString( p.ProForma.WriteMode.LOSSLESS)
     assert result == "PES[UNIMOD:21]TIDE"
 
 
@@ -45,7 +45,7 @@ def test_parse_with_named_modification():
     import pyopenms as p
 
     pf = p.Peptidoform.fromString("EM[Oxidation]K")
-    result = pf.toString( p.ProFormaWriteMode.LOSSLESS)
+    result = pf.toString( p.ProForma.WriteMode.LOSSLESS)
     assert result == "EM[Oxidation]K"
 
 
@@ -54,7 +54,7 @@ def test_parse_with_mass_delta():
     import pyopenms as p
 
     pf = p.Peptidoform.fromString("EM[+15.9949]K")
-    result = pf.toString( p.ProFormaWriteMode.LOSSLESS)
+    result = pf.toString( p.ProForma.WriteMode.LOSSLESS)
     # In lossless mode, the original formatting is preserved
     assert "+15.9949" in result
 
@@ -73,7 +73,7 @@ def test_roundtrip_lossless():
 
     for original in test_cases:
         pf = p.Peptidoform.fromString(original)
-        result = pf.toString( p.ProFormaWriteMode.LOSSLESS)
+        result = pf.toString( p.ProForma.WriteMode.LOSSLESS)
         assert result == original, f"Roundtrip failed for {original}: got {result}"
 
 
@@ -85,11 +85,11 @@ def test_write_mode_canonical():
     pf = p.Peptidoform.fromString("EM[+15.99]K")
 
     # Canonical mode should output 4 decimal places
-    canonical = pf.toString( p.ProFormaWriteMode.CANONICAL)
+    canonical = pf.toString( p.ProForma.WriteMode.CANONICAL)
     assert "+15.9900" in canonical
 
     # Lossless mode should preserve original
-    lossless = pf.toString( p.ProFormaWriteMode.LOSSLESS)
+    lossless = pf.toString( p.ProForma.WriteMode.LOSSLESS)
     assert "+15.99" in lossless
 
 
@@ -99,17 +99,17 @@ def test_terminal_modifications():
 
     # N-terminal modification
     pf = p.Peptidoform.fromString("[Acetyl]-PEPTIDE")
-    result = pf.toString( p.ProFormaWriteMode.LOSSLESS)
+    result = pf.toString( p.ProForma.WriteMode.LOSSLESS)
     assert result == "[Acetyl]-PEPTIDE"
 
     # C-terminal modification
     pf = p.Peptidoform.fromString("PEPTIDE-[Amidated]")
-    result = pf.toString( p.ProFormaWriteMode.LOSSLESS)
+    result = pf.toString( p.ProForma.WriteMode.LOSSLESS)
     assert result == "PEPTIDE-[Amidated]"
 
     # Both terminal modifications
     pf = p.Peptidoform.fromString("[Acetyl]-PEPTIDE-[Amidated]")
-    result = pf.toString( p.ProFormaWriteMode.LOSSLESS)
+    result = pf.toString( p.ProForma.WriteMode.LOSSLESS)
     assert result == "[Acetyl]-PEPTIDE-[Amidated]"
 
 
@@ -150,7 +150,7 @@ def test_to_aasequence_simple():
     import pyopenms as p
 
     pf = p.Peptidoform.fromString("PEPTIDE")
-    aas = pf.toAASequence( p.AASequenceConversionPolicy.FAIL_ON_LOSS)
+    aas = pf.toAASequence( p.ProForma.ConversionPolicy.FAIL_ON_LOSS)
     assert aas.toString() == "PEPTIDE"
 
 
@@ -159,8 +159,8 @@ def test_to_aasequence_with_modification():
     import pyopenms as p
 
     pf = p.Peptidoform.fromString("EM[UNIMOD:35]K")
-    p.ProFormaParser.resolveModifications(pf)
-    aas = pf.toAASequence( p.AASequenceConversionPolicy.FAIL_ON_LOSS)
+    p.ProForma.resolveModifications(pf)
+    aas = pf.toAASequence( p.ProForma.ConversionPolicy.FAIL_ON_LOSS)
     # The AASequence should contain the modification
     assert "Oxidation" in aas.toString() or "(Oxidation)" in aas.toString()
 
@@ -197,7 +197,7 @@ def test_to_aasequence_fail_on_loss_raises_on_unsupported():
     pf = p.Peptidoform.fromString("[Phospho]?PEPTIDE")
 
     with pytest.raises(RuntimeError):
-        pf.toAASequence( p.AASequenceConversionPolicy.FAIL_ON_LOSS)
+        pf.toAASequence( p.ProForma.ConversionPolicy.FAIL_ON_LOSS)
 
 
 def test_to_aasequence_best_effort():
@@ -208,7 +208,7 @@ def test_to_aasequence_best_effort():
     pf = p.Peptidoform.fromString("[Phospho]?PEPTIDE")
 
     # Should not raise
-    aas = pf.toAASequence( p.AASequenceConversionPolicy.BEST_EFFORT)
+    aas = pf.toAASequence( p.ProForma.ConversionPolicy.BEST_EFFORT)
     assert aas.toString() == "PEPTIDE"
 
 
@@ -218,7 +218,7 @@ def test_from_aasequence():
 
     aas = p.AASequence.fromString("PEPTIDE")
     pf = p.Peptidoform.fromAASequence(aas)
-    result = pf.toString( p.ProFormaWriteMode.LOSSLESS)
+    result = pf.toString( p.ProForma.WriteMode.LOSSLESS)
     assert result == "PEPTIDE"
 
 
@@ -228,7 +228,7 @@ def test_from_aasequence_with_modification():
 
     aas = p.AASequence.fromString("PEM(Oxidation)TIDE")
     pf = p.Peptidoform.fromAASequence(aas)
-    result = pf.toString( p.ProFormaWriteMode.LOSSLESS)
+    result = pf.toString( p.ProForma.WriteMode.LOSSLESS)
     # Should contain modification info
     assert "M" in result
     # Could be UNIMOD:35 or Oxidation depending on implementation
@@ -241,7 +241,7 @@ def test_aasequence_roundtrip():
 
     original = p.AASequence.fromString("PEPTIDE")
     pf = p.Peptidoform.fromAASequence(original)
-    result = pf.toAASequence( p.AASequenceConversionPolicy.FAIL_ON_LOSS)
+    result = pf.toAASequence( p.ProForma.ConversionPolicy.FAIL_ON_LOSS)
     assert original.toString() == result.toString()
 
 
@@ -265,7 +265,7 @@ def test_json_roundtrip_peptidoform():
     import pyopenms as p
 
     original = p.Peptidoform.fromString("EM[UNIMOD:35]K")
-    json_str = p.ProFormaParser.peptidoformToJSON(original)
+    json_str = p.ProForma.peptidoformToJSON(original)
 
     # Should be valid JSON
     data = json.loads(json_str)
@@ -273,7 +273,7 @@ def test_json_roundtrip_peptidoform():
 
     # Should roundtrip
     restored = p.Peptidoform.fromJSON(json_str)
-    assert p.ProFormaParser.toString(restored, p.ProFormaWriteMode.LOSSLESS) == p.ProFormaParser.toString(original, p.ProFormaWriteMode.LOSSLESS)
+    assert p.ProForma.toString(restored, p.ProForma.WriteMode.LOSSLESS) == p.ProForma.toString(original, p.ProForma.WriteMode.LOSSLESS)
 
 
 def test_json_roundtrip_peptidoform_ion():
@@ -281,7 +281,7 @@ def test_json_roundtrip_peptidoform_ion():
     import pyopenms as p
 
     original = p.PeptidoformIon.fromString("PEPTIDE/2")
-    json_str = p.ProFormaParser.peptidoformIonToJSON(original)
+    json_str = p.ProForma.peptidoformIonToJSON(original)
 
     # Should be valid JSON
     data = json.loads(json_str)
@@ -290,7 +290,7 @@ def test_json_roundtrip_peptidoform_ion():
     # Should roundtrip
     restored = p.PeptidoformIon.fromJSON(json_str)
     # Compare JSON representations
-    assert p.ProFormaParser.peptidoformIonToJSON(restored) == p.ProFormaParser.peptidoformIonToJSON(original)
+    assert p.ProForma.peptidoformIonToJSON(restored) == p.ProForma.peptidoformIonToJSON(original)
 
 
 def test_parse_error_handling():
@@ -312,11 +312,11 @@ def test_complex_proforma():
 
     # Global isotope label
     pf = p.Peptidoform.fromString("<13C>PEPTIDE")
-    assert "13C" in pf.toString( p.ProFormaWriteMode.LOSSLESS)
+    assert "13C" in pf.toString( p.ProForma.WriteMode.LOSSLESS)
 
     # Labile modification
     pf = p.Peptidoform.fromString("{Glycan:Hex}PEPTIDE")
-    assert "Glycan" in pf.toString( p.ProFormaWriteMode.LOSSLESS)
+    assert "Glycan" in pf.toString( p.ProForma.WriteMode.LOSSLESS)
 
 
 def test_peptidoform_class():
@@ -352,13 +352,13 @@ def test_peptidoform_ion_to_string():
 
     # Simple ion with charge
     pfi = p.PeptidoformIon.fromString("PEPTIDE/2")
-    result = pfi.toString(p.ProFormaWriteMode.LOSSLESS)
+    result = pfi.toString(p.ProForma.WriteMode.LOSSLESS)
     assert "PEPTIDE" in result
     assert "/2" in result
 
     # Cross-linked chains
     pfi2 = p.PeptidoformIon.fromString("PEPTIDE//SEQUENCE")
-    result2 = pfi2.toString(p.ProFormaWriteMode.LOSSLESS)
+    result2 = pfi2.toString(p.ProForma.WriteMode.LOSSLESS)
     assert "PEPTIDE" in result2
     assert "SEQUENCE" in result2
     assert "//" in result2
@@ -366,7 +366,7 @@ def test_peptidoform_ion_to_string():
     # Test roundtrip
     original_str = "EM[UNIMOD:35]K/2"
     pfi3 = p.PeptidoformIon.fromString(original_str)
-    roundtrip = pfi3.toString(p.ProFormaWriteMode.LOSSLESS)
+    roundtrip = pfi3.toString(p.ProForma.WriteMode.LOSSLESS)
     assert roundtrip == original_str
 
 
@@ -378,11 +378,11 @@ def test_peptidoform_ion_to_string_modes():
     pfi = p.PeptidoformIon.fromString("PEM[+15.99]K/2")
 
     # LOSSLESS mode preserves original formatting
-    lossless = pfi.toString(p.ProFormaWriteMode.LOSSLESS)
+    lossless = pfi.toString(p.ProForma.WriteMode.LOSSLESS)
     assert "+15.99" in lossless  # Original precision preserved
 
     # CANONICAL mode normalizes to 4 decimal places
-    canonical = pfi.toString(p.ProFormaWriteMode.CANONICAL)
+    canonical = pfi.toString(p.ProForma.WriteMode.CANONICAL)
     assert "+15.9900" in canonical  # Normalized to 4 decimals
 
     # Test default parameter (should default to LOSSLESS)
@@ -396,13 +396,13 @@ def test_peptidoform_ion_to_string_exact_format():
 
     # Test that // separator is exactly preserved (not + or other)
     pfi = p.PeptidoformIon.fromString("ABC//DEF//GHI")
-    result = pfi.toString(p.ProFormaWriteMode.LOSSLESS)
+    result = pfi.toString(p.ProForma.WriteMode.LOSSLESS)
     # Verify exact format: chains separated by // in order
     assert result == "ABC//DEF//GHI"
 
     # Test chain order is preserved
     pfi2 = p.PeptidoformIon.fromString("FIRST//SECOND")
-    result2 = pfi2.toString(p.ProFormaWriteMode.LOSSLESS)
+    result2 = pfi2.toString(p.ProForma.WriteMode.LOSSLESS)
     assert result2.index("FIRST") < result2.index("SECOND")
 
 
@@ -424,25 +424,56 @@ def test_peptidoform_ion_mass_integration():
     assert abs(mz - expected_mz) < 0.1
 
     # Verify toString still works after mass calculations
-    result = pfi.toString(p.ProFormaWriteMode.LOSSLESS)
+    result = pfi.toString(p.ProForma.WriteMode.LOSSLESS)
     assert result == "PEPTIDE/2"
 
 
 def test_write_mode_enum():
-    """Test ProFormaWriteMode enum values."""
+    """Test WriteMode enum values accessible via ProForma class."""
     import pyopenms as p
 
-    assert hasattr(p.ProFormaWriteMode, 'LOSSLESS')
-    assert hasattr(p.ProFormaWriteMode, 'CANONICAL')
+    # Enums are nested under ProForma class (C++ enum class with wrap-attach)
+    assert hasattr(p.ProForma, 'WriteMode')
+    assert hasattr(p.ProForma.WriteMode, 'LOSSLESS')
+    assert hasattr(p.ProForma.WriteMode, 'CANONICAL')
+
+    # Verify enum values
+    assert p.ProForma.WriteMode.LOSSLESS == 0
+    assert p.ProForma.WriteMode.CANONICAL == 1
 
 
 def test_conversion_policy_enum():
-    """Test AASequenceConversionPolicy enum values."""
+    """Test ConversionPolicy enum values accessible via ProForma class."""
     import pyopenms as p
 
-    assert hasattr(p.AASequenceConversionPolicy, 'FAIL_ON_LOSS')
-    assert hasattr(p.AASequenceConversionPolicy, 'DROP_UNLOCALISED')
-    assert hasattr(p.AASequenceConversionPolicy, 'BEST_EFFORT')
+    # Enums are nested under ProForma class (C++ enum class with wrap-attach)
+    assert hasattr(p.ProForma, 'ConversionPolicy')
+    assert hasattr(p.ProForma.ConversionPolicy, 'FAIL_ON_LOSS')
+    assert hasattr(p.ProForma.ConversionPolicy, 'DROP_UNLOCALISED')
+    assert hasattr(p.ProForma.ConversionPolicy, 'BEST_EFFORT')
+
+    # Verify enum values
+    assert p.ProForma.ConversionPolicy.FAIL_ON_LOSS == 0
+    assert p.ProForma.ConversionPolicy.DROP_UNLOCALISED == 1
+    assert p.ProForma.ConversionPolicy.BEST_EFFORT == 2
+
+
+def test_nested_enums_under_proforma():
+    """Test that ProForma enums are accessible via ProForma class (via wrap-attach)."""
+    import pyopenms as p
+
+    # Enums should be nested under ProForma via wrap-attach
+    assert hasattr(p.ProForma, 'WriteMode')
+    assert hasattr(p.ProForma, 'ConversionPolicy')
+    assert hasattr(p.ProForma, 'ConversionIssueType')
+    assert hasattr(p.ProForma, 'CvDatabase')
+
+    # Verify enum values are accessible
+    assert p.ProForma.WriteMode.LOSSLESS is not None
+    assert p.ProForma.WriteMode.CANONICAL is not None
+    assert p.ProForma.ConversionPolicy.FAIL_ON_LOSS is not None
+    assert p.ProForma.ConversionPolicy.DROP_UNLOCALISED is not None
+    assert p.ProForma.ConversionPolicy.BEST_EFFORT is not None
 
 
 def test_peptidoform_mass_calculations():
@@ -774,7 +805,7 @@ def test_crosslink_label_parsing():
 
     # Simple cross-link label
     pf = p.Peptidoform.fromString("PEPK[#XL1]TIDE")
-    result = pf.toString(p.ProFormaWriteMode.LOSSLESS)
+    result = pf.toString(p.ProForma.WriteMode.LOSSLESS)
     assert "#XL1" in result
 
 
@@ -786,7 +817,7 @@ def test_crosslink_paired_chains():
     pfi = p.PeptidoformIon.fromString("PEPK[#XL1]TIDE//SEQC[#XL1]ENCE")
     assert len(pfi.chains) == 2
 
-    result = pfi.toString(p.ProFormaWriteMode.LOSSLESS)
+    result = pfi.toString(p.ProForma.WriteMode.LOSSLESS)
     assert "#XL1" in result
     assert "//" in result
 
@@ -797,7 +828,7 @@ def test_crosslink_with_modification():
 
     # Cross-link label with a modification (DSS cross-linker)
     pf = p.Peptidoform.fromString("PEPK[XLMOD:02001#XL1]TIDE")
-    result = pf.toString(p.ProFormaWriteMode.LOSSLESS)
+    result = pf.toString(p.ProForma.WriteMode.LOSSLESS)
     assert "XLMOD:02001" in result
     assert "#XL1" in result
 
@@ -812,7 +843,7 @@ def test_ambiguous_modification_localization():
 
     # Phosphorylation on one of the S/T residues (ambiguous position)
     pf = p.Peptidoform.fromString("PES[Phospho#g1]TIDES[#g1]K")
-    result = pf.toString(p.ProFormaWriteMode.LOSSLESS)
+    result = pf.toString(p.ProForma.WriteMode.LOSSLESS)
     assert "#g1" in result
 
 
@@ -823,7 +854,7 @@ def test_ambiguous_modification_count():
     # Two phosphorylations distributed among 3 possible sites
     # Using unlocalised with count
     pf = p.Peptidoform.fromString("[Phospho]^2?STYTIDE")
-    result = pf.toString(p.ProFormaWriteMode.LOSSLESS)
+    result = pf.toString(p.ProForma.WriteMode.LOSSLESS)
     assert "Phospho" in result
     assert "^2" in result
 
@@ -834,7 +865,7 @@ def test_ambiguous_modification_range():
 
     # Modification somewhere in positions 2-5
     pf = p.Peptidoform.fromString("P(EPTI)[Phospho]DE")
-    result = pf.toString(p.ProFormaWriteMode.LOSSLESS)
+    result = pf.toString(p.ProForma.WriteMode.LOSSLESS)
     assert "Phospho" in result
 
 
@@ -847,7 +878,7 @@ def test_formula_tag_simple():
     import pyopenms as p
 
     pf = p.Peptidoform.fromString("PEM[Formula:C2H2O]K")
-    result = pf.toString(p.ProFormaWriteMode.LOSSLESS)
+    result = pf.toString(p.ProForma.WriteMode.LOSSLESS)
     assert "Formula:C2H2O" in result
 
 
@@ -857,7 +888,7 @@ def test_formula_tag_complex():
 
     # Formula with negative counts (loss)
     pf = p.Peptidoform.fromString("PEM[Formula:H-2O-1]K")
-    result = pf.toString(p.ProFormaWriteMode.LOSSLESS)
+    result = pf.toString(p.ProForma.WriteMode.LOSSLESS)
     assert "Formula:" in result
 
 
@@ -882,7 +913,7 @@ def test_info_tag_simple():
     import pyopenms as p
 
     pf = p.Peptidoform.fromString("PEM[info:custom annotation]K")
-    result = pf.toString(p.ProFormaWriteMode.LOSSLESS)
+    result = pf.toString(p.ProForma.WriteMode.LOSSLESS)
     # ProForma 2.0 is case-insensitive; implementation outputs uppercase INFO:
     assert "info:custom annotation" in result.lower()
 
@@ -893,7 +924,7 @@ def test_info_tag_with_modification():
 
     # Modification with additional info
     pf = p.Peptidoform.fromString("PEM[Oxidation][info:confirmed by manual inspection]K")
-    result = pf.toString(p.ProFormaWriteMode.LOSSLESS)
+    result = pf.toString(p.ProForma.WriteMode.LOSSLESS)
     assert "Oxidation" in result
     # ProForma 2.0 is case-insensitive; implementation outputs uppercase INFO:
     assert "info:" in result.lower()
@@ -922,7 +953,7 @@ def test_glycan_composition():
     import pyopenms as p
 
     pf = p.Peptidoform.fromString("PEPN[Glycan:HexNAc2Hex3]TIDE")
-    result = pf.toString(p.ProFormaWriteMode.LOSSLESS)
+    result = pf.toString(p.ProForma.WriteMode.LOSSLESS)
     assert "Glycan:" in result
     assert "HexNAc" in result
 
@@ -932,7 +963,7 @@ def test_glycan_gno_accession():
     import pyopenms as p
 
     pf = p.Peptidoform.fromString("PEPN[GNO:G59626AS]TIDE")
-    result = pf.toString(p.ProFormaWriteMode.LOSSLESS)
+    result = pf.toString(p.ProForma.WriteMode.LOSSLESS)
     assert "GNO:" in result
 
 
@@ -946,7 +977,7 @@ def test_multiple_modifications_same_residue():
 
     # Multiple mods on same residue (e.g., phospho and acetyl on S)
     pf = p.Peptidoform.fromString("PES[Phospho][Acetyl]K")
-    result = pf.toString(p.ProFormaWriteMode.LOSSLESS)
+    result = pf.toString(p.ProForma.WriteMode.LOSSLESS)
     assert "Phospho" in result
     assert "Acetyl" in result
 
@@ -956,7 +987,7 @@ def test_resid_accession():
     import pyopenms as p
 
     pf = p.Peptidoform.fromString("PEM[RESID:AA0581]K")
-    result = pf.toString(p.ProFormaWriteMode.LOSSLESS)
+    result = pf.toString(p.ProForma.WriteMode.LOSSLESS)
     assert "RESID:" in result
 
 
@@ -965,7 +996,7 @@ def test_mod_accession():
     import pyopenms as p
 
     pf = p.Peptidoform.fromString("PEM[MOD:00719]K")
-    result = pf.toString(p.ProFormaWriteMode.LOSSLESS)
+    result = pf.toString(p.ProForma.WriteMode.LOSSLESS)
     assert "MOD:" in result
 
 
@@ -979,12 +1010,12 @@ def test_charge_state_formats():
 
     # Explicit positive charge
     pfi2 = p.PeptidoformIon.fromString("PEPTIDE/+2")
-    result2 = pfi2.toString(p.ProFormaWriteMode.LOSSLESS)
+    result2 = pfi2.toString(p.ProForma.WriteMode.LOSSLESS)
     assert "PEPTIDE" in result2
 
     # Negative charge (rare but valid)
     pfi3 = p.PeptidoformIon.fromString("PEPTIDE/-1")
-    result3 = pfi3.toString(p.ProFormaWriteMode.LOSSLESS)
+    result3 = pfi3.toString(p.ProForma.WriteMode.LOSSLESS)
     assert "PEPTIDE" in result3
 
 
@@ -995,7 +1026,7 @@ def test_adduct_ion_notation():
     # Adduct notation with element:charge format
     # ProForma spec: /[element:count+charge,...]
     pfi = p.PeptidoformIon.fromString("PEPTIDE/[Na:z+2]")
-    result = pfi.toString(p.ProFormaWriteMode.LOSSLESS)
+    result = pfi.toString(p.ProForma.WriteMode.LOSSLESS)
     assert "PEPTIDE" in result
     assert "Na" in result
 
@@ -1006,7 +1037,7 @@ def test_global_modification_fixed():
 
     # Fixed Carbamidomethyl on all C
     pf = p.Peptidoform.fromString("<[Carbamidomethyl]@C>PEPTCIDE")
-    result = pf.toString(p.ProFormaWriteMode.LOSSLESS)
+    result = pf.toString(p.ProForma.WriteMode.LOSSLESS)
     assert "Carbamidomethyl" in result
     assert "@C" in result
 
@@ -1028,7 +1059,7 @@ def test_conversion_issue_types():
     assert hasattr(issue, 'position')
 
     # Type should be UNLOCALISED_MOD
-    assert issue.type == p.ConversionIssueType.UNLOCALISED_MOD
+    assert issue.type == p.ProForma.ConversionIssueType.UNLOCALISED_MOD
 
 
 if __name__ == "__main__":

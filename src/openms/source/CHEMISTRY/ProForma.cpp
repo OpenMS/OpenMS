@@ -261,42 +261,70 @@ namespace detail
 //============================================================================
 namespace detail
 {
+  // Type aliases for convenience within detail namespace
+  using Peptidoform = ProForma::Peptidoform;
+  using PeptidoformIon = ProForma::PeptidoformIon;
+  using WriteMode = ProForma::WriteMode;
+  using GlobalModEntry = ProForma::GlobalModEntry;
+  using IsotopeReplacement = ProForma::IsotopeReplacement;
+  using GlobalModification = ProForma::GlobalModification;
+  using Modification = ProForma::Modification;
+  using ModificationTag = ProForma::ModificationTag;
+  using CvAccession = ProForma::CvAccession;
+  using NamedMod = ProForma::NamedMod;
+  using MassDelta = ProForma::MassDelta;
+  using FormulaTag = ProForma::FormulaTag;
+  using GlycanComposition = ProForma::GlycanComposition;
+  using InfoTag = ProForma::InfoTag;
+  using PositionConstraint = ProForma::PositionConstraint;
+  using Label = ProForma::Label;
+  using UnlocalisedMod = ProForma::UnlocalisedMod;
+  using LabileModification = ProForma::LabileModification;
+  using SequenceSection = ProForma::SequenceSection;
+  using SequenceElement = ProForma::SequenceElement;
+  using AmbiguousRegion = ProForma::AmbiguousRegion;
+  using ModifiedRange = ProForma::ModifiedRange;
+  using ChargeState = ProForma::ChargeState;
+  using CvDatabase = ProForma::CvDatabase;
+  using AdductIon = ProForma::AdductIon;
+  using ConversionIssue = ProForma::ConversionIssue;
+  using ConversionIssueType = ProForma::ConversionIssueType;
 
   class ProFormaWriter
   {
   public:
-    static String toString(const Peptidoform& peptidoform, ProFormaWriteMode mode);
-    static String toString(const PeptidoformIon& ion, ProFormaWriteMode mode);
+    static String toString(const Peptidoform& peptidoform, WriteMode mode);
+    static String toString(const PeptidoformIon& ion, WriteMode mode);
 
   private:
-    static void writeGlobalMods_(std::ostream& os, const std::vector<GlobalModEntry>& mods, ProFormaWriteMode mode);
+    static void writeGlobalMods_(std::ostream& os, const std::vector<GlobalModEntry>& mods, WriteMode mode);
     static void writeIsotopeReplacement_(std::ostream& os, const IsotopeReplacement& isotope);
-    static void writeGlobalModification_(std::ostream& os, const GlobalModification& mod, ProFormaWriteMode mode);
-    static void writeModification_(std::ostream& os, const Modification& mod, ProFormaWriteMode mode);
-    static void writeModificationTag_(std::ostream& os, const ModificationTag& tag, ProFormaWriteMode mode);
+    static void writeGlobalModification_(std::ostream& os, const GlobalModification& mod, WriteMode mode);
+    static void writeModification_(std::ostream& os, const Modification& mod, WriteMode mode);
+    static void writeModificationTag_(std::ostream& os, const ModificationTag& tag, WriteMode mode);
     static void writeCvAccession_(std::ostream& os, const CvAccession& cv);
     static void writeNamedMod_(std::ostream& os, const NamedMod& named);
-    static void writeMassDelta_(std::ostream& os, const MassDelta& delta, ProFormaWriteMode mode);
+    static void writeMassDelta_(std::ostream& os, const MassDelta& delta, WriteMode mode);
     static void writeFormulaTag_(std::ostream& os, const FormulaTag& formula);
     static void writeGlycanComposition_(std::ostream& os, const GlycanComposition& glycan);
     static void writeInfoTag_(std::ostream& os, const InfoTag& info);
     static void writePositionConstraint_(std::ostream& os, const PositionConstraint& pc);
-    static void writeLabel_(std::ostream& os, const Label& label, ProFormaWriteMode mode);
-    static void writeUnlocalisedMods_(std::ostream& os, const std::vector<UnlocalisedMod>& mods, ProFormaWriteMode mode);
-    static void writeLabileModifications_(std::ostream& os, const std::vector<LabileModification>& mods, ProFormaWriteMode mode);
-    static void writeNTermMods_(std::ostream& os, const std::vector<Modification>& mods, ProFormaWriteMode mode);
-    static void writeCTermMods_(std::ostream& os, const std::vector<Modification>& mods, ProFormaWriteMode mode);
-    static void writeSequence_(std::ostream& os, const std::vector<SequenceSection>& seq, ProFormaWriteMode mode);
-    static void writeSequenceElement_(std::ostream& os, const SequenceElement& elem, ProFormaWriteMode mode);
-    static void writeAmbiguousRegion_(std::ostream& os, const AmbiguousRegion& region, ProFormaWriteMode mode);
-    static void writeModifiedRange_(std::ostream& os, const ModifiedRange& range, ProFormaWriteMode mode);
+    static void writeLabel_(std::ostream& os, const Label& label, WriteMode mode);
+    static void writeUnlocalisedMods_(std::ostream& os, const std::vector<UnlocalisedMod>& mods, WriteMode mode);
+    static void writeLabileModifications_(std::ostream& os, const std::vector<LabileModification>& mods, WriteMode mode);
+    static void writeNTermMods_(std::ostream& os, const std::vector<Modification>& mods, WriteMode mode);
+    static void writeCTermMods_(std::ostream& os, const std::vector<Modification>& mods, WriteMode mode);
+    static void writeSequence_(std::ostream& os, const std::vector<SequenceSection>& seq, WriteMode mode);
+    static void writeSequenceElement_(std::ostream& os, const SequenceElement& elem, WriteMode mode);
+    static void writeAmbiguousRegion_(std::ostream& os, const AmbiguousRegion& region, WriteMode mode);
+    static void writeModifiedRange_(std::ostream& os, const ModifiedRange& range, WriteMode mode);
     static void writeChargeState_(std::ostream& os, const ChargeState& charge);
     static const char* cvDatabaseToString_(CvDatabase db);
     static const char* cvDatabaseToHint_(CvDatabase db);
     static const char* massSourceToString_(MassDelta::Source source);
   };
 
-  String ProFormaWriter::toString(const Peptidoform& peptidoform, ProFormaWriteMode mode)
+  String ProFormaWriter::toString(const Peptidoform& peptidoform, WriteMode mode)
   {
     std::ostringstream os;
     if (peptidoform.name.has_value()) os << "(>" << peptidoform.name.value() << ")";
@@ -309,7 +337,7 @@ namespace detail
     return String(os.str());
   }
 
-  String ProFormaWriter::toString(const PeptidoformIon& ion, ProFormaWriteMode mode)
+  String ProFormaWriter::toString(const PeptidoformIon& ion, WriteMode mode)
   {
     std::ostringstream os;
     const char* separator = ion.is_chimeric ? "+" : "//";
@@ -325,7 +353,7 @@ namespace detail
     return String(os.str());
   }
 
-  void ProFormaWriter::writeGlobalMods_(std::ostream& os, const std::vector<GlobalModEntry>& mods, ProFormaWriteMode mode)
+  void ProFormaWriter::writeGlobalMods_(std::ostream& os, const std::vector<GlobalModEntry>& mods, WriteMode mode)
   {
     for (const auto& entry : mods)
     {
@@ -342,7 +370,7 @@ namespace detail
     os << '<' << isotope.isotope << '>';
   }
 
-  void ProFormaWriter::writeGlobalModification_(std::ostream& os, const GlobalModification& mod, ProFormaWriteMode mode)
+  void ProFormaWriter::writeGlobalModification_(std::ostream& os, const GlobalModification& mod, WriteMode mode)
   {
     os << '<';
     writeModification_(os, mod.modification, mode);
@@ -355,7 +383,7 @@ namespace detail
     os << '>';
   }
 
-  void ProFormaWriter::writeModification_(std::ostream& os, const Modification& mod, ProFormaWriteMode mode)
+  void ProFormaWriter::writeModification_(std::ostream& os, const Modification& mod, WriteMode mode)
   {
     os << '[';
     bool first = true;
@@ -374,7 +402,7 @@ namespace detail
     os << ']';
   }
 
-  void ProFormaWriter::writeModificationTag_(std::ostream& os, const ModificationTag& tag, ProFormaWriteMode mode)
+  void ProFormaWriter::writeModificationTag_(std::ostream& os, const ModificationTag& tag, WriteMode mode)
   {
     std::visit([&os, mode](auto&& arg) {
       using T = std::decay_t<decltype(arg)>;
@@ -399,10 +427,10 @@ namespace detail
     os << named.name;
   }
 
-  void ProFormaWriter::writeMassDelta_(std::ostream& os, const MassDelta& delta, ProFormaWriteMode mode)
+  void ProFormaWriter::writeMassDelta_(std::ostream& os, const MassDelta& delta, WriteMode mode)
   {
     if (delta.source != MassDelta::Source::NONE) os << massSourceToString_(delta.source) << ':';
-    if (mode == ProFormaWriteMode::LOSSLESS && !delta.original_text.empty()) os << delta.original_text;
+    if (mode == WriteMode::LOSSLESS && !delta.original_text.empty()) os << delta.original_text;
     else { if (delta.mass >= 0) os << '+'; os << std::fixed << std::setprecision(4) << delta.mass; }
   }
 
@@ -440,17 +468,17 @@ namespace detail
     if (!pc.residues.empty()) { if (!first) os << ','; os << std::string(pc.residues.begin(), pc.residues.end()); }
   }
 
-  void ProFormaWriter::writeLabel_(std::ostream& os, const Label& label, ProFormaWriteMode mode)
+  void ProFormaWriter::writeLabel_(std::ostream& os, const Label& label, WriteMode mode)
   {
     os << '#' << label.identifier;
     if (label.score.has_value())
     {
-      if (mode == ProFormaWriteMode::CANONICAL) os << '(' << std::fixed << std::setprecision(2) << label.score.value() << ')';
+      if (mode == WriteMode::CANONICAL) os << '(' << std::fixed << std::setprecision(2) << label.score.value() << ')';
       else os << '(' << label.score.value() << ')';
     }
   }
 
-  void ProFormaWriter::writeUnlocalisedMods_(std::ostream& os, const std::vector<UnlocalisedMod>& mods, ProFormaWriteMode mode)
+  void ProFormaWriter::writeUnlocalisedMods_(std::ostream& os, const std::vector<UnlocalisedMod>& mods, WriteMode mode)
   {
     for (const auto& unloc : mods)
     {
@@ -460,7 +488,7 @@ namespace detail
     }
   }
 
-  void ProFormaWriter::writeLabileModifications_(std::ostream& os, const std::vector<LabileModification>& mods, ProFormaWriteMode mode)
+  void ProFormaWriter::writeLabileModifications_(std::ostream& os, const std::vector<LabileModification>& mods, WriteMode mode)
   {
     for (const auto& labile : mods)
     {
@@ -477,17 +505,17 @@ namespace detail
     }
   }
 
-  void ProFormaWriter::writeNTermMods_(std::ostream& os, const std::vector<Modification>& mods, ProFormaWriteMode mode)
+  void ProFormaWriter::writeNTermMods_(std::ostream& os, const std::vector<Modification>& mods, WriteMode mode)
   {
     if (!mods.empty()) { for (const auto& mod : mods) writeModification_(os, mod, mode); os << '-'; }
   }
 
-  void ProFormaWriter::writeCTermMods_(std::ostream& os, const std::vector<Modification>& mods, ProFormaWriteMode mode)
+  void ProFormaWriter::writeCTermMods_(std::ostream& os, const std::vector<Modification>& mods, WriteMode mode)
   {
     if (!mods.empty()) { os << '-'; for (const auto& mod : mods) writeModification_(os, mod, mode); }
   }
 
-  void ProFormaWriter::writeSequence_(std::ostream& os, const std::vector<SequenceSection>& seq, ProFormaWriteMode mode)
+  void ProFormaWriter::writeSequence_(std::ostream& os, const std::vector<SequenceSection>& seq, WriteMode mode)
   {
     for (const auto& section : seq)
     {
@@ -500,20 +528,20 @@ namespace detail
     }
   }
 
-  void ProFormaWriter::writeSequenceElement_(std::ostream& os, const SequenceElement& elem, ProFormaWriteMode mode)
+  void ProFormaWriter::writeSequenceElement_(std::ostream& os, const SequenceElement& elem, WriteMode mode)
   {
     os << elem.amino_acid;
     for (const auto& mod : elem.modifications) writeModification_(os, mod, mode);
   }
 
-  void ProFormaWriter::writeAmbiguousRegion_(std::ostream& os, const AmbiguousRegion& region, ProFormaWriteMode mode)
+  void ProFormaWriter::writeAmbiguousRegion_(std::ostream& os, const AmbiguousRegion& region, WriteMode mode)
   {
     os << "(?";
     for (const auto& elem : region.elements) writeSequenceElement_(os, elem, mode);
     os << ')';
   }
 
-  void ProFormaWriter::writeModifiedRange_(std::ostream& os, const ModifiedRange& range, ProFormaWriteMode mode)
+  void ProFormaWriter::writeModifiedRange_(std::ostream& os, const ModifiedRange& range, WriteMode mode)
   {
     os << '(';
     for (const auto& elem : range.elements) writeSequenceElement_(os, elem, mode);
@@ -587,37 +615,37 @@ namespace detail
 } // namespace detail
 
 //============================================================================
-// ProFormaParseError implementation
+// ProForma::ParseError implementation
 //============================================================================
 
-const char* proFormaErrorCodeToString(ProFormaErrorCode code)
+const char* ProForma::errorCodeToString(ErrorCode code)
 {
   switch (code)
   {
-    case ProFormaErrorCode::UNEXPECTED_CHARACTER: return "Unexpected character";
-    case ProFormaErrorCode::UNCLOSED_BRACKET: return "Unclosed bracket";
-    case ProFormaErrorCode::UNMATCHED_BRACKET: return "Unmatched closing bracket";
-    case ProFormaErrorCode::INVALID_CV_PREFIX: return "Invalid controlled vocabulary prefix";
-    case ProFormaErrorCode::INVALID_CV_ACCESSION: return "Invalid CV accession number";
-    case ProFormaErrorCode::INVALID_AMINO_ACID: return "Invalid amino acid";
-    case ProFormaErrorCode::INVALID_MASS_VALUE: return "Invalid mass value";
-    case ProFormaErrorCode::INVALID_FORMULA: return "Invalid chemical formula";
-    case ProFormaErrorCode::UNKNOWN_MONOSACCHARIDE: return "Unknown monosaccharide";
-    case ProFormaErrorCode::DANGLING_CROSSLINK_LABEL: return "Dangling crosslink label";
-    case ProFormaErrorCode::EMPTY_SEQUENCE: return "Empty sequence";
-    case ProFormaErrorCode::INVALID_CHARGE: return "Invalid charge state";
-    case ProFormaErrorCode::INVALID_OCCURRENCE_SPECIFIER: return "Invalid occurrence specifier";
-    case ProFormaErrorCode::UNEXPECTED_END_OF_INPUT: return "Unexpected end of input";
-    case ProFormaErrorCode::INTERNAL_ERROR: return "Internal parser error";
+    case ErrorCode::UNEXPECTED_CHARACTER: return "Unexpected character";
+    case ErrorCode::UNCLOSED_BRACKET: return "Unclosed bracket";
+    case ErrorCode::UNMATCHED_BRACKET: return "Unmatched closing bracket";
+    case ErrorCode::INVALID_CV_PREFIX: return "Invalid controlled vocabulary prefix";
+    case ErrorCode::INVALID_CV_ACCESSION: return "Invalid CV accession number";
+    case ErrorCode::INVALID_AMINO_ACID: return "Invalid amino acid";
+    case ErrorCode::INVALID_MASS_VALUE: return "Invalid mass value";
+    case ErrorCode::INVALID_FORMULA: return "Invalid chemical formula";
+    case ErrorCode::UNKNOWN_MONOSACCHARIDE: return "Unknown monosaccharide";
+    case ErrorCode::DANGLING_CROSSLINK_LABEL: return "Dangling crosslink label";
+    case ErrorCode::EMPTY_SEQUENCE: return "Empty sequence";
+    case ErrorCode::INVALID_CHARGE: return "Invalid charge state";
+    case ErrorCode::INVALID_OCCURRENCE_SPECIFIER: return "Invalid occurrence specifier";
+    case ErrorCode::UNEXPECTED_END_OF_INPUT: return "Unexpected end of input";
+    case ErrorCode::INTERNAL_ERROR: return "Internal parser error";
     default: return "Unknown error";
   }
 }
 
-ProFormaParseError::ProFormaParseError(
+ProForma::ParseError::ParseError(
   const char* file, int line, const char* function,
-  ProFormaErrorCode error_code, size_t error_position,
+  ErrorCode error_code, size_t error_position,
   const String& input, const String& message) noexcept :
-  ParseError(file, line, function, input, message),
+  Exception::ParseError(file, line, function, input, message),
   code_(error_code),
   position_(std::min(error_position, input.size()))
 {
@@ -625,7 +653,7 @@ ProFormaParseError::ProFormaParseError(
   Exception::GlobalExceptionHandler::getInstance().setMessage(what());
 }
 
-void ProFormaParseError::extractContext_(const String& input, size_t pos)
+void ProForma::ParseError::extractContext_(const String& input, size_t pos)
 {
   const size_t context_length = 20;
   if (pos > 0)
@@ -642,10 +670,10 @@ void ProFormaParseError::extractContext_(const String& input, size_t pos)
   else context_after_ = "";
 }
 
-String ProFormaParseError::getFormattedMessage() const
+String ProForma::ParseError::getFormattedMessage() const
 {
   std::ostringstream oss;
-  oss << "ProForma parse error at position " << position_ << ": " << proFormaErrorCodeToString(code_);
+  oss << "ProForma parse error at position " << position_ << ": " << ProForma::errorCodeToString(code_);
   oss << "\nContext: ";
   if (position_ > context_before_.size()) oss << "...";
   oss << context_before_;
@@ -660,7 +688,7 @@ String ProFormaParseError::getFormattedMessage() const
   return String(oss.str());
 }
 
-void ProFormaParseError::setExpectedFound(const String& expected, const String& found)
+void ProForma::ParseError::setExpectedFound(const String& expected, const String& found)
 {
   expected_ = expected;
   found_ = found;
@@ -670,13 +698,13 @@ void ProFormaParseError::setExpectedFound(const String& expected, const String& 
 // JSON implementation (delegates to ProFormaDataJson.h inline functions)
 //============================================================================
 
-String toJSON(const Peptidoform& pf)
+String ProForma::toJSON(const Peptidoform& pf)
 {
   nlohmann::json j = pf;
   return String(j.dump());
 }
 
-Peptidoform peptidoformFromJSON(const String& json_str)
+ProForma::Peptidoform ProForma::peptidoformFromJSON(const String& json_str)
 {
   try
   {
@@ -693,13 +721,13 @@ Peptidoform peptidoformFromJSON(const String& json_str)
   }
 }
 
-String toJSON(const PeptidoformIon& pfi)
+String ProForma::toJSON(const PeptidoformIon& pfi)
 {
   nlohmann::json j = pfi;
   return String(j.dump());
 }
 
-PeptidoformIon peptidoformIonFromJSON(const String& json_str)
+ProForma::PeptidoformIon ProForma::peptidoformIonFromJSON(const String& json_str)
 {
   try
   {
@@ -724,6 +752,37 @@ namespace detail
   using TokenType = detail::TokenType;
   using Token = detail::Token;
   using Tokenizer = detail::ProFormaTokenizer;
+
+  // Type aliases for convenience within detail namespace
+  using Peptidoform = ProForma::Peptidoform;
+  using PeptidoformIon = ProForma::PeptidoformIon;
+  using WriteMode = ProForma::WriteMode;
+  using ErrorCode = ProForma::ErrorCode;
+  using GlobalModEntry = ProForma::GlobalModEntry;
+  using IsotopeReplacement = ProForma::IsotopeReplacement;
+  using GlobalModification = ProForma::GlobalModification;
+  using Modification = ProForma::Modification;
+  using ModificationTag = ProForma::ModificationTag;
+  using CvAccession = ProForma::CvAccession;
+  using NamedMod = ProForma::NamedMod;
+  using MassDelta = ProForma::MassDelta;
+  using FormulaTag = ProForma::FormulaTag;
+  using GlycanComposition = ProForma::GlycanComposition;
+  using InfoTag = ProForma::InfoTag;
+  using PositionConstraint = ProForma::PositionConstraint;
+  using Label = ProForma::Label;
+  using UnlocalisedMod = ProForma::UnlocalisedMod;
+  using LabileModification = ProForma::LabileModification;
+  using SequenceSection = ProForma::SequenceSection;
+  using SequenceElement = ProForma::SequenceElement;
+  using AmbiguousRegion = ProForma::AmbiguousRegion;
+  using ModifiedRange = ProForma::ModifiedRange;
+  using ChargeState = ProForma::ChargeState;
+  using CvDatabase = ProForma::CvDatabase;
+  using AdductIon = ProForma::AdductIon;
+  using ConversionIssue = ProForma::ConversionIssue;
+  using ConversionIssueType = ProForma::ConversionIssueType;
+  using ConversionPolicy = ProForma::ConversionPolicy;
 
   class ProFormaParserImpl
   {
@@ -777,8 +836,8 @@ namespace detail
     bool match_(TokenType type);
     Token expect_(TokenType type, const char* expected_desc);
     bool isAtEnd_();
-    void error_(ProFormaErrorCode code, const char* message);
-    void errorAt_(ProFormaErrorCode code, size_t pos, const char* message);
+    void error_(ErrorCode code, const char* message);
+    void errorAt_(ErrorCode code, size_t pos, const char* message);
     static bool isAminoAcid_(char c);
   };
 
@@ -796,14 +855,14 @@ namespace detail
       else if (match_(TokenType::PLUS)) { ion.is_chimeric = true; ion.chains.push_back(parsePeptidoformWithCharge_(true)); }
       else break;
     }
-    if (!isAtEnd_()) error_(ProFormaErrorCode::UNEXPECTED_CHARACTER, "Unexpected characters after peptidoform ion");
+    if (!isAtEnd_()) error_(ErrorCode::UNEXPECTED_CHARACTER, "Unexpected characters after peptidoform ion");
     return ion;
   }
 
   Peptidoform ProFormaParserImpl::parsePeptidoform()
   {
     Peptidoform pf = parsePeptidoform_();
-    if (!isAtEnd_()) error_(ProFormaErrorCode::UNEXPECTED_CHARACTER, "Unexpected characters after peptidoform");
+    if (!isAtEnd_()) error_(ErrorCode::UNEXPECTED_CHARACTER, "Unexpected characters after peptidoform");
     return pf;
   }
 
@@ -862,11 +921,11 @@ namespace detail
       if (hasNTerminalModPattern_()) { pf.n_term_mods = parseTerminalMods_(); expect_(TokenType::MINUS, "'-' after N-terminal modification"); }
     }
     pf.sequence = parseSequence_();
-    if (pf.sequence.empty()) error_(ProFormaErrorCode::EMPTY_SEQUENCE, "Empty sequence");
+    if (pf.sequence.empty()) error_(ErrorCode::EMPTY_SEQUENCE, "Empty sequence");
     if (match_(TokenType::MINUS))
     {
       pf.c_term_mods = parseTerminalMods_();
-      if (pf.c_term_mods.empty()) error_(ProFormaErrorCode::UNEXPECTED_CHARACTER, "Expected modification after '-' for C-terminal modification");
+      if (pf.c_term_mods.empty()) error_(ErrorCode::UNEXPECTED_CHARACTER, "Expected modification after '-' for C-terminal modification");
     }
     return pf;
   }
@@ -912,7 +971,7 @@ namespace detail
     std::string isotope_str;
     if (check_(TokenType::NUMBER)) { Token num = advance_(); isotope_str = std::string(num.text); }
     if (check_(TokenType::IDENTIFIER)) { Token id = advance_(); isotope_str += std::string(id.text); }
-    if (isotope_str.empty()) error_(ProFormaErrorCode::INVALID_FORMULA, "Expected isotope specification");
+    if (isotope_str.empty()) error_(ErrorCode::INVALID_FORMULA, "Expected isotope specification");
     ir.isotope = isotope_str;
     return ir;
   }
@@ -923,7 +982,7 @@ namespace detail
     expect_(TokenType::LBRACKET, "'['");
     gm.modification = parseModification_();
     expect_(TokenType::RBRACKET, "']'");
-    for (const auto& alt : gm.modification.alternatives) { if (alt.second.has_value()) error_(ProFormaErrorCode::UNEXPECTED_CHARACTER, "Labels are not allowed on global modifications"); }
+    for (const auto& alt : gm.modification.alternatives) { if (alt.second.has_value()) error_(ErrorCode::UNEXPECTED_CHARACTER, "Labels are not allowed on global modifications"); }
     expect_(TokenType::AT, "'@' for global modification locations");
     std::string location;
     if (check_(TokenType::IDENTIFIER))
@@ -986,7 +1045,7 @@ namespace detail
         {
           Token num = expect_(TokenType::NUMBER, "occurrence count");
           try { um.occurrence = std::stoi(std::string(num.text)); }
-          catch (const std::exception&) { errorAt_(ProFormaErrorCode::INVALID_MASS_VALUE, num.position, "Invalid occurrence count"); }
+          catch (const std::exception&) { errorAt_(ErrorCode::INVALID_MASS_VALUE, num.position, "Invalid occurrence count"); }
         }
         mods.push_back(std::move(um));
         if (check_(TokenType::QUESTION)) break;
@@ -1003,7 +1062,7 @@ namespace detail
     {
       LabileModification lm;
       lm.modification = parseModification_();
-      for (const auto& alt : lm.modification.alternatives) { if (alt.second.has_value()) error_(ProFormaErrorCode::UNEXPECTED_CHARACTER, "Labels are not allowed on labile modifications"); }
+      for (const auto& alt : lm.modification.alternatives) { if (alt.second.has_value()) error_(ErrorCode::UNEXPECTED_CHARACTER, "Labels are not allowed on labile modifications"); }
       expect_(TokenType::RBRACE, "'}'");
       mods.push_back(std::move(lm));
     }
@@ -1032,7 +1091,7 @@ namespace detail
         for (size_t i = 0; i < text.size(); ++i)
         {
           char c = text[i];
-          if (!isAminoAcid_(c)) errorAt_(ProFormaErrorCode::INVALID_AMINO_ACID, tok.position, "Invalid amino acid character");
+          if (!isAminoAcid_(c)) errorAt_(ErrorCode::INVALID_AMINO_ACID, tok.position, "Invalid amino acid character");
           SequenceElement elem;
           elem.amino_acid = c;
           if (i == text.size() - 1 && check_(TokenType::LBRACKET)) elem.modifications = parseModificationList_();
@@ -1049,7 +1108,7 @@ namespace detail
   {
     SequenceElement elem;
     Token tok = expect_(TokenType::IDENTIFIER, "amino acid");
-    if (tok.text.size() != 1 || !isAminoAcid_(tok.text[0])) errorAt_(ProFormaErrorCode::INVALID_AMINO_ACID, tok.position, "Expected single amino acid letter");
+    if (tok.text.size() != 1 || !isAminoAcid_(tok.text[0])) errorAt_(ErrorCode::INVALID_AMINO_ACID, tok.position, "Expected single amino acid letter");
     elem.amino_acid = tok.text[0];
     if (check_(TokenType::LBRACKET)) elem.modifications = parseModificationList_();
     return elem;
@@ -1070,7 +1129,7 @@ namespace detail
         for (size_t i = 0; i < text.size(); ++i)
         {
           char c = text[i];
-          if (!isAminoAcid_(c)) errorAt_(ProFormaErrorCode::INVALID_AMINO_ACID, tok.position, "Invalid amino acid in ambiguous region");
+          if (!isAminoAcid_(c)) errorAt_(ErrorCode::INVALID_AMINO_ACID, tok.position, "Invalid amino acid in ambiguous region");
           SequenceElement elem;
           elem.amino_acid = c;
           if (i == text.size() - 1 && check_(TokenType::LBRACKET)) elem.modifications = parseModificationList_();
@@ -1097,7 +1156,7 @@ namespace detail
         for (size_t i = 0; i < text.size(); ++i)
         {
           char c = text[i];
-          if (!isAminoAcid_(c)) errorAt_(ProFormaErrorCode::INVALID_AMINO_ACID, tok.position + i, "Invalid amino acid in range");
+          if (!isAminoAcid_(c)) errorAt_(ErrorCode::INVALID_AMINO_ACID, tok.position + i, "Invalid amino acid in range");
           SequenceElement elem;
           elem.amino_acid = c;
           if (i == text.size() - 1 && check_(TokenType::LBRACKET)) elem.modifications = parseModificationList_();
@@ -1112,7 +1171,7 @@ namespace detail
       else break;
     }
     expect_(TokenType::RPAREN, "')'");
-    if (range.elements.empty()) error_(ProFormaErrorCode::UNEXPECTED_CHARACTER, "Empty range is not allowed");
+    if (range.elements.empty()) error_(ErrorCode::UNEXPECTED_CHARACTER, "Empty range is not allowed");
     if (check_(TokenType::LBRACKET)) range.modifications = parseModificationList_();
     return range;
   }
@@ -1153,7 +1212,7 @@ namespace detail
   {
     Token tok = current_();
     if (tok.type == TokenType::PLUS || tok.type == TokenType::MINUS || tok.type == TokenType::NUMBER) return parseMassDelta_();
-    if (tok.type != TokenType::IDENTIFIER) error_(ProFormaErrorCode::UNEXPECTED_CHARACTER, "Expected modification");
+    if (tok.type != TokenType::IDENTIFIER) error_(ErrorCode::UNEXPECTED_CHARACTER, "Expected modification");
     std::string_view id = tok.text;
     if (id == "Formula") { advance_(); expect_(TokenType::COLON, "':' after Formula"); return parseFormulaTag_(); }
     else if (id == "Glycan") { advance_(); expect_(TokenType::COLON, "':' after Glycan"); return parseGlycanComposition_(); }
@@ -1220,7 +1279,7 @@ namespace detail
       else if (tok.type == TokenType::RANGLE) break;
       else break;
     }
-    if (name.empty()) error_(ProFormaErrorCode::UNEXPECTED_CHARACTER, "Expected modification name");
+    if (name.empty()) error_(ErrorCode::UNEXPECTED_CHARACTER, "Expected modification name");
     nm.name = String(name);
     return nm;
   }
@@ -1242,7 +1301,7 @@ namespace detail
     else if (prefix == "RESID" || prefix == "resid") cv.database = CvDatabase::RESID;
     else if (prefix == "XLMOD" || prefix == "xlmod" || prefix == "xlink") cv.database = CvDatabase::XLMOD;
     else if (prefix == "GNO" || prefix == "gno") cv.database = CvDatabase::GNO;
-    else errorAt_(ProFormaErrorCode::INVALID_CV_PREFIX, prefix_tok.position, "Invalid CV prefix");
+    else errorAt_(ErrorCode::INVALID_CV_PREFIX, prefix_tok.position, "Invalid CV prefix");
     expect_(TokenType::COLON, "':' after CV prefix");
     if (cv.database == CvDatabase::GNO || cv.database == CvDatabase::RESID || cv.database == CvDatabase::XLMOD)
     {
@@ -1256,7 +1315,7 @@ namespace detail
         else if (tok.type == TokenType::RBRACKET) { if (bracket_depth > 0) { accession += "]"; bracket_depth--; advance_(); } else break; }
         else break;
       }
-      if (accession.empty()) error_(ProFormaErrorCode::INVALID_CV_ACCESSION, "Expected accession");
+      if (accession.empty()) error_(ErrorCode::INVALID_CV_ACCESSION, "Expected accession");
       cv.accession = accession;
     }
     else { Token num = expect_(TokenType::NUMBER, "accession number"); cv.accession = String(num.text); }
@@ -1272,10 +1331,10 @@ namespace detail
     if (tok.type == TokenType::PLUS) { original = "+"; advance_(); tok = current_(); }
     else if (tok.type == TokenType::MINUS) { original = "-"; advance_(); tok = current_(); }
     if (tok.type == TokenType::NUMBER) { original += std::string(tok.text); advance_(); }
-    else error_(ProFormaErrorCode::INVALID_MASS_VALUE, "Expected mass value");
+    else error_(ErrorCode::INVALID_MASS_VALUE, "Expected mass value");
     md.original_text = original;
     try { md.mass = std::stod(original); }
-    catch (const std::exception&) { error_(ProFormaErrorCode::INVALID_MASS_VALUE, "Invalid mass value format"); }
+    catch (const std::exception&) { error_(ErrorCode::INVALID_MASS_VALUE, "Invalid mass value format"); }
     return md;
   }
 
@@ -1312,14 +1371,14 @@ namespace detail
           else if (match_(TokenType::MINUS)) sign = -1;
           Token num = expect_(TokenType::NUMBER, "charge value");
           try { ft.charge = sign * std::stoi(std::string(num.text)); }
-          catch (const std::exception&) { errorAt_(ProFormaErrorCode::INVALID_CHARGE, num.position, "Invalid charge value"); }
+          catch (const std::exception&) { errorAt_(ErrorCode::INVALID_CHARGE, num.position, "Invalid charge value"); }
           break;
         }
         else break;
       }
       else break;
     }
-    if (formula.empty()) error_(ProFormaErrorCode::INVALID_FORMULA, "Empty formula");
+    if (formula.empty()) error_(ErrorCode::INVALID_FORMULA, "Empty formula");
     ft.formula_string = formula;
     return ft;
   }
@@ -1338,11 +1397,11 @@ namespace detail
       {
         Token num = advance_();
         try { count = std::stoi(std::string(num.text)); }
-        catch (const std::exception&) { errorAt_(ProFormaErrorCode::INVALID_MASS_VALUE, num.position, "Invalid monosaccharide count"); }
+        catch (const std::exception&) { errorAt_(ErrorCode::INVALID_MASS_VALUE, num.position, "Invalid monosaccharide count"); }
       }
       gc.components.emplace_back(String(mono_name), count);
     }
-    if (gc.components.empty()) error_(ProFormaErrorCode::UNKNOWN_MONOSACCHARIDE, "Empty glycan composition");
+    if (gc.components.empty()) error_(ErrorCode::UNKNOWN_MONOSACCHARIDE, "Empty glycan composition");
     return gc;
   }
 
@@ -1389,12 +1448,12 @@ namespace detail
       if (tok.type == TokenType::COMMA) { advance_(); continue; }
       if (tok.type == TokenType::IDENTIFIER)
       {
-        for (char c : tok.text) { if (isAminoAcid_(c)) pc.residues.push_back(c); else errorAt_(ProFormaErrorCode::INVALID_AMINO_ACID, tok.position, "Invalid amino acid in position constraint"); }
+        for (char c : tok.text) { if (isAminoAcid_(c)) pc.residues.push_back(c); else errorAt_(ErrorCode::INVALID_AMINO_ACID, tok.position, "Invalid amino acid in position constraint"); }
         advance_();
       }
-      else error_(ProFormaErrorCode::UNEXPECTED_CHARACTER, "Expected amino acid residues or terminal position after Position:");
+      else error_(ErrorCode::UNEXPECTED_CHARACTER, "Expected amino acid residues or terminal position after Position:");
     }
-    if (pc.residues.empty() && !pc.n_term && !pc.c_term) error_(ProFormaErrorCode::UNEXPECTED_CHARACTER, "Position constraint requires at least one residue or terminal position");
+    if (pc.residues.empty() && !pc.n_term && !pc.c_term) error_(ErrorCode::UNEXPECTED_CHARACTER, "Position constraint requires at least one residue or terminal position");
     return pc;
   }
 
@@ -1405,7 +1464,7 @@ namespace detail
     std::string label_str;
     if (check_(TokenType::IDENTIFIER)) { Token id = advance_(); label_str = std::string(id.text); if (check_(TokenType::NUMBER)) { Token num = advance_(); label_str += std::string(num.text); } }
     else if (check_(TokenType::NUMBER)) { Token num = advance_(); label_str = std::string(num.text); }
-    else error_(ProFormaErrorCode::UNEXPECTED_CHARACTER, "Expected label identifier");
+    else error_(ErrorCode::UNEXPECTED_CHARACTER, "Expected label identifier");
     label.identifier = String(label_str);
     if (label.identifier == "BRANCH") label.type = Label::Type::BRANCH;
     else if (label.identifier.hasPrefix("XL")) label.type = Label::Type::CROSSLINK;
@@ -1414,7 +1473,7 @@ namespace detail
     {
       Token score_tok = expect_(TokenType::NUMBER, "score value");
       try { label.score = std::stod(std::string(score_tok.text)); }
-      catch (const std::exception&) { errorAt_(ProFormaErrorCode::INVALID_MASS_VALUE, score_tok.position, "Invalid score value"); }
+      catch (const std::exception&) { errorAt_(ErrorCode::INVALID_MASS_VALUE, score_tok.position, "Invalid score value"); }
       expect_(TokenType::RPAREN, "')'");
     }
     return label;
@@ -1433,11 +1492,11 @@ namespace detail
       {
         int charge;
         try { charge = sign * std::stoi(std::string(tok.text)); }
-        catch (const std::exception&) { errorAt_(ProFormaErrorCode::INVALID_CHARGE, tok.position, "Invalid charge value"); }
+        catch (const std::exception&) { errorAt_(ErrorCode::INVALID_CHARGE, tok.position, "Invalid charge value"); }
         advance_();
         return charge;
       }
-      else error_(ProFormaErrorCode::INVALID_CHARGE, "Expected charge value");
+      else error_(ErrorCode::INVALID_CHARGE, "Expected charge value");
     }
     return std::nullopt;
   }
@@ -1460,11 +1519,11 @@ namespace detail
     {
       if (check_(TokenType::COLON)) { Tokenizer lookahead = createLookahead_(); lookahead.next(); Token next = lookahead.peek(); if (next.type == TokenType::IDENTIFIER && next.text == "z") break; }
       Token tok = current_();
-      if (tok.type == TokenType::RBRACKET || tok.type == TokenType::COMMA) error_(ProFormaErrorCode::UNEXPECTED_CHARACTER, "Unexpected token in adduct formula, expected ':z'");
+      if (tok.type == TokenType::RBRACKET || tok.type == TokenType::COMMA) error_(ErrorCode::UNEXPECTED_CHARACTER, "Unexpected token in adduct formula, expected ':z'");
       formula += std::string(tok.text);
       advance_();
     }
-    if (formula.empty()) error_(ProFormaErrorCode::UNEXPECTED_CHARACTER, "Expected adduct formula");
+    if (formula.empty()) error_(ErrorCode::UNEXPECTED_CHARACTER, "Expected adduct formula");
     adduct.formula = String(formula);
     expect_(TokenType::COLON, "':'");
     expect_(TokenType::IDENTIFIER, "'z'");
@@ -1473,12 +1532,12 @@ namespace detail
     else if (match_(TokenType::MINUS)) sign = -1;
     Token charge_tok = expect_(TokenType::NUMBER, "charge value");
     try { adduct.charge = sign * std::stoi(std::string(charge_tok.text)); }
-    catch (const std::exception&) { errorAt_(ProFormaErrorCode::INVALID_CHARGE, charge_tok.position, "Invalid adduct charge value"); }
+    catch (const std::exception&) { errorAt_(ErrorCode::INVALID_CHARGE, charge_tok.position, "Invalid adduct charge value"); }
     if (match_(TokenType::CARET))
     {
       Token occ = expect_(TokenType::NUMBER, "occurrence count");
       try { adduct.occurrence = std::stoi(std::string(occ.text)); }
-      catch (const std::exception&) { errorAt_(ProFormaErrorCode::INVALID_MASS_VALUE, occ.position, "Invalid adduct occurrence count"); }
+      catch (const std::exception&) { errorAt_(ErrorCode::INVALID_MASS_VALUE, occ.position, "Invalid adduct occurrence count"); }
     }
     return adduct;
   }
@@ -1487,10 +1546,10 @@ namespace detail
   Token ProFormaParserImpl::advance_() { Token tok = current_(); has_current_ = false; return tok; }
   bool ProFormaParserImpl::check_(TokenType type) { return current_().type == type; }
   bool ProFormaParserImpl::match_(TokenType type) { if (check_(type)) { advance_(); return true; } return false; }
-  Token ProFormaParserImpl::expect_(TokenType type, const char* expected_desc) { Token tok = current_(); if (tok.type != type) errorAt_(ProFormaErrorCode::UNEXPECTED_CHARACTER, tok.position, (std::string("Expected ") + expected_desc).c_str()); return advance_(); }
+  Token ProFormaParserImpl::expect_(TokenType type, const char* expected_desc) { Token tok = current_(); if (tok.type != type) errorAt_(ErrorCode::UNEXPECTED_CHARACTER, tok.position, (std::string("Expected ") + expected_desc).c_str()); return advance_(); }
   bool ProFormaParserImpl::isAtEnd_() { return current_().type == TokenType::END; }
-  void ProFormaParserImpl::error_(ProFormaErrorCode code, const char* message) { errorAt_(code, current_().position, message); }
-  void ProFormaParserImpl::errorAt_(ProFormaErrorCode code, size_t pos, const char* message) { throw ProFormaParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, code, pos, input_, message); }
+  void ProFormaParserImpl::error_(ErrorCode code, const char* message) { errorAt_(code, current_().position, message); }
+  void ProFormaParserImpl::errorAt_(ErrorCode code, size_t pos, const char* message) { throw ProForma::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, code, pos, input_, message); }
   bool ProFormaParserImpl::isAminoAcid_(char c) { return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z'); }
 
 } // namespace detail
@@ -1499,24 +1558,24 @@ namespace detail
 // Public ProFormaParser static methods
 //============================================================================
 
-Peptidoform ProFormaParser::parse(const String& input)
+ProForma::Peptidoform ProForma::parse(const String& input)
 {
   detail::ProFormaParserImpl parser(input);
   return parser.parsePeptidoform();
 }
 
-PeptidoformIon ProFormaParser::parseIon(const String& input)
+ProForma::PeptidoformIon ProForma::parseIon(const String& input)
 {
   detail::ProFormaParserImpl parser(input);
   return parser.parsePeptidoformIon();
 }
 
-String ProFormaParser::toString(const Peptidoform& pf, ProFormaWriteMode mode)
+String ProForma::toString(const Peptidoform& pf, WriteMode mode)
 {
   return detail::ProFormaWriter::toString(pf, mode);
 }
 
-String ProFormaParser::toString(const PeptidoformIon& pfi, ProFormaWriteMode mode)
+String ProForma::toString(const PeptidoformIon& pfi, WriteMode mode)
 {
   return detail::ProFormaWriter::toString(pfi, mode);
 }
@@ -1526,6 +1585,33 @@ String ProFormaParser::toString(const PeptidoformIon& pfi, ProFormaWriteMode mod
 //============================================================================
 namespace
 {
+  // Type aliases for convenience within anonymous namespace
+  using Peptidoform = ProForma::Peptidoform;
+  using PeptidoformIon = ProForma::PeptidoformIon;
+  using Modification = ProForma::Modification;
+  using ModificationTag = ProForma::ModificationTag;
+  using CvAccession = ProForma::CvAccession;
+  using NamedMod = ProForma::NamedMod;
+  using MassDelta = ProForma::MassDelta;
+  using FormulaTag = ProForma::FormulaTag;
+  using GlycanComposition = ProForma::GlycanComposition;
+  using InfoTag = ProForma::InfoTag;
+  using PositionConstraint = ProForma::PositionConstraint;
+  using Label = ProForma::Label;
+  using UnlocalisedMod = ProForma::UnlocalisedMod;
+  using LabileModification = ProForma::LabileModification;
+  using SequenceSection = ProForma::SequenceSection;
+  using SequenceElement = ProForma::SequenceElement;
+  using AmbiguousRegion = ProForma::AmbiguousRegion;
+  using ModifiedRange = ProForma::ModifiedRange;
+  using GlobalModEntry = ProForma::GlobalModEntry;
+  using GlobalModification = ProForma::GlobalModification;
+  using IsotopeReplacement = ProForma::IsotopeReplacement;
+  using CvDatabase = ProForma::CvDatabase;
+  using ConversionIssue = ProForma::ConversionIssue;
+  using ConversionIssueType = ProForma::ConversionIssueType;
+  using ConversionPolicy = ProForma::ConversionPolicy;
+
   // Helper to resolve a single modification tag to a ResidueModification
   const ResidueModification* resolveModificationTag_(
     const ModificationTag& tag,
@@ -1733,9 +1819,9 @@ namespace
   std::vector<ConversionIssue> collectPeptidoformSpectrumIssues(const Peptidoform& pf)
   {
     std::vector<ConversionIssue> issues;
-    if (!ProFormaParser::isRepresentableAsAASequence(pf))
+    if (!ProForma::isRepresentableAsAASequence(pf))
     {
-      auto conv_issues = ProFormaParser::getAASequenceConversionIssues(pf);
+      auto conv_issues = ProForma::getAASequenceConversionIssues(pf);
       for (auto& issue : conv_issues) issues.push_back(std::move(issue));
     }
     return issues;
@@ -1784,7 +1870,7 @@ namespace
 // Modification resolution
 //============================================================================
 
-void ProFormaParser::resolveModifications(Peptidoform& pf)
+void ProForma::resolveModifications(Peptidoform& pf)
 {
   for (auto& section : pf.sequence)
   {
@@ -1825,7 +1911,7 @@ void ProFormaParser::resolveModifications(Peptidoform& pf)
 // AASequence conversion
 //============================================================================
 
-std::vector<ConversionIssue> ProFormaParser::getAASequenceConversionIssues(const Peptidoform& pf)
+std::vector<ProForma::ConversionIssue> ProForma::getAASequenceConversionIssues(const Peptidoform& pf)
 {
   std::vector<ConversionIssue> issues;
   Peptidoform pf_copy = pf;
@@ -1910,16 +1996,16 @@ std::vector<ConversionIssue> ProFormaParser::getAASequenceConversionIssues(const
   return issues;
 }
 
-bool ProFormaParser::isRepresentableAsAASequence(const Peptidoform& pf)
+bool ProForma::isRepresentableAsAASequence(const Peptidoform& pf)
 {
   return getAASequenceConversionIssues(pf).empty();
 }
 
-AASequence ProFormaParser::toAASequence(const Peptidoform& pf, AASequenceConversionPolicy policy)
+AASequence ProForma::toAASequence(const Peptidoform& pf, ConversionPolicy policy)
 {
   std::vector<ConversionIssue> issues = getAASequenceConversionIssues(pf);
 
-  if (policy == AASequenceConversionPolicy::FAIL_ON_LOSS && !issues.empty())
+  if (policy == ConversionPolicy::FAIL_ON_LOSS && !issues.empty())
   {
     std::string error_msg = "Cannot convert Peptidoform to AASequence: ";
     for (const auto& issue : issues) error_msg += issue.description + "; ";
@@ -1951,7 +2037,7 @@ AASequence ProFormaParser::toAASequence(const Peptidoform& pf, AASequenceConvers
       for (const auto& mod : elem->modifications)
       {
         if (mod.resolved_mod != nullptr) seq.setModification(seq_pos, mod.resolved_mod);
-        else if (policy == AASequenceConversionPolicy::FAIL_ON_LOSS)
+        else if (policy == ConversionPolicy::FAIL_ON_LOSS)
           throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
             "Unresolved modification at position " + std::to_string(seq_pos));
       }
@@ -1970,7 +2056,7 @@ AASequence ProFormaParser::toAASequence(const Peptidoform& pf, AASequenceConvers
   return seq;
 }
 
-Peptidoform ProFormaParser::fromAASequence(const AASequence& seq)
+ProForma::Peptidoform ProForma::fromAASequence(const AASequence& seq)
 {
   Peptidoform pf;
 
@@ -2066,7 +2152,7 @@ Peptidoform ProFormaParser::fromAASequence(const AASequence& seq)
 // Mass calculation methods
 //============================================================================
 
-std::vector<ConversionIssue> ProFormaParser::getMassCalculationIssues(const Peptidoform& pf)
+std::vector<ProForma::ConversionIssue> ProForma::getMassCalculationIssues(const Peptidoform& pf)
 {
   std::vector<ConversionIssue> issues;
   Peptidoform pf_copy = pf;
@@ -2125,7 +2211,7 @@ std::vector<ConversionIssue> ProFormaParser::getMassCalculationIssues(const Pept
   return issues;
 }
 
-std::vector<ConversionIssue> ProFormaParser::getMassCalculationIssues(const PeptidoformIon& pfi)
+std::vector<ProForma::ConversionIssue> ProForma::getMassCalculationIssues(const PeptidoformIon& pfi)
 {
   std::vector<ConversionIssue> issues;
   for (size_t i = 0; i < pfi.chains.size(); ++i)
@@ -2140,10 +2226,10 @@ std::vector<ConversionIssue> ProFormaParser::getMassCalculationIssues(const Pept
   return issues;
 }
 
-bool ProFormaParser::canCalculateMass(const Peptidoform& pf) { return getMassCalculationIssues(pf).empty(); }
-bool ProFormaParser::canCalculateMass(const PeptidoformIon& pfi) { return getMassCalculationIssues(pfi).empty(); }
+bool ProForma::canCalculateMass(const Peptidoform& pf) { return getMassCalculationIssues(pf).empty(); }
+bool ProForma::canCalculateMass(const PeptidoformIon& pfi) { return getMassCalculationIssues(pfi).empty(); }
 
-double ProFormaParser::getMonoWeight(const Peptidoform& pf)
+double ProForma::getMonoWeight(const Peptidoform& pf)
 {
   auto issues = getMassCalculationIssues(pf);
   if (!issues.empty())
@@ -2156,7 +2242,7 @@ double ProFormaParser::getMonoWeight(const Peptidoform& pf)
   return calculateChainMass_(pf_copy, counted_crosslinks);
 }
 
-double ProFormaParser::getMonoWeight(const PeptidoformIon& pfi)
+double ProForma::getMonoWeight(const PeptidoformIon& pfi)
 {
   auto issues = getMassCalculationIssues(pfi);
   if (!issues.empty())
@@ -2180,7 +2266,7 @@ double ProFormaParser::getMonoWeight(const PeptidoformIon& pfi)
   return total;
 }
 
-double ProFormaParser::getMZ(const PeptidoformIon& pfi)
+double ProForma::getMZ(const PeptidoformIon& pfi)
 {
   if (!pfi.charge.has_value())
     throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
@@ -2201,7 +2287,7 @@ double ProFormaParser::getMZ(const PeptidoformIon& pfi)
   return (mass + charge * Constants::PROTON_MASS_U) / std::abs(charge);
 }
 
-double ProFormaParser::getMZ(const Peptidoform& pf, int charge)
+double ProForma::getMZ(const Peptidoform& pf, int charge)
 {
   if (charge == 0)
     throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
@@ -2211,13 +2297,13 @@ double ProFormaParser::getMZ(const Peptidoform& pf, int charge)
   return (mass + charge * Constants::PROTON_MASS_U) / std::abs(charge);
 }
 
-std::optional<double> ProFormaParser::tryGetMonoWeight(const Peptidoform& pf)
+std::optional<double> ProForma::tryGetMonoWeight(const Peptidoform& pf)
 {
   std::vector<ConversionIssue> issues;
   return tryGetMonoWeight(pf, issues);
 }
 
-std::optional<double> ProFormaParser::tryGetMonoWeight(const Peptidoform& pf, std::vector<ConversionIssue>& issues_out)
+std::optional<double> ProForma::tryGetMonoWeight(const Peptidoform& pf, std::vector<ConversionIssue>& issues_out)
 {
   issues_out.clear();
   Peptidoform pf_copy = pf;
@@ -2228,13 +2314,13 @@ std::optional<double> ProFormaParser::tryGetMonoWeight(const Peptidoform& pf, st
   return calculateChainMass_(pf_copy, counted_crosslinks);
 }
 
-std::optional<double> ProFormaParser::tryGetMonoWeight(const PeptidoformIon& pfi)
+std::optional<double> ProForma::tryGetMonoWeight(const PeptidoformIon& pfi)
 {
   std::vector<ConversionIssue> issues;
   return tryGetMonoWeight(pfi, issues);
 }
 
-std::optional<double> ProFormaParser::tryGetMonoWeight(const PeptidoformIon& pfi, std::vector<ConversionIssue>& issues_out)
+std::optional<double> ProForma::tryGetMonoWeight(const PeptidoformIon& pfi, std::vector<ConversionIssue>& issues_out)
 {
   issues_out.clear();
   if (pfi.chains.empty()) return 0.0;
@@ -2270,13 +2356,13 @@ std::optional<double> ProFormaParser::tryGetMonoWeight(const PeptidoformIon& pfi
   return total;
 }
 
-std::optional<double> ProFormaParser::tryGetMZ(const Peptidoform& pf, int charge)
+std::optional<double> ProForma::tryGetMZ(const Peptidoform& pf, int charge)
 {
   std::vector<ConversionIssue> issues;
   return tryGetMZ(pf, charge, issues);
 }
 
-std::optional<double> ProFormaParser::tryGetMZ(const Peptidoform& pf, int charge, std::vector<ConversionIssue>& issues_out)
+std::optional<double> ProForma::tryGetMZ(const Peptidoform& pf, int charge, std::vector<ConversionIssue>& issues_out)
 {
   issues_out.clear();
   if (charge == 0)
@@ -2289,13 +2375,13 @@ std::optional<double> ProFormaParser::tryGetMZ(const Peptidoform& pf, int charge
   return (*mass + charge * Constants::PROTON_MASS_U) / std::abs(charge);
 }
 
-std::optional<double> ProFormaParser::tryGetMZ(const PeptidoformIon& pfi)
+std::optional<double> ProForma::tryGetMZ(const PeptidoformIon& pfi)
 {
   std::vector<ConversionIssue> issues;
   return tryGetMZ(pfi, issues);
 }
 
-std::optional<double> ProFormaParser::tryGetMZ(const PeptidoformIon& pfi, std::vector<ConversionIssue>& issues_out)
+std::optional<double> ProForma::tryGetMZ(const PeptidoformIon& pfi, std::vector<ConversionIssue>& issues_out)
 {
   issues_out.clear();
   if (!pfi.charge.has_value())
@@ -2326,20 +2412,20 @@ std::optional<double> ProFormaParser::tryGetMZ(const PeptidoformIon& pfi, std::v
 // Theoretical spectrum generation
 //============================================================================
 
-bool ProFormaParser::canGenerateSpectrum(const Peptidoform& pf) { return collectPeptidoformSpectrumIssues(pf).empty(); }
-bool ProFormaParser::canGenerateSpectrum(const PeptidoformIon& pfi) { return collectPeptidoformIonSpectrumIssues(pfi).empty(); }
+bool ProForma::canGenerateSpectrum(const Peptidoform& pf) { return collectPeptidoformSpectrumIssues(pf).empty(); }
+bool ProForma::canGenerateSpectrum(const PeptidoformIon& pfi) { return collectPeptidoformIonSpectrumIssues(pfi).empty(); }
 
-std::vector<ConversionIssue> ProFormaParser::getSpectrumGenerationIssues(const Peptidoform& pf)
+std::vector<ProForma::ConversionIssue> ProForma::getSpectrumGenerationIssues(const Peptidoform& pf)
 {
   return collectPeptidoformSpectrumIssues(pf);
 }
 
-std::vector<ConversionIssue> ProFormaParser::getSpectrumGenerationIssues(const PeptidoformIon& pfi)
+std::vector<ProForma::ConversionIssue> ProForma::getSpectrumGenerationIssues(const PeptidoformIon& pfi)
 {
   return collectPeptidoformIonSpectrumIssues(pfi);
 }
 
-MSSpectrum ProFormaParser::generateSpectrum(
+MSSpectrum ProForma::generateSpectrum(
   const Peptidoform& pf,
   int min_charge,
   int max_charge,
@@ -2355,7 +2441,7 @@ MSSpectrum ProFormaParser::generateSpectrum(
     throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, error_msg);
   }
 
-  AASequence seq = toAASequence(pf, AASequenceConversionPolicy::FAIL_ON_LOSS);
+  AASequence seq = toAASequence(pf, ConversionPolicy::FAIL_ON_LOSS);
 
   TheoreticalSpectrumGenerator generator;
   Param param = generator.getParameters();
@@ -2376,7 +2462,7 @@ MSSpectrum ProFormaParser::generateSpectrum(
   return spectrum;
 }
 
-MSSpectrum ProFormaParser::generateSpectrum(
+MSSpectrum ProForma::generateSpectrum(
   const PeptidoformIon& pfi,
   int min_charge,
   int max_charge,
@@ -2401,8 +2487,8 @@ MSSpectrum ProFormaParser::generateSpectrum(
   auto [alpha_found, alpha_pos, alpha_mass, alpha_label] = findCrossLink(alpha_pf);
   auto [beta_found, beta_pos, beta_mass, beta_label] = findCrossLink(beta_pf);
 
-  AASequence alpha_seq = toAASequence(alpha_pf, AASequenceConversionPolicy::BEST_EFFORT);
-  AASequence beta_seq = toAASequence(beta_pf, AASequenceConversionPolicy::BEST_EFFORT);
+  AASequence alpha_seq = toAASequence(alpha_pf, ConversionPolicy::BEST_EFFORT);
+  AASequence beta_seq = toAASequence(beta_pf, ConversionPolicy::BEST_EFFORT);
 
   double linker_mass = (alpha_mass > 0.001) ? alpha_mass : beta_mass;
 

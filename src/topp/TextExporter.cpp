@@ -556,7 +556,7 @@ namespace OpenMS
       // Write USI if requested
       if (incl_usi)
       {
-        out << pid.buildUSIString(usi_dataset_id, usi_ms_run, true);
+        out << pid.buildUSIString(usi_ms_run, usi_dataset_id, true);
       }
       
       writeMetaValues(out, pid, peptide_id_meta_keys);

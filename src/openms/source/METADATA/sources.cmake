@@ -19,6 +19,7 @@ ExperimentalDesign.cpp
 ExperimentalSettings.cpp
 Gradient.cpp
 HPLC.cpp
+IdentifierMSRunMapper.cpp
 Instrument.cpp
 InstrumentSettings.cpp
 IonDetector.cpp

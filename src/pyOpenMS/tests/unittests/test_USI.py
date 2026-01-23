@@ -21,9 +21,14 @@ class TestUSIBindings(unittest.TestCase):
         pep_id.insertHit(hit)
         pep_id.sort()
 
-        usi_str = pep_id.buildUSIString("PXD000561", "sample.mzML", True)
+        # Test with explicit dataset_id
+        usi_str = pep_id.buildUSIString("sample.mzML", "PXD000561", True)
         self.assertEqual(str(usi_str), "mzspec:PXD000561:sample.mzML:scan:12345:EM[UNIMOD:35]K/2")
 
-        usi = pep_id.buildUSI("PXD000561", "sample.mzML", True)
+        usi = pep_id.buildUSI("sample.mzML", "PXD000561", True)
         self.assertEqual(str(usi.toString()), "mzspec:PXD000561:sample.mzML:scan:12345:EM[UNIMOD:35]K/2")
+
+        # Test with default dataset_id ("local")
+        usi_local = pep_id.buildUSIString("sample.mzML", "local", False)
+        self.assertEqual(str(usi_local), "mzspec:local:sample.mzML:scan:12345")
 

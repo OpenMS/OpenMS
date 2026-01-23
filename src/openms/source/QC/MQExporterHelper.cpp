@@ -64,7 +64,7 @@ bool MQExporterHelper::hasValidPepID_(
     return false;
   }
   const PeptideIdentification& best_pep_id = pep_ids_f[0]; // PeptideIdentifications are sorted
-  String best_uid = PeptideIdentification::buildUIDFromPepID(best_pep_id, mp_f.identifier_to_msrunpath);
+  String best_uid = PeptideIdentification::buildUIDFromPepID(best_pep_id, mp_f);
   const auto range = UIDs.equal_range(best_uid);
   for (std::multimap<OpenMS::String, std::pair<OpenMS::Size, OpenMS::Size>>::const_iterator it_pep = range.first;
        it_pep != range.second; ++it_pep)
