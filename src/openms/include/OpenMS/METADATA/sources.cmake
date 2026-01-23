@@ -19,6 +19,7 @@ ExperimentalDesign.h
 ExperimentalSettings.h
 Gradient.h
 HPLC.h
+IdentifierMSRunMapper.h
 Instrument.h
 InstrumentSettings.h
 IonDetector.h
