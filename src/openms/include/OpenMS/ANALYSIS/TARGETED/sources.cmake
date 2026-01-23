@@ -9,6 +9,7 @@ MetaboTargetedAssay.h
 MetaboTargetedTargetDecoy.h
 TargetedExperiment.h
 TargetedExperimentHelper.h
+SRMHandler.h
 )
 
 ### add path to the filenames

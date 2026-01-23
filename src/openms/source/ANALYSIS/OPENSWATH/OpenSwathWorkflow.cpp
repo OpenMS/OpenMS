@@ -7,8 +7,10 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathWorkflow.h>
+#include <OpenMS/ANALYSIS/TARGETED/SRMHandler.h>
 #include <cmath>
 #include <unordered_map>
+#include <cstdio>
 
 // OpenSwathCalibrationWorkflow
 namespace OpenMS
@@ -54,13 +56,33 @@ namespace OpenMS
     OPENMS_LOG_DEBUG << "performRTNormalization method starting\n";
     std::vector< OpenMS::MSChromatogram > irt_chromatograms;
     TransformationDescription trafo; // dummy
-    this->simpleExtractChromatograms_(swath_maps, irt_transitions, irt_chromatograms, trafo, cp_irt, pasef, load_into_memory);
+
+    // SRM/MRM support: use existing chromatograms if input is chromatogram-only
+    bool srm_mode = true;
+    for (const auto& sm : swath_maps)
+    {
+      if (sm.ms1 || sm.sptr->getNrSpectra() > 0)
+      {
+        srm_mode = false;
+        break;
+      }
+    }
+
+    if (srm_mode)
+    {
+  // Use SRMHandler to collect chromatograms for iRT calibration
+  irt_chromatograms = ::OpenMS::SRMHandler::collectChromatogramsForIrt(swath_maps);
+    }
+    else
+    {
+      this->simpleExtractChromatograms_(swath_maps, irt_transitions, irt_chromatograms, trafo, cp_irt, pasef, load_into_memory);
+    }
 
     // debug output of the iRT chromatograms
     if (irt_mzml_out.empty() && debug_level > 1)
-      {
-        String irt_mzml_out = "debug_irts.mzML";
-      }
+    {
+      String irt_mzml_out = "debug_irts.mzML";
+    }
     if (!irt_mzml_out.empty())
     {
       try
@@ -138,6 +160,18 @@ namespace OpenMS
     feature_finder_param.setValue("stop_report_after_feature", 1);
     feature_finder_param.setValue("TransitionGroupPicker:PeakPickerChromatogram:signal_to_noise", 1.0); // set to 1.0 in all cases
     feature_finder_param.setValue("TransitionGroupPicker:compute_peak_quality", "false"); // no peak quality -> take all peaks!
+    // Ensure feature finder knows the mz extraction tolerances for iRT matching
+    // (calibration_param is available in the caller and passed into this function)
+    try
+    {
+      double irt_mz_w = calibration_param.getValue("mz_extraction_window");
+      bool irt_ppm = calibration_param.getValue("mz_extraction_window_ppm").toBool();
+      feature_finder_param.setValue("irt_mz_extraction_window", irt_mz_w);
+      feature_finder_param.setValue("irt_mz_extraction_window_unit", irt_ppm ? "ppm" : "Th");
+    }
+    catch (...) {
+      // ignore if not present
+    }
     if (estimateBestPeptides)
     {
       feature_finder_param.setValue("TransitionGroupPicker:compute_peak_quality", "true");
@@ -375,8 +409,170 @@ namespace OpenMS
           OpenSwathHelper::selectSwathTransitions(irt_transitions, transition_exp_used,
           cp.min_upper_edge_dist, swath_maps[map_idx].lower, swath_maps[map_idx].upper);
         }
-        if (!transition_exp_used.getTransitions().empty()) // skip if no transitions found
+
+        // Debug: report swath window and number of selected transitions for this map
+        // (Debug prints removed) swath window selection performed here
+          // If no transitions were selected for this swath map but the map contains
+          // chromatograms only (no spectra), fall back to using all transitions
+          // so that we can attempt nativeID / m/z matching against the chromatogram list.
+          if (transition_exp_used.getTransitions().empty()
+              && swath_maps[map_idx].sptr && swath_maps[map_idx].sptr->getNrSpectra() == 0
+              && swath_maps[map_idx].sptr->getNrChromatograms() > 0)
+          {
+            // Fall back to all transitions for chrom-only matching when no transitions selected
+            transition_exp_used = irt_transitions;
+          }
+
+          if (!transition_exp_used.getTransitions().empty()) // skip if no transitions found
         {
+          // If this swath map is chromatogram-only (no spectra, but chromatograms present),
+          // extract matching chromatograms by nativeID or by m/z fallback.
+          if (swath_maps[map_idx].sptr->getNrSpectra() == 0 && swath_maps[map_idx].sptr->getNrChromatograms() > 0)
+          {
+            auto* openms_map = dynamic_cast<OpenMS::SpectrumAccessOpenMS*>(swath_maps[map_idx].sptr.get());
+            if (openms_map)
+            {
+              Size n_chroms = openms_map->getNrChromatograms();
+              std::unordered_map<String, int> chrom_map;
+              chrom_map.reserve(n_chroms);
+              std::vector<std::pair<double,double>> chrom_mz_cache(n_chroms, std::make_pair(-1.0, -1.0));
+              for (Size k = 0; k < n_chroms; ++k)
+              {
+                String cid = openms_map->getChromatogramNativeID(k);
+                chrom_map[cid] = boost::numeric_cast<int>(k);
+                double c_prec = -1.0, c_prod = -1.0;
+                if (sscanf(cid.c_str(), "%*[^0-9+\\-]%lf%*[^0-9+\\-]%lf", &c_prec, &c_prod) >= 2)
+                {
+                  chrom_mz_cache[k] = std::make_pair(c_prec, c_prod);
+                }
+              }
+
+              // parsed chromatograms cached (verbose debug removed)
+
+              std::vector<OpenSwath::ChromatogramPtr> tmp_out_ptrs;
+              // For each requested transition, find matching chromatogram
+              for (const auto & tr : transition_exp_used.getTransitions())
+              {
+                int matched_idx = -1;
+                auto it = chrom_map.find(tr.getNativeID());
+                if (it != chrom_map.end())
+                {
+                  matched_idx = it->second;
+                }
+                else
+                {
+                  // mz-based fallback matching (precursor+product first, then product-only)
+                  double t_prec = tr.getPrecursorMZ();
+                  double t_prod = tr.getProductMZ();
+                  // try pair match
+                  for (Size j = 0; j < n_chroms; ++j)
+                  {
+                    double c_prec = chrom_mz_cache[j].first;
+                    double c_prod = chrom_mz_cache[j].second;
+                    if (c_prec < 0 || c_prod < 0) continue;
+                    double abs_tol = 0.5;
+                    double ppm_tol = 20.0;
+                    try
+                    {
+                      double cfg = cp.mz_extraction_window;
+                      String unit = cp.ppm ? "ppm" : "Th";
+                      if (cfg > 0)
+                      {
+                        if (unit == "ppm")
+                        {
+                          ppm_tol = cfg / 2.0;
+                          abs_tol = -1.0;
+                        }
+                        else
+                        {
+                          abs_tol = cfg / 2.0;
+                          ppm_tol = -1.0;
+                        }
+                      }
+                    }
+                    catch (...) {}
+                    bool prec_ok = false;
+                    bool prod_ok = false;
+                    if (abs_tol >= 0) { prec_ok = (fabs(c_prec - t_prec) <= abs_tol); }
+                    if (!prec_ok && ppm_tol >= 0) { prec_ok = (fabs(c_prec - t_prec) / t_prec * 1e6 <= ppm_tol); }
+                    if (abs_tol >= 0) { prod_ok = (fabs(c_prod - t_prod) <= abs_tol); }
+                    if (!prod_ok && ppm_tol >= 0) { prod_ok = (fabs(c_prod - t_prod) / t_prod * 1e6 <= ppm_tol); }
+                    if (prec_ok && prod_ok)
+                    {
+                      matched_idx = boost::numeric_cast<int>(j);
+                      break;
+                    }
+                  }
+                  // product-only fallback
+                  if (matched_idx == -1)
+                  {
+                    // product-only fallback (no verbose debug)
+                    for (Size j = 0; j < n_chroms; ++j)
+                    {
+                      double c_prod = chrom_mz_cache[j].second;
+                      if (c_prod < 0) continue;
+                      double abs_tol = 0.5;
+                      double ppm_tol = 20.0;
+                      try
+                      {
+                        double cfg = cp.mz_extraction_window;
+                        String unit = cp.ppm ? "ppm" : "Th";
+                        if (cfg > 0)
+                        {
+                          if (unit == "ppm")
+                          {
+                            ppm_tol = cfg / 2.0;
+                            abs_tol = -1.0;
+                          }
+                          else
+                          {
+                            abs_tol = cfg / 2.0;
+                            ppm_tol = -1.0;
+                          }
+                        }
+                      }
+                      catch (...) {}
+                      bool prod_ok = false;
+                      if (abs_tol >= 0) { prod_ok = (fabs(c_prod - t_prod) <= abs_tol); }
+                      if (!prod_ok && ppm_tol >= 0) { prod_ok = (fabs(c_prod - t_prod) / t_prod * 1e6 <= ppm_tol); }
+                      if (prod_ok)
+                      {
+                        matched_idx = boost::numeric_cast<int>(j);
+                        break;
+                      }
+                    }
+                  }
+                }
+
+                if (matched_idx != -1)
+                {
+                  auto chrom_ptr = openms_map->getChromatogramById(matched_idx);
+                  if (chrom_ptr)
+                  {
+                    MSChromatogram omchrom;
+                    OpenSwathDataAccessHelper::convertToOpenMSChromatogram(chrom_ptr, omchrom);
+                    // Use the transition native ID for the output chromatogram so it
+                    // can be directly mapped back to the PQP/OSW transition IDs when
+                    // writing sqMass/feature files.
+                    omchrom.setNativeID(tr.getNativeID());
+                    tmp_chromatograms.push_back(omchrom);
+                  }
+                }
+              } // transitions loop
+
+              // add found chromatograms to output (thread-safe)
+#ifdef _OPENMP
+#pragma omp critical (osw_write_chroms)
+#endif
+              {
+                for (auto &c : tmp_chromatograms)
+                {
+                  chromatograms.push_back(c);
+                }
+              }
+            }
+            continue; // skip the regular extractor path for this swath_map
+          }
 
           std::vector< OpenSwath::ChromatogramPtr > tmp_out;
           std::vector< ChromatogramExtractor::ExtractionCoordinates > coordinates;
@@ -517,11 +713,36 @@ namespace OpenMS
 
     bool ms1_only = (swath_maps.size() == 1 && swath_maps[0].ms1);
 
+    // SRM/MRM support: detect if all swath_maps are chromatogram-only (no spectra, not MS1)
+    bool srm_mode = true;
+    for (const auto& sm : swath_maps)
+    {
+      if (sm.ms1 || sm.sptr->getNrSpectra() > 0)
+      {
+        srm_mode = false;
+        break;
+      }
+    }
+
+    if (srm_mode)
+    {
+      OPENMS_LOG_INFO << "Detected SRM/MRM mode based on input data (chromatogram-only, no spectra)." << std::endl;
+  // Delegate to SRMHandler which returns mapped & filtered chromatograms
+  std::vector<MSChromatogram> filtered_chroms = ::OpenMS::SRMHandler::extractAndMapChromatogramsForTransitions(swath_maps, transition_exp, cp);
+
+      FeatureMap featureFile;
+      scoreAllChromatograms_(filtered_chroms, std::vector<MSChromatogram>(), swath_maps, transition_exp,
+                            feature_finder_param, trafo, cp.rt_extraction_window, featureFile, osw_writer, ms1_isotopes);
+      std::vector<MSChromatogram> empty_ms1_chromatograms;
+      writeOutFeaturesAndChroms_(filtered_chroms, empty_ms1_chromatograms, featureFile, out_featureFile, store_features, chromConsumer);
+      return;
+    }
+
     // Compute inversion of the transformation
     TransformationDescription trafo_inverse = trafo;
     trafo_inverse.invert();
 
-    std::cout << "Will analyze " << transition_exp.transitions.size() << " transitions in total.\n";
+  OPENMS_LOG_INFO << "Will analyze " << transition_exp.transitions.size() << " transitions in total." << std::endl;
     int progress = 0;
     this->startProgress(0, swath_maps.size(), "Extracting and scoring transitions");
 
@@ -648,14 +869,14 @@ namespace OpenMS
     int total_nr_threads = omp_get_max_threads(); // store total number of threads we are allowed to use
     if (threads_outer_loop_ > -1)
     {
-      std::cout << "Setting up nested loop with " << std::min(threads_outer_loop_, omp_get_max_threads()) << " threads out of "<< omp_get_max_threads() << '\n';
+  OPENMS_LOG_INFO << "Setting up nested loop with " << std::min(threads_outer_loop_, omp_get_max_threads()) << " threads out of "<< omp_get_max_threads() << std::endl;
       omp_set_nested(1);
       omp_set_dynamic(0);
       omp_set_num_threads(std::min(threads_outer_loop_, omp_get_max_threads()) ); // use at most threads_outer_loop_ threads here
     }
     else
     {
-      std::cout << "Use non-nested loop with " << total_nr_threads << " threads.\n";
+  OPENMS_LOG_INFO << "Use non-nested loop with " << total_nr_threads << " threads." << std::endl;
     }
 #endif
 #pragma omp parallel for schedule(dynamic,1)
@@ -763,7 +984,7 @@ namespace OpenMS
 #pragma omp critical (osw_write_stdout)
 #endif
             {
-              std::cout << "Thread " <<
+              OPENMS_LOG_INFO << "Thread " <<
 #ifdef _OPENMP
 #ifdef MT_ENABLE_NESTED_OPENMP
               outer_thread_nr << "_" << omp_get_thread_num() << " " <<
@@ -775,7 +996,7 @@ namespace OpenMS
 #endif
               "will analyze " << transition_exp_used_all.getCompounds().size() <<  " compounds and "
               << transition_exp_used_all.getTransitions().size() <<  " transitions "
-              "from SWATH " << i << " (batch " << pep_idx << " out of " << nr_batches << ")\n";
+              "from SWATH " << i << " (batch " << pep_idx << " out of " << nr_batches << ")" << std::endl;
             }
 
             // Create the new, batch-size transition experiment
@@ -961,9 +1182,17 @@ namespace OpenMS
 
     std::unordered_map<String, int> chromatogram_map;
     chromatogram_map.reserve(ms2_chromatograms.size());
+    // Additionally cache parsed precursor/product m/z from chromatogram nativeIDs
+    std::vector<std::pair<double,double>> chrom_mz_cache(ms2_chromatograms.size(), std::make_pair(-1.0, -1.0));
     for (Size i = 0; i < ms2_chromatograms.size(); i++)
     {
-      chromatogram_map[ms2_chromatograms[i].getNativeID()] = boost::numeric_cast<int>(i);
+      const String cid = ms2_chromatograms[i].getNativeID();
+      chromatogram_map[cid] = boost::numeric_cast<int>(i);
+      double c_prec = -1.0, c_prod = -1.0;
+              if (sscanf(cid.c_str(), "%*[^0-9+\\-]%lf%*[^0-9+\\-]%lf", &c_prec, &c_prod) >= 2)
+      {
+        chrom_mz_cache[i] = std::make_pair(c_prec, c_prod);
+      }
     }
     std::unordered_map<String, int> assay_peptide_map;
     assay_peptide_map.reserve(transition_exp.getCompounds().size());
@@ -1013,15 +1242,97 @@ namespace OpenMS
         // the transitions)
         if (ms1only) {continue;}
 
-        if (chromatogram_map.find(transition->getNativeID()) == chromatogram_map.end())
+        int matched_idx = -1;
+        auto it_ch = chromatogram_map.find(transition->getNativeID());
+        if (it_ch != chromatogram_map.end())
         {
-          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-              "Error, did not find chromatogram for transition " + transition->getNativeID() );
+          matched_idx = it_ch->second;
+        }
+        else
+        {
+          // mz-based fallback matching (precursor+product first, then product-only)
+          double t_prec = transition->getPrecursorMZ();
+          double t_prod = transition->getProductMZ();
+          // determine tolerances from feature_finder_param (irt-specific or fallback)
+          double abs_tol = 0.5;
+          double ppm_tol = 20.0;
+          try
+          {
+            double cfg = feature_finder_param.getValue("irt_mz_extraction_window");
+            String unit = feature_finder_param.getValue("irt_mz_extraction_window_unit").toString();
+            if (cfg <= 0)
+            {
+              cfg = feature_finder_param.getValue("mz_extraction_window");
+              // try mz_extraction_window unit fields
+              try { unit = feature_finder_param.getValue("mz_extraction_window_unit").toString(); } catch (...) {}
+            }
+            if (cfg > 0)
+            {
+              if (unit == "ppm")
+              {
+                ppm_tol = cfg / 2.0;
+                abs_tol = -1.0;
+              }
+              else
+              {
+                abs_tol = cfg / 2.0;
+                ppm_tol = -1.0;
+              }
+            }
+          }
+          catch (...) {}
+
+          // pair match
+          for (Size j = 0; j < chrom_mz_cache.size(); ++j)
+          {
+            double c_prec = chrom_mz_cache[j].first;
+            double c_prod = chrom_mz_cache[j].second;
+            if (c_prec < 0 || c_prod < 0) continue;
+            bool prec_ok = false;
+            bool prod_ok = false;
+            if (abs_tol >= 0) { prec_ok = (fabs(c_prec - t_prec) <= abs_tol); }
+            if (!prec_ok && ppm_tol >= 0) { prec_ok = (fabs(c_prec - t_prec) / t_prec * 1e6 <= ppm_tol); }
+            if (abs_tol >= 0) { prod_ok = (fabs(c_prod - t_prod) <= abs_tol); }
+            if (!prod_ok && ppm_tol >= 0) { prod_ok = (fabs(c_prod - t_prod) / t_prod * 1e6 <= ppm_tol); }
+            if (prec_ok && prod_ok)
+            {
+              matched_idx = boost::numeric_cast<int>(j);
+              break;
+            }
+          }
+          // product-only fallback
+          if (matched_idx == -1)
+          {
+            for (Size j = 0; j < chrom_mz_cache.size(); ++j)
+            {
+              double c_prod = chrom_mz_cache[j].second;
+              if (c_prod < 0) continue;
+              bool prod_ok = false;
+              if (abs_tol >= 0) { prod_ok = (fabs(c_prod - t_prod) <= abs_tol); }
+              if (!prod_ok && ppm_tol >= 0) { prod_ok = (fabs(c_prod - t_prod) / t_prod * 1e6 <= ppm_tol); }
+              if (prod_ok)
+              {
+                matched_idx = boost::numeric_cast<int>(j);
+                break;
+              }
+            }
+          }
         }
 
-        // Convert chromatogram to MSChromatogram and filter (properly handles DataArrays via select())
-        auto chromatogram = ms2_chromatograms[ chromatogram_map[transition->getNativeID()] ];
-        chromatogram.setNativeID(transition->getNativeID());
+        if (matched_idx == -1)
+        {
+          // In chromatogram-only / SRM mode many transitions may not have a
+          // corresponding chromatogram in the file. Previously this was an
+          // error and aborted processing; make this robust by logging a
+          // warning and skipping the transition so processing can continue.
+          OPENMS_LOG_WARN << "Did not find chromatogram for transition '" << transition->getNativeID()
+                          << "' (prec=" << transition->getPrecursorMZ() << " prod=" << transition->getProductMZ() << ") - skipping." << std::endl;
+          continue; // skip this transition
+        }
+
+  // Convert chromatogram to MSChromatogram and filter (properly handles DataArrays via select())
+  MSChromatogram chromatogram = ms2_chromatograms[ matched_idx ];
+  chromatogram.setNativeID(transition->getNativeID());
         if (rt_extraction_window > 0)
         {
           double de_normalized_experimental_rt = trafo_inv.apply(expected_rt);

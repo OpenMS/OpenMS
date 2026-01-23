@@ -9,6 +9,7 @@ MRMMapping.cpp
 IncludeExcludeTarget.cpp
 TargetedExperiment.cpp
 TargetedExperimentHelper.cpp
+SRMHandler.cpp
 )
 
 ### add path to the filenames
