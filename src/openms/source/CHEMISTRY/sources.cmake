@@ -22,6 +22,7 @@ ModificationsDB.cpp
 ModifiedNASequenceGenerator.cpp
 MonosaccharideDB.cpp
 ModifiedPeptideGenerator.cpp
+MzPAFParser.cpp
 NASequence.cpp
 NucleicAcidSpectrumGenerator.cpp
 ProFormaDataJson.cpp
