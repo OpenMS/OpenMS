@@ -476,6 +476,44 @@ START_SECTION(Adduct parsing)
 }
 END_SECTION
 
+START_SECTION(calculateTheoreticalMZ)
+{
+  AASequence seq = AASequence::fromString("PEPTIDER");
+
+  // Test y4 ion (C-terminal 4 residues: IDER)
+  MzPAFAnnotation y4 = MzPAF::parse("y4");
+  auto mz_y4 = MzPAF::calculateTheoreticalMZ(y4, seq);
+  TEST_EQUAL(mz_y4.has_value(), true)
+  // y4 of PEPTIDER = IDER, singly charged
+  // Expected: ~532.3 m/z (approximate, using Residue::YIon)
+  TEST_REAL_SIMILAR(mz_y4.value(), 532.29)
+
+  // Test b3 ion (N-terminal 3 residues: PEP)
+  MzPAFAnnotation b3 = MzPAF::parse("b3");
+  auto mz_b3 = MzPAF::calculateTheoreticalMZ(b3, seq);
+  TEST_EQUAL(mz_b3.has_value(), true)
+  // b3 of PEPTIDER = PEP
+  TEST_REAL_SIMILAR(mz_b3.value(), 324.16)
+
+  // Test doubly charged y4
+  MzPAFAnnotation y4_2 = MzPAF::parse("y4^2");
+  auto mz_y4_2 = MzPAF::calculateTheoreticalMZ(y4_2, seq);
+  TEST_EQUAL(mz_y4_2.has_value(), true)
+  // Doubly charged: (mass + 2*proton) / 2
+  TEST_REAL_SIMILAR(mz_y4_2.value(), 266.65)
+
+  // Test non-standard ion (should return nullopt)
+  MzPAFAnnotation precursor = MzPAF::parse("p");
+  auto mz_p = MzPAF::calculateTheoreticalMZ(precursor, seq);
+  TEST_EQUAL(mz_p.has_value(), false)
+
+  // Test invalid ordinal (out of range)
+  MzPAFAnnotation y100 = MzPAF::parse("y100");
+  auto mz_y100 = MzPAF::calculateTheoreticalMZ(y100, seq);
+  TEST_EQUAL(mz_y100.has_value(), false)
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

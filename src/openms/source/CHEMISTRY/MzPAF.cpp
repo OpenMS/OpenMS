@@ -1086,40 +1086,44 @@ namespace OpenMS
 
     double mass = 0.0;
 
+    // Use proper Residue types for accurate mass calculation
     switch (ann.ion_series)
     {
       case MzPAFIonSeries::A:
-        mass = sequence.getPrefix(pos).getMonoWeight(Residue::Internal) - 27.9949;
+        mass = sequence.getPrefix(pos).getMonoWeight(Residue::AIon);
         break;
       case MzPAFIonSeries::B:
-        mass = sequence.getPrefix(pos).getMonoWeight(Residue::Internal);
+        mass = sequence.getPrefix(pos).getMonoWeight(Residue::BIon);
         break;
       case MzPAFIonSeries::C:
-        mass = sequence.getPrefix(pos).getMonoWeight(Residue::Internal) + 17.0265;
+        mass = sequence.getPrefix(pos).getMonoWeight(Residue::CIon);
         break;
       case MzPAFIonSeries::X:
-        mass = sequence.getSuffix(pos).getMonoWeight(Residue::Internal) + 25.9793;
+        mass = sequence.getSuffix(pos).getMonoWeight(Residue::XIon);
         break;
       case MzPAFIonSeries::Y:
-        mass = sequence.getSuffix(pos).getMonoWeight(Residue::Internal) + 18.0106;
+        mass = sequence.getSuffix(pos).getMonoWeight(Residue::YIon);
         break;
       case MzPAFIonSeries::Z:
-        mass = sequence.getSuffix(pos).getMonoWeight(Residue::Internal) + 1.9919;
+        mass = sequence.getSuffix(pos).getMonoWeight(Residue::ZIon);
         break;
       default:
         return std::nullopt;
     }
 
+    // Subtract neutral losses
     for (const auto& loss : ann.neutral_losses)
     {
       mass -= loss.formula.getMonoWeight();
     }
 
+    // Add isotope offset (C13-C12 mass difference per isotope)
     if (ann.isotope_offset.has_value())
     {
-      mass += ann.isotope_offset.value() * 1.00335;
+      mass += ann.isotope_offset.value() * Constants::C13C12_MASSDIFF_U;
     }
 
+    // Calculate m/z: (mass + z * proton_mass) / z
     double mz = (mass + charge * Constants::PROTON_MASS_U) / charge;
 
     return mz;
