@@ -414,7 +414,14 @@ namespace OpenMS
           if (current_.type == TokenType::AT)
           {
             advance_();
-            ann.analyte_index = std::stoi(std::string(num.text));
+            try
+            {
+              ann.analyte_index = String(num.text).toInt();
+            }
+            catch (const Exception::ConversionError&)
+            {
+              error_(MzPAFErrorCode::INVALID_NUMBER, "Invalid analyte index");
+            }
           }
           else
           {
@@ -458,7 +465,14 @@ namespace OpenMS
           if (text.size() > 1 && std::isdigit(text[1]))
           {
             // Parse ordinal from the identifier itself
-            ann.ordinal = std::stoi(std::string(text.substr(1)));
+            try
+            {
+              ann.ordinal = String(text.substr(1)).toInt();
+            }
+            catch (const Exception::ConversionError&)
+            {
+              error_(MzPAFErrorCode::INVALID_NUMBER, "Invalid ordinal number");
+            }
             advance_();
           }
           else
@@ -467,7 +481,14 @@ namespace OpenMS
             // Parse ordinal from next token
             if (current_.type == TokenType::NUMBER)
             {
-              ann.ordinal = std::stoi(std::string(current_.text));
+              try
+              {
+                ann.ordinal = String(current_.text).toInt();
+              }
+              catch (const Exception::ConversionError&)
+              {
+                error_(MzPAFErrorCode::INVALID_NUMBER, "Invalid ordinal number");
+              }
               advance_();
             }
             else
@@ -491,7 +512,14 @@ namespace OpenMS
           // Optional ordinal for precursor
           if (current_.type == TokenType::NUMBER)
           {
-            ann.ordinal = std::stoi(std::string(current_.text));
+            try
+            {
+              ann.ordinal = String(current_.text).toInt();
+            }
+            catch (const Exception::ConversionError&)
+            {
+              error_(MzPAFErrorCode::INVALID_NUMBER, "Invalid precursor ordinal");
+            }
             advance_();
           }
         }
@@ -511,7 +539,14 @@ namespace OpenMS
           // Check if start position is embedded in the identifier (e.g., "m3" as single token)
           if (text.size() > 1 && std::isdigit(text[1]))
           {
-            start_pos = std::stoi(std::string(text.substr(1)));
+            try
+            {
+              start_pos = String(text.substr(1)).toInt();
+            }
+            catch (const Exception::ConversionError&)
+            {
+              error_(MzPAFErrorCode::INVALID_NUMBER, "Invalid internal fragment start position");
+            }
             advance_();
           }
           else
@@ -522,7 +557,14 @@ namespace OpenMS
             {
               error_(MzPAFErrorCode::INVALID_NUMBER, "Expected start position for internal fragment");
             }
-            start_pos = std::stoi(std::string(current_.text));
+            try
+            {
+              start_pos = String(current_.text).toInt();
+            }
+            catch (const Exception::ConversionError&)
+            {
+              error_(MzPAFErrorCode::INVALID_NUMBER, "Invalid internal fragment start position");
+            }
             advance_();
           }
 
@@ -538,7 +580,15 @@ namespace OpenMS
           {
             error_(MzPAFErrorCode::INVALID_NUMBER, "Expected end position for internal fragment");
           }
-          int end_pos = std::stoi(std::string(current_.text));
+          int end_pos;
+          try
+          {
+            end_pos = String(current_.text).toInt();
+          }
+          catch (const Exception::ConversionError&)
+          {
+            error_(MzPAFErrorCode::INVALID_NUMBER, "Invalid internal fragment end position");
+          }
           advance_();
 
           ann.internal_range = std::make_pair(start_pos, end_pos);
@@ -754,7 +804,14 @@ namespace OpenMS
           if (current_.type == TokenType::IDENTIFIER &&
               current_.text.size() >= 1 && current_.text[0] == 'i')
           {
-            ann.isotope_offset = std::stoi(num_str);
+            try
+            {
+              ann.isotope_offset = num_str.toInt();
+            }
+            catch (const Exception::ConversionError&)
+            {
+              error_(MzPAFErrorCode::INVALID_NUMBER, "Invalid isotope offset");
+            }
             // Skip past 'i' - it might be just 'i' or 'i' followed by more
             if (current_.text.size() == 1)
             {
@@ -797,7 +854,14 @@ namespace OpenMS
           error_(MzPAFErrorCode::INVALID_CHARGE, "Expected charge number after '^'");
         }
 
-        ann.charge = std::stoi(std::string(current_.text));
+        try
+        {
+          ann.charge = String(current_.text).toInt();
+        }
+        catch (const Exception::ConversionError&)
+        {
+          error_(MzPAFErrorCode::INVALID_CHARGE, "Invalid charge number");
+        }
         advance_();
       }
 
@@ -830,7 +894,14 @@ namespace OpenMS
         }
 
         String num_str(current_.text);
-        delta.value = sign * std::stod(num_str);
+        try
+        {
+          delta.value = sign * num_str.toDouble();
+        }
+        catch (const Exception::ConversionError&)
+        {
+          error_(MzPAFErrorCode::INVALID_DELTA, "Invalid mass delta value");
+        }
         delta.original_text = sign_str + num_str;
         advance_();
 
@@ -859,7 +930,14 @@ namespace OpenMS
           error_(MzPAFErrorCode::INVALID_CONFIDENCE, "Expected confidence value after '*'");
         }
 
-        ann.confidence = std::stod(std::string(current_.text));
+        try
+        {
+          ann.confidence = String(current_.text).toDouble();
+        }
+        catch (const Exception::ConversionError&)
+        {
+          error_(MzPAFErrorCode::INVALID_CONFIDENCE, "Invalid confidence value");
+        }
         advance_();
       }
 

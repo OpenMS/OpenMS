@@ -376,6 +376,61 @@ START_SECTION(Error handling - unclosed bracket)
 }
 END_SECTION
 
+START_SECTION(Named compound ion)
+{
+  MzPAFAnnotation ann = MzPAFParser::parse("_[Aspirin]");
+  TEST_EQUAL(ann.ion_series, MzPAFIonSeries::NAMED)
+  TEST_EQUAL(ann.named_compound.has_value(), true)
+  TEST_EQUAL(ann.named_compound.value(), "Aspirin")
+  TEST_EQUAL(ann.isValid(), true)
+}
+END_SECTION
+
+START_SECTION(Named compound ion with modifiers)
+{
+  MzPAFAnnotation ann = MzPAFParser::parse("_[Iodoacetamide]^1/0.5ppm");
+  TEST_EQUAL(ann.ion_series, MzPAFIonSeries::NAMED)
+  TEST_EQUAL(ann.named_compound.value(), "Iodoacetamide")
+  TEST_EQUAL(ann.charge.value(), 1)
+  TEST_REAL_SIMILAR(ann.mass_delta.value().value, 0.5)
+  TEST_EQUAL(ann.mass_delta.value().unit, MzPAFDeltaUnit::PPM)
+}
+END_SECTION
+
+START_SECTION(Error handling - number overflow in ordinal)
+{
+  // Very large number that would overflow int
+  TEST_EXCEPTION(MzPAFParseError, MzPAFParser::parse("y99999999999999999999"))
+}
+END_SECTION
+
+START_SECTION(Error handling - number overflow in charge)
+{
+  TEST_EXCEPTION(MzPAFParseError, MzPAFParser::parse("y4^99999999999999999999"))
+}
+END_SECTION
+
+START_SECTION(Error handling - number overflow in analyte index)
+{
+  TEST_EXCEPTION(MzPAFParseError, MzPAFParser::parse("99999999999999999999@y4"))
+}
+END_SECTION
+
+START_SECTION(Error handling - invalid internal fragment range)
+{
+  TEST_EXCEPTION(MzPAFParseError, MzPAFParser::parse("m99999999999999999999:6"))
+}
+END_SECTION
+
+START_SECTION(Roundtrip test with named compound)
+{
+  auto ann = MzPAFParser::parse("_[MyCompound]");
+  String output = MzPAFParser::toString(ann, MzPAFWriteMode::CANONICAL);
+  auto reparsed = MzPAFParser::parse(output);
+  TEST_EQUAL(ann, reparsed)
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
