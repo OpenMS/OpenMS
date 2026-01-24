@@ -132,6 +132,42 @@ namespace OpenMS
     /// Get data range of predictors before scaling to [0, 1]
     const ScaleMap& getScaling() const;
 
+    /**
+       @brief Predict class labels or regression values for specific observations.
+
+       Returns only the predicted values without probability estimates.
+
+       @param[in] indexes Vector of observation indexes for which predictions are desired.
+       @return Vector of predicted values (same order as @p indexes).
+
+       @throw Exception::Precondition if no model has been trained
+       @throw Exception::InvalidValue if an invalid index is used in @p indexes
+    */
+    std::vector<double> predictValues(const std::vector<Size>& indexes) const;
+
+    /**
+       @brief Check if a model has been trained or loaded.
+       @return true if a model exists, false otherwise
+    */
+    bool hasModel() const;
+
+    /**
+       @brief Save the trained model to a file.
+
+       @param[in] path Path to save the model to.
+       @throw Exception::Precondition if no model has been trained
+       @throw Exception::IOException if the file cannot be written
+    */
+    void saveModel(const String& path) const;
+
+    /**
+       @brief Load a pre-trained model from a file.
+
+       @param[in] path Path to load the model from.
+       @throw Exception::IOException if the file cannot be read or is invalid
+    */
+    void loadModel(const String& path);
+
   protected:
     // Forward declaration of implementation class
     class Impl;

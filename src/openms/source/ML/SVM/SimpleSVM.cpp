@@ -542,6 +542,51 @@ void SimpleSVM::predict(vector<Prediction>& predictions, vector<Size> indexes) c
   }
 }
 
+// predict values only (without probabilities) on (subset) of training data
+std::vector<double> SimpleSVM::predictValues(const std::vector<Size>& indexes) const
+{
+  if (pimpl_->model_ == nullptr)
+  {
+    throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                  "SVM model has not been trained (use the "
+                                  "'setup' method)");
+  }
+
+  Size n_obs = pimpl_->nodes_.size();
+
+  // Make a local copy we can modify
+  std::vector<Size> indices = indexes;
+
+  if (indices.empty())
+  {
+    indices.reserve(n_obs);
+    for (Size i = 0; i < n_obs; ++i)
+    {
+      indices.push_back(i);
+    }
+  }
+
+  std::vector<double> results;
+  results.reserve(indices.size());
+
+  for (Size idx : indices)
+  {
+    if (idx >= pimpl_->nodes_.size())
+    {
+      String msg = "Invalid index for prediction; there are only " +
+                   String(n_obs) + " observations.";
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                    msg, String(idx));
+    }
+
+    results.push_back(
+      svm_predict(pimpl_->model_, &(pimpl_->nodes_[idx][0]))
+    );
+  }
+
+  return results;
+}
+
 void scaleDataUsingTrainingRanges(SimpleSVM::PredictorMap& predictors, const map<String, pair<double, double>>& scaling)
 {
   // scale each feature dimension to the min-max-range
@@ -668,5 +713,37 @@ void SimpleSVM::writeXvalResults(const String& path) const
                << pimpl_->performance_[g_index][c_index][p_index] << nl;
       }
     }
+  }
+}
+
+bool SimpleSVM::hasModel() const
+{
+  return pimpl_->model_ != nullptr;
+}
+
+void SimpleSVM::saveModel(const String& path) const
+{
+  if (pimpl_->model_ == nullptr)
+  {
+    throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                  "No model to save.");
+  }
+
+  if (svm_save_model(path.c_str(), pimpl_->model_) != 0)
+  {
+    throw Exception::IOException(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                 "Failed to save SVM model to file." + path);
+  }
+}
+
+void SimpleSVM::loadModel(const String& path)
+{
+  pimpl_->clear_();
+
+  pimpl_->model_ = svm_load_model(path.c_str());
+  if (pimpl_->model_ == nullptr)
+  {
+    throw Exception::IOException(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                 "Failed to load SVM model from file." + path);
   }
 }
