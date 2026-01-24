@@ -234,6 +234,7 @@ set(format_executables_list
   ParamCTDFile_test
   ParamJSONFile_test
   ParamXMLFile_test
+  PEFFFile_test
   PeakFileOptions_test
   PeakTypeEstimator_test
   PepNovoInfile_test
