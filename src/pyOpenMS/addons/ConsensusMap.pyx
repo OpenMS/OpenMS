@@ -58,6 +58,19 @@ from collections import defaultdict as _defaultdict
         """
         return self.inst.get().size()
 
+    def findProteinIdentification(self, identifier):
+        """
+        Find a ProteinIdentification by its identifier.
+
+        :param identifier: The identifier string to search for
+        :return: The matching ProteinIdentification, or None if not found
+        :rtype: ProteinIdentification or None
+        """
+        for prot_id in self.getProteinIdentifications():
+            if prot_id.getIdentifier() == identifier:
+                return prot_id
+        return None
+
     def append(self, ConsensusFeature item):
         """
         append(self: ConsensusMap, item: ConsensusFeature) -> None

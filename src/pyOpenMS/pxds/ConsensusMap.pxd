@@ -90,6 +90,9 @@ cdef extern from "<OpenMS/KERNEL/ConsensusMap.h>" namespace "OpenMS":
                 libcpp_vector[ProteinIdentification]
                 ) except + nogil  # wrap-doc:Sets the protein identifications
 
+        # findProteinIdentification returns pointer - wrapped via addon
+        # ProteinIdentification* findProteinIdentification(const String& identifier) except + nogil
+
         # PeptideIdentificationList methods
         PeptideIdentificationList getUnassignedPeptideIdentifications() except + nogil  # wrap-doc:Returns peptide identifications that are not assigned to any consensus feature
         void setUnassignedPeptideIdentifications(PeptideIdentificationList unassigned_peptide_identifications) except + nogil # wrap-doc:Sets the unassigned PeptideIdentificationList
