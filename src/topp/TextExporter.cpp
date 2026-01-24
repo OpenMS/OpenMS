@@ -373,43 +373,53 @@ namespace OpenMS
     }
   }
 
+  /// Options for writing peptide identifications
+  struct PeptideWriteOptions
+  {
+    String what = "PEPTIDE";
+    bool incl_pred_rt = false;
+    bool incl_pred_pt = false;
+    bool incl_first_dim = false;
+    bool incl_peak_annotations = false;
+    bool incl_usi = false;
+    String usi_dataset_id;
+    String usi_ms_run;
+    StringList peptide_id_meta_keys;
+    StringList peptide_hit_meta_keys;
+  };
+
   // write the header for peptide data
-  void writePeptideHeader(SVOutStream& out, const String& what = "PEPTIDE",
-                          bool incl_pred_rt = false,
-                          bool incl_pred_pt = false,
-                          bool incl_first_dim = false,
-                          bool incl_peak_annotations = false,
-                          bool incl_usi = false)
+  void writePeptideHeader(SVOutStream& out, const PeptideWriteOptions& opts = {})
   {
     bool old = out.modifyStrings(false);
-    if (what.empty())
+    if (opts.what.empty())
     {
       out << "#rt";
     }
     else
     {
-      out << "#" + what << "rt";
+      out << "#" + opts.what << "rt";
     }
     out << "mz" << "score" << "rank" << "sequence" << "charge" << "aa_before"
         << "aa_after" << "score_type" << "search_identifier" << "accessions"
         << "start" << "end";
-    if (incl_pred_rt)
+    if (opts.incl_pred_rt)
     {
       out << "predicted_rt";
     }
-    if (incl_first_dim)
+    if (opts.incl_first_dim)
     {
       out << "rt_first_dim" << "predicted_rt_first_dim";
     }
-    if (incl_pred_pt)
+    if (opts.incl_pred_pt)
     {
       out << "predicted_pt";
     }
-    if (incl_peak_annotations)
+    if (opts.incl_peak_annotations)
     {
       out << "peak_annotations";
     }
-    if (incl_usi)
+    if (opts.incl_usi)
     {
       out << "USI";
     }
@@ -437,17 +447,13 @@ namespace OpenMS
 
   // write a peptide identification to the output stream
   void writePeptideId(SVOutStream& out, const PeptideIdentification& pid,
-                      const String& what = "PEPTIDE", bool incl_pred_rt = false, bool incl_pred_pt = false,
-                      bool incl_first_dim = false, bool incl_peak_annotations = false, 
-                      const StringList& peptide_id_meta_keys = StringList(), 
-                      const StringList& peptide_hit_meta_keys = StringList(),
-                      bool incl_usi = false, const String& usi_dataset_id = "", const String& usi_ms_run = "")
+                      const PeptideWriteOptions& opts = {})
   {
     for (const PeptideHit& hit : pid.getHits())
     {
-      if (!what.empty())
+      if (!opts.what.empty())
       {
-        out << what;
+        out << opts.what;
       }
 
       if (pid.hasRT())
@@ -516,7 +522,7 @@ namespace OpenMS
       {
         out << "";
       }
-      if (incl_pred_rt)
+      if (opts.incl_pred_rt)
       {
         if (hit.metaValueExists("predicted_RT"))
         {
@@ -524,7 +530,7 @@ namespace OpenMS
         }
         else out << "-1";
       }
-      if (incl_first_dim)
+      if (opts.incl_first_dim)
       {
         if (pid.metaValueExists("first_dim_rt"))
         {
@@ -537,7 +543,7 @@ namespace OpenMS
         }
         else out << "-1";
       }
-      if (incl_pred_pt)
+      if (opts.incl_pred_pt)
       {
         if (hit.metaValueExists("predicted_PT"))
         {
@@ -545,22 +551,22 @@ namespace OpenMS
         }
         else out << "-1";
       }
-      if (incl_peak_annotations && !hit.getPeakAnnotations().empty())
+      if (opts.incl_peak_annotations && !hit.getPeakAnnotations().empty())
       {
         String pa;
         PeptideHit::PeakAnnotation::writePeakAnnotationsString_(pa, hit.getPeakAnnotations());
         out << pa;
       }
       else out << "-1";
-      
+
       // Write USI if requested
-      if (incl_usi)
+      if (opts.incl_usi)
       {
-        out << pid.buildUSIString(usi_ms_run, usi_dataset_id, true);
+        out << pid.buildUSI(opts.usi_ms_run, opts.usi_dataset_id, true).toString();
       }
-      
-      writeMetaValues(out, pid, peptide_id_meta_keys);
-      writeMetaValues(out, hit, peptide_hit_meta_keys);
+
+      writeMetaValues(out, pid, opts.peptide_id_meta_keys);
+      writeMetaValues(out, hit, opts.peptide_hit_meta_keys);
       out << nl;
     }
   }
@@ -772,6 +778,21 @@ protected:
         bool minimal = getFlag_("feature:minimal");
         no_ids |= minimal; // "minimal" implies "no_ids"
 
+        // Setup peptide write options
+        PeptideWriteOptions unassigned_opts;
+        unassigned_opts.what = "UNASSIGNEDPEPTIDE";
+        unassigned_opts.incl_usi = add_usi;
+        unassigned_opts.usi_dataset_id = usi_dataset_id;
+        unassigned_opts.peptide_id_meta_keys = peptide_id_meta_keys;
+        unassigned_opts.peptide_hit_meta_keys = peptide_hit_meta_keys;
+
+        PeptideWriteOptions peptide_opts;
+        peptide_opts.what = "PEPTIDE";
+        peptide_opts.incl_usi = add_usi;
+        peptide_opts.usi_dataset_id = usi_dataset_id;
+        peptide_opts.peptide_id_meta_keys = peptide_id_meta_keys;
+        peptide_opts.peptide_hit_meta_keys = peptide_hit_meta_keys;
+
         // write header:
         output.modifyStrings(false);
         bool comment = true;
@@ -781,7 +802,7 @@ protected:
           writeProteinHeader(output);
           writeMetaValuesHeader(output, protein_hit_meta_keys);
           output << nl;
-          writePeptideHeader(output, "UNASSIGNEDPEPTIDE", false, false, false, false, add_usi);
+          writePeptideHeader(output, unassigned_opts);
           writeMetaValuesHeader(output, peptide_id_meta_keys);
           writeMetaValuesHeader(output, peptide_hit_meta_keys);
           output << nl;
@@ -801,7 +822,7 @@ protected:
         output << nl;
         if (!no_ids)
         {
-          writePeptideHeader(output, "PEPTIDE", false, false, false, false, add_usi);
+          writePeptideHeader(output, peptide_opts);
           writeMetaValuesHeader(output, peptide_id_meta_keys);
           writeMetaValuesHeader(output, peptide_hit_meta_keys);
           output << nl;
@@ -816,8 +837,8 @@ protected:
           }
           for (const PeptideIdentification& pep : feature_map.getUnassignedPeptideIdentifications())
           {
-            String usi_ms_run = add_usi ? USI::extractBasename(pep.getBaseName()) : "";
-            writePeptideId(output, pep, "UNASSIGNEDPEPTIDE", false, false, false, false, peptide_id_meta_keys, peptide_hit_meta_keys, add_usi, usi_dataset_id, usi_ms_run);
+            unassigned_opts.usi_ms_run = add_usi ? USI::extractBasename(pep.getBaseName()) : "";
+            writePeptideId(output, pep, unassigned_opts);
           }
         }
 
@@ -853,8 +874,8 @@ protected:
           {
             for (const PeptideIdentification& pep : feat.getPeptideIdentifications())
             {
-              String usi_ms_run = add_usi ? USI::extractBasename(pep.getBaseName()) : "";
-              writePeptideId(output, pep, "PEPTIDE", false, false, false, false, peptide_id_meta_keys, peptide_hit_meta_keys, add_usi, usi_dataset_id, usi_ms_run);
+              peptide_opts.usi_ms_run = add_usi ? USI::extractBasename(pep.getBaseName()) : "";
+              writePeptideId(output, pep, peptide_opts);
             }
           }
         }
@@ -1222,6 +1243,22 @@ protected:
 
           std::map<Size, Size> map_id_to_map_num;
           std::vector<Size> map_num_to_map_id;
+
+          // Setup peptide write options for this block
+          PeptideWriteOptions unassigned_opts;
+          unassigned_opts.what = "UNASSIGNEDPEPTIDE";
+          unassigned_opts.incl_usi = add_usi;
+          unassigned_opts.usi_dataset_id = usi_dataset_id;
+          unassigned_opts.peptide_id_meta_keys = peptide_id_meta_keys;
+          unassigned_opts.peptide_hit_meta_keys = peptide_hit_meta_keys;
+
+          PeptideWriteOptions peptide_opts;
+          peptide_opts.what = "PEPTIDE";
+          peptide_opts.incl_usi = add_usi;
+          peptide_opts.usi_dataset_id = usi_dataset_id;
+          peptide_opts.peptide_id_meta_keys = peptide_id_meta_keys;
+          peptide_opts.peptide_hit_meta_keys = peptide_hit_meta_keys;
+
           FeatureHandle feature_handle_NaN;
           feature_handle_NaN.setRT(std::numeric_limits<
                                      FeatureHandle::CoordinateType>::quiet_NaN());
@@ -1269,7 +1306,7 @@ protected:
             writeProteinHeader(output);
             writeMetaValuesHeader(output, protein_hit_meta_keys);
             output << nl;
-            writePeptideHeader(output, "UNASSIGNEDPEPTIDE", false, false, false, false, add_usi);
+            writePeptideHeader(output, unassigned_opts);
             writeMetaValuesHeader(output, peptide_id_meta_keys);
             writeMetaValuesHeader(output, peptide_hit_meta_keys);
             output << nl;
@@ -1290,7 +1327,7 @@ protected:
           output << nl;
           if (!no_ids)
           {
-            writePeptideHeader(output, "PEPTIDE", false, false, false, false, add_usi);
+            writePeptideHeader(output, peptide_opts);
             writeMetaValuesHeader(output, peptide_id_meta_keys);
             writeMetaValuesHeader(output, peptide_hit_meta_keys);
             output << nl;
@@ -1331,8 +1368,8 @@ protected:
             for (PeptideIdentificationList::const_iterator pit = consensus_map.getUnassignedPeptideIdentifications().begin(); pit != consensus_map.getUnassignedPeptideIdentifications().end(); ++pit)
             {
               // For USI, extract basename from the PeptideIdentification's base name
-              String usi_ms_run = add_usi ? USI::extractBasename(pit->getBaseName()) : "";
-              writePeptideId(output, *pit, "UNASSIGNEDPEPTIDE", false, false, false, false, peptide_id_meta_keys, peptide_hit_meta_keys, add_usi, usi_dataset_id, usi_ms_run);
+              unassigned_opts.usi_ms_run = add_usi ? USI::extractBasename(pit->getBaseName()) : "";
+              writePeptideId(output, *pit, unassigned_opts);
               // first_dim_... stuff not supported for now
             }
           }
@@ -1371,8 +1408,8 @@ protected:
                    cmit->getPeptideIdentifications().end(); ++pit)
               {
                 // For USI, extract basename from the PeptideIdentification's base name
-                String usi_ms_run = add_usi ? USI::extractBasename(pit->getBaseName()) : "";
-                writePeptideId(output, *pit, "PEPTIDE", false, false, false, false, peptide_id_meta_keys, peptide_hit_meta_keys, add_usi, usi_dataset_id, usi_ms_run);
+                peptide_opts.usi_ms_run = add_usi ? USI::extractBasename(pit->getBaseName()) : "";
+                writePeptideId(output, *pit, peptide_opts);
               }
             }
           }
@@ -1429,6 +1466,19 @@ protected:
         }
 
         String what = peptides_only ? "" : "PEPTIDE";
+
+        // Setup peptide write options for IDXML
+        PeptideWriteOptions peptide_opts;
+        peptide_opts.what = what;
+        peptide_opts.incl_pred_rt = true;
+        peptide_opts.incl_pred_pt = true;
+        peptide_opts.incl_first_dim = first_dim_rt;
+        peptide_opts.incl_peak_annotations = true;
+        peptide_opts.incl_usi = add_usi;
+        peptide_opts.usi_dataset_id = usi_dataset_id;
+        peptide_opts.peptide_id_meta_keys = peptide_id_meta_keys;
+        peptide_opts.peptide_hit_meta_keys = peptide_hit_meta_keys;
+
         if (!peptides_only)
         {
           writeRunHeader(output);
@@ -1442,7 +1492,7 @@ protected:
         }
         if (!proteins_only)
         {
-          writePeptideHeader(output, what, true, true, first_dim_rt, true, add_usi);
+          writePeptideHeader(output, peptide_opts);
           writeMetaValuesHeader(output, peptide_id_meta_keys);
           writeMetaValuesHeader(output, peptide_hit_meta_keys);
           output << nl;
@@ -1473,8 +1523,8 @@ protected:
             {
               if (pit->getIdentifier() == actual_id)
               {
-                String usi_ms_run = add_usi ? USI::extractBasename(pit->getBaseName()) : "";
-                writePeptideId(output, *pit, what, true, true, first_dim_rt, true, peptide_id_meta_keys, peptide_hit_meta_keys, add_usi, usi_dataset_id, usi_ms_run);
+                peptide_opts.usi_ms_run = add_usi ? USI::extractBasename(pit->getBaseName()) : "";
+                writePeptideId(output, *pit, peptide_opts);
               }
             }
           }

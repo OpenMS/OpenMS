@@ -203,17 +203,6 @@ cdef extern from "<OpenMS/METADATA/PeptideIdentification.h>" namespace "OpenMS":
             #  :param include_interpretation: Include ProForma interpretation from best hit
             #  :return: USI object (may be invalid if spectrum reference is missing)
 
-        String buildUSIString(const String& ms_run_name,
-                              const String& dataset_id,
-                              bool include_interpretation) except + nogil
-            # wrap-doc:
-            #  Convenience method returning the USI as a string.
-            #
-            #  :param ms_run_name: MS run file name
-            #  :param dataset_id: ProteomeXchange dataset id (default: "local")
-            #  :param include_interpretation: Include ProForma interpretation from best hit
-            #  :return: USI string or empty string if USI cannot be constructed
-
         USI buildUSI(const IdentifierMSRunMapper & mapping,
                      const String& dataset_id,
                      bool include_interpretation) except + nogil
@@ -233,16 +222,5 @@ cdef extern from "<OpenMS/METADATA/PeptideIdentification.h>" namespace "OpenMS":
             #  :param dataset_id: ProteomeXchange dataset id (default: "local")
             #  :param include_interpretation: Include ProForma interpretation from best hit
             #  :return: USI object (may be invalid if mapping is missing)
-
-        String buildUSIString(const IdentifierMSRunMapper & mapping,
-                              const String& dataset_id,
-                              bool include_interpretation) except + nogil
-            # wrap-doc:
-            #  Build USI string with automatic source file resolution for merged files.
-            #
-            #  :param mapping: IdentifierMSRunMapper object built from ProteinIdentifications
-            #  :param dataset_id: ProteomeXchange dataset id (default: "local")
-            #  :param include_interpretation: Include ProForma interpretation from best hit
-            #  :return: USI string or empty string if USI cannot be constructed
 
 

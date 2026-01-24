@@ -2,15 +2,16 @@
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
-// $Maintainer: OpenMS Team $
-// $Authors: OpenMS Team $
+// $Maintainer: Timo Sachsenberg $
+// $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/METADATA/USI.h>
+#include <OpenMS/METADATA/SpectrumNativeIDParser.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
-#include <regex>
+#include <boost/regex.hpp>
 #include <sstream>
 
 namespace OpenMS
@@ -90,15 +91,23 @@ namespace OpenMS
 
   bool USI::isValidUSI(const String& usi_string)
   {
+    return tryParse(usi_string).has_value();
+  }
+
+  std::optional<USI> USI::tryParse(const String& usi_string)
+  {
     // Quick prefix check
     if (!usi_string.hasPrefix("mzspec:"))
     {
-      return false;
+      return std::nullopt;
     }
 
-    // Try to parse the string
-    USI temp;
-    return temp.fromString(usi_string);
+    USI usi;
+    if (usi.fromString(usi_string))
+    {
+      return usi;
+    }
+    return std::nullopt;
   }
 
   const String& USI::getCollection() const
@@ -262,39 +271,23 @@ namespace OpenMS
 
   std::optional<int> USI::extractScanNumberFromNativeID(const String& native_id)
   {
-    // Common patterns for extracting scan numbers from native IDs
-    // Pattern 1: scan=12345 (Thermo, Bruker, Agilent)
-    // Pattern 2: controllerType=0 controllerNumber=1 scan=12345 (Thermo)
-    // Pattern 3: function=1 process=0 scan=12345 (Waters)
-    // Pattern 4: scanId=12345 (Agilent MassHunter)
-    // Pattern 5: index=12345 (generic)
-    // Pattern 6: spectrum=12345 (generic)
-
-    std::vector<std::regex> patterns = {
-      std::regex(R"(scan=(\d+))"),
-      std::regex(R"(scanId=(\d+))"),
-      std::regex(R"(index=(\d+))"),
-      std::regex(R"(spectrum=(\d+))")
-    };
-
-    for (const auto& pattern : patterns)
+    // Use SpectrumNativeIDParser for comprehensive native ID parsing
+    // It handles various vendor formats: Thermo, Waters, Bruker, Agilent, etc.
+    if (SpectrumNativeIDParser::isNativeID(native_id))
     {
-      std::smatch match;
-      std::string native_id_std = native_id;
-      if (std::regex_search(native_id_std, match, pattern))
+      std::string regex_str = SpectrumNativeIDParser::getRegExFromNativeID(native_id);
+      if (!regex_str.empty())
       {
-        try
+        boost::regex scan_regexp(regex_str);
+        Int scan = SpectrumNativeIDParser::extractScanNumber(native_id, scan_regexp, true);
+        if (scan >= 0)
         {
-          return std::stoi(match[1].str());
-        }
-        catch (const std::exception&)
-        {
-          continue;
+          return scan;
         }
       }
     }
 
-    // Try to parse the entire string as a number (simple case)
+    // Try to parse the entire string as a number (simple case like "12345")
     try
     {
       return native_id.toInt();

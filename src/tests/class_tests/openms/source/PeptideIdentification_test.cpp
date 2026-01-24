@@ -661,7 +661,7 @@ START_SECTION((USI buildUSI(const String& ms_run_name, const String& dataset_id,
 }
 END_SECTION
 
-START_SECTION((String buildUSIString(const String& ms_run_name, const String& dataset_id, bool include_interpretation) const))
+START_SECTION(([EXTRA] buildUSI().toString() convenience pattern))
 {
   PeptideIdentification id;
   id.setSpectrumReference("scan=12345");
@@ -674,20 +674,20 @@ START_SECTION((String buildUSIString(const String& ms_run_name, const String& da
   id.insertHit(hit);
 
   // Test without interpretation
-  String usi_str1 = id.buildUSIString("sample.mzML", "PXD000561", false);
+  String usi_str1 = id.buildUSI("sample.mzML", "PXD000561", false).toString();
   TEST_STRING_EQUAL(usi_str1, "mzspec:PXD000561:sample.mzML:scan:12345");
 
   // Test with interpretation
-  String usi_str2 = id.buildUSIString("sample.mzML", "PXD000561", true);
+  String usi_str2 = id.buildUSI("sample.mzML", "PXD000561", true).toString();
   TEST_STRING_EQUAL(usi_str2, "mzspec:PXD000561:sample.mzML:scan:12345:PEPTIDEK/2");
 
   // Test default dataset_id ("local")
-  String usi_str_local = id.buildUSIString("sample.mzML");
+  String usi_str_local = id.buildUSI("sample.mzML").toString();
   TEST_STRING_EQUAL(usi_str_local, "mzspec:local:sample.mzML:scan:12345");
 
   // Test empty spectrum reference returns empty string
   PeptideIdentification id2;
-  String usi_str3 = id2.buildUSIString("sample.mzML", "PXD000561", false);
+  String usi_str3 = id2.buildUSI("sample.mzML", "PXD000561", false).toString();
   TEST_STRING_EQUAL(usi_str3, "");
 }
 END_SECTION
@@ -716,8 +716,8 @@ START_SECTION(([EXTRA] buildUSI with file paths and basenames))
   USI usi3 = id1.buildUSI(USI::extractBasename(file_uri), "PXD000561", false);
   TEST_STRING_EQUAL(usi3.getMSRun(), "ES-0014b_2.mzML");
 
-  // Test buildUSIString with extracted basename
-  String usi_str = id1.buildUSIString(USI::extractBasename(file_uri), "PXD000561", false);
+  // Test buildUSI().toString() with extracted basename
+  String usi_str = id1.buildUSI(USI::extractBasename(file_uri), "PXD000561", false).toString();
   TEST_STRING_EQUAL(usi_str, "mzspec:PXD000561:ES-0014b_2.mzML:scan:12345");
 
   // Test with various native ID formats and basenames
@@ -783,8 +783,8 @@ START_SECTION(([EXTRA] buildUSI with IdentifierMSRunMapper for merged files))
   TEST_EQUAL(usi4.isValid(), true);
   TEST_STRING_EQUAL(usi4.getCollection(), "local");
 
-  // Test buildUSIString with mapping
-  String usi_str = id3.buildUSIString(mapping, "PXD000561", false);
+  // Test buildUSI().toString() with mapping
+  String usi_str = id3.buildUSI(mapping, "PXD000561", false).toString();
   TEST_STRING_EQUAL(usi_str, "mzspec:PXD000561:fileB.mzML:scan:300");
 
   // Test invalid identifier returns invalid USI

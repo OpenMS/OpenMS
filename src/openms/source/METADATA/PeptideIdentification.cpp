@@ -352,13 +352,6 @@ namespace OpenMS
     }
   }
 
-  String PeptideIdentification::buildUSIString(const String& ms_run_name,
-                                               const String& dataset_id,
-                                               bool include_interpretation) const
-  {
-    return buildUSI(ms_run_name, dataset_id, include_interpretation).toString();
-  }
-
   USI PeptideIdentification::buildUSI(const IdentifierMSRunMapper& mapping,
                                       const String& dataset_id,
                                       bool include_interpretation) const
@@ -374,13 +367,6 @@ namespace OpenMS
     String ms_run_name = USI::extractBasename(ms_run_path);
 
     return buildUSI(ms_run_name, dataset_id, include_interpretation);
-  }
-
-  String PeptideIdentification::buildUSIString(const IdentifierMSRunMapper& mapping,
-                                               const String& dataset_id,
-                                               bool include_interpretation) const
-  {
-    return buildUSI(mapping, dataset_id, include_interpretation).toString();
   }
 
 } // namespace OpenMS

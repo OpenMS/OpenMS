@@ -229,22 +229,6 @@ public:
                  bool include_interpretation = false) const;
 
     /**
-      @brief Builds a Universal Spectrum Identifier (USI) string from the PeptideIdentification.
-
-      Convenience method that returns the USI as a string. See buildUSI() for details
-      including the note about merged file limitations.
-
-      @param ms_run_name Name of the MS run file
-      @param dataset_id ProteomeXchange dataset identifier (e.g., "PXD000561") or "local" for unpublished data
-      @param include_interpretation If true and hits are available, include peptide sequence/charge from first hit
-
-      @return USI string or empty string if USI cannot be constructed
-    */
-    String buildUSIString(const String& ms_run_name,
-                          const String& dataset_id = "local",
-                          bool include_interpretation = false) const;
-
-    /**
       @brief Builds a USI with automatic source file resolution for merged files.
 
       This overload automatically resolves the correct source file for PeptideIdentifications
@@ -270,22 +254,6 @@ public:
     USI buildUSI(const IdentifierMSRunMapper& mapping,
                  const String& dataset_id = "local",
                  bool include_interpretation = false) const;
-
-    /**
-      @brief Builds a USI string with automatic source file resolution for merged files.
-
-      Convenience method that returns the USI as a string. See the mapping-based
-      buildUSI() overload for details.
-
-      @param mapping IdentifierMSRunMapper object that maps identifiers to MS run paths
-      @param dataset_id ProteomeXchange dataset identifier or "local" for unpublished data
-      @param include_interpretation If true and hits are available, include peptide sequence/charge from first hit
-
-      @return USI string or empty string if USI cannot be constructed
-    */
-    String buildUSIString(const IdentifierMSRunMapper& mapping,
-                          const String& dataset_id = "local",
-                          bool include_interpretation = false) const;
 
 protected:
     String id_; ///< Identifier by which ProteinIdentification and PeptideIdentification are matched

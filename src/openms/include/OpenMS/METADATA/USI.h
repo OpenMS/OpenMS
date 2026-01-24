@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
-// $Maintainer: OpenMS Team $
-// $Authors: OpenMS Team $
+// $Maintainer: Timo Sachsenberg $
+// $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
 #pragma once
@@ -140,6 +140,29 @@ namespace OpenMS
       @return True if the string is a valid USI, false otherwise
     */
     static bool isValidUSI(const String& usi_string);
+
+    /**
+      @brief Try to parse a USI string (non-throwing).
+
+      This is the preferred method when you want to validate and use a USI
+      in a single operation, avoiding double-parsing.
+
+      @param usi_string String to parse
+      @return Parsed USI if valid, std::nullopt otherwise
+
+      @code
+      // Prefer this pattern:
+      if (auto usi = USI::tryParse(str)) {
+        use(*usi);
+      }
+      // Over this (which parses twice):
+      if (USI::isValidUSI(str)) {
+        USI usi(str);
+        use(usi);
+      }
+      @endcode
+    */
+    static std::optional<USI> tryParse(const String& usi_string);
     //@}
 
     /// @name Accessors
