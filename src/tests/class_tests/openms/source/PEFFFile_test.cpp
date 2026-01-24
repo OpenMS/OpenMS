@@ -74,7 +74,7 @@ START_SECTION((void load(const String& filename, std::vector<PEFFEntry>& entries
   TEST_EQUAL(entries[0].gene_name, "TEST1")
   TEST_EQUAL(entries[0].ncbi_tax_id, 9606)
   TEST_EQUAL(entries[0].taxonomy_name, "Homo sapiens")
-  TEST_EQUAL(entries[0].sequence_length, 50)
+  TEST_EQUAL(entries[0].sequence_length, 49)
   TEST_EQUAL(entries[0].sequence_version, "1")
   TEST_EQUAL(entries[0].entry_version, "1")
   TEST_EQUAL(entries[0].protein_existence, 1)

@@ -200,9 +200,9 @@ namespace OpenMS
 
       Uses the modifications vector to apply modifications to the sequence.
       Modifications with unknown positions (position == 0) are skipped.
+      Modifications that cannot be resolved are logged as warnings and skipped.
 
       @return AASequence with modifications applied
-      @throw Exception::InvalidValue if a modification accession cannot be resolved
     */
     AASequence getModifiedSequence() const;
 

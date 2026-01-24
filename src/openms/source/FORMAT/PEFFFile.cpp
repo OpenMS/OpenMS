@@ -542,16 +542,16 @@ namespace OpenMS
 
   String PEFFFile::toProForma(const PEFFEntry& entry)
   {
-    // Simple ProForma conversion - just include sequence with modifications
+    // Simple ProForma conversion - returns sequence only for now
     if (entry.modifications.empty())
     {
       return entry.sequence;
     }
 
-    String result = entry.sequence;
     // TODO: Implement full ProForma conversion with modifications
     // This would require inserting modification annotations at the correct positions
-    return result;
+    OPENMS_LOG_WARN << "toProForma: Modifications are not yet encoded in ProForma output" << std::endl;
+    return entry.sequence;
   }
 
   void PEFFFile::parseHeaderLine_(const String& line, PEFFDatabaseMetadata& header, bool& new_db)
