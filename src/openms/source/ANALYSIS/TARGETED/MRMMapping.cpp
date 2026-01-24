@@ -10,6 +10,8 @@
 #include <OpenMS/ANALYSIS/TARGETED/MRMMapping.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
+// LightTargetedExperiment is defined in openswathalgo
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
 
 using namespace std;
 
@@ -163,6 +165,57 @@ namespace OpenMS
 
 
   }
+
+
+void MRMMapping::mapExperiment(const OpenMS::PeakMap& chromatogram_map,
+    const OpenSwath::LightTargetedExperiment& targeted_exp,
+    OpenMS::PeakMap& output) const
+{
+  // Convert LightTargetedExperiment -> TargetedExperiment (minimal conversion)
+  OpenMS::TargetedExperiment te;
+
+  // Convert compounds/peptides
+  for (const auto & lc : targeted_exp.getCompounds())
+  {
+    OpenMS::TargetedExperiment::Peptide p;
+    p.id = lc.id;
+    p.sequence = lc.sequence;
+    te.addPeptide(p);
+  }
+
+  // Convert proteins
+  for (const auto & lp : targeted_exp.getProteins())
+  {
+    OpenMS::TargetedExperiment::Protein prot;
+    prot.id = lp.id;
+    prot.sequence = lp.sequence;
+    te.addProtein(prot);
+  }
+
+  // Convert transitions
+  for (const auto & lt : targeted_exp.getTransitions())
+  {
+    OpenMS::ReactionMonitoringTransition tr;
+    tr.setNativeID(lt.getNativeID());
+    tr.setPeptideRef(lt.getPeptideRef());
+    tr.setPrecursorMZ(lt.precursor_mz);
+    tr.setProductMZ(lt.product_mz);
+    tr.setLibraryIntensity(lt.library_intensity);
+    // Flags: detecting / quantifying / identifying -> map to transition flags
+    tr.setDetectingTransition(lt.flags.detecting != 0);
+    tr.setQuantifyingTransition(lt.flags.quantifying != 0);
+    tr.setIdentifyingTransition(lt.flags.identifying != 0);
+    // Decoy flag
+    if (lt.getDecoy()) tr.setDecoyTransitionType(OpenMS::ReactionMonitoringTransition::DECOY);
+    else tr.setDecoyTransitionType(OpenMS::ReactionMonitoringTransition::TARGET);
+
+    te.addTransition(tr);
+  }
+
+  // Now call the existing implementation
+  mapExperiment(chromatogram_map, te, output);
+
+}
 
 } //namespace
 
