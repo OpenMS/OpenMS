@@ -275,6 +275,7 @@ protected:
       const ChromExtractParams & cp_irt,
       const Param& irt_detection_param,
       const Param& calibration_param,
+      const Param& mrm_mapping_param,
       const String& irt_mzml_out,
       Size debug_level,
       bool pasef = false,

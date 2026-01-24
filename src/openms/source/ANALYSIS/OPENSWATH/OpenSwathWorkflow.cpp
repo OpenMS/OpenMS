@@ -8,6 +8,7 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathWorkflow.h>
 #include <OpenMS/ANALYSIS/TARGETED/SRMHandler.h>
+#include <OpenMS/ANALYSIS/TARGETED/MRMMapping.h>
 #include <cmath>
 #include <unordered_map>
 #include <cstdio>
@@ -48,6 +49,7 @@ namespace OpenMS
     const ChromExtractParams& cp_irt,
     const Param& irt_detection_param,
     const Param& calibration_param,
+    const Param& mrm_mapping_param,
     const String& irt_mzml_out,
     Size debug_level,
     bool pasef,
@@ -72,6 +74,38 @@ namespace OpenMS
     {
       // Use SRMHandler to collect chromatograms for iRT calibration
       irt_chromatograms = ::OpenMS::SRMHandler::collectChromatogramsForIrt(swath_maps);
+
+      // Try to map these chromatograms to the iRT transitions so that their
+      // nativeIDs match the transitions used by the calibration routine.
+      // This uses MRMMapping (m/z-based) to set chromatogram nativeIDs to the
+      // corresponding transition nativeIDs. If mapping fails we continue with
+      // the raw chromatograms (fallback) so no exception escapes here.
+      try
+      {
+  PeakMap pm;
+  pm.setChromatograms(irt_chromatograms);
+  PeakMap mapped_pm;
+  MRMMapping mapper;
+  // Merge CLI-provided MRMMapping parameters and ensure we allow mapping to
+  // multiple assays for the iRT mapping step to avoid aborting when
+  // chromatograms match multiple transitions. Duplication can help the
+  // iRT calibration, so we force this here after applying user settings.
+  Param mrm_p = mapper.getParameters();
+  try
+  {
+    mrm_p.update(mrm_mapping_param);
+  }
+  catch (...) {}
+  mrm_p.setValue("map_multiple_assays", "true");
+  mapper.setParameters(mrm_p);
+  mapper.mapExperiment(pm, irt_transitions, mapped_pm);
+        irt_chromatograms = mapped_pm.getChromatograms();
+        OPENMS_LOG_INFO << "SRM: Mapped " << irt_chromatograms.size() << " iRT chromatograms to transitions." << std::endl;
+      }
+      catch (const std::exception & e)
+      {
+        OPENMS_LOG_WARN << "SRM: mapping iRT chromatograms to transitions failed: " << e.what() << ". Proceeding with unmapped chromatograms." << std::endl;
+      }
     }
     else
     {
