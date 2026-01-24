@@ -73,24 +73,27 @@ namespace OpenMS
 
       try
       {
-        // Try to find the modification by accession
+        // Try to find the modification - accession first, then name
         const ResidueModification* res_mod = nullptr;
+        String residue = seq[idx].getOneLetterCode();
 
-        if (mod.accession.hasPrefix("UNIMOD:"))
+        // Try accession first (UNIMOD:xx, MOD:xxxxx, etc.)
+        if (!mod.accession.empty())
         {
-          // Extract UNIMOD ID
-          String unimod_id = mod.accession.substr(7);
-          res_mod = ModificationsDB::getInstance()->getModification(mod.name, seq[idx].getOneLetterCode(), ResidueModification::ANYWHERE);
+          try
+          {
+            res_mod = ModificationsDB::getInstance()->getModification(mod.accession, residue, ResidueModification::ANYWHERE);
+          }
+          catch (const Exception::BaseException&)
+          {
+            res_mod = nullptr; // Fall through to try name
+          }
         }
-        else if (mod.accession.hasPrefix("MOD:"))
+
+        // Fall back to name if accession lookup failed
+        if (res_mod == nullptr && !mod.name.empty())
         {
-          // Try to find by PSI-MOD accession
-          res_mod = ModificationsDB::getInstance()->getModification(mod.name, seq[idx].getOneLetterCode(), ResidueModification::ANYWHERE);
-        }
-        else if (!mod.name.empty())
-        {
-          // Try to find by name
-          res_mod = ModificationsDB::getInstance()->getModification(mod.name, seq[idx].getOneLetterCode(), ResidueModification::ANYWHERE);
+          res_mod = ModificationsDB::getInstance()->getModification(mod.name, residue, ResidueModification::ANYWHERE);
         }
 
         if (res_mod != nullptr)
@@ -1312,42 +1315,6 @@ namespace OpenMS
     {
       out.write(&seq[chunk_pos], seq.size() - chunk_pos);
       out << "\n";
-    }
-
-    return out.str();
-  }
-
-  String PEFFFile::formatModifications_(const std::vector<PEFFModification>& mods, const String& key) const
-  {
-    if (mods.empty())
-    {
-      return "";
-    }
-
-    std::ostringstream out;
-    out << " \\" << key << "=";
-
-    for (const PEFFModification& mod : mods)
-    {
-      out << "(";
-      if (mod.position == 0)
-      {
-        out << "?";
-      }
-      else
-      {
-        out << mod.position;
-      }
-      out << "|" << mod.accession;
-      if (!mod.name.empty())
-      {
-        out << "|" << mod.name;
-      }
-      if (!mod.evidence.empty())
-      {
-        out << "|" << mod.evidence;
-      }
-      out << ")";
     }
 
     return out.str();

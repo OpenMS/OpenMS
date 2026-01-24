@@ -325,9 +325,9 @@ START_SECTION((static String toProForma(const PEFFEntry& entry)))
   // Parse the ProForma string - should not throw
   ProForma::Peptidoform pf = ProForma::parse(proforma);
   TEST_EQUAL(pf.sequence.size(), 7)  // 7 amino acids
-  // Check modifications were preserved
-  TEST_EQUAL(pf.sequence[2].modifications.size(), 1)  // Position 3 (0-indexed: 2)
-  TEST_EQUAL(pf.sequence[4].modifications.size(), 1)  // Position 5 (0-indexed: 4)
+  // Check modifications were preserved (sequence elements are variants)
+  TEST_EQUAL(std::get<ProForma::SequenceElement>(pf.sequence[2]).modifications.size(), 1)  // Position 3 (0-indexed: 2)
+  TEST_EQUAL(std::get<ProForma::SequenceElement>(pf.sequence[4]).modifications.size(), 1)  // Position 5 (0-indexed: 4)
 }
 END_SECTION
 

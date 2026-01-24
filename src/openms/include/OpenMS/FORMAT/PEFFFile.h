@@ -415,8 +415,6 @@ namespace OpenMS
     /// Format a single entry for output
     String formatEntry_(const PEFFEntry& entry) const;
 
-    /// Format modifications for output
-    String formatModifications_(const std::vector<PEFFModification>& mods, const String& key) const;
 
     /// Read entry data (identifier, description, sequence)
     bool readEntry_(std::string& id, std::string& description, std::string& seq);

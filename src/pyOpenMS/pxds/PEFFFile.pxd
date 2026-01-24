@@ -246,11 +246,15 @@ cdef extern from "<OpenMS/FORMAT/PEFFFile.h>" namespace "OpenMS":
             #  Each variant sequence has one amino acid substitution applied.
             #  Returns vector of pairs: (variant description, AASequence)
 
-        AASequence getProcessedSequence(String region_type) except + nogil
+        AASequence getProcessedSequence() except + nogil
             # wrap-doc:
             #  Get processed sequence (e.g., mature protein without signal peptide).
-            #  For signal peptides (PEFF:0001021), returns the mature protein.
-            #  :param region_type: PEFF CV term (default "PEFF:0001021" for signal peptide)
+            #  Uses default region type "PEFF:0001021" (signal peptide).
+
+        AASequence getProcessedSequence(String region_type) except + nogil
+            # wrap-doc:
+            #  Get processed sequence for the given region type.
+            #  :param region_type: PEFF CV term (e.g., "PEFF:0001021" for signal peptide)
 
 
 cdef extern from "<OpenMS/FORMAT/PEFFFile.h>" namespace "OpenMS::PEFFEntry":
