@@ -25,6 +25,7 @@
 #include <memory>
 #include <boost/foreach.hpp>
 #include <unordered_map>
+#include <cstdio>
 
 #define run_identifier "unique_run_identifier"
 
@@ -142,8 +143,19 @@ namespace OpenMS
     scores_to_use.setValidStrings("use_ms2_isotope_scores", {"true","false"});
     defaults_.insert("Scores:", scores_to_use);
 
-    // write defaults into Param object param_
-    defaultsToParam_();
+  // Parameters for m/z extraction windows (allow these to be passed in from OpenSwathWorkflow)
+  defaults_.setValue("mz_extraction_window", -1.0, "m/z extraction window (full width) to be used for matching/extraction. If -1, defaults in workflow will be used.", {"advanced"});
+  defaults_.setValue("mz_extraction_window_unit", "Th", "Unit for mz_extraction_window: 'Th' or 'ppm'", {"advanced"});
+  defaults_.setValidStrings("mz_extraction_window_unit", {"Th","ppm"});
+  defaults_.setValue("mz_extraction_window_ms1", -1.0, "m/z extraction window for MS1 (full width). If -1, defaults in workflow will be used.", {"advanced"});
+  defaults_.setValue("mz_extraction_window_ms1_unit", "Th", "Unit for mz_extraction_window_ms1: 'Th' or 'ppm'", {"advanced"});
+  defaults_.setValidStrings("mz_extraction_window_ms1_unit", {"Th","ppm"});
+  defaults_.setValue("irt_mz_extraction_window", -1.0, "m/z extraction window (full width) to be used specifically for iRT matching/extraction. If -1, defaults in workflow will be used.", {"advanced"});
+  defaults_.setValue("irt_mz_extraction_window_unit", "Th", "Unit for irt_mz_extraction_window: 'Th' or 'ppm'", {"advanced"});
+  defaults_.setValidStrings("irt_mz_extraction_window_unit", {"Th","ppm"});
+
+  // write defaults into Param object param_
+  defaultsToParam_();
   }
 
   MRMFeatureFinderScoring::~MRMFeatureFinderScoring() = default;
