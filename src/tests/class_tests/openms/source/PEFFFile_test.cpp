@@ -12,6 +12,7 @@
 ///////////////////////////
 
 #include <OpenMS/FORMAT/PEFFFile.h>
+#include <OpenMS/CHEMISTRY/ProForma.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <fstream>
@@ -269,10 +270,64 @@ END_SECTION
 
 START_SECTION((static String toProForma(const PEFFEntry& entry)))
 {
+  // Test 1: No modifications
   PEFFEntry entry;
   entry.sequence = "PEPTIDE";
   String proforma = PEFFFile::toProForma(entry);
   TEST_EQUAL(proforma, "PEPTIDE")
+
+  // Test 2: Single modification at position 3
+  PEFFEntry entry2;
+  entry2.sequence = "PEPTIDE";
+  entry2.modifications.push_back(PEFFModification(3, "UNIMOD:35", "Oxidation"));
+  proforma = PEFFFile::toProForma(entry2);
+  TEST_EQUAL(proforma, "PEP[UNIMOD:35]TIDE")
+
+  // Test 3: Multiple modifications at different positions
+  PEFFEntry entry3;
+  entry3.sequence = "PEPTIDE";
+  entry3.modifications.push_back(PEFFModification(1, "UNIMOD:1", "Acetyl"));
+  entry3.modifications.push_back(PEFFModification(5, "MOD:00046", "Phosphorylation"));
+  proforma = PEFFFile::toProForma(entry3);
+  TEST_EQUAL(proforma, "P[UNIMOD:1]EPTI[MOD:00046]DE")
+
+  // Test 4: Unlocalised modification (position 0)
+  PEFFEntry entry4;
+  entry4.sequence = "PEPTIDE";
+  entry4.modifications.push_back(PEFFModification(0, "UNIMOD:35", "Oxidation"));
+  proforma = PEFFFile::toProForma(entry4);
+  TEST_EQUAL(proforma, "<?[UNIMOD:35]>PEPTIDE")
+
+  // Test 5: Mix of localised and unlocalised
+  PEFFEntry entry5;
+  entry5.sequence = "PEPTIDE";
+  entry5.modifications.push_back(PEFFModification(0, "UNIMOD:35", "Oxidation"));
+  entry5.modifications.push_back(PEFFModification(3, "MOD:00046", "Phosphorylation"));
+  proforma = PEFFFile::toProForma(entry5);
+  TEST_EQUAL(proforma, "<?[UNIMOD:35]>PEP[MOD:00046]TIDE")
+
+  // Test 6: Named modification without accession
+  PEFFEntry entry6;
+  entry6.sequence = "PEPTIDE";
+  PEFFModification namedMod;
+  namedMod.position = 4;
+  namedMod.name = "Carbamidomethyl";
+  entry6.modifications.push_back(namedMod);
+  proforma = PEFFFile::toProForma(entry6);
+  TEST_EQUAL(proforma, "PEPT[Carbamidomethyl]IDE")
+
+  // Test 7: Verify generated ProForma can be parsed by ProForma parser
+  PEFFEntry entry7;
+  entry7.sequence = "PEPTIDE";
+  entry7.modifications.push_back(PEFFModification(3, "UNIMOD:35", "Oxidation"));
+  entry7.modifications.push_back(PEFFModification(5, "MOD:00046", "Phosphorylation"));
+  proforma = PEFFFile::toProForma(entry7);
+  // Parse the ProForma string - should not throw
+  ProForma::Peptidoform pf = ProForma::parse(proforma);
+  TEST_EQUAL(pf.sequence.size(), 7)  // 7 amino acids
+  // Check modifications were preserved
+  TEST_EQUAL(pf.sequence[2].modifications.size(), 1)  // Position 3 (0-indexed: 2)
+  TEST_EQUAL(pf.sequence[4].modifications.size(), 1)  // Position 5 (0-indexed: 4)
 }
 END_SECTION
 

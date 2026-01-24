@@ -13,6 +13,7 @@
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 
 #include <limits>
+#include <map>
 #include <regex>
 #include <sstream>
 
@@ -542,16 +543,79 @@ namespace OpenMS
 
   String PEFFFile::toProForma(const PEFFEntry& entry)
   {
-    // Simple ProForma conversion - returns sequence only for now
+    // If no modifications, return plain sequence
     if (entry.modifications.empty())
     {
       return entry.sequence;
     }
 
-    // TODO: Implement full ProForma conversion with modifications
-    // This would require inserting modification annotations at the correct positions
-    OPENMS_LOG_WARN << "toProForma: Modifications are not yet encoded in ProForma output" << std::endl;
-    return entry.sequence;
+    // Separate modifications by position
+    // Position 0 = unlocalised (unknown position in PEFF)
+    std::vector<const PEFFModification*> unlocalised_mods;
+    std::map<Size, std::vector<const PEFFModification*>> mods_by_pos;
+
+    for (const auto& mod : entry.modifications)
+    {
+      if (mod.position == 0)
+      {
+        unlocalised_mods.push_back(&mod);
+      }
+      else
+      {
+        mods_by_pos[mod.position].push_back(&mod);
+      }
+    }
+
+    // Helper to format a single modification in ProForma notation
+    auto formatMod = [](const PEFFModification& mod) -> String
+    {
+      // Prefer accession if available (UNIMOD: or MOD:)
+      if (!mod.accession.empty())
+      {
+        return "[" + mod.accession + "]";
+      }
+      // Fall back to name
+      if (!mod.name.empty())
+      {
+        return "[" + mod.name + "]";
+      }
+      return "";
+    };
+
+    String result;
+
+    // Add unlocalised modifications as prefix: <?[mod]>
+    // In ProForma, unlocalised mods are written as: <?[mod1][mod2]>SEQUENCE
+    if (!unlocalised_mods.empty())
+    {
+      result += "<?";
+      for (const auto* mod : unlocalised_mods)
+      {
+        result += formatMod(*mod);
+      }
+      result += ">";
+    }
+
+    // Build sequence with localised modifications
+    // Modifications in ProForma appear right after the amino acid they modify
+    for (Size i = 0; i < entry.sequence.size(); ++i)
+    {
+      // Add the amino acid (1-based position is i+1)
+      result += entry.sequence[i];
+
+      // Add any modifications at this position (1-based)
+      Size pos = i + 1;
+      auto it = mods_by_pos.find(pos);
+      if (it != mods_by_pos.end())
+      {
+        for (const auto* mod : it->second)
+        {
+          result += formatMod(*mod);
+        }
+      }
+    }
+
+    return result;
   }
 
   void PEFFFile::parseHeaderLine_(const String& line, PEFFDatabaseMetadata& header, bool& new_db)
