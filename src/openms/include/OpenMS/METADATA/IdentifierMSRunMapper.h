@@ -76,6 +76,15 @@ namespace OpenMS
     /// Get the MS run paths for a given identifier (returns empty list if not found)
     const StringList& getMSRunPaths(const String& identifier) const;
 
+    /// Get all identifiers in this mapping
+    std::vector<String> getIdentifiers() const;
+
+    /// Check if the mapping contains an entry for the given MS run paths
+    bool hasRunPath(const StringList& ms_run_paths) const;
+
+    /// Try to get identifier for a given MS run path list (returns false if not found)
+    bool tryGetIdentifier(const StringList& ms_run_paths, String& identifier) const;
+
   private:
     static const StringList empty_stringlist_; ///< Empty list returned by getMSRunPaths when identifier not found
     std::map<String, StringList> identifier_to_msrunpath_;

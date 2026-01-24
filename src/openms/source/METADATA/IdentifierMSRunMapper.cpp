@@ -114,4 +114,31 @@ namespace OpenMS
     return it->second;
   }
 
+  std::vector<String> IdentifierMSRunMapper::getIdentifiers() const
+  {
+    std::vector<String> identifiers;
+    identifiers.reserve(identifier_to_msrunpath_.size());
+    for (const auto& pair : identifier_to_msrunpath_)
+    {
+      identifiers.push_back(pair.first);
+    }
+    return identifiers;
+  }
+
+  bool IdentifierMSRunMapper::hasRunPath(const StringList& ms_run_paths) const
+  {
+    return runpath_to_identifier_.find(ms_run_paths) != runpath_to_identifier_.end();
+  }
+
+  bool IdentifierMSRunMapper::tryGetIdentifier(const StringList& ms_run_paths, String& identifier) const
+  {
+    auto it = runpath_to_identifier_.find(ms_run_paths);
+    if (it == runpath_to_identifier_.end())
+    {
+      return false;
+    }
+    identifier = it->second;
+    return true;
+  }
+
 } // namespace OpenMS
