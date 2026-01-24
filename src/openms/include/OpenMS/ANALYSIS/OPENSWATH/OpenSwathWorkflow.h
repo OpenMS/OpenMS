@@ -464,19 +464,20 @@ protected:
      * into memory will increase memory usage but decrease execution time.
      *
     */
-    void performExtraction(const std::vector<OpenSwath::SwathMap>& swath_maps,
-                           const TransformationDescription& rt_trafo,
-                           const ChromExtractParams & chromatogram_extraction_params,
-                           const ChromExtractParams & ms1_chromatogram_extraction_params,
-                           const Param & feature_finder_param,
-                           const OpenSwath::LightTargetedExperiment& assay_library,
-                           FeatureMap& result_featureFile,
-                           bool store_features_in_featureFile,
-                           OpenSwathOSWWriter & result_osw,
-                           Interfaces::IMSDataConsumer * result_chromatograms,
-                           int batchSize,
-                           int ms1_isotopes,
-                           bool load_into_memory);
+  void performExtraction(const std::vector<OpenSwath::SwathMap>& swath_maps,
+               const TransformationDescription& rt_trafo,
+               const ChromExtractParams & chromatogram_extraction_params,
+               const ChromExtractParams & ms1_chromatogram_extraction_params,
+               const Param & feature_finder_param,
+               const OpenSwath::LightTargetedExperiment& assay_library,
+               FeatureMap& result_featureFile,
+               bool store_features_in_featureFile,
+               OpenSwathOSWWriter & result_osw,
+               Interfaces::IMSDataConsumer * result_chromatograms,
+               int batchSize,
+               int ms1_isotopes,
+               bool load_into_memory,
+               const Param & mrm_mapping_param = Param());
 
   protected:
 

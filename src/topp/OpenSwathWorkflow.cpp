@@ -42,6 +42,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/SwathMapMassCorrection.h>
 
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathWorkflow.h>
+#include <OpenMS/ANALYSIS/TARGETED/MRMMapping.h>
 
 #include <cassert>
 #include <limits>
@@ -308,6 +309,7 @@ protected:
     registerSubsection_("Calibration", "Parameters for calibrant iRT peptides for RT normalization and mass / ion mobility correction.");
     registerSubsection_("Calibration:RTNormalization", "Parameters for the RTNormalization for iRT peptides. This specifies how the RT alignment is performed and how outlier detection is applied. Outlier detection can be done iteratively (by default) which removes one outlier per iteration or using the RANSAC algorithm.");
     registerSubsection_("Calibration:MassIMCorrection", "Parameters for the m/z and ion mobility calibration.");
+  registerSubsection_("MRMMapping", "Parameters for mapping chromatograms to transitions (MRMMapping)");
 
     registerTOPPSubsection_("Debugging", "Debugging");
     registerOutputFile_("Debugging:irt_mzml", "<file>", "", "Chromatogram mzML containing the iRT peptides", false);
@@ -438,6 +440,10 @@ protected:
       p.setValue("MinPeptidesPerBin", 1, "Minimal number of peptides that are required for a bin to counted as 'covered'");
       p.setValue("MinBinsFilled", 8, "Minimal number of bins required to be covered");
       return p;
+    }
+    else if (name == "MRMMapping")
+    {
+      return OpenMS::MRMMapping().getDefaults();
     }
     else if (name == "Calibration:MassIMCorrection")
     {
@@ -1345,8 +1351,10 @@ protected:
 
     OpenSwathWorkflow wf(use_ms1_traces, use_ms1_im, prm, pasef, outer_loop_threads);
     wf.setLogType(log_type_);
-    wf.performExtraction(swath_maps, trafo_rtnorm, cp, cp_ms1, feature_finder_param, transition_exp,
-        out_featureFile, true, oswwriter, chromatogramConsumer, batchSize, ms1_isotopes, load_into_memory);
+  // Extract MRMMapping-related options from the CLI subsection and pass them to the workflow
+  Param mrm_map_param = getParam_().copy("MRMMapping:", true);
+  wf.performExtraction(swath_maps, trafo_rtnorm, cp, cp_ms1, feature_finder_param, transition_exp,
+    out_featureFile, true, oswwriter, chromatogramConsumer, batchSize, ms1_isotopes, load_into_memory, mrm_map_param);
 
     if ( out_features_type == FileTypes::FEATUREXML )
     {

@@ -11,6 +11,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMS.h>
 #include <OpenMS/FORMAT/SwathFile.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/ANALYSIS/TARGETED/MRMMapping.h>
 
 namespace OpenMS
 {
@@ -32,6 +33,10 @@ std::vector<OpenMS::MSChromatogram> SRMHandler::collectChromatogramsForIrt(const
       if (!chrom_ptr) continue;
       MSChromatogram chrom;
       OpenSwathDataAccessHelper::convertToOpenMSChromatogram(chrom_ptr, chrom);
+      // copy precursor/product information from the underlying OpenMS chromatogram metadata
+      ChromatogramSettings cs = openms_map->getChromatogramMetaInfo(i);
+      chrom.setPrecursor(cs.getPrecursor());
+      chrom.setProduct(cs.getProduct());
       String native_id = openms_map->getChromatogramNativeID(i);
       // For iRT calibration, preserve the original nativeID in the chromatogram
       chrom.setNativeID(native_id);
@@ -46,7 +51,8 @@ std::vector<OpenMS::MSChromatogram> SRMHandler::collectChromatogramsForIrt(const
 std::vector<OpenMS::MSChromatogram> SRMHandler::extractAndMapChromatogramsForTransitions(
   const std::vector< OpenSwath::SwathMap > & swath_maps,
   const OpenSwath::LightTargetedExperiment & transition_exp,
-  const ChromExtractParams & cp)
+  const ChromExtractParams & cp,
+  const Param & mrm_mapping_param)
 {
   // Collect all chromatograms first and store original native ids as meta values
   std::vector<MSChromatogram> all_chroms;
@@ -63,6 +69,10 @@ std::vector<OpenMS::MSChromatogram> SRMHandler::extractAndMapChromatogramsForTra
       if (!chrom_ptr) continue;
       MSChromatogram chrom;
       OpenSwathDataAccessHelper::convertToOpenMSChromatogram(chrom_ptr, chrom);
+      // copy precursor/product information from the underlying OpenMS chromatogram metadata
+      ChromatogramSettings cs = openms_map->getChromatogramMetaInfo(i);
+      chrom.setPrecursor(cs.getPrecursor());
+      chrom.setProduct(cs.getProduct());
       String orig = openms_map->getChromatogramNativeID(i);
       chrom.setMetaValue("original_native_id", orig);
       // clear nativeID until mapped
@@ -71,18 +81,84 @@ std::vector<OpenMS::MSChromatogram> SRMHandler::extractAndMapChromatogramsForTra
     }
   }
 
-  // cache parsed mz pairs
-  std::vector<std::pair<double,double>> chrom_mz_cache(all_chroms.size(), std::make_pair(-1.0, -1.0));
+  // Use canonical MRMMapping to map chromatograms to transitions by default.
+  // Build a PeakMap from the collected MSChromatogram objects and call MRMMapping.
+  // Quick diagnostics: count how many chromatograms have precursor/product m/z present
+  Size prec_set_count = 0, prod_set_count = 0, both_set_count = 0;
+  for (const auto & c : all_chroms)
+  {
+    bool pset = std::fabs(c.getPrecursor().getMZ()) > 1e-8;
+    bool oset = std::fabs(c.getProduct().getMZ()) > 1e-8;
+    if (pset) ++prec_set_count;
+    if (oset) ++prod_set_count;
+    if (pset && oset) ++both_set_count;
+  }
+  OPENMS_LOG_INFO << "SRM: chromatograms with precursor m/z=" << prec_set_count << ", product m/z=" << prod_set_count << ", both=" << both_set_count << " (total=" << all_chroms.size() << ")" << std::endl;
+
+  PeakMap input_pm;
+  input_pm.getChromatograms() = all_chroms; // copy all chromatograms (meta-values like original_native_id preserved)
+
+  PeakMap output_pm;
+  MRMMapping mapper;
+  // Apply user-supplied mapping parameters (e.g., map_multiple_assays)
+  try
+  {
+    mapper.setParameters(mrm_mapping_param);
+    mapper.mapExperiment(input_pm, transition_exp, output_pm);
+  }
+  catch (const std::exception & e)
+  {
+    OPENMS_LOG_WARN << "SRM: MRMMapping threw an exception: " << e.what() << ". Falling back to no mappings." << std::endl;
+    std::vector<MSChromatogram> empty;
+    return empty;
+  }
+
+  // Collect mapped chromatograms (those that received a nativeID by the mapper)
+  std::vector<MSChromatogram> filtered;
+  filtered.reserve(output_pm.getChromatograms().size());
+  Size mapped_count = 0;
+  for (const auto & c : output_pm.getChromatograms())
+  {
+    if (!c.getNativeID().empty())
+    {
+      ++mapped_count;
+      filtered.push_back(c);
+    }
+  }
+  Size total = all_chroms.size();
+  OPENMS_LOG_INFO << "SRM: mapped and will process " << mapped_count << " chromatograms (from " << total << ")" << std::endl;
+  if (mapped_count > 0)
+  {
+    return filtered;
+  }
+
+  // Fallback: if MRMMapping produced no mappings, try isolation-window based mapping
+  OPENMS_LOG_INFO << "SRM: MRMMapping produced 0 mappings, falling back to isolation-window based mapping." << std::endl;
+
+  // cache parsed mz pairs AND isolation-window info from chromatograms
+  // For each chromatogram we record:
+  //  - parsed numeric precursor/product (fallback when isolation windows are not present)
+  //  - precursor/product isolation window ranges (when present in the chromatogram metadata)
+  struct ChromInfo { double prec_lower{0.0}; double prec_upper{0.0}; bool has_prec_win{false};
+                     double prod_lower{0.0}; double prod_upper{0.0}; bool has_prod_win{false}; };
+
+  std::vector<ChromInfo> chrom_info(all_chroms.size());
   for (Size i = 0; i < all_chroms.size(); ++i)
   {
-    String orig = all_chroms[i].getMetaValue("original_native_id");
-    double c_prec = -1.0, c_prod = -1.0;
-    if (!orig.empty())
+    // Use explicit precursor/product isolation window information from the chromatogram settings only.
+    const Precursor &prec = all_chroms[i].getPrecursor();
+    const Product &prod = all_chroms[i].getProduct();
+    if (prec.getMZ() > 0.0)
     {
-      if (sscanf(orig.c_str(), "%*[^0-9+\\-]%lf%*[^0-9+\\-]%lf", &c_prec, &c_prod) >= 2)
-      {
-        chrom_mz_cache[i] = std::make_pair(c_prec, c_prod);
-      }
+      chrom_info[i].prec_lower = prec.getMZ() - prec.getIsolationWindowLowerOffset();
+      chrom_info[i].prec_upper = prec.getMZ() + prec.getIsolationWindowUpperOffset();
+      chrom_info[i].has_prec_win = true;
+    }
+    if (prod.getMZ() > 0.0)
+    {
+      chrom_info[i].prod_lower = prod.getMZ() - prod.getIsolationWindowLowerOffset();
+      chrom_info[i].prod_upper = prod.getMZ() + prod.getIsolationWindowUpperOffset();
+      chrom_info[i].has_prod_win = true;
     }
   }
 
@@ -101,39 +177,60 @@ std::vector<OpenMS::MSChromatogram> SRMHandler::extractAndMapChromatogramsForTra
   }
   catch (...) {}
 
-  // Map first matching transition to chromatogram
+  // Map first matching transition to chromatogram preferring explicit isolation windows
   for (const auto& tr : transition_exp.getTransitions())
   {
     double t_prec = tr.getPrecursorMZ();
     double t_prod = tr.getProductMZ();
-    for (Size j = 0; j < chrom_mz_cache.size(); ++j)
+    for (Size j = 0; j < chrom_info.size(); ++j)
     {
       if (!all_chroms[j].getNativeID().empty()) continue; // already assigned
-      double c_prec = chrom_mz_cache[j].first;
-      double c_prod = chrom_mz_cache[j].second;
-      if (c_prec < 0 || c_prod < 0) continue;
+
       bool prec_ok = false;
       bool prod_ok = false;
-      if (abs_tol >= 0) { prec_ok = (fabs(c_prec - t_prec) <= abs_tol); }
-      if (!prec_ok && ppm_tol >= 0) { prec_ok = (fabs(c_prec - t_prec) / t_prec * 1e6 <= ppm_tol); }
-      if (abs_tol >= 0) { prod_ok = (fabs(c_prod - t_prod) <= abs_tol); }
-      if (!prod_ok && ppm_tol >= 0) { prod_ok = (fabs(c_prod - t_prod) / t_prod * 1e6 <= ppm_tol); }
-      if (prec_ok && prod_ok)
+
+      // 1) Try isolation-window based matching when present in the chromatogram
+      if (chrom_info[j].has_prec_win)
+      {
+        double lower = chrom_info[j].prec_lower;
+        double upper = chrom_info[j].prec_upper;
+        if (abs_tol >= 0)
+        {
+          if ((t_prec >= lower - abs_tol) && (t_prec <= upper + abs_tol)) prec_ok = true;
+        }
+        if (!prec_ok && ppm_tol >= 0)
+        {
+          double ext = t_prec * ppm_tol * 1e-6;
+          if ((t_prec >= lower - ext) && (t_prec <= upper + ext)) prec_ok = true;
+        }
+      }
+
+      if (chrom_info[j].has_prod_win)
+      {
+        double lower = chrom_info[j].prod_lower;
+        double upper = chrom_info[j].prod_upper;
+        if (abs_tol >= 0)
+        {
+          if ((t_prod >= lower - abs_tol) && (t_prod <= upper + abs_tol)) prod_ok = true;
+        }
+        if (!prod_ok && ppm_tol >= 0)
+        {
+          double ext = t_prod * ppm_tol * 1e-6;
+          if ((t_prod >= lower - ext) && (t_prod <= upper + ext)) prod_ok = true;
+        }
+      }
+
+      // Only map when BOTH precursor and product isolation windows are present and matched.
+      if (chrom_info[j].has_prec_win && chrom_info[j].has_prod_win && prec_ok && prod_ok)
       {
         all_chroms[j].setNativeID(tr.getNativeID());
         all_chroms[j].setMetaValue("mapped_transition", tr.getNativeID());
+        filtered.push_back(all_chroms[j]);
       }
     }
   }
 
-  // filter and return mapped chromatograms
-  std::vector<MSChromatogram> filtered;
-  filtered.reserve(all_chroms.size());
-  for (auto & c : all_chroms)
-  {
-    if (!c.getNativeID().empty()) filtered.push_back(c);
-  }
-  OPENMS_LOG_INFO << "SRM: mapped and will process " << filtered.size() << " chromatograms (from " << all_chroms.size() << ")" << std::endl;
+  OPENMS_LOG_INFO << "SRM (fallback): mapped and will process " << filtered.size() << " chromatograms (from " << all_chroms.size() << ")" << std::endl;
   return filtered;
 }
 

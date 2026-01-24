@@ -12,6 +12,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h>
 // Need ChromExtractParams (defined in OpenSwathWorkflow.h)
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathWorkflow.h>
+#include <OpenMS/DATASTRUCTURES/Param.h>
 
 // LightTargetedExperiment is defined in OpenSwath (openswathalgo). Forward-declare here to avoid
 // including a non-existent OpenMS header location.
@@ -30,7 +31,8 @@ public:
   static std::vector<OpenMS::MSChromatogram> extractAndMapChromatogramsForTransitions(
     const std::vector< OpenSwath::SwathMap > & swath_maps,
     const OpenSwath::LightTargetedExperiment & transition_exp,
-    const ChromExtractParams & cp);
+    const ChromExtractParams & cp,
+    const Param & mrm_mapping_param = Param());
 };
 
 } // namespace OpenMS
