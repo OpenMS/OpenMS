@@ -60,7 +60,7 @@ namespace OpenMS
   /**
     @brief Represents a simple PEFF variant (single amino acid substitution).
 
-    Parsed from \VariantSimple annotations.
+    Parsed from \\VariantSimple annotations.
   */
   struct OPENMS_DLLAPI PEFFVariantSimple
   {
@@ -82,7 +82,7 @@ namespace OpenMS
   /**
     @brief Represents a complex PEFF variant (insertion, deletion, or substitution of multiple amino acids).
 
-    Parsed from \VariantComplex annotations.
+    Parsed from \\VariantComplex annotations.
   */
   struct OPENMS_DLLAPI PEFFVariantComplex
   {
@@ -105,7 +105,7 @@ namespace OpenMS
   /**
     @brief Represents a PEFF processed region (signal peptide, transit peptide, etc.).
 
-    Parsed from \Processed annotations.
+    Parsed from \\Processed annotations.
   */
   struct OPENMS_DLLAPI PEFFProcessedRegion
   {
@@ -136,14 +136,14 @@ namespace OpenMS
     String sequence;
 
     // Metadata
-    std::vector<String> protein_names;   ///< \PName - may have multiple names
-    String gene_name;                     ///< \GName
-    Int ncbi_tax_id{0};                  ///< \NcbiTaxId
-    String taxonomy_name;                 ///< \TaxName
-    Size sequence_length{0};             ///< \Length
-    String sequence_version;              ///< \SV
-    String entry_version;                 ///< \EV
-    Int protein_existence{0};            ///< \PE (1-5)
+    std::vector<String> protein_names;   ///< \\PName - may have multiple names
+    String gene_name;                     ///< \\GName
+    Int ncbi_tax_id{0};                  ///< \\NcbiTaxId
+    String taxonomy_name;                 ///< \\TaxName
+    Size sequence_length{0};             ///< \\Length
+    String sequence_version;              ///< \\SV
+    String entry_version;                 ///< \\EV
+    Int protein_existence{0};            ///< \\PE (1-5)
 
     // Annotations
     std::vector<PEFFModification> modifications;
