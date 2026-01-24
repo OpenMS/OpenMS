@@ -551,13 +551,19 @@ namespace OpenMS
         }
         else out << "-1";
       }
-      if (opts.incl_peak_annotations && !hit.getPeakAnnotations().empty())
+      if (opts.incl_peak_annotations)
       {
-        String pa;
-        PeptideHit::PeakAnnotation::writePeakAnnotationsString_(pa, hit.getPeakAnnotations());
-        out << pa;
+        if (!hit.getPeakAnnotations().empty())
+        {
+          String pa;
+          PeptideHit::PeakAnnotation::writePeakAnnotationsString_(pa, hit.getPeakAnnotations());
+          out << pa;
+        }
+        else
+        {
+          out << "-1";
+        }
       }
-      else out << "-1";
 
       // Write USI if requested
       if (opts.incl_usi)
