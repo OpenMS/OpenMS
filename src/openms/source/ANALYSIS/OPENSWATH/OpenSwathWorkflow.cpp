@@ -70,8 +70,8 @@ namespace OpenMS
 
     if (srm_mode)
     {
-  // Use SRMHandler to collect chromatograms for iRT calibration
-  irt_chromatograms = ::OpenMS::SRMHandler::collectChromatogramsForIrt(swath_maps);
+      // Use SRMHandler to collect chromatograms for iRT calibration
+      irt_chromatograms = ::OpenMS::SRMHandler::collectChromatogramsForIrt(swath_maps);
     }
     else
     {
@@ -707,7 +707,8 @@ namespace OpenMS
     Interfaces::IMSDataConsumer * chromConsumer,
     int batchSize,
     int ms1_isotopes,
-    bool load_into_memory)
+    bool load_into_memory,
+    const Param & mrm_mapping_param)
   {
     osw_writer.writeHeader();
 
@@ -727,8 +728,9 @@ namespace OpenMS
     if (srm_mode)
     {
       OPENMS_LOG_INFO << "Detected SRM/MRM mode based on input data (chromatogram-only, no spectra)." << std::endl;
-  // Delegate to SRMHandler which returns mapped & filtered chromatograms
-  std::vector<MSChromatogram> filtered_chroms = ::OpenMS::SRMHandler::extractAndMapChromatogramsForTransitions(swath_maps, transition_exp, cp);
+
+      // Delegate to SRMHandler which returns mapped & filtered chromatograms
+      std::vector<MSChromatogram> filtered_chroms = ::OpenMS::SRMHandler::extractAndMapChromatogramsForTransitions(swath_maps, transition_exp, cp, mrm_mapping_param);
 
       FeatureMap featureFile;
       scoreAllChromatograms_(filtered_chroms, std::vector<MSChromatogram>(), swath_maps, transition_exp,
@@ -1242,97 +1244,18 @@ namespace OpenMS
         // the transitions)
         if (ms1only) {continue;}
 
-        int matched_idx = -1;
-        auto it_ch = chromatogram_map.find(transition->getNativeID());
-        if (it_ch != chromatogram_map.end())
+        if (chromatogram_map.find(transition->getNativeID()) == chromatogram_map.end())
         {
-          matched_idx = it_ch->second;
-        }
-        else
-        {
-          // mz-based fallback matching (precursor+product first, then product-only)
-          double t_prec = transition->getPrecursorMZ();
-          double t_prod = transition->getProductMZ();
-          // determine tolerances from feature_finder_param (irt-specific or fallback)
-          double abs_tol = 0.5;
-          double ppm_tol = 20.0;
-          try
-          {
-            double cfg = feature_finder_param.getValue("irt_mz_extraction_window");
-            String unit = feature_finder_param.getValue("irt_mz_extraction_window_unit").toString();
-            if (cfg <= 0)
-            {
-              cfg = feature_finder_param.getValue("mz_extraction_window");
-              // try mz_extraction_window unit fields
-              try { unit = feature_finder_param.getValue("mz_extraction_window_unit").toString(); } catch (...) {}
-            }
-            if (cfg > 0)
-            {
-              if (unit == "ppm")
-              {
-                ppm_tol = cfg / 2.0;
-                abs_tol = -1.0;
-              }
-              else
-              {
-                abs_tol = cfg / 2.0;
-                ppm_tol = -1.0;
-              }
-            }
-          }
-          catch (...) {}
-
-          // pair match
-          for (Size j = 0; j < chrom_mz_cache.size(); ++j)
-          {
-            double c_prec = chrom_mz_cache[j].first;
-            double c_prod = chrom_mz_cache[j].second;
-            if (c_prec < 0 || c_prod < 0) continue;
-            bool prec_ok = false;
-            bool prod_ok = false;
-            if (abs_tol >= 0) { prec_ok = (fabs(c_prec - t_prec) <= abs_tol); }
-            if (!prec_ok && ppm_tol >= 0) { prec_ok = (fabs(c_prec - t_prec) / t_prec * 1e6 <= ppm_tol); }
-            if (abs_tol >= 0) { prod_ok = (fabs(c_prod - t_prod) <= abs_tol); }
-            if (!prod_ok && ppm_tol >= 0) { prod_ok = (fabs(c_prod - t_prod) / t_prod * 1e6 <= ppm_tol); }
-            if (prec_ok && prod_ok)
-            {
-              matched_idx = boost::numeric_cast<int>(j);
-              break;
-            }
-          }
-          // product-only fallback
-          if (matched_idx == -1)
-          {
-            for (Size j = 0; j < chrom_mz_cache.size(); ++j)
-            {
-              double c_prod = chrom_mz_cache[j].second;
-              if (c_prod < 0) continue;
-              bool prod_ok = false;
-              if (abs_tol >= 0) { prod_ok = (fabs(c_prod - t_prod) <= abs_tol); }
-              if (!prod_ok && ppm_tol >= 0) { prod_ok = (fabs(c_prod - t_prod) / t_prod * 1e6 <= ppm_tol); }
-              if (prod_ok)
-              {
-                matched_idx = boost::numeric_cast<int>(j);
-                break;
-              }
-            }
-          }
+          // Do not throw here for unmapped transitions in SRM/mzML-only mode.
+          // Log and skip the transition so processing continues for the rest of the assay.
+          OPENMS_LOG_WARN << "Did not find chromatogram for transition " << transition->getNativeID()
+                          << "; skipping this transition." << std::endl;
+          continue;
         }
 
-        if (matched_idx == -1)
-        {
-          // In chromatogram-only / SRM mode many transitions may not have a
-          // corresponding chromatogram in the file. Previously this was an
-          // error and aborted processing; make this robust by logging a
-          // warning and skipping the transition so processing can continue.
-          OPENMS_LOG_WARN << "Did not find chromatogram for transition '" << transition->getNativeID()
-                          << "' (prec=" << transition->getPrecursorMZ() << " prod=" << transition->getProductMZ() << ") - skipping." << std::endl;
-          continue; // skip this transition
-        }
-
-  // Convert chromatogram to MSChromatogram and filter (properly handles DataArrays via select())
-  MSChromatogram chromatogram = ms2_chromatograms[ matched_idx ];
-  chromatogram.setNativeID(transition->getNativeID());
+        // Convert chromatogram to MSChromatogram and filter (properly handles DataArrays via select())
+        auto chromatogram = ms2_chromatograms[ chromatogram_map[transition->getNativeID()] ];
+        chromatogram.setNativeID(transition->getNativeID());
         if (rt_extraction_window > 0)
         {
           double de_normalized_experimental_rt = trafo_inv.apply(expected_rt);
@@ -1376,8 +1299,77 @@ namespace OpenMS
       }
 
       // 3. / 4. Process the MRMTransitionGroup: find peakgroups and score them
-      trgroup_picker.pickTransitionGroup(transition_group);
-      featureFinder.scorePeakgroups(transition_group, trafo, swath_maps, output, ms1only);
+      // If there are no chromatograms added to this transition_group (e.g. all
+      // transitions were unmapped/skipped), skip processing to avoid range
+      // errors in the picker/feature finder.
+      if (transition_group.getChromatograms().empty() && transition_group.getPrecursorChromatograms().empty())
+      {
+        OPENMS_LOG_WARN << "No chromatograms present for assay " << id << "; skipping scoring." << std::endl;
+        continue;
+      }
+
+      // Ensure there is at least one chromatogram originating from a
+      // detecting transition. MRMTransitionGroupPicker expects at least one
+      // detecting chromatogram; otherwise it may access empty vectors and
+      // throw InvalidRange. If none are present, skip this assay.
+      bool has_detecting_chrom = false;
+      for (const auto & chrom : transition_group.getChromatograms())
+      {
+        String nid = chrom.getNativeID();
+        if (transition_group.getTransitions().size() == 0)
+        {
+          has_detecting_chrom = true; break;
+        }
+        if (transition_group.hasTransition(nid) && transition_group.getTransition(nid).isDetectingTransition())
+        {
+          has_detecting_chrom = true; break;
+        }
+      }
+      if (!has_detecting_chrom)
+      {
+        OPENMS_LOG_WARN << "No detecting chromatograms for assay " << id << "; skipping scoring." << std::endl;
+        continue;
+      }
+
+      try
+      {
+        trgroup_picker.pickTransitionGroup(transition_group);
+      }
+      catch (const Exception::InvalidRange & e)
+      {
+        OPENMS_LOG_ERROR << "InvalidRange while picking transition group for assay " << id
+                         << " - transitions=" << transition_group.getTransitions().size()
+                         << ", chroms=" << transition_group.getChromatograms().size()
+                         << ", prec_chroms=" << transition_group.getPrecursorChromatograms().size()
+                         << ": " << e.getMessage() << " - skipping assay." << std::endl;
+        continue;
+      }
+      catch (const std::exception & e)
+      {
+        OPENMS_LOG_ERROR << "Exception while picking transition group for assay " << id
+                         << ": " << e.what() << " - skipping assay." << std::endl;
+        continue;
+      }
+
+      try
+      {
+        featureFinder.scorePeakgroups(transition_group, trafo, swath_maps, output, ms1only);
+      }
+      catch (const Exception::InvalidRange & e)
+      {
+        OPENMS_LOG_ERROR << "InvalidRange while scoring transition group for assay " << id
+                         << " - transitions=" << transition_group.getTransitions().size()
+                         << ", chroms=" << transition_group.getChromatograms().size()
+                         << ", prec_chroms=" << transition_group.getPrecursorChromatograms().size()
+                         << ": " << e.getMessage() << " - skipping assay." << std::endl;
+        continue;
+      }
+      catch (const std::exception & e)
+      {
+        OPENMS_LOG_ERROR << "Exception while scoring transition group for assay " << id
+                         << ": " << e.what() << " - skipping assay." << std::endl;
+        continue;
+      }
 
       // Ensure that a detection transition is used to derive features for output
       if (detection_assay_it == nullptr && !output.empty())
