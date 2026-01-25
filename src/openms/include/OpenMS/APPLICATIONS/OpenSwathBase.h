@@ -100,6 +100,7 @@ namespace OpenMS
      * @param[in] file_list The input file(s)
      * @param[out] exp_meta The output (meta data about experiment)
      * @param[out] swath_maps The output (ptr to raw data)
+     * @param[out] swath_map_sources The source files corresponding to each swath map. This is used to track when multiple experiment input files are provided.
      * @param[in] split_file If loading a single file that contains a single SWATH window
      * @param[in] tmp Temporary directory
      * @param[in] readoptions Description on how to read the data ("normal", "cache")
@@ -117,6 +118,7 @@ namespace OpenMS
     bool loadSwathFiles(const StringList& file_list,
                         std::shared_ptr<ExperimentalSettings >& exp_meta,
                         std::vector< OpenSwath::SwathMap >& swath_maps,
+                        std::vector<String> & swath_map_sources,
                         const bool split_file,
                         const String& tmp,
                         const String& readoptions,
@@ -218,6 +220,7 @@ namespace OpenMS
                          const String& readoptions,
                          std::shared_ptr<ExperimentalSettings > & exp_meta,
                          std::vector< OpenSwath::SwathMap > & swath_maps,
+                         std::vector<String> & swath_map_sources,
                          Interfaces::IMSDataConsumer* plugin_consumer);
   }; // end TOPPOpenSwathBase
 } //  end NS OpenMS

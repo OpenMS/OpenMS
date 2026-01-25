@@ -58,6 +58,7 @@ using namespace OpenMS;
 
 
 #include <QDir>
+#include <unordered_map>
 
 //-------------------------------------------------------------
 //Doxygen docu
@@ -975,6 +976,7 @@ protected:
     ///////////////////////////////////
     std::shared_ptr<ExperimentalSettings> exp_meta(new ExperimentalSettings);
     std::vector< OpenSwath::SwathMap > swath_maps;
+    std::vector<String> swath_map_sources;
 
     // collect some QC data
     if (!out_qc.empty())
@@ -983,7 +985,7 @@ protected:
       MSDataTransformingConsumer qc_consumer; // apply some transformation
       qc_consumer.setSpectraProcessingFunc(qc.getSpectraProcessingFunc());
       qc_consumer.setExperimentalSettingsFunc(qc.getExpSettingsFunc());
-      if (!loadSwathFiles(file_list, exp_meta, swath_maps, split_file, tmp_dir, readoptions,
+      if (!loadSwathFiles(file_list, exp_meta, swath_maps, swath_map_sources, split_file, tmp_dir, readoptions,
                           swath_windows_file, min_upper_edge_dist, force,
                           sort_swath_maps, prm, pasef, &qc_consumer))
       {
@@ -993,7 +995,7 @@ protected:
     }
     else
     {
-      if (!loadSwathFiles(file_list, exp_meta, swath_maps, split_file, tmp_dir, readoptions,
+      if (!loadSwathFiles(file_list, exp_meta, swath_maps, swath_map_sources, split_file, tmp_dir, readoptions,
                           swath_windows_file, min_upper_edge_dist, force,
                           sort_swath_maps, prm, pasef))
       {
@@ -1347,14 +1349,63 @@ protected:
     // store features if not writing to .featureXML
     bool store_features = (out_features_type != FileTypes::FEATUREXML);
     String osw_out_filename = store_features ? out_features : "";
-    OpenSwathOSWWriter oswwriter(osw_out_filename, run_id, file_list[0], enable_uis_scoring);
+    OpenSwathOSWWriter oswwriter(osw_out_filename, enable_uis_scoring);
+
+    // Write DB schema once
+    oswwriter.writeHeader();
+
+    // Create a run id per unique input filename and register it in the OSW
+    std::unordered_map<String, UInt64> file_to_runid;
+    std::vector<String> unique_files;
+    for (const auto & f : file_list)
+    {
+      if (file_to_runid.find(f) == file_to_runid.end())
+      {
+        UInt64 rid = OpenMS::UniqueIdGenerator::getUniqueId();
+        file_to_runid[f] = rid;
+        unique_files.push_back(f);
+        oswwriter.addRun(rid, f);
+        // Also register run in chromatogram consumer if it is a SQL consumer
+        MSDataSqlConsumer* sql_cons = dynamic_cast<MSDataSqlConsumer*>(chromatogramConsumer);
+        if (sql_cons != nullptr)
+        {
+          sql_cons->addRun(f, rid);
+        }
+      }
+    }
 
     OpenSwathWorkflow wf(use_ms1_traces, use_ms1_im, prm, pasef, outer_loop_threads);
     wf.setLogType(log_type_);
-  // Extract MRMMapping-related options from the CLI subsection and pass them to the workflow
-  Param mrm_map_param = getParam_().copy("MRMMapping:", true);
-  wf.performExtraction(swath_maps, trafo_rtnorm, cp, cp_ms1, feature_finder_param, transition_exp,
-    out_featureFile, true, oswwriter, chromatogramConsumer, batchSize, ms1_isotopes, load_into_memory, mrm_map_param);
+
+    // Extract MRMMapping-related options from the CLI subsection and pass them to the workflow
+    Param mrm_map_param = getParam_().copy("MRMMapping:", true);
+
+    // Group swath_maps by originating file and run performExtraction per-run
+    // Build groups: map from filename to vector<SwathMap>
+    std::unordered_map<String, std::vector< OpenSwath::SwathMap > > groups;
+    for (Size i = 0; i < swath_maps.size(); ++i)
+    {
+      const String & src = (i < swath_map_sources.size()) ? swath_map_sources[i] : file_list[0];
+      groups[src].push_back(swath_maps[i]);
+    }
+
+    // Iterate in same order as unique_files so ordering is stable
+    for (const auto & fname : unique_files)
+    {
+      UInt64 cur_run = file_to_runid[fname];
+      // set current run id in writer
+      oswwriter.setRunId(cur_run);
+      // set current run id for sqMass writer as well
+      MSDataSqlConsumer* sql_cons2 = dynamic_cast<MSDataSqlConsumer*>(chromatogramConsumer);
+      if (sql_cons2 != nullptr)
+      {
+        sql_cons2->setRunId(cur_run);
+      }
+      // perform extraction for this group's swath maps
+      auto & maps_for_file = groups[fname];
+      wf.performExtraction(maps_for_file, trafo_rtnorm, cp, cp_ms1, feature_finder_param, transition_exp,
+                           out_featureFile, true, oswwriter, chromatogramConsumer, batchSize, ms1_isotopes, load_into_memory, mrm_map_param);
+    }
 
     if ( out_features_type == FileTypes::FEATUREXML )
     {

@@ -129,6 +129,9 @@ public:
         sql_batch_size_ = sql_batch_size; 
       }
 
+        /// Set the run id used when writing run-level information
+        void setRunId(const UInt64 run_id);
+
       /**
           @brief Get spectral indices around a specific retention time
 

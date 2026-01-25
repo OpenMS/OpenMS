@@ -43,15 +43,63 @@ namespace OpenMS
                        const String& readoptions,
                        std::shared_ptr<ExperimentalSettings > & exp_meta,
                        std::vector< OpenSwath::SwathMap > & swath_maps,
+                       std::vector<String> & swath_map_sources,
                        Interfaces::IMSDataConsumer* plugin_consumer)
   {
     SwathFile swath_file;
     swath_file.setLogType(log_type_);
 
-    if (split_file || file_list.size() > 1)
+    if (split_file)
     {
-      // TODO cannot use data reduction here any more ...
+      // Treat the list as parts of a single split mzML
+      // (one file per SWATH window). Keep for backward compatibility.
       swath_maps = swath_file.loadSplit(file_list, tmp, exp_meta, readoptions);
+      // assign the same source filename (first entry) for these maps
+      swath_map_sources.clear();
+      for (Size i = 0; i < swath_maps.size(); ++i) swath_map_sources.push_back(file_list[0]);
+    }
+    else if (file_list.size() > 1)
+    {
+      // Treat the list as multiple independent experiment files
+      // (e.g. multiple SRM / experiment mzMLs). Load each file individually
+      // and append their swath maps so they can be processed in a single run.
+      for (const auto & f : file_list)
+      {
+        FileTypes::Type in_file_type = FileHandler::getTypeByFileName(f);
+        if (in_file_type == FileTypes::MZML)
+        {
+          // Dispatch to targeted loader which will choose SRM or SWATH path
+          auto maps = TargetedDataFileLoader::loadFile(f, tmp, exp_meta, readoptions, plugin_consumer);
+          for (auto & m : maps)
+          {
+            swath_maps.push_back(m);
+            swath_map_sources.push_back(f);
+          }
+        }
+        else if (in_file_type == FileTypes::MZXML)
+        {
+          auto maps = swath_file.loadMzXML(f, tmp, exp_meta, readoptions);
+          for (auto & m : maps)
+          {
+            swath_maps.push_back(m);
+            swath_map_sources.push_back(f);
+          }
+        }
+        else if (in_file_type == FileTypes::SQMASS)
+        {
+          auto maps = swath_file.loadSqMass(f, exp_meta);
+          for (auto & m : maps)
+          {
+            swath_maps.push_back(m);
+            swath_map_sources.push_back(f);
+          }
+        }
+        else
+        {
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                           "Input file needs to have ending mzML or mzXML");
+        }
+      }
     }
     else
     {
@@ -60,14 +108,21 @@ namespace OpenMS
       {
         // Dispatch to targeted loader which will choose SRM or SWATH path
         swath_maps = TargetedDataFileLoader::loadFile(file_list[0], tmp, exp_meta, readoptions, plugin_consumer);
+        // single-file: all maps originate from file_list[0]
+        swath_map_sources.clear();
+        for (Size i = 0; i < swath_maps.size(); ++i) swath_map_sources.push_back(file_list[0]);
       }
       else if (in_file_type == FileTypes::MZXML)
       {
         swath_maps = swath_file.loadMzXML(file_list[0], tmp, exp_meta, readoptions);
+        swath_map_sources.clear();
+        for (Size i = 0; i < swath_maps.size(); ++i) swath_map_sources.push_back(file_list[0]);
       }
       else if (in_file_type == FileTypes::SQMASS)
       {
         swath_maps = swath_file.loadSqMass(file_list[0], exp_meta);
+        swath_map_sources.clear();
+        for (Size i = 0; i < swath_maps.size(); ++i) swath_map_sources.push_back(file_list[0]);
       }
       else
       {
@@ -82,6 +137,7 @@ namespace OpenMS
   bool TOPPOpenSwathBase::loadSwathFiles(const StringList& file_list,
                       std::shared_ptr<ExperimentalSettings >& exp_meta,
                       std::vector< OpenSwath::SwathMap >& swath_maps,
+                      std::vector<String> & swath_map_sources,
                       const bool split_file,
                       const String& tmp,
                       const String& readoptions,
@@ -94,7 +150,7 @@ namespace OpenMS
                       Interfaces::IMSDataConsumer* plugin_consumer)
   {
     // (i) Load files
-    loadSwathFiles_(file_list, split_file, tmp, readoptions, exp_meta, swath_maps, plugin_consumer);
+    loadSwathFiles_(file_list, split_file, tmp, readoptions, exp_meta, swath_maps, swath_map_sources, plugin_consumer);
 
     // (ii) Allow the user to specify the SWATH windows
     if (!swath_windows_file.empty())

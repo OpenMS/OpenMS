@@ -706,7 +706,6 @@ namespace OpenMS
     bool load_into_memory,
     const Param & mrm_mapping_param)
   {
-    osw_writer.writeHeader();
 
     bool ms1_only = (swath_maps.size() == 1 && swath_maps[0].ms1);
 

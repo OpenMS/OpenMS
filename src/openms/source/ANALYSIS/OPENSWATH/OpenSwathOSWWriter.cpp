@@ -14,10 +14,8 @@
 
 namespace OpenMS
 {
-  OpenSwathOSWWriter::OpenSwathOSWWriter(const String& output_filename, const UInt64 run_id, const String& input_filename, bool uis_scores) :
+  OpenSwathOSWWriter::OpenSwathOSWWriter(const String& output_filename, bool uis_scores) :
     output_filename_(output_filename),
-    input_filename_(input_filename),
-    run_id_(Internal::SqliteHelper::clearSignBit(run_id)),
     doWrite_(!output_filename.empty()),
     enable_uis_scoring_(uis_scores)
   {}
@@ -169,15 +167,22 @@ namespace OpenMS
 
     // Execute SQL create statement
     conn.executeStatement(create_sql);
+  }
 
-    // Insert run_id information
+
+  void OpenSwathOSWWriter::addRun(const UInt64 run_id, const String& input_filename)
+  {
+    if (!doWrite_) return;
+    SqliteConnector conn(output_filename_);
+    const UInt64 rid = Internal::SqliteHelper::clearSignBit(run_id);
     std::stringstream sql_run;
-    sql_run << "INSERT INTO RUN (ID, FILENAME) VALUES ("
-            << run_id_ << ", '"
-            << input_filename_ << "'); ";
-
-    // Execute SQL insert statement
+    sql_run << "INSERT INTO RUN (ID, FILENAME) VALUES (" << rid << ", '" << input_filename << "'); ";
     conn.executeStatement(sql_run.str());
+  }
+
+  void OpenSwathOSWWriter::setRunId(const UInt64 run_id)
+  {
+    run_id_ = Internal::SqliteHelper::clearSignBit(run_id);
   }
 
   String OpenSwathOSWWriter::getScore(const Feature& feature, const std::string& score_name) const
