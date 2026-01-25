@@ -15,7 +15,7 @@
 
 #include <limits>
 #include <map>
-#include <regex>
+#include <set>
 #include <sstream>
 
 namespace OpenMS
@@ -357,13 +357,23 @@ namespace OpenMS
           String variant_peptide = ref_peptide;
           String description;
 
-          // Apply variants (bits 0 to num_variants-1)
-          for (size_t i = 0; i < num_variants; ++i)
+          // Apply variants (bits 0 to num_variants-1), skip if multiple at same position
+          std::set<size_t> modified_positions;
+          bool has_conflict = false;
+          for (size_t i = 0; i < num_variants && !has_conflict; ++i)
           {
             if (combo & (1ULL << i))  // Apply this variant
             {
               const PEFFVariantSimple* var = local_variants[i];
               size_t local_pos = var->position - 1 - start;  // Position within peptide
+
+              // Check for conflicting variants at same position
+              if (modified_positions.count(local_pos))
+              {
+                has_conflict = true;
+                break;
+              }
+              modified_positions.insert(local_pos);
 
               // Build description
               if (!description.empty())
@@ -379,6 +389,12 @@ namespace OpenMS
               // Apply the substitution
               variant_peptide[local_pos] = var->variant_aa;
             }
+          }
+
+          // Skip combinations with conflicting variants
+          if (has_conflict)
+          {
+            continue;
           }
 
           // Convert to AASequence for modification application
@@ -650,13 +666,25 @@ namespace OpenMS
         }
       }
 
-      // Limit variant combinations
-      constexpr size_t MAX_VARIANTS = 20;
-      if (local_variants.size() > MAX_VARIANTS)
+      // Limit combined variant + modification combinations to avoid explosion
+      // (variants and mods each contribute 2^n combinations, combined is 2^(v+m))
+      constexpr size_t MAX_COMBINATORIAL_ELEMENTS = 20;
+      size_t total_elements = local_variants.size() + local_mods.size();
+      if (total_elements > MAX_COMBINATORIAL_ELEMENTS)
       {
-        OPENMS_LOG_WARN << "Peptide at " << start << "-" << end << " has " << local_variants.size()
-                        << " variants. Limiting to first " << MAX_VARIANTS << "." << std::endl;
-        local_variants.resize(MAX_VARIANTS);
+        OPENMS_LOG_WARN << "Peptide at " << start << "-" << end << " has " << total_elements
+                        << " variants+modifications. Limiting to " << MAX_COMBINATORIAL_ELEMENTS
+                        << " to avoid combinatorial explosion." << std::endl;
+        // Prioritize variants over PEFF modifications
+        if (local_variants.size() > MAX_COMBINATORIAL_ELEMENTS)
+        {
+          local_variants.resize(MAX_COMBINATORIAL_ELEMENTS);
+          local_mods.clear();
+        }
+        else
+        {
+          local_mods.resize(MAX_COMBINATORIAL_ELEMENTS - local_variants.size());
+        }
       }
 
       String ref_peptide_str = sequence.substr(start, end - start);
@@ -675,13 +703,23 @@ namespace OpenMS
         String variant_peptide_str = ref_peptide_str;
         String variant_desc;
 
-        // Apply selected variants
-        for (size_t i = 0; i < local_variants.size(); ++i)
+        // Apply selected variants (skip if multiple variants at same position)
+        std::set<size_t> modified_positions;
+        bool has_conflict = false;
+        for (size_t i = 0; i < local_variants.size() && !has_conflict; ++i)
         {
           if (var_combo & (1ULL << i))
           {
             const PEFFVariantSimple* var = local_variants[i];
             size_t local_pos = var->position - 1 - start;
+
+            // Check for conflicting variants at same position
+            if (modified_positions.count(local_pos))
+            {
+              has_conflict = true;
+              break;
+            }
+            modified_positions.insert(local_pos);
 
             if (!variant_desc.empty()) variant_desc += ";";
             variant_desc += String(ref_peptide_str[local_pos]) + String(var->position) + String(var->variant_aa);
@@ -694,8 +732,14 @@ namespace OpenMS
           }
         }
 
-        // Skip reference combination if not requested
-        if (var_combo == 0 && !include_reference)
+        // Skip combinations with conflicting variants
+        if (has_conflict)
+        {
+          continue;
+        }
+
+        // Skip reference combination if not requested (but allow mods-only peptides)
+        if (var_combo == 0 && !include_reference && local_mods.empty())
         {
           continue;
         }
@@ -814,6 +858,10 @@ namespace OpenMS
     }
 
     infile_.open(filename.c_str(), std::ios::binary | std::ios::in);
+    if (!infile_.is_open())
+    {
+      throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+    }
     infile_.seekg(0, infile_.end);
     fileSize_ = infile_.tellg();
     infile_.seekg(0, infile_.beg);
@@ -1213,10 +1261,16 @@ namespace OpenMS
     String trimmed(line);
     trimmed.trim();
 
-    // Check for database separator
-    if (trimmed == "#" || trimmed == "# //" || trimmed == "#//")
+    // Check for database separator (# // or #//, but not bare # which is just a blank comment)
+    if (trimmed == "# //" || trimmed == "#//")
     {
       new_db = true;
+      return;
+    }
+
+    // Skip blank comment lines (just #)
+    if (trimmed == "#")
+    {
       return;
     }
 

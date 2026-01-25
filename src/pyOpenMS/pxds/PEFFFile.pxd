@@ -105,6 +105,13 @@ cdef extern from "<OpenMS/FORMAT/PEFFFile.h>" namespace "OpenMS":
         #  :param filename: The file to check
         #  :return: True if the file starts with PEFF headers
 
+    String toProForma "OpenMS::PEFFFile::toProForma" (const PEFFEntry& entry) except + nogil
+        # wrap-doc:
+        #  Converts a PEFF entry to ProForma notation
+        #
+        #  :param entry: The PEFF entry to convert
+        #  :return: ProForma string representation
+
 
 cdef extern from "<OpenMS/FORMAT/PEFFFile.h>" namespace "OpenMS":
 
