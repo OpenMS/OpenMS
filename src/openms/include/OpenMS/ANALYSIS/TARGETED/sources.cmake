@@ -3,13 +3,15 @@ set(directory include/OpenMS/ANALYSIS/TARGETED)
 
 ### list all header files of the directory here
 set(sources_list_h
+ChromatogramProcessor.h
+IChromatogramHandler.h
 IncludeExcludeTarget.h
 MRMMapping.h
 MetaboTargetedAssay.h
 MetaboTargetedTargetDecoy.h
+SRMHandler.h
 TargetedExperiment.h
 TargetedExperimentHelper.h
-SRMHandler.h
 )
 
 ### add path to the filenames

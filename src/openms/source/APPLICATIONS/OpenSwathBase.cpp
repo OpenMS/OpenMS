@@ -293,7 +293,6 @@ namespace OpenMS
     else if (! irt_transitions.getTransitions().empty())
     {
       // Loading iRT file
-      std::cout << "Will load iRT transitions and try to find iRT peptides" << std::endl;
 
       // If pasef flag is set, validate that IM is present
       if (pasef)
@@ -312,13 +311,13 @@ namespace OpenMS
       }
 
       // perform extraction
-  OpenSwathCalibrationWorkflow wf;
-  wf.setLogType(log_type_);
-  TransformationDescription im_trafo;
-  // Pass through any MRMMapping-related CLI parameters to the workflow
-  Param mrm_map_param = getParam_().copy("MRMMapping:", true);
-  trafo_rtnorm = wf.performRTNormalization(irt_transitions, swath_maps, im_trafo, min_rsq, min_coverage, feature_finder_param, cp_irt,
-                   irt_detection_param, calibration_param, mrm_map_param, irt_mzml_out, debug_level, pasef, load_into_memory);
+      OpenSwathCalibrationWorkflow wf;
+      wf.setLogType(log_type_);
+      TransformationDescription im_trafo;
+      // Pass through any MRMMapping-related CLI parameters to the workflow
+      Param mrm_map_param = getParam_().copy("MRMMapping:", true);
+      trafo_rtnorm = wf.performRTNormalization(irt_transitions, swath_maps, im_trafo, min_rsq, min_coverage, feature_finder_param, cp_irt,
+                      irt_detection_param, calibration_param, mrm_map_param, irt_mzml_out, debug_level, pasef, load_into_memory);
       // Retrieve estimated mz and IM extraction windows
       auto_mz_w = wf.getEstimatedMzWindow();
       auto_im_w = wf.getEstimatedImWindow();

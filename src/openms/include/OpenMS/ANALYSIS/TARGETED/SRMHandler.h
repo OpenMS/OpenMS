@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 #pragma once
 
+#include <OpenMS/ANALYSIS/TARGETED/IChromatogramHandler.h>
 #include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractor.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h>
@@ -18,21 +19,38 @@
 // including a non-existent OpenMS header location.
 namespace OpenSwath { struct LightTargetedExperiment; }
 
+
 namespace OpenMS
 {
-class SRMHandler
+/**
+  @brief Default SRM chromatogram provider declaration
+
+  The `SRMChromHandler` class is the default implementation of
+  `IChromatogramHandler` used by OpenSwathWorkflow when running in SRM/MRM
+  mode. It delegates to the internal SRM helpers implemented in
+  `SRMHandler.cpp` for chromatogram collection and mapping.
+
+  This header exposes the provider's public interface (only the class
+  declaration). The implementation is colocated in `SRMHandler.cpp` so the
+  provider can remain a lightweight adapter while keeping implementation
+  details private to the translation unit.
+*/
+class SRMChromHandler : public IChromatogramHandler
 {
 public:
-  /// Collect chromatograms from chromatogram-only swath maps and return them with original nativeIDs preserved
-  static std::vector<OpenMS::MSChromatogram> collectChromatogramsForIrt(const std::vector< OpenSwath::SwathMap > & swath_maps);
+  SRMChromHandler();
+  ~SRMChromHandler() override;
 
-  /// From chromatogram-only swath maps, map chromatograms to transitions (by nativeID exact match or mz-based fallback)
-  /// and return only the chromatograms that were successfully mapped (their nativeID will be set to the matched transition nativeID).
-  static std::vector<OpenMS::MSChromatogram> extractAndMapChromatogramsForTransitions(
+  std::vector<MSChromatogram> collectIrtChromatogramsForIrt(
+    const std::vector< OpenSwath::SwathMap > & swath_maps,
+    const OpenSwath::LightTargetedExperiment & irt_transitions,
+    const Param & mrm_mapping_param) override;
+
+  std::vector<MSChromatogram> extractAndMapChromatogramsForTransitions(
     const std::vector< OpenSwath::SwathMap > & swath_maps,
     const OpenSwath::LightTargetedExperiment & transition_exp,
     const ChromExtractParams & cp,
-    const Param & mrm_mapping_param = Param());
+    const Param & mrm_mapping_param) override;
 };
 
 } // namespace OpenMS

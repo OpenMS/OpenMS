@@ -3,13 +3,14 @@ set(directory source/ANALYSIS/TARGETED)
 
 ### list all filenames of the directory here
 set(sources_list
+ChromatogramProcessor.cpp
+IncludeExcludeTarget.cpp
 MetaboTargetedAssay.cpp
 MetaboTargetedTargetDecoy.cpp
 MRMMapping.cpp
-IncludeExcludeTarget.cpp
+SRMHandler.cpp
 TargetedExperiment.cpp
 TargetedExperimentHelper.cpp
-SRMHandler.cpp
 )
 
 ### add path to the filenames

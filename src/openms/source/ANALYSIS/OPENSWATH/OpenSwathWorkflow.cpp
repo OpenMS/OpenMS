@@ -7,7 +7,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathWorkflow.h>
-#include <OpenMS/ANALYSIS/TARGETED/SRMHandler.h>
+#include <OpenMS/ANALYSIS/TARGETED/IChromatogramHandler.h>
+#include <OpenMS/ANALYSIS/TARGETED/ChromatogramProcessor.h>
 #include <OpenMS/ANALYSIS/TARGETED/MRMMapping.h>
 #include <cmath>
 #include <unordered_map>
@@ -72,76 +73,37 @@ namespace OpenMS
 
     if (srm_mode)
     {
-      // Use SRMHandler to collect chromatograms for iRT calibration
-      irt_chromatograms = ::OpenMS::SRMHandler::collectChromatogramsForIrt(swath_maps);
-
-      // Try to map these chromatograms to the iRT transitions so that their
-      // nativeIDs match the transitions used by the calibration routine.
-      // This uses MRMMapping (m/z-based) to set chromatogram nativeIDs to the
-      // corresponding transition nativeIDs. If mapping fails we continue with
-      // the raw chromatograms (fallback) so no exception escapes here.
+      // Use provider abstraction to collect & map chromatograms for iRT calibration.
+      // The provider delegates to SRMHandler as needed; prefer the provider API so
+      // all SRM mapping logic is centralized and can be swapped/tested.
+  std::unique_ptr<IChromatogramHandler> provider = IChromatogramHandler::createDefault();
       try
       {
-  PeakMap pm;
-  pm.setChromatograms(irt_chromatograms);
-  PeakMap mapped_pm;
-  MRMMapping mapper;
-  // Merge CLI-provided MRMMapping parameters and ensure we allow mapping to
-  // multiple assays for the iRT mapping step to avoid aborting when
-  // chromatograms match multiple transitions. Duplication can help the
-  // iRT calibration, so we force this here after applying user settings.
-  Param mrm_p = mapper.getParameters();
-  try
-  {
-    mrm_p.update(mrm_mapping_param);
-  }
-  catch (...) {}
-  mrm_p.setValue("map_multiple_assays", "true");
-  mapper.setParameters(mrm_p);
-  mapper.mapExperiment(pm, irt_transitions, mapped_pm);
-        irt_chromatograms = mapped_pm.getChromatograms();
-        OPENMS_LOG_INFO << "SRM: Mapped " << irt_chromatograms.size() << " iRT chromatograms to transitions." << std::endl;
+        irt_chromatograms = provider->collectIrtChromatogramsForIrt(swath_maps, irt_transitions, mrm_mapping_param);
+        OPENMS_LOG_DEBUG << "SRM: Collected " << irt_chromatograms.size() << " iRT chromatograms (provider)." << std::endl;
       }
       catch (const std::exception & e)
       {
-        OPENMS_LOG_WARN << "SRM: mapping iRT chromatograms to transitions failed: " << e.what() << ". Proceeding with unmapped chromatograms." << std::endl;
+        OPENMS_LOG_WARN << "SRM: provider failed to collect iRT chromatograms: " << e.what() << ". Falling back to simple extraction." << std::endl;
+        this->simpleExtractChromatograms_(swath_maps, irt_transitions, irt_chromatograms, trafo, cp_irt, pasef, load_into_memory);
       }
-    }
-    else
-    {
-      this->simpleExtractChromatograms_(swath_maps, irt_transitions, irt_chromatograms, trafo, cp_irt, pasef, load_into_memory);
     }
 
-    // debug output of the iRT chromatograms
-    if (irt_mzml_out.empty() && debug_level > 1)
-    {
-      String irt_mzml_out = "debug_irts.mzML";
-    }
-    if (!irt_mzml_out.empty())
-    {
-      try
-      {
-        PeakMap exp;
-        exp.setChromatograms(irt_chromatograms);
-        FileHandler().storeExperiment(irt_mzml_out, exp, {FileTypes::MZML});
-      }
-      catch (OpenMS::Exception::UnableToCreateFile& /*e*/)
-      {
-        OPENMS_LOG_DEBUG << "Error creating file " + irt_mzml_out + ", not writing out iRT chromatogram file"  << '\n';
-      }
-      catch (OpenMS::Exception::BaseException& /*e*/)
-      {
-        OPENMS_LOG_DEBUG << "Error writing to file " + irt_mzml_out + ", not writing out iRT chromatogram file"  << '\n';
-      }
-    }
-    OPENMS_LOG_DEBUG << "Extracted number of chromatograms from iRT files: " << irt_chromatograms.size() <<  std::endl;
-
-    // perform RT and m/z correction on the data
-    TransformationDescription tr = doDataNormalization_(irt_transitions,
-        irt_chromatograms, im_trafo, swath_maps,
-        min_rsq, min_coverage, feature_finder_param,
-        irt_detection_param, calibration_param, pasef);
-    return tr;
+    // After collecting and optionally mapping iRT chromatograms, run the
+    // data-normalization routine which performs peak picking and computes
+    // the RT transformation. Return that transformation to the caller.
+    OPENMS_LOG_DEBUG << "SRM: running doDataNormalization_ with " << irt_chromatograms.size() << " iRT chromatograms." << std::endl;
+    TransformationDescription trafo_out = doDataNormalization_(irt_transitions,
+                                                              irt_chromatograms,
+                                                              im_trafo,
+                                                              swath_maps,
+                                                              min_rsq,
+                                                              min_coverage,
+                                                              feature_finder_param,
+                                                              irt_detection_param,
+                                                              calibration_param,
+                                                              pasef);
+    return trafo_out;
   }
 
   TransformationDescription OpenSwathCalibrationWorkflow::doDataNormalization_(
@@ -761,16 +723,17 @@ namespace OpenMS
 
     if (srm_mode)
     {
-      OPENMS_LOG_INFO << "Detected SRM/MRM mode based on input data (chromatogram-only, no spectra)." << std::endl;
-
-      // Delegate to SRMHandler which returns mapped & filtered chromatograms
-      std::vector<MSChromatogram> filtered_chroms = ::OpenMS::SRMHandler::extractAndMapChromatogramsForTransitions(swath_maps, transition_exp, cp, mrm_mapping_param);
+      std::unique_ptr<IChromatogramHandler> provider = IChromatogramHandler::createDefault();
+      std::vector<MSChromatogram> filtered_chroms = provider->extractAndMapChromatogramsForTransitions(swath_maps, transition_exp, cp, mrm_mapping_param);
 
       FeatureMap featureFile;
       scoreAllChromatograms_(filtered_chroms, std::vector<MSChromatogram>(), swath_maps, transition_exp,
                             feature_finder_param, trafo, cp.rt_extraction_window, featureFile, osw_writer, ms1_isotopes);
+
       std::vector<MSChromatogram> empty_ms1_chromatograms;
+
       writeOutFeaturesAndChroms_(filtered_chroms, empty_ms1_chromatograms, featureFile, out_featureFile, store_features, chromConsumer);
+
       return;
     }
 
@@ -778,7 +741,7 @@ namespace OpenMS
     TransformationDescription trafo_inverse = trafo;
     trafo_inverse.invert();
 
-  OPENMS_LOG_INFO << "Will analyze " << transition_exp.transitions.size() << " transitions in total." << std::endl;
+    OPENMS_LOG_INFO << "Will analyze " << transition_exp.transitions.size() << " transitions in total." << std::endl;
     int progress = 0;
     this->startProgress(0, swath_maps.size(), "Extracting and scoring transitions");
 
@@ -1252,6 +1215,13 @@ namespace OpenMS
     }
 
     std::vector<String> to_osw_output;
+    // Aggregated counters to avoid noisy per-transition warnings
+    size_t unmapped_transitions = 0;
+    size_t mapped_transitions = 0;
+    size_t assays_no_chrom = 0;
+    size_t assays_no_detecting_chrom = 0;
+    size_t assays_with_multi_chroms = 0;
+    size_t assays_processed = 0;
     ///////////////////////////////////
     // Start of main function
     // Iterating over all the assays
@@ -1281,9 +1251,10 @@ namespace OpenMS
         if (chromatogram_map.find(transition->getNativeID()) == chromatogram_map.end())
         {
           // Do not throw here for unmapped transitions in SRM/mzML-only mode.
-          // Log and skip the transition so processing continues for the rest of the assay.
-          OPENMS_LOG_WARN << "Did not find chromatogram for transition " << transition->getNativeID()
-                          << "; skipping this transition." << std::endl;
+          // Increment a counter and log at debug level to avoid console clutter.
+          OPENMS_LOG_DEBUG << "Did not find chromatogram for transition " << transition->getNativeID()
+                           << "; skipping this transition." << std::endl;
+          ++unmapped_transitions;
           continue;
         }
 
@@ -1314,6 +1285,7 @@ namespace OpenMS
         // Add the transition and the chromatogram to the MRMTransitionGroup
         transition_group.addTransition(*transition, transition->getNativeID());
         transition_group.addChromatogram(chromatogram, chromatogram.getNativeID());
+        ++mapped_transitions;
       }
 
       // currently  .osw and .featureXML are mutually exclusive
@@ -1338,7 +1310,9 @@ namespace OpenMS
       // errors in the picker/feature finder.
       if (transition_group.getChromatograms().empty() && transition_group.getPrecursorChromatograms().empty())
       {
-        OPENMS_LOG_WARN << "No chromatograms present for assay " << id << "; skipping scoring." << std::endl;
+        // Count assays with no chromatograms and emit a debug message instead of many warnings
+        OPENMS_LOG_DEBUG << "No chromatograms present for assay " << id << "; skipping scoring." << std::endl;
+        ++assays_no_chrom;
         continue;
       }
 
@@ -1361,7 +1335,9 @@ namespace OpenMS
       }
       if (!has_detecting_chrom)
       {
-        OPENMS_LOG_WARN << "No detecting chromatograms for assay " << id << "; skipping scoring." << std::endl;
+        // As above, avoid noisy warnings and aggregate counts
+        OPENMS_LOG_DEBUG << "No detecting chromatograms for assay " << id << "; skipping scoring." << std::endl;
+        ++assays_no_detecting_chrom;
         continue;
       }
 
@@ -1412,6 +1388,10 @@ namespace OpenMS
               "Error, did not find any detection transition for feature " + id );
       }
 
+      // Track assays that passed processing
+      ++assays_processed;
+      if (transition_group.getChromatograms().size() > 1) ++assays_with_multi_chroms;
+
       // 5. Add to the output osw if given
       if (osw_writer.isActive() && !output.empty()) // implies that detection_assay_it was set
       {
@@ -1422,6 +1402,15 @@ namespace OpenMS
                                                        id));
       }
     }
+
+  // Summarize mapping counts to avoid noisy logs
+  OPENMS_LOG_INFO << "OpenSwathWorkflow: mapped_transitions=" << mapped_transitions
+          << ", unmapped_transitions=" << unmapped_transitions
+          << ", assays_processed=" << assays_processed
+          << ", assays_no_chrom=" << assays_no_chrom
+          << ", assays_no_detecting_chrom=" << assays_no_detecting_chrom
+          << ", assays_with_multiple_chroms=" << assays_with_multi_chroms
+          << std::endl;
 
     // Only write at the very end since this is a step that needs a barrier
     if (osw_writer.isActive())
