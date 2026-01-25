@@ -70,3 +70,50 @@ def get_processed_regions_dict(self):
         data['name'].append(reg.name)
         data['description'].append(reg.description)
     return data
+
+
+def getVariantSequences(self):
+    """Get all variant sequences (each simple variant applied individually).
+
+    Each variant sequence has one amino acid substitution applied.
+    Does not combine variants.
+
+    Returns:
+        list: List of tuples (variant_description, AASequence)
+
+    Example:
+        >>> entry = PEFFEntry()
+        >>> # ... load entry with variants ...
+        >>> for desc, seq in entry.getVariantSequences():
+        ...     print(f"{desc}: {seq.getMonoWeight():.2f} Da")
+    """
+    from pyopenms import AASequence
+    result = []
+    base_seq = self.sequence
+
+    for var in self.simple_variants:
+        if var.position == 0 or var.position > len(base_seq):
+            continue
+
+        # Apply variant: replace amino acid at position (1-based)
+        idx = var.position - 1
+        variant_char = chr(var.variant_aa) if var.variant_aa else ''
+        if not variant_char:
+            continue
+
+        variant_seq_str = base_seq[:idx] + variant_char + base_seq[idx + 1:]
+
+        # Create description
+        original_aa = base_seq[idx] if idx < len(base_seq) else '?'
+        desc = f"{original_aa}{var.position}{variant_char}"
+        if var.sources:
+            desc += f" ({var.sources})"
+
+        try:
+            variant_seq = AASequence.fromString(variant_seq_str)
+            result.append((desc, variant_seq))
+        except:
+            # Skip if sequence can't be parsed (invalid amino acid)
+            pass
+
+    return result

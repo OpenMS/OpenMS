@@ -240,11 +240,7 @@ cdef extern from "<OpenMS/FORMAT/PEFFFile.h>" namespace "OpenMS":
             #  Get an AASequence with all annotated modifications applied.
             #  Modifications with unknown positions (position == 0) are skipped.
 
-        libcpp_vector[libcpp_pair[String, AASequence]] getVariantSequences() except + nogil
-            # wrap-doc:
-            #  Get all variant sequences (each simple variant applied individually).
-            #  Each variant sequence has one amino acid substitution applied.
-            #  Returns vector of pairs: (variant description, AASequence)
+        libcpp_vector[libcpp_pair[String, AASequence]] getVariantSequences() except + nogil  # wrap-ignore
 
         AASequence getProcessedSequence() except + nogil
             # wrap-doc:
