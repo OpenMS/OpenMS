@@ -388,7 +388,7 @@ START_SECTION([PEFFEntry] getVariantSequences)
   entry.simple_variants.push_back(PEFFVariantSimple(3, 'A', "dbSNP:test"));
   entry.complex_variants.push_back(PEFFVariantComplex(2, 4, "XXX", "ClinVar:123"));
 
-  std::vector<String> descriptions;
+  std::vector<std::string> descriptions;
   std::vector<AASequence> sequences;
 
   // Without complex variants (default)
@@ -398,7 +398,7 @@ START_SECTION([PEFFEntry] getVariantSequences)
   if (!sequences.empty())
   {
     TEST_EQUAL(sequences[0].toString(), "PEATIDE")
-    TEST_EQUAL(descriptions[0].hasSubstring("P3A"), true)
+    TEST_EQUAL(descriptions[0].find("P3A") != std::string::npos, true)
   }
 
   // With complex variants
@@ -410,7 +410,7 @@ START_SECTION([PEFFEntry] getVariantSequences)
     TEST_EQUAL(sequences[0].toString(), "PEATIDE")
     // Complex variant: replace positions 2-4 (EPT) with XXX
     TEST_EQUAL(sequences[1].toString(), "PXXXIDE")
-    TEST_EQUAL(descriptions[1].hasSubstring("2-4>XXX"), true)
+    TEST_EQUAL(descriptions[1].find("2-4>XXX") != std::string::npos, true)
   }
 }
 END_SECTION
@@ -789,7 +789,7 @@ START_SECTION([PEFFEntry] digestWithVariants)
   digestor.setEnzyme("Trypsin");
   digestor.setMissedCleavages(0);
 
-  std::vector<String> descriptions;
+  std::vector<std::string> descriptions;
   std::vector<AASequence> sequences;
 
   // Generate peptides with variants (include_variants=true, include_modifications=false)
@@ -819,7 +819,7 @@ START_SECTION([PEFFEntry] digestWithVariants)
   TEST_EQUAL(var_count > 0, true)
 
   // Test without reference peptides
-  std::vector<String> var_only_desc;
+  std::vector<std::string> var_only_desc;
   std::vector<AASequence> var_only_seq;
   entry.digestWithVariants(digestor, var_only_desc, var_only_seq, 4, 30, false, true, false);
   for (const auto& desc : var_only_desc)
@@ -833,7 +833,7 @@ START_SECTION([PEFFEntry] digestWithVariants)
   chymo.setEnzyme("Chymotrypsin");
   chymo.setMissedCleavages(0);
 
-  std::vector<String> chymo_desc;
+  std::vector<std::string> chymo_desc;
   std::vector<AASequence> chymo_seq;
   entry.digestWithVariants(chymo, chymo_desc, chymo_seq, 4, 30, true, true, false);
   TEST_EQUAL(chymo_seq.size() > 0, true)
@@ -858,7 +858,7 @@ START_SECTION([PEFFEntry] digestWithVariants_combinatorics)
   digestor.setEnzyme("Trypsin");
   digestor.setMissedCleavages(0);
 
-  std::vector<String> descriptions;
+  std::vector<std::string> descriptions;
   std::vector<AASequence> sequences;
   entry.digestWithVariants(digestor, descriptions, sequences, 2, 20, true, true, false);
 
@@ -925,7 +925,7 @@ START_SECTION([PEFFEntry] digestWithVariants_modifications)
   digestor.setEnzyme("Trypsin");
   digestor.setMissedCleavages(0);
 
-  std::vector<String> mod_desc;
+  std::vector<std::string> mod_desc;
   std::vector<AASequence> mod_seq;
 
   // Test with modifications only (no variants)
@@ -944,7 +944,7 @@ START_SECTION([PEFFEntry] digestWithVariants_modifications)
       found_unmodified = true;
     }
     // Count peptides with modification descriptions
-    if (mod_desc[i].hasSubstring("UNIMOD:35") || mod_desc[i].hasSubstring("Oxidation"))
+    if (mod_desc[i].find("UNIMOD:35") != std::string::npos || mod_desc[i].find("Oxidation") != std::string::npos)
     {
       mod_peptide_count++;
     }
@@ -958,16 +958,16 @@ START_SECTION([PEFFEntry] digestWithVariants_modifications)
   // Test with both variants and modifications
   entry.simple_variants.push_back(PEFFVariantSimple(5, 'L', "var1"));  // E->L at position 5
 
-  std::vector<String> combo_desc;
+  std::vector<std::string> combo_desc;
   std::vector<AASequence> combo_seq;
   entry.digestWithVariants(digestor, combo_desc, combo_seq, 2, 20, true, true, true);
 
   // Should have more combinations than mods alone or variants alone
-  std::vector<String> var_only_desc;
+  std::vector<std::string> var_only_desc;
   std::vector<AASequence> var_only_seq;
   entry.digestWithVariants(digestor, var_only_desc, var_only_seq, 2, 20, true, true, false);
 
-  std::vector<String> mod_only_desc;
+  std::vector<std::string> mod_only_desc;
   std::vector<AASequence> mod_only_seq;
   entry.digestWithVariants(digestor, mod_only_desc, mod_only_seq, 2, 20, true, false, true);
 
@@ -994,11 +994,11 @@ START_SECTION([PEFFEntry] digestWithVariants_no_variants_flag)
   digestor.setEnzyme("Trypsin");
   digestor.setMissedCleavages(0);
 
-  std::vector<String> with_vars_desc;
+  std::vector<std::string> with_vars_desc;
   std::vector<AASequence> with_vars_seq;
   entry.digestWithVariants(digestor, with_vars_desc, with_vars_seq, 2, 20, true, true, false);
 
-  std::vector<String> no_vars_desc;
+  std::vector<std::string> no_vars_desc;
   std::vector<AASequence> no_vars_seq;
   entry.digestWithVariants(digestor, no_vars_desc, no_vars_seq, 2, 20, true, false, false);
 
@@ -1029,9 +1029,9 @@ START_SECTION([PEFFEntry] generatePeptides_basic)
   digestor.setMissedCleavages(0);
 
   // Test without additional mods (empty fixed and variable)
-  std::vector<String> no_fixed_mods;
-  std::vector<String> no_var_mods;
-  std::vector<String> descriptions;
+  std::vector<std::string> no_fixed_mods;
+  std::vector<std::string> no_var_mods;
+  std::vector<std::string> descriptions;
   std::vector<AASequence> sequences;
   entry.generatePeptides(digestor, descriptions, sequences, no_fixed_mods, no_var_mods, 2, 2, 20, true, true, true);
 
@@ -1069,9 +1069,9 @@ START_SECTION([PEFFEntry] generatePeptides_with_fixed_mods)
   digestor.setMissedCleavages(0);
 
   // Add Carbamidomethyl as fixed modification
-  std::vector<String> fixed_mods = {"Carbamidomethyl (C)"};
-  std::vector<String> no_var_mods;
-  std::vector<String> descriptions;
+  std::vector<std::string> fixed_mods = {"Carbamidomethyl (C)"};
+  std::vector<std::string> no_var_mods;
+  std::vector<std::string> descriptions;
   std::vector<AASequence> sequences;
   entry.generatePeptides(digestor, descriptions, sequences, fixed_mods, no_var_mods, 0, 2, 20, true, false, false);
 
@@ -1103,9 +1103,9 @@ START_SECTION([PEFFEntry] generatePeptides_with_variable_mods)
   digestor.setMissedCleavages(0);
 
   // Add Oxidation as variable modification (simulating sample handling)
-  std::vector<String> no_fixed_mods;
-  std::vector<String> var_mods = {"Oxidation (M)"};
-  std::vector<String> descriptions;
+  std::vector<std::string> no_fixed_mods;
+  std::vector<std::string> var_mods = {"Oxidation (M)"};
+  std::vector<std::string> descriptions;
   std::vector<AASequence> sequences;
   entry.generatePeptides(digestor, descriptions, sequences, no_fixed_mods, var_mods, 2, 2, 20, true, false, false);
 
@@ -1130,8 +1130,8 @@ START_SECTION([PEFFEntry] generatePeptides_with_variable_mods)
   (void)found_oxidized;
 
   // Compare with no variable mods
-  std::vector<String> no_var_mods;
-  std::vector<String> desc_no_var;
+  std::vector<std::string> no_var_mods;
+  std::vector<std::string> desc_no_var;
   std::vector<AASequence> seq_no_var;
   entry.generatePeptides(digestor, desc_no_var, seq_no_var, no_fixed_mods, no_var_mods, 2, 2, 20, true, false, false);
 
@@ -1153,16 +1153,16 @@ START_SECTION([PEFFEntry] generatePeptides_full_workflow)
   digestor.setMissedCleavages(0);
 
   // No sample handling mods - just PEFF annotations
-  std::vector<String> no_fixed;
-  std::vector<String> no_var;
-  std::vector<String> peff_only_desc;
+  std::vector<std::string> no_fixed;
+  std::vector<std::string> no_var;
+  std::vector<std::string> peff_only_desc;
   std::vector<AASequence> peff_only_seq;
   entry.generatePeptides(digestor, peff_only_desc, peff_only_seq, no_fixed, no_var, 2, 2, 20, true, true, false);
 
   // With Carbamidomethyl (fixed) and Oxidation (variable)
-  std::vector<String> fixed = {"Carbamidomethyl (C)"};
-  std::vector<String> variable = {"Oxidation (M)"};
-  std::vector<String> with_mods_desc;
+  std::vector<std::string> fixed = {"Carbamidomethyl (C)"};
+  std::vector<std::string> variable = {"Oxidation (M)"};
+  std::vector<std::string> with_mods_desc;
   std::vector<AASequence> with_mods_seq;
   entry.generatePeptides(digestor, with_mods_desc, with_mods_seq, fixed, variable, 1, 2, 20, true, true, false);
 

@@ -251,7 +251,7 @@ namespace OpenMS
       @param include_complex If true, also include complex variants (default: false)
     */
     void getVariantSequences(
-      std::vector<String>& descriptions,
+      std::vector<std::string>& descriptions,
       std::vector<AASequence>& sequences,
       bool include_complex = false) const;
 
@@ -283,7 +283,7 @@ namespace OpenMS
     */
     void digestWithVariants(
       const ProteaseDigestion& digestor,
-      std::vector<String>& descriptions,
+      std::vector<std::string>& descriptions,
       std::vector<AASequence>& sequences,
       Size min_length = 6,
       Size max_length = 40,
@@ -310,10 +310,10 @@ namespace OpenMS
     */
     void generatePeptides(
       const ProteaseDigestion& digestor,
-      std::vector<String>& descriptions,
+      std::vector<std::string>& descriptions,
       std::vector<AASequence>& sequences,
-      const std::vector<String>& fixed_mods = {},
-      const std::vector<String>& variable_mods = {},
+      const std::vector<std::string>& fixed_mods = {},
+      const std::vector<std::string>& variable_mods = {},
       Size max_variable_mods_per_peptide = 2,
       Size min_length = 6,
       Size max_length = 40,

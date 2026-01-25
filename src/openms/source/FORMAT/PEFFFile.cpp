@@ -128,7 +128,7 @@ namespace OpenMS
   }
 
   void PEFFEntry::getVariantSequences(
-    std::vector<String>& descriptions,
+    std::vector<std::string>& descriptions,
     std::vector<AASequence>& sequences,
     bool include_complex) const
   {
@@ -233,7 +233,7 @@ namespace OpenMS
 
   void PEFFEntry::digestWithVariants(
     const ProteaseDigestion& digestor,
-    std::vector<String>& descriptions,
+    std::vector<std::string>& descriptions,
     std::vector<AASequence>& sequences,
     Size min_length,
     Size max_length,
@@ -574,10 +574,10 @@ namespace OpenMS
 
   void PEFFEntry::generatePeptides(
     const ProteaseDigestion& digestor,
-    std::vector<String>& descriptions,
+    std::vector<std::string>& descriptions,
     std::vector<AASequence>& sequences,
-    const std::vector<String>& fixed_mods,
-    const std::vector<String>& variable_mods,
+    const std::vector<std::string>& fixed_mods,
+    const std::vector<std::string>& variable_mods,
     Size max_variable_mods_per_peptide,
     Size min_length,
     Size max_length,

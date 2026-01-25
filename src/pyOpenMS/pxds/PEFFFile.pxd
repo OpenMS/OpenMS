@@ -1,6 +1,8 @@
 from libcpp.vector cimport vector as libcpp_vector
 from libcpp.map cimport map as libcpp_map
 from libcpp.pair cimport pair as libcpp_pair
+from libcpp.string cimport string as libcpp_utf8_string
+from libcpp.string cimport string as libcpp_utf8_output_string
 from libcpp cimport bool
 from Types cimport *
 
@@ -274,7 +276,7 @@ cdef extern from "<OpenMS/FORMAT/PEFFFile.h>" namespace "OpenMS":
             #  Modifications with unknown positions (position == 0) are skipped.
 
         void getVariantSequences(
-            libcpp_vector[String]& descriptions,
+            libcpp_vector[libcpp_utf8_output_string]& descriptions,
             libcpp_vector[AASequence]& sequences,
             bool include_complex) except + nogil
             # wrap-doc:
@@ -295,7 +297,7 @@ cdef extern from "<OpenMS/FORMAT/PEFFFile.h>" namespace "OpenMS":
 
         void digestWithVariants(
             const ProteaseDigestion& digestor,
-            libcpp_vector[String]& descriptions,
+            libcpp_vector[libcpp_utf8_output_string]& descriptions,
             libcpp_vector[AASequence]& sequences,
             Size min_length,
             Size max_length,
@@ -310,10 +312,10 @@ cdef extern from "<OpenMS/FORMAT/PEFFFile.h>" namespace "OpenMS":
 
         void generatePeptides(
             const ProteaseDigestion& digestor,
-            libcpp_vector[String]& descriptions,
+            libcpp_vector[libcpp_utf8_output_string]& descriptions,
             libcpp_vector[AASequence]& sequences,
-            const libcpp_vector[String]& fixed_mods,
-            const libcpp_vector[String]& variable_mods,
+            const libcpp_vector[libcpp_utf8_string]& fixed_mods,
+            const libcpp_vector[libcpp_utf8_string]& variable_mods,
             Size max_variable_mods_per_peptide,
             Size min_length,
             Size max_length,
