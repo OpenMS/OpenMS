@@ -111,10 +111,11 @@ namespace OpenMS
     return seq;
   }
 
-  std::vector<std::pair<String, AASequence>> PEFFEntry::getVariantSequences() const
+  std::vector<std::pair<String, AASequence>> PEFFEntry::getVariantSequences(bool include_complex) const
   {
     std::vector<std::pair<String, AASequence>> variants;
 
+    // Simple variants (single AA substitution)
     for (const auto& var : simple_variants)
     {
       if (var.position == 0 || var.position > sequence.size() || var.variant_aa == '\0')
@@ -140,6 +141,40 @@ namespace OpenMS
       catch (const Exception::BaseException&)
       {
         // Skip if sequence cannot be parsed
+      }
+    }
+
+    // Complex variants (insertion, deletion, multi-residue substitution)
+    if (include_complex)
+    {
+      for (const auto& var : complex_variants)
+      {
+        if (var.start_position == 0 || var.end_position > sequence.size() ||
+            var.start_position > var.end_position)
+        {
+          continue;
+        }
+
+        // Replace region [start, end] with replacement sequence
+        String variant_seq = sequence.substr(0, var.start_position - 1)
+                           + var.replacement
+                           + sequence.substr(var.end_position);
+
+        // Create description
+        String desc = String(var.start_position) + "-" + String(var.end_position) + ">" + var.replacement;
+        if (!var.sources.empty())
+        {
+          desc += " (" + var.sources + ")";
+        }
+
+        try
+        {
+          variants.push_back(std::make_pair(desc, AASequence::fromString(variant_seq)));
+        }
+        catch (const Exception::BaseException&)
+        {
+          // Skip if sequence cannot be parsed
+        }
       }
     }
 
@@ -725,6 +760,10 @@ namespace OpenMS
     {
       header.optional_tag_defs.push_back(value);
     }
+    else if (key == "HasAnnotationIdentifiers")
+    {
+      header.has_annotation_identifiers = (value.toLower() == "true" || value == "1");
+    }
   }
 
   void PEFFFile::parseAnnotations_(const String& description, PEFFEntry& entry)
@@ -946,6 +985,7 @@ namespace OpenMS
   PEFFModification PEFFFile::parseModification_(const String& tuple)
   {
     // Format: pos|accession|name|evidence  (evidence is optional)
+    // With annotation IDs: annotationID:pos|accession|name|evidence
     // Position can be ? for unknown position
     PEFFModification mod;
 
@@ -954,14 +994,24 @@ namespace OpenMS
 
     if (parts.size() >= 2)
     {
+      // Check if first field contains annotation ID (format: "id:position")
+      String pos_field = parts[0];
+      size_t colon_pos = pos_field.find(':');
+      if (colon_pos != String::npos)
+      {
+        // Has annotation ID
+        mod.annotation_id = pos_field.substr(0, colon_pos);
+        pos_field = pos_field.substr(colon_pos + 1);
+      }
+
       // Position
-      if (parts[0] == "?" || parts[0].empty())
+      if (pos_field == "?" || pos_field.empty())
       {
         mod.position = 0;
       }
       else
       {
-        mod.position = parts[0].toInt();
+        mod.position = pos_field.toInt();
       }
 
       // Accession
@@ -1000,6 +1050,7 @@ namespace OpenMS
   PEFFVariantSimple PEFFFile::parseVariantSimple_(const String& tuple)
   {
     // Format: pos|aa|sources (sources optional)
+    // With annotation IDs: annotationID:pos|aa|sources
     PEFFVariantSimple var;
 
     std::vector<String> parts;
@@ -1007,7 +1058,17 @@ namespace OpenMS
 
     if (parts.size() >= 2)
     {
-      var.position = parts[0].toInt();
+      // Check if first field contains annotation ID (format: "id:position")
+      String pos_field = parts[0];
+      size_t colon_pos = pos_field.find(':');
+      if (colon_pos != String::npos)
+      {
+        // Has annotation ID
+        var.annotation_id = pos_field.substr(0, colon_pos);
+        pos_field = pos_field.substr(colon_pos + 1);
+      }
+
+      var.position = pos_field.toInt();
       var.variant_aa = parts[1].empty() ? '\0' : parts[1][0];
 
       if (parts.size() >= 3)
@@ -1022,6 +1083,7 @@ namespace OpenMS
   PEFFVariantComplex PEFFFile::parseVariantComplex_(const String& tuple)
   {
     // Format: start|end|replacement|sources (sources optional)
+    // With annotation IDs: annotationID:start|end|replacement|sources
     PEFFVariantComplex var;
 
     std::vector<String> parts;
@@ -1029,7 +1091,17 @@ namespace OpenMS
 
     if (parts.size() >= 3)
     {
-      var.start_position = parts[0].toInt();
+      // Check if first field contains annotation ID (format: "id:start")
+      String start_field = parts[0];
+      size_t colon_pos = start_field.find(':');
+      if (colon_pos != String::npos)
+      {
+        // Has annotation ID
+        var.annotation_id = start_field.substr(0, colon_pos);
+        start_field = start_field.substr(colon_pos + 1);
+      }
+
+      var.start_position = start_field.toInt();
       var.end_position = parts[1].toInt();
       var.replacement = parts[2];
 
@@ -1045,6 +1117,7 @@ namespace OpenMS
   PEFFProcessedRegion PEFFFile::parseProcessedRegion_(const String& tuple)
   {
     // Format: start|end|type|name|desc (name and desc optional)
+    // With annotation IDs: annotationID:start|end|type|name|desc
     PEFFProcessedRegion reg;
 
     std::vector<String> parts;
@@ -1052,7 +1125,17 @@ namespace OpenMS
 
     if (parts.size() >= 3)
     {
-      reg.start_position = parts[0].toInt();
+      // Check if first field contains annotation ID (format: "id:start")
+      String start_field = parts[0];
+      size_t colon_pos = start_field.find(':');
+      if (colon_pos != String::npos)
+      {
+        // Has annotation ID
+        reg.annotation_id = start_field.substr(0, colon_pos);
+        start_field = start_field.substr(colon_pos + 1);
+      }
+
+      reg.start_position = start_field.toInt();
       reg.end_position = parts[1].toInt();
       reg.type = parts[2];
 
@@ -1128,6 +1211,11 @@ namespace OpenMS
     for (const String& tag_def : header.optional_tag_defs)
     {
       out << "# OptionalTagDef=" << tag_def << "\n";
+    }
+
+    if (header.has_annotation_identifiers)
+    {
+      out << "# HasAnnotationIdentifiers=true\n";
     }
 
     out << "# //\n";
@@ -1211,6 +1299,11 @@ namespace OpenMS
       for (const PEFFModification& mod : entry.modifications)
       {
         desc << "(";
+        // Include annotation ID if present
+        if (!mod.annotation_id.empty())
+        {
+          desc << mod.annotation_id << ":";
+        }
         if (mod.position == 0)
         {
           desc << "?";
@@ -1238,7 +1331,13 @@ namespace OpenMS
       desc << " \\VariantSimple=";
       for (const PEFFVariantSimple& var : entry.simple_variants)
       {
-        desc << "(" << var.position << "|" << var.variant_aa;
+        desc << "(";
+        // Include annotation ID if present
+        if (!var.annotation_id.empty())
+        {
+          desc << var.annotation_id << ":";
+        }
+        desc << var.position << "|" << var.variant_aa;
         if (!var.sources.empty())
         {
           desc << "|" << var.sources;
@@ -1253,7 +1352,13 @@ namespace OpenMS
       desc << " \\VariantComplex=";
       for (const PEFFVariantComplex& var : entry.complex_variants)
       {
-        desc << "(" << var.start_position << "|" << var.end_position << "|" << var.replacement;
+        desc << "(";
+        // Include annotation ID if present
+        if (!var.annotation_id.empty())
+        {
+          desc << var.annotation_id << ":";
+        }
+        desc << var.start_position << "|" << var.end_position << "|" << var.replacement;
         if (!var.sources.empty())
         {
           desc << "|" << var.sources;
@@ -1268,7 +1373,13 @@ namespace OpenMS
       desc << " \\Processed=";
       for (const PEFFProcessedRegion& reg : entry.processed_regions)
       {
-        desc << "(" << reg.start_position << "|" << reg.end_position << "|" << reg.type;
+        desc << "(";
+        // Include annotation ID if present
+        if (!reg.annotation_id.empty())
+        {
+          desc << reg.annotation_id << ":";
+        }
+        desc << reg.start_position << "|" << reg.end_position << "|" << reg.type;
         if (!reg.name.empty())
         {
           desc << "|" << reg.name;

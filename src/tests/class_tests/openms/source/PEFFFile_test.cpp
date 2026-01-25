@@ -384,13 +384,27 @@ START_SECTION([PEFFEntry] getVariantSequences)
   PEFFEntry entry;
   entry.sequence = "PEPTIDE";
   entry.simple_variants.push_back(PEFFVariantSimple(3, 'A', "dbSNP:test"));
+  entry.complex_variants.push_back(PEFFVariantComplex(2, 4, "XXX", "ClinVar:123"));
 
+  // Without complex variants (default)
   auto variants = entry.getVariantSequences();
   TEST_EQUAL(variants.size(), 1)
   if (!variants.empty())
   {
     TEST_EQUAL(variants[0].second.toString(), "PEATIDE")
     TEST_EQUAL(variants[0].first.hasSubstring("P3A"), true)
+  }
+
+  // With complex variants
+  auto all_variants = entry.getVariantSequences(true);
+  TEST_EQUAL(all_variants.size(), 2)
+  if (all_variants.size() >= 2)
+  {
+    // Simple variant
+    TEST_EQUAL(all_variants[0].second.toString(), "PEATIDE")
+    // Complex variant: replace positions 2-4 (EPT) with XXX
+    TEST_EQUAL(all_variants[1].second.toString(), "PXXXIDE")
+    TEST_EQUAL(all_variants[1].first.hasSubstring("2-4>XXX"), true)
   }
 }
 END_SECTION
@@ -469,6 +483,127 @@ START_SECTION([PEFFDatabaseMetadata] PEFFDatabaseMetadata())
   TEST_EQUAL(meta.db_name, "")
   TEST_EQUAL(meta.is_decoy, false)
   TEST_EQUAL(meta.sequence_type, PEFFDatabaseMetadata::SequenceType::AA)
+  TEST_EQUAL(meta.has_annotation_identifiers, false)
+}
+END_SECTION
+
+START_SECTION(test_annotation_identifiers)
+{
+  vector<PEFFEntry> entries;
+  vector<PEFFDatabaseMetadata> headers;
+  PEFFFile file;
+
+  // Load file with annotation identifiers
+  file.load(OPENMS_GET_TEST_DATA_PATH("PEFFFile_annotid.peff"), entries, headers);
+
+  // Check header has annotation identifiers flag set
+  TEST_EQUAL(headers.size(), 1)
+  TEST_EQUAL(headers[0].db_name, "AnnotIDTest")
+  TEST_EQUAL(headers[0].has_annotation_identifiers, true)
+
+  // Check entries
+  TEST_EQUAL(entries.size(), 2)
+
+  // First entry - check annotation IDs on modifications
+  TEST_EQUAL(entries[0].identifier, "test:P12345")
+  TEST_EQUAL(entries[0].modifications.size(), 2)
+  TEST_EQUAL(entries[0].modifications[0].annotation_id, "0")
+  TEST_EQUAL(entries[0].modifications[0].position, 10)
+  TEST_EQUAL(entries[0].modifications[0].accession, "MOD:00046")
+  TEST_EQUAL(entries[0].modifications[1].annotation_id, "1")
+  TEST_EQUAL(entries[0].modifications[1].position, 25)
+  TEST_EQUAL(entries[0].modifications[1].accession, "UNIMOD:35")
+
+  // Check annotation ID on simple variant
+  TEST_EQUAL(entries[0].simple_variants.size(), 1)
+  TEST_EQUAL(entries[0].simple_variants[0].annotation_id, "2")
+  TEST_EQUAL(entries[0].simple_variants[0].position, 5)
+  TEST_EQUAL(entries[0].simple_variants[0].variant_aa, 'R')
+
+  // Check annotation ID on processed region
+  TEST_EQUAL(entries[0].processed_regions.size(), 1)
+  TEST_EQUAL(entries[0].processed_regions[0].annotation_id, "3")
+  TEST_EQUAL(entries[0].processed_regions[0].start_position, 1)
+  TEST_EQUAL(entries[0].processed_regions[0].end_position, 20)
+
+  // Second entry - check annotation ID on complex variant
+  TEST_EQUAL(entries[1].identifier, "test:P12346")
+  TEST_EQUAL(entries[1].complex_variants.size(), 1)
+  TEST_EQUAL(entries[1].complex_variants[0].annotation_id, "4")
+  TEST_EQUAL(entries[1].complex_variants[0].start_position, 5)
+  TEST_EQUAL(entries[1].complex_variants[0].end_position, 10)
+  TEST_EQUAL(entries[1].complex_variants[0].replacement, "LONGER")
+}
+END_SECTION
+
+START_SECTION(test_annotation_identifiers_roundtrip)
+{
+  vector<PEFFEntry> entries, entries2;
+  vector<PEFFDatabaseMetadata> headers, headers2;
+  String tmp_filename;
+  NEW_TMP_FILE(tmp_filename);
+  PEFFFile file;
+
+  // Load file with annotation identifiers
+  file.load(OPENMS_GET_TEST_DATA_PATH("PEFFFile_annotid.peff"), entries, headers);
+
+  // Store and reload
+  file.store(tmp_filename, entries, headers[0]);
+  file.load(tmp_filename, entries2, headers2);
+
+  // Verify header flag preserved
+  TEST_EQUAL(headers2[0].has_annotation_identifiers, true)
+
+  // Verify entries preserved
+  TEST_EQUAL(entries.size(), entries2.size())
+  for (Size i = 0; i < entries.size(); ++i)
+  {
+    TEST_EQUAL(entries[i].identifier, entries2[i].identifier)
+    TEST_EQUAL(entries[i].modifications.size(), entries2[i].modifications.size())
+    for (Size j = 0; j < entries[i].modifications.size(); ++j)
+    {
+      TEST_EQUAL(entries[i].modifications[j].annotation_id, entries2[i].modifications[j].annotation_id)
+      TEST_EQUAL(entries[i].modifications[j].position, entries2[i].modifications[j].position)
+      TEST_EQUAL(entries[i].modifications[j].accession, entries2[i].modifications[j].accession)
+    }
+    TEST_EQUAL(entries[i].simple_variants.size(), entries2[i].simple_variants.size())
+    for (Size j = 0; j < entries[i].simple_variants.size(); ++j)
+    {
+      TEST_EQUAL(entries[i].simple_variants[j].annotation_id, entries2[i].simple_variants[j].annotation_id)
+      TEST_EQUAL(entries[i].simple_variants[j].position, entries2[i].simple_variants[j].position)
+    }
+    TEST_EQUAL(entries[i].complex_variants.size(), entries2[i].complex_variants.size())
+    for (Size j = 0; j < entries[i].complex_variants.size(); ++j)
+    {
+      TEST_EQUAL(entries[i].complex_variants[j].annotation_id, entries2[i].complex_variants[j].annotation_id)
+      TEST_EQUAL(entries[i].complex_variants[j].start_position, entries2[i].complex_variants[j].start_position)
+    }
+    TEST_EQUAL(entries[i].processed_regions.size(), entries2[i].processed_regions.size())
+    for (Size j = 0; j < entries[i].processed_regions.size(); ++j)
+    {
+      TEST_EQUAL(entries[i].processed_regions[j].annotation_id, entries2[i].processed_regions[j].annotation_id)
+      TEST_EQUAL(entries[i].processed_regions[j].start_position, entries2[i].processed_regions[j].start_position)
+    }
+  }
+}
+END_SECTION
+
+START_SECTION(test_mixed_annotation_formats)
+{
+  // Test that entries without annotation IDs still work
+  vector<PEFFEntry> entries;
+  vector<PEFFDatabaseMetadata> headers;
+  PEFFFile file;
+
+  // Load the original test file (no annotation IDs)
+  file.load(OPENMS_GET_TEST_DATA_PATH("PEFFFile_test.peff"), entries, headers);
+
+  // Verify annotation IDs are empty
+  TEST_EQUAL(headers[0].has_annotation_identifiers, false)
+  TEST_EQUAL(entries[0].modifications[0].annotation_id, "")
+  TEST_EQUAL(entries[0].modifications[1].annotation_id, "")
+  TEST_EQUAL(entries[0].simple_variants[0].annotation_id, "")
+  TEST_EQUAL(entries[0].processed_regions[0].annotation_id, "")
 }
 END_SECTION
 

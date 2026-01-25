@@ -32,13 +32,14 @@ namespace OpenMS
     String accession;         ///< "MOD:00046", "UNIMOD:35", or custom
     String name;              ///< Human-readable name
     String evidence;          ///< Optional evidence tag
+    String annotation_id;     ///< Optional annotation identifier (when HasAnnotationIdentifiers=true)
 
     enum class Type { PSI_MOD, UNIMOD, GENERIC };
     Type type{Type::GENERIC};
 
     PEFFModification() = default;
-    PEFFModification(Size pos, const String& acc, const String& n, const String& ev = "")
-      : position(pos), accession(acc), name(n), evidence(ev)
+    PEFFModification(Size pos, const String& acc, const String& n, const String& ev = "", const String& aid = "")
+      : position(pos), accession(acc), name(n), evidence(ev), annotation_id(aid)
     {
       if (accession.hasPrefix("MOD:"))
       {
@@ -53,7 +54,8 @@ namespace OpenMS
     bool operator==(const PEFFModification& rhs) const
     {
       return position == rhs.position && accession == rhs.accession &&
-             name == rhs.name && evidence == rhs.evidence && type == rhs.type;
+             name == rhs.name && evidence == rhs.evidence && type == rhs.type &&
+             annotation_id == rhs.annotation_id;
     }
   };
 
@@ -67,15 +69,16 @@ namespace OpenMS
     Size position{0};         ///< 1-based position
     char variant_aa{'\0'};    ///< Variant amino acid
     String sources;           ///< Source references (dbSNP, COSMIC, etc.)
+    String annotation_id;     ///< Optional annotation identifier (when HasAnnotationIdentifiers=true)
 
     PEFFVariantSimple() = default;
-    PEFFVariantSimple(Size pos, char aa, const String& src = "")
-      : position(pos), variant_aa(aa), sources(src) {}
+    PEFFVariantSimple(Size pos, char aa, const String& src = "", const String& aid = "")
+      : position(pos), variant_aa(aa), sources(src), annotation_id(aid) {}
 
     bool operator==(const PEFFVariantSimple& rhs) const
     {
       return position == rhs.position && variant_aa == rhs.variant_aa &&
-             sources == rhs.sources;
+             sources == rhs.sources && annotation_id == rhs.annotation_id;
     }
   };
 
@@ -90,15 +93,17 @@ namespace OpenMS
     Size end_position{0};     ///< 1-based end position
     String replacement;       ///< Replacement sequence (empty = deletion)
     String sources;           ///< Source references
+    String annotation_id;     ///< Optional annotation identifier (when HasAnnotationIdentifiers=true)
 
     PEFFVariantComplex() = default;
-    PEFFVariantComplex(Size start, Size end, const String& repl, const String& src = "")
-      : start_position(start), end_position(end), replacement(repl), sources(src) {}
+    PEFFVariantComplex(Size start, Size end, const String& repl, const String& src = "", const String& aid = "")
+      : start_position(start), end_position(end), replacement(repl), sources(src), annotation_id(aid) {}
 
     bool operator==(const PEFFVariantComplex& rhs) const
     {
       return start_position == rhs.start_position && end_position == rhs.end_position &&
-             replacement == rhs.replacement && sources == rhs.sources;
+             replacement == rhs.replacement && sources == rhs.sources &&
+             annotation_id == rhs.annotation_id;
     }
   };
 
@@ -114,15 +119,17 @@ namespace OpenMS
     String type;              ///< PEFF CV term (e.g., "PEFF:0001021")
     String name;              ///< Optional name (e.g., "signal peptide")
     String description;       ///< Optional description
+    String annotation_id;     ///< Optional annotation identifier (when HasAnnotationIdentifiers=true)
 
     PEFFProcessedRegion() = default;
-    PEFFProcessedRegion(Size start, Size end, const String& t, const String& n = "", const String& desc = "")
-      : start_position(start), end_position(end), type(t), name(n), description(desc) {}
+    PEFFProcessedRegion(Size start, Size end, const String& t, const String& n = "", const String& desc = "", const String& aid = "")
+      : start_position(start), end_position(end), type(t), name(n), description(desc), annotation_id(aid) {}
 
     bool operator==(const PEFFProcessedRegion& rhs) const
     {
       return start_position == rhs.start_position && end_position == rhs.end_position &&
-             type == rhs.type && name == rhs.name && description == rhs.description;
+             type == rhs.type && name == rhs.name && description == rhs.description &&
+             annotation_id == rhs.annotation_id;
     }
   };
 
@@ -207,14 +214,15 @@ namespace OpenMS
     AASequence getModifiedSequence() const;
 
     /**
-      @brief Get all variant sequences (each simple variant applied individually).
+      @brief Get all variant sequences (each variant applied individually).
 
-      Each variant sequence has one amino acid substitution applied.
+      Each variant sequence has one variant applied.
       Does not combine variants.
 
+      @param include_complex If true, also include complex variants (insertions, deletions, multi-residue substitutions)
       @return Vector of pairs: (variant description, AASequence)
     */
-    std::vector<std::pair<String, AASequence>> getVariantSequences() const;
+    std::vector<std::pair<String, AASequence>> getVariantSequences(bool include_complex = false) const;
 
     /**
       @brief Get processed sequence (e.g., mature protein without signal peptide).
@@ -251,6 +259,7 @@ namespace OpenMS
     String general_comment;
     std::map<String, String> specific_keys;
     std::vector<String> optional_tag_defs;
+    bool has_annotation_identifiers{false};  ///< Whether entries use annotation identifiers
 
     PEFFDatabaseMetadata() = default;
 
@@ -268,7 +277,8 @@ namespace OpenMS
              sequence_type == rhs.sequence_type &&
              general_comment == rhs.general_comment &&
              specific_keys == rhs.specific_keys &&
-             optional_tag_defs == rhs.optional_tag_defs;
+             optional_tag_defs == rhs.optional_tag_defs &&
+             has_annotation_identifiers == rhs.has_annotation_identifiers;
     }
   };
 
