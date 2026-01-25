@@ -13,6 +13,7 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 
 #include <fstream>
 #include <map>
@@ -263,6 +264,29 @@ namespace OpenMS
       @return Processed AASequence, or empty if region not found
     */
     AASequence getProcessedSequence(const String& region_type = "PEFF:0001021") const;
+
+    /**
+      @brief Generate all variant peptides by digesting with a given protease.
+
+      This method performs enzymatic digestion on the reference sequence and then
+      generates all combinations of simple variants within each peptide. This is
+      more efficient than generating all 2^n protein-level combinations because
+      most peptides contain only a few (0-3) variants.
+
+      Complex variants (insertions, deletions) are not included as they may change
+      peptide boundaries.
+
+      @param digestor The protease digestion object (must be configured with enzyme, missed cleavages, etc.)
+      @param min_length Minimum peptide length to include (default: 6)
+      @param max_length Maximum peptide length to include (default: 40, 0 = no limit)
+      @param include_reference If true, include reference peptides (no variants applied) (default: true)
+      @return Vector of pairs: (variant description, AASequence). Description is empty for reference peptides.
+    */
+    std::vector<std::pair<String, AASequence>> digestWithVariants(
+      const ProteaseDigestion& digestor,
+      Size min_length = 6,
+      Size max_length = 40,
+      bool include_reference = true) const;
   };
 
   /**

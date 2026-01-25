@@ -2,10 +2,12 @@ from libcpp.vector cimport vector as libcpp_vector
 from libcpp.map cimport map as libcpp_map
 from libcpp.pair cimport pair as libcpp_pair
 from libcpp cimport bool
+from Types cimport *
 
 from String cimport *
 from FASTAFile cimport *
 from AASequence cimport *
+from ProteaseDigestion cimport *
 
 cdef extern from "<OpenMS/FORMAT/PEFFFile.h>" namespace "OpenMS":
 
@@ -274,6 +276,12 @@ cdef extern from "<OpenMS/FORMAT/PEFFFile.h>" namespace "OpenMS":
             # wrap-doc:
             #  Get processed sequence for the given region type.
             #  :param region_type: PEFF CV term (e.g., "PEFF:0001021" for signal peptide)
+
+        libcpp_vector[libcpp_pair[String, AASequence]] digestWithVariants(
+            const ProteaseDigestion& digestor,
+            Size min_length,
+            Size max_length,
+            bool include_reference) except + nogil  # wrap-ignore
 
 
 cdef extern from "<OpenMS/FORMAT/PEFFFile.h>" namespace "OpenMS::PEFFEntry":

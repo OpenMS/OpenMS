@@ -13,6 +13,7 @@
 
 #include <OpenMS/FORMAT/PEFFFile.h>
 #include <OpenMS/CHEMISTRY/ProForma.h>
+#include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <fstream>
@@ -764,6 +765,135 @@ START_SECTION(test_p53_uniprot)
 
   // Check sequence length matches annotation
   TEST_EQUAL(entries[0].sequence.size(), 393)
+}
+END_SECTION
+
+START_SECTION([PEFFEntry] digestWithVariants)
+{
+  // Create a simple entry with variants for testing
+  PEFFEntry entry;
+  entry.sequence = "MKWVTFISLLLLFSSAYSRGVFRRDTHKSEIAHRFKDLGEEHFKGLVLIAFSQYLQQCPFDEHVKLVNELTEFAK";
+  // Position 5 (T->A), Position 10 (L->M), Position 20 (Y->F) - 1-based positions
+  entry.simple_variants.push_back(PEFFVariantSimple(5, 'A', "dbSNP:rs1"));
+  entry.simple_variants.push_back(PEFFVariantSimple(10, 'M', "dbSNP:rs2"));
+  entry.simple_variants.push_back(PEFFVariantSimple(20, 'F', "dbSNP:rs3"));
+  // Add a stop codon variant that should be skipped
+  entry.simple_variants.push_back(PEFFVariantSimple(30, '*', "dbSNP:rs4"));
+
+  // Set up trypsin digestion
+  ProteaseDigestion digestor;
+  digestor.setEnzyme("Trypsin");
+  digestor.setMissedCleavages(0);
+
+  // Generate peptides with variants
+  auto peptides = entry.digestWithVariants(digestor, 4, 30, true);
+
+  // Should have generated peptides
+  TEST_EQUAL(peptides.size() > 0, true)
+
+  // Check that we got reference peptides (empty description)
+  int ref_count = 0;
+  int var_count = 0;
+  for (const auto& [desc, seq] : peptides)
+  {
+    if (desc.empty())
+    {
+      ref_count++;
+    }
+    else
+    {
+      var_count++;
+    }
+    // Verify no stop codons in sequences
+    TEST_EQUAL(seq.toString().find('*') == std::string::npos, true)
+  }
+  TEST_EQUAL(ref_count > 0, true)
+  TEST_EQUAL(var_count > 0, true)
+
+  // Test without reference peptides
+  auto var_only = entry.digestWithVariants(digestor, 4, 30, false);
+  for (const auto& [desc, seq] : var_only)
+  {
+    TEST_EQUAL(desc.empty(), false)
+  }
+  TEST_EQUAL(var_only.size() < peptides.size(), true)
+
+  // Test with different enzyme
+  ProteaseDigestion chymo;
+  chymo.setEnzyme("Chymotrypsin");
+  chymo.setMissedCleavages(0);
+
+  auto chymo_peptides = entry.digestWithVariants(chymo, 4, 30, true);
+  TEST_EQUAL(chymo_peptides.size() > 0, true)
+  // Different enzyme should give different peptide count
+  TEST_EQUAL(chymo_peptides.size() != peptides.size(), true)
+}
+END_SECTION
+
+START_SECTION([PEFFEntry] digestWithVariants_combinatorics)
+{
+  // Test that combinatorics work correctly within a peptide
+  // Note: Trypsin doesn't cut before proline (KP, RP), so use sequences without this pattern
+  PEFFEntry entry;
+  // Sequence: MK | AEPTIDER (trypsin cuts after K, then after R)
+  // K is NOT followed by P, so cleavage occurs
+  entry.sequence = "MKAEPTIDER";
+  // Two variants within the "AEPTIDER" peptide (positions 3-10, 1-based)
+  entry.simple_variants.push_back(PEFFVariantSimple(4, 'L', "var1"));  // E->L at position 4
+  entry.simple_variants.push_back(PEFFVariantSimple(6, 'L', "var2"));  // T->L at position 6
+
+  ProteaseDigestion digestor;
+  digestor.setEnzyme("Trypsin");
+  digestor.setMissedCleavages(0);
+
+  auto peptides = entry.digestWithVariants(digestor, 2, 20, true);
+
+  // For the "AEPTIDER" peptide (positions 3-10, 0-indexed 2-10):
+  // Position 4 (1-based) = index 3 = E in AEPTIDER -> local index 1
+  // Position 6 (1-based) = index 5 = T in AEPTIDER -> local index 3
+  // - Reference: AEPTIDER
+  // - Variant 1 only: ALPTIDER (E4L)
+  // - Variant 2 only: AEPLIDER (T6L)
+  // - Both variants: ALPLIDER (E4L + T6L)
+  // So 4 versions of this peptide, plus reference "MK"
+
+  // Count peptides matching "AEPTIDER" variants
+  int aeptider_variants = 0;
+  bool found_ref = false;
+  bool found_e4l = false;
+  bool found_t6l = false;
+  bool found_both = false;
+
+  for (const auto& [desc, seq] : peptides)
+  {
+    String seq_str = seq.toString();
+    if (seq_str == "AEPTIDER")
+    {
+      found_ref = true;
+      aeptider_variants++;
+    }
+    else if (seq_str == "ALPTIDER")
+    {
+      found_e4l = true;
+      aeptider_variants++;
+    }
+    else if (seq_str == "AEPLIDER")
+    {
+      found_t6l = true;
+      aeptider_variants++;
+    }
+    else if (seq_str == "ALPLIDER")
+    {
+      found_both = true;
+      aeptider_variants++;
+    }
+  }
+
+  TEST_EQUAL(found_ref, true)
+  TEST_EQUAL(found_e4l, true)
+  TEST_EQUAL(found_t6l, true)
+  TEST_EQUAL(found_both, true)
+  TEST_EQUAL(aeptider_variants, 4)
 }
 END_SECTION
 

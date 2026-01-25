@@ -226,6 +226,111 @@ namespace OpenMS
     return AASequence();
   }
 
+  std::vector<std::pair<String, AASequence>> PEFFEntry::digestWithVariants(
+    const ProteaseDigestion& digestor,
+    Size min_length,
+    Size max_length,
+    bool include_reference) const
+  {
+    std::vector<std::pair<String, AASequence>> result;
+
+    if (sequence.empty())
+    {
+      return result;
+    }
+
+    // Step 1: Digest the reference sequence to get peptide boundaries
+    AASequence protein = AASequence::fromString(sequence);
+    std::vector<std::pair<size_t, size_t>> peptide_ranges;
+    digestor.digest(protein, peptide_ranges, min_length, max_length);
+
+    // Step 2: For each peptide, find variants and generate combinations
+    for (const auto& [start, end] : peptide_ranges)
+    {
+      // Collect simple variants within this peptide range
+      // PEFF positions are 1-based, ranges are 0-based
+      std::vector<const PEFFVariantSimple*> local_variants;
+      for (const auto& var : simple_variants)
+      {
+        // Skip stop codons and invalid positions
+        if (var.variant_aa == '*' || var.variant_aa == '\0' || var.position == 0)
+        {
+          continue;
+        }
+
+        // Convert 1-based PEFF position to 0-based
+        size_t var_pos_0based = var.position - 1;
+        if (var_pos_0based >= start && var_pos_0based < end)
+        {
+          local_variants.push_back(&var);
+        }
+      }
+
+      // Extract reference peptide sequence
+      String ref_peptide = sequence.substr(start, end - start);
+
+      // Include reference peptide if requested
+      if (include_reference)
+      {
+        try
+        {
+          result.emplace_back("", AASequence::fromString(ref_peptide));
+        }
+        catch (const Exception::BaseException&)
+        {
+          // Skip if sequence cannot be parsed
+        }
+      }
+
+      // Generate all 2^k combinations for k local variants
+      if (!local_variants.empty())
+      {
+        size_t num_combinations = 1ULL << local_variants.size();
+
+        // Start from 1 to skip the all-reference combination (already added above if include_reference)
+        for (size_t combo = 1; combo < num_combinations; ++combo)
+        {
+          String variant_peptide = ref_peptide;
+          String description;
+
+          for (size_t i = 0; i < local_variants.size(); ++i)
+          {
+            if (combo & (1ULL << i))  // Apply this variant
+            {
+              const PEFFVariantSimple* var = local_variants[i];
+              size_t local_pos = var->position - 1 - start;  // Position within peptide
+
+              // Build description
+              if (!description.empty())
+              {
+                description += ";";
+              }
+              description += String(ref_peptide[local_pos]) + String(var->position) + String(var->variant_aa);
+              if (!var->sources.empty())
+              {
+                description += "(" + var->sources + ")";
+              }
+
+              // Apply the substitution
+              variant_peptide[local_pos] = var->variant_aa;
+            }
+          }
+
+          try
+          {
+            result.emplace_back(description, AASequence::fromString(variant_peptide));
+          }
+          catch (const Exception::BaseException&)
+          {
+            // Skip if sequence cannot be parsed (e.g., invalid amino acid)
+          }
+        }
+      }
+    }
+
+    return result;
+  }
+
   void PEFFFile::load(const String& filename,
                       std::vector<PEFFEntry>& entries,
                       std::vector<PEFFDatabaseMetadata>& headers) const
