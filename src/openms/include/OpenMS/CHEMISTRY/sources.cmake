@@ -25,12 +25,8 @@ MzPAF.h
 MonosaccharideDB.h
 NASequence.h
 NucleicAcidSpectrumGenerator.h
-ProFormaData.h
+ProForma.h
 ProFormaDataJson.h
-ProFormaError.h
-ProFormaParser.h
-ProFormaTokenizer.h
-ProFormaWriter.h
 ProteaseDB.h
 ProteaseDigestion.h
 Residue.h

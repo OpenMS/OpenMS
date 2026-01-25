@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include <OpenMS/CHEMISTRY/ProFormaData.h>
+#include <OpenMS/CHEMISTRY/ProForma.h>
 #include <nlohmann/json.hpp>
 
 namespace OpenMS
@@ -22,28 +22,28 @@ namespace OpenMS
   /// @{
 
   /// Convert CvDatabase enum to JSON string
-  inline void to_json(nlohmann::json& j, const CvDatabase& db)
+  inline void to_json(nlohmann::json& j, const ProForma::CvDatabase& db)
   {
     switch (db)
     {
-      case CvDatabase::UNIMOD: j = "UNIMOD"; break;
-      case CvDatabase::MOD:    j = "MOD"; break;
-      case CvDatabase::RESID:  j = "RESID"; break;
-      case CvDatabase::XLMOD:  j = "XLMOD"; break;
-      case CvDatabase::GNO:    j = "GNO"; break;
+      case ProForma::CvDatabase::UNIMOD: j = "UNIMOD"; break;
+      case ProForma::CvDatabase::MOD:    j = "MOD"; break;
+      case ProForma::CvDatabase::RESID:  j = "RESID"; break;
+      case ProForma::CvDatabase::XLMOD:  j = "XLMOD"; break;
+      case ProForma::CvDatabase::GNO:    j = "GNO"; break;
     }
   }
 
   /// Construct CvDatabase enum from JSON string
-  inline void from_json(const nlohmann::json& j, CvDatabase& db)
+  inline void from_json(const nlohmann::json& j, ProForma::CvDatabase& db)
   {
     std::string s = j.get<std::string>();
-    if (s == "UNIMOD") db = CvDatabase::UNIMOD;
-    else if (s == "MOD") db = CvDatabase::MOD;
-    else if (s == "RESID") db = CvDatabase::RESID;
-    else if (s == "XLMOD") db = CvDatabase::XLMOD;
-    else if (s == "GNO") db = CvDatabase::GNO;
-    else throw std::invalid_argument("Unknown CvDatabase: " + s);
+    if (s == "UNIMOD") db = ProForma::CvDatabase::UNIMOD;
+    else if (s == "MOD") db = ProForma::CvDatabase::MOD;
+    else if (s == "RESID") db = ProForma::CvDatabase::RESID;
+    else if (s == "XLMOD") db = ProForma::CvDatabase::XLMOD;
+    else if (s == "GNO") db = ProForma::CvDatabase::GNO;
+    else throw std::invalid_argument("Unknown ProForma::CvDatabase: " + s);
   }
 
   /// @}
@@ -53,13 +53,13 @@ namespace OpenMS
   /// @{
 
   /// Convert CvAccession to JSON object
-  inline void to_json(nlohmann::json& j, const CvAccession& cv)
+  inline void to_json(nlohmann::json& j, const ProForma::CvAccession& cv)
   {
     j = nlohmann::json{{"database", cv.database}, {"accession", static_cast<std::string>(cv.accession)}};
   }
 
   /// Construct CvAccession from JSON object
-  inline void from_json(const nlohmann::json& j, CvAccession& cv)
+  inline void from_json(const nlohmann::json& j, ProForma::CvAccession& cv)
   {
     j.at("database").get_to(cv.database);
     cv.accession = j.at("accession").get<std::string>();
@@ -72,7 +72,7 @@ namespace OpenMS
   /// @{
 
   /// Convert NamedMod to JSON object
-  inline void to_json(nlohmann::json& j, const NamedMod& nm)
+  inline void to_json(nlohmann::json& j, const ProForma::NamedMod& nm)
   {
     j = nlohmann::json{{"name", static_cast<std::string>(nm.name)}};
     if (nm.cv_hint.has_value())
@@ -82,12 +82,12 @@ namespace OpenMS
   }
 
   /// Construct NamedMod from JSON object
-  inline void from_json(const nlohmann::json& j, NamedMod& nm)
+  inline void from_json(const nlohmann::json& j, ProForma::NamedMod& nm)
   {
     nm.name = j.at("name").get<std::string>();
     if (j.contains("cv_hint") && !j.at("cv_hint").is_null())
     {
-      nm.cv_hint = j.at("cv_hint").get<CvDatabase>();
+      nm.cv_hint = j.at("cv_hint").get<ProForma::CvDatabase>();
     }
     else
     {
@@ -98,36 +98,36 @@ namespace OpenMS
   /// @}
 
 
-  /// @name MassDelta::Source enum JSON serialization
+  /// @name ProForma::MassDelta::Source enum JSON serialization
   /// @{
 
-  /// Convert MassDelta::Source enum to JSON string
-  inline void to_json(nlohmann::json& j, const MassDelta::Source& src)
+  /// Convert ProForma::MassDelta::Source enum to JSON string
+  inline void to_json(nlohmann::json& j, const ProForma::MassDelta::Source& src)
   {
     switch (src)
     {
-      case MassDelta::Source::NONE: j = "NONE"; break;
-      case MassDelta::Source::OBS:  j = "OBS"; break;
-      case MassDelta::Source::U:    j = "U"; break;
-      case MassDelta::Source::M:    j = "M"; break;
-      case MassDelta::Source::R:    j = "R"; break;
-      case MassDelta::Source::X:    j = "X"; break;
-      case MassDelta::Source::G:    j = "G"; break;
+      case ProForma::MassDelta::Source::NONE: j = "NONE"; break;
+      case ProForma::MassDelta::Source::OBS:  j = "OBS"; break;
+      case ProForma::MassDelta::Source::U:    j = "U"; break;
+      case ProForma::MassDelta::Source::M:    j = "M"; break;
+      case ProForma::MassDelta::Source::R:    j = "R"; break;
+      case ProForma::MassDelta::Source::X:    j = "X"; break;
+      case ProForma::MassDelta::Source::G:    j = "G"; break;
     }
   }
 
-  /// Construct MassDelta::Source enum from JSON string
-  inline void from_json(const nlohmann::json& j, MassDelta::Source& src)
+  /// Construct ProForma::MassDelta::Source enum from JSON string
+  inline void from_json(const nlohmann::json& j, ProForma::MassDelta::Source& src)
   {
     std::string s = j.get<std::string>();
-    if (s == "NONE") src = MassDelta::Source::NONE;
-    else if (s == "OBS") src = MassDelta::Source::OBS;
-    else if (s == "U") src = MassDelta::Source::U;
-    else if (s == "M") src = MassDelta::Source::M;
-    else if (s == "R") src = MassDelta::Source::R;
-    else if (s == "X") src = MassDelta::Source::X;
-    else if (s == "G") src = MassDelta::Source::G;
-    else throw std::invalid_argument("Unknown MassDelta::Source: " + s);
+    if (s == "NONE") src = ProForma::MassDelta::Source::NONE;
+    else if (s == "OBS") src = ProForma::MassDelta::Source::OBS;
+    else if (s == "U") src = ProForma::MassDelta::Source::U;
+    else if (s == "M") src = ProForma::MassDelta::Source::M;
+    else if (s == "R") src = ProForma::MassDelta::Source::R;
+    else if (s == "X") src = ProForma::MassDelta::Source::X;
+    else if (s == "G") src = ProForma::MassDelta::Source::G;
+    else throw std::invalid_argument("Unknown ProForma::MassDelta::Source: " + s);
   }
 
   /// @}
@@ -137,7 +137,7 @@ namespace OpenMS
   /// @{
 
   /// Convert MassDelta to JSON object
-  inline void to_json(nlohmann::json& j, const MassDelta& md)
+  inline void to_json(nlohmann::json& j, const ProForma::MassDelta& md)
   {
     j = nlohmann::json{
       {"source", md.source},
@@ -147,7 +147,7 @@ namespace OpenMS
   }
 
   /// Construct MassDelta from JSON object
-  inline void from_json(const nlohmann::json& j, MassDelta& md)
+  inline void from_json(const nlohmann::json& j, ProForma::MassDelta& md)
   {
     j.at("source").get_to(md.source);
     j.at("mass").get_to(md.mass);
@@ -161,7 +161,7 @@ namespace OpenMS
   /// @{
 
   /// Convert FormulaTag to JSON object
-  inline void to_json(nlohmann::json& j, const FormulaTag& ft)
+  inline void to_json(nlohmann::json& j, const ProForma::FormulaTag& ft)
   {
     j = nlohmann::json{{"formula_string", static_cast<std::string>(ft.formula_string)}};
     if (ft.charge.has_value())
@@ -171,7 +171,7 @@ namespace OpenMS
   }
 
   /// Construct FormulaTag from JSON object
-  inline void from_json(const nlohmann::json& j, FormulaTag& ft)
+  inline void from_json(const nlohmann::json& j, ProForma::FormulaTag& ft)
   {
     ft.formula_string = j.at("formula_string").get<std::string>();
     if (j.contains("charge") && !j.at("charge").is_null())
@@ -187,19 +187,19 @@ namespace OpenMS
   /// @}
 
 
-  /// @name GlycanComposition::Monosaccharide JSON serialization
+  /// @name ProForma::GlycanComposition::Monosaccharide JSON serialization
   /// @{
 
   /// Convert Monosaccharide variant to JSON object
-  inline void to_json(nlohmann::json& j, const GlycanComposition::Monosaccharide& mono)
+  inline void to_json(nlohmann::json& j, const ProForma::GlycanComposition::Monosaccharide& mono)
   {
     std::visit([&j](auto&& arg) {
       using T = std::decay_t<decltype(arg)>;
-      if constexpr (std::is_same_v<T, String>)
+      if constexpr (std::is_same_v<T, OpenMS::String>)
       {
         j = nlohmann::json{{"type", "name"}, {"value", static_cast<std::string>(arg)}};
       }
-      else if constexpr (std::is_same_v<T, FormulaTag>)
+      else if constexpr (std::is_same_v<T, ProForma::FormulaTag>)
       {
         j = nlohmann::json{{"type", "formula"}, {"value", arg}};
       }
@@ -207,7 +207,7 @@ namespace OpenMS
   }
 
   /// Construct Monosaccharide variant from JSON object
-  inline void from_json(const nlohmann::json& j, GlycanComposition::Monosaccharide& mono)
+  inline void from_json(const nlohmann::json& j, ProForma::GlycanComposition::Monosaccharide& mono)
   {
     std::string type = j.at("type").get<std::string>();
     if (type == "name")
@@ -216,11 +216,11 @@ namespace OpenMS
     }
     else if (type == "formula")
     {
-      mono = j.at("value").get<FormulaTag>();
+      mono = j.at("value").get<ProForma::FormulaTag>();
     }
     else
     {
-      throw std::invalid_argument("Unknown Monosaccharide type: " + type);
+      throw std::invalid_argument("Unknown ProForma::GlycanComposition::Monosaccharide type: " + type);
     }
   }
 
@@ -231,7 +231,7 @@ namespace OpenMS
   /// @{
 
   /// Convert GlycanComposition to JSON object
-  inline void to_json(nlohmann::json& j, const GlycanComposition& gc)
+  inline void to_json(nlohmann::json& j, const ProForma::GlycanComposition& gc)
   {
     j = nlohmann::json::array();
     for (const auto& [mono, count] : gc.components)
@@ -244,12 +244,12 @@ namespace OpenMS
   }
 
   /// Construct GlycanComposition from JSON object
-  inline void from_json(const nlohmann::json& j, GlycanComposition& gc)
+  inline void from_json(const nlohmann::json& j, ProForma::GlycanComposition& gc)
   {
     gc.components.clear();
     for (const auto& item : j)
     {
-      GlycanComposition::Monosaccharide mono;
+      ProForma::GlycanComposition::Monosaccharide mono;
       from_json(item.at("monosaccharide"), mono);
       int count = item.at("count").get<int>();
       gc.components.emplace_back(mono, count);
@@ -263,13 +263,13 @@ namespace OpenMS
   /// @{
 
   /// Convert InfoTag to JSON object
-  inline void to_json(nlohmann::json& j, const InfoTag& it)
+  inline void to_json(nlohmann::json& j, const ProForma::InfoTag& it)
   {
     j = nlohmann::json{{"text", static_cast<std::string>(it.text)}};
   }
 
   /// Construct InfoTag from JSON object
-  inline void from_json(const nlohmann::json& j, InfoTag& it)
+  inline void from_json(const nlohmann::json& j, ProForma::InfoTag& it)
   {
     it.text = j.at("text").get<std::string>();
   }
@@ -281,7 +281,7 @@ namespace OpenMS
   /// @{
 
   /// Convert PositionConstraint to JSON object
-  inline void to_json(nlohmann::json& j, const PositionConstraint& pc)
+  inline void to_json(nlohmann::json& j, const ProForma::PositionConstraint& pc)
   {
     j = nlohmann::json{
       {"residues", std::string(pc.residues.begin(), pc.residues.end())},
@@ -291,7 +291,7 @@ namespace OpenMS
   }
 
   /// Construct PositionConstraint from JSON object
-  inline void from_json(const nlohmann::json& j, PositionConstraint& pc)
+  inline void from_json(const nlohmann::json& j, ProForma::PositionConstraint& pc)
   {
     std::string residue_str = j.at("residues").get<std::string>();
     pc.residues.assign(residue_str.begin(), residue_str.end());
@@ -306,35 +306,35 @@ namespace OpenMS
   /// @{
 
   /// Convert ModificationTag variant to JSON object
-  inline void to_json(nlohmann::json& j, const ModificationTag& tag)
+  inline void to_json(nlohmann::json& j, const ProForma::ModificationTag& tag)
   {
     std::visit([&j](auto&& arg) {
       using T = std::decay_t<decltype(arg)>;
-      if constexpr (std::is_same_v<T, CvAccession>)
+      if constexpr (std::is_same_v<T, ProForma::CvAccession>)
       {
         j = nlohmann::json{{"type", "cv_accession"}, {"value", arg}};
       }
-      else if constexpr (std::is_same_v<T, NamedMod>)
+      else if constexpr (std::is_same_v<T, ProForma::NamedMod>)
       {
         j = nlohmann::json{{"type", "named_mod"}, {"value", arg}};
       }
-      else if constexpr (std::is_same_v<T, MassDelta>)
+      else if constexpr (std::is_same_v<T, ProForma::MassDelta>)
       {
         j = nlohmann::json{{"type", "mass_delta"}, {"value", arg}};
       }
-      else if constexpr (std::is_same_v<T, FormulaTag>)
+      else if constexpr (std::is_same_v<T, ProForma::FormulaTag>)
       {
         j = nlohmann::json{{"type", "formula"}, {"value", arg}};
       }
-      else if constexpr (std::is_same_v<T, GlycanComposition>)
+      else if constexpr (std::is_same_v<T, ProForma::GlycanComposition>)
       {
         j = nlohmann::json{{"type", "glycan"}, {"value", arg}};
       }
-      else if constexpr (std::is_same_v<T, InfoTag>)
+      else if constexpr (std::is_same_v<T, ProForma::InfoTag>)
       {
         j = nlohmann::json{{"type", "info"}, {"value", arg}};
       }
-      else if constexpr (std::is_same_v<T, PositionConstraint>)
+      else if constexpr (std::is_same_v<T, ProForma::PositionConstraint>)
       {
         j = nlohmann::json{{"type", "position"}, {"value", arg}};
       }
@@ -342,68 +342,68 @@ namespace OpenMS
   }
 
   /// Construct ModificationTag variant from JSON object
-  inline void from_json(const nlohmann::json& j, ModificationTag& tag)
+  inline void from_json(const nlohmann::json& j, ProForma::ModificationTag& tag)
   {
     std::string type = j.at("type").get<std::string>();
     if (type == "cv_accession")
     {
-      tag = j.at("value").get<CvAccession>();
+      tag = j.at("value").get<ProForma::CvAccession>();
     }
     else if (type == "named_mod")
     {
-      tag = j.at("value").get<NamedMod>();
+      tag = j.at("value").get<ProForma::NamedMod>();
     }
     else if (type == "mass_delta")
     {
-      tag = j.at("value").get<MassDelta>();
+      tag = j.at("value").get<ProForma::MassDelta>();
     }
     else if (type == "formula")
     {
-      tag = j.at("value").get<FormulaTag>();
+      tag = j.at("value").get<ProForma::FormulaTag>();
     }
     else if (type == "glycan")
     {
-      tag = j.at("value").get<GlycanComposition>();
+      tag = j.at("value").get<ProForma::GlycanComposition>();
     }
     else if (type == "info")
     {
-      tag = j.at("value").get<InfoTag>();
+      tag = j.at("value").get<ProForma::InfoTag>();
     }
     else if (type == "position")
     {
-      tag = j.at("value").get<PositionConstraint>();
+      tag = j.at("value").get<ProForma::PositionConstraint>();
     }
     else
     {
-      throw std::invalid_argument("Unknown ModificationTag type: " + type);
+      throw std::invalid_argument("Unknown ProForma::ModificationTag type: " + type);
     }
   }
 
   /// @}
 
 
-  /// @name Label::Type enum JSON serialization
+  /// @name ProForma::Label::Type enum JSON serialization
   /// @{
 
-  /// Convert Label::Type enum to JSON string
-  inline void to_json(nlohmann::json& j, const Label::Type& lt)
+  /// Convert ProForma::Label::Type enum to JSON string
+  inline void to_json(nlohmann::json& j, const ProForma::Label::Type& lt)
   {
     switch (lt)
     {
-      case Label::Type::CROSSLINK: j = "CROSSLINK"; break;
-      case Label::Type::BRANCH:    j = "BRANCH"; break;
-      case Label::Type::AMBIGUOUS: j = "AMBIGUOUS"; break;
+      case ProForma::Label::Type::CROSSLINK: j = "CROSSLINK"; break;
+      case ProForma::Label::Type::BRANCH:    j = "BRANCH"; break;
+      case ProForma::Label::Type::AMBIGUOUS: j = "AMBIGUOUS"; break;
     }
   }
 
-  /// Construct Label::Type enum from JSON string
-  inline void from_json(const nlohmann::json& j, Label::Type& lt)
+  /// Construct ProForma::Label::Type enum from JSON string
+  inline void from_json(const nlohmann::json& j, ProForma::Label::Type& lt)
   {
     std::string s = j.get<std::string>();
-    if (s == "CROSSLINK") lt = Label::Type::CROSSLINK;
-    else if (s == "BRANCH") lt = Label::Type::BRANCH;
-    else if (s == "AMBIGUOUS") lt = Label::Type::AMBIGUOUS;
-    else throw std::invalid_argument("Unknown Label::Type: " + s);
+    if (s == "CROSSLINK") lt = ProForma::Label::Type::CROSSLINK;
+    else if (s == "BRANCH") lt = ProForma::Label::Type::BRANCH;
+    else if (s == "AMBIGUOUS") lt = ProForma::Label::Type::AMBIGUOUS;
+    else throw std::invalid_argument("Unknown ProForma::Label::Type: " + s);
   }
 
   /// @}
@@ -413,7 +413,7 @@ namespace OpenMS
   /// @{
 
   /// Convert Label to JSON object
-  inline void to_json(nlohmann::json& j, const Label& lbl)
+  inline void to_json(nlohmann::json& j, const ProForma::Label& lbl)
   {
     j = nlohmann::json{
       {"type", lbl.type},
@@ -426,7 +426,7 @@ namespace OpenMS
   }
 
   /// Construct Label from JSON object
-  inline void from_json(const nlohmann::json& j, Label& lbl)
+  inline void from_json(const nlohmann::json& j, ProForma::Label& lbl)
   {
     j.at("type").get_to(lbl.type);
     lbl.identifier = j.at("identifier").get<std::string>();
@@ -447,7 +447,7 @@ namespace OpenMS
   /// @{
 
   /// Convert Modification to JSON object
-  inline void to_json(nlohmann::json& j, const Modification& mod)
+  inline void to_json(nlohmann::json& j, const ProForma::Modification& mod)
   {
     j = nlohmann::json::array();
     for (const auto& [tag, label] : mod.alternatives)
@@ -463,17 +463,17 @@ namespace OpenMS
   }
 
   /// Construct Modification from JSON object
-  inline void from_json(const nlohmann::json& j, Modification& mod)
+  inline void from_json(const nlohmann::json& j, ProForma::Modification& mod)
   {
     mod.alternatives.clear();
     mod.resolved_mod = nullptr;  // Reset to avoid stale pointers
     for (const auto& item : j)
     {
-      ModificationTag tag = item.at("tag").get<ModificationTag>();
-      std::optional<Label> label;
+      ProForma::ModificationTag tag = item.at("tag").get<ProForma::ModificationTag>();
+      std::optional<ProForma::Label> label;
       if (item.contains("label") && !item.at("label").is_null())
       {
-        label = item.at("label").get<Label>();
+        label = item.at("label").get<ProForma::Label>();
       }
       mod.alternatives.emplace_back(tag, label);
     }
@@ -486,7 +486,7 @@ namespace OpenMS
   /// @{
 
   /// Convert SequenceElement to JSON object
-  inline void to_json(nlohmann::json& j, const SequenceElement& se)
+  inline void to_json(nlohmann::json& j, const ProForma::SequenceElement& se)
   {
     j = nlohmann::json{
       {"amino_acid", std::string(1, se.amino_acid)},
@@ -495,7 +495,7 @@ namespace OpenMS
   }
 
   /// Construct SequenceElement from JSON object
-  inline void from_json(const nlohmann::json& j, SequenceElement& se)
+  inline void from_json(const nlohmann::json& j, ProForma::SequenceElement& se)
   {
     std::string aa = j.at("amino_acid").get<std::string>();
     if (aa.size() != 1)
@@ -513,13 +513,13 @@ namespace OpenMS
   /// @{
 
   /// Convert AmbiguousRegion to JSON object
-  inline void to_json(nlohmann::json& j, const AmbiguousRegion& ar)
+  inline void to_json(nlohmann::json& j, const ProForma::AmbiguousRegion& ar)
   {
     j = nlohmann::json{{"elements", ar.elements}};
   }
 
   /// Construct AmbiguousRegion from JSON object
-  inline void from_json(const nlohmann::json& j, AmbiguousRegion& ar)
+  inline void from_json(const nlohmann::json& j, ProForma::AmbiguousRegion& ar)
   {
     j.at("elements").get_to(ar.elements);
   }
@@ -531,7 +531,7 @@ namespace OpenMS
   /// @{
 
   /// Convert ModifiedRange to JSON object
-  inline void to_json(nlohmann::json& j, const ModifiedRange& mr)
+  inline void to_json(nlohmann::json& j, const ProForma::ModifiedRange& mr)
   {
     j = nlohmann::json{
       {"elements", mr.elements},
@@ -540,7 +540,7 @@ namespace OpenMS
   }
 
   /// Construct ModifiedRange from JSON object
-  inline void from_json(const nlohmann::json& j, ModifiedRange& mr)
+  inline void from_json(const nlohmann::json& j, ProForma::ModifiedRange& mr)
   {
     j.at("elements").get_to(mr.elements);
     j.at("modifications").get_to(mr.modifications);
@@ -553,19 +553,19 @@ namespace OpenMS
   /// @{
 
   /// Convert SequenceSection variant to JSON object
-  inline void to_json(nlohmann::json& j, const SequenceSection& ss)
+  inline void to_json(nlohmann::json& j, const ProForma::SequenceSection& ss)
   {
     std::visit([&j](auto&& arg) {
       using T = std::decay_t<decltype(arg)>;
-      if constexpr (std::is_same_v<T, SequenceElement>)
+      if constexpr (std::is_same_v<T, ProForma::SequenceElement>)
       {
         j = nlohmann::json{{"type", "element"}, {"value", arg}};
       }
-      else if constexpr (std::is_same_v<T, AmbiguousRegion>)
+      else if constexpr (std::is_same_v<T, ProForma::AmbiguousRegion>)
       {
         j = nlohmann::json{{"type", "ambiguous_region"}, {"value", arg}};
       }
-      else if constexpr (std::is_same_v<T, ModifiedRange>)
+      else if constexpr (std::is_same_v<T, ProForma::ModifiedRange>)
       {
         j = nlohmann::json{{"type", "modified_range"}, {"value", arg}};
       }
@@ -573,24 +573,24 @@ namespace OpenMS
   }
 
   /// Construct SequenceSection variant from JSON object
-  inline void from_json(const nlohmann::json& j, SequenceSection& ss)
+  inline void from_json(const nlohmann::json& j, ProForma::SequenceSection& ss)
   {
     std::string type = j.at("type").get<std::string>();
     if (type == "element")
     {
-      ss = j.at("value").get<SequenceElement>();
+      ss = j.at("value").get<ProForma::SequenceElement>();
     }
     else if (type == "ambiguous_region")
     {
-      ss = j.at("value").get<AmbiguousRegion>();
+      ss = j.at("value").get<ProForma::AmbiguousRegion>();
     }
     else if (type == "modified_range")
     {
-      ss = j.at("value").get<ModifiedRange>();
+      ss = j.at("value").get<ProForma::ModifiedRange>();
     }
     else
     {
-      throw std::invalid_argument("Unknown SequenceSection type: " + type);
+      throw std::invalid_argument("Unknown ProForma::SequenceSection type: " + type);
     }
   }
 
@@ -601,7 +601,7 @@ namespace OpenMS
   /// @{
 
   /// Convert UnlocalisedMod to JSON object
-  inline void to_json(nlohmann::json& j, const UnlocalisedMod& um)
+  inline void to_json(nlohmann::json& j, const ProForma::UnlocalisedMod& um)
   {
     j = nlohmann::json{{"modifications", um.modifications}};
     if (um.occurrence.has_value())
@@ -611,7 +611,7 @@ namespace OpenMS
   }
 
   /// Construct UnlocalisedMod from JSON object
-  inline void from_json(const nlohmann::json& j, UnlocalisedMod& um)
+  inline void from_json(const nlohmann::json& j, ProForma::UnlocalisedMod& um)
   {
     j.at("modifications").get_to(um.modifications);
     if (j.contains("occurrence") && !j.at("occurrence").is_null())
@@ -631,13 +631,13 @@ namespace OpenMS
   /// @{
 
   /// Convert LabileModification to JSON object
-  inline void to_json(nlohmann::json& j, const LabileModification& lm)
+  inline void to_json(nlohmann::json& j, const ProForma::LabileModification& lm)
   {
     j = nlohmann::json{{"modification", lm.modification}};
   }
 
   /// Construct LabileModification from JSON object
-  inline void from_json(const nlohmann::json& j, LabileModification& lm)
+  inline void from_json(const nlohmann::json& j, ProForma::LabileModification& lm)
   {
     j.at("modification").get_to(lm.modification);
   }
@@ -649,7 +649,7 @@ namespace OpenMS
   /// @{
 
   /// Convert GlobalModification to JSON object
-  inline void to_json(nlohmann::json& j, const GlobalModification& gm)
+  inline void to_json(nlohmann::json& j, const ProForma::GlobalModification& gm)
   {
     std::vector<std::string> locs;
     for (const auto& loc : gm.locations)
@@ -663,7 +663,7 @@ namespace OpenMS
   }
 
   /// Construct GlobalModification from JSON object
-  inline void from_json(const nlohmann::json& j, GlobalModification& gm)
+  inline void from_json(const nlohmann::json& j, ProForma::GlobalModification& gm)
   {
     j.at("modification").get_to(gm.modification);
     gm.locations.clear();
@@ -680,13 +680,13 @@ namespace OpenMS
   /// @{
 
   /// Convert IsotopeReplacement to JSON object
-  inline void to_json(nlohmann::json& j, const IsotopeReplacement& ir)
+  inline void to_json(nlohmann::json& j, const ProForma::IsotopeReplacement& ir)
   {
     j = nlohmann::json{{"isotope", static_cast<std::string>(ir.isotope)}};
   }
 
   /// Construct IsotopeReplacement from JSON object
-  inline void from_json(const nlohmann::json& j, IsotopeReplacement& ir)
+  inline void from_json(const nlohmann::json& j, ProForma::IsotopeReplacement& ir)
   {
     ir.isotope = j.at("isotope").get<std::string>();
   }
@@ -698,15 +698,15 @@ namespace OpenMS
   /// @{
 
   /// Convert GlobalModEntry variant to JSON object
-  inline void to_json(nlohmann::json& j, const GlobalModEntry& gme)
+  inline void to_json(nlohmann::json& j, const ProForma::GlobalModEntry& gme)
   {
     std::visit([&j](auto&& arg) {
       using T = std::decay_t<decltype(arg)>;
-      if constexpr (std::is_same_v<T, IsotopeReplacement>)
+      if constexpr (std::is_same_v<T, ProForma::IsotopeReplacement>)
       {
         j = nlohmann::json{{"type", "isotope_replacement"}, {"value", arg}};
       }
-      else if constexpr (std::is_same_v<T, GlobalModification>)
+      else if constexpr (std::is_same_v<T, ProForma::GlobalModification>)
       {
         j = nlohmann::json{{"type", "global_modification"}, {"value", arg}};
       }
@@ -714,20 +714,20 @@ namespace OpenMS
   }
 
   /// Construct GlobalModEntry variant from JSON object
-  inline void from_json(const nlohmann::json& j, GlobalModEntry& gme)
+  inline void from_json(const nlohmann::json& j, ProForma::GlobalModEntry& gme)
   {
     std::string type = j.at("type").get<std::string>();
     if (type == "isotope_replacement")
     {
-      gme = j.at("value").get<IsotopeReplacement>();
+      gme = j.at("value").get<ProForma::IsotopeReplacement>();
     }
     else if (type == "global_modification")
     {
-      gme = j.at("value").get<GlobalModification>();
+      gme = j.at("value").get<ProForma::GlobalModification>();
     }
     else
     {
-      throw std::invalid_argument("Unknown GlobalModEntry type: " + type);
+      throw std::invalid_argument("Unknown ProForma::GlobalModEntry type: " + type);
     }
   }
 
@@ -738,7 +738,7 @@ namespace OpenMS
   /// @{
 
   /// Convert AdductIon to JSON object
-  inline void to_json(nlohmann::json& j, const AdductIon& ai)
+  inline void to_json(nlohmann::json& j, const ProForma::AdductIon& ai)
   {
     j = nlohmann::json{
       {"formula", static_cast<std::string>(ai.formula)},
@@ -751,7 +751,7 @@ namespace OpenMS
   }
 
   /// Construct AdductIon from JSON object
-  inline void from_json(const nlohmann::json& j, AdductIon& ai)
+  inline void from_json(const nlohmann::json& j, ProForma::AdductIon& ai)
   {
     ai.formula = j.at("formula").get<std::string>();
     j.at("charge").get_to(ai.charge);
@@ -772,7 +772,7 @@ namespace OpenMS
   /// @{
 
   /// Convert ChargeState variant to JSON object
-  inline void to_json(nlohmann::json& j, const ChargeState& cs)
+  inline void to_json(nlohmann::json& j, const ProForma::ChargeState& cs)
   {
     std::visit([&j](auto&& arg) {
       using T = std::decay_t<decltype(arg)>;
@@ -780,7 +780,7 @@ namespace OpenMS
       {
         j = nlohmann::json{{"type", "simple"}, {"value", arg}};
       }
-      else if constexpr (std::is_same_v<T, std::vector<AdductIon>>)
+      else if constexpr (std::is_same_v<T, std::vector<ProForma::AdductIon>>)
       {
         j = nlohmann::json{{"type", "adducts"}, {"value", arg}};
       }
@@ -788,7 +788,7 @@ namespace OpenMS
   }
 
   /// Construct ChargeState variant from JSON object
-  inline void from_json(const nlohmann::json& j, ChargeState& cs)
+  inline void from_json(const nlohmann::json& j, ProForma::ChargeState& cs)
   {
     std::string type = j.at("type").get<std::string>();
     if (type == "simple")
@@ -797,11 +797,11 @@ namespace OpenMS
     }
     else if (type == "adducts")
     {
-      cs = j.at("value").get<std::vector<AdductIon>>();
+      cs = j.at("value").get<std::vector<ProForma::AdductIon>>();
     }
     else
     {
-      throw std::invalid_argument("Unknown ChargeState type: " + type);
+      throw std::invalid_argument("Unknown ProForma::ChargeState type: " + type);
     }
   }
 
@@ -812,7 +812,7 @@ namespace OpenMS
   /// @{
 
   /// Convert Peptidoform to JSON object
-  inline void to_json(nlohmann::json& j, const Peptidoform& pf)
+  inline void to_json(nlohmann::json& j, const ProForma::Peptidoform& pf)
   {
     j = nlohmann::json{
       {"global_mods", pf.global_mods},
@@ -833,7 +833,7 @@ namespace OpenMS
   }
 
   /// Construct Peptidoform from JSON object
-  inline void from_json(const nlohmann::json& j, Peptidoform& pf)
+  inline void from_json(const nlohmann::json& j, ProForma::Peptidoform& pf)
   {
     if (j.contains("global_mods"))
     {
@@ -858,7 +858,7 @@ namespace OpenMS
     }
     if (j.contains("charge") && !j.at("charge").is_null())
     {
-      pf.charge = j.at("charge").get<ChargeState>();
+      pf.charge = j.at("charge").get<ProForma::ChargeState>();
     }
     else
     {
@@ -873,7 +873,7 @@ namespace OpenMS
   /// @{
 
   /// Convert PeptidoformIon to JSON object
-  inline void to_json(nlohmann::json& j, const PeptidoformIon& pfi)
+  inline void to_json(nlohmann::json& j, const ProForma::PeptidoformIon& pfi)
   {
     j = nlohmann::json{{"chains", pfi.chains}, {"is_chimeric", pfi.is_chimeric}};
     if (pfi.name.has_value())
@@ -887,7 +887,7 @@ namespace OpenMS
   }
 
   /// Construct PeptidoformIon from JSON object
-  inline void from_json(const nlohmann::json& j, PeptidoformIon& pfi)
+  inline void from_json(const nlohmann::json& j, ProForma::PeptidoformIon& pfi)
   {
     j.at("chains").get_to(pfi.chains);
     if (j.contains("name") && !j.at("name").is_null())
@@ -900,7 +900,7 @@ namespace OpenMS
     }
     if (j.contains("charge") && !j.at("charge").is_null())
     {
-      pfi.charge = j.at("charge").get<ChargeState>();
+      pfi.charge = j.at("charge").get<ProForma::ChargeState>();
     }
     else
     {
@@ -923,7 +923,7 @@ namespace OpenMS
   /// @{
 
   /// Convert CrossLinkGroup to JSON object
-  inline void to_json(nlohmann::json& j, const CrossLinkGroup& clg)
+  inline void to_json(nlohmann::json& j, const ProForma::CrossLinkGroup& clg)
   {
     nlohmann::json sites_json = nlohmann::json::array();
     for (const auto& [chain_idx, site_idx] : clg.sites)
@@ -937,7 +937,7 @@ namespace OpenMS
   }
 
   /// Construct CrossLinkGroup from JSON object
-  inline void from_json(const nlohmann::json& j, CrossLinkGroup& clg)
+  inline void from_json(const nlohmann::json& j, ProForma::CrossLinkGroup& clg)
   {
     clg.label = j.at("label").get<std::string>();
     clg.sites.clear();

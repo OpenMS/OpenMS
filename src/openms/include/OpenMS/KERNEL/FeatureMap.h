@@ -185,6 +185,12 @@ namespace OpenMS
     /// sets the protein identifications
     void setProteinIdentifications(const std::vector<ProteinIdentification>& protein_identifications);
 
+    /// finds a protein identification by its identifier (returns nullptr if not found)
+    const ProteinIdentification* findProteinIdentification(const String& identifier) const;
+
+    /// finds a protein identification by its identifier (returns nullptr if not found)
+    ProteinIdentification* findProteinIdentification(const String& identifier);
+
     /// non-mutable access to the unassigned peptide identifications
     const PeptideIdentificationList& getUnassignedPeptideIdentifications() const;
 
