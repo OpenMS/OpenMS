@@ -113,6 +113,16 @@ cdef extern from "<OpenMS/FORMAT/PEFFFile.h>" namespace "OpenMS":
         #  :return: ProForma string representation
 
 
+cdef extern from "<OpenMS/FORMAT/PEFFFile.h>" namespace "OpenMS::PEFFModification":
+
+    cdef enum class ModificationType "OpenMS::PEFFModification::Type":
+        # wrap-attach:
+        #    PEFFModification
+        PSI_MOD
+        UNIMOD
+        GENERIC
+
+
 cdef extern from "<OpenMS/FORMAT/PEFFFile.h>" namespace "OpenMS":
 
     cdef cppclass PEFFModification:
@@ -125,6 +135,7 @@ cdef extern from "<OpenMS/FORMAT/PEFFFile.h>" namespace "OpenMS":
         #    name: Human-readable name
         #    evidence: Optional evidence tag
         #    annotation_id: Optional annotation identifier
+        #    type: Modification type (PSI_MOD, UNIMOD, or GENERIC)
 
         PEFFModification() except + nogil
         PEFFModification(PEFFModification) except + nogil
@@ -134,6 +145,7 @@ cdef extern from "<OpenMS/FORMAT/PEFFFile.h>" namespace "OpenMS":
         String name
         String evidence
         String annotation_id
+        ModificationType type
 
 
 cdef extern from "<OpenMS/FORMAT/PEFFFile.h>" namespace "OpenMS":

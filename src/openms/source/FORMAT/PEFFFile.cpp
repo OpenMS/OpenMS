@@ -116,10 +116,15 @@ namespace OpenMS
         {
           seq.setModification(idx, res_mod->getFullId());
         }
+        else
+        {
+          // Neither accession nor name lookup succeeded
+          OPENMS_LOG_WARN << "Could not resolve modification: " << mod.accession << " (" << mod.name << ")" << "\n";
+        }
       }
       catch (const Exception::BaseException&)
       {
-        // Skip if modification cannot be resolved
+        // Skip if modification cannot be resolved (exception during lookup)
         OPENMS_LOG_WARN << "Could not resolve modification: " << mod.accession << " (" << mod.name << ")" << "\n";
       }
     }
@@ -1979,9 +1984,10 @@ namespace OpenMS
           desc << mod.position;
         }
         desc << "|" << mod.accession;
-        if (!mod.name.empty())
+        // Always emit name separator if name or evidence is present (preserve field positions)
+        if (!mod.name.empty() || !mod.evidence.empty())
         {
-          desc << "|" << mod.name;
+          desc << "|" << mod.name;  // May be empty placeholder
         }
         if (!mod.evidence.empty())
         {
@@ -2046,9 +2052,10 @@ namespace OpenMS
           desc << reg.annotation_id << ":";
         }
         desc << reg.start_position << "|" << reg.end_position << "|" << reg.type;
-        if (!reg.name.empty())
+        // Always emit name separator if name or description is present (preserve field positions)
+        if (!reg.name.empty() || !reg.description.empty())
         {
-          desc << "|" << reg.name;
+          desc << "|" << reg.name;  // May be empty placeholder
         }
         if (!reg.description.empty())
         {
