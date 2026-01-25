@@ -28,30 +28,30 @@ cdef extern from "<OpenMS/CHEMISTRY/RNaseDigestion.h>" namespace "OpenMS":
         #        for fragment in result:
         #          print (fragment)
 
-      RNaseDigestion() except + nogil  # compiler
-      RNaseDigestion(RNaseDigestion &) except + nogil  # compiler
+        RNaseDigestion() except + nogil  # compiler
+        RNaseDigestion(RNaseDigestion &) except + nogil  # compiler
 
-      void setEnzyme(String name) except + nogil  # wrap-doc:Sets the enzyme for the digestion (by name)
+        void setEnzyme(String name) except + nogil  # wrap-doc:Sets the enzyme for the digestion (by name)
 
-      void digest(NASequence & rna, libcpp_vector[ NASequence ] & output) except + nogil 
+        void digest(NASequence & rna, libcpp_vector[ NASequence ] & output) except + nogil
 
-      void digest(NASequence & rna, libcpp_vector[ NASequence ] & output, Size min_length, Size max_length) except + nogil 
-          # wrap-doc:
-          #  Performs the enzymatic digestion of a (potentially modified) RNA
-          #    
-          #  :param rna: Sequence to digest
-          #  :param output: Digestion productsq
-          #  :param min_length: Minimal length of reported products
-          #  :param max_length: Maximal length of reported products (0 = no restriction)
-          #  :returns: Number of discarded digestion products (which are not matching length restrictions)
+        void digest(NASequence & rna, libcpp_vector[ NASequence ] & output, Size min_length, Size max_length) except + nogil
+            # wrap-doc:
+            #  Performs the enzymatic digestion of a (potentially modified) RNA
+            #
+            #  :param rna: Sequence to digest
+            #  :param output: Digestion productsq
+            #  :param min_length: Minimal length of reported products
+            #  :param max_length: Maximal length of reported products (0 = no restriction)
+            #  :returns: Number of discarded digestion products (which are not matching length restrictions)
 
-      #void digest(IdentificationData & id_data) except + nogil 
+        ## void digest(IdentificationData & id_data) except + nogil
 
-      #void digest(IdentificationData & id_data, Size min_length, Size max_length) except + nogil 
-          # wrap-doc:
-          #  Performs the enzymatic digestion of all RNA parent molecules in IdentificationData (id_data)
-          #    
-          #  :param id_data: IdentificationData object which includes sequences to digest
-          #  :param min_length: Minimal length of reported products
-          #  :param max_length: Maximal length of reported products (0 = no restriction)
-          #  :returns: Number of discarded digestion products (which are not matching length restrictions)
+        ## void digest(IdentificationData & id_data, Size min_length, Size max_length) except + nogil
+            # wrap-doc:
+            #  Performs the enzymatic digestion of all RNA parent molecules in IdentificationData (id_data)
+            #
+            #  :param id_data: IdentificationData object which includes sequences to digest
+            #  :param min_length: Minimal length of reported products
+            #  :param max_length: Maximal length of reported products (0 = no restriction)
+            #  :returns: Number of discarded digestion products (which are not matching length restrictions)

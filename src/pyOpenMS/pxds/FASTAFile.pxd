@@ -11,8 +11,30 @@ from ProteinIdentification cimport *
 cdef extern from "<OpenMS/FORMAT/FASTAFile.h>" namespace "OpenMS":
 
     cdef cppclass FASTAFile:
+        # wrap-doc:
+        #  File adapter for FASTA files
+        #  
+        #  Provides methods to load and store protein/peptide sequences in FASTA format.
+        #  Supports both batch loading (load/store) and streaming (readStart/readNext/writeStart/writeNext).
+        #  
+        #  Usage:
+        #  
+        #  .. code-block:: python
+        #  
+        #    # Batch loading
+        #    entries = []
+        #    FASTAFile().load("proteins.fasta", entries)
+        #    for entry in entries:
+        #      print(entry.identifier, entry.sequence)
+        #  
+        #    # Streaming (memory-efficient for large files)
+        #    ff = FASTAFile()
+        #    ff.readStart("proteins.fasta")
+        #    entry = FASTAEntry()
+        #    while ff.readNext(entry):
+        #      print(entry.identifier)
 
-        FASTAFile() except + nogil  # wrap-doc:This class serves for reading in and writing FASTA files
+        FASTAFile() except + nogil
         # copy constructor of 'FASTAFile' is implicitly deleted because field 'infile_' has a deleted copy constructor
         FASTAFile(FASTAFile &) except + nogil  # wrap-ignore
 
@@ -38,16 +60,16 @@ cdef extern from "<OpenMS/FORMAT/FASTAFile.h>" namespace "OpenMS":
             #      Exception:FileNotFound is thrown if the file does not exists
             #  :raises:
             #      Exception:ParseError is thrown if the file does not suit to the standard
-        # NAMESPACE # std::streampos position() except + nogil 
+            #  NAMESPACE # std::streampos position() except + nogil
         bool atEnd() except + nogil  # wrap-doc:Boolean function to check if streams is at end of file
-        # NAMESPACE # bool setPosition(const std::streampos & pos) except + nogil 
+        # NAMESPACE # bool setPosition(const std::streampos & pos) except + nogil
         void writeStart(const String & filename) except + nogil
             # wrap-doc:
             #  Prepares a FASTA file given by 'filename' for streamed writing using writeNext()
             #  
             #  :raises:
             #      Exception:UnableToCreateFile is thrown if the process is not able to write to the file (disk full?)
-        void writeNext(const FASTAEntry & protein) except + nogil 
+        void writeNext(const FASTAEntry & protein) except + nogil
             # wrap-doc:
             #  Stores the data given by `protein`. Call writeStart() once before calling writeNext()
             #  
@@ -60,12 +82,20 @@ cdef extern from "<OpenMS/FORMAT/FASTAFile.h>" namespace "OpenMS":
 cdef extern from "<OpenMS/FORMAT/FASTAFile.h>" namespace "OpenMS::FASTAFile":
 
     cdef cppclass FASTAEntry:
-        FASTAEntry() except + nogil 
-        FASTAEntry(FASTAEntry) except + nogil 
+        # wrap-doc:
+        #  Represents a single FASTA entry with identifier, description, and sequence
+        #  
+        #  Attributes:
+        #    identifier: The protein/sequence identifier (from FASTA header before first space)
+        #    description: The description line (from FASTA header after first space)
+        #    sequence: The amino acid or nucleotide sequence
 
-        String identifier
-        String description
-        String sequence
+        FASTAEntry() except + nogil
+        FASTAEntry(FASTAEntry) except + nogil
 
-        bool headerMatches(const FASTAEntry & rhs) except + nogil 
-        bool sequenceMatches(const FASTAEntry & rhs) except + nogil 
+        String identifier  # wrap-doc:Protein/sequence identifier
+        String description  # wrap-doc:Description from FASTA header
+        String sequence  # wrap-doc:The amino acid or nucleotide sequence
+
+        bool headerMatches(const FASTAEntry & rhs) except + nogil  # wrap-doc:Returns True if identifier and description match the given entry
+        bool sequenceMatches(const FASTAEntry & rhs) except + nogil  # wrap-doc:Returns True if the sequence matches the given entry

@@ -17,11 +17,11 @@ cdef extern from "<OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>" namespace "O
         #  FLASHDeconv algorithm: ultrafast mass deconvolution algorithm for top down mass spectrometry dataset.
         #  From MSSpectrum, this class outputs DeconvolvedSpectrum.
         #  Deconvolution takes three steps:
-        #    i) decharging and select candidate masses - speed up via binning
-        #    ii) collecting isotopes from the candidate masses and deisotoping - peak groups are defined here
-        #    iii) scoring and filter out low scoring masses (i.e., peak groups)
+        #  1) decharging and select candidate masses - speed up via binning
+        #  2) collecting isotopes from the candidate masses and deisotoping - peak groups are defined here
+        #  3) scoring and filter out low scoring masses (i.e., peak groups)
 
-        # Constructors
+        #  Constructors
         FLASHDeconvAlgorithm() except + nogil
         FLASHDeconvAlgorithm(FLASHDeconvAlgorithm &) except + nogil
 
@@ -33,7 +33,7 @@ cdef extern from "<OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>" namespace "O
         #  :param deconvolved_spectra: Output vector to store deconvolved spectra
         #  :param deconvolved_features: Output vector to store mass features
 
-        # Averagine access
+        #  Averagine access
         PrecalAveragine& getAveragine() except + nogil
         # wrap-doc:Get calculated averagine. Call after run() is called.
 

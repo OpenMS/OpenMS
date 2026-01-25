@@ -7,6 +7,7 @@ from MetaInfoInterface cimport *
 from ProteinHit cimport *
 from DigestionEnzymeProtein cimport *
 from PeptideIdentification cimport *
+from PeptideIdentificationList cimport *
 from DateTime cimport *
 # from MSExperiment cimport *
 

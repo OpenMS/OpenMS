@@ -14,7 +14,7 @@ cdef extern from "<OpenMS/ANALYSIS/TOPDOWN/DeconvolvedSpectrum.h>" namespace "Op
         #  DeconvolvedSpectrum consists of PeakGroup instances representing masses.
         #  For MSn n>1, a PeakGroup representing the precursor mass is also added.
 
-        # Constructors
+        #  Constructors
         DeconvolvedSpectrum() except + nogil
         DeconvolvedSpectrum(DeconvolvedSpectrum &) except + nogil  # copy constructor
         DeconvolvedSpectrum(int scan_number) except + nogil  # wrap-doc:Constructor with scan number
@@ -32,7 +32,7 @@ cdef extern from "<OpenMS/ANALYSIS/TOPDOWN/DeconvolvedSpectrum.h>" namespace "Op
         #  :param tol: The ppm tolerance
         #  :param retain_undeconvolved: If true, undeconvolved peaks are included
 
-        # Getters
+        #  Getters
         MSSpectrum getOriginalSpectrum() except + nogil  # wrap-doc:Returns the original spectrum
         PeakGroup getPrecursorPeakGroup() except + nogil  # wrap-doc:Returns the precursor peak group (MSn, n>1)
         int getPrecursorCharge() except + nogil  # wrap-doc:Returns the precursor charge

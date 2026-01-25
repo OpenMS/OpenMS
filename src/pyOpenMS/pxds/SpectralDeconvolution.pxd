@@ -17,11 +17,11 @@ cdef extern from "<OpenMS/ANALYSIS/TOPDOWN/SpectralDeconvolution.h>" namespace "
         #  Spectral deconvolution algorithm for top-down MS.
         #  From MSSpectrum, this class outputs DeconvolvedSpectrum.
         #  Deconvolution takes three steps:
-        #    i) decharging and select candidate masses - speed up via binning
-        #    ii) collecting isotopes from the candidate masses and deisotoping
-        #    iii) scoring and filter out low scoring masses
+        #  1) decharging and select candidate masses - speed up via binning
+        #  2) collecting isotopes from the candidate masses and deisotoping
+        #  3) scoring and filter out low scoring masses
 
-        # Constructors
+        #  Constructors
         SpectralDeconvolution() except + nogil
         SpectralDeconvolution(SpectralDeconvolution &) except + nogil
 
@@ -33,7 +33,7 @@ cdef extern from "<OpenMS/ANALYSIS/TOPDOWN/SpectralDeconvolution.h>" namespace "
         #  :param scan_number: Scan number from input spectrum
         #  :param precursor_peak_group: Precursor peak group (for MS2+)
 
-        # Result access
+        #  Result access
         DeconvolvedSpectrum getDeconvolvedSpectrum() except + nogil
         # wrap-doc:Return the deconvolved spectrum after performSpectrumDeconvolution is called
 
