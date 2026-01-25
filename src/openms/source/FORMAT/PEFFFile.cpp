@@ -11,6 +11,7 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h>
 
 #include <limits>
 #include <map>
@@ -457,6 +458,274 @@ namespace OpenMS
           if (!mod_failed)
           {
             result.emplace_back(description, pep_seq);
+          }
+        }
+      }
+    }
+
+    return result;
+  }
+
+  std::vector<std::pair<String, AASequence>> PEFFEntry::enumeratePEFFModifications_(
+    const AASequence& peptide,
+    const std::vector<std::pair<Size, const PEFFModification*>>& peff_mods,
+    const String& base_description)
+  {
+    std::vector<std::pair<String, AASequence>> result;
+
+    if (peff_mods.empty())
+    {
+      result.emplace_back(base_description, peptide);
+      return result;
+    }
+
+    // Limit combinatorial explosion
+    constexpr size_t MAX_MODS = 20;
+    size_t num_mods = std::min(peff_mods.size(), MAX_MODS);
+    if (peff_mods.size() > MAX_MODS)
+    {
+      OPENMS_LOG_WARN << "Peptide has " << peff_mods.size() << " PEFF modifications. "
+                      << "Limiting to first " << MAX_MODS << " to avoid combinatorial explosion." << std::endl;
+    }
+
+    size_t num_combinations = 1ULL << num_mods;
+
+    for (size_t combo = 0; combo < num_combinations; ++combo)
+    {
+      AASequence mod_peptide = peptide;
+      String description = base_description;
+      bool mod_failed = false;
+
+      for (size_t i = 0; i < num_mods && !mod_failed; ++i)
+      {
+        if (combo & (1ULL << i))
+        {
+          const auto& [local_pos, mod] = peff_mods[i];
+
+          // Build description
+          if (!description.empty())
+          {
+            description += ";";
+          }
+          if (!mod->accession.empty())
+          {
+            description += mod->accession + "@" + String(local_pos + 1);  // 1-based for display
+          }
+          else if (!mod->name.empty())
+          {
+            description += mod->name + "@" + String(local_pos + 1);
+          }
+
+          // Apply modification
+          try
+          {
+            const ResidueModification* res_mod = nullptr;
+            String residue = mod_peptide[local_pos].getOneLetterCode();
+
+            if (!mod->accession.empty())
+            {
+              try
+              {
+                res_mod = ModificationsDB::getInstance()->getModification(mod->accession, residue, ResidueModification::ANYWHERE);
+              }
+              catch (const Exception::BaseException&) { res_mod = nullptr; }
+            }
+
+            if (res_mod == nullptr && !mod->name.empty())
+            {
+              try
+              {
+                res_mod = ModificationsDB::getInstance()->getModification(mod->name, residue, ResidueModification::ANYWHERE);
+              }
+              catch (const Exception::BaseException&) { res_mod = nullptr; }
+            }
+
+            if (res_mod != nullptr)
+            {
+              mod_peptide.setModification(local_pos, res_mod->getFullId());
+            }
+            else
+            {
+              mod_failed = true;
+            }
+          }
+          catch (const Exception::BaseException&)
+          {
+            mod_failed = true;
+          }
+        }
+      }
+
+      if (!mod_failed)
+      {
+        result.emplace_back(description, mod_peptide);
+      }
+    }
+
+    return result;
+  }
+
+  std::vector<std::pair<String, AASequence>> PEFFEntry::generatePeptides(
+    const ProteaseDigestion& digestor,
+    const std::vector<String>& additional_variable_mods,
+    Size max_variable_mods_per_peptide,
+    Size min_length,
+    Size max_length,
+    bool include_reference,
+    bool include_peff_variants,
+    bool include_peff_modifications) const
+  {
+    std::vector<std::pair<String, AASequence>> result;
+
+    if (sequence.empty())
+    {
+      return result;
+    }
+
+    // Step 1: Digest the reference sequence to get peptide boundaries
+    AASequence protein = AASequence::fromString(sequence);
+    std::vector<std::pair<size_t, size_t>> peptide_ranges;
+    digestor.digest(protein, peptide_ranges, min_length, max_length);
+
+    // Prepare additional variable modifications lookup (for ModifiedPeptideGenerator)
+    ModifiedPeptideGenerator::MapToResidueType var_mods_map;
+    if (!additional_variable_mods.empty())
+    {
+      StringList mod_list(additional_variable_mods.begin(), additional_variable_mods.end());
+      var_mods_map = ModifiedPeptideGenerator::getModifications(mod_list);
+    }
+
+    // Step 2: Process each peptide
+    for (const auto& [start, end] : peptide_ranges)
+    {
+      // Collect PEFF variants within this peptide range
+      std::vector<const PEFFVariantSimple*> local_variants;
+      if (include_peff_variants)
+      {
+        for (const auto& var : simple_variants)
+        {
+          if (var.variant_aa == '*' || var.variant_aa == '\0' || var.position == 0)
+          {
+            continue;
+          }
+          size_t var_pos_0based = var.position - 1;
+          if (var_pos_0based >= start && var_pos_0based < end)
+          {
+            local_variants.push_back(&var);
+          }
+        }
+      }
+
+      // Collect PEFF modifications within this peptide range
+      std::vector<std::pair<Size, const PEFFModification*>> local_mods;
+      if (include_peff_modifications)
+      {
+        for (const auto& mod : modifications)
+        {
+          if (mod.position == 0) continue;
+          size_t mod_pos_0based = mod.position - 1;
+          if (mod_pos_0based >= start && mod_pos_0based < end)
+          {
+            local_mods.emplace_back(mod_pos_0based - start, &mod);  // Store local position
+          }
+        }
+      }
+
+      // Limit variant combinations
+      constexpr size_t MAX_VARIANTS = 20;
+      if (local_variants.size() > MAX_VARIANTS)
+      {
+        OPENMS_LOG_WARN << "Peptide at " << start << "-" << end << " has " << local_variants.size()
+                        << " variants. Limiting to first " << MAX_VARIANTS << "." << std::endl;
+        local_variants.resize(MAX_VARIANTS);
+      }
+
+      String ref_peptide_str = sequence.substr(start, end - start);
+
+      // Step 3: Generate all variant combinations (2^k for k variants)
+      size_t num_variant_combos = 1ULL << local_variants.size();
+
+      for (size_t var_combo = 0; var_combo < num_variant_combos; ++var_combo)
+      {
+        // Skip non-reference if no variants selected and we don't want reference
+        if (var_combo == 0 && !include_reference && local_variants.empty() && local_mods.empty())
+        {
+          continue;
+        }
+
+        String variant_peptide_str = ref_peptide_str;
+        String variant_desc;
+
+        // Apply selected variants
+        for (size_t i = 0; i < local_variants.size(); ++i)
+        {
+          if (var_combo & (1ULL << i))
+          {
+            const PEFFVariantSimple* var = local_variants[i];
+            size_t local_pos = var->position - 1 - start;
+
+            if (!variant_desc.empty()) variant_desc += ";";
+            variant_desc += String(ref_peptide_str[local_pos]) + String(var->position) + String(var->variant_aa);
+            if (!var->sources.empty())
+            {
+              variant_desc += "(" + var->sources + ")";
+            }
+
+            variant_peptide_str[local_pos] = var->variant_aa;
+          }
+        }
+
+        // Skip reference combination if not requested
+        if (var_combo == 0 && !include_reference)
+        {
+          continue;
+        }
+
+        // Parse variant peptide
+        AASequence variant_peptide;
+        try
+        {
+          variant_peptide = AASequence::fromString(variant_peptide_str);
+        }
+        catch (const Exception::BaseException&)
+        {
+          continue;  // Skip invalid sequences
+        }
+
+        // Step 4: Enumerate PEFF modification combinations
+        auto peff_mod_peptides = enumeratePEFFModifications_(variant_peptide, local_mods, variant_desc);
+
+        // Step 5: Apply additional variable modifications (like Oxidation)
+        for (auto& [peff_desc, peff_peptide] : peff_mod_peptides)
+        {
+          if (additional_variable_mods.empty())
+          {
+            // No additional mods - add directly
+            result.emplace_back(peff_desc, peff_peptide);
+          }
+          else
+          {
+            // Apply additional variable modifications using ModifiedPeptideGenerator
+            std::vector<AASequence> var_mod_peptides;
+            ModifiedPeptideGenerator::applyVariableModifications(
+              var_mods_map,
+              peff_peptide,
+              max_variable_mods_per_peptide,
+              var_mod_peptides,
+              true  // keep_original
+            );
+
+            for (auto& var_mod_pep : var_mod_peptides)
+            {
+              String full_desc = peff_desc;
+              // If additional mods were applied, note it in description
+              if (var_mod_pep.isModified() && var_mod_pep.toString() != peff_peptide.toString())
+              {
+                if (!full_desc.empty()) full_desc += ";";
+                full_desc += "+varmod";
+              }
+              result.emplace_back(full_desc, std::move(var_mod_pep));
+            }
           }
         }
       }

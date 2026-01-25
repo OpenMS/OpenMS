@@ -294,6 +294,60 @@ namespace OpenMS
       bool include_reference = true,
       bool include_variants = true,
       bool include_modifications = false) const;
+
+    /**
+      @brief Generate peptides with PEFF annotations and optional sample handling modifications.
+
+      This is the main method for generating a complete peptide library from a PEFF entry.
+      It combines:
+      1. Enzymatic digestion
+      2. PEFF variant enumeration (position-specific amino acid substitutions)
+      3. PEFF modification enumeration (position-specific PTMs from the database)
+      4. Additional variable modifications (e.g., Oxidation from sample handling)
+
+      The workflow is:
+      - Digest protein into peptides
+      - For each peptide, enumerate PEFF variant combinations
+      - For each variant, enumerate PEFF modification combinations
+      - For each PEFF-annotated peptide, apply additional variable modifications
+
+      @param digestor The protease digestion object (configured with enzyme, missed cleavages)
+      @param additional_variable_mods Additional variable modifications to apply (e.g., {"Oxidation (M)", "Deamidated (N)"})
+      @param max_variable_mods_per_peptide Maximum number of additional variable mods per peptide (default: 2)
+      @param min_length Minimum peptide length (default: 6)
+      @param max_length Maximum peptide length (default: 40, 0 = no limit)
+      @param include_reference Include unmodified reference peptides (default: true)
+      @param include_peff_variants Enumerate PEFF variant combinations (default: true)
+      @param include_peff_modifications Enumerate PEFF modification combinations (default: true)
+      @return Vector of pairs: (description, AASequence)
+    */
+    std::vector<std::pair<String, AASequence>> generatePeptides(
+      const ProteaseDigestion& digestor,
+      const std::vector<String>& additional_variable_mods = {},
+      Size max_variable_mods_per_peptide = 2,
+      Size min_length = 6,
+      Size max_length = 40,
+      bool include_reference = true,
+      bool include_peff_variants = true,
+      bool include_peff_modifications = true) const;
+
+  private:
+    /**
+      @brief Apply PEFF modifications at specific positions to a peptide.
+
+      Helper method that generates all 2^n combinations of PEFF modifications
+      for a given peptide, where n is the number of PEFF modifications within
+      the peptide's range.
+
+      @param peptide The base peptide sequence
+      @param peff_mods PEFF modifications with positions relative to the peptide (0-based)
+      @param base_description Base description to prepend to modification descriptions
+      @return Vector of pairs: (description, modified AASequence)
+    */
+    static std::vector<std::pair<String, AASequence>> enumeratePEFFModifications_(
+      const AASequence& peptide,
+      const std::vector<std::pair<Size, const PEFFModification*>>& peff_mods,
+      const String& base_description);
   };
 
   /**

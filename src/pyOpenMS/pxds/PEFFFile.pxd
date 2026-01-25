@@ -293,6 +293,16 @@ cdef extern from "<OpenMS/FORMAT/PEFFFile.h>" namespace "OpenMS":
             bool include_variants,
             bool include_modifications) except + nogil  # wrap-ignore
 
+        libcpp_vector[libcpp_pair[String, AASequence]] generatePeptides(
+            const ProteaseDigestion& digestor,
+            const libcpp_vector[String]& additional_variable_mods,
+            Size max_variable_mods_per_peptide,
+            Size min_length,
+            Size max_length,
+            bool include_reference,
+            bool include_peff_variants,
+            bool include_peff_modifications) except + nogil  # wrap-ignore
+
 
 cdef extern from "<OpenMS/FORMAT/PEFFFile.h>" namespace "OpenMS::PEFFEntry":
 
