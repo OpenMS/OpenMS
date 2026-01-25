@@ -48,7 +48,7 @@
 					<cvParam cvRef="MS" accession="MS:1000022" name="TOF Total Path Length" value="0" unitAccession="UO:0000008" unitName="meter" unitCvRef="UO" />
 					<cvParam cvRef="MS" accession="MS:1000024" name="final MS exponent" value="0" />
 					<cvParam cvRef="MS" accession="MS:1000025" name="magnetic field strength" value="0" unitAccession="UO:0000228" unitName="tesla" unitCvRef="UO" />
-					<cvParam cvRef="MS" accession="MS:1000079" name="fourier transform ion cyclotron resonance mass spectrometer" />
+					<cvParam cvRef="MS" accession="MS:1000079" name="fourier transform ion cyclotron resonance" />
 				</analyzer>
 				<detector order="3">
 					<cvParam cvRef="MS" accession="MS:1000028" name="detector resolution" value="0" />

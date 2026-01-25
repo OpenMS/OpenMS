@@ -49,7 +49,7 @@
 	</softwareList>
 	<instrumentConfigurationList count="1">
 		<instrumentConfiguration id="ic_0">
-			<cvParam cvRef="MS" accession="MS:1001910" name="LTQ Orbitrap Elite" />
+			<cvParam cvRef="MS" accession="MS:1001910" name="Orbitrap Elite" />
 			<cvParam cvRef="MS" accession="MS:1000529" name="instrument serial number" value="SN03293B"/>
 			<componentList count="3">
 				<source order="1">

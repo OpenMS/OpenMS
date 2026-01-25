@@ -698,7 +698,7 @@ namespace OpenMS::Internal
           }
           if (it->theoretical_mass > 0.0)
           {
-            os << R"(      <cvParam cvRef="MS" accession="MS:1001117" name="theoretical mass" value=")" << 
+            os << R"(      <cvParam cvRef="MS" accession="MS:1001117" name="theoretical neutral mass" value=")" << 
             it->theoretical_mass << "\" unitCvRef=\"UO\" unitAccession=\"UO:0000221\" unitName=\"dalton\"/>\n";
           }
           if (!it->molecular_formula.empty())
