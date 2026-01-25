@@ -115,6 +115,7 @@ cdef extern from "<OpenMS/FORMAT/PEFFFile.h>" namespace "OpenMS":
         #    accession: Modification accession (MOD:xxxxx, UNIMOD:xx, or custom)
         #    name: Human-readable name
         #    evidence: Optional evidence tag
+        #    annotation_id: Optional annotation identifier
 
         PEFFModification() except + nogil
         PEFFModification(PEFFModification) except + nogil
@@ -123,6 +124,7 @@ cdef extern from "<OpenMS/FORMAT/PEFFFile.h>" namespace "OpenMS":
         String accession
         String name
         String evidence
+        String annotation_id
 
 
 cdef extern from "<OpenMS/FORMAT/PEFFFile.h>" namespace "OpenMS":
@@ -135,6 +137,7 @@ cdef extern from "<OpenMS/FORMAT/PEFFFile.h>" namespace "OpenMS":
         #    position: 1-based position
         #    variant_aa: Variant amino acid character
         #    sources: Source references (dbSNP, COSMIC, etc.)
+        #    annotation_id: Optional annotation identifier
 
         PEFFVariantSimple() except + nogil
         PEFFVariantSimple(PEFFVariantSimple) except + nogil
@@ -142,6 +145,7 @@ cdef extern from "<OpenMS/FORMAT/PEFFFile.h>" namespace "OpenMS":
         Size position
         char variant_aa
         String sources
+        String annotation_id
 
 
 cdef extern from "<OpenMS/FORMAT/PEFFFile.h>" namespace "OpenMS":
@@ -155,6 +159,7 @@ cdef extern from "<OpenMS/FORMAT/PEFFFile.h>" namespace "OpenMS":
         #    end_position: 1-based end position
         #    replacement: Replacement sequence (empty = deletion)
         #    sources: Source references
+        #    annotation_id: Optional annotation identifier
 
         PEFFVariantComplex() except + nogil
         PEFFVariantComplex(PEFFVariantComplex) except + nogil
@@ -163,6 +168,7 @@ cdef extern from "<OpenMS/FORMAT/PEFFFile.h>" namespace "OpenMS":
         Size end_position
         String replacement
         String sources
+        String annotation_id
 
 
 cdef extern from "<OpenMS/FORMAT/PEFFFile.h>" namespace "OpenMS":
@@ -177,6 +183,7 @@ cdef extern from "<OpenMS/FORMAT/PEFFFile.h>" namespace "OpenMS":
         #    type: PEFF CV term (e.g., PEFF:0001021)
         #    name: Optional name
         #    description: Optional description
+        #    annotation_id: Optional annotation identifier
 
         PEFFProcessedRegion() except + nogil
         PEFFProcessedRegion(PEFFProcessedRegion) except + nogil
@@ -186,6 +193,7 @@ cdef extern from "<OpenMS/FORMAT/PEFFFile.h>" namespace "OpenMS":
         String type
         String name
         String description
+        String annotation_id
 
 
 cdef extern from "<OpenMS/FORMAT/PEFFFile.h>" namespace "OpenMS":
@@ -323,6 +331,7 @@ cdef extern from "<OpenMS/FORMAT/PEFFFile.h>" namespace "OpenMS":
         #    conversion: Conversion notes
         #    specific_keys: Custom key definitions
         #    specific_values: Custom value type definitions
+        #    has_annotation_identifiers: Whether entries use annotation identifiers
 
         PEFFDatabaseMetadata() except + nogil
         PEFFDatabaseMetadata(PEFFDatabaseMetadata) except + nogil
@@ -342,3 +351,4 @@ cdef extern from "<OpenMS/FORMAT/PEFFFile.h>" namespace "OpenMS":
         libcpp_map[String, String] specific_keys
         libcpp_map[String, String] specific_values
         libcpp_vector[String] optional_tag_defs
+        bool has_annotation_identifiers

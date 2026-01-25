@@ -112,7 +112,7 @@ def getVariantSequences(self):
         try:
             variant_seq = AASequence.fromString(variant_seq_str)
             result.append((desc, variant_seq))
-        except:
+        except Exception:
             # Skip if sequence can't be parsed (invalid amino acid)
             pass
 

@@ -300,6 +300,30 @@ namespace OpenMS
       size_t num_mods = local_mods.size();
       size_t total_elements = num_variants + num_mods;
 
+      // Safeguard against combinatorial explosion
+      // Limit to 20 elements (2^20 = ~1 million combinations per peptide)
+      constexpr size_t MAX_COMBINATORIAL_ELEMENTS = 20;
+      if (total_elements > MAX_COMBINATORIAL_ELEMENTS)
+      {
+        OPENMS_LOG_WARN << "Peptide at position " << start << "-" << end
+                        << " has " << total_elements << " variants/modifications. "
+                        << "Limiting to first " << MAX_COMBINATORIAL_ELEMENTS
+                        << " to avoid combinatorial explosion." << std::endl;
+        // Prioritize variants over modifications, truncate excess
+        if (num_variants > MAX_COMBINATORIAL_ELEMENTS)
+        {
+          local_variants.resize(MAX_COMBINATORIAL_ELEMENTS);
+          local_mods.clear();
+        }
+        else
+        {
+          local_mods.resize(MAX_COMBINATORIAL_ELEMENTS - num_variants);
+        }
+        num_variants = local_variants.size();
+        num_mods = local_mods.size();
+        total_elements = num_variants + num_mods;
+      }
+
       // Include reference peptide if requested (combo = 0)
       if (include_reference)
       {
