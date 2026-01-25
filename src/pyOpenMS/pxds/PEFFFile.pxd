@@ -295,7 +295,8 @@ cdef extern from "<OpenMS/FORMAT/PEFFFile.h>" namespace "OpenMS":
 
         libcpp_vector[libcpp_pair[String, AASequence]] generatePeptides(
             const ProteaseDigestion& digestor,
-            const libcpp_vector[String]& additional_variable_mods,
+            const libcpp_vector[String]& fixed_mods,
+            const libcpp_vector[String]& variable_mods,
             Size max_variable_mods_per_peptide,
             Size min_length,
             Size max_length,

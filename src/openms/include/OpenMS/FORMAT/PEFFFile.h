@@ -303,17 +303,20 @@ namespace OpenMS
       1. Enzymatic digestion
       2. PEFF variant enumeration (position-specific amino acid substitutions)
       3. PEFF modification enumeration (position-specific PTMs from the database)
-      4. Additional variable modifications (e.g., Oxidation from sample handling)
+      4. Fixed sample modifications (e.g., Carbamidomethyl on all Cys)
+      5. Variable sample modifications (e.g., Oxidation on Met)
 
       The workflow is:
       - Digest protein into peptides
       - For each peptide, enumerate PEFF variant combinations
       - For each variant, enumerate PEFF modification combinations
-      - For each PEFF-annotated peptide, apply additional variable modifications
+      - Apply fixed modifications to all compatible residues
+      - Generate variable modification combinations
 
       @param digestor The protease digestion object (configured with enzyme, missed cleavages)
-      @param additional_variable_mods Additional variable modifications to apply (e.g., {"Oxidation (M)", "Deamidated (N)"})
-      @param max_variable_mods_per_peptide Maximum number of additional variable mods per peptide (default: 2)
+      @param fixed_mods Fixed modifications applied to all compatible residues (e.g., {"Carbamidomethyl (C)"})
+      @param variable_mods Variable modifications generating combinations (e.g., {"Oxidation (M)", "Deamidated (N)"})
+      @param max_variable_mods_per_peptide Maximum number of variable mods per peptide (default: 2)
       @param min_length Minimum peptide length (default: 6)
       @param max_length Maximum peptide length (default: 40, 0 = no limit)
       @param include_reference Include unmodified reference peptides (default: true)
@@ -323,7 +326,8 @@ namespace OpenMS
     */
     std::vector<std::pair<String, AASequence>> generatePeptides(
       const ProteaseDigestion& digestor,
-      const std::vector<String>& additional_variable_mods = {},
+      const std::vector<String>& fixed_mods = {},
+      const std::vector<String>& variable_mods = {},
       Size max_variable_mods_per_peptide = 2,
       Size min_length = 6,
       Size max_length = 40,

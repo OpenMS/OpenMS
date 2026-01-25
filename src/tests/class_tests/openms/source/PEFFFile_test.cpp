@@ -1001,9 +1001,10 @@ START_SECTION([PEFFEntry] generatePeptides_basic)
   digestor.setEnzyme("Trypsin");
   digestor.setMissedCleavages(0);
 
-  // Test without additional variable mods
+  // Test without additional mods (empty fixed and variable)
+  std::vector<String> no_fixed_mods;
   std::vector<String> no_var_mods;
-  auto peptides = entry.generatePeptides(digestor, no_var_mods, 2, 2, 20, true, true, true);
+  auto peptides = entry.generatePeptides(digestor, no_fixed_mods, no_var_mods, 2, 2, 20, true, true, true);
 
   // Should have peptides
   TEST_EQUAL(peptides.size() > 0, true)
@@ -1027,9 +1028,42 @@ START_SECTION([PEFFEntry] generatePeptides_basic)
 }
 END_SECTION
 
+START_SECTION([PEFFEntry] generatePeptides_with_fixed_mods)
+{
+  // Test with fixed modifications (like Carbamidomethyl on Cys)
+  PEFFEntry entry;
+  // Sequence with cysteine that gets carbamidomethylated
+  entry.sequence = "MKACEPTIDER";  // MK | ACEPTIDER (C at position 4)
+
+  ProteaseDigestion digestor;
+  digestor.setEnzyme("Trypsin");
+  digestor.setMissedCleavages(0);
+
+  // Add Carbamidomethyl as fixed modification
+  std::vector<String> fixed_mods = {"Carbamidomethyl (C)"};
+  std::vector<String> no_var_mods;
+
+  auto peptides = entry.generatePeptides(digestor, fixed_mods, no_var_mods, 0, 2, 20, true, false, false);
+
+  // Should have peptides
+  TEST_EQUAL(peptides.size() > 0, true)
+
+  // All peptides containing C should have Carbamidomethyl
+  for (const auto& [desc, seq] : peptides)
+  {
+    String seq_str = seq.toUnmodifiedString();
+    if (seq_str.find('C') != String::npos)
+    {
+      // The peptide has C, so it should be modified
+      TEST_EQUAL(seq.isModified(), true)
+    }
+  }
+}
+END_SECTION
+
 START_SECTION([PEFFEntry] generatePeptides_with_variable_mods)
 {
-  // Test with additional variable modifications (sample handling)
+  // Test with variable modifications (sample handling)
   PEFFEntry entry;
   // Sequence with methionine that can be oxidized
   entry.sequence = "MKAMEPTIDER";  // MK | AMEPTIDER (M at position 4)
@@ -1039,9 +1073,10 @@ START_SECTION([PEFFEntry] generatePeptides_with_variable_mods)
   digestor.setMissedCleavages(0);
 
   // Add Oxidation as variable modification (simulating sample handling)
+  std::vector<String> no_fixed_mods;
   std::vector<String> var_mods = {"Oxidation (M)"};
 
-  auto peptides = entry.generatePeptides(digestor, var_mods, 2, 2, 20, true, false, false);
+  auto peptides = entry.generatePeptides(digestor, no_fixed_mods, var_mods, 2, 2, 20, true, false, false);
 
   // Should have more peptides due to oxidation variants
   // Reference AMEPTIDER + oxidized versions
@@ -1065,7 +1100,7 @@ START_SECTION([PEFFEntry] generatePeptides_with_variable_mods)
 
   // Compare with no variable mods
   std::vector<String> no_var_mods;
-  auto peptides_no_varmod = entry.generatePeptides(digestor, no_var_mods, 2, 2, 20, true, false, false);
+  auto peptides_no_varmod = entry.generatePeptides(digestor, no_fixed_mods, no_var_mods, 2, 2, 20, true, false, false);
 
   // With variable mods should have >= peptides than without
   TEST_EQUAL(peptides.size() >= peptides_no_varmod.size(), true)
@@ -1074,29 +1109,28 @@ END_SECTION
 
 START_SECTION([PEFFEntry] generatePeptides_full_workflow)
 {
-  // Test full workflow: PEFF variants + PEFF mods + sample handling mods
+  // Test full workflow: PEFF variants + PEFF mods + fixed + variable sample mods
   PEFFEntry entry;
-  entry.sequence = "MKAMEPTIDER";
+  entry.sequence = "MKACMEPTIDER";  // Has both C and M
   // PEFF variant
-  entry.simple_variants.push_back(PEFFVariantSimple(4, 'L', "var1"));
+  entry.simple_variants.push_back(PEFFVariantSimple(5, 'L', "var1"));  // M->L at position 5
 
   ProteaseDigestion digestor;
   digestor.setEnzyme("Trypsin");
   digestor.setMissedCleavages(0);
 
-  // No additional mods - just PEFF annotations
-  std::vector<String> no_mods;
-  auto peff_only = entry.generatePeptides(digestor, no_mods, 2, 2, 20, true, true, false);
+  // No sample handling mods - just PEFF annotations
+  std::vector<String> no_fixed;
+  std::vector<String> no_var;
+  auto peff_only = entry.generatePeptides(digestor, no_fixed, no_var, 2, 2, 20, true, true, false);
 
-  // With Oxidation on top
-  std::vector<String> with_ox = {"Oxidation (M)"};
-  auto with_varmod = entry.generatePeptides(digestor, with_ox, 1, 2, 20, true, true, false);
+  // With Carbamidomethyl (fixed) and Oxidation (variable)
+  std::vector<String> fixed = {"Carbamidomethyl (C)"};
+  std::vector<String> variable = {"Oxidation (M)"};
+  auto with_sample_mods = entry.generatePeptides(digestor, fixed, variable, 1, 2, 20, true, true, false);
 
-  // Variable mods should add more peptides
-  TEST_EQUAL(with_varmod.size() >= peff_only.size(), true)
-
-  // The difference represents oxidation combinations
-  // Each peptide with M can have an oxidized version
+  // Sample mods should add more peptides (or at least same, if no compatible residues)
+  TEST_EQUAL(with_sample_mods.size() >= peff_only.size(), true)
 }
 END_SECTION
 

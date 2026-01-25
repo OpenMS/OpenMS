@@ -567,7 +567,8 @@ namespace OpenMS
 
   std::vector<std::pair<String, AASequence>> PEFFEntry::generatePeptides(
     const ProteaseDigestion& digestor,
-    const std::vector<String>& additional_variable_mods,
+    const std::vector<String>& fixed_mods,
+    const std::vector<String>& variable_mods,
     Size max_variable_mods_per_peptide,
     Size min_length,
     Size max_length,
@@ -587,11 +588,19 @@ namespace OpenMS
     std::vector<std::pair<size_t, size_t>> peptide_ranges;
     digestor.digest(protein, peptide_ranges, min_length, max_length);
 
-    // Prepare additional variable modifications lookup (for ModifiedPeptideGenerator)
-    ModifiedPeptideGenerator::MapToResidueType var_mods_map;
-    if (!additional_variable_mods.empty())
+    // Prepare fixed modifications lookup (applied to all compatible residues)
+    ModifiedPeptideGenerator::MapToResidueType fixed_mods_map;
+    if (!fixed_mods.empty())
     {
-      StringList mod_list(additional_variable_mods.begin(), additional_variable_mods.end());
+      StringList mod_list(fixed_mods.begin(), fixed_mods.end());
+      fixed_mods_map = ModifiedPeptideGenerator::getModifications(mod_list);
+    }
+
+    // Prepare variable modifications lookup (for combinatorial generation)
+    ModifiedPeptideGenerator::MapToResidueType var_mods_map;
+    if (!variable_mods.empty())
+    {
+      StringList mod_list(variable_mods.begin(), variable_mods.end());
       var_mods_map = ModifiedPeptideGenerator::getModifications(mod_list);
     }
 
@@ -695,17 +704,24 @@ namespace OpenMS
         // Step 4: Enumerate PEFF modification combinations
         auto peff_mod_peptides = enumeratePEFFModifications_(variant_peptide, local_mods, variant_desc);
 
-        // Step 5: Apply additional variable modifications (like Oxidation)
+        // Step 5: Apply fixed modifications (e.g., Carbamidomethyl on all Cys)
+        // and then variable modifications (like Oxidation)
         for (auto& [peff_desc, peff_peptide] : peff_mod_peptides)
         {
-          if (additional_variable_mods.empty())
+          // Apply fixed modifications to all compatible residues
+          if (!fixed_mods.empty())
           {
-            // No additional mods - add directly
+            ModifiedPeptideGenerator::applyFixedModifications(fixed_mods_map, peff_peptide);
+          }
+
+          if (variable_mods.empty())
+          {
+            // No variable mods - add directly (with fixed mods already applied)
             result.emplace_back(peff_desc, peff_peptide);
           }
           else
           {
-            // Apply additional variable modifications using ModifiedPeptideGenerator
+            // Apply variable modifications using ModifiedPeptideGenerator
             std::vector<AASequence> var_mod_peptides;
             ModifiedPeptideGenerator::applyVariableModifications(
               var_mods_map,
