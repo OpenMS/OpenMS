@@ -246,13 +246,14 @@ namespace OpenMS
     /**
       @brief Get all variant sequences (each variant applied individually).
 
-      Each variant sequence has one variant applied.
-      Does not combine variants.
-
-      @param include_complex If true, also include complex variants (insertions, deletions, multi-residue substitutions)
-      @return Vector of pairs: (variant description, AASequence)
+      @param descriptions Output vector for variant descriptions
+      @param sequences Output vector for variant sequences
+      @param include_complex If true, also include complex variants (default: false)
     */
-    std::vector<std::pair<String, AASequence>> getVariantSequences(bool include_complex = false) const;
+    void getVariantSequences(
+      std::vector<String>& descriptions,
+      std::vector<AASequence>& sequences,
+      bool include_complex = false) const;
 
     /**
       @brief Get processed sequence (e.g., mature protein without signal peptide).
@@ -270,25 +271,20 @@ namespace OpenMS
 
       This method performs enzymatic digestion on the reference sequence and then
       generates all combinations of simple variants and/or modifications within each peptide.
-      This is more efficient than generating all 2^n protein-level combinations because
-      most peptides contain only a few (0-3) variants/modifications.
-
-      For each peptide with k variants and m modifications, generates up to 2^(k+m) combinations
-      depending on which options are enabled.
-
-      Complex variants (insertions, deletions) are not included as they may change
-      peptide boundaries. Modifications with unknown positions (position == 0) are skipped.
 
       @param digestor The protease digestion object (must be configured with enzyme, missed cleavages, etc.)
+      @param descriptions Output vector for peptide descriptions (empty for reference peptides)
+      @param sequences Output vector for peptide sequences
       @param min_length Minimum peptide length to include (default: 6)
       @param max_length Maximum peptide length to include (default: 40, 0 = no limit)
-      @param include_reference If true, include reference peptides (no variants/mods applied) (default: true)
+      @param include_reference If true, include reference peptides (default: true)
       @param include_variants If true, generate variant combinations (default: true)
       @param include_modifications If true, generate modification combinations (default: false)
-      @return Vector of pairs: (description, AASequence). Description is empty for reference peptides.
     */
-    std::vector<std::pair<String, AASequence>> digestWithVariants(
+    void digestWithVariants(
       const ProteaseDigestion& digestor,
+      std::vector<String>& descriptions,
+      std::vector<AASequence>& sequences,
       Size min_length = 6,
       Size max_length = 40,
       bool include_reference = true,
@@ -298,34 +294,24 @@ namespace OpenMS
     /**
       @brief Generate peptides with PEFF annotations and optional sample handling modifications.
 
-      This is the main method for generating a complete peptide library from a PEFF entry.
-      It combines:
-      1. Enzymatic digestion
-      2. PEFF variant enumeration (position-specific amino acid substitutions)
-      3. PEFF modification enumeration (position-specific PTMs from the database)
-      4. Fixed sample modifications (e.g., Carbamidomethyl on all Cys)
-      5. Variable sample modifications (e.g., Oxidation on Met)
-
-      The workflow is:
-      - Digest protein into peptides
-      - For each peptide, enumerate PEFF variant combinations
-      - For each variant, enumerate PEFF modification combinations
-      - Apply fixed modifications to all compatible residues
-      - Generate variable modification combinations
+      Combines enzymatic digestion, PEFF variants/modifications, and sample handling mods.
 
       @param digestor The protease digestion object (configured with enzyme, missed cleavages)
-      @param fixed_mods Fixed modifications applied to all compatible residues (e.g., {"Carbamidomethyl (C)"})
-      @param variable_mods Variable modifications generating combinations (e.g., {"Oxidation (M)", "Deamidated (N)"})
-      @param max_variable_mods_per_peptide Maximum number of variable mods per peptide (default: 2)
+      @param descriptions Output vector for peptide descriptions
+      @param sequences Output vector for peptide sequences
+      @param fixed_mods Fixed modifications (e.g., {"Carbamidomethyl (C)"})
+      @param variable_mods Variable modifications (e.g., {"Oxidation (M)"})
+      @param max_variable_mods_per_peptide Maximum variable mods per peptide (default: 2)
       @param min_length Minimum peptide length (default: 6)
       @param max_length Maximum peptide length (default: 40, 0 = no limit)
-      @param include_reference Include unmodified reference peptides (default: true)
-      @param include_peff_variants Enumerate PEFF variant combinations (default: true)
-      @param include_peff_modifications Enumerate PEFF modification combinations (default: true)
-      @return Vector of pairs: (description, AASequence)
+      @param include_reference Include reference peptides (default: true)
+      @param include_peff_variants Enumerate PEFF variants (default: true)
+      @param include_peff_modifications Enumerate PEFF modifications (default: true)
     */
-    std::vector<std::pair<String, AASequence>> generatePeptides(
+    void generatePeptides(
       const ProteaseDigestion& digestor,
+      std::vector<String>& descriptions,
+      std::vector<AASequence>& sequences,
       const std::vector<String>& fixed_mods = {},
       const std::vector<String>& variable_mods = {},
       Size max_variable_mods_per_peptide = 2,

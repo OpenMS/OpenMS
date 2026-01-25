@@ -273,7 +273,15 @@ cdef extern from "<OpenMS/FORMAT/PEFFFile.h>" namespace "OpenMS":
             #  Get an AASequence with all annotated modifications applied.
             #  Modifications with unknown positions (position == 0) are skipped.
 
-        libcpp_vector[libcpp_pair[String, AASequence]] getVariantSequences() except + nogil  # wrap-ignore
+        void getVariantSequences(
+            libcpp_vector[String]& descriptions,
+            libcpp_vector[AASequence]& sequences,
+            bool include_complex) except + nogil
+            # wrap-doc:
+            #  Get all variant sequences (each variant applied individually).
+            #  :param descriptions: Output list for variant descriptions
+            #  :param sequences: Output list for variant sequences
+            #  :param include_complex: Include complex variants (default: false)
 
         AASequence getProcessedSequence() except + nogil
             # wrap-doc:
@@ -285,16 +293,25 @@ cdef extern from "<OpenMS/FORMAT/PEFFFile.h>" namespace "OpenMS":
             #  Get processed sequence for the given region type.
             #  :param region_type: PEFF CV term (e.g., "PEFF:0001021" for signal peptide)
 
-        libcpp_vector[libcpp_pair[String, AASequence]] digestWithVariants(
+        void digestWithVariants(
             const ProteaseDigestion& digestor,
+            libcpp_vector[String]& descriptions,
+            libcpp_vector[AASequence]& sequences,
             Size min_length,
             Size max_length,
             bool include_reference,
             bool include_variants,
-            bool include_modifications) except + nogil  # wrap-ignore
+            bool include_modifications) except + nogil
+            # wrap-doc:
+            #  Digest protein and enumerate PEFF variant/modification combinations.
+            #  :param digestor: ProteaseDigestion object
+            #  :param descriptions: Output list for peptide descriptions
+            #  :param sequences: Output list for peptide sequences
 
-        libcpp_vector[libcpp_pair[String, AASequence]] generatePeptides(
+        void generatePeptides(
             const ProteaseDigestion& digestor,
+            libcpp_vector[String]& descriptions,
+            libcpp_vector[AASequence]& sequences,
             const libcpp_vector[String]& fixed_mods,
             const libcpp_vector[String]& variable_mods,
             Size max_variable_mods_per_peptide,
@@ -302,7 +319,14 @@ cdef extern from "<OpenMS/FORMAT/PEFFFile.h>" namespace "OpenMS":
             Size max_length,
             bool include_reference,
             bool include_peff_variants,
-            bool include_peff_modifications) except + nogil  # wrap-ignore
+            bool include_peff_modifications) except + nogil
+            # wrap-doc:
+            #  Generate peptides with PEFF variants and sample modifications.
+            #  :param digestor: ProteaseDigestion object
+            #  :param descriptions: Output list for peptide descriptions
+            #  :param sequences: Output list for peptide sequences
+            #  :param fixed_mods: Fixed mods like ["Carbamidomethyl (C)"]
+            #  :param variable_mods: Variable mods like ["Oxidation (M)"]
 
 
 cdef extern from "<OpenMS/FORMAT/PEFFFile.h>" namespace "OpenMS::PEFFEntry":

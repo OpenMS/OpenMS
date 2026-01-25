@@ -127,9 +127,13 @@ namespace OpenMS
     return seq;
   }
 
-  std::vector<std::pair<String, AASequence>> PEFFEntry::getVariantSequences(bool include_complex) const
+  void PEFFEntry::getVariantSequences(
+    std::vector<String>& descriptions,
+    std::vector<AASequence>& sequences,
+    bool include_complex) const
   {
-    std::vector<std::pair<String, AASequence>> variants;
+    descriptions.clear();
+    sequences.clear();
 
     // Simple variants (single AA substitution)
     for (const auto& var : simple_variants)
@@ -152,7 +156,8 @@ namespace OpenMS
 
       try
       {
-        variants.push_back(std::make_pair(desc, AASequence::fromString(variant_seq)));
+        descriptions.push_back(desc);
+        sequences.push_back(AASequence::fromString(variant_seq));
       }
       catch (const Exception::BaseException&)
       {
@@ -185,7 +190,8 @@ namespace OpenMS
 
         try
         {
-          variants.push_back(std::make_pair(desc, AASequence::fromString(variant_seq)));
+          descriptions.push_back(desc);
+          sequences.push_back(AASequence::fromString(variant_seq));
         }
         catch (const Exception::BaseException&)
         {
@@ -193,8 +199,6 @@ namespace OpenMS
         }
       }
     }
-
-    return variants;
   }
 
   AASequence PEFFEntry::getProcessedSequence(const String& region_type) const
@@ -227,19 +231,22 @@ namespace OpenMS
     return AASequence();
   }
 
-  std::vector<std::pair<String, AASequence>> PEFFEntry::digestWithVariants(
+  void PEFFEntry::digestWithVariants(
     const ProteaseDigestion& digestor,
+    std::vector<String>& descriptions,
+    std::vector<AASequence>& sequences,
     Size min_length,
     Size max_length,
     bool include_reference,
     bool include_variants,
     bool include_modifications) const
   {
-    std::vector<std::pair<String, AASequence>> result;
+    descriptions.clear();
+    sequences.clear();
 
     if (sequence.empty())
     {
-      return result;
+      return;
     }
 
     // Step 1: Digest the reference sequence to get peptide boundaries
@@ -330,7 +337,8 @@ namespace OpenMS
       {
         try
         {
-          result.emplace_back("", AASequence::fromString(ref_peptide));
+          descriptions.push_back("");
+          sequences.push_back(AASequence::fromString(ref_peptide));
         }
         catch (const Exception::BaseException&)
         {
@@ -457,13 +465,12 @@ namespace OpenMS
 
           if (!mod_failed)
           {
-            result.emplace_back(description, pep_seq);
+            descriptions.push_back(description);
+            sequences.push_back(pep_seq);
           }
         }
       }
     }
-
-    return result;
   }
 
   std::vector<std::pair<String, AASequence>> PEFFEntry::enumeratePEFFModifications_(
@@ -565,8 +572,10 @@ namespace OpenMS
     return result;
   }
 
-  std::vector<std::pair<String, AASequence>> PEFFEntry::generatePeptides(
+  void PEFFEntry::generatePeptides(
     const ProteaseDigestion& digestor,
+    std::vector<String>& descriptions,
+    std::vector<AASequence>& sequences,
     const std::vector<String>& fixed_mods,
     const std::vector<String>& variable_mods,
     Size max_variable_mods_per_peptide,
@@ -576,11 +585,12 @@ namespace OpenMS
     bool include_peff_variants,
     bool include_peff_modifications) const
   {
-    std::vector<std::pair<String, AASequence>> result;
+    descriptions.clear();
+    sequences.clear();
 
     if (sequence.empty())
     {
-      return result;
+      return;
     }
 
     // Step 1: Digest the reference sequence to get peptide boundaries
@@ -717,7 +727,8 @@ namespace OpenMS
           if (variable_mods.empty())
           {
             // No variable mods - add directly (with fixed mods already applied)
-            result.emplace_back(peff_desc, peff_peptide);
+            descriptions.push_back(peff_desc);
+            sequences.push_back(peff_peptide);
           }
           else
           {
@@ -740,14 +751,13 @@ namespace OpenMS
                 if (!full_desc.empty()) full_desc += ";";
                 full_desc += "+varmod";
               }
-              result.emplace_back(full_desc, std::move(var_mod_pep));
+              descriptions.push_back(full_desc);
+              sequences.push_back(std::move(var_mod_pep));
             }
           }
         }
       }
     }
-
-    return result;
   }
 
   void PEFFFile::load(const String& filename,
