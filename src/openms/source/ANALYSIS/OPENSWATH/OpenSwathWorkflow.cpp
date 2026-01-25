@@ -1250,8 +1250,6 @@ namespace OpenMS
 
         if (chromatogram_map.find(transition->getNativeID()) == chromatogram_map.end())
         {
-          // Do not throw here for unmapped transitions in SRM/mzML-only mode.
-          // Increment a counter and log at debug level to avoid console clutter.
           OPENMS_LOG_DEBUG << "Did not find chromatogram for transition " << transition->getNativeID()
                            << "; skipping this transition." << std::endl;
           ++unmapped_transitions;
@@ -1318,8 +1316,7 @@ namespace OpenMS
 
       // Ensure there is at least one chromatogram originating from a
       // detecting transition. MRMTransitionGroupPicker expects at least one
-      // detecting chromatogram; otherwise it may access empty vectors and
-      // throw InvalidRange. If none are present, skip this assay.
+      // detecting chromatogram.
       bool has_detecting_chrom = false;
       for (const auto & chrom : transition_group.getChromatograms())
       {
@@ -1335,7 +1332,6 @@ namespace OpenMS
       }
       if (!has_detecting_chrom)
       {
-        // As above, avoid noisy warnings and aggregate counts
         OPENMS_LOG_DEBUG << "No detecting chromatograms for assay " << id << "; skipping scoring." << std::endl;
         ++assays_no_detecting_chrom;
         continue;
@@ -1403,14 +1399,13 @@ namespace OpenMS
       }
     }
 
-  // Summarize mapping counts to avoid noisy logs
-  OPENMS_LOG_INFO << "OpenSwathWorkflow: mapped_transitions=" << mapped_transitions
-          << ", unmapped_transitions=" << unmapped_transitions
-          << ", assays_processed=" << assays_processed
-          << ", assays_no_chrom=" << assays_no_chrom
-          << ", assays_no_detecting_chrom=" << assays_no_detecting_chrom
-          << ", assays_with_multiple_chroms=" << assays_with_multi_chroms
-          << std::endl;
+    OPENMS_LOG_INFO << "OpenSwathWorkflow: mapped_transitions=" << mapped_transitions
+            << ", unmapped_transitions=" << unmapped_transitions
+            << ", assays_processed=" << assays_processed
+            << ", assays_no_chrom=" << assays_no_chrom
+            << ", assays_no_detecting_chrom=" << assays_no_detecting_chrom
+            << ", assays_with_multiple_chroms=" << assays_with_multi_chroms
+            << std::endl;
 
     // Only write at the very end since this is a step that needs a barrier
     if (osw_writer.isActive())
