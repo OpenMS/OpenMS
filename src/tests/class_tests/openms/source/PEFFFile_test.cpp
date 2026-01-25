@@ -62,7 +62,8 @@ START_SECTION((void load(const String& filename, std::vector<PEFFEntry>& entries
   TEST_EQUAL(headers[0].db_date, "20240115")
   TEST_EQUAL(headers[0].number_of_entries, 3)
   TEST_EQUAL(headers[0].sequence_type, PEFFDatabaseMetadata::SequenceType::AA)
-  TEST_EQUAL(headers[0].general_comment, "This is a test file")
+  TEST_EQUAL(headers[0].general_comments.size(), 1)
+  TEST_EQUAL(headers[0].general_comments[0], "This is a test file")
 
   // Check entries
   TEST_EQUAL(entries.size(), 3)
@@ -620,6 +621,111 @@ START_SECTION(test_minimal_file)
   TEST_EQUAL(entries[0].protein_names.size(), 1)
   TEST_EQUAL(entries[0].protein_names[0], "Minimal Test")
   TEST_EQUAL(entries[0].sequence, "SEQUENCE")
+}
+END_SECTION
+
+START_SECTION(test_uniprot_format)
+{
+  // Test UniProt-style PEFF with extended keywords
+  vector<PEFFEntry> entries;
+  vector<PEFFDatabaseMetadata> headers;
+  PEFFFile file;
+
+  file.load(OPENMS_GET_TEST_DATA_PATH("PEFFFile_uniprot.peff"), entries, headers);
+
+  // Check header - multiple GeneralComments
+  TEST_EQUAL(headers.size(), 1)
+  TEST_EQUAL(headers[0].general_comments.size(), 2)
+  TEST_EQUAL(headers[0].general_comments[0], "this is a hand crafted peff file")
+  TEST_EQUAL(headers[0].general_comments[1], "This is a second comment line.")
+
+  // Check header - Conversion
+  TEST_EQUAL(headers[0].conversion, "manual extraction of entries")
+
+  // Check header - SpecificKey and SpecificValue
+  TEST_EQUAL(headers[0].specific_keys.size(), 1)
+  TEST_EQUAL(headers[0].specific_keys.count("isoform"), 1)
+  TEST_EQUAL(headers[0].specific_keys.at("isoform"), "description of a specific isoform")
+  TEST_EQUAL(headers[0].specific_values.size(), 1)
+  TEST_EQUAL(headers[0].specific_values.count("isoform"), 1)
+  TEST_EQUAL(headers[0].specific_values.at("isoform"), "(xsd:type=string)")
+
+  TEST_EQUAL(entries.size(), 4)
+
+  // First entry - check ID, DbUniqueId, AltAC
+  TEST_EQUAL(entries[0].identifier, "sp:P06748")
+  TEST_EQUAL(entries[0].entry_id, "NPM_HUMAN")
+  TEST_EQUAL(entries[0].db_unique_id, "P06748")
+  TEST_EQUAL(entries[0].alt_accessions.size(), 1)
+  TEST_EQUAL(entries[0].alt_accessions[0], "Q5SRR7")
+  TEST_EQUAL(entries[0].gene_name, "NPM1")
+  TEST_EQUAL(entries[0].modifications.size(), 2)
+
+  // Second entry - check OX (shorthand for NcbiTaxId)
+  TEST_EQUAL(entries[1].identifier, "sp:P02144_CHAIN0")
+  TEST_EQUAL(entries[1].entry_id, "MYG_HUMAN")
+  TEST_EQUAL(entries[1].ncbi_tax_id, 9606)  // Set via \OX
+  TEST_EQUAL(entries[1].simple_variants.size(), 4)
+
+  // Third entry - check stop codon variant (*) and bracketed sources
+  TEST_EQUAL(entries[2].identifier, "sp:P00761")
+  TEST_EQUAL(entries[2].processed_regions.size(), 2)
+  TEST_EQUAL(entries[2].processed_regions[0].type, "PEFF:0001021")  // signal peptide
+  TEST_EQUAL(entries[2].processed_regions[1].type, "PEFF:0001020")  // mature protein
+  TEST_EQUAL(entries[2].simple_variants.size(), 2)
+  TEST_EQUAL(entries[2].simple_variants[1].variant_aa, '*')  // Stop codon
+  TEST_EQUAL(entries[2].simple_variants[1].sources, "[ESP][ExAC]")  // Bracketed sources
+
+  // Fourth entry - check DisulfideBond
+  TEST_EQUAL(entries[3].identifier, "sp:NX_P01308-1")
+  TEST_EQUAL(entries[3].disulfide_bonds.size(), 3)
+  TEST_EQUAL(entries[3].disulfide_bonds[0].id1, "1")
+  TEST_EQUAL(entries[3].disulfide_bonds[0].id2, "2")
+  TEST_EQUAL(entries[3].disulfide_bonds[0].description, "between chains")
+  TEST_EQUAL(entries[3].disulfide_bonds[2].id1, "5")
+  TEST_EQUAL(entries[3].disulfide_bonds[2].id2, "6")
+  TEST_EQUAL(entries[3].disulfide_bonds[2].description, "A chain only")
+}
+END_SECTION
+
+START_SECTION(test_uniprot_roundtrip)
+{
+  // Test that UniProt-style PEFF can be loaded and stored without data loss
+  vector<PEFFEntry> entries, entries2;
+  vector<PEFFDatabaseMetadata> headers, headers2;
+  String tmp_filename;
+  NEW_TMP_FILE(tmp_filename);
+  PEFFFile file;
+
+  file.load(OPENMS_GET_TEST_DATA_PATH("PEFFFile_uniprot.peff"), entries, headers);
+  file.store(tmp_filename, entries, headers[0]);
+  file.load(tmp_filename, entries2, headers2);
+
+  // Verify header fields preserved
+  TEST_EQUAL(headers2[0].general_comments.size(), 2)
+  TEST_EQUAL(headers2[0].conversion, headers[0].conversion)
+  TEST_EQUAL(headers2[0].specific_keys.size(), headers[0].specific_keys.size())
+  TEST_EQUAL(headers2[0].specific_values.size(), headers[0].specific_values.size())
+
+  // Verify entries preserved
+  TEST_EQUAL(entries.size(), entries2.size())
+  for (Size i = 0; i < entries.size(); ++i)
+  {
+    TEST_EQUAL(entries[i].identifier, entries2[i].identifier)
+    TEST_EQUAL(entries[i].entry_id, entries2[i].entry_id)
+    TEST_EQUAL(entries[i].db_unique_id, entries2[i].db_unique_id)
+    TEST_EQUAL(entries[i].alt_accessions.size(), entries2[i].alt_accessions.size())
+    TEST_EQUAL(entries[i].disulfide_bonds.size(), entries2[i].disulfide_bonds.size())
+  }
+}
+END_SECTION
+
+START_SECTION([PEFFDisulfideBond] PEFFDisulfideBond())
+{
+  PEFFDisulfideBond bond;
+  TEST_EQUAL(bond.id1, "")
+  TEST_EQUAL(bond.id2, "")
+  TEST_EQUAL(bond.description, "")
 }
 END_SECTION
 

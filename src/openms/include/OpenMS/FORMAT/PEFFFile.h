@@ -134,6 +134,27 @@ namespace OpenMS
   };
 
   /**
+    @brief Represents a disulfide bond annotation in PEFF.
+
+    Parsed from \\DisulfideBond annotations.
+  */
+  struct OPENMS_DLLAPI PEFFDisulfideBond
+  {
+    String id1;                  ///< First annotation ID or position
+    String id2;                  ///< Second annotation ID or position
+    String description;          ///< Optional description (e.g., "between chains")
+
+    PEFFDisulfideBond() = default;
+    PEFFDisulfideBond(const String& i1, const String& i2, const String& desc = "")
+      : id1(i1), id2(i2), description(desc) {}
+
+    bool operator==(const PEFFDisulfideBond& rhs) const
+    {
+      return id1 == rhs.id1 && id2 == rhs.id2 && description == rhs.description;
+    }
+  };
+
+  /**
     @brief Represents a single entry in a PEFF file with all annotations.
   */
   struct OPENMS_DLLAPI PEFFEntry
@@ -145,18 +166,22 @@ namespace OpenMS
     // Metadata
     std::vector<String> protein_names;   ///< \\PName - may have multiple names
     String gene_name;                     ///< \\GName
-    Int ncbi_tax_id{0};                  ///< \\NcbiTaxId
+    Int ncbi_tax_id{0};                  ///< \\NcbiTaxId or \\OX
     String taxonomy_name;                 ///< \\TaxName
     Size sequence_length{0};             ///< \\Length
     String sequence_version;              ///< \\SV
     String entry_version;                 ///< \\EV
     Int protein_existence{0};            ///< \\PE (1-5)
+    String db_unique_id;                  ///< \\DbUniqueId
+    String entry_id;                      ///< \\ID (e.g., NPM_HUMAN)
+    std::vector<String> alt_accessions;   ///< \\AltAC - alternative accessions
 
     // Annotations
     std::vector<PEFFModification> modifications;
     std::vector<PEFFVariantSimple> simple_variants;
     std::vector<PEFFVariantComplex> complex_variants;
     std::vector<PEFFProcessedRegion> processed_regions;
+    std::vector<PEFFDisulfideBond> disulfide_bonds;  ///< \\DisulfideBond
     std::vector<String> proteoforms;     ///< ProForma notation
 
     // Custom annotations
@@ -181,10 +206,14 @@ namespace OpenMS
              sequence_version == rhs.sequence_version &&
              entry_version == rhs.entry_version &&
              protein_existence == rhs.protein_existence &&
+             db_unique_id == rhs.db_unique_id &&
+             entry_id == rhs.entry_id &&
+             alt_accessions == rhs.alt_accessions &&
              modifications == rhs.modifications &&
              simple_variants == rhs.simple_variants &&
              complex_variants == rhs.complex_variants &&
              processed_regions == rhs.processed_regions &&
+             disulfide_bonds == rhs.disulfide_bonds &&
              proteoforms == rhs.proteoforms &&
              custom_annotations == rhs.custom_annotations;
     }
@@ -256,10 +285,12 @@ namespace OpenMS
     enum class SequenceType { AA, NA };
     SequenceType sequence_type{SequenceType::AA};
 
-    String general_comment;
-    std::map<String, String> specific_keys;
+    std::vector<String> general_comments;     ///< Multiple GeneralComment lines allowed
+    String conversion;                         ///< Conversion notes
+    std::map<String, String> specific_keys;    ///< SpecificKey definitions (key -> description)
+    std::map<String, String> specific_values;  ///< SpecificValue definitions (key -> type)
     std::vector<String> optional_tag_defs;
-    bool has_annotation_identifiers{false};  ///< Whether entries use annotation identifiers
+    bool has_annotation_identifiers{false};    ///< Whether entries use annotation identifiers
 
     PEFFDatabaseMetadata() = default;
 
@@ -275,8 +306,10 @@ namespace OpenMS
              db_date == rhs.db_date &&
              number_of_entries == rhs.number_of_entries &&
              sequence_type == rhs.sequence_type &&
-             general_comment == rhs.general_comment &&
+             general_comments == rhs.general_comments &&
+             conversion == rhs.conversion &&
              specific_keys == rhs.specific_keys &&
+             specific_values == rhs.specific_values &&
              optional_tag_defs == rhs.optional_tag_defs &&
              has_annotation_identifiers == rhs.has_annotation_identifiers;
     }
@@ -415,6 +448,9 @@ namespace OpenMS
 
     /// Parse a processed region tuple
     PEFFProcessedRegion parseProcessedRegion_(const String& tuple);
+
+    /// Parse a disulfide bond tuple
+    PEFFDisulfideBond parseDisulfideBond_(const String& tuple);
 
     /// Parse a parenthesized list of values
     std::vector<String> parseParenList_(const String& value);

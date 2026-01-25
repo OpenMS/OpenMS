@@ -188,6 +188,25 @@ cdef extern from "<OpenMS/FORMAT/PEFFFile.h>" namespace "OpenMS":
 
 cdef extern from "<OpenMS/FORMAT/PEFFFile.h>" namespace "OpenMS":
 
+    cdef cppclass PEFFDisulfideBond:
+        # wrap-doc:
+        #  Represents a disulfide bond annotation in PEFF
+        #
+        #  Attributes:
+        #    id1: First annotation ID or position
+        #    id2: Second annotation ID or position
+        #    description: Optional description (e.g., "between chains")
+
+        PEFFDisulfideBond() except + nogil
+        PEFFDisulfideBond(PEFFDisulfideBond) except + nogil
+
+        String id1
+        String id2
+        String description
+
+
+cdef extern from "<OpenMS/FORMAT/PEFFFile.h>" namespace "OpenMS":
+
     cdef cppclass PEFFEntry:
         # wrap-doc:
         #  Represents a single entry in a PEFF file with all annotations
@@ -219,11 +238,15 @@ cdef extern from "<OpenMS/FORMAT/PEFFFile.h>" namespace "OpenMS":
         String sequence_version
         String entry_version
         int protein_existence
+        String db_unique_id
+        String entry_id
+        libcpp_vector[String] alt_accessions
 
         libcpp_vector[PEFFModification] modifications
         libcpp_vector[PEFFVariantSimple] simple_variants
         libcpp_vector[PEFFVariantComplex] complex_variants
         libcpp_vector[PEFFProcessedRegion] processed_regions
+        libcpp_vector[PEFFDisulfideBond] disulfide_bonds
         libcpp_vector[String] proteoforms
         libcpp_map[String, String] custom_annotations
 
@@ -286,7 +309,10 @@ cdef extern from "<OpenMS/FORMAT/PEFFFile.h>" namespace "OpenMS":
         #    db_date: Database date (YYYYMMDD)
         #    number_of_entries: Number of entries
         #    sequence_type: Sequence type (AA or NA)
-        #    general_comment: General comment
+        #    general_comments: List of general comments
+        #    conversion: Conversion notes
+        #    specific_keys: Custom key definitions
+        #    specific_values: Custom value type definitions
 
         PEFFDatabaseMetadata() except + nogil
         PEFFDatabaseMetadata(PEFFDatabaseMetadata) except + nogil
@@ -301,6 +327,8 @@ cdef extern from "<OpenMS/FORMAT/PEFFFile.h>" namespace "OpenMS":
         String db_date
         Size number_of_entries
         SequenceType sequence_type
-        String general_comment
+        libcpp_vector[String] general_comments
+        String conversion
         libcpp_map[String, String] specific_keys
+        libcpp_map[String, String] specific_values
         libcpp_vector[String] optional_tag_defs

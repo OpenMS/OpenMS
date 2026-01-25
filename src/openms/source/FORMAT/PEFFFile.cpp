@@ -21,6 +21,21 @@ namespace OpenMS
 {
   using namespace std;
 
+  namespace
+  {
+    /// Extract optional annotation ID prefix from a field (format: "id:value" or just "value")
+    /// Returns pair of (annotation_id, remaining_value). annotation_id is empty if not present.
+    std::pair<String, String> extractAnnotationId(const String& field)
+    {
+      size_t colon_pos = field.find(':');
+      if (colon_pos != String::npos)
+      {
+        return {field.substr(0, colon_pos), field.substr(colon_pos + 1)};
+      }
+      return {"", field};
+    }
+  } // anonymous namespace
+
   FASTAFile::FASTAEntry PEFFEntry::toFASTAEntry() const
   {
     // Build description with protein names
@@ -743,7 +758,11 @@ namespace OpenMS
     }
     else if (key == "GeneralComment")
     {
-      header.general_comment = value;
+      header.general_comments.push_back(value);
+    }
+    else if (key == "Conversion")
+    {
+      header.conversion = value;
     }
     else if (key == "SpecificKey")
     {
@@ -754,6 +773,17 @@ namespace OpenMS
         String sk_key = value.substr(0, colon_pos);
         String sk_desc = value.substr(colon_pos + 1);
         header.specific_keys[sk_key] = sk_desc;
+      }
+    }
+    else if (key == "SpecificValue")
+    {
+      // Format: SpecificValue=KeyName:(type_definition)
+      size_t colon_pos = value.find(':');
+      if (colon_pos != String::npos)
+      {
+        String sv_key = value.substr(0, colon_pos);
+        String sv_type = value.substr(colon_pos + 1);
+        header.specific_values[sv_key] = sv_type;
       }
     }
     else if (key == "OptionalTagDef")
@@ -877,6 +907,23 @@ namespace OpenMS
       {
         entry.protein_existence = value.toInt();
       }
+      else if (key == "DbUniqueId")
+      {
+        entry.db_unique_id = value;
+      }
+      else if (key == "ID")
+      {
+        entry.entry_id = value;
+      }
+      else if (key == "OX")
+      {
+        // OX is a shorthand for NcbiTaxId
+        entry.ncbi_tax_id = value.toInt();
+      }
+      else if (key == "AltAC")
+      {
+        entry.alt_accessions.push_back(value);
+      }
       else if (key == "ModRes" || key == "ModResPsi" || key == "ModResUnimod")
       {
         std::vector<String> mods = parseParenList_(value);
@@ -907,6 +954,14 @@ namespace OpenMS
         for (const String& reg : regions)
         {
           entry.processed_regions.push_back(parseProcessedRegion_(reg));
+        }
+      }
+      else if (key == "DisulfideBond")
+      {
+        std::vector<String> bonds = parseParenList_(value);
+        for (const String& bond : bonds)
+        {
+          entry.disulfide_bonds.push_back(parseDisulfideBond_(bond));
         }
       }
       else if (key == "Proteoform")
@@ -994,15 +1049,8 @@ namespace OpenMS
 
     if (parts.size() >= 2)
     {
-      // Check if first field contains annotation ID (format: "id:position")
-      String pos_field = parts[0];
-      size_t colon_pos = pos_field.find(':');
-      if (colon_pos != String::npos)
-      {
-        // Has annotation ID
-        mod.annotation_id = pos_field.substr(0, colon_pos);
-        pos_field = pos_field.substr(colon_pos + 1);
-      }
+      auto [annotation_id, pos_field] = extractAnnotationId(parts[0]);
+      mod.annotation_id = annotation_id;
 
       // Position
       if (pos_field == "?" || pos_field.empty())
@@ -1058,16 +1106,8 @@ namespace OpenMS
 
     if (parts.size() >= 2)
     {
-      // Check if first field contains annotation ID (format: "id:position")
-      String pos_field = parts[0];
-      size_t colon_pos = pos_field.find(':');
-      if (colon_pos != String::npos)
-      {
-        // Has annotation ID
-        var.annotation_id = pos_field.substr(0, colon_pos);
-        pos_field = pos_field.substr(colon_pos + 1);
-      }
-
+      auto [annotation_id, pos_field] = extractAnnotationId(parts[0]);
+      var.annotation_id = annotation_id;
       var.position = pos_field.toInt();
       var.variant_aa = parts[1].empty() ? '\0' : parts[1][0];
 
@@ -1091,16 +1131,8 @@ namespace OpenMS
 
     if (parts.size() >= 3)
     {
-      // Check if first field contains annotation ID (format: "id:start")
-      String start_field = parts[0];
-      size_t colon_pos = start_field.find(':');
-      if (colon_pos != String::npos)
-      {
-        // Has annotation ID
-        var.annotation_id = start_field.substr(0, colon_pos);
-        start_field = start_field.substr(colon_pos + 1);
-      }
-
+      auto [annotation_id, start_field] = extractAnnotationId(parts[0]);
+      var.annotation_id = annotation_id;
       var.start_position = start_field.toInt();
       var.end_position = parts[1].toInt();
       var.replacement = parts[2];
@@ -1125,16 +1157,8 @@ namespace OpenMS
 
     if (parts.size() >= 3)
     {
-      // Check if first field contains annotation ID (format: "id:start")
-      String start_field = parts[0];
-      size_t colon_pos = start_field.find(':');
-      if (colon_pos != String::npos)
-      {
-        // Has annotation ID
-        reg.annotation_id = start_field.substr(0, colon_pos);
-        start_field = start_field.substr(colon_pos + 1);
-      }
-
+      auto [annotation_id, start_field] = extractAnnotationId(parts[0]);
+      reg.annotation_id = annotation_id;
       reg.start_position = start_field.toInt();
       reg.end_position = parts[1].toInt();
       reg.type = parts[2];
@@ -1151,6 +1175,32 @@ namespace OpenMS
     }
 
     return reg;
+  }
+
+  PEFFDisulfideBond PEFFFile::parseDisulfideBond_(const String& tuple)
+  {
+    // Format: id1,id2|description  (description is optional)
+    // IDs can be annotation identifiers or positions
+    PEFFDisulfideBond bond;
+
+    // Split by | first to separate IDs from description
+    size_t pipe_pos = tuple.find('|');
+    String ids_part = (pipe_pos != String::npos) ? tuple.substr(0, pipe_pos) : tuple;
+
+    if (pipe_pos != String::npos)
+    {
+      bond.description = tuple.substr(pipe_pos + 1);
+    }
+
+    // Split the IDs by comma
+    size_t comma_pos = ids_part.find(',');
+    if (comma_pos != String::npos)
+    {
+      bond.id1 = ids_part.substr(0, comma_pos);
+      bond.id2 = ids_part.substr(comma_pos + 1);
+    }
+
+    return bond;
   }
 
   String PEFFFile::formatHeader_(const PEFFDatabaseMetadata& header) const
@@ -1198,14 +1248,24 @@ namespace OpenMS
 
     out << "# SequenceType=" << (header.sequence_type == PEFFDatabaseMetadata::SequenceType::AA ? "AA" : "NA") << "\n";
 
-    if (!header.general_comment.empty())
+    if (!header.conversion.empty())
     {
-      out << "# GeneralComment=" << header.general_comment << "\n";
+      out << "# Conversion=" << header.conversion << "\n";
+    }
+
+    for (const String& comment : header.general_comments)
+    {
+      out << "# GeneralComment=" << comment << "\n";
     }
 
     for (const auto& [key, desc] : header.specific_keys)
     {
       out << "# SpecificKey=" << key << ":" << desc << "\n";
+    }
+
+    for (const auto& [key, type_def] : header.specific_values)
+    {
+      out << "# SpecificValue=" << key << ":" << type_def << "\n";
     }
 
     for (const String& tag_def : header.optional_tag_defs)
@@ -1290,6 +1350,24 @@ namespace OpenMS
     if (entry.protein_existence > 0)
     {
       desc << " \\PE=" << entry.protein_existence;
+    }
+
+    // Database unique ID
+    if (!entry.db_unique_id.empty())
+    {
+      desc << " \\DbUniqueId=" << entry.db_unique_id;
+    }
+
+    // Entry ID
+    if (!entry.entry_id.empty())
+    {
+      desc << " \\ID=" << entry.entry_id;
+    }
+
+    // Alternative accessions
+    for (const String& alt_ac : entry.alt_accessions)
+    {
+      desc << " \\AltAC=" << alt_ac;
     }
 
     // Modifications
@@ -1387,6 +1465,21 @@ namespace OpenMS
         if (!reg.description.empty())
         {
           desc << "|" << reg.description;
+        }
+        desc << ")";
+      }
+    }
+
+    // Disulfide bonds
+    if (!entry.disulfide_bonds.empty())
+    {
+      desc << " \\DisulfideBond=";
+      for (const PEFFDisulfideBond& bond : entry.disulfide_bonds)
+      {
+        desc << "(" << bond.id1 << "," << bond.id2;
+        if (!bond.description.empty())
+        {
+          desc << "|" << bond.description;
         }
         desc << ")";
       }
