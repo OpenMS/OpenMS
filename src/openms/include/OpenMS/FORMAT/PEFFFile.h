@@ -446,6 +446,7 @@ namespace OpenMS
       @param filename The PEFF file to read
 
       @exception Exception::FileNotFound is thrown if the file does not exist.
+      @exception Exception::FileNotReadable is thrown if the file cannot be read.
     */
     void readStart(const String& filename);
 

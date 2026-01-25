@@ -120,7 +120,7 @@ namespace OpenMS
       catch (const Exception::BaseException&)
       {
         // Skip if modification cannot be resolved
-        OPENMS_LOG_WARN << "Could not resolve modification: " << mod.accession << " (" << mod.name << ")" << std::endl;
+        OPENMS_LOG_WARN << "Could not resolve modification: " << mod.accession << " (" << mod.name << ")" << "\n";
       }
     }
 
@@ -316,7 +316,7 @@ namespace OpenMS
         OPENMS_LOG_WARN << "Peptide at position " << start << "-" << end
                         << " has " << total_elements << " variants/modifications. "
                         << "Limiting to first " << MAX_COMBINATORIAL_ELEMENTS
-                        << " to avoid combinatorial explosion." << std::endl;
+                        << " to avoid combinatorial explosion." << "\n";
         // Prioritize variants over modifications, truncate excess
         if (num_variants > MAX_COMBINATORIAL_ELEMENTS)
         {
@@ -508,7 +508,7 @@ namespace OpenMS
     if (peff_mods.size() > MAX_MODS)
     {
       OPENMS_LOG_WARN << "Peptide has " << peff_mods.size() << " PEFF modifications. "
-                      << "Limiting to first " << MAX_MODS << " to avoid combinatorial explosion." << std::endl;
+                      << "Limiting to first " << MAX_MODS << " to avoid combinatorial explosion." << "\n";
     }
 
     size_t num_combinations = 1ULL << num_mods;
@@ -674,7 +674,7 @@ namespace OpenMS
       {
         OPENMS_LOG_WARN << "Peptide at " << start << "-" << end << " has " << total_elements
                         << " variants+modifications. Limiting to " << MAX_COMBINATORIAL_ELEMENTS
-                        << " to avoid combinatorial explosion." << std::endl;
+                        << " to avoid combinatorial explosion." << "\n";
         // Prioritize variants over PEFF modifications
         if (local_variants.size() > MAX_COMBINATORIAL_ELEMENTS)
         {
@@ -2093,10 +2093,10 @@ namespace OpenMS
 
     // Write sequence (80 characters per line)
     const String& seq = entry.sequence;
-    int chunks = seq.size() / 80;
+    Size chunks = seq.size() / 80;
     Size chunk_pos = 0;
 
-    for (int i = 0; i < chunks; ++i)
+    for (Size i = 0; i < chunks; ++i)
     {
       out.write(&seq[chunk_pos], 80);
       out << "\n";
