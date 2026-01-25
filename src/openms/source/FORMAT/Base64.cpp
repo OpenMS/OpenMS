@@ -122,10 +122,9 @@ namespace OpenMS
     in.resize(in.size() + 4, '\0');
     // otherwise there are cases where register encoder isnt allowed to access last bytes
 
-    // Use unaligned SIMD load/store (simde_mm_lddqu_si128 / simde_mm_storeu_si128) for portability.
-    // std::string data is not guaranteed to be 16-byte aligned, and ARM64 platforms (e.g., Apple
-    // Silicon) may enforce stricter alignment than x86_64. SIMDe's unaligned intrinsics handle
-    // this safely across all platforms.
+    // IMPORTANT: The pointer cast must use simde__m128i* (not simde__m128*) to match the data type.
+    // Using the wrong SIMD pointer type (float vs integer) violates strict aliasing rules and
+    // causes undefined behavior that manifests as SIGBUS on ARM64 platforms.
     simde__m128i data {};
 
     for (int i = 0; i < loop; i++)
@@ -185,6 +184,7 @@ namespace OpenMS
     // Use unaligned SIMD load/store for portability (see stringSimdEncoder_ for rationale).
     for (int i = 0; i < loop; i++)
     {
+      // IMPORTANT: Pointer cast must use simde__m128i* to match data type (strict aliasing).
       simde__m128i data = simde_mm_lddqu_si128(reinterpret_cast<const simde__m128i*>(inPtr + i * 16));
       registerDecoder_(data);
       simde_mm_storeu_si128(reinterpret_cast<simde__m128i*>(outPtr + i * 12), data);
