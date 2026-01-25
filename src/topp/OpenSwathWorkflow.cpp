@@ -1341,18 +1341,6 @@ protected:
     UInt64 run_id = OpenMS::UniqueIdGenerator::getUniqueId();
     prepareChromOutput(&chromatogramConsumer, exp_meta, transition_exp, out_chrom, run_id);
 
-    // If the chromatogram consumer is a SQL consumer, write the RUN row for
-    // the first input file synchronously now using the run_id we just
-    // generated. This ensures the intended UniqueId is consumed for the RUN
-    // row before any other code (e.g. feature scoring) may call the global
-    // UniqueIdGenerator and consume additional ids, which would shift the
-    // deterministic sequence and break test expectations.
-    MSDataSqlConsumer* sql_cons_first = dynamic_cast<MSDataSqlConsumer*>(chromatogramConsumer);
-    if (sql_cons_first != nullptr && !file_list.empty())
-    {
-      sql_cons_first->addRun(file_list[0], run_id);
-    }
-
     ///////////////////////////////////
     // Set up peakgroup file output .osw file
     ///////////////////////////////////
@@ -1369,20 +1357,11 @@ protected:
     // Create a run id per unique input filename and register it in the OSW
     std::unordered_map<String, UInt64> file_to_runid;
     std::vector<String> unique_files;
-    UInt64 runid_offset = 1;
     for (const auto & f : file_list)
     {
       if (file_to_runid.find(f) == file_to_runid.end())
       {
-        // For backward compatibility with single-input runs, reuse the
-        // original run_id we created earlier (passed to prepareChromOutput)
-        // for the first input file. For additional files avoid consuming
-        // values from the global UniqueIdGenerator (to preserve its
-        // deterministic sequence used elsewhere); instead derive run ids
-        // deterministically by offsetting the original run_id. This keeps
-        // the number of UniqueIdGenerator calls unchanged and keeps tests
-        // that depend on the generator sequence stable.
-        UInt64 rid = (f == file_list[0]) ? run_id : (run_id + runid_offset++);
+        UInt64 rid = OpenMS::UniqueIdGenerator::getUniqueId();
         file_to_runid[f] = rid;
         unique_files.push_back(f);
         oswwriter.addRun(rid, f);
