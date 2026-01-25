@@ -729,6 +729,44 @@ START_SECTION([PEFFDisulfideBond] PEFFDisulfideBond())
 }
 END_SECTION
 
+START_SECTION(test_p53_uniprot)
+{
+  // Test real UniProt P53 PEFF file with many variants
+  // Note: UniProt PEFF has unusual structure with empty first db block
+  vector<PEFFEntry> entries;
+  vector<PEFFDatabaseMetadata> headers;
+  PEFFFile file;
+
+  file.load(OPENMS_GET_TEST_DATA_PATH("PEFFFile_P53_uniprot.peff"), entries, headers);
+
+  // UniProt format has 2 header blocks (first is empty, second has data)
+  TEST_EQUAL(headers.size(), 2)
+  TEST_EQUAL(headers[1].db_name, "UniProt")
+  TEST_EQUAL(headers[1].general_comments.size(), 2)
+
+  // Check P53 entry
+  TEST_EQUAL(entries.size(), 1)
+  TEST_EQUAL(entries[0].identifier, "up:P04637")
+  TEST_EQUAL(entries[0].gene_name, "TP53")
+  TEST_EQUAL(entries[0].ncbi_tax_id, 9606)
+  TEST_EQUAL(entries[0].taxonomy_name, "Homo sapiens")
+  TEST_EQUAL(entries[0].sequence_length, 393)
+  TEST_EQUAL(entries[0].protein_existence, 1)
+  TEST_EQUAL(entries[0].sequence_version, "4")
+
+  // P53 has many variants - check we parsed a significant number
+  TEST_EQUAL(entries[0].simple_variants.size() > 1000, true)
+
+  // Check first variant - stop codon at position 2
+  TEST_EQUAL(entries[0].simple_variants[0].position, 2)
+  TEST_EQUAL(entries[0].simple_variants[0].variant_aa, '*')
+  TEST_EQUAL(entries[0].simple_variants[0].sources.hasSubstring("ExAC"), true)
+
+  // Check sequence length matches annotation
+  TEST_EQUAL(entries[0].sequence.size(), 393)
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
