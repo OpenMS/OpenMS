@@ -281,7 +281,9 @@ cdef extern from "<OpenMS/FORMAT/PEFFFile.h>" namespace "OpenMS":
             const ProteaseDigestion& digestor,
             Size min_length,
             Size max_length,
-            bool include_reference) except + nogil  # wrap-ignore
+            bool include_reference,
+            bool include_variants,
+            bool include_modifications) except + nogil  # wrap-ignore
 
 
 cdef extern from "<OpenMS/FORMAT/PEFFFile.h>" namespace "OpenMS::PEFFEntry":

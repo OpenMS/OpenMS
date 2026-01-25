@@ -230,7 +230,9 @@ namespace OpenMS
     const ProteaseDigestion& digestor,
     Size min_length,
     Size max_length,
-    bool include_reference) const
+    bool include_reference,
+    bool include_variants,
+    bool include_modifications) const
   {
     std::vector<std::pair<String, AASequence>> result;
 
@@ -244,32 +246,61 @@ namespace OpenMS
     std::vector<std::pair<size_t, size_t>> peptide_ranges;
     digestor.digest(protein, peptide_ranges, min_length, max_length);
 
-    // Step 2: For each peptide, find variants and generate combinations
+    // Step 2: For each peptide, find variants/modifications and generate combinations
     for (const auto& [start, end] : peptide_ranges)
     {
-      // Collect simple variants within this peptide range
+      // Collect simple variants within this peptide range (if requested)
       // PEFF positions are 1-based, ranges are 0-based
       std::vector<const PEFFVariantSimple*> local_variants;
-      for (const auto& var : simple_variants)
+      if (include_variants)
       {
-        // Skip stop codons and invalid positions
-        if (var.variant_aa == '*' || var.variant_aa == '\0' || var.position == 0)
+        for (const auto& var : simple_variants)
         {
-          continue;
-        }
+          // Skip stop codons and invalid positions
+          if (var.variant_aa == '*' || var.variant_aa == '\0' || var.position == 0)
+          {
+            continue;
+          }
 
-        // Convert 1-based PEFF position to 0-based
-        size_t var_pos_0based = var.position - 1;
-        if (var_pos_0based >= start && var_pos_0based < end)
+          // Convert 1-based PEFF position to 0-based
+          size_t var_pos_0based = var.position - 1;
+          if (var_pos_0based >= start && var_pos_0based < end)
+          {
+            local_variants.push_back(&var);
+          }
+        }
+      }
+
+      // Collect modifications within this peptide range (if requested)
+      std::vector<const PEFFModification*> local_mods;
+      if (include_modifications)
+      {
+        for (const auto& mod : modifications)
         {
-          local_variants.push_back(&var);
+          // Skip modifications with unknown position
+          if (mod.position == 0)
+          {
+            continue;
+          }
+
+          // Convert 1-based PEFF position to 0-based
+          size_t mod_pos_0based = mod.position - 1;
+          if (mod_pos_0based >= start && mod_pos_0based < end)
+          {
+            local_mods.push_back(&mod);
+          }
         }
       }
 
       // Extract reference peptide sequence
       String ref_peptide = sequence.substr(start, end - start);
 
-      // Include reference peptide if requested
+      // Total number of combinatorial elements
+      size_t num_variants = local_variants.size();
+      size_t num_mods = local_mods.size();
+      size_t total_elements = num_variants + num_mods;
+
+      // Include reference peptide if requested (combo = 0)
       if (include_reference)
       {
         try
@@ -282,10 +313,10 @@ namespace OpenMS
         }
       }
 
-      // Generate all 2^k combinations for k local variants
-      if (!local_variants.empty())
+      // Generate all 2^(k+m) combinations for k variants and m modifications
+      if (total_elements > 0)
       {
-        size_t num_combinations = 1ULL << local_variants.size();
+        size_t num_combinations = 1ULL << total_elements;
 
         // Start from 1 to skip the all-reference combination (already added above if include_reference)
         for (size_t combo = 1; combo < num_combinations; ++combo)
@@ -293,7 +324,8 @@ namespace OpenMS
           String variant_peptide = ref_peptide;
           String description;
 
-          for (size_t i = 0; i < local_variants.size(); ++i)
+          // Apply variants (bits 0 to num_variants-1)
+          for (size_t i = 0; i < num_variants; ++i)
           {
             if (combo & (1ULL << i))  // Apply this variant
             {
@@ -316,13 +348,91 @@ namespace OpenMS
             }
           }
 
+          // Convert to AASequence for modification application
+          AASequence pep_seq;
           try
           {
-            result.emplace_back(description, AASequence::fromString(variant_peptide));
+            pep_seq = AASequence::fromString(variant_peptide);
           }
           catch (const Exception::BaseException&)
           {
-            // Skip if sequence cannot be parsed (e.g., invalid amino acid)
+            continue;  // Skip if sequence cannot be parsed
+          }
+
+          // Apply modifications (bits num_variants to num_variants+num_mods-1)
+          bool mod_failed = false;
+          for (size_t i = 0; i < num_mods; ++i)
+          {
+            if (combo & (1ULL << (num_variants + i)))  // Apply this modification
+            {
+              const PEFFModification* mod = local_mods[i];
+              size_t local_pos = mod->position - 1 - start;  // Position within peptide
+
+              // Build description
+              if (!description.empty())
+              {
+                description += ";";
+              }
+              if (!mod->accession.empty())
+              {
+                description += mod->accession + "@" + String(mod->position);
+              }
+              else if (!mod->name.empty())
+              {
+                description += mod->name + "@" + String(mod->position);
+              }
+
+              // Try to apply the modification
+              try
+              {
+                // Try accession first (UNIMOD:xx, MOD:xxxxx, etc.)
+                const ResidueModification* res_mod = nullptr;
+                String residue = pep_seq[local_pos].getOneLetterCode();
+
+                if (!mod->accession.empty())
+                {
+                  try
+                  {
+                    res_mod = ModificationsDB::getInstance()->getModification(mod->accession, residue, ResidueModification::ANYWHERE);
+                  }
+                  catch (const Exception::BaseException&)
+                  {
+                    res_mod = nullptr;
+                  }
+                }
+
+                // Fall back to name
+                if (res_mod == nullptr && !mod->name.empty())
+                {
+                  try
+                  {
+                    res_mod = ModificationsDB::getInstance()->getModification(mod->name, residue, ResidueModification::ANYWHERE);
+                  }
+                  catch (const Exception::BaseException&)
+                  {
+                    res_mod = nullptr;
+                  }
+                }
+
+                if (res_mod != nullptr)
+                {
+                  pep_seq.setModification(local_pos, res_mod->getFullId());
+                }
+                else
+                {
+                  mod_failed = true;  // Skip this combination if mod not found
+                }
+              }
+              catch (const Exception::BaseException&)
+              {
+                mod_failed = true;
+              }
+            }
+          }
+
+          if (!mod_failed)
+          {
+            result.emplace_back(description, pep_seq);
           }
         }
       }

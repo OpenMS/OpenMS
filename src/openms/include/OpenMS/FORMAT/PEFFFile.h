@@ -266,27 +266,34 @@ namespace OpenMS
     AASequence getProcessedSequence(const String& region_type = "PEFF:0001021") const;
 
     /**
-      @brief Generate all variant peptides by digesting with a given protease.
+      @brief Generate all variant and/or modification peptides by digesting with a given protease.
 
       This method performs enzymatic digestion on the reference sequence and then
-      generates all combinations of simple variants within each peptide. This is
-      more efficient than generating all 2^n protein-level combinations because
-      most peptides contain only a few (0-3) variants.
+      generates all combinations of simple variants and/or modifications within each peptide.
+      This is more efficient than generating all 2^n protein-level combinations because
+      most peptides contain only a few (0-3) variants/modifications.
+
+      For each peptide with k variants and m modifications, generates up to 2^(k+m) combinations
+      depending on which options are enabled.
 
       Complex variants (insertions, deletions) are not included as they may change
-      peptide boundaries.
+      peptide boundaries. Modifications with unknown positions (position == 0) are skipped.
 
       @param digestor The protease digestion object (must be configured with enzyme, missed cleavages, etc.)
       @param min_length Minimum peptide length to include (default: 6)
       @param max_length Maximum peptide length to include (default: 40, 0 = no limit)
-      @param include_reference If true, include reference peptides (no variants applied) (default: true)
-      @return Vector of pairs: (variant description, AASequence). Description is empty for reference peptides.
+      @param include_reference If true, include reference peptides (no variants/mods applied) (default: true)
+      @param include_variants If true, generate variant combinations (default: true)
+      @param include_modifications If true, generate modification combinations (default: false)
+      @return Vector of pairs: (description, AASequence). Description is empty for reference peptides.
     */
     std::vector<std::pair<String, AASequence>> digestWithVariants(
       const ProteaseDigestion& digestor,
       Size min_length = 6,
       Size max_length = 40,
-      bool include_reference = true) const;
+      bool include_reference = true,
+      bool include_variants = true,
+      bool include_modifications = false) const;
   };
 
   /**
