@@ -609,7 +609,7 @@ START_SECTION(([ProteinIdentification::SearchParameters] SearchParameters()))
   TEST_EQUAL(sp.db_version.size(), 0)
   TEST_EQUAL(sp.taxonomy.size(), 0)
   TEST_EQUAL(sp.charges.size(), 0)
-  TEST_EQUAL(sp.mass_type, 0)
+  TEST_EQUAL(static_cast<int>(sp.mass_type), static_cast<int>(ProteinIdentification::PeakMassType::MONOISOTOPIC))
   TEST_EQUAL(sp.fixed_modifications.size(), 0)
   TEST_EQUAL(sp.variable_modifications.size(), 0)
   TEST_EQUAL(sp.digestion_enzyme.getName(), "unknown_enzyme")
@@ -741,9 +741,12 @@ END_SECTION
 
 START_SECTION((static StringList getAllNamesOfPeakMassType()))
   StringList names = ProteinIdentification::getAllNamesOfPeakMassType();
-  TEST_EQUAL(names.size(), ProteinIdentification::SIZE_OF_PEAKMASSTYPE);
-  TEST_EQUAL(names[ProteinIdentification::MONOISOTOPIC], "Monoisotopic");
-  TEST_EQUAL(names[ProteinIdentification::AVERAGE], "Average");
+  size_t expected_size = static_cast<size_t>(ProteinIdentification::PeakMassType::SIZE_OF_PEAKMASSTYPE);
+  size_t mono_idx = static_cast<size_t>(ProteinIdentification::PeakMassType::MONOISOTOPIC);
+  size_t avg_idx = static_cast<size_t>(ProteinIdentification::PeakMassType::AVERAGE);
+  TEST_EQUAL(names.size(), expected_size);
+  TEST_EQUAL(names[mono_idx], "Monoisotopic");
+  TEST_EQUAL(names[avg_idx], "Average");
 END_SECTION
 
 
@@ -865,7 +868,7 @@ START_SECTION(([EXTRA] std::hash<ProteinIdentification::SearchParameters>))
   sp1.db_version = "2023.1";
   sp1.taxonomy = "Homo sapiens";
   sp1.charges = "2,3,4";
-  sp1.mass_type = ProteinIdentification::MONOISOTOPIC;
+  sp1.mass_type = ProteinIdentification::PeakMassType::MONOISOTOPIC;
   sp1.fixed_modifications.push_back("Carbamidomethyl (C)");
   sp1.variable_modifications.push_back("Oxidation (M)");
   sp1.missed_cleavages = 2;
@@ -877,7 +880,7 @@ START_SECTION(([EXTRA] std::hash<ProteinIdentification::SearchParameters>))
   sp2.db_version = "2023.1";
   sp2.taxonomy = "Homo sapiens";
   sp2.charges = "2,3,4";
-  sp2.mass_type = ProteinIdentification::MONOISOTOPIC;
+  sp2.mass_type = ProteinIdentification::PeakMassType::MONOISOTOPIC;
   sp2.fixed_modifications.push_back("Carbamidomethyl (C)");
   sp2.variable_modifications.push_back("Oxidation (M)");
   sp2.missed_cleavages = 2;

@@ -19,6 +19,7 @@ ExperimentalDesign.h
 ExperimentalSettings.h
 Gradient.h
 HPLC.h
+IdentifierMSRunMapper.h
 Instrument.h
 InstrumentSettings.h
 IonDetector.h
@@ -29,6 +30,7 @@ MetaInfoDescription.h
 MetaInfoInterface.h
 MetaInfoInterfaceUtils.h
 MetaInfoRegistry.h
+SpectrumNativeIDParser.h
 PeptideEvidence.h
 PeptideHit.h
 PeptideIdentification.h
@@ -45,6 +47,7 @@ SourceFile.h
 SpectrumLookup.h
 SpectrumMetaDataLookup.h
 SpectrumSettings.h
+USI.h
 )
 
 ### add path to the filenames

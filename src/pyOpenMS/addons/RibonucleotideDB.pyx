@@ -15,10 +15,13 @@
 
 
     def getRibonucleotideAlternatives(self, code ):
-        """Cython signature: libcpp_pair[const Ribonucleotide *,const Ribonucleotide *] getRibonucleotideAlternatives(const libcpp_utf8_string & code)
-        
+        """Get alternative ribonucleotides for a given code.
+
         Args:
             code: Ribonucleotide code (accepts str or bytes)
+
+        Returns:
+            List of two Ribonucleotide objects representing alternatives.
         """
         assert isinstance(code, (bytes, str)), 'arg code wrong type'
         if isinstance(code, str):

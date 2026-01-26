@@ -22,10 +22,10 @@ cdef extern from "<OpenMS/KERNEL/FeatureMap.h>" namespace "OpenMS":
         #  DocumentIdentifier
         #  RangeManagerRtMzInt
         #  MetaInfoInterface
-        #
+        #  
         # wrap-instances:
         #  FeatureMap := FeatureMap
-        #
+        #  
         # wrap-doc:
         #  A container for LC-MS features with metadata and identification information
         #  
@@ -62,86 +62,87 @@ cdef extern from "<OpenMS/KERNEL/FeatureMap.h>" namespace "OpenMS":
         #         print(f"RT: {feat.getRT()}, m/z: {feat.getMZ()}")
         #  
 
-        FeatureMap() except + nogil 
-        FeatureMap(FeatureMap &) except + nogil 
+        FeatureMap() except + nogil  # wrap-doc:Default constructor creating an empty feature map
+        FeatureMap(FeatureMap &) except + nogil  # wrap-doc:Copy constructor
 
-        bool operator==(FeatureMap) except + nogil 
-        bool operator!=(FeatureMap) except + nogil 
+        bool operator==(FeatureMap) except + nogil
+        bool operator!=(FeatureMap) except + nogil
 
-        int size()  except + nogil 
+        int size()  except + nogil
             # wrap-doc:
             #  Returns the number of features in the map
             #  
             #  :return: Number of features stored in this container
 
         Feature & operator[](size_t)      except + nogil  #wrap-upper-limit:size()
-        
-        void push_back(Feature spec) except + nogil 
+
+        void push_back(Feature spec) except + nogil
             # wrap-doc:
             #  Adds a Feature to the map
             #  
             #  :param spec: The feature to add to the map
 
-        void push_back(MRMFeature spec) except + nogil 
+        void push_back(MRMFeature spec) except + nogil
             # wrap-doc:
             #  Adds an MRMFeature to the map
             #  
-            #  :param spec: The MRM feature to add to the map 
+            #  :param spec: The MRM feature to add to the map
 
-        void sortByIntensity() except + nogil 
+        void sortByIntensity() except + nogil
             # wrap-doc:
             #  Sorts features by ascending intensity
             #  
             #  After sorting, features can be accessed in order from lowest to highest intensity
 
-        void sortByIntensity(bool reverse) except + nogil 
+        void sortByIntensity(bool reverse) except + nogil
             # wrap-doc:
             #  Sorts features by intensity with optional reverse order
             #  
             #  :param reverse: If True, sorts in descending order (highest to lowest intensity)
 
-        void sortByPosition() except + nogil 
+        void sortByPosition() except + nogil
             # wrap-doc:
             #  Sorts features by position using lexicographical comparison
             #  
             #  Compares RT first, then m/z for features with the same RT
 
-        void sortByRT() except + nogil 
+        void sortByRT() except + nogil
             # wrap-doc:
             #  Sorts features by retention time (RT) in ascending order
             #  
             #  This is useful for time-based analysis or visualization
 
-        void sortByMZ() except + nogil 
+        void sortByMZ() except + nogil
             # wrap-doc:
             #  Sorts features by mass-to-charge ratio (m/z) in ascending order
             #  
             #  Useful for mass-based grouping or analysis
 
-        void sortByOverallQuality() except + nogil 
+        void sortByOverallQuality() except + nogil
             # wrap-doc:
             #  Sorts features by overall quality score in ascending order
             #  
             #  Higher quality scores indicate better feature detection confidence
 
-        void swap(FeatureMap &) except + nogil  
-        void swapFeaturesOnly(FeatureMap swapfrom) except + nogil  # wrap-doc:Swaps the feature content (plus its range information) of this map 
-        void clear() except + nogil 
+        void swap(FeatureMap &) except + nogil
+        void swapFeaturesOnly(FeatureMap swapfrom) except + nogil  # wrap-doc:Swaps the feature content (plus its range information) of this map
+        void clear() except + nogil
             # wrap-doc:
             #  Clears all feature data and metadata
             #  
             #  After calling this, the map will be empty (size() returns 0)
 
-        void clear(bool clear_meta_data) except + nogil 
+        void clear(bool clear_meta_data) except + nogil
             # wrap-doc:
             #  Clears feature data and optionally metadata
             #  
             #  :param clear_meta_data: If True, also clears all metadata; if False, keeps metadata
 
-        FeatureMap operator+(FeatureMap) except + nogil 
+        FeatureMap operator+(FeatureMap) except + nogil  # wrap-doc:Returns a new FeatureMap containing features from both maps
         FeatureMap iadd(FeatureMap) except + nogil  # wrap-as:operator+=
+            # wrap-doc:Adds features from another map to this map (in-place addition)
 
-        void updateRanges() except + nogil  # TODO
+        void updateRanges() except + nogil  # wrap-doc:Updates the RT, m/z, and intensity ranges based on contained features
 
         libcpp_vector[ProteinIdentification] getProteinIdentifications() except + nogil
             # wrap-doc:
@@ -151,11 +152,14 @@ cdef extern from "<OpenMS/KERNEL/FeatureMap.h>" namespace "OpenMS":
             #  
             #  Protein identifications contain metadata about search parameters and protein hits
 
-        void setProteinIdentifications(libcpp_vector[ProteinIdentification]) except + nogil 
+        void setProteinIdentifications(libcpp_vector[ProteinIdentification]) except + nogil
             # wrap-doc:
             #  Sets the protein identifications for this map
-            #  
+            #
             #  :param protein_ids: Protein identification results to associate with this map
+
+        # findProteinIdentification returns pointer - wrapped via addon
+        # ProteinIdentification* findProteinIdentification(const String& identifier) except + nogil
 
         PeptideIdentificationList getUnassignedPeptideIdentifications() except + nogil
             # wrap-doc:
@@ -165,7 +169,7 @@ cdef extern from "<OpenMS/KERNEL/FeatureMap.h>" namespace "OpenMS":
             #  
             #  These are peptide IDs that could not be matched to features, possibly due to feature detection issues or filtering
 
-        void setUnassignedPeptideIdentifications(PeptideIdentificationList) except + nogil 
+        void setUnassignedPeptideIdentifications(PeptideIdentificationList) except + nogil
             # wrap-doc:
             #  Sets the unassigned peptide identifications
             #  
@@ -173,13 +177,15 @@ cdef extern from "<OpenMS/KERNEL/FeatureMap.h>" namespace "OpenMS":
 
         Size applyMemberFunction(Size(* fun)()) except + nogil # wrap-ignore
 
-        libcpp_vector[DataProcessing] getDataProcessing() except + nogil 
+        libcpp_vector[DataProcessing] getDataProcessing() except + nogil
         void setDataProcessing(libcpp_vector[DataProcessing])   except + nogil  # wrap-doc:Sets the description of the applied data processing
 
         void setPrimaryMSRunPath(StringList& s) except + nogil  # wrap-doc:Sets the file path to the primary MS run (usually the mzML file obtained after data conversion from raw files)
         void setPrimaryMSRunPath(StringList& s, MSExperiment& e) except + nogil  # wrap-doc:Sets the file path to the primary MS run using the mzML annotated in the MSExperiment argument `e`
         void getPrimaryMSRunPath(StringList& toFill) except + nogil  # wrap-doc:Returns the file path to the first MS run
 
-        libcpp_vector[Feature].iterator begin() except + nogil     # wrap-iter-begin:__iter__(Feature)
-        libcpp_vector[Feature].iterator end()   except + nogil     # wrap-iter-end:__iter__(Feature)
+        libcpp_vector[Feature].iterator begin() except + nogil  # wrap-iter-begin:__iter__(Feature)
+            # wrap-doc:Returns an iterator to the beginning of the feature list
+        libcpp_vector[Feature].iterator end()   except + nogil  # wrap-iter-end:__iter__(Feature)
+            # wrap-doc:Returns an iterator to the end of the feature list
 

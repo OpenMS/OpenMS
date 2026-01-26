@@ -46,7 +46,7 @@ namespace OpenMS
 public:
 
     ///Spectrum peak type
-    enum SpectrumType
+    enum class SpectrumType
     {
       UNKNOWN,          ///< Unknown spectrum type
       CENTROID,         ///< centroid data or stick data
@@ -54,7 +54,7 @@ public:
       SIZE_OF_SPECTRUMTYPE
     };
     /// Names of spectrum types
-    static const std::string NamesOfSpectrumType[SIZE_OF_SPECTRUMTYPE];
+    static const std::string NamesOfSpectrumType[static_cast<size_t>(SpectrumType::SIZE_OF_SPECTRUMTYPE)];
 
     /// returns all spectrum type names known to OpenMS
     static StringList getAllNamesOfSpectrumType();
@@ -160,7 +160,7 @@ public:
 
 protected:
 
-    SpectrumType type_ = UNKNOWN;
+    SpectrumType type_ = SpectrumType::UNKNOWN;
     IMFormat im_type_ = IMFormat::UNKNOWN;
     String native_id_;
     String comment_;

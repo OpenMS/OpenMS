@@ -56,6 +56,8 @@ END_SECTION
 
 START_SECTION((void configure(const Param &param)))
 {
+  // Note: LogConfigHandler configures the GLOBAL log streams, not thread-local streams.
+  // We must use global streams directly to test that configuration works correctly.
   std::vector<std::string> settings = {"INFO add testing_info_warn_stream STRING",
                                       "WARNING add testing_info_warn_stream STRING",
                                       "ERROR add only_error_string_stream STRING",
@@ -68,10 +70,11 @@ START_SECTION((void configure(const Param &param)))
 
   LogConfigHandler::getInstance()->configure(p);
 
-  OPENMS_LOG_INFO << "1" << endl;
-  OPENMS_LOG_INFO << "2" << endl;
-  OPENMS_LOG_WARN << "3" << endl;
-  OPENMS_LOG_ERROR << "4" << endl;
+  // Use GLOBAL streams directly to test configuration (not OPENMS_LOG_* which use thread-local)
+  getGlobalLogInfo() << "1" << endl;
+  getGlobalLogInfo() << "2" << endl;
+  getGlobalLogWarn() << "3" << endl;
+  getGlobalLogError() << "4" << endl;
 
   settings.clear();
   settings.push_back("WARNING clear");
@@ -79,8 +82,8 @@ START_SECTION((void configure(const Param &param)))
 
   LogConfigHandler::getInstance()->configure(p);
 
-  // this should go into nowhere
-  OPENMS_LOG_WARN << "5" << endl;
+  // this should go into nowhere (warn stream was cleared)
+  getGlobalLogWarn() << "5" << endl;
 
   ostringstream& info_warn_stream = static_cast<ostringstream&>(LogConfigHandler::getInstance()->getStream("testing_info_warn_stream"));
   String info_warn_stream_content(info_warn_stream.str());
@@ -116,6 +119,7 @@ END_SECTION
 
 START_SECTION((ostream& getStream(const String &stream_name)))
 {
+  // Use global streams directly to test LogConfigHandler configuration
   std::vector<std::string> settings;
   settings.push_back("INFO add testing_getStream STRING");
 
@@ -124,7 +128,7 @@ START_SECTION((ostream& getStream(const String &stream_name)))
 
   LogConfigHandler::getInstance()->configure(p);
 
-  OPENMS_LOG_INFO << "getStream 1" << endl;
+  getGlobalLogInfo() << "getStream 1" << endl;
 
   ostringstream& info_stream = static_cast<ostringstream&>(LogConfigHandler::getInstance()->getStream("testing_getStream"));
   String info_content(info_stream.str());
@@ -151,29 +155,30 @@ END_SECTION
 START_SECTION((void setLogLevel(const String &log_level) - restoring streams))
 {
   // Test that setLogLevel can restore streams when lowering the log level
-  
+  // Use global streams directly to test LogConfigHandler configuration
+
   // Setup: Create a string stream for INFO level
   std::vector<std::string> settings;
   settings.push_back("INFO add test_setloglevel_stream STRING");
-  
+
   Param p;
   p.setValue(LogConfigHandler::PARAM_NAME, settings, "List of all settings that should be applied to the current Logging Configuration");
   LogConfigHandler::getInstance()->configure(p);
-  
+
   // Write a message at INFO level - should appear
-  OPENMS_LOG_INFO << "message1" << endl;
-  
+  getGlobalLogInfo() << "message1" << endl;
+
   // Set log level to ERROR (should remove INFO streams)
   LogConfigHandler::getInstance()->setLogLevel("ERROR");
-  
+
   // Write a message at INFO level - should NOT appear
-  OPENMS_LOG_INFO << "message2" << endl;
-  
+  getGlobalLogInfo() << "message2" << endl;
+
   // Lower log level back to INFO (should restore INFO streams)
   LogConfigHandler::getInstance()->setLogLevel("INFO");
-  
+
   // Write a message at INFO level - should appear again
-  OPENMS_LOG_INFO << "message3" << endl;
+  getGlobalLogInfo() << "message3" << endl;
   
   // Check the stream content
   ostringstream& test_stream = static_cast<ostringstream&>(LogConfigHandler::getInstance()->getStream("test_setloglevel_stream"));
@@ -191,18 +196,19 @@ END_SECTION
 START_SECTION((removeAllStreams flushes buffers))
 {
   // Test that removeAllStreams flushes buffers before clearing
-  
+  // Use global streams directly to test LogConfigHandler configuration
+
   // Setup: Create a string stream for WARNING level
   std::vector<std::string> settings;
   settings.push_back("WARNING add test_flush_stream STRING");
-  
+
   Param p;
   p.setValue(LogConfigHandler::PARAM_NAME, settings, "List of all settings that should be applied to the current Logging Configuration");
   LogConfigHandler::getInstance()->configure(p);
-  
+
   // Write without endl (no flush yet)
-  OPENMS_LOG_WARN << "unflushed_message";
-  
+  getGlobalLogWarn() << "unflushed_message";
+
   // Set log level to ERROR (which calls removeAllStreams on WARNING)
   // This should flush the buffer before removing streams
   LogConfigHandler::getInstance()->setLogLevel("ERROR");
@@ -219,33 +225,34 @@ END_SECTION
 START_SECTION((void setLogLevel(const String &log_level) - NONE level))
 {
   // Test that setLogLevel("NONE") disables all logging and can be restored
-  
+  // Use global streams directly to test LogConfigHandler configuration
+
   // Setup: Create string streams for multiple levels
   std::vector<std::string> settings;
   settings.push_back("INFO add test_none_info_stream STRING");
   settings.push_back("ERROR add test_none_error_stream STRING");
-  
+
   Param p;
   p.setValue(LogConfigHandler::PARAM_NAME, settings, "List of all settings that should be applied to the current Logging Configuration");
   LogConfigHandler::getInstance()->configure(p);
-  
+
   // Write messages - should appear
-  OPENMS_LOG_INFO << "before_none_info" << endl;
-  OPENMS_LOG_ERROR << "before_none_error" << endl;
-  
+  getGlobalLogInfo() << "before_none_info" << endl;
+  getGlobalLogError() << "before_none_error" << endl;
+
   // Set log level to NONE (should remove all streams)
   LogConfigHandler::getInstance()->setLogLevel("NONE");
-  
+
   // Write messages - should NOT appear
-  OPENMS_LOG_INFO << "during_none_info" << endl;
-  OPENMS_LOG_ERROR << "during_none_error" << endl;
-  
+  getGlobalLogInfo() << "during_none_info" << endl;
+  getGlobalLogError() << "during_none_error" << endl;
+
   // Restore log level to INFO (should restore INFO and higher streams)
   LogConfigHandler::getInstance()->setLogLevel("INFO");
-  
+
   // Write messages - should appear again
-  OPENMS_LOG_INFO << "after_none_info" << endl;
-  OPENMS_LOG_ERROR << "after_none_error" << endl;
+  getGlobalLogInfo() << "after_none_info" << endl;
+  getGlobalLogError() << "after_none_error" << endl;
   
   // Check INFO stream
   ostringstream& info_stream = static_cast<ostringstream&>(LogConfigHandler::getInstance()->getStream("test_none_info_stream"));

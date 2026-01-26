@@ -20,9 +20,12 @@ ModificationDefinition.cpp
 ModificationDefinitionsSet.cpp
 ModificationsDB.cpp
 ModifiedNASequenceGenerator.cpp
+MonosaccharideDB.cpp
 ModifiedPeptideGenerator.cpp
+MzPAF.cpp
 NASequence.cpp
 NucleicAcidSpectrumGenerator.cpp
+ProForma.cpp
 ProteaseDB.cpp
 ProteaseDigestion.cpp
 Residue.cpp

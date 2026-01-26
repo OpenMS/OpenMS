@@ -7,6 +7,7 @@ from MetaInfoInterface cimport *
 from ProteinHit cimport *
 from DigestionEnzymeProtein cimport *
 from PeptideIdentification cimport *
+from PeptideIdentificationList cimport *
 from DateTime cimport *
 # from MSExperiment cimport *
 
@@ -105,7 +106,7 @@ cdef extern from "<OpenMS/METADATA/ProteinIdentification.h>" namespace "OpenMS":
 
 cdef extern from "<OpenMS/METADATA/ProteinIdentification.h>" namespace "OpenMS::ProteinIdentification":
 
-    cdef enum PeakMassType:
+    cdef enum class PeakMassType "OpenMS::ProteinIdentification::PeakMassType":
         # wrap-attach:
         #   ProteinIdentification
         MONOISOTOPIC, AVERAGE, SIZE_OF_PEAKMASSTYPE

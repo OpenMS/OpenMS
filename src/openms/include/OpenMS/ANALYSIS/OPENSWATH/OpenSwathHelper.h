@@ -159,7 +159,7 @@ public:
       double upper, lower, center;
       OpenSwathHelper::checkSwathMap(exp, lower, upper, center);
       OpenSwathHelper::selectSwathTransitions(targeted_exp, selected_transitions, min_upper_edge_dist, lower, upper);
-      if (selected_transitions.getTransitions().size() == 0)
+      if (selected_transitions.getTransitions().empty())
       {
         std::cerr << "WARNING: For File " << exp.getLoadedFilePath()
                   << " no transition were within the precursor window of " << lower << " to " << upper

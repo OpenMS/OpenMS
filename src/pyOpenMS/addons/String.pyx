@@ -15,9 +15,10 @@
     #  functions for typing.
     def __init__(self, *args):
         """
-        __init__(self: String, *args: Union[str, bytes, unicode, String]) -> None
-        
+        __init__(self: String, args) -> None
+
         Initialize a String object from various input types.
+        Accepts str, bytes, unicode, or String.
         """
         if not args:
              self._init_0(*args)
@@ -27,10 +28,16 @@
              raise Exception('can not handle type of %s' % (args,)) 
 
     def toString(self):
-        """Cython signature: str toString()
-        -- Note: this returns a unicode string and assumes the underlying
-           std::string object is UTF8 encoded (ASCII is a subset
-           and works, too)
+        """
+        toString(self: String) -> str
+
+        Return the String content as a Python unicode string.
+
+        Assumes the underlying std::string object is UTF8 encoded
+        (ASCII is a subset and works too).
+
+        Returns:
+            Unicode string representation of the String content.
         """
         # Decodes the C string to unicode
         cdef char* c_string = _cast_const_away(self.inst.get().c_str())
@@ -73,7 +80,11 @@
 
     # TODO does this really need to be callable from python? How about cdef?
     def c_str(self):
-        """Cython signature: const_char * c_str()"""
+        """
+        c_str(self: String) -> bytes
+
+        Return the raw C string as bytes.
+        """
         # See https://cython.readthedocs.io/en/latest/src/tutorial/strings.html
         #    py_string = <bytes> c_string
         # This creates a Python byte string object that holds a copy of the

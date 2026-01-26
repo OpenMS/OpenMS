@@ -38,12 +38,12 @@ namespace OpenMS
   {
     if (!isEditable())
     {
-      fillComboBox_(type_, &temp_.NamesOfSpectrumType[temp_.getType()], 1);
+      fillComboBox_(type_, &temp_.NamesOfSpectrumType[static_cast<size_t>(temp_.getType())], 1);
     }
     else
     {
-      fillComboBox_(type_, temp_.NamesOfSpectrumType, SpectrumSettings::SIZE_OF_SPECTRUMTYPE);
-      type_->setCurrentIndex(temp_.getType());
+      fillComboBox_(type_, temp_.NamesOfSpectrumType, static_cast<int>(SpectrumSettings::SpectrumType::SIZE_OF_SPECTRUMTYPE));
+      type_->setCurrentIndex(static_cast<int>(temp_.getType()));
     }
 
     native_id_->setText(temp_.getNativeID().c_str());

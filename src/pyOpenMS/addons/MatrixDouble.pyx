@@ -18,7 +18,9 @@ from numpy.lib.stride_tricks import as_strided
         """get_matrix(self) -> np.ndarray[double, ndim=2]
 
         Returns a view on the underlying Matrix as a 2D numpy ndarray.
+
         .. caution::
+
            Future changes to the Matrix will affect the ndarray and vice versa.
            Make sure that the Matrix does not go out of scope before the last use
            of your ndarray.
