@@ -22,7 +22,7 @@ std::vector<::OpenSwath::SwathMap> SRMFile::loadMzML(const String& file,
                                                    const String& /*tmp*/, 
                                                    std::shared_ptr<ExperimentalSettings>& exp_meta)
 {
-  OPENMS_LOG_INFO << "SRMFile: loading chromatogram-only mzML " << file << std::endl;
+  OPENMS_LOG_INFO << "Loading SRM mzML " << file << std::endl;
   std::shared_ptr<PeakMap> full_exp(new PeakMap);
   FileHandler fh;
   // load full chromatograms

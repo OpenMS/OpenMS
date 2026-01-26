@@ -45,7 +45,7 @@ std::vector<::OpenSwath::SwathMap> TargetedDataFileLoader::loadFile(const String
   // If there are no spectra but chromatograms exist, treat as SRM/chrom-only
   if (probe.getSpectra().empty() && !probe.getChromatograms().empty())
   {
-    OPENMS_LOG_INFO << "TargetedDataFileLoader: detected chromatogram-only mzML -> using SRM loader" << std::endl;
+    OPENMS_LOG_DEBUG << "TargetedDataFileLoader: detected chromatogram-only mzML -> using SRM loader" << std::endl;
   return SRMFile::loadMzML(file, tmp, exp_meta);
   }
 
