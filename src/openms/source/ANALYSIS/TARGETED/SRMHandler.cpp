@@ -26,6 +26,94 @@ namespace OpenMS
   SRMChromHandler::SRMChromHandler() = default;
   SRMChromHandler::~SRMChromHandler() = default;
 
+  void SRMChromHandler::normalizeChromatogramMZ(MSChromatogram& chrom)
+  {
+    double prec_mz = chrom.getPrecursor().getMZ();
+    double prod_mz = chrom.getProduct().getMZ();
+
+    // If precursor/product m/z are not set, try to read them from CV terms
+    // (e.g. isolation window target m/z CV term MS:1000827) which some
+    // mzML writers put into the <precursor>/<product> cvParams rather than
+    // the Precursor/Product mz fields.
+    if (!(prec_mz > 0))
+    {
+      const auto & prec_terms = chrom.getPrecursor().getCVTerms();
+      auto it = prec_terms.find("MS:1000827");
+      if (it != prec_terms.end() && !it->second.empty())
+      {
+        try
+        {
+          prec_mz = it->second[0].getValue().toString().toDouble();
+          Precursor p = chrom.getPrecursor();
+          p.setMZ(prec_mz);
+          chrom.setPrecursor(p);
+        }
+        catch (...) {}
+      }
+    }
+
+    if (!(prod_mz > 0))
+    {
+      const auto & prod_terms = chrom.getProduct().getCVTerms();
+      auto it = prod_terms.find("MS:1000827");
+      if (it != prod_terms.end() && !it->second.empty())
+      {
+        try
+        {
+          prod_mz = it->second[0].getValue().toString().toDouble();
+          Product q = chrom.getProduct();
+          q.setMZ(prod_mz);
+          chrom.setProduct(q);
+        }
+        catch (...) {}
+      }
+    }
+
+    // If we still don't have precursor/product m/z, fall back to parsing
+    // them from the nativeID (handles legacy nativeID formats)
+    if (!((prec_mz > 0) || (prod_mz > 0)))
+    {
+      String nid = chrom.getNativeID();
+      double c_prec = -1.0, c_prod = -1.0;
+      if (sscanf(nid.c_str(), "%*[^0-9+\\-]%lf%*[^0-9+\\-]%lf", &c_prec, &c_prod) >= 2)
+      {
+        Precursor p; p.setMZ(c_prec);
+        Product q; q.setMZ(c_prod);
+        chrom.setPrecursor(p);
+        chrom.setProduct(q);
+        prec_mz = c_prec;
+        prod_mz = c_prod;
+      }
+    }
+
+    // Ensure meta-values and a canonical nativeID exist for whichever values we have
+    if (prec_mz > 0)
+    {
+      chrom.setMetaValue("precursor_mz", prec_mz);
+    }
+    if (prod_mz > 0)
+    {
+      chrom.setMetaValue("product_mz", prod_mz);
+    }
+
+    // Build a compact canonical nativeID depending on available values
+    String nid_out;
+    if (prec_mz > 0 && prod_mz > 0)
+    {
+      nid_out = String("precursor=") + String(prec_mz) + ",product=" + String(prod_mz);
+    }
+    else if (prod_mz > 0)
+    {
+      nid_out = String("product=") + String(prod_mz);
+    }
+    else if (prec_mz > 0)
+    {
+      nid_out = String("precursor=") + String(prec_mz);
+    }
+
+    if (!nid_out.empty()) chrom.setNativeID(nid_out);
+  }
+
   std::vector<MSChromatogram> SRMChromHandler::collectIrtChromatogramsForIrt(
     const std::vector< OpenSwath::SwathMap > & swath_maps,
     const OpenSwath::LightTargetedExperiment & irt_transitions,
@@ -56,23 +144,8 @@ namespace OpenMS
         chrom.setProduct(cs.getProduct());
         String native_id = openms_map->getChromatogramNativeID(i);
         
-        // If precursor/product m/z not set from metadata, try parsing nativeID
-        // This handles chromatogram-only files where metadata may not be properly set
-        if (chrom.getPrecursor().getMZ() <= 0 || chrom.getProduct().getMZ() <= 0)
-        {
-          double c_prec = -1.0, c_prod = -1.0;
-          if (sscanf(native_id.c_str(), "%*[^0-9+\\-]%lf%*[^0-9+\\-]%lf", &c_prec, &c_prod) >= 2)
-          {
-            if (chrom.getPrecursor().getMZ() <= 0 && c_prec > 0)
-            {
-              chrom.getPrecursor().setMZ(c_prec);
-            }
-            if (chrom.getProduct().getMZ() <= 0 && c_prod > 0)
-            {
-              chrom.getProduct().setMZ(c_prod);
-            }
-          }
-        }
+        // Normalize chromatogram m/z values using the utility function
+        normalizeChromatogramMZ(chrom);
         
         // For iRT calibration, preserve the original nativeID in the chromatogram
         chrom.setNativeID(native_id);
@@ -145,23 +218,8 @@ namespace OpenMS
         chrom.setProduct(cs.getProduct());
         String orig = openms_map->getChromatogramNativeID(i);
         
-        // If precursor/product m/z not set from metadata, try parsing nativeID
-        // This handles chromatogram-only files where metadata may not be properly set
-        if (chrom.getPrecursor().getMZ() <= 0 || chrom.getProduct().getMZ() <= 0)
-        {
-          double c_prec = -1.0, c_prod = -1.0;
-          if (sscanf(orig.c_str(), "%*[^0-9+\\-]%lf%*[^0-9+\\-]%lf", &c_prec, &c_prod) >= 2)
-          {
-            if (chrom.getPrecursor().getMZ() <= 0 && c_prec > 0)
-            {
-              chrom.getPrecursor().setMZ(c_prec);
-            }
-            if (chrom.getProduct().getMZ() <= 0 && c_prod > 0)
-            {
-              chrom.getProduct().setMZ(c_prod);
-            }
-          }
-        }
+        // Normalize chromatogram m/z values using the utility function
+        normalizeChromatogramMZ(chrom);
         
         chrom.setMetaValue("original_native_id", orig);
         // clear nativeID until mapped

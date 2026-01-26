@@ -55,6 +55,11 @@ public:
     const OpenSwath::LightTargetedExperiment & transition_exp,
     const ChromExtractParams & cp,
     const Param & mrm_mapping_param) override;
+
+  /// Utility function to normalize chromatogram precursor/product m/z and nativeID
+  /// This handles chromatogram-only files where metadata may not be properly set
+  static void normalizeChromatogramMZ(MSChromatogram& chrom);
+
 };
 
 } // namespace OpenMS
