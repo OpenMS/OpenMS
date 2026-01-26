@@ -24,6 +24,7 @@ namespace OpenMS
     const OpenSwath::LightTargetedExperiment & irt_transitions,
     const Param & mrm_mapping_param,
     const ChromExtractParams & cp,
+    const TransformationDescription& trafo,
     bool pasef,
     bool load_into_memory)
   {
@@ -41,12 +42,12 @@ namespace OpenMS
     if (srm_mode)
     {
       OPENMS_LOG_DEBUG << "DefaultChromHandler: delegating iRT collection to SRM handler" << std::endl;
-      return srm_->collectIrtChromatogramsForIrt(swath_maps, irt_transitions, mrm_mapping_param, cp, pasef, load_into_memory);
+      return srm_->collectIrtChromatogramsForIrt(swath_maps, irt_transitions, mrm_mapping_param, cp, trafo, pasef, load_into_memory);
     }
     else
     {
       OPENMS_LOG_DEBUG << "DefaultChromHandler: delegating iRT collection to DIA handler" << std::endl;
-      return dia_->collectIrtChromatogramsForIrt(swath_maps, irt_transitions, mrm_mapping_param, cp, pasef, load_into_memory);
+      return dia_->collectIrtChromatogramsForIrt(swath_maps, irt_transitions, mrm_mapping_param, cp, trafo, pasef, load_into_memory);
     }
   }
 

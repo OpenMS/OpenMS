@@ -17,6 +17,8 @@
 #include <OpenMS/ANALYSIS/TARGETED/IChromatogramHandler.h>
 #include <OpenMS/KERNEL/MSChromatogram.h>
 
+#include <cstdio>
+
 
 namespace OpenMS
 {
@@ -29,6 +31,7 @@ namespace OpenMS
     const OpenSwath::LightTargetedExperiment & irt_transitions,
     const Param & mrm_mapping_param,
     const ChromExtractParams & /*cp*/,
+    const TransformationDescription& /*trafo*/,
     bool /*pasef*/,
     bool /*load_into_memory*/)
   {
@@ -52,20 +55,38 @@ namespace OpenMS
         chrom.setPrecursor(cs.getPrecursor());
         chrom.setProduct(cs.getProduct());
         String native_id = openms_map->getChromatogramNativeID(i);
+        
+        // If precursor/product m/z not set from metadata, try parsing nativeID
+        // This handles chromatogram-only files where metadata may not be properly set
+        if (chrom.getPrecursor().getMZ() <= 0 || chrom.getProduct().getMZ() <= 0)
+        {
+          double c_prec = -1.0, c_prod = -1.0;
+          if (sscanf(native_id.c_str(), "%*[^0-9+\\-]%lf%*[^0-9+\\-]%lf", &c_prec, &c_prod) >= 2)
+          {
+            if (chrom.getPrecursor().getMZ() <= 0 && c_prec > 0)
+            {
+              chrom.getPrecursor().setMZ(c_prec);
+            }
+            if (chrom.getProduct().getMZ() <= 0 && c_prod > 0)
+            {
+              chrom.getProduct().setMZ(c_prod);
+            }
+          }
+        }
+        
         // For iRT calibration, preserve the original nativeID in the chromatogram
         chrom.setNativeID(native_id);
         irt_chroms.push_back(chrom);
         ++total_chroms;
       }
     }
-    OPENMS_LOG_DEBUG << "SRMChromHandler: collected " << irt_chroms.size() << " raw iRT chromatograms." << std::endl;
 
     // Try mapping using MRMMapping with provided parameters
     try
     {
       PeakMap pm;
       pm.setChromatograms(irt_chroms);
-      OPENMS_LOG_DEBUG << "SRMChromHandler: PeakMap prepared with " << pm.getChromatograms().size() << " chromatograms." << std::endl;
+      OPENMS_LOG_DEBUG << "PeakMap prepared with " << pm.getChromatograms().size() << " chromatograms for MRMMapping." << std::endl;
       PeakMap mapped_pm;
       MRMMapping mapper;
       Param mrm_p = mapper.getParameters();
@@ -74,8 +95,17 @@ namespace OpenMS
       mapper.setParameters(mrm_p);
       mapper.mapExperiment(pm, irt_transitions, mapped_pm);
       std::vector<MSChromatogram> result = mapped_pm.getChromatograms();
-      OPENMS_LOG_DEBUG << "SRMChromHandler: mapping produced " << result.size() << " chromatograms (mapped)." << std::endl;
-      return result;
+      OPENMS_LOG_DEBUG << "MRMMapping produced " << result.size() << " chromatograms." << std::endl;
+      
+      // Filter out empty chromatograms
+      std::vector<MSChromatogram> filtered_result;
+      for (const auto& chrom : result) {
+        if (!chrom.empty()) {
+          filtered_result.push_back(chrom);
+        }
+      }
+      OPENMS_LOG_DEBUG << "after filtering empty chromatograms, " << filtered_result.size() << " chromatograms remain." << std::endl;
+      return filtered_result;
     }
     catch (const std::exception & e)
     {
@@ -114,6 +144,25 @@ namespace OpenMS
         chrom.setPrecursor(cs.getPrecursor());
         chrom.setProduct(cs.getProduct());
         String orig = openms_map->getChromatogramNativeID(i);
+        
+        // If precursor/product m/z not set from metadata, try parsing nativeID
+        // This handles chromatogram-only files where metadata may not be properly set
+        if (chrom.getPrecursor().getMZ() <= 0 || chrom.getProduct().getMZ() <= 0)
+        {
+          double c_prec = -1.0, c_prod = -1.0;
+          if (sscanf(orig.c_str(), "%*[^0-9+\\-]%lf%*[^0-9+\\-]%lf", &c_prec, &c_prod) >= 2)
+          {
+            if (chrom.getPrecursor().getMZ() <= 0 && c_prec > 0)
+            {
+              chrom.getPrecursor().setMZ(c_prec);
+            }
+            if (chrom.getProduct().getMZ() <= 0 && c_prod > 0)
+            {
+              chrom.getProduct().setMZ(c_prod);
+            }
+          }
+        }
+        
         chrom.setMetaValue("original_native_id", orig);
         // clear nativeID until mapped
         chrom.setNativeID("");
@@ -134,8 +183,16 @@ namespace OpenMS
     }
     OPENMS_LOG_DEBUG << "SRM: chromatograms with precursor m/z=" << prec_set_count << ", product m/z=" << prod_set_count << ", both=" << both_set_count << " (total=" << all_chroms.size() << ")" << std::endl;
 
+    // Filter out empty chromatograms before mapping
+    std::vector<MSChromatogram> non_empty_chroms;
+    for (const auto& chrom : all_chroms) {
+      if (!chrom.empty()) {
+        non_empty_chroms.push_back(chrom);
+      }
+    }
+
     PeakMap input_pm;
-    input_pm.getChromatograms() = all_chroms; 
+    input_pm.getChromatograms() = non_empty_chroms; 
 
     PeakMap output_pm;
     MRMMapping mapper;
@@ -170,6 +227,11 @@ namespace OpenMS
     {
       OPENMS_LOG_DEBUG << "SRMChromHandler: SRMHandler returned " << filtered.size() << " chromatograms." << std::endl;
       return filtered;
+    }
+    else
+    {
+      OPENMS_LOG_DEBUG << "SRMChromHandler: No chromatograms were mapped." << std::endl;
+      return std::vector<MSChromatogram>();
     }
   }
 

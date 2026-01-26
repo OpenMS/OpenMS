@@ -84,6 +84,7 @@ protected:
       use_ms1_ion_mobility_(false),
       prm_(false),
       pasef_(false),
+      srm_(false),
       threads_outer_loop_(-1)
     {
     }
@@ -103,11 +104,12 @@ protected:
      *
      *
      **/
-    OpenSwathWorkflowBase(bool use_ms1_traces, bool use_ms1_ion_mobility, bool prm, bool pasef, int threads_outer_loop) :
+    OpenSwathWorkflowBase(bool use_ms1_traces, bool use_ms1_ion_mobility, bool prm, bool pasef, bool srm, int threads_outer_loop) :
       use_ms1_traces_(use_ms1_traces),
       use_ms1_ion_mobility_(use_ms1_ion_mobility),
       prm_(prm),
       pasef_(pasef),
+      srm_(srm),
       threads_outer_loop_(threads_outer_loop)
     {
     }
@@ -195,6 +197,13 @@ protected:
     */
     bool pasef_;
 
+    /** @brief Whether data is chromatogram-only SRM data
+     *
+     * If set to true, indicates that all swath_maps contain only chromatograms
+     * (no spectra) and the workflow should use SRM-specific processing.
+    */
+    bool srm_;
+
     /** @brief How many threads should be used for the outer loop
      *
      *  @note A value of -1 will use all threads in the outer loop
@@ -235,7 +244,7 @@ protected:
     }
 
     explicit OpenSwathCalibrationWorkflow(bool use_ms1_traces) :
-      OpenSwathWorkflowBase(use_ms1_traces, false, false, false, -1)
+      OpenSwathWorkflowBase(use_ms1_traces, false, false, false, false, -1)
     {
     }
 
@@ -340,6 +349,7 @@ protected:
                                      std::vector< OpenMS::MSChromatogram > & chromatograms,
                                      const TransformationDescription& trafo,
                                      const ChromExtractParams & cp,
+                                     const Param & mrm_mapping_param,
                                      bool pasef,
                                      bool load_into_memory);
 
@@ -434,8 +444,8 @@ protected:
      *
      *
      **/
-    OpenSwathWorkflow(bool use_ms1_traces, bool use_ms1_ion_mobility, bool prm, bool pasef, int threads_outer_loop) :
-    OpenSwathWorkflowBase(use_ms1_traces, use_ms1_ion_mobility, prm, pasef, threads_outer_loop)
+    OpenSwathWorkflow(bool use_ms1_traces, bool use_ms1_ion_mobility, bool prm, bool pasef, bool srm, int threads_outer_loop) :
+    OpenSwathWorkflowBase(use_ms1_traces, use_ms1_ion_mobility, prm, pasef, srm, threads_outer_loop)
     {
     }
 
@@ -550,7 +560,8 @@ protected:
         FeatureMap& output,
         OpenSwathOSWWriter& osw_writer,
         int nr_ms1_isotopes = 0,
-        bool ms1only = false) const;
+        bool ms1only = false,
+        bool log_stats = true) const;
 
     /** @brief Select which compounds to analyze in the next batch (and copy to output)
      *

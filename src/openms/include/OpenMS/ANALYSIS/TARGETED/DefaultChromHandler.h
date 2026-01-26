@@ -27,6 +27,7 @@ namespace OpenMS
       const OpenSwath::LightTargetedExperiment & irt_transitions,
       const Param & mrm_mapping_param,
       const ChromExtractParams & cp,
+      const TransformationDescription& trafo = TransformationDescription(),
       bool pasef = false,
       bool load_into_memory = false) override;
 

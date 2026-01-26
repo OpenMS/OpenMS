@@ -892,6 +892,9 @@ protected:
       feature_finder_param.setValue("Scores:use_peak_shape_metrics", "true");
     }
 
+    // Extract MRMMapping-related options from the CLI subsection and pass them to the workflow
+    Param mrm_map_param = getParam_().copy("MRMMapping:", true);
+
     ///////////////////////////////////
     // Load the transitions
     ///////////////////////////////////
@@ -1067,6 +1070,28 @@ protected:
       }
     }
 
+    // Detect if data is chromatogram-only (SRM data)
+    bool is_chromatogram_only = false;
+    if (!file_list.empty())
+    {
+      PeakMap probe;
+      try
+      {
+        FileHandler fh;
+        fh.getOptions().setFillData(false);
+        fh.loadExperiment(file_list[0], probe, {FileTypes::MZML});
+        if (probe.getSpectra().empty() && !probe.getChromatograms().empty())
+        {
+          is_chromatogram_only = true;
+          OPENMS_LOG_INFO << "Detected chromatogram-only SRM data - will constrain iRT sampling to available chromatograms." << std::endl;
+        }
+      }
+      catch (...)
+      {
+        // If probing fails, assume not chromatogram-only
+      }
+    }
+
     // 1) Prepare in‐memory iRT experiments for linear + nonlinear
     OpenSwath::LightTargetedExperiment lin_irt_exp;
     if (!irt_tr_file.empty())
@@ -1235,6 +1260,7 @@ protected:
         chroms,
         trafo_rtnorm,
         cp_irt,
+        mrm_map_param,
         pasef,
         load_into_memory);
 
@@ -1374,11 +1400,19 @@ protected:
       }
     }
 
-    OpenSwathWorkflow wf(use_ms1_traces, use_ms1_im, prm, pasef, outer_loop_threads);
-    wf.setLogType(log_type_);
+    // Detect SRM mode: check if all swath_maps are chromatogram-only (no spectra, not MS1)
+    bool srm_mode = true;
+    for (const auto& sm : swath_maps)
+    {
+      if (sm.ms1 || sm.sptr->getNrSpectra() > 0)
+      {
+        srm_mode = false;
+        break;
+      }
+    }
 
-    // Extract MRMMapping-related options from the CLI subsection and pass them to the workflow
-    Param mrm_map_param = getParam_().copy("MRMMapping:", true);
+    OpenSwathWorkflow wf(use_ms1_traces, use_ms1_im, prm, pasef, srm_mode, outer_loop_threads);
+    wf.setLogType(log_type_);
 
     // Group swath_maps by originating file and run performExtraction per-run
     // Build groups: map from filename to vector<SwathMap>

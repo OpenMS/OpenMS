@@ -9,6 +9,7 @@
 
 #include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/ANALYSIS/TARGETED/MRMMapping.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
 #include <memory>
 
 // Forward-declare OpenSwath types at global namespace (defined in openswathalgo)
@@ -48,6 +49,7 @@ namespace OpenMS
       const OpenSwath::LightTargetedExperiment & irt_transitions,
       const Param & mrm_mapping_param,
       const ChromExtractParams & cp,
+      const TransformationDescription& trafo = TransformationDescription(),
       bool pasef = false,
       bool load_into_memory = false) = 0;
 
