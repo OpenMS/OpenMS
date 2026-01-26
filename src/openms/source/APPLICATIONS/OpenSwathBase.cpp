@@ -152,7 +152,29 @@ namespace OpenMS
     // (i) Load files
     loadSwathFiles_(file_list, split_file, tmp, readoptions, exp_meta, swath_maps, swath_map_sources, plugin_consumer);
 
-    // (ii) Allow the user to specify the SWATH windows
+    // (ii) Check consistency: all input files must be of the same type (SRM or DIA/PRM)
+    if (!swath_maps.empty())
+    {
+      bool first_has_spectra = (swath_maps[0].sptr->getNrSpectra() > 0);
+      String first_file_type = first_has_spectra ? "DIA/PRM (spectra-based)" : "SRM (chromatogram-only)";
+
+      for (Size i = 1; i < swath_maps.size(); ++i)
+      {
+        bool current_has_spectra = (swath_maps[i].sptr->getNrSpectra() > 0);
+        String current_file_type = current_has_spectra ? "DIA/PRM (spectra-based)" : "SRM (chromatogram-only)";
+
+        if (current_has_spectra != first_has_spectra)
+        {
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                           "Mixed input file types detected. All input files must be of the same type. "
+                                           "First file '" + swath_map_sources[0] + "' is " + first_file_type + ", "
+                                           "but file '" + swath_map_sources[i] + "' is " + current_file_type + ". "
+                                           "Please ensure all input files are either chromatogram-only (SRM) or spectra-based (DIA/PRM).");
+        }
+      }
+    }
+
+    // (iii) Allow the user to specify the SWATH windows
     if (!swath_windows_file.empty())
     {
       SwathWindowLoader::annotateSwathMapsFromFile(swath_windows_file, swath_maps, sort_swath_maps, force);
