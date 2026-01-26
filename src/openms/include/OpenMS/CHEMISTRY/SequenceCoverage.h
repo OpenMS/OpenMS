@@ -32,7 +32,7 @@ namespace OpenMS
     */
     static double getCoverage(
       const AASequence& protein,
-      std::vector<AASequence> & peptides
+      const std::vector<AASequence>& peptides
     );
   };
 
