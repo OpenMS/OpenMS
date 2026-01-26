@@ -308,7 +308,7 @@ jobs:
                 echo "$pkg installed successfully"
                 break
               else
-                if [ $attempt -lt 3 ]; then
+                if [[ $attempt -lt 3 ]]; then
                   echo "Failed to install $pkg, retrying in 30 seconds..."
                   sleep 30
                 else
