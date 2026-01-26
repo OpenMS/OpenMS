@@ -292,14 +292,32 @@ jobs:
         fi
 
         if [[ "${{ matrix.os }}" == windows-* ]]; then
-          choco install  -y --no-progress \
+          # cmake and ninja are pre-installed on windows-2025 runner
+          # Install stable packages first
+          choco install -y --no-progress \
                 ccache \
-                cmake \
-                doxygen.portable \
                 eigen \
-                ghostscript \
-                graphviz \
-                ninja
+                graphviz
+
+          # Install packages that can be flaky (download servers may return 403/404)
+          # Retry up to 3 times with a delay between attempts
+          for pkg in doxygen.portable ghostscript; do
+            for attempt in 1 2 3; do
+              echo "Installing $pkg (attempt $attempt/3)..."
+              if choco install -y --no-progress "$pkg"; then
+                echo "$pkg installed successfully"
+                break
+              else
+                if [ $attempt -lt 3 ]; then
+                  echo "Failed to install $pkg, retrying in 30 seconds..."
+                  sleep 30
+                else
+                  echo "Failed to install $pkg after 3 attempts"
+                  exit 1
+                fi
+              fi
+            done
+          done
 
           if [[ "${{ steps.set-vars.outputs.pkg_type }}" != "none" ]]; then
             # uses a custom NSIS, which provides 8-k string support and has UltraModernUI integrated already
