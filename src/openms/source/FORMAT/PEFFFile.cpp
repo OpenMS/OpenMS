@@ -13,6 +13,7 @@
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h>
 
+#include <algorithm>
 #include <limits>
 #include <map>
 #include <set>
@@ -762,6 +763,22 @@ namespace OpenMS
 
         // Step 4: Enumerate PEFF modification combinations
         auto peff_mod_peptides = enumeratePEFFModifications_(variant_peptide, local_mods, variant_desc);
+
+        // Filter out the base (no-PEFF-mod) entry when reference not wanted
+        // This handles the case where var_combo == 0 but local_mods is not empty:
+        // enumeratePEFFModifications_ returns all combinations including combo=0 (no mods),
+        // which would be the unmodified reference peptide that should be excluded.
+        if (var_combo == 0 && !include_reference && !local_mods.empty())
+        {
+          String variant_peptide_string = variant_peptide.toString();
+          peff_mod_peptides.erase(
+            std::remove_if(peff_mod_peptides.begin(), peff_mod_peptides.end(),
+              [&](const std::pair<String, AASequence>& p) {
+                // Remove entries where no PEFF mods were applied (base peptide)
+                return p.second.toString() == variant_peptide_string;
+              }),
+            peff_mod_peptides.end());
+        }
 
         // Step 5: Apply fixed modifications (e.g., Carbamidomethyl on all Cys)
         // and then variable modifications (like Oxidation)
