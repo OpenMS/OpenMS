@@ -32,6 +32,7 @@ RNaseDB.cpp
 RNaseDigestion.cpp
 Ribonucleotide.cpp
 RibonucleotideDB.cpp
+SequenceCoverage.cpp
 SpectrumAnnotator.cpp
 SimpleTSGXLMS.cpp
 Tagger.cpp
