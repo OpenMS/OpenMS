@@ -44,7 +44,10 @@ public:
   std::vector<MSChromatogram> collectIrtChromatogramsForIrt(
     const std::vector< OpenSwath::SwathMap > & swath_maps,
     const OpenSwath::LightTargetedExperiment & irt_transitions,
-    const Param & mrm_mapping_param) override;
+    const Param & mrm_mapping_param,
+    const ChromExtractParams & cp,
+    bool pasef = false,
+    bool load_into_memory = false) override;
 
   std::vector<MSChromatogram> extractAndMapChromatogramsForTransitions(
     const std::vector< OpenSwath::SwathMap > & swath_maps,

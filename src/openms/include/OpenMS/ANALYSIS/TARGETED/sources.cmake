@@ -10,6 +10,8 @@ MRMMapping.h
 MetaboTargetedAssay.h
 MetaboTargetedTargetDecoy.h
 SRMHandler.h
+DIAChromHandler.h
+DefaultChromHandler.h
 TargetedExperiment.h
 TargetedExperimentHelper.h
 )

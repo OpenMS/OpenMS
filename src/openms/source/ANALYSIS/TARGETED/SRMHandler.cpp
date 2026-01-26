@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/TARGETED/SRMHandler.h>
+#include <OpenMS/ANALYSIS/TARGETED/DefaultChromHandler.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMS.h>
 #include <OpenMS/FORMAT/SwathFile.h>
@@ -26,7 +27,10 @@ namespace OpenMS
   std::vector<MSChromatogram> SRMChromHandler::collectIrtChromatogramsForIrt(
     const std::vector< OpenSwath::SwathMap > & swath_maps,
     const OpenSwath::LightTargetedExperiment & irt_transitions,
-    const Param & mrm_mapping_param)
+    const Param & mrm_mapping_param,
+    const ChromExtractParams & /*cp*/,
+    bool /*pasef*/,
+    bool /*load_into_memory*/)
   {
     std::vector<MSChromatogram> irt_chroms;
     size_t total_chroms = 0;
@@ -171,7 +175,8 @@ namespace OpenMS
 
   std::unique_ptr<IChromatogramHandler> IChromatogramHandler::createDefault()
   {
-    return std::unique_ptr<IChromatogramHandler>(new SRMChromHandler());
+    // Return the default delegating handler which will pick SRM vs DIA at runtime
+    return std::unique_ptr<IChromatogramHandler>(new DefaultChromHandler());
   }
 
 } // namespace OpenMS

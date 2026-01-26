@@ -13,6 +13,7 @@
 #include <cmath>
 #include <unordered_map>
 #include <cstdio>
+#include <iostream>
 
 // OpenSwathCalibrationWorkflow
 namespace OpenMS
@@ -56,43 +57,19 @@ namespace OpenMS
     bool pasef,
     bool load_into_memory)
   {
-    OPENMS_LOG_DEBUG << "performRTNormalization method starting\n";
     std::vector< OpenMS::MSChromatogram > irt_chromatograms;
     TransformationDescription trafo; // dummy
 
-    // SRM/MRM support: use existing chromatograms if input is chromatogram-only
-    bool srm_mode = true;
-    for (const auto& sm : swath_maps)
+    // collect & map chromatograms for iRT calibration.
+    // The provider delegates to SRMHandler or DIAChromHandler as needed;
     {
-      if (sm.ms1 || sm.sptr->getNrSpectra() > 0)
-      {
-        srm_mode = false;
-        break;
-      }
-    }
-
-    if (srm_mode)
-    {
-      // Use provider abstraction to collect & map chromatograms for iRT calibration.
-      // The provider delegates to SRMHandler as needed; prefer the provider API so
-      // all SRM mapping logic is centralized and can be swapped/tested.
-  std::unique_ptr<IChromatogramHandler> provider = IChromatogramHandler::createDefault();
-      try
-      {
-        irt_chromatograms = provider->collectIrtChromatogramsForIrt(swath_maps, irt_transitions, mrm_mapping_param);
-        OPENMS_LOG_DEBUG << "SRM: Collected " << irt_chromatograms.size() << " iRT chromatograms (provider)." << std::endl;
-      }
-      catch (const std::exception & e)
-      {
-        OPENMS_LOG_WARN << "SRM: provider failed to collect iRT chromatograms: " << e.what() << ". Falling back to simple extraction." << std::endl;
-        this->simpleExtractChromatograms_(swath_maps, irt_transitions, irt_chromatograms, trafo, cp_irt, pasef, load_into_memory);
-      }
+      std::unique_ptr<IChromatogramHandler> provider = IChromatogramHandler::createDefault();
+      irt_chromatograms = provider->collectIrtChromatogramsForIrt(swath_maps, irt_transitions, mrm_mapping_param, cp_irt, pasef, load_into_memory);
     }
 
     // After collecting and optionally mapping iRT chromatograms, run the
     // data-normalization routine which performs peak picking and computes
     // the RT transformation. Return that transformation to the caller.
-    OPENMS_LOG_DEBUG << "SRM: running doDataNormalization_ with " << irt_chromatograms.size() << " iRT chromatograms." << std::endl;
     TransformationDescription trafo_out = doDataNormalization_(irt_transitions,
                                                               irt_chromatograms,
                                                               im_trafo,
@@ -118,18 +95,15 @@ namespace OpenMS
     const Param& calibration_param,
     const bool pasef)
   {
-    OPENMS_LOG_DEBUG << "Start of doDataNormalization_ method\n";
     this->startProgress(0, 1, "Retention time normalization");
 
     bool estimateBestPeptides = irt_detection_param.getValue("estimateBestPeptides").toBool();
     if (estimateBestPeptides)
     {
-      OPENMS_LOG_DEBUG << "Activated the 'estimateBestPeptides' option.\n";
     }
 
     // 1. Estimate the retention time range of the iRT peptides over all assays
     std::pair<double,double> RTRange = OpenSwathHelper::estimateRTRange(targeted_exp);
-    OPENMS_LOG_DEBUG << "Detected retention time range from " << RTRange.first << " to " << RTRange.second << '\n';
 
     // 2. Store the peptide retention times in an intermediate map
     std::unordered_map<OpenMS::String, double> PeptideRTMap;
@@ -156,18 +130,12 @@ namespace OpenMS
     feature_finder_param.setValue("stop_report_after_feature", 1);
     feature_finder_param.setValue("TransitionGroupPicker:PeakPickerChromatogram:signal_to_noise", 1.0); // set to 1.0 in all cases
     feature_finder_param.setValue("TransitionGroupPicker:compute_peak_quality", "false"); // no peak quality -> take all peaks!
-    // Ensure feature finder knows the mz extraction tolerances for iRT matching
-    // (calibration_param is available in the caller and passed into this function)
-    try
-    {
-      double irt_mz_w = calibration_param.getValue("mz_extraction_window");
-      bool irt_ppm = calibration_param.getValue("mz_extraction_window_ppm").toBool();
-      feature_finder_param.setValue("irt_mz_extraction_window", irt_mz_w);
-      feature_finder_param.setValue("irt_mz_extraction_window_unit", irt_ppm ? "ppm" : "Th");
-    }
-    catch (...) {
-      // ignore if not present
-    }
+
+    double irt_mz_w = calibration_param.getValue("mz_extraction_window");
+    bool irt_ppm = calibration_param.getValue("mz_extraction_window_ppm").toBool();
+    feature_finder_param.setValue("irt_mz_extraction_window", irt_mz_w);
+    feature_finder_param.setValue("irt_mz_extraction_window_unit", irt_ppm ? "ppm" : "Th");
+
     if (estimateBestPeptides)
     {
       feature_finder_param.setValue("TransitionGroupPicker:compute_peak_quality", "true");
@@ -196,7 +164,6 @@ namespace OpenMS
     std::vector<std::pair<double, double> > pairs; // store the RT pairs to write the output trafoXML
     std::map<std::string, double> best_features = OpenSwathHelper::simpleFindBestFeature(transition_group_map,
       estimateBestPeptides, irt_detection_param.getValue("OverallQualityCutoff"));
-    OPENMS_LOG_DEBUG << "Extracted best features: " << best_features.size() << '\n';
 
     // Create pairs vector and store peaks
     std::map<String, OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType *> trgrmap_allpeaks; // store all peaks above cutoff
@@ -240,7 +207,6 @@ namespace OpenMS
         String("Illegal argument '") + outlier_method +
         "' used for outlierMethod (valid: 'iter_residual', 'iter_jackknife', 'ransac', 'none').");
     }
-    OPENMS_LOG_DEBUG << "Performed outlier detection, left with features: " << pairs_corrected.size() << '\n';
 
     // 6. Check whether the found peptides fulfill the binned coverage criteria
     // set by the user.
@@ -312,14 +278,6 @@ namespace OpenMS
     model_params.setValue("num_nodes", irt_detection_param.getValue("b_spline:num_nodes"));
     String model_type = irt_detection_param.getValue("alignmentMethod").toString();
     trafo_out.fitModel(model_type, model_params);
-
-    OPENMS_LOG_DEBUG << "Final RT mapping:\n";
-    for (Size i = 0; i < pairs_corrected.size(); i++)
-    {
-      OPENMS_LOG_DEBUG << pairs_corrected[i].first << " " <<  pairs_corrected[i].second << '\n';
-    }
-
-    OPENMS_LOG_DEBUG << "End of doDataNormalization_ method\n";
 
     this->endProgress();
     return trafo_out;
@@ -406,169 +364,20 @@ namespace OpenMS
           cp.min_upper_edge_dist, swath_maps[map_idx].lower, swath_maps[map_idx].upper);
         }
 
-        // Debug: report swath window and number of selected transitions for this map
-        // (Debug prints removed) swath window selection performed here
-          // If no transitions were selected for this swath map but the map contains
-          // chromatograms only (no spectra), fall back to using all transitions
-          // so that we can attempt nativeID / m/z matching against the chromatogram list.
-          if (transition_exp_used.getTransitions().empty()
-              && swath_maps[map_idx].sptr && swath_maps[map_idx].sptr->getNrSpectra() == 0
-              && swath_maps[map_idx].sptr->getNrChromatograms() > 0)
-          {
-            // Fall back to all transitions for chrom-only matching when no transitions selected
-            transition_exp_used = irt_transitions;
-          }
-
-          if (!transition_exp_used.getTransitions().empty()) // skip if no transitions found
+        // If no transitions were selected for this swath map but the map contains
+        // chromatograms only (no spectra), fall back to using all transitions
+        // so that we can attempt nativeID / m/z matching against the chromatogram list.
+        if (transition_exp_used.getTransitions().empty()
+            && swath_maps[map_idx].sptr && swath_maps[map_idx].sptr->getNrSpectra() == 0
+            && swath_maps[map_idx].sptr->getNrChromatograms() > 0)
         {
-          // If this swath map is chromatogram-only (no spectra, but chromatograms present),
-          // extract matching chromatograms by nativeID or by m/z fallback.
-          if (swath_maps[map_idx].sptr->getNrSpectra() == 0 && swath_maps[map_idx].sptr->getNrChromatograms() > 0)
-          {
-            auto* openms_map = dynamic_cast<OpenMS::SpectrumAccessOpenMS*>(swath_maps[map_idx].sptr.get());
-            if (openms_map)
-            {
-              Size n_chroms = openms_map->getNrChromatograms();
-              std::unordered_map<String, int> chrom_map;
-              chrom_map.reserve(n_chroms);
-              std::vector<std::pair<double,double>> chrom_mz_cache(n_chroms, std::make_pair(-1.0, -1.0));
-              for (Size k = 0; k < n_chroms; ++k)
-              {
-                String cid = openms_map->getChromatogramNativeID(k);
-                chrom_map[cid] = boost::numeric_cast<int>(k);
-                double c_prec = -1.0, c_prod = -1.0;
-                if (sscanf(cid.c_str(), "%*[^0-9+\\-]%lf%*[^0-9+\\-]%lf", &c_prec, &c_prod) >= 2)
-                {
-                  chrom_mz_cache[k] = std::make_pair(c_prec, c_prod);
-                }
-              }
+          // Fall back to all transitions for chrom-only matching when no transitions selected
+          transition_exp_used = irt_transitions;
+        }
 
-              // parsed chromatograms cached (verbose debug removed)
+        if (!transition_exp_used.getTransitions().empty()) // skip if no transitions found
+        {
 
-              std::vector<OpenSwath::ChromatogramPtr> tmp_out_ptrs;
-              // For each requested transition, find matching chromatogram
-              for (const auto & tr : transition_exp_used.getTransitions())
-              {
-                int matched_idx = -1;
-                auto it = chrom_map.find(tr.getNativeID());
-                if (it != chrom_map.end())
-                {
-                  matched_idx = it->second;
-                }
-                else
-                {
-                  // mz-based fallback matching (precursor+product first, then product-only)
-                  double t_prec = tr.getPrecursorMZ();
-                  double t_prod = tr.getProductMZ();
-                  // try pair match
-                  for (Size j = 0; j < n_chroms; ++j)
-                  {
-                    double c_prec = chrom_mz_cache[j].first;
-                    double c_prod = chrom_mz_cache[j].second;
-                    if (c_prec < 0 || c_prod < 0) continue;
-                    double abs_tol = 0.5;
-                    double ppm_tol = 20.0;
-                    try
-                    {
-                      double cfg = cp.mz_extraction_window;
-                      String unit = cp.ppm ? "ppm" : "Th";
-                      if (cfg > 0)
-                      {
-                        if (unit == "ppm")
-                        {
-                          ppm_tol = cfg / 2.0;
-                          abs_tol = -1.0;
-                        }
-                        else
-                        {
-                          abs_tol = cfg / 2.0;
-                          ppm_tol = -1.0;
-                        }
-                      }
-                    }
-                    catch (...) {}
-                    bool prec_ok = false;
-                    bool prod_ok = false;
-                    if (abs_tol >= 0) { prec_ok = (fabs(c_prec - t_prec) <= abs_tol); }
-                    if (!prec_ok && ppm_tol >= 0) { prec_ok = (fabs(c_prec - t_prec) / t_prec * 1e6 <= ppm_tol); }
-                    if (abs_tol >= 0) { prod_ok = (fabs(c_prod - t_prod) <= abs_tol); }
-                    if (!prod_ok && ppm_tol >= 0) { prod_ok = (fabs(c_prod - t_prod) / t_prod * 1e6 <= ppm_tol); }
-                    if (prec_ok && prod_ok)
-                    {
-                      matched_idx = boost::numeric_cast<int>(j);
-                      break;
-                    }
-                  }
-                  // product-only fallback
-                  if (matched_idx == -1)
-                  {
-                    // product-only fallback (no verbose debug)
-                    for (Size j = 0; j < n_chroms; ++j)
-                    {
-                      double c_prod = chrom_mz_cache[j].second;
-                      if (c_prod < 0) continue;
-                      double abs_tol = 0.5;
-                      double ppm_tol = 20.0;
-                      try
-                      {
-                        double cfg = cp.mz_extraction_window;
-                        String unit = cp.ppm ? "ppm" : "Th";
-                        if (cfg > 0)
-                        {
-                          if (unit == "ppm")
-                          {
-                            ppm_tol = cfg / 2.0;
-                            abs_tol = -1.0;
-                          }
-                          else
-                          {
-                            abs_tol = cfg / 2.0;
-                            ppm_tol = -1.0;
-                          }
-                        }
-                      }
-                      catch (...) {}
-                      bool prod_ok = false;
-                      if (abs_tol >= 0) { prod_ok = (fabs(c_prod - t_prod) <= abs_tol); }
-                      if (!prod_ok && ppm_tol >= 0) { prod_ok = (fabs(c_prod - t_prod) / t_prod * 1e6 <= ppm_tol); }
-                      if (prod_ok)
-                      {
-                        matched_idx = boost::numeric_cast<int>(j);
-                        break;
-                      }
-                    }
-                  }
-                }
-
-                if (matched_idx != -1)
-                {
-                  auto chrom_ptr = openms_map->getChromatogramById(matched_idx);
-                  if (chrom_ptr)
-                  {
-                    MSChromatogram omchrom;
-                    OpenSwathDataAccessHelper::convertToOpenMSChromatogram(chrom_ptr, omchrom);
-                    // Use the transition native ID for the output chromatogram so it
-                    // can be directly mapped back to the PQP/OSW transition IDs when
-                    // writing sqMass/feature files.
-                    omchrom.setNativeID(tr.getNativeID());
-                    tmp_chromatograms.push_back(omchrom);
-                  }
-                }
-              } // transitions loop
-
-              // add found chromatograms to output (thread-safe)
-#ifdef _OPENMP
-#pragma omp critical (osw_write_chroms)
-#endif
-              {
-                for (auto &c : tmp_chromatograms)
-                {
-                  chromatograms.push_back(c);
-                }
-              }
-            }
-            continue; // skip the regular extractor path for this swath_map
-          }
 
           std::vector< OpenSwath::ChromatogramPtr > tmp_out;
           std::vector< ChromatogramExtractor::ExtractionCoordinates > coordinates;
@@ -618,7 +427,7 @@ namespace OpenMS
 
             if (nr_empty_chromatograms > 0)
             {
-              std::cerr << " - Warning: Detected " << nr_empty_chromatograms << " empty chromatograms. Will skip them!\n";
+              OPENMS_LOG_WARN << " - Warning: Detected " << nr_empty_chromatograms << " empty chromatograms. Will skip them!" << std::endl;
             }
           }
         }
@@ -782,7 +591,7 @@ namespace OpenMS
     //
     // currently not supported to do PASEF and PRM
     if (prm_ & pasef_) {
-      std::cerr << "Setting -pasef and -matching_window_only flags simultaneously is not currently supported.\n";
+      OPENMS_LOG_ERROR << "Setting -pasef and -matching_window_only flags simultaneously is not currently supported." << std::endl;
       throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
     else if (prm_)

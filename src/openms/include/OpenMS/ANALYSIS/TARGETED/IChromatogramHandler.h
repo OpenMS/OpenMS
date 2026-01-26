@@ -46,7 +46,10 @@ namespace OpenMS
     virtual std::vector<MSChromatogram> collectIrtChromatogramsForIrt(
       const std::vector< OpenSwath::SwathMap > & swath_maps,
       const OpenSwath::LightTargetedExperiment & irt_transitions,
-      const Param & mrm_mapping_param) = 0;
+      const Param & mrm_mapping_param,
+      const ChromExtractParams & cp,
+      bool pasef = false,
+      bool load_into_memory = false) = 0;
 
     /// Extract (or select) chromatograms for the given transitions and return mapped & filtered chromatograms
     virtual std::vector<MSChromatogram> extractAndMapChromatogramsForTransitions(

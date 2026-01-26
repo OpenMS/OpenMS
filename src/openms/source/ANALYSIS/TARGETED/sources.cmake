@@ -9,6 +9,8 @@ MetaboTargetedAssay.cpp
 MetaboTargetedTargetDecoy.cpp
 MRMMapping.cpp
 SRMHandler.cpp
+DIAChromHandler.cpp
+DefaultChromHandler.cpp
 TargetedExperiment.cpp
 TargetedExperimentHelper.cpp
 )
