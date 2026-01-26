@@ -1171,6 +1171,60 @@ START_SECTION([PEFFEntry] generatePeptides_full_workflow)
 }
 END_SECTION
 
+START_SECTION([PEFFEntry] generatePeptides_no_reference_with_peff_mods)
+{
+  // Regression test: when include_reference=false and there are PEFF modifications,
+  // the unmodified reference peptide should NOT appear in the output.
+  // Previously, enumeratePEFFModifications_ returned combo=0 (no mods) which was
+  // the reference peptide, and it wasn't being filtered out.
+  PEFFEntry entry;
+  entry.sequence = "MKPEPTIDER";  // MK | PEPTIDER
+  // Add a PEFF modification at position 4 (E -> phospho)
+  entry.modifications.push_back(PEFFModification(4, "UNIMOD:21", "Phospho"));
+
+  ProteaseDigestion digestor;
+  digestor.setEnzyme("Trypsin");
+  digestor.setMissedCleavages(0);
+
+  std::vector<std::string> no_fixed;
+  std::vector<std::string> no_var;
+  std::vector<std::string> descriptions;
+  std::vector<AASequence> sequences;
+
+  // include_reference=false, include_peff_modifications=true
+  entry.generatePeptides(digestor, descriptions, sequences, no_fixed, no_var, 2, 2, 20,
+                         false,  // include_reference = false
+                         false,  // include_variants = false
+                         true);  // include_peff_modifications = true
+
+  // The peptide PEPTIDER should only appear with modifications, not unmodified
+  AASequence ref_peptide = AASequence::fromString("PEPTIDER");
+  String ref_peptide_str = ref_peptide.toString();
+
+  bool found_unmodified_reference = false;
+  for (size_t i = 0; i < sequences.size(); ++i)
+  {
+    if (sequences[i].toString() == ref_peptide_str)
+    {
+      found_unmodified_reference = true;
+      break;
+    }
+  }
+
+  // The unmodified reference should NOT be in the output
+  TEST_EQUAL(found_unmodified_reference, false)
+
+  // But we should have at least the modified version(s)
+  TEST_EQUAL(sequences.size() > 0, true)
+
+  // All peptides should be modified (have phospho or other PEFF mod)
+  for (size_t i = 0; i < sequences.size(); ++i)
+  {
+    TEST_EQUAL(sequences[i].isModified(), true)
+  }
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
