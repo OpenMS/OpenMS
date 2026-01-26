@@ -1838,6 +1838,16 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
   set_tests_properties("TOPP_OpenSwathWorkflow_23_out1" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_23")
   set_tests_properties("TOPP_OpenSwathWorkflow_23_out2" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_23")
 
+  # Test with SRM chromatogram-only data
+  add_test("TOPP_OpenSwathWorkflow_24" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/MRMMapping_input.chrom.mzML -tr ${DATA_DIR_TOPP}/MRMMapping_input.TraML -out_features ${TESTS_TEMP_DIR}/OpenSwathWorkflow_24.tmp.featureXML -auto_irt false -estimate_extraction_windows none -test -mz_extraction_window 0.05 -mz_extraction_window_unit Th -ms1_isotopes 0 -Scoring:TransitionGroupPicker:compute_peak_quality -Scoring:Scores:use_ms1_mi false -Scoring:Scores:use_mi_score false)
+  add_test("TOPP_OpenSwathWorkflow_24_out1" ${DIFF} -whitelist "id=" -in1 ${TESTS_TEMP_DIR}/OpenSwathWorkflow_24.tmp.featureXML -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_24_output.featureXML)
+  set_tests_properties("TOPP_OpenSwathWorkflow_24_out1" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_24")
+
+  # Test with multiple SRM chromatogram-only data inputs
+  add_test("TOPP_OpenSwathWorkflow_25" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/MRMMapping_output.chrom.mzML ${DATA_DIR_TOPP}/MRMMapping_output_2.chrom.mzML -tr ${DATA_DIR_TOPP}/MRMMapping_input.TraML -out_features ${TESTS_TEMP_DIR}/OpenSwathWorkflow_25.tmp.featureXML -auto_irt false -estimate_extraction_windows none -test -mz_extraction_window 0.05 -mz_extraction_window_unit Th -ms1_isotopes 0 -Scoring:TransitionGroupPicker:compute_peak_quality -Scoring:Scores:use_ms1_mi false -Scoring:Scores:use_mi_score false)
+  add_test("TOPP_OpenSwathWorkflow_25_out1" ${DIFF} -whitelist "id=" -in1 ${TESTS_TEMP_DIR}/OpenSwathWorkflow_25.tmp.featureXML -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_25_output.featureXML)
+  set_tests_properties("TOPP_OpenSwathWorkflow_25_out1" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_25")
+
 
 
 endif(NOT DISABLE_OPENSWATH)
