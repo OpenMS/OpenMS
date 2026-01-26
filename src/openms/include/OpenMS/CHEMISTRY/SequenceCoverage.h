@@ -5,7 +5,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: OpenMS Development Team $
-// $Authors: Srikanthkn0 $
+// $Authors: Srikanth K N $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CHEMISTRY/AASequence.h>
