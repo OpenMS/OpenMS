@@ -12,6 +12,7 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/METADATA/Precursor.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/ANALYSIS/QUANTITATION/KDTreeFeatureMaps.h>
 
 #include <iomanip>
 #include <fstream>
@@ -226,6 +227,26 @@ namespace OpenMS
     {
       set<Size> corrected_precursors;
 
+      // Build KDTree for efficient spatial queries
+      KDTreeFeatureMaps kd_tree;
+      vector<FeatureMap> feature_maps(1);
+      feature_maps[0] = features;
+      kd_tree.addMaps(feature_maps);
+
+      // Calculate global m/z bounds for all features to determine search window
+      double max_mz_extent = 0.01; // minimum m/z extent from overlaps_ function
+      for (Size i = 0; i < features.size(); ++i)
+      {
+        if (!features[i].getConvexHulls().empty())
+        {
+          DBoundingBox<2> box = features[i].getConvexHull().getBoundingBox();
+          double mz_extent = box.maxPosition()[1] - box.minPosition()[1];
+          max_mz_extent = std::max(max_mz_extent, mz_extent);
+        }
+      }
+      // Add some buffer to account for the extended bounding box in overlaps_
+      max_mz_extent += 0.02;
+
       // for each precursor/MS2 find all features that are in the given tolerance window (bounding box + rt tolerances)
       // if believe_charge is set, only add features that match the precursor charge
       map<Size, set<Size> > scan_idx_to_feature_idx;
@@ -241,9 +262,19 @@ namespace OpenMS
         const double rt = exp[scan].getRT();
         const int pc_charge = exp[scan].getPrecursors()[0].getCharge();
 
-        for (Size f = 0; f != features.size(); ++f)
+        // Use KDTree to query features in the RT-MZ region
+        // RT window is precursor RT +/- rt_tolerance_s
+        // MZ window needs to account for feature bounding box extent
+        vector<Size> candidate_indices;
+        kd_tree.queryRegion(rt - rt_tolerance_s, rt + rt_tolerance_s, 
+                           pc_mz - max_mz_extent, pc_mz + max_mz_extent,
+                           candidate_indices);
+
+        for (Size idx : candidate_indices)
         {
-          // feature  is incompatible if believe_charge is set and charges don't match
+          const Size f = idx;  // feature index in original FeatureMap
+          
+          // feature is incompatible if believe_charge is set and charges don't match
           if (believe_charge && features[f].getCharge() != pc_charge)
           {
             continue;
