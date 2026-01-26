@@ -9,6 +9,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CHEMISTRY/AASequence.h>
+
 #include <vector>
 
 namespace OpenMS
