@@ -234,7 +234,8 @@ namespace OpenMS
       kd_tree.addMaps(feature_maps);
 
       // Calculate global m/z bounds for all features to determine search window
-      double max_mz_extent = 0.01; // minimum m/z extent from overlaps_ function
+      // The overlaps_ function extends the feature bounding box by 0.01 Da in m/z
+      double max_mz_extent = 0.01; // minimum m/z extent
       for (Size i = 0; i < features.size(); ++i)
       {
         if (!features[i].getConvexHulls().empty())
@@ -272,17 +273,15 @@ namespace OpenMS
 
         for (Size idx : candidate_indices)
         {
-          const Size f = idx;  // feature index in original FeatureMap
-          
           // feature is incompatible if believe_charge is set and charges don't match
-          if (believe_charge && features[f].getCharge() != pc_charge)
+          if (believe_charge && features[idx].getCharge() != pc_charge)
           {
             continue;
           }
           // check if precursor/MS2 position overlap with feature
-          if (overlaps_(features[f], rt, pc_mz, rt_tolerance_s))
+          if (overlaps_(features[idx], rt, pc_mz, rt_tolerance_s))
           {
-            scan_idx_to_feature_idx[scan].insert(f);
+            scan_idx_to_feature_idx[scan].insert(idx);
           }
           ++overlap_checks;
         }
