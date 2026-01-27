@@ -28,10 +28,10 @@ namespace OpenMS
   The `SRMChromHandler` class is the default implementation of
   `IChromatogramHandler` used by OpenSwathWorkflow when running in SRM/MRM
   mode. It delegates to the internal SRM helpers implemented in
-  `SRMHandler.cpp` for chromatogram collection and mapping.
+  `SRMChromHandler.cpp` for chromatogram collection and mapping.
 
   This header exposes the provider's public interface (only the class
-  declaration). The implementation is colocated in `SRMHandler.cpp` so the
+  declaration). The implementation is colocated in `SRMChromHandler.cpp` so the
   provider can remain a lightweight adapter while keeping implementation
   details private to the translation unit.
 */

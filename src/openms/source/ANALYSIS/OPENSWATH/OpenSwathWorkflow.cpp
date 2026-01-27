@@ -61,7 +61,7 @@ namespace OpenMS
     TransformationDescription trafo; // dummy
 
     // collect & map chromatograms for iRT calibration.
-    // The provider delegates to SRMHandler or DIAChromHandler as needed;
+    // The provider delegates to SRMChromHandler or DIAChromHandler as needed;
     {
       std::unique_ptr<IChromatogramHandler> provider = IChromatogramHandler::createDefault();
       irt_chromatograms = provider->collectIrtChromatogramsForIrt(swath_maps, irt_transitions, mrm_mapping_param, cp_irt, TransformationDescription(), pasef, load_into_memory);

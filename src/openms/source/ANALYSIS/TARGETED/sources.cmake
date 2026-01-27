@@ -8,7 +8,7 @@ IncludeExcludeTarget.cpp
 MetaboTargetedAssay.cpp
 MetaboTargetedTargetDecoy.cpp
 MRMMapping.cpp
-SRMHandler.cpp
+SRMChromHandler.cpp
 DIAChromHandler.cpp
 DefaultChromHandler.cpp
 TargetedExperiment.cpp

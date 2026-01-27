@@ -501,7 +501,7 @@ set(analysis_executables_list
   TargetedExperimentHelper_test
   MRMFeaturePicker_test
   MRMMapping_test
-  SRMHandler_test
+  SRMChromHandler_test
   DefaultChromHandler_test
   DIAChromHandler_test
   ChromatogramProcessor_test

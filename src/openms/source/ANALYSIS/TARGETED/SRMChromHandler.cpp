@@ -6,7 +6,7 @@
 // $Authors: Justin Sing $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/TARGETED/SRMHandler.h>
+#include <OpenMS/ANALYSIS/TARGETED/SRMChromHandler.h>
 #include <OpenMS/ANALYSIS/TARGETED/DefaultChromHandler.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMS.h>

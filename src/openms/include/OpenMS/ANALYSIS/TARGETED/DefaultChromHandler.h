@@ -9,7 +9,7 @@
 #pragma once
 
 #include <OpenMS/ANALYSIS/TARGETED/IChromatogramHandler.h>
-#include <OpenMS/ANALYSIS/TARGETED/SRMHandler.h>
+#include <OpenMS/ANALYSIS/TARGETED/SRMChromHandler.h>
 #include <OpenMS/ANALYSIS/TARGETED/DIAChromHandler.h>
 #include <memory>
 
