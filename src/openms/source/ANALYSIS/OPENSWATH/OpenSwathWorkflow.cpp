@@ -10,6 +10,11 @@
 #include <OpenMS/ANALYSIS/TARGETED/IChromatogramHandler.h>
 #include <OpenMS/ANALYSIS/TARGETED/ChromatogramProcessor.h>
 #include <OpenMS/ANALYSIS/TARGETED/MRMMapping.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/FileTypes.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <cmath>
 #include <unordered_map>
 #include <cstdio>
@@ -66,6 +71,31 @@ namespace OpenMS
       std::unique_ptr<IChromatogramHandler> provider = IChromatogramHandler::createDefault();
       irt_chromatograms = provider->collectIrtChromatogramsForIrt(swath_maps, irt_transitions, mrm_mapping_param, cp_irt, TransformationDescription(), pasef, load_into_memory);
     }
+
+    // debug output of the iRT chromatograms
+    String irt_mzml_out_local = irt_mzml_out;
+    if (irt_mzml_out_local.empty() && debug_level > 1)
+    {
+      irt_mzml_out_local = "debug_irts.mzML";
+    }
+    if (!irt_mzml_out_local.empty())
+    {
+      try
+      {
+        PeakMap exp;
+        exp.setChromatograms(irt_chromatograms);
+        FileHandler().storeExperiment(irt_mzml_out_local, exp, {FileTypes::MZML});
+      }
+      catch (OpenMS::Exception::UnableToCreateFile& /*e*/)
+      {
+        OPENMS_LOG_DEBUG << "Error creating file " + irt_mzml_out_local + ", not writing out iRT chromatogram file"  << '\n';
+      }
+      catch (OpenMS::Exception::BaseException& /*e*/)
+      {
+        OPENMS_LOG_DEBUG << "Error writing to file " + irt_mzml_out_local + ", not writing out iRT chromatogram file"  << '\n';
+      }
+    }
+    OPENMS_LOG_DEBUG << "Extracted number of chromatograms from iRT files: " << irt_chromatograms.size() <<  std::endl;
 
     // After collecting and optionally mapping iRT chromatograms, run the
     // data-normalization routine which performs peak picking and computes
