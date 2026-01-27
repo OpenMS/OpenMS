@@ -22,13 +22,10 @@ ModificationsDB.cpp
 ModifiedNASequenceGenerator.cpp
 MonosaccharideDB.cpp
 ModifiedPeptideGenerator.cpp
+MzPAF.cpp
 NASequence.cpp
 NucleicAcidSpectrumGenerator.cpp
-ProFormaDataJson.cpp
-ProFormaError.cpp
-ProFormaParser.cpp
-ProFormaTokenizer.cpp
-ProFormaWriter.cpp
+ProForma.cpp
 ProteaseDB.cpp
 ProteaseDigestion.cpp
 Residue.cpp

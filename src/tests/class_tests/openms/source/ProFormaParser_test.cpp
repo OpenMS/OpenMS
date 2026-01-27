@@ -11,11 +11,7 @@
 
 ///////////////////////////
 
-#include <OpenMS/CHEMISTRY/ProFormaParser.h>
-#include <OpenMS/CHEMISTRY/ProFormaWriter.h>
-#include <OpenMS/CHEMISTRY/ProFormaTokenizer.h>
-#include <OpenMS/CHEMISTRY/ProFormaError.h>
-#include <OpenMS/CHEMISTRY/ProFormaData.h>
+#include <OpenMS/CHEMISTRY/ProForma.h>
 
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
@@ -26,6 +22,37 @@
 
 using namespace OpenMS;
 using namespace std;
+
+// Type aliases for ProForma nested types
+using Peptidoform = ProForma::Peptidoform;
+using PeptidoformIon = ProForma::PeptidoformIon;
+using SequenceElement = ProForma::SequenceElement;
+using SequenceSection = ProForma::SequenceSection;
+using Modification = ProForma::Modification;
+using ModificationTag = ProForma::ModificationTag;
+using CvAccession = ProForma::CvAccession;
+using CvDatabase = ProForma::CvDatabase;
+using NamedMod = ProForma::NamedMod;
+using MassDelta = ProForma::MassDelta;
+using FormulaTag = ProForma::FormulaTag;
+using GlycanComposition = ProForma::GlycanComposition;
+using InfoTag = ProForma::InfoTag;
+using PositionConstraint = ProForma::PositionConstraint;
+using Label = ProForma::Label;
+using UnlocalisedMod = ProForma::UnlocalisedMod;
+using LabileModification = ProForma::LabileModification;
+using GlobalModEntry = ProForma::GlobalModEntry;
+using GlobalModification = ProForma::GlobalModification;
+using IsotopeReplacement = ProForma::IsotopeReplacement;
+using AmbiguousRegion = ProForma::AmbiguousRegion;
+using ModifiedRange = ProForma::ModifiedRange;
+using ChargeState = ProForma::ChargeState;
+using AdductIon = ProForma::AdductIon;
+using ConversionIssue = ProForma::ConversionIssue;
+using ConversionIssueType = ProForma::ConversionIssueType;
+using ConversionPolicy = ProForma::ConversionPolicy;
+using WriteMode = ProForma::WriteMode;
+using ErrorCode = ProForma::ErrorCode;
 
 ///////////////////////////
 
@@ -56,111 +83,29 @@ vector<string> loadTestCases(const string& filename)
 START_TEST(ProFormaParser, "$Id$")
 
 /////////////////////////////////////////////////////////////
+// Parser tests (Tokenizer is now internal to ProForma.cpp)
 /////////////////////////////////////////////////////////////
 
-START_SECTION(ProFormaTokenizer basic tests)
-{
-  // Test simple tokenization
-  ProFormaTokenizer tokenizer("EM[UNIMOD:35]K");
-
-  auto tok1 = tokenizer.next();
-  TEST_EQUAL(tok1.type, ProFormaTokenizer::TokenType::IDENTIFIER)
-  TEST_EQUAL(tok1.text, "EM")
-
-  auto tok2 = tokenizer.next();
-  TEST_EQUAL(tok2.type, ProFormaTokenizer::TokenType::LBRACKET)
-
-  auto tok3 = tokenizer.next();
-  TEST_EQUAL(tok3.type, ProFormaTokenizer::TokenType::IDENTIFIER)
-  TEST_EQUAL(tok3.text, "UNIMOD")
-
-  auto tok4 = tokenizer.next();
-  TEST_EQUAL(tok4.type, ProFormaTokenizer::TokenType::COLON)
-
-  auto tok5 = tokenizer.next();
-  TEST_EQUAL(tok5.type, ProFormaTokenizer::TokenType::NUMBER)
-  TEST_EQUAL(tok5.text, "35")
-
-  auto tok6 = tokenizer.next();
-  TEST_EQUAL(tok6.type, ProFormaTokenizer::TokenType::RBRACKET)
-
-  auto tok7 = tokenizer.next();
-  TEST_EQUAL(tok7.type, ProFormaTokenizer::TokenType::IDENTIFIER)
-  TEST_EQUAL(tok7.text, "K")
-
-  auto tok8 = tokenizer.next();
-  TEST_EQUAL(tok8.type, ProFormaTokenizer::TokenType::END)
-}
-END_SECTION
-
-START_SECTION(ProFormaTokenizer number parsing)
-{
-  // Test signed numbers
-  ProFormaTokenizer tokenizer("[+15.9949]");
-
-  tokenizer.next(); // [
-  auto num = tokenizer.next();
-  TEST_EQUAL(num.type, ProFormaTokenizer::TokenType::NUMBER)
-  TEST_EQUAL(num.text, "+15.9949")
-
-  // Test negative numbers
-  ProFormaTokenizer tokenizer2("[-1.5]");
-  tokenizer2.next(); // [
-  auto num2 = tokenizer2.next();
-  TEST_EQUAL(num2.type, ProFormaTokenizer::TokenType::NUMBER)
-  TEST_EQUAL(num2.text, "-1.5")
-}
-END_SECTION
-
-START_SECTION(ProFormaTokenizer special tokens)
-{
-  ProFormaTokenizer tokenizer("<>()[]{}#@|/^?:,-+");
-
-  TEST_EQUAL(tokenizer.next().type, ProFormaTokenizer::TokenType::LANGLE)
-  TEST_EQUAL(tokenizer.next().type, ProFormaTokenizer::TokenType::RANGLE)
-  TEST_EQUAL(tokenizer.next().type, ProFormaTokenizer::TokenType::LPAREN)
-  TEST_EQUAL(tokenizer.next().type, ProFormaTokenizer::TokenType::RPAREN)
-  TEST_EQUAL(tokenizer.next().type, ProFormaTokenizer::TokenType::LBRACKET)
-  TEST_EQUAL(tokenizer.next().type, ProFormaTokenizer::TokenType::RBRACKET)
-  TEST_EQUAL(tokenizer.next().type, ProFormaTokenizer::TokenType::LBRACE)
-  TEST_EQUAL(tokenizer.next().type, ProFormaTokenizer::TokenType::RBRACE)
-  TEST_EQUAL(tokenizer.next().type, ProFormaTokenizer::TokenType::HASH)
-  TEST_EQUAL(tokenizer.next().type, ProFormaTokenizer::TokenType::AT)
-  TEST_EQUAL(tokenizer.next().type, ProFormaTokenizer::TokenType::PIPE)
-  TEST_EQUAL(tokenizer.next().type, ProFormaTokenizer::TokenType::SLASH)
-  TEST_EQUAL(tokenizer.next().type, ProFormaTokenizer::TokenType::CARET)
-  TEST_EQUAL(tokenizer.next().type, ProFormaTokenizer::TokenType::QUESTION)
-  TEST_EQUAL(tokenizer.next().type, ProFormaTokenizer::TokenType::COLON)
-  TEST_EQUAL(tokenizer.next().type, ProFormaTokenizer::TokenType::COMMA)
-  TEST_EQUAL(tokenizer.next().type, ProFormaTokenizer::TokenType::MINUS)
-  TEST_EQUAL(tokenizer.next().type, ProFormaTokenizer::TokenType::PLUS)
-}
-END_SECTION
-
-/////////////////////////////////////////////////////////////
-// Parser tests
-/////////////////////////////////////////////////////////////
-
-START_SECTION(ProFormaParser::parse - simple sequences)
+START_SECTION(ProForma::parse - simple sequences)
 {
   // Simple sequence without modifications
-  Peptidoform pf1 = ProFormaParser::parse("PEPTIDE");
+  Peptidoform pf1 = ProForma::parse("PEPTIDE");
   TEST_EQUAL(pf1.sequence.size(), 7)
 
   // Single amino acid
-  Peptidoform pf2 = ProFormaParser::parse("A");
+  Peptidoform pf2 = ProForma::parse("A");
   TEST_EQUAL(pf2.sequence.size(), 1)
 
   // Two amino acids
-  Peptidoform pf3 = ProFormaParser::parse("AA");
+  Peptidoform pf3 = ProForma::parse("AA");
   TEST_EQUAL(pf3.sequence.size(), 2)
 }
 END_SECTION
 
-START_SECTION(ProFormaParser::parse - CV accessions)
+START_SECTION(ProForma::parse - CV accessions)
 {
   // UNIMOD accession
-  Peptidoform pf1 = ProFormaParser::parse("EM[UNIMOD:35]K");
+  Peptidoform pf1 = ProForma::parse("EM[UNIMOD:35]K");
   TEST_EQUAL(pf1.sequence.size(), 3)
 
   // Get the modification on M (second residue)
@@ -192,9 +137,9 @@ START_SECTION(ProFormaParser::parse - CV accessions)
 }
 END_SECTION
 
-START_SECTION(ProFormaParser::parse - named modifications)
+START_SECTION(ProForma::parse - named modifications)
 {
-  Peptidoform pf = ProFormaParser::parse("EM[Oxidation]K");
+  Peptidoform pf = ProForma::parse("EM[Oxidation]K");
   TEST_EQUAL(pf.sequence.size(), 3)
 
   auto& seq_elem = std::get<SequenceElement>(pf.sequence[1]);
@@ -206,9 +151,9 @@ START_SECTION(ProFormaParser::parse - named modifications)
 }
 END_SECTION
 
-START_SECTION(ProFormaParser::parse - mass deltas)
+START_SECTION(ProForma::parse - mass deltas)
 {
-  Peptidoform pf = ProFormaParser::parse("A[+15.9949]A");
+  Peptidoform pf = ProForma::parse("A[+15.9949]A");
   TEST_EQUAL(pf.sequence.size(), 2)
 
   auto& seq_elem = std::get<SequenceElement>(pf.sequence[0]);
@@ -221,9 +166,9 @@ START_SECTION(ProFormaParser::parse - mass deltas)
 }
 END_SECTION
 
-START_SECTION(ProFormaParser::parse - formula tags)
+START_SECTION(ProForma::parse - formula tags)
 {
-  Peptidoform pf = ProFormaParser::parse("SEQUEN[Formula:C12H20O2]CE");
+  Peptidoform pf = ProForma::parse("SEQUEN[Formula:C12H20O2]CE");
   TEST_EQUAL(pf.sequence.size(), 8)
 
   auto& seq_elem = std::get<SequenceElement>(pf.sequence[5]); // N
@@ -235,9 +180,9 @@ START_SECTION(ProFormaParser::parse - formula tags)
 }
 END_SECTION
 
-START_SECTION(ProFormaParser::parse - glycan compositions)
+START_SECTION(ProForma::parse - glycan compositions)
 {
-  Peptidoform pf = ProFormaParser::parse("SEQUEN[Glycan:HexNAc]CE");
+  Peptidoform pf = ProForma::parse("SEQUEN[Glycan:HexNAc]CE");
   TEST_EQUAL(pf.sequence.size(), 8)
 
   auto& seq_elem = std::get<SequenceElement>(pf.sequence[5]); // N
@@ -249,9 +194,9 @@ START_SECTION(ProFormaParser::parse - glycan compositions)
 }
 END_SECTION
 
-START_SECTION(ProFormaParser::parse - N-terminal modifications)
+START_SECTION(ProForma::parse - N-terminal modifications)
 {
-  Peptidoform pf = ProFormaParser::parse("[Acetyl]-PEPTIDE");
+  Peptidoform pf = ProForma::parse("[Acetyl]-PEPTIDE");
   TEST_EQUAL(pf.sequence.size(), 7)
   TEST_EQUAL(pf.n_term_mods.size(), 1)
 
@@ -261,9 +206,9 @@ START_SECTION(ProFormaParser::parse - N-terminal modifications)
 }
 END_SECTION
 
-START_SECTION(ProFormaParser::parse - C-terminal modifications)
+START_SECTION(ProForma::parse - C-terminal modifications)
 {
-  Peptidoform pf = ProFormaParser::parse("PEPTIDE-[Amidated]");
+  Peptidoform pf = ProForma::parse("PEPTIDE-[Amidated]");
   TEST_EQUAL(pf.sequence.size(), 7)
   TEST_EQUAL(pf.c_term_mods.size(), 1)
 
@@ -273,25 +218,25 @@ START_SECTION(ProFormaParser::parse - C-terminal modifications)
 }
 END_SECTION
 
-START_SECTION(ProFormaParser::parse - unlocalised modifications)
+START_SECTION(ProForma::parse - unlocalised modifications)
 {
-  Peptidoform pf = ProFormaParser::parse("[Phospho]?PEPTIDE");
+  Peptidoform pf = ProForma::parse("[Phospho]?PEPTIDE");
   TEST_EQUAL(pf.sequence.size(), 7)
   TEST_EQUAL(pf.unlocalised_mods.size(), 1)
 }
 END_SECTION
 
-START_SECTION(ProFormaParser::parse - labile modifications)
+START_SECTION(ProForma::parse - labile modifications)
 {
-  Peptidoform pf = ProFormaParser::parse("{Glycan:Hex}PEPTIDE");
+  Peptidoform pf = ProForma::parse("{Glycan:Hex}PEPTIDE");
   TEST_EQUAL(pf.sequence.size(), 7)
   TEST_EQUAL(pf.labile_mods.size(), 1)
 }
 END_SECTION
 
-START_SECTION(ProFormaParser::parse - global modifications)
+START_SECTION(ProForma::parse - global modifications)
 {
-  Peptidoform pf = ProFormaParser::parse("<13C>PEPTIDE");
+  Peptidoform pf = ProForma::parse("<13C>PEPTIDE");
   TEST_EQUAL(pf.sequence.size(), 7)
   TEST_EQUAL(pf.global_mods.size(), 1)
 
@@ -301,10 +246,10 @@ START_SECTION(ProFormaParser::parse - global modifications)
 }
 END_SECTION
 
-START_SECTION(ProFormaParser::parse - cross-link labels)
+START_SECTION(ProForma::parse - cross-link labels)
 {
   // EMEVTK[XLMOD:02001#XL1]SESPEK[#XL1] has 12 amino acids
-  Peptidoform pf = ProFormaParser::parse("EMEVTK[XLMOD:02001#XL1]SESPEK[#XL1]");
+  Peptidoform pf = ProForma::parse("EMEVTK[XLMOD:02001#XL1]SESPEK[#XL1]");
   TEST_EQUAL(pf.sequence.size(), 12)
 
   // Check first cross-link site at K (index 5)
@@ -321,14 +266,14 @@ START_SECTION(ProFormaParser::parse - cross-link labels)
   TEST_EQUAL(elem2.modifications.size(), 1)
 
   // Verify roundtrip - label-only [#XL1] should be preserved
-  String roundtrip = ProFormaParser::toString(pf);
+  String roundtrip = ProForma::toString(pf);
   TEST_EQUAL(roundtrip, "EMEVTK[XLMOD:02001#XL1]SESPEK[#XL1]")
 }
 END_SECTION
 
-START_SECTION(ProFormaParser::parse - modification alternatives)
+START_SECTION(ProForma::parse - modification alternatives)
 {
-  Peptidoform pf = ProFormaParser::parse("ELVIS[Phospho|+79.966331]K");
+  Peptidoform pf = ProForma::parse("ELVIS[Phospho|+79.966331]K");
   TEST_EQUAL(pf.sequence.size(), 6)
 
   auto& seq_elem = std::get<SequenceElement>(pf.sequence[4]); // S
@@ -346,9 +291,9 @@ START_SECTION(ProFormaParser::parse - modification alternatives)
 }
 END_SECTION
 
-START_SECTION(ProFormaParser::parse - ambiguous regions)
+START_SECTION(ProForma::parse - ambiguous regions)
 {
-  Peptidoform pf = ProFormaParser::parse("(?DQ)PEPTIDE");
+  Peptidoform pf = ProForma::parse("(?DQ)PEPTIDE");
   TEST_EQUAL(pf.sequence.size(), 8) // ambiguous region counts as 1
 
   auto* ambig = std::get_if<AmbiguousRegion>(&pf.sequence[0]);
@@ -357,9 +302,9 @@ START_SECTION(ProFormaParser::parse - ambiguous regions)
 }
 END_SECTION
 
-START_SECTION(ProFormaParser::parse - modified ranges)
+START_SECTION(ProForma::parse - modified ranges)
 {
-  Peptidoform pf = ProFormaParser::parse("PROT(EOSFORMS)[+19.0523]ISK");
+  Peptidoform pf = ProForma::parse("PROT(EOSFORMS)[+19.0523]ISK");
   TEST_EQUAL(pf.sequence.size(), 8) // (EOSFORMS) counts as 1
 
   auto* range = std::get_if<ModifiedRange>(&pf.sequence[4]);
@@ -369,9 +314,9 @@ START_SECTION(ProFormaParser::parse - modified ranges)
 }
 END_SECTION
 
-START_SECTION(ProFormaParser::parseIon - charge states)
+START_SECTION(ProForma::parseIon - charge states)
 {
-  PeptidoformIon ion1 = ProFormaParser::parseIon("PEPTIDE/2");
+  PeptidoformIon ion1 = ProForma::parseIon("PEPTIDE/2");
   TEST_EQUAL(ion1.chains.size(), 1)
   TEST_EQUAL(ion1.charge.has_value(), true)
 
@@ -381,9 +326,9 @@ START_SECTION(ProFormaParser::parseIon - charge states)
 }
 END_SECTION
 
-START_SECTION(ProFormaParser::parseIon - multiple chains)
+START_SECTION(ProForma::parseIon - multiple chains)
 {
-  PeptidoformIon ion = ProFormaParser::parseIon("PEPTIDE//SEQUENCE");
+  PeptidoformIon ion = ProForma::parseIon("PEPTIDE//SEQUENCE");
   TEST_EQUAL(ion.chains.size(), 2)
   TEST_EQUAL(ion.chains[0].sequence.size(), 7)
   TEST_EQUAL(ion.chains[1].sequence.size(), 8)
@@ -394,9 +339,9 @@ END_SECTION
 // Additional CV database tests
 /////////////////////////////////////////////////////////////
 
-START_SECTION(ProFormaParser::parse - MOD database accessions)
+START_SECTION(ProForma::parse - MOD database accessions)
 {
-  Peptidoform pf = ProFormaParser::parse("EM[MOD:00719]EVEES[MOD:00046]PEK");
+  Peptidoform pf = ProForma::parse("EM[MOD:00719]EVEES[MOD:00046]PEK");
   TEST_EQUAL(pf.sequence.size(), 10)
 
   auto& seq_elem = std::get<SequenceElement>(pf.sequence[1]); // M
@@ -408,9 +353,9 @@ START_SECTION(ProFormaParser::parse - MOD database accessions)
 }
 END_SECTION
 
-START_SECTION(ProFormaParser::parse - RESID database accessions)
+START_SECTION(ProForma::parse - RESID database accessions)
 {
-  Peptidoform pf = ProFormaParser::parse("EM[RESID:AA0581]EVEES[RESID:AA0037]PEK");
+  Peptidoform pf = ProForma::parse("EM[RESID:AA0581]EVEES[RESID:AA0037]PEK");
   TEST_EQUAL(pf.sequence.size(), 10)
 
   auto& seq_elem = std::get<SequenceElement>(pf.sequence[1]); // M
@@ -422,9 +367,9 @@ START_SECTION(ProFormaParser::parse - RESID database accessions)
 }
 END_SECTION
 
-START_SECTION(ProFormaParser::parse - GNO database accessions)
+START_SECTION(ProForma::parse - GNO database accessions)
 {
-  Peptidoform pf = ProFormaParser::parse("NEEYN[GNO:G59626AS]K");
+  Peptidoform pf = ProForma::parse("NEEYN[GNO:G59626AS]K");
   TEST_EQUAL(pf.sequence.size(), 6)
 
   auto& seq_elem = std::get<SequenceElement>(pf.sequence[4]); // N
@@ -436,9 +381,9 @@ START_SECTION(ProFormaParser::parse - GNO database accessions)
 }
 END_SECTION
 
-START_SECTION(ProFormaParser::parse - XLMOD database accessions)
+START_SECTION(ProForma::parse - XLMOD database accessions)
 {
-  Peptidoform pf = ProFormaParser::parse("EMEVTK[XLMOD:02001]SESPEK");
+  Peptidoform pf = ProForma::parse("EMEVTK[XLMOD:02001]SESPEK");
   TEST_EQUAL(pf.sequence.size(), 12)
 
   auto& seq_elem = std::get<SequenceElement>(pf.sequence[5]); // K
@@ -454,9 +399,9 @@ END_SECTION
 // Isotope formula tests
 /////////////////////////////////////////////////////////////
 
-START_SECTION(ProFormaParser::parse - isotope formulas with brackets)
+START_SECTION(ProForma::parse - isotope formulas with brackets)
 {
-  Peptidoform pf = ProFormaParser::parse("SEQUEN[Formula:[13C2][12C-2]H2N]CE");
+  Peptidoform pf = ProForma::parse("SEQUEN[Formula:[13C2][12C-2]H2N]CE");
   TEST_EQUAL(pf.sequence.size(), 8)
 
   auto& seq_elem = std::get<SequenceElement>(pf.sequence[5]); // N
@@ -467,9 +412,9 @@ START_SECTION(ProFormaParser::parse - isotope formulas with brackets)
 }
 END_SECTION
 
-START_SECTION(ProFormaParser::parse - multiple isotope labels)
+START_SECTION(ProForma::parse - multiple isotope labels)
 {
-  Peptidoform pf = ProFormaParser::parse("<13C><15N>ATPEILTVNSIGQLK");
+  Peptidoform pf = ProForma::parse("<13C><15N>ATPEILTVNSIGQLK");
   TEST_EQUAL(pf.sequence.size(), 15)
   TEST_EQUAL(pf.global_mods.size(), 2)
 
@@ -483,9 +428,9 @@ START_SECTION(ProFormaParser::parse - multiple isotope labels)
 }
 END_SECTION
 
-START_SECTION(ProFormaParser::parse - deuterium label)
+START_SECTION(ProForma::parse - deuterium label)
 {
-  Peptidoform pf = ProFormaParser::parse("<D>ATPEILTVNSIGQLK");
+  Peptidoform pf = ProForma::parse("<D>ATPEILTVNSIGQLK");
   TEST_EQUAL(pf.sequence.size(), 15)
   TEST_EQUAL(pf.global_mods.size(), 1)
 
@@ -499,10 +444,10 @@ END_SECTION
 // Localization score tests
 /////////////////////////////////////////////////////////////
 
-START_SECTION(ProFormaParser::parse - localization scores)
+START_SECTION(ProForma::parse - localization scores)
 {
   // E-M-E-V-T-S-E-S-P-E-K = 11 amino acids
-  Peptidoform pf = ProFormaParser::parse("EM[Oxidation]EVT[#g1(0.01)]S[#g1(0.09)]ES[Phospho#g1(0.90)]PEK");
+  Peptidoform pf = ProForma::parse("EM[Oxidation]EVT[#g1(0.01)]S[#g1(0.09)]ES[Phospho#g1(0.90)]PEK");
   TEST_EQUAL(pf.sequence.size(), 11)
 
   // Check score on T at position 4
@@ -532,10 +477,10 @@ END_SECTION
 // Multiplicity tests
 /////////////////////////////////////////////////////////////
 
-START_SECTION(ProFormaParser::parse - multiplicity with caret)
+START_SECTION(ProForma::parse - multiplicity with caret)
 {
   // E-M-E-V-T-S-E-S-P-E-K = 11 amino acids
-  Peptidoform pf = ProFormaParser::parse("[Phospho]^2?[Acetyl]-EM[Oxidation]EVTSESPEK");
+  Peptidoform pf = ProForma::parse("[Phospho]^2?[Acetyl]-EM[Oxidation]EVTSESPEK");
   TEST_EQUAL(pf.sequence.size(), 11)
   TEST_EQUAL(pf.unlocalised_mods.size(), 1)
   TEST_EQUAL(pf.n_term_mods.size(), 1)
@@ -547,9 +492,9 @@ START_SECTION(ProFormaParser::parse - multiplicity with caret)
 }
 END_SECTION
 
-START_SECTION(ProFormaParser::parse - multiple modifications on range)
+START_SECTION(ProForma::parse - multiple modifications on range)
 {
-  Peptidoform pf = ProFormaParser::parse("MPGLVDSNPAPPESQEKKPLK(PCCACPETKKARDACIIEKGEEHCGHLIEAHKECMRALGFKI)[Oxidation][Oxidation][half cystine][half cystine]");
+  Peptidoform pf = ProForma::parse("MPGLVDSNPAPPESQEKKPLK(PCCACPETKKARDACIIEKGEEHCGHLIEAHKECMRALGFKI)[Oxidation][Oxidation][half cystine][half cystine]");
   TEST_EQUAL(pf.sequence.size(), 22) // 21 AA + 1 modified range
 
   auto* range = std::get_if<ModifiedRange>(&pf.sequence[21]);
@@ -562,23 +507,23 @@ END_SECTION
 // Chimeric spectra tests
 /////////////////////////////////////////////////////////////
 
-START_SECTION(ProFormaParser::parseIon - chimeric spectra with plus)
+START_SECTION(ProForma::parseIon - chimeric spectra with plus)
 {
-  PeptidoformIon ion = ProFormaParser::parseIon("EMEVEESPEK+ELVISLIVER");
+  PeptidoformIon ion = ProForma::parseIon("EMEVEESPEK+ELVISLIVER");
   TEST_EQUAL(ion.chains.size(), 2)
   TEST_EQUAL(ion.is_chimeric, true)
   TEST_EQUAL(ion.chains[0].sequence.size(), 10)
   TEST_EQUAL(ion.chains[1].sequence.size(), 10)
 
   // Verify roundtrip
-  String output = ProFormaParser::toString(ion);
+  String output = ProForma::toString(ion);
   TEST_EQUAL(output, "EMEVEESPEK+ELVISLIVER")
 }
 END_SECTION
 
-START_SECTION(ProFormaParser::parseIon - chimeric spectra with charges)
+START_SECTION(ProForma::parseIon - chimeric spectra with charges)
 {
-  PeptidoformIon ion = ProFormaParser::parseIon("EMEVEESPEK/2+ELVISLIVER/3");
+  PeptidoformIon ion = ProForma::parseIon("EMEVEESPEK/2+ELVISLIVER/3");
   TEST_EQUAL(ion.chains.size(), 2)
   TEST_EQUAL(ion.is_chimeric, true)
 
@@ -594,7 +539,7 @@ START_SECTION(ProFormaParser::parseIon - chimeric spectra with charges)
   TEST_EQUAL(*charge1, 3)
 
   // Verify roundtrip
-  String output = ProFormaParser::toString(ion);
+  String output = ProForma::toString(ion);
   TEST_EQUAL(output, "EMEVEESPEK/2+ELVISLIVER/3")
 }
 END_SECTION
@@ -603,9 +548,9 @@ END_SECTION
 // Adduct/charge notation tests
 /////////////////////////////////////////////////////////////
 
-START_SECTION(ProFormaParser::parseIon - adduct charge notation)
+START_SECTION(ProForma::parseIon - adduct charge notation)
 {
-  PeptidoformIon ion = ProFormaParser::parseIon("PEPTIDE/[Na:z+1]");
+  PeptidoformIon ion = ProForma::parseIon("PEPTIDE/[Na:z+1]");
   TEST_EQUAL(ion.chains.size(), 1)
   TEST_EQUAL(ion.charge.has_value(), true)
 
@@ -618,9 +563,9 @@ START_SECTION(ProFormaParser::parseIon - adduct charge notation)
 }
 END_SECTION
 
-START_SECTION(ProFormaParser::parseIon - multiple adducts)
+START_SECTION(ProForma::parseIon - multiple adducts)
 {
-  PeptidoformIon ion = ProFormaParser::parseIon("PEPTIDE/[Na:z+1,H:z+1]");
+  PeptidoformIon ion = ProForma::parseIon("PEPTIDE/[Na:z+1,H:z+1]");
   TEST_EQUAL(ion.chains.size(), 1)
 
   auto* adducts = std::get_if<std::vector<AdductIon>>(&ion.charge.value());
@@ -629,9 +574,9 @@ START_SECTION(ProFormaParser::parseIon - multiple adducts)
 }
 END_SECTION
 
-START_SECTION(ProFormaParser::parseIon - adduct with count)
+START_SECTION(ProForma::parseIon - adduct with count)
 {
-  PeptidoformIon ion = ProFormaParser::parseIon("PEPTIDE/[Na:z+1^2]");
+  PeptidoformIon ion = ProForma::parseIon("PEPTIDE/[Na:z+1^2]");
   TEST_EQUAL(ion.chains.size(), 1)
 
   auto* adducts = std::get_if<std::vector<AdductIon>>(&ion.charge.value());
@@ -645,9 +590,9 @@ END_SECTION
 // Gene/protein prefix tests
 /////////////////////////////////////////////////////////////
 
-START_SECTION(ProFormaParser::parseIon - gene prefix)
+START_SECTION(ProForma::parseIon - gene prefix)
 {
-  PeptidoformIon ion = ProFormaParser::parseIon("(>Trypsin)AANSIPYQVSLNS+(>Keratin)AKEQFERQTA");
+  PeptidoformIon ion = ProForma::parseIon("(>Trypsin)AANSIPYQVSLNS+(>Keratin)AKEQFERQTA");
   TEST_EQUAL(ion.chains.size(), 2)
   TEST_EQUAL(ion.is_chimeric, true)
 
@@ -659,20 +604,20 @@ START_SECTION(ProFormaParser::parseIon - gene prefix)
   TEST_EQUAL(ion.chains[1].name.value(), "Keratin")
 
   // Verify roundtrip
-  String output = ProFormaParser::toString(ion);
+  String output = ProForma::toString(ion);
   TEST_EQUAL(output, "(>Trypsin)AANSIPYQVSLNS+(>Keratin)AKEQFERQTA")
 }
 END_SECTION
 
-START_SECTION(ProFormaParser::parse - gene prefix single chain)
+START_SECTION(ProForma::parse - gene prefix single chain)
 {
-  Peptidoform pf = ProFormaParser::parse("(>sp|P12345|PROT_HUMAN)PEPTIDE");
+  Peptidoform pf = ProForma::parse("(>sp|P12345|PROT_HUMAN)PEPTIDE");
   TEST_EQUAL(pf.name.has_value(), true)
   TEST_EQUAL(pf.name.value(), "sp|P12345|PROT_HUMAN")
   TEST_EQUAL(pf.sequence.size(), 7)
 
   // Verify roundtrip
-  String output = ProFormaParser::toString(pf);
+  String output = ProForma::toString(pf);
   TEST_EQUAL(output, "(>sp|P12345|PROT_HUMAN)PEPTIDE")
 }
 END_SECTION
@@ -681,10 +626,10 @@ END_SECTION
 // Cation modification tests
 /////////////////////////////////////////////////////////////
 
-START_SECTION(ProFormaParser::parse - cation modifications)
+START_SECTION(ProForma::parse - cation modifications)
 {
   // Cation:Mg[II] is parsed as a named modification
-  Peptidoform pf = ProFormaParser::parse("EM[Oxidation]EVE[Cation:Mg[II]]ES[Phospho]PEK");
+  Peptidoform pf = ProForma::parse("EM[Oxidation]EVE[Cation:Mg[II]]ES[Phospho]PEK");
   TEST_EQUAL(pf.sequence.size(), 10)
 
   auto& seq_elem = std::get<SequenceElement>(pf.sequence[4]); // E
@@ -693,10 +638,10 @@ START_SECTION(ProFormaParser::parse - cation modifications)
 }
 END_SECTION
 
-START_SECTION(ProFormaParser::parse - aluminum cation)
+START_SECTION(ProForma::parse - aluminum cation)
 {
   // Cation:Al[III] is parsed as a named modification
-  Peptidoform pf = ProFormaParser::parse("PE[Cation:Al[III]]PTIDE");
+  Peptidoform pf = ProForma::parse("PE[Cation:Al[III]]PTIDE");
   TEST_EQUAL(pf.sequence.size(), 7)
 
   auto& seq_elem = std::get<SequenceElement>(pf.sequence[1]); // E
@@ -708,9 +653,9 @@ END_SECTION
 // Half cystine tests
 /////////////////////////////////////////////////////////////
 
-START_SECTION(ProFormaParser::parse - half cystine)
+START_SECTION(ProForma::parse - half cystine)
 {
-  Peptidoform pf = ProFormaParser::parse("EVTSEKC[half cystine]LEMSC[half cystine]EFD");
+  Peptidoform pf = ProForma::parse("EVTSEKC[half cystine]LEMSC[half cystine]EFD");
   TEST_EQUAL(pf.sequence.size(), 15)
 
   auto& elem1 = std::get<SequenceElement>(pf.sequence[6]); // C
@@ -731,9 +676,9 @@ END_SECTION
 // BRANCH cross-link tests
 /////////////////////////////////////////////////////////////
 
-START_SECTION(ProFormaParser::parseIon - branch cross-links)
+START_SECTION(ProForma::parseIon - branch cross-links)
 {
-  PeptidoformIon ion = ProFormaParser::parseIon("ETFGD[MOD:00093#BRANCH]//R[#BRANCH]ATER");
+  PeptidoformIon ion = ProForma::parseIon("ETFGD[MOD:00093#BRANCH]//R[#BRANCH]ATER");
   TEST_EQUAL(ion.chains.size(), 2)
 
   // Check first chain has BRANCH label
@@ -750,9 +695,9 @@ START_SECTION(ProFormaParser::parseIon - branch cross-links)
 }
 END_SECTION
 
-START_SECTION(ProFormaParser::parseIon - branch with C-terminal)
+START_SECTION(ProForma::parseIon - branch with C-terminal)
 {
-  PeptidoformIon ion = ProFormaParser::parseIon("AVTKYTSSK[MOD:00134#BRANCH]//AGKQLEDGRTLSDYNIQKESTLHLVLRLRG-[#BRANCH]");
+  PeptidoformIon ion = ProForma::parseIon("AVTKYTSSK[MOD:00134#BRANCH]//AGKQLEDGRTLSDYNIQKESTLHLVLRLRG-[#BRANCH]");
   TEST_EQUAL(ion.chains.size(), 2)
 
   // Second chain should have BRANCH on C-terminus
@@ -767,9 +712,9 @@ END_SECTION
 // INFO tag tests
 /////////////////////////////////////////////////////////////
 
-START_SECTION(ProFormaParser::parse - INFO tags)
+START_SECTION(ProForma::parse - INFO tags)
 {
-  Peptidoform pf = ProFormaParser::parse("ELV[INFO:AnyString]IS");
+  Peptidoform pf = ProForma::parse("ELV[INFO:AnyString]IS");
   TEST_EQUAL(pf.sequence.size(), 5)
 
   auto& seq_elem = std::get<SequenceElement>(pf.sequence[2]); // V
@@ -780,9 +725,9 @@ START_SECTION(ProFormaParser::parse - INFO tags)
 }
 END_SECTION
 
-START_SECTION(ProFormaParser::parse - INFO tags case insensitive)
+START_SECTION(ProForma::parse - INFO tags case insensitive)
 {
-  Peptidoform pf = ProFormaParser::parse("ELV[info:AnyString]IS");
+  Peptidoform pf = ProForma::parse("ELV[info:AnyString]IS");
   TEST_EQUAL(pf.sequence.size(), 5)
 
   auto& seq_elem = std::get<SequenceElement>(pf.sequence[2]); // V
@@ -793,9 +738,9 @@ START_SECTION(ProFormaParser::parse - INFO tags case insensitive)
 }
 END_SECTION
 
-START_SECTION(ProFormaParser::parse - modification with INFO alternative)
+START_SECTION(ProForma::parse - modification with INFO alternative)
 {
-  Peptidoform pf = ProFormaParser::parse("ELVIS[Phospho|INFO:newly discovered]K");
+  Peptidoform pf = ProForma::parse("ELVIS[Phospho|INFO:newly discovered]K");
   TEST_EQUAL(pf.sequence.size(), 6)
 
   auto& seq_elem = std::get<SequenceElement>(pf.sequence[4]); // S
@@ -812,9 +757,9 @@ START_SECTION(ProFormaParser::parse - modification with INFO alternative)
 }
 END_SECTION
 
-START_SECTION(ProFormaParser::parse - multiple INFO tags)
+START_SECTION(ProForma::parse - multiple INFO tags)
 {
-  Peptidoform pf = ProFormaParser::parse("ELVIS[Phospho|INFO:newly discovered|INFO:really awesome]K");
+  Peptidoform pf = ProForma::parse("ELVIS[Phospho|INFO:newly discovered|INFO:really awesome]K");
   TEST_EQUAL(pf.sequence.size(), 6)
 
   auto& seq_elem = std::get<SequenceElement>(pf.sequence[4]); // S
@@ -827,10 +772,10 @@ END_SECTION
 // Position constraint tests
 /////////////////////////////////////////////////////////////
 
-START_SECTION(ProFormaParser::parse - position constraints on modifications)
+START_SECTION(ProForma::parse - position constraints on modifications)
 {
   // Position constraints are part of modification alternatives
-  Peptidoform pf = ProFormaParser::parse("PEPTI(MERMERMERM)[Oxidation|Position:M][Oxidation|Position:M]DE");
+  Peptidoform pf = ProForma::parse("PEPTI(MERMERMERM)[Oxidation|Position:M][Oxidation|Position:M]DE");
   TEST_EQUAL(pf.sequence.size(), 8) // PEPTI (5) + (range) (1) + DE (2)
 
   auto* range = std::get_if<ModifiedRange>(&pf.sequence[5]);
@@ -855,15 +800,15 @@ START_SECTION(ProFormaParser::parse - position constraints on modifications)
   }
 
   // Test roundtrip
-  String output = ProFormaParser::toString(pf);
+  String output = ProForma::toString(pf);
   TEST_EQUAL(output, "PEPTI(MERMERMERM)[Oxidation|Position:M][Oxidation|Position:M]DE")
 }
 END_SECTION
 
-START_SECTION(ProFormaParser::parse - position constraints with multiple residues)
+START_SECTION(ProForma::parse - position constraints with multiple residues)
 {
   // Position constraint with multiple allowed residues
-  Peptidoform pf = ProFormaParser::parse("PEPTIDE[Phospho|Position:STY]");
+  Peptidoform pf = ProForma::parse("PEPTIDE[Phospho|Position:STY]");
   TEST_EQUAL(pf.sequence.size(), 7)
 
   // Check modification on the last E
@@ -881,15 +826,15 @@ START_SECTION(ProFormaParser::parse - position constraints with multiple residue
   TEST_EQUAL(pos->residues[2], 'Y')
 
   // Test roundtrip
-  String output = ProFormaParser::toString(pf);
+  String output = ProForma::toString(pf);
   TEST_EQUAL(output, "PEPTIDE[Phospho|Position:STY]")
 }
 END_SECTION
 
-START_SECTION(ProFormaParser::parse - position constraints on unlocalised)
+START_SECTION(ProForma::parse - position constraints on unlocalised)
 {
   // Position constraints can be specified on unlocalised mods
-  Peptidoform pf = ProFormaParser::parse("[Oxidation|CoMKP]?PEPT[Phospho]IDE");
+  Peptidoform pf = ProForma::parse("[Oxidation|CoMKP]?PEPT[Phospho]IDE");
   TEST_EQUAL(pf.sequence.size(), 7)
   TEST_EQUAL(pf.unlocalised_mods.size(), 1)
 }
@@ -899,9 +844,9 @@ END_SECTION
 // Multiple terminal modifications tests
 /////////////////////////////////////////////////////////////
 
-START_SECTION(ProFormaParser::parse - multiple N-terminal modifications)
+START_SECTION(ProForma::parse - multiple N-terminal modifications)
 {
-  Peptidoform pf = ProFormaParser::parse("[Acetyl][Carbamyl]-QPEPTIDE");
+  Peptidoform pf = ProForma::parse("[Acetyl][Carbamyl]-QPEPTIDE");
   TEST_EQUAL(pf.sequence.size(), 8)
   TEST_EQUAL(pf.n_term_mods.size(), 2)
 
@@ -915,9 +860,9 @@ START_SECTION(ProFormaParser::parse - multiple N-terminal modifications)
 }
 END_SECTION
 
-START_SECTION(ProFormaParser::parse - multiple C-terminal modifications)
+START_SECTION(ProForma::parse - multiple C-terminal modifications)
 {
-  Peptidoform pf = ProFormaParser::parse("PEPTIDEG-[Methyl][Amidated]");
+  Peptidoform pf = ProForma::parse("PEPTIDEG-[Methyl][Amidated]");
   TEST_EQUAL(pf.sequence.size(), 8)
   TEST_EQUAL(pf.c_term_mods.size(), 2)
 
@@ -935,9 +880,9 @@ END_SECTION
 // Observed mass prefix tests
 /////////////////////////////////////////////////////////////
 
-START_SECTION(ProFormaParser::parse - observed mass prefix)
+START_SECTION(ProForma::parse - observed mass prefix)
 {
-  Peptidoform pf = ProFormaParser::parse("EM[U:+15.995]EVEES[Obs:+79.978]PEK");
+  Peptidoform pf = ProForma::parse("EM[U:+15.995]EVEES[Obs:+79.978]PEK");
   TEST_EQUAL(pf.sequence.size(), 10)
 
   // Check Obs prefix on S - MassDelta uses 'source' enum
@@ -950,9 +895,9 @@ START_SECTION(ProFormaParser::parse - observed mass prefix)
 }
 END_SECTION
 
-START_SECTION(ProFormaParser::parse - UNIMOD prefix on mass)
+START_SECTION(ProForma::parse - UNIMOD prefix on mass)
 {
-  Peptidoform pf = ProFormaParser::parse("EM[U:+15.9949]EVEES[U:+79.9663]PEK");
+  Peptidoform pf = ProForma::parse("EM[U:+15.9949]EVEES[U:+79.9663]PEK");
   TEST_EQUAL(pf.sequence.size(), 10)
 
   auto& seq_elem = std::get<SequenceElement>(pf.sequence[1]); // M
@@ -967,9 +912,9 @@ END_SECTION
 // C-term targeted global modifications tests
 /////////////////////////////////////////////////////////////
 
-START_SECTION(ProFormaParser::parse - C-term targeted global mod)
+START_SECTION(ProForma::parse - C-term targeted global mod)
 {
-  Peptidoform pf = ProFormaParser::parse("<[Oxidation]@W,C-term:G>QATPEILTWCNSIGCLKG");
+  Peptidoform pf = ProForma::parse("<[Oxidation]@W,C-term:G>QATPEILTWCNSIGCLKG");
   TEST_EQUAL(pf.sequence.size(), 18)
   TEST_EQUAL(pf.global_mods.size(), 1)
 
@@ -981,9 +926,9 @@ START_SECTION(ProFormaParser::parse - C-term targeted global mod)
 }
 END_SECTION
 
-START_SECTION(ProFormaParser::parse - N-term targeted global mod)
+START_SECTION(ProForma::parse - N-term targeted global mod)
 {
-  Peptidoform pf = ProFormaParser::parse("<[TMT6plex]@K,N-term>ATPEILTCNSIGCLK");
+  Peptidoform pf = ProForma::parse("<[TMT6plex]@K,N-term>ATPEILTCNSIGCLK");
   TEST_EQUAL(pf.sequence.size(), 15)
   TEST_EQUAL(pf.global_mods.size(), 1)
 
@@ -992,9 +937,9 @@ START_SECTION(ProFormaParser::parse - N-term targeted global mod)
 }
 END_SECTION
 
-START_SECTION(ProFormaParser::parse - N-term with specific residue)
+START_SECTION(ProForma::parse - N-term with specific residue)
 {
-  Peptidoform pf = ProFormaParser::parse("<[TMT6plex]@K,N-term:A>ATPEILTCNSIGCLK");
+  Peptidoform pf = ProForma::parse("<[TMT6plex]@K,N-term:A>ATPEILTCNSIGCLK");
   TEST_EQUAL(pf.sequence.size(), 15)
   TEST_EQUAL(pf.global_mods.size(), 1)
 
@@ -1003,9 +948,9 @@ START_SECTION(ProFormaParser::parse - N-term with specific residue)
 }
 END_SECTION
 
-START_SECTION(ProFormaParser::parse - amidated C-term global)
+START_SECTION(ProForma::parse - amidated C-term global)
 {
-  Peptidoform pf = ProFormaParser::parse("<[Amidated]@C-term>QATPEILTWCNSIGCLKG");
+  Peptidoform pf = ProForma::parse("<[Amidated]@C-term>QATPEILTWCNSIGCLKG");
   TEST_EQUAL(pf.sequence.size(), 18)
   TEST_EQUAL(pf.global_mods.size(), 1)
 
@@ -1018,9 +963,9 @@ END_SECTION
 // Formula with charge tests
 /////////////////////////////////////////////////////////////
 
-START_SECTION(ProFormaParser::parse - formula with charge)
+START_SECTION(ProForma::parse - formula with charge)
 {
-  Peptidoform pf = ProFormaParser::parse("SEQUEN[Formula:Zn1:z+2]CE");
+  Peptidoform pf = ProForma::parse("SEQUEN[Formula:Zn1:z+2]CE");
   TEST_EQUAL(pf.sequence.size(), 8)
 
   auto& seq_elem = std::get<SequenceElement>(pf.sequence[5]); // N
@@ -1037,9 +982,9 @@ END_SECTION
 // Ion fragment tests
 /////////////////////////////////////////////////////////////
 
-START_SECTION(ProFormaParser::parse - a-type ion)
+START_SECTION(ProForma::parse - a-type ion)
 {
-  Peptidoform pf = ProFormaParser::parse("PEPTID-[a-type-ion]");
+  Peptidoform pf = ProForma::parse("PEPTID-[a-type-ion]");
   TEST_EQUAL(pf.sequence.size(), 6)
   TEST_EQUAL(pf.c_term_mods.size(), 1)
 
@@ -1049,9 +994,9 @@ START_SECTION(ProFormaParser::parse - a-type ion)
 }
 END_SECTION
 
-START_SECTION(ProFormaParser::parse - d-ion with formula)
+START_SECTION(ProForma::parse - d-ion with formula)
 {
-  Peptidoform pf = ProFormaParser::parse("PEPTID[Formula:H-1C-1O-2|Info:d-ion]-[a-type-ion]");
+  Peptidoform pf = ProForma::parse("PEPTID[Formula:H-1C-1O-2|Info:d-ion]-[a-type-ion]");
   TEST_EQUAL(pf.sequence.size(), 6)
 
   // Check the D residue has the formula modification
@@ -1065,12 +1010,12 @@ END_SECTION
 // Cross-link with multiple chains and XL tests
 /////////////////////////////////////////////////////////////
 
-START_SECTION(ProFormaParser::parseIon - complex cross-links with chimeric separator)
+START_SECTION(ProForma::parseIon - complex cross-links with chimeric separator)
 {
   // Test complex cross-links with + (chimeric) separator combining multiple cross-linked complexes
   // Complex 1: A[X:DSS#XL1]//B[#XL1] (two chains cross-linked via XL1)
   // Complex 2: C[X:DSS#XL2]//D[#XL2] (two chains cross-linked via XL2)
-  PeptidoformIon ion = ProFormaParser::parseIon("A[X:DSS#XL1]//B[#XL1]+C[X:DSS#XL2]//D[#XL2]");
+  PeptidoformIon ion = ProForma::parseIon("A[X:DSS#XL1]//B[#XL1]+C[X:DSS#XL2]//D[#XL2]");
   TEST_EQUAL(ion.chains.size(), 4)
   TEST_EQUAL(ion.is_chimeric, true)
 
@@ -1105,9 +1050,9 @@ START_SECTION(ProFormaParser::parseIon - complex cross-links with chimeric separ
 }
 END_SECTION
 
-START_SECTION(ProFormaParser::parseIon - disulfide cross-links)
+START_SECTION(ProForma::parseIon - disulfide cross-links)
 {
-  PeptidoformIon ion = ProFormaParser::parseIon("EVTSEKC[XLMOD:02009#XL1]LEMSC[#XL1]EFD");
+  PeptidoformIon ion = ProForma::parseIon("EVTSEKC[XLMOD:02009#XL1]LEMSC[#XL1]EFD");
   TEST_EQUAL(ion.chains.size(), 1)
 
   auto& elem1 = std::get<SequenceElement>(ion.chains[0].sequence[6]); // C
@@ -1121,9 +1066,9 @@ END_SECTION
 // Glycan composition tests
 /////////////////////////////////////////////////////////////
 
-START_SECTION(ProFormaParser::parse - complex glycan composition)
+START_SECTION(ProForma::parse - complex glycan composition)
 {
-  Peptidoform pf = ProFormaParser::parse("SEQUEN[Glycan:HexNAc1Hex2]CE");
+  Peptidoform pf = ProForma::parse("SEQUEN[Glycan:HexNAc1Hex2]CE");
   TEST_EQUAL(pf.sequence.size(), 8)
 
   auto& seq_elem = std::get<SequenceElement>(pf.sequence[5]); // N
@@ -1134,9 +1079,9 @@ START_SECTION(ProFormaParser::parse - complex glycan composition)
 }
 END_SECTION
 
-START_SECTION(ProFormaParser::parse - multiple labile glycans)
+START_SECTION(ProForma::parse - multiple labile glycans)
 {
-  Peptidoform pf = ProFormaParser::parse("{Glycan:Hex}{Glycan:NeuAc}EMEVNESPEK");
+  Peptidoform pf = ProForma::parse("{Glycan:Hex}{Glycan:NeuAc}EMEVNESPEK");
   TEST_EQUAL(pf.sequence.size(), 10)
   TEST_EQUAL(pf.labile_mods.size(), 2)
 }
@@ -1146,10 +1091,10 @@ END_SECTION
 // Unlocalised modification score tests
 /////////////////////////////////////////////////////////////
 
-START_SECTION(ProFormaParser::parse - unlocalised with scores)
+START_SECTION(ProForma::parse - unlocalised with scores)
 {
   // E-M-E-V-T-S-E-S-P-E-K = 11 amino acids
-  Peptidoform pf = ProFormaParser::parse("[Phospho#s1]?EM[Oxidation]EVT[#s1(0.01)]S[#s1(0.09)]ES[#s1(0.90)]PEK");
+  Peptidoform pf = ProForma::parse("[Phospho#s1]?EM[Oxidation]EVT[#s1(0.01)]S[#s1(0.09)]ES[#s1(0.90)]PEK");
   TEST_EQUAL(pf.sequence.size(), 11)
   TEST_EQUAL(pf.unlocalised_mods.size(), 1)
 
@@ -1170,26 +1115,26 @@ END_SECTION
 // Writer tests
 /////////////////////////////////////////////////////////////
 
-START_SECTION(ProFormaWriter::toString - simple sequences)
+START_SECTION(ProForma::toString - simple sequences)
 {
-  Peptidoform pf = ProFormaParser::parse("PEPTIDE");
-  String result = ProFormaWriter::toString(pf);
+  Peptidoform pf = ProForma::parse("PEPTIDE");
+  String result = ProForma::toString(pf);
   TEST_EQUAL(result, "PEPTIDE")
 }
 END_SECTION
 
-START_SECTION(ProFormaWriter::toString - modifications)
+START_SECTION(ProForma::toString - modifications)
 {
-  Peptidoform pf = ProFormaParser::parse("EM[UNIMOD:35]K");
-  String result = ProFormaWriter::toString(pf);
+  Peptidoform pf = ProForma::parse("EM[UNIMOD:35]K");
+  String result = ProForma::toString(pf);
   TEST_EQUAL(result, "EM[UNIMOD:35]K")
 }
 END_SECTION
 
-START_SECTION(ProFormaWriter::toString - terminal modifications)
+START_SECTION(ProForma::toString - terminal modifications)
 {
-  Peptidoform pf = ProFormaParser::parse("[Acetyl]-PEPTIDE-[Amidated]");
-  String result = ProFormaWriter::toString(pf);
+  Peptidoform pf = ProForma::parse("[Acetyl]-PEPTIDE-[Amidated]");
+  String result = ProForma::toString(pf);
   TEST_EQUAL(result, "[Acetyl]-PEPTIDE-[Amidated]")
 }
 END_SECTION
@@ -1217,10 +1162,10 @@ START_SECTION(Roundtrip tests from positive fixture)
 
   for (const auto& test : test_cases)
   {
-    Peptidoform pf = ProFormaParser::parse(test);
-    String result = ProFormaWriter::toString(pf);
+    Peptidoform pf = ProForma::parse(test);
+    String result = ProForma::toString(pf);
     // Re-parse and compare structure
-    Peptidoform pf2 = ProFormaParser::parse(result);
+    Peptidoform pf2 = ProForma::parse(result);
     TEST_EQUAL(pf.sequence.size(), pf2.sequence.size())
   }
 }
@@ -1232,32 +1177,32 @@ END_SECTION
 
 START_SECTION(ProFormaParser error handling - unclosed bracket)
 {
-  TEST_EXCEPTION(ProFormaParseError, ProFormaParser::parse("A[+1"))
+  TEST_EXCEPTION(ProForma::ParseError, ProForma::parse("A[+1"))
 }
 END_SECTION
 
 START_SECTION(ProFormaParser error handling - empty sequence)
 {
-  TEST_EXCEPTION(ProFormaParseError, ProFormaParser::parse(""))
+  TEST_EXCEPTION(ProForma::ParseError, ProForma::parse(""))
 }
 END_SECTION
 
 START_SECTION(ProFormaParser error handling - invalid global mod)
 {
-  TEST_EXCEPTION(ProFormaParseError, ProFormaParser::parse("<[TMT6plex]>AA"))
+  TEST_EXCEPTION(ProForma::ParseError, ProForma::parse("<[TMT6plex]>AA"))
 }
 END_SECTION
 
-START_SECTION(ProFormaParseError - position clamping for noexcept safety)
+START_SECTION(ProForma::ParseError - position clamping for noexcept safety)
 {
   // Test 1: Position way beyond input.size() should be clamped
   {
     String input = "ABC";
     size_t out_of_bounds_position = 100;
 
-    ProFormaParseError err(
+    ProForma::ParseError err(
       __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-      ProFormaErrorCode::UNEXPECTED_CHARACTER,
+      ErrorCode::UNEXPECTED_CHARACTER,
       out_of_bounds_position,
       input,
       "Test error"
@@ -1275,9 +1220,9 @@ START_SECTION(ProFormaParseError - position clamping for noexcept safety)
     String input = "ABCDEF";
     size_t boundary_position = input.size(); // Position 6, exactly at end
 
-    ProFormaParseError err(
+    ProForma::ParseError err(
       __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-      ProFormaErrorCode::UNEXPECTED_END_OF_INPUT,
+      ErrorCode::UNEXPECTED_END_OF_INPUT,
       boundary_position,
       input,
       "Unexpected end"
@@ -1293,9 +1238,9 @@ START_SECTION(ProFormaParseError - position clamping for noexcept safety)
     String input = "";
     size_t position = 0;
 
-    ProFormaParseError err(
+    ProForma::ParseError err(
       __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-      ProFormaErrorCode::EMPTY_SEQUENCE,
+      ErrorCode::EMPTY_SEQUENCE,
       position,
       input,
       "Empty sequence"
@@ -1311,15 +1256,15 @@ START_SECTION(ProFormaParseError - position clamping for noexcept safety)
     String input = "PEP[";
     size_t position = 3;
 
-    ProFormaParseError err(
+    ProForma::ParseError err(
       __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-      ProFormaErrorCode::UNCLOSED_BRACKET,
+      ErrorCode::UNCLOSED_BRACKET,
       position,
       input,
       "Unclosed bracket"
     );
 
-    TEST_EQUAL(err.getErrorCode(), ProFormaErrorCode::UNCLOSED_BRACKET)
+    TEST_EQUAL(err.getErrorCode(), ErrorCode::UNCLOSED_BRACKET)
     String formatted = err.getFormattedMessage();
     TEST_EQUAL(formatted.hasSubstring("Unclosed bracket"), true)
   }
@@ -1332,28 +1277,28 @@ END_SECTION
 
 START_SECTION(JSON serialization - Peptidoform)
 {
-  Peptidoform pf = ProFormaParser::parse("EM[UNIMOD:35]K");
+  Peptidoform pf = ProForma::parse("EM[UNIMOD:35]K");
 
   // Serialize to JSON
-  String json = toJSON(pf);
+  String json = ProForma::toJSON(pf);
   TEST_EQUAL(json.empty(), false)
 
   // Deserialize back
-  Peptidoform pf2 = peptidoformFromJSON(json);
+  Peptidoform pf2 = ProForma::peptidoformFromJSON(json);
   TEST_EQUAL(pf2.sequence.size(), pf.sequence.size())
 }
 END_SECTION
 
 START_SECTION(JSON serialization - PeptidoformIon)
 {
-  PeptidoformIon ion = ProFormaParser::parseIon("PEPTIDE//SEQUENCE/2");
+  PeptidoformIon ion = ProForma::parseIon("PEPTIDE//SEQUENCE/2");
 
   // Serialize to JSON
-  String json = toJSON(ion);
+  String json = ProForma::toJSON(ion);
   TEST_EQUAL(json.empty(), false)
 
   // Deserialize back
-  PeptidoformIon ion2 = peptidoformIonFromJSON(json);
+  PeptidoformIon ion2 = ProForma::peptidoformIonFromJSON(json);
   TEST_EQUAL(ion2.chains.size(), ion.chains.size())
 }
 END_SECTION
@@ -1365,10 +1310,10 @@ END_SECTION
 START_SECTION(WriteMode - lossless preserves original mass format)
 {
   // Parse a mass delta with specific formatting
-  Peptidoform pf = ProFormaParser::parse("EM[+15.99]K");
+  Peptidoform pf = ProForma::parse("EM[+15.99]K");
 
   // Lossless mode should preserve the original text
-  String lossless = ProFormaParser::toString(pf, ProFormaWriteMode::LOSSLESS);
+  String lossless = ProForma::toString(pf, WriteMode::LOSSLESS);
   TEST_EQUAL(lossless, "EM[+15.99]K")
 }
 END_SECTION
@@ -1376,10 +1321,10 @@ END_SECTION
 START_SECTION(WriteMode - canonical uses fixed precision)
 {
   // Parse a mass delta with specific formatting
-  Peptidoform pf = ProFormaParser::parse("EM[+15.99]K");
+  Peptidoform pf = ProForma::parse("EM[+15.99]K");
 
   // Canonical mode should use fixed 4 decimal places
-  String canonical = ProFormaParser::toString(pf, ProFormaWriteMode::CANONICAL);
+  String canonical = ProForma::toString(pf, WriteMode::CANONICAL);
   TEST_EQUAL(canonical, "EM[+15.9900]K")
 }
 END_SECTION
@@ -1387,10 +1332,10 @@ END_SECTION
 START_SECTION(WriteMode - canonical normalizes mass precision)
 {
   // Parse with many decimal places
-  Peptidoform pf = ProFormaParser::parse("EM[+15.99491234]K");
+  Peptidoform pf = ProForma::parse("EM[+15.99491234]K");
 
   // Canonical mode should normalize to 4 decimal places
-  String canonical = ProFormaParser::toString(pf, ProFormaWriteMode::CANONICAL);
+  String canonical = ProForma::toString(pf, WriteMode::CANONICAL);
   TEST_EQUAL(canonical, "EM[+15.9949]K")
 }
 END_SECTION
@@ -1398,10 +1343,10 @@ END_SECTION
 START_SECTION(WriteMode - CV accessions in both modes)
 {
   // CV accessions should be the same in both modes
-  Peptidoform pf = ProFormaParser::parse("EM[UNIMOD:35]K");
+  Peptidoform pf = ProForma::parse("EM[UNIMOD:35]K");
 
-  String lossless = ProFormaParser::toString(pf, ProFormaWriteMode::LOSSLESS);
-  String canonical = ProFormaParser::toString(pf, ProFormaWriteMode::CANONICAL);
+  String lossless = ProForma::toString(pf, WriteMode::LOSSLESS);
+  String canonical = ProForma::toString(pf, WriteMode::CANONICAL);
 
   // Both should produce the same output for CV accessions
   TEST_EQUAL(lossless, "EM[UNIMOD:35]K")
@@ -1412,10 +1357,10 @@ END_SECTION
 START_SECTION(WriteMode - named modifications in both modes)
 {
   // Named modifications should be the same in both modes
-  Peptidoform pf = ProFormaParser::parse("EM[Oxidation]K");
+  Peptidoform pf = ProForma::parse("EM[Oxidation]K");
 
-  String lossless = ProFormaParser::toString(pf, ProFormaWriteMode::LOSSLESS);
-  String canonical = ProFormaParser::toString(pf, ProFormaWriteMode::CANONICAL);
+  String lossless = ProForma::toString(pf, WriteMode::LOSSLESS);
+  String canonical = ProForma::toString(pf, WriteMode::CANONICAL);
 
   // Both should produce the same output for named mods
   TEST_EQUAL(lossless, "EM[Oxidation]K")
@@ -1426,10 +1371,10 @@ END_SECTION
 START_SECTION(WriteMode - default is LOSSLESS)
 {
   // Default mode should be lossless
-  Peptidoform pf = ProFormaParser::parse("EM[+15.99]K");
+  Peptidoform pf = ProForma::parse("EM[+15.99]K");
 
-  String default_output = ProFormaParser::toString(pf);
-  String lossless = ProFormaParser::toString(pf, ProFormaWriteMode::LOSSLESS);
+  String default_output = ProForma::toString(pf);
+  String lossless = ProForma::toString(pf, WriteMode::LOSSLESS);
 
   TEST_EQUAL(default_output, lossless)
 }
@@ -1442,10 +1387,10 @@ END_SECTION
 START_SECTION(resolveModifications - UNIMOD lookup)
 {
   // Parse a ProForma string with UNIMOD modification
-  Peptidoform pf = ProFormaParser::parse("EM[UNIMOD:35]K");
+  Peptidoform pf = ProForma::parse("EM[UNIMOD:35]K");
 
   // Resolve modifications
-  ProFormaParser::resolveModifications(pf);
+  ProForma::resolveModifications(pf);
 
   // Check that the modification was resolved
   TEST_EQUAL(pf.sequence.size(), 3)
@@ -1463,10 +1408,10 @@ END_SECTION
 START_SECTION(resolveModifications - named modification lookup)
 {
   // Parse a ProForma string with named modification
-  Peptidoform pf = ProFormaParser::parse("EM[Oxidation]K");
+  Peptidoform pf = ProForma::parse("EM[Oxidation]K");
 
   // Resolve modifications
-  ProFormaParser::resolveModifications(pf);
+  ProForma::resolveModifications(pf);
 
   // The second element (M) should have a resolved modification
   const SequenceElement* m_elem = std::get_if<SequenceElement>(&pf.sequence[1]);
@@ -1481,28 +1426,28 @@ END_SECTION
 START_SECTION(isRepresentableAsAASequence - simple sequence)
 {
   // Simple unmodified sequence should be representable
-  Peptidoform pf = ProFormaParser::parse("PEPTIDE");
-  TEST_EQUAL(ProFormaParser::isRepresentableAsAASequence(pf), true)
+  Peptidoform pf = ProForma::parse("PEPTIDE");
+  TEST_EQUAL(ProForma::isRepresentableAsAASequence(pf), true)
 
   // Sequence with UNIMOD modification should be representable
-  Peptidoform pf2 = ProFormaParser::parse("EM[UNIMOD:35]K");
-  TEST_EQUAL(ProFormaParser::isRepresentableAsAASequence(pf2), true)
+  Peptidoform pf2 = ProForma::parse("EM[UNIMOD:35]K");
+  TEST_EQUAL(ProForma::isRepresentableAsAASequence(pf2), true)
 }
 END_SECTION
 
 START_SECTION(isRepresentableAsAASequence - unsupported features)
 {
   // Unlocalised modification is not representable
-  Peptidoform pf_unloc = ProFormaParser::parse("[Phospho]?PEPTIDE");
-  TEST_EQUAL(ProFormaParser::isRepresentableAsAASequence(pf_unloc), false)
+  Peptidoform pf_unloc = ProForma::parse("[Phospho]?PEPTIDE");
+  TEST_EQUAL(ProForma::isRepresentableAsAASequence(pf_unloc), false)
 
   // Labile modification is not representable
-  Peptidoform pf_labile = ProFormaParser::parse("{Glycan:Hex}PEPTIDE");
-  TEST_EQUAL(ProFormaParser::isRepresentableAsAASequence(pf_labile), false)
+  Peptidoform pf_labile = ProForma::parse("{Glycan:Hex}PEPTIDE");
+  TEST_EQUAL(ProForma::isRepresentableAsAASequence(pf_labile), false)
 
   // Ambiguous region is not representable
-  Peptidoform pf_ambig = ProFormaParser::parse("PEP(?DQ)IDE");
-  TEST_EQUAL(ProFormaParser::isRepresentableAsAASequence(pf_ambig), false)
+  Peptidoform pf_ambig = ProForma::parse("PEP(?DQ)IDE");
+  TEST_EQUAL(ProForma::isRepresentableAsAASequence(pf_ambig), false)
 }
 END_SECTION
 
@@ -1511,8 +1456,8 @@ START_SECTION(getAASequenceConversionIssues)
   // Test that conversion issues are properly reported
 
   // Unlocalised modification
-  Peptidoform pf_unloc = ProFormaParser::parse("[Phospho]?PEPTIDE");
-  auto issues_unloc = ProFormaParser::getAASequenceConversionIssues(pf_unloc);
+  Peptidoform pf_unloc = ProForma::parse("[Phospho]?PEPTIDE");
+  auto issues_unloc = ProForma::getAASequenceConversionIssues(pf_unloc);
   TEST_EQUAL(issues_unloc.empty(), false)
   bool found_unloc_issue = false;
   for (const auto& issue : issues_unloc)
@@ -1526,8 +1471,8 @@ START_SECTION(getAASequenceConversionIssues)
   TEST_EQUAL(found_unloc_issue, true)
 
   // Labile modification
-  Peptidoform pf_labile = ProFormaParser::parse("{Glycan:Hex}PEPTIDE");
-  auto issues_labile = ProFormaParser::getAASequenceConversionIssues(pf_labile);
+  Peptidoform pf_labile = ProForma::parse("{Glycan:Hex}PEPTIDE");
+  auto issues_labile = ProForma::getAASequenceConversionIssues(pf_labile);
   TEST_EQUAL(issues_labile.empty(), false)
   bool found_labile_issue = false;
   for (const auto& issue : issues_labile)
@@ -1545,8 +1490,8 @@ END_SECTION
 START_SECTION(toAASequence - simple sequence)
 {
   // Convert simple unmodified sequence
-  Peptidoform pf = ProFormaParser::parse("PEPTIDE");
-  AASequence seq = ProFormaParser::toAASequence(pf);
+  Peptidoform pf = ProForma::parse("PEPTIDE");
+  AASequence seq = ProForma::toAASequence(pf);
 
   TEST_EQUAL(seq.toUnmodifiedString(), "PEPTIDE")
   TEST_EQUAL(seq.size(), 7)
@@ -1556,8 +1501,8 @@ END_SECTION
 START_SECTION(toAASequence - with UNIMOD modification)
 {
   // Convert sequence with UNIMOD modification (Oxidation on M)
-  Peptidoform pf = ProFormaParser::parse("EM[UNIMOD:35]K");
-  AASequence seq = ProFormaParser::toAASequence(pf);
+  Peptidoform pf = ProForma::parse("EM[UNIMOD:35]K");
+  AASequence seq = ProForma::toAASequence(pf);
 
   TEST_EQUAL(seq.toUnmodifiedString(), "EMK")
   TEST_EQUAL(seq.size(), 3)
@@ -1570,8 +1515,8 @@ END_SECTION
 START_SECTION(toAASequence - with N-terminal modification)
 {
   // Convert sequence with N-terminal acetylation
-  Peptidoform pf = ProFormaParser::parse("[UNIMOD:1]-PEPTIDE");
-  AASequence seq = ProFormaParser::toAASequence(pf);
+  Peptidoform pf = ProForma::parse("[UNIMOD:1]-PEPTIDE");
+  AASequence seq = ProForma::toAASequence(pf);
 
   TEST_EQUAL(seq.toUnmodifiedString(), "PEPTIDE")
   TEST_EQUAL(seq.hasNTerminalModification(), true)
@@ -1581,19 +1526,19 @@ END_SECTION
 START_SECTION(toAASequence - FAIL_ON_LOSS policy throws on unsupported)
 {
   // FAIL_ON_LOSS policy should throw on unlocalised modifications
-  Peptidoform pf = ProFormaParser::parse("[Phospho]?PEPTIDE");
+  Peptidoform pf = ProForma::parse("[Phospho]?PEPTIDE");
 
   TEST_EXCEPTION(Exception::ConversionError,
-    ProFormaParser::toAASequence(pf, AASequenceConversionPolicy::FAIL_ON_LOSS))
+    ProForma::toAASequence(pf, ConversionPolicy::FAIL_ON_LOSS))
 }
 END_SECTION
 
 START_SECTION(toAASequence - BEST_EFFORT policy ignores unsupported)
 {
   // BEST_EFFORT policy should not throw
-  Peptidoform pf = ProFormaParser::parse("[Phospho]?PEPTIDE");
+  Peptidoform pf = ProForma::parse("[Phospho]?PEPTIDE");
 
-  AASequence seq = ProFormaParser::toAASequence(pf, AASequenceConversionPolicy::BEST_EFFORT);
+  AASequence seq = ProForma::toAASequence(pf, ConversionPolicy::BEST_EFFORT);
   TEST_EQUAL(seq.toUnmodifiedString(), "PEPTIDE")
 }
 END_SECTION
@@ -1602,7 +1547,7 @@ START_SECTION(fromAASequence - simple sequence)
 {
   // Create AASequence and convert to Peptidoform
   AASequence seq = AASequence::fromString("PEPTIDE");
-  Peptidoform pf = ProFormaParser::fromAASequence(seq);
+  Peptidoform pf = ProForma::fromAASequence(seq);
 
   TEST_EQUAL(pf.sequence.size(), 7)
 
@@ -1619,7 +1564,7 @@ START_SECTION(fromAASequence - with modification)
 {
   // Create AASequence with oxidation
   AASequence seq = AASequence::fromString("EM(Oxidation)K");
-  Peptidoform pf = ProFormaParser::fromAASequence(seq);
+  Peptidoform pf = ProForma::fromAASequence(seq);
 
   TEST_EQUAL(pf.sequence.size(), 3)
 
@@ -1637,16 +1582,16 @@ START_SECTION(fromAASequence - roundtrip)
   AASequence orig = AASequence::fromString("EM(Oxidation)K");
 
   // Convert to Peptidoform
-  Peptidoform pf = ProFormaParser::fromAASequence(orig);
+  Peptidoform pf = ProForma::fromAASequence(orig);
 
   // Convert to string
-  String proforma_str = ProFormaParser::toString(pf);
+  String proforma_str = ProForma::toString(pf);
 
   // Parse back
-  Peptidoform pf2 = ProFormaParser::parse(proforma_str);
+  Peptidoform pf2 = ProForma::parse(proforma_str);
 
   // Convert back to AASequence
-  AASequence result = ProFormaParser::toAASequence(pf2);
+  AASequence result = ProForma::toAASequence(pf2);
 
   // Compare
   TEST_EQUAL(result.toUnmodifiedString(), orig.toUnmodifiedString())
@@ -1660,13 +1605,13 @@ START_SECTION(ProForma to AASequence roundtrip)
   String orig = "EM[UNIMOD:35]K";
 
   // Parse
-  Peptidoform pf = ProFormaParser::parse(orig);
+  Peptidoform pf = ProForma::parse(orig);
 
   // Convert to AASequence
-  AASequence seq = ProFormaParser::toAASequence(pf);
+  AASequence seq = ProForma::toAASequence(pf);
 
   // Convert back to Peptidoform
-  Peptidoform pf2 = ProFormaParser::fromAASequence(seq);
+  Peptidoform pf2 = ProForma::fromAASequence(seq);
 
   // The result should be similar (may use different notation for the same mod)
   TEST_EQUAL(pf2.sequence.size(), pf.sequence.size())
@@ -1730,15 +1675,15 @@ START_SECTION(Positive test cases from fixture file)
       {
         if (needsParseIon(test_case))
         {
-          PeptidoformIon ion = ProFormaParser::parseIon(test_case);
+          PeptidoformIon ion = ProForma::parseIon(test_case);
         }
         else
         {
-          Peptidoform pf = ProFormaParser::parse(test_case);
+          Peptidoform pf = ProForma::parse(test_case);
         }
         passed++;
       }
-      catch (const ProFormaParseError& e)
+      catch (const ProForma::ParseError& e)
       {
         // Some complex cases may not be fully implemented yet
         failed++;
@@ -1774,13 +1719,13 @@ START_SECTION(Negative test cases from fixture file)
     {
       try
       {
-        Peptidoform pf = ProFormaParser::parse(test_case);
+        Peptidoform pf = ProForma::parse(test_case);
         // If we get here, parsing succeeded when it shouldn't have
         incorrectly_accepted++;
         // Uncomment for debugging:
         // std::cerr << "FAIL (should reject): " << test_case << std::endl;
       }
-      catch (const ProFormaParseError&)
+      catch (const ProForma::ParseError&)
       {
         // Good - parsing should fail for negative cases
         correctly_rejected++;
@@ -1814,7 +1759,7 @@ START_SECTION(Component-level grammar tests)
   {
     try
     {
-      ProFormaParser::parse(input);
+      ProForma::parse(input);
       passed++;
     }
     catch (const std::exception& e)
@@ -1831,7 +1776,7 @@ START_SECTION(Component-level grammar tests)
   {
     try
     {
-      ProFormaParser::parseIon(input);
+      ProForma::parseIon(input);
       passed++;
     }
     catch (const std::exception& e)
@@ -1848,7 +1793,7 @@ START_SECTION(Component-level grammar tests)
   {
     try
     {
-      ProFormaParser::parse(input);
+      ProForma::parse(input);
       failed++;
       std::cerr << "FAIL (should reject): " << input;
       if (!context.empty()) std::cerr << " [" << context << "]";
@@ -1865,7 +1810,7 @@ START_SECTION(Component-level grammar tests)
   {
     try
     {
-      ProFormaParser::parseIon(input);
+      ProForma::parseIon(input);
       failed++;
       std::cerr << "FAIL (should reject): " << input;
       if (!context.empty()) std::cerr << " [" << context << "]";
@@ -2015,51 +1960,51 @@ END_SECTION
 // Mass Calculation tests
 /////////////////////////////////////////////////////////////
 
-START_SECTION(ProFormaParser::canCalculateMass - simple sequence)
+START_SECTION(ProForma::canCalculateMass - simple sequence)
 {
-  Peptidoform pf = ProFormaParser::parse("PEPTIDE");
-  TEST_EQUAL(ProFormaParser::canCalculateMass(pf), true)
+  Peptidoform pf = ProForma::parse("PEPTIDE");
+  TEST_EQUAL(ProForma::canCalculateMass(pf), true)
 }
 END_SECTION
 
-START_SECTION(ProFormaParser::canCalculateMass - with UNIMOD modification)
+START_SECTION(ProForma::canCalculateMass - with UNIMOD modification)
 {
   // Oxidation should resolve and allow mass calculation
-  Peptidoform pf = ProFormaParser::parse("PEM[UNIMOD:35]TIDE");
-  TEST_EQUAL(ProFormaParser::canCalculateMass(pf), true)
+  Peptidoform pf = ProForma::parse("PEM[UNIMOD:35]TIDE");
+  TEST_EQUAL(ProForma::canCalculateMass(pf), true)
 }
 END_SECTION
 
-START_SECTION(ProFormaParser::canCalculateMass - with mass delta)
+START_SECTION(ProForma::canCalculateMass - with mass delta)
 {
   // Mass delta should always allow mass calculation
-  Peptidoform pf = ProFormaParser::parse("PEM[+15.9949]TIDE");
-  TEST_EQUAL(ProFormaParser::canCalculateMass(pf), true)
+  Peptidoform pf = ProForma::parse("PEM[+15.9949]TIDE");
+  TEST_EQUAL(ProForma::canCalculateMass(pf), true)
 }
 END_SECTION
 
-START_SECTION(ProFormaParser::canCalculateMass - with formula)
+START_SECTION(ProForma::canCalculateMass - with formula)
 {
   // Formula should allow mass calculation
-  Peptidoform pf = ProFormaParser::parse("PEM[Formula:O]TIDE");
-  TEST_EQUAL(ProFormaParser::canCalculateMass(pf), true)
+  Peptidoform pf = ProForma::parse("PEM[Formula:O]TIDE");
+  TEST_EQUAL(ProForma::canCalculateMass(pf), true)
 }
 END_SECTION
 
-START_SECTION(ProFormaParser::getMassCalculationIssues - unresolved modification)
+START_SECTION(ProForma::getMassCalculationIssues - unresolved modification)
 {
   // Unknown modification name that won't resolve
-  Peptidoform pf = ProFormaParser::parse("PEM[UnknownMod12345]TIDE");
-  auto issues = ProFormaParser::getMassCalculationIssues(pf);
+  Peptidoform pf = ProForma::parse("PEM[UnknownMod12345]TIDE");
+  auto issues = ProForma::getMassCalculationIssues(pf);
   TEST_EQUAL(issues.empty(), false)
   TEST_EQUAL(issues[0].type, ConversionIssueType::UNRESOLVED_MOD)
 }
 END_SECTION
 
-START_SECTION(ProFormaParser::getMonoWeight - simple sequence)
+START_SECTION(ProForma::getMonoWeight - simple sequence)
 {
-  Peptidoform pf = ProFormaParser::parse("PEPTIDE");
-  double mass = ProFormaParser::getMonoWeight(pf);
+  Peptidoform pf = ProForma::parse("PEPTIDE");
+  double mass = ProForma::getMonoWeight(pf);
 
   // Compare to AASequence calculation
   AASequence aas = AASequence::fromString("PEPTIDE");
@@ -2069,10 +2014,10 @@ START_SECTION(ProFormaParser::getMonoWeight - simple sequence)
 }
 END_SECTION
 
-START_SECTION(ProFormaParser::getMonoWeight - with UNIMOD modification)
+START_SECTION(ProForma::getMonoWeight - with UNIMOD modification)
 {
-  Peptidoform pf = ProFormaParser::parse("PEM[UNIMOD:35]TIDE");
-  double mass = ProFormaParser::getMonoWeight(pf);
+  Peptidoform pf = ProForma::parse("PEM[UNIMOD:35]TIDE");
+  double mass = ProForma::getMonoWeight(pf);
 
   // Compare to AASequence calculation
   AASequence aas = AASequence::fromString("PEM(Oxidation)TIDE");
@@ -2082,10 +2027,10 @@ START_SECTION(ProFormaParser::getMonoWeight - with UNIMOD modification)
 }
 END_SECTION
 
-START_SECTION(ProFormaParser::getMonoWeight - with mass delta)
+START_SECTION(ProForma::getMonoWeight - with mass delta)
 {
-  Peptidoform pf = ProFormaParser::parse("PEM[+15.9949]TIDE");
-  double mass = ProFormaParser::getMonoWeight(pf);
+  Peptidoform pf = ProForma::parse("PEM[+15.9949]TIDE");
+  double mass = ProForma::getMonoWeight(pf);
 
   // Compare to unmodified + mass delta
   AASequence aas = AASequence::fromString("PEMTIDE");
@@ -2095,10 +2040,10 @@ START_SECTION(ProFormaParser::getMonoWeight - with mass delta)
 }
 END_SECTION
 
-START_SECTION(ProFormaParser::getMonoWeight - with terminal modifications)
+START_SECTION(ProForma::getMonoWeight - with terminal modifications)
 {
-  Peptidoform pf = ProFormaParser::parse("[UNIMOD:1]-PEPTIDE-[UNIMOD:2]");
-  double mass = ProFormaParser::getMonoWeight(pf);
+  Peptidoform pf = ProForma::parse("[UNIMOD:1]-PEPTIDE-[UNIMOD:2]");
+  double mass = ProForma::getMonoWeight(pf);
 
   // Compare to AASequence with Acetyl (N-term) and Amidated (C-term)
   AASequence aas = AASequence::fromString("(Acetyl)PEPTIDE(Amidated)");
@@ -2108,16 +2053,16 @@ START_SECTION(ProFormaParser::getMonoWeight - with terminal modifications)
 }
 END_SECTION
 
-START_SECTION(ProFormaParser::getMonoWeight - cross-linked single chain)
+START_SECTION(ProForma::getMonoWeight - cross-linked single chain)
 {
   // Cross-link within single chain using mass delta (disulfide bond: -2.0156 Da for loss of 2H)
   // The cross-link mass should only be counted once, not at both sites
-  Peptidoform pf = ProFormaParser::parse("EVTSEKC[-2.0156#XL1]LEMSC[#XL1]EFD");
+  Peptidoform pf = ProForma::parse("EVTSEKC[-2.0156#XL1]LEMSC[#XL1]EFD");
 
   // Should be able to calculate mass
-  TEST_EQUAL(ProFormaParser::canCalculateMass(pf), true)
+  TEST_EQUAL(ProForma::canCalculateMass(pf), true)
 
-  double mass = ProFormaParser::getMonoWeight(pf);
+  double mass = ProForma::getMonoWeight(pf);
 
   // Calculate expected mass: sequence + one disulfide delta (not two)
   // Sequence is EVTSEKCLEMSCEFD (15 amino acids)
@@ -2128,15 +2073,15 @@ START_SECTION(ProFormaParser::getMonoWeight - cross-linked single chain)
 }
 END_SECTION
 
-START_SECTION(ProFormaParser::getMonoWeight - multi-chain cross-link)
+START_SECTION(ProForma::getMonoWeight - multi-chain cross-link)
 {
   // Cross-linked peptides using mass delta for DSS/BS3 cross-linker (+138.06807961 Da)
   // This is the exact mass from CrossLinksDB_test.cpp
-  PeptidoformIon ion = ProFormaParser::parseIon("PEPTIDEK[+138.06807961#XL1]//SEQUENCEK[#XL1]");
+  PeptidoformIon ion = ProForma::parseIon("PEPTIDEK[+138.06807961#XL1]//SEQUENCEK[#XL1]");
 
-  TEST_EQUAL(ProFormaParser::canCalculateMass(ion), true)
+  TEST_EQUAL(ProForma::canCalculateMass(ion), true)
 
-  double mass = ProFormaParser::getMonoWeight(ion);
+  double mass = ProForma::getMonoWeight(ion);
 
   // Expected: sum of both peptide masses + one cross-linker mass
   AASequence seq1 = AASequence::fromString("PEPTIDEK");
@@ -2147,10 +2092,10 @@ START_SECTION(ProFormaParser::getMonoWeight - multi-chain cross-link)
 }
 END_SECTION
 
-START_SECTION(ProFormaParser::getMZ - with charge state)
+START_SECTION(ProForma::getMZ - with charge state)
 {
-  PeptidoformIon ion = ProFormaParser::parseIon("PEPTIDE/2");
-  double mz = ProFormaParser::getMZ(ion);
+  PeptidoformIon ion = ProForma::parseIon("PEPTIDE/2");
+  double mz = ProForma::getMZ(ion);
 
   // Compare to AASequence calculation
   AASequence aas = AASequence::fromString("PEPTIDE");
@@ -2160,10 +2105,10 @@ START_SECTION(ProFormaParser::getMZ - with charge state)
 }
 END_SECTION
 
-START_SECTION(ProFormaParser::getMZ - Peptidoform with charge)
+START_SECTION(ProForma::getMZ - Peptidoform with charge)
 {
-  Peptidoform pf = ProFormaParser::parse("PEPTIDE");
-  double mz = ProFormaParser::getMZ(pf, 2);
+  Peptidoform pf = ProForma::parse("PEPTIDE");
+  double mz = ProForma::getMZ(pf, 2);
 
   // Compare to AASequence calculation
   AASequence aas = AASequence::fromString("PEPTIDE");
@@ -2173,222 +2118,222 @@ START_SECTION(ProFormaParser::getMZ - Peptidoform with charge)
 }
 END_SECTION
 
-START_SECTION(ProFormaParser::getMonoWeight - throws on unresolved)
+START_SECTION(ProForma::getMonoWeight - throws on unresolved)
 {
-  Peptidoform pf = ProFormaParser::parse("PEM[UnknownModification99999]TIDE");
-  TEST_EXCEPTION(Exception::InvalidValue, ProFormaParser::getMonoWeight(pf))
+  Peptidoform pf = ProForma::parse("PEM[UnknownModification99999]TIDE");
+  TEST_EXCEPTION(Exception::InvalidValue, ProForma::getMonoWeight(pf))
 }
 END_SECTION
 
-START_SECTION(ProFormaParser::getMZ - throws on zero charge)
+START_SECTION(ProForma::getMZ - throws on zero charge)
 {
-  Peptidoform pf = ProFormaParser::parse("PEPTIDE");
-  TEST_EXCEPTION(Exception::InvalidValue, ProFormaParser::getMZ(pf, 0))
+  Peptidoform pf = ProForma::parse("PEPTIDE");
+  TEST_EXCEPTION(Exception::InvalidValue, ProForma::getMZ(pf, 0))
 }
 END_SECTION
 
-START_SECTION(ProFormaParser::getMZ - throws on missing charge)
+START_SECTION(ProForma::getMZ - throws on missing charge)
 {
-  PeptidoformIon ion = ProFormaParser::parseIon("PEPTIDE");
-  TEST_EXCEPTION(Exception::InvalidValue, ProFormaParser::getMZ(ion))
+  PeptidoformIon ion = ProForma::parseIon("PEPTIDE");
+  TEST_EXCEPTION(Exception::InvalidValue, ProForma::getMZ(ion))
 }
 END_SECTION
 
-START_SECTION(ProFormaParser::getMonoWeight - reference peptide DFPIANGER)
+START_SECTION(ProForma::getMonoWeight - reference peptide DFPIANGER)
 {
   // DFPIANGER is a well-tested reference peptide in OpenMS (AASequence_test.cpp line 384)
-  Peptidoform pf = ProFormaParser::parse("DFPIANGER");
-  TEST_EQUAL(ProFormaParser::canCalculateMass(pf), true)
+  Peptidoform pf = ProForma::parse("DFPIANGER");
+  TEST_EQUAL(ProForma::canCalculateMass(pf), true)
 
-  double mass = ProFormaParser::getMonoWeight(pf);
+  double mass = ProForma::getMonoWeight(pf);
   AASequence aas = AASequence::fromString("DFPIANGER");
   TEST_REAL_SIMILAR(mass, aas.getMonoWeight())
   TEST_REAL_SIMILAR(mass, 1017.48796)
 }
 END_SECTION
 
-START_SECTION(ProFormaParser::getMonoWeight - phosphorylation)
+START_SECTION(ProForma::getMonoWeight - phosphorylation)
 {
   // Phosphorylation: +79.966331 Da (UNIMOD:21)
-  Peptidoform pf = ProFormaParser::parse("PEPTS[UNIMOD:21]IDE");
-  TEST_EQUAL(ProFormaParser::canCalculateMass(pf), true)
+  Peptidoform pf = ProForma::parse("PEPTS[UNIMOD:21]IDE");
+  TEST_EQUAL(ProForma::canCalculateMass(pf), true)
 
-  double mass = ProFormaParser::getMonoWeight(pf);
+  double mass = ProForma::getMonoWeight(pf);
   AASequence aas = AASequence::fromString("PEPTS(Phospho)IDE");
   TEST_REAL_SIMILAR(mass, aas.getMonoWeight())
 
   // Also test with mass delta notation
-  Peptidoform pf2 = ProFormaParser::parse("PEPTS[+79.966331]IDE");
-  TEST_REAL_SIMILAR(ProFormaParser::getMonoWeight(pf2), mass)
+  Peptidoform pf2 = ProForma::parse("PEPTS[+79.966331]IDE");
+  TEST_REAL_SIMILAR(ProForma::getMonoWeight(pf2), mass)
 }
 END_SECTION
 
-START_SECTION(ProFormaParser::getMonoWeight - carbamidomethyl)
+START_SECTION(ProForma::getMonoWeight - carbamidomethyl)
 {
   // Carbamidomethyl on Cysteine: +57.0215 Da (UNIMOD:4)
-  Peptidoform pf = ProFormaParser::parse("PEPTC[UNIMOD:4]IDE");
-  TEST_EQUAL(ProFormaParser::canCalculateMass(pf), true)
+  Peptidoform pf = ProForma::parse("PEPTC[UNIMOD:4]IDE");
+  TEST_EQUAL(ProForma::canCalculateMass(pf), true)
 
-  double mass = ProFormaParser::getMonoWeight(pf);
+  double mass = ProForma::getMonoWeight(pf);
   AASequence aas = AASequence::fromString("PEPTC(Carbamidomethyl)IDE");
   TEST_REAL_SIMILAR(mass, aas.getMonoWeight())
 }
 END_SECTION
 
-START_SECTION(ProFormaParser::getMonoWeight - combined terminal mods)
+START_SECTION(ProForma::getMonoWeight - combined terminal mods)
 {
   // N-term Acetyl (+42.010565) and C-term Amidated (-0.984016)
-  Peptidoform pf = ProFormaParser::parse("[UNIMOD:1]-PEPTIDE-[UNIMOD:2]");
-  TEST_EQUAL(ProFormaParser::canCalculateMass(pf), true)
+  Peptidoform pf = ProForma::parse("[UNIMOD:1]-PEPTIDE-[UNIMOD:2]");
+  TEST_EQUAL(ProForma::canCalculateMass(pf), true)
 
-  double mass = ProFormaParser::getMonoWeight(pf);
+  double mass = ProForma::getMonoWeight(pf);
   AASequence aas = AASequence::fromString("(Acetyl)PEPTIDE(Amidated)");
   TEST_REAL_SIMILAR(mass, aas.getMonoWeight())
 
   // Verify the mass difference from unmodified
-  Peptidoform pf_unmod = ProFormaParser::parse("PEPTIDE");
-  double unmod_mass = ProFormaParser::getMonoWeight(pf_unmod);
+  Peptidoform pf_unmod = ProForma::parse("PEPTIDE");
+  double unmod_mass = ProForma::getMonoWeight(pf_unmod);
   // Acetyl adds ~42.01, Amidated subtracts ~0.98, net ~41.03
   TEST_REAL_SIMILAR(mass - unmod_mass, 42.010565 - 0.984016)
 }
 END_SECTION
 
-START_SECTION(ProFormaParser::getMonoWeight - multiple modifications)
+START_SECTION(ProForma::getMonoWeight - multiple modifications)
 {
   // Multiple modifications on same peptide
-  Peptidoform pf = ProFormaParser::parse("[UNIMOD:1]-PEM[UNIMOD:35]PTIDES[UNIMOD:21]K");
-  TEST_EQUAL(ProFormaParser::canCalculateMass(pf), true)
+  Peptidoform pf = ProForma::parse("[UNIMOD:1]-PEM[UNIMOD:35]PTIDES[UNIMOD:21]K");
+  TEST_EQUAL(ProForma::canCalculateMass(pf), true)
 
-  double mass = ProFormaParser::getMonoWeight(pf);
+  double mass = ProForma::getMonoWeight(pf);
   AASequence aas = AASequence::fromString("(Acetyl)PEM(Oxidation)PTIDES(Phospho)K");
   TEST_REAL_SIMILAR(mass, aas.getMonoWeight())
 }
 END_SECTION
 
-START_SECTION(ProFormaParser::getMonoWeight - formula tag)
+START_SECTION(ProForma::getMonoWeight - formula tag)
 {
   // Formula:C2H2O adds acetyl-equivalent mass
-  Peptidoform pf = ProFormaParser::parse("[Formula:C2H2O]-PEPTIDE");
-  TEST_EQUAL(ProFormaParser::canCalculateMass(pf), true)
+  Peptidoform pf = ProForma::parse("[Formula:C2H2O]-PEPTIDE");
+  TEST_EQUAL(ProForma::canCalculateMass(pf), true)
 
-  double mass = ProFormaParser::getMonoWeight(pf);
+  double mass = ProForma::getMonoWeight(pf);
 
   // C2H2O has same composition as Acetyl
-  Peptidoform pf_acetyl = ProFormaParser::parse("[UNIMOD:1]-PEPTIDE");
-  TEST_REAL_SIMILAR(mass, ProFormaParser::getMonoWeight(pf_acetyl))
+  Peptidoform pf_acetyl = ProForma::parse("[UNIMOD:1]-PEPTIDE");
+  TEST_REAL_SIMILAR(mass, ProForma::getMonoWeight(pf_acetyl))
 }
 END_SECTION
 
-START_SECTION(ProFormaParser::getMonoWeight - unlocalised modification)
+START_SECTION(ProForma::getMonoWeight - unlocalised modification)
 {
   // Unlocalised phosphorylation: [Phospho]?PEPTIDE
-  Peptidoform pf = ProFormaParser::parse("[+79.966331]?PEPTIDE");
-  TEST_EQUAL(ProFormaParser::canCalculateMass(pf), true)
+  Peptidoform pf = ProForma::parse("[+79.966331]?PEPTIDE");
+  TEST_EQUAL(ProForma::canCalculateMass(pf), true)
 
-  double mass = ProFormaParser::getMonoWeight(pf);
-  Peptidoform pf_base = ProFormaParser::parse("PEPTIDE");
-  double base_mass = ProFormaParser::getMonoWeight(pf_base);
+  double mass = ProForma::getMonoWeight(pf);
+  Peptidoform pf_base = ProForma::parse("PEPTIDE");
+  double base_mass = ProForma::getMonoWeight(pf_base);
 
   // Mass should include the unlocalised phospho
   TEST_REAL_SIMILAR(mass, base_mass + 79.966331)
 }
 END_SECTION
 
-START_SECTION(ProFormaParser::getMonoWeight - labile modification)
+START_SECTION(ProForma::getMonoWeight - labile modification)
 {
   // Labile modification: {Glycan:Hex}PEPTIDE
   // Using mass delta since Glycan may not resolve
-  Peptidoform pf = ProFormaParser::parse("{+162.0528}PEPTIDE");
-  TEST_EQUAL(ProFormaParser::canCalculateMass(pf), true)
+  Peptidoform pf = ProForma::parse("{+162.0528}PEPTIDE");
+  TEST_EQUAL(ProForma::canCalculateMass(pf), true)
 
-  double mass = ProFormaParser::getMonoWeight(pf);
-  Peptidoform pf_base = ProFormaParser::parse("PEPTIDE");
-  double base_mass = ProFormaParser::getMonoWeight(pf_base);
+  double mass = ProForma::getMonoWeight(pf);
+  Peptidoform pf_base = ProForma::parse("PEPTIDE");
+  double base_mass = ProForma::getMonoWeight(pf_base);
 
   // Labile mods are included in mass calculation
   TEST_REAL_SIMILAR(mass, base_mass + 162.0528)
 }
 END_SECTION
 
-START_SECTION(ProFormaParser::getMonoWeight - global modification)
+START_SECTION(ProForma::getMonoWeight - global modification)
 {
   // Global Carbamidomethyl on all C residues: <[+57.0215]@C>PEPTCIDECK
-  Peptidoform pf = ProFormaParser::parse("<[+57.0215]@C>PEPTCIDECK");
-  TEST_EQUAL(ProFormaParser::canCalculateMass(pf), true)
+  Peptidoform pf = ProForma::parse("<[+57.0215]@C>PEPTCIDECK");
+  TEST_EQUAL(ProForma::canCalculateMass(pf), true)
 
-  double mass = ProFormaParser::getMonoWeight(pf);
+  double mass = ProForma::getMonoWeight(pf);
 
   // Should be equivalent to explicit modifications on both C residues
-  Peptidoform pf_explicit = ProFormaParser::parse("PEPTC[+57.0215]IDEC[+57.0215]K");
-  TEST_REAL_SIMILAR(mass, ProFormaParser::getMonoWeight(pf_explicit))
+  Peptidoform pf_explicit = ProForma::parse("PEPTC[+57.0215]IDEC[+57.0215]K");
+  TEST_REAL_SIMILAR(mass, ProForma::getMonoWeight(pf_explicit))
 
   // Verify: base + 2 * carbamidomethyl
-  Peptidoform pf_base = ProFormaParser::parse("PEPTCIDECK");
-  double base_mass = ProFormaParser::getMonoWeight(pf_base);
+  Peptidoform pf_base = ProForma::parse("PEPTCIDECK");
+  double base_mass = ProForma::getMonoWeight(pf_base);
   TEST_REAL_SIMILAR(mass, base_mass + 2 * 57.0215)
 }
 END_SECTION
 
-START_SECTION(ProFormaParser::getMonoWeight - disulfide cross-link)
+START_SECTION(ProForma::getMonoWeight - disulfide cross-link)
 {
   // Disulfide bond: -2.01565 Da (loss of 2H)
   // Single chain with intramolecular disulfide
-  Peptidoform pf = ProFormaParser::parse("PEPTC[-2.01565#XL1]IDEC[#XL1]K");
-  TEST_EQUAL(ProFormaParser::canCalculateMass(pf), true)
+  Peptidoform pf = ProForma::parse("PEPTC[-2.01565#XL1]IDEC[#XL1]K");
+  TEST_EQUAL(ProForma::canCalculateMass(pf), true)
 
-  double mass = ProFormaParser::getMonoWeight(pf);
-  Peptidoform pf_base = ProFormaParser::parse("PEPTCIDECK");
-  double base_mass = ProFormaParser::getMonoWeight(pf_base);
+  double mass = ProForma::getMonoWeight(pf);
+  Peptidoform pf_base = ProForma::parse("PEPTCIDECK");
+  double base_mass = ProForma::getMonoWeight(pf_base);
 
   // Disulfide removes 2H, counted once
   TEST_REAL_SIMILAR(mass, base_mass - 2.01565)
 }
 END_SECTION
 
-START_SECTION(ProFormaParser::getMonoWeight - throws on chimeric)
+START_SECTION(ProForma::getMonoWeight - throws on chimeric)
 {
   // Chimeric spectra have ambiguous mass - must calculate per chain
-  PeptidoformIon ion = ProFormaParser::parseIon("PEPTIDE/2+EDITPEP/3");
+  PeptidoformIon ion = ProForma::parseIon("PEPTIDE/2+EDITPEP/3");
   TEST_EQUAL(ion.is_chimeric, true)
-  TEST_EXCEPTION(Exception::InvalidValue, ProFormaParser::getMonoWeight(ion))
+  TEST_EXCEPTION(Exception::InvalidValue, ProForma::getMonoWeight(ion))
 
   // Individual chains should work fine
-  TEST_EQUAL(ProFormaParser::canCalculateMass(ion.chains[0]), true)
-  TEST_EQUAL(ProFormaParser::canCalculateMass(ion.chains[1]), true)
-  double mass1 = ProFormaParser::getMonoWeight(ion.chains[0]);
-  double mass2 = ProFormaParser::getMonoWeight(ion.chains[1]);
+  TEST_EQUAL(ProForma::canCalculateMass(ion.chains[0]), true)
+  TEST_EQUAL(ProForma::canCalculateMass(ion.chains[1]), true)
+  double mass1 = ProForma::getMonoWeight(ion.chains[0]);
+  double mass2 = ProForma::getMonoWeight(ion.chains[1]);
   TEST_REAL_SIMILAR(mass1, 799.3599) // PEPTIDE
   TEST_REAL_SIMILAR(mass2, 799.3599) // EDITPEP (same residues)
 }
 END_SECTION
 
-START_SECTION(ProFormaParser::tryGetMonoWeight - basic usage)
+START_SECTION(ProForma::tryGetMonoWeight - basic usage)
 {
   // Simple case - should succeed
-  Peptidoform pf = ProFormaParser::parse("PEPTIDE");
-  auto mass = ProFormaParser::tryGetMonoWeight(pf);
+  Peptidoform pf = ProForma::parse("PEPTIDE");
+  auto mass = ProForma::tryGetMonoWeight(pf);
   TEST_EQUAL(mass.has_value(), true)
   TEST_REAL_SIMILAR(*mass, 799.3599)
 
   // Compare with throwing version
-  TEST_REAL_SIMILAR(*mass, ProFormaParser::getMonoWeight(pf))
+  TEST_REAL_SIMILAR(*mass, ProForma::getMonoWeight(pf))
 }
 END_SECTION
 
-START_SECTION(ProFormaParser::tryGetMonoWeight - with issues)
+START_SECTION(ProForma::tryGetMonoWeight - with issues)
 {
   // Valid peptide - no issues
-  Peptidoform pf = ProFormaParser::parse("PEM[UNIMOD:35]TIDE");
+  Peptidoform pf = ProForma::parse("PEM[UNIMOD:35]TIDE");
   std::vector<ConversionIssue> issues;
-  auto mass = ProFormaParser::tryGetMonoWeight(pf, issues);
+  auto mass = ProForma::tryGetMonoWeight(pf, issues);
 
   TEST_EQUAL(mass.has_value(), true)
   TEST_EQUAL(issues.empty(), true)
 
   // Invalid modification - should return nullopt and populate issues
-  Peptidoform pf_bad = ProFormaParser::parse("PEM[UnknownMod999]TIDE");
+  Peptidoform pf_bad = ProForma::parse("PEM[UnknownMod999]TIDE");
   issues.clear();
-  auto mass_bad = ProFormaParser::tryGetMonoWeight(pf_bad, issues);
+  auto mass_bad = ProForma::tryGetMonoWeight(pf_bad, issues);
 
   TEST_EQUAL(mass_bad.has_value(), false)
   TEST_EQUAL(issues.empty(), false)
@@ -2397,72 +2342,72 @@ START_SECTION(ProFormaParser::tryGetMonoWeight - with issues)
 }
 END_SECTION
 
-START_SECTION(ProFormaParser::tryGetMonoWeight - PeptidoformIon)
+START_SECTION(ProForma::tryGetMonoWeight - PeptidoformIon)
 {
   // Cross-linked peptides - should work
-  PeptidoformIon ion = ProFormaParser::parseIon("PEPTIDEK[+138.068#XL1]//SEQUENCEK[#XL1]");
-  auto mass = ProFormaParser::tryGetMonoWeight(ion);
+  PeptidoformIon ion = ProForma::parseIon("PEPTIDEK[+138.068#XL1]//SEQUENCEK[#XL1]");
+  auto mass = ProForma::tryGetMonoWeight(ion);
   TEST_EQUAL(mass.has_value(), true)
-  TEST_REAL_SIMILAR(*mass, ProFormaParser::getMonoWeight(ion))
+  TEST_REAL_SIMILAR(*mass, ProForma::getMonoWeight(ion))
 
   // Chimeric - should return nullopt
-  PeptidoformIon chimeric = ProFormaParser::parseIon("PEPTIDE/2+EDITPEP/3");
+  PeptidoformIon chimeric = ProForma::parseIon("PEPTIDE/2+EDITPEP/3");
   std::vector<ConversionIssue> issues;
-  auto mass_chimeric = ProFormaParser::tryGetMonoWeight(chimeric, issues);
+  auto mass_chimeric = ProForma::tryGetMonoWeight(chimeric, issues);
   TEST_EQUAL(mass_chimeric.has_value(), false)
   TEST_EQUAL(issues.empty(), false)
 }
 END_SECTION
 
-START_SECTION(ProFormaParser::tryGetMZ - basic usage)
+START_SECTION(ProForma::tryGetMZ - basic usage)
 {
   // Peptidoform with explicit charge
-  Peptidoform pf = ProFormaParser::parse("PEPTIDE");
-  auto mz = ProFormaParser::tryGetMZ(pf, 2);
+  Peptidoform pf = ProForma::parse("PEPTIDE");
+  auto mz = ProForma::tryGetMZ(pf, 2);
   TEST_EQUAL(mz.has_value(), true)
-  TEST_REAL_SIMILAR(*mz, ProFormaParser::getMZ(pf, 2))
+  TEST_REAL_SIMILAR(*mz, ProForma::getMZ(pf, 2))
 
   // Zero charge - should return nullopt
-  auto mz_zero = ProFormaParser::tryGetMZ(pf, 0);
+  auto mz_zero = ProForma::tryGetMZ(pf, 0);
   TEST_EQUAL(mz_zero.has_value(), false)
 
   // With issues output
   std::vector<ConversionIssue> issues;
-  auto mz_issues = ProFormaParser::tryGetMZ(pf, 0, issues);
+  auto mz_issues = ProForma::tryGetMZ(pf, 0, issues);
   TEST_EQUAL(mz_issues.has_value(), false)
   TEST_EQUAL(issues.empty(), false)
 }
 END_SECTION
 
-START_SECTION(ProFormaParser::tryGetMZ - PeptidoformIon)
+START_SECTION(ProForma::tryGetMZ - PeptidoformIon)
 {
   // PeptidoformIon with charge
-  PeptidoformIon ion = ProFormaParser::parseIon("PEPTIDE/2");
-  auto mz = ProFormaParser::tryGetMZ(ion);
+  PeptidoformIon ion = ProForma::parseIon("PEPTIDE/2");
+  auto mz = ProForma::tryGetMZ(ion);
   TEST_EQUAL(mz.has_value(), true)
-  TEST_REAL_SIMILAR(*mz, ProFormaParser::getMZ(ion))
+  TEST_REAL_SIMILAR(*mz, ProForma::getMZ(ion))
 
   // Without charge - should return nullopt
-  PeptidoformIon ion_no_charge = ProFormaParser::parseIon("PEPTIDE");
+  PeptidoformIon ion_no_charge = ProForma::parseIon("PEPTIDE");
   std::vector<ConversionIssue> issues;
-  auto mz_no_charge = ProFormaParser::tryGetMZ(ion_no_charge, issues);
+  auto mz_no_charge = ProForma::tryGetMZ(ion_no_charge, issues);
   TEST_EQUAL(mz_no_charge.has_value(), false)
   TEST_EQUAL(issues.empty(), false)
 }
 END_SECTION
 
-START_SECTION(ProFormaParser::tryGetMonoWeight - efficiency test)
+START_SECTION(ProForma::tryGetMonoWeight - efficiency test)
 {
   // Verify that tryGetMonoWeight does single-pass (doesn't throw, returns same result)
   // This is more of a usage pattern demonstration
-  Peptidoform pf = ProFormaParser::parse("PEM[UNIMOD:35]PTIDES[UNIMOD:21]K");
+  Peptidoform pf = ProForma::parse("PEM[UNIMOD:35]PTIDES[UNIMOD:21]K");
 
   // Efficient pattern: single call gets result or issues
   std::vector<ConversionIssue> issues;
-  if (auto mass = ProFormaParser::tryGetMonoWeight(pf, issues))
+  if (auto mass = ProForma::tryGetMonoWeight(pf, issues))
   {
     // Use the mass
-    TEST_REAL_SIMILAR(*mass, ProFormaParser::getMonoWeight(pf))
+    TEST_REAL_SIMILAR(*mass, ProForma::getMonoWeight(pf))
   }
   else
   {
@@ -2472,69 +2417,69 @@ START_SECTION(ProFormaParser::tryGetMonoWeight - efficiency test)
 }
 END_SECTION
 
-START_SECTION(ProFormaParser::canGenerateSpectrum - Peptidoform)
+START_SECTION(ProForma::canGenerateSpectrum - Peptidoform)
 {
   // Test canGenerateSpectrum for resolved peptide
-  Peptidoform pf = ProFormaParser::parse("PEPTIDE");
-  ProFormaParser::resolveModifications(pf);
-  TEST_EQUAL(ProFormaParser::canGenerateSpectrum(pf), true)
+  Peptidoform pf = ProForma::parse("PEPTIDE");
+  ProForma::resolveModifications(pf);
+  TEST_EQUAL(ProForma::canGenerateSpectrum(pf), true)
 
   // Unresolved modification should fail
-  Peptidoform pf_unresolved = ProFormaParser::parse("PEM[UnknownMod999]PTIDE");
-  TEST_EQUAL(ProFormaParser::canGenerateSpectrum(pf_unresolved), false)
+  Peptidoform pf_unresolved = ProForma::parse("PEM[UnknownMod999]PTIDE");
+  TEST_EQUAL(ProForma::canGenerateSpectrum(pf_unresolved), false)
 }
 END_SECTION
 
-START_SECTION(ProFormaParser::canGenerateSpectrum - PeptidoformIon)
+START_SECTION(ProForma::canGenerateSpectrum - PeptidoformIon)
 {
   // Single chain should work
-  PeptidoformIon pfi = ProFormaParser::parseIon("PEPTIDE/2");
-  ProFormaParser::resolveModifications(pfi.chains[0]);
-  TEST_EQUAL(ProFormaParser::canGenerateSpectrum(pfi), true)
+  PeptidoformIon pfi = ProForma::parseIon("PEPTIDE/2");
+  ProForma::resolveModifications(pfi.chains[0]);
+  TEST_EQUAL(ProForma::canGenerateSpectrum(pfi), true)
 
   // Cross-linked should work
-  PeptidoformIon pfi_xl = ProFormaParser::parseIon("PEPK[+138.068#XL1]IDE//ANOK[#XL1]THER");
-  ProFormaParser::resolveModifications(pfi_xl.chains[0]);
-  ProFormaParser::resolveModifications(pfi_xl.chains[1]);
-  TEST_EQUAL(ProFormaParser::canGenerateSpectrum(pfi_xl), true)
+  PeptidoformIon pfi_xl = ProForma::parseIon("PEPK[+138.068#XL1]IDE//ANOK[#XL1]THER");
+  ProForma::resolveModifications(pfi_xl.chains[0]);
+  ProForma::resolveModifications(pfi_xl.chains[1]);
+  TEST_EQUAL(ProForma::canGenerateSpectrum(pfi_xl), true)
 
   // Chimeric (no cross-link) should fail
-  PeptidoformIon pfi_chimeric = ProFormaParser::parseIon("PEPTIDE//ANOTHER");
-  TEST_EQUAL(ProFormaParser::canGenerateSpectrum(pfi_chimeric), false)
+  PeptidoformIon pfi_chimeric = ProForma::parseIon("PEPTIDE//ANOTHER");
+  TEST_EQUAL(ProForma::canGenerateSpectrum(pfi_chimeric), false)
 }
 END_SECTION
 
-START_SECTION(ProFormaParser::getSpectrumGenerationIssues - Peptidoform)
+START_SECTION(ProForma::getSpectrumGenerationIssues - Peptidoform)
 {
   // Resolved peptide should have no issues
-  Peptidoform pf = ProFormaParser::parse("PEPTIDE");
-  ProFormaParser::resolveModifications(pf);
-  auto issues = ProFormaParser::getSpectrumGenerationIssues(pf);
+  Peptidoform pf = ProForma::parse("PEPTIDE");
+  ProForma::resolveModifications(pf);
+  auto issues = ProForma::getSpectrumGenerationIssues(pf);
   TEST_EQUAL(issues.empty(), true)
 
   // Unresolved modification should have issues
-  Peptidoform pf_unresolved = ProFormaParser::parse("PEM[UnknownMod999]PTIDE");
-  auto issues_unresolved = ProFormaParser::getSpectrumGenerationIssues(pf_unresolved);
+  Peptidoform pf_unresolved = ProForma::parse("PEM[UnknownMod999]PTIDE");
+  auto issues_unresolved = ProForma::getSpectrumGenerationIssues(pf_unresolved);
   TEST_EQUAL(issues_unresolved.empty(), false)
 }
 END_SECTION
 
-START_SECTION(ProFormaParser::getSpectrumGenerationIssues - PeptidoformIon)
+START_SECTION(ProForma::getSpectrumGenerationIssues - PeptidoformIon)
 {
   // Chimeric should have issues
-  PeptidoformIon pfi_chimeric = ProFormaParser::parseIon("PEPTIDE//ANOTHER");
-  auto issues = ProFormaParser::getSpectrumGenerationIssues(pfi_chimeric);
+  PeptidoformIon pfi_chimeric = ProForma::parseIon("PEPTIDE//ANOTHER");
+  auto issues = ProForma::getSpectrumGenerationIssues(pfi_chimeric);
   TEST_EQUAL(issues.empty(), false)
 }
 END_SECTION
 
-START_SECTION(ProFormaParser::generateSpectrum - basic peptide)
+START_SECTION(ProForma::generateSpectrum - basic peptide)
 {
   // Test spectrum generation for a simple peptide
-  Peptidoform pf = ProFormaParser::parse("PEPTIDE");
-  ProFormaParser::resolveModifications(pf);
+  Peptidoform pf = ProForma::parse("PEPTIDE");
+  ProForma::resolveModifications(pf);
 
-  MSSpectrum spec = ProFormaParser::generateSpectrum(pf, 1, 1, "by", false, true);
+  MSSpectrum spec = ProForma::generateSpectrum(pf, 1, 1, "by", false, true);
   // Should have fragments
   TEST_EQUAL(spec.size() > 0, true)
   // Should have b and y ions at minimum
@@ -2542,71 +2487,71 @@ START_SECTION(ProFormaParser::generateSpectrum - basic peptide)
 }
 END_SECTION
 
-START_SECTION(ProFormaParser::generateSpectrum - with modifications)
+START_SECTION(ProForma::generateSpectrum - with modifications)
 {
   // Test spectrum generation for modified peptide
-  Peptidoform pf = ProFormaParser::parse("PEM[UNIMOD:35]PTIDE");
-  ProFormaParser::resolveModifications(pf);
+  Peptidoform pf = ProForma::parse("PEM[UNIMOD:35]PTIDE");
+  ProForma::resolveModifications(pf);
 
-  MSSpectrum spec = ProFormaParser::generateSpectrum(pf, 1, 2, "by", true, true);
+  MSSpectrum spec = ProForma::generateSpectrum(pf, 1, 2, "by", true, true);
   TEST_EQUAL(spec.size() > 0, true)
 }
 END_SECTION
 
-START_SECTION(ProFormaParser::generateSpectrum - ion types)
+START_SECTION(ProForma::generateSpectrum - ion types)
 {
   // Test different ion types
-  Peptidoform pf = ProFormaParser::parse("PEPTIDE");
-  ProFormaParser::resolveModifications(pf);
+  Peptidoform pf = ProForma::parse("PEPTIDE");
+  ProForma::resolveModifications(pf);
 
   // Default by ions
-  MSSpectrum spec_by = ProFormaParser::generateSpectrum(pf, 1, 1, "by", false, true);
+  MSSpectrum spec_by = ProForma::generateSpectrum(pf, 1, 1, "by", false, true);
   // With precursor
-  MSSpectrum spec_byM = ProFormaParser::generateSpectrum(pf, 1, 1, "byM", false, true);
+  MSSpectrum spec_byM = ProForma::generateSpectrum(pf, 1, 1, "byM", false, true);
   // Precursor adds peaks
   TEST_EQUAL(spec_byM.size() >= spec_by.size(), true)
 }
 END_SECTION
 
-START_SECTION(ProFormaParser::generateSpectrum - PeptidoformIon single chain)
+START_SECTION(ProForma::generateSpectrum - PeptidoformIon single chain)
 {
   // Test spectrum generation for PeptidoformIon with single chain
-  PeptidoformIon pfi = ProFormaParser::parseIon("PEPTIDE/2");
-  ProFormaParser::resolveModifications(pfi.chains[0]);
+  PeptidoformIon pfi = ProForma::parseIon("PEPTIDE/2");
+  ProForma::resolveModifications(pfi.chains[0]);
 
-  MSSpectrum spec = ProFormaParser::generateSpectrum(pfi, 1, 2, "by", false, true);
+  MSSpectrum spec = ProForma::generateSpectrum(pfi, 1, 2, "by", false, true);
   TEST_EQUAL(spec.size() > 0, true)
 }
 END_SECTION
 
-START_SECTION(ProFormaParser::generateSpectrum - cross-linked peptides)
+START_SECTION(ProForma::generateSpectrum - cross-linked peptides)
 {
   // Test spectrum generation for cross-linked peptides
   // DSS cross-linker at +138.068 Da
-  PeptidoformIon pfi = ProFormaParser::parseIon("PEPK[+138.068#XL1]IDE//ANOK[#XL1]THER");
-  ProFormaParser::resolveModifications(pfi.chains[0]);
-  ProFormaParser::resolveModifications(pfi.chains[1]);
+  PeptidoformIon pfi = ProForma::parseIon("PEPK[+138.068#XL1]IDE//ANOK[#XL1]THER");
+  ProForma::resolveModifications(pfi.chains[0]);
+  ProForma::resolveModifications(pfi.chains[1]);
 
-  MSSpectrum spec = ProFormaParser::generateSpectrum(pfi, 1, 2, "aby", false, true);
+  MSSpectrum spec = ProForma::generateSpectrum(pfi, 1, 2, "aby", false, true);
   // Should succeed for properly formed cross-link
   TEST_EQUAL(spec.size() > 0, true)
 }
 END_SECTION
 
-START_SECTION(ProFormaParser::generateSpectrum - fails for unsupported cases)
+START_SECTION(ProForma::generateSpectrum - fails for unsupported cases)
 {
   // Test that unresolved modifications cannot generate spectrum
   // (We use canGenerateSpectrum check rather than calling generateSpectrum
   // to avoid ModificationsDB error messages that fail the test framework)
-  Peptidoform pf = ProFormaParser::parse("PEM[UnknownMod999]PTIDE");
-  TEST_EQUAL(ProFormaParser::canGenerateSpectrum(pf), false)
-  auto issues = ProFormaParser::getSpectrumGenerationIssues(pf);
+  Peptidoform pf = ProForma::parse("PEM[UnknownMod999]PTIDE");
+  TEST_EQUAL(ProForma::canGenerateSpectrum(pf), false)
+  auto issues = ProForma::getSpectrumGenerationIssues(pf);
   TEST_EQUAL(issues.empty(), false)
 
   // Chimeric (multiple chains without cross-link) cannot generate spectrum
-  PeptidoformIon pfi = ProFormaParser::parseIon("PEPTIDE//ANOTHER");
-  TEST_EQUAL(ProFormaParser::canGenerateSpectrum(pfi), false)
-  auto issues2 = ProFormaParser::getSpectrumGenerationIssues(pfi);
+  PeptidoformIon pfi = ProForma::parseIon("PEPTIDE//ANOTHER");
+  TEST_EQUAL(ProForma::canGenerateSpectrum(pfi), false)
+  auto issues2 = ProForma::getSpectrumGenerationIssues(pfi);
   TEST_EQUAL(issues2.empty(), false)
 }
 END_SECTION

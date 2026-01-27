@@ -8,7 +8,7 @@
 
         Parse a ProForma string into a Peptidoform object.
 
-        This is a convenience method that wraps ProFormaParser.parse().
+        This is a convenience method that wraps ProForma.parse().
 
         Args:
             proforma_string: A ProForma notation string (e.g., "EM[UNIMOD:35]K")
@@ -24,11 +24,11 @@
             >>> str(pf)
             'EM[UNIMOD:35]K'
         """
-        return ProFormaParser.parse(proforma_string)
+        return ProForma.parse(proforma_string)
 
     def toString(self, mode=None):
         """
-        toString(self, mode: ProFormaWriteMode = None) -> str
+        toString(self, mode: WriteMode = None) -> str
 
         Convert this Peptidoform back to ProForma string notation.
 
@@ -42,12 +42,12 @@
             >>> pf = Peptidoform.fromString("EM[+15.99]K")
             >>> pf.toString()  # LOSSLESS - preserves original
             'EM[+15.99]K'
-            >>> pf.toString(ProFormaWriteMode.CANONICAL)  # normalized
+            >>> pf.toString(WriteMode.CANONICAL)  # normalized
             'EM[+15.9900]K'
         """
         if mode is None:
-            mode = ProFormaWriteMode.LOSSLESS
-        return ProFormaParser.toString(self, mode)
+            mode = ProForma.WriteMode.LOSSLESS
+        return ProForma.toString(self, mode)
 
     def getMonoWeight(self):
         """
@@ -66,7 +66,7 @@
             >>> pf.getMonoWeight()
             799.36...
         """
-        return ProFormaParser.getMonoWeight(self)
+        return ProForma.getMonoWeight(self)
 
     def canCalculateMass(self):
         """
@@ -82,7 +82,7 @@
             >>> pf.canCalculateMass()
             True
         """
-        return ProFormaParser.canCalculateMass(self)
+        return ProForma.canCalculateMass(self)
 
     def getMassCalculationIssues(self):
         """
@@ -93,7 +93,7 @@
         Returns:
             list: List of ConversionIssue objects describing problems
         """
-        return ProFormaParser.getMassCalculationIssues(self)
+        return ProForma.getMassCalculationIssues(self)
 
     def getMZ(self, int charge):
         """
@@ -107,11 +107,11 @@
         Returns:
             float: The m/z value
         """
-        return ProFormaParser.getMZCharge(self, charge)
+        return ProForma.getMZCharge(self, charge)
 
     def toAASequence(self, policy=None):
         """
-        toAASequence(self, policy: AASequenceConversionPolicy = None) -> AASequence
+        toAASequence(self, policy: ConversionPolicy = None) -> AASequence
 
         Convert this Peptidoform to an OpenMS AASequence.
 
@@ -132,8 +132,8 @@
             'EM(Oxidation)K'
         """
         if policy is None:
-            policy = AASequenceConversionPolicy.FAIL_ON_LOSS
-        return ProFormaParser.toAASequence(self, policy)
+            policy = ProForma.ConversionPolicy.FAIL_ON_LOSS
+        return ProForma.toAASequence(self, policy)
 
     def isRepresentableAsAASequence(self):
         """
@@ -144,7 +144,7 @@
         Returns:
             bool: True if conversion to AASequence is lossless
         """
-        return ProFormaParser.isRepresentableAsAASequence(self)
+        return ProForma.isRepresentableAsAASequence(self)
 
     def getAASequenceConversionIssues(self):
         """
@@ -155,7 +155,7 @@
         Returns:
             list: List of ConversionIssue objects
         """
-        return ProFormaParser.getAASequenceConversionIssues(self)
+        return ProForma.getAASequenceConversionIssues(self)
 
     def resolveModifications(self):
         """
@@ -165,7 +165,7 @@
 
         Modifies this object in place.
         """
-        ProFormaParser.resolveModifications(self)
+        ProForma.resolveModifications(self)
 
     def toJSON(self):
         """
@@ -176,7 +176,7 @@
         Returns:
             str: JSON string of the peptidoform AST
         """
-        return ProFormaParser.peptidoformToJSON(self)
+        return ProForma.peptidoformToJSON(self)
 
     @staticmethod
     def fromJSON(str json_str):
@@ -191,7 +191,7 @@
         Returns:
             Peptidoform: The deserialized peptidoform
         """
-        return ProFormaParser.peptidoformFromJSON(json_str)
+        return ProForma.peptidoformFromJSON(json_str)
 
     @staticmethod
     def fromAASequence(seq):
@@ -212,7 +212,7 @@
             >>> str(pf)
             'EM[UNIMOD:35]K'
         """
-        return ProFormaParser.fromAASequence(seq)
+        return ProForma.fromAASequence(seq)
 
     def canGenerateSpectrum(self):
         """
@@ -228,7 +228,7 @@
             >>> pf.canGenerateSpectrum()
             True
         """
-        return ProFormaParser.canGenerateSpectrum(self)
+        return ProForma.canGenerateSpectrum(self)
 
     def getSpectrumGenerationIssues(self):
         """
@@ -239,7 +239,7 @@
         Returns:
             list: List of ConversionIssue objects (empty if spectrum can be generated)
         """
-        return ProFormaParser.getSpectrumGenerationIssues(self)
+        return ProForma.getSpectrumGenerationIssues(self)
 
     def generateSpectrum(self, int min_charge=1, int max_charge=1, str ion_types="by", bool add_losses=False, bool add_metainfo=True):
         """
@@ -270,20 +270,20 @@
             ...     len(spec) > 0
             True
         """
-        return ProFormaParser.generateSpectrum(self, min_charge, max_charge, ion_types.encode('utf-8'), add_losses, add_metainfo)
+        return ProForma.generateSpectrum(self, min_charge, max_charge, ion_types.encode('utf-8'), add_losses, add_metainfo)
 
     def __str__(self):
         """
         Return the ProForma string representation (lossless mode).
         """
-        return self.toString(ProFormaWriteMode.LOSSLESS)
+        return self.toString(ProForma.WriteMode.LOSSLESS)
 
     def __repr__(self):
         """
         Return a detailed string representation for debugging.
         """
         try:
-            seq_str = self.toString(ProFormaWriteMode.LOSSLESS)
+            seq_str = self.toString(ProForma.WriteMode.LOSSLESS)
             if len(seq_str) > 50:
                 seq_str = seq_str[:47] + "..."
 

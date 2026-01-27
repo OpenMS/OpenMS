@@ -121,6 +121,7 @@ set(metadata_executables_list
   SpectrumLookup_test
   SpectrumMetaDataLookup_test
   SpectrumSettings_test
+  USI_test
   )
 
 set(system_executables_list
@@ -413,6 +414,7 @@ set(chemistry_executables_list
   ModificationDefinitionsSet_test
   ModificationsDB_test
   ModifiedNASequenceGenerator_test
+  MzPAF_test
   NASequence_test
   NucleicAcidSpectrumGenerator_test
   ProFormaParser_test

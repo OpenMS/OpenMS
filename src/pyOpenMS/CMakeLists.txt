@@ -320,7 +320,13 @@ QT_QMAKE_VERSION_INFO = '''${QT_QMAKE_VERSION_INFO}'''
       list(APPEND EXTRA_WARNINGS "-Wno-unused-member-function")
     endif()
   else()
-    set(EXTRA_WARNINGS "")
+    set(EXTRA_WARNINGS)
+    if(MSVC)
+      # Generated Cython C++ code can trigger "function call missing argument list" on MSVC.
+      list(APPEND EXTRA_WARNINGS "/wd4551")
+      # Generated Cython C++ code can exceed MSVC's default section limit for object files.
+      list(APPEND EXTRA_WARNINGS "/bigobj")
+    endif()
   endif()
 
   #------------------------------------------------------------------------------
