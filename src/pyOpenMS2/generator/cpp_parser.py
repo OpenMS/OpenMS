@@ -498,6 +498,100 @@ def merge_with_pxd(
     return merged
 
 
+def pxd_to_merged(pxd_classes: Dict[str, "ClassDecl"]) -> Dict[str, MergedClass]:
+    """
+    Convert .pxd class declarations to MergedClass format without C++ parsing.
+
+    This allows using NanobindEmitterV2 even without libclang, using type
+    information from the .pxd files directly.
+
+    Parameters
+    ----------
+    pxd_classes : dict
+        Classes declared in .pxd files (from PxdParser).
+
+    Returns
+    -------
+    dict
+        MergedClass objects suitable for NanobindEmitterV2.
+    """
+    merged = {}
+
+    for class_name, pxd_class in pxd_classes.items():
+        # Create a minimal CppClass from .pxd info
+        cpp_class = CppClass(
+            name=class_name,
+            qualified_name=f"{pxd_class.namespace}::{class_name}",
+            namespace=pxd_class.namespace,
+            header_file=pxd_class.header_file.strip("<>") if pxd_class.header_file else "",
+            base_classes=pxd_class.base_classes,
+            is_abstract=pxd_class.is_abstract,
+            is_template=bool(pxd_class.template_args),
+            template_params=pxd_class.template_args,
+            doc=pxd_class.doc,
+        )
+
+        # Convert methods
+        merged_methods = []
+        for m in pxd_class.methods:
+            # Create CppMethod from pxd Method
+            cpp_method = CppMethod(
+                name=m.name,
+                return_type=m.return_type,
+                parameters=[
+                    CppParameter(
+                        name=p.name,
+                        type_str=p.type_str,
+                        default_value=p.default_value,
+                    )
+                    for p in m.parameters
+                ],
+                is_const=m.is_const,
+                is_static=m.is_static,
+                is_constructor=m.is_constructor,
+                is_destructor=m.is_destructor,
+                access="public",
+            )
+            merged_methods.append(MergedMethod(
+                cpp_method=cpp_method,
+                wrap_as=m.wrap_as,
+                wrap_ignore=m.wrap_ignore,
+                doc=m.doc,
+            ))
+
+        # Convert constructors
+        constructors = []
+        for c in pxd_class.constructors:
+            cpp_ctor = CppMethod(
+                name=class_name,
+                return_type="",
+                parameters=[
+                    CppParameter(
+                        name=p.name,
+                        type_str=p.type_str,
+                        default_value=p.default_value,
+                    )
+                    for p in c.parameters
+                ],
+                is_constructor=True,
+                access="public",
+            )
+            constructors.append(cpp_ctor)
+
+        merged_class = MergedClass(
+            cpp_class=cpp_class,
+            methods=merged_methods,
+            constructors=constructors,
+            wrap_hash=bool(pxd_class.wrap_hash),
+            wrap_iter=pxd_class.wrap_iter,
+            wrap_manual_memory=pxd_class.wrap_manual_memory,
+            doc=pxd_class.doc,
+        )
+        merged[class_name] = merged_class
+
+    return merged
+
+
 # Example usage and testing
 if __name__ == "__main__":
     import sys
