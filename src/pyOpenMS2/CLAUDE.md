@@ -30,8 +30,9 @@ cd src/pyOpenMS2 && python -m generator --pxd-dir ../pyOpenMS/pxds --addons-dir 
 | Module | Purpose |
 |--------|---------|
 | `pxd_parser.py` | Parses .pxd files, extracts class/method declarations and wrap- directives |
+| `cpp_parser.py` | Uses libclang to parse C++ headers for accurate type information |
 | `type_registry.py` | Maps C++ types to Python types, tracks custom casters needed |
-| `nanobind_emitter.py` | Generates nanobind C++ binding code from parsed declarations |
+| `nanobind_emitter_v2.py` | Generates nanobind C++ binding code using libclang-merged info |
 | `addon_processor.py` | Classifies addons as pure Python vs C++ required |
 
 ## Type Casters

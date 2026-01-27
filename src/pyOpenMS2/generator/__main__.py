@@ -2,6 +2,7 @@
 pyOpenMS2 Generator - Command Line Interface
 
 This module provides the main entry point for the code generator.
+Uses libclang for accurate C++ type information.
 """
 
 from __future__ import annotations
@@ -16,8 +17,6 @@ from .pxd_parser import PxdParser
 from .nanobind_emitter_v2 import NanobindEmitterV2
 from .type_registry import TypeRegistry
 from .addon_processor import AddonProcessor
-from .cpp_parser import pxd_to_merged
-from .doxygen_parser import DoxygenXMLParser, merge_doxygen_with_pxd
 
 # Check if libclang is available
 try:
@@ -35,7 +34,7 @@ logger = logging.getLogger(__name__)
 def parse_args(args: Optional[List[str]] = None) -> argparse.Namespace:
     """Parse command line arguments."""
     parser = argparse.ArgumentParser(
-        description="Generate nanobind C++ bindings from pyOpenMS .pxd files",
+        description="Generate nanobind C++ bindings from pyOpenMS .pxd files using libclang",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
 
@@ -58,6 +57,14 @@ def parse_args(args: Optional[List[str]] = None) -> argparse.Namespace:
         type=Path,
         required=True,
         help="Output directory for generated C++ files",
+    )
+
+    parser.add_argument(
+        "--openms-include-dir",
+        type=Path,
+        nargs="+",
+        required=True,
+        help="OpenMS include directories for libclang parsing",
     )
 
     parser.add_argument(
@@ -87,19 +94,6 @@ def parse_args(args: Optional[List[str]] = None) -> argparse.Namespace:
     )
 
     parser.add_argument(
-        "--use-libclang",
-        action="store_true",
-        help="Use libclang to parse C++ headers for accurate type information",
-    )
-
-    parser.add_argument(
-        "--openms-include-dir",
-        type=Path,
-        nargs="+",
-        help="OpenMS include directories for libclang parsing",
-    )
-
-    parser.add_argument(
         "--libclang-cache-dir",
         type=Path,
         help="Directory to cache libclang parse results (speeds up subsequent runs)",
@@ -118,18 +112,6 @@ def parse_args(args: Optional[List[str]] = None) -> argparse.Namespace:
         help="Attempt to bind all classes (may have compile errors)",
     )
 
-    parser.add_argument(
-        "--use-doxygen",
-        action="store_true",
-        help="Use Doxygen XML for accurate C++ type information",
-    )
-
-    parser.add_argument(
-        "--doxygen-xml-dir",
-        type=Path,
-        help="Directory containing Doxygen XML output (required with --use-doxygen)",
-    )
-
     return parser.parse_args(args)
 
 
@@ -140,11 +122,20 @@ def main(args: Optional[List[str]] = None) -> int:
     if opts.verbose:
         logging.getLogger().setLevel(logging.DEBUG)
 
-    logger.info(f"pyOpenMS2 Generator")
+    logger.info("pyOpenMS2 Generator (libclang)")
     logger.info(f"  PXD directory: {opts.pxd_dir}")
     logger.info(f"  Addons directory: {opts.addons_dir}")
     logger.info(f"  Output directory: {opts.output_dir}")
+    logger.info(f"  Include directories: {opts.openms_include_dir}")
     logger.info(f"  Number of modules: {opts.num_modules}")
+    if opts.libclang_cache_dir:
+        logger.info(f"  Cache directory: {opts.libclang_cache_dir}")
+
+    # Check libclang availability
+    if not CLANG_AVAILABLE:
+        logger.error("libclang is not available")
+        logger.error("Install with: pip install clang==14.0")
+        return 1
 
     # Validate input directories
     if not opts.pxd_dir.exists():
@@ -186,10 +177,9 @@ def main(args: Optional[List[str]] = None) -> int:
             logger.warning(f"Failed to parse {pxd_file.name}: {e}")
             if opts.verbose:
                 import traceback
-
                 traceback.print_exc()
 
-    logger.info(f"Parsed {len(classes)} classes")
+    logger.info(f"Parsed {len(classes)} classes from .pxd files")
 
     # Process addon files
     logger.info("Processing addon files...")
@@ -210,7 +200,6 @@ def main(args: Optional[List[str]] = None) -> int:
             logger.warning(f"Failed to process addon {addon_file.name}: {e}")
             if opts.verbose:
                 import traceback
-
                 traceback.print_exc()
 
     logger.info(f"Processed {len(addons)} addon files")
@@ -219,84 +208,39 @@ def main(args: Optional[List[str]] = None) -> int:
         logger.info("Dry run - not generating output")
         return 0
 
-    # Check if Doxygen mode is requested
-    if opts.use_doxygen:
-        if not opts.doxygen_xml_dir:
-            logger.error("--doxygen-xml-dir required when using --use-doxygen")
-            return 1
+    # Parse C++ headers with libclang
+    logger.info("Parsing C++ headers with libclang...")
+    cpp_parser = CppHeaderParser(
+        include_paths=opts.openms_include_dir,
+        cache_dir=opts.libclang_cache_dir,
+    )
+    cpp_classes = {}
 
-        if not opts.doxygen_xml_dir.exists():
-            logger.error(f"Doxygen XML directory does not exist: {opts.doxygen_xml_dir}")
-            return 1
+    # Build mapping from class name to header file
+    for class_name, class_decl in classes.items():
+        if class_decl.header_file:
+            # Strip angle brackets from header path (e.g., "<OpenMS/KERNEL/Peak1D.h>")
+            header_rel = class_decl.header_file.strip("<>")
+            # Find the header file in include directories
+            for inc_dir in opts.openms_include_dir:
+                header_path = inc_dir / header_rel
+                if header_path.exists():
+                    logger.debug(f"Parsing header for {class_name}: {header_path}")
+                    try:
+                        parsed = cpp_parser.parse_header(header_path)
+                        cpp_classes.update(parsed)
+                    except Exception as e:
+                        logger.warning(f"Failed to parse {header_path}: {e}")
+                    break
 
-        logger.info("Using Doxygen XML for accurate C++ type information")
-        logger.info(f"  Doxygen XML directory: {opts.doxygen_xml_dir}")
+    logger.info(f"Parsed {len(cpp_classes)} C++ classes from headers")
 
-        # Parse Doxygen XML
-        logger.info("Parsing Doxygen XML files...")
-        doxy_parser = DoxygenXMLParser(opts.doxygen_xml_dir)
-        doxy_classes = doxy_parser.parse_all()
-        logger.info(f"Parsed {len(doxy_classes)} classes from Doxygen XML")
+    # Merge C++ info with .pxd allowlist
+    logger.info("Merging C++ and .pxd information...")
+    merged_classes = merge_with_pxd(cpp_classes, classes)
+    logger.info(f"Merged {len(merged_classes)} classes")
 
-        # Merge with .pxd allowlist
-        logger.info("Merging Doxygen info with .pxd allowlist...")
-        merged_classes = merge_doxygen_with_pxd(doxy_classes, classes)
-        logger.info(f"Merged {len(merged_classes)} classes")
-
-    # Check if libclang mode is requested
-    elif opts.use_libclang:
-        if not CLANG_AVAILABLE:
-            logger.error("--use-libclang requested but libclang is not available")
-            logger.error("Install with: pip install clang==14.0")
-            return 1
-
-        if not opts.openms_include_dir:
-            logger.error("--openms-include-dir required when using --use-libclang")
-            return 1
-
-        logger.info("Using libclang for accurate C++ type information")
-        logger.info(f"  Include directories: {opts.openms_include_dir}")
-        if opts.libclang_cache_dir:
-            logger.info(f"  Cache directory: {opts.libclang_cache_dir}")
-
-        # Parse C++ headers
-        logger.info("Parsing C++ headers with libclang...")
-        cpp_parser = CppHeaderParser(
-            include_paths=opts.openms_include_dir,
-            cache_dir=opts.libclang_cache_dir,
-        )
-        cpp_classes = {}
-
-        # Build mapping from class name to header file
-        for class_name, class_decl in classes.items():
-            if class_decl.header_file:
-                # Strip angle brackets from header path (e.g., "<OpenMS/KERNEL/Peak1D.h>")
-                header_rel = class_decl.header_file.strip("<>")
-                # Find the header file in include directories
-                for inc_dir in opts.openms_include_dir:
-                    header_path = inc_dir / header_rel
-                    if header_path.exists():
-                        logger.debug(f"Parsing header for {class_name}: {header_path}")
-                        try:
-                            parsed = cpp_parser.parse_header(header_path)
-                            cpp_classes.update(parsed)
-                        except Exception as e:
-                            logger.warning(f"Failed to parse {header_path}: {e}")
-                        break
-
-        logger.info(f"Parsed {len(cpp_classes)} C++ classes from headers")
-
-        # Merge C++ info with .pxd allowlist
-        logger.info("Merging C++ and .pxd information...")
-        merged_classes = merge_with_pxd(cpp_classes, classes)
-        logger.info(f"Merged {len(merged_classes)} classes")
-    else:
-        # Convert .pxd classes to MergedClass format for v2 emitter
-        logger.info("Converting .pxd classes to merged format...")
-        merged_classes = pxd_to_merged(classes)
-        logger.info(f"Converted {len(merged_classes)} classes")
-
-    # Generate with v2 emitter (always used now)
+    # Generate bindings
     core_only = opts.core_only and not opts.all_classes
     logger.info(f"Generating nanobind C++ bindings (core_only={core_only})...")
     emitter = NanobindEmitterV2(num_modules=opts.num_modules, core_only=core_only)
