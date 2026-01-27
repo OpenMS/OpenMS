@@ -28,17 +28,29 @@ SKIP_METHODS = {
         "getName",  # Returns const String& vs String in .pxd
         "getType",  # Complex return type
         "select",  # Complex parameter types
+        "getSourceFile",  # const/non-const overload
     },
     "MSChromatogram": {
         "getFloatDataArrays", "setFloatDataArrays",
         "getIntegerDataArrays", "setIntegerDataArrays",
         "getStringDataArrays", "setStringDataArrays",
+        "getSourceFile",  # const/non-const overload
+    },
+    "MSExperiment": {
+        "getSpectrum", "getSpectra",  # const/non-const overloads
+        "getChromatogram", "getChromatograms",  # const/non-const overloads
+        "getSourceFiles",  # const/non-const overloads
+        "setSourceFile",  # const/non-const overloads
     },
 }
 
 # Classes to skip due to incomplete type dependencies or other issues
 # These will need manual handling or fixes in the C++ headers
 SKIP_CLASSES = {
+    # Type caster conflict - have casters for these so can't bind as class
+    "String",               # Has type caster (OpenMS::String <-> str)
+    "DataValue",            # Has type caster (OpenMS::DataValue <-> Python types)
+
     # Incomplete type issues
     "MassExplainer",        # References Compomer which is forward-declared
     "ILPDCWrapper",         # Complex ILP dependencies
@@ -67,6 +79,56 @@ SKIP_CLASSES = {
     "MZTrafoModel",
     # Private inheritance issues (inherit from std::vector but not accessible)
     "AcquisitionInfo",
+
+    # Classes with complex constructors that reference unbound types
+    "TransformationModelBSpline",
+    "TransformationModelLinear",
+    "TransformationModelLowess",
+    "TransformationModelInterpolated",
+
+    # Classes with copy constructors that cause overload ambiguity
+    "CVMappings",
+    "ConsensusMapNormalizerAlgorithmMedian",
+    "ConsensusMapNormalizerAlgorithmQuantile",
+
+    # Classes where the type is actually a template alias (DPosition2 -> DPosition<2>)
+    "DPosition2",
+
+    # Classes with overloaded methods that can't be resolved without libclang
+    "Biosaur2Algorithm",  # setMSData has const ref and move versions
+    "ConsensusMap",       # push_back has multiple overloads
+    "Feature",            # getSubordinates has const/non-const overloads
+    "FeatureMap",         # push_back has multiple overloads
+    "FeatureFinderAlgorithmMetaboIdent",  # setMSData overloads
+    "FeatureFinderIdentificationAlgorithm",  # constructor parameter issues
+    "Instrument",         # getIonSources has const/non-const overloads
+    "ExperimentalDesign", # getters with overloads
+    "ExperimentalSettings",  # similar pattern
+    "CVMappingRule",      # copy constructor issues
+
+    # Classes with template parameters or complex constructors
+    "OpenSwathWorkflowSonar",
+    "OpenSwathWorkflow",
+    "MRMTransitionGroup",
+    "MRMTransitionGroupCP",
+    "LightMRMTransitionGroup",
+
+    # Classes with private copy constructors
+    "CVMappingFile",
+
+    # Classes with unresolved overloads
+    "KroenikFile",
+    "MascotGenericFile",
+    "MzTabFile",
+    "NLargest",
+    "RNaseDigestion",
+    "RankScaler",
+    "PeakGroup",
+    "Mobilogram",
+
+    # Classes with type alias issues
+    "OSW_ChromExtractParams",
+
     # TODO: Add wrap-static support in .pxd files and remove from SKIP_CLASSES
 }
 
@@ -91,6 +153,19 @@ CONTAINER_CLASSES = {
 ITERABLE_CLASSES = {
     "MSSpectrum", "MSChromatogram", "MSExperiment", "FeatureMap",
     "ConsensusMap", "PeakMap", "Mobilogram", "AASequence",
+}
+
+# Core classes to bind first - these are well-tested and have simple APIs
+# All other classes require more work on type normalization
+CORE_CLASSES = {
+    # Basic peak types
+    "Peak1D", "Peak2D", "ChromatogramPeak", "MobilityPeak1D",
+    # Spectrum and chromatogram
+    "MSSpectrum", "MSChromatogram",
+    # Basic data types (DataValue has type caster, excluded)
+    "DateTime",
+    # Basic algorithms (no complex parameters)
+    "Normalizer",
 }
 
 # Classes that inherit from std::vector (have size() method)
@@ -201,8 +276,9 @@ class NanobindEmitterV2:
     Uses accurate C++ type information from libclang.
     """
 
-    def __init__(self, num_modules: int = 8):
+    def __init__(self, num_modules: int = 8, core_only: bool = True):
         self.num_modules = num_modules
+        self.core_only = core_only  # Only bind CORE_CLASSES for now
 
         # Standard includes for all modules
         self._standard_includes = {
@@ -301,36 +377,50 @@ class NanobindEmitterV2:
         for merged_class in module_classes:
             class_name = merged_class.name
 
+            # Check if this class will actually be bound (avoid including unnecessary headers)
+            # In core_only mode, only CORE_CLASSES are bound
+            if self.core_only and class_name not in CORE_CLASSES:
+                continue
+
             # Skip problematic classes
             if class_name in SKIP_CLASSES:
                 continue
 
-            # Add OpenMS header - extract relative path from full path
-            header_file = merged_class.header_file
-            if header_file:
-                # Extract OpenMS-relative path (e.g., OpenMS/KERNEL/Peak1D.h)
-                # Look for the last occurrence of "OpenMS/" to handle paths like
-                # /path/to/OpenMS/src/openms/include/OpenMS/KERNEL/Peak1D.h
-                if "OpenMS/" in header_file:
-                    idx = header_file.rfind("/include/")
-                    if idx != -1:
-                        header = header_file[idx + len("/include/"):]
-                    else:
-                        idx = header_file.rfind("OpenMS/")
-                        header = header_file[idx:]
-                else:
-                    header = header_file
-                content.includes.add(f"<{header}>")
+            # Skip nested classes
+            qualified_name = merged_class.qualified_name
+            if "::" in qualified_name.replace("OpenMS::", "", 1):
+                continue
 
-            # Add additional includes for this class if needed
-            if class_name in ADDITIONAL_INCLUDES:
-                for inc in ADDITIONAL_INCLUDES[class_name]:
-                    content.includes.add(inc)
+            # Skip abstract classes
+            if merged_class.is_abstract:
+                continue
 
-            # Generate class binding
+            # Generate class binding first - only add headers if successful
             binding = self._generate_class_binding(merged_class)
             if binding:
                 content.class_bindings.append(binding)
+
+                # Add OpenMS header - extract relative path from full path
+                header_file = merged_class.header_file
+                if header_file:
+                    # Extract OpenMS-relative path (e.g., OpenMS/KERNEL/Peak1D.h)
+                    # Look for the last occurrence of "OpenMS/" to handle paths like
+                    # /path/to/OpenMS/src/openms/include/OpenMS/KERNEL/Peak1D.h
+                    if "OpenMS/" in header_file:
+                        idx = header_file.rfind("/include/")
+                        if idx != -1:
+                            header = header_file[idx + len("/include/"):]
+                        else:
+                            idx = header_file.rfind("OpenMS/")
+                            header = header_file[idx:]
+                    else:
+                        header = header_file
+                    content.includes.add(f"<{header}>")
+
+                # Add additional includes for this class if needed
+                if class_name in ADDITIONAL_INCLUDES:
+                    for inc in ADDITIONAL_INCLUDES[class_name]:
+                        content.includes.add(inc)
 
         return content
 
@@ -340,6 +430,10 @@ class NanobindEmitterV2:
 
         class_name = merged_class.name
         qualified_name = merged_class.qualified_name
+
+        # In core_only mode, only bind CORE_CLASSES
+        if self.core_only and class_name not in CORE_CLASSES:
+            return None
 
         # Skip problematic classes
         if class_name in SKIP_CLASSES:
@@ -547,17 +641,16 @@ class NanobindEmitterV2:
         method_name: str,
         merged_class: MergedClass,
     ) -> Optional[str]:
-        """Generate binding for a regular method."""
+        """Generate binding for a regular method using lambda wrapper.
+
+        We use lambdas for all methods because:
+        1. We can't reliably detect C++ overloads without libclang
+        2. Lambdas let us explicitly call the method with correct signature
+        3. This avoids all overload resolution issues
+        """
         method = merged_method.cpp_method
 
-        # Build parameter types
-        param_types = [self._normalize_type(p.type_str) for p in method.parameters]
-        params_str = ", ".join(param_types)
-
-        # Get return type
-        return_type = self._normalize_type(method.return_type) if method.return_type else "void"
-
-        # Check if method is overloaded
+        # Check if method is overloaded by parameter count/types
         overloads = [m for m in merged_class.methods if m.cpp_method.name == method.name]
         is_overloaded = len(overloads) > 1
 
@@ -576,32 +669,59 @@ class NanobindEmitterV2:
                     if not method.is_const:
                         return None
 
-        # Build method pointer with cast if needed
-        # For const methods, use static_cast because nanobind's overload_cast
-        # doesn't work the same as pybind11 for const methods
-        if method.is_const:
-            # Use static_cast for const methods
-            const_str = " const" if method.is_const else ""
-            method_ptr = f"static_cast<{return_type} ({qualified_name}::*)({params_str}){const_str}>(&{qualified_name}::{method.name})"
-        elif is_overloaded:
-            # Use overload_cast for non-const overloaded methods
-            method_ptr = f"nb::overload_cast<{params_str}>(&{qualified_name}::{method.name})"
-        else:
-            method_ptr = f"&{qualified_name}::{method.name}"
+        # Build lambda parameters
+        param_decls = []
+        param_names_call = []
+        param_names_arg = []
 
-        # Build argument names
-        param_names = []
+        # C++ reserved keywords that can't be used as parameter names
+        cpp_keywords = {
+            'int', 'char', 'float', 'double', 'void', 'bool', 'long', 'short',
+            'unsigned', 'signed', 'const', 'static', 'class', 'struct', 'enum',
+            'union', 'virtual', 'public', 'private', 'protected', 'new', 'delete',
+            'return', 'if', 'else', 'for', 'while', 'do', 'switch', 'case',
+            'break', 'continue', 'default', 'goto', 'try', 'catch', 'throw',
+            'namespace', 'using', 'typedef', 'typename', 'template', 'auto',
+            'register', 'extern', 'volatile', 'mutable', 'inline', 'explicit',
+            'export', 'true', 'false', 'nullptr', 'this', 'operator', 'sizeof',
+            'alignof', 'decltype', 'constexpr', 'noexcept', 'override', 'final',
+        }
+
         for p in method.parameters:
-            name = p.name if p.name and not p.name.startswith("arg") else ""
-            if name:
-                param_names.append(f'"{name}"_a')
+            ptype = self._normalize_type(p.type_str)
+            # Check if name is valid (not empty, not "arg*", not a C++ keyword)
+            valid_name = (
+                p.name
+                and not p.name.startswith("arg")
+                and p.name not in cpp_keywords
+            )
+            pname = p.name if valid_name else f"p{len(param_decls)}"
+            param_decls.append(f"{ptype} {pname}")
+            param_names_call.append(pname)
+            if valid_name:
+                param_names_arg.append(f'"{p.name}"_a')
+
+        params_decl = ", ".join(param_decls)
+        params_call = ", ".join(param_names_call)
+
+        # Determine const qualifier for lambda capture
+        if method.is_const:
+            self_decl = f"const {qualified_name}& self"
+        else:
+            self_decl = f"{qualified_name}& self"
+
+        # Build the lambda
+        if params_decl:
+            lambda_sig = f"[]({self_decl}, {params_decl})"
+            call_expr = f"self.{method.name}({params_call})"
+        else:
+            lambda_sig = f"[]({self_decl})"
+            call_expr = f"self.{method.name}()"
 
         # Build def call
-        args_str = ", ".join(param_names) if param_names else ""
-
-        result = f'.def("{method_name}", {method_ptr}'
-        if args_str:
-            result += f", {args_str}"
+        result = f'.def("{method_name}", {lambda_sig} {{ return {call_expr}; }}'
+        if param_names_arg:
+            result += f", {', '.join(param_names_arg)}"
         if merged_method.doc:
             doc = self._escape_string(merged_method.doc)
             result += f', "{doc}"'
@@ -638,8 +758,16 @@ class NanobindEmitterV2:
 
         return ""
 
-    def _normalize_type(self, type_str: str) -> str:
-        """Normalize C++ type string for use in bindings."""
+    def _normalize_type(self, type_str: str, preserve_reference: bool = False) -> str:
+        """Normalize C++ type string for use in bindings.
+
+        Parameters
+        ----------
+        type_str : str
+            The type string to normalize
+        preserve_reference : bool
+            If True, preserve reference qualifiers for return types in static_cast
+        """
         if not type_str:
             return "void"
 
@@ -668,6 +796,107 @@ class NanobindEmitterV2:
             'FloatDataArrays': 'OpenMS::MSSpectrum::FloatDataArrays',
             'IntegerDataArrays': 'OpenMS::MSSpectrum::IntegerDataArrays',
             'StringDataArrays': 'OpenMS::MSSpectrum::StringDataArrays',
+            'Param': 'OpenMS::Param',
+            'DataValue': 'OpenMS::DataValue',
+            'ParamValue': 'OpenMS::ParamValue',
+            'DateTime': 'OpenMS::DateTime',
+            'CVTerm': 'OpenMS::CVTerm',
+            'AASequence': 'OpenMS::AASequence',
+            'EmpiricalFormula': 'OpenMS::EmpiricalFormula',
+            'ProteinIdentification': 'OpenMS::ProteinIdentification',
+            'PeptideIdentification': 'OpenMS::PeptideIdentification',
+            'PeptideHit': 'OpenMS::PeptideHit',
+            'ProteinHit': 'OpenMS::ProteinHit',
+            'FeatureHandle': 'OpenMS::FeatureHandle',
+            'Precursor': 'OpenMS::Precursor',
+            'Product': 'OpenMS::Product',
+            'SourceFile': 'OpenMS::SourceFile',
+            'ContactPerson': 'OpenMS::ContactPerson',
+            'Sample': 'OpenMS::Sample',
+            'Software': 'OpenMS::Software',
+            'Instrument': 'OpenMS::Instrument',
+            'IonSource': 'OpenMS::IonSource',
+            'MassAnalyzer': 'OpenMS::MassAnalyzer',
+            'IonDetector': 'OpenMS::IonDetector',
+            'HPLC': 'OpenMS::HPLC',
+            'Gradient': 'OpenMS::Gradient',
+            'Digestion': 'OpenMS::Digestion',
+            'Modification': 'OpenMS::Modification',
+            'Tagging': 'OpenMS::Tagging',
+            'Element': 'OpenMS::Element',
+            'Residue': 'OpenMS::Residue',
+            'ModificationsDB': 'OpenMS::ModificationsDB',
+            'ResidueDB': 'OpenMS::ResidueDB',
+            'ElementDB': 'OpenMS::ElementDB',
+            'EnzymeDB': 'OpenMS::EnzymeDB',
+            'DigestionEnzyme': 'OpenMS::DigestionEnzyme',
+            'DigestionEnzymeProtein': 'OpenMS::DigestionEnzymeProtein',
+            'DigestionEnzymeRNA': 'OpenMS::DigestionEnzymeRNA',
+            'ResidueModification': 'OpenMS::ResidueModification',
+            'ModificationDefinition': 'OpenMS::ModificationDefinition',
+            'ModificationDefinitionsSet': 'OpenMS::ModificationDefinitionsSet',
+            'ModifiedPeptideGenerator': 'OpenMS::ModifiedPeptideGenerator',
+            'ProteaseDigestion': 'OpenMS::ProteaseDigestion',
+            'RNaseDigestion': 'OpenMS::RNaseDigestion',
+            'TheoreticalSpectrumGenerator': 'OpenMS::TheoreticalSpectrumGenerator',
+            'PeakPickerHiRes': 'OpenMS::PeakPickerHiRes',
+            'Normalizer': 'OpenMS::Normalizer',
+            'SpectrumLookup': 'OpenMS::SpectrumLookup',
+            'MRMMapping': 'OpenMS::MRMMapping',
+            'MRMFeatureFinderScoring': 'OpenMS::MRMFeatureFinderScoring',
+            'MRMTransitionGroupPicker': 'OpenMS::MRMTransitionGroupPicker',
+            'TransitionTSVFile': 'OpenMS::TransitionTSVFile',
+            'TransitionPQPFile': 'OpenMS::TransitionPQPFile',
+            'TargetedExperiment': 'OpenMS::TargetedExperiment',
+            'LightTargetedExperiment': 'OpenMS::LightTargetedExperiment',
+            'ReactionMonitoringTransition': 'OpenMS::ReactionMonitoringTransition',
+            'IncludeExcludeTarget': 'OpenMS::IncludeExcludeTarget',
+            'TargetedExperimentHelper': 'OpenMS::TargetedExperimentHelper',
+            'SwathMap': 'OpenMS::SwathMap',
+            'OpenSwathScoring': 'OpenMS::OpenSwathScoring',
+            'ChromatogramExtractor': 'OpenMS::ChromatogramExtractor',
+            'MzMLFile': 'OpenMS::MzMLFile',
+            'MzXMLFile': 'OpenMS::MzXMLFile',
+            'MzDataFile': 'OpenMS::MzDataFile',
+            'FeatureXMLFile': 'OpenMS::FeatureXMLFile',
+            'ConsensusXMLFile': 'OpenMS::ConsensusXMLFile',
+            'IdXMLFile': 'OpenMS::IdXMLFile',
+            'PepXMLFile': 'OpenMS::PepXMLFile',
+            'ProtXMLFile': 'OpenMS::ProtXMLFile',
+            'MascotXMLFile': 'OpenMS::MascotXMLFile',
+            'FASTAFile': 'OpenMS::FASTAFile',
+            'FASTAEntry': 'OpenMS::FASTAFile::FASTAEntry',
+            # Constructor parameter types
+            'CVMappingFile': 'OpenMS::CVMappingFile',
+            'FeatureFinderIdentificationAlgorithm': 'OpenMS::FeatureFinderIdentificationAlgorithm',
+            'FeatureFinderAlgorithmMetaboIdent': 'OpenMS::FeatureFinderAlgorithmMetaboIdent',
+            'ConsensusMapNormalizerAlgorithmMedian': 'OpenMS::ConsensusMapNormalizerAlgorithmMedian',
+            'ConsensusMapNormalizerAlgorithmQuantile': 'OpenMS::ConsensusMapNormalizerAlgorithmQuantile',
+            'IonSource': 'OpenMS::IonSource',
+            'MassAnalyzer': 'OpenMS::MassAnalyzer',
+            'IonDetector': 'OpenMS::IonDetector',
+            'ControlledVocabulary': 'OpenMS::ControlledVocabulary',
+            'CVMappingRule': 'OpenMS::CVMappingRule',
+            'CVMappings': 'OpenMS::CVMappings',
+            'ConsensusFeature': 'OpenMS::ConsensusFeature',
+            'Peak1D': 'OpenMS::Peak1D',
+            'Peak2D': 'OpenMS::Peak2D',
+            'ChromatogramPeak': 'OpenMS::ChromatogramPeak',
+            'MobilityPeak1D': 'OpenMS::MobilityPeak1D',
+            'MSSpectrum': 'OpenMS::MSSpectrum',
+            'MSChromatogram': 'OpenMS::MSChromatogram',
+            'MSExperiment': 'OpenMS::MSExperiment',
+            'PeakMap': 'OpenMS::PeakMap',
+            # More constructor types
+            'SpectrumAccessOpenMS': 'OpenMS::SpectrumAccessOpenMS',
+            'SpectrumAccessOpenMSCached': 'OpenMS::SpectrumAccessOpenMSCached',
+            'MapAlignmentEvaluationAlgorithmRecall': 'OpenMS::MapAlignmentEvaluationAlgorithmRecall',
+            'UInt64': 'OpenMS::UInt64',
+            'LightTransition': 'OpenSwath::LightTransition',
+            'LightCompound': 'OpenSwath::LightCompound',
+            'LightProtein': 'OpenSwath::LightProtein',
+            'LightPeptide': 'OpenSwath::LightPeptide',
+            'ChromExtractParams': 'OpenMS::ChromExtractParams',
         }
 
         # OpenMS classes that need namespace (only add if not already namespaced)
@@ -699,10 +928,28 @@ class NanobindEmitterV2:
             'DriftTimeUnit': 'OpenMS::DriftTimeUnit',
             'PeakType': 'OpenMS::Peak1D::PeakType',
             'DataType': 'OpenMS::DataValue::DataType',
+            'Polarity': 'OpenMS::IonSource::Polarity',
+            'InletType': 'OpenMS::IonSource::InletType',
+            'IonizationMethod': 'OpenMS::IonSource::IonizationMethod',
+            'AnalyzerType': 'OpenMS::MassAnalyzer::AnalyzerType',
+            'ResolutionMethod': 'OpenMS::MassAnalyzer::ResolutionMethod',
+            'ResolutionType': 'OpenMS::MassAnalyzer::ResolutionType',
+            'ScanDirection': 'OpenMS::MassAnalyzer::ScanDirection',
+            'ScanLaw': 'OpenMS::MassAnalyzer::ScanLaw',
+            'ReflectronState': 'OpenMS::MassAnalyzer::ReflectronState',
+            'Type': 'OpenMS::IonDetector::Type',
+            'AcquisitionMode': 'OpenMS::IonDetector::AcquisitionMode',
+            'DecoyType': 'OpenMS::TargetedExperimentHelper::RetentionTime::RTType',
+            'TermSpecificity': 'OpenMS::ResidueModification::TermSpecificity',
         }
         for enum_type, qualified in enum_types.items():
             pattern = r'\b(?<!OpenMS::)(?<!::)' + enum_type + r'\b'
             result = re.sub(pattern, qualified, result)
+
+        # Strip reference qualifiers unless we're preserving them for static_cast
+        if not preserve_reference:
+            result = result.replace("const ", "").replace(" const", "")
+            result = result.replace("&", "").strip()
 
         return result
 
@@ -713,7 +960,7 @@ class NanobindEmitterV2:
     def _write_module_file(
         self, output_path: Path, module_num: int, content: ModuleContent
     ) -> None:
-        """Write a module C++ file."""
+        """Write a module C++ file as a standalone NB_MODULE."""
         lines = []
 
         # Header comment
@@ -731,8 +978,10 @@ class NanobindEmitterV2:
         lines.append("using namespace nb::literals;")
         lines.append("")
 
-        # Module function
-        lines.append(f"void register_module_{module_num}(nb::module_& m) {{")
+        # Standalone NB_MODULE for this sub-module
+        lines.append(f'NB_MODULE(_pyopenms2_{module_num}, m) {{')
+        lines.append(f'    m.doc() = "pyOpenMS2 module {module_num}";')
+        lines.append("")
 
         # Class bindings
         for binding in content.class_bindings:
@@ -749,31 +998,26 @@ class NanobindEmitterV2:
         output_path.write_text("\n".join(lines))
 
     def _write_main_module(self, output_path: Path, num_modules: int) -> None:
-        """Write the main module file."""
+        """Write the main module file.
+
+        Note: With standalone NB_MODULE per sub-module, this main module is
+        optional. It's kept for backward compatibility but just creates an
+        empty module - the actual classes are in _pyopenms2_N modules.
+        """
         lines = []
 
         lines.append("// Auto-generated by pyOpenMS2 generator (v2 - libclang)")
-        lines.append("// Main module")
+        lines.append("// Main module - placeholder, actual bindings in _pyopenms2_N modules")
         lines.append("")
         lines.append("#include <nanobind/nanobind.h>")
         lines.append("")
         lines.append("namespace nb = nanobind;")
         lines.append("")
 
-        # Declare registration functions
-        for i in range(1, num_modules + 1):
-            lines.append(f"void register_module_{i}(nb::module_& m);")
-        lines.append("")
-
-        # Main module definition
+        # Main module definition - empty, just for compatibility
         lines.append('NB_MODULE(_pyopenms2, m) {')
-        lines.append('    m.doc() = "pyOpenMS2: Python bindings for OpenMS (nanobind)";')
-        lines.append("")
-
-        # Call all registration functions
-        for i in range(1, num_modules + 1):
-            lines.append(f"    register_module_{i}(m);")
-
+        lines.append('    m.doc() = "pyOpenMS2: Python bindings for OpenMS (nanobind)\\n"')
+        lines.append('             "Note: Import pyopenms instead for all classes.";')
         lines.append("}")
 
         output_path.write_text("\n".join(lines))
