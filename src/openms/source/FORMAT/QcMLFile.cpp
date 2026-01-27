@@ -1289,7 +1289,8 @@ namespace OpenMS
         qp.id = base_name + "_ticslump"; ///< Identifier
         qp.cvRef = "QC"; ///< cv reference
         qp.cvAcc = "QC:0000023";
-        qp.value = String(exp.size() > 0 ? (100 / exp.size()) * below_10k : 0);
+        const Size n_tic_points = at.tableRows.size();
+        qp.value = String(n_tic_points > 0 ? (100 * below_10k) / n_tic_points : 0);
         try
         {
           const ControlledVocabulary::CVTerm& term = cv.getTerm(qp.cvAcc);
@@ -1363,7 +1364,8 @@ namespace OpenMS
       qp.id = base_name + "_ricslump"; ///< Identifier
       qp.cvRef = "QC"; ///< cv reference
       qp.cvAcc = "QC:0000057";
-      qp.value = String(exp.size() > 0 ? (100 / exp.size()) * below_10k : 0);
+      const Size n_ms1_spectra = at.tableRows.size();
+      qp.value = String(n_ms1_spectra > 0 ? (100 * below_10k) / n_ms1_spectra : 0);
       try
       {
         const ControlledVocabulary::CVTerm& term = cv.getTerm(qp.cvAcc);
@@ -1896,19 +1898,21 @@ namespace OpenMS
         while (fiter < feature_map.size())
         {
           FeatureMap map_tmp;
-          for (UInt k = fiter; k < feature_map.size(); ++k)
+          const double rt_ref = feature_map[fiter].getRT();
+          UInt k = fiter;
+          for (; k < feature_map.size(); ++k)
           {
-            if (abs(feature_map[fiter].getRT() - feature_map[k].getRT()) < 0.1)
+            if (abs(rt_ref - feature_map[k].getRT()) < 0.1)
             {
               //~ cout << fiter << endl;
               map_tmp.push_back(feature_map[k]);
             }
             else
             {
-              fiter = k;
               break;
             }
           }
+          fiter = k;
           map_tmp.sortByMZ();
           UInt retif = 1;
           map_out.push_back(map_tmp[0]);
@@ -1921,6 +1925,15 @@ namespace OpenMS
             }
             retif++;
           }
+        }
+        for (const auto& feature : map_out)
+        {
+          std::vector<String> row;
+          row.emplace_back(feature.getMZ());
+          row.emplace_back(feature.getRT());
+          row.emplace_back(feature.getIntensity());
+          row.emplace_back(feature.getCharge());
+          at.tableRows.push_back(row);
         }
         addRunAttachment(base_name, at);
       }
