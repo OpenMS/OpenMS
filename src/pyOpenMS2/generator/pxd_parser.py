@@ -481,8 +481,9 @@ class PxdParser:
 
         # Regular method
         # Pattern: return_type method_name(params) except + nogil
+        # Return type can be multi-word like "unsigned int", "const char*", etc.
         method_match = re.match(
-            r"(\S+(?:\[.+\])?(?:\s*\*)?)\s+(\w+)\s*\(([^)]*)\)\s*(except\s*\+)?\s*(nogil)?",
+            r"(.+?)\s+(\w+)\s*\(([^)]*)\)\s*(except\s*\+)?\s*(nogil)?",
             clean_line
         )
         if method_match:
@@ -560,12 +561,28 @@ class PxdParser:
             # Parse type and name
             # Pattern: type name or type[template] name
             # Handle reference (&) and pointer (*) that may be space-separated
+            # Handle multi-word types like "unsigned int", "long long", etc.
+
+            # Multi-word type prefixes that should not be treated as names
+            type_prefixes = {
+                'unsigned', 'signed', 'const', 'long', 'short', 'static',
+                'volatile', 'mutable', 'constexpr'
+            }
+
             parts = param.rsplit(None, 1)
             if len(parts) == 2:
                 type_str = parts[0]
                 name = parts[1]
                 # If name is just & or *, it's part of the type
                 if name in ("&", "*"):
+                    type_str = param  # Use whole thing as type
+                    name = f"arg{len(result)}"
+                # If type_str is a type prefix, the whole thing is a type without name
+                elif type_str in type_prefixes:
+                    type_str = param  # Use whole thing as type (e.g., "unsigned int")
+                    name = f"arg{len(result)}"
+                # If name looks like a type modifier (int, long, etc.), it's part of the type
+                elif name in ("int", "long", "short", "char", "double", "float"):
                     type_str = param  # Use whole thing as type
                     name = f"arg{len(result)}"
                 # If type_str is 'const', the whole thing is a type (const Type&)
