@@ -14,7 +14,7 @@
 
 namespace OpenMS
 {
-  class DIAChromHandler : public IChromatogramHandler
+  class OPENMS_DLLAPI DIAChromHandler : public IChromatogramHandler
   {
   public:
     DIAChromHandler() = default;

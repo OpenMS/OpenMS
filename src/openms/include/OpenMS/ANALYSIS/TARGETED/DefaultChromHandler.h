@@ -16,7 +16,7 @@
 namespace OpenMS
 {
   /// Default handler that delegates to SRM or DIA handler depending on input
-  class DefaultChromHandler : public IChromatogramHandler
+  class OPENMS_DLLAPI DefaultChromHandler : public IChromatogramHandler
   {
   public:
     DefaultChromHandler();
