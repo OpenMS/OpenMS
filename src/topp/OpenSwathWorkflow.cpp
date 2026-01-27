@@ -872,14 +872,6 @@ protected:
     Param feature_finder_param = getParam_().copy("Scoring:", true);
     feature_finder_param.setValue("use_ms1_ion_mobility", getStringOption_("use_ms1_ion_mobility"));
 
-  // Propagate mz-extraction tolerances into the feature-finder params so
-  // MRMFeatureFinderScoring can use them for mapping (SRM fallback matching).
-  feature_finder_param.setValue("mz_extraction_window", cp.mz_extraction_window);
-  feature_finder_param.setValue("mz_extraction_window_unit", cp.ppm ? "ppm" : "Th");
-  feature_finder_param.setValue("irt_mz_extraction_window", cp_irt.mz_extraction_window);
-  feature_finder_param.setValue("irt_mz_extraction_window_unit", cp_irt.ppm ? "ppm" : "Th");
-  feature_finder_param.setValue("mz_extraction_window_ms1", cp_ms1.mz_extraction_window);
-  feature_finder_param.setValue("mz_extraction_window_ms1_unit", cp_ms1.ppm ? "ppm" : "Th");
 
     Param tsv_reader_param = getParam_().copy("Library:", true);
     if (use_emg_score)
