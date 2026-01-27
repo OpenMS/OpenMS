@@ -35,7 +35,7 @@ namespace OpenMS
   provider can remain a lightweight adapter while keeping implementation
   details private to the translation unit.
 */
-class SRMChromHandler : public IChromatogramHandler
+class OPENMS_DLLAPI SRMChromHandler : public IChromatogramHandler
 {
 public:
   SRMChromHandler();
