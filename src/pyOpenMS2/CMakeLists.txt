@@ -27,10 +27,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # --------------------------------------------------------------------------
 option(PYOPENMS2_BUILD_TESTS "Build pyOpenMS2 tests" ON)
 option(PYOPENMS2_GENERATE_STUBS "Generate .pyi stub files" ON)
-option(PYOPENMS2_USE_LIBCLANG "Use libclang for accurate C++ type parsing (requires clang Python bindings)" OFF)
-option(PYOPENMS2_USE_DOXYGEN "Use Doxygen XML for accurate C++ type information" OFF)
 set(PY_NUM_MODULES "8" CACHE STRING "Number of modules to split bindings into")
-set(PYOPENMS2_DOXYGEN_XML_DIR "" CACHE PATH "Directory containing Doxygen XML output (required with PYOPENMS2_USE_DOXYGEN)")
 
 # --------------------------------------------------------------------------
 # Find dependencies
@@ -83,36 +80,19 @@ foreach(i RANGE 1 ${PY_NUM_MODULES})
 endforeach()
 list(APPEND PYOPENMS2_GENERATED_SOURCES "${PYOPENMS2_BINDINGS_DIR}/main_module.cpp")
 
-# Build generator arguments based on options
+# Get OpenMS include directories for libclang parsing
+get_target_property(OPENMS_INC_DIRS ${OPENMS_TARGET} INTERFACE_INCLUDE_DIRECTORIES)
+
+# Build generator arguments (libclang is always used)
 set(GENERATOR_ARGS
     --pxd-dir "${PYOPENMS_PXD_DIR}"
     --addons-dir "${PYOPENMS_ADDONS_DIR}"
     --output-dir "${PYOPENMS2_BINDINGS_DIR}"
     --num-modules ${PY_NUM_MODULES}
+    --openms-include-dir ${OPENMS_INC_DIRS}
+    --libclang-cache-dir "${CMAKE_CURRENT_BINARY_DIR}/libclang_cache"
 )
-
-if(PYOPENMS2_USE_DOXYGEN)
-    if(NOT PYOPENMS2_DOXYGEN_XML_DIR)
-        message(FATAL_ERROR "PYOPENMS2_DOXYGEN_XML_DIR must be set when PYOPENMS2_USE_DOXYGEN is ON")
-    endif()
-    if(NOT EXISTS "${PYOPENMS2_DOXYGEN_XML_DIR}")
-        message(FATAL_ERROR "Doxygen XML directory does not exist: ${PYOPENMS2_DOXYGEN_XML_DIR}")
-    endif()
-    list(APPEND GENERATOR_ARGS
-        --use-doxygen
-        --doxygen-xml-dir "${PYOPENMS2_DOXYGEN_XML_DIR}"
-    )
-    message(STATUS "pyOpenMS2: Using Doxygen XML for accurate C++ type information")
-elseif(PYOPENMS2_USE_LIBCLANG)
-    # Get OpenMS include directories for libclang parsing
-    get_target_property(OPENMS_INC_DIRS ${OPENMS_TARGET} INTERFACE_INCLUDE_DIRECTORIES)
-    list(APPEND GENERATOR_ARGS
-        --use-libclang
-        --openms-include-dir ${OPENMS_INC_DIRS}
-        --libclang-cache-dir "${CMAKE_CURRENT_BINARY_DIR}/libclang_cache"
-    )
-    message(STATUS "pyOpenMS2: Using libclang for accurate C++ type parsing (with caching)")
-endif()
+message(STATUS "pyOpenMS2: Using libclang for accurate C++ type parsing (with caching)")
 
 # Collect .pxd and .pyx input files for dependency tracking
 file(GLOB PYOPENMS_PXD_FILES "${PYOPENMS_PXD_DIR}/*.pxd")
@@ -127,7 +107,6 @@ add_custom_command(
     DEPENDS
         # Generator implementation files
         ${PYOPENMS2_GENERATOR_DIR}/pxd_parser.py
-        ${PYOPENMS2_GENERATOR_DIR}/nanobind_emitter.py
         ${PYOPENMS2_GENERATOR_DIR}/nanobind_emitter_v2.py
         ${PYOPENMS2_GENERATOR_DIR}/cpp_parser.py
         ${PYOPENMS2_GENERATOR_DIR}/type_registry.py
