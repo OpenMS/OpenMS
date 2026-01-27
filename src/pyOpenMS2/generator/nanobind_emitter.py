@@ -234,7 +234,6 @@ class NanobindEmitter:
 
         # Add iterator support
         if class_decl.wrap_iter:
-            iter_type = class_decl.wrap_iter
             lines.append(f'        .def("__iter__", [](const {qualified_name}& self) {{ return nb::make_iterator(self.begin(), self.end()); }}, nb::keep_alive<0, 1>())')
 
         # Close class definition
@@ -370,9 +369,6 @@ class NanobindEmitter:
         method_count = sum(1 for m in class_decl.methods if m.name == method.name)
         is_overloaded = method_count > 1
 
-        # Build method pointer
-        params_str = ", ".join(param_types)
-
         if is_overloaded:
             # TODO: overload_cast needs exact C++ signatures including const&
             # For now, skip overloaded methods as we can't reliably determine signatures
@@ -472,7 +468,6 @@ class NanobindEmitter:
         """Generate binding for an enum."""
         lines = []
         qualified_name = f"{enum_decl.namespace}::{enum_decl.name}"
-        parent_qualified = f"{enum_decl.namespace}::{parent_class}"
 
         lines.append(f'    nb::enum_<{qualified_name}>(cls_{parent_class.lower()}, "{enum_decl.name}")')
 

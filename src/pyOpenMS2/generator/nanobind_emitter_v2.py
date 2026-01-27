@@ -859,15 +859,7 @@ class NanobindEmitterV2:
         self, method: CppMethod, qualified_name: str, method_name: str
     ) -> Optional[str]:
         """Generate binding for a static method."""
-        # Build parameter types (use canonical types when available)
-        param_types = [
-            self._normalize_type(p.type_str, canonical_type=getattr(p, 'canonical_type', ''))
-            for p in method.parameters
-        ]
-        params_str = ", ".join(param_types)
-
         method_ptr = f"&{qualified_name}::{method.name}"
-
         return f'.def_static("{method_name}", {method_ptr})'
 
     def _generate_operator_binding(
@@ -1047,9 +1039,7 @@ class NanobindEmitterV2:
             'FeatureFinderAlgorithmMetaboIdent': 'OpenMS::FeatureFinderAlgorithmMetaboIdent',
             'ConsensusMapNormalizerAlgorithmMedian': 'OpenMS::ConsensusMapNormalizerAlgorithmMedian',
             'ConsensusMapNormalizerAlgorithmQuantile': 'OpenMS::ConsensusMapNormalizerAlgorithmQuantile',
-            'IonSource': 'OpenMS::IonSource',
-            'MassAnalyzer': 'OpenMS::MassAnalyzer',
-            'IonDetector': 'OpenMS::IonDetector',
+            # Note: IonSource, MassAnalyzer, IonDetector defined above
             'ControlledVocabulary': 'OpenMS::ControlledVocabulary',
             'CVMappingRule': 'OpenMS::CVMappingRule',
             'CVMappings': 'OpenMS::CVMappings',
