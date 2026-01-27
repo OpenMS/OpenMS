@@ -47,7 +47,6 @@ using std::max;
 using std::abs;
 
 // MSNumpress uses big-endian byte order; little-endian systems require byte swapping.
-// Note: Renamed from is_big_endian() which had misleading name (GitHub #8681).
 const int ONE = 1;
 static bool is_little_endian() {
 	return *((char*)&(ONE)) == 1;
