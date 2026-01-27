@@ -6,7 +6,7 @@ Provides pandas DataFrame export functionality for OpenMS data structures.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Sequence, Union
+from typing import TYPE_CHECKING, Optional, Sequence
 
 import numpy as np
 
