@@ -200,8 +200,6 @@ class PxdParser:
                     parts = cpp_qualified_name.rsplit("::", 1)
                     if len(parts) == 2:
                         current_namespace = parts[0]
-                    # The actual C++ class name might differ from Cython name
-                    actual_cpp_name = parts[-1] if len(parts) > 1 else cpp_qualified_name
 
                 template_args = []
                 if template_args_str:
