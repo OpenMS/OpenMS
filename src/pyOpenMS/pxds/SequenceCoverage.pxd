@@ -8,4 +8,4 @@ cdef extern from "<OpenMS/CHEMISTRY/SequenceCoverage.h>" namespace "OpenMS":
         double getCoverage(
             const AASequence& protein,
             const vector[AASequence]& peptides
-        )
+        ) except +
