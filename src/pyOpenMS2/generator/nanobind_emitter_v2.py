@@ -15,6 +15,177 @@ from typing import Dict, List, Optional, Set, Tuple
 from .cpp_parser import CppMethod, CppParameter, MergedClass, MergedMethod
 
 
+# Methods to skip for specific classes (complex return types or signature mismatches)
+SKIP_METHODS = {
+    "MSSpectrum": {
+        "getFloatDataArrays", "setFloatDataArrays",
+        "getIntegerDataArrays", "setIntegerDataArrays",
+        "getStringDataArrays", "setStringDataArrays",
+        "getIMData",  # Returns pair
+        "calculateTIC",  # Return type mismatch (double in .pxd vs float in C++)
+        "findNearest",  # Return type mismatch (Size vs int in .pxd)
+        "findHighestInWindow",  # Return type mismatch
+        "getName",  # Returns const String& vs String in .pxd
+        "getType",  # Complex return type
+        "select",  # Complex parameter types
+    },
+    "MSChromatogram": {
+        "getFloatDataArrays", "setFloatDataArrays",
+        "getIntegerDataArrays", "setIntegerDataArrays",
+        "getStringDataArrays", "setStringDataArrays",
+    },
+}
+
+# Classes to skip due to incomplete type dependencies or other issues
+# These will need manual handling or fixes in the C++ headers
+SKIP_CLASSES = {
+    # Incomplete type issues
+    "MassExplainer",        # References Compomer which is forward-declared
+    "ILPDCWrapper",         # Complex ILP dependencies
+    "SwathFileConsumer",    # Template complexity
+    "MSDataWritingConsumer", # Template complexity
+    "SpectrumAccessOpenMSInMemory",  # Complex template
+    # Abstract classes that libclang may not detect
+    "BaseGroupFinder",
+    "BaseSuperimposer",
+    "ConsensusIDAlgorithm",
+    "ConsensusIDAlgorithmIdentity",
+    # Nested classes or special cases
+    "XMLHandler",
+    "IndexedMzMLHandler",
+    # Classes with static methods not marked in .pxd (need @staticmethod or wrap-static)
+    "PercolatorFeatureSetHelper",
+    "PercolatorInfile",
+    "PercolatorOutfile",
+    "TransformationXMLFile",
+    "OpenSwathDataAccessHelper",
+    # Classes with no default constructor
+    "QTCluster",
+    "SpectrumAccessOpenMS",
+    # Classes with Cython template syntax issues
+    "TraMLFile",
+    "MZTrafoModel",
+    # Private inheritance issues (inherit from std::vector but not accessible)
+    "AcquisitionInfo",
+    # TODO: Add wrap-static support in .pxd files and remove from SKIP_CLASSES
+}
+
+# Additional headers needed for specific classes
+ADDITIONAL_INCLUDES = {
+    "MSSpectrum": ["<OpenMS/KERNEL/Peak1D.h>"],
+    "MSChromatogram": ["<OpenMS/KERNEL/ChromatogramPeak.h>"],
+    "MSExperiment": ["<OpenMS/KERNEL/MSSpectrum.h>", "<OpenMS/KERNEL/MSChromatogram.h>"],
+    "Feature": ["<OpenMS/KERNEL/Feature.h>"],
+    "FeatureMap": ["<OpenMS/KERNEL/Feature.h>"],
+    "ConsensusMap": ["<OpenMS/KERNEL/ConsensusFeature.h>"],
+}
+
+# Classes that need special __len__ support (container-like)
+CONTAINER_CLASSES = {
+    "MSSpectrum", "MSChromatogram", "MSExperiment", "FeatureMap",
+    "ConsensusMap", "PeakMap", "Mobilogram",
+    "FloatDataArray", "IntegerDataArray", "StringDataArray",
+}
+
+# Classes that need iterator support
+ITERABLE_CLASSES = {
+    "MSSpectrum", "MSChromatogram", "MSExperiment", "FeatureMap",
+    "ConsensusMap", "PeakMap", "Mobilogram", "AASequence",
+}
+
+# Classes that inherit from std::vector (have size() method)
+VECTOR_BASED_CLASSES = {
+    "MSSpectrum", "MSChromatogram", "Mobilogram",
+    "FloatDataArray", "IntegerDataArray", "StringDataArray",
+}
+
+# Methods to skip for vector-based classes (inherited from private std::vector base)
+# We provide lambda implementations instead via CONTAINER_CLASSES/__len__
+VECTOR_INHERITED_METHODS = {
+    "size", "reserve", "resize", "push_back", "pop_back", "clear",
+    "empty", "front", "back", "begin", "end", "cbegin", "cend",
+    "at", "operator[]", "data", "capacity", "max_size", "shrink_to_fit",
+    "insert", "erase", "emplace", "emplace_back", "assign", "swap",
+}
+
+# Special method implementations for critical classes
+# These are C++ lambdas that implement Python methods
+SPECIAL_METHODS = {
+    "MSSpectrum": {
+        "get_peaks": '''
+        .def("get_peaks", [](const OpenMS::MSSpectrum& self) {
+            // Return (mz_array, intensity_array) as vectors (converted to numpy by nanobind)
+            const size_t n = self.size();
+            std::vector<double> mz(n);
+            std::vector<double> intensity(n);
+            for (size_t i = 0; i < n; ++i) {
+                mz[i] = self[i].getMZ();
+                intensity[i] = self[i].getIntensity();
+            }
+            return nb::make_tuple(mz, intensity);
+        }, "Returns a tuple of (mz_array, intensity_array)")''',
+        "set_peaks": '''
+        .def("set_peaks", [](OpenMS::MSSpectrum& self, std::vector<double> mz, std::vector<double> intensity) {
+            // Accept mz_array and intensity_array separately
+            const size_t n = mz.size();
+            if (intensity.size() != n) {
+                throw std::runtime_error("mz and intensity arrays must have same length");
+            }
+            self.resize(n);
+            for (size_t i = 0; i < n; ++i) {
+                self[i].setMZ(mz[i]);
+                self[i].setIntensity(intensity[i]);
+            }
+        }, "mz"_a, "intensity"_a, "Set peaks from mz and intensity arrays")''',
+    },
+    "MSChromatogram": {
+        "get_peaks": '''
+        .def("get_peaks", [](const OpenMS::MSChromatogram& self) {
+            const size_t n = self.size();
+            std::vector<double> rt(n);
+            std::vector<double> intensity(n);
+            for (size_t i = 0; i < n; ++i) {
+                rt[i] = self[i].getRT();
+                intensity[i] = self[i].getIntensity();
+            }
+            return nb::make_tuple(rt, intensity);
+        }, "Returns a tuple of (rt_array, intensity_array)")''',
+    },
+    "FloatDataArray": {
+        "get_data": '''
+        .def("get_data", [](const OpenMS::DataArrays::FloatDataArray& self) {
+            std::vector<float> arr(self.begin(), self.end());
+            return arr;
+        }, "Returns a copy of the data as a list")''',
+        "set_data": '''
+        .def("set_data", [](OpenMS::DataArrays::FloatDataArray& self, std::vector<float> arr) {
+            self.assign(arr.begin(), arr.end());
+        }, "data"_a, "Set data from a list")''',
+    },
+    "IntegerDataArray": {
+        "get_data": '''
+        .def("get_data", [](const OpenMS::DataArrays::IntegerDataArray& self) {
+            std::vector<OpenMS::Int> arr(self.begin(), self.end());
+            return arr;
+        }, "Returns a copy of the data as a list")''',
+        "set_data": '''
+        .def("set_data", [](OpenMS::DataArrays::IntegerDataArray& self, std::vector<OpenMS::Int> arr) {
+            self.assign(arr.begin(), arr.end());
+        }, "data"_a, "Set data from a list")''',
+    },
+    "MSExperiment": {
+        "get_spectra": '''
+        .def("get_spectra", [](OpenMS::MSExperiment& self) -> std::vector<OpenMS::MSSpectrum>& {
+            return self.getSpectra();
+        }, nb::rv_policy::reference_internal, "Returns reference to spectra vector")''',
+        "get_chromatograms": '''
+        .def("get_chromatograms", [](OpenMS::MSExperiment& self) -> std::vector<OpenMS::MSChromatogram>& {
+            return self.getChromatograms();
+        }, nb::rv_policy::reference_internal, "Returns reference to chromatograms vector")''',
+    },
+}
+
+
 @dataclass
 class ModuleContent:
     """Content for a single C++ module file."""
@@ -44,6 +215,9 @@ class NanobindEmitterV2:
             "<nanobind/stl/shared_ptr.h>",
             "<nanobind/stl/optional.h>",
             "<nanobind/ndarray.h>",
+            "<nanobind/make_iterator.h>",
+            "<sstream>",       # For std::ostringstream in __repr__
+            "<iomanip>",       # For std::setprecision in __repr__
             '"all_casters.h"',
         }
 
@@ -125,6 +299,12 @@ class NanobindEmitterV2:
         )
 
         for merged_class in module_classes:
+            class_name = merged_class.name
+
+            # Skip problematic classes
+            if class_name in SKIP_CLASSES:
+                continue
+
             # Add OpenMS header - extract relative path from full path
             header_file = merged_class.header_file
             if header_file:
@@ -142,6 +322,11 @@ class NanobindEmitterV2:
                     header = header_file
                 content.includes.add(f"<{header}>")
 
+            # Add additional includes for this class if needed
+            if class_name in ADDITIONAL_INCLUDES:
+                for inc in ADDITIONAL_INCLUDES[class_name]:
+                    content.includes.add(inc)
+
             # Generate class binding
             binding = self._generate_class_binding(merged_class)
             if binding:
@@ -155,6 +340,10 @@ class NanobindEmitterV2:
 
         class_name = merged_class.name
         qualified_name = merged_class.qualified_name
+
+        # Skip problematic classes
+        if class_name in SKIP_CLASSES:
+            return None
 
         # Skip nested classes
         if "::" in qualified_name.replace("OpenMS::", "", 1):
@@ -200,14 +389,111 @@ class NanobindEmitterV2:
         if merged_class.wrap_hash:
             lines.append(f'        .def("__hash__", [](const {qualified_name}& self) {{ return std::hash<{qualified_name}>{{}}(self); }})')
 
-        # Add iterator support
-        if merged_class.wrap_iter:
-            lines.append(f'        .def("__iter__", [](const {qualified_name}& self) {{ return nb::make_iterator(self.begin(), self.end()); }}, nb::keep_alive<0, 1>())')
+        # Add iterator support (from wrap-iter directive or known iterable classes)
+        if merged_class.wrap_iter or class_name in ITERABLE_CLASSES:
+            lines.append(f'        .def("__iter__", []({qualified_name}& self) {{ return nb::make_iterator<nb::rv_policy::reference_internal>(nb::handle(), "{class_name}_iter", self.begin(), self.end()); }})')
+
+        # Add __len__ for container classes
+        if class_name in CONTAINER_CLASSES or class_name in VECTOR_BASED_CLASSES:
+            lines.append(f'        .def("__len__", []({qualified_name}& self) {{ return self.size(); }})')
+
+        # Add __getitem__ for vector-based classes
+        if class_name in VECTOR_BASED_CLASSES:
+            # Determine element type from class name
+            elem_type = self._get_element_type(class_name)
+            if elem_type:
+                lines.append(f'        .def("__getitem__", []({qualified_name}& self, size_t i) -> {elem_type}& {{ ')
+                lines.append(f'            if (i >= self.size()) throw nb::index_error();')
+                lines.append(f'            return self[i];')
+                lines.append(f'        }}, nb::rv_policy::reference_internal)')
+
+        # Add special methods for this class (get_peaks, set_peaks, etc.)
+        if class_name in SPECIAL_METHODS:
+            for method_name, method_code in SPECIAL_METHODS[class_name].items():
+                lines.append(method_code)
+
+        # Add __repr__ for key classes
+        repr_code = self._generate_repr(class_name, qualified_name)
+        if repr_code:
+            lines.append(repr_code)
 
         # Close class definition
         lines.append("        ;")
 
         return "\n".join(lines)
+
+    def _get_element_type(self, class_name: str) -> Optional[str]:
+        """Get the element type for a vector-based class."""
+        element_types = {
+            "MSSpectrum": "OpenMS::Peak1D",
+            "MSChromatogram": "OpenMS::ChromatogramPeak",
+            "Mobilogram": "OpenMS::MobilityPeak1D",
+            "FloatDataArray": "float",
+            "IntegerDataArray": "OpenMS::Int",
+            "StringDataArray": "OpenMS::String",
+        }
+        return element_types.get(class_name)
+
+    def _generate_repr(self, class_name: str, qualified_name: str) -> Optional[str]:
+        """Generate __repr__ method for a class."""
+        # Define repr formats for key classes
+        repr_formats = {
+            "Peak1D": f'''        .def("__repr__", []({qualified_name}& self) {{
+            return "<Peak1D mz=" + std::to_string(self.getMZ()) + " intensity=" + std::to_string(self.getIntensity()) + ">";
+        }})''',
+            "Peak2D": f'''        .def("__repr__", []({qualified_name}& self) {{
+            return "<Peak2D rt=" + std::to_string(self.getRT()) + " mz=" + std::to_string(self.getMZ()) + " intensity=" + std::to_string(self.getIntensity()) + ">";
+        }})''',
+            "ChromatogramPeak": f'''        .def("__repr__", []({qualified_name}& self) {{
+            return "<ChromatogramPeak rt=" + std::to_string(self.getRT()) + " intensity=" + std::to_string(self.getIntensity()) + ">";
+        }})''',
+            "MSSpectrum": f'''        .def("__repr__", []({qualified_name}& self) {{
+            std::ostringstream oss;
+            oss << "<MSSpectrum ms_level=" << self.getMSLevel()
+                << " rt=" << std::fixed << std::setprecision(2) << self.getRT()
+                << " num_peaks=" << self.size() << ">";
+            return oss.str();
+        }})''',
+            "MSChromatogram": f'''        .def("__repr__", []({qualified_name}& self) {{
+            std::ostringstream oss;
+            oss << "<MSChromatogram native_id='" << self.getNativeID()
+                << "' num_peaks=" << self.size() << ">";
+            return oss.str();
+        }})''',
+            "MSExperiment": f'''        .def("__repr__", []({qualified_name}& self) {{
+            std::ostringstream oss;
+            oss << "<MSExperiment num_spectra=" << self.getNrSpectra()
+                << " num_chromatograms=" << self.getNrChromatograms() << ">";
+            return oss.str();
+        }})''',
+            "Feature": f'''        .def("__repr__", []({qualified_name}& self) {{
+            std::ostringstream oss;
+            oss << "<Feature rt=" << std::fixed << std::setprecision(2) << self.getRT()
+                << " mz=" << std::setprecision(4) << self.getMZ()
+                << " intensity=" << std::setprecision(0) << self.getIntensity()
+                << " charge=" << self.getCharge() << ">";
+            return oss.str();
+        }})''',
+            "FeatureMap": f'''        .def("__repr__", []({qualified_name}& self) {{
+            std::ostringstream oss;
+            oss << "<FeatureMap num_features=" << self.size() << ">";
+            return oss.str();
+        }})''',
+            "ConsensusFeature": f'''        .def("__repr__", []({qualified_name}& self) {{
+            std::ostringstream oss;
+            oss << "<ConsensusFeature rt=" << std::fixed << std::setprecision(2) << self.getRT()
+                << " mz=" << std::setprecision(4) << self.getMZ()
+                << " intensity=" << std::setprecision(0) << self.getIntensity()
+                << " size=" << self.size() << ">";
+            return oss.str();
+        }})''',
+            "ConsensusMap": f'''        .def("__repr__", []({qualified_name}& self) {{
+            std::ostringstream oss;
+            oss << "<ConsensusMap num_consensus_features=" << self.size() << ">";
+            return oss.str();
+        }})''',
+        }
+        return repr_formats.get(class_name)
 
     def _generate_constructor(self, ctor: CppMethod) -> Optional[str]:
         """Generate constructor binding."""
@@ -230,6 +516,15 @@ class NanobindEmitterV2:
         """Generate method binding."""
         method = merged_method.cpp_method
         method_name = merged_method.wrap_as or method.name
+        class_name = merged_class.name
+
+        # Skip methods inherited from private std::vector base
+        if class_name in VECTOR_BASED_CLASSES and method.name in VECTOR_INHERITED_METHODS:
+            return None
+
+        # Skip specific methods with complex return types
+        if class_name in SKIP_METHODS and method.name in SKIP_METHODS[class_name]:
+            return None
 
         # Handle operators
         if method.name.startswith("operator"):
@@ -281,11 +576,16 @@ class NanobindEmitterV2:
                     if not method.is_const:
                         return None
 
-        # Build method pointer with overload_cast if needed
-        if is_overloaded:
-            # Use overload_cast for overloaded methods
-            const_suffix = ", nb::const_" if method.is_const else ""
-            method_ptr = f"nb::overload_cast<{params_str}>(&{qualified_name}::{method.name}{const_suffix})"
+        # Build method pointer with cast if needed
+        # For const methods, use static_cast because nanobind's overload_cast
+        # doesn't work the same as pybind11 for const methods
+        if method.is_const:
+            # Use static_cast for const methods
+            const_str = " const" if method.is_const else ""
+            method_ptr = f"static_cast<{return_type} ({qualified_name}::*)({params_str}){const_str}>(&{qualified_name}::{method.name})"
+        elif is_overloaded:
+            # Use overload_cast for non-const overloaded methods
+            method_ptr = f"nb::overload_cast<{params_str}>(&{qualified_name}::{method.name})"
         else:
             method_ptr = f"&{qualified_name}::{method.name}"
 
@@ -343,9 +643,68 @@ class NanobindEmitterV2:
         if not type_str:
             return "void"
 
-        # Handle OpenMS namespace types
-        # Keep qualified names as-is
-        return type_str
+        result = type_str
+
+        # Convert Cython template syntax to C++: libcpp_vector[T] -> std::vector<T>
+        import re
+        result = re.sub(r'libcpp_vector\[([^\]]+)\]', r'std::vector<\1>', result)
+        result = re.sub(r'libcpp_map\[([^,]+),\s*([^\]]+)\]', r'std::map<\1, \2>', result)
+        result = re.sub(r'libcpp_set\[([^\]]+)\]', r'std::set<\1>', result)
+        result = re.sub(r'libcpp_pair\[([^,]+),\s*([^\]]+)\]', r'std::pair<\1, \2>', result)
+        result = re.sub(r'shared_ptr\[([^\]]+)\]', r'std::shared_ptr<\1>', result)
+
+        # OpenMS type aliases that need namespace
+        openms_typedefs = {
+            'Int': 'OpenMS::Int',
+            'UInt': 'OpenMS::UInt',
+            'Size': 'OpenMS::Size',
+            'String': 'OpenMS::String',
+            'StringList': 'OpenMS::StringList',
+            'IntList': 'OpenMS::IntList',
+            'DoubleList': 'OpenMS::DoubleList',
+            'FloatDataArray': 'OpenMS::DataArrays::FloatDataArray',
+            'IntegerDataArray': 'OpenMS::DataArrays::IntegerDataArray',
+            'StringDataArray': 'OpenMS::DataArrays::StringDataArray',
+            'FloatDataArrays': 'OpenMS::MSSpectrum::FloatDataArrays',
+            'IntegerDataArrays': 'OpenMS::MSSpectrum::IntegerDataArrays',
+            'StringDataArrays': 'OpenMS::MSSpectrum::StringDataArrays',
+        }
+
+        # OpenMS classes that need namespace (only add if not already namespaced)
+        for typedef, qualified in openms_typedefs.items():
+            # Match the type when not already qualified
+            pattern = r'\b(?<!OpenMS::)(?<!std::)' + typedef + r'\b'
+            result = re.sub(pattern, qualified, result)
+
+        # Convert DPosition2 to DPosition<2> (common alias in .pxd)
+        result = re.sub(r'\bDPosition2\b', r'OpenMS::DPosition<2>', result)
+        result = re.sub(r'\bDPosition1\b', r'OpenMS::DPosition<1>', result)
+
+        # Handle common nested type aliases (convert to actual types)
+        # These are typically typedefs in peak classes
+        nested_types = {
+            'PositionType': 'double',           # DPosition<N> reduces to coordinate type
+            'CoordinateType': 'double',
+            'IntensityType': 'float',           # Peak intensity is float in OpenMS
+            'MassType': 'double',
+        }
+        for nested, actual in nested_types.items():
+            result = re.sub(r'\b' + nested + r'\b', actual, result)
+
+        # Handle enum types that need full qualification
+        enum_types = {
+            'SpectrumType': 'OpenMS::SpectrumSettings::SpectrumType',
+            'SpectrumLevel': 'OpenMS::SpectrumLevel',
+            'IMFormat': 'OpenMS::IMFormat',
+            'DriftTimeUnit': 'OpenMS::DriftTimeUnit',
+            'PeakType': 'OpenMS::Peak1D::PeakType',
+            'DataType': 'OpenMS::DataValue::DataType',
+        }
+        for enum_type, qualified in enum_types.items():
+            pattern = r'\b(?<!OpenMS::)(?<!::)' + enum_type + r'\b'
+            result = re.sub(pattern, qualified, result)
+
+        return result
 
     def _escape_string(self, s: str) -> str:
         """Escape a string for use in C++ code."""
