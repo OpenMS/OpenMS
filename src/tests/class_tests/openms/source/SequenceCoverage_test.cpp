@@ -1,33 +1,14 @@
 #include <OpenMS/CHEMISTRY/SequenceCoverage.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 
-#include <vector>
-
 #include <OpenMS/CONCEPT/ClassTest.h>
+
+#include <vector>
 
 using namespace OpenMS;
 using namespace std;
 
 START_TEST(SequenceCoverage, "$Id$")
-
-/////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////
-
-SequenceCoverage* ptr = nullptr;
-SequenceCoverage* null_ptr = nullptr;
-
-START_SECTION(SequenceCoverage())
-{
-  ptr = new SequenceCoverage();
-  TEST_NOT_EQUAL(ptr, null_ptr)
-}
-END_SECTION
-
-START_SECTION(~SequenceCoverage())
-{
-  delete ptr;
-}
-END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
@@ -38,8 +19,8 @@ START_SECTION(double getCoverage(const AASequence& protein,
   AASequence protein = AASequence::fromString("ACDEFGHIK");
 
   vector<AASequence> peptides;
-  peptides.push_back(AASequence::fromString("ACD"));   // covers 0–2
-  peptides.push_back(AASequence::fromString("FGH"));   // covers 4–6
+  peptides.push_back(AASequence::fromString("ACD")); // covers 0–2
+  peptides.push_back(AASequence::fromString("FGH")); // covers 4–6
 
   double coverage = SequenceCoverage::getCoverage(protein, peptides);
 

@@ -11,6 +11,7 @@
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/CHEMISTRY/SequenceCoverage.h>
 
 #include <unordered_map>
 #include <numeric>
@@ -56,34 +57,6 @@ protected:
     setValidFormats_("in_peptides", ListUtils::create<String>("idXML"), true);
     registerOutputFile_("out", "<file>", "", "Optional text output file. If left out, the output is written to the command line.", false);
     setValidFormats_("out", ListUtils::create<String>("idXML"), true);
-  }
-
-  void getStartAndEndIndex(const String& sequence, const String& substring, pair<Size, Size>& indices)
-  {
-    indices.first = 0;
-    indices.second = 0;
-
-    if (sequence.hasSubstring(substring))
-    {
-      for (Size i = 0; i <= sequence.size() - substring.size(); ++i)
-      {
-        Size temp_index = i;
-        Size temp_count = 0;
-        while (temp_index < sequence.size()
-              && temp_count < substring.size()
-              && sequence.at(temp_index) == substring.at(temp_index - i))
-        {
-          ++temp_index;
-          ++temp_count;
-        }
-        if (temp_count == substring.size())
-        {
-          indices.first = i;
-          indices.second = temp_index;
-          i = sequence.size();
-        }
-      }
-    }
   }
 
   struct CoverageInfo
@@ -133,8 +106,8 @@ protected:
     os << "proteinID\tcoverage (%)\tunique hits\n";
     for (Size j = 0; j < proteins.size(); ++j)
     {
-      coverage.clear();
-      coverage.resize(proteins[j].sequence.size(), 0);
+        AASequence protein_seq = AASequence::fromString(proteins[j].sequence);
+        std::vector<AASequence> peptides;
       temp_unique_peptides.clear();
       temp_modified_unique_peptides.clear();
 
@@ -155,16 +128,7 @@ protected:
 
           if (temp_hits.size() == 1)
           {
-            pair<Size, Size> indices;
-            getStartAndEndIndex(proteins[j].sequence, temp_hits[0].getSequence().toUnmodifiedString(), indices);
-            for (Size k = indices.first; k < indices.second; ++k)
-            {
-              coverage[k] = 1;
-            }
-            if (indices.first != indices.second)
-            {
-              // os <<  temp_hits[0].getSequence().toUnmodifiedString() << endl;
-            }
+              peptides.push_back(temp_hits[0].getSequence());
             ++spectrum_count;
             if (unique_peptides.find(temp_hits[0].getSequence().toString()) == unique_peptides.end())
             {
@@ -190,7 +154,11 @@ protected:
 */
       // statistics[j] = make_pair(,
       // accumulate(coverage.begin(), coverage.end(), 0) / proteins[j].sequence.size());
-      statistics[j] = ((double) accumulate(coverage.begin(), coverage.end(), Size(0))) / proteins[j].sequence.size();
+        double coverage_percent =
+          SequenceCoverage::getCoverage(protein_seq, peptides);
+
+        statistics[j] = coverage_percent / 100.0;
+        
       counts[j] = temp_unique_peptides.size();
       mod_counts[j] = temp_modified_unique_peptides.size();
 
