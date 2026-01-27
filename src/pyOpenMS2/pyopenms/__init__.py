@@ -31,19 +31,27 @@ def _import_submodules():
     """Import all nanobind submodules and merge into this namespace."""
     import importlib
 
-    # Import the main module which brings in all bindings
-    try:
-        from . import _pyopenms2
+    # Import all submodules (each is a standalone NB_MODULE)
+    # The number of modules is determined at build time
+    _imported_modules = []
+    for i in range(1, 9):  # 8 modules by default
+        module_name = f"_pyopenms2_{i}"
+        try:
+            mod = importlib.import_module(f".{module_name}", package=__name__)
+            _imported_modules.append(mod)
+            # Re-export all public symbols from each submodule
+            for name in dir(mod):
+                if not name.startswith("_"):
+                    globals()[name] = getattr(mod, name)
+        except ImportError:
+            # Module might not exist (core_only mode or compilation error)
+            pass
 
-        # Re-export all public symbols from the main module
-        for name in dir(_pyopenms2):
-            if not name.startswith("_"):
-                globals()[name] = getattr(_pyopenms2, name)
-    except ImportError as e:
+    if not _imported_modules:
         raise ImportError(
-            f"Failed to import pyOpenMS2 bindings: {e}\n"
+            "Failed to import any pyOpenMS2 bindings.\n"
             "Make sure the package was built correctly with nanobind."
-        ) from e
+        )
 
 
 # Import bindings

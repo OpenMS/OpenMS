@@ -98,6 +98,19 @@ def parse_args(args: Optional[List[str]] = None) -> argparse.Namespace:
         help="OpenMS include directories for libclang parsing",
     )
 
+    parser.add_argument(
+        "--core-only",
+        action="store_true",
+        default=True,
+        help="Only bind core classes (default: True)",
+    )
+
+    parser.add_argument(
+        "--all-classes",
+        action="store_true",
+        help="Attempt to bind all classes (may have compile errors)",
+    )
+
     return parser.parse_args(args)
 
 
@@ -236,8 +249,9 @@ def main(args: Optional[List[str]] = None) -> int:
         logger.info(f"Converted {len(merged_classes)} classes")
 
     # Generate with v2 emitter (always used now)
-    logger.info("Generating nanobind C++ bindings...")
-    emitter = NanobindEmitterV2(num_modules=opts.num_modules)
+    core_only = opts.core_only and not opts.all_classes
+    logger.info(f"Generating nanobind C++ bindings (core_only={core_only})...")
+    emitter = NanobindEmitterV2(num_modules=opts.num_modules, core_only=core_only)
 
     try:
         emitter.emit(merged_classes, opts.output_dir)
