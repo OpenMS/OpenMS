@@ -958,6 +958,7 @@ void File::download(const std::string& url, const std::string& download_folder)
   else
   {
     String error = "Download of '" + url + "' failed!. Error: " + String(query->getErrorString()) + '\n';
+    delete query;
     throw Exception::IOException(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, error);
   }
 

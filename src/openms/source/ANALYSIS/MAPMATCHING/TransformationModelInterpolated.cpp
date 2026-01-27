@@ -253,51 +253,56 @@ private:
                                        "unknown/unsupported interpolation type '" + interpolation_type + "'");
     }
 
-    // assign data
-    interp_->init(x_, y_);
-
-    // linear model for extrapolation:
-    const String extrapolation_type = params_.getValue("extrapolation_type").toString();
-    if (extrapolation_type == "global-linear")
+    try
     {
-      std::vector<TransformationModel::DataPoint> bloated_data{};
-      bloated_data.resize(x_.size());
-      //uff... well here we go.. adding an empty string
-      for (Size s = 0; s < x_.size(); ++s)
+      // assign data
+      interp_->init(x_, y_);
+
+      // linear model for extrapolation:
+      const String extrapolation_type = params_.getValue("extrapolation_type").toString();
+      if (extrapolation_type == "global-linear")
       {
-        bloated_data.emplace_back(TransformationModel::DataPoint(x_[s],y_[s]));
+        std::vector<TransformationModel::DataPoint> bloated_data{};
+        bloated_data.resize(x_.size());
+        //uff... well here we go.. adding an empty string
+        for (Size s = 0; s < x_.size(); ++s)
+        {
+          bloated_data.emplace_back(TransformationModel::DataPoint(x_[s],y_[s]));
+        }
+        lm_front_ = new TransformationModelLinear(bloated_data, Param());
+        lm_back_ = new TransformationModelLinear(bloated_data, Param());
       }
-      lm_front_ = new TransformationModelLinear(bloated_data, Param());
-      lm_back_ = new TransformationModelLinear(bloated_data, Param());
-    }
-    else if (extrapolation_type == "two-point-linear")
-    {
-      TransformationModel::DataPoints lm_data(2);
-      lm_data[0] = std::make_pair(x_.front(), y_.front());
-      lm_data[1] = std::make_pair(x_.back(), y_.back()); // last point
-      lm_front_ = new TransformationModelLinear(lm_data, Param());
-      lm_back_ = new TransformationModelLinear(lm_data, Param());
-    }
-    else if (extrapolation_type == "four-point-linear")
-    {
-      TransformationModel::DataPoints lm_data(2);
-      lm_data[0] = std::make_pair(x_[0], y_[0]);
-      lm_data[1] = std::make_pair(x_[1], y_[1]);
-      lm_front_ = new TransformationModelLinear(lm_data, Param());
-
-      lm_data[0] = std::make_pair(x_[ x_.size()-2 ], y_[ y_.size()-2] ); // second to last point
-      lm_data[1] = std::make_pair(x_.back(), y_.back()); // last point
-      lm_back_ = new TransformationModelLinear(lm_data, Param());
-    }
-    else
-    {
-      if (interp_)
+      else if (extrapolation_type == "two-point-linear")
       {
-        delete interp_;
+        TransformationModel::DataPoints lm_data(2);
+        lm_data[0] = std::make_pair(x_.front(), y_.front());
+        lm_data[1] = std::make_pair(x_.back(), y_.back()); // last point
+        lm_front_ = new TransformationModelLinear(lm_data, Param());
+        lm_back_ = new TransformationModelLinear(lm_data, Param());
       }
+      else if (extrapolation_type == "four-point-linear")
+      {
+        TransformationModel::DataPoints lm_data(2);
+        lm_data[0] = std::make_pair(x_[0], y_[0]);
+        lm_data[1] = std::make_pair(x_[1], y_[1]);
+        lm_front_ = new TransformationModelLinear(lm_data, Param());
 
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                       "unknown/unsupported extrapolation type '" + extrapolation_type + "'");
+        lm_data[0] = std::make_pair(x_[ x_.size()-2 ], y_[ y_.size()-2] ); // second to last point
+        lm_data[1] = std::make_pair(x_.back(), y_.back()); // last point
+        lm_back_ = new TransformationModelLinear(lm_data, Param());
+      }
+      else
+      {
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                         "unknown/unsupported extrapolation type '" + extrapolation_type + "'");
+      }
+    }
+    catch (...)
+    {
+      delete interp_;
+      delete lm_front_;
+      delete lm_back_;
+      throw;
     }
   }
 
@@ -331,44 +336,49 @@ private:
           "unknown/unsupported interpolation type '" + interpolation_type + "'");
     }
 
-    // assign data
-    interp_->init(x_, y_);
+    try
+    {
+      // assign data
+      interp_->init(x_, y_);
 
-    // linear model for extrapolation:
-    const String extrapolation_type = params_.getValue("extrapolation_type").toString();
-    if (extrapolation_type == "global-linear")
-    {
-      lm_front_ = new TransformationModelLinear(data, Param());
-      lm_back_ = new TransformationModelLinear(data, Param());
-    }
-    else if (extrapolation_type == "two-point-linear")
-    {
-      TransformationModel::DataPoints lm_data(2);
-      lm_data[0] = std::make_pair(x_.front(), y_.front());
-      lm_data[1] = std::make_pair(x_.back(), y_.back()); // last point
-      lm_front_ = new TransformationModelLinear(lm_data, Param());
-      lm_back_ = new TransformationModelLinear(lm_data, Param());
-    }
-    else if (extrapolation_type == "four-point-linear")
-    {
-      TransformationModel::DataPoints lm_data(2);
-      lm_data[0] = std::make_pair(x_[0], y_[0]); 
-      lm_data[1] = std::make_pair(x_[1], y_[1]);
-      lm_front_ = new TransformationModelLinear(lm_data, Param());
-
-      lm_data[0] = std::make_pair(x_[ x_.size()-2 ], y_[ y_.size()-2] ); // second to last point
-      lm_data[1] = std::make_pair(x_.back(), y_.back()); // last point
-      lm_back_ = new TransformationModelLinear(lm_data, Param());
-    }
-    else
-    {
-      if (interp_) 
+      // linear model for extrapolation:
+      const String extrapolation_type = params_.getValue("extrapolation_type").toString();
+      if (extrapolation_type == "global-linear")
       {
-        delete interp_;
+        lm_front_ = new TransformationModelLinear(data, Param());
+        lm_back_ = new TransformationModelLinear(data, Param());
       }
+      else if (extrapolation_type == "two-point-linear")
+      {
+        TransformationModel::DataPoints lm_data(2);
+        lm_data[0] = std::make_pair(x_.front(), y_.front());
+        lm_data[1] = std::make_pair(x_.back(), y_.back()); // last point
+        lm_front_ = new TransformationModelLinear(lm_data, Param());
+        lm_back_ = new TransformationModelLinear(lm_data, Param());
+      }
+      else if (extrapolation_type == "four-point-linear")
+      {
+        TransformationModel::DataPoints lm_data(2);
+        lm_data[0] = std::make_pair(x_[0], y_[0]);
+        lm_data[1] = std::make_pair(x_[1], y_[1]);
+        lm_front_ = new TransformationModelLinear(lm_data, Param());
 
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          "unknown/unsupported extrapolation type '" + extrapolation_type + "'");
+        lm_data[0] = std::make_pair(x_[ x_.size()-2 ], y_[ y_.size()-2] ); // second to last point
+        lm_data[1] = std::make_pair(x_.back(), y_.back()); // last point
+        lm_back_ = new TransformationModelLinear(lm_data, Param());
+      }
+      else
+      {
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+            "unknown/unsupported extrapolation type '" + extrapolation_type + "'");
+      }
+    }
+    catch (...)
+    {
+      delete interp_;
+      delete lm_front_;
+      delete lm_back_;
+      throw;
     }
   }
 

@@ -1278,6 +1278,10 @@ namespace OpenMS
         }
       }
     }
+    if (filter_values.empty())
+    {
+      return; // Cannot compute mean of empty set, leave values at zero
+    }
     for (size_t cg_qc_it = 0; cg_qc_it < filter_mean.component_group_qcs.size(); ++cg_qc_it) {// Divide by the size (performed separately due to int types...)
       filter_mean.component_group_qcs.at(cg_qc_it).retention_time_l = filter_mean.component_group_qcs.at(cg_qc_it).retention_time_l / filter_values.size();
       filter_mean.component_group_qcs.at(cg_qc_it).retention_time_u = filter_mean.component_group_qcs.at(cg_qc_it).retention_time_u / filter_values.size();
@@ -1361,6 +1365,10 @@ namespace OpenMS
           kv.second.second += std::pow(filter.component_qcs.at(c_qc_it).meta_value_qc.at(kv.first).second - filter_mean.component_qcs.at(c_qc_it).meta_value_qc.at(kv.first).second, 2);
         }
       }
+    }
+    if (filter_values.size() <= 1)
+    {
+      return; // Cannot compute sample variance with fewer than 2 values, leave values at zero
     }
     for (size_t cg_qc_it = 0; cg_qc_it < filter_var.component_group_qcs.size(); ++cg_qc_it) {// Divide by the size (performed separately due to int types...)
       filter_var.component_group_qcs.at(cg_qc_it).retention_time_l = filter_var.component_group_qcs.at(cg_qc_it).retention_time_l / (filter_values.size() - 1);

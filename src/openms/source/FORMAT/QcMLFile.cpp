@@ -1289,7 +1289,7 @@ namespace OpenMS
         qp.id = base_name + "_ticslump"; ///< Identifier
         qp.cvRef = "QC"; ///< cv reference
         qp.cvAcc = "QC:0000023";
-        qp.value = String((100 / exp.size()) * below_10k);
+        qp.value = String(exp.size() > 0 ? (100 / exp.size()) * below_10k : 0);
         try
         {
           const ControlledVocabulary::CVTerm& term = cv.getTerm(qp.cvAcc);
@@ -1363,7 +1363,7 @@ namespace OpenMS
       qp.id = base_name + "_ricslump"; ///< Identifier
       qp.cvRef = "QC"; ///< cv reference
       qp.cvAcc = "QC:0000057";
-      qp.value = String((100 / exp.size()) * below_10k);
+      qp.value = String(exp.size() > 0 ? (100 / exp.size()) * below_10k : 0);
       try
       {
         const ControlledVocabulary::CVTerm& term = cv.getTerm(qp.cvAcc);
@@ -1896,7 +1896,7 @@ namespace OpenMS
         while (fiter < feature_map.size())
         {
           FeatureMap map_tmp;
-          for (UInt k = fiter; k <= feature_map.size(); ++k)
+          for (UInt k = fiter; k < feature_map.size(); ++k)
           {
             if (abs(feature_map[fiter].getRT() - feature_map[k].getRT()) < 0.1)
             {

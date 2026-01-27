@@ -113,13 +113,13 @@ private:
     std::vector<double> y_;
 
     /// Interpolation function
-    Interpolator* interp_;
+    Interpolator* interp_ = nullptr;
 
     /// Linear model for extrapolation (front)
-    TransformationModelLinear* lm_front_;
+    TransformationModelLinear* lm_front_ = nullptr;
 
     /// Linear model for extrapolation (back)
-    TransformationModelLinear* lm_back_;
+    TransformationModelLinear* lm_back_ = nullptr;
 
     /// Preprocesses the incoming data and fills the (private) vectors x_ and y_
     void preprocessDataPoints_(const DataPoints& data);

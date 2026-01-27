@@ -290,20 +290,6 @@ namespace OpenMS
       }
       coord.ion_mobility = pep->getDriftTime();
       coordinates.push_back(coord);
-
-      if (ms1 && ms1_isotopes > 0 && false)
-      {
-        for (int k = 1; k <= ms1_isotopes; k++)
-        {
-          OpenSwath::ChromatogramPtr s(new OpenSwath::Chromatogram);
-          output_chromatograms.push_back(s);
-          ChromatogramExtractor::ExtractionCoordinates coord_new = coord;
-          coord_new.id = OpenSwathHelper::computePrecursorId(pep->id, k);
-          coord_new.mz = coord.mz + k * Constants::C13C12_MASSDIFF_U;
-          coordinates.push_back(coord_new);
-        }
-      }
-
     }
 
     // sort result, use stable_sort to ensure that ordering is preserved 

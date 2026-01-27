@@ -23,6 +23,10 @@ namespace OpenMS
   double ConsensusIDAlgorithmAverage::getAggregateScore_(
     vector<double>& scores, bool /* higher_better */)
   {
+    if (scores.empty())
+    {
+      return 0.0;
+    }
     double sum_scores = accumulate(scores.begin(), scores.end(), 0.0);
     return sum_scores / scores.size();
   }

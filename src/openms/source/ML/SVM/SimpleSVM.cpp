@@ -496,6 +496,11 @@ void SimpleSVM::setup(PredictorMap& predictors, const map<Size, double>& outcome
   pimpl_->svm_params_.probability = 1;
 
   pimpl_->model_ = svm_train(&pimpl_->data_, &pimpl_->svm_params_);
+  if (pimpl_->model_ == nullptr)
+  {
+    throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                 "SVM training failed", "svm_train returned null");
+  }
   OPENMS_LOG_INFO << "Number of support vectors in the final model: " << pimpl_->model_->l
            << endl;
 }
