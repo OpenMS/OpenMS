@@ -164,8 +164,7 @@ CORE_CLASSES = {
     "MSSpectrum", "MSChromatogram",
     # Basic data types (DataValue has type caster, excluded)
     "DateTime",
-    # Basic algorithms (no complex parameters)
-    "Normalizer",
+    # Note: Normalizer excluded - filterSpectrum is a template method not compatible with Doxygen parsing
 }
 
 # Classes that inherit from std::vector (have size() method)
@@ -448,13 +447,13 @@ class NanobindEmitterV2:
             return None
 
         # Handle base classes - nanobind supports single inheritance
+        # Note: We can only specify base classes that are also bound to nanobind.
+        # Specifying an unbound base class causes a runtime error.
+        # For now, we skip specifying base classes since RangeManagerContainer,
+        # MetaInfoInterface etc. are not in CORE_CLASSES.
         base_spec = ""
-        if merged_class.base_classes:
-            # Filter to known OpenMS bases
-            openms_bases = [b for b in merged_class.base_classes if "OpenMS::" in b]
-            if openms_bases:
-                # Use first OpenMS base class
-                base_spec = f", {openms_bases[0]}"
+        # TODO: When we bind more classes, we can enable base class specification
+        # for bases that are actually bound. For now, skip to avoid runtime errors.
 
         # Start class definition
         lines.append(f'    nb::class_<{qualified_name}{base_spec}>(m, "{class_name}")')
@@ -910,7 +909,8 @@ class NanobindEmitterV2:
         result = re.sub(r'\bDPosition1\b', r'OpenMS::DPosition<1>', result)
 
         # Handle common nested type aliases (convert to actual types)
-        # These are typically typedefs in peak classes
+        # These are typically typedefs in peak classes like OpenMS::Peak1D::PositionType
+        # We need to match the full qualified form first, then unqualified
         nested_types = {
             'PositionType': 'double',           # DPosition<N> reduces to coordinate type
             'CoordinateType': 'double',
@@ -918,6 +918,9 @@ class NanobindEmitterV2:
             'MassType': 'double',
         }
         for nested, actual in nested_types.items():
+            # First, replace fully-qualified forms like OpenMS::Peak1D::PositionType -> double
+            result = re.sub(r'OpenMS::\w+::' + nested + r'\b', actual, result)
+            # Then replace any remaining unqualified forms
             result = re.sub(r'\b' + nested + r'\b', actual, result)
 
         # Handle enum types that need full qualification
@@ -956,6 +959,41 @@ class NanobindEmitterV2:
     def _escape_string(self, s: str) -> str:
         """Escape a string for use in C++ code."""
         return s.replace("\\", "\\\\").replace('"', '\\"').replace("\n", "\\n")
+
+    def _qualify_openms_types(self, type_str: str) -> str:
+        """Add OpenMS:: prefix to unqualified OpenMS types.
+
+        Handles both the main type and template parameters, e.g.:
+        RangeManagerContainer< RangeMZ, RangeIntensity >
+        -> OpenMS::RangeManagerContainer<OpenMS::RangeMZ, OpenMS::RangeIntensity>
+        """
+        import re
+
+        # OpenMS types that need qualification when unqualified
+        openms_types = {
+            # Range types
+            "RangeManagerContainer", "RangeManager",
+            "RangeMZ", "RangeRT", "RangeIntensity", "RangeMobility",
+            "RangeBase",
+            # Settings types
+            "SpectrumSettings", "ChromatogramSettings",
+            "ExperimentalSettings", "AcquisitionInfo",
+            # Data types
+            "MetaInfoInterface", "MetaInfo",
+            "Peak1D", "Peak2D", "ChromatogramPeak", "MobilityPeak1D",
+            "DefaultParamHandler",
+            # Other common types
+            "String", "DataValue", "ParamValue",
+        }
+
+        result = type_str
+        for t in openms_types:
+            # Match the type when not already qualified with OpenMS::
+            # Use word boundaries and negative lookbehind for ::
+            pattern = r'(?<![:\w])' + t + r'(?![:\w])'
+            result = re.sub(pattern, f'OpenMS::{t}', result)
+
+        return result
 
     def _write_module_file(
         self, output_path: Path, module_num: int, content: ModuleContent
