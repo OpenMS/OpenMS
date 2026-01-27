@@ -444,7 +444,21 @@ protected:
     }
     else if (name == "MRMMapping")
     {
-      return OpenMS::MRMMapping().getDefaults();
+      Param p;
+
+      p.setValue("precursor_tolerance", 0.9, "Precursor tolerance when mapping (in Th)");
+      p.setValue("product_tolerance", 1.2, "Product tolerance when mapping (in Th)");
+
+      p.setValue("irt_precursor_tolerance", 1.5, "Precursor tolerance when mapping iRT transitions (in Th)");
+      p.setValue("irt_product_tolerance", 1.5, "Product tolerance when mapping iRT transitions (in Th)");
+      
+      p.setValue("map_multiple_assays", "false", "Allow to map multiple assays to chromatograms and duplicate these chromatograms in the output.");
+      p.setValidStrings("map_multiple_assays", {"true","false"});
+      
+      p.setValue("error_on_unmapped", "false", "Treat remaining, unmapped chromatograms as an error");
+      p.setValidStrings("error_on_unmapped", {"true","false"});
+
+      return p;
     }
     else if (name == "Calibration:MassIMCorrection")
     {
@@ -893,7 +907,18 @@ protected:
     }
 
     // Extract MRMMapping-related options from the CLI subsection and pass them to the workflow
-    Param mrm_map_param = getParam_().copy("MRMMapping:", true);
+    Param tmp_mrm_map_param = getParam_().copy("MRMMapping:", true);
+    Param irt_mrm_map_param = OpenMS::MRMMapping().getDefaults();
+    irt_mrm_map_param.setValue("precursor_tolerance", tmp_mrm_map_param.getValue("irt_precursor_tolerance"));
+    irt_mrm_map_param.setValue("product_tolerance", tmp_mrm_map_param.getValue("irt_product_tolerance"));
+    irt_mrm_map_param.setValue("map_multiple_assays", tmp_mrm_map_param.getValue("map_multiple_assays"));
+    irt_mrm_map_param.setValue("error_on_unmapped", tmp_mrm_map_param.getValue("error_on_unmapped"));
+
+    Param mrm_map_param = OpenMS::MRMMapping().getDefaults();
+    mrm_map_param.setValue("precursor_tolerance", tmp_mrm_map_param.getValue("precursor_tolerance"));
+    mrm_map_param.setValue("product_tolerance", tmp_mrm_map_param.getValue("product_tolerance"));
+    mrm_map_param.setValue("map_multiple_assays", tmp_mrm_map_param.getValue("map_multiple_assays"));
+    mrm_map_param.setValue("error_on_unmapped", tmp_mrm_map_param.getValue("error_on_unmapped"));
 
     ///////////////////////////////////
     // Load the transitions
@@ -1201,6 +1226,7 @@ protected:
           cp_irt,
           irt_detection_param,
           calibration_param,
+          irt_mrm_map_param,
           debug_level,
           pasef,
           load_into_memory,
@@ -1279,6 +1305,7 @@ protected:
         auto calibration_result = performCalibration(trafo_in, lin_irt_exp, swath_maps,
                                           min_rsq, min_coverage, feature_finder_param,
                                           cp_irt, linear_irt, no_calibration,
+                                          irt_mrm_map_param,
                                           debug_level, pasef, load_into_memory,
                                           irt_trafo_out, irt_mzml_out);
         trafo_rtnorm = calibration_result.rt_trafo;
@@ -1299,7 +1326,7 @@ protected:
           chroms,
           trafo_rtnorm,
           cp_irt,
-          mrm_map_param,
+          irt_mrm_map_param,
           pasef,
           load_into_memory);
 

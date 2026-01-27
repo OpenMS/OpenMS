@@ -334,6 +334,7 @@ namespace OpenMS
                                                                              const ChromExtractParams& cp_irt,
                                                                              const Param& irt_detection_param,
                                                                              const Param& calibration_param,
+                                                                             const Param& mrm_mapping_param,
                                                                              Size debug_level,
                                                                              bool pasef,
                                                                              bool load_into_memory,
@@ -392,10 +393,8 @@ namespace OpenMS
       OpenSwathCalibrationWorkflow wf;
       wf.setLogType(log_type_);
       TransformationDescription im_trafo;
-      // Pass through any MRMMapping-related CLI parameters to the workflow
-      Param mrm_map_param = getParam_().copy("MRMMapping:", true);
       trafo_rtnorm = wf.performRTNormalization(irt_transitions, swath_maps, im_trafo, min_rsq, min_coverage, feature_finder_param, cp_irt,
-                      irt_detection_param, calibration_param, mrm_map_param, irt_mzml_out, debug_level, pasef, load_into_memory);
+                      irt_detection_param, calibration_param, mrm_mapping_param, irt_mzml_out, debug_level, pasef, load_into_memory);
       // Retrieve estimated mz and IM extraction windows
       auto_mz_w = wf.getEstimatedMzWindow();
       auto_im_w = wf.getEstimatedImWindow();

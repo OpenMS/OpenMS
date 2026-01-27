@@ -183,6 +183,7 @@ namespace OpenMS
      * @param[in] cp_irt Parameter set for the chromatogram extraction
      * @param[in] irt_detection_param Parameter set for the detection of the iRTs (outlier detection, peptides per bin etc)
      * @param[in] calibration_param Parameter for the m/z and im calibration (see SwathMapMassCorrection)
+     * @param[in] mrm_mapping_param Parameter for mapping chromatograms to transitions (MRMMapping)
      * @param[in] debug_level Debug level (writes out the RT normalization chromatograms if larger than 1)
      * @param[in] pasef whether the data is PASEF data with possible overlapping m/z windows (with different ion mobility). In this case, the "best" SWATH window (with precursor centered around IM) is chosen.
      * @param[in] load_into_memory Whether to cache the current SWATH map in memory
@@ -207,6 +208,7 @@ namespace OpenMS
                                          const ChromExtractParams& cp_irt,
                                          const Param& irt_detection_param,
                                          const Param& calibration_param,
+                                         const Param& mrm_mapping_param,
                                          Size debug_level,
                                          bool pasef,
                                          bool load_into_memory,
