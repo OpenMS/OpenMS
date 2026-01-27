@@ -17,6 +17,7 @@ from .nanobind_emitter_v2 import NanobindEmitterV2
 from .type_registry import TypeRegistry
 from .addon_processor import AddonProcessor
 from .cpp_parser import pxd_to_merged
+from .doxygen_parser import DoxygenXMLParser, merge_doxygen_with_pxd
 
 # Check if libclang is available
 try:
@@ -99,6 +100,12 @@ def parse_args(args: Optional[List[str]] = None) -> argparse.Namespace:
     )
 
     parser.add_argument(
+        "--libclang-cache-dir",
+        type=Path,
+        help="Directory to cache libclang parse results (speeds up subsequent runs)",
+    )
+
+    parser.add_argument(
         "--core-only",
         action="store_true",
         default=True,
@@ -109,6 +116,18 @@ def parse_args(args: Optional[List[str]] = None) -> argparse.Namespace:
         "--all-classes",
         action="store_true",
         help="Attempt to bind all classes (may have compile errors)",
+    )
+
+    parser.add_argument(
+        "--use-doxygen",
+        action="store_true",
+        help="Use Doxygen XML for accurate C++ type information",
+    )
+
+    parser.add_argument(
+        "--doxygen-xml-dir",
+        type=Path,
+        help="Directory containing Doxygen XML output (required with --use-doxygen)",
     )
 
     return parser.parse_args(args)
@@ -200,8 +219,32 @@ def main(args: Optional[List[str]] = None) -> int:
         logger.info("Dry run - not generating output")
         return 0
 
+    # Check if Doxygen mode is requested
+    if opts.use_doxygen:
+        if not opts.doxygen_xml_dir:
+            logger.error("--doxygen-xml-dir required when using --use-doxygen")
+            return 1
+
+        if not opts.doxygen_xml_dir.exists():
+            logger.error(f"Doxygen XML directory does not exist: {opts.doxygen_xml_dir}")
+            return 1
+
+        logger.info("Using Doxygen XML for accurate C++ type information")
+        logger.info(f"  Doxygen XML directory: {opts.doxygen_xml_dir}")
+
+        # Parse Doxygen XML
+        logger.info("Parsing Doxygen XML files...")
+        doxy_parser = DoxygenXMLParser(opts.doxygen_xml_dir)
+        doxy_classes = doxy_parser.parse_all()
+        logger.info(f"Parsed {len(doxy_classes)} classes from Doxygen XML")
+
+        # Merge with .pxd allowlist
+        logger.info("Merging Doxygen info with .pxd allowlist...")
+        merged_classes = merge_doxygen_with_pxd(doxy_classes, classes)
+        logger.info(f"Merged {len(merged_classes)} classes")
+
     # Check if libclang mode is requested
-    if opts.use_libclang:
+    elif opts.use_libclang:
         if not CLANG_AVAILABLE:
             logger.error("--use-libclang requested but libclang is not available")
             logger.error("Install with: pip install clang==14.0")
@@ -213,10 +256,15 @@ def main(args: Optional[List[str]] = None) -> int:
 
         logger.info("Using libclang for accurate C++ type information")
         logger.info(f"  Include directories: {opts.openms_include_dir}")
+        if opts.libclang_cache_dir:
+            logger.info(f"  Cache directory: {opts.libclang_cache_dir}")
 
         # Parse C++ headers
         logger.info("Parsing C++ headers with libclang...")
-        cpp_parser = CppHeaderParser(include_paths=opts.openms_include_dir)
+        cpp_parser = CppHeaderParser(
+            include_paths=opts.openms_include_dir,
+            cache_dir=opts.libclang_cache_dir,
+        )
         cpp_classes = {}
 
         # Build mapping from class name to header file

@@ -3,12 +3,17 @@ C++ header parser using libclang.
 
 This module provides accurate C++ type information by parsing headers
 directly, avoiding the limitations of .pxd file parsing.
+
+Supports caching parsed results to JSON for faster subsequent runs.
 """
 
+import json
+import hashlib
 import logging
-from dataclasses import dataclass, field
+import os
+from dataclasses import dataclass, field, asdict
 from pathlib import Path
-from typing import Dict, List, Optional, Set
+from typing import Dict, List, Optional, Set, Any
 
 logger = logging.getLogger(__name__)
 
@@ -67,6 +72,15 @@ class CppParameter:
     is_pointer: bool = False
     default_value: Optional[str] = None
 
+    def to_dict(self) -> Dict[str, Any]:
+        """Serialize to dictionary for JSON caching."""
+        return asdict(self)
+
+    @classmethod
+    def from_dict(cls, d: Dict[str, Any]) -> "CppParameter":
+        """Deserialize from dictionary."""
+        return cls(**d)
+
 
 @dataclass
 class CppMethod:
@@ -81,6 +95,19 @@ class CppMethod:
     is_constructor: bool = False
     is_destructor: bool = False
     access: str = "public"  # public, protected, private
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Serialize to dictionary for JSON caching."""
+        d = asdict(self)
+        d['parameters'] = [p.to_dict() if hasattr(p, 'to_dict') else p for p in self.parameters]
+        return d
+
+    @classmethod
+    def from_dict(cls, d: Dict[str, Any]) -> "CppMethod":
+        """Deserialize from dictionary."""
+        d = d.copy()
+        d['parameters'] = [CppParameter.from_dict(p) if isinstance(p, dict) else p for p in d.get('parameters', [])]
+        return cls(**d)
 
 
 @dataclass
@@ -97,6 +124,39 @@ class CppClass:
     is_template: bool = False
     template_params: List[str] = field(default_factory=list)
     doc: str = ""
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Serialize to dictionary for JSON caching."""
+        return {
+            'name': self.name,
+            'qualified_name': self.qualified_name,
+            'namespace': self.namespace,
+            'header_file': self.header_file,
+            'base_classes': self.base_classes,
+            'methods': [m.to_dict() for m in self.methods],
+            'constructors': [c.to_dict() for c in self.constructors],
+            'is_abstract': self.is_abstract,
+            'is_template': self.is_template,
+            'template_params': self.template_params,
+            'doc': self.doc,
+        }
+
+    @classmethod
+    def from_dict(cls, d: Dict[str, Any]) -> "CppClass":
+        """Deserialize from dictionary."""
+        return cls(
+            name=d['name'],
+            qualified_name=d['qualified_name'],
+            namespace=d['namespace'],
+            header_file=d['header_file'],
+            base_classes=d.get('base_classes', []),
+            methods=[CppMethod.from_dict(m) for m in d.get('methods', [])],
+            constructors=[CppMethod.from_dict(c) for c in d.get('constructors', [])],
+            is_abstract=d.get('is_abstract', False),
+            is_template=d.get('is_template', False),
+            template_params=d.get('template_params', []),
+            doc=d.get('doc', ''),
+        )
 
     def find_method(self, name: str, param_count: Optional[int] = None) -> Optional[CppMethod]:
         """
@@ -136,9 +196,19 @@ class CppClass:
 class CppHeaderParser:
     """
     Parse C++ headers using libclang to extract accurate type information.
+
+    Supports caching parsed results to JSON for faster subsequent runs.
     """
 
-    def __init__(self, include_paths: List[Path] = None, compiler_args: List[str] = None):
+    # Cache format version - bump this when dataclass structure changes
+    CACHE_VERSION = 2  # Bumped for C++20 support
+
+    def __init__(
+        self,
+        include_paths: List[Path] = None,
+        compiler_args: List[str] = None,
+        cache_dir: Optional[Path] = None,
+    ):
         """
         Initialize the parser.
 
@@ -148,19 +218,89 @@ class CppHeaderParser:
             Additional include directories for header resolution.
         compiler_args : list of str
             Additional compiler arguments (e.g., -std=c++17).
+        cache_dir : Path, optional
+            Directory to store cached parse results. If None, caching is disabled.
         """
         if not CLANG_AVAILABLE:
             raise RuntimeError("clang Python bindings not available")
 
         self.index = Index.create()
         self.include_paths = include_paths or []
-        self.compiler_args = compiler_args or ["-std=c++17", "-x", "c++"]
+        self.compiler_args = compiler_args or ["-std=c++20", "-x", "c++"]
+        self.cache_dir = Path(cache_dir) if cache_dir else None
 
         # Build include path arguments
         for path in self.include_paths:
             self.compiler_args.append(f"-I{path}")
 
         self._classes: Dict[str, CppClass] = {}
+
+        # Create cache directory if specified
+        if self.cache_dir:
+            self.cache_dir.mkdir(parents=True, exist_ok=True)
+            logger.info(f"libclang cache directory: {self.cache_dir}")
+
+    def _get_cache_key(self, header_path: Path) -> str:
+        """Generate a cache key for a header file based on path and mtime."""
+        path_str = str(header_path.resolve())
+        mtime = header_path.stat().st_mtime
+        # Include compiler args in key for reproducibility
+        args_str = "|".join(sorted(self.compiler_args))
+        key_data = f"{path_str}|{mtime}|{args_str}|v{self.CACHE_VERSION}"
+        return hashlib.md5(key_data.encode()).hexdigest()
+
+    def _get_cache_path(self, header_path: Path) -> Path:
+        """Get the cache file path for a header."""
+        cache_key = self._get_cache_key(header_path)
+        return self.cache_dir / f"{cache_key}.json"
+
+    def _load_from_cache(self, header_path: Path) -> Optional[Dict[str, CppClass]]:
+        """Load parsed classes from cache if valid."""
+        if not self.cache_dir:
+            return None
+
+        cache_path = self._get_cache_path(header_path)
+        if not cache_path.exists():
+            return None
+
+        try:
+            with open(cache_path, 'r') as f:
+                data = json.load(f)
+
+            # Validate cache version
+            if data.get('version') != self.CACHE_VERSION:
+                logger.debug(f"Cache version mismatch for {header_path}")
+                return None
+
+            # Deserialize classes
+            classes = {}
+            for name, class_dict in data.get('classes', {}).items():
+                classes[name] = CppClass.from_dict(class_dict)
+
+            logger.debug(f"Loaded {len(classes)} classes from cache for {header_path.name}")
+            return classes
+
+        except (json.JSONDecodeError, KeyError, TypeError) as e:
+            logger.debug(f"Cache load failed for {header_path}: {e}")
+            return None
+
+    def _save_to_cache(self, header_path: Path, classes: Dict[str, CppClass]):
+        """Save parsed classes to cache."""
+        if not self.cache_dir:
+            return
+
+        cache_path = self._get_cache_path(header_path)
+        try:
+            data = {
+                'version': self.CACHE_VERSION,
+                'header': str(header_path),
+                'classes': {name: cls.to_dict() for name, cls in classes.items()},
+            }
+            with open(cache_path, 'w') as f:
+                json.dump(data, f, indent=2)
+            logger.debug(f"Saved {len(classes)} classes to cache for {header_path.name}")
+        except Exception as e:
+            logger.warning(f"Failed to save cache for {header_path}: {e}")
 
     def parse_header(self, header_path: Path) -> Dict[str, CppClass]:
         """
@@ -176,7 +316,15 @@ class CppHeaderParser:
         dict
             Dictionary mapping class names to CppClass objects.
         """
-        logger.debug(f"Parsing {header_path}")
+        header_path = Path(header_path)
+
+        # Try loading from cache first
+        cached = self._load_from_cache(header_path)
+        if cached is not None:
+            self._classes.update(cached)
+            return self._classes
+
+        logger.debug(f"Parsing {header_path} with libclang")
 
         tu = self.index.parse(
             str(header_path),
@@ -189,8 +337,18 @@ class CppHeaderParser:
             if diag.severity >= 3:  # Error or fatal
                 logger.warning(f"Parse error in {header_path}: {diag.spelling}")
 
+        # Track classes parsed from this header
+        classes_before = set(self._classes.keys())
+
         # Walk the AST
         self._walk_cursor(tu.cursor, str(header_path))
+
+        # Find newly parsed classes
+        new_classes = {k: v for k, v in self._classes.items() if k not in classes_before}
+
+        # Save to cache
+        if new_classes:
+            self._save_to_cache(header_path, new_classes)
 
         return self._classes
 
@@ -208,13 +366,34 @@ class CppHeaderParser:
         dict
             Dictionary mapping class names to CppClass objects.
         """
+        cache_hits = 0
+        cache_misses = 0
+
         for path in header_paths:
             try:
+                # Check if this would be a cache hit
+                if self.cache_dir:
+                    cache_path = self._get_cache_path(path)
+                    if cache_path.exists():
+                        cache_hits += 1
+                    else:
+                        cache_misses += 1
+
                 self.parse_header(path)
             except Exception as e:
                 logger.warning(f"Failed to parse {path}: {e}")
 
+        if self.cache_dir:
+            logger.info(f"libclang cache: {cache_hits} hits, {cache_misses} misses")
+
         return self._classes
+
+    def clear_cache(self):
+        """Clear all cached parse results."""
+        if self.cache_dir and self.cache_dir.exists():
+            for cache_file in self.cache_dir.glob("*.json"):
+                cache_file.unlink()
+            logger.info("Cleared libclang cache")
 
     def _walk_cursor(self, cursor, source_file: str, namespace: str = ""):
         """Recursively walk the AST cursor."""
