@@ -95,6 +95,7 @@ protected:
      *  @param[in] use_ms1_ion_mobility Use ion mobility extraction on MS1 traces?
      *  @param[out] prm Is data acquired in targeted DIA (e.g. PRM mode) with potentially overlapping windows?
      *  @param[in] pasef Is this diaPASEF data?
+     *  @param[in] srm Is this SRM data?
      *  @param[in] threads_outer_loop How many threads should be used for the outer
      *  loop (-1 will use all threads in the outer loop)
      *
@@ -266,6 +267,7 @@ protected:
      * @param[in] cp_irt Parameter set for the chromatogram extraction
      * @param[in] irt_detection_param Parameter set for the detection of the iRTs (outlier detection, peptides per bin etc)
      * @param[in] calibration_param Parameter for the m/z and im calibration (see SwathMapMassCorrection)
+     * @param[in] mrm_mapping_param Parameter for mapping chromatograms to transitions (MRMMapping)
      * @param[in] debug_level Debug level (writes out the RT normalization chromatograms if larger than 1)
      * @param[out] irt_mzml_out Output Chromatogram mzML containing the iRT peptides (if not empty,
      *        iRT chromatograms will be stored in this file)
@@ -340,6 +342,7 @@ protected:
      * @param[in] chromatograms The extracted chromatograms (output)
      * @param[in] trafo Transformation description for RT normalization
      * @param[in] cp Parameter set for the chromatogram extraction
+     * @param[in] mrm_mapping_param Parameter for mapping chromatograms to transitions (MRMMapping)
      * @param[in] load_into_memory Whether to cache the current SWATH map in memory
      * @param[in] pasef whether the data is PASEF data with possible overlapping m/z windows (with different ion mobility)
      *
@@ -435,6 +438,7 @@ protected:
      *  @param[in] use_ms1_ion_mobility Whether to use ion mobility extraction on MS1 traces
      *  @param[out] prm Whether data is acquired in targeted DIA (e.g. PRM mode) with potentially overlapping windows
      *  @param[in] pasef Is this diaPASEF data?
+     *  @param[in] srm Is this SRM data?
      *  @param[in] threads_outer_loop How many threads should be used for the outer
      *  loop (-1 will use all threads in the outer loop)
      *
@@ -466,6 +470,7 @@ protected:
      * @param[in] batchSize Size of the batches which should be extracted and scored
      * @param[in] ms1_isotopes Number of MS1 isotopes to extract (zero means only monoisotopic peak)
      * @param[in] load_into_memory Whether to cache the current SWATH map in memory
+     * @param[in] mrm_mapping_param Parameter for mapping chromatograms to transitions (MRMMapping)
      *
      * @note Speed and memory performance can be influenced by \p batchSize and
      * \p load_into_memory where larger batch sizes increase memory and
@@ -560,8 +565,7 @@ protected:
         FeatureMap& output,
         OpenSwathOSWWriter& osw_writer,
         int nr_ms1_isotopes = 0,
-        bool ms1only = false,
-        bool log_stats = true) const;
+        bool ms1only = false) const;
 
     /** @brief Select which compounds to analyze in the next batch (and copy to output)
      *

@@ -413,7 +413,7 @@ namespace OpenMS
 
       FeatureMap featureFile;
       scoreAllChromatograms_(filtered_chroms, std::vector<MSChromatogram>(), swath_maps, transition_exp,
-                            feature_finder_param, trafo, cp.rt_extraction_window, featureFile, osw_writer, ms1_isotopes, false, srm_);
+                            feature_finder_param, trafo, cp.rt_extraction_window, featureFile, osw_writer, ms1_isotopes, false);
 
       std::vector<MSChromatogram> empty_ms1_chromatograms;
 
@@ -454,7 +454,7 @@ namespace OpenMS
       const OpenSwath::LightTargetedExperiment& transition_exp_used = transition_exp;
       scoreAllChromatograms_(std::vector<MSChromatogram>(), ms1_chromatograms, swath_maps, transition_exp_used,
                             feature_finder_param, trafo,
-                            cp.rt_extraction_window, featureFile, osw_writer, ms1_isotopes, true, !srm_);
+                            cp.rt_extraction_window, featureFile, osw_writer, ms1_isotopes, true);
 
       // write features to output if so desired
       std::vector< OpenMS::MSChromatogram > chromatograms;
@@ -725,7 +725,7 @@ namespace OpenMS
             std::vector< OpenSwath::SwathMap > tmp = {swath_maps[i]};
             tmp.back().sptr = current_swath_map_inner;
             scoreAllChromatograms_(chrom_exp.getChromatograms(), ms1_chromatograms, tmp, transition_exp_used,
-                feature_finder_param, trafo, cp.rt_extraction_window, featureFile, osw_writer, ms1_isotopes, false, !srm_);
+                feature_finder_param, trafo, cp.rt_extraction_window, featureFile, osw_writer, ms1_isotopes, false);
 
             // Step 4: write all chromatograms and features out into an output object / file
             // (this needs to be done in a critical section since we only have one
@@ -832,8 +832,7 @@ namespace OpenMS
     FeatureMap& output,
     OpenSwathOSWWriter & osw_writer,
     int nr_ms1_isotopes,
-    bool ms1only,
-    bool log_stats) const
+    bool ms1only) const
   {
     TransformationDescription trafo_inv = trafo;
     trafo_inv.invert();
