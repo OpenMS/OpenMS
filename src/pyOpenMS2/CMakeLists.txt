@@ -114,6 +114,10 @@ elseif(PYOPENMS2_USE_LIBCLANG)
     message(STATUS "pyOpenMS2: Using libclang for accurate C++ type parsing (with caching)")
 endif()
 
+# Collect .pxd and .pyx input files for dependency tracking
+file(GLOB PYOPENMS_PXD_FILES "${PYOPENMS_PXD_DIR}/*.pxd")
+file(GLOB PYOPENMS_ADDON_FILES "${PYOPENMS_ADDONS_DIR}/*.pyx")
+
 # Custom command to run the generator
 add_custom_command(
     OUTPUT ${PYGEN_SENTINEL} ${PYOPENMS2_GENERATED_SOURCES}
@@ -121,6 +125,7 @@ add_custom_command(
     COMMAND ${CMAKE_COMMAND} -E touch ${PYGEN_SENTINEL}
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     DEPENDS
+        # Generator implementation files
         ${PYOPENMS2_GENERATOR_DIR}/pxd_parser.py
         ${PYOPENMS2_GENERATOR_DIR}/nanobind_emitter.py
         ${PYOPENMS2_GENERATOR_DIR}/nanobind_emitter_v2.py
@@ -128,6 +133,9 @@ add_custom_command(
         ${PYOPENMS2_GENERATOR_DIR}/type_registry.py
         ${PYOPENMS2_GENERATOR_DIR}/addon_processor.py
         ${PYOPENMS2_GENERATOR_DIR}/__main__.py
+        # Input files - regenerate when these change
+        ${PYOPENMS_PXD_FILES}
+        ${PYOPENMS_ADDON_FILES}
     COMMENT "Generating nanobind bindings from .pxd files"
     VERBATIM
 )
