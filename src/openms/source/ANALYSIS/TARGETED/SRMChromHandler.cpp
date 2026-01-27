@@ -177,7 +177,7 @@ namespace OpenMS
           filtered_result.push_back(chrom);
         }
       }
-      OPENMS_LOG_DEBUG << "after filtering empty chromatograms, " << filtered_result.size() << " chromatograms remain." << std::endl;
+      OPENMS_LOG_INFO << "Mapped " << filtered_result.size() << " iRT chromatograms out of " << total_chroms << " total chromatograms." << std::endl;
       return filtered_result;
     }
     catch (const std::exception & e)
@@ -280,16 +280,15 @@ namespace OpenMS
       }
     }
     Size total = all_chroms.size();
-    OPENMS_LOG_DEBUG << "SRM: mapped and will process " << mapped_count << " chromatograms (from " << total << ")" << std::endl;
     if (mapped_count > 0)
     {
-      OPENMS_LOG_DEBUG << "SRMChromHandler: SRMHandler returned " << filtered.size() << " chromatograms." << std::endl;
+      OPENMS_LOG_INFO << "Mapped " << mapped_count << " chromatograms to transitions out of " << total << " total chromatograms." << std::endl;
       return filtered;
     }
     else
     {
-      OPENMS_LOG_DEBUG << "SRMChromHandler: No chromatograms were mapped." << std::endl;
-      return std::vector<MSChromatogram>();
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+              "There were no chromatograms mapped to the input transition list.");
     }
   }
 

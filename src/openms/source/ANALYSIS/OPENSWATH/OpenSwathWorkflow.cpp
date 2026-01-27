@@ -403,11 +403,11 @@ namespace OpenMS
     bool load_into_memory,
     const Param & mrm_mapping_param)
   {
-
     bool ms1_only = (swath_maps.size() == 1 && swath_maps[0].ms1);
 
     if (srm_)
     {
+      this->startProgress(0, 1, "Extraction and Scoring");
       std::unique_ptr<IChromatogramHandler> provider = IChromatogramHandler::createDefault();
       std::vector<MSChromatogram> filtered_chroms = provider->extractAndMapChromatogramsForTransitions(swath_maps, transition_exp, cp, mrm_mapping_param);
 
@@ -418,7 +418,7 @@ namespace OpenMS
       std::vector<MSChromatogram> empty_ms1_chromatograms;
 
       writeOutFeaturesAndChroms_(filtered_chroms, empty_ms1_chromatograms, featureFile, out_featureFile, store_features, chromConsumer);
-
+      this->endProgress();
       return;
     }
 
@@ -908,13 +908,6 @@ namespace OpenMS
     }
 
     std::vector<String> to_osw_output;
-    // Aggregated counters to avoid noisy per-transition warnings
-    size_t unmapped_transitions = 0;
-    size_t mapped_transitions = 0;
-    size_t assays_no_chrom = 0;
-    size_t assays_no_detecting_chrom = 0;
-    size_t assays_with_multi_chroms = 0;
-    size_t assays_processed = 0;
     ///////////////////////////////////
     // Start of main function
     // Iterating over all the assays
@@ -943,10 +936,17 @@ namespace OpenMS
 
         if (chromatogram_map.find(transition->getNativeID()) == chromatogram_map.end())
         {
-          OPENMS_LOG_DEBUG << "Did not find chromatogram for transition " << transition->getNativeID()
-                           << "; skipping this transition." << std::endl;
-          ++unmapped_transitions;
-          continue;
+          if (srm_) // in SRM mode, we can skip missing chromatograms, because it's unlikely that we will map all transitions to the already targeted extracted chromatograms
+          {
+            OPENMS_LOG_DEBUG << "Did not find chromatogram for transition " << transition->getNativeID()
+                             << "; skipping this transition." << std::endl;
+            continue;
+          }
+          else
+          {
+            throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                "Error, did not find chromatogram for transition " + transition->getNativeID() );
+          }
         }
 
         // Convert chromatogram to MSChromatogram and filter (properly handles DataArrays via select())
@@ -976,7 +976,6 @@ namespace OpenMS
         // Add the transition and the chromatogram to the MRMTransitionGroup
         transition_group.addTransition(*transition, transition->getNativeID());
         transition_group.addChromatogram(chromatogram, chromatogram.getNativeID());
-        ++mapped_transitions;
       }
 
       // currently  .osw and .featureXML are mutually exclusive
@@ -996,14 +995,10 @@ namespace OpenMS
       }
 
       // 3. / 4. Process the MRMTransitionGroup: find peakgroups and score them
-      // If there are no chromatograms added to this transition_group (e.g. all
-      // transitions were unmapped/skipped), skip processing to avoid range
-      // errors in the picker/feature finder.
+      // For SRM, If there are no chromatograms added to this transition_group (e.g. all transitions were unmapped/skipped), skip processing to avoid range errors in the picker/feature finder.
       if (transition_group.getChromatograms().empty() && transition_group.getPrecursorChromatograms().empty())
       {
-        // Count assays with no chromatograms and emit a debug message instead of many warnings
         OPENMS_LOG_DEBUG << "No chromatograms present for assay " << id << "; skipping scoring." << std::endl;
-        ++assays_no_chrom;
         continue;
       }
 
@@ -1031,9 +1026,17 @@ namespace OpenMS
       }
       if (!has_detecting_chrom)
       {
-        OPENMS_LOG_DEBUG << "No detecting chromatograms for assay " << id << "; skipping scoring." << std::endl;
-        ++assays_no_detecting_chrom;
-        continue;
+        if (srm_)
+        {
+          OPENMS_LOG_DEBUG << "No detecting chromatograms for assay " << id
+                           << "; skipping this assay." << std::endl;
+          continue;
+        }
+        else
+        {
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+              "Error, did not find any detecting chromatogram for assay " + id );
+        }
       }
 
       try
@@ -1083,10 +1086,6 @@ namespace OpenMS
               "Error, did not find any detection transition for feature " + id );
       }
 
-      // Track assays that passed processing
-      ++assays_processed;
-      if (transition_group.getChromatograms().size() > 1) ++assays_with_multi_chroms;
-
       // 5. Add to the output osw if given
       if (osw_writer.isActive() && !output.empty()) // implies that detection_assay_it was set
       {
@@ -1096,17 +1095,6 @@ namespace OpenMS
                                                        output,
                                                        id));
       }
-    }
-
-    if (log_stats)
-    {
-      OPENMS_LOG_INFO << "OpenSwathWorkflow: mapped_transitions=" << mapped_transitions
-              << ", unmapped_transitions=" << unmapped_transitions
-              << ", assays_processed=" << assays_processed
-              << ", assays_no_chrom=" << assays_no_chrom
-              << ", assays_no_detecting_chrom=" << assays_no_detecting_chrom
-              << ", assays_with_multiple_chroms=" << assays_with_multi_chroms
-              << std::endl;
     }
 
     // Only write at the very end since this is a step that needs a barrier
