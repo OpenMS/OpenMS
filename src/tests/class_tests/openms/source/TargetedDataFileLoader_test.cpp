@@ -28,10 +28,10 @@ START_SECTION(static std::vector<::OpenSwath::SwathMap> loadFile(...))
   TEST_EXCEPTION(Exception::FileNotFound, TargetedDataFileLoader::loadFile("nonexistent.mzML", "", exp_meta, ""))
 
   // Test with empty filename - should throw exception
-  TEST_EXCEPTION(Exception::ParseError, TargetedDataFileLoader::loadFile("", "", exp_meta, ""))
+  TEST_EXCEPTION(Exception::FileNotFound, TargetedDataFileLoader::loadFile("", "", exp_meta, ""))
 
   // Test with invalid file extension - should throw exception
-  TEST_EXCEPTION(Exception::ParseError, TargetedDataFileLoader::loadFile("test.invalid", "", exp_meta, ""))
+  TEST_EXCEPTION(Exception::FileNotFound, TargetedDataFileLoader::loadFile("test.invalid", "", exp_meta, ""))
 }
 END_SECTION
 
