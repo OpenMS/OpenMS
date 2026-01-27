@@ -223,7 +223,8 @@ public:
                 return PyFloat_FromDouble(static_cast<double>(src));
 
             case ValueType::STRING_VALUE: {
-                const OpenMS::String& s = static_cast<const OpenMS::String&>(src);
+                // Use toString() - DataValue has no operator String()
+                OpenMS::String s = src.toString();
                 return PyUnicode_FromStringAndSize(s.c_str(), s.size());
             }
 
