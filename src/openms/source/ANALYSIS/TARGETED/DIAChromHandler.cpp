@@ -34,6 +34,8 @@ std::vector<MSChromatogram> DIAChromHandler::collectIrtChromatogramsForIrt(
   bool pasef,
   bool load_into_memory)
 {
+  // mrm_mapping_param is not used in DIA iRT collection as extraction is done directly
+  (void)mrm_mapping_param;
   std::vector<MSChromatogram> chromatograms;
   TransformationDescription trafo_inverse = trafo;
   trafo_inverse.invert();
@@ -209,6 +211,8 @@ std::vector<MSChromatogram> DIAChromHandler::extractAndMapChromatogramsForTransi
   const ChromExtractParams & cp,
   const Param & mrm_mapping_param)
 {
+  // mrm_mapping_param is not used in DIA handler as ChromatogramExtractor assigns native IDs directly
+  (void)mrm_mapping_param;
   std::vector<MSChromatogram> collected;
   ChromatogramExtractor extractor;
 

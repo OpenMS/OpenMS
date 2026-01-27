@@ -197,6 +197,8 @@ namespace OpenMS
     const ChromExtractParams & cp,
     const Param & mrm_mapping_param)
   {
+    // cp parameter is not used in SRM handler as it works with pre-existing chromatograms
+    (void)cp;
     // Collect all chromatograms first and store original native ids as meta values
     std::vector<MSChromatogram> all_chroms;
     for (const auto & sm : swath_maps)
