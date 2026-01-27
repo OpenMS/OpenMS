@@ -6,6 +6,8 @@ from pyopenms cimport AASequence
 cdef extern from "<OpenMS/CHEMISTRY/SequenceCoverage.h>" namespace "OpenMS":
 
     cdef cppclass SequenceCoverage:
+        SequenceCoverage() except + nogil
+        SequenceCoverage(SequenceCoverage&) except + nogil
         # Compute the percentage sequence coverage of a protein by given peptides.
         @staticmethod
         double getCoverage(
