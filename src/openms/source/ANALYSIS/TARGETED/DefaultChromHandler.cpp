@@ -42,12 +42,28 @@ namespace OpenMS
     if (srm_mode)
     {
       OPENMS_LOG_DEBUG << "DefaultChromHandler: delegating iRT collection to SRM handler" << std::endl;
-      return srm_->collectIrtChromatogramsForIrt(swath_maps, irt_transitions, mrm_mapping_param, cp, trafo, pasef, load_into_memory);
+      try
+      {
+        return srm_->collectIrtChromatogramsForIrt(swath_maps, irt_transitions, mrm_mapping_param, cp, trafo, pasef, load_into_memory);
+      }
+      catch (const std::exception& e)
+      {
+        OPENMS_LOG_WARN << "DefaultChromHandler: SRM handler failed for iRT collection: " << e.what() << " - returning empty result" << std::endl;
+        return std::vector<MSChromatogram>();
+      }
     }
     else
     {
       OPENMS_LOG_DEBUG << "DefaultChromHandler: delegating iRT collection to DIA handler" << std::endl;
-      return dia_->collectIrtChromatogramsForIrt(swath_maps, irt_transitions, mrm_mapping_param, cp, trafo, pasef, load_into_memory);
+      try
+      {
+        return dia_->collectIrtChromatogramsForIrt(swath_maps, irt_transitions, mrm_mapping_param, cp, trafo, pasef, load_into_memory);
+      }
+      catch (const std::exception& e)
+      {
+        OPENMS_LOG_WARN << "DefaultChromHandler: DIA handler failed for iRT collection: " << e.what() << " - returning empty result" << std::endl;
+        return std::vector<MSChromatogram>();
+      }
     }
   }
 
@@ -70,12 +86,28 @@ namespace OpenMS
     if (srm_mode)
     {
       OPENMS_LOG_DEBUG << "DefaultChromHandler: delegating transition extraction to SRM handler" << std::endl;
-      return srm_->extractAndMapChromatogramsForTransitions(swath_maps, transition_exp, cp, mrm_mapping_param);
+      try
+      {
+        return srm_->extractAndMapChromatogramsForTransitions(swath_maps, transition_exp, cp, mrm_mapping_param);
+      }
+      catch (const std::exception& e)
+      {
+        OPENMS_LOG_WARN << "DefaultChromHandler: SRM handler failed for transition extraction: " << e.what() << " - returning empty result" << std::endl;
+        return std::vector<MSChromatogram>();
+      }
     }
     else
     {
       OPENMS_LOG_DEBUG << "DefaultChromHandler: delegating transition extraction to DIA handler" << std::endl;
-      return dia_->extractAndMapChromatogramsForTransitions(swath_maps, transition_exp, cp, mrm_mapping_param);
+      try
+      {
+        return dia_->extractAndMapChromatogramsForTransitions(swath_maps, transition_exp, cp, mrm_mapping_param);
+      }
+      catch (const std::exception& e)
+      {
+        OPENMS_LOG_WARN << "DefaultChromHandler: DIA handler failed for transition extraction: " << e.what() << " - returning empty result" << std::endl;
+        return std::vector<MSChromatogram>();
+      }
     }
   }
 

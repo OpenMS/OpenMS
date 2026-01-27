@@ -55,6 +55,10 @@ START_SECTION(std::vector<MSChromatogram> collectIrtChromatogramsForIrt(...))
   chrom.setNativeID("irt_chrom_1");
   chrom.getPrecursor().setMZ(500.0);
   chrom.getProduct().setMZ(550.0);
+  // Add some data points to make the chromatogram non-empty
+  chrom.push_back(ChromatogramPeak(100.0, 1000.0));
+  chrom.push_back(ChromatogramPeak(200.0, 2000.0));
+  chrom.push_back(ChromatogramPeak(300.0, 1500.0));
   exp->addChromatogram(chrom);
   auto mock_spectrum_access = std::make_shared<OpenMS::SpectrumAccessOpenMS>(exp);
   swath_map.sptr = mock_spectrum_access;
@@ -101,6 +105,10 @@ START_SECTION(std::vector<MSChromatogram> extractAndMapChromatogramsForTransitio
   chrom.setNativeID("transition_chrom_1");
   chrom.getPrecursor().setMZ(500.0);
   chrom.getProduct().setMZ(550.0);
+  // Add some data points to make the chromatogram non-empty
+  chrom.push_back(ChromatogramPeak(100.0, 1000.0));
+  chrom.push_back(ChromatogramPeak(200.0, 2000.0));
+  chrom.push_back(ChromatogramPeak(300.0, 1500.0));
   exp->addChromatogram(chrom);
   auto mock_spectrum_access = std::make_shared<OpenMS::SpectrumAccessOpenMS>(exp);
   swath_map.sptr = mock_spectrum_access;
@@ -279,6 +287,10 @@ START_SECTION(DefaultChromHandler_edge_case_multiple_swath_maps)
   chrom1.setNativeID("chrom_1");
   chrom1.getPrecursor().setMZ(500.0);
   chrom1.getProduct().setMZ(550.0);
+  // Add some data points to make the chromatogram non-empty
+  chrom1.push_back(ChromatogramPeak(100.0, 1000.0));
+  chrom1.push_back(ChromatogramPeak(200.0, 2000.0));
+  chrom1.push_back(ChromatogramPeak(300.0, 1500.0));
   exp1->addChromatogram(chrom1);
   auto mock_spectrum_access1 = std::make_shared<OpenMS::SpectrumAccessOpenMS>(exp1);
   swath_map1.sptr = mock_spectrum_access1;
@@ -295,6 +307,10 @@ START_SECTION(DefaultChromHandler_edge_case_multiple_swath_maps)
   chrom2.setNativeID("chrom_2");
   chrom2.getPrecursor().setMZ(700.0);
   chrom2.getProduct().setMZ(750.0);
+  // Add some data points to make the chromatogram non-empty
+  chrom2.push_back(ChromatogramPeak(150.0, 1200.0));
+  chrom2.push_back(ChromatogramPeak(250.0, 2200.0));
+  chrom2.push_back(ChromatogramPeak(350.0, 1700.0));
   exp2->addChromatogram(chrom2);
   auto mock_spectrum_access2 = std::make_shared<OpenMS::SpectrumAccessOpenMS>(exp2);
   swath_map2.sptr = mock_spectrum_access2;
@@ -360,6 +376,10 @@ START_SECTION(DefaultChromHandler_edge_case_invalid_parameters)
   chrom.setNativeID("transition_chrom_1");
   chrom.getPrecursor().setMZ(500.0);
   chrom.getProduct().setMZ(550.0);
+  // Add some data points to make the chromatogram non-empty
+  chrom.push_back(ChromatogramPeak(100.0, 1000.0));
+  chrom.push_back(ChromatogramPeak(200.0, 2000.0));
+  chrom.push_back(ChromatogramPeak(300.0, 1500.0));
   exp->addChromatogram(chrom);
   auto mock_spectrum_access = std::make_shared<OpenMS::SpectrumAccessOpenMS>(exp);
   swath_map.sptr = mock_spectrum_access;
@@ -437,6 +457,10 @@ START_SECTION(DefaultChromHandler_edge_case_mixed_ms1_ms2)
   chrom.setNativeID("transition_chrom_1");
   chrom.getPrecursor().setMZ(500.0);
   chrom.getProduct().setMZ(550.0);
+  // Add some data points to make the chromatogram non-empty
+  chrom.push_back(ChromatogramPeak(100.0, 1000.0));
+  chrom.push_back(ChromatogramPeak(200.0, 2000.0));
+  chrom.push_back(ChromatogramPeak(300.0, 1500.0));
   exp_ms2->addChromatogram(chrom);
   auto mock_spectrum_access_ms2 = std::make_shared<OpenMS::SpectrumAccessOpenMS>(exp_ms2);
   swath_map_ms2.sptr = mock_spectrum_access_ms2;
