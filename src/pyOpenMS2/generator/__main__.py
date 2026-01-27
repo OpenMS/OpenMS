@@ -13,10 +13,10 @@ from pathlib import Path
 from typing import List, Optional
 
 from .pxd_parser import PxdParser
-from .nanobind_emitter import NanobindEmitter
 from .nanobind_emitter_v2 import NanobindEmitterV2
 from .type_registry import TypeRegistry
 from .addon_processor import AddonProcessor
+from .cpp_parser import pxd_to_merged
 
 # Check if libclang is available
 try:
@@ -229,32 +229,24 @@ def main(args: Optional[List[str]] = None) -> int:
         logger.info("Merging C++ and .pxd information...")
         merged_classes = merge_with_pxd(cpp_classes, classes)
         logger.info(f"Merged {len(merged_classes)} classes")
-
-        # Generate with v2 emitter
-        logger.info("Generating nanobind C++ bindings (v2)...")
-        emitter = NanobindEmitterV2(num_modules=opts.num_modules)
-
-        try:
-            emitter.emit(merged_classes, opts.output_dir)
-        except Exception as e:
-            logger.error(f"Failed to generate bindings: {e}")
-            if opts.verbose:
-                import traceback
-                traceback.print_exc()
-            return 1
     else:
-        # Generate nanobind C++ code (legacy mode)
-        logger.info("Generating nanobind C++ bindings...")
-        emitter = NanobindEmitter(type_registry, num_modules=opts.num_modules)
+        # Convert .pxd classes to MergedClass format for v2 emitter
+        logger.info("Converting .pxd classes to merged format...")
+        merged_classes = pxd_to_merged(classes)
+        logger.info(f"Converted {len(merged_classes)} classes")
 
-        try:
-            emitter.emit(classes, addons, opts.output_dir)
-        except Exception as e:
-            logger.error(f"Failed to generate bindings: {e}")
-            if opts.verbose:
-                import traceback
-                traceback.print_exc()
-            return 1
+    # Generate with v2 emitter (always used now)
+    logger.info("Generating nanobind C++ bindings...")
+    emitter = NanobindEmitterV2(num_modules=opts.num_modules)
+
+    try:
+        emitter.emit(merged_classes, opts.output_dir)
+    except Exception as e:
+        logger.error(f"Failed to generate bindings: {e}")
+        if opts.verbose:
+            import traceback
+            traceback.print_exc()
+        return 1
 
     logger.info("Generation complete!")
     return 0

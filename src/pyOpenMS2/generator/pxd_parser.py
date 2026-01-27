@@ -30,6 +30,8 @@ class WrapDirective(Enum):
     MANUAL_MEMORY = auto()  # wrap-manual-memory: Custom memory management
     HASH = auto()  # wrap-hash: Hash function
     ITER = auto()  # wrap-iter: Iterator protocol
+    CONST = auto()  # wrap-const: Mark method as const (for nanobind)
+    STATIC = auto()  # wrap-static: Mark method as static (for nanobind)
 
 
 @dataclass
@@ -353,6 +355,15 @@ class PxdParser:
                     method.wrap_upper_limit = line_directives[WrapDirective.UPPER_LIMIT]
                 if WrapDirective.DOC in line_directives:
                     method.doc = line_directives[WrapDirective.DOC]
+                if WrapDirective.CONST in line_directives:
+                    method.is_const = True
+                if WrapDirective.STATIC in line_directives:
+                    method.is_static = True
+
+                # Infer const from method name patterns if not explicitly set
+                # and method takes no parameters or only const refs
+                if not method.is_const and not method.is_constructor and not method.is_static:
+                    method.is_const = self._infer_const(method)
 
                 if method.is_constructor:
                     class_decl.constructors.append(method)
@@ -581,6 +592,43 @@ class PxdParser:
             ))
 
         return result
+
+    def _infer_const(self, method: Method) -> bool:
+        """
+        Infer whether a method is const based on naming conventions.
+
+        Heuristics:
+        - Getters (get*, is*, has*, can*, should*, will*, empty, size, begin, end)
+        - Methods returning const ref/ptr typically const
+        - Methods taking no params (except self) and returning value typically const
+        """
+        name = method.name
+
+        # Common const getter patterns
+        const_prefixes = ('get', 'is', 'has', 'can', 'should', 'will', 'find', 'count')
+        const_names = ('empty', 'size', 'length', 'begin', 'end', 'cbegin', 'cend',
+                       'front', 'back', 'data', 'at', 'operator[]', 'min', 'max')
+
+        # Check for explicit non-const patterns
+        non_const_prefixes = ('set', 'add', 'remove', 'delete', 'clear', 'push', 'pop',
+                              'insert', 'erase', 'swap', 'resize', 'reserve', 'assign',
+                              'update', 'reset', 'sort', 'reverse', 'append', 'extend')
+
+        # Non-const names
+        if name.startswith(non_const_prefixes):
+            return False
+
+        # Const names
+        if name.startswith(const_prefixes):
+            return True
+        if name in const_names:
+            return True
+
+        # Methods with no parameters that return a value are often const
+        if len(method.parameters) == 0 and method.return_type != 'void':
+            return True
+
+        return False
 
     def _parse_wrap_directives(self, line: str) -> Dict[WrapDirective, str]:
         """Parse wrap- directives from a line."""
