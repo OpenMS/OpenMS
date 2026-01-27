@@ -16,7 +16,7 @@
 namespace OpenMS
 {
   /// Minimal SRM file loader returning a single SwathMap wrapping the chromatogram container
-  struct SRMFile
+  struct OPENMS_DLLAPI SRMFile
   {
     static std::vector<::OpenSwath::SwathMap> loadMzML(const String& file,
                                                     const String& tmp,

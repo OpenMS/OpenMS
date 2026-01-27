@@ -19,7 +19,7 @@ namespace OpenMS
 
   /// Small helper to encapsulate feature finding / scoring on chromatogram inputs.
   /// This isolates MRMFeatureFinderScoring setup used in RT normalization and elsewhere.
-  class ChromatogramProcessor
+  class OPENMS_DLLAPI ChromatogramProcessor
   {
   public:
     ChromatogramProcessor() = default;
