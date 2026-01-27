@@ -8,11 +8,60 @@ It uses accurate C++ type information from libclang for correct method signature
 from __future__ import annotations
 
 import hashlib
+import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, List, Optional, Set, Tuple
 
 from .cpp_parser import CppMethod, CppParameter, MergedClass, MergedMethod
+
+
+def scan_caster_files_for_types(caster_dir: Optional[Path] = None) -> Set[str]:
+    """Scan type caster header files to find types that have casters.
+
+    Types with casters should NOT be bound as classes since nanobind
+    will automatically convert them via the caster.
+
+    Returns a set of unqualified type names (e.g., 'String', 'DataValue').
+    """
+    if caster_dir is None:
+        # Default to the standard type_casters directory
+        caster_dir = Path(__file__).parent.parent / "bindings" / "type_casters"
+
+    casted_types = set()
+
+    if not caster_dir.exists():
+        return casted_types
+
+    # Pattern to match: struct type_caster<OpenMS::TypeName>
+    # or NB_TYPE_CASTER(OpenMS::TypeName, ...)
+    type_caster_pattern = re.compile(r'type_caster<OpenMS::(\w+)>')
+    nb_type_caster_pattern = re.compile(r'NB_TYPE_CASTER\(OpenMS::(\w+)')
+
+    for header_file in caster_dir.glob("*.h"):
+        try:
+            content = header_file.read_text()
+            # Find all type_caster<OpenMS::X> declarations
+            for match in type_caster_pattern.finditer(content):
+                casted_types.add(match.group(1))
+            # Find all NB_TYPE_CASTER(OpenMS::X, ...) declarations
+            for match in nb_type_caster_pattern.finditer(content):
+                casted_types.add(match.group(1))
+        except Exception:
+            pass  # Skip files that can't be read
+
+    return casted_types
+
+
+# Auto-detect types with casters - these should be skipped from class binding
+_CASTER_OWNED_TYPES: Optional[Set[str]] = None
+
+def get_caster_owned_types() -> Set[str]:
+    """Get types that have type casters (cached)."""
+    global _CASTER_OWNED_TYPES
+    if _CASTER_OWNED_TYPES is None:
+        _CASTER_OWNED_TYPES = scan_caster_files_for_types()
+    return _CASTER_OWNED_TYPES
 
 
 # Methods to skip for specific classes (complex return types or signature mismatches)
@@ -46,11 +95,11 @@ SKIP_METHODS = {
 
 # Classes to skip due to incomplete type dependencies or other issues
 # These will need manual handling or fixes in the C++ headers
+#
+# NOTE: Types with type casters (String, DataValue, ParamValue, DPosition) are
+# now AUTO-DETECTED by scanning bindings/type_casters/*.h and don't need to be
+# listed here. Use get_caster_owned_types() to get the auto-detected list.
 SKIP_CLASSES = {
-    # Type caster conflict - have casters for these so can't bind as class
-    "String",               # Has type caster (OpenMS::String <-> str)
-    "DataValue",            # Has type caster (OpenMS::DataValue <-> Python types)
-
     # Incomplete type issues
     "MassExplainer",        # References Compomer which is forward-declared
     "ILPDCWrapper",         # Complex ILP dependencies
@@ -142,14 +191,18 @@ ADDITIONAL_INCLUDES = {
     "ConsensusMap": ["<OpenMS/KERNEL/ConsensusFeature.h>"],
 }
 
-# Classes that need special __len__ support (container-like)
+# FALLBACK: Classes that need special __len__ support (container-like)
+# NOTE: When libclang is used, this is detected automatically via size() method.
+# TODO: Remove once all modes use AST-based detection
 CONTAINER_CLASSES = {
     "MSSpectrum", "MSChromatogram", "MSExperiment", "FeatureMap",
     "ConsensusMap", "PeakMap", "Mobilogram",
     "FloatDataArray", "IntegerDataArray", "StringDataArray",
 }
 
-# Classes that need iterator support
+# FALLBACK: Classes that need iterator support
+# NOTE: When libclang is used, this is detected automatically via begin()/end() methods.
+# TODO: Remove once all modes use AST-based detection
 ITERABLE_CLASSES = {
     "MSSpectrum", "MSChromatogram", "MSExperiment", "FeatureMap",
     "ConsensusMap", "PeakMap", "Mobilogram", "AASequence",
@@ -167,7 +220,10 @@ CORE_CLASSES = {
     # Note: Normalizer excluded - filterSpectrum is a template method not compatible with Doxygen parsing
 }
 
-# Classes that inherit from std::vector (have size() method)
+# FALLBACK: Classes that inherit from std::vector
+# NOTE: When libclang is used, this is detected automatically via canonical base classes.
+# The element type is also extracted from std::vector<T> inheritance.
+# TODO: Remove once all modes use AST-based detection
 VECTOR_BASED_CLASSES = {
     "MSSpectrum", "MSChromatogram", "Mobilogram",
     "FloatDataArray", "IntegerDataArray", "StringDataArray",
@@ -381,8 +437,8 @@ class NanobindEmitterV2:
             if self.core_only and class_name not in CORE_CLASSES:
                 continue
 
-            # Skip problematic classes
-            if class_name in SKIP_CLASSES:
+            # Skip problematic classes and types with casters
+            if class_name in SKIP_CLASSES or class_name in get_caster_owned_types():
                 continue
 
             # Skip nested classes
@@ -434,8 +490,8 @@ class NanobindEmitterV2:
         if self.core_only and class_name not in CORE_CLASSES:
             return None
 
-        # Skip problematic classes
-        if class_name in SKIP_CLASSES:
+        # Skip problematic classes and types with casters
+        if class_name in SKIP_CLASSES or class_name in get_caster_owned_types():
             return None
 
         # Skip nested classes
@@ -482,23 +538,35 @@ class NanobindEmitterV2:
         if merged_class.wrap_hash:
             lines.append(f'        .def("__hash__", [](const {qualified_name}& self) {{ return std::hash<{qualified_name}>{{}}(self); }})')
 
-        # Add iterator support (from wrap-iter directive or known iterable classes)
-        if merged_class.wrap_iter or class_name in ITERABLE_CLASSES:
+        # Detect container/iterator traits from AST (with fallback to hardcoded lists)
+        has_iterator = (
+            merged_class.wrap_iter
+            or self._has_iterator_methods(merged_class)
+            or class_name in ITERABLE_CLASSES  # Fallback for non-libclang modes
+        )
+        has_size = (
+            self._has_size_method(merged_class)
+            or class_name in CONTAINER_CLASSES
+            or class_name in VECTOR_BASED_CLASSES
+        )
+        # Detect vector inheritance from canonical base classes
+        vector_elem_type = self._get_vector_element_type(merged_class)
+        is_vector_based = vector_elem_type is not None
+
+        # Add iterator support (detected from begin/end methods or wrap-iter directive)
+        if has_iterator:
             lines.append(f'        .def("__iter__", []({qualified_name}& self) {{ return nb::make_iterator<nb::rv_policy::reference_internal>(nb::handle(), "{class_name}_iter", self.begin(), self.end()); }})')
 
-        # Add __len__ for container classes
-        if class_name in CONTAINER_CLASSES or class_name in VECTOR_BASED_CLASSES:
+        # Add __len__ for container classes (detected from size() method)
+        if has_size:
             lines.append(f'        .def("__len__", []({qualified_name}& self) {{ return self.size(); }})')
 
-        # Add __getitem__ for vector-based classes
-        if class_name in VECTOR_BASED_CLASSES:
-            # Determine element type from class name
-            elem_type = self._get_element_type(class_name)
-            if elem_type:
-                lines.append(f'        .def("__getitem__", []({qualified_name}& self, size_t i) -> {elem_type}& {{ ')
-                lines.append(f'            if (i >= self.size()) throw nb::index_error();')
-                lines.append(f'            return self[i];')
-                lines.append(f'        }}, nb::rv_policy::reference_internal)')
+        # Add __getitem__ for vector-based classes (detected from std::vector inheritance)
+        if is_vector_based:
+            lines.append(f'        .def("__getitem__", []({qualified_name}& self, size_t i) -> {vector_elem_type}& {{ ')
+            lines.append(f'            if (i >= self.size()) throw nb::index_error();')
+            lines.append(f'            return self[i];')
+            lines.append(f'        }}, nb::rv_policy::reference_internal)')
 
         # Add special methods for this class (get_peaks, set_peaks, etc.)
         if class_name in SPECIAL_METHODS:
@@ -515,8 +583,59 @@ class NanobindEmitterV2:
 
         return "\n".join(lines)
 
+    def _has_method(self, merged_class: MergedClass, method_name: str) -> bool:
+        """Check if a class has a specific method by name."""
+        for m in merged_class.methods:
+            if m.cpp_method.name == method_name:
+                return True
+        return False
+
+    def _has_size_method(self, merged_class: MergedClass) -> bool:
+        """Check if a class has a size() method (container-like)."""
+        return self._has_method(merged_class, "size")
+
+    def _has_iterator_methods(self, merged_class: MergedClass) -> bool:
+        """Check if a class has begin() and end() methods (iterable)."""
+        return self._has_method(merged_class, "begin") and self._has_method(merged_class, "end")
+
+    def _get_vector_element_type(self, merged_class: MergedClass) -> Optional[str]:
+        """Detect if class inherits from std::vector and extract element type.
+
+        Parses canonical base classes looking for std::vector<T> pattern.
+        Returns the element type T if found, None otherwise.
+        """
+        import re
+
+        # Check canonical base classes for std::vector inheritance
+        canonical_bases = getattr(merged_class.cpp_class, 'canonical_base_classes', [])
+        for base in canonical_bases:
+            # Match std::vector<ElementType> or std::__1::vector<ElementType> (libc++)
+            match = re.match(r'std::(?:__\d+::)?vector<([^,>]+)', base)
+            if match:
+                elem_type = match.group(1).strip()
+                # Ensure OpenMS types are qualified
+                if not elem_type.startswith('OpenMS::') and not elem_type.startswith('std::'):
+                    if elem_type not in ('int', 'float', 'double', 'bool', 'char', 'size_t'):
+                        elem_type = f'OpenMS::{elem_type}'
+                return elem_type
+
+        # Fallback to hardcoded map for compatibility with non-libclang modes
+        return self._get_element_type_fallback(merged_class.name)
+
+    def _get_element_type_fallback(self, class_name: str) -> Optional[str]:
+        """Fallback element type map for non-libclang modes."""
+        element_types = {
+            "MSSpectrum": "OpenMS::Peak1D",
+            "MSChromatogram": "OpenMS::ChromatogramPeak",
+            "Mobilogram": "OpenMS::MobilityPeak1D",
+            "FloatDataArray": "float",
+            "IntegerDataArray": "OpenMS::Int",
+            "StringDataArray": "OpenMS::String",
+        }
+        return element_types.get(class_name)
+
     def _get_element_type(self, class_name: str) -> Optional[str]:
-        """Get the element type for a vector-based class."""
+        """Get the element type for a vector-based class (legacy method)."""
         element_types = {
             "MSSpectrum": "OpenMS::Peak1D",
             "MSChromatogram": "OpenMS::ChromatogramPeak",
@@ -599,7 +718,11 @@ class NanobindEmitterV2:
         if not ctor.parameters:
             return ".def(nb::init<>())"
 
-        param_types = [self._normalize_type(p.type_str) for p in ctor.parameters]
+        # Use canonical types from libclang when available
+        param_types = [
+            self._normalize_type(p.type_str, canonical_type=getattr(p, 'canonical_type', ''))
+            for p in ctor.parameters
+        ]
         types_str = ", ".join(param_types)
         return f".def(nb::init<{types_str}>())"
 
@@ -687,7 +810,11 @@ class NanobindEmitterV2:
         }
 
         for p in method.parameters:
-            ptype = self._normalize_type(p.type_str)
+            # Use canonical type from libclang when available (resolves typedefs)
+            ptype = self._normalize_type(
+                p.type_str,
+                canonical_type=getattr(p, 'canonical_type', ''),
+            )
             # Check if name is valid (not empty, not "arg*", not a C++ keyword)
             valid_name = (
                 p.name
@@ -732,8 +859,11 @@ class NanobindEmitterV2:
         self, method: CppMethod, qualified_name: str, method_name: str
     ) -> Optional[str]:
         """Generate binding for a static method."""
-        # Build parameter types
-        param_types = [self._normalize_type(p.type_str) for p in method.parameters]
+        # Build parameter types (use canonical types when available)
+        param_types = [
+            self._normalize_type(p.type_str, canonical_type=getattr(p, 'canonical_type', ''))
+            for p in method.parameters
+        ]
         params_str = ", ".join(param_types)
 
         method_ptr = f"&{qualified_name}::{method.name}"
@@ -757,20 +887,66 @@ class NanobindEmitterV2:
 
         return ""
 
-    def _normalize_type(self, type_str: str, preserve_reference: bool = False) -> str:
+    def _is_resolved_type(self, canonical_type: str, original_type: str) -> bool:
+        """Check if canonical type represents a resolved typedef.
+
+        Returns True if the canonical type differs meaningfully from the original,
+        indicating libclang resolved a typedef to its underlying type.
+
+        Used to detect cases like:
+        - Peak1D::IntensityType -> float
+        - Peak1D::PositionType -> OpenMS::DPosition<1>
+        - OpenMS::Int -> int
+        """
+        # Primitive types that libclang resolves to
+        primitives = {
+            'void', 'bool', 'char', 'short', 'int', 'long', 'long long',
+            'unsigned char', 'unsigned short', 'unsigned int', 'unsigned long',
+            'unsigned long long', 'float', 'double', 'long double',
+        }
+
+        # Check if canonical resolved to a primitive
+        canonical_clean = canonical_type.replace('const ', '').replace(' &', '').replace('&', '').strip()
+        if canonical_clean in primitives:
+            return True
+
+        # Check if the types differ (typedef was resolved)
+        original_clean = original_type.replace('const ', '').replace(' &', '').replace('&', '').strip()
+        if canonical_clean != original_clean:
+            # Only use canonical if it looks like a valid resolved type
+            # (not a template parameter or other incomplete type)
+            if '::' in canonical_clean or canonical_clean in primitives:
+                return True
+
+        return False
+
+    def _normalize_type(
+        self,
+        type_str: str,
+        preserve_reference: bool = False,
+        canonical_type: str = "",
+    ) -> str:
         """Normalize C++ type string for use in bindings.
 
         Parameters
         ----------
         type_str : str
-            The type string to normalize
+            The type string to normalize (original spelling)
         preserve_reference : bool
             If True, preserve reference qualifiers for return types in static_cast
+        canonical_type : str
+            Optional canonical type from libclang (typedefs resolved)
         """
         if not type_str:
             return "void"
 
-        result = type_str
+        # If we have a canonical type from libclang that looks resolved
+        # (i.e., it's a primitive or already fully qualified), use it directly
+        # for nested class typedefs like Peak1D::IntensityType -> float
+        if canonical_type and self._is_resolved_type(canonical_type, type_str):
+            result = canonical_type
+        else:
+            result = type_str
 
         # Convert Cython template syntax to C++: libcpp_vector[T] -> std::vector<T>
         import re
@@ -909,19 +1085,22 @@ class NanobindEmitterV2:
         result = re.sub(r'\bDPosition1\b', r'OpenMS::DPosition<1>', result)
 
         # Handle common nested type aliases (convert to actual types)
-        # These are typically typedefs in peak classes like OpenMS::Peak1D::PositionType
-        # We need to match the full qualified form first, then unqualified
-        nested_types = {
-            'PositionType': 'double',           # DPosition<N> reduces to coordinate type
-            'CoordinateType': 'double',
-            'IntensityType': 'float',           # Peak intensity is float in OpenMS
-            'MassType': 'double',
-        }
-        for nested, actual in nested_types.items():
-            # First, replace fully-qualified forms like OpenMS::Peak1D::PositionType -> double
-            result = re.sub(r'OpenMS::\w+::' + nested + r'\b', actual, result)
-            # Then replace any remaining unqualified forms
-            result = re.sub(r'\b' + nested + r'\b', actual, result)
+        # NOTE: When libclang is used with canonical types, these are already resolved
+        # (e.g., Peak1D::IntensityType -> float). This fallback is only needed for
+        # Doxygen mode or when canonical types aren't available.
+        # TODO: Remove this map once all modes use canonical types from libclang
+        if not canonical_type:
+            nested_types = {
+                'PositionType': 'double',           # DPosition<N> reduces to coordinate type
+                'CoordinateType': 'double',
+                'IntensityType': 'float',           # Peak intensity is float in OpenMS
+                'MassType': 'double',
+            }
+            for nested, actual in nested_types.items():
+                # First, replace fully-qualified forms like OpenMS::Peak1D::PositionType -> double
+                result = re.sub(r'OpenMS::\w+::' + nested + r'\b', actual, result)
+                # Then replace any remaining unqualified forms
+                result = re.sub(r'\b' + nested + r'\b', actual, result)
 
         # Handle enum types that need full qualification
         enum_types = {

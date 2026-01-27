@@ -66,7 +66,8 @@ except ImportError:
 class CppParameter:
     """A C++ function parameter."""
     name: str
-    type_str: str  # Full C++ type string
+    type_str: str  # Full C++ type string (original spelling)
+    canonical_type: str = ""  # Canonical type with typedefs resolved
     is_const: bool = False
     is_reference: bool = False
     is_pointer: bool = False
@@ -86,7 +87,8 @@ class CppParameter:
 class CppMethod:
     """A C++ class method."""
     name: str
-    return_type: str
+    return_type: str  # Original spelling
+    canonical_return_type: str = ""  # Canonical type with typedefs resolved
     parameters: List[CppParameter] = field(default_factory=list)
     is_const: bool = False
     is_static: bool = False
@@ -117,7 +119,8 @@ class CppClass:
     qualified_name: str  # Full namespace::class name
     namespace: str
     header_file: str
-    base_classes: List[str] = field(default_factory=list)
+    base_classes: List[str] = field(default_factory=list)  # Original spelling
+    canonical_base_classes: List[str] = field(default_factory=list)  # Canonical types
     methods: List[CppMethod] = field(default_factory=list)
     constructors: List[CppMethod] = field(default_factory=list)
     is_abstract: bool = False
@@ -133,6 +136,7 @@ class CppClass:
             'namespace': self.namespace,
             'header_file': self.header_file,
             'base_classes': self.base_classes,
+            'canonical_base_classes': self.canonical_base_classes,
             'methods': [m.to_dict() for m in self.methods],
             'constructors': [c.to_dict() for c in self.constructors],
             'is_abstract': self.is_abstract,
@@ -150,6 +154,7 @@ class CppClass:
             namespace=d['namespace'],
             header_file=d['header_file'],
             base_classes=d.get('base_classes', []),
+            canonical_base_classes=d.get('canonical_base_classes', []),
             methods=[CppMethod.from_dict(m) for m in d.get('methods', [])],
             constructors=[CppMethod.from_dict(c) for c in d.get('constructors', [])],
             is_abstract=d.get('is_abstract', False),
@@ -201,7 +206,7 @@ class CppHeaderParser:
     """
 
     # Cache format version - bump this when dataclass structure changes
-    CACHE_VERSION = 2  # Bumped for C++20 support
+    CACHE_VERSION = 3  # Bumped for canonical type fields
 
     def __init__(
         self,
@@ -428,11 +433,12 @@ class CppHeaderParser:
             header_file=source_file,
         )
 
-        # Get base classes
+        # Get base classes (both original and canonical spelling)
         for child in cursor.get_children():
             if child.kind == CursorKind.CXX_BASE_SPECIFIER:
-                base_type = child.type.spelling
-                cpp_class.base_classes.append(base_type)
+                base_type = child.type
+                cpp_class.base_classes.append(base_type.spelling)
+                cpp_class.canonical_base_classes.append(base_type.get_canonical().spelling)
 
         # Process members
         self._process_class_members(cursor, cpp_class)
@@ -469,10 +475,12 @@ class CppHeaderParser:
         # Process the actual class within the template
         for child in cursor.get_children():
             if child.kind in (CursorKind.CLASS_DECL, CursorKind.STRUCT_DECL):
-                # Get base classes
+                # Get base classes (both original and canonical)
                 for subchild in child.get_children():
                     if subchild.kind == CursorKind.CXX_BASE_SPECIFIER:
-                        cpp_class.base_classes.append(subchild.type.spelling)
+                        base_type = subchild.type
+                        cpp_class.base_classes.append(base_type.spelling)
+                        cpp_class.canonical_base_classes.append(base_type.get_canonical().spelling)
 
                 self._process_class_members(child, cpp_class)
                 break
@@ -515,9 +523,15 @@ class CppHeaderParser:
 
     def _process_method(self, cursor, is_constructor: bool = False) -> CppMethod:
         """Process a method declaration."""
+        result_type = cursor.result_type
+        return_type = result_type.spelling if not is_constructor else ""
+        # Get canonical type (resolves typedefs like Peak1D::IntensityType -> float)
+        canonical_return_type = result_type.get_canonical().spelling if not is_constructor else ""
+
         method = CppMethod(
             name=cursor.spelling,
-            return_type=cursor.result_type.spelling if not is_constructor else "",
+            return_type=return_type,
+            canonical_return_type=canonical_return_type,
             is_constructor=is_constructor,
             is_const=cursor.is_const_method(),
             is_static=cursor.is_static_method(),
@@ -537,10 +551,13 @@ class CppHeaderParser:
         """Process a parameter declaration."""
         param_type = cursor.type
         type_str = param_type.spelling
+        # Get canonical type (resolves typedefs)
+        canonical_type = param_type.get_canonical().spelling
 
         return CppParameter(
             name=cursor.spelling or f"arg{cursor.hash}",
             type_str=type_str,
+            canonical_type=canonical_type,
             is_const="const" in type_str,
             is_reference=param_type.kind == TypeKind.LVALUEREFERENCE,
             is_pointer=param_type.kind == TypeKind.POINTER,
