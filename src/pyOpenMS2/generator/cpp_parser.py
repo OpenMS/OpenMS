@@ -11,6 +11,7 @@ import json
 import hashlib
 import logging
 import os
+import tempfile
 from dataclasses import dataclass, field, asdict
 from pathlib import Path
 from typing import Dict, List, Optional, Set, Any
@@ -245,6 +246,11 @@ class CppHeaderParser:
             self.cache_dir.mkdir(parents=True, exist_ok=True)
             logger.info(f"libclang cache directory: {self.cache_dir}")
 
+    @staticmethod
+    def _normalize_filename(filename: str) -> str:
+        """Normalize a filename for stable comparisons across platforms."""
+        return os.path.normpath(filename)
+
     def _get_cache_key(self, header_path: Path) -> str:
         """Generate a cache key for a header file based on path and mtime."""
         path_str = str(header_path.resolve())
@@ -321,7 +327,7 @@ class CppHeaderParser:
         dict
             Dictionary mapping class names to CppClass objects.
         """
-        header_path = Path(header_path)
+        header_path = Path(header_path).resolve()
 
         # Try loading from cache first
         cached = self._load_from_cache(header_path)
@@ -342,22 +348,23 @@ class CppHeaderParser:
             if diag.severity >= 3:  # Error or fatal
                 logger.warning(f"Parse error in {header_path}: {diag.spelling}")
 
-        # Track classes parsed from this header
-        classes_before = set(self._classes.keys())
-
-        # Walk the AST
-        self._walk_cursor(tu.cursor, str(header_path))
-
-        # Find newly parsed classes
-        new_classes = {k: v for k, v in self._classes.items() if k not in classes_before}
-
-        # Save to cache
-        if new_classes:
-            self._save_to_cache(header_path, new_classes)
+        parsed_classes: Dict[str, CppClass] = {}
+        allowed_files = {self._normalize_filename(str(header_path))}
+        self._walk_cursor(tu.cursor, allowed_files, parsed_classes)
+        if parsed_classes:
+            self._classes.update(parsed_classes)
+            self._save_to_cache(header_path, parsed_classes)
 
         return self._classes
 
-    def parse_headers(self, header_paths: List[Path]) -> Dict[str, CppClass]:
+    def parse_headers(
+        self,
+        header_paths: List[Path],
+        *,
+        batch_mode: str = "auto",
+        batch_size: int = 50,
+        auto_batch_min_headers: int = 25,
+    ) -> Dict[str, CppClass]:
         """
         Parse multiple header files.
 
@@ -365,31 +372,138 @@ class CppHeaderParser:
         ----------
         header_paths : list of Path
             Paths to header files.
+        batch_mode : {"auto", "on", "off"}
+            Whether to batch-parse multiple headers per translation unit to avoid
+            repeatedly parsing common transitive includes.
+        batch_size : int
+            Number of headers per batch when batching is enabled.
+        auto_batch_min_headers : int
+            Minimum number of cache misses required to enable batching when
+            batch_mode is "auto".
 
         Returns
         -------
         dict
             Dictionary mapping class names to CppClass objects.
         """
+        batch_mode = (batch_mode or "auto").lower()
+        if batch_mode not in {"auto", "on", "off"}:
+            raise ValueError(f"Invalid batch_mode: {batch_mode!r} (expected 'auto', 'on', or 'off')")
+        if batch_size <= 0:
+            raise ValueError("batch_size must be > 0")
+        if auto_batch_min_headers <= 0:
+            raise ValueError("auto_batch_min_headers must be > 0")
+
+        # Deduplicate while preserving order
+        unique_headers: List[Path] = []
+        seen: Set[str] = set()
+        for path in header_paths:
+            p = Path(path).resolve()
+            key = self._normalize_filename(str(p))
+            if key in seen:
+                continue
+            unique_headers.append(p)
+            seen.add(key)
+
         cache_hits = 0
         cache_misses = 0
+        to_parse: List[Path] = []
 
-        for path in header_paths:
+        for path in unique_headers:
             try:
-                # Check if this would be a cache hit
-                if self.cache_dir:
-                    cache_path = self._get_cache_path(path)
-                    if cache_path.exists():
-                        cache_hits += 1
-                    else:
-                        cache_misses += 1
-
-                self.parse_header(path)
+                cached = self._load_from_cache(path)
+                if cached is not None:
+                    cache_hits += 1
+                    self._classes.update(cached)
+                else:
+                    cache_misses += 1
+                    to_parse.append(path)
             except Exception as e:
-                logger.warning(f"Failed to parse {path}: {e}")
+                logger.warning(f"Cache check failed for {path}: {e}")
+                cache_misses += 1
+                to_parse.append(path)
+
+        use_batch = False
+        if batch_mode == "on":
+            use_batch = True
+        elif batch_mode == "off":
+            use_batch = False
+        else:
+            use_batch = len(to_parse) >= auto_batch_min_headers
+
+        if use_batch and to_parse:
+            for i in range(0, len(to_parse), batch_size):
+                batch = to_parse[i:i + batch_size]
+                try:
+                    self._parse_headers_in_batch(batch)
+                except Exception as e:
+                    logger.warning(f"Failed to batch-parse {len(batch)} headers: {e}")
+                    # Fall back to individual parsing for this batch
+                    for path in batch:
+                        try:
+                            self.parse_header(path)
+                        except Exception as inner_e:
+                            logger.warning(f"Failed to parse {path}: {inner_e}")
+        else:
+            for path in to_parse:
+                try:
+                    self.parse_header(path)
+                except Exception as e:
+                    logger.warning(f"Failed to parse {path}: {e}")
 
         if self.cache_dir:
             logger.info(f"libclang cache: {cache_hits} hits, {cache_misses} misses")
+
+        return self._classes
+
+    def _parse_headers_in_batch(self, header_paths: List[Path]) -> Dict[str, CppClass]:
+        """
+        Parse a batch of headers in a single translation unit.
+
+        This avoids repeatedly parsing common transitive includes (e.g., STL),
+        which is a major bottleneck when parsing hundreds of headers one-by-one.
+        """
+        header_paths = [Path(p).resolve() for p in header_paths]
+        allowed_files = {self._normalize_filename(str(p)) for p in header_paths}
+
+        include_lines = "\n".join(f'#include "{p.as_posix()}"' for p in header_paths)
+        batch_source = (
+            "// Auto-generated by pyOpenMS2 CppHeaderParser for faster libclang parsing\n"
+            f"{include_lines}\n"
+        )
+
+        base_dir = self.cache_dir or Path(tempfile.gettempdir())
+        batch_path = str((base_dir / "__pyopenms2_libclang_batch.cpp").resolve())
+
+        tu = self.index.parse(
+            batch_path,
+            args=self.compiler_args,
+            unsaved_files=[(batch_path, batch_source)],
+            options=TranslationUnit.PARSE_SKIP_FUNCTION_BODIES,
+        )
+
+        # Check for errors
+        for diag in tu.diagnostics:
+            if diag.severity >= 3:  # Error or fatal
+                logger.warning(f"Parse error in batch: {diag.spelling}")
+
+        parsed_classes: Dict[str, CppClass] = {}
+        self._walk_cursor(tu.cursor, allowed_files, parsed_classes)
+        if not parsed_classes:
+            return self._classes
+
+        self._classes.update(parsed_classes)
+
+        # Save per-header caches
+        classes_by_header: Dict[str, Dict[str, CppClass]] = {}
+        for name, cls in parsed_classes.items():
+            classes_by_header.setdefault(cls.header_file, {})[name] = cls
+
+        for header_path in header_paths:
+            header_key = self._normalize_filename(str(header_path))
+            classes_for_header = classes_by_header.get(header_key)
+            if classes_for_header:
+                self._save_to_cache(header_path, classes_for_header)
 
         return self._classes
 
@@ -400,29 +514,44 @@ class CppHeaderParser:
                 cache_file.unlink()
             logger.info("Cleared libclang cache")
 
-    def _walk_cursor(self, cursor, source_file: str, namespace: str = ""):
-        """Recursively walk the AST cursor."""
+    def _walk_cursor(
+        self,
+        cursor,
+        allowed_files: Set[str],
+        out_classes: Dict[str, CppClass],
+        namespace: str = "",
+    ):
+        """Recursively walk the AST cursor, extracting declarations from allowed files."""
         for child in cursor.get_children():
-            # Only process nodes from our source file
-            if child.location.file and str(child.location.file) != source_file:
+            if not child.location.file:
+                continue
+
+            child_file = self._normalize_filename(str(child.location.file))
+            if child_file not in allowed_files:
                 continue
 
             if child.kind == CursorKind.NAMESPACE:
                 ns_name = child.spelling
                 new_namespace = f"{namespace}::{ns_name}" if namespace else ns_name
-                self._walk_cursor(child, source_file, new_namespace)
+                self._walk_cursor(child, allowed_files, out_classes, new_namespace)
 
             elif child.kind in (CursorKind.CLASS_DECL, CursorKind.STRUCT_DECL):
-                self._process_class(child, source_file, namespace)
+                cpp_class = self._process_class(child, namespace)
+                if cpp_class:
+                    out_classes[cpp_class.name] = cpp_class
 
             elif child.kind == CursorKind.CLASS_TEMPLATE:
-                self._process_class_template(child, source_file, namespace)
+                cpp_class = self._process_class_template(child, namespace)
+                if cpp_class:
+                    out_classes[cpp_class.name] = cpp_class
 
-    def _process_class(self, cursor, source_file: str, namespace: str):
+    def _process_class(self, cursor, namespace: str) -> Optional[CppClass]:
         """Process a class declaration."""
         class_name = cursor.spelling
         if not class_name:
-            return
+            return None
+        if not cursor.is_definition():
+            return None
 
         qualified_name = f"{namespace}::{class_name}" if namespace else class_name
 
@@ -430,7 +559,7 @@ class CppHeaderParser:
             name=class_name,
             qualified_name=qualified_name,
             namespace=namespace,
-            header_file=source_file,
+            header_file=self._normalize_filename(str(cursor.location.file)),
         )
 
         # Get base classes (both original and canonical spelling)
@@ -446,14 +575,16 @@ class CppHeaderParser:
         # Check if abstract (has any pure virtual methods)
         cpp_class.is_abstract = any(m.is_pure_virtual for m in cpp_class.methods)
 
-        self._classes[class_name] = cpp_class
         logger.debug(f"Parsed class: {qualified_name} ({len(cpp_class.methods)} methods)")
+        return cpp_class
 
-    def _process_class_template(self, cursor, source_file: str, namespace: str):
+    def _process_class_template(self, cursor, namespace: str) -> Optional[CppClass]:
         """Process a class template declaration."""
         class_name = cursor.spelling
         if not class_name:
-            return
+            return None
+        if not cursor.is_definition():
+            return None
 
         qualified_name = f"{namespace}::{class_name}" if namespace else class_name
 
@@ -461,7 +592,7 @@ class CppHeaderParser:
             name=class_name,
             qualified_name=qualified_name,
             namespace=namespace,
-            header_file=source_file,
+            header_file=self._normalize_filename(str(cursor.location.file)),
             is_template=True,
         )
 
@@ -486,7 +617,7 @@ class CppHeaderParser:
                 break
 
         cpp_class.is_abstract = any(m.is_pure_virtual for m in cpp_class.methods)
-        self._classes[class_name] = cpp_class
+        return cpp_class
 
     def _process_class_members(self, cursor, cpp_class: CppClass):
         """Process class members (methods, constructors)."""
@@ -609,6 +740,101 @@ class MergedClass:
         return self.cpp_class.is_abstract
 
 
+def _create_fallback_merged_class(class_name: str, pxd_class: "ClassDecl") -> Optional[MergedClass]:
+    """
+    Create a MergedClass from .pxd info alone (fallback for when libclang fails).
+
+    This creates a minimal binding using only .pxd declarations. Methods will
+    need to be added via SPECIAL_METHODS in the emitter.
+    """
+    # Create a minimal CppClass from .pxd info
+    cpp_class = CppClass(
+        name=class_name,
+        qualified_name=f"{pxd_class.namespace}::{class_name}",
+        namespace=pxd_class.namespace,
+        header_file=pxd_class.header_file.strip("<>") if pxd_class.header_file else "",
+        base_classes=pxd_class.base_classes,
+        is_abstract=pxd_class.is_abstract,
+        is_template=bool(pxd_class.template_args),
+        template_params=pxd_class.template_args,
+        doc=pxd_class.doc,
+    )
+
+    # Convert .pxd methods to CppMethod and MergedMethod
+    # Note: Type info from .pxd is less accurate, but we use it as best effort
+    merged_methods = []
+    for pxd_m in pxd_class.methods:
+        # Skip ignored methods
+        if pxd_m.wrap_ignore:
+            continue
+        # Create basic CppMethod from .pxd
+        cpp_method = CppMethod(
+            name=pxd_m.name,
+            return_type=pxd_m.return_type or "void",
+            parameters=[
+                CppParameter(
+                    name=p.name or f"arg{i}",
+                    type_str=getattr(p, 'type_str', getattr(p, 'type', 'void')),
+                    default_value=getattr(p, 'default_value', getattr(p, 'default', None))
+                )
+                for i, p in enumerate(pxd_m.parameters)
+            ],
+            is_const=pxd_m.is_const,
+            is_static=pxd_m.is_static,
+            access="public",
+        )
+        merged_method = MergedMethod(
+            cpp_method=cpp_method,
+            wrap_as=pxd_m.wrap_as,
+            wrap_ignore=pxd_m.wrap_ignore,
+            doc=pxd_m.doc or "",
+        )
+        merged_methods.append(merged_method)
+
+    # Create constructors from pxd
+    constructors = []
+    for pxd_ctor in pxd_class.constructors:
+        cpp_ctor = CppMethod(
+            name=pxd_ctor.name,
+            return_type="",
+            parameters=[
+                CppParameter(
+                    name=p.name or f"arg{i}",
+                    type_str=p.type_str,
+                    canonical_type=p.type_str,
+                    is_const="const" in p.type_str,
+                    is_reference="&" in p.type_str,
+                    is_pointer="*" in p.type_str,
+                    default_value=p.default_value,
+                )
+                for i, p in enumerate(pxd_ctor.parameters)
+            ],
+            access="public",
+            is_constructor=True,
+        )
+        constructors.append(cpp_ctor)
+
+    # Add default constructor if no constructors declared but the class looks instantiable
+    if not constructors and not pxd_class.is_abstract:
+        constructors.append(CppMethod(
+            name=class_name,
+            return_type="",
+            parameters=[],
+            access="public",
+            is_constructor=True,
+        ))
+
+    return MergedClass(
+        cpp_class=cpp_class,
+        methods=merged_methods,
+        constructors=constructors,
+        wrap_hash=getattr(pxd_class, 'wrap_hash', False),
+        wrap_iter=getattr(pxd_class, 'wrap_iter', None),
+        wrap_manual_memory=getattr(pxd_class, 'wrap_manual_memory', False),
+        doc=getattr(pxd_class, 'doc', ''),
+    )
+
+
 def merge_with_pxd(
     cpp_classes: Dict[str, CppClass],
     pxd_classes: Dict[str, "ClassDecl"],  # From pxd_parser
@@ -633,8 +859,24 @@ def merge_with_pxd(
     """
     merged = {}
 
+    # Classes that should fall back to .pxd info when libclang can't parse them
+    # (complex template inheritance, missing includes, etc.)
+    # NOTE: Template aliases (DRange1 -> DRange<1>) need special handling and
+    # cannot use simple .pxd fallback - they need typedef/using mappings.
+    FALLBACK_TO_PXD = {
+        "Mobilogram",  # Complex RangeManagerContainer template inheritance
+    }
+
     for class_name, pxd_class in pxd_classes.items():
         if class_name not in cpp_classes:
+            # Check if this class should use .pxd fallback
+            if class_name in FALLBACK_TO_PXD:
+                logger.info(f"Class {class_name} using .pxd fallback (not found in C++ headers)")
+                # Use pxd_to_merged for single class
+                fallback = _create_fallback_merged_class(class_name, pxd_class)
+                if fallback:
+                    merged[class_name] = fallback
+                continue
             logger.warning(f"Class {class_name} in .pxd but not found in C++ headers")
             continue
 
@@ -677,8 +919,34 @@ def merge_with_pxd(
             )
             merged_methods.append(merged_method)
 
-        # Filter constructors
+        # Filter constructors from C++ info
         constructors = [c for c in cpp_class.constructors if c.access == "public"]
+
+        # If no constructors from libclang, fall back to .pxd constructors
+        if not constructors and pxd_class.constructors:
+            for pxd_ctor in pxd_class.constructors:
+                # Skip constructors with wrap_ignore=True
+                if getattr(pxd_ctor, 'wrap_ignore', False):
+                    continue
+                cpp_ctor = CppMethod(
+                    name=pxd_ctor.name,
+                    return_type="",
+                    parameters=[
+                        CppParameter(
+                            name=p.name,
+                            type_str=p.type_str,
+                            canonical_type=p.type_str,
+                            is_const="const" in p.type_str,
+                            is_reference="&" in p.type_str,
+                            is_pointer="*" in p.type_str,
+                            default_value=p.default_value,
+                        )
+                        for p in pxd_ctor.parameters
+                    ],
+                    access="public",
+                    is_constructor=True,
+                )
+                constructors.append(cpp_ctor)
 
         merged_class = MergedClass(
             cpp_class=cpp_class,
@@ -758,6 +1026,9 @@ def pxd_to_merged(pxd_classes: Dict[str, "ClassDecl"]) -> Dict[str, MergedClass]
         # Convert constructors
         constructors = []
         for c in pxd_class.constructors:
+            # Skip constructors with wrap_ignore=True
+            if getattr(c, 'wrap_ignore', False):
+                continue
             cpp_ctor = CppMethod(
                 name=class_name,
                 return_type="",
