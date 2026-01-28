@@ -100,6 +100,8 @@ class CppMethod:
     is_deleted: bool = False  # = delete
     is_defaulted: bool = False  # = default
     access: str = "public"  # public, protected, private
+    uses_incomplete_type: bool = False  # Uses forward-declared/incomplete types
+    incomplete_types: List[str] = field(default_factory=list)  # Names of incomplete types used
 
     def to_dict(self) -> Dict[str, Any]:
         """Serialize to dictionary for JSON caching."""
@@ -830,6 +832,15 @@ class CppHeaderParser:
         except Exception:
             pass  # Token access may fail in some cases
 
+        # Detect incomplete (forward-declared) types
+        incomplete_types = []
+
+        # Check return type for incomplete types
+        if not is_constructor:
+            incomplete = self._check_type_incomplete(result_type)
+            if incomplete:
+                incomplete_types.append(incomplete)
+
         method = CppMethod(
             name=cursor.spelling,
             return_type=return_type,
@@ -843,13 +854,41 @@ class CppHeaderParser:
             is_defaulted=is_defaulted,
         )
 
-        # Process parameters
+        # Process parameters and check for incomplete types
         for child in cursor.get_children():
             if child.kind == CursorKind.PARM_DECL:
                 param = self._process_parameter(child)
                 method.parameters.append(param)
+                # Check parameter type for incomplete types
+                incomplete = self._check_type_incomplete(child.type)
+                if incomplete:
+                    incomplete_types.append(incomplete)
+
+        # Set incomplete type info
+        if incomplete_types:
+            method.uses_incomplete_type = True
+            method.incomplete_types = incomplete_types
 
         return method
+
+    def _check_type_incomplete(self, clang_type) -> Optional[str]:
+        """Check if a type is incomplete (forward-declared).
+
+        Returns the type name if incomplete, None otherwise.
+        """
+        # Get the underlying type for pointers/references
+        pointee = clang_type
+        if clang_type.kind in (TypeKind.POINTER, TypeKind.LVALUEREFERENCE, TypeKind.RVALUEREFERENCE):
+            pointee = clang_type.get_pointee()
+
+        # Get the declaration of the type
+        decl = pointee.get_declaration()
+        if decl and decl.kind in (CursorKind.CLASS_DECL, CursorKind.STRUCT_DECL):
+            # Check if it's a forward declaration (not a definition)
+            if not decl.is_definition():
+                return decl.spelling
+
+        return None
 
     def _process_parameter(self, cursor) -> CppParameter:
         """Process a parameter declaration."""

@@ -241,9 +241,10 @@ SKIP_METHODS = {
 # - Deleted default constructors: detected via token analysis (has_deleted_default_constructor)
 # - Private constructors: detected via access specifiers (has_private_constructor)
 # - Const/non-const overloads: detected and handled in _generate_regular_method
+# - Methods using incomplete types: detected via type.get_declaration().is_definition()
 #
 # STILL NEED MANUAL LISTING:
-# - Incomplete/forward-declared types (libclang can't see definition)
+# - Classes where ALL methods use incomplete types (whole class unusable)
 # - Complex template instantiations
 # - Parameter type mismatches between pxd and C++
 # - Classes with Qt dependencies
@@ -2732,6 +2733,12 @@ class NanobindEmitterV2:
 
         # Skip specific methods with complex return types (hardcoded list)
         if class_name in SKIP_METHODS and method.name in SKIP_METHODS[class_name]:
+            return None
+
+        # Auto-skip methods that use incomplete (forward-declared) types
+        if getattr(method, 'uses_incomplete_type', False):
+            incomplete = getattr(method, 'incomplete_types', [])
+            logger.debug(f"Skipping {class_name}.{method.name} - uses incomplete types: {incomplete}")
             return None
 
         # Auto-skip methods that have const/non-const overloads (detected via libclang)
