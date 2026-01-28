@@ -866,17 +866,10 @@ namespace OpenMS
 
     std::unordered_map<String, int> chromatogram_map;
     chromatogram_map.reserve(ms2_chromatograms.size());
-    // Additionally cache parsed precursor/product m/z from chromatogram nativeIDs
-    std::vector<std::pair<double,double>> chrom_mz_cache(ms2_chromatograms.size(), std::make_pair(-1.0, -1.0));
     for (Size i = 0; i < ms2_chromatograms.size(); i++)
     {
       const String cid = ms2_chromatograms[i].getNativeID();
       chromatogram_map[cid] = boost::numeric_cast<int>(i);
-      double c_prec = -1.0, c_prod = -1.0;
-              if (sscanf(cid.c_str(), "%*[^0-9+\\-]%lf%*[^0-9+\\-]%lf", &c_prec, &c_prod) >= 2)
-      {
-        chrom_mz_cache[i] = std::make_pair(c_prec, c_prod);
-      }
     }
     std::unordered_map<String, int> assay_peptide_map;
     assay_peptide_map.reserve(transition_exp.getCompounds().size());
