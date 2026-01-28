@@ -280,8 +280,6 @@ jobs:
           # WARNING: Don't add any dependency install commands here.
           # Instead edit the following script:
           bash OpenMS/tools/ci/deps-ubuntu.sh
-          # install uv
-          curl -LsSf https://astral.sh/uv/install.sh | sh
           # Install libomp for clang compiler (needed for OpenMP support)
           # Use version-specific package matching the clang version
           if [[ "${{ matrix.compiler }}" == clang* ]]; then
