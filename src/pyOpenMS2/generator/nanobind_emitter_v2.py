@@ -1180,67 +1180,7 @@ SPECIAL_METHODS = {
         .value("MILLISECOND", OpenMS::DriftTimeUnit::MILLISECOND)
         .value("VSSC", OpenMS::DriftTimeUnit::VSSC)
         .export_values();''',
-        "LogType": '''
-    // ProgressLogger::LogType enum
-    nb::enum_<OpenMS::ProgressLogger::LogType>(m, "LogType")
-        .value("CMD", OpenMS::ProgressLogger::LogType::CMD)
-        .value("GUI", OpenMS::ProgressLogger::LogType::GUI)
-        .value("NONE", OpenMS::ProgressLogger::LogType::NONE)
-        .export_values();''',
-        "FileType": '''
-    // FileTypes::Type enum
-    nb::enum_<OpenMS::FileTypes::Type>(m, "FileType")
-        .value("UNKNOWN", OpenMS::FileTypes::Type::UNKNOWN)
-        .value("DTA", OpenMS::FileTypes::Type::DTA)
-        .value("DTA2D", OpenMS::FileTypes::Type::DTA2D)
-        .value("MZDATA", OpenMS::FileTypes::Type::MZDATA)
-        .value("MZXML", OpenMS::FileTypes::Type::MZXML)
-        .value("FEATUREXML", OpenMS::FileTypes::Type::FEATUREXML)
-        .value("IDXML", OpenMS::FileTypes::Type::IDXML)
-        .value("CONSENSUSXML", OpenMS::FileTypes::Type::CONSENSUSXML)
-        .value("MGF", OpenMS::FileTypes::Type::MGF)
-        .value("INI", OpenMS::FileTypes::Type::INI)
-        .value("TOPPAS", OpenMS::FileTypes::Type::TOPPAS)
-        .value("TRANSFORMATIONXML", OpenMS::FileTypes::Type::TRANSFORMATIONXML)
-        .value("MZML", OpenMS::FileTypes::Type::MZML)
-        .value("CACHEDMZML", OpenMS::FileTypes::Type::CACHEDMZML)
-        .value("MS2", OpenMS::FileTypes::Type::MS2)
-        .value("PEPXML", OpenMS::FileTypes::Type::PEPXML)
-        .value("PROTXML", OpenMS::FileTypes::Type::PROTXML)
-        .value("MZIDENTML", OpenMS::FileTypes::Type::MZIDENTML)
-        .value("QCML", OpenMS::FileTypes::Type::QCML)
-        .value("MZQC", OpenMS::FileTypes::Type::MZQC)
-        .value("GELML", OpenMS::FileTypes::Type::GELML)
-        .value("TRAML", OpenMS::FileTypes::Type::TRAML)
-        .value("MSP", OpenMS::FileTypes::Type::MSP)
-        .value("OMSSAXML", OpenMS::FileTypes::Type::OMSSAXML)
-        .value("MASCOTXML", OpenMS::FileTypes::Type::MASCOTXML)
-        .value("PNG", OpenMS::FileTypes::Type::PNG)
-        .value("XMASS", OpenMS::FileTypes::Type::XMASS)
-        .value("TSV", OpenMS::FileTypes::Type::TSV)
-        .value("MZTAB", OpenMS::FileTypes::Type::MZTAB)
-        .value("PEPLIST", OpenMS::FileTypes::Type::PEPLIST)
-        .value("HARDKLOER", OpenMS::FileTypes::Type::HARDKLOER)
-        .value("KROENIK", OpenMS::FileTypes::Type::KROENIK)
-        .value("FASTA", OpenMS::FileTypes::Type::FASTA)
-        .value("EDTA", OpenMS::FileTypes::Type::EDTA)
-        .value("CSV", OpenMS::FileTypes::Type::CSV)
-        .value("TXT", OpenMS::FileTypes::Type::TXT)
-        .value("OBO", OpenMS::FileTypes::Type::OBO)
-        .value("HTML", OpenMS::FileTypes::Type::HTML)
-        .value("ANALYSISXML", OpenMS::FileTypes::Type::ANALYSISXML)
-        .value("XSD", OpenMS::FileTypes::Type::XSD)
-        .value("PSQ", OpenMS::FileTypes::Type::PSQ)
-        .value("MRM", OpenMS::FileTypes::Type::MRM)
-        .value("SQMASS", OpenMS::FileTypes::Type::SQMASS)
-        .value("PQP", OpenMS::FileTypes::Type::PQP)
-        .value("MS", OpenMS::FileTypes::Type::MS)
-        .value("OSW", OpenMS::FileTypes::Type::OSW)
-        .value("PSMS", OpenMS::FileTypes::Type::PSMS)
-        .value("PIN", OpenMS::FileTypes::Type::PIN)
-        .value("PARAMXML", OpenMS::FileTypes::Type::PARAMXML)
-        .value("SPLIB", OpenMS::FileTypes::Type::SPLIB)
-        .export_values();''',
+        # LogType and FileType enums are now auto-generated from pxd files
     },
     # Nested enum bindings that must be added AFTER the containing class is bound
     "__post_class_enums__": {
@@ -2085,16 +2025,41 @@ class NanobindEmitterV2:
         # Check if this module contains classes that need enum bindings
         class_names_in_module = {m.name for m in module_classes}
 
-        # Add standalone enum bindings to appropriate modules
-        # DriftTimeUnit goes with MSSpectrum, FileType goes with FileTypes
+        # Collect enums from merged classes that are in this module
+        # Enums are attached to classes via the 'attached_to' field deduced from pxd namespace
+        generated_enum_names = set()
+        for merged_class in module_classes:
+            class_name = merged_class.name
+            if class_name not in class_names_in_module:
+                continue
+            # Skip if not in core classes (in core_only mode)
+            if self.core_only and class_name not in CORE_CLASSES:
+                continue
+            # Skip problematic classes
+            if class_name in SKIP_CLASSES or class_name in get_caster_owned_types():
+                continue
+
+            # Generate bindings for enums attached to this class
+            for enum_decl in merged_class.enums:
+                if enum_decl.name in generated_enum_names:
+                    continue
+                enum_code = self._generate_enum_binding(enum_decl)
+                if enum_code:
+                    content.enum_bindings.append(enum_code)
+                    generated_enum_names.add(enum_decl.name)
+
+        # Add hard-coded enum bindings from SPECIAL_METHODS as fallback
+        # (for enums not yet in pxd files or with complex definitions)
         if "__enums__" in SPECIAL_METHODS:
             # Map enum names to the class they should be bound with
+            # Note: Most enums are now auto-generated from pxd files
             enum_class_map = {
-                "DriftTimeUnit": "MSSpectrum",
-                "LogType": "MSSpectrum",  # ProgressLogger::LogType
-                "FileType": "FileTypes",
+                "DriftTimeUnit": "MSSpectrum",  # Not attached to class in pxd
             }
             for enum_name, enum_code in SPECIAL_METHODS["__enums__"].items():
+                # Skip if already generated from pxd
+                if enum_name in generated_enum_names:
+                    continue
                 target_class = enum_class_map.get(enum_name)
                 if target_class and target_class in class_names_in_module:
                     # In core_only mode, only add if target class is in CORE_CLASSES
@@ -2299,6 +2264,38 @@ class NanobindEmitterV2:
     def _has_iterator_methods(self, merged_class: MergedClass) -> bool:
         """Check if a class has begin() and end() methods (iterable)."""
         return self._has_method(merged_class, "begin") and self._has_method(merged_class, "end")
+
+    def _generate_enum_binding(self, enum_decl: Any) -> Optional[str]:
+        """Generate nanobind enum binding code from an EnumDecl.
+
+        Args:
+            enum_decl: EnumDecl object from pxd_parser
+
+        Returns:
+            C++ code string for the enum binding, or None if enum has no values
+        """
+        if not enum_decl.values:
+            return None
+
+        enum_name = enum_decl.name
+        namespace = enum_decl.namespace
+
+        # Use explicit C++ name if provided (e.g., "OpenMS::FileTypes::Type"),
+        # otherwise construct from namespace and enum name
+        if hasattr(enum_decl, 'cpp_name') and enum_decl.cpp_name:
+            qualified_name = enum_decl.cpp_name
+        else:
+            qualified_name = f"{namespace}::{enum_name}"
+
+        lines = [f"    // {enum_name} enum (auto-generated from pxd)"]
+        lines.append(f'    nb::enum_<{qualified_name}>(m, "{enum_name}")')
+
+        for value in enum_decl.values:
+            lines.append(f'        .value("{value.name}", {qualified_name}::{value.name})')
+
+        lines.append("        .export_values();")
+
+        return "\n".join(lines)
 
     def _get_vector_element_type(self, merged_class: MergedClass) -> Optional[str]:
         """Detect if class inherits from std::vector and extract element type.
