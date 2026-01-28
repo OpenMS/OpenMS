@@ -25,7 +25,6 @@
 #include <memory>
 #include <boost/foreach.hpp>
 #include <unordered_map>
-#include <cstdio>
 
 #define run_identifier "unique_run_identifier"
 
