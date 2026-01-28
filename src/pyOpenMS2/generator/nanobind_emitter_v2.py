@@ -71,13 +71,15 @@ SKIP_METHODS = {
         "getIntegerDataArrays", "setIntegerDataArrays",
         "getStringDataArrays", "setStringDataArrays",
         "getIMData",  # Returns pair
-        "calculateTIC",  # Return type mismatch (double in .pxd vs float in C++)
-        "findNearest",  # Return type mismatch (Size vs int in .pxd)
+        "calculateTIC",  # Return type mismatch (double in .pxd vs float in C++) - handled via SPECIAL_METHODS
+        "findNearest",  # Return type mismatch (Size vs int in .pxd) - handled via SPECIAL_METHODS
         "findHighestInWindow",  # Return type mismatch
         # getName - const String& works fine with type caster
         "getType",  # Complex return type - handled via SPECIAL_METHODS
         "select",  # Complex parameter types
         "getSourceFile",  # const/non-const overload
+        "reserve",  # Handled via SPECIAL_METHODS
+        "resize",  # Handled via SPECIAL_METHODS
     },
     "MSChromatogram": {
         "getFloatDataArrays", "setFloatDataArrays",
@@ -966,7 +968,24 @@ SPECIAL_METHODS = {
                 self[i].setMZ(mz[i]);
                 self[i].setIntensity(intensity[i]);
             }
-        }, "mz"_a, "intensity"_a, "Set peaks from mz and intensity arrays")''',
+        }, "mz"_a, "intensity"_a, "Set peaks from mz and intensity arrays")
+        .def("set_peaks", [](OpenMS::MSSpectrum& self, nb::tuple peaks_tuple) {
+            // Accept a tuple of (mz_array, intensity_array) for compatibility with pyOpenMS API
+            if (nb::len(peaks_tuple) != 2) {
+                throw std::runtime_error("set_peaks tuple must contain exactly 2 arrays (mz, intensity)");
+            }
+            std::vector<double> mz = nb::cast<std::vector<double>>(peaks_tuple[0]);
+            std::vector<double> intensity = nb::cast<std::vector<double>>(peaks_tuple[1]);
+            const size_t n = mz.size();
+            if (intensity.size() != n) {
+                throw std::runtime_error("mz and intensity arrays must have same length");
+            }
+            self.resize(n);
+            for (size_t i = 0; i < n; ++i) {
+                self[i].setMZ(mz[i]);
+                self[i].setIntensity(intensity[i]);
+            }
+        }, "peaks"_a, "Set peaks from a tuple of (mz_array, intensity_array)")''',
         "push_back": '''
         .def("push_back", [](OpenMS::MSSpectrum& self, const OpenMS::Peak1D& p) {
             self.push_back(p);
@@ -1084,6 +1103,28 @@ SPECIAL_METHODS = {
             if (!self.containsIMData()) return std::nullopt;
             return self.getDriftTimeUnit();
         }, "Returns drift time unit if ion mobility data exists, else None")''',
+        "findNearest": '''
+        .def("findNearest", [](const OpenMS::MSSpectrum& self, double mz) {
+            return self.findNearest(mz);
+        }, "mz"_a, "Returns the index of the closest peak in m/z")
+        .def("findNearest", [](const OpenMS::MSSpectrum& self, double mz, double tolerance) {
+            return self.findNearest(mz, tolerance);
+        }, "mz"_a, "tolerance"_a, "Returns the index of the closest peak within +/- tolerance (-1 if none)")
+        .def("findNearest", [](const OpenMS::MSSpectrum& self, double mz, double tolerance_left, double tolerance_right) {
+            return self.findNearest(mz, tolerance_left, tolerance_right);
+        }, "mz"_a, "tolerance_left"_a, "tolerance_right"_a, "Returns the index of the closest peak within asymmetric tolerance (-1 if none)")''',
+        "calculateTIC": '''
+        .def("calculateTIC", [](const OpenMS::MSSpectrum& self) -> double {
+            return static_cast<double>(self.calculateTIC());
+        }, "Returns the total ion current (sum of all peak intensities)")''',
+        "reserve": '''
+        .def("reserve", [](OpenMS::MSSpectrum& self, size_t n) {
+            self.reserve(n);
+        }, "n"_a, "Reserves space for n peaks in the underlying container")''',
+        "resize": '''
+        .def("resize", [](OpenMS::MSSpectrum& self, size_t n) {
+            self.resize(n);
+        }, "n"_a, "Resizes the spectrum to contain n peaks")''',
     },
     "MSChromatogram": {
         "get_peaks": '''
@@ -1097,6 +1138,34 @@ SPECIAL_METHODS = {
             }
             return nb::make_tuple(rt, intensity);
         }, "Returns a tuple of (rt_array, intensity_array)")''',
+    },
+    "Peak1D": {
+        "__hash__": '''
+        .def("__hash__", [](const OpenMS::Peak1D& self) {
+            // Content-based hash using mz and intensity
+            size_t h1 = std::hash<double>{}(self.getMZ());
+            size_t h2 = std::hash<float>{}(self.getIntensity());
+            return h1 ^ (h2 << 1);
+        })''',
+    },
+    "Peak2D": {
+        "__hash__": '''
+        .def("__hash__", [](const OpenMS::Peak2D& self) {
+            // Content-based hash using mz, rt, and intensity
+            size_t h1 = std::hash<double>{}(self.getMZ());
+            size_t h2 = std::hash<double>{}(self.getRT());
+            size_t h3 = std::hash<float>{}(self.getIntensity());
+            return h1 ^ (h2 << 1) ^ (h3 << 2);
+        })''',
+    },
+    "ChromatogramPeak": {
+        "__hash__": '''
+        .def("__hash__", [](const OpenMS::ChromatogramPeak& self) {
+            // Content-based hash using rt and intensity
+            size_t h1 = std::hash<double>{}(self.getRT());
+            size_t h2 = std::hash<float>{}(self.getIntensity());
+            return h1 ^ (h2 << 1);
+        })''',
     },
     # Standalone enum bindings that need to be added before classes that use them
     "__enums__": {
