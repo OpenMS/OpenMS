@@ -45,6 +45,9 @@ sudo apt-get -qq install -y \
   nlohmann-json3-dev \
   libsimde-dev
 
+# Install uv (Python package manager)
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
 # Install Apache Arrow
 sudo apt-get install -y -V ca-certificates lsb-release wget
 wget https://packages.apache.org/artifactory/arrow/$(lsb_release --id --short | tr 'A-Z' 'a-z')/apache-arrow-apt-source-latest-$(lsb_release --codename --short).deb
