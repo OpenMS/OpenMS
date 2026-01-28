@@ -2085,18 +2085,29 @@ class NanobindEmitterV2:
         # Check if this module contains classes that need enum bindings
         class_names_in_module = {m.name for m in module_classes}
 
-        # Add standalone enum bindings (DriftTimeUnit) to the module with MSSpectrum
-        if "MSSpectrum" in class_names_in_module and self.core_only and "MSSpectrum" in CORE_CLASSES:
-            if "__enums__" in SPECIAL_METHODS:
-                for enum_name, enum_code in SPECIAL_METHODS["__enums__"].items():
-                    content.enum_bindings.append(enum_code)
+        # Add standalone enum bindings to appropriate modules
+        # DriftTimeUnit goes with MSSpectrum, FileType goes with FileTypes
+        if "__enums__" in SPECIAL_METHODS:
+            # Map enum names to the class they should be bound with
+            enum_class_map = {
+                "DriftTimeUnit": "MSSpectrum",
+                "LogType": "MSSpectrum",  # ProgressLogger::LogType
+                "FileType": "FileTypes",
+            }
+            for enum_name, enum_code in SPECIAL_METHODS["__enums__"].items():
+                target_class = enum_class_map.get(enum_name)
+                if target_class and target_class in class_names_in_module:
+                    # In core_only mode, only add if target class is in CORE_CLASSES
+                    if not self.core_only or target_class in CORE_CLASSES:
+                        content.enum_bindings.append(enum_code)
 
         # Add nested enum bindings (SpectrumType) to the module with SpectrumSettings
-        if "SpectrumSettings" in class_names_in_module and self.core_only and "SpectrumSettings" in CORE_CLASSES:
-            content.includes.add("<OpenMS/METADATA/SpectrumSettings.h>")
-            if "__post_class_enums__" in SPECIAL_METHODS:
-                for enum_name, enum_code in SPECIAL_METHODS["__post_class_enums__"].items():
-                    content.post_class_enums.append(enum_code)
+        if "SpectrumSettings" in class_names_in_module:
+            if not self.core_only or "SpectrumSettings" in CORE_CLASSES:
+                content.includes.add("<OpenMS/METADATA/SpectrumSettings.h>")
+                if "__post_class_enums__" in SPECIAL_METHODS:
+                    for enum_name, enum_code in SPECIAL_METHODS["__post_class_enums__"].items():
+                        content.post_class_enums.append(enum_code)
 
         for merged_class in sorted_module_classes:
             class_name = merged_class.name
