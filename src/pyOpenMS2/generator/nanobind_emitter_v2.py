@@ -433,10 +433,10 @@ SKIP_CLASSES = {
     "PeakWidthEstimator",           # No matching constructor for initializer list
     "RibonucleotideDB",             # Deleted copy constructor (singleton-like)
 
-    # Classes with constructor parameter issues (const correctness)
-    "ModifiedPeptideGenerator",     # MapToResidueType& should be const ref
-    "IonMobilityScoring",           # OpenSwath::LightTransition& should be const ref
+    # Classes with external type issues (types from other libraries not bound)
+    "IonMobilityScoring",           # Uses OpenSwath::LightTransition (not bound)
     "AASequence",                   # char* constructor, nanobind passes const char*
+    # ModifiedPeptideGenerator now works - nested types are parsed
     # Peak2D and ChromatogramPeak work fine with DPosition type caster
 
     # Classes referencing Param::ParamEntry (nested type incomplete)
