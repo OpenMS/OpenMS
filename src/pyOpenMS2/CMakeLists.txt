@@ -91,6 +91,7 @@ set(GENERATOR_ARGS
     --num-modules ${PY_NUM_MODULES}
     --openms-include-dir ${OPENMS_INC_DIRS}
     --libclang-cache-dir "${CMAKE_CURRENT_BINARY_DIR}/libclang_cache"
+    --all-classes
 )
 message(STATUS "pyOpenMS2: Using libclang for accurate C++ type parsing (with caching)")
 

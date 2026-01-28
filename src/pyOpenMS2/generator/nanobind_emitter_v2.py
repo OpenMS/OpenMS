@@ -208,6 +208,14 @@ SKIP_METHODS = {
     "DRange2": {
         # Template instantiation
     },
+    "DataFilters": {
+        # passes() overloads with forward-declared types - skip the ones with Feature/ConsensusFeature
+        "passes",  # Multiple overloads including Feature and ConsensusFeature
+    },
+    "ProteinInference": {
+        # Methods with forward-declared ConsensusMap
+        "run",  # Takes ConsensusMap
+    },
 }
 
 # Classes to skip due to incomplete type dependencies or other issues
@@ -464,8 +472,22 @@ SKIP_CLASSES = {
     "CubicSpline2d",                # Lambda analysis fails
     "FileTypes",                    # Lambda analysis fails
     "IMSIsotopeDistribution",       # Constructor mismatch in ims namespace
-    "DataFilters",                  # Lambda fails due to forward-declared ConsensusFeature
-    "ProteinInference",             # Lambda fails due to forward-declared ConsensusMap
+    "RegularSwathFileConsumer",     # Constructor pxd type mismatch (int vs vector<SwathMap>)
+    "CachedSwathFileConsumer",      # Constructor pxd type mismatch
+    "MzMLSwathFileConsumer",        # Constructor pxd type mismatch
+    "LinearInterpolation",          # Template class with unresolved KeyType
+    "SignalToNoiseEstimator",       # Template class needs instantiation
+    "SignalToNoiseEstimatorMeanIterative",  # Template class needs instantiation
+    "SignalToNoiseEstimatorMedianRapid",  # Template class needs instantiation
+    "FullSwathFileConsumer",        # Abstract class
+    "SpectrumAlignmentScore",       # Template class
+    "SteinScottImproveScore",       # Template class
+    "SignalToNoiseEstimatorMedian", # Template class
+    "AnnotatedMSRun",               # pxd type mismatch (int vs actual type)
+    "IMSWeights",                   # Not found in C++ headers (nested/helper class)
+    "IntegerMassDecomposer",        # Uses IMSWeights which isn't bound
+    "RealMassDecomposer",           # Uses IMSWeights which isn't bound
+    "BilinearInterpolation",        # Template class
 }
 
 # Additional headers needed for specific classes
@@ -511,6 +533,8 @@ ADDITIONAL_INCLUDES = {
     "MzIdentMLFile": ["<OpenMS/FORMAT/MzIdentMLFile.h>", "<OpenMS/METADATA/ProteinIdentification.h>", "<OpenMS/METADATA/PeptideIdentificationList.h>"],
     "DRange1": ["<OpenMS/DATASTRUCTURES/DRange.h>"],
     "DRange2": ["<OpenMS/DATASTRUCTURES/DRange.h>"],
+    "DataFilters": ["<OpenMS/PROCESSING/MISC/DataFilters.h>", "<OpenMS/KERNEL/Feature.h>", "<OpenMS/KERNEL/ConsensusFeature.h>"],
+    "ProteinInference": ["<OpenMS/ANALYSIS/QUANTITATION/ProteinInference.h>", "<OpenMS/KERNEL/ConsensusMap.h>"],
 }
 
 # FALLBACK: Classes that need special __len__ support (container-like)
