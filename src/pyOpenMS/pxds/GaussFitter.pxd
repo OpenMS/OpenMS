@@ -17,7 +17,7 @@ cdef extern from "<OpenMS/MATH/STATISTICS/GaussFitter.h>" namespace "OpenMS::Mat
         #  @brief Fits a gaussian distribution to the given data points
         #  @param points the data points used for the gaussian fitting
         #  @exception Exception::UnableToFit is thrown if fitting cannot be performed
-        GaussFitResult fit(libcpp_vector[DPosition2] points) except + nogil  # wrap-doc:Fits a Gaussian distribution to the given data points
+        GaussFitResult fit(libcpp_vector[DPosition2] & points) except + nogil  # wrap-doc:Fits a Gaussian distribution to the given data points
 
 cdef extern from "<OpenMS/MATH/STATISTICS/GaussFitter.h>" namespace "OpenMS::Math::GaussFitter":
 
