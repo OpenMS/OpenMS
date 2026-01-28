@@ -49,7 +49,7 @@ if __name__ == '__main__':
   # import config
   from env import (QT_QMAKE_VERSION_INFO, OPEN_MS_BUILD_TYPE,
     PYOPENMS_SRC_DIR, OPEN_MS_VERSION,
-    PY_NUM_THREADS, PY_NUM_MODULES)
+    PY_NUM_THREADS, PY_NUM_MODULES, WITH_PARQUET)
 
   IS_DEBUG = OPEN_MS_BUILD_TYPE.upper() == "DEBUG"
 
@@ -80,6 +80,12 @@ if __name__ == '__main__':
   j = os.path.join
 
   pxd_files = glob.glob(PYOPENMS_SRC_DIR + "/pxds/*.pxd")
+
+  # Filter out Arrow/Parquet-dependent pxd files when WITH_PARQUET is disabled
+  if not WITH_PARQUET:
+    pxd_files = [f for f in pxd_files if not os.path.basename(f).startswith('Arrow')]
+    print("WITH_PARQUET is disabled, excluding Arrow*.pxd files from wrapping")
+
   addons = glob.glob(PYOPENMS_SRC_DIR + "/addons/*.pyx")
   converters = [j(PYOPENMS_SRC_DIR, "converters")]
 
