@@ -18,25 +18,28 @@ class TestFileTypesStaticMethods(unittest.TestCase):
         """Test typeToName can be called as static method"""
         # Should be callable without creating an instance
         name = pyopenms.FileTypes.typeToName(pyopenms.FileType.MZML)
-        self.assertEqual(name, b"mzML")
+        self.assertIsInstance(name, str)
+        self.assertEqual(name, "mzML")
 
     def test_typeToDescription_is_static(self):
         """Test typeToDescription can be called as static method"""
         # Should be callable without creating an instance
         desc = pyopenms.FileTypes.typeToDescription(pyopenms.FileType.MZML)
-        self.assertEqual(desc, b"mzML raw data file")
+        self.assertIsInstance(desc, str)
+        self.assertEqual(desc, "mzML raw data file")
 
     def test_nameToType_is_static(self):
         """Test nameToType can be called as static method"""
         # Should be callable without creating an instance
-        file_type = pyopenms.FileTypes.nameToType(b"mzML")
+        file_type = pyopenms.FileTypes.nameToType("mzML")
         self.assertEqual(file_type, pyopenms.FileType.MZML)
 
     def test_typeToMZML_is_static(self):
         """Test typeToMZML can be called as static method"""
         # Should be callable without creating an instance
         mzml_name = pyopenms.FileTypes.typeToMZML(pyopenms.FileType.MZML)
-        self.assertEqual(mzml_name, b"mzML file")
+        self.assertIsInstance(mzml_name, str)
+        self.assertEqual(mzml_name, "mzML file")
 
 
 class TestFileTypesEnum(unittest.TestCase):
@@ -126,34 +129,35 @@ class TestFileTypesConversions(unittest.TestCase):
     def test_typeToName_returns_correct_names(self):
         """Test typeToName returns correct file extension names"""
         test_cases = [
-            (pyopenms.FileType.MZML, b"mzML"),
-            (pyopenms.FileType.MZXML, b"mzXML"),
-            (pyopenms.FileType.FEATUREXML, b"featureXML"),
-            (pyopenms.FileType.IDXML, b"idXML"),
-            (pyopenms.FileType.FASTA, b"fasta"),
-            (pyopenms.FileType.TSV, b"tsv"),
-            (pyopenms.FileType.CSV, b"csv"),
-            (pyopenms.FileType.JSON, b"json"),
-            (pyopenms.FileType.PARQUET, b"parquet"),
+            (pyopenms.FileType.MZML, "mzML"),
+            (pyopenms.FileType.MZXML, "mzXML"),
+            (pyopenms.FileType.FEATUREXML, "featureXML"),
+            (pyopenms.FileType.IDXML, "idXML"),
+            (pyopenms.FileType.FASTA, "fasta"),
+            (pyopenms.FileType.TSV, "tsv"),
+            (pyopenms.FileType.CSV, "csv"),
+            (pyopenms.FileType.JSON, "json"),
+            (pyopenms.FileType.PARQUET, "parquet"),
         ]
         
         for file_type, expected_name in test_cases:
             with self.subTest(file_type=file_type):
                 name = pyopenms.FileTypes.typeToName(file_type)
+                self.assertIsInstance(name, str)
                 self.assertEqual(name, expected_name)
 
     def test_nameToType_returns_correct_types(self):
         """Test nameToType converts names to correct types"""
         test_cases = [
-            (b"mzML", pyopenms.FileType.MZML),
-            (b"mzXML", pyopenms.FileType.MZXML),
-            (b"featureXML", pyopenms.FileType.FEATUREXML),
-            (b"idXML", pyopenms.FileType.IDXML),
-            (b"fasta", pyopenms.FileType.FASTA),
-            (b"FASTA", pyopenms.FileType.FASTA),  # Case insensitive
-            (b"json", pyopenms.FileType.JSON),
-            (b"parquet", pyopenms.FileType.PARQUET),
-            (b"pqt", pyopenms.FileType.PARQUET),  # Alternative extension
+            ("mzML", pyopenms.FileType.MZML),
+            ("mzXML", pyopenms.FileType.MZXML),
+            ("featureXML", pyopenms.FileType.FEATUREXML),
+            ("idXML", pyopenms.FileType.IDXML),
+            ("fasta", pyopenms.FileType.FASTA),
+            ("FASTA", pyopenms.FileType.FASTA),  # Case insensitive
+            ("json", pyopenms.FileType.JSON),
+            ("parquet", pyopenms.FileType.PARQUET),
+            ("pqt", pyopenms.FileType.PARQUET),  # Alternative extension
         ]
         
         for name, expected_type in test_cases:
@@ -165,46 +169,47 @@ class TestFileTypesConversions(unittest.TestCase):
         """Test that nameToType is case insensitive"""
         # Test various case combinations
         self.assertEqual(
-            pyopenms.FileTypes.nameToType(b"mzml"),
+            pyopenms.FileTypes.nameToType("mzml"),
             pyopenms.FileType.MZML
         )
         self.assertEqual(
-            pyopenms.FileTypes.nameToType(b"MZML"),
+            pyopenms.FileTypes.nameToType("MZML"),
             pyopenms.FileType.MZML
         )
         self.assertEqual(
-            pyopenms.FileTypes.nameToType(b"MzMl"),
+            pyopenms.FileTypes.nameToType("MzMl"),
             pyopenms.FileType.MZML
         )
 
     def test_nameToType_unknown_returns_unknown(self):
         """Test that unknown file type names return UNKNOWN"""
-        unknown_type = pyopenms.FileTypes.nameToType(b"unknown_extension")
+        unknown_type = pyopenms.FileTypes.nameToType("unknown_extension")
         self.assertEqual(unknown_type, pyopenms.FileType.UNKNOWN)
 
     def test_typeToDescription_returns_descriptions(self):
         """Test typeToDescription returns human-readable descriptions"""
         # Test a few key descriptions
         desc = pyopenms.FileTypes.typeToDescription(pyopenms.FileType.MZML)
-        self.assertIsInstance(desc, bytes)
-        self.assertIn(b"mzML", desc)
+        self.assertIsInstance(desc, str)
+        self.assertIn("mzML", desc)
         
         desc = pyopenms.FileTypes.typeToDescription(pyopenms.FileType.FEATUREXML)
-        self.assertIn(b"OpenMS", desc)
+        self.assertIn("OpenMS", desc)
 
     def test_typeToMZML_returns_mzml_names(self):
         """Test typeToMZML returns appropriate mzML CV term names"""
         # Only certain types have mzML names
         test_cases = [
-            (pyopenms.FileType.MZML, b"mzML file"),
-            (pyopenms.FileType.MZDATA, b"PSI mzData file"),
-            (pyopenms.FileType.MZXML, b"ISB mzXML file"),
-            (pyopenms.FileType.MGF, b"Mascot MGF file"),
+            (pyopenms.FileType.MZML, "mzML file"),
+            (pyopenms.FileType.MZDATA, "PSI mzData file"),
+            (pyopenms.FileType.MZXML, "ISB mzXML file"),
+            (pyopenms.FileType.MGF, "Mascot MGF file"),
         ]
         
         for file_type, expected_name in test_cases:
             with self.subTest(file_type=file_type):
                 name = pyopenms.FileTypes.typeToMZML(file_type)
+                self.assertIsInstance(name, str)
                 self.assertEqual(name, expected_name)
 
 
@@ -297,6 +302,38 @@ class TestFileTypesRoundTrip(unittest.TestCase):
                 name = pyopenms.FileTypes.typeToName(original_type)
                 recovered_type = pyopenms.FileTypes.nameToType(name)
                 self.assertEqual(recovered_type, original_type)
+
+
+class TestFileTypesStringInput(unittest.TestCase):
+    """Test that nameToType accepts both str and bytes (backward compatibility)"""
+
+    def test_nameToType_with_str(self):
+        """Test nameToType accepts str input"""
+        file_type = pyopenms.FileTypes.nameToType("mzML")
+        self.assertEqual(file_type, pyopenms.FileType.MZML)
+
+    def test_nameToType_with_bytes(self):
+        """Test nameToType accepts bytes input (backward compatible)"""
+        file_type = pyopenms.FileTypes.nameToType(b"mzML")
+        self.assertEqual(file_type, pyopenms.FileType.MZML)
+
+    def test_typeToName_returns_str(self):
+        """Test typeToName returns str (not bytes)"""
+        name = pyopenms.FileTypes.typeToName(pyopenms.FileType.MZML)
+        self.assertIsInstance(name, str)
+        self.assertEqual(name, "mzML")
+
+    def test_typeToDescription_returns_str(self):
+        """Test typeToDescription returns str (not bytes)"""
+        desc = pyopenms.FileTypes.typeToDescription(pyopenms.FileType.MZML)
+        self.assertIsInstance(desc, str)
+        self.assertIn("mzML", desc)
+
+    def test_typeToMZML_returns_str(self):
+        """Test typeToMZML returns str (not bytes)"""
+        mzml_name = pyopenms.FileTypes.typeToMZML(pyopenms.FileType.MZML)
+        self.assertIsInstance(mzml_name, str)
+        self.assertEqual(mzml_name, "mzML file")
 
 
 if __name__ == "__main__":
