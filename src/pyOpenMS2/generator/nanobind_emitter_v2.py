@@ -72,24 +72,24 @@ def get_caster_owned_types() -> Set[str]:
 # AUTO-DETECTION (via libclang, no need to list here):
 # - Const/non-const overloads: detected and auto-resolved (prefer const version)
 # - Overloaded methods: detected in overloaded_methods set
+# - Methods using incomplete types: detected via uses_incomplete_type flag
 #
 # STILL NEED MANUAL LISTING:
 # - Return type mismatches between pxd and C++ (handled via SPECIAL_METHODS)
 # - Complex parameter types (pairs, nested types, etc.)
-# - Methods using forward-declared types
+# - Iterator methods (begin/end) - special handling needed
+# - Methods with > 7 parameters (nanobind limit)
 SKIP_METHODS = {
     "MSSpectrum": {
         "getFloatDataArrays", "setFloatDataArrays",
         "getIntegerDataArrays", "setIntegerDataArrays",
         "getStringDataArrays", "setStringDataArrays",
         "getIMData",  # Returns pair
-        "calculateTIC",  # Return type mismatch (double in .pxd vs float in C++) - handled via SPECIAL_METHODS
-        "findNearest",  # Return type mismatch (Size vs int in .pxd) - handled via SPECIAL_METHODS
+        "calculateTIC",  # Return type mismatch - handled via SPECIAL_METHODS
+        "findNearest",  # Return type mismatch - handled via SPECIAL_METHODS
         "findHighestInWindow",  # Return type mismatch
-        # getName - const String& works fine with type caster
         "getType",  # Complex return type - handled via SPECIAL_METHODS
         "select",  # Complex parameter types
-        "getSourceFile",  # const/non-const overload
         "reserve",  # Handled via SPECIAL_METHODS
         "resize",  # Handled via SPECIAL_METHODS
     },
@@ -97,60 +97,14 @@ SKIP_METHODS = {
         "getFloatDataArrays", "setFloatDataArrays",
         "getIntegerDataArrays", "setIntegerDataArrays",
         "getStringDataArrays", "setStringDataArrays",
-        "getSourceFile",  # const/non-const overload
-    },
-    "MSExperiment": {
-        "getSpectrum", "getSpectra",  # const/non-const overloads - handled via SPECIAL_METHODS
-        "getChromatogram", "getChromatograms",  # const/non-const overloads
-        "getSourceFiles",  # const/non-const overloads
-        "setSourceFile",  # const/non-const overloads
-    },
-    "Feature": {
-        "getSubordinates",  # const/non-const overloads
-        "getPeptideIdentifications",  # const/non-const overloads
-        "getConvexHulls",  # const/non-const overloads
-    },
-    "FeatureMap": {
-        "getProteinIdentifications",  # const/non-const overloads
-        "getUnassignedPeptideIdentifications",  # const/non-const overloads
-        "getDataProcessing",  # const/non-const overloads
-    },
-    "ConsensusFeature": {
-        "getPeptideIdentifications",  # const/non-const overloads
-        "computeDechargeConsensus",  # Takes forward-declared FeatureMap
-    },
-    "ConsensusMap": {
-        "getProteinIdentifications",  # const/non-const overloads
-        "getUnassignedPeptideIdentifications",  # const/non-const overloads
-        "getDataProcessing",  # const/non-const overloads
-        "getColumnHeaders",  # const/non-const overloads
-    },
-    "PeptideIdentification": {
-        "getHits",  # const/non-const overloads - handled via SPECIAL_METHODS
-    },
-    "ProteinIdentification": {
-        "getHits",  # const/non-const overloads - handled via SPECIAL_METHODS
-        "getProteinGroups",  # const/non-const overloads
-        "getIndistinguishableProteins",  # const/non-const overloads
-        "computeCoverage",  # Takes ConsensusMap/PeptideIdentificationList - complex types
-        "setPrimaryMSRunPath",  # Overloaded with MSExperiment parameter
-        "getPrimaryMSRunPath",  # Output parameter
-        "setSearchParameters",  # SearchParameters nested type
-        "getSearchParameters",  # SearchParameters nested type
-        "insertProteinGroup",  # ProteinGroup nested type
-        "insertIndistinguishableProteins",  # ProteinGroup nested type
     },
     "AASequence": {
         "getFormula",  # Complex return type
         "begin", "end",  # Iterator types
-        "getResidue",  # const/non-const overloads
     },
     "Param": {
         "begin", "end",  # Iterator types
         "getDescription", "getTags",  # Complex return types
-    },
-    "MzMLFile": {
-        "getOptions",  # const/non-const overloads
     },
     "InternalCalibration": {
         "fillCalibrants",  # 7 parameters + self = 8, hits nanobind limit
@@ -172,20 +126,8 @@ SKIP_METHODS = {
     "Residue": {
         "getModification",  # Returns pointer
     },
-    "Sample": {
-        "getSubsamples",  # const/non-const overloads
-    },
-    "Precursor": {
-        "getActivationMethods",  # const/non-const overloads
-    },
-    "PeptideIdentificationList": {
-        # Inherits from ExposedVector - most methods come from there
-    },
     "DataProcessing": {
         "getProcessingActions",  # Returns set
-    },
-    "InstrumentSettings": {
-        # Most methods are simple getters/setters
     },
     "Mobilogram": {
         "getFloatDataArrays", "setFloatDataArrays",
@@ -194,44 +136,36 @@ SKIP_METHODS = {
         "findNearest",  # Return type mismatch
         "select",  # Complex parameter types
     },
-    "BilinearInterpolation": {
-        # Template class - may need special handling
-    },
     "MSNumpressCoder": {
-        # Static methods with complex buffer types
-        "encodeNP", "decodeNP",
-    },
-    "MultipleTesting": {
-        # Static methods - should work
+        "encodeNP", "decodeNP",  # Static methods with complex buffer types
     },
     "File": {
-        # Static utility methods
         "getUniqueName",  # Returns temp file path
     },
     "MascotXMLFile": {
-        "initializeLookup",  # Static method takes SpectrumMetaDataLookup by value, which has private copy ctor
+        "initializeLookup",  # Static method takes SpectrumMetaDataLookup by value, private copy ctor
     },
     "PepXMLFile": {
-        "load",  # Complex signature with PeptideIdentificationList
-        "store",
+        "load", "store",  # Complex signature with PeptideIdentificationList
     },
     "MzIdentMLFile": {
-        "load",  # Complex signature with PeptideIdentificationList
-        "store",
-    },
-    "DRange1": {
-        # Template instantiation
-    },
-    "DRange2": {
-        # Template instantiation
+        "load", "store",  # Complex signature with PeptideIdentificationList
     },
     "DataFilters": {
-        # passes() overloads with forward-declared types - skip the ones with Feature/ConsensusFeature
-        "passes",  # Multiple overloads including Feature and ConsensusFeature
+        "passes",  # Multiple overloads including Feature/ConsensusFeature (forward-declared)
+    },
+    "ProteinIdentification": {
+        "computeCoverage",  # Takes ConsensusMap/PeptideIdentificationList - complex types
+        "setPrimaryMSRunPath",  # Overloaded with MSExperiment parameter
+        "getPrimaryMSRunPath",  # Output parameter
+        "setSearchParameters", "getSearchParameters",  # SearchParameters nested type
+        "insertProteinGroup", "insertIndistinguishableProteins",  # ProteinGroup nested type
+    },
+    "ConsensusFeature": {
+        "computeDechargeConsensus",  # Takes forward-declared FeatureMap
     },
     "ProteinInference": {
-        # Methods with forward-declared ConsensusMap
-        "run",  # Takes ConsensusMap
+        "run",  # Takes ConsensusMap (forward-declared)
     },
 }
 
@@ -248,11 +182,12 @@ SKIP_METHODS = {
 # - Qt base classes: auto-skipped in _get_bound_base_classes (QDate, QString, QObject, etc.)
 #
 # STILL NEED MANUAL LISTING:
-# - Classes where ALL methods use incomplete types (whole class unusable)
+# - Classes where libclang can't parse the header (missing includes, etc.)
 # - Complex template instantiations
 # - Parameter type mismatches between pxd and C++
+# - Classes with constructor type mismatches
 SKIP_CLASSES = {
-    # Incomplete type issues (libclang can't resolve these)
+    # Incomplete type issues (libclang can't fully resolve)
     "MassExplainer",        # References Compomer which is forward-declared
     "Compomer",             # Forward-declared type, not complete when included
     "ILPDCWrapper",         # Complex ILP dependencies
@@ -263,29 +198,44 @@ SKIP_CLASSES = {
     "IsobaricQuantifier",        # Uses forward-declared IsobaricQuantitationMethod
     "IsobaricNormalizer",        # Uses forward-declared IsobaricQuantitationMethod
     "IsobaricIsotopeCorrector",  # Uses forward-declared IsobaricQuantitationMethod
-    # Abstract classes that libclang may not detect (fallback for when headers can't be parsed)
-    "BaseGroupFinder",
-    "BaseSuperimposer",
-    "ConsensusIDAlgorithm",
-    "ConsensusIDAlgorithmIdentity",
-    "ConsensusIDAlgorithmSimilarity",  # Abstract class
-    "IsobaricQuantitationMethod",  # Pure virtual methods
+
+    # Abstract classes (fallback - these should be auto-detected but may fail if headers can't be parsed)
+    # Some abstract classes have derived classes bound, so we can't skip the base
+    "FullSwathFileConsumer",        # Abstract class with pure virtual methods
+    "SpectrumAccessTransforming",   # pure virtual destructor
+    "SpectrumAccessQuadMZTransforming",
+    "SpectrumAccessSqMass",
+    "SpectrumAccessOpenMSCached",
+    "IMSAlphabet",                  # Uses abstract IMSAlphabetParser
+    "IMSAlphabetTextParser",        # Abstract template
+    # ConsensusID algorithm hierarchy - abstract base classes
+    "BaseGroupFinder",              # Abstract base class
+    "BaseSuperimposer",             # Abstract base class
+    "ConsensusIDAlgorithm",         # Abstract base class
+    "ConsensusIDAlgorithmIdentity", # Abstract, used as base for Average/Best/Worst
+    "ConsensusIDAlgorithmSimilarity",  # Abstract base class
+    "IsobaricQuantitationMethod",   # Pure virtual methods
+
     # Nested classes or special cases
     "XMLHandler",
     "IndexedMzMLHandler",
+
     # Classes with static methods not marked in .pxd (need @staticmethod or wrap-static)
     "PercolatorFeatureSetHelper",
     "PercolatorInfile",
     "PercolatorOutfile",
     "TransformationXMLFile",
     "OpenSwathDataAccessHelper",
-    # Classes with no default constructor
+
+    # Classes with no default constructor (not deleted, just explicit)
     "QTCluster",
     "SpectrumAccessOpenMS",
     "ProFormaParser",               # Only explicit(string_view) constructor
+
     # Classes with Cython template syntax issues
     "TraMLFile",
     "MZTrafoModel",
+
     # Private inheritance issues (inherit from std::vector but not accessible)
     "AcquisitionInfo",
 
@@ -306,9 +256,6 @@ SKIP_CLASSES = {
 
     # Classes with overloaded methods that can't be resolved without libclang
     "Biosaur2Algorithm",  # setMSData has const ref and move versions
-    # ConsensusMap - handled via SPECIAL_METHODS
-    # Feature - handled via SPECIAL_METHODS
-    # FeatureMap - handled via SPECIAL_METHODS
     "FeatureFinderAlgorithmMetaboIdent",  # setMSData overloads
     "FeatureFinderIdentificationAlgorithm",  # constructor parameter issues
 
@@ -318,10 +265,6 @@ SKIP_CLASSES = {
     "ExperimentalDesignFile",       # load has overloads
     "IDConflictResolverAlgorithm",  # resolve has overloads
     "OPXLHelper",                   # addProteinPositionMetaValues has overloads
-
-    # Classes using abstract parser types
-    "IMSAlphabet",                  # Uses abstract IMSAlphabetParser
-    "IMSAlphabetTextParser",        # Abstract template
 
     # Classes with wrong parameter types in .pxd (int instead of complex types)
     "AccurateMassSearchResult",     # setIndividualIntensities needs vector<double>
@@ -346,15 +289,6 @@ SKIP_CLASSES = {
     "OnDiscMSExperiment",           # incomplete type
     "ModificationDefinitionsSet",   # parameter type issues
 
-    # Abstract classes with pure virtual destructor
-    "SpectrumAccessTransforming",   # pure virtual destructor
-    "SpectrumAccessQuadMZTransforming",
-    "SpectrumAccessSqMass",
-    "SpectrumAccessOpenMSCached",
-
-    # Classes with Qt dependencies (Qt base classes are auto-skipped, but these may have other issues)
-    # "Date",                       # REMOVED: Qt base class (QDate) auto-skipped, pxd uses only OpenMS types
-
     # Classes with unknown parameter types
     "FalseDiscoveryRate",           # ScoreToTgtDecLabelPairs unknown
     "ProteaseDB",                   # parameter type issues (int instead of proper type)
@@ -364,15 +298,12 @@ SKIP_CLASSES = {
     # Classes inheriting from XMLHandler (non-copyable)
     "QcMLFile",                     # XMLHandler base is non-copyable
 
-    # Additional problematic classes found in build
-    "Instrument",         # getIonSources has const/non-const overloads
-    "ExperimentalDesign", # getters with overloads
-    "ExperimentalSettings",  # similar pattern
-    "CVMappingRule",      # copy constructor issues
-
-    # Classes with deleted default constructor
-    "MRMBatchFeatureSelector",      # default constructor deleted
-    "AAIndex",                      # default constructor deleted
+    # Classes with incomplete types in their methods
+    "CVMappingRule",                # Uses CVMappingTerm which is forward-declared
+    "InstrumentSettings",           # Uses ScanWindow which has incomplete type issues
+    "Instrument",                   # getIonSources has const/non-const overloads + incomplete types
+    "ExperimentalDesign",           # Complex nested types
+    "ExperimentalSettings",         # Similar to ExperimentalDesign
 
     # Classes with constructor type mismatches
     "NASequence",                   # constructor needs vector<const Ribonucleotide*>
@@ -396,12 +327,8 @@ SKIP_CLASSES = {
     # Classes with private copy constructors
     "CVMappingFile",
 
-    # Classes with private/protected constructors (singletons, utility classes)
-    "UniqueIdGenerator",            # Protected default constructor, private copy
+    # Classes with complex nested types or lambda analysis issues
     "GridBasedCluster",             # Complex constructors with nested Point/Rectangle types
-    "LogConfigHandler",             # Private default constructor
-    "MultipleTesting",              # Type not found/properly bound
-    "PosteriorErrorProbabilityModel",  # OpenMS::Math:: namespace causes lambda analysis issues
     "MultiplexDeltaMassesGenerator",  # Constructor type mismatch: pxd says (String,int,int), C++ expects (String,int,map)
     "PeptideAndProteinQuant",  # PeptideIdentificationList/ExperimentalDesign types incomplete
     "FeatureGroupingAlgorithmLabeled",  # ConsensusMap type incomplete in lambda
@@ -412,9 +339,7 @@ SKIP_CLASSES = {
     "ReactionMonitoringTransition",  # Lambda analysis fails
     "MRMFeature",  # Lambda analysis fails (inherits from Feature)
     "IncludeExcludeTarget",  # Lambda analysis fails
-    "InstrumentSettings",  # Lambda analysis fails
     "ScanWindow",  # pxd type mismatch
-    "SignalToNoiseEstimatorMedianRapid",  # pxd type mismatch and lambda analysis fails
     "LPWrapper",  # pxd type mismatch: int instead of proper vector/reference types
     "ProteaseDigestion",  # pxd type mismatch in digest method
 
@@ -430,7 +355,6 @@ SKIP_CLASSES = {
     "DIAScoring",                   # parameter type issues
     "MapAlignmentTransformer",      # transformRetentionTimes has overloads
     "SpectrumMetaDataLookup",       # getSpectrumMetaData has overloads
-    # Mobilogram removed from SKIP_CLASSES - now has SPECIAL_METHODS
 
     # Template classes (need specialized instantiation)
     "Matrix",                       # Matrix<double> template
@@ -452,18 +376,13 @@ SKIP_CLASSES = {
     # Classes with type alias issues
     "OSW_ChromExtractParams",
 
-    # TODO: Add wrap-static support in .pxd files and remove from SKIP_CLASSES
-
-    # Classes with constructor/copy issues found in module 3
+    # Classes with constructor/copy issues
     "MultiplexDeltaMasses",         # No matching constructor for initializer list
     "PeakWidthEstimator",           # No matching constructor for initializer list
-    "RibonucleotideDB",             # Deleted copy constructor (singleton-like)
 
     # Classes with external type issues (types from other libraries not bound)
     "IonMobilityScoring",           # Uses OpenSwath::LightTransition (not bound)
     "AASequence",                   # char* constructor, nanobind passes const char*
-    # ModifiedPeptideGenerator now works - nested types are parsed
-    # Peak2D and ChromatogramPeak work fine with DPosition type caster
 
     # Classes referencing Param::ParamEntry (nested type incomplete)
     "ElutionModelFitter",           # Param::ParamEntry incomplete type
@@ -488,23 +407,17 @@ SKIP_CLASSES = {
 
     # Classes with pxd type mismatches (method signature issues)
     "DecoyGenerator",               # shuffle() pxd mismatch
-    # "GaussFitter",                # Try enabling - should work with DPosition type caster
-    # "IsotopeDistribution",        # Try enabling - set() takes vector<Peak1D>&
-    # "MobilityPeak1D",             # Try enabling - only uses default constructor + simple methods
     "FileHandler",                  # Methods use int instead of ProgressLogger::LogType enum
     "SequestInfile",                # pxd type mismatch
     "SequestOutfile",               # pxd type mismatch
     "BSpline2d",                    # Lambda analysis fails
     "CrossLinksDB",                 # Lambda analysis fails
     "CubicSpline2d",                # Lambda analysis fails
-    # "FileTypes",                  # Now supported with wrap-static
     "IMSIsotopeDistribution",       # Constructor mismatch in ims namespace
-    "IMSIsotopeDistribution_Peak",  # Nested type using unresolved type aliases (mass_type, abundance_type)
+    "IMSIsotopeDistribution_Peak",  # Nested type using unresolved type aliases
     "LinearInterpolation",          # Template class with unresolved KeyType
     "SignalToNoiseEstimator",       # Template class needs instantiation
     "SignalToNoiseEstimatorMeanIterative",  # Template class needs instantiation
-    "SignalToNoiseEstimatorMedianRapid",  # Template class needs instantiation
-    "FullSwathFileConsumer",        # Abstract class (can't instantiate)
     "SpectrumAlignmentScore",       # Template class
     "SteinScottImproveScore",       # Template class
     "SignalToNoiseEstimatorMedian", # Template class
