@@ -139,10 +139,12 @@ class PxdParser:
         self._static_method_pattern = re.compile(
             r"@staticmethod"
         )
-        # Pattern for enum: cdef enum EnumName or cdef enum EnumName "C++Name"
+        # Pattern for enum: cdef enum EnumName or cdef enum class EnumName "C++Name"
+        # Note: "class" is Cython syntax for scoped enums, not the enum name
         self._enum_pattern = re.compile(
-            r'cdef\s+enum\s+(\w+)(?:\s+"([^"]+)")?'
+            r'cdef\s+enum\s+(?:class\s+)?(\w+)(?:\s+"([^"]+)")?'
         )
+        self._scoped_enum_pattern = re.compile(r'cdef\s+enum\s+class\s+')
         self._wrap_directive_pattern = re.compile(
             r"#\s*wrap-(\w+)(?::\s*(.+))?$"
         )
@@ -233,12 +235,15 @@ class PxdParser:
             if enum_match:
                 enum_name = enum_match.group(1)
                 cpp_name = enum_match.group(2)  # Optional C++ alias like "OpenMS::FileTypes::Type"
+                # Check if this is a scoped enum (cdef enum class)
+                is_scoped = bool(self._scoped_enum_pattern.match(stripped))
                 enum_decl, end_idx = self._parse_enum_body(
                     lines, i, enum_name, current_namespace
                 )
                 if enum_decl:
                     if cpp_name:
                         enum_decl.cpp_name = cpp_name
+                    enum_decl.is_scoped = is_scoped
                     enums.append(enum_decl)
                     self.type_registry.register_enum(enum_name, current_namespace)
                 i = end_idx
