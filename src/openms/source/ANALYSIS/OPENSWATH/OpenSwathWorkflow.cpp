@@ -695,13 +695,6 @@ namespace OpenMS
               MS1Extraction_(threadsafe_ms1, swath_maps, ms1_chromatograms, ms1_cp,
                   transition_exp_used, trafo_inverse, ms1_only, ms1_isotopes);
             }
-            else if (swath_maps[i].ms1 && current_swath_map_inner)
-            {
-              // In case the current swath map is actually an MS1-only input (no separate ms1_map_ was created),
-              // extract precursor chromatograms from the current swath map itself so MS1-based scoring can run.
-              MS1Extraction_(current_swath_map_inner, swath_maps, ms1_chromatograms, ms1_cp,
-                  transition_exp_used, trafo_inverse, ms1_only, ms1_isotopes);
-            }
 
             // Step 2.1: extract these transitions
             ChromatogramExtractor extractor;
