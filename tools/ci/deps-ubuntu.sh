@@ -46,10 +46,8 @@ sudo apt-get -qq install -y \
   libsimde-dev
 
 # Install Apache Arrow
-sudo apt update
 sudo apt-get install -y -V ca-certificates lsb-release wget
 wget https://packages.apache.org/artifactory/arrow/$(lsb_release --id --short | tr 'A-Z' 'a-z')/apache-arrow-apt-source-latest-$(lsb_release --codename --short).deb
-sudo apt update
 sudo apt-get install -y -V ./apache-arrow-apt-source-latest-$(lsb_release --codename --short).deb
 sudo apt update
 # Install libcurl-dev as a workaround for Arrow CMake config issue
