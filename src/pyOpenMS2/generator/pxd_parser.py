@@ -347,6 +347,10 @@ class PxdParser:
 
             # Check for wrap directives (including doc continuation)
             if stripped.startswith("#"):
+                # Check for ABSTRACT class comment (fallback when libclang can't parse)
+                if "ABSTRACT" in stripped.upper() and "class" in stripped.lower():
+                    class_decl.is_abstract = True
+                    logger.debug(f"Class {class_name} marked as abstract from pxd comment")
                 directives = self._parse_wrap_directives(stripped)
                 if WrapDirective.DOC in directives:
                     pending_doc.append(directives[WrapDirective.DOC])
