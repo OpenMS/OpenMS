@@ -129,8 +129,12 @@ public:
         sql_batch_size_ = sql_batch_size; 
       }
 
-        /// Set the run id used when writing run-level information
-        void setRunId(const UInt64 run_id);
+      /**
+          @brief Set the run id used when writing run-level information
+          
+          @param[in] run_id Run identifier used for RUN table linkage
+      */
+      void setRunId(const UInt64 run_id);
 
       /**
           @brief Get spectral indices around a specific retention time
