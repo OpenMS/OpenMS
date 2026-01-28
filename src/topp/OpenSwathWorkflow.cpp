@@ -1090,6 +1090,11 @@ protected:
                             swath_windows_file, min_upper_edge_dist, force,
                             sort_swath_maps, prm, pasef, &qc_consumer))
         {
+          OPENMS_LOG_ERROR << "Failed to load SWATH files for Run " << (run_index + 1)
+                           << ": " << ListUtils::concatenate(single_file_list, ", ") << std::endl
+                           << "  (split_file=" << (split_file ? "true" : "false") << ", tmp_dir='" << tmp_dir << "', readoptions='" << readoptions << "')"
+                           << std::endl
+                           << "  Please check that the input files exist, are valid mzML/sqMass files, and that read options are correct." << std::endl;
           return PARSE_ERROR;
         }
         qc.storeJSON(out_qc);
@@ -1100,6 +1105,11 @@ protected:
                             swath_windows_file, min_upper_edge_dist, force,
                             sort_swath_maps, prm, pasef))
         {
+          OPENMS_LOG_ERROR << "Failed to load SWATH files for Run " << (run_index + 1)
+                           << ": " << ListUtils::concatenate(single_file_list, ", ") << std::endl
+                           << "  (split_file=" << (split_file ? "true" : "false") << ", tmp_dir='" << tmp_dir << "', readoptions='" << readoptions << "')"
+                           << std::endl
+                           << "  Please check that the input files exist, are valid mzML/sqMass files, and that read options are correct." << std::endl;
           return PARSE_ERROR;
         }
       }
