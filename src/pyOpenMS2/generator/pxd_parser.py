@@ -8,6 +8,7 @@ nanobind bindings.
 
 from __future__ import annotations
 
+import logging
 import re
 from dataclasses import dataclass, field
 from enum import Enum, auto
@@ -15,6 +16,8 @@ from pathlib import Path
 from typing import Dict, List, Optional, Set, Tuple, Union
 
 from .type_registry import TypeRegistry, TypeInfo
+
+logger = logging.getLogger(__name__)
 
 
 class WrapDirective(Enum):
@@ -86,6 +89,7 @@ class EnumDecl:
     namespace: str = "OpenMS"
     attached_to: Optional[str] = None  # Class this enum is attached to
     cpp_name: Optional[str] = None  # Full C++ qualified name (e.g., "OpenMS::FileTypes::Type")
+    is_scoped: bool = False  # True for 'enum class' (C++11 scoped enums)
 
 
 @dataclass
@@ -242,10 +246,17 @@ class PxdParser:
 
             i += 1
 
-        # Attach enums to classes based on wrap-attach directives
+        # Attach enums to classes based on wrap-attach directives or file name
+        file_stem = pxd_path.stem  # e.g., "IMTypes" from "IMTypes.pxd"
         for enum_decl in enums:
+            # First, check explicit attached_to from namespace or wrap-attach
             if enum_decl.attached_to and enum_decl.attached_to in classes:
                 classes[enum_decl.attached_to].enums.append(enum_decl)
+            # If not attached, try to attach to class matching the file name
+            elif not enum_decl.attached_to and file_stem in classes:
+                enum_decl.attached_to = file_stem
+                classes[file_stem].enums.append(enum_decl)
+                logger.debug(f"Auto-attached enum {enum_decl.name} to class {file_stem} (by file name)")
 
         return classes
 

@@ -260,6 +260,7 @@ class CppHeaderParser:
                 self.compiler_args.append(f"-I{openswath_path}")
 
         self._classes: Dict[str, CppClass] = {}
+        self._scoped_enums: Set[str] = set()  # Qualified names of C++11 scoped enums
 
         # Create cache directory if specified
         if self.cache_dir:
@@ -376,6 +377,10 @@ class CppHeaderParser:
             self._save_to_cache(header_path, parsed_classes)
 
         return self._classes
+
+    def get_scoped_enums(self) -> Set[str]:
+        """Get the set of qualified names of scoped enums (C++11 enum class)."""
+        return self._scoped_enums
 
     def parse_headers(
         self,
@@ -564,6 +569,13 @@ class CppHeaderParser:
                 cpp_class = self._process_class_template(child, namespace, out_classes=out_classes)
                 if cpp_class:
                     out_classes[cpp_class.name] = cpp_class
+
+            elif child.kind == CursorKind.ENUM_DECL:
+                # Detect scoped enums (C++11 enum class)
+                if child.is_scoped_enum():
+                    enum_name = child.spelling
+                    qualified_name = f"{namespace}::{enum_name}" if namespace else enum_name
+                    self._scoped_enums.add(qualified_name)
 
     def _process_class(
         self,
@@ -933,6 +945,7 @@ def _create_fallback_merged_class(class_name: str, pxd_class: "ClassDecl") -> Op
 def merge_with_pxd(
     cpp_classes: Dict[str, CppClass],
     pxd_classes: Dict[str, "ClassDecl"],  # From pxd_parser
+    scoped_enums: Optional[Set[str]] = None,  # Qualified names of C++11 enum class
 ) -> Dict[str, MergedClass]:
     """
     Merge C++ AST information with .pxd declarations.
@@ -946,12 +959,15 @@ def merge_with_pxd(
         Classes parsed from C++ headers.
     pxd_classes : dict
         Classes declared in .pxd files.
+    scoped_enums : set, optional
+        Qualified names of C++11 scoped enums (enum class) from libclang.
 
     Returns
     -------
     dict
         Merged class information with accurate C++ types.
     """
+    scoped_enums = scoped_enums or set()
     merged = {}
 
     # Classes that should fall back to .pxd info when libclang can't parse them
@@ -1043,6 +1059,15 @@ def merge_with_pxd(
                 )
                 constructors.append(cpp_ctor)
 
+        # Update enum is_scoped based on libclang detection
+        pxd_enums = getattr(pxd_class, 'enums', [])
+        for enum in pxd_enums:
+            # Check if this enum is a scoped enum (C++11 enum class)
+            # Use cpp_name if available, otherwise construct from namespace
+            qualified = enum.cpp_name if enum.cpp_name else f"{enum.namespace}::{enum.name}"
+            if qualified in scoped_enums:
+                enum.is_scoped = True
+
         merged_class = MergedClass(
             cpp_class=cpp_class,
             methods=merged_methods,
@@ -1051,7 +1076,7 @@ def merge_with_pxd(
             wrap_iter=getattr(pxd_class, 'wrap_iter', None),
             wrap_manual_memory=getattr(pxd_class, 'wrap_manual_memory', False),
             doc=getattr(pxd_class, 'doc', ''),
-            enums=getattr(pxd_class, 'enums', []),
+            enums=pxd_enums,
         )
         merged[class_name] = merged_class
 
