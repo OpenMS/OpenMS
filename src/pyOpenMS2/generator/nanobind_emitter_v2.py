@@ -242,12 +242,12 @@ SKIP_METHODS = {
 # - Private constructors: detected via access specifiers (has_private_constructor)
 # - Const/non-const overloads: detected and handled in _generate_regular_method
 # - Methods using incomplete types: detected via type.get_declaration().is_definition()
+# - Qt base classes: auto-skipped in _get_bound_base_classes (QDate, QString, QObject, etc.)
 #
 # STILL NEED MANUAL LISTING:
 # - Classes where ALL methods use incomplete types (whole class unusable)
 # - Complex template instantiations
 # - Parameter type mismatches between pxd and C++
-# - Classes with Qt dependencies
 SKIP_CLASSES = {
     # Incomplete type issues (libclang can't resolve these)
     "MassExplainer",        # References Compomer which is forward-declared
@@ -349,8 +349,8 @@ SKIP_CLASSES = {
     "SpectrumAccessSqMass",
     "SpectrumAccessOpenMSCached",
 
-    # Classes with QDate/Qt dependencies
-    "Date",                         # constructor needs QDate, not int
+    # Classes with Qt dependencies (Qt base classes are auto-skipped, but these may have other issues)
+    # "Date",                       # REMOVED: Qt base class (QDate) auto-skipped, pxd uses only OpenMS types
 
     # Classes with unknown parameter types
     "FalseDiscoveryRate",           # ScoreToTgtDecLabelPairs unknown
@@ -2445,6 +2445,12 @@ class NanobindEmitterV2:
             if base.startswith('std::'):
                 continue
 
+            # Skip Qt base classes (QDate, QString, QObject, etc.)
+            # Qt classes follow pattern: Q + CapitalLetter (but not QC=QualityControl, QT=OpenMS)
+            if self._is_qt_class(base_name):
+                logger.debug(f"Skipping Qt base class: {base_name}")
+                continue
+
             # Check if this base class is bound (in CORE_CLASSES, not skipped, no caster)
             if base_name in CORE_CLASSES and base_name not in SKIP_CLASSES and base_name not in caster_types:
                 # Also check that the base class is actually in our bound classes
@@ -3207,6 +3213,26 @@ class NanobindEmitterV2:
             result = result.replace("&", "").strip()
 
         return result
+
+    def _is_qt_class(self, class_name: str) -> bool:
+        """Check if a class name is a Qt class (QDate, QString, QObject, etc.).
+
+        Qt classes follow the pattern: Q + CapitalLetter (e.g., QDate, QString, QObject)
+        But NOT:
+        - QC* (QCBase = Quality Control in OpenMS)
+        - QT* (QTCluster = OpenMS class)
+        - Q followed by lowercase (not a Qt convention)
+        """
+        if not class_name.startswith('Q'):
+            return False
+        if len(class_name) < 2:
+            return False
+        second_char = class_name[1]
+        # Exclude QC (Quality Control) and QT (OpenMS) prefixes
+        if second_char in ('C', 'T'):
+            return False
+        # Qt classes have Q + uppercase letter
+        return second_char.isupper()
 
     def _escape_string(self, s: str) -> str:
         """Escape a string for use in C++ code."""
