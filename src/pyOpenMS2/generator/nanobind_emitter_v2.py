@@ -2287,13 +2287,21 @@ class NanobindEmitterV2:
         else:
             qualified_name = f"{namespace}::{enum_name}"
 
+        # Check if this is a scoped enum (C++11 enum class)
+        is_scoped = getattr(enum_decl, 'is_scoped', False)
+
         lines = [f"    // {enum_name} enum (auto-generated from pxd)"]
         lines.append(f'    nb::enum_<{qualified_name}>(m, "{enum_name}")')
 
         for value in enum_decl.values:
             lines.append(f'        .value("{value.name}", {qualified_name}::{value.name})')
 
-        lines.append("        .export_values();")
+        # Only export values for non-scoped enums (regular enums)
+        # Scoped enums (enum class) should keep values scoped
+        if not is_scoped:
+            lines.append("        .export_values();")
+        else:
+            lines.append("        ;")
 
         return "\n".join(lines)
 
