@@ -1438,11 +1438,6 @@ protected:
     }
     prepareChromOutput(&chromatogramConsumer, exp_meta, transition_exp, out_chrom_current, run_id);
 
-    // Set up peakgroup file output .osw file for this file
-    // store features if not writing to .featureXML
-    bool store_features = (out_features_type != FileTypes::FEATUREXML);
-    String osw_out_filename = store_features ? out_features : "";
-
     // Create a run id per unique input filename and register it in the OSW
     UInt64 cur_run = OpenMS::UniqueIdGenerator::getUniqueId();
     oswwriter.addRun(cur_run, current_file);
