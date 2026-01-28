@@ -9,6 +9,7 @@
 
 #include <OpenMS/ANALYSIS/TARGETED/DefaultChromHandler.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/CONCEPT/Exception.h>
 
 namespace OpenMS
 {
@@ -45,6 +46,14 @@ namespace OpenMS
       try
       {
         return srm_->collectIrtChromatogramsForIrt(swath_maps, irt_transitions, mrm_mapping_param, cp, trafo, pasef, load_into_memory);
+      }
+      catch (const Exception::IllegalArgument& e)
+      {
+        // No chromatograms mapped to transitions: treat as a recoverable condition for SRM data.
+        // SRM mzML inputs are chromatogram-only (no spectra) and mapping relies on mapping precursor/product m/z that may not match the provided transition list. In these cases there simply are no chroms to return.
+        // We remove the empty chroms downstream and only process those that were mapped successfully.
+        OPENMS_LOG_WARN << "DefaultChromHandler: SRM handler reported no iRT chromatograms: " << e.what() << " - returning empty result" << std::endl;
+        return std::vector<MSChromatogram>();
       }
       catch (const std::exception& e)
       {
@@ -89,6 +98,14 @@ namespace OpenMS
       try
       {
         return srm_->extractAndMapChromatogramsForTransitions(swath_maps, transition_exp, cp, mrm_mapping_param);
+      }
+      catch (const Exception::IllegalArgument& e)
+      {
+        // No chromatograms mapped to transitions: treat as a recoverable condition for SRM data.
+        // SRM mzML inputs are chromatogram-only (no spectra) and mapping relies on mapping precursor/product m/z that may not match the provided transition list. In these cases there simply are no chroms to return.
+        // We remove the empty chroms downstream and only process those that were mapped successfully.
+        OPENMS_LOG_WARN << "DefaultChromHandler: SRM handler reported no chromatograms mapped to transitions: " << e.what() << " - returning empty result" << std::endl;
+        return std::vector<MSChromatogram>();
       }
       catch (const std::exception& e)
       {
