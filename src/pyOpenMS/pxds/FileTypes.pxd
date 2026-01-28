@@ -28,7 +28,9 @@ cdef extern from "<OpenMS/FORMAT/FileTypes.h>" namespace "OpenMS":
 
 cdef extern from "<OpenMS/FORMAT/FileTypes.h>" namespace "OpenMS::FileTypes":
 
-    cdef enum FileType "OpenMS::FileTypes::Type":
+    cdef enum class FileType "OpenMS::FileTypes::Type":
+        # wrap-attach:
+        #    FileTypes
     
           UNKNOWN,            # < Unknown file extension
           DTA,                # < DTA file (.dta)

@@ -27,7 +27,7 @@ namespace OpenMS
   {
 
     ///Actual file types enum.
-    enum Type
+    enum class Type
     {
       UNKNOWN,            ///< Unknown file extension
       DTA,                ///< DTA file (.dta)
