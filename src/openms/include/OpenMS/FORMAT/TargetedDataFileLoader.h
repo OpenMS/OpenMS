@@ -15,7 +15,6 @@
 
 namespace OpenMS
 {
-  class ExperimentalSettings;
   namespace Interfaces { class IMSDataConsumer; }
 
   /// Dispatcher that detects whether an mzML contains spectra (SWATH/DIA)
