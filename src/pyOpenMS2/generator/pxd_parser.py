@@ -85,6 +85,7 @@ class EnumDecl:
     doc: str = ""
     namespace: str = "OpenMS"
     attached_to: Optional[str] = None  # Class this enum is attached to
+    cpp_name: Optional[str] = None  # Full C++ qualified name (e.g., "OpenMS::FileTypes::Type")
 
 
 @dataclass
@@ -134,8 +135,9 @@ class PxdParser:
         self._static_method_pattern = re.compile(
             r"@staticmethod"
         )
+        # Pattern for enum: cdef enum EnumName or cdef enum EnumName "C++Name"
         self._enum_pattern = re.compile(
-            r'cdef\s+enum\s+"?([^"\s]+)"?'
+            r'cdef\s+enum\s+(\w+)(?:\s+"([^"]+)")?'
         )
         self._wrap_directive_pattern = re.compile(
             r"#\s*wrap-(\w+)(?::\s*(.+))?$"
@@ -226,10 +228,13 @@ class PxdParser:
             enum_match = self._enum_pattern.match(stripped)
             if enum_match:
                 enum_name = enum_match.group(1)
+                cpp_name = enum_match.group(2)  # Optional C++ alias like "OpenMS::FileTypes::Type"
                 enum_decl, end_idx = self._parse_enum_body(
                     lines, i, enum_name, current_namespace
                 )
                 if enum_decl:
+                    if cpp_name:
+                        enum_decl.cpp_name = cpp_name
                     enums.append(enum_decl)
                     self.type_registry.register_enum(enum_name, current_namespace)
                 i = end_idx
@@ -402,6 +407,18 @@ class PxdParser:
                 if WrapDirective.DOC in prev_directives:
                     enum_decl.doc = prev_directives[WrapDirective.DOC]
 
+        # Auto-deduce attached_to from namespace if not explicitly set
+        # e.g., namespace "OpenMS::FileTypes" -> attached_to "FileTypes"
+        if not enum_decl.attached_to and namespace.startswith("OpenMS::"):
+            parts = namespace.split("::")
+            if len(parts) >= 2:
+                # namespace is "OpenMS::ClassName" or "OpenMS::Outer::Inner"
+                # Use the first part after "OpenMS" as the class
+                potential_class = parts[1]
+                # Only set if it looks like a class name (starts uppercase)
+                if potential_class and potential_class[0].isupper():
+                    enum_decl.attached_to = potential_class
+
         while i < len(lines):
             line = lines[i]
             current_indent = self._get_indent(line)
@@ -414,16 +431,29 @@ class PxdParser:
                 i += 1
                 continue
 
-            # Parse enum value
-            if "=" in stripped:
-                parts = stripped.split("=")
-                name = parts[0].strip()
-                value = int(parts[1].strip().rstrip(","))
-                enum_decl.values.append(EnumValue(name=name, value=value))
-            else:
-                name = stripped.rstrip(",")
-                if name and not name.startswith("cdef"):
-                    enum_decl.values.append(EnumValue(name=name))
+            # Parse enum value - strip trailing comments first
+            # e.g., "UNKNOWN,            # < Unknown file extension" -> "UNKNOWN"
+            comment_idx = stripped.find("#")
+            clean_value = stripped[:comment_idx].strip() if comment_idx >= 0 else stripped
+
+            if not clean_value:
+                i += 1
+                continue
+
+            # Handle multiple comma-separated values on one line (e.g., "CMD, GUI, NONE")
+            values_on_line = [v.strip() for v in clean_value.split(",") if v.strip()]
+
+            for val in values_on_line:
+                if not val or val.startswith("cdef"):
+                    continue
+
+                if "=" in val:
+                    parts = val.split("=")
+                    name = parts[0].strip()
+                    value = int(parts[1].strip())
+                    enum_decl.values.append(EnumValue(name=name, value=value))
+                else:
+                    enum_decl.values.append(EnumValue(name=val))
 
             i += 1
 
