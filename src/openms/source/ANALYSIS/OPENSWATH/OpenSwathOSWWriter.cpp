@@ -175,9 +175,9 @@ namespace OpenMS
     if (!doWrite_) return;
     SqliteConnector conn(output_filename_);
     const UInt64 rid = Internal::SqliteHelper::clearSignBit(run_id);
-    std::stringstream sql_run;
-    sql_run << "INSERT INTO RUN (ID, FILENAME) VALUES (" << rid << ", '" << input_filename << "'); ";
-    conn.executeStatement(sql_run.str());
+    String sql_run = "INSERT INTO RUN (ID, FILENAME) VALUES (?, ?);";
+    std::vector<String> data = {String(rid), input_filename};
+    conn.executeBindStatement(sql_run, data);
     run_id_ = rid;
   }
 
