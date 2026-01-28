@@ -43,7 +43,11 @@ sudo apt-get -qq install -y \
   libsqlite3-dev \
   libsqlitecpp-dev \
   nlohmann-json3-dev \
-  libsimde-dev
+  libsimde-dev \
+  pipx
+
+# Install uv (Python package manager) via pipx
+pipx install uv
 
 # Install Apache Arrow
 sudo apt update
