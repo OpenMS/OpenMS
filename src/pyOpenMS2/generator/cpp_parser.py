@@ -97,6 +97,8 @@ class CppMethod:
     is_pure_virtual: bool = False
     is_constructor: bool = False
     is_destructor: bool = False
+    is_deleted: bool = False  # = delete
+    is_defaulted: bool = False  # = default
     access: str = "public"  # public, protected, private
 
     def to_dict(self) -> Dict[str, Any]:
@@ -128,6 +130,14 @@ class CppClass:
     is_template: bool = False
     template_params: List[str] = field(default_factory=list)
     doc: str = ""
+    # Overload tracking: method names that have multiple signatures
+    overloaded_methods: Set[str] = field(default_factory=set)
+    # Methods with const/non-const overloads (common binding issue)
+    const_overloaded_methods: Set[str] = field(default_factory=set)
+    # Constructor status
+    has_deleted_default_constructor: bool = False
+    has_deleted_copy_constructor: bool = False
+    has_private_constructor: bool = False  # All constructors are private/protected
 
     def to_dict(self) -> Dict[str, Any]:
         """Serialize to dictionary for JSON caching."""
@@ -144,6 +154,11 @@ class CppClass:
             'is_template': self.is_template,
             'template_params': self.template_params,
             'doc': self.doc,
+            'overloaded_methods': list(self.overloaded_methods),
+            'const_overloaded_methods': list(self.const_overloaded_methods),
+            'has_deleted_default_constructor': self.has_deleted_default_constructor,
+            'has_deleted_copy_constructor': self.has_deleted_copy_constructor,
+            'has_private_constructor': self.has_private_constructor,
         }
 
     @classmethod
@@ -162,6 +177,11 @@ class CppClass:
             is_template=d.get('is_template', False),
             template_params=d.get('template_params', []),
             doc=d.get('doc', ''),
+            overloaded_methods=set(d.get('overloaded_methods', [])),
+            const_overloaded_methods=set(d.get('const_overloaded_methods', [])),
+            has_deleted_default_constructor=d.get('has_deleted_default_constructor', False),
+            has_deleted_copy_constructor=d.get('has_deleted_copy_constructor', False),
+            has_private_constructor=d.get('has_private_constructor', False),
         )
 
     def find_method(self, name: str, param_count: Optional[int] = None) -> Optional[CppMethod]:
@@ -715,6 +735,10 @@ class CppHeaderParser:
         else:
             current_access = "private"
 
+        # Track all constructors (including non-public) for deleted/private detection
+        all_constructors: List[CppMethod] = []
+        has_any_public_constructor = False
+
         for child in cursor.get_children():
             # Track access specifier
             if child.kind == CursorKind.CXX_ACCESS_SPEC_DECL:
@@ -726,23 +750,29 @@ class CppHeaderParser:
                     current_access = "private"
                 continue
 
-            # Skip non-public members for binding
-            if current_access != "public":
-                continue
-
             if child.kind == CursorKind.CONSTRUCTOR:
                 ctor = self._process_method(child, is_constructor=True)
                 ctor.access = current_access
-                cpp_class.constructors.append(ctor)
+                all_constructors.append(ctor)
+                if current_access == "public":
+                    has_any_public_constructor = True
+                    if not ctor.is_deleted:
+                        cpp_class.constructors.append(ctor)
 
             elif child.kind == CursorKind.DESTRUCTOR:
-                # Skip destructors
-                pass
+                # Check for pure virtual destructor (makes class abstract)
+                if child.is_pure_virtual_method():
+                    cpp_class.is_abstract = True
 
             elif child.kind == CursorKind.CXX_METHOD:
                 method = self._process_method(child)
                 method.access = current_access
-                cpp_class.methods.append(method)
+                # Check for pure virtual (makes class abstract)
+                if method.is_pure_virtual:
+                    cpp_class.is_abstract = True
+                # Only add public methods to binding list
+                if current_access == "public":
+                    cpp_class.methods.append(method)
 
             # Handle nested classes and structs
             elif child.kind in (CursorKind.CLASS_DECL, CursorKind.STRUCT_DECL):
@@ -757,12 +787,48 @@ class CppHeaderParser:
                         out_classes[nested_class.name] = nested_class
                         logger.debug(f"Found nested class: {nested_class.name} in {parent_class_name}")
 
+        # Analyze constructor status
+        for ctor in all_constructors:
+            # Check for deleted default constructor (no parameters)
+            if len(ctor.parameters) == 0 and ctor.is_deleted:
+                cpp_class.has_deleted_default_constructor = True
+            # Check for deleted copy constructor (single const ref parameter of same type)
+            if len(ctor.parameters) == 1 and ctor.is_deleted:
+                param_type = ctor.parameters[0].type_str
+                if "const" in param_type and "&" in param_type:
+                    cpp_class.has_deleted_copy_constructor = True
+
+        # Check if all constructors are non-public
+        if all_constructors and not has_any_public_constructor:
+            cpp_class.has_private_constructor = True
+
+        # Detect method overloads
+        self._detect_overloads(cpp_class)
+
     def _process_method(self, cursor, is_constructor: bool = False) -> CppMethod:
         """Process a method declaration."""
         result_type = cursor.result_type
         return_type = result_type.spelling if not is_constructor else ""
         # Get canonical type (resolves typedefs like Peak1D::IntensityType -> float)
         canonical_return_type = result_type.get_canonical().spelling if not is_constructor else ""
+
+        # Detect deleted and defaulted methods
+        # libclang doesn't have a direct is_deleted() method, so we check tokens
+        is_deleted = False
+        is_defaulted = False
+        try:
+            tokens = list(cursor.get_tokens())
+            token_spellings = [t.spelling for t in tokens]
+            # Look for "= delete" or "= default" pattern
+            for i, spelling in enumerate(token_spellings):
+                if spelling == "=" and i + 1 < len(token_spellings):
+                    next_token = token_spellings[i + 1]
+                    if next_token == "delete":
+                        is_deleted = True
+                    elif next_token == "default":
+                        is_defaulted = True
+        except Exception:
+            pass  # Token access may fail in some cases
 
         method = CppMethod(
             name=cursor.spelling,
@@ -773,6 +839,8 @@ class CppHeaderParser:
             is_static=cursor.is_static_method(),
             is_virtual=cursor.is_virtual_method(),
             is_pure_virtual=cursor.is_pure_virtual_method(),
+            is_deleted=is_deleted,
+            is_defaulted=is_defaulted,
         )
 
         # Process parameters
@@ -798,6 +866,31 @@ class CppHeaderParser:
             is_reference=param_type.kind == TypeKind.LVALUEREFERENCE,
             is_pointer=param_type.kind == TypeKind.POINTER,
         )
+
+    def _detect_overloads(self, cpp_class: CppClass):
+        """Detect overloaded methods and const/non-const overloads.
+
+        Populates cpp_class.overloaded_methods and cpp_class.const_overloaded_methods.
+        """
+        from collections import defaultdict
+
+        # Group methods by name
+        methods_by_name: Dict[str, List[CppMethod]] = defaultdict(list)
+        for method in cpp_class.methods:
+            methods_by_name[method.name].append(method)
+
+        for name, methods in methods_by_name.items():
+            if len(methods) > 1:
+                # This method name has multiple overloads
+                cpp_class.overloaded_methods.add(name)
+
+                # Check for const/non-const overload pattern
+                const_methods = [m for m in methods if m.is_const]
+                nonconst_methods = [m for m in methods if not m.is_const]
+
+                if const_methods and nonconst_methods:
+                    # Has both const and non-const versions
+                    cpp_class.const_overloaded_methods.add(name)
 
 
 @dataclass
@@ -844,6 +937,28 @@ class MergedClass:
     @property
     def is_abstract(self) -> bool:
         return self.cpp_class.is_abstract
+
+    @property
+    def overloaded_methods(self) -> Set[str]:
+        """Method names that have multiple overloads."""
+        return self.cpp_class.overloaded_methods
+
+    @property
+    def const_overloaded_methods(self) -> Set[str]:
+        """Method names that have const/non-const overloads."""
+        return self.cpp_class.const_overloaded_methods
+
+    @property
+    def has_deleted_default_constructor(self) -> bool:
+        return self.cpp_class.has_deleted_default_constructor
+
+    @property
+    def has_deleted_copy_constructor(self) -> bool:
+        return self.cpp_class.has_deleted_copy_constructor
+
+    @property
+    def has_private_constructor(self) -> bool:
+        return self.cpp_class.has_private_constructor
 
 
 def _create_fallback_merged_class(class_name: str, pxd_class: "ClassDecl") -> Optional[MergedClass]:
