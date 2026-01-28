@@ -76,7 +76,9 @@ START_SECTION(static void normalizeChromatogramMZ(MSChromatogram& chrom))
     MSChromatogram chrom;
     chrom.getPrecursor().setMZ(0.0);
     chrom.getProduct().setMZ(0.0);
-    chrom.setNativeID("some_prefix_700.789_some_suffix_800.012_more");
+    // Use CV terms instead of nativeID parsing for proper SRM mzML data
+    chrom.getPrecursor().addCVTerm(CVTerm("MS:1000827", "", "", "700.789"));
+    chrom.getProduct().addCVTerm(CVTerm("MS:1000827", "", "", "800.012"));
 
     SRMChromHandler::normalizeChromatogramMZ(chrom);
     TEST_REAL_SIMILAR(chrom.getPrecursor().getMZ(), 700.789)

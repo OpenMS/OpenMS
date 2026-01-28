@@ -69,23 +69,6 @@ namespace OpenMS
       }
     }
 
-    // If we still don't have precursor/product m/z, fall back to parsing
-    // them from the nativeID (handles legacy nativeID formats)
-    if (!((prec_mz > 0) || (prod_mz > 0)))
-    {
-      String nid = chrom.getNativeID();
-      double c_prec = -1.0, c_prod = -1.0;
-      if (sscanf(nid.c_str(), "%*[^0-9+\\-]%lf%*[^0-9+\\-]%lf", &c_prec, &c_prod) >= 2)
-      {
-        Precursor p; p.setMZ(c_prec);
-        Product q; q.setMZ(c_prod);
-        chrom.setPrecursor(p);
-        chrom.setProduct(q);
-        prec_mz = c_prec;
-        prod_mz = c_prod;
-      }
-    }
-
     // Ensure meta-values and a canonical nativeID exist for whichever values we have
     if (prec_mz > 0)
     {
