@@ -63,7 +63,13 @@ public:
         const OpenMS::TargetedExperiment& targeted_exp,
         OpenMS::PeakMap& output) const;
 
-    /// Convenience overload: accept an OpenSwath::LightTargetedExperiment by converting it to TargetedExperiment
+    /**
+      @brief Map chromatograms to assays using a LightTargetedExperiment.
+      
+      @param[in] input_chromatograms Input chromatograms to map.
+      @param[in] targeted_exp LightTargetedExperiment describing assays.
+      @param[out] output Output chromatograms with mapped annotations.
+    */
     void mapExperiment(const OpenMS::PeakMap& input_chromatograms,
       const OpenSwath::LightTargetedExperiment& targeted_exp,
       OpenMS::PeakMap& output) const;
