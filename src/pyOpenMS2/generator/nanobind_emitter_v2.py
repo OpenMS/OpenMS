@@ -74,7 +74,7 @@ SKIP_METHODS = {
         "calculateTIC",  # Return type mismatch (double in .pxd vs float in C++)
         "findNearest",  # Return type mismatch (Size vs int in .pxd)
         "findHighestInWindow",  # Return type mismatch
-        "getName",  # Returns const String& vs String in .pxd
+        # getName - const String& works fine with type caster
         "getType",  # Complex return type - handled via SPECIAL_METHODS
         "select",  # Complex parameter types
         "getSourceFile",  # const/non-const overload
@@ -917,29 +917,26 @@ SPECIAL_METHODS = {
     "MSSpectrum": {
         "get_peaks": '''
         .def("get_peaks", [](const OpenMS::MSSpectrum& self) {
-            // Return (mz_array, intensity_array) as numpy arrays
-            // mz is double, intensity is float32 (matching C++ types)
+            // Return (mz_array, intensity_array) as numpy float64 arrays
+            // Both returned as float64 for pyOpenMS backward compatibility
             const size_t n = self.size();
             double* mz_data = new double[n];
-            float* int_data = new float[n];
+            double* int_data = new double[n];
             for (size_t i = 0; i < n; ++i) {
                 mz_data[i] = self[i].getMZ();
-                int_data[i] = self[i].getIntensity();
+                int_data[i] = static_cast<double>(self[i].getIntensity());
             }
             nb::capsule mz_owner(mz_data, [](void* p) noexcept { delete[] static_cast<double*>(p); });
-            nb::capsule int_owner(int_data, [](void* p) noexcept { delete[] static_cast<float*>(p); });
+            nb::capsule int_owner(int_data, [](void* p) noexcept { delete[] static_cast<double*>(p); });
             auto mz_arr = nb::ndarray<nb::numpy, double, nb::ndim<1>>(mz_data, {n}, mz_owner);
-            auto int_arr = nb::ndarray<nb::numpy, float, nb::ndim<1>>(int_data, {n}, int_owner);
+            auto int_arr = nb::ndarray<nb::numpy, double, nb::ndim<1>>(int_data, {n}, int_owner);
             return nb::make_tuple(mz_arr, int_arr);
         }, "Returns a tuple of (mz_array, intensity_array) as numpy arrays")''',
         "set_peaks": '''
-        .def("set_peaks", [](OpenMS::MSSpectrum& self, nb::tuple peaks) {
-            // Accept tuple of (mz_array, intensity_array) for compatibility with pyOpenMS
-            if (nb::len(peaks) != 2) {
-                throw std::runtime_error("set_peaks expects a tuple of (mz_array, intensity_array)");
-            }
-            std::vector<double> mz = nb::cast<std::vector<double>>(peaks[0]);
-            std::vector<double> intensity = nb::cast<std::vector<double>>(peaks[1]);
+        .def("set_peaks", [](OpenMS::MSSpectrum& self, nb::object mz_obj, nb::object int_obj) {
+            // Accept two arrays (mz, intensity) for compatibility with pyOpenMS API
+            std::vector<double> mz = nb::cast<std::vector<double>>(mz_obj);
+            std::vector<double> intensity = nb::cast<std::vector<double>>(int_obj);
             const size_t n = mz.size();
             if (intensity.size() != n) {
                 throw std::runtime_error("mz and intensity arrays must have same length");
@@ -949,7 +946,7 @@ SPECIAL_METHODS = {
                 self[i].setMZ(mz[i]);
                 self[i].setIntensity(intensity[i]);
             }
-        }, "peaks"_a, "Set peaks from tuple of (mz_array, intensity_array)")''',
+        }, "mz"_a, "intensity"_a, "Set peaks from mz and intensity arrays")''',
         "push_back": '''
         .def("push_back", [](OpenMS::MSSpectrum& self, const OpenMS::Peak1D& p) {
             self.push_back(p);
