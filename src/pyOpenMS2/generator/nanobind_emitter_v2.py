@@ -462,17 +462,18 @@ SKIP_CLASSES = {
 
     # Classes with pxd type mismatches (method signature issues)
     "DecoyGenerator",               # shuffle() pxd mismatch
-    "GaussFitter",                  # fit() pxd type mismatch (int vs vector<DPosition<2>>)
-    "IsotopeDistribution",          # set() pxd type mismatch (int vs ContainerType)
-    "MobilityPeak1D",               # Constructor type mismatch (int vs DPosition)
+    # "GaussFitter",                # Try enabling - should work with DPosition type caster
+    # "IsotopeDistribution",        # Try enabling - set() takes vector<Peak1D>&
+    # "MobilityPeak1D",             # Try enabling - only uses default constructor + simple methods
     "FileHandler",                  # Methods use int instead of ProgressLogger::LogType enum
     "SequestInfile",                # pxd type mismatch
     "SequestOutfile",               # pxd type mismatch
     "BSpline2d",                    # Lambda analysis fails
     "CrossLinksDB",                 # Lambda analysis fails
     "CubicSpline2d",                # Lambda analysis fails
-    "FileTypes",                    # Lambda analysis fails
+    "FileTypes",                    # All methods are static - need wrap-static support
     "IMSIsotopeDistribution",       # Constructor mismatch in ims namespace
+    "IMSIsotopeDistribution_Peak",  # Nested type using unresolved type aliases (mass_type, abundance_type)
     "LinearInterpolation",          # Template class with unresolved KeyType
     "SignalToNoiseEstimator",       # Template class needs instantiation
     "SignalToNoiseEstimatorMeanIterative",  # Template class needs instantiation
