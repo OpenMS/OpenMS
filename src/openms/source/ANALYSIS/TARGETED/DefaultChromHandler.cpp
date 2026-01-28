@@ -32,7 +32,7 @@ namespace OpenMS
     bool srm_mode = true;
     for (const auto & sm : swath_maps)
     {
-      if (sm.ms1 || sm.sptr->getNrSpectra() > 0)
+      if (sm.ms1 || (sm.sptr && sm.sptr->getNrSpectra() > 0))
       {
         srm_mode = false;
         break;
