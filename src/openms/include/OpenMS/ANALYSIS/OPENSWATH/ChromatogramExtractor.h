@@ -411,7 +411,7 @@ private:
                                                                                                int & prec_charge)
   {
     // forward to non-const implementation
-    return extract_id_<OpenSwath::LightTargetedExperiment>(const_cast<OpenSwath::LightTargetedExperiment&>(const_cast<OpenSwath::LightTargetedExperiment&>(transition_exp_used)), id, prec_charge);
+    return extract_id_<OpenSwath::LightTargetedExperiment>(const_cast<OpenSwath::LightTargetedExperiment&>(transition_exp_used), id, prec_charge);
   }
 
   // Specialization for template (TargetedExperiment)
