@@ -33,7 +33,7 @@ namespace OpenMS
   }
 
   Date::Date(Date&& rhs) noexcept :
-    date_(rhs.date_ ? rhs.date_.release() : make_unique<QDate>())
+    date_(rhs.date_ ? std::move(rhs.date_) : make_unique<QDate>())
   {
   }
 
