@@ -48,8 +48,8 @@ namespace OpenMS
       }
       catch (const std::exception& e)
       {
-        OPENMS_LOG_WARN << "DefaultChromHandler: SRM handler failed for iRT collection: " << e.what() << " - returning empty result" << std::endl;
-        return std::vector<MSChromatogram>();
+        OPENMS_LOG_ERROR << "DefaultChromHandler: SRM handler failed for iRT collection: " << e.what() << std::endl;
+        throw;
       }
     }
     else
@@ -61,8 +61,8 @@ namespace OpenMS
       }
       catch (const std::exception& e)
       {
-        OPENMS_LOG_WARN << "DefaultChromHandler: DIA handler failed for iRT collection: " << e.what() << " - returning empty result" << std::endl;
-        return std::vector<MSChromatogram>();
+        OPENMS_LOG_ERROR << "DefaultChromHandler: DIA handler failed for iRT collection: " << e.what() << std::endl;
+        throw;
       }
     }
   }
@@ -92,8 +92,8 @@ namespace OpenMS
       }
       catch (const std::exception& e)
       {
-        OPENMS_LOG_WARN << "DefaultChromHandler: SRM handler failed for transition extraction: " << e.what() << " - returning empty result" << std::endl;
-        return std::vector<MSChromatogram>();
+        OPENMS_LOG_ERROR << "DefaultChromHandler: SRM handler failed for transition extraction: " << e.what() << std::endl;
+        throw;
       }
     }
     else
@@ -105,8 +105,8 @@ namespace OpenMS
       }
       catch (const std::exception& e)
       {
-        OPENMS_LOG_WARN << "DefaultChromHandler: DIA handler failed for transition extraction: " << e.what() << " - returning empty result" << std::endl;
-        return std::vector<MSChromatogram>();
+        OPENMS_LOG_ERROR << "DefaultChromHandler: DIA handler failed for transition extraction: " << e.what() << std::endl;
+        throw;
       }
     }
   }
