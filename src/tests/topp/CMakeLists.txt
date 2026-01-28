@@ -1848,6 +1848,12 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
   add_test("TOPP_OpenSwathWorkflow_25_out1" ${DIFF} -whitelist "id=" -in1 ${TESTS_TEMP_DIR}/OpenSwathWorkflow_25.tmp.featureXML -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_25_output.featureXML)
   set_tests_properties("TOPP_OpenSwathWorkflow_25_out1" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_25")
 
+  # Test with split DIA input files (split_file_input functionality)
+  add_test("TOPP_OpenSwathWorkflow_26" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${TESTS_TEMP_DIR}/OpenSwathWorkflow_1_input_ms1.mzML ${TESTS_TEMP_DIR}/OpenSwathWorkflow_1_input_0.mzML ${TESTS_TEMP_DIR}/OpenSwathWorkflow_1_input_1.mzML ${TESTS_TEMP_DIR}/OpenSwathWorkflow_1_input_2.mzML ${TESTS_TEMP_DIR}/OpenSwathWorkflow_1_input_3.mzML ${TESTS_TEMP_DIR}/OpenSwathWorkflow_1_input_4.mzML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.TraML -Calibration:rt_norm ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.trafoXML -out_features ${TESTS_TEMP_DIR}/OpenSwathWorkflow_26.tmp.featureXML -split_file_input -enable_ms1 false -auto_irt "false" -estimate_extraction_windows none ${OLD_OSW_PARAM})
+  add_test("TOPP_OpenSwathWorkflow_26_out1" ${DIFF} -whitelist "feature id" "id=" -in1 ${TESTS_TEMP_DIR}/OpenSwathWorkflow_26.tmp.featureXML -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_output.featureXML)
+  set_tests_properties("TOPP_OpenSwathWorkflow_26" PROPERTIES DEPENDS "TOPP_OpenSwathFileSplitter_1")
+  set_tests_properties("TOPP_OpenSwathWorkflow_26_out1" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_26")
+
 
 
 endif(NOT DISABLE_OPENSWATH)
