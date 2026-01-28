@@ -178,6 +178,7 @@ namespace OpenMS
     std::stringstream sql_run;
     sql_run << "INSERT INTO RUN (ID, FILENAME) VALUES (" << rid << ", '" << input_filename << "'); ";
     conn.executeStatement(sql_run.str());
+    run_id_ = rid;
   }
 
   void OpenSwathOSWWriter::setRunId(const UInt64 run_id)
