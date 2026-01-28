@@ -472,18 +472,14 @@ SKIP_CLASSES = {
     "CubicSpline2d",                # Lambda analysis fails
     "FileTypes",                    # Lambda analysis fails
     "IMSIsotopeDistribution",       # Constructor mismatch in ims namespace
-    "RegularSwathFileConsumer",     # Constructor pxd type mismatch (int vs vector<SwathMap>)
-    "CachedSwathFileConsumer",      # Constructor pxd type mismatch
-    "MzMLSwathFileConsumer",        # Constructor pxd type mismatch
     "LinearInterpolation",          # Template class with unresolved KeyType
     "SignalToNoiseEstimator",       # Template class needs instantiation
     "SignalToNoiseEstimatorMeanIterative",  # Template class needs instantiation
     "SignalToNoiseEstimatorMedianRapid",  # Template class needs instantiation
-    "FullSwathFileConsumer",        # Abstract class
+    "FullSwathFileConsumer",        # Abstract class (can't instantiate)
     "SpectrumAlignmentScore",       # Template class
     "SteinScottImproveScore",       # Template class
     "SignalToNoiseEstimatorMedian", # Template class
-    "AnnotatedMSRun",               # pxd type mismatch (int vs actual type)
     "IMSWeights",                   # Not found in C++ headers (nested/helper class)
     "IntegerMassDecomposer",        # Uses IMSWeights which isn't bound
     "RealMassDecomposer",           # Uses IMSWeights which isn't bound
@@ -2902,7 +2898,7 @@ class NanobindEmitterV2:
             'ReactionMonitoringTransition': 'OpenMS::ReactionMonitoringTransition',
             'IncludeExcludeTarget': 'OpenMS::IncludeExcludeTarget',
             'TargetedExperimentHelper': 'OpenMS::TargetedExperimentHelper',
-            'SwathMap': 'OpenMS::SwathMap',
+            # Note: SwathMap is in OpenSwath:: namespace, not OpenMS::
             'OpenSwathScoring': 'OpenMS::OpenSwathScoring',
             'ChromatogramExtractor': 'OpenMS::ChromatogramExtractor',
             'MzMLFile': 'OpenMS::MzMLFile',
