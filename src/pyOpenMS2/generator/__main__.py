@@ -100,6 +100,20 @@ def parse_args(args: Optional[List[str]] = None) -> argparse.Namespace:
     )
 
     parser.add_argument(
+        "--libclang-batch-mode",
+        choices=["auto", "on", "off"],
+        default="auto",
+        help="Batch-parse multiple headers per translation unit to avoid repeatedly parsing common includes",
+    )
+
+    parser.add_argument(
+        "--libclang-batch-size",
+        type=int,
+        default=50,
+        help="Number of headers per batch when libclang batching is enabled",
+    )
+
+    parser.add_argument(
         "--core-only",
         action="store_true",
         default=True,
@@ -130,6 +144,7 @@ def main(args: Optional[List[str]] = None) -> int:
     logger.info(f"  Number of modules: {opts.num_modules}")
     if opts.libclang_cache_dir:
         logger.info(f"  Cache directory: {opts.libclang_cache_dir}")
+    logger.info(f"  Libclang batch mode: {opts.libclang_batch_mode} (size={opts.libclang_batch_size})")
 
     # Check libclang availability
     if not CLANG_AVAILABLE:
@@ -214,24 +229,43 @@ def main(args: Optional[List[str]] = None) -> int:
         include_paths=opts.openms_include_dir,
         cache_dir=opts.libclang_cache_dir,
     )
-    cpp_classes = {}
 
-    # Build mapping from class name to header file
-    for class_name, class_decl in classes.items():
-        if class_decl.header_file:
-            # Strip angle brackets from header path (e.g., "<OpenMS/KERNEL/Peak1D.h>")
-            header_rel = class_decl.header_file.strip("<>")
-            # Find the header file in include directories
-            for inc_dir in opts.openms_include_dir:
-                header_path = inc_dir / header_rel
-                if header_path.exists():
-                    logger.debug(f"Parsing header for {class_name}: {header_path}")
-                    try:
-                        parsed = cpp_parser.parse_header(header_path)
-                        cpp_classes.update(parsed)
-                    except Exception as e:
-                        logger.warning(f"Failed to parse {header_path}: {e}")
-                    break
+    # Deduplicate headers (multiple classes can share a header)
+    header_rels = []
+    seen_headers = set()
+    for class_decl in classes.values():
+        if not class_decl.header_file:
+            continue
+        header_rel = class_decl.header_file.strip("<>")
+        if header_rel in seen_headers:
+            continue
+        header_rels.append(header_rel)
+        seen_headers.add(header_rel)
+
+    header_paths = []
+    missing_headers = []
+    for header_rel in header_rels:
+        found = False
+        for inc_dir in opts.openms_include_dir:
+            header_path = inc_dir / header_rel
+            if header_path.exists():
+                header_paths.append(header_path)
+                found = True
+                break
+        if not found:
+            missing_headers.append(header_rel)
+
+    if missing_headers:
+        logger.warning(f"Missing {len(missing_headers)} headers referenced by .pxd files")
+        if opts.verbose:
+            for h in missing_headers[:20]:
+                logger.warning(f"  Missing header: {h}")
+
+    cpp_classes = cpp_parser.parse_headers(
+        header_paths,
+        batch_mode=opts.libclang_batch_mode,
+        batch_size=opts.libclang_batch_size,
+    )
 
     logger.info(f"Parsed {len(cpp_classes)} C++ classes from headers")
 
