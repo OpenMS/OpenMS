@@ -20,7 +20,6 @@ Decharger
 DeMeanderize
 Digestor
 DigestorMotif
-DLModel
 DTAExtractor
 EICExtractor
 Epifany
@@ -159,6 +158,13 @@ if(WITH_PARQUET)
     QuantmsIOConverter
   )
 endif(WITH_PARQUET)
+
+if(ENABLE_ONNX)
+  set(TOPP_executables
+    ${TOPP_executables}
+    DLModel
+  )
+endif(ENABLE_ONNX)
 
 ## all targets requiring OpenMS_GUI
 set(TOPP_executables_with_GUIlib
