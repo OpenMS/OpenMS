@@ -129,6 +129,11 @@ if (WITH_PARQUET)
     target_compile_definitions(OpenMS PUBLIC WITH_PARQUET=1)
 endif()
 
+# propagate ONNX support to the code (used to gate tools in ToolHandler, etc.)
+if (ENABLE_ONNX)
+    target_compile_definitions(OpenMS PUBLIC ENABLE_ONNX=1)
+endif()
+
 
 #------------------------------------------------------------------------------
 # since the share basically belongs to OpenMS core we control its installation
