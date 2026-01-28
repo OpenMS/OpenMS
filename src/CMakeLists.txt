@@ -65,30 +65,17 @@ if(PYOPENMS)
 
   # Optional: Package pyOpenMS wheel from already-built modules
   # Usage: cmake --build . --target pyopenms_wheel
-  if(WITH_UV)
-    add_custom_target(pyopenms_wheel
-      COMMAND ${UV_EXECUTABLE} build --wheel
-        --out-dir ${CMAKE_BINARY_DIR}/pyopenms_wheels
-        --config-setting=override=cmake.0.build_path=${CMAKE_BINARY_DIR}/py-build-cmake_cache/pyopenms
-        --config-setting=override=cmake.0.options.PYOPENMS_USE_PREBUILT=ON
-        --config-setting=override=cmake.0.options.PYOPENMS_PREBUILT_DIR=${CMAKE_BINARY_DIR}/pyOpenMS
-      WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/src/pyOpenMS
-      DEPENDS pyopenms
-      COMMENT "Packaging pyOpenMS wheel from existing build"
-    )
-  else()
-    add_custom_target(pyopenms_wheel
-      COMMAND ${Python_EXECUTABLE} -m build --wheel
-        --skip-dependency-check --no-isolation
-        --outdir ${CMAKE_BINARY_DIR}/pyopenms_wheels
-        --config-setting=override=cmake.0.build_path=${CMAKE_BINARY_DIR}/py-build-cmake_cache/pyopenms
-        --config-setting=override=cmake.0.options.PYOPENMS_USE_PREBUILT=ON
-        --config-setting=override=cmake.0.options.PYOPENMS_PREBUILT_DIR=${CMAKE_BINARY_DIR}/pyOpenMS
-      WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/src/pyOpenMS
-      DEPENDS pyopenms
-      COMMENT "Packaging pyOpenMS wheel from existing build"
-    )
-  endif()
+  add_custom_target(pyopenms_wheel
+    COMMAND ${Python_EXECUTABLE} -m build --wheel
+      --skip-dependency-check --no-isolation
+      --outdir ${CMAKE_BINARY_DIR}/pyopenms_wheels
+      --config-setting=override=cmake.0.build_path=${CMAKE_BINARY_DIR}/py-build-cmake_cache/pyopenms
+      --config-setting=override=cmake.0.options.PYOPENMS_USE_PREBUILT=ON
+      --config-setting=override=cmake.0.options.PYOPENMS_PREBUILT_DIR=${CMAKE_BINARY_DIR}/pyOpenMS
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/src/pyOpenMS
+    DEPENDS pyopenms
+    COMMENT "Packaging pyOpenMS wheel from existing build"
+  )
 endif()
 
 if(WITH_GUI)
