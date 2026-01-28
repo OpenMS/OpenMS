@@ -437,8 +437,7 @@ SKIP_CLASSES = {
     "ModifiedPeptideGenerator",     # MapToResidueType& should be const ref
     "IonMobilityScoring",           # OpenSwath::LightTransition& should be const ref
     "AASequence",                   # char* constructor, nanobind passes const char*
-    "Peak2D",                       # DPosition<2> constructor issues
-    "ChromatogramPeak",             # Similar to Peak2D
+    # Peak2D and ChromatogramPeak work fine with DPosition type caster
 
     # Classes referencing Param::ParamEntry (nested type incomplete)
     "ElutionModelFitter",           # Param::ParamEntry incomplete type
