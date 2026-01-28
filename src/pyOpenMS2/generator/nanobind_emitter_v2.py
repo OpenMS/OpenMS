@@ -199,22 +199,16 @@ SKIP_CLASSES = {
     "IsobaricNormalizer",        # Uses forward-declared IsobaricQuantitationMethod
     "IsobaricIsotopeCorrector",  # Uses forward-declared IsobaricQuantitationMethod
 
-    # Abstract classes (fallback - these should be auto-detected but may fail if headers can't be parsed)
-    # Some abstract classes have derived classes bound, so we can't skip the base
-    "FullSwathFileConsumer",        # Abstract class with pure virtual methods
-    "SpectrumAccessTransforming",   # pure virtual destructor
-    "SpectrumAccessQuadMZTransforming",
-    "SpectrumAccessSqMass",
-    "SpectrumAccessOpenMSCached",
+    # Abstract classes (fallback - auto-detected via pxd comment or libclang, but these lack both)
+    "FullSwathFileConsumer",        # Abstract but no pxd ABSTRACT comment
+    "SpectrumAccessQuadMZTransforming",  # No pxd ABSTRACT comment
+    "SpectrumAccessSqMass",              # No pxd ABSTRACT comment
+    "SpectrumAccessOpenMSCached",        # No pxd ABSTRACT comment
     "IMSAlphabet",                  # Uses abstract IMSAlphabetParser
     "IMSAlphabetTextParser",        # Abstract template
-    # ConsensusID algorithm hierarchy - abstract base classes
-    "BaseGroupFinder",              # Abstract base class
-    "BaseSuperimposer",             # Abstract base class
-    "ConsensusIDAlgorithm",         # Abstract base class
-    "ConsensusIDAlgorithmIdentity", # Abstract, used as base for Average/Best/Worst
-    "ConsensusIDAlgorithmSimilarity",  # Abstract base class
-    "IsobaricQuantitationMethod",   # Pure virtual methods
+    "BaseSuperimposer",             # No pxd ABSTRACT comment
+    # Note: BaseGroupFinder, ConsensusIDAlgorithm*, IsobaricQuantitationMethod,
+    # SpectrumAccessTransforming are now auto-detected from pxd "# ABSTRACT class" comments
 
     # Nested classes or special cases
     "XMLHandler",
