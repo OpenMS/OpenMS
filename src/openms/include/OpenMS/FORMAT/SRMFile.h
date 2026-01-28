@@ -15,9 +15,19 @@
 
 namespace OpenMS
 {
-  /// Minimal SRM file loader returning a single SwathMap wrapping the chromatogram container
+  /**
+    @brief Minimal SRM file loader returning a single SwathMap wrapping the chromatogram container.
+  */
   struct OPENMS_DLLAPI SRMFile
   {
+    /**
+      @brief Load an SRM mzML file and return a single SwathMap.
+
+      @param[in] file Input mzML file.
+      @param[in] tmp Temporary directory (for cached data).
+      @param[out] exp_meta Experimental settings extracted from the file.
+      @return Swath maps (single-entry for SRM).
+    */
     static std::vector<::OpenSwath::SwathMap> loadMzML(const String& file,
                                                     const String& tmp,
                                                     std::shared_ptr<ExperimentalSettings>& exp_meta);
