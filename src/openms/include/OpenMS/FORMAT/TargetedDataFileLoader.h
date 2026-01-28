@@ -22,11 +22,11 @@ namespace OpenMS
   struct OPENMS_DLLAPI TargetedDataFileLoader
   {
     /// Load a file and return Swath maps (may represent chromatogram-only SRM)
-  static std::vector<::OpenSwath::SwathMap> loadFile(const String& file,
-                                                     const String& tmp,
-                                                     std::shared_ptr<ExperimentalSettings>& exp_meta,
-                                                     const String& readoptions,
-                                                     Interfaces::IMSDataConsumer* plugin_consumer = nullptr);
+    static std::vector<::OpenSwath::SwathMap> loadFile(const String& file,
+                                                      const String& tmp,
+                                                      std::shared_ptr<ExperimentalSettings>& exp_meta,
+                                                      const String& readoptions,
+                                                      Interfaces::IMSDataConsumer* plugin_consumer = nullptr);
   };
 
 }
