@@ -807,6 +807,7 @@ class MergedClass:
     wrap_iter: Optional[str] = None
     wrap_manual_memory: bool = False
     doc: str = ""
+    enums: List[Any] = field(default_factory=list)  # EnumDecl from pxd_parser
 
     @property
     def name(self) -> str:
@@ -925,6 +926,7 @@ def _create_fallback_merged_class(class_name: str, pxd_class: "ClassDecl") -> Op
         wrap_iter=getattr(pxd_class, 'wrap_iter', None),
         wrap_manual_memory=getattr(pxd_class, 'wrap_manual_memory', False),
         doc=getattr(pxd_class, 'doc', ''),
+        enums=getattr(pxd_class, 'enums', []),
     )
 
 
@@ -1049,6 +1051,7 @@ def merge_with_pxd(
             wrap_iter=getattr(pxd_class, 'wrap_iter', None),
             wrap_manual_memory=getattr(pxd_class, 'wrap_manual_memory', False),
             doc=getattr(pxd_class, 'doc', ''),
+            enums=getattr(pxd_class, 'enums', []),
         )
         merged[class_name] = merged_class
 
@@ -1146,6 +1149,7 @@ def pxd_to_merged(pxd_classes: Dict[str, "ClassDecl"]) -> Dict[str, MergedClass]
             wrap_iter=pxd_class.wrap_iter,
             wrap_manual_memory=pxd_class.wrap_manual_memory,
             doc=pxd_class.doc,
+            enums=getattr(pxd_class, 'enums', []),
         )
         merged[class_name] = merged_class
 
