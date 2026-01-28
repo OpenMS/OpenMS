@@ -37,7 +37,7 @@ namespace OpenMS
       should return only chromatograms that are mapped and ready for
       processing.
   */
-  class IChromatogramHandler
+  class OPENMS_DLLAPI IChromatogramHandler
   {
   public:
     IChromatogramHandler() = default;
