@@ -65,6 +65,15 @@ def get_caster_owned_types() -> Set[str]:
 
 
 # Methods to skip for specific classes (complex return types or signature mismatches)
+#
+# AUTO-DETECTION (via libclang, no need to list here):
+# - Const/non-const overloads: detected and auto-resolved (prefer const version)
+# - Overloaded methods: detected in overloaded_methods set
+#
+# STILL NEED MANUAL LISTING:
+# - Return type mismatches between pxd and C++ (handled via SPECIAL_METHODS)
+# - Complex parameter types (pairs, nested types, etc.)
+# - Methods using forward-declared types
 SKIP_METHODS = {
     "MSSpectrum": {
         "getFloatDataArrays", "setFloatDataArrays",
@@ -226,11 +235,20 @@ SKIP_METHODS = {
 # Classes to skip due to incomplete type dependencies or other issues
 # These will need manual handling or fixes in the C++ headers
 #
-# NOTE: Types with type casters (String, DataValue, ParamValue, DPosition) are
-# now AUTO-DETECTED by scanning bindings/type_casters/*.h and don't need to be
-# listed here. Use get_caster_owned_types() to get the auto-detected list.
+# AUTO-DETECTION (via libclang, no need to list here):
+# - Type casters: scanned from bindings/type_casters/*.h (use get_caster_owned_types())
+# - Abstract classes: detected via pure virtual methods (is_abstract flag)
+# - Deleted default constructors: detected via token analysis (has_deleted_default_constructor)
+# - Private constructors: detected via access specifiers (has_private_constructor)
+# - Const/non-const overloads: detected and handled in _generate_regular_method
+#
+# STILL NEED MANUAL LISTING:
+# - Incomplete/forward-declared types (libclang can't see definition)
+# - Complex template instantiations
+# - Parameter type mismatches between pxd and C++
+# - Classes with Qt dependencies
 SKIP_CLASSES = {
-    # Incomplete type issues
+    # Incomplete type issues (libclang can't resolve these)
     "MassExplainer",        # References Compomer which is forward-declared
     "Compomer",             # Forward-declared type, not complete when included
     "ILPDCWrapper",         # Complex ILP dependencies
@@ -241,7 +259,7 @@ SKIP_CLASSES = {
     "IsobaricQuantifier",        # Uses forward-declared IsobaricQuantitationMethod
     "IsobaricNormalizer",        # Uses forward-declared IsobaricQuantitationMethod
     "IsobaricIsotopeCorrector",  # Uses forward-declared IsobaricQuantitationMethod
-    # Abstract classes that libclang may not detect
+    # Abstract classes that libclang may not detect (fallback for when headers can't be parsed)
     "BaseGroupFinder",
     "BaseSuperimposer",
     "ConsensusIDAlgorithm",
@@ -2159,6 +2177,17 @@ class NanobindEmitterV2:
                            hasattr(self, '_abstract_base_classes_needed') and
                            class_name in self._abstract_base_classes_needed)
         if merged_class.is_abstract and not is_abstract_base:
+            logger.debug(f"Skipping abstract class: {class_name}")
+            return None
+
+        # Skip classes with deleted default constructors (can't instantiate)
+        if merged_class.has_deleted_default_constructor:
+            logger.debug(f"Skipping class with deleted default constructor: {class_name}")
+            return None
+
+        # Skip classes with only private/protected constructors (singletons, etc.)
+        if merged_class.has_private_constructor:
+            logger.debug(f"Skipping class with private constructors: {class_name}")
             return None
 
         # Handle base classes - nanobind supports multiple inheritance
@@ -2701,9 +2730,15 @@ class NanobindEmitterV2:
         if class_name in VECTOR_BASED_CLASSES and method.name in VECTOR_INHERITED_METHODS:
             return None
 
-        # Skip specific methods with complex return types
+        # Skip specific methods with complex return types (hardcoded list)
         if class_name in SKIP_METHODS and method.name in SKIP_METHODS[class_name]:
             return None
+
+        # Auto-skip methods that have const/non-const overloads (detected via libclang)
+        # These cause binding issues - prefer const version (handled below)
+        if method.name in merged_class.const_overloaded_methods:
+            # Will be handled in _generate_regular_method
+            pass
 
         # Handle operators
         if method.name.startswith("operator"):
