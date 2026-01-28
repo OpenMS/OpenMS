@@ -136,7 +136,7 @@ namespace OpenMS
     {
       // load experiment
       MSExperiment spectra;
-      FileHandler().loadExperiment(mzML_files[i], spectra, {FileTypes::MZML});
+      FileHandler().loadExperiment(mzML_files[i], spectra, {FileTypes::Type::MZML});
 
       // run masstrace filter and feature mapping
       FeatureMapping::FeatureMappingInfo feature_mapping_info;

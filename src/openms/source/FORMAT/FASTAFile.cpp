@@ -256,11 +256,11 @@ namespace OpenMS
 
   void FASTAFile::writeStart(const String &filename)
   {
-    if (!FileHandler::hasValidExtension(filename, FileTypes::FASTA))
+    if (!FileHandler::hasValidExtension(filename, FileTypes::Type::FASTA))
     {
       throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename,
                                           "invalid file extension; expected '" +
-                                          FileTypes::typeToName(FileTypes::FASTA) + "'");
+                                          FileTypes::typeToName(FileTypes::Type::FASTA) + "'");
     }
 
     outfile_.open(filename.c_str(), ofstream::out);

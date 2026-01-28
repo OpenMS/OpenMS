@@ -74,14 +74,14 @@ namespace OpenMS
 
   void IdXMLFile::store(const String& filename, const std::vector<ProteinIdentification>& protein_ids, const PeptideIdentificationList& peptide_ids, const String& document_id)
   {
-    if (!FileHandler::hasValidExtension(filename, FileTypes::IDXML))
+    if (!FileHandler::hasValidExtension(filename, FileTypes::Type::IDXML))
     {
       throw Exception::UnableToCreateFile(
           __FILE__,
           __LINE__,
           OPENMS_PRETTY_FUNCTION,
           filename,
-          "invalid file extension, expected '" + FileTypes::typeToName(FileTypes::IDXML) + "'");
+          "invalid file extension, expected '" + FileTypes::typeToName(FileTypes::Type::IDXML) + "'");
     }
 
     //set filename for the handler. Just in case (e.g. when fatalError function is used).

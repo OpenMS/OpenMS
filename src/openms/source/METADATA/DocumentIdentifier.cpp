@@ -19,7 +19,7 @@ namespace OpenMS
   DocumentIdentifier::DocumentIdentifier() :
     id_(),
     file_path_(),
-    file_type_(FileTypes::UNKNOWN)
+    file_type_(FileTypes::Type::UNKNOWN)
   {
   }
 

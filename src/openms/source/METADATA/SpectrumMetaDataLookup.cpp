@@ -317,7 +317,7 @@ bool SpectrumMetaDataLookup::addMissingRTsToPeptideIDs(PeptideIdentificationList
       opts.setFillData(false);
       opts.setSkipXMLChecks(true);
       fh.setOptions(opts);
-      fh.loadExperiment(filename, exp, {FileTypes::MZXML, FileTypes::MZML, FileTypes::MZDATA, FileTypes::MGF}, OpenMS::ProgressLogger::NONE, true, true);
+      fh.loadExperiment(filename, exp, {FileTypes::Type::MZXML, FileTypes::Type::MZML, FileTypes::Type::MZDATA, FileTypes::Type::MGF}, OpenMS::ProgressLogger::NONE, true, true);
       lookup.readSpectra(exp.getSpectra());
       lookup.setSpectraDataRef(filename);
     }

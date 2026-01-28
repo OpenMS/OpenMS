@@ -51,7 +51,7 @@ namespace OpenMS {
     #pragma omp parallel for
     for (int i = 0; i < (int)samples_.size(); ++i) {
       MSExperiment exp;
-      FileHandler().loadExperiment(base_dir_ + samples_[i].at("dir_input") + "/" + samples_[i].at("filename") + ".mzML", exp, {FileTypes::MZML});
+      FileHandler().loadExperiment(base_dir_ + samples_[i].at("dir_input") + "/" + samples_[i].at("filename") + ".mzML", exp, {FileTypes::Type::MZML});
 
       FIAMSDataProcessor fia_processor;
       Param p;

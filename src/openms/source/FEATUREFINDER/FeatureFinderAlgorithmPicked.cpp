@@ -1027,7 +1027,7 @@ namespace OpenMS
       {
         s.getFloatDataArrays().erase(s.getFloatDataArrays().begin() + 2);
       }
-      FileHandler().storeExperiment("debug/input.mzML", map_, {FileTypes::MZML});
+      FileHandler().storeExperiment("debug/input.mzML", map_, {FileTypes::Type::MZML});
     }
 
   }

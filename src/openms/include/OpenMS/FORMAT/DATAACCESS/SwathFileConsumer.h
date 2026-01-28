@@ -501,7 +501,7 @@ protected:
         String meta_file = cachedir_ + basename_ + "_ms1.mzML";
         // write metadata to disk and store the correct data processing tag
         Internal::CachedMzMLHandler().writeMetadata(*ms1_map_, meta_file, true);
-        FileHandler().loadExperiment(meta_file, *exp.get(), {FileTypes::MZML});
+        FileHandler().loadExperiment(meta_file, *exp.get(), {FileTypes::Type::MZML});
         ms1_map_ = exp;
       }
 
@@ -514,7 +514,7 @@ protected:
         String meta_file = cachedir_ + basename_ + "_" + String(i) +  ".mzML";
         // write metadata to disk and store the correct data processing tag
         Internal::CachedMzMLHandler().writeMetadata(*swath_maps_[i], meta_file, true);
-        FileHandler().loadExperiment(meta_file, *exp.get(), {FileTypes::MZML});
+        FileHandler().loadExperiment(meta_file, *exp.get(), {FileTypes::Type::MZML});
         swath_maps_[i] = exp;
       }
     }

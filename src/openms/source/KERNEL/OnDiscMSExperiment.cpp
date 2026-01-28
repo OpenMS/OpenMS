@@ -59,7 +59,7 @@ namespace OpenMS
     PeakFileOptions options;
     options.setFillData(false);
     f.setOptions(options);
-    f.loadExperiment(filename, *meta_ms_experiment_.get(), {FileTypes::MZML});
+    f.loadExperiment(filename, *meta_ms_experiment_.get(), {FileTypes::Type::MZML});
   }
 
   MSChromatogram OnDiscMSExperiment::getMetaChromatogramById_(const std::string& id)

@@ -557,10 +557,10 @@ namespace OpenMS
   {
     OPENMS_LOG_INFO << "exporting identification data: \"" << filename << "\" to MzTab-M: " << std::endl;
 
-    if (!(FileHandler::hasValidExtension(filename, FileTypes::MZTAB) || FileHandler::hasValidExtension(filename, FileTypes::TSV)))
+    if (!(FileHandler::hasValidExtension(filename, FileTypes::Type::MZTAB) || FileHandler::hasValidExtension(filename, FileTypes::Type::TSV)))
     {
       throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "invalid file extension, expected '"
-                                                                                                    + FileTypes::typeToName(FileTypes::MZTAB) + "' or '" + FileTypes::typeToName(FileTypes::TSV) + "'");
+                                                                                                    + FileTypes::typeToName(FileTypes::Type::MZTAB) + "' or '" + FileTypes::typeToName(FileTypes::Type::TSV) + "'");
     }
 
     StringList out;

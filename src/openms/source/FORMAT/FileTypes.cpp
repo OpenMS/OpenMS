@@ -40,7 +40,7 @@ namespace OpenMS
   using TYPE = FileTypes::Type;             // shorten our syntax for enum class
   /// Maps the FileType::Type to the preferred extension.
   /// when adding new types, be sure to update the FileTypes_test typesWithProperties test to match the new files
-  static const std::array<TypeNameBinding, FileTypes::SIZE_OF_TYPE> type_with_annotation__ =
+  static const std::array<TypeNameBinding, FileTypes::Type::SIZE_OF_TYPE> type_with_annotation__ =
   {
     TypeNameBinding(TYPE::UNKNOWN, "unknown", "unknown file extension", {}),
     TypeNameBinding(TYPE::DTA, "dta", "dta raw data file", {PROP::PROVIDES_EXPERIMENT, PROP::PROVIDES_SPECTRUM, PROP::READABLE, PROP::WRITEABLE}),

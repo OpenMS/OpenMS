@@ -248,7 +248,7 @@ namespace OpenMS
     //-------------------------------------------------------------
     // ConsensusMap
     ConsensusMap consensus_map;
-    FileHandler().loadConsensusFeatures(consensus_file_path, consensus_map, {FileTypes::CONSENSUSXML});
+    FileHandler().loadConsensusFeatures(consensus_file_path, consensus_map, {FileTypes::Type::CONSENSUSXML});
 
     //-------------------------------------------------------------
     // open on-disc data (=spectra are only loaded on demand to safe memory)

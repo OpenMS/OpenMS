@@ -120,7 +120,7 @@ public:
       //input file type
       FileHandler fh;
       FileTypes::Type in_type = fh.getTypeByContent(in_filename);
-      if (in_type == FileTypes::UNKNOWN)
+      if (in_type == FileTypes::Type::UNKNOWN)
       {
         throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Could not determine type of the file. Aborting!", in_filename);
       }

@@ -65,9 +65,9 @@ namespace OpenMS
 
   void XQuestResultXMLFile::store(const String& filename, const std::vector<ProteinIdentification>& poid, const PeptideIdentificationList& peid) const
   {
-    if (!FileHandler::hasValidExtension(filename, FileTypes::XQUESTXML))
+    if (!FileHandler::hasValidExtension(filename, FileTypes::Type::XQUESTXML))
     {
-      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "invalid file extension, expected '" + FileTypes::typeToName(FileTypes::XQUESTXML) + "'");
+      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "invalid file extension, expected '" + FileTypes::typeToName(FileTypes::Type::XQUESTXML) + "'");
     }
 
     Internal::XQuestResultXMLHandler handler(poid, peid, filename, schema_version_);

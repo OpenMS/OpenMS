@@ -98,9 +98,9 @@ namespace OpenMS
 
   void InspectInfile::store(const String& filename)
   {
-    if (!FileHandler::hasValidExtension(filename, FileTypes::TSV))
+    if (!FileHandler::hasValidExtension(filename, FileTypes::Type::TSV))
     {
-      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "invalid file extension, expected '" + FileTypes::typeToName(FileTypes::TSV) + "'");
+      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "invalid file extension, expected '" + FileTypes::typeToName(FileTypes::Type::TSV) + "'");
     }
 
     ofstream ofs(filename.c_str());

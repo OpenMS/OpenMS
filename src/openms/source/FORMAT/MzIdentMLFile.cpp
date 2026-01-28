@@ -33,9 +33,9 @@ namespace OpenMS
 
   void MzIdentMLFile::store(const String& filename, const std::vector<ProteinIdentification>& poid, const PeptideIdentificationList& peid) const
   {
-    if (!FileHandler::hasValidExtension(filename, FileTypes::MZIDENTML))
+    if (!FileHandler::hasValidExtension(filename, FileTypes::Type::MZIDENTML))
     {
-      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "invalid file extension, expected '" + FileTypes::typeToName(FileTypes::MZIDENTML) + "'");
+      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "invalid file extension, expected '" + FileTypes::typeToName(FileTypes::Type::MZIDENTML) + "'");
     }
 
     Internal::MzIdentMLHandler handler(poid, peid, filename, schema_version_, *this);

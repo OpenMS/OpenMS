@@ -325,7 +325,7 @@ namespace OpenMS
 
     // store data in temporary files
     FileHandler spectra_file;
-    spectra_file.storeExperiment(mzml_path, exp,{FileTypes::MZML});
+    spectra_file.storeExperiment(mzml_path, exp,{FileTypes::Type::MZML});
     FASTAFile database;
     database.store(db_path, fasta_data);
 
@@ -354,7 +354,7 @@ namespace OpenMS
     vector<ProteinIdentification> prot_ids;
     PeptideIdentificationList pep_ids;
     FileHandler id_file;
-    id_file.loadIdentifications(out_path, prot_ids, pep_ids, {FileTypes::IDXML});
+    id_file.loadIdentifications(out_path, prot_ids, pep_ids, {FileTypes::Type::IDXML});
 
     // annotate target/decoy information
     PeptideIndexing indexer;
@@ -371,7 +371,7 @@ namespace OpenMS
 
     if (keep_files)
     {
-      id_file.storeIdentifications(tmp_dir.getPath() + "indexed_pre_FDR.idXML", prot_ids, pep_ids, {FileTypes::IDXML});
+      id_file.storeIdentifications(tmp_dir.getPath() + "indexed_pre_FDR.idXML", prot_ids, pep_ids, {FileTypes::Type::IDXML});
     }
 
     return pep_ids;

@@ -2886,10 +2886,10 @@ namespace OpenMS
         bool export_all_psms,
         const String& title)
   {
-    if (!(FileHandler::hasValidExtension(filename, FileTypes::MZTAB) || FileHandler::hasValidExtension(filename, FileTypes::TSV)))
+    if (!(FileHandler::hasValidExtension(filename, FileTypes::Type::MZTAB) || FileHandler::hasValidExtension(filename, FileTypes::Type::TSV)))
     {
       throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "invalid file extension, expected '"
-      + FileTypes::typeToName(FileTypes::MZTAB) + "' or '" + FileTypes::typeToName(FileTypes::TSV) + "'");
+      + FileTypes::typeToName(FileTypes::Type::MZTAB) + "' or '" + FileTypes::typeToName(FileTypes::Type::TSV) + "'");
     }
 
     vector<const PeptideIdentification*> pep_ids_ptr;
@@ -2989,10 +2989,10 @@ namespace OpenMS
       const bool export_empty_pep_ids,
       const bool export_all_psms) const
   {
-    if (!(FileHandler::hasValidExtension(filename, FileTypes::MZTAB) || FileHandler::hasValidExtension(filename, FileTypes::TSV)))
+    if (!(FileHandler::hasValidExtension(filename, FileTypes::Type::MZTAB) || FileHandler::hasValidExtension(filename, FileTypes::Type::TSV)))
     {
       throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "invalid file extension, expected '"
-      + FileTypes::typeToName(FileTypes::MZTAB) + "' or '" + FileTypes::typeToName(FileTypes::TSV) + "'");
+      + FileTypes::typeToName(FileTypes::Type::MZTAB) + "' or '" + FileTypes::typeToName(FileTypes::Type::TSV) + "'");
     }
 
     ofstream tab_file;
@@ -3112,10 +3112,10 @@ namespace OpenMS
 
   void MzTabFile::store(const String& filename, const MzTab& mz_tab) const
   {
-    if (!(FileHandler::hasValidExtension(filename, FileTypes::MZTAB) || FileHandler::hasValidExtension(filename, FileTypes::TSV)))
+    if (!(FileHandler::hasValidExtension(filename, FileTypes::Type::MZTAB) || FileHandler::hasValidExtension(filename, FileTypes::Type::TSV)))
     {
       throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "invalid file extension, expected '"
-      + FileTypes::typeToName(FileTypes::MZTAB) + "' or '" + FileTypes::typeToName(FileTypes::TSV) + "'");
+      + FileTypes::typeToName(FileTypes::Type::MZTAB) + "' or '" + FileTypes::typeToName(FileTypes::Type::TSV) + "'");
     }
 
     StringList out;

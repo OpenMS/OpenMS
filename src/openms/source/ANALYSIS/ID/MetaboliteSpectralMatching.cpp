@@ -444,7 +444,7 @@ namespace OpenMS
     // store the spectra if an output file path is given
     if (!out_spectra.empty())
     {
-      FileHandler().storeExperiment(out_spectra, msexp, {FileTypes::MZML});
+      FileHandler().storeExperiment(out_spectra, msexp, {FileTypes::Type::MZML});
     }
 
 

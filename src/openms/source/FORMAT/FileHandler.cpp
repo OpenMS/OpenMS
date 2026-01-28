@@ -56,7 +56,7 @@ namespace OpenMS
     String aStrings;
     for (auto i : types)
     {
-      if (i != FileTypes::SIZE_OF_TYPE)
+      if (i != FileTypes::Type::SIZE_OF_TYPE)
       {
         aStrings +=  ", " + FileTypes::typeToName(i);
       }
@@ -67,7 +67,7 @@ namespace OpenMS
   FileTypes::Type FileHandler::getType(const String& filename)
   {
     FileTypes::Type type = getTypeByFileName(filename);
-    if (type == FileTypes::UNKNOWN)
+    if (type == FileTypes::Type::UNKNOWN)
     {
       type = getTypeByContent(filename);
     }
@@ -80,19 +80,19 @@ namespace OpenMS
     // special rules for "double extensions":
     if (basename.hasSuffix(".pep.xml"))
     {
-      return FileTypes::PEPXML;
+      return FileTypes::Type::PEPXML;
     }
     if (basename.hasSuffix(".prot.xml"))
     {
-      return FileTypes::PROTXML;
+      return FileTypes::Type::PROTXML;
     }
     if (basename.hasSuffix(".xquest.xml"))
     {
-      return FileTypes::XQUESTXML;
+      return FileTypes::Type::XQUESTXML;
     }
     if (basename.hasSuffix(".spec.xml"))
     {
-      return FileTypes::SPECXML;
+      return FileTypes::Type::SPECXML;
     }
     try
     {
@@ -104,9 +104,9 @@ namespace OpenMS
       // last chance, Bruker fid file
       if (basename == "fid")
       {
-        return FileTypes::XMASS;
+        return FileTypes::Type::XMASS;
       }
-      return FileTypes::UNKNOWN;
+      return FileTypes::Type::UNKNOWN;
     }
     tmp.toUpper();
     if (tmp == "BZ2" || tmp == "GZ") // todo ZIP (not supported yet):       || tmp == "ZIP"
@@ -121,7 +121,7 @@ namespace OpenMS
   bool FileHandler::hasValidExtension(const String& filename, const FileTypes::Type type)
   {
     FileTypes::Type ft = FileHandler::getTypeByFileName(filename);
-    return (ft == type || ft == FileTypes::UNKNOWN);
+    return (ft == type || ft == FileTypes::Type::UNKNOWN);
   }
 
   String FileHandler::stripExtension(const String& filename)
@@ -134,7 +134,7 @@ namespace OpenMS
     auto type = getTypeByFileName(filename);
     auto s_type = FileTypes::typeToName(type);
     size_t pos = String(filename).toLower().rfind(s_type.toLower()); // search backwards in entire string, because we could search for 'mzML' and have 'mzML.gz'
-    if (pos == string::npos) // file type was FileTypes::UNKNOWN and we did not find '.unknown' as ending
+    if (pos == string::npos) // file type was FileTypes::Type::UNKNOWN and we did not find '.unknown' as ending
     {
       size_t ext_pos = filename.rfind('.');
       size_t dir_sep = filename.find_last_of("/\\"); // look for '/' or '\'
@@ -154,7 +154,7 @@ namespace OpenMS
 
   bool FileHandler::isSupported(FileTypes::Type type)
   {
-    if (type == FileTypes::UNKNOWN || type == FileTypes::SIZE_OF_TYPE)
+    if (type == FileTypes::Type::UNKNOWN || type == FileTypes::Type::SIZE_OF_TYPE)
     {
       return false;
     }
@@ -300,91 +300,91 @@ namespace OpenMS
     //mzXML (all lines)
     if (all_simple.hasSubstring("<mzXML"))
     {
-      return FileTypes::MZXML;
+      return FileTypes::Type::MZXML;
     }
     //mzData (all lines)
     if (all_simple.hasSubstring("<mzData"))
     { 
-      return FileTypes::MZDATA;
+      return FileTypes::Type::MZDATA;
     }
     //mzML (all lines)
     if (all_simple.hasSubstring("<mzML"))
     {
-      return FileTypes::MZML;
+      return FileTypes::Type::MZML;
     }
     //"analysisXML" aka. mzid (all lines)
     if (all_simple.hasSubstring("<MzIdentML"))
     {
-      return FileTypes::MZIDENTML;
+      return FileTypes::Type::MZIDENTML;
     }
     //subject to change!
     if (all_simple.hasSubstring("<MzQualityMLType"))
     {
-      return FileTypes::QCML;
+      return FileTypes::Type::QCML;
     }
     //pepXML (all lines)
     if (all_simple.hasSubstring("xmlns=\"http://regis-web.systemsbiology.net/pepXML\""))
     {
-      return FileTypes::PEPXML;
+      return FileTypes::Type::PEPXML;
     }
     //protXML (all lines)
     if (all_simple.hasSubstring("xmlns=\"http://regis-web.systemsbiology.net/protXML\""))
     {
-      return FileTypes::PROTXML;
+      return FileTypes::Type::PROTXML;
     }
     //feature map (all lines)
     if (all_simple.hasSubstring("<featureMap"))
     {
-      return FileTypes::FEATUREXML;
+      return FileTypes::Type::FEATUREXML;
     }
     //idXML (all lines)
     if (all_simple.hasSubstring("<IdXML"))
     {
-      return FileTypes::IDXML;
+      return FileTypes::Type::IDXML;
     }
     //consensusXML (all lines)
     if (all_simple.hasSubstring("<consensusXML"))
     {
-      return FileTypes::CONSENSUSXML;
+      return FileTypes::Type::CONSENSUSXML;
     }
     //TOPPAS (all lines)
     if (all_simple.hasSubstring("<PARAMETERS") && all_simple.hasSubstring("<NODE name=\"info\"") && all_simple.hasSubstring("<ITEM name=\"num_vertices\""))
     {
-      return FileTypes::TOPPAS;
+      return FileTypes::Type::TOPPAS;
     }
     //INI (all lines) (must be AFTER TOPPAS) - as this is less restrictive
     if (all_simple.hasSubstring("<PARAMETERS"))
     {
-      return FileTypes::INI;
+      return FileTypes::Type::INI;
     }
     //TrafoXML (all lines)
     if (all_simple.hasSubstring("<TrafoXML"))
     {
-      return FileTypes::TRANSFORMATIONXML;
+      return FileTypes::Type::TRANSFORMATIONXML;
     }
     //GelML (all lines)
     if (all_simple.hasSubstring("<GelML"))
     {
-      return FileTypes::GELML;
+      return FileTypes::Type::GELML;
     }
     //traML (all lines)
     if (all_simple.hasSubstring("<TraML"))
     {
-      return FileTypes::TRAML;
+      return FileTypes::Type::TRAML;
     }
     //OMSSAXML file
     if (all_simple.hasSubstring("<MSResponse"))
     {
-      return FileTypes::OMSSAXML;
+      return FileTypes::Type::OMSSAXML;
     }
     //MASCOTXML file
     if (all_simple.hasSubstring("<mascot_search_results"))
     {
-      return FileTypes::MASCOTXML;
+      return FileTypes::Type::MASCOTXML;
     }
     if (all_simple.hasPrefix("{"))
     {
-      return FileTypes::JSON;
+      return FileTypes::Type::JSON;
     }
     //FASTA file
     // .. check this fairly early on, because other file formats might be less specific
@@ -409,7 +409,7 @@ namespace OpenMS
       }
       if (bigger_than > 0)
       {
-        return FileTypes::FASTA;
+        return FileTypes::Type::FASTA;
       }
     }
 
@@ -417,18 +417,18 @@ namespace OpenMS
     // have to be checked; see e.g. the Wikipedia article)
     if (first_line.substr(1, 3) == "PNG")
     {
-      return FileTypes::PNG;
+      return FileTypes::Type::PNG;
     }
     //MSP (all lines)
     for (Size i = 0; i != complete_file.size(); ++i)
     {
       if (complete_file[i].hasPrefix("Name: ") && complete_file[i].hasSubstring("/"))
       {
-        return FileTypes::MSP;
+        return FileTypes::Type::MSP;
       }
       if (complete_file[i].hasPrefix("Num peaks: "))
       {
-        return FileTypes::MSP;
+        return FileTypes::Type::MSP;
       }
     }
 
@@ -453,7 +453,7 @@ namespace OpenMS
       }
       if (!conversion_error)
       {
-        return FileTypes::DTA;
+        return FileTypes::Type::DTA;
       }
     }
 
@@ -474,14 +474,14 @@ namespace OpenMS
       }
       if (!conversion_error)
       {
-        return FileTypes::DTA2D;
+        return FileTypes::Type::DTA2D;
       }
     }
 
     // MGF (Mascot Generic Format)
     if (two_five.hasSubstring("BEGIN IONS"))
     {
-      return FileTypes::MGF;
+      return FileTypes::Type::MGF;
     }
     else
     {
@@ -489,7 +489,7 @@ namespace OpenMS
       {
         if (complete_file[i].trim() == "FORMAT=Mascot generic" || complete_file[i].trim() == "BEGIN IONS")
         {
-          return FileTypes::MGF;
+          return FileTypes::Type::MGF;
         }
       }
     }
@@ -499,14 +499,14 @@ namespace OpenMS
     {
       if (!all_simple.empty() && all_simple[0] == 'H')
       {
-        return FileTypes::MS2;
+        return FileTypes::Type::MS2;
       }
     }
 
     // mzTab file format
     for (Size i = 0; i != complete_file.size(); ++i) {
         if (complete_file[i].hasSubstring("MTD\tmzTab-version")) {
-            return FileTypes::MZTAB;
+            return FileTypes::Type::MZTAB;
         }
     }
 
@@ -515,14 +515,14 @@ namespace OpenMS
     {
       if (complete_file[i].hasSubstring("scan\ttime\tmz\taccurateMZ\tmass\tintensity\tcharge\tchargeStates\tkl\tbackground\tmedian\tpeaks\tscanFirst\tscanLast\tscanCount\ttotalIntensity\tsumSquaresDist\tdescription"))
       {
-        return FileTypes::TSV;
+        return FileTypes::Type::TSV;
       }
     }
 
     // specArray file (.pepList)
     if (first_line.hasSubstring("       m/z\t     rt(min)\t       snr\t      charge\t   intensity"))
     {
-      return FileTypes::PEPLIST;
+      return FileTypes::Type::PEPLIST;
     }
 
     // hardkloer file (.hardkloer)
@@ -530,26 +530,26 @@ namespace OpenMS
       NOT IMPLEMENTED YET
       if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoisotopic Mass	Base Isotope Peak	Best Intensity	Summed Intensity	First RTime	Last RTime	Best RTime	Best Correlation	Modifications"))
     {
-        return FileTypes::HARDKLOER;
+        return FileTypes::Type::HARDKLOER;
     }
     **/
 
     // kroenik file (.kroenik)
     if (first_line.hasSubstring("File\tFirst Scan\tLast Scan\tNum of Scans\tCharge\tMonoisotopic Mass\tBase Isotope Peak\tBest Intensity\tSummed Intensity\tFirst RTime\tLast RTime\tBest RTime\tBest Correlation\tModifications"))
     {
-      return FileTypes::KROENIK;
+      return FileTypes::Type::KROENIK;
     }
 
     // Percolator tab-delimited output (PSM level, .psms)
     if (first_line.hasPrefix("PSMId\tscore\tq-value\tposterior_error_prob\tpeptide\tproteinIds"))
     {
-      return FileTypes::PSMS;
+      return FileTypes::Type::PSMS;
     }
 
     // EDTA file
     // hard to tell... so we don't even try...
 
-    return FileTypes::UNKNOWN;
+    return FileTypes::Type::UNKNOWN;
   }
 
   PeakFileOptions& FileHandler::getOptions()
@@ -691,7 +691,7 @@ namespace OpenMS
       }
       break;
 
-      case FileTypes::DTA2D: 
+      case FileTypes::Type::DTA2D: 
       {
         DTA2DFile f;
         f.getOptions() = options_;
@@ -736,7 +736,7 @@ namespace OpenMS
       }
       break;
 
-      case FileTypes::MS2: 
+      case FileTypes::Type::MS2: 
       {
         MS2File f;
         f.setLogType(log);
@@ -759,7 +759,7 @@ namespace OpenMS
       }
       break;
 
-      case FileTypes::MSP: 
+      case FileTypes::Type::MSP: 
       {
         MSPGenericFile().load(filename, exp);
       }
@@ -831,7 +831,7 @@ namespace OpenMS
       }
       break;
 
-      case FileTypes::DTA2D: 
+      case FileTypes::Type::DTA2D: 
       {
         DTA2DFile f;
         f.getOptions() = options_;
@@ -848,7 +848,7 @@ namespace OpenMS
       }
       break;
 
-      case FileTypes::MSP: 
+      case FileTypes::Type::MSP: 
       {
         MSPGenericFile f;
         // TODO add support for parameters
@@ -1186,7 +1186,7 @@ namespace OpenMS
       break;
 
 
-      case FileTypes::OMSSAXML:
+      case FileTypes::Type::OMSSAXML:
       {
         additional_proteins.push_back(ProteinIdentification());
         OMSSAXMLFile().load(filename, additional_proteins[0],

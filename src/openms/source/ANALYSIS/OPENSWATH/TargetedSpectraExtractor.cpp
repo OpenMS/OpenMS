@@ -1021,7 +1021,7 @@ namespace OpenMS
     removeMS2SpectraPeaks_(experiment);
 
     // Store
-    FileHandler().storeExperiment(filename, experiment, {FileTypes::MSP});
+    FileHandler().storeExperiment(filename, experiment, {FileTypes::Type::MSP});
   }
   
   void TargetedSpectraExtractor::deisotopeMS2Spectra_(MSExperiment& experiment) const

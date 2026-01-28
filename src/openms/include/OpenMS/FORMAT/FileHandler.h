@@ -53,7 +53,7 @@ public:
 
       @param[in] filename the name of the file to check
 
-      @return A FileTypes::Type corresponding to the extension, or FileTypes::UNKNOWN if not determinable
+      @return A FileTypes::Type corresponding to the extension, or FileTypes::Type::UNKNOWN if not determinable
 
       @exception Exception::FileNotFound is thrown if the file is not present
     */
@@ -65,7 +65,7 @@ public:
 
       @param[in] filename the name of the file to check
 
-      @return A FileTypes::Type corresponding to the extension, or FileTypes::UNKNOWN if not determinable
+      @return A FileTypes::Type corresponding to the extension, or FileTypes::Type::UNKNOWN if not determinable
 
       @exception Exception::FileNotFound is thrown if the file is not present
     */
@@ -103,8 +103,8 @@ public:
       @brief Tries to find and remove a known file extension, and append the new one.
 
       Internally calls 'stripExtension()' and adds the new suffix to the result.
-      E.g. 'experiment.featureXML'+ FileTypes::TRANSFORMATIONXML  becomes 'experiment.trafoXML' and 'c:\\files\\data.mzML.gz' + FileTypes::FEATUREXML becomes 'c:\\files\\data.featureXML'
-      If the existing extension is unknown, the everything after the last '.' is removed, e.g. 'exp.tmp' + FileTypes::IDXML becomes 'exp.idXML'
+      E.g. 'experiment.featureXML'+ FileTypes::Type::TRANSFORMATIONXML  becomes 'experiment.trafoXML' and 'c:\\files\\data.mzML.gz' + FileTypes::Type::FEATUREXML becomes 'c:\\files\\data.featureXML'
+      If the existing extension is unknown, the everything after the last '.' is removed, e.g. 'exp.tmp' + FileTypes::Type::IDXML becomes 'exp.idXML'
 
       @param[in] filename the original @p filename
       @param[in] new_type the @p FileTypes::Types to use to set the new extension

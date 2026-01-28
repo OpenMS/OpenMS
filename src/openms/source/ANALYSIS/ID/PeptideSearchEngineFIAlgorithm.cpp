@@ -487,7 +487,7 @@ if (!pi.getHits().empty())
     options.clearMSLevels();
     options.addMSLevel(2);
     f.getOptions() = options;
-    f.loadExperiment(in_mzML, spectra, {FileTypes::MZML});
+    f.loadExperiment(in_mzML, spectra, {FileTypes::Type::MZML});
     spectra.sortSpectra(true);
 
     startProgress(0, 1, "Filtering spectra...");

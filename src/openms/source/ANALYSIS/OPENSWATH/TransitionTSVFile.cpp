@@ -201,7 +201,7 @@ namespace OpenMS
     char delimiter = ',';
 
     // SpectraST MRM Files do not have a header
-    if (filetype == FileTypes::MRM)
+    if (filetype == FileTypes::Type::MRM)
     {
       delimiter = '\t';
 
@@ -391,7 +391,7 @@ namespace OpenMS
 
       //// Generate Group IDs
       // SpectraST
-      if (filetype == FileTypes::MRM)
+      if (filetype == FileTypes::Type::MRM)
       {
         std::vector<String> substrings;
         String(tmp_line[header_dict["SpectraSTFullPeptideName"]]).split("/", substrings);
@@ -665,7 +665,7 @@ namespace OpenMS
     char delimiter = ',';
 
     // SpectraST MRM Files do not have a header
-    if (filetype == FileTypes::MRM)
+    if (filetype == FileTypes::Type::MRM)
     {
       delimiter = '\t';
 
@@ -850,7 +850,7 @@ namespace OpenMS
       }
 
       //// Generate Group IDs
-      if (filetype == FileTypes::MRM)
+      if (filetype == FileTypes::Type::MRM)
       {
         std::vector<String> substrings;
         String(tmp_line[header_dict["SpectraSTFullPeptideName"]]).split("/", substrings);

@@ -181,7 +181,7 @@ namespace OpenMS {
     if (load_cached_spectrum && File::exists(filepath_picked)) {
       OPENMS_LOG_INFO << "Started loading cached picked spectrum " << filepath_picked << std::endl;
       MSExperiment exp;
-      FileHandler().loadExperiment(filepath_picked, exp, {FileTypes::MZML});
+      FileHandler().loadExperiment(filepath_picked, exp, {FileTypes::Type::MZML});
       picked_spectrum = exp.getSpectra()[0];
       OPENMS_LOG_INFO << "Finished loading cached picked spectrum " << filepath_picked << std::endl;
       is_cached = true;
@@ -211,7 +211,7 @@ namespace OpenMS {
   {
       MSExperiment exp;
       exp.addSpectrum(input);
-      FileHandler().storeExperiment(filename, exp,{FileTypes::MZML});
+      FileHandler().storeExperiment(filename, exp,{FileTypes::Type::MZML});
   }
 
   /// Get mass-to-charge ratios to base the sliding window upon

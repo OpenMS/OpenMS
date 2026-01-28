@@ -235,12 +235,12 @@ protected:
       progresslogger.setProgress(i);
       
       PeakMap exp;
-      FileHandler().loadExperiment(in_spectra_files[i], exp, {FileTypes::MZML}, log_type_);
+      FileHandler().loadExperiment(in_spectra_files[i], exp, {FileTypes::Type::MZML}, log_type_);
       
       MapAlignmentTransformer::transformRetentionTimes(exp, transformations[i], store_original_rt);
       
       addDataProcessing_(exp, getProcessingInfo_(DataProcessing::ALIGNMENT));
-      FileHandler().storeExperiment(out_spectra_files[i], exp, {FileTypes::MZML}, log_type_);
+      FileHandler().storeExperiment(out_spectra_files[i], exp, {FileTypes::Type::MZML}, log_type_);
     }
     
     progresslogger.endProgress();

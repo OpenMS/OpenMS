@@ -55,15 +55,15 @@ namespace OpenMS
     else
     {
       FileTypes::Type in_file_type = FileHandler::getTypeByFileName(file_list[0]);
-      if (in_file_type == FileTypes::MZML)
+      if (in_file_type == FileTypes::Type::MZML)
       {
         swath_maps = swath_file.loadMzML(file_list[0], tmp, exp_meta, readoptions, plugin_consumer);
       }
-      else if (in_file_type == FileTypes::MZXML)
+      else if (in_file_type == FileTypes::Type::MZXML)
       {
         swath_maps = swath_file.loadMzXML(file_list[0], tmp, exp_meta, readoptions);
       }
-      else if (in_file_type == FileTypes::SQMASS)
+      else if (in_file_type == FileTypes::Type::SQMASS)
       {
         swath_maps = swath_file.loadSqMass(file_list[0], exp_meta);
       }
@@ -215,21 +215,21 @@ namespace OpenMS
     OpenSwath::LightTargetedExperiment transition_exp;
     ProgressLogger progresslogger;
     progresslogger.setLogType(log_type_);
-    if (tr_type == FileTypes::TRAML)
+    if (tr_type == FileTypes::Type::TRAML)
     {
       progresslogger.startProgress(0, 1, "Load TraML file");
       TargetedExperiment targeted_exp;
-      FileHandler().loadTransitions(tr_file, targeted_exp, {FileTypes::TRAML});
+      FileHandler().loadTransitions(tr_file, targeted_exp, {FileTypes::Type::TRAML});
       OpenSwathDataAccessHelper::convertTargetedExp(targeted_exp, transition_exp);
       progresslogger.endProgress();
     }
-    else if (tr_type == FileTypes::PQP)
+    else if (tr_type == FileTypes::Type::PQP)
     {
       progresslogger.startProgress(0, 1, "Load PQP file");
       TransitionPQPFile().convertPQPToTargetedExperiment(tr_file.c_str(), transition_exp);
       progresslogger.endProgress();
     }
-    else if (tr_type == FileTypes::TSV)
+    else if (tr_type == FileTypes::Type::TSV)
     {
       progresslogger.startProgress(0, 1, "Load TSV file");
       TransitionTSVFile tsv_reader;
@@ -269,7 +269,7 @@ namespace OpenMS
     if (! trafo_in.empty())
     {
       // get read RT normalization file
-      FileHandler().loadTransformations(trafo_in, trafo_rtnorm, false, {FileTypes::TRANSFORMATIONXML});
+      FileHandler().loadTransformations(trafo_in, trafo_rtnorm, false, {FileTypes::Type::TRANSFORMATIONXML});
       Param model_params = getParam_().copy("model:", true);
       model_params.setValue("symmetric_regression", "false");
       model_params.setValue("span", irt_detection_param.getValue("lowess:span"));
@@ -322,7 +322,7 @@ namespace OpenMS
       auto_ms1_mz_w = wf.getEstimatedMs1MzWindow();
       auto_ms1_im_w = wf.getEstimatedMs1ImWindow();
 
-      if (! irt_trafo_out.empty()) { FileHandler().storeTransformations(irt_trafo_out, trafo_rtnorm, {FileTypes::TRANSFORMATIONXML}); }
+      if (! irt_trafo_out.empty()) { FileHandler().storeTransformations(irt_trafo_out, trafo_rtnorm, {FileTypes::Type::TRANSFORMATIONXML}); }
     }
 
     CalibrationResult out;

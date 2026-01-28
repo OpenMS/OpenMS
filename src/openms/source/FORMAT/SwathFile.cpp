@@ -65,7 +65,7 @@ namespace OpenMS
 
       if (readoptions == "normal")
       {
-        FileHandler().loadExperiment(file_list[i], *exp.get(), {FileTypes::MZML});
+        FileHandler().loadExperiment(file_list[i], *exp.get(), {FileTypes::Type::MZML});
         spectra_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(exp);
       }
       else if (readoptions == "cache")
@@ -201,7 +201,7 @@ namespace OpenMS
     FileHandler f;
     f.getOptions().setAlwaysAppendData(true);
     f.getOptions().setFillData(false);
-    f.loadExperiment(file, *experiment_metadata, {FileTypes::MZXML});
+    f.loadExperiment(file, *experiment_metadata, {FileTypes::Type::MZXML});
     exp_meta = experiment_metadata;
 
     // First pass through the file -> get the meta data
@@ -292,7 +292,7 @@ namespace OpenMS
     } // ensure that filestream gets closed
 
     std::shared_ptr<PeakMap > exp(new PeakMap);
-    FileHandler().loadExperiment(meta_file, *exp.get(), {FileTypes::MZML});
+    FileHandler().loadExperiment(meta_file, *exp.get(), {FileTypes::Type::MZML});
     return SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(exp);
   }
 

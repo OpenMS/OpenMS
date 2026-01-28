@@ -1045,7 +1045,7 @@ namespace OpenMS
         if (f != "fid")
         {
           auto ft = FileHandler::getTypeByFileName(String(".") + f);
-          if (ft == FileTypes::UNKNOWN)
+          if (ft == FileTypes::Type::UNKNOWN)
           {
             throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The file format '" + f + "' is invalid!");
           }
@@ -1419,7 +1419,7 @@ namespace OpenMS
         // determine file type as string
         FileTypes::Type f_type = FileHandler::getType(t);
         // unknown ending is 'ok'
-        if (f_type == FileTypes::UNKNOWN)
+        if (f_type == FileTypes::Type::UNKNOWN)
         {
           writeLogWarn_("Warning: Could not determine format of input file '" + t + "'!");
         }
@@ -1486,7 +1486,7 @@ namespace OpenMS
         // determine file type as string
         FileTypes::Type f_type = FileHandler::getType(param_value);
         // unknown ending is 'ok'
-        if (f_type == FileTypes::UNKNOWN)
+        if (f_type == FileTypes::Type::UNKNOWN)
         {
           writeLogWarn_("Warning: Could not determine format of input file '" + param_value + "'!");
         }
@@ -1506,7 +1506,7 @@ namespace OpenMS
         // determine file type as string
         FileTypes::Type f_type = FileHandler::getTypeByFileName(param_value);
         // Wrong ending, unknown is is ok.
-        if (f_type != FileTypes::UNKNOWN
+        if (f_type != FileTypes::Type::UNKNOWN
           && !ListUtils::contains(p.valid_strings, FileTypes::typeToName(f_type).toUpper(), ListUtils::CASE::INSENSITIVE))
         {
           throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,

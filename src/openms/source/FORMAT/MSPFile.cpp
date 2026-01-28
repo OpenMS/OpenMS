@@ -358,10 +358,10 @@ namespace OpenMS
   //TODO adapt store to write new? format
   void MSPFile::store(const String & filename, const AnnotatedMSRun & exp) const
   {
-    if (!FileHandler::hasValidExtension(filename, FileTypes::MSP))
+    if (!FileHandler::hasValidExtension(filename, FileTypes::Type::MSP))
     {
       throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          filename, "invalid file extension, expected '" + FileTypes::typeToName(FileTypes::MSP) + "'");
+          filename, "invalid file extension, expected '" + FileTypes::typeToName(FileTypes::Type::MSP) + "'");
     }
 
     if (!File::writable(filename))

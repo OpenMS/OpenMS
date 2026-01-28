@@ -27,25 +27,25 @@ using namespace std;
 
 START_SECTION((static String typeToName(Type type)))
 {
-  TEST_EQUAL(FileTypes::typeToName(FileTypes::UNKNOWN), "unknown");
-  TEST_EQUAL(FileTypes::typeToName(FileTypes::DTA), "dta");
-  TEST_EQUAL(FileTypes::typeToName(FileTypes::DTA2D), "dta2d");
-  TEST_EQUAL(FileTypes::typeToName(FileTypes::MZDATA), "mzData");
-  TEST_EQUAL(FileTypes::typeToName(FileTypes::MZXML), "mzXML");
-  TEST_EQUAL(FileTypes::typeToName(FileTypes::MZML), "mzML");
-  TEST_EQUAL(FileTypes::typeToName(FileTypes::FEATUREXML), "featureXML");
-  TEST_EQUAL(FileTypes::typeToName(FileTypes::IDXML), "idXML");
-  TEST_EQUAL(FileTypes::typeToName(FileTypes::CONSENSUSXML), "consensusXML");
-  TEST_EQUAL(FileTypes::typeToName(FileTypes::TRANSFORMATIONXML), "trafoXML");
-  TEST_EQUAL(FileTypes::typeToName(FileTypes::INI), "ini");
-  TEST_EQUAL(FileTypes::typeToName(FileTypes::TOPPAS), "toppas");
-  TEST_EQUAL(FileTypes::typeToName(FileTypes::PNG), "png");
-  TEST_EQUAL(FileTypes::typeToName(FileTypes::TXT), "txt");
-  TEST_EQUAL(FileTypes::typeToName(FileTypes::CSV), "csv");
-  TEST_EQUAL(FileTypes::typeToName(FileTypes::MZTAB), "mzTab");
+  TEST_EQUAL(FileTypes::typeToName(FileTypes::Type::UNKNOWN), "unknown");
+  TEST_EQUAL(FileTypes::typeToName(FileTypes::Type::DTA), "dta");
+  TEST_EQUAL(FileTypes::typeToName(FileTypes::Type::DTA2D), "dta2d");
+  TEST_EQUAL(FileTypes::typeToName(FileTypes::Type::MZDATA), "mzData");
+  TEST_EQUAL(FileTypes::typeToName(FileTypes::Type::MZXML), "mzXML");
+  TEST_EQUAL(FileTypes::typeToName(FileTypes::Type::MZML), "mzML");
+  TEST_EQUAL(FileTypes::typeToName(FileTypes::Type::FEATUREXML), "featureXML");
+  TEST_EQUAL(FileTypes::typeToName(FileTypes::Type::IDXML), "idXML");
+  TEST_EQUAL(FileTypes::typeToName(FileTypes::Type::CONSENSUSXML), "consensusXML");
+  TEST_EQUAL(FileTypes::typeToName(FileTypes::Type::TRANSFORMATIONXML), "trafoXML");
+  TEST_EQUAL(FileTypes::typeToName(FileTypes::Type::INI), "ini");
+  TEST_EQUAL(FileTypes::typeToName(FileTypes::Type::TOPPAS), "toppas");
+  TEST_EQUAL(FileTypes::typeToName(FileTypes::Type::PNG), "png");
+  TEST_EQUAL(FileTypes::typeToName(FileTypes::Type::TXT), "txt");
+  TEST_EQUAL(FileTypes::typeToName(FileTypes::Type::CSV), "csv");
+  TEST_EQUAL(FileTypes::typeToName(FileTypes::Type::MZTAB), "mzTab");
 
   // try them all, just to make sure they are all there
-  for (int i = 0; i < (int)FileTypes::SIZE_OF_TYPE; ++i)
+  for (int i = 0; i < (int)FileTypes::Type::SIZE_OF_TYPE; ++i)
   {
     TEST_EQUAL(FileTypes::nameToType(FileTypes::typeToName(FileTypes::Type(i))), FileTypes::Type(i));
   }
@@ -53,56 +53,56 @@ START_SECTION((static String typeToName(Type type)))
 END_SECTION
 
 START_SECTION((static Type nameToType(const String& name)))
-  TEST_EQUAL(FileTypes::typeToDescription(FileTypes::DTA2D), "dta2d raw data file");
-  TEST_EQUAL(FileTypes::typeToDescription(FileTypes::UNKNOWN), "unknown file extension");
+  TEST_EQUAL(FileTypes::typeToDescription(FileTypes::Type::DTA2D), "dta2d raw data file");
+  TEST_EQUAL(FileTypes::typeToDescription(FileTypes::Type::UNKNOWN), "unknown file extension");
 END_SECTION
 
 
 START_SECTION((static Type nameToType(const String& name)))
 {
-  TEST_EQUAL(FileTypes::UNKNOWN, FileTypes::nameToType("unknown"));
-  TEST_EQUAL(FileTypes::DTA, FileTypes::nameToType("dta"));
-  TEST_EQUAL(FileTypes::DTA2D, FileTypes::nameToType("dta2d"));
-  TEST_EQUAL(FileTypes::MZDATA, FileTypes::nameToType("mzData"));
-  TEST_EQUAL(FileTypes::MZXML, FileTypes::nameToType("mzXML"));
-  TEST_EQUAL(FileTypes::FEATUREXML, FileTypes::nameToType("featureXML"));
-  TEST_EQUAL(FileTypes::IDXML, FileTypes::nameToType("idXmL")); // case-insensitivity
-  TEST_EQUAL(FileTypes::CONSENSUSXML, FileTypes::nameToType("consensusXML"));
-  TEST_EQUAL(FileTypes::MGF, FileTypes::nameToType("mgf"));
-  TEST_EQUAL(FileTypes::INI, FileTypes::nameToType("ini"));
-  TEST_EQUAL(FileTypes::TOPPAS, FileTypes::nameToType("toppas"));
-  TEST_EQUAL(FileTypes::TRANSFORMATIONXML, FileTypes::nameToType("trafoXML"));
-  TEST_EQUAL(FileTypes::MZML, FileTypes::nameToType("mzML"));
-  TEST_EQUAL(FileTypes::MS2, FileTypes::nameToType("ms2"));
-  TEST_EQUAL(FileTypes::PEPXML, FileTypes::nameToType("pepXML"));
-  TEST_EQUAL(FileTypes::PROTXML, FileTypes::nameToType("protXML"));
-  TEST_EQUAL(FileTypes::MZIDENTML, FileTypes::nameToType("mzid"));
-  TEST_EQUAL(FileTypes::GELML, FileTypes::nameToType("gelML"));
-  TEST_EQUAL(FileTypes::TRAML, FileTypes::nameToType("traML"));
-  TEST_EQUAL(FileTypes::MSP, FileTypes::nameToType("msp"));
-  TEST_EQUAL(FileTypes::OMSSAXML, FileTypes::nameToType("omssaXML"));
-  TEST_EQUAL(FileTypes::PNG, FileTypes::nameToType("png"));
-  TEST_EQUAL(FileTypes::XMASS, FileTypes::nameToType("fid"));
-  TEST_EQUAL(FileTypes::TSV, FileTypes::nameToType("tsv"));
-  TEST_EQUAL(FileTypes::PEPLIST, FileTypes::nameToType("peplist"));
-  TEST_EQUAL(FileTypes::HARDKLOER, FileTypes::nameToType("hardkloer"));
-  TEST_EQUAL(FileTypes::KROENIK, FileTypes::nameToType("kroenik"));
-  TEST_EQUAL(FileTypes::FASTA, FileTypes::nameToType("fasta"));
-  TEST_EQUAL(FileTypes::EDTA, FileTypes::nameToType("edta"));
-  TEST_EQUAL(FileTypes::CSV, FileTypes::nameToType("csv"));
-  TEST_EQUAL(FileTypes::TXT, FileTypes::nameToType("txt"));
-  TEST_EQUAL(FileTypes::PARQUET, FileTypes::nameToType("parquet"));
-  TEST_EQUAL(FileTypes::PARQUET, FileTypes::nameToType("pqt")); // Test alternate extension
+  TEST_EQUAL(FileTypes::Type::UNKNOWN, FileTypes::nameToType("unknown"));
+  TEST_EQUAL(FileTypes::Type::DTA, FileTypes::nameToType("dta"));
+  TEST_EQUAL(FileTypes::Type::DTA2D, FileTypes::nameToType("dta2d"));
+  TEST_EQUAL(FileTypes::Type::MZDATA, FileTypes::nameToType("mzData"));
+  TEST_EQUAL(FileTypes::Type::MZXML, FileTypes::nameToType("mzXML"));
+  TEST_EQUAL(FileTypes::Type::FEATUREXML, FileTypes::nameToType("featureXML"));
+  TEST_EQUAL(FileTypes::Type::IDXML, FileTypes::nameToType("idXmL")); // case-insensitivity
+  TEST_EQUAL(FileTypes::Type::CONSENSUSXML, FileTypes::nameToType("consensusXML"));
+  TEST_EQUAL(FileTypes::Type::MGF, FileTypes::nameToType("mgf"));
+  TEST_EQUAL(FileTypes::Type::INI, FileTypes::nameToType("ini"));
+  TEST_EQUAL(FileTypes::Type::TOPPAS, FileTypes::nameToType("toppas"));
+  TEST_EQUAL(FileTypes::Type::TRANSFORMATIONXML, FileTypes::nameToType("trafoXML"));
+  TEST_EQUAL(FileTypes::Type::MZML, FileTypes::nameToType("mzML"));
+  TEST_EQUAL(FileTypes::Type::MS2, FileTypes::nameToType("ms2"));
+  TEST_EQUAL(FileTypes::Type::PEPXML, FileTypes::nameToType("pepXML"));
+  TEST_EQUAL(FileTypes::Type::PROTXML, FileTypes::nameToType("protXML"));
+  TEST_EQUAL(FileTypes::Type::MZIDENTML, FileTypes::nameToType("mzid"));
+  TEST_EQUAL(FileTypes::Type::GELML, FileTypes::nameToType("gelML"));
+  TEST_EQUAL(FileTypes::Type::TRAML, FileTypes::nameToType("traML"));
+  TEST_EQUAL(FileTypes::Type::MSP, FileTypes::nameToType("msp"));
+  TEST_EQUAL(FileTypes::Type::OMSSAXML, FileTypes::nameToType("omssaXML"));
+  TEST_EQUAL(FileTypes::Type::PNG, FileTypes::nameToType("png"));
+  TEST_EQUAL(FileTypes::Type::XMASS, FileTypes::nameToType("fid"));
+  TEST_EQUAL(FileTypes::Type::TSV, FileTypes::nameToType("tsv"));
+  TEST_EQUAL(FileTypes::Type::PEPLIST, FileTypes::nameToType("peplist"));
+  TEST_EQUAL(FileTypes::Type::HARDKLOER, FileTypes::nameToType("hardkloer"));
+  TEST_EQUAL(FileTypes::Type::KROENIK, FileTypes::nameToType("kroenik"));
+  TEST_EQUAL(FileTypes::Type::FASTA, FileTypes::nameToType("fasta"));
+  TEST_EQUAL(FileTypes::Type::EDTA, FileTypes::nameToType("edta"));
+  TEST_EQUAL(FileTypes::Type::CSV, FileTypes::nameToType("csv"));
+  TEST_EQUAL(FileTypes::Type::TXT, FileTypes::nameToType("txt"));
+  TEST_EQUAL(FileTypes::Type::PARQUET, FileTypes::nameToType("parquet"));
+  TEST_EQUAL(FileTypes::Type::PARQUET, FileTypes::nameToType("pqt")); // Test alternate extension
 
-  TEST_EQUAL(FileTypes::UNKNOWN, FileTypes::nameToType("somethingunknown"));
+  TEST_EQUAL(FileTypes::Type::UNKNOWN, FileTypes::nameToType("somethingunknown"));
 }
 END_SECTION
 
 START_SECTION([EXTRA] FileTypes::FileTypeList)
-  FileTypeList list({ FileTypes::MZML, FileTypes::BZ2 });
-  TEST_EQUAL(list.contains(FileTypes::MZML), true);
-  TEST_EQUAL(list.contains(FileTypes::BZ2), true);
-  TEST_EQUAL(list.contains(FileTypes::MZDATA), false);
+  FileTypeList list({ FileTypes::Type::MZML, FileTypes::Type::BZ2 });
+  TEST_EQUAL(list.contains(FileTypes::Type::MZML), true);
+  TEST_EQUAL(list.contains(FileTypes::Type::BZ2), true);
+  TEST_EQUAL(list.contains(FileTypes::Type::MZDATA), false);
 
   TEST_EQUAL(list.toFileDialogFilter(FilterLayout::BOTH, true), "all readable files (*.mzML *.bz2);;mzML raw data file (*.mzML);;bzip2 compressed file (*.bz2);;all files (*)")
   TEST_EQUAL(list.toFileDialogFilter(FilterLayout::COMPACT, true), "all readable files (*.mzML *.bz2);;all files (*)")
@@ -110,17 +110,17 @@ START_SECTION([EXTRA] FileTypes::FileTypeList)
   TEST_EQUAL(list.toFileDialogFilter(FilterLayout::BOTH, false), "all readable files (*.mzML *.bz2);;mzML raw data file (*.mzML);;bzip2 compressed file (*.bz2)")
 
   // testing Type FileTypeList::fromFileDialogFilter(const String& filter, const Type fallback = Type::UNKNOWN) const
-  TEST_EQUAL(list.fromFileDialogFilter("all readable files (*.mzML *.bz2)"), FileTypes::UNKNOWN);
-  TEST_EQUAL(list.fromFileDialogFilter("all files (*)"), FileTypes::UNKNOWN);
-  TEST_EQUAL(list.fromFileDialogFilter("mzML raw data file (*.mzML)"), FileTypes::MZML);
-  TEST_EQUAL(list.fromFileDialogFilter("bzip2 compressed file (*.bz2)"), FileTypes::BZ2);
+  TEST_EQUAL(list.fromFileDialogFilter("all readable files (*.mzML *.bz2)"), FileTypes::Type::UNKNOWN);
+  TEST_EQUAL(list.fromFileDialogFilter("all files (*)"), FileTypes::Type::UNKNOWN);
+  TEST_EQUAL(list.fromFileDialogFilter("mzML raw data file (*.mzML)"), FileTypes::Type::MZML);
+  TEST_EQUAL(list.fromFileDialogFilter("bzip2 compressed file (*.bz2)"), FileTypes::Type::BZ2);
   TEST_EXCEPTION(Exception::ElementNotFound, list.fromFileDialogFilter("not a valid filter"));
   // with default
-  TEST_EQUAL(list.fromFileDialogFilter("all readable files (*.mzML *.bz2)", FileTypes::CONSENSUSXML), FileTypes::CONSENSUSXML);
-  TEST_EQUAL(list.fromFileDialogFilter("all files (*)", FileTypes::CONSENSUSXML), FileTypes::CONSENSUSXML);
-  TEST_EQUAL(list.fromFileDialogFilter("mzML raw data file (*.mzML)", FileTypes::CONSENSUSXML), FileTypes::MZML);
-  TEST_EQUAL(list.fromFileDialogFilter("bzip2 compressed file (*.bz2)", FileTypes::CONSENSUSXML), FileTypes::BZ2);
-  TEST_EXCEPTION(Exception::ElementNotFound, list.fromFileDialogFilter("not a valid filter", FileTypes::CONSENSUSXML));
+  TEST_EQUAL(list.fromFileDialogFilter("all readable files (*.mzML *.bz2)", FileTypes::Type::CONSENSUSXML), FileTypes::Type::CONSENSUSXML);
+  TEST_EQUAL(list.fromFileDialogFilter("all files (*)", FileTypes::Type::CONSENSUSXML), FileTypes::Type::CONSENSUSXML);
+  TEST_EQUAL(list.fromFileDialogFilter("mzML raw data file (*.mzML)", FileTypes::Type::CONSENSUSXML), FileTypes::Type::MZML);
+  TEST_EQUAL(list.fromFileDialogFilter("bzip2 compressed file (*.bz2)", FileTypes::Type::CONSENSUSXML), FileTypes::Type::BZ2);
+  TEST_EXCEPTION(Exception::ElementNotFound, list.fromFileDialogFilter("not a valid filter", FileTypes::Type::CONSENSUSXML));
 
   END_SECTION
 
