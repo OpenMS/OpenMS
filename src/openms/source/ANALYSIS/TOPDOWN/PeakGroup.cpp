@@ -1089,7 +1089,7 @@ namespace OpenMS
     double z_intensity = 0;
     double max_s_intensity = 0;
     //double avg_sum = 0;
-    const auto& avg_iso = avg.get(getMonoMass());
+    //const auto& avg_iso = avg.get(getMonoMass());
 
     //for(auto i : avg_iso) avg_sum += i.getIntensity();
 
