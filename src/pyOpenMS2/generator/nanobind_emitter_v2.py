@@ -8,12 +8,15 @@ It uses accurate C++ type information from libclang for correct method signature
 from __future__ import annotations
 
 import hashlib
+import logging
 import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, List, Optional, Set, Tuple
 
 from .cpp_parser import CppMethod, CppParameter, MergedClass, MergedMethod
+
+logger = logging.getLogger(__name__)
 
 
 def scan_caster_files_for_types(caster_dir: Optional[Path] = None) -> Set[str]:
@@ -509,6 +512,14 @@ SKIP_CLASSES = {
     "IntegerMassDecomposer",        # Uses IMSWeights which isn't bound
     "RealMassDecomposer",           # Uses IMSWeights which isn't bound
     "BilinearInterpolation",        # Template class
+}
+
+# Enums to skip (value name mismatches between pxd and C++, or other issues)
+# NOTE: These are typically due to pxd files having different enum value names
+# than the actual C++ headers (e.g., Precursor_ion vs Precursor)
+SKIP_ENUMS = {
+    "ResidueType",      # pxd has Precursor_ion but C++ has Precursor
+    "CHARGEMODE",       # In FeatureDeconvolution - pxd uses 'class' enum name
 }
 
 # Additional headers needed for specific classes
@@ -2086,11 +2097,18 @@ class NanobindEmitterV2:
                         content.enum_bindings.append(enum_code)
 
         # Add nested enum bindings (SpectrumType) to the module with SpectrumSettings
+        # Only add if not already auto-generated from pxd
         if "SpectrumSettings" in class_names_in_module:
             if not self.core_only or "SpectrumSettings" in CORE_CLASSES:
                 content.includes.add("<OpenMS/METADATA/SpectrumSettings.h>")
                 if "__post_class_enums__" in SPECIAL_METHODS:
                     for enum_name, enum_code in SPECIAL_METHODS["__post_class_enums__"].items():
+                        # Skip if this enum was already auto-generated
+                        # Extract enum name from enum_name (e.g., "SpectrumSettings_SpectrumType" -> "SpectrumType")
+                        simple_name = enum_name.split("_")[-1] if "_" in enum_name else enum_name
+                        if simple_name in generated_enum_names:
+                            logger.debug(f"Skipping hardcoded enum {enum_name} - already auto-generated")
+                            continue
                         content.post_class_enums.append(enum_code)
 
         for merged_class in sorted_module_classes:
@@ -2309,6 +2327,11 @@ class NanobindEmitterV2:
 
         enum_name = enum_decl.name
         namespace = enum_decl.namespace
+
+        # Skip enums that have known issues (e.g., value name mismatches with C++)
+        if enum_name in SKIP_ENUMS:
+            logger.debug(f"Skipping enum {enum_name} - in SKIP_ENUMS list")
+            return None
 
         # Use explicit C++ name if provided (e.g., "OpenMS::FileTypes::Type"),
         # otherwise construct from namespace and enum name
