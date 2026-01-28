@@ -269,9 +269,13 @@ def main(args: Optional[List[str]] = None) -> int:
 
     logger.info(f"Parsed {len(cpp_classes)} C++ classes from headers")
 
+    # Get scoped enums (C++11 enum class) from C++ headers
+    scoped_enums = cpp_parser.get_scoped_enums()
+    logger.info(f"Found {len(scoped_enums)} scoped enums (enum class)")
+
     # Merge C++ info with .pxd allowlist
     logger.info("Merging C++ and .pxd information...")
-    merged_classes = merge_with_pxd(cpp_classes, classes)
+    merged_classes = merge_with_pxd(cpp_classes, classes, scoped_enums)
     logger.info(f"Merged {len(merged_classes)} classes")
 
     # Generate bindings
