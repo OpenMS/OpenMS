@@ -43,14 +43,10 @@ sudo apt-get -qq install -y \
   libsqlite3-dev \
   libsqlitecpp-dev \
   nlohmann-json3-dev \
-  libsimde-dev \
-  pipx
+  libsimde-dev
 
-# Install uv (Python package manager) via pipx
-pipx install uv
-pipx ensurepath
-# Also export PATH for current session (pipx ensurepath only updates config files)
-export PATH="$(pipx environment --value PIPX_BIN_DIR):$PATH"
+# Install uv (Python package manager)
+curl -LsSf https://astral.sh/uv/install.sh | sh
 
 # Install Apache Arrow
 sudo apt update
