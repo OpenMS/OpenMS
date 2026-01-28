@@ -53,7 +53,12 @@ brew install \
 # Install Eigen 3.4.0 from source (Homebrew's eigen is now 5.x which is incompatible)
 # First, remove any Homebrew-installed eigen to avoid version conflicts
 echo "Removing any existing Homebrew eigen..."
-command brew uninstall --ignore-dependencies eigen 2>/dev/null || true
+if command brew list eigen &>/dev/null; then
+  echo "Eigen is installed, removing it..."
+  command brew uninstall --ignore-dependencies eigen || echo "Warning: Failed to uninstall eigen"
+else
+  echo "Eigen is not installed via Homebrew, skipping uninstall."
+fi
 
 EIGEN_VERSION="3.4.0"
 EIGEN_URL="https://gitlab.com/libeigen/eigen/-/archive/${EIGEN_VERSION}/eigen-${EIGEN_VERSION}.tar.gz"
