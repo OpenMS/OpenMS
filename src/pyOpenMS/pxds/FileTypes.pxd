@@ -9,15 +9,18 @@ cdef extern from "<OpenMS/FORMAT/FileTypes.h>" namespace "OpenMS":
         FileTypes() except + nogil  # wrap-doc:Centralizes the file types recognized by FileHandler
         FileTypes(FileTypes &) except + nogil  # compiler
 
+        @staticmethod
         String typeToName(FileType t) except + nogil  # wrap-doc:Returns the name/extension of the type
 
+        @staticmethod
         String typeToMZML(FileType t) except + nogil  # wrap-doc:Returns the mzML name
 
-        FileType nameToType(String name) except + nogil  
+        @staticmethod
+        FileType nameToType(String name) except + nogil
             # wrap-doc:
-                #  Converts a file type name into a Type 
-                #  
-                #  
+                #  Converts a file type name into a Type
+                #
+                #
                 #  :param name: A case-insensitive name (e.g. FASTA or Fasta, etc.)
 
 cdef extern from "<OpenMS/FORMAT/FileTypes.h>" namespace "OpenMS::FileTypes":
