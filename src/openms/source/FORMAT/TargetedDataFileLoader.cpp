@@ -37,16 +37,16 @@ std::vector<::OpenSwath::SwathMap> TargetedDataFileLoader::loadFile(const String
   catch (...) {
     // If probing fails, fall back to SwathFile loader
     OPENMS_LOG_DEBUG << "TargetedDataFileLoader: probe failed for " << file << ", falling back to SwathFile::loadMzML" << std::endl;
-  SwathFile sw;
-  sw.setLogType(ProgressLogger::LogType::NONE);
-  return sw.loadMzML(file, tmp, exp_meta, readoptions, plugin_consumer);
+    SwathFile sw;
+    sw.setLogType(ProgressLogger::LogType::NONE);
+    return sw.loadMzML(file, tmp, exp_meta, readoptions, plugin_consumer);
   }
 
   // If there are no spectra but chromatograms exist, treat as SRM/chrom-only
   if (probe.getSpectra().empty() && !probe.getChromatograms().empty())
   {
     OPENMS_LOG_DEBUG << "TargetedDataFileLoader: detected chromatogram-only mzML -> using SRM loader" << std::endl;
-  return SRMFile::loadMzML(file, tmp, exp_meta);
+    return SRMFile::loadMzML(file, tmp, exp_meta);
   }
 
   // Otherwise use SwathFile loader
