@@ -18,22 +18,22 @@ namespace OpenMS
 {
 
   Date::Date() :
-    date_(new QDate())
+    date_(make_unique<QDate>())
   {
   }
 
   Date::Date(const Date& date) :
-    date_(new QDate(*date.date_))
+    date_(date.date_ ? make_unique<QDate>(*date.date_) : make_unique<QDate>())
   {
   }
 
   Date::Date(const QDate& date) :
-    date_(new QDate(date))
+    date_(make_unique<QDate>(date))
   {
   }
 
   Date::Date(Date&& rhs) noexcept :
-    date_(rhs.date_.release())
+    date_(rhs.date_ ? rhs.date_.release() : make_unique<QDate>())
   {
   }
 
@@ -46,7 +46,12 @@ namespace OpenMS
       return *this;
     }
 
-    if (date_ == nullptr)
+    if (source.date_ == nullptr)
+    {
+      // Source is in a 'moved-from' state; create a default date
+      date_ = make_unique<QDate>();
+    }
+    else if (date_ == nullptr)
     { // *this is in a 'moved-from' state; we need to create a date_ object first
       date_ = make_unique<QDate>(*source.date_);
     }
