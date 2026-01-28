@@ -48,6 +48,9 @@ sudo apt-get -qq install -y \
 
 # Install uv (Python package manager) via pipx
 pipx install uv
+pipx ensurepath
+# Also export PATH for current session (pipx ensurepath only updates config files)
+export PATH="$(pipx environment --value PIPX_BIN_DIR):$PATH"
 
 # Install Apache Arrow
 sudo apt update
