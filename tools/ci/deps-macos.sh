@@ -52,12 +52,23 @@ brew install \
 
 # Install Eigen 3.4.0 from source (Homebrew's eigen is now 5.x which is incompatible)
 # First, remove any Homebrew-installed eigen to avoid version conflicts
+echo "Removing any existing Homebrew eigen..."
 command brew uninstall --ignore-dependencies eigen 2>/dev/null || true
+
 EIGEN_VERSION="3.4.0"
-curl -L "https://gitlab.com/libeigen/eigen/-/archive/${EIGEN_VERSION}/eigen-${EIGEN_VERSION}.tar.gz" -o /tmp/eigen.tar.gz
+EIGEN_URL="https://gitlab.com/libeigen/eigen/-/archive/${EIGEN_VERSION}/eigen-${EIGEN_VERSION}.tar.gz"
+echo "Downloading Eigen ${EIGEN_VERSION} from ${EIGEN_URL}..."
+curl -fSL --retry 3 --retry-delay 5 "${EIGEN_URL}" -o /tmp/eigen.tar.gz
+
+echo "Extracting Eigen..."
 tar -xzf /tmp/eigen.tar.gz -C /tmp
+
+echo "Configuring Eigen with CMake..."
 cmake -S /tmp/eigen-${EIGEN_VERSION} -B /tmp/eigen-build -DCMAKE_INSTALL_PREFIX=/opt/homebrew
+
+echo "Installing Eigen..."
 sudo cmake --install /tmp/eigen-build
+echo "Eigen installation complete."
 
 # Optional dependencies:
 brew install \
