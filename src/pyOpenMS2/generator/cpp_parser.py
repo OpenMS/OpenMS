@@ -207,7 +207,7 @@ class CppHeaderParser:
     """
 
     # Cache format version - bump this when dataclass structure changes
-    CACHE_VERSION = 3  # Bumped for canonical type fields
+    CACHE_VERSION = 4  # Bumped for nested class support
 
     def __init__(
         self,
@@ -556,27 +556,53 @@ class CppHeaderParser:
                 self._walk_cursor(child, allowed_files, out_classes, new_namespace)
 
             elif child.kind in (CursorKind.CLASS_DECL, CursorKind.STRUCT_DECL):
-                cpp_class = self._process_class(child, namespace)
+                cpp_class = self._process_class(child, namespace, out_classes=out_classes)
                 if cpp_class:
                     out_classes[cpp_class.name] = cpp_class
 
             elif child.kind == CursorKind.CLASS_TEMPLATE:
-                cpp_class = self._process_class_template(child, namespace)
+                cpp_class = self._process_class_template(child, namespace, out_classes=out_classes)
                 if cpp_class:
                     out_classes[cpp_class.name] = cpp_class
 
-    def _process_class(self, cursor, namespace: str) -> Optional[CppClass]:
-        """Process a class declaration."""
+    def _process_class(
+        self,
+        cursor,
+        namespace: str,
+        out_classes: Optional[Dict[str, CppClass]] = None,
+        parent_class_name: str = "",
+    ) -> Optional[CppClass]:
+        """Process a class declaration.
+
+        Parameters
+        ----------
+        cursor : clang.cindex.Cursor
+            The class cursor to process.
+        namespace : str
+            The enclosing namespace.
+        out_classes : dict, optional
+            Dictionary to collect nested classes into. If provided, nested classes
+            will be added with flattened names (e.g., ParentClass_NestedClass).
+        parent_class_name : str
+            For nested classes, the name of the parent class (used for name flattening).
+        """
         class_name = cursor.spelling
         if not class_name:
             return None
         if not cursor.is_definition():
             return None
 
-        qualified_name = f"{namespace}::{class_name}" if namespace else class_name
+        # For nested classes, create a flattened name
+        if parent_class_name:
+            flattened_name = f"{parent_class_name}_{class_name}"
+            # Qualified name includes the parent class
+            qualified_name = f"{namespace}::{parent_class_name}::{class_name}" if namespace else f"{parent_class_name}::{class_name}"
+        else:
+            flattened_name = class_name
+            qualified_name = f"{namespace}::{class_name}" if namespace else class_name
 
         cpp_class = CppClass(
-            name=class_name,
+            name=flattened_name,  # Use flattened name for matching with pxd
             qualified_name=qualified_name,
             namespace=namespace,
             header_file=self._normalize_filename(str(cursor.location.file)),
@@ -589,16 +615,22 @@ class CppHeaderParser:
                 cpp_class.base_classes.append(base_type.spelling)
                 cpp_class.canonical_base_classes.append(base_type.get_canonical().spelling)
 
-        # Process members
-        self._process_class_members(cursor, cpp_class)
+        # Process members (including nested classes)
+        self._process_class_members(cursor, cpp_class, out_classes, flattened_name)
 
         # Check if abstract (has any pure virtual methods)
         cpp_class.is_abstract = any(m.is_pure_virtual for m in cpp_class.methods)
 
-        logger.debug(f"Parsed class: {qualified_name} ({len(cpp_class.methods)} methods)")
+        logger.debug(f"Parsed class: {qualified_name} (flattened: {flattened_name}, {len(cpp_class.methods)} methods)")
         return cpp_class
 
-    def _process_class_template(self, cursor, namespace: str) -> Optional[CppClass]:
+    def _process_class_template(
+        self,
+        cursor,
+        namespace: str,
+        out_classes: Optional[Dict[str, CppClass]] = None,
+        parent_class_name: str = "",
+    ) -> Optional[CppClass]:
         """Process a class template declaration."""
         class_name = cursor.spelling
         if not class_name:
@@ -606,10 +638,16 @@ class CppHeaderParser:
         if not cursor.is_definition():
             return None
 
-        qualified_name = f"{namespace}::{class_name}" if namespace else class_name
+        # For nested templates, create a flattened name
+        if parent_class_name:
+            flattened_name = f"{parent_class_name}_{class_name}"
+            qualified_name = f"{namespace}::{parent_class_name}::{class_name}" if namespace else f"{parent_class_name}::{class_name}"
+        else:
+            flattened_name = class_name
+            qualified_name = f"{namespace}::{class_name}" if namespace else class_name
 
         cpp_class = CppClass(
-            name=class_name,
+            name=flattened_name,
             qualified_name=qualified_name,
             namespace=namespace,
             header_file=self._normalize_filename(str(cursor.location.file)),
@@ -633,14 +671,32 @@ class CppHeaderParser:
                         cpp_class.base_classes.append(base_type.spelling)
                         cpp_class.canonical_base_classes.append(base_type.get_canonical().spelling)
 
-                self._process_class_members(child, cpp_class)
+                self._process_class_members(child, cpp_class, out_classes, flattened_name)
                 break
 
         cpp_class.is_abstract = any(m.is_pure_virtual for m in cpp_class.methods)
         return cpp_class
 
-    def _process_class_members(self, cursor, cpp_class: CppClass):
-        """Process class members (methods, constructors)."""
+    def _process_class_members(
+        self,
+        cursor,
+        cpp_class: CppClass,
+        out_classes: Optional[Dict[str, CppClass]] = None,
+        parent_class_name: str = "",
+    ):
+        """Process class members (methods, constructors, nested classes).
+
+        Parameters
+        ----------
+        cursor : clang.cindex.Cursor
+            The class cursor.
+        cpp_class : CppClass
+            The CppClass object to populate.
+        out_classes : dict, optional
+            Dictionary to collect nested classes into.
+        parent_class_name : str
+            The flattened name of the current class (for nested class name generation).
+        """
         current_access = "private"  # Default for classes
 
         for child in cursor.get_children():
@@ -671,6 +727,19 @@ class CppHeaderParser:
                 method = self._process_method(child)
                 method.access = current_access
                 cpp_class.methods.append(method)
+
+            # Handle nested classes and structs
+            elif child.kind in (CursorKind.CLASS_DECL, CursorKind.STRUCT_DECL):
+                if out_classes is not None and child.is_definition():
+                    nested_class = self._process_class(
+                        child,
+                        cpp_class.namespace,
+                        out_classes=out_classes,
+                        parent_class_name=parent_class_name,
+                    )
+                    if nested_class:
+                        out_classes[nested_class.name] = nested_class
+                        logger.debug(f"Found nested class: {nested_class.name} in {parent_class_name}")
 
     def _process_method(self, cursor, is_constructor: bool = False) -> CppMethod:
         """Process a method declaration."""
