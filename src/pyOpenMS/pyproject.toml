@@ -20,7 +20,7 @@
 # Also update dependency-group.build !
 requires = [
     "py-build-cmake>=0.3.0",
-    "autowrap>=0.24.0",
+    "autowrap>=0.27.0",
     "Cython>=3.1.0",
     "numpy>=2.0",
     "auditwheel; sys_platform == 'linux'",
@@ -85,7 +85,7 @@ all = ["pandas", "pyarrow"]
 [dependency-groups]
 build = [
     "py-build-cmake>=0.3.0",
-    "autowrap>=0.24.0",
+    "autowrap>=0.27.0",
     "Cython>=3.1.0",
     "numpy>=2.0",
     "auditwheel; sys_platform == 'linux'",
