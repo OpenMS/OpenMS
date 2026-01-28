@@ -239,6 +239,26 @@ class CppHeaderParser:
         for path in self.include_paths:
             self.compiler_args.append(f"-I{path}")
 
+        # Add Qt include paths if available (needed for proper type resolution)
+        qt_include_paths = [
+            Path("/usr/include/x86_64-linux-gnu/qt6"),
+            Path("/usr/include/x86_64-linux-gnu/qt6/QtCore"),
+            Path("/usr/include/x86_64-linux-gnu/qt6/QtNetwork"),
+            Path("/usr/include/qt6"),
+            Path("/usr/include/qt6/QtCore"),
+            Path("/usr/include/qt6/QtNetwork"),
+        ]
+        for qt_path in qt_include_paths:
+            if qt_path.exists():
+                self.compiler_args.append(f"-I{qt_path}")
+
+        # Add OpenSwathAlgo include paths (relative to OpenMS includes)
+        for inc_path in self.include_paths:
+            # Try to find openswathalgo relative to openms
+            openswath_path = inc_path.parent.parent / "openswathalgo" / "include"
+            if openswath_path.exists():
+                self.compiler_args.append(f"-I{openswath_path}")
+
         self._classes: Dict[str, CppClass] = {}
 
         # Create cache directory if specified
