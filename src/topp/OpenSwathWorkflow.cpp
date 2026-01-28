@@ -1035,7 +1035,26 @@ protected:
     OPENMS_LOG_INFO << std::endl;
 
     ///////////////////////////////////
-    // Iterate over each input file and process individually
+    // Create run groups based on split_file_input flag
+    ///////////////////////////////////
+
+    std::vector<StringList> run_groups;
+    if (split_file)
+    {
+      // split_file_input mode: one run with all files grouped together (split-window)
+      run_groups.push_back(file_list);
+    }
+    else
+    {
+      // multi-run mode: N runs, each with single file
+      for (const String& file : file_list)
+      {
+        run_groups.push_back({file});
+      }
+    }
+
+    ///////////////////////////////////
+    // Iterate over each run group and process individually
     ///////////////////////////////////
 
     // Set up shared output objects that persist across files
@@ -1047,10 +1066,10 @@ protected:
     // Write DB schema once (only for first file)
     oswwriter.writeHeader();
 
-    Size file_index = 0;
-    for (const String& current_file : file_list)
+    Size run_index = 0;
+    for (const StringList& current_run_files : run_groups)
     {
-      OPENMS_LOG_INFO << "Processing File " << (file_index + 1) << "/" << file_list.size() << ": " << current_file << std::endl;
+      OPENMS_LOG_INFO << "Processing Run " << (run_index + 1) << "/" << run_groups.size() << ": " << ListUtils::concatenate(current_run_files, ", ") << std::endl;
       ///////////////////////////////////
       // Load the SWATH files (if split data, otherwise load single experiment mzML)
       ///////////////////////////////////
@@ -1058,10 +1077,10 @@ protected:
       std::vector< OpenSwath::SwathMap > swath_maps;
       std::vector<String> swath_map_sources;
 
-      StringList single_file_list = {current_file};
+      StringList single_file_list = current_run_files;
 
-      // collect some QC data (only for the first file if multiple files)
-      if (!out_qc.empty() && current_file == file_list[0])
+      // collect some QC data (only for the first run if multiple runs)
+      if (!out_qc.empty() && run_index == 0)
       {
         OpenSwath::SwathQC qc(30, 0.04);
         MSDataTransformingConsumer qc_consumer; // apply some transformation
@@ -1089,12 +1108,13 @@ protected:
       // Get the transformation information (using iRT peptides) - per file
       ///////////////////////////////////
 
-      // Create a basename for this file's outputs (used for multi-file scenarios)
+      // Create a basename for this run's outputs (used for multi-run scenarios)
       String file_basename;
-      if (file_list.size() > 1)
+      if (run_groups.size() > 1)
       {
         // Extract basename from input file path (remove directory and extension)
-        String filename = File::basename(current_file);
+        // For multi-run mode, each run has exactly one file
+        String filename = File::basename(current_run_files[0]);
         Size dot_pos = filename.find_last_of('.');
         if (dot_pos != String::npos)
         {
@@ -1107,18 +1127,18 @@ protected:
       }
 
       String irt_trafo_out = debug_params.getValue("irt_trafo").toString();
-      if (!irt_trafo_out.empty() && file_list.size() > 1)
+      if (!irt_trafo_out.empty() && run_groups.size() > 1)
       {
-        // For multi-file, use basename prefix to make unique filenames
+        // For multi-run, use basename prefix to make unique filenames
         String base_name = irt_trafo_out.substr(0, irt_trafo_out.find_last_of('.'));
         String extension = irt_trafo_out.substr(irt_trafo_out.find_last_of('.'));
         irt_trafo_out = file_basename + "_" + base_name + extension;
       }
 
       String irt_mzml_out = debug_params.getValue("irt_mzml").toString();
-      if (!irt_mzml_out.empty() && file_list.size() > 1)
+      if (!irt_mzml_out.empty() && run_groups.size() > 1)
       {
-        // For multi-file, use basename prefix to make unique filenames
+        // For multi-run, use basename prefix to make unique filenames
         String base_name = irt_mzml_out.substr(0, irt_mzml_out.find_last_of('.'));
         String extension = irt_mzml_out.substr(irt_mzml_out.find_last_of('.'));
         irt_mzml_out = file_basename + "_" + base_name + extension;
@@ -1156,7 +1176,7 @@ protected:
       }
       else if (auto_irt)
       {
-        OPENMS_LOG_DEBUG << "Linear iRT Calibration for file " << current_file << ": Sampling input transition experiment for " << irt_bins_lin << " bins across the RT with " << irt_pep_lin << " peptides per bin" << std::endl;
+        OPENMS_LOG_DEBUG << "Linear iRT Calibration for file " << current_run_files[0] << ": Sampling input transition experiment for " << irt_bins_lin << " bins across the RT with " << irt_pep_lin << " peptides per bin" << std::endl;
         // sampled transtion_exp on‐the‐fly
         // Note1: We sort the targetedExperiment peptides by the aggregated total intensity (i.e. sum of fragment library intensities per peptide),
         //         in order to reduce the sampling space to the top N fraction of highly intense peptides
@@ -1184,7 +1204,7 @@ protected:
       }
       else if (auto_irt && irt_pep_nl > 0)
       {
-        OPENMS_LOG_DEBUG << "NonLinear iRT Calibration for file " << current_file << ": Sampling input transition experiment for " << irt_bins_nl << " bins across the RT with " << irt_pep_nl << " peptides per bin" << std::endl;
+        OPENMS_LOG_DEBUG << "NonLinear iRT Calibration for file " << current_run_files[0] << ": Sampling input transition experiment for " << irt_bins_nl << " bins across the RT with " << irt_pep_nl << " peptides per bin" << std::endl;
         // sampled transtion_exp on‐the‐fly for nonlinear (only if >0)
         // Note1: We sort the targetedExperiment peptides by the aggregated total intensity (i.e. sum of fragment library intensities per peptide),
         //         in order to reduce the sampling space to the top N fraction of highly intense peptides
@@ -1429,9 +1449,9 @@ protected:
     Interfaces::IMSDataConsumer* chromatogramConsumer;
     UInt64 run_id = OpenMS::UniqueIdGenerator::getUniqueId();
     String out_chrom_current = out_chrom;
-    if (!out_chrom.empty() && file_list.size() > 1)
+    if (!out_chrom.empty() && run_groups.size() > 1)
     {
-      // For multi-file, use basename prefix to make unique filenames
+      // For multi-run, use basename prefix to make unique filenames
       String base_name = out_chrom.substr(0, out_chrom.find_last_of('.'));
       String extension = out_chrom.substr(out_chrom.find_last_of('.'));
       out_chrom_current = file_basename + "_" + base_name + extension;
@@ -1440,12 +1460,13 @@ protected:
 
     // Create a run id per unique input filename and register it in the OSW
     UInt64 cur_run = OpenMS::UniqueIdGenerator::getUniqueId();
-    oswwriter.addRun(cur_run, current_file);
+    // For OSW, use the first file in the run group as the representative filename
+    oswwriter.addRun(cur_run, current_run_files[0]);
     // Also register run in chromatogram consumer if it is a SQL consumer
     MSDataSqlConsumer* sql_cons = dynamic_cast<MSDataSqlConsumer*>(chromatogramConsumer);
     if (sql_cons != nullptr)
     {
-      sql_cons->addRun(current_file, cur_run);
+      sql_cons->addRun(current_run_files[0], cur_run);
     }
 
     // set current run id in writer
@@ -1469,8 +1490,8 @@ protected:
     delete chromatogramConsumer;
 
     OPENMS_LOG_INFO << std::endl;
-    ++file_index;
-    } // end for each file
+    ++run_index;
+    } // end for each run
 
     if ( out_features_type == FileTypes::FEATUREXML )
     {
