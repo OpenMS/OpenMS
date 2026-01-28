@@ -470,7 +470,7 @@ SKIP_CLASSES = {
 
 # Additional headers needed for specific classes
 ADDITIONAL_INCLUDES = {
-    "MSSpectrum": ["<OpenMS/KERNEL/Peak1D.h>", "<OpenMS/METADATA/DataArrays.h>", "<OpenMS/IONMOBILITY/IMTypes.h>"],
+    "MSSpectrum": ["<OpenMS/KERNEL/Peak1D.h>", "<OpenMS/METADATA/DataArrays.h>", "<OpenMS/IONMOBILITY/IMTypes.h>", "<OpenMS/CONCEPT/ProgressLogger.h>", "<OpenMS/FORMAT/FileTypes.h>"],
     "MSChromatogram": ["<OpenMS/KERNEL/ChromatogramPeak.h>"],
     "MSExperiment": ["<OpenMS/KERNEL/MSSpectrum.h>", "<OpenMS/KERNEL/MSChromatogram.h>", "<OpenMS/KERNEL/MSExperiment.h>"],
     "Feature": ["<OpenMS/KERNEL/Feature.h>", "<OpenMS/METADATA/PeptideIdentification.h>", "<OpenMS/METADATA/PeptideIdentificationList.h>"],
@@ -1086,6 +1086,67 @@ SPECIAL_METHODS = {
         .value("NONE", OpenMS::DriftTimeUnit::NONE)
         .value("MILLISECOND", OpenMS::DriftTimeUnit::MILLISECOND)
         .value("VSSC", OpenMS::DriftTimeUnit::VSSC)
+        .export_values();''',
+        "LogType": '''
+    // ProgressLogger::LogType enum
+    nb::enum_<OpenMS::ProgressLogger::LogType>(m, "LogType")
+        .value("CMD", OpenMS::ProgressLogger::LogType::CMD)
+        .value("GUI", OpenMS::ProgressLogger::LogType::GUI)
+        .value("NONE", OpenMS::ProgressLogger::LogType::NONE)
+        .export_values();''',
+        "FileType": '''
+    // FileTypes::Type enum
+    nb::enum_<OpenMS::FileTypes::Type>(m, "FileType")
+        .value("UNKNOWN", OpenMS::FileTypes::Type::UNKNOWN)
+        .value("DTA", OpenMS::FileTypes::Type::DTA)
+        .value("DTA2D", OpenMS::FileTypes::Type::DTA2D)
+        .value("MZDATA", OpenMS::FileTypes::Type::MZDATA)
+        .value("MZXML", OpenMS::FileTypes::Type::MZXML)
+        .value("FEATUREXML", OpenMS::FileTypes::Type::FEATUREXML)
+        .value("IDXML", OpenMS::FileTypes::Type::IDXML)
+        .value("CONSENSUSXML", OpenMS::FileTypes::Type::CONSENSUSXML)
+        .value("MGF", OpenMS::FileTypes::Type::MGF)
+        .value("INI", OpenMS::FileTypes::Type::INI)
+        .value("TOPPAS", OpenMS::FileTypes::Type::TOPPAS)
+        .value("TRANSFORMATIONXML", OpenMS::FileTypes::Type::TRANSFORMATIONXML)
+        .value("MZML", OpenMS::FileTypes::Type::MZML)
+        .value("CACHEDMZML", OpenMS::FileTypes::Type::CACHEDMZML)
+        .value("MS2", OpenMS::FileTypes::Type::MS2)
+        .value("PEPXML", OpenMS::FileTypes::Type::PEPXML)
+        .value("PROTXML", OpenMS::FileTypes::Type::PROTXML)
+        .value("MZIDENTML", OpenMS::FileTypes::Type::MZIDENTML)
+        .value("QCML", OpenMS::FileTypes::Type::QCML)
+        .value("MZQC", OpenMS::FileTypes::Type::MZQC)
+        .value("GELML", OpenMS::FileTypes::Type::GELML)
+        .value("TRAML", OpenMS::FileTypes::Type::TRAML)
+        .value("MSP", OpenMS::FileTypes::Type::MSP)
+        .value("OMSSAXML", OpenMS::FileTypes::Type::OMSSAXML)
+        .value("MASCOTXML", OpenMS::FileTypes::Type::MASCOTXML)
+        .value("PNG", OpenMS::FileTypes::Type::PNG)
+        .value("XMASS", OpenMS::FileTypes::Type::XMASS)
+        .value("TSV", OpenMS::FileTypes::Type::TSV)
+        .value("MZTAB", OpenMS::FileTypes::Type::MZTAB)
+        .value("PEPLIST", OpenMS::FileTypes::Type::PEPLIST)
+        .value("HARDKLOER", OpenMS::FileTypes::Type::HARDKLOER)
+        .value("KROENIK", OpenMS::FileTypes::Type::KROENIK)
+        .value("FASTA", OpenMS::FileTypes::Type::FASTA)
+        .value("EDTA", OpenMS::FileTypes::Type::EDTA)
+        .value("CSV", OpenMS::FileTypes::Type::CSV)
+        .value("TXT", OpenMS::FileTypes::Type::TXT)
+        .value("OBO", OpenMS::FileTypes::Type::OBO)
+        .value("HTML", OpenMS::FileTypes::Type::HTML)
+        .value("ANALYSISXML", OpenMS::FileTypes::Type::ANALYSISXML)
+        .value("XSD", OpenMS::FileTypes::Type::XSD)
+        .value("PSQ", OpenMS::FileTypes::Type::PSQ)
+        .value("MRM", OpenMS::FileTypes::Type::MRM)
+        .value("SQMASS", OpenMS::FileTypes::Type::SQMASS)
+        .value("PQP", OpenMS::FileTypes::Type::PQP)
+        .value("MS", OpenMS::FileTypes::Type::MS)
+        .value("OSW", OpenMS::FileTypes::Type::OSW)
+        .value("PSMS", OpenMS::FileTypes::Type::PSMS)
+        .value("PIN", OpenMS::FileTypes::Type::PIN)
+        .value("PARAMXML", OpenMS::FileTypes::Type::PARAMXML)
+        .value("SPLIB", OpenMS::FileTypes::Type::SPLIB)
         .export_values();''',
     },
     # Nested enum bindings that must be added AFTER the containing class is bound
