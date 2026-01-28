@@ -196,6 +196,9 @@ SKIP_METHODS = {
         # Static utility methods
         "getUniqueName",  # Returns temp file path
     },
+    "MascotXMLFile": {
+        "initializeLookup",  # Static method takes SpectrumMetaDataLookup by value, which has private copy ctor
+    },
     "PepXMLFile": {
         "load",  # Complex signature with PeptideIdentificationList
         "store",
@@ -310,6 +313,7 @@ SKIP_CLASSES = {
     # Classes with OpenSwath type dependencies
     "MRMFeatureFinderScoring",      # prepareProteinPeptideMaps_ needs LightTargetedExperiment
     "OpenSwathOSWWriter",           # prepareLine needs LightCompound
+    "OpenSwathHelper",              # Static methods use OpenSwath:: namespace types
 
     # Classes with namespace parsing issues
     "TargetedExperiment",           # setInstruments namespace issue
@@ -471,7 +475,7 @@ SKIP_CLASSES = {
     "BSpline2d",                    # Lambda analysis fails
     "CrossLinksDB",                 # Lambda analysis fails
     "CubicSpline2d",                # Lambda analysis fails
-    "FileTypes",                    # All methods are static - need wrap-static support
+    # "FileTypes",                  # Now supported with wrap-static
     "IMSIsotopeDistribution",       # Constructor mismatch in ims namespace
     "IMSIsotopeDistribution_Peak",  # Nested type using unresolved type aliases (mass_type, abundance_type)
     "LinearInterpolation",          # Template class with unresolved KeyType
@@ -2692,9 +2696,11 @@ class NanobindEmitterV2:
                 return self._generate_operator_binding(method, qualified_name, py_op)
             return None
 
-        # Skip static methods for now (need different binding approach)
+        # Handle static methods
         if method.is_static:
-            return self._generate_static_method(method, qualified_name, method_name)
+            return self._generate_static_method(
+                method, qualified_name, method_name, doc=merged_method.doc
+            )
 
         # Regular methods
         return self._generate_regular_method(merged_method, qualified_name, method_name, merged_class)
@@ -2804,11 +2810,82 @@ class NanobindEmitterV2:
         return result
 
     def _generate_static_method(
-        self, method: CppMethod, qualified_name: str, method_name: str
+        self,
+        method: CppMethod,
+        qualified_name: str,
+        method_name: str,
+        doc: str = "",
     ) -> Optional[str]:
-        """Generate binding for a static method."""
-        method_ptr = f"&{qualified_name}::{method.name}"
-        return f'.def_static("{method_name}", {method_ptr})'
+        """Generate binding for a static method using lambda wrapper.
+
+        Static methods need lambda wrappers for:
+        1. Proper type conversion (OpenMS::String <-> Python str, etc.)
+        2. Handling overloads
+        3. Consistent interface with regular methods
+        """
+        # nanobind doesn't support lambdas with more than 8 parameters
+        if len(method.parameters) > 8:
+            return None
+
+        # C++ reserved keywords that can't be used as parameter names
+        cpp_keywords = {
+            'int', 'char', 'float', 'double', 'void', 'bool', 'long', 'short',
+            'unsigned', 'signed', 'const', 'static', 'class', 'struct', 'enum',
+            'union', 'virtual', 'public', 'private', 'protected', 'new', 'delete',
+            'return', 'if', 'else', 'for', 'while', 'do', 'switch', 'case',
+            'break', 'continue', 'default', 'goto', 'try', 'catch', 'throw',
+            'namespace', 'using', 'typedef', 'typename', 'template', 'auto',
+            'register', 'extern', 'volatile', 'mutable', 'inline', 'explicit',
+            'export', 'true', 'false', 'nullptr', 'this', 'operator', 'sizeof',
+            'alignof', 'decltype', 'constexpr', 'noexcept', 'override', 'final',
+        }
+
+        # Build lambda parameters
+        param_decls = []
+        param_names_call = []
+        param_names_arg = []
+
+        for p in method.parameters:
+            # Use canonical type from libclang when available (resolves typedefs)
+            ptype = self._normalize_type(
+                p.type_str,
+                canonical_type=getattr(p, 'canonical_type', ''),
+            )
+            # Check if name is valid (not empty, not "arg*", not a C++ keyword)
+            valid_name = (
+                p.name
+                and not p.name.startswith("arg")
+                and p.name not in cpp_keywords
+            )
+            pname = p.name if valid_name else f"p{len(param_decls)}"
+            param_decls.append(f"{ptype} {pname}")
+            param_names_call.append(pname)
+            if valid_name:
+                param_names_arg.append(f'"{p.name}"_a')
+
+        params_decl = ", ".join(param_decls)
+        params_call = ", ".join(param_names_call)
+
+        # Build the lambda (no 'self' for static methods)
+        if params_decl:
+            lambda_sig = f"[]({params_decl})"
+            call_expr = f"{qualified_name}::{method.name}({params_call})"
+        else:
+            lambda_sig = "[]()"
+            call_expr = f"{qualified_name}::{method.name}()"
+
+        # Build def_static call
+        result = f'.def_static("{method_name}", {lambda_sig} {{ return {call_expr}; }}'
+        # Only add arg annotations if ALL parameters have valid names
+        # (nanobind requires either all or none)
+        if param_names_arg and len(param_names_arg) == len(method.parameters):
+            result += f", {', '.join(param_names_arg)}"
+        if doc:
+            escaped_doc = self._escape_string(doc)
+            result += f', "{escaped_doc}"'
+        result += ")"
+
+        return result
 
     def _generate_operator_binding(
         self, method: CppMethod, qualified_name: str, py_op: str

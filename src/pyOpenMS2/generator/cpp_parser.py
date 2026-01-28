@@ -207,7 +207,7 @@ class CppHeaderParser:
     """
 
     # Cache format version - bump this when dataclass structure changes
-    CACHE_VERSION = 4  # Bumped for nested class support
+    CACHE_VERSION = 5  # Bumped for struct default public access fix
 
     def __init__(
         self,
@@ -697,7 +697,11 @@ class CppHeaderParser:
         parent_class_name : str
             The flattened name of the current class (for nested class name generation).
         """
-        current_access = "private"  # Default for classes
+        # Default access is public for structs, private for classes
+        if cursor.kind == CursorKind.STRUCT_DECL:
+            current_access = "public"
+        else:
+            current_access = "private"
 
         for child in cursor.get_children():
             # Track access specifier
