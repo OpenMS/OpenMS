@@ -76,6 +76,7 @@ class TestFileTypesEnum(unittest.TestCase):
             pyopenms.FileType.PNG,
             pyopenms.FileType.XMASS,
             pyopenms.FileType.TSV,
+            pyopenms.FileType.MZTAB,
             pyopenms.FileType.PEPLIST,
             pyopenms.FileType.HARDKLOER,
             pyopenms.FileType.KROENIK,
