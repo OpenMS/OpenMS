@@ -17,8 +17,6 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <cmath>
 #include <unordered_map>
-#include <cstdio>
-#include <iostream>
 
 // OpenSwathCalibrationWorkflow
 namespace OpenMS
