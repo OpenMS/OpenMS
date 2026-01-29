@@ -19,6 +19,11 @@ from .cpp_parser import CppMethod, MergedClass, MergedMethod
 logger = logging.getLogger(__name__)
 
 
+def _unqualified_name(name: str) -> str:
+    """Extract unqualified name from a possibly qualified C++ name (e.g. 'OpenMS::Peak1D' -> 'Peak1D')."""
+    return name.split('::')[-1] if '::' in name else name
+
+
 def scan_caster_files_for_types(caster_dir: Optional[Path] = None) -> Set[str]:
     """Scan type caster header files to find types that have casters.
 
@@ -85,13 +90,8 @@ SKIP_METHODS = {
         "getIntegerDataArrays", "setIntegerDataArrays",
         "getStringDataArrays", "setStringDataArrays",
         "getIMData",  # Returns pair
-        "calculateTIC",  # Return type mismatch - handled via SPECIAL_METHODS
-        "findNearest",  # Return type mismatch - handled via SPECIAL_METHODS
         "findHighestInWindow",  # Return type mismatch
-        "getType",  # Complex return type - handled via SPECIAL_METHODS
         "select",  # Complex parameter types
-        "reserve",  # Handled via SPECIAL_METHODS
-        "resize",  # Handled via SPECIAL_METHODS
     },
     "MSChromatogram": {
         "getFloatDataArrays", "setFloatDataArrays",
@@ -138,10 +138,6 @@ SKIP_METHODS = {
         "getStringDataArrays", "setStringDataArrays",
         "findNearest",  # Return type mismatch
         "select",  # Complex parameter types
-    },
-    "MSNumpressCoder": {
-        "encodeNP", "decodeNP",  # Output parameter methods - wrapped in SPECIAL_METHODS
-        "encodeNPRaw", "decodeNPRaw",  # Output parameter methods - wrapped in SPECIAL_METHODS
     },
     "RankData": {
         "rankdata_double", "rankdata_float", "rankdata_int",  # Return numpy arrays
@@ -210,8 +206,6 @@ SKIP_METHODS = {
         "trapezoidal_area_xEqy",  # ScoreToTgtDecLabelPairs unknown type
     },
     "FASTAFile": {
-        "load",  # Needs vector<FASTAEntry> - handled via SPECIAL_METHODS
-        "store",  # Needs vector<FASTAEntry> - handled via SPECIAL_METHODS
         "readNext",  # FASTAEntry nested type issue
         "writeNext",  # FASTAEntry nested type issue
     },
@@ -247,7 +241,6 @@ SKIP_METHODS = {
     },
     "TransformationDescription": {
         "fitModel",  # Lambda analysis / complex param types
-        "getModelTypes",  # Output param - handled in SPECIAL_METHODS with nb::list
     },
     "TransformationModelLinear": {
         "getDefaultParameters",  # Static method with output params
@@ -273,7 +266,7 @@ SKIP_METHODS = {
         "setPrediction",  # Lambda analysis
     },
     "PeakIntegrator": {
-        "integratePeak",  # Overloaded (chrom vs spectrum) - handled in SPECIAL_METHODS
+        "integratePeak",  # Overloaded (chrom vs spectrum)
         "estimateBackground",  # Overloaded
         "calculatePeakShapeMetrics",  # Overloaded
         "getDefaultParameters",  # Output parameter
@@ -293,16 +286,13 @@ SKIP_METHODS = {
         "getEnzyme",  # Returns pointer
     },
     "ElementDB": {
-        "getInstance",  # Singleton - handled via SPECIAL_METHODS
-        "getElement",  # Overloaded, returns pointer - handled via SPECIAL_METHODS
-        "hasElement",  # Overloaded - handled via SPECIAL_METHODS
-        "addElement",  # Handled via SPECIAL_METHODS
+        "getElement",  # Overloaded, returns pointer - SPECIAL_METHODS uses suffixed keys
+        "hasElement",  # Overloaded - SPECIAL_METHODS uses suffixed keys
         "getNames",  # Returns unordered_map of pointers
         "getSymbols",  # Returns unordered_map of pointers
         "getAtomicNumbers",  # Returns unordered_map of pointers
     },
     "RibonucleotideDB": {
-        "getInstance",  # Singleton - handled via SPECIAL_METHODS
         "getRibonucleotide",  # Returns shared_ptr - must use reference policy
         "getRibonucleotidePrefix",  # Returns shared_ptr - must use reference policy
     },
@@ -312,10 +302,6 @@ SKIP_METHODS = {
         "getType",  # pxd returns int, C++ returns FileTypes::Type enum
     },
     "MultipleTesting": {
-        "pi0Est",  # Handled via SPECIAL_METHODS
-        "qValue",  # Handled via SPECIAL_METHODS
-        "lfdr",  # Handled via SPECIAL_METHODS
-        "pNorm",  # Handled via SPECIAL_METHODS
         "pi0MethodToString",  # Uses Pi0Method enum - handled via enum binding
         "toPi0Method",  # Uses Pi0Method enum
         "lfdrTransformToString",  # Uses LfdrTransform enum
@@ -340,9 +326,6 @@ SKIP_METHODS = {
         "getAbundance",  # Overloaded
         "getMonoMass",  # Overloaded
         "getRepAbundance",  # pxd type mismatch
-    },
-    "BilinearInterpolation": {
-        # Template class - all methods handled via merge
     },
     # === Unblocked classes: OnDiscMSExperiment, IndexedMzMLFileLoader, ExperimentalDesign, AcquisitionInfo, ExperimentalSettings ===
     "OnDiscMSExperiment": {
@@ -429,64 +412,15 @@ SKIP_METHODS = {
     "TransitionTSVFile": {
         "convertTSVToTargetedExperiment",  # Overloaded (TargetedExperiment vs Light)
     },
-    "ConsensusMapNormalizerAlgorithmMedian": {
-        # All methods should work - copy ctor is private/wrap-ignored
-    },
-    "ConsensusMapNormalizerAlgorithmQuantile": {
-        # All methods should work - copy ctor is private/wrap-ignored
-    },
-    "KroenikFile": {
-        # No problematic methods - overload issue was misdiagnosed
-    },
     "NonNegativeLeastSquaresSolver": {
         "solve",  # Overloaded
-    },
-    # === Batch 3: More classes unblocked from SKIP_CLASSES ===
-    "PercolatorFeatureSetHelper": {
-        # No methods need skipping — was misdiagnosed as having static methods
-    },
-    "PercolatorInfile": {
-        # No methods need skipping — store() is @staticmethod in pxd
-    },
-    "PercolatorOutfile": {
-        # No methods need skipping
-    },
-    "TransformationXMLFile": {
-        # No methods need skipping — copy ctor handled by PRIVATE_COPY_CTOR_CLASSES
-    },
-    "ScanWindow": {
-        # No methods need skipping — just data members + MetaInfoInterface
-    },
-    "DecoyGenerator": {
-        # No methods need skipping — was misdiagnosed
-    },
-    "ModificationDefinitionsSet": {
-        # No methods need skipping — works in autowrap
     },
     "IncludeExcludeTarget": {
         "replaceCVTerms",  # Overloaded (vector vs map variant)
     },
-    "MorpheusScore": {
-        # No methods need skipping — nested Result struct should be auto-handled
-    },
     "SeedListGenerator": {
         "generateSeedList",  # Overloaded (3 variants, one uses nested map[UInt64, ...])
         "convertSeedList",  # Overloaded (two variants)
-    },
-    "BSpline2d": {
-        # No methods need skipping — parameterized ctor + simple methods
-    },
-    "CubicSpline2d": {
-        # No methods need skipping — parameterized ctors + simple methods
-    },
-    "CVMappingFile": {
-        # No methods need skipping — copy ctor handled by PRIVATE_COPY_CTOR_CLASSES
-    },
-    "CVMappingRule": {
-        # No methods need skipping
-    },
-    "LPWrapper": {
-        # No methods need skipping — copy ctor handled by PRIVATE_COPY_CTOR_CLASSES
     },
     "SequestInfile": {
         "getModifications",  # Returns nested map<String, vector<String>>
@@ -494,30 +428,12 @@ SKIP_METHODS = {
     "SequestOutfile": {
         "getSequences",  # Complex nested types
     },
-    "MultiplexDeltaMasses": {
-        # No methods need skipping
-    },
-    "PeakWidthEstimator": {
-        # No methods need skipping — parameterized ctor only
-    },
     "QcMLFile": {
         "map2csv",  # Nested map<String, map<String, String>>
         "removeAttachment",  # Overloaded (vector vs single)
     },
-    "ElutionModelFitter": {
-        # No methods need skipping — just fitElutionModels(FeatureMap&)
-    },
-    "GridBasedCluster": {
-        # No methods need skipping — parameterized ctors
-    },
-    "MultiplexDeltaMassesGenerator": {
-        # No methods need skipping
-    },
     "PeptideAndProteinQuant": {
         "readQuantData",  # Overloaded (FeatureMap vs ConsensusMap vs identifications)
-    },
-    "FeatureGroupingAlgorithmUnlabeled": {
-        # No methods need skipping — copy ctor handled by PRIVATE_COPY_CTOR_CLASSES
     },
     "KDTreeFeatureMaps": {
         "addMaps",  # Overloaded (FeatureMap vs ConsensusMap)
@@ -532,9 +448,6 @@ SKIP_METHODS = {
         "buildPeptideIDs",  # Complex parameter types
         "collectPrecursorCandidates",  # Complex parameter types
         "isoPeakMeans",  # Complex parameter types
-    },
-    "MSPGenericFile": {
-        # No methods need skipping
     },
     "MRMFeaturePickerFile": {
         "load",  # Uses nested type vectors (MRMFP_ComponentParams, MRMFP_ComponentGroupParams)
@@ -552,49 +465,17 @@ SKIP_METHODS = {
     "AbsoluteQuantitationStandardsFile": {
         "load",  # Uses vector<AQS_runConcentration>
     },
-    "MapAlignmentAlgorithmKD": {
-        # No methods need skipping — default ctor is private (auto-detected)
-    },
     "OpenSwathDataAccessHelper": {
         "convertToSpectrumPtr",  # Returns shared_ptr<OSSpectrum>
         "convertToChromatogramPtr",  # Returns shared_ptr<OSChromatogram>
         "convertTargetedCompound",  # Uses Peptide (TargetedExperimentHelper nested type)
     },
-    "CrossLinksDB": {
-        # All methods handled via SPECIAL_METHODS (singleton)
-        "getInstance", "getNumberOfModifications", "getModification", "has",
-        "findModificationIndex", "searchModifications", "searchModificationsByDiffMonoMass",
-        "getBestModificationByDiffMonoMass", "getAllSearchModifications",
-        "readFromOBOFile", "isInstantiated",
-    },
-    "ProFormaParser": {
-        # All methods handled via SPECIAL_METHODS (static-only utility)
-        "parse", "parseIon", "toString", "toStringIon", "resolveModifications",
-        "toAASequence", "fromAASequence", "isRepresentableAsAASequence",
-        "getAASequenceConversionIssues", "canCalculateMass", "canCalculateMassIon",
-        "getMassCalculationIssues", "getMassCalculationIssuesIon",
-        "getMonoWeight", "getMonoWeightIon", "getMZ", "getMZCharge",
-        "canGenerateSpectrum", "canGenerateSpectrumIon",
-        "getSpectrumGenerationIssues", "getSpectrumGenerationIssuesIon",
-        "generateSpectrum", "generateSpectrumIon",
-        "peptidoformToJSON", "peptidoformFromJSON",
-        "peptidoformIonToJSON", "peptidoformIonFromJSON",
-    },
     # === Batch 4: More classes unblocked from SKIP_CLASSES ===
     "OpenSwathHelper": {
         "checkSwathMapAndSelectTransitions",  # Complex OpenSwath parameter types
     },
-    "OSWFile": {
-        # No methods need skipping - SqliteConnector handled
-    },
-    "MzMLSqliteHandler": {
-        # No methods need skipping
-    },
     "MRMScoring": {
         "getMIMatrix",  # Returns Matrix<double> — template type
-    },
-    "TargetedExperimentHelper": {
-        # Nested types — most are auto-handled, skip problematic ones
     },
     "IsobaricQuantifier": {
         "quantify",  # ConsensusMap parameter — may have forward-decl issues
@@ -610,23 +491,11 @@ SKIP_METHODS = {
     "Compomer": {
         "getComponent",  # Returns complex nested map<String, vector<pair<...>>>
     },
-    "MassExplainer": {
-        # No methods need skipping — getCompomerById returns Compomer (now bound)
-    },
-    "ILPDCWrapper": {
-        # No methods need skipping — just compute()
-    },
-    "KDTreeFeatureNode": {
-        # No methods need skipping — operator[] and getIndex()
-    },
     "SpectrumAlignmentScore": {
         "operator()",  # Both overloads wrap-ignored in pxd
     },
-    "IMSIsotopeDistribution": {
-        # No methods need skipping
-    },
-    "RealMassDecomposer": {
-        # Default ctor wrap-ignored; just getNumberOfDecompositions()
+    "CrossLinksDB": {
+        "getBestModificationByDiffMonoMass",  # Not in SPECIAL_METHODS for CrossLinksDB
     },
 }
 
@@ -649,16 +518,8 @@ SKIP_METHODS = {
 # - Classes with constructor type mismatches
 SKIP_CLASSES = {
     # Incomplete type issues (libclang can't fully resolve)
-    # "MassExplainer",        # Unblocked - Compomer now bound
-    # "Compomer",             # Unblocked - forward-declared issue resolved
-    # "ILPDCWrapper",         # Unblocked - just compute()
     "SwathFileConsumer",    # Template complexity
     "MSDataWritingConsumer", # Template complexity
-    # "SpectrumAccessOpenMSInMemory",  # Duplicate — see HANDWRITTEN_CLASS below
-    # "IsobaricChannelExtractor",  # Duplicate — see HANDWRITTEN_CLASS below
-    # "IsobaricQuantifier",        # Unblocked - problematic methods in SKIP_METHODS
-    # "IsobaricNormalizer",        # Duplicate — see HANDWRITTEN_CLASS below
-    # "IsobaricIsotopeCorrector",  # Unblocked - problematic methods in SKIP_METHODS
 
     # Abstract classes (fallback - auto-detected via pxd comment or libclang, but these lack both)
     "FullSwathFileConsumer",        # Abstract but no pxd ABSTRACT comment
@@ -668,172 +529,29 @@ SKIP_CLASSES = {
     "IMSAlphabet",                  # Uses abstract IMSAlphabetParser
     "IMSAlphabetTextParser",        # Abstract template
     "BaseSuperimposer",             # No pxd ABSTRACT comment
-    # Note: BaseGroupFinder, ConsensusIDAlgorithm*, IsobaricQuantitationMethod,
-    # SpectrumAccessTransforming are now auto-detected from pxd "# ABSTRACT class" comments
 
     # Nested classes or special cases
     "XMLHandler",
-    # "IndexedMzMLHandler",  # Unblocked
-
-    # Classes with static methods not marked in .pxd (need @staticmethod or wrap-static)
-    # "PercolatorFeatureSetHelper",  # Unblocked - all are instance methods, not static
-    # "PercolatorInfile",  # Unblocked - store() is @staticmethod in pxd
-    # "PercolatorOutfile",  # Unblocked - regular instance methods
-    # "TransformationXMLFile",  # Unblocked - XMLHandler copy ctor handled
-    # "OpenSwathDataAccessHelper",  # Unblocked - problematic methods in SKIP_METHODS
-
-    # Classes with no default constructor (not deleted, just explicit)
-    # "QTCluster",  # Unblocked - default ctor wrap-ignored in pxd, copy ctor exists
-    # "SpectrumAccessOpenMS",  # Duplicate — see HANDWRITTEN_CLASS below
-    # "ProFormaParser",  # Unblocked - static-only utility via SPECIAL_METHODS
-
-    # Classes with Cython template syntax issues
-    # "TraMLFile",  # Unblocked - problematic methods in SKIP_METHODS
-    # "MZTrafoModel",  # Unblocked
-
-    # Private inheritance issues (inherit from std::vector but not accessible)
-    # "AcquisitionInfo",  # Unblocked - problematic methods in SKIP_METHODS
 
     # Classes with complex constructors that reference unbound types
     "TransformationModel",          # Base class with DataPoints nested type — wrap-ignore in pxd
-    # "TransformationModelBSpline",  # Duplicate — see HANDWRITTEN_CLASS below
-    # "TransformationModelLinear",  # Unblocked - problematic methods in SKIP_METHODS
-    # "TransformationModelLowess",  # Duplicate — see HANDWRITTEN_CLASS below
     "TransformationModelInterpolated",  # Copy ctor deleted (base inaccessible)
-
-    # Classes with copy constructors that cause overload ambiguity
-    # "CVMappings",  # Unblocked - problematic methods in SKIP_METHODS
-    # "ConsensusMapNormalizerAlgorithmMedian",  # Unblocked - copy ctor is private/wrap-ignored
-    # "ConsensusMapNormalizerAlgorithmQuantile",  # Unblocked - copy ctor is private/wrap-ignored
 
     # Classes where the type is actually a template alias (DPosition2 -> DPosition<2>)
     "DPosition2",
-
-    # Classes with overloaded methods that can't be resolved without libclang
-    # "Biosaur2Algorithm",  # Unblocked - problematic methods in SKIP_METHODS
-    # "FeatureFinderAlgorithmMetaboIdent",  # Unblocked - problematic methods in SKIP_METHODS
-    # "FeatureFinderIdentificationAlgorithm",  # Unblocked - problematic methods in SKIP_METHODS
-
-    # Classes with overloaded static methods (need explicit overload_cast)
-    # "IMTypes",                    # Unblocked - problematic methods in SKIP_METHODS
-    # "XQuestScores",  # Unblocked - problematic methods in SKIP_METHODS
-    # "ExperimentalDesignFile",  # Unblocked - problematic methods in SKIP_METHODS
-    # "IDConflictResolverAlgorithm",  # Unblocked - problematic methods in SKIP_METHODS
-    # "OPXLHelper",  # Unblocked - problematic methods in SKIP_METHODS
-
-    # Classes with wrong parameter types in .pxd (int instead of complex types)
-    # "AccurateMassSearchResult",  # Unblocked - problematic methods in SKIP_METHODS
-    # "ControlledVocabulary",  # Unblocked - problematic methods in SKIP_METHODS
-    # "TransitionPQPFile",  # Unblocked - problematic methods in SKIP_METHODS
-    # "TransitionTSVFile",  # Unblocked - problematic methods in SKIP_METHODS
-    # "MRMFeaturePickerFile",  # Unblocked - load() in SKIP_METHODS
-    # "MRMTransitionGroupPicker",  # Unblocked - problematic methods in SKIP_METHODS
-    # "PeakIntegrator",             # Unblocked - methods in SPECIAL_METHODS
-
-    # Classes with OpenSwath type dependencies
-    # "MRMFeatureFinderScoring",      # Duplicate — see HANDWRITTEN_CLASS below
-    # "OpenSwathOSWWriter",           # Unblocked - problematic methods in SKIP_METHODS
-    # "OpenSwathHelper",              # Unblocked - problematic methods in SKIP_METHODS
-
-    # Classes with namespace parsing issues
-    # "TargetedExperiment",         # Unblocked - problematic methods in SKIP_METHODS
-    # "TargetedExperimentHelper",     # Unblocked - problematic methods in SKIP_METHODS
-
-    # Classes with incomplete type errors in lambdas
-    # "IndexedMzMLFileLoader",      # Unblocked - problematic methods in SKIP_METHODS
-    # "OnDiscMSExperiment",         # Unblocked - problematic methods in SKIP_METHODS
-    # "ModificationDefinitionsSet",  # Unblocked - works in autowrap
-
-    # Classes with unknown parameter types
-    # "FalseDiscoveryRate",         # Unblocked - problematic methods in SKIP_METHODS
-    # "ProteaseDB",                 # Unblocked - problematic methods in SKIP_METHODS
-    # "RNaseDB",  # Unblocked - problematic methods in SKIP_METHODS
-    # "SpectralDeconvolution",      # Unblocked - problematic methods in SKIP_METHODS
-
-    # Classes inheriting from XMLHandler (non-copyable)
-    # "QcMLFile",  # Unblocked - copy ctor handled, problematic methods in SKIP_METHODS
-
-    # Classes with incomplete types in their methods
-    # "CVMappingRule",  # Unblocked - regular getters/setters
-    # "InstrumentSettings",         # Unblocked - problematic methods in SKIP_METHODS
-    # "Instrument",                 # Unblocked - problematic methods in SKIP_METHODS
-    # "ExperimentalDesign",         # Unblocked - problematic methods in SKIP_METHODS
-    # "ExperimentalSettings",       # Unblocked - straightforward class
-
-    # Classes with constructor type mismatches
-    # "NASequence",                   # Duplicate — see HANDWRITTEN_CLASS below
-    # "SemanticValidator",  # Unblocked - parameterized ctor, copy ctor in PRIVATE_COPY_CTOR_CLASSES
-
-    # Classes with wrong parameter types (int instead of proper types)
-    # "AbsoluteQuantitationMethodFile",  # Unblocked - problematic methods in SKIP_METHODS
-    # "AbsoluteQuantitationStandardsFile",  # Unblocked - problematic methods in SKIP_METHODS
-    # "DeconvolvedSpectrum",        # Unblocked - problematic methods in SKIP_METHODS
-    # "FLASHDeconvAlgorithm",       # Unblocked - problematic methods in SKIP_METHODS
-    # "FASTAFile",                  # Unblocked - load/store in SKIP_METHODS, needs SPECIAL_METHODS
-    # "MRMScoring",                   # Unblocked - problematic methods in SKIP_METHODS
 
     # Classes with template parameters or complex constructors
     "OpenSwathWorkflowSonar",
     "OpenSwathWorkflow",
     "MRMTransitionGroup",
-    # "MRMTransitionGroupCP",  # Duplicate — see HANDWRITTEN_CLASS below
     "LightMRMTransitionGroup",
 
-    # Classes with private copy constructors
-    # "CVMappingFile",  # Unblocked - copy ctor handled by PRIVATE_COPY_CTOR_CLASSES
-
-    # Classes with complex nested types or lambda analysis issues
-    # "GridBasedCluster",  # Unblocked - parameterized ctors work
-    # "MultiplexDeltaMassesGenerator",  # Unblocked - DefaultParamHandler subclass
-    # "PeptideAndProteinQuant",  # Unblocked - problematic methods in SKIP_METHODS
-    # "FeatureGroupingAlgorithmLabeled",  # Unblocked - try again
-    # "FeatureGroupingAlgorithmUnlabeled",  # Unblocked - copy ctor handled
-    # "KDTreeFeatureMaps",  # Unblocked - problematic methods in SKIP_METHODS
-    # "MapAlignmentAlgorithmKD",  # Unblocked - default ctor private (auto-detected)
-    # "MapAlignmentAlgorithmPoseClustering",  # Unblocked - problematic methods in SKIP_METHODS
-    # "ReactionMonitoringTransition",  # Unblocked - problematic methods in SKIP_METHODS
-    # "MRMFeature",  # Duplicate — see HANDWRITTEN_CLASS below
-    # "IncludeExcludeTarget",  # Unblocked - regular class, problematic methods in SKIP_METHODS
-    # "ScanWindow",  # Unblocked - just data members + MetaInfoInterface
-    # "LPWrapper",  # Unblocked - copy ctor handled by PRIVATE_COPY_CTOR_CLASSES
-    # "ProteaseDigestion",  # Unblocked - problematic methods in SKIP_METHODS
-
-    # Classes with unresolved overloads
-    # "KroenikFile",  # Unblocked - no actual overload issues
-    # "MascotGenericFile",  # Unblocked - problematic methods in SKIP_METHODS
-    # "MzTabFile",  # Unblocked - problematic methods in SKIP_METHODS
-    # "NLargest",  # Unblocked - no actual overloads in pxd
-    # "RNaseDigestion",  # Unblocked - problematic methods in SKIP_METHODS
-    # "RankScaler",  # Unblocked - try
-    # "PeakGroup",                  # Unblocked - problematic methods in SKIP_METHODS
-    # "SpectrumLookup",  # Unblocked - problematic methods in SKIP_METHODS
-    # "DIAScoring",                   # Duplicate — see HANDWRITTEN_CLASS below
-    # "MapAlignmentTransformer",    # Unblocked - problematic methods in SKIP_METHODS
-    # "SpectrumMetaDataLookup",       # Duplicate — see HANDWRITTEN_CLASS below
-
-    # Template classes (now handled via wrap-instances support where not HANDWRITTEN)
+    # Template classes
     "Matrix",                       # HANDWRITTEN_CLASS - MatrixDouble in SPECIAL_METHODS
     "MassDecomposer",               # template class - ABSTRACT, wrap-ignore in pxd
-    # "DistanceMatrix",               # Unblocked - wrap-instances: DistanceMatrix := DistanceMatrix[float]
-    # "RANSAC",                       # Unblocked - wrap-instances: RANSAC, RANSACQuadratic
-
-    # Forward-declared/incomplete types
-    # "MzMLSqliteHandler",            # Unblocked - no methods need skipping
-    # "OSWFile",                      # Unblocked - no methods need skipping
-
-    # More classes with overloaded static methods
-    # "IDFilter",                   # Unblocked - problematic methods in SKIP_METHODS
-    # "NonNegativeLeastSquaresSolver",  # Unblocked - problematic methods in SKIP_METHODS
-
-    # Classes with non-const reference constructor parameters
-    # "MSPGenericFile",  # Unblocked - ctor takes MSExperiment& (should work)
 
     # Classes with type alias issues
     "OSW_ChromExtractParams",
-
-    # Classes with constructor/copy issues
-    # "MultiplexDeltaMasses",  # Unblocked - parameterized ctor with DeltaMass vector
-    # "PeakWidthEstimator",  # Unblocked - parameterized ctor only
 
     # Classes with external type issues (types from other libraries not bound)
     "IonMobilityScoring",           # Uses OpenSwath::LightTransition (not bound)
@@ -864,49 +582,43 @@ SKIP_CLASSES = {
     "ColumnHeader",                 # HANDWRITTEN_CLASS - ConsensusMap nested type
     "MRMFeature",                   # HANDWRITTEN_CLASS
     "MRMTransitionGroupCP",         # HANDWRITTEN_CLASS - template specialization
-    # AASequence: removed from SKIP_CLASSES - use SPECIAL_METHODS for custom binding
 
-    # Classes referencing Param::ParamEntry (nested type incomplete)
-    # "ElutionModelFitter",  # Unblocked - just fitElutionModels(FeatureMap&)
-    "MSSim",                        # No .pxd file in autowrap — not exposed
-    # "File",                       # Unblocked - has SPECIAL_METHODS
-
-    # Classes with forward-declared types or nested enum issues
+    # No .pxd file in autowrap — not exposed
+    "MSSim",
     "OpenSwathWorkflowBase",        # Nested enum / forward decl issues
-    # "KDTreeFeatureNode",            # Unblocked - minimal interface
+    "NucleicAcidSearchEngine",
+    "MSFraggerAdapter",
+    "CometAdapter",
+    "OMSSAAdapter",
+    "MyriMatchAdapter",
+    "PepNovoAdapter",
 
-    # Classes with lambda analysis failures (nanobind can't deduce types)
-    # "TransformationDescription",  # Unblocked - problematic methods in SKIP_METHODS
-    # "MorpheusScore",  # Unblocked - works in autowrap with nested Result struct
-    # "Normalizer",                 # Unblocked - simple class
-    # "SeedListGenerator",  # Unblocked - problematic methods in SKIP_METHODS
-    "NucleicAcidSearchEngine",      # No .pxd file — not in autowrap
-    "MSFraggerAdapter",             # No .pxd file — not in autowrap
-    "CometAdapter",                 # No .pxd file — not in autowrap
-    "OMSSAAdapter",                 # No .pxd file — not in autowrap
-    "MyriMatchAdapter",             # No .pxd file — not in autowrap
-    "PepNovoAdapter",               # No .pxd file — not in autowrap
-
-    # Classes with pxd type mismatches (method signature issues)
-    # "DecoyGenerator",  # Unblocked - works in autowrap
-    # "FileHandler",                # Unblocked - problematic methods in SKIP_METHODS
-    # "SequestInfile",  # Unblocked - problematic methods in SKIP_METHODS
-    # "SequestOutfile",  # Unblocked - problematic methods in SKIP_METHODS
-    # "BSpline2d",  # Unblocked - parameterized ctor + simple methods
-    # "CrossLinksDB",  # Unblocked - singleton via SPECIAL_METHODS
-    # "CubicSpline2d",  # Unblocked - parameterized ctors + simple methods
-    # "IMSIsotopeDistribution",       # Unblocked - autowrap wraps this
-    # "IMSIsotopeDistribution_Peak",  # Unblocked - nested type of IMSIsotopeDistribution
-    # "LinearInterpolation",          # Unblocked - wrap-instances: LinearInterpolation[double, double]
+    # Miscellaneous
     "SignalToNoiseEstimator",       # ABSTRACT class - wrap-ignore in pxd
-    # "SignalToNoiseEstimatorMeanIterative",  # Unblocked - wrap-instances
-    # "SpectrumAlignmentScore",       # Unblocked - operator() wrap-ignored, only inherited methods
     "SteinScottImproveScore",       # No wrap-instances in pxd, no .pxd file
-    # "SignalToNoiseEstimatorMedian", # Unblocked - wrap-instances
     "IMSWeights",                   # Not found in C++ headers (nested/helper class)
     "IntegerMassDecomposer",        # Uses IMSWeights which isn't bound
-    # "RealMassDecomposer",           # Unblocked - default ctor wrap-ignored, one method
     "BilinearInterpolation",        # HANDWRITTEN_CLASS - template handled manually in pilot_classes.cpp
+}
+
+# Classes with NON-VIRTUAL destructors - specifying these as base classes
+# in nanobind when combined with multiple inheritance causes segfaults
+NONVIRTUAL_DESTRUCTOR_CLASSES = {
+    "Peak1D", "Peak2D", "MetaInfoInterface", "UniqueIdInterface",
+    "DocumentIdentifier", "MetaInfoDescription"
+}
+
+# C++ reserved keywords that can't be used as parameter names
+CPP_KEYWORDS = {
+    'int', 'char', 'float', 'double', 'void', 'bool', 'long', 'short',
+    'unsigned', 'signed', 'const', 'static', 'class', 'struct', 'enum',
+    'union', 'virtual', 'public', 'private', 'protected', 'new', 'delete',
+    'return', 'if', 'else', 'for', 'while', 'do', 'switch', 'case',
+    'break', 'continue', 'default', 'goto', 'try', 'catch', 'throw',
+    'namespace', 'using', 'typedef', 'typename', 'template', 'auto',
+    'register', 'extern', 'volatile', 'mutable', 'inline', 'explicit',
+    'export', 'true', 'false', 'nullptr', 'this', 'operator', 'sizeof',
+    'alignof', 'decltype', 'constexpr', 'noexcept', 'override', 'final',
 }
 
 # Enums to skip (value name mismatches between pxd and C++, or other issues)
@@ -4273,10 +3985,7 @@ class NanobindEmitterV2:
                 continue
             # Check base classes
             for base in getattr(merged_class, 'base_classes', []):
-                if '::' in base:
-                    base_name = base.split('::')[-1]
-                else:
-                    base_name = base
+                base_name = _unqualified_name(base)
                 if base.startswith('std::'):
                     continue
                 # If base class is abstract and in CORE_CLASSES, we need it
@@ -4305,10 +4014,7 @@ class NanobindEmitterV2:
 
             # Union with base classes that will also be bound
             for base in getattr(merged_class, 'base_classes', []):
-                if '::' in base:
-                    base_name = base.split('::')[-1]
-                else:
-                    base_name = base
+                base_name = _unqualified_name(base)
 
                 # Skip std:: types
                 if base.startswith('std::'):
@@ -4383,11 +4089,7 @@ class NanobindEmitterV2:
         for cls in classes:
             deps = set()
             for base in getattr(cls, 'base_classes', []):
-                # Extract unqualified name
-                if '::' in base:
-                    base_name = base.split('::')[-1]
-                else:
-                    base_name = base
+                base_name = _unqualified_name(base)
 
                 # Only track dependencies on classes we're binding in this module
                 if (base_name in class_names and
@@ -4833,18 +4535,6 @@ class NanobindEmitterV2:
         }
         return element_types.get(class_name)
 
-    def _get_element_type(self, class_name: str) -> Optional[str]:
-        """Get the element type for a vector-based class (legacy method)."""
-        element_types = {
-            "MSSpectrum": "OpenMS::Peak1D",
-            "MSChromatogram": "OpenMS::ChromatogramPeak",
-            "Mobilogram": "OpenMS::MobilityPeak1D",
-            "FloatDataArray": "float",
-            "IntegerDataArray": "OpenMS::Int",
-            "StringDataArray": "OpenMS::String",
-        }
-        return element_types.get(class_name)
-
     def _get_bound_base_classes(
         self, merged_class: MergedClass, module_class_names: Optional[Set[str]] = None
     ) -> List[str]:
@@ -4880,14 +4570,6 @@ class NanobindEmitterV2:
         # Get base classes from C++ parsing
         base_classes = getattr(merged_class, 'base_classes', [])
 
-        # Classes with NON-VIRTUAL destructors - specifying these as base classes
-        # in nanobind when combined with multiple inheritance causes segfaults
-        # because the destructor chain is not properly virtual
-        NONVIRTUAL_DESTRUCTOR_CLASSES = {
-            "Peak1D", "Peak2D", "MetaInfoInterface", "UniqueIdInterface",
-            "DocumentIdentifier", "MetaInfoDescription"
-        }
-
         # Classes with private std::vector<> as first base — the memory layout
         # has std::vector before any public bases, so nanobind's static_cast
         # upcast to the first PUBLIC base gives a wrong pointer offset
@@ -4897,17 +4579,13 @@ class NanobindEmitterV2:
         # For multiple inheritance, check if first base has non-virtual destructor
         if len(base_classes) > 1:
             first_base = base_classes[0]
-            first_base_name = first_base.split('::')[-1] if '::' in first_base else first_base
+            first_base_name = _unqualified_name(first_base)
             if first_base_name in NONVIRTUAL_DESTRUCTOR_CLASSES:
                 # Skip base class specification to avoid destructor issues
                 return []
 
         for base in base_classes:
-            # Extract unqualified name from qualified name like 'OpenMS::BaseFeature'
-            if '::' in base:
-                base_name = base.split('::')[-1]
-            else:
-                base_name = base
+            base_name = _unqualified_name(base)
 
             # Skip std:: types (like std::vector) - they're not bound as classes
             if base.startswith('std::'):
@@ -4962,12 +4640,6 @@ class NanobindEmitterV2:
         base_classes = getattr(merged_class, 'base_classes', [])
         class_name = merged_class.name
 
-        # Classes with non-virtual destructors
-        NONVIRTUAL_DESTRUCTOR_CLASSES = {
-            "Peak1D", "Peak2D", "MetaInfoInterface", "UniqueIdInterface",
-            "DocumentIdentifier", "MetaInfoDescription"
-        }
-
         # Classes that inherit from non-virtual destructor classes and need explicit methods
         # These are classes where we skip base class specification
         CLASSES_NEEDING_EXPLICIT_METHODS = {
@@ -4995,16 +4667,14 @@ class NanobindEmitterV2:
         # Case 1: Class has any base with non-virtual destructor
         if not needs_explicit:
             for base in base_classes:
-                base_name = base.split('::')[-1] if '::' in base else base
-                if base_name in NONVIRTUAL_DESTRUCTOR_CLASSES:
+                if _unqualified_name(base) in NONVIRTUAL_DESTRUCTOR_CLASSES:
                     needs_explicit = True
                     break
 
         # Case 2: Class inherits from a class that has skipped base
         if not needs_explicit:
             for base in base_classes:
-                base_name = base.split('::')[-1] if '::' in base else base
-                if base_name in CLASSES_NEEDING_EXPLICIT_METHODS:
+                if _unqualified_name(base) in CLASSES_NEEDING_EXPLICIT_METHODS:
                     needs_explicit = True
                     break
 
@@ -5022,7 +4692,7 @@ class NanobindEmitterV2:
 
         # Check direct bases
         for base in base_classes:
-            base_name = base.split('::')[-1] if '::' in base else base
+            base_name = _unqualified_name(base)
             if base_name in {"Peak1D", "Precursor", "Product"}:
                 needs_peak1d = True
             if base_name in {"Peak2D", "RichPeak2D", "BaseFeature", "Feature", "ConsensusFeature", "FeatureHandle"}:
@@ -5246,6 +4916,11 @@ class NanobindEmitterV2:
                     continue
                 if method_name in SKIP_METHODS.get(instance_name, set()):
                     continue
+                # Auto-skip methods handled via SPECIAL_METHODS
+                if method_name in SPECIAL_METHODS.get(class_name, {}):
+                    continue
+                if method_name in SPECIAL_METHODS.get(instance_name, {}):
+                    continue
 
                 # Substitute template params in return type and parameter types
                 ret_type = method.return_type or "void"
@@ -5373,6 +5048,10 @@ class NanobindEmitterV2:
         if class_name in SKIP_METHODS and method.name in SKIP_METHODS[class_name]:
             return None
 
+        # Auto-skip methods handled via SPECIAL_METHODS
+        if method.name in SPECIAL_METHODS.get(class_name, {}):
+            return None
+
         # Replace output parameter methods with fixed bindings (e.g., getKeys)
         if method.name in OUTPUT_PARAM_METHODS:
             return OUTPUT_PARAM_METHODS[method.name].format(FULL_CLASS=f"const {qualified_name}")
@@ -5411,6 +5090,40 @@ class NanobindEmitterV2:
 
         # Regular methods
         return self._generate_regular_method(merged_method, qualified_name, method_name, merged_class)
+
+    def _build_lambda_params(self, method: CppMethod):
+        """Build lambda parameter declarations, call names, and arg annotations for a method."""
+        param_decls = []
+        param_names_call = []
+        param_names_arg = []
+
+        for p in method.parameters:
+            ptype = self._normalize_type(
+                p.type_str,
+                canonical_type=getattr(p, 'canonical_type', ''),
+            )
+            # Preserve non-const references (output parameters) so mutations
+            # are visible to the caller.
+            is_ref = getattr(p, 'is_reference', False) or '&' in p.type_str
+            is_const = getattr(p, 'is_const', False) or 'const' in p.type_str
+            if is_ref and not is_const and '&' not in ptype:
+                ptype = ptype + '&'
+            valid_name = (
+                p.name
+                and not p.name.startswith("arg")
+                and p.name not in CPP_KEYWORDS
+            )
+            pname = p.name if valid_name else f"p{len(param_decls)}"
+            param_decls.append(f"{ptype} {pname}")
+            param_names_call.append(pname)
+            if valid_name:
+                param_names_arg.append(f'"{p.name}"_a')
+
+        return (
+            ", ".join(param_decls),
+            ", ".join(param_names_call),
+            param_names_arg,
+        )
 
     def _generate_regular_method(
         self,
@@ -5453,50 +5166,7 @@ class NanobindEmitterV2:
                         return None
 
         # Build lambda parameters
-        param_decls = []
-        param_names_call = []
-        param_names_arg = []
-
-        # C++ reserved keywords that can't be used as parameter names
-        cpp_keywords = {
-            'int', 'char', 'float', 'double', 'void', 'bool', 'long', 'short',
-            'unsigned', 'signed', 'const', 'static', 'class', 'struct', 'enum',
-            'union', 'virtual', 'public', 'private', 'protected', 'new', 'delete',
-            'return', 'if', 'else', 'for', 'while', 'do', 'switch', 'case',
-            'break', 'continue', 'default', 'goto', 'try', 'catch', 'throw',
-            'namespace', 'using', 'typedef', 'typename', 'template', 'auto',
-            'register', 'extern', 'volatile', 'mutable', 'inline', 'explicit',
-            'export', 'true', 'false', 'nullptr', 'this', 'operator', 'sizeof',
-            'alignof', 'decltype', 'constexpr', 'noexcept', 'override', 'final',
-        }
-
-        for p in method.parameters:
-            # Use canonical type from libclang when available (resolves typedefs)
-            ptype = self._normalize_type(
-                p.type_str,
-                canonical_type=getattr(p, 'canonical_type', ''),
-            )
-            # Preserve non-const references (output parameters) so mutations
-            # are visible to the caller. Without '&', nanobind copies the
-            # argument and discards changes (e.g. load() filling an MSExperiment).
-            is_ref = getattr(p, 'is_reference', False) or '&' in p.type_str
-            is_const = getattr(p, 'is_const', False) or 'const' in p.type_str
-            if is_ref and not is_const and '&' not in ptype:
-                ptype = ptype + '&'
-            # Check if name is valid (not empty, not "arg*", not a C++ keyword)
-            valid_name = (
-                p.name
-                and not p.name.startswith("arg")
-                and p.name not in cpp_keywords
-            )
-            pname = p.name if valid_name else f"p{len(param_decls)}"
-            param_decls.append(f"{ptype} {pname}")
-            param_names_call.append(pname)
-            if valid_name:
-                param_names_arg.append(f'"{p.name}"_a')
-
-        params_decl = ", ".join(param_decls)
-        params_call = ", ".join(param_names_call)
+        params_decl, params_call, param_names_arg = self._build_lambda_params(method)
 
         # Determine const qualifier for lambda capture
         if method.is_const:
@@ -5541,49 +5211,9 @@ class NanobindEmitterV2:
         if len(method.parameters) > 8:
             return None
 
-        # C++ reserved keywords that can't be used as parameter names
-        cpp_keywords = {
-            'int', 'char', 'float', 'double', 'void', 'bool', 'long', 'short',
-            'unsigned', 'signed', 'const', 'static', 'class', 'struct', 'enum',
-            'union', 'virtual', 'public', 'private', 'protected', 'new', 'delete',
-            'return', 'if', 'else', 'for', 'while', 'do', 'switch', 'case',
-            'break', 'continue', 'default', 'goto', 'try', 'catch', 'throw',
-            'namespace', 'using', 'typedef', 'typename', 'template', 'auto',
-            'register', 'extern', 'volatile', 'mutable', 'inline', 'explicit',
-            'export', 'true', 'false', 'nullptr', 'this', 'operator', 'sizeof',
-            'alignof', 'decltype', 'constexpr', 'noexcept', 'override', 'final',
-        }
 
         # Build lambda parameters
-        param_decls = []
-        param_names_call = []
-        param_names_arg = []
-
-        for p in method.parameters:
-            # Use canonical type from libclang when available (resolves typedefs)
-            ptype = self._normalize_type(
-                p.type_str,
-                canonical_type=getattr(p, 'canonical_type', ''),
-            )
-            # Preserve non-const references (output parameters)
-            is_ref = getattr(p, 'is_reference', False) or '&' in p.type_str
-            is_const = getattr(p, 'is_const', False) or 'const' in p.type_str
-            if is_ref and not is_const and '&' not in ptype:
-                ptype = ptype + '&'
-            # Check if name is valid (not empty, not "arg*", not a C++ keyword)
-            valid_name = (
-                p.name
-                and not p.name.startswith("arg")
-                and p.name not in cpp_keywords
-            )
-            pname = p.name if valid_name else f"p{len(param_decls)}"
-            param_decls.append(f"{ptype} {pname}")
-            param_names_call.append(pname)
-            if valid_name:
-                param_names_arg.append(f'"{p.name}"_a')
-
-        params_decl = ", ".join(param_decls)
-        params_call = ", ".join(param_names_call)
+        params_decl, params_call, param_names_arg = self._build_lambda_params(method)
 
         # Build the lambda (no 'self' for static methods)
         if params_decl:
