@@ -82,6 +82,23 @@ namespace OpenMS
       result.push_back(current);
       return result;
     }
+    /// Escape PEFF reserved characters: \, |, (, )
+    /// This is the inverse of the unescape done in splitByPipeEscapeAware.
+    String escape_peff(const String& str)
+    {
+      String result;
+      result.reserve(str.size());
+      for (size_t i = 0; i < str.size(); ++i)
+      {
+        char c = str[i];
+        if (c == '\\' || c == '|' || c == '(' || c == ')')
+        {
+          result += '\\';
+        }
+        result += c;
+      }
+      return result;
+    }
   } // anonymous namespace
 
   FASTAFile::FASTAEntry PEFFEntry::toFASTAEntry() const
@@ -1252,7 +1269,7 @@ namespace OpenMS
                                           FileTypes::typeToName(FileTypes::PEFF) + "'");
     }
 
-    outfile_.open(filename.c_str(), ofstream::out);
+    outfile_.open(filename.c_str(), ofstream::out | ofstream::binary);
 
     if (!outfile_.good())
     {
@@ -2244,13 +2261,13 @@ namespace OpenMS
       desc << " \\PName=";
       if (entry.protein_names.size() == 1)
       {
-        desc << "(" << entry.protein_names[0] << ")";
+        desc << "(" << escape_peff(entry.protein_names[0]) << ")";
       }
       else
       {
         for (const String& name : entry.protein_names)
         {
-          desc << "(" << name << ")";
+          desc << "(" << escape_peff(name) << ")";
         }
       }
     }
@@ -2258,7 +2275,7 @@ namespace OpenMS
     // Gene name
     if (!entry.gene_name.empty())
     {
-      desc << " \\GName=" << entry.gene_name;
+      desc << " \\GName=" << escape_peff(entry.gene_name);
     }
 
     // NCBI Tax ID
@@ -2270,7 +2287,7 @@ namespace OpenMS
     // Taxonomy name
     if (!entry.taxonomy_name.empty())
     {
-      desc << " \\TaxName=" << entry.taxonomy_name;
+      desc << " \\TaxName=" << escape_peff(entry.taxonomy_name);
     }
 
     // Length
@@ -2282,13 +2299,13 @@ namespace OpenMS
     // Sequence version
     if (!entry.sequence_version.empty())
     {
-      desc << " \\SV=" << entry.sequence_version;
+      desc << " \\SV=" << escape_peff(entry.sequence_version);
     }
 
     // Entry version
     if (!entry.entry_version.empty())
     {
-      desc << " \\EV=" << entry.entry_version;
+      desc << " \\EV=" << escape_peff(entry.entry_version);
     }
 
     // Protein existence
@@ -2300,13 +2317,13 @@ namespace OpenMS
     // Database unique ID
     if (!entry.db_unique_id.empty())
     {
-      desc << " \\DbUniqueId=" << entry.db_unique_id;
+      desc << " \\DbUniqueId=" << escape_peff(entry.db_unique_id);
     }
 
     // Entry ID
     if (!entry.entry_id.empty())
     {
-      desc << " \\ID=" << entry.entry_id;
+      desc << " \\ID=" << escape_peff(entry.entry_id);
     }
 
     // Alternative accessions - single key with parenthesized list
@@ -2315,7 +2332,7 @@ namespace OpenMS
       desc << " \\AltAC=";
       for (const String& alt_ac : entry.alt_accessions)
       {
-        desc << "(" << alt_ac << ")";
+        desc << "(" << escape_peff(alt_ac) << ")";
       }
     }
 
@@ -2342,18 +2359,18 @@ namespace OpenMS
           {
             desc << mod->position;
           }
-          desc << "|" << mod->accession;
+          desc << "|" << escape_peff(mod->accession);
           if (!mod->name.empty() || !mod->evidence.empty() || !mod->optional_tag.empty())
           {
-            desc << "|" << mod->name;
+            desc << "|" << escape_peff(mod->name);
           }
           if (!mod->evidence.empty() || !mod->optional_tag.empty())
           {
-            desc << "|" << mod->evidence;
+            desc << "|" << escape_peff(mod->evidence);
           }
           if (!mod->optional_tag.empty())
           {
-            desc << "|" << mod->optional_tag;
+            desc << "|" << escape_peff(mod->optional_tag);
           }
           desc << ")";
         }
@@ -2389,7 +2406,7 @@ namespace OpenMS
         desc << var.position << "|" << var.variant_aa;
         if (!var.optional_tag.empty())
         {
-          desc << "|" << var.optional_tag;
+          desc << "|" << escape_peff(var.optional_tag);
         }
         desc << ")";
       }
@@ -2406,10 +2423,10 @@ namespace OpenMS
         {
           desc << var.annotation_id << ":";
         }
-        desc << var.start_position << "|" << var.end_position << "|" << var.replacement;
+        desc << var.start_position << "|" << var.end_position << "|" << escape_peff(var.replacement);
         if (!var.optional_tag.empty())
         {
-          desc << "|" << var.optional_tag;
+          desc << "|" << escape_peff(var.optional_tag);
         }
         desc << ")";
       }
@@ -2426,15 +2443,15 @@ namespace OpenMS
         {
           desc << reg.annotation_id << ":";
         }
-        desc << reg.start_position << "|" << reg.end_position << "|" << reg.accession;
+        desc << reg.start_position << "|" << reg.end_position << "|" << escape_peff(reg.accession);
         // Always emit name separator if name or optional_tag is present (preserve field positions)
         if (!reg.name.empty() || !reg.optional_tag.empty())
         {
-          desc << "|" << reg.name;  // May be empty placeholder
+          desc << "|" << escape_peff(reg.name);  // May be empty placeholder
         }
         if (!reg.optional_tag.empty())
         {
-          desc << "|" << reg.optional_tag;
+          desc << "|" << escape_peff(reg.optional_tag);
         }
         desc << ")";
       }
@@ -2451,10 +2468,10 @@ namespace OpenMS
         {
           desc << bond.annotation_id << ":";
         }
-        desc << bond.id1 << "," << bond.id2;
+        desc << escape_peff(bond.id1) << "," << escape_peff(bond.id2);
         if (!bond.optional_tag.empty())
         {
-          desc << "|" << bond.optional_tag;
+          desc << "|" << escape_peff(bond.optional_tag);
         }
         desc << ")";
       }
@@ -2466,14 +2483,14 @@ namespace OpenMS
       desc << " \\Proteoform=";
       for (const String& pf : entry.proteoforms)
       {
-        desc << "(" << pf << ")";
+        desc << "(" << escape_peff(pf) << ")";
       }
     }
 
     // Custom annotations
     for (const auto& [key, value] : entry.custom_annotations)
     {
-      desc << " \\" << key << "=" << value;
+      desc << " \\" << key << "=" << escape_peff(value);
     }
 
     out << desc.str() << "\n";

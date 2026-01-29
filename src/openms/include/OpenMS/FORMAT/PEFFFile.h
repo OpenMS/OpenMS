@@ -143,8 +143,8 @@ namespace OpenMS
   */
   struct OPENMS_DLLAPI PEFFDisulfideBond
   {
-    String id1;                  ///< First annotation ID or position
-    String id2;                  ///< Second annotation ID or position
+    String id1;                  ///< First cysteine reference (AnnotationIdentifier of the cysteine residue)
+    String id2;                  ///< Second cysteine reference (AnnotationIdentifier of the cysteine residue)
     String optional_tag;         ///< Optional tag (e.g., "between chains")
     UInt annotation_id{std::numeric_limits<UInt>::max()};  ///< Optional annotation identifier, max() = not set
 
@@ -161,6 +161,15 @@ namespace OpenMS
 
   /**
     @brief Represents a single entry in a PEFF file with all annotations.
+
+    Each entry corresponds to one description line and sequence in the PEFF file.
+    The description line format per the PEFF spec is:
+
+      >Prefix:DbUniqueId \\key=value \\key=value ...
+
+    Where Prefix is the database prefix defined in the header block and DbUniqueId is
+    the unique identifier within that database. The identifier field stores the full
+    "Prefix:DbUniqueId" string, and the prefix field stores just the prefix portion.
   */
   struct OPENMS_DLLAPI PEFFEntry
   {

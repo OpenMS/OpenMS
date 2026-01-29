@@ -68,6 +68,7 @@ cdef extern from "<OpenMS/FORMAT/PEFFFile.h>" namespace "OpenMS":
             #
             #  :raises:
             #      Exception:FileNotFound is thrown if the file does not exist
+            #      Exception:FileNotReadable is thrown if the file cannot be read
 
         bool readNext(PEFFEntry & entry) except + nogil
             # wrap-doc:
