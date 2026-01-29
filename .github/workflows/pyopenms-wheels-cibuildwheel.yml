@@ -461,10 +461,11 @@ jobs:
   #----------------------------------------------------------------------------
   # Publish wheels
   #----------------------------------------------------------------------------
-  publish:
+  publish-nightly-uni-tuebingen:
+    name: Upload nightly to Tuebingen
     needs: [test-wheels]
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && startsWith(github.ref, 'refs/heads/nightly')
     steps:
       - uses: actions/download-artifact@v4
         with:
@@ -472,24 +473,34 @@ jobs:
           merge-multiple: true
           path: dist/
 
-      - name: List wheels
-        run: ls -la dist/
-
       - name: Publish to nightly PyPI
-        # Publish to nightly only for branch pushes (develop, nightly, py_nightly_test) or workflow_dispatch
-        if: (github.event_name == 'push' && (startsWith(github.ref, 'refs/heads/develop') || startsWith(github.ref, 'refs/heads/nightly') || startsWith(github.ref, 'refs/heads/py_nightly_test'))) || github.event_name == 'workflow_dispatch'
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           repository-url: https://pypi.cs.uni-tuebingen.de/
           user: openms
           password: ${{ secrets.abiservices_pypi_pw }}
-          packages-dir: dist/
+          verbose: true
+
+  publish-release-pypi:
+    name: Upload release to PyPI
+    needs: [test-wheels]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' && inputs.upload-to-pypi && startsWith(github.ref, 'refs/tags/Release')
+    environment:
+      name: pypi
+      url: https://pypi.org/p/pyopenms
+    permissions:
+      id-token: write # For pypa/gh-action-pypi-publish
+      actions: read # For actions/download-artifact
+      artifact-metadata: read # For actions/download-artifact
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: wheels-*
+          merge-multiple: true
+          path: dist/
 
       - name: Publish to PyPI
-        # Publish to PyPI only for Release tags with explicit pypi flag
-        if: startsWith(github.ref, 'refs/tags/Release') && inputs.upload-to-pypi
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          user: __token__
-          password: ${{ secrets.pypi_api_token_release }}
-          packages-dir: dist/
+          verbose: true
