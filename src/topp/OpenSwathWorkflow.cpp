@@ -323,7 +323,7 @@ protected:
     registerSubsection_("Calibration", "Parameters for calibrant iRT peptides for RT normalization and mass / ion mobility correction.");
     registerSubsection_("Calibration:RTNormalization", "Parameters for the RTNormalization for iRT peptides. This specifies how the RT alignment is performed and how outlier detection is applied. Outlier detection can be done iteratively (by default) which removes one outlier per iteration or using the RANSAC algorithm.");
     registerSubsection_("Calibration:MassIMCorrection", "Parameters for the m/z and ion mobility calibration.");
-  registerSubsection_("MRMMapping", "Parameters for mapping chromatograms to transitions (MRMMapping)");
+  registerSubsection_("MRMMapping", "Parameters for mapping chromatograms to transitions (SRM/MRM data).");
 
     registerTOPPSubsection_("Debugging", "Debugging");
     registerOutputFile_("Debugging:irt_mzml", "<file>", "", "Chromatogram mzML containing the iRT peptides", false);
