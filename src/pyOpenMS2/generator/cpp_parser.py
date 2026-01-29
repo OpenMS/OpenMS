@@ -997,6 +997,7 @@ class MergedClass:
     wrap_manual_memory: bool = False
     doc: str = ""
     enums: List[Any] = field(default_factory=list)  # EnumDecl from pxd_parser
+    template_instances: Dict[str, List[str]] = field(default_factory=dict)  # instance_name -> [template_args]
 
     @property
     def name(self) -> str:
@@ -1294,6 +1295,7 @@ def merge_with_pxd(
             wrap_manual_memory=getattr(pxd_class, 'wrap_manual_memory', False),
             doc=getattr(pxd_class, 'doc', ''),
             enums=pxd_enums,
+            template_instances=getattr(pxd_class, 'template_instances', {}),
         )
         merged[class_name] = merged_class
 
@@ -1392,6 +1394,7 @@ def pxd_to_merged(pxd_classes: Dict[str, "ClassDecl"]) -> Dict[str, MergedClass]
             wrap_manual_memory=pxd_class.wrap_manual_memory,
             doc=pxd_class.doc,
             enums=getattr(pxd_class, 'enums', []),
+            template_instances=getattr(pxd_class, 'template_instances', {}),
         )
         merged[class_name] = merged_class
 

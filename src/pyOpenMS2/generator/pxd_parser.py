@@ -13,7 +13,7 @@ import re
 from dataclasses import dataclass, field
 from enum import Enum, auto
 from pathlib import Path
-from typing import Dict, List, Optional, Set, Tuple, Union
+from typing import Dict, List, Optional, Tuple
 
 from .type_registry import TypeRegistry, TypeInfo
 
@@ -384,6 +384,30 @@ class PxdParser:
                     class_decl.wrap_manual_memory = True
                 if WrapDirective.ITER in directives:
                     class_decl.wrap_iter = directives[WrapDirective.ITER]
+                if WrapDirective.INSTANCES in directives:
+                    # wrap-instances: may have value on same line or on continuation lines
+                    value = directives[WrapDirective.INSTANCES].strip()
+                    if value:
+                        class_decl.template_instances.update(self._parse_instances(value))
+                    # Collect continuation lines with ":=" format
+                    while i + 1 < len(lines):
+                        next_line = lines[i + 1].strip()
+                        if next_line.startswith("#") and ":=" in next_line:
+                            i += 1
+                            # Parse "# InstanceName := ClassName[T1, T2]"
+                            inst_text = next_line.lstrip("# ")
+                            if ":=" in inst_text:
+                                inst_name, inst_type = inst_text.split(":=", 1)
+                                inst_name = inst_name.strip()
+                                inst_type = inst_type.strip()
+                                # Extract template args from ClassName[T1, T2]
+                                bracket_match = re.match(r"(\w+)\[([^\]]+)\]", inst_type)
+                                if bracket_match:
+                                    args = [a.strip() for a in bracket_match.group(2).split(",")]
+                                    class_decl.template_instances[inst_name] = args
+                                    logger.debug(f"Template instance: {inst_name} := {class_name}[{', '.join(args)}]")
+                        else:
+                            break
                 i += 1
                 continue
 
