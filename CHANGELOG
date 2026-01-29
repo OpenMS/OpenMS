@@ -99,6 +99,7 @@ TOPP tools:
     OpenSwathWorkflow:
       - Priority peptide sampling for iRT calibration (#8373)
       - Decoy generation speed optimizations (#8569)
+      - Added SRM support (#8700)
     PeakPickerHiRes:
       - New parameter to allow peak cores with no leading flank peaks (#8649)
     FileMerger:
