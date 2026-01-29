@@ -127,6 +127,7 @@ class TypeRegistry:
         self._aliases["String"] = "String"
         self._aliases["OpenMS::String"] = "String"
         self._aliases["libcpp_string"] = "std_string"
+        self._aliases["libcpp_utf8_string"] = "String"
         self._aliases["string"] = "std_string"
 
     def _init_container_templates(self):

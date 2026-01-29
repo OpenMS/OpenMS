@@ -579,8 +579,8 @@ class TestTransformationDescriptionStaticMethods(unittest.TestCase):
         self.assertIsInstance(result, list)
         self.assertGreater(len(result), 0)
         # Should contain known model types like 'linear', 'b_spline', etc.
-        # StringList returns bytes
-        self.assertIn(b"linear", result)
+        # StringList returns str (nanobind) or bytes (Cython)
+        self.assertIn("linear", result)
 
 
 class TestFLASHDeconvStaticMethods(unittest.TestCase):
