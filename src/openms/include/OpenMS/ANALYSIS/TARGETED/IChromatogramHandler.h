@@ -8,7 +8,7 @@
 #pragma once
 
 #include <OpenMS/KERNEL/MSChromatogram.h>
-#include <OpenMS/ANALYSIS/TARGETED/MRMMapping.h>
+
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
 #include <memory>
 
