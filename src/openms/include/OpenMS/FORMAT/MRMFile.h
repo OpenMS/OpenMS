@@ -16,12 +16,12 @@
 namespace OpenMS
 {
   /**
-    @brief Minimal SRM file loader returning a single SwathMap wrapping the chromatogram container.
+    @brief Minimal SRM/MRM file loader returning a single SwathMap wrapping the chromatogram container.
   */
-  struct OPENMS_DLLAPI SRMFile
+  struct OPENMS_DLLAPI MRMFile
   {
     /**
-      @brief Load an SRM mzML file and return a single SwathMap.
+      @brief Load an SRM/MRM mzML file and return a single SwathMap.
 
       @param[in] file Input mzML file.
       @param[in] tmp Temporary directory (for cached data).

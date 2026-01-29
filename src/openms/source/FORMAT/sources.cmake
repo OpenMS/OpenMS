@@ -97,7 +97,7 @@ XQuestResultXMLFile.cpp
 XTandemInfile.cpp
 XTandemXMLFile.cpp
 ZlibCompression.cpp
-SRMFile.cpp
+MRMFile.cpp
 TargetedDataFileLoader.cpp
 )
 

@@ -9,7 +9,7 @@
 #include <OpenMS/FORMAT/TargetedDataFileLoader.h>
 #include <OpenMS/FORMAT/SwathFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/FORMAT/SRMFile.h>
+#include <OpenMS/FORMAT/MRMFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
@@ -42,11 +42,11 @@ std::vector<::OpenSwath::SwathMap> TargetedDataFileLoader::loadFile(const String
     return sw.loadMzML(file, tmp, exp_meta, readoptions, plugin_consumer);
   }
 
-  // If there are no spectra but chromatograms exist, treat as SRM/chrom-only
+  // If there are no spectra but chromatograms exist, treat as SRM/MRM/chrom-only
   if (probe.getSpectra().empty() && !probe.getChromatograms().empty())
   {
-    OPENMS_LOG_DEBUG << "TargetedDataFileLoader: detected chromatogram-only mzML -> using SRM loader" << std::endl;
-    return SRMFile::loadMzML(file, tmp, exp_meta);
+    OPENMS_LOG_DEBUG << "TargetedDataFileLoader: detected chromatogram-only mzML -> using SRM/MRM loader" << std::endl;
+    return MRMFile::loadMzML(file, tmp, exp_meta);
   }
 
   // Otherwise use SwathFile loader

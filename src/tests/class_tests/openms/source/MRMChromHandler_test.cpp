@@ -9,7 +9,7 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 
-#include <OpenMS/ANALYSIS/TARGETED/SRMChromHandler.h>
+#include <OpenMS/ANALYSIS/TARGETED/MRMChromHandler.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathWorkflow.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSChromatogram.h>
@@ -17,22 +17,22 @@
 using namespace OpenMS;
 using namespace std;
 
-START_TEST(SRMChromHandler, "$Id$")
+START_TEST(MRMChromHandler, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-SRMChromHandler* ptr = nullptr;
-SRMChromHandler* nullPointer = nullptr;
+MRMChromHandler* ptr = nullptr;
+MRMChromHandler* nullPointer = nullptr;
 
-START_SECTION(SRMChromHandler())
+START_SECTION(MRMChromHandler())
 {
-	ptr = new SRMChromHandler();
+	ptr = new MRMChromHandler();
 	TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 
-START_SECTION(~SRMChromHandler())
+START_SECTION(~MRMChromHandler())
 {
   delete ptr;
 }
@@ -47,7 +47,7 @@ START_SECTION(static void normalizeChromatogramMZ(MSChromatogram& chrom))
     chrom.getProduct().setMZ(0.0);
     chrom.setNativeID("test");
 
-    SRMChromHandler::normalizeChromatogramMZ(chrom);
+    MRMChromHandler::normalizeChromatogramMZ(chrom);
     // Meta values are only set for positive m/z values
     TEST_EQUAL(chrom.getMetaValue("precursor_mz").isEmpty(), true)
     TEST_EQUAL(chrom.getMetaValue("product_mz").isEmpty(), true)
@@ -62,7 +62,7 @@ START_SECTION(static void normalizeChromatogramMZ(MSChromatogram& chrom))
     chrom.getProduct().addCVTerm(CVTerm("MS:1000827", "", "", "600.456"));
     chrom.setNativeID("original_id");
 
-    SRMChromHandler::normalizeChromatogramMZ(chrom);
+    MRMChromHandler::normalizeChromatogramMZ(chrom);
     TEST_REAL_SIMILAR(chrom.getPrecursor().getMZ(), 500.123)
     TEST_REAL_SIMILAR(chrom.getProduct().getMZ(), 600.456)
     TEST_REAL_SIMILAR(chrom.getMetaValue("precursor_mz"), 500.123)
@@ -76,11 +76,11 @@ START_SECTION(static void normalizeChromatogramMZ(MSChromatogram& chrom))
     MSChromatogram chrom;
     chrom.getPrecursor().setMZ(0.0);
     chrom.getProduct().setMZ(0.0);
-    // Use CV terms instead of nativeID parsing for proper SRM mzML data
+    // Use CV terms instead of nativeID parsing for proper SRM/MRM mzML data
     chrom.getPrecursor().addCVTerm(CVTerm("MS:1000827", "", "", "700.789"));
     chrom.getProduct().addCVTerm(CVTerm("MS:1000827", "", "", "800.012"));
 
-    SRMChromHandler::normalizeChromatogramMZ(chrom);
+    MRMChromHandler::normalizeChromatogramMZ(chrom);
     TEST_REAL_SIMILAR(chrom.getPrecursor().getMZ(), 700.789)
     TEST_REAL_SIMILAR(chrom.getProduct().getMZ(), 800.012)
     TEST_REAL_SIMILAR(chrom.getMetaValue("precursor_mz"), 700.789)
@@ -91,7 +91,7 @@ END_SECTION
 
 START_SECTION(std::vector<MSChromatogram> collectIrtChromatogramsForIrt(...))
 {
-  SRMChromHandler handler;
+  MRMChromHandler handler;
 
   // Create minimal test data
   std::vector<OpenSwath::SwathMap> swath_maps;
@@ -152,7 +152,7 @@ END_SECTION
 
 START_SECTION(std::vector<MSChromatogram> extractAndMapChromatogramsForTransitions(...))
 {
-  SRMChromHandler handler;
+  MRMChromHandler handler;
 
   // Create minimal test data
   std::vector<OpenSwath::SwathMap> swath_maps;
@@ -211,7 +211,7 @@ END_SECTION
 
 START_SECTION(std::vector<MSChromatogram> collectIrtChromatogramsForIrt - No matches)
 {
-  SRMChromHandler handler;
+  MRMChromHandler handler;
 
   // Create test data where chromatograms don't match transitions
   std::vector<OpenSwath::SwathMap> swath_maps;
@@ -266,7 +266,7 @@ END_SECTION
 
 START_SECTION(std::vector<MSChromatogram> extractAndMapChromatogramsForTransitions - Partial matches)
 {
-  SRMChromHandler handler;
+  MRMChromHandler handler;
 
   // Create test data with 3 chromatograms and 3 transitions, where only 2 match
   std::vector<OpenSwath::SwathMap> swath_maps;
@@ -384,7 +384,7 @@ END_SECTION
 
 START_SECTION(std::vector<MSChromatogram> collectIrtChromatogramsForIrt - Multiple chromatograms)
 {
-  SRMChromHandler handler;
+  MRMChromHandler handler;
 
   // Create test data with multiple chromatograms for one iRT transition
   std::vector<OpenSwath::SwathMap> swath_maps;

@@ -18,10 +18,10 @@ namespace OpenMS
   namespace Interfaces { class IMSDataConsumer; }
 
   /// Dispatcher that detects whether an mzML contains spectra (SWATH/DIA)
-  /// or chromatograms only (SRM) and forwards to the appropriate loader.
+  /// or chromatograms only (SRM/MRM) and forwards to the appropriate loader.
   struct OPENMS_DLLAPI TargetedDataFileLoader
   {
-    /// Load a file and return Swath maps (may represent chromatogram-only SRM)
+    /// Load a file and return Swath maps (may represent chromatogram-only SRM/MRM data)
     static std::vector<::OpenSwath::SwathMap> loadFile(const String& file,
                                                       const String& tmp,
                                                       std::shared_ptr<ExperimentalSettings>& exp_meta,

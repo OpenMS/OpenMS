@@ -60,7 +60,7 @@ namespace OpenMS
       const ChromExtractParams & cp,
       const Param & mrm_mapping_param) = 0;
 
-    /// Factory: create the default handler (currently SRM-based)
+    /// Factory: create the default handler (currently SRM/MRM-based)
     static std::unique_ptr<IChromatogramHandler> createDefault();
   };
 

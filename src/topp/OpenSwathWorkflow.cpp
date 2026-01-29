@@ -1163,7 +1163,7 @@ protected:
       calibration_param.setValue("mz_estimation_padding_factor", getDoubleOption_("mz_estimation_padding_factor"));
       calibration_param.setValue("mz_correction_function", mz_correction_function);
 
-      // Detect SRM mode: check if all swath_maps are chromatogram-only (no spectra, not MS1)
+      // Detect SRM/MRM mode: check if all swath_maps are chromatogram-only (no spectra, not MS1)
       
       bool srm_mode = true;
       for (const auto& sm : swath_maps)

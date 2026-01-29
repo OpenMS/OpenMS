@@ -14,7 +14,7 @@
 namespace OpenMS
 {
   DefaultChromHandler::DefaultChromHandler()
-    : srm_(new SRMChromHandler()), dia_(new DIAChromHandler())
+    : srm_(new MRMChromHandler()), dia_(new DIAChromHandler())
   {
   }
 
@@ -29,7 +29,7 @@ namespace OpenMS
     bool pasef,
     bool load_into_memory)
   {
-    // Decide whether inputs are chromatogram-only (SRM) or spectral (DIA)
+    // Decide whether inputs are chromatogram-only (SRM/MRM) or spectral (DIA)
     bool srm_mode = true;
     for (const auto & sm : swath_maps)
     {
@@ -42,22 +42,22 @@ namespace OpenMS
 
     if (srm_mode)
     {
-      OPENMS_LOG_DEBUG << "DefaultChromHandler: delegating iRT collection to SRM handler" << std::endl;
+      OPENMS_LOG_DEBUG << "DefaultChromHandler: delegating iRT collection to SRM/MRM handler" << std::endl;
       try
       {
         return srm_->collectIrtChromatogramsForIrt(swath_maps, irt_transitions, mrm_mapping_param, cp, trafo, pasef, load_into_memory);
       }
       catch (const Exception::IllegalArgument& e)
       {
-        // No chromatograms mapped to transitions: treat as a recoverable condition for SRM data.
-        // SRM mzML inputs are chromatogram-only (no spectra) and mapping relies on mapping precursor/product m/z that may not match the provided transition list. In these cases there simply are no chroms to return.
+        // No chromatograms mapped to transitions: treat as a recoverable condition for SRM/MRM data.
+        // SRM/MRM mzML inputs are chromatogram-only (no spectra) and mapping relies on mapping precursor/product m/z that may not match the provided transition list. In these cases there simply are no chroms to return.
         // We remove the empty chroms downstream and only process those that were mapped successfully.
-        OPENMS_LOG_WARN << "DefaultChromHandler: SRM handler reported no iRT chromatograms: " << e.what() << " - returning empty result" << std::endl;
+        OPENMS_LOG_WARN << "DefaultChromHandler: SRM/MRM handler reported no iRT chromatograms: " << e.what() << " - returning empty result" << std::endl;
         return std::vector<MSChromatogram>();
       }
       catch (const std::exception& e)
       {
-        OPENMS_LOG_ERROR << "DefaultChromHandler: SRM handler failed for iRT collection: " << e.what() << std::endl;
+        OPENMS_LOG_ERROR << "DefaultChromHandler: SRM/MRM handler failed for iRT collection: " << e.what() << std::endl;
         throw;
       }
     }
@@ -94,22 +94,22 @@ namespace OpenMS
 
     if (srm_mode)
     {
-      OPENMS_LOG_DEBUG << "DefaultChromHandler: delegating transition extraction to SRM handler" << std::endl;
+      OPENMS_LOG_DEBUG << "DefaultChromHandler: delegating transition extraction to SRM/MRM handler" << std::endl;
       try
       {
         return srm_->extractAndMapChromatogramsForTransitions(swath_maps, transition_exp, cp, mrm_mapping_param);
       }
       catch (const Exception::IllegalArgument& e)
       {
-        // No chromatograms mapped to transitions: treat as a recoverable condition for SRM data.
-        // SRM mzML inputs are chromatogram-only (no spectra) and mapping relies on mapping precursor/product m/z that may not match the provided transition list. In these cases there simply are no chroms to return.
+        // No chromatograms mapped to transitions: treat as a recoverable condition for SRM/MRM data.
+        // SRM/MRM mzML inputs are chromatogram-only (no spectra) and mapping relies on mapping precursor/product m/z that may not match the provided transition list. In these cases there simply are no chroms to return.
         // We remove the empty chroms downstream and only process those that were mapped successfully.
-        OPENMS_LOG_WARN << "DefaultChromHandler: SRM handler reported no chromatograms mapped to transitions: " << e.what() << " - returning empty result" << std::endl;
+        OPENMS_LOG_WARN << "DefaultChromHandler: SRM/MRM handler reported no chromatograms mapped to transitions: " << e.what() << " - returning empty result" << std::endl;
         return std::vector<MSChromatogram>();
       }
       catch (const std::exception& e)
       {
-        OPENMS_LOG_ERROR << "DefaultChromHandler: SRM handler failed for transition extraction: " << e.what() << std::endl;
+        OPENMS_LOG_ERROR << "DefaultChromHandler: SRM/MRM handler failed for transition extraction: " << e.what() << std::endl;
         throw;
       }
     }

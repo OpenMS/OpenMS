@@ -95,7 +95,7 @@ protected:
      *  @param[in] use_ms1_ion_mobility Use ion mobility extraction on MS1 traces?
      *  @param[out] prm Is data acquired in targeted DIA (e.g. PRM mode) with potentially overlapping windows?
      *  @param[in] pasef Is this diaPASEF data?
-     *  @param[in] srm Is this SRM data?
+     *  @param[in] srm Is this SRM/MRM data?
      *  @param[in] threads_outer_loop How many threads should be used for the outer
      *  loop (-1 will use all threads in the outer loop)
      *
@@ -183,7 +183,7 @@ protected:
      * If set to true, a precursor will only be extracted from a single window
      * that matches in m/z and whose m/z center is *closest* to the library m/z
      * of the precursor. This is required if windows overlap in m/z as is the
-     * case for SRM / PRM data where often multiple windows with similar (or
+     * case for SRM/MRM / PRM data where often multiple windows with similar (or
      * overlaping) m/z are used to target different precursors at different RT.
     */
     bool prm_;
@@ -198,10 +198,10 @@ protected:
     */
     bool pasef_;
 
-    /** @brief Whether data is chromatogram-only SRM data
+    /** @brief Whether data is chromatogram-only SRM/MRM data
      *
      * If set to true, indicates that all swath_maps contain only chromatograms
-     * (no spectra) and the workflow should use SRM-specific processing.
+     * (no spectra) and the workflow should use SRM/MRM-specific processing.
     */
     bool srm_;
 
@@ -438,7 +438,7 @@ protected:
      *  @param[in] use_ms1_ion_mobility Whether to use ion mobility extraction on MS1 traces
      *  @param[out] prm Whether data is acquired in targeted DIA (e.g. PRM mode) with potentially overlapping windows
      *  @param[in] pasef Is this diaPASEF data?
-     *  @param[in] srm Is this SRM data?
+     *  @param[in] srm Is this SRM/MRM data?
      *  @param[in] threads_outer_loop How many threads should be used for the outer
      *  loop (-1 will use all threads in the outer loop)
      *

@@ -79,7 +79,7 @@ START_SECTION(std::vector<MSChromatogram> collectIrtChromatogramsForIrt(...))
 
   TransformationDescription trafo;
 
-  // Test the method - should delegate to SRM handler for non-MS1 data
+  // Test the method - should delegate to SRM/MRM handler for non-MS1 data
   std::vector<MSChromatogram> result = handler.collectIrtChromatogramsForIrt(
     swath_maps, irt_transitions, mrm_mapping_param, cp, trafo, false, false);
 
@@ -134,7 +134,7 @@ START_SECTION(std::vector<MSChromatogram> extractAndMapChromatogramsForTransitio
   ChromExtractParams cp;
   cp.rt_extraction_window = -1.0; // No RT filtering
 
-  // Test the method - should delegate to SRM handler for non-MS1 data
+  // Test the method - should delegate to SRM/MRM handler for non-MS1 data
   std::vector<MSChromatogram> result = handler.extractAndMapChromatogramsForTransitions(
     swath_maps, transition_exp, cp, mrm_mapping_param);
 

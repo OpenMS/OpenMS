@@ -23,23 +23,23 @@ namespace OpenSwath { struct LightTargetedExperiment; }
 namespace OpenMS
 {
 /**
-  @brief Default SRM chromatogram provider declaration
+  @brief Default SRM/MRM chromatogram provider declaration
 
-  The `SRMChromHandler` class is the default implementation of
+  The `MRMChromHandler` class is the default implementation of
   `IChromatogramHandler` used by OpenSwathWorkflow when running in SRM/MRM
-  mode. It delegates to the internal SRM helpers implemented in
-  `SRMChromHandler.cpp` for chromatogram collection and mapping.
+  mode. It delegates to the internal SRM/MRM helpers implemented in
+  `MRMChromHandler.cpp` for chromatogram collection and mapping.
 
   This header exposes the provider's public interface (only the class
-  declaration). The implementation is colocated in `SRMChromHandler.cpp` so the
+  declaration). The implementation is colocated in `MRMChromHandler.cpp` so the
   provider can remain a lightweight adapter while keeping implementation
   details private to the translation unit.
 */
-class OPENMS_DLLAPI SRMChromHandler : public IChromatogramHandler
+class OPENMS_DLLAPI MRMChromHandler : public IChromatogramHandler
 {
 public:
-  SRMChromHandler();
-  ~SRMChromHandler() override;
+  MRMChromHandler();
+  ~MRMChromHandler() override;
 
   std::vector<MSChromatogram> collectIrtChromatogramsForIrt(
     const std::vector< OpenSwath::SwathMap > & swath_maps,

@@ -9,7 +9,7 @@ IncludeExcludeTarget.h
 MRMMapping.h
 MetaboTargetedAssay.h
 MetaboTargetedTargetDecoy.h
-SRMChromHandler.h
+MRMChromHandler.h
 DIAChromHandler.h
 DefaultChromHandler.h
 TargetedExperiment.h

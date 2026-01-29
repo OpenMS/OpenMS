@@ -61,14 +61,14 @@ namespace OpenMS
     else if (file_list.size() > 1)
     {
       // Treat the list as multiple independent experiment files
-      // (e.g. multiple SRM / experiment mzMLs). Load each file individually
+      // (e.g. multiple SRM/MRM / experiment mzMLs). Load each file individually
       // and append their swath maps so they can be processed in a single run.
       for (const auto & f : file_list)
       {
         FileTypes::Type in_file_type = FileHandler::getTypeByFileName(f);
         if (in_file_type == FileTypes::MZML)
         {
-          // Dispatch to targeted loader which will choose SRM or SWATH path
+          // Dispatch to targeted loader which will choose SRM/MRM or SWATH path
           auto maps = TargetedDataFileLoader::loadFile(f, tmp, exp_meta, readoptions, plugin_consumer);
           for (auto & m : maps)
           {
@@ -106,7 +106,7 @@ namespace OpenMS
       FileTypes::Type in_file_type = FileHandler::getTypeByFileName(file_list[0]);
       if (in_file_type == FileTypes::MZML)
       {
-        // Dispatch to targeted loader which will choose SRM or SWATH path
+        // Dispatch to targeted loader which will choose SRM/MRM or SWATH path
         swath_maps = TargetedDataFileLoader::loadFile(file_list[0], tmp, exp_meta, readoptions, plugin_consumer);
         // single-file: all maps originate from file_list[0]
         swath_map_sources.clear();
@@ -152,24 +152,22 @@ namespace OpenMS
     // (i) Load files
     loadSwathFiles_(file_list, split_file, tmp, readoptions, exp_meta, swath_maps, swath_map_sources, plugin_consumer);
 
-    // (ii) Check consistency: all input files must be of the same type (SRM or DIA/PRM)
+    // (ii) Check consistency: all input files must be of the same type (SRM/MRM or DIA/PRM)
     if (!swath_maps.empty())
     {
       bool first_has_spectra = (swath_maps[0].sptr->getNrSpectra() > 0);
-      String first_file_type = first_has_spectra ? "DIA/PRM (spectra-based)" : "SRM (chromatogram-only)";
-
+      String first_file_type = first_has_spectra ? "DIA/PRM (spectra-based)" : "SRM/MRM (chromatogram-only)";
       for (Size i = 1; i < swath_maps.size(); ++i)
       {
         bool current_has_spectra = (swath_maps[i].sptr->getNrSpectra() > 0);
-        String current_file_type = current_has_spectra ? "DIA/PRM (spectra-based)" : "SRM (chromatogram-only)";
-
+        String current_file_type = current_has_spectra ? "DIA/PRM (spectra-based)" : "SRM/MRM (chromatogram-only)";
         if (current_has_spectra != first_has_spectra)
         {
           throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                            "Mixed input file types detected. All input files must be of the same type. "
                                            "First file '" + swath_map_sources[0] + "' is " + first_file_type + ", "
                                            "but file '" + swath_map_sources[i] + "' is " + current_file_type + ". "
-                                           "Please ensure all input files are either chromatogram-only (SRM) or spectra-based (DIA/PRM).");
+                                           "Please ensure all input files are either chromatogram-only (SRM/MRM) or spectra-based (DIA/PRM).");
         }
       }
     }

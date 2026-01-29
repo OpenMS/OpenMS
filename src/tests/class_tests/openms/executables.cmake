@@ -249,7 +249,7 @@ set(format_executables_list
   SequestOutfile_test
   SpecArrayFile_test
   SqMassFile_test
-  SRMFile_test
+  MRMFile_test
   SwathMapMassCorrection_test
   SwathFile_test
   SwathFileConsumer_test
@@ -503,7 +503,7 @@ set(analysis_executables_list
   TargetedExperimentHelper_test
   MRMFeaturePicker_test
   MRMMapping_test
-  SRMChromHandler_test
+  MRMChromHandler_test
   DefaultChromHandler_test
   DIAChromHandler_test
   ChromatogramProcessor_test

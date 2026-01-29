@@ -64,7 +64,7 @@ namespace OpenMS
     TransformationDescription trafo; // dummy
 
     // collect & map chromatograms for iRT calibration.
-    // The provider delegates to SRMChromHandler or DIAChromHandler as needed;
+    // The provider delegates to MRMChromHandler or DIAChromHandler as needed;
     {
       std::unique_ptr<IChromatogramHandler> provider = IChromatogramHandler::createDefault();
       irt_chromatograms = provider->collectIrtChromatogramsForIrt(swath_maps, irt_transitions, mrm_mapping_param, cp_irt, TransformationDescription(), pasef, load_into_memory);
@@ -919,7 +919,7 @@ namespace OpenMS
 
         if (chromatogram_map.find(transition->getNativeID()) == chromatogram_map.end())
         {
-          if (srm_) // in SRM mode, we can skip missing chromatograms, because it's unlikely that we will map all transitions to the already targeted extracted chromatograms
+          if (srm_) // in SRM/MRM mode, we can skip missing chromatograms, because it's unlikely that we will map all transitions to the already targeted extracted chromatograms
           {
             OPENMS_LOG_DEBUG << "Did not find chromatogram for transition " << transition->getNativeID()
                              << "; skipping this transition." << std::endl;
@@ -978,7 +978,7 @@ namespace OpenMS
       }
 
       // 3. / 4. Process the MRMTransitionGroup: find peakgroups and score them
-      // For SRM, If there are no chromatograms added to this transition_group (e.g. all transitions were unmapped/skipped), skip processing to avoid range errors in the picker/feature finder.
+      // For SRM/MRM, If there are no chromatograms added to this transition_group (e.g. all transitions were unmapped/skipped), skip processing to avoid range errors in the picker/feature finder.
       if (transition_group.getChromatograms().empty() && transition_group.getPrecursorChromatograms().empty())
       {
         OPENMS_LOG_DEBUG << "No chromatograms present for assay " << id << "; skipping scoring." << std::endl;

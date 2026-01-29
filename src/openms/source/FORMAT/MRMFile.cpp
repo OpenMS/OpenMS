@@ -6,24 +6,24 @@
 // $Authors: Justin Sing $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/SRMFile.h>
+#include <OpenMS/FORMAT/MRMFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/SwathFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h>
-#include <OpenMS/ANALYSIS/TARGETED/SRMChromHandler.h>
+#include <OpenMS/ANALYSIS/TARGETED/MRMChromHandler.h>
 #include <cstdio>
 
 namespace OpenMS
 {
 
-std::vector<::OpenSwath::SwathMap> SRMFile::loadMzML(const String& file,
+std::vector<::OpenSwath::SwathMap> MRMFile::loadMzML(const String& file,
                                                    const String& /*tmp*/, 
                                                    std::shared_ptr<ExperimentalSettings>& exp_meta)
 {
-  OPENMS_LOG_INFO << "Loading SRM mzML " << file << std::endl;
+  OPENMS_LOG_INFO << "Loading SRM/MRM mzML " << file << std::endl;
   std::shared_ptr<PeakMap> full_exp(new PeakMap);
   FileHandler fh;
   // load full chromatograms
@@ -33,7 +33,7 @@ std::vector<::OpenSwath::SwathMap> SRMFile::loadMzML(const String& file,
   for (Size i = 0; i < full_exp->getChromatograms().size(); ++i)
   {
     MSChromatogram & chrom = full_exp->getChromatograms()[i];
-    SRMChromHandler::normalizeChromatogramMZ(chrom);
+    MRMChromHandler::normalizeChromatogramMZ(chrom);
   }
 
   exp_meta = full_exp;

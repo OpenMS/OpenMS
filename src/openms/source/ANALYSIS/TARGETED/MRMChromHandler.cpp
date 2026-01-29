@@ -6,7 +6,7 @@
 // $Authors: Justin Sing $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/TARGETED/SRMChromHandler.h>
+#include <OpenMS/ANALYSIS/TARGETED/MRMChromHandler.h>
 #include <OpenMS/ANALYSIS/TARGETED/DefaultChromHandler.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMS.h>
@@ -23,10 +23,10 @@
 namespace OpenMS
 {
 
-  SRMChromHandler::SRMChromHandler() = default;
-  SRMChromHandler::~SRMChromHandler() = default;
+  MRMChromHandler::MRMChromHandler() = default;
+  MRMChromHandler::~MRMChromHandler() = default;
 
-  void SRMChromHandler::normalizeChromatogramMZ(MSChromatogram& chrom)
+  void MRMChromHandler::normalizeChromatogramMZ(MSChromatogram& chrom)
   {
     double prec_mz = chrom.getPrecursor().getMZ();
     double prod_mz = chrom.getProduct().getMZ();
@@ -97,7 +97,7 @@ namespace OpenMS
     if (!nid_out.empty()) chrom.setNativeID(nid_out);
   }
 
-  std::vector<MSChromatogram> SRMChromHandler::collectIrtChromatogramsForIrt(
+  std::vector<MSChromatogram> MRMChromHandler::collectIrtChromatogramsForIrt(
     const std::vector< OpenSwath::SwathMap > & swath_maps,
     const OpenSwath::LightTargetedExperiment & irt_transitions,
     const Param & mrm_mapping_param,
@@ -167,20 +167,20 @@ namespace OpenMS
     {
       // Mapping failed for iRT chromatograms: this is fatal for downstream
       // processing (can't calibrate without iRT matches). 
-      OPENMS_LOG_ERROR << "SRMChromHandler: MRMMapping failed: " << e.what()
+      OPENMS_LOG_ERROR << "MRMChromHandler: MRMMapping failed: " << e.what()
                        << " - aborting (iRT mapping required)." << std::endl;
       throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                          String("MRMMapping failed during iRT collection: ") + e.what());
     }
   }
 
-  std::vector<MSChromatogram> SRMChromHandler::extractAndMapChromatogramsForTransitions(
+  std::vector<MSChromatogram> MRMChromHandler::extractAndMapChromatogramsForTransitions(
     const std::vector< OpenSwath::SwathMap > & swath_maps,
     const OpenSwath::LightTargetedExperiment & transition_exp,
     const ChromExtractParams & cp,
     const Param & mrm_mapping_param)
   {
-    // cp parameter is not used in SRM handler as it works with pre-existing chromatograms
+    // cp parameter is not used in SRM/MRM handler as it works with pre-existing chromatograms
     (void)cp;
     // Collect all chromatograms first and store original native ids as meta values
     std::vector<MSChromatogram> all_chroms;
@@ -224,7 +224,7 @@ namespace OpenMS
       if (oset) ++prod_set_count;
       if (pset && oset) ++both_set_count;
     }
-    OPENMS_LOG_DEBUG << "SRM: chromatograms with precursor m/z=" << prec_set_count << ", product m/z=" << prod_set_count << ", both=" << both_set_count << " (total=" << all_chroms.size() << ")" << std::endl;
+    OPENMS_LOG_DEBUG << "SRM/MRM: chromatograms with precursor m/z=" << prec_set_count << ", product m/z=" << prod_set_count << ", both=" << both_set_count << " (total=" << all_chroms.size() << ")" << std::endl;
 
     // Filter out empty chromatograms before mapping
     std::vector<MSChromatogram> non_empty_chroms;
@@ -246,7 +246,7 @@ namespace OpenMS
     }
     catch (const std::exception & e)
     {
-      OPENMS_LOG_ERROR << "SRMChromHandler: MRMMapping failed: " << e.what()
+      OPENMS_LOG_ERROR << "MRMChromHandler: MRMMapping failed: " << e.what()
                       << " - aborting (transition-chromatogram experiment mapping)." << std::endl;
       throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                         String("MRMMapping failed during transition-chromatogram experiment mapping collection: ") + e.what());
@@ -279,7 +279,7 @@ namespace OpenMS
 
   std::unique_ptr<IChromatogramHandler> IChromatogramHandler::createDefault()
   {
-    // Return the default delegating handler which will pick SRM vs DIA at runtime
+    // Return the default delegating handler which will pick SRM/MRM vs DIA at runtime
     return std::unique_ptr<IChromatogramHandler>(new DefaultChromHandler());
   }
 

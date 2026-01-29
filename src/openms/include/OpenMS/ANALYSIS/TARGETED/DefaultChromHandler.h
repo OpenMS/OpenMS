@@ -9,13 +9,13 @@
 #pragma once
 
 #include <OpenMS/ANALYSIS/TARGETED/IChromatogramHandler.h>
-#include <OpenMS/ANALYSIS/TARGETED/SRMChromHandler.h>
+#include <OpenMS/ANALYSIS/TARGETED/MRMChromHandler.h>
 #include <OpenMS/ANALYSIS/TARGETED/DIAChromHandler.h>
 #include <memory>
 
 namespace OpenMS
 {
-  /// Default handler that delegates to SRM or DIA handler depending on input
+  /// Default handler that delegates to SRM/MRM or DIA handler depending on input
   class OPENMS_DLLAPI DefaultChromHandler : public IChromatogramHandler
   {
   public:
@@ -38,7 +38,7 @@ namespace OpenMS
       const Param & mrm_mapping_param) override;
 
   private:
-    std::unique_ptr<SRMChromHandler> srm_;
+    std::unique_ptr<MRMChromHandler> srm_;
     std::unique_ptr<DIAChromHandler> dia_;
   };
 
