@@ -599,6 +599,37 @@ SKIP_CLASSES = {
     "IMSWeights",                   # Not found in C++ headers (nested/helper class)
     "IntegerMassDecomposer",        # Uses IMSWeights which isn't bound
     "BilinearInterpolation",        # HANDWRITTEN_CLASS - template handled manually in pilot_classes.cpp
+
+    # Incomplete types in members/parameters
+    "CVMappingFile",                # Uses CVReference/CVMappingTerm (incomplete types)
+    "CVMappingRule",                # Uses CVMappingTerm (incomplete type)
+    "CVMappings",                   # Uses CVReference/CVMappingTerm (incomplete types)
+    "MassExplainer",                # Uses Compomer (incomplete type in vector member)
+    "ControlledVocabulary",         # Uses CVReference (incomplete type)
+    "SemanticValidator",            # No default constructor (needs ControlledVocabulary&)
+    "Date",                         # No default constructor (deleted)
+
+    # Scoped enums not in OpenMS namespace
+    "MzPAF",                        # MzPAFIonSeries/MzPAFDeltaUnit not in OpenMS:: namespace
+    "SignalToNoiseEstimatorMedianChrom",  # Type alias, not real class
+
+    # Const correctness issues
+    "CrossLinksDB",                 # Const method mismatch
+
+    # Constructor parameter issues (non-const lvalue ref from rvalue)
+    "MSPGenericFile",               # Constructor takes MSExperiment by non-const lvalue ref
+
+    # SQLite dependency issues
+    "OSWFile",                      # Depends on SqliteConnector which needs SQLite headers
+    "MzMLSqliteHandler",            # Depends on SqliteConnector which needs SQLite headers
+    "MzMLSqliteSwathHandler",       # Depends on SqliteConnector which needs SQLite headers
+
+    # Incomplete types in parameters / type caster issues
+    "ILPDCWrapper",                 # Uses ChargePair (incomplete type)
+    "FeatureDeconvolution",         # Uses map<String, Adduct> (type caster issue)
+    "Compomer",                     # Uses map<String, Adduct> (type caster issue)
+    "ChargePair",                   # Incomplete type (forward-declared)
+
 }
 
 # Classes with NON-VIRTUAL destructors - specifying these as base classes
@@ -631,6 +662,7 @@ SKIP_ENUMS = {
     "IMFormat",         # Already bound via SPECIAL_METHODS["__enums__"]
     "Method",           # Already bound via SPECIAL_METHODS["__enums__"] (RankData::Method)
     "NaNPolicy",        # Already bound via SPECIAL_METHODS["__enums__"] (RankData::NaNPolicy)
+    "IntensityThresholdCalculation",  # References SignalToNoiseEstimatorMedianChrom (skipped class)
 }
 
 # Additional headers needed for specific classes
@@ -717,7 +749,7 @@ ADDITIONAL_INCLUDES = {
     "OpenSwathOSWWriter": ["<OpenMS/ANALYSIS/OPENSWATH/OpenSwathOSWWriter.h>", "<OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>", "<OpenMS/KERNEL/FeatureMap.h>"],
     "OpenSwathHelper": ["<OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h>"],
     "OSWFile": ["<OpenMS/ANALYSIS/OPENSWATH/OpenSwathOSWWriter.h>"],
-    "MzMLSqliteHandler": ["<OpenMS/FORMAT/SqliteConnector.h>", "<OpenMS/FORMAT/MzMLSqliteHandler.h>"],
+    "MzMLSqliteHandler": ["<OpenMS/FORMAT/SqliteConnector.h>", "<OpenMS/FORMAT/HANDLERS/MzMLSqliteHandler.h>"],
     "MRMScoring": ["<OpenMS/ANALYSIS/OPENSWATH/MRMScoring.h>", "<OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>"],
     "TargetedExperimentHelper": ["<OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>"],
     "IsobaricQuantifier": ["<OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantifier.h>", "<OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantitationMethod.h>"],
@@ -5102,12 +5134,18 @@ class NanobindEmitterV2:
                 p.type_str,
                 canonical_type=getattr(p, 'canonical_type', ''),
             )
-            # Preserve non-const references (output parameters) so mutations
-            # are visible to the caller.
+            # Preserve references from the C++ signature:
+            # - Non-const references (output parameters) so mutations
+            #   are visible to the caller.
+            # - Const references for non-copyable types (e.g. QcMLFile).
+            #   Always preserving const& is safe and avoids copy issues.
             is_ref = getattr(p, 'is_reference', False) or '&' in p.type_str
             is_const = getattr(p, 'is_const', False) or 'const' in p.type_str
-            if is_ref and not is_const and '&' not in ptype:
-                ptype = ptype + '&'
+            if is_ref and '&' not in ptype:
+                if is_const:
+                    ptype = f"const {ptype}&"
+                else:
+                    ptype = ptype + '&'
             valid_name = (
                 p.name
                 and not p.name.startswith("arg")
