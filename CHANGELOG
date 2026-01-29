@@ -67,6 +67,7 @@ PyOpenMS:
   - BREAKING: Metadata enums converted to strongly typed enum classes (#8604)
   - BREAKING: Activation methods enum handling changed (#8405)
   - BREAKING: DataFrame methods renamed to Pythonic conventions: get_df() → to_df(), get_df_columns() → df_columns(), etc. Deprecated aliases provided for backward compatibility (#8655)
+  - BREAKING: DataFrame column types updated: `feature_id` is now `uint64` (was string/object) to support reliable merging. String columns are now `object` dtype (was limited `Uxx`) to prevent truncation.
   - Fix: getAAFrequencies() loop bug in AASequence addon (#8502)
   - Fix: Duplicate functions removed from IdXMLFile.pxd (#8551)
   - Test: Docstring format validation tests added (#8674)

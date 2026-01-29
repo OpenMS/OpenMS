@@ -115,6 +115,9 @@ import numpy as np
 
             >>> fmap.df_columns()
             ['feature_id', 'peptide_sequence', 'charge', 'rt', 'mz', ...]
+        
+        Note:
+            - 'feature_id' is of type uint64 to support reliable merging.
         """
         cols = ['feature_id']
 
@@ -161,6 +164,10 @@ import numpy as np
         Generates a pandas DataFrame with information contained in the FeatureMap.
 
         Optionally the feature meta values and information for the assigned PeptideHit can be exported.
+
+        .. note::
+            - **Breaking Change**: `feature_id` column is now `uint64` (previously string/object) to support reliable merging.
+            - String columns are now `object` dtype (instead of fixed-length `Uxx`) to prevent truncation.
 
         :param columns: List of column names to include. If None,
                         includes all columns. Use df_columns() to discover available columns.

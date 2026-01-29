@@ -79,6 +79,10 @@ import numpy as np
 
         Converts the peptide identifications to a pandas DataFrame.
 
+        .. note::
+            - **Breaking Change**: `feature_id` column is now `uint64` (previously string/object) to support reliable merging.
+            - String columns are now `object` dtype (instead of fixed-length `Uxx`) to prevent truncation.
+
         :param decode_ontology: Decode meta value names using the PSI-MS ontology.
                                 Default True.
         :type decode_ontology: bool
