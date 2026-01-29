@@ -165,13 +165,17 @@ class TestLightTargetedExperimentStringInput(unittest.TestCase):
         """Test LightTransition.setFragmentType accepts str."""
         transition = pyopenms.LightTransition()
         transition.setFragmentType("y")
-        self.assertEqual(transition.getFragmentType(), b"y")
+        # getFragmentType returns str (nanobind) or bytes (Cython)
+        result = transition.getFragmentType()
+        self.assertIn(result, ("y", b"y"))
 
     def test_setFragmentType_with_bytes(self):
         """Test LightTransition.setFragmentType still accepts bytes."""
         transition = pyopenms.LightTransition()
         transition.setFragmentType(b"b")
-        self.assertEqual(transition.getFragmentType(), b"b")
+        # getFragmentType returns str (nanobind) or bytes (Cython)
+        result = transition.getFragmentType()
+        self.assertIn(result, ("b", b"b"))
 
     def test_getCompoundByRef_method_exists(self):
         """Test LightTargetedExperiment.getCompoundByRef method exists."""

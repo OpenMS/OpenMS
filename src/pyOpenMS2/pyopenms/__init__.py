@@ -49,9 +49,11 @@ def _import_submodules():
             for name in dir(mod):
                 if not name.startswith("_"):
                     globals()[name] = getattr(mod, name)
-        except ImportError:
+        except Exception as e:
             # Module exists but failed to load - continue to next
-            pass
+            import warnings, traceback
+            warnings.warn(f"Failed to import {module_name}: {type(e).__name__}: {e}")
+            traceback.print_exc()
         i += 1
 
     if not _imported_modules:
@@ -71,6 +73,65 @@ from ._dataframes import DataFrameMixin
 from .addons import apply_addons
 
 apply_addons(globals())
+
+# Add nested enum aliases for backwards compatibility with pyOpenMS (autowrap)
+# These enums are defined inside C++ classes but exposed at module level in nanobind
+# For compatibility, also add them as class attributes
+_NESTED_ENUM_ALIASES = {
+    "SpectrumSettings": ["SpectrumType"],
+    "ChromatogramSettings": ["ChromatogramType"],
+    "IonSource": ["Polarity", "InletType", "IonizationMethod"],
+    "SourceFile": ["ChecksumType"],
+    "ProteinIdentification": ["PeakMassType"],
+    "Instrument": ["IonOpticsType"],
+    "InstrumentSettings": ["ScanMode"],
+    "IonDetector": ["Type", "AcquisitionMode"],
+    "PercolatorOutfile": ["ScoreType"],
+    "MassAnalyzer": ["AnalyzerType", "ResolutionMethod", "ResolutionType", "ScanDirection", "ScanLaw", "ReflectronState"],
+    "Sample": ["SampleState"],
+    "Precursor": ["ActivationMethod"],
+    "MZTrafoModel": ["MODELTYPE"],
+    "MultipleTesting": ["Pi0Method", "LfdrTransform"],
+    "RankData": ["Method", "NaNPolicy"],
+    "MSNumpressCoder": ["NumpressCompression"],
+    "DataProcessing": ["ProcessingAction"],
+    "FileTypes": ["Type"],
+    "PeakGroup": ["TargetDecoyType"],
+}
+
+for class_name, enum_names in _NESTED_ENUM_ALIASES.items():
+    if class_name in globals():
+        cls = globals()[class_name]
+        for enum_name in enum_names:
+            if enum_name in globals() and not hasattr(cls, enum_name):
+                try:
+                    setattr(cls, enum_name, globals()[enum_name])
+                except (TypeError, AttributeError):
+                    pass  # Some classes may not allow attribute assignment
+
+del _NESTED_ENUM_ALIASES
+
+# Add backward-compatible aliases
+if "MSExperiment" in globals():
+    globals()["PeakMap"] = globals()["MSExperiment"]
+if "MSSpectrum" in globals():
+    globals()["PeakSpectrum"] = globals()["MSSpectrum"]
+
+# Create Interfaces namespace for pyopenms.Interfaces.Spectrum / Chromatogram
+class _InterfacesNamespace:
+    """Namespace for OpenMS::Interfaces data structures."""
+    pass
+
+_interfaces = _InterfacesNamespace()
+if "Spectrum" in globals():
+    _interfaces.Spectrum = globals()["Spectrum"]
+if "Chromatogram" in globals():
+    _interfaces.Chromatogram = globals()["Chromatogram"]
+globals()["Interfaces"] = _interfaces
+del _interfaces, _InterfacesNamespace
+
+# Add module-level DataFrame utility functions (backward compatibility)
+from ._dataframes_compat import peptide_identifications_to_df, update_scores_from_df
 
 # Clean up namespace
 del _import_submodules, apply_addons, DataFrameMixin
