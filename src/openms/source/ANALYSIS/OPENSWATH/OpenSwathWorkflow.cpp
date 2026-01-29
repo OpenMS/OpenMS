@@ -1028,10 +1028,30 @@ namespace OpenMS
       }
       catch (const Exception::InvalidRange & e)
       {
+        // In SRM/MRM mode extraction/mapping failures are common for noisy or
+        // partially-mapped chromatograms -> log and continue. In DIA mode an
+        // InvalidRange usually indicates a real extraction/mapping bug and
+        // should surface during CI, so re-throw to fail fast.
+        if (!mrm_)
+        {
+          throw;
+        }
         OPENMS_LOG_ERROR << "InvalidRange while picking transition group for assay " << id
                          << " - transitions=" << transition_group.getTransitions().size()
                          << ", chroms=" << transition_group.getChromatograms().size()
                          << ", prec_chroms=" << transition_group.getPrecursorChromatograms().size()
+                         << ": " << e.getMessage() << " - skipping assay." << std::endl;
+        continue;
+      }
+      catch (const Exception::IllegalArgument & e)
+      {
+        // IllegalArgument may be thrown when mapping fails (e.g. no matching
+        // chromatograms). Treat mode-specifically similar to InvalidRange.
+        if (!mrm_)
+        {
+          throw;
+        }
+        OPENMS_LOG_ERROR << "IllegalArgument while picking transition group for assay " << id
                          << ": " << e.getMessage() << " - skipping assay." << std::endl;
         continue;
       }
@@ -1048,10 +1068,24 @@ namespace OpenMS
       }
       catch (const Exception::InvalidRange & e)
       {
+        if (!mrm_)
+        {
+          throw;
+        }
         OPENMS_LOG_ERROR << "InvalidRange while scoring transition group for assay " << id
                          << " - transitions=" << transition_group.getTransitions().size()
                          << ", chroms=" << transition_group.getChromatograms().size()
                          << ", prec_chroms=" << transition_group.getPrecursorChromatograms().size()
+                         << ": " << e.getMessage() << " - skipping assay." << std::endl;
+        continue;
+      }
+      catch (const Exception::IllegalArgument & e)
+      {
+        if (!mrm_)
+        {
+          throw;
+        }
+        OPENMS_LOG_ERROR << "IllegalArgument while scoring transition group for assay " << id
                          << ": " << e.getMessage() << " - skipping assay." << std::endl;
         continue;
       }
