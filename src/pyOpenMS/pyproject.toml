@@ -134,7 +134,6 @@ include = [
 
 [tool.py-build-cmake.cmake]
 # CMake build configuration
-generator = "Ninja"
 build_type = "Release"
 source_path = "."
 install_args = ["--strip"]
