@@ -18,12 +18,18 @@ cmake --build OpenMS-build --target pyopenms2 -j$(nproc)
 # Test
 PYTHONPATH=OpenMS-build/pyOpenMS2 python3 -m pytest src/pyOpenMS2/tests/ -v
 
-# Run generator only
-cd src/pyOpenMS2 && python -m generator --pxd-dir ../pyOpenMS/pxds --addons-dir ../pyOpenMS/addons --output-dir generated --dry-run
+# Run generator only (dry-run)
+cd src/pyOpenMS2 && python -m generator --pxd-dir ../pyOpenMS/pxds --addons-dir ../pyOpenMS/addons --output-dir generated --dry-run --openms-include-dir ../../src/openms/include ../../OpenMS-build/src/openms/include
 
 # Generate bindings
-cd src/pyOpenMS2 && python -m generator --pxd-dir ../pyOpenMS/pxds --addons-dir ../pyOpenMS/addons --output-dir bindings/generated --num-modules 8
+cd src/pyOpenMS2 && python -m generator --pxd-dir ../pyOpenMS/pxds --addons-dir ../pyOpenMS/addons --output-dir bindings/generated --num-modules 8 --all-classes --openms-include-dir ../../src/openms/include ../../OpenMS-build/src/openms/include
 ```
+
+## Build Gotchas
+
+- **Generator needs both include dirs**: `--openms-include-dir` must include both the source tree (`src/openms/include`) and the build tree (`OpenMS-build/src/openms/include`). The build tree contains generated headers like `OpenMS/config.h`. Without it, libclang fails to parse most headers (42 classes instead of 772+).
+- **CMake handles this automatically** via `INTERFACE_INCLUDE_DIRECTORIES` on the OpenMS target. The issue only arises when running the generator manually.
+- **Feature parity testing**: Run old pyOpenMS tests against the pyOpenMS2 build with `PYTHONPATH=OpenMS-build/pyOpenMS2-build python3 -m pytest src/pyOpenMS/tests/unittests/ -v`. This requires a shim that redirects `import pyopenms` to pyOpenMS2.
 
 ## Generator Components
 
