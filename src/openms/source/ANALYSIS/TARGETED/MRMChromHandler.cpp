@@ -48,7 +48,16 @@ namespace OpenMS
           p.setMZ(prec_mz);
           chrom.setPrecursor(p);
         }
-        catch (...) {}
+        catch (const std::exception & e)
+        {
+          OPENMS_LOG_WARN << "Failed to parse precursor m/z for chromatogram (nativeID="
+                          << chrom.getNativeID() << "): " << e.what() << std::endl;
+        }
+        catch (...)
+        {
+          OPENMS_LOG_WARN << "Unknown error while parsing precursor m/z for chromatogram (nativeID="
+                          << chrom.getNativeID() << ")." << std::endl;
+        }
       }
     }
 
@@ -58,14 +67,10 @@ namespace OpenMS
       auto it = prod_terms.find("MS:1000827");
       if (it != prod_terms.end() && !it->second.empty())
       {
-        try
-        {
-          prod_mz = it->second[0].getValue().toString().toDouble();
-          Product q = chrom.getProduct();
-          q.setMZ(prod_mz);
-          chrom.setProduct(q);
-        }
-        catch (...) {}
+        prod_mz = it->second[0].getValue().toString().toDouble();
+        Product q = chrom.getProduct();
+        q.setMZ(prod_mz);
+        chrom.setProduct(q);
       }
     }
 
@@ -147,7 +152,22 @@ namespace OpenMS
       MRMMapping mapper;
       Param mrm_p = mapper.getParameters();
       mrm_p.update(mrm_mapping_param, false, false, false, false, getGlobalLogDebug());
-      mrm_p.setValue("map_multiple_assays", "true");
+      // For iRT calibration we prefer to allow multiple assay mappings to
+      // maximize the number of candidate iRT chromatograms mapped. However,
+      // preserve explicit user intent: if the user provided a value for
+      // `map_multiple_assays` in `mrm_mapping_param`, respect that setting
+      // instead of forcing an override.
+      if (!mrm_mapping_param.exists("map_multiple_assays"))
+      {
+        mrm_p.setValue("map_multiple_assays", "true");
+      }
+      else
+      {
+        // Respect user-specified value; log at debug level for traceability.
+        OPENMS_LOG_DEBUG << "MRMChromHandler: preserving user-provided 'map_multiple_assays' = "
+                         << mrm_mapping_param.getValue("map_multiple_assays").toString()
+                         << " for iRT mapping." << std::endl;
+      }
       mapper.setParameters(mrm_p);
       mapper.mapExperiment(pm, irt_transitions, mapped_pm);
       std::vector<MSChromatogram> result = mapped_pm.getChromatograms();
