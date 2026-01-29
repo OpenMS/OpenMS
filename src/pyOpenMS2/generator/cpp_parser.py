@@ -292,7 +292,7 @@ class CppHeaderParser:
     @staticmethod
     def _normalize_filename(filename: str) -> str:
         """Normalize a filename for stable comparisons across platforms."""
-        return os.path.normpath(filename)
+        return os.path.normpath(os.path.abspath(filename))
 
     def _get_cache_key(self, header_path: Path) -> str:
         """Generate a cache key for a header file based on path and mtime."""
@@ -652,6 +652,9 @@ class CppHeaderParser:
         # Process members (including nested classes)
         self._process_class_members(cursor, cpp_class, out_classes, flattened_name)
 
+        # Collect inherited public methods from base classes
+        self._collect_inherited_methods(cursor, cpp_class)
+
         # Check if abstract (has any pure virtual methods)
         cpp_class.is_abstract = any(m.is_pure_virtual for m in cpp_class.methods)
 
@@ -806,6 +809,48 @@ class CppHeaderParser:
 
         # Detect method overloads
         self._detect_overloads(cpp_class)
+
+    def _collect_inherited_methods(self, cursor, cpp_class: CppClass):
+        """Collect public methods from base classes (recursively).
+
+        This ensures that classes with skipped base class specification
+        (e.g., MSSpectrum with private std::vector base) still expose
+        inherited methods like setNativeID from SpectrumSettings.
+        """
+        existing_methods = {m.name for m in cpp_class.methods}
+        visited = set()
+
+        def _walk_bases(cls_cursor):
+            for child in cls_cursor.get_children():
+                if child.kind != CursorKind.CXX_BASE_SPECIFIER:
+                    continue
+                # Resolve the base class definition
+                base_type = child.type
+                base_decl = base_type.get_declaration()
+                if not base_decl or not base_decl.location or not base_decl.location.file:
+                    continue
+                base_id = (base_decl.spelling, str(base_decl.location.file))
+                if base_id in visited:
+                    continue
+                visited.add(base_id)
+
+                # Collect public methods from this base
+                for member in base_decl.get_children():
+                    if member.kind == CursorKind.CXX_METHOD:
+                        if member.access_specifier == AccessSpecifier.PUBLIC:
+                            if member.spelling not in existing_methods:
+                                try:
+                                    method = self._process_method(member)
+                                    method.access = "public"
+                                    cpp_class.methods.append(method)
+                                    existing_methods.add(method.name)
+                                except Exception:
+                                    pass  # Skip methods that fail to parse
+
+                # Recurse into base's bases
+                _walk_bases(base_decl)
+
+        _walk_bases(cursor)
 
     def _process_method(self, cursor, is_constructor: bool = False) -> CppMethod:
         """Process a method declaration."""
@@ -1134,25 +1179,43 @@ def merge_with_pxd(
 
     for class_name, pxd_class in pxd_classes.items():
         if class_name not in cpp_classes:
-            # Check if this class should use .pxd fallback
             if class_name in FALLBACK_TO_PXD:
                 logger.info(f"Class {class_name} using .pxd fallback (not found in C++ headers)")
-                # Use pxd_to_merged for single class
                 fallback = _create_fallback_merged_class(class_name, pxd_class)
                 if fallback:
                     merged[class_name] = fallback
-                continue
-            logger.warning(f"Class {class_name} in .pxd but not found in C++ headers")
+            else:
+                logger.debug(f"Class {class_name} in .pxd but not found in C++ headers")
             continue
 
         cpp_class = cpp_classes[class_name]
 
         # Build method allowlist from .pxd with directives
+        # Include methods from base class pxds (wrap-inherits)
         pxd_methods_by_name = {}
         for m in pxd_class.methods:
             if m.name not in pxd_methods_by_name:
                 pxd_methods_by_name[m.name] = []
             pxd_methods_by_name[m.name].append(m)
+
+        # Add inherited methods from base class pxds (recursively)
+        def _add_base_pxd_methods(base_names):
+            for base_name in base_names:
+                if base_name in pxd_classes:
+                    for m in pxd_classes[base_name].methods:
+                        if m.name not in pxd_methods_by_name:
+                            pxd_methods_by_name[m.name] = []
+                            pxd_methods_by_name[m.name].append(m)
+                    # Recurse into base's bases
+                    _add_base_pxd_methods(getattr(pxd_classes[base_name], 'base_classes', []))
+        _add_base_pxd_methods(getattr(pxd_class, 'base_classes', []))
+
+        if class_name == "MSSpectrum":
+            logger.info(f"MSSpectrum pxd base_classes: {getattr(pxd_class, 'base_classes', [])}")
+            logger.info(f"MSSpectrum pxd allowlist has setNativeID: {'setNativeID' in pxd_methods_by_name}")
+            logger.info(f"MSSpectrum pxd allowlist has setPrecursors: {'setPrecursors' in pxd_methods_by_name}")
+            logger.info(f"MSSpectrum cpp methods count: {len(cpp_class.methods)}")
+            logger.info(f"MSSpectrum cpp has setNativeID: {any(m.name == 'setNativeID' for m in cpp_class.methods)}")
 
         # Match C++ methods with .pxd declarations
         merged_methods = []

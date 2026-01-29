@@ -63,6 +63,28 @@ def apply_addons(namespace: Dict[str, Any]) -> None:
     # First, import all addon modules to populate the registry
     _import_addon_modules()
 
+    # Inject pure Python wrapper classes into the namespace
+    from .string_class import String
+    from .datavalue_class import DataValue, DataType
+    from .math_class import Math
+    from .singletons import make_singleton_callable, SINGLETON_CLASSES
+    from .convexhull import WRAP_CLASSES as CONVEXHULL_WRAPS
+
+    namespace["String"] = String
+    namespace["DataValue"] = DataValue
+    namespace["DataType"] = DataType
+    namespace["Math"] = Math
+
+    # Wrap singleton classes so ClassName() returns getInstance()
+    for cls_name in SINGLETON_CLASSES:
+        if cls_name in namespace:
+            namespace[cls_name] = make_singleton_callable(namespace[cls_name])
+
+    # Apply class wrapping (e.g. numpy array returns)
+    for cls_name, setup_fn in CONVEXHULL_WRAPS.items():
+        if cls_name in namespace:
+            setup_fn(namespace[cls_name])
+
     # Then apply addons to classes
     for class_name, methods in _addon_registry.items():
         if class_name in namespace:

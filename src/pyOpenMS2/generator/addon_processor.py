@@ -145,7 +145,7 @@ class AddonProcessor:
         # Pattern for def statements at the start of a line or indented
         # Addons don't have class definitions - methods are injected directly
         method_pattern = re.compile(
-            r"^(\s*)def\s+(\w+)\s*\(([^)]*)\)\s*:",
+            r"^([ \t]*)def\s+(\w+)\s*\(([^)]*)\)\s*:",
             re.MULTILINE
         )
 

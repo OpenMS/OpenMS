@@ -2,7 +2,7 @@
 Addon methods for MSSpectrum class.
 
 Performance-critical methods (get_peaks, set_peaks) are implemented in C++.
-This file contains pure Python helper methods.
+This file contains pure Python helper methods including DataFrame export.
 """
 
 from __future__ import annotations
@@ -19,7 +19,6 @@ if TYPE_CHECKING:
 
 @addon("MSSpectrum")
 def __repr__(self) -> str:
-    """Return string representation of MSSpectrum."""
     return (
         f"MSSpectrum(n_peaks={len(self)}, "
         f"rt={self.getRT():.2f}s, "
@@ -29,98 +28,215 @@ def __repr__(self) -> str:
 
 @addon("MSSpectrum")
 def __str__(self) -> str:
-    """Return user-friendly string of MSSpectrum."""
     return f"MSSpectrum with {len(self)} peaks at RT={self.getRT():.2f}s"
 
 
 @addon("MSSpectrum")
-def get_data_dict(
-    self,
-    columns: Optional[Sequence[str]] = None,
-    export_meta_values: bool = True,
-) -> Dict[str, np.ndarray]:
-    """
-    Get spectrum data as a dictionary of numpy arrays.
+def df_columns(self, columns='default', export_meta_values=True):
+    """Returns a list of column names that to_df() would produce."""
+    cols = ['mz', 'intensity', 'rt', 'ms_level', 'native_id']
 
-    This is the foundation for DataFrame export. Use `to_df()` for
-    pandas DataFrame output.
+    if self.containsIMData():
+        cols.append('ion_mobility')
+        if columns == 'all':
+            cols.append('ion_mobility_unit')
 
-    Parameters
-    ----------
-    columns : sequence of str, optional
-        Columns to include. If None, includes mz, intensity.
-    export_meta_values : bool, default True
-        Whether to include meta values from float/int/string data arrays.
+    if len(self.getPrecursors()) > 0:
+        cols.extend(['precursor_mz', 'precursor_charge'])
 
-    Returns
-    -------
-    dict
-        Dictionary mapping column names to numpy arrays.
-    """
-    # Get peaks (implemented in C++ for performance)
-    mz, intensity = self.get_peaks()
+    for sda in self.getStringDataArrays():
+        name = sda.getName()
+        if name == 'IonNames':
+            cols.append('ion_annotation')
+            if columns == 'all':
+                cols.append(f'string_array:{name}')
+        elif columns == 'all':
+            cols.append(f'string_array:{name}')
 
-    data = {
-        "mz": mz,
-        "intensity": intensity,
-    }
-
-    # Filter columns if specified
-    if columns is not None:
-        columns_set = set(columns)
-        data = {k: v for k, v in data.items() if k in columns_set}
-
-    # Add meta values from data arrays
-    if export_meta_values:
-        # Float data arrays
+    if columns == 'all':
         for fda in self.getFloatDataArrays():
-            name = fda.getName()
-            if columns is None or name in columns:
-                arr = np.array([fda[i] for i in range(len(fda))], dtype=np.float32)
-                data[name] = arr
-
-        # Integer data arrays
+            cols.append(f'float_array:{fda.getName()}')
         for ida in self.getIntegerDataArrays():
-            name = ida.getName()
-            if columns is None or name in columns:
-                arr = np.array([ida[i] for i in range(len(ida))], dtype=np.int32)
-                data[name] = arr
+            cols.append(f'int_array:{ida.getName()}')
 
-        # String data arrays
-        for sda in self.getStringDataArrays():
-            name = sda.getName()
-            if columns is None or name in columns:
-                arr = np.array([sda[i] for i in range(len(sda))], dtype=object)
-                data[name] = arr
+    if export_meta_values:
+        mvs = []
+        self.getKeys(mvs)
+        for k in mvs:
+            k_str = k.decode() if isinstance(k, bytes) else k
+            cols.append(k_str)
 
-    return data
+    return cols
 
 
 @addon("MSSpectrum")
-def to_df(
-    self,
-    columns: Optional[Sequence[str]] = None,
-    export_meta_values: bool = True,
-) -> "pd.DataFrame":
-    """
-    Export spectrum to a pandas DataFrame.
+def get_data_dict(self, columns=None, export_meta_values=True):
+    """Returns a dictionary of NumPy arrays with m/z, intensities, and metadata."""
+    mzs, intensities = self.get_peaks()
+    cnt = len(mzs)
 
-    Parameters
-    ----------
-    columns : sequence of str, optional
-        Columns to include.
-    export_meta_values : bool, default True
-        Whether to include meta values.
+    if columns is not None:
+        requested = set(columns)
+    else:
+        requested = None
 
-    Returns
-    -------
-    pd.DataFrame
-        DataFrame with spectrum data.
-    """
+    def want(col):
+        return requested is None or col in requested
+
+    data_dict = {}
+
+    if want('mz'):
+        data_dict['mz'] = mzs
+    if want('intensity'):
+        data_dict['intensity'] = intensities
+
+    if want('rt'):
+        data_dict['rt'] = np.full(cnt, self.getRT(), dtype=np.float64)
+    if want('ms_level'):
+        data_dict['ms_level'] = np.full(cnt, self.getMSLevel(), dtype=np.uint16)
+    if want('native_id'):
+        data_dict['native_id'] = np.full(cnt, self.getNativeID(), dtype='U100')
+
+    if want('ion_mobility') or want('ion_mobility_unit'):
+        if self.containsIMData():
+            im_index, drift_time_unit = self.getIMData()
+            im_arrays = self.getFloatDataArrays()
+            if want('ion_mobility'):
+                if 0 <= im_index < len(im_arrays):
+                    data_dict['ion_mobility'] = np.array(
+                        [im_arrays[im_index][i] for i in range(cnt)],
+                        dtype=np.float64
+                    )
+                else:
+                    data_dict['ion_mobility'] = np.full(cnt, np.nan, dtype=np.float64)
+            if want('ion_mobility_unit'):
+                data_dict['ion_mobility_unit'] = np.full(
+                    cnt, self.getDriftTimeUnitAsString(), dtype='U50'
+                )
+        else:
+            if requested is not None:
+                if want('ion_mobility'):
+                    data_dict['ion_mobility'] = np.full(cnt, np.nan, dtype=np.float64)
+                if want('ion_mobility_unit'):
+                    data_dict['ion_mobility_unit'] = np.full(cnt, '', dtype='U1')
+
+    if want('precursor_mz') or want('precursor_charge'):
+        precursors = self.getPrecursors()
+        if len(precursors) > 0:
+            precursor = precursors[0]
+            if want('precursor_mz'):
+                data_dict['precursor_mz'] = np.full(cnt, precursor.getMZ(), dtype=np.float64)
+            if want('precursor_charge'):
+                data_dict['precursor_charge'] = np.full(cnt, precursor.getCharge(), dtype=np.int16)
+        else:
+            if requested is not None:
+                if want('precursor_mz'):
+                    data_dict['precursor_mz'] = np.full(cnt, np.nan, dtype=np.float64)
+                if want('precursor_charge'):
+                    data_dict['precursor_charge'] = np.full(cnt, 0, dtype=np.int16)
+
+    if want('ion_annotation'):
+        ion_annotations = np.full(cnt, '', dtype='U1')
+        for sda in self.getStringDataArrays():
+            if sda.getName() == 'IonNames':
+                if len(sda) == cnt:
+                    annotations = [s for s in sda]
+                    max_len = max((len(s) for s in annotations), default=1)
+                    ion_annotations = np.array(annotations, dtype=f'U{max_len}')
+                break
+        if requested is not None or any(ion_annotations != ''):
+            data_dict['ion_annotation'] = ion_annotations
+
+    # Meta values
+    if requested is None and export_meta_values:
+        mvs = []
+        self.getKeys(mvs)
+        for k in mvs:
+            if not self.metaValueExists(k):
+                continue
+            v = self.getMetaValue(k)
+            k_str = k.decode() if isinstance(k, bytes) else k
+            try:
+                if type(v) is type(True):
+                    data_dict[k_str] = np.full(cnt, v, dtype=np.bool_)
+                elif isinstance(v, int):
+                    data_dict[k_str] = np.full(cnt, v, dtype=np.int64)
+                elif isinstance(v, float):
+                    data_dict[k_str] = np.full(cnt, v, dtype=np.float64)
+                elif isinstance(v, str):
+                    data_dict[k_str] = np.full(cnt, v, dtype=f"U{max(len(v), 1)}")
+                else:
+                    data_dict[k_str] = np.full(cnt, str(v), dtype='object')
+            except Exception:
+                data_dict[k_str] = np.full(cnt, str(v), dtype='object')
+    elif requested is not None:
+        mvs = []
+        self.getKeys(mvs)
+        mv_names = {(k.decode() if isinstance(k, bytes) else k): k for k in mvs}
+        for col in requested:
+            if col in mv_names:
+                k = mv_names[col]
+                if self.metaValueExists(k):
+                    v = self.getMetaValue(k)
+                    try:
+                        if type(v) is type(True):
+                            data_dict[col] = np.full(cnt, v, dtype=np.bool_)
+                        elif isinstance(v, int):
+                            data_dict[col] = np.full(cnt, v, dtype=np.int64)
+                        elif isinstance(v, float):
+                            data_dict[col] = np.full(cnt, v, dtype=np.float64)
+                        elif isinstance(v, str):
+                            data_dict[col] = np.full(cnt, v, dtype=f"U{max(len(v), 1)}")
+                        else:
+                            data_dict[col] = np.full(cnt, str(v), dtype='object')
+                    except Exception:
+                        data_dict[col] = np.full(cnt, str(v), dtype='object')
+
+    # Custom data arrays - only when explicitly requested
+    if requested is not None:
+        for fda in self.getFloatDataArrays():
+            col_name = f'float_array:{fda.getName()}'
+            if col_name in requested:
+                if len(fda) == cnt:
+                    data_dict[col_name] = np.array([fda[j] for j in range(cnt)], dtype=np.float32)
+                else:
+                    data_dict[col_name] = np.full(cnt, np.nan, dtype=np.float32)
+
+        for ida in self.getIntegerDataArrays():
+            col_name = f'int_array:{ida.getName()}'
+            if col_name in requested:
+                if len(ida) == cnt:
+                    data_dict[col_name] = np.array([ida[j] for j in range(cnt)], dtype=np.int64)
+                else:
+                    data_dict[col_name] = np.full(cnt, 0, dtype=np.int64)
+
+        for sda in self.getStringDataArrays():
+            col_name = f'string_array:{sda.getName()}'
+            if col_name in requested:
+                if len(sda) == cnt:
+                    strings = [s for s in sda]
+                    max_len = max((len(s) for s in strings), default=1)
+                    data_dict[col_name] = np.array(strings, dtype=f'U{max_len}')
+                else:
+                    data_dict[col_name] = np.full(cnt, '', dtype='U1')
+
+    return data_dict
+
+
+@addon("MSSpectrum")
+def to_df(self, columns=None, export_meta_values=True):
+    """Returns a pandas DataFrame representation of the MSSpectrum."""
     import pandas as pd
+    data_dict = self.get_data_dict(columns=columns, export_meta_values=export_meta_values)
+    return pd.DataFrame(data_dict)
 
-    data = self.get_data_dict(columns=columns, export_meta_values=export_meta_values)
-    return pd.DataFrame(data)
+
+@addon("MSSpectrum")
+def to_arrow(self, columns=None, export_meta_values=True):
+    """Returns an Apache Arrow Table representation of the MSSpectrum."""
+    import pyarrow as pa
+    data_dict = self.get_data_dict(columns=columns, export_meta_values=export_meta_values)
+    return pa.Table.from_pydict(data_dict)
 
 
 @addon("MSSpectrum")
@@ -131,17 +247,9 @@ def get_tic(self) -> float:
 
 @addon("MSSpectrum")
 def get_base_peak(self) -> Tuple[float, float]:
-    """
-    Get the base peak (highest intensity peak).
-
-    Returns
-    -------
-    tuple
-        (mz, intensity) of the base peak, or (0, 0) if spectrum is empty.
-    """
+    """Get the base peak (highest intensity peak)."""
     if len(self) == 0:
         return (0.0, 0.0)
-
     mz, intensity = self.get_peaks()
     idx = np.argmax(intensity)
     return (mz[idx], intensity[idx])

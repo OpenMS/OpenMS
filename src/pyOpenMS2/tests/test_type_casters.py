@@ -129,7 +129,7 @@ class TestNumpyArrayCasters:
         assert isinstance(mz, np.ndarray)
         assert isinstance(intensity, np.ndarray)
         assert mz.dtype == np.float64
-        assert intensity.dtype == np.float64
+        assert intensity.dtype == np.float32
 
     def test_set_peaks_from_float64(self):
         """Test set_peaks with float64 arrays."""

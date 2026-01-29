@@ -11,7 +11,8 @@
 #pragma once
 
 #include <nanobind/nanobind.h>
-#include <nanobind/stl/string.h>
+// Use custom std::string caster that accepts both str and bytes (matching pyOpenMS/Cython behavior)
+#include "std_string_bytes_caster.h"
 #include <nanobind/stl/vector.h>
 #include <nanobind/stl/map.h>
 #include <nanobind/stl/set.h>
