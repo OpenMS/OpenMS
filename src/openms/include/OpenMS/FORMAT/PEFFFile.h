@@ -144,14 +144,16 @@ namespace OpenMS
     String id1;                  ///< First annotation ID or position
     String id2;                  ///< Second annotation ID or position
     String description;          ///< Optional description (e.g., "between chains")
+    String annotation_id;        ///< Optional annotation identifier (when HasAnnotationIdentifiers=true)
 
     PEFFDisulfideBond() = default;
-    PEFFDisulfideBond(const String& i1, const String& i2, const String& desc = "")
-      : id1(i1), id2(i2), description(desc) {}
+    PEFFDisulfideBond(const String& i1, const String& i2, const String& desc = "", const String& aid = "")
+      : id1(i1), id2(i2), description(desc), annotation_id(aid) {}
 
     bool operator==(const PEFFDisulfideBond& rhs) const
     {
-      return id1 == rhs.id1 && id2 == rhs.id2 && description == rhs.description;
+      return id1 == rhs.id1 && id2 == rhs.id2 && description == rhs.description &&
+             annotation_id == rhs.annotation_id;
     }
   };
 
@@ -366,6 +368,7 @@ namespace OpenMS
     std::map<String, String> specific_values;  ///< SpecificValue definitions (key -> type)
     std::vector<String> optional_tag_defs;
     bool has_annotation_identifiers{false};    ///< Whether entries use annotation identifiers
+    bool is_proteoform_db{false};              ///< Whether this is a proteoform database (ProteoformDb)
 
     PEFFDatabaseMetadata() = default;
 
@@ -386,7 +389,8 @@ namespace OpenMS
              specific_keys == rhs.specific_keys &&
              specific_values == rhs.specific_values &&
              optional_tag_defs == rhs.optional_tag_defs &&
-             has_annotation_identifiers == rhs.has_annotation_identifiers;
+             has_annotation_identifiers == rhs.has_annotation_identifiers &&
+             is_proteoform_db == rhs.is_proteoform_db;
     }
   };
 

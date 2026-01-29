@@ -1,0 +1,15 @@
+# PEFF 1.0
+# //
+# DbName=ModTypeTest
+# Prefix=mt
+# DbDescription=Test file for modification type distinction
+# Decoy=false
+# DbVersion=1.0
+# DbSource=test
+# NumberOfEntries=2
+# SequenceType=AA
+# //
+>mt:P00001 \PName=(Mod Type Test Protein) \GName=TEST1 \NcbiTaxId=9606 \Length=30 \ModResPsi=(10|MOD:00046|O-phospho-L-serine)(20|MOD:00048|O4'-phospho-L-tyrosine) \ModResUnimod=(5|UNIMOD:35|Oxidation)(15|UNIMOD:21|Phospho) \ModRes=(25||N-linked (GlcNAc...))
+MSEQVENCEOFTHEFIRSTPROTEINWITH
+>mt:P00002 \PName=(Comma Position Test) \Length=30 \ModResUnimod=(5,10,15|UNIMOD:21|Phospho) \ProteoformDb=false
+MSEQVENCEOFTHEFIRSTPROTEINWITH

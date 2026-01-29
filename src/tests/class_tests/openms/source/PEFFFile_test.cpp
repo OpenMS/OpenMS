@@ -1225,6 +1225,175 @@ START_SECTION([PEFFEntry] generatePeptides_no_reference_with_peff_mods)
 }
 END_SECTION
 
+START_SECTION(test_modification_type_roundtrip)
+{
+  // Test Fix #1: Modifications are written with correct type-specific keys
+  // and Fix #2: Comma-separated positions are expanded
+  vector<PEFFEntry> entries;
+  vector<PEFFDatabaseMetadata> headers;
+  PEFFFile file;
+
+  file.load(OPENMS_GET_TEST_DATA_PATH("PEFFFile_modtypes.peff"), entries, headers);
+
+  // Check first entry - modifications from different keys
+  TEST_EQUAL(entries.size(), 2)
+  TEST_EQUAL(entries[0].identifier, "mt:P00001")
+
+  // Should have 5 modifications total (2 PSI, 2 UNIMOD, 1 GENERIC)
+  TEST_EQUAL(entries[0].modifications.size(), 5)
+
+  // Check types are correctly assigned based on key name
+  int psi_count = 0, unimod_count = 0, generic_count = 0;
+  for (const auto& mod : entries[0].modifications)
+  {
+    if (mod.type == PEFFModification::Type::PSI_MOD) psi_count++;
+    else if (mod.type == PEFFModification::Type::UNIMOD) unimod_count++;
+    else if (mod.type == PEFFModification::Type::GENERIC) generic_count++;
+  }
+  TEST_EQUAL(psi_count, 2)
+  TEST_EQUAL(unimod_count, 2)
+  TEST_EQUAL(generic_count, 1)
+
+  // Second entry - comma-separated positions should expand to 3 mods
+  TEST_EQUAL(entries[1].identifier, "mt:P00002")
+  TEST_EQUAL(entries[1].modifications.size(), 3)
+  TEST_EQUAL(entries[1].modifications[0].position, 5)
+  TEST_EQUAL(entries[1].modifications[1].position, 10)
+  TEST_EQUAL(entries[1].modifications[2].position, 15)
+  // All should be UNIMOD type
+  for (const auto& mod : entries[1].modifications)
+  {
+    TEST_EQUAL(mod.type, PEFFModification::Type::UNIMOD)
+    TEST_EQUAL(mod.accession, "UNIMOD:21")
+    TEST_EQUAL(mod.name, "Phospho")
+  }
+
+  // Roundtrip test: store and reload, check types preserved
+  String tmp_filename;
+  NEW_TMP_FILE(tmp_filename);
+  file.store(tmp_filename, entries, headers[0]);
+
+  vector<PEFFEntry> entries2;
+  vector<PEFFDatabaseMetadata> headers2;
+  file.load(tmp_filename, entries2, headers2);
+
+  // After roundtrip, modification types should be preserved
+  TEST_EQUAL(entries2[0].modifications.size(), entries[0].modifications.size())
+  for (Size i = 0; i < entries[0].modifications.size(); ++i)
+  {
+    TEST_EQUAL(entries[0].modifications[i].type, entries2[0].modifications[i].type)
+    TEST_EQUAL(entries[0].modifications[i].position, entries2[0].modifications[i].position)
+    TEST_EQUAL(entries[0].modifications[i].accession, entries2[0].modifications[i].accession)
+  }
+}
+END_SECTION
+
+START_SECTION(test_proteoform_db_header)
+{
+  // Test Fix #4: ProteoformDb header field
+  PEFFDatabaseMetadata header;
+  header.db_name = "ProteoformTest";
+  header.prefix = "pf";
+  header.db_version = "1.0";
+  header.db_sources.push_back("test");
+  header.number_of_entries = 1;
+  header.is_proteoform_db = true;
+
+  PEFFEntry entry;
+  entry.identifier = "pf:P00001";
+  entry.sequence = "PEPTIDE";
+  entry.sequence_length = 7;
+
+  String tmp_filename;
+  NEW_TMP_FILE(tmp_filename);
+  PEFFFile file;
+  vector<PEFFEntry> entries = {entry};
+  file.store(tmp_filename, entries, header);
+
+  // Reload and check
+  vector<PEFFEntry> entries2;
+  vector<PEFFDatabaseMetadata> headers2;
+  file.load(tmp_filename, entries2, headers2);
+
+  TEST_EQUAL(headers2.size(), 1)
+  TEST_EQUAL(headers2[0].is_proteoform_db, true)
+}
+END_SECTION
+
+START_SECTION(test_altac_parenthesized_list)
+{
+  // Test Fix #13: AltAC written as single key with parenthesized list
+  PEFFEntry entry;
+  entry.identifier = "sp:P12345";
+  entry.sequence = "PEPTIDE";
+  entry.sequence_length = 7;
+  entry.alt_accessions.push_back("Q11111");
+  entry.alt_accessions.push_back("Q22222");
+  entry.alt_accessions.push_back("Q33333");
+
+  PEFFDatabaseMetadata header;
+  header.db_name = "AltACTest";
+  header.prefix = "sp";
+  header.db_version = "1.0";
+  header.db_sources.push_back("test");
+  header.number_of_entries = 1;
+
+  String tmp_filename;
+  NEW_TMP_FILE(tmp_filename);
+  PEFFFile file;
+  vector<PEFFEntry> entries = {entry};
+  file.store(tmp_filename, entries, header);
+
+  // Reload and check all accessions preserved
+  vector<PEFFEntry> entries2;
+  vector<PEFFDatabaseMetadata> headers2;
+  file.load(tmp_filename, entries2, headers2);
+
+  TEST_EQUAL(entries2[0].alt_accessions.size(), 3)
+  TEST_EQUAL(entries2[0].alt_accessions[0], "Q11111")
+  TEST_EQUAL(entries2[0].alt_accessions[1], "Q22222")
+  TEST_EQUAL(entries2[0].alt_accessions[2], "Q33333")
+}
+END_SECTION
+
+START_SECTION(test_disulfide_bond_annotation_id)
+{
+  // Test Fix #8: DisulfideBond annotation ID extraction
+  PEFFEntry entry;
+  entry.identifier = "sp:P12345";
+  entry.sequence = "PEPTIDE";
+  entry.sequence_length = 7;
+
+  PEFFDisulfideBond bond("1", "2", "between chains", "5");
+  entry.disulfide_bonds.push_back(bond);
+
+  PEFFDatabaseMetadata header;
+  header.db_name = "DSBondTest";
+  header.prefix = "sp";
+  header.db_version = "1.0";
+  header.db_sources.push_back("test");
+  header.number_of_entries = 1;
+  header.has_annotation_identifiers = true;
+
+  String tmp_filename;
+  NEW_TMP_FILE(tmp_filename);
+  PEFFFile file;
+  vector<PEFFEntry> entries = {entry};
+  file.store(tmp_filename, entries, header);
+
+  // Reload and check annotation ID preserved
+  vector<PEFFEntry> entries2;
+  vector<PEFFDatabaseMetadata> headers2;
+  file.load(tmp_filename, entries2, headers2);
+
+  TEST_EQUAL(entries2[0].disulfide_bonds.size(), 1)
+  TEST_EQUAL(entries2[0].disulfide_bonds[0].annotation_id, "5")
+  TEST_EQUAL(entries2[0].disulfide_bonds[0].id1, "1")
+  TEST_EQUAL(entries2[0].disulfide_bonds[0].id2, "2")
+  TEST_EQUAL(entries2[0].disulfide_bonds[0].description, "between chains")
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

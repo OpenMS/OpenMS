@@ -234,6 +234,7 @@ cdef extern from "<OpenMS/FORMAT/PEFFFile.h>" namespace "OpenMS":
         String id1
         String id2
         String description
+        String annotation_id
 
 
 cdef extern from "<OpenMS/FORMAT/PEFFFile.h>" namespace "OpenMS":
@@ -408,3 +409,4 @@ cdef extern from "<OpenMS/FORMAT/PEFFFile.h>" namespace "OpenMS":
         libcpp_map[String, String] specific_values
         libcpp_vector[String] optional_tag_defs
         bool has_annotation_identifiers
+        bool is_proteoform_db
